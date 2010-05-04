@@ -8,7 +8,7 @@ theory RefMappings
 imports Traces
 begin
 
-defaultsort type
+default_sort type
 
 definition
   move :: "[('a,'s)ioa,('a,'s)pairs,'s,'a,'s] => bool" where

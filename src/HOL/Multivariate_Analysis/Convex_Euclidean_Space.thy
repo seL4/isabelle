@@ -5,7 +5,7 @@
 header {* Convex sets, functions and related things. *}
 
 theory Convex_Euclidean_Space
-imports Topology_Euclidean_Space
+imports Topology_Euclidean_Space Convex
 begin
 
 
@@ -15,16 +15,10 @@ begin
 
 declare vector_add_ldistrib[simp] vector_ssub_ldistrib[simp] vector_smult_assoc[simp] vector_smult_rneg[simp]
 declare vector_sadd_rdistrib[simp] vector_sub_rdistrib[simp]
-declare UNIV_1[simp]
 
 (*lemma dim1in[intro]:"Suc 0 \<in> {1::nat .. CARD(1)}" by auto*)
 
 lemmas vector_component_simps = vector_minus_component vector_smult_component vector_add_component vector_le_def Cart_lambda_beta basis_component vector_uminus_component
-
-lemma dest_vec1_simps[simp]: fixes a::"real^1"
-  shows "a$1 = 0 \<longleftrightarrow> a = 0" (*"a \<le> 1 \<longleftrightarrow> dest_vec1 a \<le> 1" "0 \<le> a \<longleftrightarrow> 0 \<le> dest_vec1 a"*)
-  "a \<le> b \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 b" "dest_vec1 (1::real^1) = 1"
-  by(auto simp add:vector_component_simps forall_1 Cart_eq)
 
 lemma norm_not_0:"(x::real^'n)\<noteq>0 \<Longrightarrow> norm x \<noteq> 0" by auto
 
@@ -47,31 +41,9 @@ lemma not_disjointI:"x\<in>A \<Longrightarrow> x\<in>B \<Longrightarrow> A \<int
 
 lemma if_smult:"(if P then x else (y::real)) *\<^sub>R v = (if P then x *\<^sub>R v else y *\<^sub>R v)" by auto
 
-lemma mem_interval_1: fixes x :: "real^1" shows
- "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
- "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp_all add: Cart_eq vector_less_def vector_le_def forall_1)
-
 lemma image_smult_interval:"(\<lambda>x. m *\<^sub>R (x::real^'n)) ` {a..b} =
   (if {a..b} = {} then {} else if 0 \<le> m then {m *\<^sub>R a..m *\<^sub>R b} else {m *\<^sub>R b..m *\<^sub>R a})"
   using image_affinity_interval[of m 0 a b] by auto
-
-lemma dest_vec1_inverval:
-  "dest_vec1 ` {a .. b} = {dest_vec1 a .. dest_vec1 b}"
-  "dest_vec1 ` {a<.. b} = {dest_vec1 a<.. dest_vec1 b}"
-  "dest_vec1 ` {a ..<b} = {dest_vec1 a ..<dest_vec1 b}"
-  "dest_vec1 ` {a<..<b} = {dest_vec1 a<..<dest_vec1 b}"
-  apply(rule_tac [!] equalityI)
-  unfolding subset_eq Ball_def Bex_def mem_interval_1 image_iff
-  apply(rule_tac [!] allI)apply(rule_tac [!] impI)
-  apply(rule_tac[2] x="vec1 x" in exI)apply(rule_tac[4] x="vec1 x" in exI)
-  apply(rule_tac[6] x="vec1 x" in exI)apply(rule_tac[8] x="vec1 x" in exI)
-  by (auto simp add: vector_less_def vector_le_def forall_1
-    vec1_dest_vec1[unfolded One_nat_def])
-
-lemma dest_vec1_setsum: assumes "finite S"
-  shows " dest_vec1 (setsum f S) = setsum (\<lambda>x. dest_vec1 (f x)) S"
-  using dest_vec1_sum[OF assms] by auto
 
 lemma dist_triangle_eq:
   fixes x y z :: "real ^ _"
@@ -90,7 +62,7 @@ lemma dimindex_ge_1:"CARD(_::finite) \<ge> 1"
   using one_le_card_finite by auto
 
 lemma real_dimindex_ge_1:"real (CARD('n::finite)) \<ge> 1" 
-  by(metis dimindex_ge_1 linorder_not_less real_eq_of_nat real_le_trans real_of_nat_1 real_of_nat_le_iff) 
+  by(metis dimindex_ge_1 real_eq_of_nat real_of_nat_1 real_of_nat_le_iff) 
 
 lemma real_dimindex_gt_0:"real (CARD('n::finite)) > 0" apply(rule less_le_trans[OF _ real_dimindex_ge_1]) by auto
 
@@ -343,150 +315,6 @@ lemma affine_hull_span:
   shows "affine hull s = {a + v | v. v \<in> span {x - a | x. x \<in> s - {a}}}"
   using affine_hull_insert_span[of a "s - {a}", unfolded insert_Diff[OF assms]] by auto
 
-subsection {* Convexity. *}
-
-definition
-  convex :: "'a::real_vector set \<Rightarrow> bool" where
-  "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s)"
-
-lemma convex_alt: "convex s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u. 0 \<le> u \<and> u \<le> 1 \<longrightarrow> ((1 - u) *\<^sub>R x + u *\<^sub>R y) \<in> s)"
-proof- have *:"\<And>u v::real. u + v = 1 \<longleftrightarrow> u = 1 - v" by auto
-  show ?thesis unfolding convex_def apply auto
-    apply(erule_tac x=x in ballE) apply(erule_tac x=y in ballE) apply(erule_tac x="1 - u" in allE)
-    by (auto simp add: *) qed
-
-lemma mem_convex:
-  assumes "convex s" "a \<in> s" "b \<in> s" "0 \<le> u" "u \<le> 1"
-  shows "((1 - u) *\<^sub>R a + u *\<^sub>R b) \<in> s"
-  using assms unfolding convex_alt by auto
-
-lemma convex_vec1:"convex (vec1 ` s) = convex (s::real set)"
-  unfolding convex_def Ball_def forall_vec1 unfolding vec1_dest_vec1_simps image_iff by auto
-
-lemma convex_empty[intro]: "convex {}"
-  unfolding convex_def by simp
-
-lemma convex_singleton[intro]: "convex {a}"
-  unfolding convex_def by (auto simp add:scaleR_left_distrib[THEN sym])
-
-lemma convex_UNIV[intro]: "convex UNIV"
-  unfolding convex_def by auto
-
-lemma convex_Inter: "(\<forall>s\<in>f. convex s) ==> convex(\<Inter> f)"
-  unfolding convex_def by auto
-
-lemma convex_Int: "convex s \<Longrightarrow> convex t \<Longrightarrow> convex (s \<inter> t)"
-  unfolding convex_def by auto
-
-lemma convex_halfspace_le: "convex {x. inner a x \<le> b}"
-  unfolding convex_def apply auto
-  unfolding inner_add inner_scaleR
-  by (metis real_convex_bound_le)
-
-lemma convex_halfspace_ge: "convex {x. inner a x \<ge> b}"
-proof- have *:"{x. inner a x \<ge> b} = {x. inner (-a) x \<le> -b}" by auto
-  show ?thesis apply(unfold *) using convex_halfspace_le[of "-a" "-b"] by auto qed
-
-lemma convex_hyperplane: "convex {x. inner a x = b}"
-proof-
-  have *:"{x. inner a x = b} = {x. inner a x \<le> b} \<inter> {x. inner a x \<ge> b}" by auto
-  show ?thesis unfolding * apply(rule convex_Int)
-    using convex_halfspace_le convex_halfspace_ge by auto
-qed
-
-lemma convex_halfspace_lt: "convex {x. inner a x < b}"
-  unfolding convex_def
-  by(auto simp add: real_convex_bound_lt inner_add)
-
-lemma convex_halfspace_gt: "convex {x. inner a x > b}"
-   using convex_halfspace_lt[of "-a" "-b"] by auto
-
-lemma convex_positive_orthant: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
-  unfolding convex_def apply auto apply(erule_tac x=i in allE)+
-  apply(rule add_nonneg_nonneg) by(auto simp add: mult_nonneg_nonneg)
-
-subsection {* Explicit expressions for convexity in terms of arbitrary sums. *}
-
-lemma convex: "convex s \<longleftrightarrow>
-  (\<forall>(k::nat) u x. (\<forall>i. 1\<le>i \<and> i\<le>k \<longrightarrow> 0 \<le> u i \<and> x i \<in>s) \<and> (setsum u {1..k} = 1)
-           \<longrightarrow> setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} \<in> s)"
-  unfolding convex_def apply rule apply(rule allI)+ defer apply(rule ballI)+ apply(rule allI)+ proof(rule,rule,rule,rule)
-  fix x y u v assume as:"\<forall>(k::nat) u x. (\<forall>i. 1 \<le> i \<and> i \<le> k \<longrightarrow> 0 \<le> u i \<and> x i \<in> s) \<and> setsum u {1..k} = 1 \<longrightarrow> (\<Sum>i = 1..k. u i *\<^sub>R x i) \<in> s"
-    "x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
-  show "u *\<^sub>R x + v *\<^sub>R y \<in> s" using as(1)[THEN spec[where x=2], THEN spec[where x="\<lambda>n. if n=1 then u else v"], THEN spec[where x="\<lambda>n. if n=1 then x else y"]] and as(2-)
-    by (auto simp add: setsum_head_Suc) 
-next
-  fix k u x assume as:"\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s" 
-  show "(\<forall>i::nat. 1 \<le> i \<and> i \<le> k \<longrightarrow> 0 \<le> u i \<and> x i \<in> s) \<and> setsum u {1..k} = 1 \<longrightarrow> (\<Sum>i = 1..k. u i *\<^sub>R x i) \<in> s" apply(rule,erule conjE) proof(induct k arbitrary: u)
-  case (Suc k) show ?case proof(cases "u (Suc k) = 1")
-    case True hence "(\<Sum>i = Suc 0..k. u i *\<^sub>R x i) = 0" apply(rule_tac setsum_0') apply(rule ccontr) unfolding ball_simps apply(erule bexE) proof-
-      fix i assume i:"i \<in> {Suc 0..k}" "u i *\<^sub>R x i \<noteq> 0"
-      hence ui:"u i \<noteq> 0" by auto
-      hence "setsum (\<lambda>k. if k=i then u i else 0) {1 .. k} \<le> setsum u {1 .. k}" apply(rule_tac setsum_mono) using Suc(2) by auto
-      hence "setsum u {1 .. k} \<ge> u i" using i(1) by(auto simp add: setsum_delta) 
-      hence "setsum u {1 .. k} > 0"  using ui apply(rule_tac less_le_trans[of _ "u i"]) using Suc(2)[THEN spec[where x=i]] and i(1) by auto
-      thus False using Suc(3) unfolding setsum_cl_ivl_Suc and True by simp qed
-    thus ?thesis unfolding setsum_cl_ivl_Suc using True and Suc(2) by auto
-  next
-    have *:"setsum u {1..k} = 1 - u (Suc k)" using Suc(3)[unfolded setsum_cl_ivl_Suc] by auto
-    have **:"u (Suc k) \<le> 1" unfolding not_le using Suc(3) using setsum_nonneg[of "{1..k}" u] using Suc(2) by auto
-    have ***:"\<And>i k. (u i / (1 - u (Suc k))) *\<^sub>R x i = (inverse (1 - u (Suc k))) *\<^sub>R (u i *\<^sub>R x i)" unfolding real_divide_def by (auto simp add: algebra_simps)
-    case False hence nn:"1 - u (Suc k) \<noteq> 0" by auto
-    have "(\<Sum>i = 1..k. (u i / (1 - u (Suc k))) *\<^sub>R x i) \<in> s" apply(rule Suc(1)) unfolding setsum_divide_distrib[THEN sym] and *
-      apply(rule_tac allI) apply(rule,rule) apply(rule divide_nonneg_pos) using nn Suc(2) ** by auto
-    hence "(1 - u (Suc k)) *\<^sub>R (\<Sum>i = 1..k. (u i / (1 - u (Suc k))) *\<^sub>R x i) + u (Suc k) *\<^sub>R x (Suc k) \<in> s"
-      apply(rule as[THEN bspec, THEN bspec, THEN spec, THEN mp, THEN spec, THEN mp, THEN mp]) using Suc(2)[THEN spec[where x="Suc k"]] and ** by auto
-    thus ?thesis unfolding setsum_cl_ivl_Suc and *** and scaleR_right.setsum [symmetric] using nn by auto qed qed auto qed
-
-
-lemma convex_explicit:
-  fixes s :: "'a::real_vector set"
-  shows "convex s \<longleftrightarrow>
-  (\<forall>t u. finite t \<and> t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> setsum (\<lambda>x. u x *\<^sub>R x) t \<in> s)"
-  unfolding convex_def apply(rule,rule,rule) apply(subst imp_conjL,rule) defer apply(rule,rule,rule,rule,rule,rule,rule) proof-
-  fix x y u v assume as:"\<forall>t u. finite t \<and> t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" "x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
-  show "u *\<^sub>R x + v *\<^sub>R y \<in> s" proof(cases "x=y")
-    case True show ?thesis unfolding True and scaleR_left_distrib[THEN sym] using as(3,6) by auto next
-    case False thus ?thesis using as(1)[THEN spec[where x="{x,y}"], THEN spec[where x="\<lambda>z. if z=x then u else v"]] and as(2-) by auto qed
-next 
-  fix t u assume asm:"\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s" "finite (t::'a set)"
-  (*"finite t" "t \<subseteq> s" "\<forall>x\<in>t. (0::real) \<le> u x" "setsum u t = 1"*)
-  from this(2) have "\<forall>u. t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" apply(induct_tac t rule:finite_induct)
-    prefer 3 apply (rule,rule) apply(erule conjE)+ proof-
-    fix x f u assume ind:"\<forall>u. f \<subseteq> s \<and> (\<forall>x\<in>f. 0 \<le> u x) \<and> setsum u f = 1 \<longrightarrow> (\<Sum>x\<in>f. u x *\<^sub>R x) \<in> s"
-    assume as:"finite f" "x \<notin> f" "insert x f \<subseteq> s" "\<forall>x\<in>insert x f. 0 \<le> u x" "setsum u (insert x f) = (1::real)"
-    show "(\<Sum>x\<in>insert x f. u x *\<^sub>R x) \<in> s" proof(cases "u x = 1")
-      case True hence "setsum (\<lambda>x. u x *\<^sub>R x) f = 0" apply(rule_tac setsum_0') apply(rule ccontr) unfolding ball_simps apply(erule bexE) proof-
-        fix y assume y:"y \<in> f" "u y *\<^sub>R y \<noteq> 0"
-        hence uy:"u y \<noteq> 0" by auto
-        hence "setsum (\<lambda>k. if k=y then u y else 0) f \<le> setsum u f" apply(rule_tac setsum_mono) using as(4) by auto
-        hence "setsum u f \<ge> u y" using y(1) and as(1) by(auto simp add: setsum_delta) 
-        hence "setsum u f > 0" using uy apply(rule_tac less_le_trans[of _ "u y"]) using as(4) and y(1) by auto
-        thus False using as(2,5) unfolding setsum_clauses(2)[OF as(1)] and True by auto qed
-      thus ?thesis unfolding setsum_clauses(2)[OF as(1)] using as(2,3) unfolding True by auto
-    next
-      have *:"setsum u f = setsum u (insert x f) - u x" using as(2) unfolding setsum_clauses(2)[OF as(1)] by auto
-      have **:"u x \<le> 1" unfolding not_le using as(5)[unfolded setsum_clauses(2)[OF as(1)]] and as(2)
-        using setsum_nonneg[of f u] and as(4) by auto
-      case False hence "inverse (1 - u x) *\<^sub>R (\<Sum>x\<in>f. u x *\<^sub>R x) \<in> s" unfolding scaleR_right.setsum and scaleR_scaleR
-        apply(rule_tac ind[THEN spec, THEN mp]) apply rule defer apply rule apply rule apply(rule mult_nonneg_nonneg)
-        unfolding setsum_right_distrib[THEN sym] and * using as and ** by auto
-      hence "u x *\<^sub>R x + (1 - u x) *\<^sub>R ((inverse (1 - u x)) *\<^sub>R setsum (\<lambda>x. u x *\<^sub>R x) f) \<in>s" 
-        apply(rule_tac asm(1)[THEN bspec, THEN bspec, THEN spec, THEN mp, THEN spec, THEN mp, THEN mp]) using as and ** False by auto 
-      thus ?thesis unfolding setsum_clauses(2)[OF as(1)] using as(2) and False by auto qed
-  qed auto thus "t \<subseteq> s \<and> (\<forall>x\<in>t. 0 \<le> u x) \<and> setsum u t = 1 \<longrightarrow> (\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" by auto
-qed
-
-lemma convex_finite: assumes "finite s"
-  shows "convex s \<longleftrightarrow> (\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1
-                      \<longrightarrow> setsum (\<lambda>x. u x *\<^sub>R x) s \<in> s)"
-  unfolding convex_explicit apply(rule, rule, rule) defer apply(rule,rule,rule)apply(erule conjE)+ proof-
-  fix t u assume as:"\<forall>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<longrightarrow> (\<Sum>x\<in>s. u x *\<^sub>R x) \<in> s" " finite t" "t \<subseteq> s" "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = (1::real)"
-  have *:"s \<inter> t = t" using as(3) by auto
-  show "(\<Sum>x\<in>t. u x *\<^sub>R x) \<in> s" using as(1)[THEN spec[where x="\<lambda>x. if x\<in>t then u x else 0"]]
-    unfolding if_smult and setsum_cases[OF assms] using as(2-) * by auto
-qed (erule_tac x=s in allE, erule_tac x=u in allE, auto)
-
 subsection {* Cones. *}
 
 definition
@@ -597,49 +425,15 @@ subsection {* One rather trivial consequence. *}
 lemma connected_UNIV[intro]: "connected (UNIV :: 'a::real_normed_vector set)"
   by(simp add: convex_connected convex_UNIV)
 
-subsection {* Convex functions into the reals. *}
+subsection {* Balls, being convex, are connected. *}
 
-definition
-  convex_on :: "'a::real_vector set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool" where
-  "convex_on s f \<longleftrightarrow>
-  (\<forall>x\<in>s. \<forall>y\<in>s. \<forall>u\<ge>0. \<forall>v\<ge>0. u + v = 1 \<longrightarrow> f (u *\<^sub>R x + v *\<^sub>R y) \<le> u * f x + v * f y)"
+lemma convex_box:
+  assumes "\<And>i. convex {x. P i x}"
+  shows "convex {x. \<forall>i. P i (x$i)}"
+using assms unfolding convex_def by auto
 
-lemma convex_on_subset: "convex_on t f \<Longrightarrow> s \<subseteq> t \<Longrightarrow> convex_on s f"
-  unfolding convex_on_def by auto
-
-lemma convex_add[intro]:
-  assumes "convex_on s f" "convex_on s g"
-  shows "convex_on s (\<lambda>x. f x + g x)"
-proof-
-  { fix x y assume "x\<in>s" "y\<in>s" moreover
-    fix u v ::real assume "0 \<le> u" "0 \<le> v" "u + v = 1"
-    ultimately have "f (u *\<^sub>R x + v *\<^sub>R y) + g (u *\<^sub>R x + v *\<^sub>R y) \<le> (u * f x + v * f y) + (u * g x + v * g y)"
-      using assms(1)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
-      using assms(2)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
-      apply - apply(rule add_mono) by auto
-    hence "f (u *\<^sub>R x + v *\<^sub>R y) + g (u *\<^sub>R x + v *\<^sub>R y) \<le> u * (f x + g x) + v * (f y + g y)" by (simp add: ring_simps)  }
-  thus ?thesis unfolding convex_on_def by auto 
-qed
-
-lemma convex_cmul[intro]:
-  assumes "0 \<le> (c::real)" "convex_on s f"
-  shows "convex_on s (\<lambda>x. c * f x)"
-proof-
-  have *:"\<And>u c fx v fy ::real. u * (c * fx) + v * (c * fy) = c * (u * fx + v * fy)" by (simp add: ring_simps)
-  show ?thesis using assms(2) and mult_mono1[OF _ assms(1)] unfolding convex_on_def and * by auto
-qed
-
-lemma convex_lower:
-  assumes "convex_on s f"  "x\<in>s"  "y \<in> s"  "0 \<le> u"  "0 \<le> v"  "u + v = 1"
-  shows "f (u *\<^sub>R x + v *\<^sub>R y) \<le> max (f x) (f y)"
-proof-
-  let ?m = "max (f x) (f y)"
-  have "u * f x + v * f y \<le> u * max (f x) (f y) + v * max (f x) (f y)" apply(rule add_mono) 
-    using assms(4,5) by(auto simp add: mult_mono1)
-  also have "\<dots> = max (f x) (f y)" using assms(6) unfolding distrib[THEN sym] by auto
-  finally show ?thesis using assms(1)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x=u]]
-    using assms(2-6) by auto 
-qed
+lemma convex_positive_orthant: "convex {x::real^'n. (\<forall>i. 0 \<le> x$i)}"
+  by (rule convex_box) (simp add: atLeast_def[symmetric] convex_real_interval)
 
 lemma convex_local_global_minimum:
   fixes s :: "'a::real_normed_vector set"
@@ -663,76 +457,6 @@ proof(rule ccontr)
   ultimately show False using mult_strict_left_mono[OF y `u>0`] unfolding left_diff_distrib by auto
 qed
 
-lemma convex_distance[intro]:
-  fixes s :: "'a::real_normed_vector set"
-  shows "convex_on s (\<lambda>x. dist a x)"
-proof(auto simp add: convex_on_def dist_norm)
-  fix x y assume "x\<in>s" "y\<in>s"
-  fix u v ::real assume "0 \<le> u" "0 \<le> v" "u + v = 1"
-  have "a = u *\<^sub>R a + v *\<^sub>R a" unfolding scaleR_left_distrib[THEN sym] and `u+v=1` by simp
-  hence *:"a - (u *\<^sub>R x + v *\<^sub>R y) = (u *\<^sub>R (a - x)) + (v *\<^sub>R (a - y))"
-    by (auto simp add: algebra_simps)
-  show "norm (a - (u *\<^sub>R x + v *\<^sub>R y)) \<le> u * norm (a - x) + v * norm (a - y)"
-    unfolding * using norm_triangle_ineq[of "u *\<^sub>R (a - x)" "v *\<^sub>R (a - y)"]
-    using `0 \<le> u` `0 \<le> v` by auto
-qed
-
-subsection {* Arithmetic operations on sets preserve convexity. *}
-
-lemma convex_scaling: "convex s \<Longrightarrow> convex ((\<lambda>x. c *\<^sub>R x) ` s)"
-  unfolding convex_def and image_iff apply auto
-  apply (rule_tac x="u *\<^sub>R x+v *\<^sub>R y" in bexI) by (auto simp add: algebra_simps)
-
-lemma convex_negations: "convex s \<Longrightarrow> convex ((\<lambda>x. -x)` s)"
-  unfolding convex_def and image_iff apply auto
-  apply (rule_tac x="u *\<^sub>R x+v *\<^sub>R y" in bexI) by auto
-
-lemma convex_sums:
-  assumes "convex s" "convex t"
-  shows "convex {x + y| x y. x \<in> s \<and> y \<in> t}"
-proof(auto simp add: convex_def image_iff scaleR_right_distrib)
-  fix xa xb ya yb assume xy:"xa\<in>s" "xb\<in>s" "ya\<in>t" "yb\<in>t"
-  fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "\<exists>x y. u *\<^sub>R xa + u *\<^sub>R ya + (v *\<^sub>R xb + v *\<^sub>R yb) = x + y \<and> x \<in> s \<and> y \<in> t"
-    apply(rule_tac x="u *\<^sub>R xa + v *\<^sub>R xb" in exI) apply(rule_tac x="u *\<^sub>R ya + v *\<^sub>R yb" in exI)
-    using assms(1)[unfolded convex_def, THEN bspec[where x=xa], THEN bspec[where x=xb]]
-    using assms(2)[unfolded convex_def, THEN bspec[where x=ya], THEN bspec[where x=yb]]
-    using uv xy by auto
-qed
-
-lemma convex_differences: 
-  assumes "convex s" "convex t"
-  shows "convex {x - y| x y. x \<in> s \<and> y \<in> t}"
-proof-
-  have "{x - y| x y. x \<in> s \<and> y \<in> t} = {x + y |x y. x \<in> s \<and> y \<in> uminus ` t}" unfolding image_iff apply auto
-    apply(rule_tac x=xa in exI) apply(rule_tac x="-y" in exI) apply simp
-    apply(rule_tac x=xa in exI) apply(rule_tac x=xb in exI) by simp
-  thus ?thesis using convex_sums[OF assms(1)  convex_negations[OF assms(2)]] by auto
-qed
-
-lemma convex_translation: assumes "convex s" shows "convex ((\<lambda>x. a + x) ` s)"
-proof- have "{a + y |y. y \<in> s} = (\<lambda>x. a + x) ` s" by auto
-  thus ?thesis using convex_sums[OF convex_singleton[of a] assms] by auto qed
-
-lemma convex_affinity: assumes "convex s" shows "convex ((\<lambda>x. a + c *\<^sub>R x) ` s)"
-proof- have "(\<lambda>x. a + c *\<^sub>R x) ` s = op + a ` op *\<^sub>R c ` s" by auto
-  thus ?thesis using convex_translation[OF convex_scaling[OF assms], of a c] by auto qed
-
-lemma convex_linear_image:
-  assumes c:"convex s" and l:"bounded_linear f"
-  shows "convex(f ` s)"
-proof(auto simp add: convex_def)
-  interpret f: bounded_linear f by fact
-  fix x y assume xy:"x \<in> s" "y \<in> s"
-  fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
-  show "u *\<^sub>R f x + v *\<^sub>R f y \<in> f ` s" unfolding image_iff
-    apply(rule_tac x="u *\<^sub>R x + v *\<^sub>R y" in bexI)
-    unfolding f.add f.scaleR
-    using c[unfolded convex_def] xy uv by auto
-qed
-
-subsection {* Balls, being convex, are connected. *}
-
 lemma convex_ball:
   fixes x :: "'a::real_normed_vector"
   shows "convex (ball x e)" 
@@ -741,18 +465,18 @@ proof(auto simp add: convex_def)
   fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
   have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z" using uv yz
     using convex_distance[of "ball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]] by auto
-  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) < e" using real_convex_bound_lt[OF yz uv] by auto 
+  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) < e" using convex_bound_lt[OF yz uv] by auto
 qed
 
 lemma convex_cball:
   fixes x :: "'a::real_normed_vector"
   shows "convex(cball x e)"
-proof(auto simp add: convex_def Ball_def mem_cball)
+proof(auto simp add: convex_def Ball_def)
   fix y z assume yz:"dist x y \<le> e" "dist x z \<le> e"
   fix u v ::real assume uv:" 0 \<le> u" "0 \<le> v" "u + v = 1"
   have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z" using uv yz
     using convex_distance[of "cball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]] by auto
-  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e" using real_convex_bound_le[OF yz uv] by auto 
+  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e" using convex_bound_le[OF yz uv] by auto 
 qed
 
 lemma connected_ball:
@@ -1031,7 +755,7 @@ lemma convex_hull_3:
 proof-
   have fin:"finite {a,b,c}" "finite {b,c}" "finite {c}" by auto
   have *:"\<And>x y z ::real. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z"
-         "\<And>x y z ::real^_. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: ring_simps)
+         "\<And>x y z ::real^_. x + y + z = 1 \<longleftrightarrow> x = 1 - y - z" by (auto simp add: field_simps)
   show ?thesis unfolding convex_hull_finite[OF fin(1)] and Collect_def and convex_hull_finite_step[OF fin(2)] and *
     unfolding convex_hull_finite_step[OF fin(3)] apply(rule ext) apply simp apply auto
     apply(rule_tac x=va in exI) apply (rule_tac x="u c" in exI) apply simp
@@ -1115,7 +839,7 @@ proof-
     hence "x + y \<in> s" using `?lhs`[unfolded convex_def, THEN conjunct1]
       apply(erule_tac x="2*\<^sub>R x" in ballE) apply(erule_tac x="2*\<^sub>R y" in ballE)
       apply(erule_tac x="1/2" in allE) apply simp apply(erule_tac x="1/2" in allE) by auto  }
-  thus ?thesis unfolding convex_def cone_def by auto
+  thus ?thesis unfolding convex_def cone_def by blast
 qed
 
 lemma affine_dependent_biggerset: fixes s::"(real^'n) set"
@@ -1230,7 +954,7 @@ lemma open_convex_hull[intro]:
   fixes s :: "'a::real_normed_vector set"
   assumes "open s"
   shows "open(convex hull s)"
-  unfolding open_contains_cball convex_hull_explicit unfolding mem_Collect_eq ball_simps(10) 
+  unfolding open_contains_cball convex_hull_explicit unfolding mem_Collect_eq ball_simps(10)
 proof(rule, rule) fix a
   assume "\<exists>sa u. finite sa \<and> sa \<subseteq> s \<and> (\<forall>x\<in>sa. 0 \<le> u x) \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = a"
   then obtain t u where obt:"finite t" "t\<subseteq>s" "\<forall>x\<in>t. 0 \<le> u x" "setsum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = a" by auto
@@ -1250,7 +974,7 @@ proof(rule, rule) fix a
       hence "Min i \<le> b x" unfolding i_def apply(rule_tac Min_le) using obt(1) by auto
       hence "x + (y - a) \<in> cball x (b x)" using y unfolding mem_cball dist_norm by auto
       moreover from `x\<in>t` have "x\<in>s" using obt(2) by auto
-      ultimately have "x + (y - a) \<in> s" using y and b[THEN bspec[where x=x]] unfolding subset_eq by auto }
+      ultimately have "x + (y - a) \<in> s" using y and b[THEN bspec[where x=x]] unfolding subset_eq by fast }
     moreover
     have *:"inj_on (\<lambda>v. v + (y - a)) t" unfolding inj_on_def by auto
     have "(\<Sum>v\<in>(\<lambda>v. v + (y - a)) ` t. u (v - (y - a))) = 1"
@@ -1264,29 +988,14 @@ proof(rule, rule) fix a
   qed
 qed
 
-lemma open_dest_vec1_vimage: "open S \<Longrightarrow> open (dest_vec1 -` S)"
-unfolding open_vector_def forall_1 by auto
-
-lemma tendsto_dest_vec1 [tendsto_intros]:
-  "(f ---> l) net \<Longrightarrow> ((\<lambda>x. dest_vec1 (f x)) ---> dest_vec1 l) net"
-by(rule tendsto_Cart_nth)
-
-lemma continuous_dest_vec1: "continuous net f \<Longrightarrow> continuous net (\<lambda>x. dest_vec1 (f x))"
-  unfolding continuous_def by (rule tendsto_dest_vec1)
-
 (* TODO: move *)
 lemma compact_real_interval:
   fixes a b :: real shows "compact {a..b}"
-proof -
-  have "continuous_on {vec1 a .. vec1 b} dest_vec1"
-    unfolding continuous_on
-    by (simp add: tendsto_dest_vec1 Lim_at_within Lim_ident_at)
-  moreover have "compact {vec1 a .. vec1 b}" by (rule compact_interval)
-  ultimately have "compact (dest_vec1 ` {vec1 a .. vec1 b})"
-    by (rule compact_continuous_image)
-  also have "dest_vec1 ` {vec1 a .. vec1 b} = {a..b}"
-    by (auto simp add: image_def Bex_def exists_vec1)
-  finally show ?thesis .
+proof (rule bounded_closed_imp_compact)
+  have "\<forall>y\<in>{a..b}. dist a y \<le> dist a b"
+    unfolding dist_real_def by auto
+  thus "bounded {a..b}" unfolding bounded_def by fast
+  show "closed {a..b}" by (rule closed_real_atLeastAtMost)
 qed
 
 lemma compact_convex_combinations:
@@ -1320,7 +1029,7 @@ next
   show ?thesis unfolding caratheodory[of s]
   proof(induct ("CARD('n) + 1"))
     have *:"{x.\<exists>sa. finite sa \<and> sa \<subseteq> s \<and> card sa \<le> 0 \<and> x \<in> convex hull sa} = {}" 
-      using compact_empty by (auto simp add: convex_hull_empty)
+      using compact_empty by auto
     case 0 thus ?case unfolding * by simp
   next
     case (Suc n)
@@ -1330,11 +1039,11 @@ next
         fix x assume "\<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> Suc n \<and> x \<in> convex hull t"
         then obtain t where t:"finite t" "t \<subseteq> s" "card t \<le> Suc n" "x \<in> convex hull t" by auto
         show "x\<in>s" proof(cases "card t = 0")
-          case True thus ?thesis using t(4) unfolding card_0_eq[OF t(1)] by(simp add: convex_hull_empty)
+          case True thus ?thesis using t(4) unfolding card_0_eq[OF t(1)] by simp
         next
           case False hence "card t = Suc 0" using t(3) `n=0` by auto
           then obtain a where "t = {a}" unfolding card_Suc_eq by auto
-          thus ?thesis using t(2,4) by (simp add: convex_hull_singleton)
+          thus ?thesis using t(2,4) by simp
         qed
       next
         fix x assume "x\<in>s"
@@ -1369,7 +1078,7 @@ next
           show ?P proof(cases "u={}")
             case True hence "x=a" using t(4)[unfolded au] by auto
             show ?P unfolding `x=a` apply(rule_tac x=a in exI, rule_tac x=a in exI, rule_tac x=1 in exI)
-              using t and `n\<noteq>0` unfolding au by(auto intro!: exI[where x="{a}"] simp add: convex_hull_singleton)
+              using t and `n\<noteq>0` unfolding au by(auto intro!: exI[where x="{a}"])
           next
             case False obtain ux vx b where obt:"ux\<ge>0" "vx\<ge>0" "ux + vx = 1" "b \<in> convex hull u" "x = ux *\<^sub>R a + vx *\<^sub>R b"
               using t(4)[unfolded au convex_hull_insert[OF False]] by auto
@@ -1382,7 +1091,7 @@ next
       qed
       thus ?thesis using compact_convex_combinations[OF assms Suc] by simp 
     qed
-  qed 
+  qed
 qed
 
 lemma finite_imp_compact_convex_hull:
@@ -1822,7 +1531,7 @@ by (metis convex_convex_hull convex_scaling hull_subset mem_def subset_hull subs
 lemma convex_hull_scaling:
   "convex hull ((\<lambda>x. c *\<^sub>R x) ` s) = (\<lambda>x. c *\<^sub>R x) ` (convex hull s)"
   apply(cases "c=0") defer apply(rule convex_hull_bilemma[rule_format, of _ _ inverse]) apply(rule convex_hull_scaling_lemma)
-  unfolding image_image scaleR_scaleR by(auto simp add:image_constant_conv convex_hull_eq_empty)
+  unfolding image_image scaleR_scaleR by(auto simp add:image_constant_conv)
 
 lemma convex_hull_affinity:
   "convex hull ((\<lambda>x. a + c *\<^sub>R x) ` s) = (\<lambda>x. a + c *\<^sub>R x) ` (convex hull s)"
@@ -1987,13 +1696,11 @@ lemma compact_frontier_line_lemma:
 proof-
   obtain b where b:"b>0" "\<forall>x\<in>s. norm x \<le> b" using compact_imp_bounded[OF assms(1), unfolded bounded_pos] by auto
   let ?A = "{y. \<exists>u. 0 \<le> u \<and> u \<le> b / norm(x) \<and> (y = u *\<^sub>R x)}"
-  have A:"?A = (\<lambda>u. dest_vec1 u *\<^sub>R x) ` {0 .. vec1 (b / norm x)}"
-    unfolding image_image[of "\<lambda>u. u *\<^sub>R x" "\<lambda>x. dest_vec1 x", THEN sym]
-    unfolding dest_vec1_inverval vec1_dest_vec1 by auto
+  have A:"?A = (\<lambda>u. u *\<^sub>R x) ` {0 .. b / norm x}"
+    by auto
   have "compact ?A" unfolding A apply(rule compact_continuous_image, rule continuous_at_imp_continuous_on)
     apply(rule, rule continuous_vmul)
-    apply (rule continuous_dest_vec1)
-    apply(rule continuous_at_id) by(rule compact_interval)
+    apply(rule continuous_at_id) by(rule compact_real_interval)
   moreover have "{y. \<exists>u\<ge>0. u \<le> b / norm x \<and> y = u *\<^sub>R x} \<inter> s \<noteq> {}" apply(rule not_disjointI[OF _ assms(2)])
     unfolding mem_Collect_eq using `b>0` assms(3) by(auto intro!: divide_nonneg_pos)
   ultimately obtain u y where obt: "u\<ge>0" "u \<le> b / norm x" "y = u *\<^sub>R x"
@@ -2129,7 +1836,7 @@ proof-
         unfolding Ball_def mem_cball dist_norm by (auto simp add: norm_basis[unfolded One_nat_def])
       case True show ?thesis unfolding True continuous_at Lim_at apply(rule,rule) apply(rule_tac x="e / B" in exI)
         apply(rule) apply(rule divide_pos_pos) prefer 3 apply(rule,rule,erule conjE)
-        unfolding norm_0 scaleR_zero_left dist_norm diff_0_right norm_scaleR abs_norm_cancel proof-
+        unfolding norm_zero scaleR_zero_left dist_norm diff_0_right norm_scaleR abs_norm_cancel proof-
         fix e and x::"real^'n" assume as:"norm x < e / B" "0 < norm x" "0<e"
         hence "surf (pi x) \<in> frontier s" using pi(1)[of x] unfolding surf(5)[THEN sym] by auto
         hence "norm (surf (pi x)) \<le> B" using B fs by auto
@@ -2204,10 +1911,6 @@ definition "epigraph s (f::_ \<Rightarrow> real) = {xy. fst xy \<in> s \<and> f 
 
 lemma mem_epigraph: "(x, y) \<in> epigraph s f \<longleftrightarrow> x \<in> s \<and> f x \<le> y" unfolding epigraph_def by auto
 
-(** move this**)
-lemma forall_dest_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P(dest_vec1 x))" 
-  apply safe defer apply(erule_tac x="vec1 x" in allE) by auto
-
 (** This might break sooner or later. In fact it did already once. **)
 lemma convex_epigraph: 
   "convex(epigraph s f) \<longleftrightarrow> convex_on s f \<and> convex s"
@@ -2227,27 +1930,6 @@ lemma convex_epigraph_convex:
 by(simp add: convex_epigraph)
 
 subsection {* Use this to derive general bound property of convex function. *}
-
-lemma forall_of_pastecart:
-  "(\<forall>p. P (\<lambda>x. fstcart (p x)) (\<lambda>x. sndcart (p x))) \<longleftrightarrow> (\<forall>x y. P x y)" apply meson
-  apply(erule_tac x="\<lambda>a. pastecart (x a) (y a)" in allE) unfolding o_def by auto
-
-lemma forall_of_pastecart':
-  "(\<forall>p. P (fstcart p) (sndcart p)) \<longleftrightarrow> (\<forall>x y. P x y)" apply meson
-  apply(erule_tac x="pastecart x y" in allE) unfolding o_def by auto
-
-lemma forall_of_dest_vec1: "(\<forall>v. P (\<lambda>x. dest_vec1 (v x))) \<longleftrightarrow> (\<forall>x. P x)"
-  apply rule apply rule apply(erule_tac x="(vec1 \<circ> x)" in allE) unfolding o_def vec1_dest_vec1 by auto 
-
-lemma forall_of_dest_vec1': "(\<forall>v. P (dest_vec1 v)) \<longleftrightarrow> (\<forall>x. P x)"
-  apply rule apply rule apply(erule_tac x="(vec1 x)" in allE) defer apply rule 
-  apply(erule_tac x="dest_vec1 v" in allE) unfolding o_def vec1_dest_vec1 by auto
-
-lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
-by (cases "finite A", induct set: finite, simp_all)
-
-lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
-by (cases "finite A", induct set: finite, simp_all)
 
 lemma convex_on:
   assumes "convex s"
@@ -2281,10 +1963,10 @@ lemma is_interval_convex:
   } moreover
   { fix a b assume "\<not> u * a + v * b \<le> a"
     hence "v * b > (1 - u) * a" unfolding not_le using as(4) by(auto simp add: field_simps)
-    hence "a < b" unfolding * using as(4) apply(rule_tac mult_left_less_imp_less) by(auto simp add: ring_simps)
+    hence "a < b" unfolding * using as(4) apply(rule_tac mult_left_less_imp_less) by(auto simp add: field_simps)
     hence "u * a + v * b \<le> b" unfolding ** using **(2) as(3) by(auto simp add: field_simps intro!:mult_right_mono) }
   ultimately show "u *\<^sub>R x + v *\<^sub>R y \<in> s" apply- apply(rule assms[unfolded is_interval_def, rule_format, OF as(1,2)])
-    using as(3-) dimindex_ge_1 apply- by(auto simp add: vector_component) qed
+    using as(3-) dimindex_ge_1 by auto qed
 
 lemma is_interval_connected:
   fixes s :: "(real ^ _) set"
@@ -2294,6 +1976,7 @@ lemma is_interval_connected:
 lemma convex_interval: "convex {a .. b}" "convex {a<..<b::real^'n}"
   apply(rule_tac[!] is_interval_convex) using is_interval_interval by auto
 
+(* FIXME: rewrite these lemmas without using vec1
 subsection {* On @{text "real^1"}, @{text "is_interval"}, @{text "convex"} and @{text "connected"} are all equivalent. *}
 
 lemma is_interval_1:
@@ -2307,7 +1990,7 @@ lemma is_interval_connected_1: "is_interval s \<longleftrightarrow> connected (s
   hence *:"dest_vec1 a < dest_vec1 x" "dest_vec1 x < dest_vec1 b" apply(rule_tac [!] ccontr) unfolding not_less by auto
   let ?halfl = "{z. inner (basis 1) z < dest_vec1 x} " and ?halfr = "{z. inner (basis 1) z > dest_vec1 x} "
   { fix y assume "y \<in> s" have "y \<in> ?halfr \<union> ?halfl" apply(rule ccontr)
-    using as(6) `y\<in>s` by (auto simp add: inner_vector_def dest_vec1_eq) }
+    using as(6) `y\<in>s` by (auto simp add: inner_vector_def) }
   moreover have "a\<in>?halfl" "b\<in>?halfr" using * by (auto simp add: inner_vector_def)
   hence "?halfl \<inter> s \<noteq> {}" "?halfr \<inter> s \<noteq> {}"  using as(2-3) by auto
   ultimately show False apply(rule_tac notE[OF as(1)[unfolded connected_def]])
@@ -2322,33 +2005,33 @@ by(metis is_interval_convex convex_connected is_interval_connected_1)
 lemma convex_connected_1:
   "connected s \<longleftrightarrow> convex (s::(real^1) set)" 
 by(metis is_interval_convex convex_connected is_interval_connected_1)
-
+*)
 subsection {* Another intermediate value theorem formulation. *}
 
-lemma ivt_increasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  assumes "dest_vec1 a \<le> dest_vec1 b" "continuous_on {a .. b} f" "(f a)$k \<le> y" "y \<le> (f b)$k"
+lemma ivt_increasing_component_on_1: fixes f::"real \<Rightarrow> real^'n"
+  assumes "a \<le> b" "continuous_on {a .. b} f" "(f a)$k \<le> y" "y \<le> (f b)$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
 proof- have "f a \<in> f ` {a..b}" "f b \<in> f ` {a..b}" apply(rule_tac[!] imageI) 
     using assms(1) by(auto simp add: vector_le_def)
   thus ?thesis using connected_ivt_component[of "f ` {a..b}" "f a" "f b" k y]
-    using connected_continuous_image[OF assms(2) convex_connected[OF convex_interval(1)]]
+    using connected_continuous_image[OF assms(2) convex_connected[OF convex_real_interval(5)]]
     using assms by(auto intro!: imageI) qed
 
-lemma ivt_increasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  shows "dest_vec1 a \<le> dest_vec1 b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
+lemma ivt_increasing_component_1: fixes f::"real \<Rightarrow> real^'n"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
    \<Longrightarrow> f a$k \<le> y \<Longrightarrow> y \<le> f b$k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)$k = y"
 by(rule ivt_increasing_component_on_1)
   (auto simp add: continuous_at_imp_continuous_on)
 
-lemma ivt_decreasing_component_on_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  assumes "dest_vec1 a \<le> dest_vec1 b" "continuous_on {a .. b} f" "(f b)$k \<le> y" "y \<le> (f a)$k"
+lemma ivt_decreasing_component_on_1: fixes f::"real \<Rightarrow> real^'n"
+  assumes "a \<le> b" "continuous_on {a .. b} f" "(f b)$k \<le> y" "y \<le> (f a)$k"
   shows "\<exists>x\<in>{a..b}. (f x)$k = y"
   apply(subst neg_equal_iff_equal[THEN sym]) unfolding vector_uminus_component[THEN sym]
   apply(rule ivt_increasing_component_on_1) using assms using continuous_on_neg
-  by(auto simp add:vector_uminus_component)
+  by auto
 
-lemma ivt_decreasing_component_1: fixes f::"real^1 \<Rightarrow> real^'n"
-  shows "dest_vec1 a \<le> dest_vec1 b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
+lemma ivt_decreasing_component_1: fixes f::"real \<Rightarrow> real^'n"
+  shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
     \<Longrightarrow> f b$k \<le> y \<Longrightarrow> y \<le> f a$k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)$k = y"
 by(rule ivt_decreasing_component_on_1)
   (auto simp: continuous_at_imp_continuous_on)
@@ -2386,7 +2069,7 @@ proof- have 01:"{0,1} \<subseteq> convex hull ?points" apply rule apply(rule_tac
         unfolding i'(1) xi_def apply(rule_tac Min_le) unfolding image_iff
         defer apply(rule_tac x=j in bexI) using i' by auto
       have i01:"x$i \<le> 1" "x$i > 0" using Suc(2)[unfolded mem_interval,rule_format,of i] using i'(2) `x$i \<noteq> 0`
-        by(auto simp add: Cart_lambda_beta) 
+        by auto
       show ?thesis proof(cases "x$i=1")
         case True have "\<forall>j\<in>{i. x$i \<noteq> 0}. x$j = 1" apply(rule, rule ccontr) unfolding mem_Collect_eq proof-
           fix j assume "x $ j \<noteq> 0" "x $ j \<noteq> 1"
@@ -2395,21 +2078,21 @@ proof- have 01:"{0,1} \<subseteq> convex hull ?points" apply rule apply(rule_tac
           hence "x$j \<ge> x$i" unfolding i'(1) xi_def apply(rule_tac Min_le) by auto
           thus False using True Suc(2) j by(auto simp add: vector_le_def elim!:ballE[where x=j]) qed
         thus "x\<in>convex hull ?points" apply(rule_tac hull_subset[unfolded subset_eq, rule_format])
-          by(auto simp add: Cart_lambda_beta)
+          by auto
       next let ?y = "\<lambda>j. if x$j = 0 then 0 else (x$j - x$i) / (1 - x$i)"
         case False hence *:"x = x$i *\<^sub>R (\<chi> j. if x$j = 0 then 0 else 1) + (1 - x$i) *\<^sub>R (\<chi> j. ?y j)" unfolding Cart_eq
-          by(auto simp add: Cart_lambda_beta vector_add_component vector_smult_component vector_minus_component field_simps)
+          by(auto simp add: field_simps)
         { fix j have "x$j \<noteq> 0 \<Longrightarrow> 0 \<le> (x $ j - x $ i) / (1 - x $ i)" "(x $ j - x $ i) / (1 - x $ i) \<le> 1"
             apply(rule_tac divide_nonneg_pos) using i(1)[of j] using False i01
-            using Suc(2)[unfolded mem_interval, rule_format, of j] by(auto simp add:field_simps Cart_lambda_beta) 
+            using Suc(2)[unfolded mem_interval, rule_format, of j] by(auto simp add:field_simps)
           hence "0 \<le> ?y j \<and> ?y j \<le> 1" by auto }
-        moreover have "i\<in>{j. x$j \<noteq> 0} - {j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0}" using i01 by(auto simp add: Cart_lambda_beta)
+        moreover have "i\<in>{j. x$j \<noteq> 0} - {j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0}" using i01 by auto
         hence "{j. x$j \<noteq> 0} \<noteq> {j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0}" by auto
-        hence **:"{j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0} \<subset> {j. x$j \<noteq> 0}" apply - apply rule by(auto simp add: Cart_lambda_beta)  
+        hence **:"{j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0} \<subset> {j. x$j \<noteq> 0}" apply - apply rule by auto
         have "card {j. ((\<chi> j. ?y j)::real^'n) $ j \<noteq> 0} \<le> n" using less_le_trans[OF psubset_card_mono[OF _ **] Suc(4)] by auto
         ultimately show ?thesis apply(subst *) apply(rule convex_convex_hull[unfolded convex_def, rule_format])
           apply(rule_tac hull_subset[unfolded subset_eq, rule_format]) defer apply(rule Suc(1))
-          unfolding mem_interval using i01 Suc(3) by (auto simp add: Cart_lambda_beta)
+          unfolding mem_interval using i01 Suc(3) by auto
       qed qed qed } note * = this
   show ?thesis apply rule defer apply(rule hull_minimal) unfolding subset_eq prefer 3 apply rule 
     apply(rule_tac n2="CARD('n)" in *) prefer 3 apply(rule card_mono) using 01 and convex_interval(1) prefer 5 apply - apply rule
@@ -2424,7 +2107,7 @@ lemma unit_cube_convex_hull: obtains s where "finite s" "{0 .. 1::real^'n} = con
   prefer 3 apply(rule unit_interval_convex_hull) apply rule unfolding mem_Collect_eq proof-
   fix x::"real^'n" assume as:"\<forall>i. x $ i = 0 \<or> x $ i = 1"
   show "x \<in> (\<lambda>s. \<chi> i. if i \<in> s then 1 else 0) ` UNIV" apply(rule image_eqI[where x="{i. x$i = 1}"])
-    unfolding Cart_eq using as by(auto simp add:Cart_lambda_beta) qed auto
+    unfolding Cart_eq using as by auto qed auto
 
 subsection {* Hence any cube (could do any nonempty interval). *}
 
@@ -2435,23 +2118,23 @@ lemma cube_convex_hull:
     unfolding image_iff defer apply(erule bexE) proof-
     fix y assume as:"y\<in>{x - ?d .. x + ?d}"
     { fix i::'n have "x $ i \<le> d + y $ i" "y $ i \<le> d + x $ i" using as[unfolded mem_interval, THEN spec[where x=i]]
-        by(auto simp add: vector_component)
+        by auto
       hence "1 \<ge> inverse d * (x $ i - y $ i)" "1 \<ge> inverse d * (y $ i - x $ i)"
         apply(rule_tac[!] mult_left_le_imp_le[OF _ assms]) unfolding mult_assoc[THEN sym]
-        using assms by(auto simp add: field_simps right_inverse) 
+        using assms by(auto simp add: field_simps)
       hence "inverse d * (x $ i * 2) \<le> 2 + inverse d * (y $ i * 2)"
             "inverse d * (y $ i * 2) \<le> 2 + inverse d * (x $ i * 2)" by(auto simp add:field_simps) }
     hence "inverse (2 * d) *\<^sub>R (y - (x - ?d)) \<in> {0..1}" unfolding mem_interval using assms
-      by(auto simp add: Cart_eq vector_component_simps field_simps)
+      by(auto simp add: Cart_eq field_simps)
     thus "\<exists>z\<in>{0..1}. y = x - ?d + (2 * d) *\<^sub>R z" apply- apply(rule_tac x="inverse (2 * d) *\<^sub>R (y - (x - ?d))" in bexI) 
-      using assms by(auto simp add: Cart_eq vector_le_def Cart_lambda_beta)
+      using assms by(auto simp add: Cart_eq vector_le_def)
   next
     fix y z assume as:"z\<in>{0..1}" "y = x - ?d + (2*d) *\<^sub>R z" 
     have "\<And>i. 0 \<le> d * z $ i \<and> d * z $ i \<le> d" using assms as(1)[unfolded mem_interval] apply(erule_tac x=i in allE)
       apply rule apply(rule mult_nonneg_nonneg) prefer 3 apply(rule mult_right_le_one_le)
-      using assms by(auto simp add: vector_component_simps Cart_eq)
+      using assms by(auto simp add: Cart_eq)
     thus "y \<in> {x - ?d..x + ?d}" unfolding as(2) mem_interval apply- apply rule using as(1)[unfolded mem_interval]
-      apply(erule_tac x=i in allE) using assms by(auto simp add:  vector_component_simps Cart_eq) qed
+      apply(erule_tac x=i in allE) using assms by(auto simp add: Cart_eq) qed
   obtain s where "finite s" "{0..1::real^'n} = convex hull s" using unit_cube_convex_hull by auto
   thus ?thesis apply(rule_tac that[of "(\<lambda>y. x - ?d + (2 * d) *\<^sub>R y)` s"]) unfolding * and convex_hull_affinity by auto qed
 
@@ -2541,8 +2224,8 @@ lemma convex_on_continuous:
   have "0 < d" unfolding d_def using `e>0` dimge1 by(rule_tac divide_pos_pos, auto) 
   let ?d = "(\<chi> i. d)::real^'n"
   obtain c where c:"finite c" "{x - ?d..x + ?d} = convex hull c" using cube_convex_hull[OF `d>0`, of x] by auto
-  have "x\<in>{x - ?d..x + ?d}" using `d>0` unfolding mem_interval by(auto simp add:vector_component_simps)
-  hence "c\<noteq>{}" using c by(auto simp add:convex_hull_empty)
+  have "x\<in>{x - ?d..x + ?d}" using `d>0` unfolding mem_interval by auto
+  hence "c\<noteq>{}" using c by auto
   def k \<equiv> "Max (f ` c)"
   have "convex_on {x - ?d..x + ?d} f" apply(rule convex_on_subset[OF assms(2)])
     apply(rule subset_trans[OF _ e(1)]) unfolding subset_eq mem_cball proof 
@@ -2550,7 +2233,7 @@ lemma convex_on_continuous:
     have e:"e = setsum (\<lambda>i. d) (UNIV::'n set)" unfolding setsum_constant d_def using dimge1
       by (metis eq_divide_imp mult_frac_num real_dimindex_gt_0 real_eq_of_nat real_less_def real_mult_commute)
     show "dist x z \<le> e" unfolding dist_norm e apply(rule_tac order_trans[OF norm_le_l1], rule setsum_mono)
-      using z[unfolded mem_interval] apply(erule_tac x=i in allE) by(auto simp add:field_simps vector_component_simps) qed
+      using z[unfolded mem_interval] apply(erule_tac x=i in allE) by auto qed
   hence k:"\<forall>y\<in>{x - ?d..x + ?d}. f y \<le> k" unfolding c(2) apply(rule_tac convex_on_convex_hull_bound) apply assumption
     unfolding k_def apply(rule, rule Max_ge) using c(1) by auto
   have "d \<le> e" unfolding d_def apply(rule mult_imp_div_pos_le) using `e>0` dimge1 unfolding mult_le_cancel_left1 using real_dimindex_ge_1 by auto
@@ -2559,9 +2242,9 @@ lemma convex_on_continuous:
   hence "\<forall>y\<in>cball x d. abs (f y) \<le> k + 2 * abs (f x)" apply(rule_tac convex_bounds_lemma) apply assumption proof
     fix y assume y:"y\<in>cball x d"
     { fix i::'n have "x $ i - d \<le> y $ i"  "y $ i \<le> x $ i + d" 
-        using order_trans[OF component_le_norm y[unfolded mem_cball dist_norm], of i] by(auto simp add: vector_component)  }
+        using order_trans[OF component_le_norm y[unfolded mem_cball dist_norm], of i] by auto  }
     thus "f y \<le> k" apply(rule_tac k[rule_format]) unfolding mem_cball mem_interval dist_norm 
-      by(auto simp add: vector_component_simps) qed
+      by auto qed
   hence "continuous_on (ball x d) f" apply(rule_tac convex_on_bounded_continuous)
     apply(rule open_ball, rule convex_on_subset[OF conv], rule ball_subset_cball)
     apply force
@@ -2580,11 +2263,11 @@ definition
   "midpoint a b = (inverse (2::real)) *\<^sub>R (a + b)"
 
 definition
-  open_segment :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
+  open_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "open_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real.  0 < u \<and> u < 1}"
 
 definition
-  closed_segment :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> (real ^ 'n) set" where
+  closed_segment :: "'a::real_vector \<Rightarrow> 'a \<Rightarrow> 'a set" where
   "closed_segment a b = {(1 - u) *\<^sub>R a + u *\<^sub>R b | u::real. 0 \<le> u \<and> u \<le> 1}"
 
 definition "between = (\<lambda> (a,b). closed_segment a b)"
@@ -2655,12 +2338,14 @@ lemma ends_in_segment: "a \<in> closed_segment a b" "b \<in> closed_segment a b"
   unfolding segment_convex_hull apply(rule_tac[!] hull_subset[unfolded subset_eq, rule_format]) by auto
 
 lemma segment_furthest_le:
+  fixes a b x y :: "real ^ 'n"
   assumes "x \<in> closed_segment a b" shows "norm(y - x) \<le> norm(y - a) \<or>  norm(y - x) \<le> norm(y - b)" proof-
   obtain z where "z\<in>{a, b}" "norm (x - y) \<le> norm (z - y)" using simplex_furthest_le[of "{a, b}" y]
     using assms[unfolded segment_convex_hull] by auto
   thus ?thesis by(auto simp add:norm_minus_commute) qed
 
 lemma segment_bound:
+  fixes x a b :: "real ^ 'n"
   assumes "x \<in> closed_segment a b"
   shows "norm(x - a) \<le> norm(b - a)" "norm(x - b) \<le> norm(b - a)"
   using segment_furthest_le[OF assms, of a]
@@ -2685,17 +2370,17 @@ proof(cases "a = b")
         unfolding as(1) by(auto simp add:algebra_simps)
       show "norm (a - x) *\<^sub>R (x - b) = norm (x - b) *\<^sub>R (a - x)"
         unfolding norm_minus_commute[of x a] * Cart_eq using as(2,3)
-        by(auto simp add: vector_component_simps field_simps)
+        by(auto simp add: field_simps)
     next assume as:"dist a b = dist a x + dist x b"
       have "norm (a - x) / norm (a - b) \<le> 1" unfolding divide_le_eq_1_pos[OF Fal2] unfolding as[unfolded dist_norm] norm_ge_zero by auto 
       thus "\<exists>u. x = (1 - u) *\<^sub>R a + u *\<^sub>R b \<and> 0 \<le> u \<and> u \<le> 1" apply(rule_tac x="dist a x / dist a b" in exI)
         unfolding dist_norm Cart_eq apply- apply rule defer apply(rule, rule divide_nonneg_pos) prefer 4 proof rule
           fix i::'n have "((1 - norm (a - x) / norm (a - b)) *\<^sub>R a + (norm (a - x) / norm (a - b)) *\<^sub>R b) $ i =
             ((norm (a - b) - norm (a - x)) * (a $ i) + norm (a - x) * (b $ i)) / norm (a - b)"
-            using Fal by(auto simp add:vector_component_simps field_simps)
+            using Fal by(auto simp add: field_simps)
           also have "\<dots> = x$i" apply(rule divide_eq_imp[OF Fal])
             unfolding as[unfolded dist_norm] using as[unfolded dist_triangle_eq Cart_eq,rule_format, of i]
-            by(auto simp add:field_simps vector_component_simps)
+            by(auto simp add:field_simps)
           finally show "x $ i = ((1 - norm (a - x) / norm (a - b)) *\<^sub>R a + (norm (a - x) / norm (a - b)) *\<^sub>R b) $ i" by auto
         qed(insert Fal2, auto) qed qed
 
@@ -2704,7 +2389,7 @@ lemma between_midpoint: fixes a::"real^'n" shows
   "between (b,a) (midpoint a b)" (is ?t2)
 proof- have *:"\<And>x y z. x = (1/2::real) *\<^sub>R z \<Longrightarrow> y = (1/2) *\<^sub>R z \<Longrightarrow> norm z = norm x + norm y" by auto
   show ?t1 ?t2 unfolding between midpoint_def dist_norm apply(rule_tac[!] *)
-    by(auto simp add:field_simps Cart_eq vector_component_simps) qed
+    by(auto simp add:field_simps Cart_eq) qed
 
 lemma between_mem_convex_hull:
   "between (a,b) x \<longleftrightarrow> x \<in> convex hull {a,b}"
@@ -2723,7 +2408,7 @@ proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfold
     have *:"y = (1 - (1 - e)) *\<^sub>R ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) + (1 - e) *\<^sub>R x" using `e>0` by (auto simp add: scaleR_left_diff_distrib scaleR_right_diff_distrib)
     have "dist c ((1 / e) *\<^sub>R y - ((1 - e) / e) *\<^sub>R x) = abs(1/e) * norm (e *\<^sub>R c - y + (1 - e) *\<^sub>R x)"
       unfolding dist_norm unfolding norm_scaleR[THEN sym] apply(rule norm_eqI) using `e>0`
-      by(auto simp add:vector_component_simps Cart_eq field_simps) 
+      by(auto simp add: Cart_eq field_simps) 
     also have "\<dots> = abs(1/e) * norm (x - e *\<^sub>R (x - c) - y)" by(auto intro!:norm_eqI simp add: algebra_simps)
     also have "\<dots> < d" using as[unfolded dist_norm] and `e>0`
       by(auto simp add:pos_divide_less_eq[OF `e>0`] real_mult_commute)
@@ -2795,11 +2480,11 @@ lemma interior_std_simplex:
   fix x::"real^'n" and e assume "0<e" and as:"\<forall>xa. dist x xa < e \<longrightarrow> (\<forall>x. 0 \<le> xa $ x) \<and> setsum (op $ xa) UNIV \<le> 1"
   show "(\<forall>xa. 0 < x $ xa) \<and> setsum (op $ x) UNIV < 1" apply(rule,rule) proof-
     fix i::'n show "0 < x $ i" using as[THEN spec[where x="x - (e / 2) *\<^sub>R basis i"]] and `e>0`
-      unfolding dist_norm by(auto simp add: norm_basis vector_component_simps basis_component elim:allE[where x=i])
+      unfolding dist_norm by(auto simp add: norm_basis elim:allE[where x=i])
   next guess a using UNIV_witness[where 'a='n] ..
     have **:"dist x (x + (e / 2) *\<^sub>R basis a) < e" using  `e>0` and norm_basis[of a]
-      unfolding dist_norm by(auto simp add: vector_component_simps basis_component intro!: mult_strict_left_mono_comm)
-    have "\<And>i. (x + (e / 2) *\<^sub>R basis a) $ i = x$i + (if i = a then e/2 else 0)" by(auto simp add:vector_component_simps)
+      unfolding dist_norm by(auto intro!: mult_strict_left_mono_comm)
+    have "\<And>i. (x + (e / 2) *\<^sub>R basis a) $ i = x$i + (if i = a then e/2 else 0)" by auto
     hence *:"setsum (op $ (x + (e / 2) *\<^sub>R basis a)) UNIV = setsum (\<lambda>i. x$i + (if a = i then e/2 else 0)) UNIV" by(rule_tac setsum_cong, auto) 
     have "setsum (op $ x) UNIV < setsum (op $ (x + (e / 2) *\<^sub>R basis a)) UNIV" unfolding * setsum_addf
       using `0<e` dimindex_ge_1 by(auto simp add: setsum_delta')
@@ -2816,13 +2501,13 @@ next
     fix y assume y:"dist x y < min (Min (op $ x ` UNIV)) ?d"
     have "setsum (op $ y) UNIV \<le> setsum (\<lambda>i. x$i + ?d) UNIV" proof(rule setsum_mono)
       fix i::'n have "abs (y$i - x$i) < ?d" apply(rule le_less_trans) using component_le_norm[of "y - x" i]
-        using y[unfolded min_less_iff_conj dist_norm, THEN conjunct2] by(auto simp add:vector_component_simps norm_minus_commute)
+        using y[unfolded min_less_iff_conj dist_norm, THEN conjunct2] by(auto simp add: norm_minus_commute)
       thus "y $ i \<le> x $ i + ?d" by auto qed
     also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant card_enum real_eq_of_nat using dimindex_ge_1 by(auto simp add: Suc_le_eq)
     finally show "(\<forall>i. 0 \<le> y $ i) \<and> setsum (op $ y) UNIV \<le> 1" apply- proof(rule,rule)
       fix i::'n have "norm (x - y) < x$i" using y[unfolded min_less_iff_conj dist_norm, THEN conjunct1]
-        using Min_gr_iff[of "op $ x ` dimset x"] dimindex_ge_1 by auto
-      thus "0 \<le> y$i" using component_le_norm[of "x - y" i] and as(1)[rule_format, of i] by(auto simp add: vector_component_simps)
+        by auto
+      thus "0 \<le> y$i" using component_le_norm[of "x - y" i] and as(1)[rule_format, of i] by auto
     qed auto qed auto qed
 
 lemma interior_std_simplex_nonempty: obtains a::"real^'n" where
@@ -2839,541 +2524,5 @@ lemma interior_std_simplex_nonempty: obtains a::"real^'n" where
     have "setsum (op $ ?a) ?D = setsum (\<lambda>i. inverse (2 * real CARD('n))) ?D" by(rule setsum_cong2, rule **) 
     also have "\<dots> < 1" unfolding setsum_constant card_enum real_eq_of_nat real_divide_def[THEN sym] by (auto simp add:field_simps)
     finally show "setsum (op $ ?a) ?D < 1" by auto qed qed
-
-subsection {* Paths. *}
-
-definition "path (g::real^1 \<Rightarrow> real^'n) \<longleftrightarrow> continuous_on {0 .. 1} g"
-
-definition "pathstart (g::real^1 \<Rightarrow> real^'n) = g 0"
-
-definition "pathfinish (g::real^1 \<Rightarrow> real^'n) = g 1"
-
-definition "path_image (g::real^1 \<Rightarrow> real^'n) = g ` {0 .. 1}"
-
-definition "reversepath (g::real^1 \<Rightarrow> real^'n) = (\<lambda>x. g(1 - x))"
-
-definition joinpaths:: "(real^1 \<Rightarrow> real^'n) \<Rightarrow> (real^1 \<Rightarrow> real^'n) \<Rightarrow> (real^1 \<Rightarrow> real^'n)" (infixr "+++" 75)
-  where "joinpaths g1 g2 = (\<lambda>x. if dest_vec1 x \<le> ((1 / 2)::real) then g1 (2 *\<^sub>R x) else g2(2 *\<^sub>R x - 1))"
-definition "simple_path (g::real^1 \<Rightarrow> real^'n) \<longleftrightarrow>
-  (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0)"
-
-definition "injective_path (g::real^1 \<Rightarrow> real^'n) \<longleftrightarrow>
-  (\<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. g x = g y \<longrightarrow> x = y)"
-
-subsection {* Some lemmas about these concepts. *}
-
-lemma injective_imp_simple_path:
-  "injective_path g \<Longrightarrow> simple_path g"
-  unfolding injective_path_def simple_path_def by auto
-
-lemma path_image_nonempty: "path_image g \<noteq> {}"
-  unfolding path_image_def image_is_empty interval_eq_empty by auto 
-
-lemma pathstart_in_path_image[intro]: "(pathstart g) \<in> path_image g"
-  unfolding pathstart_def path_image_def apply(rule imageI)
-  unfolding mem_interval_1 vec_1[THEN sym] dest_vec1_vec by auto
-
-lemma pathfinish_in_path_image[intro]: "(pathfinish g) \<in> path_image g"
-  unfolding pathfinish_def path_image_def apply(rule imageI)
-  unfolding mem_interval_1 vec_1[THEN sym] dest_vec1_vec by auto
-
-lemma connected_path_image[intro]: "path g \<Longrightarrow> connected(path_image g)"
-  unfolding path_def path_image_def apply(rule connected_continuous_image, assumption)
-  by(rule convex_connected, rule convex_interval)
-
-lemma compact_path_image[intro]: "path g \<Longrightarrow> compact(path_image g)"
-  unfolding path_def path_image_def apply(rule compact_continuous_image, assumption)
-  by(rule compact_interval)
-
-lemma reversepath_reversepath[simp]: "reversepath(reversepath g) = g"
-  unfolding reversepath_def by auto
-
-lemma pathstart_reversepath[simp]: "pathstart(reversepath g) = pathfinish g"
-  unfolding pathstart_def reversepath_def pathfinish_def by auto
-
-lemma pathfinish_reversepath[simp]: "pathfinish(reversepath g) = pathstart g"
-  unfolding pathstart_def reversepath_def pathfinish_def by auto
-
-lemma pathstart_join[simp]: "pathstart(g1 +++ g2) = pathstart g1"
-  unfolding pathstart_def joinpaths_def pathfinish_def by auto
-
-lemma pathfinish_join[simp]:"pathfinish(g1 +++ g2) = pathfinish g2" proof-
-  have "2 *\<^sub>R 1 - 1 = (1::real^1)" unfolding Cart_eq by(auto simp add:vector_component_simps)
-  thus ?thesis unfolding pathstart_def joinpaths_def pathfinish_def
-    unfolding vec_1[THEN sym] dest_vec1_vec by auto qed
-
-lemma path_image_reversepath[simp]: "path_image(reversepath g) = path_image g" proof-
-  have *:"\<And>g. path_image(reversepath g) \<subseteq> path_image g"
-    unfolding path_image_def subset_eq reversepath_def Ball_def image_iff apply(rule,rule,erule bexE)  
-    apply(rule_tac x="1 - xa" in bexI) by(auto simp add:vector_le_def vector_component_simps elim!:ballE)
-  show ?thesis using *[of g] *[of "reversepath g"] unfolding reversepath_reversepath by auto qed
-
-lemma path_reversepath[simp]: "path(reversepath g) \<longleftrightarrow> path g" proof-
-  have *:"\<And>g. path g \<Longrightarrow> path(reversepath g)" unfolding path_def reversepath_def
-    apply(rule continuous_on_compose[unfolded o_def, of _ "\<lambda>x. 1 - x"])
-    apply(rule continuous_on_sub, rule continuous_on_const, rule continuous_on_id)
-    apply(rule continuous_on_subset[of "{0..1}"], assumption) by auto
-  show ?thesis using *[of g] *[of "reversepath g"] unfolding reversepath_reversepath by auto qed
-
-lemmas reversepath_simps = path_reversepath path_image_reversepath pathstart_reversepath pathfinish_reversepath
-
-lemma path_join[simp]: assumes "pathfinish g1 = pathstart g2" shows "path (g1 +++ g2) \<longleftrightarrow>  path g1 \<and> path g2"
-  unfolding path_def pathfinish_def pathstart_def apply rule defer apply(erule conjE) proof-
-  assume as:"continuous_on {0..1} (g1 +++ g2)"
-  have *:"g1 = (\<lambda>x. g1 (2 *\<^sub>R x)) \<circ> (\<lambda>x. (1/2) *\<^sub>R x)" 
-         "g2 = (\<lambda>x. g2 (2 *\<^sub>R x - 1)) \<circ> (\<lambda>x. (1/2) *\<^sub>R (x + 1))" unfolding o_def by auto
-  have "op *\<^sub>R (1 / 2) ` {0::real^1..1} \<subseteq> {0..1}"  "(\<lambda>x. (1 / 2) *\<^sub>R (x + 1)) ` {(0::real^1)..1} \<subseteq> {0..1}"
-    unfolding image_smult_interval by auto 
-  thus "continuous_on {0..1} g1 \<and> continuous_on {0..1} g2" apply -apply rule
-    apply(subst *) defer apply(subst *) apply (rule_tac[!] continuous_on_compose)
-    apply (rule continuous_on_cmul, rule continuous_on_add, rule continuous_on_id, rule continuous_on_const) defer
-    apply (rule continuous_on_cmul, rule continuous_on_id) apply(rule_tac[!] continuous_on_eq[of _ "g1 +++ g2"]) defer prefer 3
-    apply(rule_tac[1-2] continuous_on_subset[of "{0 .. 1}"]) apply(rule as, assumption, rule as, assumption)
-    apply(rule) defer apply rule proof-
-    fix x assume "x \<in> op *\<^sub>R (1 / 2) ` {0::real^1..1}"
-    hence "dest_vec1 x \<le> 1 / 2" unfolding image_iff by(auto simp add: vector_component_simps)
-    thus "(g1 +++ g2) x = g1 (2 *\<^sub>R x)" unfolding joinpaths_def by auto next
-    fix x assume "x \<in> (\<lambda>x. (1 / 2) *\<^sub>R (x + 1)) ` {0::real^1..1}"
-    hence "dest_vec1 x \<ge> 1 / 2" unfolding image_iff by(auto simp add: vector_component_simps)
-    thus "(g1 +++ g2) x = g2 (2 *\<^sub>R x - 1)" proof(cases "dest_vec1 x = 1 / 2")
-      case True hence "x = (1/2) *\<^sub>R 1" unfolding Cart_eq by(auto simp add: forall_1 vector_component_simps)
-      thus ?thesis unfolding joinpaths_def using assms[unfolded pathstart_def pathfinish_def] by auto
-    qed (auto simp add:le_less joinpaths_def) qed
-next assume as:"continuous_on {0..1} g1" "continuous_on {0..1} g2"
-  have *:"{0 .. 1::real^1} = {0.. (1/2)*\<^sub>R 1} \<union> {(1/2) *\<^sub>R 1 .. 1}" by(auto simp add: vector_component_simps) 
-  have **:"op *\<^sub>R 2 ` {0..(1 / 2) *\<^sub>R 1} = {0..1::real^1}" apply(rule set_ext, rule) unfolding image_iff 
-    defer apply(rule_tac x="(1/2)*\<^sub>R x" in bexI) by(auto simp add: vector_component_simps)
-  have ***:"(\<lambda>x. 2 *\<^sub>R x - 1) ` {(1 / 2) *\<^sub>R 1..1} = {0..1::real^1}"
-    unfolding image_affinity_interval[of _ "- 1", unfolded diff_def[symmetric]] and interval_eq_empty_1
-    by(auto simp add: vector_component_simps)
-  have ****:"\<And>x::real^1. x $ 1 * 2 = 1 \<longleftrightarrow> x = (1/2) *\<^sub>R 1" unfolding Cart_eq by(auto simp add: forall_1 vector_component_simps)
-  show "continuous_on {0..1} (g1 +++ g2)" unfolding * apply(rule continuous_on_union) apply(rule closed_interval)+ proof-
-    show "continuous_on {0..(1 / 2) *\<^sub>R 1} (g1 +++ g2)" apply(rule continuous_on_eq[of _ "\<lambda>x. g1 (2 *\<^sub>R x)"]) defer
-      unfolding o_def[THEN sym] apply(rule continuous_on_compose) apply(rule continuous_on_cmul, rule continuous_on_id)
-      unfolding ** apply(rule as(1)) unfolding joinpaths_def by(auto simp add: vector_component_simps) next
-    show "continuous_on {(1/2)*\<^sub>R1..1} (g1 +++ g2)" apply(rule continuous_on_eq[of _ "g2 \<circ> (\<lambda>x. 2 *\<^sub>R x - 1)"]) defer
-      apply(rule continuous_on_compose) apply(rule continuous_on_sub, rule continuous_on_cmul, rule continuous_on_id, rule continuous_on_const)
-      unfolding *** o_def joinpaths_def apply(rule as(2)) using assms[unfolded pathstart_def pathfinish_def]
-      by(auto simp add: vector_component_simps ****) qed qed
-
-lemma path_image_join_subset: "path_image(g1 +++ g2) \<subseteq> (path_image g1 \<union> path_image g2)" proof
-  fix x assume "x \<in> path_image (g1 +++ g2)"
-  then obtain y where y:"y\<in>{0..1}" "x = (if dest_vec1 y \<le> 1 / 2 then g1 (2 *\<^sub>R y) else g2 (2 *\<^sub>R y - 1))"
-    unfolding path_image_def image_iff joinpaths_def by auto
-  thus "x \<in> path_image g1 \<union> path_image g2" apply(cases "dest_vec1 y \<le> 1/2")
-    apply(rule_tac UnI1) defer apply(rule_tac UnI2) unfolding y(2) path_image_def using y(1)
-    by(auto intro!: imageI simp add: vector_component_simps) qed
-
-lemma subset_path_image_join:
-  assumes "path_image g1 \<subseteq> s" "path_image g2 \<subseteq> s" shows "path_image(g1 +++ g2) \<subseteq> s"
-  using path_image_join_subset[of g1 g2] and assms by auto
-
-lemma path_image_join:
-  assumes "path g1" "path g2" "pathfinish g1 = pathstart g2"
-  shows "path_image(g1 +++ g2) = (path_image g1) \<union> (path_image g2)"
-apply(rule, rule path_image_join_subset, rule) unfolding Un_iff proof(erule disjE)
-  fix x assume "x \<in> path_image g1"
-  then obtain y where y:"y\<in>{0..1}" "x = g1 y" unfolding path_image_def image_iff by auto
-  thus "x \<in> path_image (g1 +++ g2)" unfolding joinpaths_def path_image_def image_iff
-    apply(rule_tac x="(1/2) *\<^sub>R y" in bexI) by(auto simp add: vector_component_simps) next
-  fix x assume "x \<in> path_image g2"
-  then obtain y where y:"y\<in>{0..1}" "x = g2 y" unfolding path_image_def image_iff by auto
-  moreover have *:"y $ 1 = 0 \<Longrightarrow> y = 0" unfolding Cart_eq by auto
-  ultimately show "x \<in> path_image (g1 +++ g2)" unfolding joinpaths_def path_image_def image_iff
-    apply(rule_tac x="(1/2) *\<^sub>R (y + 1)" in bexI) using assms(3)[unfolded pathfinish_def pathstart_def]
-    by(auto simp add: vector_component_simps) qed 
-
-lemma not_in_path_image_join:
-  assumes "x \<notin> path_image g1" "x \<notin> path_image g2" shows "x \<notin> path_image(g1 +++ g2)"
-  using assms and path_image_join_subset[of g1 g2] by auto
-
-lemma simple_path_reversepath: assumes "simple_path g" shows "simple_path (reversepath g)"
-  using assms unfolding simple_path_def reversepath_def apply- apply(rule ballI)+
-  apply(erule_tac x="1-x" in ballE, erule_tac x="1-y" in ballE)
-  unfolding mem_interval_1 by(auto simp add:vector_component_simps)
-
-(** move this **)
-declare vector_scaleR_component[simp]
-
-lemma simple_path_join_loop:
-  assumes "injective_path g1" "injective_path g2" "pathfinish g2 = pathstart g1"
-  "(path_image g1 \<inter> path_image g2) \<subseteq> {pathstart g1,pathstart g2}"
-  shows "simple_path(g1 +++ g2)"
-unfolding simple_path_def proof((rule ballI)+, rule impI) let ?g = "g1 +++ g2"
-  note inj = assms(1,2)[unfolded injective_path_def, rule_format]
-  fix x y::"real^1" assume xy:"x \<in> {0..1}" "y \<in> {0..1}" "?g x = ?g y"
-  show "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0" proof(case_tac "x$1 \<le> 1/2",case_tac[!] "y$1 \<le> 1/2", unfold not_le)
-    assume as:"x $ 1 \<le> 1 / 2" "y $ 1 \<le> 1 / 2"
-    hence "g1 (2 *\<^sub>R x) = g1 (2 *\<^sub>R y)" using xy(3) unfolding joinpaths_def by auto
-    moreover have "2 *\<^sub>R x \<in> {0..1}" "2 *\<^sub>R y \<in> {0..1}" using xy(1,2) as
-      unfolding mem_interval_1 by(auto simp add:vector_component_simps)
-    ultimately show ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] by auto
-  next assume as:"x $ 1 > 1 / 2" "y $ 1 > 1 / 2"
-    hence "g2 (2 *\<^sub>R x - 1) = g2 (2 *\<^sub>R y - 1)" using xy(3) unfolding joinpaths_def by auto
-    moreover have "2 *\<^sub>R x - 1 \<in> {0..1}" "2 *\<^sub>R y - 1 \<in> {0..1}" using xy(1,2) as unfolding mem_interval_1 by(auto simp add:vector_component_simps)
-    ultimately show ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] by auto
-  next assume as:"x $ 1 \<le> 1 / 2" "y $ 1 > 1 / 2"
-    hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
-    moreover have "?g y \<noteq> pathstart g2" using as(2) unfolding pathstart_def joinpaths_def
-      using inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(2)[unfolded mem_interval_1]
-      by(auto simp add:vector_component_simps field_simps Cart_eq)
-    ultimately have *:"?g x = pathstart g1" using assms(4) unfolding xy(3) by auto
-    hence "x = 0" unfolding pathstart_def joinpaths_def using as(1) and xy(1)[unfolded mem_interval_1]
-      using inj(1)[of "2 *\<^sub>R x" 0] by(auto simp add:vector_component_simps)
-    moreover have "y = 1" using * unfolding xy(3) assms(3)[THEN sym]
-      unfolding joinpaths_def pathfinish_def using as(2) and xy(2)[unfolded mem_interval_1]
-      using inj(2)[of "2 *\<^sub>R y - 1" 1] by (auto simp add:vector_component_simps Cart_eq)
-    ultimately show ?thesis by auto 
-  next assume as:"x $ 1 > 1 / 2" "y $ 1 \<le> 1 / 2"
-    hence "?g x \<in> path_image g2" "?g y \<in> path_image g1" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
-    moreover have "?g x \<noteq> pathstart g2" using as(1) unfolding pathstart_def joinpaths_def
-      using inj(2)[of "2 *\<^sub>R x - 1" 0] and xy(1)[unfolded mem_interval_1]
-      by(auto simp add:vector_component_simps field_simps Cart_eq)
-    ultimately have *:"?g y = pathstart g1" using assms(4) unfolding xy(3) by auto
-    hence "y = 0" unfolding pathstart_def joinpaths_def using as(2) and xy(2)[unfolded mem_interval_1]
-      using inj(1)[of "2 *\<^sub>R y" 0] by(auto simp add:vector_component_simps)
-    moreover have "x = 1" using * unfolding xy(3)[THEN sym] assms(3)[THEN sym]
-      unfolding joinpaths_def pathfinish_def using as(1) and xy(1)[unfolded mem_interval_1]
-      using inj(2)[of "2 *\<^sub>R x - 1" 1] by(auto simp add:vector_component_simps Cart_eq)
-    ultimately show ?thesis by auto qed qed
-
-lemma injective_path_join:
-  assumes "injective_path g1" "injective_path g2" "pathfinish g1 = pathstart g2"
-  "(path_image g1 \<inter> path_image g2) \<subseteq> {pathstart g2}"
-  shows "injective_path(g1 +++ g2)"
-  unfolding injective_path_def proof(rule,rule,rule) let ?g = "g1 +++ g2"
-  note inj = assms(1,2)[unfolded injective_path_def, rule_format]
-  have *:"\<And>x y::real^1. 2 *\<^sub>R x = 1 \<Longrightarrow> 2 *\<^sub>R y = 1 \<Longrightarrow> x = y" unfolding Cart_eq forall_1 by(auto simp del:dest_vec1_eq)
-  fix x y assume xy:"x \<in> {0..1}" "y \<in> {0..1}" "(g1 +++ g2) x = (g1 +++ g2) y"
-  show "x = y" proof(cases "x$1 \<le> 1/2", case_tac[!] "y$1 \<le> 1/2", unfold not_le)
-    assume "x $ 1 \<le> 1 / 2" "y $ 1 \<le> 1 / 2" thus ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] and xy
-      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps)
-  next assume "x $ 1 > 1 / 2" "y $ 1 > 1 / 2" thus ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] and xy
-      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps)
-  next assume as:"x $ 1 \<le> 1 / 2" "y $ 1 > 1 / 2" 
-    hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
-    hence "?g x = pathfinish g1" "?g y = pathstart g2" using assms(4) unfolding assms(3) xy(3) by auto
-    thus ?thesis using as and inj(1)[of "2 *\<^sub>R x" 1] inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(1,2)
-      unfolding pathstart_def pathfinish_def joinpaths_def mem_interval_1
-      by(auto simp add:vector_component_simps intro:*)
-  next assume as:"x $ 1 > 1 / 2" "y $ 1 \<le> 1 / 2" 
-    hence "?g x \<in> path_image g2" "?g y \<in> path_image g1" unfolding path_image_def joinpaths_def
-      using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
-    hence "?g x = pathstart g2" "?g y = pathfinish g1" using assms(4) unfolding assms(3) xy(3) by auto
-    thus ?thesis using as and inj(2)[of "2 *\<^sub>R x - 1" 0] inj(1)[of "2 *\<^sub>R y" 1] and xy(1,2)
-      unfolding pathstart_def pathfinish_def joinpaths_def mem_interval_1
-      by(auto simp add:vector_component_simps intro:*) qed qed
-
-lemmas join_paths_simps = path_join path_image_join pathstart_join pathfinish_join
- 
-subsection {* Reparametrizing a closed curve to start at some chosen point. *}
-
-definition "shiftpath a (f::real^1 \<Rightarrow> real^'n) =
-  (\<lambda>x. if dest_vec1 (a + x) \<le> 1 then f(a + x) else f(a + x - 1))"
-
-lemma pathstart_shiftpath: "a \<le> 1 \<Longrightarrow> pathstart(shiftpath a g) = g a"
-  unfolding pathstart_def shiftpath_def by auto
-
-(** move this **)
-declare forall_1[simp] ex_1[simp]
-
-lemma pathfinish_shiftpath: assumes "0 \<le> a" "pathfinish g = pathstart g"
-  shows "pathfinish(shiftpath a g) = g a"
-  using assms unfolding pathstart_def pathfinish_def shiftpath_def
-  by(auto simp add: vector_component_simps)
-
-lemma endpoints_shiftpath:
-  assumes "pathfinish g = pathstart g" "a \<in> {0 .. 1}" 
-  shows "pathfinish(shiftpath a g) = g a" "pathstart(shiftpath a g) = g a"
-  using assms by(auto intro!:pathfinish_shiftpath pathstart_shiftpath)
-
-lemma closed_shiftpath:
-  assumes "pathfinish g = pathstart g" "a \<in> {0..1}"
-  shows "pathfinish(shiftpath a g) = pathstart(shiftpath a g)"
-  using endpoints_shiftpath[OF assms] by auto
-
-lemma path_shiftpath:
-  assumes "path g" "pathfinish g = pathstart g" "a \<in> {0..1}"
-  shows "path(shiftpath a g)" proof-
-  have *:"{0 .. 1} = {0 .. 1-a} \<union> {1-a .. 1}" using assms(3) by(auto simp add: vector_component_simps)
-  have **:"\<And>x. x + a = 1 \<Longrightarrow> g (x + a - 1) = g (x + a)"
-    using assms(2)[unfolded pathfinish_def pathstart_def] by auto
-  show ?thesis unfolding path_def shiftpath_def * apply(rule continuous_on_union)
-    apply(rule closed_interval)+ apply(rule continuous_on_eq[of _ "g \<circ> (\<lambda>x. a + x)"]) prefer 3
-    apply(rule continuous_on_eq[of _ "g \<circ> (\<lambda>x. a - 1 + x)"]) defer prefer 3
-    apply(rule continuous_on_intros)+ prefer 2 apply(rule continuous_on_intros)+
-    apply(rule_tac[1-2] continuous_on_subset[OF assms(1)[unfolded path_def]])
-    using assms(3) and ** by(auto simp add:vector_component_simps field_simps Cart_eq) qed
-
-lemma shiftpath_shiftpath: assumes "pathfinish g = pathstart g" "a \<in> {0..1}" "x \<in> {0..1}" 
-  shows "shiftpath (1 - a) (shiftpath a g) x = g x"
-  using assms unfolding pathfinish_def pathstart_def shiftpath_def 
-  by(auto simp add: vector_component_simps)
-
-lemma path_image_shiftpath:
-  assumes "a \<in> {0..1}" "pathfinish g = pathstart g"
-  shows "path_image(shiftpath a g) = path_image g" proof-
-  { fix x assume as:"g 1 = g 0" "x \<in> {0..1::real^1}" " \<forall>y\<in>{0..1} \<inter> {x. \<not> a $ 1 + x $ 1 \<le> 1}. g x \<noteq> g (a + y - 1)" 
-    hence "\<exists>y\<in>{0..1} \<inter> {x. a $ 1 + x $ 1 \<le> 1}. g x = g (a + y)" proof(cases "a \<le> x")
-      case False thus ?thesis apply(rule_tac x="1 + x - a" in bexI)
-        using as(1,2) and as(3)[THEN bspec[where x="1 + x - a"]] and assms(1)
-        by(auto simp add:vector_component_simps field_simps atomize_not) next
-      case True thus ?thesis using as(1-2) and assms(1) apply(rule_tac x="x - a" in bexI)
-        by(auto simp add:vector_component_simps field_simps) qed }
-  thus ?thesis using assms unfolding shiftpath_def path_image_def pathfinish_def pathstart_def 
-    by(auto simp add:vector_component_simps image_iff) qed
-
-subsection {* Special case of straight-line paths. *}
-
-definition
-  linepath :: "real ^ 'n \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 1 \<Rightarrow> real ^ 'n" where
-  "linepath a b = (\<lambda>x. (1 - dest_vec1 x) *\<^sub>R a + dest_vec1 x *\<^sub>R b)"
-
-lemma pathstart_linepath[simp]: "pathstart(linepath a b) = a"
-  unfolding pathstart_def linepath_def by auto
-
-lemma pathfinish_linepath[simp]: "pathfinish(linepath a b) = b"
-  unfolding pathfinish_def linepath_def by auto
-
-lemma continuous_linepath_at[intro]: "continuous (at x) (linepath a b)"
-  unfolding linepath_def
-  by (intro continuous_intros continuous_dest_vec1)
-
-lemma continuous_on_linepath[intro]: "continuous_on s (linepath a b)"
-  using continuous_linepath_at by(auto intro!: continuous_at_imp_continuous_on)
-
-lemma path_linepath[intro]: "path(linepath a b)"
-  unfolding path_def by(rule continuous_on_linepath)
-
-lemma path_image_linepath[simp]: "path_image(linepath a b) = (closed_segment a b)"
-  unfolding path_image_def segment linepath_def apply (rule set_ext, rule) defer
-  unfolding mem_Collect_eq image_iff apply(erule exE) apply(rule_tac x="u *\<^sub>R 1" in bexI)
-  by(auto simp add:vector_component_simps)
-
-lemma reversepath_linepath[simp]:  "reversepath(linepath a b) = linepath b a"
-  unfolding reversepath_def linepath_def by(rule ext, auto simp add:vector_component_simps)
-
-lemma injective_path_linepath: assumes "a \<noteq> b" shows "injective_path(linepath a b)" proof- 
-  { obtain i where i:"a$i \<noteq> b$i" using assms[unfolded Cart_eq] by auto
-    fix x y::"real^1" assume "x $ 1 *\<^sub>R b + y $ 1 *\<^sub>R a = x $ 1 *\<^sub>R a + y $ 1 *\<^sub>R b"
-    hence "x$1 * (b$i - a$i) = y$1 * (b$i - a$i)" unfolding Cart_eq by(auto simp add:field_simps vector_component_simps)
-    hence "x = y" unfolding mult_cancel_right Cart_eq using i(1) by(auto simp add:field_simps) }
-  thus ?thesis unfolding injective_path_def linepath_def by(auto simp add:vector_component_simps algebra_simps) qed
-
-lemma simple_path_linepath[intro]: "a \<noteq> b \<Longrightarrow> simple_path(linepath a b)" by(auto intro!: injective_imp_simple_path injective_path_linepath)
-
-subsection {* Bounding a point away from a path. *}
-
-lemma not_on_path_ball: assumes "path g" "z \<notin> path_image g"
-  shows "\<exists>e>0. ball z e \<inter> (path_image g) = {}" proof-
-  obtain a where "a\<in>path_image g" "\<forall>y\<in>path_image g. dist z a \<le> dist z y"
-    using distance_attains_inf[OF _ path_image_nonempty, of g z]
-    using compact_path_image[THEN compact_imp_closed, OF assms(1)] by auto
-  thus ?thesis apply(rule_tac x="dist z a" in exI) using assms(2) by(auto intro!: dist_pos_lt) qed
-
-lemma not_on_path_cball: assumes "path g" "z \<notin> path_image g"
-  shows "\<exists>e>0. cball z e \<inter> (path_image g) = {}" proof-
-  obtain e where "ball z e \<inter> path_image g = {}" "e>0" using not_on_path_ball[OF assms] by auto
-  moreover have "cball z (e/2) \<subseteq> ball z e" using `e>0` by auto
-  ultimately show ?thesis apply(rule_tac x="e/2" in exI) by auto qed
-
-subsection {* Path component, considered as a "joinability" relation (from Tom Hales). *}
-
-definition "path_component s x y \<longleftrightarrow> (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
-
-lemmas path_defs = path_def pathstart_def pathfinish_def path_image_def path_component_def 
-
-lemma path_component_mem: assumes "path_component s x y" shows "x \<in> s" "y \<in> s"
-  using assms unfolding path_defs by auto
-
-lemma path_component_refl: assumes "x \<in> s" shows "path_component s x x"
-  unfolding path_defs apply(rule_tac x="\<lambda>u. x" in exI) using assms 
-  by(auto intro!:continuous_on_intros)    
-
-lemma path_component_refl_eq: "path_component s x x \<longleftrightarrow> x \<in> s"
-  by(auto intro!: path_component_mem path_component_refl) 
-
-lemma path_component_sym: "path_component s x y \<Longrightarrow> path_component s y x"
-  using assms unfolding path_component_def apply(erule exE) apply(rule_tac x="reversepath g" in exI) 
-  by(auto simp add: reversepath_simps)
-
-lemma path_component_trans: assumes "path_component s x y" "path_component s y z" shows "path_component s x z"
-  using assms unfolding path_component_def apply- apply(erule exE)+ apply(rule_tac x="g +++ ga" in exI) by(auto simp add: path_image_join)
-
-lemma path_component_of_subset: "s \<subseteq> t \<Longrightarrow>  path_component s x y \<Longrightarrow> path_component t x y"
-  unfolding path_component_def by auto
-
-subsection {* Can also consider it as a set, as the name suggests. *}
-
-lemma path_component_set: "path_component s x = { y. (\<exists>g. path g \<and> path_image g \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y )}"
-  apply(rule set_ext) unfolding mem_Collect_eq unfolding mem_def path_component_def by auto
-
-lemma mem_path_component_set:"x \<in> path_component s y \<longleftrightarrow> path_component s y x" unfolding mem_def by auto
-
-lemma path_component_subset: "(path_component s x) \<subseteq> s"
-  apply(rule, rule path_component_mem(2)) by(auto simp add:mem_def)
-
-lemma path_component_eq_empty: "path_component s x = {} \<longleftrightarrow> x \<notin> s"
-  apply rule apply(drule equals0D[of _ x]) defer apply(rule equals0I) unfolding mem_path_component_set
-  apply(drule path_component_mem(1)) using path_component_refl by auto
-
-subsection {* Path connectedness of a space. *}
-
-definition "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. \<exists>g. path g \<and> (path_image g) \<subseteq> s \<and> pathstart g = x \<and> pathfinish g = y)"
-
-lemma path_connected_component: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. \<forall>y\<in>s. path_component s x y)"
-  unfolding path_connected_def path_component_def by auto
-
-lemma path_connected_component_set: "path_connected s \<longleftrightarrow> (\<forall>x\<in>s. path_component s x = s)" 
-  unfolding path_connected_component apply(rule, rule, rule, rule path_component_subset) 
-  unfolding subset_eq mem_path_component_set Ball_def mem_def by auto
-
-subsection {* Some useful lemmas about path-connectedness. *}
-
-lemma convex_imp_path_connected: assumes "convex s" shows "path_connected s"
-  unfolding path_connected_def apply(rule,rule,rule_tac x="linepath x y" in exI)
-  unfolding path_image_linepath using assms[unfolded convex_contains_segment] by auto
-
-lemma path_connected_imp_connected: assumes "path_connected s" shows "connected s"
-  unfolding connected_def not_ex apply(rule,rule,rule ccontr) unfolding not_not apply(erule conjE)+ proof-
-  fix e1 e2 assume as:"open e1" "open e2" "s \<subseteq> e1 \<union> e2" "e1 \<inter> e2 \<inter> s = {}" "e1 \<inter> s \<noteq> {}" "e2 \<inter> s \<noteq> {}"
-  then obtain x1 x2 where obt:"x1\<in>e1\<inter>s" "x2\<in>e2\<inter>s" by auto
-  then obtain g where g:"path g" "path_image g \<subseteq> s" "pathstart g = x1" "pathfinish g = x2"
-    using assms[unfolded path_connected_def,rule_format,of x1 x2] by auto
-  have *:"connected {0..1::real^1}" by(auto intro!: convex_connected convex_interval)
-  have "{0..1} \<subseteq> {x \<in> {0..1}. g x \<in> e1} \<union> {x \<in> {0..1}. g x \<in> e2}" using as(3) g(2)[unfolded path_defs] by blast
-  moreover have "{x \<in> {0..1}. g x \<in> e1} \<inter> {x \<in> {0..1}. g x \<in> e2} = {}" using as(4) g(2)[unfolded path_defs] unfolding subset_eq by auto 
-  moreover have "{x \<in> {0..1}. g x \<in> e1} \<noteq> {} \<and> {x \<in> {0..1}. g x \<in> e2} \<noteq> {}" using g(3,4)[unfolded path_defs] using obt by(auto intro!: exI)
-  ultimately show False using *[unfolded connected_local not_ex,rule_format, of "{x\<in>{0..1}. g x \<in> e1}" "{x\<in>{0..1}. g x \<in> e2}"]
-    using continuous_open_in_preimage[OF g(1)[unfolded path_def] as(1)]
-    using continuous_open_in_preimage[OF g(1)[unfolded path_def] as(2)] by auto qed
-
-lemma open_path_component: assumes "open s" shows "open(path_component s x)"
-  unfolding open_contains_ball proof
-  fix y assume as:"y \<in> path_component s x"
-  hence "y\<in>s" apply- apply(rule path_component_mem(2)) unfolding mem_def by auto
-  then obtain e where e:"e>0" "ball y e \<subseteq> s" using assms[unfolded open_contains_ball] by auto
-  show "\<exists>e>0. ball y e \<subseteq> path_component s x" apply(rule_tac x=e in exI) apply(rule,rule `e>0`,rule) unfolding mem_ball mem_path_component_set proof-
-    fix z assume "dist y z < e" thus "path_component s x z" apply(rule_tac path_component_trans[of _ _ y]) defer 
-      apply(rule path_component_of_subset[OF e(2)]) apply(rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format]) using `e>0`
-      using as[unfolded mem_def] by auto qed qed
-
-lemma open_non_path_component: assumes "open s" shows "open(s - path_component s x)" unfolding open_contains_ball proof
-  fix y assume as:"y\<in>s - path_component s x" 
-  then obtain e where e:"e>0" "ball y e \<subseteq> s" using assms[unfolded open_contains_ball] by auto
-  show "\<exists>e>0. ball y e \<subseteq> s - path_component s x" apply(rule_tac x=e in exI) apply(rule,rule `e>0`,rule,rule) defer proof(rule ccontr)
-    fix z assume "z\<in>ball y e" "\<not> z \<notin> path_component s x" 
-    hence "y \<in> path_component s x" unfolding not_not mem_path_component_set using `e>0` 
-      apply- apply(rule path_component_trans,assumption) apply(rule path_component_of_subset[OF e(2)])
-      apply(rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format]) by auto
-    thus False using as by auto qed(insert e(2), auto) qed
-
-lemma connected_open_path_connected: assumes "open s" "connected s" shows "path_connected s"
-  unfolding path_connected_component_set proof(rule,rule,rule path_component_subset, rule)
-  fix x y assume "x \<in> s" "y \<in> s" show "y \<in> path_component s x" proof(rule ccontr)
-    assume "y \<notin> path_component s x" moreover
-    have "path_component s x \<inter> s \<noteq> {}" using `x\<in>s` path_component_eq_empty path_component_subset[of s x] by auto
-    ultimately show False using `y\<in>s` open_non_path_component[OF assms(1)] open_path_component[OF assms(1)]
-    using assms(2)[unfolded connected_def not_ex, rule_format, of"path_component s x" "s - path_component s x"] by auto
-qed qed
-
-lemma path_connected_continuous_image:
-  assumes "continuous_on s f" "path_connected s" shows "path_connected (f ` s)"
-  unfolding path_connected_def proof(rule,rule)
-  fix x' y' assume "x' \<in> f ` s" "y' \<in> f ` s"
-  then obtain x y where xy:"x\<in>s" "y\<in>s" "x' = f x" "y' = f y" by auto
-  guess g using assms(2)[unfolded path_connected_def,rule_format,OF xy(1,2)] ..
-  thus "\<exists>g. path g \<and> path_image g \<subseteq> f ` s \<and> pathstart g = x' \<and> pathfinish g = y'"
-    unfolding xy apply(rule_tac x="f \<circ> g" in exI) unfolding path_defs
-    using assms(1) by(auto intro!: continuous_on_compose continuous_on_subset[of _ _ "g ` {0..1}"]) qed
-
-lemma homeomorphic_path_connectedness:
-  "s homeomorphic t \<Longrightarrow> (path_connected s \<longleftrightarrow> path_connected t)"
-  unfolding homeomorphic_def homeomorphism_def apply(erule exE|erule conjE)+ apply rule
-  apply(drule_tac f=f in path_connected_continuous_image) prefer 3
-  apply(drule_tac f=g in path_connected_continuous_image) by auto
-
-lemma path_connected_empty: "path_connected {}"
-  unfolding path_connected_def by auto
-
-lemma path_connected_singleton: "path_connected {a}"
-  unfolding path_connected_def apply(rule,rule)
-  apply(rule_tac x="linepath a a" in exI) by(auto simp add:segment scaleR_left_diff_distrib)
-
-lemma path_connected_Un: assumes "path_connected s" "path_connected t" "s \<inter> t \<noteq> {}"
-  shows "path_connected (s \<union> t)" unfolding path_connected_component proof(rule,rule)
-  fix x y assume as:"x \<in> s \<union> t" "y \<in> s \<union> t" 
-  from assms(3) obtain z where "z \<in> s \<inter> t" by auto
-  thus "path_component (s \<union> t) x y" using as using assms(1-2)[unfolded path_connected_component] apply- 
-    apply(erule_tac[!] UnE)+ apply(rule_tac[2-3] path_component_trans[of _ _ z])
-    by(auto simp add:path_component_of_subset [OF Un_upper1] path_component_of_subset[OF Un_upper2]) qed
-
-subsection {* sphere is path-connected. *}
-
-lemma path_connected_punctured_universe:
- assumes "2 \<le> CARD('n::finite)" shows "path_connected((UNIV::(real^'n) set) - {a})" proof-
-  obtain \<psi> where \<psi>:"bij_betw \<psi> {1..CARD('n)} (UNIV::'n set)" using ex_bij_betw_nat_finite_1[OF finite_UNIV] by auto
-  let ?U = "UNIV::(real^'n) set" let ?u = "?U - {0}"
-  let ?basis = "\<lambda>k. basis (\<psi> k)"
-  let ?A = "\<lambda>k. {x::real^'n. \<exists>i\<in>{1..k}. inner (basis (\<psi> i)) x \<noteq> 0}"
-  have "\<forall>k\<in>{2..CARD('n)}. path_connected (?A k)" proof
-    have *:"\<And>k. ?A (Suc k) = {x. inner (?basis (Suc k)) x < 0} \<union> {x. inner (?basis (Suc k)) x > 0} \<union> ?A k" apply(rule set_ext,rule) defer
-      apply(erule UnE)+  unfolding mem_Collect_eq apply(rule_tac[1-2] x="Suc k" in bexI)
-      by(auto elim!: ballE simp add: not_less le_Suc_eq)
-    fix k assume "k \<in> {2..CARD('n)}" thus "path_connected (?A k)" proof(induct k)
-      case (Suc k) show ?case proof(cases "k = 1")
-        case False from Suc have d:"k \<in> {1..CARD('n)}" "Suc k \<in> {1..CARD('n)}" by auto
-        hence "\<psi> k \<noteq> \<psi> (Suc k)" using \<psi>[unfolded bij_betw_def inj_on_def, THEN conjunct1, THEN bspec[where x=k]] by auto
-        hence **:"?basis k + ?basis (Suc k) \<in> {x. 0 < inner (?basis (Suc k)) x} \<inter> (?A k)" 
-          "?basis k - ?basis (Suc k) \<in> {x. 0 > inner (?basis (Suc k)) x} \<inter> ({x. 0 < inner (?basis (Suc k)) x} \<union> (?A k))" using d
-          by(auto simp add: inner_basis vector_component_simps intro!:bexI[where x=k])
-        show ?thesis unfolding * Un_assoc apply(rule path_connected_Un) defer apply(rule path_connected_Un) 
-          prefer 5 apply(rule_tac[1-2] convex_imp_path_connected, rule convex_halfspace_lt, rule convex_halfspace_gt)
-          apply(rule Suc(1)) using d ** False by auto
-      next case True hence d:"1\<in>{1..CARD('n)}" "2\<in>{1..CARD('n)}" using Suc(2) by auto
-        have ***:"Suc 1 = 2" by auto
-        have **:"\<And>s t P Q. s \<union> t \<union> {x. P x \<or> Q x} = (s \<union> {x. P x}) \<union> (t \<union> {x. Q x})" by auto
-        have nequals0I:"\<And>x A. x\<in>A \<Longrightarrow> A \<noteq> {}" by auto
-        have "\<psi> 2 \<noteq> \<psi> (Suc 0)" using \<psi>[unfolded bij_betw_def inj_on_def, THEN conjunct1, THEN bspec[where x=2]] using assms by auto
-        thus ?thesis unfolding * True unfolding ** neq_iff bex_disj_distrib apply -
-          apply(rule path_connected_Un, rule_tac[1-2] path_connected_Un) defer 3 apply(rule_tac[1-4] convex_imp_path_connected) 
-          apply(rule_tac[5] x=" ?basis 1 + ?basis 2" in nequals0I)
-          apply(rule_tac[6] x="-?basis 1 + ?basis 2" in nequals0I)
-          apply(rule_tac[7] x="-?basis 1 - ?basis 2" in nequals0I)
-          using d unfolding *** by(auto intro!: convex_halfspace_gt convex_halfspace_lt, auto simp add:vector_component_simps inner_basis)
-  qed qed auto qed note lem = this
-
-  have ***:"\<And>x::real^'n. (\<exists>i\<in>{1..CARD('n)}. inner (basis (\<psi> i)) x \<noteq> 0) \<longleftrightarrow> (\<exists>i. inner (basis i) x \<noteq> 0)"
-    apply rule apply(erule bexE) apply(rule_tac x="\<psi> i" in exI) defer apply(erule exE) proof- 
-    fix x::"real^'n" and i assume as:"inner (basis i) x \<noteq> 0"
-    have "i\<in>\<psi> ` {1..CARD('n)}" using \<psi>[unfolded bij_betw_def, THEN conjunct2] by auto
-    then obtain j where "j\<in>{1..CARD('n)}" "\<psi> j = i" by auto
-    thus "\<exists>i\<in>{1..CARD('n)}. inner (basis (\<psi> i)) x \<noteq> 0" apply(rule_tac x=j in bexI) using as by auto qed auto
-  have *:"?U - {a} = (\<lambda>x. x + a) ` {x. x \<noteq> 0}" apply(rule set_ext) unfolding image_iff 
-    apply rule apply(rule_tac x="x - a" in bexI) by auto
-  have **:"\<And>x::real^'n. x\<noteq>0 \<longleftrightarrow> (\<exists>i. inner (basis i) x \<noteq> 0)" unfolding Cart_eq by(auto simp add: inner_basis)
-  show ?thesis unfolding * apply(rule path_connected_continuous_image) apply(rule continuous_on_intros)+ 
-    unfolding ** apply(rule lem[THEN bspec[where x="CARD('n)"], unfolded ***]) using assms by auto qed
-
-lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_connected {x::real^'n. norm(x - a) = r}" proof(cases "r\<le>0")
-  case True thus ?thesis proof(cases "r=0") 
-    case False hence "{x::real^'n. norm(x - a) = r} = {}" using True by auto
-    thus ?thesis using path_connected_empty by auto
-  qed(auto intro!:path_connected_singleton) next
-  case False hence *:"{x::real^'n. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}" unfolding not_le apply -apply(rule set_ext,rule)
-    unfolding image_iff apply(rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI) unfolding mem_Collect_eq norm_scaleR by (auto simp add: scaleR_right_diff_distrib)
-  have **:"{x::real^'n. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_ext,rule)
-    unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq by(auto split:split_if_asm)
-  have "continuous_on (UNIV - {0}) (\<lambda>x::real^'n. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
-    apply(rule, rule continuous_at_within_inv[unfolded o_def inverse_eq_divide]) apply(rule continuous_at_within)
-    apply(rule continuous_at_norm[unfolded o_def]) by auto
-  thus ?thesis unfolding * ** using path_connected_punctured_universe[OF assms]
-    by(auto intro!: path_connected_continuous_image continuous_on_intros continuous_on_mul) qed
-
-lemma connected_sphere: "2 \<le> CARD('n) \<Longrightarrow> connected {x::real^'n. norm(x - a) = r}"
-  using path_connected_sphere path_connected_imp_connected by auto
 
 end

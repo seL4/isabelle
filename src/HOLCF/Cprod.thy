@@ -8,7 +8,7 @@ theory Cprod
 imports Bifinite
 begin
 
-defaultsort cpo
+default_sort cpo
 
 subsection {* Continuous case function for unit type *}
 

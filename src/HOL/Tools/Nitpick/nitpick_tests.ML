@@ -292,7 +292,6 @@ val tests =
 *)
   ]
 
-(* Proof.context -> string * nut -> Kodkod.problem *)
 fun problem_for_nut ctxt (name, u) =
   let
     val debug = false
@@ -319,11 +318,10 @@ fun problem_for_nut ctxt (name, u) =
      formula = formula}
   end
 
-(* unit -> unit *)
 fun run_all_tests () =
   case Kodkod.solve_any_problem false NONE 0 1
                                 (map (problem_for_nut @{context}) tests) of
     Kodkod.Normal ([], _, _) => ()
-  | _ => error "Tests failed"
+  | _ => error "Tests failed."
 
 end;

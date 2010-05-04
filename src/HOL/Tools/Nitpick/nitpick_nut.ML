@@ -205,7 +205,6 @@ datatype nut =
 
 exception NUT of string * nut list
 
-(* cst -> string *)
 fun string_for_cst Unity = "Unity"
   | string_for_cst False = "False"
   | string_for_cst True = "True"
@@ -225,7 +224,6 @@ fun string_for_cst Unity = "Unity"
   | string_for_cst NatToInt = "NatToInt"
   | string_for_cst IntToNat = "IntToNat"
 
-(* op1 -> string *)
 fun string_for_op1 Not = "Not"
   | string_for_op1 Finite = "Finite"
   | string_for_op1 Converse = "Converse"
@@ -237,7 +235,6 @@ fun string_for_op1 Not = "Not"
   | string_for_op1 Second = "Second"
   | string_for_op1 Cast = "Cast"
 
-(* op2 -> string *)
 fun string_for_op2 All = "All"
   | string_for_op2 Exist = "Exist"
   | string_for_op2 Or = "Or"
@@ -258,14 +255,11 @@ fun string_for_op2 All = "All"
   | string_for_op2 Apply = "Apply"
   | string_for_op2 Lambda = "Lambda"
 
-(* op3 -> string *)
 fun string_for_op3 Let = "Let"
   | string_for_op3 If = "If"
 
-(* int -> Proof.context -> nut -> string *)
 fun basic_string_for_nut indent ctxt u =
   let
-    (* nut -> string *)
     val sub = basic_string_for_nut (indent + 1) ctxt
   in
     (if indent = 0 then "" else "\n" ^ implode (replicate (2 * indent) " ")) ^
@@ -313,17 +307,14 @@ fun basic_string_for_nut indent ctxt u =
        Syntax.string_of_typ ctxt T ^ " " ^ string_for_rep R) ^
     ")"
   end
-(* Proof.context -> nut -> string *)
 val string_for_nut = basic_string_for_nut 0
 
-(* nut -> bool *)
 fun inline_nut (Op1 _) = false
   | inline_nut (Op2 _) = false
   | inline_nut (Op3 _) = false
   | inline_nut (Tuple (_, _, us)) = forall inline_nut us
   | inline_nut _ = true
 
-(* nut -> typ *)
 fun type_of (Cst (_, T, _)) = T
   | type_of (Op1 (_, T, _, _)) = T
   | type_of (Op2 (_, T, _, _, _)) = T
@@ -338,7 +329,6 @@ fun type_of (Cst (_, T, _)) = T
   | type_of (RelReg (_, T, _)) = T
   | type_of (FormulaReg (_, T, _)) = T
 
-(* nut -> rep *)
 fun rep_of (Cst (_, _, R)) = R
   | rep_of (Op1 (_, _, R, _)) = R
   | rep_of (Op2 (_, _, R, _, _)) = R
@@ -353,7 +343,6 @@ fun rep_of (Cst (_, _, R)) = R
   | rep_of (RelReg (_, _, R)) = R
   | rep_of (FormulaReg (_, _, R)) = R
 
-(* nut -> string *)
 fun nickname_of (BoundName (_, _, _, nick)) = nick
   | nickname_of (FreeName (s, _, _)) = s
   | nickname_of (ConstName (s, _, _)) = s
@@ -361,7 +350,6 @@ fun nickname_of (BoundName (_, _, _, nick)) = nick
   | nickname_of (FreeRel (_, _, _, nick)) = nick
   | nickname_of u = raise NUT ("Nitpick_Nut.nickname_of", [u])
 
-(* nut -> bool *)
 fun is_skolem_name u =
   space_explode name_sep (nickname_of u)
   |> exists (String.isPrefix skolem_prefix)
@@ -369,11 +357,9 @@ fun is_skolem_name u =
 fun is_eval_name u =
   String.isPrefix eval_prefix (nickname_of u)
   handle NUT ("Nitpick_Nut.nickname_of", _) => false
-(* cst -> nut -> bool *)
 fun is_Cst cst (Cst (cst', _, _)) = (cst = cst')
   | is_Cst _ _ = false
 
-(* (nut -> 'a -> 'a) -> nut -> 'a -> 'a *)
 fun fold_nut f u =
   case u of
     Op1 (_, _, _, u1) => fold_nut f u1
@@ -382,7 +368,6 @@ fun fold_nut f u =
   | Tuple (_, _, us) => fold (fold_nut f) us
   | Construct (us', _, _, us) => fold (fold_nut f) us #> fold (fold_nut f) us'
   | _ => f u
-(* (nut -> nut) -> nut -> nut *)
 fun map_nut f u =
   case u of
     Op1 (oper, T, R, u1) => Op1 (oper, T, R, map_nut f u1)
@@ -394,7 +379,6 @@ fun map_nut f u =
     Construct (map (map_nut f) us', T, R, map (map_nut f) us)
   | _ => f u
 
-(* nut * nut -> order *)
 fun name_ord (BoundName (j1, _, _, _), BoundName (j2, _, _, _)) =
     int_ord (j1, j2)
   | name_ord (BoundName _, _) = LESS
@@ -411,24 +395,19 @@ fun name_ord (BoundName (j1, _, _, _), BoundName (j2, _, _, _)) =
      | ord => ord)
   | name_ord (u1, u2) = raise NUT ("Nitpick_Nut.name_ord", [u1, u2])
 
-(* nut -> nut -> int *)
 fun num_occs_in_nut needle_u stack_u =
   fold_nut (fn u => if u = needle_u then Integer.add 1 else I) stack_u 0
-(* nut -> nut -> bool *)
 val is_subterm_of = not_equal 0 oo num_occs_in_nut
 
-(* nut -> nut -> nut -> nut *)
 fun substitute_in_nut needle_u needle_u' =
   map_nut (fn u => if u = needle_u then needle_u' else u)
 
-(* nut -> nut list * nut list -> nut list * nut list *)
 val add_free_and_const_names =
   fold_nut (fn u => case u of
                       FreeName _ => apfst (insert (op =) u)
                     | ConstName _ => apsnd (insert (op =) u)
                     | _ => I)
 
-(* nut -> rep -> nut *)
 fun modify_name_rep (BoundName (j, T, _, nick)) R = BoundName (j, T, R, nick)
   | modify_name_rep (FreeName (s, T, _)) R = FreeName (s, T, R)
   | modify_name_rep (ConstName (s, T, _)) R = ConstName (s, T, R)
@@ -436,18 +415,15 @@ fun modify_name_rep (BoundName (j, T, _, nick)) R = BoundName (j, T, R, nick)
 
 structure NameTable = Table(type key = nut val ord = name_ord)
 
-(* 'a NameTable.table -> nut -> 'a *)
 fun the_name table name =
   case NameTable.lookup table name of
     SOME u => u
   | NONE => raise NUT ("Nitpick_Nut.the_name", [name])
-(* nut NameTable.table -> nut -> KK.n_ary_index *)
 fun the_rel table name =
   case the_name table name of
     FreeRel (x, _, _, _) => x
   | u => raise NUT ("Nitpick_Nut.the_rel", [u])
 
-(* typ * term -> typ * term *)
 fun mk_fst (_, Const (@{const_name Pair}, T) $ t1 $ _) = (domain_type T, t1)
   | mk_fst (T, t) =
     let val res_T = fst (HOLogic.dest_prodT T) in
@@ -459,23 +435,17 @@ fun mk_snd (_, Const (@{const_name Pair}, T) $ _ $ t2) =
     let val res_T = snd (HOLogic.dest_prodT T) in
       (res_T, Const (@{const_name snd}, T --> res_T) $ t)
     end
-(* typ * term -> (typ * term) list *)
 fun factorize (z as (Type (@{type_name "*"}, _), _)) =
     maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
-(* hol_context -> op2 -> term -> nut *)
 fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
   let
-    (* string list -> typ list -> term -> nut *)
     fun aux eq ss Ts t =
       let
-        (* term -> nut *)
         val sub = aux Eq ss Ts
         val sub' = aux eq ss Ts
-        (* string -> typ -> term -> nut *)
         fun sub_abs s T = aux eq (s :: ss) (T :: Ts)
-        (* typ -> term -> term -> nut *)
         fun sub_equals T t1 t2 =
           let
             val (binder_Ts, body_T) = strip_type (domain_type T)
@@ -498,7 +468,6 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
             else
               Op2 (eq, bool_T, Any, aux Eq ss Ts t1, aux Eq ss Ts t2)
           end
-        (* op2 -> string -> typ -> term -> nut *)
         fun do_quantifier quant s T t1 =
           let
             val bound_u = BoundName (length Ts, T, Any, s)
@@ -509,21 +478,18 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
             else
               body_u
           end
-        (* term -> term list -> nut *)
         fun do_apply t0 ts =
           let
             val (ts', t2) = split_last ts
             val t1 = list_comb (t0, ts')
             val T1 = fastype_of1 (Ts, t1)
           in Op2 (Apply, range_type T1, Any, sub t1, sub t2) end
-        (* op2 -> string -> styp -> term -> nut *)
         fun do_description_operator oper undef_s (x as (_, T)) t1 =
           if fast_descrs then
             Op2 (oper, range_type T, Any, sub t1,
                  sub (Const (undef_s, range_type T)))
           else
             do_apply (Const x) [t1]
-        (* styp -> term list -> nut *)
         fun do_construct (x as (_, T)) ts =
           case num_binder_types T - length ts of
             0 => Construct (map ((fn (s', T') => ConstName (s', T', Any))
@@ -716,21 +682,16 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
       end
   in aux eq [] [] end
 
-(* scope -> typ -> rep *)
 fun rep_for_abs_fun scope T =
   let val (R1, R2) = best_non_opt_symmetric_reps_for_fun_type scope T in
     Func (R1, (card_of_rep R1 <> card_of_rep R2 ? Opt) R2)
   end
 
-(* scope -> nut -> nut list * rep NameTable.table
-   -> nut list * rep NameTable.table *)
 fun choose_rep_for_free_var scope v (vs, table) =
   let
     val R = best_non_opt_set_rep_for_type scope (type_of v)
     val v = modify_name_rep v R
   in (v :: vs, NameTable.update (v, R) table) end
-(* scope -> bool -> nut -> nut list * rep NameTable.table
-   -> nut list * rep NameTable.table *)
 fun choose_rep_for_const (scope as {hol_ctxt = {thy, ...}, ...}) all_exact v
                          (vs, table) =
   let
@@ -756,16 +717,11 @@ fun choose_rep_for_const (scope as {hol_ctxt = {thy, ...}, ...}) all_exact v
     val v = modify_name_rep v R
   in (v :: vs, NameTable.update (v, R) table) end
 
-(* scope -> nut list -> rep NameTable.table -> nut list * rep NameTable.table *)
 fun choose_reps_for_free_vars scope vs table =
   fold (choose_rep_for_free_var scope) vs ([], table)
-(* scope -> bool -> nut list -> rep NameTable.table
-   -> nut list * rep NameTable.table *)
 fun choose_reps_for_consts scope all_exact vs table =
   fold (choose_rep_for_const scope all_exact) vs ([], table)
 
-(* scope -> styp -> int -> nut list * rep NameTable.table
-   -> nut list * rep NameTable.table *)
 fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, binarize, ...})
                                       (x as (_, T)) n (vs, table) =
   let
@@ -778,21 +734,15 @@ fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, binarize, ...})
                best_opt_set_rep_for_type scope T' |> unopt_rep
     val v = ConstName (s', T', R')
   in (v :: vs, NameTable.update (v, R') table) end
-(* scope -> styp -> nut list * rep NameTable.table
-   -> nut list * rep NameTable.table *)
 fun choose_rep_for_sels_for_constr scope (x as (_, T)) =
   fold_rev (choose_rep_for_nth_sel_for_constr scope x)
            (~1 upto num_sels_for_constr_type T - 1)
-(* scope -> dtype_spec -> nut list * rep NameTable.table
-   -> nut list * rep NameTable.table *)
 fun choose_rep_for_sels_of_datatype _ ({deep = false, ...} : dtype_spec) = I
   | choose_rep_for_sels_of_datatype scope {constrs, ...} =
     fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
-(* scope -> rep NameTable.table -> nut list * rep NameTable.table *)
 fun choose_reps_for_all_sels (scope as {datatypes, ...}) =
   fold (choose_rep_for_sels_of_datatype scope) datatypes o pair []
 
-(* scope -> nut -> rep NameTable.table -> rep NameTable.table *)
 fun choose_rep_for_bound_var scope v table =
   let val R = best_one_rep_for_type scope (type_of v) in
     NameTable.update (v, R) table
@@ -802,7 +752,6 @@ fun choose_rep_for_bound_var scope v table =
    three-valued logic, it would evaluate to a unrepresentable value ("Unrep")
    according to the HOL semantics. For example, "Suc n" is constructive if "n"
    is representable or "Unrep", because unknown implies "Unrep". *)
-(* nut -> bool *)
 fun is_constructive u =
   is_Cst Unrep u orelse
   (not (is_fun_type (type_of u)) andalso not (is_opt_rep (rep_of u))) orelse
@@ -817,14 +766,11 @@ fun is_constructive u =
   | Construct (_, _, _, us) => forall is_constructive us
   | _ => false
 
-(* nut -> nut *)
 fun optimize_unit u =
   if rep_of u = Unit then Cst (Unity, type_of u, Unit) else u
-(* typ -> rep -> nut *)
 fun unknown_boolean T R =
   Cst (case R of Formula Pos => False | Formula Neg => True | _ => Unknown,
        T, R)
-(* nut -> bool *)
 fun is_fully_representable_set u =
   not (is_opt_rep (rep_of u)) andalso
   case u of
@@ -835,7 +781,6 @@ fun is_fully_representable_set u =
     forall is_fully_representable_set [u1, u2]
   | _ => false
 
-(* op1 -> typ -> rep -> nut -> nut *)
 fun s_op1 oper T R u1 =
   ((if oper = Not then
       if is_Cst True u1 then Cst (False, T, R)
@@ -845,7 +790,6 @@ fun s_op1 oper T R u1 =
       raise SAME ())
    handle SAME () => Op1 (oper, T, R, u1))
   |> optimize_unit
-(* op2 -> typ -> rep -> nut -> nut -> nut *)
 fun s_op2 oper T R u1 u2 =
   ((case oper of
       Or =>
@@ -886,7 +830,6 @@ fun s_op2 oper T R u1 u2 =
     | _ => raise SAME ())
    handle SAME () => Op2 (oper, T, R, u1, u2))
   |> optimize_unit
-(* op3 -> typ -> rep -> nut -> nut -> nut -> nut *)
 fun s_op3 oper T R u1 u2 u3 =
   ((case oper of
       Let =>
@@ -897,12 +840,10 @@ fun s_op3 oper T R u1 u2 u3 =
     | _ => raise SAME ())
    handle SAME () => Op3 (oper, T, R, u1, u2, u3))
   |> optimize_unit
-(* typ -> rep -> nut list -> nut *)
 fun s_tuple T R us =
   (if exists (is_Cst Unrep) us then Cst (Unrep, T, R) else Tuple (T, R, us))
   |> optimize_unit
 
-(* theory -> nut -> nut *)
 fun optimize_nut u =
   case u of
     Op1 (oper, T, R, u1) => s_op1 oper T R (optimize_nut u1)
@@ -914,35 +855,26 @@ fun optimize_nut u =
   | Construct (us', T, R, us) => Construct (us', T, R, map optimize_nut us)
   | _ => optimize_unit u
 
-(* (nut -> 'a) -> nut -> 'a list *)
 fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
   | untuple f u = if rep_of u = Unit then [] else [f u]
 
-(* scope -> bool -> rep NameTable.table -> bool -> nut -> nut *)
 fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                        unsound table def =
   let
     val bool_atom_R = Atom (2, offset_of_type ofs bool_T)
-    (* polarity -> bool -> rep *)
     fun bool_rep polar opt =
       if polar = Neut andalso opt then Opt bool_atom_R else Formula polar
-    (* nut -> nut -> nut *)
     fun triad u1 u2 = s_op2 Triad (type_of u1) (Opt bool_atom_R) u1 u2
-    (* (polarity -> nut) -> nut *)
     fun triad_fn f = triad (f Pos) (f Neg)
-    (* rep NameTable.table -> bool -> polarity -> nut -> nut -> nut *)
     fun unrepify_nut_in_nut table def polar needle_u =
       let val needle_T = type_of needle_u in
         substitute_in_nut needle_u (Cst (if is_fun_type needle_T then Unknown
                                          else Unrep, needle_T, Any))
         #> aux table def polar
       end
-    (* rep NameTable.table -> bool -> polarity -> nut -> nut *)
     and aux table def polar u =
       let
-        (* bool -> polarity -> nut -> nut *)
         val gsub = aux table
-        (* nut -> nut *)
         val sub = gsub false Neut
       in
         case u of
@@ -1050,15 +982,12 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
           let
             val u1' = sub u1
             val u2' = sub u2
-            (* unit -> nut *)
             fun non_opt_case () = s_op2 Eq T (Formula polar) u1' u2'
-            (* unit -> nut *)
             fun opt_opt_case () =
               if polar = Neut then
                 triad_fn (fn polar => s_op2 Eq T (Formula polar) u1' u2')
               else
                 non_opt_case ()
-            (* nut -> nut *)
             fun hybrid_case u =
               (* hackish optimization *)
               if is_constructive u then s_op2 Eq T (Formula Neut) u1' u2'
@@ -1275,35 +1204,27 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
       |> optimize_unit
   in aux table def Pos end
 
-(* int -> KK.n_ary_index list -> KK.n_ary_index list
-   -> int * KK.n_ary_index list *)
 fun fresh_n_ary_index n [] ys = (0, (n, 1) :: ys)
   | fresh_n_ary_index n ((m, j) :: xs) ys =
     if m = n then (j, ys @ ((m, j + 1) :: xs))
     else fresh_n_ary_index n xs ((m, j) :: ys)
-(* int -> name_pool -> int * name_pool *)
 fun fresh_rel n {rels, vars, formula_reg, rel_reg} =
   let val (j, rels') = fresh_n_ary_index n rels [] in
     (j, {rels = rels', vars = vars, formula_reg = formula_reg,
          rel_reg = rel_reg})
   end
-(* int -> name_pool -> int * name_pool *)
 fun fresh_var n {rels, vars, formula_reg, rel_reg} =
   let val (j, vars') = fresh_n_ary_index n vars [] in
     (j, {rels = rels, vars = vars', formula_reg = formula_reg,
          rel_reg = rel_reg})
   end
-(* int -> name_pool -> int * name_pool *)
 fun fresh_formula_reg {rels, vars, formula_reg, rel_reg} =
   (formula_reg, {rels = rels, vars = vars, formula_reg = formula_reg + 1,
                  rel_reg = rel_reg})
-(* int -> name_pool -> int * name_pool *)
 fun fresh_rel_reg {rels, vars, formula_reg, rel_reg} =
   (rel_reg, {rels = rels, vars = vars, formula_reg = formula_reg,
              rel_reg = rel_reg + 1})
 
-(* nut -> nut list * name_pool * nut NameTable.table
-   -> nut list * name_pool * nut NameTable.table *)
 fun rename_plain_var v (ws, pool, table) =
   let
     val is_formula = (rep_of v = Formula Neut)
@@ -1313,7 +1234,6 @@ fun rename_plain_var v (ws, pool, table) =
     val w = constr (j, type_of v, rep_of v)
   in (w :: ws, pool, NameTable.update (v, w) table) end
 
-(* typ -> rep -> nut list -> nut *)
 fun shape_tuple (T as Type (@{type_name "*"}, [T1, T2])) (R as Struct [R1, R2])
                 us =
     let val arity1 = arity_of_rep R1 in
@@ -1327,8 +1247,6 @@ fun shape_tuple (T as Type (@{type_name "*"}, [T1, T2])) (R as Struct [R1, R2])
   | shape_tuple T Unit [] = Cst (Unity, T, Unit)
   | shape_tuple _ _ us = raise NUT ("Nitpick_Nut.shape_tuple", us)
 
-(* bool -> nut -> nut list * name_pool * nut NameTable.table
-   -> nut list * name_pool * nut NameTable.table *)
 fun rename_n_ary_var rename_free v (ws, pool, table) =
   let
     val T = type_of v
@@ -1370,15 +1288,12 @@ fun rename_n_ary_var rename_free v (ws, pool, table) =
       in (w :: ws, pool, NameTable.update (v, w) table) end
   end
 
-(* nut list -> name_pool -> nut NameTable.table
-  -> nut list * name_pool * nut NameTable.table *)
 fun rename_free_vars vs pool table =
   let
     val vs = filter (not_equal Unit o rep_of) vs
     val (vs, pool, table) = fold (rename_n_ary_var true) vs ([], pool, table)
   in (rev vs, pool, table) end
 
-(* name_pool -> nut NameTable.table -> nut -> nut *)
 fun rename_vars_in_nut pool table u =
   case u of
     Cst _ => u

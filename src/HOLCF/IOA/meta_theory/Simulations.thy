@@ -8,7 +8,7 @@ theory Simulations
 imports RefCorrectness
 begin
 
-defaultsort type
+default_sort type
 
 definition
   is_simulation :: "[('s1 * 's2)set,('a,'s1)ioa,('a,'s2)ioa] => bool" where

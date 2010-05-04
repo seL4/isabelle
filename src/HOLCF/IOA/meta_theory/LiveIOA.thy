@@ -8,7 +8,7 @@ theory LiveIOA
 imports TLS
 begin
 
-defaultsort type
+default_sort type
 
 types
   ('a, 's) live_ioa = "('a,'s)ioa * ('a,'s)ioa_temp"

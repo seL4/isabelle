@@ -33,7 +33,7 @@ end
 text {* for ad-hoc proofs for @{const fold_image} *}
 
 lemma (in comm_monoid_add) comm_monoid_mult:
-  "comm_monoid_mult (op +) 0"
+  "class.comm_monoid_mult (op +) 0"
 proof qed (auto intro: add_assoc add_commute)
 
 notation times (infixl "*" 70)
@@ -554,6 +554,26 @@ next
   case False thus ?thesis by (simp add: setsum_def)
 qed
 
+lemma setsum_nonneg_leq_bound:
+  fixes f :: "'a \<Rightarrow> 'b::{ordered_ab_group_add}"
+  assumes "finite s" "\<And>i. i \<in> s \<Longrightarrow> f i \<ge> 0" "(\<Sum>i \<in> s. f i) = B" "i \<in> s"
+  shows "f i \<le> B"
+proof -
+  have "0 \<le> (\<Sum> i \<in> s - {i}. f i)" and "0 \<le> f i"
+    using assms by (auto intro!: setsum_nonneg)
+  moreover
+  have "(\<Sum> i \<in> s - {i}. f i) + f i = B"
+    using assms by (simp add: setsum_diff1)
+  ultimately show ?thesis by auto
+qed
+
+lemma setsum_nonneg_0:
+  fixes f :: "'a \<Rightarrow> 'b::{ordered_ab_group_add}"
+  assumes "finite s" and pos: "\<And> i. i \<in> s \<Longrightarrow> f i \<ge> 0"
+  and "(\<Sum> i \<in> s. f i) = 0" and i: "i \<in> s"
+  shows "f i = 0"
+  using setsum_nonneg_leq_bound[OF assms] pos[OF i] by auto
+
 lemma setsum_mono2:
 fixes f :: "'a \<Rightarrow> 'b :: ordered_comm_monoid_add"
 assumes fin: "finite B" and sub: "A \<subseteq> B" and nn: "\<And>b. b \<in> B-A \<Longrightarrow> 0 \<le> f b"
@@ -1033,12 +1053,12 @@ lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   by (erule finite_induct) (auto simp add: insert_Diff_if)
 
 lemma setprod_inversef: 
-  fixes f :: "'b \<Rightarrow> 'a::{field,division_by_zero}"
+  fixes f :: "'b \<Rightarrow> 'a::field_inverse_zero"
   shows "finite A ==> setprod (inverse \<circ> f) A = inverse (setprod f A)"
 by (erule finite_induct) auto
 
 lemma setprod_dividef:
-  fixes f :: "'b \<Rightarrow> 'a::{field,division_by_zero}"
+  fixes f :: "'b \<Rightarrow> 'a::field_inverse_zero"
   shows "finite A
     ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
 apply (subgoal_tac
@@ -1140,7 +1160,7 @@ proof-
       using setprod_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
       by simp
     then have ?thesis using a cA
-      by (simp add: fA1 ring_simps cong add: setprod_cong cong del: if_weak_cong)}
+      by (simp add: fA1 field_simps cong add: setprod_cong cong del: if_weak_cong)}
   ultimately show ?thesis by blast
 qed
 
@@ -1180,7 +1200,8 @@ qed (simp add: Sup_fin_def)
 context semilattice_inf
 begin
 
-lemma ab_semigroup_idem_mult_inf: "ab_semigroup_idem_mult inf"
+lemma ab_semigroup_idem_mult_inf:
+  "class.ab_semigroup_idem_mult inf"
 proof qed (rule inf_assoc inf_commute inf_idem)+
 
 lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> fold inf b (insert a A) = inf a (fold inf b A)"
@@ -1250,7 +1271,7 @@ end
 context semilattice_sup
 begin
 
-lemma ab_semigroup_idem_mult_sup: "ab_semigroup_idem_mult sup"
+lemma ab_semigroup_idem_mult_sup: "class.ab_semigroup_idem_mult sup"
 by (rule semilattice_inf.ab_semigroup_idem_mult_inf)(rule dual_semilattice)
 
 lemma fold_sup_insert[simp]: "finite A \<Longrightarrow> fold sup b (insert a A) = sup a (fold sup b A)"
@@ -1470,15 +1491,15 @@ lemma hom_Max_commute:
   using assms by (rule Max.hom_commute)
 
 lemma ab_semigroup_idem_mult_min:
-  "ab_semigroup_idem_mult min"
+  "class.ab_semigroup_idem_mult min"
   proof qed (auto simp add: min_def)
 
 lemma ab_semigroup_idem_mult_max:
-  "ab_semigroup_idem_mult max"
+  "class.ab_semigroup_idem_mult max"
   proof qed (auto simp add: max_def)
 
 lemma max_lattice:
-  "semilattice_inf (op \<ge>) (op >) max"
+  "class.semilattice_inf (op \<ge>) (op >) max"
   by (fact min_max.dual_semilattice)
 
 lemma dual_max:

@@ -14,7 +14,7 @@ text {* This theory is based on Lawrence Paulson's book Logic and Computation. *
 subsection {* Natural Deduction Rules for LCF *}
 
 classes cpo < "term"
-defaultsort cpo
+default_sort cpo
 
 typedecl tr
 typedecl void

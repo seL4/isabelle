@@ -3209,47 +3209,12 @@ lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simp
   interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_powr interpret_floatarith_log
   interpret_floatarith_sin
 
-ML {*
-structure Float_Arith =
-struct
-
-@{code_datatype float = Float}
-@{code_datatype floatarith = Add | Minus | Mult | Inverse | Cos | Arctan
-                           | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Var | Num }
-@{code_datatype form = Bound | Assign | Less | LessEqual | AtLeastAtMost}
-
-val approx_form = @{code approx_form}
-val approx_tse_form = @{code approx_tse_form}
-val approx' = @{code approx'}
-val approx_form_eval = @{code approx_form_eval}
-
-end
-*}
-
-code_reserved Eval Float_Arith
-
-code_type float (Eval "Float'_Arith.float")
-code_const Float (Eval "Float'_Arith.Float/ (_,/ _)")
-
-code_type floatarith (Eval "Float'_Arith.floatarith")
-code_const Add and Minus and Mult and Inverse and Cos and Arctan and Abs and Max and Min and
-           Pi and Sqrt  and Exp and Ln and Power and Var and Num
-  (Eval "Float'_Arith.Add/ (_,/ _)" and "Float'_Arith.Minus" and "Float'_Arith.Mult/ (_,/ _)" and
-        "Float'_Arith.Inverse" and "Float'_Arith.Cos" and
-        "Float'_Arith.Arctan" and "Float'_Arith.Abs" and "Float'_Arith.Max/ (_,/ _)" and
-        "Float'_Arith.Min/ (_,/ _)" and "Float'_Arith.Pi" and "Float'_Arith.Sqrt" and
-        "Float'_Arith.Exp" and "Float'_Arith.Ln" and "Float'_Arith.Power/ (_,/ _)" and
-        "Float'_Arith.Var" and "Float'_Arith.Num")
-
-code_type form (Eval "Float'_Arith.form")
-code_const Bound and Assign and Less and LessEqual and AtLeastAtMost
-      (Eval "Float'_Arith.Bound/ (_,/ _,/ _,/ _)" and "Float'_Arith.Assign/ (_,/ _,/ _)" and
-            "Float'_Arith.Less/ (_,/ _)" and "Float'_Arith.LessEqual/ (_,/ _)"  and
-            "Float'_Arith.AtLeastAtMost/ (_,/ _,/ _)")
-
-code_const approx_form (Eval "Float'_Arith.approx'_form")
-code_const approx_tse_form (Eval "Float'_Arith.approx'_tse'_form")
-code_const approx' (Eval "Float'_Arith.approx'")
+code_reflect Float_Arith
+  datatypes float = Float
+  and floatarith = Add | Minus | Mult | Inverse | Cos | Arctan
+    | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Var | Num
+  and form = Bound | Assign | Less | LessEqual | AtLeastAtMost
+  functions approx_form approx_tse_form approx' approx_form_eval
 
 ML {*
   fun reorder_bounds_tac prems i =

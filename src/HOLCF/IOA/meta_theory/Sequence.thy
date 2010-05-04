@@ -8,9 +8,9 @@ theory Sequence
 imports Seq
 begin
 
-defaultsort type
+default_sort type
 
-types 'a Seq = "'a::type lift seq"
+types 'a Seq = "'a lift seq"
 
 consts
 

@@ -314,8 +314,8 @@ setup {* ScnpReconstruct.setup *}
 
 ML_val -- "setup inactive"
 {*
-  Context.theory_map (Function_Common.set_termination_prover (ScnpReconstruct.decomp_scnp 
-  [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS])) 
+  Context.theory_map (Function_Common.set_termination_prover
+    (ScnpReconstruct.decomp_scnp_tac [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS]))
 *}
 
 end

@@ -6,6 +6,8 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
+  val is_new_spass_version : bool
+  val pairf : ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val replace_all : string -> string -> string -> string
@@ -13,13 +15,29 @@ sig
   val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
-  val hashw : word * word -> word
-  val hashw_char : Char.char * word -> word
-  val hashw_string : string * word -> word
+  val nat_subscript : int -> string
+  val unyxml : string -> string
+  val maybe_quote : string -> string
+  val monomorphic_term : Type.tyenv -> term -> term
+  val specialize_type : theory -> (string * typ) -> term -> term
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
+
+val is_new_spass_version =
+  case getenv "SPASS_VERSION" of
+    "" => (case getenv "SPASS_HOME" of
+             "" => false
+           | s =>
+             (* Hack: Preliminary versions of the SPASS 3.7 package don't set
+                "SPASS_VERSION". *)
+             String.isSubstring "/spass-3.7/" s)
+  | s => (case s |> space_explode "." |> map Int.fromString of
+            SOME m :: SOME n :: _ => m > 3 orelse (m = 3 andalso n >= 5)
+          | _ => false)
+
+fun pairf f g x = (f x, g x)
 
 fun plural_s n = if n = 1 then "" else "s"
 
@@ -38,7 +56,6 @@ fun replace_all bef aft =
         else
           aux (String.sub (s, 0) :: seen) (String.extract (s, 1, NONE))
   in aux [] end
-
 fun remove_all bef = replace_all bef ""
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
@@ -73,11 +90,45 @@ fun parse_time_option _ "none" = NONE
         SOME (Time.fromMilliseconds msecs)
     end
 
-(* This hash function is recommended in Compilers: Principles, Techniques, and
-   Tools, by Aho, Sethi and Ullman. The hashpjw function, which they
-   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
-fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
-fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
-fun hashw_string (s:string, w) = CharVector.foldl hashw_char w s
+val subscript = implode o map (prefix "\<^isub>") o explode
+val nat_subscript = subscript o string_of_int
+
+fun plain_string_from_xml_tree t =
+  Buffer.empty |> XML.add_content t |> Buffer.content
+val unyxml = plain_string_from_xml_tree o YXML.parse
+
+val is_long_identifier = forall Syntax.is_identifier o space_explode "."
+fun maybe_quote y =
+  let val s = unyxml y in
+    y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
+           not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
+           OuterKeyword.is_keyword s) ? quote
+  end
+
+fun monomorphic_term subst t =
+  map_types (map_type_tvar (fn v =>
+      case Type.lookup subst v of
+        SOME typ => typ
+      | NONE => raise TERM ("monomorphic_term: uninstanitated schematic type \
+                            \variable", [t]))) t
+
+fun specialize_type thy (s, T) t =
+  let
+    fun subst_for (Const (s', T')) =
+      if s = s' then
+        SOME (Sign.typ_match thy (T', T) Vartab.empty)
+        handle Type.TYPE_MATCH => NONE
+      else
+        NONE
+    | subst_for (t1 $ t2) =
+      (case subst_for t1 of SOME x => SOME x | NONE => subst_for t2)
+    | subst_for (Abs (_, _, t')) = subst_for t'
+    | subst_for _ = NONE
+  in
+    case subst_for t of
+      SOME subst => monomorphic_term subst t
+    | NONE => raise Type.TYPE_MATCH
+  end
+
 
 end;

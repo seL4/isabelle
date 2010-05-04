@@ -25,9 +25,8 @@ sig
   val insert_term: term -> sort OrdList.T -> sort OrdList.T
   val insert_terms: term list -> sort OrdList.T -> sort OrdList.T
   type algebra
-  val rep_algebra: algebra ->
-   {classes: serial Graph.T,
-    arities: (class * (class * sort list)) list Symtab.table}
+  val classes_of: algebra -> serial Graph.T
+  val arities_of: algebra -> (class * (class * sort list)) list Symtab.table
   val all_classes: algebra -> class list
   val super_classes: algebra -> class -> class list
   val class_less: algebra -> class * class -> bool
@@ -116,10 +115,8 @@ datatype algebra = Algebra of
  {classes: serial Graph.T,
   arities: (class * (class * sort list)) list Symtab.table};
 
-fun rep_algebra (Algebra args) = args;
-
-val classes_of = #classes o rep_algebra;
-val arities_of = #arities o rep_algebra;
+fun classes_of (Algebra {classes, ...}) = classes;
+fun arities_of (Algebra {arities, ...}) = arities;
 
 fun make_algebra (classes, arities) =
   Algebra {classes = classes, arities = arities};
@@ -192,7 +189,7 @@ fun certify_class algebra c =
   if can (Graph.get_node (classes_of algebra)) c then c
   else raise TYPE ("Undeclared class: " ^ quote c, [], []);
 
-fun certify_sort classes = minimize_sort classes o map (certify_class classes);
+fun certify_sort classes = map (certify_class classes);
 
 
 

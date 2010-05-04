@@ -14,7 +14,7 @@ text {*
    of default class po
 *}
 
-defaultsort po
+default_sort po
 
 subsection {* Definitions *}
 

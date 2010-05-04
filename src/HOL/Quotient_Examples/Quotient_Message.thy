@@ -1,4 +1,9 @@
-theory LarryDatatype
+(*  Title:      HOL/Quotient_Examples/Quotient_Message.thy
+    Author:     Christian Urban
+
+Message datatype, based on an older version by Larry Paulson.
+*)
+theory Quotient_Message
 imports Main Quotient_Syntax
 begin
 
@@ -7,12 +12,12 @@ subsection{*Defining the Free Algebra*}
 datatype
   freemsg = NONCE  nat
         | MPAIR  freemsg freemsg
-        | CRYPT  nat freemsg  
+        | CRYPT  nat freemsg
         | DECRYPT  nat freemsg
 
-inductive 
+inductive
   msgrel::"freemsg \<Rightarrow> freemsg \<Rightarrow> bool" (infixl "\<sim>" 50)
-where 
+where
   CD:    "CRYPT K (DECRYPT K X) \<sim> X"
 | DC:    "DECRYPT K (CRYPT K X) \<sim> X"
 | NONCE: "NONCE N \<sim> NONCE N"
@@ -48,10 +53,10 @@ where
 | "freenonces (CRYPT K X) = freenonces X"
 | "freenonces (DECRYPT K X) = freenonces X"
 
-theorem msgrel_imp_eq_freenonces: 
+theorem msgrel_imp_eq_freenonces:
   assumes a: "U \<sim> V"
   shows "freenonces U = freenonces V"
-  using a by (induct) (auto) 
+  using a by (induct) (auto)
 
 subsubsection{*The Left Projection*}
 
@@ -73,7 +78,7 @@ lemma msgrel_imp_eqv_freeleft_aux:
   by (induct rule: freeleft.induct) (auto)
 
 theorem msgrel_imp_eqv_freeleft:
-  assumes a: "U \<sim> V" 
+  assumes a: "U \<sim> V"
   shows "freeleft U \<sim> freeleft V"
   using a
   by (induct) (auto intro: msgrel_imp_eqv_freeleft_aux)
@@ -97,7 +102,7 @@ lemma msgrel_imp_eqv_freeright_aux:
   by (induct rule: freeright.induct) (auto)
 
 theorem msgrel_imp_eqv_freeright:
-  assumes a: "U \<sim> V" 
+  assumes a: "U \<sim> V"
   shows "freeright U \<sim> freeright V"
   using a
   by (induct) (auto intro: msgrel_imp_eqv_freeright_aux)
@@ -105,7 +110,7 @@ theorem msgrel_imp_eqv_freeright:
 subsubsection{*The Discriminator for Constructors*}
 
 text{*A function to distinguish nonces, mpairs and encryptions*}
-fun 
+fun
   freediscrim :: "freemsg \<Rightarrow> int"
 where
    "freediscrim (NONCE N) = 0"
@@ -155,11 +160,11 @@ lemma [quot_respect]:
 by (auto intro: DECRYPT)
 
 text{*Establishing these two equations is the point of the whole exercise*}
-theorem CD_eq [simp]: 
+theorem CD_eq [simp]:
   shows "Crypt K (Decrypt K X) = X"
   by (lifting CD)
 
-theorem DC_eq [simp]: 
+theorem DC_eq [simp]:
   shows "Decrypt K (Crypt K X) = X"
   by (lifting DC)
 
@@ -180,23 +185,23 @@ lemma [quot_respect]:
   shows "(op = ===> op \<sim>) NONCE NONCE"
   by (simp add: NONCE)
 
-lemma nonces_Nonce [simp]: 
+lemma nonces_Nonce [simp]:
   shows "nonces (Nonce N) = {N}"
   by (lifting freenonces.simps(1))
- 
+
 lemma [quot_respect]:
   shows " (op \<sim> ===> op \<sim> ===> op \<sim>) MPAIR MPAIR"
   by (simp add: MPAIR)
 
-lemma nonces_MPair [simp]: 
+lemma nonces_MPair [simp]:
   shows "nonces (MPair X Y) = nonces X \<union> nonces Y"
   by (lifting freenonces.simps(2))
 
-lemma nonces_Crypt [simp]: 
+lemma nonces_Crypt [simp]:
   shows "nonces (Crypt K X) = nonces X"
   by (lifting freenonces.simps(3))
 
-lemma nonces_Decrypt [simp]: 
+lemma nonces_Decrypt [simp]:
   shows "nonces (Decrypt K X) = nonces X"
   by (lifting freenonces.simps(4))
 
@@ -211,19 +216,19 @@ lemma [quot_respect]:
   shows "(op \<sim> ===> op \<sim>) freeleft freeleft"
   by (simp add: msgrel_imp_eqv_freeleft)
 
-lemma left_Nonce [simp]: 
+lemma left_Nonce [simp]:
   shows "left (Nonce N) = Nonce N"
   by (lifting freeleft.simps(1))
 
-lemma left_MPair [simp]: 
+lemma left_MPair [simp]:
   shows "left (MPair X Y) = X"
   by (lifting freeleft.simps(2))
 
-lemma left_Crypt [simp]: 
+lemma left_Crypt [simp]:
   shows "left (Crypt K X) = left X"
   by (lifting freeleft.simps(3))
 
-lemma left_Decrypt [simp]: 
+lemma left_Decrypt [simp]:
   shows "left (Decrypt K X) = left X"
   by (lifting freeleft.simps(4))
 
@@ -240,65 +245,65 @@ lemma [quot_respect]:
   shows "(op \<sim> ===> op \<sim>) freeright freeright"
   by (simp add: msgrel_imp_eqv_freeright)
 
-lemma right_Nonce [simp]: 
+lemma right_Nonce [simp]:
   shows "right (Nonce N) = Nonce N"
   by (lifting freeright.simps(1))
 
-lemma right_MPair [simp]: 
+lemma right_MPair [simp]:
   shows "right (MPair X Y) = Y"
   by (lifting freeright.simps(2))
 
-lemma right_Crypt [simp]: 
+lemma right_Crypt [simp]:
   shows "right (Crypt K X) = right X"
   by (lifting freeright.simps(3))
 
-lemma right_Decrypt [simp]: 
+lemma right_Decrypt [simp]:
   shows "right (Decrypt K X) = right X"
   by (lifting freeright.simps(4))
 
 subsection{*Injectivity Properties of Some Constructors*}
 
-lemma NONCE_imp_eq: 
+lemma NONCE_imp_eq:
   shows "NONCE m \<sim> NONCE n \<Longrightarrow> m = n"
   by (drule msgrel_imp_eq_freenonces, simp)
 
 text{*Can also be proved using the function @{term nonces}*}
-lemma Nonce_Nonce_eq [iff]: 
+lemma Nonce_Nonce_eq [iff]:
   shows "(Nonce m = Nonce n) = (m = n)"
 proof
   assume "Nonce m = Nonce n"
   then show "m = n" by (lifting NONCE_imp_eq)
 next
-  assume "m = n" 
+  assume "m = n"
   then show "Nonce m = Nonce n" by simp
 qed
 
-lemma MPAIR_imp_eqv_left: 
+lemma MPAIR_imp_eqv_left:
   shows "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> X \<sim> X'"
   by (drule msgrel_imp_eqv_freeleft) (simp)
 
-lemma MPair_imp_eq_left: 
-  assumes eq: "MPair X Y = MPair X' Y'" 
+lemma MPair_imp_eq_left:
+  assumes eq: "MPair X Y = MPair X' Y'"
   shows "X = X'"
   using eq by (lifting MPAIR_imp_eqv_left)
 
-lemma MPAIR_imp_eqv_right: 
+lemma MPAIR_imp_eqv_right:
   shows "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> Y \<sim> Y'"
   by (drule msgrel_imp_eqv_freeright) (simp)
 
-lemma MPair_imp_eq_right: 
+lemma MPair_imp_eq_right:
   shows "MPair X Y = MPair X' Y' \<Longrightarrow> Y = Y'"
   by (lifting  MPAIR_imp_eqv_right)
 
-theorem MPair_MPair_eq [iff]: 
-  shows "(MPair X Y = MPair X' Y') = (X=X' & Y=Y')" 
+theorem MPair_MPair_eq [iff]:
+  shows "(MPair X Y = MPair X' Y') = (X=X' & Y=Y')"
   by (blast dest: MPair_imp_eq_left MPair_imp_eq_right)
 
-lemma NONCE_neqv_MPAIR: 
+lemma NONCE_neqv_MPAIR:
   shows "\<not>(NONCE m \<sim> MPAIR X Y)"
   by (auto dest: msgrel_imp_eq_freediscrim)
 
-theorem Nonce_neq_MPair [iff]: 
+theorem Nonce_neq_MPair [iff]:
   shows "Nonce N \<noteq> MPair X Y"
   by (lifting NONCE_neqv_MPAIR)
 
@@ -308,21 +313,21 @@ lemma CRYPT_NONCE_neq_NONCE:
   shows "\<not>(CRYPT K (NONCE M) \<sim> NONCE N)"
   by (auto dest: msgrel_imp_eq_freediscrim)
 
-theorem Crypt_Nonce_neq_Nonce: 
+theorem Crypt_Nonce_neq_Nonce:
   shows "Crypt K (Nonce M) \<noteq> Nonce N"
   by (lifting CRYPT_NONCE_neq_NONCE)
 
 text{*...and many similar results*}
-lemma CRYPT2_NONCE_neq_NONCE: 
+lemma CRYPT2_NONCE_neq_NONCE:
   shows "\<not>(CRYPT K (CRYPT K' (NONCE M)) \<sim> NONCE N)"
-  by (auto dest: msgrel_imp_eq_freediscrim)  
+  by (auto dest: msgrel_imp_eq_freediscrim)
 
-theorem Crypt2_Nonce_neq_Nonce: 
+theorem Crypt2_Nonce_neq_Nonce:
   shows "Crypt K (Crypt K' (Nonce M)) \<noteq> Nonce N"
-  by (lifting CRYPT2_NONCE_neq_NONCE) 
+  by (lifting CRYPT2_NONCE_neq_NONCE)
 
-theorem Crypt_Crypt_eq [iff]: 
-  shows "(Crypt K X = Crypt K X') = (X=X')" 
+theorem Crypt_Crypt_eq [iff]:
+  shows "(Crypt K X = Crypt K X') = (X=X')"
 proof
   assume "Crypt K X = Crypt K X'"
   hence "Decrypt K (Crypt K X) = Decrypt K (Crypt K X')" by simp
@@ -332,8 +337,8 @@ next
   thus "Crypt K X = Crypt K X'" by simp
 qed
 
-theorem Decrypt_Decrypt_eq [iff]: 
-  shows "(Decrypt K X = Decrypt K X') = (X=X')" 
+theorem Decrypt_Decrypt_eq [iff]:
+  shows "(Decrypt K X = Decrypt K X') = (X=X')"
 proof
   assume "Decrypt K X = Decrypt K X'"
   hence "Crypt K (Decrypt K X) = Crypt K (Decrypt K X')" by simp
@@ -374,19 +379,19 @@ lemma [quot_respect]:
   shows "(op \<sim> ===> op =) freediscrim freediscrim"
   by (auto simp add: msgrel_imp_eq_freediscrim)
 
-lemma discrim_Nonce [simp]: 
+lemma discrim_Nonce [simp]:
   shows "discrim (Nonce N) = 0"
   by (lifting freediscrim.simps(1))
 
-lemma discrim_MPair [simp]: 
+lemma discrim_MPair [simp]:
   shows "discrim (MPair X Y) = 1"
   by (lifting freediscrim.simps(2))
 
-lemma discrim_Crypt [simp]: 
+lemma discrim_Crypt [simp]:
   shows "discrim (Crypt K X) = discrim X + 2"
   by (lifting freediscrim.simps(3))
 
-lemma discrim_Decrypt [simp]: 
+lemma discrim_Decrypt [simp]:
   shows "discrim (Decrypt K X) = discrim X - 2"
   by (lifting freediscrim.simps(4))
 

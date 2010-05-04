@@ -62,7 +62,7 @@ by (induct x rule: tr_induct) simp_all
 
 subsection {* Case analysis *}
 
-defaultsort pcpo
+default_sort pcpo
 
 definition
   trifte :: "'c \<rightarrow> 'c \<rightarrow> tr \<rightarrow> 'c" where

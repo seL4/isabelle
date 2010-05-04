@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
@@ -9,16 +10,19 @@ sig
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
   val skolem_prefix: string
+  val skolem_infix: string
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
   val bad_for_atp: thm -> bool
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
-  val neg_clausify: thm list -> thm list
-  val combinators: thm -> thm
-  val neg_conjecture_clauses: Proof.context -> thm -> int -> thm list * (string * typ) list
   val suppress_endtheory: bool Unsynchronized.ref
     (*for emergency use where endtheory causes problems*)
+  val strip_subgoal : thm -> int -> (string * typ) list * term list * term
+  val neg_clausify: thm -> thm list
+  val neg_conjecture_clauses:
+    Proof.context -> thm -> int -> thm list list * (string * typ) list
+  val neg_clausify_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
 
@@ -31,6 +35,7 @@ val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
 val skolem_prefix = "sko_"
+val skolem_infix = "$"
 
 fun freeze_thm th = #1 (Drule.legacy_freeze_thaw th);
 
@@ -62,6 +67,13 @@ exception Clausify_failure of theory;
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
+(*Keep the full complexity of the original name*)
+fun flatten_name s = space_implode "_X" (Long_Name.explode s);
+
+fun skolem_name thm_name nref var_name =
+  skolem_prefix ^ thm_name ^ "_" ^ Int.toString (Unsynchronized.inc nref) ^
+  skolem_infix ^ (if var_name = "" then "g" else flatten_name var_name)
+
 fun rhs_extra_types lhsT rhs =
   let val lhs_vars = Term.add_tfreesT lhsT []
       fun add_new_TFrees (TFree v) =
@@ -75,10 +87,10 @@ fun rhs_extra_types lhsT rhs =
 fun declare_skofuns s th =
   let
     val nref = Unsynchronized.ref 0    (* FIXME ??? *)
-    fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (_, T, p))) (axs, thy) =
+    fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) (axs, thy) =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
-            val cname = skolem_prefix ^ s ^ "_" ^ Int.toString (Unsynchronized.inc nref)
+            val cname = skolem_name s nref s'
             val args0 = OldTerm.term_frees xtp  (*get the formal parameter list*)
             val Ts = map type_of args0
             val extraTs = rhs_extra_types (Ts ---> T) xtp
@@ -107,13 +119,13 @@ fun declare_skofuns s th =
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skofuns s th =
   let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
-      fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs(_,T,p))) defs =
+      fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
                 val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
-                val id = skolem_prefix ^ s ^ "_" ^ Int.toString (Unsynchronized.inc sko_count)
+                val id = skolem_name s sko_count s'
                 val c = Free (id, cT)
                 val rhs = list_abs_free (map dest_Free args,
                                          HOLogic.choice_const T $ xtp)
@@ -334,9 +346,6 @@ val multi_base_blacklist =
   ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
    "split_asm", "cases", "ext_cases"];
 
-(*Keep the full complexity of the original name*)
-fun flatten_name s = space_implode "_X" (Long_Name.explode s);
-
 fun fake_name th =
   if Thm.has_name_hint th then flatten_name (Thm.get_name_hint th)
   else gensym "unknown_thm_";
@@ -346,7 +355,7 @@ fun skolem_thm (s, th) =
   if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse bad_for_atp th then []
   else
     let
-      val ctxt0 = Variable.thm_context th
+      val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt1) = to_nnf th ctxt0
       val (cnfs, ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
     in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
@@ -399,7 +408,7 @@ fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
 local
 
 fun skolem_def (name, th) thy =
-  let val ctxt0 = Variable.thm_context th in
+  let val ctxt0 = Variable.global_thm_context th in
     (case try (to_nnf th) ctxt0 of
       NONE => (NONE, thy)
     | SOME (nnfth, ctxt1) =>
@@ -455,19 +464,31 @@ fun clause_cache_endtheory thy =
   lambda_free, but then the individual theory caches become much bigger.*)
 
 
+fun strip_subgoal goal i =
+  let
+    val (t, frees) = Logic.goal_params (prop_of goal) i
+    val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
+    val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
+  in (rev (map dest_Free frees), hyp_ts, concl_t) end
+
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
 fun neg_skolemize_tac ctxt =
   EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
 
+fun neg_skolemize_tac ctxt =
+  EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
+
 val neg_clausify =
-  Meson.make_clauses_unsorted #> map combinators #> Meson.finish_cnf;
+  single #> Meson.make_clauses_unsorted #> map combinators #> Meson.finish_cnf
 
 fun neg_conjecture_clauses ctxt st0 n =
   let
     val st = Seq.hd (neg_skolemize_tac ctxt n st0)
     val ({params, prems, ...}, _) = Subgoal.focus (Variable.set_body false ctxt) n st
-  in (neg_clausify prems, map (Term.dest_Free o Thm.term_of o #2) params) end;
+  in
+    (map neg_clausify prems, map (Term.dest_Free o Thm.term_of o #2) params)
+  end
 
 (*Conversion of a subgoal to conjecture clauses. Each clause has
   leading !!-bound universal variables, to express generality. *)
@@ -479,30 +500,14 @@ fun neg_clausify_tac ctxt =
        [Subgoal.FOCUS
          (fn {prems, ...} =>
            (Method.insert_tac
-             (map forall_intr_vars (neg_clausify prems)) i)) ctxt,
+             (map forall_intr_vars (maps neg_clausify prems)) i)) ctxt,
         REPEAT_DETERM_N (length ts) o etac thin_rl] i
      end);
-
-val neg_clausify_setup =
-  Method.setup @{binding neg_clausify} (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac))
-  "conversion of goal to conjecture clauses";
-
-
-(** Attribute for converting a theorem into clauses **)
-
-val clausify_setup =
-  Attrib.setup @{binding clausify}
-    (Scan.lift OuterParse.nat >>
-      (fn i => Thm.rule_attribute (fn context => fn th =>
-          Meson.make_meta_clause (nth (cnf_axiom (Context.theory_of context) th) i))))
-  "conversion of theorem to clauses";
 
 
 (** setup **)
 
 val setup =
-  neg_clausify_setup #>
-  clausify_setup #>
   perhaps saturate_skolem_cache #>
   Theory.at_end clause_cache_endtheory;
 

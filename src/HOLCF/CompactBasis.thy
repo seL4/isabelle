@@ -10,7 +10,7 @@ begin
 
 subsection {* Compact bases of bifinite domains *}
 
-defaultsort profinite
+default_sort profinite
 
 typedef (open) 'a compact_basis = "{x::'a::profinite. compact x}"
 by (fast intro: compact_approx)
@@ -237,12 +237,12 @@ definition
   where "fold_pd g f t = fold1 f (g ` Rep_pd_basis t)"
 
 lemma fold_pd_PDUnit:
-  assumes "ab_semigroup_idem_mult f"
+  assumes "class.ab_semigroup_idem_mult f"
   shows "fold_pd g f (PDUnit x) = g x"
 unfolding fold_pd_def Rep_PDUnit by simp
 
 lemma fold_pd_PDPlus:
-  assumes "ab_semigroup_idem_mult f"
+  assumes "class.ab_semigroup_idem_mult f"
   shows "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
 proof -
   interpret ab_semigroup_idem_mult f by fact

@@ -32,7 +32,7 @@ local
 
 fun calculate thy class sups base_sort param_map assm_axiom =
   let
-    val empty_ctxt = ProofContext.init thy;
+    val empty_ctxt = ProofContext.init_global thy;
 
     (* instantiation of canonical interpretation *)
     val aT = TFree (Name.aT, base_sort);
@@ -100,10 +100,14 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
 (* reading and processing class specifications *)
 
-fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
+fun prep_class_elems prep_decl thy sups raw_elems =
   let
 
     (* user space type system: only permits 'a type variable, improves towards 'a *)
+    val algebra = Sign.classes_of thy;
+    val inter_sort = curry (Sorts.inter_sort algebra);
+    val proto_base_sort = if null sups then Sign.defaultS thy
+      else fold inter_sort (map (base_sort thy) sups) [];
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
         (these_operations thy sups);
@@ -111,17 +115,17 @@ fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
           if v = Name.aT then T
           else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
       | T => T);
-    fun singleton_fixate thy algebra Ts =
+    fun singleton_fixate Ts =
       let
         fun extract f = (fold o fold_atyps) f Ts [];
         val tfrees = extract
           (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
         val inferred_sort = extract
-          (fn TVar (_, sort) => curry (Sorts.inter_sort algebra) sort | _ => I);
+          (fn TVar (_, sort) => inter_sort sort | _ => I);
         val fixate_sort = if null tfrees then inferred_sort
           else case tfrees
            of [(_, a_sort)] => if Sorts.sort_le algebra (a_sort, inferred_sort)
-                then Sorts.inter_sort algebra (a_sort, inferred_sort)
+                then inter_sort a_sort inferred_sort
                 else error ("Type inference imposes additional sort constraint "
                   ^ Syntax.string_of_sort_global thy inferred_sort
                   ^ " of type parameter " ^ Name.aT ^ " of sort "
@@ -136,10 +140,10 @@ fun prep_class_elems prep_decl thy sups proto_base_sort raw_elems =
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
       #> redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
-      #> add_typ_check ~10 "singleton_fixate" (singleton_fixate thy (Sign.classes_of thy));
+      #> add_typ_check ~10 "singleton_fixate" singleton_fixate;
     val raw_supexpr = (map (fn sup => (sup, (("", false),
       Expression.Positional []))) sups, []);
-    val ((raw_supparams, _, inferred_elems), _) = ProofContext.init thy
+    val ((raw_supparams, _, inferred_elems), _) = ProofContext.init_global thy
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs
       | fold_element_types f (Element.Constrains cnstrs) = fold (f o snd) cnstrs
@@ -183,15 +187,14 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       then error ("Duplicate parameter(s) in superclasses: "
         ^ (commas o map quote o duplicates (op =)) raw_supparam_names)
       else ();
-    val given_basesort = fold inter_sort (map (base_sort thy) sups) [];
 
     (* infer types and base sort *)
     val (base_sort, supparam_names, supexpr, inferred_elems) =
-      prep_class_elems thy sups given_basesort raw_elems;
+      prep_class_elems thy sups raw_elems;
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = begin sups base_sort (ProofContext.init thy);
+    val class_ctxt = begin sups base_sort (ProofContext.init_global thy);
     val ((_, _, syntax_elems), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs = if null vs
@@ -273,22 +276,21 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
     #> pair (param_map, params, assm_axiom)))
   end;
 
-fun gen_class prep_class_spec bname raw_supclasses raw_elems thy =
+fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
   let
-    val class = Sign.full_name thy bname;
+    val class = Sign.full_name thy b;
     val (((sups, supparam_names), (supsort, base_sort, supexpr)), (elems, global_syntax)) =
       prep_class_spec thy raw_supclasses raw_elems;
   in
     thy
-    |> Expression.add_locale bname Binding.empty supexpr elems
+    |> Expression.add_locale b (Binding.qualify true "class" b) supexpr elems
     |> snd |> Local_Theory.exit_global
-    |> adjungate_axclass bname class base_sort sups supsort supparam_names global_syntax
+    |> adjungate_axclass b class base_sort sups supsort supparam_names global_syntax
     ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) =>
-       Locale.add_registration (class, base_morph $> eq_morph) NONE export_morph
-         (*FIXME should not modify base_morph, although admissible*)
+       Locale.add_registration (class, base_morph $> eq_morph (*FIXME duplication*)) (SOME (eq_morph, true)) export_morph
     #> register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
     |> Theory_Target.init (SOME class)
     |> pair class
@@ -338,7 +340,7 @@ in
 
 val subclass = gen_subclass (K I) user_proof;
 fun prove_subclass tac = gen_subclass (K I) (tactic_proof tac);
-val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init) user_proof;
+val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init_global) user_proof;
 
 end; (*local*)
 

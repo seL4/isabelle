@@ -137,27 +137,27 @@ lemma inter_interior_unions_intervals: fixes f::"(real^'n) set set"
     hence "\<exists>x. ball x (e/2) \<subseteq> s \<inter> (\<Union>f)" proof(erule_tac disjE)
       let ?z = "x - (e/2) *\<^sub>R basis k" assume as:"x$k = a$k" have "ball ?z (e / 2) \<inter> i = {}" apply(rule ccontr) unfolding ex_in_conv[THEN sym] proof(erule exE)
 	fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
-	hence "\<bar>(?z - y) $ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding vector_dist_norm by auto
+	hence "\<bar>(?z - y) $ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
 	hence "y$k < a$k" unfolding vector_component_simps vector_scaleR_component as using e[THEN conjunct1] by(auto simp add:field_simps)
 	hence "y \<notin> i" unfolding ab mem_interval not_all by(rule_tac x=k in exI,auto) thus False using yi by auto qed
       moreover have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)" apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]]) proof
 	fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R basis k)"
 	   apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "(e/2) *\<^sub>R basis k"])
 	  unfolding norm_scaleR norm_basis by auto
-	also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball vector_dist_norm using e by(auto simp add:field_simps)
-	finally show "y\<in>ball x e" unfolding mem_ball vector_dist_norm using e by(auto simp add:field_simps) qed
+	also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
+	finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
       ultimately show ?thesis apply(rule_tac x="?z" in exI) unfolding Union_insert by auto
     next let ?z = "x + (e/2) *\<^sub>R basis k" assume as:"x$k = b$k" have "ball ?z (e / 2) \<inter> i = {}" apply(rule ccontr) unfolding ex_in_conv[THEN sym] proof(erule exE)
 	fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
-	hence "\<bar>(?z - y) $ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding vector_dist_norm by auto
+	hence "\<bar>(?z - y) $ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
 	hence "y$k > b$k" unfolding vector_component_simps vector_scaleR_component as using e[THEN conjunct1] by(auto simp add:field_simps)
 	hence "y \<notin> i" unfolding ab mem_interval not_all by(rule_tac x=k in exI,auto) thus False using yi by auto qed
       moreover have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)" apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]]) proof
 	fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y + (e / 2) *\<^sub>R basis k)"
 	   apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "- (e/2) *\<^sub>R basis k"])
 	  unfolding norm_scaleR norm_basis by auto
-	also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball vector_dist_norm using e by(auto simp add:field_simps)
-	finally show "y\<in>ball x e" unfolding mem_ball vector_dist_norm using e by(auto simp add:field_simps) qed
+	also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
+	finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
       ultimately show ?thesis apply(rule_tac x="?z" in exI) unfolding Union_insert by auto qed 
     then guess x .. hence "x \<in> s \<inter> interior (\<Union>f)" unfolding lem1[where U="\<Union>f",THEN sym] using centre_in_ball e[THEN conjunct1] by auto
     thus ?thesis apply-apply(rule lem2,rule insert(3)) using insert(4) by auto qed qed qed qed note * = this
@@ -933,7 +933,7 @@ lemma has_integral_integral:"f integrable_on s \<longleftrightarrow> (f has_inte
 lemma has_integral_vec1: assumes "(f has_integral k) {a..b}"
   shows "((\<lambda>x. vec1 (f x)) has_integral (vec1 k)) {a..b}"
 proof- have *:"\<And>p. (\<Sum>(x, k)\<in>p. content k *\<^sub>R vec1 (f x)) - vec1 k = vec1 ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k)"
-    unfolding vec_sub Cart_eq by(auto simp add:vec1_dest_vec1_simps split_beta)
+    unfolding vec_sub Cart_eq by(auto simp add: split_beta)
   show ?thesis using assms unfolding has_integral apply safe
     apply(erule_tac x=e in allE,safe) apply(rule_tac x=d in exI,safe)
     apply(erule_tac x=p in allE,safe) unfolding * norm_vector_1 by auto qed
@@ -1067,7 +1067,7 @@ proof-
   proof- case goal1 guess n using real_arch_pow2[of "(setsum (\<lambda>i. b$i - a$i) UNIV) / e"] .. note n=this
     show ?case apply(rule_tac x=n in exI) proof(rule,rule)
       fix x y assume xy:"x\<in>{A n..B n}" "y\<in>{A n..B n}"
-      have "dist x y \<le> setsum (\<lambda>i. abs((x - y)$i)) UNIV" unfolding vector_dist_norm by(rule norm_le_l1)
+      have "dist x y \<le> setsum (\<lambda>i. abs((x - y)$i)) UNIV" unfolding dist_norm by(rule norm_le_l1)
       also have "\<dots> \<le> setsum (\<lambda>i. B n$i - A n$i) UNIV"
       proof(rule setsum_mono) fix i show "\<bar>(x - y) $ i\<bar> \<le> B n $ i - A n $ i"
           using xy[unfolded mem_interval,THEN spec[where x=i]]
@@ -1131,7 +1131,7 @@ proof(rule ccontr) let ?e = "norm(k1 - k2) / 2" assume as:"k1 \<noteq> k2" hence
     guess d2 by(rule has_integralD[OF goal1(2) e]) note d2=this
     guess p by(rule fine_division_exists[OF gauge_inter[OF d1(1) d2(1)],of a b]) note p=this
     let ?c = "(\<Sum>(x, k)\<in>p. content k *\<^sub>R f x)" have "norm (k1 - k2) \<le> norm (?c - k2) + norm (?c - k1)"
-      using norm_triangle_ineq4[of "k1 - ?c" "k2 - ?c"] by(auto simp add:group_simps norm_minus_commute)
+      using norm_triangle_ineq4[of "k1 - ?c" "k2 - ?c"] by(auto simp add:algebra_simps norm_minus_commute)
     also have "\<dots> < norm (k1 - k2) / 2 + norm (k1 - k2) / 2"
       apply(rule add_strict_mono) apply(rule_tac[!] d2(2) d1(2)) using p unfolding fine_def by auto
     finally show False by auto
@@ -1244,7 +1244,7 @@ proof- have lem:"\<And>f g::real^'n \<Rightarrow> 'a. \<And>a b k l.
           unfolding scaleR_right_distrib setsum_addf[of "\<lambda>(x,k). content k *\<^sub>R f x" "\<lambda>(x,k). content k *\<^sub>R g x" p,THEN sym]
           by(rule setsum_cong2,auto)
         have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R (f x + g x)) - (k + l)) = norm (((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - k) + ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - l))"
-          unfolding * by(auto simp add:group_simps) also let ?res = "\<dots>"
+          unfolding * by(auto simp add:algebra_simps) also let ?res = "\<dots>"
         from as have *:"d1 fine p" "d2 fine p" unfolding fine_inter by auto
         have "?res < e/2 + e/2" apply(rule le_less_trans[OF norm_triangle_ineq])
           apply(rule add_strict_mono) using d1(2)[OF as(1) *(1)] and d2(2)[OF as(1) *(2)] by auto
@@ -1268,7 +1268,7 @@ proof- have lem:"\<And>f g::real^'n \<Rightarrow> 'a. \<And>a b k l.
 
 lemma has_integral_sub:
   shows "(f has_integral k) s \<Longrightarrow> (g has_integral l) s \<Longrightarrow> ((\<lambda>x. f(x) - g(x)) has_integral (k - l)) s"
-  using has_integral_add[OF _ has_integral_neg,of f k s g l] unfolding group_simps by auto
+  using has_integral_add[OF _ has_integral_neg,of f k s g l] unfolding algebra_simps by auto
 
 lemma integral_0: "integral s (\<lambda>x::real^'n. 0::real^'m) = 0"
   by(rule integral_unique has_integral_0)+
@@ -1356,7 +1356,7 @@ lemma integrable_eq:
 
 lemma has_integral_eq_eq:
   shows "\<forall>x\<in>s. f x = g x \<Longrightarrow> ((f has_integral k) s \<longleftrightarrow> (g has_integral k) s)"
-  using has_integral_eq[of s f g] has_integral_eq[of s g f] by auto 
+  using has_integral_eq[of s f g] has_integral_eq[of s g f] by rule auto
 
 lemma has_integral_null[dest]:
   assumes "content({a..b}) = 0" shows  "(f has_integral 0) ({a..b})"
@@ -1417,7 +1417,7 @@ proof assume ?l
     show ?case apply(rule_tac x=d in exI,rule,rule d) apply(rule,rule,rule,(erule conjE)+)
     proof- fix p1 p2 assume as:"p1 tagged_division_of {a..b}" "d fine p1" "p2 tagged_division_of {a..b}" "d fine p2"
       show "norm ((\<Sum>(x, k)\<in>p1. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p2. content k *\<^sub>R f x)) < e"
-        apply(rule dist_triangle_half_l[where y=y,unfolded vector_dist_norm])
+        apply(rule dist_triangle_half_l[where y=y,unfolded dist_norm])
         using d(2)[OF conjI[OF as(1-2)]] d(2)[OF conjI[OF as(3-4)]] .
     qed qed
 next assume "\<forall>e>0. \<exists>d. ?P e d" hence "\<forall>n::nat. \<exists>d. ?P (inverse(real (n + 1))) d" by auto
@@ -1447,7 +1447,7 @@ next assume "\<forall>e>0. \<exists>d. ?P e d" hence "\<forall>n::nat. \<exists>
       have *:"inverse (real (N1 + N2 + 1)) < e / 2" apply(rule less_trans) using N1 by auto
       show "norm ((\<Sum>(x, k)\<in>q. content k *\<^sub>R f x) - y) < e" apply(rule norm_triangle_half_r)
         apply(rule less_trans[OF _ *]) apply(subst N1', rule d(2)[of "p (N1+N2)"]) defer
-        using N2[rule_format,unfolded vector_dist_norm,of "N1+N2"]
+        using N2[rule_format,unfolded dist_norm,of "N1+N2"]
         using as dp[of "N1 - 1 + 1 + N2" "N1 + N2"] using p(1)[of "N1 + N2"] using N1 by auto qed qed qed
 
 subsection {* Additivity of integral on abutting intervals. *}
@@ -1554,7 +1554,7 @@ proof(unfold has_integral,rule,rule) case goal1 hence e:"e/2>0" by auto
           using p(2)[unfolded fine_def,rule_format,OF as,unfolded split_conv] by auto
         hence "\<exists>y. y \<in> ball x \<bar>x $ k - c\<bar> \<inter> {x. x $ k \<le> c}" using goal1(1) by blast 
         then guess y .. hence "\<bar>x $ k - y $ k\<bar> < \<bar>x $ k - c\<bar>" "y$k \<le> c" apply-apply(rule le_less_trans)
-          using component_le_norm[of "x - y" k,unfolded vector_minus_component] by(auto simp add:vector_dist_norm)
+          using component_le_norm[of "x - y" k,unfolded vector_minus_component] by(auto simp add:dist_norm)
         thus False using goal1(2)[unfolded not_le] by(auto simp add:field_simps)
       qed
       show "~(kk \<inter> {x. x$k \<ge> c} = {}) \<Longrightarrow> x$k \<ge> c"
@@ -1563,7 +1563,7 @@ proof(unfold has_integral,rule,rule) case goal1 hence e:"e/2>0" by auto
           using p(2)[unfolded fine_def,rule_format,OF as,unfolded split_conv] by auto
         hence "\<exists>y. y \<in> ball x \<bar>x $ k - c\<bar> \<inter> {x. x $ k \<ge> c}" using goal1(1) by blast 
         then guess y .. hence "\<bar>x $ k - y $ k\<bar> < \<bar>x $ k - c\<bar>" "y$k \<ge> c" apply-apply(rule le_less_trans)
-          using component_le_norm[of "x - y" k,unfolded vector_minus_component] by(auto simp add:vector_dist_norm)
+          using component_le_norm[of "x - y" k,unfolded vector_minus_component] by(auto simp add:dist_norm)
         thus False using goal1(2)[unfolded not_le] by(auto simp add:field_simps)
       qed
     qed
@@ -1653,7 +1653,7 @@ lemma tagged_division_union_interval:
 proof- have *:"{a..b} = ({a..b} \<inter> {x. x$k \<le> c}) \<union> ({a..b} \<inter> {x. x$k \<ge> c})" by auto
   show ?thesis apply(subst *) apply(rule tagged_division_union[OF assms])
     unfolding interval_split interior_closed_interval
-    by(auto simp add: vector_less_def Cart_lambda_beta elim!:allE[where x=k]) qed
+    by(auto simp add: vector_less_def elim!:allE[where x=k]) qed
 
 lemma has_integral_separate_sides: fixes f::"real^'m \<Rightarrow> 'a::real_normed_vector"
   assumes "(f has_integral i) ({a..b})" "e>0"
@@ -1676,7 +1676,7 @@ proof- guess d using has_integralD[OF assms] . note d=this
         then guess e unfolding mem_interior .. note e=this
         have x:"x$k = c" using x interior_subset by fastsimp
         have *:"\<And>i. \<bar>(x - (x + (\<chi> i. if i = k then e / 2 else 0))) $ i\<bar> = (if i = k then e/2 else 0)" using e by auto
-        have "x + (\<chi> i. if i = k then e/2 else 0) \<in> ball x e" unfolding mem_ball vector_dist_norm 
+        have "x + (\<chi> i. if i = k then e/2 else 0) \<in> ball x e" unfolding mem_ball dist_norm 
           apply(rule le_less_trans[OF norm_le_l1]) unfolding * 
           unfolding setsum_delta[OF finite_UNIV] using e by auto 
         hence "x + (\<chi> i. if i = k then e/2 else 0) \<in> {x. x$k = c}" using e by auto
@@ -1703,7 +1703,7 @@ proof- guess y using assms unfolding integrable_on_def .. note y=this
       proof- guess p using fine_division_exists[OF d(1), of a' b] . note p=this
         show ?thesis using norm_triangle_half_l[OF d(2)[of p1 p] d(2)[of p2 p]]
           using as unfolding interval_split b'_def[symmetric] a'_def[symmetric]
-          using p using assms by(auto simp add:group_simps)
+          using p using assms by(auto simp add:algebra_simps)
       qed qed  
     show "?P {x. x $ k \<ge> c}" apply(rule_tac x=d in exI) apply(rule,rule d) apply(rule,rule,rule)
     proof- fix p1 p2 assume as:"p1 tagged_division_of {a..b} \<inter> {x. x $ k \<ge> c} \<and> d fine p1 \<and> p2 tagged_division_of {a..b} \<inter> {x. x $ k \<ge> c} \<and> d fine p2"
@@ -1711,7 +1711,7 @@ proof- guess y using assms unfolding integrable_on_def .. note y=this
       proof- guess p using fine_division_exists[OF d(1), of a b'] . note p=this
         show ?thesis using norm_triangle_half_l[OF d(2)[of p p1] d(2)[of p p2]]
           using as unfolding interval_split b'_def[symmetric] a'_def[symmetric]
-          using p using assms by(auto simp add:group_simps) qed qed qed qed
+          using p using assms by(auto simp add:algebra_simps) qed qed qed qed
 
 subsection {* Generalized notion of additivity. *}
 
@@ -1743,11 +1743,11 @@ lemma operative_empty: "operative opp f \<Longrightarrow> f {} = neutral opp"
 subsection {* Using additivity of lifted function to encode definedness. *}
 
 lemma forall_option: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (\<forall>x. P(Some x))"
-  by (metis map_of.simps option.nchotomy)
+  by (metis option.nchotomy)
 
 lemma exists_option:
  "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P(Some x))" 
-  by (metis map_of.simps option.nchotomy)
+  by (metis option.nchotomy)
 
 fun lifted where 
   "lifted (opp::'a\<Rightarrow>'a\<Rightarrow>'b) (Some x) (Some y) = Some(opp x y)" |
@@ -1842,13 +1842,12 @@ lemma neutral_add[simp]:
 lemma operative_content[intro]: "operative (op +) content"
   unfolding operative_def content_split[THEN sym] neutral_add by auto
 
-lemma neutral_monoid[simp]: "neutral ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a) = 0"
-  unfolding neutral_def apply(rule some_equality) defer
-  apply(erule_tac x=0 in allE) by auto
+lemma neutral_monoid: "neutral ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a) = 0"
+  by (rule neutral_add) (* FIXME: duplicate *)
 
 lemma monoidal_monoid[intro]:
   shows "monoidal ((op +)::('a::comm_monoid_add) \<Rightarrow> 'a \<Rightarrow> 'a)"
-  unfolding monoidal_def neutral_monoid by(auto simp add: group_simps) 
+  unfolding monoidal_def neutral_monoid by(auto simp add: algebra_simps) 
 
 lemma operative_integral: fixes f::"real^'n \<Rightarrow> 'a::banach"
   shows "operative (lifted(op +)) (\<lambda>i. if f integrable_on i then Some(integral i f) else None)"
@@ -1941,7 +1940,7 @@ proof- have ab:"\<forall>i. a$i \<le> b$i" using assms(2) by(auto intro!:less_im
     apply(rule_tac x="(k,(interval_lowerbound l)$k)" in exI) defer
     apply(rule_tac x="(k,(interval_upperbound l)$k)" in exI)
     unfolding division_points_def unfolding interval_bounds[OF ab]
-    apply (auto simp add:interval_bounds) unfolding * by auto
+    apply auto unfolding * by auto
   thus "?D1 \<subset> ?D" apply-apply(rule,rule division_points_subset[OF assms(1-4)]) by auto
 
   have *:"interval_lowerbound ({a..b} \<inter> {x. x $ k \<ge> interval_lowerbound l $ k}) $ k = interval_lowerbound l $ k"
@@ -1952,7 +1951,7 @@ proof- have ab:"\<forall>i. a$i \<le> b$i" using assms(2) by(auto intro!:less_im
     apply(rule_tac x="(k,(interval_lowerbound l)$k)" in exI) defer
     apply(rule_tac x="(k,(interval_upperbound l)$k)" in exI)
     unfolding division_points_def unfolding interval_bounds[OF ab]
-    apply (auto simp add:interval_bounds) unfolding * by auto
+    apply auto unfolding * by auto
   thus "?D2 \<subset> ?D" apply-apply(rule,rule division_points_subset[OF assms(1-4)]) by auto qed
 
 subsection {* Preservation by divisions and tagged divisions. *}
@@ -2254,7 +2253,7 @@ lemma rsum_component_le: fixes f::"real^'n \<Rightarrow> real^'m"
   assumes "p tagged_division_of {a..b}"  "\<forall>x\<in>{a..b}. (f x)$i \<le> (g x)$i"
   shows "(setsum (\<lambda>(x,k). content k *\<^sub>R f x) p)$i \<le> (setsum (\<lambda>(x,k). content k *\<^sub>R g x) p)$i"
   unfolding setsum_component apply(rule setsum_mono)
-  apply(rule mp) defer apply assumption apply(induct_tac x,rule) unfolding split_conv
+  apply(rule mp) defer apply assumption unfolding split_paired_all apply rule unfolding split_conv
 proof- fix a b assume ab:"(a,b) \<in> p" note assm = tagged_division_ofD(2-4)[OF assms(1) ab]
   from this(3) guess u v apply-by(erule exE)+ note b=this
   show "(content b *\<^sub>R f a) $ i \<le> (content b *\<^sub>R g a) $ i" unfolding b
@@ -2381,11 +2380,11 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
       have lem2:"\<And>s1 s2 i1 i2. norm(s2 - s1) \<le> e/2 \<Longrightarrow> norm(s1 - i1) < e / 4 \<Longrightarrow> norm(s2 - i2) < e / 4 \<Longrightarrow>norm(i1 - i2) < e"
       proof- case goal1 have "norm (i1 - i2) \<le> norm (i1 - s1) + norm (s1 - s2) + norm (s2 - i2)"
           using norm_triangle_ineq[of "i1 - s1" "s1 - i2"]
-          using norm_triangle_ineq[of "s1 - s2" "s2 - i2"] by(auto simp add:group_simps)
-        also have "\<dots> < e" using goal1 unfolding norm_minus_commute by(auto simp add:group_simps)
+          using norm_triangle_ineq[of "s1 - s2" "s2 - i2"] by(auto simp add:algebra_simps)
+        also have "\<dots> < e" using goal1 unfolding norm_minus_commute by(auto simp add:algebra_simps)
         finally show ?case .
       qed
-      show ?case unfolding vector_dist_norm apply(rule lem2) defer
+      show ?case unfolding dist_norm apply(rule lem2) defer
         apply(rule gm(2)[OF conjI[OF p(1)]],rule_tac[2] gn(2)[OF conjI[OF p(1)]])
         using conjunctD2[OF p(2)[unfolded fine_inter]] apply- apply assumption+ apply(rule order_trans)
         apply(rule rsum_diff_bound[OF p(1), where e="2 / real M"])
@@ -2399,7 +2398,7 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
         also have "\<dots> = 2 / real M" unfolding real_divide_def by auto
         finally show "norm (g n x - g m x) \<le> 2 / real M"
           using norm_triangle_le[of "g n x - f x" "f x - g m x" "2 / real M"]
-          by(auto simp add:group_simps simp add:norm_minus_commute)
+          by(auto simp add:algebra_simps simp add:norm_minus_commute)
       qed qed qed
   from this[unfolded convergent_eq_cauchy[THEN sym]] guess s .. note s=this
 
@@ -2413,8 +2412,8 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
     have lem:"\<And>sf sg i. norm(sf - sg) \<le> e / 3 \<Longrightarrow> norm(i - s) < e / 3 \<Longrightarrow> norm(sg - i) < e / 3 \<Longrightarrow> norm(sf - s) < e"
     proof- case goal1 have "norm (sf - s) \<le> norm (sf - sg) + norm (sg - i) + norm (i - s)"
         using norm_triangle_ineq[of "sf - sg" "sg - s"]
-        using norm_triangle_ineq[of "sg -  i" " i - s"] by(auto simp add:group_simps)
-      also have "\<dots> < e" using goal1 unfolding norm_minus_commute by(auto simp add:group_simps)
+        using norm_triangle_ineq[of "sg -  i" " i - s"] by(auto simp add:algebra_simps)
+      also have "\<dots> < e" using goal1 unfolding norm_minus_commute by(auto simp add:algebra_simps)
       finally show ?case .
     qed
     show ?case apply(rule_tac x=g' in exI) apply(rule,rule g')
@@ -2427,7 +2426,7 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
           apply-apply(rule less_le_trans,assumption) using `e>0` by auto 
         thus "inverse (real (N1 + N2) + 1) * content {a..b} \<le> e / 3"
           unfolding inverse_eq_divide by(auto simp add:field_simps)
-        show "norm (i (N1 + N2) - s) < e / 3" by(rule N1[rule_format,unfolded vector_dist_norm],auto)
+        show "norm (i (N1 + N2) - s) < e / 3" by(rule N1[rule_format,unfolded dist_norm],auto)
       qed qed qed qed
 
 subsection {* Negligible sets. *}
@@ -2511,7 +2510,7 @@ proof- case goal1 from content_doublesplit[OF this,of a b k c] guess d . note d=
       show "content l = content (l \<inter> {x. \<bar>x $ k - c\<bar> \<le> d})" apply(rule arg_cong[where f=content])
         apply(rule set_ext,rule,rule) unfolding mem_Collect_eq
       proof- fix y assume y:"y\<in>l" note p[THEN conjunct2,unfolded fine_def,rule_format,OF as(1),unfolded split_conv]
-        note this[unfolded subset_eq mem_ball vector_dist_norm,rule_format,OF y] note le_less_trans[OF component_le_norm[of _ k] this]
+        note this[unfolded subset_eq mem_ball dist_norm,rule_format,OF y] note le_less_trans[OF component_le_norm[of _ k] this]
         thus "\<bar>y $ k - c\<bar> \<le> d" unfolding Cart_nth.diff xk by auto
       qed auto qed
     note p'= tagged_division_ofD[OF p[THEN conjunct1]] and p''=division_of_tagged_division[OF p[THEN conjunct1]]
@@ -2838,7 +2837,7 @@ proof(rule integrable_uniform_limit,safe) fix e::real assume e:"0 < e"
     proof safe show "(\<lambda>y. f x) integrable_on l" unfolding integrable_on_def l by(rule,rule has_integral_const)
       fix y assume y:"y\<in>l" note fineD[OF p(2) as,unfolded subset_eq,rule_format,OF this]
       note d(2)[OF _ _ this[unfolded mem_ball]]
-      thus "norm (f y - f x) \<le> e" using y p'(2-3)[OF as] unfolding vector_dist_norm l norm_minus_commute by fastsimp qed qed
+      thus "norm (f y - f x) \<le> e" using y p'(2-3)[OF as] unfolding dist_norm l norm_minus_commute by fastsimp qed qed
   from e have "0 \<le> e" by auto from approximable_on_division[OF this division_of_tagged_division[OF p(1)] *] guess g .
   thus "\<exists>g. (\<forall>x\<in>{a..b}. norm (f x - g x) \<le> e) \<and> g integrable_on {a..b}" by auto qed 
 
@@ -2903,7 +2902,7 @@ lemma additive_tagged_division_1: fixes f::"real^1 \<Rightarrow> 'a::real_normed
   shows "setsum (\<lambda>(x,k). f(interval_upperbound k) - f(interval_lowerbound k)) p = f b - f a"
 proof- let ?f = "(\<lambda>k::(real^1) set. if k = {} then 0 else f(interval_upperbound k) - f(interval_lowerbound k))"
   have *:"operative op + ?f" unfolding operative_1_lt[OF monoidal_monoid] interval_eq_empty_1
-    by(auto simp add:not_less interval_bound_1 vector_less_def)
+    by(auto simp add:not_less vector_less_def)
   have **:"{a..b} \<noteq> {}" using assms(1) by auto note operative_tagged_division[OF monoidal_monoid * assms(2)]
   note * = this[unfolded if_not_P[OF **] interval_bound_1[OF assms(1)],THEN sym ]
   show ?thesis unfolding * apply(subst setsum_iterate[THEN sym]) defer
@@ -2956,14 +2955,14 @@ proof safe fix e::real assume e:"e>0" have ab:"dest_vec1 (vec1 a) \<le> dest_vec
       have ball:"\<forall>xa\<in>k. xa \<in> ball x (d (dest_vec1 x))" using as(2)[unfolded fine_def,rule_format,OF `(x,k)\<in>p`,unfolded split_conv subset_eq] .
       have "norm ((v$1 - u$1) *\<^sub>R f' x - (f v - f u)) \<le> norm (f u - f x - (u$1 - x$1) *\<^sub>R f' x) + norm (f v - f x - (v$1 - x$1) *\<^sub>R f' x)"
         apply(rule order_trans[OF _ norm_triangle_ineq4]) apply(rule eq_refl) apply(rule arg_cong[where f=norm])
-        unfolding scaleR.diff_left by(auto simp add:group_simps)
+        unfolding scaleR.diff_left by(auto simp add:algebra_simps)
       also have "... \<le> e * norm (dest_vec1 u - dest_vec1 x) + e * norm (dest_vec1 v - dest_vec1 x)"
         apply(rule add_mono) apply(rule d(2)[of "x$1" "u$1",unfolded o_def vec1_dest_vec1]) prefer 4
         apply(rule d(2)[of "x$1" "v$1",unfolded o_def vec1_dest_vec1])
         using ball[rule_format,of u] ball[rule_format,of v] 
-        using xk(1-2) unfolding k subset_eq by(auto simp add:vector_dist_norm norm_real)
+        using xk(1-2) unfolding k subset_eq by(auto simp add:dist_norm norm_real)
       also have "... \<le> e * dest_vec1 (interval_upperbound k - interval_lowerbound k)"
-        unfolding k interval_bound_1[OF *] using xk(1) unfolding k by(auto simp add:vector_dist_norm norm_real field_simps)
+        unfolding k interval_bound_1[OF *] using xk(1) unfolding k by(auto simp add:dist_norm norm_real field_simps)
       finally show "norm (content k *\<^sub>R f' x - (f (interval_upperbound k) - f (interval_lowerbound k))) \<le>
         e * dest_vec1 (interval_upperbound k - interval_lowerbound k)" unfolding k interval_bound_1[OF *] content_1[OF *] .
     qed(insert as, auto) qed qed
@@ -3012,7 +3011,7 @@ proof(induct "card s" arbitrary:s rule:nat_less_induct)
       proof- show "\<bar>(y - x) $ i\<bar> < e" unfolding y_def Cart_lambda_beta vector_minus_component if_P[OF refl]
           apply(cases) apply(subst if_P,assumption) unfolding if_not_P unfolding i xi using di as(2) by auto
         show "(\<Sum>i\<in>UNIV - {i}. \<bar>(y - x) $ i\<bar>) \<le> (\<Sum>i\<in>UNIV. 0)" unfolding y_def by auto 
-      qed auto thus "dist y x < e" unfolding vector_dist_norm by auto
+      qed auto thus "dist y x < e" unfolding dist_norm by auto
       have "y\<notin>k" unfolding k mem_interval apply rule apply(erule_tac x=i in allE) using xyi unfolding k i xi by auto
       moreover have "y \<in> \<Union>s" unfolding s mem_interval
       proof note simps = y_def Cart_lambda_beta if_not_P
@@ -3098,7 +3097,7 @@ proof- fix e::real assume e:"e>0"
   proof(rule,rule,rule d,safe) case goal1 show ?case proof(cases "y < x")
       case False have "f \<circ> dest_vec1 integrable_on {vec1 a..vec1 y}" apply(rule integrable_subinterval,rule integrable_continuous)
         apply(rule continuous_on_o_dest_vec1 assms)+  unfolding not_less using assms(2) goal1 by auto
-      hence *:"?I a y - ?I a x = ?I x y" unfolding group_simps apply(subst eq_commute) apply(rule integral_combine)
+      hence *:"?I a y - ?I a x = ?I x y" unfolding algebra_simps apply(subst eq_commute) apply(rule integral_combine)
         using False unfolding not_less using assms(2) goal1 by auto
       have **:"norm (y - x) = content {vec1 x..vec1 y}" apply(subst content_1) using False unfolding not_less by auto
       show ?thesis unfolding ** apply(rule has_integral_bound[where f="(\<lambda>u. f u - f x) o dest_vec1"]) unfolding * unfolding o_def
@@ -3108,11 +3107,11 @@ proof- fix e::real assume e:"e>0"
         have *:"y - x = norm(y - x)" using False by auto
         show "((\<lambda>xa. f x) has_integral (y - x) *\<^sub>R f x) {vec1 x..vec1 y}" apply(subst *) unfolding ** by auto
         show "\<forall>xa\<in>{vec1 x..vec1 y}. norm (f (dest_vec1 xa) - f x) \<le> e" apply safe apply(rule less_imp_le)
-          apply(rule d(2)[unfolded vector_dist_norm]) using assms(2) using goal1 by auto
+          apply(rule d(2)[unfolded dist_norm]) using assms(2) using goal1 by auto
       qed(insert e,auto)
     next case True have "f \<circ> dest_vec1 integrable_on {vec1 a..vec1 x}" apply(rule integrable_subinterval,rule integrable_continuous)
         apply(rule continuous_on_o_dest_vec1 assms)+  unfolding not_less using assms(2) goal1 by auto
-      hence *:"?I a x - ?I a y = ?I y x" unfolding group_simps apply(subst eq_commute) apply(rule integral_combine)
+      hence *:"?I a x - ?I a y = ?I y x" unfolding algebra_simps apply(subst eq_commute) apply(rule integral_combine)
         using True using assms(2) goal1 by auto
       have **:"norm (y - x) = content {vec1 y..vec1 x}" apply(subst content_1) using True unfolding not_less by auto
       have ***:"\<And>fy fx c::'a. fx - fy - (y - x) *\<^sub>R c = -(fy - fx - (x - y) *\<^sub>R c)" unfolding scaleR_left.diff by auto 
@@ -3125,7 +3124,7 @@ proof- fix e::real assume e:"e>0"
         have *:"x - y = norm(y - x)" using True by auto
         show "((\<lambda>xa. f x) has_integral (x - y) *\<^sub>R f x) {vec1 y..vec1 x}" apply(subst *) unfolding ** by auto
         show "\<forall>xa\<in>{vec1 y..vec1 x}. norm (f (dest_vec1 xa) - f x) \<le> e" apply safe apply(rule less_imp_le)
-          apply(rule d(2)[unfolded vector_dist_norm]) using assms(2) using goal1 by auto
+          apply(rule d(2)[unfolded dist_norm]) using assms(2) using goal1 by auto
       qed(insert e,auto) qed qed qed
 
 lemma integral_has_vector_derivative': fixes f::"real^1 \<Rightarrow> 'a::banach"
@@ -3194,7 +3193,7 @@ proof- { presume *:"{a..b} \<noteq> {} \<Longrightarrow> ?thesis"
           apply(rule_tac X="g ` X" in UnionI) defer apply(rule_tac x="h x" in image_eqI)
           using X(2) assms(3)[rule_format,of x] by auto
       qed note ** = d(2)[OF this] have *:"inj_on (\<lambda>(x, k). (g x, g ` k)) p" using inj(1) unfolding inj_on_def by fastsimp
-       have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _") unfolding group_simps add_left_cancel
+       have "(\<Sum>(x, k)\<in>(\<lambda>(x, k). (g x, g ` k)) ` p. content k *\<^sub>R f x) - i = r *\<^sub>R (\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - i" (is "?l = _") unfolding algebra_simps add_left_cancel
         unfolding setsum_reindex[OF *] apply(subst scaleR_right.setsum) defer apply(rule setsum_cong2) unfolding o_def split_paired_all split_conv
         apply(drule p(4)) apply safe unfolding assms(7)[rule_format] using p by auto
       also have "... = r *\<^sub>R ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f (g x)) - (1 / r) *\<^sub>R i)" (is "_ = ?r") unfolding scaleR.diff_right scaleR.scaleR_left[THEN sym]
@@ -3332,7 +3331,7 @@ lemma split_minus[simp]:"(\<lambda>(x, k). f x k) x - (\<lambda>(x, k). g x k) x
 
 lemma norm_triangle_le_sub: "norm x + norm y \<le> e \<Longrightarrow> norm (x - y) \<le> e"
   apply(subst(asm)(2) norm_minus_cancel[THEN sym])
-  apply(drule norm_triangle_le) by(auto simp add:group_simps)
+  apply(drule norm_triangle_le) by(auto simp add:algebra_simps)
 
 lemma fundamental_theorem_of_calculus_interior:
   assumes"a \<le> b" "continuous_on {a..b} f" "\<forall>x\<in>{a<..<b}. (f has_vector_derivative f'(x)) (at x)"
@@ -3340,7 +3339,7 @@ lemma fundamental_theorem_of_calculus_interior:
 proof- { presume *:"a < b \<Longrightarrow> ?thesis" 
     show ?thesis proof(cases,rule *,assumption)
       assume "\<not> a < b" hence "a = b" using assms(1) by auto
-      hence *:"{vec a .. vec b} = {vec b}" "f b - f a = 0" apply(auto simp add: Cart_simps) by smt
+      hence *:"{vec a .. vec b} = {vec b}" "f b - f a = 0" by(auto simp add: Cart_eq vector_le_def order_antisym)
       show ?thesis unfolding *(2) apply(rule has_integral_null) unfolding content_eq_0_1 using * `a=b` by auto
     qed } assume ab:"a < b"
   let ?P = "\<lambda>e. \<exists>d. gauge d \<and> (\<forall>p. p tagged_division_of {vec1 a..vec1 b} \<and> d fine p \<longrightarrow>
@@ -3376,7 +3375,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
       proof(rule add_mono) case goal1 have "\<bar>c - a\<bar> \<le> \<bar>l\<bar>" using as' by auto
         thus ?case apply-apply(rule order_trans[OF _ l(2)]) unfolding norm_scaleR apply(rule mult_right_mono) by auto
       next case goal2 show ?case apply(rule less_imp_le) apply(cases "a = c") defer
-          apply(rule k(2)[unfolded vector_dist_norm]) using as' e ab by(auto simp add:field_simps)
+          apply(rule k(2)[unfolded dist_norm]) using as' e ab by(auto simp add:field_simps)
       qed finally show "norm (content {vec1 a..vec1 c} *\<^sub>R f' a - (f c - f a)) \<le> e * (b - a) / 4" unfolding content_1'[OF as(1)] by auto
     qed qed then guess da .. note da=conjunctD2[OF this,rule_format]
 
@@ -3400,7 +3399,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
       proof(rule add_mono) case goal1 have "\<bar>c - b\<bar> \<le> \<bar>l\<bar>" using as' by auto
         thus ?case apply-apply(rule order_trans[OF _ l(2)]) unfolding norm_scaleR apply(rule mult_right_mono) by auto
       next case goal2 show ?case apply(rule less_imp_le) apply(cases "b = c") defer apply(subst norm_minus_commute)
-          apply(rule k(2)[unfolded vector_dist_norm]) using as' e ab by(auto simp add:field_simps)
+          apply(rule k(2)[unfolded dist_norm]) using as' e ab by(auto simp add:field_simps)
       qed finally show "norm (content {vec1 c..vec1 b} *\<^sub>R f' b - (f b - f c)) \<le> e * (b - a) / 4" unfolding content_1'[OF as(1)] by auto
     qed qed then guess db .. note db=conjunctD2[OF this,rule_format]
 
@@ -3422,7 +3421,7 @@ proof- { presume *:"a < b \<Longrightarrow> ?thesis"
         hence "\<forall>i. u$i \<le> v$i" and uv:"{u,v}\<subseteq>{u..v}" using p(2)[OF as(1)] by auto note this(1) this(1)[unfolded forall_1]
         note result = as(2)[unfolded k interval_bounds[OF this(1)] content_1[OF this(2)]]
 
-        assume as':"x \<noteq> vec1 a" "x \<noteq> vec1 b" hence "x$1 \<in> {a<..<b}" using p(2-3)[OF as(1)] by(auto simp add:Cart_simps) note  * = d(2)[OF this] 
+        assume as':"x \<noteq> vec1 a" "x \<noteq> vec1 b" hence "x$1 \<in> {a<..<b}" using p(2-3)[OF as(1)] by(auto simp add: Cart_eq) note  * = d(2)[OF this]
         have "norm ((v$1 - u$1) *\<^sub>R f' (x$1) - (f (v$1) - f (u$1))) =
           norm ((f (u$1) - f (x$1) - (u$1 - x$1) *\<^sub>R f' (x$1)) - (f (v$1) - f (x$1) - (v$1 - x$1) *\<^sub>R f' (x$1)))" 
           apply(rule arg_cong[of _ _ norm]) unfolding scaleR_left.diff by auto 
@@ -3641,17 +3640,17 @@ proof- have *:"(\<lambda>x. f (- x)) integrable_on {- b..- a}" "- b < - c" "- c 
   proof safe show "0 < ?d" using d(1) assms(3) unfolding Cart_simps by auto
     fix t::"_^1" assume as:"c \<le> t" "t$1 < c$1 + ?d"
     have *:"integral{a..c} f = integral{a..b} f - integral{c..b} f"
-      "integral{a..t} f = integral{a..b} f - integral{t..b} f" unfolding group_simps
+      "integral{a..t} f = integral{a..b} f - integral{t..b} f" unfolding algebra_simps
       apply(rule_tac[!] integral_combine) using assms as unfolding Cart_simps by auto
     have "(- c)$1 - d < (- t)$1 \<and> - t \<le> - c" using as by auto note d(2)[rule_format,OF this]
     thus "norm (integral {a..c} f - integral {a..t} f) < e" unfolding * 
-      unfolding integral_reflect apply-apply(subst norm_minus_commute) by(auto simp add:group_simps) qed qed
+      unfolding integral_reflect apply-apply(subst norm_minus_commute) by(auto simp add:algebra_simps) qed qed
 
 declare dest_vec1_eq[simp del] not_less[simp] not_le[simp]
 
 lemma indefinite_integral_continuous: fixes f::"real^1 \<Rightarrow> 'a::banach"
   assumes "f integrable_on {a..b}" shows  "continuous_on {a..b} (\<lambda>x. integral {a..x} f)"
-proof(unfold continuous_on_def, safe)  fix x e assume as:"x\<in>{a..b}" "0<(e::real)"
+proof(unfold continuous_on_iff, safe)  fix x e assume as:"x\<in>{a..b}" "0<(e::real)"
   let ?thesis = "\<exists>d>0. \<forall>x'\<in>{a..b}. dist x' x < d \<longrightarrow> dist (integral {a..x'} f) (integral {a..x} f) < e"
   { presume *:"a<b \<Longrightarrow> ?thesis"
     show ?thesis apply(cases,rule *,assumption)
@@ -3664,19 +3663,19 @@ proof(unfold continuous_on_def, safe)  fix x e assume as:"x\<in>{a..b}" "0<(e::r
   proof- assume "x=a" have "a \<le> a" by auto
     from indefinite_integral_continuous_right[OF assms(1) this `a<b` `e>0`] guess d . note d=this
     show ?thesis apply(rule,rule,rule d,safe) apply(subst dist_commute)
-      unfolding `x=a` vector_dist_norm apply(rule d(2)[rule_format]) unfolding norm_real by auto
+      unfolding `x=a` dist_norm apply(rule d(2)[rule_format]) unfolding norm_real by auto
   next   assume "x=b" have "b \<le> b" by auto
     from indefinite_integral_continuous_left[OF assms(1) `a<b` this `e>0`] guess d . note d=this
     show ?thesis apply(rule,rule,rule d,safe) apply(subst dist_commute)
-      unfolding `x=b` vector_dist_norm apply(rule d(2)[rule_format]) unfolding norm_real by auto
-  next assume "a<x \<and> x<b" hence xl:"a<x" "x\<le>b" and xr:"a\<le>x" "x<b" by(auto simp add:Cart_simps)
+      unfolding `x=b` dist_norm apply(rule d(2)[rule_format]) unfolding norm_real by auto
+  next assume "a<x \<and> x<b" hence xl:"a<x" "x\<le>b" and xr:"a\<le>x" "x<b" by(auto simp add: vector_less_def)
     from indefinite_integral_continuous_left [OF assms(1) xl `e>0`] guess d1 . note d1=this
     from indefinite_integral_continuous_right[OF assms(1) xr `e>0`] guess d2 . note d2=this
     show ?thesis apply(rule_tac x="min d1 d2" in exI)
     proof safe show "0 < min d1 d2" using d1 d2 by auto
       fix y assume "y\<in>{a..b}" "dist y x < min d1 d2"
       thus "dist (integral {a..y} f) (integral {a..x} f) < e" apply-apply(subst dist_commute)
-        apply(cases "y < x") unfolding vector_dist_norm apply(rule d1(2)[rule_format]) defer
+        apply(cases "y < x") unfolding dist_norm apply(rule d1(2)[rule_format]) defer
         apply(rule d2(2)[rule_format]) unfolding Cart_simps not_less norm_real by(auto simp add:field_simps)
     qed qed qed 
 
@@ -3715,7 +3714,7 @@ proof- { presume *:"x \<noteq> c \<Longrightarrow> ?thesis" show ?thesis apply(c
     apply safe apply(rule conv) using assms(4,7) by auto
   have *:"\<And>t xa. (1 - t) *\<^sub>R c + t *\<^sub>R x = (1 - xa) *\<^sub>R c + xa *\<^sub>R x \<Longrightarrow> t = xa"
   proof- case goal1 hence "(t - xa) *\<^sub>R x = (t - xa) *\<^sub>R c" 
-      unfolding scaleR_simps by(auto simp add:group_simps)
+      unfolding scaleR_simps by(auto simp add:algebra_simps)
     thus ?case using `x\<noteq>c` by auto qed
   have as2:"finite {t. ((1 - t) *\<^sub>R c + t *\<^sub>R x) \<in> k}" using assms(2) 
     apply(rule finite_surj[where f="\<lambda>z. SOME t. (1-t) *\<^sub>R c + t *\<^sub>R x = z"])
@@ -3726,7 +3725,7 @@ proof- { presume *:"x \<noteq> c \<Longrightarrow> ?thesis" show ?thesis apply(c
     unfolding o_def using assms(5) defer apply-apply(rule)
   proof- fix t assume as:"t\<in>{0..1} - {t. (1 - t) *\<^sub>R c + t *\<^sub>R x \<in> k}"
     have *:"c - t *\<^sub>R c + t *\<^sub>R x \<in> s - k" apply safe apply(rule conv[unfolded scaleR_simps]) 
-      using `x\<in>s` `c\<in>s` as by(auto simp add:scaleR_simps)
+      using `x\<in>s` `c\<in>s` as by(auto simp add: algebra_simps)
     have "(f \<circ> (\<lambda>t. (1 - t) *\<^sub>R c + t *\<^sub>R x) has_derivative (\<lambda>x. 0) \<circ> (\<lambda>z. (0 - z *\<^sub>R c) + z *\<^sub>R x)) (at t within {0..1})"
       apply(rule diff_chain_within) apply(rule has_derivative_add)
       unfolding scaleR_simps apply(rule has_derivative_sub) apply(rule has_derivative_const)
@@ -3832,7 +3831,7 @@ proof- { presume *:"\<exists>a b. s = {a..b} \<Longrightarrow> ?thesis"
       thus "((\<lambda>x. if x \<in> s then f x else 0) has_integral i) {c..d}" unfolding s
         apply-apply(rule has_integral_restrict_closed_subinterval) apply(rule `?l`[unfolded s])
         apply safe apply(drule B(2)[rule_format]) unfolding subset_eq apply(erule_tac x=x in ballE)
-        by(auto simp add:vector_dist_norm)
+        by(auto simp add:dist_norm)
     qed(insert B `e>0`, auto)
   next assume as:"\<forall>e>0. ?r e" 
     from this[rule_format,OF zero_less_one] guess C .. note C=conjunctD2[OF this,rule_format]
@@ -3840,7 +3839,7 @@ proof- { presume *:"\<exists>a b. s = {a..b} \<Longrightarrow> ?thesis"
     have c_d:"{a..b} \<subseteq> {c..d}" apply safe apply(drule B(2)) unfolding mem_interval
     proof case goal1 thus ?case using component_le_norm[of x i] unfolding c_def d_def
         by(auto simp add:field_simps) qed
-    have "ball 0 C \<subseteq> {c..d}" apply safe unfolding mem_interval mem_ball vector_dist_norm 
+    have "ball 0 C \<subseteq> {c..d}" apply safe unfolding mem_interval mem_ball dist_norm 
     proof case goal1 thus ?case using component_le_norm[of x i] unfolding c_def d_def by auto qed
     from C(2)[OF this] have "\<exists>y. (f has_integral y) {a..b}"
       unfolding has_integral_restrict_closed_subintervals_eq[OF c_d,THEN sym] unfolding s by auto
@@ -3852,7 +3851,7 @@ proof- { presume *:"\<exists>a b. s = {a..b} \<Longrightarrow> ?thesis"
       have c_d:"{a..b} \<subseteq> {c..d}" apply safe apply(drule B(2)) unfolding mem_interval
       proof case goal1 thus ?case using component_le_norm[of x i] unfolding c_def d_def
           by(auto simp add:field_simps) qed
-      have "ball 0 C \<subseteq> {c..d}" apply safe unfolding mem_interval mem_ball vector_dist_norm 
+      have "ball 0 C \<subseteq> {c..d}" apply safe unfolding mem_interval mem_ball dist_norm 
       proof case goal1 thus ?case using component_le_norm[of x i] unfolding c_def d_def by auto qed
       note C(2)[OF this] then guess z .. note z = conjunctD2[OF this, unfolded s]
       note this[unfolded has_integral_restrict_closed_subintervals_eq[OF c_d]]
@@ -3949,7 +3948,7 @@ proof assume ?r show ?l unfolding negligible_def
 
 lemma has_integral_spike_set_eq: fixes f::"real^'n \<Rightarrow> 'a::banach" 
   assumes "negligible((s - t) \<union> (t - s))" shows "((f has_integral y) s \<longleftrightarrow> (f has_integral y) t)"
-  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by auto
+  unfolding has_integral_restrict_univ[THEN sym,of f] apply(rule has_integral_spike_eq[OF assms]) by (safe, auto split: split_if_asm)
 
 lemma has_integral_spike_set[dest]: fixes f::"real^'n \<Rightarrow> 'a::banach"
   assumes "negligible((s - t) \<union> (t - s))" "(f has_integral y) s"
@@ -4038,7 +4037,7 @@ proof assume ?r
     from as[OF zero_less_one] guess B .. note B=conjunctD2[OF this,rule_format]
     let ?a = "(\<chi> i. min (a$i) (-B))::real^'n" and ?b = "(\<chi> i. max (b$i) B)::real^'n"
     show "?f integrable_on {a..b}" apply(rule integrable_subinterval[of _ ?a ?b])
-    proof- have "ball 0 B \<subseteq> {?a..?b}" apply safe unfolding mem_ball mem_interval vector_dist_norm
+    proof- have "ball 0 B \<subseteq> {?a..?b}" apply safe unfolding mem_ball mem_interval dist_norm
       proof case goal1 thus ?case using component_le_norm[of x i] by(auto simp add:field_simps) qed
       from B(2)[OF this] guess z .. note conjunct1[OF this]
       thus "?f integrable_on {?a..?b}" unfolding integrable_on_def by auto
@@ -4072,10 +4071,10 @@ next assume ?r note as = conjunctD2[OF this,rule_format]
     from as(2)[OF this] guess B .. note B = conjunctD2[OF this,rule_format]
     from real_arch_simple[of B] guess N .. note N = this
     { fix n assume n:"n \<ge> N" have "ball 0 B \<subseteq> {\<chi> i. - real n..\<chi> i. real n}" apply safe
-        unfolding mem_ball mem_interval vector_dist_norm
+        unfolding mem_ball mem_interval dist_norm
       proof case goal1 thus ?case using component_le_norm[of x i]
           using n N by(auto simp add:field_simps) qed }
-    thus ?case apply-apply(rule_tac x=N in exI) apply safe unfolding vector_dist_norm apply(rule B(2)) by auto
+    thus ?case apply-apply(rule_tac x=N in exI) apply safe unfolding dist_norm apply(rule B(2)) by auto
   qed from this[unfolded convergent_eq_cauchy[THEN sym]] guess i ..
   note i = this[unfolded Lim_sequentially, rule_format]
 
@@ -4090,11 +4089,11 @@ next assume ?r note as = conjunctD2[OF this,rule_format]
       from real_arch_simple[of ?B] guess n .. note n=this
       show "norm (integral {a..b} (\<lambda>x. if x \<in> s then f x else 0) - i) < e"
         apply(rule norm_triangle_half_l) apply(rule B(2)) defer apply(subst norm_minus_commute)
-        apply(rule N[unfolded vector_dist_norm, of n])
+        apply(rule N[unfolded dist_norm, of n])
       proof safe show "N \<le> n" using n by auto
         fix x::"real^'n" assume x:"x \<in> ball 0 B" hence "x\<in> ball 0 ?B" by auto
         thus "x\<in>{a..b}" using ab by blast 
-        show "x\<in>{\<chi> i. - real n..\<chi> i. real n}" using x unfolding mem_interval mem_ball vector_dist_norm apply-
+        show "x\<in>{\<chi> i. - real n..\<chi> i. real n}" using x unfolding mem_interval mem_ball dist_norm apply-
         proof case goal1 thus ?case using component_le_norm[of x i]
             using n by(auto simp add:field_simps) qed qed qed qed qed
 
@@ -4160,7 +4159,7 @@ proof- have "\<And>a b. (\<lambda>x. if x \<in> s then f x else 0) integrable_on
     note obt(2)[unfolded has_integral_alt'[of h]] note conjunctD2[OF this, rule_format]
     note h = this(1) and this(2)[OF *] from this(2) guess B2 .. note B2 = conjunctD2[OF this,rule_format]
     def c \<equiv> "\<chi> i. min (a$i) (- (max B1 B2))" and d \<equiv> "\<chi> i. max (b$i) (max B1 B2)"
-    have *:"ball 0 B1 \<subseteq> {c..d}" "ball 0 B2 \<subseteq> {c..d}" apply safe unfolding mem_ball mem_interval vector_dist_norm
+    have *:"ball 0 B1 \<subseteq> {c..d}" "ball 0 B2 \<subseteq> {c..d}" apply safe unfolding mem_ball mem_interval dist_norm
     proof(rule_tac[!] allI)
       case goal1 thus ?case using component_le_norm[of x i] unfolding c_def d_def by auto next
       case goal2 thus ?case using component_le_norm[of x i] unfolding c_def d_def by auto qed
@@ -4390,7 +4389,7 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
   have *:"\<And>ir ip i cr cp. norm((cp + cr) - i) < e \<Longrightarrow> norm(cr - ir) < k \<Longrightarrow> 
     ip + ir = i \<Longrightarrow> norm(cp - ip) \<le> e + k" 
   proof- case goal1 thus ?case  using norm_triangle_le[of "cp + cr - i" "- (cr - ir)"]  
-      unfolding goal1(3)[THEN sym] norm_minus_cancel by(auto simp add:group_simps) qed
+      unfolding goal1(3)[THEN sym] norm_minus_cancel by(auto simp add:algebra_simps) qed
   
   have "?x =  norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - (\<Sum>(x, k)\<in>p. integral k f))"
     unfolding split_def setsum_subtractf ..
@@ -4501,7 +4500,7 @@ next assume ab:"content {a..b} \<noteq> 0"
             norm(c - d) < e / 4 \<longrightarrow> norm(a - d) < e" 
       proof safe case goal1 thus ?case using norm_triangle_lt[of "a - b" "b - c" "3* e/4"]
           norm_triangle_lt[of "a - b + (b - c)" "c - d" e] unfolding norm_minus_cancel
-          by(auto simp add:group_simps) qed
+          by(auto simp add:algebra_simps) qed
       show "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R g x) - i) < e" apply(rule *[rule_format,where
           b="\<Sum>(x, k)\<in>p. content k *\<^sub>R f (m x) x" and c="\<Sum>(x, k)\<in>p. integral k (f (m x))"])
       proof safe case goal1
@@ -4623,7 +4622,7 @@ proof- have lem:"\<And>f::nat \<Rightarrow> real^'n \<Rightarrow> real^1. \<And>
         from g(2)[unfolded Lim_sequentially,of a b,rule_format,OF this] guess M .. note M=this
         have **:"norm (integral {a..b} (\<lambda>x. if x \<in> s then f N x else 0) - i) < e/2"
           apply(rule norm_triangle_half_l) using B(2)[rule_format,OF ab] N[rule_format,of N]
-          unfolding vector_dist_norm apply-defer apply(subst norm_minus_commute) by auto
+          unfolding dist_norm apply-defer apply(subst norm_minus_commute) by auto
         have *:"\<And>f1 f2 g. abs(f1 - i$1) < e / 2 \<longrightarrow> abs(f2 - g) < e / 2 \<longrightarrow> f1 \<le> f2 \<longrightarrow> f2 \<le> i$1
           \<longrightarrow> abs(g - i$1) < e" by arith
         show "norm (integral {a..b} (\<lambda>x. if x \<in> s then g x else 0) - i) < e" 
@@ -5152,7 +5151,7 @@ lemma absolutely_integrable_sub[intro]: fixes f g::"real^'n \<Rightarrow> real^'
   assumes "f absolutely_integrable_on s" "g absolutely_integrable_on s"
   shows "(\<lambda>x. f(x) - g(x)) absolutely_integrable_on s"
   using absolutely_integrable_add[OF assms(1) absolutely_integrable_neg[OF assms(2)]]
-  unfolding group_simps .
+  unfolding algebra_simps .
 
 lemma absolutely_integrable_linear: fixes f::"real^'m \<Rightarrow> real^'n" and h::"real^'n \<Rightarrow> real^'p"
   assumes "f absolutely_integrable_on s" "bounded_linear h"

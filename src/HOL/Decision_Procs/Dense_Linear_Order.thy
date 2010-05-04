@@ -265,7 +265,7 @@ lemma exists_neq[no_atp]: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t 
 lemmas dlo_simps[no_atp] = order_refl less_irrefl not_less not_le exists_neq 
   le_less neq_iff linear less_not_permute
 
-lemma axiom[no_atp]: "dense_linorder (op \<le>) (op <)" by (rule dense_linorder_axioms)
+lemma axiom[no_atp]: "class.dense_linorder (op \<le>) (op <)" by (rule dense_linorder_axioms)
 lemma atoms[no_atp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"

@@ -453,7 +453,7 @@ fun pretty_thm_style ctxt (style, th) =
 
 fun pretty_term_typ ctxt (style, t) =
   let val t' = style t
-  in pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t) t) end;
+  in pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t') t') end;
 
 fun pretty_term_typeof ctxt (style, t) =
   Syntax.pretty_typ ctxt (Term.fastype_of (style t));
@@ -574,7 +574,7 @@ val _ = antiquotation "lemma"
       val prop_src =
         (case Args.dest_src source of ((a, arg :: _), pos) => Args.src ((a, [arg]), pos));
       val _ = context
-        |> Proof.theorem_i NONE (K I) [[(prop, [])]]
+        |> Proof.theorem NONE (K I) [[(prop, [])]]
         |> Proof.global_terminal_proof methods;
     in output (maybe_pretty_source (pretty_term context) prop_src [prop]) end);
 

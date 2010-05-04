@@ -160,7 +160,7 @@ val recdef_modifiers =
 
 fun prepare_hints thy opt_src =
   let
-    val ctxt0 = ProofContext.init thy;
+    val ctxt0 = ProofContext.init_global thy;
     val ctxt =
       (case opt_src of
         NONE => ctxt0
@@ -172,7 +172,7 @@ fun prepare_hints thy opt_src =
 
 fun prepare_hints_i thy () =
   let
-    val ctxt0 = ProofContext.init thy;
+    val ctxt0 = ProofContext.init_global thy;
     val {simps, congs, wfs} = get_global_hints thy;
   in (claset_of ctxt0, simpset_of ctxt0 addsimps simps, rev (map snd congs), wfs) end;
 
@@ -234,7 +234,7 @@ fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
     val _ = requires_recdef thy;
     val _ = writeln ("Deferred recursive function " ^ quote name ^ " ...");
 
-    val congs = eval_thms (ProofContext.init thy) raw_congs;
+    val congs = eval_thms (ProofContext.init_global thy) raw_congs;
     val (thy2, induct_rules) = tfl_fn thy congs name eqs;
     val ([induct_rules'], thy3) =
       thy2

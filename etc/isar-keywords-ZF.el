@@ -57,7 +57,7 @@
     "declaration"
     "declare"
     "def"
-    "defaultsort"
+    "default_sort"
     "defer"
     "definition"
     "defs"
@@ -66,6 +66,7 @@
     "done"
     "enable_pr"
     "end"
+    "example_proof"
     "exit"
     "extract"
     "extract_type"
@@ -209,6 +210,7 @@
     "using"
     "welcome"
     "with"
+    "write"
     "{"
     "}"))
 
@@ -371,7 +373,7 @@
     "datatype"
     "declaration"
     "declare"
-    "defaultsort"
+    "default_sort"
     "definition"
     "defs"
     "extract"
@@ -425,6 +427,7 @@
 
 (defconst isar-keywords-theory-goal
   '("corollary"
+    "example_proof"
     "instance"
     "interpretation"
     "lemma"
@@ -484,7 +487,8 @@
     "txt"
     "txt_raw"
     "unfolding"
-    "using"))
+    "using"
+    "write"))
 
 (defconst isar-keywords-proof-asm
   '("assume"

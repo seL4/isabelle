@@ -243,7 +243,7 @@ text {* A proof context is a container for pure data with a
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type Proof.context} \\
-  @{index_ML ProofContext.init: "theory -> Proof.context"} \\
+  @{index_ML ProofContext.init_global: "theory -> Proof.context"} \\
   @{index_ML ProofContext.theory_of: "Proof.context -> theory"} \\
   @{index_ML ProofContext.transfer: "theory -> Proof.context -> Proof.context"} \\
   \end{mldecls}
@@ -254,7 +254,7 @@ text %mlref {*
   of this type are essentially pure values, with a sliding reference
   to the background theory.
 
-  \item @{ML ProofContext.init}~@{text "thy"} produces a proof context
+  \item @{ML ProofContext.init_global}~@{text "thy"} produces a proof context
   derived from @{text "thy"}, initializing all data.
 
   \item @{ML ProofContext.theory_of}~@{text "ctxt"} selects the
@@ -305,7 +305,7 @@ text %mlref {*
 
   \item @{ML Context.proof_of}~@{text "context"} always produces a
   proof context from the generic @{text "context"}, using @{ML
-  "ProofContext.init"} as required (note that this re-initializes the
+  "ProofContext.init_global"} as required (note that this re-initializes the
   context data with each invocation).
 
   \end{description}

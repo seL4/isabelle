@@ -8,7 +8,7 @@ theory TLS
 imports IOA TL
 begin
 
-defaultsort type
+default_sort type
 
 types
   ('a, 's) ioa_temp  = "('a option,'s)transition temporal"

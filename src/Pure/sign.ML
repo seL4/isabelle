@@ -25,6 +25,7 @@ sig
   val super_classes: theory -> class -> class list
   val minimize_sort: theory -> sort -> sort
   val complete_sort: theory -> sort -> sort
+  val set_defsort: sort -> theory -> theory
   val defaultS: theory -> sort
   val subsort: theory -> sort * sort -> bool
   val of_sort: theory -> typ * sort -> bool
@@ -68,8 +69,6 @@ sig
   val cert_prop: theory -> term -> term
   val no_frees: Pretty.pp -> term -> term
   val no_vars: Pretty.pp -> term -> term
-  val add_defsort: string -> theory -> theory
-  val add_defsort_i: sort -> theory -> theory
   val add_types: (binding * int * mixfix) list -> theory -> theory
   val add_nonterminals: binding list -> theory -> theory
   val add_type_abbrev: binding * string list * typ -> theory -> theory
@@ -156,7 +155,7 @@ structure Data = Theory_Data_PP
 
       val naming = Name_Space.default_naming;
       val syn = Syntax.merge_syntaxes syn1 syn2;
-      val tsig = Type.merge_tsigs pp (tsig1, tsig2);
+      val tsig = Type.merge_tsig pp (tsig1, tsig2);
       val consts = Consts.merge (consts1, consts2);
     in make_sign (naming, syn, tsig, consts) end;
 );
@@ -198,6 +197,7 @@ val super_classes = Sorts.super_classes o classes_of;
 val minimize_sort = Sorts.minimize_sort o classes_of;
 val complete_sort = Sorts.complete_sort o classes_of;
 
+val set_defsort = map_tsig o Type.set_defsort;
 val defaultS = Type.defaultS o tsig_of;
 val subsort = Type.subsort o tsig_of;
 val of_sort = Type.of_sort o tsig_of;
@@ -334,15 +334,6 @@ val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 
 (** signature extension functions **)  (*exception ERROR/TYPE*)
 
-(* add default sort *)
-
-fun gen_add_defsort prep_sort s thy =
-  thy |> map_tsig (Type.set_defsort (prep_sort thy s));
-
-val add_defsort = gen_add_defsort Syntax.read_sort_global;
-val add_defsort_i = gen_add_defsort certify_sort;
-
-
 (* add type constructors *)
 
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
@@ -370,7 +361,7 @@ fun add_type_abbrev abbr = map_sign (fn (naming, syn, tsig, consts) =>
 
 fun gen_syntax change_gram parse_typ mode args thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
       handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
@@ -407,7 +398,7 @@ local
 
 fun gen_add_consts parse_typ raw_args thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (b, raw_T, mx) =
       let
@@ -506,7 +497,7 @@ fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 
 fun gen_trrules f args thy = thy |> map_syn (fn syn =>
   let val rules = map (Syntax.map_trrule (apfst (intern_type thy))) args
-  in f (ProofContext.init thy) (is_logtype thy) syn rules syn end);
+  in f (ProofContext.init_global thy) (is_logtype thy) syn rules syn end);
 
 val add_trrules = gen_trrules Syntax.update_trrules;
 val del_trrules = gen_trrules Syntax.remove_trrules;

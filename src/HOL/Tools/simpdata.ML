@@ -48,7 +48,7 @@ fun mk_eq th = case concl_of th
    | _ $ (Const (@{const_name "Not"}, _) $ _) => th RS @{thm Eq_FalseI}
    | _ => th RS @{thm Eq_TrueI}
 
-fun mk_eq_True r =
+fun mk_eq_True (_: simpset) r =
   SOME (r RS @{thm meta_eq_to_obj_eq} RS @{thm Eq_TrueI}) handle Thm.THM _ => NONE;
 
 (* Produce theorems of the form
@@ -80,7 +80,7 @@ fun lift_meta_eq_to_obj_eq i st =
   end;
 
 (*Congruence rules for = (instead of ==)*)
-fun mk_meta_cong rl = zero_var_indexes
+fun mk_meta_cong (_: simpset) rl = zero_var_indexes
   (let val rl' = Seq.hd (TRYALL (fn i => fn st =>
      rtac (lift_meta_eq_to_obj_eq i st) i st) rl)
    in mk_meta_eq rl' handle THM _ =>
@@ -95,7 +95,7 @@ fun mk_atomize pairs =
         fun res th = map (fn rl => th RS rl);   (*exception THM*)
         fun res_fixed rls =
           if Thm.maxidx_of (Thm.adjust_maxidx_thm ~1 thm) = ~1 then res thm rls
-          else Variable.trade (K (fn [thm'] => res thm' rls)) (Variable.thm_context thm) [thm];
+          else Variable.trade (K (fn [thm'] => res thm' rls)) (Variable.global_thm_context thm) [thm];
       in
         case concl_of thm
           of Const (@{const_name Trueprop}, _) $ p => (case head_of p
@@ -107,7 +107,7 @@ fun mk_atomize pairs =
       end;
   in atoms end;
 
-fun mksimps pairs =
+fun mksimps pairs (_: simpset) =
   map_filter (try mk_eq) o mk_atomize pairs o gen_all;
 
 fun unsafe_solver_tac prems =

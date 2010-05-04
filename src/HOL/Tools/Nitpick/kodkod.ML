@@ -120,11 +120,10 @@ sig
     AssignRelReg of n_ary_index * rel_expr |
     AssignIntReg of int * int_expr
 
-  type 'a fold_expr_funcs = {
-    formula_func: formula -> 'a -> 'a,
-    rel_expr_func: rel_expr -> 'a -> 'a,
-    int_expr_func: int_expr -> 'a -> 'a
-  }
+  type 'a fold_expr_funcs =
+    {formula_func: formula -> 'a -> 'a,
+     rel_expr_func: rel_expr -> 'a -> 'a,
+     int_expr_func: int_expr -> 'a -> 'a}
 
   val fold_formula : 'a fold_expr_funcs -> formula -> 'a -> 'a
   val fold_rel_expr : 'a fold_expr_funcs -> rel_expr -> 'a -> 'a
@@ -132,10 +131,9 @@ sig
   val fold_decl : 'a fold_expr_funcs -> decl -> 'a -> 'a
   val fold_expr_assign : 'a fold_expr_funcs -> expr_assign -> 'a -> 'a
 
-  type 'a fold_tuple_funcs = {
-    tuple_func: tuple -> 'a -> 'a,
-    tuple_set_func: tuple_set -> 'a -> 'a
-  }
+  type 'a fold_tuple_funcs =
+    {tuple_func: tuple -> 'a -> 'a,
+     tuple_set_func: tuple_set -> 'a -> 'a}
 
   val fold_tuple : 'a fold_tuple_funcs -> tuple -> 'a -> 'a
   val fold_tuple_set : 'a fold_tuple_funcs -> tuple_set -> 'a -> 'a
@@ -144,15 +142,15 @@ sig
       'a fold_expr_funcs -> 'a fold_tuple_funcs -> bound -> 'a -> 'a
   val fold_int_bound : 'a fold_tuple_funcs -> int_bound -> 'a -> 'a
 
-  type problem = {
-    comment: string,
-    settings: setting list,
-    univ_card: int,
-    tuple_assigns: tuple_assign list,
-    bounds: bound list,
-    int_bounds: int_bound list,
-    expr_assigns: expr_assign list,
-    formula: formula}
+  type problem =
+    {comment: string,
+     settings: setting list,
+     univ_card: int,
+     tuple_assigns: tuple_assign list,
+     bounds: bound list,
+     int_bounds: int_bound list,
+     expr_assigns: expr_assign list,
+     formula: formula}
 
   type raw_bound = n_ary_index * int list list
 
@@ -291,15 +289,15 @@ and expr_assign =
   AssignRelReg of n_ary_index * rel_expr |
   AssignIntReg of int * int_expr
 
-type problem = {
-  comment: string,
-  settings: setting list,
-  univ_card: int,
-  tuple_assigns: tuple_assign list,
-  bounds: bound list,
-  int_bounds: int_bound list,
-  expr_assigns: expr_assign list,
-  formula: formula}
+type problem =
+  {comment: string,
+   settings: setting list,
+   univ_card: int,
+   tuple_assigns: tuple_assign list,
+   bounds: bound list,
+   int_bounds: int_bound list,
+   expr_assigns: expr_assign list,
+   formula: formula}
 
 type raw_bound = n_ary_index * int list list
 
@@ -313,15 +311,13 @@ datatype outcome =
 
 exception SYNTAX of string * string
 
-type 'a fold_expr_funcs = {
-  formula_func: formula -> 'a -> 'a,
-  rel_expr_func: rel_expr -> 'a -> 'a,
-  int_expr_func: int_expr -> 'a -> 'a
-}
+type 'a fold_expr_funcs =
+  {formula_func: formula -> 'a -> 'a,
+   rel_expr_func: rel_expr -> 'a -> 'a,
+   int_expr_func: int_expr -> 'a -> 'a}
 
 (** Auxiliary functions on ML representation of Kodkod problems **)
 
-(* 'a fold_expr_funcs -> formula -> 'a -> 'a *)
 fun fold_formula (F : 'a fold_expr_funcs) formula =
   case formula of
     All (ds, f) => fold (fold_decl F) ds #> fold_formula F f
@@ -354,7 +350,6 @@ fun fold_formula (F : 'a fold_expr_funcs) formula =
   | False => #formula_func F formula
   | True => #formula_func F formula
   | FormulaReg _ => #formula_func F formula
-(* 'a fold_expr_funcs -> rel_expr -> 'a -> 'a *)
 and fold_rel_expr F rel_expr =
   case rel_expr of
     RelLet (bs, r) => fold (fold_expr_assign F) bs #> fold_rel_expr F r
@@ -383,7 +378,6 @@ and fold_rel_expr F rel_expr =
   | Rel _ => #rel_expr_func F rel_expr
   | Var _ => #rel_expr_func F rel_expr
   | RelReg _ => #rel_expr_func F rel_expr
-(* 'a fold_expr_funcs -> int_expr -> 'a -> 'a *)
 and fold_int_expr F int_expr =
   case int_expr of
     Sum (ds, i) => fold (fold_decl F) ds #> fold_int_expr F i
@@ -409,7 +403,6 @@ and fold_int_expr F int_expr =
   | Signum i => fold_int_expr F i
   | Num _ => #int_expr_func F int_expr
   | IntReg _ => #int_expr_func F int_expr
-(* 'a fold_expr_funcs -> decl -> 'a -> 'a *)
 and fold_decl F decl =
   case decl of
     DeclNo (x, r) => fold_rel_expr F (Var x) #> fold_rel_expr F r
@@ -417,21 +410,17 @@ and fold_decl F decl =
   | DeclOne (x, r) => fold_rel_expr F (Var x) #> fold_rel_expr F r
   | DeclSome (x, r) => fold_rel_expr F (Var x) #> fold_rel_expr F r
   | DeclSet (x, r) => fold_rel_expr F (Var x) #> fold_rel_expr F r
-(* 'a fold_expr_funcs -> expr_assign -> 'a -> 'a *)
 and fold_expr_assign F assign =
   case assign of
     AssignFormulaReg (x, f) => fold_formula F (FormulaReg x) #> fold_formula F f
   | AssignRelReg (x, r) => fold_rel_expr F (RelReg x) #> fold_rel_expr F r
   | AssignIntReg (x, i) => fold_int_expr F (IntReg x) #> fold_int_expr F i
 
-type 'a fold_tuple_funcs = {
-  tuple_func: tuple -> 'a -> 'a,
-  tuple_set_func: tuple_set -> 'a -> 'a
-}
+type 'a fold_tuple_funcs =
+  {tuple_func: tuple -> 'a -> 'a,
+   tuple_set_func: tuple_set -> 'a -> 'a}
 
-(* 'a fold_tuple_funcs -> tuple -> 'a -> 'a *)
 fun fold_tuple (F : 'a fold_tuple_funcs) = #tuple_func F
-(* 'a fold_tuple_funcs -> tuple_set -> 'a -> 'a *)
 fun fold_tuple_set F tuple_set =
   case tuple_set of
     TupleUnion (ts1, ts2) => fold_tuple_set F ts1 #> fold_tuple_set F ts2
@@ -444,23 +433,18 @@ fun fold_tuple_set F tuple_set =
   | TupleArea (t1, t2) => fold_tuple F t1 #> fold_tuple F t2
   | TupleAtomSeq _ => #tuple_set_func F tuple_set
   | TupleSetReg _ => #tuple_set_func F tuple_set
-(* 'a fold_tuple_funcs -> tuple_assign -> 'a -> 'a *)
 fun fold_tuple_assign F assign =
   case assign of
     AssignTuple (x, t) => fold_tuple F (TupleReg x) #> fold_tuple F t
   | AssignTupleSet (x, ts) =>
     fold_tuple_set F (TupleSetReg x) #> fold_tuple_set F ts
-(* 'a fold_expr_funcs -> 'a fold_tuple_funcs -> bound -> 'a -> 'a *)
 fun fold_bound expr_F tuple_F (zs, tss) =
   fold (fold_rel_expr expr_F) (map (Rel o fst) zs)
   #> fold (fold_tuple_set tuple_F) tss
-(* 'a fold_tuple_funcs -> int_bound -> 'a -> 'a *)
 fun fold_int_bound F (_, tss) = fold (fold_tuple_set F) tss
 
-(* int -> int *)
 fun max_arity univ_card = floor (Math.ln 2147483647.0
                                  / Math.ln (Real.fromInt univ_card))
-(* rel_expr -> int *)
 fun arity_of_rel_expr (RelLet (_, r)) = arity_of_rel_expr r
   | arity_of_rel_expr (RelIf (_, r1, _)) = arity_of_rel_expr r1
   | arity_of_rel_expr (Union (r1, _)) = arity_of_rel_expr r1
@@ -487,23 +471,18 @@ fun arity_of_rel_expr (RelLet (_, r)) = arity_of_rel_expr r
   | arity_of_rel_expr (Rel (n, _)) = n
   | arity_of_rel_expr (Var (n, _)) = n
   | arity_of_rel_expr (RelReg (n, _)) = n
-(* rel_expr -> rel_expr -> int *)
 and sum_arities_of_rel_exprs r1 r2 = arity_of_rel_expr r1 + arity_of_rel_expr r2
-(* decl -> int *)
 and arity_of_decl (DeclNo ((n, _), _)) = n
   | arity_of_decl (DeclLone ((n, _), _)) = n
   | arity_of_decl (DeclOne ((n, _), _)) = n
   | arity_of_decl (DeclSome ((n, _), _)) = n
   | arity_of_decl (DeclSet ((n, _), _)) = n
 
-(* problem -> bool *)
 fun is_problem_trivially_false ({formula = False, ...} : problem) = true
   | is_problem_trivially_false _ = false
 
-(* string -> string list *)
 val chop_solver = take 2 o space_explode ","
 
-(* setting list * setting list -> bool *)
 fun settings_equivalent ([], []) = true
   | settings_equivalent ((key1, value1) :: settings1,
                          (key2, value2) :: settings2) =
@@ -513,7 +492,6 @@ fun settings_equivalent ([], []) = true
     settings_equivalent (settings1, settings2)
   | settings_equivalent _ = false
 
-(* problem * problem -> bool *)
 fun problems_equivalent (p1 : problem, p2 : problem) =
   #univ_card p1 = #univ_card p2 andalso
   #formula p1 = #formula p2 andalso
@@ -525,16 +503,13 @@ fun problems_equivalent (p1 : problem, p2 : problem) =
 
 (** Serialization of problem **)
 
-(* int -> string *)
 fun base_name j =
   if j < 0 then string_of_int (~j - 1) ^ "'" else string_of_int j
 
-(* n_ary_index -> string -> string -> string -> string *)
 fun n_ary_name (1, j) prefix _ _ = prefix ^ base_name j
   | n_ary_name (2, j) _ prefix _ = prefix ^ base_name j
   | n_ary_name (n, j) _ _ prefix = prefix ^ string_of_int n ^ "_" ^ base_name j
 
-(* int -> string *)
 fun atom_name j = "A" ^ base_name j
 fun atom_seq_name (k, 0) = "u" ^ base_name k
   | atom_seq_name (k, j0) = "u" ^ base_name k ^ "@" ^ base_name j0
@@ -542,14 +517,12 @@ fun formula_reg_name j = "$f" ^ base_name j
 fun rel_reg_name j = "$e" ^ base_name j
 fun int_reg_name j = "$i" ^ base_name j
 
-(* n_ary_index -> string *)
 fun tuple_name x = n_ary_name x "A" "P" "T"
 fun rel_name x = n_ary_name x "s" "r" "m"
 fun var_name x = n_ary_name x "S" "R" "M"
 fun tuple_reg_name x = n_ary_name x "$A" "$P" "$T"
 fun tuple_set_reg_name x = n_ary_name x "$a" "$p" "$t"
 
-(* string -> string *)
 fun inline_comment "" = ""
   | inline_comment comment =
     " /* " ^ translate_string (fn "\n" => " " | "*" => "* " | s => s) comment ^
@@ -557,10 +530,8 @@ fun inline_comment "" = ""
 fun block_comment "" = ""
   | block_comment comment = prefix_lines "// " comment ^ "\n"
 
-(* (n_ary_index * string) -> string *)
 fun commented_rel_name (x, s) = rel_name x ^ inline_comment s
 
-(* tuple -> string *)
 fun string_for_tuple (Tuple js) = "[" ^ commas (map atom_name js) ^ "]"
   | string_for_tuple (TupleIndex x) = tuple_name x
   | string_for_tuple (TupleReg x) = tuple_reg_name x
@@ -571,7 +542,6 @@ val prec_TupleIntersect = 2
 val prec_TupleProduct = 3
 val prec_TupleProject = 4
 
-(* tuple_set -> int *)
 fun precedence_ts (TupleUnion _) = prec_TupleUnion
   | precedence_ts (TupleDifference _) = prec_TupleUnion
   | precedence_ts (TupleIntersect _) = prec_TupleIntersect
@@ -579,10 +549,8 @@ fun precedence_ts (TupleUnion _) = prec_TupleUnion
   | precedence_ts (TupleProject _) = prec_TupleProject
   | precedence_ts _ = no_prec
 
-(* tuple_set -> string *)
 fun string_for_tuple_set tuple_set =
   let
-    (* tuple_set -> int -> string *)
     fun sub tuple_set outer_prec =
       let
         val prec = precedence_ts tuple_set
@@ -608,19 +576,16 @@ fun string_for_tuple_set tuple_set =
       end
   in sub tuple_set 0 end
 
-(* tuple_assign -> string *)
 fun string_for_tuple_assign (AssignTuple (x, t)) =
     tuple_reg_name x ^ " := " ^ string_for_tuple t ^ "\n"
   | string_for_tuple_assign (AssignTupleSet (x, ts)) =
     tuple_set_reg_name x ^ " := " ^ string_for_tuple_set ts ^ "\n"
 
-(* bound -> string *)
 fun string_for_bound (zs, tss) =
   "bounds " ^ commas (map commented_rel_name zs) ^ ": " ^
   (if length tss = 1 then "" else "[") ^ commas (map string_for_tuple_set tss) ^
   (if length tss = 1 then "" else "]") ^ "\n"
 
-(* int_bound -> string *)
 fun int_string_for_bound (opt_n, tss) =
   (case opt_n of
      SOME n => signed_string_of_int n ^ ": "
@@ -645,7 +610,6 @@ val prec_Project = 17
 val prec_Join = 18
 val prec_BitNot = 19
 
-(* formula -> int *)
 fun precedence_f (All _) = prec_All
   | precedence_f (Exist _) = prec_All
   | precedence_f (FormulaLet _) = prec_All
@@ -671,7 +635,6 @@ fun precedence_f (All _) = prec_All
   | precedence_f False = no_prec
   | precedence_f True = no_prec
   | precedence_f (FormulaReg _) = no_prec
-(* rel_expr -> int *)
 and precedence_r (RelLet _) = prec_All
   | precedence_r (RelIf _) = prec_All
   | precedence_r (Union _) = prec_Add
@@ -697,7 +660,6 @@ and precedence_r (RelLet _) = prec_All
   | precedence_r (Rel _) = no_prec
   | precedence_r (Var _) = no_prec
   | precedence_r (RelReg _) = no_prec
-(* int_expr -> int *)
 and precedence_i (Sum _) = prec_All
   | precedence_i (IntLet _) = prec_All
   | precedence_i (IntIf _) = prec_All
@@ -721,14 +683,11 @@ and precedence_i (Sum _) = prec_All
   | precedence_i (Num _) = no_prec
   | precedence_i (IntReg _) = no_prec
 
-(* (string -> unit) -> problem list -> unit *)
 fun write_problem_file out problems =
   let
-    (* formula -> unit *)
     fun out_outmost_f (And (f1, f2)) =
         (out_outmost_f f1; out "\n   && "; out_outmost_f f2)
       | out_outmost_f f = out_f f prec_And
-    (* formula -> int -> unit *)
     and out_f formula outer_prec =
       let
         val prec = precedence_f formula
@@ -773,7 +732,6 @@ fun write_problem_file out problems =
          | FormulaReg j => out (formula_reg_name j));
         (if need_parens then out ")" else ())
       end
-    (* rel_expr -> int -> unit *)
     and out_r rel_expr outer_prec =
       let
         val prec = precedence_r rel_expr
@@ -813,7 +771,6 @@ fun write_problem_file out problems =
          | RelReg (_, j) => out (rel_reg_name j));
         (if need_parens then out ")" else ())
       end
-    (* int_expr -> int -> unit *)
     and out_i int_expr outer_prec =
       let
         val prec = precedence_i int_expr
@@ -848,11 +805,9 @@ fun write_problem_file out problems =
          | IntReg j => out (int_reg_name j));
         (if need_parens then out ")" else ())
       end
-    (* decl list -> unit *)
     and out_decls [] = ()
       | out_decls [d] = out_decl d
       | out_decls (d :: ds) = (out_decl d; out ", "; out_decls ds)
-    (* decl -> unit *)
     and out_decl (DeclNo (x, r)) =
         (out (var_name x); out " : no "; out_r r 0)
       | out_decl (DeclLone (x, r)) =
@@ -863,22 +818,18 @@ fun write_problem_file out problems =
         (out (var_name x); out " : some "; out_r r 0)
       | out_decl (DeclSet (x, r)) =
         (out (var_name x); out " : set "; out_r r 0)
-    (* assign_expr list -> unit *)
     and out_assigns [] = ()
       | out_assigns [b] = out_assign b
       | out_assigns (b :: bs) = (out_assign b; out ", "; out_assigns bs)
-    (* assign_expr -> unit *)
     and out_assign (AssignFormulaReg (j, f)) =
         (out (formula_reg_name j); out " := "; out_f f 0)
       | out_assign (AssignRelReg ((_, j), r)) =
         (out (rel_reg_name j); out " := "; out_r r 0)
       | out_assign (AssignIntReg (j, i)) =
         (out (int_reg_name j); out " := "; out_i i 0)
-    (* int_expr list -> unit *)
     and out_columns [] = ()
       | out_columns [i] = out_i i 0
       | out_columns (i :: is) = (out_i i 0; out ", "; out_columns is)
-    (* problem -> unit *)
     and out_problem {comment, settings, univ_card, tuple_assigns, bounds,
                      int_bounds, expr_assigns, formula} =
         (out ("\n" ^ block_comment comment ^
@@ -896,19 +847,16 @@ fun write_problem_file out problems =
          out "solve "; out_outmost_f formula; out ";\n")
   in
     out ("// This file was generated by Isabelle (most likely Nitpick)\n" ^
-         "// " ^ Date.fmt "%Y-%m-%d %H:%M:%S"
-                          (Date.fromTimeLocal (Time.now ())) ^ "\n");
+         "// " ^ Sledgehammer_Util.timestamp () ^ "\n");
     map out_problem problems
   end
 
 (** Parsing of solution **)
 
-(* string -> bool *)
 fun is_ident_char s =
   Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse
   s = "_" orelse s = "'" orelse s = "$"
 
-(* string list -> string list *)
 fun strip_blanks [] = []
   | strip_blanks (" " :: ss) = strip_blanks ss
   | strip_blanks [s1, " "] = [s1]
@@ -919,29 +867,20 @@ fun strip_blanks [] = []
       strip_blanks (s1 :: s2 :: ss)
   | strip_blanks (s :: ss) = s :: strip_blanks ss
 
-(* (string list -> 'a * string list) -> string list -> 'a list * string list *)
 fun scan_non_empty_list scan = scan ::: Scan.repeat ($$ "," |-- scan)
 fun scan_list scan = scan_non_empty_list scan || Scan.succeed []
-(* string list -> int * string list *)
 val scan_nat = Scan.repeat1 (Scan.one Symbol.is_ascii_digit)
                >> (the o Int.fromString o space_implode "")
-(*  string list -> (int * int) * string list *)
 val scan_rel_name = $$ "s" |-- scan_nat >> pair 1
                     || $$ "r" |-- scan_nat >> pair 2
                     || ($$ "m" |-- scan_nat --| $$ "_") -- scan_nat
-(* string list -> int * string list *)
 val scan_atom = $$ "A" |-- scan_nat
-(* string list -> int list * string list *)
 val scan_tuple = $$ "[" |-- scan_list scan_atom --| $$ "]"
-(* string list -> int list list * string list *)
 val scan_tuple_set = $$ "[" |-- scan_list scan_tuple --| $$ "]"
-(* string list -> ((int * int) * int list list) * string list *)
 val scan_assignment = (scan_rel_name --| $$ "=") -- scan_tuple_set
-(* string list -> ((int * int) * int list list) list * string list *)
 val scan_instance = Scan.this_string "relations:" |--
                     $$ "{" |-- scan_list scan_assignment --| $$ "}"
 
-(* string -> raw_bound list *)
 val parse_instance =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ =>
@@ -954,12 +893,10 @@ val problem_marker = "*** PROBLEM "
 val outcome_marker = "---OUTCOME---\n"
 val instance_marker = "---INSTANCE---\n"
 
-(* string -> substring -> string *)
 fun read_section_body marker =
   Substring.string o fst o Substring.position "\n\n"
   o Substring.triml (size marker)
 
-(* substring -> raw_bound list *)
 fun read_next_instance s =
   let val s = Substring.position instance_marker s |> snd in
     if Substring.isEmpty s then
@@ -968,8 +905,6 @@ fun read_next_instance s =
       read_section_body instance_marker s |> parse_instance
   end
 
-(* int -> substring * (int * raw_bound list) list * int list
-   -> substring * (int * raw_bound list) list * int list *)
 fun read_next_outcomes j (s, ps, js) =
   let val (s1, s2) = Substring.position outcome_marker s in
     if Substring.isEmpty s2 orelse
@@ -991,8 +926,6 @@ fun read_next_outcomes j (s, ps, js) =
       end
   end
 
-(* substring * (int * raw_bound list) list * int list
-   -> (int * raw_bound list) list * int list *)
 fun read_next_problems (s, ps, js) =
   let val s = Substring.position problem_marker s |> snd in
     if Substring.isEmpty s then
@@ -1008,7 +941,6 @@ fun read_next_problems (s, ps, js) =
   handle Option.Option => raise SYNTAX ("Kodkod.read_next_problems",
                                         "expected number after \"PROBLEM\"")
 
-(* Path.T -> bool * ((int * raw_bound list) list * int list) *)
 fun read_output_file path =
   (false, read_next_problems (Substring.full (File.read path), [], [])
           |>> rev ||> rev)
@@ -1018,7 +950,6 @@ fun read_output_file path =
 
 val created_temp_dir = Unsynchronized.ref false
 
-(* bool -> string * string *)
 fun serial_string_and_temporary_dir_for_overlord overlord =
   if overlord then
     ("", getenv "ISABELLE_HOME_USER")
@@ -1033,14 +964,12 @@ fun serial_string_and_temporary_dir_for_overlord overlord =
    is partly due to the JVM and partly due to the ML "bash" function. *)
 val fudge_ms = 250
 
-(* Time.time option -> int *)
 fun milliseconds_until_deadline deadline =
   case deadline of
     NONE => ~1
   | SOME time =>
     Int.max (0, Time.toMilliseconds (Time.- (time, Time.now ())) - fudge_ms)
 
-(* bool -> Time.time option -> int -> int -> problem list -> outcome *)
 fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                                problems =
   let
@@ -1052,7 +981,6 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                                         (0 upto length problems - 1 ~~ problems)
     val triv_js = filter_out (AList.defined (op =) indexed_problems)
                              (0 upto length problems - 1)
-    (* int -> int *)
     val reindex = fst o nth indexed_problems
   in
     if null indexed_problems then
@@ -1061,18 +989,15 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
       let
         val (serial_str, temp_dir) =
           serial_string_and_temporary_dir_for_overlord overlord
-        (* string -> Path.T *)
         fun path_for suf =
           Path.explode (temp_dir ^ "/kodkodi" ^ serial_str ^ "." ^ suf)
         val in_path = path_for "kki"
         val in_buf = Unsynchronized.ref Buffer.empty
-        (* string -> unit *)
         fun out s = Unsynchronized.change in_buf (Buffer.add s)
         val out_path = path_for "out"
         val err_path = path_for "err"
         val _ = write_problem_file out (map snd indexed_problems)
         val _ = File.write_buffer in_path (!in_buf)
-        (* unit -> unit *)
         fun remove_temporary_files () =
           if overlord then ()
           else List.app (K () o try File.rm) [in_path, out_path, err_path]
@@ -1151,10 +1076,8 @@ val cached_outcome =
   Synchronized.var "Kodkod.cached_outcome"
                    (NONE : ((int * problem list) * outcome) option)
 
-(* bool -> Time.time option -> int -> int -> problem list -> outcome *)
 fun solve_any_problem overlord deadline max_threads max_solutions problems =
   let
-    (* unit -> outcome *)
     fun do_solve () = uncached_solve_any_problem overlord deadline max_threads
                                                  max_solutions problems
   in

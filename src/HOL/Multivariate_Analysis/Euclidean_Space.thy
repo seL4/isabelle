@@ -8,67 +8,11 @@ theory Euclidean_Space
 imports
   Complex_Main "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
   Finite_Cartesian_Product Infinite_Set Numeral_Type
-  Inner_Product L2_Norm
+  Inner_Product L2_Norm Convex
 uses "positivstellensatz.ML" ("normarith.ML")
 begin
 
-text{* Some common special cases.*}
-
-lemma forall_1[simp]: "(\<forall>i::1. P i) \<longleftrightarrow> P 1"
-  by (metis num1_eq_iff)
-
-lemma ex_1[simp]: "(\<exists>x::1. P x) \<longleftrightarrow> P 1"
-  by auto (metis num1_eq_iff)
-
-lemma exhaust_2:
-  fixes x :: 2 shows "x = 1 \<or> x = 2"
-proof (induct x)
-  case (of_int z)
-  then have "0 <= z" and "z < 2" by simp_all
-  then have "z = 0 | z = 1" by arith
-  then show ?case by auto
-qed
-
-lemma forall_2: "(\<forall>i::2. P i) \<longleftrightarrow> P 1 \<and> P 2"
-  by (metis exhaust_2)
-
-lemma exhaust_3:
-  fixes x :: 3 shows "x = 1 \<or> x = 2 \<or> x = 3"
-proof (induct x)
-  case (of_int z)
-  then have "0 <= z" and "z < 3" by simp_all
-  then have "z = 0 \<or> z = 1 \<or> z = 2" by arith
-  then show ?case by auto
-qed
-
-lemma forall_3: "(\<forall>i::3. P i) \<longleftrightarrow> P 1 \<and> P 2 \<and> P 3"
-  by (metis exhaust_3)
-
-lemma UNIV_1: "UNIV = {1::1}"
-  by (auto simp add: num1_eq_iff)
-
-lemma UNIV_2: "UNIV = {1::2, 2::2}"
-  using exhaust_2 by auto
-
-lemma UNIV_3: "UNIV = {1::3, 2::3, 3::3}"
-  using exhaust_3 by auto
-
-lemma setsum_1: "setsum f (UNIV::1 set) = f 1"
-  unfolding UNIV_1 by simp
-
-lemma setsum_2: "setsum f (UNIV::2 set) = f 1 + f 2"
-  unfolding UNIV_2 by simp
-
-lemma setsum_3: "setsum f (UNIV::3 set) = f 1 + f 2 + f 3"
-  unfolding UNIV_3 by (simp add: add_ac)
-
 subsection{* Basic componentwise operations on vectors. *}
-
-instantiation cart :: (plus,finite) plus
-begin
-  definition  vector_add_def : "op + \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) + (y$i)))"
-  instance ..
-end
 
 instantiation cart :: (times,finite) times
 begin
@@ -76,33 +20,9 @@ begin
   instance ..
 end
 
-instantiation cart :: (minus,finite) minus
-begin
-  definition vector_minus_def : "op - \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) - (y$i)))"
-  instance ..
-end
-
-instantiation cart :: (uminus,finite) uminus
-begin
-  definition vector_uminus_def : "uminus \<equiv> (\<lambda> x.  (\<chi> i. - (x$i)))"
-  instance ..
-end
-
-instantiation cart :: (zero,finite) zero
-begin
-  definition vector_zero_def : "0 \<equiv> (\<chi> i. 0)"
-  instance ..
-end
-
 instantiation cart :: (one,finite) one
 begin
   definition vector_one_def : "1 \<equiv> (\<chi> i. 1)"
-  instance ..
-end
-
-instantiation cart :: (scaleR, finite) scaleR
-begin
-  definition vector_scaleR_def: "scaleR = (\<lambda> r x.  (\<chi> i. scaleR r (x$i)))"
   instance ..
 end
 
@@ -114,7 +34,7 @@ begin
   instance by (intro_classes)
 end
 
-text{* The ordering on @{typ "real^1"} is linear. *}
+text{* The ordering on one-dimensional vectors is linear. *}
 
 class cart_one = assumes UNIV_one: "card (UNIV \<Colon> 'a set) = Suc 0"
 begin
@@ -122,11 +42,6 @@ begin
   proof from UNIV_one show "finite (UNIV :: 'a set)"
       by (auto intro!: card_ge_0_finite) qed
 end
-
-instantiation num1 :: cart_one begin
-instance proof
-  show "CARD(1) = Suc 0" by auto
-qed end
 
 instantiation cart :: (linorder,cart_one) linorder begin
 instance proof
@@ -181,22 +96,10 @@ text{* Obvious "component-pushing". *}
 lemma vec_component [simp]: "vec x $ i = x"
   by (vector vec_def)
 
-lemma vector_add_component [simp]: "(x + y)$i = x$i + y$i"
-  by vector
-
-lemma vector_minus_component [simp]: "(x - y)$i = x$i - y$i"
-  by vector
-
 lemma vector_mult_component [simp]: "(x * y)$i = x$i * y$i"
   by vector
 
 lemma vector_smult_component [simp]: "(c *s y)$i = c * (y$i)"
-  by vector
-
-lemma vector_uminus_component [simp]: "(- x)$i = - (x$i)"
-  by vector
-
-lemma vector_scaleR_component [simp]: "(scaleR r x)$i = scaleR r (x$i)"
   by vector
 
 lemma cond_component: "(if b then x else y)$i = (if b then x$i else y$i)" by vector
@@ -207,35 +110,6 @@ lemmas vector_component =
   vector_scaleR_component cond_component
 
 subsection {* Some frequently useful arithmetic lemmas over vectors. *}
-
-instance cart :: (semigroup_add,finite) semigroup_add
-  apply (intro_classes) by (vector add_assoc)
-
-instance cart :: (monoid_add,finite) monoid_add
-  apply (intro_classes) by vector+
-
-instance cart :: (group_add,finite) group_add
-  apply (intro_classes) by (vector algebra_simps)+
-
-instance cart :: (ab_semigroup_add,finite) ab_semigroup_add
-  apply (intro_classes) by (vector add_commute)
-
-instance cart :: (comm_monoid_add,finite) comm_monoid_add
-  apply (intro_classes) by vector
-
-instance cart :: (ab_group_add,finite) ab_group_add
-  apply (intro_classes) by vector+
-
-instance cart :: (cancel_semigroup_add,finite) cancel_semigroup_add
-  apply (intro_classes)
-  by (vector Cart_eq)+
-
-instance cart :: (cancel_ab_semigroup_add,finite) cancel_ab_semigroup_add
-  apply (intro_classes)
-  by (vector Cart_eq)
-
-instance cart :: (real_vector, finite) real_vector
-  by default (vector scaleR_left_distrib scaleR_right_distrib)+
 
 instance cart :: (semigroup_mult,finite) semigroup_mult
   apply (intro_classes) by (vector mult_assoc)
@@ -252,19 +126,15 @@ instance cart :: (ab_semigroup_idem_mult,finite) ab_semigroup_idem_mult
 instance cart :: (comm_monoid_mult,finite) comm_monoid_mult
   apply (intro_classes) by vector
 
-fun vector_power where
-  "vector_power x 0 = 1"
-  | "vector_power x (Suc n) = x * vector_power x n"
-
 instance cart :: (semiring,finite) semiring
-  apply (intro_classes) by (vector ring_simps)+
+  apply (intro_classes) by (vector field_simps)+
 
 instance cart :: (semiring_0,finite) semiring_0
-  apply (intro_classes) by (vector ring_simps)+
+  apply (intro_classes) by (vector field_simps)+
 instance cart :: (semiring_1,finite) semiring_1
   apply (intro_classes) by vector
 instance cart :: (comm_semiring,finite) comm_semiring
-  apply (intro_classes) by (vector ring_simps)+
+  apply (intro_classes) by (vector field_simps)+
 
 instance cart :: (comm_semiring_0,finite) comm_semiring_0 by (intro_classes)
 instance cart :: (cancel_comm_monoid_add, finite) cancel_comm_monoid_add ..
@@ -278,7 +148,7 @@ instance cart :: (ring_1,finite) ring_1 ..
 
 instance cart :: (real_algebra,finite) real_algebra
   apply intro_classes
-  apply (simp_all add: vector_scaleR_def ring_simps)
+  apply (simp_all add: vector_scaleR_def field_simps)
   apply vector
   apply vector
   done
@@ -292,18 +162,8 @@ lemma of_nat_index:
   apply vector
   done
 
-lemma zero_index[simp]:
-  "(0 :: 'a::zero ^'n)$i = 0" by vector
-
 lemma one_index[simp]:
   "(1 :: 'a::one ^'n)$i = 1" by vector
-
-lemma one_plus_of_nat_neq_0: "(1::'a::semiring_char_0) + of_nat n \<noteq> 0"
-proof-
-  have "(1::'a) + of_nat n = 0 \<longleftrightarrow> of_nat 1 + of_nat n = (of_nat 0 :: 'a)" by simp
-  also have "\<dots> \<longleftrightarrow> 1 + n = 0" by (simp only: of_nat_add[symmetric] of_nat_eq_iff)
-  finally show ?thesis by simp
-qed
 
 instance cart :: (semiring_char_0,finite) semiring_char_0
 proof (intro_classes)
@@ -318,374 +178,24 @@ instance cart :: (ring_char_0,finite) ring_char_0 by intro_classes
 lemma vector_smult_assoc: "a *s (b *s x) = ((a::'a::semigroup_mult) * b) *s x"
   by (vector mult_assoc)
 lemma vector_sadd_rdistrib: "((a::'a::semiring) + b) *s x = a *s x + b *s x"
-  by (vector ring_simps)
+  by (vector field_simps)
 lemma vector_add_ldistrib: "(c::'a::semiring) *s (x + y) = c *s x + c *s y"
-  by (vector ring_simps)
+  by (vector field_simps)
 lemma vector_smult_lzero[simp]: "(0::'a::mult_zero) *s x = 0" by vector
 lemma vector_smult_lid[simp]: "(1::'a::monoid_mult) *s x = x" by vector
 lemma vector_ssub_ldistrib: "(c::'a::ring) *s (x - y) = c *s x - c *s y"
-  by (vector ring_simps)
+  by (vector field_simps)
 lemma vector_smult_rneg: "(c::'a::ring) *s -x = -(c *s x)" by vector
 lemma vector_smult_lneg: "- (c::'a::ring) *s x = -(c *s x)" by vector
 lemma vector_sneg_minus1: "-x = (- (1::'a::ring_1)) *s x" by vector
 lemma vector_smult_rzero[simp]: "c *s 0 = (0::'a::mult_zero ^ 'n)" by vector
 lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
-  by (vector ring_simps)
+  by (vector field_simps)
 
 lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
   by (simp add: Cart_eq)
 
-subsection {* Topological space *}
-
-instantiation cart :: (topological_space, finite) topological_space
-begin
-
-definition open_vector_def:
-  "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
-    (\<forall>x\<in>S. \<exists>A. (\<forall>i. open (A i) \<and> x$i \<in> A i) \<and>
-      (\<forall>y. (\<forall>i. y$i \<in> A i) \<longrightarrow> y \<in> S))"
-
-instance proof
-  show "open (UNIV :: ('a ^ 'b) set)"
-    unfolding open_vector_def by auto
-next
-  fix S T :: "('a ^ 'b) set"
-  assume "open S" "open T" thus "open (S \<inter> T)"
-    unfolding open_vector_def
-    apply clarify
-    apply (drule (1) bspec)+
-    apply (clarify, rename_tac Sa Ta)
-    apply (rule_tac x="\<lambda>i. Sa i \<inter> Ta i" in exI)
-    apply (simp add: open_Int)
-    done
-next
-  fix K :: "('a ^ 'b) set set"
-  assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
-    unfolding open_vector_def
-    apply clarify
-    apply (drule (1) bspec)
-    apply (drule (1) bspec)
-    apply clarify
-    apply (rule_tac x=A in exI)
-    apply fast
-    done
-qed
-
-end
-
-lemma open_vector_box: "\<forall>i. open (S i) \<Longrightarrow> open {x. \<forall>i. x $ i \<in> S i}"
-unfolding open_vector_def by auto
-
-lemma open_vimage_Cart_nth: "open S \<Longrightarrow> open ((\<lambda>x. x $ i) -` S)"
-unfolding open_vector_def
-apply clarify
-apply (rule_tac x="\<lambda>k. if k = i then S else UNIV" in exI, simp)
-done
-
-lemma closed_vimage_Cart_nth: "closed S \<Longrightarrow> closed ((\<lambda>x. x $ i) -` S)"
-unfolding closed_open vimage_Compl [symmetric]
-by (rule open_vimage_Cart_nth)
-
-lemma closed_vector_box: "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
-proof -
-  have "{x. \<forall>i. x $ i \<in> S i} = (\<Inter>i. (\<lambda>x. x $ i) -` S i)" by auto
-  thus "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
-    by (simp add: closed_INT closed_vimage_Cart_nth)
-qed
-
-lemma tendsto_Cart_nth [tendsto_intros]:
-  assumes "((\<lambda>x. f x) ---> a) net"
-  shows "((\<lambda>x. f x $ i) ---> a $ i) net"
-proof (rule topological_tendstoI)
-  fix S assume "open S" "a $ i \<in> S"
-  then have "open ((\<lambda>y. y $ i) -` S)" "a \<in> ((\<lambda>y. y $ i) -` S)"
-    by (simp_all add: open_vimage_Cart_nth)
-  with assms have "eventually (\<lambda>x. f x \<in> (\<lambda>y. y $ i) -` S) net"
-    by (rule topological_tendstoD)
-  then show "eventually (\<lambda>x. f x $ i \<in> S) net"
-    by simp
-qed
-
-subsection {* Metric *}
-
-(* TODO: move somewhere else *)
-lemma finite_choice: "finite A \<Longrightarrow> \<forall>x\<in>A. \<exists>y. P x y \<Longrightarrow> \<exists>f. \<forall>x\<in>A. P x (f x)"
-apply (induct set: finite, simp_all)
-apply (clarify, rename_tac y)
-apply (rule_tac x="f(x:=y)" in exI, simp)
-done
-
-instantiation cart :: (metric_space, finite) metric_space
-begin
-
-definition dist_vector_def:
-  "dist (x::'a^'b) (y::'a^'b) = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
-
-lemma dist_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
-unfolding dist_vector_def
-by (rule member_le_setL2) simp_all
-
-instance proof
-  fix x y :: "'a ^ 'b"
-  show "dist x y = 0 \<longleftrightarrow> x = y"
-    unfolding dist_vector_def
-    by (simp add: setL2_eq_0_iff Cart_eq)
-next
-  fix x y z :: "'a ^ 'b"
-  show "dist x y \<le> dist x z + dist y z"
-    unfolding dist_vector_def
-    apply (rule order_trans [OF _ setL2_triangle_ineq])
-    apply (simp add: setL2_mono dist_triangle2)
-    done
-next
-  (* FIXME: long proof! *)
-  fix S :: "('a ^ 'b) set"
-  show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-    unfolding open_vector_def open_dist
-    apply safe
-     apply (drule (1) bspec)
-     apply clarify
-     apply (subgoal_tac "\<exists>e>0. \<forall>i y. dist y (x$i) < e \<longrightarrow> y \<in> A i")
-      apply clarify
-      apply (rule_tac x=e in exI, clarify)
-      apply (drule spec, erule mp, clarify)
-      apply (drule spec, drule spec, erule mp)
-      apply (erule le_less_trans [OF dist_nth_le])
-     apply (subgoal_tac "\<forall>i\<in>UNIV. \<exists>e>0. \<forall>y. dist y (x$i) < e \<longrightarrow> y \<in> A i")
-      apply (drule finite_choice [OF finite], clarify)
-      apply (rule_tac x="Min (range f)" in exI, simp)
-     apply clarify
-     apply (drule_tac x=i in spec, clarify)
-     apply (erule (1) bspec)
-    apply (drule (1) bspec, clarify)
-    apply (subgoal_tac "\<exists>r. (\<forall>i::'b. 0 < r i) \<and> e = setL2 r UNIV")
-     apply clarify
-     apply (rule_tac x="\<lambda>i. {y. dist y (x$i) < r i}" in exI)
-     apply (rule conjI)
-      apply clarify
-      apply (rule conjI)
-       apply (clarify, rename_tac y)
-       apply (rule_tac x="r i - dist y (x$i)" in exI, rule conjI, simp)
-       apply clarify
-       apply (simp only: less_diff_eq)
-       apply (erule le_less_trans [OF dist_triangle])
-      apply simp
-     apply clarify
-     apply (drule spec, erule mp)
-     apply (simp add: dist_vector_def setL2_strict_mono)
-    apply (rule_tac x="\<lambda>i. e / sqrt (of_nat CARD('b))" in exI)
-    apply (simp add: divide_pos_pos setL2_constant)
-    done
-qed
-
-end
-
-lemma LIMSEQ_Cart_nth:
-  "(X ----> a) \<Longrightarrow> (\<lambda>n. X n $ i) ----> a $ i"
-unfolding LIMSEQ_conv_tendsto by (rule tendsto_Cart_nth)
-
-lemma LIM_Cart_nth:
-  "(f -- x --> y) \<Longrightarrow> (\<lambda>x. f x $ i) -- x --> y $ i"
-unfolding LIM_conv_tendsto by (rule tendsto_Cart_nth)
-
-lemma Cauchy_Cart_nth:
-  "Cauchy (\<lambda>n. X n) \<Longrightarrow> Cauchy (\<lambda>n. X n $ i)"
-unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le])
-
-lemma LIMSEQ_vector:
-  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
-  assumes X: "\<And>i. (\<lambda>n. X n $ i) ----> (a $ i)"
-  shows "X ----> a"
-proof (rule metric_LIMSEQ_I)
-  fix r :: real assume "0 < r"
-  then have "0 < r / of_nat CARD('n)" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
-  def N \<equiv> "\<lambda>i. LEAST N. \<forall>n\<ge>N. dist (X n $ i) (a $ i) < ?s"
-  def M \<equiv> "Max (range N)"
-  have "\<And>i. \<exists>N. \<forall>n\<ge>N. dist (X n $ i) (a $ i) < ?s"
-    using X `0 < ?s` by (rule metric_LIMSEQ_D)
-  hence "\<And>i. \<forall>n\<ge>N i. dist (X n $ i) (a $ i) < ?s"
-    unfolding N_def by (rule LeastI_ex)
-  hence M: "\<And>i. \<forall>n\<ge>M. dist (X n $ i) (a $ i) < ?s"
-    unfolding M_def by simp
-  {
-    fix n :: nat assume "M \<le> n"
-    have "dist (X n) a = setL2 (\<lambda>i. dist (X n $ i) (a $ i)) UNIV"
-      unfolding dist_vector_def ..
-    also have "\<dots> \<le> setsum (\<lambda>i. dist (X n $ i) (a $ i)) UNIV"
-      by (rule setL2_le_setsum [OF zero_le_dist])
-    also have "\<dots> < setsum (\<lambda>i::'n. ?s) UNIV"
-      by (rule setsum_strict_mono, simp_all add: M `M \<le> n`)
-    also have "\<dots> = r"
-      by simp
-    finally have "dist (X n) a < r" .
-  }
-  hence "\<forall>n\<ge>M. dist (X n) a < r"
-    by simp
-  then show "\<exists>M. \<forall>n\<ge>M. dist (X n) a < r" ..
-qed
-
-lemma Cauchy_vector:
-  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"
-  assumes X: "\<And>i. Cauchy (\<lambda>n. X n $ i)"
-  shows "Cauchy (\<lambda>n. X n)"
-proof (rule metric_CauchyI)
-  fix r :: real assume "0 < r"
-  then have "0 < r / of_nat CARD('n)" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
-  def N \<equiv> "\<lambda>i. LEAST N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"
-  def M \<equiv> "Max (range N)"
-  have "\<And>i. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. dist (X m $ i) (X n $ i) < ?s"
-    using X `0 < ?s` by (rule metric_CauchyD)
-  hence "\<And>i. \<forall>m\<ge>N i. \<forall>n\<ge>N i. dist (X m $ i) (X n $ i) < ?s"
-    unfolding N_def by (rule LeastI_ex)
-  hence M: "\<And>i. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m $ i) (X n $ i) < ?s"
-    unfolding M_def by simp
-  {
-    fix m n :: nat
-    assume "M \<le> m" "M \<le> n"
-    have "dist (X m) (X n) = setL2 (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
-      unfolding dist_vector_def ..
-    also have "\<dots> \<le> setsum (\<lambda>i. dist (X m $ i) (X n $ i)) UNIV"
-      by (rule setL2_le_setsum [OF zero_le_dist])
-    also have "\<dots> < setsum (\<lambda>i::'n. ?s) UNIV"
-      by (rule setsum_strict_mono, simp_all add: M `M \<le> m` `M \<le> n`)
-    also have "\<dots> = r"
-      by simp
-    finally have "dist (X m) (X n) < r" .
-  }
-  hence "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < r"
-    by simp
-  then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < r" ..
-qed
-
-instance cart :: (complete_space, finite) complete_space
-proof
-  fix X :: "nat \<Rightarrow> 'a ^ 'b" assume "Cauchy X"
-  have "\<And>i. (\<lambda>n. X n $ i) ----> lim (\<lambda>n. X n $ i)"
-    using Cauchy_Cart_nth [OF `Cauchy X`]
-    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
-  hence "X ----> Cart_lambda (\<lambda>i. lim (\<lambda>n. X n $ i))"
-    by (simp add: LIMSEQ_vector)
-  then show "convergent X"
-    by (rule convergentI)
-qed
-
-subsection {* Norms *}
-
-instantiation cart :: (real_normed_vector, finite) real_normed_vector
-begin
-
-definition norm_vector_def:
-  "norm (x::'a^'b) = setL2 (\<lambda>i. norm (x$i)) UNIV"
-
-definition vector_sgn_def:
-  "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
-
-instance proof
-  fix a :: real and x y :: "'a ^ 'b"
-  show "0 \<le> norm x"
-    unfolding norm_vector_def
-    by (rule setL2_nonneg)
-  show "norm x = 0 \<longleftrightarrow> x = 0"
-    unfolding norm_vector_def
-    by (simp add: setL2_eq_0_iff Cart_eq)
-  show "norm (x + y) \<le> norm x + norm y"
-    unfolding norm_vector_def
-    apply (rule order_trans [OF _ setL2_triangle_ineq])
-    apply (simp add: setL2_mono norm_triangle_ineq)
-    done
-  show "norm (scaleR a x) = \<bar>a\<bar> * norm x"
-    unfolding norm_vector_def
-    by (simp add: setL2_right_distrib)
-  show "sgn x = scaleR (inverse (norm x)) x"
-    by (rule vector_sgn_def)
-  show "dist x y = norm (x - y)"
-    unfolding dist_vector_def norm_vector_def
-    by (simp add: dist_norm)
-qed
-
-end
-
-lemma norm_nth_le: "norm (x $ i) \<le> norm x"
-unfolding norm_vector_def
-by (rule member_le_setL2) simp_all
-
-interpretation Cart_nth: bounded_linear "\<lambda>x. x $ i"
-apply default
-apply (rule vector_add_component)
-apply (rule vector_scaleR_component)
-apply (rule_tac x="1" in exI, simp add: norm_nth_le)
-done
-
-instance cart :: (banach, finite) banach ..
-
-subsection {* Inner products *}
-
 abbreviation inner_bullet (infix "\<bullet>" 70)  where "x \<bullet> y \<equiv> inner x y"
-
-instantiation cart :: (real_inner, finite) real_inner
-begin
-
-definition inner_vector_def:
-  "inner x y = setsum (\<lambda>i. inner (x$i) (y$i)) UNIV"
-
-instance proof
-  fix r :: real and x y z :: "'a ^ 'b"
-  show "inner x y = inner y x"
-    unfolding inner_vector_def
-    by (simp add: inner_commute)
-  show "inner (x + y) z = inner x z + inner y z"
-    unfolding inner_vector_def
-    by (simp add: inner_add_left setsum_addf)
-  show "inner (scaleR r x) y = r * inner x y"
-    unfolding inner_vector_def
-    by (simp add: setsum_right_distrib)
-  show "0 \<le> inner x x"
-    unfolding inner_vector_def
-    by (simp add: setsum_nonneg)
-  show "inner x x = 0 \<longleftrightarrow> x = 0"
-    unfolding inner_vector_def
-    by (simp add: Cart_eq setsum_nonneg_eq_0_iff)
-  show "norm x = sqrt (inner x x)"
-    unfolding inner_vector_def norm_vector_def setL2_def
-    by (simp add: power2_norm_eq_inner)
-qed
-
-end
-
-lemma setsum_squares_eq_0_iff: assumes fS: "finite F" and fp: "\<forall>x \<in> F. f x \<ge> (0 ::'a::ordered_ab_group_add)" shows "setsum f F = 0 \<longleftrightarrow> (ALL x:F. f x = 0)"
-using fS fp setsum_nonneg[OF fp]
-proof (induct set: finite)
-  case empty thus ?case by simp
-next
-  case (insert x F)
-  from insert.prems have Fx: "f x \<ge> 0" and Fp: "\<forall> a \<in> F. f a \<ge> 0" by simp_all
-  from insert.hyps Fp setsum_nonneg[OF Fp]
-  have h: "setsum f F = 0 \<longleftrightarrow> (\<forall>a \<in>F. f a = 0)" by metis
-  from add_nonneg_eq_0_iff[OF Fx  setsum_nonneg[OF Fp]] insert.hyps(1,2)
-  show ?case by (simp add: h)
-qed
-
-subsection{* The collapse of the general concepts to dimension one. *}
-
-lemma vector_one: "(x::'a ^1) = (\<chi> i. (x$1))"
-  by (simp add: Cart_eq forall_1)
-
-lemma forall_one: "(\<forall>(x::'a ^1). P x) \<longleftrightarrow> (\<forall>x. P(\<chi> i. x))"
-  apply auto
-  apply (erule_tac x= "x$1" in allE)
-  apply (simp only: vector_one[symmetric])
-  done
-
-lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
-  by (simp add: norm_vector_def UNIV_1)
-
-lemma norm_real: "norm(x::real ^ 1) = abs(x$1)"
-  by (simp add: norm_vector_1)
-
-lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
-  by (auto simp add: norm_real dist_norm)
 
 subsection {* A connectedness or intermediate value lemma with several applications. *}
 
@@ -747,12 +257,12 @@ proof-
     ultimately show ?thesis using alb by metis
 qed
 
-text{* One immediately useful corollary is the existence of square roots! --- Should help to get rid of all the development of square-root for reals as a special case @{typ "real^1"} *}
+text{* One immediately useful corollary is the existence of square roots! --- Should help to get rid of all the development of square-root for reals as a special case *}
 
 lemma square_bound_lemma: "(x::real) < (1 + x) * (1 + x)"
 proof-
   have "(x + 1/2)^2 + 3/4 > 0" using zero_le_power2[of "x+1/2"] by arith
-  thus ?thesis by (simp add: ring_simps power2_eq_square)
+  thus ?thesis by (simp add: field_simps power2_eq_square)
 qed
 
 lemma square_continuous: "0 < (e::real) ==> \<exists>d. 0 < d \<and> (\<forall>y. abs(y - x) < d \<longrightarrow> abs(y * y - x * x) < e)"
@@ -775,8 +285,7 @@ lemma real_less_rsqrt: "x^2 < y \<Longrightarrow> x < sqrt y"
 lemma sqrt_even_pow2: assumes n: "even n"
   shows "sqrt(2 ^ n) = 2 ^ (n div 2)"
 proof-
-  from n obtain m where m: "n = 2*m" unfolding even_nat_equiv_def2
-    by (auto simp add: nat_number)
+  from n obtain m where m: "n = 2*m" unfolding even_mult_two_ex ..
   from m  have "sqrt(2 ^ n) = sqrt ((2 ^ m) ^ 2)"
     by (simp only: power_mult[symmetric] mult_commute)
   then show ?thesis  using m by simp
@@ -785,21 +294,14 @@ qed
 lemma real_div_sqrt: "0 <= x ==> x / sqrt(x) = sqrt(x)"
   apply (cases "x = 0", simp_all)
   using sqrt_divide_self_eq[of x]
-  apply (simp add: inverse_eq_divide real_sqrt_ge_0_iff field_simps)
+  apply (simp add: inverse_eq_divide field_simps)
   done
 
 text{* Hence derive more interesting properties of the norm. *}
 
-text {*
-  This type-specific version is only here
-  to make @{text normarith.ML} happy.
-*}
-lemma norm_0: "norm (0::real ^ _) = 0"
-  by (rule norm_zero)
-
 lemma norm_mul[simp]: "norm(a *s x) = abs(a) * norm x"
-  by (simp add: norm_vector_def vector_component setL2_right_distrib
-           abs_mult cong: strong_setL2_cong)
+  by (simp add: norm_vector_def setL2_right_distrib abs_mult)
+
 lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (inner x x = (0::real))"
   by (simp add: norm_vector_def setL2_def power2_eq_square)
 lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
@@ -815,20 +317,17 @@ lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b
   by (metis vector_mul_rcancel)
 
 lemma norm_cauchy_schwarz:
-  fixes x y :: "real ^ 'n"
   shows "inner x y <= norm x * norm y"
   using Cauchy_Schwarz_ineq2[of x y] by auto
 
 lemma norm_cauchy_schwarz_abs:
-  fixes x y :: "real ^ 'n"
   shows "\<bar>inner x y\<bar> \<le> norm x * norm y"
-  using norm_cauchy_schwarz[of x y] norm_cauchy_schwarz[of x "-y"]
-  by (simp add: real_abs_def)
+  by (rule Cauchy_Schwarz_ineq2)
 
 lemma norm_triangle_sub:
   fixes x y :: "'a::real_normed_vector"
   shows "norm x \<le> norm y  + norm (x - y)"
-  using norm_triangle_ineq[of "y" "x - y"] by (simp add: ring_simps)
+  using norm_triangle_ineq[of "y" "x - y"] by (simp add: field_simps)
 
 lemma component_le_norm: "\<bar>x$i\<bar> <= norm x"
   apply (simp add: norm_vector_def)
@@ -846,15 +345,15 @@ lemma norm_le_l1: "norm x <= setsum(\<lambda>i. \<bar>x$i\<bar>) UNIV"
 
 lemma real_abs_norm: "\<bar>norm x\<bar> = norm x"
   by (rule abs_norm_cancel)
-lemma real_abs_sub_norm: "\<bar>norm (x::real ^ 'n) - norm y\<bar> <= norm(x - y)"
+lemma real_abs_sub_norm: "\<bar>norm x - norm y\<bar> <= norm(x - y)"
   by (rule norm_triangle_ineq3)
-lemma norm_le: "norm(x::real ^ 'n) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
+lemma norm_le: "norm(x) <= norm(y) \<longleftrightarrow> x \<bullet> x <= y \<bullet> y"
   by (simp add: norm_eq_sqrt_inner) 
-lemma norm_lt: "norm(x::real ^ 'n) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
+lemma norm_lt: "norm(x) < norm(y) \<longleftrightarrow> x \<bullet> x < y \<bullet> y"
   by (simp add: norm_eq_sqrt_inner)
-lemma norm_eq: "norm(x::real ^ 'n) = norm (y::real ^ 'n) \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
+lemma norm_eq: "norm(x) = norm (y) \<longleftrightarrow> x \<bullet> x = y \<bullet> y"
   apply(subst order_eq_iff) unfolding norm_le by auto
-lemma norm_eq_1: "norm(x::real ^ 'n) = 1 \<longleftrightarrow> x \<bullet> x = 1"
+lemma norm_eq_1: "norm(x) = 1 \<longleftrightarrow> x \<bullet> x = 1"
   unfolding norm_eq_sqrt_inner by auto
 
 text{* Squaring equations and inequalities involving norms.  *}
@@ -866,10 +365,14 @@ lemma norm_eq_square: "norm(x) = a \<longleftrightarrow> 0 <= a \<and> x \<bulle
   by (auto simp add: norm_eq_sqrt_inner)
 
 lemma real_abs_le_square_iff: "\<bar>x\<bar> \<le> \<bar>y\<bar> \<longleftrightarrow> (x::real)^2 \<le> y^2"
-proof-
-  have "x^2 \<le> y^2 \<longleftrightarrow> (x -y) * (y + x) \<le> 0" by (simp add: ring_simps power2_eq_square)
-  also have "\<dots> \<longleftrightarrow> \<bar>x\<bar> \<le> \<bar>y\<bar>" apply (simp add: zero_compare_simps real_abs_def not_less) by arith
-finally show ?thesis ..
+proof
+  assume "\<bar>x\<bar> \<le> \<bar>y\<bar>"
+  then have "\<bar>x\<bar>\<twosuperior> \<le> \<bar>y\<bar>\<twosuperior>" by (rule power_mono, simp)
+  then show "x\<twosuperior> \<le> y\<twosuperior>" by simp
+next
+  assume "x\<twosuperior> \<le> y\<twosuperior>"
+  then have "sqrt (x\<twosuperior>) \<le> sqrt (y\<twosuperior>)" by (rule real_sqrt_le_mono)
+  then show "\<bar>x\<bar> \<le> \<bar>y\<bar>" by simp
 qed
 
 lemma norm_le_square: "norm(x) <= a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x <= a^2"
@@ -898,18 +401,18 @@ lemma dot_norm: "x \<bullet> y = (norm(x + y) ^2 - norm x ^ 2 - norm y ^ 2) / 2"
   unfolding power2_norm_eq_inner inner_simps inner_commute by auto 
 
 lemma dot_norm_neg: "x \<bullet> y = ((norm x ^ 2 + norm y ^ 2) - norm(x - y) ^ 2) / 2"
-  unfolding power2_norm_eq_inner inner_simps inner_commute by(auto simp add:group_simps)
+  unfolding power2_norm_eq_inner inner_simps inner_commute by(auto simp add:algebra_simps)
 
 text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
 
-lemma vector_eq: "(x:: real ^ 'n) = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y\<and> y \<bullet> y = x \<bullet> x" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma vector_eq: "x = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y \<and> y \<bullet> y = x \<bullet> x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume "?lhs" then show ?rhs by simp
+  assume ?lhs then show ?rhs by simp
 next
   assume ?rhs
   then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0" by simp
   hence "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0" by (simp add: inner_simps inner_commute)
-  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: ring_simps inner_simps inner_commute)
+  then have "(x - y) \<bullet> (x - y) = 0" by (simp add: field_simps inner_simps inner_commute)
   then show "x = y" by (simp)
 qed
 
@@ -930,7 +433,7 @@ lemma norm_add_rule_thm:
   by (rule order_trans [OF norm_triangle_ineq add_mono])
 
 lemma ge_iff_diff_ge_0: "(a::'a::linordered_ring) \<ge> b == a - b \<ge> 0"
-  by (simp add: ring_simps)
+  by (simp add: field_simps)
 
 lemma pth_1:
   fixes x :: "'a::real_normed_vector"
@@ -1010,11 +513,6 @@ lemma norm_pths:
   "x \<noteq> y \<longleftrightarrow> \<not> (norm (x - y) \<le> 0)"
   using norm_ge_zero[of "x - y"] by auto
 
-lemma vector_dist_norm:
-  fixes x :: "'a::real_normed_vector"
-  shows "dist x y = norm (x - y)"
-  by (rule dist_norm)
-
 use "normarith.ML"
 
 method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
@@ -1026,7 +524,7 @@ text{* Hence more metric properties. *}
 lemma dist_triangle_alt:
   fixes x y z :: "'a::metric_space"
   shows "dist y z <= dist x y + dist x z"
-using dist_triangle [of y z x] by (simp add: dist_commute)
+by (rule dist_triangle3)
 
 lemma dist_pos_lt:
   fixes x y :: "'a::metric_space"
@@ -1061,12 +559,12 @@ by (rule dist_triangle_half_l, simp_all add: dist_commute)
 
 lemma norm_triangle_half_r:
   shows "norm (y - x1) < e / 2 \<Longrightarrow> norm (y - x2) < e / 2 \<Longrightarrow> norm (x1 - x2) < e"
-  using dist_triangle_half_r unfolding vector_dist_norm[THEN sym] by auto
+  using dist_triangle_half_r unfolding dist_norm[THEN sym] by auto
 
 lemma norm_triangle_half_l: assumes "norm (x - y) < e / 2" "norm (x' - (y)) < e / 2" 
   shows "norm (x - x') < e"
-  using dist_triangle_half_l[OF assms[unfolded vector_dist_norm[THEN sym]]]
-  unfolding vector_dist_norm[THEN sym] .
+  using dist_triangle_half_l[OF assms[unfolded dist_norm[THEN sym]]]
+  unfolding dist_norm[THEN sym] .
 
 lemma norm_triangle_le: "norm(x) + norm y <= e ==> norm(x + y) <= e"
   by (metis order_trans norm_triangle_ineq)
@@ -1120,20 +618,6 @@ next
   finally  show ?case  using "2.hyps" by simp
 qed
 
-lemma real_setsum_norm:
-  fixes f :: "'a \<Rightarrow> real ^'n"
-  assumes fS: "finite S"
-  shows "norm (setsum f S) <= setsum (\<lambda>x. norm(f x)) S"
-proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case by simp
-next
-  case (2 x S)
-  from "2.hyps" have "norm (setsum f (insert x S)) \<le> norm (f x) + norm (setsum f S)" by (simp add: norm_triangle_ineq)
-  also have "\<dots> \<le> norm (f x) + setsum (\<lambda>x. norm(f x)) S"
-    using "2.hyps" by simp
-  finally  show ?case  using "2.hyps" by simp
-qed
-
 lemma setsum_norm_le:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes fS: "finite S"
@@ -1146,18 +630,6 @@ proof-
     by arith
 qed
 
-lemma real_setsum_norm_le:
-  fixes f :: "'a \<Rightarrow> real ^ 'n"
-  assumes fS: "finite S"
-  and fg: "\<forall>x \<in> S. norm (f x) \<le> g x"
-  shows "norm (setsum f S) \<le> setsum g S"
-proof-
-  from fg have "setsum (\<lambda>x. norm(f x)) S <= setsum g S"
-    by - (rule setsum_mono, simp)
-  then show ?thesis using real_setsum_norm[OF fS, of f] fg
-    by arith
-qed
-
 lemma setsum_norm_bound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes fS: "finite S"
@@ -1166,20 +638,12 @@ lemma setsum_norm_bound:
   using setsum_norm_le[OF fS K] setsum_constant[symmetric]
   by simp
 
-lemma real_setsum_norm_bound:
-  fixes f :: "'a \<Rightarrow> real ^ 'n"
-  assumes fS: "finite S"
-  and K: "\<forall>x \<in> S. norm (f x) \<le> K"
-  shows "norm (setsum f S) \<le> of_nat (card S) * K"
-  using real_setsum_norm_le[OF fS K] setsum_constant[symmetric]
-  by simp
-
 lemma setsum_vmul:
-  fixes f :: "'a \<Rightarrow> 'b::{real_normed_vector,semiring, mult_zero}"
+  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
   assumes fS: "finite S"
   shows "setsum f S *s v = setsum (\<lambda>x. f x *s v) S"
 proof(induct rule: finite_induct[OF fS])
-  case 1 then show ?case by (simp add: vector_smult_lzero)
+  case 1 then show ?case by simp
 next
   case (2 x F)
   from "2.hyps" have "setsum f (insert x F) *s v = (f x + setsum f F) *s v"
@@ -1241,10 +705,10 @@ proof-
   finally show ?thesis .
 qed
 
-lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> (y::'a::{real_inner}^'n) = setsum (\<lambda>x. f x \<bullet> y) S "
+lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> y = setsum (\<lambda>x. f x \<bullet> y) S "
   apply(induct rule: finite_induct) by(auto simp add: inner_simps)
 
-lemma dot_rsum: "finite S \<Longrightarrow> (y::'a::{real_inner}^'n) \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
+lemma dot_rsum: "finite S \<Longrightarrow> y \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
   apply(induct rule: finite_induct) by(auto simp add: inner_simps)
 
 subsection{* Basis vectors in coordinate directions. *}
@@ -1289,6 +753,13 @@ lemma basis_expansion:
   "setsum (\<lambda>i. (x$i) *s basis i) UNIV = (x::('a::ring_1) ^'n)" (is "?lhs = ?rhs" is "setsum ?f ?S = _")
   by (auto simp add: Cart_eq cond_value_iff setsum_delta[of "?S", where ?'b = "'a", simplified] cong del: if_weak_cong)
 
+lemma smult_conv_scaleR: "c *s x = scaleR c x"
+  unfolding vector_scalar_mult_def vector_scaleR_def by simp
+
+lemma basis_expansion':
+  "setsum (\<lambda>i. (x$i) *\<^sub>R basis i) UNIV = x"
+  by (rule basis_expansion [where 'a=real, unfolded smult_conv_scaleR])
+
 lemma basis_expansion_unique:
   "setsum (\<lambda>i. f i *s basis i) UNIV = (x::('a::comm_ring_1) ^'n) \<longleftrightarrow> (\<forall>i. f i = x$i)"
   by (simp add: Cart_eq setsum_delta cond_value_iff cong del: if_weak_cong)
@@ -1314,23 +785,21 @@ lemma basis_nonzero:
   shows "basis k \<noteq> (0:: 'a::semiring_1 ^'n)"
   by (simp add: basis_eq_0)
 
-lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = (z::real^'n)"
-  apply (auto simp add: Cart_eq dot_basis)
-  apply (erule_tac x="basis i" in allE)
-  apply (simp add: dot_basis)
-  apply (subgoal_tac "y = z")
-  apply simp
-  apply (simp add: Cart_eq)
-  done
+lemma vector_eq_ldot: "(\<forall>x. x \<bullet> y = x \<bullet> z) \<longleftrightarrow> y = z"
+proof
+  assume "\<forall>x. x \<bullet> y = x \<bullet> z"
+  hence "\<forall>x. x \<bullet> (y - z) = 0" by (simp add: inner_simps)
+  hence "(y - z) \<bullet> (y - z) = 0" ..
+  thus "y = z" by simp
+qed simp
 
-lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = (y::real^'n)"
-  apply (auto simp add: Cart_eq dot_basis)
-  apply (erule_tac x="basis i" in allE)
-  apply (simp add: dot_basis)
-  apply (subgoal_tac "x = y")
-  apply simp
-  apply (simp add: Cart_eq)
-  done
+lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = y"
+proof
+  assume "\<forall>z. x \<bullet> z = y \<bullet> z"
+  hence "\<forall>z. (x - y) \<bullet> z = 0" by (simp add: inner_simps)
+  hence "(x - y) \<bullet> (x - y) = 0" ..
+  thus "x = y" by simp
+qed simp
 
 subsection{* Orthogonality. *}
 
@@ -1344,9 +813,8 @@ lemma orthogonal_basis_basis:
   shows "orthogonal (basis i :: real^'n) (basis j) \<longleftrightarrow> i \<noteq> j"
   unfolding orthogonal_basis[of i] basis_component[of j] by simp
 
-  (* FIXME : Maybe some of these require less than comm_ring, but not all*)
 lemma orthogonal_clauses:
-  "orthogonal a (0::real ^'n)"
+  "orthogonal a 0"
   "orthogonal a x ==> orthogonal a (c *\<^sub>R x)"
   "orthogonal a x ==> orthogonal a (-x)"
   "orthogonal a x \<Longrightarrow> orthogonal a y ==> orthogonal a (x + y)"
@@ -1358,130 +826,68 @@ lemma orthogonal_clauses:
   "orthogonal x a \<Longrightarrow> orthogonal y a ==> orthogonal (x - y) a"
   unfolding orthogonal_def inner_simps by auto
 
-lemma orthogonal_commute: "orthogonal (x::real ^'n)y \<longleftrightarrow> orthogonal y x"
+lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
   by (simp add: orthogonal_def inner_commute)
-
-subsection{* Explicit vector construction from lists. *}
-
-primrec from_nat :: "nat \<Rightarrow> 'a::{monoid_add,one}"
-where "from_nat 0 = 0" | "from_nat (Suc n) = 1 + from_nat n"
-
-lemma from_nat [simp]: "from_nat = of_nat"
-by (rule ext, induct_tac x, simp_all)
-
-primrec
-  list_fun :: "nat \<Rightarrow> _ list \<Rightarrow> _ \<Rightarrow> _"
-where
-  "list_fun n [] = (\<lambda>x. 0)"
-| "list_fun n (x # xs) = fun_upd (list_fun (Suc n) xs) (from_nat n) x"
-
-definition "vector l = (\<chi> i. list_fun 1 l i)"
-(*definition "vector l = (\<chi> i. if i <= length l then l ! (i - 1) else 0)"*)
-
-lemma vector_1: "(vector[x]) $1 = x"
-  unfolding vector_def by simp
-
-lemma vector_2:
- "(vector[x,y]) $1 = x"
- "(vector[x,y] :: 'a^2)$2 = (y::'a::zero)"
-  unfolding vector_def by simp_all
-
-lemma vector_3:
- "(vector [x,y,z] ::('a::zero)^3)$1 = x"
- "(vector [x,y,z] ::('a::zero)^3)$2 = y"
- "(vector [x,y,z] ::('a::zero)^3)$3 = z"
-  unfolding vector_def by simp_all
-
-lemma forall_vector_1: "(\<forall>v::'a::zero^1. P v) \<longleftrightarrow> (\<forall>x. P(vector[x]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (subgoal_tac "vector [v$1] = v")
-  apply simp
-  apply (vector vector_def)
-  apply (simp add: forall_1)
-  done
-
-lemma forall_vector_2: "(\<forall>v::'a::zero^2. P v) \<longleftrightarrow> (\<forall>x y. P(vector[x, y]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (erule_tac x="v$2" in allE)
-  apply (subgoal_tac "vector [v$1, v$2] = v")
-  apply simp
-  apply (vector vector_def)
-  apply (simp add: forall_2)
-  done
-
-lemma forall_vector_3: "(\<forall>v::'a::zero^3. P v) \<longleftrightarrow> (\<forall>x y z. P(vector[x, y, z]))"
-  apply auto
-  apply (erule_tac x="v$1" in allE)
-  apply (erule_tac x="v$2" in allE)
-  apply (erule_tac x="v$3" in allE)
-  apply (subgoal_tac "vector [v$1, v$2, v$3] = v")
-  apply simp
-  apply (vector vector_def)
-  apply (simp add: forall_3)
-  done
 
 subsection{* Linear functions. *}
 
-definition "linear f \<longleftrightarrow> (\<forall>x y. f(x + y) = f x + f y) \<and> (\<forall>c x. f(c *s x) = c *s f x)"
+definition
+  linear :: "('a::real_vector \<Rightarrow> 'b::real_vector) \<Rightarrow> bool" where
+  "linear f \<longleftrightarrow> (\<forall>x y. f(x + y) = f x + f y) \<and> (\<forall>c x. f(c *\<^sub>R x) = c *\<^sub>R f x)"
 
-lemma linearI: assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x) = c *s f x"
+lemma linearI: assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
   shows "linear f" using assms unfolding linear_def by auto
 
-lemma linear_compose_cmul: "linear f ==> linear (\<lambda>x. (c::'a::comm_semiring) *s f x)"
-  by (vector linear_def Cart_eq ring_simps)
+lemma linear_compose_cmul: "linear f ==> linear (\<lambda>x. c *\<^sub>R f x)"
+  by (simp add: linear_def algebra_simps)
 
-lemma linear_compose_neg: "linear (f :: 'a ^'n \<Rightarrow> 'a::comm_ring ^'m) ==> linear (\<lambda>x. -(f(x)))" by (vector linear_def Cart_eq)
+lemma linear_compose_neg: "linear f ==> linear (\<lambda>x. -(f(x)))"
+  by (simp add: linear_def)
 
-lemma linear_compose_add: "linear (f :: 'a ^'n \<Rightarrow> 'a::semiring_1 ^'m) \<Longrightarrow> linear g ==> linear (\<lambda>x. f(x) + g(x))"
-  by (vector linear_def Cart_eq ring_simps)
+lemma linear_compose_add: "linear f \<Longrightarrow> linear g ==> linear (\<lambda>x. f(x) + g(x))"
+  by (simp add: linear_def algebra_simps)
 
-lemma linear_compose_sub: "linear (f :: 'a ^'n \<Rightarrow> 'a::ring_1 ^'m) \<Longrightarrow> linear g ==> linear (\<lambda>x. f x - g x)"
-  by (vector linear_def Cart_eq ring_simps)
+lemma linear_compose_sub: "linear f \<Longrightarrow> linear g ==> linear (\<lambda>x. f x - g x)"
+  by (simp add: linear_def algebra_simps)
 
 lemma linear_compose: "linear f \<Longrightarrow> linear g ==> linear (g o f)"
   by (simp add: linear_def)
 
 lemma linear_id: "linear id" by (simp add: linear_def id_def)
 
-lemma linear_zero: "linear (\<lambda>x. 0::'a::semiring_1 ^ 'n)" by (simp add: linear_def)
+lemma linear_zero: "linear (\<lambda>x. 0)" by (simp add: linear_def)
 
 lemma linear_compose_setsum:
-  assumes fS: "finite S" and lS: "\<forall>a \<in> S. linear (f a :: 'a::semiring_1 ^ 'n \<Rightarrow> 'a ^'m)"
-  shows "linear(\<lambda>x. setsum (\<lambda>a. f a x :: 'a::semiring_1 ^'m) S)"
+  assumes fS: "finite S" and lS: "\<forall>a \<in> S. linear (f a)"
+  shows "linear(\<lambda>x. setsum (\<lambda>a. f a x) S)"
   using lS
   apply (induct rule: finite_induct[OF fS])
   by (auto simp add: linear_zero intro: linear_compose_add)
 
 lemma linear_vmul_component:
-  fixes f:: "'a::semiring_1^'m \<Rightarrow> 'a^'n"
   assumes lf: "linear f"
-  shows "linear (\<lambda>x. f x $ k *s v)"
+  shows "linear (\<lambda>x. f x $ k *\<^sub>R v)"
   using lf
-  apply (auto simp add: linear_def )
-  by (vector ring_simps)+
+  by (auto simp add: linear_def algebra_simps)
 
-lemma linear_0: "linear f ==> f 0 = (0::'a::semiring_1 ^'n)"
+lemma linear_0: "linear f ==> f 0 = 0"
   unfolding linear_def
   apply clarsimp
   apply (erule allE[where x="0::'a"])
   apply simp
   done
 
-lemma linear_cmul: "linear f ==> f(c*s x) = c *s f x" by (simp add: linear_def)
+lemma linear_cmul: "linear f ==> f(c *\<^sub>R x) = c *\<^sub>R f x" by (simp add: linear_def)
 
-lemma linear_neg: "linear (f :: 'a::ring_1 ^'n \<Rightarrow> _) ==> f (-x) = - f x"
-  unfolding vector_sneg_minus1
-  using linear_cmul[of f] by auto
+lemma linear_neg: "linear f ==> f (-x) = - f x"
+  using linear_cmul [where c="-1"] by simp
 
 lemma linear_add: "linear f ==> f(x + y) = f x + f y" by (metis linear_def)
 
-lemma linear_sub: "linear (f::'a::ring_1 ^'n \<Rightarrow> _) ==> f(x - y) = f x - f y"
+lemma linear_sub: "linear f ==> f(x - y) = f x - f y"
   by (simp add: diff_def linear_add linear_neg)
 
 lemma linear_setsum:
-  fixes f:: "'a::semiring_1^'n \<Rightarrow> _"
   assumes lf: "linear f" and fS: "finite S"
   shows "f (setsum g S) = setsum (f o g) S"
 proof (induct rule: finite_induct[OF fS])
@@ -1496,14 +902,13 @@ next
 qed
 
 lemma linear_setsum_mul:
-  fixes f:: "'a ^'n \<Rightarrow> 'a::semiring_1^'m"
   assumes lf: "linear f" and fS: "finite S"
-  shows "f (setsum (\<lambda>i. c i *s v i) S) = setsum (\<lambda>i. c i *s f (v i)) S"
-  using linear_setsum[OF lf fS, of "\<lambda>i. c i *s v i" , unfolded o_def]
+  shows "f (setsum (\<lambda>i. c i *\<^sub>R v i) S) = setsum (\<lambda>i. c i *\<^sub>R f (v i)) S"
+  using linear_setsum[OF lf fS, of "\<lambda>i. c i *\<^sub>R v i" , unfolded o_def]
   linear_cmul[OF lf] by simp
 
 lemma linear_injective_0:
-  assumes lf: "linear (f:: 'a::ring_1 ^ 'n \<Rightarrow> _)"
+  assumes lf: "linear f"
   shows "inj f \<longleftrightarrow> (\<forall>x. f x = 0 \<longrightarrow> x = 0)"
 proof-
   have "inj f \<longleftrightarrow> (\<forall> x y. f x = f y \<longrightarrow> x = y)" by (simp add: inj_on_def)
@@ -1523,22 +928,22 @@ proof-
   let ?B = "setsum (\<lambda>i. norm(f(basis i))) ?S"
   have fS: "finite ?S" by simp
   {fix x:: "real ^ 'm"
-    let ?g = "(\<lambda>i. (x$i) *s (basis i) :: real ^ 'm)"
-    have "norm (f x) = norm (f (setsum (\<lambda>i. (x$i) *s (basis i)) ?S))"
-      by (simp only:  basis_expansion)
-    also have "\<dots> = norm (setsum (\<lambda>i. (x$i) *s f (basis i))?S)"
+    let ?g = "(\<lambda>i. (x$i) *\<^sub>R (basis i) :: real ^ 'm)"
+    have "norm (f x) = norm (f (setsum (\<lambda>i. (x$i) *\<^sub>R (basis i)) ?S))"
+      by (simp add: basis_expansion')
+    also have "\<dots> = norm (setsum (\<lambda>i. (x$i) *\<^sub>R f (basis i))?S)"
       using linear_setsum[OF lf fS, of ?g, unfolded o_def] linear_cmul[OF lf]
       by auto
-    finally have th0: "norm (f x) = norm (setsum (\<lambda>i. (x$i) *s f (basis i))?S)" .
+    finally have th0: "norm (f x) = norm (setsum (\<lambda>i. (x$i) *\<^sub>R f (basis i))?S)" .
     {fix i assume i: "i \<in> ?S"
       from component_le_norm[of x i]
-      have "norm ((x$i) *s f (basis i :: real ^'m)) \<le> norm (f (basis i)) * norm x"
-      unfolding norm_mul
+      have "norm ((x$i) *\<^sub>R f (basis i :: real ^'m)) \<le> norm (f (basis i)) * norm x"
+      unfolding norm_scaleR
       apply (simp only: mult_commute)
       apply (rule mult_mono)
-      by (auto simp add: ring_simps norm_ge_zero) }
-    then have th: "\<forall>i\<in> ?S. norm ((x$i) *s f (basis i :: real ^'m)) \<le> norm (f (basis i)) * norm x" by metis
-    from real_setsum_norm_le[OF fS, of "\<lambda>i. (x$i) *s (f (basis i))", OF th]
+      by (auto simp add: field_simps) }
+    then have th: "\<forall>i\<in> ?S. norm ((x$i) *\<^sub>R f (basis i :: real ^'m)) \<le> norm (f (basis i)) * norm x" by metis
+    from setsum_norm_le[OF fS, of "\<lambda>i. (x$i) *\<^sub>R (f (basis i))", OF th]
     have "norm (f x) \<le> ?B * norm x" unfolding th0 setsum_left_distrib by metis}
   then show ?thesis by blast
 qed
@@ -1553,24 +958,21 @@ proof-
   let ?K = "\<bar>B\<bar> + 1"
   have Kp: "?K > 0" by arith
     {assume C: "B < 0"
-      have "norm (1::real ^ 'n) > 0" by (simp add: zero_less_norm_iff)
+      have "norm (1::real ^ 'n) > 0" by simp
       with C have "B * norm (1:: real ^ 'n) < 0"
-        by (simp add: zero_compare_simps)
+        by (simp add: mult_less_0_iff)
       with B[rule_format, of 1] norm_ge_zero[of "f 1"] have False by simp
     }
     then have Bp: "B \<ge> 0" by ferrack
     {fix x::"real ^ 'n"
       have "norm (f x) \<le> ?K *  norm x"
       using B[rule_format, of x] norm_ge_zero[of x] norm_ge_zero[of "f x"] Bp
-      apply (auto simp add: ring_simps split add: abs_split)
+      apply (auto simp add: field_simps split add: abs_split)
       apply (erule order_trans, simp)
       done
   }
   then show ?thesis using Kp by blast
 qed
-
-lemma smult_conv_scaleR: "c *s x = scaleR c x"
-  unfolding vector_scalar_mult_def vector_scaleR_def by simp
 
 lemma linear_conv_bounded_linear:
   fixes f :: "real ^ _ \<Rightarrow> real ^ _"
@@ -1600,7 +1002,7 @@ next
 qed
 
 lemma bounded_linearI': fixes f::"real^'n \<Rightarrow> real^'m"
-  assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *s x) = c *s f x"
+  assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
   shows "bounded_linear f" unfolding linear_conv_bounded_linear[THEN sym]
   by(rule linearI[OF assms])
 
@@ -1613,39 +1015,38 @@ lemma bilinear_ladd: "bilinear h ==> h (x + y) z = (h x z) + (h y z)"
 lemma bilinear_radd: "bilinear h ==> h x (y + z) = (h x y) + (h x z)"
   by (simp add: bilinear_def linear_def)
 
-lemma bilinear_lmul: "bilinear h ==> h (c *s x) y = c *s (h x y)"
+lemma bilinear_lmul: "bilinear h ==> h (c *\<^sub>R x) y = c *\<^sub>R (h x y)"
   by (simp add: bilinear_def linear_def)
 
-lemma bilinear_rmul: "bilinear h ==> h x (c *s y) = c *s (h x y)"
+lemma bilinear_rmul: "bilinear h ==> h x (c *\<^sub>R y) = c *\<^sub>R (h x y)"
   by (simp add: bilinear_def linear_def)
 
-lemma bilinear_lneg: "bilinear h ==> h (- (x:: 'a::ring_1 ^ 'n)) y = -(h x y)"
-  by (simp only: vector_sneg_minus1 bilinear_lmul)
+lemma bilinear_lneg: "bilinear h ==> h (- x) y = -(h x y)"
+  by (simp only: scaleR_minus1_left [symmetric] bilinear_lmul)
 
-lemma bilinear_rneg: "bilinear h ==> h x (- (y:: 'a::ring_1 ^ 'n)) = - h x y"
-  by (simp only: vector_sneg_minus1 bilinear_rmul)
+lemma bilinear_rneg: "bilinear h ==> h x (- y) = - h x y"
+  by (simp only: scaleR_minus1_left [symmetric] bilinear_rmul)
 
 lemma  (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
   using add_imp_eq[of x y 0] by auto
 
 lemma bilinear_lzero:
-  fixes h :: "'a::ring^'n \<Rightarrow> _" assumes bh: "bilinear h" shows "h 0 x = 0"
+  assumes bh: "bilinear h" shows "h 0 x = 0"
   using bilinear_ladd[OF bh, of 0 0 x]
-    by (simp add: eq_add_iff ring_simps)
+    by (simp add: eq_add_iff field_simps)
 
 lemma bilinear_rzero:
-  fixes h :: "'a::ring^_ \<Rightarrow> _" assumes bh: "bilinear h" shows "h x 0 = 0"
+  assumes bh: "bilinear h" shows "h x 0 = 0"
   using bilinear_radd[OF bh, of x 0 0 ]
-    by (simp add: eq_add_iff ring_simps)
+    by (simp add: eq_add_iff field_simps)
 
-lemma bilinear_lsub: "bilinear h ==> h (x - (y:: 'a::ring_1 ^ _)) z = h x z - h y z"
+lemma bilinear_lsub: "bilinear h ==> h (x - y) z = h x z - h y z"
   by (simp  add: diff_def bilinear_ladd bilinear_lneg)
 
-lemma bilinear_rsub: "bilinear h ==> h z (x - (y:: 'a::ring_1 ^ _)) = h z x - h z y"
+lemma bilinear_rsub: "bilinear h ==> h z (x - y) = h z x - h z y"
   by (simp  add: diff_def bilinear_radd bilinear_rneg)
 
 lemma bilinear_setsum:
-  fixes h:: "'a ^_ \<Rightarrow> 'a::semiring_1^_\<Rightarrow> 'a ^ _"
   assumes bh: "bilinear h" and fS: "finite S" and fT: "finite T"
   shows "h (setsum f S) (setsum g T) = setsum (\<lambda>(i,j). h (f i) (g j)) (S \<times> T) "
 proof-
@@ -1669,19 +1070,19 @@ proof-
   let ?B = "setsum (\<lambda>(i,j). norm (h (basis i) (basis j))) (?M \<times> ?N)"
   have fM: "finite ?M" and fN: "finite ?N" by simp_all
   {fix x:: "real ^ 'm" and  y :: "real^'n"
-    have "norm (h x y) = norm (h (setsum (\<lambda>i. (x$i) *s basis i) ?M) (setsum (\<lambda>i. (y$i) *s basis i) ?N))" unfolding basis_expansion ..
-    also have "\<dots> = norm (setsum (\<lambda> (i,j). h ((x$i) *s basis i) ((y$j) *s basis j)) (?M \<times> ?N))"  unfolding bilinear_setsum[OF bh fM fN] ..
+    have "norm (h x y) = norm (h (setsum (\<lambda>i. (x$i) *\<^sub>R basis i) ?M) (setsum (\<lambda>i. (y$i) *\<^sub>R basis i) ?N))" unfolding basis_expansion' ..
+    also have "\<dots> = norm (setsum (\<lambda> (i,j). h ((x$i) *\<^sub>R basis i) ((y$j) *\<^sub>R basis j)) (?M \<times> ?N))"  unfolding bilinear_setsum[OF bh fM fN] ..
     finally have th: "norm (h x y) = \<dots>" .
     have "norm (h x y) \<le> ?B * norm x * norm y"
       apply (simp add: setsum_left_distrib th)
-      apply (rule real_setsum_norm_le)
+      apply (rule setsum_norm_le)
       using fN fM
       apply simp
-      apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh] norm_mul ring_simps)
+      apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh] field_simps simp del: scaleR_scaleR)
       apply (rule mult_mono)
-      apply (auto simp add: norm_ge_zero zero_le_mult_iff component_le_norm)
+      apply (auto simp add: zero_le_mult_iff component_le_norm)
       apply (rule mult_mono)
-      apply (auto simp add: norm_ge_zero zero_le_mult_iff component_le_norm)
+      apply (auto simp add: zero_le_mult_iff component_le_norm)
       done}
   then show ?thesis by metis
 qed
@@ -1701,7 +1102,7 @@ proof-
     have "B * norm x * norm y \<le> ?K * norm x * norm y"
       apply -
       apply (rule mult_right_mono, rule mult_right_mono)
-      by (auto simp add: norm_ge_zero)
+      by auto
     then have "norm (h x y) \<le> ?K * norm x * norm y"
       using B[rule_format, of x y] by simp}
   with Kp show ?thesis by blast
@@ -1746,7 +1147,27 @@ subsection{* Adjoints. *}
 
 definition "adjoint f = (SOME f'. \<forall>x y. f x \<bullet> y = x \<bullet> f' y)"
 
+lemma adjoint_unique:
+  assumes "\<forall>x y. inner (f x) y = inner x (g y)"
+  shows "adjoint f = g"
+unfolding adjoint_def
+proof (rule some_equality)
+  show "\<forall>x y. inner (f x) y = inner x (g y)" using assms .
+next
+  fix h assume "\<forall>x y. inner (f x) y = inner x (h y)"
+  hence "\<forall>x y. inner x (g y) = inner x (h y)" using assms by simp
+  hence "\<forall>x y. inner x (g y - h y) = 0" by (simp add: inner_diff_right)
+  hence "\<forall>y. inner (g y - h y) (g y - h y) = 0" by simp
+  hence "\<forall>y. h y = g y" by simp
+  thus "h = g" by (simp add: ext)
+qed
+
 lemma choice_iff: "(\<forall>x. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x. P x (f x))" by metis
+
+text {* TODO: The following lemmas about adjoints should hold for any
+Hilbert space (i.e. complete inner product space).
+(see \url{http://en.wikipedia.org/wiki/Hermitian_adjoint})
+*}
 
 lemma adjoint_works_lemma:
   fixes f:: "real ^'n \<Rightarrow> real ^'m"
@@ -1760,14 +1181,14 @@ proof-
   {fix y:: "real ^ 'm"
     let ?w = "(\<chi> i. (f (basis i) \<bullet> y)) :: real ^ 'n"
     {fix x
-      have "f x \<bullet> y = f (setsum (\<lambda>i. (x$i) *s basis i) ?N) \<bullet> y"
-        by (simp only: basis_expansion)
-      also have "\<dots> = (setsum (\<lambda>i. (x$i) *s f (basis i)) ?N) \<bullet> y"
+      have "f x \<bullet> y = f (setsum (\<lambda>i. (x$i) *\<^sub>R basis i) ?N) \<bullet> y"
+        by (simp only: basis_expansion')
+      also have "\<dots> = (setsum (\<lambda>i. (x$i) *\<^sub>R f (basis i)) ?N) \<bullet> y"
         unfolding linear_setsum[OF lf fN]
         by (simp add: linear_cmul[OF lf])
       finally have "f x \<bullet> y = x \<bullet> ?w"
         apply (simp only: )
-        apply (simp add: inner_vector_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] ring_simps)
+        apply (simp add: inner_vector_def setsum_left_distrib setsum_right_distrib setsum_commute[of _ ?M ?N] field_simps)
         done}
   }
   then show ?thesis unfolding adjoint_def
@@ -1786,7 +1207,7 @@ lemma adjoint_linear:
   fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "linear (adjoint f)"
-  unfolding linear_def vector_eq_ldot[symmetric] apply safe
+  unfolding linear_def vector_eq_ldot[where 'a="real^'n", symmetric] apply safe
   unfolding inner_simps smult_conv_scaleR adjoint_works[OF lf] by auto
 
 lemma adjoint_clauses:
@@ -1800,16 +1221,9 @@ lemma adjoint_adjoint:
   fixes f:: "real ^'n \<Rightarrow> real ^'m"
   assumes lf: "linear f"
   shows "adjoint (adjoint f) = f"
-  apply (rule ext)
-  by (simp add: vector_eq_ldot[symmetric] adjoint_clauses[OF adjoint_linear[OF lf]] adjoint_clauses[OF lf])
+  by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
 
-lemma adjoint_unique:
-  fixes f:: "real ^'n \<Rightarrow> real ^'m"
-  assumes lf: "linear f" and u: "\<forall>x y. f' x \<bullet> y = x \<bullet> f y"
-  shows "f' = adjoint f"
-  apply (rule ext)
-  using u
-  by (simp add: vector_eq_rdot[symmetric] adjoint_clauses[OF lf])
+subsection {* Matrix operations *}
 
 text{* Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"} *}
 
@@ -1832,7 +1246,7 @@ definition "columns(A::'a^'n^'m) = { column i A | i. i \<in> (UNIV :: 'n set)}"
 
 lemma mat_0[simp]: "mat 0 = 0" by (vector mat_def)
 lemma matrix_add_ldistrib: "(A ** (B + C)) = (A ** B) + (A ** C)"
-  by (vector matrix_matrix_mult_def setsum_addf[symmetric] ring_simps)
+  by (vector matrix_matrix_mult_def setsum_addf[symmetric] field_simps)
 
 lemma matrix_mul_lid:
   fixes A :: "'a::semiring_1 ^ 'm ^ 'n"
@@ -1924,18 +1338,18 @@ lemma vector_componentwise:
   by (vector Cart_eq setsum_component)
 
 lemma linear_componentwise:
-  fixes f:: "'a::ring_1 ^'m \<Rightarrow> 'a ^ _"
+  fixes f:: "real ^'m \<Rightarrow> real ^ _"
   assumes lf: "linear f"
   shows "(f x)$j = setsum (\<lambda>i. (x$i) * (f (basis i)$j)) (UNIV :: 'm set)" (is "?lhs = ?rhs")
 proof-
   let ?M = "(UNIV :: 'm set)"
   let ?N = "(UNIV :: 'n set)"
   have fM: "finite ?M" by simp
-  have "?rhs = (setsum (\<lambda>i.(x$i) *s f (basis i) ) ?M)$j"
-    unfolding vector_smult_component[symmetric]
-    unfolding setsum_component[of "(\<lambda>i.(x$i) *s f (basis i :: 'a^'m))" ?M]
+  have "?rhs = (setsum (\<lambda>i.(x$i) *\<^sub>R f (basis i) ) ?M)$j"
+    unfolding vector_smult_component[symmetric] smult_conv_scaleR
+    unfolding setsum_component[of "(\<lambda>i.(x$i) *\<^sub>R f (basis i :: real^'m))" ?M]
     ..
-  then show ?thesis unfolding linear_setsum_mul[OF lf fM, symmetric] basis_expansion ..
+  then show ?thesis unfolding linear_setsum_mul[OF lf fM, symmetric] basis_expansion' ..
 qed
 
 text{* Inverse matrices  (not necessarily square) *}
@@ -1950,23 +1364,23 @@ text{* Correspondence between matrices and linear operators. *}
 definition matrix:: "('a::{plus,times, one, zero}^'m \<Rightarrow> 'a ^ 'n) \<Rightarrow> 'a^'m^'n"
 where "matrix f = (\<chi> i j. (f(basis j))$i)"
 
-lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::'a::comm_semiring_1 ^ _))"
-  by (simp add: linear_def matrix_vector_mult_def Cart_eq ring_simps setsum_right_distrib setsum_addf)
+lemma matrix_vector_mul_linear: "linear(\<lambda>x. A *v (x::real ^ _))"
+  by (simp add: linear_def matrix_vector_mult_def Cart_eq field_simps setsum_right_distrib setsum_addf)
 
-lemma matrix_works: assumes lf: "linear f" shows "matrix f *v x = f (x::'a::comm_ring_1 ^ 'n)"
+lemma matrix_works: assumes lf: "linear f" shows "matrix f *v x = f (x::real ^ 'n)"
 apply (simp add: matrix_def matrix_vector_mult_def Cart_eq mult_commute)
 apply clarify
 apply (rule linear_componentwise[OF lf, symmetric])
 done
 
-lemma matrix_vector_mul: "linear f ==> f = (\<lambda>x. matrix f *v (x::'a::comm_ring_1 ^ 'n))" by (simp add: ext matrix_works)
+lemma matrix_vector_mul: "linear f ==> f = (\<lambda>x. matrix f *v (x::real ^ 'n))" by (simp add: ext matrix_works)
 
-lemma matrix_of_matrix_vector_mul: "matrix(\<lambda>x. A *v (x :: 'a:: comm_ring_1 ^ 'n)) = A"
+lemma matrix_of_matrix_vector_mul: "matrix(\<lambda>x. A *v (x :: real ^ 'n)) = A"
   by (simp add: matrix_eq matrix_vector_mul_linear matrix_works)
 
 lemma matrix_compose:
-  assumes lf: "linear (f::'a::comm_ring_1^'n \<Rightarrow> 'a^'m)"
-  and lg: "linear (g::'a::comm_ring_1^'m \<Rightarrow> 'a^_)"
+  assumes lf: "linear (f::real^'n \<Rightarrow> real^'m)"
+  and lg: "linear (g::real^'m \<Rightarrow> real^_)"
   shows "matrix (g o f) = matrix g ** matrix f"
   using lf lg linear_compose[OF lf lg] matrix_works[OF linear_compose[OF lf lg]]
   by (simp  add: matrix_eq matrix_works matrix_vector_mul_assoc[symmetric] o_def)
@@ -1975,8 +1389,7 @@ lemma matrix_vector_column:"(A::'a::comm_semiring_1^'n^_) *v x = setsum (\<lambd
   by (simp add: matrix_vector_mult_def transpose_def Cart_eq mult_commute)
 
 lemma adjoint_matrix: "adjoint(\<lambda>x. (A::real^'n^'m) *v x) = (\<lambda>x. transpose A *v x)"
-  apply (rule adjoint_unique[symmetric])
-  apply (rule matrix_vector_mul_linear)
+  apply (rule adjoint_unique)
   apply (simp add: transpose_def inner_vector_def matrix_vector_mult_def setsum_left_distrib setsum_right_distrib)
   apply (subst setsum_commute)
   apply (auto simp add: mult_ac)
@@ -1998,40 +1411,6 @@ lemma seq_mono_lemma: assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n" a
   done
 
 
-lemma real_convex_bound_lt:
-  assumes xa: "(x::real) < a" and ya: "y < a" and u: "0 <= u" and v: "0 <= v"
-  and uv: "u + v = 1"
-  shows "u * x + v * y < a"
-proof-
-  have uv': "u = 0 \<longrightarrow> v \<noteq> 0" using u v uv by arith
-  have "a = a * (u + v)" unfolding uv  by simp
-  hence th: "u * a + v * a = a" by (simp add: ring_simps)
-  from xa u have "u \<noteq> 0 \<Longrightarrow> u*x < u*a" by (simp add: mult_compare_simps)
-  from ya v have "v \<noteq> 0 \<Longrightarrow> v * y < v * a" by (simp add: mult_compare_simps)
-  from xa ya u v have "u * x + v * y < u * a + v * a"
-    apply (cases "u = 0", simp_all add: uv')
-    apply(rule mult_strict_left_mono)
-    using uv' apply simp_all
-
-    apply (rule add_less_le_mono)
-    apply(rule mult_strict_left_mono)
-    apply simp_all
-    apply (rule mult_left_mono)
-    apply simp_all
-    done
-  thus ?thesis unfolding th .
-qed
-
-lemma real_convex_bound_le:
-  assumes xa: "(x::real) \<le> a" and ya: "y \<le> a" and u: "0 <= u" and v: "0 <= v"
-  and uv: "u + v = 1"
-  shows "u * x + v * y \<le> a"
-proof-
-  from xa ya u v have "u * x + v * y \<le> u * a + v * a" by (simp add: add_mono mult_left_mono)
-  also have "\<dots> \<le> (u + v) * a" by (simp add: ring_simps)
-  finally show ?thesis unfolding uv by simp
-qed
-
 lemma infinite_enumerate: assumes fS: "infinite S"
   shows "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> S)"
 unfolding subseq_def
@@ -2048,8 +1427,8 @@ lemma triangle_lemma:
   assumes x: "0 <= (x::real)" and y:"0 <= y" and z: "0 <= z" and xy: "x^2 <= y^2 + z^2"
   shows "x <= y + z"
 proof-
-  have "y^2 + z^2 \<le> y^2 + 2*y*z + z^2" using z y  by (simp add: zero_compare_simps)
-  with xy have th: "x ^2 \<le> (y+z)^2" by (simp add: power2_eq_square ring_simps)
+  have "y^2 + z^2 \<le> y^2 + 2*y*z + z^2" using z y by (simp add: mult_nonneg_nonneg)
+  with xy have th: "x ^2 \<le> (y+z)^2" by (simp add: power2_eq_square field_simps)
   from y z have yz: "y + z \<ge> 0" by arith
   from power2_le_imp_le[OF th yz] show ?thesis .
 qed
@@ -2074,166 +1453,6 @@ proof-
   ultimately show ?thesis by metis
 qed
 
-subsection{* Operator norm. *}
-
-definition "onorm f = Sup {norm (f x)| x. norm x = 1}"
-
-lemma norm_bound_generalize:
-  fixes f:: "real ^'n \<Rightarrow> real^'m"
-  assumes lf: "linear f"
-  shows "(\<forall>x. norm x = 1 \<longrightarrow> norm (f x) \<le> b) \<longleftrightarrow> (\<forall>x. norm (f x) \<le> b * norm x)" (is "?lhs \<longleftrightarrow> ?rhs")
-proof-
-  {assume H: ?rhs
-    {fix x :: "real^'n" assume x: "norm x = 1"
-      from H[rule_format, of x] x have "norm (f x) \<le> b" by simp}
-    then have ?lhs by blast }
-
-  moreover
-  {assume H: ?lhs
-    from H[rule_format, of "basis arbitrary"]
-    have bp: "b \<ge> 0" using norm_ge_zero[of "f (basis arbitrary)"]
-      by (auto simp add: norm_basis elim: order_trans [OF norm_ge_zero])
-    {fix x :: "real ^'n"
-      {assume "x = 0"
-        then have "norm (f x) \<le> b * norm x" by (simp add: linear_0[OF lf] bp)}
-      moreover
-      {assume x0: "x \<noteq> 0"
-        hence n0: "norm x \<noteq> 0" by (metis norm_eq_zero)
-        let ?c = "1/ norm x"
-        have "norm (?c*s x) = 1" using x0 by (simp add: n0 norm_mul)
-        with H have "norm (f(?c*s x)) \<le> b" by blast
-        hence "?c * norm (f x) \<le> b"
-          by (simp add: linear_cmul[OF lf] norm_mul)
-        hence "norm (f x) \<le> b * norm x"
-          using n0 norm_ge_zero[of x] by (auto simp add: field_simps)}
-      ultimately have "norm (f x) \<le> b * norm x" by blast}
-    then have ?rhs by blast}
-  ultimately show ?thesis by blast
-qed
-
-lemma onorm:
-  fixes f:: "real ^'n \<Rightarrow> real ^'m"
-  assumes lf: "linear f"
-  shows "norm (f x) <= onorm f * norm x"
-  and "\<forall>x. norm (f x) <= b * norm x \<Longrightarrow> onorm f <= b"
-proof-
-  {
-    let ?S = "{norm (f x) |x. norm x = 1}"
-    have Se: "?S \<noteq> {}" using  norm_basis by auto
-    from linear_bounded[OF lf] have b: "\<exists> b. ?S *<= b"
-      unfolding norm_bound_generalize[OF lf, symmetric] by (auto simp add: setle_def)
-    {from Sup[OF Se b, unfolded onorm_def[symmetric]]
-      show "norm (f x) <= onorm f * norm x"
-        apply -
-        apply (rule spec[where x = x])
-        unfolding norm_bound_generalize[OF lf, symmetric]
-        by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
-    {
-      show "\<forall>x. norm (f x) <= b * norm x \<Longrightarrow> onorm f <= b"
-        using Sup[OF Se b, unfolded onorm_def[symmetric]]
-        unfolding norm_bound_generalize[OF lf, symmetric]
-        by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
-  }
-qed
-
-lemma onorm_pos_le: assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" shows "0 <= onorm f"
-  using order_trans[OF norm_ge_zero onorm(1)[OF lf, of "basis arbitrary"], unfolded norm_basis] by simp
-
-lemma onorm_eq_0: assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)"
-  shows "onorm f = 0 \<longleftrightarrow> (\<forall>x. f x = 0)"
-  using onorm[OF lf]
-  apply (auto simp add: onorm_pos_le)
-  apply atomize
-  apply (erule allE[where x="0::real"])
-  using onorm_pos_le[OF lf]
-  apply arith
-  done
-
-lemma onorm_const: "onorm(\<lambda>x::real^'n. (y::real ^'m)) = norm y"
-proof-
-  let ?f = "\<lambda>x::real^'n. (y::real ^ 'm)"
-  have th: "{norm (?f x)| x. norm x = 1} = {norm y}"
-    by(auto intro: vector_choose_size set_ext)
-  show ?thesis
-    unfolding onorm_def th
-    apply (rule Sup_unique) by (simp_all  add: setle_def)
-qed
-
-lemma onorm_pos_lt: assumes lf: "linear (f::real ^ 'n \<Rightarrow> real ^'m)"
-  shows "0 < onorm f \<longleftrightarrow> ~(\<forall>x. f x = 0)"
-  unfolding onorm_eq_0[OF lf, symmetric]
-  using onorm_pos_le[OF lf] by arith
-
-lemma onorm_compose:
-  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)"
-  and lg: "linear (g::real^'k \<Rightarrow> real^'n)"
-  shows "onorm (f o g) <= onorm f * onorm g"
-  apply (rule onorm(2)[OF linear_compose[OF lg lf], rule_format])
-  unfolding o_def
-  apply (subst mult_assoc)
-  apply (rule order_trans)
-  apply (rule onorm(1)[OF lf])
-  apply (rule mult_mono1)
-  apply (rule onorm(1)[OF lg])
-  apply (rule onorm_pos_le[OF lf])
-  done
-
-lemma onorm_neg_lemma: assumes lf: "linear (f::real ^'n \<Rightarrow> real^'m)"
-  shows "onorm (\<lambda>x. - f x) \<le> onorm f"
-  using onorm[OF linear_compose_neg[OF lf]] onorm[OF lf]
-  unfolding norm_minus_cancel by metis
-
-lemma onorm_neg: assumes lf: "linear (f::real ^'n \<Rightarrow> real^'m)"
-  shows "onorm (\<lambda>x. - f x) = onorm f"
-  using onorm_neg_lemma[OF lf] onorm_neg_lemma[OF linear_compose_neg[OF lf]]
-  by simp
-
-lemma onorm_triangle:
-  assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" and lg: "linear g"
-  shows "onorm (\<lambda>x. f x + g x) <= onorm f + onorm g"
-  apply(rule onorm(2)[OF linear_compose_add[OF lf lg], rule_format])
-  apply (rule order_trans)
-  apply (rule norm_triangle_ineq)
-  apply (simp add: distrib)
-  apply (rule add_mono)
-  apply (rule onorm(1)[OF lf])
-  apply (rule onorm(1)[OF lg])
-  done
-
-lemma onorm_triangle_le: "linear (f::real ^'n \<Rightarrow> real ^'m) \<Longrightarrow> linear g \<Longrightarrow> onorm(f) + onorm(g) <= e
-  \<Longrightarrow> onorm(\<lambda>x. f x + g x) <= e"
-  apply (rule order_trans)
-  apply (rule onorm_triangle)
-  apply assumption+
-  done
-
-lemma onorm_triangle_lt: "linear (f::real ^'n \<Rightarrow> real ^'m) \<Longrightarrow> linear g \<Longrightarrow> onorm(f) + onorm(g) < e
-  ==> onorm(\<lambda>x. f x + g x) < e"
-  apply (rule order_le_less_trans)
-  apply (rule onorm_triangle)
-  by assumption+
-
-(* "lift" from 'a to 'a^1 and "drop" from 'a^1 to 'a -- FIXME: potential use of transfer *)
-
-abbreviation vec1:: "'a \<Rightarrow> 'a ^ 1" where "vec1 x \<equiv> vec x"
-
-abbreviation dest_vec1:: "'a ^1 \<Rightarrow> 'a"
-  where "dest_vec1 x \<equiv> (x$1)"
-
-lemma vec1_component[simp]: "(vec1 x)$1 = x"
-  by (simp add: )
-
-lemma vec1_dest_vec1[simp]: "vec1(dest_vec1 x) = x" "dest_vec1(vec1 y) = y"
-  by (simp_all add:  Cart_eq forall_1)
-
-lemma forall_vec1: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (vec1 x))" by (metis vec1_dest_vec1)
-
-lemma exists_vec1: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P(vec1 x))" by (metis vec1_dest_vec1)
-
-lemma vec1_eq[simp]:  "vec1 x = vec1 y \<longleftrightarrow> x = y" by (metis vec1_dest_vec1)
-
-lemma dest_vec1_eq[simp]: "dest_vec1 x = dest_vec1 y \<longleftrightarrow> x = y" by (metis vec1_dest_vec1)
-
 lemma vec_in_image_vec: "vec x \<in> (vec ` S) \<longleftrightarrow> x \<in> S" by auto
 
 lemma vec_add: "vec(x + y) = vec x + vec y"  by (vector vec_def)
@@ -2241,150 +1460,12 @@ lemma vec_sub: "vec(x - y) = vec x - vec y" by (vector vec_def)
 lemma vec_cmul: "vec(c* x) = c *s vec x " by (vector vec_def)
 lemma vec_neg: "vec(- x) = - vec x " by (vector vec_def)
 
-lemma range_vec1[simp]:"range vec1 = UNIV" apply(rule set_ext,rule) unfolding image_iff defer
-  apply(rule_tac x="dest_vec1 x" in bexI) by auto
-
 lemma vec_setsum: assumes fS: "finite S"
   shows "vec(setsum f S) = setsum (vec o f) S"
   apply (induct rule: finite_induct[OF fS])
   apply (simp)
   apply (auto simp add: vec_add)
   done
-
-lemma dest_vec1_lambda: "dest_vec1(\<chi> i. x i) = x 1"
-  by (simp)
-
-lemma dest_vec1_vec: "dest_vec1(vec x) = x"
-  by (simp)
-
-lemma dest_vec1_sum: assumes fS: "finite S"
-  shows "dest_vec1(setsum f S) = setsum (dest_vec1 o f) S"
-  apply (induct rule: finite_induct[OF fS])
-  apply (simp add: dest_vec1_vec)
-  apply (auto simp add:vector_minus_component)
-  done
-
-lemma norm_vec1: "norm(vec1 x) = abs(x)"
-  by (simp add: vec_def norm_real)
-
-lemma dist_vec1: "dist(vec1 x) (vec1 y) = abs(x - y)"
-  by (simp only: dist_real vec1_component)
-lemma abs_dest_vec1: "norm x = \<bar>dest_vec1 x\<bar>"
-  by (metis vec1_dest_vec1 norm_vec1)
-
-lemmas vec1_dest_vec1_simps = forall_vec1 vec_add[THEN sym] dist_vec1 vec_sub[THEN sym] vec1_dest_vec1 norm_vec1 vector_smult_component
-   vec1_eq vec_cmul[THEN sym] smult_conv_scaleR[THEN sym] o_def dist_real_def norm_vec1 real_norm_def
-
-lemma bounded_linear_vec1:"bounded_linear (vec1::real\<Rightarrow>real^1)"
-  unfolding bounded_linear_def additive_def bounded_linear_axioms_def 
-  unfolding smult_conv_scaleR[THEN sym] unfolding vec1_dest_vec1_simps
-  apply(rule conjI) defer apply(rule conjI) defer apply(rule_tac x=1 in exI) by auto
-
-lemma linear_vmul_dest_vec1:
-  fixes f:: "'a::semiring_1^_ \<Rightarrow> 'a^1"
-  shows "linear f \<Longrightarrow> linear (\<lambda>x. dest_vec1(f x) *s v)"
-  apply (rule linear_vmul_component)
-  by auto
-
-lemma linear_from_scalars:
-  assumes lf: "linear (f::'a::comm_ring_1 ^1 \<Rightarrow> 'a^_)"
-  shows "f = (\<lambda>x. dest_vec1 x *s column 1 (matrix f))"
-  apply (rule ext)
-  apply (subst matrix_works[OF lf, symmetric])
-  apply (auto simp add: Cart_eq matrix_vector_mult_def column_def  mult_commute UNIV_1)
-  done
-
-lemma linear_to_scalars: assumes lf: "linear (f::real ^'n \<Rightarrow> real^1)"
-  shows "f = (\<lambda>x. vec1(row 1 (matrix f) \<bullet> x))"
-  apply (rule ext)
-  apply (subst matrix_works[OF lf, symmetric])
-  apply (simp add: Cart_eq matrix_vector_mult_def row_def inner_vector_def mult_commute forall_1)
-  done
-
-lemma dest_vec1_eq_0: "dest_vec1 x = 0 \<longleftrightarrow> x = 0"
-  by (simp add: dest_vec1_eq[symmetric])
-
-lemma setsum_scalars: assumes fS: "finite S"
-  shows "setsum f S = vec1 (setsum (dest_vec1 o f) S)"
-  unfolding vec_setsum[OF fS] by simp
-
-lemma dest_vec1_wlog_le: "(\<And>(x::'a::linorder ^ 1) y. P x y \<longleftrightarrow> P y x)  \<Longrightarrow> (\<And>x y. dest_vec1 x <= dest_vec1 y ==> P x y) \<Longrightarrow> P x y"
-  apply (cases "dest_vec1 x \<le> dest_vec1 y")
-  apply simp
-  apply (subgoal_tac "dest_vec1 y \<le> dest_vec1 x")
-  apply (auto)
-  done
-
-text{* Pasting vectors. *}
-
-lemma linear_fstcart[intro]: "linear fstcart"
-  by (auto simp add: linear_def Cart_eq)
-
-lemma linear_sndcart[intro]: "linear sndcart"
-  by (auto simp add: linear_def Cart_eq)
-
-lemma fstcart_vec[simp]: "fstcart(vec x) = vec x"
-  by (simp add: Cart_eq)
-
-lemma fstcart_add[simp]:"fstcart(x + y) = fstcart (x::'a::{plus,times}^('b::finite + 'c::finite)) + fstcart y"
-  by (simp add: Cart_eq)
-
-lemma fstcart_cmul[simp]:"fstcart(c*s x) = c*s fstcart (x::'a::{plus,times}^('b::finite + 'c::finite))"
-  by (simp add: Cart_eq)
-
-lemma fstcart_neg[simp]:"fstcart(- x) = - fstcart (x::'a::ring_1^(_ + _))"
-  by (simp add: Cart_eq)
-
-lemma fstcart_sub[simp]:"fstcart(x - y) = fstcart (x::'a::ring_1^(_ + _)) - fstcart y"
-  by (simp add: Cart_eq)
-
-lemma fstcart_setsum:
-  fixes f:: "'d \<Rightarrow> 'a::semiring_1^_"
-  assumes fS: "finite S"
-  shows "fstcart (setsum f S) = setsum (\<lambda>i. fstcart (f i)) S"
-  by (induct rule: finite_induct[OF fS], simp_all add: vec_0[symmetric] del: vec_0)
-
-lemma sndcart_vec[simp]: "sndcart(vec x) = vec x"
-  by (simp add: Cart_eq)
-
-lemma sndcart_add[simp]:"sndcart(x + y) = sndcart (x::'a::{plus,times}^(_ + _)) + sndcart y"
-  by (simp add: Cart_eq)
-
-lemma sndcart_cmul[simp]:"sndcart(c*s x) = c*s sndcart (x::'a::{plus,times}^(_ + _))"
-  by (simp add: Cart_eq)
-
-lemma sndcart_neg[simp]:"sndcart(- x) = - sndcart (x::'a::ring_1^(_ + _))"
-  by (simp add: Cart_eq)
-
-lemma sndcart_sub[simp]:"sndcart(x - y) = sndcart (x::'a::ring_1^(_ + _)) - sndcart y"
-  by (simp add: Cart_eq)
-
-lemma sndcart_setsum:
-  fixes f:: "'d \<Rightarrow> 'a::semiring_1^_"
-  assumes fS: "finite S"
-  shows "sndcart (setsum f S) = setsum (\<lambda>i. sndcart (f i)) S"
-  by (induct rule: finite_induct[OF fS], simp_all add: vec_0[symmetric] del: vec_0)
-
-lemma pastecart_vec[simp]: "pastecart (vec x) (vec x) = vec x"
-  by (simp add: pastecart_eq fstcart_pastecart sndcart_pastecart)
-
-lemma pastecart_add[simp]:"pastecart (x1::'a::{plus,times}^_) y1 + pastecart x2 y2 = pastecart (x1 + x2) (y1 + y2)"
-  by (simp add: pastecart_eq fstcart_pastecart sndcart_pastecart)
-
-lemma pastecart_cmul[simp]: "pastecart (c *s (x1::'a::{plus,times}^_)) (c *s y1) = c *s pastecart x1 y1"
-  by (simp add: pastecart_eq fstcart_pastecart sndcart_pastecart)
-
-lemma pastecart_neg[simp]: "pastecart (- (x::'a::ring_1^_)) (- y) = - pastecart x y"
-  unfolding vector_sneg_minus1 pastecart_cmul ..
-
-lemma pastecart_sub: "pastecart (x1::'a::ring_1^_) y1 - pastecart x2 y2 = pastecart (x1 - x2) (y1 - y2)"
-  by (simp add: diff_def pastecart_neg[symmetric] del: pastecart_neg)
-
-lemma pastecart_setsum:
-  fixes f:: "'d \<Rightarrow> 'a::semiring_1^_"
-  assumes fS: "finite S"
-  shows "pastecart (setsum f S) (setsum g S) = setsum (\<lambda>i. pastecart (f i) (g i)) S"
-  by (simp  add: pastecart_eq fstcart_setsum[OF fS] sndcart_setsum[OF fS] fstcart_pastecart sndcart_pastecart)
 
 lemma setsum_Plus:
   "\<lbrakk>finite A; finite B\<rbrakk> \<Longrightarrow>
@@ -2399,39 +1480,6 @@ lemma setsum_UNIV_sum:
   apply (rule setsum_Plus [OF finite finite])
   done
 
-lemma norm_fstcart: "norm(fstcart x) <= norm (x::real ^('n::finite + 'm::finite))"
-proof-
-  have th0: "norm x = norm (pastecart (fstcart x) (sndcart x))"
-    by (simp add: pastecart_fst_snd)
-  have th1: "fstcart x \<bullet> fstcart x \<le> pastecart (fstcart x) (sndcart x) \<bullet> pastecart (fstcart x) (sndcart x)"
-    by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def setsum_nonneg)
-  then show ?thesis
-    unfolding th0
-    unfolding norm_eq_sqrt_inner real_sqrt_le_iff id_def
-    by (simp add: inner_vector_def)
-qed
-
-lemma dist_fstcart: "dist(fstcart (x::real^_)) (fstcart y) <= dist x y"
-  unfolding dist_norm by (metis fstcart_sub[symmetric] norm_fstcart)
-
-lemma norm_sndcart: "norm(sndcart x) <= norm (x::real ^('n::finite + 'm::finite))"
-proof-
-  have th0: "norm x = norm (pastecart (fstcart x) (sndcart x))"
-    by (simp add: pastecart_fst_snd)
-  have th1: "sndcart x \<bullet> sndcart x \<le> pastecart (fstcart x) (sndcart x) \<bullet> pastecart (fstcart x) (sndcart x)"
-    by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def setsum_nonneg)
-  then show ?thesis
-    unfolding th0
-    unfolding norm_eq_sqrt_inner real_sqrt_le_iff id_def
-    by (simp add: inner_vector_def)
-qed
-
-lemma dist_sndcart: "dist(sndcart (x::real^_)) (sndcart y) <= dist x y"
-  unfolding dist_norm by (metis sndcart_sub[symmetric] norm_sndcart)
-
-lemma dot_pastecart: "(pastecart (x1::real^'n) (x2::real^'m)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
-  by (simp add: inner_vector_def setsum_UNIV_sum pastecart_def)
-
 text {* TODO: move to NthRoot *}
 lemma sqrt_add_le_add_sqrt:
   assumes x: "0 \<le> x" and y: "0 \<le> y"
@@ -2441,10 +1489,6 @@ apply (simp add: real_sum_squared_expand add_nonneg_nonneg x y)
 apply (simp add: mult_nonneg_nonneg x y)
 apply (simp add: add_nonneg_nonneg x y)
 done
-
-lemma norm_pastecart: "norm (pastecart x y) <= norm x + norm y"
-  unfolding norm_vector_def setL2_def setsum_UNIV_sum
-  by (simp add: sqrt_add_le_add_sqrt setsum_nonneg)
 
 subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}
 
@@ -2519,7 +1563,7 @@ lemmas real_arch = reals_Archimedean3
 
 lemma real_arch_inv: "0 < e \<longleftrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
   using reals_Archimedean
-  apply (auto simp add: field_simps inverse_positive_iff_positive)
+  apply (auto simp add: field_simps)
   apply (subgoal_tac "inverse (real n) > 0")
   apply arith
   apply simp
@@ -2534,9 +1578,9 @@ next
   from h have p: "1 \<le> (1 + x) ^ n" using Suc.prems by simp
   from h have "1 + real n * x + x \<le> (1 + x) ^ n + x" by simp
   also have "\<dots> \<le> (1 + x) ^ Suc n" apply (subst diff_le_0_iff_le[symmetric])
-    apply (simp add: ring_simps)
+    apply (simp add: field_simps)
     using mult_left_mono[OF p Suc.prems] by simp
-  finally show ?case  by (simp add: real_of_nat_Suc ring_simps)
+  finally show ?case  by (simp add: real_of_nat_Suc field_simps)
 qed
 
 lemma real_arch_pow: assumes x: "1 < (x::real)" shows "\<exists>n. y < x^n"
@@ -2602,10 +1646,10 @@ proof-
     from geometric_sum[OF x1, of "Suc n", unfolded x1']
     have "(- (1 - x)) * setsum (\<lambda>i. x^i) {0 .. n} = - (1 - x^(Suc n))"
       unfolding atLeastLessThanSuc_atLeastAtMost
-      using x1' apply (auto simp only: field_eq_simps)
-      apply (simp add: ring_simps)
+      using x1' apply (auto simp only: field_simps)
+      apply (simp add: field_simps)
       done
-    then have ?thesis by (simp add: ring_simps) }
+    then have ?thesis by (simp add: field_simps) }
   ultimately show ?thesis by metis
 qed
 
@@ -2624,7 +1668,7 @@ proof-
   from setsum_reindex[OF i, of "op ^ x", unfolded f th setsum_right_distrib[symmetric]]
   have "?lhs = x^m * ((1 - x) * setsum (op ^ x) {0..n - m})" by simp
   then show ?thesis unfolding sum_gp_basic using mn
-    by (simp add: ring_simps power_add[symmetric])
+    by (simp add: field_simps power_add[symmetric])
 qed
 
 lemma sum_gp: "setsum (op ^ (x::'a::{field})) {m .. n} =
@@ -2637,7 +1681,7 @@ proof-
     {assume x: "x = 1"  hence ?thesis by simp}
     moreover
     {assume x: "x \<noteq> 1" hence nz: "1 - x \<noteq> 0" by simp
-      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_eq_simps)}
+      from sum_gp_multiplied[OF nm, of x] nz have ?thesis by (simp add: field_simps)}
     ultimately have ?thesis by metis
   }
   ultimately show ?thesis by metis
@@ -2646,12 +1690,15 @@ qed
 lemma sum_gp_offset: "setsum (op ^ (x::'a::{field})) {m .. m+n} =
   (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
   unfolding sum_gp[of x m "m + n"] power_Suc
-  by (simp add: ring_simps power_add)
+  by (simp add: field_simps power_add)
 
 
 subsection{* A bit of linear algebra. *}
 
-definition "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x\<in> S. \<forall>y \<in>S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in>S. c *s x \<in>S )"
+definition
+  subspace :: "'a::real_vector set \<Rightarrow> bool" where
+  "subspace S \<longleftrightarrow> 0 \<in> S \<and> (\<forall>x\<in> S. \<forall>y \<in>S. x + y \<in> S) \<and> (\<forall>c. \<forall>x \<in>S. c *\<^sub>R x \<in>S )"
+
 definition "span S = (subspace hull S)"
 definition "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span(S - {a}))"
 abbreviation "independent s == ~(dependent s)"
@@ -2665,13 +1712,13 @@ lemma subspace_0: "subspace S ==> 0 \<in> S" by (metis subspace_def)
 lemma subspace_add: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S ==> x + y \<in> S"
   by (metis subspace_def)
 
-lemma subspace_mul: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> c *s x \<in> S"
+lemma subspace_mul: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> c *\<^sub>R x \<in> S"
   by (metis subspace_def)
 
-lemma subspace_neg: "subspace S \<Longrightarrow> (x::'a::ring_1^_) \<in> S \<Longrightarrow> - x \<in> S"
-  by (metis vector_sneg_minus1 subspace_mul)
+lemma subspace_neg: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> - x \<in> S"
+  by (metis scaleR_minus1_left subspace_mul)
 
-lemma subspace_sub: "subspace S \<Longrightarrow> (x::'a::ring_1^_) \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
+lemma subspace_sub: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
   by (metis diff_def subspace_add subspace_neg)
 
 lemma subspace_setsum:
@@ -2683,19 +1730,19 @@ lemma subspace_setsum:
   by (simp add: subspace_def sA, auto simp add: sA subspace_add)
 
 lemma subspace_linear_image:
-  assumes lf: "linear (f::'a::semiring_1^_ \<Rightarrow> _)" and sS: "subspace S"
+  assumes lf: "linear f" and sS: "subspace S"
   shows "subspace(f ` S)"
   using lf sS linear_0[OF lf]
   unfolding linear_def subspace_def
   apply (auto simp add: image_iff)
   apply (rule_tac x="x + y" in bexI, auto)
-  apply (rule_tac x="c*s x" in bexI, auto)
+  apply (rule_tac x="c *\<^sub>R x" in bexI, auto)
   done
 
-lemma subspace_linear_preimage: "linear (f::'a::semiring_1^_ \<Rightarrow> _) ==> subspace S ==> subspace {x. f x \<in> S}"
+lemma subspace_linear_preimage: "linear f ==> subspace S ==> subspace {x. f x \<in> S}"
   by (auto simp add: subspace_def linear_def linear_0[of f])
 
-lemma subspace_trivial: "subspace {0::'a::semiring_1 ^_}"
+lemma subspace_trivial: "subspace {0}"
   by (simp add: subspace_def)
 
 lemma subspace_inter: "subspace A \<Longrightarrow> subspace B ==> subspace (A \<inter> B)"
@@ -2731,8 +1778,9 @@ lemma span_clauses:
   "a \<in> S ==> a \<in> span S"
   "0 \<in> span S"
   "x\<in> span S \<Longrightarrow> y \<in> span S ==> x + y \<in> span S"
-  "x \<in> span S \<Longrightarrow> c *s x \<in> span S"
-  by (metis span_def hull_subset subset_eq subspace_span subspace_def)+
+  "x \<in> span S \<Longrightarrow> c *\<^sub>R x \<in> span S"
+  by (metis span_def hull_subset subset_eq)
+     (metis subspace_span subspace_def)+
 
 lemma span_induct: assumes SP: "\<And>x. x \<in> S ==> P x"
   and P: "subspace P" and x: "x \<in> span S" shows "P x"
@@ -2743,11 +1791,11 @@ proof-
   show "P x" by (metis mem_def subset_eq)
 qed
 
-lemma span_empty: "span {} = {(0::'a::semiring_0 ^ _)}"
+lemma span_empty: "span {} = {0}"
   apply (simp add: span_def)
   apply (rule hull_unique)
   apply (auto simp add: mem_def subspace_def)
-  unfolding mem_def[of "0::'a^_", symmetric]
+  unfolding mem_def[of "0::'a", symmetric]
   apply simp
   done
 
@@ -2769,15 +1817,15 @@ lemma span_induct': assumes SP: "\<forall>x \<in> S. P x"
   and P: "subspace P" shows "\<forall>x \<in> span S. P x"
   using span_induct SP P by blast
 
-inductive span_induct_alt_help for S:: "'a::semiring_1^_ \<Rightarrow> bool"
+inductive span_induct_alt_help for S:: "'a::real_vector \<Rightarrow> bool"
   where
   span_induct_alt_help_0: "span_induct_alt_help S 0"
-  | span_induct_alt_help_S: "x \<in> S \<Longrightarrow> span_induct_alt_help S z \<Longrightarrow> span_induct_alt_help S (c *s x + z)"
+  | span_induct_alt_help_S: "x \<in> S \<Longrightarrow> span_induct_alt_help S z \<Longrightarrow> span_induct_alt_help S (c *\<^sub>R x + z)"
 
 lemma span_induct_alt':
-  assumes h0: "h (0::'a::semiring_1^'n)" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c*s x + y)" shows "\<forall>x \<in> span S. h x"
+  assumes h0: "h 0" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c *\<^sub>R x + y)" shows "\<forall>x \<in> span S. h x"
 proof-
-  {fix x:: "'a^'n" assume x: "span_induct_alt_help S x"
+  {fix x:: "'a" assume x: "span_induct_alt_help S x"
     have "h x"
       apply (rule span_induct_alt_help.induct[OF x])
       apply (rule h0)
@@ -2808,10 +1856,10 @@ proof-
             done}
         moreover
         {fix c x assume xt: "span_induct_alt_help S x"
-          then have "span_induct_alt_help S (c*s x)"
+          then have "span_induct_alt_help S (c *\<^sub>R x)"
             apply (induct rule: span_induct_alt_help.induct)
             apply (simp add: span_induct_alt_help_0)
-            apply (simp add: vector_smult_assoc vector_add_ldistrib)
+            apply (simp add: scaleR_right_distrib)
             apply (rule span_induct_alt_help_S)
             apply assumption
             apply simp
@@ -2824,40 +1872,39 @@ proof-
 qed
 
 lemma span_induct_alt:
-  assumes h0: "h (0::'a::semiring_1^'n)" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c*s x + y)" and x: "x \<in> span S"
+  assumes h0: "h 0" and hS: "\<And>c x y. x \<in> S \<Longrightarrow> h y \<Longrightarrow> h (c *\<^sub>R x + y)" and x: "x \<in> span S"
   shows "h x"
 using span_induct_alt'[of h S] h0 hS x by blast
 
 (* Individual closure properties. *)
 
-lemma span_superset: "x \<in> S ==> x \<in> span S" by (metis span_clauses)
+lemma span_superset: "x \<in> S ==> x \<in> span S" by (metis span_clauses(1))
 
 lemma span_0: "0 \<in> span S" by (metis subspace_span subspace_0)
 
 lemma span_add: "x \<in> span S \<Longrightarrow> y \<in> span S ==> x + y \<in> span S"
   by (metis subspace_add subspace_span)
 
-lemma span_mul: "x \<in> span S ==> (c *s x) \<in> span S"
+lemma span_mul: "x \<in> span S ==> (c *\<^sub>R x) \<in> span S"
   by (metis subspace_span subspace_mul)
 
-lemma span_neg: "x \<in> span S ==> - (x::'a::ring_1^_) \<in> span S"
+lemma span_neg: "x \<in> span S ==> - x \<in> span S"
   by (metis subspace_neg subspace_span)
 
-lemma span_sub: "(x::'a::ring_1^_) \<in> span S \<Longrightarrow> y \<in> span S ==> x - y \<in> span S"
+lemma span_sub: "x \<in> span S \<Longrightarrow> y \<in> span S ==> x - y \<in> span S"
   by (metis subspace_span subspace_sub)
 
 lemma span_setsum: "finite A \<Longrightarrow> \<forall>x \<in> A. f x \<in> span S ==> setsum f A \<in> span S"
-  apply (rule subspace_setsum)
-  by (metis subspace_span subspace_setsum)+
+  by (rule subspace_setsum, rule subspace_span)
 
-lemma span_add_eq: "(x::'a::ring_1^_) \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
+lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longleftrightarrow> y \<in> span S"
   apply (auto simp only: span_add span_sub)
   apply (subgoal_tac "(x + y) - x \<in> span S", simp)
   by (simp only: span_add span_sub)
 
 (* Mapping under linear image. *)
 
-lemma span_linear_image: assumes lf: "linear (f::'a::semiring_1 ^ _ => _)"
+lemma span_linear_image: assumes lf: "linear f"
   shows "span (f ` S) = f ` (span S)"
 proof-
   {fix x
@@ -2890,8 +1937,8 @@ qed
 (* The key breakdown property. *)
 
 lemma span_breakdown:
-  assumes bS: "(b::'a::ring_1 ^ _) \<in> S" and aS: "a \<in> span S"
-  shows "\<exists>k. a - k*s b \<in> span (S - {b})" (is "?P a")
+  assumes bS: "b \<in> S" and aS: "a \<in> span S"
+  shows "\<exists>k. a - k *\<^sub>R b \<in> span (S - {b})" (is "?P a")
 proof-
   {fix x assume xS: "x \<in> S"
     {assume ab: "x = b"
@@ -2916,23 +1963,23 @@ proof-
     apply (simp add: mem_def)
     apply (clarsimp simp add: mem_def)
     apply (rule_tac x="k + ka" in exI)
-    apply (subgoal_tac "x + y - (k + ka) *s b = (x - k*s b) + (y - ka *s b)")
+    apply (subgoal_tac "x + y - (k + ka) *\<^sub>R b = (x - k*\<^sub>R b) + (y - ka *\<^sub>R b)")
     apply (simp only: )
     apply (rule span_add[unfolded mem_def])
     apply assumption+
-    apply (vector ring_simps)
+    apply (simp add: algebra_simps)
     apply (clarsimp simp add: mem_def)
     apply (rule_tac x= "c*k" in exI)
-    apply (subgoal_tac "c *s x - (c * k) *s b = c*s (x - k*s b)")
+    apply (subgoal_tac "c *\<^sub>R x - (c * k) *\<^sub>R b = c*\<^sub>R (x - k*\<^sub>R b)")
     apply (simp only: )
     apply (rule span_mul[unfolded mem_def])
     apply assumption
-    by (vector ring_simps)
+    by (simp add: algebra_simps)
   ultimately show "?P a" using aS span_induct[where S=S and P= "?P"] by metis
 qed
 
 lemma span_breakdown_eq:
-  "(x::'a::ring_1^_) \<in> span (insert a S) \<longleftrightarrow> (\<exists>k. (x - k *s a) \<in> span S)" (is "?lhs \<longleftrightarrow> ?rhs")
+  "x \<in> span (insert a S) \<longleftrightarrow> (\<exists>k. (x - k *\<^sub>R a) \<in> span S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   {assume x: "x \<in> span (insert a S)"
     from x span_breakdown[of "a" "insert a S" "x"]
@@ -2944,9 +1991,9 @@ proof-
       apply blast
       done}
   moreover
-  { fix k assume k: "x - k *s a \<in> span S"
-    have eq: "x = (x - k *s a) + k *s a" by vector
-    have "(x - k *s a) + k *s a \<in> span (insert a S)"
+  { fix k assume k: "x - k *\<^sub>R a \<in> span S"
+    have eq: "x = (x - k *\<^sub>R a) + k *\<^sub>R a" by vector
+    have "(x - k *\<^sub>R a) + k *\<^sub>R a \<in> span (insert a S)"
       apply (rule span_add)
       apply (rule set_rev_mp[of _ "span S" _])
       apply (rule k)
@@ -2963,11 +2010,11 @@ qed
 (* Hence some "reversal" results.*)
 
 lemma in_span_insert:
-  assumes a: "(a::'a::field^_) \<in> span (insert b S)" and na: "a \<notin> span S"
+  assumes a: "a \<in> span (insert b S)" and na: "a \<notin> span S"
   shows "b \<in> span (insert a S)"
 proof-
   from span_breakdown[of b "insert b S" a, OF insertI1 a]
-  obtain k where k: "a - k*s b \<in> span (S - {b})" by auto
+  obtain k where k: "a - k*\<^sub>R b \<in> span (S - {b})" by auto
   {assume k0: "k = 0"
     with k have "a \<in> span S"
       apply (simp)
@@ -2979,12 +2026,12 @@ proof-
     with na  have ?thesis by blast}
   moreover
   {assume k0: "k \<noteq> 0"
-    have eq: "b = (1/k) *s a - ((1/k) *s a - b)" by vector
-    from k0 have eq': "(1/k) *s (a - k*s b) = (1/k) *s a - b"
-      by (vector field_simps)
-    from k have "(1/k) *s (a - k*s b) \<in> span (S - {b})"
+    have eq: "b = (1/k) *\<^sub>R a - ((1/k) *\<^sub>R a - b)" by vector
+    from k0 have eq': "(1/k) *\<^sub>R (a - k*\<^sub>R b) = (1/k) *\<^sub>R a - b"
+      by (simp add: algebra_simps)
+    from k have "(1/k) *\<^sub>R (a - k*\<^sub>R b) \<in> span (S - {b})"
       by (rule span_mul)
-    hence th: "(1/k) *s a - b \<in> span (S - {b})"
+    hence th: "(1/k) *\<^sub>R a - b \<in> span (S - {b})"
       unfolding eq' .
 
     from k
@@ -3002,7 +2049,7 @@ proof-
 qed
 
 lemma in_span_delete:
-  assumes a: "(a::'a::field^_) \<in> span S"
+  assumes a: "a \<in> span S"
   and na: "a \<notin> span (S-{b})"
   shows "b \<in> span (insert a (S - {b}))"
   apply (rule in_span_insert)
@@ -3016,12 +2063,12 @@ lemma in_span_delete:
 (* Transitivity property. *)
 
 lemma span_trans:
-  assumes x: "(x::'a::ring_1^_) \<in> span S" and y: "y \<in> span (insert x S)"
+  assumes x: "x \<in> span S" and y: "y \<in> span (insert x S)"
   shows "y \<in> span S"
 proof-
   from span_breakdown[of x "insert x S" y, OF insertI1 y]
-  obtain k where k: "y -k*s x \<in> span (S - {x})" by auto
-  have eq: "y = (y - k *s x) + k *s x" by vector
+  obtain k where k: "y -k*\<^sub>R x \<in> span (S - {x})" by auto
+  have eq: "y = (y - k *\<^sub>R x) + k *\<^sub>R x" by vector
   show ?thesis
     apply (subst eq)
     apply (rule span_add)
@@ -3038,11 +2085,11 @@ qed
 (* ------------------------------------------------------------------------- *)
 
 lemma span_explicit:
-  "span P = {y::'a::semiring_1^_. \<exists>S u. finite S \<and> S \<subseteq> P \<and> setsum (\<lambda>v. u v *s v) S = y}"
+  "span P = {y. \<exists>S u. finite S \<and> S \<subseteq> P \<and> setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
   (is "_ = ?E" is "_ = {y. ?h y}" is "_ = {y. \<exists>S u. ?Q S u y}")
 proof-
   {fix x assume x: "x \<in> ?E"
-    then obtain S u where fS: "finite S" and SP: "S\<subseteq>P" and u: "setsum (\<lambda>v. u v *s v) S = x"
+    then obtain S u where fS: "finite S" and SP: "S\<subseteq>P" and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = x"
       by blast
     have "x \<in> span P"
       unfolding u[symmetric]
@@ -3059,7 +2106,7 @@ proof-
     fix c x y
     assume x: "x \<in> P" and hy: "?h y"
     from hy obtain S u where fS: "finite S" and SP: "S\<subseteq>P"
-      and u: "setsum (\<lambda>v. u v *s v) S = y" by blast
+      and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y" by blast
     let ?S = "insert x S"
     let ?u = "\<lambda>y. if y = x then (if x \<in> S then u y + c else c)
                   else u y"
@@ -3067,28 +2114,28 @@ proof-
     {assume xS: "x \<in> S"
       have S1: "S = (S - {x}) \<union> {x}"
         and Sss:"finite (S - {x})" "finite {x}" "(S -{x}) \<inter> {x} = {}" using xS fS by auto
-      have "setsum (\<lambda>v. ?u v *s v) ?S =(\<Sum>v\<in>S - {x}. u v *s v) + (u x + c) *s x"
+      have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S =(\<Sum>v\<in>S - {x}. u v *\<^sub>R v) + (u x + c) *\<^sub>R x"
         using xS
         by (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]]
           setsum_clauses(2)[OF fS] cong del: if_weak_cong)
-      also have "\<dots> = (\<Sum>v\<in>S. u v *s v) + c *s x"
+      also have "\<dots> = (\<Sum>v\<in>S. u v *\<^sub>R v) + c *\<^sub>R x"
         apply (simp add: setsum_Un_disjoint[OF Sss, unfolded S1[symmetric]])
-        by (vector ring_simps)
-      also have "\<dots> = c*s x + y"
+        by (simp add: algebra_simps)
+      also have "\<dots> = c*\<^sub>R x + y"
         by (simp add: add_commute u)
-      finally have "setsum (\<lambda>v. ?u v *s v) ?S = c*s x + y" .
-    then have "?Q ?S ?u (c*s x + y)" using th0 by blast}
+      finally have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = c*\<^sub>R x + y" .
+    then have "?Q ?S ?u (c*\<^sub>R x + y)" using th0 by blast}
   moreover
   {assume xS: "x \<notin> S"
-    have th00: "(\<Sum>v\<in>S. (if v = x then c else u v) *s v) = y"
+    have th00: "(\<Sum>v\<in>S. (if v = x then c else u v) *\<^sub>R v) = y"
       unfolding u[symmetric]
       apply (rule setsum_cong2)
       using xS by auto
-    have "?Q ?S ?u (c*s x + y)" using fS xS th0
+    have "?Q ?S ?u (c*\<^sub>R x + y)" using fS xS th0
       by (simp add: th00 setsum_clauses add_commute cong del: if_weak_cong)}
-  ultimately have "?Q ?S ?u (c*s x + y)"
+  ultimately have "?Q ?S ?u (c*\<^sub>R x + y)"
     by (cases "x \<in> S", simp, simp)
-    then show "?h (c*s x + y)"
+    then show "?h (c*\<^sub>R x + y)"
       apply -
       apply (rule exI[where x="?S"])
       apply (rule exI[where x="?u"]) by metis
@@ -3097,20 +2144,20 @@ proof-
 qed
 
 lemma dependent_explicit:
-  "dependent P \<longleftrightarrow> (\<exists>S u. finite S \<and> S \<subseteq> P \<and> (\<exists>(v::'a::{idom,field}^_) \<in>S. u v \<noteq> 0 \<and> setsum (\<lambda>v. u v *s v) S = 0))" (is "?lhs = ?rhs")
+  "dependent P \<longleftrightarrow> (\<exists>S u. finite S \<and> S \<subseteq> P \<and> (\<exists>v\<in>S. u v \<noteq> 0 \<and> setsum (\<lambda>v. u v *\<^sub>R v) S = 0))" (is "?lhs = ?rhs")
 proof-
   {assume dP: "dependent P"
     then obtain a S u where aP: "a \<in> P" and fS: "finite S"
-      and SP: "S \<subseteq> P - {a}" and ua: "setsum (\<lambda>v. u v *s v) S = a"
+      and SP: "S \<subseteq> P - {a}" and ua: "setsum (\<lambda>v. u v *\<^sub>R v) S = a"
       unfolding dependent_def span_explicit by blast
     let ?S = "insert a S"
     let ?u = "\<lambda>y. if y = a then - 1 else u y"
     let ?v = a
     from aP SP have aS: "a \<notin> S" by blast
     from fS SP aP have th0: "finite ?S" "?S \<subseteq> P" "?v \<in> ?S" "?u ?v \<noteq> 0" by auto
-    have s0: "setsum (\<lambda>v. ?u v *s v) ?S = 0"
+    have s0: "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = 0"
       using fS aS
-      apply (simp add: vector_smult_lneg vector_smult_lid setsum_clauses ring_simps )
+      apply (simp add: vector_smult_lneg setsum_clauses field_simps)
       apply (subst (2) ua[symmetric])
       apply (rule setsum_cong2)
       by auto
@@ -3122,47 +2169,47 @@ proof-
   moreover
   {fix S u v assume fS: "finite S"
       and SP: "S \<subseteq> P" and vS: "v \<in> S" and uv: "u v \<noteq> 0"
-    and u: "setsum (\<lambda>v. u v *s v) S = 0"
+    and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = 0"
     let ?a = v
     let ?S = "S - {v}"
     let ?u = "\<lambda>i. (- u i) / u v"
     have th0: "?a \<in> P" "finite ?S" "?S \<subseteq> P"       using fS SP vS by auto
-    have "setsum (\<lambda>v. ?u v *s v) ?S = setsum (\<lambda>v. (- (inverse (u ?a))) *s (u v *s v)) S - ?u v *s v"
+    have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = setsum (\<lambda>v. (- (inverse (u ?a))) *\<^sub>R (u v *\<^sub>R v)) S - ?u v *\<^sub>R v"
       using fS vS uv
       by (simp add: setsum_diff1 vector_smult_lneg divide_inverse
         vector_smult_assoc field_simps)
     also have "\<dots> = ?a"
-      unfolding setsum_cmul u
-      using uv by (simp add: vector_smult_lneg)
-    finally  have "setsum (\<lambda>v. ?u v *s v) ?S = ?a" .
+      unfolding scaleR_right.setsum [symmetric] u
+      using uv by simp
+    finally  have "setsum (\<lambda>v. ?u v *\<^sub>R v) ?S = ?a" .
     with th0 have ?lhs
       unfolding dependent_def span_explicit
       apply -
       apply (rule bexI[where x= "?a"])
-      apply simp_all
+      apply (simp_all del: scaleR_minus_left)
       apply (rule exI[where x= "?S"])
-      by auto}
+      by (auto simp del: scaleR_minus_left)}
   ultimately show ?thesis by blast
 qed
 
 
 lemma span_finite:
   assumes fS: "finite S"
-  shows "span S = {(y::'a::semiring_1^_). \<exists>u. setsum (\<lambda>v. u v *s v) S = y}"
+  shows "span S = {y. \<exists>u. setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
   (is "_ = ?rhs")
 proof-
   {fix y assume y: "y \<in> span S"
     from y obtain S' u where fS': "finite S'" and SS': "S' \<subseteq> S" and
-      u: "setsum (\<lambda>v. u v *s v) S' = y" unfolding span_explicit by blast
+      u: "setsum (\<lambda>v. u v *\<^sub>R v) S' = y" unfolding span_explicit by blast
     let ?u = "\<lambda>x. if x \<in> S' then u x else 0"
-    from setsum_restrict_set[OF fS, of "\<lambda>v. u v *s v" S', symmetric] SS'
-    have "setsum (\<lambda>v. ?u v *s v) S = setsum (\<lambda>v. u v *s v) S'"
+    from setsum_restrict_set[OF fS, of "\<lambda>v. u v *\<^sub>R v" S', symmetric] SS'
+    have "setsum (\<lambda>v. ?u v *\<^sub>R v) S = setsum (\<lambda>v. u v *\<^sub>R v) S'"
       unfolding cond_value_iff cond_application_beta
       by (simp add: cond_value_iff inf_absorb2 cong del: if_weak_cong)
-    hence "setsum (\<lambda>v. ?u v *s v) S = y" by (metis u)
+    hence "setsum (\<lambda>v. ?u v *\<^sub>R v) S = y" by (metis u)
     hence "y \<in> ?rhs" by auto}
   moreover
-  {fix y u assume u: "setsum (\<lambda>v. u v *s v) S = y"
+  {fix y u assume u: "setsum (\<lambda>v. u v *\<^sub>R v) S = y"
     then have "y \<in> span S" using fS unfolding span_explicit by auto}
   ultimately show ?thesis by blast
 qed
@@ -3170,10 +2217,10 @@ qed
 
 (* Standard bases are a spanning set, and obviously finite.                  *)
 
-lemma span_stdbasis:"span {basis i :: 'a::ring_1^'n | i. i \<in> (UNIV :: 'n set)} = UNIV"
+lemma span_stdbasis:"span {basis i :: real^'n | i. i \<in> (UNIV :: 'n set)} = UNIV"
 apply (rule set_ext)
 apply auto
-apply (subst basis_expansion[symmetric])
+apply (subst basis_expansion'[symmetric])
 apply (rule span_setsum)
 apply simp
 apply auto
@@ -3196,14 +2243,14 @@ qed
 
 
 lemma independent_stdbasis_lemma:
-  assumes x: "(x::'a::semiring_1 ^ _) \<in> span (basis ` S)"
+  assumes x: "(x::real ^ 'n) \<in> span (basis ` S)"
   and iS: "i \<notin> S"
   shows "(x$i) = 0"
 proof-
   let ?U = "UNIV :: 'n set"
   let ?B = "basis ` S"
-  let ?P = "\<lambda>(x::'a^_). \<forall>i\<in> ?U. i \<notin> S \<longrightarrow> x$i =0"
- {fix x::"'a^_" assume xS: "x\<in> ?B"
+  let ?P = "\<lambda>(x::real^_). \<forall>i\<in> ?U. i \<notin> S \<longrightarrow> x$i =0"
+ {fix x::"real^_" assume xS: "x\<in> ?B"
    from xS have "?P x" by auto}
  moreover
  have "subspace ?P"
@@ -3236,7 +2283,7 @@ qed
 (* This is useful for building a basis step-by-step.                         *)
 
 lemma independent_insert:
-  "independent(insert (a::'a::field ^_) S) \<longleftrightarrow>
+  "independent(insert a S) \<longleftrightarrow>
       (if a \<in> S then independent S
                 else independent S \<and> a \<notin> span S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
@@ -3285,7 +2332,7 @@ lemma span_inc: "S \<subseteq> span S"
   by (metis subset_eq span_superset)
 
 lemma spanning_subset_independent:
-  assumes BA: "B \<subseteq> A" and iA: "independent (A::('a::field ^_) set)"
+  assumes BA: "B \<subseteq> A" and iA: "independent A"
   and AsB: "A \<subseteq> span B"
   shows "A = B"
 proof
@@ -3312,7 +2359,7 @@ qed
 (* The general case of the Exchange Lemma, the key to what follows.  *)
 
 lemma exchange_lemma:
-  assumes f:"finite (t:: ('a::field^'n) set)" and i: "independent s"
+  assumes f:"finite t" and i: "independent s"
   and sp:"s \<subseteq> span t"
   shows "\<exists>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
 using f i sp
@@ -3388,7 +2435,7 @@ qed
 (* This implies corresponding size bounds.                                   *)
 
 lemma independent_span_bound:
-  assumes f: "finite t" and i: "independent (s::('a::field^_) set)" and sp:"s \<subseteq> span t"
+  assumes f: "finite t" and i: "independent s" and sp:"s \<subseteq> span t"
   shows "finite s \<and> card s \<le> card t"
   by (metis exchange_lemma[OF f i sp] finite_subset card_mono)
 
@@ -3479,7 +2526,7 @@ lemma span_card_ge_dim:  "(B::(real ^'n) set) \<subseteq> V \<Longrightarrow> V 
 
 lemma basis_card_eq_dim:
   "B \<subseteq> (V:: (real ^'n) set) \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> finite B \<and> card B = dim V"
-  by (metis order_eq_iff independent_card_le_dim span_card_ge_dim independent_mono independent_bound)
+  by (metis order_eq_iff independent_card_le_dim span_card_ge_dim independent_bound)
 
 lemma dim_unique: "(B::(real ^'n) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = n \<Longrightarrow> dim V = n"
   by (metis basis_card_eq_dim)
@@ -3571,7 +2618,7 @@ lemma span_eq_dim: "span (S:: (real ^'n) set) = span T ==> dim S = dim T"
   by (metis dim_span)
 
 lemma spans_image:
-  assumes lf: "linear (f::'a::semiring_1^_ \<Rightarrow> _)" and VB: "V \<subseteq> span B"
+  assumes lf: "linear f" and VB: "V \<subseteq> span B"
   shows "f ` V \<subseteq> span (f ` B)"
   unfolding span_linear_image[OF lf]
   by (metis VB image_mono)
@@ -3593,7 +2640,7 @@ qed
 (* Relation between bases and injectivity/surjectivity of map.               *)
 
 lemma spanning_surjective_image:
-  assumes us: "UNIV \<subseteq> span (S:: ('a::semiring_1 ^_) set)"
+  assumes us: "UNIV \<subseteq> span S"
   and lf: "linear f" and sf: "surj f"
   shows "UNIV \<subseteq> span (f ` S)"
 proof-
@@ -3603,7 +2650,7 @@ finally show ?thesis .
 qed
 
 lemma independent_injective_image:
-  assumes iS: "independent (S::('a::semiring_1^_) set)" and lf: "linear f" and fi: "inj f"
+  assumes iS: "independent S" and lf: "linear f" and fi: "inj f"
   shows "independent (f ` S)"
 proof-
   {fix a assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
@@ -3638,14 +2685,14 @@ next
   from `\<exists>C. finite C \<and> card C \<le> card B \<and> span C = span B \<and> pairwise orthogonal C`
   obtain C where C: "finite C" "card C \<le> card B"
     "span C = span B" "pairwise orthogonal C" by blast
-  let ?a = "a - setsum (\<lambda>x. (x \<bullet> a / (x \<bullet> x)) *s x) C"
+  let ?a = "a - setsum (\<lambda>x. (x \<bullet> a / (x \<bullet> x)) *\<^sub>R x) C"
   let ?C = "insert ?a C"
   from C(1) have fC: "finite ?C" by simp
   from fB aB C(1,2) have cC: "card ?C \<le> card (insert a B)" by (simp add: card_insert_if)
   {fix x k
-    have th0: "\<And>(a::'b::comm_ring) b c. a - (b - c) = c + (a - b)" by (simp add: ring_simps)
-    have "x - k *s (a - (\<Sum>x\<in>C. (x \<bullet> a / (x \<bullet> x)) *s x)) \<in> span C \<longleftrightarrow> x - k *s a \<in> span C"
-      apply (simp only: vector_ssub_ldistrib th0)
+    have th0: "\<And>(a::'b::comm_ring) b c. a - (b - c) = c + (a - b)" by (simp add: field_simps)
+    have "x - k *\<^sub>R (a - (\<Sum>x\<in>C. (x \<bullet> a / (x \<bullet> x)) *\<^sub>R x)) \<in> span C \<longleftrightarrow> x - k *\<^sub>R a \<in> span C"
+      apply (simp only: scaleR_right_diff_distrib th0)
       apply (rule span_add_eq)
       apply (rule span_mul)
       apply (rule span_setsum[OF C(1)])
@@ -3669,7 +2716,7 @@ next
         apply (subst Cy)
         using C(1) fth
         apply (simp only: setsum_clauses) unfolding smult_conv_scaleR
-        apply (auto simp add: inner_simps inner_eq_zero_iff inner_commute[of y a] dot_lsum[OF fth])
+        apply (auto simp add: inner_simps inner_commute[of y a] dot_lsum[OF fth])
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -3686,7 +2733,7 @@ next
         using C(1) fth
         apply (simp only: setsum_clauses) unfolding smult_conv_scaleR
         apply (subst inner_commute[of x])
-        apply (auto simp add: inner_simps inner_eq_zero_iff inner_commute[of x a] dot_rsum[OF fth])
+        apply (auto simp add: inner_simps inner_commute[of x a] dot_rsum[OF fth])
         apply (rule setsum_0')
         apply clarsimp
         apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -3739,8 +2786,8 @@ proof-
   from B have fB: "finite B" "card B = dim S" using independent_bound by auto
   from span_mono[OF B(2)] span_mono[OF B(3)]
   have sSB: "span S = span B" by (simp add: span_span)
-  let ?a = "a - setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *s b) B"
-  have "setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *s b) B \<in> span S"
+  let ?a = "a - setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B"
+  have "setsum (\<lambda>b. (a \<bullet> b / (b \<bullet> b)) *\<^sub>R b) B \<in> span S"
     unfolding sSB
     apply (rule span_setsum[OF fB(1)])
     apply clarsimp
@@ -3759,10 +2806,10 @@ next
         apply (subst B') using fB fth
         unfolding setsum_clauses(2)[OF fth]
         apply simp unfolding inner_simps smult_conv_scaleR
-        apply (clarsimp simp add: inner_simps inner_eq_zero_iff smult_conv_scaleR dot_lsum)
+        apply (clarsimp simp add: inner_simps smult_conv_scaleR dot_lsum)
         apply (rule setsum_0', rule ballI)
         unfolding inner_commute
-        by (auto simp add: x field_simps inner_eq_zero_iff intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}
+        by (auto simp add: x field_simps intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])}
     then show "\<forall>x \<in> B. ?a \<bullet> x = 0" by blast
   qed
   with a0 show ?thesis unfolding sSB by (auto intro: exI[where x="?a"])
@@ -3791,7 +2838,7 @@ lemma linear_indep_image_lemma:
   assumes lf: "linear f" and fB: "finite B"
   and ifB: "independent (f ` B)"
   and fi: "inj_on f B" and xsB: "x \<in> span B"
-  and fx: "f (x::'a::field^_) = 0"
+  and fx: "f x = 0"
   shows "x = 0"
   using fB ifB fi xsB fx
 proof(induct arbitrary: x rule: finite_induct[OF fB])
@@ -3807,14 +2854,14 @@ next
     apply (rule subset_inj_on [OF "2.prems"(3)])
     by blast
   from span_breakdown[of a "insert a b", simplified, OF "2.prems"(4)]
-  obtain k where k: "x - k*s a \<in> span (b -{a})" by blast
-  have "f (x - k*s a) \<in> span (f ` b)"
+  obtain k where k: "x - k*\<^sub>R a \<in> span (b -{a})" by blast
+  have "f (x - k*\<^sub>R a) \<in> span (f ` b)"
     unfolding span_linear_image[OF lf]
     apply (rule imageI)
     using k span_mono[of "b-{a}" b] by blast
-  hence "f x - k*s f a \<in> span (f ` b)"
+  hence "f x - k*\<^sub>R f a \<in> span (f ` b)"
     by (simp add: linear_sub[OF lf] linear_cmul[OF lf])
-  hence th: "-k *s f a \<in> span (f ` b)"
+  hence th: "-k *\<^sub>R f a \<in> span (f ` b)"
     using "2.prems"(5) by (simp add: vector_smult_lneg)
   {assume k0: "k = 0"
     from k0 k have "x \<in> span (b -{a})" by simp
@@ -3841,9 +2888,10 @@ qed
 (* We can extend a linear mapping from basis.                                *)
 
 lemma linear_independent_extend_lemma:
+  fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
   assumes fi: "finite B" and ib: "independent B"
-  shows "\<exists>g. (\<forall>x\<in> span B. \<forall>y\<in> span B. g ((x::'a::field^'n) + y) = g x + g y)
-           \<and> (\<forall>x\<in> span B. \<forall>c. g (c*s x) = c *s g x)
+  shows "\<exists>g. (\<forall>x\<in> span B. \<forall>y\<in> span B. g (x + y) = g x + g y)
+           \<and> (\<forall>x\<in> span B. \<forall>c. g (c*\<^sub>R x) = c *\<^sub>R g x)
            \<and> (\<forall>x\<in> B. g x = f x)"
 using ib fi
 proof(induct rule: finite_induct[OF fi])
@@ -3854,30 +2902,30 @@ next
     by (simp_all add: independent_insert)
   from "2.hyps"(3)[OF ibf] obtain g where
     g: "\<forall>x\<in>span b. \<forall>y\<in>span b. g (x + y) = g x + g y"
-    "\<forall>x\<in>span b. \<forall>c. g (c *s x) = c *s g x" "\<forall>x\<in>b. g x = f x" by blast
-  let ?h = "\<lambda>z. SOME k. (z - k *s a) \<in> span b"
+    "\<forall>x\<in>span b. \<forall>c. g (c *\<^sub>R x) = c *\<^sub>R g x" "\<forall>x\<in>b. g x = f x" by blast
+  let ?h = "\<lambda>z. SOME k. (z - k *\<^sub>R a) \<in> span b"
   {fix z assume z: "z \<in> span (insert a b)"
-    have th0: "z - ?h z *s a \<in> span b"
+    have th0: "z - ?h z *\<^sub>R a \<in> span b"
       apply (rule someI_ex)
       unfolding span_breakdown_eq[symmetric]
       using z .
-    {fix k assume k: "z - k *s a \<in> span b"
-      have eq: "z - ?h z *s a - (z - k*s a) = (k - ?h z) *s a"
-        by (simp add: ring_simps vector_sadd_rdistrib[symmetric])
+    {fix k assume k: "z - k *\<^sub>R a \<in> span b"
+      have eq: "z - ?h z *\<^sub>R a - (z - k*\<^sub>R a) = (k - ?h z) *\<^sub>R a"
+        by (simp add: field_simps scaleR_left_distrib [symmetric])
       from span_sub[OF th0 k]
-      have khz: "(k - ?h z) *s a \<in> span b" by (simp add: eq)
+      have khz: "(k - ?h z) *\<^sub>R a \<in> span b" by (simp add: eq)
       {assume "k \<noteq> ?h z" hence k0: "k - ?h z \<noteq> 0" by simp
         from k0 span_mul[OF khz, of "1 /(k - ?h z)"]
         have "a \<in> span b" by (simp add: vector_smult_assoc)
         with "2.prems"(1) "2.hyps"(2) have False
           by (auto simp add: dependent_def)}
       then have "k = ?h z" by blast}
-    with th0 have "z - ?h z *s a \<in> span b \<and> (\<forall>k. z - k *s a \<in> span b \<longrightarrow> k = ?h z)" by blast}
+    with th0 have "z - ?h z *\<^sub>R a \<in> span b \<and> (\<forall>k. z - k *\<^sub>R a \<in> span b \<longrightarrow> k = ?h z)" by blast}
   note h = this
-  let ?g = "\<lambda>z. ?h z *s f a + g (z - ?h z *s a)"
+  let ?g = "\<lambda>z. ?h z *\<^sub>R f a + g (z - ?h z *\<^sub>R a)"
   {fix x y assume x: "x \<in> span (insert a b)" and y: "y \<in> span (insert a b)"
-    have tha: "\<And>(x::'a^'n) y a k l. (x + y) - (k + l) *s a = (x - k *s a) + (y - l *s a)"
-      by (vector ring_simps)
+    have tha: "\<And>(x::'a) y a k l. (x + y) - (k + l) *\<^sub>R a = (x - k *\<^sub>R a) + (y - l *\<^sub>R a)"
+      by (simp add: algebra_simps)
     have addh: "?h (x + y) = ?h x + ?h y"
       apply (rule conjunct2[OF h, rule_format, symmetric])
       apply (rule span_add[OF x y])
@@ -3886,18 +2934,18 @@ next
     have "?g (x + y) = ?g x + ?g y"
       unfolding addh tha
       g(1)[rule_format,OF conjunct1[OF h, OF x] conjunct1[OF h, OF y]]
-      by (simp add: vector_sadd_rdistrib)}
+      by (simp add: scaleR_left_distrib)}
   moreover
-  {fix x:: "'a^'n" and c:: 'a  assume x: "x \<in> span (insert a b)"
-    have tha: "\<And>(x::'a^'n) c k a. c *s x - (c * k) *s a = c *s (x - k *s a)"
-      by (vector ring_simps)
-    have hc: "?h (c *s x) = c * ?h x"
+  {fix x:: "'a" and c:: real  assume x: "x \<in> span (insert a b)"
+    have tha: "\<And>(x::'a) c k a. c *\<^sub>R x - (c * k) *\<^sub>R a = c *\<^sub>R (x - k *\<^sub>R a)"
+      by (simp add: algebra_simps)
+    have hc: "?h (c *\<^sub>R x) = c * ?h x"
       apply (rule conjunct2[OF h, rule_format, symmetric])
       apply (metis span_mul x)
       by (metis tha span_mul x conjunct1[OF h])
-    have "?g (c *s x) = c*s ?g x"
+    have "?g (c *\<^sub>R x) = c*\<^sub>R ?g x"
       unfolding hc tha g(2)[rule_format, OF conjunct1[OF h, OF x]]
-      by (vector ring_simps)}
+      by (simp add: algebra_simps)}
   moreover
   {fix x assume x: "x \<in> (insert a b)"
     {assume xa: "x = a"
@@ -3915,7 +2963,7 @@ next
     {assume xb: "x \<in> b"
       have h0: "0 = ?h x"
         apply (rule conjunct2[OF h, rule_format])
-        apply (metis  span_superset insertI1 xb x)
+        apply (metis  span_superset x)
         apply simp
         apply (metis span_superset xb)
         done
@@ -3934,7 +2982,7 @@ proof-
 
   from C(2) independent_bound[of C] linear_independent_extend_lemma[of C f]
   obtain g where g: "(\<forall>x\<in> span C. \<forall>y\<in> span C. g (x + y) = g x + g y)
-           \<and> (\<forall>x\<in> span C. \<forall>c. g (c*s x) = c *s g x)
+           \<and> (\<forall>x\<in> span C. \<forall>c. g (c*\<^sub>R x) = c *\<^sub>R g x)
            \<and> (\<forall>x\<in> C. g x = f x)" by blast
   from g show ?thesis unfolding linear_def using C
     apply clarsimp by blast
@@ -4021,14 +3069,14 @@ qed
 (* linear functions are equal on a subspace if they are on a spanning set.   *)
 
 lemma subspace_kernel:
-  assumes lf: "linear (f::'a::semiring_1 ^_ \<Rightarrow> _)"
+  assumes lf: "linear f"
   shows "subspace {x. f x = 0}"
 apply (simp add: subspace_def)
 by (simp add: linear_add[OF lf] linear_cmul[OF lf] linear_0[OF lf])
 
 lemma linear_eq_0_span:
   assumes lf: "linear f" and f0: "\<forall>x\<in>B. f x = 0"
-  shows "\<forall>x \<in> span B. f x = (0::'a::semiring_1 ^_)"
+  shows "\<forall>x \<in> span B. f x = 0"
 proof
   fix x assume x: "x \<in> span B"
   let ?P = "\<lambda>x. f x = 0"
@@ -4038,11 +3086,11 @@ qed
 
 lemma linear_eq_0:
   assumes lf: "linear f" and SB: "S \<subseteq> span B" and f0: "\<forall>x\<in>B. f x = 0"
-  shows "\<forall>x \<in> S. f x = (0::'a::semiring_1^_)"
+  shows "\<forall>x \<in> S. f x = 0"
   by (metis linear_eq_0_span[OF lf] subset_eq SB f0)
 
 lemma linear_eq:
-  assumes lf: "linear (f::'a::ring_1^_ \<Rightarrow> _)" and lg: "linear g" and S: "S \<subseteq> span B"
+  assumes lf: "linear f" and lg: "linear g" and S: "S \<subseteq> span B"
   and fg: "\<forall> x\<in> B. f x = g x"
   shows "\<forall>x\<in> S. f x = g x"
 proof-
@@ -4053,15 +3101,15 @@ proof-
 qed
 
 lemma linear_eq_stdbasis:
-  assumes lf: "linear (f::'a::ring_1^'m \<Rightarrow> 'a^'n)" and lg: "linear g"
+  assumes lf: "linear (f::real^'m \<Rightarrow> _)" and lg: "linear g"
   and fg: "\<forall>i. f (basis i) = g(basis i)"
   shows "f = g"
 proof-
   let ?U = "UNIV :: 'm set"
-  let ?I = "{basis i:: 'a^'m|i. i \<in> ?U}"
-  {fix x assume x: "x \<in> (UNIV :: ('a^'m) set)"
+  let ?I = "{basis i:: real^'m|i. i \<in> ?U}"
+  {fix x assume x: "x \<in> (UNIV :: (real^'m) set)"
     from equalityD2[OF span_stdbasis]
-    have IU: " (UNIV :: ('a^'m) set) \<subseteq> span ?I" by blast
+    have IU: " (UNIV :: (real^'m) set) \<subseteq> span ?I" by blast
     from linear_eq[OF lf lg IU] fg x
     have "f x = g x" unfolding Collect_def  Ball_def mem_def by metis}
   then show ?thesis by (auto intro: ext)
@@ -4070,7 +3118,7 @@ qed
 (* Similar results for bilinear functions.                                   *)
 
 lemma bilinear_eq:
-  assumes bf: "bilinear (f:: 'a::ring^_ \<Rightarrow> 'a^_ \<Rightarrow> 'a^_)"
+  assumes bf: "bilinear f"
   and bg: "bilinear g"
   and SB: "S \<subseteq> span B" and TC: "T \<subseteq> span C"
   and fg: "\<forall>x\<in> B. \<forall>y\<in> C. f x y = g x y"
@@ -4098,7 +3146,7 @@ proof-
 qed
 
 lemma bilinear_eq_stdbasis:
-  assumes bf: "bilinear (f:: 'a::ring_1^'m \<Rightarrow> 'a^'n \<Rightarrow> 'a^_)"
+  assumes bf: "bilinear (f:: real^'m \<Rightarrow> real^'n \<Rightarrow> _)"
   and bg: "bilinear g"
   and fg: "\<forall>i j. f (basis i) (basis j) = g (basis i) (basis j)"
   shows "f = g"
@@ -4251,6 +3299,7 @@ proof-
           unfolding y[symmetric]
           apply (rule span_setsum[OF fU])
           apply clarify
+          unfolding smult_conv_scaleR
           apply (rule span_mul)
           apply (rule span_superset)
           unfolding columns_def
@@ -4260,10 +3309,9 @@ proof-
   {assume h:?rhs
     let ?P = "\<lambda>(y::real ^'n). \<exists>(x::real^'m). setsum (\<lambda>i. (x$i) *s column i A) ?U = y"
     {fix y have "?P y"
-      proof(rule span_induct_alt[of ?P "columns A"])
+      proof(rule span_induct_alt[of ?P "columns A", folded smult_conv_scaleR])
         show "\<exists>x\<Colon>real ^ 'm. setsum (\<lambda>i. (x$i) *s column i A) ?U = 0"
-          apply (rule exI[where x=0])
-          by (simp add: zero_index vector_smult_lzero)
+          by (rule exI[where x=0], simp)
       next
         fix c y1 y2 assume y1: "y1 \<in> columns A" and y2: "?P y2"
         from y1 obtain i where i: "i \<in> ?U" "y1 = column i A"
@@ -4276,7 +3324,7 @@ proof-
             fix j
             have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
            else (x$xa) * ((column xa A$j))) = (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))" using i(1)
-              by (simp add: ring_simps)
+              by (simp add: field_simps)
             have "setsum (\<lambda>xa. if xa = i then (c + (x$i)) * ((column xa A)$j)
            else (x$xa) * ((column xa A$j))) ?U = setsum (\<lambda>xa. (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))) ?U"
               apply (rule setsum_cong[OF refl])
@@ -4619,7 +3667,7 @@ proof-
   from infnorm_triangle[of "x - y" " y"] infnorm_triangle[of "x - y" "-x"]
   have ths: "infnorm x \<le> infnorm (x - y) + infnorm y"
     "infnorm y \<le> infnorm (x - y) + infnorm x"
-    by (simp_all add: ring_simps infnorm_neg diff_def[symmetric])
+    by (simp_all add: field_simps infnorm_neg diff_def[symmetric])
   from th[OF ths]  show ?thesis .
 qed
 
@@ -4687,7 +3735,7 @@ proof-
   hence d2: "(sqrt (real ?d))^2 = real ?d"
     by (auto intro: real_sqrt_pow2)
   have th: "sqrt (real ?d) * infnorm x \<ge> 0"
-    by (simp add: zero_le_mult_iff real_sqrt_ge_0_iff infnorm_pos_le)
+    by (simp add: zero_le_mult_iff infnorm_pos_le)
   have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)^2"
     unfolding power_mult_distrib d2
     unfolding real_of_nat_def inner_vector_def
@@ -4704,7 +3752,7 @@ qed
 
 (* Equality in Cauchy-Schwarz and triangle inequalities.                     *)
 
-lemma norm_cauchy_schwarz_eq: "(x::real ^'n) \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *s y = norm y *s x" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma norm_cauchy_schwarz_eq: "x \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   {assume h: "x = 0"
     hence ?thesis by simp}
@@ -4713,14 +3761,14 @@ proof-
     hence ?thesis by simp}
   moreover
   {assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
-    from inner_eq_zero_iff[of "norm y *s x - norm x *s y"]
+    from inner_eq_zero_iff[of "norm y *\<^sub>R x - norm x *\<^sub>R y"]
     have "?rhs \<longleftrightarrow> (norm y * (norm y * norm x * norm x - norm x * (x \<bullet> y)) - norm x * (norm y * (y \<bullet> x) - norm x * norm y * norm y) =  0)"
       using x y
       unfolding inner_simps smult_conv_scaleR
       unfolding power2_norm_eq_inner[symmetric] power2_eq_square diff_eq_0_iff_eq apply (simp add: inner_commute)
-      apply (simp add: ring_simps) by metis
+      apply (simp add: field_simps) by metis
     also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)" using x y
-      by (simp add: ring_simps inner_commute)
+      by (simp add: field_simps inner_commute)
     also have "\<dots> \<longleftrightarrow> ?lhs" using x y
       apply simp
       by metis
@@ -4729,26 +3777,24 @@ proof-
 qed
 
 lemma norm_cauchy_schwarz_abs_eq:
-  fixes x y :: "real ^ 'n"
   shows "abs(x \<bullet> y) = norm x * norm y \<longleftrightarrow>
-                norm x *s y = norm y *s x \<or> norm(x) *s y = - norm y *s x" (is "?lhs \<longleftrightarrow> ?rhs")
+                norm x *\<^sub>R y = norm y *\<^sub>R x \<or> norm(x) *\<^sub>R y = - norm y *\<^sub>R x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   have th: "\<And>(x::real) a. a \<ge> 0 \<Longrightarrow> abs x = a \<longleftrightarrow> x = a \<or> x = - a" by arith
-  have "?rhs \<longleftrightarrow> norm x *s y = norm y *s x \<or> norm (- x) *s y = norm y *s (- x)"
-    apply simp by vector
+  have "?rhs \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x \<or> norm (- x) *\<^sub>R y = norm y *\<^sub>R (- x)"
+    by simp
   also have "\<dots> \<longleftrightarrow>(x \<bullet> y = norm x * norm y \<or>
      (-x) \<bullet> y = norm x * norm y)"
     unfolding norm_cauchy_schwarz_eq[symmetric]
-    unfolding norm_minus_cancel
-      norm_mul by blast
+    unfolding norm_minus_cancel norm_scaleR ..
   also have "\<dots> \<longleftrightarrow> ?lhs"
     unfolding th[OF mult_nonneg_nonneg, OF norm_ge_zero[of x] norm_ge_zero[of y]] inner_simps by auto
   finally show ?thesis ..
 qed
 
 lemma norm_triangle_eq:
-  fixes x y :: "real ^ 'n"
-  shows "norm(x + y) = norm x + norm y \<longleftrightarrow> norm x *s y = norm y *s x"
+  fixes x y :: "'a::real_inner"
+  shows "norm(x + y) = norm x + norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
 proof-
   {assume x: "x =0 \<or> y =0"
     hence ?thesis by (cases "x=0", simp_all)}
@@ -4763,72 +3809,69 @@ proof-
     have "norm(x + y) = norm x + norm y \<longleftrightarrow> norm(x + y)^ 2 = (norm x + norm y) ^2"
       apply (rule th) using n norm_ge_zero[of "x + y"]
       by arith
-    also have "\<dots> \<longleftrightarrow> norm x *s y = norm y *s x"
+    also have "\<dots> \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x"
       unfolding norm_cauchy_schwarz_eq[symmetric]
       unfolding power2_norm_eq_inner inner_simps
-      by (simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute ring_simps)
+      by (simp add: power2_norm_eq_inner[symmetric] power2_eq_square inner_commute field_simps)
     finally have ?thesis .}
   ultimately show ?thesis by blast
 qed
 
 (* Collinearity.*)
 
-definition "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *s u)"
+definition
+  collinear :: "'a::real_vector set \<Rightarrow> bool" where
+  "collinear S \<longleftrightarrow> (\<exists>u. \<forall>x \<in> S. \<forall> y \<in> S. \<exists>c. x - y = c *\<^sub>R u)"
 
 lemma collinear_empty:  "collinear {}" by (simp add: collinear_def)
 
-lemma collinear_sing: "collinear {(x::'a::ring_1^_)}"
-  apply (simp add: collinear_def)
-  apply (rule exI[where x=0])
-  by simp
+lemma collinear_sing: "collinear {x}"
+  by (simp add: collinear_def)
 
-lemma collinear_2: "collinear {(x::'a::ring_1^_),y}"
+lemma collinear_2: "collinear {x, y}"
   apply (simp add: collinear_def)
   apply (rule exI[where x="x - y"])
   apply auto
-  apply (rule exI[where x=0], simp)
   apply (rule exI[where x=1], simp)
-  apply (rule exI[where x="- 1"], simp add: vector_sneg_minus1[symmetric])
-  apply (rule exI[where x=0], simp)
+  apply (rule exI[where x="- 1"], simp)
   done
 
-lemma collinear_lemma: "collinear {(0::real^_),x,y} \<longleftrightarrow> x = 0 \<or> y = 0 \<or> (\<exists>c. y = c *s x)" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma collinear_lemma: "collinear {0,x,y} \<longleftrightarrow> x = 0 \<or> y = 0 \<or> (\<exists>c. y = c *\<^sub>R x)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   {assume "x=0 \<or> y = 0" hence ?thesis
       by (cases "x = 0", simp_all add: collinear_2 insert_commute)}
   moreover
   {assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
     {assume h: "?lhs"
-      then obtain u where u: "\<forall> x\<in> {0,x,y}. \<forall>y\<in> {0,x,y}. \<exists>c. x - y = c *s u" unfolding collinear_def by blast
+      then obtain u where u: "\<forall> x\<in> {0,x,y}. \<forall>y\<in> {0,x,y}. \<exists>c. x - y = c *\<^sub>R u" unfolding collinear_def by blast
       from u[rule_format, of x 0] u[rule_format, of y 0]
       obtain cx and cy where
-        cx: "x = cx*s u" and cy: "y = cy*s u"
+        cx: "x = cx *\<^sub>R u" and cy: "y = cy *\<^sub>R u"
         by auto
       from cx x have cx0: "cx \<noteq> 0" by auto
       from cy y have cy0: "cy \<noteq> 0" by auto
       let ?d = "cy / cx"
-      from cx cy cx0 have "y = ?d *s x"
+      from cx cy cx0 have "y = ?d *\<^sub>R x"
         by (simp add: vector_smult_assoc)
       hence ?rhs using x y by blast}
     moreover
     {assume h: "?rhs"
-      then obtain c where c: "y = c*s x" using x y by blast
+      then obtain c where c: "y = c *\<^sub>R x" using x y by blast
       have ?lhs unfolding collinear_def c
         apply (rule exI[where x=x])
         apply auto
-        apply (rule exI[where x="- 1"], simp only: vector_smult_lneg vector_smult_lid)
-        apply (rule exI[where x= "-c"], simp only: vector_smult_lneg)
+        apply (rule exI[where x="- 1"], simp)
+        apply (rule exI[where x= "-c"], simp)
         apply (rule exI[where x=1], simp)
-        apply (rule exI[where x="1 - c"], simp add: vector_smult_lneg vector_sub_rdistrib)
-        apply (rule exI[where x="c - 1"], simp add: vector_smult_lneg vector_sub_rdistrib)
+        apply (rule exI[where x="1 - c"], simp add: scaleR_left_diff_distrib)
+        apply (rule exI[where x="c - 1"], simp add: scaleR_left_diff_distrib)
         done}
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast
 qed
 
 lemma norm_cauchy_schwarz_equal:
-  fixes x y :: "real ^ 'n"
-  shows "abs(x \<bullet> y) = norm x * norm y \<longleftrightarrow> collinear {(0::real^'n),x,y}"
+  shows "abs(x \<bullet> y) = norm x * norm y \<longleftrightarrow> collinear {0,x,y}"
 unfolding norm_cauchy_schwarz_abs_eq
 apply (cases "x=0", simp_all add: collinear_2)
 apply (cases "y=0", simp_all add: collinear_2 insert_commute)
@@ -4837,28 +3880,27 @@ apply simp
 apply (subgoal_tac "norm x \<noteq> 0")
 apply (subgoal_tac "norm y \<noteq> 0")
 apply (rule iffI)
-apply (cases "norm x *s y = norm y *s x")
+apply (cases "norm x *\<^sub>R y = norm y *\<^sub>R x")
 apply (rule exI[where x="(1/norm x) * norm y"])
 apply (drule sym)
-unfolding vector_smult_assoc[symmetric]
+unfolding scaleR_scaleR[symmetric]
 apply (simp add: vector_smult_assoc field_simps)
 apply (rule exI[where x="(1/norm x) * - norm y"])
 apply clarify
 apply (drule sym)
-unfolding vector_smult_assoc[symmetric]
+unfolding scaleR_scaleR[symmetric]
 apply (simp add: vector_smult_assoc field_simps)
 apply (erule exE)
 apply (erule ssubst)
-unfolding vector_smult_assoc
-unfolding norm_mul
+unfolding scaleR_scaleR
+unfolding norm_scaleR
 apply (subgoal_tac "norm x * c = \<bar>c\<bar> * norm x \<or> norm x * c = - \<bar>c\<bar> * norm x")
-apply (case_tac "c <= 0", simp add: ring_simps)
-apply (simp add: ring_simps)
-apply (case_tac "c <= 0", simp add: ring_simps)
-apply (simp add: ring_simps)
+apply (case_tac "c <= 0", simp add: field_simps)
+apply (simp add: field_simps)
+apply (case_tac "c <= 0", simp add: field_simps)
+apply (simp add: field_simps)
 apply simp
 apply simp
 done
 
 end
- 

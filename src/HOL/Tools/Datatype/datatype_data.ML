@@ -165,7 +165,7 @@ fun get_constrs thy dtco =
 
 fun read_typ thy str sorts =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
       |> fold (Variable.declare_typ o TFree) sorts;
     val T = Syntax.read_typ ctxt str;
   in (T, Term.add_tfreesT T sorts) end;
@@ -316,7 +316,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val (splits, thy9) = Datatype_Abs_Proofs.prove_split_thms
       config new_type_names descr sorts inject distinct exhaust case_rewrites thy8;
 
-    val inducts = Project_Rule.projections (ProofContext.init thy2) induct;
+    val inducts = Project_Rule.projections (ProofContext.init_global thy2) induct;
     val dt_infos = map_index
       (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
       (hd descr ~~ inject ~~ distinct ~~ exhaust ~~ nchotomys ~~
@@ -342,8 +342,8 @@ fun derive_datatype_props config dt_names alt_names descr sorts
         ((Binding.empty, map (fn th => th RS notE) (flat distinct)),
           [Classical.safe_elim NONE]),
         ((Binding.empty, weak_case_congs), [Simplifier.attrib (op addcongs)]),
-        ((Binding.empty, flat (distinct @ inject)), [Induct.add_simp_rule])]
-        @ named_rules @ unnamed_rules)
+        ((Binding.empty, flat (distinct @ inject)), [Induct.induct_simp_add])] @
+          named_rules @ unnamed_rules)
     |> snd
     |> add_case_tr' case_names
     |> register dt_infos
@@ -435,8 +435,8 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
       end;
   in
     thy
-    |> ProofContext.init
-    |> Proof.theorem_i NONE after_qed' ((map o map) (rpair []) (flat rules))
+    |> ProofContext.init_global
+    |> Proof.theorem NONE after_qed' ((map o map) (rpair []) (flat rules))
   end;
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;

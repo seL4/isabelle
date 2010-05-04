@@ -163,7 +163,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 
 fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val elim = Facts.the_single "elimination" (Attrib.eval_thms ctxt [raw_elim]);
     val induct = Facts.the_single "induction" (Attrib.eval_thms ctxt [raw_induct]);
     val case_eqns = Attrib.eval_thms ctxt raw_case_eqns;

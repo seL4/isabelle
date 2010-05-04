@@ -337,10 +337,10 @@ val fixrec_simp_del : attribute =
 (* proves a block of pattern matching equations as theorems, using unfold *)
 fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
   let
-    val tacs =
-      [rtac (unfold_thm RS @{thm ssubst_lhs}) 1,
-       asm_simp_tac (simpset_of ctxt) 1];
-    fun prove_term t = Goal.prove ctxt [] [] t (K (EVERY tacs));
+    val ss = Simplifier.context ctxt (FixrecSimpData.get (Context.Proof ctxt));
+    val rule = unfold_thm RS @{thm ssubst_lhs};
+    val tac = rtac rule 1 THEN asm_simp_tac ss 1;
+    fun prove_term t = Goal.prove ctxt [] [] t (K tac);
     fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t);
   in
     map prove_eqn eqns

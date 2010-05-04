@@ -536,7 +536,7 @@ end;
 structure Coopereif =
 struct
 
-open GeneratedCooper;
+open Generated_Cooper;
 
 fun cooper s = raise Cooper.COOPER ("Cooper oracle failed", ERROR s);
 fun i_of_term vs t = case t

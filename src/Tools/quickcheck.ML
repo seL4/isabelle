@@ -295,7 +295,7 @@ fun parse_test_param_inst ctxt ("generator", arg) =
 
 fun quickcheck_params_cmd args thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val f = fold (parse_test_param ctxt) args;
   in
     thy

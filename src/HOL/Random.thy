@@ -138,9 +138,14 @@ qed
 
 subsection {* @{text ML} interface *}
 
+code_reflect Random_Engine
+  functions range select select_weight
+
 ML {*
 structure Random_Engine =
 struct
+
+open Random_Engine;
 
 type seed = int * int;
 

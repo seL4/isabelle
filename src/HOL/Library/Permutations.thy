@@ -96,7 +96,7 @@ lemma permutes_swap_id: "a \<in> S \<Longrightarrow> b \<in> S ==> Fun.swap a b 
 
 lemma permutes_superset:
   "p permutes S \<Longrightarrow> (\<forall>x \<in> S - T. p x = x) \<Longrightarrow> p permutes T"
-by (simp add: Ball_def permutes_def Diff_iff) metis
+by (simp add: Ball_def permutes_def) metis
 
 (* ------------------------------------------------------------------------- *)
 (* Group properties.                                                         *)
@@ -125,7 +125,7 @@ lemma permutes_insert_lemma:
   apply (rule permutes_compose[OF pS])
   apply (rule permutes_swap_id, simp)
   using permutes_in_image[OF pS, of a] apply simp
-  apply (auto simp add: Ball_def Diff_iff swap_def)
+  apply (auto simp add: Ball_def swap_def)
   done
 
 lemma permutes_insert: "{p. p permutes (insert a S)} =
@@ -154,7 +154,7 @@ qed
 lemma card_permutations: assumes Sn: "card S = n" and fS: "finite S"
   shows "card {p. p permutes S} = fact n"
 using fS Sn proof (induct arbitrary: n)
-  case empty thus ?case by (simp add: permutes_empty)
+  case empty thus ?case by simp
 next
   case (insert x F)
   { fix n assume H0: "card (insert x F) = n"

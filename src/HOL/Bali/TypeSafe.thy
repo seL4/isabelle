@@ -9,8 +9,6 @@ begin
 
 section "error free"
  
-hide_const field
-
 lemma error_free_halloc:
   assumes halloc: "G\<turnstile>s0 \<midarrow>halloc oi\<succ>a\<rightarrow> s1" and
           error_free_s0: "error_free s0"

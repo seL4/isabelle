@@ -340,10 +340,10 @@ fun scala_program_of_program labelled_name module_name reserved raw_module_alias
 
 fun serialize_scala raw_module_name labelled_name
     raw_reserved includes raw_module_alias
-    _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program cs destination =
+    _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program stmt_names destination =
   let
-    val stmt_names = Code_Target.stmt_names_of_destination destination;
-    val module_name = if null stmt_names then raw_module_name else SOME "Code";
+    val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
+    val module_name = if null presentation_stmt_names then raw_module_name else SOME "Code";
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
     val (deresolver, (the_module_name, sca_program)) = scala_program_of_program labelled_name
       module_name reserved raw_module_alias program;

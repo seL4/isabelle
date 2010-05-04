@@ -412,7 +412,7 @@ definition
     (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<natural> y\<cdot>f)"
 
 lemma ACI_convex_bind:
-  "ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<natural> y\<cdot>f)"
+  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f +\<natural> y\<cdot>f)"
 apply unfold_locales
 apply (simp add: convex_plus_assoc)
 apply (simp add: convex_plus_commute)

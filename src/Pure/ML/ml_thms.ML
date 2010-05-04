@@ -64,7 +64,7 @@ val _ = ML_Context.add_antiq "lemma"
         fun after_qed res goal_ctxt =
           put_thms (i, map prep_result (ProofContext.export goal_ctxt ctxt (flat res))) goal_ctxt;
         val ctxt' = ctxt
-          |> Proof.theorem_i NONE after_qed propss
+          |> Proof.theorem NONE after_qed propss
           |> Proof.global_terminal_proof methods;
         val (a, background') = background
           |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);

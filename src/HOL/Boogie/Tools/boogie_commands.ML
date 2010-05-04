@@ -94,12 +94,12 @@ fun boogie_vc (vc_name, vc_opts) thy =
     fun after_qed [thms] = ProofContext.theory (discharge (vcs ~~ thms))
       | after_qed _ = I
   in
-    ProofContext.init thy
+    ProofContext.init_global thy
     |> fold Variable.auto_fixes ts
     |> (fn ctxt1 => ctxt1
     |> prepare
     |-> (fn us => fn ctxt2 => ctxt2
-    |> Proof.theorem_i NONE (fn thmss => fn ctxt =>
+    |> Proof.theorem NONE (fn thmss => fn ctxt =>
          let val export = map (finish ctxt1) o ProofContext.export ctxt ctxt2
          in after_qed (map export thmss) ctxt end) [map (rpair []) us]))
   end
@@ -187,8 +187,8 @@ local
     end
 
   fun prove thy meth vc =
-    ProofContext.init thy
-    |> Proof.theorem_i NONE (K I) [[(Boogie_VCs.prop_of_vc vc, [])]]
+    ProofContext.init_global thy
+    |> Proof.theorem NONE (K I) [[(Boogie_VCs.prop_of_vc vc, [])]]
     |> Proof.apply meth
     |> Seq.hd
     |> Proof.global_done_proof

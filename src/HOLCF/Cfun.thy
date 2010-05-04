@@ -9,7 +9,7 @@ theory Cfun
 imports Pcpodef Ffun Product_Cpo
 begin
 
-defaultsort cpo
+default_sort cpo
 
 subsection {* Definition of continuous function type *}
 
@@ -511,7 +511,7 @@ by (rule ext_cfun, simp)
 
 subsection {* Strictified functions *}
 
-defaultsort pcpo
+default_sort pcpo
 
 definition
   strictify  :: "('a \<rightarrow> 'b) \<rightarrow> 'a \<rightarrow> 'b" where

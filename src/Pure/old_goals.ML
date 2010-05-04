@@ -219,7 +219,7 @@ end;
 
 fun simple_read_term thy T s =
   let
-    val ctxt = ProofContext.init thy
+    val ctxt = ProofContext.init_global thy
       |> ProofContext.allow_dummies
       |> ProofContext.set_mode ProofContext.mode_schematic;
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;

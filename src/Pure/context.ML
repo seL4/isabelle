@@ -20,7 +20,7 @@ sig
   structure ProofContext:
   sig
     val theory_of: Proof.context -> theory
-    val init: theory -> Proof.context
+    val init_global: theory -> Proof.context
   end
 end;
 
@@ -481,7 +481,7 @@ fun raw_transfer thy' (Proof.Context (data, thy_ref)) =
 structure ProofContext =
 struct
   val theory_of = theory_of_proof;
-  fun init thy = Proof.Context (init_data thy, check_thy thy);
+  fun init_global thy = Proof.Context (init_data thy, check_thy thy);
 end;
 
 structure Proof_Data =
@@ -529,7 +529,7 @@ fun theory_map f = the_theory o f o Theory;
 fun proof_map f = the_proof o f o Proof;
 
 val theory_of = cases I ProofContext.theory_of;
-val proof_of = cases ProofContext.init I;
+val proof_of = cases ProofContext.init_global I;
 
 
 

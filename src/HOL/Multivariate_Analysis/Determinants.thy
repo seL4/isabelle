@@ -5,7 +5,7 @@
 header {* Traces, Determinant of square matrices and some properties *}
 
 theory Determinants
-imports Euclidean_Space Permutations
+imports Euclidean_Space Permutations Vec1
 begin
 
 subsection{* First some facts about products*}
@@ -55,7 +55,7 @@ apply (auto intro: setprod_nonneg)
 done
 
   (* FIXME: In Finite_Set there is a useless further assumption *)
-lemma setprod_inversef: "finite A ==> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: {division_by_zero, field})"
+lemma setprod_inversef: "finite A ==> setprod (inverse \<circ> f) A = (inverse (setprod f A) :: 'a:: field_inverse_zero)"
   apply (erule finite_induct)
   apply (simp)
   apply simp
@@ -352,13 +352,13 @@ proof (rule setsum_cong2)
     apply (rule setprod_insert)
     apply simp
     by blast
-  also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk)" by (simp add: ring_simps)
+  also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk)" by (simp add: field_simps)
   also have "\<dots> = (a k $ p k * setprod (\<lambda>i. ?g i $ p i) ?Uk) + (b k$ p k * setprod (\<lambda>i. ?h i $ p i) ?Uk)" by (metis th1 th2)
   also have "\<dots> = setprod (\<lambda>i. ?g i $ p i) (insert k ?Uk) + setprod (\<lambda>i. ?h i $ p i) (insert k ?Uk)"
     unfolding  setprod_insert[OF th3] by simp
   finally have "setprod (\<lambda>i. ?f i $ p i) ?U = setprod (\<lambda>i. ?g i $ p i) ?U + setprod (\<lambda>i. ?h i $ p i) ?U" unfolding kU[symmetric] .
   then show "of_int (sign p) * setprod (\<lambda>i. ?f i $ p i) ?U = of_int (sign p) * setprod (\<lambda>i. ?g i $ p i) ?U + of_int (sign p) * setprod (\<lambda>i. ?h i $ p i) ?U"
-    by (simp add: ring_simps)
+    by (simp add: field_simps)
 qed
 
 lemma det_row_mul:
@@ -389,14 +389,14 @@ proof (rule setsum_cong2)
     apply (rule setprod_insert)
     apply simp
     by blast
-  also have "\<dots> = (c*s a k) $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk" by (simp add: ring_simps)
+  also have "\<dots> = (c*s a k) $ p k * setprod (\<lambda>i. ?f i $ p i) ?Uk" by (simp add: field_simps)
   also have "\<dots> = c* (a k $ p k * setprod (\<lambda>i. ?g i $ p i) ?Uk)"
     unfolding th1 by (simp add: mult_ac)
   also have "\<dots> = c* (setprod (\<lambda>i. ?g i $ p i) (insert k ?Uk))"
     unfolding  setprod_insert[OF th3] by simp
   finally have "setprod (\<lambda>i. ?f i $ p i) ?U = c* (setprod (\<lambda>i. ?g i $ p i) ?U)" unfolding kU[symmetric] .
   then show "of_int (sign p) * setprod (\<lambda>i. ?f i $ p i) ?U = c * (of_int (sign p) * setprod (\<lambda>i. ?g i $ p i) ?U)"
-    by (simp add: ring_simps)
+    by (simp add: field_simps)
 qed
 
 lemma det_row_0:
@@ -421,7 +421,7 @@ proof-
 qed
 
 lemma det_row_span:
-  fixes A :: "'a:: linordered_idom^'n^'n"
+  fixes A :: "real^'n^'n"
   assumes x: "x \<in> span {row j A |j. j \<noteq> i}"
   shows "det (\<chi> k. if k = i then row i A + x else row k A) = det A"
 proof-
@@ -450,7 +450,7 @@ proof-
 
   ultimately show ?thesis
     apply -
-    apply (rule span_induct_alt[of ?P ?S, OF P0])
+    apply (rule span_induct_alt[of ?P ?S, OF P0, folded smult_conv_scaleR])
     apply blast
     apply (rule x)
     done
@@ -462,7 +462,7 @@ qed
 (* ------------------------------------------------------------------------- *)
 
 lemma det_dependent_rows:
-  fixes A:: "'a::linordered_idom^'n^'n"
+  fixes A:: "real^'n^'n"
   assumes d: "dependent (rows A)"
   shows "det A = 0"
 proof-
@@ -483,12 +483,12 @@ proof-
     from det_row_span[OF th0]
     have "det A = det (\<chi> k. if k = i then 0 *s 1 else row k A)"
       unfolding right_minus vector_smult_lzero ..
-    with det_row_mul[of i "0::'a" "\<lambda>i. 1"]
+    with det_row_mul[of i "0::real" "\<lambda>i. 1"]
     have "det A = 0" by simp}
   ultimately show ?thesis by blast
 qed
 
-lemma det_dependent_columns: assumes d: "dependent(columns (A::'a::linordered_idom^'n^'n))" shows "det A = 0"
+lemma det_dependent_columns: assumes d: "dependent(columns (A::real^'n^'n))" shows "det A = 0"
 by (metis d det_dependent_rows rows_transpose det_transpose)
 
 (* ------------------------------------------------------------------------- *)
@@ -604,7 +604,7 @@ proof (simp add: det_def setsum_right_distrib cong add: setprod_cong, rule setsu
   have "setprod (\<lambda>i. c i * a i $ p i) ?U = setprod c ?U * setprod (\<lambda>i. a i $ p i) ?U"
     unfolding setprod_timesf ..
   then show "?s * (\<Prod>xa\<in>?U. c xa * a xa $ p xa) =
-        setprod c ?U * (?s* (\<Prod>xa\<in>?U. a xa $ p xa))" by (simp add: ring_simps)
+        setprod c ?U * (?s* (\<Prod>xa\<in>?U. a xa $ p xa))" by (simp add: field_simps)
 qed
 
 lemma det_mul:
@@ -681,7 +681,7 @@ proof-
         using permutes_in_image[OF q] by vector
       show "?s q * setprod (\<lambda>i. (((\<chi> i. A$i$p i *s B$p i) :: 'a^'n^'n)$i$q i)) ?U = ?s p * (setprod (\<lambda>i. A$i$p i) ?U) * (?s (q o inv p) * setprod (\<lambda>i. B$i$(q o inv p) i) ?U)"
         using ths thp pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
-        by (simp add: sign_nz th00 ring_simps sign_idempotent sign_compose)
+        by (simp add: sign_nz th00 field_simps sign_idempotent sign_compose)
     qed
   }
   then have th2: "setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU = det A * det B"
@@ -744,7 +744,7 @@ proof-
       apply (rule span_setsum)
       apply simp
       apply (rule ballI)
-      apply (rule span_mul)+
+      apply (rule span_mul [where 'a="real^'n", folded smult_conv_scaleR])+
       apply (rule span_superset)
       apply auto
       done
@@ -761,9 +761,9 @@ qed
 (* ------------------------------------------------------------------------- *)
 
 lemma cramer_lemma_transpose:
-  fixes A:: "'a::linordered_idom^'n^'n" and x :: "'a ^'n"
+  fixes A:: "real^'n^'n" and x :: "real^'n"
   shows "det ((\<chi> i. if i = k then setsum (\<lambda>i. x$i *s row i A) (UNIV::'n set)
-                           else row i A)::'a^'n^'n) = x$k * det A"
+                           else row i A)::real^'n^'n) = x$k * det A"
   (is "?lhs = ?rhs")
 proof-
   let ?U = "UNIV :: 'n set"
@@ -772,7 +772,7 @@ proof-
   have fUk: "finite ?Uk" by simp
   have kUk: "k \<notin> ?Uk" by simp
   have th00: "\<And>k s. x$k *s row k A + s = (x$k - 1) *s row k A + row k A + s"
-    by (vector ring_simps)
+    by (vector field_simps)
   have th001: "\<And>f k . (\<lambda>x. if x = k then f k else f x) = f" by (auto intro: ext)
   have "(\<chi> i. row i A) = A" by (vector row_def)
   then have thd1: "det (\<chi> i. row i A) = det A"  by simp
@@ -780,7 +780,7 @@ proof-
     apply (rule det_row_span)
     apply (rule span_setsum[OF fUk])
     apply (rule ballI)
-    apply (rule span_mul)
+    apply (rule span_mul [where 'a="real^'n", folded smult_conv_scaleR])+
     apply (rule span_superset)
     apply auto
     done
@@ -793,12 +793,12 @@ proof-
     unfolding thd0
     unfolding det_row_mul
     unfolding th001[of k "\<lambda>i. row i A"]
-    unfolding thd1  by (simp add: ring_simps)
+    unfolding thd1  by (simp add: field_simps)
 qed
 
 lemma cramer_lemma:
-  fixes A :: "'a::linordered_idom ^'n^'n"
-  shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: 'a^'n^'n) = x$k * det A"
+  fixes A :: "real^'n^'n"
+  shows "det((\<chi> i j. if j = k then (A *v x)$i else A$i$j):: real^'n^'n) = x$k * det A"
 proof-
   let ?U = "UNIV :: 'n set"
   have stupid: "\<And>c. setsum (\<lambda>i. c i *s row i (transpose A)) ?U = setsum (\<lambda>i. c i *s column i A) ?U"
@@ -813,7 +813,7 @@ qed
 lemma cramer:
   fixes A ::"real^'n^'n"
   assumes d0: "det A \<noteq> 0"
-  shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j :: real^'n^'n) / det A)"
+  shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j) / det A)"
 proof-
   from d0 obtain B where B: "A ** B = mat 1" "B ** A = mat 1"
     unfolding invertible_det_nz[symmetric] invertible_def by blast
@@ -821,7 +821,7 @@ proof-
   hence "A *v (B *v b) = b" by (simp add: matrix_vector_mul_assoc)
   then have xe: "\<exists>x. A*v x = b" by blast
   {fix x assume x: "A *v x = b"
-  have "x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j :: real^'n^'n) / det A)"
+  have "x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j) / det A)"
     unfolding x[symmetric]
     using d0 by (simp add: Cart_eq cramer_lemma field_simps)}
   with xe show ?thesis by auto
@@ -901,7 +901,7 @@ proof-
   have th: "\<And>x::'a. x = 1 \<or> x = - 1 \<longleftrightarrow> x*x = 1" (is "\<And>x::'a. ?ths x")
   proof-
     fix x:: 'a
-    have th0: "x*x - 1 = (x - 1)*(x + 1)" by (simp add: ring_simps)
+    have th0: "x*x - 1 = (x - 1)*(x + 1)" by (simp add: field_simps)
     have th1: "\<And>(x::'a) y. x = - y \<longleftrightarrow> x + y = 0"
       apply (subst eq_iff_diff_eq_0) by simp
     have "x*x = 1 \<longleftrightarrow> x*x - 1 = 0" by simp
@@ -929,7 +929,7 @@ proof-
       unfolding dot_norm_neg dist_norm[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
-  show ?thesis unfolding linear_def vector_eq smult_conv_scaleR by (simp add: inner_simps fc ring_simps)
+  show ?thesis unfolding linear_def vector_eq[where 'a="real^'n"] smult_conv_scaleR by (simp add: inner_simps fc field_simps)
 qed
 
 lemma isometry_linear:
@@ -980,7 +980,7 @@ proof-
       using H(5-9)
       apply (simp add: norm_eq norm_eq_1)
       apply (simp add: inner_simps smult_conv_scaleR) unfolding *
-      by (simp add: ring_simps) }
+      by (simp add: field_simps) }
   note th0 = this
   let ?g = "\<lambda>x. if x = 0 then 0 else norm x *s f (inverse (norm x) *s x)"
   {fix x:: "real ^'n" assume nx: "norm x = 1"
@@ -993,15 +993,15 @@ proof-
     moreover
     {assume "x = 0" "y \<noteq> 0"
       then have "dist (?g x) (?g y) = dist x y"
-        apply (simp add: dist_norm norm_mul)
+        apply (simp add: dist_norm)
         apply (rule f1[rule_format])
-        by(simp add: norm_mul field_simps)}
+        by(simp add: field_simps)}
     moreover
     {assume "x \<noteq> 0" "y = 0"
       then have "dist (?g x) (?g y) = dist x y"
-        apply (simp add: dist_norm norm_mul)
+        apply (simp add: dist_norm)
         apply (rule f1[rule_format])
-        by(simp add: norm_mul field_simps)}
+        by(simp add: field_simps)}
     moreover
     {assume z: "x \<noteq> 0" "y \<noteq> 0"
       have th00: "x = norm x *s (inverse (norm x) *s x)" "y = norm y *s (inverse (norm y) *s y)" "norm x *s f ((inverse (norm x) *s x)) = norm x *s f (inverse (norm x) *s x)"
@@ -1013,7 +1013,7 @@ proof-
         "norm (f (inverse (norm x) *s x) - f (inverse (norm y) *s y)) =
         norm (inverse (norm x) *s x - inverse (norm y) *s y)"
         using z
-        by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
+        by (auto simp add: vector_smult_assoc field_simps intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
         by (simp add: dist_norm)}
     ultimately have "dist (?g x) (?g y) = dist x y" by blast}
@@ -1047,7 +1047,7 @@ lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
   by (simp add: nat_number setprod_numseg mult_commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
-  by (simp add: det_def permutes_sing sign_id UNIV_1)
+  by (simp add: det_def sign_id UNIV_1)
 
 lemma det_2: "det (A::'a::comm_ring_1^2^2) = A$1$1 * A$2$2 - A$1$2 * A$2$1"
 proof-
@@ -1057,7 +1057,7 @@ proof-
   unfolding setsum_over_permutations_insert[OF f12]
   unfolding permutes_sing
   apply (simp add: sign_swap_id sign_id swap_id_eq)
-  by (simp add: arith_simps(31)[symmetric] of_int_minus of_int_1 del: arith_simps(31))
+  by (simp add: arith_simps(31)[symmetric] del: arith_simps(31))
 qed
 
 lemma det_3: "det (A::'a::comm_ring_1^3^3) =
@@ -1078,8 +1078,8 @@ proof-
 
   unfolding permutes_sing
   apply (simp add: sign_swap_id permutation_swap_id sign_compose sign_id swap_id_eq)
-  apply (simp add: arith_simps(31)[symmetric] of_int_minus of_int_1 del: arith_simps(31))
-  by (simp add: ring_simps)
+  apply (simp add: arith_simps(31)[symmetric] del: arith_simps(31))
+  by (simp add: field_simps)
 qed
 
 end

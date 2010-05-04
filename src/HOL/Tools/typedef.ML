@@ -182,7 +182,8 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
         val thy = ProofContext.theory_of set_lthy;
         val cert = Thm.cterm_of thy;
         val (defs, A) =
-          Local_Defs.export_cterm set_lthy (ProofContext.init thy) (cert set') ||> Thm.term_of;
+          Local_Defs.export_cterm set_lthy (ProofContext.init_global thy) (cert set')
+          ||> Thm.term_of;
 
         val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy |>
           Local_Theory.theory_result (primitive_typedef typedef_name newT oldT Rep_name Abs_name A);
@@ -282,7 +283,7 @@ fun gen_typedef prep_term prep_constraint ((def, name), (b, raw_args, mx), set, 
     val ((goal, goal_pat, typedef_result), lthy') =
       prepare_typedef prep_term def name (b, args, mx) set opt_morphs lthy;
     fun after_qed [[th]] = snd o typedef_result th;
-  in Proof.theorem_i NONE after_qed [[(goal, [goal_pat])]] lthy' end;
+  in Proof.theorem NONE after_qed [[(goal, [goal_pat])]] lthy' end;
 
 in
 

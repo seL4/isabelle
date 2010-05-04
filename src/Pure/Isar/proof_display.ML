@@ -48,7 +48,7 @@ fun pp_cterm ct = pp_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
 
 fun pretty_theorems_diff verbose prev_thys thy =
   let
-    val pretty_fact = ProofContext.pretty_fact (ProofContext.init thy);
+    val pretty_fact = ProofContext.pretty_fact (ProofContext.init_global thy);
     val facts = PureThy.facts_of thy;
     val thmss =
       Facts.dest_static (map PureThy.facts_of prev_thys) facts

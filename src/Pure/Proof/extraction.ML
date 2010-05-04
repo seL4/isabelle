@@ -136,8 +136,7 @@ fun strip_abs 0 t = t
   | strip_abs n (Abs (_, _, t)) = strip_abs (n-1) t
   | strip_abs _ _ = error "strip_abs: not an abstraction";
 
-fun prf_subst_TVars tye =
-  map_proof_terms (subst_TVars tye) (typ_subst_TVars tye);
+val prf_subst_TVars = map_proof_types o typ_subst_TVars;
 
 fun relevant_vars types prop = List.foldr (fn
       (Var ((a, _), T), vs) => (case strip_type T of

@@ -69,7 +69,6 @@ signature BASIC_THM =
   val weaken: cterm -> thm -> thm
   val weaken_sorts: sort list -> cterm -> cterm
   val extra_shyps: thm -> sort list
-  val strip_shyps: thm -> thm
 
   (*meta rules*)
   val assume: cterm -> thm
@@ -92,8 +91,6 @@ signature BASIC_THM =
   val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
   val trivial: cterm -> thm
-  val of_class: ctyp * class -> thm
-  val unconstrainT: ctyp -> thm -> thm
   val dest_state: thm * int -> (term * term) list * term list * term * term
   val lift_rule: cterm -> thm -> thm
   val incr_indexes: int -> thm -> thm
@@ -139,7 +136,11 @@ sig
   val adjust_maxidx_thm: int -> thm -> thm
   val varifyT_global: thm -> thm
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
-  val freezeT: thm -> thm
+  val of_class: ctyp * class -> thm
+  val strip_shyps: thm -> thm
+  val unconstrainT: ctyp -> thm -> thm
+  val unconstrain_allTs: thm -> thm
+  val legacy_freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
   val rotate_rule: int -> int -> thm -> thm
@@ -475,26 +476,6 @@ fun weaken_sorts raw_sorts ct =
     val sorts' = Sorts.union sorts more_sorts;
   in Cterm {thy_ref = Theory.check_thy thy, t = t, T = T, maxidx = maxidx, sorts = sorts'} end;
 
-
-
-(** sort contexts of theorems **)
-
-(*remove extra sorts that are witnessed by type signature information*)
-fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
-  | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
-      let
-        val thy = Theory.deref thy_ref;
-        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_snd op =)) thm [];
-        val extra = fold (Sorts.remove_sort o #2) present shyps;
-        val witnessed = Sign.witness_sorts thy present extra;
-        val extra' = fold (Sorts.remove_sort o #2) witnessed extra
-          |> Sorts.minimal_sorts (Sign.classes_of thy);
-        val shyps' = fold (Sorts.insert_sort o #2) present extra';
-      in
-        Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
-          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
-      end;
-
 (*dangling sort constraints of a thm*)
 fun extra_shyps (th as Thm (_, {shyps, ...})) =
   Sorts.subtract (fold_terms Sorts.insert_term th []) shyps;
@@ -531,6 +512,9 @@ fun deriv_rule2 f
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
 fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
 
+fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, proof}}) =
+  make_deriv promises oracles thms (f proof);
+
 
 (* fulfilled proofs *)
 
@@ -564,14 +548,13 @@ fun status_of (Thm (Deriv {promises, body}, _)) =
 
 (* future rule *)
 
-fun future_result i orig_thy orig_shyps orig_prop raw_thm =
+fun future_result i orig_thy orig_shyps orig_prop thm =
   let
-    val _ = Theory.check_thy orig_thy;
-    val thm = strip_shyps (transfer orig_thy raw_thm);
-    val _ = Theory.check_thy orig_thy;
     fun err msg = raise THM ("future_result: " ^ msg, 0, [thm]);
+    val Thm (Deriv {promises, ...}, {thy_ref, shyps, hyps, tpairs, prop, ...}) = thm;
 
-    val Thm (Deriv {promises, ...}, {shyps, hyps, tpairs, prop, ...}) = thm;
+    val _ = Theory.eq_thy (Theory.deref thy_ref, orig_thy) orelse err "bad theory";
+    val _ = Theory.check_thy orig_thy;
     val _ = prop aconv orig_prop orelse err "bad prop";
     val _ = null tpairs orelse err "bad tpairs";
     val _ = null hyps orelse err "bad hyps";
@@ -1219,6 +1202,25 @@ fun of_class (cT, raw_c) =
     else raise THM ("of_class: type not of class " ^ Syntax.string_of_sort_global thy [c], 0, [])
   end;
 
+(*Remove extra sorts that are witnessed by type signature information*)
+fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
+  | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
+      let
+        val thy = Theory.deref thy_ref;
+        val algebra = Sign.classes_of thy;
+
+        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
+        val extra = fold (Sorts.remove_sort o #2) present shyps;
+        val witnessed = Sign.witness_sorts thy present extra;
+        val extra' = fold (Sorts.remove_sort o #2) witnessed extra
+          |> Sorts.minimal_sorts algebra;
+        val shyps' = fold (Sorts.insert_sort o #2) present extra';
+      in
+        Thm (deriv_rule_unconditional (Pt.strip_shyps_proof algebra present witnessed extra') der,
+         {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
+          shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
+      end;
+
 (*Internalize sort constraints of type variable*)
 fun unconstrainT
     (Ctyp {thy_ref = thy_ref1, T, ...})
@@ -1240,6 +1242,11 @@ fun unconstrainT
       prop = Logic.list_implies (constraints, unconstrain prop)})
   end;
 
+fun unconstrain_allTs th =
+  fold (unconstrainT o ctyp_of (theory_of_thm th) o TVar)
+    (fold_terms Term.add_tvars th []) th;
+
+
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT_global' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
@@ -1260,14 +1267,14 @@ fun varifyT_global' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop
 
 val varifyT_global = #2 o varifyT_global' [];
 
-(* Replace all TVars by new TFrees *)
-fun freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
+(* Replace all TVars by TFrees that are often new *)
+fun legacy_freezeT (Thm (der, {thy_ref, shyps, hyps, tpairs, prop, ...})) =
   let
     val prop1 = attach_tpairs tpairs prop;
     val prop2 = Type.legacy_freeze prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);
   in
-    Thm (deriv_rule1 (Pt.freezeT prop1) der,
+    Thm (deriv_rule1 (Pt.legacy_freezeT prop1) der,
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx_of_term prop2,

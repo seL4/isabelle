@@ -40,7 +40,7 @@ subsection {* Primitive logic *}
 subsubsection {* Core syntax *}
 
 classes type
-defaultsort type
+default_sort type
 setup {* Object_Logic.add_base_sort @{sort type} *}
 
 arities
@@ -73,7 +73,7 @@ consts
 local
 
 consts
-  If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" 10)
+  If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
 
 
 subsubsection {* Additional concrete syntax *}
@@ -118,7 +118,7 @@ syntax
   "_bind"       :: "[pttrn, 'a] => letbind"              ("(2_ =/ _)" 10)
   ""            :: "letbind => letbinds"                 ("_")
   "_binds"      :: "[letbind, letbinds] => letbinds"     ("_;/ _")
-  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" 10)
+  "_Let"        :: "[letbinds, 'a] => 'a"                ("(let (_)/ in (_))" [0, 10] 10)
 
   "_case_syntax":: "['a, cases_syn] => 'b"               ("(case _ of/ _)" 10)
   "_case1"      :: "['a, 'b] => case_syn"                ("(2_ =>/ _)" 10)
@@ -1491,9 +1491,9 @@ structure Induct = Induct
 setup {*
   Induct.setup #>
   Context.theory_map (Induct.map_simpset (fn ss => ss
-    setmksimps (Simpdata.mksimps Simpdata.mksimps_pairs #>
+    setmksimps (fn ss => Simpdata.mksimps Simpdata.mksimps_pairs ss #>
       map (Simplifier.rewrite_rule (map Thm.symmetric
-        @{thms induct_rulify_fallback induct_true_def induct_false_def})))
+        @{thms induct_rulify_fallback})))
     addsimprocs
       [Simplifier.simproc @{theory} "swap_induct_false"
          ["induct_false ==> PROP P ==> PROP Q"]
@@ -1869,7 +1869,7 @@ lemma equals_alias_cert: "OFCLASS('a, eq_class) \<equiv> ((op = :: 'a \<Rightarr
 proof
   assume "PROP ?ofclass"
   show "PROP ?eq"
-    by (tactic {* ALLGOALS (rtac (Drule.unconstrainTs @{thm equals_eq})) *}) 
+    by (tactic {* ALLGOALS (rtac (Thm.unconstrain_allTs @{thm equals_eq})) *}) 
       (fact `PROP ?ofclass`)
 next
   assume "PROP ?eq"
@@ -1886,7 +1886,6 @@ setup {*
 *}
 
 hide_const (open) eq
-hide_const eq
 
 text {* Cases *}
 
@@ -1961,6 +1960,10 @@ code_const undefined
   (Scala "!error(\"undefined\")")
 
 subsubsection {* Evaluation and normalization by evaluation *}
+
+text {* Avoid some named infixes in evaluation environment *}
+
+code_reserved Eval oo ooo oooo upto downto orf andf mem mem_int mem_string
 
 setup {*
   Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)

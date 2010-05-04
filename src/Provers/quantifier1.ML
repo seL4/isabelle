@@ -113,7 +113,7 @@ fun extract_quant extract q =
   in exqu [] end;
 
 fun prove_conv tac thy tu =
-  Goal.prove (ProofContext.init thy) [] [] (Logic.mk_equals tu)
+  Goal.prove (ProofContext.init_global thy) [] [] (Logic.mk_equals tu)
     (K (rtac iff_reflection 1 THEN tac));
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 

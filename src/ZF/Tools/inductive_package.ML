@@ -62,7 +62,7 @@ fun add_inductive_i verbose (rec_tms, dom_sum)
   raw_intr_specs (monos, con_defs, type_intrs, type_elims) thy =
 let
   val _ = Theory.requires thy "Inductive_ZF" "(co)inductive definitions";
-  val ctxt = ProofContext.init thy;
+  val ctxt = ProofContext.init_global thy;
 
   val intr_specs = map (apfst (apfst Binding.name_of)) raw_intr_specs;
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
@@ -174,7 +174,7 @@ let
     |> Sign.add_path big_rec_base_name
     |> PureThy.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
 
-  val ctxt1 = ProofContext.init thy1;
+  val ctxt1 = ProofContext.init_global thy1;
 
 
   (*fetch fp definitions from the theory*)
@@ -261,16 +261,16 @@ let
       THEN (PRIMITIVE (fold_rule part_rec_defs));
 
   (*Elimination*)
-  val elim = rule_by_tactic basic_elim_tac
+  val elim = rule_by_tactic (ProofContext.init_global thy1) basic_elim_tac
                  (unfold RS Ind_Syntax.equals_CollectD)
 
   (*Applies freeness of the given constructors, which *must* be unfolded by
       the given defs.  Cannot simply use the local con_defs because
       con_defs=[] for inference systems.
     Proposition A should have the form t:Si where Si is an inductive set*)
-  fun make_cases ss A =
-    rule_by_tactic
-      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ss) THEN basic_elim_tac)
+  fun make_cases ctxt A =
+    rule_by_tactic ctxt
+      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac (simpset_of ctxt)) THEN basic_elim_tac)
       (Thm.assume A RS elim)
       |> Drule.export_without_context_open;
 
@@ -328,7 +328,7 @@ let
      (*We use a MINIMAL simpset. Even FOL_ss contains too many simpules.
        If the premises get simplified, then the proofs could fail.*)
      val min_ss = Simplifier.global_context thy empty_ss
-           setmksimps (map mk_eq o ZF_atomize o gen_all)
+           setmksimps (K (map mk_eq o ZF_atomize o gen_all))
            setSolver (mk_solver "minimal"
                       (fn prems => resolve_tac (triv_rls@prems)
                                    ORELSE' assume_tac
@@ -554,7 +554,7 @@ let
 fun add_inductive (srec_tms, sdom_sum) intr_srcs
     (raw_monos, raw_con_defs, raw_type_intrs, raw_type_elims) thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     val read_terms = map (Syntax.parse_term ctxt #> TypeInfer.constrain Ind_Syntax.iT)
       #> Syntax.check_terms ctxt;
 

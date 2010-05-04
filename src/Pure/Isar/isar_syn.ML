@@ -96,8 +96,9 @@ val _ =
     >> (Toplevel.theory o AxClass.axiomatize_classrel_cmd));
 
 val _ =
-  OuterSyntax.command "defaultsort" "declare default sort" K.thy_decl
-    (P.sort >> (Toplevel.theory o Sign.add_defsort));
+  OuterSyntax.local_theory "default_sort" "declare default sort for explicit type variables"
+    K.thy_decl
+    (P.sort >> (fn s => fn lthy => Local_Theory.set_defsort (Syntax.read_sort lthy s) lthy));
 
 
 (* types *)
@@ -224,22 +225,22 @@ val _ =
     >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
 val _ =
-  OuterSyntax.local_theory "type_notation" "add notation for type constructors" K.thy_decl
+  OuterSyntax.local_theory "type_notation" "add concrete syntax for type constructors" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
 
 val _ =
-  OuterSyntax.local_theory "no_type_notation" "delete notation for type constructors" K.thy_decl
+  OuterSyntax.local_theory "no_type_notation" "delete concrete syntax for type constructors" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- P.mixfix)
     >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
 
 val _ =
-  OuterSyntax.local_theory "notation" "add notation for constants / fixed variables" K.thy_decl
+  OuterSyntax.local_theory "notation" "add concrete syntax for constants / fixed variables" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
     >> (fn (mode, args) => Specification.notation_cmd true mode args));
 
 val _ =
-  OuterSyntax.local_theory "no_notation" "delete notation for constants / fixed variables" K.thy_decl
+  OuterSyntax.local_theory "no_notation" "delete concrete syntax for constants / fixed variables" K.thy_decl
     (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
     >> (fn (mode, args) => Specification.notation_cmd false mode args));
 
@@ -510,6 +511,13 @@ val _ = gen_theorem true Thm.lemmaK;
 val _ = gen_theorem true Thm.corollaryK;
 
 val _ =
+  OuterSyntax.local_theory_to_proof "example_proof"
+    "example proof body, without any result" K.thy_schematic_goal
+    (Scan.succeed
+      (Specification.schematic_theorem_cmd "" NONE (K I)
+        Attrib.empty_binding [] (Element.Shows []) false #> Proof.enter_forward));
+
+val _ =
   OuterSyntax.command "have" "state local goal"
     (K.tag_proof K.prf_goal)
     (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
@@ -542,27 +550,27 @@ val _ =
 val _ =
   OuterSyntax.command "from" "forward chaining from given facts"
     (K.tag_proof K.prf_chain)
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.from_thmss)));
+    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.from_thmss_cmd)));
 
 val _ =
   OuterSyntax.command "with" "forward chaining from given and current facts"
     (K.tag_proof K.prf_chain)
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.with_thmss)));
+    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.with_thmss_cmd)));
 
 val _ =
   OuterSyntax.command "note" "define facts"
     (K.tag_proof K.prf_decl)
-    (SpecParse.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss)));
+    (SpecParse.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss_cmd)));
 
 val _ =
   OuterSyntax.command "using" "augment goal facts"
     (K.tag_proof K.prf_decl)
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.using)));
+    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.using_cmd)));
 
 val _ =
   OuterSyntax.command "unfolding" "unfold definitions in goal and facts"
     (K.tag_proof K.prf_decl)
-    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.unfolding)));
+    (facts >> (Toplevel.print oo (Toplevel.proof o Proof.unfolding_cmd)));
 
 
 (* proof context *)
@@ -570,17 +578,17 @@ val _ =
 val _ =
   OuterSyntax.command "fix" "fix local variables (Skolem constants)"
     (K.tag_proof K.prf_asm)
-    (P.fixes >> (Toplevel.print oo (Toplevel.proof o Proof.fix)));
+    (P.fixes >> (Toplevel.print oo (Toplevel.proof o Proof.fix_cmd)));
 
 val _ =
   OuterSyntax.command "assume" "assume propositions"
     (K.tag_proof K.prf_asm)
-    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume)));
+    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume_cmd)));
 
 val _ =
   OuterSyntax.command "presume" "assume propositions, to be established later"
     (K.tag_proof K.prf_asm)
-    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume)));
+    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume_cmd)));
 
 val _ =
   OuterSyntax.command "def" "local definition"
@@ -588,24 +596,30 @@ val _ =
     (P.and_list1
       (SpecParse.opt_thm_name ":" --
         ((P.binding -- P.opt_mixfix) -- ((P.$$$ "\\<equiv>" || P.$$$ "==") |-- P.!!! P.termp)))
-    >> (Toplevel.print oo (Toplevel.proof o Proof.def)));
+    >> (Toplevel.print oo (Toplevel.proof o Proof.def_cmd)));
 
 val _ =
   OuterSyntax.command "obtain" "generalized existence"
     (K.tag_proof K.prf_asm_goal)
     (P.parname -- Scan.optional (P.fixes --| P.where_) [] -- SpecParse.statement
-      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain x y z)));
+      >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain_cmd x y z)));
 
 val _ =
   OuterSyntax.command "guess" "wild guessing (unstructured)"
     (K.tag_proof K.prf_asm_goal)
-    (Scan.optional P.fixes [] >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess)));
+    (Scan.optional P.fixes [] >> (Toplevel.print oo (Toplevel.proof' o Obtain.guess_cmd)));
 
 val _ =
   OuterSyntax.command "let" "bind text variables"
     (K.tag_proof K.prf_decl)
     (P.and_list1 (P.and_list1 P.term -- (P.$$$ "=" |-- P.term))
-      >> (Toplevel.print oo (Toplevel.proof o Proof.let_bind)));
+      >> (Toplevel.print oo (Toplevel.proof o Proof.let_bind_cmd)));
+
+val _ =
+  OuterSyntax.command "write" "add concrete syntax for constants / fixed variables"
+    (K.tag_proof K.prf_decl)
+    (opt_mode -- P.and_list1 (P.xname -- SpecParse.locale_mixfix)
+    >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
 
 val case_spec =
   (P.$$$ "(" |-- P.!!! (P.xname -- Scan.repeat1 (P.maybe P.name) --| P.$$$ ")") ||
@@ -614,7 +628,7 @@ val case_spec =
 val _ =
   OuterSyntax.command "case" "invoke local context"
     (K.tag_proof K.prf_asm)
-    (case_spec >> (Toplevel.print oo (Toplevel.proof o Proof.invoke_case)));
+    (case_spec >> (Toplevel.print oo (Toplevel.proof o Proof.invoke_case_cmd)));
 
 
 (* proof structure *)
@@ -711,12 +725,12 @@ val calc_args =
 val _ =
   OuterSyntax.command "also" "combine calculation and current facts"
     (K.tag_proof K.prf_decl)
-    (calc_args >> (Toplevel.proofs' o Calculation.also));
+    (calc_args >> (Toplevel.proofs' o Calculation.also_cmd));
 
 val _ =
   OuterSyntax.command "finally" "combine calculation and current facts, exhibit result"
     (K.tag_proof K.prf_chain)
-    (calc_args >> (Toplevel.proofs' o Calculation.finally));
+    (calc_args >> (Toplevel.proofs' o Calculation.finally_cmd));
 
 val _ =
   OuterSyntax.command "moreover" "augment calculation by current facts"

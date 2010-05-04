@@ -37,6 +37,7 @@ sig
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
   val global_context: theory  -> simpset -> simpset
+  val with_context: Proof.context -> (simpset -> simpset) -> simpset -> simpset
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val simproc: theory -> string -> string list
@@ -108,7 +109,7 @@ structure SimpsetData = Generic_Data
 );
 
 val get_ss = SimpsetData.get;
-val map_ss = SimpsetData.map;
+fun map_ss f context = SimpsetData.map (with_context (Context.proof_of context) f) context;
 
 
 (* attributes *)
@@ -126,7 +127,7 @@ val cong_del = attrib (op delcongs);
 fun map_simpset f = Context.theory_map (map_ss f);
 fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
 fun global_simpset_of thy =
-  MetaSimplifier.context (ProofContext.init thy) (get_ss (Context.Theory thy));
+  MetaSimplifier.context (ProofContext.init_global thy) (get_ss (Context.Theory thy));
 
 fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
 fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
@@ -411,7 +412,7 @@ fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn
     empty_ss setsubgoaler asm_simp_tac
     setSSolver safe_solver
     setSolver unsafe_solver
-    setmksimps mksimps
+    setmksimps (K mksimps)
   end));
 
 end;

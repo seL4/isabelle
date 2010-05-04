@@ -8,7 +8,7 @@ theory Automata
 imports Asig
 begin
 
-defaultsort type
+default_sort type
 
 types
   ('a, 's) transition = "'s * 'a * 's"

@@ -297,7 +297,7 @@ qed
 
 subsection {* Type constructor for finite deflations *}
 
-defaultsort profinite
+default_sort profinite
 
 typedef (open) 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
 by (fast intro: finite_deflation_approx)

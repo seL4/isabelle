@@ -23,13 +23,11 @@ consts
 
 declare [[ atp_problem_prefix = "Abstraction__Collect_triv" ]]
 lemma (*Collect_triv:*) "a \<in> {x. P x} ==> P a"
-proof (neg_clausify)
-assume 0: "(a\<Colon>'a\<Colon>type) \<in> Collect (P\<Colon>'a\<Colon>type \<Rightarrow> bool)"
-assume 1: "\<not> (P\<Colon>'a\<Colon>type \<Rightarrow> bool) (a\<Colon>'a\<Colon>type)"
-have 2: "(P\<Colon>'a\<Colon>type \<Rightarrow> bool) (a\<Colon>'a\<Colon>type)"
-  by (metis CollectD 0)
-show "False"
-  by (metis 2 1)
+proof -
+  assume "a \<in> {x. P x}"
+  hence "a \<in> P" by (metis Collect_def)
+  hence "P a" by (metis mem_def)
+  thus "P a" by metis
 qed
 
 lemma Collect_triv: "a \<in> {x. P x} ==> P a"
@@ -38,76 +36,52 @@ by (metis mem_Collect_eq)
 
 declare [[ atp_problem_prefix = "Abstraction__Collect_mp" ]]
 lemma "a \<in> {x. P x --> Q x} ==> a \<in> {x. P x} ==> a \<in> {x. Q x}"
-  by (metis CollectI Collect_imp_eq ComplD UnE mem_Collect_eq);
-  --{*34 secs*}
+  by (metis Collect_imp_eq ComplD UnE)
 
 declare [[ atp_problem_prefix = "Abstraction__Sigma_triv" ]]
 lemma "(a,b) \<in> Sigma A B ==> a \<in> A & b \<in> B a"
-proof (neg_clausify)
-assume 0: "(a\<Colon>'a\<Colon>type, b\<Colon>'b\<Colon>type) \<in> Sigma (A\<Colon>'a\<Colon>type set) (B\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>type set)"
-assume 1: "(a\<Colon>'a\<Colon>type) \<notin> (A\<Colon>'a\<Colon>type set) \<or> (b\<Colon>'b\<Colon>type) \<notin> (B\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>type set) a"
-have 2: "(a\<Colon>'a\<Colon>type) \<in> (A\<Colon>'a\<Colon>type set)"
-  by (metis SigmaD1 0)
-have 3: "(b\<Colon>'b\<Colon>type) \<in> (B\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>type set) (a\<Colon>'a\<Colon>type)"
-  by (metis SigmaD2 0)
-have 4: "(b\<Colon>'b\<Colon>type) \<notin> (B\<Colon>'a\<Colon>type \<Rightarrow> 'b\<Colon>type set) (a\<Colon>'a\<Colon>type)"
-  by (metis 1 2)
-show "False"
-  by (metis 3 4)
+proof -
+  assume A1: "(a, b) \<in> Sigma A B"
+  hence F1: "b \<in> B a" by (metis mem_Sigma_iff)
+  have F2: "a \<in> A" by (metis A1 mem_Sigma_iff)
+  have "b \<in> B a" by (metis F1)
+  thus "a \<in> A \<and> b \<in> B a" by (metis F2)
 qed
 
 lemma Sigma_triv: "(a,b) \<in> Sigma A B ==> a \<in> A & b \<in> B a"
 by (metis SigmaD1 SigmaD2)
 
 declare [[ atp_problem_prefix = "Abstraction__Sigma_Collect" ]]
-lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
-(*???metis says this is satisfiable!
+lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
+(* Metis says this is satisfiable!
 by (metis CollectD SigmaD1 SigmaD2)
 *)
 by (meson CollectD SigmaD1 SigmaD2)
 
 
-(*single-step*)
-lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
-by (metis SigmaD1 SigmaD2 insert_def singleton_conv2 Un_empty_right vimage_Collect_eq vimage_def vimage_singleton_eq)
+lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
+by (metis mem_Sigma_iff singleton_conv2 vimage_Collect_eq vimage_singleton_eq)
 
-
-lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
-proof (neg_clausify)
-assume 0: "(a\<Colon>'a\<Colon>type, b\<Colon>'b\<Colon>type)
-\<in> Sigma (A\<Colon>'a\<Colon>type set)
-   (COMBB Collect (COMBC (COMBB COMBB op =) (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type)))"
-assume 1: "(a\<Colon>'a\<Colon>type) \<notin> (A\<Colon>'a\<Colon>type set) \<or> a \<noteq> (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type)"
-have 2: "(a\<Colon>'a\<Colon>type) \<in> (A\<Colon>'a\<Colon>type set)"
-  by (metis 0 SigmaD1)
-have 3: "(b\<Colon>'b\<Colon>type)
-\<in> COMBB Collect (COMBC (COMBB COMBB op =) (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type)) (a\<Colon>'a\<Colon>type)"
-  by (metis 0 SigmaD2) 
-have 4: "(b\<Colon>'b\<Colon>type) \<in> Collect (COMBB (op = (a\<Colon>'a\<Colon>type)) (f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type))"
-  by (metis 3)
-have 5: "(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type) \<noteq> (a\<Colon>'a\<Colon>type)"
-  by (metis 1 2)
-have 6: "(f\<Colon>'b\<Colon>type \<Rightarrow> 'a\<Colon>type) (b\<Colon>'b\<Colon>type) = (a\<Colon>'a\<Colon>type)"
-  by (metis 4 vimage_singleton_eq insert_def singleton_conv2 Un_empty_right vimage_Collect_eq vimage_def)
-show "False"
-  by (metis 5 6)
+lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
+proof -
+  assume A1: "(a, b) \<in> (SIGMA x:A. {y. x = f y})"
+  have F1: "\<forall>u. {u} = op = u" by (metis singleton_conv2 Collect_def)
+  have F2: "\<forall>y w v. v \<in> w -` op = y \<longrightarrow> w v = y"
+    by (metis F1 vimage_singleton_eq)
+  have F3: "\<forall>x w. (\<lambda>R. w (x R)) = x -` w"
+    by (metis vimage_Collect_eq Collect_def)
+  show "a \<in> A \<and> a = f b" by (metis A1 F2 F3 mem_Sigma_iff Collect_def)
 qed
 
-(*Alternative structured proof, untyped*)
-lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
-proof (neg_clausify)
-assume 0: "(a, b) \<in> Sigma A (COMBB Collect (COMBC (COMBB COMBB op =) f))"
-have 1: "b \<in> Collect (COMBB (op = a) f)"
-  by (metis 0 SigmaD2)
-have 2: "f b = a"
-  by (metis 1 vimage_Collect_eq singleton_conv2 insert_def Un_empty_right vimage_singleton_eq vimage_def)
-assume 3: "a \<notin> A \<or> a \<noteq> f b"
-have 4: "a \<in> A"
-  by (metis 0 SigmaD1)
-have 5: "f b \<noteq> a"
-  by (metis 4 3)
-show "False"
-  by (metis 5 2)
+(* Alternative structured proof *)
+lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
+proof -
+  assume A1: "(a, b) \<in> (SIGMA x:A. {y. x = f y})"
+  hence F1: "a \<in> A" by (metis mem_Sigma_iff)
+  have "b \<in> {R. a = f R}" by (metis A1 mem_Sigma_iff)
+  hence F2: "b \<in> (\<lambda>R. a = f R)" by (metis Collect_def)
+  hence "a = f b" by (unfold mem_def)
+  thus "a \<in> A \<and> a = f b" by (metis F1)
 qed
 
 
@@ -116,56 +90,40 @@ lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in
 by (metis Collect_mem_eq SigmaD2)
 
 lemma "(cl,f) \<in> CLF ==> CLF = (SIGMA cl: CL.{f. f \<in> pset cl}) ==> f \<in> pset cl"
-proof (neg_clausify)
-assume 0: "(cl, f) \<in> CLF"
-assume 1: "CLF = Sigma CL (COMBB Collect (COMBB (COMBC op \<in>) pset))"
-assume 2: "f \<notin> pset cl"
-have 3: "\<And>X1 X2. X2 \<in> COMBB Collect (COMBB (COMBC op \<in>) pset) X1 \<or> (X1, X2) \<notin> CLF"
-  by (metis SigmaD2 1)
-have 4: "\<And>X1 X2. X2 \<in> pset X1 \<or> (X1, X2) \<notin> CLF"
-  by (metis 3 Collect_mem_eq)
-have 5: "(cl, f) \<notin> CLF"
-  by (metis 2 4)
-show "False"
-  by (metis 5 0)
+proof -
+  assume A1: "(cl, f) \<in> CLF"
+  assume A2: "CLF = (SIGMA cl:CL. {f. f \<in> pset cl})"
+  have F1: "\<forall>v. (\<lambda>R. R \<in> v) = v" by (metis Collect_mem_eq Collect_def)
+  have "\<forall>v u. (u, v) \<in> CLF \<longrightarrow> v \<in> {R. R \<in> pset u}" by (metis A2 mem_Sigma_iff)
+  hence "\<forall>v u. (u, v) \<in> CLF \<longrightarrow> v \<in> pset u" by (metis F1 Collect_def)
+  hence "f \<in> pset cl" by (metis A1)
+  thus "f \<in> pset cl" by metis
 qed
 
 declare [[ atp_problem_prefix = "Abstraction__Sigma_Collect_Pi" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
     f \<in> pset cl \<rightarrow> pset cl"
-proof (neg_clausify)
-assume 0: "f \<notin> Pi (pset cl) (COMBK (pset cl))"
-assume 1: "(cl, f)
-\<in> Sigma CL
-   (COMBB Collect
-     (COMBB (COMBC op \<in>) (COMBS (COMBB Pi pset) (COMBB COMBK pset))))"
-show "False"
-(*  by (metis 0 Collect_mem_eq SigmaD2 1) ??doesn't terminate*)
-  by (insert 0 1, simp add: COMBB_def COMBS_def COMBC_def)
+proof -
+  assume A1: "(cl, f) \<in> (SIGMA cl:CL. {f. f \<in> pset cl \<rightarrow> pset cl})"
+  have F1: "\<forall>v. (\<lambda>R. R \<in> v) = v" by (metis Collect_mem_eq Collect_def)
+  have "f \<in> {R. R \<in> pset cl \<rightarrow> pset cl}" using A1 by simp
+  hence "f \<in> pset cl \<rightarrow> pset cl" by (metis F1 Collect_def)
+  thus "f \<in> pset cl \<rightarrow> pset cl" by metis
 qed
-
 
 declare [[ atp_problem_prefix = "Abstraction__Sigma_Collect_Int" ]]
 lemma
     "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
-proof (neg_clausify)
-assume 0: "(cl, f)
-\<in> Sigma CL
-   (COMBB Collect (COMBB (COMBC op \<in>) (COMBS (COMBB op \<inter> pset) COMBI)))"
-assume 1: "f \<notin> pset cl \<inter> cl"
-have 2: "f \<in> COMBB Collect (COMBB (COMBC op \<in>) (COMBS (COMBB op \<inter> pset) COMBI)) cl" 
-  by (insert 0, simp add: COMBB_def) 
-(*  by (metis SigmaD2 0)  ??doesn't terminate*)
-have 3: "f \<in> COMBS (COMBB op \<inter> pset) COMBI cl"
-  by (metis 2 Collect_mem_eq)
-have 4: "f \<notin> cl \<inter> pset cl"
-  by (metis 1 Int_commute)
-have 5: "f \<in> cl \<inter> pset cl"
-  by (metis 3 Int_commute)
-show "False"
-  by (metis 5 4)
+proof -
+  assume A1: "(cl, f) \<in> (SIGMA cl:CL. {f. f \<in> pset cl \<inter> cl})"
+  have F1: "\<forall>v. (\<lambda>R. R \<in> v) = v" by (metis Collect_mem_eq Collect_def)
+  have "f \<in> {R. R \<in> pset cl \<inter> cl}" using A1 by simp
+  hence "f \<in> Id_on cl `` pset cl" by (metis F1 Int_commute Image_Id_on Collect_def)
+  hence "f \<in> Id_on cl `` pset cl" by metis
+  hence "f \<in> cl \<inter> pset cl" by (metis Image_Id_on)
+  thus "f \<in> pset cl \<inter> cl" by (metis Int_commute)
 qed
 
 
@@ -181,19 +139,13 @@ lemma "(cl,f) \<in> CLF ==>
    f \<in> pset cl \<inter> cl"
 by auto
 
-(*??no longer terminates, with combinators
-by (metis Collect_mem_eq Int_def SigmaD2 UnCI Un_absorb1)
-  --{*@{text Int_def} is redundant*}
-*)
 
 declare [[ atp_problem_prefix = "Abstraction__CLF_eq_Collect_Int" ]]
 lemma "(cl,f) \<in> CLF ==> 
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
 by auto
-(*??no longer terminates, with combinators
-by (metis Collect_mem_eq Int_commute SigmaD2)
-*)
+
 
 declare [[ atp_problem_prefix = "Abstraction__CLF_subset_Collect_Pi" ]]
 lemma 
@@ -201,9 +153,7 @@ lemma
     CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) ==> 
     f \<in> pset cl \<rightarrow> pset cl"
 by fast
-(*??no longer terminates, with combinators
-by (metis Collect_mem_eq SigmaD2 subsetD)
-*)
+
 
 declare [[ atp_problem_prefix = "Abstraction__CLF_eq_Collect_Pi" ]]
 lemma 
@@ -211,9 +161,7 @@ lemma
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
    f \<in> pset cl \<rightarrow> pset cl"
 by auto
-(*??no longer terminates, with combinators
-by (metis Collect_mem_eq SigmaD2 contra_subsetD equalityE)
-*)
+
 
 declare [[ atp_problem_prefix = "Abstraction__CLF_eq_Collect_Pi_mono" ]]
 lemma 
@@ -225,37 +173,33 @@ by auto
 declare [[ atp_problem_prefix = "Abstraction__map_eq_zipA" ]]
 lemma "map (%x. (f x, g x)) xs = zip (map f xs) (map g xs)"
 apply (induct xs)
-(*sledgehammer*)  
-apply auto
-done
+ apply (metis map_is_Nil_conv zip.simps(1))
+by auto
 
 declare [[ atp_problem_prefix = "Abstraction__map_eq_zipB" ]]
 lemma "map (%w. (w -> w, w \<times> w)) xs = 
        zip (map (%w. w -> w) xs) (map (%w. w \<times> w) xs)"
 apply (induct xs)
-(*sledgehammer*)  
-apply auto
-done
+ apply (metis Nil_is_map_conv zip_Nil)
+by auto
 
 declare [[ atp_problem_prefix = "Abstraction__image_evenA" ]]
-lemma "(%x. Suc(f x)) ` {x. even x} <= A ==> (\<forall>x. even x --> Suc(f x) \<in> A)";
-(*sledgehammer*)  
-by auto
+lemma "(%x. Suc(f x)) ` {x. even x} <= A ==> (\<forall>x. even x --> Suc(f x) \<in> A)"
+by (metis Collect_def image_subset_iff mem_def)
 
 declare [[ atp_problem_prefix = "Abstraction__image_evenB" ]]
 lemma "(%x. f (f x)) ` ((%x. Suc(f x)) ` {x. even x}) <= A 
        ==> (\<forall>x. even x --> f (f (Suc(f x))) \<in> A)";
-(*sledgehammer*)  
-by auto
+by (metis Collect_def imageI image_image image_subset_iff mem_def)
 
 declare [[ atp_problem_prefix = "Abstraction__image_curry" ]]
 lemma "f \<in> (%u v. b \<times> u \<times> v) ` A ==> \<forall>u v. P (b \<times> u \<times> v) ==> P(f y)" 
-(*sledgehammer*)  
+(*sledgehammer*)
 by auto
 
 declare [[ atp_problem_prefix = "Abstraction__image_TimesA" ]]
 lemma image_TimesA: "(%(x,y). (f x, g y)) ` (A \<times> B) = (f`A) \<times> (g`B)"
-(*sledgehammer*) 
+(*sledgehammer*)
 apply (rule equalityI)
 (***Even the two inclusions are far too difficult
 using [[ atp_problem_prefix = "Abstraction__image_TimesA_simpler"]]
@@ -283,15 +227,15 @@ impossible*)
 
 declare [[ atp_problem_prefix = "Abstraction__image_TimesB" ]]
 lemma image_TimesB:
-    "(%(x,y,z). (f x, g y, h z)) ` (A \<times> B \<times> C) = (f`A) \<times> (g`B) \<times> (h`C)" 
-(*sledgehammer*) 
+    "(%(x,y,z). (f x, g y, h z)) ` (A \<times> B \<times> C) = (f`A) \<times> (g`B) \<times> (h`C)"
+(*sledgehammer*)
 by force
 
 declare [[ atp_problem_prefix = "Abstraction__image_TimesC" ]]
 lemma image_TimesC:
     "(%(x,y). (x \<rightarrow> x, y \<times> y)) ` (A \<times> B) = 
      ((%x. x \<rightarrow> x) ` A) \<times> ((%y. y \<times> y) ` B)" 
-(*sledgehammer*) 
+(*sledgehammer*)
 by auto
 
 end

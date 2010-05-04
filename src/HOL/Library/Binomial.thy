@@ -236,10 +236,10 @@ proof-
     have th1: "(\<Prod>n\<in>{1\<Colon>nat..n}. a + of_nat n) =
       (\<Prod>n\<in>{0\<Colon>nat..n - 1}. a + 1 + of_nat n)"
       apply (rule setprod_reindex_cong[where f = "Suc"])
-      using n0 by (auto simp add: expand_fun_eq ring_simps)
+      using n0 by (auto simp add: expand_fun_eq field_simps)
     have ?thesis apply (simp add: pochhammer_def)
     unfolding setprod_insert[OF th0, unfolded eq]
-    using th1 by (simp add: ring_simps)}
+    using th1 by (simp add: field_simps)}
 ultimately show ?thesis by blast
 qed
 
@@ -378,10 +378,10 @@ proof(induct n arbitrary: k rule: nat_less_induct)
       by simp
     from n h th0 
     have "fact k * fact (n - k) * (n choose k) = k * (fact h * fact (m - h) * (m choose h)) +  (m - h) * (fact k * fact (m - k) * (m choose k))"
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     also have "\<dots> = (k + (m - h)) * fact m"
       using H[rule_format, OF mn hm'] H[rule_format, OF mn km]
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     finally have ?ths using h n km by simp}
   moreover have "n=0 \<or> k = 0 \<or> k = n \<or> (EX m h. n=Suc m \<and> k = Suc h \<and> h < m)" using kn by presburger
   ultimately show ?ths by blast
@@ -391,13 +391,13 @@ lemma binomial_fact:
   assumes kn: "k \<le> n" 
   shows "(of_nat (n choose k) :: 'a::field_char_0) = of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
   using binomial_fact_lemma[OF kn]
-  by (simp add: field_eq_simps of_nat_mult [symmetric])
+  by (simp add: field_simps of_nat_mult [symmetric])
 
 lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
 proof-
   {assume kn: "k > n" 
     from kn binomial_eq_0[OF kn] have ?thesis 
-      by (simp add: gbinomial_pochhammer field_eq_simps
+      by (simp add: gbinomial_pochhammer field_simps
         pochhammer_of_nat_eq_0_iff)}
   moreover
   {assume "k=0" then have ?thesis by simp}
@@ -414,13 +414,13 @@ proof-
       apply clarsimp
       apply (presburger)
       apply presburger
-      by (simp add: expand_fun_eq ring_simps of_nat_add[symmetric] del: of_nat_add)
+      by (simp add: expand_fun_eq field_simps of_nat_add[symmetric] del: of_nat_add)
     have th0: "finite {1..n - Suc h}" "finite {n - h .. n}" 
 "{1..n - Suc h} \<inter> {n - h .. n} = {}" and eq3: "{1..n - Suc h} \<union> {n - h .. n} = {1..n}" using h kn by auto
     from eq[symmetric]
     have ?thesis using kn
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a] 
-        gbinomial_pochhammer field_eq_simps pochhammer_Suc_setprod)
+        gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
       apply (simp add: pochhammer_Suc_setprod fact_altdef_nat h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult_assoc[symmetric] 
@@ -449,9 +449,9 @@ proof-
   have "?r = ((- 1) ^n * pochhammer (- a) n / of_nat (fact n)) * (of_nat n - (- a + of_nat n))"
     unfolding gbinomial_pochhammer
     pochhammer_Suc fact_Suc of_nat_mult right_diff_distrib power_Suc
-    by (simp add:  field_eq_simps del: of_nat_Suc)
+    by (simp add:  field_simps del: of_nat_Suc)
   also have "\<dots> = ?l" unfolding gbinomial_pochhammer
-    by (simp add: ring_simps)
+    by (simp add: field_simps)
   finally show ?thesis ..
 qed
 
@@ -482,17 +482,17 @@ proof-
 
     have "of_nat (fact (Suc k)) * (a gchoose k + (a gchoose (Suc k))) = ((a gchoose Suc h) * of_nat (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)" 
       unfolding h
-      apply (simp add: ring_simps del: fact_Suc)
+      apply (simp add: field_simps del: fact_Suc)
       unfolding gbinomial_mult_fact'
       apply (subst fact_Suc)
       unfolding of_nat_mult 
       apply (subst mult_commute)
       unfolding mult_assoc
       unfolding gbinomial_mult_fact
-      by (simp add: ring_simps)
+      by (simp add: field_simps)
     also have "\<dots> = (\<Prod>i\<in>{0..h}. a - of_nat i) * (a + 1)"
       unfolding gbinomial_mult_fact' setprod_nat_ivl_Suc
-      by (simp add: ring_simps h)
+      by (simp add: field_simps h)
     also have "\<dots> = (\<Prod>i\<in>{0..k}. (a + 1) - of_nat i)"
       using eq0
       unfolding h  setprod_nat_ivl_1_Suc

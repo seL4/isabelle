@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_filter.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory, NICTA
+    Author:     Jasmin Blanchette, TU Muenchen
 *)
 
 signature SLEDGEHAMMER_FACT_FILTER =
@@ -9,6 +10,7 @@ sig
   type axiom_name = Sledgehammer_HOL_Clause.axiom_name
   type hol_clause = Sledgehammer_HOL_Clause.hol_clause
   type hol_clause_id = Sledgehammer_HOL_Clause.hol_clause_id
+
   type relevance_override =
     {add: Facts.ref list,
      del: Facts.ref list,
@@ -18,15 +20,15 @@ sig
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val get_relevant_facts :
-    bool -> real -> real -> bool option -> bool -> int -> bool
-    -> relevance_override -> Proof.context * (thm list * 'a) -> thm list
+    bool -> real -> real -> bool -> int -> bool -> relevance_override
+    -> Proof.context * (thm list * 'a) -> thm list
     -> (thm * (string * int)) list
-  val prepare_clauses : bool option -> bool -> thm list -> thm list ->
-    (thm * (axiom_name * hol_clause_id)) list ->
-    (thm * (axiom_name * hol_clause_id)) list -> theory ->
-    axiom_name vector *
-      (hol_clause list * hol_clause list * hol_clause list *
-      hol_clause list * classrel_clause list * arity_clause list)
+  val prepare_clauses :
+    bool -> thm list -> thm list -> (thm * (axiom_name * hol_clause_id)) list
+    -> (thm * (axiom_name * hol_clause_id)) list -> theory
+    -> axiom_name vector
+       * (hol_clause list * hol_clause list * hol_clause list *
+          hol_clause list * classrel_clause list * arity_clause list)
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
@@ -390,13 +392,14 @@ fun add_multi_names (a, ths) pairs =
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
-(*The single theorems go BEFORE the multiple ones. Blacklist is applied to all.*)
+(* The single-name theorems go after the multiple-name ones, so that single
+   names are preferred when both are available. *)
 fun name_thm_pairs respect_no_atp ctxt =
   let
     val (mults, singles) =
       List.partition is_multi (all_valid_thms respect_no_atp ctxt)
-    val ps = [] |> fold add_multi_names mults
-                |> fold add_single_names singles
+    val ps = [] |> fold add_single_names singles
+                |> fold add_multi_names mults
   in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
 
 fun check_named ("", th) =
@@ -499,13 +502,10 @@ fun unwanted t =
   likely to lead to unsound proofs.*)
 fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 
-fun is_first_order thy higher_order goal_cls =
-  case higher_order of
-    NONE => forall (Meson.is_fol_term thy) (map prop_of goal_cls)
-  | SOME b => not b
+fun is_first_order thy = forall (Meson.is_fol_term thy) o map prop_of
 
 fun get_relevant_facts respect_no_atp relevance_threshold convergence
-                       higher_order follow_defs max_new theory_relevant
+                       follow_defs max_new theory_relevant
                        (relevance_override as {add, only, ...})
                        (ctxt, (chain_ths, th)) goal_cls =
   if (only andalso null add) orelse relevance_threshold > 1.0 then
@@ -513,7 +513,7 @@ fun get_relevant_facts respect_no_atp relevance_threshold convergence
   else
     let
       val thy = ProofContext.theory_of ctxt
-      val is_FO = is_first_order thy higher_order goal_cls
+      val is_FO = is_first_order thy goal_cls
       val included_cls = get_all_lemmas respect_no_atp ctxt
         |> cnf_rules_pairs thy |> make_unique
         |> restrict_to_logic thy is_FO
@@ -526,7 +526,7 @@ fun get_relevant_facts respect_no_atp relevance_threshold convergence
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
-fun prepare_clauses higher_order dfg goal_cls chain_ths axcls extra_cls thy =
+fun prepare_clauses dfg goal_cls chain_ths axcls extra_cls thy =
   let
     (* add chain thms *)
     val chain_cls =
@@ -534,7 +534,7 @@ fun prepare_clauses higher_order dfg goal_cls chain_ths axcls extra_cls thy =
                                   (map (`Thm.get_name_hint) chain_ths))
     val axcls = chain_cls @ axcls
     val extra_cls = chain_cls @ extra_cls
-    val is_FO = is_first_order thy higher_order goal_cls
+    val is_FO = is_first_order thy goal_cls
     val ccls = subtract_cls extra_cls goal_cls
     val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls

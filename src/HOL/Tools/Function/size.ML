@@ -133,7 +133,7 @@ fun prove_size_thms (info : info) new_type_names thy =
         val (thm, lthy') = lthy
           |> Local_Theory.define ((Binding.name c, NoSyn), ((Binding.name def_name, []), rhs))
           |-> (fn (t, (_, thm)) => Spec_Rules.add Spec_Rules.Equational ([t], [thm]) #> pair thm);
-        val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy');
+        val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy');
         val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
       in (thm', lthy') end;
 
@@ -152,7 +152,7 @@ fun prove_size_thms (info : info) new_type_names thy =
       ||> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
       ||> Local_Theory.exit_global;
 
-    val ctxt = ProofContext.init thy';
+    val ctxt = ProofContext.init_global thy';
 
     val simpset1 = HOL_basic_ss addsimps @{thm Nat.add_0} :: @{thm Nat.add_0_right} ::
       size_def_thms @ size_def_thms' @ rec_rewrites @ extra_rewrites;

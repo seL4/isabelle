@@ -51,10 +51,10 @@ sig
   val addsimprocs: simpset * simproc list -> simpset
   val delsimprocs: simpset * simproc list -> simpset
   val mksimps: simpset -> thm -> thm list
-  val setmksimps: simpset * (thm -> thm list) -> simpset
-  val setmkcong: simpset * (thm -> thm) -> simpset
-  val setmksym: simpset * (thm -> thm option) -> simpset
-  val setmkeqTrue: simpset * (thm -> thm option) -> simpset
+  val setmksimps: simpset * (simpset -> thm -> thm list) -> simpset
+  val setmkcong: simpset * (simpset -> thm -> thm) -> simpset
+  val setmksym: simpset * (simpset -> thm -> thm option) -> simpset
+  val setmkeqTrue: simpset * (simpset -> thm -> thm option) -> simpset
   val settermless: simpset * (term * term -> bool) -> simpset
   val setsubgoaler: simpset * (simpset -> int -> tactic) -> simpset
   val setloop': simpset * (simpset -> int -> tactic) -> simpset
@@ -92,10 +92,10 @@ sig
    {congs: (string * thm) list * string list,
     procs: proc Net.net,
     mk_rews:
-     {mk: thm -> thm list,
-      mk_cong: thm -> thm,
-      mk_sym: thm -> thm option,
-      mk_eq_True: thm -> thm option,
+     {mk: simpset -> thm -> thm list,
+      mk_cong: simpset -> thm -> thm,
+      mk_sym: simpset -> thm -> thm option,
+      mk_eq_True: simpset -> thm -> thm option,
       reorient: theory -> term list -> term -> term -> bool},
     termless: term * term -> bool,
     subgoal_tac: simpset -> int -> tactic,
@@ -115,6 +115,7 @@ sig
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
   val global_context: theory  -> simpset -> simpset
+  val with_context: Proof.context -> (simpset -> simpset) -> simpset -> simpset
   val debug_bounds: bool Unsynchronized.ref
   val set_reorient: (theory -> term list -> term -> term -> bool) -> simpset -> simpset
   val set_solvers: solver list -> simpset -> simpset
@@ -181,13 +182,6 @@ fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
       mk_eq_True: turn P into P == True;
     termless: relation for ordered rewriting;*)
 
-type mk_rews =
- {mk: thm -> thm list,
-  mk_cong: thm -> thm,
-  mk_sym: thm -> thm option,
-  mk_eq_True: thm -> thm option,
-  reorient: theory -> term list -> term -> term -> bool};
-
 datatype simpset =
   Simpset of
    {rules: rrule Net.net,
@@ -197,7 +191,12 @@ datatype simpset =
     context: Proof.context option} *
    {congs: (string * thm) list * string list,
     procs: proc Net.net,
-    mk_rews: mk_rews,
+    mk_rews:
+     {mk: simpset -> thm -> thm list,
+      mk_cong: simpset -> thm -> thm,
+      mk_sym: simpset -> thm -> thm option,
+      mk_eq_True: simpset -> thm -> thm option,
+      reorient: theory -> term list -> term -> term -> bool},
     termless: term * term -> bool,
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (simpset -> int -> tactic)) list,
@@ -300,7 +299,7 @@ fun print_term ss warn a t ctxt = prnt ss warn (a () ^ "\n" ^
 in
 
 fun print_term_global ss warn a thy t =
-  print_term ss warn (K a) t (ProofContext.init thy);
+  print_term ss warn (K a) t (ProofContext.init_global thy);
 
 fun if_enabled (Simpset ({context, ...}, _)) flag f =
   (case context of
@@ -328,7 +327,8 @@ fun warn_thm a ss th =
   print_term_global ss true a (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
 fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
-  if is_some context then () else warn_thm a ss th;
+  if (case context of NONE => true | SOME ctxt => Context_Position.is_visible ctxt)
+  then warn_thm a ss th else ();
 
 end;
 
@@ -355,13 +355,17 @@ fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
 fun context ctxt =
   map_simpset1 (fn (rules, prems, bounds, depth, _) => (rules, prems, bounds, depth, SOME ctxt));
 
-val global_context = context o ProofContext.init;
+val global_context = context o ProofContext.init_global;
 
 fun activate_context thy ss =
   let
     val ctxt = the_context ss;
-    val ctxt' = Context.raw_transfer (Theory.merge (thy, ProofContext.theory_of ctxt)) ctxt;
+    val ctxt' = ctxt
+      |> Context.raw_transfer (Theory.merge (thy, ProofContext.theory_of ctxt))
+      |> Context_Position.set_visible false;
   in context ctxt' ss end;
+
+fun with_context ctxt f ss = inherit_context ss (f (context ctxt ss));
 
 
 (* maintain simp rules *)
@@ -458,8 +462,8 @@ fun decomp_simp' thm =
     else (lhs, rhs)
   end;
 
-fun mk_eq_True (Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
-  (case mk_eq_True thm of
+fun mk_eq_True (ss as Simpset (_, {mk_rews = {mk_eq_True, ...}, ...})) (thm, name) =
+  (case mk_eq_True ss thm of
     NONE => []
   | SOME eq_True =>
       let
@@ -495,7 +499,7 @@ fun orient_rrule ss (thm, name) =
       if reorient thy prems rhs lhs
       then mk_eq_True ss (thm, name)
       else
-        (case mk_sym thm of
+        (case mk_sym ss thm of
           NONE => []
         | SOME thm' =>
             let val (_, _, lhs', elhs', rhs', _) = decomp_simp thm'
@@ -503,8 +507,8 @@ fun orient_rrule ss (thm, name) =
     else rrule_eq_True (thm, name, lhs, elhs, rhs, ss, thm)
   end;
 
-fun extract_rews (Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
-  maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk thm)) thms;
+fun extract_rews (ss as Simpset (_, {mk_rews = {mk, ...}, ...}), thms) =
+  maps (fn thm => map (rpair (Thm.get_name_hint thm)) (mk ss thm)) thms;
 
 fun extract_safe_rrules (ss, thm) =
   maps (orient_rrule ss) (extract_rews (ss, [thm]));
@@ -588,7 +592,7 @@ fun del_cong (ss, thm) = ss |>
         if is_full_cong thm then NONE else SOME a);
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
-fun mk_cong (Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f;
+fun mk_cong (ss as Simpset (_, {mk_rews = {mk_cong = f, ...}, ...})) = f ss;
 
 in
 
@@ -674,7 +678,7 @@ fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk_cong, mk_sym, mk_eq_
 
 in
 
-fun mksimps (Simpset (_, {mk_rews = {mk, ...}, ...})) = mk;
+fun mksimps (ss as Simpset (_, {mk_rews = {mk, ...}, ...})) = mk ss;
 
 fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
@@ -762,14 +766,14 @@ fun clear_ss (ss as Simpset (_, {mk_rews, termless, subgoal_tac, solvers, ...}))
   init_ss mk_rews termless subgoal_tac solvers
   |> inherit_context ss;
 
-val basic_mk_rews: mk_rews =
- {mk = fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
-  mk_cong = I,
-  mk_sym = SOME o Drule.symmetric_fun,
-  mk_eq_True = K NONE,
-  reorient = default_reorient};
-
-val empty_ss = init_ss basic_mk_rews Term_Ord.termless (K (K no_tac)) ([], []);
+val empty_ss =
+  init_ss
+    {mk = fn _ => fn th => if can Logic.dest_equals (Thm.concl_of th) then [th] else [],
+      mk_cong = K I,
+      mk_sym = K (SOME o Drule.symmetric_fun),
+      mk_eq_True = K (K NONE),
+      reorient = default_reorient}
+    Term_Ord.termless (K (K no_tac)) ([], []);
 
 
 (* merge *)  (*NOTE: ignores some fields of 2nd simpset*)
@@ -834,7 +838,6 @@ fun check_conv msg ss thm thm' =
   in if msg then trace_thm (fn () => "SUCCEEDED") ss thm' else (); SOME thm'' end
   handle THM _ =>
     let
-      val thy = Thm.theory_of_thm thm;
       val _ $ _ $ prop0 = Thm.prop_of thm;
     in
       trace_thm (fn () => "Proved wrong thm (Check subgoaler?)") ss thm';

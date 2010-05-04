@@ -401,7 +401,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
 fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_type_elims) thy =
   let
-    val ctxt = ProofContext.init thy;
+    val ctxt = ProofContext.init_global thy;
     fun read_is strs =
       map (Syntax.parse_term ctxt #> TypeInfer.constrain @{typ i}) strs
       |> Syntax.check_terms ctxt;

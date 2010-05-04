@@ -8,7 +8,7 @@ theory Deflation
 imports Cfun
 begin
 
-defaultsort cpo
+default_sort cpo
 
 subsection {* Continuous deflations *}
 

@@ -8,7 +8,7 @@ theory Traces
 imports Sequence Automata
 begin
 
-defaultsort type
+default_sort type
 
 types
    ('a,'s)pairs            =    "('a * 's) Seq"

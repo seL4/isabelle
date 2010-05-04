@@ -74,3 +74,17 @@ works for Sun's JDK 5.0.  There's an alternate incantation for earlier
 releases. (See
 http://java.sun.com/j2se/1.5.0/docs/guide/jpda/conninv.html)
 -----------------------------------------------------------------------
+
+
+Known problems with Mac OS
+==========================
+
+- The MacOSX plugin disrupts regular C-X/C/V operations, e.g. between
+  the editor and the Console plugin, which is a standard swing text
+  box.  Similar for search boxes etc.
+
+- Anti-aliasing does not really work as well as for Linux or Windows.
+  (General Apple/Swing problem?)
+
+- Font.createFont mangles the font family of non-regular fonts,
+  e.g. bold.

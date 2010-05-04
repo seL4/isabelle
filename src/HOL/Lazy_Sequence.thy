@@ -123,41 +123,18 @@ where
 
 subsection {* Code setup *}
 
-ML {*
-signature LAZY_SEQUENCE =
-sig
-  datatype 'a lazy_sequence = Lazy_Sequence of unit -> ('a * 'a lazy_sequence) option
-  val yield : 'a lazy_sequence -> ('a * 'a lazy_sequence) option
-  val yieldn : int -> 'a lazy_sequence -> ('a list * 'a lazy_sequence)
-  val map : ('a -> 'b) -> 'a lazy_sequence -> 'b lazy_sequence
-end;
+fun anamorph :: "('a \<Rightarrow> ('b \<times> 'a) option) \<Rightarrow> code_numeral \<Rightarrow> 'a \<Rightarrow> 'b list \<times> 'a" where
+  "anamorph f k x = (if k = 0 then ([], x)
+    else case f x of None \<Rightarrow> ([], x) | Some (v, y) \<Rightarrow>
+      let (vs, z) = anamorph f (k - 1) y
+    in (v # vs, z))"
 
-structure Lazy_Sequence : LAZY_SEQUENCE =
-struct
+definition yieldn :: "code_numeral \<Rightarrow> 'a lazy_sequence \<Rightarrow> 'a list \<times> 'a lazy_sequence" where
+  "yieldn = anamorph yield"
 
-@{code_datatype lazy_sequence = Lazy_Sequence}
-
-val yield = @{code yield}
-
-fun anamorph f k x = (if k = 0 then ([], x)
-  else case f x
-   of NONE => ([], x)
-    | SOME (v, y) => let
-        val (vs, z) = anamorph f (k - 1) y
-      in (v :: vs, z) end);
-
-fun yieldn S = anamorph yield S;
-
-val map = @{code map}
-
-end;
-*}
-
-code_reserved Eval Lazy_Sequence
-
-code_type lazy_sequence (Eval "_/ Lazy'_Sequence.lazy'_sequence")
-
-code_const Lazy_Sequence (Eval "Lazy'_Sequence.Lazy'_Sequence")
+code_reflect Lazy_Sequence
+  datatypes lazy_sequence = Lazy_Sequence
+  functions map yield yieldn
 
 section {* With Hit Bound Value *}
 text {* assuming in negative context *}

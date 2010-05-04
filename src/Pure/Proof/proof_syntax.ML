@@ -45,7 +45,7 @@ fun add_proof_syntax thy =
   thy
   |> Theory.copy
   |> Sign.root_path
-  |> Sign.add_defsort_i []
+  |> Sign.set_defsort []
   |> Sign.add_types [(Binding.name "proof", 0, NoSyn)]
   |> fold (snd oo Sign.declare_const)
       [((Binding.name "Appt", [proofT, aT] ---> proofT), Mixfix ("(1_ %/ _)", [4, 5], 4)),
@@ -206,7 +206,7 @@ fun read_term thy =
       |> add_proof_syntax
       |> add_proof_atom_consts
         (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names)
-      |> ProofContext.init
+      |> ProofContext.init_global
       |> ProofContext.allow_dummies
       |> ProofContext.set_mode ProofContext.mode_schematic;
   in

@@ -169,7 +169,7 @@ end;
 
 fun gen_axioms do_print prep raw_vars raw_specs thy =
   let
-    val ((vars, specs), _) = prep raw_vars raw_specs (ProofContext.init thy);
+    val ((vars, specs), _) = prep raw_vars raw_specs (ProofContext.init_global thy);
     val xs = map (fn ((b, T), _) => (Name.of_binding b, T)) vars;
 
     (*consts*)
@@ -284,7 +284,7 @@ val type_notation = gen_type_notation (K I);
 val type_notation_cmd = gen_type_notation (fn ctxt => ProofContext.read_type_name ctxt false);
 
 val notation = gen_notation (K I);
-val notation_cmd = gen_notation (fn ctxt => ProofContext.read_const ctxt false);
+val notation_cmd = gen_notation (fn ctxt => ProofContext.read_const ctxt false dummyT);
 
 end;
 
@@ -403,7 +403,7 @@ fun gen_theorem schematic prep_att prep_stmt
     goal_ctxt
     |> ProofContext.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
     |> snd
-    |> Proof.theorem_i before_qed after_qed' (map snd stmt)
+    |> Proof.theorem before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)
     |> tap (fn state => not schematic andalso Proof.schematic_goal state andalso
         error "Illegal schematic goal statement")

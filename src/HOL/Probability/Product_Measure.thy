@@ -1,5 +1,5 @@
 theory Product_Measure
-imports "~~/src/HOL/Probability/Lebesgue"
+imports Lebesgue
 begin
 
 definition

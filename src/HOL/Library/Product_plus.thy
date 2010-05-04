@@ -112,4 +112,10 @@ instance "*" :: (group_add, group_add) group_add
 instance "*" :: (ab_group_add, ab_group_add) ab_group_add
   by default (simp_all add: expand_prod_eq)
 
+lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"
+by (cases "finite A", induct set: finite, simp_all)
+
+lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
+by (cases "finite A", induct set: finite, simp_all)
+
 end
