@@ -1729,12 +1729,10 @@ proof -
 qed
 
 lemma insert [simp]:
-  assumes "finite A" and "x \<notin> A"
-  shows "F (insert x A) = (if A = {} then x else x * F A)"
-proof (cases "A = {}")
-  case True then show ?thesis by simp
-next
-  case False then obtain b where "b \<in> A" by blast
+  assumes "finite A" and "x \<notin> A" and "A \<noteq> {}"
+  shows "F (insert x A) = x * F A"
+proof -
+  from `A \<noteq> {}` obtain b where "b \<in> A" by blast
   then obtain B where *: "A = insert b B" "b \<notin> B" by (blast dest: mk_disjoint_insert)
   with `finite A` have "finite B" by simp
   interpret fold: folding "op *" "\<lambda>a b. fold (op *) b a" proof
@@ -1828,8 +1826,6 @@ proof -
     (simp_all add: assoc in_idem `finite A`)
 qed
 
-declare insert [simp del]
-
 lemma eq_fold_idem':
   assumes "finite A"
   shows "F (insert a A) = fold (op *) a A"
@@ -1839,13 +1835,13 @@ proof -
 qed
 
 lemma insert_idem [simp]:
-  assumes "finite A"
-  shows "F (insert x A) = (if A = {} then x else x * F A)"
+  assumes "finite A" and "A \<noteq> {}"
+  shows "F (insert x A) = x * F A"
 proof (cases "x \<in> A")
-  case False with `finite A` show ?thesis by (rule insert)
+  case False from `finite A` `x \<notin> A` `A \<noteq> {}` show ?thesis by (rule insert)
 next
-  case True then have "A \<noteq> {}" by auto
-  with `finite A` show ?thesis by (simp add: in_idem insert_absorb True)
+  case True
+  from `finite A` `A \<noteq> {}` show ?thesis by (simp add: in_idem insert_absorb True)
 qed
   
 lemma union_idem:
