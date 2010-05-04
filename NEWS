@@ -89,6 +89,9 @@ INCOMPATIBILITY.
 
 *** Pure ***
 
+* Predicates of locales introduces by classes carry a mandatory "class"
+prefix.  INCOMPATIBILITY.
+
 * 'code_reflect' allows to incorporate generated ML code into
 runtime environment;  replaces immature code_datatype antiquotation.
 INCOMPATIBILITY.
@@ -136,6 +139,9 @@ terms may need to be adapted.
 
 
 *** HOL ***
+
+* Theory 'Finite_Set': various folding_* locales facilitate the application
+of the various fold combinators on finite sets.
 
 * Library theory 'RBT' renamed to 'RBT_Impl'; new library theory 'RBT'
 provides abstract red-black tree type which is backed by RBT_Impl
