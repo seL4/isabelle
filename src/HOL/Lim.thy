@@ -12,12 +12,10 @@ begin
 
 text{*Standard Definitions*}
 
-definition
+abbreviation
   LIM :: "['a::metric_space \<Rightarrow> 'b::metric_space, 'a, 'b] \<Rightarrow> bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
-  [code del]: "f -- a --> L =
-     (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & dist x a < s
-        --> dist (f x) L < r)"
+  "f -- a --> L \<equiv> (f ---> L) (at a)"
 
 definition
   isCont :: "['a::metric_space \<Rightarrow> 'b::metric_space, 'a] \<Rightarrow> bool" where
@@ -29,8 +27,10 @@ definition
 
 subsection {* Limits of Functions *}
 
-lemma LIM_conv_tendsto: "(f -- a --> L) \<longleftrightarrow> (f ---> L) (at a)"
-unfolding LIM_def tendsto_iff eventually_at ..
+lemma LIM_def: "f -- a --> L =
+     (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & dist x a < s
+        --> dist (f x) L < r)"
+unfolding tendsto_iff eventually_at ..
 
 lemma metric_LIM_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r)
@@ -82,7 +82,7 @@ lemma LIM_offset_zero_cancel:
 by (drule_tac k="- a" in LIM_offset, simp)
 
 lemma LIM_const [simp]: "(%x. k) -- x --> k"
-by (simp add: LIM_def)
+by (rule tendsto_const)
 
 lemma LIM_cong_limit: "\<lbrakk> f -- x --> L ; K = L \<rbrakk> \<Longrightarrow> f -- x --> K" by simp
 
@@ -90,22 +90,17 @@ lemma LIM_add:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes f: "f -- a --> L" and g: "g -- a --> M"
   shows "(\<lambda>x. f x + g x) -- a --> (L + M)"
-using assms unfolding LIM_conv_tendsto by (rule tendsto_add)
+using assms by (rule tendsto_add)
 
 lemma LIM_add_zero:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- a --> 0; g -- a --> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. f x + g x) -- a --> 0"
 by (drule (1) LIM_add, simp)
 
-lemma minus_diff_minus:
-  fixes a b :: "'a::ab_group_add"
-  shows "(- a) - (- b) = - (a - b)"
-by simp
-
 lemma LIM_minus:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> L \<Longrightarrow> (\<lambda>x. - f x) -- a --> - L"
-unfolding LIM_conv_tendsto by (rule tendsto_minus)
+by (rule tendsto_minus)
 
 (* TODO: delete *)
 lemma LIM_add_minus:
@@ -116,7 +111,7 @@ by (intro LIM_add LIM_minus)
 lemma LIM_diff:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- x --> l; g -- x --> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --> l - m"
-unfolding LIM_conv_tendsto by (rule tendsto_diff)
+by (rule tendsto_diff)
 
 lemma LIM_zero:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
@@ -156,7 +151,7 @@ done
 lemma LIM_norm:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> l \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> norm l"
-unfolding LIM_conv_tendsto by (rule tendsto_norm)
+by (rule tendsto_norm)
 
 lemma LIM_norm_zero:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
@@ -221,7 +216,7 @@ apply simp
 done
 
 lemma LIM_ident [simp]: "(\<lambda>x. x) -- a --> a"
-by (auto simp add: LIM_def)
+by (rule tendsto_ident_at)
 
 text{*Limits are equal for functions equal except at limit point*}
 lemma LIM_equal:
@@ -349,7 +344,7 @@ text {* Bounded Linear Operators *}
 
 lemma (in bounded_linear) LIM:
   "g -- a --> l \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> f l"
-unfolding LIM_conv_tendsto by (rule tendsto)
+by (rule tendsto)
 
 lemma (in bounded_linear) cont: "f -- a --> f a"
 by (rule LIM [OF LIM_ident])
@@ -362,7 +357,7 @@ text {* Bounded Bilinear Operators *}
 
 lemma (in bounded_bilinear) LIM:
   "\<lbrakk>f -- a --> L; g -- a --> M\<rbrakk> \<Longrightarrow> (\<lambda>x. f x ** g x) -- a --> L ** M"
-unfolding LIM_conv_tendsto by (rule tendsto)
+by (rule tendsto)
 
 lemma (in bounded_bilinear) LIM_prod_zero:
   fixes a :: "'d::metric_space"
@@ -402,7 +397,6 @@ subsubsection {* Derived theorems about @{term LIM} *}
 lemma LIM_inverse:
   fixes L :: "'a::real_normed_div_algebra"
   shows "\<lbrakk>f -- a --> L; L \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. inverse (f x)) -- a --> inverse L"
-unfolding LIM_conv_tendsto
 by (rule tendsto_inverse)
 
 lemma LIM_inverse_fun:

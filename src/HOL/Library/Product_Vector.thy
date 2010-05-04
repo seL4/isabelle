@@ -312,18 +312,6 @@ proof (rule topological_tendstoI)
        (simp add: subsetD [OF `A \<times> B \<subseteq> S`])
 qed
 
-lemma LIM_fst: "f -- x --> a \<Longrightarrow> (\<lambda>x. fst (f x)) -- x --> fst a"
-unfolding LIM_conv_tendsto by (rule tendsto_fst)
-
-lemma LIM_snd: "f -- x --> a \<Longrightarrow> (\<lambda>x. snd (f x)) -- x --> snd a"
-unfolding LIM_conv_tendsto by (rule tendsto_snd)
-
-lemma LIM_Pair:
-  assumes "f -- x --> a" and "g -- x --> b"
-  shows "(\<lambda>x. (f x, g x)) -- x --> (a, b)"
-using assms unfolding LIM_conv_tendsto
-by (rule tendsto_Pair)
-
 lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
 unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
 
@@ -348,7 +336,7 @@ qed
 
 lemma isCont_Pair [simp]:
   "\<lbrakk>isCont f x; isCont g x\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) x"
-  unfolding isCont_def by (rule LIM_Pair)
+  unfolding isCont_def by (rule tendsto_Pair)
 
 subsection {* Product is a complete metric space *}
 

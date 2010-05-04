@@ -313,10 +313,6 @@ qed
 
 end
 
-lemma LIM_Cart_nth:
-  "(f -- x --> y) \<Longrightarrow> (\<lambda>x. f x $ i) -- x --> y $ i"
-unfolding LIM_conv_tendsto by (rule tendsto_Cart_nth)
-
 lemma Cauchy_Cart_nth:
   "Cauchy (\<lambda>n. X n) \<Longrightarrow> Cauchy (\<lambda>n. X n $ i)"
 unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le])
