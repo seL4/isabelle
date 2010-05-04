@@ -409,9 +409,8 @@ fun activate_facts' export dep context =
 
 (* Diagnostic *)
 
-fun print_registrations thy raw_name =
+fun pretty_reg thy (name, morph) =
   let
-    val name = intern thy raw_name;
     val name' = extern thy name;
     val ctxt = ProofContext.init thy;
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
@@ -423,22 +422,21 @@ fun print_registrations thy raw_name =
       else prt_term t;
     fun prt_inst ts =
       Pretty.block (Pretty.breaks (Pretty.str name' :: map prt_term' ts));
-    fun prt_reg (name, morph) =
-      let
-        val qs = Binding.name "x" |> Morphism.binding morph |> Binding.prefix_of;
-        val ts = instance_of thy name morph;
-      in
-        case qs of
-           [] => prt_inst ts
-         | qs => Pretty.block [prt_quals qs, Pretty.brk 1, Pretty.str ":",
-             Pretty.brk 1, prt_inst ts]
-      end;
+
+    val qs = Binding.name "x" |> Morphism.binding morph |> Binding.prefix_of;
+    val ts = instance_of thy name morph;
   in
-    (case these_registrations thy name of
-        [] => Pretty.str ("no interpretations")
-      | regs => Pretty.big_list "interpretations:" (map prt_reg (rev regs)))
-    |> Pretty.writeln
+    case qs of
+       [] => prt_inst ts
+     | qs => Pretty.block [prt_quals qs, Pretty.brk 1, Pretty.str ":",
+         Pretty.brk 1, prt_inst ts]
   end;
+
+fun print_registrations thy raw_name =
+  (case these_registrations thy (intern thy raw_name) of
+      [] => Pretty.str ("no interpretations")
+    | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
+  |> Pretty.writeln;
 
 
 (* Add and extend registrations *)
