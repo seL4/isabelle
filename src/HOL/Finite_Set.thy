@@ -509,13 +509,8 @@ qed
 
 subsection {* Class @{text finite}  *}
 
-setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
 class finite =
   assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
-setup {* Sign.parent_path *}
-hide_const finite
-
-context finite
 begin
 
 lemma finite [simp]: "finite (A \<Colon> 'a set)"

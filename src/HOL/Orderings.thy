@@ -106,7 +106,7 @@ by (rule less_asym)
 text {* Dual order *}
 
 lemma dual_preorder:
-  "preorder (op \<ge>) (op >)"
+  "class.preorder (op \<ge>) (op >)"
 proof qed (auto simp add: less_le_not_le intro: order_trans)
 
 end
@@ -186,7 +186,7 @@ unfolding Least_def by (rule theI2)
 text {* Dual order *}
 
 lemma dual_order:
-  "order (op \<ge>) (op >)"
+  "class.order (op \<ge>) (op >)"
 by (intro_locales, rule dual_preorder) (unfold_locales, rule antisym)
 
 end
@@ -257,8 +257,8 @@ unfolding not_le .
 text {* Dual order *}
 
 lemma dual_linorder:
-  "linorder (op \<ge>) (op >)"
-by (rule linorder.intro, rule dual_order) (unfold_locales, rule linear)
+  "class.linorder (op \<ge>) (op >)"
+by (rule class.linorder.intro, rule dual_order) (unfold_locales, rule linear)
 
 
 text {* min/max *}

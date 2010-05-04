@@ -17,7 +17,7 @@ lemma word_less_alt: "(a < b) = (uint a < uint b)"
   by (auto simp del: word_uint.Rep_inject 
            simp: word_uint.Rep_inject [symmetric])
 
-lemma signed_linorder: "linorder word_sle word_sless"
+lemma signed_linorder: "class.linorder word_sle word_sless"
 proof
 qed (unfold word_sle_def word_sless_def, auto)
 

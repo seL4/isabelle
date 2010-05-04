@@ -68,7 +68,7 @@ lemma wf_wellorderI:
   assumes lin: "OFCLASS('a::ord, linorder_class)"
   shows "OFCLASS('a::ord, wellorder_class)"
 using lin by (rule wellorder_class.intro)
-  (blast intro: wellorder_axioms.intro wf_induct_rule [OF wf])
+  (blast intro: class.wellorder_axioms.intro wf_induct_rule [OF wf])
 
 lemma (in wellorder) wf:
   "wf {(x, y). x < y}"

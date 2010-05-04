@@ -1239,7 +1239,7 @@ proof -
   qed
   have trans: "\<And>K M N :: 'a multiset. K \<subset># M \<Longrightarrow> M \<subset># N \<Longrightarrow> K \<subset># N"
     unfolding less_multiset_def mult_def by (blast intro: trancl_trans)
-  show "order (le_multiset :: 'a multiset \<Rightarrow> _) less_multiset" proof
+  show "class.order (le_multiset :: 'a multiset \<Rightarrow> _) less_multiset" proof
   qed (auto simp add: le_multiset_def irrefl dest: trans)
 qed
 

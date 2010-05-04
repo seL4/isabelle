@@ -276,16 +276,16 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
     #> pair (param_map, params, assm_axiom)))
   end;
 
-fun gen_class prep_class_spec bname raw_supclasses raw_elems thy =
+fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
   let
-    val class = Sign.full_name thy bname;
+    val class = Sign.full_name thy b;
     val (((sups, supparam_names), (supsort, base_sort, supexpr)), (elems, global_syntax)) =
       prep_class_spec thy raw_supclasses raw_elems;
   in
     thy
-    |> Expression.add_locale bname Binding.empty supexpr elems
+    |> Expression.add_locale b (Binding.qualify true "class" b) supexpr elems
     |> snd |> Local_Theory.exit_global
-    |> adjungate_axclass bname class base_sort sups supsort supparam_names global_syntax
+    |> adjungate_axclass b class base_sort sups supsort supparam_names global_syntax
     ||> Theory.checkpoint
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)

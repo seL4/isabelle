@@ -33,7 +33,7 @@ end
 text {* for ad-hoc proofs for @{const fold_image} *}
 
 lemma (in comm_monoid_add) comm_monoid_mult:
-  "comm_monoid_mult (op +) 0"
+  "class.comm_monoid_mult (op +) 0"
 proof qed (auto intro: add_assoc add_commute)
 
 notation times (infixl "*" 70)
@@ -1200,7 +1200,8 @@ qed (simp add: Sup_fin_def)
 context semilattice_inf
 begin
 
-lemma ab_semigroup_idem_mult_inf: "ab_semigroup_idem_mult inf"
+lemma ab_semigroup_idem_mult_inf:
+  "class.ab_semigroup_idem_mult inf"
 proof qed (rule inf_assoc inf_commute inf_idem)+
 
 lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> fold inf b (insert a A) = inf a (fold inf b A)"
@@ -1270,7 +1271,7 @@ end
 context semilattice_sup
 begin
 
-lemma ab_semigroup_idem_mult_sup: "ab_semigroup_idem_mult sup"
+lemma ab_semigroup_idem_mult_sup: "class.ab_semigroup_idem_mult sup"
 by (rule semilattice_inf.ab_semigroup_idem_mult_inf)(rule dual_semilattice)
 
 lemma fold_sup_insert[simp]: "finite A \<Longrightarrow> fold sup b (insert a A) = sup a (fold sup b A)"
@@ -1490,15 +1491,15 @@ lemma hom_Max_commute:
   using assms by (rule Max.hom_commute)
 
 lemma ab_semigroup_idem_mult_min:
-  "ab_semigroup_idem_mult min"
+  "class.ab_semigroup_idem_mult min"
   proof qed (auto simp add: min_def)
 
 lemma ab_semigroup_idem_mult_max:
-  "ab_semigroup_idem_mult max"
+  "class.ab_semigroup_idem_mult max"
   proof qed (auto simp add: max_def)
 
 lemma max_lattice:
-  "semilattice_inf (op \<ge>) (op >) max"
+  "class.semilattice_inf (op \<ge>) (op >) max"
   by (fact min_max.dual_semilattice)
 
 lemma dual_max:

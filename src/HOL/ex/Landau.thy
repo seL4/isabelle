@@ -187,7 +187,7 @@ interpretation fun_order: preorder_equiv less_eq_fun less_fun
 proof -
   interpret preorder_equiv less_eq_fun less_fun proof
   qed (simp_all add: less_fun_def less_eq_fun_refl, auto intro: less_eq_fun_trans)
-  show "preorder_equiv less_eq_fun less_fun" using preorder_equiv_axioms .
+  show "class.preorder_equiv less_eq_fun less_fun" using preorder_equiv_axioms .
   show "preorder_equiv.equiv less_eq_fun = equiv_fun"
     by (simp add: expand_fun_eq equiv_def equiv_fun_less_eq_fun)
 qed

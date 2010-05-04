@@ -1886,7 +1886,6 @@ setup {*
 *}
 
 hide_const (open) eq
-hide_const eq
 
 text {* Cases *}
 
