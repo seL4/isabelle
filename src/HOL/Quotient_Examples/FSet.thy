@@ -359,6 +359,10 @@ proof (rule fun_relI, elim pred_compE)
   then show "concat a \<approx> concat b" by simp
 qed
 
+lemma [quot_respect]:
+  "((op =) ===> op \<approx> ===> op \<approx>) filter filter"
+  by auto
+
 text {* Distributive lattice with bot *}
 
 lemma sub_list_not_eq:
@@ -550,6 +554,11 @@ quotient_definition
   "fconcat :: ('a fset) fset \<Rightarrow> 'a fset"
 is
   "concat"
+
+quotient_definition
+  "ffilter :: ('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset"
+is
+  "filter"
 
 text {* Compositional Respectfullness and Preservation *}
 
@@ -868,6 +877,14 @@ next
   then show "l \<approx> r \<Longrightarrow> list_eq2 l r" by blast
 qed
 
+text {* Raw theorems of ffilter *}
+
+lemma sub_list_filter: "sub_list (filter P xs) (filter Q xs) = (\<forall> x. memb x xs \<longrightarrow> P x \<longrightarrow> Q x)"
+unfolding sub_list_def memb_def by auto
+
+lemma list_eq_filter: "list_eq (filter P xs) (filter Q xs) = (\<forall>x. memb x xs \<longrightarrow> P x = Q x)"
+unfolding memb_def by auto
+
 text {* Lifted theorems *}
 
 lemma not_fin_fnil: "x |\<notin>| {||}"
@@ -1141,6 +1158,76 @@ lemma fconcat_insert:
 
 lemma "fconcat (xs |\<union>| ys) = fconcat xs |\<union>| fconcat ys"
   by (lifting concat_append)
+
+text {* ffilter *}
+
+lemma subseteq_filter: "ffilter P xs <= ffilter Q xs = (\<forall> x. x |\<in>| xs \<longrightarrow> P x \<longrightarrow> Q x)"
+by (lifting sub_list_filter)
+
+lemma eq_ffilter: "(ffilter P xs = ffilter Q xs) = (\<forall>x. x |\<in>| xs \<longrightarrow> P x = Q x)"
+by (lifting list_eq_filter)
+
+lemma subset_ffilter: "(\<And>x. x |\<in>| xs \<Longrightarrow> P x \<Longrightarrow> Q x) \<Longrightarrow> (x |\<in>| xs & \<not> P x & Q x) \<Longrightarrow> ffilter P xs < ffilter Q xs"
+unfolding less_fset by (auto simp add: subseteq_filter eq_ffilter)
+
+
+section {* lemmas transferred from Finite_Set theory *}
+
+text {* finiteness for finite sets holds *}
+lemma finite_fset: "finite (fset_to_set S)"
+by (induct S) auto
+
+text {* @{thm subset_empty} transferred is: *}
+lemma fsubseteq_fnil: "xs |\<subseteq>| {||} = (xs = {||})"
+by (cases xs) (auto simp add: fsubset_finsert not_fin_fnil)
+
+text {* @{thm not_psubset_empty} transferred is: *}
+lemma not_fsubset_fnil: "\<not> xs |\<subset>| {||}"
+unfolding less_fset by (auto simp add: fsubseteq_fnil)
+
+text {* @{thm card_mono} transferred is: *}
+lemma fcard_mono: "xs |\<subseteq>| ys \<Longrightarrow> fcard xs \<le> fcard ys"
+proof (induct xs arbitrary: ys)
+  case fempty
+  thus ?case by simp
+next
+  case (finsert x xs ys)
+  from finsert(1,3) have "xs |\<subseteq>| fdelete ys x"
+    by (auto simp add: fsubset_fin fin_fdelete)
+  from finsert(2) this have hyp: "fcard xs \<le> fcard (fdelete ys x)" by simp
+  from finsert(3) have "x |\<in>| ys" by (auto simp add: fsubset_fin)
+  from this have ys_is: "ys = finsert x (fdelete ys x)"
+    unfolding expand_fset_eq by (auto simp add: fin_fdelete)
+  from finsert(1) hyp have "fcard (finsert x xs) \<le> fcard (finsert x (fdelete ys x))"
+    by (auto simp add: fin_fdelete_ident)
+  from ys_is this show ?case by auto
+qed
+
+text {* @{thm card_seteq} transferred is: *}
+lemma fcard_fseteq: "xs |\<subseteq>| ys \<Longrightarrow> fcard ys \<le> fcard xs \<Longrightarrow> xs = ys"
+proof (induct xs arbitrary: ys)
+  case fempty
+  thus ?case by (simp add: fcard_0)
+next
+  case (finsert x xs ys)
+  from finsert have subset: "xs |\<subseteq>| fdelete ys x"
+    by (auto simp add: fsubset_fin fin_fdelete)
+  from finsert have x: "x |\<in>| ys"
+    by (auto simp add: fsubset_fin fin_fdelete)
+  from finsert(1,4) this have "fcard (fdelete ys x) \<le> fcard xs"
+    by (auto simp add: fcard_delete)
+  from finsert(2) this subset have hyp: "xs = fdelete ys x" by auto
+  from finsert have "x |\<in>| ys"
+    by (auto simp add: fsubset_fin fin_fdelete)
+  from this hyp show ?case
+    unfolding expand_fset_eq by (auto simp add: fin_fdelete)
+qed
+
+text {* @{thm psubset_card_mono} transferred is: *}
+lemma psubset_fcard_mono: "xs |\<subset>| ys \<Longrightarrow> fcard xs < fcard ys"
+unfolding less_fset linorder_not_le[symmetric]
+by (auto simp add: fcard_fseteq)
+
 
 ML {*
 fun dest_fsetT (Type (@{type_name fset}, [T])) = T
