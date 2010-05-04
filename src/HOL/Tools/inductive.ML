@@ -323,11 +323,11 @@ end;
 
 (* prove monotonicity *)
 
-fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun params monos ctxt =
+fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos ctxt =
  (message (quiet_mode orelse skip_mono andalso !quick_and_dirty orelse fork_mono)
     "  Proving monotonicity ...";
   (if skip_mono then Skip_Proof.prove else if fork_mono then Goal.prove_future else Goal.prove) ctxt
-    (map (fst o dest_Free) params) []
+    [] []
     (HOLogic.mk_Trueprop
       (Const (@{const_name Orderings.mono}, (predT --> predT) --> HOLogic.boolT) $ fp_fun))
     (fn _ => EVERY [rtac @{thm monoI} 1,
@@ -340,7 +340,7 @@ fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun params monos ctxt =
 
 (* prove introduction rules *)
 
-fun prove_intrs quiet_mode coind mono fp_def k params intr_ts rec_preds_defs ctxt =
+fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt' =
   let
     val _ = clean_message quiet_mode "  Proving the introduction rules ...";
 
@@ -354,27 +354,27 @@ fun prove_intrs quiet_mode coind mono fp_def k params intr_ts rec_preds_defs ctx
 
     val rules = [refl, TrueI, notFalseI, exI, conjI];
 
-    val intrs = map_index (fn (i, intr) => rulify
-      (Skip_Proof.prove ctxt (map (fst o dest_Free) params) [] intr (fn _ => EVERY
+    val intrs = map_index (fn (i, intr) =>
+      Skip_Proof.prove ctxt [] [] intr (fn _ => EVERY
        [rewrite_goals_tac rec_preds_defs,
         rtac (unfold RS iffD2) 1,
         EVERY1 (select_disj (length intr_ts) (i + 1)),
         (*Not ares_tac, since refl must be tried before any equality assumptions;
           backtracking may occur if the premises have extra variables!*)
-        DEPTH_SOLVE_1 (resolve_tac rules 1 APPEND assume_tac 1)]))) intr_ts
+        DEPTH_SOLVE_1 (resolve_tac rules 1 APPEND assume_tac 1)])
+       |> rulify
+       |> singleton (ProofContext.export ctxt ctxt')) intr_ts
 
   in (intrs, unfold) end;
 
 
 (* prove elimination rules *)
 
-fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ctxt =
+fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ctxt ctxt''' =
   let
     val _ = clean_message quiet_mode "  Proving the elimination rules ...";
 
-    val ([pname], ctxt') = ctxt |>
-      Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
-      Variable.variant_fixes ["P"];
+    val ([pname], ctxt') = Variable.variant_fixes ["P"] ctxt;
     val P = HOLogic.mk_Trueprop (Free (pname, HOLogic.boolT));
 
     fun dest_intr r =
@@ -410,7 +410,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
              EVERY (map (fn prem =>
                DEPTH_SOLVE_1 (ares_tac [rewrite_rule rec_preds_defs prem, conjI] 1)) (tl prems))])
           |> rulify
-          |> singleton (ProofContext.export ctxt'' ctxt),
+          |> singleton (ProofContext.export ctxt'' ctxt'''),
          map #2 c_intrs, length Ts)
       end
 
@@ -488,16 +488,14 @@ val ind_cases_setup =
 (* prove induction rule *)
 
 fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
-    fp_def rec_preds_defs ctxt =
+    fp_def rec_preds_defs ctxt ctxt''' =
   let
     val _ = clean_message quiet_mode "  Proving the induction rule ...";
     val thy = ProofContext.theory_of ctxt;
 
     (* predicates for induction rule *)
 
-    val (pnames, ctxt') = ctxt |>
-      Variable.add_fixes (map (fst o dest_Free) params) |> snd |>
-      Variable.variant_fixes (mk_names "P" (length cs));
+    val (pnames, ctxt') = Variable.variant_fixes (mk_names "P" (length cs)) ctxt;
     val preds = map2 (curry Free) pnames
       (map (fn c => arg_types_of (length params) c ---> HOLogic.boolT) cs);
 
@@ -592,7 +590,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
             rewrite_goals_tac simp_thms',
             atac 1])])
 
-  in singleton (ProofContext.export ctxt'' ctxt) (induct RS lemma) end;
+  in singleton (ProofContext.export ctxt'' ctxt''') (induct RS lemma) end;
 
 
 
@@ -689,11 +687,13 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
       ||> Local_Theory.restore_naming lthy';
     val preds = (case cs of [_] => [rec_const] | _ => map #1 consts_defs);
 
-    val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun params monos lthy'';
-    val ((_, [mono']), lthy''') =
-      Local_Theory.note (apfst Binding.conceal Attrib.empty_binding, [mono]) lthy'';
+    val (_, lthy''') = Variable.add_fixes (map (fst o dest_Free) params) lthy'';
+    val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos lthy''';
+    val (_, lthy'''') =
+      Local_Theory.note (apfst Binding.conceal Attrib.empty_binding,
+        ProofContext.export lthy''' lthy'' [mono]) lthy'';
 
-  in (lthy''', rec_name, mono', fp_def', map (#2 o #2) consts_defs,
+  in (lthy'''', lthy''', rec_name, mono, fp_def', map (#2 o #2) consts_defs,
     list_comb (rec_const, params), preds, argTs, bs, xs)
   end;
 
@@ -774,31 +774,30 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val ((intr_names, intr_atts), intr_ts) =
       apfst split_list (split_list (map (check_rule lthy cs params) intros));
 
-    val (lthy1, rec_name, mono, fp_def, rec_preds_defs, rec_const, preds,
+    val (lthy1, lthy2, rec_name, mono, fp_def, rec_preds_defs, rec_const, preds,
       argTs, bs, xs) = mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts
         monos params cnames_syn lthy;
 
     val (intrs, unfold) = prove_intrs quiet_mode coind mono fp_def (length bs + length xs)
-      params intr_ts rec_preds_defs lthy1;
+      intr_ts rec_preds_defs lthy2 lthy1;
     val elims =
       if no_elim then []
       else
         prove_elims quiet_mode cs params intr_ts (map Binding.name_of intr_names)
-          unfold rec_preds_defs lthy1;
+          unfold rec_preds_defs lthy2 lthy1;
     val raw_induct = zero_var_indexes
       (if no_ind then Drule.asm_rl
        else if coind then
-         singleton (ProofContext.export
-           (snd (Variable.add_fixes (map (fst o dest_Free) params) lthy1)) lthy1)
+         singleton (ProofContext.export lthy2 lthy1)
            (rotate_prems ~1 (Object_Logic.rulify
              (fold_rule rec_preds_defs
                (rewrite_rule simp_thms'''
                 (mono RS (fp_def RS @{thm def_coinduct}))))))
        else
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
-           rec_preds_defs lthy1);
+           rec_preds_defs lthy2 lthy1);
 
-    val (intrs', elims', induct, inducts, lthy2) = declare_rules rec_name coind no_ind
+    val (intrs', elims', induct, inducts, lthy3) = declare_rules rec_name coind no_ind
       cnames preds intrs intr_names intr_atts elims raw_induct lthy1;
 
     val result =
@@ -809,11 +808,11 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        induct = induct,
        inducts = inducts};
 
-    val lthy3 = lthy2
+    val lthy4 = lthy3
       |> Local_Theory.declaration false (fn phi =>
         let val result' = morph_result phi result;
         in put_inductives cnames (*global names!?*) ({names = cnames, coind = coind}, result') end);
-  in (result, lthy3) end;
+  in (result, lthy4) end;
 
 
 (* external interfaces *)
