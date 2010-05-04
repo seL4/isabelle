@@ -547,7 +547,7 @@ lemma convergent_setsum:
   assumes "\<And>i. i \<in> A \<Longrightarrow> convergent (\<lambda>n. X i n)"
   shows "convergent (\<lambda>n. \<Sum>i\<in>A. X i n)"
 proof (cases "finite A")
-  case True with assms show ?thesis
+  case True from this and assms show ?thesis
     by (induct A set: finite) (simp_all add: convergent_const convergent_add)
 qed (simp add: convergent_const)
 
