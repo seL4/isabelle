@@ -27,18 +27,19 @@ abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
 types 'a sem = "'a => 'a => bool"
 
-consts iter :: "nat => 'a bexp => 'a sem => 'a sem"
-primrec
-"iter 0 b S = (%s s'. s ~: b & (s=s'))"
-"iter (Suc n) b S = (%s s'. s : b & (? s''. S s s'' & iter n b S s'' s'))"
+inductive Sem :: "'a com \<Rightarrow> 'a sem"
+where
+  "Sem (Basic f) s (f s)"
+| "Sem c1 s s'' \<Longrightarrow> Sem c2 s'' s' \<Longrightarrow> Sem (c1;c2) s s'"
+| "s \<in> b \<Longrightarrow> Sem c1 s s' \<Longrightarrow> Sem (IF b THEN c1 ELSE c2 FI) s s'"
+| "s \<notin> b \<Longrightarrow> Sem c2 s s' \<Longrightarrow> Sem (IF b THEN c1 ELSE c2 FI) s s'"
+| "s \<notin> b \<Longrightarrow> Sem (While b x c) s s"
+| "s \<in> b \<Longrightarrow> Sem c s s'' \<Longrightarrow> Sem (While b x c) s'' s' \<Longrightarrow>
+   Sem (While b x c) s s'"
 
-consts Sem :: "'a com => 'a sem"
-primrec
-"Sem(Basic f) s s' = (s' = f s)"
-"Sem(c1;c2) s s' = (? s''. Sem c1 s s'' & Sem c2 s'' s')"
-"Sem(IF b THEN c1 ELSE c2 FI) s s' = ((s  : b --> Sem c1 s s') &
-                                      (s ~: b --> Sem c2 s s'))"
-"Sem(While b x c) s s' = (? n. iter n b (Sem c) s s')"
+inductive_cases [elim!]:
+  "Sem (Basic f) s s'" "Sem (c1;c2) s s'"
+  "Sem (IF b THEN c1 ELSE c2 FI) s s'"
 
 definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool" where
   "Valid p c q == !s s'. Sem c s s' --> s : p --> s' : q"
@@ -209,19 +210,18 @@ lemma CondRule:
   \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
 by (auto simp:Valid_def)
 
-lemma iter_aux: "! s s'. Sem c s s' --> s : I & s : b --> s' : I ==>
-       (\<And>s s'. s : I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' : I & s' ~: b)";
-apply(induct n)
- apply clarsimp
-apply(simp (no_asm_use))
-apply blast
-done
+lemma While_aux:
+  assumes "Sem (WHILE b INV {i} DO c OD) s s'"
+  shows "\<forall>s s'. Sem c s s' \<longrightarrow> s \<in> I \<and> s \<in> b \<longrightarrow> s' \<in> I \<Longrightarrow>
+    s \<in> I \<Longrightarrow> s' \<in> I \<and> s' \<notin> b"
+  using assms
+  by (induct "WHILE b INV {i} DO c OD" s s') auto
 
 lemma WhileRule:
  "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i c) q"
 apply (clarsimp simp:Valid_def)
-apply(drule iter_aux)
-  prefer 2 apply assumption
+apply(drule While_aux)
+  apply assumption
  apply blast
 apply blast
 done

@@ -25,22 +25,23 @@ abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
 types 'a sem = "'a option => 'a option => bool"
 
-consts iter :: "nat => 'a bexp => 'a sem => 'a sem"
-primrec
-"iter 0 b S = (\<lambda>s s'. s \<notin> Some ` b \<and> s=s')"
-"iter (Suc n) b S =
-  (\<lambda>s s'. s \<in> Some ` b \<and> (\<exists>s''. S s s'' \<and> iter n b S s'' s'))"
+inductive Sem :: "'a com \<Rightarrow> 'a sem"
+where
+  "Sem (Basic f) None None"
+| "Sem (Basic f) (Some s) (Some (f s))"
+| "Sem Abort s None"
+| "Sem c1 s s'' \<Longrightarrow> Sem c2 s'' s' \<Longrightarrow> Sem (c1;c2) s s'"
+| "Sem (IF b THEN c1 ELSE c2 FI) None None"
+| "s \<in> b \<Longrightarrow> Sem c1 (Some s) s' \<Longrightarrow> Sem (IF b THEN c1 ELSE c2 FI) (Some s) s'"
+| "s \<notin> b \<Longrightarrow> Sem c2 (Some s) s' \<Longrightarrow> Sem (IF b THEN c1 ELSE c2 FI) (Some s) s'"
+| "Sem (While b x c) None None"
+| "s \<notin> b \<Longrightarrow> Sem (While b x c) (Some s) (Some s)"
+| "s \<in> b \<Longrightarrow> Sem c (Some s) s'' \<Longrightarrow> Sem (While b x c) s'' s' \<Longrightarrow>
+   Sem (While b x c) (Some s) s'"
 
-consts Sem :: "'a com => 'a sem"
-primrec
-"Sem(Basic f) s s' = (case s of None \<Rightarrow> s' = None | Some t \<Rightarrow> s' = Some(f t))"
-"Sem Abort s s' = (s' = None)"
-"Sem(c1;c2) s s' = (\<exists>s''. Sem c1 s s'' \<and> Sem c2 s'' s')"
-"Sem(IF b THEN c1 ELSE c2 FI) s s' =
- (case s of None \<Rightarrow> s' = None
-  | Some t \<Rightarrow> ((t \<in> b \<longrightarrow> Sem c1 s s') \<and> (t \<notin> b \<longrightarrow> Sem c2 s s')))"
-"Sem(While b x c) s s' =
- (if s = None then s' = None else \<exists>n. iter n b (Sem c) s s')"
+inductive_cases [elim!]:
+  "Sem (Basic f) s s'" "Sem (c1;c2) s s'"
+  "Sem (IF b THEN c1 ELSE c2 FI) s s'"
 
 definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool" where
   "Valid p c q == \<forall>s s'. Sem c s s' \<longrightarrow> s : Some ` p \<longrightarrow> s' : Some ` q"
@@ -212,23 +213,20 @@ lemma CondRule:
   \<Longrightarrow> Valid w c1 q \<Longrightarrow> Valid w' c2 q \<Longrightarrow> Valid p (Cond b c1 c2) q"
 by (fastsimp simp:Valid_def image_def)
 
-lemma iter_aux:
- "! s s'. Sem c s s' \<longrightarrow> s \<in> Some ` (I \<inter> b) \<longrightarrow> s' \<in> Some ` I \<Longrightarrow>
-  (\<And>s s'. s \<in> Some ` I \<Longrightarrow> iter n b (Sem c) s s' \<Longrightarrow> s' \<in> Some ` (I \<inter> -b))";
-apply(unfold image_def)
-apply(induct n)
- apply clarsimp
-apply(simp (no_asm_use))
-apply blast
-done
+lemma While_aux:
+  assumes "Sem (WHILE b INV {i} DO c OD) s s'"
+  shows "\<forall>s s'. Sem c s s' \<longrightarrow> s \<in> Some ` (I \<inter> b) \<longrightarrow> s' \<in> Some ` I \<Longrightarrow>
+    s \<in> Some ` I \<Longrightarrow> s' \<in> Some ` (I \<inter> -b)"
+  using assms
+  by (induct "WHILE b INV {i} DO c OD" s s') auto
 
 lemma WhileRule:
  "p \<subseteq> i \<Longrightarrow> Valid (i \<inter> b) c i \<Longrightarrow> i \<inter> (-b) \<subseteq> q \<Longrightarrow> Valid p (While b i c) q"
 apply(simp add:Valid_def)
 apply(simp (no_asm) add:image_def)
 apply clarify
-apply(drule iter_aux)
-  prefer 2 apply assumption
+apply(drule While_aux)
+  apply assumption
  apply blast
 apply blast
 done
