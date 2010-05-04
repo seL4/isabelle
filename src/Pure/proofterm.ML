@@ -108,6 +108,8 @@ sig
   val combination: term -> term -> term -> term -> typ -> proof -> proof -> proof
   val equal_intr: term -> term -> proof -> proof -> proof
   val equal_elim: term -> term -> proof -> proof -> proof
+  val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
+    sort list -> proof -> proof
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
   val promise_proof: theory -> serial -> term -> proof
@@ -882,6 +884,22 @@ fun equal_intr A B prf1 prf2 =
 
 fun equal_elim A B prf1 prf2 =
   equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
+
+
+(**** sort hypotheses ****)
+
+fun strip_shyps_proof algebra present witnessed extra_sorts prf =
+  let
+    fun get S2 (T, S1) = if Sorts.sort_le algebra (S1, S2) then SOME T else NONE;
+    val extra = map (fn S => (TFree (Name.aT, S), S)) extra_sorts;
+    val replacements = present @ extra @ witnessed;
+    fun replace T =
+      if exists (fn (T', _) => T' = T) present then raise Same.SAME
+      else
+        (case get_first (get (Type.sort_of_atyp T)) replacements of
+          SOME T' => T'
+        | NONE => raise Fail "strip_shyps_proof: bad type variable in proof term");
+  in Same.commit (map_proof_types_same (Term_Subst.map_atypsT_same replace)) prf end;
 
 
 (***** axioms and theorems *****)

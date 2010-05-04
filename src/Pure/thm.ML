@@ -512,6 +512,9 @@ fun deriv_rule2 f
 fun deriv_rule1 f = deriv_rule2 (K f) empty_deriv;
 fun deriv_rule0 prf = deriv_rule1 I (make_deriv [] [] [] prf);
 
+fun deriv_rule_unconditional f (Deriv {promises, body = PBody {oracles, thms, proof}}) =
+  make_deriv promises oracles thms (f proof);
+
 
 (* fulfilled proofs *)
 
@@ -1204,14 +1207,17 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
   | strip_shyps (thm as Thm (der, {thy_ref, tags, maxidx, shyps, hyps, tpairs, prop})) =
       let
         val thy = Theory.deref thy_ref;
-        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_snd op =)) thm [];
+        val algebra = Sign.classes_of thy;
+
+        val present = (fold_terms o fold_types o fold_atyps_sorts) (insert (eq_fst op =)) thm [];
         val extra = fold (Sorts.remove_sort o #2) present shyps;
         val witnessed = Sign.witness_sorts thy present extra;
         val extra' = fold (Sorts.remove_sort o #2) witnessed extra
-          |> Sorts.minimal_sorts (Sign.classes_of thy);
+          |> Sorts.minimal_sorts algebra;
         val shyps' = fold (Sorts.insert_sort o #2) present extra';
       in
-        Thm (der, {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
+        Thm (deriv_rule_unconditional (Pt.strip_shyps_proof algebra present witnessed extra') der,
+         {thy_ref = Theory.check_thy thy, tags = tags, maxidx = maxidx,
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end;
 
