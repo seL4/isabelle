@@ -1095,7 +1095,10 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Multivariate_Analysis/Path_Connected.thy		\
   Multivariate_Analysis/Real_Integration.thy		\
   Multivariate_Analysis/Topology_Euclidean_Space.thy	\
-  Multivariate_Analysis/Vec1.thy
+  Multivariate_Analysis/Vec1.thy Library/Glbs.thy	\
+  Library/Inner_Product.thy Library/Numeral_Type.thy	\
+  Library/Convex.thy Library/FrechetDeriv.thy		\
+  Library/Product_Vector.thy Library/Product_plus.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Multivariate_Analysis
 
 
@@ -1109,7 +1112,10 @@ $(OUT)/HOL-Probability: $(OUT)/HOL Probability/ROOT.ML		\
   Probability/Borel.thy Probability/Measure.thy			\
   Probability/Lebesgue.thy Probability/Product_Measure.thy	\
   Probability/Probability_Space.thy Probability/Information.thy \
-  Probability/ex/Dining_Cryptographers.thy
+  Probability/ex/Dining_Cryptographers.thy Library/FuncSet.thy	\
+  Library/Convex.thy Library/Product_Vector.thy 		\
+  Library/Product_plus.thy Library/Inner_Product.thy		\
+  Library/Nat_Bijection.thy
 	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Probability
 
 
