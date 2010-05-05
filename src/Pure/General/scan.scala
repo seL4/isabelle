@@ -8,6 +8,7 @@ package isabelle
 
 
 import scala.collection.generic.Addable
+import scala.collection.IndexedSeq
 import scala.collection.immutable.PagedSeq
 import scala.util.parsing.input.{OffsetPosition, Position => InputPosition, Reader}
 import scala.util.parsing.combinator.RegexParsers
@@ -306,7 +307,7 @@ object Scan
 
   /** read file without decoding -- enables efficient length operation **/
 
-  private class Restricted_Seq(seq: RandomAccessSeq[Char], start: Int, end: Int)
+  private class Restricted_Seq(seq: IndexedSeq[Char], start: Int, end: Int)
     extends CharSequence
   {
     def charAt(i: Int): Char =
