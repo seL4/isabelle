@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/class_target.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Type classes derived from primitive axclasses and locales - mechanisms.
+Type classes derived from primitive axclasses and locales -- mechanisms.
 *)
 
 signature CLASS_TARGET =
@@ -208,9 +208,6 @@ fun activate_defs class thms thy =
     fun amend cls thy = Locale.amend_registration (cls, base_morphism thy cls)
       (eq_morph, true) (export_morphism thy cls) thy;
   in fold amend (heritage thy [class]) thy end;
-
-(*fun activate_defs class thms thy = Locale.amend_registration (class, base_morphism thy class)
-  (Element.eq_morphism thy thms, true) (export_morphism thy class) thy;*)
 
 fun register_operation class (c, (t, some_def)) thy =
   let

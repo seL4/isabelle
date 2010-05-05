@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/class.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Type classes derived from primitive axclasses and locales - interfaces.
+Type classes derived from primitive axclasses and locales -- interfaces.
 *)
 
 signature CLASS =
