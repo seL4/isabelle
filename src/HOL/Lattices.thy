@@ -581,7 +581,6 @@ lemmas max_ac = min_max.sup_assoc min_max.sup_commute
   min_max.sup.left_commute
 
 
-
 subsection {* Bool as lattice *}
 
 instantiation bool :: boolean_algebra
