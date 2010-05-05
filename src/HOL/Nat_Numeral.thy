@@ -687,6 +687,13 @@ lemmas nat_number =
 lemmas nat_number' =
   nat_number_of_Bit0 nat_number_of_Bit1
 
+lemmas nat_arith =
+  add_nat_number_of
+  diff_nat_number_of
+  mult_nat_number_of
+  eq_nat_number_of
+  less_nat_number_of
+
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (fact Let_def)
 

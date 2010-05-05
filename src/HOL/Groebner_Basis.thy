@@ -5,17 +5,16 @@
 header {* Semiring normalization and Groebner Bases *}
 
 theory Groebner_Basis
-imports Numeral_Simprocs
+imports Numeral_Simprocs Nat_Transfer
 uses
   "Tools/Groebner_Basis/normalizer_data.ML"
-  ("Tools/Groebner_Basis/normalizer.ML")
+  "Tools/Groebner_Basis/normalizer.ML"
   ("Tools/Groebner_Basis/groebner.ML")
 begin
 
 subsection {* Semiring normalization *}
 
 setup NormalizerData.setup
-
 
 locale gb_semiring =
   fixes add mul pwr r0 r1
