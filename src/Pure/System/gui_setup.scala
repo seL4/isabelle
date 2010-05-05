@@ -12,15 +12,13 @@ import scala.swing._
 import scala.swing.event._
 
 
-object GUI_Setup extends GUIApplication
+object GUI_Setup extends SwingApplication
 {
-  def main(args: Array[String]) =
+  def startup(args: Array[String]) =
   {
-    Swing_Thread.later {
-      UIManager.setLookAndFeel(Platform.look_and_feel)
-      top.pack()
-      top.visible = true
-    }
+    UIManager.setLookAndFeel(Platform.look_and_feel)
+    top.pack()
+    top.visible = true
   }
 
   def top = new MainFrame {
