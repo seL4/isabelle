@@ -1632,9 +1632,7 @@ proof-
   then show ?thesis by blast
 qed
 
-(* ------------------------------------------------------------------------- *)
-(* Geometric progression.                                                    *)
-(* ------------------------------------------------------------------------- *)
+subsection {* Geometric progression *}
 
 lemma sum_gp_basic: "((1::'a::{field}) - x) * setsum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
   (is "?lhs = ?rhs")
@@ -1703,7 +1701,7 @@ definition "span S = (subspace hull S)"
 definition "dependent S \<longleftrightarrow> (\<exists>a \<in> S. a \<in> span(S - {a}))"
 abbreviation "independent s == ~(dependent s)"
 
-(* Closure properties of subspaces.                                          *)
+text {* Closure properties of subspaces. *}
 
 lemma subspace_UNIV[simp]: "subspace(UNIV)" by (simp add: subspace_def)
 
@@ -1876,7 +1874,7 @@ lemma span_induct_alt:
   shows "h x"
 using span_induct_alt'[of h S] h0 hS x by blast
 
-(* Individual closure properties. *)
+text {* Individual closure properties. *}
 
 lemma span_superset: "x \<in> S ==> x \<in> span S" by (metis span_clauses(1))
 
@@ -1902,7 +1900,7 @@ lemma span_add_eq: "x \<in> span S \<Longrightarrow> x + y \<in> span S \<longle
   apply (subgoal_tac "(x + y) - x \<in> span S", simp)
   by (simp only: span_add span_sub)
 
-(* Mapping under linear image. *)
+text {* Mapping under linear image. *}
 
 lemma span_linear_image: assumes lf: "linear f"
   shows "span (f ` S) = f ` (span S)"
@@ -1934,7 +1932,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-(* The key breakdown property. *)
+text {* The key breakdown property. *}
 
 lemma span_breakdown:
   assumes bS: "b \<in> S" and aS: "a \<in> span S"
@@ -2007,7 +2005,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-(* Hence some "reversal" results.*)
+text {* Hence some "reversal" results. *}
 
 lemma in_span_insert:
   assumes a: "a \<in> span (insert b S)" and na: "a \<notin> span S"
@@ -2060,7 +2058,7 @@ lemma in_span_delete:
   apply (rule na)
   done
 
-(* Transitivity property. *)
+text {* Transitivity property. *}
 
 lemma span_trans:
   assumes x: "x \<in> span S" and y: "y \<in> span (insert x S)"
@@ -2080,9 +2078,7 @@ proof-
     by (rule x)
 qed
 
-(* ------------------------------------------------------------------------- *)
-(* An explicit expansion is sometimes needed.                                *)
-(* ------------------------------------------------------------------------- *)
+text {* An explicit expansion is sometimes needed. *}
 
 lemma span_explicit:
   "span P = {y. \<exists>S u. finite S \<and> S \<subseteq> P \<and> setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
@@ -2215,7 +2211,7 @@ proof-
 qed
 
 
-(* Standard bases are a spanning set, and obviously finite.                  *)
+text {* Standard bases are a spanning set, and obviously finite. *}
 
 lemma span_stdbasis:"span {basis i :: real^'n | i. i \<in> (UNIV :: 'n set)} = UNIV"
 apply (rule set_ext)
@@ -2280,7 +2276,7 @@ proof-
   then show ?thesis unfolding eq dependent_def ..
 qed
 
-(* This is useful for building a basis step-by-step.                         *)
+text {* This is useful for building a basis step-by-step. *}
 
 lemma independent_insert:
   "independent(insert a S) \<longleftrightarrow>
@@ -2320,7 +2316,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-(* The degenerate case of the Exchange Lemma.  *)
+text {* The degenerate case of the Exchange Lemma. *}
 
 lemma mem_delete: "x \<in> (A - {a}) \<longleftrightarrow> x \<noteq> a \<and> x \<in> A"
   by blast
@@ -2356,7 +2352,7 @@ next
   then show "A \<subseteq> B" by blast
 qed
 
-(* The general case of the Exchange Lemma, the key to what follows.  *)
+text {* The general case of the Exchange Lemma, the key to what follows. *}
 
 lemma exchange_lemma:
   assumes f:"finite t" and i: "independent s"
@@ -2432,7 +2428,7 @@ proof(induct "card (t - s)" arbitrary: s t rule: less_induct)
   show ?ths  by blast
 qed
 
-(* This implies corresponding size bounds.                                   *)
+text {* This implies corresponding size bounds. *}
 
 lemma independent_span_bound:
   assumes f: "finite t" and i: "independent s" and sp:"s \<subseteq> span t"
@@ -2464,7 +2460,7 @@ lemma independent_bound:
 lemma dependent_biggerset: "(finite (S::(real ^'n) set) ==> card S > CARD('n)) ==> dependent S"
   by (metis independent_bound not_less)
 
-(* Hence we can create a maximal independent subset.                         *)
+text {* Hence we can create a maximal independent subset. *}
 
 lemma maximal_independent_subset_extend:
   assumes sv: "(S::(real^'n) set) \<subseteq> V" and iS: "independent S"
@@ -2501,7 +2497,7 @@ lemma maximal_independent_subset:
   "\<exists>(B:: (real ^'n) set). B\<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
   by (metis maximal_independent_subset_extend[of "{}:: (real ^'n) set"] empty_subsetI independent_empty)
 
-(* Notion of dimension.                                                      *)
+text {* Notion of dimension. *}
 
 definition "dim V = (SOME n. \<exists>B. B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B \<and> (card B = n))"
 
@@ -2510,7 +2506,7 @@ unfolding dim_def some_eq_ex[of "\<lambda>n. \<exists>B. B \<subseteq> V \<and> 
 using maximal_independent_subset[of V] independent_bound
 by auto
 
-(* Consequences of independence or spanning for cardinality.                 *)
+text {* Consequences of independence or spanning for cardinality. *}
 
 lemma independent_card_le_dim: 
   assumes "(B::(real ^'n) set) \<subseteq> V" and "independent B" shows "card B \<le> dim V"
@@ -2531,7 +2527,7 @@ lemma basis_card_eq_dim:
 lemma dim_unique: "(B::(real ^'n) set) \<subseteq> V \<Longrightarrow> V \<subseteq> span B \<Longrightarrow> independent B \<Longrightarrow> card B = n \<Longrightarrow> dim V = n"
   by (metis basis_card_eq_dim)
 
-(* More lemmas about dimension.                                              *)
+text {* More lemmas about dimension. *}
 
 lemma dim_univ: "dim (UNIV :: (real^'n) set) = CARD('n)"
   apply (rule dim_unique[of "{basis i |i. i\<in> (UNIV :: 'n set)}"])
@@ -2545,7 +2541,7 @@ lemma dim_subset:
 lemma dim_subset_univ: "dim (S:: (real^'n) set) \<le> CARD('n)"
   by (metis dim_subset subset_UNIV dim_univ)
 
-(* Converses to those.                                                       *)
+text {* Converses to those. *}
 
 lemma card_ge_dim_independent:
   assumes BV:"(B::(real ^'n) set) \<subseteq> V" and iB:"independent B" and dVB:"dim V \<le> card B"
@@ -2587,9 +2583,7 @@ lemma card_eq_dim: "(B:: (real ^'n) set) \<subseteq> V \<Longrightarrow> card B 
   by (metis order_eq_iff card_le_dim_spanning
     card_ge_dim_independent)
 
-(* ------------------------------------------------------------------------- *)
-(* More general size bound lemmas.                                           *)
-(* ------------------------------------------------------------------------- *)
+text {* More general size bound lemmas. *}
 
 lemma independent_bound_general:
   "independent (S:: (real^'n) set) \<Longrightarrow> finite S \<and> card S \<le> dim S"
@@ -2637,7 +2631,7 @@ proof-
   finally show ?thesis .
 qed
 
-(* Relation between bases and injectivity/surjectivity of map.               *)
+text {* Relation between bases and injectivity/surjectivity of map. *}
 
 lemma spanning_surjective_image:
   assumes us: "UNIV \<subseteq> span S"
@@ -2663,9 +2657,8 @@ proof-
   then show ?thesis unfolding dependent_def by blast
 qed
 
-(* ------------------------------------------------------------------------- *)
-(* Picking an orthogonal replacement for a spanning set.                     *)
-(* ------------------------------------------------------------------------- *)
+text {* Picking an orthogonal replacement for a spanning set. *}
+
     (* FIXME : Move to some general theory ?*)
 definition "pairwise R S \<longleftrightarrow> (\<forall>x \<in> S. \<forall>y\<in> S. x\<noteq>y \<longrightarrow> R x y)"
 
@@ -2771,9 +2764,7 @@ lemma span_eq: "span S = span T \<longleftrightarrow> S \<subseteq> span T \<and
   using span_inc[unfolded subset_eq] using span_mono[of T "span S"] span_mono[of S "span T"]
   by(auto simp add: span_span)
 
-(* ------------------------------------------------------------------------- *)
-(* Low-dimensional subset is in a hyperplane (weak orthogonal complement).   *)
-(* ------------------------------------------------------------------------- *)
+text {* Low-dimensional subset is in a hyperplane (weak orthogonal complement). *}
 
 lemma span_not_univ_orthogonal:
   assumes sU: "span S \<noteq> UNIV"
@@ -2832,7 +2823,7 @@ proof-
   from span_not_univ_subset_hyperplane[OF th] show ?thesis .
 qed
 
-(* We can extend a linear basis-basis injection to the whole set.            *)
+text {* We can extend a linear basis-basis injection to the whole set. *}
 
 lemma linear_indep_image_lemma:
   assumes lf: "linear f" and fB: "finite B"
@@ -2885,7 +2876,7 @@ next
   show "x = 0" .
 qed
 
-(* We can extend a linear mapping from basis.                                *)
+text {* We can extend a linear mapping from basis. *}
 
 lemma linear_independent_extend_lemma:
   fixes f :: "'a::real_vector \<Rightarrow> 'b::real_vector"
@@ -2988,7 +2979,7 @@ proof-
     apply clarsimp by blast
 qed
 
-(* Can construct an isomorphism between spaces of same dimension.            *)
+text {* Can construct an isomorphism between spaces of same dimension. *}
 
 lemma card_le_inj: assumes fA: "finite A" and fB: "finite B"
   and c: "card A \<le> card B" shows "(\<exists>f. f ` A \<subseteq> B \<and> inj_on f A)"
@@ -3066,7 +3057,7 @@ proof-
   from g(1) gS giS show ?thesis by blast
 qed
 
-(* linear functions are equal on a subspace if they are on a spanning set.   *)
+text {* Linear functions are equal on a subspace if they are on a spanning set. *}
 
 lemma subspace_kernel:
   assumes lf: "linear f"
@@ -3115,7 +3106,7 @@ proof-
   then show ?thesis by (auto intro: ext)
 qed
 
-(* Similar results for bilinear functions.                                   *)
+text {* Similar results for bilinear functions. *}
 
 lemma bilinear_eq:
   assumes bf: "bilinear f"
@@ -3155,7 +3146,7 @@ proof-
   from bilinear_eq[OF bf bg equalityD2[OF span_stdbasis] equalityD2[OF span_stdbasis] th] show ?thesis by (blast intro: ext)
 qed
 
-(* Detailed theorems about left and right invertibility in general case.     *)
+text {* Detailed theorems about left and right invertibility in general case. *}
 
 lemma left_invertible_transpose:
   "(\<exists>(B). B ** transpose (A) = mat (1::'a::comm_semiring_1)) \<longleftrightarrow> (\<exists>(B). A ** B = mat 1)"
@@ -3351,7 +3342,7 @@ lemma matrix_left_invertible_span_rows:
   unfolding matrix_right_invertible_span_columns
  ..
 
-(* An injective map real^'n->real^'n is also surjective.                       *)
+text {* An injective map @{typ "real^'n \<Rightarrow> real^'n"} is also surjective. *}
 
 lemma linear_injective_imp_surjective:
   assumes lf: "linear (f:: real ^'n \<Rightarrow> real ^'n)" and fi: "inj f"
@@ -3377,7 +3368,7 @@ proof-
     using B(3) by blast
 qed
 
-(* And vice versa.                                                           *)
+text {* And vice versa. *}
 
 lemma surjective_iff_injective_gen:
   assumes fS: "finite S" and fT: "finite T" and c: "card S = card T"
@@ -3459,7 +3450,7 @@ proof-
     using B(3) by blast
 qed
 
-(* Hence either is enough for isomorphism.                                   *)
+text {* Hence either is enough for isomorphism. *}
 
 lemma left_right_inverse_eq:
   assumes fg: "f o g = id" and gh: "g o h = id"
@@ -3488,7 +3479,7 @@ unfolding isomorphism_expand[symmetric]
 using linear_surjective_right_inverse[OF lf sf] linear_injective_left_inverse[OF lf linear_surjective_imp_injective[OF lf sf]]
 by (metis left_right_inverse_eq)
 
-(* Left and right inverses are the same for R^N->R^N.                        *)
+text {* Left and right inverses are the same for @{typ "real^'n \<Rightarrow> real^'n"}. *}
 
 lemma linear_inverse_left:
   assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'n)" and lf': "linear f'"
@@ -3506,7 +3497,7 @@ proof-
   then show ?thesis using lf lf' by metis
 qed
 
-(* Moreover, a one-sided inverse is automatically linear.                    *)
+text {* Moreover, a one-sided inverse is automatically linear. *}
 
 lemma left_inverse_linear:
   assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'n)" and gf: "g o f = id"
@@ -3538,7 +3529,7 @@ proof-
   with h(1) show ?thesis by blast
 qed
 
-(* The same result in terms of square matrices.                              *)
+text {* The same result in terms of square matrices. *}
 
 lemma matrix_left_right_inverse:
   fixes A A' :: "real ^'n^'n"
@@ -3562,7 +3553,7 @@ proof-
   then show ?thesis by blast
 qed
 
-(* Considering an n-element vector as an n-by-1 or 1-by-n matrix.            *)
+text {* Considering an n-element vector as an n-by-1 or 1-by-n matrix. *}
 
 definition "rowvector v = (\<chi> i j. (v$j))"
 
@@ -3589,7 +3580,7 @@ lemma dot_matrix_vector_mul:
 unfolding dot_matrix_product transpose_columnvector[symmetric]
   dot_rowvector_columnvector matrix_transpose_mul matrix_mul_assoc ..
 
-(* Infinity norm.                                                            *)
+subsection {* Infinity norm *}
 
 definition "infnorm (x::real^'n) = Sup {abs(x$i) |i. i\<in> (UNIV :: 'n set)}"
 
@@ -3721,7 +3712,7 @@ qed
 lemma infnorm_pos_lt: "infnorm x > 0 \<longleftrightarrow> x \<noteq> 0"
   using infnorm_pos_le[of x] infnorm_eq_0[of x] by arith
 
-(* Prove that it differs only up to a bound from Euclidean norm.             *)
+text {* Prove that it differs only up to a bound from Euclidean norm. *}
 
 lemma infnorm_le_norm: "infnorm x \<le> norm x"
   unfolding infnorm_def Sup_finite_le_iff[OF infnorm_set_lemma]
@@ -3750,7 +3741,7 @@ proof-
   show ?thesis unfolding norm_eq_sqrt_inner id_def .
 qed
 
-(* Equality in Cauchy-Schwarz and triangle inequalities.                     *)
+text {* Equality in Cauchy-Schwarz and triangle inequalities. *}
 
 lemma norm_cauchy_schwarz_eq: "x \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *\<^sub>R y = norm y *\<^sub>R x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
@@ -3817,7 +3808,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-(* Collinearity.*)
+subsection {* Collinearity *}
 
 definition
   collinear :: "'a::real_vector set \<Rightarrow> bool" where
