@@ -416,30 +416,52 @@ lemma connected_empty[simp, intro]: "connected {}"
 
 subsection{* Hausdorff and other separation properties *}
 
-class t0_space =
+class t0_space = topological_space +
   assumes t0_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
 
-class t1_space =
-  assumes t1_space: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<notin> U \<and> x \<notin> V \<and> y \<in> V"
-begin
+class t1_space = topological_space +
+  assumes t1_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> x \<in> U \<and> y \<notin> U"
 
-subclass t0_space
-proof
-qed (fast dest: t1_space)
+instance t1_space \<subseteq> t0_space
+proof qed (fast dest: t1_space)
 
-end
+lemma separation_t1:
+  fixes x y :: "'a::t1_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> x \<in> U \<and> y \<notin> U)"
+  using t1_space[of x y] by blast
+
+lemma closed_sing:
+  fixes a :: "'a::t1_space"
+  shows "closed {a}"
+proof -
+  let ?T = "\<Union>{S. open S \<and> a \<notin> S}"
+  have "open ?T" by (simp add: open_Union)
+  also have "?T = - {a}"
+    by (simp add: expand_set_eq separation_t1, auto)
+  finally show "closed {a}" unfolding closed_def .
+qed
+
+lemma closed_insert [simp]:
+  fixes a :: "'a::t1_space"
+  assumes "closed S" shows "closed (insert a S)"
+proof -
+  from closed_sing assms
+  have "closed ({a} \<union> S)" by (rule closed_Un)
+  thus "closed (insert a S)" by simp
+qed
+
+lemma finite_imp_closed:
+  fixes S :: "'a::t1_space set"
+  shows "finite S \<Longrightarrow> closed S"
+by (induct set: finite, simp_all)
 
 text {* T2 spaces are also known as Hausdorff spaces. *}
 
-class t2_space =
+class t2_space = topological_space +
   assumes hausdorff: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-begin
 
-subclass t1_space
-proof
-qed (fast dest: hausdorff)
-
-end
+instance t2_space \<subseteq> t1_space
+proof qed (fast dest: hausdorff)
 
 instance metric_space \<subseteq> t2_space
 proof
@@ -460,11 +482,6 @@ lemma separation_t2:
   fixes x y :: "'a::t2_space"
   shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {})"
   using hausdorff[of x y] by blast
-
-lemma separation_t1:
-  fixes x y :: "'a::t1_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in>U \<and> y\<notin> U \<and> x\<notin>V \<and> y\<in>V)"
-  using t1_space[of x y] by blast
 
 lemma separation_t0:
   fixes x y :: "'a::t0_space"
@@ -2909,26 +2926,6 @@ proof-
     by auto
 qed
 
-lemma closed_sing [simp]:
-  fixes a :: "'a::metric_space" (* TODO: generalize to t1_space *)
-  shows "closed {a}"
-  apply (clarsimp simp add: closed_def open_dist)
-  apply (rule ccontr)
-  apply (drule_tac x="dist x a" in spec)
-  apply (simp add: dist_nz dist_commute)
-  done
-
-lemma finite_imp_closed:
-  fixes s :: "'a::metric_space set"
-  shows "finite s ==> closed s"
-proof (induct set: finite)
-  case empty show "closed {}" by simp
-next
-  case (insert x F)
-  hence "closed ({x} \<union> F)" by (simp only: closed_Un closed_sing)
-  thus "closed (insert x F)" by simp
-qed
-
 lemma finite_imp_compact:
   fixes s :: "'a::heine_borel set"
   shows "finite s ==> compact s"
@@ -2966,10 +2963,9 @@ lemma frontier_subset_compact:
   by blast
 
 lemma open_delete:
-  fixes s :: "'a::metric_space set"
-  shows "open s ==> open(s - {x})"
-  using open_Diff[of s "{x}"] closed_sing
-  by blast
+  fixes s :: "'a::t1_space set"
+  shows "open s \<Longrightarrow> open (s - {x})"
+  by (simp add: open_Diff)
 
 text{* Finite intersection property. I could make it an equivalence in fact. *}
 
@@ -3741,17 +3737,17 @@ proof- fix x T assume as:"open T" "x \<in> T" "T \<subseteq> f ` s"
 text{* Equality of continuous functions on closure and related results.          *}
 
 lemma continuous_closed_in_preimage_constant:
-  fixes f :: "_ \<Rightarrow> 'b::metric_space" (* class constraint due to closed_sing *)
+  fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "continuous_on s f ==> closedin (subtopology euclidean s) {x \<in> s. f x = a}"
-  using continuous_closed_in_preimage[of s f "{a}"] closed_sing by auto
+  using continuous_closed_in_preimage[of s f "{a}"] by auto
 
 lemma continuous_closed_preimage_constant:
-  fixes f :: "_ \<Rightarrow> 'b::metric_space" (* class constraint due to closed_sing *)
+  fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "continuous_on s f \<Longrightarrow> closed s ==> closed {x \<in> s. f x = a}"
-  using continuous_closed_preimage[of s f "{a}"] closed_sing by auto
+  using continuous_closed_preimage[of s f "{a}"] by auto
 
 lemma continuous_constant_on_closure:
-  fixes f :: "_ \<Rightarrow> 'b::metric_space" (* class constraint due to closed_sing *)
+  fixes f :: "_ \<Rightarrow> 'b::t1_space"
   assumes "continuous_on (closure s) f"
           "\<forall>x \<in> s. f x = a"
   shows "\<forall>x \<in> (closure s). f x = a"
@@ -3817,14 +3813,14 @@ using assms(1)[unfolded continuous_on_eq_continuous_at[OF assms(2)], THEN bspec[
 text{* Proving a function is constant by proving open-ness of level set.         *}
 
 lemma continuous_levelset_open_in_cases:
-  fixes f :: "_ \<Rightarrow> 'b::metric_space" (* class constraint due to closed_sing *)
+  fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "connected s \<Longrightarrow> continuous_on s f \<Longrightarrow>
         openin (subtopology euclidean s) {x \<in> s. f x = a}
         ==> (\<forall>x \<in> s. f x \<noteq> a) \<or> (\<forall>x \<in> s. f x = a)"
 unfolding connected_clopen using continuous_closed_in_preimage_constant by auto
 
 lemma continuous_levelset_open_in:
-  fixes f :: "_ \<Rightarrow> 'b::metric_space" (* class constraint due to closed_sing *)
+  fixes f :: "_ \<Rightarrow> 'b::t1_space"
   shows "connected s \<Longrightarrow> continuous_on s f \<Longrightarrow>
         openin (subtopology euclidean s) {x \<in> s. f x = a} \<Longrightarrow>
         (\<exists>x \<in> s. f x = a)  ==> (\<forall>x \<in> s. f x = a)"
@@ -3832,7 +3828,7 @@ using continuous_levelset_open_in_cases[of s f ]
 by meson
 
 lemma continuous_levelset_open:
-  fixes f :: "_ \<Rightarrow> 'b::metric_space" (* class constraint due to closed_sing *)
+  fixes f :: "_ \<Rightarrow> 'b::t1_space"
   assumes "connected s"  "continuous_on s f"  "open {x \<in> s. f x = a}"  "\<exists>x \<in> s.  f x = a"
   shows "\<forall>x \<in> s. f x = a"
 using continuous_levelset_open_in[OF assms(1,2), of a, unfolded openin_open] using assms (3,4) by fast
@@ -4443,7 +4439,7 @@ next
   show ?thesis
   proof(cases "c=0")
     have *:"(\<lambda>x. 0) ` s = {0}" using `s\<noteq>{}` by auto
-    case True thus ?thesis apply auto unfolding * using closed_sing by auto
+    case True thus ?thesis apply auto unfolding * by auto
   next
     case False
     { fix x l assume as:"\<forall>n::nat. x n \<in> scaleR c ` s"  "(x ---> l) sequentially"
