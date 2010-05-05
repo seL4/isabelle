@@ -33,10 +33,13 @@ object Position
   def get_file(pos: T): Option[String] = get_string(Markup.FILE, pos)
   def get_id(pos: T): Option[String] = get_string(Markup.ID, pos)
 
-  def get_offsets(pos: T): (Option[Int], Option[Int]) =
-  {
-    val begin = get_offset(pos)
-    val end = get_end_offset(pos)
-    (begin, if (end.isDefined) end else begin.map(_ + 1))
-  }
+  def get_range(pos: T): Option[(Int, Int)] =
+    (get_offset(pos), get_end_offset(pos)) match {
+      case (Some(begin), Some(end)) => Some(begin, end)
+      case (Some(begin), None) => Some(begin, begin + 1)
+      case (None, _) => None
+    }
+
+  object Id { def unapply(pos: T): Option[String] = get_id(pos) }
+  object Range { def unapply(pos: T): Option[(Int, Int)] = get_range(pos) }
 }
