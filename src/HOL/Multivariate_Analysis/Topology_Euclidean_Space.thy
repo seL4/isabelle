@@ -1584,21 +1584,20 @@ qed
 
 text{* Common case assuming being away from some crucial point like 0. *}
 
-text {* TODO: generalize the next few lemmas to T1 spaces. *}
-
 lemma Lim_transform_away_within:
-  fixes a b :: "'a::metric_space"
+  fixes a b :: "'a::t1_space"
   assumes "a \<noteq> b" and "\<forall>x\<in>S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and "(f ---> l) (at a within S)"
   shows "(g ---> l) (at a within S)"
-proof-
-  have "\<forall>x'\<in>S. 0 < dist x' a \<and> dist x' a < dist a b \<longrightarrow> f x' = g x'" using assms(2)
-    apply auto apply(erule_tac x=x' in ballE) by (auto simp add: dist_commute)
-  thus ?thesis using Lim_transform_within[of "dist a b" S a f g l] using assms(1,3) unfolding dist_nz by auto
+proof (rule Lim_transform_eventually)
+  show "(f ---> l) (at a within S)" by fact
+  show "eventually (\<lambda>x. f x = g x) (at a within S)"
+    unfolding Limits.eventually_within eventually_at_topological
+    by (rule exI [where x="- {b}"], simp add: open_Compl assms)
 qed
 
 lemma Lim_transform_away_at:
-  fixes a b :: "'a::metric_space"
+  fixes a b :: "'a::t1_space"
   assumes ab: "a\<noteq>b" and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and fl: "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
