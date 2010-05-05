@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/Groebner_Basis/normalizer_data.ML
-    ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 
 Ring normalization data.
