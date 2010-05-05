@@ -821,7 +821,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
       #-> (fn eqns => fold (fn ((dep, morph), wits) =>
         fn thy => Locale.add_registration (dep, morph $> Element.satisfy_morphism
             (map (Element.morph_witness export') wits))
-          (if null eqns then NONE else SOME (Element.eq_morphism thy eqns, true))
+          (Element.eq_morphism thy eqns |> Option.map (rpair true))
           export thy) (deps ~~ witss)));
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;

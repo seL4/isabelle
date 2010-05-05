@@ -74,7 +74,10 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     fun prove_assm_intro thm =
       let
         val ((_, [thm']), _) = Variable.import true [thm] empty_ctxt;
-        val thm'' = Morphism.thm (const_morph $> eq_morph) thm';
+        val const_eq_morph = case eq_morph
+         of SOME eq_morph => const_morph $> eq_morph
+          | NONE => const_morph
+        val thm'' = Morphism.thm const_eq_morph thm';
         val tac = ALLGOALS (ProofContext.fact_tac [thm'']);
       in Skip_Proof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
     val assm_intro = Option.map prove_assm_intro
@@ -290,7 +293,9 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) =>
-       Locale.add_registration (class, base_morph $> eq_morph (*FIXME duplication*)) (SOME (eq_morph, true)) export_morph
+       Locale.add_registration (class, case eq_morph of SOME eq_morph => base_morph $> eq_morph | NONE => base_morph)
+         (*FIXME should avoid modification of base morphism, but then problem with sublocale linorder < distrib_lattice*)
+         (Option.map (rpair true) eq_morph) export_morph
     #> register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
     |> Theory_Target.init (SOME class)
     |> pair class

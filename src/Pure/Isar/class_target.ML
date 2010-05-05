@@ -151,8 +151,9 @@ fun these_defs thy = maps (#defs o the_class_data thy) o ancestry thy;
 fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
 
 val base_morphism = #base_morph oo the_class_data;
-fun morphism thy class = base_morphism thy class
-  $> Element.eq_morphism thy (these_defs thy [class]);
+fun morphism thy class = case Element.eq_morphism thy (these_defs thy [class])
+ of SOME eq_morph => base_morphism thy class $> eq_morph
+  | NONE => base_morphism thy class;
 val export_morphism = #export_morph oo the_class_data;
 
 fun print_classes thy =
@@ -202,12 +203,11 @@ fun register class sups params base_sort base_morph export_morph
       #> fold (curry Graph.add_edge class) sups;
   in ClassData.map add_class thy end;
 
-fun activate_defs class thms thy =
-  let
-    val eq_morph = Element.eq_morphism thy thms;
-    fun amend cls thy = Locale.amend_registration (cls, base_morphism thy cls)
-      (eq_morph, true) (export_morphism thy cls) thy;
-  in fold amend (heritage thy [class]) thy end;
+fun activate_defs class thms thy = case Element.eq_morphism thy thms
+ of SOME eq_morph => fold (fn cls => fn thy =>
+      Locale.amend_registration (cls, base_morphism thy cls)
+        (eq_morph, true) (export_morphism thy cls) thy) (heritage thy [class]) thy
+  | NONE => thy;
 
 fun register_operation class (c, (t, some_def)) thy =
   let
@@ -223,7 +223,7 @@ fun register_operation class (c, (t, some_def)) thy =
       (fn (defs, operations) =>
         (fold cons (the_list some_def) defs,
           (c, (class, (ty', t'))) :: operations))
-    |> is_some some_def ? activate_defs class (the_list some_def)
+    |> activate_defs class (the_list some_def)
   end;
 
 fun register_subclass (sub, sup) some_dep_morph some_wit export thy =

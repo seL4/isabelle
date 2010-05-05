@@ -55,7 +55,7 @@ sig
   val satisfy_facts: witness list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list
-  val eq_morphism: theory -> thm list -> morphism
+  val eq_morphism: theory -> thm list -> morphism option
   val transfer_morphism: theory -> morphism
   val init: context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
@@ -448,11 +448,11 @@ val satisfy_facts = facts_map o morph_ctxt o satisfy_morphism;
 
 (* rewriting with equalities *)
 
-fun eq_morphism thy thms = Morphism.morphism
+fun eq_morphism thy thms = if null thms then NONE else SOME (Morphism.morphism
  {binding = I,
   typ = I,
   term = MetaSimplifier.rewrite_term thy thms [],
-  fact = map (MetaSimplifier.rewrite_rule thms)};
+  fact = map (MetaSimplifier.rewrite_rule thms)});
 
 
 (* transfer to theory using closure *)
