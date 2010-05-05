@@ -416,7 +416,7 @@ lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
   by (simp add: split_def id_def)
 
 lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
-  -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity Datatype. *}
+  -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
   by (rule ext) auto
 
 lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
@@ -752,7 +752,7 @@ no_notation scomp (infixl "o\<rightarrow>" 60)
 
 text {*
   @{term prod_fun} --- action of the product functor upon
-  Datatypes.
+  functions.
 *}
 
 definition prod_fun :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
