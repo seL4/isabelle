@@ -463,7 +463,7 @@ proof -
   have "(measure M \<circ> nat_case {} A) ----> measure M (\<Union>i. nat_case {} A i)" 
     by (rule measure_countable_increasing) 
        (auto simp add: range_subsetD [OF A] subsetD [OF ASuc] split: nat.splits) 
-  also have "... = measure M (\<Union>i. A i)" 
+  also have "measure M (\<Union>i. nat_case {} A i) = measure M (\<Union>i. A i)" 
     by (simp add: ueq) 
   finally have "(measure M \<circ> nat_case {} A) ---->  measure M (\<Union>i. A i)" .
   thus ?thesis using meq
@@ -652,7 +652,7 @@ proof -
                   show "\<And>n. f -` A n \<inter> space m1 \<subseteq> f -` A (Suc n) \<inter> space m1"
                     using ASuc by auto
                 qed
-              also have "... = measure m1 (f -` (\<Union>i. A i) \<inter> space m1)"
+              also have "measure m1 (\<Union>i. f -` A i \<inter> space m1) = measure m1 (f -` (\<Union>i. A i) \<inter> space m1)"
                 by (simp add: vimage_UN)
               finally have "(measure m2 \<circ> A) ----> measure m1 (f -` (\<Union>i. A i) \<inter> space m1)" .
               moreover
