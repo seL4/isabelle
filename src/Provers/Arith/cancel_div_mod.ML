@@ -62,7 +62,7 @@ fun rearrange t pq =
   let val ts = Data.dest_sum t;
       val dpq = Data.mk_binop Data.div_name pq
       val d1 = mk_times (snd pq,dpq) and d2 = mk_times (dpq,snd pq)
-      val d = if d1 mem ts then d1 else d2
+      val d = if member (op =) ts d1 then d1 else d2
       val m = Data.mk_binop Data.mod_name pq
   in mk_plus(mk_plus(d,m),Data.mk_sum(ts |> remove (op =) d |> remove (op =) m)) end
 

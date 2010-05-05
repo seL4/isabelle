@@ -66,7 +66,7 @@ fun mk_case_names_induct descr = Rule_Cases.case_names (induct_cases descr);
 
 fun mk_case_names_exhausts descr new =
   map (Rule_Cases.case_names o exhaust_cases descr o #1)
-    (filter (fn ((_, (name, _, _))) => name mem_string new) descr);
+    (filter (fn ((_, (name, _, _))) => member (op =) new name) descr);
 
 end;
 
@@ -131,7 +131,7 @@ fun perm_simproc' thy ss (Const ("Nominal.perm", T) $ t $ (u as Const ("Nominal.
       let
         val (aT as Type (a, []), S) = dest_permT T;
         val (bT as Type (b, []), _) = dest_permT U
-      in if aT mem permTs_of u andalso aT <> bT then
+      in if member (op =) (permTs_of u) aT andalso aT <> bT then
           let
             val cp = cp_inst_of thy a b;
             val dj = dj_thm_of thy b a;
@@ -1772,7 +1772,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     val params' = params1 @ params2;
                     val rec_prems = filter (fn th => case prop_of th of
                         _ $ p => (case head_of p of
-                          Const (s, _) => s mem rec_set_names
+                          Const (s, _) => member (op =) rec_set_names s
                         | _ => false)
                       | _ => false) prems';
                     val fresh_prems = filter (fn th => case prop_of th of

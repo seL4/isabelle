@@ -604,9 +604,9 @@ fun get_defname thyname name thy =
                 val defname = Thm.def_name name
                 val pdefname = name ^ "_primdef"
             in
-                if not (defname mem used)
+                if not (member (op =) used defname)
                 then F defname                 (* name_def *)
-                else if not (pdefname mem used)
+                else if not (member (op =) used pdefname)
                 then F pdefname                (* name_primdef *)
                 else F (Name.variant used pdefname) (* last resort *)
             end

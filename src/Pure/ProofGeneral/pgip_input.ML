@@ -227,8 +227,8 @@ SOME
    (* We allow sending proper document markup too; we map it back to dostep   *)
    (* and strip out metainfo elements. Markup correctness isn't checked: this *)
    (* is a compatibility measure to make it easy for interfaces.              *)
-   | x => if (x mem PgipMarkup.doc_markup_elements) then
-              if (x mem PgipMarkup.doc_markup_elements_ignored) then
+   | x => if member (op =) PgipMarkup.doc_markup_elements x then
+              if member (op =) PgipMarkup.doc_markup_elements_ignored x then
                   raise NoAction
               else 
                   Dostep { text = xmltext data } (* could separate out Doitem too *)

@@ -46,7 +46,7 @@ fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
 fun mk_perm_bool_simproc names = Simplifier.simproc_i
   (theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn thy => fn ss =>
     fn Const ("Nominal.perm", _) $ _ $ t =>
-         if the_default "" (try (head_of #> dest_Const #> fst) t) mem names
+         if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
          then SOME perm_bool else NONE
      | _ => NONE);
 
@@ -77,7 +77,7 @@ fun add_binders thy i (t as (_ $ _)) bs = (case strip_comb t of
 
 fun split_conj f names (Const ("op &", _) $ p $ q) _ = (case head_of p of
       Const (name, _) =>
-        if name mem names then SOME (f p q) else NONE
+        if member (op =) names name then SOME (f p q) else NONE
     | _ => NONE)
   | split_conj _ _ _ _ = NONE;
 
@@ -96,7 +96,7 @@ fun strip_all [] t = t
 fun inst_conj_all names ps pis (Const ("op &", _) $ p $ q) _ =
       (case head_of p of
          Const (name, _) =>
-           if name mem names then SOME (HOLogic.mk_conj (p,
+           if member (op =) names name then SOME (HOLogic.mk_conj (p,
              Const ("Fun.id", HOLogic.boolT --> HOLogic.boolT) $
                (subst_bounds (pis, strip_all pis q))))
            else NONE
@@ -239,7 +239,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
     fun lift_prem (t as (f $ u)) =
           let val (p, ts) = strip_comb t
           in
-            if p mem ps then
+            if member (op =) ps p then
               Const (inductive_forall_name,
                 (fsT --> HOLogic.boolT) --> HOLogic.boolT) $
                   Abs ("z", fsT, lift_pred p (map (incr_boundvars 1) ts))

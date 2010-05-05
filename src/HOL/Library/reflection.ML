@@ -149,7 +149,7 @@ fun genreif ctxt raw_eqs t =
               Pattern.match thy
                 ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), t)
                 (Vartab.empty, Vartab.empty)
-            val (fnvs,invs) = List.partition (fn ((vn,_),_) => vn mem vns) (Vartab.dest tmenv)
+            val (fnvs,invs) = List.partition (fn ((vn,_),_) => member (op =) vns vn) (Vartab.dest tmenv)
             val (fts,its) =
               (map (snd o snd) fnvs,
                map (fn ((vn,vi),(tT,t)) => (cert(Var ((vn,vi),tT)), cert t)) invs)

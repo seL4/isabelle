@@ -528,7 +528,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
             | dups => ["Duplicate renaming(s) for " ^ commas dups])
 
         val cnames = map fst components;
-        val err_rename_unknowns = (case (filter (fn n => not (n mem cnames))) rnames of
+        val err_rename_unknowns = (case subtract (op =) cnames rnames of
               [] => []
              | rs => ["Unknown components " ^ commas rs]);
 

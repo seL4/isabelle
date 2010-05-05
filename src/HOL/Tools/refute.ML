@@ -463,7 +463,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
   in
     (* I'm not quite sure if checking the name 's' is sufficient, *)
     (* or if we should also check the type 'T'.                   *)
-    s mem_string class_const_names
+    member (op =) class_const_names s
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -499,7 +499,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
   in
     (* I'm not quite sure if checking the name 's' is sufficient, *)
     (* or if we should also check the type 'T'.                   *)
-    s mem_string rec_names
+    member (op =) rec_names s
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -932,7 +932,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
               | Datatype_Aux.DtType (_, ds) =>
                 collect_types dT (fold_rev collect_dtyp ds acc)
               | Datatype_Aux.DtRec i =>
-                if dT mem acc then
+                if member (op =) acc dT then
                   acc  (* prevent infinite recursion *)
                 else
                   let
@@ -2248,7 +2248,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
                           (* if 't_elem' existed at the previous depth,    *)
                           (* proceed recursively, otherwise map the entire *)
                           (* subtree to "undefined"                        *)
-                          if t_elem mem terms' then
+                          if member (op =) terms' t_elem then
                             make_constr ds off
                           else
                             (make_undef ds, off))

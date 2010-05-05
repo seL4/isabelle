@@ -288,7 +288,7 @@ fun check_rule ctxt cs params ((binding, att), rule) =
           then err bad_ind_occ else ();
 
     fun check_prem' prem t =
-      if head_of t mem cs then
+      if member (op =) cs (head_of t) then
         check_ind (err_in_prem ctxt err_name rule prem) t
       else (case t of
           Abs (_, _, t) => check_prem' prem t
@@ -301,7 +301,7 @@ fun check_rule ctxt cs params ((binding, att), rule) =
   in
     (case concl of
        Const (@{const_name Trueprop}, _) $ t =>
-         if head_of t mem cs then
+         if member (op =) cs (head_of t) then
            (check_ind (err_in_rule ctxt err_name rule') t;
             List.app check_prem (prems ~~ aprems))
          else err_in_rule ctxt err_name rule' bad_concl

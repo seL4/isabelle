@@ -140,7 +140,7 @@ fun term_vTs tm =
   fold_aterms (fn Var ((x, _), T) => cons (x, T) | _ => I) tm [];
 
 fun get_args _ _ [] = ([], [])
-  | get_args is i (x::xs) = (if i mem is then apfst else apsnd) (cons x)
+  | get_args is i (x::xs) = (if member (op =) is i then apfst else apsnd) (cons x)
       (get_args is (i+1) xs);
 
 fun merge xs [] = xs
@@ -237,7 +237,7 @@ fun select_mode_prem thy modes vs ps =
             end)
               ps));
 
-fun use_random () = "random_ind" mem !Codegen.mode;
+fun use_random () = member (op =) (!Codegen.mode) "random_ind";
 
 fun check_mode_clause thy arg_vs modes ((iss, is), rnd) (ts, ps) =
   let
@@ -557,7 +557,7 @@ fun constrain cs [] = []
 
 fun mk_extra_defs thy defs gr dep names module ts =
   fold (fn name => fn gr =>
-    if name mem names then gr
+    if member (op =) names name then gr
     else
       (case get_clauses thy name of
         NONE => gr
@@ -576,7 +576,7 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
       val args = List.take (snd (strip_comb u), nparms);
       val arg_vs = maps term_vs args;
 
-      fun get_nparms s = if s mem names then SOME nparms else
+      fun get_nparms s = if member (op =) names s then SOME nparms else
         Option.map #3 (get_clauses thy s);
 
       fun dest_prem (_ $ (Const (@{const_name "op :"}, _) $ t $ u)) =
@@ -585,7 +585,7 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
             Prem ([t, u], eq, false)
         | dest_prem (_ $ t) =
             (case strip_comb t of
-              (v as Var _, ts) => if v mem args then Prem (ts, v, false) else Sidecond t
+              (v as Var _, ts) => if member (op =) args v then Prem (ts, v, false) else Sidecond t
             | (c as Const (s, _), ts) =>
                 (case get_nparms s of
                   NONE => Sidecond t
@@ -704,7 +704,7 @@ fun conv_ntuple fs ts p =
     val xs = map_range (fn i => str ("x" ^ string_of_int i)) (k + 1);
     val xs' = map (fn Bound i => nth xs (k - i)) ts;
     fun conv xs js =
-      if js mem fs then
+      if member (op =) fs js then
         let
           val (p, xs') = conv xs (1::js);
           val (q, xs'') = conv xs' (2::js)

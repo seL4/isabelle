@@ -76,7 +76,7 @@ fun gvvariant names =
   let val slist = Unsynchronized.ref names
       val vname = Unsynchronized.ref "u"
       fun new() =
-         if !vname mem_string (!slist)
+         if member (op =) (!slist) (!vname)
          then (vname := Symbol.bump_string (!vname);  new())
          else (slist := !vname :: !slist;  !vname)
   in

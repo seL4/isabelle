@@ -41,16 +41,16 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr);
 
     val rec_result_Ts = map (fn ((i, _), P) =>
-      if i mem is then TFree ("'" ^ P, HOLogic.typeS) else HOLogic.unitT)
+      if member (op =) is i then TFree ("'" ^ P, HOLogic.typeS) else HOLogic.unitT)
         (descr ~~ pnames);
 
     fun make_pred i T U r x =
-      if i mem is then
+      if member (op =) is i then
         Free (List.nth (pnames, i), T --> U --> HOLogic.boolT) $ r $ x
       else Free (List.nth (pnames, i), U --> HOLogic.boolT) $ x;
 
     fun mk_all i s T t =
-      if i mem is then list_all_free ([(s, T)], t) else t;
+      if member (op =) is i then list_all_free ([(s, T)], t) else t;
 
     val (prems, rec_fns) = split_list (flat (fst (fold_map
       (fn ((i, (_, _, constrs)), T) => fold_map (fn (cname, cargs) => fn j =>
@@ -66,7 +66,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
                   val vs' = filter_out is_unit vs;
                   val f = mk_Free "f" (map fastype_of vs' ---> rT) j;
                   val f' = Envir.eta_contract (list_abs_free
-                    (map dest_Free vs, if i mem is then list_comb (f, vs')
+                    (map dest_Free vs, if member (op =) is i then list_comb (f, vs')
                       else HOLogic.unit));
                 in (HOLogic.mk_Trueprop (make_pred i rT T (list_comb (f, vs'))
                   (list_comb (Const (cname, Ts ---> T), map Free frees))), f')
@@ -100,7 +100,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
         (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names);
     val r = if null is then Extraction.nullt else
       foldr1 HOLogic.mk_prod (map_filter (fn (((((i, _), T), U), s), tname) =>
-        if i mem is then SOME
+        if member (op =) is i then SOME
           (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
         else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
     val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name "op &"})
@@ -131,7 +131,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
     val ivs = rev (Term.add_vars (Logic.varify_global (Datatype_Prop.make_ind [descr] sorts)) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
     val ivs1 = map Var (filter_out (fn (_, T) =>  (* FIXME set (!??) *)
-      tname_of (body_type T) mem [@{type_abbrev set}, @{type_name bool}]) ivs);
+      member (op =) [@{type_abbrev set}, @{type_name bool}] (tname_of (body_type T))) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 
     val prf =

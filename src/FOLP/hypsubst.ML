@@ -33,7 +33,7 @@ local open Data in
 
 exception EQ_VAR;
 
-fun loose (i,t) = 0 mem add_loose_bnos(t,i,[]);
+fun loose (i, t) = member (op =) (add_loose_bnos (t, i, [])) 0;
 
 (*It's not safe to substitute for a constant; consider 0=1.
   It's not safe to substitute for x=t[x] since x is not eliminated.

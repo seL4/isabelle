@@ -11,7 +11,7 @@ See also General/basics.ML for the most fundamental concepts.
 infix 2 ?
 infix 3 o oo ooo oooo
 infix 4 ~~ upto downto
-infix orf andf mem mem_int mem_string
+infix orf andf
 
 signature BASIC_LIBRARY =
 sig
@@ -164,9 +164,6 @@ sig
   val subtract: ('b * 'a -> bool) -> 'b list -> 'a list -> 'a list
   val inter: ('a * 'b -> bool) -> 'b list -> 'a list -> 'a list
   val merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
-  val mem: ''a * ''a list -> bool
-  val mem_int: int * int list -> bool
-  val mem_string: string * string list -> bool
   val subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
@@ -799,13 +796,6 @@ fun merge eq (xs, ys) =
   if pointer_eq (xs, ys) then xs
   else if null xs then ys
   else fold_rev (insert eq) ys xs;
-
-
-(* old-style infixes *)
-
-fun x mem xs = member (op =) xs x;
-fun (x: int) mem_int xs = member (op =) xs x;
-fun (x: string) mem_string xs = member (op =) xs x;
 
 
 (* subset and set equality *)

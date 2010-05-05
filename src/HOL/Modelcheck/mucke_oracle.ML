@@ -921,7 +921,7 @@ error "used datatypes are not finite" |
 check_finity gl bl ((t,cl)::r) b =
 let
 fun listmem [] _ = true |
-listmem (a::r) l = if (a mem l) then (listmem r l) else false;
+listmem (a::r) l = if member (op =) l a then (listmem r l) else false;
 fun snd_listmem [] _ = true |
 snd_listmem ((a,b)::r) l = if (listmem b l) then (snd_listmem r l) else false;
 in
@@ -966,7 +966,7 @@ in
  (ll @ (new_types r))
 end;
 in
-        if (a mem done)
+        if member (op =) done a
         then (preprocess_td sg b done)
         else
         (let

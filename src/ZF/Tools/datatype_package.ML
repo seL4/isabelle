@@ -58,7 +58,7 @@ fun data_domain co (rec_tms, con_ty_lists) =
             @{const_name nat} :: map (#1 o dest_Const) rec_hds
         val u = if co then @{const QUniv.quniv} else @{const Univ.univ}
         val cs = (fold o fold) (fn (_, _, _, prems) => prems |> (fold o fold_aterms)
-          (fn t as Const (a, _) => if a mem_string rec_names then I else insert (op =) t
+          (fn t as Const (a, _) => if member (op =) rec_names a then I else insert (op =) t
             | _ => I)) con_ty_lists [];
     in  u $ Ind_Syntax.union_params (hd rec_tms, cs)  end;
 
@@ -193,7 +193,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     | rec_args ((Const(@{const_name mem},_)$arg$X)::prems) =
        (case head_of X of
             Const(a,_) => (*recursive occurrence?*)
-                          if a mem_string rec_names
+                          if member (op =) rec_names a
                               then arg :: rec_args prems
                           else rec_args prems
           | _ => rec_args prems)

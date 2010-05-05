@@ -86,7 +86,7 @@ let
   local (*Checking the introduction rules*)
     val intr_sets = map (#2 o rule_concl_msg thy) intr_tms;
     fun intr_ok set =
-        case head_of set of Const(a,recT) => a mem rec_names | _ => false;
+        case head_of set of Const(a,recT) => member (op =) rec_names a | _ => false;
   in
     val dummy =  assert_all intr_ok intr_sets
        (fn t => "Conclusion of rule does not name a recursive set: " ^

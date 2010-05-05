@@ -528,8 +528,8 @@ fun rat_of_string s =
    end
  end;
 
-fun isspace x = x = " " ;
-fun isnum x = x mem_string ["0","1","2","3","4","5","6","7","8","9"]
+fun isspace x = (x = " ");
+fun isnum x = member (op =) ["0","1","2","3","4","5","6","7","8","9"] x;
 
 (* More parser basics.                                                       *)
 

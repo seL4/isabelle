@@ -244,7 +244,7 @@ fun check_defs ctxt fixes eqs =
 
         val fqgar as (fname, qs, gs, args, rhs) = split_def ctxt geq
 
-        val _ = fname mem fnames
+        val _ = member (op =) fnames fname 
           orelse input_error ("Head symbol of left hand side must be " ^
             plural "" "one out of " fnames ^ commas_quote fnames)
 
@@ -259,7 +259,7 @@ fun check_defs ctxt fixes eqs =
            " occur" ^ plural "s" "" rvs ^ " on right hand side only:")
 
         val _ = forall (not o Term.exists_subterm
-          (fn Free (n, _) => n mem fnames | _ => false)) (gs @ args)
+          (fn Free (n, _) => member (op =) fnames n | _ => false)) (gs @ args)
           orelse input_error "Defined function may not occur in premises or arguments"
 
         val freeargs = map (fn t => subst_bounds (rev (map Free qs), t)) args

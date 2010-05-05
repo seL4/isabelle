@@ -2178,7 +2178,7 @@ fun is_constructor thy t =
       val constr_consts = maps (fn (_, (_, _, constrs)) => map fst constrs) (#descr info)
       val (c, _) = strip_comb t
       in (case c of
-        Const (name, _) => name mem_string constr_consts
+        Const (name, _) => member (op =) constr_consts name
         | _ => false) end))
   else false
 

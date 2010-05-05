@@ -389,7 +389,7 @@ fun elim (ineqs, hist) =
            |> sort (int_ord o pairself abs)
            |> hd
          val (eq as Lineq(_,_,ceq,_),othereqs) =
-               extract_first (fn Lineq(_,_,l,_) => c mem l) eqs
+               extract_first (fn Lineq(_,_,l,_) => member (op =) l c) eqs
          val v = find_index (fn v => v = c) ceq
          val (ioth,roth) = List.partition (fn (Lineq(_,_,l,_)) => nth l v = 0)
                                      (othereqs @ noneqs)

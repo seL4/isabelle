@@ -728,7 +728,7 @@ let
   val all_ty_substs = map (fn ri => (#rtyp ri, #qtyp ri)) quot_infos
   val ty_substs =
     if qtys = [] then all_ty_substs else
-    filter (fn (_, qty) => qty mem qtys) all_ty_substs
+    filter (fn (_, qty) => member (op =) qtys qty) all_ty_substs
   val const_substs = map (fn ci => (#rconst ci, #qconst ci)) const_infos
   fun rel_eq rel = HOLogic.eq_const (subst_tys thy ty_substs (domain_type (fastype_of rel)))
   val rel_substs = map (fn ri => (#equiv_rel ri, rel_eq (#equiv_rel ri))) quot_infos

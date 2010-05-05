@@ -120,7 +120,7 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
           let
             val (f, ts) = strip_comb t;
           in
-            if is_Const f andalso dest_Const f mem map fst rec_eqns then
+            if is_Const f andalso member (op =) (map fst rec_eqns) (dest_Const f) then
               let
                 val fnameT' as (fname', _) = dest_Const f;
                 val (_, rpos, _) = the (AList.lookup (op =) rec_eqns fnameT');

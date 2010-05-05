@@ -1,5 +1,5 @@
 (* Metis-specific ML environment *)
-nonfix ++ -- RL mem;
+nonfix ++ -- RL;
 val explode = String.explode;
 val implode = String.implode;
 val print = TextIO.print;

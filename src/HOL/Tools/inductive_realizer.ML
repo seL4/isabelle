@@ -57,7 +57,7 @@ fun strip_one name (Const ("all", _) $ Abs (s, T, Const ("==>", _) $ P $ Q)) =
 
 fun relevant_vars prop = List.foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
-        (_, Type (s, _)) => if s mem [@{type_name bool}] then (a, T) :: vs else vs
+        (_, Type (s, _)) => if s = @{type_name bool} then (a, T) :: vs else vs
       | _ => vs)
     | (_, vs) => vs) [] (OldTerm.term_vars prop);
 
@@ -90,7 +90,7 @@ fun gen_rvar vs (t as Var ((a, 0), T)) =
           val xs = map (pair "x") Ts;
           val u = list_comb (t, map Bound (i - 1 downto 0))
         in 
-          if a mem vs then
+          if member (op =) vs a then
             list_abs (("r", U) :: xs, mk_rlz U $ Bound i $ u)
           else list_abs (xs, mk_rlz Extraction.nullT $ Extraction.nullt $ u)
         end
@@ -257,7 +257,7 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
   let
     val rvs = map fst (relevant_vars (prop_of rule));
     val xs = rev (Term.add_vars (prop_of rule) []);
-    val vs1 = map Var (filter_out (fn ((a, _), _) => a mem rvs) xs);
+    val vs1 = map Var (filter_out (fn ((a, _), _) => member (op =) rvs a) xs);
     val rlzvs = rev (Term.add_vars (prop_of rrule) []);
     val vs2 = map (fn (ixn, _) => Var (ixn, (the o AList.lookup (op =) rlzvs) ixn)) xs;
     val rs = map Var (subtract (op = o pairself fst) xs rlzvs);
@@ -292,7 +292,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
       Sign.root_path |>
       Sign.add_path (Long_Name.implode prfx);
     val (ty_eqs, rlz_eqs) = split_list
-      (map (fn (s, rs) => mk_realizes_eqn (not (s mem rsets)) vs nparms rs) rss);
+      (map (fn (s, rs) => mk_realizes_eqn (not (member (op =) rsets s)) vs nparms rs) rss);
 
     val thy1' = thy1 |>
       Theory.copy |>
@@ -300,7 +300,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
       fold (fn s => AxClass.axiomatize_arity
         (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames |>
         Extraction.add_typeof_eqns_i ty_eqs;
-    val dts = map_filter (fn (s, rs) => if s mem rsets then
+    val dts = map_filter (fn (s, rs) => if member (op =) rsets s then
       SOME (dt_of_intrs thy1' vs nparms rs) else NONE) rss;
 
     (** datatype representing computational content of inductive set **)
@@ -363,7 +363,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     (** realizer for induction rule **)
 
-    val Ps = map_filter (fn _ $ M $ P => if pred_of M mem rsets then
+    val Ps = map_filter (fn _ $ M $ P => if member (op =) rsets (pred_of M) then
       SOME (fst (fst (dest_Var (head_of P)))) else NONE)
         (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct)));
 
@@ -471,7 +471,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
             list_comb (c, map Var (subtract (op =) params' (rev (Term.add_vars (prop_of rule) []))))))
               (maps snd rss ~~ #intrs ind_info ~~ rintrs ~~ flat constrss))) thy4;
     val elimps = map_filter (fn ((s, intrs), p) =>
-      if s mem rsets then SOME (p, intrs) else NONE)
+      if member (op =) rsets s then SOME (p, intrs) else NONE)
         (rss' ~~ (elims ~~ #elims ind_info));
     val thy6 =
       fold (fn p as (((((elim, _), _), _), _), _) =>

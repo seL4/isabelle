@@ -228,7 +228,7 @@ fun bound_arg vns v = Bound (length vns - find_index (fn v' => v' = v) vns - 1);
 fun cont_eta_contract (Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body)) = 
     (case cont_eta_contract body  of
        body' as (Const("Cfun.Rep_CFun",Ta) $ f $ Bound 0) => 
-       if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
+       if not (member (op =) (loose_bnos f) 0) then incr_boundvars ~1 f 
        else   Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body')
      | body' => Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body'))
   | cont_eta_contract(f$t) = cont_eta_contract f $ cont_eta_contract t
