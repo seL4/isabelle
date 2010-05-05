@@ -1,9 +1,9 @@
-/*
- * Document markup nodes, with connection to Swing tree model
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Pure/PIDE/markup_node.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Document markup nodes, with connection to Swing tree model.
+*/
 
 package isabelle
 

@@ -1,9 +1,9 @@
-/*
- * Changes of plain text
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Pure/PIDE/change.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Changes of plain text.
+*/
 
 package isabelle
 

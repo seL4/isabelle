@@ -1,9 +1,9 @@
-/*
- * Accumulating results from prover
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Pure/PIDE/state.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Accumulating results from prover.
+*/
 
 package isabelle
 

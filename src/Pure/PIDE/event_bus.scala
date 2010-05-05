@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/event_bus.scala
+/*  Title:      Pure/PIDE/event_bus.scala
     Author:     Makarius
 
 Generic event bus with multiple receiving actors.

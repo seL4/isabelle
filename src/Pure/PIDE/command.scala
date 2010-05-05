@@ -1,9 +1,10 @@
-/*
- * Prover commands with semantic state
- *
- * @author Johannes Hölzl, TU Munich
- * @author Fabian Immler, TU Munich
- */
+/*  Title:      Pure/PIDE/command.scala
+    Author:     Johannes Hölzl, TU Munich
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Prover commands with semantic state.
+*/
 
 package isabelle
 

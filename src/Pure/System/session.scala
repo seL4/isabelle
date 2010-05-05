@@ -1,8 +1,8 @@
-/*
- * Isabelle session, potentially with running prover
- *
- * @author Makarius
- */
+/*  Title:      Pure/System/session.scala
+    Author:     Makarius
+
+Isabelle session, potentially with running prover.
+*/
 
 package isabelle
 
