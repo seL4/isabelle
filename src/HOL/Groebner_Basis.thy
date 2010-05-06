@@ -15,7 +15,7 @@ subsection {* Semiring normalization *}
 
 setup Normalizer.setup
 
-locale gb_semiring =
+locale normalizing_semiring =
   fixes add mul pwr r0 r1
   assumes add_a:"(add x (add y z) = add (add x y) z)"
     and add_c: "add x y = add y x" and add_0:"add r0 x = x"
@@ -55,9 +55,6 @@ next
   case Suc
   thus ?case by (auto simp add: mul_pwr [symmetric] pwr_mul pwr_Suc)
 qed
-
-
-subsubsection {* Declaring the abstract theory *}
 
 lemma semiring_ops:
   shows "TERM (add x y)" and "TERM (mul x y)" and "TERM (pwr x n)"
@@ -153,40 +150,30 @@ next show "pwr x (Suc (2 * n)) = mul x (mul (pwr x n) (pwr x n))"
 qed
 
 
-lemmas gb_semiring_axioms' =
-  gb_semiring_axioms [normalizer
+lemmas normalizing_semiring_axioms' =
+  normalizing_semiring_axioms [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules]
 
 end
 
-interpretation class_semiring: gb_semiring
-    "op +" "op *" "op ^" "0::'a::{comm_semiring_1}" "1"
-  proof qed (auto simp add: algebra_simps)
-
-lemmas nat_arith =
-  add_nat_number_of
-  diff_nat_number_of
-  mult_nat_number_of
-  eq_nat_number_of
-  less_nat_number_of
+sublocale comm_semiring_1
+  < normalizing!: normalizing_semiring plus times power zero one
+proof
+qed (simp_all add: algebra_simps)
 
 lemma not_iszero_Numeral1: "\<not> iszero (Numeral1::'a::number_ring)"
   by simp
 
-lemmas comp_arith =
+lemmas semiring_norm =
   Let_def arith_simps nat_arith rel_simps neg_simps if_False
   if_True add_0 add_Suc add_number_of_left mult_number_of_left
   numeral_1_eq_1[symmetric] Suc_eq_plus1
   numeral_0_eq_0[symmetric] numerals[symmetric]
   iszero_simps not_iszero_Numeral1
 
-lemmas semiring_norm = comp_arith
-
 ML {*
 local
-
-open Conv;
 
 fun numeral_is_const ct = can HOLogic.dest_number (Thm.term_of ct);
 
@@ -201,7 +188,7 @@ val numeral_conv =
 
 in
 
-fun normalizer_funs key =
+fun normalizer_funs' key =
   Normalizer.funs key
    {is_const = fn phi => numeral_is_const,
     dest_const = fn phi => fn ct =>
@@ -214,9 +201,9 @@ fun normalizer_funs key =
 end
 *}
 
-declaration {* normalizer_funs @{thm class_semiring.gb_semiring_axioms'} *}
+declaration {* normalizer_funs' @{thm normalizing.normalizing_semiring_axioms'} *}
 
-locale gb_ring = gb_semiring +
+locale normalizing_ring = normalizing_semiring +
   fixes sub :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
     and neg :: "'a \<Rightarrow> 'a"
   assumes neg_mul: "neg x = mul (neg r1) x"
@@ -227,8 +214,8 @@ lemma ring_ops: shows "TERM (sub x y)" and "TERM (neg x)" .
 
 lemmas ring_rules = neg_mul sub_add
 
-lemmas gb_ring_axioms' =
-  gb_ring_axioms [normalizer
+lemmas normalizing_ring_axioms' =
+  normalizing_ring_axioms [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules
     ring ops: ring_ops
@@ -236,15 +223,14 @@ lemmas gb_ring_axioms' =
 
 end
 
+(*FIXME add class*)
+interpretation normalizing!: normalizing_ring plus times power
+  "0::'a::{comm_semiring_1,number_ring}" 1 minus uminus proof
+qed simp_all
 
-interpretation class_ring: gb_ring "op +" "op *" "op ^"
-    "0::'a::{comm_semiring_1,number_ring}" 1 "op -" "uminus"
-  proof qed simp_all
+declaration {* normalizer_funs' @{thm normalizing.normalizing_ring_axioms'} *}
 
-
-declaration {* normalizer_funs @{thm class_ring.gb_ring_axioms'} *}
-
-locale gb_field = gb_ring +
+locale normalizing_field = normalizing_ring +
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
     and inverse:: "'a \<Rightarrow> 'a"
   assumes divide_inverse: "divide x y = mul x (inverse y)"
@@ -255,8 +241,8 @@ lemma field_ops: shows "TERM (divide x y)" and "TERM (inverse x)" .
 
 lemmas field_rules = divide_inverse inverse_divide
 
-lemmas gb_field_axioms' =
-  gb_field_axioms [normalizer
+lemmas normalizing_field_axioms' =
+  normalizing_field_axioms [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules
     ring ops: ring_ops
@@ -266,10 +252,7 @@ lemmas gb_field_axioms' =
 
 end
 
-
-subsection {* Groebner Bases *}
-
-locale semiringb = gb_semiring +
+locale normalizing_semiring_cancel = normalizing_semiring +
   assumes add_cancel: "add (x::'a) y = add x z \<longleftrightarrow> y = z"
   and add_mul_solve: "add (mul w y) (mul x z) =
     add (mul w z) (mul x y) \<longleftrightarrow> w = x \<or> y = z"
@@ -301,22 +284,23 @@ proof-
   thus "x = add x a \<longleftrightarrow> a = r0" by (auto simp add: add_c add_0)
 qed
 
-declare gb_semiring_axioms' [normalizer del]
+declare normalizing_semiring_axioms' [normalizer del]
 
-lemmas semiringb_axioms' = semiringb_axioms [normalizer
-  semiring ops: semiring_ops
-  semiring rules: semiring_rules
-  idom rules: noteq_reduce add_scale_eq_noteq]
+lemmas normalizing_semiring_cancel_axioms' =
+  normalizing_semiring_cancel_axioms [normalizer
+    semiring ops: semiring_ops
+    semiring rules: semiring_rules
+    idom rules: noteq_reduce add_scale_eq_noteq]
 
 end
 
-locale ringb = semiringb + gb_ring + 
+locale normalizing_ring_cancel = normalizing_semiring_cancel + normalizing_ring + 
   assumes subr0_iff: "sub x y = r0 \<longleftrightarrow> x = y"
 begin
 
-declare gb_ring_axioms' [normalizer del]
+declare normalizing_ring_axioms' [normalizer del]
 
-lemmas ringb_axioms' = ringb_axioms [normalizer
+lemmas normalizing_ring_cancel_axioms' = normalizing_ring_cancel_axioms [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
   ring ops: ring_ops
@@ -326,17 +310,16 @@ lemmas ringb_axioms' = ringb_axioms [normalizer
 
 end
 
-
-lemma no_zero_divirors_neq0:
-  assumes az: "(a::'a::no_zero_divisors) \<noteq> 0"
-    and ab: "a*b = 0" shows "b = 0"
-proof -
-  { assume bz: "b \<noteq> 0"
-    from no_zero_divisors [OF az bz] ab have False by blast }
-  thus "b = 0" by blast
+lemma (in no_zero_divisors) prod_eq_zero_eq_zero:
+  assumes "a * b = 0" and "a \<noteq> 0"
+  shows "b = 0"
+proof (rule classical)
+  assume "b \<noteq> 0" with `a \<noteq> 0` no_zero_divisors have "a * b \<noteq> 0" by blast
+  with `a * b = 0` show ?thesis by simp
 qed
 
-interpretation class_ringb: ringb
+(*FIXME introduce class*)
+interpretation normalizing!: normalizing_ring_cancel
   "op +" "op *" "op ^" "0::'a::{idom,number_ring}" "1" "op -" "uminus"
 proof(unfold_locales, simp add: algebra_simps, auto)
   fix w x y z ::"'a::{idom,number_ring}"
@@ -345,14 +328,14 @@ proof(unfold_locales, simp add: algebra_simps, auto)
   from p have "w * y + x* z - w*z - x*y = 0" by simp
   hence "w* (y - z) - x * (y - z) = 0" by (simp add: algebra_simps)
   hence "(y - z) * (w - x) = 0" by (simp add: algebra_simps)
-  with  no_zero_divirors_neq0 [OF ynz']
+  with  prod_eq_zero_eq_zero [OF _ ynz']
   have "w - x = 0" by blast
   thus "w = x"  by simp
 qed
 
-declaration {* normalizer_funs @{thm class_ringb.ringb_axioms'} *}
+declaration {* normalizer_funs' @{thm normalizing.normalizing_ring_cancel_axioms'} *}
 
-interpretation natgb: semiringb
+interpretation normalizing_nat!: normalizing_semiring_cancel
   "op +" "op *" "op ^" "0::nat" "1"
 proof (unfold_locales, simp add: algebra_simps)
   fix w x y z ::"nat"
@@ -374,14 +357,14 @@ proof (unfold_locales, simp add: algebra_simps)
   thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
 qed
 
-declaration {* normalizer_funs @{thm natgb.semiringb_axioms'} *}
+declaration {* normalizer_funs' @{thm normalizing_nat.normalizing_semiring_cancel_axioms'} *}
 
-locale fieldgb = ringb + gb_field
+locale normalizing_field_cancel = normalizing_ring_cancel + normalizing_field
 begin
 
-declare gb_field_axioms' [normalizer del]
+declare normalizing_field_axioms' [normalizer del]
 
-lemmas fieldgb_axioms' = fieldgb_axioms [normalizer
+lemmas normalizing_field_cancel_axioms' = normalizing_field_cancel_axioms [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
   ring ops: ring_ops
@@ -393,83 +376,10 @@ lemmas fieldgb_axioms' = fieldgb_axioms [normalizer
 
 end
 
-
-lemmas bool_simps = simp_thms(1-34)
-lemma dnf:
-    "(P & (Q | R)) = ((P&Q) | (P&R))" "((Q | R) & P) = ((Q&P) | (R&P))"
-    "(P \<and> Q) = (Q \<and> P)" "(P \<or> Q) = (Q \<or> P)"
-  by blast+
-
-lemmas weak_dnf_simps = dnf bool_simps
-
-lemma nnf_simps:
-    "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
-    "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"
-  by blast+
-
-lemma PFalse:
-    "P \<equiv> False \<Longrightarrow> \<not> P"
-    "\<not> P \<Longrightarrow> (P \<equiv> False)"
-  by auto
-
-ML {*
-structure Algebra_Simplification = Named_Thms(
-  val name = "algebra"
-  val description = "pre-simplification rules for algebraic methods"
-)
-*}
-
-setup Algebra_Simplification.setup
-
-use "Tools/Groebner_Basis/groebner.ML"
-
-method_setup algebra =
-{*
-let
- fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
- val addN = "add"
- val delN = "del"
- val any_keyword = keyword addN || keyword delN
- val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-in
-  ((Scan.optional (keyword addN |-- thms) []) -- 
-   (Scan.optional (keyword delN |-- thms) [])) >>
-  (fn (add_ths, del_ths) => fn ctxt =>
-       SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
-end
-*} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
-declare dvd_def[algebra]
-declare dvd_eq_mod_eq_0[symmetric, algebra]
-declare mod_div_trivial[algebra]
-declare mod_mod_trivial[algebra]
-declare conjunct1[OF DIVISION_BY_ZERO, algebra]
-declare conjunct2[OF DIVISION_BY_ZERO, algebra]
-declare zmod_zdiv_equality[symmetric,algebra]
-declare zdiv_zmod_equality[symmetric, algebra]
-declare zdiv_zminus_zminus[algebra]
-declare zmod_zminus_zminus[algebra]
-declare zdiv_zminus2[algebra]
-declare zmod_zminus2[algebra]
-declare zdiv_zero[algebra]
-declare zmod_zero[algebra]
-declare mod_by_1[algebra]
-declare div_by_1[algebra]
-declare zmod_minus1_right[algebra]
-declare zdiv_minus1_right[algebra]
-declare mod_div_trivial[algebra]
-declare mod_mod_trivial[algebra]
-declare mod_mult_self2_is_0[algebra]
-declare mod_mult_self1_is_0[algebra]
-declare zmod_eq_0_iff[algebra]
-declare dvd_0_left_iff[algebra]
-declare zdvd1_eq[algebra]
-declare zmod_eq_dvd_iff[algebra]
-declare nat_mod_eq_iff[algebra]
-
-subsection{* Groebner Bases for fields *}
-
-interpretation class_fieldgb:
-  fieldgb "op +" "op *" "op ^" "0::'a::{field,number_ring}" "1" "op -" "uminus" "op /" "inverse" apply (unfold_locales) by (simp_all add: divide_inverse)
+(*FIXME introduce class*)
+interpretation normalizing!: normalizing_field_cancel "op +" "op *" "op ^"
+  "0::'a::{field,number_ring}" "1" "op -" "uminus" "op /" "inverse"
+apply (unfold_locales) by (simp_all add: divide_inverse)
 
 lemma divide_Numeral1: "(x::'a::{field, number_ring}) / Numeral1 = x" by simp
 lemma divide_Numeral0: "(x::'a::{field_inverse_zero, number_ring}) / Numeral0 = 0"
@@ -477,9 +387,9 @@ lemma divide_Numeral0: "(x::'a::{field_inverse_zero, number_ring}) / Numeral0 = 
 lemma mult_frac_frac: "((x::'a::field_inverse_zero) / y) * (z / w) = (x*z) / (y*w)"
   by simp
 lemma mult_frac_num: "((x::'a::field_inverse_zero) / y) * z  = (x*z) / y"
-  by simp
+  by (fact times_divide_eq_left)
 lemma mult_num_frac: "((x::'a::field_inverse_zero) / y) * z  = (x*z) / y"
-  by simp
+  by (fact times_divide_eq_left)
 
 lemma Numeral1_eq1_nat: "(1::nat) = Numeral1" by simp
 
@@ -488,13 +398,7 @@ lemma add_frac_num: "y\<noteq> 0 \<Longrightarrow> (x::'a::field_inverse_zero) /
 lemma add_num_frac: "y\<noteq> 0 \<Longrightarrow> z + (x::'a::field_inverse_zero) / y = (x + z*y) / y"
   by (simp add: add_divide_distrib)
 
-ML {*
-let open Conv
-in fconv_rule (arg_conv (arg1_conv (rewr_conv (mk_meta_eq @{thm mult_commute})))) (@{thm field_divide_inverse} RS sym)
-end
-*}
-
-ML{* 
+ML {* 
 local
  val zr = @{cpat "0"}
  val zT = ctyp_of_term zr
@@ -619,10 +523,6 @@ val ord_frac_simproc =
              @{cpat "((?a::(?'a::{field, ord}))/ ?b) = ?c"}],
              name = "ord_frac_simproc", proc = proc3, identifier = []}
 
-local
-open Conv
-in
-
 val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "divide_Numeral1"},
            @{thm "divide_zero"}, @{thm "divide_Numeral0"},
@@ -633,11 +533,13 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "diff_def"}, @{thm "minus_divide_left"},
            @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym,
            @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
-           fconv_rule (arg_conv (arg1_conv (rewr_conv (mk_meta_eq @{thm mult_commute}))))   
+           Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult_commute}))))   
            (@{thm field_divide_inverse} RS sym)]
 
-val comp_conv = (Simplifier.rewrite
-(HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"}
+in
+
+val field_comp_conv = (Simplifier.rewrite
+(HOL_basic_ss addsimps @{thms "semiring_norm"}
               addsimps ths addsimps @{thms simp_thms}
               addsimprocs Numeral_Simprocs.field_cancel_numeral_factors
                addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
@@ -645,7 +547,12 @@ val comp_conv = (Simplifier.rewrite
                 addcongs [@{thm "if_weak_cong"}]))
 then_conv (Simplifier.rewrite (HOL_basic_ss addsimps
   [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)}))
+
 end
+*}
+
+declaration {*
+let
 
 fun numeral_is_const ct =
   case term_of ct of
@@ -672,16 +579,93 @@ fun mk_const phi cT x =
   end
 
 in
- val field_comp_conv = comp_conv;
- val fieldgb_declaration = 
-  Normalizer.funs @{thm class_fieldgb.fieldgb_axioms'}
+ 
+  Normalizer.funs @{thm normalizing.normalizing_field_cancel_axioms'}
    {is_const = K numeral_is_const,
     dest_const = K dest_const,
     mk_const = mk_const,
-    conv = K (K comp_conv)}
-end;
+    conv = K (K field_comp_conv)}
+
+end
 *}
 
-declaration fieldgb_declaration
+lemmas comp_arith = semiring_norm (*FIXME*)
+
+
+subsection {* Groebner Bases *}
+
+lemmas bool_simps = simp_thms(1-34)
+
+lemma dnf:
+    "(P & (Q | R)) = ((P&Q) | (P&R))" "((Q | R) & P) = ((Q&P) | (R&P))"
+    "(P \<and> Q) = (Q \<and> P)" "(P \<or> Q) = (Q \<or> P)"
+  by blast+
+
+lemmas weak_dnf_simps = dnf bool_simps
+
+lemma nnf_simps:
+    "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
+    "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"
+  by blast+
+
+lemma PFalse:
+    "P \<equiv> False \<Longrightarrow> \<not> P"
+    "\<not> P \<Longrightarrow> (P \<equiv> False)"
+  by auto
+
+ML {*
+structure Algebra_Simplification = Named_Thms(
+  val name = "algebra"
+  val description = "pre-simplification rules for algebraic methods"
+)
+*}
+
+setup Algebra_Simplification.setup
+
+declare dvd_def[algebra]
+declare dvd_eq_mod_eq_0[symmetric, algebra]
+declare mod_div_trivial[algebra]
+declare mod_mod_trivial[algebra]
+declare conjunct1[OF DIVISION_BY_ZERO, algebra]
+declare conjunct2[OF DIVISION_BY_ZERO, algebra]
+declare zmod_zdiv_equality[symmetric,algebra]
+declare zdiv_zmod_equality[symmetric, algebra]
+declare zdiv_zminus_zminus[algebra]
+declare zmod_zminus_zminus[algebra]
+declare zdiv_zminus2[algebra]
+declare zmod_zminus2[algebra]
+declare zdiv_zero[algebra]
+declare zmod_zero[algebra]
+declare mod_by_1[algebra]
+declare div_by_1[algebra]
+declare zmod_minus1_right[algebra]
+declare zdiv_minus1_right[algebra]
+declare mod_div_trivial[algebra]
+declare mod_mod_trivial[algebra]
+declare mod_mult_self2_is_0[algebra]
+declare mod_mult_self1_is_0[algebra]
+declare zmod_eq_0_iff[algebra]
+declare dvd_0_left_iff[algebra]
+declare zdvd1_eq[algebra]
+declare zmod_eq_dvd_iff[algebra]
+declare nat_mod_eq_iff[algebra]
+
+use "Tools/Groebner_Basis/groebner.ML"
+
+method_setup algebra =
+{*
+let
+ fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+ val addN = "add"
+ val delN = "del"
+ val any_keyword = keyword addN || keyword delN
+ val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+in
+  ((Scan.optional (keyword addN |-- thms) []) -- 
+   (Scan.optional (keyword delN |-- thms) [])) >>
+  (fn (add_ths, del_ths) => fn ctxt =>
+       SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
+end
+*} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
 
 end
