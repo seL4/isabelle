@@ -170,8 +170,6 @@ fun funs raw_key {is_const, dest_const, mk_const, conv} phi =
   in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
 
 
-open Conv;
-
 (* Very basic stuff for terms *)
 
 fun is_comb ct =
@@ -711,7 +709,7 @@ fun polynomial_neg_conv tm =
    let val (l,r) = Thm.dest_comb tm in
         if not (l aconvc neg_tm) then raise CTERM ("polynomial_neg_conv",[tm]) else
         let val th1 = inst_thm [(cx',r)] neg_mul
-            val th2 = transitive th1 (arg1_conv semiring_mul_conv (concl th1))
+            val th2 = transitive th1 (Conv.arg1_conv semiring_mul_conv (concl th1))
         in transitive th2 (polynomial_monomial_mul_conv (concl th2))
         end
    end;
@@ -754,7 +752,7 @@ fun polynomial_conv tm =
             then
               let val th1 = combination (Drule.arg_cong_rule opr (polynomial_conv l)) 
                                         (polynomial_conv r)
-                  val th2 = (rewr_conv divide_inverse then_conv polynomial_mul_conv) 
+                  val th2 = (Conv.rewr_conv divide_inverse then_conv polynomial_mul_conv)
                               (Thm.rhs_of th1)
               in transitive th1 th2
               end
@@ -790,7 +788,7 @@ fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, i
                                      {conv, dest_const, mk_const, is_const}) ord =
   let
     val pow_conv =
-      arg_conv (Simplifier.rewrite nat_exp_ss)
+      Conv.arg_conv (Simplifier.rewrite nat_exp_ss)
       then_conv Simplifier.rewrite
         (HOL_basic_ss addsimps [nth (snd semiring) 31, nth (snd semiring) 34])
       then_conv conv ctxt
