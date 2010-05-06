@@ -309,7 +309,7 @@ fun symbolic prt =
           Buffer.add bg #> Buffer.markup (Markup.block indent) (fold out prts) #> Buffer.add en
       | out (String (s, _)) = Buffer.add s
       | out (Break (false, wd)) = Buffer.markup (Markup.break wd) (Buffer.add (output_spaces wd))
-      | out (Break (true, _)) = Buffer.markup Markup.fbreak (Buffer.add (output_spaces 1));
+      | out (Break (true, _)) = Buffer.add (Output.output "\n");
   in out prt Buffer.empty end;
 
 (*unformatted output*)

@@ -39,16 +39,7 @@ object Pretty
       }
   }
 
-  object FBreak
-  {
-    def apply(): XML.Tree = XML.Elem(Markup.FBREAK, Nil, List(XML.Text(" ")))
-
-    def unapply(tree: XML.Tree): Boolean =
-      tree match {
-        case XML.Elem(Markup.FBREAK, Nil, _) => true
-        case _ => false
-      }
-  }
+  val FBreak = XML.Text("\n")
 
 
   /* formatted output */
@@ -64,7 +55,7 @@ object Pretty
   private def breakdist(trees: List[XML.Tree], after: Int): Int =
     trees match {
       case Break(_) :: _ => 0
-      case FBreak() :: _ => 0
+      case FBreak :: _ => 0
       case XML.Elem(_, _, body) :: ts =>
         (0 /: body)(_ + XML.content_length(_)) + breakdist(ts, after)
       case XML.Text(s) :: ts => s.length + breakdist(ts, after)
@@ -74,9 +65,17 @@ object Pretty
   private def forcenext(trees: List[XML.Tree]): List[XML.Tree] =
     trees match {
       case Nil => Nil
-      case FBreak() :: _ => trees
-      case Break(_) :: ts => FBreak() :: ts
+      case FBreak :: _ => trees
+      case Break(_) :: ts => FBreak :: ts
       case t :: ts => t :: forcenext(ts)
+    }
+
+  private def standard(tree: XML.Tree): List[XML.Tree] =
+    tree match {
+      case XML.Elem(name, atts, body) => List(XML.Elem(name, atts, body.flatMap(standard)))
+      case XML.Text(text) =>
+        Library.separate(FBreak,
+          Library.chunks(text).toList.map((s: CharSequence) => XML.Text(s.toString)))
     }
 
   def string_of(input: List[XML.Tree], margin: Int = 76): String =
@@ -102,11 +101,11 @@ object Pretty
           if (text.pos + wd <= (margin - breakdist(ts, after)).max(blockin + breakgain))
             format(ts, blockin, after, text.blanks(wd))
           else format(ts, blockin, after, text.newline.blanks(blockin))
-        case FBreak() :: ts => format(ts, blockin, after, text.newline.blanks(blockin))
+        case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin))
 
         case XML.Elem(_, _, body) :: ts => format(body ::: ts, blockin, after, text)
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s))
       }
-    format(input, 0, 0, Text()).content
+    format(input.flatMap(standard), 0, 0, Text()).content
   }
 }

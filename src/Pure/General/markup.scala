@@ -64,7 +64,6 @@ object Markup
   val BLOCK = "block"
   val WIDTH = "width"
   val BREAK = "break"
-  val FBREAK = "fbreak"
 
 
   /* hidden text */
