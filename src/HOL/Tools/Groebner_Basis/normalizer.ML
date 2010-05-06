@@ -36,7 +36,7 @@ end
 structure Normalizer: NORMALIZER = 
 struct
 
-(* data *)
+(** data **)
 
 type entry =
  {vars: cterm list,
@@ -59,9 +59,6 @@ structure Data = Generic_Data
 );
 
 val get = Data.get o Context.Proof;
-
-
-(* match data *)
 
 fun match ctxt tm =
   let
@@ -172,52 +169,6 @@ fun funs raw_key {is_const, dest_const, mk_const, conv} phi =
       mk_const = mk_const phi, conv = conv phi};
   in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
 
-
-(* concrete syntax *)
-
-local
-
-fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
-fun keyword2 k1 k2 = Scan.lift (Args.$$$ k1 -- Args.$$$ k2 -- Args.colon) >> K ();
-fun keyword3 k1 k2 k3 =
-  Scan.lift (Args.$$$ k1 -- Args.$$$ k2 -- Args.$$$ k3 -- Args.colon) >> K ();
-
-val opsN = "ops";
-val rulesN = "rules";
-
-val normN = "norm";
-val constN = "const";
-val delN = "del";
-
-val any_keyword =
-  keyword2 semiringN opsN || keyword2 semiringN rulesN ||
-  keyword2 ringN opsN || keyword2 ringN rulesN ||
-  keyword2 fieldN opsN || keyword2 fieldN rulesN ||
-  keyword2 idomN rulesN || keyword2 idealN rulesN;
-
-val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-val terms = thms >> map Drule.dest_term;
-
-fun optional scan = Scan.optional scan [];
-
-in
-
-val normalizer_setup =
-  Attrib.setup @{binding normalizer}
-    (Scan.lift (Args.$$$ delN >> K del) ||
-      ((keyword2 semiringN opsN |-- terms) --
-       (keyword2 semiringN rulesN |-- thms)) --
-      (optional (keyword2 ringN opsN |-- terms) --
-       optional (keyword2 ringN rulesN |-- thms)) --
-      (optional (keyword2 fieldN opsN |-- terms) --
-       optional (keyword2 fieldN rulesN |-- thms)) --
-      optional (keyword2 idomN rulesN |-- thms) --
-      optional (keyword2 idealN rulesN |-- thms)
-      >> (fn ((((sr, r), f), id), idl) => 
-             add {semiring = sr, ring = r, field = f, idom = id, ideal = idl}))
-    "semiring normalizer data";
-
-end;
 
 open Conv;
 
@@ -859,8 +810,51 @@ fun semiring_normalize_ord_conv ctxt ord tm =
  
 fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm_ord;
 
-(* theory setup *)
 
-val setup = normalizer_setup
+(** Isar setup **)
+
+local
+
+fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
+fun keyword2 k1 k2 = Scan.lift (Args.$$$ k1 -- Args.$$$ k2 -- Args.colon) >> K ();
+fun keyword3 k1 k2 k3 =
+  Scan.lift (Args.$$$ k1 -- Args.$$$ k2 -- Args.$$$ k3 -- Args.colon) >> K ();
+
+val opsN = "ops";
+val rulesN = "rules";
+
+val normN = "norm";
+val constN = "const";
+val delN = "del";
+
+val any_keyword =
+  keyword2 semiringN opsN || keyword2 semiringN rulesN ||
+  keyword2 ringN opsN || keyword2 ringN rulesN ||
+  keyword2 fieldN opsN || keyword2 fieldN rulesN ||
+  keyword2 idomN rulesN || keyword2 idealN rulesN;
+
+val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+val terms = thms >> map Drule.dest_term;
+
+fun optional scan = Scan.optional scan [];
+
+in
+
+val setup =
+  Attrib.setup @{binding normalizer}
+    (Scan.lift (Args.$$$ delN >> K del) ||
+      ((keyword2 semiringN opsN |-- terms) --
+       (keyword2 semiringN rulesN |-- thms)) --
+      (optional (keyword2 ringN opsN |-- terms) --
+       optional (keyword2 ringN rulesN |-- thms)) --
+      (optional (keyword2 fieldN opsN |-- terms) --
+       optional (keyword2 fieldN rulesN |-- thms)) --
+      optional (keyword2 idomN rulesN |-- thms) --
+      optional (keyword2 idealN rulesN |-- thms)
+      >> (fn ((((sr, r), f), id), idl) => 
+             add {semiring = sr, ring = r, field = f, idom = id, ideal = idl}))
+    "semiring normalizer data";
+
+end;
 
 end;
