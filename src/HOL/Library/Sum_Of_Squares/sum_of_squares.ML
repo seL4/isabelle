@@ -1222,7 +1222,7 @@ fun real_nonlinear_prover proof_method ctxt =
    in
   (let val th = tryfind trivial_axiom (keq @ klep @ kltp)
    in
-    (fconv_rule (arg_conv (arg1_conv real_poly_conv) then_conv field_comp_conv) th, RealArith.Trivial)
+    (fconv_rule (arg_conv (arg1_conv real_poly_conv) then_conv Normalizer.field_comp_conv) th, RealArith.Trivial)
    end)
    handle Failure _ =>
      (let val proof =

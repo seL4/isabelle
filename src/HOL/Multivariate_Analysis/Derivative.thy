@@ -810,7 +810,7 @@ lemma has_derivative_inverse_basic: fixes f::"real^'b \<Rightarrow> real^'c"
     guess k using real_lbound_gt_zero[OF d[THEN conjunct1] d'[THEN conjunct1]] .. note k=this
     show ?case apply(rule_tac x=k in exI,rule) defer proof(rule,rule) fix z assume as:"norm(z - y) < k"
       hence "norm (g z - g y - g' (z - y)) \<le> e / B * norm(g z - g y)" using d' k by auto
-      also have "\<dots> \<le> e * norm(z - y)" unfolding mult_frac_num pos_divide_le_eq[OF `B>0`]
+      also have "\<dots> \<le> e * norm(z - y)" unfolding times_divide_eq_left pos_divide_le_eq[OF `B>0`]
 	using lem2[THEN spec[where x=z]] using k as using `e>0` by(auto simp add:field_simps)
       finally show "norm (g z - g y - g' (z - y)) \<le> e * norm (z - y)" by simp qed(insert k, auto) qed qed
 
