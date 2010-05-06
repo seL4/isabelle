@@ -3,7 +3,7 @@
 *)
 
 signature COOPER =
- sig
+sig
   val cooper_conv : Proof.context -> conv
   exception COOPER of string * exn
 end;
@@ -12,7 +12,6 @@ structure Cooper: COOPER =
 struct
 
 open Conv;
-open Normalizer;
 
 exception COOPER of string * exn;
 fun simp_thms_conv ctxt =
