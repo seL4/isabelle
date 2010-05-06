@@ -20,29 +20,6 @@ object YXML
   private val Y_string = Y.toString
 
 
-  /* iterate over chunks (resembles space_explode in ML) */
-
-  private def chunks(sep: Char, source: CharSequence) = new Iterator[CharSequence]
-  {
-    private val end = source.length
-    private var state = if (end == 0) None else get_chunk(-1)
-    private def get_chunk(i: Int) =
-    {
-      if (i < end) {
-        var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
-        Some((source.subSequence(i + 1, j), j))
-      }
-      else None
-    }
-
-    def hasNext() = state.isDefined
-    def next() = state match {
-      case Some((s, i)) => { state = get_chunk(i); s }
-      case None => throw new NoSuchElementException("next on empty iterator")
-    }
-  }
-
-
   /* decoding pseudo UTF-8 */
 
   private class Decode_Chars(decode: String => String,
@@ -112,10 +89,10 @@ object YXML
 
     /* parse chunks */
 
-    for (chunk <- chunks(X, source) if chunk.length != 0) {
+    for (chunk <- Library.chunks(source, X) if chunk.length != 0) {
       if (chunk.length == 1 && chunk.charAt(0) == Y) pop()
       else {
-        chunks(Y, chunk).toList match {
+        Library.chunks(chunk, Y).toList match {
           case ch :: name :: atts if ch.length == 0 =>
             push(name.toString.intern, atts.map(parse_attrib))
           case txts => for (txt <- txts) add(XML.Text(txt.toString))

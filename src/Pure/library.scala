@@ -38,6 +38,30 @@ object Library
   }
 
 
+  /* iterate over chunks (cf. space_explode/split_lines in ML) */
+
+  def chunks(source: CharSequence, sep: Char = '\n') = new Iterator[CharSequence]
+  {
+    private val end = source.length
+    private def next_chunk(i: Int): Option[(CharSequence, Int)] =
+    {
+      if (i < end) {
+        var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
+        Some((source.subSequence(i + 1, j), j))
+      }
+      else None
+    }
+    private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
+
+    def hasNext(): Boolean = state.isDefined
+    def next(): CharSequence =
+      state match {
+        case Some((s, i)) => { state = next_chunk(i); s }
+        case None => throw new NoSuchElementException("next on empty iterator")
+      }
+  }
+
+
   /* simple dialogs */
 
   private def simple_dialog(kind: Int, default_title: String)
