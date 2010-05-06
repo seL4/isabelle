@@ -947,7 +947,7 @@ fun get_ring_ideal_convs ctxt form =
  case try (find_term 0) form of
   NONE => NONE
 | SOME tm =>
-  (case NormalizerData.match ctxt tm of
+  (case Normalizer.match ctxt tm of
     NONE => NONE
   | SOME (res as (theory, {is_const, dest_const, 
           mk_const, conv = ring_eq_conv})) =>
@@ -959,7 +959,7 @@ fun ring_solve ctxt form =
   (case try (find_term 0 (* FIXME !? *)) form of
     NONE => reflexive form
   | SOME tm =>
-      (case NormalizerData.match ctxt tm of
+      (case Normalizer.match ctxt tm of
         NONE => reflexive form
       | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
         #ring_conv (ring_and_ideal_conv theory
@@ -969,7 +969,7 @@ fun ring_solve ctxt form =
 fun ring_tac add_ths del_ths ctxt =
   Object_Logic.full_atomize_tac
   THEN' asm_full_simp_tac
-    (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths)
+    (Simplifier.context ctxt (fst (Normalizer.get ctxt)) delsimps del_ths addsimps add_ths)
   THEN' CSUBGOAL (fn (p, i) =>
     rtac (let val form = Object_Logic.dest_judgment p
           in case get_ring_ideal_convs ctxt form of
@@ -989,7 +989,7 @@ local
 in 
 fun ideal_tac add_ths del_ths ctxt = 
   asm_full_simp_tac 
-   (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths) 
+   (Simplifier.context ctxt (fst (Normalizer.get ctxt)) delsimps del_ths addsimps add_ths) 
  THEN'
  CSUBGOAL (fn (p, i) =>
   case get_ring_ideal_convs ctxt p of

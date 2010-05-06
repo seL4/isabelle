@@ -7,14 +7,13 @@ header {* Semiring normalization and Groebner Bases *}
 theory Groebner_Basis
 imports Numeral_Simprocs Nat_Transfer
 uses
-  "Tools/Groebner_Basis/normalizer_data.ML"
   "Tools/Groebner_Basis/normalizer.ML"
   ("Tools/Groebner_Basis/groebner.ML")
 begin
 
 subsection {* Semiring normalization *}
 
-setup NormalizerData.setup
+setup Normalizer.setup
 
 locale gb_semiring =
   fixes add mul pwr r0 r1
@@ -203,7 +202,7 @@ val numeral_conv =
 in
 
 fun normalizer_funs key =
-  NormalizerData.funs key
+  Normalizer.funs key
    {is_const = fn phi => numeral_is_const,
     dest_const = fn phi => fn ct =>
       Rat.rat_of_int (snd
@@ -216,7 +215,6 @@ end
 *}
 
 declaration {* normalizer_funs @{thm class_semiring.gb_semiring_axioms'} *}
-
 
 locale gb_ring = gb_semiring +
   fixes sub :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -245,14 +243,6 @@ interpretation class_ring: gb_ring "op +" "op *" "op ^"
 
 
 declaration {* normalizer_funs @{thm class_ring.gb_ring_axioms'} *}
-
-use "Tools/Groebner_Basis/normalizer.ML"
-
-
-method_setup sring_norm = {*
-  Scan.succeed (SIMPLE_METHOD' o Normalizer.semiring_normalize_tac)
-*} "semiring normalizer"
-
 
 locale gb_field = gb_ring +
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -421,6 +411,7 @@ lemma PFalse:
     "P \<equiv> False \<Longrightarrow> \<not> P"
     "\<not> P \<Longrightarrow> (P \<equiv> False)"
   by auto
+
 use "Tools/Groebner_Basis/groebner.ML"
 
 method_setup algebra =
@@ -674,7 +665,7 @@ fun mk_const phi cT x =
 in
  val field_comp_conv = comp_conv;
  val fieldgb_declaration = 
-  NormalizerData.funs @{thm class_fieldgb.fieldgb_axioms'}
+  Normalizer.funs @{thm class_fieldgb.fieldgb_axioms'}
    {is_const = K numeral_is_const,
     dest_const = K dest_const,
     mk_const = mk_const,

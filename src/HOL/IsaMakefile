@@ -284,9 +284,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/ATP_Manager/atp_manager.ML \
   Tools/ATP_Manager/atp_systems.ML \
   Tools/Groebner_Basis/groebner.ML \
-  Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer.ML \
-  Tools/Groebner_Basis/normalizer_data.ML \
   Tools/choice_specification.ML \
   Tools/int_arith.ML \
   Tools/list_code.ML \

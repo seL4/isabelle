@@ -1195,7 +1195,7 @@ in
 fun real_nonlinear_prover proof_method ctxt =
  let
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+      (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,
        real_poly_pow_conv,real_poly_sub_conv,real_poly_conv) = (add,mul,neg,pow,sub,main)
@@ -1310,7 +1310,7 @@ in
 fun real_nonlinear_subst_prover prover ctxt =
  let
   val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+      (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
 
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,
