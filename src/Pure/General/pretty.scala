@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/pretty.scala
     Author:     Makarius
 
-Symbolic pretty printing.
+Generic pretty printing module.
 */
 
 package isabelle
@@ -9,6 +9,8 @@ package isabelle
 
 object Pretty
 {
+  /* markup trees with physical blocks and breaks */
+
   object Block
   {
     def apply(indent: Int, body: List[XML.Tree]): XML.Tree =
@@ -46,5 +48,65 @@ object Pretty
         case XML.Elem(Markup.FBREAK, Nil, _) => true
         case _ => false
       }
+  }
+
+
+  /* formatted output */
+
+  private case class Text(tx: List[String] = Nil, val pos: Int = 0, val nl: Int = 0)
+  {
+    def newline: Text = copy(tx = "\n" :: tx, pos = 0, nl = nl + 1)
+    def string(s: String): Text = copy(tx = s :: tx, pos = pos + s.length)
+    def blanks(wd: Int): Text = string(" " * wd)
+    def content: String = tx.reverse.mkString
+  }
+
+  private def breakdist(trees: List[XML.Tree], after: Int): Int =
+    trees match {
+      case Break(_) :: _ => 0
+      case FBreak() :: _ => 0
+      case XML.Elem(_, _, body) :: ts =>
+        (0 /: body)(_ + XML.content_length(_)) + breakdist(ts, after)
+      case XML.Text(s) :: ts => s.length + breakdist(ts, after)
+      case Nil => after
+    }
+
+  private def forcenext(trees: List[XML.Tree]): List[XML.Tree] =
+    trees match {
+      case Nil => Nil
+      case FBreak() :: _ => trees
+      case Break(_) :: ts => FBreak() :: ts
+      case t :: ts => t :: forcenext(ts)
+    }
+
+  def string_of(input: List[XML.Tree], margin: Int = 76): String =
+  {
+    val breakgain = margin / 20
+    val emergencypos = margin / 2
+
+    def format(trees: List[XML.Tree], blockin: Int, after: Int, text: Text): Text =
+      trees match {
+        case Nil => text
+
+        case Block(indent, body) :: ts =>
+          val pos1 = text.pos + indent
+          val pos2 = pos1 % emergencypos
+          val blockin1 =
+            if (pos1 < emergencypos) pos1
+            else pos2
+          val btext = format(body, blockin1, breakdist(ts, after), text)
+          val ts1 = if (text.nl < btext.nl) forcenext(ts) else ts
+          format(ts1, blockin, after, btext)
+
+        case Break(wd) :: ts =>
+          if (text.pos + wd <= (margin - breakdist(ts, after)).max(blockin + breakgain))
+            format(ts, blockin, after, text.blanks(wd))
+          else format(ts, blockin, after, text.newline.blanks(blockin))
+        case FBreak() :: ts => format(ts, blockin, after, text.newline.blanks(blockin))
+
+        case XML.Elem(_, _, body) :: ts => format(body ::: ts, blockin, after, text)
+        case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s))
+      }
+    format(input, 0, 0, Text()).content
   }
 }

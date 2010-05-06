@@ -249,9 +249,9 @@ fun indentation (buf, len) {tx, ind, pos, nl} : text =
 
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
-fun breakdist (Block (_, _, _, len) :: es, after) = len + breakdist (es, after)
+fun breakdist (Break _ :: _, _) = 0
+  | breakdist (Block (_, _, _, len) :: es, after) = len + breakdist (es, after)
   | breakdist (String (_, len) :: es, after) = len + breakdist (es, after)
-  | breakdist (Break _ :: _, _) = 0
   | breakdist ([], after) = after;
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
@@ -280,7 +280,6 @@ fun format ([], _, _) text = text
             (*if this block was broken then force the next break*)
             val es' = if nl < #nl btext then forcenext es else es;
           in format (es', block, after) btext end
-      | String str => format (es, block, after) (string str text)
       | Break (force, wd) =>
           let val {margin, breakgain, ...} = ! margin_info in
             (*no break if text to next break fits on this line
@@ -290,7 +289,8 @@ fun format ([], _, _) text = text
                   pos + wd <= Int.max (margin - breakdist (es, after), blockin + breakgain)
                 then text |> blanks wd  (*just insert wd blanks*)
                 else text |> newline |> indentation block)
-          end);
+          end
+      | String str => format (es, block, after) (string str text));
 
 in
 
