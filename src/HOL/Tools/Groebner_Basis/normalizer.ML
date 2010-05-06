@@ -50,15 +50,12 @@ type entry =
   mk_const: ctyp -> Rat.rat -> cterm,
   conv: Proof.context -> cterm -> thm};
 
-val eq_key = Thm.eq_thm;
-fun eq_data arg = eq_fst eq_key arg;
-
 structure Data = Generic_Data
 (
   type T = (thm * entry) list;
   val empty = [];
   val extend = I;
-  val merge = AList.merge eq_key (K true);
+  val merge = AList.merge Thm.eq_thm (K true);
 );
 
 val get = Data.get o Context.Proof;
@@ -109,9 +106,7 @@ val fieldN = "field";
 
 fun undefined _ = raise Match;
 
-fun del_data key = remove eq_data (key, []);
-
-val del = Thm.declaration_attribute (Data.map o del_data);
+val del = Thm.declaration_attribute (Data.map o AList.delete Thm.eq_thm);
 
 fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), 
          field = (f_ops, f_rules), idom, ideal} =
@@ -157,7 +152,7 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
       val field = (f_ops, f_rules');
       val ideal' = map (symmetric o mk_meta) ideal
     in
-      del_data key #>
+      AList.delete Thm.eq_thm key #>
       cons (key, ({vars = vars, semiring = semiring, 
                           ring = ring, field = field, idom = idom, ideal = ideal'},
              {is_const = undefined, dest_const = undefined, mk_const = undefined,
@@ -171,11 +166,11 @@ fun funs raw_key {is_const, dest_const, mk_const, conv} phi =
  Data.map (fn data =>
   let
     val key = Morphism.thm phi raw_key;
-    val _ = AList.defined eq_key data key orelse
+    val _ = AList.defined Thm.eq_thm data key orelse
       raise THM ("No data entry for structure key", 0, [key]);
     val fns = {is_const = is_const phi, dest_const = dest_const phi,
       mk_const = mk_const phi, conv = conv phi};
-  in AList.map_entry eq_key key (apsnd (K fns)) data end);
+  in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
 
 
 (* concrete syntax *)
