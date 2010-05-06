@@ -589,8 +589,6 @@ in
 end
 *}
 
-lemmas comp_arith = semiring_norm (*FIXME*)
-
 
 subsection {* Groebner Bases *}
 

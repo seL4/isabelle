@@ -11,7 +11,7 @@ structure Presburger : PRESBURGER =
 struct
 
 open Conv;
-val comp_ss = HOL_ss addsimps @{thms "Groebner_Basis.comp_arith"};
+val comp_ss = HOL_ss addsimps @{thms semiring_norm};
 
 fun strip_objimp ct =
   (case Thm.term_of ct of

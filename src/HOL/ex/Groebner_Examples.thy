@@ -33,7 +33,7 @@ schematic_lemma
 
 lemma "((-3) ^ (Suc (Suc (Suc 0)))) == (X::'a::{number_ring})"
   apply (simp only: power_Suc power_0)
-  apply (simp only: comp_arith)
+  apply (simp only: semiring_norm)
   oops
 
 lemma "((x::int) + y)^3 - 1 = (x - z)^2 - 10 \<Longrightarrow> x = z + 3 \<Longrightarrow> x = - y"
