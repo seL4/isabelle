@@ -27,6 +27,7 @@ declare -a SOURCES=(
   General/linear_set.scala
   General/markup.scala
   General/position.scala
+  General/pretty.scala
   General/scan.scala
   General/symbol.scala
   General/xml.scala

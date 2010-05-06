@@ -9,6 +9,24 @@ package isabelle
 
 object Markup
 {
+  /* property values */
+
+  def get_string(name: String, props: List[(String, String)]): Option[String] =
+    props.find(p => p._1 == name).map(_._2)
+
+  def parse_int(s: String): Option[Int] =
+    try { Some(Integer.parseInt(s)) }
+    catch { case _: NumberFormatException => None }
+
+  def get_int(name: String, props: List[(String, String)]): Option[Int] =
+  {
+    get_string(name, props) match {
+      case None => None
+      case Some(value) => parse_int(value)
+    }
+  }
+
+
   /* name */
 
   val NAME = "name"
@@ -38,6 +56,15 @@ object Markup
 
   val POSITION = "position"
   val LOCATION = "location"
+
+
+  /* pretty printing */
+
+  val INDENT = "indent"
+  val BLOCK = "block"
+  val WIDTH = "width"
+  val BREAK = "break"
+  val FBREAK = "fbreak"
 
 
   /* hidden text */
