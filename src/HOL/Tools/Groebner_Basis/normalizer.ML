@@ -55,14 +55,13 @@ fun eq_data arg = eq_fst eq_key arg;
 
 structure Data = Generic_Data
 (
-  type T = simpset * (thm * entry) list;
-  val empty = (HOL_basic_ss, []);
+  type T = (thm * entry) list;
+  val empty = [];
   val extend = I;
-  fun merge ((ss, e), (ss', e')) : T =
-    (merge_ss (ss, ss'), AList.merge eq_key (K true) (e, e'));
+  val merge = AList.merge eq_key (K true);
 );
 
-val get = snd o Data.get o Context.Proof;
+val get = Data.get o Context.Proof;
 
 
 (* match data *)
@@ -110,7 +109,7 @@ val fieldN = "field";
 
 fun undefined _ = raise Match;
 
-fun del_data key = apsnd (remove eq_data (key, []));
+fun del_data key = remove eq_data (key, []);
 
 val del = Thm.declaration_attribute (Data.map o del_data);
 
@@ -159,17 +158,17 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
       val ideal' = map (symmetric o mk_meta) ideal
     in
       del_data key #>
-      apsnd (cons (key, ({vars = vars, semiring = semiring, 
+      cons (key, ({vars = vars, semiring = semiring, 
                           ring = ring, field = field, idom = idom, ideal = ideal'},
              {is_const = undefined, dest_const = undefined, mk_const = undefined,
-             conv = undefined})))
+             conv = undefined}))
     end);
 
 
 (* extra-logical functions *)
 
 fun funs raw_key {is_const, dest_const, mk_const, conv} phi = 
- (Data.map o apsnd) (fn data =>
+ Data.map (fn data =>
   let
     val key = Morphism.thm phi raw_key;
     val _ = AList.defined eq_key data key orelse
