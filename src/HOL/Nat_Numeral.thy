@@ -319,6 +319,10 @@ by (simp add: nat_number_of_def)
 lemma nat_numeral_1_eq_1 [simp]: "Numeral1 = (1::nat)"
 by (simp add: nat_number_of_def)
 
+lemma Numeral1_eq1_nat:
+  "(1::nat) = Numeral1"
+  by simp
+
 lemma numeral_1_eq_Suc_0 [code_post]: "Numeral1 = Suc 0"
 by (simp only: nat_numeral_1_eq_1 One_nat_def)
 

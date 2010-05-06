@@ -2025,6 +2025,14 @@ by auto
 
 lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]
 
+lemma divide_Numeral1:
+  "(x::'a::{field, number_ring}) / Numeral1 = x"
+  by simp
+
+lemma divide_Numeral0:
+  "(x::'a::{field_inverse_zero, number_ring}) / Numeral0 = 0"
+  by simp
+
 
 subsection {* The divides relation *}
 
