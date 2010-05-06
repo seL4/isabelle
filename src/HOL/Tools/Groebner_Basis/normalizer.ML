@@ -55,7 +55,7 @@ structure Data = Generic_Data
   type T = (thm * entry) list;
   val empty = [];
   val extend = I;
-  val merge = AList.merge Thm.eq_thm (K false);
+  val merge = AList.merge Thm.eq_thm (K true);
 );
 
 val get = Data.get o Context.Proof;
