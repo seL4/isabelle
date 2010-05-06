@@ -19,7 +19,7 @@ lemma
 
 lemma
   fixes x :: int
-  shows "(x - (-2))^5 = x ^ 5 + (10 * x ^ 4 + (40 * x ^ 3 + (80 * x² + (80 * x + 32))))" 
+  shows "(x - (-2))^5 = x ^ 5 + (10 * x ^ 4 + (40 * x ^ 3 + (80 * x\<twosuperior> + (80 * x + 32))))" 
   apply (tactic {* ALLGOALS (CONVERSION
     (Conv.arg_conv (Conv.arg1_conv (Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
