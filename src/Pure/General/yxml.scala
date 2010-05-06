@@ -7,6 +7,9 @@ Efficient text representation of XML trees.
 package isabelle
 
 
+import scala.collection.mutable.ListBuffer
+
+
 object YXML
 {
   /* chunk markers */
@@ -83,26 +86,32 @@ object YXML
   {
     /* stack operations */
 
-    var stack: List[((String, XML.Attributes), List[XML.Tree])] = null
+    def buffer(): ListBuffer[XML.Tree] = new ListBuffer[XML.Tree]
+    var stack: List[((String, XML.Attributes), ListBuffer[XML.Tree])] = List((("", Nil), buffer()))
 
-    def add(x: XML.Tree) = (stack: @unchecked) match {
-      case ((elem, body) :: pending) => stack = (elem, x :: body) :: pending
+    def add(x: XML.Tree)
+    {
+      (stack: @unchecked) match { case ((_, body) :: _) => body += x }
     }
 
-    def push(name: String, atts: XML.Attributes) =
+    def push(name: String, atts: XML.Attributes)
+    {
       if (name == "") err_element()
-      else stack = ((name, atts), Nil) :: stack
+      else stack = ((name, atts), buffer()) :: stack
+    }
 
-    def pop() = (stack: @unchecked) match {
-      case ((("", _), _) :: _) => err_unbalanced("")
-      case (((name, atts), body) :: pending) =>
-        stack = pending; add(XML.Elem(name, atts, body.reverse))
+    def pop()
+    {
+      (stack: @unchecked) match {
+        case ((("", _), _) :: _) => err_unbalanced("")
+        case (((name, atts), body) :: pending) =>
+          stack = pending; add(XML.Elem(name, atts, body.toList))
+      }
     }
 
 
     /* parse chunks */
 
-    stack = List((("", Nil), Nil))
     for (chunk <- chunks(X, source) if chunk.length != 0) {
       if (chunk.length == 1 && chunk.charAt(0) == Y) pop()
       else {
@@ -114,7 +123,7 @@ object YXML
       }
     }
     stack match {
-      case List((("", _), result)) => result.reverse
+      case List((("", _), body)) => body.toList
       case ((name, _), _) :: _ => err_unbalanced(name)
     }
   }
