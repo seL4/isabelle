@@ -113,11 +113,6 @@ fun undefined _ = raise Match;
 fun del_data key = apsnd (remove eq_data (key, []));
 
 val del = Thm.declaration_attribute (Data.map o del_data);
-val add_ss = Thm.declaration_attribute 
-   (fn th => Data.map (fn (ss,data) => (ss addsimps [th], data)));
-
-val del_ss = Thm.declaration_attribute 
-   (fn th => Data.map (fn (ss,data) => (ss delsimps [th], data)));
 
 fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), 
          field = (f_ops, f_rules), idom, ideal} =
@@ -872,8 +867,6 @@ fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm
 
 (* theory setup *)
 
-val setup =
-  normalizer_setup #>
-  Attrib.setup @{binding algebra} (Attrib.add_del add_ss del_ss) "pre-simplification for algebra";
+val setup = normalizer_setup
 
 end;

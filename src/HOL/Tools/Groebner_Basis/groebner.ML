@@ -966,10 +966,12 @@ fun ring_solve ctxt form =
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
           (semiring_normalize_wrapper ctxt res)) form));
 
+fun presimplify ctxt add_thms del_thms = asm_full_simp_tac (Simplifier.context ctxt
+  (HOL_basic_ss addsimps (Algebra_Simplification.get ctxt) delsimps del_thms addsimps add_thms));
+
 fun ring_tac add_ths del_ths ctxt =
   Object_Logic.full_atomize_tac
-  THEN' asm_full_simp_tac
-    (Simplifier.context ctxt (fst (Normalizer.get ctxt)) delsimps del_ths addsimps add_ths)
+  THEN' presimplify ctxt add_ths del_ths
   THEN' CSUBGOAL (fn (p, i) =>
     rtac (let val form = Object_Logic.dest_judgment p
           in case get_ring_ideal_convs ctxt form of
@@ -988,8 +990,7 @@ local
    | exitac (SOME y) = rtac (instantiate' [SOME (ctyp_of_term y)] [NONE,SOME y] exI) 1
 in 
 fun ideal_tac add_ths del_ths ctxt = 
-  asm_full_simp_tac 
-   (Simplifier.context ctxt (fst (Normalizer.get ctxt)) delsimps del_ths addsimps add_ths) 
+  presimplify ctxt add_ths del_ths
  THEN'
  CSUBGOAL (fn (p, i) =>
   case get_ring_ideal_convs ctxt p of
