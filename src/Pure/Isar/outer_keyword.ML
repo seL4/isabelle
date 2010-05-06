@@ -146,7 +146,7 @@ fun command_keyword name = Symtab.lookup (get_commands ()) name;
 fun command_tags name = these (Option.map tags_of (command_keyword name));
 
 
-(* report *)
+(* reports *)
 
 val keyword_status_reportN = "keyword_status_report";
 
