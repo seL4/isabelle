@@ -10,24 +10,24 @@ sig
   val get: Proof.context -> (thm * entry) list
   val match: Proof.context -> cterm -> entry option
   val del: attribute
-  val add: {semiring: cterm list * thm list, ring: cterm list * thm list, field: cterm list * thm list, idom: thm list, ideal: thm list}
-    -> attribute
+  val add: {semiring: cterm list * thm list, ring: cterm list * thm list,
+    field: cterm list * thm list, idom: thm list, ideal: thm list} -> attribute
   val funs: thm -> {is_const: morphism -> cterm -> bool,
     dest_const: morphism -> cterm -> Rat.rat,
     mk_const: morphism -> ctyp -> Rat.rat -> cterm,
     conv: morphism -> Proof.context -> cterm -> thm} -> declaration
 
-  val semiring_normalize_conv : Proof.context -> conv
-  val semiring_normalize_ord_conv : Proof.context -> (cterm -> cterm -> bool) -> conv
-  val semiring_normalize_wrapper :  Proof.context -> entry -> conv
-  val semiring_normalize_ord_wrapper :  Proof.context -> entry ->
-    (cterm -> cterm -> bool) -> conv
-  val semiring_normalizers_conv :
-    cterm list -> cterm list * thm list -> cterm list * thm list -> cterm list * thm list ->
+  val semiring_normalize_conv: Proof.context -> conv
+  val semiring_normalize_ord_conv: Proof.context -> (cterm -> cterm -> bool) -> conv
+  val semiring_normalize_wrapper: Proof.context -> entry -> conv
+  val semiring_normalize_ord_wrapper: Proof.context -> entry
+    -> (cterm -> cterm -> bool) -> conv
+  val semiring_normalizers_conv: cterm list -> cterm list * thm list
+    -> cterm list * thm list -> cterm list * thm list ->
       (cterm -> bool) * conv * conv * conv -> (cterm -> cterm -> bool) ->
         {add: conv, mul: conv, neg: conv, main: conv, pow: conv, sub: conv}
-  val semiring_normalizers_ord_wrapper :  
-    Proof.context -> entry -> (cterm -> cterm -> bool) ->
+  val semiring_normalizers_ord_wrapper:  Proof.context -> entry ->
+    (cterm -> cterm -> bool) ->
       {add: conv, mul: conv, neg: conv, main: conv, pow: conv, sub: conv}
 
   val setup: theory -> theory
