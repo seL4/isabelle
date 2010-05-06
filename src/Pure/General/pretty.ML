@@ -119,7 +119,7 @@ fun length (Block (_, _, _, len)) = len
 val str = String o Output.output_width;
 
 fun brk wd = Break (false, wd);
-val fbrk = Break (true, 2);
+val fbrk = Break (true, 1);
 
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
@@ -256,7 +256,7 @@ fun breakdist (Break _ :: _, _) = 0
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
 fun forcenext [] = []
-  | forcenext (Break _ :: es) = Break (true, 0) :: es
+  | forcenext (Break _ :: es) = fbrk :: es
   | forcenext (e :: es) = e :: forcenext es;
 
 (*es is list of expressions to print;
@@ -317,8 +317,7 @@ fun unformatted prt =
   let
     fun fmt (Block ((bg, en), prts, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
       | fmt (String (s, _)) = Buffer.add s
-      | fmt (Break (false, wd)) = Buffer.add (output_spaces wd)
-      | fmt (Break (true, _)) = Buffer.add (output_spaces 1);
+      | fmt (Break (_, wd)) = Buffer.add (output_spaces wd);
   in fmt (prune prt) Buffer.empty end;
 
 
