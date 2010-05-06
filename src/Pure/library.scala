@@ -13,6 +13,15 @@ import javax.swing.JOptionPane
 
 object Library
 {
+  /* separate */
+
+  def separate[A](s: A, list: List[A]): List[A] =
+    list match {
+      case x :: xs if !xs.isEmpty => x :: s :: separate(s, xs)
+      case _ => list
+    }
+
+
   /* reverse CharSequence */
 
   class Reverse(text: CharSequence, start: Int, end: Int) extends CharSequence
