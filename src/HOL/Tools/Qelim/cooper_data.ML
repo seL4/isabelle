@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/Qelim/cooper_data.ML
-    ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 *)
 
@@ -16,8 +15,7 @@ structure CooperData : COOPER_DATA =
 struct
 
 type entry = simpset * (term list);
-val start_ss = HOL_ss (* addsimps @{thms "Groebner_Basis.comp_arith"}
-               addcongs [if_weak_cong, @{thm "let_weak_cong"}];*)
+
 val allowed_consts = 
   [@{term "op + :: int => _"}, @{term "op + :: nat => _"},
    @{term "op - :: int => _"}, @{term "op - :: nat => _"},
@@ -47,7 +45,7 @@ val allowed_consts =
 structure Data = Generic_Data
 (
   type T = simpset * term list;
-  val empty = (start_ss, allowed_consts);
+  val empty = (HOL_ss, allowed_consts);
   val extend  = I;
   fun merge ((ss1, ts1), (ss2, ts2)) =
     (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
@@ -64,7 +62,7 @@ fun del ts = Thm.declaration_attribute (fn th => fn context =>
      (ss delsimps [th], subtract (op aconv) ts' ts ))) 
 
 
-(* concrete syntax *)
+(* theory setup *)
 
 local
 
@@ -79,16 +77,11 @@ fun optional scan = Scan.optional scan [];
 
 in
 
-val presburger_setup =
+val setup =
   Attrib.setup @{binding presburger}
     ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
       optional (keyword constsN |-- terms) >> add) "Cooper data";
 
 end;
-
-
-(* theory setup *)
-
-val setup = presburger_setup;
 
 end;

@@ -140,6 +140,8 @@ terms may need to be adapted.
 
 *** HOL ***
 
+* Dropped theorem duplicate comp_arith; use semiring_norm instead.  INCOMPATIBILITY.
+
 * Theory 'Finite_Set': various folding_* locales facilitate the application
 of the various fold combinators on finite sets.
 
