@@ -93,6 +93,25 @@ lemma split_prs[quot_preserve]:
   shows "(((Abs1 ---> Abs2 ---> id) ---> prod_fun Rep1 Rep2 ---> id) split) = split"
   by (simp add: expand_fun_eq Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
 
+lemma [quot_respect]:
+  shows "((R2 ===> R2 ===> op =) ===> (R1 ===> R1 ===> op =) ===>
+  prod_rel R2 R1 ===> prod_rel R2 R1 ===> op =) prod_rel prod_rel"
+  by auto
+
+lemma [quot_preserve]:
+  assumes q1: "Quotient R1 abs1 rep1"
+  and     q2: "Quotient R2 abs2 rep2"
+  shows "((abs1 ---> abs1 ---> id) ---> (abs2 ---> abs2 ---> id) --->
+  prod_fun rep1 rep2 ---> prod_fun rep1 rep2 ---> id) prod_rel = prod_rel"
+  by (simp add: expand_fun_eq Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
+
+lemma [quot_preserve]:
+  shows"(prod_rel ((rep1 ---> rep1 ---> id) R1) ((rep2 ---> rep2 ---> id) R2)
+  (l1, l2) (r1, r2)) = (R1 (rep1 l1) (rep1 r1) \<and> R2 (rep2 l2) (rep2 r2))"
+  by simp
+
+declare Pair_eq[quot_preserve]
+
 lemma prod_fun_id[id_simps]:
   shows "prod_fun id id = id"
   by (simp add: prod_fun_def)
