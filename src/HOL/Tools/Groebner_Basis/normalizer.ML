@@ -7,7 +7,7 @@ Normalization of expressions in semirings.
 signature NORMALIZER = 
 sig
   type entry
-  val get: Proof.context -> simpset * (thm * entry) list
+  val get: Proof.context -> (thm * entry) list
   val match: Proof.context -> cterm -> entry option
   val del: attribute
   val add: {semiring: cterm list * thm list, ring: cterm list * thm list, field: cterm list * thm list, idom: thm list, ideal: thm list}
@@ -62,7 +62,7 @@ structure Data = Generic_Data
     (merge_ss (ss, ss'), AList.merge eq_key (K true) (e, e'));
 );
 
-val get = Data.get o Context.Proof;
+val get = snd o Data.get o Context.Proof;
 
 
 (* match data *)
