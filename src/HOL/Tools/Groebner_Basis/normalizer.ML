@@ -170,7 +170,7 @@ fun funs raw_key {is_const, dest_const, mk_const, conv} phi =
   in AList.map_entry Thm.eq_thm key (apsnd (K fns)) data end);
 
 
-(* Very basic stuff for terms *)
+(** auxiliary **)
 
 fun is_comb ct =
   (case Thm.term_of ct of
@@ -216,7 +216,10 @@ val onen_tm  = @{cterm "1::nat"};
 val true_tm = @{cterm "True"};
 
 
-(* The main function! *)
+(** normalizing conversions **)
+
+(* core conversion *)
+
 fun semiring_normalizers_conv vars (sr_ops, sr_rules) (r_ops, r_rules) (f_ops, f_rules)
   (is_semiring_constant, semiring_add_conv, semiring_mul_conv, semiring_pow_conv) =
 let
@@ -783,6 +786,9 @@ val nat_exp_ss =
     addsimps [@{thm Let_def}, @{thm if_False}, @{thm if_True}, @{thm Nat.add_0}, @{thm add_Suc}];
 
 fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS;
+
+
+(* various normalizing conversions *)
 
 fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal}, 
                                      {conv, dest_const, mk_const, is_const}) ord =
