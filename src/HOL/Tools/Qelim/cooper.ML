@@ -538,6 +538,8 @@ struct
 
 open Generated_Cooper;
 
+fun member eq = Library.member eq;
+
 fun cooper s = raise Cooper.COOPER ("Cooper oracle failed", ERROR s);
 fun i_of_term vs t = case t
  of Free (xn, xT) => (case AList.lookup (op aconv) vs t
@@ -593,12 +595,12 @@ fun ty t = Bool.not (fastype_of t = HOLogic.boolT)
 in
 fun term_bools acc t =
 case t of
-    (l as f $ a) $ b => if ty t orelse f mem ops then term_bools (term_bools acc l)b
+    (l as f $ a) $ b => if ty t orelse member (op =) ops f then term_bools (term_bools acc l)b
             else insert (op aconv) t acc
-  | f $ a => if ty t orelse f mem ops then term_bools (term_bools acc f) a
+  | f $ a => if ty t orelse member (op =) ops f then term_bools (term_bools acc f) a
             else insert (op aconv) t acc
   | Abs p => term_bools acc (snd (variant_abs p))
-  | _ => if ty t orelse t mem ops then acc else insert (op aconv) t acc
+  | _ => if ty t orelse member (op =) ops t then acc else insert (op aconv) t acc
 end;
 
 fun myassoc2 l v =

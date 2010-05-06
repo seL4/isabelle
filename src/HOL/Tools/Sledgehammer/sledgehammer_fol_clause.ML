@@ -410,7 +410,7 @@ fun arity_clause dfg _ _ (tcons, []) = []
   | arity_clause dfg seen n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
       arity_clause dfg seen n (tcons,ars)
   | arity_clause dfg seen n (tcons, (ar as (class,_)) :: ars) =
-      if class mem_string seen then (*multiple arities for the same tycon, class pair*)
+      if member (op =) seen class then (*multiple arities for the same tycon, class pair*)
           make_axiom_arity_clause dfg (tcons, lookup_type_const dfg tcons ^ "_" ^ class ^ "_" ^ Int.toString n, ar) ::
           arity_clause dfg seen (n+1) (tcons,ars)
       else

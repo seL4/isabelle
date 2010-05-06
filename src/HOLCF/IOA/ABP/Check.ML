@@ -16,7 +16,7 @@ fun check(extacts,intacts,string_of_a,startsI,string_of_s,
   let fun check_s(s,unchecked,checked) =
         let fun check_sa a unchecked =
               let fun check_sas t unchecked =
-                    (if a mem extacts then
+                    (if member (op =) extacts a then
                           (if transA(hom s,a,hom t) then ( )
                            else (writeln("Error: Mapping of Externals!");
                                  string_of_s s; writeln"";
@@ -27,11 +27,11 @@ fun check(extacts,intacts,string_of_a,startsI,string_of_s,
                                  string_of_s s; writeln"";
                                  string_of_a a; writeln"";
                                  string_of_s t;writeln"";writeln"" ));
-                     if t mem checked then unchecked else insert (op =) t unchecked)
+                     if member (op =) checked t then unchecked else insert (op =) t unchecked)
               in fold check_sas (nexts s a) unchecked end;
               val unchecked' = fold check_sa (extacts @ intacts) unchecked
-        in    (if s mem startsI then 
-                    (if hom(s) mem startsS then ()
+        in    (if member (op =) startsI s then 
+                    (if member (op =) startsS (hom s) then ()
                      else writeln("Error: At start states!"))
                else ();  
                checks(unchecked',s::checked)) end

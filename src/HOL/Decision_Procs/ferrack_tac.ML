@@ -51,7 +51,7 @@ fun prepare_for_linr sg q fm =
     val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
     val c = HOLogic.dest_Trueprop (Logic.strip_assums_concl fm)
     fun mk_all ((s, T), (P,n)) =
-      if 0 mem loose_bnos P then
+      if member (op =) (loose_bnos P) 0 then
         (HOLogic.all_const T $ Abs (s, T, P), n)
       else (incr_boundvars ~1 P, n-1)
     fun mk_all2 (v, t) = HOLogic.all_const (fastype_of v) $ lambda v t;

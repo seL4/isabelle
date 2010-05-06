@@ -78,7 +78,7 @@ fun typedef_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
                       Codegen.string_of (Pretty.block [Codegen.str ("fun " ^ Rep_id),
                         Pretty.brk 1, Codegen.str ("(" ^ Abs_id), Pretty.brk 1,
                         Codegen.str "x) = x;"]) ^ "\n\n" ^
-                      (if "term_of" mem !Codegen.mode then
+                      (if member (op =) (!Codegen.mode) "term_of" then
                         Codegen.string_of (Pretty.block [Codegen.str "fun ",
                           Codegen.mk_term_of gr'' module' false newT, Pretty.brk 1,
                           Codegen.str ("(" ^ Abs_id), Pretty.brk 1,
@@ -89,7 +89,7 @@ fun typedef_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
                           Codegen.mk_term_of gr'' module' false oldT, Pretty.brk 1,
                           Codegen.str "x;"]) ^ "\n\n"
                        else "") ^
-                      (if "test" mem !Codegen.mode then
+                      (if member (op =) (!Codegen.mode) "test" then
                         Codegen.string_of (Pretty.block [Codegen.str "fun ",
                           Codegen.mk_gen gr'' module' false [] "" newT, Pretty.brk 1,
                           Codegen.str "i =", Pretty.brk 1,

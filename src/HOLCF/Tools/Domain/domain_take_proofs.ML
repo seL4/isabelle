@@ -554,9 +554,9 @@ fun add_lub_take_theorems
     (* test for finiteness of domain definitions *)
     local
       val types = [@{type_name ssum}, @{type_name sprod}];
-      fun finite d T = if T mem absTs then d else finite' d T
+      fun finite d T = if member (op =) absTs T then d else finite' d T
       and finite' d (Type (c, Ts)) =
-          let val d' = d andalso c mem types;
+          let val d' = d andalso member (op =) types c;
           in forall (finite d') Ts end
         | finite' d _ = true;
     in

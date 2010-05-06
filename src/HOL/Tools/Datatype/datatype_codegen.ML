@@ -306,11 +306,11 @@ fun add_dt_defs thy defs dep module descr sorts gr =
            map_node node_id (K (NONE, module',
              string_of (Pretty.blk (0, separate Pretty.fbrk dtdef @
                [str ";"])) ^ "\n\n" ^
-             (if "term_of" mem !mode then
+             (if member (op =) (!mode) "term_of" then
                 string_of (Pretty.blk (0, separate Pretty.fbrk
                   (mk_term_of_def gr2 "fun " descr') @ [str ";"])) ^ "\n\n"
               else "") ^
-             (if "test" mem !mode then
+             (if member (op =) (!mode) "test" then
                 string_of (Pretty.blk (0, separate Pretty.fbrk
                   (mk_gen_of_def gr2 "fun " descr') @ [str ";"])) ^ "\n\n"
               else ""))) gr2

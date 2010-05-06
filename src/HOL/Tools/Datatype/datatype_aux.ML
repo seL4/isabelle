@@ -136,7 +136,7 @@ fun indtac indrule indnames i st =
     val getP = if can HOLogic.dest_imp (hd ts) then
       (apfst SOME) o HOLogic.dest_imp else pair NONE;
     val flt = if null indnames then I else
-      filter (fn Free (s, _) => s mem indnames | _ => false);
+      filter (fn Free (s, _) => member (op =) indnames s | _ => false);
     fun abstr (t1, t2) = (case t1 of
         NONE => (case flt (OldTerm.term_frees t2) of
             [Free (s, T)] => SOME (absfree (s, T, t2))
@@ -300,7 +300,7 @@ fun check_nonempty descr =
     fun is_nonempty_dt is i =
       let
         val (_, _, constrs) = (the o AList.lookup (op =) descr') i;
-        fun arg_nonempty (_, DtRec i) = if i mem is then false
+        fun arg_nonempty (_, DtRec i) = if member (op =) is i then false
               else is_nonempty_dt (i::is) i
           | arg_nonempty _ = true;
       in exists ((forall (arg_nonempty o strip_dtyp)) o snd) constrs

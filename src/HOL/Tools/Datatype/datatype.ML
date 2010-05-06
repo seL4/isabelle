@@ -309,7 +309,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
             val T' = typ_of_dtyp descr' sorts dt;
             val (Us, U) = strip_type T'
           in (case strip_dtyp dt of
-              (_, DtRec j) => if j mem ks' then
+              (_, DtRec j) => if member (op =) ks' j then
                   (i2 + 1, i2' + 1, ts @ [mk_lim (app_bnds
                      (mk_Free "y" (Us ---> Univ_elT) i2') (length Us)) Us],
                    Ts @ [Us ---> Univ_elT])

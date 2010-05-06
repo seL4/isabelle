@@ -452,8 +452,8 @@ fun findRtranclProof g tranclEdges subgoal =
 
    fun processTranclEdges [] = raise Cannot
    |   processTranclEdges (e::es) =
-          if (upper e) mem Vx andalso (lower e) mem Vx
-          andalso (upper e) mem Vy andalso (lower e) mem Vy
+          if member (op =) Vx (upper e) andalso member (op =) Vx (lower e)
+          andalso member (op =) Vy (upper e) andalso member (op =) Vy (lower e)
           then (
 
 

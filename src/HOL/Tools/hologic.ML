@@ -356,7 +356,7 @@ fun ptuple_err s = raise TERM (s ^ ": inconsistent use of nested products", []);
 fun mk_ptupleT ps =
   let
     fun mk p Ts =
-      if p mem ps then
+      if member (op =) ps p then
         let
           val (T, Ts') = mk (1::p) Ts;
           val (U, Ts'') = mk (2::p) Ts'
@@ -366,7 +366,7 @@ fun mk_ptupleT ps =
 
 fun strip_ptupleT ps =
   let
-    fun factors p T = if p mem ps then (case T of
+    fun factors p T = if member (op =) ps p then (case T of
         Type ("*", [T1, T2]) =>
           factors (1::p) T1 @ factors (2::p) T2
       | _ => ptuple_err "strip_ptupleT") else [T]
@@ -382,7 +382,7 @@ val flat_tupleT_paths =
 fun mk_ptuple ps =
   let
     fun mk p T ts =
-      if p mem ps then (case T of
+      if member (op =) ps p then (case T of
           Type ("*", [T1, T2]) =>
             let
               val (t, ts') = mk (1::p) T1 ts;
@@ -394,7 +394,7 @@ fun mk_ptuple ps =
 
 fun strip_ptuple ps =
   let
-    fun dest p t = if p mem ps then (case t of
+    fun dest p t = if member (op =) ps p then (case t of
         Const ("Pair", _) $ t $ u =>
           dest (1::p) t @ dest (2::p) u
       | _ => ptuple_err "strip_ptuple") else [t]
@@ -413,7 +413,7 @@ val flat_tuple_paths =
 fun mk_psplits ps T T3 u =
   let
     fun ap ((p, T) :: pTs) =
-          if p mem ps then (case T of
+          if member (op =) ps p then (case T of
               Type ("*", [T1, T2]) =>
                 split_const (T1, T2, map snd pTs ---> T3) $
                   ap ((1::p, T1) :: (2::p, T2) :: pTs)

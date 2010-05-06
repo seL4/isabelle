@@ -419,7 +419,7 @@ fun add_ind_set_def
       | infer (t $ u) = infer t #> infer u
       | infer _ = I;
     val new_arities = filter_out
-      (fn (x as Free (_, T), _) => x mem params andalso length (binder_types T) > 1
+      (fn (x as Free (_, T), _) => member (op =) params x andalso length (binder_types T) > 1
         | _ => false) (fold (snd #> infer) intros []);
     val params' = map (fn x =>
       (case AList.lookup op = new_arities x of

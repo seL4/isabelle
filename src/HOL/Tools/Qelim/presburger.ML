@@ -67,9 +67,9 @@ local
  | _ => can HOLogic.dest_number t orelse can HOLogic.dest_nat t
 
  fun ty cts t = 
- if not (typ_of (ctyp_of_term t) mem [HOLogic.intT, HOLogic.natT, HOLogic.boolT]) then false 
+ if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (typ_of (ctyp_of_term t))) then false 
     else case term_of t of 
-      c$l$r => if c mem [@{term"op *::int => _"}, @{term"op *::nat => _"}] 
+      c$l$r => if member (op =) [@{term"op *::int => _"}, @{term"op *::nat => _"}] c
                then not (isnum l orelse isnum r)
                else not (member (op aconv) cts c)
     | c$_ => not (member (op aconv) cts c)
@@ -85,8 +85,8 @@ local
 in 
 fun is_relevant ctxt ct = 
  subset (op aconv) (term_constants (term_of ct) , snd (CooperData.get ctxt))
- andalso forall (fn Free (_,T) => T mem [@{typ "int"}, @{typ nat}]) (OldTerm.term_frees (term_of ct))
- andalso forall (fn Var (_,T) => T mem [@{typ "int"}, @{typ nat}]) (OldTerm.term_vars (term_of ct));
+ andalso forall (fn Free (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_frees (term_of ct))
+ andalso forall (fn Var (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_vars (term_of ct));
 
 fun int_nat_terms ctxt ct =
  let 

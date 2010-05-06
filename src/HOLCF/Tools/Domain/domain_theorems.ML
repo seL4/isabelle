@@ -292,7 +292,7 @@ let
        it has a possibly indirectly recursive argument that isn't/is possibly 
        indirectly lazy *)
     fun rec_to quant nfn rfn ns lazy_rec (n,cons) = quant (exists (fn arg => 
-          is_rec arg andalso not(rec_of arg mem ns) andalso
+          is_rec arg andalso not (member (op =) ns (rec_of arg)) andalso
           ((rec_of arg =  n andalso nfn(lazy_rec orelse is_lazy arg)) orelse 
             rec_of arg <> n andalso rec_to quant nfn rfn (rec_of arg::ns) 
               (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))

@@ -114,7 +114,7 @@ fun add_rec_funs thy defs dep module eqs gr =
          in (case xs of
              [_] => (module, put_code module fundef gr2)
            | _ =>
-             if not (dep mem xs) then
+             if not (member (op =) xs dep) then
                let
                  val thmss as (_, thyname) :: _ = map (get_equations thy defs) cs;
                  val module' = if_library thyname module;

@@ -98,7 +98,7 @@ let fun var(Var _) = true
 in var(lhs_of_eq i thm) end;
 
 fun contains_op opns =
-    let fun contains(Const(s,_)) = s mem opns |
+    let fun contains(Const(s,_)) = member (op =) opns s |
             contains(s$t) = contains s orelse contains t |
             contains(Abs(_,_,t)) = contains t |
             contains _ = false;
@@ -117,7 +117,7 @@ val norms =
   in map norm normE_thms end;
 
 fun lhs_is_NORM(thm,i) = case lhs_of_eq i thm of
-        Const(s,_)$_ => s mem norms | _ => false;
+        Const(s,_)$_ => member (op =) norms s | _ => false;
 
 val refl_tac = resolve_tac refl_thms;
 
@@ -203,7 +203,7 @@ let val thm' = mk_trans2 thm;
     val refl1_tac = refl_tac 1
     fun norm_step_tac st = st |>
          (case head_of(rhs_of_eq 1 st) of
-            Var(ixn,_) => if ixn mem hvs then refl1_tac
+            Var(ixn,_) => if member (op =) hvs ixn then refl1_tac
                           else resolve_tac normI_thms 1 ORELSE refl1_tac
           | Const _ => resolve_tac normI_thms 1 ORELSE
                        resolve_tac congs 1 ORELSE refl1_tac

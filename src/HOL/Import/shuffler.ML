@@ -550,7 +550,7 @@ fun make_equal thy t u =
 fun match_consts ignore t (* th *) =
     let
         fun add_consts (Const (c, _), cs) =
-            if c mem_string ignore
+            if member (op =) ignore c
             then cs
             else insert (op =) c cs
           | add_consts (t $ u, cs) = add_consts (t, add_consts (u, cs))

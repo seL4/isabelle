@@ -311,7 +311,7 @@ local
         in forall (fn e => evaluate f e =/ Rat.zero) flippedequations
         end
        val goodverts = filter check_solution rawverts
-       val signfixups = map (fn n => if n mem_int  f then ~1 else 1) nvs 
+       val signfixups = map (fn n => if member (op =) f n then ~1 else 1) nvs 
       in map (map2 (fn s => fn c => Rat.rat_of_int s */ c) signfixups) goodverts
       end
      val allverts = fold_rev append (map plausiblevertices (allsubsets nvs)) [] 

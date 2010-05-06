@@ -221,7 +221,7 @@ let
         in (p, Rat.add i (Rat.mult m (Rat.rat_of_int k2))) end
         handle TERM _ => add_atom all m pi)
     | poly (all as Const f $ x, m, pi) =
-        if f mem inj_consts then poly (x, m, pi) else add_atom all m pi
+        if member (op =) inj_consts f then poly (x, m, pi) else add_atom all m pi
     | poly (all, m, pi) =
         add_atom all m pi
   val (p, i) = poly (lhs, Rat.one, ([], Rat.zero))

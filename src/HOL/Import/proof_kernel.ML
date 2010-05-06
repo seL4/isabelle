@@ -276,6 +276,7 @@ fun assoc x =
     in
         F
     end
+infix mem;
 fun i mem L =
     let fun itr [] = false
           | itr (a::rst) = i=a orelse itr rst
@@ -1091,7 +1092,7 @@ val collect_vars =
     let
         fun F vars (Bound _) = vars
           | F vars (tm as Free _) =
-            if tm mem vars
+            if member (op =) vars tm
             then vars
             else (tm::vars)
           | F vars (Const _) = vars

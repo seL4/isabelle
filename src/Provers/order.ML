@@ -871,8 +871,8 @@ let
       val vi = getIndex v ntc
 
   in
-      if ui mem xreachable andalso vi mem xreachable andalso
-         ui mem yreachable andalso vi mem yreachable then (
+      if member (op =) xreachable ui andalso member (op =) xreachable vi andalso
+         member (op =) yreachable ui andalso member (op =) yreachable vi then (
 
   (case e of (Less (_, _, _)) =>
        let

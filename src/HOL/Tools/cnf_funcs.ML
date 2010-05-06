@@ -122,7 +122,7 @@ fun clause_is_trivial c =
 		  | dual x                      = HOLogic.Not $ x
 		(* Term.term list -> bool *)
 		fun has_duals []      = false
-		  | has_duals (x::xs) = (dual x) mem xs orelse has_duals xs
+		  | has_duals (x::xs) = member (op =) xs (dual x) orelse has_duals xs
 	in
 		has_duals (HOLogic.disjuncts c)
 	end;

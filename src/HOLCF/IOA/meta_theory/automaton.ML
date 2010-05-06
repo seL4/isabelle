@@ -211,11 +211,11 @@ extended_list thy atyp statetupel (a::r) =
 
 (* used by write_alts *)
 fun write_alt thy (chead,tr) inp out int [] =
-if (chead mem inp) then
+if member (op =) inp chead then
 (
 error("Input action " ^ tr ^ " was not specified")
 ) else (
-if (chead mem (out@int)) then
+if member (op =) out chead orelse member (op =) int chead then
 (writeln("Action " ^ tr ^ " was completedly disabled due to missing specification")) else ();
 (tr ^ " => False",tr ^ " => False")) |
 write_alt thy (chead,ctrm) inp out int ((a,b,c,d,e)::r) =
@@ -227,9 +227,9 @@ fun occurs_again c [] = false |
 occurs_again c ((a,_,_,_,_)::r) = if (c=(hd_of a)) then true else (occurs_again c r);
 in
 if (chead=(hd_of a)) then 
-(if ((chead mem inp) andalso e) then (
+(if member (op =) inp chead andalso e then (
 error("Input action " ^ b ^ " has a precondition")
-) else (if (chead mem (inp@out@int)) then 
+) else (if member (op =) (inp@out@int) chead then 
     (if (occurs_again chead r) then (
 error("Two specifications for action: " ^ b)
     ) else (b ^ " => " ^ c,b ^ " => " ^ d))
@@ -275,7 +275,7 @@ check_free_primed (Abs(_,_,t)) = check_free_primed t |
 check_free_primed _ = [];
 
 fun overlap [] _ = true |
-overlap (a::r) l = if (a mem l) then (
+overlap (a::r) l = if member (op =) l a then (
 error("Two occurences of action " ^ a ^ " in automaton signature")
 ) else (overlap r l);
 

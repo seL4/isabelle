@@ -218,8 +218,8 @@ val forbidden_consts =
 
 fun is_forbidden_theorem (s, th) =
   let val consts = Term.add_const_names (prop_of th) [] in
-    exists (fn s' => s' mem space_explode "." s) forbidden_thms orelse
-    exists (fn s' => s' mem forbidden_consts) consts orelse
+    exists (member (op =) (space_explode "." s)) forbidden_thms orelse
+    exists (member (op =) forbidden_consts) consts orelse
     length (space_explode "." s) <> 2 orelse
     String.isPrefix "type_definition" (List.last (space_explode "." s)) orelse
     String.isSuffix "_def" s orelse

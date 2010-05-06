@@ -350,7 +350,7 @@ struct
     o (map (map literal_from_int))
     o clauses
     o (map int_from_string)
-    o (maps (String.tokens (fn c => c mem [#" ", #"\t", #"\n"])))
+    o (maps (String.tokens (member (op =) [#" ", #"\t", #"\n"])))
     o filter_preamble
     o filter (fn l => l <> "")
     o split_lines
@@ -421,7 +421,7 @@ let
         SOME (y::x::xs)
     (* int list -> int -> bool *)
     fun assignment_from_list xs i =
-      i mem xs
+      member (op =) xs i
     (* int list -> SatSolver.result *)
     fun solver_loop xs =
       if PropLogic.eval (assignment_from_list xs) fm then
@@ -490,7 +490,7 @@ let
       end
       (* int list -> int option *)
       fun fresh_var xs =
-        Library.find_first (fn i => not (i mem_int xs) andalso not ((~i) mem_int xs)) indices
+        find_first (fn i => not (member (op =) xs i) andalso not (member (op =) xs (~i))) indices
       (* int list -> prop_formula -> int list option *)
       (* partial assignment 'xs' *)
       fun dpll xs fm =
