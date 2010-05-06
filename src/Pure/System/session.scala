@@ -123,12 +123,12 @@ class Session(system: Isabelle_System)
         result.body match {
 
           // document state assignment
-          case List(XML.Elem(Markup.ASSIGN, _, edits)) if target_id.isDefined =>
+          case List(Isar_Document.Assign(edits)) if target_id.isDefined =>
             documents.get(target_id.get) match {
               case Some(doc) =>
                 val states =
                   for {
-                    XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _) <- edits
+                    Isar_Document.Edit(cmd_id, state_id) <- edits
                     cmd <- lookup_command(cmd_id)
                   } yield {
                     val st = cmd.assign_state(state_id)
@@ -139,11 +139,9 @@ class Session(system: Isabelle_System)
               case None => bad_result(result)
             }
 
-          // command and keyword declarations
-          case List(XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _)) =>
-            syntax += (name, kind)
-          case List(XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _)) =>
-            syntax += name
+          // keyword declarations
+          case List(Outer_Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
+          case List(Outer_Keyword.Keyword_Decl(name)) => syntax += name
 
           case _ => if (!result.is_ready) bad_result(result)
         }
