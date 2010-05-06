@@ -21,7 +21,7 @@ end
 structure Groebner : GROEBNER =
 struct
 
-open Conv Normalizer Drule Thm;
+open Conv Drule Thm;
 
 fun is_comb ct =
   (case Thm.term_of ct of
@@ -50,11 +50,11 @@ fun int_of_rat a =
 val lcm_rat = fn x => fn y => Rat.rat_of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
 
 val (eqF_intr, eqF_elim) =
-  let val [th1,th2] = thms "PFalse"
+  let val [th1,th2] = @{thms PFalse}
   in (fn th => th COMP th2, fn th => th COMP th1) end;
 
 val (PFalse, PFalse') =
- let val PFalse_eq = nth (thms "simp_thms") 13
+ let val PFalse_eq = nth @{thms simp_thms} 13
  in (PFalse_eq RS iffD1, PFalse_eq RS iffD2) end;
 
 
@@ -398,7 +398,7 @@ fun refute_disj rfn tm =
    compose_single(refute_disj rfn (dest_arg tm),2,compose_single(refute_disj rfn (dest_arg1 tm),2,disjE))
   | _ => rfn tm ;
 
-val notnotD = @{thm "notnotD"};
+val notnotD = @{thm notnotD};
 fun mk_binop ct x y = capply (capply ct x) y
 
 val mk_comb = capply;
@@ -440,10 +440,10 @@ fun is_forall t =
 | _ => false;
 
 val mk_object_eq = fn th => th COMP meta_eq_to_obj_eq;
-val bool_simps = @{thms "bool_simps"};
-val nnf_simps = @{thms "nnf_simps"};
+val bool_simps = @{thms bool_simps};
+val nnf_simps = @{thms nnf_simps};
 val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps bool_simps addsimps nnf_simps)
-val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms "weak_dnf_simps"});
+val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms weak_dnf_simps});
 val initial_conv =
     Simplifier.rewrite
      (HOL_basic_ss addsimps nnf_simps
@@ -953,7 +953,7 @@ fun get_ring_ideal_convs ctxt form =
           mk_const, conv = ring_eq_conv})) =>
      SOME (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (semiring_normalize_wrapper ctxt res)))
+          (Normalizer.semiring_normalize_wrapper ctxt res)))
 
 fun ring_solve ctxt form =
   (case try (find_term 0 (* FIXME !? *)) form of
@@ -964,7 +964,7 @@ fun ring_solve ctxt form =
       | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
         #ring_conv (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (semiring_normalize_wrapper ctxt res)) form));
+          (Normalizer.semiring_normalize_wrapper ctxt res)) form));
 
 fun presimplify ctxt add_thms del_thms = asm_full_simp_tac (Simplifier.context ctxt
   (HOL_basic_ss addsimps (Algebra_Simplification.get ctxt) delsimps del_thms addsimps add_thms));
