@@ -97,7 +97,7 @@ fun match ctxt tm =
     fun match_struct (_,
         entry as ({semiring = (sr_ops, _), ring = (r_ops, _), field = (f_ops, _), ...}, _): entry) =
       get_first (match_inst entry) (sr_ops @ r_ops @ f_ops);
-  in get_first match_struct (snd (get ctxt)) end;
+  in get_first match_struct (get ctxt) end;
 
 
 (* logical content *)
