@@ -47,10 +47,6 @@ typedef preal = "{A. cut A}"
   by (blast intro: cut_of_rat [OF zero_less_one])
 
 definition
-  preal_of_rat :: "rat => preal" where
-  "preal_of_rat q = Abs_preal {x::rat. 0 < x & x < q}"
-
-definition
   psup :: "preal set => preal" where
   [code del]: "psup P = Abs_preal (\<Union>X \<in> P. Rep_preal X)"
 
@@ -101,7 +97,7 @@ definition "R / S = R * inverse (S\<Colon>preal)"
 
 definition
   preal_one_def:
-    "1 == preal_of_rat 1"
+    "1 == Abs_preal {x. 0 < x & x < 1}"
 
 instance ..
 
@@ -170,25 +166,6 @@ lemma Rep_preal_exists_bound: "\<exists>x>0. x \<notin> Rep_preal X"
 by (rule preal_exists_bound [OF Rep_preal])
 
 lemmas not_in_Rep_preal_ub = not_in_preal_ub [OF Rep_preal]
-
-
-
-subsection{*@{term preal_of_prat}: the Injection from prat to preal*}
-
-lemma rat_less_set_mem_preal: "0 < y ==> {u::rat. 0 < u & u < y} \<in> preal"
-by (simp add: preal_def cut_of_rat)
-
-lemma rat_subset_imp_le:
-     "[|{u::rat. 0 < u & u < x} \<subseteq> {u. 0 < u & u < y}; 0<x|] ==> x \<le> y"
-apply (simp add: linorder_not_less [symmetric])
-apply (blast dest: dense intro: order_less_trans)
-done
-
-lemma rat_set_eq_imp_eq:
-     "[|{u::rat. 0 < u & u < x} = {u. 0 < u & u < y};
-        0 < x; 0 < y|] ==> x = y"
-by (blast intro: rat_subset_imp_le order_antisym)
-
 
 
 subsection{*Properties of Ordering*}
@@ -355,12 +332,6 @@ proof
   show "a + b = b + a" by (rule preal_add_commute)
 qed
 
-lemma preal_add_left_commute: "x + (y + z) = y + ((x + z)::preal)"
-by (rule add_left_commute)
-
-text{* Positive Real addition is an AC operator *}
-lemmas preal_add_ac = preal_add_assoc preal_add_commute preal_add_left_commute
-
 
 subsection{*Properties of Multiplication*}
 
@@ -490,19 +461,10 @@ proof
   show "a * b = b * a" by (rule preal_mult_commute)
 qed
 
-lemma preal_mult_left_commute: "x * (y * z) = y * ((x * z)::preal)"
-by (rule mult_left_commute)
-
-
-text{* Positive Real multiplication is an AC operator *}
-lemmas preal_mult_ac =
-       preal_mult_assoc preal_mult_commute preal_mult_left_commute
-
 
 text{* Positive real 1 is the multiplicative identity element *}
 
 lemma preal_mult_1: "(1::preal) * z = z"
-unfolding preal_one_def
 proof (induct z)
   fix A :: "rat set"
   assume A: "A \<in> preal"
@@ -543,16 +505,13 @@ proof (induct z)
       qed
     qed
   qed
-  thus "preal_of_rat 1 * Abs_preal A = Abs_preal A"
-    by (simp add: preal_of_rat_def preal_mult_def mult_set_def 
+  thus "1 * Abs_preal A = Abs_preal A"
+    by (simp add: preal_one_def preal_mult_def mult_set_def 
                   rat_mem_preal A)
 qed
 
 instance preal :: comm_monoid_mult
 by intro_classes (rule preal_mult_1)
-
-lemma preal_mult_1_right: "z * (1::preal) = z"
-by (rule mult_1_right)
 
 
 subsection{*Distribution of Multiplication across Addition*}
@@ -839,9 +798,9 @@ apply (simp add: preal_inverse_def mem_inverse_set Rep_preal)
 apply (simp add: inverse_set_def) 
 done
 
-lemma Rep_preal_of_rat:
-     "0 < q ==> Rep_preal (preal_of_rat q) = {x. 0 < x \<and> x < q}"
-by (simp add: preal_of_rat_def rat_mem_preal) 
+lemma Rep_preal_one:
+     "Rep_preal 1 = {x. 0 < x \<and> x < 1}"
+by (simp add: preal_one_def rat_mem_preal)
 
 lemma subset_inverse_mult_lemma:
   assumes xpos: "0 < x" and xless: "x < 1"
@@ -871,8 +830,8 @@ proof -
 qed
 
 lemma subset_inverse_mult: 
-     "Rep_preal(preal_of_rat 1) \<subseteq> Rep_preal(inverse R * R)"
-apply (auto simp add: Bex_def Rep_preal_of_rat mem_Rep_preal_inverse_iff 
+     "Rep_preal 1 \<subseteq> Rep_preal(inverse R * R)"
+apply (auto simp add: Bex_def Rep_preal_one mem_Rep_preal_inverse_iff 
                       mem_Rep_preal_mult_iff)
 apply (blast dest: subset_inverse_mult_lemma) 
 done
@@ -894,15 +853,14 @@ proof -
 qed
 
 lemma inverse_mult_subset:
-     "Rep_preal(inverse R * R) \<subseteq> Rep_preal(preal_of_rat 1)"
-apply (auto simp add: Bex_def Rep_preal_of_rat mem_Rep_preal_inverse_iff 
+     "Rep_preal(inverse R * R) \<subseteq> Rep_preal 1"
+apply (auto simp add: Bex_def Rep_preal_one mem_Rep_preal_inverse_iff
                       mem_Rep_preal_mult_iff)
 apply (simp add: zero_less_mult_iff preal_imp_pos [OF Rep_preal]) 
 apply (blast intro: inverse_mult_subset_lemma) 
 done
 
 lemma preal_mult_inverse: "inverse R * R = (1::preal)"
-unfolding preal_one_def
 apply (rule Rep_preal_inject [THEN iffD1])
 apply (rule equalityI [OF inverse_mult_subset subset_inverse_mult]) 
 done
@@ -949,12 +907,6 @@ lemma preal_self_less_add_left: "(R::preal) < R + S"
 apply (unfold preal_less_def less_le)
 apply (simp add: Rep_preal_self_subset Rep_preal_sum_not_eq [THEN not_sym])
 done
-
-lemma preal_self_less_add_right: "(R::preal) < S + R"
-by (simp add: preal_add_commute preal_self_less_add_left)
-
-lemma preal_not_eq_self: "x \<noteq> x + (y::preal)"
-by (insert preal_self_less_add_left [of x y], auto)
 
 
 subsection{*Subtraction for Positive Reals*}
@@ -1117,24 +1069,11 @@ done
 lemma preal_add_left_less_cancel: "T + R < T + S ==> R <  (S::preal)"
 by (auto elim: preal_add_right_less_cancel simp add: preal_add_commute [of T])
 
-lemma preal_add_less_cancel_right: "((R::preal) + T < S + T) = (R < S)"
-by (blast intro: preal_add_less2_mono1 preal_add_right_less_cancel)
-
 lemma preal_add_less_cancel_left: "(T + (R::preal) < T + S) = (R < S)"
 by (blast intro: preal_add_less2_mono2 preal_add_left_less_cancel)
 
-lemma preal_add_le_cancel_right: "((R::preal) + T \<le> S + T) = (R \<le> S)"
-by (simp add: linorder_not_less [symmetric] preal_add_less_cancel_right) 
-
 lemma preal_add_le_cancel_left: "(T + (R::preal) \<le> T + S) = (R \<le> S)"
 by (simp add: linorder_not_less [symmetric] preal_add_less_cancel_left) 
-
-lemma preal_add_less_mono:
-     "[| x1 < y1; x2 < y2 |] ==> x1 + x2 < y1 + (y2::preal)"
-apply (auto dest!: less_add_left_Ex simp add: preal_add_ac)
-apply (rule preal_add_assoc [THEN subst])
-apply (rule preal_self_less_add_right)
-done
 
 lemma preal_add_right_cancel: "(R::preal) + T = S + T ==> R = S"
 apply (insert linorder_less_linear [of R S], safe)
@@ -1143,17 +1082,6 @@ done
 
 lemma preal_add_left_cancel: "C + A = C + B ==> A = (B::preal)"
 by (auto intro: preal_add_right_cancel simp add: preal_add_commute)
-
-lemma preal_add_left_cancel_iff: "(C + A = C + B) = ((A::preal) = B)"
-by (fast intro: preal_add_left_cancel)
-
-lemma preal_add_right_cancel_iff: "(A + C = B + C) = ((A::preal) = B)"
-by (fast intro: preal_add_right_cancel)
-
-lemmas preal_cancels =
-    preal_add_less_cancel_right preal_add_less_cancel_left
-    preal_add_le_cancel_right preal_add_le_cancel_left
-    preal_add_left_cancel_iff preal_add_right_cancel_iff
 
 instance preal :: linordered_cancel_ab_semigroup_add
 proof
@@ -1231,118 +1159,5 @@ apply (rename_tac U)
 apply (cut_tac x = U and y = Z in linorder_less_linear)
 apply (auto simp add: preal_less_def)
 done
-
-
-subsection{*The Embedding from @{typ rat} into @{typ preal}*}
-
-lemma preal_of_rat_add_lemma1:
-     "[|x < y + z; 0 < x; 0 < y|] ==> x * y * inverse (y + z) < (y::rat)"
-apply (frule_tac c = "y * inverse (y + z) " in mult_strict_right_mono)
-apply (simp add: zero_less_mult_iff) 
-apply (simp add: mult_ac)
-done
-
-lemma preal_of_rat_add_lemma2:
-  assumes "u < x + y"
-    and "0 < x"
-    and "0 < y"
-    and "0 < u"
-  shows "\<exists>v w::rat. w < y & 0 < v & v < x & 0 < w & u = v + w"
-proof (intro exI conjI)
-  show "u * x * inverse(x+y) < x" using prems 
-    by (simp add: preal_of_rat_add_lemma1) 
-  show "u * y * inverse(x+y) < y" using prems 
-    by (simp add: preal_of_rat_add_lemma1 add_commute [of x]) 
-  show "0 < u * x * inverse (x + y)" using prems
-    by (simp add: zero_less_mult_iff) 
-  show "0 < u * y * inverse (x + y)" using prems
-    by (simp add: zero_less_mult_iff) 
-  show "u = u * x * inverse (x + y) + u * y * inverse (x + y)" using prems
-    by (simp add: left_distrib [symmetric] right_distrib [symmetric] mult_ac)
-qed
-
-lemma preal_of_rat_add:
-     "[| 0 < x; 0 < y|] 
-      ==> preal_of_rat ((x::rat) + y) = preal_of_rat x + preal_of_rat y"
-apply (unfold preal_of_rat_def preal_add_def)
-apply (simp add: rat_mem_preal) 
-apply (rule_tac f = Abs_preal in arg_cong)
-apply (auto simp add: add_set_def) 
-apply (blast dest: preal_of_rat_add_lemma2) 
-done
-
-lemma preal_of_rat_mult_lemma1:
-     "[|x < y; 0 < x; 0 < z|] ==> x * z * inverse y < (z::rat)"
-apply (frule_tac c = "z * inverse y" in mult_strict_right_mono)
-apply (simp add: zero_less_mult_iff)
-apply (subgoal_tac "y * (z * inverse y) = z * (y * inverse y)")
-apply (simp_all add: mult_ac)
-done
-
-lemma preal_of_rat_mult_lemma2: 
-  assumes xless: "x < y * z"
-    and xpos: "0 < x"
-    and ypos: "0 < y"
-  shows "x * z * inverse y * inverse z < (z::rat)"
-proof -
-  have "0 < y * z" using prems by simp
-  hence zpos:  "0 < z" using prems by (simp add: zero_less_mult_iff)
-  have "x * z * inverse y * inverse z = x * inverse y * (z * inverse z)"
-    by (simp add: mult_ac)
-  also have "... = x/y" using zpos
-    by (simp add: divide_inverse)
-  also from xless have "... < z"
-    by (simp add: pos_divide_less_eq [OF ypos] mult_commute)
-  finally show ?thesis .
-qed
-
-lemma preal_of_rat_mult_lemma3:
-  assumes uless: "u < x * y"
-    and "0 < x"
-    and "0 < y"
-    and "0 < u"
-  shows "\<exists>v w::rat. v < x & w < y & 0 < v & 0 < w & u = v * w"
-proof -
-  from dense [OF uless] 
-  obtain r where "u < r" "r < x * y" by blast
-  thus ?thesis
-  proof (intro exI conjI)
-  show "u * x * inverse r < x" using prems 
-    by (simp add: preal_of_rat_mult_lemma1) 
-  show "r * y * inverse x * inverse y < y" using prems
-    by (simp add: preal_of_rat_mult_lemma2)
-  show "0 < u * x * inverse r" using prems
-    by (simp add: zero_less_mult_iff) 
-  show "0 < r * y * inverse x * inverse y" using prems
-    by (simp add: zero_less_mult_iff) 
-  have "u * x * inverse r * (r * y * inverse x * inverse y) =
-        u * (r * inverse r) * (x * inverse x) * (y * inverse y)"
-    by (simp only: mult_ac)
-  thus "u = u * x * inverse r * (r * y * inverse x * inverse y)" using prems
-    by simp
-  qed
-qed
-
-lemma preal_of_rat_mult:
-     "[| 0 < x; 0 < y|] 
-      ==> preal_of_rat ((x::rat) * y) = preal_of_rat x * preal_of_rat y"
-apply (unfold preal_of_rat_def preal_mult_def)
-apply (simp add: rat_mem_preal) 
-apply (rule_tac f = Abs_preal in arg_cong)
-apply (auto simp add: zero_less_mult_iff mult_strict_mono mult_set_def) 
-apply (blast dest: preal_of_rat_mult_lemma3) 
-done
-
-lemma preal_of_rat_less_iff:
-      "[| 0 < x; 0 < y|] ==> (preal_of_rat x < preal_of_rat y) = (x < y)"
-by (force simp add: preal_of_rat_def preal_less_def rat_mem_preal) 
-
-lemma preal_of_rat_le_iff:
-      "[| 0 < x; 0 < y|] ==> (preal_of_rat x \<le> preal_of_rat y) = (x \<le> y)"
-by (simp add: preal_of_rat_less_iff linorder_not_less [symmetric]) 
-
-lemma preal_of_rat_eq_iff:
-      "[| 0 < x; 0 < y|] ==> (preal_of_rat x = preal_of_rat y) = (x = y)"
-by (simp add: preal_of_rat_le_iff order_eq_iff) 
 
 end
