@@ -751,7 +751,7 @@ fun gen_prover_real_arith ctxt prover =
       (the (Normalizer.match ctxt @{cterm "(0::real) + 1"})) 
      simple_cterm_ord
 in gen_real_arith ctxt
-   (cterm_of_rat, Normalizer.field_comp_conv, Normalizer.field_comp_conv, Normalizer.field_comp_conv,
+   (cterm_of_rat, Numeral_Simprocs.field_comp_conv, Numeral_Simprocs.field_comp_conv, Numeral_Simprocs.field_comp_conv,
     main,neg,add,mul, prover)
 end;
 
