@@ -52,8 +52,6 @@ fun del_data key = remove eq_data (key, []);
 
 val del = Thm.declaration_attribute (Data.map o del_data);
 
-fun undefined x = error "undefined";
-
 fun add entry = 
     Thm.declaration_attribute (fn key => fn context => context |> Data.map 
       (del_data key #> cons (key, entry)));

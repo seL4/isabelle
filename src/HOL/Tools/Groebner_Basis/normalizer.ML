@@ -258,8 +258,6 @@ val idomN = "idom";
 val idealN = "ideal";
 val fieldN = "field";
 
-fun undefined _ = raise Match;
-
 val del = Thm.declaration_attribute (Data.map o AList.delete Thm.eq_thm);
 
 fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), 
