@@ -639,9 +639,16 @@ lemma finite_Field: "finite r ==> finite (Field r)"
   done
 
 
-subsection {* Version of @{text lfp_induct} for binary relations *}
+subsection {* Miscellaneous *}
+
+text {* Version of @{thm[source] lfp_induct} for binary relations *}
 
 lemmas lfp_induct2 = 
   lfp_induct_set [of "(a, b)", split_format (complete)]
+
+text {* Version of @{thm[source] subsetI} for binary relations *}
+
+lemma subrelI: "(\<And>x y. (x, y) \<in> r \<Longrightarrow> (x, y) \<in> s) \<Longrightarrow> r \<subseteq> s"
+by auto
 
 end
