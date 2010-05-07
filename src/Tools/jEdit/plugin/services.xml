@@ -6,7 +6,10 @@
 		new isabelle.jedit.Isabelle_Encoding();
 	</SERVICE>
 	<SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
-		new isabelle.jedit.Isabelle_Sidekick();
+		new isabelle.jedit.Isabelle_Sidekick_Default();
+	</SERVICE>
+	<SERVICE NAME="isabelle-raw" CLASS="sidekick.SideKickParser">
+		new isabelle.jedit.Isabelle_Sidekick_Raw();
 	</SERVICE>
   <SERVICE NAME="isabelle" CLASS="gatchan.jedit.hyperlinks.HyperlinkSource">
     new isabelle.jedit.Isabelle_Hyperlinks();
