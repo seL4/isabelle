@@ -698,7 +698,7 @@ lemma mvt_general: fixes f::"real\<Rightarrow>real^'n"
     unfolding o_def apply(rule,rule has_derivative_lift_dot) using assms(3) by auto
   then guess x .. note x=this
   show ?thesis proof(cases "f a = f b")
-    case False have "norm (f b - f a) * norm (f b - f a) = norm (f b - f a)^2" by(simp add:class_semiring.semiring_rules)
+    case False have "norm (f b - f a) * norm (f b - f a) = norm (f b - f a)^2" by(simp add:normalizing.semiring_rules)
     also have "\<dots> = (f b - f a) \<bullet> (f b - f a)" unfolding power2_norm_eq_inner ..
     also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)" using x unfolding inner_simps by auto
     also have "\<dots> \<le> norm (f b - f a) * norm (f' x (b - a))" by(rule norm_cauchy_schwarz)

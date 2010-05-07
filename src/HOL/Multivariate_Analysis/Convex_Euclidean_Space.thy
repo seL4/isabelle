@@ -1877,7 +1877,7 @@ lemma homeomorphic_convex_compact_lemma: fixes s::"(real^'n) set"
       using assms(3) apply(erule_tac subsetD) unfolding mem_cball dist_commute dist_norm
       unfolding group_add_class.diff_0 group_add_class.diff_0_right norm_minus_cancel norm_scaleR
       apply (rule mult_left_le_imp_le[of "1 - u"])
-      unfolding class_semiring.mul_a using `u<1` by auto
+      unfolding normalizing.mul_a using `u<1` by auto
     thus "y \<in> s" using assms(1)[unfolded convex_def, rule_format, of "inverse(1 - u) *\<^sub>R (y - u *\<^sub>R x)" x "1 - u" u]
       using as unfolding scaleR_scaleR by auto qed auto
   thus "u *\<^sub>R x \<in> s - frontier s" using frontier_def and interior_subset by auto qed
