@@ -115,6 +115,25 @@ object Pretty
     format(input.flatMap(standard_format), 0, 0, Text()).content
   }
 
-  def string_of(trees: List[XML.Tree], margin: Int = default_margin): String =
-    formatted(trees).iterator.flatMap(XML.content).mkString
+  def string_of(input: List[XML.Tree], margin: Int = default_margin): String =
+    formatted(input).iterator.flatMap(XML.content).mkString
+
+
+  /* unformatted output */
+
+  def unformatted(input: List[XML.Tree]): List[XML.Tree] =
+  {
+    def fmt(tree: XML.Tree): List[XML.Tree] =
+      tree match {
+        case Block(_, body) => body.flatMap(fmt)
+        case Break(wd) => List(XML.Text(" " * wd))
+        case FBreak => List(XML.Text(" "))
+        case XML.Elem(name, atts, body) => List(XML.Elem(name, atts, body.flatMap(fmt)))
+        case XML.Text(_) => List(tree)
+      }
+    input.flatMap(standard_format).flatMap(fmt)
+  }
+
+  def str_of(input: List[XML.Tree]): String =
+    unformatted(input).iterator.flatMap(XML.content).mkString
 }
