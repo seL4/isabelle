@@ -23,14 +23,12 @@ function fail()
 
 declare -a SOURCES=(
   Concurrent/future.scala
-  General/download.scala
-  General/event_bus.scala
   General/exn.scala
   General/linear_set.scala
   General/markup.scala
   General/position.scala
+  General/pretty.scala
   General/scan.scala
-  General/swing_thread.scala
   General/symbol.scala
   General/xml.scala
   General/yxml.scala
@@ -39,7 +37,15 @@ declare -a SOURCES=(
   Isar/outer_lex.scala
   Isar/outer_parse.scala
   Isar/outer_syntax.scala
+  PIDE/change.scala
+  PIDE/command.scala
+  PIDE/document.scala
+  PIDE/event_bus.scala
+  PIDE/markup_node.scala
+  PIDE/state.scala
+  PIDE/text_edit.scala
   System/cygwin.scala
+  System/download.scala
   System/gui_setup.scala
   System/isabelle_process.scala
   System/isabelle_syntax.scala
@@ -48,14 +54,9 @@ declare -a SOURCES=(
   System/session.scala
   System/session_manager.scala
   System/standard_system.scala
-  Thy/change.scala
-  Thy/command.scala
+  System/swing_thread.scala
   Thy/completion.scala
-  Thy/document.scala
   Thy/html.scala
-  Thy/markup_node.scala
-  Thy/state.scala
-  Thy/text_edit.scala
   Thy/thy_header.scala
   Thy/thy_syntax.scala
   library.scala

@@ -1,4 +1,4 @@
-/*  Title:      Pure/Thy/text_edit.scala
+/*  Title:      Pure/PIDE/text_edit.scala
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 

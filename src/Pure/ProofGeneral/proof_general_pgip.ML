@@ -115,8 +115,6 @@ fun pgml_terms (XML.Elem (name, atts, body)) =
             [Pgml.Box {orient = NONE, indent = Properties.get_int atts Markup.indentN, content = content}]
           else if name = Markup.breakN then
             [Pgml.Break {mandatory = NONE, indent = Properties.get_int atts Markup.widthN}]
-          else if name = Markup.fbreakN then
-            [Pgml.Break {mandatory = SOME true, indent = NONE}]
           else content
         end
   | pgml_terms (XML.Text text) = map (Pgml.Raw o Pgml.atom_to_xml) (pgml_syms text);

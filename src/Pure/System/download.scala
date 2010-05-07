@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/download.scala
+/*  Title:      Pure/System/download.scala
     Author:     Makarius
 
 Download URLs -- with progress monitor.

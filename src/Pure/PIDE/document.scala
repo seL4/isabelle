@@ -1,8 +1,8 @@
-/*
- * Document as editable list of commands
- *
- * @author Makarius
- */
+/*  Title:      Pure/PIDE/document.scala
+    Author:     Makarius
+
+Document as editable list of commands.
+*/
 
 package isabelle
 

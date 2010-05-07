@@ -1,9 +1,9 @@
-/*
- * Accumulating results from prover
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Pure/PIDE/state.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Accumulating results from prover.
+*/
 
 package isabelle
 
@@ -81,29 +81,31 @@ class State(
               case XML.Elem(Markup.FINISHED, _, _) => state.set_status(Command.Status.FINISHED)
               case XML.Elem(Markup.FAILED, _, _) => state.set_status(Command.Status.FAILED)
               case XML.Elem(kind, atts, body) =>
-                val (begin, end) = Position.get_offsets(atts)
-                if (begin.isEmpty || end.isEmpty) state
-                else if (kind == Markup.ML_TYPING) {
-                  val info = body.head.asInstanceOf[XML.Text].content   // FIXME proper match!?
-                  state.add_markup(
-                    command.markup_node(begin.get - 1, end.get - 1, Command.TypeInfo(info)))
-                }
-                else if (kind == Markup.ML_REF) {
-                  body match {
-                    case List(XML.Elem(Markup.ML_DEF, atts, _)) =>
-                      state.add_markup(command.markup_node(
-                        begin.get - 1, end.get - 1,
-                        Command.RefInfo(
-                          Position.get_file(atts),
-                          Position.get_line(atts),
-                          Position.get_id(atts),
-                          Position.get_offset(atts))))
-                    case _ => state
-                  }
-                }
-                else {
-                  state.add_markup(
-                    command.markup_node(begin.get - 1, end.get - 1, Command.HighlightInfo(kind)))
+                atts match {
+                  case Position.Range(begin, end) =>
+                    if (kind == Markup.ML_TYPING) {
+                      val info = body.head.asInstanceOf[XML.Text].content   // FIXME proper match!?
+                      state.add_markup(
+                        command.markup_node(begin - 1, end - 1, Command.TypeInfo(info)))
+                    }
+                    else if (kind == Markup.ML_REF) {
+                      body match {
+                        case List(XML.Elem(Markup.ML_DEF, atts, _)) =>
+                          state.add_markup(command.markup_node(
+                            begin - 1, end - 1,
+                            Command.RefInfo(
+                              Position.get_file(atts),
+                              Position.get_line(atts),
+                              Position.get_id(atts),
+                              Position.get_offset(atts))))
+                        case _ => state
+                      }
+                    }
+                    else {
+                      state.add_markup(
+                        command.markup_node(begin - 1, end - 1, Command.HighlightInfo(kind)))
+                    }
+                  case _ => state
                 }
               case _ =>
                 System.err.println("ignored status report: " + elem)

@@ -1,9 +1,9 @@
-/*
- * Document markup nodes, with connection to Swing tree model
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Pure/PIDE/markup_node.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Document markup nodes, with connection to Swing tree model.
+*/
 
 package isabelle
 
@@ -12,21 +12,20 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 
 
-class Markup_Node(val start: Int, val stop: Int, val info: Any)
+case class Markup_Node(val start: Int, val stop: Int, val info: Any)
 {
   def fits_into(that: Markup_Node): Boolean =
     that.start <= this.start && this.stop <= that.stop
 }
 
 
-class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
+case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
 {
-  def set_branches(bs: List[Markup_Tree]): Markup_Tree = new Markup_Tree(node, bs)
-
   private def add(branch: Markup_Tree) =   // FIXME avoid sort
-    set_branches((branch :: branches).sortWith((a, b) => a.node.start < b.node.start))
+    copy(branches = (branch :: branches).sortWith((a, b) => a.node.start < b.node.start))
 
-  private def remove(bs: List[Markup_Tree]) = set_branches(branches -- bs)
+  private def remove(bs: List[Markup_Tree]) =
+    copy(branches = branches.filterNot(bs.contains(_)))
 
   def + (new_tree: Markup_Tree): Markup_Tree =
   {
@@ -46,7 +45,7 @@ class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
         val fitting = branches filter(_.node fits_into new_node)
         (this remove fitting) add ((new_tree /: fitting)(_ + _))
       }
-      else set_branches(new_branches)
+      else copy(branches = new_branches)
     }
     else {
       System.err.println("ignored nonfitting markup: " + new_node)
@@ -77,7 +76,7 @@ class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
 }
 
 
-class Markup_Text(val markup: List[Markup_Tree], val content: String)
+case class Markup_Text(val markup: List[Markup_Tree], val content: String)
 {
   private lazy val root =
     new Markup_Tree(new Markup_Node(0, content.length, None), markup)
@@ -90,7 +89,7 @@ class Markup_Text(val markup: List[Markup_Tree], val content: String)
     def filt(tree: Markup_Tree): List[Markup_Tree] =
     {
       val branches = tree.branches.flatMap(filt(_))
-      if (pred(tree.node)) List(tree.set_branches(branches))
+      if (pred(tree.node)) List(tree.copy(branches = branches))
       else branches
     }
     new Markup_Text(markup.flatMap(filt(_)), content)

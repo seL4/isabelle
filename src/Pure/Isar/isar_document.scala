@@ -14,6 +14,26 @@ object Isar_Document
   type State_ID = String
   type Command_ID = String
   type Document_ID = String
+
+
+  /* reports */
+
+  object Assign {
+    def unapply(msg: XML.Tree): Option[List[XML.Tree]] =
+      msg match {
+        case XML.Elem(Markup.ASSIGN, Nil, edits) => Some(edits)
+        case _ => None
+      }
+  }
+
+  object Edit {
+    def unapply(msg: XML.Tree): Option[(Command_ID, State_ID)] =
+      msg match {
+        case XML.Elem(Markup.EDIT, List((Markup.ID, cmd_id), (Markup.STATE, state_id)), Nil) =>
+          Some(cmd_id, state_id)
+        case _ => None
+      }
+  }
 }
 
 

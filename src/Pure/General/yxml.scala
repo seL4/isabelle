@@ -7,6 +7,9 @@ Efficient text representation of XML trees.
 package isabelle
 
 
+import scala.collection.mutable.ListBuffer
+
+
 object YXML
 {
   /* chunk markers */
@@ -15,29 +18,6 @@ object YXML
   private val Y = '\6'
   private val X_string = X.toString
   private val Y_string = Y.toString
-
-
-  /* iterate over chunks (resembles space_explode in ML) */
-
-  private def chunks(sep: Char, source: CharSequence) = new Iterator[CharSequence]
-  {
-    private val end = source.length
-    private var state = if (end == 0) None else get_chunk(-1)
-    private def get_chunk(i: Int) =
-    {
-      if (i < end) {
-        var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
-        Some((source.subSequence(i + 1, j), j))
-      }
-      else None
-    }
-
-    def hasNext() = state.isDefined
-    def next() = state match {
-      case Some((s, i)) => { state = get_chunk(i); s }
-      case None => throw new NoSuchElementException("next on empty iterator")
-    }
-  }
 
 
   /* decoding pseudo UTF-8 */
@@ -83,30 +63,36 @@ object YXML
   {
     /* stack operations */
 
-    var stack: List[((String, XML.Attributes), List[XML.Tree])] = null
+    def buffer(): ListBuffer[XML.Tree] = new ListBuffer[XML.Tree]
+    var stack: List[((String, XML.Attributes), ListBuffer[XML.Tree])] = List((("", Nil), buffer()))
 
-    def add(x: XML.Tree) = (stack: @unchecked) match {
-      case ((elem, body) :: pending) => stack = (elem, x :: body) :: pending
+    def add(x: XML.Tree)
+    {
+      (stack: @unchecked) match { case ((_, body) :: _) => body += x }
     }
 
-    def push(name: String, atts: XML.Attributes) =
+    def push(name: String, atts: XML.Attributes)
+    {
       if (name == "") err_element()
-      else stack = ((name, atts), Nil) :: stack
+      else stack = ((name, atts), buffer()) :: stack
+    }
 
-    def pop() = (stack: @unchecked) match {
-      case ((("", _), _) :: _) => err_unbalanced("")
-      case (((name, atts), body) :: pending) =>
-        stack = pending; add(XML.Elem(name, atts, body.reverse))
+    def pop()
+    {
+      (stack: @unchecked) match {
+        case ((("", _), _) :: _) => err_unbalanced("")
+        case (((name, atts), body) :: pending) =>
+          stack = pending; add(XML.Elem(name, atts, body.toList))
+      }
     }
 
 
     /* parse chunks */
 
-    stack = List((("", Nil), Nil))
-    for (chunk <- chunks(X, source) if chunk.length != 0) {
+    for (chunk <- Library.chunks(source, X) if chunk.length != 0) {
       if (chunk.length == 1 && chunk.charAt(0) == Y) pop()
       else {
-        chunks(Y, chunk).toList match {
+        Library.chunks(chunk, Y).toList match {
           case ch :: name :: atts if ch.length == 0 =>
             push(name.toString.intern, atts.map(parse_attrib))
           case txts => for (txt <- txts) add(XML.Text(txt.toString))
@@ -114,7 +100,7 @@ object YXML
       }
     }
     stack match {
-      case List((("", _), result)) => result.reverse
+      case List((("", _), body)) => body.toList
       case ((name, _), _) :: _ => err_unbalanced(name)
     }
   }
