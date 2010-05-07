@@ -270,7 +270,7 @@ val min_split = @{lemma "P (min x y) == ((x::'a::linorder) <= y & P x | x > y & 
   by (atomize (full)) (cases "x <= y", auto simp add: min_def)};
 
 
-         (* Miscalineous *)
+         (* Miscellaneous *)
 fun literals_conv bops uops cv = 
  let fun h t =
   case (term_of t) of 
