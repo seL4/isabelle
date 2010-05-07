@@ -2173,6 +2173,25 @@ lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
   apply (auto simp add: dvd_imp_le)
   done
 
+lemma zdvd_period:
+  fixes a d :: int
+  assumes "a dvd d"
+  shows "a dvd (x + t) \<longleftrightarrow> a dvd ((x + c * d) + t)"
+proof -
+  from assms obtain k where "d = a * k" by (rule dvdE)
+  show ?thesis proof
+    assume "a dvd (x + t)"
+    then obtain l where "x + t = a * l" by (rule dvdE)
+    then have "x = a * l - t" by simp
+    with `d = a * k` show "a dvd x + c * d + t" by simp
+  next
+    assume "a dvd x + c * d + t"
+    then obtain l where "x + c * d + t = a * l" by (rule dvdE)
+    then have "x = a * l - c * d - t" by simp
+    with `d = a * k` show "a dvd (x + t)" by simp
+  qed
+qed
+
 
 subsection {* Configuration of the code generator *}
 

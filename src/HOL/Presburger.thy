@@ -457,14 +457,4 @@ lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = (1::nat) \<longleftrightarro
 lemma [presburger, algebra]: "m mod (Suc (Suc 0)) = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
 lemma [presburger, algebra]: "m mod 2 = (1::int) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 
-
-lemma zdvd_period:
-  fixes a d :: int
-  assumes advdd: "a dvd d"
-  shows "a dvd (x + t) \<longleftrightarrow> a dvd ((x + c * d) + t)"
-  using advdd
-  apply -
-  apply (rule iffI)
-  by algebra+
-
 end
