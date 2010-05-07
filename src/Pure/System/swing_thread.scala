@@ -1,4 +1,4 @@
-/*  Title:      Pure/General/swing_thread.scala
+/*  Title:      Pure/System/swing_thread.scala
     Author:     Makarius
     Author:     Fabian Immler, TU Munich
 

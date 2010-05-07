@@ -9,6 +9,8 @@ package isabelle
 
 object Outer_Keyword
 {
+  /* kinds */
+
   val MINOR = "minor"
   val CONTROL = "control"
   val DIAG = "diag"
@@ -33,6 +35,9 @@ object Outer_Keyword
   val PRF_ASM_GOAL = "proof-asm-goal"
   val PRF_SCRIPT = "proof-script"
 
+
+  /* categories */
+
   val minor = Set(MINOR)
   val control = Set(CONTROL)
   val diag = Set(DIAG)
@@ -43,5 +48,25 @@ object Outer_Keyword
     Set(QED, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL)
   val proof2 = Set(PRF_ASM, PRF_ASM_GOAL)
   val improper = Set(THY_SCRIPT, PRF_SCRIPT)
+
+
+  /* reports */
+
+  object Keyword_Decl {
+    def unapply(msg: XML.Tree): Option[String] =
+      msg match {
+        case XML.Elem(Markup.KEYWORD_DECL, List((Markup.NAME, name)), _) => Some(name)
+        case _ => None
+      }
+  }
+
+  object Command_Decl {
+    def unapply(msg: XML.Tree): Option[(String, String)] =
+      msg match {
+        case XML.Elem(Markup.COMMAND_DECL, List((Markup.NAME, name), (Markup.KIND, kind)), _) =>
+          Some((name, kind))
+        case _ => None
+      }
+  }
 }
 

@@ -119,7 +119,7 @@ fun length (Block (_, _, _, len)) = len
 val str = String o Output.output_width;
 
 fun brk wd = Break (false, wd);
-val fbrk = Break (true, 2);
+val fbrk = Break (true, 1);
 
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
@@ -249,14 +249,14 @@ fun indentation (buf, len) {tx, ind, pos, nl} : text =
 
 (*Add the lengths of the expressions until the next Break; if no Break then
   include "after", to account for text following this block.*)
-fun breakdist (Block (_, _, _, len) :: es, after) = len + breakdist (es, after)
+fun breakdist (Break _ :: _, _) = 0
+  | breakdist (Block (_, _, _, len) :: es, after) = len + breakdist (es, after)
   | breakdist (String (_, len) :: es, after) = len + breakdist (es, after)
-  | breakdist (Break _ :: _, _) = 0
   | breakdist ([], after) = after;
 
 (*Search for the next break (at this or higher levels) and force it to occur.*)
 fun forcenext [] = []
-  | forcenext (Break _ :: es) = Break (true, 0) :: es
+  | forcenext (Break _ :: es) = fbrk :: es
   | forcenext (e :: es) = e :: forcenext es;
 
 (*es is list of expressions to print;
@@ -280,7 +280,6 @@ fun format ([], _, _) text = text
             (*if this block was broken then force the next break*)
             val es' = if nl < #nl btext then forcenext es else es;
           in format (es', block, after) btext end
-      | String str => format (es, block, after) (string str text)
       | Break (force, wd) =>
           let val {margin, breakgain, ...} = ! margin_info in
             (*no break if text to next break fits on this line
@@ -290,7 +289,8 @@ fun format ([], _, _) text = text
                   pos + wd <= Int.max (margin - breakdist (es, after), blockin + breakgain)
                 then text |> blanks wd  (*just insert wd blanks*)
                 else text |> newline |> indentation block)
-          end);
+          end
+      | String str => format (es, block, after) (string str text));
 
 in
 
@@ -309,7 +309,7 @@ fun symbolic prt =
           Buffer.add bg #> Buffer.markup (Markup.block indent) (fold out prts) #> Buffer.add en
       | out (String (s, _)) = Buffer.add s
       | out (Break (false, wd)) = Buffer.markup (Markup.break wd) (Buffer.add (output_spaces wd))
-      | out (Break (true, _)) = Buffer.markup Markup.fbreak (Buffer.add (output_spaces 1));
+      | out (Break (true, _)) = Buffer.add (Output.output "\n");
   in out prt Buffer.empty end;
 
 (*unformatted output*)
@@ -317,8 +317,7 @@ fun unformatted prt =
   let
     fun fmt (Block ((bg, en), prts, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
       | fmt (String (s, _)) = Buffer.add s
-      | fmt (Break (false, wd)) = Buffer.add (output_spaces wd)
-      | fmt (Break (true, _)) = Buffer.add (output_spaces 1);
+      | fmt (Break (_, wd)) = Buffer.add (output_spaces wd);
   in fmt (prune prt) Buffer.empty end;
 
 
