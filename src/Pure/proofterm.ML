@@ -891,7 +891,7 @@ fun equal_elim A B prf1 prf2 =
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
   let
     fun get S2 (T, S1) = if Sorts.sort_le algebra (S1, S2) then SOME T else NONE;
-    val extra = map (fn S => (TFree (Name.aT, S), S)) extra_sorts;
+    val extra = map (fn S => (TFree ("'dummy", S), S)) extra_sorts;
     val replacements = present @ extra @ witnessed;
     fun replace T =
       if exists (fn (T', _) => T' = T) present then raise Same.SAME
