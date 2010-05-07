@@ -4,7 +4,7 @@
 Normalization of expressions in semirings.
 *)
 
-signature NORMALIZER = 
+signature SEMIRING_NORMALIZER = 
 sig
   type entry
   val get: Proof.context -> (thm * entry) list
@@ -35,12 +35,8 @@ sig
   val setup: theory -> theory
 end
 
-structure Normalizer: NORMALIZER = 
+structure Semiring_Normalizer: SEMIRING_NORMALIZER = 
 struct
-
-(** some conversion **)
-
-
 
 (** data **)
 

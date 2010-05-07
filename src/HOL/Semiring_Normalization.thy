@@ -7,10 +7,10 @@ header {* Semiring normalization *}
 theory Semiring_Normalization
 imports Numeral_Simprocs Nat_Transfer
 uses
-  "Tools/Groebner_Basis/normalizer.ML"
+  "Tools/semiring_normalizer.ML"
 begin
 
-setup Normalizer.setup
+setup Semiring_Normalizer.setup
 
 locale normalizing_semiring =
   fixes add mul pwr r0 r1
@@ -159,7 +159,7 @@ sublocale comm_semiring_1
 proof
 qed (simp_all add: algebra_simps)
 
-declaration {* Normalizer.semiring_funs @{thm normalizing.normalizing_semiring_axioms'} *}
+declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing.normalizing_semiring_axioms'} *}
 
 locale normalizing_ring = normalizing_semiring +
   fixes sub :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -186,7 +186,7 @@ sublocale comm_ring_1
 proof
 qed (simp_all add: diff_minus)
 
-declaration {* Normalizer.semiring_funs @{thm normalizing.normalizing_ring_axioms'} *}
+declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing.normalizing_ring_axioms'} *}
 
 locale normalizing_field = normalizing_ring +
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -283,7 +283,7 @@ proof
   qed (auto simp add: add_ac)
 qed (simp_all add: algebra_simps)
 
-declaration {* Normalizer.semiring_funs @{thm normalizing.normalizing_ring_cancel_axioms'} *}
+declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing.normalizing_ring_cancel_axioms'} *}
 
 interpretation normalizing_nat!: normalizing_semiring_cancel
   "op +" "op *" "op ^" "0::nat" "1"
@@ -307,7 +307,7 @@ proof (unfold_locales, simp add: algebra_simps)
   thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
 qed
 
-declaration {* Normalizer.semiring_funs @{thm normalizing_nat.normalizing_semiring_cancel_axioms'} *}
+declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing_nat.normalizing_semiring_cancel_axioms'} *}
 
 locale normalizing_field_cancel = normalizing_ring_cancel + normalizing_field
 begin
@@ -331,6 +331,6 @@ sublocale field
 proof
 qed (simp_all add: divide_inverse)
 
-declaration {* Normalizer.field_funs @{thm normalizing.normalizing_field_cancel_axioms'} *}
+declaration {* Semiring_Normalizer.field_funs @{thm normalizing.normalizing_field_cancel_axioms'} *}
 
 end

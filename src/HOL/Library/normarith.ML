@@ -166,8 +166,8 @@ fun inequality_canon_rule ctxt =
  let 
   (* FIXME : Should be computed statically!! *)
   val real_poly_conv = 
-    Normalizer.semiring_normalize_wrapper ctxt
-     (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+    Semiring_Normalizer.semiring_normalize_wrapper ctxt
+     (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
  in fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv arg_conv (Numeral_Simprocs.field_comp_conv then_conv real_poly_conv)))
 end;
 
@@ -277,8 +277,8 @@ local
   let 
    (* FIXME: Should be computed statically!!*)
    val real_poly_conv = 
-      Normalizer.semiring_normalize_wrapper ctxt
-       (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+      Semiring_Normalizer.semiring_normalize_wrapper ctxt
+       (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
    val sources = map (Thm.dest_arg o Thm.dest_arg1 o concl) nubs
    val rawdests = fold_rev (find_normedterms o Thm.dest_arg o concl) (ges @ gts) [] 
    val _ = if not (forall fst rawdests) then error "real_vector_combo_prover: Sanity check" 
@@ -383,8 +383,8 @@ local
  fun splitequation ctxt th acc =
   let 
    val real_poly_neg_conv = #neg
-       (Normalizer.semiring_normalizers_ord_wrapper ctxt
-        (the (Normalizer.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
+       (Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
+        (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
    val (th1,th2) = conj_pair(rawrule th)
   in th1::fconv_rule (arg_conv (arg_conv real_poly_neg_conv)) th2::acc
   end
