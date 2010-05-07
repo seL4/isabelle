@@ -406,7 +406,7 @@ by(auto simp:Range_def)
 lemma Domain_mono: "r \<subseteq> s ==> Domain r \<subseteq> Domain s"
 by blast
 
-lemma fst_eq_Domain: "fst ` R = Domain R";
+lemma fst_eq_Domain: "fst ` R = Domain R"
 by (auto intro!:image_eqI)
 
 lemma Domain_dprod [simp]: "Domain (dprod r s) = uprod (Domain r) (Domain s)"
@@ -457,7 +457,7 @@ by blast
 lemma Range_converse[simp]: "Range(r^-1) = Domain r"
 by blast
 
-lemma snd_eq_Range: "snd ` R = Range R";
+lemma snd_eq_Range: "snd ` R = Range R"
 by (auto intro!:image_eqI)
 
 
