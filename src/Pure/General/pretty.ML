@@ -145,7 +145,7 @@ fun markup_chunks m prts = markup m (fbreaks prts);
 val chunks = markup_chunks Markup.none;
 fun chunks2 prts = blk (0, flat (Library.separate [fbrk, fbrk] (map single prts)));
 
-fun block_enclose (p1, p2) ps = chunks [(block  o fbreaks) (p1 :: ps), p2];
+fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
 
 fun quote prt = blk (1, [str "\"", prt, str "\""]);
 fun backquote prt = blk (1, [str "`", prt, str "`"]);
