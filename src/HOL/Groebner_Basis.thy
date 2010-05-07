@@ -7,7 +7,7 @@ header {* Groebner bases *}
 theory Groebner_Basis
 imports Semiring_Normalization
 uses
-  ("Tools/Groebner_Basis/groebner.ML")
+  ("Tools/groebner.ML")
 begin
 
 subsection {* Groebner Bases *}
@@ -40,7 +40,7 @@ structure Algebra_Simplification = Named_Thms(
 
 setup Algebra_Simplification.setup
 
-use "Tools/Groebner_Basis/groebner.ML"
+use "Tools/groebner.ML"
 
 method_setup algebra = Groebner.algebra_method
   "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"

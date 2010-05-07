@@ -948,24 +948,24 @@ fun get_ring_ideal_convs ctxt form =
  case try (find_term 0) form of
   NONE => NONE
 | SOME tm =>
-  (case Normalizer.match ctxt tm of
+  (case Semiring_Normalizer.match ctxt tm of
     NONE => NONE
   | SOME (res as (theory, {is_const, dest_const, 
           mk_const, conv = ring_eq_conv})) =>
      SOME (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (Normalizer.semiring_normalize_wrapper ctxt res)))
+          (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)))
 
 fun ring_solve ctxt form =
   (case try (find_term 0 (* FIXME !? *)) form of
     NONE => reflexive form
   | SOME tm =>
-      (case Normalizer.match ctxt tm of
+      (case Semiring_Normalizer.match ctxt tm of
         NONE => reflexive form
       | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
         #ring_conv (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (Normalizer.semiring_normalize_wrapper ctxt res)) form));
+          (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)) form));
 
 fun presimplify ctxt add_thms del_thms = asm_full_simp_tac (Simplifier.context ctxt
   (HOL_basic_ss addsimps (Algebra_Simplification.get ctxt) delsimps del_thms addsimps add_thms));
