@@ -44,12 +44,12 @@ object Pretty
 
   /* formatted output */
 
-  private case class Text(tx: List[String] = Nil, val pos: Int = 0, val nl: Int = 0)
+  private case class Text(tx: List[XML.Tree] = Nil, val pos: Int = 0, val nl: Int = 0)
   {
-    def newline: Text = copy(tx = "\n" :: tx, pos = 0, nl = nl + 1)
-    def string(s: String): Text = copy(tx = s :: tx, pos = pos + s.length)
+    def newline: Text = copy(tx = FBreak :: tx, pos = 0, nl = nl + 1)
+    def string(s: String): Text = copy(tx = XML.Text(s) :: tx, pos = pos + s.length)
     def blanks(wd: Int): Text = string(" " * wd)
-    def content: String = tx.reverse.mkString
+    def content: List[XML.Tree] = tx.reverse
   }
 
   private def breakdist(trees: List[XML.Tree], after: Int): Int =
@@ -70,15 +70,17 @@ object Pretty
       case t :: ts => t :: forcenext(ts)
     }
 
-  private def standard(tree: XML.Tree): List[XML.Tree] =
+  private def standard_format(tree: XML.Tree): List[XML.Tree] =
     tree match {
-      case XML.Elem(name, atts, body) => List(XML.Elem(name, atts, body.flatMap(standard)))
+      case XML.Elem(name, atts, body) => List(XML.Elem(name, atts, body.flatMap(standard_format)))
       case XML.Text(text) =>
         Library.separate(FBreak,
           Library.chunks(text).toList.map((s: CharSequence) => XML.Text(s.toString)))
     }
 
-  def string_of(input: List[XML.Tree], margin: Int = 76): String =
+  private val default_margin = 76
+
+  def formatted(input: List[XML.Tree], margin: Int = default_margin): List[XML.Tree] =
   {
     val breakgain = margin / 20
     val emergencypos = margin / 2
@@ -103,9 +105,16 @@ object Pretty
           else format(ts, blockin, after, text.newline.blanks(blockin))
         case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin))
 
-        case XML.Elem(_, _, body) :: ts => format(body ::: ts, blockin, after, text)
+        case XML.Elem(name, atts, body) :: ts =>
+          val btext = format(body, blockin, breakdist(ts, after), text.copy(tx = Nil))
+          val ts1 = if (text.nl < btext.nl) forcenext(ts) else ts
+          val btext1 = btext.copy(tx = XML.Elem(name, atts, btext.content) :: text.tx)
+          format(ts1, blockin, after, btext1)
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s))
       }
-    format(input.flatMap(standard), 0, 0, Text()).content
+    format(input.flatMap(standard_format), 0, 0, Text()).content
   }
+
+  def string_of(trees: List[XML.Tree], margin: Int = default_margin): String =
+    formatted(trees).iterator.flatMap(XML.content).mkString
 }
