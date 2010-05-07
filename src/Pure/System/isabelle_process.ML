@@ -89,7 +89,7 @@ end;
 
 fun init out =
  (Unsynchronized.change print_mode
-    (fold (update (op =)) [isabelle_processN, OuterKeyword.keyword_status_reportN]);
+    (fold (update op =) [isabelle_processN, OuterKeyword.keyword_status_reportN, Pretty.symbolicN]);
   setup_channels out |> init_message;
   OuterKeyword.report ();
   Output.status (Markup.markup Markup.ready "");

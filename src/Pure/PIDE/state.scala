@@ -84,7 +84,7 @@ class State(
                 atts match {
                   case Position.Range(begin, end) =>
                     if (kind == Markup.ML_TYPING) {
-                      val info = body.head.asInstanceOf[XML.Text].content   // FIXME proper match!?
+                      val info = Pretty.string_of(body, margin = 40)
                       state.add_markup(
                         command.markup_node(begin - 1, end - 1, Command.TypeInfo(info)))
                     }

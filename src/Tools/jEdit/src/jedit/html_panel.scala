@@ -118,9 +118,8 @@ class HTML_Panel(
           
         case Render(body) =>
           val doc = doc2
-          val node =
-            XML.document_node(doc,
-              XML.elem(HTML.BODY, body.map((t: XML.Tree) => XML.elem(HTML.PRE, HTML.spans(t)))))
+          val html_body = Pretty.formatted(body).map(t => XML.elem(HTML.PRE, HTML.spans(t)))
+          val node = XML.document_node(doc, XML.elem(HTML.BODY, html_body))
           doc.removeChild(doc.getLastChild())
           doc.appendChild(node)
           doc2 = doc1

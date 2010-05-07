@@ -90,7 +90,7 @@ object Isabelle_Process
     {
       val res =
         if (kind == Kind.STATUS) body.map(_.toString).mkString
-        else body.map(XML.content(_).mkString).mkString
+        else Pretty.string_of(body)
       if (props.isEmpty)
         kind.toString + " [[" + res + "]]"
       else
