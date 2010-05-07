@@ -10,18 +10,30 @@ begin
 
 subsection {* Basic examples *}
 
-schematic_lemma "3 ^ 3 == (?X::'a::{number_ring})"
-  by sring_norm
+lemma
+  fixes x :: int
+  shows "x ^ 3 = x ^ 3" 
+  apply (tactic {* ALLGOALS (CONVERSION
+    (Conv.arg_conv (Conv.arg1_conv (Normalizer.semiring_normalize_conv @{context})))) *})
+  by (rule refl)
 
-schematic_lemma "(x - (-2))^5 == ?X::int"
-  by sring_norm
+lemma
+  fixes x :: int
+  shows "(x - (-2))^5 = x ^ 5 + (10 * x ^ 4 + (40 * x ^ 3 + (80 * x\<twosuperior> + (80 * x + 32))))" 
+  apply (tactic {* ALLGOALS (CONVERSION
+    (Conv.arg_conv (Conv.arg1_conv (Normalizer.semiring_normalize_conv @{context})))) *})
+  by (rule refl)
 
-schematic_lemma "(x - (-2))^5  * (y - 78) ^ 8 == ?X::int"
-  by sring_norm
+schematic_lemma
+  fixes x :: int
+  shows "(x - (-2))^5  * (y - 78) ^ 8 = ?X" 
+  apply (tactic {* ALLGOALS (CONVERSION
+    (Conv.arg_conv (Conv.arg1_conv (Normalizer.semiring_normalize_conv @{context})))) *})
+  by (rule refl)
 
 lemma "((-3) ^ (Suc (Suc (Suc 0)))) == (X::'a::{number_ring})"
   apply (simp only: power_Suc power_0)
-  apply (simp only: comp_arith)
+  apply (simp only: semiring_norm)
   oops
 
 lemma "((x::int) + y)^3 - 1 = (x - z)^2 - 10 \<Longrightarrow> x = z + 3 \<Longrightarrow> x = - y"

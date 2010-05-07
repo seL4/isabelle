@@ -183,9 +183,21 @@ qed
 
 end
 
-
 class no_zero_divisors = zero + times +
   assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
+begin
+
+lemma divisors_zero:
+  assumes "a * b = 0"
+  shows "a = 0 \<or> b = 0"
+proof (rule classical)
+  assume "\<not> (a = 0 \<or> b = 0)"
+  then have "a \<noteq> 0" and "b \<noteq> 0" by auto
+  with no_zero_divisors have "a * b \<noteq> 0" by blast
+  with assms show ?thesis by simp
+qed
+
+end
 
 class semiring_1_cancel = semiring + cancel_comm_monoid_add
   + zero_neq_one + monoid_mult

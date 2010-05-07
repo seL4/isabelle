@@ -234,6 +234,18 @@ lemma one_eq_divide_iff [simp, no_atp]:
   "1 = a / b \<longleftrightarrow> b \<noteq> 0 \<and> a = b"
   by (simp add: eq_commute [of 1])
 
+lemma times_divide_times_eq:
+  "(x / y) * (z / w) = (x * z) / (y * w)"
+  by simp
+
+lemma add_frac_num:
+  "y \<noteq> 0 \<Longrightarrow> x / y + z = (x + z * y) / y"
+  by (simp add: add_divide_distrib)
+
+lemma add_num_frac:
+  "y \<noteq> 0 \<Longrightarrow> z + x / y = (x + z * y) / y"
+  by (simp add: add_divide_distrib add.commute)
+
 end
 
 

@@ -748,10 +748,10 @@ fun gen_prover_real_arith ctxt prover =
   fun simple_cterm_ord t u = Term_Ord.term_ord (term_of t, term_of u) = LESS
   val {add,mul,neg,pow,sub,main} = 
      Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) 
+      (the (Normalizer.match ctxt @{cterm "(0::real) + 1"})) 
      simple_cterm_ord
 in gen_real_arith ctxt
-   (cterm_of_rat, field_comp_conv, field_comp_conv,field_comp_conv,
+   (cterm_of_rat, Normalizer.field_comp_conv, Normalizer.field_comp_conv, Normalizer.field_comp_conv,
     main,neg,add,mul, prover)
 end;
 

@@ -1063,20 +1063,24 @@ subsubsection {* Equality of Binary Numbers *}
 
 text {* First version by Norbert Voelker *}
 
-definition (*for simplifying equalities*)
-  iszero :: "'a\<Colon>semiring_1 \<Rightarrow> bool"
-where
+definition (*for simplifying equalities*) iszero :: "'a\<Colon>semiring_1 \<Rightarrow> bool" where
   "iszero z \<longleftrightarrow> z = 0"
 
 lemma iszero_0: "iszero 0"
-by (simp add: iszero_def)
+  by (simp add: iszero_def)
 
-lemma not_iszero_1: "~ iszero 1"
-by (simp add: iszero_def eq_commute)
+lemma iszero_Numeral0: "iszero (Numeral0 :: 'a::number_ring)"
+  by (simp add: iszero_0)
+
+lemma not_iszero_1: "\<not> iszero 1"
+  by (simp add: iszero_def)
+
+lemma not_iszero_Numeral1: "\<not> iszero (Numeral1 :: 'a::number_ring)"
+  by (simp add: not_iszero_1)
 
 lemma eq_number_of_eq [simp]:
   "((number_of x::'a::number_ring) = number_of y) =
-   iszero (number_of (x + uminus y) :: 'a)"
+     iszero (number_of (x + uminus y) :: 'a)"
 unfolding iszero_def number_of_add number_of_minus
 by (simp add: algebra_simps)
 
@@ -2020,6 +2024,14 @@ lemma half_gt_zero_iff:
 by auto
 
 lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]
+
+lemma divide_Numeral1:
+  "(x::'a::{field, number_ring}) / Numeral1 = x"
+  by simp
+
+lemma divide_Numeral0:
+  "(x::'a::{field_inverse_zero, number_ring}) / Numeral0 = 0"
+  by simp
 
 
 subsection {* The divides relation *}

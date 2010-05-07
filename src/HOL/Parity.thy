@@ -229,7 +229,7 @@ lemma zero_le_even_power: "even n ==>
 lemma zero_le_odd_power: "odd n ==>
     (0 <= (x::'a::{linordered_idom}) ^ n) = (0 <= x)"
 apply (auto simp: odd_nat_equiv_def2 power_add zero_le_mult_iff)
-apply (metis field_power_not_zero no_zero_divirors_neq0 order_antisym_conv zero_le_square)
+apply (metis field_power_not_zero divisors_zero order_antisym_conv zero_le_square)
 done
 
 lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{linordered_idom}) ^ n) =

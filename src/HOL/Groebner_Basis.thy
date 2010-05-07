@@ -5,20 +5,17 @@
 header {* Semiring normalization and Groebner Bases *}
 
 theory Groebner_Basis
-imports Numeral_Simprocs
+imports Numeral_Simprocs Nat_Transfer
 uses
-  "Tools/Groebner_Basis/misc.ML"
-  "Tools/Groebner_Basis/normalizer_data.ML"
-  ("Tools/Groebner_Basis/normalizer.ML")
+  "Tools/Groebner_Basis/normalizer.ML"
   ("Tools/Groebner_Basis/groebner.ML")
 begin
 
 subsection {* Semiring normalization *}
 
-setup NormalizerData.setup
+setup Normalizer.setup
 
-
-locale gb_semiring =
+locale normalizing_semiring =
   fixes add mul pwr r0 r1
   assumes add_a:"(add x (add y z) = add (add x y) z)"
     and add_c: "add x y = add y x" and add_0:"add r0 x = x"
@@ -58,9 +55,6 @@ next
   case Suc
   thus ?case by (auto simp add: mul_pwr [symmetric] pwr_mul pwr_Suc)
 qed
-
-
-subsubsection {* Declaring the abstract theory *}
 
 lemma semiring_ops:
   shows "TERM (add x y)" and "TERM (mul x y)" and "TERM (pwr x n)"
@@ -156,71 +150,21 @@ next show "pwr x (Suc (2 * n)) = mul x (mul (pwr x n) (pwr x n))"
 qed
 
 
-lemmas gb_semiring_axioms' =
-  gb_semiring_axioms [normalizer
+lemmas normalizing_semiring_axioms' =
+  normalizing_semiring_axioms [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules]
 
 end
 
-interpretation class_semiring: gb_semiring
-    "op +" "op *" "op ^" "0::'a::{comm_semiring_1}" "1"
-  proof qed (auto simp add: algebra_simps)
+sublocale comm_semiring_1
+  < normalizing!: normalizing_semiring plus times power zero one
+proof
+qed (simp_all add: algebra_simps)
 
-lemmas nat_arith =
-  add_nat_number_of
-  diff_nat_number_of
-  mult_nat_number_of
-  eq_nat_number_of
-  less_nat_number_of
+declaration {* Normalizer.semiring_funs @{thm normalizing.normalizing_semiring_axioms'} *}
 
-lemma not_iszero_Numeral1: "\<not> iszero (Numeral1::'a::number_ring)"
-  by simp
-
-lemmas comp_arith =
-  Let_def arith_simps nat_arith rel_simps neg_simps if_False
-  if_True add_0 add_Suc add_number_of_left mult_number_of_left
-  numeral_1_eq_1[symmetric] Suc_eq_plus1
-  numeral_0_eq_0[symmetric] numerals[symmetric]
-  iszero_simps not_iszero_Numeral1
-
-lemmas semiring_norm = comp_arith
-
-ML {*
-local
-
-open Conv;
-
-fun numeral_is_const ct = can HOLogic.dest_number (Thm.term_of ct);
-
-fun int_of_rat x =
-  (case Rat.quotient_of_rat x of (i, 1) => i
-  | _ => error "int_of_rat: bad int");
-
-val numeral_conv =
-  Simplifier.rewrite (HOL_basic_ss addsimps @{thms semiring_norm}) then_conv
-  Simplifier.rewrite (HOL_basic_ss addsimps
-    (@{thms numeral_1_eq_1} @ @{thms numeral_0_eq_0} @ @{thms numerals(1-2)}));
-
-in
-
-fun normalizer_funs key =
-  NormalizerData.funs key
-   {is_const = fn phi => numeral_is_const,
-    dest_const = fn phi => fn ct =>
-      Rat.rat_of_int (snd
-        (HOLogic.dest_number (Thm.term_of ct)
-          handle TERM _ => error "ring_dest_const")),
-    mk_const = fn phi => fn cT => fn x => Numeral.mk_cnumber cT (int_of_rat x),
-    conv = fn phi => K numeral_conv}
-
-end
-*}
-
-declaration {* normalizer_funs @{thm class_semiring.gb_semiring_axioms'} *}
-
-
-locale gb_ring = gb_semiring +
+locale normalizing_ring = normalizing_semiring +
   fixes sub :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
     and neg :: "'a \<Rightarrow> 'a"
   assumes neg_mul: "neg x = mul (neg r1) x"
@@ -231,8 +175,8 @@ lemma ring_ops: shows "TERM (sub x y)" and "TERM (neg x)" .
 
 lemmas ring_rules = neg_mul sub_add
 
-lemmas gb_ring_axioms' =
-  gb_ring_axioms [normalizer
+lemmas normalizing_ring_axioms' =
+  normalizing_ring_axioms [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules
     ring ops: ring_ops
@@ -240,23 +184,14 @@ lemmas gb_ring_axioms' =
 
 end
 
+sublocale comm_ring_1
+  < normalizing!: normalizing_ring plus times power zero one minus uminus
+proof
+qed (simp_all add: diff_minus)
 
-interpretation class_ring: gb_ring "op +" "op *" "op ^"
-    "0::'a::{comm_semiring_1,number_ring}" 1 "op -" "uminus"
-  proof qed simp_all
+declaration {* Normalizer.semiring_funs @{thm normalizing.normalizing_ring_axioms'} *}
 
-
-declaration {* normalizer_funs @{thm class_ring.gb_ring_axioms'} *}
-
-use "Tools/Groebner_Basis/normalizer.ML"
-
-
-method_setup sring_norm = {*
-  Scan.succeed (SIMPLE_METHOD' o Normalizer.semiring_normalize_tac)
-*} "semiring normalizer"
-
-
-locale gb_field = gb_ring +
+locale normalizing_field = normalizing_ring +
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
     and inverse:: "'a \<Rightarrow> 'a"
   assumes divide_inverse: "divide x y = mul x (inverse y)"
@@ -267,8 +202,8 @@ lemma field_ops: shows "TERM (divide x y)" and "TERM (inverse x)" .
 
 lemmas field_rules = divide_inverse inverse_divide
 
-lemmas gb_field_axioms' =
-  gb_field_axioms [normalizer
+lemmas normalizing_field_axioms' =
+  normalizing_field_axioms [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules
     ring ops: ring_ops
@@ -278,10 +213,7 @@ lemmas gb_field_axioms' =
 
 end
 
-
-subsection {* Groebner Bases *}
-
-locale semiringb = gb_semiring +
+locale normalizing_semiring_cancel = normalizing_semiring +
   assumes add_cancel: "add (x::'a) y = add x z \<longleftrightarrow> y = z"
   and add_mul_solve: "add (mul w y) (mul x z) =
     add (mul w z) (mul x y) \<longleftrightarrow> w = x \<or> y = z"
@@ -313,22 +245,23 @@ proof-
   thus "x = add x a \<longleftrightarrow> a = r0" by (auto simp add: add_c add_0)
 qed
 
-declare gb_semiring_axioms' [normalizer del]
+declare normalizing_semiring_axioms' [normalizer del]
 
-lemmas semiringb_axioms' = semiringb_axioms [normalizer
-  semiring ops: semiring_ops
-  semiring rules: semiring_rules
-  idom rules: noteq_reduce add_scale_eq_noteq]
+lemmas normalizing_semiring_cancel_axioms' =
+  normalizing_semiring_cancel_axioms [normalizer
+    semiring ops: semiring_ops
+    semiring rules: semiring_rules
+    idom rules: noteq_reduce add_scale_eq_noteq]
 
 end
 
-locale ringb = semiringb + gb_ring + 
+locale normalizing_ring_cancel = normalizing_semiring_cancel + normalizing_ring + 
   assumes subr0_iff: "sub x y = r0 \<longleftrightarrow> x = y"
 begin
 
-declare gb_ring_axioms' [normalizer del]
+declare normalizing_ring_axioms' [normalizer del]
 
-lemmas ringb_axioms' = ringb_axioms [normalizer
+lemmas normalizing_ring_cancel_axioms' = normalizing_ring_cancel_axioms [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
   ring ops: ring_ops
@@ -338,33 +271,24 @@ lemmas ringb_axioms' = ringb_axioms [normalizer
 
 end
 
+sublocale idom
+  < normalizing!: normalizing_ring_cancel plus times power zero one minus uminus
+proof
+  fix w x y z
+  show "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z"
+  proof
+    assume "w * y + x * z = w * z + x * y"
+    then have "w * y + x * z - w * z - x * y = 0" by (simp add: algebra_simps)
+    then have "w * (y - z) - x * (y - z) = 0" by (simp add: algebra_simps)
+    then have "(y - z) * (w - x) = 0" by (simp add: algebra_simps)
+    then have "y - z = 0 \<or> w - x = 0" by (rule divisors_zero)
+    then show "w = x \<or> y = z" by auto
+  qed (auto simp add: add_ac)
+qed (simp_all add: algebra_simps)
 
-lemma no_zero_divirors_neq0:
-  assumes az: "(a::'a::no_zero_divisors) \<noteq> 0"
-    and ab: "a*b = 0" shows "b = 0"
-proof -
-  { assume bz: "b \<noteq> 0"
-    from no_zero_divisors [OF az bz] ab have False by blast }
-  thus "b = 0" by blast
-qed
+declaration {* Normalizer.semiring_funs @{thm normalizing.normalizing_ring_cancel_axioms'} *}
 
-interpretation class_ringb: ringb
-  "op +" "op *" "op ^" "0::'a::{idom,number_ring}" "1" "op -" "uminus"
-proof(unfold_locales, simp add: algebra_simps, auto)
-  fix w x y z ::"'a::{idom,number_ring}"
-  assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
-  hence ynz': "y - z \<noteq> 0" by simp
-  from p have "w * y + x* z - w*z - x*y = 0" by simp
-  hence "w* (y - z) - x * (y - z) = 0" by (simp add: algebra_simps)
-  hence "(y - z) * (w - x) = 0" by (simp add: algebra_simps)
-  with  no_zero_divirors_neq0 [OF ynz']
-  have "w - x = 0" by blast
-  thus "w = x"  by simp
-qed
-
-declaration {* normalizer_funs @{thm class_ringb.ringb_axioms'} *}
-
-interpretation natgb: semiringb
+interpretation normalizing_nat!: normalizing_semiring_cancel
   "op +" "op *" "op ^" "0::nat" "1"
 proof (unfold_locales, simp add: algebra_simps)
   fix w x y z ::"nat"
@@ -386,14 +310,14 @@ proof (unfold_locales, simp add: algebra_simps)
   thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
 qed
 
-declaration {* normalizer_funs @{thm natgb.semiringb_axioms'} *}
+declaration {* Normalizer.semiring_funs @{thm normalizing_nat.normalizing_semiring_cancel_axioms'} *}
 
-locale fieldgb = ringb + gb_field
+locale normalizing_field_cancel = normalizing_ring_cancel + normalizing_field
 begin
 
-declare gb_field_axioms' [normalizer del]
+declare normalizing_field_axioms' [normalizer del]
 
-lemmas fieldgb_axioms' = fieldgb_axioms [normalizer
+lemmas normalizing_field_cancel_axioms' = normalizing_field_cancel_axioms [normalizer
   semiring ops: semiring_ops
   semiring rules: semiring_rules
   ring ops: ring_ops
@@ -405,8 +329,18 @@ lemmas fieldgb_axioms' = fieldgb_axioms [normalizer
 
 end
 
+sublocale field 
+  < normalizing!: normalizing_field_cancel plus times power zero one minus uminus divide inverse
+proof
+qed (simp_all add: divide_inverse)
+
+declaration {* Normalizer.field_funs @{thm normalizing.normalizing_field_cancel_axioms'} *}
+ 
+
+subsection {* Groebner Bases *}
 
 lemmas bool_simps = simp_thms(1-34)
+
 lemma dnf:
     "(P & (Q | R)) = ((P&Q) | (P&R))" "((Q | R) & P) = ((Q&P) | (R&P))"
     "(P \<and> Q) = (Q \<and> P)" "(P \<or> Q) = (Q \<or> P)"
@@ -423,23 +357,16 @@ lemma PFalse:
     "P \<equiv> False \<Longrightarrow> \<not> P"
     "\<not> P \<Longrightarrow> (P \<equiv> False)"
   by auto
-use "Tools/Groebner_Basis/groebner.ML"
 
-method_setup algebra =
-{*
-let
- fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
- val addN = "add"
- val delN = "del"
- val any_keyword = keyword addN || keyword delN
- val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-in
-  ((Scan.optional (keyword addN |-- thms) []) -- 
-   (Scan.optional (keyword delN |-- thms) [])) >>
-  (fn (add_ths, del_ths) => fn ctxt =>
-       SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
-end
-*} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
+ML {*
+structure Algebra_Simplification = Named_Thms(
+  val name = "algebra"
+  val description = "pre-simplification rules for algebraic methods"
+)
+*}
+
+setup Algebra_Simplification.setup
+
 declare dvd_def[algebra]
 declare dvd_eq_mod_eq_0[symmetric, algebra]
 declare mod_div_trivial[algebra]
@@ -468,222 +395,9 @@ declare zdvd1_eq[algebra]
 declare zmod_eq_dvd_iff[algebra]
 declare nat_mod_eq_iff[algebra]
 
-subsection{* Groebner Bases for fields *}
+use "Tools/Groebner_Basis/groebner.ML"
 
-interpretation class_fieldgb:
-  fieldgb "op +" "op *" "op ^" "0::'a::{field,number_ring}" "1" "op -" "uminus" "op /" "inverse" apply (unfold_locales) by (simp_all add: divide_inverse)
-
-lemma divide_Numeral1: "(x::'a::{field, number_ring}) / Numeral1 = x" by simp
-lemma divide_Numeral0: "(x::'a::{field_inverse_zero, number_ring}) / Numeral0 = 0"
-  by simp
-lemma mult_frac_frac: "((x::'a::field_inverse_zero) / y) * (z / w) = (x*z) / (y*w)"
-  by simp
-lemma mult_frac_num: "((x::'a::field_inverse_zero) / y) * z  = (x*z) / y"
-  by simp
-lemma mult_num_frac: "((x::'a::field_inverse_zero) / y) * z  = (x*z) / y"
-  by simp
-
-lemma Numeral1_eq1_nat: "(1::nat) = Numeral1" by simp
-
-lemma add_frac_num: "y\<noteq> 0 \<Longrightarrow> (x::'a::field_inverse_zero) / y + z = (x + z*y) / y"
-  by (simp add: add_divide_distrib)
-lemma add_num_frac: "y\<noteq> 0 \<Longrightarrow> z + (x::'a::field_inverse_zero) / y = (x + z*y) / y"
-  by (simp add: add_divide_distrib)
-
-ML {*
-let open Conv
-in fconv_rule (arg_conv (arg1_conv (rewr_conv (mk_meta_eq @{thm mult_commute})))) (@{thm field_divide_inverse} RS sym)
-end
-*}
-
-ML{* 
-local
- val zr = @{cpat "0"}
- val zT = ctyp_of_term zr
- val geq = @{cpat "op ="}
- val eqT = Thm.dest_ctyp (ctyp_of_term geq) |> hd
- val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"}
- val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
- val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
-
- fun prove_nz ss T t =
-    let
-      val z = instantiate_cterm ([(zT,T)],[]) zr
-      val eq = instantiate_cterm ([(eqT,T)],[]) geq
-      val th = Simplifier.rewrite (ss addsimps @{thms simp_thms})
-           (Thm.capply @{cterm "Trueprop"} (Thm.capply @{cterm "Not"}
-                  (Thm.capply (Thm.capply eq t) z)))
-    in equal_elim (symmetric th) TrueI
-    end
-
- fun proc phi ss ct =
-  let
-    val ((x,y),(w,z)) =
-         (Thm.dest_binop #> (fn (a,b) => (Thm.dest_binop a, Thm.dest_binop b))) ct
-    val _ = map (HOLogic.dest_number o term_of) [x,y,z,w]
-    val T = ctyp_of_term x
-    val [y_nz, z_nz] = map (prove_nz ss T) [y, z]
-    val th = instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
-  in SOME (implies_elim (implies_elim th y_nz) z_nz)
-  end
-  handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
-
- fun proc2 phi ss ct =
-  let
-    val (l,r) = Thm.dest_binop ct
-    val T = ctyp_of_term l
-  in (case (term_of l, term_of r) of
-      (Const(@{const_name Rings.divide},_)$_$_, _) =>
-        let val (x,y) = Thm.dest_binop l val z = r
-            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
-            val ynz = prove_nz ss T y
-        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
-        end
-     | (_, Const (@{const_name Rings.divide},_)$_$_) =>
-        let val (x,y) = Thm.dest_binop r val z = l
-            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
-            val ynz = prove_nz ss T y
-        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
-        end
-     | _ => NONE)
-  end
-  handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
-
- fun is_number (Const(@{const_name Rings.divide},_)$a$b) = is_number a andalso is_number b
-   | is_number t = can HOLogic.dest_number t
-
- val is_number = is_number o term_of
-
- fun proc3 phi ss ct =
-  (case term_of ct of
-    Const(@{const_name Orderings.less},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
-      let
-        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
-      let
-        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const("op =",_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
-      let
-        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
-    let
-      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
-    let
-      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const("op =",_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
-    let
-      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "eq_divide_eq"}
-      in SOME (mk_meta_eq th) end
-  | _ => NONE)
-  handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE
-
-val add_frac_frac_simproc =
-       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + (?w::?'a::field)/?z"}],
-                     name = "add_frac_frac_simproc",
-                     proc = proc, identifier = []}
-
-val add_frac_num_simproc =
-       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + ?z"}, @{cpat "?z + (?x::?'a::field)/?y"}],
-                     name = "add_frac_num_simproc",
-                     proc = proc2, identifier = []}
-
-val ord_frac_simproc =
-  make_simproc
-    {lhss = [@{cpat "(?a::(?'a::{field, ord}))/?b < ?c"},
-             @{cpat "(?a::(?'a::{field, ord}))/?b \<le> ?c"},
-             @{cpat "?c < (?a::(?'a::{field, ord}))/?b"},
-             @{cpat "?c \<le> (?a::(?'a::{field, ord}))/?b"},
-             @{cpat "?c = ((?a::(?'a::{field, ord}))/?b)"},
-             @{cpat "((?a::(?'a::{field, ord}))/ ?b) = ?c"}],
-             name = "ord_frac_simproc", proc = proc3, identifier = []}
-
-local
-open Conv
-in
-
-val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
-           @{thm "divide_Numeral1"},
-           @{thm "divide_zero"}, @{thm "divide_Numeral0"},
-           @{thm "divide_divide_eq_left"}, @{thm "mult_frac_frac"},
-           @{thm "mult_num_frac"}, @{thm "mult_frac_num"},
-           @{thm "mult_frac_frac"}, @{thm "times_divide_eq_right"},
-           @{thm "times_divide_eq_left"}, @{thm "divide_divide_eq_right"},
-           @{thm "diff_def"}, @{thm "minus_divide_left"},
-           @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym,
-           @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
-           fconv_rule (arg_conv (arg1_conv (rewr_conv (mk_meta_eq @{thm mult_commute}))))   
-           (@{thm field_divide_inverse} RS sym)]
-
-val comp_conv = (Simplifier.rewrite
-(HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"}
-              addsimps ths addsimps @{thms simp_thms}
-              addsimprocs Numeral_Simprocs.field_cancel_numeral_factors
-               addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
-                            ord_frac_simproc]
-                addcongs [@{thm "if_weak_cong"}]))
-then_conv (Simplifier.rewrite (HOL_basic_ss addsimps
-  [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)}))
-end
-
-fun numeral_is_const ct =
-  case term_of ct of
-   Const (@{const_name Rings.divide},_) $ a $ b =>
-     can HOLogic.dest_number a andalso can HOLogic.dest_number b
- | Const (@{const_name Rings.inverse},_)$t => can HOLogic.dest_number t
- | t => can HOLogic.dest_number t
-
-fun dest_const ct = ((case term_of ct of
-   Const (@{const_name Rings.divide},_) $ a $ b=>
-    Rat.rat_of_quotient (snd (HOLogic.dest_number a), snd (HOLogic.dest_number b))
- | Const (@{const_name Rings.inverse},_)$t => 
-               Rat.inv (Rat.rat_of_int (snd (HOLogic.dest_number t)))
- | t => Rat.rat_of_int (snd (HOLogic.dest_number t))) 
-   handle TERM _ => error "ring_dest_const")
-
-fun mk_const phi cT x =
- let val (a, b) = Rat.quotient_of_rat x
- in if b = 1 then Numeral.mk_cnumber cT a
-    else Thm.capply
-         (Thm.capply (Drule.cterm_rule (instantiate' [SOME cT] []) @{cpat "op /"})
-                     (Numeral.mk_cnumber cT a))
-         (Numeral.mk_cnumber cT b)
-  end
-
-in
- val field_comp_conv = comp_conv;
- val fieldgb_declaration = 
-  NormalizerData.funs @{thm class_fieldgb.fieldgb_axioms'}
-   {is_const = K numeral_is_const,
-    dest_const = K dest_const,
-    mk_const = mk_const,
-    conv = K (K comp_conv)}
-end;
-*}
-
-declaration fieldgb_declaration
+method_setup algebra = Groebner.algebra_method
+  "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
 
 end

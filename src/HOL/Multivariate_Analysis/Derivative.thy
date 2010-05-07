@@ -698,7 +698,7 @@ lemma mvt_general: fixes f::"real\<Rightarrow>real^'n"
     unfolding o_def apply(rule,rule has_derivative_lift_dot) using assms(3) by auto
   then guess x .. note x=this
   show ?thesis proof(cases "f a = f b")
-    case False have "norm (f b - f a) * norm (f b - f a) = norm (f b - f a)^2" by(simp add:class_semiring.semiring_rules)
+    case False have "norm (f b - f a) * norm (f b - f a) = norm (f b - f a)^2" by(simp add:normalizing.semiring_rules)
     also have "\<dots> = (f b - f a) \<bullet> (f b - f a)" unfolding power2_norm_eq_inner ..
     also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)" using x unfolding inner_simps by auto
     also have "\<dots> \<le> norm (f b - f a) * norm (f' x (b - a))" by(rule norm_cauchy_schwarz)
@@ -810,7 +810,7 @@ lemma has_derivative_inverse_basic: fixes f::"real^'b \<Rightarrow> real^'c"
     guess k using real_lbound_gt_zero[OF d[THEN conjunct1] d'[THEN conjunct1]] .. note k=this
     show ?case apply(rule_tac x=k in exI,rule) defer proof(rule,rule) fix z assume as:"norm(z - y) < k"
       hence "norm (g z - g y - g' (z - y)) \<le> e / B * norm(g z - g y)" using d' k by auto
-      also have "\<dots> \<le> e * norm(z - y)" unfolding mult_frac_num pos_divide_le_eq[OF `B>0`]
+      also have "\<dots> \<le> e * norm(z - y)" unfolding times_divide_eq_left pos_divide_le_eq[OF `B>0`]
 	using lem2[THEN spec[where x=z]] using k as using `e>0` by(auto simp add:field_simps)
       finally show "norm (g z - g y - g' (z - y)) \<le> e * norm (z - y)" by simp qed(insert k, auto) qed qed
 

@@ -2533,7 +2533,7 @@ proof- case goal1 from content_doublesplit[OF this,of a b k c] guess d . note d=
           show "content x \<ge> 0" unfolding as snd_conv * interval_doublesplit by(rule content_pos_le)
         qed have **:"norm (1::real) \<le> 1" by auto note division_doublesplit[OF p'',unfolded interval_doublesplit]
         note dsum_bound[OF this **,unfolded interval_doublesplit[THEN sym]]
-        note this[unfolded real_scaleR_def real_norm_def class_semiring.semiring_rules, of k c d] note le_less_trans[OF this d(2)]
+        note this[unfolded real_scaleR_def real_norm_def normalizing.semiring_rules, of k c d] note le_less_trans[OF this d(2)]
         from this[unfolded abs_of_nonneg[OF *]] show "(\<Sum>ka\<in>snd ` p. content (ka \<inter> {x. \<bar>x $ k - c\<bar> \<le> d})) < e"
           apply(subst vsum_nonzero_image_lemma[of "snd ` p" content "{}", unfolded o_def,THEN sym])
           apply(rule finite_imageI p' content_empty)+ unfolding forall_in_division[OF p'']
@@ -4723,7 +4723,7 @@ proof- have *:"\<And>x y. (\<forall>e::real. 0 < e \<longrightarrow> x < y + e) 
   have "\<And>e sg dsa dia ig. norm(sg) \<le> dsa \<longrightarrow> abs(dsa - dia) < e / 2 \<longrightarrow> norm(sg - ig) < e / 2
     \<longrightarrow> norm(ig) < dia + e" 
   proof safe case goal1 show ?case apply(rule le_less_trans[OF norm_triangle_sub[of ig sg]])
-      apply(subst real_sum_of_halves[of e,THEN sym]) unfolding class_semiring.add_a
+      apply(subst real_sum_of_halves[of e,THEN sym]) unfolding normalizing.add_a
       apply(rule add_le_less_mono) defer apply(subst norm_minus_commute,rule goal1)
       apply(rule order_trans[OF goal1(1)]) using goal1(2) by arith
   qed note norm=this[rule_format]

@@ -167,8 +167,8 @@ fun inequality_canon_rule ctxt =
   (* FIXME : Should be computed statically!! *)
   val real_poly_conv = 
     Normalizer.semiring_normalize_wrapper ctxt
-     (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
- in fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv arg_conv (field_comp_conv then_conv real_poly_conv)))
+     (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+ in fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv arg_conv (Normalizer.field_comp_conv then_conv real_poly_conv)))
 end;
 
  fun absc cv ct = case term_of ct of 
@@ -190,8 +190,8 @@ fun botc1 conv ct =
  val apply_pth5 = rewr_conv @{thm pth_5};
  val apply_pth6 = rewr_conv @{thm pth_6};
  val apply_pth7 = rewrs_conv @{thms pth_7};
- val apply_pth8 = rewr_conv @{thm pth_8} then_conv arg1_conv field_comp_conv then_conv (try_conv (rewr_conv (mk_meta_eq @{thm scaleR_zero_left})));
- val apply_pth9 = rewrs_conv @{thms pth_9} then_conv arg1_conv (arg1_conv field_comp_conv);
+ val apply_pth8 = rewr_conv @{thm pth_8} then_conv arg1_conv Normalizer.field_comp_conv then_conv (try_conv (rewr_conv (mk_meta_eq @{thm scaleR_zero_left})));
+ val apply_pth9 = rewrs_conv @{thms pth_9} then_conv arg1_conv (arg1_conv Normalizer.field_comp_conv);
  val apply_ptha = rewr_conv @{thm pth_a};
  val apply_pthb = rewrs_conv @{thms pth_b};
  val apply_pthc = rewrs_conv @{thms pth_c};
@@ -204,7 +204,7 @@ fun headvector t = case t of
  | _ => error "headvector: non-canonical term"
 
 fun vector_cmul_conv ct =
-   ((apply_pth5 then_conv arg1_conv field_comp_conv) else_conv
+   ((apply_pth5 then_conv arg1_conv Normalizer.field_comp_conv) else_conv
     (apply_pth6 then_conv binop_conv vector_cmul_conv)) ct
 
 fun vector_add_conv ct = apply_pth7 ct 
@@ -278,7 +278,7 @@ local
    (* FIXME: Should be computed statically!!*)
    val real_poly_conv = 
       Normalizer.semiring_normalize_wrapper ctxt
-       (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"}))
+       (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
    val sources = map (Thm.dest_arg o Thm.dest_arg1 o concl) nubs
    val rawdests = fold_rev (find_normedterms o Thm.dest_arg o concl) (ges @ gts) [] 
    val _ = if not (forall fst rawdests) then error "real_vector_combo_prover: Sanity check" 
@@ -384,7 +384,7 @@ local
   let 
    val real_poly_neg_conv = #neg
        (Normalizer.semiring_normalizers_ord_wrapper ctxt
-        (the (NormalizerData.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
+        (the (Normalizer.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
    val (th1,th2) = conj_pair(rawrule th)
   in th1::fconv_rule (arg_conv (arg_conv real_poly_neg_conv)) th2::acc
   end
@@ -396,7 +396,7 @@ end;
   fun init_conv ctxt = 
    Simplifier.rewrite (Simplifier.context ctxt 
      (HOL_basic_ss addsimps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm dist_norm}, @{thm diff_0_right}, @{thm right_minus}, @{thm diff_self}, @{thm norm_zero}] @ @{thms arithmetic_simps} @ @{thms norm_pths})))
-   then_conv field_comp_conv 
+   then_conv Normalizer.field_comp_conv 
    then_conv nnf_conv
 
  fun pure ctxt = fst o RealArith.gen_prover_real_arith ctxt (real_vector_prover ctxt);

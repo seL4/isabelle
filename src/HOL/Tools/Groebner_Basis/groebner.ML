@@ -9,19 +9,20 @@ sig
      vars: cterm list, semiring: cterm list * thm list, ideal : thm list} ->
     (cterm -> Rat.rat) -> (Rat.rat -> cterm) ->
     conv ->  conv ->
- {ring_conv : conv, 
- simple_ideal: (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list),
- multi_ideal: cterm list -> cterm list -> cterm list -> (cterm * cterm) list,
- poly_eq_ss: simpset, unwind_conv : conv}
-    val ring_tac: thm list -> thm list -> Proof.context -> int -> tactic
-    val ideal_tac: thm list -> thm list -> Proof.context -> int -> tactic
-    val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
+     {ring_conv : conv, 
+     simple_ideal: (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list),
+     multi_ideal: cterm list -> cterm list -> cterm list -> (cterm * cterm) list,
+     poly_eq_ss: simpset, unwind_conv : conv}
+  val ring_tac: thm list -> thm list -> Proof.context -> int -> tactic
+  val ideal_tac: thm list -> thm list -> Proof.context -> int -> tactic
+  val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
+  val algebra_method: (Proof.context -> Method.method) context_parser
 end
 
 structure Groebner : GROEBNER =
 struct
 
-open Conv Normalizer Drule Thm;
+open Conv Drule Thm;
 
 fun is_comb ct =
   (case Thm.term_of ct of
@@ -50,11 +51,11 @@ fun int_of_rat a =
 val lcm_rat = fn x => fn y => Rat.rat_of_int (Integer.lcm (int_of_rat x) (int_of_rat y));
 
 val (eqF_intr, eqF_elim) =
-  let val [th1,th2] = thms "PFalse"
+  let val [th1,th2] = @{thms PFalse}
   in (fn th => th COMP th2, fn th => th COMP th1) end;
 
 val (PFalse, PFalse') =
- let val PFalse_eq = nth (thms "simp_thms") 13
+ let val PFalse_eq = nth @{thms simp_thms} 13
  in (PFalse_eq RS iffD1, PFalse_eq RS iffD2) end;
 
 
@@ -398,7 +399,7 @@ fun refute_disj rfn tm =
    compose_single(refute_disj rfn (dest_arg tm),2,compose_single(refute_disj rfn (dest_arg1 tm),2,disjE))
   | _ => rfn tm ;
 
-val notnotD = @{thm "notnotD"};
+val notnotD = @{thm notnotD};
 fun mk_binop ct x y = capply (capply ct x) y
 
 val mk_comb = capply;
@@ -440,10 +441,10 @@ fun is_forall t =
 | _ => false;
 
 val mk_object_eq = fn th => th COMP meta_eq_to_obj_eq;
-val bool_simps = @{thms "bool_simps"};
-val nnf_simps = @{thms "nnf_simps"};
+val bool_simps = @{thms bool_simps};
+val nnf_simps = @{thms nnf_simps};
 val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps bool_simps addsimps nnf_simps)
-val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms "weak_dnf_simps"});
+val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms weak_dnf_simps});
 val initial_conv =
     Simplifier.rewrite
      (HOL_basic_ss addsimps nnf_simps
@@ -947,29 +948,31 @@ fun get_ring_ideal_convs ctxt form =
  case try (find_term 0) form of
   NONE => NONE
 | SOME tm =>
-  (case NormalizerData.match ctxt tm of
+  (case Normalizer.match ctxt tm of
     NONE => NONE
   | SOME (res as (theory, {is_const, dest_const, 
           mk_const, conv = ring_eq_conv})) =>
      SOME (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (semiring_normalize_wrapper ctxt res)))
+          (Normalizer.semiring_normalize_wrapper ctxt res)))
 
 fun ring_solve ctxt form =
   (case try (find_term 0 (* FIXME !? *)) form of
     NONE => reflexive form
   | SOME tm =>
-      (case NormalizerData.match ctxt tm of
+      (case Normalizer.match ctxt tm of
         NONE => reflexive form
       | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
         #ring_conv (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (semiring_normalize_wrapper ctxt res)) form));
+          (Normalizer.semiring_normalize_wrapper ctxt res)) form));
+
+fun presimplify ctxt add_thms del_thms = asm_full_simp_tac (Simplifier.context ctxt
+  (HOL_basic_ss addsimps (Algebra_Simplification.get ctxt) delsimps del_thms addsimps add_thms));
 
 fun ring_tac add_ths del_ths ctxt =
   Object_Logic.full_atomize_tac
-  THEN' asm_full_simp_tac
-    (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths)
+  THEN' presimplify ctxt add_ths del_ths
   THEN' CSUBGOAL (fn (p, i) =>
     rtac (let val form = Object_Logic.dest_judgment p
           in case get_ring_ideal_convs ctxt form of
@@ -988,8 +991,7 @@ local
    | exitac (SOME y) = rtac (instantiate' [SOME (ctyp_of_term y)] [NONE,SOME y] exI) 1
 in 
 fun ideal_tac add_ths del_ths ctxt = 
-  asm_full_simp_tac 
-   (Simplifier.context ctxt (fst (NormalizerData.get ctxt)) delsimps del_ths addsimps add_ths) 
+  presimplify ctxt add_ths del_ths
  THEN'
  CSUBGOAL (fn (p, i) =>
   case get_ring_ideal_convs ctxt p of
@@ -1023,6 +1025,21 @@ end;
 fun algebra_tac add_ths del_ths ctxt i = 
  ring_tac add_ths del_ths ctxt i ORELSE ideal_tac add_ths del_ths ctxt i
  
- 
+local
+
+fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+val addN = "add"
+val delN = "del"
+val any_keyword = keyword addN || keyword delN
+val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+
+in
+
+val algebra_method = ((Scan.optional (keyword addN |-- thms) []) -- 
+   (Scan.optional (keyword delN |-- thms) [])) >>
+  (fn (add_ths, del_ths) => fn ctxt =>
+       SIMPLE_METHOD' (algebra_tac add_ths del_ths ctxt))
+
+end;
 
 end;

@@ -319,6 +319,10 @@ by (simp add: nat_number_of_def)
 lemma nat_numeral_1_eq_1 [simp]: "Numeral1 = (1::nat)"
 by (simp add: nat_number_of_def)
 
+lemma Numeral1_eq1_nat:
+  "(1::nat) = Numeral1"
+  by simp
+
 lemma numeral_1_eq_Suc_0 [code_post]: "Numeral1 = Suc 0"
 by (simp only: nat_numeral_1_eq_1 One_nat_def)
 
@@ -686,6 +690,20 @@ lemmas nat_number =
 
 lemmas nat_number' =
   nat_number_of_Bit0 nat_number_of_Bit1
+
+lemmas nat_arith =
+  add_nat_number_of
+  diff_nat_number_of
+  mult_nat_number_of
+  eq_nat_number_of
+  less_nat_number_of
+
+lemmas semiring_norm =
+  Let_def arith_simps nat_arith rel_simps neg_simps if_False
+  if_True add_0 add_Suc add_number_of_left mult_number_of_left
+  numeral_1_eq_1 [symmetric] Suc_eq_plus1
+  numeral_0_eq_0 [symmetric] numerals [symmetric]
+  iszero_simps not_iszero_Numeral1
 
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (fact Let_def)

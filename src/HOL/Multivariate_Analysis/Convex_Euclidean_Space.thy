@@ -1877,7 +1877,7 @@ lemma homeomorphic_convex_compact_lemma: fixes s::"(real^'n) set"
       using assms(3) apply(erule_tac subsetD) unfolding mem_cball dist_commute dist_norm
       unfolding group_add_class.diff_0 group_add_class.diff_0_right norm_minus_cancel norm_scaleR
       apply (rule mult_left_le_imp_le[of "1 - u"])
-      unfolding class_semiring.mul_a using `u<1` by auto
+      unfolding normalizing.mul_a using `u<1` by auto
     thus "y \<in> s" using assms(1)[unfolded convex_def, rule_format, of "inverse(1 - u) *\<^sub>R (y - u *\<^sub>R x)" x "1 - u" u]
       using as unfolding scaleR_scaleR by auto qed auto
   thus "u *\<^sub>R x \<in> s - frontier s" using frontier_def and interior_subset by auto qed
@@ -2231,7 +2231,7 @@ lemma convex_on_continuous:
     apply(rule subset_trans[OF _ e(1)]) unfolding subset_eq mem_cball proof 
     fix z assume z:"z\<in>{x - ?d..x + ?d}"
     have e:"e = setsum (\<lambda>i. d) (UNIV::'n set)" unfolding setsum_constant d_def using dimge1
-      by (metis eq_divide_imp mult_frac_num real_dimindex_gt_0 real_eq_of_nat real_less_def real_mult_commute)
+      by (metis eq_divide_imp times_divide_eq_left real_dimindex_gt_0 real_eq_of_nat real_less_def real_mult_commute)
     show "dist x z \<le> e" unfolding dist_norm e apply(rule_tac order_trans[OF norm_le_l1], rule setsum_mono)
       using z[unfolded mem_interval] apply(erule_tac x=i in allE) by auto qed
   hence k:"\<forall>y\<in>{x - ?d..x + ?d}. f y \<le> k" unfolding c(2) apply(rule_tac convex_on_convex_hull_bound) apply assumption
