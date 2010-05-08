@@ -112,6 +112,7 @@ sig
     sort list -> proof -> proof
   val classrel_proof: theory -> class * class -> proof
   val arity_proof: theory -> string * sort list * class -> proof
+  val of_sort_proof: theory -> (typ * class -> proof) -> typ * sort -> proof list
   val install_axclass_proofs:
    {classrel_proof: theory -> class * class -> proof,
     arity_proof: theory -> string * sort list * class -> proof} -> unit
@@ -927,6 +928,29 @@ val classrel_proof = axclass_proof #classrel_proof;
 val arity_proof = axclass_proof #arity_proof;
 
 fun install_axclass_proofs prfs = Single_Assignment.assign axclass_proofs prfs;
+
+end;
+
+
+local
+
+fun canonical_instance typs =
+  let
+    val names = Name.invents Name.context Name.aT (length typs);
+    val instT = map2 (fn a => fn T => (((a, 0), []), Type.strip_sorts T)) names typs;
+  in instantiate (instT, []) end;
+
+in
+
+fun of_sort_proof thy hyps =
+  Sorts.of_sort_derivation (Sign.classes_of thy)
+   {class_relation = fn typ => fn (prf, c1) => fn c2 =>
+      if c1 = c2 then prf
+      else canonical_instance [typ] (classrel_proof thy (c1, c2)) %% prf,
+    type_constructor = fn (a, typs) => fn dom => fn c =>
+      let val Ss = map (map snd) dom and prfs = maps (map fst) dom
+      in proof_combP (canonical_instance typs (arity_proof thy (a, Ss, c)), prfs) end,
+    type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
 
 end;
 
