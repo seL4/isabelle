@@ -10,6 +10,46 @@ uses
   "Tools/semiring_normalizer.ML"
 begin
 
+text {* FIXME prelude *}
+
+class comm_semiring_1_cancel_norm (*FIXME name*) = comm_semiring_1_cancel +
+  assumes add_mult_solve: "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z"
+
+sublocale idom < comm_semiring_1_cancel_norm
+proof
+  fix w x y z
+  show "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z"
+  proof
+    assume "w * y + x * z = w * z + x * y"
+    then have "w * y + x * z - w * z - x * y = 0" by (simp add: algebra_simps)
+    then have "w * (y - z) - x * (y - z) = 0" by (simp add: algebra_simps)
+    then have "(y - z) * (w - x) = 0" by (simp add: algebra_simps)
+    then have "y - z = 0 \<or> w - x = 0" by (rule divisors_zero)
+    then show "w = x \<or> y = z" by auto
+  qed (auto simp add: add_ac)
+qed
+
+instance nat :: comm_semiring_1_cancel_norm
+proof
+  fix w x y z :: nat
+  { assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
+    hence "y < z \<or> y > z" by arith
+    moreover {
+      assume lt:"y <z" hence "\<exists>k. z = y + k \<and> k > 0" by (rule_tac x="z - y" in exI, auto)
+      then obtain k where kp: "k>0" and yz:"z = y + k" by blast
+      from p have "(w * y + x *y) + x*k = (w * y + x*y) + w*k" by (simp add: yz algebra_simps)
+      hence "x*k = w*k" by simp
+      hence "w = x" using kp by simp }
+    moreover {
+      assume lt: "y >z" hence "\<exists>k. y = z + k \<and> k>0" by (rule_tac x="y - z" in exI, auto)
+      then obtain k where kp: "k>0" and yz:"y = z + k" by blast
+      from p have "(w * z + x *z) + w*k = (w * z + x*z) + x*k" by (simp add: yz algebra_simps)
+      hence "w*k = x*k" by simp
+      hence "w = x" using kp by simp }
+    ultimately have "w=x" by blast }
+  then show "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z" by auto
+qed
+
 setup Semiring_Normalizer.setup
 
 locale normalizing_semiring =
@@ -146,12 +186,6 @@ next show "pwr x (Suc (2 * n)) = mul x (mul (pwr x n) (pwr x n))"
     by (simp add: nat_number' pwr_Suc mul_pwr)
 qed
 
-
-lemmas normalizing_semiring_axioms' =
-  normalizing_semiring_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules]
-
 end
 
 sublocale comm_semiring_1
@@ -159,7 +193,13 @@ sublocale comm_semiring_1
 proof
 qed (simp_all add: algebra_simps)
 
-declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing.normalizing_semiring_axioms'} *}
+lemmas (in comm_semiring_1) normalizing_comm_semiring_1_axioms =
+  comm_semiring_1_axioms [normalizer
+    semiring ops: normalizing.semiring_ops
+    semiring rules: normalizing.semiring_rules]
+
+declaration (in comm_semiring_1)
+  {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_semiring_1_axioms} *}
 
 locale normalizing_ring = normalizing_semiring +
   fixes sub :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
@@ -172,13 +212,6 @@ lemma ring_ops: shows "TERM (sub x y)" and "TERM (neg x)" .
 
 lemmas ring_rules = neg_mul sub_add
 
-lemmas normalizing_ring_axioms' =
-  normalizing_ring_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules
-    ring ops: ring_ops
-    ring rules: ring_rules]
-
 end
 
 sublocale comm_ring_1
@@ -186,29 +219,15 @@ sublocale comm_ring_1
 proof
 qed (simp_all add: diff_minus)
 
-declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing.normalizing_ring_axioms'} *}
+lemmas (in comm_ring_1) normalizing_comm_ring_1_axioms =
+  comm_ring_1_axioms [normalizer
+    semiring ops: normalizing.semiring_ops
+    semiring rules: normalizing.semiring_rules
+    ring ops: normalizing.ring_ops
+    ring rules: normalizing.ring_rules]
 
-locale normalizing_field = normalizing_ring +
-  fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    and inverse:: "'a \<Rightarrow> 'a"
-  assumes divide_inverse: "divide x y = mul x (inverse y)"
-     and inverse_divide: "inverse x = divide r1 x"
-begin
-
-lemma field_ops: shows "TERM (divide x y)" and "TERM (inverse x)" .
-
-lemmas field_rules = divide_inverse inverse_divide
-
-lemmas normalizing_field_axioms' =
-  normalizing_field_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules
-    ring ops: ring_ops
-    ring rules: ring_rules
-    field ops: field_ops
-    field rules: field_rules]
-
-end
+declaration (in comm_ring_1)
+  {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_ring_1_axioms} *}
 
 locale normalizing_semiring_cancel = normalizing_semiring +
   assumes add_cancel: "add (x::'a) y = add x z \<longleftrightarrow> y = z"
@@ -242,95 +261,77 @@ proof-
   thus "x = add x a \<longleftrightarrow> a = r0" by (auto simp add: add_c add_0)
 qed
 
-declare normalizing_semiring_axioms' [normalizer del]
-
-lemmas normalizing_semiring_cancel_axioms' =
-  normalizing_semiring_cancel_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules
-    idom rules: noteq_reduce add_scale_eq_noteq]
-
 end
+
+sublocale comm_semiring_1_cancel_norm
+  < normalizing!: normalizing_semiring_cancel plus times power zero one
+proof
+qed (simp_all add: add_mult_solve)
+
+declare (in comm_semiring_1_cancel_norm)
+  normalizing_comm_semiring_1_axioms [normalizer del]
+
+lemmas (in comm_semiring_1_cancel_norm)
+  normalizing_comm_semiring_1_cancel_norm_axioms =
+  comm_semiring_1_cancel_norm_axioms [normalizer
+    semiring ops: normalizing.semiring_ops
+    semiring rules: normalizing.semiring_rules
+    idom rules: normalizing.noteq_reduce normalizing.add_scale_eq_noteq]
+
+declaration (in comm_semiring_1_cancel_norm)
+  {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_semiring_1_cancel_norm_axioms} *}
 
 locale normalizing_ring_cancel = normalizing_semiring_cancel + normalizing_ring + 
   assumes subr0_iff: "sub x y = r0 \<longleftrightarrow> x = y"
-begin
-
-declare normalizing_ring_axioms' [normalizer del]
-
-lemmas normalizing_ring_cancel_axioms' = normalizing_ring_cancel_axioms [normalizer
-  semiring ops: semiring_ops
-  semiring rules: semiring_rules
-  ring ops: ring_ops
-  ring rules: ring_rules
-  idom rules: noteq_reduce add_scale_eq_noteq
-  ideal rules: subr0_iff add_r0_iff]
-
-end
 
 sublocale idom
   < normalizing!: normalizing_ring_cancel plus times power zero one minus uminus
 proof
-  fix w x y z
-  show "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z"
-  proof
-    assume "w * y + x * z = w * z + x * y"
-    then have "w * y + x * z - w * z - x * y = 0" by (simp add: algebra_simps)
-    then have "w * (y - z) - x * (y - z) = 0" by (simp add: algebra_simps)
-    then have "(y - z) * (w - x) = 0" by (simp add: algebra_simps)
-    then have "y - z = 0 \<or> w - x = 0" by (rule divisors_zero)
-    then show "w = x \<or> y = z" by auto
-  qed (auto simp add: add_ac)
-qed (simp_all add: algebra_simps)
+qed simp
 
-declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing.normalizing_ring_cancel_axioms'} *}
+declare (in idom) normalizing_comm_ring_1_axioms [normalizer del]
 
-interpretation normalizing_nat!: normalizing_semiring_cancel
-  "op +" "op *" "op ^" "0::nat" "1"
-proof (unfold_locales, simp add: algebra_simps)
-  fix w x y z ::"nat"
-  { assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
-    hence "y < z \<or> y > z" by arith
-    moreover {
-      assume lt:"y <z" hence "\<exists>k. z = y + k \<and> k > 0" by (rule_tac x="z - y" in exI, auto)
-      then obtain k where kp: "k>0" and yz:"z = y + k" by blast
-      from p have "(w * y + x *y) + x*k = (w * y + x*y) + w*k" by (simp add: yz algebra_simps)
-      hence "x*k = w*k" by simp
-      hence "w = x" using kp by simp }
-    moreover {
-      assume lt: "y >z" hence "\<exists>k. y = z + k \<and> k>0" by (rule_tac x="y - z" in exI, auto)
-      then obtain k where kp: "k>0" and yz:"y = z + k" by blast
-      from p have "(w * z + x *z) + w*k = (w * z + x*z) + x*k" by (simp add: yz algebra_simps)
-      hence "w*k = x*k" by simp
-      hence "w = x" using kp by simp }
-    ultimately have "w=x" by blast }
-  thus "(w * y + x * z = w * z + x * y) = (w = x \<or> y = z)" by auto
-qed
+lemmas (in idom) normalizing_idom_axioms = idom_axioms [normalizer
+  semiring ops: normalizing.semiring_ops
+  semiring rules: normalizing.semiring_rules
+  ring ops: normalizing.ring_ops
+  ring rules: normalizing.ring_rules
+  idom rules: normalizing.noteq_reduce normalizing.add_scale_eq_noteq
+  ideal rules: normalizing.subr0_iff normalizing.add_r0_iff]
 
-declaration {* Semiring_Normalizer.semiring_funs @{thm normalizing_nat.normalizing_semiring_cancel_axioms'} *}
+declaration (in idom)
+  {* Semiring_Normalizer.semiring_funs @{thm normalizing_idom_axioms} *}
 
-locale normalizing_field_cancel = normalizing_ring_cancel + normalizing_field
+locale normalizing_field = normalizing_ring_cancel +
+  fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    and inverse:: "'a \<Rightarrow> 'a"
+  assumes divide_inverse: "divide x y = mul x (inverse y)"
+     and inverse_divide: "inverse x = divide r1 x"
 begin
 
-declare normalizing_field_axioms' [normalizer del]
+lemma field_ops: shows "TERM (divide x y)" and "TERM (inverse x)" .
 
-lemmas normalizing_field_cancel_axioms' = normalizing_field_cancel_axioms [normalizer
-  semiring ops: semiring_ops
-  semiring rules: semiring_rules
-  ring ops: ring_ops
-  ring rules: ring_rules
-  field ops: field_ops
-  field rules: field_rules
-  idom rules: noteq_reduce add_scale_eq_noteq
-  ideal rules: subr0_iff add_r0_iff]
+lemmas field_rules = divide_inverse inverse_divide
 
 end
 
 sublocale field 
-  < normalizing!: normalizing_field_cancel plus times power zero one minus uminus divide inverse
+  < normalizing!: normalizing_field plus times power zero one minus uminus divide inverse
 proof
 qed (simp_all add: divide_inverse)
 
-declaration {* Semiring_Normalizer.field_funs @{thm normalizing.normalizing_field_cancel_axioms'} *}
+lemmas (in field) normalizing_field_axioms =
+  field_axioms [normalizer
+    semiring ops: normalizing.semiring_ops
+    semiring rules: normalizing.semiring_rules
+    ring ops: normalizing.ring_ops
+    ring rules: normalizing.ring_rules
+    field ops: normalizing.field_ops
+    field rules: normalizing.field_rules
+    idom rules: normalizing.noteq_reduce normalizing.add_scale_eq_noteq
+    ideal rules: normalizing.subr0_iff normalizing.add_r0_iff]
+
+declaration (in field)
+  {* Semiring_Normalizer.field_funs @{thm normalizing_field_axioms} *}
 
 end
