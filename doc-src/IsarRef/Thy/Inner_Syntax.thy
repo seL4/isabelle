@@ -212,7 +212,6 @@ subsection {* Printing limits *}
 
 text {*
   \begin{mldecls}
-    @{index_ML Pretty.setdepth: "int -> unit"} \\
     @{index_ML Pretty.margin_default: "int Unsynchronized.ref"} \\
     @{index_ML print_depth: "int -> unit"} \\
   \end{mldecls}
@@ -220,12 +219,6 @@ text {*
   These ML functions set limits for pretty printed text.
 
   \begin{description}
-
-  \item @{ML Pretty.setdepth}~@{text d} tells the pretty printer to
-  limit the printing depth to @{text d}.  This affects the display of
-  types, terms, theorems etc.  The default value is 0, which permits
-  printing to an arbitrary depth.  Other useful values for @{text d}
-  are 10 and 20.
 
   \item @{ML Pretty.margin_default} indicates the global default for
   the right margin of the built-in pretty printer, with initial value

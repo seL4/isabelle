@@ -53,7 +53,6 @@ sig
   val indent: int -> T -> T
   val unbreakable: T -> T
   val margin_default: int Unsynchronized.ref
-  val setdepth: int -> unit
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
   val symbolicN: string
@@ -184,22 +183,6 @@ fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
 val margin_default = Unsynchronized.ref 76;  (*right margin, or page width*)
 
 
-(* depth limitation *)
-
-val depth = Unsynchronized.ref 0;   (*maximum depth; 0 means no limit*)
-fun setdepth dp = (depth := dp);
-
-local
-  fun pruning dp (Block (m, bes, indent, _)) =
-        if dp > 0
-        then block_markup m (indent, map (pruning (dp - 1)) bes)
-        else str "..."
-    | pruning _ e = e;
-in
-  fun prune e = if ! depth > 0 then pruning (! depth) e else e;
-end;
-
-
 (* formatted output *)
 
 local
@@ -289,7 +272,7 @@ fun formatted margin input =
                   else text |> newline |> indentation block)
           | String str => format (es, block, after) (string str text));
   in
-    #tx (format ([prune input], (Buffer.empty, 0), 0) empty)
+    #tx (format ([input], (Buffer.empty, 0), 0) empty)
   end;
 
 end;
@@ -314,7 +297,7 @@ fun unformatted prt =
     fun fmt (Block ((bg, en), prts, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
       | fmt (String (s, _)) = Buffer.add s
       | fmt (Break (_, wd)) = Buffer.add (output_spaces wd);
-  in fmt (prune prt) Buffer.empty end;
+  in fmt prt Buffer.empty end;
 
 
 (* ML toplevel pretty printing *)
