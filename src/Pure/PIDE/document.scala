@@ -32,13 +32,6 @@ object Document
   }
 
 
-  // FIXME
-  var phase0: List[Text_Edit] = null
-  var phase1: Linear_Set[Command] = null
-  var phase2: Linear_Set[Command] = null
-  var phase3: List[Edit] = null
-
-
 
   /** document edits **/
 
@@ -56,8 +49,6 @@ object Document
       new Command(null, List(Outer_Lex.Token(Outer_Lex.Token_Kind.UNPARSED, source)))
 
     def is_unparsed(command: Command) = command.id == null
-
-    assert(!old_doc.commands.exists(is_unparsed))   // FIXME remove
 
 
     /* phase 1: edit individual command source */
@@ -136,11 +127,6 @@ object Document
         inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
       val former_states = old_doc.assignment.join -- removed_commands
-
-      phase0 = edits
-      phase1 = commands1
-      phase2 = commands2
-      phase3 = doc_edits
 
       (doc_edits, new Document(new_id, commands2, former_states))
     }
