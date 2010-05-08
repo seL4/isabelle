@@ -302,7 +302,7 @@ fun test_mutants_using_one_method thy mutants (mtd_name, invoke_mtd) =
   end
 
 fun create_entry thy thm exec mutants mtds =
-  (Thm.get_name thm, exec, map (test_mutants_using_one_method thy mutants) mtds)
+  (Thm.get_name_hint thm, exec, map (test_mutants_using_one_method thy mutants) mtds)
 *)
 fun create_detailed_entry thy thm exec mutants mtds =
   let
@@ -310,7 +310,7 @@ fun create_detailed_entry thy thm exec mutants mtds =
       map (fn (mtd_name, invoke_mtd) =>
         (mtd_name, safe_invoke_mtd thy (mtd_name, invoke_mtd) mutant)) mtds)
   in
-    (Thm.get_name thm, exec, prop_of thm, map create_mutant_subentry mutants)
+    (Thm.get_name_hint thm, exec, prop_of thm, map create_mutant_subentry mutants)
   end
 
 (* (theory -> thm -> bool -> term list -> mtd list -> 'a) -> theory -> mtd list -> thm -> 'a *)

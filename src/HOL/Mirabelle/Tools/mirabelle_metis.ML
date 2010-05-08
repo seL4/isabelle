@@ -13,7 +13,7 @@ fun done _ _ = ()
 fun run id ({pre, post, timeout, log, ...}: Mirabelle.run_args) =
   let
     val thms = Mirabelle.theorems_of_sucessful_proof post
-    val names = map Thm.get_name thms
+    val names = map Thm.get_name_hint thms
     val add_info = if null names then I else suffix (":\n" ^ commas names)
 
     val facts = Facts.props (ProofContext.facts_of (Proof.context_of pre))
