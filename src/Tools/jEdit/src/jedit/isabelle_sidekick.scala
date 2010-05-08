@@ -98,7 +98,7 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
     val document = model.recent_document()
     for {
       (command, command_start) <- document.command_range(0)
-      if command.is_command && !is_stopped()
+      if command.is_command && !stopped
     }
     {
       val name = command.name
@@ -129,7 +129,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
 
     val root = data.root
     val document = model.recent_document()
-    for ((command, command_start) <- document.command_range(0) if !is_stopped()) {
+    for ((command, command_start) <- document.command_range(0) if !stopped) {
       root.add(document.current_state(command).get.markup_root.swing_tree((node: Markup_Node) =>
           {
             val content = Pretty.str_of(List(XML.Text(command.source(node.start, node.stop))))
