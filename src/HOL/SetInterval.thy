@@ -562,6 +562,38 @@ qed
 
 subsubsection {* Proving Inclusions and Equalities between Unions *}
 
+lemma UN_le_eq_Un0:
+  "(\<Union>i\<le>n::nat. M i) = (\<Union>i\<in>{1..n}. M i) \<union> M 0" (is "?A = ?B")
+proof
+  show "?A <= ?B"
+  proof
+    fix x assume "x : ?A"
+    then obtain i where i: "i\<le>n" "x : M i" by auto
+    show "x : ?B"
+    proof(cases i)
+      case 0 with i show ?thesis by simp
+    next
+      case (Suc j) with i show ?thesis by auto
+    qed
+  qed
+next
+  show "?B <= ?A" by auto
+qed
+
+lemma UN_le_add_shift:
+  "(\<Union>i\<le>n::nat. M(i+k)) = (\<Union>i\<in>{k..n+k}. M i)" (is "?A = ?B")
+proof
+  show "?A <= ?B" by fastsimp
+next
+  show "?B <= ?A"
+  proof
+    fix x assume "x : ?B"
+    then obtain i where i: "i : {k..n+k}" "x : M(i)" by auto
+    hence "i-k\<le>n & x : M((i-k)+k)" by auto
+    thus "x : ?A" by blast
+  qed
+qed
+
 lemma UN_UN_finite_eq: "(\<Union>n::nat. \<Union>i\<in>{0..<n}. A i) = (\<Union>n. A n)"
   by (auto simp add: atLeast0LessThan) 
 
