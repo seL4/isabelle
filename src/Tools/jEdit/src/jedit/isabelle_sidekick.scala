@@ -29,15 +29,14 @@ object Isabelle_Sidekick
 }
 
 
-class Isabelle_Sidekick(name: String,
-    parser: (() => Boolean, SideKickParsedData, Document_Model) => Unit)
-  extends SideKickParser(name)
+abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 {
   /* parsing */
 
-  @volatile private var stopped = false
-  private def is_stopped(): Boolean = stopped
+  @volatile protected var stopped = false
   override def stop() = { stopped = true }
+
+  def parser(data: SideKickParsedData, model: Document_Model): Unit
 
   def parse(buffer: Buffer, error_source: DefaultErrorSource): SideKickParsedData =
   {
@@ -52,7 +51,7 @@ class Isabelle_Sidekick(name: String,
 
     Swing_Thread.now { Document_Model(buffer) } match {
       case Some(model) =>
-        parser(is_stopped, data, model)
+        parser(data, model)
         if (stopped) root.add(new DefaultMutableTreeNode("<parser stopped>"))
       case None => root.add(new DefaultMutableTreeNode("<buffer inactive>"))
     }
@@ -89,63 +88,67 @@ class Isabelle_Sidekick(name: String,
 }
 
 
-class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle",
-  ((is_stopped: () => Boolean, data: SideKickParsedData, model: Document_Model) =>
+class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
+{
+  def parser(data: SideKickParsedData, model: Document_Model)
+  {
+    import Isabelle_Sidekick.int_to_pos
+
+    val root = data.root
+    val document = model.recent_document()
+    for {
+      (command, command_start) <- document.command_range(0)
+      if command.is_command && !is_stopped()
+    }
     {
-      import Isabelle_Sidekick.int_to_pos
-
-      val root = data.root
-      val document = model.recent_document()
-      for {
-        (command, command_start) <- document.command_range(0)
-        if command.is_command && !is_stopped()
-      }
-      {
-        val name = command.name
-        val node =
-          new DefaultMutableTreeNode(new IAsset {
-            override def getIcon: Icon = null
-            override def getShortString: String = name
-            override def getLongString: String = name
-            override def getName: String = name
-            override def setName(name: String) = ()
-            override def setStart(start: Position) = ()
-            override def getStart: Position = command_start
-            override def setEnd(end: Position) = ()
-            override def getEnd: Position = command_start + command.length
-            override def toString = name
-          })
-        root.add(node)
-      }
-    }))
+      val name = command.name
+      val node =
+        new DefaultMutableTreeNode(new IAsset {
+          override def getIcon: Icon = null
+          override def getShortString: String = name
+          override def getLongString: String = name
+          override def getName: String = name
+          override def setName(name: String) = ()
+          override def setStart(start: Position) = ()
+          override def getStart: Position = command_start
+          override def setEnd(end: Position) = ()
+          override def getEnd: Position = command_start + command.length
+          override def toString = name
+        })
+      root.add(node)
+    }
+  }
+}
 
 
-class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw",
-  ((is_stopped: () => Boolean, data: SideKickParsedData, model: Document_Model) =>
-    {
-      import Isabelle_Sidekick.int_to_pos
+class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
+{
+  def parser(data: SideKickParsedData, model: Document_Model)
+  {
+    import Isabelle_Sidekick.int_to_pos
 
-      val root = data.root
-      val document = model.recent_document()
-      for ((command, command_start) <- document.command_range(0) if !is_stopped()) {
-        root.add(document.current_state(command).get.markup_root.swing_tree((node: Markup_Node) =>
-            {
-              val content = Pretty.str_of(List(XML.Text(command.source(node.start, node.stop))))
-              val id = command.id
+    val root = data.root
+    val document = model.recent_document()
+    for ((command, command_start) <- document.command_range(0) if !is_stopped()) {
+      root.add(document.current_state(command).get.markup_root.swing_tree((node: Markup_Node) =>
+          {
+            val content = Pretty.str_of(List(XML.Text(command.source(node.start, node.stop))))
+            val id = command.id
 
-              new DefaultMutableTreeNode(new IAsset {
-                override def getIcon: Icon = null
-                override def getShortString: String = content
-                override def getLongString: String = node.info.toString
-                override def getName: String = id
-                override def setName(name: String) = ()
-                override def setStart(start: Position) = ()
-                override def getStart: Position = command_start + node.start
-                override def setEnd(end: Position) = ()
-                override def getEnd: Position = command_start + node.stop
-                override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
-              })
-            }))
-      }
-    }))
+            new DefaultMutableTreeNode(new IAsset {
+              override def getIcon: Icon = null
+              override def getShortString: String = content
+              override def getLongString: String = node.info.toString
+              override def getName: String = id
+              override def setName(name: String) = ()
+              override def setStart(start: Position) = ()
+              override def getStart: Position = command_start + node.start
+              override def setEnd(end: Position) = ()
+              override def getEnd: Position = command_start + node.stop
+              override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
+            })
+          }))
+    }
+  }
+}
 
