@@ -53,8 +53,6 @@ sig
   val indent: int -> T -> T
   val unbreakable: T -> T
   val margin_default: int Unsynchronized.ref
-  val to_ML: T -> ML_Pretty.pretty
-  val from_ML: ML_Pretty.pretty -> T
   val symbolicN: string
   val output_buffer: int option -> T -> Buffer.T
   val output: int option -> T -> output
@@ -62,6 +60,8 @@ sig
   val string_of: T -> string
   val str_of: T -> string
   val writeln: T -> unit
+  val to_ML: T -> ML_Pretty.pretty
+  val from_ML: ML_Pretty.pretty -> T
   type pp
   val pp: (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T) -> pp
   val term: pp -> term -> T
@@ -177,11 +177,6 @@ fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
 
 
 (** formatting **)
-
-(* margin *)
-
-val margin_default = Unsynchronized.ref 76;  (*right margin, or page width*)
-
 
 (* formatted output *)
 
@@ -300,18 +295,9 @@ fun unformatted prt =
   in fmt prt Buffer.empty end;
 
 
-(* ML toplevel pretty printing *)
-
-fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
-  | to_ML (String s) = ML_Pretty.String s
-  | to_ML (Break b) = ML_Pretty.Break b;
-
-fun from_ML (ML_Pretty.Block (m, prts, ind)) = block_markup m (ind, map from_ML prts)
-  | from_ML (ML_Pretty.String s) = String s
-  | from_ML (ML_Pretty.Break b) = Break b;
-
-
 (* output interfaces *)
+
+val margin_default = Unsynchronized.ref 76;  (*right margin, or page width*)
 
 val symbolicN = "pretty_symbolic";
 
@@ -324,6 +310,18 @@ fun string_of_margin margin = Output.escape o output (SOME margin);
 val string_of = Output.escape o output NONE;
 val str_of = Output.escape o Buffer.content o unformatted;
 val writeln = Output.writeln o string_of;
+
+
+
+(** ML toplevel pretty printing **)
+
+fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
+  | to_ML (String s) = ML_Pretty.String s
+  | to_ML (Break b) = ML_Pretty.Break b;
+
+fun from_ML (ML_Pretty.Block (m, prts, ind)) = block_markup m (ind, map from_ML prts)
+  | from_ML (ML_Pretty.String s) = String s
+  | from_ML (ML_Pretty.Break b) = Break b;
 
 
 
