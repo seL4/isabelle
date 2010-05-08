@@ -2,7 +2,7 @@
 theory Examples imports Main Binomial begin
 
 ML "Unsynchronized.reset eta_contract"
-ML "Pretty.setmargin 64"
+ML "Pretty.margin_default := 64"
 
 text{*membership, intersection *}
 text{*difference and empty set*}

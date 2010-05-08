@@ -143,7 +143,7 @@ fun sorry_class thm = if is_sorry thm then class "sorried" else noid;
 fun html_thm ctxt (n, (thmref, thm)) =
   let
     val string_of_thm =
-      Output.output o Pretty.setmp_margin_CRITICAL 100 Pretty.string_of o
+      Output.output o Pretty.string_of_margin 100 o
         setmp_CRITICAL show_question_marks false (Display.pretty_thm ctxt);
   in
     tag' "tr" (class ("row" ^ Int.toString (n mod 2)))

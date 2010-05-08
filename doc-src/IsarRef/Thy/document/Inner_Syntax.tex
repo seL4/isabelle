@@ -232,7 +232,7 @@
 \begin{isamarkuptext}%
 \begin{mldecls}
     \indexdef{}{ML}{Pretty.setdepth}\verb|Pretty.setdepth: int -> unit| \\
-    \indexdef{}{ML}{Pretty.setmargin}\verb|Pretty.setmargin: int -> unit| \\
+    \indexdef{}{ML}{Pretty.margin\_default}\verb|Pretty.margin_default: int Unsynchronized.ref| \\
     \indexdef{}{ML}{print\_depth}\verb|print_depth: int -> unit| \\
   \end{mldecls}
 
@@ -246,10 +246,12 @@
   printing to an arbitrary depth.  Other useful values for \isa{d}
   are 10 and 20.
 
-  \item \verb|Pretty.setmargin|~\isa{m} tells the pretty printer to
-  assume a right margin (page width) of \isa{m}.  The initial margin
-  is 76, but user interfaces might adapt the margin automatically when
-  resizing windows.
+  \item \verb|Pretty.margin_default| indicates the global default for
+  the right margin of the built-in pretty printer, with initial value
+  76.  Note that user-interfaces typically control margins
+  automatically when resizing windows, or even bypass the formatting
+  engine of Isabelle/ML altogether and do it within the front end via
+  Isabelle/Scala.
 
   \item \verb|print_depth|~\isa{n} limits the printing depth of the
   ML toplevel pretty printer; the precise effect depends on the ML

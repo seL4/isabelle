@@ -202,7 +202,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs = if null vs
       then error ("No type variable in part of specification element "
-        ^ (Pretty.output o Pretty.chunks) (Element.pretty_ctxt class_ctxt e))
+        ^ (Pretty.output NONE o Pretty.chunks) (Element.pretty_ctxt class_ctxt e))
       else ();
     fun check_element (e as Element.Fixes fxs) =
           map (fn (_, SOME T, _) => check_vars e (Term.add_tfreesT T [])) fxs

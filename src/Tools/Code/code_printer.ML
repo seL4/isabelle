@@ -116,8 +116,8 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = PrintMode.setmp [] (Pretty.indent i);
 
-fun string_of_pretty width p = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL width Pretty.string_of) p ^ "\n";
-fun writeln_pretty width p = PrintMode.setmp [] (Pretty.setmp_margin_CRITICAL width Pretty.writeln) p;
+fun string_of_pretty width p = PrintMode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
+fun writeln_pretty width p = writeln (PrintMode.setmp [] (Pretty.string_of_margin width) p);
 
 
 (** names and variable name contexts **)

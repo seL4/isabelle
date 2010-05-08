@@ -428,7 +428,7 @@ val _ = add_options
   ("break", setmp_CRITICAL break o boolean),
   ("quotes", setmp_CRITICAL quotes o boolean),
   ("mode", fn s => fn f => PrintMode.with_modes [s] f),
-  ("margin", Pretty.setmp_margin_CRITICAL o integer),
+  ("margin", setmp_CRITICAL Pretty.margin_default o integer),
   ("indent", setmp_CRITICAL indent o integer),
   ("source", setmp_CRITICAL source o boolean),
   ("goals_limit", setmp_CRITICAL goals_limit o integer)];

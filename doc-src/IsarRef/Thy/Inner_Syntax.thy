@@ -213,7 +213,7 @@ subsection {* Printing limits *}
 text {*
   \begin{mldecls}
     @{index_ML Pretty.setdepth: "int -> unit"} \\
-    @{index_ML Pretty.setmargin: "int -> unit"} \\
+    @{index_ML Pretty.margin_default: "int Unsynchronized.ref"} \\
     @{index_ML print_depth: "int -> unit"} \\
   \end{mldecls}
 
@@ -227,10 +227,12 @@ text {*
   printing to an arbitrary depth.  Other useful values for @{text d}
   are 10 and 20.
 
-  \item @{ML Pretty.setmargin}~@{text m} tells the pretty printer to
-  assume a right margin (page width) of @{text m}.  The initial margin
-  is 76, but user interfaces might adapt the margin automatically when
-  resizing windows.
+  \item @{ML Pretty.margin_default} indicates the global default for
+  the right margin of the built-in pretty printer, with initial value
+  76.  Note that user-interfaces typically control margins
+  automatically when resizing windows, or even bypass the formatting
+  engine of Isabelle/ML altogether and do it within the front end via
+  Isabelle/Scala.
 
   \item @{ML print_depth}~@{text n} limits the printing depth of the
   ML toplevel pretty printer; the precise effect depends on the ML

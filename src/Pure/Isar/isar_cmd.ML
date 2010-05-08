@@ -313,7 +313,7 @@ fun print_drafts files = Toplevel.imperative (fn () =>
 
 (* pretty_setmargin *)
 
-fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.setmargin n);
+fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.margin_default := n);
 
 
 (* print parts of theory and proof context *)

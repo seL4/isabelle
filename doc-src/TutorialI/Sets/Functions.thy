@@ -1,7 +1,7 @@
 (* ID:         $Id$ *)
 theory Functions imports Main begin
 
-ML "Pretty.setmargin 64"
+ML "Pretty.margin_default := 64"
 
 
 text{*
