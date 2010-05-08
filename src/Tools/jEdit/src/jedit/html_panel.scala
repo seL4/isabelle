@@ -1,8 +1,8 @@
-/*
- * HTML panel based on Lobo/Cobra
- *
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/html_panel.scala
+    Author:     Makarius
+
+HTML panel based on Lobo/Cobra.
+*/
 
 package isabelle.jedit
 

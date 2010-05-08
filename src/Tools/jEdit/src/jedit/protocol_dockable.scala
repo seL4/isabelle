@@ -1,8 +1,8 @@
-/*
- * Dockable window for raw process output
- *
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/protocol_dockable.scala
+    Author:     Makarius
+
+Dockable window for raw process output.
+*/
 
 package isabelle.jedit
 

@@ -1,8 +1,8 @@
-/*
- * Scala instance of Console plugin
- *
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/scala_console.scala
+    Author:     Makarius
+
+Scala instance of Console plugin.
+*/
 
 package isabelle.jedit
 

@@ -1,9 +1,9 @@
-/*
- * Document view connected to jEdit text area
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/document_view.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Document view connected to jEdit text area.
+*/
 
 package isabelle.jedit
 

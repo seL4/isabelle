@@ -1,9 +1,9 @@
-/*
- * include isabelle's command- and keyword-declarations
- * live in jEdits syntax-highlighting
- *
- * @author Fabian Immler, TU Munich
- */
+/*  Title:      Tools/jEdit/src/jedit/isabelle_token_marker.scala
+    Author:     Fabian Immler, TU Munich
+
+Include isabelle's command- and keyword-declarations live in jEdits
+syntax-highlighting.
+*/
 
 package isabelle.jedit
 

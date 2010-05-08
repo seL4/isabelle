@@ -1,8 +1,8 @@
-/*
- * Dockable window with result message output
- *
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/output_dockable.scala
+    Author:     Makarius
+
+Dockable window with result message output.
+*/
 
 package isabelle.jedit
 

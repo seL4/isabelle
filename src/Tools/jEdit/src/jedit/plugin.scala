@@ -1,10 +1,10 @@
-/*
- * Main Isabelle/jEdit plugin setup
- *
- * @author Johannes Hölzl, TU Munich
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/plugin.scala
+    Author:     Johannes Hölzl, TU Munich
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Main Isabelle/jEdit plugin setup.
+*/
 
 package isabelle.jedit
 

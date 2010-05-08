@@ -1,8 +1,8 @@
-/*
- * Hyperlink setup for Isabelle proof documents
- *
- * @author Fabian Immler, TU Munich
- */
+/*  Title:      Tools/jEdit/src/jedit/isabelle_hyperlinks.scala
+    Author:     Fabian Immler, TU Munich
+
+Hyperlink setup for Isabelle proof documents.
+*/
 
 package isabelle.jedit
 

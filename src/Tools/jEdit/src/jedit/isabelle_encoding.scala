@@ -1,8 +1,8 @@
-/*
- * Isabelle encoding -- based on utf-8
- *
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/isabelle_encoding.scala
+    Author:     Makarius
+
+Isabelle encoding -- based on UTF-8.
+*/
 
 package isabelle.jedit
 

@@ -1,9 +1,9 @@
-/*
- * SideKick parsers for Isabelle proof documents
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/isabelle_sidekick.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+SideKick parsers for Isabelle proof documents.
+*/
 
 package isabelle.jedit
 

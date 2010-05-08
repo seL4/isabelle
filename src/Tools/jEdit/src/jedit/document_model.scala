@@ -1,9 +1,9 @@
-/*
- * Document model connected to jEdit buffer
- *
- * @author Fabian Immler, TU Munich
- * @author Makarius
- */
+/*  Title:      Tools/jEdit/src/jedit/document_model.scala
+    Author:     Fabian Immler, TU Munich
+    Author:     Makarius
+
+Document model connected to jEdit buffer.
+*/
 
 package isabelle.jedit
 
