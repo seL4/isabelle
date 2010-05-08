@@ -241,7 +241,7 @@ fun complete_classrels thy =
   end;
 
 
-fun the_arity thy a (c, Ss) =
+fun the_arity thy (a, Ss, c) =
   (case AList.lookup (op =) (Symtab.lookup_list (proven_arities_of thy) a) (c, Ss) of
     SOME (thm, _) => Thm.transfer thy thm
   | NONE => error ("Unproven type arity " ^
@@ -295,10 +295,12 @@ fun complete_arities thy =
   end;
 
 val _ = Context.>> (Context.map_theory
-  (Theory.at_begin complete_classrels #> Theory.at_begin complete_arities));
+  (Theory.at_begin complete_classrels #>
+   Theory.at_begin complete_arities));
 
-val the_classrel_prf = Thm.proof_of oo the_classrel;
-val the_arity_prf = Thm.proof_of ooo the_arity;
+val _ = Proofterm.install_axclass_proofs
+  {classrel_proof = Thm.proof_of oo the_classrel,
+   arity_proof = Thm.proof_of oo the_arity};
 
 
 (* maintain instance parameters *)

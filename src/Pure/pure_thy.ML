@@ -121,7 +121,7 @@ fun name_multi name [x] = [(name, x)]
   | name_multi name xs = map_index (fn (i, x) => (name ^ "_" ^ string_of_int (i + 1), x)) xs;
 
 fun name_thm pre official name thm = thm
-  |> (if Thm.get_name thm <> "" andalso pre orelse not official then I else Thm.put_name name)
+  |> not (Thm.derivation_name thm <> "" andalso pre orelse not official) ? Thm.name_derivation name
   |> (if Thm.has_name_hint thm andalso pre orelse name = "" then I else Thm.put_name_hint name);
 
 fun name_thms pre official name xs =

@@ -408,7 +408,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
       in
         Extraction.add_realizers_i
           (map (fn (((ind, corr), rlz), r) =>
-              mk_realizer thy' (vs' @ Ps) (Thm.get_name ind, ind, corr, rlz, r))
+              mk_realizer thy' (vs' @ Ps) (Thm.derivation_name ind, ind, corr, rlz, r))
             realizers @ (case realizers of
              [(((ind, corr), rlz), r)] =>
                [mk_realizer thy' (vs' @ Ps) (Long_Name.qualify qualifier "induct",

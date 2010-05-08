@@ -51,7 +51,7 @@ fun typewriter s =
 
 local
 
-val pr_text = enclose "\\isa{" "}" o Pretty.output o Pretty.str;
+val pr_text = enclose "\\isa{" "}" o Pretty.output NONE o Pretty.str;
 
 fun pr_class ctxt = ProofContext.read_class ctxt
   #> Type.extern_class (ProofContext.tsig_of ctxt)

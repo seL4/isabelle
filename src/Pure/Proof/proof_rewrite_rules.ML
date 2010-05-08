@@ -244,7 +244,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
 fun elim_defs thy r defs prf =
   let
     val defs' = map (Logic.dest_equals o prop_of o Drule.abs_def) defs
-    val defnames = map Thm.get_name defs;
+    val defnames = map Thm.derivation_name defs;
     val f = if not r then I else
       let
         val cnames = map (fst o dest_Const o fst) defs';

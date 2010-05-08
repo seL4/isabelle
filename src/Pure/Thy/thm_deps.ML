@@ -53,7 +53,7 @@ fun unused_thms (base_thys, thys) =
       else
         let val {concealed, group, ...} = Name_Space.the_entry space name in
           fold_rev (fn th =>
-            (case Thm.get_name th of
+            (case Thm.derivation_name th of
               "" => I
             | a => cons (a, (th, concealed, group)))) ths
         end;

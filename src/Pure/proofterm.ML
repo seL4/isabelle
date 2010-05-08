@@ -84,7 +84,7 @@ sig
   val varify_proof: term -> (string * sort) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> int -> proof -> proof
-  val permute_prems_prf: term list -> int -> int -> proof -> proof
+  val permute_prems_proof: term list -> int -> int -> proof -> proof
   val generalize: string list * string list -> int -> proof -> proof
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> proof -> proof
@@ -110,6 +110,12 @@ sig
   val equal_elim: term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
+  val classrel_proof: theory -> class * class -> proof
+  val arity_proof: theory -> string * sort list * class -> proof
+  val of_sort_proof: theory -> (typ * class -> proof) -> typ * sort -> proof list
+  val install_axclass_proofs:
+   {classrel_proof: theory -> class * class -> proof,
+    arity_proof: theory -> string * sort list * class -> proof} -> unit
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
   val promise_proof: theory -> serial -> term -> proof
@@ -689,7 +695,7 @@ fun rotate_proof Bs Bi m prf =
 
 (***** permute premises *****)
 
-fun permute_prems_prf prems j k prf =
+fun permute_prems_proof prems j k prf =
   let val n = length prems
   in mk_AbsP (n, proof_combP (prf,
     map PBound ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
@@ -886,7 +892,7 @@ fun equal_elim A B prf1 prf2 =
   equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
 
 
-(**** sort hypotheses ****)
+(**** type classes ****)
 
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
   let
@@ -900,6 +906,53 @@ fun strip_shyps_proof algebra present witnessed extra_sorts prf =
           SOME T' => T'
         | NONE => raise Fail "strip_shyps_proof: bad type variable in proof term");
   in Same.commit (map_proof_types_same (Term_Subst.map_atypsT_same replace)) prf end;
+
+
+local
+
+type axclass_proofs =
+ {classrel_proof: theory -> class * class -> proof,
+  arity_proof: theory -> string * sort list * class -> proof};
+
+val axclass_proofs: axclass_proofs Single_Assignment.var =
+  Single_Assignment.var "Proofterm.axclass_proofs";
+
+fun axclass_proof which thy x =
+  (case Single_Assignment.peek axclass_proofs of
+    NONE => raise Fail "Axclass proof operations not installed"
+  | SOME prfs => which prfs thy x);
+
+in
+
+val classrel_proof = axclass_proof #classrel_proof;
+val arity_proof = axclass_proof #arity_proof;
+
+fun install_axclass_proofs prfs = Single_Assignment.assign axclass_proofs prfs;
+
+end;
+
+
+local
+
+fun canonical_instance typs =
+  let
+    val names = Name.invents Name.context Name.aT (length typs);
+    val instT = map2 (fn a => fn T => (((a, 0), []), Type.strip_sorts T)) names typs;
+  in instantiate (instT, []) end;
+
+in
+
+fun of_sort_proof thy hyps =
+  Sorts.of_sort_derivation (Sign.classes_of thy)
+   {class_relation = fn typ => fn (prf, c1) => fn c2 =>
+      if c1 = c2 then prf
+      else canonical_instance [typ] (classrel_proof thy (c1, c2)) %% prf,
+    type_constructor = fn (a, typs) => fn dom => fn c =>
+      let val Ss = map (map snd) dom and prfs = maps (map fst) dom
+      in proof_combP (canonical_instance typs (arity_proof thy (a, Ss, c)), prfs) end,
+    type_variable = fn typ => map (fn c => (hyps (typ, c), c)) (Type.sort_of_atyp typ)};
+
+end;
 
 
 (***** axioms and theorems *****)

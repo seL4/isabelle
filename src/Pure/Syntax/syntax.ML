@@ -698,21 +698,23 @@ fun parse_token markup str =
   in (syms, pos) end;
 
 local
-  type operations =
-   {parse_sort: Proof.context -> string -> sort,
-    parse_typ: Proof.context -> string -> typ,
-    parse_term: Proof.context -> string -> term,
-    parse_prop: Proof.context -> string -> term,
-    unparse_sort: Proof.context -> sort -> Pretty.T,
-    unparse_typ: Proof.context -> typ -> Pretty.T,
-    unparse_term: Proof.context -> term -> Pretty.T};
 
-  val operations = Unsynchronized.ref (NONE: operations option);
+type operations =
+ {parse_sort: Proof.context -> string -> sort,
+  parse_typ: Proof.context -> string -> typ,
+  parse_term: Proof.context -> string -> term,
+  parse_prop: Proof.context -> string -> term,
+  unparse_sort: Proof.context -> sort -> Pretty.T,
+  unparse_typ: Proof.context -> typ -> Pretty.T,
+  unparse_term: Proof.context -> term -> Pretty.T};
 
-  fun operation which ctxt x =
-    (case ! operations of
-      NONE => error "Inner syntax operations not yet installed"
-    | SOME ops => which ops ctxt x);
+val operations: operations Single_Assignment.var = Single_Assignment.var "Syntax.operations";
+
+fun operation which ctxt x =
+  (case Single_Assignment.peek operations of
+    NONE => raise Fail "Inner syntax operations not installed"
+  | SOME ops => which ops ctxt x);
+
 in
 
 val parse_sort = operation #parse_sort;
@@ -723,9 +725,7 @@ val unparse_sort = operation #unparse_sort;
 val unparse_typ = operation #unparse_typ;
 val unparse_term = operation #unparse_term;
 
-fun install_operations ops = CRITICAL (fn () =>
-  if is_some (! operations) then error "Inner syntax operations already installed"
-  else operations := SOME ops);
+fun install_operations ops = Single_Assignment.assign operations ops;
 
 end;
 

@@ -78,9 +78,9 @@ object Pretty
           Library.chunks(text).toList.map((s: CharSequence) => XML.Text(s.toString)))
     }
 
-  private val default_margin = 76
+  private val margin_default = 76
 
-  def formatted(input: List[XML.Tree], margin: Int = default_margin): List[XML.Tree] =
+  def formatted(input: List[XML.Tree], margin: Int = margin_default): List[XML.Tree] =
   {
     val breakgain = margin / 20
     val emergencypos = margin / 2
@@ -115,7 +115,7 @@ object Pretty
     format(input.flatMap(standard_format), 0, 0, Text()).content
   }
 
-  def string_of(input: List[XML.Tree], margin: Int = default_margin): String =
+  def string_of(input: List[XML.Tree], margin: Int = margin_default): String =
     formatted(input).iterator.flatMap(XML.content).mkString
 
 

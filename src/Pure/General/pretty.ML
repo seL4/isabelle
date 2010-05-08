@@ -52,17 +52,16 @@ sig
   val big_list: string -> T list -> T
   val indent: int -> T -> T
   val unbreakable: T -> T
-  val setmargin: int -> unit
-  val setmp_margin_CRITICAL: int -> ('a -> 'b) -> 'a -> 'b
-  val setdepth: int -> unit
-  val to_ML: T -> ML_Pretty.pretty
-  val from_ML: ML_Pretty.pretty -> T
+  val margin_default: int Unsynchronized.ref
   val symbolicN: string
-  val output_buffer: T -> Buffer.T
-  val output: T -> output
+  val output_buffer: int option -> T -> Buffer.T
+  val output: int option -> T -> output
+  val string_of_margin: int -> T -> string
   val string_of: T -> string
   val str_of: T -> string
   val writeln: T -> unit
+  val to_ML: T -> ML_Pretty.pretty
+  val from_ML: ML_Pretty.pretty -> T
   type pp
   val pp: (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T) -> pp
   val term: pp -> term -> T
@@ -179,34 +178,6 @@ fun unbreakable (Break (_, wd)) = String (output_spaces wd, wd)
 
 (** formatting **)
 
-(* margin *)
-
-fun make_margin_info m =
- {margin = m,                   (*right margin, or page width*)
-  breakgain = m div 20,         (*minimum added space required of a break*)
-  emergencypos = m div 2};      (*position too far to right*)
-
-val margin_info = Unsynchronized.ref (make_margin_info 76);
-fun setmargin m = margin_info := make_margin_info m;
-fun setmp_margin_CRITICAL m f = setmp_CRITICAL margin_info (make_margin_info m) f;
-
-
-(* depth limitation *)
-
-val depth = Unsynchronized.ref 0;   (*maximum depth; 0 means no limit*)
-fun setdepth dp = (depth := dp);
-
-local
-  fun pruning dp (Block (m, bes, indent, _)) =
-        if dp > 0
-        then block_markup m (indent, map (pruning (dp - 1)) bes)
-        else str "..."
-    | pruning _ e = e;
-in
-  fun prune e = if ! depth > 0 then pruning (! depth) e else e;
-end;
-
-
 (* formatted output *)
 
 local
@@ -259,42 +230,45 @@ fun forcenext [] = []
   | forcenext (Break _ :: es) = fbrk :: es
   | forcenext (e :: es) = e :: forcenext es;
 
-(*es is list of expressions to print;
-  blockin is the indentation of the current block;
-  after is the width of the following context until next break.*)
-fun format ([], _, _) text = text
-  | format (e :: es, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
-      (case e of
-        Block ((bg, en), bes, indent, _) =>
-          let
-            val {emergencypos, ...} = ! margin_info;
-            val pos' = pos + indent;
-            val pos'' = pos' mod emergencypos;
-            val block' =
-              if pos' < emergencypos then (ind |> add_indent indent, pos')
-              else (add_indent pos'' Buffer.empty, pos'');
-            val btext: text = text
-              |> control bg
-              |> format (bes, block', breakdist (es, after))
-              |> control en;
-            (*if this block was broken then force the next break*)
-            val es' = if nl < #nl btext then forcenext es else es;
-          in format (es', block, after) btext end
-      | Break (force, wd) =>
-          let val {margin, breakgain, ...} = ! margin_info in
-            (*no break if text to next break fits on this line
-              or if breaking would add only breakgain to space*)
-            format (es, block, after)
-              (if not force andalso
-                  pos + wd <= Int.max (margin - breakdist (es, after), blockin + breakgain)
-                then text |> blanks wd  (*just insert wd blanks*)
-                else text |> newline |> indentation block)
-          end
-      | String str => format (es, block, after) (string str text));
-
 in
 
-fun formatted e = #tx (format ([prune e], (Buffer.empty, 0), 0) empty);
+fun formatted margin input =
+  let
+    val breakgain = margin div 20;     (*minimum added space required of a break*)
+    val emergencypos = margin div 2;   (*position too far to right*)
+
+    (*es is list of expressions to print;
+      blockin is the indentation of the current block;
+      after is the width of the following context until next break.*)
+    fun format ([], _, _) text = text
+      | format (e :: es, block as (_, blockin), after) (text as {ind, pos, nl, ...}) =
+          (case e of
+            Block ((bg, en), bes, indent, _) =>
+              let
+                val pos' = pos + indent;
+                val pos'' = pos' mod emergencypos;
+                val block' =
+                  if pos' < emergencypos then (ind |> add_indent indent, pos')
+                  else (add_indent pos'' Buffer.empty, pos'');
+                val btext: text = text
+                  |> control bg
+                  |> format (bes, block', breakdist (es, after))
+                  |> control en;
+                (*if this block was broken then force the next break*)
+                val es' = if nl < #nl btext then forcenext es else es;
+              in format (es', block, after) btext end
+          | Break (force, wd) =>
+              (*no break if text to next break fits on this line
+                or if breaking would add only breakgain to space*)
+              format (es, block, after)
+                (if not force andalso
+                    pos + wd <= Int.max (margin - breakdist (es, after), blockin + breakgain)
+                  then text |> blanks wd  (*just insert wd blanks*)
+                  else text |> newline |> indentation block)
+          | String str => format (es, block, after) (string str text));
+  in
+    #tx (format ([input], (Buffer.empty, 0), 0) empty)
+  end;
 
 end;
 
@@ -318,10 +292,28 @@ fun unformatted prt =
     fun fmt (Block ((bg, en), prts, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
       | fmt (String (s, _)) = Buffer.add s
       | fmt (Break (_, wd)) = Buffer.add (output_spaces wd);
-  in fmt (prune prt) Buffer.empty end;
+  in fmt prt Buffer.empty end;
 
 
-(* ML toplevel pretty printing *)
+(* output interfaces *)
+
+val margin_default = Unsynchronized.ref 76;  (*right margin, or page width*)
+
+val symbolicN = "pretty_symbolic";
+
+fun output_buffer margin prt =
+  if print_mode_active symbolicN then symbolic prt
+  else formatted (the_default (! margin_default) margin) prt;
+
+val output = Buffer.content oo output_buffer;
+fun string_of_margin margin = Output.escape o output (SOME margin);
+val string_of = Output.escape o output NONE;
+val str_of = Output.escape o Buffer.content o unformatted;
+val writeln = Output.writeln o string_of;
+
+
+
+(** ML toplevel pretty printing **)
 
 fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
   | to_ML (String s) = ML_Pretty.String s
@@ -330,20 +322,6 @@ fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
 fun from_ML (ML_Pretty.Block (m, prts, ind)) = block_markup m (ind, map from_ML prts)
   | from_ML (ML_Pretty.String s) = String s
   | from_ML (ML_Pretty.Break b) = Break b;
-
-
-(* output interfaces *)
-
-val symbolicN = "pretty_symbolic";
-
-fun output_buffer prt =
-  if print_mode_active symbolicN then symbolic prt
-  else formatted prt;
-
-val output = Buffer.content o output_buffer;
-val string_of = Output.escape o output;
-val str_of = Output.escape o Buffer.content o unformatted;
-val writeln = Output.writeln o string_of;
 
 
 

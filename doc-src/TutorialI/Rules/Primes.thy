@@ -9,7 +9,7 @@ fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "gcd m n = (if n=0 then m else gcd n (m mod n))"
 
 
-ML "Pretty.setmargin 64"
+ML "Pretty.margin_default := 64"
 ML "ThyOutput.indent := 5"  (*that is, Doc/TutorialI/settings.ML*)
 
 

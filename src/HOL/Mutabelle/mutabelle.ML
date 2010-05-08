@@ -648,7 +648,7 @@ fun mutqc_file_stat option usedthy commutatives forbidden_funs iter thmlist inst
        val mutated = mutate option (prop_of x) usedthy
          commutatives forbidden_funs iter
        val (passednum,_,cenum,_) = qc_test mutated insts usedthy sz qciter
-       val thmname =  "\ntheorem " ^ (Thm.get_name x) ^ ":"
+       val thmname =  "\ntheorem " ^ Thm.get_name_hint x ^ ":"
        val pnumstring = string_of_int passednum
        val cenumstring = string_of_int cenum
      in
