@@ -110,6 +110,11 @@ sig
   val equal_elim: term -> term -> proof -> proof -> proof
   val strip_shyps_proof: Sorts.algebra -> (typ * sort) list -> (typ * sort) list ->
     sort list -> proof -> proof
+  val classrel_proof: theory -> class * class -> proof
+  val arity_proof: theory -> string * sort list * class -> proof
+  val install_axclass_proofs:
+   {classrel_proof: theory -> class * class -> proof,
+    arity_proof: theory -> string * sort list * class -> proof} -> unit
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
   val promise_proof: theory -> serial -> term -> proof
@@ -886,7 +891,7 @@ fun equal_elim A B prf1 prf2 =
   equal_elim_axm %> remove_types A %> remove_types B %% prf1 %% prf2;
 
 
-(**** sort hypotheses ****)
+(**** type classes ****)
 
 fun strip_shyps_proof algebra present witnessed extra_sorts prf =
   let
@@ -900,6 +905,30 @@ fun strip_shyps_proof algebra present witnessed extra_sorts prf =
           SOME T' => T'
         | NONE => raise Fail "strip_shyps_proof: bad type variable in proof term");
   in Same.commit (map_proof_types_same (Term_Subst.map_atypsT_same replace)) prf end;
+
+
+local
+
+type axclass_proofs =
+ {classrel_proof: theory -> class * class -> proof,
+  arity_proof: theory -> string * sort list * class -> proof};
+
+val axclass_proofs: axclass_proofs Single_Assignment.var =
+  Single_Assignment.var "Proofterm.axclass_proofs";
+
+fun axclass_proof which thy x =
+  (case Single_Assignment.peek axclass_proofs of
+    NONE => raise Fail "Axclass proof operations not installed"
+  | SOME prfs => which prfs thy x);
+
+in
+
+val classrel_proof = axclass_proof #classrel_proof;
+val arity_proof = axclass_proof #arity_proof;
+
+fun install_axclass_proofs prfs = Single_Assignment.assign axclass_proofs prfs;
+
+end;
 
 
 (***** axioms and theorems *****)
