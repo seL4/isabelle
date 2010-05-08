@@ -1194,8 +1194,8 @@ in
   (* FIXME: Replace tryfind by get_first !! *)
 fun real_nonlinear_prover proof_method ctxt =
  let
-  val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+  val {add,mul,neg,pow,sub,main} =  Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
+      (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,
        real_poly_pow_conv,real_poly_sub_conv,real_poly_conv) = (add,mul,neg,pow,sub,main)
@@ -1222,7 +1222,7 @@ fun real_nonlinear_prover proof_method ctxt =
    in
   (let val th = tryfind trivial_axiom (keq @ klep @ kltp)
    in
-    (fconv_rule (arg_conv (arg1_conv real_poly_conv) then_conv Normalizer.field_comp_conv) th, RealArith.Trivial)
+    (fconv_rule (arg_conv (arg1_conv real_poly_conv) then_conv Numeral_Simprocs.field_comp_conv) th, RealArith.Trivial)
    end)
    handle Failure _ =>
      (let val proof =
@@ -1309,8 +1309,8 @@ in
 
 fun real_nonlinear_subst_prover prover ctxt =
  let
-  val {add,mul,neg,pow,sub,main} =  Normalizer.semiring_normalizers_ord_wrapper ctxt
-      (the (Normalizer.match ctxt @{cterm "(0::real) + 1"}))
+  val {add,mul,neg,pow,sub,main} =  Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
+      (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
      simple_cterm_ord
 
   val (real_poly_add_conv,real_poly_mul_conv,real_poly_neg_conv,

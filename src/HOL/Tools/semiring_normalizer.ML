@@ -4,7 +4,7 @@
 Normalization of expressions in semirings.
 *)
 
-signature NORMALIZER = 
+signature SEMIRING_NORMALIZER = 
 sig
   type entry
   val get: Proof.context -> (thm * entry) list
@@ -31,167 +31,12 @@ sig
   val semiring_normalizers_ord_wrapper:  Proof.context -> entry ->
     (cterm -> cterm -> bool) ->
       {add: conv, mul: conv, neg: conv, main: conv, pow: conv, sub: conv}
-  val field_comp_conv: conv
 
   val setup: theory -> theory
 end
 
-structure Normalizer: NORMALIZER = 
+structure Semiring_Normalizer: SEMIRING_NORMALIZER = 
 struct
-
-(** some conversion **)
-
-local
- val zr = @{cpat "0"}
- val zT = ctyp_of_term zr
- val geq = @{cpat "op ="}
- val eqT = Thm.dest_ctyp (ctyp_of_term geq) |> hd
- val add_frac_eq = mk_meta_eq @{thm "add_frac_eq"}
- val add_frac_num = mk_meta_eq @{thm "add_frac_num"}
- val add_num_frac = mk_meta_eq @{thm "add_num_frac"}
-
- fun prove_nz ss T t =
-    let
-      val z = instantiate_cterm ([(zT,T)],[]) zr
-      val eq = instantiate_cterm ([(eqT,T)],[]) geq
-      val th = Simplifier.rewrite (ss addsimps @{thms simp_thms})
-           (Thm.capply @{cterm "Trueprop"} (Thm.capply @{cterm "Not"}
-                  (Thm.capply (Thm.capply eq t) z)))
-    in equal_elim (symmetric th) TrueI
-    end
-
- fun proc phi ss ct =
-  let
-    val ((x,y),(w,z)) =
-         (Thm.dest_binop #> (fn (a,b) => (Thm.dest_binop a, Thm.dest_binop b))) ct
-    val _ = map (HOLogic.dest_number o term_of) [x,y,z,w]
-    val T = ctyp_of_term x
-    val [y_nz, z_nz] = map (prove_nz ss T) [y, z]
-    val th = instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
-  in SOME (implies_elim (implies_elim th y_nz) z_nz)
-  end
-  handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
-
- fun proc2 phi ss ct =
-  let
-    val (l,r) = Thm.dest_binop ct
-    val T = ctyp_of_term l
-  in (case (term_of l, term_of r) of
-      (Const(@{const_name Rings.divide},_)$_$_, _) =>
-        let val (x,y) = Thm.dest_binop l val z = r
-            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
-            val ynz = prove_nz ss T y
-        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
-        end
-     | (_, Const (@{const_name Rings.divide},_)$_$_) =>
-        let val (x,y) = Thm.dest_binop r val z = l
-            val _ = map (HOLogic.dest_number o term_of) [x,y,z]
-            val ynz = prove_nz ss T y
-        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
-        end
-     | _ => NONE)
-  end
-  handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
-
- fun is_number (Const(@{const_name Rings.divide},_)$a$b) = is_number a andalso is_number b
-   | is_number t = can HOLogic.dest_number t
-
- val is_number = is_number o term_of
-
- fun proc3 phi ss ct =
-  (case term_of ct of
-    Const(@{const_name Orderings.less},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
-      let
-        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_less_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less_eq},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
-      let
-        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const("op =",_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
-      let
-        val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_eq_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
-    let
-      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "less_divide_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const(@{const_name Orderings.less_eq},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
-    let
-      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
-      in SOME (mk_meta_eq th) end
-  | Const("op =",_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
-    let
-      val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
-        val _ = map is_number [a,b,c]
-        val T = ctyp_of_term c
-        val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "eq_divide_eq"}
-      in SOME (mk_meta_eq th) end
-  | _ => NONE)
-  handle TERM _ => NONE | CTERM _ => NONE | THM _ => NONE
-
-val add_frac_frac_simproc =
-       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + (?w::?'a::field)/?z"}],
-                     name = "add_frac_frac_simproc",
-                     proc = proc, identifier = []}
-
-val add_frac_num_simproc =
-       make_simproc {lhss = [@{cpat "(?x::?'a::field)/?y + ?z"}, @{cpat "?z + (?x::?'a::field)/?y"}],
-                     name = "add_frac_num_simproc",
-                     proc = proc2, identifier = []}
-
-val ord_frac_simproc =
-  make_simproc
-    {lhss = [@{cpat "(?a::(?'a::{field, ord}))/?b < ?c"},
-             @{cpat "(?a::(?'a::{field, ord}))/?b <= ?c"},
-             @{cpat "?c < (?a::(?'a::{field, ord}))/?b"},
-             @{cpat "?c <= (?a::(?'a::{field, ord}))/?b"},
-             @{cpat "?c = ((?a::(?'a::{field, ord}))/?b)"},
-             @{cpat "((?a::(?'a::{field, ord}))/ ?b) = ?c"}],
-             name = "ord_frac_simproc", proc = proc3, identifier = []}
-
-val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
-           @{thm "divide_Numeral1"},
-           @{thm "divide_zero"}, @{thm "divide_Numeral0"},
-           @{thm "divide_divide_eq_left"}, 
-           @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
-           @{thm "times_divide_times_eq"},
-           @{thm "divide_divide_eq_right"},
-           @{thm "diff_def"}, @{thm "minus_divide_left"},
-           @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym,
-           @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
-           Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult_commute}))))   
-           (@{thm field_divide_inverse} RS sym)]
-
-in
-
-val field_comp_conv = (Simplifier.rewrite
-(HOL_basic_ss addsimps @{thms "semiring_norm"}
-              addsimps ths addsimps @{thms simp_thms}
-              addsimprocs Numeral_Simprocs.field_cancel_numeral_factors
-               addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
-                            ord_frac_simproc]
-                addcongs [@{thm "if_weak_cong"}]))
-then_conv (Simplifier.rewrite (HOL_basic_ss addsimps
-  [@{thm numeral_1_eq_1},@{thm numeral_0_eq_0}] @ @{thms numerals(1-2)}))
-
-end
-
 
 (** data **)
 
@@ -363,7 +208,7 @@ fun field_funs key =
      {is_const = K numeral_is_const,
       dest_const = K dest_const,
       mk_const = mk_const,
-      conv = K (K field_comp_conv)}
+      conv = K (K Numeral_Simprocs.field_comp_conv)}
   end;
 
 

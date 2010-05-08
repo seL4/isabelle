@@ -14,21 +14,21 @@ lemma
   fixes x :: int
   shows "x ^ 3 = x ^ 3" 
   apply (tactic {* ALLGOALS (CONVERSION
-    (Conv.arg_conv (Conv.arg1_conv (Normalizer.semiring_normalize_conv @{context})))) *})
+    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
 
 lemma
   fixes x :: int
   shows "(x - (-2))^5 = x ^ 5 + (10 * x ^ 4 + (40 * x ^ 3 + (80 * x\<twosuperior> + (80 * x + 32))))" 
   apply (tactic {* ALLGOALS (CONVERSION
-    (Conv.arg_conv (Conv.arg1_conv (Normalizer.semiring_normalize_conv @{context})))) *})
+    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
 
 schematic_lemma
   fixes x :: int
   shows "(x - (-2))^5  * (y - 78) ^ 8 = ?X" 
   apply (tactic {* ALLGOALS (CONVERSION
-    (Conv.arg_conv (Conv.arg1_conv (Normalizer.semiring_normalize_conv @{context})))) *})
+    (Conv.arg_conv (Conv.arg1_conv (Semiring_Normalizer.semiring_normalize_conv @{context})))) *})
   by (rule refl)
 
 lemma "((-3) ^ (Suc (Suc (Suc 0)))) == (X::'a::{number_ring})"
