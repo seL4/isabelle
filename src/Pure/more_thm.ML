@@ -326,7 +326,7 @@ fun unvarify_global th =
 (* close_derivation *)
 
 fun close_derivation thm =
-  if Thm.get_name thm = "" then Thm.put_name "" thm
+  if Thm.derivation_name thm = "" then Thm.name_derivation "" thm
   else thm;
 
 

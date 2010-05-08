@@ -126,8 +126,8 @@ sig
   val proof_of: thm -> proof
   val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
-  val get_name: thm -> string
-  val put_name: string -> thm -> thm
+  val derivation_name: thm -> string
+  val name_derivation: string -> thm -> thm
   val axiom: theory -> string -> thm
   val axioms_of: theory -> (string * thm) list
   val get_tags: thm -> Properties.T
@@ -585,10 +585,10 @@ fun future future_thm ct =
 
 (* closed derivations with official name *)
 
-fun get_name thm =
+fun derivation_name thm =
   Pt.get_name (hyps_of thm) (prop_of thm) (Pt.proof_of (raw_body thm));
 
-fun put_name name (thm as Thm (der, args)) =
+fun name_derivation name (thm as Thm (der, args)) =
   let
     val Deriv {promises, body} = der;
     val {thy_ref, hyps, prop, tpairs, ...} = args;

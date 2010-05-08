@@ -303,7 +303,7 @@ fun prep_realizer thy =
     val rd = Proof_Syntax.read_proof thy' false;
   in fn (thm, (vs, s1, s2)) =>
     let
-      val name = Thm.get_name thm;
+      val name = Thm.derivation_name thm;
       val _ = name <> "" orelse error "add_realizers: unnamed theorem";
       val prop = Pattern.rewrite_term thy'
         (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
@@ -348,7 +348,7 @@ fun add_expand_thm is_def thm thy =
     val {realizes_eqns, typeof_eqns, types, realizers,
       defs, expand, prep} = ExtractionData.get thy;
 
-    val name = Thm.get_name thm;
+    val name = Thm.derivation_name thm;
     val _ = name <> "" orelse error "add_expand_thm: unnamed theorem";
   in
     thy |> ExtractionData.put
@@ -706,7 +706,7 @@ fun extract thms thy =
         val thy = Thm.theory_of_thm thm;
         val prop = Thm.prop_of thm;
         val prf = Thm.proof_of thm;
-        val name = Thm.get_name thm;
+        val name = Thm.derivation_name thm;
         val _ = name <> "" orelse error "extraction: unnamed theorem";
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
           quote name ^ " has no computational content")
