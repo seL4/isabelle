@@ -1436,7 +1436,7 @@ fun permute_prems j k rl =
         in Logic.list_implies (fixed_prems @ qs @ ps, concl) end
       else raise THM ("permute_prems: k", k, [rl]);
   in
-    Thm (deriv_rule1 (Pt.permute_prems_prf prems j m) der,
+    Thm (deriv_rule1 (Pt.permute_prems_proof prems j m) der,
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,

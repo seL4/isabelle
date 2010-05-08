@@ -84,7 +84,7 @@ sig
   val varify_proof: term -> (string * sort) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> int -> proof -> proof
-  val permute_prems_prf: term list -> int -> int -> proof -> proof
+  val permute_prems_proof: term list -> int -> int -> proof -> proof
   val generalize: string list * string list -> int -> proof -> proof
   val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> proof -> proof
@@ -695,7 +695,7 @@ fun rotate_proof Bs Bi m prf =
 
 (***** permute premises *****)
 
-fun permute_prems_prf prems j k prf =
+fun permute_prems_proof prems j k prf =
   let val n = length prems
   in mk_AbsP (n, proof_combP (prf,
     map PBound ((n-1 downto n-j) @ (k-1 downto 0) @ (n-j-1 downto k))))
