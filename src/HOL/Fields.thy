@@ -397,6 +397,14 @@ lemma inverse_le_iff_le_neg [simp,no_atp]:
   "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> inverse a \<le> inverse b \<longleftrightarrow> b \<le> a"
   by (blast intro: le_imp_inverse_le_neg dest: inverse_le_imp_le_neg) 
 
+lemma one_less_inverse:
+  "0 < a \<Longrightarrow> a < 1 \<Longrightarrow> 1 < inverse a"
+  using less_imp_inverse_less [of a 1, unfolded inverse_1] .
+
+lemma one_le_inverse:
+  "0 < a \<Longrightarrow> a \<le> 1 \<Longrightarrow> 1 \<le> inverse a"
+  using le_imp_inverse_le [of a 1, unfolded inverse_1] .
+
 lemma pos_le_divide_eq [field_simps]: "0 < c ==> (a \<le> b/c) = (a*c \<le> b)"
 proof -
   assume less: "0<c"
