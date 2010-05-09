@@ -8,7 +8,6 @@ structure SumTree =
 struct
 
 (* Theory dependencies *)
-val proj_in_rules = [@{thm Projl_Inl}, @{thm Projr_Inr}]
 val sumcase_split_ss =
   HOL_basic_ss addsimps (@{thm Product_Type.split} :: @{thms sum.cases})
 
