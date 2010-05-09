@@ -132,7 +132,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
     for ((command, command_start) <- document.command_range(0) if !stopped) {
       root.add(document.current_state(command).get.markup_root.swing_tree((node: Markup_Node) =>
           {
-            val content = Pretty.str_of(List(XML.Text(command.source(node.start, node.stop))))
+            val content = command.source(node.start, node.stop).replace('\n', ' ')
             val id = command.id
 
             new DefaultMutableTreeNode(new IAsset {
