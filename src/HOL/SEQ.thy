@@ -1289,7 +1289,7 @@ next
   hence x0: "0 < x" by simp
   assume x1: "x < 1"
   from x0 x1 have "1 < inverse x"
-    by (rule real_inverse_gt_one)
+    by (rule one_less_inverse)
   hence "(\<lambda>n. inverse (inverse x ^ n)) ----> 0"
     by (rule LIMSEQ_inverse_realpow_zero)
   thus ?thesis by (simp add: power_inverse)

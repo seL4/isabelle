@@ -247,7 +247,7 @@ thm_maps
   "REAL_INV_POS" > "Rings.positive_imp_inverse_positive"
   "REAL_INV_NZ" > "Rings.nonzero_imp_inverse_nonzero"
   "REAL_INV_MUL" > "HOL4Real.real.REAL_INV_MUL"
-  "REAL_INV_LT1" > "RealDef.real_inverse_gt_one"
+  "REAL_INV_LT1" > "Fields.one_less_inverse"
   "REAL_INV_INV" > "Rings.inverse_inverse_eq"
   "REAL_INV_EQ_0" > "Rings.inverse_nonzero_iff_nonzero"
   "REAL_INV_1OVER" > "Rings.inverse_eq_divide"

@@ -1089,7 +1089,7 @@ lemma exp_total: "0 < (y::real) ==> \<exists>x. exp x = y"
 apply (rule_tac x = 1 and y = y in linorder_cases)
 apply (drule order_less_imp_le [THEN lemma_exp_total])
 apply (rule_tac [2] x = 0 in exI)
-apply (frule_tac [3] real_inverse_gt_one)
+apply (frule_tac [3] one_less_inverse)
 apply (drule_tac [4] order_less_imp_le [THEN lemma_exp_total], auto)
 apply (rule_tac x = "-x" in exI)
 apply (simp add: exp_minus)

@@ -506,26 +506,24 @@ by (blast intro!: real_less_all_preal linorder_not_less [THEN iffD1])
 
 subsection{*More Lemmas*}
 
+text {* BH: These lemmas should not be necessary; they should be
+covered by existing simp rules and simplification procedures. *}
+
 lemma real_mult_left_cancel: "(c::real) \<noteq> 0 ==> (c*a=c*b) = (a=b)"
-by auto
+by simp (* redundant with mult_cancel_left *)
 
 lemma real_mult_right_cancel: "(c::real) \<noteq> 0 ==> (a*c=b*c) = (a=b)"
-by auto
+by simp (* redundant with mult_cancel_right *)
 
 lemma real_mult_less_iff1 [simp]: "(0::real) < z ==> (x*z < y*z) = (x < y)"
-  by (force elim: order_less_asym
-            simp add: mult_less_cancel_right)
+by simp (* solved by linordered_ring_less_cancel_factor simproc *)
 
 lemma real_mult_le_cancel_iff1 [simp]: "(0::real) < z ==> (x*z \<le> y*z) = (x\<le>y)"
-apply (simp add: mult_le_cancel_right)
-apply (blast intro: elim: order_less_asym)
-done
+by simp (* solved by linordered_ring_le_cancel_factor simproc *)
 
 lemma real_mult_le_cancel_iff2 [simp]: "(0::real) < z ==> (z*x \<le> z*y) = (x\<le>y)"
-by(simp add:mult_commute)
-
-lemma real_inverse_gt_one: "[| (0::real) < x; x < 1 |] ==> 1 < inverse x"
-by (simp add: one_less_inverse_iff) (* TODO: generalize/move *)
+by (rule mult_le_cancel_left_pos)
+(* BH: Why doesn't "simp" prove this one, like it does the last one? *)
 
 
 subsection {* Embedding numbers into the Reals *}
@@ -773,10 +771,6 @@ by (simp add: add: real_of_nat_def)
 lemma not_real_of_nat_less_zero [simp]: "~ real (n::nat) < 0"
 by (simp add: add: real_of_nat_def)
 
-(* FIXME: duplicates real_of_nat_ge_zero *)
-lemma real_of_nat_ge_zero_cancel_iff: "(0 \<le> real (n::nat))"
-by (simp add: add: real_of_nat_def)
-
 lemma nat_less_real_le: "((n::nat) < m) = (real n + 1 <= real m)"
   apply (subgoal_tac "real n + 1 = real (Suc n)")
   apply simp
@@ -1012,12 +1006,6 @@ by auto
 lemma real_0_le_add_iff: "((0::real) \<le> x+y) = (-x \<le> y)"
 by auto
 
-
-(*
-FIXME: we should have this, as for type int, but many proofs would break.
-It replaces x+-y by x-y.
-declare real_diff_def [symmetric, simp]
-*)
 
 subsubsection{*Density of the Reals*}
 
