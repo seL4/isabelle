@@ -46,6 +46,7 @@ sig
   val name_arity: string * sort list * class -> string
   val mk_arities: arity -> term list
   val dest_arity: term -> string * sort list * class
+  val unconstrain_allTs: sort list -> term -> ((typ -> typ) * ((typ * class) * term) list) * term
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
@@ -267,6 +268,42 @@ fun dest_arity tm =
       if has_duplicates (eq_fst (op =)) tvars then err ()
       else map snd tvars;
   in (t, Ss, c) end;
+
+
+(* internalized sort constraints *)
+
+fun unconstrain_allTs shyps prop =
+  let
+    val present = rev ((fold_types o fold_atyps_sorts) (insert (eq_fst op =)) prop []);
+    val extra = fold (Sorts.remove_sort o #2) present shyps;
+
+    val n = length present;
+    val (names1, names2) = Name.invents Name.context Name.aT (n + length extra) |> chop n;
+
+    val present_map =
+      map2 (fn (T, S) => fn a => (T, TVar ((a, 0), S))) present names1;
+    val constraints_map =
+      map2 (fn (_, S) => fn a => (S, TVar ((a, 0), S))) present names1 @
+      map2 (fn S => fn a => (S, TVar ((a, 0), S))) extra names2;
+
+    fun atyp_map T =
+      (case AList.lookup (op =) present_map T of
+        SOME U => U
+      | NONE =>
+          (case AList.lookup (op =) constraints_map (Type.sort_of_atyp T) of
+            SOME U => U
+          | NONE => raise TYPE ("Dangling type variable", [T], [])));
+
+    val constraints =
+      maps (fn (_, T as TVar (ai, S)) =>
+        map (fn c => ((T, c), mk_of_class (TVar (ai, []), c))) S)
+        constraints_map;
+
+    val prop' =
+      prop
+      |> (Term.map_types o Term.map_atyps) (Type.strip_sorts o atyp_map)
+      |> curry list_implies (map snd constraints);
+  in ((atyp_map, constraints), prop') end;
 
 
 
