@@ -101,16 +101,16 @@ fun lift_triv_classes_conv thy conv ct =
         val prem_thms = map (the o AList.lookup (op =) of_classes
           o apfst (fst o fst o dest_TVar) o Logic.dest_of_class) prem_props;
       in Drule.implies_elim_list thm prem_thms end;
-  in ct
+  in
+    (* FIXME avoid legacy operations *)
+    ct
     |> Drule.cterm_rule Thm.varifyT_global
     |> Thm.instantiate_cterm (Thm.certify_inst thy (map (fn (v, ((sort, _), sort')) =>
         (((v, 0), sort), TFree (v, sort'))) vs, []))
     |> Drule.cterm_rule Thm.legacy_freezeT
     |> conv
     |> Thm.varifyT_global
-(* FIXME tmp *)
-(*    |> fold (fn (v, (_, sort')) => Thm.unconstrainT (certT (TVar ((v, 0), sort')))) vs*)
-    |> Thm.unconstrainT
+    |> fold (fn (v, (_, sort')) => Thm.legacy_unconstrainT (certT (TVar ((v, 0), sort')))) vs
     |> Thm.certify_instantiate (map (fn (v, ((sort, _), _)) =>
         (((v, 0), []), TVar ((v, 0), sort))) vs, [])
     |> strip_of_class
