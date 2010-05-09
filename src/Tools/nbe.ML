@@ -108,7 +108,9 @@ fun lift_triv_classes_conv thy conv ct =
     |> Drule.cterm_rule Thm.legacy_freezeT
     |> conv
     |> Thm.varifyT_global
-    |> fold (fn (v, (_, sort')) => Thm.unconstrainT (certT (TVar ((v, 0), sort')))) vs
+(* FIXME tmp *)
+(*    |> fold (fn (v, (_, sort')) => Thm.unconstrainT (certT (TVar ((v, 0), sort')))) vs*)
+    |> Thm.unconstrainT
     |> Thm.certify_instantiate (map (fn (v, ((sort, _), _)) =>
         (((v, 0), []), TVar ((v, 0), sort))) vs, [])
     |> strip_of_class

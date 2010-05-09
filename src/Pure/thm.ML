@@ -138,8 +138,7 @@ sig
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val of_class: ctyp * class -> thm
   val strip_shyps: thm -> thm
-  val unconstrainT: ctyp -> thm -> thm
-  val unconstrain_allTs: thm -> thm
+  val unconstrainT: thm -> thm
   val legacy_freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
@@ -1222,7 +1221,7 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
       end;
 
 (*Internalize sort constraints of type variable*)
-fun unconstrainT
+fun unconstrain_TVar
     (Ctyp {thy_ref = thy_ref1, T, ...})
     (th as Thm (_, {thy_ref = thy_ref2, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
@@ -1242,8 +1241,8 @@ fun unconstrainT
       prop = Logic.list_implies (constraints, unconstrain prop)})
   end;
 
-fun unconstrain_allTs th =
-  fold (unconstrainT o ctyp_of (theory_of_thm th) o TVar)
+fun unconstrainT th =
+  fold (unconstrain_TVar o ctyp_of (theory_of_thm th) o TVar)
     (fold_terms Term.add_tvars th []) th;
 
 

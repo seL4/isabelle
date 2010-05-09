@@ -46,7 +46,7 @@ sig
   val name_arity: string * sort list * class -> string
   val mk_arities: arity -> term list
   val dest_arity: term -> string * sort list * class
-  val unconstrain_allTs: sort list -> term -> ((typ -> typ) * ((typ * class) * term) list) * term
+  val unconstrainT: sort list -> term -> ((typ -> typ) * ((typ * class) * term) list) * term
   val protectC: term
   val protect: term -> term
   val unprotect: term -> term
@@ -272,7 +272,7 @@ fun dest_arity tm =
 
 (* internalized sort constraints *)
 
-fun unconstrain_allTs shyps prop =
+fun unconstrainT shyps prop =
   let
     val present = rev ((fold_types o fold_atyps_sorts) (insert (eq_fst op =)) prop []);
     val extra = fold (Sorts.remove_sort o #2) present shyps;
