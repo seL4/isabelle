@@ -181,6 +181,12 @@ by auto
 lemma rel_comp_distrib2[simp]: "(S \<union> T) O R = (S O R) \<union> (T O R)"
 by auto
 
+lemma rel_comp_UNION_distrib: "s O UNION I r = UNION I (%i. s O r i)"
+by auto
+
+lemma rel_comp_UNION_distrib2: "UNION I r O s = UNION I (%i. r i O s)"
+by auto
+
 
 subsection {* Reflexivity *}
 
