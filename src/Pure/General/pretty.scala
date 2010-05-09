@@ -30,7 +30,8 @@ object Pretty
   object Break
   {
     def apply(width: Int): XML.Tree =
-      XML.Elem(Markup.BREAK, List((Markup.WIDTH, width.toString)), List(XML.Text(" " * width)))
+      XML.Elem(Markup.BREAK, List((Markup.WIDTH, width.toString)),
+        List(XML.Text(Symbol.spaces(width))))
 
     def unapply(tree: XML.Tree): Option[Int] =
       tree match {
@@ -48,7 +49,7 @@ object Pretty
   {
     def newline: Text = copy(tx = FBreak :: tx, pos = 0, nl = nl + 1)
     def string(s: String): Text = copy(tx = XML.Text(s) :: tx, pos = pos + s.length)
-    def blanks(wd: Int): Text = string(" " * wd)
+    def blanks(wd: Int): Text = string(Symbol.spaces(wd))
     def content: List[XML.Tree] = tx.reverse
   }
 
@@ -126,7 +127,7 @@ object Pretty
     def fmt(tree: XML.Tree): List[XML.Tree] =
       tree match {
         case Block(_, body) => body.flatMap(fmt)
-        case Break(wd) => List(XML.Text(" " * wd))
+        case Break(wd) => List(XML.Text(Symbol.spaces(wd)))
         case FBreak => List(XML.Text(" "))
         case XML.Elem(name, atts, body) => List(XML.Elem(name, atts, body.flatMap(fmt)))
         case XML.Text(_) => List(tree)
