@@ -11,18 +11,18 @@ sig
   val map_aterms_same: term Same.operation -> term Same.operation
   val generalizeT_same: string list -> int -> typ Same.operation
   val generalize_same: string list * string list -> int -> term Same.operation
-  val generalize: string list * string list -> int -> term -> term
   val generalizeT: string list -> int -> typ -> typ
+  val generalize: string list * string list -> int -> term -> term
   val instantiateT_maxidx: ((indexname * sort) * (typ * int)) list -> typ -> int -> typ * int
   val instantiate_maxidx:
     ((indexname * sort) * (typ * int)) list * ((indexname * typ) * (term * int)) list ->
     term -> int -> term * int
-  val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
-  val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
-    term -> term
   val instantiateT_same: ((indexname * sort) * typ) list -> typ Same.operation
   val instantiate_same: ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
     term Same.operation
+  val instantiateT: ((indexname * sort) * typ) list -> typ -> typ
+  val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list ->
+    term -> term
   val zero_var_indexes: term -> term
   val zero_var_indexes_inst: term list ->
     ((indexname * sort) * typ) list * ((indexname * typ) * term) list
@@ -88,8 +88,8 @@ fun generalize_same ([], []) _ _ = raise Same.SAME
           | gen (t $ u) = (gen t $ Same.commit gen u handle Same.SAME => t $ gen u);
       in gen tm end;
 
-fun generalize names i tm = Same.commit (generalize_same names i) tm;
 fun generalizeT names i ty = Same.commit (generalizeT_same names i) ty;
+fun generalize names i tm = Same.commit (generalize_same names i) tm;
 
 
 (* instantiation of schematic variables (types before terms) -- recomputes maxidx *)
@@ -146,17 +146,14 @@ fun instantiate_maxidx insts tm i =
   let val maxidx = Unsynchronized.ref i
   in (Same.commit (inst_same maxidx insts) tm, ! maxidx) end;
 
-fun instantiateT [] ty = ty
-  | instantiateT instT ty = Same.commit (instT_same (Unsynchronized.ref ~1) (no_indexes1 instT)) ty;
-
-fun instantiate ([], []) tm = tm
-  | instantiate insts tm = Same.commit (inst_same (Unsynchronized.ref ~1) (no_indexes2 insts)) tm;
-
 fun instantiateT_same [] _ = raise Same.SAME
   | instantiateT_same instT ty = instT_same (Unsynchronized.ref ~1) (no_indexes1 instT) ty;
 
 fun instantiate_same ([], []) _ = raise Same.SAME
   | instantiate_same insts tm = inst_same (Unsynchronized.ref ~1) (no_indexes2 insts) tm;
+
+fun instantiateT instT ty = Same.commit (instantiateT_same instT) ty;
+fun instantiate inst tm = Same.commit (instantiate_same inst) tm;
 
 end;
 
