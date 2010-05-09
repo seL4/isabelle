@@ -1220,30 +1220,27 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end;
 
-(*Internalize sort constraints of type variable*)
-fun unconstrain_TVar
-    (Ctyp {thy_ref = thy_ref1, T, ...})
-    (th as Thm (_, {thy_ref = thy_ref2, maxidx, shyps, hyps, tpairs, prop, ...})) =
+(*Internalize sort constraints of type variables*)
+fun unconstrainT (thm as Thm (_, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
-    val ((x, i), S) = Term.dest_TVar T handle TYPE _ =>
-      raise THM ("unconstrainT: not a type variable", 0, [th]);
-    val T' = TVar ((x, i), []);
-    val unconstrain = Term.map_types (Term.map_atyps (fn U => if U = T then T' else U));
-    val constraints = Logic.mk_of_sort (T', S);
+    fun err msg = raise THM ("unconstrainT: " ^ msg, 0, [thm]);
+
+    val _ = null hyps orelse err "illegal hyps";
+    val _ = null tpairs orelse err "unsolved flex-flex constraints";
+    val tfrees = rev (Term.add_tfree_names prop []);
+    val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
+
+    val (_, prop') = Logic.unconstrainT shyps prop;
   in
     Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
-     {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
+     {thy_ref = thy_ref,
       tags = [],
-      maxidx = Int.max (maxidx, i),
-      shyps = Sorts.remove_sort S shyps,
+      maxidx = maxidx_of_term prop',
+      shyps = [[]],  (*potentially redundant*)
       hyps = hyps,
-      tpairs = map (pairself unconstrain) tpairs,
-      prop = Logic.list_implies (constraints, unconstrain prop)})
+      tpairs = tpairs,
+      prop = prop'})
   end;
-
-fun unconstrainT th =
-  fold (unconstrain_TVar o ctyp_of (theory_of_thm th) o TVar)
-    (fold_terms Term.add_tvars th []) th;
 
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
