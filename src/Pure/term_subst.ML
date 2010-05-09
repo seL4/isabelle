@@ -9,16 +9,10 @@ sig
   val map_atypsT_same: typ Same.operation -> typ Same.operation
   val map_types_same: typ Same.operation -> term Same.operation
   val map_aterms_same: term Same.operation -> term Same.operation
-  val map_atypsT_option: (typ -> typ option) -> typ -> typ option
-  val map_atyps_option: (typ -> typ option) -> term -> term option
-  val map_types_option: (typ -> typ option) -> term -> term option
-  val map_aterms_option: (term -> term option) -> term -> term option
   val generalizeT_same: string list -> int -> typ Same.operation
   val generalize_same: string list * string list -> int -> term Same.operation
   val generalize: string list * string list -> int -> term -> term
   val generalizeT: string list -> int -> typ -> typ
-  val generalize_option: string list * string list -> int -> term -> term option
-  val generalizeT_option: string list -> int -> typ -> typ option
   val instantiateT_maxidx: ((indexname * sort) * (typ * int)) list -> typ -> int -> typ * int
   val instantiate_maxidx:
     ((indexname * sort) * (typ * int)) list * ((indexname * typ) * (term * int)) list ->
@@ -64,11 +58,6 @@ fun map_aterms_same f =
       | term a = f a;
   in term end;
 
-val map_atypsT_option = Same.capture o map_atypsT_same o Same.function;
-val map_atyps_option = Same.capture o map_types_same o map_atypsT_same o Same.function;
-val map_types_option = Same.capture o map_types_same o Same.function;
-val map_aterms_option = Same.capture o map_aterms_same o Same.function;
-
 
 (* generalization of fixed variables *)
 
@@ -101,9 +90,6 @@ fun generalize_same ([], []) _ _ = raise Same.SAME
 
 fun generalize names i tm = Same.commit (generalize_same names i) tm;
 fun generalizeT names i ty = Same.commit (generalizeT_same names i) ty;
-
-fun generalize_option names i tm = SOME (generalize_same names i tm) handle Same.SAME => NONE;
-fun generalizeT_option names i ty = SOME (generalizeT_same names i ty) handle Same.SAME => NONE;
 
 
 (* instantiation of schematic variables (types before terms) -- recomputes maxidx *)
