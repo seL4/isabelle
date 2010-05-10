@@ -318,8 +318,8 @@ class Isabelle_System extends Standard_System
 
   val font_family = "IsabelleText"
 
-  def get_font(bold: Boolean): Font =
-    new Font(font_family, if (bold) Font.BOLD else Font.PLAIN, 1)
+  def get_font(bold: Boolean = false, size: Int = 1): Font =
+    new Font(font_family, if (bold) Font.BOLD else Font.PLAIN, size)
 
   def install_fonts()
   {
