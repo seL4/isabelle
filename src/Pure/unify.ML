@@ -349,7 +349,7 @@ fun type_abs (env,T,t) = types_abs(binder_types env T, t);
 fun matchcopy thy vname = let fun mc(rbinder, targs, u, ed as (env,dpairs))
   : (term * (Envir.env * dpair list))Seq.seq =
 let
-  val trace_tps = Config.get_thy thy trace_types;
+  val trace_tps = Config.get_global thy trace_types;
   (*Produce copies of uarg and cons them in front of uargs*)
   fun copycons uarg (uargs, (env, dpairs)) =
   Seq.map(fn (uarg', ed') => (uarg'::uargs, ed'))
@@ -584,9 +584,9 @@ fun print_dpairs thy msg (env,dpairs) =
 fun hounifiers (thy,env, tus : (term*term)list)
   : (Envir.env * (term*term)list)Seq.seq =
   let
-    val trace_bnd = Config.get_thy thy trace_bound;
-    val search_bnd = Config.get_thy thy search_bound;
-    val trace_smp = Config.get_thy thy trace_simp;
+    val trace_bnd = Config.get_global thy trace_bound;
+    val search_bnd = Config.get_global thy search_bound;
+    val trace_smp = Config.get_global thy trace_simp;
     fun add_unify tdepth ((env,dpairs), reseq) =
     Seq.make (fn()=>
     let val (env',flexflex,flexrigid) =
