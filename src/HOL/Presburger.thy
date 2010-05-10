@@ -392,7 +392,7 @@ use "Tools/Qelim/cooper.ML"
 
 setup Cooper.setup
 
-method_setup presburger = "Cooper.cooper_method" "Cooper's algorithm for Presburger arithmetic"
+method_setup presburger = "Cooper.method" "Cooper's algorithm for Presburger arithmetic"
 
 declare dvd_eq_mod_eq_0[symmetric, presburger]
 declare mod_1[presburger] 

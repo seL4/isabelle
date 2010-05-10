@@ -10,10 +10,10 @@ sig
   val get: Proof.context -> entry
   val del: term list -> attribute
   val add: term list -> attribute 
-  val cooper_conv: Proof.context -> conv
-  val cooper_oracle: cterm -> thm
-  val cooper_tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
-  val cooper_method: (Proof.context -> Method.method) context_parser
+  val conv: Proof.context -> conv
+  val oracle: cterm -> thm
+  val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
+  val method: (Proof.context -> Method.method) context_parser
   exception COOPER of string * exn
   val setup: theory -> theory
 end;
@@ -573,7 +573,7 @@ local
   handle  CTERM s => raise COOPER ("Cooper Failed", CTERM s)
         | THM s => raise COOPER ("Cooper Failed", THM s)
         | TYPE s => raise COOPER ("Cooper Failed", TYPE s)
-in val cooper_conv = conv
+in val conv = conv
 end;
 
 fun i_of_term vs t = case t
@@ -676,7 +676,7 @@ fun term_of_qf ps vs t =
  | Cooper_Procedure.NClosed n => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Closed n))
  | _ => cooper "If this is raised, Isabelle/HOL or code generator is inconsistent!";
 
-fun raw_cooper_oracle ct =
+fun raw_oracle ct =
   let
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
@@ -686,8 +686,8 @@ fun raw_cooper_oracle ct =
       HOLogic.mk_Trueprop (term_of_qf ps vs (Cooper_Procedure.pa (qf_of_term ps vs t)))))
   end;
 
-val (_, cooper_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "cooper", raw_cooper_oracle)));
+val (_, oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (Binding.name "cooper", raw_oracle)));
 
 val comp_ss = HOL_ss addsimps @{thms semiring_norm};
 
@@ -823,13 +823,13 @@ fun div_mod_tac ctxt i = simp_tac (Simplifier.context ctxt div_mod_ss) i;
 fun splits_tac ctxt i = simp_tac (Simplifier.context ctxt splits_ss) i;
 end;
 
-fun core_cooper_tac ctxt = CSUBGOAL (fn (p, i) =>
+fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
    let 
     val cpth = 
        if !quick_and_dirty 
-       then cooper_oracle (Thm.cterm_of (ProofContext.theory_of ctxt)
+       then oracle (Thm.cterm_of (ProofContext.theory_of ctxt)
              (Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p)))))
-       else Conv.arg_conv (cooper_conv ctxt) p
+       else Conv.arg_conv (conv ctxt) p
     val p' = Thm.rhs_of cpth
     val th = implies_intr p' (equal_elim (symmetric cpth) (assume p'))
    in rtac th i end
@@ -838,7 +838,7 @@ fun core_cooper_tac ctxt = CSUBGOAL (fn (p, i) =>
 fun finish_tac q = SUBGOAL (fn (_, i) =>
   (if q then I else TRY) (rtac TrueI i));
 
-fun cooper_tac elim add_ths del_ths ctxt =
+fun tac elim add_ths del_ths ctxt =
 let val ss = Simplifier.context ctxt (fst (get ctxt)) delsimps del_ths addsimps add_ths
     val aprems = Arith_Data.get_arith_facts ctxt
 in
@@ -855,11 +855,11 @@ in
   THEN_ALL_NEW simp_tac ss
   THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
   THEN_ALL_NEW nat_to_int_tac ctxt
-  THEN_ALL_NEW (core_cooper_tac ctxt)
+  THEN_ALL_NEW (core_tac ctxt)
   THEN_ALL_NEW finish_tac elim
 end;
 
-val cooper_method =
+val method =
   let
     fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
     fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
@@ -873,7 +873,7 @@ val cooper_method =
     Scan.optional (keyword addN |-- thms) [] --
     Scan.optional (keyword delN |-- thms) [] >>
     (fn ((elim, add_ths), del_ths) => fn ctxt =>
-      SIMPLE_METHOD' (cooper_tac elim add_ths del_ths ctxt))
+      SIMPLE_METHOD' (tac elim add_ths del_ths ctxt))
   end;
 
 
@@ -896,7 +896,7 @@ val setup =
   Attrib.setup @{binding presburger}
     ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
       optional (keyword constsN |-- terms) >> add) "data for Cooper's algorithm"
-  #> Arith_Data.add_tactic "Presburger arithmetic" (K (cooper_tac true [] []));
+  #> Arith_Data.add_tactic "Presburger arithmetic" (K (tac true [] []));
 
 end;
 
