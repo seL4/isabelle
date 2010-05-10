@@ -15,7 +15,6 @@ begin
 
 subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
 
-
 lemma minf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x<z. P x = P' x; \<exists>z.\<forall>x<z. Q x = Q' x\<rbrakk> 
      \<Longrightarrow> \<exists>z.\<forall>x<z. (P x \<and> Q x) = (P' x \<and> Q' x)"
@@ -384,10 +383,11 @@ text {* \bigskip Theorems for transforming predicates on nat to predicates on @{
 
 lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
-  by (case_tac "y \<le> x", simp_all add: zdiff_int)
+  by (cases "y \<le> x") (simp_all add: zdiff_int)
 
 lemma number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (Int.Bit0 n) \<and> (0::int) <= number_of (Int.Bit1 n)"
 by simp
+
 lemma number_of2: "(0::int) <= Numeral0" by simp
 
 text {*
@@ -398,10 +398,6 @@ theorem imp_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= 
 
 theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<and> P) = (0 <= x \<and> P')" 
   by (simp cong: conj_cong)
-
-lemma int_eq_number_of_eq:
-  "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
-  by (rule eq_number_of_eq)
 
 use "Tools/Qelim/cooper.ML"
 
