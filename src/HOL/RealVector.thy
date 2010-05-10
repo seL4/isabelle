@@ -793,7 +793,7 @@ instance
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule dist_real_def)
 apply (rule open_real_def)
-apply (simp add: real_sgn_def)
+apply (simp add: sgn_real_def)
 apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)

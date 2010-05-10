@@ -354,7 +354,6 @@ HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   Lubs.thy \
   MacLaurin.thy \
   NthRoot.thy \
-  PReal.thy \
   Parity.thy \
   RComplete.thy \
   Rat.thy \
