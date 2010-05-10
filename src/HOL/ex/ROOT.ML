@@ -65,7 +65,8 @@ use_thys [
   "Landau",
   "Execute_Choice",
   "Summation",
-  "Gauge_Integration"
+  "Gauge_Integration",
+  "Dedekind_Real"
 ];
 
 HTML.with_charset "utf-8" (no_document use_thys)
