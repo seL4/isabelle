@@ -8,10 +8,11 @@ Sets with canonical linear order, or immutable linked-lists.
 package isabelle
 
 import scala.collection.SetLike
-import scala.collection.generic.{SetFactory, CanBuildFrom, GenericSetTemplate, GenericCompanion}
+import scala.collection.generic.{ImmutableSetFactory, CanBuildFrom,
+  GenericSetTemplate, GenericCompanion}
 
 
-object Linear_Set extends SetFactory[Linear_Set]
+object Linear_Set extends ImmutableSetFactory[Linear_Set]
 {
   private case class Rep[A](
     val start: Option[A], val end: Option[A], val nexts: Map[A, A], prevs: Map[A, A])
