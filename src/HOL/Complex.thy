@@ -676,12 +676,12 @@ lemma rcis_inverse: "inverse(rcis r a) = rcis (1/r) (-a)"
 by (simp add: divide_inverse rcis_def)
 
 lemma cis_divide: "cis a / cis b = cis (a - b)"
-by (simp add: complex_divide_def cis_mult real_diff_def)
+by (simp add: complex_divide_def cis_mult diff_def)
 
 lemma rcis_divide: "rcis r1 a / rcis r2 b = rcis (r1/r2) (a - b)"
 apply (simp add: complex_divide_def)
 apply (case_tac "r2=0", simp)
-apply (simp add: rcis_inverse rcis_mult real_diff_def)
+apply (simp add: rcis_inverse rcis_mult diff_def)
 done
 
 lemma Re_cis [simp]: "Re(cis a) = cos a"

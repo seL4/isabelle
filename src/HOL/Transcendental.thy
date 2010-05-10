@@ -779,7 +779,7 @@ proof -
             finally show "\<bar>\<Sum>p = 0..<Suc n. x ^ p * y ^ (n - p)\<bar> \<le> \<bar>real (Suc n)\<bar> * \<bar>R' ^ n\<bar>" unfolding abs_real_of_nat_cancel abs_of_nonneg[OF zero_le_power[OF less_imp_le[OF `0 < R'`]]] .
             show "0 \<le> \<bar>f n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult[symmetric] by auto
           qed
-          also have "\<dots> = \<bar>f n * real (Suc n) * R' ^ n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult real_mult_assoc[symmetric] by algebra
+          also have "\<dots> = \<bar>f n * real (Suc n) * R' ^ n\<bar> * \<bar>x - y\<bar>" unfolding abs_mult mult_assoc[symmetric] by algebra
           finally show ?thesis .
         qed }
       { fix n show "DERIV (\<lambda> x. ?f x n) x0 :> (?f' x0 n)"
@@ -792,7 +792,7 @@ proof -
           show "\<bar>f n * x ^ n\<bar> \<le> norm (f n * real (Suc n) * x ^ n)" unfolding real_norm_def abs_mult
             by (rule mult_right_mono, auto simp add: le[unfolded mult_1_right])
         qed
-        from this[THEN summable_mult2[where c=x], unfolded real_mult_assoc, unfolded real_mult_commute]
+        from this[THEN summable_mult2[where c=x], unfolded mult_assoc, unfolded mult_commute]
         show "summable (?f x)" by auto }
       show "summable (?f' x0)" using converges[OF `x0 \<in> {-R <..< R}`] .
       show "x0 \<in> {-R' <..< R'}" using `x0 \<in> {-R' <..< R'}` .
@@ -1022,7 +1022,7 @@ text {* Strict monotonicity of exponential. *}
 lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) ==> (1 + x) \<le> exp(x)"
 apply (drule order_le_imp_less_or_eq, auto)
 apply (simp add: exp_def)
-apply (rule real_le_trans)
+apply (rule order_trans)
 apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
 apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
 done
@@ -1228,7 +1228,7 @@ proof -
     have "1 / x = 1 / (1 - (1 - x))" by auto
     also have "\<dots> = (\<Sum> n. (1 - x)^n)" using geometric_sums[OF `norm (1 - x) < 1`] by (rule sums_unique)
     also have "\<dots> = suminf (?f' x)" unfolding power_mult_distrib[symmetric] by (rule arg_cong[where f=suminf], rule arg_cong[where f="op ^"], auto)
-    finally have "DERIV ln x :> suminf (?f' x)" using DERIV_ln[OF `0 < x`] unfolding real_divide_def by auto
+    finally have "DERIV ln x :> suminf (?f' x)" using DERIV_ln[OF `0 < x`] unfolding divide_inverse by auto
     moreover
     have repos: "\<And> h x :: real. h - 1 + x = h + x - 1" by auto
     have "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> (\<Sum>n. (-1)^n * (1 / real (n + 1)) * real (Suc n) * (x - 1) ^ n)"
@@ -1388,7 +1388,7 @@ done
 
 lemma DERIV_sin_realpow2 [simp]:
      "DERIV (%x. (sin x)\<twosuperior>) x :> cos(x) * sin(x) + cos(x) * sin(x)"
-by (auto simp add: numeral_2_eq_2 real_mult_assoc [symmetric])
+by (auto simp add: numeral_2_eq_2 mult_assoc [symmetric])
 
 lemma DERIV_sin_realpow2a [simp]:
      "DERIV (%x. (sin x)\<twosuperior>) x :> 2 * cos(x) * sin(x)"
@@ -1406,7 +1406,7 @@ done
 
 lemma DERIV_cos_realpow2 [simp]:
      "DERIV (%x. (cos x)\<twosuperior>) x :> -sin(x) * cos(x) + -sin(x) * cos(x)"
-by (auto simp add: numeral_2_eq_2 real_mult_assoc [symmetric])
+by (auto simp add: numeral_2_eq_2 mult_assoc [symmetric])
 
 lemma DERIV_cos_realpow2a [simp]:
      "DERIV (%x. (cos x)\<twosuperior>) x :> -2 * cos(x) * sin(x)"
@@ -1705,8 +1705,8 @@ apply (auto intro: DERIV_cos DERIV_isCont simp add: differentiable_def)
 apply (drule_tac f = cos in Rolle)
 apply (drule_tac [5] f = cos in Rolle)
 apply (auto dest!: DERIV_cos [THEN DERIV_unique] simp add: differentiable_def)
-apply (metis order_less_le_trans real_less_def sin_gt_zero)
-apply (metis order_less_le_trans real_less_def sin_gt_zero)
+apply (metis order_less_le_trans less_le sin_gt_zero)
+apply (metis order_less_le_trans less_le sin_gt_zero)
 done
 
 lemma pi_half: "pi/2 = (THE x. 0 \<le> x & x \<le> 2 & cos x = 0)"
@@ -2138,9 +2138,9 @@ apply (drule_tac x = "(pi/2) - e" in spec)
 apply (auto simp add: tan_def)
 apply (rule inverse_less_iff_less [THEN iffD1])
 apply (auto simp add: divide_inverse)
-apply (rule real_mult_order) 
+apply (rule mult_pos_pos)
 apply (subgoal_tac [3] "0 < sin e & 0 < cos e")
-apply (auto intro: cos_gt_zero sin_gt_zero2 simp add: mult_commute) 
+apply (auto intro: cos_gt_zero sin_gt_zero2 simp add: mult_commute)
 done
 
 lemma tan_total_pos: "0 \<le> y ==> \<exists>x. 0 \<le> x & x < pi/2 & tan x = y"
@@ -2193,7 +2193,7 @@ proof -
   hence "0 < cos z" using cos_gt_zero_pi by auto
   hence inv_pos: "0 < inverse ((cos z)\<twosuperior>)" by auto
   have "0 < x - y" using `y < x` by auto
-  from real_mult_order[OF this inv_pos]
+  from mult_pos_pos [OF this inv_pos]
   have "0 < tan x - tan y" unfolding tan_diff by auto
   thus ?thesis by auto
 qed
@@ -2226,7 +2226,7 @@ lemma tan_periodic_pi[simp]: "tan (x + pi) = tan x"
 lemma tan_periodic_nat[simp]: fixes n :: nat shows "tan (x + real n * pi) = tan x" 
 proof (induct n arbitrary: x)
   case (Suc n)
-  have split_pi_off: "x + real (Suc n) * pi = (x + real n * pi) + pi" unfolding Suc_eq_plus1 real_of_nat_add real_of_one real_add_mult_distrib by auto
+  have split_pi_off: "x + real (Suc n) * pi = (x + real n * pi) + pi" unfolding Suc_eq_plus1 real_of_nat_add real_of_one left_distrib by auto
   show ?case unfolding split_pi_off using Suc by auto
 qed auto
 
@@ -2439,7 +2439,7 @@ apply (rule arctan_ubound [of x, THEN dense, THEN exE], clarify)
 apply (subgoal_tac "isCont arctan (tan (arctan x))", simp)
 apply (erule (1) isCont_inverse_function2 [where f=tan])
 apply (metis arctan_tan order_le_less_trans order_less_le_trans)
-apply (metis cos_gt_zero_pi isCont_tan order_less_le_trans real_less_def)
+apply (metis cos_gt_zero_pi isCont_tan order_less_le_trans less_le)
 done
 
 lemma DERIV_arcsin:
@@ -2953,7 +2953,7 @@ proof -
       }
       hence "\<forall> x \<in> { 0 <..< 1 }. 0 \<le> ?a x n - ?diff x n" by auto
       moreover have "\<And>x. isCont (\<lambda> x. ?a x n - ?diff x n) x"
-        unfolding real_diff_def divide_inverse
+        unfolding diff_def divide_inverse
         by (auto intro!: isCont_add isCont_rabs isCont_ident isCont_minus isCont_arctan isCont_inverse isCont_mult isCont_power isCont_const isCont_setsum)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n" by (rule LIM_less_bound)
       hence "?diff 1 n \<le> ?a 1 n" by auto
@@ -2969,7 +2969,7 @@ proof -
         have "norm (?diff 1 n - 0) < r" by auto }
       thus "\<exists> N. \<forall> n \<ge> N. norm (?diff 1 n - 0) < r" by blast
     qed
-    from this[unfolded LIMSEQ_rabs_zero real_diff_def add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN LIMSEQ_minus]
+    from this[unfolded LIMSEQ_rabs_zero diff_def add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN LIMSEQ_minus]
     have "(?c 1) sums (arctan 1)" unfolding sums_def by auto
     hence "arctan 1 = (\<Sum> i. ?c 1 i)" by (rule sums_unique)
     

@@ -64,7 +64,7 @@ lemma powr_powr: "(x powr a) powr b = x powr (a * b)"
 by (simp add: powr_def)
 
 lemma powr_powr_swap: "(x powr a) powr b = (x powr b) powr a"
-by (simp add: powr_powr real_mult_commute)
+by (simp add: powr_powr mult_commute)
 
 lemma powr_minus: "x powr (-a) = inverse (x powr a)"
 by (simp add: powr_def exp_minus [symmetric])

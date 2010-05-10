@@ -482,8 +482,7 @@ lemma f_inc_imp_le_lim:
   shows "\<lbrakk>\<forall>n. f n \<le> f (Suc n); convergent f\<rbrakk> \<Longrightarrow> f n \<le> lim f"
 apply (rule linorder_not_less [THEN iffD1])
 apply (auto simp add: convergent_LIMSEQ_iff LIMSEQ_iff monoseq_Suc)
-apply (drule real_less_sum_gt_zero)
-apply (drule_tac x = "f n + - lim f" in spec, safe)
+apply (drule_tac x = "f n - lim f" in spec, clarsimp)
 apply (drule_tac P = "%na. no\<le>na --> ?Q na" and x = "no + n" in spec, auto)
 apply (subgoal_tac "lim f \<le> f (no + n) ")
 apply (drule_tac no=no and m=n in lemma_f_mono_add)
@@ -706,7 +705,7 @@ apply (cut_tac P = "% (u,v) . a \<le> u & u \<le> v & v \<le> b --> (\<exists>M.
 apply safe
 apply simp_all
 apply (rename_tac x xa ya M Ma)
-apply (metis linorder_not_less order_le_less real_le_trans)
+apply (metis linorder_not_less order_le_less order_trans)
 apply (case_tac "a \<le> x & x \<le> b")
  prefer 2
  apply (rule_tac x = 1 in exI, force)
@@ -1235,16 +1234,16 @@ proof (rule ccontr)
       using assms
       apply auto
       apply (metis DERIV_isCont)
-     apply (metis differentiableI real_less_def)
+     apply (metis differentiableI less_le)
     done
   then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
       and "f b - f a = (b - a) * l"
     by auto
   
   from prems have "~(l > 0)"
-    by (metis linorder_not_le mult_le_0_iff real_le_eq_diff)
+    by (metis linorder_not_le mult_le_0_iff diff_le_0_iff_le)
   with prems show False
-    by (metis DERIV_unique real_less_def)
+    by (metis DERIV_unique less_le)
 qed
 
 lemma DERIV_nonneg_imp_nonincreasing:
@@ -1264,13 +1263,13 @@ proof (rule ccontr, cases "a = b")
     apply (rule MVT)
       apply auto
       apply (metis DERIV_isCont)
-     apply (metis differentiableI real_less_def)
+     apply (metis differentiableI less_le)
     done
   then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
       and "f b - f a = (b - a) * l"
     by auto
   from prems have "~(l >= 0)"
-    by (metis diff_self le_eqI le_iff_diff_le_0 real_le_antisym real_le_linear
+    by (metis diff_self le_eqI le_iff_diff_le_0 order_antisym linear
               split_mult_pos_le)
   with prems show False
     by (metis DERIV_unique order_less_imp_le)

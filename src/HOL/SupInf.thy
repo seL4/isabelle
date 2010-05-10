@@ -74,7 +74,7 @@ lemma Sup_eq_maximum: (*REAL_SUP_MAX in HOL4*)
 lemma Sup_upper2: (*REAL_IMP_LE_SUP in HOL4*)
   fixes x :: real
   shows "x \<in> X \<Longrightarrow> y \<le> x \<Longrightarrow> (!!x. x \<in> X \<Longrightarrow> x \<le> z) \<Longrightarrow> y \<le> Sup X"
-  by (metis Sup_upper real_le_trans)
+  by (metis Sup_upper order_trans)
 
 lemma Sup_real_iff : (*REAL_SUP_LE in HOL4*)
   fixes z :: real
@@ -86,7 +86,7 @@ lemma Sup_eq:
   shows "(!!x. x \<in> X \<Longrightarrow> x \<le> a) 
         \<Longrightarrow> (!!y. (!!x. x \<in> X \<Longrightarrow> x \<le> y) \<Longrightarrow> a \<le> y) \<Longrightarrow> Sup X = a"
   by (metis Sup_least Sup_upper add_le_cancel_left diff_add_cancel insert_absorb
-        insert_not_empty real_le_antisym)
+        insert_not_empty order_antisym)
 
 lemma Sup_le:
   fixes S :: "real set"
@@ -109,28 +109,28 @@ proof (cases "Sup X \<le> a")
     apply (simp add: max_def)
     apply (rule Sup_eq_maximum)
     apply (rule insertI1)
-    apply (metis Sup_upper [OF _ z] insertE real_le_linear real_le_trans)
+    apply (metis Sup_upper [OF _ z] insertE linear order_trans)
     done
 next
   case False
   hence 1:"a < Sup X" by simp
   have "Sup X \<le> Sup (insert a X)"
     apply (rule Sup_least)
-    apply (metis empty_psubset_nonempty psubset_eq x)
+    apply (metis ex_in_conv x)
     apply (rule Sup_upper_EX) 
     apply blast
-    apply (metis insert_iff real_le_linear real_le_refl real_le_trans z)
+    apply (metis insert_iff linear order_refl order_trans z)
     done
   moreover 
   have "Sup (insert a X) \<le> Sup X"
     apply (rule Sup_least)
     apply blast
-    apply (metis False Sup_upper insertE real_le_linear z) 
+    apply (metis False Sup_upper insertE linear z)
     done
   ultimately have "Sup (insert a X) = Sup X"
     by (blast intro:  antisym )
   thus ?thesis
-    by (metis 1 min_max.le_iff_sup real_less_def)
+    by (metis 1 min_max.le_iff_sup less_le)
 qed
 
 lemma Sup_insert_if: 
@@ -177,7 +177,7 @@ lemma Sup_finite_le_iff:
   fixes S :: "real set"
   assumes fS: "finite S" and Se: "S \<noteq> {}"
   shows "a \<ge> Sup S \<longleftrightarrow> (\<forall> x \<in> S. a \<ge> x)"
-by (metis Max_ge Se Sup_finite_Max Sup_finite_in fS real_le_trans)
+by (metis Max_ge Se Sup_finite_Max Sup_finite_in fS order_trans)
 
 lemma Sup_finite_gt_iff: 
   fixes S :: "real set"
@@ -291,19 +291,19 @@ qed
 lemma Inf_lower2:
   fixes x :: real
   shows "x \<in> X \<Longrightarrow> x \<le> y \<Longrightarrow> (!!x. x \<in> X \<Longrightarrow> z \<le> x) \<Longrightarrow> Inf X \<le> y"
-  by (metis Inf_lower real_le_trans)
+  by (metis Inf_lower order_trans)
 
 lemma Inf_real_iff:
   fixes z :: real
   shows "X \<noteq> {} \<Longrightarrow> (!!x. x \<in> X \<Longrightarrow> z \<le> x) \<Longrightarrow> (\<exists>x\<in>X. x<y) \<longleftrightarrow> Inf X < y"
-  by (metis Inf_greatest Inf_lower less_le_not_le real_le_linear 
+  by (metis Inf_greatest Inf_lower less_le_not_le linear
             order_less_le_trans)
 
 lemma Inf_eq:
   fixes a :: real
   shows "(!!x. x \<in> X \<Longrightarrow> a \<le> x) \<Longrightarrow> (!!y. (!!x. x \<in> X \<Longrightarrow> y \<le> x) \<Longrightarrow> y \<le> a) \<Longrightarrow> Inf X = a"
   by (metis Inf_greatest Inf_lower add_le_cancel_left diff_add_cancel
-        insert_absorb insert_not_empty real_le_antisym)
+        insert_absorb insert_not_empty order_antisym)
 
 lemma Inf_ge: 
   fixes S :: "real set"
@@ -324,27 +324,27 @@ proof (cases "a \<le> Inf X")
   case True
   thus ?thesis
     by (simp add: min_def)
-       (blast intro: Inf_eq_minimum real_le_refl real_le_trans z)
+       (blast intro: Inf_eq_minimum order_trans z)
 next
   case False
   hence 1:"Inf X < a" by simp
   have "Inf (insert a X) \<le> Inf X"
     apply (rule Inf_greatest)
-    apply (metis empty_psubset_nonempty psubset_eq x)
+    apply (metis ex_in_conv x)
     apply (rule Inf_lower_EX)
     apply (erule insertI2)
-    apply (metis insert_iff real_le_linear real_le_refl real_le_trans z)
+    apply (metis insert_iff linear order_refl order_trans z)
     done
   moreover 
   have "Inf X \<le> Inf (insert a X)"
     apply (rule Inf_greatest)
     apply blast
-    apply (metis False Inf_lower insertE real_le_linear z) 
+    apply (metis False Inf_lower insertE linear z) 
     done
   ultimately have "Inf (insert a X) = Inf X"
     by (blast intro:  antisym )
   thus ?thesis
-    by (metis False min_max.inf_absorb2 real_le_linear)
+    by (metis False min_max.inf_absorb2 linear)
 qed
 
 lemma Inf_insert_if: 
@@ -377,13 +377,13 @@ lemma Inf_finite_in:
 lemma Inf_finite_ge_iff: 
   fixes S :: "real set"
   shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<le> Inf S \<longleftrightarrow> (\<forall> x \<in> S. a \<le> x)"
-by (metis Inf_finite_Min Inf_finite_in Min_le real_le_trans)
+by (metis Inf_finite_Min Inf_finite_in Min_le order_trans)
 
 lemma Inf_finite_le_iff:
   fixes S :: "real set"
   shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Inf S \<longleftrightarrow> (\<exists> x \<in> S. a \<ge> x)"
 by (metis Inf_finite_Min Inf_finite_ge_iff Inf_finite_in Min_le
-          real_le_antisym real_le_linear)
+          order_antisym linear)
 
 lemma Inf_finite_gt_iff: 
   fixes S :: "real set"
@@ -417,7 +417,7 @@ proof -
   also have "... \<le> e" 
     apply (rule Sup_asclose) 
     apply (auto simp add: S)
-    apply (metis abs_minus_add_cancel b add_commute real_diff_def) 
+    apply (metis abs_minus_add_cancel b add_commute diff_def)
     done
   finally have "\<bar>- Sup (uminus ` S) - l\<bar> \<le> e" .
   thus ?thesis
@@ -474,13 +474,13 @@ lemma reals_complete_interval:
 proof (rule exI [where x = "Sup {d. \<forall>x. a \<le> x & x < d --> P x}"], auto)
   show "a \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
     by (rule SupInf.Sup_upper [where z=b], auto)
-       (metis `a < b` `\<not> P b` real_le_linear real_less_def)
+       (metis `a < b` `\<not> P b` linear less_le)
 next
   show "Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c} \<le> b"
     apply (rule SupInf.Sup_least) 
     apply (auto simp add: )
     apply (metis less_le_not_le)
-    apply (metis `a<b` `~ P b` real_le_linear real_less_def) 
+    apply (metis `a<b` `~ P b` linear less_le)
     done
 next
   fix x
@@ -495,7 +495,7 @@ next
     assume 0: "\<forall>x. a \<le> x \<and> x < d \<longrightarrow> P x"
     thus "d \<le> Sup {d. \<forall>c. a \<le> c \<and> c < d \<longrightarrow> P c}"
       by (rule_tac z="b" in SupInf.Sup_upper, auto) 
-         (metis `a<b` `~ P b` real_le_linear real_less_def) 
+         (metis `a<b` `~ P b` linear less_le)
 qed
 
 end

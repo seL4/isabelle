@@ -206,7 +206,7 @@ proof -
     apply auto
     done
   also have "... = exp (-x)"
-    by (auto simp add: exp_minus real_divide_def)
+    by (auto simp add: exp_minus divide_inverse)
   finally have "1 - x <= exp (- x)" .
   also have "1 - x = exp (ln (1 - x))"
   proof -

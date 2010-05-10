@@ -95,7 +95,7 @@ lemma realpow_two_le_add_order2 [simp]: "(0::real) \<le> u ^ 2 + v ^ 2 + w ^ 2"
 by (intro add_nonneg_nonneg zero_le_power2)
 
 lemma real_minus_mult_self_le [simp]: "-(u * u) \<le> (x * (x::real))"
-by (rule_tac j = 0 in real_le_trans, auto)
+by (rule_tac y = 0 in order_trans, auto)
 
 lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
 by (auto simp add: power2_eq_square)
@@ -145,7 +145,7 @@ lemma real_mult_inverse_cancel:
      "[|(0::real) < x; 0 < x1; x1 * y < x * u |] 
       ==> inverse x * y < inverse x1 * u"
 apply (rule_tac c=x in mult_less_imp_less_left) 
-apply (auto simp add: real_mult_assoc [symmetric])
+apply (auto simp add: mult_assoc [symmetric])
 apply (simp (no_asm) add: mult_ac)
 apply (rule_tac c=x1 in mult_less_imp_less_right) 
 apply (auto simp add: mult_ac)
