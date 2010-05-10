@@ -572,6 +572,22 @@ local
 in val conv = conv
 end;
 
+fun term_bools acc t =
+  let
+    val ops = [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
+      @{term "op = :: int => _"}, @{term "op < :: int => _"},
+      @{term "op <= :: int => _"}, @{term "Not"}, @{term "All:: (int => _) => _"},
+      @{term "Ex:: (int => _) => _"}, @{term "True"}, @{term "False"}]
+    fun ty t = not (fastype_of t = HOLogic.boolT)
+  in case t of
+      (l as f $ a) $ b => if ty t orelse member (op =) ops f then term_bools (term_bools acc l)b
+              else insert (op aconv) t acc
+    | f $ a => if ty t orelse member (op =) ops f then term_bools (term_bools acc f) a
+              else insert (op aconv) t acc
+    | Abs p => term_bools acc (snd (variant_abs p))
+    | _ => if ty t orelse member (op =) ops t then acc else insert (op aconv) t acc
+  end;
+
 fun i_of_term vs t = case t
  of Free (xn, xT) => (case AList.lookup (op aconv) vs t
      of NONE   => raise COOPER "reification: variable not found in list"
@@ -618,32 +634,9 @@ fun qf_of_term ps vs t =  case t
            NONE => raise COOPER "reification: unknown term"
          | SOME n => Cooper_Procedure.Closed n);
 
-local
- val ops = [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
-             @{term "op = :: int => _"}, @{term "op < :: int => _"},
-             @{term "op <= :: int => _"}, @{term "Not"}, @{term "All:: (int => _) => _"},
-             @{term "Ex:: (int => _) => _"}, @{term "True"}, @{term "False"}]
-fun ty t = Bool.not (fastype_of t = HOLogic.boolT)
-in
-fun term_bools acc t =
-case t of
-    (l as f $ a) $ b => if ty t orelse member (op =) ops f then term_bools (term_bools acc l)b
-            else insert (op aconv) t acc
-  | f $ a => if ty t orelse member (op =) ops f then term_bools (term_bools acc f) a
-            else insert (op aconv) t acc
-  | Abs p => term_bools acc (snd (variant_abs p))
-  | _ => if ty t orelse member (op =) ops t then acc else insert (op aconv) t acc
-end;
-
-fun myassoc2 l v =
-    case l of
-  [] => NONE
-      | (x,v')::xs => if v = v' then SOME x
-          else myassoc2 xs v;
-
 fun term_of_i vs t = case t
  of Cooper_Procedure.C i => HOLogic.mk_number HOLogic.intT i
-  | Cooper_Procedure.Bound n => the (myassoc2 vs n)
+  | Cooper_Procedure.Bound n => the (AList.lookup (op =) vs n)
   | Cooper_Procedure.Neg t' => @{term "uminus :: int => _"} $ term_of_i vs t'
   | Cooper_Procedure.Add (t1, t2) => @{term "op + :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
   | Cooper_Procedure.Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
@@ -669,7 +662,7 @@ fun term_of_qf ps vs t =
  | Cooper_Procedure.Or(t1,t2) => HOLogic.disj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
  | Cooper_Procedure.Imp(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
  | Cooper_Procedure.Iff(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
- | Cooper_Procedure.Closed n => the (myassoc2 ps n)
+ | Cooper_Procedure.Closed n => the (AList.lookup (op =) ps n)
  | Cooper_Procedure.NClosed n => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Closed n));
 
 fun invoke t =
@@ -677,7 +670,7 @@ fun invoke t =
     val (vs, ps) = pairself (map_index swap) (OldTerm.term_frees t, term_bools [] t);
   in
     Logic.mk_equals (HOLogic.mk_Trueprop t,
-      HOLogic.mk_Trueprop (term_of_qf ps vs (Cooper_Procedure.pa (qf_of_term ps vs t))))
+      HOLogic.mk_Trueprop (term_of_qf (map swap ps) (map swap vs) (Cooper_Procedure.pa (qf_of_term ps vs t))))
   end;
 
 val (_, oracle) = Context.>>> (Context.map_theory_result
