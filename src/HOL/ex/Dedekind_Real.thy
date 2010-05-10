@@ -1,5 +1,6 @@
 (*  Title:      HOL/ex/Dedekind_Real.thy
     Author:     Jacques D. Fleuriot, University of Cambridge
+    Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
 
 The positive reals as Dedekind sections of positive
 rationals. Fundamentals of Abstract Analysis [Gleason- p. 121]
