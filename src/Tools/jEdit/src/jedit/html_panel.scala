@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.io.StringReader
-import java.awt.{BorderLayout, Dimension}
+import java.awt.{BorderLayout, Dimension, GraphicsEnvironment, Toolkit}
 import java.awt.event.MouseEvent
 
 import javax.swing.{JButton, JPanel, JScrollPane}
@@ -56,6 +56,15 @@ class HTML_Panel(
   }
 
   private def template(font_size: Int): String =
+  {
+    // re-adjustment according to org.lobobrowser.html.style.HtmlValues.getFontSize
+    val dpi =
+      if (GraphicsEnvironment.isHeadless()) 72
+      else Toolkit.getDefaultToolkit().getScreenResolution()
+
+    val size0 = font_size * dpi / 96
+    val size = if (size0 * 96 / dpi == font_size) size0 else size0 + 1
+
     """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -65,13 +74,14 @@ class HTML_Panel(
 """ +
   try_file("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
   try_file("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
-  "body { font-family: " + sys.font_family + "; font-size: " + font_size + "px }" +
+  "body { font-family: " + sys.font_family + "; font-size: " + size + "px }" +
 """
 </style>
 </head>
 <body/>
 </html>
 """
+  }
 
 
   /* actor with local state */
