@@ -58,12 +58,14 @@ object Platform
   private def find_laf(name: String): Option[String] =
     UIManager.getInstalledLookAndFeels().find(_.getName == name).map(_.getClassName)
 
-  def look_and_feel(): String =
+  def get_laf(): String =
   {
     if (is_windows || is_macos) UIManager.getSystemLookAndFeelClassName()
     else
       find_laf("Nimbus") orElse find_laf("GTK+") getOrElse
       UIManager.getCrossPlatformLookAndFeelClassName()
   }
+
+  def init_laf(): Unit = UIManager.setLookAndFeel(get_laf())
 }
 

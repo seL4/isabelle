@@ -6,8 +6,6 @@ GUI for basic system setup.
 
 package isabelle
 
-import javax.swing.UIManager
-
 import scala.swing._
 import scala.swing.event._
 
@@ -16,7 +14,7 @@ object GUI_Setup extends SwingApplication
 {
   def startup(args: Array[String]) =
   {
-    UIManager.setLookAndFeel(Platform.look_and_feel)
+    Platform.init_laf()
     top.pack()
     top.visible = true
   }
