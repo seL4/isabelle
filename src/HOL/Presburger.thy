@@ -398,14 +398,15 @@ theorem imp_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= 
 
 theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<and> P) = (0 <= x \<and> P')" 
   by (simp cong: conj_cong)
+
 lemma int_eq_number_of_eq:
   "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
   by (rule eq_number_of_eq)
 
 use "Tools/Qelim/cooper.ML"
 
-setup CooperData.setup
-oracle linzqe_oracle = Coopereif.cooper_oracle
+setup Cooper.setup
+oracle linzqe_oracle = Cooper.cooper_oracle
 
 use "Tools/Qelim/presburger.ML"
 

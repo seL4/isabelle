@@ -2,30 +2,22 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-signature COOPER_DATA =
+signature COOPER =
 sig
   type entry
   val get: Proof.context -> entry
   val del: term list -> attribute
   val add: term list -> attribute 
   val setup: theory -> theory
-end;
-
-signature COOPER =
-sig
   val cooper_conv: Proof.context -> conv
+  val cooper_oracle: cterm -> cterm
   exception COOPER of string * exn
 end;
 
-signature COOPER_REIFY =
-sig
-  val cooper_oracle: cterm -> cterm
-end;
-
-structure CooperData : COOPER_DATA =
+structure Cooper: COOPER =
 struct
 
-type entry = simpset * (term list);
+type entry = simpset * term list;
 
 val allowed_consts = 
   [@{term "op + :: int => _"}, @{term "op + :: nat => _"},
@@ -94,11 +86,6 @@ val setup =
       optional (keyword constsN |-- terms) >> add) "Cooper data";
 
 end;
-
-end;
-
-structure Cooper: COOPER =
-struct
 
 exception COOPER of string * exn;
 fun simp_thms_conv ctxt =
@@ -606,12 +593,8 @@ local
         | TYPE s => raise COOPER ("Cooper Failed", TYPE s)
 in val cooper_conv = conv
 end;
-end;
 
-structure Coopereif : COOPER_REIFY =
-struct
-
-fun cooper s = raise Cooper.COOPER ("Cooper oracle failed", ERROR s);
+fun cooper s = raise COOPER ("Cooper oracle failed", ERROR s);
 fun i_of_term vs t = case t
  of Free (xn, xT) => (case AList.lookup (op aconv) vs t
      of NONE   => cooper "Variable not found in the list!"

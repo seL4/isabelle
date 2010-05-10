@@ -83,13 +83,13 @@ local
  in h [] end;
 in 
 fun is_relevant ctxt ct = 
- subset (op aconv) (term_constants (term_of ct) , snd (CooperData.get ctxt))
+ subset (op aconv) (term_constants (term_of ct) , snd (Cooper.get ctxt))
  andalso forall (fn Free (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_frees (term_of ct))
  andalso forall (fn Var (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_vars (term_of ct));
 
 fun int_nat_terms ctxt ct =
  let 
-  val cts = snd (CooperData.get ctxt)
+  val cts = snd (Cooper.get ctxt)
   fun h acc t = if ty cts t then insert (op aconvc) t acc else
    case (term_of t) of
     _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
@@ -161,7 +161,7 @@ fun finish_tac q = SUBGOAL (fn (_, i) =>
   (if q then I else TRY) (rtac TrueI i));
 
 fun cooper_tac elim add_ths del_ths ctxt =
-let val ss = Simplifier.context ctxt (fst (CooperData.get ctxt)) delsimps del_ths addsimps add_ths
+let val ss = Simplifier.context ctxt (fst (Cooper.get ctxt)) delsimps del_ths addsimps add_ths
     val aprems = Arith_Data.get_arith_facts ctxt
 in
   Method.insert_tac aprems
