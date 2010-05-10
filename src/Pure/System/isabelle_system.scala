@@ -306,7 +306,7 @@ class Isabelle_System extends Standard_System
   private def read_symbols(path: String): List[String] =
   {
     val file = platform_file(path)
-    if (file.isFile) Source.fromFile(file).getLines().toList
+    if (file.isFile) Source.fromFile(file).getLines("\n").toList
     else Nil
   }
   val symbols = new Symbol.Interpretation(
