@@ -218,16 +218,6 @@ by(induct rule: int_gr_induct,simp_all add:int_distrib)
 lemma incr_lemma: "0 < (d::int) \<Longrightarrow> z < x + (abs(x-z)+1) * d"
 by(induct rule: int_gr_induct, simp_all add:int_distrib)
 
-theorem int_induct[case_names base step1 step2]:
-  assumes 
-  base: "P(k::int)" and step1: "\<And>i. \<lbrakk>k \<le> i; P i\<rbrakk> \<Longrightarrow> P(i+1)" and
-  step2: "\<And>i. \<lbrakk>k \<ge> i; P i\<rbrakk> \<Longrightarrow> P(i - 1)"
-  shows "P i"
-proof -
-  have "i \<le> k \<or> i\<ge> k" by arith
-  thus ?thesis using prems int_ge_induct[where P="P" and k="k" and i="i"] int_le_induct[where P="P" and k="k" and i="i"] by blast
-qed
-
 lemma decr_mult_lemma:
   assumes dpos: "(0::int) < d" and minus: "\<forall>x. P x \<longrightarrow> P(x - d)" and knneg: "0 <= k"
   shows "ALL x. P x \<longrightarrow> P(x - k*d)"
@@ -402,29 +392,8 @@ theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <=
 use "Tools/Qelim/cooper.ML"
 
 setup Cooper.setup
-oracle linzqe_oracle = Cooper.cooper_oracle
 
-use "Tools/Qelim/presburger.ML"
-
-setup {* Arith_Data.add_tactic "Presburger arithmetic" (K (Presburger.cooper_tac true [] [])) *}
-
-method_setup presburger = {*
-let
- fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
- fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
- val addN = "add"
- val delN = "del"
- val elimN = "elim"
- val any_keyword = keyword addN || keyword delN || simple_keyword elimN
- val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-in
-  Scan.optional (simple_keyword elimN >> K false) true --
-  Scan.optional (keyword addN |-- thms) [] --
-  Scan.optional (keyword delN |-- thms) [] >>
-  (fn ((elim, add_ths), del_ths) => fn ctxt =>
-    SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
-end
-*} "Cooper's algorithm for Presburger arithmetic"
+method_setup presburger = "Cooper.cooper_method" "Cooper's algorithm for Presburger arithmetic"
 
 declare dvd_eq_mod_eq_0[symmetric, presburger]
 declare mod_1[presburger] 
