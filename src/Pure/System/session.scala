@@ -227,6 +227,8 @@ class Session(system: Isabelle_System)
         case result: Isabelle_Process.Result =>
           handle_result(result.cache(xml_cache))
 
+        case TIMEOUT =>  // FIXME clarify!
+
         case bad if prover != null =>
           System.err.println("session_actor: ignoring bad message " + bad)
       }
