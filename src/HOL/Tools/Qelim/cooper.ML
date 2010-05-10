@@ -11,7 +11,6 @@ sig
   val del: term list -> attribute
   val add: term list -> attribute 
   val conv: Proof.context -> conv
-  val oracle: cterm -> thm
   val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
   val method: (Proof.context -> Method.method) context_parser
   exception COOPER of string * exn
@@ -676,18 +675,17 @@ fun term_of_qf ps vs t =
  | Cooper_Procedure.NClosed n => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Closed n))
  | _ => cooper "If this is raised, Isabelle/HOL or code generator is inconsistent!";
 
-fun raw_oracle ct =
+fun invoke t =
   let
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
     val (vs, ps) = pairself (map_index swap) (OldTerm.term_frees t, term_bools [] t);
   in
-    Thm.cterm_of thy (Logic.mk_equals (HOLogic.mk_Trueprop t,
-      HOLogic.mk_Trueprop (term_of_qf ps vs (Cooper_Procedure.pa (qf_of_term ps vs t)))))
+    Logic.mk_equals (HOLogic.mk_Trueprop t,
+      HOLogic.mk_Trueprop (term_of_qf ps vs (Cooper_Procedure.pa (qf_of_term ps vs t))))
   end;
 
 val (_, oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "cooper", raw_oracle)));
+  (Thm.add_oracle (Binding.name "cooper",
+    (fn (ctxt, t) => Thm.cterm_of (ProofContext.theory_of ctxt) (invoke t)))));
 
 val comp_ss = HOL_ss addsimps @{thms semiring_norm};
 
@@ -824,11 +822,10 @@ fun splits_tac ctxt i = simp_tac (Simplifier.context ctxt splits_ss) i;
 end;
 
 fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
-   let 
+   let
     val cpth = 
        if !quick_and_dirty 
-       then oracle (Thm.cterm_of (ProofContext.theory_of ctxt)
-             (Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p)))))
+       then oracle (ctxt, Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p))))
        else Conv.arg_conv (conv ctxt) p
     val p' = Thm.rhs_of cpth
     val th = implies_intr p' (equal_elim (symmetric cpth) (assume p'))
