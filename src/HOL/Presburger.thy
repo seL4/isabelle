@@ -8,13 +8,10 @@ theory Presburger
 imports Groebner_Basis SetInterval
 uses
   "Tools/Qelim/qelim.ML"
-  "Tools/Qelim/cooper_data.ML"
-  "Tools/Qelim/generated_cooper.ML"
+  "Tools/Qelim/cooper_procedure.ML"
   ("Tools/Qelim/cooper.ML")
   ("Tools/Qelim/presburger.ML")
 begin
-
-setup CooperData.setup
 
 subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
 
@@ -405,28 +402,9 @@ lemma int_eq_number_of_eq:
   "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
   by (rule eq_number_of_eq)
 
-declare dvd_eq_mod_eq_0[symmetric, presburger]
-declare mod_1[presburger] 
-declare mod_0[presburger]
-declare mod_by_1[presburger]
-declare zmod_zero[presburger]
-declare zmod_self[presburger]
-declare mod_self[presburger]
-declare mod_by_0[presburger]
-declare mod_div_trivial[presburger]
-declare div_mod_equality2[presburger]
-declare div_mod_equality[presburger]
-declare mod_div_equality2[presburger]
-declare mod_div_equality[presburger]
-declare mod_mult_self1[presburger]
-declare mod_mult_self2[presburger]
-declare zdiv_zmod_equality2[presburger]
-declare zdiv_zmod_equality[presburger]
-declare mod2_Suc_Suc[presburger]
-lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
-by simp_all
-
 use "Tools/Qelim/cooper.ML"
+
+setup CooperData.setup
 oracle linzqe_oracle = Coopereif.cooper_oracle
 
 use "Tools/Qelim/presburger.ML"
@@ -450,6 +428,27 @@ in
     SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
 end
 *} "Cooper's algorithm for Presburger arithmetic"
+
+declare dvd_eq_mod_eq_0[symmetric, presburger]
+declare mod_1[presburger] 
+declare mod_0[presburger]
+declare mod_by_1[presburger]
+declare zmod_zero[presburger]
+declare zmod_self[presburger]
+declare mod_self[presburger]
+declare mod_by_0[presburger]
+declare mod_div_trivial[presburger]
+declare div_mod_equality2[presburger]
+declare div_mod_equality[presburger]
+declare mod_div_equality2[presburger]
+declare mod_div_equality[presburger]
+declare mod_mult_self1[presburger]
+declare mod_mult_self2[presburger]
+declare zdiv_zmod_equality2[presburger]
+declare zdiv_zmod_equality[presburger]
+declare mod2_Suc_Suc[presburger]
+lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
+by simp_all
 
 lemma [presburger, algebra]: "m mod 2 = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 lemma [presburger, algebra]: "m mod 2 = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger

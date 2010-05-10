@@ -2,10 +2,99 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
+signature COOPER_DATA =
+sig
+  type entry
+  val get: Proof.context -> entry
+  val del: term list -> attribute
+  val add: term list -> attribute 
+  val setup: theory -> theory
+end;
+
 signature COOPER =
 sig
-  val cooper_conv : Proof.context -> conv
+  val cooper_conv: Proof.context -> conv
   exception COOPER of string * exn
+end;
+
+signature COOPER_REIFY =
+sig
+  val cooper_oracle: cterm -> cterm
+end;
+
+structure CooperData : COOPER_DATA =
+struct
+
+type entry = simpset * (term list);
+
+val allowed_consts = 
+  [@{term "op + :: int => _"}, @{term "op + :: nat => _"},
+   @{term "op - :: int => _"}, @{term "op - :: nat => _"},
+   @{term "op * :: int => _"}, @{term "op * :: nat => _"},
+   @{term "op div :: int => _"}, @{term "op div :: nat => _"},
+   @{term "op mod :: int => _"}, @{term "op mod :: nat => _"},
+   @{term "Int.Bit0"}, @{term "Int.Bit1"},
+   @{term "op &"}, @{term "op |"}, @{term "op -->"}, 
+   @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"},
+   @{term "op < :: int => _"}, @{term "op < :: nat => _"},
+   @{term "op <= :: int => _"}, @{term "op <= :: nat => _"},
+   @{term "op dvd :: int => _"}, @{term "op dvd :: nat => _"},
+   @{term "abs :: int => _"},
+   @{term "max :: int => _"}, @{term "max :: nat => _"},
+   @{term "min :: int => _"}, @{term "min :: nat => _"},
+   @{term "uminus :: int => _"}, (*@ {term "uminus :: nat => _"},*)
+   @{term "Not"}, @{term "Suc"},
+   @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
+   @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},
+   @{term "nat"}, @{term "int"},
+   @{term "Int.Bit0"}, @{term "Int.Bit1"},
+   @{term "Int.Pls"}, @{term "Int.Min"},
+   @{term "Int.number_of :: int => int"}, @{term "Int.number_of :: int => nat"},
+   @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
+   @{term "True"}, @{term "False"}];
+
+structure Data = Generic_Data
+(
+  type T = simpset * term list;
+  val empty = (HOL_ss, allowed_consts);
+  val extend  = I;
+  fun merge ((ss1, ts1), (ss2, ts2)) =
+    (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
+);
+
+val get = Data.get o Context.Proof;
+
+fun add ts = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (fn (ss,ts') => 
+     (ss addsimps [th], merge (op aconv) (ts',ts) ))) 
+
+fun del ts = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (fn (ss,ts') => 
+     (ss delsimps [th], subtract (op aconv) ts' ts ))) 
+
+
+(* theory setup *)
+
+local
+
+fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
+
+val constsN = "consts";
+val any_keyword = keyword constsN
+val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+val terms = thms >> map (term_of o Drule.dest_term);
+
+fun optional scan = Scan.optional scan [];
+
+in
+
+val setup =
+  Attrib.setup @{binding presburger}
+    ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
+      optional (keyword constsN |-- terms) >> add) "Cooper data";
+
+end;
+
 end;
 
 structure Cooper: COOPER =
@@ -519,58 +608,54 @@ in val cooper_conv = conv
 end;
 end;
 
-
-
-structure Coopereif =
+structure Coopereif : COOPER_REIFY =
 struct
-
-fun member eq = Library.member eq;
 
 fun cooper s = raise Cooper.COOPER ("Cooper oracle failed", ERROR s);
 fun i_of_term vs t = case t
  of Free (xn, xT) => (case AList.lookup (op aconv) vs t
      of NONE   => cooper "Variable not found in the list!"
-      | SOME n => Generated_Cooper.Bound n)
-  | @{term "0::int"} => Generated_Cooper.C 0
-  | @{term "1::int"} => Generated_Cooper.C 1
-  | Term.Bound i => Generated_Cooper.Bound i
-  | Const(@{const_name Groups.uminus},_)$t' => Generated_Cooper.Neg (i_of_term vs t')
-  | Const(@{const_name Groups.plus},_)$t1$t2 => Generated_Cooper.Add (i_of_term vs t1,i_of_term vs t2)
-  | Const(@{const_name Groups.minus},_)$t1$t2 => Generated_Cooper.Sub (i_of_term vs t1,i_of_term vs t2)
+      | SOME n => Cooper_Procedure.Bound n)
+  | @{term "0::int"} => Cooper_Procedure.C 0
+  | @{term "1::int"} => Cooper_Procedure.C 1
+  | Term.Bound i => Cooper_Procedure.Bound i
+  | Const(@{const_name Groups.uminus},_)$t' => Cooper_Procedure.Neg (i_of_term vs t')
+  | Const(@{const_name Groups.plus},_)$t1$t2 => Cooper_Procedure.Add (i_of_term vs t1,i_of_term vs t2)
+  | Const(@{const_name Groups.minus},_)$t1$t2 => Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2)
   | Const(@{const_name Groups.times},_)$t1$t2 =>
-     (Generated_Cooper.Mul (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
+     (Cooper_Procedure.Mul (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
     handle TERM _ =>
-       (Generated_Cooper.Mul (HOLogic.dest_number t2 |> snd, i_of_term vs t1)
+       (Cooper_Procedure.Mul (HOLogic.dest_number t2 |> snd, i_of_term vs t1)
         handle TERM _ => cooper "Reification: Unsupported kind of multiplication"))
-  | _ => (Generated_Cooper.C (HOLogic.dest_number t |> snd)
+  | _ => (Cooper_Procedure.C (HOLogic.dest_number t |> snd)
            handle TERM _ => cooper "Reification: unknown term");
 
 fun qf_of_term ps vs t =  case t
- of Const("True",_) => Generated_Cooper.T
-  | Const("False",_) => Generated_Cooper.F
-  | Const(@{const_name Orderings.less},_)$t1$t2 => Generated_Cooper.Lt (Generated_Cooper.Sub (i_of_term vs t1,i_of_term vs t2))
-  | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Generated_Cooper.Le (Generated_Cooper.Sub(i_of_term vs t1,i_of_term vs t2))
+ of Const("True",_) => Cooper_Procedure.T
+  | Const("False",_) => Cooper_Procedure.F
+  | Const(@{const_name Orderings.less},_)$t1$t2 => Cooper_Procedure.Lt (Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Cooper_Procedure.Le (Cooper_Procedure.Sub(i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name Rings.dvd},_)$t1$t2 =>
-      (Generated_Cooper.Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")  (* FIXME avoid handle _ *)
-  | @{term "op = :: int => _"}$t1$t2 => Generated_Cooper.Eq (Generated_Cooper.Sub (i_of_term vs t1,i_of_term vs t2))
-  | @{term "op = :: bool => _ "}$t1$t2 => Generated_Cooper.Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("op &",_)$t1$t2 => Generated_Cooper.And(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("op |",_)$t1$t2 => Generated_Cooper.Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("op -->",_)$t1$t2 => Generated_Cooper.Imp(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const (@{const_name Not},_)$t' => Generated_Cooper.Not(qf_of_term ps vs t')
+      (Cooper_Procedure.Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")  (* FIXME avoid handle _ *)
+  | @{term "op = :: int => _"}$t1$t2 => Cooper_Procedure.Eq (Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2))
+  | @{term "op = :: bool => _ "}$t1$t2 => Cooper_Procedure.Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op &",_)$t1$t2 => Cooper_Procedure.And(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op |",_)$t1$t2 => Cooper_Procedure.Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op -->",_)$t1$t2 => Cooper_Procedure.Imp(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const (@{const_name Not},_)$t' => Cooper_Procedure.Not(qf_of_term ps vs t')
   | Const("Ex",_)$Abs(xn,xT,p) =>
      let val (xn',p') = variant_abs (xn,xT,p)
          val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-     in Generated_Cooper.E (qf_of_term ps vs' p')
+     in Cooper_Procedure.E (qf_of_term ps vs' p')
      end
   | Const("All",_)$Abs(xn,xT,p) =>
      let val (xn',p') = variant_abs (xn,xT,p)
          val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-     in Generated_Cooper.A (qf_of_term ps vs' p')
+     in Cooper_Procedure.A (qf_of_term ps vs' p')
      end
   | _ =>(case AList.lookup (op aconv) ps t of
            NONE => cooper "Reification: unknown term!"
-         | SOME n => Generated_Cooper.Closed n);
+         | SOME n => Cooper_Procedure.Closed n);
 
 local
  val ops = [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
@@ -596,35 +681,35 @@ fun myassoc2 l v =
           else myassoc2 xs v;
 
 fun term_of_i vs t = case t
- of Generated_Cooper.C i => HOLogic.mk_number HOLogic.intT i
-  | Generated_Cooper.Bound n => the (myassoc2 vs n)
-  | Generated_Cooper.Neg t' => @{term "uminus :: int => _"} $ term_of_i vs t'
-  | Generated_Cooper.Add (t1, t2) => @{term "op + :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
-  | Generated_Cooper.Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
-  | Generated_Cooper.Mul (i, t2) => @{term "op * :: int => _"} $
+ of Cooper_Procedure.C i => HOLogic.mk_number HOLogic.intT i
+  | Cooper_Procedure.Bound n => the (myassoc2 vs n)
+  | Cooper_Procedure.Neg t' => @{term "uminus :: int => _"} $ term_of_i vs t'
+  | Cooper_Procedure.Add (t1, t2) => @{term "op + :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
+  | Cooper_Procedure.Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
+  | Cooper_Procedure.Mul (i, t2) => @{term "op * :: int => _"} $
       HOLogic.mk_number HOLogic.intT i $ term_of_i vs t2
-  | Generated_Cooper.Cn (n, i, t') => term_of_i vs (Generated_Cooper.Add (Generated_Cooper.Mul (i, Generated_Cooper.Bound n), t'));
+  | Cooper_Procedure.Cn (n, i, t') => term_of_i vs (Cooper_Procedure.Add (Cooper_Procedure.Mul (i, Cooper_Procedure.Bound n), t'));
 
 fun term_of_qf ps vs t =
  case t of
-   Generated_Cooper.T => HOLogic.true_const
- | Generated_Cooper.F => HOLogic.false_const
- | Generated_Cooper.Lt t' => @{term "op < :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
- | Generated_Cooper.Le t' => @{term "op <= :: int => _ "}$ term_of_i vs t' $ @{term "0::int"}
- | Generated_Cooper.Gt t' => @{term "op < :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
- | Generated_Cooper.Ge t' => @{term "op <= :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
- | Generated_Cooper.Eq t' => @{term "op = :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
- | Generated_Cooper.NEq t' => term_of_qf ps vs (Generated_Cooper.Not (Generated_Cooper.Eq t'))
- | Generated_Cooper.Dvd(i,t') => @{term "op dvd :: int => _ "} $
+   Cooper_Procedure.T => HOLogic.true_const
+ | Cooper_Procedure.F => HOLogic.false_const
+ | Cooper_Procedure.Lt t' => @{term "op < :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
+ | Cooper_Procedure.Le t' => @{term "op <= :: int => _ "}$ term_of_i vs t' $ @{term "0::int"}
+ | Cooper_Procedure.Gt t' => @{term "op < :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
+ | Cooper_Procedure.Ge t' => @{term "op <= :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
+ | Cooper_Procedure.Eq t' => @{term "op = :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
+ | Cooper_Procedure.NEq t' => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Eq t'))
+ | Cooper_Procedure.Dvd(i,t') => @{term "op dvd :: int => _ "} $
     HOLogic.mk_number HOLogic.intT i $ term_of_i vs t'
- | Generated_Cooper.NDvd(i,t')=> term_of_qf ps vs (Generated_Cooper.Not(Generated_Cooper.Dvd(i,t')))
- | Generated_Cooper.Not t' => HOLogic.Not$(term_of_qf ps vs t')
- | Generated_Cooper.And(t1,t2) => HOLogic.conj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Generated_Cooper.Or(t1,t2) => HOLogic.disj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Generated_Cooper.Imp(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Generated_Cooper.Iff(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
- | Generated_Cooper.Closed n => the (myassoc2 ps n)
- | Generated_Cooper.NClosed n => term_of_qf ps vs (Generated_Cooper.Not (Generated_Cooper.Closed n))
+ | Cooper_Procedure.NDvd(i,t')=> term_of_qf ps vs (Cooper_Procedure.Not(Cooper_Procedure.Dvd(i,t')))
+ | Cooper_Procedure.Not t' => HOLogic.Not$(term_of_qf ps vs t')
+ | Cooper_Procedure.And(t1,t2) => HOLogic.conj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
+ | Cooper_Procedure.Or(t1,t2) => HOLogic.disj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
+ | Cooper_Procedure.Imp(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
+ | Cooper_Procedure.Iff(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
+ | Cooper_Procedure.Closed n => the (myassoc2 ps n)
+ | Cooper_Procedure.NClosed n => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Closed n))
  | _ => cooper "If this is raised, Isabelle/HOL or code generator is inconsistent!";
 
 fun cooper_oracle ct =
@@ -634,7 +719,7 @@ fun cooper_oracle ct =
     val (vs, ps) = pairself (map_index swap) (OldTerm.term_frees t, term_bools [] t);
   in
     Thm.cterm_of thy (Logic.mk_equals (HOLogic.mk_Trueprop t,
-      HOLogic.mk_Trueprop (term_of_qf ps vs (Generated_Cooper.pa (qf_of_term ps vs t)))))
+      HOLogic.mk_Trueprop (term_of_qf ps vs (Cooper_Procedure.pa (qf_of_term ps vs t)))))
   end;
 
 end;
