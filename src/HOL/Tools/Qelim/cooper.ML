@@ -13,7 +13,6 @@ sig
   val conv: Proof.context -> conv
   val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
   val method: (Proof.context -> Method.method) context_parser
-  exception COOPER of string * exn
   val setup: theory -> theory
 end;
 
@@ -252,9 +251,7 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
 fun linear_neg tm = linear_cmul ~1 tm;
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2);
 
-exception COOPER of string * exn;
-
-fun cooper s = raise COOPER ("Cooper failed", ERROR s);
+exception COOPER of string;
 
 fun lint vars tm =  if is_numeral tm then tm  else case tm of
   Const (@{const_name Groups.uminus}, _) $ t => linear_neg (lint vars t)
@@ -265,7 +262,7 @@ fun lint vars tm =  if is_numeral tm then tm  else case tm of
       val t' = lint vars t
   in if is_numeral s' then (linear_cmul (dest_numeral s') t')
      else if is_numeral t' then (linear_cmul (dest_numeral t') s')
-     else raise COOPER ("Cooper Failed", TERM ("lint: not linear",[tm]))
+     else raise COOPER "lint: not linear"
   end
  | _ => addC $ (mulC $ one $ tm) $ zero;
 
@@ -569,15 +566,15 @@ local
       (OldTerm.term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt)
       (cooperex_conv ctxt) p
   end
-  handle  CTERM s => raise COOPER ("Cooper Failed", CTERM s)
-        | THM s => raise COOPER ("Cooper Failed", THM s)
-        | TYPE s => raise COOPER ("Cooper Failed", TYPE s)
+  handle  CTERM s => raise COOPER "bad cterm"
+        | THM s => raise COOPER "bad thm"
+        | TYPE s => raise COOPER "bad type"
 in val conv = conv
 end;
 
 fun i_of_term vs t = case t
  of Free (xn, xT) => (case AList.lookup (op aconv) vs t
-     of NONE   => cooper "Variable not found in the list!"
+     of NONE   => raise COOPER "reification: variable not found in list"
       | SOME n => Cooper_Procedure.Bound n)
   | @{term "0::int"} => Cooper_Procedure.C 0
   | @{term "1::int"} => Cooper_Procedure.C 1
@@ -589,9 +586,9 @@ fun i_of_term vs t = case t
      (Cooper_Procedure.Mul (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
     handle TERM _ =>
        (Cooper_Procedure.Mul (HOLogic.dest_number t2 |> snd, i_of_term vs t1)
-        handle TERM _ => cooper "Reification: Unsupported kind of multiplication"))
+        handle TERM _ => raise COOPER "reification: unsupported kind of multiplication"))
   | _ => (Cooper_Procedure.C (HOLogic.dest_number t |> snd)
-           handle TERM _ => cooper "Reification: unknown term");
+           handle TERM _ => raise COOPER "reification: unknown term");
 
 fun qf_of_term ps vs t =  case t
  of Const("True",_) => Cooper_Procedure.T
@@ -599,7 +596,8 @@ fun qf_of_term ps vs t =  case t
   | Const(@{const_name Orderings.less},_)$t1$t2 => Cooper_Procedure.Lt (Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Cooper_Procedure.Le (Cooper_Procedure.Sub(i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name Rings.dvd},_)$t1$t2 =>
-      (Cooper_Procedure.Dvd (HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle TERM _ => cooper "Reification: unsupported dvd")
+      (Cooper_Procedure.Dvd (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
+        handle TERM _ => raise COOPER "reification: unsupported dvd")
   | @{term "op = :: int => _"}$t1$t2 => Cooper_Procedure.Eq (Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2))
   | @{term "op = :: bool => _ "}$t1$t2 => Cooper_Procedure.Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
   | Const("op &",_)$t1$t2 => Cooper_Procedure.And(qf_of_term ps vs t1,qf_of_term ps vs t2)
@@ -617,7 +615,7 @@ fun qf_of_term ps vs t =  case t
      in Cooper_Procedure.A (qf_of_term ps vs' p')
      end
   | _ =>(case AList.lookup (op aconv) ps t of
-           NONE => cooper "Reification: unknown term!"
+           NONE => raise COOPER "reification: unknown term"
          | SOME n => Cooper_Procedure.Closed n);
 
 local
@@ -672,8 +670,7 @@ fun term_of_qf ps vs t =
  | Cooper_Procedure.Imp(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
  | Cooper_Procedure.Iff(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
  | Cooper_Procedure.Closed n => the (myassoc2 ps n)
- | Cooper_Procedure.NClosed n => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Closed n))
- | _ => cooper "If this is raised, Isabelle/HOL or code generator is inconsistent!";
+ | Cooper_Procedure.NClosed n => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Closed n));
 
 fun invoke t =
   let
