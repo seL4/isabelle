@@ -13,6 +13,18 @@ import scala.util.matching.Regex
 
 object Symbol
 {
+  /* spaces */
+
+  private val static_spaces = " " * 4000
+
+  def spaces(k: Int): String =
+  {
+    require(k >= 0)
+    if (k < static_spaces.length) static_spaces.substring(0, k)
+    else " " * k
+  }
+
+
   /* Symbol regexps */
 
   private val plain = new Regex("""(?xs)

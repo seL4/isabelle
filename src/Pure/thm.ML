@@ -138,8 +138,8 @@ sig
   val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val of_class: ctyp * class -> thm
   val strip_shyps: thm -> thm
-  val unconstrainT: ctyp -> thm -> thm
-  val unconstrain_allTs: thm -> thm
+  val unconstrainT: thm -> thm
+  val legacy_unconstrainT: ctyp -> thm -> thm
   val legacy_freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
@@ -1221,8 +1221,29 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
           shyps = shyps', hyps = hyps, tpairs = tpairs, prop = prop})
       end;
 
-(*Internalize sort constraints of type variable*)
-fun unconstrainT
+(*Internalize sort constraints of type variables*)
+fun unconstrainT (thm as Thm (_, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
+  let
+    fun err msg = raise THM ("unconstrainT: " ^ msg, 0, [thm]);
+
+    val _ = null hyps orelse err "illegal hyps";
+    val _ = null tpairs orelse err "unsolved flex-flex constraints";
+    val tfrees = rev (Term.add_tfree_names prop []);
+    val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
+
+    val (_, prop') = Logic.unconstrainT shyps prop;
+  in
+    Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
+     {thy_ref = thy_ref,
+      tags = [],
+      maxidx = maxidx_of_term prop',
+      shyps = [[]],  (*potentially redundant*)
+      hyps = hyps,
+      tpairs = tpairs,
+      prop = prop'})
+  end;
+
+fun legacy_unconstrainT
     (Ctyp {thy_ref = thy_ref1, T, ...})
     (th as Thm (_, {thy_ref = thy_ref2, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
@@ -1241,10 +1262,6 @@ fun unconstrainT
       tpairs = map (pairself unconstrain) tpairs,
       prop = Logic.list_implies (constraints, unconstrain prop)})
   end;
-
-fun unconstrain_allTs th =
-  fold (unconstrainT o ctyp_of (theory_of_thm th) o TVar)
-    (fold_terms Term.add_tvars th []) th;
 
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)

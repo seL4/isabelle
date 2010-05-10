@@ -1869,7 +1869,7 @@ lemma equals_alias_cert: "OFCLASS('a, eq_class) \<equiv> ((op = :: 'a \<Rightarr
 proof
   assume "PROP ?ofclass"
   show "PROP ?eq"
-    by (tactic {* ALLGOALS (rtac (Thm.unconstrain_allTs @{thm equals_eq})) *}) 
+    by (tactic {* ALLGOALS (rtac (Thm.unconstrainT @{thm equals_eq})) *})
       (fact `PROP ?ofclass`)
 next
   assume "PROP ?eq"
