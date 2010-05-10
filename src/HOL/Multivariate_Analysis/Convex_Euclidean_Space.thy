@@ -1589,7 +1589,7 @@ lemma radon_partition:
       thus ?thesis unfolding setsum_delta[OF assms(1)] using uv(2) and `u v < 0` and uv(1) by auto qed
   qed (insert setsum_nonneg_eq_0_iff[of _ u, OF fin(1)] uv(2-3), auto)
 
-  hence *:"setsum u {x\<in>c. u x > 0} > 0" unfolding real_less_def apply(rule_tac conjI, rule_tac setsum_nonneg) by auto
+  hence *:"setsum u {x\<in>c. u x > 0} > 0" unfolding less_le apply(rule_tac conjI, rule_tac setsum_nonneg) by auto
   moreover have "setsum u ({x \<in> c. 0 < u x} \<union> {x \<in> c. u x < 0}) = setsum u c"
     "(\<Sum>x\<in>{x \<in> c. 0 < u x} \<union> {x \<in> c. u x < 0}. u x *\<^sub>R x) = (\<Sum>x\<in>c. u x *\<^sub>R x)"
     using assms(1) apply(rule_tac[!] setsum_mono_zero_left) by auto
@@ -1943,7 +1943,7 @@ lemma convex_on:
   apply (drule_tac x="\<lambda>i. (x i, f (x i))" in spec)
   apply simp
   using assms[unfolded convex] apply simp
-  apply(rule_tac j="\<Sum>i = 1..k. u i * f (fst (x i))" in real_le_trans)
+  apply(rule_tac y="\<Sum>i = 1..k. u i * f (fst (x i))" in order_trans)
   defer apply(rule setsum_mono) apply(erule_tac x=i in allE) unfolding real_scaleR_def
   apply(rule mult_left_mono)using assms[unfolded convex] by auto
 
@@ -2182,7 +2182,7 @@ lemma convex_on_bounded_continuous:
         have "f x \<le> 1 / (1 + t) * f w + (t / (1 + t)) * f y" 
           using assms(2)[unfolded convex_on_def,rule_format,of w y "1/(1+t)" "t / (1+t)",unfolded w]
           using `0<t` `2<t` and `y\<in>s` `w\<in>s` by (auto simp add:field_simps)
-        also have "\<dots> = (f w + t * f y) / (1 + t)" using `t>0` unfolding real_divide_def by (auto simp add:field_simps)
+        also have "\<dots> = (f w + t * f y) / (1 + t)" using `t>0` unfolding divide_inverse by (auto simp add:field_simps)
         also have "\<dots> < e + f y" using `t>0` * `e>0` by(auto simp add:field_simps)
         finally have "f x - f y < e" by auto }
       ultimately show ?thesis by auto 
@@ -2231,7 +2231,7 @@ lemma convex_on_continuous:
     apply(rule subset_trans[OF _ e(1)]) unfolding subset_eq mem_cball proof 
     fix z assume z:"z\<in>{x - ?d..x + ?d}"
     have e:"e = setsum (\<lambda>i. d) (UNIV::'n set)" unfolding setsum_constant d_def using dimge1
-      by (metis eq_divide_imp times_divide_eq_left real_dimindex_gt_0 real_eq_of_nat real_less_def real_mult_commute)
+      by (metis eq_divide_imp times_divide_eq_left real_dimindex_gt_0 real_eq_of_nat less_le mult_commute)
     show "dist x z \<le> e" unfolding dist_norm e apply(rule_tac order_trans[OF norm_le_l1], rule setsum_mono)
       using z[unfolded mem_interval] apply(erule_tac x=i in allE) by auto qed
   hence k:"\<forall>y\<in>{x - ?d..x + ?d}. f y \<le> k" unfolding c(2) apply(rule_tac convex_on_convex_hull_bound) apply assumption
@@ -2411,7 +2411,7 @@ proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfold
       by(auto simp add: Cart_eq field_simps) 
     also have "\<dots> = abs(1/e) * norm (x - e *\<^sub>R (x - c) - y)" by(auto intro!:norm_eqI simp add: algebra_simps)
     also have "\<dots> < d" using as[unfolded dist_norm] and `e>0`
-      by(auto simp add:pos_divide_less_eq[OF `e>0`] real_mult_commute)
+      by(auto simp add:pos_divide_less_eq[OF `e>0`] mult_commute)
     finally show "y \<in> s" apply(subst *) apply(rule assms(1)[unfolded convex_alt,rule_format])
       apply(rule d[unfolded subset_eq,rule_format]) unfolding mem_ball using assms(3-5) by auto
   qed(rule mult_pos_pos, insert `e>0` `d>0`, auto) qed
@@ -2522,7 +2522,7 @@ lemma interior_std_simplex_nonempty: obtains a::"real^'n" where
   show ?thesis apply(rule that[of ?a]) unfolding interior_std_simplex mem_Collect_eq proof(rule,rule)
     fix i::'n show "0 < ?a $ i" unfolding ** using dimindex_ge_1 by(auto simp add: Suc_le_eq) next
     have "setsum (op $ ?a) ?D = setsum (\<lambda>i. inverse (2 * real CARD('n))) ?D" by(rule setsum_cong2, rule **) 
-    also have "\<dots> < 1" unfolding setsum_constant card_enum real_eq_of_nat real_divide_def[THEN sym] by (auto simp add:field_simps)
+    also have "\<dots> < 1" unfolding setsum_constant card_enum real_eq_of_nat divide_inverse[THEN sym] by (auto simp add:field_simps)
     finally show "setsum (op $ ?a) ?D < 1" by auto qed qed
 
 end

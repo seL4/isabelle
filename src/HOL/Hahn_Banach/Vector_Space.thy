@@ -118,7 +118,7 @@ lemma (in vectorspace) diff_mult_distrib2:
 proof -
   assume x: "x \<in> V"
   have " (a - b) \<cdot> x = (a + - b) \<cdot> x"
-    by (simp add: real_diff_def)
+    by (simp add: diff_def)
   also from x have "\<dots> = a \<cdot> x + (- b) \<cdot> x"
     by (rule add_mult_distrib2)
   also from x have "\<dots> = a \<cdot> x + - (b \<cdot> x)"
@@ -255,7 +255,7 @@ lemma (in vectorspace) add_assoc_cong:
 
 lemma (in vectorspace) mult_left_commute:
     "x \<in> V \<Longrightarrow> a \<cdot> b \<cdot> x = b \<cdot> a \<cdot> x"
-  by (simp add: real_mult_commute mult_assoc2)
+  by (simp add: mult_commute mult_assoc2)
 
 lemma (in vectorspace) mult_zero_uniq:
   "x \<in> V \<Longrightarrow> x \<noteq> 0 \<Longrightarrow> a \<cdot> x = 0 \<Longrightarrow> a = 0"

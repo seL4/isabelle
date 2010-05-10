@@ -2177,7 +2177,7 @@ next
     assume A: "real x + (1\<Colon>real) \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
     with rcpos  have "(real c)*(real  x) < (real c)*(- (Inum (y # bs) e / real c))"
-      by (simp only:  real_mult_less_mono2[OF rcpos th1])
+      by (simp only: mult_strict_left_mono [OF th1 rcpos])
     hence "real c * real x + Inum (y # bs) e \<noteq> 0"using rcpos  by simp
     thus "real c * real x + Inum (real x # bs) e \<noteq> 0" 
       using numbound0_I[OF nbe, where b="y" and bs="bs" and b'="real x"]  by simp
@@ -2194,7 +2194,7 @@ next
     assume A: "real x + (1\<Colon>real) \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
     with rcpos  have "(real c)*(real  x) < (real c)*(- (Inum (y # bs) e / real c))"
-      by (simp only:  real_mult_less_mono2[OF rcpos th1])
+      by (simp only: mult_strict_left_mono [OF th1 rcpos])
     hence "real c * real x + Inum (y # bs) e \<noteq> 0"using rcpos  by simp
     thus "real c * real x + Inum (real x # bs) e \<noteq> 0" 
       using numbound0_I[OF nbe, where b="y" and bs="bs" and b'="real x"]  by simp
@@ -2211,7 +2211,7 @@ next
     assume A: "real x + (1\<Colon>real) \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
     with rcpos  have "(real c)*(real  x) < (real c)*(- (Inum (y # bs) e / real c))"
-      by (simp only:  real_mult_less_mono2[OF rcpos th1])
+      by (simp only: mult_strict_left_mono [OF th1 rcpos])
     thus "real c * real x + Inum (real x # bs) e < 0" 
       using numbound0_I[OF nbe, where b="y" and bs="bs" and b'="real x"] rcpos by simp
   qed
@@ -2227,7 +2227,7 @@ next
     assume A: "real x + (1\<Colon>real) \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
     with rcpos  have "(real c)*(real  x) < (real c)*(- (Inum (y # bs) e / real c))"
-      by (simp only:  real_mult_less_mono2[OF rcpos th1])
+      by (simp only: mult_strict_left_mono [OF th1 rcpos])
     thus "real c * real x + Inum (real x # bs) e \<le> 0" 
       using numbound0_I[OF nbe, where b="y" and bs="bs" and b'="real x"] rcpos by simp
   qed
@@ -2243,7 +2243,7 @@ next
     assume A: "real x + (1\<Colon>real) \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
     with rcpos  have "(real c)*(real  x) < (real c)*(- (Inum (y # bs) e / real c))"
-      by (simp only:  real_mult_less_mono2[OF rcpos th1])
+      by (simp only: mult_strict_left_mono [OF th1 rcpos])
     thus "\<not> (real c * real x + Inum (real x # bs) e>0)" 
       using numbound0_I[OF nbe, where b="y" and bs="bs" and b'="real x"] rcpos by simp
   qed
@@ -2259,7 +2259,7 @@ next
     assume A: "real x + (1\<Colon>real) \<le> - (Inum (y # bs) e / real c)"
     hence th1:"real x < - (Inum (y # bs) e / real c)" by simp
     with rcpos  have "(real c)*(real  x) < (real c)*(- (Inum (y # bs) e / real c))"
-      by (simp only:  real_mult_less_mono2[OF rcpos th1])
+      by (simp only: mult_strict_left_mono [OF th1 rcpos])
     thus "\<not> real c * real x + Inum (real x # bs) e \<ge> 0" 
       using numbound0_I[OF nbe, where b="y" and bs="bs" and b'="real x"] rcpos by simp
   qed

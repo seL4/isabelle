@@ -124,7 +124,7 @@ proof -
           assume "y \<noteq> 0"
           with y obtain x where y_rep: "y = \<bar>f x\<bar> * inverse \<parallel>x\<parallel>"
               and x: "x \<in> V" and neq: "x \<noteq> 0"
-            by (auto simp add: B_def real_divide_def)
+            by (auto simp add: B_def divide_inverse)
           from x neq have gt: "0 < \<parallel>x\<parallel>" ..
 
           txt {* The thesis follows by a short calculation using the
@@ -139,7 +139,7 @@ proof -
             then show "0 \<le> inverse \<parallel>x\<parallel>" by (rule order_less_imp_le)
           qed
           also have "\<dots> = c * (\<parallel>x\<parallel> * inverse \<parallel>x\<parallel>)"
-            by (rule real_mult_assoc)
+            by (rule Groups.mult_assoc)
           also
           from gt have "\<parallel>x\<parallel> \<noteq> 0" by simp
           then have "\<parallel>x\<parallel> * inverse \<parallel>x\<parallel> = 1" by simp 
@@ -224,7 +224,7 @@ proof -
     proof (rule mult_right_mono)
       from x show "0 \<le> \<parallel>x\<parallel>" ..
       from x and neq have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<in> B V f"
-        by (auto simp add: B_def real_divide_def)
+        by (auto simp add: B_def divide_inverse)
       with `continuous V norm f` show "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>V"
         by (rule fn_norm_ub)
     qed
@@ -257,7 +257,7 @@ proof -
       assume "b \<noteq> 0"
       with b obtain x where b_rep: "b = \<bar>f x\<bar> * inverse \<parallel>x\<parallel>"
         and x_neq: "x \<noteq> 0" and x: "x \<in> V"
-        by (auto simp add: B_def real_divide_def)
+        by (auto simp add: B_def divide_inverse)
       note b_rep
       also have "\<bar>f x\<bar> * inverse \<parallel>x\<parallel> \<le> (c * \<parallel>x\<parallel>) * inverse \<parallel>x\<parallel>"
       proof (rule mult_right_mono)

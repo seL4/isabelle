@@ -61,7 +61,7 @@ theorem prime_sqrt_irrational:
   apply (rule notI)
   apply (erule Rats_abs_nat_div_natE)
   apply (simp del: real_of_nat_mult
-              add: real_abs_def divide_eq_eq prime_not_square real_of_nat_mult [symmetric])
+              add: abs_if divide_eq_eq prime_not_square real_of_nat_mult [symmetric])
   done
 
 lemmas two_sqrt_irrational =

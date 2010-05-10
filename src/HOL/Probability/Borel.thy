@@ -68,9 +68,9 @@ lemma Collect_less_le:
     with w have "real(Suc(natceiling(inverse(g w - f w)))) > inverse(g w - f w)"
       by (metis lessI order_le_less_trans real_natceiling_ge real_of_nat_less_iff)       hence "inverse(real(Suc(natceiling(inverse(g w - f w)))))
              < inverse(inverse(g w - f w))" 
-      by (metis less_iff_diff_less_0 less_imp_inverse_less linorder_neqE_linordered_idom nz positive_imp_inverse_positive real_le_antisym real_less_def w)
+      by (metis less_iff_diff_less_0 less_imp_inverse_less linorder_neqE_linordered_idom nz positive_imp_inverse_positive order_antisym less_le w)
     hence "inverse(real(Suc(natceiling(inverse(g w - f w))))) < g w - f w"
-      by (metis inverse_inverse_eq order_less_le_trans real_le_refl) 
+      by (metis inverse_inverse_eq order_less_le_trans order_refl)
     thus "\<exists>n. f w \<le> g w - inverse(real(Suc n))" using w
       by (rule_tac x="natceiling(inverse(g w - f w))" in exI, auto)
   next
@@ -357,7 +357,7 @@ proof -
                     borel_measurable_uminus_borel_measurable f g)
   finally have 2: "(\<lambda>x. -((f x + -g x) ^ 2 * inverse 4)) \<in> borel_measurable M" .
   show ?thesis
-    apply (simp add: times_eq_sum_squares real_diff_def) 
+    apply (simp add: times_eq_sum_squares diff_def) 
     using 1 2 apply (simp add: borel_measurable_add_borel_measurable) 
     done
 qed
@@ -366,7 +366,7 @@ lemma (in measure_space) borel_measurable_diff_borel_measurable:
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
-unfolding real_diff_def
+unfolding diff_def
   by (fast intro: borel_measurable_add_borel_measurable 
                   borel_measurable_uminus_borel_measurable f g)
 
@@ -397,7 +397,7 @@ proof (safe, rule linorder_cases)
   { fix w
     from `0 < a` have "a \<le> inverse (f w) \<longleftrightarrow> 0 < f w \<and> f w \<le> 1 / a"
       by (metis inverse_eq_divide inverse_inverse_eq le_imp_inverse_le
-                linorder_not_le real_le_refl real_le_trans real_less_def
+                linorder_not_le order_refl order_trans less_le
                 xt1(7) zero_less_divide_1_iff) }
   hence "{w \<in> space M. a \<le> inverse (f w)} =
     {w \<in> space M. 0 < f w} \<inter> {w \<in> space M. f w \<le> 1 / a}" by auto
@@ -418,7 +418,7 @@ next
       apply (metis inverse_eq_divide linorder_not_le xt1(8) xt1(9)
                    zero_le_divide_1_iff)
       apply (metis inverse_eq_divide inverse_inverse_eq inverse_le_imp_le_neg
-                   linorder_not_le real_le_refl real_le_trans)
+                   linorder_not_le order_refl order_trans)
       done }
   hence "{w \<in> space M. a \<le> inverse (f w)} =
     {w \<in> space M. f w \<le> 1 / a} \<union> {w \<in> space M. 0 \<le> f w}" by auto
@@ -627,11 +627,11 @@ using assms
 proof -
   from assms have "y - z > 0" by simp
   hence A: "\<exists>n. (\<forall> m \<ge> n. \<bar> x m + - y \<bar> < y - z)" using assms
-    unfolding incseq_def LIMSEQ_def dist_real_def real_diff_def
+    unfolding incseq_def LIMSEQ_def dist_real_def diff_def
     by simp
   have "\<forall>m. x m \<le> y" using incseq_le assms by auto
   hence B: "\<forall>m. \<bar> x m + - y \<bar> = y - x m"
-    by (metis abs_if abs_minus_add_cancel less_iff_diff_less_0 linorder_not_le real_diff_def)
+    by (metis abs_if abs_minus_add_cancel less_iff_diff_less_0 linorder_not_le diff_def)
   from A B show ?thesis by auto
 qed
 

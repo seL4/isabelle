@@ -2195,7 +2195,7 @@ lemma dsum_bound: assumes "p division_of {a..b}" "norm(c) \<le> e"
   shows "norm(setsum (\<lambda>l. content l *\<^sub>R c) p) \<le> e * content({a..b})" (is "?l \<le> ?r")
   apply(rule order_trans,rule setsum_norm) defer unfolding norm_scaleR setsum_left_distrib[THEN sym]
   apply(rule order_trans[OF mult_left_mono],rule assms,rule setsum_abs_ge_zero)
-  apply(subst real_mult_commute) apply(rule mult_left_mono)
+  apply(subst mult_commute) apply(rule mult_left_mono)
   apply(rule order_trans[of _ "setsum content p"]) apply(rule eq_refl,rule setsum_cong2)
   apply(subst abs_of_nonneg) unfolding additive_content_division[OF assms(1)]
 proof- from order_trans[OF norm_ge_zero[of c] assms(2)] show "0 \<le> e" .
@@ -2210,7 +2210,7 @@ proof(cases "{a..b} = {}") case True
 next case False show ?thesis
     apply(rule order_trans,rule setsum_norm) defer unfolding split_def norm_scaleR
     apply(rule order_trans[OF setsum_mono]) apply(rule mult_left_mono[OF _ abs_ge_zero, of _ e]) defer
-    unfolding setsum_left_distrib[THEN sym] apply(subst real_mult_commute) apply(rule mult_left_mono)
+    unfolding setsum_left_distrib[THEN sym] apply(subst mult_commute) apply(rule mult_left_mono)
     apply(rule order_trans[of _ "setsum (content \<circ> snd) p"]) apply(rule eq_refl,rule setsum_cong2)
     apply(subst o_def, rule abs_of_nonneg)
   proof- show "setsum (content \<circ> snd) p \<le> content {a..b}" apply(rule eq_refl)
@@ -2395,7 +2395,7 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
             using g(1)[OF x, of n] g(1)[OF x, of m] by auto
         also have "\<dots> \<le> inverse (real M) + inverse (real M)" apply(rule add_mono)
           apply(rule_tac[!] le_imp_inverse_le) using goal1 M by auto
-        also have "\<dots> = 2 / real M" unfolding real_divide_def by auto
+        also have "\<dots> = 2 / real M" unfolding divide_inverse by auto
         finally show "norm (g n x - g m x) \<le> 2 / real M"
           using norm_triangle_le[of "g n x - f x" "f x - g m x" "2 / real M"]
           by(auto simp add:algebra_simps simp add:norm_minus_commute)
@@ -2672,7 +2672,7 @@ next fix f::"real^'n \<Rightarrow> 'a" and a b::"real^'n" assume assm:"\<forall>
       also have "... \<le> setsum (\<lambda>i. e / 2 / 2 ^ i) {0..N+1}" apply(rule setsum_mono) 
       proof- case goal1 thus ?case apply(subst mult_commute, subst pos_le_divide_eq[THEN sym])
           using d(2)[rule_format,of "q i" i] using q[rule_format] by(auto simp add:field_simps)
-      qed also have "... < e * inverse 2 * 2" unfolding real_divide_def setsum_right_distrib[THEN sym]
+      qed also have "... < e * inverse 2 * 2" unfolding divide_inverse setsum_right_distrib[THEN sym]
         apply(rule mult_strict_left_mono) unfolding power_inverse atLeastLessThanSuc_atLeastAtMost[THEN sym]
         apply(subst sumr_geometric) using goal1 by auto
       finally show "?goal" by auto qed qed qed
@@ -3261,7 +3261,7 @@ next have *:"\<And>P Q. (\<forall>i. P i) \<and> (\<forall>i. Q i) \<longleftrig
             using as by(auto simp add:field_simps)
         next assume as:"0 > m i" hence *:"max (m i * a $ i) (m i * b $ i) = m i * a $ i"
             "min (m i * a $ i) (m i * b $ i) = m i * b $ i" using ab as unfolding min_def max_def 
-            by(auto simp add:field_simps mult_le_cancel_left_neg intro:real_le_antisym)
+            by(auto simp add:field_simps mult_le_cancel_left_neg intro: order_antisym)
           show ?thesis unfolding * apply rule defer apply(rule_tac x="1 / m i * x$i" in exI)
             using as by(auto simp add:field_simps) qed qed qed qed qed 
 
@@ -3567,7 +3567,7 @@ proof- have "\<exists>w>0. \<forall>t. c$1 - w < t$1 \<and> t < c \<longrightarr
       hence "c$1 - t$1 < e / 3 / norm (f c)" by auto
       hence "norm (c - t) < e / 3 / norm (f c)" using as unfolding norm_vector_1 vector_less_def by auto
       thus "norm (f c) * norm (c - t) < e / 3" using False apply-
-        apply(subst real_mult_commute) apply(subst pos_less_divide_eq[THEN sym]) by auto
+        apply(subst mult_commute) apply(subst pos_less_divide_eq[THEN sym]) by auto
     qed next case True show ?thesis apply(rule_tac x=1 in exI) unfolding True using `e>0` by auto
   qed then guess w .. note w = conjunctD2[OF this,rule_format]
   
@@ -4408,8 +4408,8 @@ proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis b
   next  case goal1 have *:"k * real (card r) / (1 + real (card r)) < k" using k by(auto simp add:field_simps)
     show ?case apply(rule le_less_trans[of _ "setsum (\<lambda>x. k / (real (card r) + 1)) r"])
       unfolding setsum_subtractf[THEN sym] apply(rule setsum_norm_le,fact)
-      apply rule apply(drule qq) defer unfolding real_divide_def setsum_left_distrib[THEN sym]
-      unfolding real_divide_def[THEN sym] using * by(auto simp add:field_simps real_eq_of_nat)
+      apply rule apply(drule qq) defer unfolding divide_inverse setsum_left_distrib[THEN sym]
+      unfolding divide_inverse[THEN sym] using * by(auto simp add:field_simps real_eq_of_nat)
   qed finally show "?x \<le> e + k" . qed
 
 lemma henstock_lemma_part2: fixes f::"real^'m \<Rightarrow> real^'n"
@@ -4525,7 +4525,7 @@ next assume ab:"content {a..b} \<noteq> 0"
              apply(rule le_less_trans[of _ "setsum (\<lambda>i. e / 2^(i+2)) {0..s}"])
              apply(rule setsum_norm_le[OF finite_atLeastAtMost])
            proof show "(\<Sum>i = 0..s. e / 2 ^ (i + 2)) < e / 2"
-               unfolding power_add real_divide_def inverse_mult_distrib
+               unfolding power_add divide_inverse inverse_mult_distrib
                unfolding setsum_right_distrib[THEN sym] setsum_left_distrib[THEN sym]
                unfolding power_inverse sum_gp apply(rule mult_strict_left_mono[OF _ e])
                unfolding power2_eq_square by auto

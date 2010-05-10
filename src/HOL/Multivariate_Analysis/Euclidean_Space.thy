@@ -3677,7 +3677,7 @@ proof-
   from Sup_finite_in[OF fS S0] 
   show ?thesis unfolding infnorm_def infnorm_set_image 
     by (metis Sup_finite_ge_iff finite finite_imageI UNIV_not_empty image_is_empty 
-              rangeI real_le_refl)
+              rangeI order_refl)
 qed
 
 lemma infnorm_mul_lemma: "infnorm(a *s x) <= \<bar>a\<bar> * infnorm x"

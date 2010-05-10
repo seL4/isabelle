@@ -18,7 +18,7 @@ lemma horner_schema': fixes x :: real  and a :: "nat \<Rightarrow> real"
   shows "a 0 - x * (\<Sum> i=0..<n. (-1)^i * a (Suc i) * x^i) = (\<Sum> i=0..<Suc n. (-1)^i * a i * x^i)"
 proof -
   have shift_pow: "\<And>i. - (x * ((-1)^i * a (Suc i) * x ^ i)) = (-1)^(Suc i) * a (Suc i) * x ^ (Suc i)" by auto
-  show ?thesis unfolding setsum_right_distrib shift_pow real_diff_def setsum_negf[symmetric] setsum_head_upt_Suc[OF zero_less_Suc]
+  show ?thesis unfolding setsum_right_distrib shift_pow diff_def setsum_negf[symmetric] setsum_head_upt_Suc[OF zero_less_Suc]
     setsum_reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
 qed
 
@@ -109,8 +109,8 @@ proof -
   proof (rule setsum_cong, simp)
     fix j assume "j \<in> {0 ..< n}"
     show "1 / real (f (j' + j)) * real x ^ j = -1 ^ j * (1 / real (f (j' + j))) * real (- x) ^ j"
-      unfolding move_minus power_mult_distrib real_mult_assoc[symmetric]
-      unfolding real_mult_commute unfolding real_mult_assoc[of "-1 ^ j", symmetric] power_mult_distrib[symmetric]
+      unfolding move_minus power_mult_distrib mult_assoc[symmetric]
+      unfolding mult_commute unfolding mult_assoc[of "-1 ^ j", symmetric] power_mult_distrib[symmetric]
       by auto
   qed
 
@@ -435,8 +435,8 @@ proof -
 
   { have "real (x * lb_arctan_horner prec n 1 (x*x)) \<le> ?S n"
       using bounds(1) `0 \<le> real x`
-      unfolding real_of_float_mult power_add power_one_right real_mult_assoc[symmetric] setsum_left_distrib[symmetric]
-      unfolding real_mult_commute mult_commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
+      unfolding real_of_float_mult power_add power_one_right mult_assoc[symmetric] setsum_left_distrib[symmetric]
+      unfolding mult_commute[where 'a=real] mult_commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
       by (auto intro!: mult_left_mono)
     also have "\<dots> \<le> arctan (real x)" using arctan_bounds ..
     finally have "real (x * lb_arctan_horner prec n 1 (x*x)) \<le> arctan (real x)" . }
@@ -444,8 +444,8 @@ proof -
   { have "arctan (real x) \<le> ?S (Suc n)" using arctan_bounds ..
     also have "\<dots> \<le> real (x * ub_arctan_horner prec (Suc n) 1 (x*x))"
       using bounds(2)[of "Suc n"] `0 \<le> real x`
-      unfolding real_of_float_mult power_add power_one_right real_mult_assoc[symmetric] setsum_left_distrib[symmetric]
-      unfolding real_mult_commute mult_commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
+      unfolding real_of_float_mult power_add power_one_right mult_assoc[symmetric] setsum_left_distrib[symmetric]
+      unfolding mult_commute[where 'a=real] mult_commute[of _ "2::nat"] power_mult power2_eq_square[of "real x"]
       by (auto intro!: mult_left_mono)
     finally have "arctan (real x) \<le> real (x * ub_arctan_horner prec (Suc n) 1 (x*x))" . }
   ultimately show ?thesis by auto
@@ -616,7 +616,7 @@ proof -
         using arctan_0_1_bounds[OF `0 \<le> real ?DIV` `real ?DIV \<le> 1`] by auto
       also have "\<dots> \<le> 2 * arctan (real x / ?R)"
         using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
-      also have "2 * arctan (real x / ?R) = arctan (real x)" using arctan_half[symmetric] unfolding numeral_2_eq_2 power_Suc2 power_0 real_mult_1 .
+      also have "2 * arctan (real x / ?R) = arctan (real x)" using arctan_half[symmetric] unfolding numeral_2_eq_2 power_Suc2 power_0 mult_1_left .
       finally show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF True] .
     next
       case False
@@ -644,7 +644,7 @@ proof -
           using `0 \<le> arctan (real x)` arctan_inverse[OF `1 / real x \<noteq> 0`]
           unfolding real_sgn_pos[OF `0 < 1 / real x`] le_diff_eq by auto
         moreover
-        have "real (lb_pi prec * Float 1 -1) \<le> pi / 2" unfolding real_of_float_mult Float_num times_divide_eq_right real_mult_1 using pi_boundaries by auto
+        have "real (lb_pi prec * Float 1 -1) \<le> pi / 2" unfolding real_of_float_mult Float_num times_divide_eq_right mult_1_left using pi_boundaries by auto
         ultimately
         show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF `\<not> x \<le> Float 1 1`] if_not_P[OF False]
           by auto
@@ -696,7 +696,7 @@ proof -
       show ?thesis
       proof (cases "?DIV > 1")
         case True
-        have "pi / 2 \<le> real (ub_pi prec * Float 1 -1)" unfolding real_of_float_mult Float_num times_divide_eq_right real_mult_1 using pi_boundaries by auto
+        have "pi / 2 \<le> real (ub_pi prec * Float 1 -1)" unfolding real_of_float_mult Float_num times_divide_eq_right mult_1_left using pi_boundaries by auto
         from order_less_le_trans[OF arctan_ubound this, THEN less_imp_le]
         show ?thesis unfolding ub_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF `x \<le> Float 1 1`] if_P[OF True] .
       next
@@ -706,7 +706,7 @@ proof -
         have "0 \<le> real x / ?R" using `0 \<le> real x` `0 < ?R` unfolding real_0_le_divide_iff by auto
         hence "0 \<le> real ?DIV" using monotone by (rule order_trans)
 
-        have "arctan (real x) = 2 * arctan (real x / ?R)" using arctan_half unfolding numeral_2_eq_2 power_Suc2 power_0 real_mult_1 .
+        have "arctan (real x) = 2 * arctan (real x / ?R)" using arctan_half unfolding numeral_2_eq_2 power_Suc2 power_0 mult_1_left .
         also have "\<dots> \<le> 2 * arctan (real ?DIV)"
           using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
         also have "\<dots> \<le> real (Float 1 1 * ?ub_horner ?DIV)" unfolding real_of_float_mult[of "Float 1 1"] Float_num
@@ -912,8 +912,8 @@ proof -
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0,
     OF `0 \<le> real (x * x)` f_eq lb_sin_cos_aux.simps ub_sin_cos_aux.simps]
   show "?lb" and "?ub" using `0 \<le> real x` unfolding real_of_float_mult
-    unfolding power_add power_one_right real_mult_assoc[symmetric] setsum_left_distrib[symmetric]
-    unfolding real_mult_commute
+    unfolding power_add power_one_right mult_assoc[symmetric] setsum_left_distrib[symmetric]
+    unfolding mult_commute[where 'a=real]
     by (auto intro!: mult_left_mono simp add: power_mult power2_eq_square[of "real x"])
 qed
 
@@ -1179,7 +1179,7 @@ lemma cos_periodic_nat[simp]: fixes n :: nat shows "cos (x + real n * 2 * pi) = 
 proof (induct n arbitrary: x)
   case (Suc n)
   have split_pi_off: "x + real (Suc n) * 2 * pi = (x + real n * 2 * pi) + 2 * pi"
-    unfolding Suc_eq_plus1 real_of_nat_add real_of_one real_add_mult_distrib by auto
+    unfolding Suc_eq_plus1 real_of_nat_add real_of_one left_distrib by auto
   show ?case unfolding split_pi_off using Suc by auto
 qed auto
 
@@ -1213,7 +1213,7 @@ proof ((rule allI | rule impI | erule conjE) +)
           round_down[of prec "lb_pi prec"] by auto
   hence "real ?lx \<le> x - real k * 2 * pi \<and> x - real k * 2 * pi \<le> real ?ux"
     using x by (cases "k = 0") (auto intro!: add_mono
-                simp add: real_diff_def k[symmetric] less_float_def)
+                simp add: diff_def k[symmetric] less_float_def)
   note lx = this[THEN conjunct1] and ux = this[THEN conjunct2]
   hence lx_less_ux: "real ?lx \<le> real ?ux" by (rule order_trans)
 
@@ -1227,7 +1227,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
       using cos_monotone_minus_pi_0'[OF pi_lx lx x_le_0]
       by (simp only: real_of_float_minus real_of_int_minus
-        cos_minus real_diff_def mult_minus_left)
+        cos_minus diff_def mult_minus_left)
     finally have "real (lb_cos prec (- ?lx)) \<le> cos x"
       unfolding cos_periodic_int . }
   note negative_lx = this
@@ -1240,7 +1240,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + real (-k) * 2 * pi) \<le> cos (real ?lx)"
       using cos_monotone_0_pi'[OF lx_0 lx pi_x]
       by (simp only: real_of_float_minus real_of_int_minus
-        cos_minus real_diff_def mult_minus_left)
+        cos_minus diff_def mult_minus_left)
     also have "\<dots> \<le> real (ub_cos prec ?lx)"
       using lb_cos[OF lx_0 pi_lx] by simp
     finally have "cos x \<le> real (ub_cos prec ?lx)"
@@ -1255,7 +1255,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + real (-k) * 2 * pi) \<le> cos (real (- ?ux))"
       using cos_monotone_minus_pi_0'[OF pi_x ux ux_0]
       by (simp only: real_of_float_minus real_of_int_minus
-          cos_minus real_diff_def mult_minus_left)
+          cos_minus diff_def mult_minus_left)
     also have "\<dots> \<le> real (ub_cos prec (- ?ux))"
       using lb_cos_minus[OF pi_ux ux_0, of prec] by simp
     finally have "cos x \<le> real (ub_cos prec (- ?ux))"
@@ -1272,7 +1272,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
       using cos_monotone_0_pi'[OF x_ge_0 ux pi_ux]
       by (simp only: real_of_float_minus real_of_int_minus
-        cos_minus real_diff_def mult_minus_left)
+        cos_minus diff_def mult_minus_left)
     finally have "real (lb_cos prec ?ux) \<le> cos x"
       unfolding cos_periodic_int . }
   note positive_ux = this
@@ -1347,7 +1347,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       also have "\<dots> \<le> cos (real (?ux - 2 * ?lpi))"
         using cos_monotone_minus_pi_0'[OF pi_x x_le_ux ux_0]
         by (simp only: real_of_float_minus real_of_int_minus real_of_one
-            number_of_Min real_diff_def mult_minus_left real_mult_1)
+            number_of_Min diff_def mult_minus_left mult_1_left)
       also have "\<dots> = cos (real (- (?ux - 2 * ?lpi)))"
         unfolding real_of_float_minus cos_minus ..
       also have "\<dots> \<le> real (ub_cos prec (- (?ux - 2 * ?lpi)))"
@@ -1391,7 +1391,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       also have "\<dots> \<le> cos (real (?lx + 2 * ?lpi))"
         using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
         by (simp only: real_of_float_minus real_of_int_minus real_of_one
-          number_of_Min real_diff_def mult_minus_left real_mult_1)
+          number_of_Min diff_def mult_minus_left mult_1_left)
       also have "\<dots> \<le> real (ub_cos prec (?lx + 2 * ?lpi))"
         using lb_cos[OF lx_0 pi_lx] by simp
       finally show ?thesis unfolding u by (simp add: real_of_float_max)
@@ -1531,7 +1531,7 @@ proof -
     hence "real (floor_fl x) < 0" unfolding Float_floor real_of_float_simp using zero_less_pow2[of xe] by auto
     hence "m < 0"
       unfolding less_float_def real_of_float_0 Float_floor real_of_float_simp
-      unfolding pos_prod_lt[OF zero_less_pow2[of e], unfolded real_mult_commute] by auto
+      unfolding pos_prod_lt[OF zero_less_pow2[of e], unfolded mult_commute] by auto
     hence "1 \<le> - m" by auto
     hence "0 < nat (- m)" by auto
     moreover
@@ -1682,7 +1682,7 @@ proof -
   { fix n have "?a (Suc n) \<le> ?a n" unfolding inverse_eq_divide[symmetric]
     proof (rule mult_mono)
       show "0 \<le> x ^ Suc (Suc n)" by (auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`)
-      have "x ^ Suc (Suc n) \<le> x ^ Suc n * 1" unfolding power_Suc2 real_mult_assoc[symmetric]
+      have "x ^ Suc (Suc n) \<le> x ^ Suc n * 1" unfolding power_Suc2 mult_assoc[symmetric]
         by (rule mult_left_mono, fact less_imp_le[OF `x < 1`], auto intro!: mult_nonneg_nonneg simp add: `0 \<le> x`)
       thus "x ^ Suc (Suc n) \<le> x ^ Suc n" by auto
     qed auto }
@@ -1700,7 +1700,7 @@ proof -
 
   let "?s n" = "-1^n * (1 / real (1 + n)) * (real x)^(Suc n)"
 
-  have "?lb \<le> setsum ?s {0 ..< 2 * ev}" unfolding power_Suc2 real_mult_assoc[symmetric] real_of_float_mult setsum_left_distrib[symmetric] unfolding real_mult_commute[of "real x"] ev
+  have "?lb \<le> setsum ?s {0 ..< 2 * ev}" unfolding power_Suc2 mult_assoc[symmetric] real_of_float_mult setsum_left_distrib[symmetric] unfolding mult_commute[of "real x"] ev
     using horner_bounds(1)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" and lb="\<lambda>n i k x. lb_ln_horner prec n k x" and ub="\<lambda>n i k x. ub_ln_horner prec n k x" and j'=1 and n="2*ev",
       OF `0 \<le> real x` refl lb_ln_horner.simps ub_ln_horner.simps] `0 \<le> real x`
     by (rule mult_right_mono)
@@ -1708,7 +1708,7 @@ proof -
   finally show "?lb \<le> ?ln" .
 
   have "?ln \<le> setsum ?s {0 ..< 2 * od + 1}" using ln_bounds(2)[OF `0 \<le> real x` `real x < 1`] by auto
-  also have "\<dots> \<le> ?ub" unfolding power_Suc2 real_mult_assoc[symmetric] real_of_float_mult setsum_left_distrib[symmetric] unfolding real_mult_commute[of "real x"] od
+  also have "\<dots> \<le> ?ub" unfolding power_Suc2 mult_assoc[symmetric] real_of_float_mult setsum_left_distrib[symmetric] unfolding mult_commute[of "real x"] od
     using horner_bounds(2)[where G="\<lambda> i k. Suc k" and F="\<lambda>x. x" and f="\<lambda>x. x" and lb="\<lambda>n i k x. lb_ln_horner prec n k x" and ub="\<lambda>n i k x. ub_ln_horner prec n k x" and j'=1 and n="2*od+1",
       OF `0 \<le> real x` refl lb_ln_horner.simps ub_ln_horner.simps] `0 \<le> real x`
     by (rule mult_right_mono)
@@ -2088,28 +2088,28 @@ fun interpret_floatarith :: "floatarith \<Rightarrow> real list \<Rightarrow> re
 "interpret_floatarith (Var n) vs     = vs ! n"
 
 lemma interpret_floatarith_divide: "interpret_floatarith (Mult a (Inverse b)) vs = (interpret_floatarith a vs) / (interpret_floatarith b vs)"
-  unfolding real_divide_def interpret_floatarith.simps ..
+  unfolding divide_inverse interpret_floatarith.simps ..
 
 lemma interpret_floatarith_diff: "interpret_floatarith (Add a (Minus b)) vs = (interpret_floatarith a vs) - (interpret_floatarith b vs)"
-  unfolding real_diff_def interpret_floatarith.simps ..
+  unfolding diff_def interpret_floatarith.simps ..
 
 lemma interpret_floatarith_sin: "interpret_floatarith (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) vs =
   sin (interpret_floatarith a vs)"
   unfolding sin_cos_eq interpret_floatarith.simps
-            interpret_floatarith_divide interpret_floatarith_diff real_diff_def
+            interpret_floatarith_divide interpret_floatarith_diff diff_def
   by auto
 
 lemma interpret_floatarith_tan:
   "interpret_floatarith (Mult (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) (Inverse (Cos a))) vs =
    tan (interpret_floatarith a vs)"
-  unfolding interpret_floatarith.simps(3,4) interpret_floatarith_sin tan_def real_divide_def
+  unfolding interpret_floatarith.simps(3,4) interpret_floatarith_sin tan_def divide_inverse
   by auto
 
 lemma interpret_floatarith_powr: "interpret_floatarith (Exp (Mult b (Ln a))) vs = (interpret_floatarith a vs) powr (interpret_floatarith b vs)"
   unfolding powr_def interpret_floatarith.simps ..
 
 lemma interpret_floatarith_log: "interpret_floatarith ((Mult (Ln x) (Inverse (Ln b)))) vs = log (interpret_floatarith b vs) (interpret_floatarith x vs)"
-  unfolding log_def interpret_floatarith.simps real_divide_def ..
+  unfolding log_def interpret_floatarith.simps divide_inverse ..
 
 lemma interpret_floatarith_num:
   shows "interpret_floatarith (Num (Float 0 0)) vs = 0"

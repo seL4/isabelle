@@ -362,8 +362,7 @@ proof safe
   { assume "\<mu> \<noteq> 1" "\<mu> \<noteq> 0"
     hence "\<mu> > 0" "(1 - \<mu>) > 0" using asms by auto
     hence "\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y > 0" using asms
-      using add_nonneg_pos[of "\<mu> *\<^sub>R x" "(1 - \<mu>) *\<^sub>R y"]
-        real_mult_order by auto fastsimp }
+      by (auto simp add: add_pos_pos mult_pos_pos) }
   ultimately show "(1 - \<mu>) *\<^sub>R y + \<mu> *\<^sub>R x > 0" using assms by fastsimp
 qed
 
@@ -426,7 +425,7 @@ next
     also have "\<dots> = f ((1 - a i) *\<^sub>R (\<Sum> j \<in> s. (a j * inverse (1 - a i)) *\<^sub>R y j) + a i *\<^sub>R y i)"
       using scaleR_right.setsum[of "inverse (1 - a i)" "\<lambda> j. a j *\<^sub>R y j" s, symmetric] by (auto simp:algebra_simps)
     also have "\<dots> = f ((1 - a i) *\<^sub>R (\<Sum> j \<in> s. ?a j *\<^sub>R y j) + a i *\<^sub>R y i)"
-      by (auto simp:real_divide_def)
+      by (auto simp: divide_inverse)
     also have "\<dots> \<le> (1 - a i) *\<^sub>R f ((\<Sum> j \<in> s. ?a j *\<^sub>R y j)) + a i * f (y i)"
       using conv[of "y i" "(\<Sum> j \<in> s. ?a j *\<^sub>R y j)" "a i", OF yai(1) asum yai(2) ai1]
       by (auto simp add:add_commute)
@@ -555,7 +554,7 @@ proof -
     from cool' this have "f' y - (f x - f y) / (x - y) \<ge> 0" by auto
     from mult_right_mono_neg[OF this le(2)]
     have "f' y * (x - y) - (f x - f y) / (x - y) * (x - y) \<le> 0 * (x - y)"
-      unfolding diff_def using real_add_mult_distrib by auto
+      by (simp add: algebra_simps)
     hence "f' y * (x - y) - (f x - f y) \<le> 0" using le by auto
     hence res: "f' y * (x - y) \<le> f x - f y" by auto
     have "(f y - f x) / (y - x) - f' x = f' z1 - f' x"
@@ -570,7 +569,7 @@ proof -
     from cool this have "(f y - f x) / (y - x) - f' x \<ge> 0" by auto
     from mult_right_mono[OF this ge(2)]
     have "(f y - f x) / (y - x) * (y - x) - f' x * (y - x) \<ge> 0 * (y - x)"
-      unfolding diff_def using real_add_mult_distrib by auto
+      by (simp add: algebra_simps)
     hence "f y - f x - f' x * (y - x) \<ge> 0" using ge by auto
     hence "f y - f x \<ge> f' x * (y - x)" "f' y * (x - y) \<le> f x - f y"
       using res by auto } note less_imp = this
@@ -606,9 +605,9 @@ proof -
   have "\<And> z :: real. z > 0 \<Longrightarrow> DERIV (\<lambda> z. (- 1 / ln b) * inverse z) z :> (- 1 / ln b) * (- (inverse z ^ Suc (Suc 0)))"
     by auto
   hence f''0: "\<And> z :: real. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - 1 / (ln b * z)) z :> 1 / (ln b * z * z)"
-    unfolding inverse_eq_divide by (auto simp add:real_mult_assoc)
+    unfolding inverse_eq_divide by (auto simp add: mult_assoc)
   have f''_ge0: "\<And> z :: real. z > 0 \<Longrightarrow> 1 / (ln b * z * z) \<ge> 0"
-    using `b > 1` by (auto intro!:less_imp_le simp add:divide_pos_pos[of 1] real_mult_order)
+    using `b > 1` by (auto intro!:less_imp_le simp add:divide_pos_pos[of 1] mult_pos_pos)
   from f''_ge0_imp_convex[OF pos_is_convex,
     unfolded greaterThan_iff, OF f' f''0 f''_ge0]
   show ?thesis by auto

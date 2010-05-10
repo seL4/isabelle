@@ -28,17 +28,17 @@ lemma nonneg_neg_part[intro!]:
 lemma pos_neg_part_abs:
   fixes f :: "'a \<Rightarrow> real"
   shows "pos_part f x + neg_part f x = \<bar>f x\<bar>"
-unfolding real_abs_def pos_part_def neg_part_def by auto
+unfolding abs_if pos_part_def neg_part_def by auto
 
 lemma pos_part_abs:
   fixes f :: "'a \<Rightarrow> real"
   shows "pos_part (\<lambda> x. \<bar>f x\<bar>) y = \<bar>f y\<bar>"
-unfolding pos_part_def real_abs_def by auto
+unfolding pos_part_def abs_if by auto
 
 lemma neg_part_abs:
   fixes f :: "'a \<Rightarrow> real"
   shows "neg_part (\<lambda> x. \<bar>f x\<bar>) y = 0"
-unfolding neg_part_def real_abs_def by auto
+unfolding neg_part_def abs_if by auto
 
 lemma (in measure_space)
   assumes "f \<in> borel_measurable M"
@@ -341,7 +341,8 @@ proof -
   have "pos_simple_integral (k, c, (\<lambda> x. z x + z' x))
     = (\<Sum> x \<in> k. (z x + z' x) * measure M (c x))"
     unfolding pos_simple_integral_def by auto
-  also have "\<dots> = (\<Sum> x \<in> k. z x * measure M (c x) + z' x * measure M (c x))" using real_add_mult_distrib by auto
+  also have "\<dots> = (\<Sum> x \<in> k. z x * measure M (c x) + z' x * measure M (c x))"
+    by (simp add: left_distrib)
   also have "\<dots> = (\<Sum> x \<in> k. z x * measure M (c x)) + (\<Sum> x \<in> k. z' x * measure M (c x))" using setsum_addf by auto
   also have "\<dots> = pos_simple_integral (k, c, z) + pos_simple_integral (k, c, z')" unfolding pos_simple_integral_def by auto
   finally have ths: "pos_simple_integral (s, a, x) + pos_simple_integral (s', b, y) =
@@ -436,12 +437,12 @@ using assms pos_simple_integral_mono_on_mspace unfolding psfis_def by auto
 lemma pos_simple_fn_integral_unique:
   assumes "(s, a, x) \<in> pos_simple f" "(s', b, y) \<in> pos_simple f"
   shows "pos_simple_integral (s, a, x) = pos_simple_integral (s', b, y)"
-using assms real_le_antisym real_le_refl pos_simple_integral_mono by metis
+using assms by (rule pos_simple_integral_equal) (* FIXME: redundant lemma *)
 
 lemma psfis_unique:
   assumes "a \<in> psfis f" "b \<in> psfis f"
   shows "a = b"
-using assms real_le_antisym real_le_refl psfis_mono by metis
+using assms by (intro order_antisym psfis_mono [OF _ _ order_refl])
 
 lemma pos_simple_integral_indicator:
   assumes "A \<in> sets M"
@@ -557,7 +558,7 @@ proof -
       using borel_measurable_indicator using sa'x[unfolded pos_simple_def] by auto
     hence "(\<lambda> w. x i * indicator_fn (a' i) w) \<in> borel_measurable M"
       using affine_borel_measurable[of "\<lambda> w. indicator_fn (a' i) w" 0 "x i"]
-        real_mult_commute by auto }
+        by (simp add: mult_commute) }
   from borel_measurable_setsum_borel_measurable[OF fs this] affine_borel_measurable
   have "(\<lambda> w. (\<Sum> i \<in> s. x i * indicator_fn (a' i) w)) \<in> borel_measurable M" by auto
   from borel_measurable_cong[OF pos_simple_setsum_indicator_fn[OF sa'x]] this
@@ -743,7 +744,7 @@ lemma nnfis_unique:
   assumes a: "a \<in> nnfis f" and b: "b \<in> nnfis f"
   shows "a = b"
   using nnfis_mono[OF a b] nnfis_mono[OF b a]
-  by (auto intro!: real_le_antisym[of a b])
+  by (auto intro!: order_antisym[of a b])
 
 lemma psfis_equiv:
   assumes "a \<in> psfis f" and "nonneg g"
@@ -843,7 +844,7 @@ proof -
       from nnfis this mono_convergent_le[OF mc]
       show "x n \<le> l" by (rule nnfis_mono)
     qed
-    ultimately have "l = z" by (rule real_le_antisym)
+    ultimately have "l = z" by (rule order_antisym)
     thus "c ----> z" using `c ----> l` by simp
   qed
 qed
@@ -859,7 +860,7 @@ proof -
     by auto
   thus "0 \<le> f x" using uy[rule_format]
     unfolding nnfis_def psfis_def pos_simple_def nonneg_def mono_convergent_def
-    using incseq_le[of "\<lambda> n. u n x" "f x"] real_le_trans
+    using incseq_le[of "\<lambda> n. u n x" "f x"] order_trans
     by fast
 qed
 
@@ -1335,10 +1336,10 @@ proof -
   also have "\<dots> \<le> integral (\<lambda> t. \<bar> f t \<bar> ^ n)"
     apply (rule integral_mono)
     using integral_cmul_indicator[OF w]
-      `integrable (\<lambda> x. \<bar>f x\<bar> ^ n)` real_le_trans[OF v1 v2] by auto
+      `integrable (\<lambda> x. \<bar>f x\<bar> ^ n)` order_trans[OF v1 v2] by auto
   finally show "measure M (f -` {a ..} \<inter> space M) \<le> integral (\<lambda>x. \<bar>f x\<bar>^n) / a^n"
     unfolding atLeast_def
-    by (auto intro!: mult_imp_le_div_pos[OF `0 < a ^ n`], simp add: real_mult_commute)
+    by (auto intro!: mult_imp_le_div_pos[OF `0 < a ^ n`], simp add: mult_commute)
 qed
 
 lemma (in measure_space) integral_0:

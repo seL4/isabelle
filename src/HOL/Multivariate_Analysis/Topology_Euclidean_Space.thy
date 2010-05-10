@@ -1777,7 +1777,7 @@ next
           by (auto simp add: norm_minus_commute)
         also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
           unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
-          unfolding real_add_mult_distrib using `x\<noteq>y`[unfolded dist_nz, unfolded dist_norm] by auto
+          unfolding left_distrib using `x\<noteq>y`[unfolded dist_nz, unfolded dist_norm] by auto
         also have "\<dots> \<le> e - d/2" using `d \<le> dist x y` and `d>0` and `?rhs` by(auto simp add: dist_norm)
         finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using `d>0` by auto
 
@@ -2104,10 +2104,10 @@ proof-
   { fix x assume "x\<in>S"
     hence "norm x \<le> b" using b by auto
     hence "norm (f x) \<le> B * b" using B(2) apply(erule_tac x=x in allE)
-      by (metis B(1) B(2) real_le_trans real_mult_le_cancel_iff2)
+      by (metis B(1) B(2) order_trans mult_le_cancel_left_pos)
   }
   thus ?thesis unfolding bounded_pos apply(rule_tac x="b*B" in exI)
-    using b B real_mult_order[of b B] by (auto simp add: real_mult_commute)
+    using b B mult_pos_pos [of b B] by (auto simp add: mult_commute)
 qed
 
 lemma bounded_scaling:
@@ -3061,7 +3061,7 @@ proof-
     { fix e::real assume "e>0"
       hence "dist a b < e" using assms(4 )using b using a by blast
     }
-    hence "dist a b = 0" by (metis dist_eq_0_iff dist_nz real_less_def)
+    hence "dist a b = 0" by (metis dist_eq_0_iff dist_nz less_le)
   }
   with a have "\<Inter>(range s) = {a}" unfolding image_def by auto
   thus ?thesis ..
@@ -3841,7 +3841,7 @@ lemma open_scaling[intro]:
 proof-
   { fix x assume "x \<in> s"
     then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_dist, THEN bspec[where x=x]] by auto
-    have "e * abs c > 0" using assms(1)[unfolded zero_less_abs_iff[THEN sym]] using real_mult_order[OF `e>0`] by auto
+    have "e * abs c > 0" using assms(1)[unfolded zero_less_abs_iff[THEN sym]] using mult_pos_pos[OF `e>0`] by auto
     moreover
     { fix y assume "dist y (c *\<^sub>R x) < e * \<bar>c\<bar>"
       hence "norm ((1 / c) *\<^sub>R y - x) < e" unfolding dist_norm
@@ -5015,7 +5015,7 @@ definition "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<i
 lemma is_interval_interval: "is_interval {a .. b::real^'n}" (is ?th1) "is_interval {a<..<b}" (is ?th2) proof - 
   have *:"\<And>x y z::real. x < y \<Longrightarrow> y < z \<Longrightarrow> x < z" by auto
   show ?th1 ?th2  unfolding is_interval_def mem_interval Ball_def atLeastAtMost_iff
-    by(meson real_le_trans le_less_trans less_le_trans *)+ qed
+    by(meson order_trans le_less_trans less_le_trans *)+ qed
 
 lemma is_interval_empty:
  "is_interval {}"
@@ -5423,7 +5423,7 @@ next
       hence "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}" using `x\<in>s` and `x\<noteq>0` by auto
       thus "norm (f b) / norm b * norm x \<le> norm (f x)" using b[THEN bspec[where x="(norm a / norm x) *\<^sub>R x"]]
         unfolding f.scaleR and ba using `x\<noteq>0` `a\<noteq>0`
-        by (auto simp add: real_mult_commute pos_le_divide_eq pos_divide_le_eq)
+        by (auto simp add: mult_commute pos_le_divide_eq pos_divide_le_eq)
     qed }
   ultimately
   show ?thesis by auto
@@ -5647,14 +5647,14 @@ next
       unfolding image_iff Bex_def mem_interval vector_le_def
       apply(auto simp add: vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      by(auto simp add: pos_le_divide_eq pos_divide_le_eq real_mult_commute diff_le_iff)
+      by(auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff)
   } moreover
   { fix y assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval vector_le_def
       apply(auto simp add: vector_smult_assoc pth_3[symmetric]
         intro!: exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      by(auto simp add: neg_le_divide_eq neg_divide_le_eq real_mult_commute diff_le_iff)
+      by(auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff)
   }
   ultimately show ?thesis using False by auto
 qed
@@ -5723,7 +5723,7 @@ proof-
       thus ?thesis using `e>0` by auto
     next
       case False hence "d>0" unfolding d_def using zero_le_dist[of "z 0" "z 1"]
-        by (metis False d_def real_less_def)
+        by (metis False d_def less_le)
       hence "0 < e * (1 - c) / d" using `e>0` and `1-c>0`
         using divide_pos_pos[of "e * (1 - c)" d] and mult_pos_pos[of e "1 - c"] by auto
       then obtain N where N:"c ^ N < e * (1 - c) / d" using real_arch_pow_inv[of "e * (1 - c) / d" c] and c by auto
@@ -5731,18 +5731,18 @@ proof-
         have *:"c ^ n \<le> c ^ N" using `n\<ge>N` and c using power_decreasing[OF `n\<ge>N`, of c] by auto
         have "1 - c ^ (m - n) > 0" using c and power_strict_mono[of c 1 "m - n"] using `m>n` by auto
         hence **:"d * (1 - c ^ (m - n)) / (1 - c) > 0"
-          using real_mult_order[OF `d>0`, of "1 - c ^ (m - n)"]
+          using mult_pos_pos[OF `d>0`, of "1 - c ^ (m - n)"]
           using divide_pos_pos[of "d * (1 - c ^ (m - n))" "1 - c"]
           using `0 < 1 - c` by auto
 
         have "dist (z m) (z n) \<le> c ^ n * d * (1 - c ^ (m - n)) / (1 - c)"
           using cf_z2[of n "m - n"] and `m>n` unfolding pos_le_divide_eq[OF `1-c>0`]
-          by (auto simp add: real_mult_commute dist_commute)
+          by (auto simp add: mult_commute dist_commute)
         also have "\<dots> \<le> c ^ N * d * (1 - c ^ (m - n)) / (1 - c)"
           using mult_right_mono[OF * order_less_imp_le[OF **]]
-          unfolding real_mult_assoc by auto
+          unfolding mult_assoc by auto
         also have "\<dots> < (e * (1 - c) / d) * d * (1 - c ^ (m - n)) / (1 - c)"
-          using mult_strict_right_mono[OF N **] unfolding real_mult_assoc by auto
+          using mult_strict_right_mono[OF N **] unfolding mult_assoc by auto
         also have "\<dots> = e * (1 - c ^ (m - n))" using c and `d>0` and `1 - c > 0` by auto
         also have "\<dots> \<le> e" using c and `1 - c ^ (m - n) > 0` and `e>0` using mult_right_le_one_le[of e "1 - c ^ (m - n)"] by auto
         finally have  "dist (z m) (z n) < e" by auto
@@ -5770,7 +5770,7 @@ proof-
 
     have *:"c * dist (z N) x \<le> dist (z N) x" unfolding mult_le_cancel_right2
       using zero_le_dist[of "z N" x] and c
-      by (metis dist_eq_0_iff dist_nz order_less_asym real_less_def)
+      by (metis dist_eq_0_iff dist_nz order_less_asym less_le)
     have "dist (f (z N)) (f x) \<le> c * dist (z N) x" using lipschitz[THEN bspec[where x="z N"], THEN bspec[where x=x]]
       using z_in_s[of N] `x\<in>s` using c by auto
     also have "\<dots> < e / 2" using N' and c using * by auto
