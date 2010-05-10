@@ -2188,7 +2188,7 @@ apply (simp add: inverse_eq_divide)
 apply (subst pos_less_divide_eq, assumption)
 apply (subst pos_less_divide_eq)
  apply (simp add: real_of_nat_Suc_gt_zero)
-apply (simp add: real_mult_commute)
+apply (simp add: mult_commute)
 done
 
 lemma finite_inverse_real_of_posnat_gt_real:
