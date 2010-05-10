@@ -10,7 +10,6 @@ uses
   "Tools/Qelim/qelim.ML"
   "Tools/Qelim/cooper_procedure.ML"
   ("Tools/Qelim/cooper.ML")
-  ("Tools/Qelim/presburger.ML")
 begin
 
 subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
