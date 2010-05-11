@@ -10,7 +10,7 @@ Convergence of sequences and series.
 header {* Sequences and Convergence *}
 
 theory SEQ
-imports Limits
+imports Limits RComplete
 begin
 
 abbreviation
