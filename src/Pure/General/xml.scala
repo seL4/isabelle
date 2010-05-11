@@ -92,12 +92,6 @@ object XML
     }
   }
 
-  def content_length(tree: XML.Tree): Int =
-    tree match {
-      case Elem(_, _, body) => (0 /: body)(_ + content_length(_))
-      case Text(s) => s.length
-    }
-
 
   /* cache for partial sharing -- NOT THREAD SAFE */
 
