@@ -124,31 +124,4 @@ proof -
     by simp
 qed
 
-subsection {*Various Other Theorems*}
-
-lemma real_le_add_half_cancel: "(x + y/2 \<le> (y::real)) = (x \<le> y /2)"
-by auto
-
-lemma real_mult_inverse_cancel:
-     "[|(0::real) < x; 0 < x1; x1 * y < x * u |] 
-      ==> inverse x * y < inverse x1 * u"
-apply (rule_tac c=x in mult_less_imp_less_left) 
-apply (auto simp add: mult_assoc [symmetric])
-apply (simp (no_asm) add: mult_ac)
-apply (rule_tac c=x1 in mult_less_imp_less_right) 
-apply (auto simp add: mult_ac)
-done
-
-lemma real_mult_inverse_cancel2:
-     "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
-apply (auto dest: real_mult_inverse_cancel simp add: mult_ac)
-done
-
-(* TODO: no longer real-specific; rename and move elsewhere *)
-lemma realpow_num_eq_if:
-  fixes m :: "'a::power"
-  shows "m ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
-by (cases n, auto)
-
-
 end

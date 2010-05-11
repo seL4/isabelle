@@ -1663,6 +1663,26 @@ qed
 lemma fact_lemma: "real (n::nat) * 4 = real (4 * n)"
 by simp
 
+lemma real_mult_inverse_cancel:
+     "[|(0::real) < x; 0 < x1; x1 * y < x * u |] 
+      ==> inverse x * y < inverse x1 * u"
+apply (rule_tac c=x in mult_less_imp_less_left) 
+apply (auto simp add: mult_assoc [symmetric])
+apply (simp (no_asm) add: mult_ac)
+apply (rule_tac c=x1 in mult_less_imp_less_right) 
+apply (auto simp add: mult_ac)
+done
+
+lemma real_mult_inverse_cancel2:
+     "[|(0::real) < x;0 < x1; x1 * y < x * u |] ==> y * inverse x < u * inverse x1"
+apply (auto dest: real_mult_inverse_cancel simp add: mult_ac)
+done
+
+lemma realpow_num_eq_if:
+  fixes m :: "'a::power"
+  shows "m ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
+by (cases n, auto)
+
 lemma cos_two_less_zero [simp]: "cos (2) < 0"
 apply (cut_tac x = 2 in cos_paired)
 apply (drule sums_minus)
