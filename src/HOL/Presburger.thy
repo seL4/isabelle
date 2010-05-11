@@ -8,16 +8,11 @@ theory Presburger
 imports Groebner_Basis SetInterval
 uses
   "Tools/Qelim/qelim.ML"
-  "Tools/Qelim/cooper_data.ML"
-  "Tools/Qelim/generated_cooper.ML"
+  "Tools/Qelim/cooper_procedure.ML"
   ("Tools/Qelim/cooper.ML")
-  ("Tools/Qelim/presburger.ML")
 begin
 
-setup CooperData.setup
-
 subsection{* The @{text "-\<infinity>"} and @{text "+\<infinity>"} Properties *}
-
 
 lemma minf:
   "\<lbrakk>\<exists>(z ::'a::linorder).\<forall>x<z. P x = P' x; \<exists>z.\<forall>x<z. Q x = Q' x\<rbrakk> 
@@ -222,16 +217,6 @@ by(induct rule: int_gr_induct,simp_all add:int_distrib)
 lemma incr_lemma: "0 < (d::int) \<Longrightarrow> z < x + (abs(x-z)+1) * d"
 by(induct rule: int_gr_induct, simp_all add:int_distrib)
 
-theorem int_induct[case_names base step1 step2]:
-  assumes 
-  base: "P(k::int)" and step1: "\<And>i. \<lbrakk>k \<le> i; P i\<rbrakk> \<Longrightarrow> P(i+1)" and
-  step2: "\<And>i. \<lbrakk>k \<ge> i; P i\<rbrakk> \<Longrightarrow> P(i - 1)"
-  shows "P i"
-proof -
-  have "i \<le> k \<or> i\<ge> k" by arith
-  thus ?thesis using prems int_ge_induct[where P="P" and k="k" and i="i"] int_le_induct[where P="P" and k="k" and i="i"] by blast
-qed
-
 lemma decr_mult_lemma:
   assumes dpos: "(0::int) < d" and minus: "\<forall>x. P x \<longrightarrow> P(x - d)" and knneg: "0 <= k"
   shows "ALL x. P x \<longrightarrow> P(x - k*d)"
@@ -387,10 +372,11 @@ text {* \bigskip Theorems for transforming predicates on nat to predicates on @{
 
 lemma zdiff_int_split: "P (int (x - y)) =
   ((y \<le> x \<longrightarrow> P (int x - int y)) \<and> (x < y \<longrightarrow> P 0))"
-  by (case_tac "y \<le> x", simp_all add: zdiff_int)
+  by (cases "y \<le> x") (simp_all add: zdiff_int)
 
 lemma number_of1: "(0::int) <= number_of n \<Longrightarrow> (0::int) <= number_of (Int.Bit0 n) \<and> (0::int) <= number_of (Int.Bit1 n)"
 by simp
+
 lemma number_of2: "(0::int) <= Numeral0" by simp
 
 text {*
@@ -401,9 +387,12 @@ theorem imp_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= 
 
 theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <= (x::int) \<and> P) = (0 <= x \<and> P')" 
   by (simp cong: conj_cong)
-lemma int_eq_number_of_eq:
-  "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
-  by (rule eq_number_of_eq)
+
+use "Tools/Qelim/cooper.ML"
+
+setup Cooper.setup
+
+method_setup presburger = "Cooper.method" "Cooper's algorithm for Presburger arithmetic"
 
 declare dvd_eq_mod_eq_0[symmetric, presburger]
 declare mod_1[presburger] 
@@ -425,31 +414,6 @@ declare zdiv_zmod_equality[presburger]
 declare mod2_Suc_Suc[presburger]
 lemma [presburger]: "(a::int) div 0 = 0" and [presburger]: "a mod 0 = a"
 by simp_all
-
-use "Tools/Qelim/cooper.ML"
-oracle linzqe_oracle = Coopereif.cooper_oracle
-
-use "Tools/Qelim/presburger.ML"
-
-setup {* Arith_Data.add_tactic "Presburger arithmetic" (K (Presburger.cooper_tac true [] [])) *}
-
-method_setup presburger = {*
-let
- fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
- fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
- val addN = "add"
- val delN = "del"
- val elimN = "elim"
- val any_keyword = keyword addN || keyword delN || simple_keyword elimN
- val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
-in
-  Scan.optional (simple_keyword elimN >> K false) true --
-  Scan.optional (keyword addN |-- thms) [] --
-  Scan.optional (keyword delN |-- thms) [] >>
-  (fn ((elim, add_ths), del_ths) => fn ctxt =>
-    SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
-end
-*} "Cooper's algorithm for Presburger arithmetic"
 
 lemma [presburger, algebra]: "m mod 2 = (1::nat) \<longleftrightarrow> \<not> 2 dvd m " by presburger
 lemma [presburger, algebra]: "m mod 2 = Suc 0 \<longleftrightarrow> \<not> 2 dvd m " by presburger
