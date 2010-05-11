@@ -582,81 +582,96 @@ fun add_bools t =
     | _ => if skip orelse is_op t then I else insert (op aconv) t
   end;
 
+fun descend vs (abs as (_, xT, _)) =
+  let
+    val (xn', p') = variant_abs abs;
+    val vs' = ((xn', xT), 0) :: (map o apsnd) (fn n => n + 1) vs;
+  in (vs', p') end;
+
 local structure Proc = Cooper_Procedure in
 
-fun i_of_term vs (Free vT) = Proc.Bound (the (AList.lookup (op =) vs vT))
-  | i_of_term vs (Term.Bound i) = Proc.Bound i
-  | i_of_term vs @{term "0::int"} = Proc.C 0
-  | i_of_term vs @{term "1::int"} = Proc.C 1
-  | i_of_term vs (t as Const (@{const_name number_of}, _) $ _) = Proc.C (dest_number t)
-  | i_of_term vs (Const (@{const_name Groups.uminus}, _) $ t') = Proc.Neg (i_of_term vs t')
-  | i_of_term vs (Const (@{const_name Groups.plus}, _) $ t1 $ t2) = Proc.Add (i_of_term vs t1, i_of_term vs t2)
-  | i_of_term vs (Const (@{const_name Groups.minus}, _) $ t1 $ t2) = Proc.Sub (i_of_term vs t1, i_of_term vs t2)
-  | i_of_term vs (Const (@{const_name Groups.times}, _) $ t1 $ t2) = (case perhaps_number t1
-     of SOME n => Proc.Mul (n, i_of_term vs t2)
-      | NONE => (case perhaps_number t2
-         of SOME n => Proc.Mul (n, i_of_term vs t1)
-          | NONE => raise COOPER "reification: unsupported kind of multiplication"))
-  | i_of_term _ _ = raise COOPER "reification: unknown term";
+fun num_of_term vs (Free vT) = Proc.Bound (the (AList.lookup (op =) vs vT))
+  | num_of_term vs (Term.Bound i) = Proc.Bound i
+  | num_of_term vs @{term "0::int"} = Proc.C 0
+  | num_of_term vs @{term "1::int"} = Proc.C 1
+  | num_of_term vs (t as Const (@{const_name number_of}, _) $ _) =
+      Proc.C (dest_number t)
+  | num_of_term vs (Const (@{const_name Groups.uminus}, _) $ t') =
+      Proc.Neg (num_of_term vs t')
+  | num_of_term vs (Const (@{const_name Groups.plus}, _) $ t1 $ t2) =
+      Proc.Add (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (Const (@{const_name Groups.minus}, _) $ t1 $ t2) =
+      Proc.Sub (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (Const (@{const_name Groups.times}, _) $ t1 $ t2) =
+     (case perhaps_number t1
+       of SOME n => Proc.Mul (n, num_of_term vs t2)
+        | NONE => (case perhaps_number t2
+           of SOME n => Proc.Mul (n, num_of_term vs t1)
+            | NONE => raise COOPER "reification: unsupported kind of multiplication"))
+  | num_of_term _ _ = raise COOPER "reification: bad term";
 
-fun qf_of_term ps vs t = case t
- of Const (@{const_name True}, _) => Proc.T
-  | Const (@{const_name False}, _) => Proc.F
-  | Const (@{const_name Orderings.less}, _) $ t1 $ t2 => Proc.Lt (Proc.Sub (i_of_term vs t1, i_of_term vs t2))
-  | Const (@{const_name Orderings.less_eq}, _) $ t1 $ t2 => Proc.Le (Proc.Sub(i_of_term vs t1, i_of_term vs t2))
-  | Const (@{const_name Rings.dvd}, _) $ t1 $ t2 =>
-      (Proc.Dvd (dest_number t1, i_of_term vs t2)
-        handle TERM _ => raise COOPER "reification: unsupported dvd")
-  | @{term "op = :: int => _"} $ t1 $ t2 => Proc.Eq (Proc.Sub (i_of_term vs t1, i_of_term vs t2))
-  | @{term "op = :: bool => _ "} $ t1 $ t2 => Proc.Iff (qf_of_term ps vs t1, qf_of_term ps vs t2)
-  | Const ("op &", _) $ t1 $t2 => Proc.And (qf_of_term ps vs t1, qf_of_term ps vs t2)
-  | Const ("op |", _) $ t1 $ t2 => Proc.Or (qf_of_term ps vs t1, qf_of_term ps vs t2)
-  | Const ("op -->", _) $ t1 $t2 => Proc.Imp (qf_of_term ps vs t1, qf_of_term ps vs t2)
-  | Const (@{const_name Not}, _) $ t' => Proc.Not (qf_of_term ps vs t')
-  | Const ("Ex", _) $ Abs (xn, xT, p) =>
-     let val (xn',p') = variant_abs (xn,xT,p)
-         val vs' = ((xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-     in Proc.E (qf_of_term ps vs' p')
-     end
-  | Const("All", _) $ Abs (xn, xT, p) =>
-     let val (xn',p') = variant_abs (xn,xT,p)
-         val vs' = ((xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-     in Proc.A (qf_of_term ps vs' p')
-     end
-  | _ =>(case AList.lookup (op aconv) ps t of
-           NONE => raise COOPER "reification: unknown term"
-         | SOME n => Proc.Closed n);
+fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
+  | fm_of_term ps vs (Const (@{const_name False}, _)) = Proc.F
+  | fm_of_term ps vs (Const ("op &", _) $ t1 $ t2) =
+      Proc.And (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (Const ("op |", _) $ t1 $ t2) =
+      Proc.Or (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (Const ("op -->", _) $ t1 $ t2) =
+      Proc.Imp (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (@{term "op = :: bool => _ "} $ t1 $ t2) =
+      Proc.Iff (fm_of_term ps vs t1, fm_of_term ps vs t2)
+  | fm_of_term ps vs (Const (@{const_name Not}, _) $ t') =
+      Proc.Not (fm_of_term ps vs t')
+  | fm_of_term ps vs (Const ("Ex", _) $ Abs abs) =
+      Proc.E (uncurry (fm_of_term ps) (descend vs abs))
+  | fm_of_term ps vs (Const ("All", _) $ Abs abs) =
+      Proc.A (uncurry (fm_of_term ps) (descend vs abs))
+  | fm_of_term ps vs (@{term "op = :: int => _"} $ t1 $ t2) =
+      Proc.Eq (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term ps vs (Const (@{const_name Orderings.less_eq}, _) $ t1 $ t2) =
+      Proc.Le (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term ps vs (Const (@{const_name Orderings.less}, _) $ t1 $ t2) =
+      Proc.Lt (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term ps vs (Const (@{const_name Rings.dvd}, _) $ t1 $ t2) =
+     (case perhaps_number t1
+       of SOME n => Proc.Dvd (n, num_of_term vs t2)
+        | NONE => raise COOPER "reification: unsupported dvd")
+  | fm_of_term ps vs t =
+     (case AList.lookup (op aconv) ps t
+       of SOME n => Proc.Closed n
+        | NONE => raise COOPER "reification: unknown term");
 
-fun term_of_i vs t = case t
- of Proc.C i => HOLogic.mk_number HOLogic.intT i
-  | Proc.Bound n => Free (the (AList.lookup (op =) vs n))
-  | Proc.Neg t' => @{term "uminus :: int => _"} $ term_of_i vs t'
-  | Proc.Add (t1, t2) => @{term "op + :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
-  | Proc.Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
-  | Proc.Mul (i, t2) => @{term "op * :: int => _"} $
-      HOLogic.mk_number HOLogic.intT i $ term_of_i vs t2
-  | Proc.Cn (n, i, t') => term_of_i vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
+fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT i
+  | term_of_num vs (Proc.Bound n) = Free (the (AList.lookup (op =) vs n))
+  | term_of_num vs (Proc.Neg t') =
+      @{term "uminus :: int => _"} $ term_of_num vs t'
+  | term_of_num vs (Proc.Add (t1, t2)) =
+      @{term "op + :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (Proc.Sub (t1, t2)) =
+      @{term "op - :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
+  | term_of_num vs (Proc.Mul (i, t2)) =
+      @{term "op * :: int => _"} $ HOLogic.mk_number HOLogic.intT i $ term_of_num vs t2
+  | term_of_num vs (Proc.Cn (n, i, t')) =
+      term_of_num vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
 
-fun term_of_qf ps vs t =
- case t of
-   Proc.T => HOLogic.true_const
- | Proc.F => HOLogic.false_const
- | Proc.Lt t' => @{term "op < :: int => _ "} $ term_of_i vs t' $ @{term "0::int"}
- | Proc.Le t' => @{term "op <= :: int => _ "} $ term_of_i vs t' $ @{term "0::int"}
- | Proc.Gt t' => @{term "op < :: int => _ "} $ @{term "0::int"} $ term_of_i vs t'
- | Proc.Ge t' => @{term "op <= :: int => _ "} $ @{term "0::int"} $ term_of_i vs t'
- | Proc.Eq t' => @{term "op = :: int => _ "} $ term_of_i vs t'$ @{term "0::int"}
- | Proc.NEq t' => term_of_qf ps vs (Proc.Not (Proc.Eq t'))
- | Proc.Dvd (i, t') => @{term "op dvd :: int => _ "} $
-    HOLogic.mk_number HOLogic.intT i $ term_of_i vs t'
- | Proc.NDvd (i, t')=> term_of_qf ps vs (Proc.Not (Proc.Dvd (i, t')))
- | Proc.Not t' => HOLogic.Not $ term_of_qf ps vs t'
- | Proc.And (t1, t2) => HOLogic.conj $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
- | Proc.Or (t1, t2) => HOLogic.disj $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
- | Proc.Imp (t1, t2) => HOLogic.imp $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
- | Proc.Iff (t1, t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
- | Proc.Closed n => the (AList.lookup (op =) ps n)
- | Proc.NClosed n => term_of_qf ps vs (Proc.Not (Proc.Closed n));
+fun term_of_fm ps vs Proc.T = HOLogic.true_const
+  | term_of_fm ps vs Proc.F = HOLogic.false_const
+  | term_of_fm ps vs (Proc.And (t1, t2)) = HOLogic.conj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (Proc.Or (t1, t2)) = HOLogic.disj $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (Proc.Imp (t1, t2)) = HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (Proc.Iff (t1, t2)) = @{term "op = :: bool => _"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
+  | term_of_fm ps vs (Proc.Not t') = HOLogic.Not $ term_of_fm ps vs t'
+  | term_of_fm ps vs (Proc.Eq t') = @{term "op = :: int => _ "} $ term_of_num vs t'$ @{term "0::int"}
+  | term_of_fm ps vs (Proc.NEq t') = term_of_fm ps vs (Proc.Not (Proc.Eq t'))
+  | term_of_fm ps vs (Proc.Lt t') = @{term "op < :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
+  | term_of_fm ps vs (Proc.Le t') = @{term "op <= :: int => _ "} $ term_of_num vs t' $ @{term "0::int"}
+  | term_of_fm ps vs (Proc.Gt t') = @{term "op < :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
+  | term_of_fm ps vs (Proc.Ge t') = @{term "op <= :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
+  | term_of_fm ps vs (Proc.Dvd (i, t')) = @{term "op dvd :: int => _ "} $
+      HOLogic.mk_number HOLogic.intT i $ term_of_num vs t'
+  | term_of_fm ps vs (Proc.NDvd (i, t')) = term_of_fm ps vs (Proc.Not (Proc.Dvd (i, t')))
+  | term_of_fm ps vs (Proc.Closed n) = the (AList.lookup (op =) ps n)
+  | term_of_fm ps vs (Proc.NClosed n) = term_of_fm ps vs (Proc.Not (Proc.Closed n));
 
 fun invoke t =
   let
@@ -664,7 +679,7 @@ fun invoke t =
     val ps = map_index swap (add_bools t []);
   in
     Logic.mk_equals (HOLogic.mk_Trueprop t,
-      HOLogic.mk_Trueprop (term_of_qf (map swap ps) (map swap vs) (Proc.pa (qf_of_term ps vs t))))
+      HOLogic.mk_Trueprop (term_of_fm (map swap ps) (map swap vs) (Proc.pa (fm_of_term ps vs t))))
   end;
 
 end;
