@@ -25,8 +25,10 @@ plugin.isabelle.jedit.Plugin.option-pane=isabelle
 options.isabelle.label=Isabelle
 options.isabelle.code=new isabelle.jedit.Isabelle_Options();
 options.isabelle.logic.title=Logic
-options.isabelle.font-size.title=Font Size
-options.isabelle.font-size=14
+options.isabelle.relative-font-size.title=Relative Font Size
+options.isabelle.relative-font-size=100
+options.isabelle.relative-margin.title=Relative Margin
+options.isabelle.relative-margin=90
 options.isabelle.startup-timeout=10000
 
 #menu actions
