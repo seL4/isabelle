@@ -231,6 +231,8 @@ by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 lemma atLeastAtMost_singleton [simp]: "{a..a} = {a}"
 by (auto simp add: atLeastAtMost_def atMost_def atLeast_def)
 
+lemma atLeastAtMost_singleton': "a = b \<Longrightarrow> {a .. b} = {a}" by simp
+
 lemma atLeastatMost_subset_iff[simp]:
   "{a..b} <= {c..d} \<longleftrightarrow> (~ a <= b) | c <= a & b <= d"
 unfolding atLeastAtMost_def atLeast_def atMost_def
@@ -240,6 +242,15 @@ lemma atLeastatMost_psubset_iff:
   "{a..b} < {c..d} \<longleftrightarrow>
    ((~ a <= b) | c <= a & b <= d & (c < a | b < d))  &  c <= d"
 by(simp add: psubset_eq expand_set_eq less_le_not_le)(blast intro: order_trans)
+
+lemma atLeastAtMost_singleton_iff[simp]:
+  "{a .. b} = {c} \<longleftrightarrow> a = b \<and> b = c"
+proof
+  assume "{a..b} = {c}"
+  hence "\<not> (\<not> a \<le> b)" unfolding atLeastatMost_empty_iff[symmetric] by simp
+  moreover with `{a..b} = {c}` have "c \<le> a \<and> b \<le> c" by auto
+  ultimately show "a = b \<and> b = c" by auto
+qed simp
 
 end
 

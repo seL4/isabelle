@@ -168,13 +168,7 @@ next
           by simp
         also have
           "\<dots> = (\<Sum>n\<in>{2::nat..2}. 1/real n) + 1"
-        proof -
-          have "(2::nat)^0 = 1" by simp
-          then have "(2::nat)^0+1 = 2" by simp
-          moreover have "(2::nat)^1 = 2" by simp
-          ultimately have "{((2::nat)^0)+1..2^1} = {2::nat..2}" by auto
-          thus ?thesis by simp
-        qed
+          by (auto simp: atLeastAtMost_singleton')
         also have
           "\<dots> = 1/2 + 1"
           by simp
