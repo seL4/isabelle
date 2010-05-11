@@ -158,7 +158,7 @@ possible in Isabelle/Pure/HOL.  Note that the logical environment may
 contain multiple interpretations of local typedefs (with different
 non-emptiness proofs), even in a global theory context.
 
-* Theory Library/Coinductive_List has been removed -- superceded by
+* Theory Library/Coinductive_List has been removed -- superseded by
 AFP/thys/Coinductive.
 
 * Theory PReal, including the type "preal" and related operations, has
@@ -3310,7 +3310,7 @@ potential INCOMPATIBILITY.
 * Pure: axiomatic type classes are now purely definitional, with
 explicit proofs of class axioms and super class relations performed
 internally. See Pure/axclass.ML for the main internal interfaces --
-notably AxClass.define_class supercedes AxClass.add_axclass, and
+notably AxClass.define_class supersedes AxClass.add_axclass, and
 AxClass.axiomatize_class/classrel/arity supersede
 Sign.add_classes/classrel/arities.
 
@@ -4204,7 +4204,7 @@ accordingly, while Option.map replaces apsome.
 * Pure/library.ML: the exception LIST has been given up in favour of
 the standard exceptions Empty and Subscript, as well as
 Library.UnequalLengths.  Function like Library.hd and Library.tl are
-superceded by the standard hd and tl functions etc.
+superseded by the standard hd and tl functions etc.
 
 A number of basic list functions are no longer exported to the ML
 toplevel, as they are variants of predefined functions.  The following
@@ -4335,15 +4335,15 @@ Library.sort_strings on result).
 
 * Pure/term.ML: combinators fold_atyps, fold_aterms, fold_term_types,
 fold_types traverse types/terms from left to right, observing natural
-argument order.  Supercedes previous foldl_XXX versions, add_frees,
+argument order.  Supersedes previous foldl_XXX versions, add_frees,
 add_vars etc. have been adapted as well: INCOMPATIBILITY.
 
 * Pure: name spaces have been refined, with significant changes of the
 internal interfaces -- INCOMPATIBILITY.  Renamed cond_extern(_table)
-to extern(_table).  The plain name entry path is superceded by a
+to extern(_table).  The plain name entry path is superseded by a
 general 'naming' context, which also includes the 'policy' to produce
 a fully qualified name and external accesses of a fully qualified
-name; NameSpace.extend is superceded by context dependent
+name; NameSpace.extend is superseded by context dependent
 Sign.declare_name.  Several theory and proof context operations modify
 the naming context.  Especially note Theory.restore_naming and
 ProofContext.restore_naming to get back to a sane state; note that
@@ -4383,7 +4383,7 @@ The most basic sign_of operations (Theory.sign_of, Thm.sign_of_thm
 etc.) as well as the sign field in Thm.rep_thm etc. have been retained
 for convenience -- they merely return the theory.
 
-* Pure: type Type.tsig is superceded by theory in most interfaces.
+* Pure: type Type.tsig is superseded by theory in most interfaces.
 
 * Pure: the Isar proof context type is already defined early in Pure
 as Context.proof (note that ProofContext.context and Proof.context are
@@ -5515,7 +5515,7 @@ fixsome to patch .thy and .ML sources automatically;
   Eps_sym_eq       -> some_sym_eq_trivial
   Eps_eq           -> some_eq_trivial
 
-* HOL: exhaust_tac on datatypes superceded by new generic case_tac;
+* HOL: exhaust_tac on datatypes superseded by new generic case_tac;
 
 * HOL: removed obsolete theorem binding expand_if (refer to split_if
 instead);
@@ -5653,7 +5653,7 @@ most cases, one should have to change intro!! to intro? only);
 replaced "delrule" by "rule del";
 
 * Isar/Provers: new 'hypsubst' method, plain 'subst' method and
-'symmetric' attribute (the latter supercedes [RS sym]);
+'symmetric' attribute (the latter supersedes [RS sym]);
 
 * Isar/Provers: splitter support (via 'split' attribute and 'simp'
 method modifier); 'simp' method: 'only:' modifier removes loopers as
