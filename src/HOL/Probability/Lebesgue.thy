@@ -939,17 +939,17 @@ proof (safe intro!: exI)
   proof safe
     fix t assume t: "t \<in> space M"
     { fix m n :: nat assume "m \<le> n"
-      hence *: "(2::real)^n = 2^m * 2^(n - m)" unfolding normalizing.mul_pwr by auto
+      hence *: "(2::real)^n = 2^m * 2^(n - m)" unfolding power_add[symmetric] by auto
       have "real (natfloor (f t * 2^m) * natfloor (2^(n-m))) \<le> real (natfloor (f t * 2 ^ n))"
         apply (subst *)
-        apply (subst normalizing.mul_a)
+        apply (subst mult_assoc[symmetric])
         apply (subst real_of_nat_le_iff)
         apply (rule le_mult_natfloor)
         using nonneg[OF t] by (auto intro!: mult_nonneg_nonneg)
       hence "real (natfloor (f t * 2^m)) * 2^n \<le> real (natfloor (f t * 2^n)) * 2^m"
         apply (subst *)
-        apply (subst (3) normalizing.mul_c)
-        apply (subst normalizing.mul_a)
+        apply (subst (3) mult_commute)
+        apply (subst mult_assoc[symmetric])
         by (auto intro: mult_right_mono simp: natfloor_power real_of_nat_power[symmetric]) }
     thus "incseq (\<lambda>n. ?u n t)" unfolding u_at_t[OF t] unfolding incseq_def
       by (auto simp add: le_divide_eq divide_le_eq less_divide_eq)

@@ -88,7 +88,7 @@ proof (induct t)
   case Lf thus ?case by (metis reflect.simps(1))
 next
   case (Br a t1 t2) thus ?case
-    by (metis normalizing.semiring_rules(24) n_nodes.simps(2) reflect.simps(2))
+    by (metis add_commute n_nodes.simps(2) reflect.simps(2))
 qed
 
 declare [[ atp_problem_prefix = "BT__depth_reflect" ]]

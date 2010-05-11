@@ -41,7 +41,7 @@ proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
   have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> \<bar>x\<^isub>1\<bar>" by (metis abs_ge_zero)
-  have F2: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis normalizing.mul_1)
+  have F2: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
   have F3: "\<forall>x\<^isub>1 x\<^isub>3. x\<^isub>3 \<le> \<bar>h x\<^isub>1\<bar> \<longrightarrow> x\<^isub>3 \<le> c * \<bar>f x\<^isub>1\<bar>" by (metis A1 order_trans)
   have F4: "\<forall>x\<^isub>2 x\<^isub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^isub>3\<bar> * \<bar>x\<^isub>2\<bar> = \<bar>x\<^isub>3 * x\<^isub>2\<bar>"
     by (metis abs_mult)
@@ -66,11 +66,11 @@ lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom).
   apply auto
   apply (case_tac "c = 0", simp)
   apply (rule_tac x = "1" in exI, simp)
-  apply (rule_tac x = "abs c" in exI, auto);
+  apply (rule_tac x = "abs c" in exI, auto)
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis normalizing.mul_1)
+  have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
   have F2: "\<forall>x\<^isub>2 x\<^isub>3\<Colon>'a\<Colon>linordered_idom. \<bar>x\<^isub>3\<bar> * \<bar>x\<^isub>2\<bar> = \<bar>x\<^isub>3 * x\<^isub>2\<bar>"
     by (metis abs_mult)
   have "\<forall>x\<^isub>1\<ge>0. \<bar>x\<^isub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^isub>1" by (metis F1 abs_mult_pos abs_one)
@@ -92,7 +92,7 @@ lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom).
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis normalizing.mul_1)
+  have F1: "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
   have F2: "\<forall>x\<^isub>3 x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 0 \<le> x\<^isub>1 \<longrightarrow> \<bar>x\<^isub>3 * x\<^isub>1\<bar> = \<bar>x\<^isub>3\<bar> * x\<^isub>1" by (metis abs_mult_pos)
   hence "\<forall>x\<^isub>1\<ge>0. \<bar>x\<^isub>1\<Colon>'a\<Colon>linordered_idom\<bar> = x\<^isub>1" by (metis F1 abs_one)
   hence "\<forall>x\<^isub>3. 0 \<le> \<bar>f x\<^isub>3\<bar> \<longrightarrow> c * \<bar>f x\<^isub>3\<bar> = \<bar>c\<bar> * \<bar>f x\<^isub>3\<bar>" by (metis F2 A1 abs_ge_zero order_trans)
@@ -111,7 +111,7 @@ lemma (*bigo_pos_const:*) "(EX (c::'a::linordered_idom).
 proof -
   fix c :: 'a and x :: 'b
   assume A1: "\<forall>x. \<bar>h x\<bar> \<le> c * \<bar>f x\<bar>"
-  have "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis normalizing.mul_1)
+  have "\<forall>x\<^isub>1\<Colon>'a\<Colon>linordered_idom. 1 * x\<^isub>1 = x\<^isub>1" by (metis mult_1)
   hence "\<forall>x\<^isub>3. \<bar>c * \<bar>f x\<^isub>3\<bar>\<bar> = c * \<bar>f x\<^isub>3\<bar>"
     by (metis A1 abs_ge_zero order_trans abs_mult_pos abs_one)
   hence "\<bar>h x\<bar> \<le> \<bar>c * f x\<bar>" by (metis A1 abs_ge_zero abs_mult_pos abs_mult)
@@ -131,26 +131,26 @@ lemma bigo_elt_subset [intro]: "f : O(g) ==> O(f) <= O(g)"
   apply (rule conjI)
   apply (rule mult_pos_pos)
   apply (assumption)+ 
-(*sledgehammer*);
+(*sledgehammer*)
   apply (rule allI)
   apply (drule_tac x = "xa" in spec)+
-  apply (subgoal_tac "ca * abs(f xa) <= ca * (c * abs(g xa))");
+  apply (subgoal_tac "ca * abs(f xa) <= ca * (c * abs(g xa))")
   apply (erule order_trans)
   apply (simp add: mult_ac)
   apply (rule mult_left_mono, assumption)
-  apply (rule order_less_imp_le, assumption);
+  apply (rule order_less_imp_le, assumption)
 done
 
 
 declare [[ atp_problem_prefix = "BigO__bigo_refl" ]]
 lemma bigo_refl [intro]: "f : O(f)"
 apply (auto simp add: bigo_def)
-by (metis normalizing.mul_1 order_refl)
+by (metis mult_1 order_refl)
 
 declare [[ atp_problem_prefix = "BigO__bigo_zero" ]]
 lemma bigo_zero: "0 : O(g)"
 apply (auto simp add: bigo_def func_zero)
-by (metis normalizing.mul_0 order_refl)
+by (metis mult_zero_left order_refl)
 
 lemma bigo_zero2: "O(%x.0) = {%x.0}"
   apply (auto simp add: bigo_def) 
@@ -237,7 +237,7 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (rule bigo_plus_subset)
   apply (simp add: bigo_alt_def set_plus_def func_plus)
   apply clarify 
-(*sledgehammer*); 
+(*sledgehammer*) 
   apply (rule_tac x = "max c ca" in exI)
   apply (rule conjI)
    apply (metis Orderings.less_max_iff_disj)
@@ -307,7 +307,7 @@ apply (rule bigo_bounded)
  apply (auto simp add: diff_minus fun_Compl_def func_plus)
  prefer 2
  apply (drule_tac x = x in spec)+
- apply (metis add_right_mono normalizing.semiring_rules(24) diff_add_cancel diff_minus_eq_add le_less order_trans)
+ apply (metis add_right_mono add_commute diff_add_cancel diff_minus_eq_add le_less order_trans)
 proof -
   fix x :: 'a
   assume "\<forall>x. lb x \<le> f x"
@@ -318,13 +318,13 @@ declare [[ atp_problem_prefix = "BigO__bigo_abs" ]]
 lemma bigo_abs: "(%x. abs(f x)) =o O(f)" 
 apply (unfold bigo_def)
 apply auto
-by (metis normalizing.mul_1 order_refl)
+by (metis mult_1 order_refl)
 
 declare [[ atp_problem_prefix = "BigO__bigo_abs2" ]]
 lemma bigo_abs2: "f =o O(%x. abs(f x))"
 apply (unfold bigo_def)
 apply auto
-by (metis normalizing.mul_1 order_refl)
+by (metis mult_1 order_refl)
  
 lemma bigo_abs3: "O(f) = O(%x. abs(f x))"
 proof -
