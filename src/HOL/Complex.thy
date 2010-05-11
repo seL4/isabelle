@@ -353,16 +353,26 @@ apply (rule_tac x=1 in exI)
 apply (simp add: complex_norm_def)
 done
 
+lemma tendsto_Complex [tendsto_intros]:
+  assumes "(f ---> a) net" and "(g ---> b) net"
+  shows "((\<lambda>x. Complex (f x) (g x)) ---> Complex a b) net"
+proof (rule tendstoI)
+  fix r :: real assume "0 < r"
+  hence "0 < r / sqrt 2" by (simp add: divide_pos_pos)
+  have "eventually (\<lambda>x. dist (f x) a < r / sqrt 2) net"
+    using `(f ---> a) net` and `0 < r / sqrt 2` by (rule tendstoD)
+  moreover
+  have "eventually (\<lambda>x. dist (g x) b < r / sqrt 2) net"
+    using `(g ---> b) net` and `0 < r / sqrt 2` by (rule tendstoD)
+  ultimately
+  show "eventually (\<lambda>x. dist (Complex (f x) (g x)) (Complex a b) < r) net"
+    by (rule eventually_elim2)
+       (simp add: dist_norm real_sqrt_sum_squares_less)
+qed
+
 lemma LIMSEQ_Complex:
   "\<lbrakk>X ----> a; Y ----> b\<rbrakk> \<Longrightarrow> (\<lambda>n. Complex (X n) (Y n)) ----> Complex a b"
-apply (rule LIMSEQ_I)
-apply (subgoal_tac "0 < r / sqrt 2")
-apply (drule_tac r="r / sqrt 2" in LIMSEQ_D, safe)
-apply (drule_tac r="r / sqrt 2" in LIMSEQ_D, safe)
-apply (rename_tac M N, rule_tac x="max M N" in exI, safe)
-apply (simp add: real_sqrt_sum_squares_less)
-apply (simp add: divide_pos_pos)
-done
+by (rule tendsto_Complex)
 
 instance complex :: banach
 proof
