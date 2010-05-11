@@ -140,6 +140,9 @@ terms may need to be adapted.
 
 *** HOL ***
 
+* Theorem Presburger.int_induct has been renamed to Int.int_bidirectional_induct;
+theorem Int.int_induct is no longer shadowed.  INCOMPATIBILITY.
+
 * Dropped theorem duplicate comp_arith; use semiring_norm instead.  INCOMPATIBILITY.
 
 * Theory 'Finite_Set': various folding_* locales facilitate the application
