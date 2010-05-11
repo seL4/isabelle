@@ -1784,6 +1784,23 @@ apply(rule int_le_induct[of _ "k - 1"])
 apply (rule step, simp+)
 done
 
+theorem int_bidirectional_induct [case_names base step1 step2]:
+  fixes k :: int
+  assumes base: "P k"
+    and step1: "\<And>i. k \<le> i \<Longrightarrow> P i \<Longrightarrow> P (i + 1)"
+    and step2: "\<And>i. k \<ge> i \<Longrightarrow> P i \<Longrightarrow> P (i - 1)"
+  shows "P i"
+proof -
+  have "i \<le> k \<or> i \<ge> k" by arith
+  then show ?thesis proof
+    assume "i \<ge> k" then show ?thesis using base
+      by (rule int_ge_induct) (fact step1)
+  next
+    assume "i \<le> k" then show ?thesis using base
+      by (rule int_le_induct) (fact step2)
+  qed
+qed
+
 subsection{*Intermediate value theorems*}
 
 lemma int_val_lemma:

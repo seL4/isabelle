@@ -42,7 +42,7 @@ proof -
   proof -
     fix k
     show "f k - g k = f 0 - g 0"
-      by (induct k rule: int_induct) (simp_all add: k_incr k_decr)
+      by (induct k rule: int_bidirectional_induct) (simp_all add: k_incr k_decr)
   qed
   then have "\<And>k. (plus (g 0 - f 0) \<circ> f) k = g k"
     by (simp add: algebra_simps)

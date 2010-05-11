@@ -1910,7 +1910,7 @@ where
 ML {* @{code cooper_test} () *}
 
 (*
-code_reflect Generated_Cooper
+code_reflect Cooper_Procedure
   functions pa
   file "~~/src/HOL/Tools/Qelim/generated_cooper.ML"
 *)

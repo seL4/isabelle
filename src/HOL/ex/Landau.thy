@@ -8,8 +8,8 @@ imports Main Preorder
 begin
 
 text {*
-  We establish a preorder releation @{text "\<lesssim>"} on functions
-  from @{text "\<nat>"} to @{text "\<nat>"} such that @{text "f \<lesssim> g \<longleftrightarrow> f \<in> O(g)"}.
+  We establish a preorder releation @{text "\<lesssim>"} on functions from
+  @{text "\<nat>"} to @{text "\<nat>"} such that @{text "f \<lesssim> g \<longleftrightarrow> f \<in> O(g)"}.
 *}
 
 subsection {* Auxiliary *}
@@ -175,12 +175,12 @@ qed
 
 text {*
   We would like to show (or refute) that @{text "f \<prec> g \<longleftrightarrow> f \<in> o(g)"},
-  i.e.~@{prop "f \<prec> g \<longleftrightarrow> (\<forall>c. \<exists>n. \<forall>m>n. f m < Suc c * g m)"} but did not manage to
-  do so.
+  i.e.~@{prop "f \<prec> g \<longleftrightarrow> (\<forall>c. \<exists>n. \<forall>m>n. f m < Suc c * g m)"} but did not
+  manage to do so.
 *}
 
 
-subsection {* Assert that @{text "\<lesssim>"} is ineed a preorder *}
+subsection {* Assert that @{text "\<lesssim>"} is indeed a preorder *}
 
 interpretation fun_order: preorder_equiv less_eq_fun less_fun
   where "preorder_equiv.equiv less_eq_fun = equiv_fun"

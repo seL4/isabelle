@@ -1,6 +1,6 @@
 (* Generated from Cooper.thy; DO NOT EDIT! *)
 
-structure Generated_Cooper : sig
+structure Cooper_Procedure : sig
   type 'a eq
   val eq : 'a eq -> 'a -> 'a -> bool
   val eqa : 'a eq -> 'a -> 'a -> bool
@@ -2271,4 +2271,4 @@ fun qelim (E p) = (fn qe => dj qe (qelim p qe))
 
 fun pa p = qelim (prep p) cooper;
 
-end; (*struct Generated_Cooper*)
+end; (*struct Cooper_Procedure*)
