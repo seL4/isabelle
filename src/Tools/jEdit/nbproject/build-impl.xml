@@ -230,7 +230,7 @@ is divided into following sections:
             <attribute default="" name="sourcepath"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <scalac addparams="-make:transitive -dependencyfile ${basedir}/${build.dir}/.scala_dependencies @{addparams}" deprecation="${scalac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" extdirs="@{extdirs}" force="yes" fork="true" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}" unchecked="${scalac.unchecked}">
+                <scalac addparams="-make:transitive -dependencyfile &quot;${basedir}/${build.dir}/.scala_dependencies&quot; @{addparams}" deprecation="${scalac.deprecation}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" extdirs="@{extdirs}" force="yes" fork="true" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}" unchecked="${scalac.unchecked}">
                     <classpath>
                         <path>
                             <pathelement path="@{classpath}"/>
@@ -549,7 +549,7 @@ is divided into following sections:
             -->
     <target depends="init" name="-javadoc-build">
         <mkdir dir="${dist.javadoc.dir}"/>
-        <scaladoc addparams="${javadoc.additionalparam}" deprecation="yes" destdir="${dist.javadoc.dir}" doctitle="${javadoc.windowtitle}" encoding="${javadoc.encoding.used}" srcdir="${src.dir}" unchecked="yes" windowtitle="${javadoc.windowtitle}">
+        <scaladoc addparams="${javadoc.additionalparam}" deprecation="yes" destdir="${dist.javadoc.dir}" doctitle="${javadoc.windowtitle}" encoding="${javadoc.encoding.used}" srcdir="${src.dir}" unchecked="yes">
             <classpath>
                 <path path="${javac.classpath}"/>
                 <fileset dir="${scala.lib}">

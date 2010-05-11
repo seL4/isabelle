@@ -559,7 +559,7 @@ apply auto
 apply (blast dest: nat_0_le [THEN sym])
 done
 
-theorem int_induct [induct type: int, case_names nonneg neg]:
+theorem int_of_nat_induct [induct type: int, case_names nonneg neg]:
      "[|!! n. P (of_nat n \<Colon> int);  !!n. P (- (of_nat (Suc n))) |] ==> P z"
   by (cases z rule: int_cases) auto
 
@@ -1783,6 +1783,23 @@ apply(rule int_le_induct[of _ "k - 1"])
  apply(rule base)
 apply (rule step, simp+)
 done
+
+theorem int_induct [case_names base step1 step2]:
+  fixes k :: int
+  assumes base: "P k"
+    and step1: "\<And>i. k \<le> i \<Longrightarrow> P i \<Longrightarrow> P (i + 1)"
+    and step2: "\<And>i. k \<ge> i \<Longrightarrow> P i \<Longrightarrow> P (i - 1)"
+  shows "P i"
+proof -
+  have "i \<le> k \<or> i \<ge> k" by arith
+  then show ?thesis proof
+    assume "i \<ge> k" then show ?thesis using base
+      by (rule int_ge_induct) (fact step1)
+  next
+    assume "i \<le> k" then show ?thesis using base
+      by (rule int_le_induct) (fact step2)
+  qed
+qed
 
 subsection{*Intermediate value theorems*}
 

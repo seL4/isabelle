@@ -15,7 +15,8 @@ import org.gjt.sp.jedit.AbstractOptionPane
 class Isabelle_Options extends AbstractOptionPane("isabelle")
 {
   private val logic_name = new JComboBox()
-  private val font_size = new JSpinner()
+  private val relative_font_size = new JSpinner()
+  private val relative_margin = new JSpinner()
 
   private class List_Item(val name: String, val descr: String) {
     def this(name: String) = this(name, name)
@@ -36,18 +37,26 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
       logic_name
     })
 
-    addComponent(Isabelle.Property("font-size.title"), {
-      font_size.setValue(Isabelle.Int_Property("font-size"))
-      font_size
+    addComponent(Isabelle.Property("relative-font-size.title"), {
+      relative_font_size.setValue(Isabelle.Int_Property("relative-font-size"))
+      relative_font_size
+    })
+
+    addComponent(Isabelle.Property("relative-margin.title"), {
+      relative_margin.setValue(Isabelle.Int_Property("relative-margin"))
+      relative_margin
     })
   }
 
   override def _save()
   {
-    val logic = logic_name.getSelectedItem.asInstanceOf[List_Item].name
-    Isabelle.Property("logic") = logic
+    Isabelle.Property("logic") =
+      logic_name.getSelectedItem.asInstanceOf[List_Item].name
 
-    val size = font_size.getValue().asInstanceOf[Int]
-    Isabelle.Int_Property("font-size") = size
+    Isabelle.Int_Property("relative-font-size") =
+      relative_font_size.getValue().asInstanceOf[Int]
+
+    Isabelle.Int_Property("relative-margin") =
+      relative_margin.getValue().asInstanceOf[Int]
   }
 }

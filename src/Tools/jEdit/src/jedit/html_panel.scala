@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.io.StringReader
-import java.awt.{BorderLayout, Dimension}
+import java.awt.{BorderLayout, Dimension, GraphicsEnvironment, Toolkit}
 import java.awt.event.MouseEvent
 
 import javax.swing.{JButton, JPanel, JScrollPane}
@@ -40,7 +40,7 @@ object HTML_Panel
 
 class HTML_Panel(
   sys: Isabelle_System,
-  initial_font_size: Int,
+  font_size0: Int, relative_margin0: Int,
   handler: PartialFunction[HTML_Panel.Event, Unit]) extends HtmlPanel
 {
   // global logging
@@ -56,6 +56,15 @@ class HTML_Panel(
   }
 
   private def template(font_size: Int): String =
+  {
+    // re-adjustment according to org.lobobrowser.html.style.HtmlValues.getFontSize
+    val dpi =
+      if (GraphicsEnvironment.isHeadless()) 72
+      else Toolkit.getDefaultToolkit().getScreenResolution()
+
+    val size0 = font_size * dpi / 96
+    val size = if (size0 * 96 / dpi == font_size) size0 else size0 + 1
+
     """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -65,13 +74,24 @@ class HTML_Panel(
 """ +
   try_file("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
   try_file("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
-  "body { font-family: " + sys.font_family + "; font-size: " + font_size + "px }" +
+  "body { font-family: " + sys.font_family + "; font-size: " + size + "px }" +
 """
 </style>
 </head>
 <body/>
 </html>
 """
+  }
+
+
+  def panel_width(font_size: Int, relative_margin: Int): Int =
+  {
+    val font = sys.get_font(font_size)
+    Swing_Thread.now {
+      val char_width = (getFontMetrics(font).stringWidth("mix") / 3) max 1
+      ((getWidth() * relative_margin) / (100 * char_width)) max 20
+    }
+  }
 
 
   /* actor with local state */
@@ -98,7 +118,7 @@ class HTML_Panel(
 
   private val builder = new DocumentBuilderImpl(ucontext, rcontext)
 
-  private case class Init(font_size: Int)
+  private case class Init(font_size: Int, relative_margin: Int)
   private case class Render(body: List[XML.Tree])
 
   private val main_actor = actor {
@@ -106,9 +126,15 @@ class HTML_Panel(
     var doc1: org.w3c.dom.Document = null
     var doc2: org.w3c.dom.Document = null
 
+    var current_font_size = 16
+    var current_relative_margin = 90
+
     loop {
       react {
-        case Init(font_size) =>
+        case Init(font_size, relative_margin) =>
+          current_font_size = font_size
+          current_relative_margin = relative_margin
+
           val src = template(font_size)
           def parse() =
             builder.parse(new InputSourceImpl(new StringReader(src), "http://localhost"))
@@ -118,7 +144,9 @@ class HTML_Panel(
           
         case Render(body) =>
           val doc = doc2
-          val html_body = Pretty.formatted(body).map(t => XML.elem(HTML.PRE, HTML.spans(t)))
+          val html_body =
+            Pretty.formatted(body, panel_width(current_font_size, current_relative_margin))
+              .map(t => XML.elem(HTML.PRE, HTML.spans(t)))
           val node = XML.document_node(doc, XML.elem(HTML.BODY, html_body))
           doc.removeChild(doc.getLastChild())
           doc.appendChild(node)
@@ -131,11 +159,11 @@ class HTML_Panel(
     }
   }
 
-  main_actor ! Init(initial_font_size)
-  
 
   /* main method wrappers */
   
-  def init(font_size: Int) { main_actor ! Init(font_size) }
+  def init(font_size: Int, relative_margin: Int) { main_actor ! Init(font_size, relative_margin) }
   def render(body: List[XML.Tree]) { main_actor ! Render(body) }
+
+  init(font_size0, relative_margin0)
 }

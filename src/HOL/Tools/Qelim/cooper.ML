@@ -1,19 +1,70 @@
 (*  Title:      HOL/Tools/Qelim/cooper.ML
     Author:     Amine Chaieb, TU Muenchen
+
+Presburger arithmetic by Cooper's algorithm.
 *)
 
 signature COOPER =
 sig
-  val cooper_conv : Proof.context -> conv
-  exception COOPER of string * exn
+  type entry
+  val get: Proof.context -> entry
+  val del: term list -> attribute
+  val add: term list -> attribute 
+  val conv: Proof.context -> conv
+  val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
+  val method: (Proof.context -> Method.method) context_parser
+  val setup: theory -> theory
 end;
 
 structure Cooper: COOPER =
 struct
 
-open Conv;
+type entry = simpset * term list;
 
-exception COOPER of string * exn;
+val allowed_consts = 
+  [@{term "op + :: int => _"}, @{term "op + :: nat => _"},
+   @{term "op - :: int => _"}, @{term "op - :: nat => _"},
+   @{term "op * :: int => _"}, @{term "op * :: nat => _"},
+   @{term "op div :: int => _"}, @{term "op div :: nat => _"},
+   @{term "op mod :: int => _"}, @{term "op mod :: nat => _"},
+   @{term "op &"}, @{term "op |"}, @{term "op -->"}, 
+   @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"},
+   @{term "op < :: int => _"}, @{term "op < :: nat => _"},
+   @{term "op <= :: int => _"}, @{term "op <= :: nat => _"},
+   @{term "op dvd :: int => _"}, @{term "op dvd :: nat => _"},
+   @{term "abs :: int => _"},
+   @{term "max :: int => _"}, @{term "max :: nat => _"},
+   @{term "min :: int => _"}, @{term "min :: nat => _"},
+   @{term "uminus :: int => _"}, (*@ {term "uminus :: nat => _"},*)
+   @{term "Not"}, @{term "Suc"},
+   @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
+   @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},
+   @{term "nat"}, @{term "int"},
+   @{term "Int.Bit0"}, @{term "Int.Bit1"},
+   @{term "Int.Pls"}, @{term "Int.Min"},
+   @{term "Int.number_of :: int => int"}, @{term "Int.number_of :: int => nat"},
+   @{term "0::int"}, @{term "1::int"}, @{term "0::nat"}, @{term "1::nat"},
+   @{term "True"}, @{term "False"}];
+
+structure Data = Generic_Data
+(
+  type T = simpset * term list;
+  val empty = (HOL_ss, allowed_consts);
+  val extend  = I;
+  fun merge ((ss1, ts1), (ss2, ts2)) =
+    (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
+);
+
+val get = Data.get o Context.Proof;
+
+fun add ts = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (fn (ss,ts') => 
+     (ss addsimps [th], merge (op aconv) (ts',ts) ))) 
+
+fun del ts = Thm.declaration_attribute (fn th => fn context => 
+  context |> Data.map (fn (ss,ts') => 
+     (ss delsimps [th], subtract (op aconv) ts' ts ))) 
+
 fun simp_thms_conv ctxt =
   Simplifier.rewrite (Simplifier.context ctxt HOL_basic_ss addsimps @{thms simp_thms});
 val FWD = Drule.implies_elim_list;
@@ -46,8 +97,7 @@ val [[asetconj, asetdisj, aseteq, asetneq, asetlt, asetle,
      [bsetconj, bsetdisj, bseteq, bsetneq, bsetlt, bsetle,
       bsetgt, bsetge, bsetdvd, bsetndvd,bsetP]]  = [@{thms "aset"}, @{thms "bset"}];
 
-val [miex, cpmi, piex, cppi] = [@{thm "minusinfinity"}, @{thm "cpmi"},
-                                @{thm "plusinfinity"}, @{thm "cppi"}];
+val [cpmi, cppi] = [@{thm "cpmi"}, @{thm "cppi"}];
 
 val unity_coeff_ex = instantiate' [SOME @{ctyp "int"}] [] @{thm "unity_coeff_ex"};
 
@@ -69,7 +119,7 @@ fun whatis x ct =
 ( case (term_of ct) of
   Const("op &",_)$_$_ => And (Thm.dest_binop ct)
 | Const ("op |",_)$_$_ => Or (Thm.dest_binop ct)
-| Const ("op =",ty)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
+| Const ("op =",_)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
 | Const (@{const_name Not},_) $ (Const ("op =",_)$y$_) =>
   if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
 | Const (@{const_name Orderings.less}, _) $ y$ z =>
@@ -118,8 +168,7 @@ val cadd =  @{cterm "op + :: int => _"}
 val cmulC =  @{cterm "op * :: int => _"}
 val cminus =  @{cterm "op - :: int => _"}
 val cone =  @{cterm "1 :: int"}
-val cneg = @{cterm "uminus :: int => _"}
-val [addC, mulC, subC, negC] = map term_of [cadd, cmulC, cminus, cneg]
+val [addC, mulC, subC] = map term_of [cadd, cmulC, cminus]
 val [zero, one] = [@{term "0 :: int"}, @{term "1 :: int"}];
 
 val is_numeral = can dest_numeral;
@@ -202,6 +251,7 @@ fun linear_add vars tm1 tm2 = case (tm1, tm2) of
 fun linear_neg tm = linear_cmul ~1 tm;
 fun linear_sub vars tm1 tm2 = linear_add vars tm1 (linear_neg tm2);
 
+exception COOPER of string;
 
 fun lint vars tm =  if is_numeral tm then tm  else case tm of
   Const (@{const_name Groups.uminus}, _) $ t => linear_neg (lint vars t)
@@ -212,7 +262,7 @@ fun lint vars tm =  if is_numeral tm then tm  else case tm of
       val t' = lint vars t
   in if is_numeral s' then (linear_cmul (dest_numeral s') t')
      else if is_numeral t' then (linear_cmul (dest_numeral t') s')
-     else raise COOPER ("Cooper Failed", TERM ("lint: not linear",[tm]))
+     else raise COOPER "lint: not linear"
   end
  | _ => addC $ (mulC $ one $ tm) $ zero;
 
@@ -254,16 +304,16 @@ fun is_intrel (b$_$_) = is_intrel_type (fastype_of b)
 fun linearize_conv ctxt vs ct = case term_of ct of
   Const(@{const_name Rings.dvd},_)$d$t =>
   let
-    val th = binop_conv (lint_conv ctxt vs) ct
+    val th = Conv.binop_conv (lint_conv ctxt vs) ct
     val (d',t') = Thm.dest_binop (Thm.rhs_of th)
     val (dt',tt') = (term_of d', term_of t')
   in if is_numeral dt' andalso is_numeral tt'
-     then Conv.fconv_rule (arg_conv (Simplifier.rewrite presburger_ss)) th
+     then Conv.fconv_rule (Conv.arg_conv (Simplifier.rewrite presburger_ss)) th
      else
      let
       val dth =
       ((if dest_numeral (term_of d') < 0 then
-          Conv.fconv_rule (arg_conv (arg1_conv (lint_conv ctxt vs)))
+          Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (lint_conv ctxt vs)))
                            (Thm.transitive th (inst' [d',t'] dvd_uminus))
         else th) handle TERM _ => th)
       val d'' = Thm.rhs_of dth |> Thm.dest_arg1
@@ -271,13 +321,13 @@ fun linearize_conv ctxt vs ct = case term_of ct of
       case tt' of
         Const(@{const_name Groups.plus},_)$(Const(@{const_name Groups.times},_)$c$_)$_ =>
         let val x = dest_numeral c
-        in if x < 0 then Conv.fconv_rule (arg_conv (arg_conv (lint_conv ctxt vs)))
+        in if x < 0 then Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (lint_conv ctxt vs)))
                                        (Thm.transitive dth (inst' [d'',t'] dvd_uminus'))
         else dth end
       | _ => dth
      end
   end
-| Const (@{const_name Not},_)$(Const(@{const_name Rings.dvd},_)$_$_) => arg_conv (linearize_conv ctxt vs) ct
+| Const (@{const_name Not},_)$(Const(@{const_name Rings.dvd},_)$_$_) => Conv.arg_conv (linearize_conv ctxt vs) ct
 | t => if is_intrel t
       then (provelin ctxt ((HOLogic.eq_const bT)$t$(lin vs t) |> HOLogic.mk_Trueprop))
        RS eq_reflection
@@ -331,9 +381,9 @@ fun unify ctxt q =
     end
   fun unit_conv t =
    case (term_of t) of
-   Const("op &",_)$_$_ => binop_conv unit_conv t
-  | Const("op |",_)$_$_ => binop_conv unit_conv t
-  | Const (@{const_name Not},_)$_ => arg_conv unit_conv t
+   Const("op &",_)$_$_ => Conv.binop_conv unit_conv t
+  | Const("op |",_)$_$_ => Conv.binop_conv unit_conv t
+  | Const (@{const_name Not},_)$_ => Conv.arg_conv unit_conv t
   | Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
     if x=y andalso member (op =)
       ["op =", @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
@@ -371,9 +421,7 @@ fun unify ctxt q =
 
 val emptyIS = @{cterm "{}::int set"};
 val insert_tm = @{cterm "insert :: int => _"};
-val mem_tm = Const("op :",[iT , HOLogic.mk_setT iT] ---> bT);
 fun mkISet cts = fold_rev (Thm.capply insert_tm #> Thm.capply) cts emptyIS;
-val cTrp = @{cterm "Trueprop"};
 val eqelem_imp_imp = (thm"eqelem_imp_iff") RS iffD1;
 val [A_tm,B_tm] = map (fn th => cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest_abs NONE |> snd |> Thm.dest_arg1 |> Thm.dest_arg
                                       |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_arg)
@@ -399,13 +447,12 @@ let
   | Le t => (bacc, ins (plus1 t) aacc,dacc)
   | Gt t => (ins t bacc, aacc,dacc)
   | Ge t => (ins (minus1 t) bacc, aacc,dacc)
-  | Dvd (d,s) => (bacc,aacc,insert (op =) (term_of d |> dest_numeral) dacc)
-  | NDvd (d,s) => (bacc,aacc,insert (op =) (term_of d|> dest_numeral) dacc)
+  | Dvd (d,_) => (bacc,aacc,insert (op =) (term_of d |> dest_numeral) dacc)
+  | NDvd (d,_) => (bacc,aacc,insert (op =) (term_of d|> dest_numeral) dacc)
   | _ => (bacc, aacc, dacc)
  val (b0,a0,ds) = h p ([],[],[])
  val d = Integer.lcms ds
  val cd = Numeral.mk_cnumber @{ctyp "int"} d
- val dt = term_of cd
  fun divprop x =
    let
     val th =
@@ -474,10 +521,6 @@ let
    val eqelem_th = instantiate' [SOME @{ctyp "int"}] [NONE,NONE, SOME S] eqelem_imp_imp
    val inS =
      let
-      fun transmem th0 th1 =
-       Thm.equal_elim
-        (Drule.arg_cong_rule cTrp (Drule.fun_cong_rule (Drule.arg_cong_rule
-               ((Thm.dest_fun o Thm.dest_fun o Thm.dest_arg o cprop_of) th1) th0) S)) th1
       val tab = fold Termtab.update
         (map (fn eq =>
                 let val (s,t) = cprop_of eq |> Thm.dest_arg |> Thm.dest_binop
@@ -503,8 +546,8 @@ end;
 fun literals_conv bops uops env cv =
  let fun h t =
   case (term_of t) of
-   b$_$_ => if member (op aconv) bops b then binop_conv h t else cv env t
- | u$_ => if member (op aconv) uops u then arg_conv h t else cv env t
+   b$_$_ => if member (op aconv) bops b then Conv.binop_conv h t else cv env t
+ | u$_ => if member (op aconv) uops u then Conv.arg_conv h t else cv env t
  | _ => cv env t
  in h end;
 
@@ -523,131 +566,325 @@ local
       (OldTerm.term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt)
       (cooperex_conv ctxt) p
   end
-  handle  CTERM s => raise COOPER ("Cooper Failed", CTERM s)
-        | THM s => raise COOPER ("Cooper Failed", THM s)
-        | TYPE s => raise COOPER ("Cooper Failed", TYPE s)
-in val cooper_conv = conv
+  handle  CTERM s => raise COOPER "bad cterm"
+        | THM s => raise COOPER "bad thm"
+        | TYPE s => raise COOPER "bad type"
+in val conv = conv
 end;
-end;
 
+fun term_bools acc t =
+  let
+    val ops = [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
+      @{term "op = :: int => _"}, @{term "op < :: int => _"},
+      @{term "op <= :: int => _"}, @{term "Not"}, @{term "All:: (int => _) => _"},
+      @{term "Ex:: (int => _) => _"}, @{term "True"}, @{term "False"}]
+    fun ty t = not (fastype_of t = HOLogic.boolT)
+  in case t of
+      (l as f $ a) $ b => if ty t orelse member (op =) ops f then term_bools (term_bools acc l)b
+              else insert (op aconv) t acc
+    | f $ a => if ty t orelse member (op =) ops f then term_bools (term_bools acc f) a
+              else insert (op aconv) t acc
+    | Abs p => term_bools acc (snd (variant_abs p))
+    | _ => if ty t orelse member (op =) ops t then acc else insert (op aconv) t acc
+  end;
 
-
-structure Coopereif =
-struct
-
-open Generated_Cooper;
-
-fun member eq = Library.member eq;
-
-fun cooper s = raise Cooper.COOPER ("Cooper oracle failed", ERROR s);
 fun i_of_term vs t = case t
  of Free (xn, xT) => (case AList.lookup (op aconv) vs t
-     of NONE   => cooper "Variable not found in the list!"
-      | SOME n => Bound n)
-  | @{term "0::int"} => C 0
-  | @{term "1::int"} => C 1
-  | Term.Bound i => Bound i
-  | Const(@{const_name Groups.uminus},_)$t' => Neg (i_of_term vs t')
-  | Const(@{const_name Groups.plus},_)$t1$t2 => Add (i_of_term vs t1,i_of_term vs t2)
-  | Const(@{const_name Groups.minus},_)$t1$t2 => Sub (i_of_term vs t1,i_of_term vs t2)
+     of NONE   => raise COOPER "reification: variable not found in list"
+      | SOME n => Cooper_Procedure.Bound n)
+  | @{term "0::int"} => Cooper_Procedure.C 0
+  | @{term "1::int"} => Cooper_Procedure.C 1
+  | Term.Bound i => Cooper_Procedure.Bound i
+  | Const(@{const_name Groups.uminus},_)$t' => Cooper_Procedure.Neg (i_of_term vs t')
+  | Const(@{const_name Groups.plus},_)$t1$t2 => Cooper_Procedure.Add (i_of_term vs t1,i_of_term vs t2)
+  | Const(@{const_name Groups.minus},_)$t1$t2 => Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2)
   | Const(@{const_name Groups.times},_)$t1$t2 =>
-     (Mul (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
+     (Cooper_Procedure.Mul (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
     handle TERM _ =>
-       (Mul (HOLogic.dest_number t2 |> snd, i_of_term vs t1)
-        handle TERM _ => cooper "Reification: Unsupported kind of multiplication"))
-  | _ => (C (HOLogic.dest_number t |> snd)
-           handle TERM _ => cooper "Reification: unknown term");
+       (Cooper_Procedure.Mul (HOLogic.dest_number t2 |> snd, i_of_term vs t1)
+        handle TERM _ => raise COOPER "reification: unsupported kind of multiplication"))
+  | _ => (Cooper_Procedure.C (HOLogic.dest_number t |> snd)
+           handle TERM _ => raise COOPER "reification: unknown term");
 
 fun qf_of_term ps vs t =  case t
- of Const("True",_) => T
-  | Const("False",_) => F
-  | Const(@{const_name Orderings.less},_)$t1$t2 => Lt (Sub (i_of_term vs t1,i_of_term vs t2))
-  | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Le (Sub(i_of_term vs t1,i_of_term vs t2))
+ of Const("True",_) => Cooper_Procedure.T
+  | Const("False",_) => Cooper_Procedure.F
+  | Const(@{const_name Orderings.less},_)$t1$t2 => Cooper_Procedure.Lt (Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2))
+  | Const(@{const_name Orderings.less_eq},_)$t1$t2 => Cooper_Procedure.Le (Cooper_Procedure.Sub(i_of_term vs t1,i_of_term vs t2))
   | Const(@{const_name Rings.dvd},_)$t1$t2 =>
-      (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")  (* FIXME avoid handle _ *)
-  | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
-  | @{term "op = :: bool => _ "}$t1$t2 => Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("op |",_)$t1$t2 => Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("op -->",_)$t1$t2 => Imp(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const (@{const_name Not},_)$t' => Not(qf_of_term ps vs t')
+      (Cooper_Procedure.Dvd (HOLogic.dest_number t1 |> snd, i_of_term vs t2)
+        handle TERM _ => raise COOPER "reification: unsupported dvd")
+  | @{term "op = :: int => _"}$t1$t2 => Cooper_Procedure.Eq (Cooper_Procedure.Sub (i_of_term vs t1,i_of_term vs t2))
+  | @{term "op = :: bool => _ "}$t1$t2 => Cooper_Procedure.Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op &",_)$t1$t2 => Cooper_Procedure.And(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op |",_)$t1$t2 => Cooper_Procedure.Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const("op -->",_)$t1$t2 => Cooper_Procedure.Imp(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const (@{const_name Not},_)$t' => Cooper_Procedure.Not(qf_of_term ps vs t')
   | Const("Ex",_)$Abs(xn,xT,p) =>
      let val (xn',p') = variant_abs (xn,xT,p)
          val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-     in E (qf_of_term ps vs' p')
+     in Cooper_Procedure.E (qf_of_term ps vs' p')
      end
   | Const("All",_)$Abs(xn,xT,p) =>
      let val (xn',p') = variant_abs (xn,xT,p)
          val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
-     in A (qf_of_term ps vs' p')
+     in Cooper_Procedure.A (qf_of_term ps vs' p')
      end
   | _ =>(case AList.lookup (op aconv) ps t of
-           NONE => cooper "Reification: unknown term!"
-         | SOME n => Closed n);
-
-local
- val ops = [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
-             @{term "op = :: int => _"}, @{term "op < :: int => _"},
-             @{term "op <= :: int => _"}, @{term "Not"}, @{term "All:: (int => _) => _"},
-             @{term "Ex:: (int => _) => _"}, @{term "True"}, @{term "False"}]
-fun ty t = Bool.not (fastype_of t = HOLogic.boolT)
-in
-fun term_bools acc t =
-case t of
-    (l as f $ a) $ b => if ty t orelse member (op =) ops f then term_bools (term_bools acc l)b
-            else insert (op aconv) t acc
-  | f $ a => if ty t orelse member (op =) ops f then term_bools (term_bools acc f) a
-            else insert (op aconv) t acc
-  | Abs p => term_bools acc (snd (variant_abs p))
-  | _ => if ty t orelse member (op =) ops t then acc else insert (op aconv) t acc
-end;
-
-fun myassoc2 l v =
-    case l of
-  [] => NONE
-      | (x,v')::xs => if v = v' then SOME x
-          else myassoc2 xs v;
+           NONE => raise COOPER "reification: unknown term"
+         | SOME n => Cooper_Procedure.Closed n);
 
 fun term_of_i vs t = case t
- of C i => HOLogic.mk_number HOLogic.intT i
-  | Bound n => the (myassoc2 vs n)
-  | Neg t' => @{term "uminus :: int => _"} $ term_of_i vs t'
-  | Add (t1, t2) => @{term "op + :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
-  | Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
-  | Mul (i, t2) => @{term "op * :: int => _"} $
+ of Cooper_Procedure.C i => HOLogic.mk_number HOLogic.intT i
+  | Cooper_Procedure.Bound n => the (AList.lookup (op =) vs n)
+  | Cooper_Procedure.Neg t' => @{term "uminus :: int => _"} $ term_of_i vs t'
+  | Cooper_Procedure.Add (t1, t2) => @{term "op + :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
+  | Cooper_Procedure.Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
+  | Cooper_Procedure.Mul (i, t2) => @{term "op * :: int => _"} $
       HOLogic.mk_number HOLogic.intT i $ term_of_i vs t2
-  | Cn (n, i, t') => term_of_i vs (Add (Mul (i, Bound n), t'));
+  | Cooper_Procedure.Cn (n, i, t') => term_of_i vs (Cooper_Procedure.Add (Cooper_Procedure.Mul (i, Cooper_Procedure.Bound n), t'));
 
 fun term_of_qf ps vs t =
  case t of
-   T => HOLogic.true_const
- | F => HOLogic.false_const
- | Lt t' => @{term "op < :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
- | Le t' => @{term "op <= :: int => _ "}$ term_of_i vs t' $ @{term "0::int"}
- | Gt t' => @{term "op < :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
- | Ge t' => @{term "op <= :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
- | Eq t' => @{term "op = :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
- | NEq t' => term_of_qf ps vs (Not (Eq t'))
- | Dvd(i,t') => @{term "op dvd :: int => _ "} $
+   Cooper_Procedure.T => HOLogic.true_const
+ | Cooper_Procedure.F => HOLogic.false_const
+ | Cooper_Procedure.Lt t' => @{term "op < :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
+ | Cooper_Procedure.Le t' => @{term "op <= :: int => _ "}$ term_of_i vs t' $ @{term "0::int"}
+ | Cooper_Procedure.Gt t' => @{term "op < :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
+ | Cooper_Procedure.Ge t' => @{term "op <= :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
+ | Cooper_Procedure.Eq t' => @{term "op = :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
+ | Cooper_Procedure.NEq t' => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Eq t'))
+ | Cooper_Procedure.Dvd(i,t') => @{term "op dvd :: int => _ "} $
     HOLogic.mk_number HOLogic.intT i $ term_of_i vs t'
- | NDvd(i,t')=> term_of_qf ps vs (Not(Dvd(i,t')))
- | Not t' => HOLogic.Not$(term_of_qf ps vs t')
- | And(t1,t2) => HOLogic.conj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Or(t1,t2) => HOLogic.disj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Imp(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Iff(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
- | Closed n => the (myassoc2 ps n)
- | NClosed n => term_of_qf ps vs (Not (Closed n))
- | _ => cooper "If this is raised, Isabelle/HOL or code generator is inconsistent!";
+ | Cooper_Procedure.NDvd(i,t')=> term_of_qf ps vs (Cooper_Procedure.Not(Cooper_Procedure.Dvd(i,t')))
+ | Cooper_Procedure.Not t' => HOLogic.Not$(term_of_qf ps vs t')
+ | Cooper_Procedure.And(t1,t2) => HOLogic.conj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
+ | Cooper_Procedure.Or(t1,t2) => HOLogic.disj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
+ | Cooper_Procedure.Imp(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
+ | Cooper_Procedure.Iff(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
+ | Cooper_Procedure.Closed n => the (AList.lookup (op =) ps n)
+ | Cooper_Procedure.NClosed n => term_of_qf ps vs (Cooper_Procedure.Not (Cooper_Procedure.Closed n));
 
-fun cooper_oracle ct =
+fun invoke t =
   let
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
     val (vs, ps) = pairself (map_index swap) (OldTerm.term_frees t, term_bools [] t);
   in
-    Thm.cterm_of thy (Logic.mk_equals (HOLogic.mk_Trueprop t,
-      HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t)))))
+    Logic.mk_equals (HOLogic.mk_Trueprop t,
+      HOLogic.mk_Trueprop (term_of_qf (map swap ps) (map swap vs) (Cooper_Procedure.pa (qf_of_term ps vs t))))
   end;
+
+val (_, oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (Binding.name "cooper",
+    (fn (ctxt, t) => Thm.cterm_of (ProofContext.theory_of ctxt) (invoke t)))));
+
+val comp_ss = HOL_ss addsimps @{thms semiring_norm};
+
+fun strip_objimp ct =
+  (case Thm.term_of ct of
+    Const ("op -->", _) $ _ $ _ =>
+      let val (A, B) = Thm.dest_binop ct
+      in A :: strip_objimp B end
+  | _ => [ct]);
+
+fun strip_objall ct = 
+ case term_of ct of 
+  Const ("All", _) $ Abs (xn,xT,p) => 
+   let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
+   in apfst (cons (a,v)) (strip_objall t')
+   end
+| _ => ([],ct);
+
+local
+  val all_maxscope_ss = 
+     HOL_basic_ss addsimps map (fn th => th RS sym) @{thms "all_simps"}
+in
+fun thin_prems_tac P = simp_tac all_maxscope_ss THEN'
+  CSUBGOAL (fn (p', i) =>
+    let
+     val (qvs, p) = strip_objall (Thm.dest_arg p')
+     val (ps, c) = split_last (strip_objimp p)
+     val qs = filter P ps
+     val q = if P c then c else @{cterm "False"}
+     val ng = fold_rev (fn (a,v) => fn t => Thm.capply a (Thm.cabs v t)) qvs 
+         (fold_rev (fn p => fn q => Thm.capply (Thm.capply @{cterm "op -->"} p) q) qs q)
+     val g = Thm.capply (Thm.capply @{cterm "op ==>"} (Thm.capply @{cterm "Trueprop"} ng)) p'
+     val ntac = (case qs of [] => q aconvc @{cterm "False"}
+                         | _ => false)
+    in 
+    if ntac then no_tac
+      else rtac (Goal.prove_internal [] g (K (blast_tac HOL_cs 1))) i
+    end)
+end;
+
+local
+ fun isnum t = case t of 
+   Const(@{const_name Groups.zero},_) => true
+ | Const(@{const_name Groups.one},_) => true
+ | @{term "Suc"}$s => isnum s
+ | @{term "nat"}$s => isnum s
+ | @{term "int"}$s => isnum s
+ | Const(@{const_name Groups.uminus},_)$s => isnum s
+ | Const(@{const_name Groups.plus},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Groups.times},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Groups.minus},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Power.power},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Divides.mod},_)$l$r => isnum l andalso isnum r
+ | Const(@{const_name Divides.div},_)$l$r => isnum l andalso isnum r
+ | _ => can HOLogic.dest_number t orelse can HOLogic.dest_nat t
+
+ fun ty cts t = 
+ if not (member (op =) [HOLogic.intT, HOLogic.natT, HOLogic.boolT] (typ_of (ctyp_of_term t))) then false 
+    else case term_of t of 
+      c$l$r => if member (op =) [@{term"op *::int => _"}, @{term"op *::nat => _"}] c
+               then not (isnum l orelse isnum r)
+               else not (member (op aconv) cts c)
+    | c$_ => not (member (op aconv) cts c)
+    | c => not (member (op aconv) cts c)
+
+ val term_constants =
+  let fun h acc t = case t of
+    Const _ => insert (op aconv) t acc
+  | a$b => h (h acc a) b
+  | Abs (_,_,t) => h acc t
+  | _ => acc
+ in h [] end;
+in 
+fun is_relevant ctxt ct = 
+ subset (op aconv) (term_constants (term_of ct) , snd (get ctxt))
+ andalso forall (fn Free (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_frees (term_of ct))
+ andalso forall (fn Var (_,T) => member (op =) [@{typ int}, @{typ nat}] T) (OldTerm.term_vars (term_of ct));
+
+fun int_nat_terms ctxt ct =
+ let 
+  val cts = snd (get ctxt)
+  fun h acc t = if ty cts t then insert (op aconvc) t acc else
+   case (term_of t) of
+    _$_ => h (h acc (Thm.dest_arg t)) (Thm.dest_fun t)
+  | Abs(_,_,_) => Thm.dest_abs NONE t ||> h acc |> uncurry (remove (op aconvc))
+  | _ => acc
+ in h [] ct end
+end;
+
+fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
+ let 
+   fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
+   fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
+   val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
+   val p' = fold_rev gen ts p
+ in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
+
+local
+val ss1 = comp_ss
+  addsimps @{thms simp_thms} @ [@{thm "nat_number_of_def"}, @{thm "zdvd_int"}] 
+      @ map (fn r => r RS sym) 
+        [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
+         @{thm "zmult_int"}]
+    addsplits [@{thm "zdiff_int_split"}]
+
+val ss2 = HOL_basic_ss
+  addsimps [@{thm "nat_0_le"}, @{thm "int_nat_number_of"},
+            @{thm "all_nat"}, @{thm "ex_nat"}, @{thm "number_of1"}, 
+            @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
+  addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
+val div_mod_ss = HOL_basic_ss addsimps @{thms simp_thms}
+  @ map (symmetric o mk_meta_eq) 
+    [@{thm "dvd_eq_mod_eq_0"},
+     @{thm "mod_add_left_eq"}, @{thm "mod_add_right_eq"}, 
+     @{thm "mod_add_eq"}, @{thm "div_add1_eq"}, @{thm "zdiv_zadd1_eq"}]
+  @ [@{thm "mod_self"}, @{thm "zmod_self"}, @{thm "mod_by_0"}, 
+     @{thm "div_by_0"}, @{thm "DIVISION_BY_ZERO"} RS conjunct1, 
+     @{thm "DIVISION_BY_ZERO"} RS conjunct2, @{thm "zdiv_zero"}, @{thm "zmod_zero"}, 
+     @{thm "div_0"}, @{thm "mod_0"}, @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, 
+     @{thm "mod_1"}, @{thm "Suc_eq_plus1"}]
+  @ @{thms add_ac}
+ addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
+ val splits_ss = comp_ss addsimps [@{thm "mod_div_equality'"}] addsplits 
+     [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
+      @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}]
+in
+fun nat_to_int_tac ctxt = 
+  simp_tac (Simplifier.context ctxt ss1) THEN_ALL_NEW
+  simp_tac (Simplifier.context ctxt ss2) THEN_ALL_NEW
+  simp_tac (Simplifier.context ctxt comp_ss);
+
+fun div_mod_tac ctxt i = simp_tac (Simplifier.context ctxt div_mod_ss) i;
+fun splits_tac ctxt i = simp_tac (Simplifier.context ctxt splits_ss) i;
+end;
+
+fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
+   let
+    val cpth = 
+       if !quick_and_dirty 
+       then oracle (ctxt, Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p))))
+       else Conv.arg_conv (conv ctxt) p
+    val p' = Thm.rhs_of cpth
+    val th = implies_intr p' (equal_elim (symmetric cpth) (assume p'))
+   in rtac th i end
+   handle COOPER _ => no_tac);
+
+fun finish_tac q = SUBGOAL (fn (_, i) =>
+  (if q then I else TRY) (rtac TrueI i));
+
+fun tac elim add_ths del_ths ctxt =
+let val ss = Simplifier.context ctxt (fst (get ctxt)) delsimps del_ths addsimps add_ths
+    val aprems = Arith_Data.get_arith_facts ctxt
+in
+  Method.insert_tac aprems
+  THEN_ALL_NEW Object_Logic.full_atomize_tac
+  THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
+  THEN_ALL_NEW simp_tac ss
+  THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
+  THEN_ALL_NEW Object_Logic.full_atomize_tac
+  THEN_ALL_NEW (thin_prems_tac (is_relevant ctxt))
+  THEN_ALL_NEW Object_Logic.full_atomize_tac
+  THEN_ALL_NEW div_mod_tac ctxt
+  THEN_ALL_NEW splits_tac ctxt
+  THEN_ALL_NEW simp_tac ss
+  THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
+  THEN_ALL_NEW nat_to_int_tac ctxt
+  THEN_ALL_NEW (core_tac ctxt)
+  THEN_ALL_NEW finish_tac elim
+end;
+
+val method =
+  let
+    fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+    fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
+    val addN = "add"
+    val delN = "del"
+    val elimN = "elim"
+    val any_keyword = keyword addN || keyword delN || simple_keyword elimN
+    val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+  in
+    Scan.optional (simple_keyword elimN >> K false) true --
+    Scan.optional (keyword addN |-- thms) [] --
+    Scan.optional (keyword delN |-- thms) [] >>
+    (fn ((elim, add_ths), del_ths) => fn ctxt =>
+      SIMPLE_METHOD' (tac elim add_ths del_ths ctxt))
+  end;
+
+
+(* theory setup *)
+
+local
+
+fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
+
+val constsN = "consts";
+val any_keyword = keyword constsN
+val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
+val terms = thms >> map (term_of o Drule.dest_term);
+
+fun optional scan = Scan.optional scan [];
+
+in
+
+val setup =
+  Attrib.setup @{binding presburger}
+    ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
+      optional (keyword constsN |-- terms) >> add) "data for Cooper's algorithm"
+  #> Arith_Data.add_tactic "Presburger arithmetic" (K (tac true [] []));
+
+end;
 
 end;

@@ -42,21 +42,36 @@ object Isabelle
 
   object Property
   {
-    def apply(name: String): String = jEdit.getProperty(OPTION_PREFIX + name)
-    def update(name: String, value: String) = jEdit.setProperty(OPTION_PREFIX + name, value)
+    def apply(name: String): String =
+      jEdit.getProperty(OPTION_PREFIX + name)
+    def apply(name: String, default: String): String =
+      jEdit.getProperty(OPTION_PREFIX + name, default)
+    def update(name: String, value: String) =
+      jEdit.setProperty(OPTION_PREFIX + name, value)
   }
 
   object Boolean_Property
   {
-    def apply(name: String): Boolean = jEdit.getBooleanProperty(OPTION_PREFIX + name)
-    def update(name: String, value: Boolean) = jEdit.setBooleanProperty(OPTION_PREFIX + name, value)
+    def apply(name: String): Boolean =
+      jEdit.getBooleanProperty(OPTION_PREFIX + name)
+    def apply(name: String, default: Boolean): Boolean =
+      jEdit.getBooleanProperty(OPTION_PREFIX + name, default)
+    def update(name: String, value: Boolean) =
+      jEdit.setBooleanProperty(OPTION_PREFIX + name, value)
   }
 
   object Int_Property
   {
-    def apply(name: String): Int = jEdit.getIntegerProperty(OPTION_PREFIX + name)
-    def update(name: String, value: Int) = jEdit.setIntegerProperty(OPTION_PREFIX + name, value)
+    def apply(name: String): Int =
+      jEdit.getIntegerProperty(OPTION_PREFIX + name)
+    def apply(name: String, default: Int): Int =
+      jEdit.getIntegerProperty(OPTION_PREFIX + name, default)
+    def update(name: String, value: Int) =
+      jEdit.setIntegerProperty(OPTION_PREFIX + name, value)
   }
+
+  def font_size(): Int =
+    (jEdit.getIntegerProperty("view.fontsize", 16) * Int_Property("relative-font-size", 100)) / 100
 
 
   /* settings */

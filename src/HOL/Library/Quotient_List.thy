@@ -52,12 +52,17 @@ lemma list_rel_symp:
 lemma list_rel_transp:
   assumes a: "equivp R"
   shows "list_rel R xs1 xs2 \<Longrightarrow> list_rel R xs2 xs3 \<Longrightarrow> list_rel R xs1 xs3"
-  apply(induct xs1 xs2 arbitrary: xs3 rule: list_induct2')
-  apply(simp_all)
+  using a
+  apply(induct R xs1 xs2 arbitrary: xs3 rule: list_rel.induct)
+  apply(simp)
+  apply(simp)
+  apply(simp)
   apply(case_tac xs3)
-  apply(simp_all)
-  apply(rule equivp_transp[OF a])
-  apply(auto)
+  apply(clarify)
+  apply(simp (no_asm_use))
+  apply(clarify)
+  apply(simp (no_asm_use))
+  apply(auto intro: equivp_transp)
   done
 
 lemma list_equivp[quot_equiv]:
