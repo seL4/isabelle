@@ -161,6 +161,9 @@ non-emptiness proofs), even in a global theory context.
 * Theory Library/Coinductive_List has been removed -- superceded by
 AFP/thys/Coinductive.
 
+* Theory PReal, including the type "preal" and related operations, has
+been removed.  INCOMPATIBILITY.
+
 * Split off theory Big_Operators containing setsum, setprod, Inf_fin, Sup_fin,
 Min, Max from theory Finite_Set.  INCOMPATIBILITY.
 
