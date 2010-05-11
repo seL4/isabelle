@@ -88,17 +88,4 @@ by (rule_tac y = 0 in order_trans, auto)
 lemma realpow_square_minus_le [simp]: "-(u ^ 2) \<le> (x::real) ^ 2"
 by (auto simp add: power2_eq_square)
 
-(* The following theorem is by Benjamin Porter *)
-(* TODO: no longer real-specific; rename and move elsewhere *)
-lemma real_sq_order:
-  fixes x :: "'a::linordered_semidom"
-  assumes xgt0: "0 \<le> x" and ygt0: "0 \<le> y" and sq: "x^2 \<le> y^2"
-  shows "x \<le> y"
-proof -
-  from sq have "x ^ Suc (Suc 0) \<le> y ^ Suc (Suc 0)"
-    by (simp only: numeral_2_eq_2)
-  thus "x \<le> y" using ygt0
-    by (rule power_le_imp_le_base)
-qed
-
 end

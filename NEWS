@@ -143,7 +143,11 @@ terms may need to be adapted.
 * Theorem Int.int_induct renamed to Int.int_of_nat_induct and is
 no longer shadowed.  INCOMPATIBILITY.
 
-* Dropped theorem duplicate comp_arith; use semiring_norm instead.  INCOMPATIBILITY.
+* Dropped theorem duplicate comp_arith; use semiring_norm instead.
+INCOMPATIBILITY.
+
+* Dropped theorem RealPow.real_sq_order; use power2_le_imp_le instead.
+INCOMPATIBILITY.
 
 * Theory 'Finite_Set': various folding_* locales facilitate the application
 of the various fold combinators on finite sets.
