@@ -355,7 +355,7 @@ fun scan_value (Config.Bool _) =
   | scan_value (Config.String _) = equals |-- Args.name >> Config.String;
 
 fun scan_config thy config =
-  let val config_type = Config.get_thy thy config
+  let val config_type = Config.get_global thy config
   in scan_value config_type >> (K o Thm.declaration_attribute o K o Config.put_generic config) end;
 
 in

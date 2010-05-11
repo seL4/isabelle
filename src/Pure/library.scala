@@ -76,9 +76,11 @@ object Library
   private def simple_dialog(kind: Int, default_title: String)
     (parent: Component, title: String, message: Any*)
   {
-    JOptionPane.showMessageDialog(parent,
-      message.toArray.asInstanceOf[Array[AnyRef]],
-      if (title == null) default_title else title, kind)
+    Swing_Thread.now {
+      JOptionPane.showMessageDialog(parent,
+        message.toArray.asInstanceOf[Array[AnyRef]],
+        if (title == null) default_title else title, kind)
+    }
   }
 
   def dialog = simple_dialog(JOptionPane.PLAIN_MESSAGE, null) _

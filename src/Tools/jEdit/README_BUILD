@@ -8,10 +8,10 @@ Requirements to build from sources
 * Netbeans 6.8
   http://www.netbeans.org/downloads/index.html
 
-* Scala for Netbeans: version 6.8v1.1
-  http://sourceforge.net/project/showfiles.php?group_id=192439&package_id=256544
-  http://blogtrader.net/dcaoyuan/category/NetBeans
+* Scala for Netbeans: version 6.8v1.1.0rc2
   http://wiki.netbeans.org/Scala
+  http://sourceforge.net/projects/erlybird/files/nb-scala/6.8v1.1.0rc2
+  http://blogtrader.net/dcaoyuan/category/NetBeans
 
 * jEdit 4.3.1 or 4.3.2
   http://www.jedit.org/
