@@ -69,18 +69,6 @@ lemma real_squared_diff_one_factored:
   shows "x * x - 1 = (x + 1) * (x - 1)"
 by (simp add: algebra_simps)
 
-(* TODO: no longer real-specific; rename and move elsewhere *)
-lemma real_mult_is_one [simp]:
-  fixes x :: "'a::ring_1_no_zero_divisors"
-  shows "x * x = 1 \<longleftrightarrow> x = 1 \<or> x = - 1"
-proof -
-  have "x * x = 1 \<longleftrightarrow> (x + 1) * (x - 1) = 0"
-    by (simp add: algebra_simps)
-  also have "\<dots> \<longleftrightarrow> x = 1 \<or> x = - 1"
-    by (auto simp add: add_eq_0_iff minus_equation_iff [of _ 1])
-  finally show ?thesis .
-qed
-
 (* FIXME: declare this [simp] for all types, or not at all *)
 lemma realpow_two_sum_zero_iff [simp]:
      "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"

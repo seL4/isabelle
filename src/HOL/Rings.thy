@@ -349,6 +349,17 @@ end
 class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
 begin
 
+lemma square_eq_1_iff [simp]:
+  "x * x = 1 \<longleftrightarrow> x = 1 \<or> x = - 1"
+proof -
+  have "(x - 1) * (x + 1) = x * x - 1"
+    by (simp add: algebra_simps)
+  hence "x * x = 1 \<longleftrightarrow> (x - 1) * (x + 1) = 0"
+    by simp
+  thus ?thesis
+    by (simp add: eq_neg_iff_add_eq_0)
+qed
+
 lemma mult_cancel_right1 [simp]:
   "c = b * c \<longleftrightarrow> c = 0 \<or> b = 1"
 by (insert mult_cancel_right [of 1 c b], force)
