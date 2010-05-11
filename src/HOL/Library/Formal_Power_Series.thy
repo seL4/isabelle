@@ -402,7 +402,7 @@ end
 
 lemma number_of_fps_const: "(number_of k::('a::comm_ring_1) fps) = fps_const (of_int k)"
   
-proof(induct k rule: int_bidirectional_induct [where k=0])
+proof(induct k rule: int_induct [where k=0])
   case base thus ?case unfolding number_of_fps_def of_int_0 by simp
 next
   case (step1 i) thus ?case unfolding number_of_fps_def 
@@ -3214,7 +3214,7 @@ lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (
 
 lemma fps_number_of_fps_const: "number_of i = fps_const (number_of i :: 'a:: {comm_ring_1, number_ring})"
   apply (subst (2) number_of_eq)
-apply(rule int_bidirectional_induct[of _ 0])
+apply(rule int_induct [of _ 0])
 apply (simp_all add: number_of_fps_def)
 by (simp_all add: fps_const_add[symmetric] fps_const_minus[symmetric])
 

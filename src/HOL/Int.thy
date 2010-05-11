@@ -559,7 +559,7 @@ apply auto
 apply (blast dest: nat_0_le [THEN sym])
 done
 
-theorem int_induct [induct type: int, case_names nonneg neg]:
+theorem int_of_nat_induct [induct type: int, case_names nonneg neg]:
      "[|!! n. P (of_nat n \<Colon> int);  !!n. P (- (of_nat (Suc n))) |] ==> P z"
   by (cases z rule: int_cases) auto
 
@@ -1784,7 +1784,7 @@ apply(rule int_le_induct[of _ "k - 1"])
 apply (rule step, simp+)
 done
 
-theorem int_bidirectional_induct [case_names base step1 step2]:
+theorem int_induct [case_names base step1 step2]:
   fixes k :: int
   assumes base: "P k"
     and step1: "\<And>i. k \<le> i \<Longrightarrow> P i \<Longrightarrow> P (i + 1)"
