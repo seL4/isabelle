@@ -585,12 +585,11 @@ fun add_bools t =
 fun descend vs (abs as (_, xT, _)) =
   let
     val (xn', p') = variant_abs abs;
-    val vs' = ((xn', xT), 0) :: (map o apsnd) (fn n => n + 1) vs;
-  in (vs', p') end;
+  in ((xn', xT) :: vs, p') end;
 
 local structure Proc = Cooper_Procedure in
 
-fun num_of_term vs (Free vT) = Proc.Bound (the (AList.lookup (op =) vs vT))
+fun num_of_term vs (Free vT) = Proc.Bound (find_index (fn vT' => vT' = vT) vs)
   | num_of_term vs (Term.Bound i) = Proc.Bound i
   | num_of_term vs @{term "0::int"} = Proc.C 0
   | num_of_term vs @{term "1::int"} = Proc.C 1
@@ -636,13 +635,11 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
      (case perhaps_number t1
        of SOME n => Proc.Dvd (n, num_of_term vs t2)
         | NONE => raise COOPER "reification: unsupported dvd")
-  | fm_of_term ps vs t =
-     (case AList.lookup (op aconv) ps t
-       of SOME n => Proc.Closed n
-        | NONE => raise COOPER "reification: unknown term");
+  | fm_of_term ps vs t = let val n = find_index (fn t' => t aconv t') ps
+      in if n > 0 then Proc.Closed n else raise COOPER "reification: unknown term" end;
 
 fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT i
-  | term_of_num vs (Proc.Bound n) = Free (the (AList.lookup (op =) vs n))
+  | term_of_num vs (Proc.Bound n) = Free (nth vs n)
   | term_of_num vs (Proc.Neg t') =
       @{term "uminus :: int => _"} $ term_of_num vs t'
   | term_of_num vs (Proc.Add (t1, t2)) =
@@ -670,23 +667,20 @@ fun term_of_fm ps vs Proc.T = HOLogic.true_const
   | term_of_fm ps vs (Proc.Dvd (i, t')) = @{term "op dvd :: int => _ "} $
       HOLogic.mk_number HOLogic.intT i $ term_of_num vs t'
   | term_of_fm ps vs (Proc.NDvd (i, t')) = term_of_fm ps vs (Proc.Not (Proc.Dvd (i, t')))
-  | term_of_fm ps vs (Proc.Closed n) = the (AList.lookup (op =) ps n)
+  | term_of_fm ps vs (Proc.Closed n) = nth ps n
   | term_of_fm ps vs (Proc.NClosed n) = term_of_fm ps vs (Proc.Not (Proc.Closed n));
 
-fun invoke t =
+fun procedure t =
   let
-    val vs = map_index swap (Term.add_frees t []);
-    val ps = map_index swap (add_bools t []);
-  in
-    Logic.mk_equals (HOLogic.mk_Trueprop t,
-      HOLogic.mk_Trueprop (term_of_fm (map swap ps) (map swap vs) (Proc.pa (fm_of_term ps vs t))))
-  end;
+    val vs = Term.add_frees t [];
+    val ps = add_bools t [];
+  in (term_of_fm ps vs o Proc.pa o fm_of_term ps vs) t end;
 
 end;
 
-val (_, oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "cooper",
-    (fn (ctxt, t) => Thm.cterm_of (ProofContext.theory_of ctxt) (invoke t)))));
+val (_, oracle) = Context.>>> (Context.map_theory_result (Thm.add_oracle (Binding.name "cooper",
+  (fn (ctxt, t) => (Thm.cterm_of (ProofContext.theory_of ctxt) o Logic.mk_equals o pairself HOLogic.mk_Trueprop)
+    (t, procedure t)))));
 
 val comp_ss = HOL_ss addsimps @{thms semiring_norm};
 
