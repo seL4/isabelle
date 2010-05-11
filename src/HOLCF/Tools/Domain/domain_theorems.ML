@@ -154,7 +154,7 @@ val pg = pg' thy;
 val retraction_strict = @{thm retraction_strict};
 val abs_strict = ax_rep_iso RS (allI RS retraction_strict);
 val rep_strict = ax_abs_iso RS (allI RS retraction_strict);
-val iso_rews = map Drule.export_without_context [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
+val iso_rews = [ax_abs_iso, ax_rep_iso, abs_strict, rep_strict];
 
 (* ----- theorems concerning one induction step ----------------------------- *)
 
@@ -287,22 +287,17 @@ let
           map (K(atac 1)) (filter is_rec args))
         cons))
       conss);
-  local 
-    (* check whether every/exists constructor of the n-th part of the equation:
-       it has a possibly indirectly recursive argument that isn't/is possibly 
-       indirectly lazy *)
-    fun rec_to quant nfn rfn ns lazy_rec (n,cons) = quant (exists (fn arg => 
+  local
+    fun rec_to ns lazy_rec (n,cons) = forall (exists (fn arg => 
           is_rec arg andalso not (member (op =) ns (rec_of arg)) andalso
-          ((rec_of arg =  n andalso nfn(lazy_rec orelse is_lazy arg)) orelse 
-            rec_of arg <> n andalso rec_to quant nfn rfn (rec_of arg::ns) 
+          ((rec_of arg =  n andalso not (lazy_rec orelse is_lazy arg)) orelse 
+            rec_of arg <> n andalso rec_to (rec_of arg::ns) 
               (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
           ) o snd) cons;
-    fun all_rec_to ns  = rec_to forall not all_rec_to  ns;
     fun warn (n,cons) =
-      if all_rec_to [] false (n,cons)
+      if rec_to [] false (n,cons)
       then (warning ("domain "^List.nth(dnames,n)^" is empty!"); true)
       else false;
-    fun lazy_rec_to ns = rec_to exists I  lazy_rec_to ns;
 
   in
     val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs;
