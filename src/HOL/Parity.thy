@@ -61,7 +61,7 @@ lemma neq_one_mod_two [simp, presburger]:
 subsection {* Behavior under integer arithmetic operations *}
 declare dvd_def[algebra]
 lemma nat_even_iff_2_dvd[algebra]: "even (x::nat) \<longleftrightarrow> 2 dvd x"
-  by (presburger add: even_nat_def even_def)
+  by presburger
 lemma int_even_iff_2_dvd[algebra]: "even (x::int) \<longleftrightarrow> 2 dvd x"
   by presburger
 
