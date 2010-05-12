@@ -1249,7 +1249,8 @@ $(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/ROOT.ML SMT/SMT_Base.thy SMT/Z3.thy \
   SMT/Tools/yices_solver.ML SMT/Tools/z3_proof_terms.ML                 \
   SMT/Tools/z3_proof_rules.ML SMT/Tools/z3_proof.ML                     \
   SMT/Tools/z3_model.ML SMT/Tools/z3_interface.ML			\
-  SMT/Tools/z3_solver.ML $(SRC)/Tools/cache_io.ML
+  SMT/Tools/z3_solver.ML $(SRC)/Tools/cache_io.ML			\
+  SMT/Tools/smt_additional_facts.ML
 	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
 
 

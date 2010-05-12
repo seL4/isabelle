@@ -217,31 +217,6 @@ end
 
 
 
-(* include additional rules *)
-
-local
-  val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
-
-  val pair_type = (fn Type (@{type_name "*"}, _) => true | _ => false)
-  val exists_pair_type = Term.exists_type (Term.exists_subtype pair_type)
-
-  val add_pair_rules =
-    exists (exists_pair_type o Thm.prop_of) ?? append pair_rules
-
-
-  val fun_upd_rules = [@{thm fun_upd_same}, @{thm fun_upd_apply}]
-
-  val is_fun_upd = (fn Const (@{const_name fun_upd}, _) => true | _ => false)
-  val exists_fun_upd = Term.exists_subterm is_fun_upd
-
-  val add_fun_upd_rules =
-    exists (exists_fun_upd o Thm.prop_of) ?? append fun_upd_rules
-in
-val add_rules = add_pair_rules #> add_fun_upd_rules
-end
-
-
-
 (* unfold definitions of specific constants *)
 
 local
@@ -537,7 +512,6 @@ fun normalize ctxt thms =
   |> rewrite_bool_cases ctxt
   |> normalize_numerals ctxt
   |> nat_as_int ctxt
-  |> add_rules
   |> map (unfold_defs ctxt #> normalize_rule ctxt)
   |> lift_lambdas ctxt
   |> apsnd (explicit_application ctxt)

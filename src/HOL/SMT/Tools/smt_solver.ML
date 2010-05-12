@@ -70,6 +70,7 @@ type solver_config = {
   reconstruct: proof_data -> thm }
 
 
+
 (* SMT options *)
 
 val (timeout, setup_timeout) = Attrib.config_int "smt_timeout" (K 30)
@@ -82,6 +83,7 @@ val (trace, setup_trace) = Attrib.config_bool "smt_trace" (K false)
 
 fun trace_msg ctxt f x =
   if Config.get ctxt trace then tracing (f x) else ()
+
 
 
 (* SMT certificates *)
@@ -100,6 +102,7 @@ structure Certificates = Generic_Data
 fun select_certificates name = Certificates.put (
   if name = "" then NONE
   else SOME (Cache_IO.make (Path.explode name)))
+
 
 
 (* interface to external solvers *)
@@ -173,12 +176,14 @@ fun gen_solver name solver ctxt prems =
     val tc = interface comments
     val thy = ProofContext.theory_of ctxt
   in
-    SMT_Normalize.normalize ctxt prems
+    SMT_Additional_Facts.add_facts prems
+    |> SMT_Normalize.normalize ctxt 
     ||> SMT_Translate.translate tc thy
     ||> apfst (run_solver ctxt command arguments)
     ||> reconstruct o make_proof_data ctxt
     |-> fold SMT_Normalize.discharge_definition
   end
+
 
 
 (* solver store *)
@@ -200,6 +205,7 @@ val add_solver = Solvers.map o Symtab.update_new o apsnd (rpair (K []))
 val all_solver_names_of = Symtab.keys o Solvers.get
 val lookup_solver = Symtab.lookup o Solvers.get
 fun add_solver_info (n, i) = Solvers.map (Symtab.map_entry n (apsnd (K i)))
+
 
 
 (* selected solver *)
@@ -227,6 +233,7 @@ fun raw_solver_of context name =
 fun solver_of context =
   let val name = solver_name_of context
   in gen_solver name (raw_solver_of context name) end
+
 
 
 (* SMT tactic *)
@@ -275,6 +282,7 @@ val smt_method =
   Scan.optional Attrib.thms [] >>
   (fn thms => fn ctxt => METHOD (fn facts =>
     HEADGOAL (smt_tac ctxt (thms @ facts))))
+
 
 
 (* setup *)

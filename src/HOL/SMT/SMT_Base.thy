@@ -8,6 +8,7 @@ theory SMT_Base
 imports Real "~~/src/HOL/Word/Word"
 uses
   "~~/src/Tools/cache_io.ML"
+  ("Tools/smt_additional_facts.ML")
   ("Tools/smt_normalize.ML")
   ("Tools/smt_monomorph.ML")
   ("Tools/smt_translate.ML")
@@ -130,6 +131,7 @@ definition iff :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "iff" 50) 
 
 section {* Setup *}
 
+use "Tools/smt_additional_facts.ML"
 use "Tools/smt_normalize.ML"
 use "Tools/smt_monomorph.ML"
 use "Tools/smt_translate.ML"
