@@ -6,7 +6,6 @@ header {* SMT-specific definitions and basic tools *}
 
 theory SMT_Base
 imports Real "~~/src/HOL/Word/Word"
-  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
 uses
   "~~/src/Tools/cache_io.ML"
   ("Tools/smt_normalize.ML")
@@ -41,6 +40,7 @@ definition trigger :: "pattern list \<Rightarrow> bool \<Rightarrow> bool"
 where "trigger _ P = P"
 
 
+
 section {* Arithmetic *}
 
 text {*
@@ -53,11 +53,6 @@ definition rem :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "rem" 70)
 where "a rem b = 
   (if (a \<ge> 0 \<and> b < 0) \<or> (a < 0 \<and> b \<ge> 0) then - (a mod b) else a mod b)"
 
-text {* A decision procedure for linear real arithmetic: *}
-
-setup {*
-  Arith_Data.add_tactic "Ferrante-Rackoff" (K FerranteRackoff.dlo_tac)
-*}
 
 
 section {* Bitvectors *}
@@ -87,6 +82,7 @@ definition bv_ashr :: "'a::len word \<Rightarrow> 'a word \<Rightarrow> 'a word"
 where "bv_ashr w1 w2 = (w1 >>> unat w2)"
 
 
+
 section {* Higher-Order Encoding *}
 
 definition "apply" where "apply f x = f x"
@@ -102,6 +98,7 @@ qed (auto simp add: ext)
 
 lemmas array_rules =
   ext fun_upd_apply fun_upd_same fun_upd_other fun_upd_upd fun_upd_eq apply_def
+
 
 
 section {* First-order logic *}
@@ -128,6 +125,7 @@ the (polymorphic) equality predicate:
 
 definition iff :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "iff" 50) where
   "(x iff y) = (x = y)"
+
 
 
 section {* Setup *}

@@ -5,7 +5,7 @@
 header {* Binding to the SMT solver Z3, with proof reconstruction *}
 
 theory Z3
-imports SMT_Base
+imports SMT_Base "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
 uses
   "Tools/z3_proof_terms.ML"
   "Tools/z3_proof_rules.ML"
@@ -15,7 +15,11 @@ uses
   "Tools/z3_solver.ML"
 begin
 
-setup {* Z3_Proof_Rules.setup #> Z3_Solver.setup *}
+setup {*
+  Z3_Proof_Rules.setup #>
+  Z3_Solver.setup #>
+  Arith_Data.add_tactic "Ferrante-Rackoff" (K FerranteRackoff.dlo_tac)
+*}
 
 lemmas [z3_rewrite] =
   refl eq_commute conj_commute disj_commute simp_thms nnf_simps
