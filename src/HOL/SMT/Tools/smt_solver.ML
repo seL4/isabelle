@@ -162,9 +162,21 @@ fun run_solver ctxt cmd args input =
 
 end
 
+fun trace_recon_data ctxt {typs, terms, ...} =
+  let
+    fun pretty_eq n p = Pretty.block [Pretty.str n, Pretty.str " = ", p]
+    fun pretty_typ (n, T) = pretty_eq n (Syntax.pretty_typ ctxt T)
+    fun pretty_term (n, t) = pretty_eq n (Syntax.pretty_term ctxt t)
+  in
+    trace_msg ctxt (fn () => Pretty.string_of (Pretty.big_list "SMT names:" [
+      Pretty.big_list "sorts:" (map pretty_typ (Symtab.dest typs)),
+      Pretty.big_list "functions:" (map pretty_term (Symtab.dest terms))])) ()
+  end
+
 fun invoke translate_config command arguments ctxt thms =
   thms
   |> SMT_Translate.translate translate_config ctxt
+  ||> tap (trace_recon_data ctxt)
   |>> run_solver ctxt command arguments
   |> (fn (ls, recon) => {context=ctxt, output=ls, recon=recon})
 
