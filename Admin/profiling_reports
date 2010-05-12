@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Makarius
 #
 # DESCRIPTION: Cumulative reports for Poly/ML profiling output.

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # mirrors the Isabelle website
 
 HOST=$(hostname)

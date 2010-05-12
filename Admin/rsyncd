@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 #
 # rsync server start script
-#
-# $Id$
-#
 
 /usr/bin/rsync --daemon --config=/home/proj/isabelle/rsyncd.conf
 
