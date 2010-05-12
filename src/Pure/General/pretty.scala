@@ -62,9 +62,10 @@ object Pretty
   }
 
   private val margin_default = 76
+  private def metric_default(s: String) = s.length.toDouble
 
   def formatted(input: List[XML.Tree], margin: Int = margin_default,
-    metric: String => Double = (_.length.toDouble)): List[XML.Tree] =
+    metric: String => Double = metric_default): List[XML.Tree] =
   {
     val breakgain = margin / 20
     val emergencypos = margin / 2
@@ -79,9 +80,7 @@ object Pretty
       trees match {
         case Break(_) :: _ => 0.0
         case FBreak :: _ => 0.0
-        case XML.Elem(_, _, body) :: ts =>
-          (0.0 /: body)(_ + content_length(_)) + breakdist(ts, after)
-        case XML.Text(s) :: ts => metric(s) + breakdist(ts, after)
+        case t :: ts => content_length(t) + breakdist(ts, after)
         case Nil => after
       }
 
@@ -123,7 +122,8 @@ object Pretty
     format(input.flatMap(standard_format), 0.0, 0.0, Text()).content
   }
 
-  def string_of(input: List[XML.Tree], margin: Int = margin_default): String =
+  def string_of(input: List[XML.Tree], margin: Int = margin_default,
+      metric: String => Double = metric_default): String =
     formatted(input).iterator.flatMap(XML.content).mkString
 
 
