@@ -1258,7 +1258,7 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
 
 HOL-SMT_Examples: HOL-Word $(LOG)/HOL-SMT_Examples.gz
 
-$(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-SMT SMT_Examples/ROOT.ML		\
+$(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-Word SMT_Examples/ROOT.ML	\
   SMT_Examples/SMT_Examples.thy SMT_Examples/SMT_Examples.certs		\
   SMT_Examples/SMT_Word_Examples.thy SMT_Examples/SMT_Tests.thy		\
   SMT_Examples/SMT_Word_Examples.certs SMT_Examples/SMT_Tests.certs
@@ -1269,7 +1269,7 @@ $(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-SMT SMT_Examples/ROOT.ML		\
 
 HOL-Boogie: HOL-Word $(OUT)/HOL-Boogie
 
-$(OUT)/HOL-Boogie: $(OUT)/HOL Boogie/ROOT.ML Boogie/Boogie.thy	\
+$(OUT)/HOL-Boogie: $(OUT)/HOL-Word Boogie/ROOT.ML Boogie/Boogie.thy	\
   Boogie/Tools/boogie_vcs.ML Boogie/Tools/boogie_loader.ML		\
   Boogie/Tools/boogie_commands.ML Boogie/Tools/boogie_tactics.ML
 	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-Boogie
