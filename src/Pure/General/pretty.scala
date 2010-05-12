@@ -7,6 +7,9 @@ Generic pretty printing module.
 package isabelle
 
 
+import java.awt.FontMetrics
+
+
 object Pretty
 {
   /* markup trees with physical blocks and breaks */
@@ -63,6 +66,13 @@ object Pretty
 
   private val margin_default = 76
   private def metric_default(s: String) = s.length.toDouble
+
+  def font_metric(metrics: FontMetrics): String => Double =
+    if (metrics == null) ((s: String) => s.length.toDouble)
+    else {
+      val unit = metrics.charWidth(Symbol.spc).toDouble
+      ((s: String) => if (s == "\n") 1.0 else metrics.stringWidth(s) / unit)
+    }
 
   def formatted(input: List[XML.Tree], margin: Int = margin_default,
     metric: String => Double = metric_default): List[XML.Tree] =

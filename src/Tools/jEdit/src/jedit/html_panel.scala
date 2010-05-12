@@ -85,10 +85,10 @@ class HTML_Panel(
 """
   }
 
-  def font_metrics(font_size: Int): FontMetrics =
+  private def font_metrics(font_size: Int): FontMetrics =
     Swing_Thread.now { getFontMetrics(sys.get_font(font_size)) }
 
-  def panel_width(font_size: Int): Int =
+  private def panel_width(font_size: Int): Int =
     Swing_Thread.now {
       (getWidth() / (font_metrics(font_size).charWidth(Symbol.spc) max 1) - 4) max 20
     }
@@ -129,10 +129,6 @@ class HTML_Panel(
     var current_font_size = 16
     var current_font_metrics: FontMetrics = null
 
-    def metric(s: String): Double =
-      if (current_font_metrics == null) s.length.toDouble
-      else current_font_metrics.stringWidth(s).toDouble / current_font_metrics.charWidth(Symbol.spc)
-
     loop {
       react {
         case Init(font_size) =>
@@ -150,7 +146,8 @@ class HTML_Panel(
           val doc = doc2
           val html_body =
             divs.flatMap(div =>
-              Pretty.formatted(List(div), panel_width(current_font_size), metric)
+              Pretty.formatted(List(div), panel_width(current_font_size),
+                  Pretty.font_metric(current_font_metrics))
                 .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
           val node = XML.document_node(doc, XML.elem(HTML.BODY, html_body))
           doc.removeChild(doc.getLastChild())
