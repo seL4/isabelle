@@ -5771,25 +5771,25 @@ theorem mirlfrqe: "(Ifm bs (mirlfrqe p) = Ifm bs p) \<and> qfree (mirlfrqe p)"
   using qelim_ci[OF mirlfr] prep by (auto simp add: mirlfrqe_def)
 
 definition
-  "test1 (u\<Colon>unit) = mircfrqe (A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0)))))))"
+  "problem1 = A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0))))))"
 
 definition
-  "test2 (u\<Colon>unit) = mircfrqe (A (Iff (Eq (Add (Floor (Bound 0)) (Floor (Neg (Bound 0))))) (Eq (Sub (Floor (Bound 0)) (Bound 0)))))"
+  "problem2 = A (Iff (Eq (Add (Floor (Bound 0)) (Floor (Neg (Bound 0))))) (Eq (Sub (Floor (Bound 0)) (Bound 0))))"
 
 definition
-  "test3 (u\<Colon>unit) = mirlfrqe (A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0)))))))"
+  "problem3 = A (And (Le (Sub (Floor (Bound 0)) (Bound 0))) (Le (Add (Bound 0) (Floor (Neg (Bound 0))))))"
 
 definition
-  "test4 (u\<Colon>unit) = mirlfrqe (A (Iff (Eq (Add (Floor (Bound 0)) (Floor (Neg (Bound 0))))) (Eq (Sub (Floor (Bound 0)) (Bound 0)))))"
+  "problem4 = E (And (Ge (Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg (Bound 0))))))"
 
-definition
-  "test5 (u\<Colon>unit) = mircfrqe (A(E(And (Ge(Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg(Bound 0))))))))"
-
-ML {* @{code test1} () *}
-ML {* @{code test2} () *}
-ML {* @{code test3} () *}
-ML {* @{code test4} () *}
-ML {* @{code test5} () *}
+ML {* @{code mircfrqe} @{code problem1} *}
+ML {* @{code mirlfrqe} @{code problem1} *}  
+ML {* @{code mircfrqe} @{code problem2} *}
+ML {* @{code mirlfrqe} @{code problem2} *}  
+ML {* @{code mircfrqe} @{code problem3} *}
+ML {* @{code mirlfrqe} @{code problem3} *}  
+ML {* @{code mircfrqe} @{code problem4} *}
+ML {* @{code mirlfrqe} @{code problem4} *}
 
 (*code_reflect Mir
   functions mircfrqe mirlfrqe
