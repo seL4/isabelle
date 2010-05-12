@@ -106,26 +106,13 @@ section {* First-order logic *}
 
 text {*
 Some SMT solver formats require a strict separation between formulas and terms.
-The following marker symbols are used internally to separate those categories:
+During normalization, all uninterpreted constants are treated as function
+symbols, and atoms (with uninterpreted head symbol) are turned into terms by
+equating them with true using the following term-level equation symbol:
 *}
 
-definition formula :: "bool \<Rightarrow> bool" where "formula x = x"
-definition "term" where "term x = x"
-
-text {*
-Predicate symbols also occurring as function symbols are turned into function
-symbols by translating atomic formulas into terms:
-*}
-
-abbreviation holds :: "bool \<Rightarrow> bool" where "holds \<equiv> (\<lambda>P. term P = term True)"
-
-text {*
-The following constant represents equivalence, to be treated differently than
-the (polymorphic) equality predicate:
-*}
-
-definition iff :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "iff" 50) where
-  "(x iff y) = (x = y)"
+definition term_eq :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "term'_eq" 50)
+  where "(x term_eq y) = (x = y)"
 
 
 

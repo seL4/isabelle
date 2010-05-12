@@ -12,8 +12,7 @@ sig
   type proof_data = {
     context: Proof.context,
     output: string list,
-    recon: SMT_Translate.recon,
-    assms: thm list option }
+    recon: SMT_Translate.recon }
   type solver_config = {
     command: {env_var: string, remote_name: string option},
     arguments: string list,
@@ -60,8 +59,7 @@ exception SMT_COUNTEREXAMPLE of bool * term list
 type proof_data = {
   context: Proof.context,
   output: string list,
-  recon: SMT_Translate.recon,
-  assms: thm list option }
+  recon: SMT_Translate.recon }
 
 type solver_config = {
   command: {env_var: string, remote_name: string option},
@@ -164,8 +162,11 @@ fun run_solver ctxt cmd args input =
 
 end
 
-fun make_proof_data ctxt (ls, (recon, thms)) =
-  {context=ctxt, output=ls, recon=recon, assms=SOME thms}
+fun invoke translate_config command arguments ctxt thms =
+  thms
+  |> SMT_Translate.translate translate_config ctxt
+  |>> run_solver ctxt command arguments
+  |> (fn (ls, recon) => {context=ctxt, output=ls, recon=recon})
 
 fun gen_solver name solver ctxt prems =
   let
@@ -173,14 +174,11 @@ fun gen_solver name solver ctxt prems =
     val comments = ("solver: " ^ name) ::
       ("timeout: " ^ string_of_int (Config.get ctxt timeout)) ::
       "arguments:" :: arguments
-    val tc = interface comments
-    val thy = ProofContext.theory_of ctxt
   in
     SMT_Additional_Facts.add_facts prems
     |> SMT_Normalize.normalize ctxt 
-    ||> SMT_Translate.translate tc thy
-    ||> apfst (run_solver ctxt command arguments)
-    ||> reconstruct o make_proof_data ctxt
+    ||> invoke (interface comments) command arguments ctxt
+    ||> reconstruct
     |-> fold SMT_Normalize.discharge_definition
   end
 

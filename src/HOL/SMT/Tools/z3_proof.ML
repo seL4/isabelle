@@ -6,8 +6,7 @@ Proof reconstruction for proofs found by Z3.
 
 signature Z3_PROOF =
 sig
-  val reconstruct: Proof.context -> thm list option -> SMT_Translate.recon ->
-    string list -> thm
+  val reconstruct: Proof.context -> SMT_Translate.recon -> string list -> thm
 end
 
 structure Z3_Proof: Z3_PROOF =
@@ -56,13 +55,13 @@ datatype context = Context of {
 fun make_context (Ttab, ttab, etab, ptab, nctxt) =
   Context {Ttab=Ttab, ttab=ttab, etab=etab, ptab=ptab, nctxt=nctxt}
 
-fun empty_context thy ({typs, terms=ttab} : SMT_Translate.recon) =
+fun empty_context thy ({typs, terms, ...} : SMT_Translate.recon) =
   let
-    val ttab' = Symtab.map (fn @{term True} => @{term "~False"} | t => t) ttab
-    val ns = Symtab.fold (Term.add_free_names o snd) ttab' []
+    val ttab = Symtab.map (fn @{term True} => @{term "~False"} | t => t) terms
+    val ns = Symtab.fold (Term.add_free_names o snd) ttab []
     val nctxt = Name.make_context ns
-    val tt = Symtab.map (Thm.cterm_of thy) ttab'
-  in make_context (typs, tt, Inttab.empty, Inttab.empty, nctxt) end
+    val ttab' = Symtab.map (Thm.cterm_of thy) ttab
+  in make_context (typs, ttab', Inttab.empty, Inttab.empty, nctxt) end
 
 fun map_context f (Context {Ttab, ttab, etab, ptab, nctxt}) =
   make_context (f (Ttab, ttab, etab, ptab, nctxt))
@@ -237,14 +236,15 @@ fun parse_line thy l (st as (stop, line_no, cx)) =
     |> handle_errors line_no (Scan.finite' Symbol.stopper (node thy))
     |> (fn (stop', (cx', _)) => (stop', line_no + 1, cx'))
 
-fun reconstruct ctxt assms recon output =
+fun reconstruct ctxt recon output =
   let
     val _ = T.var_prefix <> free_prefix orelse error "Same prefixes"
 
     val thy = ProofContext.theory_of ctxt
+    val {unfolds, assms, ...} = recon
   in
     (case fold (parse_line thy) output (NONE, 1, empty_context thy recon) of
-      (SOME p, _, Context {ptab, ...}) => R.prove ctxt assms ptab p
+      (SOME p, _, Context {ptab, ...}) => R.prove ctxt unfolds assms ptab p
     | _ => z3_exn "bad proof")
   end
 

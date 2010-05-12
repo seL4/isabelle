@@ -14,8 +14,8 @@ sig
   (*proof reconstruction*)
   type proof
   val make_proof: rule -> int list -> cterm * cterm list -> proof
-  val prove: Proof.context -> thm list option -> proof Inttab.table -> int ->
-    thm
+  val prove: Proof.context -> thm list -> thm list option ->
+    proof Inttab.table -> int -> thm
 
   (*setup*)
   val trace_assms: bool Config.T
@@ -479,19 +479,16 @@ val (trace_assms, trace_assms_setup) =
   Attrib.config_bool "z3_trace_assms" (K false)
 
 local
-  val TT_eq = @{lemma "(P = (~False)) == P" by simp}
   val remove_trigger = @{lemma "trigger t p == p"
     by (rule eq_reflection, rule trigger_def)}
-  val remove_iff = @{lemma "p iff q == p = q"
-    by (rule eq_reflection, rule iff_def)}
 
   fun with_context simpset ctxt = Simplifier.context ctxt simpset
 
   val prep_ss = with_context (Simplifier.empty_ss addsimps
-    [@{thm Let_def}, remove_trigger, remove_iff, true_false, TT_eq])
+    [@{thm Let_def}, remove_trigger, true_false])
 
-  val TT_eq_conv = Conv.rewr_conv TT_eq
-  val norm_conv = More_Conv.bottom_conv (K (Conv.try_conv TT_eq_conv))
+  fun norm_conv ctxt unfolds = More_Conv.top_conv
+    (K (Conv.try_conv (More_Conv.rewrs_conv unfolds))) ctxt
 
   val threshold = 10
   
@@ -513,9 +510,10 @@ fun prepare_assms ctxt assms =
     val thms = map rewrite assms
   in if length assms < threshold then Some thms else Many (thm_net_of thms) end
 
-fun asserted _ NONE ct = Thm (Thm.assume (T.mk_prop ct))
-  | asserted ctxt (SOME assms) ct =
-      Thm (with_conv (norm_conv ctxt) (lookup_assm ctxt assms) (T.mk_prop ct))
+fun asserted _ _ NONE ct = Thm (Thm.assume (T.mk_prop ct))
+  | asserted ctxt unfolds (SOME assms) ct =
+      Thm (with_conv (norm_conv ctxt unfolds) (lookup_assm ctxt assms)
+        (T.mk_prop ct))
 end
 
 
@@ -1326,7 +1324,7 @@ end
 fun not_supported r =
   z3_exn ("proof rule not implemented: " ^ quote (string_of_rule r))
 
-fun prove ctxt assms =
+fun prove ctxt unfolds assms =
   let
     val prems = Option.map (prepare_assms ctxt) assms
 
@@ -1334,8 +1332,8 @@ fun prove ctxt assms =
       (case (r, ps) of
         (* core rules *)
         (TrueAxiom, _) => (([], Thm true_thm), ptab)
-      | (Asserted, _) => (([], asserted ctxt prems ct), ptab)
-      | (Goal, _) => (([], asserted ctxt prems ct), ptab)
+      | (Asserted, _) => (([], asserted ctxt unfolds prems ct), ptab)
+      | (Goal, _) => (([], asserted ctxt unfolds prems ct), ptab)
       | (ModusPonens, [(p, _), (q, _)]) => (([], mp q (thm_of p)), ptab)
       | (ModusPonensOeq, [(p, _), (q, _)]) => (([], mp q (thm_of p)), ptab)
       | (AndElim, [(p, (_, i))]) => apfst (pair []) (and_elim (p, i) ct ptab)

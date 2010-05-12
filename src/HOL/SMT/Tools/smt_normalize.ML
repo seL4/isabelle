@@ -9,9 +9,9 @@ Normalization steps on theorems required by SMT solvers:
     numerals),
   * embed natural numbers into integers,
   * add extra rules specifying types and constants which occur frequently,
+  * fully translate into object logic, add universal closure,
   * lift lambda terms,
-  * make applications explicit for functions with varying number of arguments,
-  * fully translate into object logic, add universal closure. 
+  * make applications explicit for functions with varying number of arguments.
 *)
 
 signature SMT_NORMALIZE =
@@ -42,28 +42,6 @@ fun discharge_definition ct thm =
     |> instantiate_free (cv, cu)
     |> (fn thm => Thm.implies_elim thm (Thm.reflexive cu))
   end
-
-
-
-(* simplification of trivial let expressions (whose bound variables occur at
-   most once) *)
-
-local
-  fun count i (Bound j) = if j = i then 1 else 0
-    | count i (t $ u) = count i t + count i u
-    | count i (Abs (_, _, t)) = count (i + 1) t
-    | count _ _ = 0
-
-  fun is_trivial_let (Const (@{const_name Let}, _) $ _ $ Abs (_, _, t)) =
-        (count 0 t <= 1)
-    | is_trivial_let _ = false
-
-  fun let_conv _ = if_true_conv is_trivial_let (Conv.rewr_conv @{thm Let_def})
-in
-fun trivial_let ctxt =
-  map ((Term.exists_subterm is_trivial_let o Thm.prop_of) ??
-    Conv.fconv_rule (More_Conv.top_conv let_conv ctxt))
-end
 
 
 
@@ -507,7 +485,6 @@ end
 
 fun normalize ctxt thms =
   thms
-  |> trivial_let ctxt
   |> trivial_distinct ctxt
   |> rewrite_bool_cases ctxt
   |> normalize_numerals ctxt
