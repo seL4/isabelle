@@ -1529,6 +1529,14 @@ apply simp
 apply(simp add:list_update_append split:nat.splits)
 done
 
+lemma last_map:
+  "xs \<noteq> [] \<Longrightarrow> last (map f xs) = f (last xs)"
+  by (cases xs rule: rev_cases) simp_all
+
+lemma map_butlast:
+  "map f (butlast xs) = butlast (map f xs)"
+  by (induct xs) simp_all
+
 
 subsubsection {* @{text take} and @{text drop} *}
 
@@ -2910,6 +2918,14 @@ lemma remdups_remdups:
   "remdups (remdups xs) = remdups xs"
   by (induct xs) simp_all
 
+lemma distinct_butlast:
+  assumes "xs \<noteq> []" and "distinct xs"
+  shows "distinct (butlast xs)"
+proof -
+  from `xs \<noteq> []` obtain ys y where "xs = ys @ [y]" by (cases xs rule: rev_cases) auto
+  with `distinct xs` show ?thesis by simp
+qed
+
 
 subsubsection {* @{const insert} *}
 
@@ -3604,6 +3620,18 @@ by(induct xs)(auto simp:sorted_insort_key)
 
 theorem sorted_sort[simp]: "sorted (sort xs)"
 by(induct xs)(auto simp:sorted_insort)
+
+lemma sorted_butlast:
+  assumes "xs \<noteq> []" and "sorted xs"
+  shows "sorted (butlast xs)"
+proof -
+  from `xs \<noteq> []` obtain ys y where "xs = ys @ [y]" by (cases xs rule: rev_cases) auto
+  with `sorted xs` show ?thesis by (simp add: sorted_append)
+qed
+  
+lemma insort_not_Nil [simp]:
+  "insort_key f a xs \<noteq> []"
+  by (induct xs) simp_all
 
 lemma insort_is_Cons: "\<forall>x\<in>set xs. f a \<le> f x \<Longrightarrow> insort_key f a xs = a # xs"
 by (cases xs) auto
