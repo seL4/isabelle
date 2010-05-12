@@ -296,15 +296,19 @@ local
   val pair_type = (fn Type (@{type_name "*"}, _) => true | _ => false)
   val exists_pair_type = Term.exists_type (Term.exists_subtype pair_type)
 
+  val add_pair_rules =
+    exists (exists_pair_type o Thm.prop_of) ?? append pair_rules
+
+
   val fun_upd_rules = [@{thm fun_upd_same}, @{thm fun_upd_apply}]
+
   val is_fun_upd = (fn Const (@{const_name fun_upd}, _) => true | _ => false)
   val exists_fun_upd = Term.exists_subterm is_fun_upd
-in
-fun add_pair_rules _ =
-  exists (exists_pair_type o Thm.prop_of) ?? append pair_rules
 
-fun add_fun_upd_rules _ =
-  exists (exists_fun_upd o Thm.prop_of) ?? append fun_upd_rules
+  val add_fun_upd_rules =
+    exists (exists_fun_upd o Thm.prop_of) ?? append fun_upd_rules
+in
+val add_rules = add_pair_rules #> add_fun_upd_rules
 end
 
 
@@ -508,8 +512,7 @@ fun normalize ctxt thms =
   |> trivial_distinct ctxt
   |> positive_numerals ctxt
   |> nat_as_int ctxt
-  |> add_pair_rules ctxt
-  |> add_fun_upd_rules ctxt
+  |> add_rules
   |> map (unfold_defs ctxt #> normalize_rule ctxt)
   |> lift_lambdas ctxt
   |> apsnd (explicit_application ctxt)
