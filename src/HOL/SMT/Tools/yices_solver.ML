@@ -19,7 +19,7 @@ val options = ["--smtlib"]
 
 fun raise_cex real = raise SMT_Solver.SMT_COUNTEREXAMPLE (real, [])
 
-fun core_oracle ({output, ...} : SMT_Solver.proof_data) =
+fun core_oracle (output, _) =
   let
     val empty_line = (fn "" => true | _ => false)
     val split_first = (fn [] => ("", []) | l :: ls => (l, ls))
@@ -35,7 +35,7 @@ fun smtlib_solver oracle _ = {
   command = {env_var=env_var, remote_name=NONE},
   arguments = options,
   interface = SMTLIB_Interface.interface,
-  reconstruct = oracle }
+  reconstruct = pair o oracle }
 
 val setup =
   Thm.add_oracle (Binding.name solver_name, core_oracle) #-> (fn (_, oracle) =>

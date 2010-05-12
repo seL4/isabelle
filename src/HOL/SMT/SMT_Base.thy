@@ -9,8 +9,8 @@ imports Real "~~/src/HOL/Word/Word"
 uses
   "~~/src/Tools/cache_io.ML"
   ("Tools/smt_additional_facts.ML")
-  ("Tools/smt_normalize.ML")
   ("Tools/smt_monomorph.ML")
+  ("Tools/smt_normalize.ML")
   ("Tools/smt_translate.ML")
   ("Tools/smt_solver.ML")
   ("Tools/smtlib_interface.ML")
@@ -119,8 +119,8 @@ definition term_eq :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "term'
 section {* Setup *}
 
 use "Tools/smt_additional_facts.ML"
-use "Tools/smt_normalize.ML"
 use "Tools/smt_monomorph.ML"
+use "Tools/smt_normalize.ML"
 use "Tools/smt_translate.ML"
 use "Tools/smt_solver.ML"
 use "Tools/smtlib_interface.ML"

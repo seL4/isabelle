@@ -24,7 +24,7 @@ sig
   val unfold_eqs: Proof.context -> thm list -> conv
   val match_instantiate: (cterm -> cterm) -> cterm -> thm -> thm
   val by_tac: (int -> tactic) -> cterm -> thm
-  val make_hyp_def: thm -> cterm list * thm
+  val make_hyp_def: thm -> Proof.context -> thm * Proof.context
   val by_abstraction: Proof.context -> thm list -> (Proof.context -> cterm ->
     thm) -> cterm -> thm
 
@@ -103,7 +103,7 @@ fun match_instantiate f ct thm =
 fun by_tac tac ct = Goal.norm_result (Goal.prove_internal [] ct (K (tac 1)))
 
 (* |- c x == t x ==> P (c x)  ~~>  c == t |- P (c x) *) 
-fun make_hyp_def thm =
+fun make_hyp_def thm ctxt =
   let
     val (lhs, rhs) = Thm.dest_binop (Thm.cprem_of thm 1)
     val (cf, cvs) = Drule.strip_comb lhs
@@ -111,7 +111,10 @@ fun make_hyp_def thm =
     fun apply cv th =
       Thm.combination th (Thm.reflexive cv)
       |> Conv.fconv_rule (Conv.arg_conv (Thm.beta_conversion false))
-  in ([eq], Thm.implies_elim thm (fold apply cvs (Thm.assume eq))) end
+  in
+    yield_singleton Assumption.add_assumes eq ctxt
+    |>> Thm.implies_elim thm o fold apply cvs
+  end
 
 
 
@@ -336,7 +339,7 @@ local
 in
 
 fun make_simpset ctxt rules = Simplifier.context ctxt (HOL_ss
-  addsimps @{thms ring_distribs} addsimps @{thms field_simps}
+  addsimps @{thms field_simps}
   addsimps [@{thm times_divide_eq_right}, @{thm times_divide_eq_left}]
   addsimps @{thms arith_special} addsimps @{thms less_bin_simps}
   addsimps @{thms le_bin_simps} addsimps @{thms eq_bin_simps}

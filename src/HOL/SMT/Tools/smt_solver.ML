@@ -9,15 +9,12 @@ sig
   exception SMT of string
   exception SMT_COUNTEREXAMPLE of bool * term list
 
-  type proof_data = {
-    context: Proof.context,
-    output: string list,
-    recon: SMT_Translate.recon }
   type solver_config = {
     command: {env_var: string, remote_name: string option},
     arguments: string list,
     interface: string list -> SMT_Translate.config,
-    reconstruct: proof_data -> thm }
+    reconstruct: (string list * SMT_Translate.recon) -> Proof.context ->
+      thm * Proof.context }
 
   (*options*)
   val timeout: int Config.T
@@ -56,16 +53,12 @@ exception SMT of string
 exception SMT_COUNTEREXAMPLE of bool * term list
 
 
-type proof_data = {
-  context: Proof.context,
-  output: string list,
-  recon: SMT_Translate.recon }
-
 type solver_config = {
   command: {env_var: string, remote_name: string option},
   arguments: string list,
   interface: string list -> SMT_Translate.config,
-  reconstruct: proof_data -> thm }
+  reconstruct: (string list * SMT_Translate.recon) -> Proof.context ->
+    thm * Proof.context }
 
 
 
@@ -173,12 +166,16 @@ fun trace_recon_data ctxt {typs, terms, ...} =
       Pretty.big_list "functions:" (map pretty_term (Symtab.dest terms))])) ()
   end
 
-fun invoke translate_config command arguments ctxt thms =
+fun invoke translate_config command arguments thms ctxt =
   thms
   |> SMT_Translate.translate translate_config ctxt
   ||> tap (trace_recon_data ctxt)
   |>> run_solver ctxt command arguments
-  |> (fn (ls, recon) => {context=ctxt, output=ls, recon=recon})
+  |> rpair ctxt
+
+fun discharge_definitions thm =
+  if Thm.nprems_of thm = 0 then thm
+  else discharge_definitions (@{thm reflexive} RS thm)
 
 fun gen_solver name solver ctxt prems =
   let
@@ -188,10 +185,13 @@ fun gen_solver name solver ctxt prems =
       "arguments:" :: arguments
   in
     SMT_Additional_Facts.add_facts prems
-    |> SMT_Normalize.normalize ctxt 
-    ||> invoke (interface comments) command arguments ctxt
-    ||> reconstruct
-    |-> fold SMT_Normalize.discharge_definition
+    |> rpair ctxt
+    |-> SMT_Normalize.normalize
+    |-> invoke (interface comments) command arguments
+    |-> reconstruct
+    |-> (fn thm => fn ctxt' => thm
+    |> singleton (ProofContext.export ctxt' ctxt)
+    |> discharge_definitions)
   end
 
 
