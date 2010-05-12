@@ -19,6 +19,8 @@ Checklist for official releases
 
 - check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS;
 
+- diff NEWS wrt. last official release, which is read-only;
+
 - update https://isabelle.in.tum.de/repos/website;
 
 - maintain Docs:
