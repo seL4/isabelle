@@ -326,7 +326,8 @@ val _ =
     || (old_primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
       Toplevel.theory (snd o
         (if unchecked then OldPrimrec.add_primrec_unchecked else OldPrimrec.add_primrec)
-          alt_name (map P.triple_swap eqns)))));
+          alt_name (map P.triple_swap eqns) o
+        tap (fn _ => legacy_feature "Old variant of 'primrec' command -- use new syntax instead")))));
 
 end;
 

@@ -33,12 +33,12 @@ primrec sumj :: "[nat, nat, state]=>int" where
 types command = "(state*state)set"
 
 definition a :: "nat=>command" where
- "a i == {(s, s'). (c s') i = (c s) i + 1 & (C s') = (C s) + 1}"
+ "a i = {(s, s'). (c s') i = (c s) i + 1 & (C s') = (C s) + 1}"
  
 definition Component :: "nat => state program" where
-  "Component i == mk_total_program({s. C s = 0 & (c s) i = 0},
-                                   {a i},
-                                   \<Union>G \<in> preserves (%s. (c s) i). Acts G)"
+  "Component i = mk_total_program({s. C s = 0 & (c s) i = 0},
+                                  {a i},
+                                  \<Union>G \<in> preserves (%s. (c s) i). Acts G)"
 
 
 declare Component_def [THEN def_prg_Init, simp]

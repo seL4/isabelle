@@ -1,5 +1,4 @@
 (*  Title:      HOL/Unix/Unix.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 

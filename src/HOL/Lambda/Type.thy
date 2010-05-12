@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/Type.thy
-    ID:         $Id$
     Author:     Stefan Berghofer
     Copyright   2000 TU Muenchen
 *)

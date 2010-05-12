@@ -32,11 +32,6 @@ than the corresponding operations of CVS or SVN.
 Initial configuration
 ---------------------
 
-Always use Mercurial versions from the 1.0 or 1.1 branch, or later.
-The old 0.9.x versions do not work in a multi-user environment with
-shared file spaces!
-
-
 The official Isabelle repository can be cloned like this:
 
   hg clone http://isabelle.in.tum.de/repos/isabelle

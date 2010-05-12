@@ -19,7 +19,7 @@ struct
 
 structure IndCasesData = Theory_Data
 (
-  type T = (Proof.context -> cterm -> thm) Symtab.table;
+  type T = (Proof.context -> conv) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;

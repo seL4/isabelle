@@ -52,15 +52,15 @@ abbreviation
   "expiredA T evs == authlife + T < CT evs"
 
 
-constdefs
+definition
  (* Yields the subtrace of a given trace from its beginning to a given event *)
   before :: "[event, event list] => event list" ("before _ on _")
-   "before ev on evs ==  takeWhile (% z. z ~= ev) (rev evs)"
+  where "before ev on evs = takeWhile (% z. z ~= ev) (rev evs)"
 
+definition
  (* States than an event really appears only once on a trace *)
   Unique :: "[event, event list] => bool" ("Unique _ on _")
-   "Unique ev on evs == 
-      ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs))"
+  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
 
 
 inductive_set bankerb_gets :: "event list set"

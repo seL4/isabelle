@@ -21,30 +21,32 @@ axioms
   Tgs_not_bad [iff]: "Tgs \<notin> bad"
    --{*Tgs is secure --- we already know that Kas is secure*}
 
-constdefs
+definition
  (* authKeys are those contained in an authTicket *)
-    authKeys :: "event list => key set"
-    "authKeys evs == {authK. \<exists>A Peer Ta. Says Kas A
+    authKeys :: "event list => key set" where
+    "authKeys evs = {authK. \<exists>A Peer Ta. Says Kas A
                         (Crypt (shrK A) \<lbrace>Key authK, Agent Peer, Number Ta,
                (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key authK, Number Ta\<rbrace>)
                   \<rbrace>) \<in> set evs}"
 
+definition
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
   Issues :: "[agent, agent, msg, event list] => bool"
-             ("_ Issues _ with _ on _")
-   "A Issues B with X on evs ==
-      \<exists>Y. Says A B Y \<in> set evs & X \<in> parts {Y} &
-      X \<notin> parts (spies (takeWhile (% z. z  \<noteq> Says A B Y) (rev evs)))"
+             ("_ Issues _ with _ on _") where
+   "A Issues B with X on evs =
+      (\<exists>Y. Says A B Y \<in> set evs & X \<in> parts {Y} &
+        X \<notin> parts (spies (takeWhile (% z. z  \<noteq> Says A B Y) (rev evs))))"
 
+definition
  (* Yields the subtrace of a given trace from its beginning to a given event *)
   before :: "[event, event list] => event list" ("before _ on _")
-   "before ev on evs ==  takeWhile (% z. z ~= ev) (rev evs)"
+  where "before ev on evs = takeWhile (% z. z ~= ev) (rev evs)"
 
+definition
  (* States than an event really appears only once on a trace *)
   Unique :: "[event, event list] => bool" ("Unique _ on _")
-   "Unique ev on evs == 
-      ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs))"
+  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
 
 
 consts

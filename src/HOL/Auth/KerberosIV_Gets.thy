@@ -21,18 +21,18 @@ axioms
   Tgs_not_bad [iff]: "Tgs \<notin> bad"
    --{*Tgs is secure --- we already know that Kas is secure*}
 
-constdefs
+definition
  (* authKeys are those contained in an authTicket *)
-    authKeys :: "event list => key set"
-    "authKeys evs == {authK. \<exists>A Peer Ta. Says Kas A
+    authKeys :: "event list => key set" where
+    "authKeys evs = {authK. \<exists>A Peer Ta. Says Kas A
                         (Crypt (shrK A) \<lbrace>Key authK, Agent Peer, Number Ta,
                (Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key authK, Number Ta\<rbrace>)
                   \<rbrace>) \<in> set evs}"
 
+definition
  (* States than an event really appears only once on a trace *)
   Unique :: "[event, event list] => bool" ("Unique _ on _")
-   "Unique ev on evs == 
-      ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs))"
+  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
 
 
 consts

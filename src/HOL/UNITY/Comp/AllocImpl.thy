@@ -21,7 +21,7 @@ record ('a,'b) merge_d =
   dummy :: 'a       (*dummy field for new variables*)
 
 definition non_dummy :: "('a,'b) merge_d => 'b merge" where
-    "non_dummy s == (|In = In s, Out = Out s, iOut = iOut s|)"
+    "non_dummy s = (|In = In s, Out = Out s, iOut = iOut s|)"
 
 record 'b distr =
   In  :: "'b list"          (*items to distribute*)
@@ -49,30 +49,32 @@ record 'a systemState =
   dummy    :: 'a                  (*dummy field for new variables*)
 
 
-constdefs
-
 (** Merge specification (the number of inputs is Nclients) ***)
 
+definition
   (*spec (10)*)
   merge_increasing :: "('a,'b) merge_d program set"
-    "merge_increasing ==
+  where "merge_increasing =
          UNIV guarantees (Increasing merge.Out) Int (Increasing merge.iOut)"
 
+definition
   (*spec (11)*)
   merge_eqOut :: "('a,'b) merge_d program set"
-    "merge_eqOut ==
+  where "merge_eqOut =
          UNIV guarantees
          Always {s. length (merge.Out s) = length (merge.iOut s)}"
 
+definition
   (*spec (12)*)
   merge_bounded :: "('a,'b) merge_d program set"
-    "merge_bounded ==
+  where "merge_bounded =
          UNIV guarantees
          Always {s. \<forall>elt \<in> set (merge.iOut s). elt < Nclients}"
 
+definition
   (*spec (13)*)
   merge_follows :: "('a,'b) merge_d program set"
-    "merge_follows ==
+  where "merge_follows =
          (\<Inter>i \<in> lessThan Nclients. Increasing (sub i o merge.In))
          guarantees
          (\<Inter>i \<in> lessThan Nclients.
@@ -80,25 +82,29 @@ constdefs
                        {k. k < size(merge.iOut s) & merge.iOut s! k = i})
           Fols (sub i o merge.In))"
 
+definition
   (*spec: preserves part*)
   merge_preserves :: "('a,'b) merge_d program set"
-    "merge_preserves == preserves merge.In Int preserves merge_d.dummy"
+  where "merge_preserves = preserves merge.In Int preserves merge_d.dummy"
 
+definition
   (*environmental constraints*)
   merge_allowed_acts :: "('a,'b) merge_d program set"
-    "merge_allowed_acts ==
+  where "merge_allowed_acts =
        {F. AllowedActs F =
             insert Id (UNION (preserves (funPair merge.Out merge.iOut)) Acts)}"
 
+definition
   merge_spec :: "('a,'b) merge_d program set"
-    "merge_spec == merge_increasing Int merge_eqOut Int merge_bounded Int
+  where "merge_spec = merge_increasing Int merge_eqOut Int merge_bounded Int
                    merge_follows Int merge_allowed_acts Int merge_preserves"
 
 (** Distributor specification (the number of outputs is Nclients) ***)
 
+definition
   (*spec (14)*)
   distr_follows :: "('a,'b) distr_d program set"
-    "distr_follows ==
+  where "distr_follows =
          Increasing distr.In Int Increasing distr.iIn Int
          Always {s. \<forall>elt \<in> set (distr.iIn s). elt < Nclients}
          guarantees
@@ -107,28 +113,33 @@ constdefs
           (%s. sublist (distr.In s)
                        {k. k < size(distr.iIn s) & distr.iIn s ! k = i}))"
 
+definition
   distr_allowed_acts :: "('a,'b) distr_d program set"
-    "distr_allowed_acts ==
+  where "distr_allowed_acts =
        {D. AllowedActs D = insert Id (UNION (preserves distr.Out) Acts)}"
 
+definition
   distr_spec :: "('a,'b) distr_d program set"
-    "distr_spec == distr_follows Int distr_allowed_acts"
+  where "distr_spec = distr_follows Int distr_allowed_acts"
 
 (** Single-client allocator specification (required) ***)
 
+definition
   (*spec (18)*)
   alloc_increasing :: "'a allocState_d program set"
-    "alloc_increasing == UNIV  guarantees  Increasing giv"
+  where "alloc_increasing = UNIV  guarantees  Increasing giv"
 
+definition
   (*spec (19)*)
   alloc_safety :: "'a allocState_d program set"
-    "alloc_safety ==
+  where "alloc_safety =
          Increasing rel
          guarantees  Always {s. tokens (giv s) \<le> NbT + tokens (rel s)}"
 
+definition
   (*spec (20)*)
   alloc_progress :: "'a allocState_d program set"
-    "alloc_progress ==
+  where "alloc_progress =
          Increasing ask Int Increasing rel Int
          Always {s. \<forall>elt \<in> set (ask s). elt \<le> NbT}
          Int
@@ -137,20 +148,23 @@ constdefs
                  {s. tokens h \<le> tokens (rel s)})
          guarantees  (\<Inter>h. {s. h \<le> ask s} LeadsTo {s. h pfixLe giv s})"
 
+definition
   (*spec: preserves part*)
   alloc_preserves :: "'a allocState_d program set"
-    "alloc_preserves == preserves rel Int
+  where "alloc_preserves = preserves rel Int
                         preserves ask Int
                         preserves allocState_d.dummy"
 
 
+definition
   (*environmental constraints*)
   alloc_allowed_acts :: "'a allocState_d program set"
-    "alloc_allowed_acts ==
+  where "alloc_allowed_acts =
        {F. AllowedActs F = insert Id (UNION (preserves giv) Acts)}"
 
+definition
   alloc_spec :: "'a allocState_d program set"
-    "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
+  where "alloc_spec = alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_allowed_acts Int alloc_preserves"
 
 locale Merge =

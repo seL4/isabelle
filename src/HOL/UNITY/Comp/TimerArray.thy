@@ -9,14 +9,14 @@ theory TimerArray imports "../UNITY_Main" begin
 
 types 'a state = "nat * 'a"   (*second component allows new variables*)
 
-definition count :: "'a state => nat" where
-    "count s == fst s"
+definition count :: "'a state => nat"
+  where "count s = fst s"
   
-definition decr  :: "('a state * 'a state) set" where
-    "decr == UN n uu. {((Suc n, uu), (n,uu))}"
+definition decr  :: "('a state * 'a state) set"
+  where "decr = (UN n uu. {((Suc n, uu), (n,uu))})"
   
-definition Timer :: "'a state program" where
-    "Timer == mk_total_program (UNIV, {decr}, UNIV)"
+definition Timer :: "'a state program"
+  where "Timer = mk_total_program (UNIV, {decr}, UNIV)"
 
 
 declare Timer_def [THEN def_prg_Init, simp]
