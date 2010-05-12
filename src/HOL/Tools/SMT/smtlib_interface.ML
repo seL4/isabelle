@@ -6,6 +6,15 @@ Interface to SMT solvers based on the SMT-LIB format.
 
 signature SMTLIB_INTERFACE =
 sig
+  type builtins = {
+    builtin_typ: typ -> string option,
+    builtin_num: typ -> int -> string option,
+    builtin_func: string * typ -> term list -> (string * term list) option,
+    builtin_pred: string * typ -> term list -> (string * term list) option,
+    is_builtin_pred: string -> typ -> bool }
+  val add_builtins: builtins -> Context.generic -> Context.generic
+  val add_logic: (term list -> string option) -> Context.generic ->
+    Context.generic
   val interface: SMT_Solver.interface
 end
 
@@ -89,67 +98,63 @@ fun extra_norm thms ctxt =
 
 (** builtins **)
 
-fun dest_binT T =
-  (case T of
-    Type (@{type_name "Numeral_Type.num0"}, _) => 0
-  | Type (@{type_name "Numeral_Type.num1"}, _) => 1
-  | Type (@{type_name "Numeral_Type.bit0"}, [T]) => 2 * dest_binT T
-  | Type (@{type_name "Numeral_Type.bit1"}, [T]) => 1 + 2 * dest_binT T
-  | _ => raise TYPE ("dest_binT", [T], []))
+(* additional builtins *)
 
-fun dest_wordT (Type (@{type_name word}, [T])) = dest_binT T
-  | dest_wordT T = raise TYPE ("dest_wordT", [T], [])
+type builtins = {
+  builtin_typ: typ -> string option,
+  builtin_num: typ -> int -> string option,
+  builtin_func: string * typ -> term list -> (string * term list) option,
+  builtin_pred: string * typ -> term list -> (string * term list) option,
+  is_builtin_pred: string -> typ -> bool }
 
-fun index1 n i = n ^ "[" ^ string_of_int i ^ "]"
-fun index2 n i j = n ^ "[" ^ string_of_int i ^ ":" ^ string_of_int j ^ "]"
+fun chained _ [] = NONE
+  | chained f (b :: bs) = (case f b of SOME y => SOME y | NONE => chained f bs)
 
-fun builtin_typ @{typ int} = SOME "Int"
-  | builtin_typ @{typ real} = SOME "Real"
-  | builtin_typ (Type (@{type_name word}, [T])) =
-      Option.map (index1 "BitVec") (try dest_binT T)
-  | builtin_typ _ = NONE
+fun chained' _ [] = false
+  | chained' f (b :: bs) = f b orelse chained' f bs
 
-fun builtin_num @{typ int} i = SOME (string_of_int i)
-  | builtin_num @{typ real} i = SOME (string_of_int i ^ ".0")
-  | builtin_num (Type (@{type_name word}, [T])) i =
-      Option.map (index1 ("bv" ^ string_of_int i)) (try dest_binT T)
-  | builtin_num _ _ = NONE
+fun chained_builtin_typ bs T =
+  chained (fn {builtin_typ, ...} : builtins => builtin_typ T) bs
 
-val is_propT = (fn @{typ prop} => true | _ => false)
-fun is_connT T = Term.strip_type T |> (fn (Us, U) => forall is_propT (U :: Us))
-fun is_predT T = is_propT (Term.body_type T)
+fun chained_builtin_num bs T i =
+  chained (fn {builtin_num, ...} : builtins => builtin_num T i) bs
 
-fun just c ts = SOME (c, ts)
+fun chained_builtin_func bs c ts =
+  chained (fn {builtin_func, ...} : builtins => builtin_func c ts) bs
 
-val is_arith_type = member (op =) [@{typ int}, @{typ real}] o Term.domain_type
+fun chained_builtin_pred bs c ts =
+  chained (fn {builtin_pred, ...} : builtins => builtin_pred c ts) bs
 
-fun fixed_bvT (Ts, T) x =
-  if forall (can dest_wordT) (T :: Ts) then SOME x else NONE
+fun chained_is_builtin_pred bs n T =
+  chained' (fn {is_builtin_pred, ...} : builtins => is_builtin_pred n T) bs
 
-fun if_fixed_bvT' T = fixed_bvT ([], Term.domain_type T)
-fun if_fixed_bvT T = curry (fixed_bvT ([], Term.domain_type T))
-fun if_full_fixed_bvT T = curry (fixed_bvT (Term.strip_type T))
+fun fst_int_ord ((s1, _), (s2, _)) = int_ord (s1, s2)
 
-fun dest_word_funT (Type ("fun", [T, U])) = (dest_wordT T, dest_wordT U)
-  | dest_word_funT T = raise TYPE ("dest_word_funT", [T], [])
-fun dest_nat (@{term nat} $ n :: ts) = (snd (HOLogic.dest_number n), ts)
-  | dest_nat ts = raise TERM ("dest_nat", ts)
-fun dest_nat_word_funT (T, ts) =
-  (dest_word_funT (Term.range_type T), dest_nat ts)
+structure Builtins = Generic_Data
+(
+  type T = (int * builtins) list
+  val empty = []
+  val extend = I
+  fun merge (bs1, bs2) = OrdList.union fst_int_ord bs2 bs1
+)
 
-fun bv_extend n T ts =
-  (case try dest_word_funT T of
-    SOME (i, j) => if j-i >= 0 then SOME (index1 n (j-i), ts) else NONE
+fun add_builtins bs = Builtins.map (OrdList.insert fst_int_ord (serial (), bs))
+
+fun get_builtins ctxt = map snd (Builtins.get (Context.Proof ctxt))
+
+
+(* basic builtins combined with additional builtins *)
+
+fun builtin_typ _ @{typ int} = SOME "Int"
+  | builtin_typ ctxt T = chained_builtin_typ (get_builtins ctxt) T
+
+fun builtin_num _ @{typ int} i = SOME (string_of_int i)
+  | builtin_num ctxt T i = chained_builtin_num (get_builtins ctxt) T i
+
+fun if_int_type T n =
+  (case try Term.domain_type T of
+    SOME @{typ int} => SOME n
   | _ => NONE)
-
-fun bv_rotate n T ts =
-  try dest_nat ts
-  |> Option.map (fn (i, ts') => (index1 n i, ts'))
-
-fun bv_extract n T ts =
-  try dest_nat_word_funT (T, ts)
-  |> Option.map (fn ((_, i), (lb, ts')) => (index2 n (i + lb - 1) lb, ts'))
-
 
 fun conn @{const_name True} = SOME "true"
   | conn @{const_name False} = SOME "false"
@@ -164,60 +169,61 @@ fun conn @{const_name True} = SOME "true"
 fun pred @{const_name distinct} _ = SOME "distinct"
   | pred @{const_name "op ="} _ = SOME "="
   | pred @{const_name term_eq} _ = SOME "="
-  | pred @{const_name less} T =
-      if is_arith_type T then SOME "<"
-      else if_fixed_bvT' T "bvult"
-  | pred @{const_name less_eq} T =
-      if is_arith_type T then SOME "<="
-      else if_fixed_bvT' T "bvule"
-  | pred @{const_name word_sless} T = if_fixed_bvT' T "bvslt"
-  | pred @{const_name word_sle} T = if_fixed_bvT' T "bvsle"
+  | pred @{const_name less} T = if_int_type T "<"
+  | pred @{const_name less_eq} T = if_int_type T "<="
   | pred _ _ = NONE
 
-fun func @{const_name If} _ = just "ite"
-  | func @{const_name uminus} T =
-      if is_arith_type T then just "~"
-      else if_fixed_bvT T "bvneg"
-  | func @{const_name plus} T = 
-      if is_arith_type T then just "+"
-      else if_fixed_bvT T "bvadd"
-  | func @{const_name minus} T =
-      if is_arith_type T then just "-"
-      else if_fixed_bvT T "bvsub"
-  | func @{const_name times} T = 
-      if is_arith_type T then just "*"
-      else if_fixed_bvT T "bvmul"
-  | func @{const_name bitNOT} T = if_fixed_bvT T "bvnot"
-  | func @{const_name bitAND} T = if_fixed_bvT T "bvand"
-  | func @{const_name bitOR} T = if_fixed_bvT T "bvor"
-  | func @{const_name bitXOR} T = if_fixed_bvT T "bvxor"
-  | func @{const_name div} T = if_fixed_bvT T "bvudiv"
-  | func @{const_name mod} T = if_fixed_bvT T "bvurem"
-  | func @{const_name sdiv} T = if_fixed_bvT T "bvsdiv"
-  | func @{const_name smod} T = if_fixed_bvT T "bvsmod"
-  | func @{const_name srem} T = if_fixed_bvT T "bvsrem"
-  | func @{const_name word_cat} T = if_full_fixed_bvT T "concat"
-  | func @{const_name bv_shl} T = if_full_fixed_bvT T "bvshl"
-  | func @{const_name bv_lshr} T = if_full_fixed_bvT T "bvlshr"
-  | func @{const_name bv_ashr} T = if_full_fixed_bvT T "bvashr"
-  | func @{const_name slice} T = bv_extract "extract" T
-  | func @{const_name ucast} T = bv_extend "zero_extend" T
-  | func @{const_name scast} T = bv_extend "sign_extend" T
-  | func @{const_name word_rotl} T = bv_rotate "rotate_left" T
-  | func @{const_name word_rotr} T = bv_rotate "rotate_right" T
-  | func _ _ = K NONE
+fun func @{const_name If} _ = SOME "ite"
+  | func @{const_name uminus} T = if_int_type T "~"
+  | func @{const_name plus} T = if_int_type T "+"
+  | func @{const_name minus} T = if_int_type T "-"
+  | func @{const_name times} T = if_int_type T "*"
+  | func _ _ = NONE
+
+val is_propT = (fn @{typ prop} => true | _ => false)
+fun is_connT T = Term.strip_type T |> (fn (Us, U) => forall is_propT (U :: Us))
+fun is_predT T = is_propT (Term.body_type T)
 
 fun is_builtin_conn (n, T) = is_connT T andalso is_some (conn n)
-fun is_builtin_pred (n, T) = is_predT T andalso is_some (pred n T)
+fun is_builtin_pred ctxt (n, T) = is_predT T andalso
+  (is_some (pred n T) orelse chained_is_builtin_pred (get_builtins ctxt) n T)
 
-fun builtin_fun (n, T) ts =
-  if is_connT T then conn n |> Option.map (rpair ts)
-  else if is_predT T then pred n T |> Option.map (rpair ts)
-  else func n T ts
+fun builtin_fun ctxt (c as (n, T)) ts =
+  let
+    val builtin_func' = chained_builtin_func (get_builtins ctxt)
+    val builtin_pred' = chained_builtin_pred (get_builtins ctxt)
+  in
+    if is_connT T then conn n |> Option.map (rpair ts)
+    else if is_predT T then
+      (case pred n T of SOME c' => SOME (c', ts) | NONE => builtin_pred' c ts)
+    else 
+      (case func n T of SOME c' => SOME (c', ts) | NONE => builtin_func' c ts)
+  end
 
 
 
 (** serialization **)
+
+(* header *)
+
+structure Logics = Generic_Data
+(
+  type T = (int * (term list -> string option)) list
+  val empty = []
+  val extend = I
+  fun merge (bs1, bs2) = OrdList.union fst_int_ord bs2 bs1
+)
+
+fun add_logic l = Logics.map (OrdList.insert fst_int_ord (serial (), l))
+
+fun choose_logic ctxt ts =
+  let
+    fun choose [] = "AUFLIA"
+      | choose ((_, l) :: ls) = (case l ts of SOME s => s | NONE => choose ls)
+  in [":logic " ^ choose (rev (Logics.get (Context.Proof ctxt)))] end
+
+
+(* serialization *)
 
 val add = Buffer.add
 fun sep f = add " " #> f
@@ -242,16 +248,11 @@ fun sterm l (T.SVar i) = sep (var (l - i - 1))
           | pats (T.SNoPat ts) = pat ":nopat" ts
       in par (quant q #> fold var_decl vs #> sub t #> fold pats ps) end
 
-fun choose_logic theories =
-  if member (op =) theories T.Bitvector then "QF_AUFBV"
-  else if member (op =) theories T.Real then "AUFLIRA"
-  else "AUFLIA"
-
-fun serialize comments {theories, sorts, funcs} ts =
+fun serialize comments {header, sorts, funcs} ts =
   Buffer.empty
   |> line (add "(benchmark Isabelle")
   |> line (add ":status unknown")
-  |> line (add ":logic " #> add (choose_logic theories))
+  |> fold (line o add) header
   |> length sorts > 0 ?
        line (add ":extrasorts" #> par (fold (sep o add) sorts))
   |> length funcs > 0 ? (
@@ -266,7 +267,7 @@ fun serialize comments {theories, sorts, funcs} ts =
 
 
 
-(** interface **)
+(** interfaces **)
 
 val interface = {
   extra_norm = extra_norm,
@@ -274,6 +275,7 @@ val interface = {
     prefixes = {
       sort_prefix = "S",
       func_prefix = "f"},
+    header = choose_logic,
     strict = SOME {
       is_builtin_conn = is_builtin_conn,
       is_builtin_pred = is_builtin_pred,

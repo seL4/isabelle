@@ -32,10 +32,11 @@ sig
   (*solvers*)
   type solver = Proof.context -> thm list -> thm
   type solver_info = Context.generic -> Pretty.T list
-  val add_solver: string * (Proof.context -> solver_config) -> theory ->
-    theory
-  val all_solver_names_of: theory -> string list
-  val add_solver_info: string * solver_info -> theory -> theory
+  val add_solver: string * (Proof.context -> solver_config) ->
+    Context.generic -> Context.generic
+  val all_solver_names_of: Context.generic -> string list
+  val add_solver_info: string * solver_info -> Context.generic ->
+    Context.generic
   val solver_name_of: Context.generic -> string
   val select_solver: string -> Context.generic -> Context.generic
   val solver_of: Context.generic -> solver
@@ -211,7 +212,7 @@ fun gen_solver name solver ctxt prems =
 type solver = Proof.context -> thm list -> thm
 type solver_info = Context.generic -> Pretty.T list
 
-structure Solvers = Theory_Data
+structure Solvers = Generic_Data
 (
   type T = ((Proof.context -> solver_config) * solver_info) Symtab.table
   val empty = Symtab.empty
@@ -241,12 +242,12 @@ structure Selected_Solver = Generic_Data
 val solver_name_of = Selected_Solver.get
 
 fun select_solver name context =
-  if is_none (lookup_solver (Context.theory_of context) name)
+  if is_none (lookup_solver context name)
   then error ("SMT solver not registered: " ^ quote name)
   else Selected_Solver.map (K name) context
 
 fun raw_solver_of context name =
-  (case lookup_solver (Context.theory_of context) name of
+  (case lookup_solver context name of
     NONE => error "No SMT solver selected"
   | SOME (s, _) => s)
 
@@ -285,8 +286,9 @@ local
     | _ => false))
 in
 fun smt_tac' pass_exns ctxt rules =
-  Tactic.rtac @{thm ccontr} THEN'
-  SUBPROOF (fn {context, prems, ...} =>
+  CONVERSION (SMT_Normalize.atomize_conv ctxt)
+  THEN' Tactic.rtac @{thm ccontr}
+  THEN' SUBPROOF (fn {context, prems, ...} =>
     let val thms = rules @ prems
     in
       if exists (has_topsort o Thm.prop_of) thms
@@ -323,27 +325,27 @@ val setup =
     "Applies an SMT solver to the current goal."
 
 
-fun print_setup gen =
+fun print_setup context =
   let
-    val t = string_of_int (Config.get_generic gen timeout)
-    val names = sort_strings (all_solver_names_of (Context.theory_of gen))
+    val t = string_of_int (Config.get_generic context timeout)
+    val names = sort_strings (all_solver_names_of context)
     val ns = if null names then [no_solver] else names
     val take_info = (fn (_, []) => NONE | info => SOME info)
     val infos =
-      Context.theory_of gen
-      |> Symtab.dest o Solvers.get
-      |> map_filter (fn (n, (_, info)) => take_info (n, info gen))
+      Solvers.get context
+      |> Symtab.dest
+      |> map_filter (fn (n, (_, info)) => take_info (n, info context))
       |> sort (prod_ord string_ord (K EQUAL))
       |> map (fn (n, ps) => Pretty.big_list (n ^ ":") ps)
     val certs_filename =
-      (case get_certificates_path gen of
+      (case get_certificates_path context of
         SOME path => Path.implode path
       | NONE => "(disabled)")
-    val fixed = if Config.get_generic gen fixed_certificates then "true"
+    val fixed = if Config.get_generic context fixed_certificates then "true"
       else "false"
   in
     Pretty.writeln (Pretty.big_list "SMT setup:" [
-      Pretty.str ("Current SMT solver: " ^ solver_name_of gen),
+      Pretty.str ("Current SMT solver: " ^ solver_name_of context),
       Pretty.str_list "Available SMT solvers: "  "" ns,
       Pretty.str ("Current timeout: " ^ t ^ " seconds"),
       Pretty.str ("Certificates cache: " ^ certs_filename),

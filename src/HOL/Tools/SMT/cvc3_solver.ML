@@ -35,7 +35,7 @@ fun core_oracle (output, _) =
     else raise SMT_Solver.SMT (solver_name ^ " failed")
   end
 
-fun smtlib_solver oracle _ = {
+fun solver oracle _ = {
   command = {env_var=env_var, remote_name=SOME solver_name},
   arguments = options,
   interface = SMTLIB_Interface.interface,
@@ -43,6 +43,6 @@ fun smtlib_solver oracle _ = {
 
 val setup =
   Thm.add_oracle (Binding.name solver_name, core_oracle) #-> (fn (_, oracle) =>
-  SMT_Solver.add_solver (solver_name, smtlib_solver oracle))
+  Context.theory_map (SMT_Solver.add_solver (solver_name, solver oracle)))
 
 end

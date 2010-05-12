@@ -18,6 +18,7 @@ sig
   type extra_norm = thm list -> Proof.context -> thm list * Proof.context
   val normalize: extra_norm -> thm list -> Proof.context ->
     thm list * Proof.context
+  val atomize_conv: Proof.context -> conv
   val eta_expand_conv: (Proof.context -> conv) -> Proof.context -> conv
 end
 

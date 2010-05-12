@@ -4,12 +4,15 @@ header {* Kurzweil-Henstock gauge integration in many dimensions. *}
     Translation from HOL light: Robert Himmelmann, TU Muenchen *)
 
 theory Integration
-  imports Derivative SMT
+  imports Derivative "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
 begin
 
-declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.cert"]]
+declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.certs"]]
 declare [[smt_fixed=true]]
 declare [[z3_proofs=true]]
+
+setup {* Arith_Data.add_tactic "Ferrante-Rackoff" (K FerranteRackoff.dlo_tac) *}
+
 
 subsection {* Sundries *}
 

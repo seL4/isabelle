@@ -8,7 +8,6 @@ theory SMT
 imports List
 uses
   "~~/src/Tools/cache_io.ML"
-  ("Tools/SMT/smt_additional_facts.ML")
   ("Tools/SMT/smt_monomorph.ML")
   ("Tools/SMT/smt_normalize.ML")
   ("Tools/SMT/smt_translate.ML")
@@ -122,11 +121,9 @@ setup {*
 section {* Configuration *}
 
 text {*
-The current configuration can be printed by the following command
-(which shows the values of most options):
+The current configuration can be printed by the command
+@{text smt_status}, which shows the values of most options.
 *}
-
-smt_status
 
 
 
@@ -293,14 +290,5 @@ lemma [z3_rule]:
   "1 * x = x"
   "x + y = y + x"
   by auto
-
-lemma [z3_rule]:
-  "0 + (x::real) = x"
-  "x + 0 = x"
-  "0 * x = 0"
-  "1 * x = x"
-  "x + y = y + x"
-  by auto
-
 
 end

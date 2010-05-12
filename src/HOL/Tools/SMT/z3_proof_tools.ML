@@ -25,8 +25,8 @@ sig
   val match_instantiate: (cterm -> cterm) -> cterm -> thm -> thm
   val by_tac: (int -> tactic) -> cterm -> thm
   val make_hyp_def: thm -> Proof.context -> thm * Proof.context
-  val by_abstraction: Proof.context -> thm list -> (Proof.context -> cterm ->
-    thm) -> cterm -> thm
+  val by_abstraction: bool * bool -> Proof.context -> thm list ->
+    (Proof.context -> cterm -> thm) -> cterm -> thm
 
   (* a faster COMP *)
   type compose_data
@@ -38,11 +38,14 @@ sig
   val unfold_distinct_conv: conv
 
   (* simpset *)
+  val add_simproc: Simplifier.simproc -> Context.generic -> Context.generic
   val make_simpset: Proof.context -> thm list -> simpset
 end
 
 structure Z3_Proof_Tools: Z3_PROOF_TOOLS =
 struct
+
+structure I = Z3_Interface
 
 
 
@@ -55,10 +58,8 @@ fun prop_of thm = dest_prop (Thm.prop_of thm)
 
 val mk_prop = Thm.capply @{cterm Trueprop}
 
-val (eqT, eq) = `(hd o Thm.dest_ctyp o Thm.ctyp_of_term) @{cpat "op =="}
-fun mk_meta_eq_cterm ct cu =
-  let val inst = ([(eqT, Thm.ctyp_of_term ct)], [])
-  in Thm.mk_binop (Thm.instantiate_cterm inst eq) ct cu end
+val eq = I.mk_inst_pair I.destT1 @{cpat "op =="}
+fun mk_meta_eq_cterm ct cu = Thm.mk_binop (I.instT' ct eq) ct cu
 
 fun as_meta_eq ct = uncurry mk_meta_eq_cterm (Thm.dest_binop (Thm.dest_arg ct))
 
@@ -129,54 +130,44 @@ fun abs_context ctxt = (ctxt, Termtab.empty, 1, false)
 
 fun context_of (ctxt, _, _, _) = ctxt
 
-fun replace (cv, ct) = Thm.forall_elim ct o Thm.forall_intr cv
+fun replace (_, (cv, ct)) = Thm.forall_elim ct o Thm.forall_intr cv
 
 fun abs_instantiate (_, tab, _, beta_norm) =
-  fold replace (map snd (Termtab.dest tab)) #>
+  fold replace (Termtab.dest tab) #>
   beta_norm ? Conv.fconv_rule (Thm.beta_conversion true)
 
-fun generalize cvs =
+fun lambda_abstract cvs t =
   let
-    val no_name = ""
-
-    fun dest (Free (n, _)) = n
-      | dest _ = no_name
-
-    fun gen vs (t as Free (n, _)) =
-          let val i = find_index (equal n) vs
-          in
-            if i >= 0 then insert (op aconvc) (nth cvs i) #> pair (Bound i)
-            else pair t
-          end
-      | gen vs (t $ u) = gen vs t ##>> gen vs u #>> (op $)
-      | gen vs (Abs (n, T, t)) =
-          gen (no_name :: vs) t #>> (fn u => Abs (n, T, u))
-      | gen _ t = pair t
-
-  in (fn ct => gen (map (dest o Thm.term_of) cvs) (Thm.term_of ct) []) end
+    val frees = map Free (Term.add_frees t [])
+    val cvs' = filter (fn cv => member (op aconv) frees (Thm.term_of cv)) cvs
+    val vs = map (Term.dest_Free o Thm.term_of) cvs'
+  in (Term.list_abs_free (vs, t), cvs') end
 
 fun fresh_abstraction cvs ct (cx as (ctxt, tab, idx, beta_norm)) =
-  let val (t, cvs') = generalize cvs ct
+  let val (t, cvs') = lambda_abstract cvs (Thm.term_of ct)
   in
     (case Termtab.lookup tab t of
-      SOME (cv, _) => (cv, cx)
+      SOME (cv, _) => (Drule.list_comb (cv, cvs'), cx)
     | NONE =>
         let
           val (n, ctxt') = yield_singleton Variable.variant_fixes "x" ctxt
-          val cv = certify ctxt (Free (n, map typ_of cvs' ---> typ_of ct))
-          val cv' = Drule.list_comb (cv, cvs')
+          val cv = certify ctxt' (Free (n, map typ_of cvs' ---> typ_of ct))
+          val cu = Drule.list_comb (cv, cvs')
           val e = (t, (cv, fold_rev Thm.cabs cvs' ct))
           val beta_norm' = beta_norm orelse not (null cvs')
-        in (cv', (ctxt', Termtab.update e tab, idx + 1, beta_norm')) end)
+        in (cu, (ctxt', Termtab.update e tab, idx + 1, beta_norm')) end)
   end
-
-fun abs_arg f cvs ct =
-  let val (cf, cu) = Thm.dest_comb ct
-  in f cvs cu #>> Thm.capply cf end
 
 fun abs_comb f g cvs ct =
   let val (cf, cu) = Thm.dest_comb ct
   in f cvs cf ##>> g cvs cu #>> uncurry Thm.capply end
+
+fun abs_arg f = abs_comb (K pair) f
+
+fun abs_args f cvs ct =
+  (case Thm.term_of ct of
+    _ $ _ => abs_comb (abs_args f) f cvs ct
+  | _ => pair ct)
 
 fun abs_list f g cvs ct =
   (case Thm.term_of ct of
@@ -190,11 +181,6 @@ fun abs_abs f cvs ct =
   in f (cv :: cvs) cu #>> Thm.cabs cv end
 
 val is_atomic = (fn _ $ _ => false | Abs _ => false | _ => true)
-val is_arithT = (fn @{typ int} => true | @{typ real} => true | _ => false)
-fun is_number t =
-  (case try HOLogic.dest_number t of
-    SOME (T, _) => is_arithT T
-  | NONE => false)
 
 fun abstract (ext_logic, with_theories) =
   let
@@ -223,26 +209,12 @@ fun abstract (ext_logic, with_theories) =
           if ext_logic then abstr_abs cvs ct else fresh_abstraction cvs ct
       | Const (@{const_name Ex}, _) $ _ =>
           if ext_logic then abstr_abs cvs ct else fresh_abstraction cvs ct
-      | @{term "uminus :: int => _"} $ _ => abstr1 cvs ct
-      | @{term "uminus :: real => _"} $ _ => abstr1 cvs ct
-      | @{term "op + :: int => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op + :: real => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op - :: int => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op - :: real => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op * :: int => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op * :: real => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op div :: int => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op mod :: int => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op / :: real => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op < :: int => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op < :: real => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op <= :: int => _"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op <= :: real => _"} $ _ $ _ => abstr2 cvs ct
-      | Const (@{const_name apply}, _) $ _ $ _ => abstr2 cvs ct
-      | Const (@{const_name fun_upd}, _) $ _ $ _ $ _ => abstr3 cvs ct
-      | t =>
-          if is_atomic t orelse is_number t then pair ct
-          else fresh_abstraction cvs ct)
+      | t => (fn cx =>
+          if is_atomic t orelse can HOLogic.dest_number t then (ct, cx)
+          else if with_theories andalso
+            I.is_builtin_theory_term (context_of cx) t
+          then abs_args abstr cvs ct cx
+          else fresh_abstraction cvs ct cx))
   in abstr [] end
 
 fun with_prems thms f ct =
@@ -252,8 +224,8 @@ fun with_prems thms f ct =
 
 in
 
-fun by_abstraction ctxt thms prove = with_prems thms (fn ct =>
-  let val (cu, cx) = abstract (true, true) ct (abs_context ctxt)
+fun by_abstraction mode ctxt thms prove = with_prems thms (fn ct =>
+  let val (cu, cx) = abstract mode ct (abs_context ctxt)
   in abs_instantiate cx (prove (context_of cx) cu) end)
 
 end
@@ -340,28 +312,36 @@ local
       | SOME thm => SOME (thm RS antisym_le2))
   end
   handle THM _ => NONE
+
+  val basic_simpset = HOL_ss addsimps @{thms field_simps}
+    addsimps [@{thm times_divide_eq_right}, @{thm times_divide_eq_left}]
+    addsimps @{thms arith_special} addsimps @{thms less_bin_simps}
+    addsimps @{thms le_bin_simps} addsimps @{thms eq_bin_simps}
+    addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}
+    addsimps @{thms minus_bin_simps} addsimps @{thms pred_bin_simps}
+    addsimps @{thms mult_bin_simps} addsimps @{thms iszero_simps}
+    addsimps @{thms array_rules}
+    addsimprocs [
+      Simplifier.simproc @{theory} "fast_int_arith" [
+        "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
+      Simplifier.simproc @{theory} "antisym_le" ["(x::'a::order) <= y"]
+        (K prove_antisym_le),
+      Simplifier.simproc @{theory} "antisym_less" ["~ (x::'a::linorder) < y"]
+        (K prove_antisym_less)]
+
+  structure Simpset = Generic_Data
+  (
+    type T = simpset
+    val empty = basic_simpset
+    val extend = I
+    val merge = Simplifier.merge_ss
+  )
 in
 
-fun make_simpset ctxt rules = Simplifier.context ctxt (HOL_ss
-  addsimps @{thms field_simps}
-  addsimps [@{thm times_divide_eq_right}, @{thm times_divide_eq_left}]
-  addsimps @{thms arith_special} addsimps @{thms less_bin_simps}
-  addsimps @{thms le_bin_simps} addsimps @{thms eq_bin_simps}
-  addsimps @{thms add_bin_simps} addsimps @{thms succ_bin_simps}
-  addsimps @{thms minus_bin_simps} addsimps @{thms pred_bin_simps}
-  addsimps @{thms mult_bin_simps} addsimps @{thms iszero_simps}
-  addsimps @{thms array_rules}
-  addsimprocs [
-    Simplifier.simproc @{theory} "fast_int_arith" [
-      "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
-    Simplifier.simproc @{theory} "fast_real_arith" [
-      "(m::real) < n", "(m::real) <= n", "(m::real) = n"]
-      (K Lin_Arith.simproc),
-    Simplifier.simproc @{theory} "antisym_le" ["(x::'a::order) <= y"]
-      (K prove_antisym_le),
-    Simplifier.simproc @{theory} "antisym_less" ["~ (x::'a::linorder) < y"]
-      (K prove_antisym_less)]
-  addsimps rules)
+fun add_simproc simproc = Simpset.map (fn ss => ss addsimprocs [simproc])
+
+fun make_simpset ctxt rules =
+  Simplifier.context ctxt (Simpset.get (Context.Proof ctxt)) addsimps rules
 
 end
 

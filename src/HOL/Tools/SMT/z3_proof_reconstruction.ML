@@ -6,6 +6,7 @@ Proof reconstruction for proofs found by Z3.
 
 signature Z3_PROOF_RECONSTRUCTION =
 sig
+  val add_z3_rule: thm -> Context.generic -> Context.generic
   val trace_assms: bool Config.T
   val reconstruct: string list * SMT_Translate.recon -> Proof.context ->
     thm * Proof.context
@@ -49,7 +50,7 @@ local
   val del = Thm.declaration_attribute (Z3_Rules.map o del)
 in
 
-fun get_schematic_rules ctxt = Net.content (Z3_Rules.get (Context.Proof ctxt))
+val add_z3_rule = Z3_Rules.map o ins
 
 fun by_schematic_rule ctxt ct =
   the (T.net_instance (Z3_Rules.get (Context.Proof ctxt)) ct)
@@ -93,6 +94,15 @@ fun try_apply ctxt thms =
           | NONE => apply provers ct)
 
   in apply o cons (named ctxt "schematic rules" (by_schematic_rule ctxt)) end
+
+local
+  val rewr_if =
+    @{lemma "(if P then Q1 else Q2) = ((P --> Q1) & (~P --> Q2))" by simp}
+in
+val simp_fast_tac =
+  Simplifier.simp_tac (HOL_ss addsimps [rewr_if])
+  THEN_ALL_NEW Classical.fast_tac HOL_cs
+end
 
 
 
@@ -158,10 +168,9 @@ fun prepare_assms ctxt unfolds assms =
     val assms' = rewrites ctxt (union Thm.eq_thm unfolds' prep_rules) assms
   in (unfolds', T.thm_net_of assms') end
 
-fun asserted _ NONE ct = Thm (Thm.assume ct)
-  | asserted ctxt (SOME (unfolds, assms)) ct =
-      let val revert_conv = rewrite_conv ctxt unfolds
-      in Thm (T.with_conv revert_conv (lookup_assm ctxt assms) ct) end
+fun asserted ctxt (unfolds, assms) ct =
+  let val revert_conv = rewrite_conv ctxt unfolds
+  in Thm (T.with_conv revert_conv (lookup_assm ctxt assms) ct) end
 end
 
 
@@ -265,7 +274,7 @@ end
 
 (* distributivity of | over & *)
 fun distributivity ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (T.by_tac (Classical.best_tac HOL_cs))]
+  named ctxt "fast" (T.by_tac (Classical.fast_tac HOL_cs))]
     (* FIXME: not very well tested *)
 
 
@@ -313,16 +322,11 @@ local
           in T.with_conv (dis_conv T.unfold_distinct_conv) prv ct end
       | _ => raise CTERM ("prove_def_axiom", [ct]))
     end
-
-  val rewr_if =
-    @{lemma "(if P then Q1 else Q2) = ((P --> Q1) & (~P --> Q2))" by simp}
 in
 fun def_axiom ctxt = Thm o try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_def_axiom,
-  T.by_abstraction ctxt [] (fn ctxt' =>
-    named ctxt' "simp+fast" (T.by_tac (
-      Simplifier.simp_tac (HOL_ss addsimps [rewr_if])
-      THEN_ALL_NEW Classical.best_tac HOL_cs)))]
+  T.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+    named ctxt' "simp+fast" (T.by_tac simp_fast_tac))]
 end
 
 
@@ -381,7 +385,9 @@ local
     |> T.by_tac (nnf_quant_tac (T.varify vars (meta_eq_of p)) qs)
 
   fun prove_nnf ctxt = try_apply ctxt [] [
-    named ctxt "conj/disj" L.prove_conj_disj_eq]
+    named ctxt "conj/disj" L.prove_conj_disj_eq,
+    T.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+      named ctxt' "simp+fast" (T.by_tac simp_fast_tac))]
 in
 fun nnf ctxt vars ps ct =
   (case T.term_of ct of
@@ -639,7 +645,7 @@ end
 (* theory lemmas: linear arithmetic, arrays *)
 
 fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
-  T.by_abstraction ctxt thms (fn ctxt' => T.by_tac (
+  T.by_abstraction (false, true) ctxt thms (fn ctxt' => T.by_tac (
     NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt')
     ORELSE' NAMED ctxt' "simp+arith" (Simplifier.simp_tac simpset THEN_ALL_NEW
       Arith_Data.arith_tac ctxt')))]
@@ -683,7 +689,7 @@ in
 
 fun rewrite ctxt simpset ths = Thm o with_conv ctxt ths (try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_conj_disj_eq,
-  T.by_abstraction ctxt [] (fn ctxt' => T.by_tac (
+  T.by_abstraction (true, true) ctxt [] (fn ctxt' => T.by_tac (
     NAMED ctxt' "simp" (Simplifier.simp_tac simpset)
     THEN_ALL_NEW (
       NAMED ctxt' "fast" (Classical.fast_tac HOL_cs)
@@ -722,7 +728,7 @@ in
 fun trace_rule idx prove r ps ct (cxp as (ctxt, ptab)) =
   let
     val _ = SMT_Solver.trace_msg ctxt (header idx r o count_rules) ptab
-    val result as (p, cxp' as (ctxt', _)) = prove r ps ct cxp
+    val result as (p, (ctxt', _)) = prove r ps ct cxp
     val _ = if not (Config.get ctxt' SMT_Solver.trace) then ()
       else check ctxt' idx r ps ct p
   in result end
@@ -736,7 +742,7 @@ fun not_supported r =
 
 fun prove ctxt unfolds assms vars =
   let
-    val assms' = Option.map (prepare_assms ctxt unfolds) assms
+    val assms' = prepare_assms ctxt unfolds assms
     val simpset = T.make_simpset ctxt (Z3_Simps.get ctxt)
 
     fun step r ps ct (cxp as (cx, ptab)) =
@@ -798,7 +804,7 @@ fun prove ctxt unfolds assms vars =
       trace_rule idx step rule ps prop cxp
       |-> (fn p => apsnd (Inttab.update (idx, Proved p)) #> pair p)
 
-    fun lookup idx (cxp as (cx, ptab)) =
+    fun lookup idx (cxp as (_, ptab)) =
       (case Inttab.lookup ptab idx of
         SOME (Unproved (P.Proof_Step {rule, prems, prop})) =>
           fold_map lookup prems cxp

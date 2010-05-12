@@ -122,6 +122,7 @@ local
         | "bvneg" => const @{const_name uminus}
         | "bvsub" => const @{const_name minus}
         | "bvmul" => const @{const_name times}
+(* FIXME:
         | "bvudiv" => const @{const_name div}
         | "bvurem" => const @{const_name mod}
         | "bvsdiv" => const @{const_name sdiv}
@@ -129,6 +130,7 @@ local
         | "bvshl" => const @{const_name bv_shl}
         | "bvlshr" => const @{const_name bv_lshr}
         | "bvashr" => const @{const_name bv_ashr}
+*)
         | "bvult" => const @{const_name less}
         | "bvule" => const @{const_name less_eq}
         | "bvugt" => const2_abs @{const_name less}

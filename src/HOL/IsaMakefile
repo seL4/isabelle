@@ -382,7 +382,8 @@ HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
-  Tools/Qelim/langford.ML
+  Tools/Qelim/langford.ML \
+  Tools/SMT/smt_real.ML
 
 $(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -g true $(OUT)/Pure HOL
@@ -1191,7 +1192,7 @@ $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML Library/Boolean_Algebra.thy	\
   Word/BinBoolList.thy Word/BitSyntax.thy Word/WordDefinition.thy	\
   Word/WordArith.thy Word/WordBitwise.thy Word/WordShift.thy		\
   Word/WordGenLib.thy Word/Word.thy Word/document/root.tex		\
-  Word/document/root.bib
+  Word/document/root.bib Tools/SMT/smt_word.ML
 	@cd Word; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Word
 
 
@@ -1255,21 +1256,23 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
 
 ## HOL-SMT_Examples
 
-HOL-SMT_Examples: HOL $(LOG)/HOL-SMT_Examples.gz
+HOL-SMT_Examples: HOL-Word $(LOG)/HOL-SMT_Examples.gz
 
 $(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-SMT SMT_Examples/ROOT.ML		\
-  SMT_Examples/SMT_Examples.thy SMT_Examples/SMT_Examples.certs
-	@cd SMT; $(ISABELLE_TOOL) usedir $(OUT)/HOL Examples
+  SMT_Examples/SMT_Examples.thy SMT_Examples/SMT_Examples.certs		\
+  SMT_Examples/SMT_Word_Examples.thy SMT_Examples/SMT_Tests.thy		\
+  SMT_Examples/SMT_Word_Examples.certs SMT_Examples/SMT_Tests.certs
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL-Word SMT_Examples
 
 
 ## HOL-Boogie
 
-HOL-Boogie: HOL $(OUT)/HOL-Boogie
+HOL-Boogie: HOL-Word $(OUT)/HOL-Boogie
 
 $(OUT)/HOL-Boogie: $(OUT)/HOL Boogie/ROOT.ML Boogie/Boogie.thy	\
   Boogie/Tools/boogie_vcs.ML Boogie/Tools/boogie_loader.ML		\
   Boogie/Tools/boogie_commands.ML Boogie/Tools/boogie_tactics.ML
-	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Boogie
+	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-Boogie
 
 
 ## HOL-Boogie_Examples

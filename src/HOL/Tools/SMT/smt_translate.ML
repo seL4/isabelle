@@ -17,21 +17,23 @@ sig
 
   (* configuration options *)
   type prefixes = {sort_prefix: string, func_prefix: string}
+  type header = Proof.context -> term list -> string list
   type strict = {
     is_builtin_conn: string * typ -> bool,
-    is_builtin_pred: string * typ -> bool,
+    is_builtin_pred: Proof.context -> string * typ -> bool,
     is_builtin_distinct: bool}
   type builtins = {
-    builtin_typ: typ -> string option,
-    builtin_num: typ -> int -> string option,
-    builtin_fun: string * typ -> term list -> (string * term list) option }
-  datatype smt_theory = Integer | Real | Bitvector
+    builtin_typ: Proof.context -> typ -> string option,
+    builtin_num: Proof.context -> typ -> int -> string option,
+    builtin_fun: Proof.context -> string * typ -> term list ->
+      (string * term list) option }
   type sign = {
-    theories: smt_theory list,
+    header: string list,
     sorts: string list,
     funcs: (string * (string list * string)) list }
   type config = {
     prefixes: prefixes,
+    header: header,
     strict: strict option,
     builtins: builtins,
     serialize: string list -> sign -> sterm list -> string }
@@ -39,7 +41,7 @@ sig
     typs: typ Symtab.table,
     terms: term Symtab.table,
     unfolds: thm list,
-    assms: thm list option }
+    assms: thm list }
 
   val translate: config -> Proof.context -> string list -> thm list ->
     string * recon
@@ -66,25 +68,27 @@ datatype sterm =
 
 type prefixes = {sort_prefix: string, func_prefix: string}
 
+type header = Proof.context -> term list -> string list
+
 type strict = {
   is_builtin_conn: string * typ -> bool,
-  is_builtin_pred: string * typ -> bool,
+  is_builtin_pred: Proof.context -> string * typ -> bool,
   is_builtin_distinct: bool}
 
 type builtins = {
-  builtin_typ: typ -> string option,
-  builtin_num: typ -> int -> string option,
-  builtin_fun: string * typ -> term list -> (string * term list) option }
-
-datatype smt_theory = Integer | Real | Bitvector
+  builtin_typ: Proof.context -> typ -> string option,
+  builtin_num: Proof.context -> typ -> int -> string option,
+  builtin_fun: Proof.context -> string * typ -> term list ->
+    (string * term list) option }
 
 type sign = {
-  theories: smt_theory list,
+  header: string list,
   sorts: string list,
   funcs: (string * (string list * string)) list }
 
 type config = {
   prefixes: prefixes,
+  header: header,
   strict: strict option,
   builtins: builtins,
   serialize: string list -> sign -> sterm list -> string }
@@ -93,7 +97,7 @@ type recon = {
   typs: typ Symtab.table,
   terms: term Symtab.table,
   unfolds: thm list,
-  assms: thm list option }
+  assms: thm list }
 
 
 
@@ -175,7 +179,6 @@ val revert_types =
 
 fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
   let
-
     fun is_builtin_conn' (@{const_name True}, _) = false
       | is_builtin_conn' (@{const_name False}, _) = false
       | is_builtin_conn' c = is_builtin_conn c
@@ -199,7 +202,7 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
         (c as Const (@{const_name If}, _), [t1, t2, t3]) =>
           c $ in_form t1 $ in_term t2 $ in_term t3
       | (h as Const c, ts) =>
-          if is_builtin_conn' (conn c) orelse is_builtin_pred (pred c)
+          if is_builtin_conn' (conn c) orelse is_builtin_pred ctxt (pred c)
           then wrap_in_if (in_form t)
           else Term.list_comb (h, map in_term ts)
       | (h as Free _, ts) => Term.list_comb (h, map in_term ts)
@@ -227,7 +230,7 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
       | (Const c, ts) =>
           if is_builtin_conn (conn c)
           then Term.list_comb (Const (conn c), map in_form ts)
-          else if is_builtin_pred (pred c)
+          else if is_builtin_pred ctxt (pred c)
           then Term.list_comb (Const (pred c), map in_term ts)
           else as_term (in_term t)
       | _ => as_term (in_term t))
@@ -240,62 +243,53 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
 
 (* translation from Isabelle terms into SMT intermediate terms *)
 
-val empty_context = (1, Typtab.empty, 1, Termtab.empty, [])
+val empty_context = (1, Typtab.empty, 1, Termtab.empty)
 
-fun make_sign (_, typs, _, terms, thys) = {
-  theories = thys,
+fun make_sign header (_, typs, _, terms) = {
+  header = header,
   sorts = Typtab.fold (cons o snd) typs [],
   funcs = Termtab.fold (cons o snd) terms [] }
 
-fun make_recon (unfolds, assms) (_, typs, _, terms, _) = {
+fun make_recon (unfolds, assms) (_, typs, _, terms) = {
   typs = Symtab.make (map swap (Typtab.dest typs)),
   terms = Symtab.make (map (fn (t, (n, _)) => (n, t)) (Termtab.dest terms)),
   unfolds = unfolds,
-  assms = SOME assms }
+  assms = assms }
 
 fun string_of_index pre i = pre ^ string_of_int i
 
-fun add_theory T (Tidx, typs, idx, terms, thys) =
-  let
-    fun add @{typ int} = insert (op =) Integer
-      | add @{typ real} = insert (op =) Real
-      | add (Type (@{type_name word}, _)) = insert (op =) Bitvector
-      | add (Type (_, Ts)) = fold add Ts
-      | add _ = I
-  in (Tidx, typs, idx, terms, add T thys) end
-
-fun fresh_typ sort_prefix T (cx as (Tidx, typs, idx, terms, thys)) =
+fun fresh_typ sort_prefix T (cx as (Tidx, typs, idx, terms)) =
   (case Typtab.lookup typs T of
     SOME s => (s, cx)
   | NONE =>
       let
         val s = string_of_index sort_prefix Tidx
         val typs' = Typtab.update (T, s) typs
-      in (s, (Tidx+1, typs', idx, terms, thys)) end)
+      in (s, (Tidx+1, typs', idx, terms)) end)
 
-fun fresh_fun func_prefix t ss (cx as (Tidx, typs, idx, terms, thys)) =
+fun fresh_fun func_prefix t ss (cx as (Tidx, typs, idx, terms)) =
   (case Termtab.lookup terms t of
     SOME (f, _) => (f, cx)
   | NONE =>
       let
         val f = string_of_index func_prefix idx
         val terms' = Termtab.update (revert_types t, (f, ss)) terms
-      in (f, (Tidx, typs, idx+1, terms', thys)) end)
+      in (f, (Tidx, typs, idx+1, terms')) end)
 
 fun relaxed thms = (([], thms), map prop_of thms)
 
-fun with_context f (ths, ts) =
+fun with_context header f (ths, ts) =
   let val (us, context) = fold_map f ts empty_context
-  in ((make_sign context, us), make_recon ths context) end
+  in ((make_sign (header ts) context, us), make_recon ths context) end
 
 
-fun translate {prefixes, strict, builtins, serialize} ctxt comments =
+fun translate {prefixes, strict, header, builtins, serialize} ctxt comments =
   let
     val {sort_prefix, func_prefix} = prefixes
     val {builtin_typ, builtin_num, builtin_fun} = builtins
 
-    fun transT T = add_theory T #>
-      (case builtin_typ T of
+    fun transT T =
+      (case builtin_typ ctxt T of
         SOME n => pair n
       | NONE => fresh_typ sort_prefix T)
 
@@ -313,18 +307,18 @@ fun translate {prefixes, strict, builtins, serialize} ctxt comments =
           transT T ##>> trans t1 ##>> trans t2 #>>
           (fn ((U, u1), u2) => SLet (U, u1, u2))
       | (h as Const (c as (@{const_name distinct}, T)), [t1]) =>
-          (case builtin_fun c (HOLogic.dest_list t1) of
-            SOME (n, ts) => add_theory T #> fold_map trans ts #>> app n
+          (case builtin_fun ctxt c (HOLogic.dest_list t1) of
+            SOME (n, ts) => fold_map trans ts #>> app n
           | NONE => transs h T [t1])
       | (h as Const (c as (_, T)), ts) =>
           (case try HOLogic.dest_number t of
             SOME (T, i) =>
-              (case builtin_num T i of
-                SOME n => add_theory T #> pair (SApp (n, []))
+              (case builtin_num ctxt T i of
+                SOME n => pair (SApp (n, []))
               | NONE => transs t T [])
           | NONE =>
-              (case builtin_fun c ts of
-                SOME (n, ts') => add_theory T #> fold_map trans ts' #>> app n
+              (case builtin_fun ctxt c ts of
+                SOME (n, ts') => fold_map trans ts' #>> app n
               | NONE => transs h T ts))
       | (h as Free (_, T), ts) => transs h T ts
       | (Bound i, []) => pair (SVar i)
@@ -337,8 +331,8 @@ fun translate {prefixes, strict, builtins, serialize} ctxt comments =
         fresh_fun func_prefix t Up ##>> fold_map trans ts #>> SApp)
       end
   in
-    (if is_some strict then strictify (the strict) ctxt else relaxed) #>
-    with_context trans #>> uncurry (serialize comments)
+    (case strict of SOME strct => strictify strct ctxt | NONE => relaxed) #>
+    with_context (header ctxt) trans #>> uncurry (serialize comments)
   end
 
 end
