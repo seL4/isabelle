@@ -144,36 +144,24 @@ val term_bool = @{lemma "~(True term_eq False)" by (simp add: term_eq_def)}
 val term_bool' = Simplifier.rewrite_rule [term_eq_rewr] term_bool
 
 
-val is_let = (fn Const (@{const_name Let}, _) $ _ $ Abs _ => true | _ => false)
-
-val is_true_eq = (fn
-    @{term "op = :: bool => _"} $ _ $ @{term True} => true
+val needs_rewrite = Thm.prop_of #> Term.exists_subterm (fn
+    Const (@{const_name Let}, _) => true
+  | @{term "op = :: bool => _"} $ _ $ @{term True} => true
+  | Const (@{const_name If}, _) $ _ $ @{term True} $ @{term False} => true
   | _ => false)
 
-val true_eq_rewr = @{lemma "P = True == P" by simp}
+val rewrite_rules = [
+  Let_def,
+  @{lemma "P = True == P" by (rule eq_reflection) simp},
+  @{lemma "if P then True else False == P" by (rule eq_reflection) simp}]
 
-val is_trivial_if = (fn
-    Const (@{const_name If}, _) $ _ $ @{term True} $ @{term False} => true
-  | _ => false)
-
-val trivial_if_rewr = @{lemma "(if P then True else False) == P"
-  by (atomize(full)) simp}
-
-fun rewrite _ ct =
-  if is_trivial_if (Thm.term_of ct) then Conv.rewr_conv trivial_if_rewr ct
-  else if is_true_eq (Thm.term_of ct) then Conv.rewr_conv true_eq_rewr ct
-  else if is_let (Thm.term_of ct) then Conv.rewr_conv @{thm Let_def} ct
-  else Conv.all_conv ct
-
-val needs_rewrite =
-  Term.exists_subterm (is_trivial_if orf is_true_eq orf is_let)
+fun rewrite ctxt = Simplifier.full_rewrite
+  (Simplifier.context ctxt empty_ss addsimps rewrite_rules)
 
 fun normalize ctxt thm =
-  if needs_rewrite (Thm.prop_of thm)
-  then Conv.fconv_rule (More_Conv.top_conv rewrite ctxt) thm
-  else thm
+  if needs_rewrite thm then Conv.fconv_rule (rewrite ctxt) thm else thm
 
-val unfold_rules = [term_eq_rewr, Let_def, trivial_if_rewr, true_eq_rewr]
+val unfold_rules = term_eq_rewr :: rewrite_rules
 
 
 val revert_types =

@@ -136,10 +136,10 @@ local
 
   val prep_rules = [@{thm Let_def}, remove_trigger, L.rewrite_true]
 
-  fun rewrite_conv ctxt eqs =
-    More_Conv.top_conv (K (Conv.try_conv (More_Conv.rewrs_conv eqs))) ctxt
+  fun rewrite_conv ctxt eqs = Simplifier.full_rewrite
+    (Simplifier.context ctxt Simplifier.empty_ss addsimps eqs)
 
-  fun rewrite_rules eqs = map (Simplifier.rewrite_rule eqs)
+  fun rewrites ctxt eqs = map (Conv.fconv_rule (rewrite_conv ctxt eqs))
 
   fun trace ctxt thm =
     if Config.get ctxt trace_assms
@@ -152,10 +152,10 @@ local
     | _ => z3_exn ("not asserted: " ^
         quote (Syntax.string_of_term ctxt (Thm.term_of ct))))
 in
-fun prepare_assms unfolds assms =
+fun prepare_assms ctxt unfolds assms =
   let
-    val unfolds' = rewrite_rules [L.rewrite_true] unfolds
-    val assms' = rewrite_rules (union Thm.eq_thm unfolds' prep_rules) assms
+    val unfolds' = rewrites ctxt [L.rewrite_true] unfolds
+    val assms' = rewrites ctxt (union Thm.eq_thm unfolds' prep_rules) assms
   in (unfolds', T.thm_net_of assms') end
 
 fun asserted _ NONE ct = Thm (Thm.assume ct)
@@ -736,7 +736,7 @@ fun not_supported r =
 
 fun prove ctxt unfolds assms vars =
   let
-    val assms' = Option.map (prepare_assms unfolds) assms
+    val assms' = Option.map (prepare_assms ctxt unfolds) assms
     val simpset = T.make_simpset ctxt (Z3_Simps.get ctxt)
 
     fun step r ps ct (cxp as (cx, ptab)) =
