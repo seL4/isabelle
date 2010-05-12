@@ -6,7 +6,11 @@ Compatibility file for Poly/ML -- common part for 5.x.
 exception Interrupt = SML90.Interrupt;
 
 use "General/exn.ML";
-use "ML-Systems/single_assignment_polyml.ML";
+
+if List.exists (fn s => s = "SingleAssignment") (PolyML.Compiler.structureNames ())
+then ()
+else use "ML-Systems/single_assignment_polyml.ML";
+
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 use "ML-Systems/timing.ML";
