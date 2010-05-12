@@ -119,7 +119,7 @@ class HTML_Panel(
   private val builder = new DocumentBuilderImpl(ucontext, rcontext)
 
   private case class Init(font_size: Int)
-  private case class Render(body: List[XML.Tree])
+  private case class Render(divs: List[XML.Tree])
 
   private val main_actor = actor {
     // crude double buffering
@@ -146,11 +146,12 @@ class HTML_Panel(
           doc2 = parse()
           Swing_Thread.now { setDocument(doc1, rcontext) }
 
-        case Render(body) =>
+        case Render(divs) =>
           val doc = doc2
           val html_body =
-            Pretty.formatted(body, panel_width(current_font_size), metric)
-              .map(t => XML.elem(HTML.PRE, HTML.spans(t)))
+            divs.flatMap(div =>
+              Pretty.formatted(List(div), panel_width(current_font_size), metric)
+                .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
           val node = XML.document_node(doc, XML.elem(HTML.BODY, html_body))
           doc.removeChild(doc.getLastChild())
           doc.appendChild(node)
@@ -167,7 +168,7 @@ class HTML_Panel(
   /* main method wrappers */
 
   def init(font_size: Int) { main_actor ! Init(font_size) }
-  def render(body: List[XML.Tree]) { main_actor ! Render(body) }
+  def render(divs: List[XML.Tree]) { main_actor ! Render(divs) }
 
   init(initial_font_size)
 }
