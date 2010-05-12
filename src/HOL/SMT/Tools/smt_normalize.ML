@@ -4,6 +4,7 @@
 Normalization steps on theorems required by SMT solvers:
   * unfold trivial let expressions,
   * simplify trivial distincts (those with less than three elements),
+  * rewrite bool case expressions as if expressions,
   * replace negative numerals by negated positive numerals,
   * embed natural numbers into integers,
   * add extra rules specifying types and constants which occur frequently,
@@ -84,6 +85,26 @@ in
 fun trivial_distinct ctxt =
   map ((Term.exists_subterm is_trivial_distinct o Thm.prop_of) ??
     Conv.fconv_rule (More_Conv.top_conv distinct_conv ctxt))
+end
+
+
+
+(* rewrite bool case expressions as if expressions *)
+
+local
+  val is_bool_case = (fn
+      Const (@{const_name "bool.bool_case"}, _) $ _ $ _ $ _ => true
+    | _ => false)
+
+  val thms = @{lemma
+    "(case P of True => x | False => y) == (if P then x else y)"
+    "(case P of False => y | True => x) == (if P then x else y)"
+    by (rule eq_reflection, simp)+}
+  val unfold_conv = if_true_conv is_bool_case (More_Conv.rewrs_conv thms)
+in
+fun rewrite_bool_cases ctxt =
+  map ((Term.exists_subterm is_bool_case o Thm.prop_of) ??
+    Conv.fconv_rule (More_Conv.top_conv (K unfold_conv) ctxt))
 end
 
 
@@ -506,6 +527,7 @@ fun normalize ctxt thms =
   thms
   |> trivial_let ctxt
   |> trivial_distinct ctxt
+  |> rewrite_bool_cases ctxt
   |> positive_numerals ctxt
   |> nat_as_int ctxt
   |> add_rules
