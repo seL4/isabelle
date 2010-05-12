@@ -3,6 +3,7 @@
 
 Normalization steps on theorems required by SMT solvers:
   * unfold trivial let expressions,
+  * simplify trivial distincts (those with less than three elements),
   * replace negative numerals by negated positive numerals,
   * embed natural numbers into integers,
   * add extra rules specifying types and constants which occur frequently,
@@ -140,6 +141,7 @@ fun if_conv c cv1 cv2 ct = (if c (Thm.term_of ct) then cv1 else cv2) ct
 fun if_true_conv c cv = if_conv c cv Conv.all_conv
 
 
+
 (* simplification of trivial let expressions (whose bound variables occur at
    most once) *)
 
@@ -159,6 +161,30 @@ fun trivial_let ctxt =
   map ((Term.exists_subterm is_trivial_let o Thm.prop_of) ??
     Conv.fconv_rule (More_Conv.top_conv let_conv ctxt))
 end
+
+
+
+(* simplification of trivial distincts (distinct should have at least
+   three elements in the argument list) *)
+
+local
+  fun is_trivial_distinct (Const (@{const_name distinct}, _) $ t) =
+        length (HOLogic.dest_list t) <= 2
+    | is_trivial_distinct _ = false
+
+  val thms = @{lemma
+    "distinct [] == True"
+    "distinct [x] == True"
+    "distinct [x, y] == (x ~= y)"
+    by simp_all}
+  fun distinct_conv _ =
+    if_true_conv is_trivial_distinct (More_Conv.rewrs_conv thms)
+in
+fun trivial_distinct ctxt =
+  map ((Term.exists_subterm is_trivial_distinct o Thm.prop_of) ??
+    Conv.fconv_rule (More_Conv.top_conv distinct_conv ctxt))
+end
+
 
 
 (* rewriting of negative integer numerals into positive numerals *)
@@ -192,6 +218,7 @@ fun positive_numerals ctxt =
   map ((Term.exists_subterm (is_neg_number ctxt) o Thm.prop_of) ??
     Conv.fconv_rule (More_Conv.top_sweep_conv pos_conv ctxt))
 end
+
 
 
 (* embedding of standard natural number operations into integer operations *)
@@ -260,6 +287,7 @@ fun nat_as_int ctxt =
 end
 
 
+
 (* include additional rules *)
 
 local
@@ -278,6 +306,7 @@ fun add_pair_rules _ =
 fun add_fun_upd_rules _ =
   exists (exists_fun_upd o Thm.prop_of) ?? append fun_upd_rules
 end
+
 
 
 (* unfold definitions of specific constants *)
@@ -317,6 +346,7 @@ fun unfold_defs ctxt =
   (occurs_def (ProofContext.theory_of ctxt) o Thm.prop_of) ??
   Conv.fconv_rule (More_Conv.top_conv unfold_def_conv ctxt)
 end
+
 
 
 (* lift lambda terms into additional rules *)
@@ -412,6 +442,7 @@ fun lift_lambdas ctxt thms =
 end
 
 
+
 (* make application explicit for functions with varying number of arguments *)
 
 local
@@ -468,11 +499,13 @@ fun explicit_application ctxt thms =
 end
 
 
+
 (* combined normalization *)
 
 fun normalize ctxt thms =
   thms
   |> trivial_let ctxt
+  |> trivial_distinct ctxt
   |> positive_numerals ctxt
   |> nat_as_int ctxt
   |> add_pair_rules ctxt
