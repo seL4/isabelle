@@ -24,9 +24,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
 
-  val html_panel =
-    new HTML_Panel(Isabelle.system,
-      Isabelle.font_size(), Isabelle.Int_Property("relative-margin"), null)
+  val html_panel = new HTML_Panel(Isabelle.system, Isabelle.font_size(), null)
   add(html_panel, BorderLayout.CENTER)
 
 
@@ -43,8 +41,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
               html_panel.render(body)
           }
 
-        case Session.Global_Settings =>
-          html_panel.init(Isabelle.font_size(), Isabelle.Int_Property("relative-margin"))
+        case Session.Global_Settings => html_panel.init(Isabelle.font_size())
           
         case bad => System.err.println("output_actor: ignoring bad message " + bad)
       }

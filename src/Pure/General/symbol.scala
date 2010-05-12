@@ -15,13 +15,16 @@ object Symbol
 {
   /* spaces */
 
-  private val static_spaces = " " * 4000
+  val spc = ' '
+  val space = " "
+
+  private val static_spaces = space * 4000
 
   def spaces(k: Int): String =
   {
     require(k >= 0)
     if (k < static_spaces.length) static_spaces.substring(0, k)
-    else " " * k
+    else space * k
   }
 
 
@@ -278,7 +281,7 @@ object Symbol
       "\\<^isub>", "\\<^isup>")
 
     private val blanks =
-      Decode_Set(" ", "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
+      Decode_Set(space, "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
 
     private val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")
