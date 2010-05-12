@@ -17,20 +17,20 @@ consts
 
   edges :: "(vertex*vertex) set"
 
-definition asgt :: "[vertex,vertex] => (state*state) set" where
-    "asgt u v == {(s,s'). s' = s(v:= s u | s v)}"
+definition asgt :: "[vertex,vertex] => (state*state) set"
+  where "asgt u v = {(s,s'). s' = s(v:= s u | s v)}"
 
-definition Rprg :: "state program" where
-    "Rprg == mk_total_program ({%v. v=init}, \<Union>(u,v)\<in>edges. {asgt u v}, UNIV)"
+definition Rprg :: "state program"
+  where "Rprg = mk_total_program ({%v. v=init}, \<Union>(u,v)\<in>edges. {asgt u v}, UNIV)"
 
-definition reach_invariant :: "state set" where
-    "reach_invariant == {s. (\<forall>v. s v --> (init, v) \<in> edges^*) & s init}"
+definition reach_invariant :: "state set"
+  where "reach_invariant = {s. (\<forall>v. s v --> (init, v) \<in> edges^*) & s init}"
 
-definition fixedpoint :: "state set" where
-    "fixedpoint == {s. \<forall>(u,v)\<in>edges. s u --> s v}"
+definition fixedpoint :: "state set"
+  where "fixedpoint = {s. \<forall>(u,v)\<in>edges. s u --> s v}"
 
-definition metric :: "state => nat" where
-    "metric s == card {v. ~ s v}"
+definition metric :: "state => nat"
+  where "metric s = card {v. ~ s v}"
 
 
 text{**We assume that the set of vertices is finite*}

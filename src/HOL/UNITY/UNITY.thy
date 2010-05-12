@@ -431,26 +431,26 @@ subsection{*Rules for Lazy Definition Expansion*}
 text{*They avoid expanding the full program, which is a large expression*}
 
 lemma def_prg_Init:
-     "F == mk_total_program (init,acts,allowed) ==> Init F = init"
+     "F = mk_total_program (init,acts,allowed) ==> Init F = init"
 by (simp add: mk_total_program_def)
 
 lemma def_prg_Acts:
-     "F == mk_total_program (init,acts,allowed) 
+     "F = mk_total_program (init,acts,allowed) 
       ==> Acts F = insert Id (totalize_act ` acts)"
 by (simp add: mk_total_program_def)
 
 lemma def_prg_AllowedActs:
-     "F == mk_total_program (init,acts,allowed)  
+     "F = mk_total_program (init,acts,allowed)  
       ==> AllowedActs F = insert Id allowed"
 by (simp add: mk_total_program_def)
 
 text{*An action is expanded if a pair of states is being tested against it*}
 lemma def_act_simp:
-     "act == {(s,s'). P s s'} ==> ((s,s') \<in> act) = P s s'"
+     "act = {(s,s'). P s s'} ==> ((s,s') \<in> act) = P s s'"
 by (simp add: mk_total_program_def)
 
 text{*A set is expanded only if an element is being tested against it*}
-lemma def_set_simp: "A == B ==> (x \<in> A) = (x \<in> B)"
+lemma def_set_simp: "A = B ==> (x \<in> A) = (x \<in> B)"
 by (simp add: mk_total_program_def)
 
 subsubsection{*Inspectors for type "program"*}

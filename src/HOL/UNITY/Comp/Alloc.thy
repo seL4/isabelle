@@ -20,15 +20,16 @@ record 'a clientState_d =
   clientState +
   dummy :: 'a       --{*dummy field for new variables*}
 
-constdefs
+definition
   --{*DUPLICATED FROM Client.thy, but with "tok" removed*}
   --{*Maybe want a special theory section to declare such maps*}
   non_dummy :: "'a clientState_d => clientState"
-    "non_dummy s == (|giv = giv s, ask = ask s, rel = rel s|)"
+  where "non_dummy s = (|giv = giv s, ask = ask s, rel = rel s|)"
 
+definition
   --{*Renaming map to put a Client into the standard form*}
   client_map :: "'a clientState_d => clientState*'a"
-    "client_map == funPair non_dummy dummy"
+  where "client_map = funPair non_dummy dummy"
 
 
 record allocState =
@@ -46,78 +47,86 @@ record 'a systemState =
   dummy  :: 'a                    --{*dummy field for new variables*}
 
 
-constdefs
-
 --{** Resource allocation system specification **}
 
+definition
   --{*spec (1)*}
   system_safety :: "'a systemState program set"
-    "system_safety ==
+  where "system_safety =
      Always {s. (SUM i: lessThan Nclients. (tokens o giv o sub i o client)s)
      \<le> NbT + (SUM i: lessThan Nclients. (tokens o rel o sub i o client)s)}"
 
+definition
   --{*spec (2)*}
   system_progress :: "'a systemState program set"
-    "system_progress == INT i : lessThan Nclients.
+  where "system_progress = (INT i : lessThan Nclients.
                         INT h.
                           {s. h \<le> (ask o sub i o client)s} LeadsTo
-                          {s. h pfixLe (giv o sub i o client) s}"
+                          {s. h pfixLe (giv o sub i o client) s})"
 
+definition
   system_spec :: "'a systemState program set"
-    "system_spec == system_safety Int system_progress"
+  where "system_spec = system_safety Int system_progress"
 
 --{** Client specification (required) ***}
 
+definition
   --{*spec (3)*}
   client_increasing :: "'a clientState_d program set"
-    "client_increasing ==
-         UNIV guarantees  Increasing ask Int Increasing rel"
+  where "client_increasing = UNIV guarantees  Increasing ask Int Increasing rel"
 
+definition
   --{*spec (4)*}
   client_bounded :: "'a clientState_d program set"
-    "client_bounded ==
-         UNIV guarantees  Always {s. ALL elt : set (ask s). elt \<le> NbT}"
+  where "client_bounded = UNIV guarantees  Always {s. ALL elt : set (ask s). elt \<le> NbT}"
 
+definition
   --{*spec (5)*}
   client_progress :: "'a clientState_d program set"
-    "client_progress ==
+  where "client_progress =
          Increasing giv  guarantees
          (INT h. {s. h \<le> giv s & h pfixGe ask s}
                  LeadsTo {s. tokens h \<le> (tokens o rel) s})"
 
+definition
   --{*spec: preserves part*}
   client_preserves :: "'a clientState_d program set"
-    "client_preserves == preserves giv Int preserves clientState_d.dummy"
+  where "client_preserves = preserves giv Int preserves clientState_d.dummy"
 
+definition
   --{*environmental constraints*}
   client_allowed_acts :: "'a clientState_d program set"
-    "client_allowed_acts ==
+  where "client_allowed_acts =
        {F. AllowedActs F =
             insert Id (UNION (preserves (funPair rel ask)) Acts)}"
 
+definition
   client_spec :: "'a clientState_d program set"
-    "client_spec == client_increasing Int client_bounded Int client_progress
+  where "client_spec = client_increasing Int client_bounded Int client_progress
                     Int client_allowed_acts Int client_preserves"
 
 --{** Allocator specification (required) **}
 
+definition
   --{*spec (6)*}
   alloc_increasing :: "'a allocState_d program set"
-    "alloc_increasing ==
+  where "alloc_increasing =
          UNIV  guarantees
          (INT i : lessThan Nclients. Increasing (sub i o allocGiv))"
 
+definition
   --{*spec (7)*}
   alloc_safety :: "'a allocState_d program set"
-    "alloc_safety ==
+  where "alloc_safety =
          (INT i : lessThan Nclients. Increasing (sub i o allocRel))
          guarantees
          Always {s. (SUM i: lessThan Nclients. (tokens o sub i o allocGiv)s)
          \<le> NbT + (SUM i: lessThan Nclients. (tokens o sub i o allocRel)s)}"
 
+definition
   --{*spec (8)*}
   alloc_progress :: "'a allocState_d program set"
-    "alloc_progress ==
+  where "alloc_progress =
          (INT i : lessThan Nclients. Increasing (sub i o allocAsk) Int
                                      Increasing (sub i o allocRel))
          Int
@@ -141,96 +150,104 @@ constdefs
     thus h should have been a function variable.  However, only h i is ever
     looked at.*)
 
+definition
   --{*spec: preserves part*}
   alloc_preserves :: "'a allocState_d program set"
-    "alloc_preserves == preserves allocRel Int preserves allocAsk Int
+  where "alloc_preserves = preserves allocRel Int preserves allocAsk Int
                         preserves allocState_d.dummy"
 
+definition
   --{*environmental constraints*}
   alloc_allowed_acts :: "'a allocState_d program set"
-    "alloc_allowed_acts ==
+  where "alloc_allowed_acts =
        {F. AllowedActs F =
             insert Id (UNION (preserves allocGiv) Acts)}"
 
+definition
   alloc_spec :: "'a allocState_d program set"
-    "alloc_spec == alloc_increasing Int alloc_safety Int alloc_progress Int
+  where "alloc_spec = alloc_increasing Int alloc_safety Int alloc_progress Int
                    alloc_allowed_acts Int alloc_preserves"
 
 --{** Network specification **}
 
+definition
   --{*spec (9.1)*}
   network_ask :: "'a systemState program set"
-    "network_ask == INT i : lessThan Nclients.
+  where "network_ask = (INT i : lessThan Nclients.
                         Increasing (ask o sub i o client)  guarantees
-                        ((sub i o allocAsk) Fols (ask o sub i o client))"
+                        ((sub i o allocAsk) Fols (ask o sub i o client)))"
 
+definition
   --{*spec (9.2)*}
   network_giv :: "'a systemState program set"
-    "network_giv == INT i : lessThan Nclients.
+  where "network_giv = (INT i : lessThan Nclients.
                         Increasing (sub i o allocGiv)
                         guarantees
-                        ((giv o sub i o client) Fols (sub i o allocGiv))"
+                        ((giv o sub i o client) Fols (sub i o allocGiv)))"
 
+definition
   --{*spec (9.3)*}
   network_rel :: "'a systemState program set"
-    "network_rel == INT i : lessThan Nclients.
+  where "network_rel = (INT i : lessThan Nclients.
                         Increasing (rel o sub i o client)
                         guarantees
-                        ((sub i o allocRel) Fols (rel o sub i o client))"
+                        ((sub i o allocRel) Fols (rel o sub i o client)))"
 
+definition
   --{*spec: preserves part*}
   network_preserves :: "'a systemState program set"
-    "network_preserves ==
+  where "network_preserves =
        preserves allocGiv  Int
        (INT i : lessThan Nclients. preserves (rel o sub i o client)  Int
                                    preserves (ask o sub i o client))"
 
+definition
   --{*environmental constraints*}
   network_allowed_acts :: "'a systemState program set"
-    "network_allowed_acts ==
+  where "network_allowed_acts =
        {F. AllowedActs F =
            insert Id
             (UNION (preserves allocRel Int
                     (INT i: lessThan Nclients. preserves(giv o sub i o client)))
                   Acts)}"
 
+definition
   network_spec :: "'a systemState program set"
-    "network_spec == network_ask Int network_giv Int
+  where "network_spec = network_ask Int network_giv Int
                      network_rel Int network_allowed_acts Int
                      network_preserves"
 
 
 --{** State mappings **}
+definition
   sysOfAlloc :: "((nat => clientState) * 'a) allocState_d => 'a systemState"
-    "sysOfAlloc == %s. let (cl,xtr) = allocState_d.dummy s
+  where "sysOfAlloc = (%s. let (cl,xtr) = allocState_d.dummy s
                        in (| allocGiv = allocGiv s,
                              allocAsk = allocAsk s,
                              allocRel = allocRel s,
                              client   = cl,
-                             dummy    = xtr|)"
+                             dummy    = xtr|))"
 
 
+definition
   sysOfClient :: "(nat => clientState) * 'a allocState_d => 'a systemState"
-    "sysOfClient == %(cl,al). (| allocGiv = allocGiv al,
+  where "sysOfClient = (%(cl,al). (| allocGiv = allocGiv al,
                                  allocAsk = allocAsk al,
                                  allocRel = allocRel al,
                                  client   = cl,
-                                 systemState.dummy = allocState_d.dummy al|)"
+                                 systemState.dummy = allocState_d.dummy al|))"
 
-consts
-    Alloc   :: "'a allocState_d program"
-    Client  :: "'a clientState_d program"
-    Network :: "'a systemState program"
-    System  :: "'a systemState program"
+axiomatization Alloc :: "'a allocState_d program"
+  where Alloc: "Alloc : alloc_spec"
 
-axioms
-    Alloc:   "Alloc   : alloc_spec"
-    Client:  "Client  : client_spec"
-    Network: "Network : network_spec"
+axiomatization Client :: "'a clientState_d program"
+  where Client: "Client : client_spec"
 
-defs
-    System_def:
-      "System == rename sysOfAlloc Alloc Join Network Join
+axiomatization Network :: "'a systemState program"
+  where Network: "Network : network_spec"
+
+definition System  :: "'a systemState program"
+  where "System = rename sysOfAlloc Alloc Join Network Join
                  (rename sysOfClient
                   (plam x: lessThan Nclients. rename client_map Client))"
 

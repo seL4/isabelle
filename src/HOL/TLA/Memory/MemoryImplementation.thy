@@ -34,82 +34,104 @@ consts
   cst           :: "mClkStType"
   ires          :: "resType"
 
-constdefs
+definition
   (* auxiliary predicates *)
   MVOKBARF      :: "Vals => bool"
-     "MVOKBARF v == (v : MemVal) | (v = OK) | (v = BadArg) | (v = RPCFailure)"
-  MVOKBA        :: "Vals => bool"
-     "MVOKBA v   == (v : MemVal) | (v = OK) | (v = BadArg)"
-  MVNROKBA      :: "Vals => bool"
-     "MVNROKBA v == (v : MemVal) | (v = NotAResult) | (v = OK) | (v = BadArg)"
+  where "MVOKBARF v <-> (v : MemVal) | (v = OK) | (v = BadArg) | (v = RPCFailure)"
 
+definition
+  MVOKBA        :: "Vals => bool"
+  where "MVOKBA v <-> (v : MemVal) | (v = OK) | (v = BadArg)"
+
+definition
+  MVNROKBA      :: "Vals => bool"
+  where "MVNROKBA v <-> (v : MemVal) | (v = NotAResult) | (v = OK) | (v = BadArg)"
+
+definition
   (* tuples of state functions changed by the various components *)
   e             :: "PrIds => (bit * memOp) stfun"
-     "e p == PRED (caller memCh!p)"
-  c             :: "PrIds => (mClkState * (bit * Vals) * (bit * rpcOp)) stfun"
-     "c p == PRED (cst!p, rtrner memCh!p, caller crCh!p)"
-  r             :: "PrIds => (rpcState * (bit * Vals) * (bit * memOp)) stfun"
-     "r p == PRED (rst!p, rtrner crCh!p, caller rmCh!p)"
-  m             :: "PrIds => ((bit * Vals) * Vals) stfun"
-     "m p == PRED (rtrner rmCh!p, ires!p)"
+  where "e p = PRED (caller memCh!p)"
 
+definition
+  c             :: "PrIds => (mClkState * (bit * Vals) * (bit * rpcOp)) stfun"
+  where "c p = PRED (cst!p, rtrner memCh!p, caller crCh!p)"
+
+definition
+  r             :: "PrIds => (rpcState * (bit * Vals) * (bit * memOp)) stfun"
+  where "r p = PRED (rst!p, rtrner crCh!p, caller rmCh!p)"
+
+definition
+  m             :: "PrIds => ((bit * Vals) * Vals) stfun"
+  where "m p = PRED (rtrner rmCh!p, ires!p)"
+
+definition
   (* the environment action *)
   ENext         :: "PrIds => action"
-     "ENext p == ACT (? l. #l : #MemLoc & Call memCh p #(read l))"
+  where "ENext p = ACT (? l. #l : #MemLoc & Call memCh p #(read l))"
 
 
+definition
   (* specification of the history variable *)
   HInit         :: "histType => PrIds => stpred"
-     "HInit rmhist p == PRED rmhist!p = #histA"
+  where "HInit rmhist p = PRED rmhist!p = #histA"
 
+definition
   HNext         :: "histType => PrIds => action"
-     "HNext rmhist p == ACT (rmhist!p)$ =
+  where "HNext rmhist p = ACT (rmhist!p)$ =
                      (if (MemReturn rmCh ires p | RPCFail crCh rmCh rst p)
                       then #histB
                       else if (MClkReply memCh crCh cst p)
                            then #histA
                            else $(rmhist!p))"
 
+definition
   HistP         :: "histType => PrIds => temporal"
-     "HistP rmhist p == TEMP Init HInit rmhist p
-                           & [][HNext rmhist p]_(c p,r p,m p, rmhist!p)"
+  where "HistP rmhist p = (TEMP Init HInit rmhist p
+                           & [][HNext rmhist p]_(c p,r p,m p, rmhist!p))"
 
+definition
   Hist          :: "histType => temporal"
-      "Hist rmhist == TEMP (ALL p. HistP rmhist p)"
+  where "Hist rmhist = TEMP (ALL p. HistP rmhist p)"
 
+definition
   (* the implementation *)
   IPImp          :: "PrIds => temporal"
-     "IPImp p == TEMP (  Init ~Calling memCh p & [][ENext p]_(e p)
+  where "IPImp p = (TEMP (  Init ~Calling memCh p & [][ENext p]_(e p)
                        & MClkIPSpec memCh crCh cst p
                        & RPCIPSpec crCh rmCh rst p
                        & RPSpec rmCh mm ires p
-                       & (ALL l. #l : #MemLoc --> MSpec rmCh mm ires l))"
+                       & (ALL l. #l : #MemLoc --> MSpec rmCh mm ires l)))"
 
+definition
   ImpInit        :: "PrIds => stpred"
-      "ImpInit p == PRED (  ~Calling memCh p
+  where "ImpInit p = PRED (  ~Calling memCh p
                           & MClkInit crCh cst p
                           & RPCInit rmCh rst p
                           & PInit ires p)"
 
+definition
   ImpNext        :: "PrIds => action"
-      "ImpNext p == ACT  [ENext p]_(e p)
+  where "ImpNext p = (ACT  [ENext p]_(e p)
                        & [MClkNext memCh crCh cst p]_(c p)
                        & [RPCNext crCh rmCh rst p]_(r p)
-                       & [RNext rmCh mm ires p]_(m p)"
+                       & [RNext rmCh mm ires p]_(m p))"
 
+definition
   ImpLive        :: "PrIds => temporal"
-      "ImpLive p == TEMP  WF(MClkFwd memCh crCh cst p)_(c p)
+  where "ImpLive p = (TEMP  WF(MClkFwd memCh crCh cst p)_(c p)
                         & SF(MClkReply memCh crCh cst p)_(c p)
                         & WF(RPCNext crCh rmCh rst p)_(r p)
                         & WF(RNext rmCh mm ires p)_(m p)
-                        & WF(MemReturn rmCh ires p)_(m p)"
+                        & WF(MemReturn rmCh ires p)_(m p))"
 
+definition
   Implementation :: "temporal"
-      "Implementation == TEMP ( (ALL p. Init (~Calling memCh p) & [][ENext p]_(e p))
+  where "Implementation = (TEMP ( (ALL p. Init (~Calling memCh p) & [][ENext p]_(e p))
                                & MClkISpec memCh crCh cst
                                & RPCISpec crCh rmCh rst
-                               & IRSpec rmCh mm ires)"
+                               & IRSpec rmCh mm ires))"
 
+definition
   (* the predicate S describes the states of the implementation.
      slight simplification: two "histState" parameters instead of a
      (one- or two-element) set.
@@ -117,7 +139,7 @@ constdefs
      the type definitions. The last conjunct is asserted separately as the memory
      invariant MemInv, proved in Memory.thy. *)
   S :: "histType => bool => bool => bool => mClkState => rpcState => histState => histState => PrIds => stpred"
-      "S rmhist ecalling ccalling rcalling cs rs hs1 hs2 p == PRED
+  where "S rmhist ecalling ccalling rcalling cs rs hs1 hs2 p = (PRED
                 Calling memCh p = #ecalling
               & Calling crCh p  = #ccalling
               & (#ccalling --> arg<crCh!p> = MClkRelayArg<arg<memCh!p>>)
@@ -129,29 +151,42 @@ constdefs
               & cst!p = #cs
               & rst!p = #rs
               & (rmhist!p = #hs1 | rmhist!p = #hs2)
-              & MVNROKBA<ires!p>"
+              & MVNROKBA<ires!p>)"
 
+definition
   (* predicates S1 -- S6 define special instances of S *)
   S1            :: "histType => PrIds => stpred"
-      "S1 rmhist p == S rmhist False False False clkA rpcA histA histA p"
-  S2            :: "histType => PrIds => stpred"
-      "S2 rmhist p == S rmhist True False False clkA rpcA histA histA p"
-  S3            :: "histType => PrIds => stpred"
-      "S3 rmhist p == S rmhist True True False clkB rpcA histA histB p"
-  S4            :: "histType => PrIds => stpred"
-      "S4 rmhist p == S rmhist True True True clkB rpcB histA histB p"
-  S5            :: "histType => PrIds => stpred"
-      "S5 rmhist p == S rmhist True True False clkB rpcB histB histB p"
-  S6            :: "histType => PrIds => stpred"
-      "S6 rmhist p == S rmhist True False False clkB rpcA histB histB p"
+  where "S1 rmhist p = S rmhist False False False clkA rpcA histA histA p"
 
+definition
+  S2            :: "histType => PrIds => stpred"
+  where "S2 rmhist p = S rmhist True False False clkA rpcA histA histA p"
+
+definition
+  S3            :: "histType => PrIds => stpred"
+  where "S3 rmhist p = S rmhist True True False clkB rpcA histA histB p"
+
+definition
+  S4            :: "histType => PrIds => stpred"
+  where "S4 rmhist p = S rmhist True True True clkB rpcB histA histB p"
+
+definition
+  S5            :: "histType => PrIds => stpred"
+  where "S5 rmhist p = S rmhist True True False clkB rpcB histB histB p"
+
+definition
+  S6            :: "histType => PrIds => stpred"
+  where "S6 rmhist p = S rmhist True False False clkB rpcA histB histB p"
+
+definition
   (* The invariant asserts that the system is always in one of S1 - S6, for every p *)
   ImpInv         :: "histType => PrIds => stpred"
-      "ImpInv rmhist p == PRED (  S1 rmhist p | S2 rmhist p | S3 rmhist p
-                                | S4 rmhist p | S5 rmhist p | S6 rmhist p)"
+  where "ImpInv rmhist p = (PRED (S1 rmhist p | S2 rmhist p | S3 rmhist p
+                                | S4 rmhist p | S5 rmhist p | S6 rmhist p))"
 
+definition
   resbar        :: "histType => resType"        (* refinement mapping *)
-      "resbar rmhist s p ==
+  where"resbar rmhist s p =
                   (if (S1 rmhist p s | S2 rmhist p s)
                    then ires s p
                    else if S3 rmhist p s
@@ -167,7 +202,7 @@ constdefs
                         then MemFailure else res (crCh s p)
                    else NotAResult)" (* dummy value *)
 
-axioms
+axiomatization where
   (* the "base" variables: everything except resbar and hist (for any index) *)
   MI_base:       "basevars (caller memCh!p,
                            (rtrner memCh!p, caller crCh!p, cst!p),

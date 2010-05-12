@@ -38,20 +38,21 @@ inductive_set
  | Union:  "ALL A: S. (A,B) : elt CC F ==> (Union S, B) : elt CC F"
 
 
-constdefs
-  
+definition  
   (*the set of all sets determined by f alone*)
   givenBy :: "['a => 'b] => 'a set set"
-    "givenBy f == range (%B. f-` B)"
+  where "givenBy f = range (%B. f-` B)"
 
+definition
   (*visible version of the LEADS-TO relation*)
   leadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
                                         ("(3_/ leadsTo[_]/ _)" [80,0,80] 80)
-    "leadsETo A CC B == {F. (A,B) : elt CC F}"
+  where "leadsETo A CC B = {F. (A,B) : elt CC F}"
 
+definition
   LeadsETo :: "['a set, 'a set set, 'a set] => 'a program set"
                                         ("(3_/ LeadsTo[_]/ _)" [80,0,80] 80)
-    "LeadsETo A CC B ==
+  where "LeadsETo A CC B =
       {F. F : (reachable F Int A) leadsTo[(%C. reachable F Int C) ` CC] B}"
 
 

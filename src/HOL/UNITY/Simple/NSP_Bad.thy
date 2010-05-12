@@ -17,36 +17,38 @@ From page 260 of
 
 types state = "event list"
 
-constdefs
-
   (*The spy MAY say anything he CAN say.  We do not expect him to
     invent new nonces here, but he can also use NS1.  Common to
     all similar protocols.*)
+definition
   Fake :: "(state*state) set"
-    "Fake == {(s,s').
+  where "Fake = {(s,s').
               \<exists>B X. s' = Says Spy B X # s
                     & X \<in> synth (analz (spies s))}"
 
   (*The numeric suffixes on A identify the rule*)
 
   (*Alice initiates a protocol run, sending a nonce to Bob*)
+definition
   NS1 :: "(state*state) set"
-    "NS1 == {(s1,s').
+  where "NS1 = {(s1,s').
              \<exists>A1 B NA.
                  s' = Says A1 B (Crypt (pubK B) {|Nonce NA, Agent A1|}) # s1
                & Nonce NA \<notin> used s1}"
 
   (*Bob responds to Alice's message with a further nonce*)
+definition
   NS2 :: "(state*state) set"
-    "NS2 == {(s2,s').
+  where "NS2 = {(s2,s').
              \<exists>A' A2 B NA NB.
                  s' = Says B A2 (Crypt (pubK A2) {|Nonce NA, Nonce NB|}) # s2
                & Says A' B (Crypt (pubK B) {|Nonce NA, Agent A2|}) \<in> set s2
                & Nonce NB \<notin> used s2}"
 
   (*Alice proves her existence by sending NB back to Bob.*)
+definition
   NS3 :: "(state*state) set"
-    "NS3 == {(s3,s').
+  where "NS3 = {(s3,s').
              \<exists>A3 B' B NA NB.
                  s' = Says A3 B (Crypt (pubK B) (Nonce NB)) # s3
                & Says A3  B (Crypt (pubK B) {|Nonce NA, Agent A3|}) \<in> set s3
@@ -55,7 +57,7 @@ constdefs
 
 definition Nprg :: "state program" where
     (*Initial trace is empty*)
-    "Nprg == mk_total_program({[]}, {Fake, NS1, NS2, NS3}, UNIV)"
+    "Nprg = mk_total_program({[]}, {Fake, NS1, NS2, NS3}, UNIV)"
 
 declare spies_partsEs [elim]
 declare analz_into_parts [dest]

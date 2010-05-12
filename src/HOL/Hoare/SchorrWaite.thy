@@ -11,16 +11,22 @@ theory SchorrWaite imports HeapSyntax begin
 
 section {* Machinery for the Schorr-Waite proof*}
 
-constdefs
+definition
   -- "Relations induced by a mapping"
   rel :: "('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<times> 'a) set"
-  "rel m == {(x,y). m x = Ref y}"
+  where "rel m = {(x,y). m x = Ref y}"
+
+definition
   relS :: "('a \<Rightarrow> 'a ref) set \<Rightarrow> ('a \<times> 'a) set"
-  "relS M == (\<Union> m \<in> M. rel m)"
+  where "relS M = (\<Union> m \<in> M. rel m)"
+
+definition
   addrs :: "'a ref set \<Rightarrow> 'a set"
-  "addrs P == {a. Ref a \<in> P}"
+  where "addrs P = {a. Ref a \<in> P}"
+
+definition
   reachable :: "('a \<times> 'a) set \<Rightarrow> 'a ref set \<Rightarrow> 'a set"
-  "reachable r P == (r\<^sup>* `` addrs P)"
+  where "reachable r P = (r\<^sup>* `` addrs P)"
 
 lemmas rel_defs = relS_def rel_def
 
@@ -77,10 +83,10 @@ apply (rule classical)
 apply (simp add:rel_defs fun_upd_apply)
 done
 
-constdefs
+definition
   -- "Restriction of a relation"
   restr ::"('a \<times> 'a) set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> ('a \<times> 'a) set"       ("(_/ | _)" [50, 51] 50)
-  "restr r m == {(x,y). (x,y) \<in> r \<and> \<not> m x}"
+  where "restr r m = {(x,y). (x,y) \<in> r \<and> \<not> m x}"
 
 text {* Rewrite rules for the restriction of a relation *}
 
@@ -109,10 +115,10 @@ apply (rule classical)
 apply (simp add:restr_def fun_upd_apply)
 done
 
-constdefs
+definition
   -- "A short form for the stack mapping function for List"
   S :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref)"
-  "S c l r == (\<lambda>x. if c x then r x else l x)"
+  where "S c l r = (\<lambda>x. if c x then r x else l x)"
 
 text {* Rewrite rules for Lists using S as their mapping *}
 
