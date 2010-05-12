@@ -166,10 +166,14 @@ local
     "a * b = nat (int a * int b)"
     "a div b = nat (int a div int b)"
     "a mod b = nat (int a mod int b)"
+    "min a b = nat (min (int a) (int b))"
+    "max a b = nat (max (int a) (int b))"
     "int (nat (int a + int b)) = int a + int b"
     "int (nat (int a * int b)) = int a * int b"
     "int (nat (int a div int b)) = int a div int b"
     "int (nat (int a mod int b)) = int a mod int b"
+    "int (nat (min (int a) (int b))) = min (int a) (int b)"
+    "int (nat (max (int a) (int b))) = max (int a) (int b)"
     by (simp add: nat_mult_distrib nat_div_distrib nat_mod_distrib
       int_mult[symmetric] zdiv_int[symmetric] zmod_int[symmetric])+}
 
