@@ -357,7 +357,6 @@ HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   Rat.thy \
   Real.thy \
   RealDef.thy \
-  RealPow.thy \
   RealVector.thy \
   SEQ.thy \
   Series.thy \

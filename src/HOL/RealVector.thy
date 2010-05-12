@@ -5,7 +5,7 @@
 header {* Vector Spaces and Algebras over the Reals *}
 
 theory RealVector
-imports RealPow
+imports RComplete
 begin
 
 subsection {* Locale for additive functions *}
