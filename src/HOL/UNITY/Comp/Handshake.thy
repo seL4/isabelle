@@ -15,24 +15,28 @@ record state =
   NF :: nat
   NG :: nat
 
-constdefs
+definition
   (*F's program*)
   cmdF :: "(state*state) set"
-    "cmdF == {(s,s'). s' = s (|NF:= Suc(NF s), BB:=False|) & BB s}"
+  where "cmdF = {(s,s'). s' = s (|NF:= Suc(NF s), BB:=False|) & BB s}"
 
+definition
   F :: "state program"
-    "F == mk_total_program ({s. NF s = 0 & BB s}, {cmdF}, UNIV)"
+  where "F = mk_total_program ({s. NF s = 0 & BB s}, {cmdF}, UNIV)"
 
+definition
   (*G's program*)
   cmdG :: "(state*state) set"
-    "cmdG == {(s,s'). s' = s (|NG:= Suc(NG s), BB:=True|) & ~ BB s}"
+  where "cmdG = {(s,s'). s' = s (|NG:= Suc(NG s), BB:=True|) & ~ BB s}"
 
+definition
   G :: "state program"
-    "G == mk_total_program ({s. NG s = 0 & BB s}, {cmdG}, UNIV)"
+  where "G = mk_total_program ({s. NG s = 0 & BB s}, {cmdG}, UNIV)"
 
+definition
   (*the joint invariant*)
   invFG :: "state set"
-    "invFG == {s. NG s <= NF s & NF s <= Suc (NG s) & (BB s = (NF s = NG s))}"
+  where "invFG = {s. NG s <= NF s & NF s <= Suc (NG s) & (BB s = (NF s = NG s))}"
 
 
 declare F_def [THEN def_prg_Init, simp] 

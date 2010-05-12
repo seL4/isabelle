@@ -119,20 +119,22 @@ consts
 
 subsection{*Signature Primitives*}
 
-constdefs 
-
+definition
  (* Signature = Message + signed Digest *)
   sign :: "[key, msg]=>msg"
-    "sign K X == {|X, Crypt K (Hash X) |}"
+  where "sign K X = {|X, Crypt K (Hash X) |}"
 
+definition
  (* Signature Only = signed Digest Only *)
   signOnly :: "[key, msg]=>msg"
-    "signOnly K X == Crypt K (Hash X)"
+  where "signOnly K X = Crypt K (Hash X)"
 
+definition
  (* Signature for Certificates = Message + signed Message *)
   signCert :: "[key, msg]=>msg"
-    "signCert K X == {|X, Crypt K X |}"
+  where "signCert K X = {|X, Crypt K X |}"
 
+definition
  (* Certification Authority's Certificate.
     Contains agent name, a key, a number specifying the key's target use,
               a key to sign the entire certificate.
@@ -141,16 +143,16 @@ constdefs
                   then Ka=pubEK i or pubSK i depending on T  ??
  *)
   cert :: "[agent, key, msg, key] => msg"
-    "cert A Ka T signK == signCert signK {|Agent A, Key Ka, T|}"
+  where "cert A Ka T signK = signCert signK {|Agent A, Key Ka, T|}"
 
-
+definition
  (* Cardholder's Certificate.
     Contains a PAN, the certified key Ka, the PANSecret PS,
     a number specifying the target use for Ka, the signing key signK.
  *)
   certC :: "[nat, key, nat, msg, key] => msg"
-    "certC PAN Ka PS T signK ==
-     signCert signK {|Hash {|Nonce PS, Pan PAN|}, Key Ka, T|}"
+  where "certC PAN Ka PS T signK =
+    signCert signK {|Hash {|Nonce PS, Pan PAN|}, Key Ka, T|}"
 
 (*cert and certA have no repeated elements, so they could be abbreviations,
   but that's tricky and makes proofs slower*)
@@ -164,13 +166,13 @@ subsection{*Encryption Primitives*}
 definition EXcrypt :: "[key,key,msg,msg] => msg" where
   --{*Extra Encryption*}
     (*K: the symmetric key   EK: the public encryption key*)
-    "EXcrypt K EK M m ==
+    "EXcrypt K EK M m =
        {|Crypt K {|M, Hash m|}, Crypt EK {|Key K, m|}|}"
 
 definition EXHcrypt :: "[key,key,msg,msg] => msg" where
   --{*Extra Encryption with Hashing*}
     (*K: the symmetric key   EK: the public encryption key*)
-    "EXHcrypt K EK M m ==
+    "EXHcrypt K EK M m =
        {|Crypt K {|M, Hash m|}, Crypt EK {|Key K, m, Hash M|}|}"
 
 definition Enc :: "[key,key,key,msg] => msg" where
@@ -178,12 +180,12 @@ definition Enc :: "[key,key,key,msg] => msg" where
     (*SK: the sender's signing key
       K: the symmetric key
       EK: the public encryption key*)
-    "Enc SK K EK M ==
+    "Enc SK K EK M =
        {|Crypt K (sign SK M), Crypt EK (Key K)|}"
 
 definition EncB :: "[key,key,key,msg,msg] => msg" where
   --{*Encapsulation with Baggage.  Keys as above, and baggage b.*}
-    "EncB SK K EK M b == 
+    "EncB SK K EK M b =
        {|Enc SK K EK {|M, Hash b|}, b|}"
 
 
@@ -390,14 +392,14 @@ subsection{*Controlled Unfolding of Abbreviations*}
 
 text{*A set is expanded only if a relation is applied to it*}
 lemma def_abbrev_simp_relation:
-     "A == B ==> (A \<in> X) = (B \<in> X) &  
+     "A = B ==> (A \<in> X) = (B \<in> X) &  
                  (u = A) = (u = B) &  
                  (A = u) = (B = u)"
 by auto
 
 text{*A set is expanded only if one of the given functions is applied to it*}
 lemma def_abbrev_simp_function:
-     "A == B  
+     "A = B  
       ==> parts (insert A X) = parts (insert B X) &  
           analz (insert A X) = analz (insert B X) &  
           keysFor (insert A X) = keysFor (insert B X)"

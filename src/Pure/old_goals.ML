@@ -293,7 +293,6 @@ val result_error_fn = Unsynchronized.ref result_error_default;
 *)
 fun prepare_proof atomic rths chorn =
   let
-      val _ = legacy_feature "Old goal command";
       val thy = Thm.theory_of_cterm chorn;
       val horn = Thm.term_of chorn;
       val _ = Term.no_dummy_patterns horn handle TERM (msg, _) => error msg;
@@ -514,7 +513,6 @@ val Goal = Goalw [];
 (*simple version with minimal amount of checking and postprocessing*)
 fun simple_prove_goal_cterm G f =
   let
-    val _ = legacy_feature "Old goal command";
     val As = Drule.strip_imp_prems G;
     val B = Drule.strip_imp_concl G;
     val asms = map Assumption.assume As;

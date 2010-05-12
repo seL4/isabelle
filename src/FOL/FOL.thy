@@ -348,11 +348,10 @@ subsection {* Proof by cases and induction *}
 
 text {* Proper handling of non-atomic rule statements. *}
 
-constdefs
-  induct_forall where "induct_forall(P) == \<forall>x. P(x)"
-  induct_implies where "induct_implies(A, B) == A \<longrightarrow> B"
-  induct_equal where "induct_equal(x, y) == x = y"
-  induct_conj where "induct_conj(A, B) == A \<and> B"
+definition "induct_forall(P) == \<forall>x. P(x)"
+definition "induct_implies(A, B) == A \<longrightarrow> B"
+definition "induct_equal(x, y) == x = y"
+definition "induct_conj(A, B) == A \<and> B"
 
 lemma induct_forall_eq: "(!!x. P(x)) == Trueprop(induct_forall(\<lambda>x. P(x)))"
   unfolding atomize_all induct_forall_def .

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/PropLog.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1994  TU Muenchen & University of Cambridge
 *)

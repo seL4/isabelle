@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/InductTermi.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
 

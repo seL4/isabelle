@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/ListOrder.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
 *)

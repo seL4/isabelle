@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/Standardization.thy
-    ID:         $Id$
     Author:     Stefan Berghofer
     Copyright   2005 TU Muenchen
 *)

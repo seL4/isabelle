@@ -21,21 +21,22 @@ axioms
   Tgs_not_bad [iff]: "Tgs \<notin> bad"
    --{*Tgs is secure --- we already know that Kas is secure*}
 
-constdefs
+definition
  (* authKeys are those contained in an authTicket *)
-    authKeys :: "event list => key set"
-    "authKeys evs == {authK. \<exists>A Peer Ta. 
+    authKeys :: "event list => key set" where
+    "authKeys evs = {authK. \<exists>A Peer Ta. 
         Says Kas A \<lbrace>Crypt (shrK A) \<lbrace>Key authK, Agent Peer, Ta\<rbrace>,
                      Crypt (shrK Peer) \<lbrace>Agent A, Agent Peer, Key authK, Ta\<rbrace>
                    \<rbrace> \<in> set evs}"
 
+definition
  (* A is the true creator of X if she has sent X and X never appeared on
     the trace before this event. Recall that traces grow from head. *)
   Issues :: "[agent, agent, msg, event list] => bool"
-             ("_ Issues _ with _ on _")
-   "A Issues B with X on evs ==
-      \<exists>Y. Says A B Y \<in> set evs \<and> X \<in> parts {Y} \<and>
-      X \<notin> parts (spies (takeWhile (% z. z  \<noteq> Says A B Y) (rev evs)))"
+             ("_ Issues _ with _ on _") where
+   "A Issues B with X on evs =
+      (\<exists>Y. Says A B Y \<in> set evs \<and> X \<in> parts {Y} \<and>
+        X \<notin> parts (spies (takeWhile (% z. z  \<noteq> Says A B Y) (rev evs))))"
 
 
 consts

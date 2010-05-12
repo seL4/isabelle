@@ -19,12 +19,14 @@ types
   mClkSndArgType   = "memOp"
   mClkRcvArgType   = "rpcOp"
 
-constdefs
+definition
   (* translate a memory call to an RPC call *)
   MClkRelayArg     :: "memOp => rpcOp"
-    "MClkRelayArg marg == memcall marg"
+  where "MClkRelayArg marg = memcall marg"
+
+definition
   (* translate RPC failures to memory failures *)
   MClkReplyVal     :: "Vals => Vals"
-    "MClkReplyVal v == if v = RPCFailure then MemFailure else v"
+  where "MClkReplyVal v = (if v = RPCFailure then MemFailure else v)"
 
 end

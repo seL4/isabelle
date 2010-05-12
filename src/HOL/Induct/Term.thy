@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/Term.thy
-    ID:         $Id$
     Author:     Stefan Berghofer,  TU Muenchen
 *)
 

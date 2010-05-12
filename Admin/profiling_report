@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
 #
-# $Id$
 # Author: Makarius
 #
 # DESCRIPTION: Simple report generator for Poly/ML profiling output.

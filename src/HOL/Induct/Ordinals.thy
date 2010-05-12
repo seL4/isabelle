@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/Ordinals.thy
-    ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 

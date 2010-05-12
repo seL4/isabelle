@@ -18,98 +18,116 @@ record state =
   up    :: "bool"           --{*current direction of movement*}
   move  :: "bool"           --{*whether moving takes precedence over opening*}
 
-consts
-  Min :: "int"       --{*least and greatest floors*}
+axiomatization
+  Min :: "int" and   --{*least and greatest floors*}
   Max :: "int"       --{*least and greatest floors*}
-
-axioms
+where
   Min_le_Max [iff]: "Min \<le> Max"
   
-constdefs
   
   --{*Abbreviations: the "always" part*}
   
+definition
   above :: "state set"
-    "above == {s. \<exists>i. floor s < i & i \<le> Max & i \<in> req s}"
+  where "above = {s. \<exists>i. floor s < i & i \<le> Max & i \<in> req s}"
 
+definition
   below :: "state set"
-    "below == {s. \<exists>i. Min \<le> i & i < floor s & i \<in> req s}"
+  where "below = {s. \<exists>i. Min \<le> i & i < floor s & i \<in> req s}"
 
+definition
   queueing :: "state set"
-    "queueing == above \<union> below"
+  where "queueing = above \<union> below"
 
+definition
   goingup :: "state set"
-    "goingup   == above \<inter> ({s. up s}  \<union> -below)"
+  where "goingup = above \<inter> ({s. up s}  \<union> -below)"
 
+definition
   goingdown :: "state set"
-    "goingdown == below \<inter> ({s. ~ up s} \<union> -above)"
+  where "goingdown = below \<inter> ({s. ~ up s} \<union> -above)"
 
+definition
   ready :: "state set"
-    "ready == {s. stop s & ~ open s & move s}"
+  where "ready = {s. stop s & ~ open s & move s}"
  
   --{*Further abbreviations*}
 
+definition
   moving :: "state set"
-    "moving ==  {s. ~ stop s & ~ open s}"
+  where "moving = {s. ~ stop s & ~ open s}"
 
+definition
   stopped :: "state set"
-    "stopped == {s. stop s  & ~ open s & ~ move s}"
+  where "stopped = {s. stop s  & ~ open s & ~ move s}"
 
+definition
   opened :: "state set"
-    "opened ==  {s. stop s  &  open s  &  move s}"
+  where "opened = {s. stop s  &  open s  &  move s}"
 
+definition
   closed :: "state set"  --{*but this is the same as ready!!*}
-    "closed ==  {s. stop s  & ~ open s &  move s}"
+  where "closed = {s. stop s  & ~ open s &  move s}"
 
+definition
   atFloor :: "int => state set"
-    "atFloor n ==  {s. floor s = n}"
+  where "atFloor n = {s. floor s = n}"
 
+definition
   Req :: "int => state set"
-    "Req n ==  {s. n \<in> req s}"
+  where "Req n = {s. n \<in> req s}"
 
 
   
   --{*The program*}
   
+definition
   request_act :: "(state*state) set"
-    "request_act == {(s,s'). s' = s (|stop:=True, move:=False|)
+  where "request_act = {(s,s'). s' = s (|stop:=True, move:=False|)
                                   & ~ stop s & floor s \<in> req s}"
 
+definition
   open_act :: "(state*state) set"
-    "open_act ==
+  where "open_act =
          {(s,s'). s' = s (|open :=True,
                            req  := req s - {floor s},
                            move := True|)
                        & stop s & ~ open s & floor s \<in> req s
                        & ~(move s & s \<in> queueing)}"
 
+definition
   close_act :: "(state*state) set"
-    "close_act == {(s,s'). s' = s (|open := False|) & open s}"
+  where "close_act = {(s,s'). s' = s (|open := False|) & open s}"
 
+definition
   req_up :: "(state*state) set"
-    "req_up ==
+  where "req_up =
          {(s,s'). s' = s (|stop  :=False,
                            floor := floor s + 1,
                            up    := True|)
                        & s \<in> (ready \<inter> goingup)}"
 
+definition
   req_down :: "(state*state) set"
-    "req_down ==
+  where "req_down =
          {(s,s'). s' = s (|stop  :=False,
                            floor := floor s - 1,
                            up    := False|)
                        & s \<in> (ready \<inter> goingdown)}"
 
+definition
   move_up :: "(state*state) set"
-    "move_up ==
+  where "move_up =
          {(s,s'). s' = s (|floor := floor s + 1|)
                        & ~ stop s & up s & floor s \<notin> req s}"
 
+definition
   move_down :: "(state*state) set"
-    "move_down ==
+  where "move_down =
          {(s,s'). s' = s (|floor := floor s - 1|)
                        & ~ stop s & ~ up s & floor s \<notin> req s}"
 
+definition
   button_press  :: "(state*state) set"
       --{*This action is omitted from prior treatments, which therefore are
         unrealistic: nobody asks the lift to do anything!  But adding this
@@ -117,14 +135,15 @@ constdefs
         "ensures" properties fail. Maybe it should be constrained to only
         allow button presses in the current direction of travel, like in a
         real lift.*}
-    "button_press ==
+  where "button_press =
          {(s,s'). \<exists>n. s' = s (|req := insert n (req s)|)
                         & Min \<le> n & n \<le> Max}"
 
 
+definition
   Lift :: "state program"
     --{*for the moment, we OMIT @{text button_press}*}
-    "Lift == mk_total_program
+  where "Lift = mk_total_program
                 ({s. floor s = Min & ~ up s & move s & stop s &
                           ~ open s & req s = {}},
                  {request_act, open_act, close_act,
@@ -134,34 +153,41 @@ constdefs
 
   --{*Invariants*}
 
+definition
   bounded :: "state set"
-    "bounded == {s. Min \<le> floor s & floor s \<le> Max}"
+  where "bounded = {s. Min \<le> floor s & floor s \<le> Max}"
 
+definition
   open_stop :: "state set"
-    "open_stop == {s. open s --> stop s}"
+  where "open_stop = {s. open s --> stop s}"
   
+definition
   open_move :: "state set"
-    "open_move == {s. open s --> move s}"
+  where "open_move = {s. open s --> move s}"
   
+definition
   stop_floor :: "state set"
-    "stop_floor == {s. stop s & ~ move s --> floor s \<in> req s}"
+  where "stop_floor = {s. stop s & ~ move s --> floor s \<in> req s}"
   
+definition
   moving_up :: "state set"
-    "moving_up == {s. ~ stop s & up s -->
+  where "moving_up = {s. ~ stop s & up s -->
                    (\<exists>f. floor s \<le> f & f \<le> Max & f \<in> req s)}"
   
+definition
   moving_down :: "state set"
-    "moving_down == {s. ~ stop s & ~ up s -->
+  where "moving_down = {s. ~ stop s & ~ up s -->
                      (\<exists>f. Min \<le> f & f \<le> floor s & f \<in> req s)}"
   
+definition
   metric :: "[int,state] => int"
-    "metric ==
-       %n s. if floor s < n then (if up s then n - floor s
+  where "metric =
+       (%n s. if floor s < n then (if up s then n - floor s
                                   else (floor s - Min) + (n-Min))
              else
              if n < floor s then (if up s then (Max - floor s) + (Max-n)
                                   else floor s - n)
-             else 0"
+             else 0)"
 
 locale Floor =
   fixes n

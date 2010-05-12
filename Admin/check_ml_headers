@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # check_ml_headers - check headers of *.ML files in Distribution for inconsistencies
 #
 # requires some GNU tools

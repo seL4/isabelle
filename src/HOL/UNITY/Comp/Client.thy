@@ -5,7 +5,7 @@
 
 header{*Distributed Resource Management System: the Client*}
 
-theory Client imports Rename AllocBase begin
+theory Client imports "../Rename" AllocBase begin
 
 types
   tokbag = nat     --{*tokbags could be multisets...or any ordered type?*}
@@ -23,12 +23,12 @@ record 'a state_d =
 
 (*Array indexing is translated to list indexing as A[n] == A!(n-1). *)
 
-constdefs
   
   (** Release some tokens **)
   
+definition
   rel_act :: "('a state_d * 'a state_d) set"
-    "rel_act == {(s,s').
+  where "rel_act = {(s,s').
                   \<exists>nrel. nrel = size (rel s) &
                          s' = s (| rel := rel s @ [giv s!nrel] |) &
                          nrel < size (giv s) &
@@ -39,15 +39,18 @@ constdefs
   (** Including s'=s suppresses fairness, allowing the non-trivial part
       of the action to be ignored **)
 
+definition
   tok_act :: "('a state_d * 'a state_d) set"
-     "tok_act == {(s,s'). s'=s | s' = s (|tok := Suc (tok s mod NbT) |)}"
+  where "tok_act = {(s,s'). s'=s | s' = s (|tok := Suc (tok s mod NbT) |)}"
   
+definition
   ask_act :: "('a state_d * 'a state_d) set"
-    "ask_act == {(s,s'). s'=s |
+  where "ask_act = {(s,s'). s'=s |
                          (s' = s (|ask := ask s @ [tok s]|))}"
 
+definition
   Client :: "'a state_d program"
-    "Client ==
+  where "Client =
        mk_total_program
             ({s. tok s \<in> atMost NbT &
                  giv s = [] & ask s = [] & rel s = []},
@@ -55,13 +58,15 @@ constdefs
              \<Union>G \<in> preserves rel Int preserves ask Int preserves tok.
                    Acts G)"
 
+definition
   (*Maybe want a special theory section to declare such maps*)
   non_dummy :: "'a state_d => state"
-    "non_dummy s == (|giv = giv s, ask = ask s, rel = rel s, tok = tok s|)"
+  where "non_dummy s = (|giv = giv s, ask = ask s, rel = rel s, tok = tok s|)"
 
+definition
   (*Renaming map to put a Client into the standard form*)
   client_map :: "'a state_d => state*'a"
-    "client_map == funPair non_dummy dummy"
+  where "client_map = funPair non_dummy dummy"
 
 
 declare Client_def [THEN def_prg_Init, simp]

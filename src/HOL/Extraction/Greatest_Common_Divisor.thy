@@ -1,5 +1,4 @@
 (*  Title:      HOL/Extraction/Greatest_Common_Divisor.thy
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
                 Helmut Schwichtenberg, LMU Muenchen
 *)

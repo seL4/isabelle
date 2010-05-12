@@ -9,31 +9,35 @@ header{*Unions of Programs*}
 
 theory Union imports SubstAx FP begin
 
-constdefs
-
   (*FIXME: conjoin Init F \<inter> Init G \<noteq> {} *) 
+definition
   ok :: "['a program, 'a program] => bool"      (infixl "ok" 65)
-    "F ok G == Acts F \<subseteq> AllowedActs G &
+  where "F ok G == Acts F \<subseteq> AllowedActs G &
                Acts G \<subseteq> AllowedActs F"
 
   (*FIXME: conjoin (\<Inter>i \<in> I. Init (F i)) \<noteq> {} *) 
+definition
   OK  :: "['a set, 'a => 'b program] => bool"
-    "OK I F == (\<forall>i \<in> I. \<forall>j \<in> I-{i}. Acts (F i) \<subseteq> AllowedActs (F j))"
+  where "OK I F = (\<forall>i \<in> I. \<forall>j \<in> I-{i}. Acts (F i) \<subseteq> AllowedActs (F j))"
 
+definition
   JOIN  :: "['a set, 'a => 'b program] => 'b program"
-    "JOIN I F == mk_program (\<Inter>i \<in> I. Init (F i), \<Union>i \<in> I. Acts (F i),
+  where "JOIN I F = mk_program (\<Inter>i \<in> I. Init (F i), \<Union>i \<in> I. Acts (F i),
                              \<Inter>i \<in> I. AllowedActs (F i))"
 
+definition
   Join :: "['a program, 'a program] => 'a program"      (infixl "Join" 65)
-    "F Join G == mk_program (Init F \<inter> Init G, Acts F \<union> Acts G,
+  where "F Join G = mk_program (Init F \<inter> Init G, Acts F \<union> Acts G,
                              AllowedActs F \<inter> AllowedActs G)"
 
+definition
   SKIP :: "'a program"
-    "SKIP == mk_program (UNIV, {}, UNIV)"
+  where "SKIP = mk_program (UNIV, {}, UNIV)"
 
   (*Characterizes safety properties.  Used with specifying Allowed*)
+definition
   safety_prop :: "'a program set => bool"
-    "safety_prop X == SKIP: X & (\<forall>G. Acts G \<subseteq> UNION X Acts --> G \<in> X)"
+  where "safety_prop X <-> SKIP: X & (\<forall>G. Acts G \<subseteq> UNION X Acts --> G \<in> X)"
 
 notation (xsymbols)
   SKIP  ("\<bottom>") and
@@ -420,12 +424,12 @@ lemma Allowed_totalize [simp]: "Allowed (totalize F) = Allowed F"
 by (simp add: Allowed_def) 
 
 lemma def_total_prg_Allowed:
-     "[| F == mk_total_program (init, acts, UNION X Acts) ; safety_prop X |]  
+     "[| F = mk_total_program (init, acts, UNION X Acts) ; safety_prop X |]  
       ==> Allowed F = X"
 by (simp add: mk_total_program_def def_prg_Allowed) 
 
 lemma def_UNION_ok_iff:
-     "[| F == mk_program(init,acts,UNION X Acts); safety_prop X |]  
+     "[| F = mk_program(init,acts,UNION X Acts); safety_prop X |]  
       ==> F ok G = (G \<in> X & acts \<subseteq> AllowedActs G)"
 by (auto simp add: ok_def safety_prop_Acts_iff)
 

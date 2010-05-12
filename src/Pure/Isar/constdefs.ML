@@ -22,7 +22,7 @@ struct
 fun gen_constdef prep_vars prep_prop prep_att
     structs (raw_decl, ((raw_name, raw_atts), raw_prop)) thy =
   let
-    val _ = legacy_feature ("\"constdefs\"; prefer \"definition\" instead");
+    val _ = legacy_feature "Old 'constdefs' command -- use 'definition' instead";
 
     fun err msg ts = error (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts));
 

@@ -1,4 +1,4 @@
-/* $Id$
+/*
  * Author: Timothy Bourke, NICTA
  */
 var utf8 = new Object();

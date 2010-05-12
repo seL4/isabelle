@@ -21,51 +21,51 @@ consts
 
 text{*Following the definitions given in section 4.4 *}
 
-definition highest :: "[vertex, (vertex*vertex)set]=>bool" where
-  "highest i r == A i r = {}"
+definition highest :: "[vertex, (vertex*vertex)set]=>bool"
+  where "highest i r <-> A i r = {}"
     --{* i has highest priority in r *}
   
-definition lowest :: "[vertex, (vertex*vertex)set]=>bool" where
-  "lowest i r == R i r = {}"
+definition lowest :: "[vertex, (vertex*vertex)set]=>bool"
+  where "lowest i r <-> R i r = {}"
     --{* i has lowest priority in r *}
 
-definition act :: command where
-  "act i == {(s, s'). s'=reverse i s & highest i s}"
+definition act :: command
+  where "act i = {(s, s'). s'=reverse i s & highest i s}"
 
-definition Component :: "vertex=>state program" where
-  "Component i == mk_total_program({init}, {act i}, UNIV)"
+definition Component :: "vertex=>state program"
+  where "Component i = mk_total_program({init}, {act i}, UNIV)"
     --{* All components start with the same initial state *}
 
 
 text{*Some Abbreviations *}
-definition Highest :: "vertex=>state set" where
-  "Highest i == {s. highest i s}"
+definition Highest :: "vertex=>state set"
+  where "Highest i = {s. highest i s}"
 
-definition Lowest :: "vertex=>state set" where
-  "Lowest i == {s. lowest i s}"
+definition Lowest :: "vertex=>state set"
+  where "Lowest i = {s. lowest i s}"
 
-definition Acyclic :: "state set" where
-  "Acyclic == {s. acyclic s}"
+definition Acyclic :: "state set"
+  where "Acyclic = {s. acyclic s}"
 
 
-definition Maximal :: "state set" where
+definition Maximal :: "state set"
     --{* Every ``above'' set has a maximal vertex*}
-  "Maximal == \<Inter>i. {s. ~highest i s-->(\<exists>j \<in> above i  s. highest j s)}"
+  where "Maximal = (\<Inter>i. {s. ~highest i s-->(\<exists>j \<in> above i  s. highest j s)})"
 
-definition Maximal' :: "state set" where
+definition Maximal' :: "state set"
     --{* Maximal vertex: equivalent definition*}
-  "Maximal' == \<Inter>i. Highest i Un (\<Union>j. {s. j \<in> above i s} Int Highest j)"
+  where "Maximal' = (\<Inter>i. Highest i Un (\<Union>j. {s. j \<in> above i s} Int Highest j))"
 
   
-definition Safety :: "state set" where
-  "Safety == \<Inter>i. {s. highest i s --> (\<forall>j \<in> neighbors i s. ~highest j s)}"
+definition Safety :: "state set"
+  where "Safety = (\<Inter>i. {s. highest i s --> (\<forall>j \<in> neighbors i s. ~highest j s)})"
 
 
   (* Composition of a finite set of component;
      the vertex 'UNIV' is finite by assumption *)
   
-definition system :: "state program" where
-  "system == JN i. Component i"
+definition system :: "state program"
+  where "system = (JN i. Component i)"
 
 
 declare highest_def [simp] lowest_def [simp]

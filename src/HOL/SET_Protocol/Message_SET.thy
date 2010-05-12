@@ -93,10 +93,10 @@ lemma inj_nat_of_agent: "inj nat_of_agent"
 by (simp add: nat_of_agent_def inj_on_def curry_def prod_encode_eq split: agent.split) 
 
 
-constdefs
+definition
   (*Keys useful to decrypt elements of a message set*)
   keysFor :: "msg set => key set"
-  "keysFor H == invKey ` {K. \<exists>X. Crypt K X \<in> H}"
+  where "keysFor H = invKey ` {K. \<exists>X. Crypt K X \<in> H}"
 
 subsubsection{*Inductive definition of all "parts" of a message.*}
 
