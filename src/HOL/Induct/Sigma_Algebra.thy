@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/Sigma_Algebra.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 

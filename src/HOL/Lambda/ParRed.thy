@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lambda/ParRed.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1995 TU Muenchen
 

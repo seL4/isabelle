@@ -1,5 +1,4 @@
 (* Title:      HOL/Tools/Qelim/ferrante_rackoff_data.ML
-   ID:         $Id$
    Author:     Amine Chaieb, TU Muenchen
 
 Context data for Ferrante and Rackoff's algorithm for quantifier
