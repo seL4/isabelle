@@ -57,11 +57,11 @@ setup Semiring_Normalizer.setup
 context comm_semiring_1
 begin
 
-lemma semiring_ops:
+lemma normalizing_semiring_ops:
   shows "TERM (x + y)" and "TERM (x * y)" and "TERM (x ^ n)"
     and "TERM 0" and "TERM 1" .
 
-lemma semiring_rules:
+lemma normalizing_semiring_rules:
   "(a * m) + (b * m) = (a + b) * m"
   "(a * m) + m = (a + 1) * m"
   "m + (a * m) = (a + 1) * m"
@@ -103,8 +103,8 @@ lemma semiring_rules:
 
 lemmas normalizing_comm_semiring_1_axioms =
   comm_semiring_1_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules]
+    semiring ops: normalizing_semiring_ops
+    semiring rules: normalizing_semiring_rules]
 
 declaration
   {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_semiring_1_axioms} *}
@@ -114,19 +114,19 @@ end
 context comm_ring_1
 begin
 
-lemma ring_ops: shows "TERM (x- y)" and "TERM (- x)" .
+lemma normalizing_ring_ops: shows "TERM (x- y)" and "TERM (- x)" .
 
-lemma ring_rules:
+lemma normalizing_ring_rules:
   "- x = (- 1) * x"
   "x - y = x + (- y)"
   by (simp_all add: diff_minus)
 
 lemmas normalizing_comm_ring_1_axioms =
   comm_ring_1_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules
-    ring ops: ring_ops
-    ring rules: ring_rules]
+    semiring ops: normalizing_semiring_ops
+    semiring rules: normalizing_semiring_rules
+    ring ops: normalizing_ring_ops
+    ring rules: normalizing_ring_rules]
 
 declaration
   {* Semiring_Normalizer.semiring_funs @{thm normalizing_comm_ring_1_axioms} *}
@@ -137,31 +137,22 @@ context comm_semiring_1_cancel_norm
 begin
 
 lemma noteq_reduce:
-  "a \<noteq> b \<and> c \<noteq> d \<longleftrightarrow> (a * c) + (b * d) \<noteq> (a * d) + (b * c)"
-proof-
-  have "a \<noteq> b \<and> c \<noteq> d \<longleftrightarrow> \<not> (a = b \<or> c = d)" by simp
-  also have "\<dots> \<longleftrightarrow> (a * c) + (b * d) \<noteq> (a * d) + (b * c)"
-    using add_mult_solve by blast
-  finally show "a \<noteq> b \<and> c \<noteq> d \<longleftrightarrow> (a * c) + (b * d) \<noteq> (a * d) + (b * c)"
-    by simp
-qed
+  "a \<noteq> b \<and> c \<noteq> d \<longleftrightarrow> a * c + b * d \<noteq> a * d + b * c"
+  by (simp add: add_mult_solve)
 
 lemma add_scale_eq_noteq:
-  "\<lbrakk>r \<noteq> 0 ; a = b \<and> c \<noteq> d\<rbrakk> \<Longrightarrow> a + (r * c) \<noteq> b + (r * d)"
-proof(clarify)
-  assume nz: "r\<noteq> 0" and cnd: "c\<noteq>d"
-    and eq: "b + (r * c) = b + (r * d)"
+  "r \<noteq> 0 \<Longrightarrow> a = b \<and> c \<noteq> d \<Longrightarrow> a + r * c \<noteq> b + r * d"
+proof (rule notI)
+  assume nz: "r\<noteq> 0" and cnd: "a = b \<and> c\<noteq>d"
+    and eq: "a + (r * c) = b + (r * d)"
   have "(0 * d) + (r * c) = (0 * c) + (r * d)"
-    using add_imp_eq eq mult_zero_left by simp
-  thus "False" using add_mult_solve[of 0 d] nz cnd by simp
+    using add_imp_eq eq mult_zero_left by (simp add: cnd)
+  then show False using add_mult_solve [of 0 d] nz cnd by simp
 qed
 
 lemma add_0_iff:
   "x = x + a \<longleftrightarrow> a = 0"
-proof-
-  have "a = 0 \<longleftrightarrow> x + a = x + 0" using add_imp_eq[of x a 0] by auto
-  thus "x = x + a \<longleftrightarrow> a = 0" by (auto simp add: add_commute)
-qed
+  using add_imp_eq [of x a 0] by auto
 
 declare
   normalizing_comm_semiring_1_axioms [normalizer del]
@@ -169,8 +160,8 @@ declare
 lemmas
   normalizing_comm_semiring_1_cancel_norm_axioms =
   comm_semiring_1_cancel_norm_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules
+    semiring ops: normalizing_semiring_ops
+    semiring rules: normalizing_semiring_rules
     idom rules: noteq_reduce add_scale_eq_noteq]
 
 declaration
@@ -184,10 +175,10 @@ begin
 declare normalizing_comm_ring_1_axioms [normalizer del]
 
 lemmas normalizing_idom_axioms = idom_axioms [normalizer
-  semiring ops: semiring_ops
-  semiring rules: semiring_rules
-  ring ops: ring_ops
-  ring rules: ring_rules
+  semiring ops: normalizing_semiring_ops
+  semiring rules: normalizing_semiring_rules
+  ring ops: normalizing_ring_ops
+  ring rules: normalizing_ring_rules
   idom rules: noteq_reduce add_scale_eq_noteq
   ideal rules: right_minus_eq add_0_iff]
 
@@ -199,19 +190,19 @@ end
 context field
 begin
 
-lemma field_ops:
+lemma normalizing_field_ops:
   shows "TERM (x / y)" and "TERM (inverse x)" .
 
-lemmas field_rules = divide_inverse inverse_eq_divide
+lemmas normalizing_field_rules = divide_inverse inverse_eq_divide
 
 lemmas normalizing_field_axioms =
   field_axioms [normalizer
-    semiring ops: semiring_ops
-    semiring rules: semiring_rules
-    ring ops: ring_ops
-    ring rules: ring_rules
-    field ops: field_ops
-    field rules: field_rules
+    semiring ops: normalizing_semiring_ops
+    semiring rules: normalizing_semiring_rules
+    ring ops: normalizing_ring_ops
+    ring rules: normalizing_ring_rules
+    field ops: normalizing_field_ops
+    field rules: normalizing_field_rules
     idom rules: noteq_reduce add_scale_eq_noteq
     ideal rules: right_minus_eq add_0_iff]
 
@@ -221,12 +212,12 @@ declaration
 end
 
 hide_fact (open) normalizing_comm_semiring_1_axioms
-  normalizing_comm_semiring_1_cancel_norm_axioms semiring_ops semiring_rules
+  normalizing_comm_semiring_1_cancel_norm_axioms normalizing_semiring_ops normalizing_semiring_rules
 
 hide_fact (open) normalizing_comm_ring_1_axioms
-  normalizing_idom_axioms ring_ops ring_rules
+  normalizing_idom_axioms normalizing_ring_ops normalizing_ring_rules
 
-hide_fact (open) normalizing_field_axioms field_ops field_rules
+hide_fact (open) normalizing_field_axioms normalizing_field_ops normalizing_field_rules
 
 hide_fact (open) add_scale_eq_noteq noteq_reduce
 
