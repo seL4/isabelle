@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/z3_proof_tools.ML
+(*  Title:      HOL/Tools/SMT/z3_proof_tools.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Helper functions required for Z3 proof reconstruction.
@@ -196,8 +196,8 @@ fun is_number t =
     SOME (T, _) => is_arithT T
   | NONE => false)
 
-val abstract =
-  let (* FIXME: provide an option to avoid abstraction of If/distinct/All/Ex *)
+fun abstract (ext_logic, with_theories) =
+  let
     fun abstr1 cvs ct = abs_arg abstr cvs ct
     and abstr2 cvs ct = abs_comb abstr1 abstr cvs ct
     and abstr3 cvs ct = abs_comb abstr2 abstr cvs ct
@@ -215,10 +215,14 @@ val abstract =
       | @{term "op -->"} $ _ $ _ => abstr2 cvs ct
       | Const (@{const_name "op ="}, _) $ _ $ _ => abstr2 cvs ct
       | Const (@{const_name distinct}, _) $ _ =>
-          abs_arg (abs_list abstr fresh_abstraction) cvs ct
-      | Const (@{const_name If}, _) $ _ $ _ $ _ => abstr3 cvs ct
-      | Const (@{const_name All}, _) $ _ => abstr_abs cvs ct
-      | Const (@{const_name Ex}, _) $ _ => abstr_abs cvs ct
+          if ext_logic then abs_arg (abs_list abstr fresh_abstraction) cvs ct
+          else fresh_abstraction cvs ct
+      | Const (@{const_name If}, _) $ _ $ _ $ _ =>
+          if ext_logic then abstr3 cvs ct else fresh_abstraction cvs ct
+      | Const (@{const_name All}, _) $ _ =>
+          if ext_logic then abstr_abs cvs ct else fresh_abstraction cvs ct
+      | Const (@{const_name Ex}, _) $ _ =>
+          if ext_logic then abstr_abs cvs ct else fresh_abstraction cvs ct
       | @{term "uminus :: int => _"} $ _ => abstr1 cvs ct
       | @{term "uminus :: real => _"} $ _ => abstr1 cvs ct
       | @{term "op + :: int => _"} $ _ $ _ => abstr2 cvs ct
@@ -249,7 +253,7 @@ fun with_prems thms f ct =
 in
 
 fun by_abstraction ctxt thms prove = with_prems thms (fn ct =>
-  let val (cu, cx) = abstract ct (abs_context ctxt)
+  let val (cu, cx) = abstract (true, true) ct (abs_context ctxt)
   in abs_instantiate cx (prove (context_of cx) cu) end)
 
 end

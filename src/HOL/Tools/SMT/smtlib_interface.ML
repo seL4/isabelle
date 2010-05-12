@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/smtlib_interface.ML
+(*  Title:      HOL/Tools/SMT/smtlib_interface.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface to SMT solvers based on the SMT-LIB format.
@@ -6,13 +6,88 @@ Interface to SMT solvers based on the SMT-LIB format.
 
 signature SMTLIB_INTERFACE =
 sig
-  val interface: string list -> SMT_Translate.config
+  val interface: SMT_Solver.interface
 end
 
 structure SMTLIB_Interface: SMTLIB_INTERFACE =
 struct
 
+structure N = SMT_Normalize
 structure T = SMT_Translate
+
+
+
+(** facts about uninterpreted constants **)
+
+infix 2 ??
+fun (ex ?? f) thms = if exists (ex o Thm.prop_of) thms then f thms else thms
+
+
+(* pairs *)
+
+val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
+
+val pair_type = (fn Type (@{type_name "*"}, _) => true | _ => false)
+val exists_pair_type = Term.exists_type (Term.exists_subtype pair_type)
+
+val add_pair_rules = exists_pair_type ?? append pair_rules
+
+
+(* function update *)
+
+val fun_upd_rules = [@{thm fun_upd_same}, @{thm fun_upd_apply}]
+
+val is_fun_upd = (fn Const (@{const_name fun_upd}, _) => true | _ => false)
+val exists_fun_upd = Term.exists_subterm is_fun_upd
+
+val add_fun_upd_rules = exists_fun_upd ?? append fun_upd_rules
+
+
+(* abs/min/max *)
+
+val exists_abs_min_max = Term.exists_subterm (fn
+    Const (@{const_name abs}, _) => true
+  | Const (@{const_name min}, _) => true
+  | Const (@{const_name max}, _) => true
+  | _ => false)
+
+val unfold_abs_conv = Conv.rewr_conv @{thm abs_if[THEN eq_reflection]}
+val unfold_min_conv = Conv.rewr_conv @{thm min_def[THEN eq_reflection]}
+val unfold_max_conv = Conv.rewr_conv @{thm max_def[THEN eq_reflection]}
+
+fun expand_conv cv = N.eta_expand_conv (K cv)
+fun expand2_conv cv = N.eta_expand_conv (N.eta_expand_conv (K cv))
+
+fun unfold_def_conv ctxt ct =
+  (case Thm.term_of ct of
+    Const (@{const_name abs}, _) $ _ => unfold_abs_conv
+  | Const (@{const_name abs}, _) => expand_conv unfold_abs_conv ctxt
+  | Const (@{const_name min}, _) $ _ $ _ => unfold_min_conv
+  | Const (@{const_name min}, _) $ _ => expand_conv unfold_min_conv ctxt
+  | Const (@{const_name min}, _) => expand2_conv unfold_min_conv ctxt
+  | Const (@{const_name max}, _) $ _ $ _ => unfold_max_conv
+  | Const (@{const_name max}, _) $ _ => expand_conv unfold_max_conv ctxt
+  | Const (@{const_name max}, _) => expand2_conv unfold_max_conv ctxt
+  | _ => Conv.all_conv) ct
+
+fun unfold_abs_min_max_defs ctxt thm =
+  if exists_abs_min_max (Thm.prop_of thm)
+  then Conv.fconv_rule (More_Conv.top_conv unfold_def_conv ctxt) thm
+  else thm
+
+
+(* include additional facts *)
+
+fun extra_norm thms ctxt =
+  thms
+  |> add_pair_rules
+  |> add_fun_upd_rules
+  |> map (unfold_abs_min_max_defs ctxt)
+  |> rpair ctxt
+
+
+
+(** builtins **)
 
 fun dest_binT T =
   (case T of
@@ -24,10 +99,6 @@ fun dest_binT T =
 
 fun dest_wordT (Type (@{type_name word}, [T])) = dest_binT T
   | dest_wordT T = raise TYPE ("dest_wordT", [T], [])
-
-
-
-(* builtins *)
 
 fun index1 n i = n ^ "[" ^ string_of_int i ^ "]"
 fun index2 n i j = n ^ "[" ^ string_of_int i ^ ":" ^ string_of_int j ^ "]"
@@ -146,7 +217,7 @@ fun builtin_fun (n, T) ts =
 
 
 
-(* serialization *)
+(** serialization **)
 
 val add = Buffer.add
 fun sep f = add " " #> f
@@ -195,20 +266,22 @@ fun serialize comments {theories, sorts, funcs} ts =
 
 
 
-(* interface *)
+(** interface **)
 
-fun interface comments = {
-  prefixes = {
-    sort_prefix = "S",
-    func_prefix = "f"},
-  strict = SOME {
-    is_builtin_conn = is_builtin_conn,
-    is_builtin_pred = is_builtin_pred,
-    is_builtin_distinct = true},
-  builtins = {
-    builtin_typ = builtin_typ,
-    builtin_num = builtin_num,
-    builtin_fun = builtin_fun},
-  serialize = serialize comments}
+val interface = {
+  extra_norm = extra_norm,
+  translate = {
+    prefixes = {
+      sort_prefix = "S",
+      func_prefix = "f"},
+    strict = SOME {
+      is_builtin_conn = is_builtin_conn,
+      is_builtin_pred = is_builtin_pred,
+      is_builtin_distinct = true},
+    builtins = {
+      builtin_typ = builtin_typ,
+      builtin_num = builtin_num,
+      builtin_fun = builtin_fun},
+    serialize = serialize}}
 
 end

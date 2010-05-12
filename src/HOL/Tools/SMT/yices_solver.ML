@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/yices_solver.ML
+(*  Title:      HOL/Tools/SMT/yices_solver.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface of the SMT solver Yices.

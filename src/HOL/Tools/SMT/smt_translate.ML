@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/smt_translate.ML
+(*  Title:      HOL/Tools/SMT/smt_translate.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Translate theorems into an SMT intermediate format and serialize them.
@@ -34,14 +34,15 @@ sig
     prefixes: prefixes,
     strict: strict option,
     builtins: builtins,
-    serialize: sign -> sterm list -> string }
+    serialize: string list -> sign -> sterm list -> string }
   type recon = {
     typs: typ Symtab.table,
     terms: term Symtab.table,
     unfolds: thm list,
     assms: thm list option }
 
-  val translate: config -> Proof.context -> thm list -> string * recon
+  val translate: config -> Proof.context -> string list -> thm list ->
+    string * recon
 end
 
 structure SMT_Translate: SMT_TRANSLATE =
@@ -86,7 +87,7 @@ type config = {
   prefixes: prefixes,
   strict: strict option,
   builtins: builtins,
-  serialize: sign -> sterm list -> string }
+  serialize: string list -> sign -> sterm list -> string }
 
 type recon = {
   typs: typ Symtab.table,
@@ -288,7 +289,7 @@ fun with_context f (ths, ts) =
   in ((make_sign context, us), make_recon ths context) end
 
 
-fun translate {prefixes, strict, builtins, serialize} ctxt =
+fun translate {prefixes, strict, builtins, serialize} ctxt comments =
   let
     val {sort_prefix, func_prefix} = prefixes
     val {builtin_typ, builtin_num, builtin_fun} = builtins
@@ -337,7 +338,7 @@ fun translate {prefixes, strict, builtins, serialize} ctxt =
       end
   in
     (if is_some strict then strictify (the strict) ctxt else relaxed) #>
-    with_context trans #>> uncurry serialize
+    with_context trans #>> uncurry (serialize comments)
   end
 
 end

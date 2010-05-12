@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/smt_monomorph.ML
+(*  Title:      HOL/Tools/SMT/smt_monomorph.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Monomorphization of theorems, i.e., computation of all (necessary) instances.

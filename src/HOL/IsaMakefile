@@ -20,7 +20,6 @@ images: \
   HOL-Plain \
   HOL-Probability \
   HOL-Proofs \
-  HOL-SMT \
   HOL-Word \
   HOL4 \
   TLA
@@ -61,7 +60,7 @@ test: \
   HOL-Proofs-Extraction \
   HOL-Proofs-Lambda \
   HOL-SET_Protocol \
-  HOL-SMT-Examples \
+  HOL-SMT_Examples \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -274,6 +273,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Semiring_Normalization.thy \
   SetInterval.thy \
   Sledgehammer.thy \
+  SMT.thy \
   String.thy \
   Typerep.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
@@ -281,6 +281,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
+  $(SRC)/Tools/cache_io.ML \
   $(SRC)/Tools/Metis/metis.ML \
   Tools/ATP_Manager/atp_manager.ML \
   Tools/ATP_Manager/atp_systems.ML \
@@ -322,6 +323,20 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
+  Tools/SMT/cvc3_solver.ML \
+  Tools/SMT/smtlib_interface.ML \
+  Tools/SMT/smt_monomorph.ML \
+  Tools/SMT/smt_normalize.ML \
+  Tools/SMT/smt_solver.ML \
+  Tools/SMT/smt_translate.ML \
+  Tools/SMT/yices_solver.ML \
+  Tools/SMT/z3_interface.ML \
+  Tools/SMT/z3_model.ML \
+  Tools/SMT/z3_proof_literals.ML \
+  Tools/SMT/z3_proof_parser.ML \
+  Tools/SMT/z3_proof_reconstruction.ML \
+  Tools/SMT/z3_proof_tools.ML \
+  Tools/SMT/z3_solver.ML \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/transfer.ML \
@@ -1070,9 +1085,9 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MemClerk.thy		\
 
 ## HOL-Multivariate_Analysis
 
-HOL-Multivariate_Analysis: HOL-SMT $(OUT)/HOL-Multivariate_Analysis
+HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
 
-$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
+$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL		\
   Multivariate_Analysis/ROOT.ML				\
   Multivariate_Analysis/document/root.tex		\
   Multivariate_Analysis/Brouwer_Fixpoint.thy            \
@@ -1094,7 +1109,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL-SMT	\
   Library/Inner_Product.thy Library/Numeral_Type.thy	\
   Library/Convex.thy Library/FrechetDeriv.thy		\
   Library/Product_Vector.thy Library/Product_plus.thy
-	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Multivariate_Analysis
+	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
 
 ## HOL-Probability
@@ -1238,39 +1253,23 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
 
 
-## HOL-SMT
+## HOL-SMT_Examples
 
-HOL-SMT: HOL-Word $(OUT)/HOL-SMT
+HOL-SMT_Examples: HOL $(LOG)/HOL-SMT_Examples.gz
 
-$(OUT)/HOL-SMT: $(OUT)/HOL-Word SMT/ROOT.ML SMT/SMT_Base.thy SMT/Z3.thy \
-  SMT/SMT.thy SMT/Tools/smt_normalize.ML SMT/Tools/smt_monomorph.ML	\
-  SMT/Tools/smt_translate.ML SMT/Tools/smtlib_interface.ML              \
-  SMT/Tools/z3_interface.ML SMT/Tools/smt_additional_facts.ML		\
-  SMT/Tools/smt_solver.ML SMT/Tools/cvc3_solver.ML                      \
-  SMT/Tools/yices_solver.ML SMT/Tools/z3_proof_parser.ML		\
-  SMT/Tools/z3_proof_tools.ML SMT/Tools/z3_proof_literals.ML		\
-  SMT/Tools/z3_proof_reconstruction.ML SMT/Tools/z3_model.ML 		\
-  SMT/Tools/z3_solver.ML $(SRC)/Tools/cache_io.ML
-	@cd SMT; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SMT
-
-
-## HOL-SMT-Examples
-
-HOL-SMT-Examples: HOL-SMT $(LOG)/HOL-SMT-Examples.gz
-
-$(LOG)/HOL-SMT-Examples.gz: $(OUT)/HOL-SMT SMT/Examples/ROOT.ML		\
-  SMT/Examples/SMT_Examples.thy SMT/Examples/SMT_Examples.certs
-	@cd SMT; $(ISABELLE_TOOL) usedir $(OUT)/HOL-SMT Examples
+$(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-SMT SMT_Examples/ROOT.ML		\
+  SMT_Examples/SMT_Examples.thy SMT_Examples/SMT_Examples.certs
+	@cd SMT; $(ISABELLE_TOOL) usedir $(OUT)/HOL Examples
 
 
 ## HOL-Boogie
 
-HOL-Boogie: HOL-SMT $(OUT)/HOL-Boogie
+HOL-Boogie: HOL $(OUT)/HOL-Boogie
 
-$(OUT)/HOL-Boogie: $(OUT)/HOL-SMT Boogie/ROOT.ML Boogie/Boogie.thy	\
+$(OUT)/HOL-Boogie: $(OUT)/HOL Boogie/ROOT.ML Boogie/Boogie.thy	\
   Boogie/Tools/boogie_vcs.ML Boogie/Tools/boogie_loader.ML		\
   Boogie/Tools/boogie_commands.ML Boogie/Tools/boogie_tactics.ML
-	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-SMT HOL-Boogie
+	@cd Boogie; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Boogie
 
 
 ## HOL-Boogie_Examples
@@ -1344,15 +1343,15 @@ clean:
 		$(LOG)/HOL-Probability.gz $(LOG)/HOL-Prolog.gz		\
 		$(LOG)/HOL-Proofs.gz $(LOG)/HOL-Proofs-Extraction.gz	\
 		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
-		$(LOG)/HOL-SMT-Examples.gz $(LOG)/HOL-SMT.gz		\
-		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
-		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
-		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\
-		$(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz $(LOG)/HOL.gz		\
-		$(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Inc.gz	\
-		$(LOG)/TLA-Memory.gz $(LOG)/TLA.gz $(OUT)/HOL		\
-		$(OUT)/HOL-Algebra $(OUT)/HOL-Base $(OUT)/HOL-Boogie	\
-		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
-		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
+		$(LOG)/HOL-SMT_Examples.gz $(LOG)/HOL-Statespace.gz 	\
+		$(LOG)/HOL-Subst.gz $(LOG)/HOL-UNITY.gz			\
+		$(LOG)/HOL-Unix.gz $(LOG)/HOL-Word-Examples.gz		\
+		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
+		$(LOG)/HOL.gz $(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz	\
+		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\
+		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
+		$(OUT)/HOL-Boogie $(OUT)/HOL-Main			\
+		$(OUT)/HOL-Multivariate_Analysis $(OUT)/HOL-NSA		\
+		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain			\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
-		$(OUT)/HOL-SMT $(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA
+		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA

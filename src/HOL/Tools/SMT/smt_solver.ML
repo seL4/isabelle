@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/smt_solver.ML
+(*  Title:      HOL/Tools/SMT/smt_solver.ML
     Author:     Sascha Boehme, TU Muenchen
 
 SMT solvers registry and SMT tactic.
@@ -9,10 +9,13 @@ sig
   exception SMT of string
   exception SMT_COUNTEREXAMPLE of bool * term list
 
+  type interface = {
+    extra_norm: SMT_Normalize.extra_norm,
+    translate: SMT_Translate.config }
   type solver_config = {
     command: {env_var: string, remote_name: string option},
     arguments: string list,
-    interface: string list -> SMT_Translate.config,
+    interface: interface,
     reconstruct: (string list * SMT_Translate.recon) -> Proof.context ->
       thm * Proof.context }
 
@@ -53,10 +56,14 @@ exception SMT of string
 exception SMT_COUNTEREXAMPLE of bool * term list
 
 
+type interface = {
+  extra_norm: SMT_Normalize.extra_norm,
+  translate: SMT_Translate.config }
+
 type solver_config = {
   command: {env_var: string, remote_name: string option},
   arguments: string list,
-  interface: string list -> SMT_Translate.config,
+  interface: interface,
   reconstruct: (string list * SMT_Translate.recon) -> Proof.context ->
     thm * Proof.context }
 
@@ -89,6 +96,9 @@ structure Certificates = Generic_Data
   val extend = I
   fun merge (s, _) = s
 )
+
+val get_certificates_path =
+  Option.map (Cache_IO.cache_path_of) o Certificates.get
 
 fun select_certificates name = Certificates.put (
   if name = "" then NONE
@@ -166,9 +176,9 @@ fun trace_recon_data ctxt {typs, terms, ...} =
       Pretty.big_list "functions:" (map pretty_term (Symtab.dest terms))])) ()
   end
 
-fun invoke translate_config command arguments thms ctxt =
+fun invoke translate_config comments command arguments thms ctxt =
   thms
-  |> SMT_Translate.translate translate_config ctxt
+  |> SMT_Translate.translate translate_config ctxt comments
   ||> tap (trace_recon_data ctxt)
   |>> run_solver ctxt command arguments
   |> rpair ctxt
@@ -183,11 +193,11 @@ fun gen_solver name solver ctxt prems =
     val comments = ("solver: " ^ name) ::
       ("timeout: " ^ string_of_int (Config.get ctxt timeout)) ::
       "arguments:" :: arguments
+    val {extra_norm, translate} = interface
   in
-    SMT_Additional_Facts.add_facts prems
-    |> rpair ctxt
-    |-> SMT_Normalize.normalize
-    |-> invoke (interface comments) command arguments
+    (prems, ctxt)
+    |-> SMT_Normalize.normalize extra_norm
+    |-> invoke translate comments command arguments
     |-> reconstruct
     |-> (fn thm => fn ctxt' => thm
     |> singleton (ProofContext.export ctxt' ctxt)
@@ -325,11 +335,19 @@ fun print_setup gen =
       |> map_filter (fn (n, (_, info)) => take_info (n, info gen))
       |> sort (prod_ord string_ord (K EQUAL))
       |> map (fn (n, ps) => Pretty.big_list (n ^ ":") ps)
+    val certs_filename =
+      (case get_certificates_path gen of
+        SOME path => Path.implode path
+      | NONE => "(disabled)")
+    val fixed = if Config.get_generic gen fixed_certificates then "true"
+      else "false"
   in
     Pretty.writeln (Pretty.big_list "SMT setup:" [
       Pretty.str ("Current SMT solver: " ^ solver_name_of gen),
       Pretty.str_list "Available SMT solvers: "  "" ns,
       Pretty.str ("Current timeout: " ^ t ^ " seconds"),
+      Pretty.str ("Certificates cache: " ^ certs_filename),
+      Pretty.str ("Fixed certificates: " ^ fixed),
       Pretty.big_list "Solver-specific settings:" infos])
   end
 

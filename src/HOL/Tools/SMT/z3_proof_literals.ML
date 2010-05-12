@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/z3_proof_literals.ML
+(*  Title:      HOL/Tools/SMT/z3_proof_literals.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Proof tools related to conjunctions and disjunctions.

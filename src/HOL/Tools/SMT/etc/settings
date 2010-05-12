@@ -1,6 +1,5 @@
 ISABELLE_SMT="$COMPONENT"
 
-RUN_SMT_SOLVER="$ISABELLE_SMT/lib/scripts/run_smt_solver"
 REMOTE_SMT="$ISABELLE_SMT/lib/scripts/remote_smt"
 
 REMOTE_SMT_URL="http://smt.in.tum.de/smt"

@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/cvc3_solver.ML
+(*  Title:      HOL/Tools/SMT/cvc3_solver.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Interface of the SMT solver CVC3.

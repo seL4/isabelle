@@ -1,8 +1,7 @@
-(*  Title:      HOL/SMT/Tools/smt_normalize.ML
+(*  Title:      HOL/Tools/SMT/smt_normalize.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Normalization steps on theorems required by SMT solvers:
-  * unfold trivial let expressions,
   * simplify trivial distincts (those with less than three elements),
   * rewrite bool case expressions as if expressions,
   * normalize numerals (e.g. replace negative numerals by negated positive
@@ -16,7 +15,10 @@ Normalization steps on theorems required by SMT solvers:
 
 signature SMT_NORMALIZE =
 sig
-  val normalize: thm list -> Proof.context -> thm list * Proof.context
+  type extra_norm = thm list -> Proof.context -> thm list * Proof.context
+  val normalize: extra_norm -> thm list -> Proof.context ->
+    thm list * Proof.context
+  val eta_expand_conv: (Proof.context -> conv) -> Proof.context -> conv
 end
 
 structure SMT_Normalize: SMT_NORMALIZE =
@@ -140,8 +142,8 @@ local
     "int (nat (int a mod int b)) = int a mod int b"
     "int (nat (min (int a) (int b))) = min (int a) (int b)"
     "int (nat (max (int a) (int b))) = max (int a) (int b)"
-    by (simp add: nat_mult_distrib nat_div_distrib nat_mod_distrib
-      int_mult[symmetric] zdiv_int[symmetric] zmod_int[symmetric])+}
+    by (simp_all add: nat_mult_distrib nat_div_distrib nat_mod_distrib
+      int_mult[symmetric] zdiv_int[symmetric] zmod_int[symmetric])}
 
   fun on_positive num f x = 
     (case try HOLogic.dest_number (Thm.term_of num) of
@@ -180,78 +182,46 @@ end
 
 
 
-(* unfold definitions of specific constants *)
-
-local
-  fun mk_entry (t as Const (n, _)) thm = ((n, t), thm)
-    | mk_entry t _ = raise TERM ("mk_entry", [t])
-  fun prepare_def thm =
-    (case Thm.prop_of thm of
-      Const (@{const_name "=="}, _) $ t $ _ => mk_entry (Term.head_of t) thm
-    | t => raise TERM ("prepare_def", [t]))
-
-  val defs = map prepare_def [
-    @{thm abs_if[where 'a = int, THEN eq_reflection]},
-    @{thm abs_if[where 'a = real, THEN eq_reflection]},
-    @{thm min_def[where 'a = int, THEN eq_reflection]},
-    @{thm min_def[where 'a = real, THEN eq_reflection]},
-    @{thm max_def[where 'a = int, THEN eq_reflection]},
-    @{thm max_def[where 'a = real, THEN eq_reflection]},
-    @{thm Ex1_def}, @{thm Ball_def}, @{thm Bex_def}]
-
-  fun matches thy ((t as Const (n, _)), (m, p)) =
-        n = m andalso Pattern.matches thy (p, t)
-    | matches _ _ = false
-
-  fun lookup_def thy = AList.lookup (matches thy) defs
-  fun lookup_def_head thy = lookup_def thy o Term.head_of
-
-  fun occurs_def thy = Term.exists_subterm (is_some o lookup_def thy)
-
-  fun unfold_def_conv ctxt ct =
-    (case lookup_def_head (ProofContext.theory_of ctxt) (Thm.term_of ct) of
-      SOME thm => Conv.rewr_conv thm
-    | NONE => Conv.all_conv) ct
-in
-fun unfold_defs ctxt =
-  (occurs_def (ProofContext.theory_of ctxt) o Thm.prop_of) ??
-  Conv.fconv_rule (More_Conv.top_conv unfold_def_conv ctxt)
-end
-
-
-
 (* further normalizations: beta/eta, universal closure, atomize *)
 
-local
-  val all1 = @{lemma "All P == ALL x. P x" by (rule reflexive)}
-  val all2 = @{lemma "All == (%P. ALL x. P x)" by (rule reflexive)}
-  val ex1 = @{lemma "Ex P == EX x. P x" by (rule reflexive)}
-  val ex2 = @{lemma "Ex == (%P. EX x. P x)" by (rule reflexive)}
-  val let1 = @{lemma "Let c P == let x = c in P x" by (rule reflexive)}
-  val let2 = @{lemma "Let c == (%P. let x = c in P x)" by (rule reflexive)}
-  val let3 = @{lemma "Let == (%c P. let x = c in P x)" by (rule reflexive)}
+val eta_expand_eq = @{lemma "f == (%x. f x)" by (rule reflexive)}
 
-  fun all_abs_conv cv ctxt =
-    Conv.abs_conv (all_abs_conv cv o snd) ctxt else_conv cv ctxt
+fun eta_expand_conv cv ctxt =
+  Conv.rewr_conv eta_expand_eq then_conv Conv.abs_conv (cv o snd) ctxt
+
+local
+  val eta_conv = eta_expand_conv
+
   fun keep_conv ctxt = More_Conv.binder_conv norm_conv ctxt
-  and unfold_conv rule ctxt =
-    Conv.rewr_conv rule then_conv all_abs_conv keep_conv ctxt
-  and unfold_let_conv rule ctxt =
-    Conv.rewr_conv rule then_conv
-    all_abs_conv (fn cx => Conv.combination_conv
-      (Conv.arg_conv (norm_conv cx)) (Conv.abs_conv (norm_conv o snd) cx)) ctxt
+  and eta_binder_conv ctxt = Conv.arg_conv (eta_conv norm_conv ctxt)
+  and keep_let_conv ctxt = Conv.combination_conv
+    (Conv.arg_conv (norm_conv ctxt)) (Conv.abs_conv (norm_conv o snd) ctxt)
+  and unfold_let_conv ctxt = Conv.combination_conv
+    (Conv.arg_conv (norm_conv ctxt)) (eta_conv norm_conv ctxt)
+  and unfold_conv thm ctxt = Conv.rewr_conv thm then_conv keep_conv ctxt
+  and unfold_ex1_conv ctxt = unfold_conv @{thm Ex1_def} ctxt
+  and unfold_ball_conv ctxt = unfold_conv @{thm Ball_def} ctxt
+  and unfold_bex_conv ctxt = unfold_conv @{thm Bex_def} ctxt
   and norm_conv ctxt ct =
     (case Thm.term_of ct of
       Const (@{const_name All}, _) $ Abs _ => keep_conv
-    | Const (@{const_name All}, _) $ _ => unfold_conv all1
-    | Const (@{const_name All}, _) => unfold_conv all2
+    | Const (@{const_name All}, _) $ _ => eta_binder_conv
+    | Const (@{const_name All}, _) => eta_conv eta_binder_conv
     | Const (@{const_name Ex}, _) $ Abs _ => keep_conv
-    | Const (@{const_name Ex}, _) $ _ => unfold_conv ex1
-    | Const (@{const_name Ex}, _) => unfold_conv ex2
-    | Const (@{const_name Let}, _) $ _ $ Abs _ => keep_conv
-    | Const (@{const_name Let}, _) $ _ $ _ => unfold_let_conv let1
-    | Const (@{const_name Let}, _) $ _ => unfold_let_conv let2
-    | Const (@{const_name Let}, _) => unfold_let_conv let3
+    | Const (@{const_name Ex}, _) $ _ => eta_binder_conv
+    | Const (@{const_name Ex}, _) => eta_conv eta_binder_conv
+    | Const (@{const_name Let}, _) $ _ $ Abs _ => keep_let_conv
+    | Const (@{const_name Let}, _) $ _ $ _ => unfold_let_conv
+    | Const (@{const_name Let}, _) $ _ => eta_conv unfold_let_conv
+    | Const (@{const_name Let}, _) => eta_conv (eta_conv unfold_let_conv)
+    | Const (@{const_name Ex1}, _) $ _ => unfold_ex1_conv
+    | Const (@{const_name Ex1}, _) => eta_conv unfold_ex1_conv 
+    | Const (@{const_name Ball}, _) $ _ $ _ => unfold_ball_conv
+    | Const (@{const_name Ball}, _) $ _ => eta_conv unfold_ball_conv
+    | Const (@{const_name Ball}, _) => eta_conv (eta_conv unfold_ball_conv)
+    | Const (@{const_name Bex}, _) $ _ $ _ => unfold_bex_conv
+    | Const (@{const_name Bex}, _) $ _ => eta_conv unfold_bex_conv
+    | Const (@{const_name Bex}, _) => eta_conv (eta_conv unfold_bex_conv)
     | Abs _ => Conv.abs_conv (norm_conv o snd)
     | _ $ _ => Conv.comb_conv o norm_conv
     | _ => K Conv.all_conv) ctxt ct
@@ -269,6 +239,9 @@ local
     | Const (@{const_name Let}, _) $ _ $ _ => false
     | Const (@{const_name Let}, _) $ _ => false
     | Const (@{const_name Let}, _) => false
+    | Const (@{const_name Ex1}, _) => false
+    | Const (@{const_name Ball}, _) => false
+    | Const (@{const_name Bex}, _) => false
     | Abs (_, _, u) => is_normed u
     | u1 $ u2 => is_normed u1 andalso is_normed u2
     | _ => true)
@@ -455,16 +428,21 @@ end
 
 (* combined normalization *)
 
-fun normalize thms ctxt =
+type extra_norm = thm list -> Proof.context -> thm list * Proof.context
+
+fun with_context f thms ctxt = (f ctxt thms, ctxt)
+
+fun normalize extra_norm thms ctxt =
   thms
   |> trivial_distinct ctxt
   |> rewrite_bool_cases ctxt
   |> normalize_numerals ctxt
   |> nat_as_int ctxt
-  |> map (unfold_defs ctxt #> normalize_rule ctxt)
   |> rpair ctxt
+  |-> extra_norm
+  |-> with_context (fn cx => map (normalize_rule cx))
   |-> SMT_Monomorph.monomorph
   |-> lift_lambdas
-  |-> (fn thms' => `(fn ctxt' => explicit_application ctxt' thms'))
+  |-> with_context explicit_application
 
 end

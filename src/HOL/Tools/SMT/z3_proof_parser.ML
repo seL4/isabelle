@@ -1,4 +1,4 @@
-(*  Title:      HOL/SMT/Tools/z3_proof_parser.ML
+(*  Title:      HOL/Tools/SMT/z3_proof_parser.ML
     Author:     Sascha Boehme, TU Muenchen
 
 Parser for Z3 proofs.
