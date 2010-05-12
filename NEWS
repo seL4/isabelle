@@ -145,6 +145,8 @@ no longer shadowed.  INCOMPATIBILITY.
 
 * Dropped theorem duplicate comp_arith; use semiring_norm instead.  INCOMPATIBILITY.
 
+* Dropped normalizing. Use semiring classes directly. INCOMPATIBILITY.
+
 * Theory 'Finite_Set': various folding_* locales facilitate the application
 of the various fold combinators on finite sets.
 
