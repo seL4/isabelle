@@ -5,7 +5,8 @@ Normalization steps on theorems required by SMT solvers:
   * unfold trivial let expressions,
   * simplify trivial distincts (those with less than three elements),
   * rewrite bool case expressions as if expressions,
-  * replace negative numerals by negated positive numerals,
+  * normalize numerals (e.g. replace negative numerals by negated positive
+    numerals),
   * embed natural numbers into integers,
   * add extra rules specifying types and constants which occur frequently,
   * lift lambda terms,
@@ -109,20 +110,22 @@ end
 
 
 
-(* rewriting of negative integer numerals into positive numerals *)
+(* normalization of numerals: rewriting of negative integer numerals into
+   positive numerals, Numeral0 into 0, Numeral1 into 1 *)
 
 local
-  fun neg_numeral @{term Int.Min} = true
-    | neg_numeral _ = false
-  fun is_number_sort thy T = Sign.of_sort thy (T, @{sort number_ring})
-  fun is_neg_number ctxt (Const (@{const_name number_of}, T) $ t) =
-        Term.exists_subterm neg_numeral t andalso
-        is_number_sort (ProofContext.theory_of ctxt) (Term.body_type T)
-    | is_neg_number _ _ = false
+  fun is_number_sort ctxt T =
+    Sign.of_sort (ProofContext.theory_of ctxt) (T, @{sort number_ring})
+
+  fun is_strange_number ctxt (t as Const (@{const_name number_of}, _) $ _) =
+        (case try HOLogic.dest_number t of
+          SOME (T, i) => is_number_sort ctxt T andalso i < 2
+        | NONE => false)
+    | is_strange_number _ _ = false
 
   val pos_numeral_ss = HOL_ss
     addsimps [@{thm Int.number_of_minus}, @{thm Int.number_of_Min}]
-    addsimps [@{thm Int.numeral_1_eq_1}]
+    addsimps [@{thm Int.number_of_Pls}, @{thm Int.numeral_1_eq_1}]
     addsimps @{thms Int.pred_bin_simps}
     addsimps @{thms Int.normalize_bin_simps}
     addsimps @{lemma
@@ -132,12 +135,12 @@ local
       "Int.Bit1 (- k) = - Int.Bit1 (Int.pred k)"
       by simp_all (simp add: pred_def)}
 
-  fun pos_conv ctxt = if_conv (is_neg_number ctxt)
+  fun pos_conv ctxt = if_conv (is_strange_number ctxt)
     (Simplifier.rewrite (Simplifier.context ctxt pos_numeral_ss))
     Conv.no_conv
 in
-fun positive_numerals ctxt =
-  map ((Term.exists_subterm (is_neg_number ctxt) o Thm.prop_of) ??
+fun normalize_numerals ctxt =
+  map ((Term.exists_subterm (is_strange_number ctxt) o Thm.prop_of) ??
     Conv.fconv_rule (More_Conv.top_sweep_conv pos_conv ctxt))
 end
 
@@ -532,7 +535,7 @@ fun normalize ctxt thms =
   |> trivial_let ctxt
   |> trivial_distinct ctxt
   |> rewrite_bool_cases ctxt
-  |> positive_numerals ctxt
+  |> normalize_numerals ctxt
   |> nat_as_int ctxt
   |> add_rules
   |> map (unfold_defs ctxt #> normalize_rule ctxt)
