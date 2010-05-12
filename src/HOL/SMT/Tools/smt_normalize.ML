@@ -26,104 +26,8 @@ struct
 infix 2 ??
 fun (test ?? f) x = if test x then f x else x
 
-
-local
-  val all1 = @{lemma "All P == ALL x. P x" by (rule reflexive)}
-  val all2 = @{lemma "All == (%P. ALL x. P x)" by (rule reflexive)}
-  val ex1 = @{lemma "Ex P == EX x. P x" by (rule reflexive)}
-  val ex2 = @{lemma "Ex == (%P. EX x. P x)" by (rule reflexive)}
-  val let1 = @{lemma "Let c P == let x = c in P x" by (rule reflexive)}
-  val let2 = @{lemma "Let c == (%P. let x = c in P x)" by (rule reflexive)}
-  val let3 = @{lemma "Let == (%c P. let x = c in P x)" by (rule reflexive)}
-
-  fun all_abs_conv cv ctxt =
-    Conv.abs_conv (all_abs_conv cv o snd) ctxt else_conv cv ctxt
-  fun keep_conv ctxt = More_Conv.binder_conv norm_conv ctxt
-  and unfold_conv rule ctxt =
-    Conv.rewr_conv rule then_conv all_abs_conv keep_conv ctxt
-  and unfold_let_conv rule ctxt =
-    Conv.rewr_conv rule then_conv
-    all_abs_conv (fn cx => Conv.combination_conv
-      (Conv.arg_conv (norm_conv cx)) (Conv.abs_conv (norm_conv o snd) cx)) ctxt
-  and norm_conv ctxt ct =
-    (case Thm.term_of ct of
-      Const (@{const_name All}, _) $ Abs _ => keep_conv
-    | Const (@{const_name All}, _) $ _ => unfold_conv all1
-    | Const (@{const_name All}, _) => unfold_conv all2
-    | Const (@{const_name Ex}, _) $ Abs _ => keep_conv
-    | Const (@{const_name Ex}, _) $ _ => unfold_conv ex1
-    | Const (@{const_name Ex}, _) => unfold_conv ex2
-    | Const (@{const_name Let}, _) $ _ $ Abs _ => keep_conv
-    | Const (@{const_name Let}, _) $ _ $ _ => unfold_let_conv let1
-    | Const (@{const_name Let}, _) $ _ => unfold_let_conv let2
-    | Const (@{const_name Let}, _) => unfold_let_conv let3
-    | Abs _ => Conv.abs_conv (norm_conv o snd)
-    | _ $ _ => Conv.comb_conv o norm_conv
-    | _ => K Conv.all_conv) ctxt ct
-
-  fun is_normed t =
-    (case t of
-      Const (@{const_name All}, _) $ Abs (_, _, u) => is_normed u
-    | Const (@{const_name All}, _) $ _ => false
-    | Const (@{const_name All}, _) => false
-    | Const (@{const_name Ex}, _) $ Abs (_, _, u) => is_normed u
-    | Const (@{const_name Ex}, _) $ _ => false
-    | Const (@{const_name Ex}, _) => false
-    | Const (@{const_name Let}, _) $ u1 $ Abs (_, _, u2) =>
-        is_normed u1 andalso is_normed u2
-    | Const (@{const_name Let}, _) $ _ $ _ => false
-    | Const (@{const_name Let}, _) $ _ => false
-    | Const (@{const_name Let}, _) => false
-    | Abs (_, _, u) => is_normed u
-    | u1 $ u2 => is_normed u1 andalso is_normed u2
-    | _ => true)
-in
-fun norm_binder_conv ctxt ct =
-  if is_normed (Thm.term_of ct) then Conv.all_conv ct else norm_conv ctxt ct
-end
-
-fun cert ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
-
-fun norm_meta_def cv thm = 
-  let val thm' = Thm.combination thm (Thm.reflexive cv)
-  in Thm.transitive thm' (Thm.beta_conversion false (Thm.rhs_of thm')) end
-
-fun norm_def ctxt thm =
-  (case Thm.prop_of thm of
-    Const (@{const_name "=="}, _) $ _ $ Abs (_, T, _) =>
-      let val v = Var ((Name.uu, #maxidx (Thm.rep_thm thm) + 1), T)
-      in norm_def ctxt (norm_meta_def (cert ctxt v) thm) end
-  | @{term Trueprop} $ (Const (@{const_name "op ="}, _) $ _ $ Abs _) =>
-      norm_def ctxt (thm RS @{thm fun_cong})
-  | _ => thm)
-
-fun atomize_conv ctxt ct =
-  (case Thm.term_of ct of
-    @{term "op ==>"} $ _ $ _ =>
-      Conv.binop_conv (atomize_conv ctxt) then_conv
-      Conv.rewr_conv @{thm atomize_imp}
-  | Const (@{const_name "=="}, _) $ _ $ _ =>
-      Conv.binop_conv (atomize_conv ctxt) then_conv
-      Conv.rewr_conv @{thm atomize_eq}
-  | Const (@{const_name all}, _) $ Abs _ =>
-      More_Conv.binder_conv atomize_conv ctxt then_conv
-      Conv.rewr_conv @{thm atomize_all}
-  | _ => Conv.all_conv) ct
-
-fun unfold_quants_conv ctxt =
-  let
-    val rules = [@{thm Ex1_def}, @{thm Ball_def}, @{thm Bex_def}]
-    val unfold_conv = Conv.try_conv (More_Conv.rewrs_conv rules)
-  in More_Conv.top_conv (K unfold_conv) ctxt end
-
-fun normalize_rule ctxt =
-  Conv.fconv_rule (
-    Thm.beta_conversion true then_conv
-    Thm.eta_conversion then_conv
-    norm_binder_conv ctxt) #>
-  norm_def ctxt #>
-  Drule.forall_intr_vars #>
-  Conv.fconv_rule (atomize_conv ctxt)
+fun if_conv c cv1 cv2 ct = (if c (Thm.term_of ct) then cv1 else cv2) ct
+fun if_true_conv c cv = if_conv c cv Conv.all_conv
 
 fun instantiate_free (cv, ct) =
   (Term.exists_subterm (equal (Thm.term_of cv)) o Thm.prop_of) ??
@@ -136,9 +40,6 @@ fun discharge_definition ct thm =
     |> instantiate_free (cv, cu)
     |> (fn thm => Thm.implies_elim thm (Thm.reflexive cu))
   end
-
-fun if_conv c cv1 cv2 ct = (if c (Thm.term_of ct) then cv1 else cv2) ct
-fun if_true_conv c cv = if_conv c cv Conv.all_conv
 
 
 
@@ -353,6 +254,95 @@ end
 
 
 
+(* further normalizations: beta/eta, universal closure, atomize *)
+
+local
+  val all1 = @{lemma "All P == ALL x. P x" by (rule reflexive)}
+  val all2 = @{lemma "All == (%P. ALL x. P x)" by (rule reflexive)}
+  val ex1 = @{lemma "Ex P == EX x. P x" by (rule reflexive)}
+  val ex2 = @{lemma "Ex == (%P. EX x. P x)" by (rule reflexive)}
+  val let1 = @{lemma "Let c P == let x = c in P x" by (rule reflexive)}
+  val let2 = @{lemma "Let c == (%P. let x = c in P x)" by (rule reflexive)}
+  val let3 = @{lemma "Let == (%c P. let x = c in P x)" by (rule reflexive)}
+
+  fun all_abs_conv cv ctxt =
+    Conv.abs_conv (all_abs_conv cv o snd) ctxt else_conv cv ctxt
+  fun keep_conv ctxt = More_Conv.binder_conv norm_conv ctxt
+  and unfold_conv rule ctxt =
+    Conv.rewr_conv rule then_conv all_abs_conv keep_conv ctxt
+  and unfold_let_conv rule ctxt =
+    Conv.rewr_conv rule then_conv
+    all_abs_conv (fn cx => Conv.combination_conv
+      (Conv.arg_conv (norm_conv cx)) (Conv.abs_conv (norm_conv o snd) cx)) ctxt
+  and norm_conv ctxt ct =
+    (case Thm.term_of ct of
+      Const (@{const_name All}, _) $ Abs _ => keep_conv
+    | Const (@{const_name All}, _) $ _ => unfold_conv all1
+    | Const (@{const_name All}, _) => unfold_conv all2
+    | Const (@{const_name Ex}, _) $ Abs _ => keep_conv
+    | Const (@{const_name Ex}, _) $ _ => unfold_conv ex1
+    | Const (@{const_name Ex}, _) => unfold_conv ex2
+    | Const (@{const_name Let}, _) $ _ $ Abs _ => keep_conv
+    | Const (@{const_name Let}, _) $ _ $ _ => unfold_let_conv let1
+    | Const (@{const_name Let}, _) $ _ => unfold_let_conv let2
+    | Const (@{const_name Let}, _) => unfold_let_conv let3
+    | Abs _ => Conv.abs_conv (norm_conv o snd)
+    | _ $ _ => Conv.comb_conv o norm_conv
+    | _ => K Conv.all_conv) ctxt ct
+
+  fun is_normed t =
+    (case t of
+      Const (@{const_name All}, _) $ Abs (_, _, u) => is_normed u
+    | Const (@{const_name All}, _) $ _ => false
+    | Const (@{const_name All}, _) => false
+    | Const (@{const_name Ex}, _) $ Abs (_, _, u) => is_normed u
+    | Const (@{const_name Ex}, _) $ _ => false
+    | Const (@{const_name Ex}, _) => false
+    | Const (@{const_name Let}, _) $ u1 $ Abs (_, _, u2) =>
+        is_normed u1 andalso is_normed u2
+    | Const (@{const_name Let}, _) $ _ $ _ => false
+    | Const (@{const_name Let}, _) $ _ => false
+    | Const (@{const_name Let}, _) => false
+    | Abs (_, _, u) => is_normed u
+    | u1 $ u2 => is_normed u1 andalso is_normed u2
+    | _ => true)
+in
+fun norm_binder_conv ctxt = if_conv is_normed Conv.all_conv (norm_conv ctxt)
+end
+
+fun norm_def ctxt thm =
+  (case Thm.prop_of thm of
+    @{term Trueprop} $ (Const (@{const_name "op ="}, _) $ _ $ Abs _) =>
+      norm_def ctxt (thm RS @{thm fun_cong})
+  | Const (@{const_name "=="}, _) $ _ $ Abs _ =>
+      norm_def ctxt (thm RS @{thm meta_eq_to_obj_eq})
+  | _ => thm)
+
+fun atomize_conv ctxt ct =
+  (case Thm.term_of ct of
+    @{term "op ==>"} $ _ $ _ =>
+      Conv.binop_conv (atomize_conv ctxt) then_conv
+      Conv.rewr_conv @{thm atomize_imp}
+  | Const (@{const_name "=="}, _) $ _ $ _ =>
+      Conv.binop_conv (atomize_conv ctxt) then_conv
+      Conv.rewr_conv @{thm atomize_eq}
+  | Const (@{const_name all}, _) $ Abs _ =>
+      More_Conv.binder_conv atomize_conv ctxt then_conv
+      Conv.rewr_conv @{thm atomize_all}
+  | _ => Conv.all_conv) ct
+
+fun normalize_rule ctxt =
+  Conv.fconv_rule (
+    (* reduce lambda abstractions, except at known binders: *)
+    Thm.beta_conversion true then_conv
+    Thm.eta_conversion then_conv
+    norm_binder_conv ctxt) #>
+  norm_def ctxt #>
+  Drule.forall_intr_vars #>
+  Conv.fconv_rule (atomize_conv ctxt)
+
+
+
 (* lift lambda terms into additional rules *)
 
 local
@@ -360,6 +350,12 @@ local
   val meta_eqT = hd (Thm.dest_ctyp (Thm.ctyp_of_term meta_eq))
   fun inst_meta cT = Thm.instantiate_cterm ([(meta_eqT, cT)], []) meta_eq
   fun mk_meta_eq ct cu = Thm.mk_binop (inst_meta (Thm.ctyp_of_term ct)) ct cu
+
+  fun norm_meta_def cv thm = 
+    let val thm' = Thm.combination thm (Thm.reflexive cv)
+    in Thm.transitive thm' (Thm.beta_conversion false (Thm.rhs_of thm')) end
+
+  fun cert ctxt = Thm.cterm_of (ProofContext.theory_of ctxt)
 
   val fresh_name = yield_singleton Name.variants
 
