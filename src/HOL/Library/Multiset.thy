@@ -330,24 +330,8 @@ lemma multiset_diff_union_assoc:
   by (simp add: multiset_eq_conv_count_eq mset_le_def)
 
 lemma mset_le_multiset_union_diff_commute:
-  assumes "B \<le> A"
-  shows "(A::'a multiset) - B + C = A + C - B"
-proof -
-  from mset_le_exists_conv [of "B" "A"] assms have "\<exists>D. A = B + D" ..
-  from this obtain D where "A = B + D" ..
-  then show ?thesis
-    apply simp
-    apply (subst add_commute)
-    apply (subst multiset_diff_union_assoc)
-    apply simp
-    apply (simp add: diff_cancel)
-    apply (subst add_assoc)
-    apply (subst add_commute [of "B" _])
-    apply (subst multiset_diff_union_assoc)
-    apply simp
-    apply (simp add: diff_cancel)
-    done
-qed
+  "B \<le> A \<Longrightarrow> (A::'a multiset) - B + C = A + C - B"
+by (simp add: multiset_eq_conv_count_eq mset_le_def)
 
 lemma mset_lessD: "A < B \<Longrightarrow> x \<in># A \<Longrightarrow> x \<in># B"
 apply (clarsimp simp: mset_le_def mset_less_def)
