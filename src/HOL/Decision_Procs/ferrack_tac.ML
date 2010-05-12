@@ -92,7 +92,7 @@ fun linr_tac ctxt q =
     (* The result of the quantifier elimination *)
     val (th, tac) = case prop_of pre_thm of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
-    let val pth = linr_oracle (cterm_of thy (Pattern.eta_long [] t1))
+    let val pth = linr_oracle (ctxt, Pattern.eta_long [] t1)
     in 
           (trace_msg ("calling procedure with term:\n" ^
              Syntax.string_of_term ctxt t1);
