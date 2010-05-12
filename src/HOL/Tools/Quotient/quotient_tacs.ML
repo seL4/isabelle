@@ -38,14 +38,6 @@ fun mk_minimal_ss ctxt =
 (* composition of two theorems, used in maps *)
 fun OF1 thm1 thm2 = thm2 RS thm1
 
-(* prints a warning, if the subgoal is not solved *)
-fun WARN (tac, msg) i st =
- case Seq.pull (SOLVED' tac i st) of
-     NONE    => (warning msg; Seq.single st)
-   | seqcell => Seq.make (fn () => seqcell)
-
-fun RANGE_WARN tacs = RANGE (map WARN tacs)
-
 fun atomize_thm thm =
 let
   val thm' = Thm.legacy_freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? *)
@@ -631,21 +623,14 @@ fun procedure_tac ctxt rthm =
 
 (* Automatic Proofs *)
 
-val msg1 = "The regularize proof failed."
-val msg2 = cat_lines ["The injection proof failed.",
-                      "This is probably due to missing respects lemmas.",
-                      "Try invoking the injection method manually to see",
-                      "which lemmas are missing."]
-val msg3 = "The cleaning proof failed."
-
 fun lift_tac ctxt rthms =
 let
   fun mk_tac rthm =
     procedure_tac ctxt rthm
-    THEN' RANGE_WARN
-      [(regularize_tac ctxt, msg1),
-       (all_injection_tac ctxt, msg2),
-       (clean_tac ctxt, msg3)]
+    THEN' RANGE
+      [regularize_tac ctxt,
+       all_injection_tac ctxt,
+       clean_tac ctxt]
 in
   simp_tac (mk_minimal_ss ctxt) (* unfolding multiple &&& *)
   THEN' RANGE (map mk_tac rthms)
