@@ -51,7 +51,7 @@ definition
 
 lemma nibble_of_nat_norm:
   "nibble_of_nat (n mod 16) = nibble_of_nat n"
-  unfolding nibble_of_nat_def Let_def by auto
+  unfolding nibble_of_nat_def mod_mod_trivial ..
 
 lemmas [code] = nibble_of_nat_norm [symmetric]
 
@@ -72,7 +72,7 @@ lemma nibble_of_nat_simps [simp]:
   "nibble_of_nat 13 = NibbleD"
   "nibble_of_nat 14 = NibbleE"
   "nibble_of_nat 15 = NibbleF"
-  unfolding nibble_of_nat_def Let_def by auto
+  unfolding nibble_of_nat_def by auto
 
 lemmas nibble_of_nat_code [code] = nibble_of_nat_simps
   [simplified nat_number Let_def not_neg_number_of_Pls neg_number_of_Bit0 neg_number_of_Bit1 if_False add_0 add_Suc]
@@ -83,15 +83,15 @@ lemma nibble_of_nat_of_nibble: "nibble_of_nat (nat_of_nibble n) = n"
 lemma nat_of_nibble_of_nat: "nat_of_nibble (nibble_of_nat n) = n mod 16"
 proof -
   have nibble_nat_enum:
-    "n mod 16 \<in> {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}"
+    "n mod 16 \<in> {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0}"
   proof -
     have set_unfold: "\<And>n. {0..Suc n} = insert (Suc n) {0..n}" by auto
     have "(n\<Colon>nat) mod 16 \<in> {0..Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc
       (Suc (Suc (Suc (Suc (Suc (Suc 0))))))))))))))}" by simp
     from this [simplified set_unfold atLeastAtMost_singleton]
-    show ?thesis by auto
+    show ?thesis by (simp add: numeral_2_eq_2 [symmetric])
   qed
-  then show ?thesis unfolding nibble_of_nat_def Let_def
+  then show ?thesis unfolding nibble_of_nat_def
   by auto
 qed
 

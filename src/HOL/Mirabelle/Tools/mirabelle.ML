@@ -92,7 +92,7 @@ local
 
 fun log thy s =
   let fun append_to n = if n = "" then K () else File.append (Path.explode n)
-  in append_to (Config.get_thy thy logfile) (s ^ "\n") end
+  in append_to (Config.get_global thy logfile) (s ^ "\n") end
   (* FIXME: with multithreading and parallel proofs enabled, we might need to
      encapsulate this inside a critical section *)
 
@@ -108,7 +108,7 @@ fun in_range _ _ NONE = true
   | in_range l r (SOME i) = (l <= i andalso (r < 0 orelse i <= r))
 
 fun only_within_range thy pos f x =
-  let val l = Config.get_thy thy start_line and r = Config.get_thy thy end_line
+  let val l = Config.get_global thy start_line and r = Config.get_global thy end_line
   in if in_range l r (Position.line_of pos) then f x else () end
 
 in
@@ -118,7 +118,7 @@ fun run_actions tr pre post =
     val thy = Proof.theory_of pre
     val pos = Toplevel.pos_of tr
     val name = Toplevel.name_of tr
-    val st = (pre, post, Time.fromSeconds (Config.get_thy thy timeout))
+    val st = (pre, post, Time.fromSeconds (Config.get_global thy timeout))
 
     val str0 = string_of_int o the_default 0
     val loc = str0 (Position.line_of pos) ^ ":" ^ str0 (Position.column_of pos)

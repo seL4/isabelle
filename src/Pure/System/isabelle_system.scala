@@ -318,7 +318,7 @@ class Isabelle_System extends Standard_System
 
   val font_family = "IsabelleText"
 
-  def get_font(bold: Boolean = false, size: Int = 1): Font =
+  def get_font(size: Int = 1, bold: Boolean = false): Font =
     new Font(font_family, if (bold) Font.BOLD else Font.PLAIN, size)
 
   def install_fonts()
@@ -330,7 +330,7 @@ class Isabelle_System extends Standard_System
         else "$ISABELLE_HOME/lib/fonts/IsabelleText.ttf"
       Font.createFont(Font.TRUETYPE_FONT, platform_file(name))
     }
-    def check_font() = get_font(false).getFamily == font_family
+    def check_font() = get_font().getFamily == font_family
 
     if (!check_font()) {
       val font = create_font(false)

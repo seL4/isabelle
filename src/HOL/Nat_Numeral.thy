@@ -83,7 +83,7 @@ lemma one_power2 [simp]: "1\<twosuperior> = 1"
 
 end
 
-context comm_ring_1
+context ring_1
 begin
 
 lemma power2_minus [simp]:
@@ -110,6 +110,19 @@ lemma power_minus1_odd:
 lemma power_minus_even [simp]:
   "(-a) ^ (2*n) = a ^ (2*n)"
   by (simp add: power_minus [of a]) 
+
+end
+
+context ring_1_no_zero_divisors
+begin
+
+lemma zero_eq_power2 [simp]:
+  "a\<twosuperior> = 0 \<longleftrightarrow> a = 0"
+  unfolding power2_eq_square by simp
+
+lemma power2_eq_1_iff [simp]:
+  "a\<twosuperior> = 1 \<longleftrightarrow> a = 1 \<or> a = - 1"
+  unfolding power2_eq_square by simp
 
 end
 
@@ -162,10 +175,6 @@ end
 
 context linordered_idom
 begin
-
-lemma zero_eq_power2 [simp]:
-  "a\<twosuperior> = 0 \<longleftrightarrow> a = 0"
-  by (force simp add: power2_eq_square)
 
 lemma zero_le_power2 [simp]:
   "0 \<le> a\<twosuperior>"
@@ -703,7 +712,7 @@ lemmas semiring_norm =
   if_True add_0 add_Suc add_number_of_left mult_number_of_left
   numeral_1_eq_1 [symmetric] Suc_eq_plus1
   numeral_0_eq_0 [symmetric] numerals [symmetric]
-  iszero_simps not_iszero_Numeral1
+  not_iszero_Numeral1
 
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (fact Let_def)

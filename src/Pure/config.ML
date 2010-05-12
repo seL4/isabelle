@@ -16,9 +16,9 @@ sig
   val get: Proof.context -> 'a T -> 'a
   val map: 'a T -> ('a -> 'a) -> Proof.context -> Proof.context
   val put: 'a T -> 'a -> Proof.context -> Proof.context
-  val get_thy: theory -> 'a T -> 'a
-  val map_thy: 'a T -> ('a -> 'a) -> theory -> theory
-  val put_thy: 'a T -> 'a -> theory -> theory
+  val get_global: theory -> 'a T -> 'a
+  val map_global: 'a T -> ('a -> 'a) -> theory -> theory
+  val put_global: 'a T -> 'a -> theory -> theory
   val get_generic: Context.generic -> 'a T -> 'a
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
@@ -83,9 +83,9 @@ fun get_ctxt ctxt = get_generic (Context.Proof ctxt);
 fun map_ctxt config f = Context.proof_map (map_generic config f);
 fun put_ctxt config value = map_ctxt config (K value);
 
-fun get_thy thy = get_generic (Context.Theory thy);
-fun map_thy config f = Context.theory_map (map_generic config f);
-fun put_thy config value = map_thy config (K value);
+fun get_global thy = get_generic (Context.Theory thy);
+fun map_global config f = Context.theory_map (map_generic config f);
+fun put_global config value = map_global config (K value);
 
 
 (* context information *)

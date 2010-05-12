@@ -5,7 +5,7 @@
 header {* Filters and Limits *}
 
 theory Limits
-imports RealVector RComplete
+imports RealVector
 begin
 
 subsection {* Nets *}
