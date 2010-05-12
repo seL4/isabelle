@@ -63,7 +63,7 @@ fun core_oracle ({output, recon, ...} : SMT_Solver.proof_data) =
 
 fun prover ({context, output, recon} : SMT_Solver.proof_data) =
   check_unsat recon output
-  |> Z3_Proof.reconstruct context recon
+  |> Z3_Proof_Reconstruction.reconstruct context recon
 
 fun solver oracle ctxt =
   let val with_proof = Config.get ctxt proofs
