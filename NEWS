@@ -73,14 +73,14 @@ similar to the 'notation' command in theory specifications.
 discontinued (legacy feature).
 
 * References 'trace_simp' and 'debug_simp' have been replaced by
-configuration options stored in the context. Enabling tracing
-(the case of debugging is similar) in proofs works via
+configuration options stored in the context. Enabling tracing (the
+case of debugging is similar) in proofs works via
 
-  using [[trace_simp=true]]
+  using [[trace_simp = true]]
 
-Tracing is then active for all invocations of the simplifier
-in subsequent goal refinement steps. Tracing may also still be
-enabled or disabled via the ProofGeneral settings menu.
+Tracing is then active for all invocations of the simplifier in
+subsequent goal refinement steps. Tracing may also still be enabled or
+disabled via the ProofGeneral settings menu.
 
 * Separate commands 'hide_class', 'hide_type', 'hide_const',
 'hide_fact' replace the former 'hide' KIND command.  Minor
@@ -89,18 +89,20 @@ INCOMPATIBILITY.
 
 *** Pure ***
 
-* Predicates of locales introduces by classes carry a mandatory "class"
-prefix.  INCOMPATIBILITY.
+* Predicates of locales introduces by classes carry a mandatory
+"class" prefix.  INCOMPATIBILITY.
 
-* 'code_reflect' allows to incorporate generated ML code into
-runtime environment;  replaces immature code_datatype antiquotation.
+* Command 'code_reflect' allows to incorporate generated ML code into
+runtime environment; replaces immature code_datatype antiquotation.
 INCOMPATIBILITY.
 
 * Empty class specifications observe default sort.  INCOMPATIBILITY.
 
-* Old 'axclass' has been discontinued.  Use 'class' instead.  INCOMPATIBILITY.
+* Old 'axclass' command has been discontinued.  Use 'class' instead.
+INCOMPATIBILITY.
 
-* Code generator: simple concept for abstract datatypes obeying invariants.
+* Code generator: simple concept for abstract datatypes obeying
+invariants.
 
 * Local theory specifications may depend on extra type variables that
 are not present in the result type -- arguments TYPE('a) :: 'a itself
@@ -108,11 +110,12 @@ are added internally.  For example:
 
   definition unitary :: bool where "unitary = (ALL (x::'a) y. x = y)"
 
-* Code generator: details of internal data cache have no impact on
-the user space functionality any longer.
+* Code generator: details of internal data cache have no impact on the
+user space functionality any longer.
 
-* Methods unfold_locales and intro_locales ignore non-locale subgoals.  This
-is more appropriate for interpretations with 'where'.  INCOMPATIBILITY.
+* Methods unfold_locales and intro_locales ignore non-locale subgoals.
+This is more appropriate for interpretations with 'where'.
+INCOMPATIBILITY.
 
 * Discontinued unnamed infix syntax (legacy feature for many years) --
 need to specify constant name and syntax separately.  Internal ML
@@ -130,18 +133,18 @@ constructors involved (in contrast to the raw 'syntax' versions).
 context -- without introducing dependencies on parameters or
 assumptions, which is not possible in Isabelle/Pure.
 
-* Command 'defaultsort' is renamed to 'default_sort', it works within
-a local theory context.  Minor INCOMPATIBILITY.
+* Command 'defaultsort' has been renamed to 'default_sort', it works
+within a local theory context.  Minor INCOMPATIBILITY.
 
 * Proof terms: Type substitutions on proof constants now use canonical
-order of type variables. INCOMPATIBILITY: Tools working with proof
-terms may need to be adapted.
+order of type variables. Potential INCOMPATIBILITY for tools working
+with proof terms.
 
 
 *** HOL ***
 
-* Theorem Int.int_induct renamed to Int.int_of_nat_induct and is
-no longer shadowed.  INCOMPATIBILITY.
+* Theorem Int.int_induct renamed to Int.int_of_nat_induct and is no
+longer shadowed.  INCOMPATIBILITY.
 
 * Dropped theorem duplicate comp_arith; use semiring_norm instead.
 INCOMPATIBILITY.
@@ -149,15 +152,15 @@ INCOMPATIBILITY.
 * Dropped theorem RealPow.real_sq_order; use power2_le_imp_le instead.
 INCOMPATIBILITY.
 
-* Dropped normalizing_semiring etc; use the facts in semiring classes instead.
-INCOMPATIBILITY.
+* Dropped normalizing_semiring etc; use the facts in semiring classes
+instead.  INCOMPATIBILITY.
 
-* Theory 'Finite_Set': various folding_* locales facilitate the application
-of the various fold combinators on finite sets.
+* Theory 'Finite_Set': various folding_XXX locales facilitate the
+application of the various fold combinators on finite sets.
 
-* Library theory 'RBT' renamed to 'RBT_Impl'; new library theory 'RBT'
-provides abstract red-black tree type which is backed by RBT_Impl
-as implementation.  INCOMPATIBILTY.
+* Library theory "RBT" renamed to "RBT_Impl"; new library theory "RBT"
+provides abstract red-black tree type which is backed by "RBT_Impl" as
+implementation.  INCOMPATIBILTY.
 
 * Command 'typedef' now works within a local theory context -- without
 introducing dependencies on parameters or assumptions, which is not
@@ -171,27 +174,28 @@ AFP/thys/Coinductive.
 * Theory PReal, including the type "preal" and related operations, has
 been removed.  INCOMPATIBILITY.
 
-* Split off theory Big_Operators containing setsum, setprod, Inf_fin, Sup_fin,
-Min, Max from theory Finite_Set.  INCOMPATIBILITY.
+* Split off theory Big_Operators containing setsum, setprod, Inf_fin,
+Sup_fin, Min, Max from theory Finite_Set.  INCOMPATIBILITY.
 
-* Theory "Rational" renamed to "Rat", for consistency with "Nat", "Int" etc.
-INCOMPATIBILITY.
+* Theory "Rational" renamed to "Rat", for consistency with "Nat",
+"Int" etc.  INCOMPATIBILITY.
 
-* New set of rules "ac_simps" provides combined assoc / commute rewrites
-for all interpretations of the appropriate generic locales.
+* New set of rules "ac_simps" provides combined assoc / commute
+rewrites for all interpretations of the appropriate generic locales.
 
-* Renamed theory "OrderedGroup" to "Groups" and split theory "Ring_and_Field"
-into theories "Rings" and "Fields";  for more appropriate and more
-consistent names suitable for name prefixes within the HOL theories.
-INCOMPATIBILITY.
+* Renamed theory "OrderedGroup" to "Groups" and split theory
+"Ring_and_Field" into theories "Rings" and "Fields"; for more
+appropriate and more consistent names suitable for name prefixes
+within the HOL theories.  INCOMPATIBILITY.
 
 * Some generic constants have been put to appropriate theories:
-  * less_eq, less: Orderings
-  * zero, one, plus, minus, uminus, times, abs, sgn: Groups
-  * inverse, divide: Rings
+  - less_eq, less: Orderings
+  - zero, one, plus, minus, uminus, times, abs, sgn: Groups
+  - inverse, divide: Rings
 INCOMPATIBILITY.
 
-* More consistent naming of type classes involving orderings (and lattices):
+* More consistent naming of type classes involving orderings (and
+lattices):
 
     lower_semilattice                   ~> semilattice_inf
     upper_semilattice                   ~> semilattice_sup
@@ -231,8 +235,8 @@ INCOMPATIBILITY.
     ordered_semiring_1_strict           ~> linordered_semiring_1_strict
     ordered_semiring_strict             ~> linordered_semiring_strict
 
-  The following slightly odd type classes have been moved to
-  a separate theory Library/Lattice_Algebras.thy:
+  The following slightly odd type classes have been moved to a
+  separate theory Library/Lattice_Algebras.thy:
 
     lordered_ab_group_add               ~> lattice_ab_group_add
     lordered_ab_group_add_abs           ~> lattice_ab_group_add_abs
@@ -243,17 +247,20 @@ INCOMPATIBILITY.
 INCOMPATIBILITY.
 
 * Refined field classes:
-  * classes division_ring_inverse_zero, field_inverse_zero, linordered_field_inverse_zero
-    include rule inverse 0 = 0 -- subsumes former division_by_zero class.
-  * numerous lemmas have been ported from field to division_ring;
-  INCOMPATIBILITY.
+  - classes division_ring_inverse_zero, field_inverse_zero,
+    linordered_field_inverse_zero include rule inverse 0 = 0 --
+    subsumes former division_by_zero class;
+  - numerous lemmas have been ported from field to division_ring.
+INCOMPATIBILITY.
 
 * Refined algebra theorem collections:
-  * dropped theorem group group_simps, use algebra_simps instead;
-  * dropped theorem group ring_simps, use field_simps instead;
-  * proper theorem collection field_simps subsumes former theorem groups field_eq_simps and field_simps;
-  * dropped lemma eq_minus_self_iff which is a duplicate for equal_neg_zero.
-  INCOMPATIBILITY.
+  - dropped theorem group group_simps, use algebra_simps instead;
+  - dropped theorem group ring_simps, use field_simps instead;
+  - proper theorem collection field_simps subsumes former theorem
+    groups field_eq_simps and field_simps;
+  - dropped lemma eq_minus_self_iff which is a duplicate for
+    equal_neg_zero.
+INCOMPATIBILITY.
 
 * Theory Finite_Set and List: some lemmas have been generalized from
 sets to lattices:
@@ -279,14 +286,19 @@ subsume inf_top and sup_bot respectively.  INCOMPATIBILITY.
 * HOLogic.strip_psplit: types are returned in syntactic order, similar
 to other strip and tuple operations.  INCOMPATIBILITY.
 
-* Reorganized theory Multiset: swapped notation of pointwise and multiset order:
-  * pointwise ordering is instance of class order with standard syntax <= and <;
-  * multiset ordering has syntax <=# and <#; partial order properties are provided
-      by means of interpretation with prefix multiset_order;
-  * less duplication, less historical organization of sections,
-      conversion from associations lists to multisets, rudimentary code generation;
-  * use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union, if needed.
-  INCOMPATIBILITY.
+* Reorganized theory Multiset: swapped notation of pointwise and
+multiset order:
+  - pointwise ordering is instance of class order with standard syntax
+    <= and <;
+  - multiset ordering has syntax <=# and <#; partial order properties
+    are provided by means of interpretation with prefix
+    multiset_order;
+  - less duplication, less historical organization of sections,
+    conversion from associations lists to multisets, rudimentary code
+    generation;
+  - use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union,
+    if needed.
+INCOMPATIBILITY.
 
 * Code generation: ML and OCaml code is decorated with signatures.
 
