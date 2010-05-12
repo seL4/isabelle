@@ -13,10 +13,9 @@ section {* Quantifier elimination for @{text "\<real> (0, 1, +, <)"} *}
   (*          SOME GENERAL STUFF< HAS TO BE MOVED IN SOME LIB                      *)
   (*********************************************************************************)
 
-consts alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list"
-primrec
+primrec alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list" where
   "alluopairs [] = []"
-  "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
+| "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
 
 lemma alluopairs_set1: "set (alluopairs xs) \<le> {(x,y). x\<in> set xs \<and> y\<in> set xs}"
 by (induct xs, auto)
@@ -47,17 +46,6 @@ by clarsimp
 lemma filter_length: "length (List.filter P xs) < Suc (length xs)"
   apply (induct xs, auto) done
 
-consts remdps:: "'a list \<Rightarrow> 'a list"
-
-recdef remdps "measure size"
-  "remdps [] = []"
-  "remdps (x#xs) = (x#(remdps (List.filter (\<lambda> y. y \<noteq> x) xs)))"
-(hints simp add: filter_length[rule_format])
-
-lemma remdps_set[simp]: "set (remdps xs) = set xs"
-  by (induct xs rule: remdps.induct, auto)
-
-
 
   (*********************************************************************************)
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
@@ -67,26 +55,24 @@ datatype num = C int | Bound nat | CN nat int num | Neg num | Add num num| Sub n
   | Mul int num 
 
   (* A size for num to make inductive proofs simpler*)
-consts num_size :: "num \<Rightarrow> nat" 
-primrec 
+primrec num_size :: "num \<Rightarrow> nat" where
   "num_size (C c) = 1"
-  "num_size (Bound n) = 1"
-  "num_size (Neg a) = 1 + num_size a"
-  "num_size (Add a b) = 1 + num_size a + num_size b"
-  "num_size (Sub a b) = 3 + num_size a + num_size b"
-  "num_size (Mul c a) = 1 + num_size a"
-  "num_size (CN n c a) = 3 + num_size a "
+| "num_size (Bound n) = 1"
+| "num_size (Neg a) = 1 + num_size a"
+| "num_size (Add a b) = 1 + num_size a + num_size b"
+| "num_size (Sub a b) = 3 + num_size a + num_size b"
+| "num_size (Mul c a) = 1 + num_size a"
+| "num_size (CN n c a) = 3 + num_size a "
 
   (* Semantics of numeral terms (num) *)
-consts Inum :: "real list \<Rightarrow> num \<Rightarrow> real"
-primrec
+primrec Inum :: "real list \<Rightarrow> num \<Rightarrow> real" where
   "Inum bs (C c) = (real c)"
-  "Inum bs (Bound n) = bs!n"
-  "Inum bs (CN n c a) = (real c) * (bs!n) + (Inum bs a)"
-  "Inum bs (Neg a) = -(Inum bs a)"
-  "Inum bs (Add a b) = Inum bs a + Inum bs b"
-  "Inum bs (Sub a b) = Inum bs a - Inum bs b"
-  "Inum bs (Mul c a) = (real c) * Inum bs a"
+| "Inum bs (Bound n) = bs!n"
+| "Inum bs (CN n c a) = (real c) * (bs!n) + (Inum bs a)"
+| "Inum bs (Neg a) = -(Inum bs a)"
+| "Inum bs (Add a b) = Inum bs a + Inum bs b"
+| "Inum bs (Sub a b) = Inum bs a - Inum bs b"
+| "Inum bs (Mul c a) = (real c) * Inum bs a"
     (* FORMULAE *)
 datatype fm  = 
   T| F| Lt num| Le num| Gt num| Ge num| Eq num| NEq num|
@@ -94,38 +80,36 @@ datatype fm  =
 
 
   (* A size for fm *)
-consts fmsize :: "fm \<Rightarrow> nat"
-recdef fmsize "measure size"
+fun fmsize :: "fm \<Rightarrow> nat" where
   "fmsize (NOT p) = 1 + fmsize p"
-  "fmsize (And p q) = 1 + fmsize p + fmsize q"
-  "fmsize (Or p q) = 1 + fmsize p + fmsize q"
-  "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
-  "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
-  "fmsize (E p) = 1 + fmsize p"
-  "fmsize (A p) = 4+ fmsize p"
-  "fmsize p = 1"
+| "fmsize (And p q) = 1 + fmsize p + fmsize q"
+| "fmsize (Or p q) = 1 + fmsize p + fmsize q"
+| "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
+| "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
+| "fmsize (E p) = 1 + fmsize p"
+| "fmsize (A p) = 4+ fmsize p"
+| "fmsize p = 1"
   (* several lemmas about fmsize *)
 lemma fmsize_pos: "fmsize p > 0"
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
-consts Ifm ::"real list \<Rightarrow> fm \<Rightarrow> bool"
-primrec
+primrec Ifm ::"real list \<Rightarrow> fm \<Rightarrow> bool" where
   "Ifm bs T = True"
-  "Ifm bs F = False"
-  "Ifm bs (Lt a) = (Inum bs a < 0)"
-  "Ifm bs (Gt a) = (Inum bs a > 0)"
-  "Ifm bs (Le a) = (Inum bs a \<le> 0)"
-  "Ifm bs (Ge a) = (Inum bs a \<ge> 0)"
-  "Ifm bs (Eq a) = (Inum bs a = 0)"
-  "Ifm bs (NEq a) = (Inum bs a \<noteq> 0)"
-  "Ifm bs (NOT p) = (\<not> (Ifm bs p))"
-  "Ifm bs (And p q) = (Ifm bs p \<and> Ifm bs q)"
-  "Ifm bs (Or p q) = (Ifm bs p \<or> Ifm bs q)"
-  "Ifm bs (Imp p q) = ((Ifm bs p) \<longrightarrow> (Ifm bs q))"
-  "Ifm bs (Iff p q) = (Ifm bs p = Ifm bs q)"
-  "Ifm bs (E p) = (\<exists> x. Ifm (x#bs) p)"
-  "Ifm bs (A p) = (\<forall> x. Ifm (x#bs) p)"
+| "Ifm bs F = False"
+| "Ifm bs (Lt a) = (Inum bs a < 0)"
+| "Ifm bs (Gt a) = (Inum bs a > 0)"
+| "Ifm bs (Le a) = (Inum bs a \<le> 0)"
+| "Ifm bs (Ge a) = (Inum bs a \<ge> 0)"
+| "Ifm bs (Eq a) = (Inum bs a = 0)"
+| "Ifm bs (NEq a) = (Inum bs a \<noteq> 0)"
+| "Ifm bs (NOT p) = (\<not> (Ifm bs p))"
+| "Ifm bs (And p q) = (Ifm bs p \<and> Ifm bs q)"
+| "Ifm bs (Or p q) = (Ifm bs p \<or> Ifm bs q)"
+| "Ifm bs (Imp p q) = ((Ifm bs p) \<longrightarrow> (Ifm bs q))"
+| "Ifm bs (Iff p q) = (Ifm bs p = Ifm bs q)"
+| "Ifm bs (E p) = (\<exists> x. Ifm (x#bs) p)"
+| "Ifm bs (A p) = (\<forall> x. Ifm (x#bs) p)"
 
 lemma IfmLeSub: "\<lbrakk> Inum bs s = s' ; Inum bs t = t' \<rbrakk> \<Longrightarrow> Ifm bs (Le (Sub s t)) = (s' \<le> t')"
 apply simp
@@ -160,36 +144,35 @@ lemma IfmA: " (!! x. Ifm (x#bs) p = P x) \<Longrightarrow> (Ifm bs (A p) = (\<fo
 apply simp
 done
 
-consts not:: "fm \<Rightarrow> fm"
-recdef not "measure size"
+fun not:: "fm \<Rightarrow> fm" where
   "not (NOT p) = p"
-  "not T = F"
-  "not F = T"
-  "not p = NOT p"
+| "not T = F"
+| "not F = T"
+| "not p = NOT p"
 lemma not[simp]: "Ifm bs (not p) = Ifm bs (NOT p)"
 by (cases p) auto
 
 definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
-  "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else 
+  "conj p q = (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else 
    if p = q then p else And p q)"
 lemma conj[simp]: "Ifm bs (conj p q) = Ifm bs (And p q)"
 by (cases "p=F \<or> q=F",simp_all add: conj_def) (cases p,simp_all)
 
 definition disj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
-  "disj p q \<equiv> (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p 
+  "disj p q = (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p 
        else if p=q then p else Or p q)"
 
 lemma disj[simp]: "Ifm bs (disj p q) = Ifm bs (Or p q)"
 by (cases "p=T \<or> q=T",simp_all add: disj_def) (cases p,simp_all)
 
 definition imp :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
-  "imp p q \<equiv> (if (p = F \<or> q=T \<or> p=q) then T else if p=T then q else if q=F then not p 
+  "imp p q = (if (p = F \<or> q=T \<or> p=q) then T else if p=T then q else if q=F then not p 
     else Imp p q)"
 lemma imp[simp]: "Ifm bs (imp p q) = Ifm bs (Imp p q)"
 by (cases "p=F \<or> q=T",simp_all add: imp_def) 
 
 definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
-  "iff p q \<equiv> (if (p = q) then T else if (p = NOT q \<or> NOT p = q) then F else 
+  "iff p q = (if (p = q) then T else if (p = NOT q \<or> NOT p = q) then F else 
        if p=F then not q else if q=F then not p else if p=T then q else if q=T then p else 
   Iff p q)"
 lemma iff[simp]: "Ifm bs (iff p q) = Ifm bs (Iff p q)"
@@ -236,57 +219,54 @@ lemma iff_simps:
   using trivNOT
   by (simp_all add: iff_def, cases p, auto)
   (* Quantifier freeness *)
-consts qfree:: "fm \<Rightarrow> bool"
-recdef qfree "measure size"
+fun qfree:: "fm \<Rightarrow> bool" where
   "qfree (E p) = False"
-  "qfree (A p) = False"
-  "qfree (NOT p) = qfree p" 
-  "qfree (And p q) = (qfree p \<and> qfree q)" 
-  "qfree (Or  p q) = (qfree p \<and> qfree q)" 
-  "qfree (Imp p q) = (qfree p \<and> qfree q)" 
-  "qfree (Iff p q) = (qfree p \<and> qfree q)"
-  "qfree p = True"
+| "qfree (A p) = False"
+| "qfree (NOT p) = qfree p" 
+| "qfree (And p q) = (qfree p \<and> qfree q)" 
+| "qfree (Or  p q) = (qfree p \<and> qfree q)" 
+| "qfree (Imp p q) = (qfree p \<and> qfree q)" 
+| "qfree (Iff p q) = (qfree p \<and> qfree q)"
+| "qfree p = True"
 
   (* Boundedness and substitution *)
-consts 
-  numbound0:: "num \<Rightarrow> bool" (* a num is INDEPENDENT of Bound 0 *)
-  bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *)
-primrec
+primrec numbound0:: "num \<Rightarrow> bool" (* a num is INDEPENDENT of Bound 0 *) where
   "numbound0 (C c) = True"
-  "numbound0 (Bound n) = (n>0)"
-  "numbound0 (CN n c a) = (n\<noteq>0 \<and> numbound0 a)"
-  "numbound0 (Neg a) = numbound0 a"
-  "numbound0 (Add a b) = (numbound0 a \<and> numbound0 b)"
-  "numbound0 (Sub a b) = (numbound0 a \<and> numbound0 b)" 
-  "numbound0 (Mul i a) = numbound0 a"
+| "numbound0 (Bound n) = (n>0)"
+| "numbound0 (CN n c a) = (n\<noteq>0 \<and> numbound0 a)"
+| "numbound0 (Neg a) = numbound0 a"
+| "numbound0 (Add a b) = (numbound0 a \<and> numbound0 b)"
+| "numbound0 (Sub a b) = (numbound0 a \<and> numbound0 b)" 
+| "numbound0 (Mul i a) = numbound0 a"
+
 lemma numbound0_I:
   assumes nb: "numbound0 a"
   shows "Inum (b#bs) a = Inum (b'#bs) a"
 using nb
-by (induct a rule: numbound0.induct,auto simp add: nth_pos2)
+by (induct a) (simp_all add: nth_pos2)
 
-primrec
+primrec bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *) where
   "bound0 T = True"
-  "bound0 F = True"
-  "bound0 (Lt a) = numbound0 a"
-  "bound0 (Le a) = numbound0 a"
-  "bound0 (Gt a) = numbound0 a"
-  "bound0 (Ge a) = numbound0 a"
-  "bound0 (Eq a) = numbound0 a"
-  "bound0 (NEq a) = numbound0 a"
-  "bound0 (NOT p) = bound0 p"
-  "bound0 (And p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
-  "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (E p) = False"
-  "bound0 (A p) = False"
+| "bound0 F = True"
+| "bound0 (Lt a) = numbound0 a"
+| "bound0 (Le a) = numbound0 a"
+| "bound0 (Gt a) = numbound0 a"
+| "bound0 (Ge a) = numbound0 a"
+| "bound0 (Eq a) = numbound0 a"
+| "bound0 (NEq a) = numbound0 a"
+| "bound0 (NOT p) = bound0 p"
+| "bound0 (And p q) = (bound0 p \<and> bound0 q)"
+| "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
+| "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
+| "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
+| "bound0 (E p) = False"
+| "bound0 (A p) = False"
 
 lemma bound0_I:
   assumes bp: "bound0 p"
   shows "Ifm (b#bs) p = Ifm (b'#bs) p"
 using bp numbound0_I[where b="b" and bs="bs" and b'="b'"]
-by (induct p rule: bound0.induct) (auto simp add: nth_pos2)
+by (induct p) (auto simp add: nth_pos2)
 
 lemma not_qf[simp]: "qfree p \<Longrightarrow> qfree (not p)"
 by (cases p, auto)
@@ -314,32 +294,28 @@ lemma iff_qf[simp]: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree
 lemma iff_nb[simp]: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (iff p q)"
 using iff_def by (unfold iff_def,cases "p=q", auto)
 
-consts 
-  decrnum:: "num \<Rightarrow> num" 
-  decr :: "fm \<Rightarrow> fm"
-
-recdef decrnum "measure size"
+fun decrnum:: "num \<Rightarrow> num"  where
   "decrnum (Bound n) = Bound (n - 1)"
-  "decrnum (Neg a) = Neg (decrnum a)"
-  "decrnum (Add a b) = Add (decrnum a) (decrnum b)"
-  "decrnum (Sub a b) = Sub (decrnum a) (decrnum b)"
-  "decrnum (Mul c a) = Mul c (decrnum a)"
-  "decrnum (CN n c a) = CN (n - 1) c (decrnum a)"
-  "decrnum a = a"
+| "decrnum (Neg a) = Neg (decrnum a)"
+| "decrnum (Add a b) = Add (decrnum a) (decrnum b)"
+| "decrnum (Sub a b) = Sub (decrnum a) (decrnum b)"
+| "decrnum (Mul c a) = Mul c (decrnum a)"
+| "decrnum (CN n c a) = CN (n - 1) c (decrnum a)"
+| "decrnum a = a"
 
-recdef decr "measure size"
+fun decr :: "fm \<Rightarrow> fm" where
   "decr (Lt a) = Lt (decrnum a)"
-  "decr (Le a) = Le (decrnum a)"
-  "decr (Gt a) = Gt (decrnum a)"
-  "decr (Ge a) = Ge (decrnum a)"
-  "decr (Eq a) = Eq (decrnum a)"
-  "decr (NEq a) = NEq (decrnum a)"
-  "decr (NOT p) = NOT (decr p)" 
-  "decr (And p q) = conj (decr p) (decr q)"
-  "decr (Or p q) = disj (decr p) (decr q)"
-  "decr (Imp p q) = imp (decr p) (decr q)"
-  "decr (Iff p q) = iff (decr p) (decr q)"
-  "decr p = p"
+| "decr (Le a) = Le (decrnum a)"
+| "decr (Gt a) = Gt (decrnum a)"
+| "decr (Ge a) = Ge (decrnum a)"
+| "decr (Eq a) = Eq (decrnum a)"
+| "decr (NEq a) = NEq (decrnum a)"
+| "decr (NOT p) = NOT (decr p)" 
+| "decr (And p q) = conj (decr p) (decr q)"
+| "decr (Or p q) = disj (decr p) (decr q)"
+| "decr (Imp p q) = imp (decr p) (decr q)"
+| "decr (Iff p q) = iff (decr p) (decr q)"
+| "decr p = p"
 
 lemma decrnum: assumes nb: "numbound0 t"
   shows "Inum (x#bs) t = Inum bs (decrnum t)"
@@ -353,27 +329,25 @@ lemma decr: assumes nb: "bound0 p"
 lemma decr_qf: "bound0 p \<Longrightarrow> qfree (decr p)"
 by (induct p, simp_all)
 
-consts 
-  isatom :: "fm \<Rightarrow> bool" (* test for atomicity *)
-recdef isatom "measure size"
+fun isatom :: "fm \<Rightarrow> bool" (* test for atomicity *) where
   "isatom T = True"
-  "isatom F = True"
-  "isatom (Lt a) = True"
-  "isatom (Le a) = True"
-  "isatom (Gt a) = True"
-  "isatom (Ge a) = True"
-  "isatom (Eq a) = True"
-  "isatom (NEq a) = True"
-  "isatom p = False"
+| "isatom F = True"
+| "isatom (Lt a) = True"
+| "isatom (Le a) = True"
+| "isatom (Gt a) = True"
+| "isatom (Ge a) = True"
+| "isatom (Eq a) = True"
+| "isatom (NEq a) = True"
+| "isatom p = False"
 
 lemma bound0_qf: "bound0 p \<Longrightarrow> qfree p"
 by (induct p, simp_all)
 
 definition djf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a \<Rightarrow> fm \<Rightarrow> fm" where
-  "djf f p q \<equiv> (if q=T then T else if q=F then f p else 
+  "djf f p q = (if q=T then T else if q=F then f p else 
   (let fp = f p in case fp of T \<Rightarrow> T | F \<Rightarrow> q | _ \<Rightarrow> Or (f p) q))"
 definition evaldjf :: "('a \<Rightarrow> fm) \<Rightarrow> 'a list \<Rightarrow> fm" where
-  "evaldjf f ps \<equiv> foldr (djf f) ps F"
+  "evaldjf f ps = foldr (djf f) ps F"
 
 lemma djf_Or: "Ifm bs (djf f p q) = Ifm bs (Or (f p) q)"
 by (cases "q=T", simp add: djf_def,cases "q=F",simp add: djf_def) 
@@ -399,11 +373,10 @@ lemma evaldjf_qf:
   shows "qfree (evaldjf f xs)"
   using nb by (induct xs, auto simp add: evaldjf_def djf_def Let_def) (case_tac "f a", auto) 
 
-consts disjuncts :: "fm \<Rightarrow> fm list"
-recdef disjuncts "measure size"
-  "disjuncts (Or p q) = (disjuncts p) @ (disjuncts q)"
-  "disjuncts F = []"
-  "disjuncts p = [p]"
+fun disjuncts :: "fm \<Rightarrow> fm list" where
+  "disjuncts (Or p q) = disjuncts p @ disjuncts q"
+| "disjuncts F = []"
+| "disjuncts p = [p]"
 
 lemma disjuncts: "(\<exists> q\<in> set (disjuncts p). Ifm bs q) = Ifm bs p"
 by(induct p rule: disjuncts.induct, auto)
@@ -424,7 +397,7 @@ proof-
 qed
 
 definition DJ :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm" where
-  "DJ f p \<equiv> evaldjf f (disjuncts p)"
+  "DJ f p = evaldjf f (disjuncts p)"
 
 lemma DJ: assumes fdj: "\<forall> p q. Ifm bs (f (Or p q)) = Ifm bs (Or (f p) (f q))"
   and fF: "f F = F"
@@ -462,40 +435,37 @@ proof(clarify)
   finally show "qfree (DJ qe p) \<and> Ifm bs (DJ qe p) = Ifm bs (E p)" using qfth by blast
 qed
   (* Simplification *)
-consts 
-  numgcd :: "num \<Rightarrow> int"
-  numgcdh:: "num \<Rightarrow> int \<Rightarrow> int"
-  reducecoeffh:: "num \<Rightarrow> int \<Rightarrow> num"
-  reducecoeff :: "num \<Rightarrow> num"
-  dvdnumcoeff:: "num \<Rightarrow> int \<Rightarrow> bool"
-consts maxcoeff:: "num \<Rightarrow> int"
-recdef maxcoeff "measure size"
+
+fun maxcoeff:: "num \<Rightarrow> int" where
   "maxcoeff (C i) = abs i"
-  "maxcoeff (CN n c t) = max (abs c) (maxcoeff t)"
-  "maxcoeff t = 1"
+| "maxcoeff (CN n c t) = max (abs c) (maxcoeff t)"
+| "maxcoeff t = 1"
 
 lemma maxcoeff_pos: "maxcoeff t \<ge> 0"
   by (induct t rule: maxcoeff.induct, auto)
 
-recdef numgcdh "measure size"
+fun numgcdh:: "num \<Rightarrow> int \<Rightarrow> int" where
   "numgcdh (C i) = (\<lambda>g. gcd i g)"
-  "numgcdh (CN n c t) = (\<lambda>g. gcd c (numgcdh t g))"
-  "numgcdh t = (\<lambda>g. 1)"
-defs numgcd_def [code]: "numgcd t \<equiv> numgcdh t (maxcoeff t)"
+| "numgcdh (CN n c t) = (\<lambda>g. gcd c (numgcdh t g))"
+| "numgcdh t = (\<lambda>g. 1)"
 
-recdef reducecoeffh "measure size"
+definition numgcd :: "num \<Rightarrow> int" where
+  "numgcd t = numgcdh t (maxcoeff t)"
+
+fun reducecoeffh:: "num \<Rightarrow> int \<Rightarrow> num" where
   "reducecoeffh (C i) = (\<lambda> g. C (i div g))"
-  "reducecoeffh (CN n c t) = (\<lambda> g. CN n (c div g) (reducecoeffh t g))"
-  "reducecoeffh t = (\<lambda>g. t)"
+| "reducecoeffh (CN n c t) = (\<lambda> g. CN n (c div g) (reducecoeffh t g))"
+| "reducecoeffh t = (\<lambda>g. t)"
 
-defs reducecoeff_def: "reducecoeff t \<equiv> 
+definition reducecoeff :: "num \<Rightarrow> num" where
+  "reducecoeff t =
   (let g = numgcd t in 
   if g = 0 then C 0 else if g=1 then t else reducecoeffh t g)"
 
-recdef dvdnumcoeff "measure size"
+fun dvdnumcoeff:: "num \<Rightarrow> int \<Rightarrow> bool" where
   "dvdnumcoeff (C i) = (\<lambda> g. g dvd i)"
-  "dvdnumcoeff (CN n c t) = (\<lambda> g. g dvd c \<and> (dvdnumcoeff t g))"
-  "dvdnumcoeff t = (\<lambda>g. False)"
+| "dvdnumcoeff (CN n c t) = (\<lambda> g. g dvd c \<and> (dvdnumcoeff t g))"
+| "dvdnumcoeff t = (\<lambda>g. False)"
 
 lemma dvdnumcoeff_trans: 
   assumes gdg: "g dvd g'" and dgt':"dvdnumcoeff t g'"
@@ -534,11 +504,11 @@ next
   from gp have gnz: "g \<noteq> 0" by simp
   from prems show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps)
 qed (auto simp add: numgcd_def gp)
-consts ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool"
-recdef ismaxcoeff "measure size"
+
+fun ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool" where
   "ismaxcoeff (C i) = (\<lambda> x. abs i \<le> x)"
-  "ismaxcoeff (CN n c t) = (\<lambda>x. abs c \<le> x \<and> (ismaxcoeff t x))"
-  "ismaxcoeff t = (\<lambda>x. True)"
+| "ismaxcoeff (CN n c t) = (\<lambda>x. abs c \<le> x \<and> (ismaxcoeff t x))"
+| "ismaxcoeff t = (\<lambda>x. True)"
 
 lemma ismaxcoeff_mono: "ismaxcoeff t c \<Longrightarrow> c \<le> c' \<Longrightarrow> ismaxcoeff t c'"
 by (induct t rule: ismaxcoeff.induct, auto)
@@ -618,9 +588,8 @@ lemma reducecoeff_numbound0: "numbound0 t \<Longrightarrow> numbound0 (reducecoe
 using reducecoeffh_numbound0 by (simp add: reducecoeff_def Let_def)
 
 consts
-  simpnum:: "num \<Rightarrow> num"
   numadd:: "num \<times> num \<Rightarrow> num"
-  nummul:: "num \<Rightarrow> int \<Rightarrow> num"
+
 recdef numadd "measure (\<lambda> (t,s). size t + size s)"
   "numadd (CN n1 c1 r1,CN n2 c2 r2) =
   (if n1=n2 then 
@@ -642,10 +611,10 @@ by (simp only: left_distrib[symmetric],simp)
 lemma numadd_nb[simp]: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
 by (induct t s rule: numadd.induct, auto simp add: Let_def)
 
-recdef nummul "measure size"
+fun nummul:: "num \<Rightarrow> int \<Rightarrow> num" where
   "nummul (C j) = (\<lambda> i. C (i*j))"
-  "nummul (CN n c a) = (\<lambda> i. CN n (i*c) (nummul a i))"
-  "nummul t = (\<lambda> i. Mul i t)"
+| "nummul (CN n c a) = (\<lambda> i. CN n (i*c) (nummul a i))"
+| "nummul t = (\<lambda> i. Mul i t)"
 
 lemma nummul[simp]: "\<And> i. Inum bs (nummul t i) = Inum bs (Mul i t)"
 by (induct t rule: nummul.induct, auto simp add: algebra_simps)
@@ -654,10 +623,10 @@ lemma nummul_nb[simp]: "\<And> i. numbound0 t \<Longrightarrow> numbound0 (nummu
 by (induct t rule: nummul.induct, auto )
 
 definition numneg :: "num \<Rightarrow> num" where
-  "numneg t \<equiv> nummul t (- 1)"
+  "numneg t = nummul t (- 1)"
 
 definition numsub :: "num \<Rightarrow> num \<Rightarrow> num" where
-  "numsub s t \<equiv> (if s = t then C 0 else numadd (s,numneg t))"
+  "numsub s t = (if s = t then C 0 else numadd (s,numneg t))"
 
 lemma numneg[simp]: "Inum bs (numneg t) = Inum bs (Neg t)"
 using numneg_def by simp
@@ -671,27 +640,26 @@ using numsub_def by simp
 lemma numsub_nb[simp]: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numsub t s)"
 using numsub_def by simp
 
-recdef simpnum "measure size"
+primrec simpnum:: "num \<Rightarrow> num" where
   "simpnum (C j) = C j"
-  "simpnum (Bound n) = CN n 1 (C 0)"
-  "simpnum (Neg t) = numneg (simpnum t)"
-  "simpnum (Add t s) = numadd (simpnum t,simpnum s)"
-  "simpnum (Sub t s) = numsub (simpnum t) (simpnum s)"
-  "simpnum (Mul i t) = (if i = 0 then (C 0) else nummul (simpnum t) i)"
-  "simpnum (CN n c t) = (if c = 0 then simpnum t else numadd (CN n c (C 0),simpnum t))"
+| "simpnum (Bound n) = CN n 1 (C 0)"
+| "simpnum (Neg t) = numneg (simpnum t)"
+| "simpnum (Add t s) = numadd (simpnum t,simpnum s)"
+| "simpnum (Sub t s) = numsub (simpnum t) (simpnum s)"
+| "simpnum (Mul i t) = (if i = 0 then (C 0) else nummul (simpnum t) i)"
+| "simpnum (CN n c t) = (if c = 0 then simpnum t else numadd (CN n c (C 0),simpnum t))"
 
 lemma simpnum_ci[simp]: "Inum bs (simpnum t) = Inum bs t"
-by (induct t rule: simpnum.induct, auto simp add: numneg numadd numsub nummul)
+by (induct t) simp_all
 
 lemma simpnum_numbound0[simp]: 
   "numbound0 t \<Longrightarrow> numbound0 (simpnum t)"
-by (induct t rule: simpnum.induct, auto)
+by (induct t) simp_all
 
-consts nozerocoeff:: "num \<Rightarrow> bool"
-recdef nozerocoeff "measure size"
+fun nozerocoeff:: "num \<Rightarrow> bool" where
   "nozerocoeff (C c) = True"
-  "nozerocoeff (CN n c t) = (c\<noteq>0 \<and> nozerocoeff t)"
-  "nozerocoeff t = True"
+| "nozerocoeff (CN n c t) = (c\<noteq>0 \<and> nozerocoeff t)"
+| "nozerocoeff t = True"
 
 lemma numadd_nz : "nozerocoeff a \<Longrightarrow> nozerocoeff b \<Longrightarrow> nozerocoeff (numadd (a,b))"
 by (induct a b rule: numadd.induct,auto simp add: Let_def)
@@ -706,7 +674,7 @@ lemma numsub_nz: "nozerocoeff a \<Longrightarrow> nozerocoeff b \<Longrightarrow
 by (simp add: numsub_def numneg_nz numadd_nz)
 
 lemma simpnum_nz: "nozerocoeff (simpnum t)"
-by(induct t rule: simpnum.induct, auto simp add: numadd_nz numneg_nz numsub_nz nummul_nz)
+by(induct t) (simp_all add: numadd_nz numneg_nz numsub_nz nummul_nz)
 
 lemma maxcoeff_nz: "nozerocoeff t \<Longrightarrow> maxcoeff t = 0 \<Longrightarrow> t = C 0"
 proof (induct t rule: maxcoeff.induct)
@@ -725,7 +693,7 @@ proof-
 qed
 
 definition simp_num_pair :: "(num \<times> int) \<Rightarrow> num \<times> int" where
-  "simp_num_pair \<equiv> (\<lambda> (t,n). (if n = 0 then (C 0, 0) else
+  "simp_num_pair = (\<lambda> (t,n). (if n = 0 then (C 0, 0) else
    (let t' = simpnum t ; g = numgcd t' in 
       if g > 1 then (let g' = gcd n g in 
         if g' = 1 then (t',n) 
@@ -800,21 +768,20 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-consts simpfm :: "fm \<Rightarrow> fm"
-recdef simpfm "measure fmsize"
+fun simpfm :: "fm \<Rightarrow> fm" where
   "simpfm (And p q) = conj (simpfm p) (simpfm q)"
-  "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
-  "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
-  "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
-  "simpfm (NOT p) = not (simpfm p)"
-  "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v < 0) then T else F 
+| "simpfm (Or p q) = disj (simpfm p) (simpfm q)"
+| "simpfm (Imp p q) = imp (simpfm p) (simpfm q)"
+| "simpfm (Iff p q) = iff (simpfm p) (simpfm q)"
+| "simpfm (NOT p) = not (simpfm p)"
+| "simpfm (Lt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v < 0) then T else F 
   | _ \<Rightarrow> Lt a')"
-  "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<le> 0)  then T else F | _ \<Rightarrow> Le a')"
-  "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v > 0)  then T else F | _ \<Rightarrow> Gt a')"
-  "simpfm (Ge a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<ge> 0)  then T else F | _ \<Rightarrow> Ge a')"
-  "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v = 0)  then T else F | _ \<Rightarrow> Eq a')"
-  "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<noteq> 0)  then T else F | _ \<Rightarrow> NEq a')"
-  "simpfm p = p"
+| "simpfm (Le a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<le> 0)  then T else F | _ \<Rightarrow> Le a')"
+| "simpfm (Gt a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v > 0)  then T else F | _ \<Rightarrow> Gt a')"
+| "simpfm (Ge a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<ge> 0)  then T else F | _ \<Rightarrow> Ge a')"
+| "simpfm (Eq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v = 0)  then T else F | _ \<Rightarrow> Eq a')"
+| "simpfm (NEq a) = (let a' = simpnum a in case a' of C v \<Rightarrow> if (v \<noteq> 0)  then T else F | _ \<Rightarrow> NEq a')"
+| "simpfm p = p"
 lemma simpfm: "Ifm bs (simpfm p) = Ifm bs p"
 proof(induct p rule: simpfm.induct)
   case (6 a) let ?sa = "simpnum a" from simpnum_ci have sa: "Inum bs ?sa = Inum bs a" by simp
@@ -921,16 +888,17 @@ lemma prep: "\<And> bs. Ifm bs (prep p) = Ifm bs p"
 by (induct p rule: prep.induct, auto)
 
   (* Generic quantifier elimination *)
-consts qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
-recdef qelim "measure fmsize"
+function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm" where
   "qelim (E p) = (\<lambda> qe. DJ qe (qelim p qe))"
-  "qelim (A p) = (\<lambda> qe. not (qe ((qelim (NOT p) qe))))"
-  "qelim (NOT p) = (\<lambda> qe. not (qelim p qe))"
-  "qelim (And p q) = (\<lambda> qe. conj (qelim p qe) (qelim q qe))" 
-  "qelim (Or  p q) = (\<lambda> qe. disj (qelim p qe) (qelim q qe))" 
-  "qelim (Imp p q) = (\<lambda> qe. imp (qelim p qe) (qelim q qe))"
-  "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
-  "qelim p = (\<lambda> y. simpfm p)"
+| "qelim (A p) = (\<lambda> qe. not (qe ((qelim (NOT p) qe))))"
+| "qelim (NOT p) = (\<lambda> qe. not (qelim p qe))"
+| "qelim (And p q) = (\<lambda> qe. conj (qelim p qe) (qelim q qe))" 
+| "qelim (Or  p q) = (\<lambda> qe. disj (qelim p qe) (qelim q qe))" 
+| "qelim (Imp p q) = (\<lambda> qe. imp (qelim p qe) (qelim q qe))"
+| "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
+| "qelim p = (\<lambda> y. simpfm p)"
+by pat_completeness auto
+termination qelim by (relation "measure fmsize") simp_all
 
 lemma qelim_ci:
   assumes qe_inv: "\<forall> bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm bs (qe p) = Ifm bs (E p))"
@@ -940,56 +908,53 @@ by(induct p rule: qelim.induct)
 (auto simp add: not disj conj iff imp not_qf disj_qf conj_qf imp_qf iff_qf 
   simpfm simpfm_qf simp del: simpfm.simps)
 
-consts 
-  plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*)
-  minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
-recdef minusinf "measure size"
+fun minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*) where
   "minusinf (And p q) = conj (minusinf p) (minusinf q)" 
-  "minusinf (Or p q) = disj (minusinf p) (minusinf q)" 
-  "minusinf (Eq  (CN 0 c e)) = F"
-  "minusinf (NEq (CN 0 c e)) = T"
-  "minusinf (Lt  (CN 0 c e)) = T"
-  "minusinf (Le  (CN 0 c e)) = T"
-  "minusinf (Gt  (CN 0 c e)) = F"
-  "minusinf (Ge  (CN 0 c e)) = F"
-  "minusinf p = p"
+| "minusinf (Or p q) = disj (minusinf p) (minusinf q)" 
+| "minusinf (Eq  (CN 0 c e)) = F"
+| "minusinf (NEq (CN 0 c e)) = T"
+| "minusinf (Lt  (CN 0 c e)) = T"
+| "minusinf (Le  (CN 0 c e)) = T"
+| "minusinf (Gt  (CN 0 c e)) = F"
+| "minusinf (Ge  (CN 0 c e)) = F"
+| "minusinf p = p"
 
-recdef plusinf "measure size"
+fun plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*) where
   "plusinf (And p q) = conj (plusinf p) (plusinf q)" 
-  "plusinf (Or p q) = disj (plusinf p) (plusinf q)" 
-  "plusinf (Eq  (CN 0 c e)) = F"
-  "plusinf (NEq (CN 0 c e)) = T"
-  "plusinf (Lt  (CN 0 c e)) = F"
-  "plusinf (Le  (CN 0 c e)) = F"
-  "plusinf (Gt  (CN 0 c e)) = T"
-  "plusinf (Ge  (CN 0 c e)) = T"
-  "plusinf p = p"
+| "plusinf (Or p q) = disj (plusinf p) (plusinf q)" 
+| "plusinf (Eq  (CN 0 c e)) = F"
+| "plusinf (NEq (CN 0 c e)) = T"
+| "plusinf (Lt  (CN 0 c e)) = F"
+| "plusinf (Le  (CN 0 c e)) = F"
+| "plusinf (Gt  (CN 0 c e)) = T"
+| "plusinf (Ge  (CN 0 c e)) = T"
+| "plusinf p = p"
 
-consts
-  isrlfm :: "fm \<Rightarrow> bool"   (* Linearity test for fm *)
-recdef isrlfm "measure size"
+fun isrlfm :: "fm \<Rightarrow> bool"   (* Linearity test for fm *) where
   "isrlfm (And p q) = (isrlfm p \<and> isrlfm q)" 
-  "isrlfm (Or p q) = (isrlfm p \<and> isrlfm q)" 
-  "isrlfm (Eq  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
-  "isrlfm (NEq (CN 0 c e)) = (c>0 \<and> numbound0 e)"
-  "isrlfm (Lt  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
-  "isrlfm (Le  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
-  "isrlfm (Gt  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
-  "isrlfm (Ge  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
-  "isrlfm p = (isatom p \<and> (bound0 p))"
+| "isrlfm (Or p q) = (isrlfm p \<and> isrlfm q)" 
+| "isrlfm (Eq  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
+| "isrlfm (NEq (CN 0 c e)) = (c>0 \<and> numbound0 e)"
+| "isrlfm (Lt  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
+| "isrlfm (Le  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
+| "isrlfm (Gt  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
+| "isrlfm (Ge  (CN 0 c e)) = (c>0 \<and> numbound0 e)"
+| "isrlfm p = (isatom p \<and> (bound0 p))"
 
   (* splits the bounded from the unbounded part*)
-consts rsplit0 :: "num \<Rightarrow> int \<times> num" 
-recdef rsplit0 "measure num_size"
+function (sequential) rsplit0 :: "num \<Rightarrow> int \<times> num" where
   "rsplit0 (Bound 0) = (1,C 0)"
-  "rsplit0 (Add a b) = (let (ca,ta) = rsplit0 a ; (cb,tb) = rsplit0 b 
+| "rsplit0 (Add a b) = (let (ca,ta) = rsplit0 a ; (cb,tb) = rsplit0 b 
               in (ca+cb, Add ta tb))"
-  "rsplit0 (Sub a b) = rsplit0 (Add a (Neg b))"
-  "rsplit0 (Neg a) = (let (c,t) = rsplit0 a in (-c,Neg t))"
-  "rsplit0 (Mul c a) = (let (ca,ta) = rsplit0 a in (c*ca,Mul c ta))"
-  "rsplit0 (CN 0 c a) = (let (ca,ta) = rsplit0 a in (c+ca,ta))"
-  "rsplit0 (CN n c a) = (let (ca,ta) = rsplit0 a in (ca,CN n c ta))"
-  "rsplit0 t = (0,t)"
+| "rsplit0 (Sub a b) = rsplit0 (Add a (Neg b))"
+| "rsplit0 (Neg a) = (let (c,t) = rsplit0 a in (-c,Neg t))"
+| "rsplit0 (Mul c a) = (let (ca,ta) = rsplit0 a in (c*ca,Mul c ta))"
+| "rsplit0 (CN 0 c a) = (let (ca,ta) = rsplit0 a in (c+ca,ta))"
+| "rsplit0 (CN n c a) = (let (ca,ta) = rsplit0 a in (ca,CN n c ta))"
+| "rsplit0 t = (0,t)"
+by pat_completeness auto
+termination rsplit0 by (relation "measure num_size") simp_all
+
 lemma rsplit0: 
   shows "Inum bs ((split (CN 0)) (rsplit0 t)) = Inum bs t \<and> numbound0 (snd (rsplit0 t))"
 proof (induct t rule: rsplit0.induct)
@@ -998,13 +963,13 @@ proof (induct t rule: rsplit0.induct)
   let ?ca = "fst ?sa" let ?cb = "fst ?sb"
   let ?ta = "snd ?sa" let ?tb = "snd ?sb"
   from prems have nb: "numbound0 (snd(rsplit0 (Add a b)))" 
-    by(cases "rsplit0 a",auto simp add: Let_def split_def)
+    by (cases "rsplit0 a") (auto simp add: Let_def split_def)
   have "Inum bs ((split (CN 0)) (rsplit0 (Add a b))) = 
     Inum bs ((split (CN 0)) ?sa)+Inum bs ((split (CN 0)) ?sb)"
     by (simp add: Let_def split_def algebra_simps)
-  also have "\<dots> = Inum bs a + Inum bs b" using prems by (cases "rsplit0 a", simp_all)
+  also have "\<dots> = Inum bs a + Inum bs b" using prems by (cases "rsplit0 a") auto
   finally show ?case using nb by simp 
-qed(auto simp add: Let_def split_def algebra_simps , simp add: right_distrib[symmetric])
+qed (auto simp add: Let_def split_def algebra_simps , simp add: right_distrib[symmetric])
 
     (* Linearize a formula*)
 definition
@@ -1780,9 +1745,9 @@ qed
 
     (* Implement the right hand side of Ferrante and Rackoff's Theorem. *)
 definition ferrack :: "fm \<Rightarrow> fm" where
-  "ferrack p \<equiv> (let p' = rlfm (simpfm p); mp = minusinf p'; pp = plusinf p'
+  "ferrack p = (let p' = rlfm (simpfm p); mp = minusinf p'; pp = plusinf p'
                 in if (mp = T \<or> pp = T) then T else 
-                   (let U = remdps(map simp_num_pair 
+                   (let U = remdups(map simp_num_pair 
                      (map (\<lambda> ((t,n),(s,m)). (Add (Mul m t) (Mul n s) , 2*n*m))
                            (alluopairs (uset p')))) 
                     in decr (disj mp (disj pp (evaldjf (simpfm o (usubst p')) U)))))"
@@ -1911,7 +1876,7 @@ proof-
   let ?g = "\<lambda> ((t,n),(s,m)). (Add (Mul m t) (Mul n s) , 2*n*m)"
   let ?S = "map ?g ?Up"
   let ?SS = "map simp_num_pair ?S"
-  let ?Y = "remdps ?SS"
+  let ?Y = "remdups ?SS"
   let ?f= "(\<lambda> (t,n). ?N t / real n)"
   let ?h = "\<lambda> ((t,n),(s,m)). (?N t/real n + ?N s/ real m) /2"
   let ?F = "\<lambda> p. \<exists> a \<in> set (uset p). \<exists> b \<in> set (uset p). ?I x (usubst p (?g(a,b)))"
@@ -1996,49 +1961,53 @@ definition ferrack_test :: "unit \<Rightarrow> fm" where
   "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
     (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
-code_reserved SML oo
-
 ML {* @{code ferrack_test} () *}
 
 oracle linr_oracle = {*
 let
 
-fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
-     of NONE => error "Variable not found in the list!"
-      | SOME n => @{code Bound} n)
+fun num_of_term vs (Free vT) = @{code Bound} (find_index (fn vT' => vT = vT') vs)
   | num_of_term vs @{term "real (0::int)"} = @{code C} 0
   | num_of_term vs @{term "real (1::int)"} = @{code C} 1
   | num_of_term vs @{term "0::real"} = @{code C} 0
   | num_of_term vs @{term "1::real"} = @{code C} 1
   | num_of_term vs (Bound i) = @{code Bound} i
   | num_of_term vs (@{term "uminus :: real \<Rightarrow> real"} $ t') = @{code Neg} (num_of_term vs t')
-  | num_of_term vs (@{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = @{code Add} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "op - :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = @{code Sub} (num_of_term vs t1, num_of_term vs t2)
-  | num_of_term vs (@{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = (case (num_of_term vs t1)
+  | num_of_term vs (@{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+     @{code Add} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op - :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
+     @{code Sub} (num_of_term vs t1, num_of_term vs t2)
+  | num_of_term vs (@{term "op * :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) = (case num_of_term vs t1
      of @{code C} i => @{code Mul} (i, num_of_term vs t2)
-      | _ => error "num_of_term: unsupported Multiplication")
-  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t')) = @{code C} (HOLogic.dest_numeral t')
-  | num_of_term vs (@{term "number_of :: int \<Rightarrow> real"} $ t') = @{code C} (HOLogic.dest_numeral t')
-  | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
+      | _ => error "num_of_term: unsupported multiplication")
+  | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "number_of :: int \<Rightarrow> int"} $ t')) =
+     @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs (@{term "number_of :: int \<Rightarrow> real"} $ t') =
+     @{code C} (HOLogic.dest_numeral t')
+  | num_of_term vs t = error ("num_of_term: unknown term");
 
 fun fm_of_term vs @{term True} = @{code T}
   | fm_of_term vs @{term False} = @{code F}
-  | fm_of_term vs (@{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (@{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
-  | fm_of_term vs (@{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
-  | fm_of_term vs (@{term "op \<longleftrightarrow> :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) = @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Lt} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term vs (@{term "op \<le> :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Le} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
+  | fm_of_term vs (@{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
+  | fm_of_term vs (@{term "op \<longleftrightarrow> :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
+      @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "op &"} $ t1 $ t2) = @{code And} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "op |"} $ t1 $ t2) = @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "op -->"} $ t1 $ t2) = @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "Not"} $ t') = @{code NOT} (fm_of_term vs t')
   | fm_of_term vs (Const ("Ex", _) $ Abs (xn, xT, p)) =
-      @{code E} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
+      @{code E} (fm_of_term (("", dummyT) :: vs) p)
   | fm_of_term vs (Const ("All", _) $ Abs (xn, xT, p)) =
-      @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
+      @{code A} (fm_of_term (("", dummyT) ::  vs) p)
   | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $ HOLogic.mk_number HOLogic.intT i
-  | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))
+  | term_of_num vs (@{code Bound} n) = Free (nth vs n)
   | term_of_num vs (@{code Neg} t') = @{term "uminus :: real \<Rightarrow> real"} $ term_of_num vs t'
   | term_of_num vs (@{code Add} (t1, t2)) = @{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $
       term_of_num vs t1 $ term_of_num vs t2
@@ -2066,17 +2035,13 @@ fun term_of_fm vs @{code T} = HOLogic.true_const
   | term_of_fm vs (@{code Or} (t1, t2)) = HOLogic.disj $ term_of_fm vs t1 $ term_of_fm vs t2
   | term_of_fm vs (@{code Imp}  (t1, t2)) = HOLogic.imp $ term_of_fm vs t1 $ term_of_fm vs t2
   | term_of_fm vs (@{code Iff} (t1, t2)) = @{term "op \<longleftrightarrow> :: bool \<Rightarrow> bool \<Rightarrow> bool"} $
-      term_of_fm vs t1 $ term_of_fm vs t2
-  | term_of_fm vs _ = error "If this is raised, Isabelle/HOL or generate_code is inconsistent.";
+      term_of_fm vs t1 $ term_of_fm vs t2;
 
-in fn ct =>
+in fn (ctxt, t) =>
   let 
-    val thy = Thm.theory_of_cterm ct;
-    val t = Thm.term_of ct;
-    val fs = OldTerm.term_frees t;
-    val vs = map_index swap fs;
-    val res = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, term_of_fm vs (@{code linrqe} (fm_of_term vs t))));
-  in Thm.cterm_of thy res end
+    val vs = Term.add_frees t [];
+    val t' = (term_of_fm vs o @{code linrqe} o fm_of_term vs) t;
+  in (Thm.cterm_of (ProofContext.theory_of ctxt) o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
 end;
 *}
 
