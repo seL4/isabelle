@@ -149,7 +149,8 @@ INCOMPATIBILITY.
 * Dropped theorem RealPow.real_sq_order; use power2_le_imp_le instead.
 INCOMPATIBILITY.
 
-* Dropped normalizing. Use semiring classes directly. INCOMPATIBILITY.
+* Dropped normalizing_semiring etc; use the facts in semiring classes instead.
+INCOMPATIBILITY.
 
 * Theory 'Finite_Set': various folding_* locales facilitate the application
 of the various fold combinators on finite sets.
