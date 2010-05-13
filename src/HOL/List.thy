@@ -2961,6 +2961,9 @@ lemma remove1_append:
   (if x \<in> set xs then remove1 x xs @ ys else xs @ remove1 x ys)"
 by (induct xs) auto
 
+lemma remove1_commute: "remove1 x (remove1 y zs) = remove1 y (remove1 x zs)"
+by (induct zs) auto
+
 lemma in_set_remove1[simp]:
   "a \<noteq> b \<Longrightarrow> a : set(remove1 b xs) = (a : set xs)"
 apply (induct xs)

@@ -93,29 +93,16 @@ lemma perm_sing_eq2 [iff]: "([y] <~~> ys) = (ys = [y])"
 
 subsection {* Removing elements *}
 
-primrec remove :: "'a => 'a list => 'a list" where
-    "remove x [] = []"
-  | "remove x (y # ys) = (if x = y then ys else y # remove x ys)"
-
-lemma perm_remove: "x \<in> set ys ==> ys <~~> x # remove x ys"
+lemma perm_remove: "x \<in> set ys ==> ys <~~> x # remove1 x ys"
   by (induct ys) auto
-
-lemma remove_commute: "remove x (remove y l) = remove y (remove x l)"
-  by (induct l) auto
-
-lemma multiset_of_remove [simp]:
-    "multiset_of (remove a x) = multiset_of x - {#a#}"
-  apply (induct x)
-   apply (auto simp: multiset_eq_conv_count_eq)
-  done
 
 
 text {* \medskip Congruence rule *}
 
-lemma perm_remove_perm: "xs <~~> ys ==> remove z xs <~~> remove z ys"
+lemma perm_remove_perm: "xs <~~> ys ==> remove1 z xs <~~> remove1 z ys"
   by (induct pred: perm) auto
 
-lemma remove_hd [simp]: "remove z (z # xs) = xs"
+lemma remove_hd [simp]: "remove1 z (z # xs) = xs"
   by auto
 
 lemma cons_perm_imp_perm: "z # xs <~~> z # ys ==> xs <~~> ys"
@@ -146,7 +133,7 @@ lemma multiset_of_eq_perm: "(multiset_of xs = multiset_of ys) = (xs <~~> ys) "
   apply (erule_tac [2] perm.induct, simp_all add: union_ac)
   apply (erule rev_mp, rule_tac x=ys in spec)
   apply (induct_tac xs, auto)
-  apply (erule_tac x = "remove a x" in allE, drule sym, simp)
+  apply (erule_tac x = "remove1 a x" in allE, drule sym, simp)
   apply (subgoal_tac "a \<in> set x")
   apply (drule_tac z=a in perm.Cons)
   apply (erule perm.trans, rule perm_sym, erule perm_remove)
