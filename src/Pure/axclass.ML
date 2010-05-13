@@ -196,9 +196,9 @@ fun (SOME a) RSO (SOME b) = SOME (a RS b)
 
 fun the_classrel thy (c1, c2) =
   (case Symreltab.lookup (proven_classrels_of thy) (c1, c2) of
-    SOME thm => Thm.transfer thy thm
+    SOME thm => thm
   | NONE => error ("Unproven class relation " ^
-      Syntax.string_of_classrel (ProofContext.init_global thy) [c1, c2]));
+      Syntax.string_of_classrel (ProofContext.init_global thy) [c1, c2]));  (* FIXME stale thy (!?) *)
 
 fun put_trancl_classrel ((c1, c2), th) thy =
   let
@@ -206,7 +206,7 @@ fun put_trancl_classrel ((c1, c2), th) thy =
     val classrels = proven_classrels_of thy;
 
     fun reflcl_classrel (c1', c2') =
-      if c1' = c2' then NONE else SOME (the_classrel thy (c1', c2'));
+      if c1' = c2' then NONE else SOME (Thm.transfer thy (the_classrel thy (c1', c2')));
     fun gen_classrel (c1_pred, c2_succ) =
       let
         val th' =
@@ -243,9 +243,9 @@ fun complete_classrels thy =
 
 fun the_arity thy (a, Ss, c) =
   (case AList.lookup (op =) (Symtab.lookup_list (proven_arities_of thy) a) (c, Ss) of
-    SOME (thm, _) => Thm.transfer thy thm
+    SOME (thm, _) => thm
   | NONE => error ("Unproven type arity " ^
-      Syntax.string_of_arity (ProofContext.init_global thy) (a, Ss, [c])));
+      Syntax.string_of_arity (ProofContext.init_global thy) (a, Ss, [c])));  (* FIXME stale thy (!?) *)
 
 fun thynames_of_arity thy (c, a) =
   Symtab.lookup_list (proven_arities_of thy) a
@@ -267,7 +267,7 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
     val completions = super_class_completions |> map (fn c1 =>
       let
         val th1 =
-          (th RS the_classrel thy (c, c1))
+          (th RS Thm.transfer thy (the_classrel thy (c, c1)))
           |> Drule.instantiate' std_vars []
           |> Thm.close_derivation;
       in ((th1, thy_name), c1) end);
