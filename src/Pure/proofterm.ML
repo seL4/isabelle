@@ -1421,12 +1421,12 @@ fun thm_proof thy name hyps concl promises body =
       else MinProof;
     val body0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
 
-    fun new_prf () = (serial (), name, prop, fulfill_proof_future thy promises body0);
-    val (i, name, prop, body') =
+    fun new_prf () = (serial (), fulfill_proof_future thy promises body0);
+    val (i, body') =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
           if (old_name = "" orelse old_name = name) andalso prop = prop' andalso args = args'
-          then (i, name, prop, body')
+          then (i, body')
           else new_prf ()
       | _ => new_prf ());
     val head = PThm (i, ((name, prop, NONE), body'));
