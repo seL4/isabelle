@@ -1379,6 +1379,31 @@ fun fulfill_proof_future _ [] body = Future.value body
         fulfill_norm_proof thy (map (apsnd Future.join) promises) body);
 
 
+(***** abstraction over sort constraints *****)
+
+fun unconstrainT_proof thy atyp_map constraints =
+  let
+    fun hyp_map hyp =
+      (case AList.lookup (op =) constraints hyp of
+        SOME t => Hyp t
+      | NONE => raise Fail "unconstrainT_proof: missing constraint");
+
+    val typ = Type.strip_sorts o atyp_map;
+    fun ofclass (ty, c) =
+      let val ty' = Term.map_atyps atyp_map ty;
+      in the_single (of_sort_proof thy hyp_map (ty', [c])) end;
+  in
+    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
+    #> fold_rev (implies_intr_proof o snd) constraints
+  end;
+
+fun unconstrainT_body thy atyp_map constraints (PBody {oracles, thms, proof}) =
+  PBody
+   {oracles = oracles,  (* FIXME unconstrain (!?!) *)
+    thms = thms,
+    proof = unconstrainT_proof thy atyp_map constraints proof};
+
+
 (***** theorems *****)
 
 fun thm_proof thy name hyps concl promises body =
