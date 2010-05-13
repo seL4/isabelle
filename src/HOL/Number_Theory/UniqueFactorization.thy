@@ -56,11 +56,6 @@ lemma setprod_Un2: "finite (A Un B) \<Longrightarrow>
   apply auto
 done
  
-(* Should this go in Multiset.thy? *)
-(* TN: No longer an intro-rule; needed only once and might get in the way *)
-lemma multiset_eqI: "[| !!x. count M x = count N x |] ==> M = N"
-  by (subst multiset_eq_conv_count_eq, blast)
-
 (* Here is a version of set product for multisets. Is it worth moving
    to multiset.thy? If so, one should similarly define msetsum for abelian 
    semirings, using of_nat. Also, is it worth developing bounded quantifiers 
@@ -210,7 +205,7 @@ proof -
     ultimately have "count M a = count N a"
       by auto
   }
-  thus ?thesis by (simp add:multiset_eq_conv_count_eq)
+  thus ?thesis by (simp add:multiset_ext_iff)
 qed
 
 definition multiset_prime_factorization :: "nat => nat multiset" where

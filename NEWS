@@ -298,7 +298,13 @@ multiset order:
     generation;
   - use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union,
     if needed.
+Renamed:
+  multiset_eq_conv_count_eq -> multiset_ext_iff
+  multi_count_ext -> multiset_ext
+  diff_union_inverse2 -> diff_union_cancelR
 INCOMPATIBILITY.
+
+* Theory Permutation: replaced local "remove" by List.remove1.
 
 * Code generation: ML and OCaml code is decorated with signatures.
 

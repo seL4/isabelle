@@ -2193,7 +2193,7 @@ proof -
 
   from csmset msubset
       have "fmset G bs = fmset G as + fmset G cs"
-      by (simp add: multiset_eq_conv_count_eq mset_le_def)
+      by (simp add: multiset_ext_iff mset_le_def)
   hence basc: "b \<sim> a \<otimes> c"
       by (rule fmset_wfactors_mult) fact+
 
