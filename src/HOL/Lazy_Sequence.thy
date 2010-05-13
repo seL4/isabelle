@@ -136,7 +136,7 @@ code_reflect Lazy_Sequence
   datatypes lazy_sequence = Lazy_Sequence
   functions map yield yieldn
 
-section {* With Hit Bound Value *}
+subsection {* With Hit Bound Value *}
 text {* assuming in negative context *}
 
 types 'a hit_bound_lazy_sequence = "'a option lazy_sequence"

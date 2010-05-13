@@ -26,7 +26,7 @@ begin
 
 
 
-section {* Triggers for quantifier instantiation *}
+subsection {* Triggers for quantifier instantiation *}
 
 text {*
 Some SMT solvers support triggers for quantifier instantiation.
@@ -53,7 +53,7 @@ where "trigger _ P = P"
 
 
 
-section {* Higher-order encoding *}
+subsection {* Higher-order encoding *}
 
 text {*
 Application is made explicit for constants occurring with varying
@@ -74,7 +74,7 @@ lemmas array_rules = ext fun_upd_apply fun_upd_same fun_upd_other
 
 
 
-section {* First-order logic *}
+subsection {* First-order logic *}
 
 text {*
 Some SMT solvers require a strict separation between formulas and
@@ -91,7 +91,7 @@ definition term_eq :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "term'
 
 
 
-section {* Setup *}
+subsection {* Setup *}
 
 use "Tools/SMT/smt_monomorph.ML"
 use "Tools/SMT/smt_normalize.ML"
@@ -118,7 +118,7 @@ setup {*
 
 
 
-section {* Configuration *}
+subsection {* Configuration *}
 
 text {*
 The current configuration can be printed by the command
@@ -224,7 +224,7 @@ declare [[ z3_options = "" ]]
 
 
 
-section {* Schematic rules for Z3 proof reconstruction *}
+subsection {* Schematic rules for Z3 proof reconstruction *}
 
 text {*
 Several prof rules of Z3 are not very well documented.  There are two

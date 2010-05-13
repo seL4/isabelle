@@ -7,7 +7,7 @@ theory New_DSequence
 imports Random_Sequence
 begin
 
-section {* Positive Depth-Limited Sequence *}
+subsection {* Positive Depth-Limited Sequence *}
 
 types 'a pos_dseq = "code_numeral => 'a Lazy_Sequence.lazy_sequence"
 
@@ -43,7 +43,7 @@ definition pos_map :: "('a => 'b) => 'a pos_dseq => 'b pos_dseq"
 where
   "pos_map f xq = (%i. Lazy_Sequence.map f (xq i))"
 
-section {* Negative Depth-Limited Sequence *}
+subsection {* Negative Depth-Limited Sequence *}
 
 types 'a neg_dseq = "code_numeral => 'a Lazy_Sequence.hit_bound_lazy_sequence"
 
@@ -79,7 +79,7 @@ definition neg_map :: "('a => 'b) => 'a neg_dseq => 'b neg_dseq"
 where
   "neg_map f xq = (%i. Lazy_Sequence.hb_map f (xq i))"
 
-section {* Negation *}
+subsection {* Negation *}
 
 definition pos_not_seq :: "unit neg_dseq => unit pos_dseq"
 where
