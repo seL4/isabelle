@@ -586,17 +586,17 @@ fun future future_thm ct =
 (* closed derivations with official name *)
 
 fun derivation_name thm =
-  Pt.get_name (hyps_of thm) (prop_of thm) (Pt.proof_of (raw_body thm));
+  Pt.guess_name (Pt.proof_of (raw_body thm));   (* FIXME tmp *)
 
 fun name_derivation name (thm as Thm (der, args)) =
   let
     val Deriv {promises, body} = der;
-    val {thy_ref, hyps, prop, tpairs, ...} = args;
+    val {thy_ref, shyps, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
 
     val ps = map (apsnd (Future.map proof_body_of)) promises;
     val thy = Theory.deref thy_ref;
-    val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
+    val (pthm, proof) = Pt.thm_proof thy name shyps hyps prop ps body;
     val der' = make_deriv [] [] [pthm] proof;
     val _ = Theory.check_thy thy;
   in Thm (der', args) end;

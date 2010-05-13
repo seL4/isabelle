@@ -132,7 +132,8 @@ sig
 
   val promise_proof: theory -> serial -> term -> proof
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val thm_proof: theory -> string -> term list -> term ->
+  val unconstrain_thm_proofs: bool Unsynchronized.ref
+  val thm_proof: theory -> string -> sort list -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
   val get_name_unconstrained: sort list -> term list -> term -> proof -> string
@@ -1373,22 +1374,22 @@ fun fulfill_norm_proof thy ps body0 =
     val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
-fun fulfill_proof_future _ [] body = Future.value body
-  | fulfill_proof_future thy promises body =
+fun fulfill_proof_future _ [] postproc body = Future.value (postproc body)
+  | fulfill_proof_future thy promises postproc body =
       Future.fork_deps (map snd promises) (fn () =>
-        fulfill_norm_proof thy (map (apsnd Future.join) promises) body);
+        postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) body));
 
 
 (***** abstraction over sort constraints *****)
 
-fun unconstrainT_proof thy atyp_map constraints =
+fun unconstrainT_prf thy (atyp_map, constraints) =
   let
     fun hyp_map hyp =
       (case AList.lookup (op =) constraints hyp of
         SOME t => Hyp t
-      | NONE => raise Fail "unconstrainT_proof: missing constraint");
+      | NONE => raise Fail "unconstrainT_prf: missing constraint");
 
-    val typ = Type.strip_sorts o atyp_map;
+    val typ = Term_Subst.map_atypsT_same (Type.strip_sorts o atyp_map);
     fun ofclass (ty, c) =
       let val ty' = Term.map_atyps atyp_map ty;
       in the_single (of_sort_proof thy hyp_map (ty', [c])) end;
@@ -1397,16 +1398,18 @@ fun unconstrainT_proof thy atyp_map constraints =
     #> fold_rev (implies_intr_proof o snd) constraints
   end;
 
-fun unconstrainT_body thy atyp_map constraints (PBody {oracles, thms, proof}) =
+fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
   PBody
    {oracles = oracles,  (* FIXME unconstrain (!?!) *)
     thms = thms,
-    proof = unconstrainT_proof thy atyp_map constraints proof};
+    proof = unconstrainT_prf thy constrs proof};
 
 
 (***** theorems *****)
 
-fun thm_proof thy name hyps concl promises body =
+val unconstrain_thm_proofs = Unsynchronized.ref false;
+
+fun thm_proof thy name shyps hyps concl promises body =
   let
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val prop = Logic.list_implies (hyps, concl);
@@ -1415,23 +1418,32 @@ fun thm_proof thy name hyps concl promises body =
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
       map SOME (frees_of prop);
 
+    val (postproc, ofclasses, prop1) =
+      if ! unconstrain_thm_proofs then
+        let
+          val ((atyp_map, constraints), prop1) = Logic.unconstrainT shyps prop;
+          val postproc = unconstrainT_body thy (atyp_map, constraints);
+        in (postproc, map (OfClass o fst) constraints, prop1) end
+      else (I, [], prop);
+    val argsP = ofclasses @ map Hyp hyps;
+
     val proof0 =
       if ! proofs = 2 then
         #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
       else MinProof;
     val body0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
 
-    fun new_prf () = (serial (), fulfill_proof_future thy promises body0);
+    fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
-          if (old_name = "" orelse old_name = name) andalso prop = prop' andalso args = args'
+          if (old_name = "" orelse old_name = name) andalso prop1 = prop' andalso args = args'
           then (i, body')
           else new_prf ()
       | _ => new_prf ());
-    val head = PThm (i, ((name, prop, NONE), body'));
+    val head = PThm (i, ((name, prop1, NONE), body'));
   in
-    ((i, (name, prop, body')), proof_combP (proof_combt' (head, args), map Hyp hyps))
+    ((i, (name, prop1, body')), proof_combP (proof_combt' (head, args), argsP))
   end;
 
 fun get_name hyps prop prf =
