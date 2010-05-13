@@ -347,7 +347,7 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
-  | change_type opTs (Promise _) = error "change_type: unexpected promise"
+  | change_type opTs (Promise _) = raise Fail "change_type: unexpected promise"
   | change_type opTs (PThm (i, ((name, prop, _), body))) =
       PThm (i, ((name, prop, opTs), body))
   | change_type _ prf = prf;
@@ -1074,7 +1074,7 @@ val shrink_proof =
               | Oracle (_, prop, _) => prop
               | Promise (_, prop, _) => prop
               | PThm (_, ((_, prop, _), _)) => prop
-              | _ => error "shrink: proof not in normal form");
+              | _ => raise Fail "shrink: proof not in normal form");
             val vs = vars_of prop;
             val (ts', ts'') = chop (length vs) ts;
             val insts = take (length ts') (map (fst o dest_Var) vs) ~~ ts';
@@ -1351,9 +1351,9 @@ fun promise_proof thy i prop =
   let
     val _ = prop |> Term.exists_subterm (fn t =>
       (Term.is_Free t orelse Term.is_Var t) andalso
-        error ("promise_proof: illegal variable " ^ Syntax.string_of_term_global thy t));
+        raise Fail ("promise_proof: illegal variable " ^ Syntax.string_of_term_global thy t));
     val _ = prop |> Term.exists_type (Term.exists_subtype
-      (fn TFree (a, _) => error ("promise_proof: illegal type variable " ^ quote a)
+      (fn TFree (a, _) => raise Fail ("promise_proof: illegal type variable " ^ quote a)
         | _ => false));
   in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
 
