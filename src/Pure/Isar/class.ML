@@ -293,8 +293,7 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
     |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) =>
-       Locale.add_registration (class, case eq_morph of SOME eq_morph => base_morph $> eq_morph | NONE => base_morph)
-         (*FIXME should avoid modification of base morphism, but then problem with sublocale linorder < distrib_lattice*)
+       Locale.add_registration (class, base_morph)
          (Option.map (rpair true) eq_morph) export_morph
     #> register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
     |> Theory_Target.init (SOME class)
