@@ -118,11 +118,6 @@ sig
     arity_proof: theory -> string * sort list * class -> proof} -> unit
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
-  val promise_proof: theory -> serial -> term -> proof
-  val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val thm_proof: theory -> string -> term list -> term ->
-    (serial * proof_body future) list -> proof_body -> pthm * proof
-  val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
   val add_prf_rrule: proof * proof -> theory -> theory
@@ -134,6 +129,14 @@ sig
   val rewrite_proof_notypes: (proof * proof) list *
     (typ list -> proof -> (proof * proof) option) list -> proof -> proof
   val rew_proof: theory -> proof -> proof
+
+  val promise_proof: theory -> serial -> term -> proof
+  val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
+  val thm_proof: theory -> string -> term list -> term ->
+    (serial * proof_body future) list -> proof_body -> pthm * proof
+  val get_name: term list -> term -> proof -> string
+  val get_name_unconstrained: sort list -> term list -> term -> proof -> string
+  val guess_name: proof -> string
 end
 
 structure Proofterm : PROOFTERM =
@@ -1412,6 +1415,20 @@ fun get_name hyps prop prf =
       (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
     | _ => "")
   end;
+
+fun get_name_unconstrained shyps hyps prop prf =
+  let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
+    (case strip_combt (fst (strip_combP prf)) of
+      (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
+    | _ => "")
+  end;
+
+fun guess_name (PThm (_, ((name, _, _), _))) = name
+  | guess_name (prf %% Hyp _) = guess_name prf
+  | guess_name (prf %% OfClass _) = guess_name prf
+  | guess_name (prf % NONE) = guess_name prf
+  | guess_name (prf % SOME (Var _)) = guess_name prf
+  | guess_name _ = "";
 
 end;
 
