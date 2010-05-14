@@ -533,7 +533,7 @@ axioms
   grefl: "gle(x, x)" gless_def: "gless(x, y) <-> gle(x, y) & x ~= y"
   grefl': "gle'(x, x)" gless'_def: "gless'(x, y) <-> gle'(x, y) & x ~= y"
 
-text {* Setup *}
+text {* Mixin not applied to locales further up the hierachy. *}
 
 locale mixin = reflexive
 begin
@@ -547,6 +547,16 @@ proof -
   show "reflexive.less(gle, x, y) <-> gless(x, y)"
     by (simp add: reflexive.less_def[OF reflexive] gless_def)
 qed
+
+thm le.less_def  (* mixin not applied *)
+lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y" by (rule le.less_def)
+thm le.less_thm  (* mixin applied *)
+lemma "gless(x, y) <-> gle(x, y) & x ~= y" by (rule le.less_thm)
+
+lemma "reflexive.less(gle, x, y) <-> gle(x, y) & x ~= y"
+  by (rule le.less_def)
+lemma "gless(x, y) <-> gle(x, y) & x ~= y"
+  by (rule le.less_thm)
 
 text {* Mixin propagated along the locale hierarchy *}
 
