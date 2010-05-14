@@ -154,7 +154,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
-  Nitpick.thy \
   Option.thy \
   Orderings.thy \
   Plain.thy \
@@ -197,22 +196,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/Function/size.ML \
   Tools/Function/sum_tree.ML \
   Tools/Function/termination.ML \
-  Tools/Nitpick/kodkod.ML \
-  Tools/Nitpick/kodkod_sat.ML \
-  Tools/Nitpick/minipick.ML \
-  Tools/Nitpick/nitpick.ML \
-  Tools/Nitpick/nitpick_hol.ML \
-  Tools/Nitpick/nitpick_isar.ML \
-  Tools/Nitpick/nitpick_kodkod.ML \
-  Tools/Nitpick/nitpick_model.ML \
-  Tools/Nitpick/nitpick_mono.ML \
-  Tools/Nitpick/nitpick_nut.ML \
-  Tools/Nitpick/nitpick_peephole.ML \
-  Tools/Nitpick/nitpick_preproc.ML \
-  Tools/Nitpick/nitpick_rep.ML \
-  Tools/Nitpick/nitpick_scope.ML \
-  Tools/Nitpick/nitpick_tests.ML \
-  Tools/Nitpick/nitpick_util.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive.ML \
   Tools/inductive_realizer.ML \
@@ -262,6 +245,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Map.thy \
   Nat_Numeral.thy \
   Nat_Transfer.thy \
+  Nitpick.thy \
   Numeral_Simprocs.thy \
   Presburger.thy \
   Predicate_Compile.thy \
@@ -291,6 +275,22 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/list_code.ML \
   Tools/meson.ML \
   Tools/nat_numeral_simprocs.ML \
+  Tools/Nitpick/kodkod.ML \
+  Tools/Nitpick/kodkod_sat.ML \
+  Tools/Nitpick/minipick.ML \
+  Tools/Nitpick/nitpick.ML \
+  Tools/Nitpick/nitpick_hol.ML \
+  Tools/Nitpick/nitpick_isar.ML \
+  Tools/Nitpick/nitpick_kodkod.ML \
+  Tools/Nitpick/nitpick_model.ML \
+  Tools/Nitpick/nitpick_mono.ML \
+  Tools/Nitpick/nitpick_nut.ML \
+  Tools/Nitpick/nitpick_peephole.ML \
+  Tools/Nitpick/nitpick_preproc.ML \
+  Tools/Nitpick/nitpick_rep.ML \
+  Tools/Nitpick/nitpick_scope.ML \
+  Tools/Nitpick/nitpick_tests.ML \
+  Tools/Nitpick/nitpick_util.ML \
   Tools/numeral.ML \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
