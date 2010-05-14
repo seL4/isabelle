@@ -46,7 +46,7 @@ val (measure_runtime, measure_runtime_setup) =
 (* prover configuration *)
 
 type prover_config =
-  {home: string,
+  {home_var: string,
    executable: string,
    arguments: Time.time -> string,
    proof_delims: (string * string) list,
@@ -110,8 +110,8 @@ fun shape_of_clauses _ [] = []
       (j :: hd shape) :: tl shape
     end
 
-fun generic_prover overlord get_facts prepare write_file home executable args
-        proof_delims known_failures name
+fun generic_prover overlord get_facts prepare write_file home_var executable
+        args proof_delims known_failures name
         ({debug, full_types, explicit_apply, isar_proof, shrink_factor, ...}
          : params) minimize_command
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
@@ -151,6 +151,7 @@ fun generic_prover overlord get_facts prepare write_file home executable args
         else error ("No such directory: " ^ the_dest_dir ^ ".")
       end;
 
+    val home = getenv home_var
     val command = Path.explode (home ^ "/" ^ executable)
     (* write out problem file and call prover *)
     fun command_line probfile =
@@ -186,6 +187,8 @@ fun generic_prover overlord get_facts prepare write_file home executable args
       if File.exists command then
         write_file full_types explicit_apply probfile clauses
         |> pair (apfst split_time' (bash_output (command_line probfile)))
+      else if home = "" then
+        error ("The environment variable " ^ quote home_var ^ " is not set.")
       else
         error ("Bad executable: " ^ Path.implode command ^ ".");
 
@@ -231,7 +234,7 @@ fun generic_prover overlord get_facts prepare write_file home executable args
 (* generic TPTP-based provers *)
 
 fun generic_tptp_prover
-        (name, {home, executable, arguments, proof_delims, known_failures,
+        (name, {home_var, executable, arguments, proof_delims, known_failures,
                 max_axiom_clauses, prefers_theory_relevant})
         (params as {debug, overlord, respect_no_atp, relevance_threshold,
                     convergence, theory_relevant, follow_defs, isar_proof, ...})
@@ -241,7 +244,7 @@ fun generic_tptp_prover
                           follow_defs max_axiom_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses false)
-      (write_tptp_file (debug andalso overlord)) home
+      (write_tptp_file (debug andalso overlord)) home_var
       executable (arguments timeout) proof_delims known_failures name params
       minimize_command
 
@@ -257,7 +260,7 @@ fun to_generous_secs time = (Time.toMilliseconds time + 999) div 1000
 (* Vampire requires an explicit time limit. *)
 
 val vampire_config : prover_config =
-  {home = getenv "VAMPIRE_HOME",
+  {home_var = "VAMPIRE_HOME",
    executable = "vampire",
    arguments = fn timeout =>
      "--output_syntax tptp --mode casc -t " ^
@@ -281,7 +284,7 @@ val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
 val e_config : prover_config =
-  {home = getenv "E_HOME",
+  {home_var = "E_HOME",
    executable = "eproof",
    arguments = fn timeout =>
      "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^
@@ -304,7 +307,7 @@ val e = tptp_prover "e" e_config
 (* SPASS *)
 
 fun generic_dfg_prover
-        (name, {home, executable, arguments, proof_delims, known_failures,
+        (name, {home_var, executable, arguments, proof_delims, known_failures,
                 max_axiom_clauses, prefers_theory_relevant})
         (params as {overlord, respect_no_atp, relevance_threshold, convergence,
                     theory_relevant, follow_defs, ...})
@@ -313,7 +316,7 @@ fun generic_dfg_prover
       (get_relevant_facts respect_no_atp relevance_threshold convergence
                           follow_defs max_axiom_clauses
                           (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses true) write_dfg_file home executable
+      (prepare_clauses true) write_dfg_file home_var executable
       (arguments timeout) proof_delims known_failures name params
       minimize_command
 
@@ -322,7 +325,7 @@ fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
-  {home = getenv "SPASS_HOME",
+  {home_var = "SPASS_HOME",
    executable = "SPASS",
    arguments = fn timeout =>
      "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
@@ -342,7 +345,7 @@ val spass = dfg_prover "spass" spass_config
    Sledgehammer) and rename "spass_tptp" "spass". *)
 
 val spass_tptp_config =
-  {home = #home spass_config,
+  {home_var = #home_var spass_config,
    executable = #executable spass_config,
    arguments = prefix "-TPTP " o #arguments spass_config,
    proof_delims = #proof_delims spass_config,
@@ -384,7 +387,7 @@ val remote_known_failures =
 fun remote_prover_config atp_prefix args
         ({proof_delims, known_failures, max_axiom_clauses,
           prefers_theory_relevant, ...} : prover_config) : prover_config =
-  {home = getenv "ISABELLE_ATP_MANAGER",
+  {home_var = "ISABELLE_ATP_MANAGER",
    executable = "SystemOnTPTP",
    arguments = fn timeout =>
      args ^ " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
@@ -406,8 +409,8 @@ val remote_spass =
   tptp_prover (remotify (fst spass))
               (remote_prover_config "SPASS---" "-x" spass_config)
 
-fun maybe_remote (name, _) ({home, ...} : prover_config) =
-  name |> home = "" ? remotify
+fun maybe_remote (name, _) ({home_var, ...} : prover_config) =
+  name |> getenv home_var = "" ? remotify
 
 fun default_atps_param_value () =
   space_implode " " [maybe_remote e e_config, maybe_remote spass spass_config,
