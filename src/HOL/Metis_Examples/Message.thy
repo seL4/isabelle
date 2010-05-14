@@ -9,7 +9,7 @@ imports Main
 begin
 
 lemma strange_Un_eq [simp]: "A \<union> (B \<union> A) = B \<union> A"
-by (metis Un_ac(2) Un_ac(3))
+by (metis Un_commute Un_left_absorb)
 
 types 
   key = nat
@@ -681,14 +681,10 @@ done
 
 lemma analz_synth [simp]: "analz (synth H) = analz H \<union> synth H"
 proof -
-  have "\<forall>x\<^isub>2 x\<^isub>1. synth x\<^isub>1 \<union> analz (x\<^isub>1 \<union> x\<^isub>2) = analz (synth x\<^isub>1 \<union> x\<^isub>2)"
-    by (metis Un_commute analz_synth_Un)
-  hence "\<forall>x\<^isub>3 x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1 \<union> UNION {} x\<^isub>3)"
-    by (metis UN_extend_simps(3))
-  hence "\<forall>x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1)"
-    by (metis UN_extend_simps(3))
-  hence "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth x\<^isub>1 = analz (synth x\<^isub>1)"
-    by (metis Un_commute)
+  have "\<forall>x\<^isub>2 x\<^isub>1. synth x\<^isub>1 \<union> analz (x\<^isub>1 \<union> x\<^isub>2) = analz (synth x\<^isub>1 \<union> x\<^isub>2)" by (metis Un_commute analz_synth_Un)
+  hence "\<forall>x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1 \<union> {})" by (metis Un_empty_right)
+  hence "\<forall>x\<^isub>1. synth x\<^isub>1 \<union> analz x\<^isub>1 = analz (synth x\<^isub>1)" by (metis Un_empty_right)
+  hence "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth x\<^isub>1 = analz (synth x\<^isub>1)" by (metis Un_commute)
   thus "analz (synth H) = analz H \<union> synth H" by metis
 qed
 
@@ -698,20 +694,18 @@ subsubsection{*For reasoning about the Fake rule in traces *}
 lemma parts_insert_subset_Un: "X\<in> G ==> parts(insert X H) \<subseteq> parts G \<union> parts H"
 proof -
   assume "X \<in> G"
-  hence "\<forall>u. X \<in> G \<union> u" by (metis Un_iff)
-  hence "X \<in> G \<union> H \<and> H \<subseteq> G \<union> H"
-    by (metis Un_upper2)
-  hence "insert X H \<subseteq> G \<union> H" by (metis insert_subset)
-  hence "parts (insert X H) \<subseteq> parts (G \<union> H)"
-    by (metis parts_mono)
-  thus "parts (insert X H) \<subseteq> parts G \<union> parts H"
-    by (metis parts_Un)
+  hence "G X" by (metis mem_def)
+  hence "\<forall>x\<^isub>1. G \<subseteq> x\<^isub>1 \<longrightarrow> x\<^isub>1 X" by (metis predicate1D)
+  hence "\<forall>x\<^isub>1. (G \<union> x\<^isub>1) X" by (metis Un_upper1)
+  hence "\<forall>x\<^isub>1. X \<in> G \<union> x\<^isub>1" by (metis mem_def)
+  hence "insert X H \<subseteq> G \<union> H" by (metis Un_upper2 insert_subset)
+  hence "parts (insert X H) \<subseteq> parts (G \<union> H)" by (metis parts_mono)
+  thus "parts (insert X H) \<subseteq> parts G \<union> parts H" by (metis parts_Un)
 qed
 
 lemma Fake_parts_insert:
      "X \<in> synth (analz H) ==>  
       parts (insert X H) \<subseteq> synth (analz H) \<union> parts H"
-(*sledgehammer*)
 proof -
   assume A1: "X \<in> synth (analz H)"
   have F1: "\<forall>x\<^isub>1. analz x\<^isub>1 \<union> synth (analz x\<^isub>1) = analz (synth (analz x\<^isub>1))"
