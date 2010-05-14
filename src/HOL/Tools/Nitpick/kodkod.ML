@@ -1034,6 +1034,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                  handle IO.Io _ => "" | OS.SysErr _ => "")
                 |> perhaps (try (unsuffix "\r"))
                 |> perhaps (try (unsuffix "."))
+                |> perhaps (try (unprefix "Solve error: "))
                 |> perhaps (try (unprefix "Error: "))
             in
               if null ps then
