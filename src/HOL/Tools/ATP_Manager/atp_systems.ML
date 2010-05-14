@@ -215,8 +215,8 @@ fun generic_prover overlord get_facts prepare write_file home executable args
       case outcome of
         NONE =>
         proof_text isar_proof
-                   (pool, debug, shrink_factor, ctxt, conjecture_shape)
-                   (minimize_command, proof, internal_thm_names, th, subgoal)
+            (pool, debug, full_types, shrink_factor, ctxt, conjecture_shape)
+            (minimize_command, proof, internal_thm_names, th, subgoal)
       | SOME failure => (string_for_failure failure ^ "\n", [])
   in
     {outcome = outcome, message = message, pool = pool,
