@@ -395,9 +395,9 @@ fun name_ord (BoundName (j1, _, _, _), BoundName (j2, _, _, _)) =
      | ord => ord)
   | name_ord (u1, u2) = raise NUT ("Nitpick_Nut.name_ord", [u1, u2])
 
-fun num_occs_in_nut needle_u stack_u =
+fun num_occurrences_in_nut needle_u stack_u =
   fold_nut (fn u => if u = needle_u then Integer.add 1 else I) stack_u 0
-val is_subterm_of = not_equal 0 oo num_occs_in_nut
+val is_subnut_of = not_equal 0 oo num_occurrences_in_nut
 
 fun substitute_in_nut needle_u needle_u' =
   map_nut (fn u => if u = needle_u then needle_u' else u)
@@ -472,12 +472,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
           let
             val bound_u = BoundName (length Ts, T, Any, s)
             val body_u = sub_abs s T t1
-          in
-            if is_subterm_of bound_u body_u then
-              Op2 (quant, bool_T, Any, bound_u, body_u)
-            else
-              body_u
-          end
+          in Op2 (quant, bool_T, Any, bound_u, body_u) end
         fun do_apply t0 ts =
           let
             val (ts', t2) = split_last ts
@@ -749,7 +744,7 @@ fun choose_rep_for_bound_var scope v table =
   end
 
 (* A nut is said to be constructive if whenever it evaluates to unknown in our
-   three-valued logic, it would evaluate to a unrepresentable value ("Unrep")
+   three-valued logic, it would evaluate to an unrepresentable value ("Unrep")
    according to the HOL semantics. For example, "Suc n" is constructive if "n"
    is representable or "Unrep", because unknown implies "Unrep". *)
 fun is_constructive u =
@@ -776,9 +771,16 @@ fun is_fully_representable_set u =
   case u of
     FreeName _ => true
   | Op1 (SingletonSet, _, _, _) => true
+  | Op1 (Converse, _, _, u1) => is_fully_representable_set u1
   | Op2 (oper, _, _, u1, u2) =>
-    member (op =) [Union, SetDifference, Intersect] oper andalso
-    forall is_fully_representable_set [u1, u2]
+    if oper = Union orelse oper = SetDifference orelse oper = Intersect then
+      forall is_fully_representable_set [u1, u2]
+    else if oper = Apply then
+      case u1 of
+        ConstName (s, _, _) => is_sel_like_and_no_discr s
+      | _ => false
+    else
+      false
   | _ => false
 
 fun s_op1 oper T R u1 =
@@ -792,7 +794,9 @@ fun s_op1 oper T R u1 =
   |> optimize_unit
 fun s_op2 oper T R u1 u2 =
   ((case oper of
-      Or =>
+      All => if is_subnut_of u1 u2 then Op2 (All, T, R, u1, u2) else u2
+    | Exist => if is_subnut_of u1 u2 then Op2 (Exist, T, R, u1, u2) else u2
+    | Or =>
       if exists (is_Cst True) [u1, u2] then Cst (True, T, unopt_rep R)
       else if is_Cst False u1 then u2
       else if is_Cst False u2 then u1
@@ -816,11 +820,11 @@ fun s_op2 oper T R u1 u2 =
       if is_Cst Unrep u1 then
         Cst (Unrep, T, R)
       else if is_Cst Unrep u2 then
-        if is_constructive u1 then
-          Cst (Unrep, T, R)
-        else if is_boolean_type T then
+        if is_boolean_type T then
           if is_fully_representable_set u1 then Cst (False, T, Formula Neut)
           else unknown_boolean T R
+        else if is_constructive u1 then
+          Cst (Unrep, T, R)
         else case u1 of
           Op2 (Apply, _, _, ConstName (@{const_name List.append}, _, _), _) =>
           Cst (Unrep, T, R)
@@ -833,7 +837,7 @@ fun s_op2 oper T R u1 u2 =
 fun s_op3 oper T R u1 u2 u3 =
   ((case oper of
       Let =>
-      if inline_nut u2 orelse num_occs_in_nut u1 u3 < 2 then
+      if inline_nut u2 orelse num_occurrences_in_nut u1 u3 < 2 then
         substitute_in_nut u1 u2 u3
       else
         raise SAME ()
@@ -843,17 +847,6 @@ fun s_op3 oper T R u1 u2 u3 =
 fun s_tuple T R us =
   (if exists (is_Cst Unrep) us then Cst (Unrep, T, R) else Tuple (T, R, us))
   |> optimize_unit
-
-fun optimize_nut u =
-  case u of
-    Op1 (oper, T, R, u1) => s_op1 oper T R (optimize_nut u1)
-  | Op2 (oper, T, R, u1, u2) =>
-    s_op2 oper T R (optimize_nut u1) (optimize_nut u2)
-  | Op3 (oper, T, R, u1, u2, u3) =>
-    s_op3 oper T R (optimize_nut u1) (optimize_nut u2) (optimize_nut u3)
-  | Tuple (T, R, us) => s_tuple T R (map optimize_nut us)
-  | Construct (us', T, R, us) => Construct (us', T, R, map optimize_nut us)
-  | _ => optimize_unit u
 
 fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
   | untuple f u = if rep_of u = Unit then [] else [f u]
@@ -1033,7 +1026,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                                Op2 (And, bool_T, Any,
                                     case u2 of
                                       Op2 (Lambda, _, _, u21, u22) =>
-                                      if num_occs_in_nut u21 u22 = 0 then
+                                      if num_occurrences_in_nut u21 u22 = 0 then
                                         u22
                                       else
                                         Op2 (Apply, bool_T, Any, u2, x_u)
@@ -1075,13 +1068,12 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                  if is_opt_rep (rep_of u2') orelse
                     (range_type T = bool_T andalso
                      not (is_Cst False (unrepify_nut_in_nut table false Neut
-                                                            u1 u2
-                                        |> optimize_nut))) then
+                                                            u1 u2))) then
                    opt_rep ofs T R
                  else
                    unopt_rep R
              in s_op2 Lambda T R u1' u2' end
-           | _ => raise NUT ("Nitpick_Nut.aux.choose_reps_in_nut", [u]))
+           | _ => raise NUT ("Nitpick_Nut.choose_reps_in_nut.aux", [u]))
         | Op2 (oper, T, _, u1, u2) =>
           if oper = All orelse oper = Exist then
             let

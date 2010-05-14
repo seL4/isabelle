@@ -840,7 +840,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                     \fragment." ^
                     (if exists (not o KK.is_problem_trivially_false o fst)
                                unsound_problems then
-                       " Only potential counterexamples may be found."
+                       " Only potential " ^ das_wort_model ^ "s may be found."
                      else
                        ""))
               else
