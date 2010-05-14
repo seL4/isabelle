@@ -64,7 +64,7 @@ fun merge_relevance_overrides rs =
 
 (*** parameters ***)
 
-val atps = Unsynchronized.ref (default_atps_param_value ())
+val atps = Unsynchronized.ref ""
 val timeout = Unsynchronized.ref 60
 val full_types = Unsynchronized.ref false
 
@@ -112,7 +112,7 @@ val negated_alias_params =
    ("ignore_no_atp", "respect_no_atp"),
    ("theory_irrelevant", "theory_relevant"),
    ("dont_follow_defs", "follow_defs"),
-   ("metis_proof", "isar_proof")]
+   ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "full_types", "explicit_apply",
@@ -152,7 +152,7 @@ val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params thy =
   Data.get thy
   |> fold (AList.default (op =))
-          [("atps", [!atps]),
+          [("atps", [case !atps of "" => default_atps_param_value () | s => s]),
            ("full_types", [if !full_types then "true" else "false"]),
            ("timeout", let val timeout = !timeout in
                          [if timeout <= 0 then "none"
