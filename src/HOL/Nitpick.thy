@@ -52,11 +52,11 @@ text {*
 Alternative definitions.
 *}
 
-lemma If_def [nitpick_def]:
+lemma If_def [nitpick_def, no_atp]:
 "(if P then Q else R) \<equiv> (P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> R)"
 by (rule eq_reflection) (rule if_bool_eq_conj)
 
-lemma Ex1_def [nitpick_def]:
+lemma Ex1_def [nitpick_def, no_atp]:
 "Ex1 P \<equiv> \<exists>x. P = {x}"
 apply (rule eq_reflection)
 apply (simp add: Ex1_def expand_set_eq)
@@ -69,14 +69,14 @@ apply (rule iffI)
  apply (erule_tac x = y in allE)
 by (auto simp: mem_def)
 
-lemma rtrancl_def [nitpick_def]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
+lemma rtrancl_def [nitpick_def, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
 by simp
 
-lemma rtranclp_def [nitpick_def]:
+lemma rtranclp_def [nitpick_def, no_atp]:
 "rtranclp r a b \<equiv> (a = b \<or> tranclp r a b)"
 by (rule eq_reflection) (auto dest: rtranclpD)
 
-lemma tranclp_def [nitpick_def]:
+lemma tranclp_def [nitpick_def, no_atp]:
 "tranclp r a b \<equiv> trancl (split r) (a, b)"
 by (simp add: trancl_def Collect_def mem_def)
 
@@ -110,18 +110,18 @@ The following lemmas are not strictly necessary but they help the
 \textit{special\_level} optimization.
 *}
 
-lemma The_psimp [nitpick_psimp]:
+lemma The_psimp [nitpick_psimp, no_atp]:
 "P = {x} \<Longrightarrow> The P = x"
 by (subgoal_tac "{x} = (\<lambda>y. y = x)") (auto simp: mem_def)
 
-lemma Eps_psimp [nitpick_psimp]:
+lemma Eps_psimp [nitpick_psimp, no_atp]:
 "\<lbrakk>P x; \<not> P y; Eps P = y\<rbrakk> \<Longrightarrow> Eps P = x"
 apply (case_tac "P (Eps P)")
  apply auto
 apply (erule contrapos_np)
 by (rule someI)
 
-lemma unit_case_def [nitpick_def]:
+lemma unit_case_def [nitpick_def, no_atp]:
 "unit_case x u \<equiv> x"
 apply (subgoal_tac "u = ()")
  apply (simp only: unit.cases)
@@ -129,14 +129,14 @@ by simp
 
 declare unit.cases [nitpick_simp del]
 
-lemma nat_case_def [nitpick_def]:
+lemma nat_case_def [nitpick_def, no_atp]:
 "nat_case x f n \<equiv> if n = 0 then x else f (n - 1)"
 apply (rule eq_reflection)
 by (case_tac n) auto
 
 declare nat.cases [nitpick_simp del]
 
-lemma list_size_simp [nitpick_simp]:
+lemma list_size_simp [nitpick_simp, no_atp]:
 "list_size f xs = (if xs = [] then 0
                    else Suc (f (hd xs) + list_size f (tl xs)))"
 "size xs = (if xs = [] then 0 else Suc (size (tl xs)))"
