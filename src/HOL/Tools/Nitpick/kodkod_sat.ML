@@ -47,9 +47,7 @@ val static_list =
    ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
    ("zChaff_JNI", Internal (JNI, Batch, ["zChaff"])),
    ("SAT4J", Internal (Java, Incremental, ["DefaultSAT4J"])),
-   ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"])),
-   ("HaifaSat", ExternalV2 (ToStdout, "HAIFASAT_HOME", "HaifaSat", ["-p", "1"],
-                            "s SATISFIABLE", "v ", "s UNSATISFIABLE"))]
+   ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"]))]
 
 fun dynamic_entry_for_external name dev home exec args markers =
   case getenv home of
