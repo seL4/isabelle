@@ -94,9 +94,9 @@ val default_default_params =
    ("explicit_apply", "false"),
    ("respect_no_atp", "true"),
    ("relevance_threshold", "50"),
-   ("convergence", "320"),
+   ("relevance_convergence", "320"),
    ("theory_relevant", "smart"),
-   ("follow_defs", "false"),
+   ("defs_relevant", "false"),
    ("isar_proof", "false"),
    ("shrink_factor", "1"),
    ("minimize_timeout", "5 s")]
@@ -111,7 +111,7 @@ val negated_alias_params =
    ("implicit_apply", "explicit_apply"),
    ("ignore_no_atp", "respect_no_atp"),
    ("theory_irrelevant", "theory_relevant"),
-   ("dont_follow_defs", "follow_defs"),
+   ("defs_irrelevant", "defs_relevant"),
    ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
@@ -194,9 +194,10 @@ fun extract_params thy default_params override_params =
     val respect_no_atp = lookup_bool "respect_no_atp"
     val relevance_threshold =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
-    val convergence = 0.01 * Real.fromInt (lookup_int "convergence")
+    val relevance_convergence =
+      0.01 * Real.fromInt (lookup_int "relevance_convergence")
     val theory_relevant = lookup_bool_option "theory_relevant"
-    val follow_defs = lookup_bool "follow_defs"
+    val defs_relevant = lookup_bool "defs_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val shrink_factor = Int.max (1, lookup_int "shrink_factor")
     val timeout = lookup_time "timeout"
@@ -205,9 +206,9 @@ fun extract_params thy default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
      full_types = full_types, explicit_apply = explicit_apply,
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
-     convergence = convergence, theory_relevant = theory_relevant,
-     follow_defs = follow_defs, isar_proof = isar_proof,
-     shrink_factor = shrink_factor, timeout = timeout,
+     relevance_convergence = relevance_convergence,
+     theory_relevant = theory_relevant, defs_relevant = defs_relevant,
+     isar_proof = isar_proof, shrink_factor = shrink_factor, timeout = timeout,
      minimize_timeout = minimize_timeout}
   end
 

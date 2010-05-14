@@ -253,7 +253,7 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
       end
   end;
 
-fun relevant_clauses ctxt convergence follow_defs max_new
+fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                      (relevance_override as {add, del, only}) thy ctab =
   let
     val thms_for_facts =
@@ -268,7 +268,7 @@ fun relevant_clauses ctxt convergence follow_defs max_new
               val (newrels, more_rejects) = take_best max_new newpairs
               val new_consts = maps #2 newrels
               val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
-              val newp = p + (1.0-p) / convergence
+              val newp = p + (1.0 - p) / relevance_convergence
             in
               trace_msg (fn () => "relevant this iteration: " ^
                                   Int.toString (length newrels));
@@ -283,7 +283,7 @@ fun relevant_clauses ctxt convergence follow_defs max_new
                            else clause_weight ctab rel_consts consts_typs
             in
               if p <= weight orelse
-                 (follow_defs andalso defines thy (#1 clsthm) rel_consts) then
+                 (defs_relevant andalso defines thy (#1 clsthm) rel_consts) then
                 (trace_msg (fn () => name ^ " clause " ^ Int.toString n ^ 
                                      " passes: " ^ Real.toString weight);
                 relevant ((ax, weight) :: newrels, rejects) axs)
@@ -297,8 +297,9 @@ fun relevant_clauses ctxt convergence follow_defs max_new
         end
   in iter end
         
-fun relevance_filter ctxt relevance_threshold convergence follow_defs max_new
-                     theory_relevant relevance_override thy axioms goals = 
+fun relevance_filter ctxt relevance_threshold relevance_convergence
+                     defs_relevant max_new theory_relevant relevance_override
+                     thy axioms goals = 
   if relevance_threshold > 0.0 then
     let
       val const_tab = List.foldl (count_axiom_consts theory_relevant thy)
@@ -308,8 +309,9 @@ fun relevance_filter ctxt relevance_threshold convergence follow_defs max_new
         trace_msg (fn () => "Initial constants: " ^
                             commas (Symtab.keys goal_const_tab))
       val relevant =
-        relevant_clauses ctxt convergence follow_defs max_new relevance_override
-                         thy const_tab relevance_threshold goal_const_tab
+        relevant_clauses ctxt relevance_convergence defs_relevant max_new
+                         relevance_override thy const_tab relevance_threshold
+                         goal_const_tab
                          (map (pair_consts_typs_axiom theory_relevant thy)
                               axioms)
     in
@@ -504,8 +506,8 @@ fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 
 fun is_first_order thy = forall (Meson.is_fol_term thy) o map prop_of
 
-fun get_relevant_facts respect_no_atp relevance_threshold convergence
-                       follow_defs max_new theory_relevant
+fun get_relevant_facts respect_no_atp relevance_threshold relevance_convergence
+                       defs_relevant max_new theory_relevant
                        (relevance_override as {add, only, ...})
                        (ctxt, (chain_ths, th)) goal_cls =
   if (only andalso null add) orelse relevance_threshold > 1.0 then
@@ -519,9 +521,9 @@ fun get_relevant_facts respect_no_atp relevance_threshold convergence
         |> restrict_to_logic thy is_FO
         |> remove_unwanted_clauses
     in
-      relevance_filter ctxt relevance_threshold convergence follow_defs max_new
-                       theory_relevant relevance_override thy included_cls
-                       (map prop_of goal_cls)
+      relevance_filter ctxt relevance_threshold relevance_convergence
+                       defs_relevant max_new theory_relevant relevance_override
+                       thy included_cls (map prop_of goal_cls)
     end
 
 (* prepare for passing to writer,

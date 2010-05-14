@@ -52,14 +52,6 @@ open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 
-(* Parameter "full_types" below indicates that full type information is to be
-   exported.
-
-   If "explicit_apply" is false, each function will be directly applied to as
-   many arguments as possible, avoiding use of the "apply" operator. Use of
-   "hBOOL" is also minimized.
-*)
-
 fun min_arity_of const_min_arity c = the_default 0 (Symtab.lookup const_min_arity c);
 
 (*True if the constant ever appears outside of the top-level position in literals.

@@ -237,11 +237,12 @@ fun generic_tptp_prover
         (name, {home_var, executable, arguments, proof_delims, known_failures,
                 max_axiom_clauses, prefers_theory_relevant})
         (params as {debug, overlord, respect_no_atp, relevance_threshold,
-                    convergence, theory_relevant, follow_defs, isar_proof, ...})
+                    relevance_convergence, theory_relevant, defs_relevant,
+                    isar_proof, ...})
         minimize_command timeout =
   generic_prover overlord
-      (get_relevant_facts respect_no_atp relevance_threshold convergence
-                          follow_defs max_axiom_clauses
+      (get_relevant_facts respect_no_atp relevance_threshold
+                          relevance_convergence defs_relevant max_axiom_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses false)
       (write_tptp_file (debug andalso overlord)) home_var
@@ -309,12 +310,12 @@ val e = tptp_prover "e" e_config
 fun generic_dfg_prover
         (name, {home_var, executable, arguments, proof_delims, known_failures,
                 max_axiom_clauses, prefers_theory_relevant})
-        (params as {overlord, respect_no_atp, relevance_threshold, convergence,
-                    theory_relevant, follow_defs, ...})
+        (params as {overlord, respect_no_atp, relevance_threshold,
+                    relevance_convergence, theory_relevant, defs_relevant, ...})
         minimize_command timeout =
   generic_prover overlord
-      (get_relevant_facts respect_no_atp relevance_threshold convergence
-                          follow_defs max_axiom_clauses
+      (get_relevant_facts respect_no_atp relevance_threshold
+                          relevance_convergence defs_relevant max_axiom_clauses
                           (the_default prefers_theory_relevant theory_relevant))
       (prepare_clauses true) write_dfg_file home_var executable
       (arguments timeout) proof_delims known_failures name params
