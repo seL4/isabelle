@@ -1,0 +1,483 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[english,french]{babel}
+\usepackage{color}
+\usepackage{footmisc}
+\usepackage{graphicx}
+%\usepackage{mathpazo}
+\usepackage{multicol}
+\usepackage{stmaryrd}
+%\usepackage[scaled=.85]{beramono}
+\usepackage{../iman,../pdfsetup}
+
+%\oddsidemargin=4.6mm
+%\evensidemargin=4.6mm
+%\textwidth=150mm
+%\topmargin=4.6mm
+%\headheight=0mm
+%\headsep=0mm
+%\textheight=234mm
+
+\def\Colon{\mathord{:\mkern-1.5mu:}}
+%\def\lbrakk{\mathopen{\lbrack\mkern-3.25mu\lbrack}}
+%\def\rbrakk{\mathclose{\rbrack\mkern-3.255mu\rbrack}}
+\def\lparr{\mathopen{(\mkern-4mu\mid}}
+\def\rparr{\mathclose{\mid\mkern-4mu)}}
+
+\def\unk{{?}}
+\def\undef{(\lambda x.\; \unk)}
+%\def\unr{\textit{others}}
+\def\unr{\ldots}
+\def\Abs#1{\hbox{\rm{\flqq}}{\,#1\,}\hbox{\rm{\frqq}}}
+\def\Q{{\smash{\lower.2ex\hbox{$\scriptstyle?$}}}}
+
+\urlstyle{tt}
+
+\begin{document}
+
+\selectlanguage{english}
+
+\title{\includegraphics[scale=0.5]{isabelle_sledgehammer} \\[4ex]
+Hammering Away \\[\smallskipamount]
+\Large A User's Guide to Sledgehammer for Isabelle/HOL}
+\author{\hbox{} \\
+Jasmin Christian Blanchette \\
+{\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\
+\hbox{}}
+
+\maketitle
+
+\tableofcontents
+
+\setlength{\parskip}{.7em plus .2em minus .1em}
+\setlength{\parindent}{0pt}
+\setlength{\abovedisplayskip}{\parskip}
+\setlength{\abovedisplayshortskip}{.9\parskip}
+\setlength{\belowdisplayskip}{\parskip}
+\setlength{\belowdisplayshortskip}{.9\parskip}
+
+% General-purpose enum environment with correct spacing
+\newenvironment{enum}%
+    {\begin{list}{}{%
+        \setlength{\topsep}{.1\parskip}%
+        \setlength{\partopsep}{.1\parskip}%
+        \setlength{\itemsep}{\parskip}%
+        \advance\itemsep by-\parsep}}
+    {\end{list}}
+
+\def\pre{\begingroup\vskip0pt plus1ex\advance\leftskip by\leftmargin
+\advance\rightskip by\leftmargin}
+\def\post{\vskip0pt plus1ex\endgroup}
+
+\def\prew{\pre\advance\rightskip by-\leftmargin}
+\def\postw{\post}
+
+\section{Introduction}
+\label{introduction}
+
+Sledgehammer is a tool that applies first-order automatic theorem provers (ATPs)
+on the current goal. The supported ATPs are E \cite{schulz-2002}, SPASS
+\cite{weidenbach-et-al-2009}, and Vampire \cite{riazanov-voronkov-2002}, which
+can be run locally or remotely via the SystemOnTPTP web service
+\cite{sutcliffe-2000}.
+
+The problem passed to ATPs consists of the current goal together with a
+heuristic selection of facts (theorems) from the current theory context,
+filtered by relevance. The result of a successful ATP proof search is some
+source text that usually (but not always) reconstructs the proof within
+Isabelle, without requiring the ATPs again. The reconstructed proof relies on
+the general-purpose Metis prover \cite{metis}, which is fully integrated into
+Isabelle/HOL, with explicit inferences going through the kernel. Thus its
+results are correct by construction.
+
+\newbox\boxA
+\setbox\boxA=\hbox{\texttt{nospam}}
+
+Examples of Sledgehammer use can be found in Isabelle's
+\texttt{src/HOL/Metis\_Examples} directory.
+Comments and bug reports concerning Sledgehammer or this manual should be
+directed to
+\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
+in.\allowbreak tum.\allowbreak de}.
+
+\vskip2.5\smallskipamount
+
+%\textbf{Acknowledgment.} The author would like to thank Mark Summerfield for
+%suggesting several textual improvements.
+
+\section{Installation}
+\label{installation}
+
+Sledgehammer is part of Isabelle, so you don't need to install it. However, it
+relies on third-party automatic theorem provers (ATPs). Currently, E, SPASS, and
+Vampire are supported. All of these are available remotely via SystemOnTPTP
+\cite{sutcliffe-2000}, but if you want better performance you will need to
+install at least E and SPASS locally.
+
+There are three main ways to install E and SPASS:
+
+\begin{enum}
+\item[$\bullet$] If you installed an official Isabelle package with everything
+inside, it should already include properly setup executables for E and SPASS,
+ready to use.
+
+\item[$\bullet$] Otherwise, you can download the Isabelle-aware E and SPASS
+binary packages from Isabelle's download page. Extract the archives, then add a
+line to your \texttt{\char`\~/.isabelle/etc/components} file with the absolute path to
+E or SPASS. For example, if \texttt{\char`\~/.isabelle/etc/components} does not exist
+yet and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create
+the file \texttt{\char`\~/.isabelle/etc/components} with the single line
+
+\prew
+\texttt{/usr/local/spass-3.7}
+\postw
+
+\item[$\bullet$] If you prefer to build E or SPASS yourself, feel free to do so
+and set the environment variable \texttt{E\_HOME} or \texttt{SPASS\_HOME} to the
+directory that contains the \texttt{eproof} or \texttt{SPASS} executable,
+respectively.
+\end{enum}
+
+To check whether E and SPASS are installed, follow the example in
+\S\ref{first-steps}.
+
+\section{First Steps}
+\label{first-steps}
+
+To illustrate Sledgehammer in context, let us start a theory file and
+attempt to prove a simple lemma:
+
+\prew
+\textbf{theory}~\textit{Scratch} \\
+\textbf{imports}~\textit{Main} \\
+\textbf{begin} \\[2\smallskipamount]
+%
+\textbf{lemma} ``$[a] = [b] \,\longleftrightarrow\, a = b$'' \\
+\textbf{sledgehammer}
+\postw
+
+After a few seconds, Sledgehammer produces the following output:
+
+\prew
+\slshape
+Sledgehammer: ATP ``\textit{e}'' for subgoal 1: \\
+$([a] = [b]) = (a = b)$ \\
+Try this command: \textbf{by} (\textit{metis hd.simps}). \\
+To minimize the number of lemmas, try this command: \\
+\textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{e}] (\textit{hd.simps}). \\[3\smallskipamount]
+%
+Sledgehammer: ATP ``\textit{spass}'' for subgoal 1: \\
+$([a] = [b]) = (a = b)$ \\
+Try this command: \textbf{by} (\textit{metis insert\_Nil last\_ConsL}). \\
+To minimize the number of lemmas, try this command: \\
+\textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{spass}] (\textit{insert\_Nil last\_ConsL}). \\[3\smallskipamount]
+%
+Sledgehammer: ATP ``\textit{remote\_vampire}'' for subgoal 1: \\
+$([a] = [b]) = (a = b)$ \\
+Try this command: \textbf{by} (\textit{metis One\_nat\_def\_raw empty\_replicate} \\
+\phantom{Try this command: \textbf{by} (\textit{metis~}}\textit{insert\_Nil last\_ConsL replicate\_Suc}). \\
+To minimize the number of lemmas, try this command: \\
+\textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{remote\_vampire}] \\
+\phantom{\textbf{sledgehammer}~}(\textit{One\_nat\_def\_raw empty\_replicate insert\_Nil} \\
+\phantom{\textbf{sledgehammer}~(}\textit{last\_ConsL replicate\_Suc}).
+\postw
+
+Sledgehammer ran E, SPASS, and the remote version of Vampire in parallel. If E
+and SPASS are not installed (\S\ref{installation}), you will see references to
+their remote American cousins \textit{remote\_e} and \textit{remote\_spass}
+instead of \textit{e} and \textit{spass}.
+
+Based on each ATP proof, Sledgehammer gives a one-liner proof that uses the
+\textit{metis} method. You can click them and insert them into the theory text.
+You can click the ``\textbf{sledgehammer} \textit{minimize}'' command if you
+want to look for a shorter (and faster) proof. But here the proof found by E
+looks perfect, so click it to finish the proof.
+
+You can ask Sledgehammer for an Isar text proof by passing the
+\textit{isar\_proof} option:
+
+\prew
+\textbf{sledgehammer} [\textit{isar\_proof}]
+\postw
+
+When Isar proof construction is successful, it can yield proofs that are more
+readable and also faster than the \textit{metis} one-liners. This feature is
+experimental.
+
+\section{Command Syntax}
+\label{command-syntax}
+
+Sledgehammer can be invoked at any point when there is an open goal by entering
+the \textbf{sledgehammer} command in the theory file. Its general syntax is as
+follows:
+
+\prew
+\textbf{sledgehammer} \textit{subcommand\/$^?$ options\/$^?$ facts\_override\/$^?$ num\/$^?$}
+\postw
+
+For convenience, Sledgehammer is also available in the ``Commands'' submenu of
+the ``Isabelle'' menu in Proof General or by pressing the Emacs key sequence C-c
+C-a C-s. This is equivalent to entering the \textbf{sledgehammer} command with
+no arguments in the theory text.
+
+In the general syntax, the \textit{subcommand} may be any of the following:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{run} (the default):} Runs Sledgehammer on subgoal number
+\textit{num} (1 by default), with the given options and facts.
+
+\item[$\bullet$] \textbf{\textit{minimize}:} Attempts to minimize the provided facts
+(specified in the \textit{facts\_override} argument) to obtain a simpler proof
+involving fewer facts. The options and goal number are as for \textit{run}.
+
+\item[$\bullet$] \textbf{\textit{messages}:} Redisplays recent messages issued by
+Sledgehammer. This allows you to examine results that might have been lost due
+to Sledgehammer's asynchronous nature. The \textit{num} argument specifies a
+limit on the number of messages to display (5 by default).
+
+\item[$\bullet$] \textbf{\textit{available\_atps}:} Prints the list of installed ATPs.
+See \S\ref{installation} and \S\ref{mode-of-operation} for more information on
+how to install ATPs.
+
+\item[$\bullet$] \textbf{\textit{running\_atps}:} Prints information about currently
+running ATPs, including elapsed runtime and remaining time until timeout.
+
+\item[$\bullet$] \textbf{\textit{kill\_atps}:} Terminates all running ATPs.
+
+\item[$\bullet$] \textbf{\textit{refresh\_tptp}:} Refreshes the list of remote
+ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
+\end{enum}
+
+Sledgehammer's behavior can be influenced by various \textit{options}, which can
+be specified in brackets after the \textbf{sledgehammer} command. The
+\textit{options} are a list of key--value pairs of the form ``[$k_1 = v_1,
+\ldots, k_n = v_n$]''. For Boolean options, ``= \textit{true}'' is optional. For
+example:
+
+\prew
+\textbf{sledgehammer} [\textit{isar\_proof}, \,\textit{timeout} = 120$\,s$]
+\postw
+
+Default values can be set using \textbf{sledgehammer\_\allowbreak params}:
+
+\prew
+\textbf{sledgehammer\_params} \textit{options}
+\postw
+
+The supported options are described in \S\ref{option-reference}.
+
+The \textit{facts\_override} argument lets you alter the set of facts that go
+through the relevance filter. It may be of the form ``(\textit{facts})'', where
+\textit{facts} is a space-separated list of Isabelle facts (theorems, local
+assumptions, etc.), in which case the relevance filter is bypassed and the given
+facts are used. It may also be of the form (\textit{add}:\ \textit{facts}$_1$),
+(\textit{del}:\ \textit{facts}$_2$), or (\textit{add}:\ \textit{facts}$_1$\
+\textit{del}:\ \textit{facts}$_2$), where the relevance filter is instructed to
+proceed as usual except that it should consider \textit{facts}$_1$
+highly-relevant and \textit{facts}$_2$ fully irrelevant.
+
+\section{Option Reference}
+\label{option-reference}
+
+\def\flushitem#1{\item[]\noindent\kern-\leftmargin \textbf{#1}}
+\def\qty#1{$\left<\textit{#1}\right>$}
+\def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1}}\right>}$}
+\def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{true}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{false}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\quad [\textit{smart}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmartx#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\quad [\textit{smart}]\hfill\\\hbox{}\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opnodefault#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
+\def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\quad [\textit{#3}]} \nopagebreak\\[\parskip]}
+\def\oparg#1#2#3{\flushitem{\textit{#1} \qtybf{#2} = \qtybf{#3}} \nopagebreak\\[\parskip]}
+\def\opargbool#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+\def\opargboolorsmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+
+Sledgehammer's options are categorized as follows:\ mode of operation
+(\S\ref{mode-of-operation}), problem encoding (\S\ref{problem-encoding}), output
+format (\S\ref{output-format}), and timeouts (\S\ref{timeouts}).
+
+The descriptions below refer to the following syntactic quantities:
+
+\begin{enum}
+\item[$\bullet$] \qtybf{string}: A string.
+\item[$\bullet$] \qtybf{bool\/}: \textit{true} or \textit{false}.
+\item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or \textit{smart}.
+\item[$\bullet$] \qtybf{int\/}: An integer.
+\item[$\bullet$] \qtybf{time}: An integer followed by $\textit{min}$ (minutes), $s$ (seconds), or \textit{ms}
+(milliseconds), or the keyword \textit{none} ($\infty$ years).
+\end{enum}
+
+Default values are indicated in square brackets. Boolean options have a negated
+counterpart (e.g., \textit{debug} vs.\ \textit{no\_debug}). When setting
+Boolean options, ``= \textit{true}'' may be omitted.
+
+\subsection{Mode of Operation}
+\label{mode-of-operation}
+
+\begin{enum}
+%\optrue{blocking}{non\_blocking}
+%Specifies whether the \textbf{sledgehammer} command should operate synchronously.
+%The asynchronous (non-blocking) mode lets the user start proving the putative
+%theorem while Sledgehammer looks for a counterexample, but it can also be more
+%confusing. For technical reasons, automatic runs currently always block.
+
+\opnodefault{atps}{string}
+Specifies the ATPs (automated theorem provers) to use as a space-separated list
+(e.g., ``\textit{e}~\textit{spass}''). The following ATPs are supported:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{e}:} E is an ATP developed by Stephan Schulz
+\cite{schulz-2002}. To use E, set the environment variable
+\texttt{E\_HOME} to the directory that contains the \texttt{eproof} executable,
+or install the prebuilt E package from Isabelle's download page. See
+\S\ref{installation} for details.
+
+\item[$\bullet$] \textbf{\textit{spass}:} SPASS is an ATP developed by Christoph
+Weidenbach et al.\ \cite{weidenbach-et-al-2009}. To use SPASS, set the
+environment variable \texttt{SPASS\_HOME} to the directory that contains the
+\texttt{SPASS} executable, or install the prebuilt SPASS package from Isabelle's
+download page. See \S\ref{installation} for details.
+
+\item[$\bullet$] \textbf{\textit{spass\_tptp}:} Same as the above, except that
+Sledgehammer communicates with SPASS using the TPTP syntax rather than the
+native DFG syntax. This ATP is provided for experimental purposes.
+
+\item[$\bullet$] \textbf{\textit{vampire}:} Vampire is an ATP developed by
+Andrei Voronkov and his colleagues \cite{riazanov-voronkov-2002}. To use
+Vampire, set the environment variable \texttt{VAMPIRE\_HOME} to the directory
+that contains the \texttt{vampire} executable.
+
+\item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E executes
+on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
+
+\item[$\bullet$] \textbf{\textit{remote\_spass}:} The remote version of SPASS
+executes on Geoff Sutcliffe's Miami servers.
+
+\item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
+Vampire executes on Geoff Sutcliffe's Miami servers. Version 9 is used.
+
+\end{enum}
+
+By default, Sledgehammer will run E, SPASS, and Vampire in parallel. For E and
+SPASS, it will use any locally installed version if available, falling back
+on the remote versions if necessary. For historical reasons, the default value
+of this option can be overridden using the option ``Sledgehammer: ATPs'' from
+the ``Isabelle'' menu in Proof General.
+
+It is a good idea to run several ATPs in parallel, although it could slow down
+your machine. Tobias Nipkow observed that running E, SPASS, and Vampire together
+for 5 seconds yields the same success rate as running the most effective of
+these (Vampire) for 120 seconds \cite{boehme-nipkow-2010}.
+
+\opnodefault{atp}{string}
+Alias for \textit{atps}.
+
+\opfalse{overlord}{no\_overlord}
+Specifies whether Sledgehammer should put its temporary files in
+\texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
+debugging Sledgehammer but also unsafe if several instances of the tool are run
+simultaneously. The files are identified by the prefix \texttt{prob\_}; you may
+safely remove them after Sledgehammer has run.
+
+\nopagebreak
+{\small See also \textit{debug} (\S\ref{output-format}).}
+\end{enum}
+
+\subsection{Problem Encoding}
+\label{problem-encoding}
+
+\begin{enum}
+\opfalse{explicit\_apply}{implicit\_apply}
+Specifies whether function application should be encoded as an explicit
+``apply'' operator. If the option is set to \textit{false}, each function will
+be directly applied to as many arguments as possible. Enabling this option can
+sometimes help discover higher-order proofs that otherwise would not be found.
+
+\opfalse{full\_types}{partial\_types}
+Specifies whether full-type information is exported. Enabling this option can
+prevent the discovery of type-incorrect proofs, but it also tends to slow down
+the ATPs significantly. For historical reasons, the default value of this option
+can be overridden using the option ``Sledgehammer: ATPs'' from the ``Isabelle''
+menu in Proof General.
+
+\opdefault{relevance\_threshold}{int}{50}
+Specifies the threshold above which facts are considered relevant by the
+relevance filter. The option ranges from 0 to 100, where 0 means that all
+theorems are relevant.
+
+\opdefault{relevance\_convergence}{int}{320}
+Specifies the convergence quotient, multiplied by 100, used by the relevance
+filter. This quotient is used by the relevance filter to scale down the
+relevance of facts at each iteration of the filter.
+
+\opsmartx{theory\_relevant}{theory\_irrelevant}
+Specifies whether the theory from which a fact comes should be taken into
+consideration by the relevance filter. If the option is set to \textit{smart},
+it is taken to be \textit{true} for SPASS and \textit{false} for E and Vampire,
+because empirical results suggest that these are the best settings.
+
+\opfalse{defs\_relevant}{defs\_irrelevant}
+Specifies whether the definition of constants occurring in the formula to prove
+should be considered particularly relevant. Enabling this option tends to lead
+to larger problems and typically slows down the ATPs.
+
+\optrue{respect\_no\_atp}{ignore\_no\_atp}
+Specifies whether Sledgehammer should honor the \textit{no\_atp} attributes. The
+\textit{no\_atp} attributes marks theorems that tend to confuse ATPs, typically
+because they can lead to unsound ATP proofs \cite{boehme-nipkow-2010}. It is
+normally a good idea to leave this option enabled, unless you are debugging
+Sledgehammer.
+
+\end{enum}
+
+\subsection{Output Format}
+\label{output-format}
+
+\begin{enum}
+
+\opfalse{verbose}{quiet}
+Specifies whether the \textbf{sledgehammer} command should explain what it does.
+
+\opfalse{debug}{no\_debug}
+Specifies whether Nitpick should display additional debugging information beyond
+what \textit{verbose} already displays. Enabling \textit{debug} also enables
+\textit{verbose} behind the scenes.
+
+\nopagebreak
+{\small See also \textit{overlord} (\S\ref{mode-of-operation}).}
+
+\opfalse{isar\_proof}{no\_isar\_proof}
+Specifies whether Isar proofs should be output in addition to one-liner
+\textit{metis} proofs. Isar proof construction is still experimental and often
+fails; however, they are usually faster and sometimes more robust than
+\textit{metis} proofs.
+
+\opdefault{isar\_shrink\_factor}{int}{1}
+Specifies the granularity of the Isar proof. A value of $n$ indicates that each
+Isar proof step should correspond to a group of up to $n$ consecutive proof
+steps in the ATP proof.
+
+\end{enum}
+
+\subsection{Timeouts}
+\label{timeouts}
+
+\begin{enum}
+\opdefault{timeout}{time}{$\mathbf{60}$ s}
+Specifies the maximum amount of time that the ATPs should spend looking for a
+proof. For historical reasons, the default value of this option can be
+overridden using the option ``Sledgehammer: Time Limit'' from the ``Isabelle''
+menu in Proof General.
+
+\opdefault{minimize\_timeout}{time}{$\mathbf{5}$\,s}
+Specifies the maximum amount of time that the ATPs should spend looking for a
+proof for \textbf{sledgehammer}~\textit{minimize}.
+\end{enum}
+
+\let\em=\sl
+\bibliography{../manual}{}
+\bibliographystyle{abbrv}
+
+\end{document}
