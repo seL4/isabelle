@@ -384,10 +384,9 @@ fun these_registrations thy name = Registrations.get thy
   |-> (fn regs => fn _ => map (fn ((name, (base, export)) ,_) =>
     (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
 
-fun all_registrations thy = Registrations.get thy (* FIXME clone *)
-  (* with inherited mixins *)
-  |-> (fn regs => fn _ => map (fn ((name, (base, export)) ,_) =>
-    (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
+fun all_registrations thy = Registrations.get thy
+  |-> (fn regs => fn mixins => map (reg_morph mixins) regs);
+  (* without inherited mixins *)
 
 fun activate_notes' activ_elem transfer thy export (name, morph) input =
   let
@@ -463,21 +462,19 @@ fun amend_registration (name, morph) mixin export thy =
 fun add_registration (name, base_morph) mixin export thy =
   let
     val base = instance_of thy name base_morph;
-    val mix = case mixin of NONE => Morphism.identity
-          | SOME (mix, _) => mix;
   in
     if member (ident_eq thy) (get_idents (Context.Theory thy)) (name, base)
     then thy
     else
       (get_idents (Context.Theory thy), thy)
       (* add new registrations with inherited mixins *)
-      |> roundup thy (add_reg export) export (name, base_morph $> mix) (* FIXME *)
+      |> roundup thy (add_reg export) export (name, base_morph)
       |> snd
       (* add mixin *)
       |> (case mixin of NONE => I
-           | SOME mixin => amend_registration (name, base_morph $> mix) mixin export)
+           | SOME mixin => amend_registration (name, base_morph) mixin export)
       (* activate import hierarchy as far as not already active *)
-      |> Context.theory_map (activate_facts' export (name, base_morph $> mix))
+      |> Context.theory_map (activate_facts' export (name, base_morph))
   end;
 
 
