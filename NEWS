@@ -347,6 +347,24 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
   Nat_Int_Bij.bij_nat_to_int_bij  ~> bij_int_encode
   Nat_Int_Bij.bij_int_to_nat_bij  ~> bij_int_decode
 
+* Sledgehammer:
+  - Renamed ATP commands:
+    atp_info     ~> sledgehammer running_atps
+    atp_kill     ~> sledgehammer kill_atps
+    atp_messages ~> sledgehammer messages
+    atp_minimize ~> sledgehammer minimize
+    print_atps   ~> sledgehammer available_atps
+    INCOMPATIBILITY.
+  - Added user's manual ("isabelle doc sledgehammer").
+  - Added option syntax and "sledgehammer_params" to customize
+    Sledgehammer's behavior.  See the manual for details.
+  - Modified the Isar proof reconstruction code so that it produces
+    direct proofs rather than proofs by contradiction.  (This feature
+    is still experimental.)
+  - Made Isar proof reconstruction work for SPASS, remote ATPs, and in
+    full-typed mode.
+  - Added support for TPTP syntax for SPASS via the "spass_tptp" ATP.
+
 * Nitpick:
   - Added and implemented "binary_ints" and "bits" options.
   - Added "std" option and implemented support for nonstandard models.
