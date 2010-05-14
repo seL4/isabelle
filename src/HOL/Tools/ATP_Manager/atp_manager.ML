@@ -24,7 +24,7 @@ sig
      theory_relevant: bool option,
      defs_relevant: bool,
      isar_proof: bool,
-     shrink_factor: int,
+     isar_shrink_factor: int,
      timeout: Time.time,
      minimize_timeout: Time.time}
   type problem =
@@ -83,7 +83,7 @@ type params =
    theory_relevant: bool option,
    defs_relevant: bool,
    isar_proof: bool,
-   shrink_factor: int,
+   isar_shrink_factor: int,
    timeout: Time.time,
    minimize_timeout: Time.time}
 

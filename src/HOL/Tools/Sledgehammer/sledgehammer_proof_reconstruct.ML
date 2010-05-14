@@ -569,7 +569,7 @@ fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
 
 fun add_desired_line _ _ _ _ _ (line as Definition _) (j, lines) =
     (j, line :: lines)
-  | add_desired_line ctxt shrink_factor conjecture_shape thm_names frees
+  | add_desired_line ctxt isar_shrink_factor conjecture_shape thm_names frees
                      (Inference (num, t, deps)) (j, lines) =
     (j + 1,
      if is_axiom_clause_number thm_names num orelse
@@ -579,7 +579,7 @@ fun add_desired_line _ _ _ _ _ (line as Definition _) (j, lines) =
          not (exists_subterm (is_bad_free frees) t) andalso
          not (is_trivial_formula t) andalso
          (null lines orelse (* last line must be kept *)
-          (length deps >= 2 andalso j mod shrink_factor = 0))) then
+          (length deps >= 2 andalso j mod isar_shrink_factor = 0))) then
        Inference (num, t, deps) :: lines  (* keep line *)
      else
        map (replace_deps_in_line (num, deps)) lines)  (* drop line *)
@@ -674,7 +674,7 @@ fun step_for_line _ _ (Definition (num, t1, t2)) = Let (t1, t2)
           forall_vars t,
           ByMetis (fold (add_fact_from_dep thm_names) deps ([], [])))
 
-fun proof_from_atp_proof pool ctxt full_types shrink_factor atp_proof
+fun proof_from_atp_proof pool ctxt full_types isar_shrink_factor atp_proof
                          conjecture_shape thm_names params frees =
   let
     val lines =
@@ -683,7 +683,7 @@ fun proof_from_atp_proof pool ctxt full_types shrink_factor atp_proof
       |> decode_lines ctxt full_types
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
-      |> rpair (0, []) |-> fold_rev (add_desired_line ctxt shrink_factor
+      |> rpair (0, []) |-> fold_rev (add_desired_line ctxt isar_shrink_factor
                                                conjecture_shape thm_names frees)
       |> snd
   in
@@ -981,7 +981,7 @@ fun string_for_proof ctxt i n =
         do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
   in do_proof end
 
-fun isar_proof_text (pool, debug, full_types, shrink_factor, ctxt,
+fun isar_proof_text (pool, debug, full_types, isar_shrink_factor, ctxt,
                      conjecture_shape)
                     (minimize_command, atp_proof, thm_names, goal, i) =
   let
@@ -992,8 +992,9 @@ fun isar_proof_text (pool, debug, full_types, shrink_factor, ctxt,
     val (one_line_proof, lemma_names) =
       metis_proof_text (minimize_command, atp_proof, thm_names, goal, i)
     fun isar_proof_for () =
-      case proof_from_atp_proof pool ctxt full_types shrink_factor atp_proof
-                                conjecture_shape thm_names params frees
+      case proof_from_atp_proof pool ctxt full_types isar_shrink_factor
+                                atp_proof conjecture_shape thm_names params
+                                frees
            |> redirect_proof thy conjecture_shape hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof

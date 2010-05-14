@@ -98,7 +98,7 @@ val default_default_params =
    ("theory_relevant", "smart"),
    ("defs_relevant", "false"),
    ("isar_proof", "false"),
-   ("shrink_factor", "1"),
+   ("isar_shrink_factor", "1"),
    ("minimize_timeout", "5 s")]
 
 val alias_params =
@@ -116,7 +116,7 @@ val negated_alias_params =
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "full_types", "explicit_apply",
-   "isar_proof", "shrink_factor", "minimize_timeout"]
+   "isar_proof", "isar_shrink_factor", "minimize_timeout"]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -199,7 +199,7 @@ fun extract_params thy default_params override_params =
     val theory_relevant = lookup_bool_option "theory_relevant"
     val defs_relevant = lookup_bool "defs_relevant"
     val isar_proof = lookup_bool "isar_proof"
-    val shrink_factor = Int.max (1, lookup_int "shrink_factor")
+    val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
     val minimize_timeout = lookup_time "minimize_timeout"
   in
@@ -208,8 +208,8 @@ fun extract_params thy default_params override_params =
      respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
      relevance_convergence = relevance_convergence,
      theory_relevant = theory_relevant, defs_relevant = defs_relevant,
-     isar_proof = isar_proof, shrink_factor = shrink_factor, timeout = timeout,
-     minimize_timeout = minimize_timeout}
+     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+     timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
 fun get_params thy = extract_params thy (default_raw_params thy)
