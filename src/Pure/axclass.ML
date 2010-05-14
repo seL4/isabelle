@@ -422,8 +422,8 @@ fun add_classrel raw_th thy =
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
     val th' = th
-      |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [c1])))] []
-      |> Thm.unconstrainT;
+      |> Thm.unconstrainT
+      |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [])))] [];
     val _ = shyps_topped th' orelse raise Fail "add_classrel: nontop shyps after unconstrain";
   in
     thy
@@ -441,15 +441,15 @@ fun add_arity raw_th thy =
 
     val args = Name.names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
-    val std_vars = map (fn (a, S) => SOME (ctyp_of thy (TVar ((a, 0), S)))) args;
+    val std_vars = map (fn (a, S) => SOME (ctyp_of thy (TVar ((a, 0), [])))) args;
 
     val missing_params = Sign.complete_sort thy [c]
       |> maps (these o Option.map #params o try (get_info thy))
       |> filter_out (fn (const, _) => can (get_inst_param thy) (const, t))
       |> (map o apsnd o map_atyps) (K T);
     val th' = th
-      |> Drule.instantiate' std_vars []
-      |> Thm.unconstrainT;
+      |> Thm.unconstrainT
+      |> Drule.instantiate' std_vars [];
     val _ = shyps_topped th' orelse raise Fail "add_arity: nontop shyps after unconstrain";
   in
     thy
