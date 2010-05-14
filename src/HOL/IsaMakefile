@@ -161,7 +161,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Predicate.thy \
   Product_Type.thy \
   Record.thy \
-  Refute.thy \
   Relation.thy \
   Rings.thy \
   SAT.thy \
@@ -254,6 +253,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Random.thy \
   Random_Sequence.thy \
   Recdef.thy \
+  Refute.thy \
   Semiring_Normalization.thy \
   SetInterval.thy \
   Sledgehammer.thy \
