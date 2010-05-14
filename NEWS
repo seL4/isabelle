@@ -347,6 +347,31 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
   Nat_Int_Bij.bij_nat_to_int_bij  ~> bij_int_encode
   Nat_Int_Bij.bij_int_to_nat_bij  ~> bij_int_decode
 
+* Nitpick:
+  - Added and implemented "binary_ints" and "bits" options.
+  - Added "std" option and implemented support for nonstandard models.
+  - Added and implemented "finitize" option to improve the precision
+    of infinite datatypes based on a monotonicity analysis.
+  - Added support for quotient types.
+  - Added support for "specification" and "ax_specification"
+    constructs.
+  - Added support for local definitions (for "function" and
+    "termination" proofs).
+  - Added support for term postprocessors.
+  - Optimized "Multiset.multiset" and "FinFun.finfun".
+  - Improved efficiency of "destroy_constrs" optimization.
+  - Fixed soundness bugs related to "destroy_constrs" optimization and
+    record getters.
+  - Fixed soundness bug related to higher-order constructors
+  - Improved precision of set constructs.
+  - Added cache to speed up repeated Kodkod invocations on the same
+    problems.
+  - Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and
+    "SAT4JLight" to "MiniSat_JNI", "zChaff_JNI", "BerkMin_Alloy", and
+    "SAT4J_Light".  INCOMPATIBILITY.
+  - Removed "skolemize", "uncurry", "sym_break", "flatten_prop",
+    "sharing_depth", and "show_skolems" options.  INCOMPATIBILITY.
+
 
 *** HOLCF ***
 
