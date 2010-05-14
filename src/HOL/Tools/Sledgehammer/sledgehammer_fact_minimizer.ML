@@ -68,8 +68,8 @@ fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
 
 (* minimalization of thms *)
 
-fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
-                                  shrink_factor, ...})
+fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
+                                  isar_proof, shrink_factor, ...})
                       i n state name_thms_pairs =
   let
     val thy = Proof.theory_of state
@@ -110,8 +110,8 @@ fun minimize_theorems (params as {debug, atps, minimize_timeout, isar_proof,
         in
           (SOME min_thms,
            proof_text isar_proof
-                      (pool, debug, shrink_factor, ctxt, conjecture_shape)
-                      (K "", proof, internal_thm_names, goal, i) |> fst)
+               (pool, debug, full_types, shrink_factor, ctxt, conjecture_shape)
+               (K "", proof, internal_thm_names, goal, i) |> fst)
         end
     | {outcome = SOME TimedOut, ...} =>
         (NONE, "Timeout: You can increase the time limit using the \"timeout\" \

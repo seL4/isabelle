@@ -256,14 +256,13 @@ fun fol_term_to_hol_RAW ctxt fol_tm =
             case strip_prefix const_prefix a of
                 SOME b =>
                   let val c = invert_const b
-                      val ntypes = num_typargs thy c
+                      val ntypes = num_type_args thy c
                       val nterms = length ts - ntypes
                       val tts = map tm_to_tt ts
                       val tys = types_of (List.take(tts,ntypes))
-                      val ntyargs = num_typargs thy c
-                  in if length tys = ntyargs then
+                  in if length tys = ntypes then
                          apply_list (Const (c, dummyT)) nterms (List.drop(tts,ntypes))
-                     else error ("Constant " ^ c ^ " expects " ^ Int.toString ntyargs ^
+                     else error ("Constant " ^ c ^ " expects " ^ Int.toString ntypes ^
                                  " but gets " ^ Int.toString (length tys) ^
                                  " type arguments\n" ^
                                  cat_lines (map (Syntax.string_of_typ ctxt) tys) ^
@@ -460,7 +459,7 @@ fun refl_inf ctxt mode t =
   in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
 
 fun get_ty_arg_size _ (Const (@{const_name "op ="}, _)) = 0  (*equality has no type arguments*)
-  | get_ty_arg_size thy (Const (c, _)) = (num_typargs thy c handle TYPE _ => 0)
+  | get_ty_arg_size thy (Const (c, _)) = (num_type_args thy c handle TYPE _ => 0)
   | get_ty_arg_size _ _ = 0;
 
 (* INFERENCE RULE: EQUALITY *)

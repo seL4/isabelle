@@ -33,6 +33,7 @@ sig
   val make_conjecture_clauses : bool -> theory -> thm list -> hol_clause list
   val make_axiom_clauses : bool -> theory ->
        (thm * (axiom_name * hol_clause_id)) list -> (axiom_name * hol_clause) list
+  val type_wrapper_name : string
   val get_helper_clauses : bool -> theory -> bool ->
        hol_clause list * (thm * (axiom_name * hol_clause_id)) list * string list ->
        hol_clause list
@@ -198,8 +199,8 @@ fun make_conjecture_clauses dfg thy = make_conjecture_clauses_aux dfg thy 0;
 (**********************************************************************)
 
 (*Result of a function type; no need to check that the argument type matches.*)
-fun result_type (TyConstr (("tc_fun", _), [_, tp2])) = tp2
-  | result_type _ = raise Fail "Non-function type"
+fun result_type (TyConstr (_, [_, tp2])) = tp2
+  | result_type _ = raise Fail "non-function type"
 
 fun type_of_combterm (CombConst (_, tp, _)) = tp
   | type_of_combterm (CombVar (_, tp)) = tp
@@ -211,7 +212,7 @@ fun strip_combterm_comb u =
         |   stripc  x =  x
     in  stripc(u,[])  end;
 
-val type_wrapper = "ti";
+val type_wrapper_name = "ti"
 
 fun head_needs_hBOOL explicit_apply const_needs_hBOOL
                      (CombConst ((c, _), _, _)) =
@@ -221,7 +222,7 @@ fun head_needs_hBOOL explicit_apply const_needs_hBOOL
 fun wrap_type full_types (s, ty) pool =
   if full_types then
     let val (s', pool) = string_of_fol_type ty pool in
-      (type_wrapper ^ paren_pack [s, s'], pool)
+      (type_wrapper_name ^ paren_pack [s, s'], pool)
     end
   else
     (s, pool)
@@ -384,7 +385,7 @@ fun add_clause_decls params (HOLClause {literals, ...}) decls =
 
 fun decls_of_clauses params clauses arity_clauses =
   let val functab =
-        init_functab |> fold Symtab.update [(type_wrapper, 2), ("hAPP", 2),
+        init_functab |> fold Symtab.update [(type_wrapper_name, 2), ("hAPP", 2),
                                             ("tc_bool", 0)]
       val predtab = Symtab.empty |> Symtab.update ("hBOOL", 1)
       val (functab, predtab) =
