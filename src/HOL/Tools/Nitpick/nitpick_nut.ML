@@ -970,11 +970,11 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
           in
             if is_opt_rep R then
               triad_fn (fn polar => s_op2 Subset T (Formula polar) u1 u2)
-            else if opt andalso polar = Pos andalso
-                    not (is_concrete_type datatypes true (type_of u1)) then
-              Cst (False, T, Formula Pos)
-            else
+            else if not opt orelse unsound orelse polar = Neg orelse
+                    is_concrete_type datatypes true (type_of u1) then
               s_op2 Subset T R u1 u2
+            else
+              Cst (False, T, Formula Pos)
           end
         | Op2 (DefEq, T, _, u1, u2) =>
           s_op2 DefEq T (Formula Neut) (sub u1) (sub u2)
