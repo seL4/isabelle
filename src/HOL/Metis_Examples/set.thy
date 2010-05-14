@@ -16,7 +16,7 @@ by metis
 lemma "P(n::nat) ==> ~P(0) ==> n ~= 0"
 by metis
 
-sledgehammer_params [shrink_factor = 1]
+sledgehammer_params [isar_proof, isar_shrink_factor = 1]
 
 (*multiple versions of this example*)
 lemma (*equal_union: *)
@@ -85,7 +85,7 @@ show "False"
   by (metis 31 29)
 qed
 
-sledgehammer_params [shrink_factor = 2]
+sledgehammer_params [isar_proof, isar_shrink_factor = 2]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) =
@@ -128,7 +128,7 @@ show "False"
   by (metis 18 17)
 qed
 
-sledgehammer_params [shrink_factor = 3]
+sledgehammer_params [isar_proof, isar_shrink_factor = 3]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) =
@@ -163,7 +163,7 @@ qed
 
 (*Example included in TPHOLs paper*)
 
-sledgehammer_params [shrink_factor = 4]
+sledgehammer_params [isar_proof, isar_shrink_factor = 4]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) =
