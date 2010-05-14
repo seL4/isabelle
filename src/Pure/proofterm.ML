@@ -135,6 +135,8 @@ sig
   val unconstrain_thm_proofs: bool Unsynchronized.ref
   val thm_proof: theory -> string -> sort list -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
+  val unconstrain_thm_proof: theory -> sort list -> term ->
+    (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
   val get_name_unconstrained: sort list -> term list -> term -> proof -> string
   val guess_name: proof -> string
@@ -1400,16 +1402,14 @@ fun unconstrainT_prf thy (atyp_map, constraints) =
 
 fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
   PBody
-   {oracles = oracles,  (* FIXME unconstrain (!?!) *)
-    thms = thms,
+   {oracles = oracles,  (* FIXME merge (!), unconstrain (!?!) *)
+    thms = thms,  (* FIXME merge (!) *)
     proof = unconstrainT_prf thy constrs proof};
 
 
 (***** theorems *****)
 
-val unconstrain_thm_proofs = Unsynchronized.ref false;
-
-fun thm_proof thy name shyps hyps concl promises body =
+fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
   let
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val prop = Logic.list_implies (hyps, concl);
@@ -1418,13 +1418,16 @@ fun thm_proof thy name shyps hyps concl promises body =
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
       map SOME (frees_of prop);
 
-    val (postproc, ofclasses, prop1) =
-      if ! unconstrain_thm_proofs then
+    val (postproc, ofclasses, prop1, args1) =
+      if do_unconstrain then
         let
           val ((atyp_map, constraints), prop1) = Logic.unconstrainT shyps prop;
           val postproc = unconstrainT_body thy (atyp_map, constraints);
-        in (postproc, map (OfClass o fst) constraints, prop1) end
-      else (I, [], prop);
+          val args1 =
+            (map o Option.map o Term.map_types o Term.map_atyps)
+              (Type.strip_sorts o atyp_map) args;
+        in (postproc, map (OfClass o fst) constraints, prop1, args1) end
+      else (I, [], prop, args);
     val argsP = ofclasses @ map Hyp hyps;
 
     val proof0 =
@@ -1442,9 +1445,21 @@ fun thm_proof thy name shyps hyps concl promises body =
           else new_prf ()
       | _ => new_prf ());
     val head = PThm (i, ((name, prop1, NONE), body'));
-  in
-    ((i, (name, prop1, body')), proof_combP (proof_combt' (head, args), argsP))
-  end;
+  in ((i, (name, prop1, body')), head, args, argsP, args1) end;
+
+val unconstrain_thm_proofs = Unsynchronized.ref false;
+
+fun thm_proof thy name shyps hyps concl promises body =
+  let val (pthm, head, args, argsP, _) =
+    prepare_thm_proof (! unconstrain_thm_proofs) thy name shyps hyps concl promises body
+  in (pthm, proof_combP (proof_combt' (head, args), argsP)) end;
+
+fun unconstrain_thm_proof thy shyps concl promises body =
+  let
+    val (pthm, head, _, _, args) =
+      prepare_thm_proof true thy "" shyps [] concl promises body
+  in (pthm, proof_combt' (head, args)) end;
+
 
 fun get_name hyps prop prf =
   let val prop = Logic.list_implies (hyps, prop) in
