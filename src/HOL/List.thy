@@ -2532,6 +2532,23 @@ lemma distinct_listsum_conv_Setsum:
   "distinct xs \<Longrightarrow> listsum xs = Setsum(set xs)"
 by (induct xs) simp_all
 
+lemma listsum_eq_0_nat_iff_nat[simp]:
+  "listsum ns = (0::nat) \<longleftrightarrow> (\<forall> n \<in> set ns. n = 0)"
+by(simp add: listsum)
+
+lemma elem_le_listsum_nat: "k<size ns \<Longrightarrow> ns!k <= listsum(ns::nat list)"
+apply(induct ns arbitrary: k)
+ apply simp
+apply(fastsimp simp add:nth_Cons split: nat.split)
+done
+
+lemma listsum_update_nat: "k<size ns \<Longrightarrow>
+  listsum (ns[k := (n::nat)]) = listsum ns + n - ns!k"
+apply(induct ns arbitrary:k)
+ apply (auto split:nat.split)
+apply(drule elem_le_listsum_nat)
+apply arith
+done
 
 text{* Some syntactic sugar for summing a function over a list: *}
 
