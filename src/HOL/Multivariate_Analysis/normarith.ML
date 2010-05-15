@@ -169,17 +169,6 @@ fun inequality_canon_rule ctxt =
  in fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv arg_conv (Numeral_Simprocs.field_comp_conv then_conv real_poly_conv)))
 end;
 
- fun absc cv ct = case term_of ct of
- Abs (v,_, _) =>
-  let val (x,t) = Thm.dest_abs (SOME v) ct
-  in Thm.abstract_rule ((fst o dest_Free o term_of) x) x (cv t)
-  end
- | _ => all_conv ct;
-
-fun sub_conv cv ct = (comb_conv cv else_conv absc cv) ct;
-fun botc1 conv ct =
-  ((sub_conv (botc1 conv)) then_conv (conv else_conv all_conv)) ct;
-
  val apply_pth1 = rewr_conv @{thm pth_1};
  val apply_pth2 = rewr_conv @{thm pth_2};
  val apply_pth3 = rewr_conv @{thm pth_3};
