@@ -29,7 +29,6 @@ uses
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
-  "~~/src/Tools/more_conv.ML"
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}

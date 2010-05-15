@@ -25,8 +25,8 @@ val block_at_def = as_meta_eq @{thm block_at_def}
 val label_eqs = [assert_at_def, block_at_def]
 
 fun unfold_labels_tac ctxt =
-  let val unfold = More_Conv.rewrs_conv label_eqs
-  in CONVERSION (More_Conv.top_sweep_conv (K unfold) ctxt) end
+  let val unfold = Conv.rewrs_conv label_eqs
+  in CONVERSION (Conv.top_sweep_conv (K unfold) ctxt) end
 
 fun boogie_tac ctxt rules =
   unfold_labels_tac ctxt

@@ -96,7 +96,7 @@ fun varify vars = Drule.generalize ([], vars)
 
 fun unfold_eqs _ [] = Conv.all_conv
   | unfold_eqs ctxt eqs =
-      More_Conv.top_sweep_conv (K (More_Conv.rewrs_conv eqs)) ctxt
+      Conv.top_sweep_conv (K (Conv.rewrs_conv eqs)) ctxt
 
 fun match_instantiate f ct thm =
   Thm.instantiate (Thm.match (f (Thm.cprop_of thm), ct)) thm
@@ -256,7 +256,7 @@ local
   val set5 = @{lemma "x ~: set (y # ys) == x ~= y & x ~: set ys" by simp}
 
   fun set_conv ct =
-    (More_Conv.rewrs_conv [set1, set2, set3, set4] else_conv
+    (Conv.rewrs_conv [set1, set2, set3, set4] else_conv
     (Conv.rewr_conv set5 then_conv Conv.arg_conv set_conv)) ct
 
   val dist1 = @{lemma "distinct [] == ~False" by simp}
@@ -267,7 +267,7 @@ local
   fun binop_conv cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
 in
 fun unfold_distinct_conv ct =
-  (More_Conv.rewrs_conv [dist1, dist2] else_conv
+  (Conv.rewrs_conv [dist1, dist2] else_conv
   (Conv.rewr_conv dist3 then_conv binop_conv set_conv unfold_distinct_conv)) ct
 end
 

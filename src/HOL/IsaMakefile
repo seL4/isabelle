@@ -60,7 +60,7 @@ test: \
   HOL-Proofs-Extraction \
   HOL-Proofs-Lambda \
   HOL-SET_Protocol \
-  HOL-SMT_Examples \
+  HOL-Word-SMT_Examples \
   HOL-Statespace \
   HOL-Subst \
       TLA-Buffer \
@@ -128,7 +128,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/induct.ML \
   $(SRC)/Tools/induct_tacs.ML \
   $(SRC)/Tools/intuitionistic.ML \
-  $(SRC)/Tools/more_conv.ML \
   $(SRC)/Tools/nbe.ML \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/quickcheck.ML \
@@ -402,7 +401,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Efficient_Nat.thy Library/Sum_Of_Squares.thy			\
   Library/Dlist.thy Library/Sum_Of_Squares/sos_wrapper.ML		\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
-  Library/Glbs.thy Library/normarith.ML Library/Executable_Set.thy	\
+  Library/Glbs.thy Library/Executable_Set.thy	\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
   Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
@@ -1088,27 +1087,27 @@ $(LOG)/TLA-Memory.gz: $(OUT)/TLA TLA/Memory/MemClerk.thy		\
 
 HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
 
-$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL		\
-  Multivariate_Analysis/ROOT.ML				\
-  Multivariate_Analysis/document/root.tex		\
-  Multivariate_Analysis/Brouwer_Fixpoint.thy            \
-  Multivariate_Analysis/Convex_Euclidean_Space.thy      \
-  Multivariate_Analysis/Derivative.thy			\
-  Multivariate_Analysis/Determinants.thy		\
-  Multivariate_Analysis/Euclidean_Space.thy		\
-  Multivariate_Analysis/Fashoda.thy			\
-  Multivariate_Analysis/Finite_Cartesian_Product.thy	\
-  Multivariate_Analysis/Integration.thy			\
-  Multivariate_Analysis/Integration.certs		\
-  Multivariate_Analysis/L2_Norm.thy			\
-  Multivariate_Analysis/Multivariate_Analysis.thy	\
-  Multivariate_Analysis/Operator_Norm.thy		\
-  Multivariate_Analysis/Path_Connected.thy		\
-  Multivariate_Analysis/Real_Integration.thy		\
-  Multivariate_Analysis/Topology_Euclidean_Space.thy	\
-  Multivariate_Analysis/Vec1.thy Library/Glbs.thy	\
-  Library/Inner_Product.thy Library/Numeral_Type.thy	\
-  Library/Convex.thy Library/FrechetDeriv.thy		\
+$(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
+  Multivariate_Analysis/Brouwer_Fixpoint.thy				\
+  Multivariate_Analysis/Convex_Euclidean_Space.thy			\
+  Multivariate_Analysis/Derivative.thy					\
+  Multivariate_Analysis/Determinants.thy				\
+  Multivariate_Analysis/Euclidean_Space.thy				\
+  Multivariate_Analysis/Fashoda.thy					\
+  Multivariate_Analysis/Finite_Cartesian_Product.thy			\
+  Multivariate_Analysis/Integration.certs				\
+  Multivariate_Analysis/Integration.thy					\
+  Multivariate_Analysis/L2_Norm.thy					\
+  Multivariate_Analysis/Multivariate_Analysis.thy			\
+  Multivariate_Analysis/Operator_Norm.thy				\
+  Multivariate_Analysis/Path_Connected.thy				\
+  Multivariate_Analysis/ROOT.ML						\
+  Multivariate_Analysis/Real_Integration.thy				\
+  Multivariate_Analysis/Topology_Euclidean_Space.thy			\
+  Multivariate_Analysis/document/root.tex				\
+  Multivariate_Analysis/normarith.ML Multivariate_Analysis/Vec1.thy	\
+  Library/Glbs.thy Library/Inner_Product.thy Library/Numeral_Type.thy	\
+  Library/Convex.thy Library/FrechetDeriv.thy				\
   Library/Product_Vector.thy Library/Product_plus.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
@@ -1254,11 +1253,11 @@ $(LOG)/HOL-Mirabelle.gz: $(OUT)/HOL Mirabelle/Mirabelle_Test.thy	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Mirabelle
 
 
-## HOL-SMT_Examples
+## HOL-Word-SMT_Examples
 
-HOL-SMT_Examples: HOL-Word $(LOG)/HOL-SMT_Examples.gz
+HOL-Word-SMT_Examples: HOL-Word $(LOG)/HOL-Word-SMT_Examples.gz
 
-$(LOG)/HOL-SMT_Examples.gz: $(OUT)/HOL-Word SMT_Examples/ROOT.ML	\
+$(LOG)/HOL-Word-SMT_Examples.gz: $(OUT)/HOL-Word SMT_Examples/ROOT.ML	\
   SMT_Examples/SMT_Examples.thy SMT_Examples/SMT_Examples.certs		\
   SMT_Examples/SMT_Word_Examples.thy SMT_Examples/SMT_Tests.thy		\
   SMT_Examples/SMT_Word_Examples.certs SMT_Examples/SMT_Tests.certs
@@ -1346,15 +1345,15 @@ clean:
 		$(LOG)/HOL-Probability.gz $(LOG)/HOL-Prolog.gz		\
 		$(LOG)/HOL-Proofs.gz $(LOG)/HOL-Proofs-Extraction.gz	\
 		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
-		$(LOG)/HOL-SMT_Examples.gz $(LOG)/HOL-Statespace.gz 	\
-		$(LOG)/HOL-Subst.gz $(LOG)/HOL-UNITY.gz			\
-		$(LOG)/HOL-Unix.gz $(LOG)/HOL-Word-Examples.gz		\
-		$(LOG)/HOL-Word.gz $(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz	\
-		$(LOG)/HOL.gz $(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz	\
-		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Memory.gz $(LOG)/TLA.gz	\
-		$(OUT)/HOL $(OUT)/HOL-Algebra $(OUT)/HOL-Base		\
-		$(OUT)/HOL-Boogie $(OUT)/HOL-Main			\
-		$(OUT)/HOL-Multivariate_Analysis $(OUT)/HOL-NSA		\
-		$(OUT)/HOL-Nominal $(OUT)/HOL-Plain			\
+		$(LOG)/HOL-Word-SMT_Examples.gz				\
+		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
+		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
+		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\
+		$(LOG)/HOL-ZF.gz $(LOG)/HOL-ex.gz $(LOG)/HOL.gz		\
+		$(LOG)/HOL4.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Inc.gz	\
+		$(LOG)/TLA-Memory.gz $(LOG)/TLA.gz $(OUT)/HOL		\
+		$(OUT)/HOL-Algebra $(OUT)/HOL-Base $(OUT)/HOL-Boogie	\
+		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
+		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
 		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA

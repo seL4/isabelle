@@ -412,8 +412,6 @@ fun define_overloaded b (c, t) thy =
 
 (* primitive rules *)
 
-val shyps_topped = forall null o #shyps o Thm.rep_thm;
-
 fun add_classrel raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
@@ -422,9 +420,8 @@ fun add_classrel raw_th thy =
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
     val th' = th
-      |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [c1])))] []
-      |> Thm.unconstrainT;
-    val _ = shyps_topped th' orelse raise Fail "add_classrel: nontop shyps after unconstrain";
+      |> Thm.unconstrainT
+      |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [])))] [];
   in
     thy
     |> Sign.primitive_classrel (c1, c2)
@@ -441,16 +438,15 @@ fun add_arity raw_th thy =
 
     val args = Name.names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
-    val std_vars = map (fn (a, S) => SOME (ctyp_of thy (TVar ((a, 0), S)))) args;
+    val std_vars = map (fn (a, S) => SOME (ctyp_of thy (TVar ((a, 0), [])))) args;
 
     val missing_params = Sign.complete_sort thy [c]
       |> maps (these o Option.map #params o try (get_info thy))
       |> filter_out (fn (const, _) => can (get_inst_param thy) (const, t))
       |> (map o apsnd o map_atyps) (K T);
     val th' = th
-      |> Drule.instantiate' std_vars []
-      |> Thm.unconstrainT;
-    val _ = shyps_topped th' orelse raise Fail "add_arity: nontop shyps after unconstrain";
+      |> Thm.unconstrainT
+      |> Drule.instantiate' std_vars [];
   in
     thy
     |> fold (#2 oo declare_overloaded) missing_params

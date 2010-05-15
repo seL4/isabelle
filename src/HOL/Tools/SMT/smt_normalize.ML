@@ -47,11 +47,11 @@ local
     "distinct [x, y] == (x ~= y)"
     by simp_all}
   fun distinct_conv _ =
-    if_true_conv is_trivial_distinct (More_Conv.rewrs_conv thms)
+    if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
 in
 fun trivial_distinct ctxt =
   map ((Term.exists_subterm is_trivial_distinct o Thm.prop_of) ??
-    Conv.fconv_rule (More_Conv.top_conv distinct_conv ctxt))
+    Conv.fconv_rule (Conv.top_conv distinct_conv ctxt))
 end
 
 
@@ -67,11 +67,11 @@ local
     "(case P of True => x | False => y) == (if P then x else y)"
     "(case P of False => y | True => x) == (if P then x else y)"
     by (rule eq_reflection, simp)+}
-  val unfold_conv = if_true_conv is_bool_case (More_Conv.rewrs_conv thms)
+  val unfold_conv = if_true_conv is_bool_case (Conv.rewrs_conv thms)
 in
 fun rewrite_bool_cases ctxt =
   map ((Term.exists_subterm is_bool_case o Thm.prop_of) ??
-    Conv.fconv_rule (More_Conv.top_conv (K unfold_conv) ctxt))
+    Conv.fconv_rule (Conv.top_conv (K unfold_conv) ctxt))
 end
 
 
@@ -107,7 +107,7 @@ local
 in
 fun normalize_numerals ctxt =
   map ((Term.exists_subterm (is_strange_number ctxt) o Thm.prop_of) ??
-    Conv.fconv_rule (More_Conv.top_sweep_conv pos_conv ctxt))
+    Conv.fconv_rule (Conv.top_sweep_conv pos_conv ctxt))
 end
 
 
@@ -193,7 +193,7 @@ fun eta_expand_conv cv ctxt =
 local
   val eta_conv = eta_expand_conv
 
-  fun keep_conv ctxt = More_Conv.binder_conv norm_conv ctxt
+  fun keep_conv ctxt = Conv.binder_conv (norm_conv o snd) ctxt
   and eta_binder_conv ctxt = Conv.arg_conv (eta_conv norm_conv ctxt)
   and keep_let_conv ctxt = Conv.combination_conv
     (Conv.arg_conv (norm_conv ctxt)) (Conv.abs_conv (norm_conv o snd) ctxt)
@@ -267,7 +267,7 @@ fun atomize_conv ctxt ct =
       Conv.binop_conv (atomize_conv ctxt) then_conv
       Conv.rewr_conv @{thm atomize_eq}
   | Const (@{const_name all}, _) $ Abs _ =>
-      More_Conv.binder_conv atomize_conv ctxt then_conv
+      Conv.binder_conv (atomize_conv o snd) ctxt then_conv
       Conv.rewr_conv @{thm atomize_all}
   | _ => Conv.all_conv) ct
 
