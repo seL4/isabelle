@@ -159,8 +159,6 @@ fun naive_cterm_first_order_match (t,ct) env =
   in mtch env (t,ct) end;
 
 
-fun mp prem rule = implies_elim rule prem;
-
 fun discharge prems rule =
   let
      val thy = theory_of_thm (hd prems);
@@ -172,7 +170,7 @@ fun discharge prems rule =
      val insts' = map (fn (idxn,ct) => (cterm_of thy (Var (idxn,typ_of (ctyp_of_term ct))),ct))  
                      insts;
      val rule' = Thm.instantiate (tyinsts',insts') rule;
-   in fold mp prems rule' end;
+   in fold Thm.elim_implies prems rule' end;
 
 local
 
