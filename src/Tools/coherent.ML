@@ -41,16 +41,12 @@ datatype cl_prf =
 
 val is_atomic = not o exists_Const (member (op =) Data.operator_names o #1);
 
-local open Conv in
-
 fun rulify_elim_conv ct =
-  if is_atomic (Logic.strip_imp_concl (term_of ct)) then all_conv ct
-  else concl_conv (length (Logic.strip_imp_prems (term_of ct)))
-    (rewr_conv (Thm.symmetric Data.atomize_elimL) then_conv
+  if is_atomic (Logic.strip_imp_concl (term_of ct)) then Conv.all_conv ct
+  else Conv.concl_conv (length (Logic.strip_imp_prems (term_of ct)))
+    (Conv.rewr_conv (Thm.symmetric Data.atomize_elimL) then_conv
      MetaSimplifier.rewrite true (map Thm.symmetric
        [Data.atomize_exL, Data.atomize_conjL, Data.atomize_disjL])) ct
-
-end;
 
 fun rulify_elim th = Simplifier.norm_hhf (Conv.fconv_rule rulify_elim_conv th);
 
