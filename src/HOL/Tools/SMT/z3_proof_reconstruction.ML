@@ -540,7 +540,7 @@ local
 
   fun elim_unused_conv ctxt =
     Conv.params_conv ~1 (K (Conv.arg_conv (Conv.arg1_conv
-      (More_Conv.rewrs_conv [elim_all, elim_ex])))) ctxt
+      (Conv.rewrs_conv [elim_all, elim_ex])))) ctxt
 
   fun elim_unused_tac ctxt =
     REPEAT_ALL_NEW (

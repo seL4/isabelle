@@ -81,7 +81,7 @@ fun unfold_def_conv ctxt ct =
 
 fun unfold_abs_min_max_defs ctxt thm =
   if exists_abs_min_max (Thm.prop_of thm)
-  then Conv.fconv_rule (More_Conv.top_conv unfold_def_conv ctxt) thm
+  then Conv.fconv_rule (Conv.top_conv unfold_def_conv ctxt) thm
   else thm
 
 

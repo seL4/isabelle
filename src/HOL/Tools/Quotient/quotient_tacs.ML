@@ -490,7 +490,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
       end
   | _ => Conv.all_conv ctrm
 
-fun lambda_prs_conv ctxt = More_Conv.top_conv lambda_prs_simple_conv ctxt
+fun lambda_prs_conv ctxt = Conv.top_conv lambda_prs_simple_conv ctxt
 fun lambda_prs_tac ctxt = CONVERSION (lambda_prs_conv ctxt)
 
 

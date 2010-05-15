@@ -182,7 +182,6 @@ fun sub_conv cv ct = (comb_conv cv else_conv absc cv) ct;
 fun botc1 conv ct = 
   ((sub_conv (botc1 conv)) then_conv (conv else_conv all_conv)) ct;
 
- fun rewrs_conv eqs ct = first_conv (map rewr_conv eqs) ct;
  val apply_pth1 = rewr_conv @{thm pth_1};
  val apply_pth2 = rewr_conv @{thm pth_2};
  val apply_pth3 = rewr_conv @{thm pth_3};
@@ -333,9 +332,9 @@ local
   in fst (RealArith.real_linear_prover translator
         (map (fn t => instantiate ([(tv_n, ctyp_of_term t)],[]) pth_zero)
             zerodests,
-        map (fconv_rule (try_conv (More_Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv
+        map (fconv_rule (try_conv (Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
-        map (fconv_rule (try_conv (More_Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv 
+        map (fconv_rule (try_conv (Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv 
                        arg_conv (arg_conv real_poly_conv))) gts))
   end
 in val real_vector_combo_prover = real_vector_combo_prover

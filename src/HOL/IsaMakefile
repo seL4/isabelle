@@ -128,7 +128,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/induct.ML \
   $(SRC)/Tools/induct_tacs.ML \
   $(SRC)/Tools/intuitionistic.ML \
-  $(SRC)/Tools/more_conv.ML \
   $(SRC)/Tools/nbe.ML \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/quickcheck.ML \

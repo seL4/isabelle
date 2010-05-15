@@ -1,5 +1,6 @@
 (*  Title:      Pure/conv.ML
     Author:     Amine Chaieb, TU Muenchen
+    Author:     Sascha Boehme, TU Muenchen
     Author:     Makarius
 
 Conversions: primitive equality reasoning.
@@ -32,10 +33,16 @@ sig
   val arg1_conv: conv -> conv
   val fun2_conv: conv -> conv
   val binop_conv: conv -> conv
+  val binder_conv: (cterm * Proof.context -> conv) -> Proof.context -> conv
   val forall_conv: (cterm * Proof.context -> conv) -> Proof.context -> conv
   val implies_conv: conv -> conv -> conv
   val implies_concl_conv: conv -> conv
   val rewr_conv: thm -> conv
+  val rewrs_conv: thm list -> conv
+  val sub_conv: (Proof.context -> conv) -> Proof.context -> conv
+  val bottom_conv: (Proof.context -> conv) -> Proof.context -> conv
+  val top_conv: (Proof.context -> conv) -> Proof.context -> conv
+  val top_sweep_conv: (Proof.context -> conv) -> Proof.context -> conv
   val params_conv: int -> (Proof.context -> conv) -> Proof.context -> conv
   val prems_conv: int -> conv -> conv
   val concl_conv: int -> conv -> conv
@@ -105,6 +112,29 @@ val fun2_conv = fun_conv o fun_conv;
 
 fun binop_conv cv = combination_conv (arg_conv cv) cv;
 
+fun binder_conv cv ctxt = arg_conv (abs_conv cv ctxt);
+
+
+(* subterm structure *)
+
+(*cf. SUB_CONV in HOL*)
+fun sub_conv conv ctxt =
+  comb_conv (conv ctxt) else_conv
+  abs_conv (conv o snd) ctxt else_conv
+  all_conv;
+
+(*cf. BOTTOM_CONV in HOL*)
+fun bottom_conv conv ctxt ct =
+  (sub_conv (bottom_conv conv) ctxt then_conv conv ctxt) ct;
+
+(*cf. TOP_CONV in HOL*)
+fun top_conv conv ctxt ct =
+  (conv ctxt then_conv sub_conv (top_conv conv) ctxt) ct;
+
+(*cf. TOP_SWEEP_CONV in HOL*)
+fun top_sweep_conv conv ctxt ct =
+  (conv ctxt else_conv sub_conv (top_sweep_conv conv) ctxt) ct;
+
 
 (* primitive logic *)
 
@@ -135,6 +165,8 @@ fun rewr_conv rule ct =
     Drule.instantiate (Thm.match (lhs, ct)) rule2
       handle Pattern.MATCH => raise CTERM ("rewr_conv", [lhs, ct])
   end;
+
+fun rewrs_conv rules = first_conv (map rewr_conv rules);
 
 
 (* conversions on HHF rules *)
