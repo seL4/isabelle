@@ -118,11 +118,6 @@ sig
     arity_proof: theory -> string * sort list * class -> proof} -> unit
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> oracle * proof
-  val promise_proof: theory -> serial -> term -> proof
-  val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val thm_proof: theory -> string -> term list -> term ->
-    (serial * proof_body future) list -> proof_body -> pthm * proof
-  val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
   val add_prf_rrule: proof * proof -> theory -> theory
@@ -134,6 +129,17 @@ sig
   val rewrite_proof_notypes: (proof * proof) list *
     (typ list -> proof -> (proof * proof) option) list -> proof -> proof
   val rew_proof: theory -> proof -> proof
+
+  val promise_proof: theory -> serial -> term -> proof
+  val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
+  val unconstrain_thm_proofs: bool Unsynchronized.ref
+  val thm_proof: theory -> string -> sort list -> term list -> term ->
+    (serial * proof_body future) list -> proof_body -> pthm * proof
+  val unconstrain_thm_proof: theory -> sort list -> term ->
+    (serial * proof_body future) list -> proof_body -> pthm * proof
+  val get_name: term list -> term -> proof -> string
+  val get_name_unconstrained: sort list -> term list -> term -> proof -> string
+  val guess_name: proof -> string
 end
 
 structure Proofterm : PROOFTERM =
@@ -344,7 +350,7 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type (SOME [T]) (OfClass (_, c)) = OfClass (T, c)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
-  | change_type opTs (Promise _) = error "change_type: unexpected promise"
+  | change_type opTs (Promise _) = raise Fail "change_type: unexpected promise"
   | change_type opTs (PThm (i, ((name, prop, _), body))) =
       PThm (i, ((name, prop, opTs), body))
   | change_type _ prf = prf;
@@ -1071,7 +1077,7 @@ val shrink_proof =
               | Oracle (_, prop, _) => prop
               | Promise (_, prop, _) => prop
               | PThm (_, ((_, prop, _), _)) => prop
-              | _ => error "shrink: proof not in normal form");
+              | _ => raise Fail "shrink: proof not in normal form");
             val vs = vars_of prop;
             val (ts', ts'') = chop (length vs) ts;
             val insts = take (length ts') (map (fst o dest_Var) vs) ~~ ts';
@@ -1348,9 +1354,9 @@ fun promise_proof thy i prop =
   let
     val _ = prop |> Term.exists_subterm (fn t =>
       (Term.is_Free t orelse Term.is_Var t) andalso
-        error ("promise_proof: illegal variable " ^ Syntax.string_of_term_global thy t));
+        raise Fail ("promise_proof: illegal variable " ^ Syntax.string_of_term_global thy t));
     val _ = prop |> Term.exists_type (Term.exists_subtype
-      (fn TFree (a, _) => error ("promise_proof: illegal type variable " ^ quote a)
+      (fn TFree (a, _) => raise Fail ("promise_proof: illegal type variable " ^ quote a)
         | _ => false));
   in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
 
@@ -1370,15 +1376,40 @@ fun fulfill_norm_proof thy ps body0 =
     val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
-fun fulfill_proof_future _ [] body = Future.value body
-  | fulfill_proof_future thy promises body =
+fun fulfill_proof_future _ [] postproc body = Future.value (postproc body)
+  | fulfill_proof_future thy promises postproc body =
       Future.fork_deps (map snd promises) (fn () =>
-        fulfill_norm_proof thy (map (apsnd Future.join) promises) body);
+        postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) body));
+
+
+(***** abstraction over sort constraints *****)
+
+fun unconstrainT_prf thy (atyp_map, constraints) =
+  let
+    fun hyp_map hyp =
+      (case AList.lookup (op =) constraints hyp of
+        SOME t => Hyp t
+      | NONE => raise Fail "unconstrainT_prf: missing constraint");
+
+    val typ = Term_Subst.map_atypsT_same (Type.strip_sorts o atyp_map);
+    fun ofclass (ty, c) =
+      let val ty' = Term.map_atyps atyp_map ty;
+      in the_single (of_sort_proof thy hyp_map (ty', [c])) end;
+  in
+    Same.commit (map_proof_same (Term_Subst.map_types_same typ) typ ofclass)
+    #> fold_rev (implies_intr_proof o snd) constraints
+  end;
+
+fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
+  PBody
+   {oracles = oracles,  (* FIXME merge (!), unconstrain (!?!) *)
+    thms = thms,  (* FIXME merge (!) *)
+    proof = unconstrainT_prf thy constrs proof};
 
 
 (***** theorems *****)
 
-fun thm_proof thy name hyps concl promises body =
+fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
   let
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val prop = Logic.list_implies (hyps, concl);
@@ -1387,24 +1418,48 @@ fun thm_proof thy name hyps concl promises body =
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
       map SOME (frees_of prop);
 
+    val (postproc, ofclasses, prop1, args1) =
+      if do_unconstrain then
+        let
+          val ((atyp_map, constraints), prop1) = Logic.unconstrainT shyps prop;
+          val postproc = unconstrainT_body thy (atyp_map, constraints);
+          val args1 =
+            (map o Option.map o Term.map_types o Term.map_atyps)
+              (Type.strip_sorts o atyp_map) args;
+        in (postproc, map (OfClass o fst) constraints, prop1, args1) end
+      else (I, [], prop, args);
+    val argsP = ofclasses @ map Hyp hyps;
+
     val proof0 =
       if ! proofs = 2 then
         #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
       else MinProof;
     val body0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
 
-    fun new_prf () = (serial (), name, prop, fulfill_proof_future thy promises body0);
-    val (i, name, prop, body') =
+    fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
+    val (i, body') =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
-          if (old_name = "" orelse old_name = name) andalso prop = prop' andalso args = args'
-          then (i, name, prop, body')
+          if (old_name = "" orelse old_name = name) andalso prop1 = prop' andalso args = args'
+          then (i, body')
           else new_prf ()
       | _ => new_prf ());
-    val head = PThm (i, ((name, prop, NONE), body'));
-  in
-    ((i, (name, prop, body')), proof_combP (proof_combt' (head, args), map Hyp hyps))
-  end;
+    val head = PThm (i, ((name, prop1, NONE), body'));
+  in ((i, (name, prop1, body')), head, args, argsP, args1) end;
+
+val unconstrain_thm_proofs = Unsynchronized.ref false;
+
+fun thm_proof thy name shyps hyps concl promises body =
+  let val (pthm, head, args, argsP, _) =
+    prepare_thm_proof (! unconstrain_thm_proofs) thy name shyps hyps concl promises body
+  in (pthm, proof_combP (proof_combt' (head, args), argsP)) end;
+
+fun unconstrain_thm_proof thy shyps concl promises body =
+  let
+    val (pthm, head, _, _, args) =
+      prepare_thm_proof true thy "" shyps [] concl promises body
+  in (pthm, proof_combt' (head, args)) end;
+
 
 fun get_name hyps prop prf =
   let val prop = Logic.list_implies (hyps, prop) in
@@ -1412,6 +1467,20 @@ fun get_name hyps prop prf =
       (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
     | _ => "")
   end;
+
+fun get_name_unconstrained shyps hyps prop prf =
+  let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
+    (case strip_combt (fst (strip_combP prf)) of
+      (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
+    | _ => "")
+  end;
+
+fun guess_name (PThm (_, ((name, _, _), _))) = name
+  | guess_name (prf %% Hyp _) = guess_name prf
+  | guess_name (prf %% OfClass _) = guess_name prf
+  | guess_name (prf % NONE) = guess_name prf
+  | guess_name (prf % SOME (Var _)) = guess_name prf
+  | guess_name _ = "";
 
 end;
 

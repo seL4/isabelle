@@ -586,17 +586,17 @@ fun future future_thm ct =
 (* closed derivations with official name *)
 
 fun derivation_name thm =
-  Pt.get_name (hyps_of thm) (prop_of thm) (Pt.proof_of (raw_body thm));
+  Pt.guess_name (Pt.proof_of (raw_body thm));   (* FIXME tmp *)
 
 fun name_derivation name (thm as Thm (der, args)) =
   let
     val Deriv {promises, body} = der;
-    val {thy_ref, hyps, prop, tpairs, ...} = args;
+    val {thy_ref, shyps, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
 
     val ps = map (apsnd (Future.map proof_body_of)) promises;
     val thy = Theory.deref thy_ref;
-    val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
+    val (pthm, proof) = Pt.thm_proof thy name shyps hyps prop ps body;
     val der' = make_deriv [] [] [pthm] proof;
     val _ = Theory.check_thy thy;
   in Thm (der', args) end;
@@ -1222,24 +1222,30 @@ fun strip_shyps (thm as Thm (_, {shyps = [], ...})) = thm
       end;
 
 (*Internalize sort constraints of type variables*)
-fun unconstrainT (thm as Thm (_, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
+fun unconstrainT (thm as Thm (der, args)) =
   let
-    fun err msg = raise THM ("unconstrainT: " ^ msg, 0, [thm]);
+    val Deriv {promises, body} = der;
+    val {thy_ref, shyps, hyps, tpairs, prop, ...} = args;
 
+    fun err msg = raise THM ("unconstrainT: " ^ msg, 0, [thm]);
     val _ = null hyps orelse err "illegal hyps";
     val _ = null tpairs orelse err "unsolved flex-flex constraints";
     val tfrees = rev (Term.add_tfree_names prop []);
     val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
-    val (_, prop') = Logic.unconstrainT shyps prop;
+    val ps = map (apsnd (Future.map proof_body_of)) promises;
+    val thy = Theory.deref thy_ref;
+    val (pthm as (_, (_, prop', _)), proof) = Pt.unconstrain_thm_proof thy shyps prop ps body;
+    val der' = make_deriv [] [] [pthm] proof;
+    val _ = Theory.check_thy thy;
   in
-    Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
+    Thm (der',
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx_of_term prop',
       shyps = [[]],  (*potentially redundant*)
-      hyps = hyps,
-      tpairs = tpairs,
+      hyps = [],
+      tpairs = [],
       prop = prop'})
   end;
 
