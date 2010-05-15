@@ -34,7 +34,7 @@ sig
   val load_thy: string -> Position.T -> string list -> bool -> unit -> unit
 end;
 
-structure OuterSyntax: OUTER_SYNTAX =
+structure Outer_Syntax: OUTER_SYNTAX =
 struct
 
 structure T = OuterLex;
@@ -296,3 +296,7 @@ fun load_thy name pos text time =
   in after_load end;
 
 end;
+
+(*legacy alias*)
+structure OuterSyntax = Outer_Syntax;
+

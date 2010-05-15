@@ -346,7 +346,7 @@ fun load_thy time upd_time initiators name =
     val _ = CRITICAL (fn () =>
       change_deps name (Option.map (fn {master, text, parents, files, ...} =>
         make_deps upd_time master text parents files)));
-    val after_load = OuterSyntax.load_thy name pos text (time orelse ! Output.timing);
+    val after_load = Outer_Syntax.load_thy name pos text (time orelse ! Output.timing);
     val _ =
       CRITICAL (fn () =>
        (change_deps name

@@ -154,7 +154,7 @@ val criterion =
   Parse.xname >> Loose;
 
 val _ =
-  OuterSyntax.improper_command "find_consts" "search constants by type pattern" Keyword.diag
+  Outer_Syntax.improper_command "find_consts" "search constants by type pattern" Keyword.diag
     (Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion)
       >> (Toplevel.no_timing oo find_consts_cmd));
 

@@ -276,23 +276,23 @@ end;
 (** concrete syntax **)
 
 val _ =
-  OuterSyntax.internal_command "Isar.define_command"
+  Outer_Syntax.internal_command "Isar.define_command"
     (Parse.string -- Parse.string >> (fn (id, text) =>
       Toplevel.position (Position.id_only id) o
       Toplevel.imperative (fn () =>
-        define_command id (OuterSyntax.prepare_command (Position.id id) text))));
+        define_command id (Outer_Syntax.prepare_command (Position.id id) text))));
 
 val _ =
-  OuterSyntax.internal_command "Isar.begin_document"
+  Outer_Syntax.internal_command "Isar.begin_document"
     (Parse.string -- Parse.string >> (fn (id, path) =>
       Toplevel.imperative (fn () => begin_document id (Path.explode path))));
 
 val _ =
-  OuterSyntax.internal_command "Isar.end_document"
+  Outer_Syntax.internal_command "Isar.end_document"
     (Parse.string >> (fn id => Toplevel.imperative (fn () => end_document id)));
 
 val _ =
-  OuterSyntax.internal_command "Isar.edit_document"
+  Outer_Syntax.internal_command "Isar.edit_document"
     (Parse.string -- Parse.string --
         Parse_Value.list (Parse.string -- (Parse.string >> SOME) || Parse.string >> rpair NONE)
       >> (fn ((id, new_id), edits) =>

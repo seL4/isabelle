@@ -141,7 +141,7 @@ fun toplevel_loop {init = do_init, welcome, sync, secure} =
   Secure.open_unsynchronized ();
   if do_init then init () else ();
   if welcome then writeln (Session.welcome ()) else ();
-  uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
+  uninterruptible (fn _ => fn () => raw_loop secure (Outer_Syntax.isar sync)) ());
 
 end;
 
@@ -164,35 +164,35 @@ in
 (* global history *)
 
 val _ =
-  OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" Keyword.control
+  Outer_Syntax.improper_command "init_toplevel" "init toplevel point-of-interest" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative init));
 
 val _ =
-  OuterSyntax.improper_command "linear_undo" "undo commands" Keyword.control
+  Outer_Syntax.improper_command "linear_undo" "undo commands" Keyword.control
     (Scan.optional Parse.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => linear_undo n)));
 
 val _ =
-  OuterSyntax.improper_command "undo" "undo commands (skipping closed proofs)" Keyword.control
+  Outer_Syntax.improper_command "undo" "undo commands (skipping closed proofs)" Keyword.control
     (Scan.optional Parse.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => undo n)));
 
 val _ =
-  OuterSyntax.improper_command "undos_proof" "undo commands (skipping closed proofs)"
+  Outer_Syntax.improper_command "undos_proof" "undo commands (skipping closed proofs)"
     Keyword.control
     (Scan.optional Parse.nat 1 >> (fn n => Toplevel.no_timing o
       Toplevel.keep (fn state =>
         if Toplevel.is_proof state then (undo n; print ()) else raise Toplevel.UNDEF)));
 
 val _ =
-  OuterSyntax.improper_command "cannot_undo" "partial undo -- Proof General legacy"
+  Outer_Syntax.improper_command "cannot_undo" "partial undo -- Proof General legacy"
     Keyword.control
     (Parse.name >>
       (fn "end" => Toplevel.no_timing o Toplevel.imperative (fn () => undo 1)
         | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
 
 val _ =
-  OuterSyntax.improper_command "kill" "kill partial proof or theory development" Keyword.control
+  Outer_Syntax.improper_command "kill" "kill partial proof or theory development" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
 
 end;

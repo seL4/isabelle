@@ -505,6 +505,7 @@ pass the proper local context through the code!
 * Renamed some important ML structures, while keeping the old names as
 legacy aliases for some time:
 
+  OuterSyntax   ~>  Outer_Syntax
   OuterKeyword  ~>  Keyword
   OuterParse    ~>  Parse
   SpecParse     ~>  Parse_Spec

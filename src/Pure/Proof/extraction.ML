@@ -753,7 +753,7 @@ fun extract thms thy =
 val parse_vars = Scan.optional (Parse.$$$ "(" |-- Parse.list1 Parse.name --| Parse.$$$ ")") [];
 
 val _ =
-  OuterSyntax.command "realizers"
+  Outer_Syntax.command "realizers"
   "specify realizers for primitive axioms / theorems, together with correctness proof"
   Keyword.thy_decl
     (Scan.repeat1 (Parse.xname -- parse_vars --| Parse.$$$ ":" -- Parse.string -- Parse.string) >>
@@ -761,17 +761,17 @@ val _ =
        (map (fn (((a, vs), s1), s2) => (PureThy.get_thm thy a, (vs, s1, s2))) xs) thy)));
 
 val _ =
-  OuterSyntax.command "realizability"
+  Outer_Syntax.command "realizability"
   "add equations characterizing realizability" Keyword.thy_decl
   (Scan.repeat1 Parse.string >> (Toplevel.theory o add_realizes_eqns));
 
 val _ =
-  OuterSyntax.command "extract_type"
+  Outer_Syntax.command "extract_type"
   "add equations characterizing type of extracted program" Keyword.thy_decl
   (Scan.repeat1 Parse.string >> (Toplevel.theory o add_typeof_eqns));
 
 val _ =
-  OuterSyntax.command "extract" "extract terms from proofs" Keyword.thy_decl
+  Outer_Syntax.command "extract" "extract terms from proofs" Keyword.thy_decl
     (Scan.repeat1 (Parse.xname -- parse_vars) >> (fn xs => Toplevel.theory (fn thy =>
       extract (map (apfst (PureThy.get_thm thy)) xs) thy)));
 

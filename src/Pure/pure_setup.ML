@@ -9,7 +9,7 @@ Pure theory and ML toplevel setup.
 val theory = ThyInfo.get_theory;
 
 Context.>> (Context.map_theory
- (OuterSyntax.process_file (Path.explode "Pure.thy") #>
+ (Outer_Syntax.process_file (Path.explode "Pure.thy") #>
   Theory.end_theory));
 structure Pure = struct val thy = ML_Context.the_global_context () end;
 Context.set_thread_data NONE;

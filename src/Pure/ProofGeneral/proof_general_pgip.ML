@@ -382,7 +382,7 @@ fun setup_preferences_tweak () =
 
 (* Sending commands to Isar *)
 
-fun isarcmd s = Isar.>>> (OuterSyntax.parse Position.none s);
+fun isarcmd s = Isar.>>> (Outer_Syntax.parse Position.none s);
 
 (* TODO:
     - apply a command given a transition function;
@@ -1013,7 +1013,7 @@ end
 (* Extra command for embedding prover-control inside document (obscure/debug usage). *)
 
 fun init_outer_syntax () =
-  OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
+  Outer_Syntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
     (Parse.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
 

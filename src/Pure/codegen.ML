@@ -969,7 +969,7 @@ val parse_attach = Scan.repeat (Parse.$$$ "attach" |--
     (Parse.verbatim >> strip_whitespace));
 
 val _ =
-  OuterSyntax.command "types_code"
+  Outer_Syntax.command "types_code"
   "associate types with target language types" Keyword.thy_decl
     (Scan.repeat1 (Parse.xname --| Parse.$$$ "(" -- Parse.string --| Parse.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => fold (assoc_type o
@@ -977,7 +977,7 @@ val _ =
          (Syntax.read_typ_global thy) mfx, aux)))) xs thy)));
 
 val _ =
-  OuterSyntax.command "consts_code"
+  Outer_Syntax.command "consts_code"
   "associate constants with target language code" Keyword.thy_decl
     (Scan.repeat1
        (Parse.term --|
@@ -1018,12 +1018,12 @@ val setup = add_codegen "default" default_codegen
   #> add_preprocessor unfold_preprocessor;
 
 val _ =
-  OuterSyntax.command "code_library"
+  Outer_Syntax.command "code_library"
     "generates code for terms (one structure for each theory)" Keyword.thy_decl
     (parse_code true);
 
 val _ =
-  OuterSyntax.command "code_module"
+  Outer_Syntax.command "code_module"
     "generates code for terms (single structure, incremental)" Keyword.thy_decl
     (parse_code false);
 

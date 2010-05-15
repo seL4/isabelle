@@ -189,36 +189,36 @@ end;
 (* additional outer syntax for Isar *)
 
 fun prP () =
-  OuterSyntax.improper_command "ProofGeneral.pr" "print state (internal)" Keyword.diag
+  Outer_Syntax.improper_command "ProofGeneral.pr" "print state (internal)" Keyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
       if Toplevel.is_toplevel state orelse Toplevel.is_theory state then tell_clear_goals ()
       else (Toplevel.quiet := false; Toplevel.print_state true state))));
 
 fun undoP () = (*undo without output -- historical*)
-  OuterSyntax.improper_command "ProofGeneral.undo" "(internal)" Keyword.control
+  Outer_Syntax.improper_command "ProofGeneral.undo" "(internal)" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)));
 
 fun restartP () =
-  OuterSyntax.improper_command "ProofGeneral.restart" "(internal)" Keyword.control
+  Outer_Syntax.improper_command "ProofGeneral.restart" "(internal)" Keyword.control
     (Parse.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative restart)));
 
 fun kill_proofP () =
-  OuterSyntax.improper_command "ProofGeneral.kill_proof" "(internal)" Keyword.control
+  Outer_Syntax.improper_command "ProofGeneral.kill_proof" "(internal)" Keyword.control
     (Scan.succeed (Toplevel.no_timing o
       Toplevel.imperative (fn () => (Isar.kill_proof (); tell_clear_goals ()))));
 
 fun inform_file_processedP () =
-  OuterSyntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" Keyword.control
+  Outer_Syntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" Keyword.control
     (Parse.name >> (fn file =>
       Toplevel.no_timing o Toplevel.imperative (fn () => inform_file_processed file)));
 
 fun inform_file_retractedP () =
-  OuterSyntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" Keyword.control
+  Outer_Syntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" Keyword.control
     (Parse.name >> (Toplevel.no_timing oo
       (fn file => Toplevel.imperative (fn () => inform_file_retracted file))));
 
 fun process_pgipP () =
-  OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
+  Outer_Syntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
     (Parse.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () => ProofGeneralPgip.process_pgip txt))));
 
