@@ -183,7 +183,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "axioms" "state arbitrary propositions (axiomatic!)" Keyword.thy_decl
-    (Scan.repeat1 SpecParse.spec >>
+    (Scan.repeat1 Parse_Spec.spec >>
       (Toplevel.theory o
         (IsarCmd.add_axioms o
           tap (fn _ => legacy_feature "Old 'axioms' command -- use 'axiomatization' instead"))));
@@ -196,7 +196,7 @@ val opt_unchecked_overloaded =
 val _ =
   OuterSyntax.command "defs" "define constants" Keyword.thy_decl
     (opt_unchecked_overloaded --
-      Scan.repeat1 (SpecParse.thm_name ":" -- Parse.prop >> (fn ((x, y), z) => ((x, z), y)))
+      Scan.repeat1 (Parse_Spec.thm_name ":" -- Parse.prop >> (fn ((x, y), z) => ((x, z), y)))
       >> (Toplevel.theory o IsarCmd.add_defs));
 
 
@@ -208,7 +208,7 @@ val old_constdecl =
     --| Scan.option Parse.where_ >> Parse.triple1 ||
   Parse.binding -- (Parse.mixfix >> pair NONE) --| Scan.option Parse.where_ >> Parse.triple2;
 
-val old_constdef = Scan.option old_constdecl -- (SpecParse.opt_thm_name ":" -- Parse.prop);
+val old_constdef = Scan.option old_constdecl -- (Parse_Spec.opt_thm_name ":" -- Parse.prop);
 
 val structs =
   Scan.optional ((Parse.$$$ "(" -- Parse.$$$ "structure")
@@ -223,11 +223,11 @@ val _ =
 
 val _ =
   OuterSyntax.local_theory "definition" "constant definition" Keyword.thy_decl
-    (SpecParse.constdef >> (fn args => #2 o Specification.definition_cmd args));
+    (Parse_Spec.constdef >> (fn args => #2 o Specification.definition_cmd args));
 
 val _ =
   OuterSyntax.local_theory "abbreviation" "constant abbreviation" Keyword.thy_decl
-    (opt_mode -- (Scan.option SpecParse.constdecl -- Parse.prop)
+    (opt_mode -- (Scan.option Parse_Spec.constdecl -- Parse.prop)
       >> (fn (mode, args) => Specification.abbreviation_cmd mode args));
 
 val _ =
@@ -245,13 +245,13 @@ val _ =
 val _ =
   OuterSyntax.local_theory "notation" "add concrete syntax for constants / fixed variables"
     Keyword.thy_decl
-    (opt_mode -- Parse.and_list1 (Parse.xname -- SpecParse.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse_Spec.locale_mixfix)
       >> (fn (mode, args) => Specification.notation_cmd true mode args));
 
 val _ =
   OuterSyntax.local_theory "no_notation" "delete concrete syntax for constants / fixed variables"
     Keyword.thy_decl
-    (opt_mode -- Parse.and_list1 (Parse.xname -- SpecParse.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse_Spec.locale_mixfix)
       >> (fn (mode, args) => Specification.notation_cmd false mode args));
 
 
@@ -260,14 +260,14 @@ val _ =
 val _ =
   OuterSyntax.command "axiomatization" "axiomatic constant specification" Keyword.thy_decl
     (Scan.optional Parse.fixes [] --
-      Scan.optional (Parse.where_ |-- Parse.!!! (Parse.and_list1 SpecParse.specs)) []
+      Scan.optional (Parse.where_ |-- Parse.!!! (Parse.and_list1 Parse_Spec.specs)) []
       >> (fn (x, y) => Toplevel.theory (#2 o Specification.axiomatization_cmd x y)));
 
 
 (* theorems *)
 
 fun theorems kind =
-  SpecParse.name_facts >> (fn args => #2 o Specification.theorems_cmd kind args);
+  Parse_Spec.name_facts >> (fn args => #2 o Specification.theorems_cmd kind args);
 
 val _ =
   OuterSyntax.local_theory "theorems" "define theorems" Keyword.thy_decl (theorems Thm.theoremK);
@@ -277,7 +277,7 @@ val _ =
 
 val _ =
   OuterSyntax.local_theory "declare" "declare theorems" Keyword.thy_decl
-    (Parse.and_list1 SpecParse.xthms1
+    (Parse.and_list1 Parse_Spec.xthms1
       >> (fn args => #2 o Specification.theorems_cmd "" [(Attrib.empty_binding, flat args)]));
 
 
@@ -416,9 +416,9 @@ val _ =
 (* locales *)
 
 val locale_val =
-  SpecParse.locale_expression false --
-    Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
-  Scan.repeat1 SpecParse.context_element >> pair ([], []);
+  Parse_Spec.locale_expression false --
+    Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
+  Scan.repeat1 Parse_Spec.context_element >> pair ([], []);
 
 val _ =
   OuterSyntax.command "locale" "define named proof context" Keyword.thy_decl
@@ -432,15 +432,15 @@ val _ =
   OuterSyntax.command "sublocale"
     "prove sublocale relation between a locale and a locale expression" Keyword.thy_goal
     (Parse.xname --| (Parse.$$$ "\\<subseteq>" || Parse.$$$ "<") --
-      Parse.!!! (SpecParse.locale_expression false)
+      Parse.!!! (Parse_Spec.locale_expression false)
       >> (fn (loc, expr) =>
           Toplevel.print o Toplevel.theory_to_proof (Expression.sublocale_cmd loc expr)));
 
 val _ =
   OuterSyntax.command "interpretation"
     "prove interpretation of locale expression in theory" Keyword.thy_goal
-    (Parse.!!! (SpecParse.locale_expression true) --
-      Scan.optional (Parse.where_ |-- Parse.and_list1 (SpecParse.opt_thm_name ":" -- Parse.prop)) []
+    (Parse.!!! (Parse_Spec.locale_expression true) --
+      Scan.optional (Parse.where_ |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []
       >> (fn (expr, equations) => Toplevel.print o
           Toplevel.theory_to_proof (Expression.interpretation_cmd expr equations)));
 
@@ -448,16 +448,16 @@ val _ =
   OuterSyntax.command "interpret"
     "prove interpretation of locale expression in proof context"
     (Keyword.tag_proof Keyword.prf_goal)
-    (Parse.!!! (SpecParse.locale_expression true)
+    (Parse.!!! (Parse_Spec.locale_expression true)
       >> (fn expr => Toplevel.print o Toplevel.proof' (Expression.interpret_cmd expr)));
 
 
 (* classes *)
 
 val class_val =
-  SpecParse.class_expr --
-    Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
-  Scan.repeat1 SpecParse.context_element >> pair [];
+  Parse_Spec.class_expr --
+    Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 Parse_Spec.context_element)) [] ||
+  Scan.repeat1 Parse_Spec.context_element >> pair [];
 
 val _ =
   OuterSyntax.command "class" "define type class" Keyword.thy_decl
@@ -514,9 +514,9 @@ fun gen_theorem schematic kind =
     (if schematic then "schematic_" ^ kind else kind)
     ("state " ^ (if schematic then "schematic " ^ kind else kind))
     (if schematic then Keyword.thy_schematic_goal else Keyword.thy_goal)
-    (Scan.optional (SpecParse.opt_thm_name ":" --|
-      Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) Attrib.empty_binding --
-      SpecParse.general_statement >> (fn (a, (elems, concl)) =>
+    (Scan.optional (Parse_Spec.opt_thm_name ":" --|
+      Scan.ahead (Parse_Spec.locale_keyword || Parse_Spec.statement_keyword)) Attrib.empty_binding --
+      Parse_Spec.general_statement >> (fn (a, (elems, concl)) =>
         ((if schematic then Specification.schematic_theorem_cmd else Specification.theorem_cmd)
           kind NONE (K I) a elems concl)));
 
@@ -537,27 +537,27 @@ val _ =
 val _ =
   OuterSyntax.command "have" "state local goal"
     (Keyword.tag_proof Keyword.prf_goal)
-    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
 
 val _ =
   OuterSyntax.command "hence" "abbreviates \"then have\""
     (Keyword.tag_proof Keyword.prf_goal)
-    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.hence));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.hence));
 
 val _ =
   OuterSyntax.command "show" "state local goal, solving current obligation"
     (Keyword.tag_proof Keyword.prf_asm_goal)
-    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
 
 val _ =
   OuterSyntax.command "thus" "abbreviates \"then show\""
     (Keyword.tag_proof Keyword.prf_asm_goal)
-    (SpecParse.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
 
 
 (* facts *)
 
-val facts = Parse.and_list1 SpecParse.xthms1;
+val facts = Parse.and_list1 Parse_Spec.xthms1;
 
 val _ =
   OuterSyntax.command "then" "forward chaining"
@@ -577,7 +577,7 @@ val _ =
 val _ =
   OuterSyntax.command "note" "define facts"
     (Keyword.tag_proof Keyword.prf_decl)
-    (SpecParse.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss_cmd)));
+    (Parse_Spec.name_facts >> (Toplevel.print oo (Toplevel.proof o Proof.note_thmss_cmd)));
 
 val _ =
   OuterSyntax.command "using" "augment goal facts"
@@ -600,18 +600,18 @@ val _ =
 val _ =
   OuterSyntax.command "assume" "assume propositions"
     (Keyword.tag_proof Keyword.prf_asm)
-    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume_cmd)));
+    (Parse_Spec.statement >> (Toplevel.print oo (Toplevel.proof o Proof.assume_cmd)));
 
 val _ =
   OuterSyntax.command "presume" "assume propositions, to be established later"
     (Keyword.tag_proof Keyword.prf_asm)
-    (SpecParse.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume_cmd)));
+    (Parse_Spec.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume_cmd)));
 
 val _ =
   OuterSyntax.command "def" "local definition"
     (Keyword.tag_proof Keyword.prf_asm)
     (Parse.and_list1
-      (SpecParse.opt_thm_name ":" --
+      (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
           ((Parse.$$$ "\\<equiv>" || Parse.$$$ "==") |-- Parse.!!! Parse.termp)))
     >> (Toplevel.print oo (Toplevel.proof o Proof.def_cmd)));
@@ -619,7 +619,7 @@ val _ =
 val _ =
   OuterSyntax.command "obtain" "generalized existence"
     (Keyword.tag_proof Keyword.prf_asm_goal)
-    (Parse.parname -- Scan.optional (Parse.fixes --| Parse.where_) [] -- SpecParse.statement
+    (Parse.parname -- Scan.optional (Parse.fixes --| Parse.where_) [] -- Parse_Spec.statement
       >> (fn ((x, y), z) => Toplevel.print o Toplevel.proof' (Obtain.obtain_cmd x y z)));
 
 val _ =
@@ -636,13 +636,13 @@ val _ =
 val _ =
   OuterSyntax.command "write" "add concrete syntax for constants / fixed variables"
     (Keyword.tag_proof Keyword.prf_decl)
-    (opt_mode -- Parse.and_list1 (Parse.xname -- SpecParse.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse_Spec.locale_mixfix)
     >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
 
 val case_spec =
   (Parse.$$$ "(" |--
     Parse.!!! (Parse.xname -- Scan.repeat1 (Parse.maybe Parse.name) --| Parse.$$$ ")") ||
-    Parse.xname >> rpair []) -- SpecParse.opt_attribs >> Parse.triple1;
+    Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> Parse.triple1;
 
 val _ =
   OuterSyntax.command "case" "invoke local context"
@@ -739,7 +739,7 @@ val _ =
 (* calculational proof commands *)
 
 val calc_args =
-  Scan.option (Parse.$$$ "(" |-- Parse.!!! ((SpecParse.xthms1 --| Parse.$$$ ")")));
+  Scan.option (Parse.$$$ "(" |-- Parse.!!! ((Parse_Spec.xthms1 --| Parse.$$$ ")")));
 
 val _ =
   OuterSyntax.command "also" "combine calculation and current facts"
@@ -883,7 +883,7 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "thm_deps" "visualize theorem dependencies"
-    Keyword.diag (SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
+    Keyword.diag (Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
 
 val _ =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" Keyword.diag
@@ -899,20 +899,20 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "print_statement" "print theorems as long statements" Keyword.diag
-    (opt_modes -- SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_stmts));
+    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_stmts));
 
 val _ =
   OuterSyntax.improper_command "thm" "print theorems" Keyword.diag
-    (opt_modes -- SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
+    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
 
 val _ =
   OuterSyntax.improper_command "prf" "print proof terms of theorems" Keyword.diag
-    (opt_modes -- Scan.option SpecParse.xthms1
+    (opt_modes -- Scan.option Parse_Spec.xthms1
       >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
 
 val _ =
   OuterSyntax.improper_command "full_prf" "print full proof terms of theorems" Keyword.diag
-    (opt_modes -- Scan.option SpecParse.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
+    (opt_modes -- Scan.option Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
 
 val _ =
   OuterSyntax.improper_command "prop" "read and print proposition" Keyword.diag

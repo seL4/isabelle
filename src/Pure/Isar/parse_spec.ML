@@ -1,10 +1,10 @@
-(*  Title:      Pure/Isar/spec_parse.ML
+(*  Title:      Pure/Isar/parse_spec.ML
     Author:     Makarius
 
 Parsers for complex specifications.
 *)
 
-signature SPEC_PARSE =
+signature PARSE_SPEC =
 sig
   val attrib: Attrib.src parser
   val attribs: Attrib.src list parser
@@ -32,7 +32,7 @@ sig
   val statement_keyword: string parser
 end;
 
-structure SpecParse: SPEC_PARSE =
+structure Parse_Spec: PARSE_SPEC =
 struct
 
 (* theorem specifications *)
@@ -161,3 +161,7 @@ val general_statement =
 val statement_keyword = Parse.$$$ "obtains" || Parse.$$$ "shows";
 
 end;
+
+(*legacy alias*)
+structure SpecParse = Parse_Spec;
+

@@ -507,6 +507,7 @@ legacy aliases for some time:
 
   OuterKeyword  ~>  Keyword
   OuterParse    ~>  Parse
+  SpecParse     ~>  Parse_Spec
 
 
 *** System ***

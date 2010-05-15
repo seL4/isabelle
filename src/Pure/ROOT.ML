@@ -220,7 +220,7 @@ use "simplifier.ML";
 use "Isar/code.ML";
 
 (*specifications*)
-use "Isar/spec_parse.ML";
+use "Isar/parse_spec.ML";
 use "Isar/spec_rules.ML";
 use "Isar/specification.ML";
 use "Isar/typedecl.ML";
