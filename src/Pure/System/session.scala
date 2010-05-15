@@ -140,8 +140,8 @@ class Session(system: Isabelle_System)
             }
 
           // keyword declarations
-          case List(Outer_Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
-          case List(Outer_Keyword.Keyword_Decl(name)) => syntax += name
+          case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
+          case List(Keyword.Keyword_Decl(name)) => syntax += name
 
           case _ => if (!result.is_ready) bad_result(result)
         }

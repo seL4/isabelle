@@ -1,4 +1,4 @@
-/*  Title:      Pure/Isar/outer_keyword.scala
+/*  Title:      Pure/Isar/keyword.scala
     Author:     Makarius
 
 Isar command keyword classification and keyword tables.
@@ -7,7 +7,7 @@ Isar command keyword classification and keyword tables.
 package isabelle
 
 
-object Outer_Keyword
+object Keyword
 {
   /* kinds */
 

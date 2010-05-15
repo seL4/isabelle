@@ -12,7 +12,7 @@ import scala.util.parsing.input.{Reader, CharSequenceReader}
 
 class Outer_Syntax(symbols: Symbol.Interpretation)
 {
-  protected val keywords: Map[String, String] = Map((";" -> Outer_Keyword.DIAG))
+  protected val keywords: Map[String, String] = Map((";" -> Keyword.DIAG))
   protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
   lazy val completion: Completion = new Completion + symbols  // FIXME !?
 
@@ -28,11 +28,11 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
     }
   }
 
-  def + (name: String): Outer_Syntax = this + (name, Outer_Keyword.MINOR)
+  def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
 
   def is_command(name: String): Boolean =
     keywords.get(name) match {
-      case Some(kind) => kind != Outer_Keyword.MINOR
+      case Some(kind) => kind != Keyword.MINOR
       case None => false
     }
 
