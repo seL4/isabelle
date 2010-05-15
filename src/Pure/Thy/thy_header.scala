@@ -27,7 +27,7 @@ object Thy_Header
 }
 
 
-class Thy_Header(symbols: Symbol.Interpretation) extends Outer_Parse.Parser
+class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
 {
   import Thy_Header._
 

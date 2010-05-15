@@ -9,7 +9,7 @@ package isabelle
 
 object Thy_Syntax
 {
-  private val parser = new Outer_Parse.Parser
+  private val parser = new Parse.Parser
   {
     override def filter_proper = false
 

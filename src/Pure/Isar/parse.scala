@@ -9,7 +9,7 @@ package isabelle
 import scala.util.parsing.combinator.Parsers
 
 
-object Outer_Parse
+object Parse
 {
   /* parsing tokens */
 
