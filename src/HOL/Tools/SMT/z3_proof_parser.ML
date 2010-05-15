@@ -285,15 +285,15 @@ val digit = (fn
   "4" => SOME 4 | "5" => SOME 5 | "6" => SOME 6 | "7" => SOME 7 |
   "8" => SOME 8 | "9" => SOME 9 | _ => NONE)
 
-val digits = Scan.lift (Scan.many1 Symbol.is_ascii_digit) >> implode
-val nat_num = Scan.lift (Scan.repeat1 (Scan.some digit)) >> (fn ds =>
-  fold (fn d => fn i => i * 10 + d) ds 0)
-val int_num = Scan.optional ($$ "-" >> K (fn i => ~i)) I :|--
-  (fn sign => nat_num >> sign)
+fun digits st = (Scan.lift (Scan.many1 Symbol.is_ascii_digit) >> implode) st
+fun nat_num st = (Scan.lift (Scan.repeat1 (Scan.some digit)) >> (fn ds =>
+  fold (fn d => fn i => i * 10 + d) ds 0)) st
+fun int_num st = (Scan.optional ($$ "-" >> K (fn i => ~i)) I :|--
+  (fn sign => nat_num >> sign)) st
 
 val is_char = Symbol.is_ascii_letter orf Symbol.is_ascii_digit orf
   member (op =) (explode "_+*-/%~=<>$&|?!.@^#")
-val name = Scan.lift (Scan.many1 is_char) >> implode
+fun name st = (Scan.lift (Scan.many1 is_char) >> implode) st
 
 fun sym st =
   (name -- Scan.optional (bra (seps_by ($$ ":") sym)) [] >> I.Sym) st

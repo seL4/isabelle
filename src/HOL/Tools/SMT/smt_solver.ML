@@ -166,7 +166,7 @@ fun run_solver ctxt cmd args input =
 
 end
 
-fun trace_recon_data ctxt {typs, terms, ...} =
+fun trace_recon_data ctxt ({typs, terms, ...} : SMT_Translate.recon) =
   let
     fun pretty_eq n p = Pretty.block [Pretty.str n, Pretty.str " = ", p]
     fun pretty_typ (n, T) = pretty_eq n (Syntax.pretty_typ ctxt T)
