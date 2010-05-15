@@ -239,7 +239,7 @@ val opt_overloaded = P.opt_keyword "overloaded";
 
 val specification_decl =
   P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
-          Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop)
+          Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop)
 
 val _ =
   OuterSyntax.command "specification" "define constants by specification" K.thy_goal
@@ -250,7 +250,7 @@ val _ =
 val ax_specification_decl =
     P.name --
     (P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
-           Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop))
+           Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop))
 
 val _ =
   OuterSyntax.command "ax_specification" "define constants by specification" K.thy_goal

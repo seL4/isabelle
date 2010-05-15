@@ -198,7 +198,7 @@ structure P = OuterParse and K = OuterKeyword;
 
 val _ =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
-    (Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop)
+    (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- P.prop)
       >> (Toplevel.theory o (#1 oo (add_primrec o map P.triple_swap))));
 
 end;

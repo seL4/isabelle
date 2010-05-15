@@ -446,11 +446,11 @@ val add_fixpat_cmd = gen_add_fixpat Syntax.read_term_global Attrib.attribute;
 local structure P = OuterParse and K = OuterKeyword in
 
 val _ = OuterSyntax.local_theory "fixrec" "define recursive functions (HOLCF)" K.thy_decl
-  ((P.opt_keyword "permissive" >> not) -- P.fixes -- SpecParse.where_alt_specs
+  ((P.opt_keyword "permissive" >> not) -- P.fixes -- Parse_Spec.where_alt_specs
     >> (fn ((strict, fixes), specs) => add_fixrec_cmd strict fixes specs));
 
 val _ = OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
-  (SpecParse.specs >> (Toplevel.theory o add_fixpat_cmd));
+  (Parse_Spec.specs >> (Toplevel.theory o add_fixpat_cmd));
 
 end;
 

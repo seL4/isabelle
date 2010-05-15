@@ -410,7 +410,7 @@ val options =
 val _ =
   OuterSyntax.local_theory_to_proof "nominal_primrec"
     "define primitive recursive functions on nominal datatypes" OuterKeyword.thy_goal
-    (options -- P.fixes -- P.for_fixes -- SpecParse.where_alt_specs
+    (options -- P.fixes -- P.for_fixes -- Parse_Spec.where_alt_specs
       >> (fn ((((invs, fctxt), fixes), params), specs) =>
         add_primrec_cmd invs fctxt fixes params specs));
 

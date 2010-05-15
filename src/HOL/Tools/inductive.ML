@@ -977,8 +977,8 @@ val _ = OuterKeyword.keyword "monos";
 
 fun gen_ind_decl mk_def coind =
   P.fixes -- P.for_fixes --
-  Scan.optional SpecParse.where_alt_specs [] --
-  Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) []
+  Scan.optional Parse_Spec.where_alt_specs [] --
+  Scan.optional (P.$$$ "monos" |-- P.!!! Parse_Spec.xthms1) []
   >> (fn (((preds, params), specs), monos) =>
       (snd oo gen_add_inductive mk_def true coind preds params specs monos));
 
@@ -995,7 +995,7 @@ val _ =
 val _ =
   OuterSyntax.local_theory "inductive_cases"
     "create simplified instances of elimination rules (improper)" K.thy_script
-    (P.and_list1 SpecParse.specs >> (snd oo inductive_cases));
+    (P.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
 
 end;
 

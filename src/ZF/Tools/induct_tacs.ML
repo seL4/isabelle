@@ -191,10 +191,10 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ = List.app OuterKeyword.keyword ["elimination", "induction", "case_eqns", "recursor_eqns"];
 
 val rep_datatype_decl =
-  (P.$$$ "elimination" |-- P.!!! SpecParse.xthm) --
-  (P.$$$ "induction" |-- P.!!! SpecParse.xthm) --
-  (P.$$$ "case_eqns" |-- P.!!! SpecParse.xthms1) --
-  Scan.optional (P.$$$ "recursor_eqns" |-- P.!!! SpecParse.xthms1) []
+  (P.$$$ "elimination" |-- P.!!! Parse_Spec.xthm) --
+  (P.$$$ "induction" |-- P.!!! Parse_Spec.xthm) --
+  (P.$$$ "case_eqns" |-- P.!!! Parse_Spec.xthms1) --
+  Scan.optional (P.$$$ "recursor_eqns" |-- P.!!! Parse_Spec.xthms1) []
   >> (fn (((x, y), z), w) => rep_datatype x y z w);
 
 val _ =

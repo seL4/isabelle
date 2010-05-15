@@ -355,7 +355,7 @@ local
      >> (fn opts => fold apply_opt opts default)
 in
   fun function_parser default_cfg =
-      config_parser default_cfg -- P.fixes -- SpecParse.where_alt_specs
+      config_parser default_cfg -- P.fixes -- Parse_Spec.where_alt_specs
 end
 
 

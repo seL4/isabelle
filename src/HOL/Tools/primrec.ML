@@ -315,9 +315,10 @@ val opt_unchecked_name =
       P.name >> pair false) --| P.$$$ ")")) (false, "");
 
 val old_primrec_decl =
-  opt_unchecked_name -- Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop);
+  opt_unchecked_name --
+    Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop);
 
-val primrec_decl = P.opt_target -- P.fixes -- SpecParse.where_alt_specs;
+val primrec_decl = P.opt_target -- P.fixes -- Parse_Spec.where_alt_specs;
 
 val _ =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl

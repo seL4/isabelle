@@ -99,7 +99,7 @@ val quotdef_decl = (P.binding >> SOME) -- P.opt_mixfix' --| P.$$$ "where"
 
 val quotdef_parser =
   Scan.optional quotdef_decl (NONE, NoSyn) -- 
-    P.!!! (SpecParse.opt_thm_name ":" -- (P.term --| P.$$$ "is" -- P.term))
+    P.!!! (Parse_Spec.opt_thm_name ":" -- (P.term --| P.$$$ "is" -- P.term))
 end
 
 val _ =

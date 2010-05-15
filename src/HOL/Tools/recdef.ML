@@ -298,7 +298,7 @@ val hints =
 
 val recdef_decl =
   Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true --
-  P.name -- P.term -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop)
+  P.name -- P.term -- Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- P.prop)
     -- Scan.option hints
   >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map P.triple_swap eqs) src);
 
@@ -309,7 +309,7 @@ val _ =
 
 val defer_recdef_decl =
   P.name -- Scan.repeat1 P.prop --
-  Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (SpecParse.xthms1 --| P.$$$ ")")) []
+  Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (Parse_Spec.xthms1 --| P.$$$ ")")) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
 val _ =
@@ -319,7 +319,7 @@ val _ =
 val _ =
   OuterSyntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
     K.thy_goal
-    ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.xname --
+    ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.xname --
         Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
       >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));
 

@@ -588,11 +588,11 @@ val ind_decl =
   (P.$$$ "domains" |-- P.!!! (P.enum1 "+" P.term --
       ((P.$$$ "\<subseteq>" || P.$$$ "<=") |-- P.term))) --
   (P.$$$ "intros" |--
-    P.!!! (Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop))) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) [] --
-  Scan.optional (P.$$$ "con_defs" |-- P.!!! SpecParse.xthms1) [] --
-  Scan.optional (P.$$$ "type_intros" |-- P.!!! SpecParse.xthms1) [] --
-  Scan.optional (P.$$$ "type_elims" |-- P.!!! SpecParse.xthms1) []
+    P.!!! (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- P.prop))) --
+  Scan.optional (P.$$$ "monos" |-- P.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (P.$$$ "con_defs" |-- P.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (P.$$$ "type_intros" |-- P.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (P.$$$ "type_elims" |-- P.!!! Parse_Spec.xthms1) []
   >> (Toplevel.theory o mk_ind);
 
 val _ = OuterSyntax.command (co_prefix ^ "inductive")
