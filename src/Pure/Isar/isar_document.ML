@@ -275,8 +275,6 @@ end;
 
 (** concrete syntax **)
 
-local structure V = ValueParse in
-
 val _ =
   OuterSyntax.internal_command "Isar.define_command"
     (Parse.string -- Parse.string >> (fn (id, text) =>
@@ -296,12 +294,10 @@ val _ =
 val _ =
   OuterSyntax.internal_command "Isar.edit_document"
     (Parse.string -- Parse.string --
-        V.list (Parse.string -- (Parse.string >> SOME) || Parse.string >> rpair NONE)
+        Parse_Value.list (Parse.string -- (Parse.string >> SOME) || Parse.string >> rpair NONE)
       >> (fn ((id, new_id), edits) =>
         Toplevel.position (Position.id_only new_id) o
         Toplevel.imperative (fn () => edit_document id new_id edits)));
-
-end;
 
 end;
 

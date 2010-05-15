@@ -170,7 +170,7 @@ use "Proof/proofchecker.ML";
 use "Isar/outer_lex.ML";
 use "Isar/keyword.ML";
 use "Isar/parse.ML";
-use "Isar/value_parse.ML";
+use "Isar/parse_value.ML";
 use "Isar/args.ML";
 
 (*ML support*)

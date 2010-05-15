@@ -1,10 +1,10 @@
-(*  Title:      Pure/Isar/value_parse.ML
+(*  Title:      Pure/Isar/parse_value.ML
     Author:     Makarius
 
 Outer syntax parsers for basic ML values.
 *)
 
-signature VALUE_PARSE =
+signature PARSE_VALUE =
 sig
   val comma: 'a parser -> 'a parser
   val equal: 'a parser -> 'a parser
@@ -16,7 +16,7 @@ sig
   val properties: Properties.T parser
 end;
 
-structure ValueParse: VALUE_PARSE =
+structure Parse_Value: PARSE_VALUE =
 struct
 
 (* syntax utilities *)

@@ -773,7 +773,7 @@ val _ =
 (* nested commands *)
 
 val props_text =
-  Scan.optional ValueParse.properties [] -- Parse.position Parse.string
+  Scan.optional Parse_Value.properties [] -- Parse.position Parse.string
   >> (fn (props, (str, pos)) =>
       (Position.of_properties (Position.default_properties pos props), str));
 

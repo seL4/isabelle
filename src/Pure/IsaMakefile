@@ -68,15 +68,15 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/cache.ML			\
   Isar/isar_syn.ML Isar/keyword.ML Isar/local_defs.ML			\
   Isar/local_syntax.ML Isar/local_theory.ML Isar/locale.ML		\
   Isar/method.ML Isar/object_logic.ML Isar/obtain.ML Isar/outer_lex.ML	\
-  Isar/outer_syntax.ML Isar/overloading.ML Isar/parse.ML Isar/proof.ML	\
-  Isar/proof_context.ML Isar/proof_display.ML Isar/proof_node.ML	\
-  Isar/rule_cases.ML Isar/rule_insts.ML Isar/runtime.ML			\
-  Isar/skip_proof.ML Isar/spec_parse.ML Isar/spec_rules.ML		\
-  Isar/specification.ML Isar/theory_target.ML Isar/toplevel.ML		\
-  Isar/typedecl.ML Isar/value_parse.ML ML/ml_antiquote.ML		\
-  ML/ml_compiler.ML ML/ml_compiler_polyml-5.3.ML ML/ml_context.ML	\
-  ML/ml_env.ML ML/ml_lex.ML ML/ml_parse.ML ML/ml_syntax.ML		\
-  ML/ml_thms.ML ML-Systems/install_pp_polyml.ML				\
+  Isar/outer_syntax.ML Isar/overloading.ML Isar/parse.ML		\
+  Isar/parse_value.ML Isar/proof.ML Isar/proof_context.ML		\
+  Isar/proof_display.ML Isar/proof_node.ML Isar/rule_cases.ML		\
+  Isar/rule_insts.ML Isar/runtime.ML Isar/skip_proof.ML			\
+  Isar/spec_parse.ML Isar/spec_rules.ML Isar/specification.ML		\
+  Isar/theory_target.ML Isar/toplevel.ML Isar/typedecl.ML		\
+  ML/ml_antiquote.ML ML/ml_compiler.ML ML/ml_compiler_polyml-5.3.ML	\
+  ML/ml_context.ML ML/ml_env.ML ML/ml_lex.ML ML/ml_parse.ML		\
+  ML/ml_syntax.ML ML/ml_thms.ML ML-Systems/install_pp_polyml.ML		\
   ML-Systems/install_pp_polyml-5.3.ML ML-Systems/use_context.ML		\
   Proof/extraction.ML Proof/proof_rewrite_rules.ML			\
   Proof/proof_syntax.ML Proof/proofchecker.ML Proof/reconstruct.ML	\
