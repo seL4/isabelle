@@ -87,7 +87,7 @@ fun linr_tac ctxt q =
    val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,
        TRY (simp_tac (Simplifier.context ctxt ferrack_ss) 1)]
-      (trivial ct))
+      (Thm.trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case prop_of pre_thm of

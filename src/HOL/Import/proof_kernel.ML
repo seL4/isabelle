@@ -1013,12 +1013,12 @@ val disj2_thm = thm "disjI2"
 local
     val th = thm "not_def"
     val thy = theory_of_thm th
-    val pp = reflexive (cterm_of thy (Const("Trueprop",boolT-->propT)))
+    val pp = Thm.reflexive (cterm_of thy (Const("Trueprop",boolT-->propT)))
 in
-val not_elim_thm = combination pp th
+val not_elim_thm = Thm.combination pp th
 end
 
-val not_intro_thm = symmetric not_elim_thm
+val not_intro_thm = Thm.symmetric not_elim_thm
 val abs_thm = thm "ext"
 val trans_thm = thm "trans"
 val symmetry_thm = thm "sym"
@@ -1039,7 +1039,7 @@ fun beta_eta_thm th =
     end
 
 fun implies_elim_all th =
-    Library.foldl (fn (th,p) => implies_elim th (assume p)) (th,cprems_of th)
+    Library.foldl (fn (th,p) => Thm.implies_elim th (Thm.assume p)) (th,cprems_of th)
 
 fun norm_hyps th =
     th |> beta_eta_thm
@@ -1054,7 +1054,7 @@ fun mk_GEN v th sg =
         val clc = Thm.cterm_of sg lc
         val cvty = ctyp_of_term cv
         val th1 = implies_elim_all th
-        val th2 = beta_eta_thm (forall_intr cv th1)
+        val th2 = beta_eta_thm (Thm.forall_intr cv th1)
         val th3 = th2 COMP (beta_eta_thm (Drule.instantiate' [SOME cvty] [SOME clc] gen_thm))
         val c = prop_of th3
         val vname = fst(dest_Free v)
@@ -1072,7 +1072,7 @@ fun mk_GEN v th sg =
 fun rearrange sg tm th =
     let
         val tm' = Envir.beta_eta_contract tm
-        fun find []      n = Thm.permute_prems 0 1 (implies_intr (Thm.cterm_of sg tm) th)
+        fun find []      n = Thm.permute_prems 0 1 (Thm.implies_intr (Thm.cterm_of sg tm) th)
           | find (p::ps) n = if tm' aconv (Envir.beta_eta_contract p)
                              then Thm.permute_prems n 1 th
                              else find ps (n+1)
@@ -1258,7 +1258,7 @@ fun rewrite_hol4_term t thy =
 fun get_isabelle_thm thyname thmname hol4conc thy =
     let
         val (info,hol4conc') = disamb_term hol4conc
-        val i2h_conc = symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
+        val i2h_conc = Thm.symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
         val isaconc =
             case concl_of i2h_conc of
                 Const("==",_) $ lhs $ _ => lhs
@@ -1268,7 +1268,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                  message "Modified conclusion:";
                  if_debug prin isaconc)
 
-        fun mk_res th = HOLThm(rens_of info,equal_elim i2h_conc th)
+        fun mk_res th = HOLThm (rens_of info, Thm.equal_elim i2h_conc th)
     in
         case get_hol4_mapping thyname thmname thy of
             SOME (SOME thmname) =>
@@ -1320,7 +1320,7 @@ fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
     fun warn () =
         let
             val (info,hol4conc') = disamb_term hol4conc
-            val i2h_conc = symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
+            val i2h_conc = Thm.symmetric (rewrite_hol4_term (HOLogic.mk_Trueprop hol4conc') thy)
         in
             case concl_of i2h_conc of
                 Const("==",_) $ lhs $ _ =>
@@ -1369,7 +1369,7 @@ fun intern_store_thm gen_output thyname thmname hth thy =
     let
         val (hth' as HOLThm (args as (_,th))) = norm_hthm thy hth
         val rew = rewrite_hol4_term (concl_of th) thy
-        val th  = equal_elim rew th
+        val th  = Thm.equal_elim rew th
         val thy' = add_hol4_pending thyname thmname args thy
         val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
         val th = disambiguate_frees th
@@ -1683,7 +1683,7 @@ fun CHOOSE v hth1 hth2 thy =
         val (info',v') = disamb_term_from info v
         fun strip 0 _ th = th
           | strip n (p::ps) th =
-            strip (n-1) ps (implies_elim th (assume p))
+            strip (n-1) ps (Thm.implies_elim th (Thm.assume p))
           | strip _ _ _ = raise ERR "CHOOSE" "strip error"
         val cv = cterm_of thy v'
         val th2 = norm_hyps th2
@@ -1697,7 +1697,7 @@ fun CHOOSE v hth1 hth2 thy =
         val choose_thm' = beta_eta_thm (Drule.instantiate' [SOME cvty] [SOME ca,SOME cc] choose_thm)
         val th21 = rearrange thy (HOLogic.mk_Trueprop (a $ v')) th2
         val th22 = strip ((nprems_of th21)-1) (cprems_of th21) th21
-        val th23 = beta_eta_thm (forall_intr cv th22)
+        val th23 = beta_eta_thm (Thm.forall_intr cv th22)
         val th11 = implies_elim_all (beta_eta_thm th1)
         val th' = th23 COMP (th11 COMP choose_thm')
         val th = implies_intr_hyps th'
@@ -1796,7 +1796,7 @@ fun mk_ABS v th thy =
                       | _ => raise ERR "mk_ABS" "Bad conclusion"
         val (fd,fr) = dom_rng (type_of f)
         val abs_thm' = Drule.instantiate' [SOME (ctyp_of thy fd), SOME (ctyp_of thy fr)] [SOME (cterm_of thy f), SOME (cterm_of thy g)] abs_thm
-        val th2 = forall_intr cv th1
+        val th2 = Thm.forall_intr cv th1
         val th3 = th2 COMP abs_thm'
         val res = implies_intr_hyps th3
     in
@@ -1867,7 +1867,7 @@ fun NOT_INTRO (hth as HOLThm(rens,th)) thy =
                     _ $ (Const("op -->",_) $ a $ Const("False",_)) => a
                   | _ => raise ERR "NOT_INTRO" "Conclusion of bad form"
         val ca = cterm_of thy a
-        val th2 = equal_elim (Drule.instantiate' [] [SOME ca] not_intro_thm) th1
+        val th2 = Thm.equal_elim (Drule.instantiate' [] [SOME ca] not_intro_thm) th1
         val res = HOLThm(rens,implies_intr_hyps th2)
         val _ = message "RESULT:"
         val _ = if_debug pth res
@@ -1884,7 +1884,7 @@ fun NOT_ELIM (hth as HOLThm(rens,th)) thy =
                     _ $ (Const("Not",_) $ a) => a
                   | _ => raise ERR "NOT_ELIM" "Conclusion of bad form"
         val ca = cterm_of thy a
-        val th2 = equal_elim (Drule.instantiate' [] [SOME ca] not_elim_thm) th1
+        val th2 = Thm.equal_elim (Drule.instantiate' [] [SOME ca] not_elim_thm) th1
         val res = HOLThm(rens,implies_intr_hyps th2)
         val _ = message "RESULT:"
         val _ = if_debug pth res
@@ -1902,9 +1902,9 @@ fun DISCH tm hth thy =
         val prems = prems_of th
         val th1 = beta_eta_thm th
         val th2 = implies_elim_all th1
-        val th3 = implies_intr (cterm_of thy (HOLogic.mk_Trueprop tm')) th2
+        val th3 = Thm.implies_intr (cterm_of thy (HOLogic.mk_Trueprop tm')) th2
         val th4 = th3 COMP disch_thm
-        val res = HOLThm(rens_of info',implies_intr_hyps th4)
+        val res = HOLThm (rens_of info', implies_intr_hyps th4)
         val _ = message "RESULT:"
         val _ = if_debug pth res
     in
@@ -2032,7 +2032,7 @@ fun new_specification thyname thmname names hth thy =
             val res' = Thm.unvarify_global res
             val hth = HOLThm(rens,res')
             val rew = rewrite_hol4_term (concl_of res') thy'
-            val th  = equal_elim rew res'
+            val th  = Thm.equal_elim rew res'
             fun handle_const (name,thy) =
                 let
                     val defname = Thm.def_name name
@@ -2112,7 +2112,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
 
             val rew = rewrite_hol4_term (concl_of td_th) thy4
-            val th  = equal_elim rew (Thm.transfer thy4 td_th)
+            val th  = Thm.equal_elim rew (Thm.transfer thy4 td_th)
             val c   = case HOLogic.dest_Trueprop (prop_of th) of
                           Const("Ex",exT) $ P =>
                           let

@@ -35,7 +35,7 @@ datatype mode = FO | HO | FT  (* first-order, higher-order, fully-typed *)
 (* Useful Theorems                                                           *)
 (* ------------------------------------------------------------------------- *)
 val EXCLUDED_MIDDLE = @{lemma "P ==> ~ P ==> False" by (rule notE)}
-val REFL_THM = incr_indexes 2 @{lemma "t ~= t ==> False" by simp}
+val REFL_THM = Thm.incr_indexes 2 @{lemma "t ~= t ==> False" by simp}
 val subst_em = @{lemma "s = t ==> P s ==> ~ P t ==> False" by simp}
 val ssubst_em = @{lemma "s = t ==> P t ==> ~ P s ==> False" by simp}
 
@@ -364,7 +364,7 @@ fun inst_excluded_middle thy i_atm =
   in  cterm_instantiate substs th  end;
 
 (* INFERENCE RULE: AXIOM *)
-fun axiom_inf thpairs th = incr_indexes 1 (lookth thpairs th);
+fun axiom_inf thpairs th = Thm.incr_indexes 1 (lookth thpairs th);
     (*This causes variables to have an index of 1 by default. SEE ALSO mk_var above.*)
 
 (* INFERENCE RULE: ASSUME *)
@@ -527,7 +527,7 @@ fun equality_inf ctxt mode (pos, atm) fp fr =
       val _ = trace_msg (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
       val _ = trace_msg (fn () => "located term: " ^ Syntax.string_of_term ctxt tm_subst)
       val imax = maxidx_of_term (i_tm $ tm_abs $ tm_subst)  (*ill typed but gives right max*)
-      val subst' = incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
+      val subst' = Thm.incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
       val _ = trace_msg (fn () => "subst' " ^ Display.string_of_thm ctxt subst')
       val eq_terms = map (pairself (cterm_of thy))
         (ListPair.zip (OldTerm.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))

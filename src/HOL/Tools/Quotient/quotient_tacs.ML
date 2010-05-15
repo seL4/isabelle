@@ -517,7 +517,7 @@ fun lambda_prs_tac ctxt = CONVERSION (lambda_prs_conv ctxt)
 *)
 fun clean_tac lthy =
 let
-  val defs = map (symmetric o #def) (qconsts_dest lthy)
+  val defs = map (Thm.symmetric o #def) (qconsts_dest lthy)
   val prs = prs_rules_get lthy
   val ids = id_simps_get lthy
   val thms = @{thms Quotient_abs_rep Quotient_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs

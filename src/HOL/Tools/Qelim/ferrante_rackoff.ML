@@ -69,7 +69,7 @@ let
       val th0 = if mi then
            instantiate ([],[(p1_v, p1),(p2_v, p2),(mp1_v, mp1), (mp2_v, mp2)]) th
         else instantiate ([],[(p1_v, p1),(p2_v, p2),(mp1_v, pp1), (mp2_v, pp2)]) th
-     in implies_elim (implies_elim th0 th') th'' end
+     in Thm.implies_elim (Thm.implies_elim th0 th') th'' end
   in (fw true th1 th_1 th_1', fw false th2 th_2 th_2',
       fw true th3 th_3 th_3', fw false th4 th_4 th_4', fw true th5 th_5 th_5')
   end
@@ -88,7 +88,7 @@ let
    val enth = Drule.arg_cong_rule ce nthx
    val [th0,th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
    fun ins x th =
-      implies_elim (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg)
+      Thm.implies_elim (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg)
                                        (Thm.cprop_of th), SOME x] th1) th
    val fU = fold ins u th0
    val cU = funpow 2 Thm.dest_arg (Thm.cprop_of fU)
@@ -102,7 +102,7 @@ let
       | Const(@{const_name insert}, _) $ y $_ =>
          let val (cy,S') = Thm.dest_binop S
          in if term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
-         else implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
+         else Thm.implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
                            (provein x S')
          end
    end
@@ -152,7 +152,7 @@ let
                           | Eq => [minf_eq, pinf_eq, nmi_eq, npi_eq, ld_eq]
                           | NEq => [minf_neq, pinf_neq, nmi_neq, npi_neq, ld_neq])
                     val tU = U t
-                    fun Ufw th = implies_elim th tU
+                    fun Ufw th = Thm.implies_elim th tU
                  in [mi_th, pi_th, Ufw nmi_th, Ufw npi_th, Ufw ld_th]
                  end
          in ([], K (mi_th, pi_th, nmi_th, npi_th, ld_th)) end)
@@ -164,7 +164,7 @@ let
                   [fU, ld_th, nmi_th, npi_th, minf_th, pinf_th]
     val bex_conv =
       Simplifier.rewrite (HOL_basic_ss addsimps simp_thms@(@{thms "bex_simps" (1-5)}))
-    val result_th = fconv_rule (arg_conv bex_conv) (transitive enth qe_th)
+    val result_th = fconv_rule (arg_conv bex_conv) (Thm.transitive enth qe_th)
    in result_th
    end
 

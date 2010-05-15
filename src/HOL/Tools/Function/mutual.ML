@@ -164,12 +164,12 @@ fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
     val rhs = inst pre_rhs
 
     val cqs = map (cterm_of thy) qs
-    val ags = map (assume o cterm_of thy) gs
+    val ags = map (Thm.assume o cterm_of thy) gs
 
-    val import = fold forall_elim cqs
+    val import = fold Thm.forall_elim cqs
       #> fold Thm.elim_implies ags
 
-    val export = fold_rev (implies_intr o cprop_of) ags
+    val export = fold_rev (Thm.implies_intr o cprop_of) ags
       #> fold_rev forall_intr_rename (oqnames ~~ cqs)
   in
     F ctxt (f, qs, gs, args, rhs) import export
@@ -184,7 +184,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
     val (simp, restore_cond) =
       case cprems_of psimp of
         [] => (psimp, I)
-      | [cond] => (implies_elim psimp (assume cond), implies_intr cond)
+      | [cond] => (Thm.implies_elim psimp (Thm.assume cond), Thm.implies_intr cond)
       | _ => sys_error "Too many conditions"
 
   in
@@ -202,9 +202,9 @@ fun mk_applied_form ctxt caTs thm =
     val thy = ProofContext.theory_of ctxt
     val xs = map_index (fn (i,T) => cterm_of thy (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
   in
-    fold (fn x => fn thm => combination thm (reflexive x)) xs thm
+    fold (fn x => fn thm => Thm.combination thm (Thm.reflexive x)) xs thm
     |> Conv.fconv_rule (Thm.beta_conversion true)
-    |> fold_rev forall_intr xs
+    |> fold_rev Thm.forall_intr xs
     |> Thm.forall_elim_vars 0
   end
 
@@ -228,7 +228,7 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
     val case_exp = SumTree.mk_sumcases HOLogic.boolT Ps
 
     val induct_inst =
-      forall_elim (cert case_exp) induct
+      Thm.forall_elim (cert case_exp) induct
       |> full_simplify SumTree.sumcase_split_ss
       |> full_simplify (HOL_basic_ss addsimps all_f_defs)
 
@@ -238,9 +238,9 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
         val inj = SumTree.mk_inj ST n i (foldr1 HOLogic.mk_prod afs)
       in
         (rule
-         |> forall_elim (cert inj)
+         |> Thm.forall_elim (cert inj)
          |> full_simplify SumTree.sumcase_split_ss
-         |> fold_rev (forall_intr o cert) (afs @ newPs),
+         |> fold_rev (Thm.forall_intr o cert) (afs @ newPs),
          k + length cargTs)
       end
   in
@@ -255,7 +255,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
 
     val (all_f_defs, fs) =
       map (fn MutualPart {f_defthm = SOME f_def, f = SOME f, cargTs, ...} =>
-        (mk_applied_form lthy cargTs (symmetric f_def), f))
+        (mk_applied_form lthy cargTs (Thm.symmetric f_def), f))
       parts
       |> split_list
 

@@ -143,7 +143,7 @@ fun mk_eqs bnd th =
     [ if inspect_pair bnd false (Data.dest_eq
                                    (Data.dest_Trueprop (#prop (rep_thm th))))
       then th RS Data.eq_reflection
-      else symmetric(th RS Data.eq_reflection) (*reorient*) ]
+      else Thm.symmetric(th RS Data.eq_reflection) (*reorient*) ]
     handle TERM _ => [] | Match => [];
 
 local

@@ -614,12 +614,12 @@ local
 
  fun prove_nz ss T t =
     let
-      val z = instantiate_cterm ([(zT,T)],[]) zr
-      val eq = instantiate_cterm ([(eqT,T)],[]) geq
+      val z = Thm.instantiate_cterm ([(zT,T)],[]) zr
+      val eq = Thm.instantiate_cterm ([(eqT,T)],[]) geq
       val th = Simplifier.rewrite (ss addsimps @{thms simp_thms})
            (Thm.capply @{cterm "Trueprop"} (Thm.capply @{cterm "Not"}
                   (Thm.capply (Thm.capply eq t) z)))
-    in equal_elim (symmetric th) TrueI
+    in Thm.equal_elim (Thm.symmetric th) TrueI
     end
 
  fun proc phi ss ct =
@@ -630,7 +630,7 @@ local
     val T = ctyp_of_term x
     val [y_nz, z_nz] = map (prove_nz ss T) [y, z]
     val th = instantiate' [SOME T] (map SOME [y,z,x,w]) add_frac_eq
-  in SOME (implies_elim (implies_elim th y_nz) z_nz)
+  in SOME (Thm.implies_elim (Thm.implies_elim th y_nz) z_nz)
   end
   handle CTERM _ => NONE | TERM _ => NONE | THM _ => NONE
 
@@ -643,13 +643,13 @@ local
         let val (x,y) = Thm.dest_binop l val z = r
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
             val ynz = prove_nz ss T y
-        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
+        in SOME (Thm.implies_elim (instantiate' [SOME T] (map SOME [y,x,z]) add_frac_num) ynz)
         end
      | (_, Const (@{const_name Rings.divide},_)$_$_) =>
         let val (x,y) = Thm.dest_binop r val z = l
             val _ = map (HOLogic.dest_number o term_of) [x,y,z]
             val ynz = prove_nz ss T y
-        in SOME (implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
+        in SOME (Thm.implies_elim (instantiate' [SOME T] (map SOME [y,z,x]) add_num_frac) ynz)
         end
      | _ => NONE)
   end

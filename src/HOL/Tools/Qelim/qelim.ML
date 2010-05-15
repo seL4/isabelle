@@ -47,7 +47,7 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
      val p = Thm.dest_arg p
      val ([(_,T)],[]) = Thm.match (@{cpat "All"}, Thm.dest_fun p)
      val th = instantiate' [SOME T] [SOME p] all_not_ex
-    in transitive th (conv env (Thm.rhs_of th))
+    in Thm.transitive th (conv env (Thm.rhs_of th))
     end
   | _ => atcv env p
  in precv then_conv (conv env) then_conv postcv end

@@ -82,7 +82,7 @@ fun hyp_resolve_tac i st = let
         val (prems, Const("Trueprop", _)$concl) = rep_goal
                                                 (#3(dest_state (st,i)));
 *)
-        val subgoal = #3(dest_state (st,i));
+        val subgoal = #3(Thm.dest_state (st,i));
         val prems = Logic.strip_assums_hyp subgoal;
         val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal);
         fun drot_tac k i = DETERM (rotate_tac k i);

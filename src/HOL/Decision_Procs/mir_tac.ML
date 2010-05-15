@@ -128,7 +128,7 @@ fun mir_tac ctxt q i =
     val pre_thm = Seq.hd (EVERY
       [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
        TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1), TRY (simp_tac mir_ss 1)]
-      (trivial ct))
+      (Thm.trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case (prop_of pre_thm) of

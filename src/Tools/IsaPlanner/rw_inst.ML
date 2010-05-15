@@ -54,13 +54,13 @@ structure RWInst
 
 (* beta contract the theorem *)
 fun beta_contract thm = 
-    equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm;
+    Thm.equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm;
 
 (* beta-eta contract the theorem *)
 fun beta_eta_contract thm = 
     let
-      val thm2 = equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm
-      val thm3 = equal_elim (Thm.eta_conversion (Thm.cprop_of thm2)) thm2
+      val thm2 = Thm.equal_elim (Thm.beta_conversion true (Thm.cprop_of thm)) thm
+      val thm3 = Thm.equal_elim (Thm.eta_conversion (Thm.cprop_of thm2)) thm2
     in thm3 end;
 
 

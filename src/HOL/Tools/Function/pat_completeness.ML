@@ -24,7 +24,7 @@ open Function_Common
 fun mk_argvar i T = Free ("_av" ^ (string_of_int i), T)
 fun mk_patvar i T = Free ("_pv" ^ (string_of_int i), T)
 
-fun inst_free var inst = forall_elim inst o forall_intr var
+fun inst_free var inst = Thm.forall_elim inst o Thm.forall_intr var
 
 fun inst_case_thm thy x P thm =
   let val [Pv, xv] = Term.add_vars (prop_of thm) []
@@ -69,10 +69,10 @@ fun transform_pat thy avars c_assum ([] , thm) = raise Match
   let
     val (_, subps) = strip_comb pat
     val eqs = map (cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (avars ~~ subps)
-    val c_eq_pat = simplify (HOL_basic_ss addsimps (map assume eqs)) c_assum
+    val c_eq_pat = simplify (HOL_basic_ss addsimps (map Thm.assume eqs)) c_assum
   in
     (subps @ pats,
-     fold_rev implies_intr eqs (implies_elim thm c_eq_pat))
+     fold_rev Thm.implies_intr eqs (Thm.implies_elim thm c_eq_pat))
   end
 
 
@@ -82,12 +82,12 @@ fun constr_case thy P idx (v :: vs) pats cons =
   let
     val (avars, pvars, newidx) = invent_vars cons idx
     val c_hyp = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_eq (v, list_comb (cons, avars))))
-    val c_assum = assume c_hyp
+    val c_assum = Thm.assume c_hyp
     val newpats = map (transform_pat thy avars c_assum) (filter_pats thy cons pvars pats)
   in
     o_alg thy P newidx (avars @ vs) newpats
-    |> implies_intr c_hyp
-    |> fold_rev (forall_intr o cterm_of thy) avars
+    |> Thm.implies_intr c_hyp
+    |> fold_rev (Thm.forall_intr o cterm_of thy) avars
   end
   | constr_case _ _ _ _ _ _ = raise Match
 and o_alg thy P idx [] (([], Pthm) :: _)  = Pthm
@@ -119,11 +119,11 @@ fun prove_completeness thy xs P qss patss =
       |> cterm_of thy
 
     val hyps = map2 mk_assum qss patss
-    fun inst_hyps hyp qs = fold (forall_elim o cterm_of thy) qs (assume hyp)
+    fun inst_hyps hyp qs = fold (Thm.forall_elim o cterm_of thy) qs (Thm.assume hyp)
     val assums = map2 inst_hyps hyps qss
     in
       o_alg thy P 2 xs (patss ~~ assums)
-      |> fold_rev implies_intr hyps
+      |> fold_rev Thm.implies_intr hyps
     end
 
 fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
@@ -147,7 +147,7 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
 
     val patss = map (map snd) x_pats
     val complete_thm = prove_completeness thy xs thesis qss patss
-      |> fold_rev (forall_intr o cterm_of thy) vs
+      |> fold_rev (Thm.forall_intr o cterm_of thy) vs
     in
       PRIMITIVE (fn st => Drule.compose_single(complete_thm, i, st))
   end

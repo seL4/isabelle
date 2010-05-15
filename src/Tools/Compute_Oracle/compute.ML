@@ -391,9 +391,9 @@ val (_, export_oracle) = Context.>>> (Context.map_theory_result
 fun export_thm thy hyps shyps prop =
     let
         val th = export_oracle (thy, hyps, shyps, prop)
-        val hyps = map (fn h => assume (cterm_of thy h)) hyps
+        val hyps = map (fn h => Thm.assume (cterm_of thy h)) hyps
     in
-        fold (fn h => fn p => implies_elim p h) hyps th 
+        fold (fn h => fn p => Thm.implies_elim p h) hyps th 
     end
         
 (* --------- Rewrite ----------- *)

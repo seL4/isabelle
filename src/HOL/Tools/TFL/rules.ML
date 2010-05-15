@@ -172,7 +172,7 @@ local val thy = Thm.theory_of_thm disjI1
       val [P,Q] = OldTerm.term_vars prop
       val disj1 = Thm.forall_intr (Thm.cterm_of thy Q) disjI1
 in
-fun DISJ1 thm tm = thm RS (forall_elim (D.drop_prop tm) disj1)
+fun DISJ1 thm tm = thm RS (Thm.forall_elim (D.drop_prop tm) disj1)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ1" msg;
 end;
 
@@ -181,7 +181,7 @@ local val thy = Thm.theory_of_thm disjI2
       val [P,Q] = OldTerm.term_vars prop
       val disj2 = Thm.forall_intr (Thm.cterm_of thy P) disjI2
 in
-fun DISJ2 tm thm = thm RS (forall_elim (D.drop_prop tm) disj2)
+fun DISJ2 tm thm = thm RS (Thm.forall_elim (D.drop_prop tm) disj2)
   handle THM (msg, _, _) => raise RULES_ERR "DISJ2" msg;
 end;
 
@@ -276,11 +276,11 @@ local (* this is fragile *)
       val prop = Thm.prop_of spec
       val x = hd (tl (OldTerm.term_vars prop))
       val cTV = ctyp_of thy (type_of x)
-      val gspec = forall_intr (cterm_of thy x) spec
+      val gspec = Thm.forall_intr (cterm_of thy x) spec
 in
 fun SPEC tm thm =
    let val gspec' = instantiate ([(cTV, Thm.ctyp_of_term tm)], []) gspec
-   in thm RS (forall_elim tm gspec') end
+   in thm RS (Thm.forall_elim tm gspec') end
 end;
 
 fun SPEC_ALL thm = fold SPEC (#1(D.strip_forall(cconcl thm))) thm;
@@ -302,7 +302,7 @@ local val thy = Thm.theory_of_thm allI
          ctm_theta s (Vartab.dest tm_theta))
 in
 fun GEN v th =
-   let val gth = forall_intr v th
+   let val gth = Thm.forall_intr v th
        val thy = Thm.theory_of_thm gth
        val Const("all",_)$Abs(x,ty,rst) = Thm.prop_of gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
@@ -533,9 +533,9 @@ fun rename thm =
  *---------------------------------------------------------------------------*)
 
 fun list_beta_conv tm =
-  let fun rbeta th = Thm.transitive th (beta_conversion false (#2(D.dest_eq(cconcl th))))
+  let fun rbeta th = Thm.transitive th (Thm.beta_conversion false (#2(D.dest_eq(cconcl th))))
       fun iter [] = Thm.reflexive tm
-        | iter (v::rst) = rbeta (combination(iter rst) (Thm.reflexive v))
+        | iter (v::rst) = rbeta (Thm.combination(iter rst) (Thm.reflexive v))
   in iter  end;
 
 
@@ -619,7 +619,7 @@ end end;
 fun VSTRUCT_ELIM tych a vstr th =
   let val L = S.free_vars_lr vstr
       val bind1 = tych (HOLogic.mk_Trueprop (HOLogic.mk_eq(a,vstr)))
-      val thm1 = implies_intr bind1 (SUBS [SYM(assume bind1)] th)
+      val thm1 = Thm.implies_intr bind1 (SUBS [SYM(Thm.assume bind1)] th)
       val thm2 = forall_intr_list (map tych L) thm1
       val thm3 = forall_elim_list (XFILL tych a vstr) thm2
   in refl RS
@@ -630,7 +630,7 @@ fun PGEN tych a vstr th =
   let val a1 = tych a
       val vstr1 = tych vstr
   in
-  forall_intr a1
+  Thm.forall_intr a1
      (if (is_Free vstr)
       then cterm_instantiate [(vstr1,a1)] th
       else VSTRUCT_ELIM tych a vstr th)
@@ -803,7 +803,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     val names = OldTerm.add_term_names (term_of ctm, [])
     val th1 = MetaSimplifier.rewrite_cterm(false,true,false)
       (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
-    val th2 = equal_elim th1 th
+    val th2 = Thm.equal_elim th1 th
  in
  (th2, filter_out restricted (!tc_list))
  end;

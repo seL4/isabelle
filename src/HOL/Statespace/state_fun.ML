@@ -245,7 +245,7 @@ val update_simproc =
                                       (fn _ => rtac meta_ext 1 THEN 
                                                simp_tac ss1 1);
                      val eq2 = Simplifier.asm_full_rewrite ss2 (Thm.dest_equals_rhs (cprop_of eq1));
-                   in SOME (transitive eq1 eq2) end
+                   in SOME (Thm.transitive eq1 eq2) end
              | _ => NONE)
          end
        | _ => NONE));

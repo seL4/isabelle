@@ -1282,12 +1282,12 @@ in fn _ => fn ss => fn ct => if is_trivial_let (Thm.term_of ct)
              else let
                    val abs_g'= Abs (n,xT,g');
                    val g'x = abs_g'$x;
-                   val g_g'x = symmetric (beta_conversion false (cterm_of thy g'x));
+                   val g_g'x = Thm.symmetric (Thm.beta_conversion false (cterm_of thy g'x));
                    val rl = cterm_instantiate
                              [(f_Let_folded, cterm_of thy f), (x_Let_folded, cx),
                               (g_Let_folded, cterm_of thy abs_g')]
                              @{thm Let_folded};
-                 in SOME (rl OF [transitive fx_g g_g'x])
+                 in SOME (rl OF [Thm.transitive fx_g g_g'x])
                  end)
         end
     | _ => NONE)

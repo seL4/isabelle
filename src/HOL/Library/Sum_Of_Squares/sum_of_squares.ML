@@ -1272,7 +1272,7 @@ fun C f x y = f y x;
 fun subst_conv eqs t =
  let
   val t' = fold (Thm.cabs o Thm.lhs_of) eqs t
- in Conv.fconv_rule (Thm.beta_conversion true) (fold (C combination) eqs (reflexive t'))
+ in Conv.fconv_rule (Thm.beta_conversion true) (fold (C Thm.combination) eqs (Thm.reflexive t'))
  end
 
 (* A wrapper that tries to substitute away variables first.                  *)

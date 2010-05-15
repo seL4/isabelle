@@ -182,12 +182,12 @@ val my_poly_mul_conv = Unsynchronized.ref no_conv;
 
     (* Some useful derived rules *)
 fun deduct_antisym_rule tha thb = 
-    equal_intr (implies_intr (cprop_of thb) tha) 
-     (implies_intr (cprop_of tha) thb);
+    Thm.equal_intr (Thm.implies_intr (cprop_of thb) tha) 
+     (Thm.implies_intr (cprop_of tha) thb);
 
 fun prove_hyp tha thb = 
   if exists (curry op aconv (concl_of tha)) (#hyps (rep_thm thb)) 
-  then equal_elim (symmetric (deduct_antisym_rule tha thb)) tha else thb;
+  then Thm.equal_elim (Thm.symmetric (deduct_antisym_rule tha thb)) tha else thb;
 
 val pth = @{lemma "(((x::real) < y) == (y - x > 0))" and "((x <= y) == (y - x >= 0))" and
      "((x = y) == (x - y = 0))" and "((~(x < y)) == (x - y >= 0))" and
@@ -375,7 +375,7 @@ let
  val skolemize_conv = Simplifier.rewrite (Simplifier.context ctxt skolemize_ss)
  val weak_dnf_ss = HOL_basic_ss addsimps weak_dnf_simps
  val weak_dnf_conv = Simplifier.rewrite (Simplifier.context ctxt weak_dnf_ss)
- fun eqT_elim th = equal_elim (symmetric th) @{thm TrueI}
+ fun eqT_elim th = Thm.equal_elim (Thm.symmetric th) @{thm TrueI}
  fun oprconv cv ct = 
   let val g = Thm.dest_fun2 ct
   in if g aconvc @{cterm "op <= :: real => _"} 
@@ -387,7 +387,7 @@ let
   let
    val th' = (Thm.instantiate (Thm.match (Thm.lhs_of th, ct)) th 
       handle MATCH => raise CTERM ("real_ineq_conv", [ct]))
-  in transitive th' (oprconv poly_conv (Thm.rhs_of th'))
+  in Thm.transitive th' (oprconv poly_conv (Thm.rhs_of th'))
   end 
   val [real_lt_conv, real_le_conv, real_eq_conv,
        real_not_lt_conv, real_not_le_conv, _] =
@@ -446,10 +446,10 @@ let
    let val (p,q) = Thm.dest_binop (concl th)
        val c = concl th1
        val _ = if c aconvc (concl th2) then () else error "disj_cases : conclusions not alpha convertible"
-   in implies_elim (implies_elim
-          (implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
-          (implies_intr (Thm.capply @{cterm Trueprop} p) th1))
-        (implies_intr (Thm.capply @{cterm Trueprop} q) th2)
+   in Thm.implies_elim (Thm.implies_elim
+          (Thm.implies_elim (instantiate' [] (map SOME [p,q,c]) @{thm disjE}) th)
+          (Thm.implies_intr (Thm.capply @{cterm Trueprop} p) th1))
+        (Thm.implies_intr (Thm.capply @{cterm Trueprop} q) th2)
    end
  fun overall cert_choice dun ths = case ths of
   [] =>
@@ -468,8 +468,8 @@ let
       overall cert_choice dun (th1::th2::oths) end
     else if is_disj ct then
       let 
-       val (th1, cert1) = overall (Left::cert_choice) dun (assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg1 ct))::oths)
-       val (th2, cert2) = overall (Right::cert_choice) dun (assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg ct))::oths)
+       val (th1, cert1) = overall (Left::cert_choice) dun (Thm.assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg1 ct))::oths)
+       val (th2, cert2) = overall (Right::cert_choice) dun (Thm.assume (Thm.capply @{cterm Trueprop} (Thm.dest_arg ct))::oths)
       in (disj_cases th th1 th2, Branch (cert1, cert2)) end
    else overall cert_choice (th::dun) oths
   end
@@ -487,12 +487,12 @@ let
     val th' = Drule.binop_cong_rule @{cterm "op |"} 
      (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
      (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
-    in transitive th th' 
+    in Thm.transitive th th' 
   end
  fun equal_implies_1_rule PQ = 
   let 
    val P = Thm.lhs_of PQ
-  in implies_intr P (equal_elim PQ (assume P))
+  in Thm.implies_intr P (Thm.equal_elim PQ (Thm.assume P))
   end
  (* FIXME!!! Copied from groebner.ml *)
  val strip_exists =
@@ -507,7 +507,7 @@ let
  | Var ((s,_),_) => s
  | _ => "x"
 
-  fun mk_forall x th = Drule.arg_cong_rule (instantiate_cterm' [SOME (ctyp_of_term x)] [] @{cpat "All :: (?'a => bool) => _" }) (abstract_rule (name_of x) x th)
+  fun mk_forall x th = Drule.arg_cong_rule (instantiate_cterm' [SOME (ctyp_of_term x)] [] @{cpat "All :: (?'a => bool) => _" }) (Thm.abstract_rule (name_of x) x th)
 
   val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
@@ -523,12 +523,12 @@ let
          (instantiate' [SOME T] [SOME p, (SOME o Thm.dest_arg o cprop_of) th'] exE)
      val pv = (Thm.rhs_of o Thm.beta_conversion true) 
            (Thm.capply @{cterm Trueprop} (Thm.capply p v))
-     val th1 = forall_intr v (implies_intr pv th')
-    in implies_elim (implies_elim th0 th) th1  end
+     val th1 = Thm.forall_intr v (Thm.implies_intr pv th')
+    in Thm.implies_elim (Thm.implies_elim th0 th) th1  end
  | _ => raise THM ("choose",0,[th, th'])
 
   fun simple_choose v th = 
-     choose v (assume ((Thm.capply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
+     choose v (Thm.assume ((Thm.capply @{cterm Trueprop} o mk_ex v) ((Thm.dest_arg o hd o #hyps o Thm.crep_thm) th))) th
 
  val strip_forall =
   let fun h (acc, t) =
@@ -558,11 +558,11 @@ let
     val (evs,bod) = strip_exists tm0
     val (avs,ibod) = strip_forall bod
     val th1 = Drule.arg_cong_rule @{cterm Trueprop} (fold mk_forall avs (absremover ibod))
-    val (th2, certs) = overall [] [] [specl avs (assume (Thm.rhs_of th1))]
-    val th3 = fold simple_choose evs (prove_hyp (equal_elim th1 (assume (Thm.capply @{cterm Trueprop} bod))) th2)
-   in (Drule.implies_intr_hyps (prove_hyp (equal_elim th0 (assume nct)) th3), certs)
+    val (th2, certs) = overall [] [] [specl avs (Thm.assume (Thm.rhs_of th1))]
+    val th3 = fold simple_choose evs (prove_hyp (Thm.equal_elim th1 (Thm.assume (Thm.capply @{cterm Trueprop} bod))) th2)
+   in (Drule.implies_intr_hyps (prove_hyp (Thm.equal_elim th0 (Thm.assume nct)) th3), certs)
    end
-  in (implies_elim (instantiate' [] [SOME ct] pth_final) th, certificates)
+  in (Thm.implies_elim (instantiate' [] [SOME ct] pth_final) th, certificates)
  end
 in f
 end;
@@ -715,10 +715,10 @@ local
    fun eliminate_construct p c tm =
     let 
      val t = find_cterm p tm
-     val th0 = (symmetric o beta_conversion false) (Thm.capply (Thm.cabs t tm) t)
+     val th0 = (Thm.symmetric o Thm.beta_conversion false) (Thm.capply (Thm.cabs t tm) t)
      val (p,ax) = (Thm.dest_comb o Thm.rhs_of) th0
-    in fconv_rule(arg_conv(binop_conv (arg_conv (beta_conversion false))))
-               (transitive th0 (c p ax))
+    in fconv_rule(arg_conv(binop_conv (arg_conv (Thm.beta_conversion false))))
+               (Thm.transitive th0 (c p ax))
    end
 
    val elim_abs = eliminate_construct is_abs

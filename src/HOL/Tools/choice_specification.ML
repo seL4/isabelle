@@ -183,7 +183,7 @@ fun process_spec axiomatic cos alt_props thy =
                 fun process_single ((name,atts),rew_imp,frees) args =
                     let
                         fun undo_imps thm =
-                            equal_elim (symmetric rew_imp) thm
+                            Thm.equal_elim (Thm.symmetric rew_imp) thm
 
                         fun add_final (arg as (thy, thm)) =
                             if name = ""

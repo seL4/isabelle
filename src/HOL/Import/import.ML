@@ -40,7 +40,7 @@ fun import_tac ctxt (thyname, thmname) =
             val hol4thm = snd (Replay.replay_proof int_thms thyname thmname proof thy)
             val thm = snd (ProofKernel.to_isa_thm hol4thm)
             val rew = ProofKernel.rewrite_hol4_term (concl_of thm) thy
-            val thm = equal_elim rew thm
+            val thm = Thm.equal_elim rew thm
             val prew = ProofKernel.rewrite_hol4_term prem thy
             val prem' = #2 (Logic.dest_equals (prop_of prew))
             val _ = message ("Import proved " ^ Display.string_of_thm ctxt thm)
@@ -53,7 +53,7 @@ fun import_tac ctxt (thyname, thmname) =
                     val _ = if prem' aconv (prop_of thm)
                             then message "import: Terms match up"
                             else message "import: Terms DO NOT match up"
-                    val thm' = equal_elim (symmetric prew) thm
+                    val thm' = Thm.equal_elim (Thm.symmetric prew) thm
                     val res = Thm.bicompose true (false,thm',0) 1 th
                 in
                     res

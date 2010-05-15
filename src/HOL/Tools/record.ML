@@ -2171,7 +2171,7 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
 
     fun get_upd_acc_congs () =
       let
-        val symdefs = map symmetric (sel_defs @ upd_defs);
+        val symdefs = map Thm.symmetric (sel_defs @ upd_defs);
         val fold_ss = HOL_basic_ss addsimps symdefs;
         val ua_congs = map (Drule.export_without_context o simplify fold_ss) upd_acc_cong_assists;
       in (ua_congs RL [updacc_foldE], ua_congs RL [updacc_unfoldE]) end;
@@ -2257,17 +2257,17 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
         val cl = cterm_of defs_thy (HOLogic.mk_Trueprop l);
         val cr = cterm_of defs_thy (HOLogic.mk_Trueprop r);
         val thl =
-          assume cl                   (*All r. P r*) (* 1 *)
-          |> obj_to_meta_all          (*!!r. P r*)
-          |> equal_elim split_meta'   (*!!n m more. P (ext n m more)*)
-          |> meta_to_obj_all          (*All n m more. P (ext n m more)*) (* 2*)
-          |> implies_intr cl          (* 1 ==> 2 *)
+          Thm.assume cl                   (*All r. P r*) (* 1 *)
+          |> obj_to_meta_all              (*!!r. P r*)
+          |> Thm.equal_elim split_meta'   (*!!n m more. P (ext n m more)*)
+          |> meta_to_obj_all              (*All n m more. P (ext n m more)*) (* 2*)
+          |> Thm.implies_intr cl          (* 1 ==> 2 *)
         val thr =
-          assume cr                             (*All n m more. P (ext n m more)*)
-          |> obj_to_meta_all                    (*!!n m more. P (ext n m more)*)
-          |> equal_elim (symmetric split_meta') (*!!r. P r*)
-          |> meta_to_obj_all                    (*All r. P r*)
-          |> implies_intr cr                    (* 2 ==> 1 *)
+          Thm.assume cr                                 (*All n m more. P (ext n m more)*)
+          |> obj_to_meta_all                            (*!!n m more. P (ext n m more)*)
+          |> Thm.equal_elim (Thm.symmetric split_meta') (*!!r. P r*)
+          |> meta_to_obj_all                            (*All r. P r*)
+          |> Thm.implies_intr cr                        (* 2 ==> 1 *)
      in thr COMP (thl COMP iffI) end;
 
 

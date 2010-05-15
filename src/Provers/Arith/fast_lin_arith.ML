@@ -845,8 +845,8 @@ let val {neqE, ...} = get_data ctxt
       (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) [neq] of
         SOME spl =>
           let val (ct1, ct2) = extract (cprop_of spl)
-              val thm1 = assume ct1
-              val thm2 = assume ct2
+              val thm1 = Thm.assume ct1
+              val thm2 = Thm.assume ct2
           in Spl (spl, ct1, elim_neq neqs (asms', asms@[thm1]),
             ct2, elim_neq neqs (asms', asms@[thm2]))
           end
@@ -858,8 +858,8 @@ fun fwdproof ss (Tip asms : splittree) (j::js : injust list) = (mkthm ss asms j,
       let
         val (thm1, js1) = fwdproof ss tree1 js
         val (thm2, js2) = fwdproof ss tree2 js1
-        val thm1' = implies_intr ct1 thm1
-        val thm2' = implies_intr ct2 thm2
+        val thm1' = Thm.implies_intr ct1 thm1
+        val thm2' = Thm.implies_intr ct2 thm2
       in (thm2' COMP (thm1' COMP thm), js2) end;
       (* FIXME needs handle THM _ => NONE ? *)
 
@@ -869,11 +869,11 @@ fun prover ss thms Tconcl (js : injust list) split_neq pos : thm option =
     val thy = ProofContext.theory_of ctxt
     val nTconcl = LA_Logic.neg_prop Tconcl
     val cnTconcl = cterm_of thy nTconcl
-    val nTconclthm = assume cnTconcl
+    val nTconclthm = Thm.assume cnTconcl
     val tree = (if split_neq then splitasms ctxt else Tip) (thms @ [nTconclthm])
     val (Falsethm, _) = fwdproof ss tree js
     val contr = if pos then LA_Logic.ccontr else LA_Logic.notI
-    val concl = implies_intr cnTconcl Falsethm COMP contr
+    val concl = Thm.implies_intr cnTconcl Falsethm COMP contr
   in SOME (trace_thm ctxt "Proved by lin. arith. prover:" (LA_Logic.mk_Eq concl)) end
   (*in case concl contains ?-var, which makes assume fail:*)   (* FIXME Variable.import_terms *)
   handle THM _ => NONE;

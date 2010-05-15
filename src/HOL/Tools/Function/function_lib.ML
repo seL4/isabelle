@@ -5,7 +5,7 @@ A package for general recursive function definitions.
 Some fairly general functions that should probably go somewhere else...
 *)
 
-structure Function_Lib =
+structure Function_Lib =   (* FIXME proper signature *)
 struct
 
 fun map_option f NONE = NONE
@@ -104,7 +104,7 @@ fun mk_forall_rename (n, v) =
 
 fun forall_intr_rename (n, cv) thm =
   let
-    val allthm = forall_intr cv thm
+    val allthm = Thm.forall_intr cv thm
     val (_ $ abs) = prop_of allthm
   in
     Thm.rename_boundvars abs (Abs (n, dummyT, Term.dummy_pattern dummyT)) allthm

@@ -80,8 +80,8 @@ fun vector_lincomb t = case term_of t of
 fun replacenegnorms cv t = case term_of t of
   @{term "op + :: real => _"}$_$_ => binop_conv (replacenegnorms cv) t
 | @{term "op * :: real => _"}$_$_ =>
-    if dest_ratconst (Thm.dest_arg1 t) </ Rat.zero then arg_conv cv t else reflexive t
-| _ => reflexive t
+    if dest_ratconst (Thm.dest_arg1 t) </ Rat.zero then arg_conv cv t else Thm.reflexive t
+| _ => Thm.reflexive t
 fun flip v eq =
   if FuncUtil.Ctermfunc.defined eq v
   then FuncUtil.Ctermfunc.update (v, Rat.neg (FuncUtil.Ctermfunc.apply eq v)) eq else eq
@@ -211,7 +211,7 @@ fun vector_add_conv ct = apply_pth7 ct
                 ((apply_ptha then_conv vector_add_conv) else_conv
               arg_conv vector_add_conv then_conv apply_pthd)) ct)
       end
-     | _ => reflexive ct))
+     | _ => Thm.reflexive ct))
 
 fun vector_canon_conv ct = case term_of ct of
  Const(@{const_name plus},_)$_$_ =>
@@ -237,7 +237,7 @@ fun vector_canon_conv ct = case term_of ct of
 | Const(@{const_name vec},_)$n =>
   let val n = Thm.dest_arg ct
   in if is_ratconst n andalso not (dest_ratconst n =/ Rat.zero)
-     then reflexive ct else apply_pth1 ct
+     then Thm.reflexive ct else apply_pth1 ct
   end
 *)
 | _ => apply_pth1 ct
@@ -342,7 +342,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   fun instantiate_cterm' ty tms = Drule.cterm_rule (Drule.instantiate' ty tms)
   fun mk_norm t = Thm.capply (instantiate_cterm' [SOME (ctyp_of_term t)] [] @{cpat "norm :: (?'a :: real_normed_vector) => real"}) t
   fun mk_equals l r = Thm.capply (Thm.capply (instantiate_cterm' [SOME (ctyp_of_term l)] [] @{cpat "op == :: ?'a =>_"}) l) r
-  val asl = map2 (fn (t,_) => fn n => assume (mk_equals (mk_norm t) (cterm_of (ProofContext.theory_of ctxt') (Free(n,@{typ real}))))) lctab fxns
+  val asl = map2 (fn (t,_) => fn n => Thm.assume (mk_equals (mk_norm t) (cterm_of (ProofContext.theory_of ctxt') (Free(n,@{typ real}))))) lctab fxns
   val replace_conv = try_conv (rewrs_conv asl)
   val replace_rule = fconv_rule (funpow 2 arg_conv (replacenegnorms replace_conv))
   val ges' =
@@ -352,10 +352,10 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val nubs = map (conjunct2 o norm_mp) asl
   val th1 = real_vector_combo_prover ctxt' translator (nubs,ges',gts')
   val shs = filter (member (fn (t,th) => t aconvc cprop_of th) asl) (#hyps (crep_thm th1))
-  val th11 = hd (Variable.export ctxt' ctxt [fold implies_intr shs th1])
+  val th11 = hd (Variable.export ctxt' ctxt [fold Thm.implies_intr shs th1])
   val cps = map (swap o Thm.dest_equals) (cprems_of th11)
   val th12 = instantiate ([], cps) th11
-  val th13 = fold Thm.elim_implies (map (reflexive o snd) cps) th12;
+  val th13 = fold Thm.elim_implies (map (Thm.reflexive o snd) cps) th12;
  in hd (Variable.export ctxt' ctxt [th13])
  end
 in val real_vector_ineq_prover = real_vector_ineq_prover
@@ -390,7 +390,7 @@ end;
   let
    val ctxt' = Variable.declare_term (term_of ct) ctxt
    val th = init_conv ctxt' ct
-  in equal_elim (Drule.arg_cong_rule @{cterm Trueprop} (symmetric th))
+  in Thm.equal_elim (Drule.arg_cong_rule @{cterm Trueprop} (Thm.symmetric th))
                 (pure ctxt' (Thm.rhs_of th))
  end
 

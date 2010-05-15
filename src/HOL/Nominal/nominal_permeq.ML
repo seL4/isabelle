@@ -266,7 +266,7 @@ fun perm_extend_simp_tac_i tactical ss =
 (* intros, then applies eqvt_simp_tac                    *)
 fun supports_tac_i tactical ss i =
   let 
-     val simps        = [supports_def,symmetric fresh_def,fresh_prod]
+     val simps        = [supports_def, Thm.symmetric fresh_def, fresh_prod]
   in
       EVERY [tactical ("unfolding of supports   ", simp_tac (HOL_basic_ss addsimps simps) i),
              tactical ("stripping of foralls    ", REPEAT_DETERM (rtac allI i)),
@@ -329,7 +329,7 @@ fun fresh_guess_tac_i tactical ss i st =
         val goal = List.nth(cprems_of st, i-1)
         val fin_supp = dynamic_thms st ("fin_supp")
         val fresh_atm = dynamic_thms st ("fresh_atm")
-        val ss1 = ss addsimps [symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
+        val ss1 = ss addsimps [Thm.symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm
         val ss2 = ss addsimps [supp_prod,supp_unit,finite_Un,finite_emptyI,conj_absorb]@fin_supp
     in
       case Logic.strip_assums_concl (term_of goal) of

@@ -681,7 +681,7 @@ fun whatis x ct = case term_of ct of
      else ("Nox",[])
 | t => if t aconv term_of x then ("x",[]) else ("Nox",[]);
 
-fun xnormalize_conv ctxt [] ct = reflexive ct
+fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
 | xnormalize_conv ctxt (vs as (x::_)) ct =
    case term_of ct of
    Const(@{const_name Orderings.less},_)$_$Const(@{const_name Groups.zero},_) =>
@@ -696,8 +696,8 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
-        val cth = equal_elim (symmetric cthp) TrueI
-        val th = implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x,t])
+        val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
+        val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_lt} else @{thm pos_prod_sum_lt})) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
@@ -719,12 +719,12 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
-        val cth = equal_elim (symmetric cthp) TrueI
-        val th = implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
+        val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
+        val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
              (if neg then @{thm neg_prod_lt} else @{thm pos_prod_lt})) cth
         val rth = th
       in rth end
-    | _ => reflexive ct)
+    | _ => Thm.reflexive ct)
 
 
 |  Const(@{const_name Orderings.less_eq},_)$_$Const(@{const_name Groups.zero},_) =>
@@ -740,8 +740,8 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
-        val cth = equal_elim (symmetric cthp) TrueI
-        val th = implies_elim (instantiate' [SOME T] (map SOME [c,x,t])
+        val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
+        val th = Thm.implies_elim (instantiate' [SOME T] (map SOME [c,x,t])
              (if neg then @{thm neg_prod_sum_le} else @{thm pos_prod_sum_le})) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
@@ -764,12 +764,12 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
                (Thm.capply @{cterm "Trueprop"}
                   (if neg then Thm.capply (Thm.capply clt c) cz
                     else Thm.capply (Thm.capply clt cz) c))
-        val cth = equal_elim (symmetric cthp) TrueI
-        val th = implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
+        val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
+        val th = Thm.implies_elim (instantiate' [SOME (ctyp_of_term x)] (map SOME [c,x])
              (if neg then @{thm neg_prod_le} else @{thm pos_prod_le})) cth
         val rth = th
       in rth end
-    | _ => reflexive ct)
+    | _ => Thm.reflexive ct)
 
 |  Const("op =",_)$_$Const(@{const_name Groups.zero},_) =>
    (case whatis x (Thm.dest_arg1 ct) of
@@ -782,8 +782,8 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val cthp = Simplifier.rewrite (simpset_of ctxt)
             (Thm.capply @{cterm "Trueprop"}
              (Thm.capply @{cterm "Not"} (Thm.capply (Thm.capply ceq c) cz)))
-        val cth = equal_elim (symmetric cthp) TrueI
-        val th = implies_elim
+        val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
+        val th = Thm.implies_elim
                  (instantiate' [SOME T] (map SOME [c,x,t]) @{thm nz_prod_sum_eq}) cth
         val rth = Conv.fconv_rule (Conv.arg_conv (Conv.binop_conv
                    (Semiring_Normalizer.semiring_normalize_ord_conv ctxt (earlier vs)))) th
@@ -804,11 +804,11 @@ fun xnormalize_conv ctxt [] ct = reflexive ct
         val cthp = Simplifier.rewrite (simpset_of ctxt)
             (Thm.capply @{cterm "Trueprop"}
              (Thm.capply @{cterm "Not"} (Thm.capply (Thm.capply ceq c) cz)))
-        val cth = equal_elim (symmetric cthp) TrueI
-        val rth = implies_elim
+        val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
+        val rth = Thm.implies_elim
                  (instantiate' [SOME T] (map SOME [c,x]) @{thm nz_prod_eq}) cth
       in rth end
-    | _ => reflexive ct);
+    | _ => Thm.reflexive ct);
 
 local
   val less_iff_diff_less_0 = mk_meta_eq @{thm "less_iff_diff_less_0"}
@@ -823,7 +823,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
-       val rth = transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
+       val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 | Const(@{const_name Orderings.less_eq},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
@@ -832,7 +832,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
-       val rth = transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
+       val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 
 | Const("op =",_)$a$b =>
@@ -842,10 +842,10 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
        val nth = Conv.fconv_rule
          (Conv.arg_conv (Conv.arg1_conv
               (Semiring_Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
-       val rth = transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
+       val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 | @{term "Not"} $(Const("op =",_)$a$b) => Conv.arg_conv (field_isolate_conv phi ctxt vs) ct
-| _ => reflexive ct
+| _ => Thm.reflexive ct
 end;
 
 fun classfield_whatis phi =

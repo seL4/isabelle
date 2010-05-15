@@ -21,7 +21,7 @@ fun name_of_thm thm =
     [name] => name
   | _ => error ("name_of_thm: bad proof of theorem\n" ^ Display.string_of_thm_without_context thm));
 
-val all_simps = map (symmetric o mk_meta_eq) @{thms HOL.all_simps};
+val all_simps = map (Thm.symmetric o mk_meta_eq) @{thms HOL.all_simps};
 
 fun prf_of thm =
   let

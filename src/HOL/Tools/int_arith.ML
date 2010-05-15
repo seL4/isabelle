@@ -21,7 +21,7 @@ struct
    That is, m and n consist only of 1s combined with "+", "-" and "*".
 *)
 
-val zeroth = (symmetric o mk_meta_eq) @{thm of_int_0};
+val zeroth = (Thm.symmetric o mk_meta_eq) @{thm of_int_0};
 
 val lhss0 = [@{cpat "0::?'a::ring"}];
 
@@ -35,7 +35,7 @@ val zero_to_of_int_zero_simproc =
   make_simproc {lhss = lhss0, name = "zero_to_of_int_zero_simproc",
   proc = proc0, identifier = []};
 
-val oneth = (symmetric o mk_meta_eq) @{thm of_int_1};
+val oneth = (Thm.symmetric o mk_meta_eq) @{thm of_int_1};
 
 val lhss1 = [@{cpat "1::?'a::ring_1"}];
 

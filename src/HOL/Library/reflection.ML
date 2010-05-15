@@ -133,7 +133,7 @@ fun genreif ctxt raw_eqs t =
                              (AList.update Type.could_unify (HOLogic.listT xT, ((x::bsT), atsT)) bds))
                in (([(ta, ctxt')],
                     fn ([th], bds) =>
-                      (hd (Variable.export ctxt' ctxt [(forall_intr (cert x) th) COMP allI]),
+                      (hd (Variable.export ctxt' ctxt [(Thm.forall_intr (cert x) th) COMP allI]),
                        let val (bsT,asT) = the(AList.lookup Type.could_unify bds (HOLogic.listT xT))
                        in AList.update Type.could_unify (HOLogic.listT xT,(tl bsT,asT)) bds
                        end)),

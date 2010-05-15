@@ -209,7 +209,7 @@ fun abstract ct =
                    Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv abstract) rhs)
                  end
             else if loose_bvar1 (rand,0) then (*B or eta*)
-               if rand = Bound 0 then eta_conversion ct
+               if rand = Bound 0 then Thm.eta_conversion ct
                else (*B*)
                  let val crand = cterm_of thy (Abs(x,xT,rand))
                      val crator = cterm_of thy rator
@@ -225,7 +225,7 @@ fun abstract ct =
 (*Traverse a theorem, declaring abstraction function definitions. String s is the suggested
   prefix for the constants.*)
 fun combinators_aux ct =
-  if lambda_free (term_of ct) then reflexive ct
+  if lambda_free (term_of ct) then Thm.reflexive ct
   else
   case term_of ct of
       Abs _ =>
@@ -234,17 +234,17 @@ fun combinators_aux ct =
             val u_th = combinators_aux cta
             val cu = Thm.rhs_of u_th
             val comb_eq = abstract (Thm.cabs cv cu)
-        in transitive (abstract_rule v cv u_th) comb_eq end
+        in Thm.transitive (Thm.abstract_rule v cv u_th) comb_eq end
     | _ $ _ =>
         let val (ct1, ct2) = Thm.dest_comb ct
-        in  combination (combinators_aux ct1) (combinators_aux ct2)  end;
+        in  Thm.combination (combinators_aux ct1) (combinators_aux ct2)  end;
 
 fun combinators th =
   if lambda_free (prop_of th) then th
   else
     let val th = Drule.eta_contraction_rule th
         val eqth = combinators_aux (cprop_of th)
-    in  equal_elim eqth th   end
+    in  Thm.equal_elim eqth th   end
     handle THM (msg,_,_) =>
       (warning (cat_lines
         ["Error in the combinator translation of " ^ Display.string_of_thm_without_context th,
@@ -298,7 +298,7 @@ fun to_nnf th ctxt0 =
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
 fun assume_skolem_of_def s th =
-  map (skolem_of_def o assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
+  map (skolem_of_def o Thm.assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
 
 
 (*** Blacklisting (FIXME: duplicated in "Sledgehammer_Fact_Filter"?) ***)

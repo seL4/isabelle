@@ -435,9 +435,9 @@ let
 					val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_l   (* ((Ex x') | y') = (Ex (x' | y')) *)
 					val var  = new_free ()
 					val thm2 = make_cnfx_disj_thm (betapply (x', var)) y'  (* (x' | y') = body' *)
-					val thm3 = forall_intr (cterm_of thy var) thm2         (* !!v. (x' | y') = body' *)
-					val thm4 = Thm.strip_shyps (thm3 COMP allI)                (* ALL v. (x' | y') = body' *)
-					val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong)     (* (EX v. (x' | y')) = (EX v. body') *)
+					val thm3 = Thm.forall_intr (cterm_of thy var) thm2     (* !!v. (x' | y') = body' *)
+					val thm4 = Thm.strip_shyps (thm3 COMP allI)            (* ALL v. (x' | y') = body' *)
+					val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong) (* (EX v. (x' | y')) = (EX v. body') *)
 				in
 					iff_trans OF [thm1, thm5]  (* ((Ex x') | y') = (Ex v. body') *)
 				end
@@ -446,9 +446,9 @@ let
 					val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_r   (* (x' | (Ex y')) = (Ex (x' | y')) *)
 					val var  = new_free ()
 					val thm2 = make_cnfx_disj_thm x' (betapply (y', var))  (* (x' | y') = body' *)
-					val thm3 = forall_intr (cterm_of thy var) thm2         (* !!v. (x' | y') = body' *)
-					val thm4 = Thm.strip_shyps (thm3 COMP allI)                (* ALL v. (x' | y') = body' *)
-					val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong)     (* (EX v. (x' | y')) = (EX v. body') *)
+					val thm3 = Thm.forall_intr (cterm_of thy var) thm2     (* !!v. (x' | y') = body' *)
+					val thm4 = Thm.strip_shyps (thm3 COMP allI)            (* ALL v. (x' | y') = body' *)
+					val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong) (* (EX v. (x' | y')) = (EX v. body') *)
 				in
 					iff_trans OF [thm1, thm5]  (* (x' | (Ex y')) = (EX v. body') *)
 				end
@@ -466,8 +466,8 @@ let
 			val var  = new_free ()
 			val body = HOLogic.mk_conj (HOLogic.mk_disj (x, var), HOLogic.mk_disj (y, HOLogic.Not $ var))
 			val thm2 = make_cnfx_thm_from_nnf body              (* (x | v) & (y | ~v) = body' *)
-			val thm3 = forall_intr (cterm_of thy var) thm2      (* !!v. (x | v) & (y | ~v) = body' *)
-			val thm4 = Thm.strip_shyps (thm3 COMP allI)             (* ALL v. (x | v) & (y | ~v) = body' *)
+			val thm3 = Thm.forall_intr (cterm_of thy var) thm2  (* !!v. (x | v) & (y | ~v) = body' *)
+			val thm4 = Thm.strip_shyps (thm3 COMP allI)         (* ALL v. (x | v) & (y | ~v) = body' *)
 			val thm5 = Thm.strip_shyps (thm4 RS make_cnfx_ex_cong)  (* (EX v. (x | v) & (y | ~v)) = (EX v. body') *)
 		in
 			iff_trans OF [thm1, thm5]

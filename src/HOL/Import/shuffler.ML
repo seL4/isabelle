@@ -95,12 +95,12 @@ val weaken =
         val cQ = cert Q
         val cPQ = cert PQ
         val cPPQ = cert PPQ
-        val th1 = assume cPQ |> implies_intr_list [cPQ,cP]
-        val th3 = assume cP
-        val th4 = implies_elim_list (assume cPPQ) [th3,th3]
+        val th1 = Thm.assume cPQ |> implies_intr_list [cPQ,cP]
+        val th3 = Thm.assume cP
+        val th4 = implies_elim_list (Thm.assume cPPQ) [th3,th3]
                                     |> implies_intr_list [cPPQ,cP]
     in
-        equal_intr th4 th1 |> Drule.export_without_context
+        Thm.equal_intr th4 th1 |> Drule.export_without_context
     end
 
 val imp_comm =
@@ -115,12 +115,12 @@ val imp_comm =
         val cQ = cert Q
         val cPQR = cert PQR
         val cQPR = cert QPR
-        val th1 = implies_elim_list (assume cPQR) [assume cP,assume cQ]
+        val th1 = implies_elim_list (Thm.assume cPQR) [Thm.assume cP,Thm.assume cQ]
                                     |> implies_intr_list [cPQR,cQ,cP]
-        val th2 = implies_elim_list (assume cQPR) [assume cQ,assume cP]
+        val th2 = implies_elim_list (Thm.assume cQPR) [Thm.assume cQ,Thm.assume cP]
                                     |> implies_intr_list [cQPR,cP,cQ]
     in
-        equal_intr th1 th2 |> Drule.export_without_context
+        Thm.equal_intr th1 th2 |> Drule.export_without_context
     end
 
 val def_norm =
@@ -134,20 +134,20 @@ val def_norm =
         val cvPQ = cert (list_all ([("v",aT)],Logic.mk_equals(P $ Bound 0,Q $ Bound 0)))
         val cPQ = cert (Logic.mk_equals(P,Q))
         val cv = cert v
-        val rew = assume cvPQ
-                         |> forall_elim cv
-                         |> abstract_rule "v" cv
+        val rew = Thm.assume cvPQ
+                         |> Thm.forall_elim cv
+                         |> Thm.abstract_rule "v" cv
         val (lhs,rhs) = Logic.dest_equals(concl_of rew)
-        val th1 = transitive (transitive
-                                  (eta_conversion (cert lhs) |> symmetric)
+        val th1 = Thm.transitive (Thm.transitive
+                                  (Thm.eta_conversion (cert lhs) |> Thm.symmetric)
                                   rew)
-                             (eta_conversion (cert rhs))
-                             |> implies_intr cvPQ
-        val th2 = combination (assume cPQ) (reflexive cv)
-                              |> forall_intr cv
-                              |> implies_intr cPQ
+                             (Thm.eta_conversion (cert rhs))
+                             |> Thm.implies_intr cvPQ
+        val th2 = Thm.combination (Thm.assume cPQ) (Thm.reflexive cv)
+                              |> Thm.forall_intr cv
+                              |> Thm.implies_intr cPQ
     in
-        equal_intr th1 th2 |> Drule.export_without_context
+        Thm.equal_intr th1 th2 |> Drule.export_without_context
     end
 
 val all_comm =
@@ -164,16 +164,16 @@ val all_comm =
         val cr = cert rhs
         val cx = cert x
         val cy = cert y
-        val th1 = assume cr
+        val th1 = Thm.assume cr
                          |> forall_elim_list [cy,cx]
                          |> forall_intr_list [cx,cy]
-                         |> implies_intr cr
-        val th2 = assume cl
+                         |> Thm.implies_intr cr
+        val th2 = Thm.assume cl
                          |> forall_elim_list [cx,cy]
                          |> forall_intr_list [cy,cx]
-                         |> implies_intr cl
+                         |> Thm.implies_intr cl
     in
-        equal_intr th1 th2 |> Drule.export_without_context
+        Thm.equal_intr th1 th2 |> Drule.export_without_context
     end
 
 val equiv_comm =
@@ -184,10 +184,10 @@ val equiv_comm =
         val u    = Free("u",T)
         val ctu  = cert (Logic.mk_equals(t,u))
         val cut  = cert (Logic.mk_equals(u,t))
-        val th1  = assume ctu |> symmetric |> implies_intr ctu
-        val th2  = assume cut |> symmetric |> implies_intr cut
+        val th1  = Thm.assume ctu |> Thm.symmetric |> Thm.implies_intr ctu
+        val th2  = Thm.assume cut |> Thm.symmetric |> Thm.implies_intr cut
     in
-        equal_intr th1 th2 |> Drule.export_without_context
+        Thm.equal_intr th1 th2 |> Drule.export_without_context
     end
 
 (* This simplification procedure rewrites !!x y. P x y
@@ -217,7 +217,7 @@ fun rew_th thy (xv as (x,xT)) (yv as (y,yT)) t =
         val lhs = list_all ([xv,yv],t)
         val rhs = list_all ([yv,xv],swap_bound 0 t)
         val rew = Logic.mk_equals (lhs,rhs)
-        val init = trivial (cterm_of thy rew)
+        val init = Thm.trivial (cterm_of thy rew)
     in
         (all_comm RS init handle e => (message "rew_th"; OldGoals.print_exn e))
     end
@@ -232,10 +232,10 @@ fun quant_rewrite thy assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) 
                  then
                      let
                          val newt = Const("all",T1) $ (Abs(y,xT,Const("all",T2) $ Abs(x,yT,body)))
-                         val t_th    = reflexive (cterm_of thy t)
-                         val newt_th = reflexive (cterm_of thy newt)
+                         val t_th    = Thm.reflexive (cterm_of thy t)
+                         val newt_th = Thm.reflexive (cterm_of thy newt)
                      in
-                         SOME (transitive t_th newt_th)
+                         SOME (Thm.transitive t_th newt_th)
                      end
                  else NONE
           | _ => error "norm_term (quant_rewrite) internal error"
@@ -294,7 +294,7 @@ fun eta_redex (t $ Bound 0) =
 fun eta_contract thy assumes origt =
     let
         val (typet,Tinst) = freeze_thaw_term origt
-        val (init,thaw) = Drule.legacy_freeze_thaw (reflexive (cterm_of thy typet))
+        val (init,thaw) = Drule.legacy_freeze_thaw (Thm.reflexive (cterm_of thy typet))
         val final = inst_tfrees thy Tinst o thaw
         val t = #1 (Logic.dest_equals (prop_of init))
         val _ =
@@ -322,18 +322,18 @@ fun eta_contract thy assumes origt =
                       val v = Free (Name.variant (Term.add_free_names t []) "v", xT)
                       val cv = cert v
                       val ct = cert t
-                      val th = (assume ct)
-                                   |> forall_elim cv
-                                   |> abstract_rule x cv
-                      val ext_th = eta_conversion (cert (Abs(x,xT,P)))
-                      val th' = transitive (symmetric ext_th) th
+                      val th = (Thm.assume ct)
+                                   |> Thm.forall_elim cv
+                                   |> Thm.abstract_rule x cv
+                      val ext_th = Thm.eta_conversion (cert (Abs(x,xT,P)))
+                      val th' = Thm.transitive (Thm.symmetric ext_th) th
                       val cu = cert (prop_of th')
-                      val uth = combination (assume cu) (reflexive cv)
-                      val uth' = (beta_conversion false (cert (Abs(x,xT,Q) $ v)))
-                                     |> transitive uth
-                                     |> forall_intr cv
-                                     |> implies_intr cu
-                      val rew_th = equal_intr (th' |> implies_intr ct) uth'
+                      val uth = Thm.combination (Thm.assume cu) (Thm.reflexive cv)
+                      val uth' = (Thm.beta_conversion false (cert (Abs(x,xT,Q) $ v)))
+                                     |> Thm.transitive uth
+                                     |> Thm.forall_intr cv
+                                     |> Thm.implies_intr cu
+                      val rew_th = Thm.equal_intr (th' |> Thm.implies_intr ct) uth'
                       val res = final rew_th
                       val lhs = (#1 (Logic.dest_equals (prop_of res)))
                   in
@@ -345,7 +345,7 @@ fun eta_contract thy assumes origt =
        end
 
 fun beta_fun thy assume t =
-    SOME (beta_conversion true (cterm_of thy t))
+    SOME (Thm.beta_conversion true (cterm_of thy t))
 
 val meta_sym_rew = thm "refl"
 
@@ -357,7 +357,7 @@ fun equals_fun thy assume t =
 fun eta_expand thy assumes origt =
     let
         val (typet,Tinst) = freeze_thaw_term origt
-        val (init,thaw) = Drule.legacy_freeze_thaw (reflexive (cterm_of thy typet))
+        val (init,thaw) = Drule.legacy_freeze_thaw (Thm.reflexive (cterm_of thy typet))
         val final = inst_tfrees thy Tinst o thaw
         val t = #1 (Logic.dest_equals (prop_of init))
         val _ =
@@ -387,20 +387,20 @@ fun eta_expand thy assumes origt =
                           val v = Free(vname,aT)
                           val cv = cert v
                           val ct = cert t
-                          val th1 = (combination (assume ct) (reflexive cv))
-                                        |> forall_intr cv
-                                        |> implies_intr ct
+                          val th1 = (Thm.combination (Thm.assume ct) (Thm.reflexive cv))
+                                        |> Thm.forall_intr cv
+                                        |> Thm.implies_intr ct
                           val concl = cert (concl_of th1)
-                          val th2 = (assume concl)
-                                        |> forall_elim cv
-                                        |> abstract_rule vname cv
+                          val th2 = (Thm.assume concl)
+                                        |> Thm.forall_elim cv
+                                        |> Thm.abstract_rule vname cv
                           val (lhs,rhs) = Logic.dest_equals (prop_of th2)
-                          val elhs = eta_conversion (cert lhs)
-                          val erhs = eta_conversion (cert rhs)
-                          val th2' = transitive
-                                         (transitive (symmetric elhs) th2)
+                          val elhs = Thm.eta_conversion (cert lhs)
+                          val erhs = Thm.eta_conversion (cert rhs)
+                          val th2' = Thm.transitive
+                                         (Thm.transitive (Thm.symmetric elhs) th2)
                                          erhs
-                          val res = equal_intr th1 (th2' |> implies_intr concl)
+                          val res = Thm.equal_intr th1 (th2' |> Thm.implies_intr concl)
                           val res' = final res
                       in
                           SOME res'
@@ -475,7 +475,7 @@ fun disamb_bound thy t =
         val (t',_) = F (t,0)
         val ct = cterm_of thy t
         val ct' = cterm_of thy t'
-        val res = transitive (reflexive ct) (reflexive ct')
+        val res = Thm.transitive (Thm.reflexive ct) (Thm.reflexive ct')
         val _ = message ("disamb_term: " ^ (string_of_thm res))
     in
         res
@@ -496,12 +496,12 @@ fun norm_term thy t =
             let
                 val rhs = Thm.rhs_of th
             in
-                transitive th (f rhs)
+                Thm.transitive th (f rhs)
             end
         val th =
             t |> disamb_bound thy
               |> chain (Simplifier.full_rewrite ss)
-              |> chain eta_conversion
+              |> chain Thm.eta_conversion
               |> Thm.strip_shyps
         val _ = message ("norm_term: " ^ (string_of_thm th))
     in
@@ -529,7 +529,7 @@ fun norm_thm thy th =
     let
         val c = prop_of th
     in
-        equal_elim (norm_term thy c) th
+        Thm.equal_elim (norm_term thy c) th
     end
 
 (* make_equal thy t u tries to construct the theorem t == u under the
@@ -540,7 +540,7 @@ fun make_equal thy t u =
     let
         val t_is_t' = norm_term thy t
         val u_is_u' = norm_term thy u
-        val th = transitive t_is_t' (symmetric u_is_u')
+        val th = Thm.transitive t_is_t' (Thm.symmetric u_is_u')
         val _ = message ("make_equal: SOME " ^ (string_of_thm th))
     in
         SOME th
@@ -593,7 +593,7 @@ fun set_prop thy t =
           | process ((name,th)::thms) =
             let
                 val norm_th = Thm.varifyT_global (norm_thm thy (close_thm (Thm.transfer thy th)))
-                val triv_th = trivial rhs
+                val triv_th = Thm.trivial rhs
                 val _ = message ("Shuffler.set_prop: Gluing together " ^ (string_of_thm norm_th) ^ " and " ^ (string_of_thm triv_th))
                 val mod_th = case Seq.pull (Thm.bicompose false (*true*) (false,norm_th,0) 1 triv_th) of
                                  SOME(th,_) => SOME th
@@ -602,7 +602,7 @@ fun set_prop thy t =
                 case mod_th of
                     SOME mod_th =>
                     let
-                        val closed_th = equal_elim (symmetric rew_th) mod_th
+                        val closed_th = Thm.equal_elim (Thm.symmetric rew_th) mod_th
                     in
                         message ("Shuffler.set_prop succeeded by " ^ name);
                         SOME (name,forall_elim_list (map (cterm_of thy) vars) closed_th)

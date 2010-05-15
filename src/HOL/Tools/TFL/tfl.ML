@@ -556,8 +556,8 @@ fun lazyR_def thy fid tflCongs eqns =
                            else ()
      val f_free = Free (fid, fastype_of f)  (*'cos f is a Const*)
      val SV' = map tych SV;
-     val SVrefls = map reflexive SV'
-     val def0 = (fold (fn x => fn th => R.rbeta(combination th x))
+     val SVrefls = map Thm.reflexive SV'
+     val def0 = (fold (fn x => fn th => R.rbeta(Thm.combination th x))
                    SVrefls def)
                 RS meta_eq_to_obj_eq
      val def' = R.MP (R.SPEC (tych R') (R.GEN (tych R1) baz)) def0

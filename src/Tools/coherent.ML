@@ -46,8 +46,8 @@ local open Conv in
 fun rulify_elim_conv ct =
   if is_atomic (Logic.strip_imp_concl (term_of ct)) then all_conv ct
   else concl_conv (length (Logic.strip_imp_prems (term_of ct)))
-    (rewr_conv (symmetric Data.atomize_elimL) then_conv
-     MetaSimplifier.rewrite true (map symmetric
+    (rewr_conv (Thm.symmetric Data.atomize_elimL) then_conv
+     MetaSimplifier.rewrite true (map Thm.symmetric
        [Data.atomize_exL, Data.atomize_conjL, Data.atomize_disjL])) ct
 
 end;

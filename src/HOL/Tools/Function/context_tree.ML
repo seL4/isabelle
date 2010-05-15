@@ -148,7 +148,7 @@ fun mk_tree fvar h ctxt t =
             val (r, dep, branches) = find_cong_rule ctx fvar h congs_deps t
             fun subtree (ctx', fixes, assumes, st) =
               ((fixes,
-                map (assume o cterm_of (ProofContext.theory_of ctx)) assumes),
+                map (Thm.assume o cterm_of (ProofContext.theory_of ctx)) assumes),
                mk_tree' ctx' st)
           in
             Cong (r, dep, map subtree branches)
@@ -165,7 +165,7 @@ fun inst_tree thy fvar f tr =
     fun inst_term t =
       subst_bound(f, abstract_over (fvar, t))
 
-    val inst_thm = forall_elim cf o forall_intr cfvar
+    val inst_thm = Thm.forall_elim cf o Thm.forall_intr cfvar
 
     fun inst_tree_aux (Leaf t) = Leaf t
       | inst_tree_aux (Cong (crule, deps, branches)) =
@@ -173,7 +173,7 @@ fun inst_tree thy fvar f tr =
       | inst_tree_aux (RCall (t, str)) =
         RCall (inst_term t, inst_tree_aux str)
     and inst_branch ((fxs, assms), str) =
-      ((fxs, map (assume o cterm_of thy o inst_term o prop_of) assms),
+      ((fxs, map (Thm.assume o cterm_of thy o inst_term o prop_of) assms),
        inst_tree_aux str)
   in
     inst_tree_aux tr
@@ -188,11 +188,11 @@ fun export_term (fixes, assumes) =
  #> fold_rev (Logic.all o Free) fixes
 
 fun export_thm thy (fixes, assumes) =
- fold_rev (implies_intr o cprop_of) assumes
- #> fold_rev (forall_intr o cterm_of thy o Free) fixes
+ fold_rev (Thm.implies_intr o cprop_of) assumes
+ #> fold_rev (Thm.forall_intr o cterm_of thy o Free) fixes
 
 fun import_thm thy (fixes, athms) =
- fold (forall_elim o cterm_of thy o Free) fixes
+ fold (Thm.forall_elim o cterm_of thy o Free) fixes
  #> fold Thm.elim_implies athms
 
 
@@ -241,7 +241,7 @@ fun traverse_tree rcOp tr =
 
 fun rewrite_by_tree thy h ih x tr =
   let
-    fun rewrite_help _ _ x (Leaf t) = (reflexive (cterm_of thy t), x)
+    fun rewrite_help _ _ x (Leaf t) = (Thm.reflexive (cterm_of thy t), x)
       | rewrite_help fix h_as x (RCall (_ $ arg, st)) =
         let
           val (inner, (lRi,ha)::x') = rewrite_help fix h_as x st (* "a' = a" *)
@@ -250,11 +250,11 @@ fun rewrite_by_tree thy h ih x tr =
             |> Conv.fconv_rule (Conv.arg_conv (Conv.comb_conv (Conv.arg_conv (K inner))))
                                                     (* (a, h a) : G   *)
           val inst_ih = instantiate' [] [SOME (cterm_of thy arg)] ih
-          val eq = implies_elim (implies_elim inst_ih lRi) iha (* h a = f a *)
+          val eq = Thm.implies_elim (Thm.implies_elim inst_ih lRi) iha (* h a = f a *)
 
-          val h_a'_eq_h_a = combination (reflexive (cterm_of thy h)) inner
+          val h_a'_eq_h_a = Thm.combination (Thm.reflexive (cterm_of thy h)) inner
           val h_a_eq_f_a = eq RS eq_reflection
-          val result = transitive h_a'_eq_h_a h_a_eq_f_a
+          val result = Thm.transitive h_a'_eq_h_a h_a_eq_f_a
         in
           (result, x')
         end

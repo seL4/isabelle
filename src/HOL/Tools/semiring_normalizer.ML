@@ -147,7 +147,7 @@ fun add {semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules),
       val semiring = (sr_ops, sr_rules');
       val ring = (r_ops, r_rules');
       val field = (f_ops, f_rules');
-      val ideal' = map (symmetric o mk_meta) ideal
+      val ideal' = map (Thm.symmetric o mk_meta) ideal
     in
       AList.delete Thm.eq_thm key #>
       cons (key, ({vars = vars, semiring = semiring, 
@@ -328,16 +328,16 @@ in fn variable_order =>
          ((let val (rx,rn) = dest_pow r
                val th1 = inst_thm [(cx,lx),(cp,ln),(cq,rn)] pthm_29
                 val (tm1,tm2) = Thm.dest_comb(concl th1) in
-               transitive th1 (Drule.arg_cong_rule tm1 (nat_add_conv tm2)) end)
+               Thm.transitive th1 (Drule.arg_cong_rule tm1 (nat_add_conv tm2)) end)
            handle CTERM _ =>
             (let val th1 = inst_thm [(cx,lx),(cq,ln)] pthm_31
                  val (tm1,tm2) = Thm.dest_comb(concl th1) in
-               transitive th1 (Drule.arg_cong_rule tm1 (nat_add_conv tm2)) end)) end)
+               Thm.transitive th1 (Drule.arg_cong_rule tm1 (nat_add_conv tm2)) end)) end)
        handle CTERM _ =>
            ((let val (rx,rn) = dest_pow r
                 val th1 = inst_thm [(cx,rx),(cq,rn)] pthm_30
                 val (tm1,tm2) = Thm.dest_comb(concl th1) in
-               transitive th1 (Drule.arg_cong_rule tm1 (nat_add_conv tm2)) end)
+               Thm.transitive th1 (Drule.arg_cong_rule tm1 (nat_add_conv tm2)) end)
            handle CTERM _ => inst_thm [(cx,l)] pthm_32
 
 ))
@@ -348,7 +348,7 @@ in fn variable_order =>
  fun monomial_deone th =
        (let val (l,r) = dest_mul(concl th) in
            if l aconvc one_tm
-          then transitive th (inst_thm [(ca,r)] pthm_13)  else th end)
+          then Thm.transitive th (inst_thm [(ca,r)] pthm_13)  else th end)
        handle CTERM _ => th;
 
 (* Conversion for "(monomial)^n", where n is a numeral.                      *)
@@ -357,7 +357,7 @@ in fn variable_order =>
   let
    fun monomial_pow tm bod ntm =
     if not(is_comb bod)
-    then reflexive tm
+    then Thm.reflexive tm
     else
      if is_semiring_constant bod
      then semiring_pow_conv tm
@@ -365,7 +365,7 @@ in fn variable_order =>
       let
       val (lopr,r) = Thm.dest_comb bod
       in if not(is_comb lopr)
-         then reflexive tm
+         then Thm.reflexive tm
         else
           let
           val (opr,l) = Thm.dest_comb lopr
@@ -374,7 +374,7 @@ in fn variable_order =>
           then
             let val th1 = inst_thm [(cx,l),(cp,r),(cq,ntm)] pthm_34
                 val (l,r) = Thm.dest_comb(concl th1)
-           in transitive th1 (Drule.arg_cong_rule l (nat_add_conv r))
+           in Thm.transitive th1 (Drule.arg_cong_rule l (nat_add_conv r))
            end
            else
             if opr aconvc mul_tm
@@ -385,9 +385,9 @@ in fn variable_order =>
               val (x,y) = Thm.dest_comb xy
               val thl = monomial_pow y l ntm
               val thr = monomial_pow z r ntm
-             in transitive th1 (combination (Drule.arg_cong_rule x thl) thr)
+             in Thm.transitive th1 (Thm.combination (Drule.arg_cong_rule x thl) thr)
              end
-             else reflexive tm
+             else Thm.reflexive tm
           end
       end
   in fn tm =>
@@ -436,18 +436,18 @@ in fn variable_order =>
              val (tm1,tm2) = Thm.dest_comb(concl th1)
              val (tm3,tm4) = Thm.dest_comb tm1
              val th2 = Drule.fun_cong_rule (Drule.arg_cong_rule tm3 (powvar_mul_conv tm4)) tm2
-             val th3 = transitive th1 th2
+             val th3 = Thm.transitive th1 th2
               val  (tm5,tm6) = Thm.dest_comb(concl th3)
               val  (tm7,tm8) = Thm.dest_comb tm6
              val  th4 = monomial_mul tm6 (Thm.dest_arg tm7) tm8
-         in  transitive th3 (Drule.arg_cong_rule tm5 th4)
+         in Thm.transitive th3 (Drule.arg_cong_rule tm5 th4)
          end
          else
           let val th0 = if ord < 0 then pthm_16 else pthm_17
              val th1 = inst_thm [(clx,lx),(cly,ly),(crx,rx),(cry,ry)] th0
              val (tm1,tm2) = Thm.dest_comb(concl th1)
              val (tm3,tm4) = Thm.dest_comb tm2
-         in transitive th1 (Drule.arg_cong_rule tm1 (monomial_mul tm2 (Thm.dest_arg tm3) tm4))
+         in Thm.transitive th1 (Drule.arg_cong_rule tm1 (monomial_mul tm2 (Thm.dest_arg tm3) tm4))
          end
         end)
        handle CTERM _ =>
@@ -459,14 +459,14 @@ in fn variable_order =>
                  val (tm1,tm2) = Thm.dest_comb(concl th1)
            val (tm3,tm4) = Thm.dest_comb tm1
            val th2 = Drule.fun_cong_rule (Drule.arg_cong_rule tm3 (powvar_mul_conv tm4)) tm2
-          in transitive th1 th2
+          in Thm.transitive th1 th2
           end
           else
           if ord < 0 then
             let val th1 = inst_thm [(clx,lx),(cly,ly),(crx,r)] pthm_19
                 val (tm1,tm2) = Thm.dest_comb(concl th1)
                 val (tm3,tm4) = Thm.dest_comb tm2
-           in transitive th1 (Drule.arg_cong_rule tm1 (monomial_mul tm2 (Thm.dest_arg tm3) tm4))
+           in Thm.transitive th1 (Drule.arg_cong_rule tm1 (monomial_mul tm2 (Thm.dest_arg tm3) tm4))
            end
            else inst_thm [(ca,l),(cb,r)] pthm_09
         end)) end)
@@ -480,22 +480,22 @@ in fn variable_order =>
               let val th1 = inst_thm [(clx,l),(crx,rx),(cry,ry)] pthm_21
                  val (tm1,tm2) = Thm.dest_comb(concl th1)
                  val (tm3,tm4) = Thm.dest_comb tm1
-             in transitive th1 (Drule.fun_cong_rule (Drule.arg_cong_rule tm3 (powvar_mul_conv tm4)) tm2)
+             in Thm.transitive th1 (Drule.fun_cong_rule (Drule.arg_cong_rule tm3 (powvar_mul_conv tm4)) tm2)
              end
              else if ord > 0 then
                  let val th1 = inst_thm [(clx,l),(crx,rx),(cry,ry)] pthm_22
                      val (tm1,tm2) = Thm.dest_comb(concl th1)
                     val (tm3,tm4) = Thm.dest_comb tm2
-                in transitive th1 (Drule.arg_cong_rule tm1 (monomial_mul tm2 (Thm.dest_arg tm3) tm4))
+                in Thm.transitive th1 (Drule.arg_cong_rule tm1 (monomial_mul tm2 (Thm.dest_arg tm3) tm4))
                 end
-             else reflexive tm
+             else Thm.reflexive tm
          end)
         handle CTERM _ =>
           (let val vr = powvar r
                val  ord = vorder vl vr
           in if ord = 0 then powvar_mul_conv tm
               else if ord > 0 then inst_thm [(ca,l),(cb,r)] pthm_09
-              else reflexive tm
+              else Thm.reflexive tm
           end)) end))
   in fn tm => let val (l,r) = dest_mul tm in monomial_deone(monomial_mul tm l r)
              end
@@ -511,8 +511,8 @@ in fn variable_order =>
           val th1 = inst_thm [(cx,l),(cy,y),(cz,z)] pthm_37
           val (tm1,tm2) = Thm.dest_comb(concl th1)
           val (tm3,tm4) = Thm.dest_comb tm1
-          val th2 = combination (Drule.arg_cong_rule tm3 (monomial_mul_conv tm4)) (pmm_conv tm2)
-      in transitive th1 th2
+          val th2 = Thm.combination (Drule.arg_cong_rule tm3 (monomial_mul_conv tm4)) (pmm_conv tm2)
+      in Thm.transitive th1 th2
       end)
      handle CTERM _ => monomial_mul_conv tm)
    end
@@ -537,11 +537,11 @@ fun monomial_add_conv tm =
          val (tm1,tm2) = Thm.dest_comb(concl th1)
          val (tm3,tm4) = Thm.dest_comb tm1
          val th2 = Drule.arg_cong_rule tm3 (semiring_add_conv tm4)
-         val th3 = transitive th1 (Drule.fun_cong_rule th2 tm2)
+         val th3 = Thm.transitive th1 (Drule.fun_cong_rule th2 tm2)
          val tm5 = concl th3
       in
       if (Thm.dest_arg1 tm5) aconvc zero_tm
-      then transitive th3 (inst_thm [(ca,Thm.dest_arg tm5)] pthm_11)
+      then Thm.transitive th3 (inst_thm [(ca,Thm.dest_arg tm5)] pthm_11)
       else monomial_deone th3
      end
  end;
@@ -603,9 +603,9 @@ val polynomial_add_conv =
        val l = Thm.dest_arg lopr
    in
     if l aconvc zero_tm
-    then transitive th (inst_thm [(ca,r)] pthm_07)   else
+    then Thm.transitive th (inst_thm [(ca,r)] pthm_07)   else
         if r aconvc zero_tm
-        then transitive th (inst_thm [(ca,l)] pthm_08)  else th
+        then Thm.transitive th (inst_thm [(ca,l)] pthm_08)  else th
    end
   end
  fun padd tm =
@@ -628,14 +628,14 @@ val polynomial_add_conv =
             val (tm1,tm2) = Thm.dest_comb(concl th1)
             val (tm3,tm4) = Thm.dest_comb tm1
             val th2 = Drule.arg_cong_rule tm3 (monomial_add_conv tm4)
-        in dezero_rule (transitive th1 (combination th2 (padd tm2)))
+        in dezero_rule (Thm.transitive th1 (Thm.combination th2 (padd tm2)))
         end
        else (* ord <> 0*)
         let val th1 =
                 if ord > 0 then inst_thm [(ca,a),(cb,b),(cc,r)] pthm_24
                 else inst_thm [(ca,l),(cc,c),(cd,d)] pthm_25
             val (tm1,tm2) = Thm.dest_comb(concl th1)
-        in dezero_rule (transitive th1 (Drule.arg_cong_rule tm1 (padd tm2)))
+        in dezero_rule (Thm.transitive th1 (Drule.arg_cong_rule tm1 (padd tm2)))
         end
       end
      else (* not (is_add r)*)
@@ -646,13 +646,13 @@ val polynomial_add_conv =
             val (tm1,tm2) = Thm.dest_comb(concl th1)
             val (tm3,tm4) = Thm.dest_comb tm1
             val th2 = Drule.fun_cong_rule (Drule.arg_cong_rule tm3 (monomial_add_conv tm4)) tm2
-        in dezero_rule (transitive th1 th2)
+        in dezero_rule (Thm.transitive th1 th2)
         end
        else (* ord <> 0*)
         if ord > 0 then
           let val th1 = inst_thm [(ca,a),(cb,b),(cc,r)] pthm_24
               val (tm1,tm2) = Thm.dest_comb(concl th1)
-          in dezero_rule (transitive th1 (Drule.arg_cong_rule tm1 (padd tm2)))
+          in dezero_rule (Thm.transitive th1 (Drule.arg_cong_rule tm1 (padd tm2)))
           end
         else dezero_rule (inst_thm [(ca,l),(cc,r)] pthm_27)
       end
@@ -667,21 +667,21 @@ val polynomial_add_conv =
              val (tm1,tm2) = Thm.dest_comb(concl th1)
              val (tm3,tm4) = Thm.dest_comb tm1
              val th2 = Drule.fun_cong_rule (Drule.arg_cong_rule tm3 (monomial_add_conv tm4)) tm2
-         in dezero_rule (transitive th1 th2)
+         in dezero_rule (Thm.transitive th1 th2)
          end
        else
-        if ord > 0 then reflexive tm
+        if ord > 0 then Thm.reflexive tm
         else
          let val th1 = inst_thm [(ca,l),(cc,c),(cd,d)] pthm_25
              val (tm1,tm2) = Thm.dest_comb(concl th1)
-         in dezero_rule (transitive th1 (Drule.arg_cong_rule tm1 (padd tm2)))
+         in dezero_rule (Thm.transitive th1 (Drule.arg_cong_rule tm1 (padd tm2)))
          end
       end
     else
      let val ord = morder l r
      in
       if ord = 0 then monomial_add_conv tm
-      else if ord > 0 then dezero_rule(reflexive tm)
+      else if ord > 0 then dezero_rule(Thm.reflexive tm)
       else dezero_rule (inst_thm [(ca,l),(cc,r)] pthm_27)
      end
   end
@@ -699,7 +699,7 @@ val polynomial_mul_conv =
     else
      if not(is_add r) then
       let val th1 = inst_thm [(ca,l),(cb,r)] pthm_09
-      in transitive th1 (polynomial_monomial_mul_conv(concl th1))
+      in Thm.transitive th1 (polynomial_monomial_mul_conv(concl th1))
       end
      else
        let val (a,b) = dest_add l
@@ -707,8 +707,8 @@ val polynomial_mul_conv =
            val (tm1,tm2) = Thm.dest_comb(concl th1)
            val (tm3,tm4) = Thm.dest_comb tm1
            val th2 = Drule.arg_cong_rule tm3 (polynomial_monomial_mul_conv tm4)
-           val th3 = transitive th1 (combination th2 (pmul tm2))
-       in transitive th3 (polynomial_add_conv (concl th3))
+           val th3 = Thm.transitive th1 (Thm.combination th2 (pmul tm2))
+       in Thm.transitive th3 (polynomial_add_conv (concl th3))
        end
    end
  in fn tm =>
@@ -740,9 +740,9 @@ val polynomial_pow_conv =
          let val th1 = num_conv n
              val th2 = inst_thm [(cx,l),(cq,Thm.dest_arg (concl th1))] pthm_38
              val (tm1,tm2) = Thm.dest_comb(concl th2)
-             val th3 = transitive th2 (Drule.arg_cong_rule tm1 (ppow tm2))
-             val th4 = transitive (Drule.arg_cong_rule (Thm.dest_fun tm) th1) th3
-         in transitive th4 (polynomial_mul_conv (concl th4))
+             val th3 = Thm.transitive th2 (Drule.arg_cong_rule tm1 (ppow tm2))
+             val th4 = Thm.transitive (Drule.arg_cong_rule (Thm.dest_fun tm) th1) th3
+         in Thm.transitive th4 (polynomial_mul_conv (concl th4))
          end
     end
  in fn tm =>
@@ -755,8 +755,8 @@ fun polynomial_neg_conv tm =
    let val (l,r) = Thm.dest_comb tm in
         if not (l aconvc neg_tm) then raise CTERM ("polynomial_neg_conv",[tm]) else
         let val th1 = inst_thm [(cx',r)] neg_mul
-            val th2 = transitive th1 (Conv.arg1_conv semiring_mul_conv (concl th1))
-        in transitive th2 (polynomial_monomial_mul_conv (concl th2))
+            val th2 = Thm.transitive th1 (Conv.arg1_conv semiring_mul_conv (concl th1))
+        in Thm.transitive th2 (polynomial_monomial_mul_conv (concl th2))
         end
    end;
 
@@ -767,51 +767,52 @@ fun polynomial_sub_conv tm =
       val th1 = inst_thm [(cx',l),(cy',r)] sub_add
       val (tm1,tm2) = Thm.dest_comb(concl th1)
       val th2 = Drule.arg_cong_rule tm1 (polynomial_neg_conv tm2)
-  in transitive th1 (transitive th2 (polynomial_add_conv (concl th2)))
+  in Thm.transitive th1 (Thm.transitive th2 (polynomial_add_conv (concl th2)))
   end;
 
 (* Conversion from HOL term.                                                 *)
 
 fun polynomial_conv tm =
  if is_semiring_constant tm then semiring_add_conv tm
- else if not(is_comb tm) then reflexive tm
+ else if not(is_comb tm) then Thm.reflexive tm
  else
   let val (lopr,r) = Thm.dest_comb tm
   in if lopr aconvc neg_tm then
        let val th1 = Drule.arg_cong_rule lopr (polynomial_conv r)
-       in transitive th1 (polynomial_neg_conv (concl th1))
+       in Thm.transitive th1 (polynomial_neg_conv (concl th1))
        end
      else if lopr aconvc inverse_tm then
        let val th1 = Drule.arg_cong_rule lopr (polynomial_conv r)
-       in transitive th1 (semiring_mul_conv (concl th1))
+       in Thm.transitive th1 (semiring_mul_conv (concl th1))
        end
      else
-       if not(is_comb lopr) then reflexive tm
+       if not(is_comb lopr) then Thm.reflexive tm
        else
          let val (opr,l) = Thm.dest_comb lopr
          in if opr aconvc pow_tm andalso is_numeral r
             then
               let val th1 = Drule.fun_cong_rule (Drule.arg_cong_rule opr (polynomial_conv l)) r
-              in transitive th1 (polynomial_pow_conv (concl th1))
+              in Thm.transitive th1 (polynomial_pow_conv (concl th1))
               end
          else if opr aconvc divide_tm 
             then
-              let val th1 = combination (Drule.arg_cong_rule opr (polynomial_conv l)) 
+              let val th1 = Thm.combination (Drule.arg_cong_rule opr (polynomial_conv l)) 
                                         (polynomial_conv r)
                   val th2 = (Conv.rewr_conv divide_inverse then_conv polynomial_mul_conv)
                               (Thm.rhs_of th1)
-              in transitive th1 th2
+              in Thm.transitive th1 th2
               end
             else
               if opr aconvc add_tm orelse opr aconvc mul_tm orelse opr aconvc sub_tm
               then
-               let val th1 = combination (Drule.arg_cong_rule opr (polynomial_conv l)) (polynomial_conv r)
+               let val th1 =
+                    Thm.combination (Drule.arg_cong_rule opr (polynomial_conv l)) (polynomial_conv r)
                    val f = if opr aconvc add_tm then polynomial_add_conv
                       else if opr aconvc mul_tm then polynomial_mul_conv
                       else polynomial_sub_conv
-               in transitive th1 (f (concl th1))
+               in Thm.transitive th1 (f (concl th1))
                end
-              else reflexive tm
+              else Thm.reflexive tm
          end
   end;
  in
@@ -852,7 +853,7 @@ fun semiring_normalize_wrapper ctxt data =
 
 fun semiring_normalize_ord_conv ctxt ord tm =
   (case match ctxt tm of
-    NONE => reflexive tm
+    NONE => Thm.reflexive tm
   | SOME res => semiring_normalize_ord_wrapper ctxt res ord tm);
  
 fun semiring_normalize_conv ctxt = semiring_normalize_ord_conv ctxt simple_cterm_ord;

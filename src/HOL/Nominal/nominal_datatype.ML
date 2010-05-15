@@ -602,7 +602,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         (fn _ => EVERY
            [indtac rep_induct [] 1,
             ALLGOALS (simp_tac (global_simpset_of thy4 addsimps
-              (symmetric perm_fun_def :: abs_perm))),
+              (Thm.symmetric perm_fun_def :: abs_perm))),
             ALLGOALS (resolve_tac rep_intrs THEN_ALL_NEW assume_tac)])),
         length new_type_names));
 
@@ -927,7 +927,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                simp_tac (HOL_basic_ss addsimps (Rep_thms @ Abs_inverse_thms @
                  constr_defs @ perm_closed_thms)) 1,
                TRY (simp_tac (HOL_basic_ss addsimps
-                 (symmetric perm_fun_def :: abs_perm)) 1),
+                 (Thm.symmetric perm_fun_def :: abs_perm)) 1),
                TRY (simp_tac (HOL_basic_ss addsimps
                  (perm_fun_def :: perm_defs @ Rep_thms @ Abs_inverse_thms @
                     perm_closed_thms)) 1)])
@@ -1077,7 +1077,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
          (indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms' 1),
-            simp_tac (HOL_basic_ss addsimps [symmetric r]) 1,
+            simp_tac (HOL_basic_ss addsimps [Thm.symmetric r]) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]);
 
@@ -1641,7 +1641,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                           fastype_of tuple --> HOLogic.mk_setT aT) $ tuple))]
                       supports_fresh) 1,
                     simp_tac (HOL_basic_ss addsimps
-                      [supports_def, symmetric fresh_def, fresh_prod]) 1,
+                      [supports_def, Thm.symmetric fresh_def, fresh_prod]) 1,
                     REPEAT_DETERM (resolve_tac [allI, impI] 1),
                     REPEAT_DETERM (etac conjE 1),
                     rtac unique 1,
@@ -1655,7 +1655,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                     rtac rec_prem 1,
                     simp_tac (HOL_ss addsimps (fs_name ::
                       supp_prod :: finite_Un :: finite_prems)) 1,
-                    simp_tac (HOL_ss addsimps (symmetric fresh_def ::
+                    simp_tac (HOL_ss addsimps (Thm.symmetric fresh_def ::
                       fresh_prod :: fresh_prems)) 1]
                  end))
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ eqvt_ths)
@@ -1746,7 +1746,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                asm_simp_tac (HOL_ss addsimps [supp_prod, finite_Un]) 1])
                 (finite_thss ~~ finite_ctxt_ths) @
             maps (fn ((_, idxss), elim) => maps (fn idxs =>
-              [full_simp_tac (HOL_ss addsimps [symmetric fresh_def, supp_prod, Un_iff]) 1,
+              [full_simp_tac (HOL_ss addsimps [Thm.symmetric fresh_def, supp_prod, Un_iff]) 1,
                REPEAT_DETERM (eresolve_tac [conjE, ex1E] 1),
                rtac ex1I 1,
                (resolve_tac rec_intrs THEN_ALL_NEW atac) 1,

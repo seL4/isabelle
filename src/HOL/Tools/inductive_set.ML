@@ -114,9 +114,9 @@ fun strong_ind_simproc tab =
             let val rews = map mk_rew ts
             in
               if forall is_none rews then NONE
-              else SOME (fold (fn th1 => fn th2 => combination th2 th1)
-                (map2 (fn SOME r => K r | NONE => reflexive o cterm_of thy)
-                   rews ts) (reflexive (cterm_of thy h)))
+              else SOME (fold (fn th1 => fn th2 => Thm.combination th2 th1)
+                (map2 (fn SOME r => K r | NONE => Thm.reflexive o cterm_of thy)
+                   rews ts) (Thm.reflexive (cterm_of thy h)))
             end
         | NONE => NONE)
       | _ => NONE

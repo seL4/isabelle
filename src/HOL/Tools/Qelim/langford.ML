@@ -22,7 +22,7 @@ in h [] end;
 fun prove_finite cT u = 
 let val [th0,th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
     fun ins x th =
-     implies_elim (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg)
+     Thm.implies_elim (instantiate' [] [(SOME o Thm.dest_arg o Thm.dest_arg)
                                      (Thm.cprop_of th), SOME x] th1) th
 in fold ins u th0 end;
 
@@ -51,17 +51,17 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
       (Const (@{const_name Orderings.bot}, _),_) =>  
         let
           val (neU,fU) = proveneF U 
-        in simp_rule (transitive ths (dlo_qeth_nolb OF [neU, fU])) end
+        in simp_rule (Thm.transitive ths (dlo_qeth_nolb OF [neU, fU])) end
     | (_,Const (@{const_name Orderings.bot}, _)) =>  
         let
           val (neL,fL) = proveneF L
-        in simp_rule (transitive ths (dlo_qeth_noub OF [neL, fL])) end
+        in simp_rule (Thm.transitive ths (dlo_qeth_noub OF [neL, fL])) end
 
     | (_,_) =>  
       let 
        val (neL,fL) = proveneF L
        val (neU,fU) = proveneF U
-      in simp_rule (transitive ths (dlo_qeth OF [neL, neU, fL, fU])) 
+      in simp_rule (Thm.transitive ths (dlo_qeth OF [neL, neU, fL, fU])) 
       end
    in qe end 
  | _ => error "dlo_qe : Not an existential formula";
@@ -101,8 +101,8 @@ fun prove_conj tab cjs =
 fun conj_aci_rule eq = 
  let 
   val (l,r) = Thm.dest_equals eq
-  fun tabl c = the (Termtab.lookup (mk_conj_tab (assume l)) (term_of c))
-  fun tabr c = the (Termtab.lookup (mk_conj_tab (assume r)) (term_of c))
+  fun tabl c = the (Termtab.lookup (mk_conj_tab (Thm.assume l)) (term_of c))
+  fun tabr c = the (Termtab.lookup (mk_conj_tab (Thm.assume r)) (term_of c))
   val ll = Thm.dest_arg l
   val rr = Thm.dest_arg r
   
@@ -111,7 +111,7 @@ fun conj_aci_rule eq =
   val thr  = prove_conj tabr (conjuncts ll) 
                 |> Drule.implies_intr_hyps
   val eqI = instantiate' [] [SOME ll, SOME rr] @{thm iffI}
- in implies_elim (implies_elim eqI thl) thr |> mk_meta_eq end;
+ in Thm.implies_elim (Thm.implies_elim eqI thl) thr |> mk_meta_eq end;
 
 fun contains x ct = member (op aconv) (OldTerm.term_frees (term_of ct)) (term_of x);
 
@@ -136,7 +136,7 @@ fun proc ct =
                       | _ =>
             conj_aci_rule (Thm.mk_binop @{cterm "op == :: prop => _"} Pp 
                  (Thm.capply @{cterm Trueprop} (list_conj (ndx @dx))))
-           |> abstract_rule xn x |> Drule.arg_cong_rule e 
+           |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
                    (Simplifier.rewrite 
                       (HOL_basic_ss addsimps (simp_thms @ ex_simps))))
@@ -144,7 +144,7 @@ fun proc ct =
           end
     | _ => conj_aci_rule (Thm.mk_binop @{cterm "op == :: prop => _"} Pp 
                  (Thm.capply @{cterm Trueprop} (list_conj (eqs@neqs))))
-           |> abstract_rule xn x |> Drule.arg_cong_rule e 
+           |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
                    (Simplifier.rewrite 
                 (HOL_basic_ss addsimps (simp_thms @ ex_simps)))) 
@@ -167,7 +167,7 @@ fun raw_dlo_conv dlo_ss
                 @ [@{thm "all_not_ex"}, not_all, ex_disj_distrib])
  in fn p => 
    Qelim.gen_qelim_conv pcv pcv dnfex_conv cons 
-                  (Thm.add_cterm_frees p [])  (K reflexive) (K reflexive)
+                  (Thm.add_cterm_frees p [])  (K Thm.reflexive) (K Thm.reflexive)
                   (K (basic_dloqe () gst qe_bnds qe_nolb qe_noub gs)) p
  end;
 
@@ -212,7 +212,7 @@ fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
    fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
- in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
+ in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));
 
 
 fun cfrees ats ct =

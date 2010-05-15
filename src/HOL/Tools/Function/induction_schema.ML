@@ -226,7 +226,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
          HOLogic.mk_Trueprop (P_comp $ Bound 0)))
       |> cert
 
-    val aihyp = assume ihyp
+    val aihyp = Thm.assume ihyp
 
     (* Rule for case splitting along the sum types *)
     val xss = map (fn (SchemeBranch { xs, ... }) => map Free xs) branches
@@ -237,9 +237,9 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
     fun prove_branch (bidx, (SchemeBranch { P, xs, ws, Cs, ... }, (complete_thm, pat))) =
       let
         val fxs = map Free xs
-        val branch_hyp = assume (cert (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, pat))))
+        val branch_hyp = Thm.assume (cert (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, pat))))
 
-        val C_hyps = map (cert #> assume) Cs
+        val C_hyps = map (cert #> Thm.assume) Cs
 
         val (relevant_cases, ineqss') =
           (scases_idx ~~ ineqss)
@@ -248,32 +248,33 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
 
         fun prove_case (cidx, SchemeCase {qs, gs, lhs, rs, ...}) ineq_press =
           let
-            val case_hyps = map (assume o cert o HOLogic.mk_Trueprop o HOLogic.mk_eq) (fxs ~~ lhs)
+            val case_hyps =
+              map (Thm.assume o cert o HOLogic.mk_Trueprop o HOLogic.mk_eq) (fxs ~~ lhs)
 
             val cqs = map (cert o Free) qs
-            val ags = map (assume o cert) gs
+            val ags = map (Thm.assume o cert) gs
 
             val replace_x_ss = HOL_basic_ss addsimps (branch_hyp :: case_hyps)
             val sih = full_simplify replace_x_ss aihyp
 
             fun mk_Prec (idx, Gvs, Gas, rcargs) (ineq, pres) =
               let
-                val cGas = map (assume o cert) Gas
+                val cGas = map (Thm.assume o cert) Gas
                 val cGvs = map (cert o Free) Gvs
-                val import = fold forall_elim (cqs @ cGvs)
+                val import = fold Thm.forall_elim (cqs @ cGvs)
                   #> fold Thm.elim_implies (ags @ cGas)
                 val ipres = pres
-                  |> forall_elim (cert (list_comb (P_of idx, rcargs)))
+                  |> Thm.forall_elim (cert (list_comb (P_of idx, rcargs)))
                   |> import
               in
                 sih
-                |> forall_elim (cert (inject idx rcargs))
+                |> Thm.forall_elim (cert (inject idx rcargs))
                 |> Thm.elim_implies (import ineq) (* Psum rcargs *)
                 |> Conv.fconv_rule sum_prod_conv
                 |> Conv.fconv_rule ind_rulify
                 |> (fn th => th COMP ipres) (* P rs *)
-                |> fold_rev (implies_intr o cprop_of) cGas
-                |> fold_rev forall_intr cGvs
+                |> fold_rev (Thm.implies_intr o cprop_of) cGas
+                |> fold_rev Thm.forall_intr cGvs
               end
 
             val P_recs = map2 mk_Prec rs ineq_press   (*  [P rec1, P rec2, ... ]  *)
@@ -288,13 +289,13 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
               foldl1 (uncurry Conv.combination_conv)
                 (Conv.all_conv :: map (fn ch => K (Thm.symmetric (ch RS eq_reflection))) case_hyps)
 
-            val res = assume step
-              |> fold forall_elim cqs
+            val res = Thm.assume step
+              |> fold Thm.forall_elim cqs
               |> fold Thm.elim_implies ags
               |> fold Thm.elim_implies P_recs (* P lhs *)
               |> Conv.fconv_rule (Conv.arg_conv Plhs_to_Pxs_conv) (* P xs *)
-              |> fold_rev (implies_intr o cprop_of) (ags @ case_hyps)
-              |> fold_rev forall_intr cqs (* !!qs. Gas ==> xs = lhss ==> P xs *)
+              |> fold_rev (Thm.implies_intr o cprop_of) (ags @ case_hyps)
+              |> fold_rev Thm.forall_intr cqs (* !!qs. Gas ==> xs = lhss ==> P xs *)
           in
             (res, (cidx, step))
           end
@@ -302,12 +303,12 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
         val (cases, steps) = split_list (map2 prove_case relevant_cases ineqss')
 
         val bstep = complete_thm
-          |> forall_elim (cert (list_comb (P, fxs)))
-          |> fold (forall_elim o cert) (fxs @ map Free ws)
+          |> Thm.forall_elim (cert (list_comb (P, fxs)))
+          |> fold (Thm.forall_elim o cert) (fxs @ map Free ws)
           |> fold Thm.elim_implies C_hyps
           |> fold Thm.elim_implies cases (* P xs *)
-          |> fold_rev (implies_intr o cprop_of) C_hyps
-          |> fold_rev (forall_intr o cert o Free) ws
+          |> fold_rev (Thm.implies_intr o cprop_of) C_hyps
+          |> fold_rev (Thm.forall_intr o cert o Free) ws
 
         val Pxs = cert (HOLogic.mk_Trueprop (P_comp $ x))
           |> Goal.init
@@ -316,8 +317,8 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
           |> Seq.hd
           |> Thm.elim_implies (Conv.fconv_rule Drule.beta_eta_conversion bstep)
           |> Goal.finish ctxt
-          |> implies_intr (cprop_of branch_hyp)
-          |> fold_rev (forall_intr o cert) fxs
+          |> Thm.implies_intr (cprop_of branch_hyp)
+          |> fold_rev (Thm.forall_intr o cert) fxs
       in
         (Pxs, steps)
       end
@@ -328,8 +329,8 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
 
     val istep = sum_split_rule
       |> fold (fn b => fn th => Drule.compose_single (b, 1, th)) branches
-      |> implies_intr ihyp
-      |> forall_intr (cert x) (* "!!x. (!!y<x. P y) ==> P x" *)
+      |> Thm.implies_intr ihyp
+      |> Thm.forall_intr (cert x) (* "!!x. (!!y<x. P y) ==> P x" *)
 
     val induct_rule =
       @{thm "wf_induct_rule"}
@@ -353,10 +354,10 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
     val cert = cterm_of (ProofContext.theory_of ctxt)
 
     val ineqss = mk_ineqs R scheme
-      |> map (map (pairself (assume o cert)))
+      |> map (map (pairself (Thm.assume o cert)))
     val complete =
-      map_range (mk_completeness ctxt scheme #> cert #> assume) (length branches)
-    val wf_thm = mk_wf R scheme |> cert |> assume
+      map_range (mk_completeness ctxt scheme #> cert #> Thm.assume) (length branches)
+    val wf_thm = mk_wf R scheme |> cert |> Thm.assume
 
     val (descent, pres) = split_list (flat ineqss)
     val newgoals = complete @ pres @ wf_thm :: descent
@@ -377,7 +378,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
       end
 
     val res = Conjunction.intr_balanced (map_index project branches)
-      |> fold_rev implies_intr (map cprop_of newgoals @ steps)
+      |> fold_rev Thm.implies_intr (map cprop_of newgoals @ steps)
       |> Drule.generalize ([], [Rn])
 
     val nbranches = length branches

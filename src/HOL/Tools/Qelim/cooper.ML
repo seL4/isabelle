@@ -331,7 +331,7 @@ fun linearize_conv ctxt vs ct = case term_of ct of
 | t => if is_intrel t
       then (provelin ctxt ((HOLogic.eq_const bT)$t$(lin vs t) |> HOLogic.mk_Trueprop))
        RS eq_reflection
-      else reflexive ct;
+      else Thm.reflexive ct;
 
 val dvdc = @{cterm "op dvd :: int => _"};
 
@@ -369,7 +369,7 @@ fun unify ctxt q =
       (Thm.capply @{cterm Trueprop} (Thm.capply @{cterm "Not"}
            (Thm.capply (Thm.capply @{cterm "op = :: int => _"} (Numeral.mk_cnumber @{ctyp "int"} x))
            @{cterm "0::int"})))
-   in equal_elim (Thm.symmetric th) TrueI end;
+   in Thm.equal_elim (Thm.symmetric th) TrueI end;
   val notz =
     let val tab = fold Inttab.update
           (ds ~~ (map (fn x => nzprop (l div x)) ds)) Inttab.empty
@@ -412,11 +412,11 @@ fun unify ctxt q =
   val ltx = Thm.capply (Thm.capply cmulC clt) cx
   val th = Drule.arg_cong_rule e (Thm.abstract_rule (fst (dest_Free x )) cx uth)
   val th' = inst' [Thm.cabs ltx (Thm.rhs_of uth), clt] unity_coeff_ex
-  val thf = transitive th
-      (transitive (symmetric (beta_conversion true (cprop_of th' |> Thm.dest_arg1))) th')
+  val thf = Thm.transitive th
+      (Thm.transitive (Thm.symmetric (Thm.beta_conversion true (cprop_of th' |> Thm.dest_arg1))) th')
   val (lth,rth) = Thm.dest_comb (cprop_of thf) |>> Thm.dest_arg |>> Thm.beta_conversion true
-                  ||> beta_conversion true |>> Thm.symmetric
- in transitive (transitive lth thf) rth end;
+                  ||> Thm.beta_conversion true |>> Thm.symmetric
+ in Thm.transitive (Thm.transitive lth thf) rth end;
 
 
 val emptyIS = @{cterm "{}::int set"};
@@ -459,7 +459,7 @@ let
      Simplifier.rewrite lin_ss
       (Thm.capply @{cterm Trueprop}
            (Thm.capply (Thm.capply dvdc (Numeral.mk_cnumber @{ctyp "int"} x)) cd))
-   in equal_elim (Thm.symmetric th) TrueI end;
+   in Thm.equal_elim (Thm.symmetric th) TrueI end;
  val dvd =
    let val tab = fold Inttab.update (ds ~~ (map divprop ds)) Inttab.empty in
      fn ct => the (Inttab.lookup tab (term_of ct |> dest_number))
@@ -471,7 +471,7 @@ let
    let val th = Simplifier.rewrite lin_ss
       (Thm.capply @{cterm Trueprop}
            (Thm.capply (Thm.capply @{cterm "op < :: int => _"} @{cterm "0::int"}) cd))
-   in equal_elim (Thm.symmetric th) TrueI end;
+   in Thm.equal_elim (Thm.symmetric th) TrueI end;
     (* A and B set *)
    local
      val insI1 = instantiate' [SOME @{ctyp "int"}] [] @{thm "insertI1"}
@@ -483,7 +483,7 @@ let
       | Const(@{const_name insert}, _) $ y $ _ =>
          let val (cy,S') = Thm.dest_binop S
          in if term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
-         else implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
+         else Thm.implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
                            (provein x S')
          end
    end
@@ -494,14 +494,14 @@ let
    if length (distinct (op aconv) bl) <= length (distinct (op aconv) al)
    then
     (bl,b0,decomp_minf,
-     fn B => (map (fn th => implies_elim (Thm.instantiate ([],[(B_tm,B), (D_tm,cd)]) th) dp)
+     fn B => (map (fn th => Thm.implies_elim (Thm.instantiate ([],[(B_tm,B), (D_tm,cd)]) th) dp)
                      [bseteq,bsetneq,bsetlt, bsetle, bsetgt,bsetge])@
                    (map (Thm.instantiate ([],[(B_tm,B), (D_tm,cd)]))
                         [bsetdvd,bsetndvd,bsetP,infDdvd, infDndvd,bsetconj,
                          bsetdisj,infDconj, infDdisj]),
                        cpmi)
      else (al,a0,decomp_pinf,fn A =>
-          (map (fn th => implies_elim (Thm.instantiate ([],[(A_tm,A), (D_tm,cd)]) th) dp)
+          (map (fn th => Thm.implies_elim (Thm.instantiate ([],[(A_tm,A), (D_tm,cd)]) th) dp)
                    [aseteq,asetneq,asetlt, asetle, asetgt,asetge])@
                    (map (Thm.instantiate ([],[(A_tm,A), (D_tm,cd)]))
                    [asetdvd,asetndvd, asetP, infDdvd, infDndvd,asetconj,
@@ -776,7 +776,7 @@ fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
    fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
    val ts = sort (fn (a,b) => Term_Ord.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
- in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
+ in Thm.implies_intr p' (Thm.implies_elim st (fold Thm.forall_elim ts (Thm.assume p'))) end));
 
 local
 val ss1 = comp_ss
@@ -792,7 +792,7 @@ val ss2 = HOL_basic_ss
             @{thm "number_of2"}, @{thm "int_0"}, @{thm "int_1"}, @{thm "Suc_eq_plus1"}]
   addcongs [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
 val div_mod_ss = HOL_basic_ss addsimps @{thms simp_thms}
-  @ map (symmetric o mk_meta_eq) 
+  @ map (Thm.symmetric o mk_meta_eq) 
     [@{thm "dvd_eq_mod_eq_0"},
      @{thm "mod_add_left_eq"}, @{thm "mod_add_right_eq"}, 
      @{thm "mod_add_eq"}, @{thm "div_add1_eq"}, @{thm "zdiv_zadd1_eq"}]
@@ -823,7 +823,7 @@ fun core_tac ctxt = CSUBGOAL (fn (p, i) =>
        then oracle (ctxt, Envir.beta_norm (Pattern.eta_long [] (term_of (Thm.dest_arg p))))
        else Conv.arg_conv (conv ctxt) p
     val p' = Thm.rhs_of cpth
-    val th = implies_intr p' (equal_elim (symmetric cpth) (assume p'))
+    val th = Thm.implies_intr p' (Thm.equal_elim (Thm.symmetric cpth) (Thm.assume p'))
    in rtac th i end
    handle COOPER _ => no_tac);
 

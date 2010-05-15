@@ -89,7 +89,7 @@ fun find_tname var Bi =
 fun exhaust_induct_tac exh ctxt var i state =
   let
     val thy = ProofContext.theory_of ctxt
-    val (_, _, Bi, _) = dest_state (state, i)
+    val (_, _, Bi, _) = Thm.dest_state (state, i)
     val tn = find_tname var Bi
     val rule =
         if exh then #exhaustion (datatype_info thy tn)

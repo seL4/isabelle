@@ -483,8 +483,8 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
            [(indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),
             rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
-              symmetric (mk_meta_eq @{thm expand_fun_eq}) :: range_eqs),
-            rewrite_goals_tac (map symmetric range_eqs),
+              Thm.symmetric (mk_meta_eq @{thm expand_fun_eq}) :: range_eqs),
+            rewrite_goals_tac (map Thm.symmetric range_eqs),
             REPEAT (EVERY
               [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
                  maps (mk_funs_inv thy5 o #1) newT_iso_axms) 1),
@@ -621,7 +621,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
          (indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms 1),
-            simp_tac (HOL_basic_ss addsimps ((symmetric r)::Rep_inverse_thms')) 1,
+            simp_tac (HOL_basic_ss addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ (constr_defs @ (map mk_meta_eq iso_char_thms))))]);
 
