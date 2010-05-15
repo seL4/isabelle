@@ -203,7 +203,7 @@ val _ = Context.>> (Context.map_theory
 
 fun add a b c x =
   (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) --
-    Scan.option OuterParse.nat) >> (fn (f, n) => f n)) x;
+    Scan.option Parse.nat) >> (fn (f, n) => f n)) x;
 
 val _ = Context.>> (Context.map_theory
  (Attrib.setup (Binding.name "intro") (add intro_bang intro intro_query)

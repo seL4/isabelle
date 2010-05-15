@@ -312,8 +312,8 @@ end;
 (** lexicalstructure element with keywords (PGIP version of elisp keywords file) **)
 
 fun lexicalstructure_keywords () =
-    let val keywords = OuterKeyword.dest_keywords ()
-        val commands = OuterKeyword.dest_commands ()
+    let val keywords = Keyword.dest_keywords ()
+        val commands = Keyword.dest_commands ()
         fun keyword_elt kind keyword =
             XML.Elem("keyword", [("word", keyword), ("category", kind)], [])
         in
@@ -1013,8 +1013,8 @@ end
 (* Extra command for embedding prover-control inside document (obscure/debug usage). *)
 
 fun init_outer_syntax () =
-  OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" OuterKeyword.control
-    (OuterParse.text >> (Toplevel.no_timing oo
+  OuterSyntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
+    (Parse.text >> (Toplevel.no_timing oo
       (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
 
 

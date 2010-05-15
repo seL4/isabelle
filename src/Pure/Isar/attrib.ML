@@ -48,7 +48,6 @@ structure Attrib: ATTRIB =
 struct
 
 structure T = OuterLex;
-structure P = OuterParse;
 
 
 (* source and bindings *)
@@ -168,10 +167,10 @@ fun add_del add del = Scan.lift (Args.add >> K add || Args.del >> K del || Scan.
 
 (** parsing attributed theorems **)
 
-val thm_sel = P.$$$ "(" |-- P.list1
- (P.nat --| P.minus -- P.nat >> Facts.FromTo ||
-  P.nat --| P.minus >> Facts.From ||
-  P.nat >> Facts.Single) --| P.$$$ ")";
+val thm_sel = Parse.$$$ "(" |-- Parse.list1
+ (Parse.nat --| Parse.minus -- Parse.nat >> Facts.FromTo ||
+  Parse.nat --| Parse.minus >> Facts.From ||
+  Parse.nat >> Facts.Single) --| Parse.$$$ ")";
 
 local
 
@@ -184,7 +183,7 @@ fun gen_thm pick = Scan.depend (fn context =>
     val get_fact = get o Facts.Fact;
     fun get_named pos name = get (Facts.Named ((name, pos), NONE));
   in
-    P.$$$ "[" |-- Args.attribs (intern thy) --| P.$$$ "]" >> (fn srcs =>
+    Parse.$$$ "[" |-- Args.attribs (intern thy) --| Parse.$$$ "]" >> (fn srcs =>
       let
         val atts = map (attribute_i thy) srcs;
         val (context', th') = Library.apply atts (context, Drule.dummy_thm);
@@ -192,7 +191,7 @@ fun gen_thm pick = Scan.depend (fn context =>
     ||
     (Scan.ahead Args.alt_name -- Args.named_fact get_fact
       >> (fn (s, fact) => ("", Facts.Fact s, fact)) ||
-     Scan.ahead (P.position fact_name) :|-- (fn (name, pos) =>
+     Scan.ahead (Parse.position fact_name) :|-- (fn (name, pos) =>
       Args.named_fact (get_named pos) -- Scan.option thm_sel
         >> (fn (fact, sel) => (name, Facts.Named ((name, pos), sel), fact))))
     -- Args.opt_attribs (intern thy) >> (fn ((name, thmref, fact), srcs) =>
@@ -223,11 +222,11 @@ fun internal att = Args.src (("Pure.attribute", [T.mk_attribute att]), Position.
 (* rule composition *)
 
 val COMP_att =
-  Scan.lift (Scan.optional (Args.bracks P.nat) 1) -- thm
+  Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- thm
     >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => Drule.compose_single (A, i, B)));
 
 val THEN_att =
-  Scan.lift (Scan.optional (Args.bracks P.nat) 1) -- thm
+  Scan.lift (Scan.optional (Args.bracks Parse.nat) 1) -- thm
     >> (fn (i, B) => Thm.rule_attribute (fn _ => fn A => A RSN (i, B)));
 
 val OF_att =
@@ -267,7 +266,7 @@ val no_vars = Thm.rule_attribute (fn context => fn th =>
 val eta_long =
   Thm.rule_attribute (K (Conv.fconv_rule Drule.eta_long_conversion));
 
-val rotated = Scan.optional P.int 1 >> (fn n => Thm.rule_attribute (K (rotate_prems n)));
+val rotated = Scan.optional Parse.int 1 >> (fn n => Thm.rule_attribute (K (rotate_prems n)));
 
 
 (* theory setup *)
@@ -285,9 +284,9 @@ val _ = Context.>> (Context.map_theory
     "rename bound variables in abstractions" #>
   setup (Binding.name "unfolded") unfolded "unfolded definitions" #>
   setup (Binding.name "folded") folded "folded definitions" #>
-  setup (Binding.name "consumes") (Scan.lift (Scan.optional P.nat 1) >> Rule_Cases.consumes)
+  setup (Binding.name "consumes") (Scan.lift (Scan.optional Parse.nat 1) >> Rule_Cases.consumes)
     "number of consumed facts" #>
-  setup (Binding.name "constraints") (Scan.lift P.nat >> Rule_Cases.constraints)
+  setup (Binding.name "constraints") (Scan.lift Parse.nat >> Rule_Cases.constraints)
     "number of equality constraints" #>
   setup (Binding.name "case_names") (Scan.lift (Scan.repeat1 Args.name) >> Rule_Cases.case_names)
     "named rule cases" #>
@@ -295,7 +294,7 @@ val _ = Context.>> (Context.map_theory
     (Scan.lift (Args.name -- Scan.repeat Args.name) >> Rule_Cases.case_conclusion)
     "named conclusion of rule cases" #>
   setup (Binding.name "params")
-    (Scan.lift (P.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params)
+    (Scan.lift (Parse.and_list1 (Scan.repeat Args.name)) >> Rule_Cases.params)
     "named rule parameters" #>
   setup (Binding.name "standard") (Scan.succeed (Thm.rule_attribute (K Drule.export_without_context)))
     "result put into standard form (legacy)" #>
@@ -345,13 +344,13 @@ fun print_configs ctxt =
 
 local
 
-val equals = P.$$$ "=";
+val equals = Parse.$$$ "=";
 
 fun scan_value (Config.Bool _) =
       equals -- Args.$$$ "false" >> K (Config.Bool false) ||
       equals -- Args.$$$ "true" >> K (Config.Bool true) ||
       Scan.succeed (Config.Bool true)
-  | scan_value (Config.Int _) = equals |-- P.int >> Config.Int
+  | scan_value (Config.Int _) = equals |-- Parse.int >> Config.Int
   | scan_value (Config.String _) = equals |-- Args.name >> Config.String;
 
 fun scan_config thy config =

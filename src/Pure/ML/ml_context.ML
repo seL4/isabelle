@@ -112,11 +112,10 @@ end;
 
 local
 
-structure P = OuterParse;
 structure T = OuterLex;
 
 val antiq =
-  P.!!! (P.position P.xname -- Args.parse --| Scan.ahead P.eof)
+  Parse.!!! (Parse.position Parse.xname -- Args.parse --| Scan.ahead Parse.eof)
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
 
 val begin_env = ML_Lex.tokenize "structure Isabelle =\nstruct\n";
@@ -138,7 +137,7 @@ fun eval_antiquotes (ants, pos) opt_context =
               NONE => error ("No context -- cannot expand ML antiquotations" ^ Position.str_of pos)
             | SOME ctxt => Context.proof_of ctxt);
 
-          val lex = #1 (OuterKeyword.get_lexicons ());
+          val lex = #1 (Keyword.get_lexicons ());
           fun no_decl _ = ([], []);
 
           fun expand (Antiquote.Text tok) state = (K ([], [tok]), state)

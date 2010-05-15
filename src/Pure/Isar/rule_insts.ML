@@ -30,7 +30,6 @@ structure RuleInsts: RULE_INSTS =
 struct
 
 structure T = OuterLex;
-structure P = OuterParse;
 
 
 (** reading instantiations **)
@@ -215,14 +214,14 @@ val value =
   Args.internal_term >> T.Term ||
   Args.name_source >> T.Text;
 
-val inst = Args.var -- (Args.$$$ "=" |-- Scan.ahead P.not_eof -- value)
+val inst = Args.var -- (Args.$$$ "=" |-- Scan.ahead Parse.not_eof -- value)
   >> (fn (xi, (a, v)) => (a, (xi, v)));
 
 in
 
 val _ = Context.>> (Context.map_theory
   (Attrib.setup (Binding.name "where")
-    (Scan.lift (P.and_list inst) >> (fn args =>
+    (Scan.lift (Parse.and_list inst) >> (fn args =>
       Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)))
     "named instantiation of theorem"));
 
@@ -237,7 +236,7 @@ val value =
   Args.internal_term >> T.Term ||
   Args.name_source >> T.Text;
 
-val inst = Scan.ahead P.not_eof -- Args.maybe value;
+val inst = Scan.ahead Parse.not_eof -- Args.maybe value;
 val concl = Args.$$$ "concl" -- Args.colon;
 
 val insts =
@@ -387,7 +386,8 @@ fun subgoals_tac ctxt As = EVERY' (map (subgoal_tac ctxt) As);
 fun method inst_tac tac =
   Args.goal_spec --
   Scan.optional (Scan.lift
-    (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) [] --
+    (Parse.and_list1 (Args.var -- (Args.$$$ "=" |-- Parse.!!! Args.name_source)) --|
+      Args.$$$ "in")) [] --
   Attrib.thms >>
   (fn ((quant, insts), thms) => fn ctxt => METHOD (fn facts =>
     if null insts then quant (Method.insert_tac facts THEN' tac ctxt thms)
@@ -425,5 +425,5 @@ val _ = Context.>> (Context.map_theory
 
 end;
 
-structure BasicRuleInsts: BASIC_RULE_INSTS = RuleInsts;
-open BasicRuleInsts;
+structure Basic_Rule_Insts: BASIC_RULE_INSTS = RuleInsts;
+open Basic_Rule_Insts;

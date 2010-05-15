@@ -465,28 +465,27 @@ fun find_theorems_cmd ((opt_lim, rem_dups), spec) =
 
 local
 
-structure P = OuterParse and K = OuterKeyword;
-
 val criterion =
-  P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> Name ||
-  P.reserved "intro" >> K Intro ||
-  P.reserved "introiff" >> K IntroIff ||
-  P.reserved "elim" >> K Elim ||
-  P.reserved "dest" >> K Dest ||
-  P.reserved "solves" >> K Solves ||
-  P.reserved "simp" |-- P.!!! (P.$$$ ":" |-- P.term) >> Simp ||
-  P.term >> Pattern;
+  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Name ||
+  Parse.reserved "intro" >> K Intro ||
+  Parse.reserved "introiff" >> K IntroIff ||
+  Parse.reserved "elim" >> K Elim ||
+  Parse.reserved "dest" >> K Dest ||
+  Parse.reserved "solves" >> K Solves ||
+  Parse.reserved "simp" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.term) >> Simp ||
+  Parse.term >> Pattern;
 
 val options =
   Scan.optional
-    (P.$$$ "(" |--
-      P.!!! (Scan.option P.nat -- Scan.optional (P.reserved "with_dups" >> K false) true
-        --| P.$$$ ")")) (NONE, true);
+    (Parse.$$$ "(" |--
+      Parse.!!! (Scan.option Parse.nat -- Scan.optional (Parse.reserved "with_dups" >> K false) true
+        --| Parse.$$$ ")")) (NONE, true);
 in
 
 val _ =
-  OuterSyntax.improper_command "find_theorems" "print theorems meeting specified criteria" K.diag
-    (options -- Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+  OuterSyntax.improper_command "find_theorems" "print theorems meeting specified criteria"
+    Keyword.diag
+    (options -- Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion))
       >> (Toplevel.no_timing oo find_theorems_cmd));
 
 end;

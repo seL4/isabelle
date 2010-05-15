@@ -43,7 +43,7 @@ fun setup name style thy =
 
 (* style parsing *)
 
-fun parse_single ctxt = OuterParse.position (OuterParse.xname -- Args.parse)
+fun parse_single ctxt = Parse.position (Parse.xname -- Args.parse)
   >> (fn x as ((name, _), _) => fst (Args.context_syntax "style"
        (Scan.lift (the_style (ProofContext.theory_of ctxt) name))
          (Args.src x) ctxt |>> (fn f => f ctxt)));

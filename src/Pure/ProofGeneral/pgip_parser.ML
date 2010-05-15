@@ -12,7 +12,6 @@ end
 structure PgipParser: PGIP_PARSER =
 struct
 
-structure K = OuterKeyword;
 structure D = PgipMarkup;
 structure I = PgipIsabelle;
 
@@ -51,42 +50,42 @@ fun proofstep text = [D.Proofstep {text = text}];
 fun closegoal text = [D.Closegoal {text = text}, D.Closeblock {}];
 
 
-fun command k f = Symtab.update_new (OuterKeyword.kind_of k, f);
+fun command k f = Symtab.update_new (Keyword.kind_of k, f);
 
 val command_keywords = Symtab.empty
-  |> command K.control          badcmd
-  |> command K.diag             (fn text => [D.Spuriouscmd {text = text}])
-  |> command K.thy_begin        thy_begin
-  |> command K.thy_switch       badcmd
-  |> command K.thy_end          (fn text => [D.Closeblock {}, D.Closetheory {text = text}])
-  |> command K.thy_heading      thy_heading
-  |> command K.thy_decl         thy_decl
-  |> command K.thy_script       thy_decl
-  |> command K.thy_goal         goal
-  |> command K.thy_schematic_goal goal
-  |> command K.qed              closegoal
-  |> command K.qed_block        closegoal
-  |> command K.qed_global       (fn text => [D.Giveupgoal {text = text}])
-  |> command K.prf_heading      (fn text => [D.Doccomment {text = text}])
-  |> command K.prf_goal         goal
-  |> command K.prf_block        prf_block
-  |> command K.prf_open         prf_open
-  |> command K.prf_close        (fn text => [D.Proofstep {text = text}, D.Closeblock {}])
-  |> command K.prf_chain        proofstep
-  |> command K.prf_decl         proofstep
-  |> command K.prf_asm          proofstep
-  |> command K.prf_asm_goal     goal
-  |> command K.prf_script       proofstep;
+  |> command Keyword.control          badcmd
+  |> command Keyword.diag             (fn text => [D.Spuriouscmd {text = text}])
+  |> command Keyword.thy_begin        thy_begin
+  |> command Keyword.thy_switch       badcmd
+  |> command Keyword.thy_end          (fn text => [D.Closeblock {}, D.Closetheory {text = text}])
+  |> command Keyword.thy_heading      thy_heading
+  |> command Keyword.thy_decl         thy_decl
+  |> command Keyword.thy_script       thy_decl
+  |> command Keyword.thy_goal         goal
+  |> command Keyword.thy_schematic_goal goal
+  |> command Keyword.qed              closegoal
+  |> command Keyword.qed_block        closegoal
+  |> command Keyword.qed_global       (fn text => [D.Giveupgoal {text = text}])
+  |> command Keyword.prf_heading      (fn text => [D.Doccomment {text = text}])
+  |> command Keyword.prf_goal         goal
+  |> command Keyword.prf_block        prf_block
+  |> command Keyword.prf_open         prf_open
+  |> command Keyword.prf_close        (fn text => [D.Proofstep {text = text}, D.Closeblock {}])
+  |> command Keyword.prf_chain        proofstep
+  |> command Keyword.prf_decl         proofstep
+  |> command Keyword.prf_asm          proofstep
+  |> command Keyword.prf_asm_goal     goal
+  |> command Keyword.prf_script       proofstep;
 
-val _ = subset (op =) (OuterKeyword.kinds, Symtab.keys command_keywords)
+val _ = subset (op =) (Keyword.kinds, Symtab.keys command_keywords)
   orelse sys_error "Incomplete coverage of command keywords";
 
 fun parse_command "sorry" text = [D.Postponegoal {text = text}, D.Closeblock {}]
   | parse_command name text =
-      (case OuterKeyword.command_keyword name of
+      (case Keyword.command_keyword name of
         NONE => [D.Unparseable {text = text}]
       | SOME k =>
-          (case Symtab.lookup command_keywords (OuterKeyword.kind_of k) of
+          (case Symtab.lookup command_keywords (Keyword.kind_of k) of
             NONE => [D.Unparseable {text = text}]
           | SOME f => f text));
 
@@ -104,6 +103,6 @@ fun parse_span span =
 
 
 fun pgip_parser pos str =
-  maps parse_span (ThySyntax.parse_spans (OuterKeyword.get_lexicons ()) pos str);
+  maps parse_span (ThySyntax.parse_spans (Keyword.get_lexicons ()) pos str);
 
 end;

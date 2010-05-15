@@ -660,8 +660,8 @@ fun proof_result immediate (tr, proof_trs) st =
   let val st' = command tr st in
     if immediate orelse
       null proof_trs orelse
-      OuterKeyword.is_schematic_goal (name_of tr) orelse
-      exists (OuterKeyword.is_qed_global o name_of) proof_trs orelse
+      Keyword.is_schematic_goal (name_of tr) orelse
+      exists (Keyword.is_qed_global o name_of) proof_trs orelse
       not (can proof_of st') orelse
       Proof.is_relevant (proof_of st')
     then

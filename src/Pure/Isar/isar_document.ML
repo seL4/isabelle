@@ -275,27 +275,28 @@ end;
 
 (** concrete syntax **)
 
-local structure P = OuterParse structure V = ValueParse in
+local structure V = ValueParse in
 
 val _ =
   OuterSyntax.internal_command "Isar.define_command"
-    (P.string -- P.string >> (fn (id, text) =>
+    (Parse.string -- Parse.string >> (fn (id, text) =>
       Toplevel.position (Position.id_only id) o
       Toplevel.imperative (fn () =>
         define_command id (OuterSyntax.prepare_command (Position.id id) text))));
 
 val _ =
   OuterSyntax.internal_command "Isar.begin_document"
-    (P.string -- P.string >> (fn (id, path) =>
+    (Parse.string -- Parse.string >> (fn (id, path) =>
       Toplevel.imperative (fn () => begin_document id (Path.explode path))));
 
 val _ =
   OuterSyntax.internal_command "Isar.end_document"
-    (P.string >> (fn id => Toplevel.imperative (fn () => end_document id)));
+    (Parse.string >> (fn id => Toplevel.imperative (fn () => end_document id)));
 
 val _ =
   OuterSyntax.internal_command "Isar.edit_document"
-    (P.string -- P.string -- V.list (P.string -- (P.string >> SOME) || P.string >> rpair NONE)
+    (Parse.string -- Parse.string --
+        V.list (Parse.string -- (Parse.string >> SOME) || Parse.string >> rpair NONE)
       >> (fn ((id, new_id), edits) =>
         Toplevel.position (Position.id_only new_id) o
         Toplevel.imperative (fn () => edit_document id new_id edits)));

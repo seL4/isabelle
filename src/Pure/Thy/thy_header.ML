@@ -15,7 +15,6 @@ structure Thy_Header: THY_HEADER =
 struct
 
 structure T = OuterLex;
-structure P = OuterParse;
 
 
 (* keywords *)
@@ -32,23 +31,28 @@ val header_lexicon = Scan.make_lexicon
 
 (* header args *)
 
-val file_name = P.group "file name" P.name;
-val theory_name = P.group "theory name" P.name;
+val file_name = Parse.group "file name" Parse.name;
+val theory_name = Parse.group "theory name" Parse.name;
 
-val file = P.$$$ "(" |-- P.!!! (file_name --| P.$$$ ")") >> rpair false || file_name >> rpair true;
-val uses = Scan.optional (P.$$$ usesN |-- P.!!! (Scan.repeat1 file)) [];
+val file =
+  Parse.$$$ "(" |-- Parse.!!! (file_name --| Parse.$$$ ")") >> rpair false ||
+  file_name >> rpair true;
+
+val uses = Scan.optional (Parse.$$$ usesN |-- Parse.!!! (Scan.repeat1 file)) [];
 
 val args =
-  theory_name -- (P.$$$ importsN |-- P.!!! (Scan.repeat1 theory_name -- uses --| P.$$$ beginN))
-  >> P.triple2;
+  theory_name -- (Parse.$$$ importsN |--
+    Parse.!!! (Scan.repeat1 theory_name -- uses --| Parse.$$$ beginN))
+  >> Parse.triple2;
 
 
 (* read header *)
 
 val header =
-  (P.$$$ headerN -- P.tags) |-- (P.!!! (P.doc_source -- Scan.repeat P.semicolon --
-    (P.$$$ theoryN -- P.tags) |-- args)) ||
-  (P.$$$ theoryN -- P.tags) |-- P.!!! args;
+  (Parse.$$$ headerN -- Parse.tags) |--
+    (Parse.!!! (Parse.doc_source -- Scan.repeat Parse.semicolon --
+      (Parse.$$$ theoryN -- Parse.tags) |-- args)) ||
+  (Parse.$$$ theoryN -- Parse.tags) |-- Parse.!!! args;
 
 fun read pos src =
   let val res =
@@ -56,7 +60,7 @@ fun read pos src =
     |> Symbol.source {do_recover = false}
     |> T.source {do_recover = NONE} (fn () => (header_lexicon, Scan.empty_lexicon)) pos
     |> T.source_proper
-    |> Source.source T.stopper (Scan.single (Scan.error (P.!!! header))) NONE
+    |> Source.source T.stopper (Scan.single (Scan.error (Parse.!!! header))) NONE
     |> Source.get_single;
   in
     (case res of SOME (x, _) => x

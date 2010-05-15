@@ -89,9 +89,9 @@ end;
 
 fun init out =
  (Unsynchronized.change print_mode
-    (fold (update op =) [isabelle_processN, OuterKeyword.keyword_status_reportN, Pretty.symbolicN]);
+    (fold (update op =) [isabelle_processN, Keyword.keyword_status_reportN, Pretty.symbolicN]);
   setup_channels out |> init_message;
-  OuterKeyword.report ();
+  Keyword.report ();
   Output.status (Markup.markup Markup.ready "");
   Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 

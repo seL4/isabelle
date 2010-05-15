@@ -35,121 +35,129 @@ end;
 structure SpecParse: SPEC_PARSE =
 struct
 
-structure P = OuterParse;
-
-
 (* theorem specifications *)
 
-val attrib = P.position ((P.keyword_ident_or_symbolic || P.xname) -- P.!!! Args.parse) >> Args.src;
-val attribs = P.$$$ "[" |-- P.list attrib --| P.$$$ "]";
+val attrib =
+  Parse.position ((Parse.keyword_ident_or_symbolic || Parse.xname) -- Parse.!!! Args.parse)
+  >> Args.src;
+
+val attribs = Parse.$$$ "[" |-- Parse.list attrib --| Parse.$$$ "]";
 val opt_attribs = Scan.optional attribs [];
 
-fun thm_name s = P.binding -- opt_attribs --| P.$$$ s;
+fun thm_name s = Parse.binding -- opt_attribs --| Parse.$$$ s;
 
 fun opt_thm_name s =
-  Scan.optional ((P.binding -- opt_attribs || attribs >> pair Binding.empty) --| P.$$$ s)
+  Scan.optional ((Parse.binding -- opt_attribs || attribs >> pair Binding.empty) --| Parse.$$$ s)
     Attrib.empty_binding;
 
-val spec = opt_thm_name ":" -- P.prop;
-val specs = opt_thm_name ":" -- Scan.repeat1 P.prop;
+val spec = opt_thm_name ":" -- Parse.prop;
+val specs = opt_thm_name ":" -- Scan.repeat1 Parse.prop;
 
 val alt_specs =
-  P.enum1 "|" (spec --| Scan.option (Scan.ahead (P.name || P.$$$ "[") -- P.!!! (P.$$$ "|")));
+  Parse.enum1 "|"
+    (spec --| Scan.option (Scan.ahead (Parse.name || Parse.$$$ "[") -- Parse.!!! (Parse.$$$ "|")));
 
-val where_alt_specs = P.where_ |-- P.!!! alt_specs;
+val where_alt_specs = Parse.where_ |-- Parse.!!! alt_specs;
 
 val xthm =
-  P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Facts.named "") ||
-  (P.alt_string >> Facts.Fact ||
-    P.position P.xname -- Scan.option Attrib.thm_sel >> Facts.Named) -- opt_attribs;
+  Parse.$$$ "[" |-- attribs --| Parse.$$$ "]" >> pair (Facts.named "") ||
+  (Parse.alt_string >> Facts.Fact ||
+    Parse.position Parse.xname -- Scan.option Attrib.thm_sel >> Facts.Named) -- opt_attribs;
 
 val xthms1 = Scan.repeat1 xthm;
 
-val name_facts = P.and_list1 (opt_thm_name "=" -- xthms1);
+val name_facts = Parse.and_list1 (opt_thm_name "=" -- xthms1);
 
 
 (* basic constant specifications *)
 
 val constdecl =
-  P.binding --
-    (P.where_ >> K (NONE, NoSyn) ||
-      P.$$$ "::" |-- P.!!! ((P.typ >> SOME) -- P.opt_mixfix' --| P.where_) ||
-      Scan.ahead (P.$$$ "(") |-- P.!!! (P.mixfix' --| P.where_ >> pair NONE))
-  >> P.triple2;
+  Parse.binding --
+    (Parse.where_ >> K (NONE, NoSyn) ||
+      Parse.$$$ "::" |-- Parse.!!! ((Parse.typ >> SOME) -- Parse.opt_mixfix' --| Parse.where_) ||
+      Scan.ahead (Parse.$$$ "(") |-- Parse.!!! (Parse.mixfix' --| Parse.where_ >> pair NONE))
+  >> Parse.triple2;
 
-val constdef = Scan.option constdecl -- (opt_thm_name ":" -- P.prop);
+val constdef = Scan.option constdecl -- (opt_thm_name ":" -- Parse.prop);
 
 
 (* locale and context elements *)
 
-val locale_mixfix = P.$$$ "(" -- P.$$$ "structure" -- P.!!! (P.$$$ ")") >> K Structure || P.mixfix;
+val locale_mixfix =
+  Parse.$$$ "(" -- Parse.$$$ "structure" -- Parse.!!! (Parse.$$$ ")") >> K Structure ||
+  Parse.mixfix;
 
 val locale_fixes =
-  P.and_list1 (P.binding -- Scan.option (P.$$$ "::" |-- P.typ) -- locale_mixfix
-    >> (single o P.triple1) ||
-  P.params >> map Syntax.no_syn) >> flat;
+  Parse.and_list1 (Parse.binding -- Scan.option (Parse.$$$ "::" |-- Parse.typ) -- locale_mixfix
+    >> (single o Parse.triple1) ||
+  Parse.params >> map Syntax.no_syn) >> flat;
 
 val locale_insts =
-  Scan.optional (P.$$$ "[" |-- P.!!! (Scan.repeat1 (P.maybe P.term) --| P.$$$ "]")) []
-  -- Scan.optional (P.where_ |-- P.and_list1 (opt_thm_name ":" -- P.prop)) [];
+  Scan.optional
+    (Parse.$$$ "[" |-- Parse.!!! (Scan.repeat1 (Parse.maybe Parse.term) --| Parse.$$$ "]")) [] --
+  Scan.optional (Parse.where_ |-- Parse.and_list1 (opt_thm_name ":" -- Parse.prop)) [];
 
 local
 
 val loc_element =
-  P.$$$ "fixes" |-- P.!!! locale_fixes >> Element.Fixes ||
-  P.$$$ "constrains" |-- P.!!! (P.and_list1 (P.name -- (P.$$$ "::" |-- P.typ)))
+  Parse.$$$ "fixes" |-- Parse.!!! locale_fixes >> Element.Fixes ||
+  Parse.$$$ "constrains" |--
+    Parse.!!! (Parse.and_list1 (Parse.name -- (Parse.$$$ "::" |-- Parse.typ)))
     >> Element.Constrains ||
-  P.$$$ "assumes" |-- P.!!! (P.and_list1 (opt_thm_name ":" -- Scan.repeat1 P.propp))
+  Parse.$$$ "assumes" |-- Parse.!!! (Parse.and_list1 (opt_thm_name ":" -- Scan.repeat1 Parse.propp))
     >> Element.Assumes ||
-  P.$$$ "defines" |-- P.!!! (P.and_list1 (opt_thm_name ":" -- P.propp))
+  Parse.$$$ "defines" |-- Parse.!!! (Parse.and_list1 (opt_thm_name ":" -- Parse.propp))
     >> Element.Defines ||
-  P.$$$ "notes" |-- P.!!! (P.and_list1 (opt_thm_name "=" -- xthms1))
+  Parse.$$$ "notes" |-- Parse.!!! (Parse.and_list1 (opt_thm_name "=" -- xthms1))
     >> (curry Element.Notes "");
 
 fun plus1_unless test scan =
-  scan ::: Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan));
+  scan ::: Scan.repeat (Parse.$$$ "+" |-- Scan.unless test (Parse.!!! scan));
 
 fun prefix mandatory =
-  P.name -- (P.$$$ "!" >> K true || P.$$$ "?" >> K false || Scan.succeed mandatory) --| P.$$$ ":";
+  Parse.name --
+    (Parse.$$$ "!" >> K true || Parse.$$$ "?" >> K false || Scan.succeed mandatory) --|
+    Parse.$$$ ":";
 
-val instance = P.where_ |--
-  P.and_list1 (P.name -- (P.$$$ "=" |-- P.term)) >> Expression.Named ||
-  Scan.repeat1 (P.maybe P.term) >> Expression.Positional;
+val instance = Parse.where_ |--
+  Parse.and_list1 (Parse.name -- (Parse.$$$ "=" |-- Parse.term)) >> Expression.Named ||
+  Scan.repeat1 (Parse.maybe Parse.term) >> Expression.Positional;
 
 in
 
-val locale_keyword = P.$$$ "fixes" || P.$$$ "constrains" || P.$$$ "assumes" ||
-   P.$$$ "defines" || P.$$$ "notes";
+val locale_keyword =
+  Parse.$$$ "fixes" || Parse.$$$ "constrains" || Parse.$$$ "assumes" ||
+  Parse.$$$ "defines" || Parse.$$$ "notes";
 
-val class_expr = plus1_unless locale_keyword P.xname;
+val class_expr = plus1_unless locale_keyword Parse.xname;
 
 fun locale_expression mandatory =
   let
-    val expr2 = P.xname;
+    val expr2 = Parse.xname;
     val expr1 = Scan.optional (prefix mandatory) ("", false) -- expr2 --
       Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)));
     val expr0 = plus1_unless locale_keyword expr1;
-  in expr0 -- Scan.optional (P.$$$ "for" |-- P.!!! locale_fixes) [] end;
+  in expr0 -- Scan.optional (Parse.$$$ "for" |-- Parse.!!! locale_fixes) [] end;
 
-val context_element = P.group "context element" loc_element;
+val context_element = Parse.group "context element" loc_element;
 
 end;
 
 
 (* statements *)
 
-val statement = P.and_list1 (opt_thm_name ":" -- Scan.repeat1 P.propp);
+val statement = Parse.and_list1 (opt_thm_name ":" -- Scan.repeat1 Parse.propp);
 
 val obtain_case =
-  P.parbinding -- (Scan.optional (P.simple_fixes --| P.where_) [] --
-    (P.and_list1 (Scan.repeat1 P.prop) >> flat));
+  Parse.parbinding -- (Scan.optional (Parse.simple_fixes --| Parse.where_) [] --
+    (Parse.and_list1 (Scan.repeat1 Parse.prop) >> flat));
 
 val general_statement =
   statement >> (fn x => ([], Element.Shows x)) ||
   Scan.repeat context_element --
-   (P.$$$ "obtains" |-- P.!!! (P.enum1 "|" obtain_case) >> Element.Obtains ||
-    P.$$$ "shows" |-- P.!!! statement >> Element.Shows);
+   (Parse.$$$ "obtains" |-- Parse.!!! (Parse.enum1 "|" obtain_case) >> Element.Obtains ||
+    Parse.$$$ "shows" |-- Parse.!!! statement >> Element.Shows);
 
-val statement_keyword = P.$$$ "obtains" || P.$$$ "shows";
+val statement_keyword = Parse.$$$ "obtains" || Parse.$$$ "shows";
 
 end;

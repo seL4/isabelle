@@ -9,20 +9,20 @@ beginning; for interactive processing it may change dynamically.
 
 signature OUTER_SYNTAX =
 sig
-  val command: string -> string -> OuterKeyword.T ->
+  val command: string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T ->
+  val markup_command: ThyOutput.markup -> string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val improper_command: string -> string -> OuterKeyword.T ->
+  val improper_command: string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val internal_command: string -> (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val local_theory': string -> string -> OuterKeyword.T ->
+  val local_theory': string -> string -> Keyword.T ->
     (bool -> local_theory -> local_theory) parser -> unit
-  val local_theory: string -> string -> OuterKeyword.T ->
+  val local_theory: string -> string -> Keyword.T ->
     (local_theory -> local_theory) parser -> unit
-  val local_theory_to_proof': string -> string -> OuterKeyword.T ->
+  val local_theory_to_proof': string -> string -> Keyword.T ->
     (bool -> local_theory -> Proof.state) parser -> unit
-  val local_theory_to_proof: string -> string -> OuterKeyword.T ->
+  val local_theory_to_proof: string -> string -> Keyword.T ->
     (local_theory -> Proof.state) parser -> unit
   val print_outer_syntax: unit -> unit
   val scan: Position.T -> string -> OuterLex.token list
@@ -38,8 +38,7 @@ structure OuterSyntax: OUTER_SYNTAX =
 struct
 
 structure T = OuterLex;
-structure P = OuterParse;
-type 'a parser = 'a P.parser;
+type 'a parser = 'a Parse.parser;
 
 
 
@@ -62,20 +61,20 @@ fun make_command comment markup int_only parse =
 local
 
 fun terminate false = Scan.succeed ()
-  | terminate true = P.group "end of input" (Scan.option P.sync -- P.semicolon >> K ());
+  | terminate true = Parse.group "end of input" (Scan.option Parse.sync -- Parse.semicolon >> K ());
 
 fun body cmd (name, _) =
   (case cmd name of
     SOME (Command {int_only, parse, ...}) =>
-      P.!!! (Scan.prompt (name ^ "# ") (P.tags |-- parse >> pair int_only))
+      Parse.!!! (Scan.prompt (name ^ "# ") (Parse.tags |-- parse >> pair int_only))
   | NONE => sys_error ("no parser for outer syntax command " ^ quote name));
 
 in
 
 fun parse_command do_terminate cmd =
-  P.semicolon >> K NONE ||
-  P.sync >> K NONE ||
-  (P.position P.command :-- body cmd) --| terminate do_terminate
+  Parse.semicolon >> K NONE ||
+  Parse.sync >> K NONE ||
+  (Parse.position Parse.command :-- body cmd) --| terminate do_terminate
     >> (fn ((name, pos), (int_only, f)) =>
       SOME (Toplevel.empty |> Toplevel.name name |> Toplevel.position pos |>
         Toplevel.interactive int_only |> f));
@@ -105,7 +104,7 @@ fun get_commands () = ! global_commands;
 fun get_markups () = ! global_markups;
 
 fun get_command () = Symtab.lookup (get_commands ());
-fun get_syntax () = CRITICAL (fn () => (OuterKeyword.get_lexicons (), get_command ()));
+fun get_syntax () = CRITICAL (fn () => (Keyword.get_lexicons (), get_command ()));
 
 fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
 
@@ -113,7 +112,7 @@ fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
 (* augment syntax *)
 
 fun add_command name kind cmd = CRITICAL (fn () =>
- (OuterKeyword.command name kind;
+ (Keyword.command name kind;
   if not (Symtab.defined (get_commands ()) name) then ()
   else warning ("Redefining outer syntax command " ^ quote name);
   change_commands (Symtab.update (name, cmd))));
@@ -130,13 +129,13 @@ fun improper_command name comment kind parse =
 end;
 
 fun internal_command name parse =
-  command name "(internal)" OuterKeyword.control (parse >> (fn tr => Toplevel.no_timing o tr));
+  command name "(internal)" Keyword.control (parse >> (fn tr => Toplevel.no_timing o tr));
 
 
 (* local_theory commands *)
 
 fun local_theory_command do_print trans name comment kind parse =
-  command name comment kind (P.opt_target -- parse
+  command name comment kind (Parse.opt_target -- parse
     >> (fn (loc, f) => (if do_print then Toplevel.print else I) o trans loc f));
 
 val local_theory' = local_theory_command false Toplevel.local_theory';
@@ -157,7 +156,7 @@ fun print_outer_syntax () =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
     val (int_cmds, cmds) = List.partition #3 (dest_commands ());
   in
-    [Pretty.strs ("syntax keywords:" :: map quote (OuterKeyword.dest_keywords ())),
+    [Pretty.strs ("syntax keywords:" :: map quote (Keyword.dest_keywords ())),
       Pretty.big_list "commands:" (map pretty_cmd cmds),
       Pretty.big_list "interactive-only commands:" (map pretty_cmd int_cmds)]
     |> Pretty.chunks |> Pretty.writeln
@@ -172,18 +171,18 @@ fun print_outer_syntax () =
 fun toplevel_source term do_recover cmd src =
   let
     val no_terminator =
-      Scan.unless P.semicolon (Scan.one (T.not_sync andf T.not_eof));
+      Scan.unless Parse.semicolon (Scan.one (T.not_sync andf T.not_eof));
     fun recover int =
       (int, fn _ => Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]);
   in
     src
     |> T.source_proper
     |> Source.source T.stopper
-      (Scan.bulk (P.$$$ "--" -- P.!!! P.doc_source >> K NONE || P.not_eof >> SOME))
+      (Scan.bulk (Parse.$$$ "--" -- Parse.!!! Parse.doc_source >> K NONE || Parse.not_eof >> SOME))
         (Option.map recover do_recover)
     |> Source.map_filter I
     |> Source.source T.stopper
-        (Scan.bulk (fn xs => P.!!! (parse_command term (cmd ())) xs))
+        (Scan.bulk (fn xs => Parse.!!! (parse_command term (cmd ())) xs))
         (Option.map recover do_recover)
     |> Source.map_filter I
   end;
@@ -194,13 +193,13 @@ fun toplevel_source term do_recover cmd src =
 fun scan pos str =
   Source.of_string str
   |> Symbol.source {do_recover = false}
-  |> T.source {do_recover = SOME false} OuterKeyword.get_lexicons pos
+  |> T.source {do_recover = SOME false} Keyword.get_lexicons pos
   |> Source.exhaust;
 
 fun parse pos str =
   Source.of_string str
   |> Symbol.source {do_recover = false}
-  |> T.source {do_recover = SOME false} OuterKeyword.get_lexicons pos
+  |> T.source {do_recover = SOME false} Keyword.get_lexicons pos
   |> toplevel_source false NONE get_command
   |> Source.exhaust;
 
@@ -231,7 +230,7 @@ type isar =
 fun isar term : isar =
   Source.tty
   |> Symbol.source {do_recover = true}
-  |> T.source {do_recover = SOME true} OuterKeyword.get_lexicons Position.none
+  |> T.source {do_recover = SOME true} Keyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) get_command;
 
 
@@ -291,7 +290,7 @@ fun load_thy name pos text time =
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     fun after_load () =
-      ThyOutput.present_thy (#1 lexs) OuterKeyword.command_tags is_markup (Lazy.force results) toks
+      ThyOutput.present_thy (#1 lexs) Keyword.command_tags is_markup (Lazy.force results) toks
       |> Buffer.content
       |> Present.theory_output name;
   in after_load end;

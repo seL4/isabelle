@@ -148,23 +148,15 @@ fun find_consts_cmd spec =
   Toplevel.unknown_theory o Toplevel.keep (fn state =>
     find_consts (Proof.context_of (Toplevel.enter_proof_body state)) spec);
 
-local
-
-structure P = OuterParse and K = OuterKeyword;
-
 val criterion =
-  P.reserved "strict" |-- P.!!! (P.$$$ ":" |-- P.xname) >> Strict ||
-  P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> Name ||
-  P.xname >> Loose;
-
-in
+  Parse.reserved "strict" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Strict ||
+  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Name ||
+  Parse.xname >> Loose;
 
 val _ =
-  OuterSyntax.improper_command "find_consts" "search constants by type pattern" K.diag
-    (Scan.repeat ((Scan.option P.minus >> is_none) -- criterion)
+  OuterSyntax.improper_command "find_consts" "search constants by type pattern" Keyword.diag
+    (Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion)
       >> (Toplevel.no_timing oo find_consts_cmd));
-
-end;
 
 end;
 

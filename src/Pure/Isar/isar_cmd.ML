@@ -507,7 +507,7 @@ end;
 
 fun check_text (txt, pos) state =
  (Position.report Markup.doc_source pos;
-  ignore (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) state (txt, pos)));
+  ignore (ThyOutput.eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
 
 fun header_markup txt = Toplevel.keep (fn state =>
   if Toplevel.is_toplevel state then check_text txt state

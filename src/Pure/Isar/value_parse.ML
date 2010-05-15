@@ -19,27 +19,24 @@ end;
 structure ValueParse: VALUE_PARSE =
 struct
 
-structure P = OuterParse;
-
-
 (* syntax utilities *)
 
-fun comma p = P.$$$ "," |-- P.!!! p;
-fun equal p = P.$$$ "=" |-- P.!!! p;
-fun parens p = P.$$$ "(" |-- P.!!! (p --| P.$$$ ")");
+fun comma p = Parse.$$$ "," |-- Parse.!!! p;
+fun equal p = Parse.$$$ "=" |-- Parse.!!! p;
+fun parens p = Parse.$$$ "(" |-- Parse.!!! (p --| Parse.$$$ ")");
 
 
 (* tuples *)
 
 val unit = parens (Scan.succeed ());
 fun pair p1 p2 = parens (p1 -- comma p2);
-fun triple p1 p2 p3 = parens (p1 -- comma p2 -- comma p3) >> P.triple1;
+fun triple p1 p2 p3 = parens (p1 -- comma p2 -- comma p3) >> Parse.triple1;
 
 
 (* lists *)
 
-fun list p = parens (P.enum "," p);
-val properties = list (P.string -- equal P.string);
+fun list p = parens (Parse.enum "," p);
+val properties = list (Parse.string -- equal Parse.string);
 
 end;
 

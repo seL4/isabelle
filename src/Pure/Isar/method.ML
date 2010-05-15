@@ -382,9 +382,6 @@ fun method_setup name (txt, pos) cmt =
 
 (** concrete syntax **)
 
-structure P = OuterParse;
-
-
 (* sections *)
 
 type modifier = (Proof.context -> Proof.context) * attribute;
@@ -407,7 +404,7 @@ end;
 (* extra rule methods *)
 
 fun xrule_meth m =
-  Scan.lift (Scan.optional (Args.parens OuterParse.nat) 0) -- Attrib.thms >>
+  Scan.lift (Scan.optional (Args.parens Parse.nat) 0) -- Attrib.thms >>
   (fn (n, ths) => K (m n ths));
 
 
@@ -419,18 +416,18 @@ fun is_symid_meth s =
 local
 
 fun meth4 x =
- (P.position (P.xname >> rpair []) >> (Source o Args.src) ||
-  P.$$$ "(" |-- P.!!! (meth0 --| P.$$$ ")")) x
+ (Parse.position (Parse.xname >> rpair []) >> (Source o Args.src) ||
+  Parse.$$$ "(" |-- Parse.!!! (meth0 --| Parse.$$$ ")")) x
 and meth3 x =
- (meth4 --| P.$$$ "?" >> Try ||
-  meth4 --| P.$$$ "+" >> Repeat1 ||
-  meth4 -- (P.$$$ "[" |-- Scan.optional P.nat 1 --| P.$$$ "]") >> (SelectGoals o swap) ||
+ (meth4 --| Parse.$$$ "?" >> Try ||
+  meth4 --| Parse.$$$ "+" >> Repeat1 ||
+  meth4 -- (Parse.$$$ "[" |-- Scan.optional Parse.nat 1 --| Parse.$$$ "]") >> (SelectGoals o swap) ||
   meth4) x
 and meth2 x =
- (P.position (P.xname -- Args.parse1 is_symid_meth) >> (Source o Args.src) ||
+ (Parse.position (Parse.xname -- Args.parse1 is_symid_meth) >> (Source o Args.src) ||
   meth3) x
-and meth1 x = (P.enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
-and meth0 x = (P.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
+and meth1 x = (Parse.enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
+and meth0 x = (Parse.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
 
 in val parse = meth3 end;
 
@@ -463,12 +460,12 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "rename_tac") (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name) >>
     (fn (quant, xs) => K (SIMPLE_METHOD'' quant (Tactic.rename_tac xs))))
     "rename parameters of goal" #>
-  setup (Binding.name "rotate_tac") (Args.goal_spec -- Scan.lift (Scan.optional P.int 1) >>
+  setup (Binding.name "rotate_tac") (Args.goal_spec -- Scan.lift (Scan.optional Parse.int 1) >>
     (fn (quant, i) => K (SIMPLE_METHOD'' quant (Tactic.rotate_tac i))))
       "rotate assumptions of goal" #>
-  setup (Binding.name "tactic") (Scan.lift (P.position Args.name) >> tactic)
+  setup (Binding.name "tactic") (Scan.lift (Parse.position Args.name) >> tactic)
     "ML tactic as proof method" #>
-  setup (Binding.name "raw_tactic") (Scan.lift (P.position Args.name) >> raw_tactic)
+  setup (Binding.name "raw_tactic") (Scan.lift (Parse.position Args.name) >> raw_tactic)
     "ML tactic as raw proof method"));
 
 

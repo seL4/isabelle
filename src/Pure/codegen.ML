@@ -959,44 +959,42 @@ fun parse_mixfix rd s =
    | _ => error ("Malformed annotation: " ^ quote s));
 
 
-structure P = OuterParse and K = OuterKeyword;
-
-val _ = List.app OuterKeyword.keyword ["attach", "file", "contains"];
+val _ = List.app Keyword.keyword ["attach", "file", "contains"];
 
 fun strip_whitespace s = implode (fst (take_suffix (fn c => c = "\n" orelse c = " ")
   (snd (take_prefix (fn c => c = "\n" orelse c = " ") (explode s))))) ^ "\n";
 
-val parse_attach = Scan.repeat (P.$$$ "attach" |--
-  Scan.optional (P.$$$ "(" |-- P.xname --| P.$$$ ")") "" --
-    (P.verbatim >> strip_whitespace));
+val parse_attach = Scan.repeat (Parse.$$$ "attach" |--
+  Scan.optional (Parse.$$$ "(" |-- Parse.xname --| Parse.$$$ ")") "" --
+    (Parse.verbatim >> strip_whitespace));
 
 val _ =
   OuterSyntax.command "types_code"
-  "associate types with target language types" K.thy_decl
-    (Scan.repeat1 (P.xname --| P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
+  "associate types with target language types" Keyword.thy_decl
+    (Scan.repeat1 (Parse.xname --| Parse.$$$ "(" -- Parse.string --| Parse.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => fold (assoc_type o
        (fn ((name, mfx), aux) => (name, (parse_mixfix
          (Syntax.read_typ_global thy) mfx, aux)))) xs thy)));
 
 val _ =
   OuterSyntax.command "consts_code"
-  "associate constants with target language code" K.thy_decl
+  "associate constants with target language code" Keyword.thy_decl
     (Scan.repeat1
-       (P.term --|
-        P.$$$ "(" -- P.string --| P.$$$ ")" -- parse_attach) >>
+       (Parse.term --|
+        Parse.$$$ "(" -- Parse.string --| Parse.$$$ ")" -- parse_attach) >>
      (fn xs => Toplevel.theory (fn thy => fold (assoc_const o
        (fn ((const, mfx), aux) =>
          (const, (parse_mixfix (Syntax.read_term_global thy) mfx, aux)))) xs thy)));
 
 fun parse_code lib =
-  Scan.optional (P.$$$ "(" |-- P.enum "," P.xname --| P.$$$ ")") (!mode) --
-  (if lib then Scan.optional P.name "" else P.name) --
-  Scan.option (P.$$$ "file" |-- P.name) --
+  Scan.optional (Parse.$$$ "(" |-- Parse.enum "," Parse.xname --| Parse.$$$ ")") (!mode) --
+  (if lib then Scan.optional Parse.name "" else Parse.name) --
+  Scan.option (Parse.$$$ "file" |-- Parse.name) --
   (if lib then Scan.succeed []
-   else Scan.optional (P.$$$ "imports" |-- Scan.repeat1 P.name) []) --|
-  P.$$$ "contains" --
-  (   Scan.repeat1 (P.name --| P.$$$ "=" -- P.term)
-   || Scan.repeat1 (P.term >> pair "")) >>
+   else Scan.optional (Parse.$$$ "imports" |-- Scan.repeat1 Parse.name) []) --|
+  Parse.$$$ "contains" --
+  (   Scan.repeat1 (Parse.name --| Parse.$$$ "=" -- Parse.term)
+   || Scan.repeat1 (Parse.term >> pair "")) >>
   (fn ((((mode', module), opt_fname), modules), xs) => Toplevel.theory (fn thy =>
     let
       val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
@@ -1021,12 +1019,12 @@ val setup = add_codegen "default" default_codegen
 
 val _ =
   OuterSyntax.command "code_library"
-    "generates code for terms (one structure for each theory)" K.thy_decl
+    "generates code for terms (one structure for each theory)" Keyword.thy_decl
     (parse_code true);
 
 val _ =
   OuterSyntax.command "code_module"
-    "generates code for terms (single structure, incremental)" K.thy_decl
+    "generates code for terms (single structure, incremental)" Keyword.thy_decl
     (parse_code false);
 
 end;

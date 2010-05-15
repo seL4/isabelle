@@ -29,9 +29,7 @@ end;
 structure ThySyntax: THY_SYNTAX =
 struct
 
-structure K = OuterKeyword;
 structure T = OuterLex;
-structure P = OuterParse;
 
 
 (** tokens **)
@@ -111,10 +109,11 @@ local
 
 val is_whitespace = T.is_kind T.Space orf T.is_kind T.Comment;
 
-val body = Scan.unless (Scan.many is_whitespace -- Scan.ahead (P.command || P.eof)) P.not_eof;
+val body =
+  Scan.unless (Scan.many is_whitespace -- Scan.ahead (Parse.command || Parse.eof)) Parse.not_eof;
 
 val span =
-  Scan.ahead P.command -- P.not_eof -- Scan.repeat body
+  Scan.ahead Parse.command -- Parse.not_eof -- Scan.repeat body
     >> (fn ((name, c), bs) => Span (Command name, c :: bs)) ||
   Scan.many1 is_whitespace >> (fn toks => Span (Ignored, toks)) ||
   Scan.repeat1 body >> (fn toks => Span (Malformed, toks));
@@ -175,13 +174,13 @@ fun command_with pred = Scan.one (fn (Span (Command name, _)) => pred name | _ =
 val proof = Scan.pass 1 (Scan.repeat (Scan.depend (fn d =>
   if d <= 0 then Scan.fail
   else
-    command_with K.is_qed_global >> pair ~1 ||
-    command_with K.is_proof_goal >> pair (d + 1) ||
-    (if d = 0 then Scan.fail else command_with K.is_qed >> pair (d - 1)) ||
-    Scan.unless (command_with K.is_theory) (Scan.one not_eof) >> pair d)) -- Scan.state);
+    command_with Keyword.is_qed_global >> pair ~1 ||
+    command_with Keyword.is_proof_goal >> pair (d + 1) ||
+    (if d = 0 then Scan.fail else command_with Keyword.is_qed >> pair (d - 1)) ||
+    Scan.unless (command_with Keyword.is_theory) (Scan.one not_eof) >> pair d)) -- Scan.state);
 
 val unit =
-  command_with K.is_theory_goal -- proof >> (fn (a, (bs, d)) => (a, bs, d >= 0)) ||
+  command_with Keyword.is_theory_goal -- proof >> (fn (a, (bs, d)) => (a, bs, d >= 0)) ||
   Scan.one not_eof >> (fn a => (a, [], true));
 
 in

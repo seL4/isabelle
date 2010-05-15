@@ -37,7 +37,6 @@ structure ThyOutput: THY_OUTPUT =
 struct
 
 structure T = OuterLex;
-structure P = OuterParse;
 
 
 (** global options **)
@@ -132,12 +131,16 @@ fun integer s =
 
 local
 
-val property = P.xname -- Scan.optional (P.$$$ "=" |-- P.!!! P.xname) "";
-val properties = Scan.optional (P.$$$ "[" |-- P.!!! (P.enum "," property --| P.$$$ "]")) [];
+val property =
+  Parse.xname -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.xname) "";
+
+val properties =
+  Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.enum "," property --| Parse.$$$ "]")) [];
 
 in
 
-val antiq = P.!!! (P.position P.xname -- properties -- Args.parse --| Scan.ahead P.eof)
+val antiq =
+  Parse.!!! (Parse.position Parse.xname -- properties -- Args.parse --| Scan.ahead Parse.eof)
   >> (fn (((x, pos), y), z) => (y, Args.src ((x, z), pos)));
 
 end;
@@ -249,7 +252,7 @@ fun present_span lex default_tags span state state'
     val Span ((cmd_name, cmd_pos, cmd_tags), srcs, span_newline) = span;
 
     val (tag, tags) = tag_stack;
-    val tag' = try hd (fold OuterKeyword.update_tags cmd_tags (the_list tag));
+    val tag' = try hd (fold Keyword.update_tags cmd_tags (the_list tag));
 
     val active_tag' =
       if is_some tag' then tag'
@@ -316,11 +319,11 @@ val ignore =
     (if d = 0 then Scan.fail_with (K "Bad nesting of meta-comments") else opt_newline)
     >> pair (d - 1));
 
-val tag = (improper -- P.$$$ "%" -- improper) |-- P.!!! (P.tag_name --| blank_end);
+val tag = (improper -- Parse.$$$ "%" -- improper) |-- Parse.!!! (Parse.tag_name --| blank_end);
 
 val locale =
-  Scan.option ((P.$$$ "(" -- improper -- P.$$$ "in") |--
-    P.!!! (improper |-- P.xname --| (improper -- P.$$$ ")")));
+  Scan.option ((Parse.$$$ "(" -- improper -- Parse.$$$ "in") |--
+    Parse.!!! (improper |-- Parse.xname --| (improper -- Parse.$$$ ")")));
 
 in
 
@@ -332,26 +335,27 @@ fun present_thy lex default_tags is_markup command_results src =
       >> (fn d => (NONE, (NoToken, ("", d))));
 
     fun markup mark mk flag = Scan.peek (fn d =>
-      improper |-- P.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.content_of)) --
+      improper |--
+        Parse.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.content_of)) --
       Scan.repeat tag --
-      P.!!!! ((improper -- locale -- improper) |-- P.doc_source --| improper_end)
+      Parse.!!!! ((improper -- locale -- improper) |-- Parse.doc_source --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
         let val name = T.content_of tok
         in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
-      P.position (Scan.one (T.is_kind T.Command)) --
+      Parse.position (Scan.one (T.is_kind T.Command)) --
       Scan.repeat tag
       >> (fn ((tok, pos), tags) =>
         let val name = T.content_of tok
         in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
-      P.$$$ "--" |-- P.!!!! (improper |-- P.doc_source)
+      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.doc_source)
       >> (fn txt => (NONE, (MarkupToken ("cmt", txt), ("", d)))));
 
     val other = Scan.peek (fn d =>
-       P.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
+       Parse.not_eof >> (fn tok => (NONE, (BasicToken tok, ("", d)))));
 
     val token =
       ignored ||
@@ -565,7 +569,7 @@ end;
 
 (* embedded lemma *)
 
-val _ = OuterKeyword.keyword "by";
+val _ = Keyword.keyword "by";
 
 val _ = antiquotation "lemma"
   (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))

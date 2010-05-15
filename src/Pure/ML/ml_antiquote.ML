@@ -57,12 +57,11 @@ val value = declaration "val";
 
 (** misc antiquotations **)
 
-structure P = OuterParse;
-
 val _ = inline "make_string" (Scan.succeed ml_make_string);
 
 val _ = value "binding"
-  (Scan.lift (P.position Args.name) >> (fn name => ML_Syntax.atomic (ML_Syntax.make_binding name)));
+  (Scan.lift (Parse.position Args.name)
+    >> (fn name => ML_Syntax.atomic (ML_Syntax.make_binding name)));
 
 val _ = value "theory"
   (Scan.lift Args.name >> (fn name => "ThyInfo.get_theory " ^ ML_Syntax.print_string name)
@@ -80,11 +79,12 @@ val _ = inline "term" (Args.term >> (ML_Syntax.atomic o ML_Syntax.print_term));
 val _ = inline "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
 
 val _ = macro "let" (Args.context --
-  Scan.lift (P.and_list1 (P.and_list1 Args.name_source -- (Args.$$$ "=" |-- Args.name_source)))
+  Scan.lift
+    (Parse.and_list1 (Parse.and_list1 Args.name_source -- (Args.$$$ "=" |-- Args.name_source)))
     >> (fn (ctxt, args) => #2 (ProofContext.match_bind true args ctxt)));
 
 val _ = macro "note" (Args.context :|-- (fn ctxt =>
-  P.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms >> (fn ((a, srcs), ths) =>
+  Parse.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms >> (fn ((a, srcs), ths) =>
     ((a, map (Attrib.attribute (ProofContext.theory_of ctxt)) srcs), [(ths, [])])))
   >> (fn args => #2 (ProofContext.note_thmss "" args ctxt))));
 
@@ -118,7 +118,7 @@ val _ = inline "sort" (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, 
 
 (* type constructors *)
 
-fun type_name kind check = Args.context -- Scan.lift (OuterParse.position Args.name_source)
+fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_source)
   >> (fn (ctxt, (s, pos)) =>
     let
       val Type (c, _) = ProofContext.read_type_name_proper ctxt false s;
@@ -137,7 +137,7 @@ val _ = inline "type_syntax" (type_name "type" (fn (c, _) => Syntax.mark_type c)
 
 (* constants *)
 
-fun const_name check = Args.context -- Scan.lift (OuterParse.position Args.name_source)
+fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_source)
   >> (fn (ctxt, (s, pos)) =>
     let
       val Const (c, _) = ProofContext.read_const_proper ctxt false s;
@@ -151,13 +151,13 @@ val _ = inline "const_syntax" (const_name (fn (_, c) => Syntax.mark_const c));
 
 
 val _ = inline "syntax_const"
-  (Args.context -- Scan.lift (OuterParse.position Args.name) >> (fn (ctxt, (c, pos)) =>
+  (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (c, pos)) =>
     if Syntax.is_const (ProofContext.syn_of ctxt) c then ML_Syntax.print_string c
     else error ("Unknown syntax const: " ^ quote c ^ Position.str_of pos)));
 
 val _ = inline "const"
   (Args.context -- Scan.lift Args.name_source -- Scan.optional
-      (Scan.lift (Args.$$$ "(") |-- OuterParse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
+      (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
     >> (fn ((ctxt, raw_c), Ts) =>
       let
         val Const (c, _) = ProofContext.read_const_proper ctxt true raw_c;

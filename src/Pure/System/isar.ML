@@ -80,14 +80,14 @@ in
 fun linear_undo n = edit_history n (K (find_and_undo (K true)));
 
 fun undo n = edit_history n (fn st => fn hist =>
-  find_and_undo (if Toplevel.is_proof st then K true else OuterKeyword.is_theory) hist);
+  find_and_undo (if Toplevel.is_proof st then K true else Keyword.is_theory) hist);
 
 fun kill () = edit_history 1 (fn st => fn hist =>
   find_and_undo
-    (if Toplevel.is_proof st then OuterKeyword.is_theory else OuterKeyword.is_theory_begin) hist);
+    (if Toplevel.is_proof st then Keyword.is_theory else Keyword.is_theory_begin) hist);
 
 fun kill_proof () = edit_history 1 (fn st => fn hist =>
-  if Toplevel.is_proof st then find_and_undo OuterKeyword.is_theory hist
+  if Toplevel.is_proof st then find_and_undo Keyword.is_theory hist
   else raise Toplevel.UNDEF);
 
 end;
@@ -102,9 +102,9 @@ fun op >> tr =
   | SOME (st', NONE) =>
       let
         val name = Toplevel.name_of tr;
-        val _ = if OuterKeyword.is_theory_begin name then init () else ();
+        val _ = if Keyword.is_theory_begin name then init () else ();
         val _ =
-          if OuterKeyword.is_regular name
+          if Keyword.is_regular name
           then edit_history 1 (fn st => fn hist => (st', (st, tr) :: hist)) else ();
       in true end);
 
@@ -157,7 +157,6 @@ fun main () =
 
 local
 
-structure P = OuterParse and K = OuterKeyword;
 val op >> = Scan.>>;
 
 in
@@ -165,33 +164,35 @@ in
 (* global history *)
 
 val _ =
-  OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" K.control
+  OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative init));
 
 val _ =
-  OuterSyntax.improper_command "linear_undo" "undo commands" K.control
-    (Scan.optional P.nat 1 >>
+  OuterSyntax.improper_command "linear_undo" "undo commands" Keyword.control
+    (Scan.optional Parse.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => linear_undo n)));
 
 val _ =
-  OuterSyntax.improper_command "undo" "undo commands (skipping closed proofs)" K.control
-    (Scan.optional P.nat 1 >>
+  OuterSyntax.improper_command "undo" "undo commands (skipping closed proofs)" Keyword.control
+    (Scan.optional Parse.nat 1 >>
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => undo n)));
 
 val _ =
-  OuterSyntax.improper_command "undos_proof" "undo commands (skipping closed proofs)" K.control
-    (Scan.optional P.nat 1 >> (fn n => Toplevel.no_timing o
+  OuterSyntax.improper_command "undos_proof" "undo commands (skipping closed proofs)"
+    Keyword.control
+    (Scan.optional Parse.nat 1 >> (fn n => Toplevel.no_timing o
       Toplevel.keep (fn state =>
         if Toplevel.is_proof state then (undo n; print ()) else raise Toplevel.UNDEF)));
 
 val _ =
-  OuterSyntax.improper_command "cannot_undo" "partial undo -- Proof General legacy" K.control
-    (P.name >>
+  OuterSyntax.improper_command "cannot_undo" "partial undo -- Proof General legacy"
+    Keyword.control
+    (Parse.name >>
       (fn "end" => Toplevel.no_timing o Toplevel.imperative (fn () => undo 1)
         | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
 
 val _ =
-  OuterSyntax.improper_command "kill" "kill partial proof or theory development" K.control
+  OuterSyntax.improper_command "kill" "kill partial proof or theory development" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
 
 end;

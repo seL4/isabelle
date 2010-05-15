@@ -71,7 +71,6 @@ structure Args: ARGS =
 struct
 
 structure T = OuterLex;
-structure P = OuterParse;
 
 type token = T.token;
 
@@ -125,17 +124,17 @@ fun theory x = (Scan.state >> Context.theory_of) x;
 
 (* basic *)
 
-fun token atom = Scan.ahead P.not_eof --| atom;
+fun token atom = Scan.ahead Parse.not_eof --| atom;
 
 val ident = token
-  (P.short_ident || P.long_ident || P.sym_ident || P.term_var ||
-    P.type_ident || P.type_var || P.number);
+  (Parse.short_ident || Parse.long_ident || Parse.sym_ident || Parse.term_var ||
+    Parse.type_ident || Parse.type_var || Parse.number);
 
-val string = token (P.string || P.verbatim);
-val alt_string = token P.alt_string;
-val symbolic = token P.keyword_ident_or_symbolic;
+val string = token (Parse.string || Parse.verbatim);
+val alt_string = token Parse.alt_string;
+val symbolic = token Parse.keyword_ident_or_symbolic;
 
-fun $$$ x = (ident >> T.content_of || P.keyword)
+fun $$$ x = (ident >> T.content_of || Parse.keyword)
   :|-- (fn y => if x = y then Scan.succeed x else Scan.fail);
 
 
@@ -158,7 +157,7 @@ val name_source = named >> T.source_of;
 val name_source_position = named >> T.source_position_of;
 
 val name = named >> T.content_of;
-val binding = P.position name >> Binding.make;
+val binding = Parse.position name >> Binding.make;
 val alt_name = alt_string >> T.content_of;
 val symbol = symbolic >> T.content_of;
 val liberal_name = symbol || name;
@@ -216,12 +215,12 @@ fun const_proper strict =
 (* improper method arguments *)
 
 val from_to =
-  P.nat -- ($$$ "-" |-- P.nat) >> (fn (i, j) => fn tac => Seq.INTERVAL tac i j) ||
-  P.nat --| $$$ "-" >> (fn i => fn tac => fn st => Seq.INTERVAL tac i (Thm.nprems_of st) st) ||
-  P.nat >> (fn i => fn tac => tac i) ||
+  Parse.nat -- ($$$ "-" |-- Parse.nat) >> (fn (i, j) => fn tac => Seq.INTERVAL tac i j) ||
+  Parse.nat --| $$$ "-" >> (fn i => fn tac => fn st => Seq.INTERVAL tac i (Thm.nprems_of st) st) ||
+  Parse.nat >> (fn i => fn tac => tac i) ||
   $$$ "!" >> K ALLGOALS;
 
-val goal = $$$ "[" |-- P.!!! (from_to --| $$$ "]");
+val goal = $$$ "[" |-- Parse.!!! (from_to --| $$$ "]");
 fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 
 
@@ -229,10 +228,10 @@ fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 
 fun parse_args is_symid =
   let
-    val keyword_symid = token (P.keyword_with is_symid);
-    fun atom blk = P.group "argument"
+    val keyword_symid = token (Parse.keyword_with is_symid);
+    fun atom blk = Parse.group "argument"
       (ident || keyword_symid || string || alt_string ||
-        (if blk then token (P.$$$ ",") else Scan.fail));
+        (if blk then token (Parse.$$$ ",") else Scan.fail));
 
     fun args blk x = Scan.optional (args1 blk) [] x
     and args1 blk x =
@@ -240,7 +239,8 @@ fun parse_args is_symid =
         (Scan.repeat1 (atom blk) ||
           argsp "(" ")" ||
           argsp "[" "]")) >> flat) x
-    and argsp l r x = (token (P.$$$ l) ::: P.!!! (args true @@@ (token (P.$$$ r) >> single))) x;
+    and argsp l r x =
+      (token (Parse.$$$ l) ::: Parse.!!! (args true @@@ (token (Parse.$$$ r) >> single))) x;
   in (args, args1) end;
 
 val parse = #1 (parse_args T.ident_or_symbolic) false;
@@ -253,8 +253,8 @@ fun attribs intern =
   let
     val attrib_name = internal_text || (symbolic || named)
       >> evaluate T.Text (intern o T.content_of);
-    val attrib = P.position (attrib_name -- P.!!! parse) >> src;
-  in $$$ "[" |-- P.!!! (P.list attrib --| $$$ "]") end;
+    val attrib = Parse.position (attrib_name -- Parse.!!! parse) >> src;
+  in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
 fun opt_attribs intern = Scan.optional (attribs intern) [];
 

@@ -54,7 +54,7 @@ val goal = Scan.unless (by || and_) Args.name;
 
 val _ = ML_Context.add_antiq "lemma"
   (fn _ => Args.context -- Args.mode "open" --
-      Scan.lift (OuterParse.and_list1 (Scan.repeat1 goal) --
+      Scan.lift (Parse.and_list1 (Scan.repeat1 goal) --
         (by |-- Method.parse -- Scan.option Method.parse)) >>
     (fn ((ctxt, is_open), (raw_propss, methods)) => fn background =>
       let
