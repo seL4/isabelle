@@ -412,8 +412,6 @@ fun define_overloaded b (c, t) thy =
 
 (* primitive rules *)
 
-val shyps_topped = forall null o #shyps o Thm.rep_thm;
-
 fun add_classrel raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
@@ -424,7 +422,6 @@ fun add_classrel raw_th thy =
     val th' = th
       |> Thm.unconstrainT
       |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [])))] [];
-    val _ = shyps_topped th' orelse raise Fail "add_classrel: nontop shyps after unconstrain";
   in
     thy
     |> Sign.primitive_classrel (c1, c2)
@@ -450,7 +447,6 @@ fun add_arity raw_th thy =
     val th' = th
       |> Thm.unconstrainT
       |> Drule.instantiate' std_vars [];
-    val _ = shyps_topped th' orelse raise Fail "add_arity: nontop shyps after unconstrain";
   in
     thy
     |> fold (#2 oo declare_overloaded) missing_params
