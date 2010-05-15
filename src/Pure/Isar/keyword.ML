@@ -1,10 +1,10 @@
-(*  Title:      Pure/Isar/outer_keyword.ML
+(*  Title:      Pure/Isar/keyword.ML
     Author:     Makarius
 
 Isar command keyword classification and global keyword tables.
 *)
 
-signature OUTER_KEYWORD =
+signature KEYWORD =
 sig
   type T
   val kind_of: T -> string
@@ -61,7 +61,7 @@ sig
   val is_qed_global: string -> bool
 end;
 
-structure OuterKeyword: OUTER_KEYWORD =
+structure Keyword: KEYWORD =
 struct
 
 (** keyword classification **)
@@ -209,3 +209,8 @@ val is_qed = command_category [qed, qed_block];
 val is_qed_global = command_category [qed_global];
 
 end;
+
+(*legacy alias*)
+structure OuterKeyword = Keyword;
+
+

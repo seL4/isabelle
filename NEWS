@@ -502,6 +502,12 @@ ProofContext.init_global.  There are some situations where a global
 context actually works, but under normal circumstances one needs to
 pass the proper local context through the code!
 
+* Renamed some important ML structures, while keeping the old names as
+legacy aliases for some time:
+
+  OuterKeyword  ~>  Keyword
+  OuterParse    ~>  Parse
+
 
 *** System ***
 

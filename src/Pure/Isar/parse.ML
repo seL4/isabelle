@@ -1,10 +1,10 @@
-(*  Title:      Pure/Isar/outer_parse.ML
+(*  Title:      Pure/Isar/parse.ML
     Author:     Markus Wenzel, TU Muenchen
 
 Generic parsers for Isabelle/Isar outer syntax.
 *)
 
-signature OUTER_PARSE =
+signature PARSE =
 sig
   type token = OuterLex.token
   type 'a parser = token list -> 'a * token list
@@ -95,7 +95,7 @@ sig
   val opt_target: xstring option parser
 end;
 
-structure OuterParse: OUTER_PARSE =
+structure Parse: PARSE =
 struct
 
 structure T = OuterLex;
@@ -338,6 +338,9 @@ val opt_target = Scan.option target;
 
 end;
 
-type 'a parser = 'a OuterParse.parser;
-type 'a context_parser = 'a OuterParse.context_parser;
+type 'a parser = 'a Parse.parser;
+type 'a context_parser = 'a Parse.context_parser;
+
+(*legacy alias*)
+structure OuterParse = Parse;
 

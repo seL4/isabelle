@@ -168,8 +168,8 @@ use "Proof/proofchecker.ML";
 
 (*outer syntax*)
 use "Isar/outer_lex.ML";
-use "Isar/outer_keyword.ML";
-use "Isar/outer_parse.ML";
+use "Isar/keyword.ML";
+use "Isar/parse.ML";
 use "Isar/value_parse.ML";
 use "Isar/args.ML";
 
