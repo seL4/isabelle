@@ -156,7 +156,7 @@ fun ematch_tac rules = bimatch_tac (map (pair true) rules);
 fun dmatch_tac rls   = ematch_tac (map make_elim rls);
 
 (*Smash all flex-flex disagreement pairs in the proof state.*)
-val flexflex_tac = PRIMSEQ flexflex_rule;
+val flexflex_tac = PRIMSEQ Thm.flexflex_rule;
 
 (*Remove duplicate subgoals.*)
 val perm_tac = PRIMITIVE oo Thm.permute_prems;
@@ -185,7 +185,7 @@ fun distinct_subgoals_tac state =
 
 (*Determine print names of goal parameters (reversed)*)
 fun innermost_params i st =
-  let val (_, _, Bi, _) = dest_state (st, i)
+  let val (_, _, Bi, _) = Thm.dest_state (st, i)
   in Term.rename_wrt_term Bi (Logic.strip_params Bi) end;
 
 

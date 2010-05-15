@@ -832,9 +832,9 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
 
 fun check_conv msg ss thm thm' =
   let
-    val thm'' = transitive thm thm' handle THM _ =>
-     transitive thm (transitive
-       (symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
+    val thm'' = Thm.transitive thm thm' handle THM _ =>
+     Thm.transitive thm (Thm.transitive
+       (Thm.symmetric (Drule.beta_eta_conversion (Thm.lhs_of thm'))) thm')
   in if msg then trace_thm (fn () => "SUCCEEDED") ss thm' else (); SOME thm'' end
   handle THM _ =>
     let
@@ -972,8 +972,8 @@ fun rewritec (prover, thyt, maxt) ss t =
                   | some => some)))
           else proc_rews ps;
   in case eta_t of
-       Abs _ $ _ => SOME (transitive eta_thm
-         (beta_conversion false eta_t'), skel0)
+       Abs _ $ _ => SOME (Thm.transitive eta_thm
+         (Thm.beta_conversion false eta_t'), skel0)
      | _ => (case rews (sort_rrules (Net.match_term rules eta_t)) of
                NONE => proc_rews (Net.match_term procs eta_t)
              | some => some)
@@ -1006,7 +1006,7 @@ val (cA, (cB, cC)) =
 fun transitive1 NONE NONE = NONE
   | transitive1 (SOME thm1) NONE = SOME thm1
   | transitive1 NONE (SOME thm2) = SOME thm2
-  | transitive1 (SOME thm1) (SOME thm2) = SOME (transitive thm1 thm2)
+  | transitive1 (SOME thm1) (SOME thm2) = SOME (Thm.transitive thm1 thm2)
 
 fun transitive2 thm = transitive1 (SOME thm);
 fun transitive3 thm = transitive1 thm o SOME;
@@ -1020,7 +1020,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
              some as SOME thm1 =>
                (case rewritec (prover, thy, maxidx) ss (Thm.rhs_of thm1) of
                   SOME (thm2, skel2) =>
-                    transitive2 (transitive thm1 thm2)
+                    transitive2 (Thm.transitive thm1 thm2)
                       (botc skel2 ss (Thm.rhs_of thm2))
                 | NONE => some)
            | NONE =>
@@ -1031,7 +1031,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
 
     and try_botc ss t =
           (case botc skel0 ss t of
-             SOME trec1 => trec1 | NONE => (reflexive t))
+             SOME trec1 => trec1 | NONE => (Thm.reflexive t))
 
     and subc skel (ss as Simpset ({bounds, ...}, {congs, ...})) t0 =
        (case term_of t0 of
@@ -1048,16 +1048,16 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                  val ss' = add_bound ((b', T), a) ss;
                  val skel' = case skel of Abs (_, _, sk) => sk | _ => skel0;
              in case botc skel' ss' t' of
-                  SOME thm => SOME (abstract_rule a v thm)
+                  SOME thm => SOME (Thm.abstract_rule a v thm)
                 | NONE => NONE
              end
          | t $ _ => (case t of
              Const ("==>", _) $ _  => impc t0 ss
            | Abs _ =>
-               let val thm = beta_conversion false t0
+               let val thm = Thm.beta_conversion false t0
                in case subc skel0 ss (Thm.rhs_of thm) of
                     NONE => SOME thm
-                  | SOME thm' => SOME (transitive thm thm')
+                  | SOME thm' => SOME (Thm.transitive thm thm')
                end
            | _  =>
                let fun appc () =
@@ -1070,11 +1070,11 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                      (case botc tskel ss ct of
                         SOME thm1 =>
                           (case botc uskel ss cu of
-                             SOME thm2 => SOME (combination thm1 thm2)
-                           | NONE => SOME (combination thm1 (reflexive cu)))
+                             SOME thm2 => SOME (Thm.combination thm1 thm2)
+                           | NONE => SOME (Thm.combination thm1 (Thm.reflexive cu)))
                       | NONE =>
                           (case botc uskel ss cu of
-                             SOME thm1 => SOME (combination (reflexive ct) thm1)
+                             SOME thm1 => SOME (Thm.combination (Thm.reflexive ct) thm1)
                            | NONE => NONE))
                      end
                    val (h, ts) = strip_comb t
@@ -1095,7 +1095,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
                            in case botc skel ss cl of
                                 NONE => thm
                               | SOME thm' => transitive3 thm
-                                  (combination thm' (reflexive cr))
+                                  (Thm.combination thm' (Thm.reflexive cr))
                            end handle Pattern.MATCH => appc ()))
                   | _ => appc ()
                end)
@@ -1110,7 +1110,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
         (fn () => "Cannot add premise as rewrite rule because it contains (type) unknowns:")
           ss prem; ([], NONE))
       else
-        let val asm = assume prem
+        let val asm = Thm.assume prem
         in (extract_safe_rrules (ss, asm), SOME asm) end
 
     and add_rrules (rrss, asms) ss =
@@ -1119,14 +1119,14 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
     and disch r prem eq =
       let
         val (lhs, rhs) = Thm.dest_equals (Thm.cprop_of eq);
-        val eq' = implies_elim (Thm.instantiate
+        val eq' = Thm.implies_elim (Thm.instantiate
           ([], [(cA, prem), (cB, lhs), (cC, rhs)]) Drule.imp_cong)
-          (implies_intr prem eq)
+          (Thm.implies_intr prem eq)
       in if not r then eq' else
         let
           val (prem', concl) = Thm.dest_implies lhs;
           val (prem'', _) = Thm.dest_implies rhs
-        in transitive (transitive
+        in Thm.transitive (Thm.transitive
           (Thm.instantiate ([], [(cA, prem'), (cB, prem), (cC, concl)])
              Drule.swap_prems_eq) eq')
           (Thm.instantiate ([], [(cA, prem), (cB, prem''), (cC, concl)])
@@ -1182,7 +1182,7 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
             in mut_impc prems concl rrss asms (prem' :: prems')
               (rrs' :: rrss') (asm' :: asms') (SOME (fold_rev (disch true)
                 (take i prems)
-                (Drule.imp_cong_rule eqn (reflexive (Drule.list_implies
+                (Drule.imp_cong_rule eqn (Thm.reflexive (Drule.list_implies
                   (drop i prems, concl))))) :: eqns)
                   ss (length prems') ~1
             end
@@ -1197,13 +1197,13 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
        in (case botc skel0 ss1 conc of
            NONE => (case thm1 of
                NONE => NONE
-             | SOME thm1' => SOME (Drule.imp_cong_rule thm1' (reflexive conc)))
+             | SOME thm1' => SOME (Drule.imp_cong_rule thm1' (Thm.reflexive conc)))
          | SOME thm2 =>
            let val thm2' = disch false prem1 thm2
            in (case thm1 of
                NONE => SOME thm2'
              | SOME thm1' =>
-                 SOME (transitive (Drule.imp_cong_rule thm1' (reflexive conc)) thm2'))
+                 SOME (Thm.transitive (Drule.imp_cong_rule thm1' (Thm.reflexive conc)) thm2'))
            end)
        end
 
@@ -1321,7 +1321,7 @@ fun sort_lhs_depths defs =
       val keys = sort_distinct (rev_order o int_ord) (map #2 keylist)
   in map (AList.find (op =) keylist) keys end;
 
-val rev_defs = sort_lhs_depths o map symmetric;
+val rev_defs = sort_lhs_depths o map Thm.symmetric;
 
 fun fold_rule defs = fold rewrite_rule (rev_defs defs);
 fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));

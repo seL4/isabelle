@@ -134,7 +134,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
       val maxidx = Thm.maxidx_of state
       val cterm = Thm.cterm_of (Thm.theory_of_thm state)
       val chyps = map cterm hyps
-      val hypths = map assume chyps
+      val hypths = map Thm.assume chyps
       val subprems = map (Thm.forall_elim_vars 0) hypths
       val fparams = map Free params
       val cparams = map cterm fparams
@@ -165,7 +165,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
             val st' = Thm.instantiate ([], map mk_ctpair subgoal_insts) st
             val emBs = map (cterm o embed) (prems_of st')
-            val Cth  = implies_elim_list st' (map (elim o assume) emBs)
+            val Cth  = implies_elim_list st' (map (elim o Thm.assume) emBs)
         in  (*restore the unknowns to the hypotheses*)
             free_instantiate (map swap_ctpair insts @
                               map mk_subgoal_swap_ctpair subgoal_insts)
@@ -175,7 +175,7 @@ fun metahyps_aux_tac tacf (prem,gno) state =
         end
       (*function to replace the current subgoal*)
       fun next st = Thm.bicompose false (false, relift st, nprems_of st) gno state
-  in Seq.maps next (tacf subprems (trivial (cterm concl))) end;
+  in Seq.maps next (tacf subprems (Thm.trivial (cterm concl))) end;
 
 end;
 
@@ -308,7 +308,7 @@ fun prepare_proof atomic rths chorn =
       (*discharges assumptions from state in the order they appear in goal;
         checks (if requested) that resulting theorem is equivalent to goal. *)
       fun mkresult (check,state) =
-        let val state = Seq.hd (flexflex_rule state)
+        let val state = Seq.hd (Thm.flexflex_rule state)
                         handle THM _ => state   (*smash flexflex pairs*)
             val ngoals = nprems_of state
             val ath = implies_intr_list cAs state
@@ -522,7 +522,7 @@ fun simple_prove_goal_cterm G f =
           | i => !result_error_fn thm (string_of_int i ^ " unsolved goals!"))
   in
     Drule.export_without_context (implies_intr_list As
-      (check (Seq.pull (EVERY (f asms) (trivial B)))))
+      (check (Seq.pull (EVERY (f asms) (Thm.trivial B)))))
   end;
 
 
