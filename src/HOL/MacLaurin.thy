@@ -383,6 +383,11 @@ by (induct "n", auto)
 
 text{*It is unclear why so many variant results are needed.*}
 
+lemma sin_expansion_lemma:
+     "sin (x + real (Suc m) * pi / 2) =  
+      cos (x + real (m) * pi / 2)"
+by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib left_distrib, auto)
+
 lemma Maclaurin_sin_expansion2:
      "\<exists>t. abs t \<le> abs x &
        sin x =
@@ -394,7 +399,7 @@ apply (cut_tac f = sin and n = n and x = x
         and diff = "%n x. sin (x + 1/2*real n * pi)" in Maclaurin_all_lt_objl)
 apply safe
 apply (simp (no_asm))
-apply (simp (no_asm))
+apply (simp (no_asm) add: sin_expansion_lemma)
 apply (case_tac "n", clarify, simp, simp add: lemma_STAR_sin)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)
@@ -414,7 +419,6 @@ apply (insert Maclaurin_sin_expansion2 [of x n])
 apply (blast intro: elim:); 
 done
 
-
 lemma Maclaurin_sin_expansion3:
      "[| n > 0; 0 < x |] ==>
        \<exists>t. 0 < t & t < x &
@@ -426,7 +430,7 @@ lemma Maclaurin_sin_expansion3:
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
 apply simp
-apply (simp (no_asm))
+apply (simp (no_asm) add: sin_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -444,7 +448,7 @@ lemma Maclaurin_sin_expansion4:
 apply (cut_tac f = sin and n = n and h = x and diff = "%n x. sin (x + 1/2*real (n) *pi)" in Maclaurin2_objl)
 apply safe
 apply simp
-apply (simp (no_asm))
+apply (simp (no_asm) add: sin_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -459,6 +463,10 @@ lemma sumr_cos_zero_one [simp]:
      (if even m then -1 ^ (m div 2)/(real  (fact m)) else 0) * 0 ^ m) = 1"
 by (induct "n", auto)
 
+lemma cos_expansion_lemma:
+  "cos (x + real(Suc m) * pi / 2) = -sin (x + real m * pi / 2)"
+by (simp only: cos_add sin_add real_of_nat_Suc left_distrib add_divide_distrib, auto)
+
 lemma Maclaurin_cos_expansion:
      "\<exists>t. abs t \<le> abs x &
        cos x =
@@ -470,7 +478,7 @@ lemma Maclaurin_cos_expansion:
 apply (cut_tac f = cos and n = n and x = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_all_lt_objl)
 apply safe
 apply (simp (no_asm))
-apply (simp (no_asm))
+apply (simp (no_asm) add: cos_expansion_lemma)
 apply (case_tac "n", simp)
 apply (simp del: setsum_op_ivl_Suc)
 apply (rule ccontr, simp)
@@ -493,7 +501,7 @@ lemma Maclaurin_cos_expansion2:
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_objl)
 apply safe
 apply simp
-apply (simp (no_asm))
+apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])
@@ -512,7 +520,7 @@ lemma Maclaurin_minus_cos_expansion:
 apply (cut_tac f = cos and n = n and h = x and diff = "%n x. cos (x + 1/2*real (n) *pi)" in Maclaurin_minus_objl)
 apply safe
 apply simp
-apply (simp (no_asm))
+apply (simp (no_asm) add: cos_expansion_lemma)
 apply (erule ssubst)
 apply (rule_tac x = t in exI, simp)
 apply (rule setsum_cong[OF refl])

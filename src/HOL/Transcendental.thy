@@ -2580,18 +2580,6 @@ unfolding tan_def by (simp add: sin_45 cos_45)
 lemma tan_60: "tan (pi / 3) = sqrt 3"
 unfolding tan_def by (simp add: sin_60 cos_60)
 
-text{*NEEDED??*}
-lemma [simp]:
-     "sin (x + 1 / 2 * real (Suc m) * pi) =  
-      cos (x + 1 / 2 * real  (m) * pi)"
-by (simp only: cos_add sin_add real_of_nat_Suc left_distrib right_distrib, auto)
-
-text{*NEEDED??*}
-lemma [simp]:
-     "sin (x + real (Suc m) * pi / 2) =  
-      cos (x + real (m) * pi / 2)"
-by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib left_distrib, auto)
-
 lemma DERIV_sin_add [simp]: "DERIV (%x. sin (x + k)) xa :> cos (xa + k)"
   by (auto intro!: DERIV_intros)
 
@@ -2619,16 +2607,6 @@ lemma sin_3over2_pi [simp]: "sin (3 / 2 * pi) = - 1"
 apply (subgoal_tac "sin (pi + pi/2) = - 1", simp)
 apply (subst sin_add, simp)
 done
-
-(*NEEDED??*)
-lemma [simp]:
-     "cos(x + 1 / 2 * real(Suc m) * pi) = -sin (x + 1 / 2 * real m * pi)"
-apply (simp only: cos_add sin_add real_of_nat_Suc right_distrib left_distrib minus_mult_right, auto)
-done
-
-(*NEEDED??*)
-lemma [simp]: "cos (x + real(Suc m) * pi / 2) = -sin (x + real m * pi / 2)"
-by (simp only: cos_add sin_add real_of_nat_Suc left_distrib add_divide_distrib, auto)
 
 lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
 by (simp only: cos_add sin_add real_of_nat_Suc left_distrib right_distrib add_divide_distrib, auto)
