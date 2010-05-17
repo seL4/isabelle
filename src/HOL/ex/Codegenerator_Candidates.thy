@@ -23,7 +23,6 @@ imports
   RBT
   SetsAndFunctions
   While_Combinator
-  Word
 begin
 
 inductive sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where

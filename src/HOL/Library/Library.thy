@@ -61,7 +61,6 @@ imports
   Transitive_Closure_Table
   Univ_Poly
   While_Combinator
-  Word
   Zorn
 begin
 end
