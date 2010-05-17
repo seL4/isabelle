@@ -214,23 +214,8 @@ proof(induct n rule: nat_less_induct)
     hence "\<exists>z. ?P z n" ..}
   moreover
   {assume o: "odd n"
-    from b have b': "b^2 \<noteq> 0" unfolding power2_eq_square by simp
-    have "Im (inverse b) * (Im (inverse b) * \<bar>Im b * Im b + Re b * Re b\<bar>) +
-    Re (inverse b) * (Re (inverse b) * \<bar>Im b * Im b + Re b * Re b\<bar>) =
-    ((Re (inverse b))^2 + (Im (inverse b))^2) * \<bar>Im b * Im b + Re b * Re b\<bar>" by algebra
-    also have "\<dots> = cmod (inverse b) ^2 * cmod b ^ 2"
-      apply (simp add: cmod_def) using realpow_two_le_add_order[of "Re b" "Im b"]
-      by (simp add: power2_eq_square)
-    finally
-    have th0: "Im (inverse b) * (Im (inverse b) * \<bar>Im b * Im b + Re b * Re b\<bar>) +
-    Re (inverse b) * (Re (inverse b) * \<bar>Im b * Im b + Re b * Re b\<bar>) =
-    1"
-      apply (simp add: power2_eq_square norm_mult[symmetric] norm_inverse[symmetric])
-      using right_inverse[OF b']
-      by (simp add: power2_eq_square[symmetric] power_inverse[symmetric] algebra_simps)
     have th0: "cmod (complex_of_real (cmod b) / b) = 1"
-      apply (simp add: complex_Re_mult cmod_def power2_eq_square Re_complex_of_real Im_complex_of_real divide_inverse algebra_simps )
-      by (simp add: real_sqrt_mult[symmetric] th0)
+      using b by (simp add: norm_divide)
     from o have "\<exists>m. n = Suc (2*m)" by presburger+
     then obtain m where m: "n = Suc (2*m)" by blast
     from unimodular_reduce_norm[OF th0] o
