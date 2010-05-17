@@ -1,67 +1,66 @@
-(*  Title:      Pure/Isar/outer_lex.ML
+(*  Title:      Pure/Isar/token.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Outer lexical syntax for Isabelle/Isar.
+Outer token syntax for Isabelle/Isar.
 *)
 
-signature OUTER_LEX =
+signature TOKEN =
 sig
-  datatype token_kind =
+  datatype kind =
     Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
     Nat | String | AltString | Verbatim | Space | Comment | InternalValue |
     Malformed | Error of string | Sync | EOF
   datatype value =
     Text of string | Typ of typ | Term of term | Fact of thm list |
     Attribute of morphism -> attribute
-  type token
-  val str_of_kind: token_kind -> string
-  val position_of: token -> Position.T
-  val end_position_of: token -> Position.T
-  val pos_of: token -> string
-  val eof: token
-  val is_eof: token -> bool
-  val not_eof: token -> bool
-  val not_sync: token -> bool
-  val stopper: token Scan.stopper
-  val kind_of: token -> token_kind
-  val is_kind: token_kind -> token -> bool
-  val keyword_with: (string -> bool) -> token -> bool
-  val ident_with: (string -> bool) -> token -> bool
-  val is_proper: token -> bool
-  val is_semicolon: token -> bool
-  val is_comment: token -> bool
-  val is_begin_ignore: token -> bool
-  val is_end_ignore: token -> bool
-  val is_blank: token -> bool
-  val is_newline: token -> bool
-  val source_of: token -> string
-  val source_position_of: token -> Symbol_Pos.text * Position.T
-  val content_of: token -> string
-  val unparse: token -> string
-  val text_of: token -> string * string
-  val get_value: token -> value option
-  val map_value: (value -> value) -> token -> token
-  val mk_text: string -> token
-  val mk_typ: typ -> token
-  val mk_term: term -> token
-  val mk_fact: thm list -> token
-  val mk_attribute: (morphism -> attribute) -> token
-  val assignable: token -> token
-  val assign: value option -> token -> unit
-  val closure: token -> token
+  type T
+  val str_of_kind: kind -> string
+  val position_of: T -> Position.T
+  val end_position_of: T -> Position.T
+  val pos_of: T -> string
+  val eof: T
+  val is_eof: T -> bool
+  val not_eof: T -> bool
+  val not_sync: T -> bool
+  val stopper: T Scan.stopper
+  val kind_of: T -> kind
+  val is_kind: kind -> T -> bool
+  val keyword_with: (string -> bool) -> T -> bool
+  val ident_with: (string -> bool) -> T -> bool
+  val is_proper: T -> bool
+  val is_semicolon: T -> bool
+  val is_comment: T -> bool
+  val is_begin_ignore: T -> bool
+  val is_end_ignore: T -> bool
+  val is_blank: T -> bool
+  val is_newline: T -> bool
+  val source_of: T -> string
+  val source_position_of: T -> Symbol_Pos.text * Position.T
+  val content_of: T -> string
+  val unparse: T -> string
+  val text_of: T -> string * string
+  val get_value: T -> value option
+  val map_value: (value -> value) -> T -> T
+  val mk_text: string -> T
+  val mk_typ: typ -> T
+  val mk_term: term -> T
+  val mk_fact: thm list -> T
+  val mk_attribute: (morphism -> attribute) -> T
+  val assignable: T -> T
+  val assign: value option -> T -> unit
+  val closure: T -> T
   val ident_or_symbolic: string -> bool
   val !!! : string -> (Symbol_Pos.T list -> 'a) -> Symbol_Pos.T list -> 'a
-  val source_proper: (token, 'a) Source.source -> (token, (token, 'a) Source.source) Source.source
+  val source_proper: (T, 'a) Source.source -> (T, (T, 'a) Source.source) Source.source
   val source': {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
-    (Symbol_Pos.T, 'a) Source.source -> (token, (Symbol_Pos.T, 'a) Source.source) Source.source
+    (Symbol_Pos.T, 'a) Source.source -> (T, (Symbol_Pos.T, 'a) Source.source) Source.source
   val source: {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
-    Position.T -> (Symbol.symbol, 'a) Source.source -> (token,
+    Position.T -> (Symbol.symbol, 'a) Source.source -> (T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
-  val read_antiq: Scan.lexicon -> (token list -> 'a * token list) ->
-    Symbol_Pos.T list * Position.T -> 'a
+  val read_antiq: Scan.lexicon -> (T list -> 'a * T list) -> Symbol_Pos.T list * Position.T -> 'a
 end;
 
-structure OuterLex: OUTER_LEX =
+structure Token: TOKEN =
 struct
 
 (** tokens **)
@@ -88,12 +87,12 @@ datatype slot =
 
 (* datatype token *)
 
-datatype token_kind =
+datatype kind =
   Command | Keyword | Ident | LongIdent | SymIdent | Var | TypeIdent | TypeVar |
   Nat | String | AltString | Verbatim | Space | Comment | InternalValue |
   Malformed | Error of string | Sync | EOF;
 
-datatype token = Token of (Symbol_Pos.text * Position.range) * (token_kind * string) * slot;
+datatype T = Token of (Symbol_Pos.text * Position.range) * (kind * string) * slot;
 
 val str_of_kind =
  fn Command => "command"

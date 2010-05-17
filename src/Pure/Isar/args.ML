@@ -7,10 +7,9 @@ attributes, methods etc.
 
 signature ARGS =
 sig
-  type token = OuterLex.token
   type src
-  val src: (string * token list) * Position.T -> src
-  val dest_src: src -> (string * token list) * Position.T
+  val src: (string * Token.T list) * Position.T -> src
+  val dest_src: src -> (string * Token.T list) * Position.T
   val pretty_src: Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
   val morph_values: morphism -> src -> src
@@ -57,8 +56,8 @@ sig
   val const: bool -> string context_parser
   val const_proper: bool -> string context_parser
   val goal_spec: ((int -> tactic) -> tactic) context_parser
-  val parse: token list parser
-  val parse1: (string -> bool) -> token list parser
+  val parse: Token.T list parser
+  val parse1: (string -> bool) -> Token.T list parser
   val attribs: (string -> string) -> src list parser
   val opt_attribs: (string -> string) -> src list parser
   val thm_name: (string -> string) -> string -> (binding * src list) parser
@@ -70,15 +69,9 @@ end;
 structure Args: ARGS =
 struct
 
-structure T = OuterLex;
-
-type token = T.token;
-
-
-
 (** datatype src **)
 
-datatype src = Src of (string * token list) * Position.T;
+datatype src = Src of (string * Token.T list) * Position.T;
 
 val src = Src;
 fun dest_src (Src src) = src;
@@ -87,12 +80,12 @@ fun pretty_src ctxt src =
   let
     val prt_thm = Pretty.backquote o Display.pretty_thm ctxt;
     fun prt arg =
-      (case T.get_value arg of
-        SOME (T.Text s) => Pretty.str (quote s)
-      | SOME (T.Typ T) => Syntax.pretty_typ ctxt T
-      | SOME (T.Term t) => Syntax.pretty_term ctxt t
-      | SOME (T.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
-      | _ => Pretty.str (T.unparse arg));
+      (case Token.get_value arg of
+        SOME (Token.Text s) => Pretty.str (quote s)
+      | SOME (Token.Typ T) => Syntax.pretty_typ ctxt T
+      | SOME (Token.Term t) => Syntax.pretty_term ctxt t
+      | SOME (Token.Fact ths) => Pretty.enclose "(" ")" (Pretty.breaks (map prt_thm ths))
+      | _ => Pretty.str (Token.unparse arg));
     val (s, args) = #1 (dest_src src);
   in Pretty.block (Pretty.breaks (Pretty.str s :: map prt args)) end;
 
@@ -102,15 +95,15 @@ fun map_args f (Src ((s, args), pos)) = Src ((s, map f args), pos);
 
 (* values *)
 
-fun morph_values phi = map_args (T.map_value
-  (fn T.Text s => T.Text s
-    | T.Typ T => T.Typ (Morphism.typ phi T)
-    | T.Term t => T.Term (Morphism.term phi t)
-    | T.Fact ths => T.Fact (Morphism.fact phi ths)
-    | T.Attribute att => T.Attribute (Morphism.transform phi att)));
+fun morph_values phi = map_args (Token.map_value
+  (fn Token.Text s => Token.Text s
+    | Token.Typ T => Token.Typ (Morphism.typ phi T)
+    | Token.Term t => Token.Term (Morphism.term phi t)
+    | Token.Fact ths => Token.Fact (Morphism.fact phi ths)
+    | Token.Attribute att => Token.Attribute (Morphism.transform phi att)));
 
-val assignable = map_args T.assignable;
-val closure = map_args T.closure;
+val assignable = map_args Token.assignable;
+val closure = map_args Token.closure;
 
 
 
@@ -134,7 +127,7 @@ val string = token (Parse.string || Parse.verbatim);
 val alt_string = token Parse.alt_string;
 val symbolic = token Parse.keyword_ident_or_symbolic;
 
-fun $$$ x = (ident >> T.content_of || Parse.keyword)
+fun $$$ x = (ident >> Token.content_of || Parse.keyword)
   :|-- (fn y => if x = y then Scan.succeed x else Scan.fail);
 
 
@@ -153,39 +146,40 @@ fun bracks scan = $$$ "[" |-- scan --| $$$ "]";
 fun mode s = Scan.lift (Scan.optional (parens ($$$ s) >> K true) false);
 fun maybe scan = $$$ "_" >> K NONE || scan >> SOME;
 
-val name_source = named >> T.source_of;
-val name_source_position = named >> T.source_position_of;
+val name_source = named >> Token.source_of;
+val name_source_position = named >> Token.source_position_of;
 
-val name = named >> T.content_of;
+val name = named >> Token.content_of;
 val binding = Parse.position name >> Binding.make;
-val alt_name = alt_string >> T.content_of;
-val symbol = symbolic >> T.content_of;
+val alt_name = alt_string >> Token.content_of;
+val symbol = symbolic >> Token.content_of;
 val liberal_name = symbol || name;
 
-val var = (ident >> T.content_of) :|-- (fn x =>
+val var = (ident >> Token.content_of) :|-- (fn x =>
   (case Lexicon.read_variable x of SOME v => Scan.succeed v | NONE => Scan.fail));
 
 
 (* values *)
 
 fun value dest = Scan.some (fn arg =>
-  (case T.get_value arg of SOME v => (SOME (dest v) handle Match => NONE) | NONE => NONE));
+  (case Token.get_value arg of SOME v => (SOME (dest v) handle Match => NONE) | NONE => NONE));
 
 fun evaluate mk eval arg =
-  let val x = eval arg in (T.assign (SOME (mk x)) arg; x) end;
+  let val x = eval arg in (Token.assign (SOME (mk x)) arg; x) end;
 
-val internal_text = value (fn T.Text s => s);
-val internal_typ = value (fn T.Typ T => T);
-val internal_term = value (fn T.Term t => t);
-val internal_fact = value (fn T.Fact ths => ths);
-val internal_attribute = value (fn T.Attribute att => att);
+val internal_text = value (fn Token.Text s => s);
+val internal_typ = value (fn Token.Typ T => T);
+val internal_term = value (fn Token.Term t => t);
+val internal_fact = value (fn Token.Fact ths => ths);
+val internal_attribute = value (fn Token.Attribute att => att);
 
-fun named_text intern = internal_text || named >> evaluate T.Text (intern o T.content_of);
-fun named_typ readT = internal_typ || named >> evaluate T.Typ (readT o T.source_of);
-fun named_term read = internal_term || named >> evaluate T.Term (read o T.source_of);
-fun named_fact get = internal_fact || named >> evaluate T.Fact (get o T.content_of) ||
-  alt_string >> evaluate T.Fact (get o T.source_of);
-fun named_attribute att = internal_attribute || named >> evaluate T.Attribute (att o T.content_of);
+fun named_text intern = internal_text || named >> evaluate Token.Text (intern o Token.content_of);
+fun named_typ readT = internal_typ || named >> evaluate Token.Typ (readT o Token.source_of);
+fun named_term read = internal_term || named >> evaluate Token.Term (read o Token.source_of);
+fun named_fact get = internal_fact || named >> evaluate Token.Fact (get o Token.content_of) ||
+  alt_string >> evaluate Token.Fact (get o Token.source_of);
+fun named_attribute att =
+  internal_attribute || named >> evaluate Token.Attribute (att o Token.content_of);
 
 
 (* terms and types *)
@@ -243,7 +237,7 @@ fun parse_args is_symid =
       (token (Parse.$$$ l) ::: Parse.!!! (args true @@@ (token (Parse.$$$ r) >> single))) x;
   in (args, args1) end;
 
-val parse = #1 (parse_args T.ident_or_symbolic) false;
+val parse = #1 (parse_args Token.ident_or_symbolic) false;
 fun parse1 is_symid = #2 (parse_args is_symid) false;
 
 
@@ -252,7 +246,7 @@ fun parse1 is_symid = #2 (parse_args is_symid) false;
 fun attribs intern =
   let
     val attrib_name = internal_text || (symbolic || named)
-      >> evaluate T.Text (intern o T.content_of);
+      >> evaluate Token.Text (intern o Token.content_of);
     val attrib = Parse.position (attrib_name -- Parse.!!! parse) >> src;
   in $$$ "[" |-- Parse.!!! (Parse.list attrib --| $$$ "]") end;
 
@@ -273,11 +267,11 @@ fun opt_thm_name intern s =
 (** syntax wrapper **)
 
 fun syntax kind scan (Src ((s, args), pos)) st =
-  (case Scan.error (Scan.finite' T.stopper (Scan.option scan)) (st, args) of
+  (case Scan.error (Scan.finite' Token.stopper (Scan.option scan)) (st, args) of
     (SOME x, (st', [])) => (x, st')
   | (_, (_, args')) =>
       error (kind ^ " " ^ quote s ^ Position.str_of pos ^ ": bad arguments\n  " ^
-        space_implode " " (map T.unparse args')));
+        space_implode " " (map Token.unparse args')));
 
 fun context_syntax kind scan src = apsnd Context.the_proof o syntax kind scan src o Context.Proof;
 

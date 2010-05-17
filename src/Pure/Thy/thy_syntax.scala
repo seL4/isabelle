@@ -22,13 +22,13 @@ object Thy_Syntax
     }
   }
 
-  type Span = List[Outer_Lex.Token]
+  type Span = List[Token]
 
-  def parse_spans(toks: List[Outer_Lex.Token]): List[Span] =
+  def parse_spans(toks: List[Token]): List[Span] =
   {
     import parser._
 
-    parse(rep(command_span), Outer_Lex.reader(toks)) match {
+    parse(rep(command_span), Token.reader(toks)) match {
       case Success(spans, rest) if rest.atEnd => spans
       case bad => error(bad.toString)
     }

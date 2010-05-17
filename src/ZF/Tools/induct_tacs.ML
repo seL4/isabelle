@@ -186,25 +186,20 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val _ = List.app OuterKeyword.keyword ["elimination", "induction", "case_eqns", "recursor_eqns"];
+val _ = List.app Keyword.keyword ["elimination", "induction", "case_eqns", "recursor_eqns"];
 
 val rep_datatype_decl =
-  (P.$$$ "elimination" |-- P.!!! Parse_Spec.xthm) --
-  (P.$$$ "induction" |-- P.!!! Parse_Spec.xthm) --
-  (P.$$$ "case_eqns" |-- P.!!! Parse_Spec.xthms1) --
-  Scan.optional (P.$$$ "recursor_eqns" |-- P.!!! Parse_Spec.xthms1) []
+  (Parse.$$$ "elimination" |-- Parse.!!! Parse_Spec.xthm) --
+  (Parse.$$$ "induction" |-- Parse.!!! Parse_Spec.xthm) --
+  (Parse.$$$ "case_eqns" |-- Parse.!!! Parse_Spec.xthms1) --
+  Scan.optional (Parse.$$$ "recursor_eqns" |-- Parse.!!! Parse_Spec.xthms1) []
   >> (fn (((x, y), z), w) => rep_datatype x y z w);
 
 val _ =
-  OuterSyntax.command "rep_datatype" "represent existing set inductively" K.thy_decl
+  Outer_Syntax.command "rep_datatype" "represent existing set inductively" Keyword.thy_decl
     (rep_datatype_decl >> Toplevel.theory);
 
 end;
-
-end;
-
 
 val exhaust_tac = DatatypeTactics.exhaust_tac;
 val induct_tac  = DatatypeTactics.induct_tac;

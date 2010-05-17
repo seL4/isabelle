@@ -1309,7 +1309,7 @@ fun tryInThy thy cs lim s =
 val setup =
   setup_depth_limit #>
   Method.setup @{binding blast}
-    (Scan.lift (Scan.option OuterParse.nat) --| Method.sections Data.cla_modifiers >>
+    (Scan.lift (Scan.option Parse.nat) --| Method.sections Data.cla_modifiers >>
       (fn NONE => Data.cla_meth' blast_tac
         | SOME lim => Data.cla_meth' (fn cs => depth_tac cs lim)))
     "classical tableau prover";

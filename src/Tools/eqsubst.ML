@@ -556,7 +556,7 @@ val options_syntax =
      (Scan.succeed false);
 
 val ith_syntax =
-    Scan.optional (Args.parens (Scan.repeat OuterParse.nat)) [0];
+    Scan.optional (Args.parens (Scan.repeat Parse.nat)) [0];
 
 (* combination method that takes a flag (true indicates that subst
    should be done to an assumption, false = apply to the conclusion of

@@ -341,21 +341,19 @@ val set_preproc = Preprocessor.map o K
 
 
 local
-  structure P = OuterParse and K = OuterKeyword
-
-  val option_parser = P.group "option"
-    ((P.reserved "sequential" >> K Sequential)
-     || ((P.reserved "default" |-- P.term) >> Default)
-     || (P.reserved "domintros" >> K DomIntros)
-     || (P.reserved "no_partials" >> K No_Partials)
-     || (P.reserved "tailrec" >> K Tailrec))
+  val option_parser = Parse.group "option"
+    ((Parse.reserved "sequential" >> K Sequential)
+     || ((Parse.reserved "default" |-- Parse.term) >> Default)
+     || (Parse.reserved "domintros" >> K DomIntros)
+     || (Parse.reserved "no_partials" >> K No_Partials)
+     || (Parse.reserved "tailrec" >> K Tailrec))
 
   fun config_parser default =
-    (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 option_parser) --| P.$$$ ")") [])
+    (Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 option_parser) --| Parse.$$$ ")") [])
      >> (fn opts => fold apply_opt opts default)
 in
   fun function_parser default_cfg =
-      config_parser default_cfg -- P.fixes -- Parse_Spec.where_alt_specs
+      config_parser default_cfg -- Parse.fixes -- Parse_Spec.where_alt_specs
 end
 
 

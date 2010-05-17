@@ -59,14 +59,14 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
   def read(file: File): Header =
   {
     val token = lexicon.token(symbols, _ => false)
-    val toks = new mutable.ListBuffer[Outer_Lex.Token]
+    val toks = new mutable.ListBuffer[Token]
 
     def scan_to_begin(in: Reader[Char])
     {
       token(in) match {
         case lexicon.Success(tok, rest) =>
           toks += tok
-          if (!(tok.kind == Outer_Lex.Token_Kind.KEYWORD && tok.content == BEGIN))
+          if (!(tok.kind == Token.Kind.KEYWORD && tok.content == BEGIN))
             scan_to_begin(rest)
         case _ =>
       }
@@ -74,7 +74,7 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
     val reader = Scan.byte_reader(file)
     try { scan_to_begin(reader) } finally { reader.close }
 
-    parse(commit(header), Outer_Lex.reader(toks.toList)) match {
+    parse(commit(header), Token.reader(toks.toList)) match {
       case Success(result, _) => result
       case bad => error(bad.toString)
     }

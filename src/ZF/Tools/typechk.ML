@@ -118,7 +118,7 @@ val typecheck_setup =
     "ZF type-checking";
 
 val _ =
-  OuterSyntax.improper_command "print_tcset" "print context of ZF typecheck" OuterKeyword.diag
+  Outer_Syntax.improper_command "print_tcset" "print context of ZF typecheck" Keyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
       Toplevel.keep (print_tcset o Toplevel.context_of)));
 

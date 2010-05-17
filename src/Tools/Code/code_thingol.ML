@@ -915,23 +915,21 @@ fun code_deps thy consts =
 
 local
 
-structure P = OuterParse
-and K = OuterKeyword
-
 fun code_thms_cmd thy = code_thms thy o op @ o read_const_exprs thy;
 fun code_deps_cmd thy = code_deps thy o op @ o read_const_exprs thy;
 
 in
 
 val _ =
-  OuterSyntax.improper_command "code_thms" "print system of code equations for code" OuterKeyword.diag
-    (Scan.repeat1 P.term_group
+  Outer_Syntax.improper_command "code_thms" "print system of code equations for code" Keyword.diag
+    (Scan.repeat1 Parse.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
 
 val _ =
-  OuterSyntax.improper_command "code_deps" "visualize dependencies of code equations for code" OuterKeyword.diag
-    (Scan.repeat1 P.term_group
+  Outer_Syntax.improper_command "code_deps" "visualize dependencies of code equations for code"
+    Keyword.diag
+    (Scan.repeat1 Parse.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
 

@@ -24,8 +24,6 @@ open Nitpick_Rep
 open Nitpick_Nut
 open Nitpick
 
-structure K = OuterKeyword and P = OuterParse
-
 val auto = Unsynchronized.ref false;
 
 val _ =
@@ -289,14 +287,14 @@ fun default_params thy =
   extract_params (ProofContext.init_global thy) false (default_raw_params thy)
   o map (apsnd single)
 
-val parse_key = Scan.repeat1 P.typ_group >> space_implode " "
+val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
 val parse_value =
-  Scan.repeat1 (P.minus >> single
-                || Scan.repeat1 (Scan.unless P.minus P.name)
-                || P.$$$ "," |-- P.number >> prefix "," >> single) >> flat
-val parse_param = parse_key -- Scan.optional (P.$$$ "=" |-- parse_value) []
+  Scan.repeat1 (Parse.minus >> single
+                || Scan.repeat1 (Scan.unless Parse.minus Parse.name)
+                || Parse.$$$ "," |-- Parse.number >> prefix "," >> single) >> flat
+val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params =
-  Scan.optional (P.$$$ "[" |-- P.list parse_param --| P.$$$ "]") []
+  Scan.optional (Parse.$$$ "[" |-- Parse.list parse_param --| Parse.$$$ "]") []
 
 fun handle_exceptions ctxt f x =
   f x
@@ -375,15 +373,15 @@ fun nitpick_params_trans params =
                                       |> sort_strings |> cat_lines)))))
 
 val parse_nitpick_command =
-  (parse_params -- Scan.optional P.nat 1) #>> nitpick_trans
+  (parse_params -- Scan.optional Parse.nat 1) #>> nitpick_trans
 val parse_nitpick_params_command = parse_params #>> nitpick_params_trans
 
-val _ = OuterSyntax.improper_command "nitpick"
+val _ = Outer_Syntax.improper_command "nitpick"
             "try to find a counterexample for a given subgoal using Nitpick"
-            K.diag parse_nitpick_command
-val _ = OuterSyntax.command "nitpick_params"
+            Keyword.diag parse_nitpick_command
+val _ = Outer_Syntax.command "nitpick_params"
             "set and display the default parameters for Nitpick"
-            K.thy_decl parse_nitpick_params_command
+            Keyword.thy_decl parse_nitpick_params_command
 
 fun auto_nitpick state =
   if not (!auto) then (false, state) else pick_nits [] true 1 0 state

@@ -224,27 +224,25 @@ val add_new_domain_cmd =
 
 (** outer syntax **)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val _ = OuterKeyword.keyword "lazy";
+val _ = Keyword.keyword "lazy";
 
 val dest_decl : (bool * binding option * string) parser =
-  P.$$$ "(" |-- Scan.optional (P.$$$ "lazy" >> K true) false --
-    (P.binding >> SOME) -- (P.$$$ "::" |-- P.typ)  --| P.$$$ ")" >> P.triple1
-    || P.$$$ "(" |-- P.$$$ "lazy" |-- P.typ --| P.$$$ ")"
+  Parse.$$$ "(" |-- Scan.optional (Parse.$$$ "lazy" >> K true) false --
+    (Parse.binding >> SOME) -- (Parse.$$$ "::" |-- Parse.typ)  --| Parse.$$$ ")" >> Parse.triple1
+    || Parse.$$$ "(" |-- Parse.$$$ "lazy" |-- Parse.typ --| Parse.$$$ ")"
     >> (fn t => (true,NONE,t))
-    || P.typ >> (fn t => (false,NONE,t));
+    || Parse.typ >> (fn t => (false,NONE,t));
 
 val cons_decl =
-  P.binding -- Scan.repeat dest_decl -- P.opt_mixfix;
+  Parse.binding -- Scan.repeat dest_decl -- Parse.opt_mixfix;
 
 val domain_decl =
-  (P.type_args_constrained -- P.binding -- P.opt_mixfix) --
-    (P.$$$ "=" |-- P.enum1 "|" cons_decl);
+  (Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix) --
+    (Parse.$$$ "=" |-- Parse.enum1 "|" cons_decl);
 
 val domains_decl =
-  Scan.option (P.$$$ "(" |-- P.binding --| P.$$$ ")") --
-    P.and_list1 domain_decl;
+  Scan.option (Parse.$$$ "(" |-- Parse.binding --| Parse.$$$ ")") --
+    Parse.and_list1 domain_decl;
 
 fun mk_domain
     (definitional : bool)
@@ -267,13 +265,11 @@ fun mk_domain
   end;
 
 val _ =
-  OuterSyntax.command "domain" "define recursive domains (HOLCF)"
-    K.thy_decl (domains_decl >> (Toplevel.theory o mk_domain false));
+  Outer_Syntax.command "domain" "define recursive domains (HOLCF)"
+    Keyword.thy_decl (domains_decl >> (Toplevel.theory o mk_domain false));
 
 val _ =
-  OuterSyntax.command "new_domain" "define recursive domains (HOLCF)"
-    K.thy_decl (domains_decl >> (Toplevel.theory o mk_domain true));
-
-end;
+  Outer_Syntax.command "new_domain" "define recursive domains (HOLCF)"
+    Keyword.thy_decl (domains_decl >> (Toplevel.theory o mk_domain true));
 
 end;

@@ -2460,15 +2460,12 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val _ =
-  OuterSyntax.command "record" "define extensible record" K.thy_decl
-    (P.type_args_constrained -- P.binding --
-      (P.$$$ "=" |-- Scan.option (P.typ --| P.$$$ "+") -- Scan.repeat1 P.const_binding)
+  Outer_Syntax.command "record" "define extensible record" Keyword.thy_decl
+    (Parse.type_args_constrained -- Parse.binding --
+      (Parse.$$$ "=" |-- Scan.option (Parse.typ --| Parse.$$$ "+") --
+        Scan.repeat1 Parse.const_binding)
     >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd false x y z)));
-
-end;
 
 end;
 

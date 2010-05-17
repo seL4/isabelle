@@ -9,7 +9,7 @@ sig
   val output_known_symbols: (string -> bool) * (string -> bool) ->
     Symbol.symbol list -> string
   val output_symbols: Symbol.symbol list -> string
-  val output_basic: OuterLex.token -> string
+  val output_basic: Token.T -> string
   val output_markup: string -> string -> string
   val output_markup_env: string -> string -> string
   val output_verbatim: string -> string
@@ -99,24 +99,22 @@ end;
 
 (* token output *)
 
-structure T = OuterLex;
-
-val invisible_token = T.keyword_with (fn s => s = ";") orf T.is_kind T.Comment;
+val invisible_token = Token.keyword_with (fn s => s = ";") orf Token.is_kind Token.Comment;
 
 fun output_basic tok =
-  let val s = T.content_of tok in
+  let val s = Token.content_of tok in
     if invisible_token tok then ""
-    else if T.is_kind T.Command tok then
+    else if Token.is_kind Token.Command tok then
       "\\isacommand{" ^ output_syms s ^ "}"
-    else if T.is_kind T.Keyword tok andalso Syntax.is_ascii_identifier s then
+    else if Token.is_kind Token.Keyword tok andalso Syntax.is_ascii_identifier s then
       "\\isakeyword{" ^ output_syms s ^ "}"
-    else if T.is_kind T.String tok then
+    else if Token.is_kind Token.String tok then
       enclose "{\\isachardoublequoteopen}" "{\\isachardoublequoteclose}" (output_syms s)
-    else if T.is_kind T.AltString tok then
+    else if Token.is_kind Token.AltString tok then
       enclose "{\\isacharbackquoteopen}" "{\\isacharbackquoteclose}" (output_syms s)
-    else if T.is_kind T.Verbatim tok then
+    else if Token.is_kind Token.Verbatim tok then
       let
-        val (txt, pos) = T.source_position_of tok;
+        val (txt, pos) = Token.source_position_of tok;
         val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
         val out = implode (map output_syms_antiq ants);
       in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end

@@ -625,15 +625,12 @@ fun norm_print_term_cmd (modes, s) state =
 
 val setup = Value.add_evaluator ("nbe", norm o ProofContext.theory_of);
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
+val opt_modes =
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
 
 val _ =
-  OuterSyntax.improper_command "normal_form" "normalize term by evaluation" K.diag
-    (opt_modes -- P.term >> (Toplevel.keep o norm_print_term_cmd));
-
-end;
+  Outer_Syntax.improper_command "normal_form" "normalize term by evaluation" Keyword.diag
+    (opt_modes -- Parse.term >> (Toplevel.keep o norm_print_term_cmd));
 
 end;
  

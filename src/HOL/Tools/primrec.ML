@@ -307,29 +307,26 @@ fun add_primrec_overloaded ops fixes specs thy =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val opt_unchecked_name =
-  Scan.optional (P.$$$ "(" |-- P.!!!
-    (((P.$$$ "unchecked" >> K true) -- Scan.optional P.name "" ||
-      P.name >> pair false) --| P.$$$ ")")) (false, "");
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!!
+    (((Parse.$$$ "unchecked" >> K true) -- Scan.optional Parse.name "" ||
+      Parse.name >> pair false) --| Parse.$$$ ")")) (false, "");
 
 val old_primrec_decl =
   opt_unchecked_name --
-    Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop);
+    Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop);
 
-val primrec_decl = P.opt_target -- P.fixes -- Parse_Spec.where_alt_specs;
+val primrec_decl = Parse.opt_target -- Parse.fixes -- Parse_Spec.where_alt_specs;
 
 val _ =
-  OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
+  Outer_Syntax.command "primrec" "define primitive recursive functions on datatypes"
+  Keyword.thy_decl
     ((primrec_decl >> (fn ((opt_target, fixes), specs) =>
       Toplevel.local_theory opt_target (add_primrec_cmd fixes specs #> snd)))
     || (old_primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
       Toplevel.theory (snd o
         (if unchecked then OldPrimrec.add_primrec_unchecked else OldPrimrec.add_primrec)
-          alt_name (map P.triple_swap eqns) o
+          alt_name (map Parse.triple_swap eqns) o
         tap (fn _ => legacy_feature "Old variant of 'primrec' command -- use new syntax instead")))));
-
-end;
 
 end;

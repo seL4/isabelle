@@ -485,17 +485,14 @@ fun prove_strong_ind s alt_name avoids ctxt =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val _ =
-  OuterSyntax.local_theory_to_proof "nominal_inductive2"
-    "prove strong induction theorem for inductive predicate involving nominal datatypes" K.thy_goal
-    (P.xname -- 
-     Scan.option (P.$$$ "(" |-- P.!!! (P.name --| P.$$$ ")")) --
-     (Scan.optional (P.$$$ "avoids" |-- P.enum1 "|" (P.name --
-      (P.$$$ ":" |-- P.and_list1 P.term))) []) >> (fn ((name, rule_name), avoids) =>
+  Outer_Syntax.local_theory_to_proof "nominal_inductive2"
+    "prove strong induction theorem for inductive predicate involving nominal datatypes"
+    Keyword.thy_goal
+    (Parse.xname -- 
+     Scan.option (Parse.$$$ "(" |-- Parse.!!! (Parse.name --| Parse.$$$ ")")) --
+     (Scan.optional (Parse.$$$ "avoids" |-- Parse.enum1 "|" (Parse.name --
+      (Parse.$$$ ":" |-- Parse.and_list1 Parse.term))) []) >> (fn ((name, rule_name), avoids) =>
         prove_strong_ind name rule_name avoids));
-
-end;
 
 end

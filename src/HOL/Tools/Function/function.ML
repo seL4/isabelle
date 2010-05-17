@@ -274,20 +274,19 @@ val get_congs = Function_Ctx_Tree.get_function_congs
 fun get_info ctxt t = Item_Net.retrieve (get_function ctxt) t
   |> the_single |> snd
 
+
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val _ =
-  OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
+  Outer_Syntax.local_theory_to_proof "function" "define general recursive functions"
+  Keyword.thy_goal
   (function_parser default_config
      >> (fn ((config, fixes), statements) => function_cmd fixes statements config))
 
 val _ =
-  OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal
-  (Scan.option P.term >> termination_cmd)
-
-end
+  Outer_Syntax.local_theory_to_proof "termination" "prove termination of a recursive function"
+  Keyword.thy_goal
+  (Scan.option Parse.term >> termination_cmd)
 
 
 end

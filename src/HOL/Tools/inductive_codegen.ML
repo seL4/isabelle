@@ -775,7 +775,7 @@ val setup =
   add_codegen "inductive" inductive_codegen #>
   Attrib.setup @{binding code_ind}
     (Scan.lift (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) --
-      Scan.option (Args.$$$ "params" |-- Args.colon |-- OuterParse.nat) >> uncurry add))
+      Scan.option (Args.$$$ "params" |-- Args.colon |-- Parse.nat) >> uncurry add))
     "introduction rules for executable predicates";
 
 (**** Quickcheck involving inductive predicates ****)

@@ -485,52 +485,50 @@ fun mk_rename_decl (aut, (source_aut, rename_f)) =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val _ = List.app OuterKeyword.keyword ["signature", "actions", "inputs",
+val _ = List.app Keyword.keyword ["signature", "actions", "inputs",
   "outputs", "internals", "states", "initially", "transitions", "pre",
   "post", "transrel", ":=", "compose", "hide_action", "in", "restrict", "to",
   "rename"];
 
-val actionlist = P.list1 P.term;
-val inputslist = P.$$$ "inputs" |-- P.!!! actionlist;
-val outputslist = P.$$$ "outputs" |-- P.!!! actionlist;
-val internalslist = P.$$$ "internals" |-- P.!!! actionlist;
-val stateslist = P.$$$ "states" |-- P.!!! (Scan.repeat1 (P.name --| P.$$$ "::" -- P.typ));
-val initial = P.$$$ "initially" |-- P.!!! P.term;
-val assign_list = P.list1 (P.name --| P.$$$ ":=" -- P.!!! P.term);
-val pre = P.$$$ "pre" |-- P.!!! P.term;
-val post = P.$$$ "post" |-- P.!!! assign_list;
+val actionlist = Parse.list1 Parse.term;
+val inputslist = Parse.$$$ "inputs" |-- Parse.!!! actionlist;
+val outputslist = Parse.$$$ "outputs" |-- Parse.!!! actionlist;
+val internalslist = Parse.$$$ "internals" |-- Parse.!!! actionlist;
+val stateslist =
+  Parse.$$$ "states" |-- Parse.!!! (Scan.repeat1 (Parse.name --| Parse.$$$ "::" -- Parse.typ));
+val initial = Parse.$$$ "initially" |-- Parse.!!! Parse.term;
+val assign_list = Parse.list1 (Parse.name --| Parse.$$$ ":=" -- Parse.!!! Parse.term);
+val pre = Parse.$$$ "pre" |-- Parse.!!! Parse.term;
+val post = Parse.$$$ "post" |-- Parse.!!! assign_list;
 val pre1 = (pre -- (Scan.optional post [])) >> mk_trans_of_prepost;
 val post1 = ((Scan.optional pre "True") -- post) >> mk_trans_of_prepost;
-val transrel =  (P.$$$ "transrel" |-- P.!!! P.term) >> mk_trans_of_rel;
-val transition = P.term -- (transrel || pre1 || post1);
-val translist = P.$$$ "transitions" |-- P.!!! (Scan.repeat1 transition);
+val transrel =  (Parse.$$$ "transrel" |-- Parse.!!! Parse.term) >> mk_trans_of_rel;
+val transition = Parse.term -- (transrel || pre1 || post1);
+val translist = Parse.$$$ "transitions" |-- Parse.!!! (Scan.repeat1 transition);
 
 val ioa_decl =
-  (P.name -- (P.$$$ "=" |--
-    (P.$$$ "signature" |--
-      P.!!! (P.$$$ "actions" |--
-        (P.typ --
+  (Parse.name -- (Parse.$$$ "=" |--
+    (Parse.$$$ "signature" |--
+      Parse.!!! (Parse.$$$ "actions" |--
+        (Parse.typ --
           (Scan.optional inputslist []) --
           (Scan.optional outputslist []) --
           (Scan.optional internalslist []) --
           stateslist --
           (Scan.optional initial "True") --
         translist))))) >> mk_ioa_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "compose" |-- P.!!! (P.list1 P.name))))
+  (Parse.name -- (Parse.$$$ "=" |-- (Parse.$$$ "compose" |-- Parse.!!! (Parse.list1 Parse.name))))
     >> mk_composition_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "hide_action" |--
-      P.!!! (P.list1 P.term -- (P.$$$ "in" |-- P.name))))) >> mk_hiding_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "restrict" |--
-      P.!!! (P.name -- (P.$$$ "to" |-- P.list1 P.term))))) >> mk_restriction_decl ||
-  (P.name -- (P.$$$ "=" |-- (P.$$$ "rename" |-- (P.!!! (P.name -- (P.$$$ "to" |-- P.term))))))
+  (Parse.name -- (Parse.$$$ "=" |-- (Parse.$$$ "hide_action" |--
+      Parse.!!! (Parse.list1 Parse.term -- (Parse.$$$ "in" |-- Parse.name))))) >> mk_hiding_decl ||
+  (Parse.name -- (Parse.$$$ "=" |-- (Parse.$$$ "restrict" |--
+      Parse.!!! (Parse.name -- (Parse.$$$ "to" |-- Parse.list1 Parse.term))))) >> mk_restriction_decl ||
+  (Parse.name -- (Parse.$$$ "=" |--
+      (Parse.$$$ "rename" |-- (Parse.!!! (Parse.name -- (Parse.$$$ "to" |-- Parse.term))))))
     >> mk_rename_decl;
 
 val _ =
-  OuterSyntax.command "automaton" "define Lynch/Vaandrager-style I/O automaton" K.thy_decl
+  Outer_Syntax.command "automaton" "define Lynch/Vaandrager-style I/O automaton" Keyword.thy_decl
     (ioa_decl >> Toplevel.theory);
-
-end;
 
 end;

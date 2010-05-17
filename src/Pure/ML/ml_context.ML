@@ -112,8 +112,6 @@ end;
 
 local
 
-structure T = OuterLex;
-
 val antiq =
   Parse.!!! (Parse.position Parse.xname -- Args.parse --| Scan.ahead Parse.eof)
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
@@ -144,7 +142,8 @@ fun eval_antiquotes (ants, pos) opt_context =
             | expand (Antiquote.Antiq (ss, range)) (scope, background) =
                 let
                   val context = Stack.top scope;
-                  val (f, context') = antiquotation (T.read_antiq lex antiq (ss, #1 range)) context;
+                  val (f, context') =
+                    antiquotation (Token.read_antiq lex antiq (ss, #1 range)) context;
                   val (decl, background') = f background;
                   val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
                 in (decl', (Stack.map_top (K context') scope, background')) end

@@ -114,8 +114,6 @@ end;
 
 local (* Parser *)
 
-structure P = OuterParse;
-
 fun $$$ kw = Scan.one (is_keyword kw) >> str_of_token;
 val hex_code = Scan.one is_hex_code >> int_of_code;
 val ascii_sym = Scan.one is_ascii_sym >> str_of_token;
@@ -129,7 +127,7 @@ val abbr = Scan.option ($$$ "abbrev" -- $$$ ":"
 
 in
 
-val line = (symbol -- unicode --| font -- abbr) >> P.triple1;
+val line = (symbol -- unicode --| font -- abbr) >> Parse.triple1;
 
 val symbols_path =
   [getenv "ISABELLE_HOME", "etc", "symbols"]

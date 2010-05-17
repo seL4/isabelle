@@ -422,8 +422,8 @@ val attrib_setup =
 (** Diagnostic command **)
 
 val _ =
-  OuterSyntax.improper_command "print_orders"
-    "print order structures available to transitivity reasoner" OuterKeyword.diag
+  Outer_Syntax.improper_command "print_orders"
+    "print order structures available to transitivity reasoner" Keyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
         Toplevel.keep (print_structures o Toplevel.context_of)));
 

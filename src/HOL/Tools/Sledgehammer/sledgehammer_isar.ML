@@ -24,8 +24,6 @@ open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer
 
-structure K = OuterKeyword and P = OuterParse
-
 (** Proof method used in Isar proofs **)
 
 val neg_clausify_setup =
@@ -36,7 +34,7 @@ val neg_clausify_setup =
 (** Attribute for converting a theorem into clauses **)
 
 val parse_clausify_attribute : attribute context_parser =
-  Scan.lift OuterParse.nat
+  Scan.lift Parse.nat
   >> (fn i => Thm.rule_attribute (fn context => fn th =>
                   let val thy = Context.theory_of context in
                     Meson.make_meta_clause (nth (cnf_axiom thy th) i)
@@ -321,13 +319,13 @@ fun sledgehammer_params_trans params =
                                params |> map string_for_raw_param
                                       |> sort_strings |> cat_lines)))))
 
-val parse_key = Scan.repeat1 P.typ_group >> space_implode " "
-val parse_value = Scan.repeat1 P.xname
-val parse_param = parse_key -- Scan.optional (P.$$$ "=" |-- parse_value) []
-val parse_params = Scan.optional (Args.bracks (P.list parse_param)) []
+val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
+val parse_value = Scan.repeat1 Parse.xname
+val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
+val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (P.name -- Args.colon)
-                            (P.xname -- Scan.option Attrib.thm_sel)
+  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon)
+                            (Parse.xname -- Scan.option Attrib.thm_sel)
                 >> (fn (name, interval) =>
                        Facts.Named ((name, Position.none), interval)))
 val parse_relevance_chunk =
@@ -340,18 +338,18 @@ val parse_relevance_override =
                               >> merge_relevance_overrides))
                 (add_to_relevance_override [])
 val parse_sledgehammer_command =
-  (Scan.optional P.short_ident runN -- parse_params -- parse_relevance_override
-   -- Scan.option P.nat) #>> sledgehammer_trans
+  (Scan.optional Parse.short_ident runN -- parse_params -- parse_relevance_override
+   -- Scan.option Parse.nat) #>> sledgehammer_trans
 val parse_sledgehammer_params_command =
   parse_params #>> sledgehammer_params_trans
 
 val _ =
-  OuterSyntax.improper_command sledgehammerN
-      "search for first-order proof using automatic theorem provers" K.diag
+  Outer_Syntax.improper_command sledgehammerN
+      "search for first-order proof using automatic theorem provers" Keyword.diag
       parse_sledgehammer_command
 val _ =
-  OuterSyntax.command sledgehammer_paramsN
-      "set and display the default parameters for Sledgehammer" K.thy_decl
+  Outer_Syntax.command sledgehammer_paramsN
+      "set and display the default parameters for Sledgehammer" Keyword.thy_decl
       parse_sledgehammer_params_command
 
 val setup =

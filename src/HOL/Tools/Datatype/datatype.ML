@@ -721,8 +721,6 @@ val datatype_cmd = snd ooo gen_add_datatype Datatype_Data.read_typ default_confi
 
 local
 
-structure P = OuterParse and K = OuterKeyword
-
 fun prep_datatype_decls args =
   let
     val names = map
@@ -732,15 +730,16 @@ fun prep_datatype_decls args =
   in (names, specs) end;
 
 val parse_datatype_decl =
-  (Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.binding -- P.opt_mixfix --
-    (P.$$$ "=" |-- P.enum1 "|" (P.binding -- Scan.repeat P.typ -- P.opt_mixfix)));
+  (Scan.option (Parse.$$$ "(" |-- Parse.name --| Parse.$$$ ")") --
+    Parse.type_args -- Parse.binding -- Parse.opt_mixfix --
+    (Parse.$$$ "=" |-- Parse.enum1 "|" (Parse.binding -- Scan.repeat Parse.typ -- Parse.opt_mixfix)));
 
-val parse_datatype_decls = P.and_list1 parse_datatype_decl >> prep_datatype_decls;
+val parse_datatype_decls = Parse.and_list1 parse_datatype_decl >> prep_datatype_decls;
 
 in
 
 val _ =
-  OuterSyntax.command "datatype" "define inductive datatypes" K.thy_decl
+  Outer_Syntax.command "datatype" "define inductive datatypes" Keyword.thy_decl
     (parse_datatype_decls >> (fn (names, specs) => Toplevel.theory (datatype_cmd names specs)));
 
 end;
