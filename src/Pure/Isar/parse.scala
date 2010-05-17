@@ -15,7 +15,7 @@ object Parse
 
   trait Parser extends Parsers
   {
-    type Elem = Outer_Lex.Token
+    type Elem = Token
 
     def filter_proper = true
 
@@ -50,8 +50,8 @@ object Parse
       token(s, pred) ^^ (_.content)
 
     def keyword(name: String): Parser[String] =
-      atom(Outer_Lex.Token_Kind.KEYWORD.toString + " \"" + name + "\"",
-        tok => tok.kind == Outer_Lex.Token_Kind.KEYWORD && tok.content == name)
+      atom(Token.Kind.KEYWORD.toString + " \"" + name + "\"",
+        tok => tok.kind == Token.Kind.KEYWORD && tok.content == name)
 
     def name: Parser[String] = atom("name declaration", _.is_name)
     def xname: Parser[String] = atom("name reference", _.is_xname)
@@ -62,16 +62,16 @@ object Parse
 
     private def tag_name: Parser[String] =
       atom("tag name", tok =>
-          tok.kind == Outer_Lex.Token_Kind.IDENT ||
-          tok.kind == Outer_Lex.Token_Kind.STRING)
+          tok.kind == Token.Kind.IDENT ||
+          tok.kind == Token.Kind.STRING)
 
     def tags: Parser[List[String]] = rep(keyword("%") ~> tag_name)
 
 
     /* wrappers */
 
-    def parse[T](p: Parser[T], in: Outer_Lex.Reader): ParseResult[T] = p(in)
-    def parse_all[T](p: Parser[T], in: Outer_Lex.Reader): ParseResult[T] = parse(phrase(p), in)
+    def parse[T](p: Parser[T], in: Token.Reader): ParseResult[T] = p(in)
+    def parse_all[T](p: Parser[T], in: Token.Reader): ParseResult[T] = parse(phrase(p), in)
   }
 }
 

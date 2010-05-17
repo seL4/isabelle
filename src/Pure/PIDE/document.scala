@@ -46,7 +46,7 @@ object Document
     /* unparsed dummy commands */
 
     def unparsed(source: String) =
-      new Command(null, List(Outer_Lex.Token(Outer_Lex.Token_Kind.UNPARSED, source)))
+      new Command(null, List(Token(Token.Kind.UNPARSED, source)))
 
     def is_unparsed(command: Command) = command.id == null
 
