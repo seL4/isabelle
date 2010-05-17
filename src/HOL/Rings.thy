@@ -349,7 +349,7 @@ end
 class ring_1_no_zero_divisors = ring_1 + ring_no_zero_divisors
 begin
 
-lemma square_eq_1_iff [simp]:
+lemma square_eq_1_iff:
   "x * x = 1 \<longleftrightarrow> x = 1 \<or> x = - 1"
 proof -
   have "(x - 1) * (x + 1) = x * x - 1"

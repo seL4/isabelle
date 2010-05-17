@@ -1778,7 +1778,7 @@ qed
 lemma sin_pi_half [simp]: "sin(pi/2) = 1"
 apply (cut_tac x = "pi/2" in sin_cos_squared_add2)
 apply (cut_tac sin_gt_zero [OF pi_half_gt_zero pi_half_less_two])
-apply (simp add: power2_eq_square)
+apply (simp add: power2_eq_1_iff)
 done
 
 lemma cos_pi [simp]: "cos pi = -1"
