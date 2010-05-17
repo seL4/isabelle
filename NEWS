@@ -143,6 +143,10 @@ with proof terms.
 
 *** HOL ***
 
+* Theory Library/Word.thy has been removed.  Use library Word/Word.thy for
+future developements;  former Library/Word.thy is still present in the AFP
+entry RSAPPS.
+
 * Theorem Int.int_induct renamed to Int.int_of_nat_induct and is no
 longer shadowed.  INCOMPATIBILITY.
 
