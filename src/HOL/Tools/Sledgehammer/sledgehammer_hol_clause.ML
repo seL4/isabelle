@@ -300,7 +300,7 @@ fun tptp_type_literals params pos (HOLClause {literals, ctypes_sorts, ...})
   let
     val (lits, pool) = pool_map (tptp_literal params) literals pool
     val (tylits, pool) = pool_map (tptp_of_type_literal pos)
-                                  (add_type_literals ctypes_sorts) pool
+                                  (type_literals_for_types ctypes_sorts) pool
   in ((lits, tylits), pool) end
 
 fun tptp_clause params (cls as HOLClause {axiom_name, clause_id, kind, ...})
@@ -320,7 +320,8 @@ fun dfg_literal params (Literal (pos, pred)) =
 
 fun dfg_type_literals params pos (HOLClause {literals, ctypes_sorts, ...}) =
   pool_map (dfg_literal params) literals
-  #>> rpair (map (dfg_of_type_literal pos) (add_type_literals ctypes_sorts))
+  #>> rpair (map (dfg_of_type_literal pos)
+                 (type_literals_for_types ctypes_sorts))
 
 fun get_uvars (CombConst _) vars pool = (vars, pool)
   | get_uvars (CombVar (name, _)) vars pool =
@@ -531,6 +532,8 @@ fun write_tptp_file readable_names full_types explicit_apply file clauses =
 
 (* DFG format *)
 
+fun dfg_tfree_predicate s = (first_field "(" s |> the |> fst, 1)
+
 fun write_dfg_file full_types explicit_apply file clauses =
   let
     (* Some of the helper functions below are not name-pool-aware. However,
@@ -543,13 +546,16 @@ fun write_dfg_file full_types explicit_apply file clauses =
     val params = (full_types, explicit_apply, cma, cnh)
     val ((conjecture_clss, tfree_litss), pool) =
       pool_map (dfg_clause params) conjectures pool |>> ListPair.unzip
-    and problem_name = Path.implode (Path.base file)
+    val tfree_lits = union_all tfree_litss
+    val problem_name = Path.implode (Path.base file)
     val (axstrs, pool) = pool_map (apfst fst oo dfg_clause params) axclauses pool
-    val tfree_clss = map dfg_tfree_clause (union_all tfree_litss)
+    val tfree_clss = map dfg_tfree_clause tfree_lits
+    val tfree_preds = map dfg_tfree_predicate tfree_lits
     val (helper_clauses_strs, pool) =
       pool_map (apfst fst oo dfg_clause params) helper_clauses pool
     val (funcs, cl_preds) = decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
-    and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
+    val ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
+    val preds = tfree_preds @ cl_preds @ ty_preds
     val conjecture_offset =
       length axclauses + length classrel_clauses + length arity_clauses
       + length helper_clauses
@@ -559,7 +565,7 @@ fun write_dfg_file full_types explicit_apply file clauses =
            string_of_start problem_name ::
            string_of_descrip problem_name ::
            string_of_symbols (string_of_funcs funcs)
-                             (string_of_preds (cl_preds @ ty_preds)) ::
+                             (string_of_preds preds) ::
            "list_of_clauses(axioms, cnf).\n" ::
            axstrs @
            map dfg_classrel_clause classrel_clauses @

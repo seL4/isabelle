@@ -14,7 +14,6 @@ sig
   val invert_const: string -> string
   val invert_type_const: string -> string
   val num_type_args: theory -> string -> int
-  val make_tvar: string -> typ
   val strip_prefix: string -> string -> string option
   val metis_line: int -> int -> string list -> string
   val metis_proof_text:
@@ -235,26 +234,27 @@ fun invert_type_const c =
         SOME c' => c'
       | NONE => c;
 
-fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS);
-fun make_tparam s = TypeInfer.param 0 (s, HOLogic.typeS)
-fun make_var (b,T) = Var((b,0),T);
-
 (* Type variables are given the basic sort "HOL.type". Some will later be
   constrained by information from type literals, or by type inference. *)
-fun type_from_node (u as IntLeaf _) = raise NODE [u]
-  | type_from_node (u as StrNode (a, us)) =
-    let val Ts = map type_from_node us in
+fun type_from_node _ (u as IntLeaf _) = raise NODE [u]
+  | type_from_node tfrees (u as StrNode (a, us)) =
+    let val Ts = map (type_from_node tfrees) us in
       case strip_prefix tconst_prefix a of
         SOME b => Type (invert_type_const b, Ts)
       | NONE =>
         if not (null us) then
           raise NODE [u]  (* only "tconst"s have type arguments *)
         else case strip_prefix tfree_prefix a of
-          SOME b => TFree ("'" ^ b, HOLogic.typeS)
+          SOME b =>
+          let val s = "'" ^ b in
+            TFree (s, AList.lookup (op =) tfrees s |> the_default HOLogic.typeS)
+          end
         | NONE =>
           case strip_prefix tvar_prefix a of
-            SOME b => make_tvar b
-          | NONE => make_tparam a  (* Variable from the ATP, say "X1" *)
+            SOME b => TVar (("'" ^ b, 0), HOLogic.typeS)
+          | NONE =>
+            (* Variable from the ATP, say "X1" *)
+            TypeInfer.param 0 (a, HOLogic.typeS)
     end
 
 (*Invert the table of translations between Isabelle and ATPs*)
@@ -287,7 +287,7 @@ fun fix_atp_variable_name s =
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred.*)
-fun term_from_node thy full_types =
+fun term_from_node thy full_types tfrees =
   let
     fun aux opt_T args u =
       case u of
@@ -298,7 +298,8 @@ fun term_from_node thy full_types =
       | StrNode (a, us) =>
         if a = type_wrapper_name then
           case us of
-            [term_u, typ_u] => aux (SOME (type_from_node typ_u)) args term_u
+            [term_u, typ_u] =>
+            aux (SOME (type_from_node tfrees typ_u)) args term_u
           | _ => raise NODE us
         else case strip_prefix const_prefix a of
           SOME "equal" =>
@@ -324,7 +325,8 @@ fun term_from_node thy full_types =
                           (* Extra args from "hAPP" come after any arguments
                              given directly to the constant. *)
                           Sign.const_instance thy (c,
-                                    map type_from_node (drop num_term_args us)))
+                                    map (type_from_node tfrees)
+                                        (drop num_term_args us)))
           in list_comb (t, ts) end
         | NONE => (* a free or schematic variable *)
           let
@@ -335,21 +337,22 @@ fun term_from_node thy full_types =
                 SOME b => Free (b, T)
               | NONE =>
                 case strip_prefix schematic_var_prefix a of
-                  SOME b => make_var (b, T)
+                  SOME b => Var ((b, 0), T)
                 | NONE =>
                   (* Variable from the ATP, say "X1" *)
-                  make_var (fix_atp_variable_name a, T)
+                  Var ((fix_atp_variable_name a, 0), T)
           in list_comb (t, ts) end
   in aux end
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
-fun type_constraint_from_node pos (StrNode ("c_Not", [u])) =
-    type_constraint_from_node (not pos) u
-  | type_constraint_from_node pos u = case u of
+fun type_constraint_from_node pos tfrees (StrNode ("c_Not", [u])) =
+    type_constraint_from_node (not pos) tfrees u
+  | type_constraint_from_node pos tfrees u = case u of
         IntLeaf _ => raise NODE [u]
       | StrNode (a, us) =>
-            (case (strip_prefix class_prefix a, map type_from_node us) of
+            (case (strip_prefix class_prefix a,
+                   map (type_from_node tfrees) us) of
                  (SOME b, [T]) => (pos, b, T)
                | _ => raise NODE [u])
 
@@ -395,24 +398,24 @@ fun finish_clause _ [] = HOLogic.true_const
          |> clause_for_literals thy
 
 (*Accumulate sort constraints in vt, with "real" literals in lits.*)
-fun lits_of_nodes thy full_types (vt, lits) us =
-  case us of
-    [] => (vt, finish_clause thy lits)
-  | (u :: us) =>
-    lits_of_nodes thy full_types
-        (add_type_constraint (type_constraint_from_node true u) vt, lits) us
-    handle NODE _ =>
-           lits_of_nodes thy full_types
-                         (vt, term_from_node thy full_types (SOME @{typ bool})
-                                             [] u :: lits) us
+fun lits_of_nodes thy full_types tfrees =
+  let
+    fun aux (vt, lits) [] = (vt, finish_clause thy lits)
+      | aux (vt, lits) (u :: us) =
+        aux (add_type_constraint
+                 (type_constraint_from_node true tfrees u) vt, lits) us
+        handle NODE _ =>
+               aux (vt, term_from_node thy full_types tfrees (SOME @{typ bool})
+                                       [] u :: lits) us
+  in aux end
 
-(*Update TVars/TFrees with detected sort constraints.*)
-fun repair_sorts vt =
+(* Update TVars with detected sort constraints. It's not totally clear when
+   this code is necessary. *)
+fun repair_tvar_sorts vt =
   let
     fun do_type (Type (a, Ts)) = Type (a, map do_type Ts)
       | do_type (TVar (xi, s)) = TVar (xi, the_default s (Vartab.lookup vt xi))
-      | do_type (TFree (x, s)) =
-        TFree (x, the_default s (Vartab.lookup vt (x, ~1)))
+      | do_type (TFree z) = TFree z
     fun do_term (Const (a, T)) = Const (a, do_type T)
       | do_term (Free (a, T)) = Free (a, do_type T)
       | do_term (Var (xi, T)) = Var (xi, do_type T)
@@ -444,28 +447,14 @@ fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
 (* Interpret a list of syntax trees as a clause, given by "real" literals and
    sort constraints. "vt" holds the initial sort constraints, from the
    conjecture clauses. *)
-fun clause_of_nodes ctxt full_types vt us =
+fun clause_of_nodes ctxt full_types tfrees us =
   let
     val thy = ProofContext.theory_of ctxt
-    val (vt, t) = lits_of_nodes thy full_types (vt, []) us
-  in repair_sorts vt t end
+    val (vt, t) = lits_of_nodes thy full_types tfrees (Vartab.empty, []) us
+  in repair_tvar_sorts vt t end
 fun check_formula ctxt =
   TypeInfer.constrain @{typ bool}
   #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
-
-(** Global sort constraints on TFrees (from tfree_tcs) are positive unit
-    clauses. **)
-
-fun add_tfree_constraint (true, cl, TFree (a, _)) = add_var ((a, ~1), cl)
-  | add_tfree_constraint _ = I
-fun tfree_constraints_of_clauses vt [] = vt
-  | tfree_constraints_of_clauses vt ([lit] :: uss) =
-    (tfree_constraints_of_clauses (add_tfree_constraint
-                                    (type_constraint_from_node true lit) vt) uss
-     handle NODE _ => (* Not a positive type constraint? Ignore the literal. *)
-     tfree_constraints_of_clauses vt uss)
-  | tfree_constraints_of_clauses vt (_ :: uss) =
-    tfree_constraints_of_clauses vt uss
 
 
 (**** Translation of TSTP files to Isar Proofs ****)
@@ -473,16 +462,13 @@ fun tfree_constraints_of_clauses vt [] = vt
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
   | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
 
-fun clauses_in_lines (Definition (_, u, us)) = u :: us
-  | clauses_in_lines (Inference (_, us, _)) = us
-
-fun decode_line full_types vt (Definition (num, u, us)) ctxt =
+fun decode_line full_types tfrees (Definition (num, u, us)) ctxt =
     let
-      val t1 = clause_of_nodes ctxt full_types vt [u]
+      val t1 = clause_of_nodes ctxt full_types tfrees [u]
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = clause_of_nodes ctxt full_types vt us
+      val t2 = clause_of_nodes ctxt full_types tfrees us
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term |> check_formula ctxt
@@ -491,19 +477,16 @@ fun decode_line full_types vt (Definition (num, u, us)) ctxt =
       (Definition (num, t1, t2),
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
-  | decode_line full_types vt (Inference (num, us, deps)) ctxt =
+  | decode_line full_types tfrees (Inference (num, us, deps)) ctxt =
     let
-      val t = us |> clause_of_nodes ctxt full_types vt
+      val t = us |> clause_of_nodes ctxt full_types tfrees
                  |> unskolemize_term |> uncombine_term |> check_formula ctxt
     in
       (Inference (num, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
     end
-fun decode_lines ctxt full_types lines =
-  let
-    val vt = tfree_constraints_of_clauses Vartab.empty
-                                          (map clauses_in_lines lines)
-  in #1 (fold_map (decode_line full_types vt) lines ctxt) end
+fun decode_lines ctxt full_types tfrees lines =
+  fst (fold_map (decode_line full_types tfrees) lines ctxt)
 
 fun aint_inference _ (Definition _) = true
   | aint_inference t (Inference (_, t', _)) = not (t aconv t')
@@ -599,8 +582,7 @@ fun extract_clause_numbers_in_atp_proof atp_proof =
       | extract_num _ = NONE
   in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
   
-(* Used to label theorems chained into the Sledgehammer call (or rather
-   goal?) *)
+(* Used to label theorems chained into the goal. *)
 val chained_hint = "sledgehammer_chained"
 
 fun apply_command _ 1 = "by "
@@ -674,13 +656,13 @@ fun step_for_line _ _ (Definition (num, t1, t2)) = Let (t1, t2)
           forall_vars t,
           ByMetis (fold (add_fact_from_dep thm_names) deps ([], [])))
 
-fun proof_from_atp_proof pool ctxt full_types isar_shrink_factor atp_proof
-                         conjecture_shape thm_names params frees =
+fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
+                         atp_proof conjecture_shape thm_names params frees =
   let
     val lines =
       atp_proof ^ "$" (* the $ sign acts as a sentinel *)
       |> parse_proof pool
-      |> decode_lines ctxt full_types
+      |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, []) |-> fold_rev (add_desired_line ctxt isar_shrink_factor
@@ -839,7 +821,7 @@ val kill_duplicate_assumptions_in_proof =
       apfst (map (fn l => AList.lookup (op =) subst l |> the_default l))
     fun do_step (step as Assume (l, t)) (proof, subst, assums) =
         (case AList.lookup (op aconv) assums t of
-           SOME l' => (proof, (l', l) :: subst, assums)
+           SOME l' => (proof, (l, l') :: subst, assums)
          | NONE => (step :: proof, subst, (t, l) :: assums))
       | do_step (Have (qs, l, t, by)) (proof, subst, assums) =
         (Have (qs, l, t,
@@ -988,11 +970,12 @@ fun isar_proof_text (pool, debug, full_types, isar_shrink_factor, ctxt,
     val thy = ProofContext.theory_of ctxt
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
+    val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
     val n = Logic.count_prems (prop_of goal)
     val (one_line_proof, lemma_names) =
       metis_proof_text (minimize_command, atp_proof, thm_names, goal, i)
     fun isar_proof_for () =
-      case proof_from_atp_proof pool ctxt full_types isar_shrink_factor
+      case proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
                                 atp_proof conjecture_shape thm_names params
                                 frees
            |> redirect_proof thy conjecture_shape hyp_ts concl_t

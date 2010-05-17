@@ -100,6 +100,9 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
         (Path.variable "ISABELLE_HOME_USER" ::
          map Path.basic ["etc", "components"]))) ^
     "\" on a line of its own."
+  | string_for_failure MalformedInput =
+    "Internal Sledgehammer error: The ATP problem is malformed. Please report \
+    \this to the Isabelle developers."
   | string_for_failure MalformedOutput = "Error: The ATP output is malformed."
   | string_for_failure UnknownError = "Error: An unknown ATP error occurred."
 
@@ -336,7 +339,8 @@ val spass_config : prover_config =
    known_failures =
      [(Unprovable, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
-      (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded")],
+      (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
+      (MalformedInput, "Undefined symbol")],
    max_axiom_clauses = 40,
    prefers_theory_relevant = true}
 val spass = dfg_prover "spass" spass_config
