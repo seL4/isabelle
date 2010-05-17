@@ -83,8 +83,7 @@ sig
     (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
     bool -> local_theory -> inductive_result * local_theory
-  val gen_ind_decl: add_ind_def -> bool ->
-    OuterParse.token list -> (bool -> local_theory -> local_theory) * OuterParse.token list
+  val gen_ind_decl: add_ind_def -> bool -> (bool -> local_theory -> local_theory) parser
 end;
 
 structure Inductive: INDUCTIVE =

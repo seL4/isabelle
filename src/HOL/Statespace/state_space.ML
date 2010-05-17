@@ -32,10 +32,9 @@ signature STATE_SPACE =
        (string * typ) list -> theory -> theory
 
     val statespace_decl :
-       OuterParse.token list ->
        ((string list * bstring) *
          ((string list * xstring * (bstring * bstring) list) list *
-          (bstring * string) list)) * OuterParse.token list
+          (bstring * string) list)) parser
 
 
     val neq_x_y : Proof.context -> term -> term -> thm option
