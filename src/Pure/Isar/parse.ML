@@ -341,6 +341,3 @@ end;
 type 'a parser = 'a Parse.parser;
 type 'a context_parser = 'a Parse.context_parser;
 
-(*legacy alias*)
-structure OuterParse = Parse;
-

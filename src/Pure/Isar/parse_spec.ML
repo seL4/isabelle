@@ -162,6 +162,3 @@ val statement_keyword = Parse.$$$ "obtains" || Parse.$$$ "shows";
 
 end;
 
-(*legacy alias*)
-structure SpecParse = Parse_Spec;
-

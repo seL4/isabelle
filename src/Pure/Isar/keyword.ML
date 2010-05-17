@@ -210,7 +210,4 @@ val is_qed_global = command_category [qed_global];
 
 end;
 
-(*legacy alias*)
-structure OuterKeyword = Keyword;
-
 

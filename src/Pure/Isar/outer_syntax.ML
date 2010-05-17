@@ -297,6 +297,3 @@ fun load_thy name pos text time =
 
 end;
 
-(*legacy alias*)
-structure OuterSyntax = Outer_Syntax;
-

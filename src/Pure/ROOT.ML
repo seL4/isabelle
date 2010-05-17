@@ -292,3 +292,17 @@ use "ProofGeneral/proof_general_emacs.ML";
 
 use "pure_setup.ML";
 
+
+(* legacy aliases *)
+
+structure Legacy =
+struct
+
+structure OuterKeyword = Keyword;
+structure OuterParse = Parse;
+structure OuterSyntax = Outer_Syntax;
+structure SpecParse = Parse_Spec;
+
+end;
+
+open Legacy;  (* FIXME *)
