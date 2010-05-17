@@ -217,6 +217,8 @@ fun mk_tfree ctxt w =
 fun strip_happ args (Metis.Term.Fn(".",[t,u])) = strip_happ (u::args) t
   | strip_happ args x = (x, args);
 
+fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS)
+
 fun fol_type_to_isa _ (Metis.Term.Var v) =
      (case strip_prefix tvar_prefix v of
           SOME w => make_tvar w
