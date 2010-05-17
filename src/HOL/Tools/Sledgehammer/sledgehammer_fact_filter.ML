@@ -352,7 +352,7 @@ fun make_unique xs =
 fun subtract_cls ax_clauses =
   filter_out (Termtab.defined (mk_clause_table ax_clauses) o prop_of)
 
-fun all_valid_thms respect_no_atp ctxt =
+fun all_valid_thms respect_no_atp ctxt chain_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
@@ -371,7 +371,8 @@ fun all_valid_thms respect_no_atp ctxt =
           val name2 = Name_Space.extern full_space name;
           val ths = filter_out bad_for_atp ths0;
         in
-          if Facts.is_concealed facts name orelse null ths orelse
+          if Facts.is_concealed facts name orelse
+             forall (member Thm.eq_thm chain_ths) ths orelse
              (respect_no_atp andalso is_package_def name) then
             I
           else case find_first check_thms [name1, name2, name] of
@@ -396,10 +397,10 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
-fun name_thm_pairs respect_no_atp ctxt =
+fun name_thm_pairs respect_no_atp ctxt chain_ths =
   let
     val (mults, singles) =
-      List.partition is_multi (all_valid_thms respect_no_atp ctxt)
+      List.partition is_multi (all_valid_thms respect_no_atp ctxt chain_ths)
     val ps = [] |> fold add_single_names singles
                 |> fold add_multi_names mults
   in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
@@ -408,11 +409,11 @@ fun check_named ("", th) =
       (warning ("No name for theorem " ^ Display.string_of_thm_without_context th); false)
   | check_named _ = true;
 
-fun get_all_lemmas respect_no_atp ctxt =
+fun get_all_lemmas respect_no_atp ctxt chain_ths =
   let val included_thms =
         tap (fn ths => trace_msg
                      (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
-            (name_thm_pairs respect_no_atp ctxt)
+            (name_thm_pairs respect_no_atp ctxt chain_ths)
   in
     filter check_named included_thms
   end;
@@ -509,14 +510,14 @@ fun is_first_order thy = forall (Meson.is_fol_term thy) o map prop_of
 fun get_relevant_facts respect_no_atp relevance_threshold relevance_convergence
                        defs_relevant max_new theory_relevant
                        (relevance_override as {add, only, ...})
-                       (ctxt, (chain_ths, th)) goal_cls =
+                       (ctxt, (chain_ths, _)) goal_cls =
   if (only andalso null add) orelse relevance_threshold > 1.0 then
     []
   else
     let
       val thy = ProofContext.theory_of ctxt
       val is_FO = is_first_order thy goal_cls
-      val included_cls = get_all_lemmas respect_no_atp ctxt
+      val included_cls = get_all_lemmas respect_no_atp ctxt chain_ths
         |> cnf_rules_pairs thy |> make_unique
         |> restrict_to_logic thy is_FO
         |> remove_unwanted_clauses

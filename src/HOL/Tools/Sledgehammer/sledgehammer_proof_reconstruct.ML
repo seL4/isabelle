@@ -582,8 +582,7 @@ fun extract_clause_numbers_in_atp_proof atp_proof =
       | extract_num _ = NONE
   in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
   
-(* Used to label theorems chained into the Sledgehammer call (or rather
-   goal?) *)
+(* Used to label theorems chained into the goal. *)
 val chained_hint = "sledgehammer_chained"
 
 fun apply_command _ 1 = "by "
