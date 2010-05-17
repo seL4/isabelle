@@ -141,9 +141,10 @@ fun hol_thm_to_fol is_conjecture ctxt mode th =
   in
       if is_conjecture then
           (Metis.Thm.axiom (Metis.LiteralSet.fromList mlits),
-           add_type_literals types_sorts)
+           type_literals_for_types types_sorts)
       else
-        let val tylits = add_type_literals (filter (not o default_sort ctxt) types_sorts)
+        let val tylits = filter_out (default_sort ctxt) types_sorts
+                         |> type_literals_for_types
             val mtylits = if Config.get ctxt type_lits
                           then map (metis_of_type_literals false) tylits else []
         in
@@ -215,6 +216,8 @@ fun mk_tfree ctxt w =
 (*Remove the "apply" operator from an HO term*)
 fun strip_happ args (Metis.Term.Fn(".",[t,u])) = strip_happ (u::args) t
   | strip_happ args x = (x, args);
+
+fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS)
 
 fun fol_type_to_isa _ (Metis.Term.Var v) =
      (case strip_prefix tvar_prefix v of
@@ -599,9 +602,9 @@ fun const_in_metis c (pred, tm_list) =
 
 (*Extract TFree constraints from context to include as conjecture clauses*)
 fun init_tfrees ctxt =
-  let fun add ((a,i),s) Ts = if i = ~1 then TFree(a,s) :: Ts else Ts
-  in
-    add_type_literals (Vartab.fold add (#2 (Variable.constraints_of ctxt)) [])
+  let fun add ((a,i),s) Ts = if i = ~1 then TFree(a,s) :: Ts else Ts in
+    Vartab.fold add (#2 (Variable.constraints_of ctxt)) []
+    |> type_literals_for_types
   end;
 
 (*transform isabelle type / arity clause to metis clause *)
