@@ -158,21 +158,17 @@ fun html_thm ctxt (n, (thmref, thm)) =
 
 end;
 
-structure P = OuterParse
-      and K = OuterKeyword
-      and FT = Find_Theorems;
-
 val criterion =
-  P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> Find_Theorems.Name ||
-  P.reserved "intro" >> K Find_Theorems.Intro ||
-  P.reserved "elim" >> K Find_Theorems.Elim ||
-  P.reserved "dest" >> K Find_Theorems.Dest ||
-  P.reserved "solves" >> K Find_Theorems.Solves ||
-  P.reserved "simp" |-- P.!!! (P.$$$ ":" |-- P.term) >> Find_Theorems.Simp ||
-  P.term >> Find_Theorems.Pattern;
+  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Find_Theorems.Name ||
+  Parse.reserved "intro" >> K Find_Theorems.Intro ||
+  Parse.reserved "elim" >> K Find_Theorems.Elim ||
+  Parse.reserved "dest" >> K Find_Theorems.Dest ||
+  Parse.reserved "solves" >> K Find_Theorems.Solves ||
+  Parse.reserved "simp" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.term) >> Find_Theorems.Simp ||
+  Parse.term >> Find_Theorems.Pattern;
 
 val parse_query =
-  Scan.repeat (((Scan.option P.minus >> is_none) -- criterion));
+  Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion));
 
 fun app_index f xs = fold_index (fn x => K (f x)) xs ();
 
@@ -194,7 +190,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
     fun get_query () =
       query
       |> (fn s => s ^ ";")
-      |> OuterSyntax.scan Position.start
+      |> Outer_Syntax.scan Position.start
       |> filter Token.is_proper
       |> Scan.error parse_query
       |> fst;

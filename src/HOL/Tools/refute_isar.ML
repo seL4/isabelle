@@ -12,19 +12,16 @@ struct
 
 (*optional list of arguments of the form [name1=value1, name2=value2, ...]*)
 
-val scan_parm =
-  OuterParse.name
-  -- (Scan.optional (OuterParse.$$$ "=" |-- OuterParse.name) "true")
-val scan_parms = Scan.optional
-  (OuterParse.$$$ "[" |-- OuterParse.list scan_parm --| OuterParse.$$$ "]") [];
+val scan_parm = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- Parse.name) "true")
+val scan_parms = Scan.optional (Parse.$$$ "[" |-- Parse.list scan_parm --| Parse.$$$ "]") [];
 
 
 (* 'refute' command *)
 
 val _ =
-  OuterSyntax.improper_command "refute"
-    "try to find a model that refutes a given subgoal" OuterKeyword.diag
-    (scan_parms -- Scan.optional OuterParse.nat 1 >>
+  Outer_Syntax.improper_command "refute"
+    "try to find a model that refutes a given subgoal" Keyword.diag
+    (scan_parms -- Scan.optional Parse.nat 1 >>
       (fn (parms, i) =>
         Toplevel.keep (fn state =>
           let
@@ -36,8 +33,8 @@ val _ =
 (* 'refute_params' command *)
 
 val _ =
-  OuterSyntax.command "refute_params"
-    "show/store default parameters for the 'refute' command" OuterKeyword.thy_decl
+  Outer_Syntax.command "refute_params"
+    "show/store default parameters for the 'refute' command" Keyword.thy_decl
     (scan_parms >> (fn parms =>
       Toplevel.theory (fn thy =>
         let

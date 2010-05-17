@@ -192,8 +192,6 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
 
 val setup = Predicate_Compile_Core.setup
 
-local structure P = OuterParse
-in
 
 (* Parser for mode annotations *)
 
@@ -207,15 +205,15 @@ and parse_mode_expr xs =
   (parse_mode_tuple_expr --| Args.$$$ "=>" -- parse_mode_expr >> Fun || parse_mode_tuple_expr) xs
 
 val mode_and_opt_proposal = parse_mode_expr --
-  Scan.optional (Args.$$$ "as" |-- P.xname >> SOME) NONE
+  Scan.optional (Args.$$$ "as" |-- Parse.xname >> SOME) NONE
 
 val opt_modes =
-  Scan.optional (P.$$$ "(" |-- Args.$$$ "modes" |-- P.$$$ ":" |--
-    P.enum "," mode_and_opt_proposal --| P.$$$ ")" >> SOME) NONE
+  Scan.optional (Parse.$$$ "(" |-- Args.$$$ "modes" |-- Parse.$$$ ":" |--
+    Parse.enum "," mode_and_opt_proposal --| Parse.$$$ ")" >> SOME) NONE
 
 val opt_expected_modes =
-  Scan.optional (P.$$$ "(" |-- Args.$$$ "expected_modes" |-- P.$$$ ":" |--
-    P.enum "," parse_mode_expr --| P.$$$ ")" >> SOME) NONE
+  Scan.optional (Parse.$$$ "(" |-- Args.$$$ "expected_modes" |-- Parse.$$$ ":" |--
+    Parse.enum "," parse_mode_expr --| Parse.$$$ ")" >> SOME) NONE
 
 (* Parser for options *)
 
@@ -224,46 +222,46 @@ val scan_options =
     val scan_bool_option = foldl1 (op ||) (map Args.$$$ bool_options)
     val scan_compilation = foldl1 (op ||) (map (fn (s, c) => Args.$$$ s >> K c) compilation_names)
   in
-    Scan.optional (P.$$$ "[" |-- Scan.optional scan_compilation Pred
-      -- P.enum "," scan_bool_option --| P.$$$ "]")
+    Scan.optional (Parse.$$$ "[" |-- Scan.optional scan_compilation Pred
+      -- Parse.enum "," scan_bool_option --| Parse.$$$ "]")
       (Pred, [])
   end
 
-val opt_print_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
+val opt_print_modes =
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
 
-val opt_mode = (P.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
+val opt_mode = (Parse.$$$ "_" >> K NONE) || (parse_mode_expr >> SOME)
 
-val opt_param_modes = Scan.optional (P.$$$ "[" |-- Args.$$$ "mode" |-- P.$$$ ":" |--
-  P.enum ", " opt_mode --| P.$$$ "]" >> SOME) NONE
+val opt_param_modes = Scan.optional (Parse.$$$ "[" |-- Args.$$$ "mode" |-- Parse.$$$ ":" |--
+  Parse.enum ", " opt_mode --| Parse.$$$ "]" >> SOME) NONE
 
 val stats = Scan.optional (Args.$$$ "stats" >> K true) false
 
 val value_options =
   let
-    val expected_values = Scan.optional (Args.$$$ "expected" |-- P.term >> SOME) NONE
+    val expected_values = Scan.optional (Args.$$$ "expected" |-- Parse.term >> SOME) NONE
     val scan_compilation =
       Scan.optional
         (foldl1 (op ||)
-          (map (fn (s, c) => Args.$$$ s -- P.enum "," P.int >> (fn (_, ps) => (c, ps)))
+          (map (fn (s, c) => Args.$$$ s -- Parse.enum "," Parse.int >> (fn (_, ps) => (c, ps)))
             compilation_names))
         (Pred, [])
   in
-    Scan.optional (P.$$$ "[" |-- (expected_values -- stats) -- scan_compilation --| P.$$$ "]")
+    Scan.optional
+      (Parse.$$$ "[" |-- (expected_values -- stats) -- scan_compilation --| Parse.$$$ "]")
       ((NONE, false), (Pred, []))
   end
 
 (* code_pred command and values command *)
 
-val _ = OuterSyntax.local_theory_to_proof "code_pred"
+val _ = Outer_Syntax.local_theory_to_proof "code_pred"
   "prove equations for predicate specified by intro/elim rules"
-  OuterKeyword.thy_goal
-  (opt_expected_modes -- opt_modes -- scan_options -- P.term_group >> code_pred_cmd)
+  Keyword.thy_goal
+  (opt_expected_modes -- opt_modes -- scan_options -- Parse.term_group >> code_pred_cmd)
 
-val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
-  (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional P.nat ~1 -- P.term
+val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensions" Keyword.diag
+  (opt_print_modes -- opt_param_modes -- value_options -- Scan.optional Parse.nat ~1 -- Parse.term
     >> (fn ((((print_modes, param_modes), options), k), t) => Toplevel.keep
         (Predicate_Compile_Core.values_cmd print_modes param_modes options k t)));
-
-end
 
 end

@@ -159,13 +159,10 @@ val add_fun_cmd = gen_add_fun Function.add_function_cmd
 
 
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val _ =
-  OuterSyntax.local_theory "fun" "define general recursive functions (short version)" K.thy_decl
+  Outer_Syntax.local_theory "fun" "define general recursive functions (short version)"
+  Keyword.thy_decl
   (function_parser fun_config
-     >> (fn ((config, fixes), statements) => add_fun_cmd fixes statements config));
-
-end
+     >> (fn ((config, fixes), statements) => add_fun_cmd fixes statements config))
 
 end

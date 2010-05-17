@@ -330,7 +330,7 @@ fun run_sh prover hard_timeout timeout dir st =
 
 fun thms_of_name ctxt name =
   let
-    val lex = OuterKeyword.get_lexicons
+    val lex = Keyword.get_lexicons
     val get = maps (ProofContext.get_fact ctxt o fst)
   in
     Source.of_string name

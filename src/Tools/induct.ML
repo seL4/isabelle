@@ -254,8 +254,8 @@ fun print_rules ctxt =
   end;
 
 val _ =
-  OuterSyntax.improper_command "print_induct_rules" "print induction and cases rules"
-    OuterKeyword.diag (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+  Outer_Syntax.improper_command "print_induct_rules" "print induction and cases rules"
+    Keyword.diag (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
       Toplevel.keep (print_rules o Toplevel.context_of)));
 
 
@@ -845,8 +845,6 @@ end;
 
 (** concrete syntax **)
 
-structure P = OuterParse;
-
 val arbitraryN = "arbitrary";
 val takingN = "taking";
 val ruleN = "rule";
@@ -892,7 +890,7 @@ fun unless_more_args scan = Scan.unless (Scan.lift
     Args.$$$ predN || Args.$$$ setN || Args.$$$ ruleN) -- Args.colon)) scan;
 
 val arbitrary = Scan.optional (Scan.lift (Args.$$$ arbitraryN -- Args.colon) |--
-  P.and_list1' (Scan.repeat (unless_more_args free))) [];
+  Parse.and_list1' (Scan.repeat (unless_more_args free))) [];
 
 val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
   Scan.repeat1 (unless_more_args inst)) [];
@@ -902,7 +900,7 @@ in
 val cases_setup =
   Method.setup @{binding cases}
     (Args.mode no_simpN --
-      (P.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
+      (Parse.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) >>
       (fn (no_simp, (insts, opt_rule)) => fn ctxt =>
         METHOD_CASES (fn facts => Seq.DETERM (HEADGOAL
           (cases_tac ctxt (not no_simp) insts opt_rule facts)))))
@@ -910,11 +908,12 @@ val cases_setup =
 
 val induct_setup =
   Method.setup @{binding induct}
-    (Args.mode no_simpN -- (P.and_list' (Scan.repeat (unless_more_args def_inst)) --
+    (Args.mode no_simpN -- (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
       (arbitrary -- taking -- Scan.option induct_rule)) >>
       (fn (no_simp, (insts, ((arbitrary, taking), opt_rule))) => fn ctxt =>
         RAW_METHOD_CASES (fn facts =>
-          Seq.DETERM (HEADGOAL (induct_tac ctxt (not no_simp) insts arbitrary taking opt_rule facts)))))
+          Seq.DETERM
+            (HEADGOAL (induct_tac ctxt (not no_simp) insts arbitrary taking opt_rule facts)))))
     "induction on types or predicates/sets";
 
 val coinduct_setup =

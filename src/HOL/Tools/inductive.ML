@@ -970,32 +970,28 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val _ = OuterKeyword.keyword "monos";
+val _ = Keyword.keyword "monos";
 
 fun gen_ind_decl mk_def coind =
-  P.fixes -- P.for_fixes --
+  Parse.fixes -- Parse.for_fixes --
   Scan.optional Parse_Spec.where_alt_specs [] --
-  Scan.optional (P.$$$ "monos" |-- P.!!! Parse_Spec.xthms1) []
+  Scan.optional (Parse.$$$ "monos" |-- Parse.!!! Parse_Spec.xthms1) []
   >> (fn (((preds, params), specs), monos) =>
       (snd oo gen_add_inductive mk_def true coind preds params specs monos));
 
 val ind_decl = gen_ind_decl add_ind_def;
 
 val _ =
-  OuterSyntax.local_theory' "inductive" "define inductive predicates" K.thy_decl
+  Outer_Syntax.local_theory' "inductive" "define inductive predicates" Keyword.thy_decl
     (ind_decl false);
 
 val _ =
-  OuterSyntax.local_theory' "coinductive" "define coinductive predicates" K.thy_decl
+  Outer_Syntax.local_theory' "coinductive" "define coinductive predicates" Keyword.thy_decl
     (ind_decl true);
 
 val _ =
-  OuterSyntax.local_theory "inductive_cases"
-    "create simplified instances of elimination rules (improper)" K.thy_script
-    (P.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
-
-end;
+  Outer_Syntax.local_theory "inductive_cases"
+    "create simplified instances of elimination rules (improper)" Keyword.thy_script
+    (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
 
 end;

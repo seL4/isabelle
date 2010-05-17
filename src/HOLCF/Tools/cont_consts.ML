@@ -93,12 +93,8 @@ end;
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val _ =
-  OuterSyntax.command "consts" "declare constants (HOLCF)" K.thy_decl
-    (Scan.repeat1 P.const_binding >> (Toplevel.theory o add_consts_cmd));
-
-end;
+  Outer_Syntax.command "consts" "declare constants (HOLCF)" Keyword.thy_decl
+    (Scan.repeat1 Parse.const_binding >> (Toplevel.theory o add_consts_cmd));
 
 end;

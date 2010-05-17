@@ -91,20 +91,15 @@ fun quotient_lift_const qtys (b, t) ctxt =
   quotient_def ((NONE, NoSyn), (Attrib.empty_binding,
     (Quotient_Term.quotient_lift_const qtys (b, t) ctxt, t))) ctxt
 
-local
-  structure P = OuterParse;
-in
-
-val quotdef_decl = (P.binding >> SOME) -- P.opt_mixfix' --| P.$$$ "where"
+val quotdef_decl = (Parse.binding >> SOME) -- Parse.opt_mixfix' --| Parse.$$$ "where"
 
 val quotdef_parser =
   Scan.optional quotdef_decl (NONE, NoSyn) -- 
-    P.!!! (Parse_Spec.opt_thm_name ":" -- (P.term --| P.$$$ "is" -- P.term))
-end
+    Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| Parse.$$$ "is" -- Parse.term))
 
 val _ =
-  OuterSyntax.local_theory "quotient_definition"
+  Outer_Syntax.local_theory "quotient_definition"
     "definition for constants over the quotient type"
-      OuterKeyword.thy_decl (quotdef_parser >> (snd oo quotdef_cmd))
+      Keyword.thy_decl (quotdef_parser >> (snd oo quotdef_cmd))
 
 end; (* structure *)

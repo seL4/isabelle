@@ -311,14 +311,14 @@ val smt_method =
 
 val setup =
   Attrib.setup (Binding.name "smt_solver")
-    (Scan.lift (OuterParse.$$$ "=" |-- Args.name) >>
+    (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration" #>
   setup_timeout #>
   setup_trace #>
   setup_fixed_certificates #>
   Attrib.setup (Binding.name "smt_certificates")
-    (Scan.lift (OuterParse.$$$ "=" |-- Args.name) >>
+    (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
     "SMT certificates" #>
   Method.setup (Binding.name "smt") smt_method
@@ -353,9 +353,9 @@ fun print_setup context =
       Pretty.big_list "Solver-specific settings:" infos])
   end
 
-val _ = OuterSyntax.improper_command "smt_status"
-  "Show the available SMT solvers and the currently selected solver."
-  OuterKeyword.diag
+val _ =
+  Outer_Syntax.improper_command "smt_status"
+    "show the available SMT solvers and the currently selected solver" Keyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
       print_setup (Context.Proof (Toplevel.context_of state)))))
 

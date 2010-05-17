@@ -469,8 +469,8 @@ fun isar_seri_haskell module_name =
       serialize_haskell module_prefix module_name string_classes));
 
 val _ =
-  OuterSyntax.command "code_monad" "define code syntax for monads" OuterKeyword.thy_decl (
-    OuterParse.term_group -- OuterParse.name >> (fn (raw_bind, target) =>
+  Outer_Syntax.command "code_monad" "define code syntax for monads" Keyword.thy_decl (
+    Parse.term_group -- Parse.name >> (fn (raw_bind, target) =>
       Toplevel.theory  (add_monad target raw_bind))
   );
 

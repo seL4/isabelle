@@ -463,9 +463,6 @@ fun gen_allow_abort prep_const raw_c thy =
 
 local
 
-structure P = OuterParse
-and K = OuterKeyword
-
 fun zip_list (x::xs) f g =
   f
   #-> (fn y =>
@@ -473,9 +470,9 @@ fun zip_list (x::xs) f g =
     #-> (fn xys => pair ((x, y) :: xys)));
 
 fun parse_multi_syntax parse_thing parse_syntax =
-  P.and_list1 parse_thing
-  #-> (fn things => Scan.repeat1 (P.$$$ "(" |-- P.name --
-        (zip_list things parse_syntax (P.$$$ "and")) --| P.$$$ ")"));
+  Parse.and_list1 parse_thing
+  #-> (fn things => Scan.repeat1 (Parse.$$$ "(" |-- Parse.name --
+        (zip_list things parse_syntax (Parse.$$$ "and")) --| Parse.$$$ ")"));
 
 in
 
@@ -507,75 +504,79 @@ fun parse_args f args =
 val (inK, module_nameK, fileK) = ("in", "module_name", "file");
 
 val code_exprP =
-  (Scan.repeat1 P.term_group
-  -- Scan.repeat (P.$$$ inK |-- P.name
-     -- Scan.option (P.$$$ module_nameK |-- P.name)
-     -- Scan.option (P.$$$ fileK |-- P.name)
-     -- Scan.optional (P.$$$ "(" |-- Args.parse --| P.$$$ ")") []
+  (Scan.repeat1 Parse.term_group
+  -- Scan.repeat (Parse.$$$ inK |-- Parse.name
+     -- Scan.option (Parse.$$$ module_nameK |-- Parse.name)
+     -- Scan.option (Parse.$$$ fileK |-- Parse.name)
+     -- Scan.optional (Parse.$$$ "(" |-- Args.parse --| Parse.$$$ ")") []
   ) >> (fn (raw_cs, seris) => export_code_cmd raw_cs seris));
 
-val _ = List.app OuterKeyword.keyword [inK, module_nameK, fileK];
+val _ = List.app Keyword.keyword [inK, module_nameK, fileK];
 
 val _ =
-  OuterSyntax.command "code_class" "define code syntax for class" K.thy_decl (
-    parse_multi_syntax P.xname (Scan.option P.string)
+  Outer_Syntax.command "code_class" "define code syntax for class" Keyword.thy_decl (
+    parse_multi_syntax Parse.xname (Scan.option Parse.string)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_class, syn) => add_syntax_class_cmd target raw_class syn) syns)
   );
 
 val _ =
-  OuterSyntax.command "code_instance" "define code syntax for instance" K.thy_decl (
-    parse_multi_syntax (P.xname --| P.$$$ "::" -- P.xname) (Scan.option (P.minus >> K ()))
+  Outer_Syntax.command "code_instance" "define code syntax for instance" Keyword.thy_decl (
+    parse_multi_syntax (Parse.xname --| Parse.$$$ "::" -- Parse.xname)
+      (Scan.option (Parse.minus >> K ()))
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_inst, add_del) => add_syntax_inst_cmd target raw_inst add_del) syns)
   );
 
 val _ =
-  OuterSyntax.command "code_type" "define code syntax for type constructor" K.thy_decl (
-    parse_multi_syntax P.xname (Code_Printer.parse_syntax I)
+  Outer_Syntax.command "code_type" "define code syntax for type constructor" Keyword.thy_decl (
+    parse_multi_syntax Parse.xname (Code_Printer.parse_syntax I)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
           fold (fn (raw_tyco, syn) => add_syntax_tyco_cmd target raw_tyco syn) syns)
   );
 
 val _ =
-  OuterSyntax.command "code_const" "define code syntax for constant" K.thy_decl (
-    parse_multi_syntax P.term_group (Code_Printer.parse_syntax fst)
+  Outer_Syntax.command "code_const" "define code syntax for constant" Keyword.thy_decl (
+    parse_multi_syntax Parse.term_group (Code_Printer.parse_syntax fst)
     >> (Toplevel.theory oo fold) (fn (target, syns) =>
       fold (fn (raw_const, syn) => add_syntax_const_simple_cmd target raw_const syn) syns)
   );
 
 val _ =
-  OuterSyntax.command "code_reserved" "declare words as reserved for target language" K.thy_decl (
-    P.name -- Scan.repeat1 P.name
+  Outer_Syntax.command "code_reserved" "declare words as reserved for target language"
+    Keyword.thy_decl (
+    Parse.name -- Scan.repeat1 Parse.name
     >> (fn (target, reserveds) => (Toplevel.theory o fold (add_reserved target)) reserveds)
   );
 
 val _ =
-  OuterSyntax.command "code_include" "declare piece of code to be included in generated code" K.thy_decl (
-    P.name -- P.name -- (P.text :|-- (fn "-" => Scan.succeed NONE
-      | s => Scan.optional (P.$$$ "attach" |-- Scan.repeat1 P.term) [] >> pair s >> SOME))
+  Outer_Syntax.command "code_include" "declare piece of code to be included in generated code"
+    Keyword.thy_decl (
+    Parse.name -- Parse.name -- (Parse.text :|-- (fn "-" => Scan.succeed NONE
+      | s => Scan.optional (Parse.$$$ "attach" |-- Scan.repeat1 Parse.term) [] >> pair s >> SOME))
     >> (fn ((target, name), content_consts) =>
         (Toplevel.theory o add_include_cmd target) (name, content_consts))
   );
 
 val _ =
-  OuterSyntax.command "code_modulename" "alias module to other name" K.thy_decl (
-    P.name -- Scan.repeat1 (P.name -- P.name)
+  Outer_Syntax.command "code_modulename" "alias module to other name" Keyword.thy_decl (
+    Parse.name -- Scan.repeat1 (Parse.name -- Parse.name)
     >> (fn (target, modlnames) => (Toplevel.theory o fold (add_module_alias target)) modlnames)
   );
 
 val _ =
-  OuterSyntax.command "code_abort" "permit constant to be implemented as program abort" K.thy_decl (
-    Scan.repeat1 P.term_group >> (Toplevel.theory o fold allow_abort_cmd)
+  Outer_Syntax.command "code_abort" "permit constant to be implemented as program abort"
+    Keyword.thy_decl (
+    Scan.repeat1 Parse.term_group >> (Toplevel.theory o fold allow_abort_cmd)
   );
 
 val _ =
-  OuterSyntax.command "export_code" "generate executable code for constants"
-    K.diag (P.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+  Outer_Syntax.command "export_code" "generate executable code for constants"
+    Keyword.diag (Parse.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun shell_command thyname cmd = Toplevel.program (fn _ =>
-  (use_thy thyname; case Scan.read Token.stopper (P.!!! code_exprP)
-    ((filter Token.is_proper o OuterSyntax.scan Position.none) cmd)
+  (use_thy thyname; case Scan.read Token.stopper (Parse.!!! code_exprP)
+    ((filter Token.is_proper o Outer_Syntax.scan Position.none) cmd)
    of SOME f => (writeln "Now generating code..."; f (theory thyname))
     | NONE => error ("Bad directive " ^ quote cmd)))
   handle Runtime.TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;

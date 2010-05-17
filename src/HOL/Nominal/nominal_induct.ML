@@ -138,8 +138,6 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
 
 local
 
-structure P = OuterParse;
-
 val avoidingN = "avoiding";
 val fixingN = "arbitrary";  (* to be consistent with induct; hopefully this changes again *)
 val ruleN = "rule";
@@ -165,14 +163,14 @@ val avoiding = Scan.optional (Scan.lift (Args.$$$ avoidingN -- Args.colon) |--
   Scan.repeat (unless_more_args free)) [];
 
 val fixing = Scan.optional (Scan.lift (Args.$$$ fixingN -- Args.colon) |--
-  P.and_list' (Scan.repeat (unless_more_args free))) [];
+  Parse.and_list' (Scan.repeat (unless_more_args free))) [];
 
 val rule_spec = Scan.lift (Args.$$$ "rule" -- Args.colon) |-- Attrib.thms;
 
 in
 
 val nominal_induct_method =
-  Args.mode Induct.no_simpN -- (P.and_list' (Scan.repeat (unless_more_args def_inst)) --
+  Args.mode Induct.no_simpN -- (Parse.and_list' (Scan.repeat (unless_more_args def_inst)) --
   avoiding -- fixing -- rule_spec) >>
   (fn (no_simp, (((x, y), z), w)) => fn ctxt =>
     RAW_METHOD_CASES (fn facts =>

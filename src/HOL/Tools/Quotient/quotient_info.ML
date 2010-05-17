@@ -91,9 +91,9 @@ end
 
 val maps_attr_parser =
   Args.context -- Scan.lift
-    ((Args.name --| OuterParse.$$$ "=") --
-      (OuterParse.$$$ "(" |-- Args.name --| OuterParse.$$$ "," --
-        Args.name --| OuterParse.$$$ ")"))
+    ((Args.name --| Parse.$$$ "=") --
+      (Parse.$$$ "(" |-- Args.name --| Parse.$$$ "," --
+        Args.name --| Parse.$$$ ")"))
 
 val _ = Context.>> (Context.map_theory
   (Attrib.setup @{binding "map"} (maps_attr_parser >> maps_attribute)
@@ -278,8 +278,8 @@ val _ = Context.>> (Context.map_theory
 (* setup of the printing commands *)
 
 fun improper_command (pp_fn, cmd_name, descr_str) =
-  OuterSyntax.improper_command cmd_name descr_str
-    OuterKeyword.diag (Scan.succeed (Toplevel.keep (pp_fn o Toplevel.context_of)))
+  Outer_Syntax.improper_command cmd_name descr_str
+    Keyword.diag (Scan.succeed (Toplevel.keep (pp_fn o Toplevel.context_of)))
 
 val _ = map improper_command
   [(print_mapsinfo, "print_quotmaps", "prints out all map functions"),

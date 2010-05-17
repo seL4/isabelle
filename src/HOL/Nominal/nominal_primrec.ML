@@ -393,28 +393,24 @@ end;
 
 (* outer syntax *)
 
-local structure P = OuterParse in
+val freshness_context = Parse.reserved "freshness_context";
+val invariant = Parse.reserved "invariant";
 
-val freshness_context = P.reserved "freshness_context";
-val invariant = P.reserved "invariant";
+fun unless_flag scan = Scan.unless ((freshness_context || invariant) -- Parse.$$$ ":") scan;
 
-fun unless_flag scan = Scan.unless ((freshness_context || invariant) -- P.$$$ ":") scan;
-
-val parser1 = (freshness_context -- P.$$$ ":") |-- unless_flag P.term >> SOME;
-val parser2 = (invariant -- P.$$$ ":") |--
-    (Scan.repeat1 (unless_flag P.term) >> SOME) -- Scan.optional parser1 NONE ||
+val parser1 = (freshness_context -- Parse.$$$ ":") |-- unless_flag Parse.term >> SOME;
+val parser2 = (invariant -- Parse.$$$ ":") |--
+    (Scan.repeat1 (unless_flag Parse.term) >> SOME) -- Scan.optional parser1 NONE ||
   (parser1 >> pair NONE);
 val options =
-  Scan.optional (P.$$$ "(" |-- P.!!! (parser2 --| P.$$$ ")")) (NONE, NONE);
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (parser2 --| Parse.$$$ ")")) (NONE, NONE);
 
 val _ =
-  OuterSyntax.local_theory_to_proof "nominal_primrec"
-    "define primitive recursive functions on nominal datatypes" OuterKeyword.thy_goal
-    (options -- P.fixes -- P.for_fixes -- Parse_Spec.where_alt_specs
+  Outer_Syntax.local_theory_to_proof "nominal_primrec"
+    "define primitive recursive functions on nominal datatypes" Keyword.thy_goal
+    (options -- Parse.fixes -- Parse.for_fixes -- Parse_Spec.where_alt_specs
       >> (fn ((((invs, fctxt), fixes), params), specs) =>
         add_primrec_cmd invs fctxt fixes params specs));
-
-end;
 
 end;
 

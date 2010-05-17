@@ -263,31 +263,31 @@ fun scan_val n f = Args.$$$ n -- Args.colon |-- f
 fun scan_arg f = Args.parens f
 fun scan_opt n = Scan.optional (scan_arg (Args.$$$ n >> K true)) false
 
-val vc_offsets = Scan.optional (Args.bracks (OuterParse.list1
-  (OuterParse.string --| Args.colon -- OuterParse.nat))) []
+val vc_offsets = Scan.optional (Args.bracks (Parse.list1
+  (Parse.string --| Args.colon -- Parse.nat))) []
 
 val _ =
-  OuterSyntax.command "boogie_open"
+  Outer_Syntax.command "boogie_open"
     "Open a new Boogie environment and load a Boogie-generated .b2i file."
-    OuterKeyword.thy_decl
-    (scan_opt "quiet" -- OuterParse.name -- vc_offsets >> 
+    Keyword.thy_decl
+    (scan_opt "quiet" -- Parse.name -- vc_offsets >> 
       (Toplevel.theory o boogie_open))
 
 
-val vc_name = OuterParse.name
+val vc_name = Parse.name
 
-val vc_label = OuterParse.name
+val vc_label = Parse.name
 val vc_labels = Scan.repeat1 vc_label
 
 val vc_paths =
-  OuterParse.nat -- (Args.$$$ "-" |-- OuterParse.nat) >> (op upto) ||
-  OuterParse.nat >> single
+  Parse.nat -- (Args.$$$ "-" |-- Parse.nat) >> (op upto) ||
+  Parse.nat >> single
 
 val vc_opts =
   scan_arg
    (scan_val "assertion" vc_label >> VC_Single ||
     scan_val "examine" vc_labels >> VC_Examine ||
-    scan_val "take" ((OuterParse.list vc_paths >> flat) -- Scan.option (
+    scan_val "take" ((Parse.list vc_paths >> flat) -- Scan.option (
       scan_val "without" vc_labels >> pair false ||
       scan_val "and_also" vc_labels >> pair true) >> VC_Take) ||
     scan_val "only" vc_labels >> VC_Only ||
@@ -295,9 +295,9 @@ val vc_opts =
   Scan.succeed VC_Complete
 
 val _ =
-  OuterSyntax.command "boogie_vc"
+  Outer_Syntax.command "boogie_vc"
     "Enter into proof mode for a specific verification condition."
-    OuterKeyword.thy_goal
+    Keyword.thy_goal
     (vc_name -- vc_opts >> (fn args =>
       (Toplevel.print o Toplevel.theory_to_proof (boogie_vc args))))
 
@@ -305,7 +305,7 @@ val _ =
 val quick_timeout = 5
 val default_timeout = 20
 
-fun timeout name = Scan.optional (scan_val name OuterParse.nat)
+fun timeout name = Scan.optional (scan_val name Parse.nat)
 
 val status_test =
   scan_arg (
@@ -328,18 +328,18 @@ fun status_cmd f = Toplevel.no_timing o Toplevel.keep (fn state =>
   f (Toplevel.theory_of state))
 
 val _ =
-  OuterSyntax.improper_command "boogie_status"
+  Outer_Syntax.improper_command "boogie_status"
     "Show the name and state of all loaded verification conditions."
-    OuterKeyword.diag
+    Keyword.diag
     (status_test >> status_cmd ||
      status_vc >> status_cmd ||
      Scan.succeed (status_cmd boogie_status))
 
 
 val _ =
-  OuterSyntax.command "boogie_end"
+  Outer_Syntax.command "boogie_end"
     "Close the current Boogie environment."
-    OuterKeyword.thy_decl
+    Keyword.thy_decl
     (Scan.succeed (Toplevel.theory boogie_end))
 
 

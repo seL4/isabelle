@@ -2076,11 +2076,10 @@ val add_nominal_datatype = gen_add_nominal_datatype Datatype.read_typ;
 
 (* FIXME: The following stuff should be exported by Datatype *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val datatype_decl =
-  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.type_args -- P.name -- P.opt_mixfix --
-    (P.$$$ "=" |-- P.enum1 "|" (P.name -- Scan.repeat P.typ -- P.opt_mixfix));
+  Scan.option (Parse.$$$ "(" |-- Parse.name --| Parse.$$$ ")") --
+    Parse.type_args -- Parse.name -- Parse.opt_mixfix --
+    (Parse.$$$ "=" |-- Parse.enum1 "|" (Parse.name -- Scan.repeat Parse.typ -- Parse.opt_mixfix));
 
 fun mk_datatype args =
   let
@@ -2090,9 +2089,7 @@ fun mk_datatype args =
   in add_nominal_datatype Datatype.default_config names specs end;
 
 val _ =
-  OuterSyntax.command "nominal_datatype" "define inductive datatypes" K.thy_decl
-    (P.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
-
-end;
+  Outer_Syntax.command "nominal_datatype" "define inductive datatypes" Keyword.thy_decl
+    (Parse.and_list1 datatype_decl >> (Toplevel.theory o mk_datatype));
 
 end

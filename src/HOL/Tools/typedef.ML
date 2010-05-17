@@ -296,22 +296,19 @@ end;
 
 (** outer syntax **)
 
-local structure P = OuterParse in
-
-val _ = OuterKeyword.keyword "morphisms";
+val _ = Keyword.keyword "morphisms";
 
 val _ =
-  OuterSyntax.local_theory_to_proof "typedef" "HOL type definition (requires non-emptiness proof)"
-    OuterKeyword.thy_goal
-    (Scan.optional (P.$$$ "(" |--
-        ((P.$$$ "open" >> K false) -- Scan.option P.binding ||
-          P.binding >> (fn s => (true, SOME s))) --| P.$$$ ")") (true, NONE) --
-      (P.type_args_constrained -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
-      Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding))
+  Outer_Syntax.local_theory_to_proof "typedef" "HOL type definition (requires non-emptiness proof)"
+    Keyword.thy_goal
+    (Scan.optional (Parse.$$$ "(" |--
+        ((Parse.$$$ "open" >> K false) -- Scan.option Parse.binding ||
+          Parse.binding >> (fn s => (true, SOME s))) --| Parse.$$$ ")") (true, NONE) --
+      (Parse.type_args_constrained -- Parse.binding) --
+        Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.term) --
+        Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding))
     >> (fn ((((((def, opt_name), (args, t)), mx), A), morphs)) =>
         typedef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs)));
-
-end;
 
 end;
 

@@ -329,15 +329,15 @@ val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
 
 fun parse_syntax prep_arg xs =
   Scan.option ((
-      ((OuterParse.$$$ infixK >> K X)
-        || (OuterParse.$$$ infixlK >> K L)
-        || (OuterParse.$$$ infixrK >> K R))
-        -- OuterParse.nat >> parse_infix prep_arg
+      ((Parse.$$$ infixK >> K X)
+        || (Parse.$$$ infixlK >> K L)
+        || (Parse.$$$ infixrK >> K R))
+        -- Parse.nat >> parse_infix prep_arg
       || Scan.succeed (parse_mixfix prep_arg))
-      -- OuterParse.string
+      -- Parse.string
       >> (fn (parse, s) => parse s)) xs;
 
-val _ = List.app OuterKeyword.keyword [infixK, infixlK, infixrK];
+val _ = List.app Keyword.keyword [infixK, infixlK, infixrK];
 
 
 (** module name spaces **)

@@ -275,7 +275,7 @@ fun clasimp_method' tac =
   Method.sections clasimp_modifiers >> K (clasimp_meth' tac);
 
 val auto_method =
-  Scan.lift (Scan.option (OuterParse.nat -- OuterParse.nat)) --|
+  Scan.lift (Scan.option (Parse.nat -- Parse.nat)) --|
     Method.sections clasimp_modifiers >>
   (fn NONE => clasimp_meth (CHANGED_PROP o auto_tac)
     | SOME (m, n) => clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n)));

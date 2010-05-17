@@ -672,23 +672,20 @@ fun prove_eqvt s xatoms ctxt =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val _ = OuterKeyword.keyword "avoids";
+val _ = Keyword.keyword "avoids";
 
 val _ =
-  OuterSyntax.local_theory_to_proof "nominal_inductive"
-    "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes" K.thy_goal
-    (P.xname -- Scan.optional (P.$$$ "avoids" |-- P.and_list1 (P.name --
-      (P.$$$ ":" |-- Scan.repeat1 P.name))) [] >> (fn (name, avoids) =>
+  Outer_Syntax.local_theory_to_proof "nominal_inductive"
+    "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes"
+    Keyword.thy_goal
+    (Parse.xname -- Scan.optional (Parse.$$$ "avoids" |-- Parse.and_list1 (Parse.name --
+      (Parse.$$$ ":" |-- Scan.repeat1 Parse.name))) [] >> (fn (name, avoids) =>
         prove_strong_ind name avoids));
 
 val _ =
-  OuterSyntax.local_theory "equivariance"
-    "prove equivariance for inductive predicate involving nominal datatypes" K.thy_decl
-    (P.xname -- Scan.optional (P.$$$ "[" |-- P.list1 P.name --| P.$$$ "]") [] >>
+  Outer_Syntax.local_theory "equivariance"
+    "prove equivariance for inductive predicate involving nominal datatypes" Keyword.thy_decl
+    (Parse.xname -- Scan.optional (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]") [] >>
       (fn (name, atoms) => prove_eqvt name atoms));
-
-end;
 
 end

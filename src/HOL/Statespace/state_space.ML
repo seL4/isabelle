@@ -667,37 +667,33 @@ end;
 
 (*** outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val type_insts =
-  P.typ >> single ||
-  P.$$$ "(" |-- P.!!! (P.list1 P.typ --| P.$$$ ")")
+  Parse.typ >> single ||
+  Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.typ --| Parse.$$$ ")")
 
-val comp = P.name -- (P.$$$ "::" |-- P.!!! P.typ);
+val comp = Parse.name -- (Parse.$$$ "::" |-- Parse.!!! Parse.typ);
 fun plus1_unless test scan =
-  scan ::: Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan));
+  scan ::: Scan.repeat (Parse.$$$ "+" |-- Scan.unless test (Parse.!!! scan));
 
-val mapsto = P.$$$ "=";
-val rename = P.name -- (mapsto |-- P.name);
-val renames =  Scan.optional (P.$$$ "[" |-- P.!!! (P.list1 rename --| P.$$$ "]")) [];
+val mapsto = Parse.$$$ "=";
+val rename = Parse.name -- (mapsto |-- Parse.name);
+val renames = Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.list1 rename --| Parse.$$$ "]")) [];
 
 
-val parent = ((type_insts -- P.xname) || (P.xname >> pair [])) -- renames
+val parent = ((type_insts -- Parse.xname) || (Parse.xname >> pair [])) -- renames
              >> (fn ((insts,name),renames) => (insts,name,renames))
 
 
 val statespace_decl =
-   P.type_args -- P.name --
-    (P.$$$ "=" |--
+   Parse.type_args -- Parse.name --
+    (Parse.$$$ "=" |--
      ((Scan.repeat1 comp >> pair []) ||
       (plus1_unless comp parent --
-        Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 comp)) [])))
+        Scan.optional (Parse.$$$ "+" |-- Parse.!!! (Scan.repeat1 comp)) [])))
 
 val statespace_command =
-  OuterSyntax.command "statespace" "define state space" K.thy_decl
+  Outer_Syntax.command "statespace" "define state space" Keyword.thy_decl
   (statespace_decl >> (fn ((args,name),(parents,comps)) =>
                            Toplevel.theory (define_statespace args name parents comps)))
-
-end;
 
 end;

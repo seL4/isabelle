@@ -189,7 +189,7 @@ fun mk_syn thy c =
   else Delimfix (Syntax.escape c)
 
 fun quotename c =
-  if Syntax.is_identifier c andalso not (OuterKeyword.is_keyword c) then c else quote c
+  if Syntax.is_identifier c andalso not (Keyword.is_keyword c) then c else quote c
 
 fun simple_smart_string_of_cterm ct =
     let

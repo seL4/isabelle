@@ -135,7 +135,7 @@ val setup =
   Attrib.setup @{binding split_format}
     (Scan.lift
      (Args.parens (Args.$$$ "complete") >> K (Thm.rule_attribute (K complete_split_rule)) ||
-      OuterParse.and_list1 (Scan.repeat Args.name_source)
+      Parse.and_list1 (Scan.repeat Args.name_source)
         >> (fn xss => Thm.rule_attribute (fn context =>
             split_rule_goal (Context.proof_of context) xss))))
     "split pair-typed subterms in premises, or function arguments" #>
