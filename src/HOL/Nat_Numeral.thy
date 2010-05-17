@@ -120,9 +120,9 @@ lemma zero_eq_power2 [simp]:
   "a\<twosuperior> = 0 \<longleftrightarrow> a = 0"
   unfolding power2_eq_square by simp
 
-lemma power2_eq_1_iff [simp]:
+lemma power2_eq_1_iff:
   "a\<twosuperior> = 1 \<longleftrightarrow> a = 1 \<or> a = - 1"
-  unfolding power2_eq_square by simp
+  unfolding power2_eq_square by (rule square_eq_1_iff)
 
 end
 
