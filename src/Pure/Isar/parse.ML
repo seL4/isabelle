@@ -6,17 +6,16 @@ Generic parsers for Isabelle/Isar outer syntax.
 
 signature PARSE =
 sig
-  type token = OuterLex.token
-  type 'a parser = token list -> 'a * token list
-  type 'a context_parser = Context.generic * token list -> 'a * (Context.generic * token list)
-  val group: string -> (token list -> 'a) -> token list -> 'a
-  val !!! : (token list -> 'a) -> token list -> 'a
-  val !!!! : (token list -> 'a) -> token list -> 'a
+  type 'a parser = Token.T list -> 'a * Token.T list
+  type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic * Token.T list)
+  val group: string -> (Token.T list -> 'a) -> Token.T list -> 'a
+  val !!! : (Token.T list -> 'a) -> Token.T list -> 'a
+  val !!!! : (Token.T list -> 'a) -> Token.T list -> 'a
   val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
-  val not_eof: token parser
-  val position: (token list -> 'a * 'b) -> token list -> ('a * Position.T) * 'b
+  val not_eof: Token.T parser
+  val position: (Token.T list -> 'a * 'b) -> Token.T list -> ('a * Position.T) * 'b
   val command: string parser
   val keyword: string parser
   val short_ident: string parser
@@ -98,11 +97,8 @@ end;
 structure Parse: PARSE =
 struct
 
-structure T = OuterLex;
-type token = T.token;
-
-type 'a parser = token list -> 'a * token list;
-type 'a context_parser = Context.generic * token list -> 'a * (Context.generic * token list);
+type 'a parser = Token.T list -> 'a * Token.T list;
+type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic * Token.T list);
 
 
 (** error handling **)
@@ -112,9 +108,11 @@ type 'a context_parser = Context.generic * token list -> 'a * (Context.generic *
 fun fail_with s = Scan.fail_with
   (fn [] => s ^ " expected (past end-of-file!)"
     | (tok :: _) =>
-        (case T.text_of tok of
-          (txt, "") => s ^ " expected,\nbut " ^ txt ^ T.pos_of tok ^ " was found"
-        | (txt1, txt2) => s ^ " expected,\nbut " ^ txt1 ^ T.pos_of tok ^ " was found:\n" ^ txt2));
+        (case Token.text_of tok of
+          (txt, "") =>
+            s ^ " expected,\nbut " ^ txt ^ Token.pos_of tok ^ " was found"
+        | (txt1, txt2) =>
+            s ^ " expected,\nbut " ^ txt1 ^ Token.pos_of tok ^ " was found:\n" ^ txt2));
 
 fun group s scan = scan || fail_with s;
 
@@ -124,7 +122,7 @@ fun group s scan = scan || fail_with s;
 fun cut kind scan =
   let
     fun get_pos [] = " (past end-of-file!)"
-      | get_pos (tok :: _) = T.pos_of tok;
+      | get_pos (tok :: _) = Token.pos_of tok;
 
     fun err (toks, NONE) = kind ^ get_pos toks
       | err (toks, SOME msg) =
@@ -149,42 +147,42 @@ fun triple_swap ((x, y), z) = ((x, z), y);
 (* tokens *)
 
 fun RESET_VALUE atom = (*required for all primitive parsers*)
-  Scan.ahead (Scan.one (K true)) -- atom >> (fn (arg, x) => (T.assign NONE arg; x));
+  Scan.ahead (Scan.one (K true)) -- atom >> (fn (arg, x) => (Token.assign NONE arg; x));
 
 
-val not_eof = RESET_VALUE (Scan.one T.not_eof);
+val not_eof = RESET_VALUE (Scan.one Token.not_eof);
 
-fun position scan = (Scan.ahead not_eof >> T.position_of) -- scan >> Library.swap;
-fun source_position atom = Scan.ahead atom |-- not_eof >> T.source_position_of;
-fun inner_syntax atom = Scan.ahead atom |-- not_eof >> T.source_of;
+fun position scan = (Scan.ahead not_eof >> Token.position_of) -- scan >> Library.swap;
+fun source_position atom = Scan.ahead atom |-- not_eof >> Token.source_position_of;
+fun inner_syntax atom = Scan.ahead atom |-- not_eof >> Token.source_of;
 
 fun kind k =
-  group (T.str_of_kind k) (RESET_VALUE (Scan.one (T.is_kind k) >> T.content_of));
+  group (Token.str_of_kind k) (RESET_VALUE (Scan.one (Token.is_kind k) >> Token.content_of));
 
-val command = kind T.Command;
-val keyword = kind T.Keyword;
-val short_ident = kind T.Ident;
-val long_ident = kind T.LongIdent;
-val sym_ident = kind T.SymIdent;
-val term_var = kind T.Var;
-val type_ident = kind T.TypeIdent;
-val type_var = kind T.TypeVar;
-val number = kind T.Nat;
-val string = kind T.String;
-val alt_string = kind T.AltString;
-val verbatim = kind T.Verbatim;
-val sync = kind T.Sync;
-val eof = kind T.EOF;
+val command = kind Token.Command;
+val keyword = kind Token.Keyword;
+val short_ident = kind Token.Ident;
+val long_ident = kind Token.LongIdent;
+val sym_ident = kind Token.SymIdent;
+val term_var = kind Token.Var;
+val type_ident = kind Token.TypeIdent;
+val type_var = kind Token.TypeVar;
+val number = kind Token.Nat;
+val string = kind Token.String;
+val alt_string = kind Token.AltString;
+val verbatim = kind Token.Verbatim;
+val sync = kind Token.Sync;
+val eof = kind Token.EOF;
 
-fun keyword_with pred = RESET_VALUE (Scan.one (T.keyword_with pred) >> T.content_of);
-val keyword_ident_or_symbolic = keyword_with T.ident_or_symbolic;
+fun keyword_with pred = RESET_VALUE (Scan.one (Token.keyword_with pred) >> Token.content_of);
+val keyword_ident_or_symbolic = keyword_with Token.ident_or_symbolic;
 
 fun $$$ x =
-  group (T.str_of_kind T.Keyword ^ " " ^ quote x) (keyword_with (fn y => x = y));
+  group (Token.str_of_kind Token.Keyword ^ " " ^ quote x) (keyword_with (fn y => x = y));
 
 fun reserved x =
   group ("reserved identifier " ^ quote x)
-    (RESET_VALUE (Scan.one (T.ident_with (fn y => x = y)) >> T.content_of));
+    (RESET_VALUE (Scan.one (Token.ident_with (fn y => x = y)) >> Token.content_of));
 
 val semicolon = $$$ ";";
 

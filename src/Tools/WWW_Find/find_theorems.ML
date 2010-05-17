@@ -195,7 +195,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
       query
       |> (fn s => s ^ ";")
       |> OuterSyntax.scan Position.start
-      |> filter OuterLex.is_proper
+      |> filter Token.is_proper
       |> Scan.error parse_query
       |> fst;
 

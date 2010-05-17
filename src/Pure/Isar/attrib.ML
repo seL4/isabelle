@@ -47,9 +47,6 @@ end;
 structure Attrib: ATTRIB =
 struct
 
-structure T = OuterLex;
-
-
 (* source and bindings *)
 
 type src = Args.src;
@@ -216,7 +213,7 @@ end;
 
 (* internal *)
 
-fun internal att = Args.src (("Pure.attribute", [T.mk_attribute att]), Position.none);
+fun internal att = Args.src (("Pure.attribute", [Token.mk_attribute att]), Position.none);
 
 
 (* rule composition *)

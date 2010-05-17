@@ -7,18 +7,17 @@ Superficial theory syntax: tokens and spans.
 signature THY_SYNTAX =
 sig
   val token_source: Scan.lexicon * Scan.lexicon -> Position.T -> (string, 'a) Source.source ->
-    (OuterLex.token, (Symbol_Pos.T, Position.T * (Symbol.symbol, (string, 'a)
+    (Token.T, (Symbol_Pos.T, Position.T * (Symbol.symbol, (string, 'a)
       Source.source) Source.source) Source.source) Source.source
-  val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> OuterLex.token list
-  val present_token: OuterLex.token -> output
-  val report_token: OuterLex.token -> unit
+  val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> Token.T list
+  val present_token: Token.T -> output
+  val report_token: Token.T -> unit
   datatype span_kind = Command of string | Ignored | Malformed
   type span
   val span_kind: span -> span_kind
-  val span_content: span -> OuterLex.token list
+  val span_content: span -> Token.T list
   val span_range: span -> Position.range
-  val span_source: (OuterLex.token, 'a) Source.source ->
-    (span, (OuterLex.token, 'a) Source.source) Source.source
+  val span_source: (Token.T, 'a) Source.source -> (span, (Token.T, 'a) Source.source) Source.source
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
   val present_span: span -> output
   val report_span: span -> unit
@@ -29,16 +28,13 @@ end;
 structure ThySyntax: THY_SYNTAX =
 struct
 
-structure T = OuterLex;
-
-
 (** tokens **)
 
 (* parse *)
 
 fun token_source lexs pos src =
   Symbol.source {do_recover = true} src
-  |> T.source {do_recover = SOME false} (K lexs) pos;
+  |> Token.source {do_recover = SOME false} (K lexs) pos;
 
 fun parse_tokens lexs pos str =
   Source.of_string str
@@ -51,33 +47,33 @@ fun parse_tokens lexs pos str =
 local
 
 val token_kind_markup =
- fn T.Command       => (Markup.commandN, [])
-  | T.Keyword       => (Markup.keywordN, [])
-  | T.Ident         => Markup.ident
-  | T.LongIdent     => Markup.ident
-  | T.SymIdent      => Markup.ident
-  | T.Var           => Markup.var
-  | T.TypeIdent     => Markup.tfree
-  | T.TypeVar       => Markup.tvar
-  | T.Nat           => Markup.ident
-  | T.String        => Markup.string
-  | T.AltString     => Markup.altstring
-  | T.Verbatim      => Markup.verbatim
-  | T.Space         => Markup.none
-  | T.Comment       => Markup.comment
-  | T.InternalValue => Markup.none
-  | T.Malformed     => Markup.malformed
-  | T.Error _       => Markup.malformed
-  | T.Sync          => Markup.control
-  | T.EOF           => Markup.control;
+ fn Token.Command       => (Markup.commandN, [])
+  | Token.Keyword       => (Markup.keywordN, [])
+  | Token.Ident         => Markup.ident
+  | Token.LongIdent     => Markup.ident
+  | Token.SymIdent      => Markup.ident
+  | Token.Var           => Markup.var
+  | Token.TypeIdent     => Markup.tfree
+  | Token.TypeVar       => Markup.tvar
+  | Token.Nat           => Markup.ident
+  | Token.String        => Markup.string
+  | Token.AltString     => Markup.altstring
+  | Token.Verbatim      => Markup.verbatim
+  | Token.Space         => Markup.none
+  | Token.Comment       => Markup.comment
+  | Token.InternalValue => Markup.none
+  | Token.Malformed     => Markup.malformed
+  | Token.Error _       => Markup.malformed
+  | Token.Sync          => Markup.control
+  | Token.EOF           => Markup.control;
 
 in
 
 fun present_token tok =
-  Markup.enclose (token_kind_markup (T.kind_of tok)) (Output.output (T.unparse tok));
+  Markup.enclose (token_kind_markup (Token.kind_of tok)) (Output.output (Token.unparse tok));
 
 fun report_token tok =
-  Position.report (token_kind_markup (T.kind_of tok)) (T.position_of tok);
+  Position.report (token_kind_markup (Token.kind_of tok)) (Token.position_of tok);
 
 end;
 
@@ -88,7 +84,7 @@ end;
 (* type span *)
 
 datatype span_kind = Command of string | Ignored | Malformed;
-datatype span = Span of span_kind * OuterLex.token list;
+datatype span = Span of span_kind * Token.T list;
 
 fun span_kind (Span (k, _)) = k;
 fun span_content (Span (_, toks)) = toks;
@@ -98,8 +94,8 @@ fun span_range span =
     [] => (Position.none, Position.none)
   | toks =>
       let
-        val start_pos = T.position_of (hd toks);
-        val end_pos = T.end_position_of (List.last toks);
+        val start_pos = Token.position_of (hd toks);
+        val end_pos = Token.end_position_of (List.last toks);
       in (start_pos, end_pos) end);
 
 
@@ -107,7 +103,7 @@ fun span_range span =
 
 local
 
-val is_whitespace = T.is_kind T.Space orf T.is_kind T.Comment;
+val is_whitespace = Token.is_kind Token.Space orf Token.is_kind Token.Comment;
 
 val body =
   Scan.unless (Scan.many is_whitespace -- Scan.ahead (Parse.command || Parse.eof)) Parse.not_eof;
@@ -120,7 +116,7 @@ val span =
 
 in
 
-fun span_source src = Source.source T.stopper (Scan.bulk span) NONE src;
+fun span_source src = Source.source Token.stopper (Scan.bulk span) NONE src;
 
 end;
 

@@ -335,9 +335,9 @@ fun thms_of_name ctxt name =
   in
     Source.of_string name
     |> Symbol.source {do_recover=false}
-    |> OuterLex.source {do_recover=SOME false} lex Position.start
-    |> OuterLex.source_proper
-    |> Source.source OuterLex.stopper (Parse_Spec.xthms1 >> get) NONE
+    |> Token.source {do_recover=SOME false} lex Position.start
+    |> Token.source_proper
+    |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
     |> Source.exhaust
   end
 

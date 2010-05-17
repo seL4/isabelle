@@ -25,7 +25,7 @@ sig
   val local_theory_to_proof: string -> string -> Keyword.T ->
     (local_theory -> Proof.state) parser -> unit
   val print_outer_syntax: unit -> unit
-  val scan: Position.T -> string -> OuterLex.token list
+  val scan: Position.T -> string -> Token.T list
   val parse: Position.T -> string -> Toplevel.transition list
   val process_file: Path.T -> theory -> theory
   type isar
@@ -36,11 +36,6 @@ end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
 struct
-
-structure T = OuterLex;
-type 'a parser = 'a Parse.parser;
-
-
 
 (** outer syntax **)
 
@@ -171,17 +166,17 @@ fun print_outer_syntax () =
 fun toplevel_source term do_recover cmd src =
   let
     val no_terminator =
-      Scan.unless Parse.semicolon (Scan.one (T.not_sync andf T.not_eof));
+      Scan.unless Parse.semicolon (Scan.one (Token.not_sync andf Token.not_eof));
     fun recover int =
       (int, fn _ => Scan.prompt "recover# " (Scan.repeat no_terminator) >> K [NONE]);
   in
     src
-    |> T.source_proper
-    |> Source.source T.stopper
+    |> Token.source_proper
+    |> Source.source Token.stopper
       (Scan.bulk (Parse.$$$ "--" -- Parse.!!! Parse.doc_source >> K NONE || Parse.not_eof >> SOME))
         (Option.map recover do_recover)
     |> Source.map_filter I
-    |> Source.source T.stopper
+    |> Source.source Token.stopper
         (Scan.bulk (fn xs => Parse.!!! (parse_command term (cmd ())) xs))
         (Option.map recover do_recover)
     |> Source.map_filter I
@@ -193,13 +188,13 @@ fun toplevel_source term do_recover cmd src =
 fun scan pos str =
   Source.of_string str
   |> Symbol.source {do_recover = false}
-  |> T.source {do_recover = SOME false} Keyword.get_lexicons pos
+  |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
   |> Source.exhaust;
 
 fun parse pos str =
   Source.of_string str
   |> Symbol.source {do_recover = false}
-  |> T.source {do_recover = SOME false} Keyword.get_lexicons pos
+  |> Token.source {do_recover = SOME false} Keyword.get_lexicons pos
   |> toplevel_source false NONE get_command
   |> Source.exhaust;
 
@@ -222,7 +217,7 @@ fun process_file path thy =
 
 type isar =
   (Toplevel.transition, (Toplevel.transition option,
-    (OuterLex.token, (OuterLex.token option, (OuterLex.token, (OuterLex.token,
+    (Token.T, (Token.T option, (Token.T, (Token.T,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, (string, unit) Source.source)
   Source.source) Source.source) Source.source) Source.source)
   Source.source) Source.source) Source.source) Source.source;
@@ -230,7 +225,7 @@ type isar =
 fun isar term : isar =
   Source.tty
   |> Symbol.source {do_recover = true}
-  |> T.source {do_recover = SOME true} Keyword.get_lexicons Position.none
+  |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) get_command;
 
 

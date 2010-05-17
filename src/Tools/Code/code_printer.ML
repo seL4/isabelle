@@ -72,9 +72,9 @@ sig
   val parse_infix: ('a -> 'b) -> lrx * int -> string
     -> int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)
-  val parse_syntax: ('a -> 'b) -> OuterParse.token list
+  val parse_syntax: ('a -> 'b) -> Token.T list
     -> (int * ((fixity -> 'b -> Pretty.T)
-    -> fixity -> 'a list -> Pretty.T)) option * OuterParse.token list
+    -> fixity -> 'a list -> Pretty.T)) option * Token.T list
   val simple_const_syntax: simple_const_syntax -> proto_const_syntax
   val activate_const_syntax: theory -> literals
     -> proto_const_syntax -> Code_Thingol.naming -> const_syntax * Code_Thingol.naming

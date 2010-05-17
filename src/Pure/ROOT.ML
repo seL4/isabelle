@@ -167,7 +167,7 @@ use "Proof/proof_rewrite_rules.ML";
 use "Proof/proofchecker.ML";
 
 (*outer syntax*)
-use "Isar/outer_lex.ML";
+use "Isar/token.ML";
 use "Isar/keyword.ML";
 use "Isar/parse.ML";
 use "Isar/parse_value.ML";
@@ -299,6 +299,13 @@ structure Legacy =
 struct
 
 structure OuterKeyword = Keyword;
+
+structure OuterLex =
+struct
+  open Token;
+  type token = T;
+end;
+
 structure OuterParse = Parse;
 structure OuterSyntax = Outer_Syntax;
 structure SpecParse = Parse_Spec;

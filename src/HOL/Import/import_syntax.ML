@@ -4,35 +4,29 @@
 
 signature HOL4_IMPORT_SYNTAX =
 sig
-    type token = OuterLex.token
-    type command  = token list -> (theory -> theory) * token list 
+    val import_segment: (theory -> theory) parser
+    val import_theory : (theory -> theory) parser
+    val end_import    : (theory -> theory) parser
+                        
+    val setup_theory  : (theory -> theory) parser
+    val end_setup     : (theory -> theory) parser
+                        
+    val thm_maps      : (theory -> theory) parser
+    val ignore_thms   : (theory -> theory) parser
+    val type_maps     : (theory -> theory) parser
+    val def_maps      : (theory -> theory) parser
+    val const_maps    : (theory -> theory) parser
+    val const_moves   : (theory -> theory) parser
+    val const_renames : (theory -> theory) parser
 
-    val import_segment: token list -> (theory -> theory) * token list
-    val import_theory : token list -> (theory -> theory) * token list
-    val end_import    : token list -> (theory -> theory) * token list
-
-    val setup_theory  : token list -> (theory -> theory) * token list
-    val end_setup     : token list -> (theory -> theory) * token list
-
-    val thm_maps      : token list -> (theory -> theory) * token list
-    val ignore_thms   : token list -> (theory -> theory) * token list
-    val type_maps     : token list -> (theory -> theory) * token list
-    val def_maps      : token list -> (theory -> theory) * token list
-    val const_maps    : token list -> (theory -> theory) * token list
-    val const_moves   : token list -> (theory -> theory) * token list
-    val const_renames : token list -> (theory -> theory) * token list
-
-    val skip_import_dir : token list -> (theory -> theory) * token list
-    val skip_import     : token list -> (theory -> theory) * token list
+    val skip_import_dir : (theory -> theory) parser
+    val skip_import     : (theory -> theory) parser
 
     val setup        : unit -> unit
 end
 
 structure HOL4ImportSyntax :> HOL4_IMPORT_SYNTAX =
 struct
-
-type token = OuterLex.token
-type command  = token list -> (theory -> theory) * token list 
 
 local structure P = OuterParse and K = OuterKeyword in
 
@@ -48,11 +42,11 @@ val import_theory = P.name >> (fn thyname =>
                                       |> add_dump (";setup_theory " ^ thyname))
 
 fun do_skip_import_dir s = (ImportRecorder.set_skip_import_dir (SOME s); I)
-val skip_import_dir : command = P.string >> do_skip_import_dir
+val skip_import_dir = P.string >> do_skip_import_dir
 
 val lower = String.map Char.toLower
 fun do_skip_import s = (ImportRecorder.set_skip_import (case lower s of "on" => true | "off" => false | _ => Scan.fail ()); I)
-val skip_import : command = P.short_ident >> do_skip_import
+val skip_import = P.short_ident >> do_skip_import
 
 fun end_import toks =
     Scan.succeed
@@ -160,8 +154,8 @@ fun import_thy s =
           (Scan.make_lexicon (map Symbol.explode ["import_segment","ignore_thms","import","end",">","::","const_maps","const_moves","thm_maps","const_renames","type_maps","def_maps"]),
                   Scan.empty_lexicon)
         val get_lexes = fn () => !lexes
-        val token_source = OuterLex.source {do_recover = NONE} get_lexes Position.start symb_source
-        val token_list = filter_out (OuterLex.is_kind OuterLex.Space) (Source.exhaust token_source)
+        val token_source = Token.source {do_recover = NONE} get_lexes Position.start symb_source
+        val token_list = filter_out (Token.is_kind Token.Space) (Source.exhaust token_source)
         val import_segmentP = OuterParse.$$$ "import_segment" |-- import_segment
         val type_mapsP = OuterParse.$$$ "type_maps" |-- type_maps
         val def_mapsP = OuterParse.$$$ "def_maps" |-- def_maps

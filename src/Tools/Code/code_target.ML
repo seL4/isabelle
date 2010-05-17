@@ -19,14 +19,13 @@ sig
 
   type destination
   type serialization
-  val parse_args: (OuterLex.token list -> 'a * OuterLex.token list)
-    -> OuterLex.token list -> 'a
+  val parse_args: 'a parser -> Token.T list -> 'a
   val stmt_names_of_destination: destination -> string list
   val mk_serialization: string -> ('a -> unit) option
     -> (Path.T option -> 'a -> unit)
     -> ('a -> string * string option list)
     -> 'a -> serialization
-  val serialize: theory -> string -> int option -> string option -> OuterLex.token list
+  val serialize: theory -> string -> int option -> string option -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
   val serialize_custom: theory -> string * (serializer * literals)
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
@@ -105,7 +104,7 @@ fun merge_name_syntax_table (NameSyntaxTable { class = class1, instance = instan
 
 type serializer =
   string option                         (*module name*)
-  -> OuterLex.token list                (*arguments*)
+  -> Token.T list                       (*arguments*)
   -> (string -> string)                 (*labelled_name*)
   -> string list                        (*reserved symbols*)
   -> (string * Pretty.T) list           (*includes*)
@@ -498,7 +497,7 @@ val add_syntax_const_cmd = gen_add_syntax_const Code.read_const ((K o K o K) ())
 val allow_abort_cmd = gen_allow_abort Code.read_const;
 
 fun parse_args f args =
-  case Scan.read OuterLex.stopper f args
+  case Scan.read Token.stopper f args
    of SOME x => x
     | NONE => error "Bad serializer arguments";
 
@@ -575,8 +574,8 @@ val _ =
     K.diag (P.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
 
 fun shell_command thyname cmd = Toplevel.program (fn _ =>
-  (use_thy thyname; case Scan.read OuterLex.stopper (P.!!! code_exprP)
-    ((filter OuterLex.is_proper o OuterSyntax.scan Position.none) cmd)
+  (use_thy thyname; case Scan.read Token.stopper (P.!!! code_exprP)
+    ((filter Token.is_proper o OuterSyntax.scan Position.none) cmd)
    of SOME f => (writeln "Now generating code..."; f (theory thyname))
     | NONE => error ("Bad directive " ^ quote cmd)))
   handle Runtime.TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
