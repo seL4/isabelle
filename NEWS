@@ -502,14 +502,17 @@ ProofContext.init_global.  There are some situations where a global
 context actually works, but under normal circumstances one needs to
 pass the proper local context through the code!
 
-* Renamed some important ML structures, while keeping the old names as
-legacy aliases for some time:
+* Renamed some important ML structures, while keeping the old names
+for some time as aliases within the structure Legacy:
 
   OuterKeyword  ~>  Keyword
   OuterLex      ~>  Token
   OuterParse    ~>  Parse
   OuterSyntax   ~>  Outer_Syntax
   SpecParse     ~>  Parse_Spec
+
+Note that "open Legacy" simplifies porting of sources, but forgetting
+to remove it again will complicate porting again in the future.
 
 
 *** System ***

@@ -312,4 +312,3 @@ structure SpecParse = Parse_Spec;
 
 end;
 
-open Legacy;  (* FIXME *)
