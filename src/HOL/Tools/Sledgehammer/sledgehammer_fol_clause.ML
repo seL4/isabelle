@@ -48,7 +48,7 @@ sig
     TyLitVar of string * name |
     TyLitFree of string * name
   exception CLAUSE of string * term
-  val add_type_literals : typ list -> type_literal list
+  val type_literals_for_types : typ list -> type_literal list
   val get_tvar_strs: typ list -> string list
   datatype arLit =
       TConsLit of class * string * string list
@@ -331,7 +331,8 @@ fun pred_of_sort (TyLitVar (s, _)) = (s, 1)
   | pred_of_sort (TyLitFree (s, _)) = (s, 1)
 
 (*Given a list of sorted type variables, return a list of type literals.*)
-fun add_type_literals Ts = fold (union (op =)) (map sorts_on_typs Ts) []
+fun type_literals_for_types Ts =
+  fold (union (op =)) (map sorts_on_typs Ts) []
 
 (*The correct treatment of TFrees like 'a in lemmas (axiom clauses) is not clear.
   *  Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
@@ -520,7 +521,7 @@ fun gen_dfg_cls (cls_id, ax_name, Axiom, lits, tylits, vars) =
       dfg_forall vars ("or(" ^ commas lits ^ ")") ^ ",\n" ^
       string_of_clausename (cls_id,ax_name) ^  ").\n\n";
 
-fun string_of_arity (name, num) =  "(" ^ name ^ "," ^ Int.toString num ^ ")"
+fun string_of_arity (name, arity) =  "(" ^ name ^ ", " ^ Int.toString arity ^ ")"
 
 fun string_of_preds [] = ""
   | string_of_preds preds = "predicates[" ^ commas(map string_of_arity preds) ^ "].\n";
