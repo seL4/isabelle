@@ -1620,14 +1620,6 @@ lemma realpow_two_sum_zero_iff [simp]:
      "(x ^ 2 + y ^ 2 = (0::real)) = (x = 0 & y = 0)"
 by (rule sum_power2_eq_zero_iff)
 
-text {* FIXME: declare this [simp] for all types, or not at all *}
-lemma realpow_two_le_add_order [simp]: "(0::real) \<le> u ^ 2 + v ^ 2"
-by (rule sum_power2_ge_zero)
-
-text {* FIXME: declare this [simp] for all types, or not at all *}
-lemma realpow_two_le_add_order2 [simp]: "(0::real) \<le> u ^ 2 + v ^ 2 + w ^ 2"
-by (intro add_nonneg_nonneg zero_le_power2)
-
 lemma real_minus_mult_self_le [simp]: "-(u * u) \<le> (x * (x::real))"
 by (rule_tac y = 0 in order_trans, auto)
 

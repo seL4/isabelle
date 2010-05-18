@@ -605,7 +605,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma add_nonneg_nonneg:
+lemma add_nonneg_nonneg [simp]:
   assumes "0 \<le> a" and "0 \<le> b" shows "0 \<le> a + b"
 proof -
   have "0 + 0 \<le> a + b" 

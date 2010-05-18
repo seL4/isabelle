@@ -279,13 +279,9 @@ lemma Infinitesimal_HComplex:
   "\<lbrakk>x \<in> Infinitesimal; y \<in> Infinitesimal\<rbrakk> \<Longrightarrow> HComplex x y \<in> Infinitesimal"
 apply (rule Infinitesimal_hcmod_iff [THEN iffD2])
 apply (simp add: hcmod_i)
-apply (rule Infinitesimal_sqrt)
 apply (rule Infinitesimal_add)
 apply (erule Infinitesimal_hrealpow, simp)
 apply (erule Infinitesimal_hrealpow, simp)
-apply (rule add_nonneg_nonneg)
-apply (rule zero_le_power2)
-apply (rule zero_le_power2)
 done
 
 lemma hcomplex_Infinitesimal_iff:

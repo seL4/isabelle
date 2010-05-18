@@ -956,7 +956,7 @@ proof
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
     by (auto simp add: abs_if not_less)
     (auto simp del: minus_add_distrib simp add: minus_add_distrib [symmetric],
-     auto intro: add_nonneg_nonneg, auto intro!: less_imp_le add_neg_neg)
+     auto intro!: less_imp_le add_neg_neg)
 qed (auto simp add: abs_if)
 
 lemma zero_le_square [simp]: "0 \<le> a * a"

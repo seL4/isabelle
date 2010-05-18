@@ -1294,15 +1294,11 @@ context linordered_semidom
 begin
 
 lemma zero_le_imp_of_nat: "0 \<le> of_nat m"
-  apply (induct m, simp_all)
-  apply (erule order_trans)
-  apply (rule ord_le_eq_trans [OF _ add_commute])
-  apply (rule less_add_one [THEN less_imp_le])
-  done
+  by (induct m) simp_all
 
 lemma less_imp_of_nat_less: "m < n \<Longrightarrow> of_nat m < of_nat n"
   apply (induct m n rule: diff_induct, simp_all)
-  apply (insert add_less_le_mono [OF zero_less_one zero_le_imp_of_nat], force)
+  apply (rule add_pos_nonneg [OF zero_less_one zero_le_imp_of_nat])
   done
 
 lemma of_nat_less_imp_less: "of_nat m < of_nat n \<Longrightarrow> m < n"

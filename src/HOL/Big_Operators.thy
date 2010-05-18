@@ -673,7 +673,7 @@ proof (cases "finite A")
   proof induct
     case empty thus ?case by simp
   next
-    case (insert x A) thus ?case by (auto simp: add_nonneg_nonneg)
+    case (insert x A) thus ?case by auto
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)
