@@ -405,21 +405,15 @@ proof -
       done
   }
   note b = this[OF refl[of a] refl[of b]]
-  note addm = add_mono[of "0::'a" _ "0::'a", simplified]
-  note addm2 = add_mono[of _ "0::'a" _ "0::'a", simplified]
   have xy: "- ?x <= ?y"
     apply (simp)
-    apply (rule_tac y="0::'a" in order_trans)
-    apply (rule addm2)
-    apply (simp_all add: mult_nonneg_nonneg mult_nonpos_nonpos)
-    apply (rule addm)
+    apply (rule order_trans [OF add_nonpos_nonpos add_nonneg_nonneg])
     apply (simp_all add: mult_nonneg_nonneg mult_nonpos_nonpos)
     done
   have yx: "?y <= ?x"
     apply (simp add:diff_def)
-    apply (rule_tac y=0 in order_trans)
-    apply (rule addm2, (simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)+)
-    apply (rule addm, (simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)+)
+    apply (rule order_trans [OF add_nonpos_nonpos add_nonneg_nonneg])
+    apply (simp_all add: mult_nonneg_nonpos mult_nonpos_nonneg)
     done
   have i1: "a*b <= abs a * abs b" by (simp only: a b yx)
   have i2: "- (abs a * abs b) <= a*b" by (simp only: a b xy)
