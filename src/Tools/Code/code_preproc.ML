@@ -479,8 +479,8 @@ val setup =
   end;
 
 val _ =
-  OuterSyntax.improper_command "print_codeproc" "print code preprocessor setup"
-  OuterKeyword.diag (Scan.succeed
+  Outer_Syntax.improper_command "print_codeproc" "print code preprocessor setup"
+  Keyword.diag (Scan.succeed
       (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
         (print_codeproc o Toplevel.theory_of)));
 

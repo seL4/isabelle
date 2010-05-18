@@ -576,29 +576,26 @@ fun add_inductive (srec_tms, sdom_sum) intr_srcs
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val _ = List.app OuterKeyword.keyword
+val _ = List.app Keyword.keyword
   ["domains", "intros", "monos", "con_defs", "type_intros", "type_elims"];
 
 fun mk_ind (((((doms, intrs), monos), con_defs), type_intrs), type_elims) =
-  #1 o add_inductive doms (map P.triple_swap intrs) (monos, con_defs, type_intrs, type_elims);
+  #1 o add_inductive doms (map Parse.triple_swap intrs) (monos, con_defs, type_intrs, type_elims);
 
 val ind_decl =
-  (P.$$$ "domains" |-- P.!!! (P.enum1 "+" P.term --
-      ((P.$$$ "\<subseteq>" || P.$$$ "<=") |-- P.term))) --
-  (P.$$$ "intros" |--
-    P.!!! (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- P.prop))) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (P.$$$ "con_defs" |-- P.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (P.$$$ "type_intros" |-- P.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (P.$$$ "type_elims" |-- P.!!! Parse_Spec.xthms1) []
+  (Parse.$$$ "domains" |-- Parse.!!! (Parse.enum1 "+" Parse.term --
+      ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<=") |-- Parse.term))) --
+  (Parse.$$$ "intros" |--
+    Parse.!!! (Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop))) --
+  Scan.optional (Parse.$$$ "monos" |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (Parse.$$$ "con_defs" |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (Parse.$$$ "type_intros" |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (Parse.$$$ "type_elims" |-- Parse.!!! Parse_Spec.xthms1) []
   >> (Toplevel.theory o mk_ind);
 
-val _ = OuterSyntax.command (co_prefix ^ "inductive")
-  ("define " ^ co_prefix ^ "inductive sets") K.thy_decl ind_decl;
-
-end;
+val _ =
+  Outer_Syntax.command (co_prefix ^ "inductive")
+    ("define " ^ co_prefix ^ "inductive sets") Keyword.thy_decl ind_decl;
 
 end;
 

@@ -52,15 +52,13 @@ fun value_cmd some_name modes raw_t state =
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
   in Pretty.writeln p end;
 
-local structure P = OuterParse and K = OuterKeyword in
+val opt_modes =
+  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
 
-val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
-
-val _ = OuterSyntax.improper_command "value" "evaluate and print term" K.diag
-  (Scan.option (P.$$$ "[" |-- P.xname --| P.$$$ "]") -- opt_modes -- P.term
-    >> (fn ((some_name, modes), t) => Toplevel.no_timing o Toplevel.keep
-        (value_cmd some_name modes t)));
-
-end; (*local*)
+val _ =
+  Outer_Syntax.improper_command "value" "evaluate and print term" Keyword.diag
+    (Scan.option (Parse.$$$ "[" |-- Parse.xname --| Parse.$$$ "]") -- opt_modes -- Parse.term
+      >> (fn ((some_name, modes), t) => Toplevel.no_timing o Toplevel.keep
+          (value_cmd some_name modes t)));
 
 end;

@@ -204,26 +204,24 @@ val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
 
 local
 
-structure P = OuterParse
-and K = OuterKeyword
-
 val datatypesK = "datatypes";
 val functionsK = "functions";
 val fileK = "file";
 val andK = "and"
 
-val _ = List.app K.keyword [datatypesK, functionsK];
+val _ = List.app Keyword.keyword [datatypesK, functionsK];
 
-val parse_datatype = (P.name --| P.$$$ "=" -- (P.term ::: (Scan.repeat (P.$$$ "|" |-- P.term))));
+val parse_datatype =
+  Parse.name --| Parse.$$$ "=" -- (Parse.term ::: (Scan.repeat (Parse.$$$ "|" |-- Parse.term)));
 
 in
 
 val _ =
-  OuterSyntax.command "code_reflect" "enrich runtime environment with generated code"
-    K.thy_decl (P.name -- Scan.optional (P.$$$ datatypesK |-- (parse_datatype
-      ::: Scan.repeat (P.$$$ andK |-- parse_datatype))) []
-    -- Scan.optional (P.$$$ functionsK |-- Scan.repeat1 P.name) []
-    -- Scan.option (P.$$$ fileK |-- P.name)
+  Outer_Syntax.command "code_reflect" "enrich runtime environment with generated code"
+    Keyword.thy_decl (Parse.name -- Scan.optional (Parse.$$$ datatypesK |-- (parse_datatype
+      ::: Scan.repeat (Parse.$$$ andK |-- parse_datatype))) []
+    -- Scan.optional (Parse.$$$ functionsK |-- Scan.repeat1 Parse.name) []
+    -- Scan.option (Parse.$$$ fileK |-- Parse.name)
   >> (fn (((module_name, raw_datatypes), raw_functions), some_file) => Toplevel.theory
     (code_reflect_cmd raw_datatypes raw_functions module_name some_file)));
 

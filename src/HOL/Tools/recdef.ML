@@ -289,40 +289,39 @@ val setup =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val _ = List.app OuterKeyword.keyword ["permissive", "congs", "hints"];
+val _ = List.app Keyword.keyword ["permissive", "congs", "hints"];
 
 val hints =
-  P.$$$ "(" |-- P.!!! (P.position (P.$$$ "hints" -- Args.parse) --| P.$$$ ")") >> Args.src;
+  Parse.$$$ "(" |--
+    Parse.!!! (Parse.position (Parse.$$$ "hints" -- Args.parse) --| Parse.$$$ ")") >> Args.src;
 
 val recdef_decl =
-  Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true --
-  P.name -- P.term -- Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- P.prop)
+  Scan.optional
+    (Parse.$$$ "(" -- Parse.!!! (Parse.$$$ "permissive" -- Parse.$$$ ")") >> K false) true --
+  Parse.name -- Parse.term -- Scan.repeat1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)
     -- Scan.option hints
-  >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map P.triple_swap eqs) src);
+  >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map Parse.triple_swap eqs) src);
 
 val _ =
-  OuterSyntax.command "recdef" "define general recursive functions (TFL)" K.thy_decl
+  Outer_Syntax.command "recdef" "define general recursive functions (TFL)" Keyword.thy_decl
     (recdef_decl >> Toplevel.theory);
 
 
 val defer_recdef_decl =
-  P.name -- Scan.repeat1 P.prop --
-  Scan.optional (P.$$$ "(" |-- P.$$$ "congs" |-- P.!!! (Parse_Spec.xthms1 --| P.$$$ ")")) []
+  Parse.name -- Scan.repeat1 Parse.prop --
+  Scan.optional
+    (Parse.$$$ "(" |-- Parse.$$$ "congs" |-- Parse.!!! (Parse_Spec.xthms1 --| Parse.$$$ ")")) []
   >> (fn ((f, eqs), congs) => #1 o defer_recdef f eqs congs);
 
 val _ =
-  OuterSyntax.command "defer_recdef" "defer general recursive functions (TFL)" K.thy_decl
+  Outer_Syntax.command "defer_recdef" "defer general recursive functions (TFL)" Keyword.thy_decl
     (defer_recdef_decl >> Toplevel.theory);
 
 val _ =
-  OuterSyntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
-    K.thy_goal
-    ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.xname --
-        Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
+  Outer_Syntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
+    Keyword.thy_goal
+    ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.xname --
+        Scan.option (Parse.$$$ "(" |-- Parse.nat --| Parse.$$$ ")")
       >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));
-
-end;
 
 end;

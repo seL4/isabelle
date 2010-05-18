@@ -315,27 +315,25 @@ fun gen_quickcheck args i state =
     test_goal quiet report generator_name size iterations default_type no_assms insts i assms state
   end;
 
-fun quickcheck args i state = fst (gen_quickcheck args i state)
+fun quickcheck args i state = fst (gen_quickcheck args i state);
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
   |> Pretty.writeln o pretty_counterex_and_reports (Toplevel.context_of state);
 
-local structure P = OuterParse and K = OuterKeyword in
+val parse_arg = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- Parse.name) "true");
 
-val parse_arg = P.name -- (Scan.optional (P.$$$ "=" |-- P.name) "true")
-
-val parse_args = P.$$$ "[" |-- P.list1 parse_arg --| P.$$$ "]"
+val parse_args = Parse.$$$ "[" |-- Parse.list1 parse_arg --| Parse.$$$ "]"
   || Scan.succeed [];
 
-val _ = OuterSyntax.command "quickcheck_params" "set parameters for random testing" K.thy_decl
-  (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
+val _ =
+  Outer_Syntax.command "quickcheck_params" "set parameters for random testing" Keyword.thy_decl
+    (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
 
-val _ = OuterSyntax.improper_command "quickcheck" "try to find counterexample for subgoal" K.diag
-  (parse_args -- Scan.optional P.nat 1
-    >> (fn (args, i) => Toplevel.no_timing o Toplevel.keep (quickcheck_cmd args i)));
-
-end; (*local*)
+val _ =
+  Outer_Syntax.improper_command "quickcheck" "try to find counterexample for subgoal" Keyword.diag
+    (parse_args -- Scan.optional Parse.nat 1
+      >> (fn (args, i) => Toplevel.no_timing o Toplevel.keep (quickcheck_cmd args i)));
 
 end;
 

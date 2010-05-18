@@ -299,16 +299,16 @@ in
 end
 
 val quotspec_parser =
-    OuterParse.and_list1
-     ((OuterParse.type_args -- OuterParse.binding) --
-        OuterParse.opt_mixfix -- (OuterParse.$$$ "=" |-- OuterParse.typ) --
-         (OuterParse.$$$ "/" |-- OuterParse.term))
+    Parse.and_list1
+     ((Parse.type_args -- Parse.binding) --
+        Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
+         (Parse.$$$ "/" |-- Parse.term))
 
-val _ = OuterKeyword.keyword "/"
+val _ = Keyword.keyword "/"
 
 val _ =
-    OuterSyntax.local_theory_to_proof "quotient_type"
+    Outer_Syntax.local_theory_to_proof "quotient_type"
       "quotient type definitions (require equivalence proofs)"
-         OuterKeyword.thy_goal (quotspec_parser >> quotient_type_cmd)
+         Keyword.thy_goal (quotspec_parser >> quotient_type_cmd)
 
 end; (* structure *)

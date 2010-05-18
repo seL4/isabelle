@@ -71,7 +71,7 @@ val elimN = "elim";
 val destN = "dest";
 
 fun modifier name kind kind' att =
-  Args.$$$ name |-- (kind >> K NONE || kind' |-- OuterParse.nat --| Args.colon >> SOME)
+  Args.$$$ name |-- (kind >> K NONE || kind' |-- Parse.nat --| Args.colon >> SOME)
     >> (pair (I: Proof.context -> Proof.context) o att);
 
 val modifiers =
@@ -87,7 +87,7 @@ in
 
 fun method_setup name =
   Method.setup name
-    (Scan.lift (Scan.option OuterParse.nat) --| Method.sections modifiers >>
+    (Scan.lift (Scan.option Parse.nat) --| Method.sections modifiers >>
       (fn opt_lim => fn ctxt =>
         SIMPLE_METHOD' (Object_Logic.atomize_prems_tac THEN' prover_tac ctxt opt_lim)))
     "intuitionistic proof search";

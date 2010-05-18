@@ -330,14 +330,14 @@ fun run_sh prover hard_timeout timeout dir st =
 
 fun thms_of_name ctxt name =
   let
-    val lex = OuterKeyword.get_lexicons
+    val lex = Keyword.get_lexicons
     val get = maps (ProofContext.get_fact ctxt o fst)
   in
     Source.of_string name
     |> Symbol.source {do_recover=false}
-    |> OuterLex.source {do_recover=SOME false} lex Position.start
-    |> OuterLex.source_proper
-    |> Source.source OuterLex.stopper (Parse_Spec.xthms1 >> get) NONE
+    |> Token.source {do_recover=SOME false} lex Position.start
+    |> Token.source_proper
+    |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
     |> Source.exhaust
   end
 

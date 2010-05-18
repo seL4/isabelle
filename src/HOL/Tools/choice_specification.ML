@@ -232,33 +232,28 @@ fun process_spec axiomatic cos alt_props thy =
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
-val opt_name = Scan.optional (P.name --| P.$$$ ":") ""
-val opt_overloaded = P.opt_keyword "overloaded";
+val opt_name = Scan.optional (Parse.name --| Parse.$$$ ":") ""
+val opt_overloaded = Parse.opt_keyword "overloaded"
 
 val specification_decl =
-  P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
-          Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop)
+  Parse.$$$ "(" |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| Parse.$$$ ")" --
+          Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop)
 
 val _ =
-  OuterSyntax.command "specification" "define constants by specification" K.thy_goal
+  Outer_Syntax.command "specification" "define constants by specification" Keyword.thy_goal
     (specification_decl >> (fn (cos,alt_props) =>
                                Toplevel.print o (Toplevel.theory_to_proof
                                                      (process_spec NONE cos alt_props))))
 
 val ax_specification_decl =
-    P.name --
-    (P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
-           Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop))
+    Parse.name --
+    (Parse.$$$ "(" |-- Scan.repeat1 (opt_name -- Parse.term -- opt_overloaded) --| Parse.$$$ ")" --
+           Scan.repeat1 ((Parse_Spec.opt_thm_name ":" >> apfst Binding.name_of) -- Parse.prop))
 
 val _ =
-  OuterSyntax.command "ax_specification" "define constants by specification" K.thy_goal
+  Outer_Syntax.command "ax_specification" "define constants by specification" Keyword.thy_goal
     (ax_specification_decl >> (fn (axname,(cos,alt_props)) =>
                                Toplevel.print o (Toplevel.theory_to_proof
                                                      (process_spec (SOME axname) cos alt_props))))
-
-end
-
 
 end

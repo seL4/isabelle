@@ -419,29 +419,26 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 fun mk_datatype ((((dom, dts), monos), type_intrs), type_elims) =
   #1 o add_datatype (dom, map fst dts) (map snd dts) (monos, type_intrs, type_elims);
 
 val con_decl =
-  P.name -- Scan.optional (P.$$$ "(" |-- P.list1 P.term --| P.$$$ ")") [] -- P.opt_mixfix
-  >> P.triple1;
+  Parse.name -- Scan.optional (Parse.$$$ "(" |-- Parse.list1 Parse.term --| Parse.$$$ ")") [] --
+    Parse.opt_mixfix >> Parse.triple1;
 
 val datatype_decl =
-  (Scan.optional ((P.$$$ "\<subseteq>" || P.$$$ "<=") |-- P.!!! P.term) "") --
-  P.and_list1 (P.term -- (P.$$$ "=" |-- P.enum1 "|" con_decl)) --
-  Scan.optional (P.$$$ "monos" |-- P.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (P.$$$ "type_intros" |-- P.!!! Parse_Spec.xthms1) [] --
-  Scan.optional (P.$$$ "type_elims" |-- P.!!! Parse_Spec.xthms1) []
+  (Scan.optional ((Parse.$$$ "\<subseteq>" || Parse.$$$ "<=") |-- Parse.!!! Parse.term) "") --
+  Parse.and_list1 (Parse.term -- (Parse.$$$ "=" |-- Parse.enum1 "|" con_decl)) --
+  Scan.optional (Parse.$$$ "monos" |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (Parse.$$$ "type_intros" |-- Parse.!!! Parse_Spec.xthms1) [] --
+  Scan.optional (Parse.$$$ "type_elims" |-- Parse.!!! Parse_Spec.xthms1) []
   >> (Toplevel.theory o mk_datatype);
 
 val coind_prefix = if coind then "co" else "";
 
-val _ = OuterSyntax.command (coind_prefix ^ "datatype")
-  ("define " ^ coind_prefix ^ "datatype") K.thy_decl datatype_decl;
-
-end;
+val _ =
+  Outer_Syntax.command (coind_prefix ^ "datatype")
+    ("define " ^ coind_prefix ^ "datatype") Keyword.thy_decl datatype_decl;
 
 end;
 

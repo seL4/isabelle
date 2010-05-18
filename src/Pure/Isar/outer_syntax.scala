@@ -39,7 +39,7 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
 
   /* tokenize */
 
-  def scan(input: Reader[Char]): List[Outer_Lex.Token] =
+  def scan(input: Reader[Char]): List[Token] =
   {
     import lexicon._
 
@@ -49,6 +49,6 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
     }
   }
 
-  def scan(input: CharSequence): List[Outer_Lex.Token] =
+  def scan(input: CharSequence): List[Token] =
     scan(new CharSequenceReader(input))
 }

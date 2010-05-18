@@ -355,29 +355,29 @@ end;
 
 (** outer syntax **)
 
-local structure P = OuterParse and K = OuterKeyword in
-
 val typedef_proof_decl =
-  Scan.optional (P.$$$ "(" |--
-      ((P.$$$ "open" >> K false) -- Scan.option P.binding || P.binding >> (fn s => (true, SOME s)))
-        --| P.$$$ ")") (true, NONE) --
-    (P.type_args_constrained -- P.binding) -- P.opt_mixfix -- (P.$$$ "=" |-- P.term) --
-    Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding));
+  Scan.optional (Parse.$$$ "(" |--
+      ((Parse.$$$ "open" >> K false) -- Scan.option Parse.binding ||
+        Parse.binding >> (fn s => (true, SOME s)))
+        --| Parse.$$$ ")") (true, NONE) --
+    (Parse.type_args_constrained -- Parse.binding) -- Parse.opt_mixfix --
+    (Parse.$$$ "=" |-- Parse.term) --
+    Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding));
 
 fun mk_pcpodef_proof pcpo ((((((def, opt_name), (args, t)), mx), A), morphs)) =
   (if pcpo then pcpodef_proof_cmd else cpodef_proof_cmd)
     ((def, the_default t opt_name), (t, args, mx), A, morphs);
 
 val _ =
-  OuterSyntax.command "pcpodef" "HOLCF type definition (requires admissibility proof)" K.thy_goal
+  Outer_Syntax.command "pcpodef" "HOLCF type definition (requires admissibility proof)"
+  Keyword.thy_goal
     (typedef_proof_decl >>
       (Toplevel.print oo (Toplevel.theory_to_proof o mk_pcpodef_proof true)));
 
 val _ =
-  OuterSyntax.command "cpodef" "HOLCF type definition (requires admissibility proof)" K.thy_goal
+  Outer_Syntax.command "cpodef" "HOLCF type definition (requires admissibility proof)"
+  Keyword.thy_goal
     (typedef_proof_decl >>
       (Toplevel.print oo (Toplevel.theory_to_proof o mk_pcpodef_proof false)));
-
-end;
 
 end;

@@ -411,7 +411,7 @@ fun xrule_meth m =
 (* outer parser *)
 
 fun is_symid_meth s =
-  s <> "|" andalso s <> "?" andalso s <> "+" andalso OuterLex.ident_or_symbolic s;
+  s <> "|" andalso s <> "?" andalso s <> "+" andalso Token.ident_or_symbolic s;
 
 local
 

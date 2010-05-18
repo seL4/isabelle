@@ -707,21 +707,20 @@ val domain_isomorphism_cmd = snd oo gen_domain_isomorphism read_typ;
 
 local
 
-structure P = OuterParse and K = OuterKeyword
-
 val parse_domain_iso :
     (string list * binding * mixfix * string * (binding * binding) option)
       parser =
-  (P.type_args -- P.binding -- P.opt_mixfix -- (P.$$$ "=" |-- P.typ) --
-    Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding)))
+  (Parse.type_args -- Parse.binding -- Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
+    Scan.option (Parse.$$$ "morphisms" |-- Parse.!!! (Parse.binding -- Parse.binding)))
     >> (fn ((((vs, t), mx), rhs), morphs) => (vs, t, mx, rhs, morphs));
 
-val parse_domain_isos = P.and_list1 parse_domain_iso;
+val parse_domain_isos = Parse.and_list1 parse_domain_iso;
 
 in
 
 val _ =
-  OuterSyntax.command "domain_isomorphism" "define domain isomorphisms (HOLCF)" K.thy_decl
+  Outer_Syntax.command "domain_isomorphism" "define domain isomorphisms (HOLCF)"
+    Keyword.thy_decl
     (parse_domain_isos >> (Toplevel.theory o domain_isomorphism_cmd));
 
 end;

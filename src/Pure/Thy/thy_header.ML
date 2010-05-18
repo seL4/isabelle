@@ -6,16 +6,12 @@ Theory headers -- independent of outer syntax.
 
 signature THY_HEADER =
 sig
-  val args: OuterLex.token list ->
-    (string * string list * (string * bool) list) * OuterLex.token list
+  val args: Token.T list -> (string * string list * (string * bool) list) * Token.T list
   val read: Position.T -> (string, 'a) Source.source -> string * string list * (string * bool) list
 end;
 
 structure Thy_Header: THY_HEADER =
 struct
-
-structure T = OuterLex;
-
 
 (* keywords *)
 
@@ -58,9 +54,9 @@ fun read pos src =
   let val res =
     src
     |> Symbol.source {do_recover = false}
-    |> T.source {do_recover = NONE} (fn () => (header_lexicon, Scan.empty_lexicon)) pos
-    |> T.source_proper
-    |> Source.source T.stopper (Scan.single (Scan.error (Parse.!!! header))) NONE
+    |> Token.source {do_recover = NONE} (fn () => (header_lexicon, Scan.empty_lexicon)) pos
+    |> Token.source_proper
+    |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! header))) NONE
     |> Source.get_single;
   in
     (case res of SOME (x, _) => x

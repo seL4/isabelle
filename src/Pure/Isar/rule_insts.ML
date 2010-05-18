@@ -29,9 +29,6 @@ end;
 structure RuleInsts: RULE_INSTS =
 struct
 
-structure T = OuterLex;
-
-
 (** reading instantiations **)
 
 local
@@ -100,11 +97,11 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
 
     val (type_insts, term_insts) = List.partition (is_tvar o fst) mixed_insts;
     val internal_insts = term_insts |> map_filter
-      (fn (xi, T.Term t) => SOME (xi, t)
-        | (_, T.Text _) => NONE
+      (fn (xi, Token.Term t) => SOME (xi, t)
+        | (_, Token.Text _) => NONE
         | (xi, _) => error_var "Term argument expected for " xi);
     val external_insts = term_insts |> map_filter
-      (fn (xi, T.Text s) => SOME (xi, s) | _ => NONE);
+      (fn (xi, Token.Text s) => SOME (xi, s) | _ => NONE);
 
 
     (* mixed type instantiations *)
@@ -114,8 +111,8 @@ fun read_insts ctxt mixed_insts (tvars, vars) =
         val S = the_sort tvars xi;
         val T =
           (case arg of
-            T.Text s => Syntax.read_typ ctxt s
-          | T.Typ T => T
+            Token.Text s => Syntax.read_typ ctxt s
+          | Token.Typ T => T
           | _ => error_var "Type argument expected for " xi);
       in
         if Sign.of_sort thy (T, S) then ((xi, S), T)
@@ -172,9 +169,9 @@ fun read_instantiate_mixed ctxt mixed_insts thm =
     val _ = (*assign internalized values*)
       mixed_insts |> List.app (fn (arg, (xi, _)) =>
         if is_tvar xi then
-          T.assign (SOME (T.Typ (the (AList.lookup (op =) type_insts xi)))) arg
+          Token.assign (SOME (Token.Typ (the (AList.lookup (op =) type_insts xi)))) arg
         else
-          T.assign (SOME (T.Term (the (AList.lookup (op =) term_insts xi)))) arg);
+          Token.assign (SOME (Token.Term (the (AList.lookup (op =) term_insts xi)))) arg);
   in
     Drule.instantiate insts thm |> Rule_Cases.save thm
   end;
@@ -197,7 +194,7 @@ end;
 
 fun read_instantiate ctxt args thm =
   read_instantiate_mixed (ctxt |> ProofContext.set_mode ProofContext.mode_schematic)  (* FIXME !? *)
-    (map (fn (x, y) => (T.eof, (x, T.Text y))) args) thm;
+    (map (fn (x, y) => (Token.eof, (x, Token.Text y))) args) thm;
 
 fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 
@@ -210,9 +207,9 @@ fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
 local
 
 val value =
-  Args.internal_typ >> T.Typ ||
-  Args.internal_term >> T.Term ||
-  Args.name_source >> T.Text;
+  Args.internal_typ >> Token.Typ ||
+  Args.internal_term >> Token.Term ||
+  Args.name_source >> Token.Text;
 
 val inst = Args.var -- (Args.$$$ "=" |-- Scan.ahead Parse.not_eof -- value)
   >> (fn (xi, (a, v)) => (a, (xi, v)));
@@ -233,8 +230,8 @@ end;
 local
 
 val value =
-  Args.internal_term >> T.Term ||
-  Args.name_source >> T.Text;
+  Args.internal_term >> Token.Term ||
+  Args.name_source >> Token.Text;
 
 val inst = Scan.ahead Parse.not_eof -- Args.maybe value;
 val concl = Args.$$$ "concl" -- Args.colon;

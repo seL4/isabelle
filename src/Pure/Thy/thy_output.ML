@@ -24,7 +24,7 @@ sig
   val modes: string list Unsynchronized.ref
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
-    (Toplevel.transition * Toplevel.state) list -> (OuterLex.token, 'a) Source.source -> Buffer.T
+    (Toplevel.transition * Toplevel.state) list -> (Token.T, 'a) Source.source -> Buffer.T
   val pretty_text: string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
@@ -35,9 +35,6 @@ end;
 
 structure ThyOutput: THY_OUTPUT =
 struct
-
-structure T = OuterLex;
-
 
 (** global options **)
 
@@ -154,7 +151,7 @@ fun eval_antiquote lex state (txt, pos) =
   let
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
       | expand (Antiquote.Antiq (ss, (pos, _))) =
-          let val (opts, src) = T.read_antiq lex antiq (ss, pos) in
+          let val (opts, src) = Token.read_antiq lex antiq (ss, pos) in
             options opts (fn () => command src state) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
               (Output.no_warnings_CRITICAL (options opts (fn () => command src state))) ()
@@ -178,7 +175,7 @@ fun eval_antiquote lex state (txt, pos) =
 
 datatype token =
     NoToken
-  | BasicToken of T.token
+  | BasicToken of Token.T
   | MarkupToken of string * (string * Position.T)
   | MarkupEnvToken of string * (string * Position.T)
   | VerbatimToken of string * Position.T;
@@ -195,10 +192,10 @@ fun output_token lex state =
 fun basic_token pred (BasicToken tok) = pred tok
   | basic_token _ _ = false;
 
-val improper_token = basic_token (not o T.is_proper);
-val comment_token = basic_token T.is_comment;
-val blank_token = basic_token T.is_blank;
-val newline_token = basic_token T.is_newline;
+val improper_token = basic_token (not o Token.is_proper);
+val comment_token = basic_token Token.is_comment;
+val blank_token = basic_token Token.is_blank;
+val newline_token = basic_token Token.is_newline;
 
 
 (* command spans *)
@@ -303,19 +300,19 @@ datatype markup = Markup | MarkupEnv | Verbatim;
 local
 
 val space_proper =
-  Scan.one T.is_blank -- Scan.many T.is_comment -- Scan.one T.is_proper;
+  Scan.one Token.is_blank -- Scan.many Token.is_comment -- Scan.one Token.is_proper;
 
-val is_improper = not o (T.is_proper orf T.is_begin_ignore orf T.is_end_ignore);
+val is_improper = not o (Token.is_proper orf Token.is_begin_ignore orf Token.is_end_ignore);
 val improper = Scan.many is_improper;
 val improper_end = Scan.repeat (Scan.unless space_proper (Scan.one is_improper));
-val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one T.is_blank));
+val blank_end = Scan.repeat (Scan.unless space_proper (Scan.one Token.is_blank));
 
-val opt_newline = Scan.option (Scan.one T.is_newline);
+val opt_newline = Scan.option (Scan.one Token.is_newline);
 
 val ignore =
-  Scan.depend (fn d => opt_newline |-- Scan.one T.is_begin_ignore
+  Scan.depend (fn d => opt_newline |-- Scan.one Token.is_begin_ignore
     >> pair (d + 1)) ||
-  Scan.depend (fn d => Scan.one T.is_end_ignore --|
+  Scan.depend (fn d => Scan.one Token.is_end_ignore --|
     (if d = 0 then Scan.fail_with (K "Bad nesting of meta-comments") else opt_newline)
     >> pair (d - 1));
 
@@ -336,18 +333,19 @@ fun present_thy lex default_tags is_markup command_results src =
 
     fun markup mark mk flag = Scan.peek (fn d =>
       improper |--
-        Parse.position (Scan.one (T.is_kind T.Command andf is_markup mark o T.content_of)) --
+        Parse.position
+          (Scan.one (Token.is_kind Token.Command andf is_markup mark o Token.content_of)) --
       Scan.repeat tag --
       Parse.!!!! ((improper -- locale -- improper) |-- Parse.doc_source --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
-        let val name = T.content_of tok
+        let val name = Token.content_of tok
         in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
 
     val command = Scan.peek (fn d =>
-      Parse.position (Scan.one (T.is_kind T.Command)) --
+      Parse.position (Scan.one (Token.is_kind Token.Command)) --
       Scan.repeat tag
       >> (fn ((tok, pos), tags) =>
-        let val name = T.content_of tok
+        let val name = Token.content_of tok
         in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
@@ -367,8 +365,8 @@ fun present_thy lex default_tags is_markup command_results src =
 
     (* spans *)
 
-    val is_eof = fn (_, (BasicToken x, _)) => T.is_eof x | _ => false;
-    val stopper = Scan.stopper (K (NONE, (BasicToken T.eof, ("", 0)))) is_eof;
+    val is_eof = fn (_, (BasicToken x, _)) => Token.is_eof x | _ => false;
+    val stopper = Scan.stopper (K (NONE, (BasicToken Token.eof, ("", 0)))) is_eof;
 
     val cmd = Scan.one (is_some o fst);
     val non_cmd = Scan.one (is_none o fst andf not o is_eof) >> #2;
@@ -390,8 +388,8 @@ fun present_thy lex default_tags is_markup command_results src =
 
     val spans =
       src
-      |> Source.filter (not o T.is_semicolon)
-      |> Source.source' 0 T.stopper (Scan.error (Scan.bulk token)) NONE
+      |> Source.filter (not o Token.is_semicolon)
+      |> Source.source' 0 Token.stopper (Scan.error (Scan.bulk token)) NONE
       |> Source.source stopper (Scan.error (Scan.bulk span)) NONE
       |> Source.exhaust;
 
@@ -490,7 +488,7 @@ fun pretty_theory ctxt name =
 
 (* default output *)
 
-val str_of_source = space_implode " " o map T.unparse o #2 o #1 o Args.dest_src;
+val str_of_source = space_implode " " o map Token.unparse o #2 o #1 o Args.dest_src;
 
 fun maybe_pretty_source pretty src xs =
   map pretty xs  (*always pretty in order to exhibit errors!*)

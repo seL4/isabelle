@@ -3310,13 +3310,13 @@ lemma meta_eqE: "x \<equiv> a \<Longrightarrow> \<lbrakk> x = a \<Longrightarrow
   by auto
 
 method_setup approximation = {*
-  Scan.lift (OuterParse.nat)
+  Scan.lift Parse.nat
   --
   Scan.optional (Scan.lift (Args.$$$ "splitting" |-- Args.colon)
-    |-- OuterParse.and_list' (free --| Scan.lift (Args.$$$ "=") -- Scan.lift OuterParse.nat)) []
+    |-- Parse.and_list' (free --| Scan.lift (Args.$$$ "=") -- Scan.lift Parse.nat)) []
   --
   Scan.option (Scan.lift (Args.$$$ "taylor" |-- Args.colon)
-    |-- (free |-- Scan.lift (Args.$$$ "=") |-- Scan.lift OuterParse.nat))
+    |-- (free |-- Scan.lift (Args.$$$ "=") |-- Scan.lift Parse.nat))
   >>
   (fn ((prec, splitting), taylor) => fn ctxt =>
     SIMPLE_METHOD' (fn i =>

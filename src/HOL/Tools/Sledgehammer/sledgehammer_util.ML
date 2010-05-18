@@ -102,7 +102,7 @@ fun maybe_quote y =
   let val s = unyxml y in
     y |> ((not (is_long_identifier (perhaps (try (unprefix "'")) s)) andalso
            not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
-           OuterKeyword.is_keyword s) ? quote
+           Keyword.is_keyword s) ? quote
   end
 
 fun monomorphic_term subst t =

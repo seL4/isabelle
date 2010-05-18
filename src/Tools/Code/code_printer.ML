@@ -72,9 +72,9 @@ sig
   val parse_infix: ('a -> 'b) -> lrx * int -> string
     -> int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)
-  val parse_syntax: ('a -> 'b) -> OuterParse.token list
+  val parse_syntax: ('a -> 'b) -> Token.T list
     -> (int * ((fixity -> 'b -> Pretty.T)
-    -> fixity -> 'a list -> Pretty.T)) option * OuterParse.token list
+    -> fixity -> 'a list -> Pretty.T)) option * Token.T list
   val simple_const_syntax: simple_const_syntax -> proto_const_syntax
   val activate_const_syntax: theory -> literals
     -> proto_const_syntax -> Code_Thingol.naming -> const_syntax * Code_Thingol.naming
@@ -329,15 +329,15 @@ val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
 
 fun parse_syntax prep_arg xs =
   Scan.option ((
-      ((OuterParse.$$$ infixK >> K X)
-        || (OuterParse.$$$ infixlK >> K L)
-        || (OuterParse.$$$ infixrK >> K R))
-        -- OuterParse.nat >> parse_infix prep_arg
+      ((Parse.$$$ infixK >> K X)
+        || (Parse.$$$ infixlK >> K L)
+        || (Parse.$$$ infixrK >> K R))
+        -- Parse.nat >> parse_infix prep_arg
       || Scan.succeed (parse_mixfix prep_arg))
-      -- OuterParse.string
+      -- Parse.string
       >> (fn (parse, s) => parse s)) xs;
 
-val _ = List.app OuterKeyword.keyword [infixK, infixlK, infixrK];
+val _ = List.app Keyword.keyword [infixK, infixlK, infixrK];
 
 
 (** module name spaces **)

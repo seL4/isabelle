@@ -455,18 +455,11 @@ val setup =
 
 (* outer syntax *)
 
-local
-
-structure P = OuterParse and K = OuterKeyword
-
-in
-
 val _ =
-  OuterSyntax.command "rep_datatype" "represent existing types inductively" K.thy_goal
-    (Scan.option (P.$$$ "(" |-- Scan.repeat1 P.name --| P.$$$ ")") -- Scan.repeat1 P.term
-      >> (fn (alt_names, ts) => Toplevel.print
-           o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
-
-end;
+  Outer_Syntax.command "rep_datatype" "represent existing types inductively" Keyword.thy_goal
+    (Scan.option (Parse.$$$ "(" |-- Scan.repeat1 Parse.name --| Parse.$$$ ")") --
+      Scan.repeat1 Parse.term
+      >> (fn (alt_names, ts) =>
+        Toplevel.print o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
 
 end;

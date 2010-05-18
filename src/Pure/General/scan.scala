@@ -258,47 +258,44 @@ object Scan
 
     /* outer syntax tokens */
 
-    def token(symbols: Symbol.Interpretation, is_command: String => Boolean):
-      Parser[Outer_Lex.Token] =
+    def token(symbols: Symbol.Interpretation, is_command: String => Boolean): Parser[Token] =
     {
-      import Outer_Lex.Token_Kind, Outer_Lex.Token
-
       val id = one(symbols.is_letter) ~ many(symbols.is_letdig) ^^ { case x ~ y => x + y }
       val nat = many1(symbols.is_digit)
       val id_nat = id ~ opt("." ~ nat) ^^ { case x ~ Some(y ~ z) => x + y + z case x ~ None => x }
 
       val ident = id ~ rep("." ~> id) ^^
-        { case x ~ Nil => Token(Token_Kind.IDENT, x)
-          case x ~ ys => Token(Token_Kind.LONG_IDENT, (x :: ys).mkString(".")) }
+        { case x ~ Nil => Token(Token.Kind.IDENT, x)
+          case x ~ ys => Token(Token.Kind.LONG_IDENT, (x :: ys).mkString(".")) }
 
-      val var_ = "?" ~ id_nat ^^ { case x ~ y => Token(Token_Kind.VAR, x + y) }
-      val type_ident = "'" ~ id ^^ { case x ~ y => Token(Token_Kind.TYPE_IDENT, x + y) }
-      val type_var = "?'" ~ id_nat ^^ { case x ~ y => Token(Token_Kind.TYPE_VAR, x + y) }
-      val nat_ = nat ^^ (x => Token(Token_Kind.NAT, x))
+      val var_ = "?" ~ id_nat ^^ { case x ~ y => Token(Token.Kind.VAR, x + y) }
+      val type_ident = "'" ~ id ^^ { case x ~ y => Token(Token.Kind.TYPE_IDENT, x + y) }
+      val type_var = "?'" ~ id_nat ^^ { case x ~ y => Token(Token.Kind.TYPE_VAR, x + y) }
+      val nat_ = nat ^^ (x => Token(Token.Kind.NAT, x))
 
       val sym_ident =
         (many1(symbols.is_symbolic_char) |
           one(sym => symbols.is_symbolic(sym) & Symbol.is_wellformed(sym))) ^^
-        (x => Token(Token_Kind.SYM_IDENT, x))
+        (x => Token(Token.Kind.SYM_IDENT, x))
 
-      val space = many1(symbols.is_blank) ^^ (x => Token(Token_Kind.SPACE, x))
+      val space = many1(symbols.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
-      val string = quoted("\"") ^^ (x => Token(Token_Kind.STRING, x))
-      val alt_string = quoted("`") ^^ (x => Token(Token_Kind.ALT_STRING, x))
+      val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
+      val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
 
       val junk = many1(sym => !(symbols.is_blank(sym)))
       val bad_delimiter =
-        ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token_Kind.BAD_INPUT, x + y) }
-      val bad = junk ^^ (x => Token(Token_Kind.BAD_INPUT, x))
+        ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token.Kind.BAD_INPUT, x + y) }
+      val bad = junk ^^ (x => Token(Token.Kind.BAD_INPUT, x))
 
 
       /* tokens */
 
-      (space | (string | (alt_string | (verbatim ^^ (x => Token(Token_Kind.VERBATIM, x)) |
-        comment ^^ (x => Token(Token_Kind.COMMENT, x)))))) |
+      (space | (string | (alt_string | (verbatim ^^ (x => Token(Token.Kind.VERBATIM, x)) |
+        comment ^^ (x => Token(Token.Kind.COMMENT, x)))))) |
       bad_delimiter |
       ((ident | (var_ | (type_ident | (type_var | (nat_ | sym_ident))))) |||
-        keyword ^^ (x => Token(if (is_command(x)) Token_Kind.COMMAND else Token_Kind.KEYWORD, x))) |
+        keyword ^^ (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))) |
       bad
     }
   }

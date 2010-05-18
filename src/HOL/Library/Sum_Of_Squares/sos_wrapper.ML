@@ -144,11 +144,11 @@ fun sos_solver print method = SIMPLE_METHOD' o Sum_Of_Squares.sos_tac print meth
 
 val setup =
   Method.setup @{binding sos}
-    (Scan.lift (Scan.option OuterParse.xname)
+    (Scan.lift (Scan.option Parse.xname)
       >> (sos_solver print_cert o Sum_Of_Squares.Prover o call_solver))
     "prove universal problems over the reals using sums of squares" #>
   Method.setup @{binding sos_cert}
-    (Scan.lift OuterParse.string
+    (Scan.lift Parse.string
       >> (fn cert => fn ctxt =>
         sos_solver ignore
           (Sum_Of_Squares.Certificate (PositivstellensatzTools.cert_to_pss_tree ctxt cert)) ctxt))

@@ -4,17 +4,12 @@
 Symbols with explicit position information.
 *)
 
-signature BASIC_SYMBOL_POS =
+signature SYMBOL_POS =
 sig
   type T = Symbol.symbol * Position.T
   val symbol: T -> Symbol.symbol
   val $$$ : Symbol.symbol -> T list -> T list * T list
   val ~$$$ : Symbol.symbol -> T list -> T list * T list
-end
-
-signature SYMBOL_POS =
-sig
-  include BASIC_SYMBOL_POS
   val content: T list -> string
   val untabify_content: T list -> string
   val is_eof: T -> bool
@@ -185,5 +180,10 @@ fun explode (str, pos) =
 
 end;
 
-structure Basic_Symbol_Pos: BASIC_SYMBOL_POS = Symbol_Pos;   (*not open by default*)
+structure Basic_Symbol_Pos =   (*not open by default*)
+struct
+  val symbol = Symbol_Pos.symbol;
+  val $$$ = Symbol_Pos.$$$;
+  val ~$$$ = Symbol_Pos.~$$$;
+end;
 

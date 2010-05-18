@@ -59,9 +59,9 @@ val markup_table =
 (*  [(kind, (markup, check, style))*)
   Symtab.make [
   ("syntax", ("", no_check, true)),
-  ("command", ("isacommand", K (is_some o OuterKeyword.command_keyword), true)),
-  ("keyword", ("isakeyword", K OuterKeyword.is_keyword, true)),
-  ("element", ("isakeyword", K OuterKeyword.is_keyword, true)),
+  ("command", ("isacommand", K (is_some o Keyword.command_keyword), true)),
+  ("keyword", ("isakeyword", K Keyword.is_keyword, true)),
+  ("element", ("isakeyword", K Keyword.is_keyword, true)),
   ("method", ("", thy_check Method.intern Method.defined, true)),
   ("attribute", ("", thy_check Attrib.intern Attrib.defined, true)),
   ("fact", ("", no_check, true)),
@@ -473,7 +473,7 @@ fun process txt ctxt =
   |> parse
   |> print;
 
-val _ = ThyOutput.antiquotation "rail" (Scan.lift ( OuterParse.position Args.name ))
+val _ = ThyOutput.antiquotation "rail" (Scan.lift (Parse.position Args.name))
   (fn {context = ctxt,...} => fn txt => process txt ctxt);
 
 end;
