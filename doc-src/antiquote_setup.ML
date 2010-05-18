@@ -166,9 +166,9 @@ fun entity_antiqs check markup kind =
 in
 
 val _ = entity_antiqs no_check "" "syntax";
-val _ = entity_antiqs (K (is_some o OuterKeyword.command_keyword)) "isacommand" "command";
-val _ = entity_antiqs (K OuterKeyword.is_keyword) "isakeyword" "keyword";
-val _ = entity_antiqs (K OuterKeyword.is_keyword) "isakeyword" "element";
+val _ = entity_antiqs (K (is_some o Keyword.command_keyword)) "isacommand" "command";
+val _ = entity_antiqs (K Keyword.is_keyword) "isakeyword" "keyword";
+val _ = entity_antiqs (K Keyword.is_keyword) "isakeyword" "element";
 val _ = entity_antiqs (thy_check Method.intern Method.defined) "" "method";
 val _ = entity_antiqs (thy_check Attrib.intern Attrib.defined) "" "attribute";
 val _ = entity_antiqs no_check "" "fact";
