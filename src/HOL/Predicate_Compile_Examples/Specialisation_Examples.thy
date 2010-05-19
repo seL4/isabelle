@@ -13,7 +13,7 @@ definition
   "greater_than_index xs = (\<forall>i x. nth_el' xs i = Some x --> x > i)"
 
 code_pred (expected_modes: i => bool) [inductify, skip_proof, specialise] greater_than_index .
-ML {* Predicate_Compile_Core.intros_of @{theory} @{const_name specialised_nth_el'P} *}
+ML {* Predicate_Compile_Core.intros_of @{context} @{const_name specialised_nth_el'P} *}
 
 thm greater_than_index.equation
 
@@ -42,7 +42,7 @@ code_pred (modes: o => i => bool) [inductify, specialise, skip_proof] max_of_my_
 
 thm max_of_my_SucP.equation
 
-ML {* Predicate_Compile_Core.intros_of @{theory} @{const_name specialised_max_natP} *}
+ML {* Predicate_Compile_Core.intros_of @{context} @{const_name specialised_max_natP} *}
 
 values "{x. max_of_my_SucP x 6}"
 
