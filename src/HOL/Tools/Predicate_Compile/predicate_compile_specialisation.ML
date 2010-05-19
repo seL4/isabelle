@@ -181,7 +181,7 @@ and find_specialisations black_list specs thy =
                     if member (op =) ((map fst specs) @ black_list) pred_name then
                       thy
                     else
-                      (case try (Predicate_Compile_Core.intros_of thy) pred_name of
+                      (case try (Predicate_Compile_Core.intros_of (ProofContext.init_global thy)) pred_name of
                         NONE => thy
                       | SOME [] => thy
                       | SOME intros =>

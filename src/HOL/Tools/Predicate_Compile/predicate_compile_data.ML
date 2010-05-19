@@ -253,8 +253,9 @@ fun print_specification options thy constname specs =
 
 fun obtain_specification_graph options thy t =
   let
+    val ctxt = ProofContext.init_global thy
     fun is_nondefining_const (c, T) = member (op =) logic_operator_names c
-    fun has_code_pred_intros (c, T) = can (Predicate_Compile_Core.intros_of thy) c
+    fun has_code_pred_intros (c, T) = can (Predicate_Compile_Core.intros_of ctxt) c
     fun case_consts (c, T) = is_some (Datatype.info_of_case thy c)
     fun is_datatype_constructor (c, T) = is_some (Datatype.info_of_constr thy (c, T))
     fun defiants_of specs =
