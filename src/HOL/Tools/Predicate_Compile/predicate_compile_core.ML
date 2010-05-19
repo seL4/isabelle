@@ -3124,6 +3124,10 @@ fun analyze_compr thy compfuns param_user_modes (compilation, arguments) t_compr
                   instance_of (m1, Input) andalso instance_of (m2, Input)
               | instance_of (Pair (m1, m2), Output) =
                   instance_of (m1, Output) andalso instance_of (m2, Output)
+              | instance_of (Input, Pair (m1, m2)) =
+                  instance_of (Input, m1) andalso instance_of (Input, m2)
+              | instance_of (Output, Pair (m1, m2)) =
+                  instance_of (Output, m1) andalso instance_of (Output, m2)
               | instance_of _ = false
           in forall instance_of (strip_fun_mode m1 ~~ strip_fun_mode m2) end
         val derivs = all_derivations_of thy (all_modes_of thy) [] body
