@@ -3209,12 +3209,96 @@ lemmas interpret_form_equations = interpret_form.simps interpret_floatarith.simp
   interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_powr interpret_floatarith_log
   interpret_floatarith_sin
 
-code_reflect Float_Arith
-  datatypes float = Float
-  and floatarith = Add | Minus | Mult | Inverse | Cos | Arctan
-    | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Var | Num
-  and form = Bound | Assign | Less | LessEqual | AtLeastAtMost
-  functions approx_form approx_tse_form approx' approx_form_eval
+oracle approximation_oracle = {* fn (thy, t) =>
+let
+
+  fun bad t = error ("Bad term: " ^ Syntax.string_of_term_global thy t);
+
+  fun term_of_bool True = @{term True}
+    | term_of_bool False = @{term False};
+
+  fun term_of_float (@{code Float} (k, l)) =
+    @{term Float} $ HOLogic.mk_number @{typ int} k $ HOLogic.mk_number @{typ int} l;
+
+  fun term_of_float_float_option NONE = @{term "None :: (float \<times> float) option"}
+    | term_of_float_float_option (SOME ff) = @{term "Some :: float \<times> float \<Rightarrow> _"}
+        $ HOLogic.mk_prod (pairself term_of_float ff);
+
+  val term_of_float_float_option_list =
+    HOLogic.mk_list @{typ "(float \<times> float) option"} o map term_of_float_float_option;
+
+  fun nat_of_term t = HOLogic.dest_nat t handle TERM _ => snd (HOLogic.dest_number t);
+
+  fun float_of_term (@{term Float} $ k $ l) =
+        @{code Float} (snd (HOLogic.dest_number k), snd (HOLogic.dest_number l))
+    | float_of_term t = bad t;
+
+  fun floatarith_of_term (@{term Add} $ a $ b) = @{code Add} (floatarith_of_term a, floatarith_of_term b)
+    | floatarith_of_term (@{term Minus} $ a) = @{code Minus} (floatarith_of_term a)
+    | floatarith_of_term (@{term Mult} $ a $ b) = @{code Mult} (floatarith_of_term a, floatarith_of_term b)
+    | floatarith_of_term (@{term Inverse} $ a) = @{code Inverse} (floatarith_of_term a)
+    | floatarith_of_term (@{term Cos} $ a) = @{code Cos} (floatarith_of_term a)
+    | floatarith_of_term (@{term Arctan} $ a) = @{code Arctan} (floatarith_of_term a)
+    | floatarith_of_term (@{term Abs} $ a) = @{code Abs} (floatarith_of_term a)
+    | floatarith_of_term (@{term Max} $ a $ b) = @{code Max} (floatarith_of_term a, floatarith_of_term b)
+    | floatarith_of_term (@{term Min} $ a $ b) = @{code Min} (floatarith_of_term a, floatarith_of_term b)
+    | floatarith_of_term @{term Pi} = @{code Pi}
+    | floatarith_of_term (@{term Sqrt} $ a) = @{code Sqrt} (floatarith_of_term a)
+    | floatarith_of_term (@{term Exp} $ a) = @{code Exp} (floatarith_of_term a)
+    | floatarith_of_term (@{term Ln} $ a) = @{code Ln} (floatarith_of_term a)
+    | floatarith_of_term (@{term Power} $ a $ n) =
+        @{code Power} (floatarith_of_term a, nat_of_term n)
+    | floatarith_of_term (@{term Var} $ n) = @{code Var} (nat_of_term n)
+    | floatarith_of_term (@{term Num} $ m) = @{code Num} (float_of_term m)
+    | floatarith_of_term t = bad t;
+
+  fun form_of_term (@{term Bound} $ a $ b $ c $ p) = @{code Bound}
+        (floatarith_of_term a, floatarith_of_term b, floatarith_of_term c, form_of_term p)
+    | form_of_term (@{term Assign} $ a $ b $ p) = @{code Assign}
+        (floatarith_of_term a, floatarith_of_term b, form_of_term p)
+    | form_of_term (@{term Less} $ a $ b) = @{code Less}
+        (floatarith_of_term a, floatarith_of_term b)
+    | form_of_term (@{term LessEqual} $ a $ b) = @{code LessEqual}
+        (floatarith_of_term a, floatarith_of_term b)
+    | form_of_term (@{term AtLeastAtMost} $ a $ b $ c) = @{code AtLeastAtMost}
+        (floatarith_of_term a, floatarith_of_term b, floatarith_of_term c)
+    | form_of_term t = bad t;
+
+  fun float_float_option_of_term @{term "None :: (float \<times> float) option"} = NONE
+    | float_float_option_of_term (@{term "Some :: float \<times> float \<Rightarrow> _"} $ ff) =
+        SOME (pairself float_of_term (HOLogic.dest_prod ff))
+    | float_float_option_of_term (@{term approx'} $ n $ a $ ffs) = @{code approx'}
+        (nat_of_term n) (floatarith_of_term a) (float_float_option_list_of_term ffs)
+    | float_float_option_of_term t = bad t
+  and float_float_option_list_of_term
+        (@{term "replicate :: _ \<Rightarrow> (float \<times> float) option \<Rightarrow> _"} $ n $ @{term "None :: (float \<times> float) option"}) =
+          @{code replicate} (nat_of_term n) NONE
+    | float_float_option_list_of_term (@{term approx_form_eval} $ n $ p $ ffs) =
+        @{code approx_form_eval} (nat_of_term n) (form_of_term p) (float_float_option_list_of_term ffs)
+    | float_float_option_list_of_term t = map float_float_option_of_term
+        (HOLogic.dest_list t);
+
+  val nat_list_of_term = map nat_of_term o HOLogic.dest_list ;
+
+  fun bool_of_term (@{term approx_form} $ n $ p $ ffs $ ms) = @{code approx_form}
+        (nat_of_term n) (form_of_term p) (float_float_option_list_of_term ffs) (nat_list_of_term ms)
+    | bool_of_term (@{term approx_tse_form} $ m $ n $ q $ p) =
+        @{code approx_tse_form} (nat_of_term m) (nat_of_term n) (nat_of_term q) (form_of_term p)
+    | bool_of_term t = bad t;
+
+  fun eval t = case fastype_of t
+   of @{typ bool} =>
+        (term_of_bool o bool_of_term) t
+    | @{typ "(float \<times> float) option"} =>
+        (term_of_float_float_option o float_float_option_of_term) t
+    | @{typ "(float \<times> float) option list"} =>
+        (term_of_float_float_option_list o float_float_option_list_of_term) t
+    | _ => bad t;
+
+  val normalize = eval o Envir.beta_norm o Pattern.eta_long [];
+
+in Thm.cterm_of thy (Logic.mk_equals (t, normalize t)) end
+*}
 
 ML {*
   fun reorder_bounds_tac prems i =
@@ -3246,9 +3330,17 @@ ML {*
       fold prepend_prem order all_tac
     end
 
+  fun approximation_conv ctxt ct =
+    approximation_oracle (ProofContext.theory_of ctxt, Thm.term_of ct |> tap (tracing o Syntax.string_of_term ctxt));
+
+  fun approximate ctxt t =
+    approximation_oracle (ProofContext.theory_of ctxt, t)
+    |> Thm.prop_of |> Logic.dest_equals |> snd;
+
   (* Should be in HOL.thy ? *)
-  fun gen_eval_tac conv ctxt = CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt)
-                               THEN' rtac TrueI
+  fun gen_eval_tac conv ctxt = CONVERSION
+    (Object_Logic.judgment_conv (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt))
+    THEN' rtac TrueI
 
   val form_equations = PureThy.get_thms @{theory} "interpret_form_equations";
 
@@ -3327,7 +3419,7 @@ method_setup approximation = {*
       THEN DETERM (TRY (filter_prems_tac (K false) i))
       THEN DETERM (Reflection.genreify_tac ctxt form_equations NONE i)
       THEN rewrite_interpret_form_tac ctxt prec splitting taylor i
-      THEN gen_eval_tac eval_oracle ctxt i))
+      THEN gen_eval_tac (approximation_conv ctxt) ctxt i))
  *} "real number approximation"
 
 ML {*
@@ -3435,7 +3527,7 @@ ML {*
        |> (fn (data, xs) =>
           mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}
             (map (fn _ => @{term "None :: (float * float) option"}) (HOLogic.dest_list xs)))
-       |> Codegen.eval_term @{theory}
+       |> approximate ctxt
        |> HOLogic.dest_list
        |> curry ListPair.zip (HOLogic.dest_list xs @ calculated_subterms arith_term)
        |> map (fn (elem, s) => @{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ elem $ mk_result prec (dest_ivl s))
@@ -3448,7 +3540,7 @@ ML {*
        |> HOLogic.dest_eq |> snd
        |> dest_interpret |> fst
        |> mk_approx' prec
-       |> Codegen.eval_term @{theory}
+       |> approximate ctxt
        |> dest_ivl
        |> mk_result prec
 
