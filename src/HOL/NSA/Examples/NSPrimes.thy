@@ -13,9 +13,7 @@ begin
 text{*These can be used to derive an alternative proof of the infinitude of
 primes by considering a property of nonstandard sets.*}
 
-definition
-  hdvd  :: "[hypnat, hypnat] => bool"       (infixl "hdvd" 50) where
-  [transfer_unfold]: "(M::hypnat) hdvd N = ( *p2* (op dvd)) M N"
+declare dvd_def [transfer_refold]
 
 definition
   starprime :: "hypnat set" where
@@ -49,14 +47,14 @@ declare hypnat_of_nat_le_zero_iff [simp]
 
 
 (* Goldblatt: Exercise 5.11(2) - p. 57 *)
-lemma hdvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::hypnat) <= M --> m hdvd N)"
+lemma hdvd_by_all: "\<forall>M. \<exists>N. 0 < N & (\<forall>m. 0 < m & (m::hypnat) <= M --> m dvd N)"
 by (transfer, rule dvd_by_all)
 
 lemmas hdvd_by_all2 = hdvd_by_all [THEN spec, standard]
 
 (* Goldblatt: Exercise 5.11(2) - p. 57 *)
 lemma hypnat_dvd_all_hypnat_of_nat:
-     "\<exists>(N::hypnat). 0 < N & (\<forall>n \<in> -{0::nat}. hypnat_of_nat(n) hdvd N)"
+     "\<exists>(N::hypnat). 0 < N & (\<forall>n \<in> -{0::nat}. hypnat_of_nat(n) dvd N)"
 apply (cut_tac hdvd_by_all)
 apply (drule_tac x = whn in spec, auto)
 apply (rule exI, auto)
@@ -70,7 +68,7 @@ those hypernaturals exceeding 1 that have no nontrivial factors*}
 
 (* Goldblatt: Exercise 5.11(3a) - p 57  *)
 lemma starprime:
-  "starprime = {p. 1 < p & (\<forall>m. m hdvd p --> m = 1 | m = p)}"
+  "starprime = {p. 1 < p & (\<forall>m. m dvd p --> m = 1 | m = p)}"
 by (transfer, auto simp add: prime_def)
 
 lemma prime_two:  "prime 2"
@@ -88,13 +86,11 @@ apply (case_tac "prime n")
 apply (rule_tac x = n in exI, auto)
 apply (drule conjI [THEN not_prime_ex_mk], auto)
 apply (drule_tac x = m in spec, auto)
-apply (rule_tac x = ka in exI)
-apply (auto intro: dvd_mult2)
 done
 
 (* Goldblatt Exercise 5.11(3b) - p 57  *)
 lemma hyperprime_factor_exists [rule_format]:
-  "!!n. 1 < n ==> (\<exists>k \<in> starprime. k hdvd n)"
+  "!!n. 1 < n ==> (\<exists>k \<in> starprime. k dvd n)"
 by (transfer, simp add: prime_factor_exists)
 
 (* Goldblatt Exercise 3.10(1) - p. 29 *)
@@ -257,14 +253,14 @@ done
 
 subsection{*Existence of Infinitely Many Primes: a Nonstandard Proof*}
 
-lemma lemma_not_dvd_hypnat_one: "~ (\<forall>n \<in> - {0}. hypnat_of_nat n hdvd 1)"
+lemma lemma_not_dvd_hypnat_one: "~ (\<forall>n \<in> - {0}. hypnat_of_nat n dvd 1)"
 apply auto
 apply (rule_tac x = 2 in bexI)
 apply (transfer, auto)
 done
 declare lemma_not_dvd_hypnat_one [simp]
 
-lemma lemma_not_dvd_hypnat_one2: "\<exists>n \<in> - {0}. ~ hypnat_of_nat n hdvd 1"
+lemma lemma_not_dvd_hypnat_one2: "\<exists>n \<in> - {0}. ~ hypnat_of_nat n dvd 1"
 apply (cut_tac lemma_not_dvd_hypnat_one)
 apply (auto simp del: lemma_not_dvd_hypnat_one)
 done
@@ -314,13 +310,13 @@ lemma hypnat_one_not_prime: "1 \<notin> starprime"
 by (cut_tac hypnat_of_nat_one_not_prime, simp)
 declare hypnat_one_not_prime [simp]
 
-lemma hdvd_diff: "!!k m n. [| k hdvd m; k hdvd n |] ==> k hdvd (m - n)"
-by (transfer, rule dvd_diff)
+lemma hdvd_diff: "!!k m n :: hypnat. [| k dvd m; k dvd n |] ==> k dvd (m - n)"
+by (transfer, rule dvd_diff_nat)
 
 lemma dvd_one_eq_one: "x dvd (1::nat) ==> x = 1"
 by (unfold dvd_def, auto)
 
-lemma hdvd_one_eq_one: "!!x. x hdvd 1 ==> x = 1"
+lemma hdvd_one_eq_one: "!!x. x dvd (1::hypnat) ==> x = 1"
 by (transfer, rule dvd_one_eq_one)
 
 theorem not_finite_prime: "~ finite {p. prime p}"
