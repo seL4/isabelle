@@ -241,7 +241,7 @@ val is_registered = is_some oo lookup_pred_data o ProofContext.theory_of
 
 val all_preds_of = Graph.keys o PredData.get o ProofContext.theory_of
 
-fun intros_of thy = map (Thm.transfer thy) o #intros o the_pred_data thy
+fun intros_of thy = #intros o the_pred_data thy
 
 fun the_elim_of thy name = case #elim (the_pred_data thy name)
  of NONE => error ("No elimination rule for predicate " ^ quote name)
