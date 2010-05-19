@@ -297,14 +297,14 @@ val predfun_neg_intro_of = #neg_intro ooo the_predfun_data o ProofContext.theory
 
 (* diagnostic display functions *)
 
-fun print_modes options thy modes =
+fun print_modes options modes =
   if show_modes options then
     tracing ("Inferred modes:\n" ^
       cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
         (fn (p, m) => string_of_mode m ^ (if p then "pos" else "neg")) ms)) modes))
   else ()
 
-fun print_pred_mode_table string_of_entry thy pred_mode_table =
+fun print_pred_mode_table string_of_entry pred_mode_table =
   let
     fun print_mode pred ((pol, mode), entry) =  "mode : " ^ string_of_mode mode
       ^ string_of_entry pred mode entry
@@ -2832,7 +2832,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = check_expected_modes preds options modes
     (*val _ = check_proposed_modes preds options modes (fst extra_modes) errors*)
-    val _ = print_modes options thy' modes
+    val _ = print_modes options modes
     val _ = print_step options "Defining executable functions..."
     val thy'' =
       Output.cond_timeit (!Quickcheck.timing) "Defining executable functions..."
