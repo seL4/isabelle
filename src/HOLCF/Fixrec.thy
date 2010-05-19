@@ -65,30 +65,6 @@ translations
     == "CONST maybe_when\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
 
 
-subsubsection {* Monadic bind operator *}
-
-definition
-  bind :: "'a maybe \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> 'b maybe" where
-  "bind = (\<Lambda> m f. case m of fail \<Rightarrow> fail | return\<cdot>x \<Rightarrow> f\<cdot>x)"
-
-text {* monad laws *}
-
-lemma bind_strict [simp]: "bind\<cdot>\<bottom>\<cdot>f = \<bottom>"
-by (simp add: bind_def)
-
-lemma bind_fail [simp]: "bind\<cdot>fail\<cdot>f = fail"
-by (simp add: bind_def)
-
-lemma left_unit [simp]: "bind\<cdot>(return\<cdot>a)\<cdot>k = k\<cdot>a"
-by (simp add: bind_def)
-
-lemma right_unit [simp]: "bind\<cdot>m\<cdot>return = m"
-by (rule_tac p=m in maybeE, simp_all)
-
-lemma bind_assoc:
- "bind\<cdot>(bind\<cdot>m\<cdot>k)\<cdot>h = bind\<cdot>m\<cdot>(\<Lambda> a. bind\<cdot>(k\<cdot>a)\<cdot>h)"
-by (rule_tac p=m in maybeE, simp_all)
-
 subsubsection {* Run operator *}
 
 definition
@@ -169,7 +145,7 @@ subsection {* Case branch combinator *}
 
 definition
   branch :: "('a \<rightarrow> 'b maybe) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c maybe)" where
-  "branch p \<equiv> \<Lambda> r x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> y. return\<cdot>(r\<cdot>y))"
+  "branch p \<equiv> \<Lambda> r x. maybe_when\<cdot>fail\<cdot>(\<Lambda> y. return\<cdot>(r\<cdot>y))\<cdot>(p\<cdot>x)"
 
 lemma branch_rews:
   "p\<cdot>x = \<bottom> \<Longrightarrow> branch p\<cdot>r\<cdot>x = \<bottom>"
@@ -277,7 +253,7 @@ types ('a, 'b) pat = "'a \<rightarrow> 'b maybe"
 definition
   cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat" where
   "cpair_pat p1 p2 = (\<Lambda>(x, y).
-    bind\<cdot>(p1\<cdot>x)\<cdot>(\<Lambda> a. bind\<cdot>(p2\<cdot>y)\<cdot>(\<Lambda> b. return\<cdot>(a, b))))"
+    maybe_when\<cdot>fail\<cdot>(\<Lambda> a. maybe_when\<cdot>fail\<cdot>(\<Lambda> b. return\<cdot>(a, b))\<cdot>(p2\<cdot>y))\<cdot>(p1\<cdot>x))"
 
 definition
   spair_pat ::
@@ -425,7 +401,7 @@ definition
 
 definition
   as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe" where
-  "as_pat p = (\<Lambda> x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> a. return\<cdot>(x, a)))"
+  "as_pat p = (\<Lambda> x. maybe_when\<cdot>fail\<cdot>(\<Lambda> a. return\<cdot>(x, a))\<cdot>(p\<cdot>x))"
 
 definition
   lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)" where
@@ -608,7 +584,7 @@ setup {*
       (@{const_name UU}, @{const_name match_UU}) ]
 *}
 
-hide_const (open) return bind fail run cases
+hide_const (open) return fail run cases
 
 lemmas [fixrec_simp] =
   run_strict run_fail run_return
