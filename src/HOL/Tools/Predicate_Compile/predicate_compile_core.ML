@@ -268,8 +268,9 @@ fun all_modes_of compilation thy =
 
 val all_random_modes_of = all_modes_of Random
 
-fun defined_functions compilation thy name =
-  AList.defined (op =) (#function_names (the_pred_data thy name)) compilation
+fun defined_functions compilation thy name = case lookup_pred_data thy name of
+    NONE => false
+  | SOME data => AList.defined (op =) (#function_names data) compilation
 
 fun lookup_predfun_data thy name mode =
   Option.map rep_predfun_data
