@@ -159,6 +159,41 @@ INCOMPATIBILITY.
 * Dropped normalizing_semiring etc; use the facts in semiring classes
 instead.  INCOMPATIBILITY.
 
+* Dropped several real-specific versions of lemmas about floor and
+ceiling; use the generic lemmas from Archimedean_Field.thy instead.
+INCOMPATIBILITY.
+
+  floor_number_of_eq         ~> floor_number_of
+  le_floor_eq_number_of      ~> number_of_le_floor
+  le_floor_eq_zero           ~> zero_le_floor
+  le_floor_eq_one            ~> one_le_floor
+  floor_less_eq_number_of    ~> floor_less_number_of
+  floor_less_eq_zero         ~> floor_less_zero
+  floor_less_eq_one          ~> floor_less_one
+  less_floor_eq_number_of    ~> number_of_less_floor
+  less_floor_eq_zero         ~> zero_less_floor
+  less_floor_eq_one          ~> one_less_floor
+  floor_le_eq_number_of      ~> floor_le_number_of
+  floor_le_eq_zero           ~> floor_le_zero
+  floor_le_eq_one            ~> floor_le_one
+  floor_subtract_number_of   ~> floor_diff_number_of
+  floor_subtract_one         ~> floor_diff_one
+  ceiling_number_of_eq       ~> ceiling_number_of
+  ceiling_le_eq_number_of    ~> ceiling_le_number_of
+  ceiling_le_zero_eq         ~> ceiling_le_zero
+  ceiling_le_eq_one          ~> ceiling_le_one
+  less_ceiling_eq_number_of  ~> number_of_less_ceiling
+  less_ceiling_eq_zero       ~> zero_less_ceiling
+  less_ceiling_eq_one        ~> one_less_ceiling
+  ceiling_less_eq_number_of  ~> ceiling_less_number_of
+  ceiling_less_eq_zero       ~> ceiling_less_zero
+  ceiling_less_eq_one        ~> ceiling_less_one
+  le_ceiling_eq_number_of    ~> number_of_le_ceiling
+  le_ceiling_eq_zero         ~> zero_le_ceiling
+  le_ceiling_eq_one          ~> one_le_ceiling
+  ceiling_subtract_number_of ~> ceiling_diff_number_of
+  ceiling_subtract_one       ~> ceiling_diff_one
+
 * Theory 'Finite_Set': various folding_XXX locales facilitate the
 application of the various fold combinators on finite sets.
 

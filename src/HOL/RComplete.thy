@@ -117,10 +117,12 @@ done
 lemma reals_Archimedean6a: "0 \<le> r ==> \<exists>n. real (n) \<le> r & r < real (Suc n)"
   by (drule reals_Archimedean6) auto
 
+text {* TODO: delete *}
 lemma reals_Archimedean_6b_int:
      "0 \<le> r ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
   unfolding real_of_int_def by (rule floor_exists)
 
+text {* TODO: delete *}
 lemma reals_Archimedean_6c_int:
      "r < 0 ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
   unfolding real_of_int_def by (rule floor_exists)
@@ -204,9 +206,6 @@ lemma number_of_le_real_of_int_iff2 [simp]:
      "(real (m::int) \<le> (number_of n)) = (m \<le> number_of n)"
 by (simp add: linorder_not_less [symmetric])
 
-lemma floor_real_of_nat_zero: "floor (real (0::nat)) = 0"
-by auto (* delete? *)
-
 lemma floor_real_of_nat [simp]: "floor (real (n::nat)) = int n"
 unfolding real_of_nat_def by simp
 
@@ -259,10 +258,6 @@ apply (drule order_le_imp_less_or_eq)
 apply (auto intro: floor_eq3)
 done
 
-lemma floor_number_of_eq:
-     "floor(number_of n :: real) = (number_of n :: int)"
-  by (rule floor_number_of) (* already declared [simp] *)
-
 lemma real_of_int_floor_ge_diff_one [simp]: "r - 1 \<le> real(floor r)"
   unfolding real_of_int_def using floor_correct [of r] by simp
 
@@ -284,67 +279,20 @@ lemma real_le_floor: "a <= floor x ==> real a <= x"
 lemma le_floor_eq: "(a <= floor x) = (real a <= x)"
   unfolding real_of_int_def by (rule le_floor_iff)
 
-lemma le_floor_eq_number_of:
-    "(number_of n <= floor x) = (number_of n <= x)"
-  by (rule number_of_le_floor) (* already declared [simp] *)
-
-lemma le_floor_eq_zero: "(0 <= floor x) = (0 <= x)"
-  by (rule zero_le_floor) (* already declared [simp] *)
-
-lemma le_floor_eq_one: "(1 <= floor x) = (1 <= x)"
-  by (rule one_le_floor) (* already declared [simp] *)
-
 lemma floor_less_eq: "(floor x < a) = (x < real a)"
   unfolding real_of_int_def by (rule floor_less_iff)
-
-lemma floor_less_eq_number_of:
-    "(floor x < number_of n) = (x < number_of n)"
-  by (rule floor_less_number_of) (* already declared [simp] *)
-
-lemma floor_less_eq_zero: "(floor x < 0) = (x < 0)"
-  by (rule floor_less_zero) (* already declared [simp] *)
-
-lemma floor_less_eq_one: "(floor x < 1) = (x < 1)"
-  by (rule floor_less_one) (* already declared [simp] *)
 
 lemma less_floor_eq: "(a < floor x) = (real a + 1 <= x)"
   unfolding real_of_int_def by (rule less_floor_iff)
 
-lemma less_floor_eq_number_of:
-    "(number_of n < floor x) = (number_of n + 1 <= x)"
-  by (rule number_of_less_floor) (* already declared [simp] *)
-
-lemma less_floor_eq_zero: "(0 < floor x) = (1 <= x)"
-  by (rule zero_less_floor) (* already declared [simp] *)
-
-lemma less_floor_eq_one: "(1 < floor x) = (2 <= x)"
-  by (rule one_less_floor) (* already declared [simp] *)
-
 lemma floor_le_eq: "(floor x <= a) = (x < real a + 1)"
   unfolding real_of_int_def by (rule floor_le_iff)
-
-lemma floor_le_eq_number_of:
-    "(floor x <= number_of n) = (x < number_of n + 1)"
-  by (rule floor_le_number_of) (* already declared [simp] *)
-
-lemma floor_le_eq_zero: "(floor x <= 0) = (x < 1)"
-  by (rule floor_le_zero) (* already declared [simp] *)
-
-lemma floor_le_eq_one: "(floor x <= 1) = (x < 2)"
-  by (rule floor_le_one) (* already declared [simp] *)
 
 lemma floor_add [simp]: "floor (x + real a) = floor x + a"
   unfolding real_of_int_def by (rule floor_add_of_int)
 
 lemma floor_subtract [simp]: "floor (x - real a) = floor x - a"
   unfolding real_of_int_def by (rule floor_diff_of_int)
-
-lemma floor_subtract_number_of: "floor (x - number_of n) =
-    floor x - number_of n"
-  by (rule floor_diff_number_of) (* already declared [simp] *)
-
-lemma floor_subtract_one: "floor (x - 1) = floor x - 1"
-  by (rule floor_diff_one) (* already declared [simp] *)
 
 lemma le_mult_floor:
   assumes "0 \<le> (a :: real)" and "0 \<le> b"
@@ -360,9 +308,6 @@ qed
 
 lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
   unfolding real_of_nat_def by simp
-
-lemma ceiling_real_of_nat_zero: "ceiling (real (0::nat)) = 0"
-by auto (* delete? *)
 
 lemma ceiling_floor [simp]: "ceiling (real (floor r)) = floor r"
   unfolding real_of_int_def by simp
@@ -389,10 +334,6 @@ lemma ceiling_eq2: "[| real n < x; x \<le> real n + 1 |] ==> ceiling x = n + 1"
 lemma ceiling_eq3: "[| real n - 1 < x; x \<le> real n  |] ==> ceiling x = n"
   unfolding real_of_int_def using ceiling_unique [of n x] by simp
 
-lemma ceiling_number_of_eq:
-     "ceiling (number_of n :: real) = (number_of n)"
-  by (rule ceiling_number_of) (* already declared [simp] *)
-
 lemma real_of_int_ceiling_diff_one_le [simp]: "real (ceiling r) - 1 \<le> r"
   unfolding real_of_int_def using ceiling_correct [of r] by simp
 
@@ -408,67 +349,20 @@ lemma ceiling_le_real: "ceiling x <= a ==> x <= real a"
 lemma ceiling_le_eq: "(ceiling x <= a) = (x <= real a)"
   unfolding real_of_int_def by (rule ceiling_le_iff)
 
-lemma ceiling_le_eq_number_of:
-    "(ceiling x <= number_of n) = (x <= number_of n)"
-  by (rule ceiling_le_number_of) (* already declared [simp] *)
-
-lemma ceiling_le_zero_eq: "(ceiling x <= 0) = (x <= 0)"
-  by (rule ceiling_le_zero) (* already declared [simp] *)
-
-lemma ceiling_le_eq_one: "(ceiling x <= 1) = (x <= 1)"
-  by (rule ceiling_le_one) (* already declared [simp] *)
-
 lemma less_ceiling_eq: "(a < ceiling x) = (real a < x)"
   unfolding real_of_int_def by (rule less_ceiling_iff)
-
-lemma less_ceiling_eq_number_of:
-    "(number_of n < ceiling x) = (number_of n < x)"
-  by (rule number_of_less_ceiling) (* already declared [simp] *)
-
-lemma less_ceiling_eq_zero: "(0 < ceiling x) = (0 < x)"
-  by (rule zero_less_ceiling) (* already declared [simp] *)
-
-lemma less_ceiling_eq_one: "(1 < ceiling x) = (1 < x)"
-  by (rule one_less_ceiling) (* already declared [simp] *)
 
 lemma ceiling_less_eq: "(ceiling x < a) = (x <= real a - 1)"
   unfolding real_of_int_def by (rule ceiling_less_iff)
 
-lemma ceiling_less_eq_number_of:
-    "(ceiling x < number_of n) = (x <= number_of n - 1)"
-  by (rule ceiling_less_number_of) (* already declared [simp] *)
-
-lemma ceiling_less_eq_zero: "(ceiling x < 0) = (x <= -1)"
-  by (rule ceiling_less_zero) (* already declared [simp] *)
-
-lemma ceiling_less_eq_one: "(ceiling x < 1) = (x <= 0)"
-  by (rule ceiling_less_one) (* already declared [simp] *)
-
 lemma le_ceiling_eq: "(a <= ceiling x) = (real a - 1 < x)"
   unfolding real_of_int_def by (rule le_ceiling_iff)
-
-lemma le_ceiling_eq_number_of:
-    "(number_of n <= ceiling x) = (number_of n - 1 < x)"
-  by (rule number_of_le_ceiling) (* already declared [simp] *)
-
-lemma le_ceiling_eq_zero: "(0 <= ceiling x) = (-1 < x)"
-  by (rule zero_le_ceiling) (* already declared [simp] *)
-
-lemma le_ceiling_eq_one: "(1 <= ceiling x) = (0 < x)"
-  by (rule one_le_ceiling) (* already declared [simp] *)
 
 lemma ceiling_add [simp]: "ceiling (x + real a) = ceiling x + a"
   unfolding real_of_int_def by (rule ceiling_add_of_int)
 
 lemma ceiling_subtract [simp]: "ceiling (x - real a) = ceiling x - a"
   unfolding real_of_int_def by (rule ceiling_diff_of_int)
-
-lemma ceiling_subtract_number_of: "ceiling (x - number_of n) =
-    ceiling x - number_of n"
-  by (rule ceiling_diff_number_of) (* already declared [simp] *)
-
-lemma ceiling_subtract_one: "ceiling (x - 1) = ceiling x - 1"
-  by (rule ceiling_diff_one) (* already declared [simp] *)
 
 
 subsection {* Versions for the natural numbers *}
