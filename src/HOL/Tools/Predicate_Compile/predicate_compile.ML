@@ -74,7 +74,8 @@ fun process_specification options specs thy' =
   end
 
 fun preprocess_strong_conn_constnames options gr ts thy =
-  if forall (fn (Const (c, _)) => Predicate_Compile_Core.is_registered thy c) ts then
+  if forall (fn (Const (c, _)) =>
+      Predicate_Compile_Core.is_registered (ProofContext.init_global thy) c) ts then
     thy
   else
     let
