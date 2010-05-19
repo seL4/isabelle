@@ -216,12 +216,13 @@ fun compile_term compilation options ctxt t =
     (*val _ = Predicate_Compile_Core.print_all_modes compilation thy4*)
     val _ = Output.tracing ("Preprocessing time: " ^ string_of_int (snd preproc_time))
     val _ = Output.tracing ("Core compilation time: " ^ string_of_int (snd core_comp_time))
-    val modes = Predicate_Compile_Core.modes_of compilation thy4 full_constname
+    val ctxt4 = ProofContext.init_global thy4
+    val modes = Predicate_Compile_Core.modes_of compilation ctxt4 full_constname
     val output_mode = fold_rev (curry Fun) (map (K Output) (binder_types constT)) Bool
     val prog =
       if member eq_mode modes output_mode then
         let
-          val name = Predicate_Compile_Core.function_name_of compilation thy4
+          val name = Predicate_Compile_Core.function_name_of compilation ctxt4
             full_constname output_mode
           val T = 
             case compilation of

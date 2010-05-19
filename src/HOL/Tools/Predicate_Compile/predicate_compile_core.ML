@@ -326,9 +326,9 @@ fun string_of_clause ctxt pred (ts, prems) =
   (map (string_of_prem ctxt) prems)) ^ " --> " ^ pred ^ " "
    ^ (space_implode " " (map (Syntax.string_of_term ctxt) ts))
 
-fun print_compiled_terms options thy =
+fun print_compiled_terms options ctxt =
   if show_compilation options then
-    print_pred_mode_table (fn _ => fn _ => Syntax.string_of_term_global thy) thy
+    print_pred_mode_table (fn _ => fn _ => Syntax.string_of_term ctxt)
   else K ()
 
 fun print_stored_rules thy =
@@ -1821,7 +1821,7 @@ fun nth_pair [] t = t
 
 (** switch detection analysis **)
 
-fun find_switch_test thy (i, is) (ts, prems) =
+fun find_switch_test ctxt (i, is) (ts, prems) =
   let
     val t = nth_pair is (nth ts i)
     val T = fastype_of t
@@ -1829,7 +1829,7 @@ fun find_switch_test thy (i, is) (ts, prems) =
     case T of
       TFree _ => NONE
     | Type (Tcon, _) =>
-      (case Datatype_Data.get_constrs thy Tcon of
+      (case Datatype_Data.get_constrs (ProofContext.theory_of ctxt) Tcon of
         NONE => NONE
       | SOME cs =>
         (case strip_comb t of
@@ -1838,11 +1838,11 @@ fun find_switch_test thy (i, is) (ts, prems) =
         | (Const (c, T), _) => if AList.defined (op =) cs c then SOME (c, T) else NONE))
   end
 
-fun partition_clause thy pos moded_clauses =
+fun partition_clause ctxt pos moded_clauses =
   let
     fun insert_list eq (key, value) = AList.map_default eq (key, []) (cons value)
     fun find_switch_test' moded_clause (cases, left) =
-      case find_switch_test thy pos moded_clause of
+      case find_switch_test ctxt pos moded_clause of
         SOME (c, T) => (insert_list (op =) ((c, T), moded_clause) cases, left)
       | NONE => (cases, moded_clause :: left)
   in
@@ -1852,12 +1852,12 @@ fun partition_clause thy pos moded_clauses =
 datatype switch_tree =
   Atom of moded_clause list | Node of (position * ((string * typ) * switch_tree) list) * switch_tree
 
-fun mk_switch_tree thy mode moded_clauses =
+fun mk_switch_tree ctxt mode moded_clauses =
   let
     fun select_best_switch moded_clauses input_position best_switch =
       let
         val ord = option_ord (rev_order o int_ord o (pairself (length o snd o snd)))
-        val partition = partition_clause thy input_position moded_clauses
+        val partition = partition_clause ctxt input_position moded_clauses
         val switch = if (length (fst partition) > 1) then SOME (input_position, partition) else NONE
       in
         case ord (switch, best_switch) of LESS => best_switch
@@ -1945,9 +1945,8 @@ fun compile_switch compilation_modifiers ctxt all_vs param_vs additional_argumen
 
 (* compilation of predicates *)
 
-fun compile_pred options compilation_modifiers thy all_vs param_vs s T (pol, mode) moded_cls =
+fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mode) moded_cls =
   let
-    val ctxt = ProofContext.init_global thy
     val compilation_modifiers = if pol then compilation_modifiers else
       negative_comp_modifiers_of compilation_modifiers
     val additional_arguments = Comp_Mod.additional_arguments compilation_modifiers
@@ -1975,7 +1974,7 @@ fun compile_pred options compilation_modifiers thy all_vs param_vs s T (pol, mod
       if detect_switches options then
         the_default (mk_bot compfuns (HOLogic.mk_tupleT outTs))
           (compile_switch compilation_modifiers ctxt all_vs param_vs additional_arguments
-            mode in_ts' outTs (mk_switch_tree thy mode moded_cls))
+            mode in_ts' outTs (mk_switch_tree ctxt mode moded_cls))
       else
         let
           val cl_ts =
@@ -2643,8 +2642,8 @@ fun maps_modes preds_modes_table =
   map (fn (pred, modes) =>
     (pred, map (fn (mode, value) => value) modes)) preds_modes_table
 
-fun compile_preds options comp_modifiers thy all_vs param_vs preds moded_clauses =
-  map_preds_modes (fn pred => compile_pred options comp_modifiers thy all_vs param_vs pred
+fun compile_preds options comp_modifiers ctxt all_vs param_vs preds moded_clauses =
+  map_preds_modes (fn pred => compile_pred options comp_modifiers ctxt all_vs param_vs pred
       (the (AList.lookup (op =) preds pred))) moded_clauses
 
 fun prove options thy clauses preds moded_clauses compiled_terms =
@@ -2838,12 +2837,13 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
       Output.cond_timeit (!Quickcheck.timing) "Defining executable functions..."
       (fn _ => fold (#define_functions (dest_steps steps) options preds) modes thy'
       |> Theory.checkpoint)
+    val ctxt'' = ProofContext.init_global thy''
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
       Output.cond_timeit (!Quickcheck.timing) "Compiling equations...." (fn _ =>
         compile_preds options
-          (#comp_modifiers (dest_steps steps)) thy'' all_vs param_vs preds moded_clauses)
-    val _ = print_compiled_terms options thy'' compiled_terms
+          (#comp_modifiers (dest_steps steps)) ctxt'' all_vs param_vs preds moded_clauses)
+    val _ = print_compiled_terms options ctxt'' compiled_terms
     val _ = print_step options "Proving equations..."
     val result_thms =
       Output.cond_timeit (!Quickcheck.timing) "Proving equations...." (fn _ =>
