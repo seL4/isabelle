@@ -127,6 +127,16 @@ lemma list_of_dlist_filter [simp, code abstract]:
   by (simp add: filter_def)
 
 
+text {* Explicit executable conversion *}
+
+definition dlist_of_list [simp]:
+  "dlist_of_list = Dlist"
+
+lemma [code abstract]:
+  "list_of_dlist (dlist_of_list xs) = remdups xs"
+  by simp
+
+
 section {* Implementation of sets by distinct lists -- canonical! *}
 
 definition Set :: "'a dlist \<Rightarrow> 'a fset" where
@@ -148,9 +158,6 @@ declare filter_Set [code del]
 declare forall_Set [code del]
 declare exists_Set [code del]
 declare card_Set [code del]
-declare subfset_eq_forall [code del]
-declare subfset_subfset_eq [code del]
-declare eq_fset_subfset_eq [code del]
 declare inter_project [code del]
 declare subtract_remove [code del]
 declare union_insert [code del]
@@ -172,6 +179,14 @@ lemma member_Set [simp]:
 lemma member_Coset [simp]:
   "Fset.member (Coset dxs) = Not \<circ> List.member (list_of_dlist dxs)"
   by (simp add: Coset_def member_set not_set_compl)
+
+lemma Set_dlist_of_list [code]:
+  "Fset.Set xs = Set (dlist_of_list xs)"
+  by simp
+
+lemma Coset_dlist_of_list [code]:
+  "Fset.Coset xs = Coset (dlist_of_list xs)"
+  by simp
 
 lemma is_empty_Set [code]:
   "Fset.is_empty (Set dxs) \<longleftrightarrow> null dxs"
