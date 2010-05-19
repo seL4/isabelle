@@ -139,7 +139,6 @@ sig
   val of_class: ctyp * class -> thm
   val strip_shyps: thm -> thm
   val unconstrainT: thm -> thm
-  val legacy_unconstrainT: ctyp -> thm -> thm
   val legacy_freezeT: thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
@@ -1248,27 +1247,6 @@ fun unconstrainT (thm as Thm (der, args)) =
       tpairs = [],
       prop = prop'})
   end;
-
-fun legacy_unconstrainT
-    (Ctyp {thy_ref = thy_ref1, T, ...})
-    (th as Thm (_, {thy_ref = thy_ref2, maxidx, shyps, hyps, tpairs, prop, ...})) =
-  let
-    val ((x, i), S) = Term.dest_TVar T handle TYPE _ =>
-      raise THM ("unconstrainT: not a type variable", 0, [th]);
-    val T' = TVar ((x, i), []);
-    val unconstrain = Term.map_types (Term.map_atyps (fn U => if U = T then T' else U));
-    val constraints = Logic.mk_of_sort (T', S);
-  in
-    Thm (deriv_rule0 (Pt.PAxm ("Pure.unconstrainT", prop, SOME [])),
-     {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
-      tags = [],
-      maxidx = Int.max (maxidx, i),
-      shyps = Sorts.remove_sort S shyps,
-      hyps = hyps,
-      tpairs = map (pairself unconstrain) tpairs,
-      prop = Logic.list_implies (constraints, unconstrain prop)})
-  end;
-
 
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT_global' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
