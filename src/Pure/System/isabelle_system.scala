@@ -18,9 +18,19 @@ import scala.util.matching.Regex
 import scala.collection.mutable
 
 
-class Isabelle_System extends Standard_System
+class Isabelle_System(this_isabelle_home: String) extends Standard_System
 {
+  def this() = this(null)
+
+
   /** Isabelle environment **/
+
+  /*
+    isabelle_home precedence:
+      (1) this_isabelle_home as explicit argument
+      (2) ISABELLE_HOME process environment variable (e.g. inherited from running isabelle tool)
+      (3) isabelle.home system property (e.g. via JVM application boot process)
+  */
 
   private val environment: Map[String, String] =
   {
@@ -30,13 +40,15 @@ class Isabelle_System extends Standard_System
       ("THIS_JAVA" -> this_java())
 
     val isabelle_home =
-      env0.get("ISABELLE_HOME") match {
-        case None | Some("") =>
-          val path = java.lang.System.getProperty("isabelle.home")
-          if (path == null || path == "") error("Unknown Isabelle home directory")
-          else path
-        case Some(path) => path
-      }
+      if (this_isabelle_home != null) this_isabelle_home
+      else
+        env0.get("ISABELLE_HOME") match {
+          case None | Some("") =>
+            val path = java.lang.System.getProperty("isabelle.home")
+            if (path == null || path == "") error("Unknown Isabelle home directory")
+            else path
+          case Some(path) => path
+        }
 
     Standard_System.with_tmp_file("settings") { dump =>
         val shell_prefix =
