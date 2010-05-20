@@ -123,6 +123,8 @@ declare empty_Set [code del]
 declare UNIV_Set [code del]
 declare insert_Set [code del]
 declare remove_Set [code del]
+declare compl_Set [code del]
+declare compl_Coset [code del]
 declare map_Set [code del]
 declare filter_Set [code del]
 declare forall_Set [code del]
@@ -184,6 +186,11 @@ lemma member_code [code]:
   "Fset.member (Set dxs) = member dxs"
   "Fset.member (Coset dxs) = Not \<circ> member dxs"
   by (simp_all add: member_def)
+
+lemma compl_code [code]:
+  "- Set dxs = Coset dxs"
+  "- Coset dxs = Set dxs"
+  by (simp_all add: not_set_compl member_set)
 
 lemma map_code [code]:
   "Fset.map f (Set dxs) = Set (map f dxs)"
