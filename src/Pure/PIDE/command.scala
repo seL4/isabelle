@@ -20,6 +20,7 @@ object Command
     val UNPROCESSED = Value("UNPROCESSED")
     val FINISHED = Value("FINISHED")
     val FAILED = Value("FAILED")
+    val UNDEFINED = Value("UNDEFINED")
   }
 
   case class HighlightInfo(highlight: String) { override def toString = highlight }

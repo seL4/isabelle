@@ -46,7 +46,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
           val document = model.recent_document
           document.command_at(view.getTextArea.getCaretPosition) match {
             case Some((cmd, _)) =>
-              output_actor ! Render(document.current_state(cmd).map(_.results) getOrElse Nil)
+              output_actor ! Render(document.current_state(cmd).results)
             case None =>
           }
         case None =>
@@ -76,9 +76,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
             if (follow.selected) Document_Model(view.getBuffer) else None
           } match {
             case None =>
-            case Some(model) =>
-              val body = model.recent_document.current_state(cmd).map(_.results) getOrElse Nil
-              html_panel.render(body)
+            case Some(model) => html_panel.render(model.recent_document.current_state(cmd).results)
           }
 
         case bad => System.err.println("output_actor: ignoring bad message " + bad)
