@@ -67,7 +67,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
   private val output_actor = actor {
     loop {
       react {
-        case Session.Global_Settings => html_panel.init(Isabelle.font_size())
+        case Session.Global_Settings => html_panel.resize(Isabelle.font_size())
 
         case Render(body) => html_panel.render(body)
 

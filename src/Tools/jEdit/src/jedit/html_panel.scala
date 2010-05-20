@@ -46,8 +46,9 @@ class HTML_Panel(
   Logger.getLogger("org.lobobrowser").setLevel(Level.WARNING)
 
 
-  /* pixel size -- cf. org.lobobrowser.html.style.HtmlValues.getFontSize */
+  /* Lobo setup */
 
+  // pixel size -- cf. org.lobobrowser.html.style.HtmlValues.getFontSize
   val screen_resolution =
     if (GraphicsEnvironment.isHeadless()) 72
     else Toolkit.getDefaultToolkit().getScreenResolution()
@@ -56,7 +57,29 @@ class HTML_Panel(
   def raw_px(lobo_px: Int): Int = (lobo_px * screen_resolution + 95) / 96
 
 
-  /* document template */
+  private val ucontext = new SimpleUserAgentContext
+  private val rcontext = new SimpleHtmlRendererContext(this, ucontext)
+  {
+    private def handle(event: HTML_Panel.Event): Boolean =
+      if (handler != null && handler.isDefinedAt(event)) { handler(event); true }
+      else false
+
+    override def onContextMenu(elem: HTMLElement, event: MouseEvent): Boolean =
+      handle(HTML_Panel.Context_Menu(elem, event))
+    override def onMouseClick(elem: HTMLElement, event: MouseEvent): Boolean =
+      handle(HTML_Panel.Mouse_Click(elem, event))
+    override def onDoubleClick(elem: HTMLElement, event: MouseEvent): Boolean =
+      handle(HTML_Panel.Double_Click(elem, event))
+    override def onMouseOver(elem: HTMLElement, event: MouseEvent)
+      { handle(HTML_Panel.Mouse_Over(elem, event)) }
+    override def onMouseOut(elem: HTMLElement, event: MouseEvent)
+      { handle(HTML_Panel.Mouse_Out(elem, event)) }
+  }
+
+  private val builder = new DocumentBuilderImpl(ucontext, rcontext)
+
+
+  /* physical document */
 
   private def template(font_size: Int): String =
   {
@@ -78,87 +101,66 @@ class HTML_Panel(
 """
   }
 
-  private def font_metrics(font_size: Int): FontMetrics =
-    Swing_Thread.now { getFontMetrics(system.get_font(font_size)) }
+  private class Doc
+  {
+    var current_font_size: Int = 0
+    var current_font_metrics: FontMetrics = null
+    var current_margin: Int = 0
+    var current_body: List[XML.Tree] = Nil
+    var current_DOM: org.w3c.dom.Document = null
 
-  private def panel_width(font_size: Int): Int =
-    Swing_Thread.now {
-      (getWidth() / (font_metrics(font_size).charWidth(Symbol.spc) max 1) - 4) max 20
+    def resize(font_size: Int)
+    {
+      if (font_size != current_font_size || current_font_metrics == null) {
+        Swing_Thread.now {
+          current_font_size = font_size
+          current_font_metrics =
+            getFontMetrics(system.get_font(lobo_px(raw_px(font_size))))
+          current_margin =
+            (getWidth() / (current_font_metrics.charWidth(Symbol.spc) max 1) - 4) max 20
+        }
+        current_DOM =
+          builder.parse(
+            new InputSourceImpl(new StringReader(template(font_size)), "http://localhost"))
+        render(current_body)
+      }
     }
 
+    def render(body: List[XML.Tree])
+    {
+      current_body = body
+      val html_body =
+        current_body.flatMap(div =>
+          Pretty.formatted(List(div), current_margin,
+              Pretty.font_metric(current_font_metrics))
+            .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
 
-  /* actor with local state */
+      val node = XML.document_node(current_DOM, XML.elem(HTML.BODY, html_body))
+      current_DOM.removeChild(current_DOM.getLastChild())
+      current_DOM.appendChild(node)
+      Swing_Thread.now { setDocument(current_DOM, rcontext) }
+    }
 
-  private val ucontext = new SimpleUserAgentContext
-
-  private val rcontext = new SimpleHtmlRendererContext(this, ucontext)
-  {
-    private def handle(event: HTML_Panel.Event): Boolean =
-      if (handler != null && handler.isDefinedAt(event)) { handler(event); true }
-      else false
-
-    override def onContextMenu(elem: HTMLElement, event: MouseEvent): Boolean =
-      handle(HTML_Panel.Context_Menu(elem, event))
-    override def onMouseClick(elem: HTMLElement, event: MouseEvent): Boolean =
-      handle(HTML_Panel.Mouse_Click(elem, event))
-    override def onDoubleClick(elem: HTMLElement, event: MouseEvent): Boolean =
-      handle(HTML_Panel.Double_Click(elem, event))
-    override def onMouseOver(elem: HTMLElement, event: MouseEvent)
-      { handle(HTML_Panel.Mouse_Over(elem, event)) }
-    override def onMouseOut(elem: HTMLElement, event: MouseEvent)
-      { handle(HTML_Panel.Mouse_Out(elem, event)) }
+    resize(initial_font_size)
   }
 
-  private val builder = new DocumentBuilderImpl(ucontext, rcontext)
 
-  private case class Init(font_size: Int)
-  private case class Render(divs: List[XML.Tree])
+  /* main actor and method wrappers */
+
+  private case class Resize(font_size: Int)
+  private case class Render(body: List[XML.Tree])
 
   private val main_actor = actor {
-    // crude double buffering
-    var doc1: org.w3c.dom.Document = null
-    var doc2: org.w3c.dom.Document = null
-
-    var current_font_size = 16
-    var current_font_metrics: FontMetrics = null
-
+    var doc = new Doc
     loop {
       react {
-        case Init(font_size) =>
-          current_font_size = font_size
-          current_font_metrics = font_metrics(lobo_px(raw_px(font_size)))
-
-          val src = template(font_size)
-          def parse() =
-            builder.parse(new InputSourceImpl(new StringReader(src), "http://localhost"))
-          doc1 = parse()
-          doc2 = parse()
-          Swing_Thread.now { setDocument(doc1, rcontext) }
-
-        case Render(divs) =>
-          val doc = doc2
-          val html_body =
-            divs.flatMap(div =>
-              Pretty.formatted(List(div), panel_width(current_font_size),
-                  Pretty.font_metric(current_font_metrics))
-                .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
-          val node = XML.document_node(doc, XML.elem(HTML.BODY, html_body))
-          doc.removeChild(doc.getLastChild())
-          doc.appendChild(node)
-          doc2 = doc1
-          doc1 = doc
-          Swing_Thread.now { setDocument(doc1, rcontext) }
-
+        case Resize(font_size) => doc.resize(font_size)
+        case Render(body) => doc.render(body)
         case bad => System.err.println("main_actor: ignoring bad message " + bad)
       }
     }
   }
 
-
-  /* main method wrappers */
-
-  def init(font_size: Int) { main_actor ! Init(font_size) }
-  def render(divs: List[XML.Tree]) { main_actor ! Render(divs) }
-
-  init(initial_font_size)
+  def resize(font_size: Int) { main_actor ! Resize(font_size) }
+  def render(body: List[XML.Tree]) { main_actor ! Render(body) }
 }
