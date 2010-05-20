@@ -79,10 +79,9 @@ class HTML_Panel(
   private val builder = new DocumentBuilderImpl(ucontext, rcontext)
 
 
-  /* physical document */
+  /* document template with style sheets */
 
-  private def template(font_size: Int): String =
-  {
+  private val template_head =
     """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -91,22 +90,30 @@ class HTML_Panel(
 <style media="all" type="text/css">
 """ +
   system.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
-  "body { font-family: " + system.font_family + "; font-size: " + raw_px(font_size) + "px }" +
+  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n"
+
+  private val template_tail =
 """
 </style>
 </head>
 <body/>
 </html>
 """
-  }
+
+  private def template(font_size: Int): String =
+    template_head +
+    "body { font-family: " + system.font_family + "; font-size: " + raw_px(font_size) + "px }" +
+    template_tail
+
+
+  /* physical document */
 
   private class Doc
   {
-    var current_font_size: Int = 0
-    var current_font_metrics: FontMetrics = null
-    var current_body: List[XML.Tree] = Nil
-    var current_DOM: org.w3c.dom.Document = null
+    private var current_font_size: Int = 0
+    private var current_font_metrics: FontMetrics = null
+    private var current_body: List[XML.Tree] = Nil
+    private var current_DOM: org.w3c.dom.Document = null
 
     def resize(font_size: Int)
     {
@@ -119,9 +126,11 @@ class HTML_Panel(
         current_DOM =
           builder.parse(
             new InputSourceImpl(new StringReader(template(font_size)), "http://localhost"))
-        render(current_body)
+        refresh()
       }
     }
+
+    def refresh() { render(current_body) }
 
     def render(body: List[XML.Tree])
     {
@@ -134,9 +143,11 @@ class HTML_Panel(
             .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
 
       val node = XML.document_node(current_DOM, XML.elem(HTML.BODY, html_body))
-      current_DOM.removeChild(current_DOM.getLastChild())
-      current_DOM.appendChild(node)
-      Swing_Thread.now { setDocument(current_DOM, rcontext) }
+      Swing_Thread.now {
+        current_DOM.removeChild(current_DOM.getLastChild())
+        current_DOM.appendChild(node)
+        setDocument(current_DOM, rcontext)
+      }
     }
 
     resize(initial_font_size)
@@ -147,12 +158,14 @@ class HTML_Panel(
 
   private case class Resize(font_size: Int)
   private case class Render(body: List[XML.Tree])
+  private case object Refresh
 
   private val main_actor = actor {
     var doc = new Doc
     loop {
       react {
         case Resize(font_size) => doc.resize(font_size)
+        case Refresh => doc.refresh()
         case Render(body) => doc.render(body)
         case bad => System.err.println("main_actor: ignoring bad message " + bad)
       }
@@ -160,5 +173,6 @@ class HTML_Panel(
   }
 
   def resize(font_size: Int) { main_actor ! Resize(font_size) }
+  def refresh() { main_actor ! Refresh }
   def render(body: List[XML.Tree]) { main_actor ! Render(body) }
 }

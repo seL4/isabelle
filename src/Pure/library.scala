@@ -11,6 +11,10 @@ import java.awt.Component
 import javax.swing.JOptionPane
 
 
+import scala.swing.ComboBox
+import scala.swing.event.SelectionChanged
+
+
 object Library
 {
   /* separate */
@@ -86,6 +90,31 @@ object Library
   def dialog = simple_dialog(JOptionPane.PLAIN_MESSAGE, null) _
   def warning_dialog = simple_dialog(JOptionPane.WARNING_MESSAGE, "Warning") _
   def error_dialog = simple_dialog(JOptionPane.ERROR_MESSAGE, "Error") _
+
+
+  /* zoom box */
+
+  def zoom_box(apply_factor: Int => Unit) =
+    new ComboBox(
+      List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")) {
+      val Factor = "([0-9]+)%?"r
+      def reset(): Int = { selection.index = 3; 100 }
+
+      reactions += {
+        case SelectionChanged(_) =>
+          val factor =
+            selection.item match {
+              case Factor(s) =>
+                val i = Integer.parseInt(s)
+                if (10 <= i && i <= 1000) i else reset()
+              case _ => reset()
+            }
+          apply_factor(factor)
+        }
+      reset()
+      listenTo(selection)
+      makeEditable()
+    }
 
 
   /* timing */
