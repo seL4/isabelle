@@ -33,7 +33,7 @@ class Protocol_Dockable(view: View, position: String) extends JPanel(new BorderL
     loop {
       react {
         case result: Isabelle_Process.Result =>
-          Swing_Thread.now { text_area.append(result.toString + "\n") }
+          Swing_Thread.now { text_area.append(result.message.toString + "\n") }
 
         case bad => System.err.println("raw_actor: ignoring bad message " + bad)
       }

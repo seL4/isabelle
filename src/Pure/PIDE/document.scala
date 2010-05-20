@@ -175,9 +175,12 @@ class Document(
     System.err.println("assign_states: " + (System.currentTimeMillis - time0) + " ms elapsed time")
   }
 
-  def current_state(cmd: Command): Option[State] =
+  def current_state(cmd: Command): State =
   {
     require(assignment.is_finished)
-    (assignment.join).get(cmd).map(_.current_state)
+    (assignment.join).get(cmd) match {
+      case Some(cmd_state) => cmd_state.current_state
+      case None => new State(cmd, Command.Status.UNDEFINED, Nil, cmd.empty_markup)
+    }
   }
 }

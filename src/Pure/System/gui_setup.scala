@@ -6,8 +6,8 @@ GUI for basic system setup.
 
 package isabelle
 
-import scala.swing._
-import scala.swing.event._
+import scala.swing.{Button, FlowPanel, BorderPanel, MainFrame, TextArea, SwingApplication}
+import scala.swing.event.ButtonClicked
 
 
 object GUI_Setup extends SwingApplication
@@ -27,16 +27,14 @@ object GUI_Setup extends SwingApplication
       editable = false
       columns = 80
       rows = 20
-      xLayoutAlignment = 0.5
     }
-    val ok = new Button {
-      text = "OK"
-      xLayoutAlignment = 0.5
-    }
-    contents = new BoxPanel(Orientation.Vertical) {
-      contents += text
-      contents += ok
-    }
+    val ok = new Button { text = "OK" }
+    val ok_panel = new FlowPanel(FlowPanel.Alignment.Center)(ok)
+
+    val panel = new BorderPanel
+    panel.layout(text) = BorderPanel.Position.Center
+    panel.layout(ok_panel) = BorderPanel.Position.South
+    contents = panel
 
     // values
     if (Platform.is_windows)

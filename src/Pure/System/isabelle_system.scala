@@ -150,6 +150,15 @@ class Isabelle_System extends Standard_System
   def platform_file(path: String) = new File(platform_path(path))
 
 
+  /* try_read */
+
+  def try_read(path: String): String =
+  {
+    val file = platform_file(path)
+    if (file.isFile) Source.fromFile(file).mkString else ""
+  }
+
+
   /* source files */
 
   private def try_file(file: File) = if (file.isFile) Some(file) else None
@@ -304,11 +313,8 @@ class Isabelle_System extends Standard_System
   /* symbols */
 
   private def read_symbols(path: String): List[String] =
-  {
-    val file = platform_file(path)
-    if (file.isFile) Source.fromFile(file).getLines("\n").toList
-    else Nil
-  }
+    Library.chunks(try_read(path)).map(_.toString).toList
+
   val symbols = new Symbol.Interpretation(
     read_symbols("$ISABELLE_HOME/etc/symbols") :::
     read_symbols("$ISABELLE_HOME_USER/etc/symbols"))
