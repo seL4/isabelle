@@ -4,7 +4,7 @@
 header {* Executable finite sets *}
 
 theory Fset
-imports List_Set
+imports List_Set More_List
 begin
 
 declare mem_def [simp]
@@ -41,9 +41,9 @@ lemma member_Coset [simp]:
 code_datatype Set Coset
 
 lemma member_code [code]:
-  "member (Set xs) y \<longleftrightarrow> List.member y xs"
-  "member (Coset xs) y \<longleftrightarrow> \<not> List.member y xs"
-  by (simp_all add: mem_iff fun_Compl_def bool_Compl_def)
+  "member (Set xs) = List.member xs"
+  "member (Coset xs) = Not \<circ> List.member xs"
+  by (simp_all add: expand_fun_eq mem_iff fun_Compl_def bool_Compl_def)
 
 lemma member_image_UNIV [simp]:
   "member ` UNIV = UNIV"
@@ -105,6 +105,7 @@ qed (auto simp add: le_fun_def le_bool_def)
 
 end
 
+
 subsection {* Basic operations *}
 
 definition is_empty :: "'a fset \<Rightarrow> bool" where
@@ -128,7 +129,7 @@ definition insert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
 lemma insert_Set [code]:
   "insert x (Set xs) = Set (List.insert x xs)"
   "insert x (Coset xs) = Coset (removeAll x xs)"
-  by (simp_all add: Set_def Coset_def set_insert)
+  by (simp_all add: Set_def Coset_def)
 
 definition remove :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
   [simp]: "remove x A = Fset (List_Set.remove x (member A))"
@@ -175,8 +176,16 @@ lemma card_Set [code]:
 proof -
   have "Finite_Set.card (set (remdups xs)) = length (remdups xs)"
     by (rule distinct_card) simp
-  then show ?thesis by (simp add: Set_def card_def)
+  then show ?thesis by (simp add: Set_def)
 qed
+
+lemma compl_Set [simp, code]:
+  "- Set xs = Coset xs"
+  by (simp add: Set_def Coset_def)
+
+lemma compl_Coset [simp, code]:
+  "- Coset xs = Set xs"
+  by (simp add: Set_def Coset_def)
 
 
 subsection {* Derived operations *}
@@ -198,39 +207,49 @@ subsection {* Functorial operations *}
 
 lemma inter_project [code]:
   "inf A (Set xs) = Set (List.filter (member A) xs)"
-  "inf A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
+  "inf A (Coset xs) = foldr remove xs A"
 proof -
   show "inf A (Set xs) = Set (List.filter (member A) xs)"
     by (simp add: inter project_def Set_def)
-  have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
-    member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
-    by (rule foldl_apply) (simp add: expand_fun_eq)
-  then show "inf A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
-    by (simp add: Diff_eq [symmetric] minus_set)
+  have *: "\<And>x::'a. remove = (\<lambda>x. Fset \<circ> List_Set.remove x \<circ> member)"
+    by (simp add: expand_fun_eq)
+  have "member \<circ> fold (\<lambda>x. Fset \<circ> List_Set.remove x \<circ> member) xs =
+    fold List_Set.remove xs \<circ> member"
+    by (rule fold_apply) (simp add: expand_fun_eq)
+  then have "fold List_Set.remove xs (member A) = 
+    member (fold (\<lambda>x. Fset \<circ> List_Set.remove x \<circ> member) xs A)"
+    by (simp add: expand_fun_eq)
+  then have "inf A (Coset xs) = fold remove xs A"
+    by (simp add: Diff_eq [symmetric] minus_set *)
+  moreover have "\<And>x y :: 'a. Fset.remove y \<circ> Fset.remove x = Fset.remove x \<circ> Fset.remove y"
+    by (auto simp add: List_Set.remove_def * intro: ext)
+  ultimately show "inf A (Coset xs) = foldr remove xs A"
+    by (simp add: foldr_fold)
 qed
 
 lemma subtract_remove [code]:
-  "A - Set xs = foldl (\<lambda>A x. remove x A) A xs"
+  "A - Set xs = foldr remove xs A"
   "A - Coset xs = Set (List.filter (member A) xs)"
-proof -
-  have "foldl (\<lambda>A x. List_Set.remove x A) (member A) xs =
-    member (foldl (\<lambda>A x. Fset (List_Set.remove x (member A))) A xs)"
-    by (rule foldl_apply) (simp add: expand_fun_eq)
-  then show "A - Set xs = foldl (\<lambda>A x. remove x A) A xs"
-    by (simp add: minus_set)
-  show "A - Coset xs = Set (List.filter (member A) xs)"
-    by (auto simp add: Coset_def Set_def)
-qed
+  by (simp_all only: diff_eq compl_Set compl_Coset inter_project)
 
 lemma union_insert [code]:
-  "sup (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+  "sup (Set xs) A = foldr insert xs A"
   "sup (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
 proof -
-  have "foldl (\<lambda>A x. Set.insert x A) (member A) xs =
-    member (foldl (\<lambda>A x. Fset (Set.insert x (member A))) A xs)"
-    by (rule foldl_apply) (simp add: expand_fun_eq)
-  then show "sup (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
-    by (simp add: union_set)
+  have *: "\<And>x::'a. insert = (\<lambda>x. Fset \<circ> Set.insert x \<circ> member)"
+    by (simp add: expand_fun_eq)
+  have "member \<circ> fold (\<lambda>x. Fset \<circ> Set.insert x \<circ> member) xs =
+    fold Set.insert xs \<circ> member"
+    by (rule fold_apply) (simp add: expand_fun_eq)
+  then have "fold Set.insert xs (member A) =
+    member (fold (\<lambda>x. Fset \<circ> Set.insert x \<circ> member) xs A)"
+    by (simp add: expand_fun_eq)
+  then have "sup (Set xs) A = fold insert xs A"
+    by (simp add: union_set *)
+  moreover have "\<And>x y :: 'a. Fset.insert y \<circ> Fset.insert x = Fset.insert x \<circ> Fset.insert y"
+    by (auto simp add: * intro: ext)
+  ultimately show "sup (Set xs) A = foldr insert xs A"
+    by (simp add: foldr_fold)
   show "sup (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
     by (auto simp add: Coset_def)
 qed
@@ -242,17 +261,17 @@ definition Infimum :: "'a fset \<Rightarrow> 'a" where
   [simp]: "Infimum A = Inf (member A)"
 
 lemma Infimum_inf [code]:
-  "Infimum (Set As) = foldl inf top As"
+  "Infimum (Set As) = foldr inf As top"
   "Infimum (Coset []) = bot"
-  by (simp_all add: Inf_set_fold Inf_UNIV)
+  by (simp_all add: Inf_set_foldr Inf_UNIV)
 
 definition Supremum :: "'a fset \<Rightarrow> 'a" where
   [simp]: "Supremum A = Sup (member A)"
 
 lemma Supremum_sup [code]:
-  "Supremum (Set As) = foldl sup bot As"
+  "Supremum (Set As) = foldr sup As bot"
   "Supremum (Coset []) = top"
-  by (simp_all add: Sup_set_fold Sup_UNIV)
+  by (simp_all add: Sup_set_foldr Sup_UNIV)
 
 end
 
