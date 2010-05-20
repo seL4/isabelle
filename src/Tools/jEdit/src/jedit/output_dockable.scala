@@ -36,13 +36,17 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
 
   /* controls */
 
+  private case class Render(body: List[XML.Tree])
+
   private def handle_update()
   {
     Swing_Thread.now {
       Document_Model(view.getBuffer) match {
         case Some(model) =>
-          model.recent_document.command_at(view.getTextArea.getCaretPosition) match {
-            case Some((cmd, _)) => output_actor ! cmd
+          val document = model.recent_document
+          document.command_at(view.getTextArea.getCaretPosition) match {
+            case Some((cmd, _)) =>
+              output_actor ! Render(document.current_state(cmd).map(_.results) getOrElse Nil)
             case None =>
           }
         case None =>
@@ -54,7 +58,8 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     reactions += { case ButtonClicked(_) => handle_update() }
   }
 
-  private val freeze = new ToggleButton("Freeze")
+  val follow = new ToggleButton("Follow")
+  follow.selected = true
 
 
   /* actor wiring */
@@ -62,17 +67,19 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
   private val output_actor = actor {
     loop {
       react {
+        case Session.Global_Settings => html_panel.init(Isabelle.font_size())
+
+        case Render(body) => html_panel.render(body)
+
         case cmd: Command =>
           Swing_Thread.now {
-            if (freeze.selected) None else Document_Model(view.getBuffer)
+            if (follow.selected) Document_Model(view.getBuffer) else None
           } match {
             case None =>
             case Some(model) =>
               val body = model.recent_document.current_state(cmd).map(_.results) getOrElse Nil
               html_panel.render(body)
           }
-
-        case Session.Global_Settings => html_panel.init(Isabelle.font_size())
 
         case bad => System.err.println("output_actor: ignoring bad message " + bad)
       }
@@ -96,6 +103,6 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
 
   /* init controls */
 
-  controls.contents ++= List(update, freeze)
+  controls.contents ++= List(update, follow)
   handle_update()
 }
