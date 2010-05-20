@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import scala.swing.{FlowPanel, Button, ToggleButton}
+import scala.swing.{FlowPanel, Button, CheckBox}
 import scala.swing.event.ButtonClicked
 
 import javax.swing.JPanel
@@ -59,7 +59,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     reactions += { case ButtonClicked(_) => handle_update() }
   }
 
-  val follow = new ToggleButton("Follow")
+  val follow = new CheckBox("Follow")
   follow.selected = true
 
 
