@@ -4491,11 +4491,8 @@ end
 
 subsubsection {* Generation of efficient code *}
 
-primrec
-  member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)
-where 
-  "x mem [] \<longleftrightarrow> False"
-  | "x mem (y#ys) \<longleftrightarrow> x = y \<or> x mem ys"
+definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
+  mem_iff [code_post]: "member xs x \<longleftrightarrow> x \<in> set xs"
 
 primrec
   null:: "'a list \<Rightarrow> bool"
@@ -4551,7 +4548,7 @@ where
   | "concat_map f (x#xs) = f x @ concat_map f xs"
 
 text {*
-  Only use @{text mem} for generating executable code.  Otherwise use
+  Only use @{text member} for generating executable code.  Otherwise use
   @{prop "x : set xs"} instead --- it is much easier to reason about.
   The same is true for @{const list_all} and @{const list_ex}: write
   @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"} instead because the HOL
@@ -4583,11 +4580,19 @@ next
   show ?case by (induct xs) (auto simp add: Cons aux)
 qed
 
-lemma mem_iff [code_post]:
-  "x mem xs \<longleftrightarrow> x \<in> set xs"
-by (induct xs) auto
-
 lemmas in_set_code [code_unfold] = mem_iff [symmetric]
+
+lemma member_simps [simp, code]:
+  "member [] y \<longleftrightarrow> False"
+  "member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y"
+  by (auto simp add: mem_iff)
+
+lemma member_set:
+  "member = set"
+  by (simp add: expand_fun_eq mem_iff mem_def)
+
+abbreviation (input) mem :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55) where
+  "x mem xs \<equiv> member xs x" -- "for backward compatibility"
 
 lemma empty_null:
   "xs = [] \<longleftrightarrow> null xs"

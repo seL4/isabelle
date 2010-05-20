@@ -143,6 +143,9 @@ with proof terms.
 
 *** HOL ***
 
+* List membership infix mem operation is only an input abbreviation.
+INCOMPATIBILITY.
+
 * Theory Library/Word.thy has been removed.  Use library Word/Word.thy for
 future developements;  former Library/Word.thy is still present in the AFP
 entry RSAPPS.
