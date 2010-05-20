@@ -79,10 +79,9 @@ class HTML_Panel(
   private val builder = new DocumentBuilderImpl(ucontext, rcontext)
 
 
-  /* physical document */
+  /* document template with style sheets */
 
-  private def template(font_size: Int): String =
-  {
+  private val template_head =
     """<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -91,15 +90,23 @@ class HTML_Panel(
 <style media="all" type="text/css">
 """ +
   system.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
-  "body { font-family: " + system.font_family + "; font-size: " + raw_px(font_size) + "px }" +
+  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n"
+
+  private val template_tail =
 """
 </style>
 </head>
 <body/>
 </html>
 """
-  }
+
+  private def template(font_size: Int): String =
+    template_head +
+    "body { font-family: " + system.font_family + "; font-size: " + raw_px(font_size) + "px }" +
+    template_tail
+
+
+  /* physical document */
 
   private class Doc
   {
