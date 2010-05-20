@@ -31,7 +31,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
   val controls = new FlowPanel(FlowPanel.Alignment.Right)()
   add(controls.peer, BorderLayout.NORTH)
 
-  val html_panel = new HTML_Panel(Isabelle.system, Isabelle.font_size(), null)
+  val html_panel = new HTML_Panel(Isabelle.system, scala.math.round(Isabelle.font_size()), null)
   add(html_panel, BorderLayout.CENTER)
 
 
@@ -55,11 +55,20 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     }
   }
 
+  private var zoom_factor = 100
+
+  private def handle_resize() =
+    Swing_Thread.now {
+      html_panel.resize(scala.math.round(Isabelle.font_size() * zoom_factor / 100))
+    }
+
+  private val zoom = Library.zoom_box(factor => { zoom_factor = factor; handle_resize() })
+
   private val update = new Button("Update") {
     reactions += { case ButtonClicked(_) => handle_update() }
   }
 
-  val follow = new CheckBox("Follow")
+  private val follow = new CheckBox("Follow")
   follow.selected = true
 
 
@@ -68,7 +77,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
   private val output_actor = actor {
     loop {
       react {
-        case Session.Global_Settings => html_panel.resize(Isabelle.font_size())
+        case Session.Global_Settings => handle_resize()
         case Render(body) => html_panel.render(body)
 
         case cmd: Command =>
@@ -109,6 +118,6 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
 
   /* init controls */
 
-  controls.contents ++= List(update, follow)
+  controls.contents ++= List(zoom, update, follow)
   handle_update()
 }
