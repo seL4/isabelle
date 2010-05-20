@@ -3,41 +3,8 @@
 header {* Lists with elements distinct as canonical example for datatype invariants *}
 
 theory Dlist
-imports Main Fset
+imports Main More_List Fset
 begin
-
-section {* Prelude *}
-
-text {* Without canonical argument order, higher-order things tend to get confusing quite fast: *}
-
-setup {* Sign.map_naming (Name_Space.add_path "List") *}
-
-primrec member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
-    "member [] y \<longleftrightarrow> False"
-  | "member (x#xs) y \<longleftrightarrow> x = y \<or> member xs y"
-
-lemma member_set:
-  "member = set"
-proof (rule ext)+
-  fix xs :: "'a list" and x :: 'a
-  have "member xs x \<longleftrightarrow> x \<in> set xs" by (induct xs) auto
-  then show "member xs x = set xs x" by (simp add: mem_def)
-qed
-
-lemma not_set_compl:
-  "Not \<circ> set xs = - set xs"
-  by (simp add: fun_Compl_def bool_Compl_def comp_def expand_fun_eq)
-
-primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
-    "fold f [] s = s"
-  | "fold f (x#xs) s = fold f xs (f x s)"
-
-lemma foldl_fold:
-  "foldl f s xs = List.fold (\<lambda>x s. f s x) xs s"
-  by (induct xs arbitrary: s) simp_all
-
-setup {* Sign.map_naming Name_Space.parent_path *}
-
 
 section {* The type of distinct lists *}
 
@@ -101,7 +68,10 @@ definition length :: "'a dlist \<Rightarrow> nat" where
   "length dxs = List.length (list_of_dlist dxs)"
 
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
-  "fold f dxs = List.fold f (list_of_dlist dxs)"
+  "fold f dxs = More_List.fold f (list_of_dlist dxs)"
+
+definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dlist \<Rightarrow> 'b \<Rightarrow> 'b" where
+  "foldr f dxs = List.foldr f (list_of_dlist dxs)"
 
 
 section {* Executable version obeying invariant *}
@@ -235,38 +205,34 @@ lemma card_code [code]:
   "Fset.card (Set dxs) = length dxs"
   by (simp add: length_def member_set distinct_card)
 
-lemma foldl_list_of_dlist:
-  "foldl f s (list_of_dlist dxs) = fold (\<lambda>x s. f s x) dxs s"
-  by (simp add: foldl_fold fold_def)
-
 lemma inter_code [code]:
   "inf A (Set xs) = Set (filter (Fset.member A) xs)"
-  "inf A (Coset xs) = fold Fset.remove xs A"
-  by (simp_all only: Set_def Coset_def foldl_list_of_dlist inter_project list_of_dlist_filter)
+  "inf A (Coset xs) = foldr Fset.remove xs A"
+  by (simp_all only: Set_def Coset_def foldr_def inter_project list_of_dlist_filter)
 
 lemma subtract_code [code]:
-  "A - Set xs = fold Fset.remove xs A"
+  "A - Set xs = foldr Fset.remove xs A"
   "A - Coset xs = Set (filter (Fset.member A) xs)"
-  by (simp_all only: Set_def Coset_def foldl_list_of_dlist subtract_remove list_of_dlist_filter)
+  by (simp_all only: Set_def Coset_def foldr_def subtract_remove list_of_dlist_filter)
 
 lemma union_code [code]:
-  "sup (Set xs) A = fold Fset.insert xs A"
+  "sup (Set xs) A = foldr Fset.insert xs A"
   "sup (Coset xs) A = Coset (filter (Not \<circ> Fset.member A) xs)"
-  by (simp_all only: Set_def Coset_def foldl_list_of_dlist union_insert list_of_dlist_filter)
+  by (simp_all only: Set_def Coset_def foldr_def union_insert list_of_dlist_filter)
 
 context complete_lattice
 begin
 
 lemma Infimum_code [code]:
-  "Infimum (Set As) = fold inf As top"
-  by (simp only: Set_def Infimum_inf foldl_list_of_dlist inf.commute)
+  "Infimum (Set As) = foldr inf As top"
+  by (simp only: Set_def Infimum_inf foldr_def inf.commute)
 
 lemma Supremum_code [code]:
-  "Supremum (Set As) = fold sup As bot"
-  by (simp only: Set_def Supremum_sup foldl_list_of_dlist sup.commute)
+  "Supremum (Set As) = foldr sup As bot"
+  by (simp only: Set_def Supremum_sup foldr_def sup.commute)
 
 end
 
-hide_const (open) member fold empty insert remove map filter null member length fold
+hide_const (open) member fold foldr empty insert remove map filter null member length fold
 
 end
