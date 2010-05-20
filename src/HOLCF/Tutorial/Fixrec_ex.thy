@@ -171,7 +171,7 @@ by fixrec_simp
 lemma map_forest_strict [simp]: "map_forest\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by fixrec_simp
 
-text {*
+(*
   Theorems generated:
   @{text map_tree_def}  @{thm map_tree_def}
   @{text map_forest_def}  @{thm map_forest_def}
@@ -180,7 +180,7 @@ text {*
   @{text map_tree.simps}  @{thm map_tree.simps}
   @{text map_forest.simps}  @{thm map_forest.simps}
   @{text map_tree_map_forest.induct}  @{thm map_tree_map_forest.induct}
-*}
+*)
 
 
 subsection {* Looping simp rules *}
