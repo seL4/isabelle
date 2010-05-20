@@ -171,7 +171,7 @@ by fixrec_simp
 lemma map_forest_strict [simp]: "map_forest\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by fixrec_simp
 
-text {*
+(*
   Theorems generated:
   @{text map_tree_def}  @{thm map_tree_def}
   @{text map_forest_def}  @{thm map_forest_def}
@@ -180,7 +180,50 @@ text {*
   @{text map_tree.simps}  @{thm map_tree.simps}
   @{text map_forest.simps}  @{thm map_forest.simps}
   @{text map_tree_map_forest.induct}  @{thm map_tree_map_forest.induct}
+*)
+
+
+subsection {* Looping simp rules *}
+
+text {*
+  The defining equations of a fixrec definition are declared as simp
+  rules by default.  In some cases, especially for constants with no
+  arguments or functions with variable patterns, the defining
+  equations may cause the simplifier to loop.  In these cases it will
+  be necessary to use a @{text "[simp del]"} declaration.
 *}
+
+fixrec
+  repeat :: "'a \<rightarrow> 'a llist"
+where
+  [simp del]: "repeat\<cdot>x = lCons\<cdot>x\<cdot>(repeat\<cdot>x)"
+
+text {*
+  We can derive other non-looping simp rules for @{const repeat} by
+  using the @{text subst} method with the @{text repeat.simps} rule.
+*}
+
+lemma repeat_simps [simp]:
+  "repeat\<cdot>x \<noteq> \<bottom>"
+  "repeat\<cdot>x \<noteq> lNil"
+  "repeat\<cdot>x = lCons\<cdot>y\<cdot>ys \<longleftrightarrow> x = y \<and> repeat\<cdot>x = ys"
+by (subst repeat.simps, simp)+
+
+lemma llist_when_repeat [simp]:
+  "llist_when\<cdot>z\<cdot>f\<cdot>(repeat\<cdot>x) = f\<cdot>x\<cdot>(repeat\<cdot>x)"
+by (subst repeat.simps, simp)
+
+text {*
+  For mutually-recursive constants, looping might only occur if all
+  equations are in the simpset at the same time.  In such cases it may
+  only be necessary to declare @{text "[simp del]"} on one equation.
+*}
+
+fixrec
+  inf_tree :: "'a tree" and inf_forest :: "'a forest"
+where
+  [simp del]: "inf_tree = Branch\<cdot>inf_forest"
+| "inf_forest = Trees\<cdot>inf_tree\<cdot>(Trees\<cdot>inf_tree\<cdot>Empty)"
 
 
 subsection {* Using @{text fixrec} inside locales *}

@@ -125,10 +125,20 @@ fun add_fixdefs
     val (lhss, rhss) = ListPair.unzip (map (dest_eqs o snd) spec);
     val functional = lambda_tuple lhss (mk_tuple rhss);
     val fixpoint = mk_fix (mk_cabs functional);
-    
+
     val cont_thm =
-      Goal.prove lthy [] [] (mk_trp (mk_cont functional))
-        (K (simp_tac (simpset_of lthy) 1));
+      let
+        val prop = mk_trp (mk_cont functional);
+        fun err () = error (
+          "Continuity proof failed; please check that cont2cont rules\n" ^
+          "are configured for all non-HOLCF constants.\n" ^
+          "The error occurred for the goal statement:\n" ^
+          Syntax.string_of_term lthy prop);
+        fun check th = case Thm.nprems_of th of 0 => all_tac th | n => err ();
+        val tac = simp_tac (simpset_of lthy) 1 THEN check;
+      in
+        Goal.prove lthy [] [] prop (K tac)
+      end;
 
     fun one_def (l as Free(n,_)) r =
           let val b = Long_Name.base_name n

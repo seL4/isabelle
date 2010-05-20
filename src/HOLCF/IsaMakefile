@@ -7,6 +7,7 @@
 default: HOLCF
 images: HOLCF IOA
 test: HOLCF-IMP HOLCF-ex HOLCF-FOCUS \
+  HOLCF-Tutorial \
       IOA-ABP IOA-NTP IOA-Modelcheck IOA-Storage IOA-ex
 all: images test
 
@@ -78,6 +79,19 @@ $(OUT)/HOLCF: $(OUT)/HOL \
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/HOL HOLCF
 
 
+## HOLCF-Tutorial
+
+HOLCF-Tutorial: HOLCF $(LOG)/HOLCF-Tutorial.gz
+
+$(LOG)/HOLCF-Tutorial.gz: $(OUT)/HOLCF \
+  Tutorial/Domain_ex.thy \
+  Tutorial/Fixrec_ex.thy \
+  Tutorial/New_Domain.thy \
+  Tutorial/document/root.tex \
+  Tutorial/ROOT.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Tutorial
+
+
 ## HOLCF-IMP
 
 HOLCF-IMP: HOLCF $(LOG)/HOLCF-IMP.gz
@@ -95,15 +109,12 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ../HOL/Library/Nat_Infinity.thy \
   ex/Dagstuhl.thy \
   ex/Dnat.thy \
-  ex/Domain_ex.thy \
   ex/Domain_Proofs.thy \
   ex/Fix2.thy \
-  ex/Fixrec_ex.thy \
   ex/Focus_ex.thy \
   ex/Hoare.thy \
   ex/Letrec.thy \
   ex/Loop.thy \
-  ex/New_Domain.thy \
   ex/Powerdomain_ex.thy \
   ex/Stream.thy \
   ex/Strict_Fun.thy \
@@ -201,4 +212,4 @@ clean:
 	  $(LOG)/HOLCF-ex.gz $(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA	\
 	  $(LOG)/IOA.gz $(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz	\
 	  $(LOG)/IOA-Modelcheck.gz $(LOG)/IOA-Storage.gz	\
-	  $(LOG)/IOA-ex.gz
+	  $(LOG)/IOA-ex.gz $(LOG)/HOLCF-Tutorial.gz
