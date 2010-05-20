@@ -23,7 +23,6 @@ import org.lobobrowser.html.gui.HtmlPanel
 import org.lobobrowser.html.domimpl.{HTMLDocumentImpl, HTMLStyleElementImpl, NodeImpl}
 import org.lobobrowser.html.test.{SimpleHtmlRendererContext, SimpleUserAgentContext}
 
-import scala.io.Source
 import scala.actors.Actor._
 
 
@@ -39,7 +38,7 @@ object HTML_Panel
 
 
 class HTML_Panel(
-  sys: Isabelle_System,
+  system: Isabelle_System,
   initial_font_size: Int,
   handler: PartialFunction[HTML_Panel.Event, Unit]) extends HtmlPanel
 {
@@ -68,9 +67,9 @@ class HTML_Panel(
 <head>
 <style media="all" type="text/css">
 """ +
-  sys.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  sys.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
-  "body { font-family: " + sys.font_family + "; font-size: " + raw_px(font_size) + "px }" +
+  system.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
+  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
+  "body { font-family: " + system.font_family + "; font-size: " + raw_px(font_size) + "px }" +
 """
 </style>
 </head>
@@ -80,7 +79,7 @@ class HTML_Panel(
   }
 
   private def font_metrics(font_size: Int): FontMetrics =
-    Swing_Thread.now { getFontMetrics(sys.get_font(font_size)) }
+    Swing_Thread.now { getFontMetrics(system.get_font(font_size)) }
 
   private def panel_width(font_size: Int): Int =
     Swing_Thread.now {
