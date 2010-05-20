@@ -103,10 +103,10 @@ class HTML_Panel(
 
   private class Doc
   {
-    var current_font_size: Int = 0
-    var current_font_metrics: FontMetrics = null
-    var current_body: List[XML.Tree] = Nil
-    var current_DOM: org.w3c.dom.Document = null
+    private var current_font_size: Int = 0
+    private var current_font_metrics: FontMetrics = null
+    private var current_body: List[XML.Tree] = Nil
+    private var current_DOM: org.w3c.dom.Document = null
 
     def resize(font_size: Int)
     {
@@ -119,9 +119,11 @@ class HTML_Panel(
         current_DOM =
           builder.parse(
             new InputSourceImpl(new StringReader(template(font_size)), "http://localhost"))
-        render(current_body)
+        refresh()
       }
     }
+
+    def refresh() { render(current_body) }
 
     def render(body: List[XML.Tree])
     {
@@ -147,12 +149,14 @@ class HTML_Panel(
 
   private case class Resize(font_size: Int)
   private case class Render(body: List[XML.Tree])
+  private case object Refresh
 
   private val main_actor = actor {
     var doc = new Doc
     loop {
       react {
         case Resize(font_size) => doc.resize(font_size)
+        case Refresh => doc.refresh()
         case Render(body) => doc.render(body)
         case bad => System.err.println("main_actor: ignoring bad message " + bad)
       }
@@ -160,5 +164,6 @@ class HTML_Panel(
   }
 
   def resize(font_size: Int) { main_actor ! Resize(font_size) }
+  def refresh() { main_actor ! Refresh }
   def render(body: List[XML.Tree]) { main_actor ! Render(body) }
 }

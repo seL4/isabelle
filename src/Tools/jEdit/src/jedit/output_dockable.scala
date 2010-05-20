@@ -16,6 +16,7 @@ import scala.swing.event.ButtonClicked
 
 import javax.swing.JPanel
 import java.awt.{BorderLayout, Dimension}
+import java.awt.event.{ComponentEvent, ComponentAdapter}
 
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.gui.DockableWindowManager
@@ -68,7 +69,6 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     loop {
       react {
         case Session.Global_Settings => html_panel.resize(Isabelle.font_size())
-
         case Render(body) => html_panel.render(body)
 
         case cmd: Command =>
@@ -97,6 +97,14 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     Isabelle.session.global_settings -= output_actor
     super.removeNotify()
   }
+
+
+  /* resize */
+
+  addComponentListener(new ComponentAdapter {
+    val delay = Swing_Thread.delay_last(500) { html_panel.refresh() }
+    override def componentResized(e: ComponentEvent) { delay() }
+  })
 
 
   /* init controls */
