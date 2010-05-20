@@ -6,7 +6,7 @@
 header {* A crude implementation of finite sets by lists -- avoid using this at any cost! *}
 
 theory Executable_Set
-imports List_Set
+imports More_Set
 begin
 
 declare mem_def [code del]
@@ -76,9 +76,9 @@ setup {*
   Code.add_signature_cmd ("is_empty", "'a set \<Rightarrow> bool")
   #> Code.add_signature_cmd ("empty", "'a set")
   #> Code.add_signature_cmd ("insert", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
-  #> Code.add_signature_cmd ("List_Set.remove", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("More_Set.remove", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
   #> Code.add_signature_cmd ("image", "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set")
-  #> Code.add_signature_cmd ("List_Set.project", "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("More_Set.project", "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set")
   #> Code.add_signature_cmd ("Ball", "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool")
   #> Code.add_signature_cmd ("Bex", "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool")
   #> Code.add_signature_cmd ("card", "'a set \<Rightarrow> nat")

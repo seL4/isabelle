@@ -4,7 +4,7 @@
 header {* Executable finite sets *}
 
 theory Fset
-imports List_Set More_List
+imports More_Set More_List
 begin
 
 declare mem_def [simp]
@@ -109,7 +109,7 @@ end
 subsection {* Basic operations *}
 
 definition is_empty :: "'a fset \<Rightarrow> bool" where
-  [simp]: "is_empty A \<longleftrightarrow> List_Set.is_empty (member A)"
+  [simp]: "is_empty A \<longleftrightarrow> More_Set.is_empty (member A)"
 
 lemma is_empty_Set [code]:
   "is_empty (Set xs) \<longleftrightarrow> null xs"
@@ -132,13 +132,13 @@ lemma insert_Set [code]:
   by (simp_all add: Set_def Coset_def)
 
 definition remove :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "remove x A = Fset (List_Set.remove x (member A))"
+  [simp]: "remove x A = Fset (More_Set.remove x (member A))"
 
 lemma remove_Set [code]:
   "remove x (Set xs) = Set (removeAll x xs)"
   "remove x (Coset xs) = Coset (List.insert x xs)"
   by (simp_all add: Set_def Coset_def remove_set_compl)
-    (simp add: List_Set.remove_def)
+    (simp add: More_Set.remove_def)
 
 definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" where
   [simp]: "map f A = Fset (image f (member A))"
@@ -148,7 +148,7 @@ lemma map_Set [code]:
   by (simp add: Set_def)
 
 definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
-  [simp]: "filter P A = Fset (List_Set.project P (member A))"
+  [simp]: "filter P A = Fset (More_Set.project P (member A))"
 
 lemma filter_Set [code]:
   "filter P (Set xs) = Set (List.filter P xs)"
@@ -211,18 +211,18 @@ lemma inter_project [code]:
 proof -
   show "inf A (Set xs) = Set (List.filter (member A) xs)"
     by (simp add: inter project_def Set_def)
-  have *: "\<And>x::'a. remove = (\<lambda>x. Fset \<circ> List_Set.remove x \<circ> member)"
+  have *: "\<And>x::'a. remove = (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member)"
     by (simp add: expand_fun_eq)
-  have "member \<circ> fold (\<lambda>x. Fset \<circ> List_Set.remove x \<circ> member) xs =
-    fold List_Set.remove xs \<circ> member"
+  have "member \<circ> fold (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member) xs =
+    fold More_Set.remove xs \<circ> member"
     by (rule fold_apply) (simp add: expand_fun_eq)
-  then have "fold List_Set.remove xs (member A) = 
-    member (fold (\<lambda>x. Fset \<circ> List_Set.remove x \<circ> member) xs A)"
+  then have "fold More_Set.remove xs (member A) = 
+    member (fold (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member) xs A)"
     by (simp add: expand_fun_eq)
   then have "inf A (Coset xs) = fold remove xs A"
     by (simp add: Diff_eq [symmetric] minus_set *)
   moreover have "\<And>x y :: 'a. Fset.remove y \<circ> Fset.remove x = Fset.remove x \<circ> Fset.remove y"
-    by (auto simp add: List_Set.remove_def * intro: ext)
+    by (auto simp add: More_Set.remove_def * intro: ext)
   ultimately show "inf A (Coset xs) = foldr remove xs A"
     by (simp add: foldr_fold)
 qed
@@ -296,17 +296,17 @@ subsection {* Simplified simprules *}
 
 lemma is_empty_simp [simp]:
   "is_empty A \<longleftrightarrow> member A = {}"
-  by (simp add: List_Set.is_empty_def)
+  by (simp add: More_Set.is_empty_def)
 declare is_empty_def [simp del]
 
 lemma remove_simp [simp]:
   "remove x A = Fset (member A - {x})"
-  by (simp add: List_Set.remove_def)
+  by (simp add: More_Set.remove_def)
 declare remove_def [simp del]
 
 lemma filter_simp [simp]:
   "filter P A = Fset {x \<in> member A. P x}"
-  by (simp add: List_Set.project_def)
+  by (simp add: More_Set.project_def)
 declare filter_def [simp del]
 
 declare mem_def [simp del]

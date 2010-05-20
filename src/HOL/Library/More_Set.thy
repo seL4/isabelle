@@ -3,7 +3,7 @@
 
 header {* Relating (finite) sets and lists *}
 
-theory List_Set
+theory More_Set
 imports Main More_List
 begin
 

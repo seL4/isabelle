@@ -449,7 +449,7 @@ lemma [code]:
     (\<lambda>(ss, w).
         let p = some_elem w in propa f (step p (ss ! p)) ss (w - {p}))
     (ss, w)"
-  unfolding iter_def List_Set.is_empty_def some_elem_def ..
+  unfolding iter_def More_Set.is_empty_def some_elem_def ..
 
 lemma JVM_sup_unfold [code]:
  "JVMType.sup S m n = lift2 (Opt.sup

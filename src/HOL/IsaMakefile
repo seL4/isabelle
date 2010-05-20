@@ -407,7 +407,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
   Library/Lattice_Algebras.thy Library/Lattice_Syntax.thy		\
-  Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy	\
+  Library/Library.thy Library/List_Prefix.thy Library/More_Set.thy	\
   Library/More_List.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Quotient_Type.thy Library/Quicksort.thy			\
   Library/Nat_Infinity.thy Library/README.html	Library/State_Monad.thy	\
