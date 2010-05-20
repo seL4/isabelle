@@ -136,7 +136,7 @@ lemma lookup_bulkload [simp]:
 
 lemma lookup_map_entry [simp]:
   "lookup (map_entry k f t) = (lookup t)(k := Option.map f (lookup t k))"
-  by (simp add: map_entry_def lookup_RBT lookup_map_entry lookup_impl_of)
+  by (simp add: map_entry_def lookup_RBT RBT_Impl.lookup_map_entry lookup_impl_of)
 
 lemma lookup_map [simp]:
   "lookup (map f t) k = Option.map (f k) (lookup t k)"
@@ -191,7 +191,11 @@ lemma insert_Mapping [code]:
   by (rule mapping_eqI) simp
 
 lemma delete_Mapping [code]:
-  "Mapping.delete k (Mapping xs) = Mapping (delete k xs)"
+  "Mapping.delete k (Mapping t) = Mapping (delete k t)"
+  by (rule mapping_eqI) simp
+
+lemma map_entry_Mapping [code]:
+  "Mapping.map_entry k f (Mapping t) = Mapping (map_entry k f t)"
   by (rule mapping_eqI) simp
 
 lemma keys_Mapping [code]:

@@ -6,7 +6,7 @@
 header {* A crude implementation of finite sets by lists -- avoid using this at any cost! *}
 
 theory Executable_Set
-imports List_Set
+imports More_Set
 begin
 
 declare mem_def [code del]
@@ -50,8 +50,8 @@ lemma [code]:
   by simp
 
 lemma [code]:
-  "x \<in> Set xs \<longleftrightarrow> member x xs"
-  "x \<in> Coset xs \<longleftrightarrow> \<not> member x xs"
+  "x \<in> Set xs \<longleftrightarrow> member xs x"
+  "x \<in> Coset xs \<longleftrightarrow> \<not> member xs x"
   by (simp_all add: mem_iff)
 
 definition is_empty :: "'a set \<Rightarrow> bool" where
@@ -76,9 +76,9 @@ setup {*
   Code.add_signature_cmd ("is_empty", "'a set \<Rightarrow> bool")
   #> Code.add_signature_cmd ("empty", "'a set")
   #> Code.add_signature_cmd ("insert", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
-  #> Code.add_signature_cmd ("List_Set.remove", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("More_Set.remove", "'a \<Rightarrow> 'a set \<Rightarrow> 'a set")
   #> Code.add_signature_cmd ("image", "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set")
-  #> Code.add_signature_cmd ("List_Set.project", "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set")
+  #> Code.add_signature_cmd ("More_Set.project", "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set")
   #> Code.add_signature_cmd ("Ball", "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool")
   #> Code.add_signature_cmd ("Bex", "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool")
   #> Code.add_signature_cmd ("card", "'a set \<Rightarrow> nat")
@@ -232,36 +232,36 @@ setup {*
 
 lemma inter_project [code]:
   "inter A (Set xs) = Set (List.filter (\<lambda>x. x \<in> A) xs)"
-  "inter A (Coset xs) = foldl (\<lambda>A x. remove x A) A xs"
-  by (simp add: inter project_def, simp add: Diff_eq [symmetric] minus_set)
+  "inter A (Coset xs) = foldr remove xs A"
+  by (simp add: inter project_def) (simp add: Diff_eq [symmetric] minus_set_foldr)
 
 lemma subtract_remove [code]:
-  "subtract (Set xs) A = foldl (\<lambda>A x. remove x A) A xs"
+  "subtract (Set xs) A = foldr remove xs A"
   "subtract (Coset xs) A = Set (List.filter (\<lambda>x. x \<in> A) xs)"
-  by (auto simp add: minus_set)
+  by (auto simp add: minus_set_foldr)
 
 lemma union_insert [code]:
-  "union (Set xs) A = foldl (\<lambda>A x. insert x A) A xs"
+  "union (Set xs) A = foldr insert xs A"
   "union (Coset xs) A = Coset (List.filter (\<lambda>x. x \<notin> A) xs)"
-  by (auto simp add: union_set)
+  by (auto simp add: union_set_foldr)
 
 lemma Inf_inf [code]:
-  "Inf (Set xs) = foldl inf (top :: 'a::complete_lattice) xs"
+  "Inf (Set xs) = foldr inf xs (top :: 'a::complete_lattice)"
   "Inf (Coset []) = (bot :: 'a::complete_lattice)"
-  by (simp_all add: Inf_UNIV Inf_set_fold)
+  by (simp_all add: Inf_UNIV Inf_set_foldr)
 
 lemma Sup_sup [code]:
-  "Sup (Set xs) = foldl sup (bot :: 'a::complete_lattice) xs"
+  "Sup (Set xs) = foldr sup xs (bot :: 'a::complete_lattice)"
   "Sup (Coset []) = (top :: 'a::complete_lattice)"
-  by (simp_all add: Sup_UNIV Sup_set_fold)
+  by (simp_all add: Sup_UNIV Sup_set_foldr)
 
 lemma Inter_inter [code]:
-  "Inter (Set xs) = foldl inter (Coset []) xs"
+  "Inter (Set xs) = foldr inter xs (Coset [])"
   "Inter (Coset []) = empty"
   unfolding Inter_def Inf_inf by simp_all
 
 lemma Union_union [code]:
-  "Union (Set xs) = foldl union empty xs"
+  "Union (Set xs) = foldr union xs empty"
   "Union (Coset []) = Coset []"
   unfolding Union_def Sup_sup by simp_all
 

@@ -3,8 +3,8 @@
 
 header {* Relating (finite) sets and lists *}
 
-theory List_Set
-imports Main
+theory More_Set
+imports Main More_List
 begin
 
 subsection {* Various additional set functions *}
@@ -24,7 +24,7 @@ qed
 
 lemma minus_fold_remove:
   assumes "finite A"
-  shows "B - A = fold remove B A"
+  shows "B - A = Finite_Set.fold remove B A"
 proof -
   have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: expand_fun_eq remove_def)
   show ?thesis by (simp only: rem assms minus_fold_remove)
@@ -72,20 +72,36 @@ lemma project_set:
 subsection {* Functorial set operations *}
 
 lemma union_set:
-  "set xs \<union> A = foldl (\<lambda>A x. Set.insert x A) A xs"
+  "set xs \<union> A = fold Set.insert xs A"
 proof -
   interpret fun_left_comm_idem Set.insert
     by (fact fun_left_comm_idem_insert)
   show ?thesis by (simp add: union_fold_insert fold_set)
 qed
 
+lemma union_set_foldr:
+  "set xs \<union> A = foldr Set.insert xs A"
+proof -
+  have "\<And>x y :: 'a. insert y \<circ> insert x = insert x \<circ> insert y"
+    by (auto intro: ext)
+  then show ?thesis by (simp add: union_set foldr_fold)
+qed
+
 lemma minus_set:
-  "A - set xs = foldl (\<lambda>A x. remove x A) A xs"
+  "A - set xs = fold remove xs A"
 proof -
   interpret fun_left_comm_idem remove
     by (fact fun_left_comm_idem_remove)
   show ?thesis
     by (simp add: minus_fold_remove [of _ A] fold_set)
+qed
+
+lemma minus_set_foldr:
+  "A - set xs = foldr remove xs A"
+proof -
+  have "\<And>x y :: 'a. remove y \<circ> remove x = remove x \<circ> remove y"
+    by (auto simp add: remove_def intro: ext)
+  then show ?thesis by (simp add: minus_set foldr_fold)
 qed
 
 
@@ -110,5 +126,12 @@ lemma set_eq:
 lemma inter:
   "A \<inter> B = project (\<lambda>x. x \<in> A) B"
   by (auto simp add: project_def)
+
+
+subsection {* Various lemmas *}
+
+lemma not_set_compl:
+  "Not \<circ> set xs = - set xs"
+  by (simp add: fun_Compl_def bool_Compl_def comp_def expand_fun_eq)
 
 end

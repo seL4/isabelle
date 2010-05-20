@@ -401,16 +401,16 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Efficient_Nat.thy Library/Sum_Of_Squares.thy			\
   Library/Dlist.thy Library/Sum_Of_Squares/sos_wrapper.ML		\
   Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
-  Library/Glbs.thy Library/Executable_Set.thy	\
+  Library/Glbs.thy Library/Executable_Set.thy				\
   Library/Infinite_Set.thy Library/FuncSet.thy				\
   Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
   Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
   Library/Lattice_Algebras.thy Library/Lattice_Syntax.thy		\
-  Library/Library.thy Library/List_Prefix.thy Library/List_Set.thy	\
-  Library/State_Monad.thy Library/Multiset.thy Library/Permutation.thy	\
+  Library/Library.thy Library/List_Prefix.thy Library/More_Set.thy	\
+  Library/More_List.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Quotient_Type.thy Library/Quicksort.thy			\
-  Library/Nat_Infinity.thy Library/README.html				\
+  Library/Nat_Infinity.thy Library/README.html	Library/State_Monad.thy	\
   Library/Continuity.thy Library/Order_Relation.thy			\
   Library/Nested_Environment.thy Library/Ramsey.thy Library/Zorn.thy	\
   Library/Library/ROOT.ML Library/Library/document/root.tex		\
@@ -433,7 +433,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Nat_Bijection.thy $(SRC)/Tools/float.ML			\
   $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
   Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\
-  Library/OptionalSugar.thy Library/Convex.thy                          \
+  Library/OptionalSugar.thy Library/Convex.thy				\
   Library/Predicate_Compile_Quickcheck.thy Library/SML_Quickcheck.thy
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
@@ -586,17 +586,18 @@ $(LOG)/HOL-Number_Theory.gz: $(OUT)/HOL $(ALGEBRA_DEPENDENCIES) \
 
 HOL-Old_Number_Theory: HOL $(LOG)/HOL-Old_Number_Theory.gz
 
-$(LOG)/HOL-Old_Number_Theory.gz: $(OUT)/HOL Library/Permutation.thy		\
-  Old_Number_Theory/Primes.thy Old_Number_Theory/Fib.thy				\
-  Old_Number_Theory/Factorization.thy Old_Number_Theory/BijectionRel.thy		\
-  Old_Number_Theory/Chinese.thy Old_Number_Theory/EulerFermat.thy			\
-  Old_Number_Theory/IntFact.thy Old_Number_Theory/IntPrimes.thy			\
-  Old_Number_Theory/WilsonBij.thy Old_Number_Theory/WilsonRuss.thy		\
-  Old_Number_Theory/Finite2.thy Old_Number_Theory/Int2.thy			\
-  Old_Number_Theory/EvenOdd.thy Old_Number_Theory/Residues.thy			\
-  Old_Number_Theory/Euler.thy Old_Number_Theory/Gauss.thy				\
+$(LOG)/HOL-Old_Number_Theory.gz: $(OUT)/HOL Library/Permutation.thy	\
+  Old_Number_Theory/Primes.thy Old_Number_Theory/Fib.thy		\
+  Old_Number_Theory/Factorization.thy Old_Number_Theory/BijectionRel.thy\
+  Old_Number_Theory/Chinese.thy Old_Number_Theory/EulerFermat.thy	\
+  Old_Number_Theory/IntFact.thy Old_Number_Theory/IntPrimes.thy		\
+  Old_Number_Theory/WilsonBij.thy Old_Number_Theory/WilsonRuss.thy	\
+  Old_Number_Theory/Finite2.thy Old_Number_Theory/Int2.thy		\
+  Old_Number_Theory/EvenOdd.thy Old_Number_Theory/Residues.thy		\
+  Old_Number_Theory/Euler.thy Old_Number_Theory/Gauss.thy		\
   Old_Number_Theory/Quadratic_Reciprocity.thy Library/Infinite_Set.thy	\
-  Old_Number_Theory/Legacy_GCD.thy Old_Number_Theory/Pocklington.thy Old_Number_Theory/ROOT.ML
+  Old_Number_Theory/Legacy_GCD.thy Old_Number_Theory/Pocklington.thy	\
+  Old_Number_Theory/ROOT.ML
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Old_Number_Theory
 
 
@@ -711,9 +712,9 @@ $(OUT)/HOL-Algebra: $(ALGEBRA_DEPENDENCIES)
 HOL-Auth: HOL $(LOG)/HOL-Auth.gz
 
 $(LOG)/HOL-Auth.gz: $(OUT)/HOL 						\
-  Auth/Auth_Shared.thy Auth/Auth_Public.thy Auth/All_Symmetric.thy		\
-  Auth/Guard/Auth_Guard_Shared.thy		\
-  Auth/Guard/Auth_Guard_Public.thy		\
+  Auth/Auth_Shared.thy Auth/Auth_Public.thy Auth/All_Symmetric.thy	\
+  Auth/Guard/Auth_Guard_Shared.thy					\
+  Auth/Guard/Auth_Guard_Public.thy					\
   Auth/Smartcard/Auth_Smartcard.thy Auth/All_Symmetric.thy		\
   Auth/CertifiedEmail.thy Auth/Event.thy Auth/Message.thy		\
   Auth/NS_Public.thy Auth/NS_Public_Bad.thy Auth/NS_Shared.thy		\

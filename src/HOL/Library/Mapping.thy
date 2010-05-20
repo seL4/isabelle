@@ -40,6 +40,16 @@ definition size :: "('a, 'b) mapping \<Rightarrow> nat" where
 definition replace :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
   "replace k v m = (if lookup m k = None then m else update k v m)"
 
+definition default :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
+  "default k v m = (if lookup m k = None then update k v m else m)"
+
+definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
+  "map_entry k f m = (case lookup m k of None \<Rightarrow> m
+    | Some v \<Rightarrow> update k (f v) m)" 
+
+definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
+  "map_default k v f m = map_entry k f (default k v m)" 
+
 definition tabulate :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping" where
   "tabulate ks f = Mapping (map_of (map (\<lambda>k. (k, f k)) ks))"
 
@@ -69,6 +79,10 @@ lemma lookup_update [simp]:
 lemma lookup_delete [simp]:
   "lookup (delete k m) = (lookup m) (k := None)"
   by (cases m) simp
+
+lemma lookup_map_entry [simp]:
+  "lookup (map_entry k f m) = (lookup m) (k := Option.map f (lookup m k))"
+  by (cases "lookup m k") (simp_all add: map_entry_def expand_fun_eq)
 
 lemma lookup_tabulate [simp]:
   "lookup (tabulate ks f) = (Some o f) |` set ks"
@@ -121,6 +135,14 @@ lemma size_tabulate:
 lemma bulkload_tabulate:
   "bulkload xs = tabulate [0..<length xs] (nth xs)"
   by (rule mapping_eqI) (simp add: expand_fun_eq)
+
+lemma keys_tabulate:
+  "keys (tabulate ks f) = set ks"
+  by (simp add: tabulate_def keys_def map_of_map_restrict o_def)
+
+lemma keys_bulkload:
+  "keys (bulkload xs) = {0..<length xs}"
+  by (simp add: keys_tabulate bulkload_tabulate)
 
 lemma is_empty_empty:
   "is_empty m \<longleftrightarrow> m = Mapping Map.empty"
