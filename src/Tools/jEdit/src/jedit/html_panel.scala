@@ -143,9 +143,11 @@ class HTML_Panel(
             .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
 
       val node = XML.document_node(current_DOM, XML.elem(HTML.BODY, html_body))
-      current_DOM.removeChild(current_DOM.getLastChild())
-      current_DOM.appendChild(node)
-      Swing_Thread.now { setDocument(current_DOM, rcontext) }
+      Swing_Thread.now {
+        current_DOM.removeChild(current_DOM.getLastChild())
+        current_DOM.appendChild(node)
+        setDocument(current_DOM, rcontext)
+      }
     }
 
     resize(initial_font_size)
