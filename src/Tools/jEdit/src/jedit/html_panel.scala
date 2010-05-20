@@ -105,7 +105,6 @@ class HTML_Panel(
   {
     var current_font_size: Int = 0
     var current_font_metrics: FontMetrics = null
-    var current_margin: Int = 0
     var current_body: List[XML.Tree] = Nil
     var current_DOM: org.w3c.dom.Document = null
 
@@ -116,8 +115,6 @@ class HTML_Panel(
           current_font_size = font_size
           current_font_metrics =
             getFontMetrics(system.get_font(lobo_px(raw_px(font_size))))
-          current_margin =
-            (getWidth() / (current_font_metrics.charWidth(Symbol.spc) max 1) - 4) max 20
         }
         current_DOM =
           builder.parse(
@@ -129,9 +126,10 @@ class HTML_Panel(
     def render(body: List[XML.Tree])
     {
       current_body = body
+      val margin = (getWidth() / (current_font_metrics.charWidth(Symbol.spc) max 1) - 4) max 20
       val html_body =
         current_body.flatMap(div =>
-          Pretty.formatted(List(div), current_margin,
+          Pretty.formatted(List(div), margin,
               Pretty.font_metric(current_font_metrics))
             .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
 
