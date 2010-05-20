@@ -59,12 +59,6 @@ class HTML_Panel(
 
   /* document template */
 
-  private def try_file(name: String): String =
-  {
-    val file = sys.platform_file(name)
-    if (file.isFile) Source.fromFile(file).mkString else ""
-  }
-
   private def template(font_size: Int): String =
   {
     """<?xml version="1.0" encoding="utf-8"?>
@@ -74,8 +68,8 @@ class HTML_Panel(
 <head>
 <style media="all" type="text/css">
 """ +
-  try_file("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  try_file("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
+  sys.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
+  sys.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
   "body { font-family: " + sys.font_family + "; font-size: " + raw_px(font_size) + "px }" +
 """
 </style>
