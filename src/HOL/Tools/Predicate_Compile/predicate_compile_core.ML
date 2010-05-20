@@ -2824,7 +2824,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
       prepare_intrs options compilation thy prednames (maps (intros_of ctxt) prednames)
     val _ = print_step options "Infering modes..."
     val ((moded_clauses, errors), thy') =
-      Output.cond_timeit true "Infering modes"
+      Output.cond_timeit (!Quickcheck.timing) "Infering modes"
       (fn _ => infer_modes mode_analysis_options
         options compilation preds all_modes param_vs clauses thy)
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
