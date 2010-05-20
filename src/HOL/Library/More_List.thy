@@ -237,7 +237,7 @@ lemma (in complete_lattice) SUPR_set_fold:
   "SUPR (set xs) f = fold (sup \<circ> f) xs bot"
   unfolding SUPR_def set_map [symmetric] Sup_set_fold fold_map ..
 
-text {* nth_map *}
+text {* @{text nth_map} *}
 
 definition nth_map :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "nth_map n f xs = (if n < length xs then
