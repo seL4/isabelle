@@ -102,27 +102,27 @@ object Library
 
   /* zoom box */
 
-  def zoom_box(apply_factor: Int => Unit) =
-    new ComboBox(
-      List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%")) {
-      val Factor = "([0-9]+)%?"r
-      def reset(): Int = { selection.index = 3; 100 }
+  class Zoom_Box(apply_factor: Int => Unit) extends ComboBox[String](
+    List("50%", "70%", "85%", "100%", "125%", "150%", "175%", "200%", "300%", "400%"))
+  {
+    val Factor = "([0-9]+)%?"r
+    def parse(text: String): Int =
+      text match {
+        case Factor(s) =>
+          val i = Integer.parseInt(s)
+          if (10 <= i && i <= 1000) i else 100
+        case _ => 100
+      }
+    def print(i: Int): String = i.toString + "%"
 
-      reactions += {
-        case SelectionChanged(_) =>
-          val factor =
-            selection.item match {
-              case Factor(s) =>
-                val i = Integer.parseInt(s)
-                if (10 <= i && i <= 1000) i else reset()
-              case _ => reset()
-            }
-          apply_factor(factor)
-        }
-      reset()
-      listenTo(selection)
-      makeEditable()
+    makeEditable()(c => new ComboBox.BuiltInEditor(c)(text => print(parse(text)), x => x))
+    reactions += {
+      case SelectionChanged(_) => apply_factor(parse(selection.item))
     }
+    listenTo(selection)
+    selection.index = 3
+    prototypeDisplayValue = Some("00000%")
+  }
 
 
   /* timing */

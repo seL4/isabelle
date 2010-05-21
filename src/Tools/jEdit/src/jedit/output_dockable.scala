@@ -34,27 +34,31 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
 
   /* controls */
 
-  private val zoom = Library.zoom_box(factor => { zoom_factor = factor; handle_resize() })
+  private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
   private val update = new Button("Update") {
     reactions += { case ButtonClicked(_) => handle_update() }
   }
-  update.tooltip = "Update display according to state of command at caret position"
+  update.tooltip =
+    "<html>Update display according to the<br>state of command at caret position</html>"
 
   private val tracing = new CheckBox("Tracing") {
     reactions += { case ButtonClicked(_) => handle_update() }
   }
-  tracing.tooltip = "Indicate output of tracing messages"
+  tracing.tooltip =
+    "<html>Indicate output of tracing messages<br>(also needs to be enabled on the prover side)</html>"
 
   private val debug = new CheckBox("Debug") {
     reactions += { case ButtonClicked(_) => handle_update() }
   }
-  debug.tooltip = "Indicate output of debug messages (usually disabled on the prover side)"
+  debug.tooltip =
+    "<html>Indicate output of debug messages<br>(also needs to be enabled on the prover side)</html>"
 
   private val follow = new CheckBox("Follow")
   follow.selected = true
-  follow.tooltip = "Indicate automatic update according to caret movement or state changes"
+  follow.tooltip =
+    "<html>Indicate automatic update following<br>caret movement or state changes</html>"
 
   private def filtered_results(document: Document, cmd: Command): List[XML.Tree] =
   {
