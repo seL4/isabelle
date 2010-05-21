@@ -61,8 +61,8 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     val show_tracing = tracing.selected
     val show_debug = debug.selected
     document.current_state(cmd).results filter {
-      case Output.Message(Markup.TRACING, _, _) => show_tracing
-      case Output.Message(Markup.DEBUG, _, _) => show_debug
+      case XML.Elem(Markup.TRACING, _, _) => show_tracing
+      case XML.Elem(Markup.DEBUG, _, _) => show_debug
       case _ => true
     }
   }
