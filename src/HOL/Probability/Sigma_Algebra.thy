@@ -75,8 +75,8 @@ lemma (in sigma_algebra) countable_INT [intro]:
   assumes a: "range a \<subseteq> sets M"
   shows "(\<Inter>i::nat. a i) \<in> sets M"
 proof -
-  have "space M - (\<Union>i. space M - a i) \<in> sets M" using a
-    by (blast intro: countable_UN compl_sets a) 
+  from a have "\<forall>i. a i \<in> sets M" by fast
+  hence "space M - (\<Union>i. space M - a i) \<in> sets M" by blast
   moreover
   have "(\<Inter>i. a i) = space M - (\<Union>i. space M - a i)" using space_closed a 
     by blast
@@ -161,7 +161,7 @@ lemma sigma_sets_into_sp: "A \<subseteq> Pow sp \<Longrightarrow> x \<in> sigma_
 lemma sigma_sets_Un: 
   "a \<in> sigma_sets sp A \<Longrightarrow> b \<in> sigma_sets sp A \<Longrightarrow> a \<union> b \<in> sigma_sets sp A"
 apply (simp add: Un_range_binary range_binary_eq) 
-apply (metis Union COMBK_def binary_def fun_upd_apply) 
+apply (rule Union, simp add: binary_def COMBK_def fun_upd_apply)
 done
 
 lemma sigma_sets_Inter:
@@ -210,7 +210,7 @@ lemma (in sigma_algebra) sigma_sets_eq:
      "sigma_sets (space M) (sets M) = sets M"
 proof
   show "sets M \<subseteq> sigma_sets (space M) (sets M)"
-    by (metis Set.subsetI sigma_sets.Basic space_closed)
+    by (metis Set.subsetI sigma_sets.Basic)
   next
   show "sigma_sets (space M) (sets M) \<subseteq> sets M"
     by (metis sigma_sets_subset subset_refl)
@@ -221,7 +221,7 @@ lemma sigma_algebra_sigma_sets:
   apply (auto simp add: sigma_algebra_def sigma_algebra_axioms_def
       algebra_def sigma_sets.Empty sigma_sets.Compl sigma_sets_Un) 
   apply (blast dest: sigma_sets_into_sp)
-  apply (blast intro: sigma_sets.intros) 
+  apply (rule sigma_sets.Union, fast)
   done
 
 lemma sigma_algebra_sigma:

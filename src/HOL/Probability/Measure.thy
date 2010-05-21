@@ -143,7 +143,7 @@ lemma (in algebra) smallest_ccdi_sets_Un:
     shows "A \<union> B \<in> smallest_ccdi_sets M"
 proof -
   have ra: "range (binaryset A B) \<in> Pow (smallest_ccdi_sets M)"
-    by (simp add: range_binaryset_eq  A B empty_sets smallest_ccdi_sets.Basic)
+    by (simp add: range_binaryset_eq  A B smallest_ccdi_sets.Basic)
   have di:  "disjoint_family (binaryset A B)" using disj
     by (simp add: disjoint_family_on_def binaryset_def Int_commute) 
   from Disj [OF ra di]
@@ -277,9 +277,8 @@ proof -
     apply (blast intro: smallest_ccdi_sets.Disj) 
     done
   hence "sigma_sets (space M) (sets M) \<subseteq> smallest_ccdi_sets M"
-    by auto 
-       (metis sigma_algebra.sigma_sets_subset algebra.simps(1) 
-          algebra.simps(2) subsetD) 
+    by clarsimp
+       (drule sigma_algebra.sigma_sets_subset [where a="sets M"], auto)
   also have "...  \<subseteq> C"
     proof
       fix x
@@ -344,7 +343,7 @@ proof (rule algebra.countably_additive_additive [OF _ _ ca])
   show "algebra M"
     by (blast intro: sigma_algebra.axioms local.sigma_algebra_axioms)
   show "positive M (measure M)"
-    by (simp add: positive_def empty_measure positive) 
+    by (simp add: positive_def positive)
 qed
  
 lemma (in measure_space) measure_additive:
@@ -410,7 +409,7 @@ proof -
     have "(measure M \<circ> A) n =
           setsum (measure M \<circ> (\<lambda>i. A (Suc i) - A i)) {0..<n}"
       proof (induct n)
-        case 0 thus ?case by (auto simp add: A0 empty_measure)
+        case 0 thus ?case by (auto simp add: A0)
       next
         case (Suc m) 
         have "A (Suc m) = A m \<union> (A (Suc m) - A m)"
@@ -440,7 +439,7 @@ proof -
   have A1: "\<And>i. A (Suc i) - A i \<in> sets M"
     by (metis A Diff range_subsetD)
   have A2: "(\<Union>i. A (Suc i) - A i) \<in> sets M"
-    by (blast intro: countable_UN range_subsetD [OF A])  
+    by (blast intro: range_subsetD [OF A])
   have "(measure M o (\<lambda>i. A (Suc i) - A i)) sums measure M (\<Union>i. A (Suc i) - A i)"
     by (rule measure_countably_additive) 
        (auto simp add: disjoint_family_Suc ASuc A1 A2)
@@ -486,7 +485,8 @@ next
     assume y: "y \<in> sets b"
     with a b f
     have "space a - f -` y = f -` (space b - y)"
-      by (auto simp add: sigma_algebra_iff2) (blast intro: ba) 
+      by (auto, clarsimp simp add: sigma_algebra_iff2)
+         (drule ba, blast intro: ba)
     hence "space a - (f -` y) \<in> (vimage f) ` sets b"
       by auto
          (metis b y subsetD equalityE imageI sigma_algebra.sigma_sets_eq
@@ -788,7 +788,7 @@ proof -
   show ?thesis
     proof (rule measurable_sigma) 
       show "prod_sets (sets a1) (sets a2) \<subseteq> Pow (space a1 \<times> space a2)" using sa1 sa2
-        by (force simp add: prod_sets_def sigma_algebra_iff algebra_def) 
+        by (auto simp add: prod_sets_def sigma_algebra_iff dest: algebra.space_closed)
     next
       show "f \<in> space M \<rightarrow> space a1 \<times> space a2" 
         by (rule prod_final [OF fn1 fn2])
@@ -843,13 +843,13 @@ proof -
       next
         case (insert x t)
         hence x: "x \<in> s" and t: "t \<subseteq> s" 
-          by (simp_all add: insert_subset) 
+          by simp_all
         hence ts: "t \<in> sets M"  using insert
           by (metis Diff_insert_absorb Diff ssets)
         have "measure M (insert x t) = measure M ({x} \<union> t)"
           by simp
         also have "... = measure M {x} + measure M t" 
-          by (simp add: measure_additive insert insert_disjoint ssets x ts 
+          by (simp add: measure_additive insert ssets x ts 
                   del: Un_insert_left)
         also have "... = (\<Sum>x\<in>insert x t. measure M {x})" 
           by (simp add: x t ts insert) 

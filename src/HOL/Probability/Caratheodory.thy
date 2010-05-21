@@ -167,9 +167,9 @@ lemma (in algebra) lambda_system_eq:
         {l. l \<in> sets M & (\<forall>x \<in> sets M. f (x \<inter> l) + f (x - l) = f x)}"
 proof -
   have [simp]: "!!l x. l \<in> sets M \<Longrightarrow> x \<in> sets M \<Longrightarrow> (space M - l) \<inter> x = x - l"
-    by (metis Diff_eq Int_Diff Int_absorb1 Int_commute sets_into_space)
+    by (metis Int_Diff Int_absorb1 Int_commute sets_into_space)
   show ?thesis
-    by (auto simp add: lambda_system_def) (metis Diff_Compl Int_commute)+
+    by (auto simp add: lambda_system_def) (metis Int_commute)+
 qed
 
 lemma (in algebra) lambda_system_empty:
@@ -352,7 +352,7 @@ lemma (in algebra) range_disjointed_sets:
 proof (auto simp add: disjointed_def) 
   fix n
   show "A n - (\<Union>i\<in>{0..<n}. A i) \<in> sets M" using UNION_in_sets
-    by (metis A Diff UNIV_I disjointed_def image_subset_iff)
+    by (metis A Diff UNIV_I image_subset_iff)
 qed
 
 lemma sigma_algebra_disjoint_iff: 
@@ -476,7 +476,7 @@ proof -
           lambda_system_positive lambda_system_additive lambda_system_increasing
           A' oms outer_measure_space_def disj)
   have U_in: "(\<Union>i. A i) \<in> sets M"
-    by (metis A countable_UN image_subset_iff lambda_system_sets)
+    by (metis A'' countable_UN)
   have U_eq: "f (\<Union>i. A i) = suminf (f o A)" 
     proof (rule antisym)
       show "f (\<Union>i. A i) \<le> suminf (f \<circ> A)"
@@ -500,7 +500,7 @@ proof -
         apply (auto simp add: )
         apply (subst abs_of_nonneg)
         apply (metis A'' Int UNIV_I a image_subset_iff)
-        apply (blast intro:  increasingD [OF inc] a)   
+        apply (blast intro:  increasingD [OF inc])
         done
       show ?thesis
       proof (rule antisym)
@@ -523,15 +523,15 @@ proof -
             have UNION_in: "(\<Union>i\<in>{0..<n}. A i) \<in> sets M"
               by (metis A'' UNION_in_sets) 
             have le_fa: "f (UNION {0..<n} A \<inter> a) \<le> f a" using A''
-              by (blast intro: increasingD [OF inc] A'' Int UNION_in_sets a) 
+              by (blast intro: increasingD [OF inc] A'' UNION_in_sets)
             have ls: "(\<Union>i\<in>{0..<n}. A i) \<in> lambda_system M f"
               using algebra.UNION_in_sets [OF lambda_system_algebra [OF pos]]
               by (simp add: A) 
             hence eq_fa: "f (a \<inter> (\<Union>i\<in>{0..<n}. A i)) + f (a - (\<Union>i\<in>{0..<n}. A i)) = f a"
-              by (simp add: lambda_system_eq UNION_in Diff_Compl a)
+              by (simp add: lambda_system_eq UNION_in)
             have "f (a - (\<Union>i. A i)) \<le> f (a - (\<Union>i\<in>{0..<n}. A i))"
-              by (blast intro: increasingD [OF inc] Diff UNION_eq_Union_image 
-                               UNION_in U_in a) 
+              by (blast intro: increasingD [OF inc] UNION_eq_Union_image 
+                               UNION_in U_in)
             thus "setsum (f \<circ> (\<lambda>i. a \<inter> i) \<circ> A) {0..<n} \<le> f a - f (a - (\<Union>i. A i))"
               using eq_fa
               by (simp add: suminf_le [OF summ] lambda_system_strong_sum pos 
@@ -541,9 +541,9 @@ proof -
           by arith
       next
         have "f a \<le> f (a \<inter> (\<Union>i. A i) \<union> (a - (\<Union>i. A i)))" 
-          by (blast intro:  increasingD [OF inc] a U_in)
+          by (blast intro:  increasingD [OF inc] U_in)
         also have "... \<le>  f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))"
-          by (blast intro: subadditiveD [OF sa] Int Diff U_in) 
+          by (blast intro: subadditiveD [OF sa] U_in)
         finally show "f a \<le> f (a \<inter> (\<Union>i. A i)) + f (a - (\<Union>i. A i))" .
         qed
      qed
@@ -610,11 +610,11 @@ proof (auto simp add: increasing_def)
   fix x y
   assume xy: "x \<in> sets M" "y \<in> sets M" "x \<subseteq> y"
   have "f x \<le> f x + f (y-x)" using posf
-    by (simp add: positive_def) (metis Diff xy)
+    by (simp add: positive_def) (metis Diff xy(1,2))
   also have "... = f (x \<union> (y-x))" using addf
-    by (auto simp add: additive_def) (metis Diff_disjoint Un_Diff_cancel Diff xy) 
+    by (auto simp add: additive_def) (metis Diff_disjoint Un_Diff_cancel Diff xy(1,2))
   also have "... = f y"
-    by (metis Un_Diff_cancel Un_absorb1 xy)
+    by (metis Un_Diff_cancel Un_absorb1 xy(3))
   finally show "f x \<le> f y" .
 qed
 
@@ -663,7 +663,7 @@ proof (rule Inf_eq)
         by (metis UN_extend_simps(4) s seq)
     qed
   hence "f s = suminf (\<lambda>i. f (A i \<inter> s))"
-    by (metis Int_commute UN_simps(4) seq sums_iff) 
+    using seq [symmetric] by (simp add: sums_iff)
   also have "... \<le> suminf (f \<circ> A)" 
     proof (rule summable_le [OF _ _ sm]) 
       show "\<forall>n. f (A n \<inter> s) \<le> (f \<circ> A) n" using A s
@@ -704,7 +704,7 @@ lemma (in algebra) inf_measure_increasing:
 apply (auto simp add: increasing_def) 
 apply (rule Inf_greatest, metis emptyE inf_measure_nonempty top posf)
 apply (rule Inf_lower) 
-apply (clarsimp simp add: measure_set_def, blast) 
+apply (clarsimp simp add: measure_set_def, rule_tac x=A in exI, blast)
 apply (blast intro: inf_measure_pos0 posf)
 done
 
@@ -743,7 +743,7 @@ proof -
     apply (simp add: disjoint_family_disjointed UN_disjointed_eq ss dA)
     done
   show ?thesis
-    by (blast intro: Inf_lower y order_trans [OF _ ley] inf_measure_pos0 posf)
+    by (blast intro: y order_trans [OF _ ley] inf_measure_pos0 posf)
 qed
 
 lemma (in algebra) inf_measure_close:

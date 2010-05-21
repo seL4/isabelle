@@ -76,15 +76,14 @@ lemma (in measure_space) pos_part_neg_part_borel_measurable_iff:
   pos_part f \<in> borel_measurable M \<and> neg_part f \<in> borel_measurable M"
 proof -
   { fix x
-    have "f x = pos_part f x - neg_part f x"
+    have "pos_part f x - neg_part f x = f x"
       unfolding pos_part_def neg_part_def unfolding max_def min_def
       by auto }
-  hence "(\<lambda> x. f x) = (\<lambda> x. pos_part f x - neg_part f x)" by auto
-  hence "f = (\<lambda> x. pos_part f x - neg_part f x)" by blast
+  hence "(\<lambda> x. pos_part f x - neg_part f x) = (\<lambda>x. f x)" by auto
+  hence f: "(\<lambda> x. pos_part f x - neg_part f x) = f" by blast
   from pos_part_borel_measurable[of f] neg_part_borel_measurable[of f]
     borel_measurable_diff_borel_measurable[of "pos_part f" "neg_part f"]
-    this
-  show ?thesis by auto
+  show ?thesis unfolding f by fast
 qed
 
 context measure_space

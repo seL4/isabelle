@@ -397,8 +397,7 @@ proof (safe, rule linorder_cases)
   { fix w
     from `0 < a` have "a \<le> inverse (f w) \<longleftrightarrow> 0 < f w \<and> f w \<le> 1 / a"
       by (metis inverse_eq_divide inverse_inverse_eq le_imp_inverse_le
-                linorder_not_le order_refl order_trans less_le
-                xt1(7) zero_less_divide_1_iff) }
+                less_le_trans zero_less_divide_1_iff) }
   hence "{w \<in> space M. a \<le> inverse (f w)} =
     {w \<in> space M. 0 < f w} \<inter> {w \<in> space M. f w \<le> 1 / a}" by auto
   with Int assms[unfolded borel_measurable_gr_iff]
