@@ -37,10 +37,7 @@ object HTML_Panel
 }
 
 
-class HTML_Panel(
-  system: Isabelle_System,
-  initial_font_size: Int,
-  handler: PartialFunction[HTML_Panel.Event, Unit]) extends HtmlPanel
+class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPanel
 {
   /** Lobo setup **/
 
@@ -59,11 +56,15 @@ class HTML_Panel(
   def raw_px(lobo_px: Int): Int = (lobo_px * screen_resolution + 95) / 96
 
 
+  /* contexts and event handling */
+
+  protected val handler: PartialFunction[HTML_Panel.Event, Unit] = Library.undefined
+
   private val ucontext = new SimpleUserAgentContext
   private val rcontext = new SimpleHtmlRendererContext(this, ucontext)
   {
     private def handle(event: HTML_Panel.Event): Boolean =
-      if (handler != null && handler.isDefinedAt(event)) { handler(event); true }
+      if (handler.isDefinedAt(event)) { handler(event); true }
       else false
 
     override def onContextMenu(elem: HTMLElement, event: MouseEvent): Boolean =

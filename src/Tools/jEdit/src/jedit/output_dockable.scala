@@ -31,7 +31,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
   val controls = new FlowPanel(FlowPanel.Alignment.Right)()
   add(controls.peer, BorderLayout.NORTH)
 
-  val html_panel = new HTML_Panel(Isabelle.system, scala.math.round(Isabelle.font_size()), null)
+  val html_panel = new HTML_Panel(Isabelle.system, scala.math.round(Isabelle.font_size()))
   add(html_panel, BorderLayout.CENTER)
 
 
