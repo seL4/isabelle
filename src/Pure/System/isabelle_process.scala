@@ -84,7 +84,7 @@ object Isabelle_Process
 
   class Result(val kind: Kind.Value, val props: List[(String, String)], val body: List[XML.Tree])
   {
-    def message = XML.Elem(Markup.MESSAGE, (Markup.CLASS, Kind.markup(kind)) :: props, body)
+    def message = Output.Message(Kind.markup(kind), props, body)
 
     override def toString: String =
     {
