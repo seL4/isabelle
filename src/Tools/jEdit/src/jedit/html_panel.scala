@@ -37,18 +37,17 @@ object HTML_Panel
 }
 
 
-class HTML_Panel(
-  system: Isabelle_System,
-  initial_font_size: Int,
-  handler: PartialFunction[HTML_Panel.Event, Unit]) extends HtmlPanel
+class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPanel
 {
-  // global logging
+  /** Lobo setup **/
+
+  /* global logging */
+
   Logger.getLogger("org.lobobrowser").setLevel(Level.WARNING)
 
 
-  /* Lobo setup */
+  /* pixel size -- cf. org.lobobrowser.html.style.HtmlValues.getFontSize */
 
-  // pixel size -- cf. org.lobobrowser.html.style.HtmlValues.getFontSize
   val screen_resolution =
     if (GraphicsEnvironment.isHeadless()) 72
     else Toolkit.getDefaultToolkit().getScreenResolution()
@@ -57,11 +56,15 @@ class HTML_Panel(
   def raw_px(lobo_px: Int): Int = (lobo_px * screen_resolution + 95) / 96
 
 
+  /* contexts and event handling */
+
+  protected val handler: PartialFunction[HTML_Panel.Event, Unit] = Library.undefined
+
   private val ucontext = new SimpleUserAgentContext
   private val rcontext = new SimpleHtmlRendererContext(this, ucontext)
   {
     private def handle(event: HTML_Panel.Event): Boolean =
-      if (handler != null && handler.isDefinedAt(event)) { handler(event); true }
+      if (handler.isDefinedAt(event)) { handler(event); true }
       else false
 
     override def onContextMenu(elem: HTMLElement, event: MouseEvent): Boolean =
@@ -90,7 +93,9 @@ class HTML_Panel(
 <style media="all" type="text/css">
 """ +
   system.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n"
+  system.try_read("$JEDIT_HOME/etc/isabelle-jedit.css") + "\n" +
+  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
+  system.try_read("$ISABELLE_HOME_USER/etc/isabelle-jedit.css") + "\n"
 
   private val template_tail =
 """
@@ -106,26 +111,37 @@ class HTML_Panel(
     template_tail
 
 
-  /* physical document */
+  /** main actor **/
 
-  private class Doc
-  {
-    private var current_font_size: Int = 0
-    private var current_font_metrics: FontMetrics = null
-    private var current_body: List[XML.Tree] = Nil
-    private var current_DOM: org.w3c.dom.Document = null
+  /* internal messages */
+
+  private case class Resize(font_size: Int)
+  private case class Render(body: List[XML.Tree])
+  private case object Refresh
+
+  private val main_actor = actor {
+
+    /* internal state */
+
+    var current_font_metrics: FontMetrics = null
+    var current_font_size: Int = 0
+    var current_margin: Int = 0
+    var current_body: List[XML.Tree] = Nil
 
     def resize(font_size: Int)
     {
-      if (font_size != current_font_size || current_font_metrics == null) {
+      val (font_metrics, margin) =
         Swing_Thread.now {
-          current_font_size = font_size
-          current_font_metrics =
-            getFontMetrics(system.get_font(lobo_px(raw_px(font_size))))
+          val metrics = getFontMetrics(system.get_font(lobo_px(raw_px(font_size))))
+          (metrics, (getWidth() / (metrics.charWidth(Symbol.spc) max 1) - 4) max 20)
         }
-        current_DOM =
-          builder.parse(
-            new InputSourceImpl(new StringReader(template(font_size)), "http://localhost"))
+      if (current_font_metrics == null ||
+          current_font_size != font_size ||
+          current_margin != margin)
+      {
+        current_font_metrics = font_metrics
+        current_font_size = font_size
+        current_margin = margin
         refresh()
       }
     }
@@ -135,42 +151,35 @@ class HTML_Panel(
     def render(body: List[XML.Tree])
     {
       current_body = body
-      val margin = (getWidth() / (current_font_metrics.charWidth(Symbol.spc) max 1) - 4) max 20
       val html_body =
         current_body.flatMap(div =>
-          Pretty.formatted(List(div), margin,
-              Pretty.font_metric(current_font_metrics))
-            .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
-
-      val node = XML.document_node(current_DOM, XML.elem(HTML.BODY, html_body))
-      Swing_Thread.now {
-        current_DOM.removeChild(current_DOM.getLastChild())
-        current_DOM.appendChild(node)
-        setDocument(current_DOM, rcontext)
-      }
+          Pretty.formatted(List(div), current_margin, Pretty.font_metric(current_font_metrics))
+            .map(t => XML.Elem(HTML.PRE, List((Markup.CLASS, Markup.MESSAGE)), HTML.spans(t))))
+      val doc =
+        builder.parse(
+          new InputSourceImpl(new StringReader(template(current_font_size)), "http://localhost"))
+      doc.removeChild(doc.getLastChild())
+      doc.appendChild(XML.document_node(doc, XML.elem(HTML.BODY, html_body)))
+      Swing_Thread.later { setDocument(doc, rcontext) }
     }
 
+
+    /* main loop */
+
     resize(initial_font_size)
-  }
 
-
-  /* main actor and method wrappers */
-
-  private case class Resize(font_size: Int)
-  private case class Render(body: List[XML.Tree])
-  private case object Refresh
-
-  private val main_actor = actor {
-    var doc = new Doc
     loop {
       react {
-        case Resize(font_size) => doc.resize(font_size)
-        case Refresh => doc.refresh()
-        case Render(body) => doc.render(body)
+        case Resize(font_size) => resize(font_size)
+        case Refresh => refresh()
+        case Render(body) => render(body)
         case bad => System.err.println("main_actor: ignoring bad message " + bad)
       }
     }
   }
+
+
+  /* external methods */
 
   def resize(font_size: Int) { main_actor ! Resize(font_size) }
   def refresh() { main_actor ! Refresh }
