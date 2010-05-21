@@ -12,8 +12,6 @@ all: images test
 
 ## global settings
 
-SHELL = /bin/bash
-
 SRC = $(ISABELLE_HOME)/src
 OUT = $(ISABELLE_OUTPUT)
 LOG = $(OUT)/log
