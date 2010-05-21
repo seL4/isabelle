@@ -111,7 +111,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
   /* resize */
 
   addComponentListener(new ComponentAdapter {
-    val delay = Swing_Thread.delay_last(500) { html_panel.refresh() }
+    val delay = Swing_Thread.delay_last(500) { handle_resize() }
     override def componentResized(e: ComponentEvent) { delay() }
   })
 
