@@ -26,7 +26,7 @@ proof (cases "Mapping.is_empty m")
   case True then show ?thesis by (simp add: is_empty_def keys_def valuesum_def)
 next
   case False
-  then have l: "\<exists>l. l \<in> dom (Mapping.lookup m)" by (auto simp add: is_empty_def expand_fun_eq mem_def)
+  then have l: "\<exists>l. l \<in> dom (Mapping.lookup m)" by (auto simp add: is_empty_def expand_fun_eq mem_def keys_def)
   then have "(let l = SOME l. l \<in> dom (Mapping.lookup m) in
      the (Mapping.lookup m l) + (\<Sum>k \<in> dom (Mapping.lookup m) - {l}. the (Mapping.lookup m k))) =
        (\<Sum>k \<in> dom (Mapping.lookup m). the (Mapping.lookup m k))"
