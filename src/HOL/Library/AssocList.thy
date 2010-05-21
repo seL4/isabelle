@@ -668,6 +668,10 @@ lemma lookup_Mapping [simp, code]:
   "Mapping.lookup (Mapping xs) = map_of xs"
   by (simp add: Mapping_def)
 
+lemma keys_Mapping [simp, code]:
+  "Mapping.keys (Mapping xs) = set (map fst xs)"
+  by (simp add: keys_def dom_map_of_conv_image_fst)
+
 lemma empty_Mapping [code]:
   "Mapping.empty = Mapping []"
   by (rule mapping_eqI) simp
@@ -684,13 +688,9 @@ lemma delete_Mapping [code]:
   "Mapping.delete k (Mapping xs) = Mapping (delete k xs)"
   by (rule mapping_eqI) (simp add: delete_conv')
 
-lemma keys_Mapping [code]:
-  "Mapping.keys (Mapping xs) = set (map fst xs)"
-  by (simp add: keys_def dom_map_of_conv_image_fst)
-
 lemma ordered_keys_Mapping [code]:
   "Mapping.ordered_keys (Mapping xs) = sort (remdups (map fst xs))"
-  by (simp only: ordered_keys_def keys_Mapping sorted_list_of_set_sort_remdups)
+  by (simp only: ordered_keys_def keys_Mapping sorted_list_of_set_sort_remdups) simp
 
 lemma size_Mapping [code]:
   "Mapping.size (Mapping xs) = length (remdups (map fst xs))"
@@ -703,5 +703,8 @@ lemma tabulate_Mapping [code]:
 lemma bulkload_Mapping [code]:
   "Mapping.bulkload vs = Mapping (map (\<lambda>n. (n, vs ! n)) [0..<length vs])"
   by (rule mapping_eqI) (simp add: map_of_map_restrict expand_fun_eq)
+
+lemma [code, code del]:
+  "HOL.eq (x :: (_, _) mapping) y \<longleftrightarrow> x = y" by (fact eq_equals) (*FIXME*)
 
 end
