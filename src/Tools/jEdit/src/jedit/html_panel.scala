@@ -93,7 +93,9 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
 <style media="all" type="text/css">
 """ +
   system.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n"
+  system.try_read("$JEDIT_HOME/etc/isabelle-jedit.css") + "\n" +
+  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
+  system.try_read("$ISABELLE_HOME_USER/etc/isabelle-jedit.css") + "\n"
 
   private val template_tail =
 """
@@ -152,7 +154,7 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
       val html_body =
         current_body.flatMap(div =>
           Pretty.formatted(List(div), current_margin, Pretty.font_metric(current_font_metrics))
-            .map(t => XML.elem(HTML.PRE, HTML.spans(t))))
+            .map(t => XML.Elem(HTML.PRE, List((Markup.CLASS, Markup.MESSAGE)), HTML.spans(t))))
       val doc =
         builder.parse(
           new InputSourceImpl(new StringReader(template(current_font_size)), "http://localhost"))
