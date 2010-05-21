@@ -63,12 +63,15 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     }
 
   private val zoom = Library.zoom_box(factor => { zoom_factor = factor; handle_resize() })
+  zoom.tooltip = "Zoom factor for basic font size"
 
   private val update = new Button("Update") {
     reactions += { case ButtonClicked(_) => handle_update() }
   }
+  update.tooltip = "Update display according to state of command at caret position"
 
   private val follow = new CheckBox("Follow")
+  follow.tooltip = "Indicate automatic update according to caret movement or state changes"
   follow.selected = true
 
 
