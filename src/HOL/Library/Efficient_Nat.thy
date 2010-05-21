@@ -252,7 +252,7 @@ text {*
 *}
 
 code_include Haskell "Nat" {*
-newtype Nat = Nat Integer deriving (Show, Eq);
+newtype Nat = Nat Integer deriving (Eq, Show, Read);
 
 instance Num Nat where {
   fromInteger k = Nat (if k >= 0 then k else 0);
