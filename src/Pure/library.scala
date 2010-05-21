@@ -17,6 +17,14 @@ import scala.swing.event.SelectionChanged
 
 object Library
 {
+  /* partial functions */
+
+  def undefined[A, B] = new PartialFunction[A, B] {
+    def apply(x: A): B = throw new NoSuchElementException("undefined")
+    def isDefinedAt(x: A) = false
+  }
+
+
   /* separate */
 
   def separate[A](s: A, list: List[A]): List[A] =
