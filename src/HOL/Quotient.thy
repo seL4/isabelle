@@ -618,15 +618,13 @@ lemma if_rsp:
 lemma let_prs:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
-  shows "Abs2 (Let (Rep1 x) ((Abs1 ---> Rep2) f)) = Let x f"
-  using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2] by auto
+  shows "(Rep2 ---> (Abs2 ---> Rep1) ---> Abs1) Let = Let"
+  using Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2]
+  by (auto simp add: expand_fun_eq)
 
 lemma let_rsp:
-  assumes q1: "Quotient R1 Abs1 Rep1"
-  and     a1: "(R1 ===> R2) f g"
-  and     a2: "R1 x y"
-  shows "R2 ((Let x f)::'c) ((Let y g)::'c)"
-  using apply_rsp[OF q1 a1] a2 by auto
+  shows "(R1 ===> (R1 ===> R2) ===> R2) Let Let"
+  by auto
 
 locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
@@ -716,8 +714,8 @@ use "~~/src/HOL/Tools/Quotient/quotient_info.ML"
 declare [[map "fun" = (fun_map, fun_rel)]]
 
 lemmas [quot_thm] = fun_quotient
-lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp
-lemmas [quot_preserve] = if_prs o_prs
+lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp
+lemmas [quot_preserve] = if_prs o_prs let_prs
 lemmas [quot_equiv] = identity_equivp
 
 
