@@ -133,7 +133,10 @@ fun add_fixdefs
           "The error occurred for the goal statement:\n" ^
           Syntax.string_of_term lthy prop);
         fun check th = case Thm.nprems_of th of 0 => all_tac th | n => err ();
-        val tac = simp_tac (simpset_of lthy) 1 THEN check;
+        val rules = Cont2ContData.get lthy;
+        val fast_tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules));
+        val slow_tac = simp_tac (simpset_of lthy);
+        val tac = (fast_tac 1 ORELSE slow_tac 1) THEN check;
       in
         Goal.prove lthy [] [] prop (K tac)
       end;
