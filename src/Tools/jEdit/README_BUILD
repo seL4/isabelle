@@ -88,3 +88,6 @@ Known problems with Mac OS
 
 - Font.createFont mangles the font family of non-regular fonts,
   e.g. bold.
+
+- ToggleButton selected state is not rendered if window focus is lost,
+  which is probably a genuine feature of the Apple look-and-feel.
