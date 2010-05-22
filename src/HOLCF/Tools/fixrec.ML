@@ -302,9 +302,7 @@ fun compile_pats match_name eqs =
 (********************** Proving associated theorems **********************)
 (*************************************************************************)
 
-(* tactic to perform eta-contraction on subgoal *)
-fun eta_tac (ctxt : Proof.context) : int -> tactic =
-  EqSubst.eqsubst_tac ctxt [0] @{thms refl};
+fun eta_tac i = CONVERSION Thm.eta_conversion i;
 
 fun fixrec_simp_tac ctxt =
   let
@@ -320,7 +318,7 @@ fun fixrec_simp_tac ctxt =
         val unfold_thm = the (Symtab.lookup tab c);
         val rule = unfold_thm RS @{thm ssubst_lhs};
       in
-        CHANGED (rtac rule i THEN eta_tac ctxt i THEN asm_simp_tac ss i)
+        CHANGED (rtac rule i THEN eta_tac i THEN asm_simp_tac ss i)
       end
   in
     SUBGOAL (fn ti => the_default no_tac (try tac ti))
@@ -331,7 +329,7 @@ fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
   let
     val ss = Simplifier.simpset_of ctxt;
     val rule = unfold_thm RS @{thm ssubst_lhs};
-    val tac = rtac rule 1 THEN eta_tac ctxt 1 THEN asm_simp_tac ss 1;
+    val tac = rtac rule 1 THEN eta_tac 1 THEN asm_simp_tac ss 1;
     fun prove_term t = Goal.prove ctxt [] [] t (K tac);
     fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t);
   in
