@@ -139,8 +139,36 @@ text {* Beta-equality for continuous functions *}
 lemma Abs_CFun_inverse2: "cont f \<Longrightarrow> Rep_CFun (Abs_CFun f) = f"
 by (simp add: Abs_CFun_inverse CFun_def)
 
-lemma beta_cfun [simp]: "cont f \<Longrightarrow> (\<Lambda> x. f x)\<cdot>u = f u"
+lemma beta_cfun: "cont f \<Longrightarrow> (\<Lambda> x. f x)\<cdot>u = f u"
 by (simp add: Abs_CFun_inverse2)
+
+text {* Beta-reduction simproc *}
+
+text {*
+  Given the term @{term "(\<Lambda> x. f x)\<cdot>y"}, the procedure tries to
+  construct the theorem @{term "(\<Lambda> x. f x)\<cdot>y == f y"}.  If this
+  theorem cannot be completely solved by the cont2cont rules, then
+  the procedure returns the ordinary conditional @{text beta_cfun}
+  rule.
+
+  The simproc does not solve any more goals that would be solved by
+  using @{text beta_cfun} as a simp rule.  The advantage of the
+  simproc is that it can avoid deeply-nested calls to the simplifier
+  that would otherwise be caused by large continuity side conditions.
+*}
+
+simproc_setup beta_cfun_proc ("Abs_CFun f\<cdot>x") = {*
+  fn phi => fn ss => fn ct =>
+    let
+      val dest = Thm.dest_comb;
+      val (f, x) = (apfst (snd o dest o snd o dest) o dest) ct;
+      val [T, U] = Thm.dest_ctyp (ctyp_of_term f);
+      val tr = instantiate' [SOME T, SOME U] [SOME f, SOME x]
+          (mk_meta_eq @{thm beta_cfun});
+      val rules = Cont2ContData.get (Simplifier.the_context ss);
+      val tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules));
+    in SOME (perhaps (SINGLE (tac 1)) tr) end
+*}
 
 text {* Eta-equality for continuous functions *}
 
