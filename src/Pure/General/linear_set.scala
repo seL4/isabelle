@@ -129,22 +129,26 @@ class Linear_Set[A]
   def contains(elem: A): Boolean =
     !isEmpty && (rep.end.get == elem || rep.nexts.isDefinedAt(elem))
 
-  private def iterator_from(start: Option[A]): Iterator[A] = new Iterator[A] {
+  private def make_iterator(start: Option[A], which: Map[A, A]): Iterator[A] = new Iterator[A] {
     private var next_elem = start
     def hasNext = next_elem.isDefined
     def next =
       next_elem match {
         case Some(elem) =>
-          next_elem = rep.nexts.get(elem)
+          next_elem = which.get(elem)
           elem
         case None => throw new NoSuchElementException("next on empty iterator")
       }
   }
 
-  override def iterator: Iterator[A] = iterator_from(rep.start)
+  override def iterator: Iterator[A] = make_iterator(rep.start, rep.nexts)
 
   def iterator(elem: A): Iterator[A] =
-    if (contains(elem)) iterator_from(Some(elem))
+    if (contains(elem)) make_iterator(Some(elem), rep.nexts)
+    else throw new Linear_Set.Undefined(elem.toString)
+
+  def rev_iterator(elem: A): Iterator[A] =
+    if (contains(elem)) make_iterator(Some(elem), rep.prevs)
     else throw new Linear_Set.Undefined(elem.toString)
 
   def + (elem: A): Linear_Set[A] = insert_after(rep.end, elem)
