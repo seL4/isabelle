@@ -157,11 +157,14 @@ DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
 
 # The pdf file viewer
-if [ $(uname -s) = Darwin ]; then
-  PDF_VIEWER="open -W -n"
-else
-  PDF_VIEWER=xpdf
-fi
+case "$ISABELLE_PLATFORM" in
+  *-darwin)
+    PDF_VIEWER="open -W -n"
+    ;;
+  *)
+    PDF_VIEWER=xpdf
+    ;;
+esac
 #PDF_VIEWER=acroread
 #PDF_VIEWER=evince
 

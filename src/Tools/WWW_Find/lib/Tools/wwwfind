@@ -35,12 +35,11 @@ function fail()
 
 function checkplatform()
 {
-  PLAT=$(uname -s)
-  case "$PLAT" in
-    Linux)
+  case "$ISABELLE_PLATFORM" in
+    *-linux)
       ;;
     *)
-      fail "Platform $PLAT currently not supported by $PRG component."
+      fail "Platform $ISABELLE_PLATFORM currently not supported by $PRG component"
       ;;
   esac
 }
