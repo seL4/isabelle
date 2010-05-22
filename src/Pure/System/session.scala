@@ -148,7 +148,7 @@ class Session(system: Isabelle_System)
       }
       else if (result.kind == Isabelle_Process.Kind.EXIT)
         prover = null
-      else if (result.kind != Isabelle_Process.Kind.STDIN && !result.is_raw)
+      else if (!result.is_system)   // FIXME syslog (!?)
         bad_result(result)
     }
 
