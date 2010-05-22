@@ -198,7 +198,6 @@ val case_ns =
 
 fun qualified name = Binding.qualified true name dbind;
 val simp = Simplifier.simp_add;
-val fixrec_simp = Fixrec.fixrec_simp_add;
 
 in
   thy
@@ -209,7 +208,7 @@ in
       [Rule_Cases.case_names case_ns, Induct.cases_type dname]),
      ((qualified "when_rews" , when_rews   ), [simp]),
      ((qualified "compacts"  , compacts    ), [simp]),
-     ((qualified "con_rews"  , con_rews    ), [simp, fixrec_simp]),
+     ((qualified "con_rews"  , con_rews    ), [simp]),
      ((qualified "sel_rews"  , sel_rews    ), [simp]),
      ((qualified "dis_rews"  , dis_rews    ), [simp]),
      ((qualified "pat_rews"  , pat_rews    ), [simp]),
@@ -218,7 +217,7 @@ in
      ((qualified "inverts"   , inverts     ), [simp]),
      ((qualified "injects"   , injects     ), [simp]),
      ((qualified "take_rews" , take_rews   ), [simp]),
-     ((qualified "match_rews", mat_rews    ), [simp, fixrec_simp])]
+     ((qualified "match_rews", mat_rews    ), [simp])]
   |> snd
   |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
       pat_rews @ dist_les @ dist_eqs)
