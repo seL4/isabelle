@@ -7,6 +7,16 @@ header "Denotational Semantics of Commands in HOLCF"
 
 theory Denotational imports HOLCF "../../HOL/IMP/Natural" begin
 
+text {* Disable conflicting syntax from HOL Map theory. *}
+
+no_syntax
+  "_maplet"  :: "['a, 'a] => maplet"             ("_ /|->/ _")
+  "_maplets" :: "['a, 'a] => maplet"             ("_ /[|->]/ _")
+  ""         :: "maplet => maplets"             ("_")
+  "_Maplets" :: "[maplet, maplets] => maplets" ("_,/ _")
+  "_MapUpd"  :: "['a ~=> 'b, maplets] => 'a ~=> 'b" ("_/'(_')" [900,0]900)
+  "_Map"     :: "maplets => 'a ~=> 'b"            ("(1[_])")
+
 subsection "Definition"
 
 definition

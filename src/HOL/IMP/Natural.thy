@@ -25,6 +25,16 @@ definition
 notation (xsymbols)
   update  ("_/[_ \<mapsto> /_]" [900,0,0] 900)
 
+text {* Disable conflicting syntax from HOL Map theory. *}
+
+no_syntax
+  "_maplet"  :: "['a, 'a] => maplet"             ("_ /|->/ _")
+  "_maplets" :: "['a, 'a] => maplet"             ("_ /[|->]/ _")
+  ""         :: "maplet => maplets"             ("_")
+  "_Maplets" :: "[maplet, maplets] => maplets" ("_,/ _")
+  "_MapUpd"  :: "['a ~=> 'b, maplets] => 'a ~=> 'b" ("_/'(_')" [900,0]900)
+  "_Map"     :: "maplets => 'a ~=> 'b"            ("(1[_])")
+
 text {*
   The big-step execution relation @{text evalc} is defined inductively:
 *}
@@ -111,7 +121,7 @@ text {*
   in the same @{text s'}}. Formally:
 *}
 definition
-  equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" ("_ \<sim> _") where
+  equiv_c :: "com \<Rightarrow> com \<Rightarrow> bool" ("_ \<sim> _" [56, 56] 55) where
   "c \<sim> c' = (\<forall>s s'. \<langle>c, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c', s\<rangle> \<longrightarrow>\<^sub>c s')"
 
 text {*
