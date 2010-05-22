@@ -826,7 +826,8 @@ text {*
   This lemma shows which properties suffice to show that a function
   @{text "f"} with @{text "f xs = ys"} behaves like sort.
 *}
-lemma properties_for_sort:
+
+lemma (in linorder) properties_for_sort:
   "multiset_of ys = multiset_of xs \<Longrightarrow> sorted ys \<Longrightarrow> sort xs = ys"
 proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
