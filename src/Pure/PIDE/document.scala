@@ -82,25 +82,27 @@ object Document
 
     def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
-      // FIXME relative search!
       commands.iterator.find(is_unparsed) match {
         case Some(first_unparsed) =>
-          val prefix = commands.prev(first_unparsed)
-          val body = commands.iterator(first_unparsed).takeWhile(is_unparsed).toList
-          val suffix = commands.next(body.last)
+          val first =
+            commands.rev_iterator(first_unparsed).find(_.is_command) getOrElse commands.head
+          val last =
+            commands.iterator(first_unparsed).find(_.is_command) getOrElse commands.last
+          val range =
+            commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
 
-          val sources = (prefix.toList ::: body ::: suffix.toList).flatMap(_.span.map(_.source))
+          val sources = range.flatMap(_.span.map(_.source))
           val spans0 = Thy_Syntax.parse_spans(session.current_syntax.scan(sources.mkString))
 
           val (before_edit, spans1) =
-            if (!spans0.isEmpty && Some(spans0.head) == prefix.map(_.span))
-              (prefix, spans0.tail)
-            else (if (prefix.isDefined) commands.prev(prefix.get) else None, spans0)
+            if (!spans0.isEmpty && first.is_command && first.span == spans0.head)
+              (Some(first), spans0.tail)
+            else (commands.prev(first), spans0)
 
           val (after_edit, spans2) =
-            if (!spans1.isEmpty && Some(spans1.last) == suffix.map(_.span))
-              (suffix, spans1.take(spans1.length - 1))
-            else (if (suffix.isDefined) commands.next(suffix.get) else None, spans1)
+            if (!spans1.isEmpty && last.is_command && last.span == spans1.last)
+              (Some(last), spans1.take(spans1.length - 1))
+            else (commands.next(last), spans1)
 
           val inserted = spans2.map(span => new Command(session.create_id(), span))
           val new_commands =
