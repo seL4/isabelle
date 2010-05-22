@@ -13,7 +13,6 @@ import java.io.StringReader
 import java.awt.{BorderLayout, Dimension, GraphicsEnvironment, Toolkit, FontMetrics}
 import java.awt.event.MouseEvent
 
-import javax.swing.{JButton, JPanel, JScrollPane}
 import java.util.logging.{Logger, Level}
 
 import org.w3c.dom.html2.HTMLElement
