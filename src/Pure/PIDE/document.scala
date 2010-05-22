@@ -114,23 +114,20 @@ object Document
 
     /* phase 3: resulting document edits */
 
-    val result = Library.timeit("text_edits") {
-      val commands0 = old_doc.commands
-      val commands1 = Library.timeit("edit_text") { edit_text(edits, commands0) }
-      val commands2 = Library.timeit("parse_spans") { parse_spans(commands1) }
+    val commands0 = old_doc.commands
+    val commands1 = edit_text(edits, commands0)
+    val commands2 = parse_spans(commands1)
 
-      val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
-      val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
+    val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
+    val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
 
-      val doc_edits =
-        removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
-        inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
+    val doc_edits =
+      removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
+      inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
-      val former_states = old_doc.assignment.join -- removed_commands
+    val former_states = old_doc.assignment.join -- removed_commands
 
-      (doc_edits, new Document(new_id, commands2, former_states))
-    }
-    result
+    (doc_edits, new Document(new_id, commands2, former_states))
   }
 }
 
@@ -166,13 +163,11 @@ class Document(
   def await_assignment { assignment.join }
 
   @volatile private var tmp_states = former_states
-  private val time0 = System.currentTimeMillis
 
   def assign_states(new_states: List[(Command, Command)])
   {
     assignment.fulfill(tmp_states ++ new_states)
     tmp_states = Map()
-    System.err.println("assign_states: " + (System.currentTimeMillis - time0) + " ms elapsed time")
   }
 
   def current_state(cmd: Command): State =
