@@ -36,6 +36,7 @@ class Session(system: Isabelle_System)
 
   val global_settings = new Event_Bus[Session.Global_Settings.type]
   val raw_results = new Event_Bus[Isabelle_Process.Result]
+  val raw_output = new Event_Bus[Isabelle_Process.Result]
   val results = new Event_Bus[Command]
 
   val command_change = new Event_Bus[Command]
@@ -148,6 +149,8 @@ class Session(system: Isabelle_System)
       }
       else if (result.kind == Isabelle_Process.Kind.EXIT)
         prover = null
+      else if (result.is_raw)
+        raw_output.event(result)
       else if (!result.is_system)   // FIXME syslog (!?)
         bad_result(result)
     }
