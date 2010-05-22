@@ -21,7 +21,8 @@ class Dockable(view: View, position: String) extends JPanel(new BorderLayout)
   if (position == DockableWindowManager.FLOATING)
     setPreferredSize(new Dimension(500, 250))
 
-  def set_content(c: Component) = add(c, BorderLayout.CENTER)
+  def set_content(c: Component) { add(c, BorderLayout.CENTER) }
+  def set_content(c: scala.swing.Component) { add(c.peer, BorderLayout.CENTER) }
 
   protected def init() { }
   protected def exit() { }

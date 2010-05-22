@@ -10,45 +10,31 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-
-import java.awt.{Dimension, Graphics, BorderLayout}
-import javax.swing.{JPanel, JTextArea, JScrollPane}
+import scala.swing.{TextArea, ScrollPane}
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-class Raw_Output_Dockable(view: View, position: String) extends JPanel(new BorderLayout)
+class Raw_Output_Dockable(view: View, position: String)
+  extends Dockable(view: View, position: String)
 {
-  if (position == DockableWindowManager.FLOATING)
-    setPreferredSize(new Dimension(500, 250))
-
-  private val text_area = new JTextArea
-  add(new JScrollPane(text_area), BorderLayout.CENTER)
+  private val text_area = new TextArea
+  set_content(new ScrollPane(text_area))
 
 
-  /* actor wiring */
+  /* main actor */
 
-  private val raw_output_actor = actor {
+  private val main_actor = actor {
     loop {
       react {
         case result: Isabelle_Process.Result =>
           Swing_Thread.now { text_area.append(XML.content(result.message).mkString) }
 
-        case bad => System.err.println("raw_output_actor: ignoring bad message " + bad)
+        case bad => System.err.println("Raw_Output_Dockable: ignoring bad message " + bad)
       }
     }
   }
 
-  override def addNotify()
-  {
-    super.addNotify()
-    Isabelle.session.raw_output += raw_output_actor
-  }
-
-  override def removeNotify()
-  {
-    Isabelle.session.raw_output -= raw_output_actor
-    super.removeNotify()
-  }
+  override def init() { Isabelle.session.raw_output += main_actor }
+  override def exit() { Isabelle.session.raw_output -= main_actor }
 }

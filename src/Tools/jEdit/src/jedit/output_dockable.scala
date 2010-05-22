@@ -14,20 +14,14 @@ import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, CheckBox}
 import scala.swing.event.ButtonClicked
 
-import javax.swing.JPanel
-import java.awt.{BorderLayout, Dimension}
+import java.awt.BorderLayout
 import java.awt.event.{ComponentEvent, ComponentAdapter}
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-
-class Output_Dockable(view: View, position: String) extends JPanel(new BorderLayout)
+class Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  if (position == DockableWindowManager.FLOATING)
-    setPreferredSize(new Dimension(500, 250))
-
   val html_panel = new HTML_Panel(Isabelle.system, scala.math.round(Isabelle.font_size()))
   add(html_panel, BorderLayout.CENTER)
 
@@ -81,7 +75,7 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
           val document = model.recent_document
           document.command_at(view.getTextArea.getCaretPosition) match {
             case Some((cmd, _)) =>
-              output_actor ! Render(filtered_results(document, cmd))
+              main_actor ! Render(filtered_results(document, cmd))
             case None =>
           }
         case None =>
@@ -97,9 +91,9 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
     }
 
 
-  /* actor wiring */
+  /* main actor */
 
-  private val output_actor = actor {
+  private val main_actor = actor {
     loop {
       react {
         case Session.Global_Settings => handle_resize()
@@ -114,23 +108,21 @@ class Output_Dockable(view: View, position: String) extends JPanel(new BorderLay
               html_panel.render(filtered_results(model.recent_document, cmd))
           }
 
-        case bad => System.err.println("output_actor: ignoring bad message " + bad)
+        case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }
     }
   }
 
-  override def addNotify()
+  override def init()
   {
-    super.addNotify()
-    Isabelle.session.results += output_actor
-    Isabelle.session.global_settings += output_actor
+    Isabelle.session.results += main_actor
+    Isabelle.session.global_settings += main_actor
   }
 
-  override def removeNotify()
+  override def exit()
   {
-    Isabelle.session.results -= output_actor
-    Isabelle.session.global_settings -= output_actor
-    super.removeNotify()
+    Isabelle.session.results -= main_actor
+    Isabelle.session.global_settings -= main_actor
   }
 
 
