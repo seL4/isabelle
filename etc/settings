@@ -192,6 +192,14 @@ XSYMBOL_INSTALLFONTS=""
 
 
 ###
+### Rendering information
+###
+
+ISABELLE_FONT_FAMILY="IsabelleText"
+ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
+
+
+###
 ### External reasoning tools
 ###
 

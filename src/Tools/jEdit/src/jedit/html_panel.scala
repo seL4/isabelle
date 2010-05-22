@@ -92,10 +92,7 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
 <head>
 <style media="all" type="text/css">
 """ +
-  system.try_read("$ISABELLE_HOME/lib/html/isabelle.css") + "\n" +
-  system.try_read("$JEDIT_HOME/etc/isabelle-jedit.css") + "\n" +
-  system.try_read("$ISABELLE_HOME_USER/etc/isabelle.css") + "\n" +
-  system.try_read("$ISABELLE_HOME_USER/etc/isabelle-jedit.css") + "\n"
+  system.try_read(system.getenv_strict("JEDIT_STYLE_SHEETS").split(":"))
 
   private val template_tail =
 """
