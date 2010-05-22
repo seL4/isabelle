@@ -170,12 +170,14 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 fun future_job group (e: unit -> 'a) =
   let
     val result = Single_Assignment.var "future" : 'a result;
+    val pos = Position.thread_data ();
     fun job ok =
       let
         val res =
           if ok then
             Exn.capture (fn () =>
-              Multithreading.with_attributes Multithreading.private_interrupts (fn _ => e ())) ()
+              Multithreading.with_attributes Multithreading.private_interrupts
+                (fn _ => Position.setmp_thread_data pos e ())) ()
           else Exn.Exn Exn.Interrupt;
       in assign_result group result res end;
   in (result, job) end;

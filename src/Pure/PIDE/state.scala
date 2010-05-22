@@ -74,7 +74,7 @@ class State(
   {
     val changed: State =
       message match {
-        case XML.Elem(Markup.MESSAGE, (Markup.CLASS, Markup.STATUS) :: _, elems) =>
+        case XML.Elem(Markup.STATUS, _, elems) =>
           (this /: elems)((state, elem) =>
             elem match {
               case XML.Elem(Markup.UNPROCESSED, _, _) => state.set_status(Command.Status.UNPROCESSED)

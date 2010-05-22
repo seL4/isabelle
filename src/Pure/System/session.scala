@@ -104,7 +104,7 @@ class Session(system: Isabelle_System)
 
     def bad_result(result: Isabelle_Process.Result)
     {
-      System.err.println("Ignoring prover result: " + result)
+      System.err.println("Ignoring prover result: " + result.message.toString)
     }
 
     def handle_result(result: Isabelle_Process.Result)

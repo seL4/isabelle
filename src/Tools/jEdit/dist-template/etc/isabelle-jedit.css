@@ -1,0 +1,13 @@
+/* additional style file for Isabelle/jEdit output */
+
+pre.message { margin-top: 0.3ex; background-color: #F0F0F0; }
+
+.writeln { }
+.priority { }
+.tracing { background-color: #EAF8FF; }
+.warning { background-color: #EEE8AA; }
+.error { background-color: #FFC1C1; }
+.debug { background-color: #FFE4E1; }
+
+.hilite { background-color: #FFFACD; }
+

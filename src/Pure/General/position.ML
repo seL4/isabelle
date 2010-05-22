@@ -173,9 +173,7 @@ local val tag = Universal.tag () : T Universal.tag in
 
 fun thread_data () = the_default none (Thread.getLocal tag);
 
-fun setmp_thread_data pos f x =
-  if ! Output.debugging then f x
-  else Library.setmp_thread_data tag (thread_data ()) pos f x;
+fun setmp_thread_data pos = Library.setmp_thread_data tag (thread_data ()) pos;
 
 end;
 
