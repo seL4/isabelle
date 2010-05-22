@@ -586,24 +586,4 @@ setup {*
 
 hide_const (open) return fail run cases
 
-lemmas [fixrec_simp] =
-  beta_cfun cont2cont
-  run_strict run_fail run_return
-  mplus_strict mplus_fail mplus_return
-  spair_strict_iff
-  sinl_defined_iff
-  sinr_defined_iff
-  up_defined
-  ONE_defined
-  dist_eq_tr(1,2)
-  match_UU_simps
-  match_cpair_simps
-  match_spair_simps
-  match_sinl_simps
-  match_sinr_simps
-  match_up_simps
-  match_ONE_simps
-  match_TT_simps
-  match_FF_simps
-
 end

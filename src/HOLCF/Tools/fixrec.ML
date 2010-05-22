@@ -13,8 +13,6 @@ sig
   val add_fixpat: Thm.binding * term list -> theory -> theory
   val add_fixpat_cmd: Attrib.binding * string list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
-  val fixrec_simp_add: attribute
-  val fixrec_simp_del: attribute
   val fixrec_simp_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
@@ -304,18 +302,14 @@ fun compile_pats match_name eqs =
 (********************** Proving associated theorems **********************)
 (*************************************************************************)
 
-structure FixrecSimpData = Generic_Data
-(
-  type T = simpset;
-  val empty = HOL_basic_ss addsimps simp_thms;
-  val extend = I;
-  val merge = merge_ss;
-);
+(* tactic to perform eta-contraction on subgoal *)
+fun eta_tac (ctxt : Proof.context) : int -> tactic =
+  EqSubst.eqsubst_tac ctxt [0] @{thms refl};
 
 fun fixrec_simp_tac ctxt =
   let
     val tab = FixrecUnfoldData.get (Context.Proof ctxt);
-    val ss = Simplifier.context ctxt (FixrecSimpData.get (Context.Proof ctxt));
+    val ss = Simplifier.simpset_of ctxt;
     fun concl t =
       if Logic.is_all t then concl (snd (Logic.dest_all t))
       else HOLogic.dest_Trueprop (Logic.strip_imp_concl t);
@@ -326,26 +320,18 @@ fun fixrec_simp_tac ctxt =
         val unfold_thm = the (Symtab.lookup tab c);
         val rule = unfold_thm RS @{thm ssubst_lhs};
       in
-        CHANGED (rtac rule i THEN asm_simp_tac ss i)
+        CHANGED (rtac rule i THEN eta_tac ctxt i THEN asm_simp_tac ss i)
       end
   in
     SUBGOAL (fn ti => the_default no_tac (try tac ti))
   end;
 
-val fixrec_simp_add : attribute =
-  Thm.declaration_attribute
-    (fn th => FixrecSimpData.map (fn ss => ss addsimps [th]));
-
-val fixrec_simp_del : attribute =
-  Thm.declaration_attribute
-    (fn th => FixrecSimpData.map (fn ss => ss delsimps [th]));
-
 (* proves a block of pattern matching equations as theorems, using unfold *)
 fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
   let
-    val ss = Simplifier.context ctxt (FixrecSimpData.get (Context.Proof ctxt));
+    val ss = Simplifier.simpset_of ctxt;
     val rule = unfold_thm RS @{thm ssubst_lhs};
-    val tac = rtac rule 1 THEN asm_simp_tac ss 1;
+    val tac = rtac rule 1 THEN eta_tac ctxt 1 THEN asm_simp_tac ss 1;
     fun prove_term t = Goal.prove ctxt [] [] t (K tac);
     fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t);
   in
@@ -459,11 +445,8 @@ val _ =
     (Parse_Spec.specs >> (Toplevel.theory o add_fixpat_cmd));
 
 val setup =
-  Attrib.setup @{binding fixrec_simp}
-                     (Attrib.add_del fixrec_simp_add fixrec_simp_del)
-                     "declaration of fixrec simp rule"
-  #> Method.setup @{binding fixrec_simp}
-                     (Scan.succeed (SIMPLE_METHOD' o fixrec_simp_tac))
-                     "pattern prover for fixrec constants";
+  Method.setup @{binding fixrec_simp}
+    (Scan.succeed (SIMPLE_METHOD' o fixrec_simp_tac))
+    "pattern prover for fixrec constants";
 
 end;
