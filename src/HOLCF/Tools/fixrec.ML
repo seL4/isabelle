@@ -307,11 +307,7 @@ fun compile_pats match_name eqs =
 structure FixrecSimpData = Generic_Data
 (
   type T = simpset;
-  val empty =
-    HOL_basic_ss
-      addsimps simp_thms
-      addsimps [@{thm beta_cfun}]
-      addsimprocs [@{simproc cont_proc}];
+  val empty = HOL_basic_ss addsimps simp_thms;
   val extend = I;
   val merge = merge_ss;
 );

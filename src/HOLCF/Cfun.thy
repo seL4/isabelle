@@ -100,7 +100,7 @@ translations
 subsection {* Continuous function space is pointed *}
 
 lemma UU_CFun: "\<bottom> \<in> CFun"
-by (simp add: CFun_def inst_fun_pcpo cont_const)
+by (simp add: CFun_def inst_fun_pcpo)
 
 instance cfun :: (finite_po, finite_po) finite_po
 by (rule typedef_finite_po [OF type_definition_CFun])
@@ -301,7 +301,7 @@ subsection {* Continuity simplification procedure *}
 
 text {* cont2cont lemma for @{term Rep_CFun} *}
 
-lemma cont2cont_Rep_CFun [cont2cont]:
+lemma cont2cont_Rep_CFun [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes t: "cont (\<lambda>x. t x)"
   shows "cont (\<lambda>x. (f x)\<cdot>(t x))"
@@ -341,7 +341,7 @@ text {*
   has only a single subgoal.
 *}
 
-lemma cont2cont_LAM' [cont2cont]:
+lemma cont2cont_LAM' [simp, cont2cont]:
   fixes f :: "'a::cpo \<Rightarrow> 'b::cpo \<Rightarrow> 'c::cpo"
   assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
   shows "cont (\<lambda>x. \<Lambda> y. f x y)"
@@ -353,7 +353,7 @@ next
     using f by (rule cont_fst_snd_D1)
 qed
 
-lemma cont2cont_LAM_discrete [cont2cont]:
+lemma cont2cont_LAM_discrete [simp, cont2cont]:
   "(\<And>y::'a::discrete_cpo. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x. \<Lambda> y. f x y)"
 by (simp add: cont2cont_LAM)
 
@@ -556,7 +556,7 @@ lemma cont2cont_Let:
   shows "cont (\<lambda>x. let y = f x in g x y)"
 unfolding Let_def using f g2 g1 by (rule cont_apply)
 
-lemma cont2cont_Let' [cont2cont]:
+lemma cont2cont_Let' [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
   shows "cont (\<lambda>x. let y = f x in g x y)"

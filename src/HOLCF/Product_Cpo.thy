@@ -221,7 +221,7 @@ apply (simp add: thelub_cprod)
 apply (erule cpo_lubI [OF ch2ch_snd])
 done
 
-lemma cont2cont_Pair [cont2cont]:
+lemma cont2cont_Pair [simp, cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>x. g x)"
   shows "cont (\<lambda>x. (f x, g x))"
@@ -230,9 +230,9 @@ apply (rule cont_apply [OF g cont_pair2])
 apply (rule cont_const)
 done
 
-lemmas cont2cont_fst [cont2cont] = cont_compose [OF cont_fst]
+lemmas cont2cont_fst [simp, cont2cont] = cont_compose [OF cont_fst]
 
-lemmas cont2cont_snd [cont2cont] = cont_compose [OF cont_snd]
+lemmas cont2cont_snd [simp, cont2cont] = cont_compose [OF cont_snd]
 
 lemma cont2cont_split:
   assumes f1: "\<And>a b. cont (\<lambda>x. f x a b)"
@@ -256,7 +256,7 @@ lemma cont_fst_snd_D2:
   "cont (\<lambda>p. f (fst p) (snd p)) \<Longrightarrow> cont (\<lambda>y. f x y)"
 by (drule cont_compose [OF _ cont_pair2], simp)
 
-lemma cont2cont_split' [cont2cont]:
+lemma cont2cont_split' [simp, cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (fst (snd p)) (snd (snd p)))"
   assumes g: "cont (\<lambda>x. g x)"
   shows "cont (\<lambda>x. split (f x) (g x))"

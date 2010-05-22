@@ -136,8 +136,8 @@ by (intro contI is_lub_Inl cpo_lubI)
 lemma cont_Inr: "cont Inr"
 by (intro contI is_lub_Inr cpo_lubI)
 
-lemmas cont2cont_Inl [cont2cont] = cont_compose [OF cont_Inl]
-lemmas cont2cont_Inr [cont2cont] = cont_compose [OF cont_Inr]
+lemmas cont2cont_Inl [simp, cont2cont] = cont_compose [OF cont_Inl]
+lemmas cont2cont_Inr [simp, cont2cont] = cont_compose [OF cont_Inr]
 
 lemmas ch2ch_Inl [simp] = ch2ch_cont [OF cont_Inl]
 lemmas ch2ch_Inr [simp] = ch2ch_cont [OF cont_Inr]
@@ -168,7 +168,7 @@ apply (rule cont_sum_case2 [OF f2 g2])
 apply (rule cont_sum_case1 [OF f1 g1])
 done
 
-lemma cont2cont_sum_case' [cont2cont]:
+lemma cont2cont_sum_case' [simp, cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
   assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
   assumes h: "cont (\<lambda>x. h x)"

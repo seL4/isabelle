@@ -120,7 +120,7 @@ apply (rule below, assumption)
 apply (erule ch2ch_monofun [OF mono])
 done
 
-subsection {* Continuity simproc *}
+subsection {* Collection of continuity rules *}
 
 ML {*
 structure Cont2ContData = Named_Thms
@@ -132,34 +132,18 @@ structure Cont2ContData = Named_Thms
 
 setup Cont2ContData.setup
 
-text {*
-  Given the term @{term "cont f"}, the procedure tries to construct the
-  theorem @{term "cont f == True"}. If this theorem cannot be completely
-  solved by the introduction rules, then the procedure returns a
-  conditional rewrite rule with the unsolved subgoals as premises.
-*}
-
-simproc_setup cont_proc ("cont f") = {*
-  fn phi => fn ss => fn ct =>
-    let
-      val tr = instantiate' [] [SOME ct] @{thm Eq_TrueI};
-      val rules = Cont2ContData.get (Simplifier.the_context ss);
-      val tac = REPEAT_ALL_NEW (match_tac rules);
-    in SINGLE (tac 1) tr end
-*}
-
 subsection {* Continuity of basic functions *}
 
 text {* The identity function is continuous *}
 
-lemma cont_id [cont2cont]: "cont (\<lambda>x. x)"
+lemma cont_id [simp, cont2cont]: "cont (\<lambda>x. x)"
 apply (rule contI)
 apply (erule cpo_lubI)
 done
 
 text {* constant functions are continuous *}
 
-lemma cont_const [cont2cont]: "cont (\<lambda>x. c)"
+lemma cont_const [simp, cont2cont]: "cont (\<lambda>x. c)"
 apply (rule contI)
 apply (rule lub_const)
 done
@@ -237,7 +221,7 @@ by (rule flatdom_strict2mono [THEN chfindom_monofun2cont])
 
 text {* functions with discrete domain *}
 
-lemma cont_discrete_cpo [cont2cont]: "cont (f::'a::discrete_cpo \<Rightarrow> 'b::cpo)"
+lemma cont_discrete_cpo [simp, cont2cont]: "cont (f::'a::discrete_cpo \<Rightarrow> 'b::cpo)"
 apply (rule contI)
 apply (drule discrete_chain_const, clarify)
 apply (simp add: lub_const)
