@@ -232,7 +232,7 @@ proof (rule star4', rule order_trans)
   thus "x + star b * x * a \<le> x + star b * b * x"
     using add_mono by auto
   show "\<dots> \<le> star b * x"
-    by (metis add_supremum left_distrib less_add mult.left_neutral mult_assoc mult_right_mono star_unfold_left star_unfold_right zero_minimum)
+    by (metis add_supremum left_distrib less_add mult.left_neutral mult_assoc mult_right_mono star_unfold_right zero_minimum)
 qed
 
 lemma star_simulation [simp]:
