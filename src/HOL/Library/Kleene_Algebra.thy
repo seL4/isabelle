@@ -215,8 +215,7 @@ lemma star_simulation_leq_1:
   assumes a: "a * x \<le> x * b"
   shows "star a * x \<le> x * star b"
 proof (rule star3', rule order_trans)
-  from a have "a * x \<le> x * b" by simp
-  hence "a * x * star b \<le> x * b * star b"
+  from a have "a * x * star b \<le> x * b * star b"
     by (rule mult_right_mono) simp
   thus "x + a * (x * star b) \<le> x + x * b * star b"
     using add_left_mono by (auto simp: mult_assoc)
@@ -228,8 +227,8 @@ lemma star_simulation_leq_2:
   assumes a: "x * a \<le> b * x"
   shows "x * star a \<le> star b * x"
 proof (rule star4', rule order_trans)
-  have "star b * x * a \<le> star b * b * x"
-    by (metis assms mult_assoc mult_mono order_refl zero_minimum)
+  from a have "star b * x * a \<le> star b * b * x"
+    by (metis mult_assoc mult_left_mono zero_minimum)
   thus "x + star b * x * a \<le> x + star b * b * x"
     using add_mono by auto
   show "\<dots> \<le> star b * x"
