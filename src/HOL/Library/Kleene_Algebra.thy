@@ -319,8 +319,14 @@ lemma ka24: "star (x + y) \<le> star (star x * star y)"
 by (metis add_est1 add_est2 less_add(1) mult_assoc order_def plus_leI star_absorb_one star_mono star_slide2 star_unfold2 star_unfold_left x_less_star)
 
 lemma ka25: "star y * star x \<le> star x * star y \<Longrightarrow> star (star y * star x) \<le> star x * star y"
--- {* Takes several minutes on my computer. *}
-by (metis mult_assoc mult_right_mono order_trans star_idemp star_mult_idem star_simulation_leq_2 star_slide x_less_star zero_minimum)
+proof -
+  assume "star y * star x \<le> star x * star y"
+  hence "\<forall>x\<^isub>1. star y * (star x * x\<^isub>1) \<le> star x * (star y * x\<^isub>1)" by (metis mult_assoc mult_right_mono zero_minimum)
+  hence "star y * (star x * star y) \<le> star x * star y" by (metis star_mult_idem)
+  hence "\<exists>x\<^isub>1. star (star y * star x) * star x\<^isub>1 \<le> star x * star y" by (metis star_decomp star_idemp star_simulation_leq_2 star_slide)
+  hence "\<exists>x\<^isub>1\<ge>star (star y * star x). x\<^isub>1 \<le> star x * star y" by (metis x_less_star)
+  thus "star (star y * star x) \<le> star x * star y" by (metis order_trans)
+qed
 
 lemma church_rosser: 
   "star y * star x \<le> star x * star y \<Longrightarrow> star (x + y) \<le> star x * star y"
