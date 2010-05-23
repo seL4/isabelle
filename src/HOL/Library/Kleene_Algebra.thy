@@ -3,7 +3,7 @@
     Author:     Tjark Weber, University of Cambridge
 *)
 
-header {* Kleene Algebra *}
+header {* Kleene Algebras *}
 
 theory Kleene_Algebra
 imports Main 
@@ -124,7 +124,7 @@ by (simp add: add_supremum eq_iff)
 
 end
 
-section {* Kleene Algebras *}
+subsection {* A class of Kleene algebras *}
 
 text {* Class @{text pre_kleene} provides all operations of Kleene
   algebras except for the Kleene star. *}
@@ -352,7 +352,7 @@ by (metis add_commute mult.right_neutral star3')
 
 end
 
-subsection {* Complete Lattices are Kleene Algebras *}
+subsection {* Complete lattices are Kleene algebras *}
 
 lemma (in complete_lattice) le_SUPI':
   assumes "l \<le> M i"
@@ -458,7 +458,7 @@ qed
 
 end
 
-subsection {* Transitive Closure *}
+subsection {* Transitive closure *}
 
 context kleene
 begin
@@ -477,7 +477,7 @@ by (metis star_slide2 tcl_def x_less_star)
 
 end
 
-subsection {* A Naive Algorithm to Generate the Transitive Closure *}
+subsection {* A naive algorithm to generate the transitive closure *}
 
 function (default "\<lambda>x. 0", tailrec, domintros)
   mk_tcl :: "('a::{plus,times,ord,zero}) \<Rightarrow> 'a \<Rightarrow> 'a"
