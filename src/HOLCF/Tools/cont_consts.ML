@@ -90,11 +90,4 @@ val add_consts_cmd = gen_add_consts Syntax.read_typ_global;
 
 end;
 
-
-(* outer syntax *)
-
-val _ =
-  Outer_Syntax.command "consts" "declare constants (HOLCF)" Keyword.thy_decl
-    (Scan.repeat1 Parse.const_binding >> (Toplevel.theory o add_consts_cmd));
-
 end;
