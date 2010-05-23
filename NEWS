@@ -476,6 +476,10 @@ now generates qualified theorem names, INCOMPATIBILITY.
   foo_unfold ~> foo.unfold
   foo_induct ~> foo.induct
 
+* The "fixrec_simp" attribute has been removed.  The "fixrec_simp"
+method and internal fixrec proofs now use the default simpset instead.
+INCOMPATIBILITY.
+
 * The "contlub" predicate has been removed.  Proof scripts should use
 lemma contI2 in place of monocontlub2cont, INCOMPATIBILITY.
 
