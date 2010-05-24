@@ -252,15 +252,15 @@ fun from_sinr (T, U) =
 
 (*** pattern match monad type ***)
 
-fun mk_matchT T = Type (@{type_name "maybe"}, [T]);
+fun mk_matchT T = Type (@{type_name "match"}, [T]);
 
-fun dest_matchT (Type(@{type_name "maybe"}, [T])) = T
+fun dest_matchT (Type(@{type_name "match"}, [T])) = T
   | dest_matchT T = raise TYPE ("dest_matchT", [T], []);
 
 fun mk_fail T = Const (@{const_name "Fixrec.fail"}, mk_matchT T);
 
-fun return_const T = Const (@{const_name "Fixrec.return"}, T ->> mk_matchT T);
-fun mk_return t = return_const (fastype_of t) ` t;
+fun succeed_const T = Const (@{const_name "Fixrec.succeed"}, T ->> mk_matchT T);
+fun mk_succeed t = succeed_const (fastype_of t) ` t;
 
 
 (*** lifted boolean type ***)

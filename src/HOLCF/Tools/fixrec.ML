@@ -85,7 +85,7 @@ fun mk_run t =
   in
     case t of
       Const(@{const_name Rep_CFun}, _) $
-        Const(@{const_name Fixrec.return}, _) $ u => u
+        Const(@{const_name Fixrec.succeed}, _) $ u => u
     | _ => run ` t
   end;
 
@@ -267,7 +267,7 @@ fun match_eq match_name eq =
   let
     val (lhs,rhs) = dest_eqs (Logic.strip_imp_concl (strip_alls eq));
   in
-    building match_name lhs (mk_return rhs) [] (taken_names eq)
+    building match_name lhs (mk_succeed rhs) [] (taken_names eq)
   end;
 
 (* returns the sum (using +++) of the terms in ms *)

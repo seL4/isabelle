@@ -11,65 +11,65 @@ uses
   ("Tools/fixrec.ML")
 begin
 
-subsection {* Maybe monad type *}
+subsection {* Pattern-match monad *}
 
 default_sort cpo
 
-pcpodef (open) 'a maybe = "UNIV::(one ++ 'a u) set"
+pcpodef (open) 'a match = "UNIV::(one ++ 'a u) set"
 by simp_all
 
 definition
-  fail :: "'a maybe" where
-  "fail = Abs_maybe (sinl\<cdot>ONE)"
+  fail :: "'a match" where
+  "fail = Abs_match (sinl\<cdot>ONE)"
 
 definition
-  return :: "'a \<rightarrow> 'a maybe" where
-  "return = (\<Lambda> x. Abs_maybe (sinr\<cdot>(up\<cdot>x)))"
+  succeed :: "'a \<rightarrow> 'a match" where
+  "succeed = (\<Lambda> x. Abs_match (sinr\<cdot>(up\<cdot>x)))"
 
 definition
-  maybe_when :: "'b \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a maybe \<rightarrow> 'b::pcpo" where
-  "maybe_when = (\<Lambda> f r m. sscase\<cdot>(\<Lambda> x. f)\<cdot>(fup\<cdot>r)\<cdot>(Rep_maybe m))"
+  match_case :: "'b \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a match \<rightarrow> 'b::pcpo" where
+  "match_case = (\<Lambda> f r m. sscase\<cdot>(\<Lambda> x. f)\<cdot>(fup\<cdot>r)\<cdot>(Rep_match m))"
 
-lemma maybeE:
-  "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = fail \<Longrightarrow> Q; \<And>x. p = return\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-apply (unfold fail_def return_def)
+lemma matchE [case_names bottom fail succeed, cases type: match]:
+  "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; p = fail \<Longrightarrow> Q; \<And>x. p = succeed\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+unfolding fail_def succeed_def
 apply (cases p, rename_tac r)
-apply (rule_tac p=r in ssumE, simp add: Abs_maybe_strict)
+apply (rule_tac p=r in ssumE, simp add: Abs_match_strict)
 apply (rule_tac p=x in oneE, simp, simp)
-apply (rule_tac p=y in upE, simp, simp add: cont_Abs_maybe)
+apply (rule_tac p=y in upE, simp, simp add: cont_Abs_match)
 done
 
-lemma return_defined [simp]: "return\<cdot>x \<noteq> \<bottom>"
-by (simp add: return_def cont_Abs_maybe Abs_maybe_defined)
+lemma succeed_defined [simp]: "succeed\<cdot>x \<noteq> \<bottom>"
+by (simp add: succeed_def cont_Abs_match Abs_match_defined)
 
 lemma fail_defined [simp]: "fail \<noteq> \<bottom>"
-by (simp add: fail_def Abs_maybe_defined)
+by (simp add: fail_def Abs_match_defined)
 
-lemma return_eq [simp]: "(return\<cdot>x = return\<cdot>y) = (x = y)"
-by (simp add: return_def cont_Abs_maybe Abs_maybe_inject)
+lemma succeed_eq [simp]: "(succeed\<cdot>x = succeed\<cdot>y) = (x = y)"
+by (simp add: succeed_def cont_Abs_match Abs_match_inject)
 
-lemma return_neq_fail [simp]:
-  "return\<cdot>x \<noteq> fail" "fail \<noteq> return\<cdot>x"
-by (simp_all add: return_def fail_def cont_Abs_maybe Abs_maybe_inject)
+lemma succeed_neq_fail [simp]:
+  "succeed\<cdot>x \<noteq> fail" "fail \<noteq> succeed\<cdot>x"
+by (simp_all add: succeed_def fail_def cont_Abs_match Abs_match_inject)
 
-lemma maybe_when_rews [simp]:
-  "maybe_when\<cdot>f\<cdot>r\<cdot>\<bottom> = \<bottom>"
-  "maybe_when\<cdot>f\<cdot>r\<cdot>fail = f"
-  "maybe_when\<cdot>f\<cdot>r\<cdot>(return\<cdot>x) = r\<cdot>x"
-by (simp_all add: return_def fail_def maybe_when_def cont_Rep_maybe
+lemma match_case_simps [simp]:
+  "match_case\<cdot>f\<cdot>r\<cdot>\<bottom> = \<bottom>"
+  "match_case\<cdot>f\<cdot>r\<cdot>fail = f"
+  "match_case\<cdot>f\<cdot>r\<cdot>(succeed\<cdot>x) = r\<cdot>x"
+by (simp_all add: succeed_def fail_def match_case_def cont_Rep_match
                   cont2cont_LAM
-                  cont_Abs_maybe Abs_maybe_inverse Rep_maybe_strict)
+                  cont_Abs_match Abs_match_inverse Rep_match_strict)
 
 translations
-  "case m of XCONST fail \<Rightarrow> t1 | XCONST return\<cdot>x \<Rightarrow> t2"
-    == "CONST maybe_when\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
+  "case m of XCONST fail \<Rightarrow> t1 | XCONST succeed\<cdot>x \<Rightarrow> t2"
+    == "CONST match_case\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
 
 
 subsubsection {* Run operator *}
 
 definition
-  run :: "'a maybe \<rightarrow> 'a::pcpo" where
-  "run = maybe_when\<cdot>\<bottom>\<cdot>ID"
+  run :: "'a match \<rightarrow> 'a::pcpo" where
+  "run = match_case\<cdot>\<bottom>\<cdot>ID"
 
 text {* rewrite rules for run *}
 
@@ -79,17 +79,17 @@ by (simp add: run_def)
 lemma run_fail [simp]: "run\<cdot>fail = \<bottom>"
 by (simp add: run_def)
 
-lemma run_return [simp]: "run\<cdot>(return\<cdot>x) = x"
+lemma run_succeed [simp]: "run\<cdot>(succeed\<cdot>x) = x"
 by (simp add: run_def)
 
 subsubsection {* Monad plus operator *}
 
 definition
-  mplus :: "'a maybe \<rightarrow> 'a maybe \<rightarrow> 'a maybe" where
-  "mplus = (\<Lambda> m1 m2. case m1 of fail \<Rightarrow> m2 | return\<cdot>x \<Rightarrow> m1)"
+  mplus :: "'a match \<rightarrow> 'a match \<rightarrow> 'a match" where
+  "mplus = (\<Lambda> m1 m2. case m1 of fail \<Rightarrow> m2 | succeed\<cdot>x \<Rightarrow> m1)"
 
 abbreviation
-  mplus_syn :: "['a maybe, 'a maybe] \<Rightarrow> 'a maybe"  (infixr "+++" 65)  where
+  mplus_syn :: "['a match, 'a match] \<Rightarrow> 'a match"  (infixr "+++" 65)  where
   "m1 +++ m2 == mplus\<cdot>m1\<cdot>m2"
 
 text {* rewrite rules for mplus *}
@@ -100,23 +100,23 @@ by (simp add: mplus_def)
 lemma mplus_fail [simp]: "fail +++ m = m"
 by (simp add: mplus_def)
 
-lemma mplus_return [simp]: "return\<cdot>x +++ m = return\<cdot>x"
+lemma mplus_succeed [simp]: "succeed\<cdot>x +++ m = succeed\<cdot>x"
 by (simp add: mplus_def)
 
 lemma mplus_fail2 [simp]: "m +++ fail = m"
-by (rule_tac p=m in maybeE, simp_all)
+by (cases m, simp_all)
 
 lemma mplus_assoc: "(x +++ y) +++ z = x +++ (y +++ z)"
-by (rule_tac p=x in maybeE, simp_all)
+by (cases x, simp_all)
 
 subsubsection {* Fatbar combinator *}
 
 definition
-  fatbar :: "('a \<rightarrow> 'b maybe) \<rightarrow> ('a \<rightarrow> 'b maybe) \<rightarrow> ('a \<rightarrow> 'b maybe)" where
+  fatbar :: "('a \<rightarrow> 'b match) \<rightarrow> ('a \<rightarrow> 'b match) \<rightarrow> ('a \<rightarrow> 'b match)" where
   "fatbar = (\<Lambda> a b x. a\<cdot>x +++ b\<cdot>x)"
 
 abbreviation
-  fatbar_syn :: "['a \<rightarrow> 'b maybe, 'a \<rightarrow> 'b maybe] \<Rightarrow> 'a \<rightarrow> 'b maybe" (infixr "\<parallel>" 60)  where
+  fatbar_syn :: "['a \<rightarrow> 'b match, 'a \<rightarrow> 'b match] \<Rightarrow> 'a \<rightarrow> 'b match" (infixr "\<parallel>" 60)  where
   "m1 \<parallel> m2 == fatbar\<cdot>m1\<cdot>m2"
 
 lemma fatbar1: "m\<cdot>x = \<bottom> \<Longrightarrow> (m \<parallel> ms)\<cdot>x = \<bottom>"
@@ -125,7 +125,7 @@ by (simp add: fatbar_def)
 lemma fatbar2: "m\<cdot>x = fail \<Longrightarrow> (m \<parallel> ms)\<cdot>x = ms\<cdot>x"
 by (simp add: fatbar_def)
 
-lemma fatbar3: "m\<cdot>x = return\<cdot>y \<Longrightarrow> (m \<parallel> ms)\<cdot>x = return\<cdot>y"
+lemma fatbar3: "m\<cdot>x = succeed\<cdot>y \<Longrightarrow> (m \<parallel> ms)\<cdot>x = succeed\<cdot>y"
 by (simp add: fatbar_def)
 
 lemmas fatbar_simps = fatbar1 fatbar2 fatbar3
@@ -136,7 +136,7 @@ by (simp add: fatbar_def)
 lemma run_fatbar2: "m\<cdot>x = fail \<Longrightarrow> run\<cdot>((m \<parallel> ms)\<cdot>x) = run\<cdot>(ms\<cdot>x)"
 by (simp add: fatbar_def)
 
-lemma run_fatbar3: "m\<cdot>x = return\<cdot>y \<Longrightarrow> run\<cdot>((m \<parallel> ms)\<cdot>x) = y"
+lemma run_fatbar3: "m\<cdot>x = succeed\<cdot>y \<Longrightarrow> run\<cdot>((m \<parallel> ms)\<cdot>x) = y"
 by (simp add: fatbar_def)
 
 lemmas run_fatbar_simps [simp] = run_fatbar1 run_fatbar2 run_fatbar3
@@ -144,23 +144,23 @@ lemmas run_fatbar_simps [simp] = run_fatbar1 run_fatbar2 run_fatbar3
 subsection {* Case branch combinator *}
 
 definition
-  branch :: "('a \<rightarrow> 'b maybe) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c maybe)" where
-  "branch p \<equiv> \<Lambda> r x. maybe_when\<cdot>fail\<cdot>(\<Lambda> y. return\<cdot>(r\<cdot>y))\<cdot>(p\<cdot>x)"
+  branch :: "('a \<rightarrow> 'b match) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c match)" where
+  "branch p \<equiv> \<Lambda> r x. match_case\<cdot>fail\<cdot>(\<Lambda> y. succeed\<cdot>(r\<cdot>y))\<cdot>(p\<cdot>x)"
 
-lemma branch_rews:
+lemma branch_simps:
   "p\<cdot>x = \<bottom> \<Longrightarrow> branch p\<cdot>r\<cdot>x = \<bottom>"
   "p\<cdot>x = fail \<Longrightarrow> branch p\<cdot>r\<cdot>x = fail"
-  "p\<cdot>x = return\<cdot>y \<Longrightarrow> branch p\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>y)"
+  "p\<cdot>x = succeed\<cdot>y \<Longrightarrow> branch p\<cdot>r\<cdot>x = succeed\<cdot>(r\<cdot>y)"
 by (simp_all add: branch_def)
 
-lemma branch_return [simp]: "branch return\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>x)"
+lemma branch_succeed [simp]: "branch succeed\<cdot>r\<cdot>x = succeed\<cdot>(r\<cdot>x)"
 by (simp add: branch_def)
 
 subsubsection {* Cases operator *}
 
 definition
-  cases :: "'a maybe \<rightarrow> 'a::pcpo" where
-  "cases = maybe_when\<cdot>\<bottom>\<cdot>ID"
+  cases :: "'a match \<rightarrow> 'a::pcpo" where
+  "cases = match_case\<cdot>\<bottom>\<cdot>ID"
 
 text {* rewrite rules for cases *}
 
@@ -170,7 +170,7 @@ by (simp add: cases_def)
 lemma cases_fail [simp]: "cases\<cdot>fail = \<bottom>"
 by (simp add: cases_def)
 
-lemma cases_return [simp]: "cases\<cdot>(return\<cdot>x) = x"
+lemma cases_succeed [simp]: "cases\<cdot>(succeed\<cdot>x) = x"
 by (simp add: cases_def)
 
 subsection {* Case syntax *}
@@ -204,9 +204,9 @@ translations
   "_variable _noargs r" => "CONST unit_when\<cdot>r"
 
 parse_translation {*
-(* rewrite (_pat x) => (return) *)
+(* rewrite (_pat x) => (succeed) *)
 (* rewrite (_variable x t) => (Abs_CFun (%x. t)) *)
- [(@{syntax_const "_pat"}, fn _ => Syntax.const @{const_syntax Fixrec.return}),
+ [(@{syntax_const "_pat"}, fn _ => Syntax.const @{const_syntax Fixrec.succeed}),
   mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_CFun})];
 *}
 
@@ -243,17 +243,17 @@ print_translation {*
 *}
 
 translations
-  "x" <= "_match (CONST Fixrec.return) (_variable x)"
+  "x" <= "_match (CONST Fixrec.succeed) (_variable x)"
 
 
 subsection {* Pattern combinators for data constructors *}
 
-types ('a, 'b) pat = "'a \<rightarrow> 'b maybe"
+types ('a, 'b) pat = "'a \<rightarrow> 'b match"
 
 definition
   cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat" where
   "cpair_pat p1 p2 = (\<Lambda>(x, y).
-    maybe_when\<cdot>fail\<cdot>(\<Lambda> a. maybe_when\<cdot>fail\<cdot>(\<Lambda> b. return\<cdot>(a, b))\<cdot>(p2\<cdot>y))\<cdot>(p1\<cdot>x))"
+    match_case\<cdot>fail\<cdot>(\<Lambda> a. match_case\<cdot>fail\<cdot>(\<Lambda> b. succeed\<cdot>(a, b))\<cdot>(p2\<cdot>y))\<cdot>(p1\<cdot>x))"
 
 definition
   spair_pat ::
@@ -274,15 +274,15 @@ definition
 
 definition
   TT_pat :: "(tr, unit) pat" where
-  "TT_pat = (\<Lambda> b. If b then return\<cdot>() else fail fi)"
+  "TT_pat = (\<Lambda> b. If b then succeed\<cdot>() else fail fi)"
 
 definition
   FF_pat :: "(tr, unit) pat" where
-  "FF_pat = (\<Lambda> b. If b then fail else return\<cdot>() fi)"
+  "FF_pat = (\<Lambda> b. If b then fail else succeed\<cdot>() fi)"
 
 definition
   ONE_pat :: "(one, unit) pat" where
-  "ONE_pat = (\<Lambda> ONE. return\<cdot>())"
+  "ONE_pat = (\<Lambda> ONE. succeed\<cdot>())"
 
 text {* Parse translations (patterns) *}
 translations
@@ -331,21 +331,21 @@ translations
 lemma cpair_pat1:
   "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = \<bottom>"
 apply (simp add: branch_def cpair_pat_def)
-apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
+apply (cases "p\<cdot>x", simp_all)
 done
 
 lemma cpair_pat2:
   "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = fail"
 apply (simp add: branch_def cpair_pat_def)
-apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
+apply (cases "p\<cdot>x", simp_all)
 done
 
 lemma cpair_pat3:
-  "branch p\<cdot>r\<cdot>x = return\<cdot>s \<Longrightarrow>
+  "branch p\<cdot>r\<cdot>x = succeed\<cdot>s \<Longrightarrow>
    branch (cpair_pat p q)\<cdot>(csplit\<cdot>r)\<cdot>(x, y) = branch q\<cdot>s\<cdot>y"
 apply (simp add: branch_def cpair_pat_def)
-apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
-apply (rule_tac p="q\<cdot>y" in maybeE, simp_all)
+apply (cases "p\<cdot>x", simp_all)
+apply (cases "q\<cdot>y", simp_all)
 done
 
 lemmas cpair_pat [simp] =
@@ -377,35 +377,35 @@ by (simp_all add: branch_def up_pat_def)
 
 lemma TT_pat [simp]:
   "branch TT_pat\<cdot>(unit_when\<cdot>r)\<cdot>\<bottom> = \<bottom>"
-  "branch TT_pat\<cdot>(unit_when\<cdot>r)\<cdot>TT = return\<cdot>r"
+  "branch TT_pat\<cdot>(unit_when\<cdot>r)\<cdot>TT = succeed\<cdot>r"
   "branch TT_pat\<cdot>(unit_when\<cdot>r)\<cdot>FF = fail"
 by (simp_all add: branch_def TT_pat_def)
 
 lemma FF_pat [simp]:
   "branch FF_pat\<cdot>(unit_when\<cdot>r)\<cdot>\<bottom> = \<bottom>"
   "branch FF_pat\<cdot>(unit_when\<cdot>r)\<cdot>TT = fail"
-  "branch FF_pat\<cdot>(unit_when\<cdot>r)\<cdot>FF = return\<cdot>r"
+  "branch FF_pat\<cdot>(unit_when\<cdot>r)\<cdot>FF = succeed\<cdot>r"
 by (simp_all add: branch_def FF_pat_def)
 
 lemma ONE_pat [simp]:
   "branch ONE_pat\<cdot>(unit_when\<cdot>r)\<cdot>\<bottom> = \<bottom>"
-  "branch ONE_pat\<cdot>(unit_when\<cdot>r)\<cdot>ONE = return\<cdot>r"
+  "branch ONE_pat\<cdot>(unit_when\<cdot>r)\<cdot>ONE = succeed\<cdot>r"
 by (simp_all add: branch_def ONE_pat_def)
 
 
 subsection {* Wildcards, as-patterns, and lazy patterns *}
 
 definition
-  wild_pat :: "'a \<rightarrow> unit maybe" where
-  "wild_pat = (\<Lambda> x. return\<cdot>())"
+  wild_pat :: "'a \<rightarrow> unit match" where
+  "wild_pat = (\<Lambda> x. succeed\<cdot>())"
 
 definition
-  as_pat :: "('a \<rightarrow> 'b maybe) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) maybe" where
-  "as_pat p = (\<Lambda> x. maybe_when\<cdot>fail\<cdot>(\<Lambda> a. return\<cdot>(x, a))\<cdot>(p\<cdot>x))"
+  as_pat :: "('a \<rightarrow> 'b match) \<Rightarrow> 'a \<rightarrow> ('a \<times> 'b) match" where
+  "as_pat p = (\<Lambda> x. match_case\<cdot>fail\<cdot>(\<Lambda> a. succeed\<cdot>(x, a))\<cdot>(p\<cdot>x))"
 
 definition
-  lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)" where
-  "lazy_pat p = (\<Lambda> x. return\<cdot>(cases\<cdot>(p\<cdot>x)))"
+  lazy_pat :: "('a \<rightarrow> 'b::pcpo match) \<Rightarrow> ('a \<rightarrow> 'b match)" where
+  "lazy_pat p = (\<Lambda> x. succeed\<cdot>(cases\<cdot>(p\<cdot>x)))"
 
 text {* Parse translations (patterns) *}
 translations
@@ -419,21 +419,21 @@ text {* Print translations *}
 translations
   "_" <= "_match (CONST wild_pat) _noargs"
 
-lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
+lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = succeed\<cdot>r"
 by (simp add: branch_def wild_pat_def)
 
 lemma as_pat [simp]:
   "branch (as_pat p)\<cdot>(csplit\<cdot>r)\<cdot>x = branch p\<cdot>(r\<cdot>x)\<cdot>x"
 apply (simp add: branch_def as_pat_def)
-apply (rule_tac p="p\<cdot>x" in maybeE, simp_all)
+apply (cases "p\<cdot>x", simp_all)
 done
 
 lemma lazy_pat [simp]:
-  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>\<bottom>)"
-  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>\<bottom>)"
-  "branch p\<cdot>r\<cdot>x = return\<cdot>s \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = return\<cdot>s"
+  "branch p\<cdot>r\<cdot>x = \<bottom> \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = succeed\<cdot>(r\<cdot>\<bottom>)"
+  "branch p\<cdot>r\<cdot>x = fail \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = succeed\<cdot>(r\<cdot>\<bottom>)"
+  "branch p\<cdot>r\<cdot>x = succeed\<cdot>s \<Longrightarrow> branch (lazy_pat p)\<cdot>r\<cdot>x = succeed\<cdot>s"
 apply (simp_all add: branch_def lazy_pat_def)
-apply (rule_tac [!] p="p\<cdot>x" in maybeE, simp_all)
+apply (cases "p\<cdot>x", simp_all)+
 done
 
 
@@ -442,47 +442,47 @@ subsection {* Match functions for built-in types *}
 default_sort pcpo
 
 definition
-  match_UU :: "'a \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+  match_UU :: "'a \<rightarrow> 'c match \<rightarrow> 'c match"
 where
   "match_UU = strictify\<cdot>(\<Lambda> x k. fail)"
 
 definition
-  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
 where
   "match_cpair = (\<Lambda> x k. csplit\<cdot>k\<cdot>x)"
 
 definition
-  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c match) \<rightarrow> 'c match"
 where
   "match_spair = (\<Lambda> x k. ssplit\<cdot>k\<cdot>x)"
 
 definition
-  match_sinl :: "'a \<oplus> 'b \<rightarrow> ('a \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+  match_sinl :: "'a \<oplus> 'b \<rightarrow> ('a \<rightarrow> 'c match) \<rightarrow> 'c match"
 where
   "match_sinl = (\<Lambda> x k. sscase\<cdot>k\<cdot>(\<Lambda> b. fail)\<cdot>x)"
 
 definition
-  match_sinr :: "'a \<oplus> 'b \<rightarrow> ('b \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+  match_sinr :: "'a \<oplus> 'b \<rightarrow> ('b \<rightarrow> 'c match) \<rightarrow> 'c match"
 where
   "match_sinr = (\<Lambda> x k. sscase\<cdot>(\<Lambda> a. fail)\<cdot>k\<cdot>x)"
 
 definition
-  match_up :: "'a::cpo u \<rightarrow> ('a \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+  match_up :: "'a::cpo u \<rightarrow> ('a \<rightarrow> 'c match) \<rightarrow> 'c match"
 where
   "match_up = (\<Lambda> x k. fup\<cdot>k\<cdot>x)"
 
 definition
-  match_ONE :: "one \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+  match_ONE :: "one \<rightarrow> 'c match \<rightarrow> 'c match"
 where
   "match_ONE = (\<Lambda> ONE k. k)"
 
 definition
-  match_TT :: "tr \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+  match_TT :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
 where
   "match_TT = (\<Lambda> x k. If x then k else fail fi)"
  
 definition
-  match_FF :: "tr \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+  match_FF :: "tr \<rightarrow> 'c match \<rightarrow> 'c match"
 where
   "match_FF = (\<Lambda> x k. If x then fail else k fi)"
 
@@ -584,6 +584,6 @@ setup {*
       (@{const_name UU}, @{const_name match_UU}) ]
 *}
 
-hide_const (open) return fail run cases
+hide_const (open) succeed fail run cases
 
 end

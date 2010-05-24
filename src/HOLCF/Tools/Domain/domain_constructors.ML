@@ -850,7 +850,7 @@ fun add_pattern_combinators
       in
         pat_const $ p1 $ p2
       end;
-    fun mk_tuple_pat [] = return_const HOLogic.unitT
+    fun mk_tuple_pat [] = succeed_const HOLogic.unitT
       | mk_tuple_pat ps = foldr1 mk_pair_pat ps;
     fun branch_const (T,U,V) = 
       Const (@{const_name branch},
@@ -951,7 +951,7 @@ fun add_pattern_combinators
           val (fun1, fun2, taken) = pat_lhs (pat, args);
           val defs = @{thm branch_def} :: pat_defs;
           val goal = mk_trp (mk_strict fun1);
-          val rules = @{thms maybe_when_rews} @ case_rews;
+          val rules = @{thms match_case_simps} @ case_rews;
           val tacs = [simp_tac (beta_ss addsimps rules) 1];
         in prove thy defs goal (K tacs) end;
       fun pat_apps (i, (pat, (con, args))) =
@@ -966,7 +966,7 @@ fun add_pattern_combinators
               val concl = mk_trp (mk_eq (fun1 ` con_app, rhs));
               val goal = Logic.list_implies (assms, concl);
               val defs = @{thm branch_def} :: pat_defs;
-              val rules = @{thms maybe_when_rews} @ case_rews;
+              val rules = @{thms match_case_simps} @ case_rews;
               val tacs = [asm_simp_tac (beta_ss addsimps rules) 1];
             in prove thy defs goal (K tacs) end;
         in map_index pat_app spec end;
