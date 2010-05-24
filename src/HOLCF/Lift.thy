@@ -137,7 +137,7 @@ apply (rule cont2mono [OF cont_flift1])
 apply (simp add: below_fun_ext)
 done
 
-lemma cont2cont_flift1 [simp]:
+lemma cont2cont_flift1 [simp, cont2cont]:
   "\<lbrakk>\<And>y. cont (\<lambda>x. f x y)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. FLIFT y. f x y)"
 apply (rule cont_flift1 [THEN cont2cont_app3])
 apply simp

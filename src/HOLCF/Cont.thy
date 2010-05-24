@@ -178,7 +178,7 @@ by (rule cont_apply [OF _ _ cont_const])
 
 text {* if-then-else is continuous *}
 
-lemma cont_if [simp]:
+lemma cont_if [simp, cont2cont]:
   "\<lbrakk>cont f; cont g\<rbrakk> \<Longrightarrow> cont (\<lambda>x. if b then f x else g x)"
 by (induct b) simp_all
 
