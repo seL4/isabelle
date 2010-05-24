@@ -175,8 +175,8 @@ fun dependencies_of thy name = the_locale thy name |>
 
 (** Identifiers: activated locales in theory or proof context **)
 
-fun ident_eq thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
-(* FIXME: this is ident_le, smaller term is more general *)
+fun ident_eq ((n: string, ts), (m, ss)) = (m = n) andalso eq_list (op aconv) (ts, ss);
+fun ident_le thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
 
 local
 
@@ -190,7 +190,7 @@ structure Identifiers = Generic_Data
   val merge = ToDo;
 );
 
-fun finish thy (ToDo (i1, i2)) = merge (ident_eq thy) (finish thy i1, finish thy i2)
+fun finish thy (ToDo (i1, i2)) = merge (ident_le thy) (finish thy i1, finish thy i2)
   | finish _ (Ready ids) = ids;
 
 val _ = Context.>> (Context.map_theory (Theory.at_begin (fn thy =>
@@ -220,7 +220,7 @@ fun add thy depth export (name, morph) (deps, marked) =
       val dependencies = dependencies_of thy name;
       val instance = instance_of thy name (morph $> export);
     in
-      if member (ident_eq thy) marked (name, instance)
+      if member (ident_le thy) marked (name, instance)
       then (deps, marked)
       else
         let
@@ -244,9 +244,9 @@ fun roundup thy activate_dep export (name, morph) (marked, input) =
     val (dependencies, marked') = add thy 0 export (name, morph) ([], []);
     (* Filter out fragments from marked; these won't be activated. *)
     val dependencies' = filter_out (fn (name, morph) =>
-      member (ident_eq thy) marked (name, instance_of thy name (morph $> export))) dependencies;
+      member (ident_le thy) marked (name, instance_of thy name (morph $> export))) dependencies;
   in
-    (merge (ident_eq thy) (marked, marked'), input |> fold_rev activate_dep dependencies')
+    (merge (ident_le thy) (marked, marked'), input |> fold_rev activate_dep dependencies')
   end;
 
 end;
@@ -359,7 +359,7 @@ fun get_mixins thy (name, morph) =
   let
     val (regs, mixins) = Registrations.get thy;
   in
-    case find_first (fn ((name', (morph', export')), _) => ident_eq thy
+    case find_first (fn ((name', (morph', export')), _) => ident_eq
       ((name', instance_of thy name' (morph' $> export')), (name, instance_of thy name morph))) (rev regs) of
       NONE => []
     | SOME (_, serial) => the_default [] (AList.lookup (op =) mixins serial)
@@ -447,7 +447,7 @@ fun amend_registration (name, morph) mixin export thy =
     val regs = Registrations.get thy |> fst;
     val base = instance_of thy name (morph $> export);
     fun match ((name', (morph', export')), _) =
-      name = name' andalso eq_list (op aconv) (base, instance_of thy name' (morph' $> export'));
+      ident_eq ((name, base), (name', instance_of thy name' (morph' $> export)));
   in
     case find_first match (rev regs) of
         NONE => error ("No interpretation of locale " ^
@@ -467,7 +467,7 @@ fun add_registration (name, base_morph) mixin export thy =
     val morph = base_morph $> mix;
     val inst = instance_of thy name morph;
   in
-    if member (ident_eq thy) (get_idents (Context.Theory thy)) (name, inst)
+    if member (ident_le thy) (get_idents (Context.Theory thy)) (name, inst)
     then thy
     else
       (get_idents (Context.Theory thy), thy)
