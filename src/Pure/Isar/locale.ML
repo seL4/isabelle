@@ -368,7 +368,7 @@ fun get_mixins thy (name, morph) =
 fun collect_mixins thy (name, morph) =
   roundup thy (fn dep => fn mixins =>
     merge (eq_snd op =) (mixins, get_mixins thy dep)) Morphism.identity (name, morph) ([], [])
-  |> snd |> filter (snd o fst);  (* only inheritable mixins *)
+  |> snd |> filter (snd o fst);  (* only inheritable mixins *) (* FIXME *)
   (* FIXME refactor usage *)
 
 fun compose_mixins mixins =
@@ -462,38 +462,37 @@ fun amend_registration (name, morph) mixin export thy =
 
 fun add_registration (name, base_morph) mixin export thy =
   let
-    val base = instance_of thy name base_morph;
     val mix = case mixin of NONE => Morphism.identity
           | SOME (mix, _) => mix;
+    val morph = base_morph $> mix;
+    val inst = instance_of thy name morph;
   in
-    if member (ident_eq thy) (get_idents (Context.Theory thy)) (name, base)
+    if member (ident_eq thy) (get_idents (Context.Theory thy)) (name, inst)
     then thy
     else
       (get_idents (Context.Theory thy), thy)
       (* add new registrations with inherited mixins *)
-      |> roundup thy (add_reg export) export (name, base_morph $> mix) (* FIXME *)
+      |> roundup thy (add_reg export) export (name, morph)
       |> snd
       (* add mixin *)
       |> (case mixin of NONE => I
-           | SOME mixin => amend_registration (name, base_morph $> mix) mixin export)
+           | SOME mixin => amend_registration (name, morph) mixin export)
       (* activate import hierarchy as far as not already active *)
-      |> Context.theory_map (activate_facts' export (name, base_morph $> mix))
+      |> Context.theory_map (activate_facts' export (name, morph))
   end;
 
 
 (*** Dependencies ***)
 
-fun add_reg_activate_facts export (dep, morph) thy =
-  (get_idents (Context.Theory thy), thy)
-  |> roundup thy (add_reg export) export (dep, morph)
-  |> snd
-  |> Context.theory_map (activate_facts' export (dep, morph));
-
-fun add_dependency loc (dep, morph) export thy =
-  thy
-  |> (change_locale loc o apsnd) (cons ((dep, (morph, export)), serial ()))
-  |> (fn thy => fold_rev (add_reg_activate_facts export)
-      (all_registrations thy) thy);
+fun add_dependency loc (name, morph) export thy =
+  let
+    val thy' = (change_locale loc o apsnd) (cons ((name, (morph, export)), serial ())) thy;
+    val (_, regs) = fold_rev (roundup thy' cons export)
+      (all_registrations thy') (get_idents (Context.Theory thy'), []);
+  in
+    thy'
+    |> fold_rev (fn dep => add_registration dep NONE export) regs
+  end;
 
 
 (*** Storing results ***)
