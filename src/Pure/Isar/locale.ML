@@ -330,7 +330,7 @@ fun print_locale thy show_facts raw_name =
 
 structure Registrations = Theory_Data
 (
-  type T = ((string * (morphism * morphism)) * serial) list *
+  type T = (((string * term list) * (morphism * morphism)) * serial) list *
     (* registrations, in reverse order of declaration;
        serial points to mixin list *)
     (serial * ((morphism * bool) * serial) list) list;
@@ -348,8 +348,8 @@ structure Registrations = Theory_Data
 
 (* Primitive operations *)
 
-fun add_reg export (dep, morph) =
-  Registrations.map (apfst (cons ((dep, (morph, export)), serial ())));
+fun add_reg thy export (name, morph) =
+  Registrations.map (apfst (cons (((name, instance_of thy name (morph $> export)), (morph, export)), serial ())));
 
 fun add_mixin serial' mixin =
   (* registration to be amended identified by its serial id *)
@@ -359,8 +359,8 @@ fun get_mixins thy (name, morph) =
   let
     val (regs, mixins) = Registrations.get thy;
   in
-    case find_first (fn ((name', (morph', export')), _) => ident_eq
-      ((name', instance_of thy name' (morph' $> export')), (name, instance_of thy name morph))) (rev regs) of
+    case find_first (fn (((name', inst'), (morph', export')), _) => ident_eq
+      ((name', inst'), (name, instance_of thy name morph))) (rev regs) of
       NONE => []
     | SOME (_, serial) => the_default [] (AList.lookup (op =) mixins serial)
   end;
@@ -379,14 +379,14 @@ fun reg_morph mixins ((name, (base, export)), serial) =
   in (name, base $> mix $> export) end;
 
 fun these_registrations thy name = Registrations.get thy
-  |>> filter (curry (op =) name o fst o fst)
+  |>> filter (curry (op =) name o fst o fst o fst)
   (* with inherited mixins *)
-  |-> (fn regs => fn _ => map (fn ((name, (base, export)) ,_) =>
+  |-> (fn regs => fn _ => map (fn (((name, _), (base, export)) ,_) =>
     (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
 
 fun all_registrations thy = Registrations.get thy (* FIXME clone *)
   (* with inherited mixins *)
-  |-> (fn regs => fn _ => map (fn ((name, (base, export)) ,_) =>
+  |-> (fn regs => fn _ => map (fn (((name, _), (base, export)) ,_) =>
     (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
 
 fun activate_notes' activ_elem transfer thy export (name, morph) input =
@@ -446,8 +446,7 @@ fun amend_registration (name, morph) mixin export thy =
   let
     val regs = Registrations.get thy |> fst;
     val base = instance_of thy name (morph $> export);
-    fun match ((name', (morph', export')), _) =
-      ident_eq ((name, base), (name', instance_of thy name' (morph' $> export)));
+    fun match (((name', inst'), _), _) = ident_eq ((name, base), (name', inst'));
   in
     case find_first match (rev regs) of
         NONE => error ("No interpretation of locale " ^
@@ -472,7 +471,7 @@ fun add_registration (name, base_morph) mixin export thy =
     else
       (get_idents (Context.Theory thy), thy)
       (* add new registrations with inherited mixins *)
-      |> roundup thy (add_reg export) export (name, morph)
+      |> roundup thy (add_reg thy export) export (name, morph)
       |> snd
       (* add mixin *)
       |> (case mixin of NONE => I
