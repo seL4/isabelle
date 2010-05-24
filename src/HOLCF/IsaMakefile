@@ -115,6 +115,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/Hoare.thy \
   ex/Letrec.thy \
   ex/Loop.thy \
+  ex/Pattern_Match.thy \
   ex/Powerdomain_ex.thy \
   ex/Stream.thy \
   ex/Strict_Fun.thy \

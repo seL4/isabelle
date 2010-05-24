@@ -25,8 +25,7 @@ sig
            cases : thm list,
            sel_rews : thm list,
            dis_rews : thm list,
-           match_rews : thm list,
-           pat_rews : thm list
+           match_rews : thm list
          } * theory;
 end;
 
@@ -824,162 +823,6 @@ fun add_match_combinators
   end;
 
 (******************************************************************************)
-(************** definitions and theorems for pattern combinators **************)
-(******************************************************************************)
-
-fun add_pattern_combinators
-    (bindings : binding list)
-    (spec : (term * (bool * typ) list) list)
-    (lhsT : typ)
-    (exhaust : thm)
-    (case_const : typ -> term)
-    (case_rews : thm list)
-    (thy : theory) =
-  let
-
-    (* utility functions *)
-    fun mk_pair_pat (p1, p2) =
-      let
-        val T1 = fastype_of p1;
-        val T2 = fastype_of p2;
-        val (U1, V1) = apsnd dest_matchT (dest_cfunT T1);
-        val (U2, V2) = apsnd dest_matchT (dest_cfunT T2);
-        val pat_typ = [T1, T2] --->
-            (mk_prodT (U1, U2) ->> mk_matchT (mk_prodT (V1, V2)));
-        val pat_const = Const (@{const_name cpair_pat}, pat_typ);
-      in
-        pat_const $ p1 $ p2
-      end;
-    fun mk_tuple_pat [] = succeed_const HOLogic.unitT
-      | mk_tuple_pat ps = foldr1 mk_pair_pat ps;
-    fun branch_const (T,U,V) = 
-      Const (@{const_name branch},
-        (T ->> mk_matchT U) --> (U ->> V) ->> T ->> mk_matchT V);
-
-    (* define pattern combinators *)
-    local
-      val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
-
-      fun pat_eqn (i, (bind, (con, args))) : binding * term * mixfix =
-        let
-          val pat_bind = Binding.suffix_name "_pat" bind;
-          val Ts = map snd args;
-          val Vs =
-              (map (K "'t") args)
-              |> Datatype_Prop.indexify_names
-              |> Name.variant_list tns
-              |> map (fn t => TFree (t, @{sort pcpo}));
-          val patNs = Datatype_Prop.indexify_names (map (K "pat") args);
-          val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
-          val pats = map Free (patNs ~~ patTs);
-          val fail = mk_fail (mk_tupleT Vs);
-          val (vs, nonlazy) = get_vars_avoiding patNs args;
-          val rhs = big_lambdas vs (mk_tuple_pat pats ` mk_tuple vs);
-          fun one_fun (j, (_, args')) =
-            let
-              val (vs', nonlazy) = get_vars_avoiding patNs args';
-            in if i = j then rhs else big_lambdas vs' fail end;
-          val funs = map_index one_fun spec;
-          val body = list_ccomb (case_const (mk_matchT (mk_tupleT Vs)), funs);
-        in
-          (pat_bind, lambdas pats body, NoSyn)
-        end;
-    in
-      val ((pat_consts, pat_defs), thy) =
-          define_consts (map_index pat_eqn (bindings ~~ spec)) thy
-    end;
-
-    (* syntax translations for pattern combinators *)
-    local
-      open Syntax
-      fun syntax c = Syntax.mark_const (fst (dest_Const c));
-      fun app s (l, r) = Syntax.mk_appl (Constant s) [l, r];
-      val capp = app @{const_syntax Rep_CFun};
-      val capps = Library.foldl capp
-
-      fun app_var x = Syntax.mk_appl (Constant "_variable") [x, Variable "rhs"];
-      fun app_pat x = Syntax.mk_appl (Constant "_pat") [x];
-      fun args_list [] = Constant "_noargs"
-        | args_list xs = foldr1 (app "_args") xs;
-      fun one_case_trans (pat, (con, args)) =
-        let
-          val cname = Constant (syntax con);
-          val pname = Constant (syntax pat);
-          val ns = 1 upto length args;
-          val xs = map (fn n => Variable ("x"^(string_of_int n))) ns;
-          val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
-          val vs = map (fn n => Variable ("v"^(string_of_int n))) ns;
-        in
-          [ParseRule (app_pat (capps (cname, xs)),
-                      mk_appl pname (map app_pat xs)),
-           ParseRule (app_var (capps (cname, xs)),
-                      app_var (args_list xs)),
-           PrintRule (capps (cname, ListPair.map (app "_match") (ps,vs)),
-                      app "_match" (mk_appl pname ps, args_list vs))]
-        end;
-      val trans_rules : Syntax.ast Syntax.trrule list =
-          maps one_case_trans (pat_consts ~~ spec);
-    in
-      val thy = Sign.add_trrules_i trans_rules thy;
-    end;
-
-    (* prove strictness and reduction rules of pattern combinators *)
-    local
-      val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
-      val rn = Name.variant tns "'r";
-      val R = TFree (rn, @{sort pcpo});
-      fun pat_lhs (pat, args) =
-        let
-          val Ts = map snd args;
-          val Vs =
-              (map (K "'t") args)
-              |> Datatype_Prop.indexify_names
-              |> Name.variant_list (rn::tns)
-              |> map (fn t => TFree (t, @{sort pcpo}));
-          val patNs = Datatype_Prop.indexify_names (map (K "pat") args);
-          val patTs = map2 (fn T => fn V => T ->> mk_matchT V) Ts Vs;
-          val pats = map Free (patNs ~~ patTs);
-          val k = Free ("rhs", mk_tupleT Vs ->> R);
-          val branch1 = branch_const (lhsT, mk_tupleT Vs, R);
-          val fun1 = (branch1 $ list_comb (pat, pats)) ` k;
-          val branch2 = branch_const (mk_tupleT Ts, mk_tupleT Vs, R);
-          val fun2 = (branch2 $ mk_tuple_pat pats) ` k;
-          val taken = "rhs" :: patNs;
-        in (fun1, fun2, taken) end;
-      fun pat_strict (pat, (con, args)) =
-        let
-          val (fun1, fun2, taken) = pat_lhs (pat, args);
-          val defs = @{thm branch_def} :: pat_defs;
-          val goal = mk_trp (mk_strict fun1);
-          val rules = @{thms match_case_simps} @ case_rews;
-          val tacs = [simp_tac (beta_ss addsimps rules) 1];
-        in prove thy defs goal (K tacs) end;
-      fun pat_apps (i, (pat, (con, args))) =
-        let
-          val (fun1, fun2, taken) = pat_lhs (pat, args);
-          fun pat_app (j, (con', args')) =
-            let
-              val (vs, nonlazy) = get_vars_avoiding taken args';
-              val con_app = list_ccomb (con', vs);
-              val assms = map (mk_trp o mk_defined) nonlazy;
-              val rhs = if i = j then fun2 ` mk_tuple vs else mk_fail R;
-              val concl = mk_trp (mk_eq (fun1 ` con_app, rhs));
-              val goal = Logic.list_implies (assms, concl);
-              val defs = @{thm branch_def} :: pat_defs;
-              val rules = @{thms match_case_simps} @ case_rews;
-              val tacs = [asm_simp_tac (beta_ss addsimps rules) 1];
-            in prove thy defs goal (K tacs) end;
-        in map_index pat_app spec end;
-    in
-      val pat_stricts = map pat_strict (pat_consts ~~ spec);
-      val pat_apps = flat (map_index pat_apps (pat_consts ~~ spec));
-    end;
-
-  in
-    (pat_stricts @ pat_apps, thy)
-  end
-
-(******************************************************************************)
 (******************************* main function ********************************)
 (******************************************************************************)
 
@@ -1061,18 +904,6 @@ fun add_domain_constructors
           exhaust case_const cases thy
       end
 
-    (* define and prove theorems for pattern combinators *)
-    val (pat_thms : thm list, thy : theory) =
-      let
-        val bindings = map #1 spec;
-        fun prep_arg (lazy, sel, T) = (lazy, T);
-        fun prep_con c (b, args, mx) = (c, map prep_arg args);
-        val pat_spec = map2 prep_con con_consts spec;
-      in
-        add_pattern_combinators bindings pat_spec lhsT
-          exhaust case_const cases thy
-      end
-
     (* restore original signature path *)
     val thy = Sign.parent_path thy;
 
@@ -1090,8 +921,7 @@ fun add_domain_constructors
         cases = cases,
         sel_rews = sel_thms,
         dis_rews = dis_thms,
-        match_rews = match_thms,
-        pat_rews = pat_thms };
+        match_rews = match_thms };
   in
     (result, thy)
   end;

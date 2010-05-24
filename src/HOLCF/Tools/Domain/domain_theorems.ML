@@ -145,7 +145,6 @@ val when_rews = #cases result;
 val when_strict = hd when_rews;
 val dis_rews = #dis_rews result;
 val mat_rews = #match_rews result;
-val pat_rews = #pat_rews result;
 
 (* ----- theorems concerning the isomorphism -------------------------------- *)
 
@@ -211,7 +210,6 @@ in
      ((qualified "con_rews"  , con_rews    ), [simp]),
      ((qualified "sel_rews"  , sel_rews    ), [simp]),
      ((qualified "dis_rews"  , dis_rews    ), [simp]),
-     ((qualified "pat_rews"  , pat_rews    ), [simp]),
      ((qualified "dist_les"  , dist_les    ), [simp]),
      ((qualified "dist_eqs"  , dist_eqs    ), [simp]),
      ((qualified "inverts"   , inverts     ), [simp]),
@@ -220,7 +218,7 @@ in
      ((qualified "match_rews", mat_rews    ), [simp])]
   |> snd
   |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
-      pat_rews @ dist_les @ dist_eqs)
+      dist_les @ dist_eqs)
 end; (* let *)
 
 (******************************************************************************)

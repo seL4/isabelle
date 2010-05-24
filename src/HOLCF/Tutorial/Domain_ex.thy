@@ -154,11 +154,6 @@ term is_Leaf
 term is_Node
 thm tree.dis_rews
 
-text {* Rules about pattern match combinators *}
-term Leaf_pat
-term Node_pat
-thm tree.pat_rews
-
 text {* Rules about monadic pattern match combinators *}
 term match_Leaf
 term match_Node
