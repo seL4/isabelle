@@ -786,7 +786,7 @@ proof(induct p)
 qed simp
 
 
-subsection{* Nullstellenstatz, degrees and divisibility of polynomials *}
+subsection{* Nullstellensatz, degrees and divisibility of polynomials *}
 
 lemma nullstellensatz_lemma:
   fixes p :: "complex poly"

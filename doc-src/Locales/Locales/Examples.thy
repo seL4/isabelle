@@ -654,7 +654,7 @@ text {*
   definitions and other constructs that are not part of the
   specifications of the locales.
 
-  The first from of interpretation we will consider in this tutorial
+  The first form of interpretation we will consider in this tutorial
   is provided by the \isakeyword{sublocale} command.  It enables to
   modify the import hierarchy to reflect the \emph{logical} relation
   between locales.
