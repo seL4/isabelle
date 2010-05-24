@@ -678,7 +678,7 @@ text {*
 
   On the theory level, @{command "instance"}~@{text "t :: (s\<^sub>1, \<dots>,
   s\<^sub>n)s"} provides a convenient way to instantiate a type class with no
-  need to specifify operations: one can continue with the
+  need to specify operations: one can continue with the
   instantiation proof immediately.
 
   \item @{command "subclass"}~@{text c} in a class context for class
