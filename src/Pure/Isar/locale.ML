@@ -175,8 +175,15 @@ fun dependencies_of thy name = the_locale thy name |>
 
 (** Identifiers: activated locales in theory or proof context **)
 
-fun ident_eq ((n: string, ts), (m, ss)) = (m = n) andalso eq_list (op aconv) (ts, ss);
+(* subsumption *)
 fun ident_le thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
+  (* smaller term is more general *)
+
+(* total order *)
+fun ident_ord ((n: string, ts), (m, ss)) =
+  case fast_string_ord (m, n) of
+      EQUAL => list_ord Term_Ord.fast_term_ord (ts, ss)
+    | ord => ord;
 
 local
 
@@ -328,20 +335,22 @@ fun print_locale thy show_facts raw_name =
 
 (*** Registrations: interpretations in theories ***)
 
+structure Idtab = Table(type key = string * term list val ord = ident_ord);
+
 structure Registrations = Theory_Data
 (
-  type T = (((string * term list) * (morphism * morphism)) * serial) list *
-    (* registrations, in reverse order of declaration;
+  type T = ((morphism * morphism) * serial) Idtab.table *
+    (* registrations, indexed by locale name and instance;
        serial points to mixin list *)
-    (serial * ((morphism * bool) * serial) list) list;
-    (* alist of mixin lists, per list mixins in reverse order of declaration;
+    (((morphism * bool) * serial) list) Inttab.table;
+    (* table of mixin lists, per list mixins in reverse order of declaration;
        lists indexed by registration serial,
        entries for empty lists may be omitted *)
-  val empty = ([], []);
+  val empty = (Idtab.empty, Inttab.empty);
   val extend = I;
   fun merge ((r1, m1), (r2, m2)) : T =
-    (Library.merge (eq_snd op =) (r1, r2),
-      AList.join (op =) (K (Library.merge (eq_snd op =))) (m1, m2));
+    (Idtab.join (K (fst)) (r1, r2), (* pick left registration, FIXME? *)
+      Inttab.join (K (Library.merge (eq_snd op =))) (m1, m2));
     (* FIXME consolidate with dependencies, consider one data slot only *)
 );
 
@@ -349,20 +358,20 @@ structure Registrations = Theory_Data
 (* Primitive operations *)
 
 fun add_reg thy export (name, morph) =
-  Registrations.map (apfst (cons (((name, instance_of thy name (morph $> export)), (morph, export)), serial ())));
+  Registrations.map (apfst (Idtab.insert (K false)
+    ((name, instance_of thy name (morph $> export)), ((morph, export), serial ()))));
 
 fun add_mixin serial' mixin =
   (* registration to be amended identified by its serial id *)
-  Registrations.map (apsnd (AList.map_default (op =) (serial', []) (cons (mixin, serial ()))));
+  Registrations.map (apsnd (Inttab.map_default (serial', []) (cons (mixin, serial ()))));
 
 fun get_mixins thy (name, morph) =
   let
     val (regs, mixins) = Registrations.get thy;
   in
-    case find_first (fn (((name', inst'), (morph', export')), _) => ident_eq
-      ((name', inst'), (name, instance_of thy name morph))) (rev regs) of
+    case Idtab.lookup regs (name, instance_of thy name morph) of
       NONE => []
-    | SOME (_, serial) => the_default [] (AList.lookup (op =) mixins serial)
+    | SOME (_, serial) => the_default [] (Inttab.lookup mixins serial)
   end;
 
 fun collect_mixins thy (name, morph) =
@@ -379,14 +388,16 @@ fun reg_morph mixins ((name, (base, export)), serial) =
   in (name, base $> mix $> export) end;
 
 fun these_registrations thy name = Registrations.get thy
-  |>> filter (curry (op =) name o fst o fst o fst)
+  |>> Idtab.dest
+  |>> filter (curry (op =) name o fst o fst)
   (* with inherited mixins *)
-  |-> (fn regs => fn _ => map (fn (((name, _), (base, export)) ,_) =>
+  |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
     (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
 
 fun all_registrations thy = Registrations.get thy (* FIXME clone *)
+  |>> Idtab.dest
   (* with inherited mixins *)
-  |-> (fn regs => fn _ => map (fn (((name, _), (base, export)) ,_) =>
+  |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
     (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
 
 fun activate_notes' activ_elem transfer thy export (name, morph) input =
@@ -446,9 +457,8 @@ fun amend_registration (name, morph) mixin export thy =
   let
     val regs = Registrations.get thy |> fst;
     val base = instance_of thy name (morph $> export);
-    fun match (((name', inst'), _), _) = ident_eq ((name, base), (name', inst'));
   in
-    case find_first match (rev regs) of
+    case Idtab.lookup regs (name, base) of
         NONE => error ("No interpretation of locale " ^
           quote (extern thy name) ^ " and\nparameter instantiation " ^
           space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
