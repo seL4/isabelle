@@ -9,7 +9,6 @@ imports
   Main
   Domain
   Powerdomains
-  Sum_Cpo
 begin
 
 default_sort pcpo

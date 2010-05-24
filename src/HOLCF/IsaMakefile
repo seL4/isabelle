@@ -58,7 +58,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Representable.thy \
   Sprod.thy \
   Ssum.thy \
-  Sum_Cpo.thy \
   Tr.thy \
   Universal.thy \
   UpperPD.thy \
@@ -100,6 +99,7 @@ HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
 $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
   Library/Stream.thy \
   Library/Strict_Fun.thy \
+  Library/Sum_Cpo.thy \
   Library/HOLCF_Library.thy \
   Library/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Library
