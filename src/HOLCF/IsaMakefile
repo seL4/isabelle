@@ -7,6 +7,7 @@
 default: HOLCF
 images: HOLCF IOA
 test: HOLCF-IMP HOLCF-ex HOLCF-FOCUS \
+  HOLCF-Library \
   HOLCF-Tutorial \
       IOA-ABP IOA-NTP IOA-Modelcheck IOA-Storage IOA-ex
 all: images test
@@ -92,6 +93,18 @@ $(LOG)/HOLCF-Tutorial.gz: $(OUT)/HOLCF \
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Tutorial
 
 
+## HOLCF-Library
+
+HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
+
+$(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
+  Library/Stream.thy \
+  Library/Strict_Fun.thy \
+  Library/HOLCF_Library.thy \
+  Library/ROOT.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Library
+
+
 ## HOLCF-IMP
 
 HOLCF-IMP: HOLCF $(LOG)/HOLCF-IMP.gz
@@ -117,8 +130,6 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ex/Loop.thy \
   ex/Pattern_Match.thy \
   ex/Powerdomain_ex.thy \
-  ex/Stream.thy \
-  ex/Strict_Fun.thy \
   ex/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
 
@@ -128,7 +139,7 @@ $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
 HOLCF-FOCUS: HOLCF $(LOG)/HOLCF-FOCUS.gz
 
 $(LOG)/HOLCF-FOCUS.gz: $(OUT)/HOLCF \
-  ex/Stream.thy \
+  Library/Stream.thy \
   FOCUS/Fstreams.thy \
   FOCUS/Fstream.thy FOCUS/FOCUS.thy \
   FOCUS/Stream_adm.thy ../HOL/Library/Continuity.thy \
@@ -213,4 +224,5 @@ clean:
 	  $(LOG)/HOLCF-ex.gz $(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA	\
 	  $(LOG)/IOA.gz $(LOG)/IOA-ABP.gz $(LOG)/IOA-NTP.gz	\
 	  $(LOG)/IOA-Modelcheck.gz $(LOG)/IOA-Storage.gz	\
+	  $(LOG)/HOLCF-Library.gz \
 	  $(LOG)/IOA-ex.gz $(LOG)/HOLCF-Tutorial.gz

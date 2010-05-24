@@ -6,7 +6,9 @@ FOCUS flat streams (with lifted elements).
 TODO: integrate this with Fstream.
 *)
 
-theory Fstreams imports "../ex/Stream" begin
+theory Fstreams
+imports Stream
+begin
 
 default_sort type
 

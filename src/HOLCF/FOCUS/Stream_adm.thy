@@ -5,7 +5,7 @@
 header {* Admissibility for streams *}
 
 theory Stream_adm
-imports "../ex/Stream" Continuity
+imports Stream Continuity
 begin
 
 definition

@@ -14,6 +14,8 @@ begin
 
 default_sort pcpo
 
+ML {* path_add "~~/src/HOLCF/Library" *}
+
 text {* Legacy theorem names *}
 
 lemmas sq_ord_less_eq_trans = below_eq_trans
