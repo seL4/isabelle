@@ -107,6 +107,49 @@ lemma [code abstract]:
   by simp
 
 
+section {* Induction principle and case distinction *}
+
+lemma dlist_induct [case_names empty insert, induct type: dlist]:
+  assumes empty: "P empty"
+  assumes insrt: "\<And>x dxs. \<not> member dxs x \<Longrightarrow> P dxs \<Longrightarrow> P (insert x dxs)"
+  shows "P dxs"
+proof (cases dxs)
+  case (Abs_dlist xs)
+  then have "distinct xs" and dxs: "dxs = Dlist xs" by (simp_all add: Dlist_def distinct_remdups_id)
+  from `distinct xs` have "P (Dlist xs)"
+  proof (induct xs rule: distinct_induct)
+    case Nil from empty show ?case by (simp add: empty_def)
+  next
+    case (insert x xs)
+    then have "\<not> member (Dlist xs) x" and "P (Dlist xs)"
+      by (simp_all add: member_def mem_iff)
+    with insrt have "P (insert x (Dlist xs))" .
+    with insert show ?case by (simp add: insert_def distinct_remdups_id)
+  qed
+  with dxs show "P dxs" by simp
+qed
+
+lemma dlist_case [case_names empty insert, cases type: dlist]:
+  assumes empty: "dxs = empty \<Longrightarrow> P"
+  assumes insert: "\<And>x dys. \<not> member dys x \<Longrightarrow> dxs = insert x dys \<Longrightarrow> P"
+  shows P
+proof (cases dxs)
+  case (Abs_dlist xs)
+  then have dxs: "dxs = Dlist xs" and distinct: "distinct xs"
+    by (simp_all add: Dlist_def distinct_remdups_id)
+  show P proof (cases xs)
+    case Nil with dxs have "dxs = empty" by (simp add: empty_def) 
+    with empty show P .
+  next
+    case (Cons x xs)
+    with dxs distinct have "\<not> member (Dlist xs) x"
+      and "dxs = insert x (Dlist xs)"
+      by (simp_all add: member_def mem_iff insert_def distinct_remdups_id)
+    with insert show P .
+  qed
+qed
+
+
 section {* Implementation of sets by distinct lists -- canonical! *}
 
 definition Set :: "'a dlist \<Rightarrow> 'a fset" where
