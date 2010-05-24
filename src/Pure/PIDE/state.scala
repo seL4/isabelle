@@ -11,7 +11,7 @@ package isabelle
 class State(
   val command: Command,
   val status: Command.Status.Value,
-  val rev_results: List[XML.Tree],
+  val reverse_results: List[XML.Tree],
   val markup_root: Markup_Text)
 {
   def this(command: Command) =
@@ -21,15 +21,15 @@ class State(
   /* content */
 
   private def set_status(st: Command.Status.Value): State =
-    new State(command, st, rev_results, markup_root)
+    new State(command, st, reverse_results, markup_root)
 
   private def add_result(res: XML.Tree): State =
-    new State(command, status, res :: rev_results, markup_root)
+    new State(command, status, res :: reverse_results, markup_root)
 
   private def add_markup(node: Markup_Tree): State =
-    new State(command, status, rev_results, markup_root + node)
+    new State(command, status, reverse_results, markup_root + node)
 
-  lazy val results = rev_results.reverse
+  lazy val results = reverse_results.reverse
 
 
   /* markup */

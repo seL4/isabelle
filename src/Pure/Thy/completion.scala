@@ -21,14 +21,14 @@ private object Completion
   {
     override val whiteSpace = "".r
 
-    def rev_symbol: Parser[String] = """>[A-Za-z0-9_']+<\\""".r
-    def rev_symb: Parser[String] = """[A-Za-z0-9_']{2,}<\\""".r
+    def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+<\\""".r
+    def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}<\\""".r
     def word: Parser[String] = "[a-zA-Z0-9_']{3,}".r
 
     def read(in: CharSequence): Option[String] =
     {
-      val rev_in = new Library.Reverse(in)
-      parse((rev_symbol | rev_symb | word) ^^ (_.reverse), rev_in) match {
+      val reverse_in = new Library.Reverse(in)
+      parse((reverse_symbol | reverse_symb | word) ^^ (_.reverse), reverse_in) match {
         case Success(result, _) => Some(result)
         case _ => None
       }
@@ -86,8 +86,8 @@ class Completion
   def complete(line: CharSequence): Option[(String, List[String])] =
   {
     abbrevs_lex.parse(abbrevs_lex.keyword, new Library.Reverse(line)) match {
-      case abbrevs_lex.Success(rev_a, _) =>
-        val (word, c) = abbrevs_map(rev_a)
+      case abbrevs_lex.Success(reverse_a, _) =>
+        val (word, c) = abbrevs_map(reverse_a)
         Some(word, List(c))
       case _ =>
         Completion.Parse.read(line) match {

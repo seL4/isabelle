@@ -147,7 +147,7 @@ class Linear_Set[A]
     if (contains(elem)) make_iterator(Some(elem), rep.nexts)
     else throw new Linear_Set.Undefined(elem.toString)
 
-  def rev_iterator(elem: A): Iterator[A] =
+  def reverse_iterator(elem: A): Iterator[A] =
     if (contains(elem)) make_iterator(Some(elem), rep.prevs)
     else throw new Linear_Set.Undefined(elem.toString)
 

@@ -85,7 +85,7 @@ object Document
       commands.iterator.find(is_unparsed) match {
         case Some(first_unparsed) =>
           val first =
-            commands.rev_iterator(first_unparsed).find(_.is_command) getOrElse commands.head
+            commands.reverse_iterator(first_unparsed).find(_.is_command) getOrElse commands.head
           val last =
             commands.iterator(first_unparsed).find(_.is_command) getOrElse commands.last
           val range =
