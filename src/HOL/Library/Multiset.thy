@@ -708,6 +708,14 @@ primrec multiset_of :: "'a list \<Rightarrow> 'a multiset" where
   "multiset_of [] = {#}" |
   "multiset_of (a # x) = multiset_of x + {# a #}"
 
+lemma in_multiset_in_set:
+  "x \<in># multiset_of xs \<longleftrightarrow> x \<in> set xs"
+  by (induct xs) simp_all
+
+lemma count_multiset_of:
+  "count (multiset_of xs) x = length (filter (\<lambda>y. x = y) xs)"
+  by (induct xs) simp_all
+
 lemma multiset_of_zero_iff[simp]: "(multiset_of x = {#}) = (x = [])"
 by (induct x) auto
 
@@ -783,44 +791,28 @@ lemma multiset_of_remove1[simp]:
 by (induct xs) (auto simp add: multiset_ext_iff)
 
 lemma multiset_of_eq_length:
-assumes "multiset_of xs = multiset_of ys"
-shows "length xs = length ys"
-using assms
-proof (induct arbitrary: ys rule: length_induct)
-  case (1 xs ys)
-  show ?case
-  proof (cases xs)
-    case Nil with "1.prems" show ?thesis by simp
-  next
-    case (Cons x xs')
-    note xCons = Cons
-    show ?thesis
-    proof (cases ys)
-      case Nil
-      with "1.prems" Cons show ?thesis by simp
-    next
-      case (Cons y ys')
-      have x_in_ys: "x = y \<or> x \<in> set ys'"
-      proof (cases "x = y")
-        case True then show ?thesis ..
-      next
-        case False
-        from "1.prems" [symmetric] xCons Cons have "x :# multiset_of ys' + {#y#}" by simp
-        with False show ?thesis by (simp add: mem_set_multiset_eq)
-      qed
-      from "1.hyps" have IH: "length xs' < length xs \<longrightarrow>
-        (\<forall>x. multiset_of xs' = multiset_of x \<longrightarrow> length xs' = length x)" by blast
-      from "1.prems" x_in_ys Cons xCons have "multiset_of xs' = multiset_of (remove1 x (y#ys'))"
-        apply -
-        apply (simp add: multiset_of_remove1, simp only: add_eq_conv_diff)
-        apply fastsimp
-        done
-      with IH xCons have IH': "length xs' = length (remove1 x (y#ys'))" by fastsimp
-      from x_in_ys have "x \<noteq> y \<Longrightarrow> length ys' > 0" by auto
-      with Cons xCons x_in_ys IH' show ?thesis by (auto simp add: length_remove1)
-    qed
-  qed
+  assumes "multiset_of xs = multiset_of ys"
+  shows "length xs = length ys"
+using assms proof (induct xs arbitrary: ys)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  then have "x \<in># multiset_of ys" by (simp add: union_single_eq_member)
+  then have "x \<in> set ys" by (simp add: in_multiset_in_set)
+  from Cons.prems [symmetric] have "multiset_of xs = multiset_of (remove1 x ys)"
+    by simp
+  with Cons.hyps have "length xs = length (remove1 x ys)" .
+  with `x \<in> set ys` show ?case
+    by (auto simp add: length_remove1 dest: length_pos_if_in_set)
 qed
+
+lemma (in linorder) multiset_of_insort [simp]:
+  "multiset_of (insort x xs) = {#x#} + multiset_of xs"
+  by (induct xs) (simp_all add: ac_simps)
+
+lemma (in linorder) multiset_of_sort [simp]:
+  "multiset_of (sort xs) = multiset_of xs"
+  by (induct xs) (simp_all add: ac_simps)
 
 text {*
   This lemma shows which properties suffice to show that a function

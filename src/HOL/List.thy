@@ -2970,6 +2970,21 @@ lemma insert_remdups:
   "List.insert x (remdups xs) = remdups (List.insert x xs)"
   by (simp add: List.insert_def)
 
+lemma distinct_induct [consumes 1, case_names Nil insert]:
+  assumes "distinct xs"
+  assumes "P []"
+  assumes insert: "\<And>x xs. distinct xs \<Longrightarrow> x \<notin> set xs
+    \<Longrightarrow> P xs \<Longrightarrow> P (List.insert x xs)"
+  shows "P xs"
+using `distinct xs` proof (induct xs)
+  case Nil from `P []` show ?case .
+next
+  case (Cons x xs)
+  then have "distinct xs" and "x \<notin> set xs" and "P xs" by simp_all
+  with insert have "P (List.insert x xs)" .
+  with `x \<notin> set xs` show ?case by simp
+qed
+
 
 subsubsection {* @{text remove1} *}
 
@@ -3022,6 +3037,11 @@ by (induct xs) simp_all
 lemma remove1_remdups:
   "distinct xs \<Longrightarrow> remove1 x (remdups xs) = remdups (remove1 x xs)"
   by (induct xs) simp_all
+
+lemma remove1_idem:
+  assumes "x \<notin> set xs"
+  shows "remove1 x xs = xs"
+  using assms by (induct xs) simp_all
 
 
 subsubsection {* @{text removeAll} *}
@@ -3801,6 +3821,34 @@ lemma sorted_insort_insert:
   shows "sorted (insort_insert x xs)"
   using assms by (simp add: insort_insert_def sorted_insort)
 
+lemma filter_insort_key_triv:
+  "\<not> P x \<Longrightarrow> filter P (insort_key f x xs) = filter P xs"
+  by (induct xs) simp_all
+
+lemma filter_insort_key:
+  "sorted (map f xs) \<Longrightarrow> P x \<Longrightarrow> filter P (insort_key f x xs) = insort_key f x (filter P xs)"
+  using assms by (induct xs)
+    (auto simp add: sorted_Cons, subst insort_is_Cons, auto)
+
+lemma filter_sort_key:
+  "filter P (sort_key f xs) = sort_key f (filter P xs)"
+  by (induct xs) (simp_all add: filter_insort_key_triv filter_insort_key)
+
+lemma sorted_same [simp]:
+  "sorted [x\<leftarrow>xs. x = f xs]"
+proof (induct xs arbitrary: f)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs)
+  then have "sorted [y\<leftarrow>xs . y = (\<lambda>xs. x) xs]" .
+  moreover from Cons have "sorted [y\<leftarrow>xs . y = (f \<circ> Cons x) xs]" .
+  ultimately show ?case by (simp_all add: sorted_Cons)
+qed
+
+lemma remove1_insort [simp]:
+  "remove1 x (insort x xs) = xs"
+  by (induct xs) simp_all
+
 end
 
 lemma sorted_upt[simp]: "sorted[i..<j]"
@@ -3999,7 +4047,23 @@ proof -
   show ?thesis by (simp add: sort_foldl_insort sorted_list_of_set_def fold_set_remdups)
 qed
 
+lemma sorted_list_of_set_remove:
+  assumes "finite A"
+  shows "sorted_list_of_set (A - {x}) = remove1 x (sorted_list_of_set A)"
+proof (cases "x \<in> A")
+  case False with assms have "x \<notin> set (sorted_list_of_set A)" by simp
+  with False show ?thesis by (simp add: remove1_idem)
+next
+  case True then obtain B where A: "A = insert x B" by (rule Set.set_insert)
+  with assms show ?thesis by simp
+qed
+
 end
+
+lemma sorted_list_of_set_range [simp]:
+  "sorted_list_of_set {m..<n} = [m..<n]"
+  by (rule sorted_distinct_set_unique) simp_all
+
 
 
 subsubsection {* @{text lists}: the list-forming operator over sets *}

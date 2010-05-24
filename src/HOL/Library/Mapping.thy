@@ -6,30 +6,6 @@ theory Mapping
 imports Main
 begin
 
-lemma remove1_idem: (*FIXME move to List.thy*)
-  assumes "x \<notin> set xs"
-  shows "remove1 x xs = xs"
-  using assms by (induct xs) simp_all
-
-lemma remove1_insort [simp]:
-  "remove1 x (insort x xs) = xs"
-  by (induct xs) simp_all
-
-lemma sorted_list_of_set_remove:
-  assumes "finite A"
-  shows "sorted_list_of_set (A - {x}) = remove1 x (sorted_list_of_set A)"
-proof (cases "x \<in> A")
-  case False with assms have "x \<notin> set (sorted_list_of_set A)" by simp
-  with False show ?thesis by (simp add: remove1_idem)
-next
-  case True then obtain B where A: "A = insert x B" by (rule Set.set_insert)
-  with assms show ?thesis by simp
-qed
-
-lemma sorted_list_of_set_range [simp]:
-  "sorted_list_of_set {m..<n} = [m..<n]"
-  by (rule sorted_distinct_set_unique) simp_all
-
 subsection {* Type definition and primitive operations *}
 
 datatype ('a, 'b) mapping = Mapping "'a \<rightharpoonup> 'b"
