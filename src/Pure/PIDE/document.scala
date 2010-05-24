@@ -7,6 +7,9 @@ Document as editable list of commands.
 package isabelle
 
 
+import scala.annotation.tailrec
+
+
 object Document
 {
   /* command start positions */
@@ -80,7 +83,7 @@ object Document
 
     /* phase 2: recover command spans */
 
-    def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
+    @tailrec def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
       commands.iterator.find(is_unparsed) match {
         case Some(first_unparsed) =>
