@@ -396,46 +396,47 @@ $(OUT)/HOL-Proofs: ROOT.ML $(HOL_DEPENDENCIES)
 
 HOL-Library: HOL $(LOG)/HOL-Library.gz
 
-$(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
-  Library/Abstract_Rat.thy Library/BigO.thy Library/ContNotDenum.thy	\
-  Library/Efficient_Nat.thy Library/Sum_Of_Squares.thy			\
-  Library/Dlist.thy Library/Sum_Of_Squares/sos_wrapper.ML		\
-  Library/Sum_Of_Squares/sum_of_squares.ML Library/Fset.thy		\
-  Library/Glbs.thy Library/Executable_Set.thy				\
-  Library/Infinite_Set.thy Library/FuncSet.thy				\
-  Library/Permutations.thy Library/Bit.thy Library/FrechetDeriv.thy	\
-  Library/Fraction_Field.thy Library/Fundamental_Theorem_Algebra.thy	\
-  Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
-  Library/Lattice_Algebras.thy Library/Lattice_Syntax.thy		\
-  Library/Library.thy Library/List_Prefix.thy Library/More_Set.thy	\
-  Library/More_List.thy Library/Multiset.thy Library/Permutation.thy	\
-  Library/Quotient_Type.thy Library/Quicksort.thy			\
-  Library/Nat_Infinity.thy Library/README.html	Library/State_Monad.thy	\
-  Library/Continuity.thy Library/Order_Relation.thy			\
-  Library/Nested_Environment.thy Library/Ramsey.thy Library/Zorn.thy	\
-  Library/Library/ROOT.ML Library/Library/document/root.tex		\
-  Library/Library/document/root.bib					\
-  Library/Transitive_Closure_Table.thy Library/While_Combinator.thy	\
-  Library/Product_ord.thy Library/Char_nat.thy				\
-  Library/Sublist_Order.thy Library/List_lexord.thy			\
-  Library/AssocList.thy Library/Formal_Power_Series.thy			\
-  Library/Binomial.thy Library/Eval_Witness.thy Library/Code_Char.thy	\
-  Library/Code_Char_chr.thy Library/Code_Integer.thy			\
-  Library/Mapping.thy Library/Numeral_Type.thy Library/Reflection.thy	\
-  Library/Boolean_Algebra.thy Library/Countable.thy			\
-  Library/Diagonalize.thy Library/RBT.thy Library/RBT_Impl.thy		\
-  Library/Univ_Poly.thy							\
-  Library/Poly_Deriv.thy Library/Polynomial.thy Library/Preorder.thy	\
-  Library/Product_plus.thy Library/Product_Vector.thy 			\
-  Library/Enum.thy Library/Float.thy Library/Quotient_List.thy		\
-  Library/Quotient_Option.thy Library/Quotient_Product.thy		\
-  Library/Quotient_Sum.thy Library/Quotient_Syntax.thy			\
-  Library/Nat_Bijection.thy $(SRC)/Tools/float.ML			\
-  $(SRC)/HOL/Tools/float_arith.ML Library/positivstellensatz.ML		\
-  Library/reify_data.ML Library/reflection.ML Library/LaTeXsugar.thy	\
-  Library/OptionalSugar.thy Library/Convex.thy				\
-  Library/Predicate_Compile_Quickcheck.thy Library/SML_Quickcheck.thy
-	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
+$(LOG)/HOL-Library.gz: $(OUT)/HOL $(SRC)/HOL/Tools/float_arith.ML	\
+  $(SRC)/Tools/float.ML Library/Abstract_Rat.thy Library/AssocList.thy	\
+  Library/BigO.thy Library/Binomial.thy Library/Bit.thy			\
+  Library/Boolean_Algebra.thy Library/Char_nat.thy			\
+  Library/Code_Char.thy Library/Code_Char_chr.thy			\
+  Library/Code_Integer.thy Library/ContNotDenum.thy			\
+  Library/Continuity.thy Library/Convex.thy Library/Countable.thy	\
+  Library/Diagonalize.thy Library/Dlist.thy Library/Efficient_Nat.thy	\
+  Library/Enum.thy Library/Eval_Witness.thy Library/Executable_Set.thy	\
+  Library/Float.thy Library/Formal_Power_Series.thy			\
+  Library/Fraction_Field.thy Library/FrechetDeriv.thy Library/Fset.thy	\
+  Library/FuncSet.thy Library/Fundamental_Theorem_Algebra.thy		\
+  Library/Glbs.thy Library/Infinite_Set.thy Library/Inner_Product.thy	\
+  Library/HOL_Library_ROOT.ML Library/Kleene_Algebra.thy		\
+  Library/LaTeXsugar.thy Library/Lattice_Algebras.thy			\
+  Library/Lattice_Syntax.thy Library/Library.thy			\
+  Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
+  Library/More_List.thy Library/More_Set.thy Library/Multiset.thy	\
+  Library/Nat_Bijection.thy Library/Nat_Infinity.thy			\
+  Library/Nested_Environment.thy Library/Numeral_Type.thy		\
+  Library/OptionalSugar.thy Library/Order_Relation.thy			\
+  Library/Permutation.thy Library/Permutations.thy			\
+  Library/Poly_Deriv.thy Library/Polynomial.thy				\
+  Library/Predicate_Compile_Quickcheck.thy Library/Preorder.thy		\
+  Library/Product_Vector.thy Library/Product_ord.thy			\
+  Library/Product_plus.thy Library/Quicksort.thy			\
+  Library/Quotient_List.thy Library/Quotient_Option.thy			\
+  Library/Quotient_Product.thy Library/Quotient_Sum.thy			\
+  Library/Quotient_Syntax.thy Library/Quotient_Type.thy			\
+  Library/RBT.thy Library/RBT_Impl.thy Library/README.html		\
+  Library/State_Monad.thy Library/Ramsey.thy Library/Reflection.thy	\
+  Library/SML_Quickcheck.thy Library/SetsAndFunctions.thy		\
+  Library/Sublist_Order.thy Library/Sum_Of_Squares.thy			\
+  Library/Sum_Of_Squares/sos_wrapper.ML					\
+  Library/Sum_Of_Squares/sum_of_squares.ML				\
+  Library/Transitive_Closure_Table.thy Library/Univ_Poly.thy		\
+  Library/While_Combinator.thy Library/Zorn.thy				\
+  Library/document/root.bib Library/document/root.tex			\
+  Library/positivstellensatz.ML Library/reflection.ML			\
+  Library/reify_data.ML
+	@$(ISABELLE_TOOL) usedir -f HOL_Library_ROOT.ML $(OUT)/HOL Library
 
 
 ## HOL-Hahn_Banach
