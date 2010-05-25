@@ -6,6 +6,9 @@ JEDIT_JAVA_OPTIONS="-Xms128m -Xmx512m -Xss2m $JEDIT_APPLE_PROPERTIES"
 #JEDIT_JAVA_OPTIONS="-server -Xms128m -Xmx1024m -Xss4m $JEDIT_APPLE_PROPERTIES"
 JEDIT_OPTIONS="-reuseview -noserver -nobackground"
 
+JEDIT_STYLE_SHEETS="$ISABELLE_HOME/lib/html/isabelle.css:$JEDIT_HOME/etc/isabelle-jedit.css:$ISABELLE_HOME_USER/etc/isabelle.css:$ISABELLE_HOME_USER/etc/isabelle-jedit.css"
+
 ISABELLE_JEDIT_OPTIONS="-m xsymbols -m no_brackets -m no_type_brackets"
 
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$JEDIT_HOME/lib/Tools"
+

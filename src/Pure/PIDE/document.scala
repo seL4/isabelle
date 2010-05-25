@@ -7,6 +7,9 @@ Document as editable list of commands.
 package isabelle
 
 
+import scala.annotation.tailrec
+
+
 object Document
 {
   /* command start positions */
@@ -80,27 +83,29 @@ object Document
 
     /* phase 2: recover command spans */
 
-    def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
+    @tailrec def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
-      // FIXME relative search!
       commands.iterator.find(is_unparsed) match {
         case Some(first_unparsed) =>
-          val prefix = commands.prev(first_unparsed)
-          val body = commands.iterator(first_unparsed).takeWhile(is_unparsed).toList
-          val suffix = commands.next(body.last)
+          val first =
+            commands.reverse_iterator(first_unparsed).find(_.is_command) getOrElse commands.head
+          val last =
+            commands.iterator(first_unparsed).find(_.is_command) getOrElse commands.last
+          val range =
+            commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
 
-          val sources = (prefix.toList ::: body ::: suffix.toList).flatMap(_.span.map(_.source))
+          val sources = range.flatMap(_.span.map(_.source))
           val spans0 = Thy_Syntax.parse_spans(session.current_syntax.scan(sources.mkString))
 
           val (before_edit, spans1) =
-            if (!spans0.isEmpty && Some(spans0.head) == prefix.map(_.span))
-              (prefix, spans0.tail)
-            else (if (prefix.isDefined) commands.prev(prefix.get) else None, spans0)
+            if (!spans0.isEmpty && first.is_command && first.span == spans0.head)
+              (Some(first), spans0.tail)
+            else (commands.prev(first), spans0)
 
           val (after_edit, spans2) =
-            if (!spans1.isEmpty && Some(spans1.last) == suffix.map(_.span))
-              (suffix, spans1.take(spans1.length - 1))
-            else (if (suffix.isDefined) commands.next(suffix.get) else None, spans1)
+            if (!spans1.isEmpty && last.is_command && last.span == spans1.last)
+              (Some(last), spans1.take(spans1.length - 1))
+            else (commands.next(last), spans1)
 
           val inserted = spans2.map(span => new Command(session.create_id(), span))
           val new_commands =
@@ -114,23 +119,20 @@ object Document
 
     /* phase 3: resulting document edits */
 
-    val result = Library.timeit("text_edits") {
-      val commands0 = old_doc.commands
-      val commands1 = Library.timeit("edit_text") { edit_text(edits, commands0) }
-      val commands2 = Library.timeit("parse_spans") { parse_spans(commands1) }
+    val commands0 = old_doc.commands
+    val commands1 = edit_text(edits, commands0)
+    val commands2 = parse_spans(commands1)
 
-      val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
-      val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
+    val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
+    val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
 
-      val doc_edits =
-        removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
-        inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
+    val doc_edits =
+      removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
+      inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
-      val former_states = old_doc.assignment.join -- removed_commands
+    val former_states = old_doc.assignment.join -- removed_commands
 
-      (doc_edits, new Document(new_id, commands2, former_states))
-    }
-    result
+    (doc_edits, new Document(new_id, commands2, former_states))
   }
 }
 
@@ -166,13 +168,11 @@ class Document(
   def await_assignment { assignment.join }
 
   @volatile private var tmp_states = former_states
-  private val time0 = System.currentTimeMillis
 
   def assign_states(new_states: List[(Command, Command)])
   {
     assignment.fulfill(tmp_states ++ new_states)
     tmp_states = Map()
-    System.err.println("assign_states: " + (System.currentTimeMillis - time0) + " ms elapsed time")
   }
 
   def current_state(cmd: Command): State =

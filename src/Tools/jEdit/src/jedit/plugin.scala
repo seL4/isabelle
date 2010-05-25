@@ -21,6 +21,7 @@ import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceMa
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
+import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
 object Isabelle
@@ -110,6 +111,29 @@ object Isabelle
 
   def jedit_text_areas(buffer: JEditBuffer): Iterator[JEditTextArea] =
     jedit_text_areas().filter(_.getBuffer == buffer)
+
+
+  /* dockable windows */
+
+  private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
+
+  def docked_output(view: View): Option[Output_Dockable] =
+    wm(view).getDockableWindow("isabelle-output") match {
+      case dockable: Output_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def docked_raw_output(view: View): Option[Raw_Output_Dockable] =
+    wm(view).getDockableWindow("isabelle-raw-output") match {
+      case dockable: Raw_Output_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def docked_protocol(view: View): Option[Protocol_Dockable] =
+    wm(view).getDockableWindow("isabelle-protocol") match {
+      case dockable: Protocol_Dockable => Some(dockable)
+      case _ => None
+    }
 
 
   /* manage prover */

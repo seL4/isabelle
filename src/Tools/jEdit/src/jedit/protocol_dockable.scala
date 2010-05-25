@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/jedit/protocol_dockable.scala
     Author:     Makarius
 
-Dockable window for raw process output.
+Dockable window for protocol messages.
 */
 
 package isabelle.jedit
@@ -10,45 +10,30 @@ package isabelle.jedit
 import isabelle._
 
 import scala.actors.Actor._
-
-import java.awt.{Dimension, Graphics, BorderLayout}
-import javax.swing.{JPanel, JTextArea, JScrollPane}
+import scala.swing.{TextArea, ScrollPane}
 
 import org.gjt.sp.jedit.View
-import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-class Protocol_Dockable(view: View, position: String) extends JPanel(new BorderLayout)
+class Protocol_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  if (position == DockableWindowManager.FLOATING)
-    setPreferredSize(new Dimension(500, 250))
-
-  private val text_area = new JTextArea
-  add(new JScrollPane(text_area), BorderLayout.CENTER)
+  private val text_area = new TextArea
+  set_content(new ScrollPane(text_area))
 
 
-  /* actor wiring */
+  /* main actor */
 
-  private val raw_actor = actor {
+  private val main_actor = actor {
     loop {
       react {
         case result: Isabelle_Process.Result =>
           Swing_Thread.now { text_area.append(result.message.toString + "\n") }
 
-        case bad => System.err.println("raw_actor: ignoring bad message " + bad)
+        case bad => System.err.println("Protocol_Dockable: ignoring bad message " + bad)
       }
     }
   }
 
-  override def addNotify()
-  {
-    super.addNotify()
-    Isabelle.session.raw_results += raw_actor
-  }
-
-  override def removeNotify()
-  {
-    Isabelle.session.raw_results -= raw_actor
-    super.removeNotify()
-  }
+  override def init() { Isabelle.session.raw_results += main_actor }
+  override def exit() { Isabelle.session.raw_results -= main_actor }
 }

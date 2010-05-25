@@ -15,6 +15,11 @@
 			wm.addDockableWindow("isabelle-output");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.show-raw-output">
+		<CODE>
+			wm.addDockableWindow("isabelle-raw-output");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.show-protocol">
 		<CODE>
 			wm.addDockableWindow("isabelle-protocol");

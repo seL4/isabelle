@@ -1,6 +1,6 @@
 /* additional style file for Isabelle/jEdit output */
 
-pre.message { margin-top: 0.3ex; background-color: #F0F0F0; }
+.message { margin-top: 0.3ex; background-color: #F0F0F0; }
 
 .writeln { }
 .priority { }

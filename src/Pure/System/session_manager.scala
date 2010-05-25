@@ -22,21 +22,21 @@ class Session_Manager(system: Isabelle_System)
 
 
   // FIXME handle (potentially cyclic) directory graph
-  private def find_sessions(rev_prefix: List[String], rev_sessions: List[List[String]],
+  private def find_sessions(reverse_prefix: List[String], reverse_sessions: List[List[String]],
     dir: File): List[List[String]] =
   {
-    val (rev_prefix1, rev_sessions1) =
+    val (reverse_prefix1, reverse_sessions1) =
       if (is_session_dir(dir)) {
         val name = dir.getName  // FIXME from root file
-        val rev_prefix1 = name :: rev_prefix
-        val rev_sessions1 = rev_prefix1.reverse :: rev_sessions
-        (rev_prefix1, rev_sessions1)
+        val reverse_prefix1 = name :: reverse_prefix
+        val reverse_sessions1 = reverse_prefix1.reverse :: reverse_sessions
+        (reverse_prefix1, reverse_sessions1)
       }
-      else (rev_prefix, rev_sessions)
+      else (reverse_prefix, reverse_sessions)
 
     val subdirs =
       dir.listFiles(new FileFilter { def accept(entry: File) = entry.isDirectory })
-    (rev_sessions1 /: subdirs)(find_sessions(rev_prefix1, _, _))
+    (reverse_sessions1 /: subdirs)(find_sessions(reverse_prefix1, _, _))
   }
 
   def component_sessions(): List[List[String]] =
