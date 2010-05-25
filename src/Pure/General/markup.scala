@@ -193,7 +193,6 @@ object Markup
   val INIT = "init"
   val STATUS = "status"
   val WRITELN = "writeln"
-  val PRIORITY = "priority"
   val TRACING = "tracing"
   val WARNING = "warning"
   val ERROR = "error"

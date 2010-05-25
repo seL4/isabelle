@@ -73,11 +73,11 @@ fun setup_channels out =
   in
     Output.status_fn   := standard_message out_stream "B";
     Output.writeln_fn  := standard_message out_stream "C";
-    Output.priority_fn := standard_message out_stream "D";
-    Output.tracing_fn  := standard_message out_stream "E";
-    Output.warning_fn  := standard_message out_stream "F";
-    Output.error_fn    := standard_message out_stream "G";
-    Output.debug_fn    := standard_message out_stream "H";
+    Output.tracing_fn  := standard_message out_stream "D";
+    Output.warning_fn  := standard_message out_stream "E";
+    Output.error_fn    := standard_message out_stream "F";
+    Output.debug_fn    := standard_message out_stream "G";
+    Output.priority_fn := ! Output.writeln_fn;
     Output.prompt_fn   := ignore;
     out_stream
   end;
