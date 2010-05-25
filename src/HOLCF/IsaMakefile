@@ -101,8 +101,8 @@ $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
   Library/Strict_Fun.thy \
   Library/Sum_Cpo.thy \
   Library/HOLCF_Library.thy \
-  Library/ROOT.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF Library
+  Library/HOLCF_Library_ROOT.ML
+	@$(ISABELLE_TOOL) usedir -f HOLCF_Library_ROOT.ML $(OUT)/HOLCF Library
 
 
 ## HOLCF-IMP
