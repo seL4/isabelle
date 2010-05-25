@@ -140,24 +140,25 @@ fun genreif ctxt raw_eqs t =
                    bds)
                end)
            | _ => da (s,ctxt) bds)
-      in (case cgns of
+      in
+        (case cgns of
           [] => tryabsdecomp (t,ctxt) bds
-        | ((vns,cong)::congs) => ((let
-            val cert = cterm_of thy
-            val certy = ctyp_of thy
-            val (tyenv, tmenv) =
-              Pattern.match thy
-                ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), t)
-                (Vartab.empty, Vartab.empty)
-            val (fnvs,invs) = List.partition (fn ((vn,_),_) => member (op =) vns vn) (Vartab.dest tmenv)
-            val (fts,its) =
-              (map (snd o snd) fnvs,
-               map (fn ((vn,vi),(tT,t)) => (cert(Var ((vn,vi),tT)), cert t)) invs)
-            val ctyenv = map (fn ((vn,vi),(s,ty)) => (certy (TVar((vn,vi),s)), certy ty)) (Vartab.dest tyenv)
-          in ((fts ~~ (replicate (length fts) ctxt),
-               Library.apfst (FWD (instantiate (ctyenv, its) cong))), bds)
-          end)
-        handle MATCH => decomp_genreif da congs (t,ctxt) bds))
+        | ((vns,cong)::congs) =>
+            (let
+              val cert = cterm_of thy
+              val certy = ctyp_of thy
+              val (tyenv, tmenv) =
+                Pattern.match thy
+                  ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), t)
+                  (Vartab.empty, Vartab.empty)
+              val (fnvs,invs) = List.partition (fn ((vn,_),_) => member (op =) vns vn) (Vartab.dest tmenv)
+              val (fts,its) =
+                (map (snd o snd) fnvs,
+                 map (fn ((vn,vi),(tT,t)) => (cert(Var ((vn,vi),tT)), cert t)) invs)
+              val ctyenv = map (fn ((vn,vi),(s,ty)) => (certy (TVar((vn,vi),s)), certy ty)) (Vartab.dest tyenv)
+            in ((fts ~~ (replicate (length fts) ctxt),
+                 Library.apfst (FWD (instantiate (ctyenv, its) cong))), bds)
+            end handle Pattern.MATCH => decomp_genreif da congs (t,ctxt) bds))
       end;
 
  (* looks for the atoms equation and instantiates it with the right number *)
@@ -231,7 +232,7 @@ fun genreif ctxt raw_eqs t =
               in map (fn (v,t) => (ih v, ih t)) (subst_ns@subst_vs@cts)  end
             val th = (instantiate (subst_ty, substt)  eq) RS sym
           in (hd (Variable.export ctxt'' ctxt [th]), bds) end)
-          handle MATCH => tryeqs eqs bds)
+          handle Pattern.MATCH => tryeqs eqs bds)
       in tryeqs (filter isat eqs) bds end), bds);
 
   (* Generic reification procedure: *)

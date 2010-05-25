@@ -386,7 +386,7 @@ let
  fun real_ineq_conv th ct =
   let
    val th' = (Thm.instantiate (Thm.match (Thm.lhs_of th, ct)) th 
-      handle MATCH => raise CTERM ("real_ineq_conv", [ct]))
+      handle Pattern.MATCH => raise CTERM ("real_ineq_conv", [ct]))
   in Thm.transitive th' (oprconv poly_conv (Thm.rhs_of th'))
   end 
   val [real_lt_conv, real_le_conv, real_eq_conv,

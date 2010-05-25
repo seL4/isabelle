@@ -10,6 +10,7 @@ sig
   val get: Proof.context -> entry
   val del: term list -> attribute
   val add: term list -> attribute 
+  exception COOPER of string
   val conv: Proof.context -> conv
   val tac: bool -> thm list -> thm list -> Proof.context -> int -> tactic
   val method: (Proof.context -> Method.method) context_parser

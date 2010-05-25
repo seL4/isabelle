@@ -588,7 +588,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
         | NONE =>
           get_typedef_ax axioms
       end handle ERROR _         => get_typedef_ax axioms
-               | MATCH           => get_typedef_ax axioms
+               | TERM _          => get_typedef_ax axioms
                | Type.TYPE_MATCH => get_typedef_ax axioms)
   in
     get_typedef_ax (Theory.all_axioms_of thy)
