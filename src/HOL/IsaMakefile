@@ -378,10 +378,6 @@ HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   Taylor.thy \
   Transcendental.thy \
   Tools/float_syntax.ML \
-  Tools/Qelim/ferrante_rackoff_data.ML \
-  Tools/Qelim/ferrante_rackoff.ML \
-  Tools/Qelim/langford_data.ML \
-  Tools/Qelim/langford.ML \
   Tools/SMT/smt_real.ML
 
 $(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
@@ -826,6 +822,7 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/MIR.thy \
   Decision_Procs/Parametric_Ferrante_Rackoff.thy \
   Decision_Procs/Polynomial_List.thy \
+  Decision_Procs/ROOT.ML \
   Decision_Procs/Reflected_Multivariate_Polynomial.thy \
   Decision_Procs/commutative_ring_tac.ML \
   Decision_Procs/cooper_tac.ML \
@@ -833,8 +830,11 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/ex/Commutative_Ring_Ex.thy \
   Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
   Decision_Procs/ferrack_tac.ML \
-  Decision_Procs/mir_tac.ML \
-  Decision_Procs/ROOT.ML
+  Decision_Procs/ferrante_rackoff.ML \
+  Decision_Procs/ferrante_rackoff_data.ML \
+  Decision_Procs/langford.ML \
+  Decision_Procs/langford_data.ML \
+  Decision_Procs/mir_tac.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
 
 

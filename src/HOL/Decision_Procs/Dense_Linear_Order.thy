@@ -8,10 +8,10 @@ header {* Dense linear order without endpoints
 theory Dense_Linear_Order
 imports Main
 uses
-  "~~/src/HOL/Tools/Qelim/langford_data.ML"
-  "~~/src/HOL/Tools/Qelim/ferrante_rackoff_data.ML"
-  ("~~/src/HOL/Tools/Qelim/langford.ML")
-  ("~~/src/HOL/Tools/Qelim/ferrante_rackoff.ML")
+  "langford_data.ML"
+  "ferrante_rackoff_data.ML"
+  ("langford.ML")
+  ("ferrante_rackoff.ML")
 begin
 
 setup {* Langford_Data.setup #> Ferrante_Rackoff_Data.setup *}
@@ -293,7 +293,7 @@ lemma ex_distrib[no_atp]: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\
 
 lemmas dnf_simps[no_atp] = weak_dnf_simps nnf_simps ex_distrib
 
-use "~~/src/HOL/Tools/Qelim/langford.ML"
+use "langford.ML"
 method_setup dlo = {*
   Scan.succeed (SIMPLE_METHOD' o LangfordQE.dlo_tac)
 *} "Langford's algorithm for quantifier elimination in dense linear orders"
@@ -543,7 +543,7 @@ end
 
 end
 
-use "~~/src/HOL/Tools/Qelim/ferrante_rackoff.ML"
+use "ferrante_rackoff.ML"
 
 method_setup ferrack = {*
   Scan.succeed (SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
