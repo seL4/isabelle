@@ -730,9 +730,7 @@ fun merge a b = Symtab.merge (op =) (a, b)
 
 fun mergemap f ts = fold (fn x => fn table => merge table (f x)) ts Symtab.empty
 
-fun diff a b = Symtab.fold (fn (k, v) => fn a =>
-             (Symtab.delete k a) handle UNDEF => a)
-             b a
+fun diff a b = Symtab.fold (Symtab.delete_safe o fst) b a
 
 fun collect_vars (cplexVar v) = singleton v
   | collect_vars (cplexNeg t) = collect_vars t
