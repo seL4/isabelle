@@ -25,7 +25,7 @@ object Session
   trait Entity
   {
     val id: Entity_ID
-    def consume(session: Session, message: XML.Tree): Unit
+    def consume(message: XML.Tree, forward: Command => Unit): Unit
   }
 }
 
@@ -37,9 +37,7 @@ class Session(system: Isabelle_System)
   val global_settings = new Event_Bus[Session.Global_Settings.type]
   val raw_results = new Event_Bus[Isabelle_Process.Result]
   val raw_output = new Event_Bus[Isabelle_Process.Result]
-  val results = new Event_Bus[Command]
-
-  val command_change = new Event_Bus[Command]
+  val commands_changed = new Event_Bus[Command_Set]
 
 
   /* unique ids */
@@ -66,7 +64,7 @@ class Session(system: Isabelle_System)
   private case object Stop
   private case class Begin_Document(path: String)
 
-  private val session_actor = actor {
+  private lazy val session_actor = actor {
 
     var prover: Isabelle_Process with Isar_Document = null
 
@@ -118,7 +116,7 @@ class Session(system: Isabelle_System)
           case None => None
           case Some(id) => lookup_entity(id)
         }
-      if (target.isDefined) target.get.consume(this, result.message)
+      if (target.isDefined) target.get.consume(result.message, indicate_command_change)
       else if (result.kind == Isabelle_Process.Kind.STATUS) {
         // global status message
         result.body match {
@@ -236,6 +234,52 @@ class Session(system: Isabelle_System)
           System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
+  }
+
+
+
+  /** buffered command changes -- delay_first discipline **/
+
+  private lazy val command_change_buffer = actor {
+    import scala.compat.Platform.currentTime
+
+    var changed: Set[Command] = Set()
+    var flush_time: Option[Long] = None
+
+    def flush_timeout: Long =
+      flush_time match {
+        case None => 5000L
+        case Some(time) => (time - currentTime) max 0
+      }
+
+    def flush()
+    {
+      if (!changed.isEmpty) commands_changed.event(Command_Set(changed))
+      changed = Set()
+      flush_time = None
+    }
+
+    def invoke()
+    {
+      val now = currentTime
+      flush_time match {
+        case None => flush_time = Some(now + 100)
+        case Some(time) => if (now >= time) flush()
+      }
+    }
+
+    loop {
+      reactWithin(flush_timeout) {
+        case command: Command => changed += command; invoke()
+        case TIMEOUT => flush()
+        case bad => System.err.println("command_change_buffer: ignoring bad message " + bad)
+      }
+    }
+  }
+
+  def indicate_command_change(command: Command)
+  {
+    command_change_buffer ! command
   }
 
 

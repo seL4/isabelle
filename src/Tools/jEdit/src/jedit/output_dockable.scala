@@ -99,13 +99,19 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         case Session.Global_Settings => handle_resize()
         case Render(body) => html_panel.render(body)
 
-        case cmd: Command =>
+        case Command_Set(changed) =>
           Swing_Thread.now {
-            if (follow.selected) Document_Model(view.getBuffer) else None
-          } match {
-            case None =>
-            case Some(model) =>
-              html_panel.render(filtered_results(model.recent_document, cmd))
+            if (follow.selected) {
+              Document_View(view.getTextArea) match {
+                case Some(doc_view) =>
+                  doc_view.selected_command match {
+                    case Some(cmd) if changed.contains(cmd) =>
+                      html_panel.render(filtered_results(doc_view.model.recent_document, cmd))
+                    case _ =>
+                  }
+                case None =>
+              }
+            }
           }
 
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
@@ -115,13 +121,13 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   override def init()
   {
-    Isabelle.session.results += main_actor
+    Isabelle.session.commands_changed += main_actor
     Isabelle.session.global_settings += main_actor
   }
 
   override def exit()
   {
-    Isabelle.session.results -= main_actor
+    Isabelle.session.commands_changed -= main_actor
     Isabelle.session.global_settings -= main_actor
   }
 

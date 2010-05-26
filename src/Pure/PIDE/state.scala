@@ -70,50 +70,45 @@ class State(
 
   /* message dispatch */
 
-  def + (session: Session, message: XML.Tree): State =
-  {
-    val changed: State =
-      message match {
-        case XML.Elem(Markup.STATUS, _, elems) =>
-          (this /: elems)((state, elem) =>
-            elem match {
-              case XML.Elem(Markup.UNPROCESSED, _, _) => state.set_status(Command.Status.UNPROCESSED)
-              case XML.Elem(Markup.FINISHED, _, _) => state.set_status(Command.Status.FINISHED)
-              case XML.Elem(Markup.FAILED, _, _) => state.set_status(Command.Status.FAILED)
-              case XML.Elem(kind, atts, body) =>
-                atts match {
-                  case Position.Range(begin, end) =>
-                    if (kind == Markup.ML_TYPING) {
-                      val info = Pretty.string_of(body, margin = 40)
-                      state.add_markup(
-                        command.markup_node(begin - 1, end - 1, Command.TypeInfo(info)))
+  def + (message: XML.Tree): State =
+    message match {
+      case XML.Elem(Markup.STATUS, _, elems) =>
+        (this /: elems)((state, elem) =>
+          elem match {
+            case XML.Elem(Markup.UNPROCESSED, _, _) => state.set_status(Command.Status.UNPROCESSED)
+            case XML.Elem(Markup.FINISHED, _, _) => state.set_status(Command.Status.FINISHED)
+            case XML.Elem(Markup.FAILED, _, _) => state.set_status(Command.Status.FAILED)
+            case XML.Elem(kind, atts, body) =>
+              atts match {
+                case Position.Range(begin, end) =>
+                  if (kind == Markup.ML_TYPING) {
+                    val info = Pretty.string_of(body, margin = 40)
+                    state.add_markup(
+                      command.markup_node(begin - 1, end - 1, Command.TypeInfo(info)))
+                  }
+                  else if (kind == Markup.ML_REF) {
+                    body match {
+                      case List(XML.Elem(Markup.ML_DEF, atts, _)) =>
+                        state.add_markup(command.markup_node(
+                          begin - 1, end - 1,
+                          Command.RefInfo(
+                            Position.get_file(atts),
+                            Position.get_line(atts),
+                            Position.get_id(atts),
+                            Position.get_offset(atts))))
+                      case _ => state
                     }
-                    else if (kind == Markup.ML_REF) {
-                      body match {
-                        case List(XML.Elem(Markup.ML_DEF, atts, _)) =>
-                          state.add_markup(command.markup_node(
-                            begin - 1, end - 1,
-                            Command.RefInfo(
-                              Position.get_file(atts),
-                              Position.get_line(atts),
-                              Position.get_id(atts),
-                              Position.get_offset(atts))))
-                        case _ => state
-                      }
-                    }
-                    else {
-                      state.add_markup(
-                        command.markup_node(begin - 1, end - 1, Command.HighlightInfo(kind)))
-                    }
-                  case _ => state
-                }
-              case _ =>
-                System.err.println("ignored status report: " + elem)
-                state
-            })
-        case _ => add_result(message)
-      }
-    if (!(this eq changed)) session.command_change.event(command)
-    changed
-  }
+                  }
+                  else {
+                    state.add_markup(
+                      command.markup_node(begin - 1, end - 1, Command.HighlightInfo(kind)))
+                  }
+                case _ => state
+              }
+            case _ =>
+              System.err.println("ignored status report: " + elem)
+              state
+          })
+      case _ => add_result(message)
+    }
 }
