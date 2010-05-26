@@ -328,8 +328,8 @@ apply(rule conforms_hext)
 apply  auto
 apply(rule hconfI)
 apply(drule conforms_heapD)
-apply(tactic {* auto_tac (HOL_cs addEs [thm "oconf_hext"] 
-                addDs [thm "hconfD"], @{simpset} delsimps [split_paired_All]) *})
+apply(tactic {* auto_tac (HOL_cs addEs [@{thm oconf_hext}] 
+                addDs [@{thm hconfD}], @{simpset} delsimps [@{thm split_paired_All}]) *})
 done
 
 lemma conforms_upd_local: 

@@ -228,7 +228,7 @@ fun mc_mucke_tac defs i state =
       EVERY [
         REPEAT (etac thin_rl i),
         cut_facts_tac (mk_lam_defs defs) i,
-        full_simp_tac (Mucke_ss delsimps [not_iff,split_part]) i,
+        full_simp_tac (Mucke_ss delsimps [not_iff, @{thm split_part}]) i,
         move_mus i, call_mucke_tac i,atac i,
         REPEAT (rtac refl i)] state);
 *}
