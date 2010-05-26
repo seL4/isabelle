@@ -190,6 +190,16 @@ lemma
   "distinct [a, b, c] \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
   sorry  (* FIXME: injective function *)
 
+lemma
+  assumes "\<forall>x. SMT.trigger [[SMT.pat (f x)]] (f x = x)"
+  shows "f 1 = 1"
+  using assms by smt
+
+lemma
+  assumes "\<forall>x y. SMT.trigger [[SMT.pat (f x), SMT.pat (g y)]] (f x = g y)"
+  shows "f 1 = g 2"
+  using assms by smt
+
 
 
 section {* Meta logical connectives *}
