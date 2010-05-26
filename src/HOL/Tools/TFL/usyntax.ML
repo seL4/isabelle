@@ -195,8 +195,8 @@ fun mk_disj{disj1,disj2} =
 fun prod_ty ty1 ty2 = HOLogic.mk_prodT (ty1,ty2);
 
 local
-fun mk_uncurry(xt,yt,zt) =
-    Const("split",(xt --> yt --> zt) --> prod_ty xt yt --> zt)
+fun mk_uncurry (xt, yt, zt) =
+    Const(@{const_name split}, (xt --> yt --> zt) --> prod_ty xt yt --> zt)
 fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
   | dest_pair _ = raise USYN_ERR "dest_pair" "not a pair"
 fun is_var (Var _) = true | is_var (Free _) = true | is_var _ = false
@@ -276,7 +276,7 @@ fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
   | dest_pair _ = raise USYN_ERR "dest_pair" "not a pair";
 
 
-local  fun ucheck t = (if #Name(dest_const t) = "split" then t
+local  fun ucheck t = (if #Name (dest_const t) = @{const_name split} then t
                        else raise Match)
 in
 fun dest_pabs used tm =

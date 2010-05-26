@@ -2015,7 +2015,7 @@ fun split_lambda (x as Free _) t = lambda x t
   | split_lambda (Const ("Product_Type.Unity", _)) t = Abs ("x", HOLogic.unitT, t)
   | split_lambda t _ = raise (TERM ("split_lambda", [t]))
 
-fun strip_split_abs (Const ("split", _) $ t) = strip_split_abs t
+fun strip_split_abs (Const (@{const_name split}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 

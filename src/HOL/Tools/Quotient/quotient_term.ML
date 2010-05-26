@@ -560,12 +560,12 @@ fun regularize_trm ctxt (rtrm, qtrm) =
            end
        end
 
-  | (((t1 as Const (@{const_name "split"}, _)) $ Abs (v1, ty, Abs(v1', ty', s1))),
-     ((t2 as Const (@{const_name "split"}, _)) $ Abs (v2, _ , Abs(v2', _  , s2)))) =>
+  | (((t1 as Const (@{const_name split}, _)) $ Abs (v1, ty, Abs(v1', ty', s1))),
+     ((t2 as Const (@{const_name split}, _)) $ Abs (v2, _ , Abs(v2', _  , s2)))) =>
        regularize_trm ctxt (t1, t2) $ Abs (v1, ty, Abs (v1', ty', regularize_trm ctxt (s1, s2)))
 
-  | (((t1 as Const (@{const_name "split"}, _)) $ Abs (v1, ty, s1)),
-     ((t2 as Const (@{const_name "split"}, _)) $ Abs (v2, _ , s2))) =>
+  | (((t1 as Const (@{const_name split}, _)) $ Abs (v1, ty, s1)),
+     ((t2 as Const (@{const_name split}, _)) $ Abs (v2, _ , s2))) =>
        regularize_trm ctxt (t1, t2) $ Abs (v1, ty, regularize_trm ctxt (s1, s2))
 
   | (t1 $ t2, t1' $ t2') =>

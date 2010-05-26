@@ -323,7 +323,7 @@ fun get_decls sign Clist (Abs(s,tp,trm)) =
     let val VarAbs = Syntax.variant_abs(s,tp,trm);
     in get_decls sign (Const(fst VarAbs,tp)::Clist) (snd VarAbs)
     end
-  | get_decls sign Clist ((Const("split",_)) $ trm) = get_decls sign Clist trm
+  | get_decls sign Clist ((Const (@{const_name split}, _)) $ trm) = get_decls sign Clist trm
   | get_decls sign Clist trm = (Clist,trm);
 
 fun make_mu_def sign ((tt $ LHS) $ (ttt $ RHS)) =
@@ -389,9 +389,9 @@ fun make_FunMuckeDecl FunDeclTerm ParamDeclTerm isaType =
       val t2 = t1 $ ParamDeclTerm
   in t2 end;
 
-fun is_fundef (( Const("==",_) $ _) $ ((Const("split",_)) $ _)) = true |
-is_fundef (( Const("==",_) $ _) $ Abs(x_T_t)) = true 
-| is_fundef _ = false; 
+fun is_fundef (Const("==", _) $ _ $ (Const (@{const_name split}, _) $ _)) = true
+  | is_fundef (Const("==", _) $ _ $ Abs _) = true 
+  | is_fundef _ = false; 
 
 fun make_mucke_fun_def sign ((_ $ LHS) $ RHS) =
   let   (* fun dest_atom (Const t) = dest_Const (Const t)
