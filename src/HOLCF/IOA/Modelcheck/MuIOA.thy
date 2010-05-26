@@ -276,13 +276,13 @@ OldGoals.by (REPEAT (rtac impI 1));
 OldGoals.by (REPEAT (dtac eq_reflection 1));
 (* Bis hierher wird im Kapitel 4 erl"autert, ab hier im Kapitel 5 *)
 OldGoals.by (full_simp_tac ((global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs)
-                              delsimps [not_iff,split_part])
+                              delsimps [not_iff, @{thm split_part}])
                               addsimps (thl @ comp_simps @ restrict_simps @ hide_simps @
                                         rename_simps @ ioa_simps @ asig_simps)) 1);
 OldGoals.by (full_simp_tac
-  (Mucke_ss delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1);
+  (Mucke_ss delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff, @{thm split_part}]) 1);
 OldGoals.by (REPEAT (if_full_simp_tac
-  (global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff,split_part]) 1));
+  (global_simpset_of sign delcongs (if_weak_cong :: weak_case_congs) delsimps [not_iff, @{thm split_part}]) 1));
 OldGoals.by (call_mucke_tac 1);
 (* Bis hierher wird im Kapitel 5 erl"autert, ab hier wieder im Kapitel 4 *)
 OldGoals.by (atac 1);

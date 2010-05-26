@@ -1101,7 +1101,7 @@ fun Seq_Finite_induct_tac ctxt i =
   THEN (REPEAT_DETERM (CHANGED (asm_simp_tac (simpset_of ctxt) i)));
 
 fun pair_tac ctxt s =
-  res_inst_tac ctxt [(("p", 0), s)] PairE
+  res_inst_tac ctxt [(("p", 0), s)] @{thm PairE}
   THEN' hyp_subst_tac THEN' asm_full_simp_tac (simpset_of ctxt);
 
 (* induction on a sequence of pairs with pairsplitting and simplification *)
