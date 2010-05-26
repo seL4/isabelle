@@ -395,7 +395,7 @@ lemma "\<exists>u::int. \<forall>(x::int) y::real. 0 < x \<and> 0 < y \<longrigh
 
 lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt
 
-lemma "\<forall>x::int. trigger [pat x] (x < a \<longrightarrow> 2 * x < 2 * a)" by smt
+lemma "\<forall>x::int. SMT.trigger [[SMT.pat x]] (x < a \<longrightarrow> 2 * x < 2 * a)" by smt
 
 
 subsection {* Non-linear arithmetic over integers and reals *}

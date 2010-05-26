@@ -119,13 +119,19 @@ fun group_quant qname Ts (t as Const (q, _) $ Abs (_, T, u)) =
       if q = qname then group_quant qname (T :: Ts) u else (Ts, t)
   | group_quant _ Ts t = (Ts, t)
 
-fun dest_pat ts (Const (@{const_name pat}, _) $ t) = SPat (rev (t :: ts))
-  | dest_pat ts (Const (@{const_name nopat}, _) $ t) = SNoPat (rev (t :: ts))
-  | dest_pat ts (Const (@{const_name andpat}, _) $ p $ t) = dest_pat (t::ts) p
-  | dest_pat _ t = raise TERM ("dest_pat", [t])
+fun dest_pat (Const (@{const_name pat}, _) $ t) = (t, true)
+  | dest_pat (Const (@{const_name nopat}, _) $ t) = (t, false)
+  | dest_pat t = raise TERM ("dest_pat", [t])
+
+fun dest_pats [] = I
+  | dest_pats ts =
+      (case map dest_pat ts |> split_list ||> distinct (op =) of
+        (ps, [true]) => cons (SPat ps)
+      | (ps, [false]) => cons (SNoPat ps)
+      | _ => raise TERM ("dest_pats", ts))
 
 fun dest_trigger (@{term trigger} $ tl $ t) =
-      (map (dest_pat []) (HOLogic.dest_list tl), t)
+      (rev (fold (dest_pats o HOLogic.dest_list) (HOLogic.dest_list tl) []), t)
   | dest_trigger t = ([], t)
 
 fun dest_quant qn T t = quantifier qn |> Option.map (fn q =>
@@ -143,9 +149,9 @@ fun prop_of thm = HOLogic.dest_Trueprop (Thm.prop_of thm)
 
 (* enforce a strict separation between formulas and terms *)
 
-val term_eq_rewr = @{lemma "x term_eq y == x = y" by (simp add: term_eq_def)}
+val term_eq_rewr = @{lemma "term_eq x y == x = y" by (simp add: term_eq_def)}
 
-val term_bool = @{lemma "~(True term_eq False)" by (simp add: term_eq_def)}
+val term_bool = @{lemma "~(term_eq True False)" by (simp add: term_eq_def)}
 val term_bool' = Simplifier.rewrite_rule [term_eq_rewr] term_bool
 
 
@@ -210,11 +216,10 @@ fun strictify {is_builtin_conn, is_builtin_pred, is_builtin_distinct} ctxt =
 
     and in_pat ((c as Const (@{const_name pat}, _)) $ t) = c $ in_term t
       | in_pat ((c as Const (@{const_name nopat}, _)) $ t) = c $ in_term t
-      | in_pat ((c as Const (@{const_name andpat}, _)) $ p $ t) =
-          c $ in_pat p $ in_term t
       | in_pat t = raise TERM ("in_pat", [t])
 
-    and in_pats p = in_list @{typ pattern} in_pat p
+    and in_pats ps =
+      in_list @{typ "pattern list"} (in_list @{typ pattern} in_pat) ps
 
     and in_trig ((c as @{term trigger}) $ p $ t) = c $ in_pats p $ in_form t
       | in_trig t = in_form t

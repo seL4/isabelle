@@ -380,9 +380,11 @@ local
   fun mk_nary _ t [] = t
     | mk_nary f _ ts = uncurry (fold_rev f) (split_last ts)
 
+  fun mk_list T = HOLogic.mk_list T
+
   fun mk_distinct T ts =
-    Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $ 
-      HOLogic.mk_list T ts
+    Const (@{const_name distinct}, HOLogic.listT T --> @{typ bool}) $
+      mk_list T ts
 
   fun quant name f = scan_line name (num -- num -- num) >> pair f
   val quants =
@@ -391,20 +393,20 @@ local
     scan_fail "illegal quantifier kind"
   fun mk_quant q (n, T) t = q T $ Term.absfree (n, T, t)
 
-  val patternT = @{typ pattern}
+  val patternT = @{typ "SMT.pattern"}
   fun mk_pattern _ [] = raise TERM ("mk_pattern", [])
-    | mk_pattern n [t] = Const (n, Term.fastype_of t --> patternT) $ t
-    | mk_pattern n (t :: ts) =
-        let val T = patternT --> Term.fastype_of t --> patternT
-        in Const (@{const_name andpat}, T) $ mk_pattern n ts $ t end
+    | mk_pattern n ts =
+        let fun mk_pat t = Const (n, Term.fastype_of t --> patternT) $ t
+        in mk_list patternT (map mk_pat ts) end
   fun patt n c scan =
     scan_line n num :|-- scan_count scan >> (mk_pattern c)
   fun pattern scan =
-    patt "pat" @{const_name pat} scan ||
-    patt "nopat" @{const_name nopat} scan ||
+    patt "pat" @{const_name "SMT.pat"} scan ||
+    patt "nopat" @{const_name "SMT.nopat"} scan ||
     scan_fail "illegal pattern kind"
   fun mk_trigger [] t = t
-    | mk_trigger ps t = @{term trigger} $ HOLogic.mk_list patternT ps $ t
+    | mk_trigger ps t =
+        @{term "SMT.trigger"} $ mk_list @{typ "SMT.pattern list"} ps $ t
 
   fun make_label (line, col) = Free (label_name line col, @{typ bool})
   fun labelled_by kind pos t = kind $ make_label pos $ t

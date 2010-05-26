@@ -31,24 +31,22 @@ subsection {* Triggers for quantifier instantiation *}
 text {*
 Some SMT solvers support triggers for quantifier instantiation.
 Each trigger consists of one ore more patterns.  A pattern may either
-be a list of positive subterms (the first being tagged by "pat" and
-the consecutive subterms tagged by "andpat"), or a list of negative
-subterms (the first being tagged by "nopat" and the consecutive
-subterms tagged by "andpat").
+be a list of positive subterms (each being tagged by "pat"), or a
+list of negative subterms (each being tagged by "nopat").
+
+When an SMT solver finds a term matching a positive pattern (a
+pattern with positive subterms only), it instantiates the
+corresponding quantifier accordingly.  Negative patterns inhibit
+quantifier instantiations.  Each pattern should mention all preceding
+bound variables.
 *}
 
 datatype pattern = Pattern
 
-definition pat :: "'a \<Rightarrow> pattern"
-where "pat _ = Pattern"
+definition pat :: "'a \<Rightarrow> pattern" where "pat _ = Pattern"
+definition nopat :: "'a \<Rightarrow> pattern" where "nopat _ = Pattern"
 
-definition nopat :: "'a \<Rightarrow> pattern"
-where "nopat _ = Pattern"
-
-definition andpat :: "pattern \<Rightarrow> 'a \<Rightarrow> pattern" (infixl "andpat" 60)
-where "_ andpat _ = Pattern"
-
-definition trigger :: "pattern list \<Rightarrow> bool \<Rightarrow> bool"
+definition trigger :: "pattern list list \<Rightarrow> bool \<Rightarrow> bool"
 where "trigger _ P = P"
 
 
@@ -86,8 +84,7 @@ turned into terms by equating such atoms with @{term True} using the
 following term-level equation symbol.
 *}
 
-definition term_eq :: "bool \<Rightarrow> bool \<Rightarrow> bool" (infix "term'_eq" 50)
-  where "(x term_eq y) = (x = y)"
+definition term_eq :: "bool \<Rightarrow> bool \<Rightarrow> bool" where "term_eq x y = (x = y)"
 
 
 
@@ -290,5 +287,11 @@ lemma [z3_rule]:
   "1 * x = x"
   "x + y = y + x"
   by auto
+
+
+
+hide_type (open) pattern
+hide_const Pattern "apply" term_eq
+hide_const (open) trigger pat nopat
 
 end

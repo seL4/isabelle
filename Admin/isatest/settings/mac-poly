@@ -1,6 +1,6 @@
 # -*- shell-script -*- :mode=shellscript:
 
-  POLYML_HOME="/home/polyml/polyml-5.3.0"
+  POLYML_HOME="/home/polyml/polyml-5.3.0-old"
   ML_SYSTEM="polyml-5.3.0"
   ML_PLATFORM="ppc-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
