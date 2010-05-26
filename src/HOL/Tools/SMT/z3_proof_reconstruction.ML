@@ -689,11 +689,19 @@ in
 
 fun rewrite ctxt simpset ths = Thm o with_conv ctxt ths (try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_conj_disj_eq,
-  T.by_abstraction (true, true) ctxt [] (fn ctxt' => T.by_tac (
-    NAMED ctxt' "simp" (Simplifier.simp_tac simpset)
+  T.by_abstraction (true, false) ctxt [] (fn ctxt' => T.by_tac (
+    NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
+    THEN_ALL_NEW NAMED ctxt' "fast (logic)" (Classical.fast_tac HOL_cs))),
+  T.by_abstraction (false, true) ctxt [] (fn ctxt' => T.by_tac (
+    NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
     THEN_ALL_NEW (
-      NAMED ctxt' "fast" (Classical.fast_tac HOL_cs)
-      ORELSE' NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt'))))])
+      NAMED ctxt' "fast (theory)" (Classical.fast_tac HOL_cs)
+      ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
+  T.by_abstraction (true, true) ctxt [] (fn ctxt' => T.by_tac (
+    NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
+    THEN_ALL_NEW (
+      NAMED ctxt' "fast (full)" (Classical.fast_tac HOL_cs)
+      ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt'))))])
 
 end
 
