@@ -90,7 +90,7 @@ end;
 val before_set2pred_simp_tac =
   (simp_tac (HOL_basic_ss addsimps [Collect_conj_eq RS sym, @{thm Compl_Collect}]));
 
-val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [split_conv]));
+val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [@{thm split_conv}]));
 
 (*****************************************************************************)
 (** set2pred_tac transforms sets inclusion into predicates implication,     **)
@@ -111,7 +111,7 @@ fun set2pred_tac var_names = SUBGOAL (fn (goal, i) =>
     rtac CollectI i,
     dtac CollectD i,
     TRY (split_all_tac i) THEN_MAYBE
-     (rename_tac var_names i THEN full_simp_tac (HOL_basic_ss addsimps [split_conv]) i)]);
+     (rename_tac var_names i THEN full_simp_tac (HOL_basic_ss addsimps [@{thm split_conv}]) i)]);
 
 (*****************************************************************************)
 (** BasicSimpTac is called to simplify all verification conditions. It does **)
@@ -125,7 +125,7 @@ fun MaxSimpTac var_names tac = FIRST'[rtac subset_refl, set2pred_tac var_names T
 
 fun BasicSimpTac var_names tac =
   simp_tac
-    (HOL_basic_ss addsimps [mem_Collect_eq, split_conv] addsimprocs [record_simproc])
+    (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}] addsimprocs [record_simproc])
   THEN_MAYBE' MaxSimpTac var_names tac;
 
 
