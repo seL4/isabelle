@@ -44,7 +44,7 @@ val collect_mem_simproc =
                     ts = map Bound (length ps downto 0)
                   then
                     let val simp = full_simp_tac (Simplifier.inherit_context ss
-                      (HOL_basic_ss addsimps [split_paired_all, split_conv])) 1
+                      (HOL_basic_ss addsimps [@{thm split_paired_all}, @{thm split_conv}])) 1
                     in
                       SOME (Goal.prove (Simplifier.the_context ss) [] []
                         (Const ("==", T --> T --> propT) $ S $ S')
@@ -92,7 +92,7 @@ fun strong_ind_simproc tab =
               mkop s T (m, p, mk_collect p T (head_of u), S)
         | decomp _ = NONE;
       val simp = full_simp_tac (Simplifier.inherit_context ss
-        (HOL_basic_ss addsimps [mem_Collect_eq, split_conv])) 1;
+        (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}])) 1;
       fun mk_rew t = (case strip_abs_vars t of
           [] => NONE
         | xs => (case decomp (strip_abs_body t) of
@@ -255,7 +255,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
           end)
   in
-    Simplifier.simplify (HOL_basic_ss addsimps [mem_Collect_eq, split_conv]
+    Simplifier.simplify (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}]
       addsimprocs [collect_mem_simproc]) thm'' |>
         zero_var_indexes |> eta_contract_thm (equal p)
   end;
@@ -343,7 +343,7 @@ fun to_pred thms ctxt thm =
     thm |>
     Thm.instantiate ([], insts) |>
     Simplifier.full_simplify (HOL_basic_ss addsimprocs
-      [to_pred_simproc (mem_Collect_eq :: split_conv :: to_pred_simps)]) |>
+      [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
     eta_contract_thm (is_pred pred_arities) |>
     Rule_Cases.save thm
   end;
@@ -396,7 +396,7 @@ fun codegen_preproc thy =
       then
         thm |>
         Simplifier.full_simplify (HOL_basic_ss addsimprocs
-          [to_pred_simproc (mem_Collect_eq :: split_conv :: to_pred_simps)]) |>
+          [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
         eta_contract_thm (is_pred pred_arities)
       else thm
   in map preproc end;
@@ -463,7 +463,7 @@ fun add_ind_set_def
       end) |> split_list |>> split_list;
     val eqns' = eqns @
       map (prop_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq)
-        (mem_Collect_eq :: split_conv :: to_pred_simps);
+        (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps);
 
     (* predicate version of the introduction rules *)
     val intros' =
@@ -505,7 +505,7 @@ fun add_ind_set_def
                  (HOLogic.mk_ptuple fs U (map Bound (length fs downto 0)),
                   list_comb (c, params))))))
             (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
-              [def, mem_Collect_eq, split_conv]) 1))
+              [def, mem_Collect_eq, @{thm split_conv}]) 1))
         in
           lthy |> Local_Theory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
             [Attrib.internal (K pred_set_conv_att)]),

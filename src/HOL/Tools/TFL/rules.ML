@@ -623,7 +623,7 @@ fun VSTRUCT_ELIM tych a vstr th =
       val thm2 = forall_intr_list (map tych L) thm1
       val thm3 = forall_elim_list (XFILL tych a vstr) thm2
   in refl RS
-     rewrite_rule [Thm.symmetric (surjective_pairing RS eq_reflection)] thm3
+     rewrite_rule [Thm.symmetric (@{thm surjective_pairing} RS eq_reflection)] thm3
   end;
 
 fun PGEN tych a vstr th =
@@ -663,7 +663,7 @@ fun restricted t = is_some (S.find_term
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  let val globals = func::G
      val ss0 = Simplifier.global_context (Thm.theory_of_thm th) empty_ss
-     val pbeta_reduce = simpl_conv ss0 [split_conv RS eq_reflection];
+     val pbeta_reduce = simpl_conv ss0 [@{thm split_conv} RS eq_reflection];
      val tc_list = Unsynchronized.ref []: term list Unsynchronized.ref
      val dummy = term_ref := []
      val dummy = thm_ref  := []

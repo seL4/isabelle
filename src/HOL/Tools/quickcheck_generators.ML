@@ -188,7 +188,7 @@ fun random_aux_primrec_multi auxname [eq] lthy =
             fun tac { context = ctxt, prems = _ } =
               ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
-              THEN ALLGOALS (simp_tac (HOL_ss addsimps [fst_conv, snd_conv]));
+              THEN ALLGOALS (simp_tac (HOL_ss addsimps [@{thm fst_conv}, @{thm snd_conv}]));
           in (map (fn prop => Skip_Proof.prove lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy

@@ -113,7 +113,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
 
     val thm = OldGoals.simple_prove_goal_cterm (cert (Logic.list_implies (prems, concl)))
       (fn prems =>
-         [rewrite_goals_tac (map mk_meta_eq [fst_conv, snd_conv]),
+         [rewrite_goals_tac (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
           rtac (cterm_instantiate inst induct) 1,
           ALLGOALS Object_Logic.atomize_prems_tac,
           rewrite_goals_tac (@{thm o_def} :: map mk_meta_eq rec_rewrites),

@@ -2215,7 +2215,7 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
       prove_standard [] cases_prop
         (fn _ =>
           try_param_tac rN cases_scheme 1 THEN
-          simp_all_tac HOL_basic_ss [unit_all_eq1]);
+          simp_all_tac HOL_basic_ss [@{thm unit_all_eq1}]);
     val cases = timeit_msg "record cases proof:" cases_prf;
 
     fun surjective_prf () =
