@@ -4647,8 +4647,8 @@ qed
 lemmas in_set_code [code_unfold] = mem_iff [symmetric]
 
 lemma member_simps [simp, code]:
-  "member [] y \<longleftrightarrow> False"
   "member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y"
+  "member [] y \<longleftrightarrow> False"
   by (auto simp add: mem_iff)
 
 lemma member_set:
