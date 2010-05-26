@@ -23,4 +23,4 @@ use_thys [
 ];
 
 (*regression test for locales -- sets several global flags!*)
-no_document use_thy "LocaleTest";
+no_document use_thy "Locale_Test/Locale_Test";

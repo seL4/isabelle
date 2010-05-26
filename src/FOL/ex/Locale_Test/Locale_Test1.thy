@@ -1,10 +1,10 @@
-(*  Title:      FOL/ex/LocaleTest.thy
+(*  Title:      FOL/ex/Locale_Test/Locale_Test1.thy
     Author:     Clemens Ballarin, TU Muenchen
 
 Test environment for the locale implementation.
 *)
 
-theory LocaleTest
+theory Locale_Test1
 imports FOL
 begin
 
@@ -688,6 +688,11 @@ lemmas (in mixin7_inherited) less_thm7b = less_def
 thm le7.less_thm7b  (* after, mixin applied *)
 lemma "gless(x, y) <-> gle(x, y) & x ~= y"
   by (rule le7.less_thm7b)
+
+
+text {* This locale will be interpreted in later theories. *}
+
+locale mixin_thy_merge = le: reflexive le + le': reflexive le' for le le'
 
 
 subsection {* Interpretation in proofs *}
