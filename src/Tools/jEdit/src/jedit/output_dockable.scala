@@ -22,73 +22,60 @@ import org.gjt.sp.jedit.View
 
 class Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
+  Swing_Thread.assert()
+
   val html_panel = new HTML_Panel(Isabelle.system, scala.math.round(Isabelle.font_size()))
   add(html_panel, BorderLayout.CENTER)
 
 
-  /* controls */
+  /* component state -- owned by Swing thread */
 
-  private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
-  zoom.tooltip = "Zoom factor for basic font size"
+  private var zoom_factor = 100
+  private var show_debug = false
+  private var show_tracing = false
+  private var follow_caret = true
+  private var current_command: Option[Command] = None
 
-  private val update = new Button("Update") {
-    reactions += { case ButtonClicked(_) => handle_update() }
-  }
-  update.tooltip =
-    "<html>Update display according to the<br>state of command at caret position</html>"
 
-  private val tracing = new CheckBox("Tracing") {
-    reactions += { case ButtonClicked(_) => handle_update() }
-  }
-  tracing.tooltip =
-    "<html>Indicate output of tracing messages<br>(also needs to be enabled on the prover side)</html>"
-
-  private val debug = new CheckBox("Debug") {
-    reactions += { case ButtonClicked(_) => handle_update() }
-  }
-  debug.tooltip =
-    "<html>Indicate output of debug messages<br>(also needs to be enabled on the prover side)</html>"
-
-  private val follow = new CheckBox("Follow")
-  follow.selected = true
-  follow.tooltip =
-    "<html>Indicate automatic update following<br>caret movement or state changes</html>"
-
-  private def filtered_results(document: Document, cmd: Command): List[XML.Tree] =
+  private def handle_resize()
   {
-    val show_tracing = tracing.selected
-    val show_debug = debug.selected
-    document.current_state(cmd).results filter {
-      case XML.Elem(Markup.TRACING, _, _) => show_tracing
-      case XML.Elem(Markup.DEBUG, _, _) => show_debug
-      case _ => true
+    Swing_Thread.now {
+      html_panel.resize(scala.math.round(Isabelle.font_size() * zoom_factor / 100))
     }
   }
 
-  private case class Render(body: List[XML.Tree])
-
-  private def handle_update()
+  private def handle_caret()
   {
     Swing_Thread.now {
-      Document_Model(view.getBuffer) match {
-        case Some(model) =>
-          val document = model.recent_document
-          document.command_at(view.getTextArea.getCaretPosition) match {
-            case Some((cmd, _)) =>
-              main_actor ! Render(filtered_results(document, cmd))
-            case None =>
-          }
+      Document_View(view.getTextArea) match {
+        case Some(doc_view) => current_command = doc_view.selected_command
         case None =>
       }
     }
   }
 
-  private var zoom_factor = 100
-
-  private def handle_resize() =
+  private def handle_update(restriction: Option[Set[Command]] = None)
+  {
     Swing_Thread.now {
-      html_panel.resize(scala.math.round(Isabelle.font_size() * zoom_factor / 100))
+      if (follow_caret) handle_caret()
+      Document_View(view.getTextArea) match {
+        case Some(doc_view) =>
+          current_command match {
+            case Some(cmd) if !restriction.isDefined || restriction.get.contains(cmd) =>
+              val document = doc_view.model.recent_document
+              val filtered_results =
+                document.current_state(cmd).results filter {
+                  case XML.Elem(Markup.TRACING, _, _) => show_tracing
+                  case XML.Elem(Markup.DEBUG, _, _) => show_debug
+                  case _ => true
+                }
+              html_panel.render(filtered_results)
+            case _ =>
+          }
+        case None =>
+      }
     }
+  }
 
 
   /* main actor */
@@ -97,17 +84,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     loop {
       react {
         case Session.Global_Settings => handle_resize()
-        case Render(body) => html_panel.render(body)
-
-        case cmd: Command =>
-          Swing_Thread.now {
-            if (follow.selected) Document_Model(view.getBuffer) else None
-          } match {
-            case None =>
-            case Some(model) =>
-              html_panel.render(filtered_results(model.recent_document, cmd))
-          }
-
+        case Command_Set(changed) => handle_update(Some(changed))
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }
     }
@@ -115,13 +92,13 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   override def init()
   {
-    Isabelle.session.results += main_actor
+    Isabelle.session.commands_changed += main_actor
     Isabelle.session.global_settings += main_actor
   }
 
   override def exit()
   {
-    Isabelle.session.results -= main_actor
+    Isabelle.session.commands_changed -= main_actor
     Isabelle.session.global_settings -= main_actor
   }
 
@@ -129,14 +106,42 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* resize */
 
   addComponentListener(new ComponentAdapter {
-    val delay = Swing_Thread.delay_last(500) { handle_resize() }
+    val delay = Swing_Thread.delay_last(500) { handle_resize() }  // FIXME update_delay property
     override def componentResized(e: ComponentEvent) { delay() }
   })
 
 
-  /* init controls */
+  /* controls */
 
-  val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, update, debug, tracing, follow)
+  private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
+  zoom.tooltip = "Zoom factor for basic font size"
+
+  private val debug = new CheckBox("Debug") {
+    reactions += { case ButtonClicked(_) => show_debug = this.selected; handle_update() }
+  }
+  debug.selected = show_debug
+  debug.tooltip =
+    "<html>Indicate output of debug messages<br>(also needs to be enabled on the prover side)</html>"
+
+  private val tracing = new CheckBox("Tracing") {
+    reactions += { case ButtonClicked(_) => show_tracing = this.selected; handle_update() }
+  }
+  tracing.selected = show_tracing
+  tracing.tooltip =
+    "<html>Indicate output of tracing messages<br>(also needs to be enabled on the prover side)</html>"
+
+  private val auto_update = new CheckBox("Auto update") {
+    reactions += { case ButtonClicked(_) => follow_caret = this.selected; handle_update() }
+  }
+  auto_update.selected = follow_caret
+  auto_update.tooltip = "<html>Indicate automatic update following cursor movement</html>"
+
+  private val update = new Button("Update") {
+    reactions += { case ButtonClicked(_) => handle_caret(); handle_update() }
+  }
+  update.tooltip = "<html>Update display according to the command at cursor position</html>"
+
+  val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, debug, tracing, auto_update, update)
   add(controls.peer, BorderLayout.NORTH)
 
   handle_update()

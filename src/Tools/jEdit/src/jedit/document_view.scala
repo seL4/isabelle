@@ -69,7 +69,7 @@ object Document_View
 }
 
 
-class Document_View(model: Document_Model, text_area: TextArea)
+class Document_View(val model: Document_Model, text_area: TextArea)
 {
   private val session = model.session
 
@@ -79,37 +79,21 @@ class Document_View(model: Document_Model, text_area: TextArea)
   @volatile private var document = model.recent_document()
 
 
-  /* buffer of changed commands -- owned by Swing thread */
+  /* commands_changed_actor */
 
-  @volatile private var changed_commands: Set[Command] = Set()
-
-  private val changed_delay = Swing_Thread.delay_first(100) {
-    if (!changed_commands.isEmpty) {
-      document = model.recent_document()
-      for (cmd <- changed_commands if document.commands.contains(cmd)) { // FIXME cover doc states as well!!?
-        update_syntax(cmd)
-        invalidate_line(cmd)
-        overview.repaint()
-      }
-      changed_commands = Set()
-    }
-  }
-
-
-  /* command change actor */
-
-  private case object Exit
-
-  private val command_change_actor = actor {
+  private val commands_changed_actor = actor {
     loop {
       react {
-        case command: Command =>  // FIXME rough filtering according to document family!?
+        case Command_Set(changed) =>
           Swing_Thread.now {
-            changed_commands += command
-            changed_delay()
+            document = model.recent_document()
+            // FIXME cover doc states as well!!?
+            for (command <- changed if document.commands.contains(command)) {
+              update_syntax(command)
+              invalidate_line(command)
+              overview.repaint()
+            }
           }
-
-        case Exit => reply(()); exit()
 
         case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
       }
@@ -153,24 +137,23 @@ class Document_View(model: Document_Model, text_area: TextArea)
   }
 
 
-  /* caret_listener */
+  /* caret handling */
 
-  private var _selected_command: Command = null
-  private def selected_command = _selected_command
-  private def selected_command_=(cmd: Command)
-  {
-    _selected_command = cmd
-    session.results.event(cmd)
-  }
+  def selected_command: Option[Command] =
+    document.command_at(text_area.getCaretPosition) match {
+      case Some((command, _)) => Some(command)
+      case None => None
+    }
 
   private val caret_listener = new CaretListener
   {
+    private var last_selected_command: Option[Command] = None
     override def caretUpdate(e: CaretEvent)
     {
-      document.command_at(e.getDot) match {
-        case Some((command, command_start)) if (selected_command != command) =>
-          selected_command = command
-        case _ =>
+      val selected = selected_command
+      if (selected != last_selected_command) {
+        last_selected_command = selected
+        if (selected.isDefined) session.indicate_command_change(selected.get)
       }
     }
   }
@@ -179,6 +162,7 @@ class Document_View(model: Document_Model, text_area: TextArea)
   /* (re)painting */
 
   private val update_delay = Swing_Thread.delay_first(500) { model.buffer.propertiesChanged() }
+  // FIXME update_delay property
 
   private def update_syntax(cmd: Command)
   {
@@ -192,9 +176,6 @@ class Document_View(model: Document_Model, text_area: TextArea)
   {
     val (start, stop) = model.lines_of_command(document, cmd)
     text_area.invalidateLineRange(start, stop)
-
-    if (selected_command == cmd)
-      session.results.event(cmd)
   }
 
   private def invalidate_all() =
@@ -289,13 +270,12 @@ class Document_View(model: Document_Model, text_area: TextArea)
       addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
-    session.command_change += command_change_actor
+    session.commands_changed += commands_changed_actor
   }
 
   private def deactivate()
   {
-    session.command_change -= command_change_actor
-    command_change_actor !? Exit
+    session.commands_changed -= commands_changed_actor
     text_area.removeLeftOfScrollBar(overview)
     text_area.removeCaretListener(caret_listener)
     text_area.getPainter.removeExtension(text_area_extension)

@@ -161,7 +161,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
     if (proc == 0) error("Cannot kill Isabelle: no process")
     else {
       try_close()
-      Thread.sleep(500)
+      Thread.sleep(500)  // FIXME property!?
       put_result(Kind.SIGNAL, "KILL")
       proc.destroy
       proc = null
@@ -391,7 +391,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
     new Thread("isabelle: exit") {
       override def run() = {
         val rc = proc.waitFor()
-        Thread.sleep(300)
+        Thread.sleep(300)  // FIXME property!?
         put_result(Kind.SYSTEM, "Exit thread terminated")
         put_result(Kind.EXIT, rc.toString)
         rm_fifo()

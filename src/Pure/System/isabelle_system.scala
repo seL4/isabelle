@@ -215,12 +215,12 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
               catch { case _: IOException => None }
             if (pid.isDefined) {
               var running = true
-              var count = 10
+              var count = 10   // FIXME property!?
               while (running && count > 0) {
                 if (execute(true, "kill", "-INT", "-" + pid.get).waitFor != 0)
                   running = false
                 else {
-                  Thread.sleep(100)
+                  Thread.sleep(100)   // FIXME property!?
                   if (!strict) count -= 1
                 }
               }
