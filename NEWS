@@ -222,6 +222,9 @@ Sup_fin, Min, Max from theory Finite_Set.  INCOMPATIBILITY.
 * Theory "Rational" renamed to "Rat", for consistency with "Nat",
 "Int" etc.  INCOMPATIBILITY.
 
+* Constant Rat.normalize needs to be qualified.  Minor
+INCOMPATIBILITY.
+
 * New set of rules "ac_simps" provides combined assoc / commute
 rewrites for all interpretations of the appropriate generic locales.
 
