@@ -31,24 +31,35 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* component state -- owned by Swing thread */
 
   private var zoom_factor = 100
+  private var show_debug = false
+  private var show_tracing = false
+  private var follow_caret = true
+  private var current_command: Option[Command] = None
 
-  private def handle_resize() =
+
+  private def handle_resize()
+  {
     Swing_Thread.now {
       html_panel.resize(scala.math.round(Isabelle.font_size() * zoom_factor / 100))
     }
+  }
 
-
-  private var current_command: Option[Command] = None
-  private var follow_caret = true
-  private var show_debug = false
-  private var show_tracing = false
+  private def handle_caret()
+  {
+    Swing_Thread.now {
+      Document_View(view.getTextArea) match {
+        case Some(doc_view) => current_command = doc_view.selected_command
+        case None =>
+      }
+    }
+  }
 
   private def handle_update(restriction: Option[Set[Command]] = None)
   {
     Swing_Thread.now {
+      if (follow_caret) handle_caret()
       Document_View(view.getTextArea) match {
         case Some(doc_view) =>
-          if (follow_caret) current_command = doc_view.selected_command
           current_command match {
             case Some(cmd) if !restriction.isDefined || restriction.get.contains(cmd) =>
               val document = doc_view.model.recent_document
@@ -105,11 +116,12 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
-  private val update = new Button("Update") {
-    reactions += { case ButtonClicked(_) => handle_update() }
+  private val debug = new CheckBox("Debug") {
+    reactions += { case ButtonClicked(_) => show_debug = this.selected; handle_update() }
   }
-  update.tooltip =
-    "<html>Update display according to the<br>state of command at caret position</html>"
+  debug.selected = show_debug
+  debug.tooltip =
+    "<html>Indicate output of debug messages<br>(also needs to be enabled on the prover side)</html>"
 
   private val tracing = new CheckBox("Tracing") {
     reactions += { case ButtonClicked(_) => show_tracing = this.selected; handle_update() }
@@ -118,20 +130,18 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   tracing.tooltip =
     "<html>Indicate output of tracing messages<br>(also needs to be enabled on the prover side)</html>"
 
-  private val debug = new CheckBox("Debug") {
-    reactions += { case ButtonClicked(_) => show_debug = this.selected; handle_update() }
-  }
-  debug.selected = show_debug
-  debug.tooltip =
-    "<html>Indicate output of debug messages<br>(also needs to be enabled on the prover side)</html>"
-
-  private val follow = new CheckBox("Follow") {
+  private val auto_update = new CheckBox("Auto update") {
     reactions += { case ButtonClicked(_) => follow_caret = this.selected; handle_update() }
   }
-  follow.selected = follow_caret
-  follow.tooltip = "<html>Indicate automatic update following cursor movement</html>"
+  auto_update.selected = follow_caret
+  auto_update.tooltip = "<html>Indicate automatic update following cursor movement</html>"
 
-  val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, update, debug, tracing, follow)
+  private val update = new Button("Update") {
+    reactions += { case ButtonClicked(_) => handle_caret(); handle_update() }
+  }
+  update.tooltip = "<html>Update display according to the command at cursor position</html>"
+
+  val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, debug, tracing, auto_update, update)
   add(controls.peer, BorderLayout.NORTH)
 
   handle_update()
