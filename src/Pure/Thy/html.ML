@@ -42,7 +42,7 @@ struct
 (* mode *)
 
 val htmlN = "HTML";
-fun html_mode f x = PrintMode.with_modes [htmlN] f x;
+fun html_mode f x = Print_Mode.with_modes [htmlN] f x;
 
 
 (* common markup *)

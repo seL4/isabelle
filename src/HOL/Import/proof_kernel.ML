@@ -200,7 +200,7 @@ fun simple_smart_string_of_cterm ct =
                            handle TERM _ => ct)
     in
         quote (
-        PrintMode.setmp [] (
+        Print_Mode.setmp [] (
         setmp_CRITICAL show_brackets false (
         setmp_CRITICAL show_all_types true (
         setmp_CRITICAL Syntax.ambiguity_is_error false (
@@ -239,14 +239,14 @@ fun smart_string_of_cterm ct =
               | SMART_STRING =>
                   error ("smart_string failed for: "^ G 0 (Syntax.string_of_term ctxt o term_of) ct)
     in
-      PrintMode.setmp [] (setmp_CRITICAL Syntax.ambiguity_is_error true F) 0
+      Print_Mode.setmp [] (setmp_CRITICAL Syntax.ambiguity_is_error true F) 0
     end
     handle ERROR mesg => simple_smart_string_of_cterm ct
 
 val smart_string_of_thm = smart_string_of_cterm o cprop_of
 
-fun prth th = writeln (PrintMode.setmp [] Display.string_of_thm_without_context th);
-fun prin t = writeln (PrintMode.setmp []
+fun prth th = writeln (Print_Mode.setmp [] Display.string_of_thm_without_context th);
+fun prin t = writeln (Print_Mode.setmp []
   (fn () => Syntax.string_of_term (ML_Context.the_local_context ()) t) ());
 fun pth (HOLThm(ren,thm)) =
     let

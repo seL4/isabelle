@@ -483,7 +483,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val def_fs = map (kodkod_formula_from_nut ofs kk) def_us
         val formula = fold (fold s_and) [def_fs, nondef_fs] KK.True
         val comment = (if unsound then "unsound" else "sound") ^ "\n" ^
-                      PrintMode.setmp [] multiline_string_for_scope scope
+                      Print_Mode.setmp [] multiline_string_for_scope scope
         val kodkod_sat_solver =
           Kodkod_SAT.sat_solver_spec actual_sat_solver |> snd
         val bit_width = if bits = 0 then 16 else bits + 1

@@ -93,7 +93,7 @@ fun parse_span span =
   let
     val kind = ThySyntax.span_kind span;
     val toks = ThySyntax.span_content span;
-    val text = implode (map (PrintMode.setmp [] ThySyntax.present_token) toks);
+    val text = implode (map (Print_Mode.setmp [] ThySyntax.present_token) toks);
   in
     (case kind of
       ThySyntax.Command name => parse_command name text

@@ -109,9 +109,9 @@ val mode = Unsynchronized.ref ([] : string list);   (* FIXME proper functional a
 
 val margin = Unsynchronized.ref 80;
 
-fun string_of p = PrintMode.setmp [] (Pretty.string_of_margin (!margin)) p;
+fun string_of p = Print_Mode.setmp [] (Pretty.string_of_margin (!margin)) p;
 
-val str = PrintMode.setmp [] Pretty.str;
+val str = Print_Mode.setmp [] Pretty.str;
 
 (**** Mixfix syntax ****)
 

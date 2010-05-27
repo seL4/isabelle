@@ -487,7 +487,7 @@ let fun make_string sign [] = "" |
         make_string sign (trm::list) =
            Syntax.string_of_term_global sign trm ^ "\n" ^ make_string sign list
 in
-  PrintMode.setmp ["Mucke"] (make_string sign) terms
+  Print_Mode.setmp ["Mucke"] (make_string sign) terms
 end;
 
 fun callmc s =

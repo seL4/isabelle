@@ -56,7 +56,7 @@ fun print_sign_exn_unit sign e =
 (*Prints an exception, then fails*)
 fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise e)
 
-val string_of_thm = PrintMode.setmp [] Display.string_of_thm_without_context;
+val string_of_thm = Print_Mode.setmp [] Display.string_of_thm_without_context;
 
 fun mk_meta_eq th =
     (case concl_of th of

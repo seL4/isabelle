@@ -270,7 +270,7 @@ fun abbreviate pp tsig naming mode (b, raw_rhs) consts =
   let
     val cert_term = certify pp tsig false consts;
     val expand_term = certify pp tsig true consts;
-    val force_expand = mode = PrintMode.internal;
+    val force_expand = mode = Print_Mode.internal;
 
     val _ = Term.exists_subterm Term.is_Var raw_rhs andalso
       error ("Illegal schematic variables on rhs of abbreviation " ^ quote (Binding.str_of b));

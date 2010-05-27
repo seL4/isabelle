@@ -911,7 +911,7 @@ val relabel_proof =
 fun string_for_proof ctxt i n =
   let
     fun fix_print_mode f =
-      PrintMode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+      Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                       (print_mode_value ())) f
     fun do_indent ind = replicate_string (ind * indent_size) " "
     fun do_free (s, T) =

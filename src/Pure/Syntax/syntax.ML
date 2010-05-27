@@ -259,7 +259,7 @@ fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.e
 
 type mode = string * bool;
 val mode_default = ("", true);
-val mode_input = (PrintMode.input, true);
+val mode_input = (Print_Mode.input, true);
 
 
 (* empty_syntax *)

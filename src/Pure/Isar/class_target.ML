@@ -355,7 +355,7 @@ fun abbrev class prmode ((c, mx), rhs) thy =
     |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
-    |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
+    |> not (#1 prmode = Print_Mode.input) ? register_operation class (c', (rhs', NONE))
   end;
 
 

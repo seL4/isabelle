@@ -3306,7 +3306,7 @@ fun values_cmd print_modes param_user_modes options k raw_t state =
              Pretty.str "total:", Pretty.brk 1, Pretty.str (string_of_int total), Pretty.fbrk]
              @ maps pretty_entry xs
           end
-    val p = PrintMode.with_modes print_modes (fn () =>
+    val p = Print_Mode.with_modes print_modes (fn () =>
       Pretty.block ([Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]
         @ pretty_stat)) ();

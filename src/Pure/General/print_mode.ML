@@ -22,7 +22,7 @@ sig
   val closure: ('a -> 'b) -> 'a -> 'b
 end;
 
-structure PrintMode: PRINT_MODE =
+structure Print_Mode: PRINT_MODE =
 struct
 
 val input = "input";
@@ -49,5 +49,5 @@ fun closure f = with_modes [] f;
 
 end;
 
-structure BasicPrintMode: BASIC_PRINT_MODE = PrintMode;
-open BasicPrintMode;
+structure Basic_Print_Mode: BASIC_PRINT_MODE = Print_Mode;
+open Basic_Print_Mode;

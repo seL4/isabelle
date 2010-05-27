@@ -310,6 +310,7 @@ structure OuterParse = Parse;
 structure OuterSyntax = Outer_Syntax;
 structure SpecParse = Parse_Spec;
 structure TypeInfer = Type_Infer;
+structure PrintMode = Print_Mode;
 
 end;
 
