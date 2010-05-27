@@ -248,17 +248,20 @@ fun sterm l (T.SVar i) = sep (var (l - i - 1))
           | pats (T.SNoPat ts) = pat ":nopat" ts
       in par (quant q #> fold var_decl vs #> sub t #> fold pats ps) end
 
+fun ssort sorts = sort fast_string_ord sorts
+fun fsort funcs = sort (prod_ord fast_string_ord (K EQUAL)) funcs
+
 fun serialize comments {header, sorts, funcs} ts =
   Buffer.empty
   |> line (add "(benchmark Isabelle")
   |> line (add ":status unknown")
   |> fold (line o add) header
   |> length sorts > 0 ?
-       line (add ":extrasorts" #> par (fold (sep o add) sorts))
+       line (add ":extrasorts" #> par (fold (sep o add) (ssort sorts)))
   |> length funcs > 0 ? (
        line (add ":extrafuns" #> add " (") #>
        fold (fn (f, (ss, s)) =>
-         line (sep (app f (sep o add) (ss @ [s])))) funcs #>
+         line (sep (app f (sep o add) (ss @ [s])))) (fsort funcs) #>
        line (add ")"))
   |> fold (fn t => line (add ":assumption" #> sterm 0 t)) ts
   |> line (add ":formula true)")
