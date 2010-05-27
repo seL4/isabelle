@@ -68,7 +68,7 @@ properties of such (extensional) arrays.
 *}
 
 lemmas array_rules = ext fun_upd_apply fun_upd_same fun_upd_other
-  fun_upd_upd
+  fun_upd_upd fun_app_def
 
 
 

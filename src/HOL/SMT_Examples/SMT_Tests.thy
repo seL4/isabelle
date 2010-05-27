@@ -618,4 +618,50 @@ lemma
   "(fst p = snd p) = (p = (snd p, fst p))"
   by smt+
 
+
+
+section {* Function updates *}
+
+lemma
+  "(f (i := v)) i = v"
+  "i1 \<noteq> i2 \<longrightarrow> (f (i1 := v)) i2 = f i2"
+  "i1 \<noteq> i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v1"
+  "i1 \<noteq> i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i2 = v2"
+  "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
+  "i1 = i2 \<longrightarrow> (f (i1 := v1, i2 := v2)) i1 = v2"
+  "distinct [i1, i2, i3] \<longrightarrow> (f (i1 := v1, i2 := v2)) i3 = f i3"
+  by smt+
+
+
+
+section {* Sets *}
+
+lemma smt_sets:
+  "\<not>({} x)"
+  "UNIV x"
+  "(A \<union> B) x = (A x \<or> B x)"
+  "(A \<inter> B) x = (A x \<and> B x)"
+  by auto
+
+lemma
+  "x \<in> P = P x"
+  "x \<in> {x. P x} = P x"
+  "x \<notin> {}"
+  "x \<in> UNIV"
+  "x \<in> P \<union> Q = (P x \<or> Q x)"
+  "x \<in> P \<union> {} = P x"
+  "x \<in> P \<union> UNIV"
+  "(x \<in> P \<union> Q) = (x \<in> Q \<union> P)"
+  "(x \<in> P \<union> P) = (x \<in> P)"
+  "(x \<in> P \<union> (Q \<union> R)) = (x \<in> (P \<union> Q) \<union> R)"
+  "(x \<in> P \<inter> Q) = (P x \<and> Q x)"
+  "x \<notin> P \<inter> {}"
+  "(x \<in> P \<inter> UNIV) = (x \<in> P)"
+  "(x \<in> P \<inter> Q) = (x \<in> Q \<inter> P)"
+  "(x \<in> P \<inter> P) = (x \<in> P)"
+  "(x \<in> P \<inter> (Q \<inter> R)) = (x \<in> (P \<inter> Q) \<inter> R)"
+  "{x. P x} = {y. P y}"
+  unfolding mem_def Collect_def
+  by (smt smt_sets)+
+
 end
