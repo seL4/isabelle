@@ -506,7 +506,7 @@ fun term_of_univ thy program idx_tab t =
             val ts' = take_until is_dict ts;
             val c = const_of_idx idx;
             val T = map_type_tvar (fn ((v, i), _) =>
-              TypeInfer.param typidx (v ^ string_of_int i, []))
+              Type_Infer.param typidx (v ^ string_of_int i, []))
                 (Sign.the_const_type thy c);
             val typidx' = typidx + 1;
           in of_apps bounds (Term.Const (c, T), ts') typidx' end
@@ -548,9 +548,9 @@ fun normalize thy program ((vs0, (vs, ty)), t) deps =
   let
     val ty' = typ_of_itype program vs0 ty;
     fun type_infer t =
-      singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
+      singleton (Type_Infer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
         (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
-      (TypeInfer.constrain ty' t);
+      (Type_Infer.constrain ty' t);
     fun check_tvars t = if null (Term.add_tvars t []) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp_CRITICAL show_types true (Syntax.string_of_term_global thy) t);

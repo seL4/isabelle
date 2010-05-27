@@ -229,7 +229,7 @@ fun smart_string_of_cterm ct =
                 val str =
                   setmp_CRITICAL show_brackets false (G n (Syntax.string_of_term ctxt o term_of)) ct
                 val u = Syntax.parse_term ctxt str
-                  |> TypeInfer.constrain T |> Syntax.check_term ctxt
+                  |> Type_Infer.constrain T |> Syntax.check_term ctxt
             in
                 if match u
                 then quote str

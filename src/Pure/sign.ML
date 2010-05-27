@@ -271,7 +271,7 @@ fun type_check pp tm =
         val t' = subst_bounds (xs, t);
         val u' = subst_bounds (xs, u);
         val msg = cat_lines
-          (TypeInfer.appl_error (Syntax.pp_show_brackets pp) why t' T u' U);
+          (Type_Infer.appl_error (Syntax.pp_show_brackets pp) why t' T u' U);
       in raise TYPE (msg, [T, U], [t', u']) end;
 
     fun typ_of (_, Const (_, T)) = T

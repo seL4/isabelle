@@ -212,7 +212,7 @@ fun read_term thy =
   in
     fn ty => fn s =>
       (if ty = propT then Syntax.parse_prop else Syntax.parse_term) ctxt s
-      |> TypeInfer.constrain ty |> Syntax.check_term ctxt
+      |> Type_Infer.constrain ty |> Syntax.check_term ctxt
   end;
 
 fun read_proof thy =

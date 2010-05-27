@@ -275,7 +275,7 @@ fun synchronize_class_syntax sort base_sort ctxt =
      of SOME ty' => (case try (Type.raw_match (ty', ty)) Vartab.empty
          of SOME tyenv => (case Vartab.lookup tyenv (Name.aT, 0)
              of SOME (_, ty' as TVar (vi, sort)) =>
-                  if TypeInfer.is_param vi
+                  if Type_Infer.is_param vi
                     andalso Sorts.sort_le algebra (base_sort, sort)
                       then SOME (ty', TFree (Name.aT, base_sort))
                       else NONE

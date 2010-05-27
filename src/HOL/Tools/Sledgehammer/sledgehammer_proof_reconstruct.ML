@@ -254,7 +254,7 @@ fun type_from_node _ (u as IntLeaf _) = raise NODE [u]
             SOME b => TVar (("'" ^ b, 0), HOLogic.typeS)
           | NONE =>
             (* Variable from the ATP, say "X1" *)
-            TypeInfer.param 0 (a, HOLogic.typeS)
+            Type_Infer.param 0 (a, HOLogic.typeS)
     end
 
 (*Invert the table of translations between Isabelle and ATPs*)
@@ -453,7 +453,7 @@ fun clause_of_nodes ctxt full_types tfrees us =
     val (vt, t) = lits_of_nodes thy full_types tfrees (Vartab.empty, []) us
   in repair_tvar_sorts vt t end
 fun check_formula ctxt =
-  TypeInfer.constrain @{typ bool}
+  Type_Infer.constrain @{typ bool}
   #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
 
 

@@ -138,7 +138,7 @@ struct
 (* HOL syntax *)
 
 val typeS: sort = ["HOL.type"];
-val typeT = TypeInfer.anyT typeS;
+val typeT = Type_Infer.anyT typeS;
 
 
 (* bool and set *)

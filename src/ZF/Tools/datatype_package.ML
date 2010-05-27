@@ -403,7 +403,7 @@ fun add_datatype (sdom, srec_tms) scon_ty_lists (raw_monos, raw_type_intrs, raw_
   let
     val ctxt = ProofContext.init_global thy;
     fun read_is strs =
-      map (Syntax.parse_term ctxt #> TypeInfer.constrain @{typ i}) strs
+      map (Syntax.parse_term ctxt #> Type_Infer.constrain @{typ i}) strs
       |> Syntax.check_terms ctxt;
 
     val rec_tms = read_is srec_tms;
