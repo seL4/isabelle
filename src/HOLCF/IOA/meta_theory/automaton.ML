@@ -18,8 +18,8 @@ end;
 structure Automaton: AUTOMATON =
 struct
 
-val string_of_typ = PrintMode.setmp [] o Syntax.string_of_typ_global;
-val string_of_term = PrintMode.setmp [] o Syntax.string_of_term_global;
+val string_of_typ = Print_Mode.setmp [] o Syntax.string_of_typ_global;
+val string_of_term = Print_Mode.setmp [] o Syntax.string_of_term_global;
 
 exception malformed;
 

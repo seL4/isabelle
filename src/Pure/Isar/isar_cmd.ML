@@ -281,7 +281,7 @@ fun set_limit _ NONE = ()
 
 fun pr (modes, (lim1, lim2)) = Toplevel.keep (fn state =>
   (set_limit goals_limit lim1; set_limit ProofContext.prems_limit lim2; Toplevel.quiet := false;
-    PrintMode.with_modes modes (Toplevel.print_state true) state));
+    Print_Mode.with_modes modes (Toplevel.print_state true) state));
 
 val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
 val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
@@ -488,7 +488,7 @@ fun string_of_type state s =
   in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt T)) end;
 
 fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
-  PrintMode.with_modes modes (fn () =>
+  Print_Mode.with_modes modes (fn () =>
     writeln (string_of (Toplevel.enter_proof_body state) arg)) ());
 
 in

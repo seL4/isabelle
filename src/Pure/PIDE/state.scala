@@ -99,6 +99,11 @@ class State(
                       case _ => state
                     }
                   }
+                  else if (kind == Markup.FACT_DECL || kind == Markup.LOCAL_FACT_DECL ||
+                      kind == Markup.ATTRIBUTE || kind == Markup.FIXED_DECL) {
+                    // FIXME usually displaced due to lack of full history support
+                    state
+                  }
                   else {
                     state.add_markup(
                       command.markup_node(begin - 1, end - 1, Command.HighlightInfo(kind)))

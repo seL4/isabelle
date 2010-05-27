@@ -20,7 +20,7 @@ sig
     term list -> term list
 end;
 
-structure TypeInfer: TYPE_INFER =
+structure Type_Infer: TYPE_INFER =
 struct
 
 

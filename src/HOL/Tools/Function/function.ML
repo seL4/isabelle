@@ -149,7 +149,7 @@ fun gen_add_function is_external prep default_constraint fixspec eqns config tac
   end
 
 val add_function =
-  gen_add_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+  gen_add_function false Specification.check_spec (Type_Infer.anyT HOLogic.typeS)
 val add_function_cmd = gen_add_function true Specification.read_spec "_::type"
 
 fun gen_function is_external prep default_constraint fixspec eqns config lthy =
@@ -163,7 +163,7 @@ fun gen_function is_external prep default_constraint fixspec eqns config lthy =
   end
 
 val function =
-  gen_function false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+  gen_function false Specification.check_spec (Type_Infer.anyT HOLogic.typeS)
 val function_cmd = gen_function true Specification.read_spec "_::type"
 
 fun prepare_termination_proof prep_term raw_term_opt lthy =

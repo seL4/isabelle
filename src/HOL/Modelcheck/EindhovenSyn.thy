@@ -32,7 +32,7 @@ ML {*
 oracle mc_eindhoven_oracle =
 {*
 let
-  val eindhoven_term = PrintMode.setmp ["Eindhoven"] o Syntax.string_of_term_global;
+  val eindhoven_term = Print_Mode.setmp ["Eindhoven"] o Syntax.string_of_term_global;
 
   fun call_mc s =
     let

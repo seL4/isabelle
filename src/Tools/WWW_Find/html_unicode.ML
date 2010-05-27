@@ -19,7 +19,7 @@ struct
 (* mode *)
 
 val htmlunicodeN = "HTMLUnicode";
-fun print_mode f x = PrintMode.with_modes [htmlunicodeN, Symbol.xsymbolsN] f x;
+fun print_mode f x = Print_Mode.with_modes [htmlunicodeN, Symbol.xsymbolsN] f x;
 
 (* symbol output *)
 

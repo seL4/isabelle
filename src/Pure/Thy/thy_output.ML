@@ -153,7 +153,7 @@ fun eval_antiquote lex state (txt, pos) =
       | expand (Antiquote.Antiq (ss, (pos, _))) =
           let val (opts, src) = Token.read_antiq lex antiq (ss, pos) in
             options opts (fn () => command src state) ();  (*preview errors!*)
-            PrintMode.with_modes (! modes @ Latex.modes)
+            Print_Mode.with_modes (! modes @ Latex.modes)
               (Output.no_warnings_CRITICAL (options opts (fn () => command src state))) ()
           end
       | expand (Antiquote.Open _) = ""
@@ -429,7 +429,7 @@ val _ = add_options
   ("display", setmp_CRITICAL display o boolean),
   ("break", setmp_CRITICAL break o boolean),
   ("quotes", setmp_CRITICAL quotes o boolean),
-  ("mode", fn s => fn f => PrintMode.with_modes [s] f),
+  ("mode", fn s => fn f => Print_Mode.with_modes [s] f),
   ("margin", setmp_CRITICAL Pretty.margin_default o integer),
   ("indent", setmp_CRITICAL indent o integer),
   ("source", setmp_CRITICAL source o boolean),
@@ -455,7 +455,7 @@ fun pretty_thm_style ctxt (style, th) =
 
 fun pretty_term_typ ctxt (style, t) =
   let val t' = style t
-  in pretty_term ctxt (TypeInfer.constrain (Term.fastype_of t') t') end;
+  in pretty_term ctxt (Type_Infer.constrain (Term.fastype_of t') t') end;
 
 fun pretty_term_typeof ctxt (style, t) =
   Syntax.pretty_typ ctxt (Term.fastype_of (style t));

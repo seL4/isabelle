@@ -105,19 +105,19 @@ infixr 5 @@;
 infixr 5 @|;
 fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
-val str = PrintMode.setmp [] Pretty.str;
+val str = Print_Mode.setmp [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
-fun enclose l r = PrintMode.setmp [] (Pretty.enclose l r);
+fun enclose l r = Print_Mode.setmp [] (Pretty.enclose l r);
 val brackets = enclose "(" ")" o Pretty.breaks;
-fun enum sep l r = PrintMode.setmp [] (Pretty.enum sep l r);
+fun enum sep l r = Print_Mode.setmp [] (Pretty.enum sep l r);
 fun enum_default default sep l r [] = str default
   | enum_default default sep l r xs = enum sep l r xs;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
-fun indent i = PrintMode.setmp [] (Pretty.indent i);
+fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
-fun string_of_pretty width p = PrintMode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
-fun writeln_pretty width p = writeln (PrintMode.setmp [] (Pretty.string_of_margin width) p);
+fun string_of_pretty width p = Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
+fun writeln_pretty width p = writeln (Print_Mode.setmp [] (Pretty.string_of_margin width) p);
 
 
 (** names and variable name contexts **)

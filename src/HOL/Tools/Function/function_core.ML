@@ -879,7 +879,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val ranT = range_type fT
 
     val default = Syntax.parse_term lthy default_str
-      |> TypeInfer.constrain fT |> Syntax.check_term lthy
+      |> Type_Infer.constrain fT |> Syntax.check_term lthy
 
     val (globals, ctxt') = fix_globals domT ranT fvar lthy
 

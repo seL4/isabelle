@@ -504,6 +504,8 @@ for some time as aliases within the structure Legacy:
   OuterParse    ~>  Parse
   OuterSyntax   ~>  Outer_Syntax
   SpecParse     ~>  Parse_Spec
+  TypeInfer     ~>  Type_Infer
+  PrintMode     ~>  Print_Mode
 
 Note that "open Legacy" simplifies porting of sources, but forgetting
 to remove it again will complicate porting again in the future.
