@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/hoare_tac.ML
-    ID:         $Id$
     Author:     Leonor Prensa Nieto & Tobias Nipkow
 
 Derivation of the proof rules and, most importantly, the VCG tactic.
@@ -17,8 +16,8 @@ Derivation of the proof rules and, most importantly, the VCG tactic.
 local open HOLogic in
 
 (** maps (%x1 ... xn. t) to [x1,...,xn] **)
-fun abs2list (Const ("split",_) $ (Abs(x,T,t))) = Free (x, T)::abs2list t
-  | abs2list (Abs(x,T,t)) = [Free (x, T)]
+fun abs2list (Const (@{const_name split}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
+  | abs2list (Abs (x, T, t)) = [Free (x, T)]
   | abs2list _ = [];
 
 (** maps {(x1,...,xn). t} to [x1,...,xn] **)
@@ -33,7 +32,7 @@ fun mk_abstupleC []     body = absfree ("x", unitT, body)
         else let val z  = mk_abstupleC w body;
                  val T2 = case z of Abs(_,T,_) => T
                         | Const (_, Type (_,[_, Type (_,[T,_])])) $ _ => T;
-       in Const ("split", (T --> T2 --> boolT) --> mk_prodT (T,T2) --> boolT)
+       in Const (@{const_name split}, (T --> T2 --> boolT) --> mk_prodT (T,T2) --> boolT)
           $ absfree (n, T, z) end end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)
@@ -91,7 +90,7 @@ end;
 val before_set2pred_simp_tac =
   (simp_tac (HOL_basic_ss addsimps [Collect_conj_eq RS sym, @{thm Compl_Collect}]));
 
-val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [split_conv]));
+val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [@{thm split_conv}]));
 
 (*****************************************************************************)
 (** set2pred_tac transforms sets inclusion into predicates implication,     **)
@@ -112,7 +111,7 @@ fun set2pred_tac var_names = SUBGOAL (fn (goal, i) =>
     rtac CollectI i,
     dtac CollectD i,
     TRY (split_all_tac i) THEN_MAYBE
-     (rename_tac var_names i THEN full_simp_tac (HOL_basic_ss addsimps [split_conv]) i)]);
+     (rename_tac var_names i THEN full_simp_tac (HOL_basic_ss addsimps [@{thm split_conv}]) i)]);
 
 (*****************************************************************************)
 (** BasicSimpTac is called to simplify all verification conditions. It does **)
@@ -126,7 +125,7 @@ fun MaxSimpTac var_names tac = FIRST'[rtac subset_refl, set2pred_tac var_names T
 
 fun BasicSimpTac var_names tac =
   simp_tac
-    (HOL_basic_ss addsimps [mem_Collect_eq, split_conv] addsimprocs [record_simproc])
+    (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}] addsimprocs [record_simproc])
   THEN_MAYBE' MaxSimpTac var_names tac;
 
 

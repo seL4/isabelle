@@ -179,7 +179,7 @@ fun flatten thy lookup_pred t (names, prems) =
               |> maps (fn (res, (names, prems)) =>
                 flatten' (betapply (g, res)) (names, prems))
             end)
-        | Const (@{const_name "split"}, _) => 
+        | Const (@{const_name split}, _) => 
             (let
               val (_, g :: res :: args) = strip_comb t
               val [res1, res2] = Name.variant_list names ["res1", "res2"]
