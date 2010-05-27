@@ -70,7 +70,20 @@ local
   val {is_builtin_pred, ...}= the strict
   val {builtin_typ, builtin_num, builtin_fun} = builtins
 
-  val z3_builtin_fun' = z3_builtin_fun builtin_fun
+  fun is_int_div_mod @{term "op div :: int => _"} = true
+    | is_int_div_mod @{term "op mod :: int => _"} = true
+    | is_int_div_mod _ = false
+
+  fun add_div_mod thms =
+    if exists (Term.exists_subterm is_int_div_mod o Thm.prop_of) thms
+    then [@{thm div_by_z3div}, @{thm mod_by_z3mod}] @ thms
+    else thms
+
+  fun extra_norm' thms = extra_norm (add_div_mod thms)
+
+  fun z3_builtin_fun' _ (@{const_name z3div}, _) ts = SOME ("div", ts)
+    | z3_builtin_fun' _ (@{const_name z3mod}, _) ts = SOME ("mod", ts)
+    | z3_builtin_fun' ctxt c ts = z3_builtin_fun builtin_fun ctxt c ts
 
   val as_propT = (fn @{typ bool} => @{typ prop} | T => T)
 in
@@ -82,7 +95,7 @@ fun is_builtin_fun ctxt (c as (n, T)) ts =
   is_builtin_pred ctxt (n, Term.strip_type T ||> as_propT |> (op --->))
 
 val interface = {
-  extra_norm = extra_norm,
+  extra_norm = extra_norm',
   translate = {
     prefixes = prefixes,
     strict = strict,
@@ -193,6 +206,8 @@ val mk_uminus = Thm.capply @{cterm "uminus :: int => _"}
 val mk_add = Thm.mk_binop @{cterm "op + :: int => _"}
 val mk_sub = Thm.mk_binop @{cterm "op - :: int => _"}
 val mk_mul = Thm.mk_binop @{cterm "op * :: int => _"}
+val mk_div = Thm.mk_binop @{cterm "z3div :: int => _"}
+val mk_mod = Thm.mk_binop @{cterm "z3mod :: int => _"}
 val mk_lt = Thm.mk_binop @{cterm "op < :: int => _"}
 val mk_le = Thm.mk_binop @{cterm "op <= :: int => _"}
 
@@ -218,6 +233,8 @@ fun mk_builtin_fun ctxt sym cts =
     | (Sym ("-", _), SOME @{typ int}, [ct]) => SOME (mk_uminus ct)
     | (Sym ("-", _), SOME @{typ int}, [ct, cu]) => SOME (mk_sub ct cu)
     | (Sym ("*", _), SOME @{typ int}, [ct, cu]) => SOME (mk_mul ct cu)
+    | (Sym ("div", _), SOME @{typ int}, [ct, cu]) => SOME (mk_div ct cu)
+    | (Sym ("mod", _), SOME @{typ int}, [ct, cu]) => SOME (mk_mod ct cu)
     | (Sym ("<", _), SOME @{typ int}, [ct, cu]) => SOME (mk_lt ct cu)
     | (Sym ("<=", _), SOME @{typ int}, [ct, cu]) => SOME (mk_le ct cu)
     | (Sym (">", _), SOME @{typ int}, [ct, cu]) => SOME (mk_lt cu ct)

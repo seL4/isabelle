@@ -281,7 +281,7 @@ lemma
   "(3::nat) div 3 = 1"
   "(x::nat) div 3 \<le> x"
   "(x div 3 = x) = (x = 0)"
-  sorry (* FIXME: div/mod *)
+  by smt+
 
 lemma
   "(0::nat) mod 0 = 0"
@@ -295,12 +295,12 @@ lemma
   "(3::nat) mod 3 = 0"
   "x mod 3 < 3"
   "(x mod 3 = x) = (x < 3)"
-  sorry (* FIXME: div/mod *)
+  by smt+
 
 lemma
   "(x::nat) = x div 1 * 1 + x mod 1"
   "x = x div 3 * 3 + x mod 3"
-  sorry (* FIXME: div/mod *)
+  by smt+
 
 lemma
   "min (x::nat) y \<le> x"
@@ -388,8 +388,6 @@ lemma
   "3 * x = x * 3"
   by smt+
 
-(* FIXME: consider different cases of signs
-
 lemma
   "(0::int) div 0 = 0"
   "(x::int) div 0 = 0"
@@ -397,10 +395,24 @@ lemma
   "(1::int) div 1 = 1"
   "(3::int) div 1 = 3"
   "(x::int) div 1 = x"
+  "(0::int) div -1 = 0"
+  "(1::int) div -1 = -1"
+  "(3::int) div -1 = -3"
+  "(x::int) div -1 = -x"
   "(0::int) div 3 = 0"
+  "(0::int) div -3 = 0"
   "(1::int) div 3 = 0"
   "(3::int) div 3 = 1"
-  "(0::int) div -3 = 0"
+  "(5::int) div 3 = 1"
+  "(1::int) div -3 = -1"
+  "(3::int) div -3 = -1"
+  "(5::int) div -3 = -2"
+  "(-1::int) div 3 = -1"
+  "(-3::int) div 3 = -1"
+  "(-5::int) div 3 = -2"
+  "(-1::int) div -3 = 0"
+  "(-3::int) div -3 = 1"
+  "(-5::int) div -3 = 1"
   by smt+
 
 lemma
@@ -409,19 +421,33 @@ lemma
   "(0::int) mod 1 = 0"
   "(1::int) mod 1 = 0"
   "(3::int) mod 1 = 0"
-  "x mod 1 = 0"
+  "(x::int) mod 1 = 0"
+  "(0::int) mod -1 = 0"
+  "(1::int) mod -1 = 0"
+  "(3::int) mod -1 = 0"
+  "(x::int) mod -1 = 0"
   "(0::int) mod 3 = 0"
+  "(0::int) mod -3 = 0"
   "(1::int) mod 3 = 1"
   "(3::int) mod 3 = 0"
+  "(5::int) mod 3 = 2"
+  "(1::int) mod -3 = -2"
+  "(3::int) mod -3 = 0"
+  "(5::int) mod -3 = -1"
+  "(-1::int) mod 3 = 2"
+  "(-3::int) mod 3 = 0"
+  "(-5::int) mod 3 = 1"
+  "(-1::int) mod -3 = -1"
+  "(-3::int) mod -3 = 0"
+  "(-5::int) mod -3 = -2"
   "x mod 3 < 3"
-  "(x mod 3 = x) = (x < 3)"
+  "(x mod 3 = x) \<longrightarrow> (x < 3)"
   by smt+
 
 lemma
   "(x::int) = x div 1 * 1 + x mod 1"
   "x = x div 3 * 3 + x mod 3"
   by smt+
-*)
 
 lemma
   "abs (x::int) \<ge> 0"

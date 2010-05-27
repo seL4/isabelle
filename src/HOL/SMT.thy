@@ -88,6 +88,29 @@ definition term_eq :: "bool \<Rightarrow> bool \<Rightarrow> bool" where "term_e
 
 
 
+subsection {* Integer division and modulo for Z3 *}
+
+definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
+  "z3div k l = (if 0 \<le> l then k div l else -(k div (-l)))"
+
+definition z3mod :: "int \<Rightarrow> int \<Rightarrow> int" where
+  "z3mod k l = (if 0 \<le> l then k mod l else k mod (-l))"
+
+lemma div_by_z3div: "k div l = (
+     if k = 0 \<or> l = 0 then 0
+     else if (0 < k \<and> 0 < l) \<or> (k < 0 \<and> 0 < l) then z3div k l
+     else z3div (-k) (-l))"
+  by (auto simp add: z3div_def)
+
+lemma mod_by_z3mod: "k mod l = (
+     if l = 0 then k
+     else if k = 0 then 0
+     else if (0 < k \<and> 0 < l) \<or> (k < 0 \<and> 0 < l) then z3mod k l
+     else - z3mod (-k) (-l))"
+  by (auto simp add: z3mod_def)
+
+
+
 subsection {* Setup *}
 
 use "Tools/SMT/smt_monomorph.ML"
@@ -292,6 +315,6 @@ lemma [z3_rule]:
 
 hide_type (open) pattern
 hide_const Pattern "apply" term_eq
-hide_const (open) trigger pat nopat
+hide_const (open) trigger pat nopat z3div z3mod
 
 end

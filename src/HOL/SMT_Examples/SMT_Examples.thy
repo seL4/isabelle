@@ -335,11 +335,9 @@ lemma "\<lbrakk> x3 = abs x2 - x1; x4 = abs x3 - x2; x5 = abs x4 - x3;
 
 lemma "let P = 2 * x + 1 > x + (x::real) in P \<or> False \<or> P" by smt
 
-lemma "x + (let y = x mod 2 in 2 * y + 1) \<ge> x + (1::int)"
-  sorry (* FIXME: div/mod *)
+lemma "x + (let y = x mod 2 in 2 * y + 1) \<ge> x + (1::int)" by smt
 
-lemma "x + (let y = x mod 2 in y + y) < x + (3::int)"
-  sorry (* FIXME: div/mod *)
+lemma "x + (let y = x mod 2 in y + y) < x + (3::int)" by smt
 
 lemma
   assumes "x \<noteq> (0::real)"
@@ -349,7 +347,8 @@ lemma
 lemma                                                                         
   assumes "(n + m) mod 2 = 0" and "n mod 4 = 3"                               
   shows "n mod 2 = 1 & m mod 2 = (1::int)"      
-  using assms sorry (* FIXME: div/mod *)
+  using assms by smt
+
 
 
 subsection {* Linear arithmetic with quantifiers *}
@@ -484,10 +483,7 @@ lemma
    (eval_dioph ks (map (\<lambda>x. x mod 2) xs) mod 2 = l mod 2 \<and>
     eval_dioph ks (map (\<lambda>x. x div 2) xs) =
       (l - eval_dioph ks (map (\<lambda>x. x mod 2) xs)) div 2)"
-  sorry (* FIXME: div/mod *)
-(*
   by (smt eval_dioph_mod[where n=2] eval_dioph_div_mult[where n=2])
-*)
 
 
 section {* Monomorphization examples *}
