@@ -120,11 +120,13 @@ val global_states = Unsynchronized.ref (Symtab.make [(no_id, empty_state)]);
 in
 
 fun define_state (id: state_id) =
-  Unsynchronized.change global_states (Symtab.update_new (id, empty_state))
-    handle Symtab.DUP dup => err_dup "state" dup;
+  NAMED_CRITICAL "Isar" (fn () =>
+    Unsynchronized.change global_states (Symtab.update_new (id, empty_state))
+      handle Symtab.DUP dup => err_dup "state" dup);
 
 fun put_state (id: state_id) state =
-  Unsynchronized.change global_states (Symtab.update (id, state));
+  NAMED_CRITICAL "Isar" (fn () =>
+    Unsynchronized.change global_states (Symtab.update (id, state)));
 
 fun the_state (id: state_id) =
   (case Symtab.lookup (! global_states) id of
