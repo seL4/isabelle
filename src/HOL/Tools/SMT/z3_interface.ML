@@ -192,7 +192,7 @@ fun mk_distinct [] = mk_true
   | mk_distinct (cts as (ct :: _)) =
       Thm.capply (instT' ct distinct) (mk_list (Thm.ctyp_of_term ct) cts)
 
-val access = mk_inst_pair (Thm.dest_ctyp o destT1) @{cpat apply}
+val access = mk_inst_pair (Thm.dest_ctyp o destT1) @{cpat fun_app}
 fun mk_access array index =
   let val cTs = Thm.dest_ctyp (Thm.ctyp_of_term array)
   in Thm.mk_binop (instTs cTs access) array index end

@@ -122,7 +122,7 @@ and trans i T ([], v) =
   | trans i T (p :: ps, v) = trans_pat i T (fn U => trans_expr U p) (ps, v)
 
 fun mk_eq' t us u = HOLogic.mk_eq (Term.list_comb (t, us), u)
-fun mk_eq (Const (@{const_name apply}, _)) (u' :: us', u) = mk_eq' u' us' u
+fun mk_eq (Const (@{const_name fun_app}, _)) (u' :: us', u) = mk_eq' u' us' u
   | mk_eq t (us, u) = mk_eq' t us u
 
 fun translate (t, cs) =

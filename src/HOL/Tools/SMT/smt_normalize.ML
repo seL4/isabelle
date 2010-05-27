@@ -391,7 +391,7 @@ local
   fun abs_conv conv tb = Conv.abs_conv (fn (cv, cx) =>
     let val n = fst (Term.dest_Free (Thm.term_of cv))
     in conv (Symtab.update (free n, 0) tb) cx end)
-  val apply_rule = @{lemma "f x == apply f x" by (simp add: apply_def)}
+  val fun_app_rule = @{lemma "f x == fun_app f x" by (simp add: fun_app_def)}
 in
 fun explicit_application ctxt thms =
   let
@@ -404,12 +404,12 @@ fun explicit_application ctxt thms =
     and app_conv tb n i ctxt =
       (case Symtab.lookup tb n of
         NONE => nary_conv Conv.all_conv (sub_conv tb ctxt)
-      | SOME j => apply_conv tb ctxt (i - j))
-    and apply_conv tb ctxt i ct = (
+      | SOME j => fun_app_conv tb ctxt (i - j))
+    and fun_app_conv tb ctxt i ct = (
       if i = 0 then nary_conv Conv.all_conv (sub_conv tb ctxt)
       else
-        Conv.rewr_conv apply_rule then_conv
-        binop_conv (apply_conv tb ctxt (i-1)) (sub_conv tb ctxt)) ct
+        Conv.rewr_conv fun_app_rule then_conv
+        binop_conv (fun_app_conv tb ctxt (i-1)) (sub_conv tb ctxt)) ct
 
     fun needs_exp_app tab = Term.exists_subterm (fn
         Bound _ $ _ => true

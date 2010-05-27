@@ -59,7 +59,7 @@ numbers of arguments.  This is achieved by the introduction of the
 following constant.
 *}
 
-definition "apply" where "apply f x = f x"
+definition fun_app where "fun_app f x = f x"
 
 text {*
 Some solvers support a theory of arrays which can be used to encode
@@ -314,7 +314,7 @@ lemma [z3_rule]:
 
 
 hide_type (open) pattern
-hide_const Pattern "apply" term_eq
-hide_const (open) trigger pat nopat z3div z3mod
+hide_const Pattern term_eq
+hide_const (open) trigger pat nopat fun_app z3div z3mod
 
 end
