@@ -432,6 +432,8 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
   - Removed "skolemize", "uncurry", "sym_break", "flatten_prop",
     "sharing_depth", and "show_skolems" options.  INCOMPATIBILITY.
 
+* Moved the SMT binding into the HOL image.
+
 
 *** HOLCF ***
 
