@@ -106,7 +106,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* resize */
 
   addComponentListener(new ComponentAdapter {
-    val delay = Swing_Thread.delay_last(500) { handle_resize() }
+    val delay = Swing_Thread.delay_last(500) { handle_resize() }  // FIXME update_delay property
     override def componentResized(e: ComponentEvent) { delay() }
   })
 

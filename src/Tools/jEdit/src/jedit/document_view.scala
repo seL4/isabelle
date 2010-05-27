@@ -162,6 +162,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   /* (re)painting */
 
   private val update_delay = Swing_Thread.delay_first(500) { model.buffer.propertiesChanged() }
+  // FIXME update_delay property
 
   private def update_syntax(cmd: Command)
   {

@@ -263,7 +263,7 @@ class Session(system: Isabelle_System)
     {
       val now = currentTime
       flush_time match {
-        case None => flush_time = Some(now + 100)
+        case None => flush_time = Some(now + 100)   // FIXME output_delay property
         case Some(time) => if (now >= time) flush()
       }
     }
