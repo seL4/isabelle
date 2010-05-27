@@ -1,8 +1,8 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2009-2 (June 2010)
+---------------------------------
 
 *** General ***
 
@@ -146,9 +146,9 @@ with proof terms.
 * List membership infix mem operation is only an input abbreviation.
 INCOMPATIBILITY.
 
-* Theory Library/Word.thy has been removed.  Use library Word/Word.thy for
-future developements;  former Library/Word.thy is still present in the AFP
-entry RSAPPS.
+* Theory Library/Word.thy has been removed.  Use library Word/Word.thy
+for future developements; former Library/Word.thy is still present in
+the AFP entry RSAPPS.
 
 * Theorem Int.int_induct renamed to Int.int_of_nat_induct and is no
 longer shadowed.  INCOMPATIBILITY.
@@ -197,7 +197,7 @@ INCOMPATIBILITY.
   ceiling_subtract_number_of ~> ceiling_diff_number_of
   ceiling_subtract_one       ~> ceiling_diff_one
 
-* Theory 'Finite_Set': various folding_XXX locales facilitate the
+* Theory "Finite_Set": various folding_XXX locales facilitate the
 application of the various fold combinators on finite sets.
 
 * Library theory "RBT" renamed to "RBT_Impl"; new library theory "RBT"
@@ -494,13 +494,28 @@ Pair, fst, and snd from Isabelle/HOL, INCOMPATIBILITY.
 
 *** ML ***
 
-* Sorts.certify_sort and derived "cert" operations for types and terms
-no longer minimize sorts.  Thus certification at the boundary of the
-inference kernel becomes invariant under addition of class relations,
-which is an important monotonicity principle.  Sorts are now minimized
-in the syntax layer only, at the boundary between the end-user and the
-system.  Subtle INCOMPATIBILITY, may have to use Sign.minimize_sort
-explicitly in rare situations.
+* Renamed some important ML structures, while keeping the old names
+for some time as aliases within the structure Legacy:
+
+  OuterKeyword  ~>  Keyword
+  OuterLex      ~>  Token
+  OuterParse    ~>  Parse
+  OuterSyntax   ~>  Outer_Syntax
+  SpecParse     ~>  Parse_Spec
+
+Note that "open Legacy" simplifies porting of sources, but forgetting
+to remove it again will complicate porting again in the future.
+
+* Most operations that refer to a global context are named
+accordingly, e.g. Simplifier.global_context or
+ProofContext.init_global.  There are some situations where a global
+context actually works, but under normal circumstances one needs to
+pass the proper local context through the code!
+
+* Discontinued old TheoryDataFun with its copy/init operation -- data
+needs to be pure.  Functor Theory_Data_PP retains the traditional
+Pretty.pp argument to merge, which is absent in the standard
+Theory_Data version.
 
 * Antiquotations for basic formal entities:
 
@@ -523,20 +538,20 @@ syntax constant (cf. 'syntax' command).
 values similar to the ML toplevel.  The result is compiler dependent
 and may fall back on "?" in certain situations.
 
+* Sorts.certify_sort and derived "cert" operations for types and terms
+no longer minimize sorts.  Thus certification at the boundary of the
+inference kernel becomes invariant under addition of class relations,
+which is an important monotonicity principle.  Sorts are now minimized
+in the syntax layer only, at the boundary between the end-user and the
+system.  Subtle INCOMPATIBILITY, may have to use Sign.minimize_sort
+explicitly in rare situations.
+
 * Renamed old-style Drule.standard to Drule.export_without_context, to
 emphasize that this is in no way a standard operation.
 INCOMPATIBILITY.
 
-* Curried take and drop in library.ML; negative length is interpreted
-as infinity (as in chop).  INCOMPATIBILITY.
-
 * Subgoal.FOCUS (and variants): resulting goal state is normalized as
 usual for resolution.  Rare INCOMPATIBILITY.
-
-* Discontinued old TheoryDataFun with its copy/init operation -- data
-needs to be pure.  Functor Theory_Data_PP retains the traditional
-Pretty.pp argument to merge, which is absent in the standard
-Theory_Data version.
 
 * Renamed varify/unvarify operations to varify_global/unvarify_global
 to emphasize that these only work in a global situation (which is
@@ -545,23 +560,11 @@ quite rare).
 * Configuration options now admit dynamic default values, depending on
 the context or even global references.
 
-* Most operations that refer to a global context are named
-accordingly, e.g. Simplifier.global_context or
-ProofContext.init_global.  There are some situations where a global
-context actually works, but under normal circumstances one needs to
-pass the proper local context through the code!
+* SHA1.digest digests strings according to SHA-1 (see RFC 3174).  It
+uses an efficient external library if available (for Poly/ML).
 
-* Renamed some important ML structures, while keeping the old names
-for some time as aliases within the structure Legacy:
-
-  OuterKeyword  ~>  Keyword
-  OuterLex      ~>  Token
-  OuterParse    ~>  Parse
-  OuterSyntax   ~>  Outer_Syntax
-  SpecParse     ~>  Parse_Spec
-
-Note that "open Legacy" simplifies porting of sources, but forgetting
-to remove it again will complicate porting again in the future.
+* Curried take and drop in library.ML; negative length is interpreted
+as infinity (as in chop).  Subtle INCOMPATIBILITY.
 
 
 *** System ***

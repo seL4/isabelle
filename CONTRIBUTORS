@@ -3,16 +3,19 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
-Contributions to this Isabelle version
+Contributions to Isabelle2009-2
 --------------------------------------
 
-* April 2010, Florian Haftmann, TUM
+* April 2010: Florian Haftmann, TUM
   Reorganization of abstract algebra type classes.
 
-* April 2010, Florian Haftmann, TUM
+* April 2010: Florian Haftmann, TUM
   Code generation for data representations involving invariants;
   various collections avaiable in theories Fset, Dlist, RBT,
   Mapping and AssocList.
+
+* March 2010: Sascha Boehme, TUM
+  Efficient SHA1 library for Poly/ML.
 
 
 Contributions to Isabelle2009-1
