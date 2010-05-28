@@ -67,16 +67,6 @@ case $HOSTNAME in
         MFLAGS="-k -j 2"
         ;;
   
-    sunbroy2)
-        MFLAGS="-k -j 2"
-        NICE="nice"
-        ;;
-
-    sunbroy1)
-        MFLAGS="-k -j 2"
-        NICE="nice"
-        ;;
-
     macbroy2)
         MFLAGS="-k"
         NICE=""

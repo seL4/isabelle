@@ -24,7 +24,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 {
   Swing_Thread.assert()
 
-  val html_panel = new HTML_Panel(Isabelle.system, scala.math.round(Isabelle.font_size()))
+  val html_panel =
+    new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
   add(html_panel, BorderLayout.CENTER)
 
 
@@ -40,7 +41,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private def handle_resize()
   {
     Swing_Thread.now {
-      html_panel.resize(scala.math.round(Isabelle.font_size() * zoom_factor / 100))
+      html_panel.resize(Isabelle.font_family(),
+        scala.math.round(Isabelle.font_size() * zoom_factor / 100))
     }
   }
 

@@ -113,8 +113,6 @@ sleep 15
 $SSH atbroy102 "$MAKEALL $HOME/settings/cygwin-poly-e"
 #sleep 15
 #$SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
-#sleep 15
-#$SSH sunbroy2 "$MAKEALL $HOME/settings/sun-poly"
 
 echo ------------------- spawned tests successfully --- `date` --- $HOSTNAME >> $DISTLOG 2>&1
 

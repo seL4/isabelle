@@ -39,11 +39,11 @@ val import_theory = Parse.name >> (fn thyname =>
                                       |> Sign.add_path thyname
                                       |> add_dump (";setup_theory " ^ thyname))
 
-fun do_skip_import_dir s = (ImportRecorder.set_skip_import_dir (SOME s); I)
+fun do_skip_import_dir s = (ImportRecorder.set_skip_import_dir (SOME s); I: theory -> theory)
 val skip_import_dir = Parse.string >> do_skip_import_dir
 
 val lower = String.map Char.toLower
-fun do_skip_import s = (ImportRecorder.set_skip_import (case lower s of "on" => true | "off" => false | _ => Scan.fail ()); I)
+fun do_skip_import s = (ImportRecorder.set_skip_import (case lower s of "on" => true | "off" => false | _ => Scan.fail ()); I: theory -> theory)
 val skip_import = Parse.short_ident >> do_skip_import
 
 fun end_import toks =
