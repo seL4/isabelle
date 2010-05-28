@@ -56,14 +56,6 @@ ML_SOURCES="$ML_HOME/../src"
 ###
 
 ISABELLE_JAVA="java"
-ISABELLE_SCALA="scala"
-
-[ -z "$SCALA_HOME" ] && SCALA_HOME=$(choosefrom \
-  "$ISABELLE_HOME/contrib/scala" \
-  "$ISABELLE_HOME/../scala" \
-  "")
-
-[ -n "$SCALA_HOME" ] && ISABELLE_SCALA="$SCALA_HOME/bin/scala"
 
 classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
 
