@@ -121,7 +121,7 @@ local
     else NONE
 in
 
-val smtlib_builtins = {
+val smtlib_builtins : SMTLIB_Interface.builtins = {
   builtin_typ = smtlib_builtin_typ,
   builtin_num = smtlib_builtin_num,
   builtin_func = (fn (n, T) => fn ts => smtlib_builtin_func n T ts),

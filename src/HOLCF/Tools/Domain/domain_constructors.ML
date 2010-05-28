@@ -571,7 +571,7 @@ fun add_selectors
         val defs = con_betas @ sel_defs;
         val rules = abs_inv :: @{thms sel_app_rules};
         val tacs = [asm_simp_tac (simple_ss addsimps rules) 1];
-        fun sel_apps_of (i, (con, args)) =
+        fun sel_apps_of (i, (con, args: (bool * term option * typ) list)) =
           let
             val Ts : typ list = map #3 args;
             val ns : string list = Datatype_Prop.make_tnames Ts;

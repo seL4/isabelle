@@ -452,7 +452,7 @@ fun prove_finite_take_induct
 
     val decisive_lemma =
       let
-        fun iso_locale info =
+        fun iso_locale (info : iso_info) =
             @{thm iso.intro} OF [#abs_inverse info, #rep_inverse info];
         val iso_locale_thms = map iso_locale iso_infos;
         val decisive_abs_rep_thms =
