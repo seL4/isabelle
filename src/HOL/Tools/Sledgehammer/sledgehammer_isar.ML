@@ -233,13 +233,19 @@ fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
                                          state) atps
       in () end
 
-fun minimize override_params i fact_refs state =
+fun minimize override_params i frefs state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val theorems_from_refs =
-      map o pairf Facts.string_of_ref o ProofContext.get_fact
-    val name_thms_pairs = theorems_from_refs ctxt fact_refs
+    val chained_ths = #facts (Proof.goal state)
+    fun theorems_from_ref ctxt fref =
+      let
+        val ths = ProofContext.get_fact ctxt fref
+        val name = Facts.string_of_ref fref
+                   |> forall (member Thm.eq_thm chained_ths) ths
+                      ? prefix chained_prefix
+      in (name, ths) end
+    val name_thms_pairs = map (theorems_from_ref ctxt) frefs
   in
     case subgoal_count state of
       0 => priority "No subgoal!"
@@ -267,11 +273,11 @@ val is_raw_param_relevant_for_minimize =
 fun string_for_raw_param (key, values) =
   key ^ (case space_implode " " values of "" => "" | value => " = " ^ value)
 
-fun minimize_command override_params i atp_name facts =
+fun minimize_command override_params i atp_name fact_names =
   sledgehammerN ^ " " ^ minimizeN ^ " [atp = " ^ atp_name ^
   (override_params |> filter is_raw_param_relevant_for_minimize
                    |> implode o map (prefix ", " o string_for_raw_param)) ^
-  "] (" ^ space_implode " " facts ^ ")" ^
+  "] (" ^ space_implode " " fact_names ^ ")" ^
   (if i = 1 then "" else " " ^ string_of_int i)
 
 fun hammer_away override_params subcommand opt_i relevance_override state =

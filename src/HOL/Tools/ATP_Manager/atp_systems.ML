@@ -121,9 +121,8 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
          : problem) =
   let
     (* get clauses and prepare them for writing *)
-    val (ctxt, (chain_ths, th)) = goal;
+    val (ctxt, (chained_ths, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
-    val chain_ths = map (Thm.put_name_hint chained_hint) chain_ths;
     val goal_clss = #1 (neg_conjecture_clauses ctxt th subgoal)
     val goal_cls = List.concat goal_clss
     val the_filtered_clauses =
@@ -135,7 +134,7 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
         NONE => the_filtered_clauses
       | SOME axcls => axcls);
     val (internal_thm_names, clauses) =
-      prepare goal_cls chain_ths the_axiom_clauses the_filtered_clauses thy;
+      prepare goal_cls chained_ths the_axiom_clauses the_filtered_clauses thy;
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
