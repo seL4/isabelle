@@ -16,7 +16,7 @@ function fail()
 }
 
 [ -n "$ISABELLE_HOME" ] || fail "Missing Isabelle settings environment"
-[ -z "$SCALA_HOME" ] && fail "Scala unavailable: unknown SCALA_HOME"
+[ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
 
 
 ## dependencies

@@ -116,7 +116,7 @@ object Cygwin
 
     val (_, rc) = Standard_System.raw_exec(root, null, true,
         setup_exe.toString, "-R", root.toString, "-l", download.toString,
-    	    "-P", "make,perl,python", "-q", "-n")
+          "-P", "make,perl,python", "-q", "-n")
     if (rc != 0) error("Cygwin setup failed!")
 
     sanity_check(root)

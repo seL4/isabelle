@@ -4,7 +4,9 @@
 #
 # DESCRIPTION: invoke Scala within the Isabelle environment
 
+[ -z "$SCALA_HOME" ] && { echo "Unknown SCALA_HOME -- Scala unavailable"; exit 2; }
+
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
-exec "$ISABELLE_SCALA" "$@"
+exec "$SCALA_HOME/bin/scala" "$@"

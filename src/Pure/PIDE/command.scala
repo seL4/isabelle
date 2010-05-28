@@ -73,7 +73,7 @@ class Command(
       react {
         case Consume(message, forward) if !assigned =>
           val old_state = state
-          state = old_state + message
+          state = old_state.accumulate(message)
           if (!(state eq old_state)) forward(static_parent getOrElse this)
 
         case Assign =>

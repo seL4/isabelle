@@ -130,17 +130,17 @@ class Scala_Console extends Shell("Scala")
   }
 
   override def printPrompt(console: Console, out: Output)
-	{
+  {
     out.writeAttrs(ConsolePane.colorAttributes(console.getInfoColor), "scala>")
-		out.writeAttrs(ConsolePane.colorAttributes(console.getPlainColor), " ")
-	}
+    out.writeAttrs(ConsolePane.colorAttributes(console.getPlainColor), " ")
+  }
 
   override def execute(console: Console, input: String, out: Output, err: Output, command: String)
   {
     val interp = interpreters(console)
     with_console(console, out, err) { interp.interpret(command) }
     if (err != null) err.commandDone()
-		out.commandDone()
+    out.commandDone()
   }
 
   override def stop(console: Console)

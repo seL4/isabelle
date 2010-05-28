@@ -104,12 +104,12 @@ object Isabelle
 
   /* main jEdit components */  // FIXME ownership!?
 
-  def jedit_buffers(): Iterator[Buffer] = Iterator.fromArray(jEdit.getBuffers())
+  def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
 
-  def jedit_views(): Iterator[View] = Iterator.fromArray(jEdit.getViews())
+  def jedit_views(): Iterator[View] = jEdit.getViews().iterator
 
   def jedit_text_areas(view: View): Iterator[JEditTextArea] =
-    Iterator.fromArray(view.getEditPanes).map(_.getTextArea)
+    view.getEditPanes().iterator.map(_.getTextArea)
 
   def jedit_text_areas(): Iterator[JEditTextArea] =
     jedit_views().flatMap(jedit_text_areas(_))

@@ -70,7 +70,7 @@ class State(
 
   /* message dispatch */
 
-  def + (message: XML.Tree): State =
+  def accumulate(message: XML.Tree): State =
     message match {
       case XML.Elem(Markup.STATUS, _, elems) =>
         (this /: elems)((state, elem) =>
@@ -78,7 +78,7 @@ class State(
             case XML.Elem(Markup.UNPROCESSED, _, _) => state.set_status(Command.Status.UNPROCESSED)
             case XML.Elem(Markup.FINISHED, _, _) => state.set_status(Command.Status.FINISHED)
             case XML.Elem(Markup.FAILED, _, _) => state.set_status(Command.Status.FAILED)
-            case XML.Elem(kind, atts, body) =>
+            case XML.Elem(kind, atts, body) if Position.get_id(atts) == Some(command.id) =>
               atts match {
                 case Position.Range(begin, end) =>
                   if (kind == Markup.ML_TYPING) {
@@ -98,11 +98,6 @@ class State(
                             Position.get_offset(atts))))
                       case _ => state
                     }
-                  }
-                  else if (kind == Markup.FACT_DECL || kind == Markup.LOCAL_FACT_DECL ||
-                      kind == Markup.ATTRIBUTE || kind == Markup.FIXED_DECL) {
-                    // FIXME usually displaced due to lack of full history support
-                    state
                   }
                   else {
                     state.add_markup(
