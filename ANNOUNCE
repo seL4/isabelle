@@ -1,48 +1,16 @@
-Subject: Announcing Isabelle2009-1
+Subject: Announcing Isabelle2009-2
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2009-1 is now available.
+Isabelle2009-2 is now available.
 
-This release improves upon Isabelle2009 in many ways, see the NEWS
-file in the distribution for more details.  Some important changes
+This release improves upon Isabelle2009-1 in many respects, see the
+NEWS file in the distribution for more details.  Some notable changes
 are:
 
-* Isabelle tool "wwwfind" provides web interface for 'find_theorems'
-on a given logic image.
-
-* HOL-SMT: proof method "smt" for a combination of first-order logic
-with equality, linear and nonlinear (natural/integer/real) arithmetic,
-and fixed-size bitvectors.
-
-* HOL-Boogie: an interactive prover back-end for Boogie and VCC.
-
-* HOL: counterexample generator tool Nitpick based on the Kodkod
-relational model finder.
-
-* HOL: predicate compiler turning inductive into (executable)
-equational specifications.
-
-* HOL: refined number theory.
-
-* HOL: various parts of multivariate analysis.
-
-* HOL-Library: proof method "sos" (sum of squares) for nonlinear real
-arithmetic, based on external semidefinite programming solvers.
-
-* HOLCF: new definitional domain package.
-
-* Revised tutorial on locales.
-
-* ML: tacticals for subgoal focus.
-
-* ML: support for Poly/ML 5.3.0, with improved reporting of compiler
-errors and run-time exceptions, including detailed source positions.
-
-* Parallel checking of nested Isar proofs, with improved scalability
-up to 8 cores.
+* FIXME
 
 
-You may get Isabelle2009-1 from the following mirror sites:
+You may get Isabelle2009-2 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/

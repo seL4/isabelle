@@ -9,8 +9,9 @@ Version information
 
 System requirements
 
-   Isabelle requires a regular Unix platform (e.g. GNU Linux) with the
-   following additional software:
+   Isabelle requires a regular Unix-style platform (e.g. Linux,
+   Windows with Cygwin, Mac OS) and depends on the following main
+   add-on tools:
 
      * The Poly/ML compiler and runtime system (version 5.x).
      * The GNU bash shell (version 3.x or 2.x).
@@ -20,7 +21,7 @@ System requirements
 
 Installation
 
-   Binary packages are available for Isabelle/HOL and ZF for several
+   Binary packages are available for Isabelle/HOL etc. for several
    platforms from the Isabelle web page. The system may be also built
    from scratch, using the tar.gz source distribution. See file
    INSTALL as distributed with Isabelle for more information.
@@ -32,9 +33,8 @@ User interface
 
    The classic Isabelle user interface is Proof General by David
    Aspinall and others. It is a generic Emacs interface for proof
-   assistants, including Isabelle. Proof General is suitable for use
-   by pacifists and Emacs militants alike. Its most prominent feature
-   is script management, providing a metaphor of live proof script
+   assistants, including Isabelle.  Its most prominent feature is
+   script management, providing a metaphor of stepwise proof script
    editing.  Proof General also provides some support for mathematical
    symbols displayed on screen.
 
