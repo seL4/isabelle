@@ -638,14 +638,6 @@ lemma "snd (x, y\<Colon>'a\<times>'b) = y"
 nitpick [expect = none]
 by (simp add: snd_def)
 
-lemma "fst p = (THE a. \<exists>b. p = Pair a b)"
-nitpick [expect = none]
-by (simp add: fst_def)
-
-lemma "snd p = (THE b. \<exists>a. p = Pair a b)"
-nitpick [expect = none]
-by (simp add: snd_def)
-
 lemma "I = (\<lambda>x. x) \<Longrightarrow> fst = (\<lambda>x. fst (I x))"
 nitpick [expect = none]
 by auto
