@@ -3,8 +3,6 @@ Checklist for official releases
 
 - test polyml-5.3.0, polyml-5.2.1, polyml-5.2, polyml-5.1, polyml-5.0;
 
-- test sparc-solaris, x86-solaris;
-
 - test Proof General;
 
 - test Scala wrapper;
