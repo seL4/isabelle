@@ -247,7 +247,7 @@ lemma star_idemp [simp]: "star (star x) = star x"
 by (metis add_idem2 eq_iff less_star mult_1_right star3' star_mult_idem star_unfold_left)
 
 lemma star_slide [simp]: "star (x * y) * x = x * star (y * x)"
-by (auto simp: mult_assoc star_simulation)
+by (metis mult_assoc star_simulation)
 
 lemma star_one':
   assumes "p * p' = 1" "p' * p = 1"
