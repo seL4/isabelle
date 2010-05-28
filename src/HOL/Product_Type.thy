@@ -34,7 +34,7 @@ code_instance bool :: eq
   (Haskell -)
 
 
-subsection {* Unit *}
+subsection {* The @{text unit} type *}
 
 typedef unit = "{True}"
 proof
@@ -90,8 +90,6 @@ instance ..
 
 end
 
-text {* code generator setup *}
-
 lemma [code]:
   "eq_class.eq (u\<Colon>unit) v \<longleftrightarrow> True" unfolding eq unit_eq [of u] unit_eq [of v] by rule+
 
@@ -101,17 +99,17 @@ code_type unit
   (Haskell "()")
   (Scala "Unit")
 
-code_instance unit :: eq
-  (Haskell -)
-
-code_const "eq_class.eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
-
 code_const Unity
   (SML "()")
   (OCaml "()")
   (Haskell "()")
   (Scala "()")
+
+code_instance unit :: eq
+  (Haskell -)
+
+code_const "eq_class.eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
 
 code_reserved SML
   unit
@@ -123,13 +121,11 @@ code_reserved Scala
   Unit
 
 
-subsection {* Pairs *}
+subsection {* The product type *}
 
-subsubsection {* Product type, basic operations and concrete syntax *}
+subsubsection {* Type definition *}
 
-definition
-  Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
-where
+definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
   "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
 global
@@ -149,19 +145,34 @@ type_notation (HTML output)
 
 consts
   Pair     :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b"
-  fst      :: "'a \<times> 'b \<Rightarrow> 'a"
-  snd      :: "'a \<times> 'b \<Rightarrow> 'b"
-  split    :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"
-  curry    :: "('a \<times> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c"
 
 local
 
 defs
   Pair_def:     "Pair a b == Abs_Prod (Pair_Rep a b)"
-  fst_def:      "fst p == THE a. EX b. p = Pair a b"
-  snd_def:      "snd p == THE b. EX a. p = Pair a b"
-  split_def:    "split == (%c p. c (fst p) (snd p))"
-  curry_def:    "curry == (%c x y. c (Pair x y))"
+
+rep_datatype (prod) Pair proof -
+  fix P :: "'a \<times> 'b \<Rightarrow> bool" and p
+  assume "\<And>a b. P (Pair a b)"
+  then show "P p" by (cases p) (auto simp add: Prod_def Pair_def Pair_Rep_def)
+next
+  fix a c :: 'a and b d :: 'b
+  have "Pair_Rep a b = Pair_Rep c d \<longleftrightarrow> a = c \<and> b = d"
+    by (auto simp add: Pair_Rep_def expand_fun_eq)
+  moreover have "Pair_Rep a b \<in> Prod" and "Pair_Rep c d \<in> Prod"
+    by (auto simp add: Prod_def)
+  ultimately show "Pair a b = Pair c d \<longleftrightarrow> a = c \<and> b = d"
+    by (simp add: Pair_def Abs_Prod_inject)
+qed
+
+
+subsubsection {* Tuple syntax *}
+
+global consts
+  split    :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"
+
+local defs
+  split_prod_case: "split == prod_case"
 
 text {*
   Patterns -- extends pre-defined type @{typ pttrn} used in
@@ -185,8 +196,8 @@ translations
   "%(x, y, zs). b" == "CONST split (%x (y, zs). b)"
   "%(x, y). b" == "CONST split (%x y. b)"
   "_abs (CONST Pair x y) t" => "%(x, y). t"
-  (* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
-     The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *)
+  -- {* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
+     The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *}
 
 (*reconstruct pattern from (nested) splits, avoiding eta-contraction of body;
   works best with enclosing "let", if "let" does not avoid eta-contraction*)
@@ -258,57 +269,149 @@ in [(@{const_syntax split}, split_guess_names_tr')] end
 *}
 
 
-text {* Towards a datatype declaration *}
+subsubsection {* Code generator setup *}
+
+lemma split_case_cert:
+  assumes "CASE \<equiv> split f"
+  shows "CASE (a, b) \<equiv> f a b"
+  using assms by (simp add: split_prod_case)
+
+setup {*
+  Code.add_case @{thm split_case_cert}
+*}
+
+code_type *
+  (SML infix 2 "*")
+  (OCaml infix 2 "*")
+  (Haskell "!((_),/ (_))")
+  (Scala "((_),/ (_))")
+
+code_const Pair
+  (SML "!((_),/ (_))")
+  (OCaml "!((_),/ (_))")
+  (Haskell "!((_),/ (_))")
+  (Scala "!((_),/ (_))")
+
+code_instance * :: eq
+  (Haskell -)
+
+code_const "eq_class.eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+types_code
+  "*"     ("(_ */ _)")
+attach (term_of) {*
+fun term_of_id_42 aF aT bF bT (x, y) = HOLogic.pair_const aT bT $ aF x $ bF y;
+*}
+attach (test) {*
+fun gen_id_42 aG aT bG bT i =
+  let
+    val (x, t) = aG i;
+    val (y, u) = bG i
+  in ((x, y), fn () => HOLogic.pair_const aT bT $ t () $ u ()) end;
+*}
+
+consts_code
+  "Pair"    ("(_,/ _)")
+
+setup {*
+let
+
+fun strip_abs_split 0 t = ([], t)
+  | strip_abs_split i (Abs (s, T, t)) =
+      let
+        val s' = Codegen.new_name t s;
+        val v = Free (s', T)
+      in apfst (cons v) (strip_abs_split (i-1) (subst_bound (v, t))) end
+  | strip_abs_split i (u as Const (@{const_name split}, _) $ t) =
+      (case strip_abs_split (i+1) t of
+        (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
+      | _ => ([], u))
+  | strip_abs_split i t =
+      strip_abs_split i (Abs ("x", hd (binder_types (fastype_of t)), t $ Bound 0));
+
+fun let_codegen thy defs dep thyname brack t gr =
+  (case strip_comb t of
+    (t1 as Const (@{const_name Let}, _), t2 :: t3 :: ts) =>
+    let
+      fun dest_let (l as Const (@{const_name Let}, _) $ t $ u) =
+          (case strip_abs_split 1 u of
+             ([p], u') => apfst (cons (p, t)) (dest_let u')
+           | _ => ([], l))
+        | dest_let t = ([], t);
+      fun mk_code (l, r) gr =
+        let
+          val (pl, gr1) = Codegen.invoke_codegen thy defs dep thyname false l gr;
+          val (pr, gr2) = Codegen.invoke_codegen thy defs dep thyname false r gr1;
+        in ((pl, pr), gr2) end
+    in case dest_let (t1 $ t2 $ t3) of
+        ([], _) => NONE
+      | (ps, u) =>
+          let
+            val (qs, gr1) = fold_map mk_code ps gr;
+            val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
+            val (pargs, gr3) = fold_map
+              (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
+          in
+            SOME (Codegen.mk_app brack
+              (Pretty.blk (0, [Codegen.str "let ", Pretty.blk (0, flat
+                  (separate [Codegen.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
+                    [Pretty.block [Codegen.str "val ", pl, Codegen.str " =",
+                       Pretty.brk 1, pr]]) qs))),
+                Pretty.brk 1, Codegen.str "in ", pu,
+                Pretty.brk 1, Codegen.str "end"])) pargs, gr3)
+          end
+    end
+  | _ => NONE);
+
+fun split_codegen thy defs dep thyname brack t gr = (case strip_comb t of
+    (t1 as Const (@{const_name split}, _), t2 :: ts) =>
+      let
+        val ([p], u) = strip_abs_split 1 (t1 $ t2);
+        val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;
+        val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
+        val (pargs, gr3) = fold_map
+          (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
+      in
+        SOME (Codegen.mk_app brack
+          (Pretty.block [Codegen.str "(fn ", q, Codegen.str " =>",
+            Pretty.brk 1, pu, Codegen.str ")"]) pargs, gr2)
+      end
+  | _ => NONE);
+
+in
+
+  Codegen.add_codegen "let_codegen" let_codegen
+  #> Codegen.add_codegen "split_codegen" split_codegen
+
+end
+*}
+
+
+subsubsection {* Fundamental operations and properties *}
 
 lemma surj_pair [simp]: "EX x y. p = (x, y)"
-  apply (unfold Pair_def)
-  apply (rule Rep_Prod [unfolded Prod_def, THEN CollectE])
-  apply (erule exE, erule exE, rule exI, rule exI)
-  apply (rule Rep_Prod_inverse [symmetric, THEN trans])
-  apply (erule arg_cong)
-  done
+  by (cases p) simp
 
-lemma PairE [cases type: *]:
-  obtains x y where "p = (x, y)"
-  using surj_pair [of p] by blast
+global consts
+  fst      :: "'a \<times> 'b \<Rightarrow> 'a"
+  snd      :: "'a \<times> 'b \<Rightarrow> 'b"
 
-lemma ProdI: "Pair_Rep a b \<in> Prod"
-  unfolding Prod_def by rule+
-
-lemma Pair_Rep_inject: "Pair_Rep a b = Pair_Rep a' b' \<Longrightarrow> a = a' \<and> b = b'"
-  unfolding Pair_Rep_def by (drule fun_cong, drule fun_cong) blast
-
-lemma inj_on_Abs_Prod: "inj_on Abs_Prod Prod"
-  apply (rule inj_on_inverseI)
-  apply (erule Abs_Prod_inverse)
-  done
-
-lemma Pair_inject:
-  assumes "(a, b) = (a', b')"
-    and "a = a' ==> b = b' ==> R"
-  shows R
-  apply (insert prems [unfolded Pair_def])
-  apply (rule inj_on_Abs_Prod [THEN inj_onD, THEN Pair_Rep_inject, THEN conjE])
-  apply (assumption | rule ProdI)+
-  done
-
-rep_datatype (prod) Pair
-proof -
-  fix P p
-  assume "\<And>x y. P (x, y)"
-  then show "P p" by (cases p) simp
-qed (auto elim: Pair_inject)
-
-lemmas Pair_eq = prod.inject
+local defs
+  fst_def:      "fst p == case p of (a, b) \<Rightarrow> a"
+  snd_def:      "snd p == case p of (a, b) \<Rightarrow> b"
 
 lemma fst_conv [simp, code]: "fst (a, b) = a"
-  unfolding fst_def by blast
+  unfolding fst_def by simp
 
 lemma snd_conv [simp, code]: "snd (a, b) = b"
-  unfolding snd_def by blast
+  unfolding snd_def by simp
 
+code_const fst and snd
+  (Haskell "fst" and "snd")
 
-subsubsection {* Basic rules and proof tools *}
+lemma prod_case_unfold: "prod_case = (%c p. c (fst p) (snd p))"
+  by (simp add: expand_fun_eq split: prod.split)
 
 lemma fst_eqD: "fst (x, y) = a ==> x = a"
   by simp
@@ -320,6 +423,44 @@ lemma pair_collapse [simp]: "(fst p, snd p) = p"
   by (cases p) simp
 
 lemmas surjective_pairing = pair_collapse [symmetric]
+
+lemma Pair_fst_snd_eq: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd t"
+  by (cases s, cases t) simp
+
+lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longrightarrow> p = q"
+  by (simp add: Pair_fst_snd_eq)
+
+lemma split_conv [simp, code]: "split f (a, b) = f a b"
+  by (simp add: split_prod_case)
+
+lemma splitI: "f a b \<Longrightarrow> split f (a, b)"
+  by (rule split_conv [THEN iffD2])
+
+lemma splitD: "split f (a, b) \<Longrightarrow> f a b"
+  by (rule split_conv [THEN iffD1])
+
+lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
+  by (simp add: split_prod_case expand_fun_eq split: prod.split)
+
+lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
+  -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
+  by (simp add: split_prod_case expand_fun_eq split: prod.split)
+
+lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
+  by (cases x) simp
+
+lemma split_twice: "split f (split g p) = split (\<lambda>x y. split f (g x y)) p"
+  by (cases p) simp
+
+lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
+  by (simp add: split_prod_case prod_case_unfold)
+
+lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
+  -- {* Prevents simplification of @{term c}: much faster *}
+  by (erule arg_cong)
+
+lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
+  by (simp add: split_eta)
 
 lemma split_paired_all: "(!!x. PROP P x) == (!!a b. PROP P (a, b))"
 proof
@@ -374,69 +515,8 @@ lemma split_paired_All [simp]: "(ALL x. P x) = (ALL a b. P (a, b))"
 lemma split_paired_Ex [simp]: "(EX x. P x) = (EX a b. P (a, b))"
   by fast
 
-lemma Pair_fst_snd_eq: "s = t \<longleftrightarrow> fst s = fst t \<and> snd s = snd t"
-  by (cases s, cases t) simp
-
-lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longrightarrow> p = q"
-  by (simp add: Pair_fst_snd_eq)
-
-
-subsubsection {* @{text split} and @{text curry} *}
-
-lemma split_conv [simp, code]: "split f (a, b) = f a b"
-  by (simp add: split_def)
-
-lemma curry_conv [simp, code]: "curry f a b = f (a, b)"
-  by (simp add: curry_def)
-
-lemmas split = split_conv  -- {* for backwards compatibility *}
-
-lemma splitI: "f a b \<Longrightarrow> split f (a, b)"
-  by (rule split_conv [THEN iffD2])
-
-lemma splitD: "split f (a, b) \<Longrightarrow> f a b"
-  by (rule split_conv [THEN iffD1])
-
-lemma curryI [intro!]: "f (a, b) \<Longrightarrow> curry f a b"
-  by (simp add: curry_def)
-
-lemma curryD [dest!]: "curry f a b \<Longrightarrow> f (a, b)"
-  by (simp add: curry_def)
-
-lemma curryE: "curry f a b \<Longrightarrow> (f (a, b) \<Longrightarrow> Q) \<Longrightarrow> Q"
-  by (simp add: curry_def)
-
-lemma curry_split [simp]: "curry (split f) = f"
-  by (simp add: curry_def split_def)
-
-lemma split_curry [simp]: "split (curry f) = f"
-  by (simp add: curry_def split_def)
-
-lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
-  by (simp add: split_def id_def)
-
-lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
-  -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
-  by (rule ext) auto
-
-lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
-  by (cases x) simp
-
-lemma split_twice: "split f (split g p) = split (\<lambda>x y. split f (g x y)) p"
-  unfolding split_def ..
-
 lemma split_paired_The: "(THE x. P x) = (THE (a, b). P (a, b))"
   -- {* Can't be added to simpset: loops! *}
-  by (simp add: split_eta)
-
-lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
-  by (simp add: split_def)
-
-lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
-  -- {* Prevents simplification of @{term c}: much faster *}
-  by (erule arg_cong)
-
-lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
   by (simp add: split_eta)
 
 text {*
@@ -511,7 +591,6 @@ text {*
 lemma split_split_asm [no_atp]: "R (split c p) = (~(EX x y. p = (x, y) & (~R (c x y))))"
 by (subst split_split, simp)
 
-
 text {*
   \medskip @{term split} used as a logical connective or set former.
 
@@ -529,10 +608,10 @@ lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> split c p x"
   done
 
 lemma splitE: "split c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
-  by (induct p) (auto simp add: split_def)
+  by (induct p) (auto simp add: split_prod_case)
 
 lemma splitE': "split c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
-  by (induct p) (auto simp add: split_def)
+  by (induct p) (auto simp add: split_prod_case)
 
 lemma splitE2:
   "[| Q (split P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
@@ -555,10 +634,10 @@ lemma mem_splitI2: "!!p. [| !!a b. p = (a, b) ==> z: c a b |] ==> z: split c p"
 by (simp only: split_tupled_all, simp)
 
 lemma mem_splitE:
-  assumes major: "z: split c p"
-    and cases: "!!x y. [| p = (x,y); z: c x y |] ==> Q"
+  assumes major: "z \<in> split c p"
+    and cases: "\<And>x y. p = (x, y) \<Longrightarrow> z \<in> c x y \<Longrightarrow> Q"
   shows Q
-  by (rule major [unfolded split_def] cases surjective_pairing)+
+  by (rule major [unfolded split_prod_case prod_case_unfold] cases surjective_pairing)+
 
 declare mem_splitI2 [intro!] mem_splitI [intro!] splitI2' [intro!] splitI2 [intro!] splitI [intro!]
 declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
@@ -626,20 +705,6 @@ text {*
   Setup of internal @{text split_rule}.
 *}
 
-definition
-  internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"
-where
-  "internal_split == split"
-
-lemma internal_split_conv: "internal_split c (a, b) = c a b"
-  by (simp only: internal_split_def split_conv)
-
-use "Tools/split_rule.ML"
-setup Split_Rule.setup
-
-hide_const internal_split
-
-
 lemmas prod_caseI = prod.cases [THEN iffD2, standard]
 
 lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"
@@ -654,9 +719,6 @@ lemma prod_caseE: "prod_case c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
 lemma prod_caseE': "prod_case c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
   by (induct p) auto
 
-lemma prod_case_unfold: "prod_case = (%c p. c (fst p) (snd p))"
-  by (simp add: expand_fun_eq)
-
 declare prod_caseI2' [intro!] prod_caseI2 [intro!] prod_caseI [intro!]
 declare prod_caseE' [elim!] prod_caseE [elim!]
 
@@ -667,9 +729,6 @@ lemma prod_case_split:
 lemma prod_case_beta:
   "prod_case f p = f (fst p) (snd p)"
   unfolding prod_case_split split_beta ..
-
-
-subsection {* Further cases/induct rules for tuples *}
 
 lemma prod_cases3 [cases type]:
   obtains (fields) a b c where "y = (a, b, c)"
@@ -711,8 +770,47 @@ lemma prod_induct7 [case_names fields, induct type]:
     "(!!a b c d e f g. P (a, b, c, d, e, f, g)) ==> P x"
   by (cases x) blast
 
+lemma split_def:
+  "split = (\<lambda>c p. c (fst p) (snd p))"
+  unfolding split_prod_case prod_case_unfold ..
+
+definition internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
+  "internal_split == split"
+
+lemma internal_split_conv: "internal_split c (a, b) = c a b"
+  by (simp only: internal_split_def split_conv)
+
+use "Tools/split_rule.ML"
+setup Split_Rule.setup
+
+hide_const internal_split
+
 
 subsubsection {* Derived operations *}
+
+global consts
+  curry    :: "('a \<times> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c"
+
+local defs
+  curry_def:    "curry == (%c x y. c (Pair x y))"
+
+lemma curry_conv [simp, code]: "curry f a b = f (a, b)"
+  by (simp add: curry_def)
+
+lemma curryI [intro!]: "f (a, b) \<Longrightarrow> curry f a b"
+  by (simp add: curry_def)
+
+lemma curryD [dest!]: "curry f a b \<Longrightarrow> f (a, b)"
+  by (simp add: curry_def)
+
+lemma curryE: "curry f a b \<Longrightarrow> (f (a, b) \<Longrightarrow> Q) \<Longrightarrow> Q"
+  by (simp add: curry_def)
+
+lemma curry_split [simp]: "curry (split f) = f"
+  by (simp add: curry_def split_def)
+
+lemma split_curry [simp]: "split (curry f) = f"
+  by (simp add: curry_def split_def)
 
 text {*
   The composition-uncurry combinator.
@@ -720,9 +818,7 @@ text {*
 
 notation fcomp (infixl "o>" 60)
 
-definition
-  scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "o\<rightarrow>" 60)
-where
+definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "o\<rightarrow>" 60) where
   "f o\<rightarrow> g = (\<lambda>x. split g (f x))"
 
 lemma scomp_apply:  "(f o\<rightarrow> g) x = split g (f x)"
@@ -748,7 +844,6 @@ code_const scomp
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)
-
 
 text {*
   @{term prod_fun} --- action of the product functor upon
@@ -777,21 +872,17 @@ lemma prod_fun_imageE [elim!]:
     and cases: "!!x y. [| c=(f(x),g(y));  (x,y):r |] ==> P"
   shows P
   apply (rule major [THEN imageE])
-  apply (rule_tac p = x in PairE)
+  apply (case_tac x)
   apply (rule cases)
    apply (blast intro: prod_fun)
   apply blast
   done
 
-definition
-  apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b"
-where
-  [code del]: "apfst f = prod_fun f id"
+definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b" where
+  "apfst f = prod_fun f id"
 
-definition
-  apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c"
-where
-  [code del]: "apsnd f = prod_fun id f"
+definition apsnd :: "('b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'a \<times> 'c" where
+  "apsnd f = prod_fun id f"
 
 lemma apfst_conv [simp, code]:
   "apfst f (x, y) = (f x, y)" 
@@ -1005,7 +1096,7 @@ lemma insert_times_insert[simp]:
 by blast
 
 lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
-  by (auto, rule_tac p = "f x" in PairE, auto)
+  by (auto, case_tac "f x", auto)
 
 lemma swap_inj_on:
   "inj_on (\<lambda>(i, j). (j, i)) A"
@@ -1023,131 +1114,27 @@ proof (safe intro!: imageI vimageI)
     using * eq[symmetric] by auto
 qed simp_all
 
-subsubsection {* Code generator setup *}
 
-lemma [code]:
-  "eq_class.eq (x1\<Colon>'a\<Colon>eq, y1\<Colon>'b\<Colon>eq) (x2, y2) \<longleftrightarrow> x1 = x2 \<and> y1 = y2" by (simp add: eq)
-
-lemma split_case_cert:
-  assumes "CASE \<equiv> split f"
-  shows "CASE (a, b) \<equiv> f a b"
-  using assms by simp
-
-setup {*
-  Code.add_case @{thm split_case_cert}
-*}
-
-code_type *
-  (SML infix 2 "*")
-  (OCaml infix 2 "*")
-  (Haskell "!((_),/ (_))")
-  (Scala "((_),/ (_))")
-
-code_instance * :: eq
-  (Haskell -)
-
-code_const "eq_class.eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
-
-code_const Pair
-  (SML "!((_),/ (_))")
-  (OCaml "!((_),/ (_))")
-  (Haskell "!((_),/ (_))")
-  (Scala "!((_),/ (_))")
-
-code_const fst and snd
-  (Haskell "fst" and "snd")
-
-types_code
-  "*"     ("(_ */ _)")
-attach (term_of) {*
-fun term_of_id_42 aF aT bF bT (x, y) = HOLogic.pair_const aT bT $ aF x $ bF y;
-*}
-attach (test) {*
-fun gen_id_42 aG aT bG bT i =
-  let
-    val (x, t) = aG i;
-    val (y, u) = bG i
-  in ((x, y), fn () => HOLogic.pair_const aT bT $ t () $ u ()) end;
-*}
-
-consts_code
-  "Pair"    ("(_,/ _)")
-
-setup {*
-let
-
-fun strip_abs_split 0 t = ([], t)
-  | strip_abs_split i (Abs (s, T, t)) =
-      let
-        val s' = Codegen.new_name t s;
-        val v = Free (s', T)
-      in apfst (cons v) (strip_abs_split (i-1) (subst_bound (v, t))) end
-  | strip_abs_split i (u as Const (@{const_name split}, _) $ t) =
-      (case strip_abs_split (i+1) t of
-        (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
-      | _ => ([], u))
-  | strip_abs_split i t =
-      strip_abs_split i (Abs ("x", hd (binder_types (fastype_of t)), t $ Bound 0));
-
-fun let_codegen thy defs dep thyname brack t gr =
-  (case strip_comb t of
-    (t1 as Const (@{const_name Let}, _), t2 :: t3 :: ts) =>
-    let
-      fun dest_let (l as Const (@{const_name Let}, _) $ t $ u) =
-          (case strip_abs_split 1 u of
-             ([p], u') => apfst (cons (p, t)) (dest_let u')
-           | _ => ([], l))
-        | dest_let t = ([], t);
-      fun mk_code (l, r) gr =
-        let
-          val (pl, gr1) = Codegen.invoke_codegen thy defs dep thyname false l gr;
-          val (pr, gr2) = Codegen.invoke_codegen thy defs dep thyname false r gr1;
-        in ((pl, pr), gr2) end
-    in case dest_let (t1 $ t2 $ t3) of
-        ([], _) => NONE
-      | (ps, u) =>
-          let
-            val (qs, gr1) = fold_map mk_code ps gr;
-            val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
-            val (pargs, gr3) = fold_map
-              (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
-          in
-            SOME (Codegen.mk_app brack
-              (Pretty.blk (0, [Codegen.str "let ", Pretty.blk (0, flat
-                  (separate [Codegen.str ";", Pretty.brk 1] (map (fn (pl, pr) =>
-                    [Pretty.block [Codegen.str "val ", pl, Codegen.str " =",
-                       Pretty.brk 1, pr]]) qs))),
-                Pretty.brk 1, Codegen.str "in ", pu,
-                Pretty.brk 1, Codegen.str "end"])) pargs, gr3)
-          end
-    end
-  | _ => NONE);
-
-fun split_codegen thy defs dep thyname brack t gr = (case strip_comb t of
-    (t1 as Const (@{const_name split}, _), t2 :: ts) =>
-      let
-        val ([p], u) = strip_abs_split 1 (t1 $ t2);
-        val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;
-        val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
-        val (pargs, gr3) = fold_map
-          (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
-      in
-        SOME (Codegen.mk_app brack
-          (Pretty.block [Codegen.str "(fn ", q, Codegen.str " =>",
-            Pretty.brk 1, pu, Codegen.str ")"]) pargs, gr2)
-      end
-  | _ => NONE);
-
-in
-
-  Codegen.add_codegen "let_codegen" let_codegen
-  #> Codegen.add_codegen "split_codegen" split_codegen
-
-end
-*}
+subsection {* Inductively defined sets *}
 
 use "Tools/inductive_set.ML"
 setup Inductive_Set.setup
+
+
+subsection {* Legacy theorem bindings and duplicates *}
+
+lemma PairE:
+  obtains x y where "p = (x, y)"
+  by (fact prod.exhaust)
+
+lemma Pair_inject:
+  assumes "(a, b) = (a', b')"
+    and "a = a' ==> b = b' ==> R"
+  shows R
+  using assms by simp
+
+lemmas Pair_eq = prod.inject
+
+lemmas split = split_conv  -- {* for backwards compatibility *}
 
 end
