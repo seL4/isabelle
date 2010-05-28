@@ -38,16 +38,16 @@ class Isabelle_Encoding extends Encoding
     new CharArrayReader(Isabelle.system.symbols.decode(source.mkString).toArray)
   }
 
-	override def getTextReader(in: InputStream): Reader =
+  override def getTextReader(in: InputStream): Reader =
     text_reader(in, Standard_System.codec())
 
-	override def getPermissiveTextReader(in: InputStream): Reader =
-	{
-		val codec = Standard_System.codec()
-		codec.onMalformedInput(CodingErrorAction.REPLACE)
-		codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
-		text_reader(in, codec)
-	}
+  override def getPermissiveTextReader(in: InputStream): Reader =
+  {
+    val codec = Standard_System.codec()
+    codec.onMalformedInput(CodingErrorAction.REPLACE)
+    codec.onUnmappableCharacter(CodingErrorAction.REPLACE)
+    text_reader(in, codec)
+  }
 
   override def getTextWriter(out: OutputStream): Writer =
   {
@@ -60,6 +60,6 @@ class Isabelle_Encoding extends Encoding
       }
       override def close() { out.close() }
     }
-		new OutputStreamWriter(buffer, charset.newEncoder())
+    new OutputStreamWriter(buffer, charset.newEncoder())
   }
 }
