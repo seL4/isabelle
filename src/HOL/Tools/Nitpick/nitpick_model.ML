@@ -587,7 +587,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
       | term_for_rep _ seen (Type (@{type_name fun}, [T1, T2])) T'
                      (Vect (k, R')) [js] =
         term_for_vect seen k R' T1 T2 T' js
-      | term_for_rep _ seen (Type (@{type_name fun}, [T1, T2])) T'
+      | term_for_rep maybe_opt seen (Type (@{type_name fun}, [T1, T2])) T'
                      (Func (R1, Formula Neut)) jss =
         let
           val jss1 = all_combinations_for_rep R1
@@ -596,7 +596,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
             map (fn js => term_for_rep true seen T2 T2 (Atom (2, 0))
                                        [[int_from_bool (member (op =) jss js)]])
                 jss1
-        in make_fun false T1 T2 T' ts1 ts2 end
+        in make_fun maybe_opt T1 T2 T' ts1 ts2 end
       | term_for_rep maybe_opt seen (Type (@{type_name fun}, [T1, T2])) T'
                      (Func (R1, R2)) jss =
         let

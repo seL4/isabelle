@@ -1699,7 +1699,6 @@ lemma mult_less_asym:
   by (fact multiset_order.less_asym)
 
 ML {*
-(* Proof.context -> string -> (typ -> term list) -> typ -> term -> term *)
 fun multiset_postproc _ maybe_name all_values (T as Type (_, [elem_T]))
                       (Const _ $ t') =
     let

@@ -62,7 +62,6 @@ val default_default_params =
    ("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
-   ("show_all", "false"),
    ("show_datatypes", "false"),
    ("show_consts", "false"),
    ("format", "1"),
@@ -91,7 +90,6 @@ val negated_params =
    ("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
-   ("dont_show_all", "show_all"),
    ("hide_datatypes", "show_datatypes"),
    ("hide_consts", "show_consts"),
    ("trust_potential", "check_potential"),
@@ -100,7 +98,7 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
-  s = "max" orelse s = "eval" orelse s = "expect" orelse
+  s = "max" orelse s = "show_all" orelse s = "eval" orelse s = "expect" orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
           "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format"]
@@ -115,14 +113,17 @@ fun unnegate_param_name name =
             else if String.isPrefix "non_" name then SOME (unprefix "non_" name)
             else NONE
   | some_name => some_name
-fun unnegate_raw_param (name, value) =
+fun normalize_raw_param (name, value) =
   case unnegate_param_name name of
-    SOME name' => (name', case value of
-                            ["false"] => ["true"]
-                          | ["true"] => ["false"]
-                          | [] => ["false"]
-                          | _ => value)
-  | NONE => (name, value)
+    SOME name' => [(name', case value of
+                             ["false"] => ["true"]
+                           | ["true"] => ["false"]
+                           | [] => ["false"]
+                           | _ => value)]
+  | NONE => if name = "show_all" then
+              [("show_datatypes", value), ("show_consts", value)]
+            else
+              [(name, value)]
 
 structure Data = Theory_Data(
   type T = raw_param list
@@ -130,7 +131,8 @@ structure Data = Theory_Data(
   val extend = I
   fun merge (x, y) = AList.merge (op =) (K true) (x, y))
 
-val set_default_raw_param = Data.map o AList.update (op =) o unnegate_raw_param
+val set_default_raw_param =
+  Data.map o fold (AList.update (op =)) o normalize_raw_param
 val default_raw_params = Data.get
 
 fun is_punctuation s = (s = "," orelse s = "-" orelse s = "\<midarrow>")
@@ -145,7 +147,7 @@ fun maxed_int_from_string min_int s = Int.max (min_int, the (Int.fromString s))
 
 fun extract_params ctxt auto default_params override_params =
   let
-    val override_params = map unnegate_raw_param override_params
+    val override_params = maps normalize_raw_param override_params
     val raw_params = rev override_params @ rev default_params
     val lookup =
       Option.map stringify_raw_param_value o AList.lookup (op =) raw_params
@@ -250,9 +252,8 @@ fun extract_params ctxt auto default_params override_params =
     val timeout = if auto then NONE else lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
     val max_threads = Int.max (0, lookup_int "max_threads")
-    val show_all = debug orelse lookup_bool "show_all"
-    val show_datatypes = show_all orelse lookup_bool "show_datatypes"
-    val show_consts = show_all orelse lookup_bool "show_consts"
+    val show_datatypes = debug orelse lookup_bool "show_datatypes"
+    val show_consts = debug orelse lookup_bool "show_consts"
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
     val evals = lookup_term_list "eval"
     val max_potential =

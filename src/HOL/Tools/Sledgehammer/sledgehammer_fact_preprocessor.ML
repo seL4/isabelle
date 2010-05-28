@@ -7,6 +7,7 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature SLEDGEHAMMER_FACT_PREPROCESSOR =
 sig
+  val chained_prefix: string
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
   val skolem_prefix: string
@@ -30,6 +31,9 @@ structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
 struct
 
 open Sledgehammer_FOL_Clause
+
+(* Used to label theorems chained into the goal. *)
+val chained_prefix = "Sledgehammer.chained_"
 
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
