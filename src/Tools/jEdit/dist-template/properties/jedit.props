@@ -180,6 +180,7 @@ isabelle-output.dock-position=bottom
 isabelle-protocol.dock-position=bottom
 isabelle.activate.shortcut=CS+ENTER
 mode.isabelle.sidekick.showStatusWindow.label=true
+print.font=IsabelleText
 sidekick-tree.dock-position=right
 sidekick.buffer-save-parse=true
 sidekick.complete-delay=300
