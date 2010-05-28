@@ -27,6 +27,5 @@ Checklist for official releases
 
 - maintain Logics:
     build
-    lib/Tools/makeall
     lib/html/library_index_content.template
 
