@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.io.StringReader
-import java.awt.{BorderLayout, Dimension, GraphicsEnvironment, Toolkit, FontMetrics}
+import java.awt.{Font, BorderLayout, Dimension, GraphicsEnvironment, Toolkit, FontMetrics}
 import java.awt.event.MouseEvent
 
 import java.util.logging.{Logger, Level}
@@ -36,7 +36,11 @@ object HTML_Panel
 }
 
 
-class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPanel
+class HTML_Panel(
+    system: Isabelle_System,
+    initial_font_family: String,
+    initial_font_size: Int)
+  extends HtmlPanel
 {
   /** Lobo setup **/
 
@@ -101,9 +105,9 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
 </html>
 """
 
-  private def template(font_size: Int): String =
+  private def template(font_family: String, font_size: Int): String =
     template_head +
-    "body { font-family: " + system.font_family + "; font-size: " + raw_px(font_size) + "px }" +
+    "body { font-family: " + font_family + "; font-size: " + raw_px(font_size) + "px }" +
     template_tail
 
 
@@ -111,7 +115,7 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
 
   /* internal messages */
 
-  private case class Resize(font_size: Int)
+  private case class Resize(font_family: String, font_size: Int)
   private case class Render(body: List[XML.Tree])
   private case object Refresh
 
@@ -120,22 +124,26 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
     /* internal state */
 
     var current_font_metrics: FontMetrics = null
+    var current_font_family = ""
     var current_font_size: Int = 0
     var current_margin: Int = 0
     var current_body: List[XML.Tree] = Nil
 
-    def resize(font_size: Int)
+    def resize(font_family: String, font_size: Int)
     {
+      val font = new Font(font_family, Font.PLAIN, lobo_px(raw_px(font_size)))
       val (font_metrics, margin) =
         Swing_Thread.now {
-          val metrics = getFontMetrics(system.get_font(lobo_px(raw_px(font_size))))
+          val metrics = getFontMetrics(font)
           (metrics, (getWidth() / (metrics.charWidth(Symbol.spc) max 1) - 4) max 20)
         }
       if (current_font_metrics == null ||
+          current_font_family != font_family ||
           current_font_size != font_size ||
           current_margin != margin)
       {
         current_font_metrics = font_metrics
+        current_font_family = font_family
         current_font_size = font_size
         current_margin = margin
         refresh()
@@ -153,7 +161,8 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
             .map(t => XML.Elem(HTML.PRE, List((Markup.CLASS, Markup.MESSAGE)), HTML.spans(t))))
       val doc =
         builder.parse(
-          new InputSourceImpl(new StringReader(template(current_font_size)), "http://localhost"))
+          new InputSourceImpl(
+            new StringReader(template(current_font_family, current_font_size)), "http://localhost"))
       doc.removeChild(doc.getLastChild())
       doc.appendChild(XML.document_node(doc, XML.elem(HTML.BODY, html_body)))
       Swing_Thread.later { setDocument(doc, rcontext) }
@@ -162,11 +171,11 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
 
     /* main loop */
 
-    resize(initial_font_size)
+    resize(initial_font_family, initial_font_size)
 
     loop {
       react {
-        case Resize(font_size) => resize(font_size)
+        case Resize(font_family, font_size) => resize(font_family, font_size)
         case Refresh => refresh()
         case Render(body) => render(body)
         case bad => System.err.println("main_actor: ignoring bad message " + bad)
@@ -177,7 +186,7 @@ class HTML_Panel(system: Isabelle_System, initial_font_size: Int) extends HtmlPa
 
   /* external methods */
 
-  def resize(font_size: Int) { main_actor ! Resize(font_size) }
+  def resize(font_family: String, font_size: Int) { main_actor ! Resize(font_family, font_size) }
   def refresh() { main_actor ! Refresh }
   def render(body: List[XML.Tree]) { main_actor ! Render(body) }
 }

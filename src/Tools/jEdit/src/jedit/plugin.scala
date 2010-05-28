@@ -71,6 +71,11 @@ object Isabelle
       jEdit.setIntegerProperty(OPTION_PREFIX + name, value)
   }
 
+
+  /* font */
+
+  def font_family(): String = jEdit.getProperty("view.font")
+
   def font_size(): Float =
     (jEdit.getIntegerProperty("view.fontsize", 16) *
       Int_Property("relative-font-size", 100)).toFloat / 100
