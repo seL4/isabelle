@@ -80,7 +80,7 @@ class Command(
           assigned = true  // single assignment
           reply(())
 
-        case bad => System.err.println("command accumulator: ignoring bad message " + bad)
+        case bad => System.err.println("Command accumulator: ignoring bad message " + bad)
       }
     }
   }

@@ -112,7 +112,7 @@ class State(
                 case _ => state
               }
             case _ =>
-              System.err.println("ignored status report: " + elem)
+              System.err.println("Ignored status report: " + elem)
               state
           })
       case _ => add_result(message)

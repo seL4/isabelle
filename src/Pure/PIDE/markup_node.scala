@@ -48,7 +48,7 @@ case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
       else copy(branches = new_branches)
     }
     else {
-      System.err.println("ignored nonfitting markup: " + new_node)
+      System.err.println("Ignored nonfitting markup: " + new_node)
       this
     }
   }
