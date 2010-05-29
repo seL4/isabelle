@@ -103,7 +103,9 @@ class Linear_Set[A]
     }
 
   def append_after(hook: Option[A], elems: Seq[A]): Linear_Set[A] =
-    (elems :\ this)((elem, set) => set.insert_after(hook, elem))
+    ((hook, this) /: elems) {
+      case ((last_elem, set), elem) => (Some(elem), set.insert_after(last_elem, elem))
+    }._2
 
   def delete_between(from: Option[A], to: Option[A]): Linear_Set[A] =
   {
