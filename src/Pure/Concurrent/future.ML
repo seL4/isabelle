@@ -409,8 +409,10 @@ local
 fun get_result x =
   (case peek x of
     NONE => Exn.Exn (SYS_ERROR "unfinished future")
-  | SOME (Exn.Exn Exn.Interrupt) =>
-      Exn.Exn (Exn.EXCEPTIONS (Exn.flatten_list (Task_Queue.group_status (group_of x))))
+  | SOME (exn as Exn.Exn Exn.Interrupt) =>
+      (case Exn.flatten_list (Task_Queue.group_status (group_of x)) of
+        [] => exn
+      | exns => Exn.Exn (Exn.EXCEPTIONS exns))
   | SOME res => res);
 
 fun join_next deps = (*requires SYNCHRONIZED*)
