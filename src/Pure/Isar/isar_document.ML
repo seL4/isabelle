@@ -111,20 +111,16 @@ fun delete_after (id: command_id) = map_entries (fn entries =>
 
 (* states *)
 
-val empty_state = Lazy.value (SOME Toplevel.toplevel);
-
 local
-  val global_states = Unsynchronized.ref (Symtab.make [(no_id, empty_state)]);
+
+val global_states = Unsynchronized.ref (Symtab.make [(no_id, Lazy.value (SOME Toplevel.toplevel))]);
+
 in
 
-fun define_state (id: state_id) =
+fun define_state (id: state_id) state =
   NAMED_CRITICAL "Isar" (fn () =>
-    Unsynchronized.change global_states (Symtab.update_new (id, empty_state))
+    Unsynchronized.change global_states (Symtab.update_new (id, state))
       handle Symtab.DUP dup => err_dup "state" dup);
-
-fun put_state (id: state_id) state =
-  NAMED_CRITICAL "Isar" (fn () =>
-    Unsynchronized.change global_states (Symtab.update (id, state)));
 
 fun the_state (id: state_id) =
   (case Symtab.lookup (! global_states) id of
@@ -137,10 +133,12 @@ end;
 (* commands *)
 
 local
-  val global_commands = Unsynchronized.ref (Symtab.make [(no_id, Toplevel.empty)]);
+
+val global_commands = Unsynchronized.ref (Symtab.make [(no_id, Toplevel.empty)]);
+
 in
 
-fun define_command id tr =
+fun define_command (id: command_id) tr =
   NAMED_CRITICAL "Isar" (fn () =>
     Unsynchronized.change global_commands (Symtab.update_new (id, Toplevel.put_id id tr))
       handle Symtab.DUP dup => err_dup "command" dup);
@@ -156,7 +154,9 @@ end;
 (* documents *)
 
 local
-  val global_documents = Unsynchronized.ref (Symtab.empty: document Symtab.table);
+
+val global_documents = Unsynchronized.ref (Symtab.empty: document Symtab.table);
+
 in
 
 fun define_document (id: document_id) document =
@@ -168,18 +168,6 @@ fun the_document (id: document_id) =
   (case Symtab.lookup (! global_documents) id of
     NONE => err_undef "document" id
   | SOME document => document);
-
-end;
-
-
-(* execution *)
-
-local
-  val execution = Unsynchronized.ref (Future.value ());
-in
-
-fun execute e =
-  NAMED_CRITICAL "Isar" (fn () => (Future.cancel (! execution); execution := Future.fork e));
 
 end;
 
@@ -224,26 +212,39 @@ fun is_changed entries' (id, {next = _, state}) =
     NONE => true
   | SOME {next = _, state = state'} => state' <> state);
 
-fun new_state name (id, _) (state_id, updates) =
+fun new_state name (id: command_id) (state_id, updates) =
   let
+    val state = the_state state_id;
     val state_id' = create_id ();
-    val _ = define_state state_id';
     val tr = Toplevel.put_id state_id' (the_command id);
-    fun make_state' () =
-      let
-        val state = the_state state_id;
-        val state' =
-          Lazy.lazy (fn () =>
-            (case Lazy.force state of
-              NONE => NONE
-            | SOME st => Toplevel.run_command name tr st));
-      in put_state state_id' state'; state' end;
-  in (state_id', ((id, state_id'), make_state') :: updates) end;
+    val state' =
+      Lazy.lazy (fn () =>
+        (case Lazy.force state of
+          NONE => NONE
+        | SOME st => Toplevel.run_command name tr st));
+    val _ = define_state state_id' state';
+  in (state_id', (id, state_id') :: updates) end;
 
 fun report_updates updates =
   implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
   |> Markup.markup Markup.assign
   |> Output.status;
+
+
+fun force_state NONE = ()
+  | force_state (SOME state_id) = ignore (Lazy.force (the_state state_id));
+
+val execution = Unsynchronized.ref (Future.value ());
+
+fun execute document =
+  NAMED_CRITICAL "Isar" (fn () =>
+    let
+      val old_execution = ! execution;
+      val _ = Future.cancel old_execution;
+      val new_execution = Future.fork (fn () =>
+       (Future.join_result old_execution;
+        fold_entries no_id (fn (_, {state, ...}) => fn () => force_state state) document ()));
+    in execution := new_execution end);
 
 in
 
@@ -260,14 +261,14 @@ fun edit_document (old_id: document_id) (new_id: document_id) edits =
         | SOME (prev, id, _) =>
             let
               val prev_state_id = the (#state (the_entry new_entries (the prev)));
-              val (_, updates) = fold_entries id (new_state name) new_document (prev_state_id, []);
-              val new_document' = new_document |> map_entries (fold (set_entry_state o #1) updates);
+              val (_, updates) =
+                fold_entries id (new_state name o #1) new_document (prev_state_id, []);
+              val new_document' = new_document |> map_entries (fold set_entry_state updates);
             in (rev updates, new_document') end);
 
       val _ = define_document new_id new_document';
-      val _ = report_updates (map #1 updates);
-      val execs = map (fn (_, make) => make ()) updates;
-      val _ = execute (fn () => List.app (ignore o Lazy.force) execs);
+      val _ = report_updates updates;
+      val _ = execute new_document';
     in () end);
 
 end;
