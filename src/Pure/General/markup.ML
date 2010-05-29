@@ -102,6 +102,8 @@ sig
   val taskN: string
   val unprocessedN: string val unprocessed: T
   val runningN: string val running: string -> T
+  val forkedN: string val forked: T
+  val joinedN: string val joined: T
   val failedN: string val failed: T
   val finishedN: string val finished: T
   val disposedN: string val disposed: T
@@ -299,6 +301,8 @@ val taskN = "task";
 
 val (unprocessedN, unprocessed) = markup_elem "unprocessed";
 val (runningN, running) = markup_string "running" taskN;
+val (forkedN, forked) = markup_elem "forked";
+val (joinedN, joined) = markup_elem "joined";
 val (failedN, failed) = markup_elem "failed";
 val (finishedN, finished) = markup_elem "finished";
 val (disposedN, disposed) = markup_elem "disposed";

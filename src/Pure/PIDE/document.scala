@@ -180,7 +180,7 @@ class Document(
     require(assignment.is_finished)
     (assignment.join).get(cmd) match {
       case Some(cmd_state) => cmd_state.current_state
-      case None => new State(cmd, Command.Status.UNDEFINED, Nil, cmd.empty_markup)
+      case None => new State(cmd, Command.Status.UNDEFINED, 0, Nil, cmd.empty_markup)
     }
   }
 }

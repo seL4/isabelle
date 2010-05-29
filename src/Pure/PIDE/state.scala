@@ -11,23 +11,27 @@ package isabelle
 class State(
   val command: Command,
   val status: Command.Status.Value,
+  val forks: Int,
   val reverse_results: List[XML.Tree],
   val markup_root: Markup_Text)
 {
   def this(command: Command) =
-    this(command, Command.Status.UNPROCESSED, Nil, command.empty_markup)
+    this(command, Command.Status.UNPROCESSED, 0, Nil, command.empty_markup)
 
 
   /* content */
 
   private def set_status(st: Command.Status.Value): State =
-    new State(command, st, reverse_results, markup_root)
+    new State(command, st, forks, reverse_results, markup_root)
+
+  private def add_forks(i: Int): State =
+    new State(command, status, forks + i, reverse_results, markup_root)
 
   private def add_result(res: XML.Tree): State =
-    new State(command, status, res :: reverse_results, markup_root)
+    new State(command, status, forks, res :: reverse_results, markup_root)
 
   private def add_markup(node: Markup_Tree): State =
-    new State(command, status, reverse_results, markup_root + node)
+    new State(command, status, forks, reverse_results, markup_root + node)
 
   lazy val results = reverse_results.reverse
 
@@ -78,6 +82,8 @@ class State(
             case XML.Elem(Markup.UNPROCESSED, _, _) => state.set_status(Command.Status.UNPROCESSED)
             case XML.Elem(Markup.FINISHED, _, _) => state.set_status(Command.Status.FINISHED)
             case XML.Elem(Markup.FAILED, _, _) => state.set_status(Command.Status.FAILED)
+            case XML.Elem(Markup.FORKED, _, _) => state.add_forks(1)
+            case XML.Elem(Markup.JOINED, _, _) => state.add_forks(-1)
             case XML.Elem(kind, atts, body) if Position.get_id(atts) == Some(command.id) =>
               atts match {
                 case Position.Range(begin, end) =>

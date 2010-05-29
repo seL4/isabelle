@@ -1038,7 +1038,7 @@ fun future_forward_prf_standard thy prf prop () =
   let val thm =
     if ! quick_and_dirty then Skip_Proof.make_thm thy prop
     else if Goal.future_enabled () then
-      Goal.future_result (ProofContext.init_global thy) (Future.fork_pri ~1 prf) prop
+      Goal.future_result (ProofContext.init_global thy) (Goal.fork prf) prop
     else prf ()
   in Drule.export_without_context thm end;
 

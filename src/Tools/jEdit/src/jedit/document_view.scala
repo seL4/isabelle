@@ -25,12 +25,16 @@ object Document_View
 {
   def choose_color(command: Command, doc: Document): Color =
   {
-    doc.current_state(command).status match {
-      case Command.Status.UNPROCESSED => new Color(255, 228, 225)
-      case Command.Status.FINISHED => new Color(234, 248, 255)
-      case Command.Status.FAILED => new Color(255, 193, 193)
-      case Command.Status.UNDEFINED => Color.red
-    }
+    val state = doc.current_state(command)
+    if (state.forks > 0) new Color(255, 228, 225)
+    else if (state.forks < 0) Color.red
+    else
+      state.status match {
+        case Command.Status.UNPROCESSED => new Color(255, 228, 225)
+        case Command.Status.FINISHED => new Color(234, 248, 255)
+        case Command.Status.FAILED => new Color(255, 193, 193)
+        case Command.Status.UNDEFINED => Color.red
+      }
   }
 
 

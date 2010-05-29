@@ -172,6 +172,8 @@ object Markup
 
   val UNPROCESSED = "unprocessed"
   val RUNNING = "running"
+  val FORKED = "forked"
+  val JOINED = "joined"
   val FAILED = "failed"
   val FINISHED = "finished"
   val DISPOSED = "disposed"

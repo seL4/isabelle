@@ -93,6 +93,7 @@ fun init out =
   setup_channels out |> init_message;
   Keyword.report ();
   Output.status (Markup.markup Markup.ready "");
+  Goal.parallel_proofs := 3;
   Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 
 end;

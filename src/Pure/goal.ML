@@ -23,8 +23,10 @@ sig
   val check_finished: Proof.context -> thm -> unit
   val finish: Proof.context -> thm -> thm
   val norm_result: thm -> thm
+  val fork: (unit -> 'a) -> 'a future
   val future_enabled: unit -> bool
   val local_future_enabled: unit -> bool
+  val local_future_enforced: unit -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
@@ -100,7 +102,14 @@ val norm_result =
   #> Drule.zero_var_indexes;
 
 
-(* future_enabled *)
+(* parallel proofs *)
+
+fun fork e = Future.fork_pri ~1 (fn () =>
+  let
+    val _ = Output.status (Markup.markup Markup.forked "");
+    val x = e ();  (*sic*)
+    val _ = Output.status (Markup.markup Markup.joined "");
+  in x end);
 
 val parallel_proofs = Unsynchronized.ref 1;
 
@@ -108,6 +117,7 @@ fun future_enabled () =
   Multithreading.enabled () andalso Future.is_worker () andalso ! parallel_proofs >= 1;
 
 fun local_future_enabled () = future_enabled () andalso ! parallel_proofs >= 2;
+fun local_future_enforced () = future_enabled () andalso ! parallel_proofs >= 3;
 
 
 (* future_result *)
@@ -198,7 +208,7 @@ fun prove_common immediate ctxt xs asms props tac =
     val res =
       if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse not (future_enabled ())
       then result ()
-      else future_result ctxt' (Future.fork_pri ~1 result) (Thm.term_of stmt);
+      else future_result ctxt' (fork result) (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)
