@@ -114,7 +114,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val saved_color = gfx.getColor
       try {
         for ((command, command_start) <-
-          document.command_range(from_current(start), from_current(end)))
+          document.command_range(from_current(start), from_current(end)) if !command.is_ignored)
         {
           val begin = start max to_current(command_start)
           val finish = (end - 1) min to_current(command_start + command.length)
@@ -245,15 +245,19 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       super.paintComponent(gfx)
       val buffer = model.buffer
       val document = model.recent_document()
-
-      for ((command, start) <- document.command_range(0)) {
-        val line1 = buffer.getLineOfOffset(model.to_current(document, start))
-        val line2 = buffer.getLineOfOffset(model.to_current(document, start + command.length)) + 1
-        val y = line_to_y(line1)
-        val height = HEIGHT * (line2 - line1)
-        gfx.setColor(Document_View.choose_color(document, command))
-        gfx.fillRect(0, y, getWidth - 1, height)
+      def to_current(pos: Int) = model.to_current(document, pos)
+      val saved_color = gfx.getColor
+      try {
+        for ((command, start) <- document.command_range(0) if !command.is_ignored) {
+          val line1 = buffer.getLineOfOffset(to_current(start))
+          val line2 = buffer.getLineOfOffset(to_current(start + command.length)) + 1
+          val y = line_to_y(line1)
+          val height = HEIGHT * (line2 - line1)
+          gfx.setColor(Document_View.choose_color(document, command))
+          gfx.fillRect(0, y, getWidth - 1, height)
+        }
       }
+      finally { gfx.setColor(saved_color) }
     }
 
     private def line_to_y(line: Int): Int =
