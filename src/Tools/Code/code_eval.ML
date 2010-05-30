@@ -165,7 +165,8 @@ fun process (code_body, (tyco_map, (constr_map, const_map))) module_name NONE th
       in
         thy
         |> Code_Target.add_reserved target module_name
-        |> Context.theory_map (ML_Context.exec (fn () => ML_Context.eval true Position.none code_body))
+        |> Context.theory_map
+          (ML_Context.exec (fn () => ML_Context.eval_text true Position.none code_body))
         |> fold (add_eval_tyco o apsnd pr) tyco_map
         |> fold (add_eval_constr o apsnd pr) constr_map
         |> fold (add_eval_const o apsnd pr) const_map

@@ -66,7 +66,7 @@ fun index_ml name kind ml = ThyOutput.antiquotation name
         else if kind = "exception" then txt1 ^ " of " ^ txt2
         else txt1 ^ ": " ^ txt2;
       val txt' = if kind = "" then txt else kind ^ " " ^ txt;
-      val _ = ML_Context.eval_in (SOME ctxt) false Position.none (ml (txt1, txt2));
+      val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none (ml (txt1, txt2));  (* ML_Lex.read (!?) *)
       val kind' = if kind = "" then "ML" else "ML " ^ kind;
     in
       "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string txt1 ^ "}" ^

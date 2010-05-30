@@ -894,7 +894,7 @@ fun test_term ctxt report t =
                   [str "]"])]]),
           str ");"]) ^
       "\n\nend;\n";
-    val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
+    val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none s;
     val dummy_report = ([], false)
   in (fn size => (! test_fn size, dummy_report)) end;
 
@@ -926,7 +926,7 @@ fun eval_term thy t =
               str ");"]) ^
           "\n\nend;\n";
         val _ = NAMED_CRITICAL "codegen" (fn () =>   (* FIXME ??? *)
-          ML_Context.eval_in (SOME ctxt) false Position.none s);
+          ML_Context.eval_text_in (SOME ctxt) false Position.none s);
       in !eval_result end;
   in e () end;
 
@@ -1001,7 +1001,7 @@ fun parse_code lib =
       val (code, gr) = setmp_CRITICAL mode mode'' (generate_code thy modules module) xs;
       val thy' = thy |> Context.theory_map (ML_Context.exec (fn () =>
         (case opt_fname of
-          NONE => ML_Context.eval false Position.none (cat_lines (map snd code))
+          NONE => ML_Context.eval_text false Position.none (cat_lines (map snd code))
         | SOME fname =>
             if lib then app (fn (name, s) => File.write
                 (Path.append (Path.explode fname) (Path.basic (name ^ ".ML"))) s)

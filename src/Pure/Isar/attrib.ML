@@ -153,7 +153,9 @@ fun attribute_setup name (txt, pos) cmt =
   Context.theory_map (ML_Context.expression pos
     "val (name, scan, comment): binding * attribute context_parser * string"
     "Context.map_theory (Attrib.setup name scan comment)"
-    ("(" ^ ML_Syntax.make_binding name ^ ", " ^ txt ^ ", " ^ ML_Syntax.print_string cmt ^ ")"));
+    (ML_Lex.read Position.none ("(" ^ ML_Syntax.make_binding name ^ ", ") @
+      ML_Lex.read pos txt @
+      ML_Lex.read Position.none (", " ^ ML_Syntax.print_string cmt ^ ")")));
 
 
 (* add/del syntax *)
