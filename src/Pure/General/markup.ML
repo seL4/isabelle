@@ -63,6 +63,7 @@ sig
   val attributeN: string val attribute: string -> T
   val methodN: string val method: string -> T
   val ML_keywordN: string val ML_keyword: T
+  val ML_delimiterN: string val ML_delimiter: T
   val ML_identN: string val ML_ident: T
   val ML_tvarN: string val ML_tvar: T
   val ML_numeralN: string val ML_numeral: T
@@ -239,6 +240,7 @@ val (methodN, method) = markup_string "method" nameN;
 (* ML syntax *)
 
 val (ML_keywordN, ML_keyword) = markup_elem "ML_keyword";
+val (ML_delimiterN, ML_delimiter) = markup_elem "ML_delimiter";
 val (ML_identN, ML_ident) = markup_elem "ML_ident";
 val (ML_tvarN, ML_tvar) = markup_elem "ML_tvar";
 val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";

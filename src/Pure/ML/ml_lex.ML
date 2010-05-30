@@ -88,6 +88,8 @@ fun is_improper (Token (_, (Space, _))) = true
 
 (* markup *)
 
+local
+
 val token_kind_markup =
  fn Keyword   => Markup.ML_keyword
   | Ident     => Markup.ML_ident
@@ -103,8 +105,16 @@ val token_kind_markup =
   | Error _   => Markup.ML_malformed
   | EOF       => Markup.none;
 
-fun report_token (Token ((pos, _), (kind, _))) =
-  Position.report (token_kind_markup kind) pos;
+fun token_markup kind x =
+  if kind = Keyword andalso exists_string (not o Symbol.is_ascii_letter) x
+  then Markup.ML_delimiter
+  else token_kind_markup kind;
+
+in
+
+fun report_token (Token ((pos, _), (kind, x))) = Position.report (token_markup kind x) pos;
+
+end;
 
 
 

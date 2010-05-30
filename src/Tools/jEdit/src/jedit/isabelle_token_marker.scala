@@ -67,6 +67,7 @@ object Isabelle_Token_Marker
       Markup.METHOD -> NULL,
       // ML syntax
       Markup.ML_KEYWORD -> KEYWORD1,
+      Markup.ML_DELIMITER -> OPERATOR,
       Markup.ML_IDENT -> NULL,
       Markup.ML_TVAR -> NULL,
       Markup.ML_NUMERAL -> DIGIT,
