@@ -645,7 +645,8 @@ text {* \textbf{Revision History.}  For the present third revision of
   have been generalised from renaming to instantiation.  *}
 
 text {* \textbf{Acknowledgements.}  Alexander Krauss, Tobias Nipkow,
-  Randy Pollack, Christian Sternagel and Makarius Wenzel have made
+  Randy Pollack, Andreas Schropp, Christian Sternagel and Makarius Wenzel
+  have made
   useful comments on earlier versions of this document.  The section
   on conditional interpretation was inspired by a number of e-mail
   enquiries the author received from locale users, and which suggested

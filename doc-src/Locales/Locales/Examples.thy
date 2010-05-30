@@ -107,7 +107,7 @@ text (in partial_order) {* The parameter of this locale is~@{text le},
   in the theory.  Technically, this is simply the theorem composed
   of context and conclusion.  For the transitivity theorem, this is
   @{thm [source] partial_order.trans}:
-  @{thm [display, indent=2] partial_order_def}
+  @{thm [display, indent=2] partial_order.trans}
 *}
 
 subsection {* Targets: Extending Locales *}

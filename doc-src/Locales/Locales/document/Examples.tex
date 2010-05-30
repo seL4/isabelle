@@ -134,10 +134,7 @@ The parameter of this locale is~\isa{le},
   of context and conclusion.  For the transitivity theorem, this is
   \isa{partial{\isacharunderscore}order{\isachardot}trans}:
   \begin{isabelle}%
-\ \ partial{\isacharunderscore}order\ {\isacharquery}le\ {\isasymequiv}\isanewline
-\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x{\isachardot}\ {\isacharquery}le\ x\ x{\isacharparenright}\ {\isasymand}\isanewline
-\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ x\ {\isasymlongrightarrow}\ x\ {\isacharequal}\ y{\isacharparenright}\ {\isasymand}\isanewline
-\isaindent{\ \ }{\isacharparenleft}{\isasymforall}x\ y\ z{\isachardot}\ {\isacharquery}le\ x\ y\ {\isasymlongrightarrow}\ {\isacharquery}le\ y\ z\ {\isasymlongrightarrow}\ {\isacharquery}le\ x\ z{\isacharparenright}%
+\ \ {\isasymlbrakk}partial{\isacharunderscore}order\ {\isacharquery}le{\isacharsemicolon}\ {\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}le\ {\isacharquery}y\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}le\ {\isacharquery}x\ {\isacharquery}z%
 \end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1264,7 +1261,7 @@ Locales enable to prove theorems abstractly, relative to
   definitions and other constructs that are not part of the
   specifications of the locales.
 
-  The first from of interpretation we will consider in this tutorial
+  The first form of interpretation we will consider in this tutorial
   is provided by the \isakeyword{sublocale} command.  It enables to
   modify the import hierarchy to reflect the \emph{logical} relation
   between locales.
