@@ -69,7 +69,16 @@ val token_kind_markup =
 
 fun token_markup tok =
   if Token.keyword_with (not o Syntax.is_identifier) tok then Markup.operator
-  else token_kind_markup (Token.kind_of tok);
+  else
+    let
+      val kind = Token.kind_of tok;
+      val props =
+        if kind = Token.Command then
+          (case Keyword.command_keyword (Token.content_of tok) of
+            SOME k => Markup.properties [(Markup.kindN, Keyword.kind_of k)]
+          | NONE => I)
+        else I;
+    in props (token_kind_markup kind) end;
 
 in
 

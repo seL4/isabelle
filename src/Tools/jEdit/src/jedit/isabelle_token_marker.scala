@@ -28,7 +28,19 @@ object Isabelle_Token_Marker
   /* mapping to jEdit token types */
   // TODO: as properties or CSS style sheet
 
-  private val choose_byte: Map[String, Byte] =
+  private val command_style: Map[String, Byte] =
+  {
+    import Token._
+    Map[String, Byte](
+      Keyword.THY_END -> KEYWORD2,
+      Keyword.THY_SCRIPT -> LABEL,
+      Keyword.PRF_SCRIPT -> LABEL,
+      Keyword.PRF_ASM -> KEYWORD3,
+      Keyword.PRF_ASM_GOAL -> KEYWORD3
+    ).withDefaultValue(KEYWORD1)
+  }
+
+  private val token_style: Map[String, Byte] =
   {
     import Token._
     Map[String, Byte](
@@ -118,20 +130,27 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
       val abs_stop = to(command_start + markup.stop)
       if (abs_stop > start)
       if (abs_start < stop)
-      val byte = Isabelle_Token_Marker.choose_byte(markup.info.toString)
       val token_start = (abs_start - start) max 0
       val token_length =
         (abs_stop - abs_start) -
         ((start - abs_start) max 0) -
         ((abs_stop - stop) max 0)
-      }
-      {
-        if (start + token_start > next_x)
-          handler.handleToken(line_segment, 1,
-            next_x - start, start + token_start - next_x, context)
-        handler.handleToken(line_segment, byte, token_start, token_length, context)
-        next_x = start + token_start + token_length
-      }
+    }
+    {
+      val byte =
+        markup.info match {
+          case Command.HighlightInfo(Markup.COMMAND, Some(kind)) =>
+            Isabelle_Token_Marker.command_style(kind)
+          case Command.HighlightInfo(kind, _) =>
+            Isabelle_Token_Marker.token_style(kind)
+          case _ => Token.NULL
+        }
+      if (start + token_start > next_x)
+        handler.handleToken(line_segment, 1,
+          next_x - start, start + token_start - next_x, context)
+      handler.handleToken(line_segment, byte, token_start, token_length, context)
+      next_x = start + token_start + token_length
+    }
     if (next_x < stop)
       handler.handleToken(line_segment, 1, next_x - start, stop - next_x, context)
 

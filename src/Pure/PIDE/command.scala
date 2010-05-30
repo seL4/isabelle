@@ -26,7 +26,9 @@ object Command
     val UNDEFINED = Value("UNDEFINED")
   }
 
-  case class HighlightInfo(highlight: String) { override def toString = highlight }
+  case class HighlightInfo(kind: String, sub_kind: Option[String]) {
+    override def toString = kind
+  }
   case class TypeInfo(ty: String)
   case class RefInfo(file: Option[String], line: Option[Int],
     command_id: Option[String], offset: Option[Int])
