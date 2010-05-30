@@ -10,3 +10,7 @@
 
 .hilite { background-color: #FFFACD; }
 
+.keyword { font-weight: bold; color: #009966; }
+.operator { font-weight: bold; }
+.command { font-weight: bold; color: #006699; }
+

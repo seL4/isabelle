@@ -144,6 +144,7 @@ object Markup
   val COMMAND_DECL = "command_decl"
 
   val KEYWORD = "keyword"
+  val OPERATOR = "operator"
   val COMMAND = "command"
   val IDENT = "ident"
   val STRING = "string"
