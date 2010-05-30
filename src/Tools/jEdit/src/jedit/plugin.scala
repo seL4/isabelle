@@ -81,6 +81,20 @@ object Isabelle
       Int_Property("relative-font-size", 100)).toFloat / 100
 
 
+  /* tooltip markup */
+
+  // raw font markup
+
+  def font(name: String, size: Int, body: List[XML.Tree]): XML.Tree =
+    XML.Elem("font", List(("face", name), ("size", size.toString)), body)
+
+
+  def tooltip(text: String): String =
+    "<html><font face=\"" + font_family() + "\" size=\"" +
+        Int_Property("tooltip-font-size", 4).toString + "\">" +
+      HTML.encode(text) + "</font></html>"
+
+
   /* settings */
 
   def default_logic(): String =
