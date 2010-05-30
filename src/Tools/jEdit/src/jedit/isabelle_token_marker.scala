@@ -8,13 +8,11 @@ syntax-highlighting.
 package isabelle.jedit
 
 
-import isabelle.Markup
+import isabelle._
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.syntax.{Token, TokenMarker, TokenHandler, SyntaxStyle, ParserRuleSet}
+import org.gjt.sp.jedit.syntax.{Token, TokenMarker, TokenHandler, ParserRuleSet}
 
-import java.awt.Color
-import java.awt.Font
 import javax.swing.text.Segment;
 
 
@@ -94,9 +92,6 @@ object Isabelle_Token_Marker
       Markup.ALTSTRING -> LITERAL1
     ).withDefaultValue(NULL)
   }
-
-  def choose_color(kind: String, styles: Array[SyntaxStyle]): Color =
-    styles(choose_byte(kind)).getForegroundColor
 }
 
 
