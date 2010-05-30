@@ -67,13 +67,17 @@ val token_kind_markup =
   | Token.Sync          => Markup.control
   | Token.EOF           => Markup.control;
 
+fun token_markup tok =
+  if Token.keyword_with (not o Syntax.is_identifier) tok then Markup.operator
+  else token_kind_markup (Token.kind_of tok);
+
 in
 
 fun present_token tok =
-  Markup.enclose (token_kind_markup (Token.kind_of tok)) (Output.output (Token.unparse tok));
+  Markup.enclose (token_markup tok) (Output.output (Token.unparse tok));
 
 fun report_token tok =
-  Position.report (token_kind_markup (Token.kind_of tok)) (Token.position_of tok);
+  Position.report (token_markup tok) (Token.position_of tok);
 
 end;
 
