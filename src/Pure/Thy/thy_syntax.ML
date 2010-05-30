@@ -47,8 +47,8 @@ fun parse_tokens lexs pos str =
 local
 
 val token_kind_markup =
- fn Token.Command       => (Markup.commandN, [])
-  | Token.Keyword       => (Markup.keywordN, [])
+ fn Token.Command       => Markup.command
+  | Token.Keyword       => Markup.keyword
   | Token.Ident         => Markup.ident
   | Token.LongIdent     => Markup.ident
   | Token.SymIdent      => Markup.ident
