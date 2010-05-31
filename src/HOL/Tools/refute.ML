@@ -1165,6 +1165,13 @@ val specialize_type = Sledgehammer_Util.specialize_type
         val fm_u  = (if negate then toFalse else toTrue) (hd intrs)
         val fm_ax = PropLogic.all (map toTrue (tl intrs))
         val fm    = PropLogic.all [#wellformed args, fm_ax, fm_u]
+        val _ =
+          (if satsolver = "dpll" orelse satsolver = "enumerate" then
+            warning ("Using SAT solver " ^ quote satsolver ^
+                     "; for better performance, consider installing an \
+                     \external solver.")
+          else
+            ());
         val solver =
           SatSolver.invoke_solver satsolver
           handle Option.Option =>
