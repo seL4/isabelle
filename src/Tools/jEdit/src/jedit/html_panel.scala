@@ -107,7 +107,7 @@ class HTML_Panel(
 
   private def template(font_family: String, font_size: Int): String =
     template_head +
-    "body { font-family: " + font_family + "; font-size: " + raw_px(font_size) + "px }" +
+    "body { font-family: " + font_family + "; font-size: " + raw_px(font_size) + "px; }" +
     template_tail
 
 
