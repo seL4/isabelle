@@ -1663,8 +1663,7 @@ fun ground_theorem_table thy =
 
 (* TODO: Move to "Nitpick.thy" *)
 val basic_ersatz_table =
-  [(@{const_name prod_case}, @{const_name split}),
-   (@{const_name card}, @{const_name card'}),
+  [(@{const_name card}, @{const_name card'}),
    (@{const_name setsum}, @{const_name setsum'}),
    (@{const_name fold_graph}, @{const_name fold_graph'}),
    (@{const_name wf}, @{const_name wf'}),

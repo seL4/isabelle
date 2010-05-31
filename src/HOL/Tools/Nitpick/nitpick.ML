@@ -945,21 +945,32 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst orig_assm_ts orig_t =
-  if getenv "KODKODI" = "" then
-    (if auto then ()
-     else warning (Pretty.string_of (plazy install_kodkodi_message));
-     ("unknown", state))
-  else
-    let
-      val deadline = Option.map (curry Time.+ (Time.now ())) timeout
-      val outcome as (outcome_code, _) =
-        time_limit (if debug then NONE else timeout)
-            (pick_them_nits_in_term deadline state params auto i n step subst
-                                    orig_assm_ts) orig_t
-    in
-      if expect = "" orelse outcome_code = expect then outcome
-      else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
-    end
+  let
+    val warning_m = if auto then K () else warning
+    val unknown_outcome = ("unknown", state)
+  in
+    if getenv "KODKODI" = "" then
+      (warning_m (Pretty.string_of (plazy install_kodkodi_message));
+       unknown_outcome)
+    else
+      let
+        val deadline = Option.map (curry Time.+ (Time.now ())) timeout
+        val outcome as (outcome_code, _) =
+          time_limit (if debug then NONE else timeout)
+              (pick_them_nits_in_term deadline state params auto i n step subst
+                                      orig_assm_ts) orig_t
+          handle TOO_LARGE (_, details) =>
+                 (warning ("Limit reached: " ^ details ^ "."); unknown_outcome)
+               | TOO_SMALL (_, details) =>
+                 (warning ("Limit reached: " ^ details ^ "."); unknown_outcome)
+               | Kodkod.SYNTAX (_, details) =>
+                 (warning ("Ill-formed Kodkodi output: " ^ details ^ ".");
+                  unknown_outcome)
+      in
+        if expect = "" orelse outcome_code = expect then outcome
+        else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+      end
+  end
 
 fun is_fixed_equation fixes
                       (Const (@{const_name "=="}, _) $ Free (s, _) $ Const _) =
