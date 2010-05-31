@@ -643,6 +643,7 @@ fun run_command thy_name tr st =
     Exn.Result () =>
       (case transition true tr st of
         SOME (st', NONE) => (status tr Markup.finished; SOME st')
+      | SOME (_, SOME (exn as Exn.Interrupt, _)) => reraise exn
       | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
       | NONE => (error_msg tr (TERMINATE, at_command tr); status tr Markup.failed; NONE))
   | Exn.Exn exn => (error_msg tr (exn, at_command tr); status tr Markup.failed; NONE));
