@@ -87,11 +87,7 @@ fun eval verbose pos toks =
           map (pair (offset_of p)) (String.explode (Symbol.esc sym)))
       end);
 
-    val end_pos =
-      if null toks then Position.none
-      else ML_Lex.end_pos_of (List.last toks);
-
-    val input_buffer = Unsynchronized.ref (input @ [(offset_of end_pos, #"\n")]);
+    val input_buffer = Unsynchronized.ref input;
     val line = Unsynchronized.ref (the_default 1 (Position.line_of pos));
 
     fun get_offset () = (case ! input_buffer of [] => 0 | (i, _) :: _ => i);

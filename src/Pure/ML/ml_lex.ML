@@ -267,17 +267,24 @@ fun read pos txt =
   let
     val _ = Position.report Markup.ML_source pos;
     val syms = Symbol_Pos.explode (txt, pos);
-  in
-    (Source.of_list syms
-      |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
-        (SOME (false, fn msg => recover msg >> map Antiquote.Text))
-      |> Source.exhaust
-      |> tap (List.app (Antiquote.report report_token))
-      |> tap Antiquote.check_nesting
-      |> tap (List.app (fn Antiquote.Text tok => ignore (check_content_of tok) | _ => ())))
-    handle ERROR msg =>
-      cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos)
-  end;
+    val termination =
+      if null syms then []
+      else
+        let
+          val pos1 = List.last syms |-> Position.advance;
+          val pos2 = Position.advance Symbol.space pos1;
+        in [Antiquote.Text (Token (Position.range pos1 pos2, (Space, Symbol.space)))] end;
+    val input =
+      (Source.of_list syms
+        |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
+          (SOME (false, fn msg => recover msg >> map Antiquote.Text))
+        |> Source.exhaust
+        |> tap (List.app (Antiquote.report report_token))
+        |> tap Antiquote.check_nesting
+        |> tap (List.app (fn Antiquote.Text tok => ignore (check_content_of tok) | _ => ())))
+      handle ERROR msg =>
+        cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
+  in input @ termination end;
 
 end;
 
