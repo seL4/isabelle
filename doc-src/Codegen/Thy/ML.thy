@@ -30,9 +30,9 @@ text %mlref {*
     -> theory -> theory"} \\
   @{index_ML Code_Preproc.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
-  @{index_ML Code.get_datatype: "theory -> string
+  @{index_ML Code.get_type: "theory -> string
     -> (string * sort) list * (string * typ list) list"} \\
-  @{index_ML Code.get_datatype_of_constr: "theory -> string -> string option"}
+  @{index_ML Code.get_type_of_constr_or_abstr: "theory -> string -> (string * bool) option"}
   \end{mldecls}
 
   \begin{description}
@@ -61,7 +61,7 @@ text %mlref {*
      a datatype to executable content, with generation
      set @{text cs}.
 
-  \item @{ML Code.get_datatype_of_constr}~@{text "thy"}~@{text "const"}
+  \item @{ML Code.get_type_of_constr_or_abstr}~@{text "thy"}~@{text "const"}
      returns type constructor corresponding to
      constructor @{text const}; returns @{text NONE}
      if @{text const} is no constructor.
@@ -105,7 +105,7 @@ text {*
   merge, which is a little bit nasty from an implementation
   point of view.  The framework provides a solution
   to this technical challenge by providing a functorial
-  data slot @{ML_functor CodeDataFun}; on instantiation
+  data slot @{ML_functor Code_Data}; on instantiation
   of this functor, the following types and operations
   are required:
 
@@ -131,7 +131,7 @@ text {*
 
   \end{description}
 
-  \noindent An instance of @{ML_functor CodeDataFun} provides the following
+  \noindent An instance of @{ML_functor Code_Data} provides the following
   interface:
 
   \medskip
