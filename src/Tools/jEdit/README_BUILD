@@ -2,7 +2,7 @@
 Requirements to build from sources
 ==================================
 
-* Proper Java JRE/JDK from Sun, e.g. 1.6.0_18
+* Proper Java JRE/JDK from Sun, e.g. 1.6.0_20
   http://java.sun.com/javase/downloads/index.jsp
 
 * Netbeans 6.8
@@ -13,7 +13,7 @@ Requirements to build from sources
   http://sourceforge.net/projects/erlybird/files/nb-scala/6.8v1.1.0rc2
   http://blogtrader.net/dcaoyuan/category/NetBeans
 
-* jEdit 4.3.1 or 4.3.2
+* jEdit 4.3.2
   http://www.jedit.org/
   Netbeans Project "jEdit": install official sources as ./contrib/jEdit/.
 
@@ -31,7 +31,8 @@ Requirements to build from sources
 * Isabelle/Pure Scala components
   Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
 
-* Scala Compiler
+* Scala Compiler 2.8
+  http://www.scala-lang.org
   Netbeans Library "Scala-compiler" = $SCALA_HOME/lib/scala-compiler.jar
 
 
@@ -74,20 +75,3 @@ works for Sun's JDK 5.0.  There's an alternate incantation for earlier
 releases. (See
 http://java.sun.com/j2se/1.5.0/docs/guide/jpda/conninv.html)
 -----------------------------------------------------------------------
-
-
-Known problems with Mac OS
-==========================
-
-- The MacOSX plugin disrupts regular C-X/C/V operations, e.g. between
-  the editor and the Console plugin, which is a standard swing text
-  box.  Similar for search boxes etc.
-
-- Anti-aliasing does not really work as well as for Linux or Windows.
-  (General Apple/Swing problem?)
-
-- Font.createFont mangles the font family of non-regular fonts,
-  e.g. bold.
-
-- ToggleButton selected state is not rendered if window focus is lost,
-  which is probably a genuine feature of the Apple look-and-feel.

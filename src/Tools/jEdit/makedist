@@ -84,6 +84,7 @@ mkdir -p "$JEDIT/jars"
 cp -R jars/. "$JEDIT/jars/."
 
 cp -R "$THIS/dist-template/." "$JEDIT/."
+cp "$THIS/README" "$JEDIT/."
 
 perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
   print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;

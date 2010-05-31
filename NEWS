@@ -591,6 +591,11 @@ prefers 64 bit if available:
 
   ML_PLATFORM="${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"
 
+* The preliminary Isabelle/jEdit application demonstrates the emerging
+Isabelle/Scala layer for advanced prover interaction and integration.
+See src/Tools/jEdit or "isabelle jedit" provided by the properly built
+component.
+
 
 
 New in Isabelle2009-1 (December 2009)

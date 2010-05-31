@@ -1,0 +1,77 @@
+Isabelle/jEdit based on Isabelle/Scala
+======================================
+
+The Isabelle/Scala layer that is already part of Isabelle/Pure
+provides some general infrastructure for advanced prover interaction
+and integration.  The Isabelle/jEdit application serves as an example
+for asynchronous proof checking with support for parallel processing.
+
+See also the paper:
+
+  Makarius Wenzel. Asynchronous Proof Processing with Isabelle/Scala
+  and Isabelle/jEdit. In C. Sacerdoti Coen and D. Aspinall, editors,
+  User Interfaces for Theorem Provers (UITP 2010), FLOC 2010 Satellite
+  Workshop, Edinburgh, Scotland, July 2010. To appear in ENTCS.
+  http://www4.in.tum.de/~wenzelm/papers/async-isabelle-scala.pdf
+
+
+Some limitations of the current implementation (as of Isabelle2009-2):
+
+  * No provisions for editing multiple theory files.
+
+  * No reclaiming of old/unused document versions.  Memory will fill
+    up eventually, both on the JVM and ML side.
+
+  * No support for non-local markup, e.g. commands reporting on
+    previous commands (proof end on proof head), or markup produced by
+    loading external files.
+
+  * Some performance bottlenecks for massive amount of markup,
+    e.g. when processing large ML sections.
+
+  * General lack of various conveniences known from Proof General.
+
+Despite these shortcomings, Isabelle/jEdit already demonstrates that
+interactive theorem proving can be much more than command-line
+interaction via TTY or editor front-ends (such as Proof General and
+its many remakes).
+
+
+Known problems with Mac OS
+==========================
+
+- The MacOSX plugin for jEdit disrupts regular C-X/C/V operations,
+  e.g. between the editor and the Console plugin, which is a standard
+  swing text box.  Similar for search boxes etc.
+
+- Anti-aliasing does not really work as well as for Linux or Windows.
+  (General Apple/Swing problem?)
+
+- Font.createFont mangles the font family of non-regular fonts,
+  e.g. bold.  IsabelleText font files need to be installed manually.
+
+- ToggleButton selected state is not rendered if window focus is lost,
+  which is probably a genuine feature of the Apple look-and-feel.
+
+
+Windows/Linux
+=============
+
+- Works best with Sun Java 1.6.x -- avoid OpenJDK for now.
+
+
+Licenses and home sites of contributing systems
+===============================================
+
+* Scala: BSD-style
+  http://www.scala-lang.org
+
+* jEdit: GPL (with special cases)
+  http://www.jedit.org/
+
+* Lobo/Cobra: GPL and LGPL
+  http://lobobrowser.org/
+
+
+     Makarius
+     31-May-2010
