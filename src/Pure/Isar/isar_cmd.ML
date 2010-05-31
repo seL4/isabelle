@@ -94,11 +94,13 @@ struct
 (* generic setup *)
 
 fun global_setup (txt, pos) =
-  ML_Context.expression pos "val setup: theory -> theory" "Context.map_theory setup" txt
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos "val setup: theory -> theory" "Context.map_theory setup"
   |> Context.theory_map;
 
 fun local_setup (txt, pos) =
-  ML_Context.expression pos "val setup: local_theory -> local_theory" "Context.map_proof setup" txt
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos "val setup: local_theory -> local_theory" "Context.map_proof setup"
   |> Context.proof_map;
 
 
@@ -115,35 +117,40 @@ fun advancedN false = ""
 in
 
 fun parse_ast_translation (a, (txt, pos)) =
-  txt |> ML_Context.expression pos
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos
     ("val parse_ast_translation: (string * (" ^ advancedT a ^
       "Syntax.ast list -> Syntax.ast)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], []))")
   |> Context.theory_map;
 
 fun parse_translation (a, (txt, pos)) =
-  txt |> ML_Context.expression pos
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos
     ("val parse_translation: (string * (" ^ advancedT a ^
       "term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], parse_translation, [], []))")
   |> Context.theory_map;
 
 fun print_translation (a, (txt, pos)) =
-  txt |> ML_Context.expression pos
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos
     ("val print_translation: (string * (" ^ advancedT a ^
       "term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], print_translation, []))")
   |> Context.theory_map;
 
 fun print_ast_translation (a, (txt, pos)) =
-  txt |> ML_Context.expression pos
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos
     ("val print_ast_translation: (string * (" ^ advancedT a ^
       "Syntax.ast list -> Syntax.ast)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation))")
   |> Context.theory_map;
 
 fun typed_print_translation (a, (txt, pos)) =
-  txt |> ML_Context.expression pos
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos
     ("val typed_print_translation: (string * (" ^ advancedT a ^
       "bool -> typ -> term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation)")
@@ -156,15 +163,16 @@ end;
 
 fun oracle (name, pos) (body_txt, body_pos) =
   let
-    val body = Symbol_Pos.content (Symbol_Pos.explode (body_txt, body_pos));
-    val txt =
-      "local\n\
-      \  val binding = " ^ ML_Syntax.make_binding (name, pos) ^ ";\n\
-      \  val body = " ^ body ^ ";\n\
-      \in\n\
-      \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
-      \end;\n";
-  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false body_pos txt)) end;
+    val body = ML_Lex.read body_pos body_txt;
+    val ants =
+      ML_Lex.read Position.none
+       ("local\n\
+        \  val binding = " ^ ML_Syntax.make_binding (name, pos) ^ ";\n\
+        \  val body = ") @ body @ ML_Lex.read Position.none (";\n\
+        \in\n\
+        \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
+        \end;\n");
+  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false body_pos ants)) end;
 
 
 (* old-style axioms *)
@@ -180,7 +188,8 @@ fun add_defs ((unchecked, overloaded), args) thy =
 (* declarations *)
 
 fun declaration pervasive (txt, pos) =
-  txt |> ML_Context.expression pos
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos
     "val declaration: Morphism.declaration"
     ("Context.map_proof (Local_Theory.declaration " ^ Bool.toString pervasive ^ " declaration)")
   |> Context.proof_map;
@@ -188,12 +197,13 @@ fun declaration pervasive (txt, pos) =
 
 (* simprocs *)
 
-fun simproc_setup name lhss (proc, pos) identifier =
-  ML_Context.expression pos
+fun simproc_setup name lhss (txt, pos) identifier =
+  ML_Lex.read pos txt
+  |> ML_Context.expression pos
     "val proc: Morphism.morphism -> Simplifier.simpset -> cterm -> thm option"
-  ("Context.map_proof (Simplifier.def_simproc {name = " ^ ML_Syntax.print_string name ^ ", \
-    \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
-    \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})") proc
+    ("Context.map_proof (Simplifier.def_simproc {name = " ^ ML_Syntax.print_string name ^ ", \
+      \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
+      \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})")
   |> Context.proof_map;
 
 
@@ -290,7 +300,7 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 (* diagnostic ML evaluation *)
 
 fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
-  (ML_Context.eval_in
+  (ML_Context.eval_text_in
     (Option.map Context.proof_of (try Toplevel.generic_theory_of state)) verbose pos txt));
 
 

@@ -27,12 +27,16 @@ sig
   val trace: bool Unsynchronized.ref
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
-  val eval: bool -> Position.T -> Symbol_Pos.text -> unit
+  val eval: bool -> Position.T -> ML_Lex.token Antiquote.antiquote list -> unit
+  val eval_text: bool -> Position.T -> Symbol_Pos.text -> unit
   val eval_file: Path.T -> unit
-  val eval_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
-  val evaluate: Proof.context -> bool ->
-    string * (unit -> 'a) option Unsynchronized.ref -> string -> 'a
-  val expression: Position.T -> string -> string -> string -> Context.generic -> Context.generic
+  val eval_in: Proof.context option -> bool -> Position.T ->
+    ML_Lex.token Antiquote.antiquote list -> unit
+  val eval_text_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
+  val expression: Position.T -> string -> string -> ML_Lex.token Antiquote.antiquote list ->
+    Context.generic -> Context.generic
+  val evaluate:
+    Proof.context -> bool -> string * (unit -> 'a) option Unsynchronized.ref -> string -> 'a
 end
 
 structure ML_Context: ML_CONTEXT =
@@ -159,11 +163,9 @@ fun eval_antiquotes (ants, pos) opt_context =
 
 val trace = Unsynchronized.ref false;
 
-fun eval verbose pos txt =
+fun eval verbose pos ants =
   let
     (*prepare source text*)
-    val _ = Position.report Markup.ML_source pos;
-    val ants = ML_Lex.read_antiq (Symbol_Pos.explode (txt, pos), pos);
     val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ());
     val _ =
       if ! trace then tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
@@ -183,23 +185,31 @@ end;
 
 (* derived versions *)
 
-fun eval_file path = eval true (Path.position path) (File.read path);
+fun eval_text verbose pos txt = eval verbose pos (ML_Lex.read pos txt);
+fun eval_file path = eval_text true (Path.position path) (File.read path);
 
-fun eval_in ctxt verbose pos txt =
-  Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos txt) ();
+fun eval_in ctxt verbose pos ants =
+  Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos ants) ();
+
+fun eval_text_in ctxt verbose pos txt =
+  Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval_text verbose pos txt) ();
+
+fun expression pos bind body ants =
+  exec (fn () => eval false pos
+    (ML_Lex.read Position.none ("Context.set_thread_data (SOME (let " ^ bind ^ " = ") @ ants @
+      ML_Lex.read Position.none (" in " ^ body ^ " end (ML_Context.the_generic_context ())));")));
+
 
 (* FIXME not thread-safe -- reference can be accessed directly *)
 fun evaluate ctxt verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
   let
+    val ants =
+      ML_Lex.read Position.none ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))");
     val _ = r := NONE;
-    val _ = Context.setmp_thread_data (SOME (Context.Proof ctxt)) (fn () =>
-      eval verbose Position.none ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))")) ();
+    val _ =
+      Context.setmp_thread_data (SOME (Context.Proof ctxt))
+        (fn () => eval verbose Position.none ants) ();
   in (case ! r of NONE => error ("Bad evaluation for " ^ ref_name) | SOME e => e) end) ();
-
-fun expression pos bind body txt =
-  exec (fn () => eval false pos
-    ("Context.set_thread_data (SOME (let " ^ bind ^ " = " ^ txt ^ " in " ^ body ^
-      " end (ML_Context.the_generic_context ())));"));
 
 end;
 

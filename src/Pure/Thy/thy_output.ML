@@ -587,7 +587,7 @@ local
 
 fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
   (fn {context, ...} => fn (txt, pos) =>
-   (ML_Context.eval_in (SOME context) false pos (ml txt);
+   (ML_Context.eval_in (SOME context) false pos (ml pos txt);
     Symbol_Pos.content (Symbol_Pos.explode (txt, pos))
     |> (if ! quotes then quote else I)
     |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
@@ -596,13 +596,21 @@ fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
       #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
       #> space_implode "\\isasep\\isanewline%\n")));
 
+fun ml_enclose bg en pos txt =
+  ML_Lex.read Position.none bg @ ML_Lex.read pos txt @ ML_Lex.read Position.none en;
+
 in
 
-val _ = ml_text "ML" (fn txt => "fn _ => (" ^ txt ^ ");");
-val _ = ml_text "ML_type" (fn txt => "val _ = NONE : (" ^ txt ^ ") option;");
-val _ = ml_text "ML_struct" (fn txt => "functor XXX() = struct structure XX = " ^ txt ^ " end;");
-val _ = ml_text "ML_functor" (fn txt => "ML_Env.check_functor " ^ ML_Syntax.print_string txt);
-val _ = ml_text "ML_text" (K "");
+val _ = ml_text "ML" (ml_enclose "fn _ => (" ");");
+val _ = ml_text "ML_type" (ml_enclose "val _ = NONE : (" ") option;");
+val _ = ml_text "ML_struct" (ml_enclose "functor XXX() = struct structure XX = " " end;");
+
+val _ = ml_text "ML_functor"   (* FIXME formal treatment of functor name (!?) *)
+  (fn pos => fn txt =>
+    ML_Lex.read Position.none ("ML_Env.check_functor " ^
+      ML_Syntax.print_string (Symbol_Pos.content (Symbol_Pos.explode (txt, pos)))));
+
+val _ = ml_text "ML_text" (K (K []));
 
 end;
 

@@ -836,7 +836,7 @@ fun test_term ctxt report t =
             [str "]"]), Pretty.brk 1,
           str "| NONE => NONE);"]) ^
       "\n\nend;\n";
-    val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
+    val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none s;
     val values = Config.get ctxt random_values;
     val bound = Config.get ctxt depth_bound;
     val start = Config.get ctxt depth_start;

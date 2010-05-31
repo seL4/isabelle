@@ -81,6 +81,14 @@ object Isabelle
       Int_Property("relative-font-size", 100)).toFloat / 100
 
 
+  /* tooltip markup */
+
+  def tooltip(text: String): String =
+    "<html><pre style=\"font-family: " + font_family() + "; font-size: " +
+        Int_Property("tooltip-font-size", 10).toString + "px; \">" +  // FIXME proper scaling (!?)
+      HTML.encode(text) + "</pre></html>"
+
+
   /* settings */
 
   def default_logic(): String =

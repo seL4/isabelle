@@ -11,6 +11,24 @@ import scala.collection.mutable.ListBuffer
 
 object HTML
 {
+  // encode text
+
+  def encode(text: String): String =
+  {
+    val s = new StringBuilder
+    for (c <- text.iterator) c match {
+      case '<' => s ++= "&lt;"
+      case '>' => s ++= "&gt;"
+      case '&' => s ++= "&amp;"
+      case '"' => s ++= "&quot;"
+      case '\'' => s ++= "&#39;"
+      case '\n' => s ++= "<br/>"
+      case _ => s += c
+    }
+    s.toString
+  }
+
+
   // common elements and attributes
 
   val BODY = "body"

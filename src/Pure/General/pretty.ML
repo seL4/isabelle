@@ -137,8 +137,8 @@ val strs = block o breaks o map str;
 
 fun markup m prts = markup_block m (0, prts);
 fun mark m prt = markup m [prt];
-fun keyword name = mark (Markup.keyword name) (str name);
-fun command name = mark (Markup.command name) (str name);
+fun keyword name = mark Markup.keyword (str name);
+fun command name = mark Markup.command (str name);
 
 fun markup_chunks m prts = markup m (fbreaks prts);
 val chunks = markup_chunks Markup.none;

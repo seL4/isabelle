@@ -63,6 +63,7 @@ sig
   val attributeN: string val attribute: string -> T
   val methodN: string val method: string -> T
   val ML_keywordN: string val ML_keyword: T
+  val ML_delimiterN: string val ML_delimiter: T
   val ML_identN: string val ML_ident: T
   val ML_tvarN: string val ML_tvar: T
   val ML_numeralN: string val ML_numeral: T
@@ -82,8 +83,9 @@ sig
   val doc_antiqN: string val doc_antiq: string -> T
   val keyword_declN: string val keyword_decl: string -> T
   val command_declN: string val command_decl: string -> string -> T
-  val keywordN: string val keyword: string -> T
-  val commandN: string val command: string -> T
+  val keywordN: string val keyword: T
+  val operatorN: string val operator: T
+  val commandN: string val command: T
   val identN: string val ident: T
   val stringN: string val string: T
   val altstringN: string val altstring: T
@@ -238,6 +240,7 @@ val (methodN, method) = markup_string "method" nameN;
 (* ML syntax *)
 
 val (ML_keywordN, ML_keyword) = markup_elem "ML_keyword";
+val (ML_delimiterN, ML_delimiter) = markup_elem "ML_delimiter";
 val (ML_identN, ML_ident) = markup_elem "ML_ident";
 val (ML_tvarN, ML_tvar) = markup_elem "ML_tvar";
 val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";
@@ -270,8 +273,9 @@ val (keyword_declN, keyword_decl) = markup_string "keyword_decl" nameN;
 val command_declN = "command_decl";
 fun command_decl name kind : T = (command_declN, [(nameN, name), (kindN, kind)]);
 
-val (keywordN, keyword) = markup_string "keyword" nameN;
-val (commandN, command) = markup_string "command" nameN;
+val (keywordN, keyword) = markup_elem "keyword";
+val (operatorN, operator) = markup_elem "operator";
+val (commandN, command) = markup_elem "command";
 val (identN, ident) = markup_elem "ident";
 val (stringN, string) = markup_elem "string";
 val (altstringN, altstring) = markup_elem "altstring";

@@ -26,7 +26,7 @@ sig
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
   val tokenize: string -> token list
-  val read_antiq: Symbol_Pos.T list * Position.T -> token Antiquote.antiquote list
+  val read: Position.T -> Symbol_Pos.text -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -88,6 +88,8 @@ fun is_improper (Token (_, (Space, _))) = true
 
 (* markup *)
 
+local
+
 val token_kind_markup =
  fn Keyword   => Markup.ML_keyword
   | Ident     => Markup.ML_ident
@@ -103,8 +105,16 @@ val token_kind_markup =
   | Error _   => Markup.ML_malformed
   | EOF       => Markup.none;
 
-fun report_token (Token ((pos, _), (kind, _))) =
-  Position.report (token_kind_markup kind) pos;
+fun token_markup kind x =
+  if kind = Keyword andalso exists_string (not o Symbol.is_ascii_letter) x
+  then Markup.ML_delimiter
+  else token_kind_markup kind;
+
+in
+
+fun report_token (Token ((pos, _), (kind, x))) = Position.report (token_markup kind x) pos;
+
+end;
 
 
 
@@ -253,16 +263,21 @@ val tokenize =
   source #>
   Source.exhaust;
 
-fun read_antiq (syms, pos) =
-  (Source.of_list syms
-    |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
-      (SOME (false, fn msg => recover msg >> map Antiquote.Text))
-    |> Source.exhaust
-    |> tap (List.app (Antiquote.report report_token))
-    |> tap Antiquote.check_nesting
-    |> tap (List.app (fn Antiquote.Text tok => ignore (check_content_of tok) | _ => ())))
-  handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
+fun read pos txt =
+  let
+    val _ = Position.report Markup.ML_source pos;
+    val syms = Symbol_Pos.explode (txt, pos);
+  in
+    (Source.of_list syms
+      |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
+        (SOME (false, fn msg => recover msg >> map Antiquote.Text))
+      |> Source.exhaust
+      |> tap (List.app (Antiquote.report report_token))
+      |> tap Antiquote.check_nesting
+      |> tap (List.app (fn Antiquote.Text tok => ignore (check_content_of tok) | _ => ())))
+    handle ERROR msg =>
+      cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos)
+  end;
 
 end;
 

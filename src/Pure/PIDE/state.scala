@@ -41,7 +41,7 @@ class State(
   lazy val highlight: Markup_Text =
   {
     markup_root.filter(_.info match {
-      case Command.HighlightInfo(_) => true
+      case Command.HighlightInfo(_, _) => true
       case _ => false
     })
   }
@@ -56,7 +56,7 @@ class State(
     types.find(t => t.start <= pos && pos < t.stop) match {
       case Some(t) =>
         t.info match {
-          case Command.TypeInfo(ty) => Some(command.source(t.start, t.stop) + ": " + ty)
+          case Command.TypeInfo(ty) => Some(command.source(t.start, t.stop) + " : " + ty)
           case _ => None
         }
       case None => None
@@ -107,7 +107,8 @@ class State(
                   }
                   else {
                     state.add_markup(
-                      command.markup_node(begin - 1, end - 1, Command.HighlightInfo(kind)))
+                      command.markup_node(begin - 1, end - 1,
+                        Command.HighlightInfo(kind, Markup.get_string(Markup.KIND, atts))))
                   }
                 case _ => state
               }

@@ -131,7 +131,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val offset = model.from_current(document, text_area.xyToOffset(x, y))
       document.command_at(offset) match {
         case Some((command, command_start)) =>
-          document.current_state(command).type_at(offset - command_start) getOrElse null
+          document.current_state(command).type_at(offset - command_start) match {
+            case Some(text) => Isabelle.tooltip(text)
+            case None => null
+          }
         case None => null
       }
     }

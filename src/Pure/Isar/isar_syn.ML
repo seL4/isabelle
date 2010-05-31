@@ -321,13 +321,13 @@ val _ =
     (Keyword.tag_ml Keyword.thy_decl)
     (Parse.ML_source >> (fn (txt, pos) =>
       Toplevel.generic_theory
-        (ML_Context.exec (fn () => ML_Context.eval true pos txt) #> propagate_env)));
+        (ML_Context.exec (fn () => ML_Context.eval_text true pos txt) #> propagate_env)));
 
 val _ =
   Outer_Syntax.command "ML_prf" "ML text within proof" (Keyword.tag_proof Keyword.prf_decl)
     (Parse.ML_source >> (fn (txt, pos) =>
       Toplevel.proof (Proof.map_context (Context.proof_map
-        (ML_Context.exec (fn () => ML_Context.eval true pos txt))) #> propagate_env_prf)));
+        (ML_Context.exec (fn () => ML_Context.eval_text true pos txt))) #> propagate_env_prf)));
 
 val _ =
   Outer_Syntax.command "ML_val" "diagnostic ML text" (Keyword.tag_ml Keyword.diag)

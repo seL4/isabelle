@@ -47,8 +47,8 @@ fun parse_tokens lexs pos str =
 local
 
 val token_kind_markup =
- fn Token.Command       => (Markup.commandN, [])
-  | Token.Keyword       => (Markup.keywordN, [])
+ fn Token.Command       => Markup.command
+  | Token.Keyword       => Markup.keyword
   | Token.Ident         => Markup.ident
   | Token.LongIdent     => Markup.ident
   | Token.SymIdent      => Markup.ident
@@ -67,13 +67,26 @@ val token_kind_markup =
   | Token.Sync          => Markup.control
   | Token.EOF           => Markup.control;
 
+fun token_markup tok =
+  if Token.keyword_with (not o Syntax.is_identifier) tok then Markup.operator
+  else
+    let
+      val kind = Token.kind_of tok;
+      val props =
+        if kind = Token.Command then
+          (case Keyword.command_keyword (Token.content_of tok) of
+            SOME k => Markup.properties [(Markup.kindN, Keyword.kind_of k)]
+          | NONE => I)
+        else I;
+    in props (token_kind_markup kind) end;
+
 in
 
 fun present_token tok =
-  Markup.enclose (token_kind_markup (Token.kind_of tok)) (Output.output (Token.unparse tok));
+  Markup.enclose (token_markup tok) (Output.output (Token.unparse tok));
 
 fun report_token tok =
-  Position.report (token_kind_markup (Token.kind_of tok)) (Token.position_of tok);
+  Position.report (token_markup tok) (Token.position_of tok);
 
 end;
 

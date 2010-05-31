@@ -16,6 +16,7 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 {
   private val logic_name = new JComboBox()
   private val relative_font_size = new JSpinner()
+  private val tooltip_font_size = new JSpinner()
 
   private class List_Item(val name: String, val descr: String) {
     def this(name: String) = this(name, name)
@@ -37,8 +38,13 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
     })
 
     addComponent(Isabelle.Property("relative-font-size.title"), {
-      relative_font_size.setValue(Isabelle.Int_Property("relative-font-size"))
+      relative_font_size.setValue(Isabelle.Int_Property("relative-font-size", 100))
       relative_font_size
+    })
+
+    addComponent(Isabelle.Property("tooltip-font-size.title"), {
+      tooltip_font_size.setValue(Isabelle.Int_Property("tooltip-font-size", 10))
+      tooltip_font_size
     })
   }
 
@@ -49,5 +55,8 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
     Isabelle.Int_Property("relative-font-size") =
       relative_font_size.getValue().asInstanceOf[Int]
+
+    Isabelle.Int_Property("tooltip-font-size") =
+      tooltip_font_size.getValue().asInstanceOf[Int]
   }
 }
