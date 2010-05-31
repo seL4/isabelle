@@ -28,7 +28,7 @@ options.isabelle.logic.title=Logic
 options.isabelle.relative-font-size.title=Relative Font Size
 options.isabelle.relative-font-size=100
 options.isabelle.tooltip-font-size.title=Tooltip Font Size
-options.isabelle.tooltip-font-size=4
+options.isabelle.tooltip-font-size=10
 options.isabelle.startup-timeout=10000
 
 #menu actions

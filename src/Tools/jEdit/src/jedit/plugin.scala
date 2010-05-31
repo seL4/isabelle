@@ -83,16 +83,10 @@ object Isabelle
 
   /* tooltip markup */
 
-  // raw font markup
-
-  def font(name: String, size: Int, body: List[XML.Tree]): XML.Tree =
-    XML.Elem("font", List(("face", name), ("size", size.toString)), body)
-
-
   def tooltip(text: String): String =
-    "<html><font face=\"" + font_family() + "\" size=\"" +
-        Int_Property("tooltip-font-size", 4).toString + "\">" +
-      HTML.encode(text) + "</font></html>"
+    "<html><pre style=\"font-family: " + font_family() + "; font-size: " +
+        Int_Property("tooltip-font-size", 10).toString + "px; \">" +  // FIXME proper scaling (!?)
+      HTML.encode(text) + "</pre></html>"
 
 
   /* settings */

@@ -43,7 +43,7 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
     })
 
     addComponent(Isabelle.Property("tooltip-font-size.title"), {
-      tooltip_font_size.setValue(Isabelle.Int_Property("tooltip-font-size", 4))
+      tooltip_font_size.setValue(Isabelle.Int_Property("tooltip-font-size", 10))
       tooltip_font_size
     })
   }
