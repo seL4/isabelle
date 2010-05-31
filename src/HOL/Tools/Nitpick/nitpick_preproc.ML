@@ -955,6 +955,8 @@ fun axioms_for_term
                                               (Const (mate_of_rep_fun thy x))
                        |> fold (add_def_axiom depth)
                                (inverse_axioms_for_rep_fun thy x)
+             else if s = @{const_name TYPE} then
+               accum
              else
                accum |> user_axioms <> SOME false
                         ? fold (add_nondef_axiom depth)

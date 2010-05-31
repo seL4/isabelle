@@ -1397,8 +1397,10 @@ fun multi_specialize_type thy slack (s, T) t =
                           if slack then
                             I
                           else
-                            raise NOT_SUPPORTED ("too much polymorphism in \
-                                                 \axiom involving " ^ quote s))
+                            raise NOT_SUPPORTED
+                                      ("too much polymorphism in axiom \"" ^
+                                       Syntax.string_of_term_global thy t ^
+                                       "\" involving " ^ quote s))
         else
           ys
       | aux _ ys = ys
