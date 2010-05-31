@@ -162,10 +162,10 @@
 \<Longleftarrow>        code: 0x0027f8  font: Isabelle 
 \<Rightarrow>           code: 0x0021d2  font: Isabelle  abbrev: =>
 \<Longrightarrow>       code: 0x0027f9  font: Isabelle  abbrev: ==>
-\<leftrightarrow>       code: 0x002194  font: Isabelle  abbrev: <->
-\<longleftrightarrow>   code: 0x0027f7  font: Isabelle  abbrev: <-->
-\<Leftrightarrow>       code: 0x0021d4  font: Isabelle  abbrev: <=>
-\<Longleftrightarrow>   code: 0x0027fa  font: Isabelle  abbrev: <==>
+\<leftrightarrow>       code: 0x002194  font: Isabelle
+\<longleftrightarrow>   code: 0x0027f7  font: Isabelle  abbrev: <->
+\<Leftrightarrow>       code: 0x0021d4  font: Isabelle
+\<Longleftrightarrow>   code: 0x0027fa  font: Isabelle  abbrev: <=>
 \<mapsto>               code: 0x0021a6  font: Isabelle  abbrev: |->
 \<longmapsto>           code: 0x0027fc  font: Isabelle  abbrev: |-->
 \<midarrow>             code: 0x002500  font: Isabelle
