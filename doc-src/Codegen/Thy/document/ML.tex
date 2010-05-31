@@ -60,9 +60,9 @@ This Pure module implements the core notions of
 \verb|    -> theory -> theory| \\
   \indexdef{}{ML}{Code\_Preproc.del\_functrans}\verb|Code_Preproc.del_functrans: string -> theory -> theory| \\
   \indexdef{}{ML}{Code.add\_datatype}\verb|Code.add_datatype: (string * typ) list -> theory -> theory| \\
-  \indexdef{}{ML}{Code.get\_datatype}\verb|Code.get_datatype: theory -> string|\isasep\isanewline%
+  \indexdef{}{ML}{Code.get\_type}\verb|Code.get_type: theory -> string|\isasep\isanewline%
 \verb|    -> (string * sort) list * (string * typ list) list| \\
-  \indexdef{}{ML}{Code.get\_datatype\_of\_constr}\verb|Code.get_datatype_of_constr: theory -> string -> string option|
+  \indexdef{}{ML}{Code.get\_type\_of\_constr\_or\_abstr}\verb|Code.get_type_of_constr_or_abstr: theory -> string -> (string * bool) option|
   \end{mldecls}
 
   \begin{description}
@@ -91,7 +91,7 @@ This Pure module implements the core notions of
      a datatype to executable content, with generation
      set \isa{cs}.
 
-  \item \verb|Code.get_datatype_of_constr|~\isa{thy}~\isa{const}
+  \item \verb|Code.get_type_of_constr_or_abstr|~\isa{thy}~\isa{const}
      returns type constructor corresponding to
      constructor \isa{const}; returns \isa{NONE}
      if \isa{const} is no constructor.
@@ -163,7 +163,7 @@ Due to incrementality of code generation, changes in the
   merge, which is a little bit nasty from an implementation
   point of view.  The framework provides a solution
   to this technical challenge by providing a functorial
-  data slot \verb|CodeDataFun|; on instantiation
+  data slot \verb|Code_Data|; on instantiation
   of this functor, the following types and operations
   are required:
 
@@ -189,7 +189,7 @@ Due to incrementality of code generation, changes in the
 
   \end{description}
 
-  \noindent An instance of \verb|CodeDataFun| provides the following
+  \noindent An instance of \verb|Code_Data| provides the following
   interface:
 
   \medskip

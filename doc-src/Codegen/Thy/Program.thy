@@ -172,22 +172,22 @@ text {*
      \item replacing non-executable constructs by executable ones:
 *}     
 
-lemma %quote [code_inline]:
-  "x \<in> set xs \<longleftrightarrow> x mem xs" by (induct xs) simp_all
+lemma %quote [code_unfold]:
+  "x \<in> set xs \<longleftrightarrow> member xs x" by (fact in_set_code)
 
 text {*
      \item eliminating superfluous constants:
 *}
 
-lemma %quote [code_inline]:
-  "1 = Suc 0" by simp
+lemma %quote [code_unfold]:
+  "1 = Suc 0" by (fact One_nat_def)
 
 text {*
      \item replacing executable but inconvenient constructs:
 *}
 
-lemma %quote [code_inline]:
-  "xs = [] \<longleftrightarrow> List.null xs" by (induct xs) simp_all
+lemma %quote [code_unfold]:
+  "xs = [] \<longleftrightarrow> List.null xs" by (fact empty_null)
 
 text_raw {*
   \end{itemize}

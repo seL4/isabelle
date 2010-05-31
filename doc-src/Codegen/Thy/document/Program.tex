@@ -432,9 +432,9 @@ Before selected function theorems are turned into abstract
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharunderscore}inline{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ x\ mem\ xs{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
+\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}x\ {\isasymin}\ set\ xs\ {\isasymlongleftrightarrow}\ member\ xs\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}fact\ in{\isacharunderscore}set{\isacharunderscore}code{\isacharparenright}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -453,9 +453,9 @@ Before selected function theorems are turned into abstract
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharunderscore}inline{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ simp%
+\ {\isacharparenleft}fact\ One{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -474,9 +474,9 @@ Before selected function theorems are turned into abstract
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharunderscore}inline{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isasymlongleftrightarrow}\ List{\isachardot}null\ xs{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all%
+\ {\isacharparenleft}fact\ empty{\isacharunderscore}null{\isacharparenright}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -763,7 +763,7 @@ Surely you have already noticed how equality is treated
 %
 \begin{isamarkuptext}%
 \noindent The membership test during preprocessing is rewritten,
-  resulting in \isa{op\ mem}, which itself
+  resulting in \isa{member}, which itself
   performs an explicit equality check.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -781,7 +781,7 @@ Surely you have already noticed how equality is treated
 \hspace*{0pt} ~type 'a eq\\
 \hspace*{0pt} ~val eq :~'a eq -> 'a -> 'a -> bool\\
 \hspace*{0pt} ~val eqa :~'a eq -> 'a -> 'a -> bool\\
-\hspace*{0pt} ~val member :~'a eq -> 'a -> 'a list -> bool\\
+\hspace*{0pt} ~val member :~'a eq -> 'a list -> 'a -> bool\\
 \hspace*{0pt} ~val collect{\char95}duplicates :\\
 \hspace*{0pt} ~~~'a eq -> 'a list -> 'a list -> 'a list -> 'a list\\
 \hspace*{0pt}end = struct\\
@@ -791,13 +791,13 @@ Surely you have already noticed how equality is treated
 \hspace*{0pt}\\
 \hspace*{0pt}fun eqa A{\char95}~a b = eq A{\char95}~a b;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun member A{\char95}~x [] = false\\
-\hspace*{0pt} ~| member A{\char95}~x (y ::~ys) = eqa A{\char95}~x y orelse member A{\char95}~x ys;\\
+\hspace*{0pt}fun member A{\char95}~[] y = false\\
+\hspace*{0pt} ~| member A{\char95}~(x ::~xs) y = eqa A{\char95}~x y orelse member A{\char95}~xs y;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun collect{\char95}duplicates A{\char95}~xs ys [] = xs\\
 \hspace*{0pt} ~| collect{\char95}duplicates A{\char95}~xs ys (z ::~zs) =\\
-\hspace*{0pt} ~~~(if member A{\char95}~z xs\\
-\hspace*{0pt} ~~~~~then (if member A{\char95}~z ys then collect{\char95}duplicates A{\char95}~xs ys zs\\
+\hspace*{0pt} ~~~(if member A{\char95}~xs z\\
+\hspace*{0pt} ~~~~~then (if member A{\char95}~ys z then collect{\char95}duplicates A{\char95}~xs ys zs\\
 \hspace*{0pt} ~~~~~~~~~~~~else collect{\char95}duplicates A{\char95}~xs (z ::~ys) zs)\\
 \hspace*{0pt} ~~~~~else collect{\char95}duplicates A{\char95}~(z ::~xs) (z ::~ys) zs);\\
 \hspace*{0pt}\\
@@ -968,11 +968,10 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \hspace*{0pt}empty{\char95}queue ::~forall a.~a;\\
 \hspace*{0pt}empty{\char95}queue = error {\char34}empty{\char95}queue{\char34};\\
 \hspace*{0pt}\\
-\hspace*{0pt}strict{\char95}dequeue' ::~forall a.~Queue a -> (a,~Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue' (AQueue xs (y :~ys)) = (y,~AQueue xs ys);\\
-\hspace*{0pt}strict{\char95}dequeue' (AQueue xs []) =\\
-\hspace*{0pt} ~(if nulla xs then empty{\char95}queue\\
-\hspace*{0pt} ~~~else strict{\char95}dequeue' (AQueue [] (rev xs)));%
+\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
+\hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);\\
+\hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
+\hspace*{0pt} ~(if nulla xs then empty{\char95}queue else strict{\char95}dequeue (AQueue [] (rev xs)));%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1290,7 +1289,7 @@ is defined as:%
 %
 \begin{isamarkuptext}%
 \begin{isabelle}%
-lexord\ r\ {\isasymequiv}\isanewline
+lexord\ r\ {\isacharequal}\isanewline
 {\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\isanewline
 \isaindent{\ }{\isasymexists}a\ v{\isachardot}\ y\ {\isacharequal}\ x\ {\isacharat}\ a\ {\isacharhash}\ v\ {\isasymor}\isanewline
 \isaindent{\ {\isasymexists}a\ v{\isachardot}\ }{\isacharparenleft}{\isasymexists}u\ a\ b\ v\ w{\isachardot}\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isasymin}\ r\ {\isasymand}\ x\ {\isacharequal}\ u\ {\isacharat}\ a\ {\isacharhash}\ v\ {\isasymand}\ y\ {\isacharequal}\ u\ {\isacharat}\ b\ {\isacharhash}\ w{\isacharparenright}{\isacharbraceright}%

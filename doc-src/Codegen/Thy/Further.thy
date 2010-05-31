@@ -94,7 +94,7 @@ text {*
   whole @{text SML} is read, the necessary code is generated transparently
   and the corresponding constant names are inserted.  This technique also
   allows to use pattern matching on constructors stemming from compiled
-  @{text datatypes}.
+  @{text "datatypes"}.
 
   For a less simplistic example, theory @{theory Ferrack} is
   a good reference.
