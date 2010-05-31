@@ -33,7 +33,7 @@ sig
   val output: Pretty.T list -> string
 end;
 
-structure ThyOutput: THY_OUTPUT =
+structure Thy_Output: THY_OUTPUT =
 struct
 
 (** global options **)

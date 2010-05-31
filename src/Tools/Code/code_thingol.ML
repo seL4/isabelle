@@ -882,7 +882,7 @@ fun read_const_exprs thy =
     fun consts_of_select thy' = filter (belongs_here thy') (consts_of thy');
     fun read_const_expr "*" = ([], consts_of thy)
       | read_const_expr s = if String.isSuffix ".*" s
-          then ([], consts_of_select (ThyInfo.the_theory (unsuffix ".*" s) thy))
+          then ([], consts_of_select (Thy_Info.the_theory (unsuffix ".*" s) thy))
           else ([Code.read_const thy s], []);
   in pairself flat o split_list o map read_const_expr end;
 

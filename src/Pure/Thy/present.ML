@@ -461,7 +461,7 @@ fun begin_theory update_time dir files thy =
     val parent_specs = map (parent_link remote_path path) parents;
 
     fun prep_file (raw_path, loadit) =
-      (case ThyLoad.check_ml dir raw_path of
+      (case Thy_Load.check_ml dir raw_path of
         SOME (path, _) =>
           let
             val base = Path.base path;

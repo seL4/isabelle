@@ -25,7 +25,7 @@ sig
     (span * span list * bool, (span, 'a) Source.source) Source.source
 end;
 
-structure ThySyntax: THY_SYNTAX =
+structure Thy_Syntax: THY_SYNTAX =
 struct
 
 (** tokens **)

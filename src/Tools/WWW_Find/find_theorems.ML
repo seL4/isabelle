@@ -5,8 +5,9 @@ Simple find_theorems server.
 *)
 
 local
+
 val default_limit = 20;
-val thy_names = sort string_ord (ThyInfo.get_names ());
+val thy_names = sort string_ord (Thy_Info.get_names ());
 
 val find_theorems_url = "find_theorems";
 
@@ -234,7 +235,9 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
     Xhtml.write_close send header
   end;
 in
+
 val () = show_question_marks := false;
 val () = ScgiServer.register (find_theorems_url, SOME Mime.html, find_theorems);
+
 end;
 

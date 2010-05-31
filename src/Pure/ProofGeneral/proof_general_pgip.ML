@@ -198,18 +198,18 @@ local
       operations).
    *)
 fun trace_action action name =
-  if action = ThyInfo.Update then
-    List.app (tell_file_loaded true) (ThyInfo.loaded_files name)
-  else if action = ThyInfo.Outdate then
-    List.app (tell_file_outdated true) (ThyInfo.loaded_files name)
-  else if action = ThyInfo.Remove then
-      List.app (tell_file_retracted true) (ThyInfo.loaded_files name)
+  if action = Thy_Info.Update then
+    List.app (tell_file_loaded true) (Thy_Info.loaded_files name)
+  else if action = Thy_Info.Outdate then
+    List.app (tell_file_outdated true) (Thy_Info.loaded_files name)
+  else if action = Thy_Info.Remove then
+      List.app (tell_file_retracted true) (Thy_Info.loaded_files name)
   else ()
 
 
 in
-  fun setup_thy_loader () = ThyInfo.add_hook trace_action;
-  fun sync_thy_loader () = List.app (trace_action ThyInfo.Update) (ThyInfo.get_names ());
+  fun setup_thy_loader () = Thy_Info.add_hook trace_action;
+  fun sync_thy_loader () = List.app (trace_action Thy_Info.Update) (Thy_Info.get_names ());
 end;
 
 
@@ -217,14 +217,14 @@ end;
 
 val thy_name = Path.implode o #1 o Path.split_ext o Path.base;
 
-val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
-val inform_file_processed = ThyInfo.if_known_thy ThyInfo.touch_child_thys o thy_name;
+val inform_file_retracted = Thy_Info.if_known_thy Thy_Info.remove_thy o thy_name;
+val inform_file_processed = Thy_Info.if_known_thy Thy_Info.touch_child_thys o thy_name;
 
 fun proper_inform_file_processed path state =
   let val name = thy_name path in
-    if Toplevel.is_toplevel state andalso ThyInfo.known_thy name then
-     (ThyInfo.touch_child_thys name;
-      ThyInfo.register_thy name handle ERROR msg =>
+    if Toplevel.is_toplevel state andalso Thy_Info.known_thy name then
+     (Thy_Info.touch_child_thys name;
+      Thy_Info.register_thy name handle ERROR msg =>
        (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
         tell_file_retracted true (Path.base path)))
     else raise Toplevel.UNDEF
@@ -522,7 +522,7 @@ fun delids t  = issue_pgip (Delids {idtables = [t]})
 local
 
 fun theory_facts name =
-  let val thy = ThyInfo.get_theory name
+  let val thy = Thy_Info.get_theory name
   in (map PureThy.facts_of (Theory.parents_of thy), PureThy.facts_of thy) end;
 
 fun thms_of_thy name = map fst (theory_facts name |-> Facts.extern_static);
@@ -556,13 +556,13 @@ fun askids (Askids vs) =
     in
         case (thyname,objtype) of
            (NONE, NONE) =>
-           setids (idtable ObjFile NONE (ThyInfo.get_names())) (*FIXME: uris*)
+           setids (idtable ObjFile NONE (Thy_Info.get_names())) (*FIXME: uris*)
          | (NONE, SOME ObjFile) =>
-           setids (idtable ObjFile NONE (ThyInfo.get_names())) (*FIXME: uris*)
+           setids (idtable ObjFile NONE (Thy_Info.get_names())) (*FIXME: uris*)
          | (SOME fi, SOME ObjFile) =>
            setids (idtable ObjTheory (SOME fi) [fi])       (* TODO: check exists *)
          | (NONE, SOME ObjTheory) =>
-           setids (idtable ObjTheory NONE (ThyInfo.get_names()))
+           setids (idtable ObjTheory NONE (Thy_Info.get_names()))
          | (SOME thy, SOME ObjTheory) =>
            setids (idtable ObjTheory (SOME thy) (subthys_of_thy thy))
          | (SOME thy, SOME ObjTheorem) =>
@@ -571,9 +571,9 @@ fun askids (Askids vs) =
            (* A large query, but not unreasonable. ~5000 results for HOL.*)
            (* Several setids should be allowed, but Eclipse code is currently broken:
               List.app (fn thy => setids (idtable ObjTheorem (SOME thy) (subthms_of_thy thy)))
-                         (ThyInfo.get_names()) *)
+                         (Thy_Info.get_names()) *)
            setids (idtable ObjTheorem NONE (* this one gives ~7000 for HOL *)
-                           (maps qualified_thms_of_thy (ThyInfo.get_names())))
+                           (maps qualified_thms_of_thy (Thy_Info.get_names())))
          | _ => warning ("askids: ignored argument combination")
     end
 
@@ -592,14 +592,14 @@ fun askrefs (Askrefs vs) =
 
         fun filerefs f =
             let val thy = thy_name f
-                val filerefs = #uses (ThyLoad.deps_thy (Path.dir f) thy)
+                val filerefs = #uses (Thy_Load.deps_thy (Path.dir f) thy)
             in
                 issue_pgip (Setrefs {url=url, thyname=NONE, objtype=SOME PgipTypes.ObjFile,
                                      name=NONE, idtables=[], fileurls=filerefs})
             end
 
         fun thyrefs thy =
-            let val thyrefs = #imports (ThyLoad.deps_thy Path.current thy)
+            let val thyrefs = #imports (Thy_Load.deps_thy Path.current thy)
             in
                 issue_pgip (Setrefs {url=url, thyname=thyname, objtype=SOME PgipTypes.ObjTheory,
                                      name=NONE, idtables=[{context=NONE, objtype=PgipTypes.ObjTheory,
@@ -642,7 +642,7 @@ fun showid (Showid vs) =
         fun splitthy id =
             let val comps = Long_Name.explode id
             in case comps of
-                   (thy::(rest as _::_)) => (ThyInfo.get_theory thy, space_implode "." rest)
+                   (thy::(rest as _::_)) => (Thy_Info.get_theory thy, space_implode "." rest)
                  | [plainid] => (topthy(),plainid)
                  | _ => raise Toplevel.UNDEF (* assert false *)
             end
@@ -659,8 +659,8 @@ fun showid (Showid vs) =
         val string_of_thy = Pretty.string_of o Proof_Display.pretty_full_theory false
     in
         case (thyname, objtype) of
-            (_, ObjTheory) => idvalue [string_of_thy (ThyInfo.get_theory name)]
-          | (SOME thy, ObjTheorem) => idvalue (strings_of_thm (ThyInfo.get_theory thy, name))
+            (_, ObjTheory) => idvalue [string_of_thy (Thy_Info.get_theory name)]
+          | (SOME thy, ObjTheorem) => idvalue (strings_of_thm (Thy_Info.get_theory thy, name))
           | (NONE, ObjTheorem) => idvalue (strings_of_thm (splitthy name))
           | (_, ot) => error ("Cannot show objects of type "^(PgipTypes.name_of_objtype ot))
     end
@@ -785,8 +785,8 @@ fun changecwd_dir newdirpath =
    in
        (case (!current_working_dir) of
             NONE => ()
-          | SOME dir => ThyLoad.del_path dir;
-        ThyLoad.add_path newdir;
+          | SOME dir => Thy_Load.del_path dir;
+        Thy_Load.add_path newdir;
         current_working_dir := SOME newdir)
    end
 end
@@ -806,7 +806,7 @@ fun openfile (Openfile vs) =
       val filedir = Path.dir filepath
       val thy_name = Path.implode o #1 o Path.split_ext o Path.base
       val openfile_retract = Output.no_warnings_CRITICAL
-        (ThyInfo.if_known_thy ThyInfo.remove_thy) o thy_name;
+        (Thy_Info.if_known_thy Thy_Info.remove_thy) o thy_name;
   in
       case !currently_open_file of
           SOME f => raise PGIP ("<openfile> when a file is already open!\nCurrently open file: " ^
@@ -856,7 +856,7 @@ fun retractfile (Retractfile vs) =
                      (* TODO: next should be in thy loader, here just for testing *)
                      let
                          val name = thy_name url
-                     in List.app (tell_file_retracted false) (ThyInfo.loaded_files name) end;
+                     in List.app (tell_file_retracted false) (Thy_Info.loaded_files name) end;
                      inform_file_retracted url)
     end
 

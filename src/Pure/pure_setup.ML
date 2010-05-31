@@ -6,14 +6,14 @@ Pure theory and ML toplevel setup.
 
 (* the Pure theories *)
 
-val theory = ThyInfo.get_theory;
+val theory = Thy_Info.get_theory;
 
 Context.>> (Context.map_theory
  (Outer_Syntax.process_file (Path.explode "Pure.thy") #>
   Theory.end_theory));
 structure Pure = struct val thy = ML_Context.the_global_context () end;
 Context.set_thread_data NONE;
-ThyInfo.register_theory Pure.thy;
+Thy_Info.register_theory Pure.thy;
 
 
 (* ML toplevel pretty printing *)
@@ -47,11 +47,11 @@ else ();
 
 (* ML toplevel use commands *)
 
-fun use name = Toplevel.program (fn () => ThyInfo.use name);
-fun use_thys name = Toplevel.program (fn () => ThyInfo.use_thys name);
-fun use_thy name = Toplevel.program (fn () => ThyInfo.use_thy name);
-fun time_use name = Toplevel.program (fn () => ThyInfo.time_use name);
-fun time_use_thy name = Toplevel.program (fn () => ThyInfo.time_use_thy name);
+fun use name = Toplevel.program (fn () => Thy_Info.use name);
+fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
+fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
+fun time_use name = Toplevel.program (fn () => Thy_Info.time_use name);
+fun time_use_thy name = Toplevel.program (fn () => Thy_Info.time_use_thy name);
 
 
 (* misc *)

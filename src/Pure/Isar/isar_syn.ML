@@ -4,7 +4,7 @@
 Isar/Pure outer syntax.
 *)
 
-structure IsarSyn: sig end =
+structure Isar_Syn: sig end =
 struct
 
 (** keywords **)
@@ -28,7 +28,7 @@ val _ = List.app Keyword.keyword
 
 val _ =
   Outer_Syntax.command "theory" "begin theory" (Keyword.tag_theory Keyword.thy_begin)
-    (Thy_Header.args >> (Toplevel.print oo IsarCmd.init_theory));
+    (Thy_Header.args >> (Toplevel.print oo Isar_Cmd.init_theory));
 
 val _ =
   Outer_Syntax.command "end" "end (local) theory" (Keyword.tag_theory Keyword.thy_end)
@@ -38,43 +38,43 @@ val _ =
 
 (** markup commands **)
 
-val _ = Outer_Syntax.markup_command ThyOutput.Markup "header" "theory header" Keyword.diag
-  (Parse.doc_source >> IsarCmd.header_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Markup "header" "theory header" Keyword.diag
+  (Parse.doc_source >> Isar_Cmd.header_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Markup "chapter" "chapter heading"
-  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> IsarCmd.local_theory_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Markup "chapter" "chapter heading"
+  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Markup "section" "section heading"
-  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> IsarCmd.local_theory_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Markup "section" "section heading"
+  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Markup "subsection" "subsection heading"
-  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> IsarCmd.local_theory_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Markup "subsection" "subsection heading"
+  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
-  Outer_Syntax.markup_command ThyOutput.Markup "subsubsection" "subsubsection heading"
-  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> IsarCmd.local_theory_markup);
+  Outer_Syntax.markup_command Thy_Output.Markup "subsubsection" "subsubsection heading"
+  Keyword.thy_heading (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.MarkupEnv "text" "formal comment (theory)"
-  Keyword.thy_decl (Parse.opt_target -- Parse.doc_source >> IsarCmd.local_theory_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.MarkupEnv "text" "formal comment (theory)"
+  Keyword.thy_decl (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Verbatim "text_raw" "raw document preparation text"
-  Keyword.thy_decl (Parse.opt_target -- Parse.doc_source >> IsarCmd.local_theory_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Verbatim "text_raw" "raw document preparation text"
+  Keyword.thy_decl (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Markup "sect" "formal comment (proof)"
-  (Keyword.tag_proof Keyword.prf_heading) (Parse.doc_source >> IsarCmd.proof_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Markup "sect" "formal comment (proof)"
+  (Keyword.tag_proof Keyword.prf_heading) (Parse.doc_source >> Isar_Cmd.proof_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Markup "subsect" "formal comment (proof)"
-  (Keyword.tag_proof Keyword.prf_heading) (Parse.doc_source >> IsarCmd.proof_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Markup "subsect" "formal comment (proof)"
+  (Keyword.tag_proof Keyword.prf_heading) (Parse.doc_source >> Isar_Cmd.proof_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Markup "subsubsect" "formal comment (proof)"
-  (Keyword.tag_proof Keyword.prf_heading) (Parse.doc_source >> IsarCmd.proof_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.Markup "subsubsect" "formal comment (proof)"
+  (Keyword.tag_proof Keyword.prf_heading) (Parse.doc_source >> Isar_Cmd.proof_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.MarkupEnv "txt" "formal comment (proof)"
-  (Keyword.tag_proof Keyword.prf_decl) (Parse.doc_source >> IsarCmd.proof_markup);
+val _ = Outer_Syntax.markup_command Thy_Output.MarkupEnv "txt" "formal comment (proof)"
+  (Keyword.tag_proof Keyword.prf_decl) (Parse.doc_source >> Isar_Cmd.proof_markup);
 
-val _ = Outer_Syntax.markup_command ThyOutput.Verbatim "txt_raw"
+val _ = Outer_Syntax.markup_command Thy_Output.Verbatim "txt_raw"
   "raw document preparation text (proof)" (Keyword.tag_proof Keyword.prf_decl)
-  (Parse.doc_source >> IsarCmd.proof_markup);
+  (Parse.doc_source >> Isar_Cmd.proof_markup);
 
 
 
@@ -185,7 +185,7 @@ val _ =
   Outer_Syntax.command "axioms" "state arbitrary propositions (axiomatic!)" Keyword.thy_decl
     (Scan.repeat1 Parse_Spec.spec >>
       (Toplevel.theory o
-        (IsarCmd.add_axioms o
+        (Isar_Cmd.add_axioms o
           tap (fn _ => legacy_feature "Old 'axioms' command -- use 'axiomatization' instead"))));
 
 val opt_unchecked_overloaded =
@@ -197,7 +197,7 @@ val _ =
   Outer_Syntax.command "defs" "define constants" Keyword.thy_decl
     (opt_unchecked_overloaded --
       Scan.repeat1 (Parse_Spec.thm_name ":" -- Parse.prop >> (fn ((x, y), z) => ((x, z), y)))
-      >> (Toplevel.theory o IsarCmd.add_defs));
+      >> (Toplevel.theory o Isar_Cmd.add_defs));
 
 
 (* old constdefs *)
@@ -296,10 +296,10 @@ fun hide_names name hide what =
     ((Parse.opt_keyword "open" >> not) -- Scan.repeat1 Parse.xname >>
       (Toplevel.theory o uncurry hide));
 
-val _ = hide_names "hide_class" IsarCmd.hide_class "classes";
-val _ = hide_names "hide_type" IsarCmd.hide_type "types";
-val _ = hide_names "hide_const" IsarCmd.hide_const "constants";
-val _ = hide_names "hide_fact" IsarCmd.hide_fact "facts";
+val _ = hide_names "hide_class" Isar_Cmd.hide_class "classes";
+val _ = hide_names "hide_type" Isar_Cmd.hide_type "types";
+val _ = hide_names "hide_const" Isar_Cmd.hide_const "constants";
+val _ = hide_names "hide_fact" Isar_Cmd.hide_fact "facts";
 
 
 (* use ML text *)
@@ -314,7 +314,7 @@ fun propagate_env_prf prf = Proof.map_contexts
 val _ =
   Outer_Syntax.command "use" "ML text from file" (Keyword.tag_ml Keyword.thy_decl)
     (Parse.path >>
-      (fn path => Toplevel.generic_theory (ThyInfo.exec_file false path #> propagate_env)));
+      (fn path => Toplevel.generic_theory (Thy_Info.exec_file false path #> propagate_env)));
 
 val _ =
   Outer_Syntax.command "ML" "ML text within theory or local theory"
@@ -331,19 +331,19 @@ val _ =
 
 val _ =
   Outer_Syntax.command "ML_val" "diagnostic ML text" (Keyword.tag_ml Keyword.diag)
-    (Parse.ML_source >> IsarCmd.ml_diag true);
+    (Parse.ML_source >> Isar_Cmd.ml_diag true);
 
 val _ =
   Outer_Syntax.command "ML_command" "diagnostic ML text (silent)" (Keyword.tag_ml Keyword.diag)
-    (Parse.ML_source >> (Toplevel.no_timing oo IsarCmd.ml_diag false));
+    (Parse.ML_source >> (Toplevel.no_timing oo Isar_Cmd.ml_diag false));
 
 val _ =
   Outer_Syntax.command "setup" "ML theory setup" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.ML_source >> (Toplevel.theory o IsarCmd.global_setup));
+    (Parse.ML_source >> (Toplevel.theory o Isar_Cmd.global_setup));
 
 val _ =
   Outer_Syntax.local_theory "local_setup" "ML local theory setup" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.ML_source >> IsarCmd.local_setup);
+    (Parse.ML_source >> Isar_Cmd.local_setup);
 
 val _ =
   Outer_Syntax.command "attribute_setup" "define attribute in ML" (Keyword.tag_ml Keyword.thy_decl)
@@ -357,14 +357,14 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory "declaration" "generic ML declaration" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.opt_keyword "pervasive" -- Parse.ML_source >> uncurry IsarCmd.declaration);
+    (Parse.opt_keyword "pervasive" -- Parse.ML_source >> uncurry Isar_Cmd.declaration);
 
 val _ =
   Outer_Syntax.local_theory "simproc_setup" "define simproc in ML" (Keyword.tag_ml Keyword.thy_decl)
     (Parse.name --
       (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")" --| Parse.$$$ "=") --
       Parse.ML_source -- Scan.optional (Parse.$$$ "identifier" |-- Scan.repeat1 Parse.xname) []
-    >> (fn (((a, b), c), d) => IsarCmd.simproc_setup a b c d));
+    >> (fn (((a, b), c), d) => Isar_Cmd.simproc_setup a b c d));
 
 
 (* translation functions *)
@@ -374,27 +374,27 @@ val trfun = Parse.opt_keyword "advanced" -- Parse.ML_source;
 val _ =
   Outer_Syntax.command "parse_ast_translation" "install parse ast translation functions"
     (Keyword.tag_ml Keyword.thy_decl)
-    (trfun >> (Toplevel.theory o IsarCmd.parse_ast_translation));
+    (trfun >> (Toplevel.theory o Isar_Cmd.parse_ast_translation));
 
 val _ =
   Outer_Syntax.command "parse_translation" "install parse translation functions"
     (Keyword.tag_ml Keyword.thy_decl)
-    (trfun >> (Toplevel.theory o IsarCmd.parse_translation));
+    (trfun >> (Toplevel.theory o Isar_Cmd.parse_translation));
 
 val _ =
   Outer_Syntax.command "print_translation" "install print translation functions"
     (Keyword.tag_ml Keyword.thy_decl)
-    (trfun >> (Toplevel.theory o IsarCmd.print_translation));
+    (trfun >> (Toplevel.theory o Isar_Cmd.print_translation));
 
 val _ =
   Outer_Syntax.command "typed_print_translation" "install typed print translation functions"
     (Keyword.tag_ml Keyword.thy_decl)
-    (trfun >> (Toplevel.theory o IsarCmd.typed_print_translation));
+    (trfun >> (Toplevel.theory o Isar_Cmd.typed_print_translation));
 
 val _ =
   Outer_Syntax.command "print_ast_translation" "install print ast translation functions"
     (Keyword.tag_ml Keyword.thy_decl)
-    (trfun >> (Toplevel.theory o IsarCmd.print_ast_translation));
+    (trfun >> (Toplevel.theory o Isar_Cmd.print_ast_translation));
 
 
 (* oracles *)
@@ -402,7 +402,7 @@ val _ =
 val _ =
   Outer_Syntax.command "oracle" "declare oracle" (Keyword.tag_ml Keyword.thy_decl)
     (Parse.position Parse.name -- (Parse.$$$ "=" |-- Parse.ML_source) >>
-      (fn (x, y) => Toplevel.theory (IsarCmd.oracle x y)));
+      (fn (x, y) => Toplevel.theory (Isar_Cmd.oracle x y)));
 
 
 (* local theories *)
@@ -537,22 +537,22 @@ val _ =
 val _ =
   Outer_Syntax.command "have" "state local goal"
     (Keyword.tag_proof Keyword.prf_goal)
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.have));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.have));
 
 val _ =
   Outer_Syntax.command "hence" "abbreviates \"then have\""
     (Keyword.tag_proof Keyword.prf_goal)
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.hence));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.hence));
 
 val _ =
   Outer_Syntax.command "show" "state local goal, solving current obligation"
     (Keyword.tag_proof Keyword.prf_asm_goal)
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.show));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.show));
 
 val _ =
   Outer_Syntax.command "thus" "abbreviates \"then show\""
     (Keyword.tag_proof Keyword.prf_asm_goal)
-    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o IsarCmd.thus));
+    (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.thus));
 
 
 (* facts *)
@@ -673,32 +673,32 @@ val _ =
 val _ =
   Outer_Syntax.command "qed" "conclude (sub-)proof"
     (Keyword.tag_proof Keyword.qed_block)
-    (Scan.option Method.parse >> IsarCmd.qed);
+    (Scan.option Method.parse >> Isar_Cmd.qed);
 
 val _ =
   Outer_Syntax.command "by" "terminal backward proof"
     (Keyword.tag_proof Keyword.qed)
-    (Method.parse -- Scan.option Method.parse >> IsarCmd.terminal_proof);
+    (Method.parse -- Scan.option Method.parse >> Isar_Cmd.terminal_proof);
 
 val _ =
   Outer_Syntax.command ".." "default proof"
     (Keyword.tag_proof Keyword.qed)
-    (Scan.succeed IsarCmd.default_proof);
+    (Scan.succeed Isar_Cmd.default_proof);
 
 val _ =
   Outer_Syntax.command "." "immediate proof"
     (Keyword.tag_proof Keyword.qed)
-    (Scan.succeed IsarCmd.immediate_proof);
+    (Scan.succeed Isar_Cmd.immediate_proof);
 
 val _ =
   Outer_Syntax.command "done" "done proof"
     (Keyword.tag_proof Keyword.qed)
-    (Scan.succeed IsarCmd.done_proof);
+    (Scan.succeed Isar_Cmd.done_proof);
 
 val _ =
   Outer_Syntax.command "sorry" "skip proof (quick-and-dirty mode only!)"
     (Keyword.tag_proof Keyword.qed)
-    (Scan.succeed IsarCmd.skip_proof);
+    (Scan.succeed Isar_Cmd.skip_proof);
 
 val _ =
   Outer_Syntax.command "oops" "forget proof"
@@ -796,7 +796,7 @@ val opt_bang = Scan.optional (Parse.$$$ "!" >> K true) false;
 
 val _ =
   Outer_Syntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
-    Keyword.diag (Parse.nat >> (Toplevel.no_timing oo IsarCmd.pretty_setmargin));
+    Keyword.diag (Parse.nat >> (Toplevel.no_timing oo Isar_Cmd.pretty_setmargin));
 
 val _ =
   Outer_Syntax.improper_command "help" "print outer syntax commands" Keyword.diag
@@ -808,32 +808,32 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "print_configs" "print configuration options" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_configs));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_configs));
 
 val _ =
   Outer_Syntax.improper_command "print_context" "print theory context name" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_context));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_context));
 
 val _ =
   Outer_Syntax.improper_command "print_theory" "print logical theory contents (verbose!)"
-    Keyword.diag (opt_bang >> (Toplevel.no_timing oo IsarCmd.print_theory));
+    Keyword.diag (opt_bang >> (Toplevel.no_timing oo Isar_Cmd.print_theory));
 
 val _ =
   Outer_Syntax.improper_command "print_syntax" "print inner syntax of context (verbose!)"
-    Keyword.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.print_syntax));
+    Keyword.diag (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_syntax));
 
 val _ =
   Outer_Syntax.improper_command "print_abbrevs" "print constant abbreviation of context"
-    Keyword.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.print_abbrevs));
+    Keyword.diag (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_abbrevs));
 
 val _ =
   Outer_Syntax.improper_command "print_theorems"
       "print theorems of local theory or proof context" Keyword.diag
-    (opt_bang >> (Toplevel.no_timing oo IsarCmd.print_theorems));
+    (opt_bang >> (Toplevel.no_timing oo Isar_Cmd.print_theorems));
 
 val _ =
   Outer_Syntax.improper_command "print_locales" "print locales of this theory" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_locales));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_locales));
 
 val _ =
   Outer_Syntax.improper_command "print_classes" "print classes of this theory" Keyword.diag
@@ -842,89 +842,89 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "print_locale" "print locale of this theory" Keyword.diag
-    (opt_bang -- Parse.xname >> (Toplevel.no_timing oo IsarCmd.print_locale));
+    (opt_bang -- Parse.xname >> (Toplevel.no_timing oo Isar_Cmd.print_locale));
 
 val _ =
   Outer_Syntax.improper_command "print_interps"
     "print interpretations of locale for this theory" Keyword.diag
-    (Parse.xname >> (Toplevel.no_timing oo IsarCmd.print_registrations));
+    (Parse.xname >> (Toplevel.no_timing oo Isar_Cmd.print_registrations));
 
 val _ =
   Outer_Syntax.improper_command "print_attributes" "print attributes of this theory" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_attributes));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_attributes));
 
 val _ =
   Outer_Syntax.improper_command "print_simpset" "print context of Simplifier" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_simpset));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_simpset));
 
 val _ =
   Outer_Syntax.improper_command "print_rules" "print intro/elim rules" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_rules));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_rules));
 
 val _ =
   Outer_Syntax.improper_command "print_trans_rules" "print transitivity rules" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_trans_rules));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_trans_rules));
 
 val _ =
   Outer_Syntax.improper_command "print_methods" "print methods of this theory" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_methods));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_methods));
 
 val _ =
   Outer_Syntax.improper_command "print_antiquotations" "print antiquotations (global)" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_antiquotations));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_antiquotations));
 
 val _ =
   Outer_Syntax.improper_command "thy_deps" "visualize theory dependencies"
-    Keyword.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.thy_deps));
+    Keyword.diag (Scan.succeed (Toplevel.no_timing o Isar_Cmd.thy_deps));
 
 val _ =
   Outer_Syntax.improper_command "class_deps" "visualize class dependencies"
-    Keyword.diag (Scan.succeed (Toplevel.no_timing o IsarCmd.class_deps));
+    Keyword.diag (Scan.succeed (Toplevel.no_timing o Isar_Cmd.class_deps));
 
 val _ =
   Outer_Syntax.improper_command "thm_deps" "visualize theorem dependencies"
-    Keyword.diag (Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.thm_deps));
+    Keyword.diag (Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.thm_deps));
 
 val _ =
   Outer_Syntax.improper_command "print_binds" "print term bindings of proof context" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_binds));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_binds));
 
 val _ =
   Outer_Syntax.improper_command "print_facts" "print facts of proof context" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_facts));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_facts));
 
 val _ =
   Outer_Syntax.improper_command "print_cases" "print cases of proof context" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.print_cases));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_cases));
 
 val _ =
   Outer_Syntax.improper_command "print_statement" "print theorems as long statements" Keyword.diag
-    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_stmts));
+    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.print_stmts));
 
 val _ =
   Outer_Syntax.improper_command "thm" "print theorems" Keyword.diag
-    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_thms));
+    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.print_thms));
 
 val _ =
   Outer_Syntax.improper_command "prf" "print proof terms of theorems" Keyword.diag
     (opt_modes -- Scan.option Parse_Spec.xthms1
-      >> (Toplevel.no_timing oo IsarCmd.print_prfs false));
+      >> (Toplevel.no_timing oo Isar_Cmd.print_prfs false));
 
 val _ =
   Outer_Syntax.improper_command "full_prf" "print full proof terms of theorems" Keyword.diag
-    (opt_modes -- Scan.option Parse_Spec.xthms1 >> (Toplevel.no_timing oo IsarCmd.print_prfs true));
+    (opt_modes -- Scan.option Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.print_prfs true));
 
 val _ =
   Outer_Syntax.improper_command "prop" "read and print proposition" Keyword.diag
-    (opt_modes -- Parse.term >> (Toplevel.no_timing oo IsarCmd.print_prop));
+    (opt_modes -- Parse.term >> (Toplevel.no_timing oo Isar_Cmd.print_prop));
 
 val _ =
   Outer_Syntax.improper_command "term" "read and print term" Keyword.diag
-    (opt_modes -- Parse.term >> (Toplevel.no_timing oo IsarCmd.print_term));
+    (opt_modes -- Parse.term >> (Toplevel.no_timing oo Isar_Cmd.print_term));
 
 val _ =
   Outer_Syntax.improper_command "typ" "read and print type" Keyword.diag
-    (opt_modes -- Parse.typ >> (Toplevel.no_timing oo IsarCmd.print_type));
+    (opt_modes -- Parse.typ >> (Toplevel.no_timing oo Isar_Cmd.print_type));
 
 val _ =
   Outer_Syntax.improper_command "print_codesetup" "print code generator setup" Keyword.diag
@@ -936,7 +936,7 @@ val _ =
   Outer_Syntax.improper_command "unused_thms" "find unused theorems" Keyword.diag
     (Scan.option ((Scan.repeat1 (Scan.unless Parse.minus Parse.name) --| Parse.minus) --
        Scan.option (Scan.repeat1 (Scan.unless Parse.minus Parse.name))) >>
-         (Toplevel.no_timing oo IsarCmd.unused_thms));
+         (Toplevel.no_timing oo Isar_Cmd.unused_thms));
 
 
 
@@ -944,54 +944,54 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "cd" "change current working directory" Keyword.diag
-    (Parse.path >> (Toplevel.no_timing oo IsarCmd.cd));
+    (Parse.path >> (Toplevel.no_timing oo Isar_Cmd.cd));
 
 val _ =
   Outer_Syntax.improper_command "pwd" "print current working directory" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.pwd));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.pwd));
 
 val _ =
   Outer_Syntax.improper_command "use_thy" "use theory file" Keyword.diag
     (Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.use_thy name)));
+      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.use_thy name)));
 
 val _ =
   Outer_Syntax.improper_command "touch_thy" "outdate theory, including descendants" Keyword.diag
     (Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.touch_thy name)));
+      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.touch_thy name)));
 
 val _ =
   Outer_Syntax.improper_command "remove_thy" "remove theory from loader database" Keyword.diag
     (Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.remove_thy name)));
+      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.remove_thy name)));
 
 val _ =
   Outer_Syntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
     Keyword.diag (Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => ThyInfo.kill_thy name)));
+      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.kill_thy name)));
 
 val _ =
   Outer_Syntax.improper_command "display_drafts" "display raw source files with symbols"
-    Keyword.diag (Scan.repeat1 Parse.path >> (Toplevel.no_timing oo IsarCmd.display_drafts));
+    Keyword.diag (Scan.repeat1 Parse.path >> (Toplevel.no_timing oo Isar_Cmd.display_drafts));
 
 val _ =
   Outer_Syntax.improper_command "print_drafts" "print raw source files with symbols"
-    Keyword.diag (Scan.repeat1 Parse.path >> (Toplevel.no_timing oo IsarCmd.print_drafts));
+    Keyword.diag (Scan.repeat1 Parse.path >> (Toplevel.no_timing oo Isar_Cmd.print_drafts));
 
 val opt_limits =
   Scan.option Parse.nat -- Scan.option (Parse.$$$ "," |-- Parse.!!! Parse.nat);
 
 val _ =
   Outer_Syntax.improper_command "pr" "print current proof state (if present)" Keyword.diag
-    (opt_modes -- opt_limits >> (Toplevel.no_timing oo IsarCmd.pr));
+    (opt_modes -- opt_limits >> (Toplevel.no_timing oo Isar_Cmd.pr));
 
 val _ =
   Outer_Syntax.improper_command "disable_pr" "disable printing of toplevel state" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.disable_pr));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.disable_pr));
 
 val _ =
   Outer_Syntax.improper_command "enable_pr" "enable printing of toplevel state" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.enable_pr));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.enable_pr));
 
 val _ =
   Outer_Syntax.improper_command "commit" "commit current session to ML database" Keyword.diag
@@ -999,11 +999,11 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "quit" "quit Isabelle" Keyword.control
-    (Parse.opt_unit >> (Toplevel.no_timing oo K IsarCmd.quit));
+    (Parse.opt_unit >> (Toplevel.no_timing oo K Isar_Cmd.quit));
 
 val _ =
   Outer_Syntax.improper_command "exit" "exit Isar loop" Keyword.control
-    (Scan.succeed (Toplevel.no_timing o IsarCmd.exit));
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.exit));
 
 end;
 

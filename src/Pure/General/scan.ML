@@ -322,5 +322,5 @@ fun merge_lexicons (lex1, lex2) = fold extend_lexicon (dest [] lex2) lex1;
 
 end;
 
-structure BasicScan: BASIC_SCAN = Scan;
-open BasicScan;
+structure Basic_Scan: BASIC_SCAN = Scan;
+open Basic_Scan;

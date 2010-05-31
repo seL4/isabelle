@@ -27,10 +27,10 @@ sig
   val term_of_sort: sort -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val sortT: typ
-  val type_ext: SynExt.syn_ext
+  val type_ext: Syn_Ext.syn_ext
 end;
 
-structure TypeExt: TYPE_EXT =
+structure Type_Ext: TYPE_EXT =
 struct
 
 (** input utils **)
@@ -242,7 +242,7 @@ val sortT = Type ("sort", []);
 val classesT = Type ("classes", []);
 val typesT = Type ("types", []);
 
-local open Lexicon SynExt in
+local open Lexicon Syn_Ext in
 
 val type_ext = syn_ext' false (K false)
   [Mfix ("_",           tidT --> typeT,                "", [], max_pri),
@@ -271,7 +271,7 @@ val type_ext = syn_ext' false (K false)
    Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri),
    Mfix ("'_",          typeT,                         "\\<^type>dummy", [], max_pri)]
   ["_type_prop"]
-  ([], [], [], map SynExt.mk_trfun [("\\<^type>fun", K fun_ast_tr')])
+  ([], [], [], map Syn_Ext.mk_trfun [("\\<^type>fun", K fun_ast_tr')])
   []
   ([], []);
 

@@ -60,7 +60,7 @@ sig
     (string -> (Proof.context -> term list -> term) option) -> Ast.ast list -> term list
 end;
 
-structure SynTrans: SYN_TRANS =
+structure Syn_Trans: SYN_TRANS =
 struct
 
 
@@ -166,7 +166,7 @@ fun type_tr (*"_TYPE"*) [ty] = mk_type ty
 
 (* dddot *)
 
-fun dddot_tr (*"_DDDOT"*) ts = Term.list_comb (Lexicon.var SynExt.dddot_indexname, ts);
+fun dddot_tr (*"_DDDOT"*) ts = Term.list_comb (Lexicon.var Syn_Ext.dddot_indexname, ts);
 
 
 (* quote / antiquote *)
@@ -354,9 +354,9 @@ fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
 (* type propositions *)
 
 fun type_prop_tr' _ (*"_type_prop"*) T [Const ("\\<^const>Pure.sort_constraint", _)] =
-      Lexicon.const "_sort_constraint" $ TypeExt.term_of_typ true T
+      Lexicon.const "_sort_constraint" $ Type_Ext.term_of_typ true T
   | type_prop_tr' show_sorts (*"_type_prop"*) T [t] =
-      Lexicon.const "_ofclass" $ TypeExt.term_of_typ show_sorts T $ t
+      Lexicon.const "_ofclass" $ Type_Ext.term_of_typ show_sorts T $ t
   | type_prop_tr' _ (*"_type_prop"*) T ts = raise TYPE ("type_prop_tr'", [T], ts);
 
 
@@ -394,7 +394,7 @@ fun prop_tr' tm =
 (* meta implication *)
 
 fun impl_ast_tr' (*"==>"*) asts =
-  if TypeExt.no_brackets () then raise Match
+  if Type_Ext.no_brackets () then raise Match
   else
     (case Ast.unfold_ast_p "\\<^const>==>" (Ast.Appl (Ast.Constant "\\<^const>==>" :: asts)) of
       (prems as _ :: _ :: _, concl) =>
@@ -408,14 +408,14 @@ fun impl_ast_tr' (*"==>"*) asts =
 (* type reflection *)
 
 fun type_tr' show_sorts (*"TYPE"*) (Type ("itself", [T])) ts =
-      Term.list_comb (Lexicon.const "_TYPE" $ TypeExt.term_of_typ show_sorts T, ts)
+      Term.list_comb (Lexicon.const "_TYPE" $ Type_Ext.term_of_typ show_sorts T, ts)
   | type_tr' _ _ _ = raise Match;
 
 
 (* type constraints *)
 
 fun type_constraint_tr' show_sorts (*"_type_constraint_"*) (Type ("fun", [T, _])) (t :: ts) =
-      Term.list_comb (Lexicon.const SynExt.constrainC $ t $ TypeExt.term_of_typ show_sorts T, ts)
+      Term.list_comb (Lexicon.const Syn_Ext.constrainC $ t $ Type_Ext.term_of_typ show_sorts T, ts)
   | type_constraint_tr' _ _ _ = raise Match;
 
 

@@ -219,7 +219,7 @@ fun check_thread_manager params = Synchronized.change global_state
             then NONE
             else
               let
-                val _ = List.app (SimpleThread.interrupt o #1) cancelling;
+                val _ = List.app (Simple_Thread.interrupt o #1) cancelling;
                 val cancelling' = filter (Thread.isActive o #1) cancelling;
                 val state' = make_state manager timeout_heap' active cancelling' messages store;
               in SOME (map #2 timeout_threads, state') end

@@ -1328,7 +1328,7 @@ fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
 (**** theory data ****)
 
-structure ProofData = Theory_Data
+structure Data = Theory_Data
 (
   type T =
     (stamp * (proof * proof)) list *
@@ -1341,11 +1341,11 @@ structure ProofData = Theory_Data
       AList.merge (op =) (K true) (procs1, procs2));
 );
 
-fun get_data thy = let val (rules, procs) = ProofData.get thy in (map #2 rules, map #2 procs) end;
+fun get_data thy = let val (rules, procs) = Data.get thy in (map #2 rules, map #2 procs) end;
 fun rew_proof thy = rewrite_prf fst (get_data thy);
 
-fun add_prf_rrule r = (ProofData.map o apfst) (cons (stamp (), r));
-fun add_prf_rproc p = (ProofData.map o apsnd) (cons (stamp (), p));
+fun add_prf_rrule r = (Data.map o apfst) (cons (stamp (), r));
+fun add_prf_rproc p = (Data.map o apsnd) (cons (stamp (), p));
 
 
 (***** promises *****)

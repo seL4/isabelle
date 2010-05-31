@@ -1,5 +1,5 @@
 Unsynchronized.set quick_and_dirty;
-Unsynchronized.set ThyOutput.source;
+Unsynchronized.set Thy_Output.source;
 use "../../antiquote_setup.ML";
 
 use_thys [

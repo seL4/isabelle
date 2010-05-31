@@ -15,15 +15,15 @@ struct
 
 (* auxiliary facts table *)
 
-structure AuxFacts = Proof_Data
+structure Aux_Facts = Proof_Data
 (
   type T = thm list Inttab.table;
   fun init _ = Inttab.empty;
 );
 
-val put_thms = AuxFacts.map o Inttab.update;
+val put_thms = Aux_Facts.map o Inttab.update;
 
-fun the_thms ctxt name = the (Inttab.lookup (AuxFacts.get ctxt) name);
+fun the_thms ctxt name = the (Inttab.lookup (Aux_Facts.get ctxt) name);
 fun the_thm ctxt name = the_single (the_thms ctxt name);
 
 fun thm_bind kind a i =

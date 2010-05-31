@@ -325,7 +325,7 @@ fun merge_refs (ref1, ref2) =
 local
   val lock = Mutex.mutex ();
 in
-  fun SYNCHRONIZED e = SimpleThread.synchronized "theory" lock e;
+  fun SYNCHRONIZED e = Simple_Thread.synchronized "theory" lock e;
 end;
 
 fun create_thy self draft ids data ancestry history =

@@ -181,7 +181,7 @@ val no_entries = Symtab.make [(no_id, make_entry NONE (SOME no_id))];
 
 fun begin_document (id: document_id) path =
   let
-    val (dir, name) = ThyLoad.split_thy_path path;
+    val (dir, name) = Thy_Load.split_thy_path path;
     val _ = define_document id (make_document dir name no_entries);
   in () end;
 
@@ -197,8 +197,8 @@ fun end_document (id: document_id) =
           (case Lazy.force end_state of
             SOME st =>
              (Toplevel.run_command name (Toplevel.put_id id (Toplevel.commit_exit Position.none)) st;
-              ThyInfo.touch_child_thys name;
-              ThyInfo.register_thy name)
+              Thy_Info.touch_child_thys name;
+              Thy_Info.register_thy name)
           | NONE => error ("Failed to finish theory " ^ quote name)));
     in () end);
 

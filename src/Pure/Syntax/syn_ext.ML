@@ -41,7 +41,7 @@ sig
   val chain_pri: int
   val delims_of: xprod list -> string list list
   datatype syn_ext =
-    SynExt of {
+    Syn_Ext of {
       xprods: xprod list,
       consts: string list,
       prmodes: string list,
@@ -86,7 +86,7 @@ sig
   val pure_ext: syn_ext
 end;
 
-structure SynExt: SYN_EXT =
+structure Syn_Ext: SYN_EXT =
 struct
 
 
@@ -326,7 +326,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
 (** datatype syn_ext **)
 
 datatype syn_ext =
-  SynExt of {
+  Syn_Ext of {
     xprods: xprod list,
     consts: string list,
     prmodes: string list,
@@ -352,7 +352,7 @@ fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, p
     val mfix_consts =
       distinct (op =) (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
   in
-    SynExt {
+    Syn_Ext {
       xprods = xprods,
       consts = union (op =) consts mfix_consts,
       prmodes = distinct (op =) (map (fn (m, _, _) => m) tokentrfuns),

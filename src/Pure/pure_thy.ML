@@ -52,7 +52,7 @@ struct
 
 (** theory data **)
 
-structure FactsData = Theory_Data
+structure Global_Facts = Theory_Data
 (
   type T = Facts.T * thm list;
   val empty = (Facts.empty, []);
@@ -63,19 +63,19 @@ structure FactsData = Theory_Data
 
 (* facts *)
 
-val facts_of = #1 o FactsData.get;
+val facts_of = #1 o Global_Facts.get;
 
 val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
 
-fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
+fun hide_fact fully name = Global_Facts.map (apfst (Facts.hide fully name));
 
 
 (* proofs *)
 
-fun register_proofs (thy, thms) = (FactsData.map (apsnd (append thms)) thy, thms);
+fun register_proofs (thy, thms) = (Global_Facts.map (apsnd (append thms)) thy, thms);
 
-fun join_proofs thy = Thm.join_proofs (rev (#2 (FactsData.get thy)));
+fun join_proofs thy = Thm.join_proofs (rev (#2 (Global_Facts.get thy)));
 
 
 
@@ -143,7 +143,7 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
       val (thy', thms') =
         register_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
       val thms'' = map (Thm.transfer thy') thms';
-      val thy'' = thy' |> (FactsData.map o apfst) (Facts.add_global naming (b, thms'') #> snd);
+      val thy'' = thy' |> (Global_Facts.map o apfst) (Facts.add_global naming (b, thms'') #> snd);
     in (thms'', thy'') end;
 
 
@@ -178,7 +178,7 @@ val add_thm = yield_singleton add_thms;
 (* add_thms_dynamic *)
 
 fun add_thms_dynamic (b, f) thy = thy
-  |> (FactsData.map o apfst)
+  |> (Global_Facts.map o apfst)
       (Facts.add_dynamic (Sign.naming_of thy) (b, f) #> snd);
 
 
@@ -252,7 +252,7 @@ val applC_syntax =
   ("_applC", typ "('b => 'a) => cargs => logic", Mixfix ("(1_/ _)", [1000, 1000], 999)),
   ("_applC", typ "('b => 'a) => cargs => aprop", Mixfix ("(1_/ _)", [1000, 1000], 999))];
 
-structure OldApplSyntax = Theory_Data
+structure Old_Appl_Syntax = Theory_Data
 (
   type T = bool;
   val empty = false;
@@ -262,10 +262,10 @@ structure OldApplSyntax = Theory_Data
     else error "Cannot merge theories with different application syntax";
 );
 
-val old_appl_syntax = OldApplSyntax.get;
+val old_appl_syntax = Old_Appl_Syntax.get;
 
 val old_appl_syntax_setup =
-  OldApplSyntax.put true #>
+  Old_Appl_Syntax.put true #>
   Sign.del_modesyntax_i Syntax.mode_default applC_syntax #>
   Sign.add_syntax_i appl_syntax;
 
@@ -274,7 +274,7 @@ val old_appl_syntax_setup =
 
 val _ = Context.>> (Context.map_theory
   (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
-   OldApplSyntax.put false #>
+   Old_Appl_Syntax.put false #>
    Sign.add_types
    [(Binding.name "fun", 2, NoSyn),
     (Binding.name "prop", 0, NoSyn),

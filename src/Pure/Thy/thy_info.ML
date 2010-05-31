@@ -41,7 +41,7 @@ sig
   val finish: unit -> unit
 end;
 
-structure ThyInfo: THY_INFO =
+structure Thy_Info: THY_INFO =
 struct
 
 (** theory loader actions and hooks **)
@@ -292,12 +292,12 @@ fun provide path name info (SOME {update_time, master, text, parents, files}) =
 
 fun run_file path =
   (case Option.map (Context.theory_name o Context.the_theory) (Context.thread_data ()) of
-    NONE => (ThyLoad.load_ml Path.current path; ())
+    NONE => (Thy_Load.load_ml Path.current path; ())
   | SOME name =>
       (case lookup_deps name of
         SOME deps =>
-          change_deps name (provide path name (ThyLoad.load_ml (master_dir' deps) path))
-      | NONE => (ThyLoad.load_ml Path.current path; ())));
+          change_deps name (provide path name (Thy_Load.load_ml (master_dir' deps) path))
+      | NONE => (Thy_Load.load_ml Path.current path; ())));
 
 in
 
@@ -306,7 +306,7 @@ fun provide_file path name =
     val dir = master_directory name;
     val _ = check_unfinished error name;
   in
-    (case ThyLoad.check_file dir path of
+    (case Thy_Load.check_file dir path of
       SOME path_info => change_deps name (provide path name path_info)
     | NONE => error ("Could not find file " ^ quote (Path.implode path)))
   end;
@@ -429,7 +429,7 @@ fun check_ml master (src_path, info) =
   let val info' =
     (case info of NONE => NONE
     | SOME (_, id) =>
-        (case ThyLoad.check_ml (master_dir master) src_path of NONE => NONE
+        (case Thy_Load.check_ml (master_dir master) src_path of NONE => NONE
         | SOME (path', id') => if id <> id' then NONE else SOME (path', id')))
   in (src_path, info') end;
 
@@ -437,16 +437,16 @@ fun check_deps dir name =
   (case lookup_deps name of
     SOME NONE => (true, NONE, get_parents name)
   | NONE =>
-      let val {master, text, imports = parents, uses = files} = ThyLoad.deps_thy dir name
+      let val {master, text, imports = parents, uses = files} = Thy_Load.deps_thy dir name
       in (false, init_deps (SOME master) text parents files, parents) end
   | SOME (SOME {update_time, master, text, parents, files}) =>
       let
-        val (thy_path, thy_id) = ThyLoad.check_thy dir name;
+        val (thy_path, thy_id) = Thy_Load.check_thy dir name;
         val master' = SOME (thy_path, thy_id);
       in
         if Option.map #2 master <> SOME thy_id then
           let val {text = text', imports = parents', uses = files', ...} =
-            ThyLoad.deps_thy dir name;
+            Thy_Load.deps_thy dir name;
           in (false, init_deps master' text' parents' files', parents') end
         else
           let
@@ -571,7 +571,7 @@ fun register_thy name =
     val _ = map get_theory (get_parents name);
     val _ = check_unfinished error name;
     val _ = touch_thy name;
-    val master = #master (ThyLoad.deps_thy Path.current name);
+    val master = #master (Thy_Load.deps_thy Path.current name);
     val upd_time = #2 (Management_Data.get thy);
   in
     CRITICAL (fn () =>

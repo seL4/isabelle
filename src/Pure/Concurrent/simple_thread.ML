@@ -12,7 +12,7 @@ sig
   val synchronized: string -> Mutex.mutex -> (unit -> 'a) -> 'a
 end;
 
-structure SimpleThread: SIMPLE_THREAD =
+structure Simple_Thread: SIMPLE_THREAD =
 struct
 
 fun attributes interrupts =

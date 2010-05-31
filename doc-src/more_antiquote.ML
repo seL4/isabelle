@@ -64,8 +64,8 @@ fun pr_type ctxt = ProofContext.read_type_name_proper ctxt true
 
 in
 
-val _ = ThyOutput.antiquotation "class" (Scan.lift Args.name) (pr_class o #context);
-val _ = ThyOutput.antiquotation "type" (Scan.lift Args.name) (pr_type o #context);
+val _ = Thy_Output.antiquotation "class" (Scan.lift Args.name) (pr_class o #context);
+val _ = Thy_Output.antiquotation "type" (Scan.lift Args.name) (pr_type o #context);
 
 end;
 
@@ -95,11 +95,11 @@ fun pretty_code_thm src ctxt raw_const =
       |> snd
       |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
       |> map (holize o no_vars ctxt o AxClass.overload thy);
-  in ThyOutput.output (ThyOutput.maybe_pretty_source (pretty_thm ctxt) src thms) end;
+  in Thy_Output.output (Thy_Output.maybe_pretty_source (pretty_thm ctxt) src thms) end;
 
 in
 
-val _ = ThyOutput.antiquotation "code_thms" Args.term
+val _ = Thy_Output.antiquotation "code_thms" Args.term
   (fn {source, context, ...} => pretty_code_thm source context);
 
 end;
@@ -123,7 +123,7 @@ local
 
 in
 
-val _ = ThyOutput.antiquotation "code_stmts"
+val _ = Thy_Output.antiquotation "code_stmts"
   (parse_const_terms -- Scan.repeat parse_names -- Scan.lift (Args.parens Args.name))
   (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), target) =>
     let val thy = ProofContext.theory_of ctxt in

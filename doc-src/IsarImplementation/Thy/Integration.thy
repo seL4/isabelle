@@ -368,13 +368,13 @@ text %mlref {*
   @{index_ML theory: "string -> theory"} \\
   @{index_ML use_thy: "string -> unit"} \\
   @{index_ML use_thys: "string list -> unit"} \\
-  @{index_ML ThyInfo.touch_thy: "string -> unit"} \\
-  @{index_ML ThyInfo.remove_thy: "string -> unit"} \\[1ex]
-  @{index_ML ThyInfo.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
-  @{index_ML ThyInfo.end_theory: "theory -> unit"} \\
-  @{index_ML ThyInfo.register_theory: "theory -> unit"} \\[1ex]
+  @{index_ML Thy_Info.touch_thy: "string -> unit"} \\
+  @{index_ML Thy_Info.remove_thy: "string -> unit"} \\[1ex]
+  @{index_ML Thy_Info.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
+  @{index_ML Thy_Info.end_theory: "theory -> unit"} \\
+  @{index_ML Thy_Info.register_theory: "theory -> unit"} \\[1ex]
   @{verbatim "datatype action = Update | Outdate | Remove"} \\
-  @{index_ML ThyInfo.add_hook: "(ThyInfo.action -> string -> unit) -> unit"} \\
+  @{index_ML Thy_Info.add_hook: "(Thy_Info.action -> string -> unit) -> unit"} \\
   \end{mldecls}
 
   \begin{description}
@@ -395,24 +395,24 @@ text %mlref {*
   intrinsic parallelism can be exploited by the system, to speedup
   loading.
 
-  \item @{ML ThyInfo.touch_thy}~@{text A} performs and @{text outdate} action
+  \item @{ML Thy_Info.touch_thy}~@{text A} performs and @{text outdate} action
   on theory @{text A} and all descendants.
 
-  \item @{ML ThyInfo.remove_thy}~@{text A} deletes theory @{text A} and all
+  \item @{ML Thy_Info.remove_thy}~@{text A} deletes theory @{text A} and all
   descendants from the theory database.
 
-  \item @{ML ThyInfo.begin_theory} is the basic operation behind a
+  \item @{ML Thy_Info.begin_theory} is the basic operation behind a
   @{text \<THEORY>} header declaration.  This {\ML} function is
   normally not invoked directly.
 
-  \item @{ML ThyInfo.end_theory} concludes the loading of a theory
+  \item @{ML Thy_Info.end_theory} concludes the loading of a theory
   proper and stores the result in the theory database.
 
-  \item @{ML ThyInfo.register_theory}~@{text "text thy"} registers an
+  \item @{ML Thy_Info.register_theory}~@{text "text thy"} registers an
   existing theory value with the theory loader database.  There is no
   management of associated sources.
 
-  \item @{ML "ThyInfo.add_hook"}~@{text f} registers function @{text
+  \item @{ML "Thy_Info.add_hook"}~@{text f} registers function @{text
   f} as a hook for theory database actions.  The function will be
   invoked with the action and theory name being involved; thus derived
   actions may be performed in associated system components, e.g.\

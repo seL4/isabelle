@@ -100,7 +100,7 @@ fun pretty_ss ctxt ss =
 
 (** simpset data **)
 
-structure SimpsetData = Generic_Data
+structure Simpset = Generic_Data
 (
   type T = simpset;
   val empty = empty_ss;
@@ -108,8 +108,8 @@ structure SimpsetData = Generic_Data
   val merge = merge_ss;
 );
 
-val get_ss = SimpsetData.get;
-fun map_ss f context = SimpsetData.map (with_context (Context.proof_of context) f) context;
+val get_ss = Simpset.get;
+fun map_ss f context = Simpset.map (with_context (Context.proof_of context) f) context;
 
 
 (* attributes *)

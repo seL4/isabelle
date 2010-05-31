@@ -39,7 +39,7 @@ fun value (Var {var, ...}) = ! var;
 (* synchronized access *)
 
 fun timed_access (Var {name, lock, cond, var}) time_limit f =
-  SimpleThread.synchronized name lock (fn () =>
+  Simple_Thread.synchronized name lock (fn () =>
     let
       fun try_change () =
         let val x = ! var in

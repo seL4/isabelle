@@ -91,18 +91,18 @@ fun parse_command "sorry" text = [D.Postponegoal {text = text}, D.Closeblock {}]
 
 fun parse_span span =
   let
-    val kind = ThySyntax.span_kind span;
-    val toks = ThySyntax.span_content span;
-    val text = implode (map (Print_Mode.setmp [] ThySyntax.present_token) toks);
+    val kind = Thy_Syntax.span_kind span;
+    val toks = Thy_Syntax.span_content span;
+    val text = implode (map (Print_Mode.setmp [] Thy_Syntax.present_token) toks);
   in
     (case kind of
-      ThySyntax.Command name => parse_command name text
-    | ThySyntax.Ignored => [D.Whitespace {text = text}]
-    | ThySyntax.Malformed => [D.Unparseable {text = text}])
+      Thy_Syntax.Command name => parse_command name text
+    | Thy_Syntax.Ignored => [D.Whitespace {text = text}]
+    | Thy_Syntax.Malformed => [D.Unparseable {text = text}])
   end;
 
 
 fun pgip_parser pos str =
-  maps parse_span (ThySyntax.parse_spans (Keyword.get_lexicons ()) pos str);
+  maps parse_span (Thy_Syntax.parse_spans (Keyword.get_lexicons ()) pos str);
 
 end;

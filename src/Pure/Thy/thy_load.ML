@@ -31,9 +31,8 @@ sig
   val load_ml: Path.T -> Path.T -> Path.T * File.ident
 end;
 
-structure ThyLoad: THY_LOAD =
+structure Thy_Load: THY_LOAD =
 struct
-
 
 (* maintain load path *)
 
@@ -132,5 +131,5 @@ fun load_ml dir raw_path =
 
 end;
 
-structure Basic_Thy_Load: BASIC_THY_LOAD = ThyLoad;
+structure Basic_Thy_Load: BASIC_THY_LOAD = Thy_Load;
 open Basic_Thy_Load;

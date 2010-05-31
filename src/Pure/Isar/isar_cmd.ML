@@ -85,7 +85,7 @@ sig
   val proof_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
 end;
 
-structure IsarCmd: ISAR_CMD =
+structure Isar_Cmd: ISAR_CMD =
 struct
 
 
@@ -272,10 +272,10 @@ val skip_proof = local_skip_proof o global_skip_proof;
 (* init and exit *)
 
 fun init_theory (name, imports, uses) =
-  Toplevel.init_theory name (ThyInfo.begin_theory name imports (map (apfst Path.explode) uses))
+  Toplevel.init_theory name (Thy_Info.begin_theory name imports (map (apfst Path.explode) uses))
     (fn thy =>
-      if ThyInfo.check_known_thy (Context.theory_name thy)
-      then ThyInfo.end_theory thy else ());
+      if Thy_Info.check_known_thy (Context.theory_name thy)
+      then Thy_Info.end_theory thy else ());
 
 val exit = Toplevel.keep (fn state =>
  (Context.set_thread_data (try Toplevel.generic_theory_of state);
@@ -384,18 +384,18 @@ val print_trans_rules = Toplevel.unknown_context o
 val print_methods = Toplevel.unknown_theory o
   Toplevel.keep (Method.print_methods o Toplevel.theory_of);
 
-val print_antiquotations = Toplevel.imperative ThyOutput.print_antiquotations;
+val print_antiquotations = Toplevel.imperative Thy_Output.print_antiquotations;
 
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
-    val all_thys = sort ThyInfo.thy_ord (thy :: Theory.ancestors_of thy);
+    val all_thys = sort Thy_Info.thy_ord (thy :: Theory.ancestors_of thy);
     val gr = all_thys |> map (fn node =>
       let
         val name = Context.theory_name node;
         val parents = map Context.theory_name (Theory.parents_of node);
         val dir = Present.session_name node;
-        val unfold = not (ThyInfo.known_thy name andalso ThyInfo.is_finished name);
+        val unfold = not (Thy_Info.known_thy name andalso Thy_Info.is_finished name);
       in {name = name, ID = name, parents = parents, dir = dir, unfold = unfold, path = ""} end);
   in Present.display_graph gr end);
 
@@ -427,8 +427,8 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
     Thm_Deps.unused_thms
       (case opt_range of
         NONE => (Theory.parents_of thy, [thy])
-      | SOME (xs, NONE) => (map ThyInfo.get_theory xs, [thy])
-      | SOME (xs, SOME ys) => (map ThyInfo.get_theory xs, map ThyInfo.get_theory ys))
+      | SOME (xs, NONE) => (map Thy_Info.get_theory xs, [thy])
+      | SOME (xs, SOME ys) => (map Thy_Info.get_theory xs, map Thy_Info.get_theory ys))
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
 
@@ -517,7 +517,7 @@ end;
 
 fun check_text (txt, pos) state =
  (Position.report Markup.doc_source pos;
-  ignore (ThyOutput.eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
+  ignore (Thy_Output.eval_antiquote (#1 (Keyword.get_lexicons ())) state (txt, pos)));
 
 fun header_markup txt = Toplevel.keep (fn state =>
   if Toplevel.is_toplevel state then check_text txt state

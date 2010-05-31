@@ -271,15 +271,16 @@ fun gen_intros_tac goals intros facts =
 val intros_tac = gen_intros_tac ALLGOALS;
 val try_intros_tac = gen_intros_tac TRYALL;
 
+
 (* ML tactics *)
 
-structure TacticData = Proof_Data
+structure ML_Tactic = Proof_Data
 (
   type T = thm list -> tactic;
   fun init _ = undefined;
 );
 
-val set_tactic = TacticData.put;
+val set_tactic = ML_Tactic.put;
 
 fun ml_tactic (txt, pos) ctxt =
   let
@@ -287,7 +288,7 @@ fun ml_tactic (txt, pos) ctxt =
       (ML_Context.expression pos
         "fun tactic (facts: thm list) : tactic"
         "Context.map_proof (Method.set_tactic tactic)" (ML_Lex.read pos txt));
-  in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (TacticData.get ctxt') end;
+  in Context.setmp_thread_data (SOME (Context.Proof ctxt)) (ML_Tactic.get ctxt') end;
 
 fun tactic txt ctxt = METHOD (ml_tactic txt ctxt);
 fun raw_tactic txt ctxt = RAW_METHOD (ml_tactic txt ctxt);

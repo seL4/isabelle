@@ -503,9 +503,12 @@ for some time as aliases within the structure Legacy:
   OuterLex      ~>  Token
   OuterParse    ~>  Parse
   OuterSyntax   ~>  Outer_Syntax
-  SpecParse     ~>  Parse_Spec
-  TypeInfer     ~>  Type_Infer
   PrintMode     ~>  Print_Mode
+  SpecParse     ~>  Parse_Spec
+  ThyInfo       ~>  Thy_Info
+  ThyLoad       ~>  Thy_Load
+  ThyOutput     ~>  Thy_Output
+  TypeInfer     ~>  Type_Infer
 
 Note that "open Legacy" simplifies porting of sources, but forgetting
 to remove it again will complicate porting again in the future.

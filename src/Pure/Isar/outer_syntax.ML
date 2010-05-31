@@ -11,7 +11,7 @@ signature OUTER_SYNTAX =
 sig
   val command: string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
-  val markup_command: ThyOutput.markup -> string -> string -> Keyword.T ->
+  val markup_command: Thy_Output.markup -> string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val improper_command: string -> string -> Keyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
@@ -43,7 +43,7 @@ struct
 
 datatype command = Command of
  {comment: string,
-  markup: ThyOutput.markup option,
+  markup: Thy_Output.markup option,
   int_only: bool,
   parse: (Toplevel.transition -> Toplevel.transition) parser};
 
@@ -83,7 +83,7 @@ end;
 local
 
 val global_commands = Unsynchronized.ref (Symtab.empty: command Symtab.table);
-val global_markups = Unsynchronized.ref ([]: (string * ThyOutput.markup) list);
+val global_markups = Unsynchronized.ref ([]: (string * Thy_Output.markup) list);
 
 fun change_commands f = CRITICAL (fn () =>
  (Unsynchronized.change global_commands f;
@@ -235,9 +235,9 @@ val not_singleton = "Exactly one command expected";
 
 fun prepare_span commands span =
   let
-    val range_pos = Position.encode_range (ThySyntax.span_range span);
-    val toks = ThySyntax.span_content span;
-    val _ = List.app ThySyntax.report_token toks;
+    val range_pos = Position.encode_range (Thy_Syntax.span_range span);
+    val toks = Thy_Syntax.span_content span;
+    val _ = List.app Thy_Syntax.report_token toks;
   in
     (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
       [tr] => (tr, true)
@@ -257,7 +257,7 @@ fun prepare_unit commands (cmd, proof, proper_proof) =
 
 fun prepare_command pos str =
   let val (lexs, commands) = get_syntax () in
-    (case ThySyntax.parse_spans lexs pos str of
+    (case Thy_Syntax.parse_spans lexs pos str of
       [span] => #1 (prepare_span commands span)
     | _ => Toplevel.malformed pos not_singleton)
   end;
@@ -271,21 +271,21 @@ fun load_thy name pos text time =
 
     val _ = Present.init_theory name;
 
-    val toks = Source.exhausted (ThySyntax.token_source lexs pos (Source.of_list text));
-    val spans = Source.exhaust (ThySyntax.span_source toks);
-    val _ = List.app ThySyntax.report_span spans;
-    val units = Source.exhaust (ThySyntax.unit_source (Source.of_list spans))
+    val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_list text));
+    val spans = Source.exhaust (Thy_Syntax.span_source toks);
+    val _ = List.app Thy_Syntax.report_span spans;
+    val units = Source.exhaust (Thy_Syntax.unit_source (Source.of_list spans))
       |> maps (prepare_unit commands);
 
     val _ = Present.theory_source name
-      (fn () => HTML.html_mode (implode o map ThySyntax.present_span) spans);
+      (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val results = cond_timeit time "" (fn () => Toplevel.excursion units);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     fun after_load () =
-      ThyOutput.present_thy (#1 lexs) Keyword.command_tags is_markup (Lazy.force results) toks
+      Thy_Output.present_thy (#1 lexs) Keyword.command_tags is_markup (Lazy.force results) toks
       |> Buffer.content
       |> Present.theory_output name;
   in after_load end;

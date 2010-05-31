@@ -162,7 +162,7 @@ fun cancel (Queue {groups, jobs}) group =
     val tasks = Inttab.lookup_list groups (group_id group);
     val running =
       fold (get_job jobs #> (fn Running t => insert Thread.equal t | _ => I)) tasks [];
-    val _ = List.app SimpleThread.interrupt running;
+    val _ = List.app Simple_Thread.interrupt running;
   in null running end;
 
 fun cancel_all (Queue {groups, jobs}) =
@@ -173,7 +173,7 @@ fun cancel_all (Queue {groups, jobs}) =
           Running t => (insert eq_group group groups, insert Thread.equal t running)
         | _ => (groups, running)));
     val (running_groups, running) = Task_Graph.fold (cancel_job o #1 o #2) jobs ([], []);
-    val _ = List.app SimpleThread.interrupt running;
+    val _ = List.app Simple_Thread.interrupt running;
   in running_groups end;
 
 

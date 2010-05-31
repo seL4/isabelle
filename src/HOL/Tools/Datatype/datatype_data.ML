@@ -236,7 +236,7 @@ val trfun_setup =
 
 (** document antiquotation **)
 
-val _ = ThyOutput.antiquotation "datatype" (Args.type_name true)
+val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
   (fn {source = src, context = ctxt, ...} => fn dtco =>
     let
       val thy = ProofContext.theory_of ctxt;
@@ -257,7 +257,7 @@ val _ = ThyOutput.antiquotation "datatype" (Args.type_name true)
            Pretty.str " =" :: Pretty.brk 1 ::
            flat (separate [Pretty.brk 1, Pretty.str "| "]
              (map (single o pretty_constr) cos)));
-    in ThyOutput.output (ThyOutput.maybe_pretty_source (K pretty_datatype) src [()]) end);
+    in Thy_Output.output (Thy_Output.maybe_pretty_source (K pretty_datatype) src [()]) end);
 
 
 

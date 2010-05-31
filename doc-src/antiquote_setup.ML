@@ -35,7 +35,7 @@ fun clean_name "\<dots>" = "dots"
 
 val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
 
-val _ = ThyOutput.antiquotation "verbatim" (Scan.lift Args.name)
+val _ = Thy_Output.antiquotation "verbatim" (Scan.lift Args.name)
   (K (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"));
 
 
@@ -56,7 +56,7 @@ fun ml_structure (txt, _) = "functor XXX() = struct structure XX = " ^ txt ^ " e
 
 fun ml_functor (txt, _) = "ML_Env.check_functor " ^ ML_Syntax.print_string txt;
 
-fun index_ml name kind ml = ThyOutput.antiquotation name
+fun index_ml name kind ml = Thy_Output.antiquotation name
   (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) ""))
   (fn {context = ctxt, ...} => fn (txt1, txt2) =>
     let
@@ -71,8 +71,8 @@ fun index_ml name kind ml = ThyOutput.antiquotation name
     in
       "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string txt1 ^ "}" ^
       (txt'
-      |> (if ! ThyOutput.quotes then quote else I)
-      |> (if ! ThyOutput.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+      |> (if ! Thy_Output.quotes then quote else I)
+      |> (if ! Thy_Output.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
           else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
     end);
 
@@ -89,30 +89,30 @@ end;
 
 (* named theorems *)
 
-val _ = ThyOutput.antiquotation "named_thms"
+val _ = Thy_Output.antiquotation "named_thms"
   (Scan.repeat (Attrib.thm -- Scan.lift (Args.parens Args.name)))
   (fn {context = ctxt, ...} =>
-    map (apfst (ThyOutput.pretty_thm ctxt))
-    #> (if ! ThyOutput.quotes then map (apfst Pretty.quote) else I)
-    #> (if ! ThyOutput.display
+    map (apfst (Thy_Output.pretty_thm ctxt))
+    #> (if ! Thy_Output.quotes then map (apfst Pretty.quote) else I)
+    #> (if ! Thy_Output.display
         then
           map (fn (p, name) =>
-            Output.output (Pretty.string_of (Pretty.indent (! ThyOutput.indent) p)) ^
-            "\\rulename{" ^ Output.output (Pretty.str_of (ThyOutput.pretty_text name)) ^ "}")
+            Output.output (Pretty.string_of (Pretty.indent (! Thy_Output.indent) p)) ^
+            "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text name)) ^ "}")
           #> space_implode "\\par\\smallskip%\n"
           #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
         else
           map (fn (p, name) =>
             Output.output (Pretty.str_of p) ^
-            "\\rulename{" ^ Output.output (Pretty.str_of (ThyOutput.pretty_text name)) ^ "}")
+            "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text name)) ^ "}")
           #> space_implode "\\par\\smallskip%\n"
           #> enclose "\\isa{" "}"));
 
 
 (* theory file *)
 
-val _ = ThyOutput.antiquotation "thy_file" (Scan.lift Args.name)
-  (fn _ => fn name => (ThyLoad.check_thy Path.current name; ThyOutput.output [Pretty.str name]));
+val _ = Thy_Output.antiquotation "thy_file" (Scan.lift Args.name)
+  (fn _ => fn name => (Thy_Load.check_thy Path.current name; Thy_Output.output [Pretty.str name]));
 
 
 (* Isabelle/Isar entities (with index) *)
@@ -131,7 +131,7 @@ fun check_tool name =
 val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup kind index =
-  ThyOutput.antiquotation
+  Thy_Output.antiquotation
     (translate (fn " " => "_" | c => c) kind ^
       (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref"))
     (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
@@ -152,8 +152,8 @@ fun entity check markup kind index =
           idx ^
           (Output.output name
             |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-            |> (if ! ThyOutput.quotes then quote else I)
-            |> (if ! ThyOutput.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+            |> (if ! Thy_Output.quotes then quote else I)
+            |> (if ! Thy_Output.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
                 else hyper o enclose "\\mbox{\\isa{" "}}"))
         else error ("Bad " ^ kind ^ " " ^ quote name)
       end);
@@ -174,14 +174,14 @@ val _ = entity_antiqs (thy_check Attrib.intern Attrib.defined) "" "attribute";
 val _ = entity_antiqs no_check "" "fact";
 val _ = entity_antiqs no_check "" "variable";
 val _ = entity_antiqs no_check "" "case";
-val _ = entity_antiqs (K ThyOutput.defined_command) "" "antiquotation";
-val _ = entity_antiqs (K ThyOutput.defined_option) "" "antiquotation option";
+val _ = entity_antiqs (K Thy_Output.defined_command) "" "antiquotation";
+val _ = entity_antiqs (K Thy_Output.defined_option) "" "antiquotation option";
 val _ = entity_antiqs (fn _ => fn name => is_some (OS.Process.getEnv name)) "isatt" "setting";
 val _ = entity_antiqs no_check "" "inference";
 val _ = entity_antiqs no_check "isatt" "executable";
 val _ = entity_antiqs (K check_tool) "isatt" "tool";
 val _ = entity_antiqs (K (File.exists o Path.explode)) "isatt" "file";
-val _ = entity_antiqs (K ThyInfo.known_thy) "" "theory";
+val _ = entity_antiqs (K Thy_Info.known_thy) "" "theory";
 
 end;
 

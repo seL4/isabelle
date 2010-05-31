@@ -181,7 +181,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val ctxt = Proof.context_of state
 (* FIXME: reintroduce code before new release:
 
-    val nitpick_thy = ThyInfo.get_theory "Nitpick"
+    val nitpick_thy = Thy_Info.get_theory "Nitpick"
     val _ = Theory.subthy (nitpick_thy, thy) orelse
             error "You must import the theory \"Nitpick\" to use Nitpick"
 *)

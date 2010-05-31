@@ -24,7 +24,7 @@ fun thm_deps thms =
             val session =
               (case prefix of
                 a :: _ =>
-                  (case ThyInfo.lookup_theory a of
+                  (case Thy_Info.lookup_theory a of
                     SOME thy =>
                       (case Present.session_name thy of
                         "" => []

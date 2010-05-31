@@ -46,7 +46,7 @@ datatype data = Data of
 fun make_data (base_sort, judgment, atomize_rulify) =
   Data {base_sort = base_sort, judgment = judgment, atomize_rulify = atomize_rulify};
 
-structure ObjectLogicData = Theory_Data
+structure Data = Theory_Data
 (
   type T = data;
   val empty = make_data (NONE, NONE, ([], []));
@@ -63,10 +63,10 @@ structure ObjectLogicData = Theory_Data
       (Thm.merge_thms (atomize1, atomize2), Thm.merge_thms (rulify1, rulify2)));
 );
 
-fun map_data f = ObjectLogicData.map (fn (Data {base_sort, judgment, atomize_rulify}) =>
+fun map_data f = Data.map (fn (Data {base_sort, judgment, atomize_rulify}) =>
   make_data (f (base_sort, judgment, atomize_rulify)));
 
-fun get_data thy = ObjectLogicData.get thy |> (fn Data args => args);
+fun get_data thy = Data.get thy |> (fn Data args => args);
 
 
 

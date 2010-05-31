@@ -193,7 +193,7 @@ fun make_ctxt (mode, naming, syntax, tsig, consts, facts, cases) =
 
 val local_naming = Name_Space.default_naming |> Name_Space.add_path "local";
 
-structure ContextData = Proof_Data
+structure Data = Proof_Data
 (
   type T = ctxt;
   fun init thy =
@@ -202,10 +202,10 @@ structure ContextData = Proof_Data
       (Sign.consts_of thy, Sign.consts_of thy), Facts.empty, []);
 );
 
-fun rep_context ctxt = ContextData.get ctxt |> (fn Ctxt args => args);
+fun rep_context ctxt = Data.get ctxt |> (fn Ctxt args => args);
 
 fun map_context f =
-  ContextData.map (fn Ctxt {mode, naming, syntax, tsig, consts, facts, cases} =>
+  Data.map (fn Ctxt {mode, naming, syntax, tsig, consts, facts, cases} =>
     make_ctxt (f (mode, naming, syntax, tsig, consts, facts, cases)));
 
 fun set_mode mode = map_context (fn (_, naming, syntax, tsig, consts, facts, cases) =>

@@ -67,14 +67,14 @@ val markup_table =
   ("fact", ("", no_check, true)),
   ("variable", ("", no_check, true)),
   ("case", ("", no_check, true)),
-  ("antiquotation", ("", K ThyOutput.defined_command, true)),
-  ("antiquotation option", ("", K ThyOutput.defined_option, true)), (* kann mein scanner nicht erkennen *)
+  ("antiquotation", ("", K Thy_Output.defined_command, true)),
+  ("antiquotation option", ("", K Thy_Output.defined_option, true)), (* kann mein scanner nicht erkennen *)
   ("setting", ("isatt", (fn _ => fn name => is_some (OS.Process.getEnv name)), true)),
   ("inference", ("", no_check, true)),
   ("executable", ("isatt", no_check, true)),
   ("tool", ("isatt", K check_tool, true)),
   ("file", ("isatt", K (File.exists o Path.explode), true)),
-  ("theory", ("", K ThyInfo.known_thy, true))
+  ("theory", ("", K Thy_Info.known_thy, true))
   ];
 
 in
@@ -97,8 +97,8 @@ fun decode_link ctxt (kind,index,logic,name) =
     (idx ^
     (Output.output name
       |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-      |> (if ! ThyOutput.quotes then quote else I)
-      |> (if ! ThyOutput.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+      |> (if ! Thy_Output.quotes then quote else I)
+      |> (if ! Thy_Output.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
           else hyper o enclose "\\mbox{\\isa{" "}}")), style)
   else ("Bad " ^ kind ^ " " ^ name, false)
   end;
@@ -473,7 +473,7 @@ fun process txt ctxt =
   |> parse
   |> print;
 
-val _ = ThyOutput.antiquotation "rail" (Scan.lift (Parse.position Args.name))
+val _ = Thy_Output.antiquotation "rail" (Scan.lift (Parse.position Args.name))
   (fn {context = ctxt,...} => fn txt => process txt ctxt);
 
 end;

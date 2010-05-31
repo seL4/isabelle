@@ -440,13 +440,13 @@ The theory database maintains a collection of theories, together
   \indexdef{}{ML}{theory}\verb|theory: string -> theory| \\
   \indexdef{}{ML}{use\_thy}\verb|use_thy: string -> unit| \\
   \indexdef{}{ML}{use\_thys}\verb|use_thys: string list -> unit| \\
-  \indexdef{}{ML}{ThyInfo.touch\_thy}\verb|ThyInfo.touch_thy: string -> unit| \\
-  \indexdef{}{ML}{ThyInfo.remove\_thy}\verb|ThyInfo.remove_thy: string -> unit| \\[1ex]
-  \indexdef{}{ML}{ThyInfo.begin\_theory}\verb|ThyInfo.begin_theory|\verb|: ... -> bool -> theory| \\
-  \indexdef{}{ML}{ThyInfo.end\_theory}\verb|ThyInfo.end_theory: theory -> unit| \\
-  \indexdef{}{ML}{ThyInfo.register\_theory}\verb|ThyInfo.register_theory: theory -> unit| \\[1ex]
+  \indexdef{}{ML}{Thy\_Info.touch\_thy}\verb|Thy_Info.touch_thy: string -> unit| \\
+  \indexdef{}{ML}{Thy\_Info.remove\_thy}\verb|Thy_Info.remove_thy: string -> unit| \\[1ex]
+  \indexdef{}{ML}{Thy\_Info.begin\_theory}\verb|Thy_Info.begin_theory|\verb|: ... -> bool -> theory| \\
+  \indexdef{}{ML}{Thy\_Info.end\_theory}\verb|Thy_Info.end_theory: theory -> unit| \\
+  \indexdef{}{ML}{Thy\_Info.register\_theory}\verb|Thy_Info.register_theory: theory -> unit| \\[1ex]
   \verb|datatype action = Update |\verb,|,\verb| Outdate |\verb,|,\verb| Remove| \\
-  \indexdef{}{ML}{ThyInfo.add\_hook}\verb|ThyInfo.add_hook: (ThyInfo.action -> string -> unit) -> unit| \\
+  \indexdef{}{ML}{Thy\_Info.add\_hook}\verb|Thy_Info.add_hook: (Thy_Info.action -> string -> unit) -> unit| \\
   \end{mldecls}
 
   \begin{description}
@@ -466,24 +466,24 @@ The theory database maintains a collection of theories, together
   intrinsic parallelism can be exploited by the system, to speedup
   loading.
 
-  \item \verb|ThyInfo.touch_thy|~\isa{A} performs and \isa{outdate} action
+  \item \verb|Thy_Info.touch_thy|~\isa{A} performs and \isa{outdate} action
   on theory \isa{A} and all descendants.
 
-  \item \verb|ThyInfo.remove_thy|~\isa{A} deletes theory \isa{A} and all
+  \item \verb|Thy_Info.remove_thy|~\isa{A} deletes theory \isa{A} and all
   descendants from the theory database.
 
-  \item \verb|ThyInfo.begin_theory| is the basic operation behind a
+  \item \verb|Thy_Info.begin_theory| is the basic operation behind a
   \isa{{\isasymTHEORY}} header declaration.  This {\ML} function is
   normally not invoked directly.
 
-  \item \verb|ThyInfo.end_theory| concludes the loading of a theory
+  \item \verb|Thy_Info.end_theory| concludes the loading of a theory
   proper and stores the result in the theory database.
 
-  \item \verb|ThyInfo.register_theory|~\isa{text\ thy} registers an
+  \item \verb|Thy_Info.register_theory|~\isa{text\ thy} registers an
   existing theory value with the theory loader database.  There is no
   management of associated sources.
 
-  \item \verb|ThyInfo.add_hook|~\isa{f} registers function \isa{f} as a hook for theory database actions.  The function will be
+  \item \verb|Thy_Info.add_hook|~\isa{f} registers function \isa{f} as a hook for theory database actions.  The function will be
   invoked with the action and theory name being involved; thus derived
   actions may be performed in associated system components, e.g.\
   maintaining the state of an editor for the theory sources.

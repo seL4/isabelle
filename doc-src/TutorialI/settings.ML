@@ -1,3 +1,3 @@
 (* $Id$ *)
 
-ThyOutput.indent := 5;
+Thy_Output.indent := 5;

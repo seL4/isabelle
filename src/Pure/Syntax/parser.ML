@@ -8,8 +8,8 @@ signature PARSER =
 sig
   type gram
   val empty_gram: gram
-  val extend_gram: gram -> SynExt.xprod list -> gram
-  val make_gram: SynExt.xprod list -> gram
+  val extend_gram: gram -> Syn_Ext.xprod list -> gram
+  val make_gram: Syn_Ext.xprod list -> gram
   val merge_grams: gram -> gram -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype parsetree =
@@ -23,7 +23,7 @@ end;
 structure Parser: PARSER =
 struct
 
-open Lexicon SynExt;
+open Lexicon Syn_Ext;
 
 
 (** datatype gram **)

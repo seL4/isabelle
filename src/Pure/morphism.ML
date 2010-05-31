@@ -79,5 +79,5 @@ fun form f = f identity;
 
 end;
 
-structure BasicMorphism: BASIC_MORPHISM = Morphism;
-open BasicMorphism;
+structure Basic_Morphism: BASIC_MORPHISM = Morphism;
+open Basic_Morphism;

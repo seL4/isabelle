@@ -113,15 +113,15 @@ fun sendback heading prts =
 local
 
 fun trace_action action name =
-  if action = ThyInfo.Update then
-    List.app tell_file_loaded (ThyInfo.loaded_files name)
-  else if action = ThyInfo.Outdate orelse action = ThyInfo.Remove then
-    List.app tell_file_retracted (ThyInfo.loaded_files name)
+  if action = Thy_Info.Update then
+    List.app tell_file_loaded (Thy_Info.loaded_files name)
+  else if action = Thy_Info.Outdate orelse action = Thy_Info.Remove then
+    List.app tell_file_retracted (Thy_Info.loaded_files name)
   else ();
 
 in
-  fun setup_thy_loader () = ThyInfo.add_hook trace_action;
-  fun sync_thy_loader () = List.app (trace_action ThyInfo.Update) (ThyInfo.get_names ());
+  fun setup_thy_loader () = Thy_Info.add_hook trace_action;
+  fun sync_thy_loader () = List.app (trace_action Thy_Info.Update) (Thy_Info.get_names ());
 end;
 
 
@@ -130,19 +130,19 @@ end;
 (*liberal low-level version*)
 val thy_name = perhaps (try (unsuffix ".thy")) o List.last o space_explode "/";
 
-val inform_file_retracted = ThyInfo.if_known_thy ThyInfo.remove_thy o thy_name;
+val inform_file_retracted = Thy_Info.if_known_thy Thy_Info.remove_thy o thy_name;
 
 fun inform_file_processed file =
   let
     val name = thy_name file;
     val _ = name = "" andalso error ("Bad file name: " ^ quote file);
     val _ =
-      if ThyInfo.check_known_thy name then
+      if Thy_Info.check_known_thy name then
         (Isar.>> (Toplevel.commit_exit Position.none);
-            ThyInfo.touch_child_thys name; ThyInfo.register_thy name)
+            Thy_Info.touch_child_thys name; Thy_Info.register_thy name)
           handle ERROR msg =>
             (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
-              tell_file_retracted (ThyLoad.thy_path name))
+              tell_file_retracted (Thy_Load.thy_path name))
       else ();
     val _ = Isar.init ();
   in () end;

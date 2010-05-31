@@ -26,8 +26,8 @@ sig
     (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> term -> Ast.ast
   type prtabs
   val empty_prtabs: prtabs
-  val update_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
-  val remove_prtabs: string -> SynExt.xprod list -> prtabs -> prtabs
+  val update_prtabs: string -> Syn_Ext.xprod list -> prtabs -> prtabs
+  val remove_prtabs: string -> Syn_Ext.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: {extern_class: string -> xstring, extern_type: string -> xstring,
       extern_const: string -> xstring} -> Proof.context -> bool -> prtabs ->
@@ -101,8 +101,8 @@ fun ast_of_termT ctxt trf tm =
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
   in ast_of tm end;
 
-fun sort_to_ast ctxt trf S = ast_of_termT ctxt trf (TypeExt.term_of_sort S);
-fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (TypeExt.term_of_typ (! show_sorts) T);
+fun sort_to_ast ctxt trf S = ast_of_termT ctxt trf (Type_Ext.term_of_sort S);
+fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (Type_Ext.term_of_typ (! show_sorts) T);
 
 
 
@@ -114,7 +114,7 @@ fun ast_of_term idents consts ctxt trf
     val {structs, fixes} = idents;
 
     fun mark_atoms ((t as Const (c, T)) $ u) =
-          if member (op =) SynExt.standard_token_markers c
+          if member (op =) Syn_Ext.standard_token_markers c
           then t $ u else mark_atoms t $ mark_atoms u
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
       | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
@@ -130,7 +130,7 @@ fun ast_of_term idents consts ctxt trf
             else Lexicon.const "_free" $ t
           end
       | mark_atoms (t as Var (xi, T)) =
-          if xi = SynExt.dddot_indexname then Const ("_DDDOT", T)
+          if xi = Syn_Ext.dddot_indexname then Const ("_DDDOT", T)
           else Lexicon.const "_var" $ t
       | mark_atoms a = a;
 
@@ -155,7 +155,7 @@ fun ast_of_term idents consts ctxt trf
 
     fun ast_of tm =
       (case strip_comb tm of
-        (t as Abs _, ts) => Ast.mk_appl (ast_of (SynTrans.abs_tr' t)) (map ast_of ts)
+        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syn_Trans.abs_tr' t)) (map ast_of ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
@@ -176,12 +176,12 @@ fun ast_of_term idents consts ctxt trf
 
     and constrain t T =
       if show_types andalso T <> dummyT then
-        Ast.Appl [Ast.Constant SynExt.constrainC, simple_ast_of t,
-          ast_of_termT ctxt trf (TypeExt.term_of_typ show_sorts T)]
+        Ast.Appl [Ast.Constant Syn_Ext.constrainC, simple_ast_of t,
+          ast_of_termT ctxt trf (Type_Ext.term_of_typ show_sorts T)]
       else simple_ast_of t;
   in
     tm
-    |> SynTrans.prop_tr'
+    |> Syn_Trans.prop_tr'
     |> show_types ? (#1 o prune_typs o rpair [])
     |> mark_atoms
     |> ast_of
@@ -211,29 +211,29 @@ fun mode_tabs prtabs modes = map_filter (AList.lookup (op =) prtabs) (modes @ ["
 
 (* xprod_to_fmt *)
 
-fun xprod_to_fmt (SynExt.XProd (_, _, "", _)) = NONE
-  | xprod_to_fmt (SynExt.XProd (_, xsymbs, const, pri)) =
+fun xprod_to_fmt (Syn_Ext.XProd (_, _, "", _)) = NONE
+  | xprod_to_fmt (Syn_Ext.XProd (_, xsymbs, const, pri)) =
       let
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
-          (if Lexicon.is_terminal s then SynExt.max_pri else p);
+          (if Lexicon.is_terminal s then Syn_Ext.max_pri else p);
 
-        fun xsyms_to_syms (SynExt.Delim s :: xsyms) =
+        fun xsyms_to_syms (Syn_Ext.Delim s :: xsyms) =
               apfst (cons (String s)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (SynExt.Argument s_p :: xsyms) =
+          | xsyms_to_syms (Syn_Ext.Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (SynExt.Space s :: xsyms) =
+          | xsyms_to_syms (Syn_Ext.Space s :: xsyms) =
               apfst (cons (Space s)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (SynExt.Bg i :: xsyms) =
+          | xsyms_to_syms (Syn_Ext.Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
                 val (syms, xsyms'') = xsyms_to_syms xsyms';
               in
                 (Block (i, bsyms) :: syms, xsyms'')
               end
-          | xsyms_to_syms (SynExt.Brk i :: xsyms) =
+          | xsyms_to_syms (Syn_Ext.Brk i :: xsyms) =
               apfst (cons (Break i)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (SynExt.En :: xsyms) = ([], xsyms)
+          | xsyms_to_syms (Syn_Ext.En :: xsyms) = ([], xsyms)
           | xsyms_to_syms [] = ([], []);
 
         fun nargs (Arg _ :: syms) = nargs syms + 1
@@ -263,7 +263,7 @@ fun update_prtabs mode xprods prtabs =
 fun remove_prtabs mode xprods prtabs =
   let
     val tab = mode_tab prtabs mode;
-    val fmts = map_filter (fn xprod as SynExt.XProd (_, _, c, _) =>
+    val fmts = map_filter (fn xprod as Syn_Ext.XProd (_, _, c, _) =>
       if null (Symtab.lookup_list tab c) then NONE
       else xprod_to_fmt xprod) xprods;
     val tab' = fold (Symtab.remove_list (op =)) fmts tab;
@@ -290,15 +290,15 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
     fun token_trans a x =
       (case tokentrf a of
         NONE =>
-          if member (op =) SynExt.standard_token_classes a
+          if member (op =) Syn_Ext.standard_token_classes a
           then SOME (Pretty.str x) else NONE
       | SOME f => SOME (f ctxt x));
 
     (*default applications: prefix / postfix*)
     val appT =
-      if type_mode then TypeExt.tappl_ast_tr'
-      else if curried then SynTrans.applC_ast_tr'
-      else SynTrans.appl_ast_tr';
+      if type_mode then Type_Ext.tappl_ast_tr'
+      else if curried then Syn_Trans.applC_ast_tr'
+      else Syn_Trans.appl_ast_tr';
 
     fun synT _ ([], args) = ([], args)
       | synT markup (Arg p :: symbs, t :: args) =
@@ -333,7 +333,7 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
 
     and parT markup (pr, args, p, p': int) = #1 (synT markup
           (if p > p' orelse
-            (! show_brackets andalso p' <> SynExt.max_pri andalso not (is_chain pr))
+            (! show_brackets andalso p' <> Syn_Ext.max_pri andalso not (is_chain pr))
             then [Block (1, Space "(" :: pr @ [Space ")"])]
             else pr, args))
 

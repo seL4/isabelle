@@ -72,7 +72,7 @@ local
 
 fun find_and_undo _ [] = error "Undo history exhausted"
   | find_and_undo which ((prev, tr) :: hist) =
-      ((case Toplevel.init_of tr of SOME name => ThyInfo.kill_thy name | NONE => ());
+      ((case Toplevel.init_of tr of SOME name => Thy_Info.kill_thy name | NONE => ());
         if which (Toplevel.name_of tr) then (prev, hist) else find_and_undo which hist);
 
 in

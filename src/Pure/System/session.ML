@@ -73,7 +73,7 @@ fun init reset parent name =
 (* finish *)
 
 fun finish () =
-  (ThyInfo.finish ();
+  (Thy_Info.finish ();
     Present.finish ();
     Future.shutdown ();
     session_finished := true);
@@ -97,7 +97,7 @@ fun use_dir item root build modes reset info doc doc_graph doc_versions parent
   ((fn () =>
      (init reset parent name;
       Present.init build info doc doc_graph doc_versions (path ()) name
-        (dumping dump) (get_rpath rpath) verbose (map ThyInfo.get_theory (ThyInfo.get_names ()));
+        (dumping dump) (get_rpath rpath) verbose (map Thy_Info.get_theory (Thy_Info.get_names ()));
       if timing then
         let
           val start = start_timing ();

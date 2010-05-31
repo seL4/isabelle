@@ -9,10 +9,10 @@ fun pretty_term_type_only ctxt (t, T) =
    else error "term_type_only: type mismatch";
    Syntax.pretty_typ ctxt T)
 
-val _ = ThyOutput.antiquotation "term_type_only" (Args.term -- Args.typ_abbrev)
+val _ = Thy_Output.antiquotation "term_type_only" (Args.term -- Args.typ_abbrev)
   (fn {source, context, ...} => fn arg =>
-    ThyOutput.output
-      (ThyOutput.maybe_pretty_source (pretty_term_type_only context) source [arg]));
+    Thy_Output.output
+      (Thy_Output.maybe_pretty_source (pretty_term_type_only context) source [arg]));
 *}
 (*>*)
 text{*

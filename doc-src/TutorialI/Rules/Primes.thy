@@ -10,7 +10,7 @@ fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 
 
 ML "Pretty.margin_default := 64"
-ML "ThyOutput.indent := 5"  (*that is, Doc/TutorialI/settings.ML*)
+ML "Thy_Output.indent := 5"  (*that is, Doc/TutorialI/settings.ML*)
 
 
 text {*Now in Basic.thy!
