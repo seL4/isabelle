@@ -19,12 +19,30 @@ typedef (open word) 'a word = "{(0::int) ..< 2^len_of TYPE('a::len0)}"
 definition word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word" where
   -- {* representation of words using unsigned or signed bins, 
         only difference in these is the type class *}
-  [code del]: "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
+  "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
 
 lemma uint_word_of_int [code]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word) = w mod 2 ^ len_of TYPE('a)"
   by (auto simp add: word_of_int_def bintrunc_mod2p intro: Abs_word_inverse)
 
 code_datatype word_of_int
+
+notation fcomp (infixl "o>" 60)
+notation scomp (infixl "o\<rightarrow>" 60)
+
+instantiation word :: ("{len0, typerep}") random
+begin
+
+definition
+  "random_word i = Random.range (max i (2 ^ len_of TYPE('a))) o\<rightarrow> (\<lambda>k. Pair (
+     let j = word_of_int (Code_Numeral.int_of k) :: 'a word
+     in (j, \<lambda>_::unit. Code_Evaluation.term_of j)))"
+
+instance ..
+
+end
+
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
 
 
 subsection {* Type conversions and casting *}
