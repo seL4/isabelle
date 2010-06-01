@@ -22,23 +22,10 @@ lemma [code]:
   "char_of_nat = char_of_int o int"
   unfolding char_of_int_def by (simp add: expand_fun_eq)
 
-lemmas [code del] = char.recs char.cases char.size
-
-lemma [code, code_unfold]:
-  "char_rec f c = split f (nibble_pair_of_nat (nat_of_char c))"
-  by (cases c) (auto simp add: nibble_pair_of_nat_char)
-
-lemma [code, code_unfold]:
-  "char_case f c = split f (nibble_pair_of_nat (nat_of_char c))"
-  by (cases c) (auto simp add: nibble_pair_of_nat_char)
-
-lemma [code]:
-  "size (c\<Colon>char) = 0"
-  by (cases c) auto
-
 code_const int_of_char and char_of_int
   (SML "!(IntInf.fromInt o Char.ord)" and "!(Char.chr o IntInf.toInt)")
   (OCaml "Big'_int.big'_int'_of'_int (Char.code _)" and "Char.chr (Big'_int.int'_of'_big'_int _)")
-  (Haskell "toInteger (fromEnum (_ :: Char))" and "!(let chr k | k < 256 = toEnum k :: Char in chr . fromInteger)")
+  (Haskell "toInteger (fromEnum (_ :: Char))" and "!(let chr k | (0 <= k && k < 256) = toEnum k :: Char in chr . fromInteger)")
+  (Scala "BigInt(_.toInt)" and "!((k: BigInt) => if (BigInt(0) <= k && k < BigInt(256)) k.charValue else error(\"character value out of range\"))")
 
 end

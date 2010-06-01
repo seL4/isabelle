@@ -317,7 +317,7 @@ class Nat private(private val value: BigInt) {
     else error("Int value too big:" + this.value.toString)
 
   def +(that: Nat): Nat = new Nat(this.value + that.value)
-  def -(that: Nat): Nat = Nat(this.value + that.value)
+  def -(that: Nat): Nat = Nat(this.value - that.value)
   def *(that: Nat): Nat = new Nat(this.value * that.value)
 
   def /%(that: Nat): (Nat, Nat) = if (that.value == 0) (new Nat(0), this)

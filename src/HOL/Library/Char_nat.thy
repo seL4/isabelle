@@ -75,7 +75,7 @@ lemma nibble_of_nat_simps [simp]:
   unfolding nibble_of_nat_def by auto
 
 lemmas nibble_of_nat_code [code] = nibble_of_nat_simps
-  [simplified nat_number Let_def not_neg_number_of_Pls neg_number_of_Bit0 neg_number_of_Bit1 if_False add_0 add_Suc]
+  [simplified nat_number Let_def not_neg_number_of_Pls neg_number_of_Bit0 neg_number_of_Bit1 if_False add_0 add_Suc One_nat_def]
 
 lemma nibble_of_nat_of_nibble: "nibble_of_nat (nat_of_nibble n) = n"
   by (cases n) (simp_all only: nat_of_nibble.simps nibble_of_nat_simps)
@@ -193,12 +193,12 @@ qed
 text {* Code generator setup *}
 
 code_modulename SML
-  Char_nat List
+  Char_nat String
 
 code_modulename OCaml
-  Char_nat List
+  Char_nat String
 
 code_modulename Haskell
-  Char_nat List
+  Char_nat String
 
 end
