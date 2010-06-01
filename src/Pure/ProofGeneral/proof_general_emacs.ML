@@ -245,6 +245,7 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           Unsynchronized.set initialized);
         sync_thy_loader ();
        Unsynchronized.change print_mode (update (op =) proof_generalN);
+       Secure.PG_setup ();
        Isar.toplevel_loop {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
 
 end;

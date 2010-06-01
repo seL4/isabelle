@@ -138,7 +138,7 @@ in
 
 fun toplevel_loop {init = do_init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
-  Secure.open_unsynchronized ();
+  Secure.Isar_setup ();
   if do_init then init () else ();
   if welcome then writeln (Session.welcome ()) else ();
   uninterruptible (fn _ => fn () => raw_loop secure (Outer_Syntax.isar sync)) ());

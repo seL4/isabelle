@@ -13,7 +13,8 @@ sig
   val use_text: use_context -> int * string -> bool -> string -> unit
   val use_file: use_context -> bool -> string -> unit
   val toplevel_pp: string list -> string -> unit
-  val open_unsynchronized: unit -> unit
+  val Isar_setup: unit -> unit
+  val PG_setup: unit -> unit
   val commit: unit -> unit
   val bash_output: string -> string * int
   val bash: string -> int
@@ -54,7 +55,9 @@ fun toplevel_pp path pp = (secure_mltext (); raw_toplevel_pp ML_Parse.global_con
 val use_global = raw_use_text ML_Parse.global_context (0, "") false;
 
 fun commit () = use_global "commit();";   (*commit is dynamically bound!*)
-fun open_unsynchronized () = use_global "open Unsynchronized";
+
+fun Isar_setup () = use_global "open Unsynchronized;";
+fun PG_setup () = use_global "structure ThyLoad = Thy_Load;";
 
 
 (* shell commands *)

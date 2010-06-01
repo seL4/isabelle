@@ -305,11 +305,9 @@ structure OuterSyntax = Outer_Syntax;
 structure PrintMode = Print_Mode;
 structure SpecParse = Parse_Spec;
 structure ThyInfo = Thy_Info;
+structure ThyLoad = Thy_Load;
 structure ThyOutput = Thy_Output;
 structure TypeInfer = Type_Infer;
 
 end;
-
-structure ThyLoad = Thy_Load;  (*Proof General legacy*)
-
 
