@@ -105,6 +105,7 @@ sig
   val the_name : 'a NameTable.table -> nut -> 'a
   val the_rel : nut NameTable.table -> nut -> Kodkod.n_ary_index
   val nut_from_term : hol_context -> op2 -> term -> nut
+  val is_fully_representable_set : nut -> bool
   val choose_reps_for_free_vars :
     scope -> nut list -> rep NameTable.table -> nut list * rep NameTable.table
   val choose_reps_for_consts :
@@ -677,6 +678,23 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
       end
   in aux eq [] [] end
 
+fun is_fully_representable_set u =
+  not (is_opt_rep (rep_of u)) andalso
+  case u of
+    FreeName _ => true
+  | Op1 (SingletonSet, _, _, _) => true
+  | Op1 (Converse, _, _, u1) => is_fully_representable_set u1
+  | Op2 (oper, _, _, u1, u2) =>
+    if oper = Union orelse oper = SetDifference orelse oper = Intersect then
+      forall is_fully_representable_set [u1, u2]
+    else if oper = Apply then
+      case u1 of
+        ConstName (s, _, _) => is_sel_like_and_no_discr s
+      | _ => false
+    else
+      false
+  | _ => false
+
 fun rep_for_abs_fun scope T =
   let val (R1, R2) = best_non_opt_symmetric_reps_for_fun_type scope T in
     Func (R1, (card_of_rep R1 <> card_of_rep R2 ? Opt) R2)
@@ -766,22 +784,6 @@ fun optimize_unit u =
 fun unknown_boolean T R =
   Cst (case R of Formula Pos => False | Formula Neg => True | _ => Unknown,
        T, R)
-fun is_fully_representable_set u =
-  not (is_opt_rep (rep_of u)) andalso
-  case u of
-    FreeName _ => true
-  | Op1 (SingletonSet, _, _, _) => true
-  | Op1 (Converse, _, _, u1) => is_fully_representable_set u1
-  | Op2 (oper, _, _, u1, u2) =>
-    if oper = Union orelse oper = SetDifference orelse oper = Intersect then
-      forall is_fully_representable_set [u1, u2]
-    else if oper = Apply then
-      case u1 of
-        ConstName (s, _, _) => is_sel_like_and_no_discr s
-      | _ => false
-    else
-      false
-  | _ => false
 
 fun s_op1 oper T R u1 =
   ((if oper = Not then

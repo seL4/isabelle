@@ -319,7 +319,7 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
     fun nth_value_of_type n =
       let
         fun term unfold =
-          reconstruct_term unfold pool wacky_names scope atomss sel_names
+          reconstruct_term true unfold pool wacky_names scope atomss sel_names
                            rel_table bounds T T (Atom (card, 0)) [[n]]
       in
         case term false of
@@ -331,7 +331,8 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
         | t => t
       end
   in index_seq 0 card |> map nth_value_of_type |> sort nice_term_ord end
-and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
+and reconstruct_term maybe_opt unfold pool
+        (wacky_names as ((maybe_name, abs_name), _))
         (scope as {hol_ctxt as {thy, ctxt, stds, ...}, binarize, card_assigns,
                    bits, datatypes, ofs, ...})
         atomss sel_names rel_table bounds =
@@ -607,6 +608,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
       | term_for_rep maybe_opt seen (Type (@{type_name fun}, [T1, T2])) T'
                      (Func (R1, Formula Neut)) jss =
         let
+val _ = priority ("HERE: " ^ (if maybe_opt then "y" else "n")) (* ### *)
           val jss1 = all_combinations_for_rep R1
           val ts1 = map (term_for_rep true seen T1 T1 R1 o single) jss1
           val ts2 =
@@ -633,7 +635,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
                    string_of_int (length jss))
   in
     postprocess_subterms [] o polish_funs [] o unarize_unbox_etc_term
-    oooo term_for_rep true []
+    oooo term_for_rep maybe_opt []
   end
 
 (** Constant postprocessing **)
@@ -830,13 +832,6 @@ fun assign_operator_for_const (s, T) =
 
 (** Model reconstruction **)
 
-fun term_for_name pool scope atomss sel_names rel_table bounds name =
-  let val T = type_of name in
-    tuple_list_for_name rel_table bounds name
-    |> reconstruct_term false pool (("", ""), ("", "")) scope atomss sel_names
-                        rel_table bounds T T (rep_of name)
-  end
-
 fun unfold_outer_the_binders (t as Const (@{const_name The}, _)
                                    $ Abs (s, T, Const (@{const_name "op ="}, _)
                                                 $ Bound 0 $ t')) =
@@ -890,11 +885,13 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
     val scope =
       {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
        bits = bits, bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}
-    fun term_for_rep unfold =
-      reconstruct_term unfold pool wacky_names scope atomss sel_names rel_table
-                       bounds
+    fun term_for_rep maybe_opt unfold =
+      reconstruct_term maybe_opt unfold pool wacky_names scope atomss
+                       sel_names rel_table bounds
     fun nth_value_of_type card T n =
-      let fun aux unfold = term_for_rep unfold T T (Atom (card, 0)) [[n]] in
+      let
+        fun aux unfold = term_for_rep true unfold T T (Atom (card, 0)) [[n]]
+      in
         case aux false of
           t as Const (s, _) =>
           if String.isPrefix (cyclic_const_prefix ()) s then
@@ -932,7 +929,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                    Const (@{const_name undefined}, T')
                  else
                    tuple_list_for_name rel_table bounds name
-                   |> term_for_rep false T T' (rep_of name)
+                   |> term_for_rep (not (is_fully_representable_set name)) false
+                                   T T' (rep_of name)
       in
         Pretty.block (Pretty.breaks
             [setmp_show_all_types (Syntax.pretty_term ctxt) t1,
@@ -1009,6 +1007,14 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                     else chunks),
      bisim_depth >= 0 orelse
      forall (is_codatatype_wellformed codatatypes) codatatypes)
+  end
+
+fun term_for_name pool scope atomss sel_names rel_table bounds name =
+  let val T = type_of name in
+    tuple_list_for_name rel_table bounds name
+    |> reconstruct_term (not (is_fully_representable_set name)) false pool
+                        (("", ""), ("", "")) scope atomss sel_names rel_table
+                        bounds T T (rep_of name)
   end
 
 fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
