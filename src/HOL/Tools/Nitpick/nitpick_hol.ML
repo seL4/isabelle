@@ -1817,20 +1817,18 @@ fun triple_for_intro_rule thy x t =
   end
 
 val tuple_for_args = HOLogic.mk_tuple o snd o strip_comb
-
 fun wf_constraint_for rel side concl main =
   let
-    val core = HOLogic.mk_mem (HOLogic.mk_prod (tuple_for_args main,
-                                                tuple_for_args concl), Var rel)
+    val core = HOLogic.mk_mem (HOLogic.mk_prod
+                               (pairself tuple_for_args (main, concl)), Var rel)
     val t = List.foldl HOLogic.mk_imp core side
-    val vars = filter (not_equal rel) (Term.add_vars t [])
+    val vars = filter_out (curry (op =) rel) (Term.add_vars t [])
   in
     Library.foldl (fn (t', ((x, j), T)) =>
                       HOLogic.all_const T
                       $ Abs (x, T, abstract_over (Var ((x, j), T), t')))
                   (t, vars)
   end
-
 fun wf_constraint_for_triple rel (side, main, concl) =
   map (wf_constraint_for rel side concl) main |> foldr1 s_conj
 
