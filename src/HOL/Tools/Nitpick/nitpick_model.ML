@@ -31,8 +31,9 @@ sig
     nut NameTable.table -> Kodkod.raw_bound list -> nut -> int list list
   val dest_plain_fun : term -> bool * (term list * term list)
   val reconstruct_hol_model :
-    params -> scope -> (term option * int list) list -> styp list -> nut list
-    -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
+    params -> scope -> (term option * int list) list
+    -> (typ option * string list) list -> styp list -> nut list -> nut list
+    -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
     -> Pretty.T * bool
   val prove_hol_model :
     scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
@@ -103,31 +104,41 @@ fun add_wacky_syntax ctxt =
 
 (** Term reconstruction **)
 
-fun nth_atom_suffix pool s j k =
-  (case AList.lookup (op =) (!pool) (s, k) of
-     SOME js =>
-     (case find_index (curry (op =) j) js of
-        ~1 => (Unsynchronized.change pool (cons ((s, k), j :: js));
-               length js + 1)
-      | n => length js - n)
-   | NONE => (Unsynchronized.change pool (cons ((s, k), [j])); 1))
-  |> nat_subscript
-  |> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
+fun nth_atom_number pool T j =
+  case AList.lookup (op =) (!pool) T of
+    SOME js =>
+    (case find_index (curry (op =) j) js of
+       ~1 => (Unsynchronized.change pool (cons (T, j :: js));
+              length js + 1)
+     | n => length js - n)
+  | NONE => (Unsynchronized.change pool (cons (T, [j])); 1)
+fun atom_suffix s =
+  nat_subscript
+  #> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
      ? prefix "\<^isub>,"
-fun nth_atom_name pool prefix (Type (s, _)) j k =
-    let val s' = shortest_name s in
-      prefix ^ (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
-      nth_atom_suffix pool s j k
-    end
-  | nth_atom_name pool prefix (TFree (s, _)) j k =
-    prefix ^ perhaps (try (unprefix "'")) s ^ nth_atom_suffix pool s j k
-  | nth_atom_name _ _ T _ _ =
-    raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
-fun nth_atom pool for_auto T j k =
+fun nth_atom_name thy atomss pool prefix T j =
+  let
+    val ss = these (triple_lookup (type_match thy) atomss T)
+    val m = nth_atom_number pool T j
+  in
+    if m <= length ss then
+      nth ss (m - 1)
+    else case T of
+      Type (s, _) =>
+      let val s' = shortest_name s in
+        prefix ^
+        (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
+        atom_suffix s m
+      end
+    | TFree (s, _) => prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s m
+    | _ => raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
+  end
+fun nth_atom thy atomss pool for_auto T j =
   if for_auto then
-    Free (nth_atom_name pool (hd (space_explode "." nitpick_prefix)) T j k, T)
+    Free (nth_atom_name thy atomss pool (hd (space_explode "." nitpick_prefix))
+                        T j, T)
   else
-    Const (nth_atom_name pool "" T j k, T)
+    Const (nth_atom_name thy atomss pool "" T j, T)
 
 fun extract_real_number (Const (@{const_name divide}, _) $ t1 $ t2) =
     real (snd (HOLogic.dest_number t1)) / real (snd (HOLogic.dest_number t2))
@@ -300,14 +311,14 @@ fun varified_type_match thy (candid_T, pat_T) =
   strict_type_match thy (candid_T, Logic.varifyT_global pat_T)
 
 fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
-                       sel_names rel_table bounds card T =
+                       atomss sel_names rel_table bounds card T =
   let
     val card = if card = 0 then card_of_type card_assigns T else card
     fun nth_value_of_type n =
       let
         fun term unfold =
-          reconstruct_term unfold pool wacky_names scope sel_names rel_table
-                           bounds T T (Atom (card, 0)) [[n]]
+          reconstruct_term unfold pool wacky_names scope atomss sel_names
+                           rel_table bounds T T (Atom (card, 0)) [[n]]
       in
         case term false of
           t as Const (s, _) =>
@@ -320,7 +331,8 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
   in index_seq 0 card |> map nth_value_of_type |> sort nice_term_ord end
 and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
         (scope as {hol_ctxt as {thy, ctxt, stds, ...}, binarize, card_assigns,
-                   bits, datatypes, ofs, ...}) sel_names rel_table bounds =
+                   bits, datatypes, ofs, ...})
+        atomss sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
     fun value_of_bits jss =
@@ -332,7 +344,8 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
              js 0
       end
     val all_values =
-      all_values_of_type pool wacky_names scope sel_names rel_table bounds 0
+      all_values_of_type pool wacky_names scope atomss sel_names rel_table
+                         bounds 0
     fun postprocess_term (Type (@{type_name fun}, _)) = I
       | postprocess_term T =
         if null (Data.get thy) then
@@ -471,16 +484,16 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
         else if T = @{typ bisim_iterator} then
           HOLogic.mk_number nat_T j
         else case datatype_spec datatypes T of
-          NONE => nth_atom pool for_auto T j k
-        | SOME {deep = false, ...} => nth_atom pool for_auto T j k
+          NONE => nth_atom thy atomss pool for_auto T j
+        | SOME {deep = false, ...} => nth_atom thy atomss pool for_auto T j
         | SOME {co, standard, constrs, ...} =>
           let
             fun tuples_for_const (s, T) =
               tuple_list_for_name rel_table bounds (ConstName (s, T, Any))
             fun cyclic_atom () =
-              nth_atom pool for_auto (Type (cyclic_type_name, [])) j k
-            fun cyclic_var () = Var ((nth_atom_name pool "" T j k, 0), T)
-
+              nth_atom thy atomss pool for_auto (Type (cyclic_type_name, [])) j
+            fun cyclic_var () =
+              Var ((nth_atom_name thy atomss pool "" T j, 0), T)
             val discr_jsss = map (tuples_for_const o discr_for_constr o #const)
                                  constrs
             val real_j = j + offset_of_type ofs T
@@ -612,7 +625,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
         else term_for_rep true seen T T' R jss
       | term_for_rep _ _ T _ R jss =
         raise ARG ("Nitpick_Model.reconstruct_term.term_for_rep",
-                   Refute.string_of_typ T ^ " " ^ string_for_rep R ^ " " ^
+                   Syntax.string_of_typ ctxt T ^ " " ^ string_for_rep R ^ " " ^
                    string_of_int (length jss))
   in
     postprocess_subterms [] o polish_funs [] o unarize_unbox_etc_term
@@ -811,10 +824,10 @@ fun assign_operator_for_const (s, T) =
 
 (** Model reconstruction **)
 
-fun term_for_name pool scope sel_names rel_table bounds name =
+fun term_for_name pool scope atomss sel_names rel_table bounds name =
   let val T = type_of name in
     tuple_list_for_name rel_table bounds name
-    |> reconstruct_term false pool (("", ""), ("", "")) scope sel_names
+    |> reconstruct_term false pool (("", ""), ("", "")) scope atomss sel_names
                         rel_table bounds T T (rep_of name)
   end
 
@@ -848,7 +861,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache},
          binarize, card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
-        formats all_frees free_names sel_names nonsel_names rel_table bounds =
+        formats atomss all_frees free_names sel_names nonsel_names rel_table
+        bounds =
   let
     val pool = Unsynchronized.ref []
     val (wacky_names as (_, base_step_names), ctxt) =
@@ -871,11 +885,10 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
        bits = bits, bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}
     fun term_for_rep unfold =
-      reconstruct_term unfold pool wacky_names scope sel_names rel_table bounds
+      reconstruct_term unfold pool wacky_names scope atomss sel_names rel_table
+                       bounds
     fun nth_value_of_type card T n =
-      let
-        fun aux unfold = term_for_rep unfold T T (Atom (card, 0)) [[n]]
-      in
+      let fun aux unfold = term_for_rep unfold T T (Atom (card, 0)) [[n]] in
         case aux false of
           t as Const (s, _) =>
           if String.isPrefix cyclic_const_prefix s then
@@ -885,7 +898,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
         | t => t
       end
     val all_values =
-      all_values_of_type pool wacky_names scope sel_names rel_table bounds
+      all_values_of_type pool wacky_names scope atomss sel_names rel_table
+                         bounds
     fun is_codatatype_wellformed (cos : dtype_spec list)
                                  ({typ, card, ...} : dtype_spec) =
       let
@@ -996,9 +1010,10 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
                     auto_timeout free_names sel_names rel_table bounds prop =
   let
     val pool = Unsynchronized.ref []
+    val atomss = [(NONE, [])]
     fun free_type_assm (T, k) =
       let
-        fun atom j = nth_atom pool true T j k
+        fun atom j = nth_atom thy atomss pool true T j
         fun equation_for_atom j = HOLogic.eq_const T $ Bound 0 $ atom j
         val eqs = map equation_for_atom (index_seq 0 k)
         val compreh_assm =
@@ -1008,7 +1023,8 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
       in s_conj (compreh_assm, distinct_assm) end
     fun free_name_assm name =
       HOLogic.mk_eq (Free (nickname_of name, type_of name),
-                     term_for_name pool scope sel_names rel_table bounds name)
+                     term_for_name pool scope atomss sel_names rel_table bounds
+                                   name)
     val freeT_assms = map free_type_assm (filter (is_TFree o fst) card_assigns)
     val model_assms = map free_name_assm free_names
     val assm = foldr1 s_conj (freeT_assms @ model_assms)

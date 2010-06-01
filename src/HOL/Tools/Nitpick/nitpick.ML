@@ -42,6 +42,7 @@ sig
      show_consts: bool,
      evals: term list,
      formats: (term option * int list) list,
+     atomss: (typ option * string list) list,
      max_potential: int,
      max_genuine: int,
      check_potential: bool,
@@ -112,6 +113,7 @@ type params =
    show_consts: bool,
    evals: term list,
    formats: (term option * int list) list,
+   atomss: (typ option * string list) list,
    max_potential: int,
    max_genuine: int,
    check_potential: bool,
@@ -190,7 +192,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
          destroy_constrs, specialize, star_linear_preds, fast_descrs,
          peephole_optim, tac_timeout, max_threads, show_datatypes, show_consts,
-         evals, formats, max_potential, max_genuine, check_potential,
+         evals, formats, atomss, max_potential, max_genuine, check_potential,
          check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
@@ -575,8 +577,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val (reconstructed_model, codatatypes_ok) =
           reconstruct_hol_model {show_datatypes = show_datatypes,
                                  show_consts = show_consts}
-              scope formats frees free_names sel_names nonsel_names rel_table
-              bounds
+              scope formats atomss frees free_names sel_names nonsel_names
+              rel_table bounds
         val genuine_means_genuine =
           got_all_user_axioms andalso none_true wfs andalso
           sound_finitizes andalso codatatypes_ok

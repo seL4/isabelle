@@ -427,6 +427,7 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
     record getters.
   - Fixed soundness bug related to higher-order constructors
   - Improved precision of set constructs.
+  - Added "atoms" option.
   - Added cache to speed up repeated Kodkod invocations on the same
     problems.
   - Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and

@@ -715,7 +715,7 @@ fun is_constr_like ctxt (s, T) =
     val thy = ProofContext.theory_of ctxt
     val (x as (_, T)) = (s, unarize_unbox_etc_type T)
   in
-    Refute.is_IDT_constructor thy x orelse is_record_constr x orelse
+    is_real_constr thy x orelse is_record_constr x orelse
     (is_abs_fun ctxt x andalso is_pure_typedef ctxt (range_type T)) orelse
     is_coconstr thy x
   end
@@ -861,9 +861,9 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
            let
              val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the
            in
-             map (fn (s', Us) =>
-                     (s', map (Refute.typ_of_dtyp descr (dtyps ~~ Ts)) Us
-                          ---> T)) constrs
+             map (apsnd (fn Us =>
+                            map (typ_of_dtyp descr (dtyps ~~ Ts)) Us ---> T))
+                 constrs
            end
          | NONE =>
            if is_record_type T then

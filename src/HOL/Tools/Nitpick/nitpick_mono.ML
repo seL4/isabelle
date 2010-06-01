@@ -290,7 +290,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
             end
         else
           MType (s, [])
-      | _ => MType (Refute.string_of_typ T, [])
+      | _ => MType (simple_string_of_typ T, [])
   in do_type end
 
 fun prodM_factors (MPair (M1, M2)) = maps prodM_factors [M1, M2]

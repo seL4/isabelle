@@ -57,8 +57,15 @@ sig
   val bool_T : typ
   val nat_T : typ
   val int_T : typ
+  val simple_string_of_typ : typ -> string
+  val is_real_constr : theory -> string * typ -> bool
+  val typ_of_dtyp :
+    Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
+    -> typ
+  val is_of_class_const : theory -> string * typ -> bool
+  val get_class_def : theory -> string -> (string * term) option
   val monomorphic_term : Type.tyenv -> term -> term
-  val specialize_type : theory -> (string * typ) -> term -> term
+  val specialize_type : theory -> string * typ -> term -> term
   val nat_subscript : int -> string
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
@@ -229,6 +236,11 @@ val bool_T = @{typ bool}
 val nat_T = @{typ nat}
 val int_T = @{typ int}
 
+val simple_string_of_typ = Refute.string_of_typ
+val is_real_constr = Refute.is_IDT_constructor
+val typ_of_dtyp = Refute.typ_of_dtyp
+val is_of_class_const = Refute.is_const_of_class
+val get_class_def = Refute.get_classdef
 val monomorphic_term = Sledgehammer_Util.monomorphic_term
 val specialize_type = Sledgehammer_Util.specialize_type
 

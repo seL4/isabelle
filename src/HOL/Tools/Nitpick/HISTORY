@@ -16,6 +16,7 @@ Version 2010
   * Fixed soundness bug related to higher-order constructors
   * Improved precision of set constructs
   * Added cache to speed up repeated Kodkod invocations on the same problems
+  * Added "atoms" option
   * Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and "SAT4JLight" to
     "MiniSat_JNI", "zChaff_JNI", "BerkMin_Alloy", and "SAT4J_Light"
   * Removed "skolemize", "uncurry", "sym_break", "flatten_prop",
