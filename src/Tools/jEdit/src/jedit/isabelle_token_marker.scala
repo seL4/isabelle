@@ -11,13 +11,46 @@ package isabelle.jedit
 import isabelle._
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.syntax.{Token, TokenMarker, TokenHandler, ParserRuleSet}
+import org.gjt.sp.jedit.syntax.{Token, TokenMarker, TokenHandler, ParserRuleSet, SyntaxStyle}
+import org.gjt.sp.jedit.textarea.TextArea
 
+import java.awt.Font
+import java.awt.font.TextAttribute
 import javax.swing.text.Segment;
 
 
 object Isabelle_Token_Marker
 {
+  /* extended token styles */
+
+  private val plain_range: Int = Token.ID_COUNT
+  private val full_range: Int = 3 * plain_range
+  private def check_range(i: Int) { require(0 <= i && i < plain_range) }
+
+  def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
+  def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
+
+  private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle =
+  {
+    import scala.collection.JavaConversions._
+    val script_font =
+      style.getFont.deriveFont(Map(TextAttribute.SUPERSCRIPT -> new java.lang.Integer(i)))
+    new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, script_font)
+  }
+
+  def extend_styles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
+  {
+    val new_styles = new Array[SyntaxStyle](full_range)
+    for (i <- 0 until plain_range) {
+      val style = styles(i)
+      new_styles(i) = style
+      new_styles(subscript(i.toByte)) = script_style(style, -1)
+      new_styles(superscript(i.toByte)) = script_style(style, 1)
+    }
+    new_styles
+  }
+
+
   /* line context */
 
   private val rule_set = new ParserRuleSet("isabelle", "MAIN")
@@ -122,6 +155,13 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     def to: Int => Int = model.to_current(document, _)
     def from: Int => Int = model.from_current(document, _)
 
+    for (text_area <- Isabelle.jedit_text_areas(model.buffer)
+          if Document_View(text_area).isDefined)
+      Document_View(text_area).get.set_styles()
+
+    def handle_token(style: Byte, offset: Int, length: Int) =
+      handler.handleToken(line_segment, style, offset, length, context)
+
     var next_x = start
     for {
       (command, command_start) <- document.command_range(from(start), from(stop))
@@ -137,7 +177,7 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
         ((abs_stop - stop) max 0)
     }
     {
-      val byte =
+      val token_type =
         markup.info match {
           case Command.HighlightInfo(Markup.COMMAND, Some(kind)) =>
             Isabelle_Token_Marker.command_style(kind)
@@ -146,15 +186,14 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
           case _ => Token.NULL
         }
       if (start + token_start > next_x)
-        handler.handleToken(line_segment, 1,
-          next_x - start, start + token_start - next_x, context)
-      handler.handleToken(line_segment, byte, token_start, token_length, context)
+        handle_token(Token.COMMENT1, next_x - start, start + token_start - next_x)
+      handle_token(token_type, token_start, token_length)
       next_x = start + token_start + token_length
     }
     if (next_x < stop)
-      handler.handleToken(line_segment, 1, next_x - start, stop - next_x, context)
+      handle_token(Token.COMMENT1, next_x - start, stop - next_x)
 
-    handler.handleToken(line_segment, Token.END, line_segment.count, 0, context)
+    handle_token(Token.END, line_segment.count, 0)
     handler.setLineContext(context)
     context
   }
