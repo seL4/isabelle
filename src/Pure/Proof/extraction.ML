@@ -166,7 +166,7 @@ fun read_term thy T s =
       |> Proof_Syntax.strip_sorts_consttypes
       |> ProofContext.set_defsort [];
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
-  in parse ctxt s |> TypeInfer.constrain T |> Syntax.check_term ctxt end;
+  in parse ctxt s |> Type_Infer.constrain T |> Syntax.check_term ctxt end;
 
 
 (**** theory data ****)
