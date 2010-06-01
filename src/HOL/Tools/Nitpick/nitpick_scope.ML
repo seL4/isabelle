@@ -135,7 +135,7 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
 fun quintuple_for_scope quote
-        ({hol_ctxt = {thy, ctxt, stds, ...}, card_assigns, bits, bisim_depth,
+        ({hol_ctxt = {ctxt, stds, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
   let
     val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
@@ -144,8 +144,8 @@ fun quintuple_for_scope quote
       card_assigns |> filter_out (member (op =) boring_Ts o fst)
                    |> List.partition (is_fp_iterator_type o fst)
     val (secondary_card_assigns, primary_card_assigns) =
-      card_assigns |> List.partition ((is_integer_type orf is_datatype thy stds)
-                                      o fst)
+      card_assigns
+      |> List.partition ((is_integer_type orf is_datatype ctxt stds) o fst)
     val cards =
       map (fn (T, k) => quote (string_for_type ctxt T) ^ " = " ^
                         string_of_int k)
@@ -458,13 +458,13 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
      concrete = concrete, deep = deep, constrs = constrs}
   end
 
-fun scope_from_descriptor (hol_ctxt as {thy, stds, ...}) binarize deep_dataTs
+fun scope_from_descriptor (hol_ctxt as {ctxt, stds, ...}) binarize deep_dataTs
                           finitizable_dataTs (desc as (card_assigns, _)) =
   let
     val datatypes =
       map (datatype_spec_from_scope_descriptor hol_ctxt binarize deep_dataTs
                                                finitizable_dataTs desc)
-          (filter (is_datatype thy stds o fst) card_assigns)
+          (filter (is_datatype ctxt stds o fst) card_assigns)
     val bits = card_of_type card_assigns @{typ signed_bit} - 1
                handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                       card_of_type card_assigns @{typ unsigned_bit}

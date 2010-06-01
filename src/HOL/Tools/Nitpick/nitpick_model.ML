@@ -319,7 +319,7 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
       end
   in index_seq 0 card |> map nth_value_of_type |> sort nice_term_ord end
 and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
-        (scope as {hol_ctxt as {ctxt, thy, stds, ...}, binarize, card_assigns,
+        (scope as {hol_ctxt as {thy, ctxt, stds, ...}, binarize, card_assigns,
                    bits, datatypes, ofs, ...}) sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
@@ -536,7 +536,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
                     | _ => raise TERM ("Nitpick_Model.reconstruct_term.\
                                        \term_for_atom (Abs_Frac)", ts)
                   else if not for_auto andalso
-                          (is_abs_fun thy constr_x orelse
+                          (is_abs_fun ctxt constr_x orelse
                            constr_s = @{const_name Quot}) then
                     Const (abs_name, constr_T) $ the_single ts
                   else

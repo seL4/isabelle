@@ -439,7 +439,7 @@ fun factorize (z as (Type (@{type_name "*"}, _), _)) =
     maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
-fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
+fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
   let
     fun aux eq ss Ts t =
       let
@@ -565,7 +565,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
           Op2 (Image, nth_range_type 2 T, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name Suc}, T)), []) =>
           if is_built_in_const thy stds false x then Cst (Suc, T, Any)
-          else if is_constr thy stds x then do_construct x []
+          else if is_constr ctxt stds x then do_construct x []
           else ConstName (s, T, Any)
         | (Const (@{const_name finite}, T), [t1]) =>
           (if is_finite_type hol_ctxt (domain_type T) then
@@ -576,7 +576,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
         | (Const (@{const_name nat}, T), []) => Cst (IntToNat, T, Any)
         | (Const (x as (s as @{const_name zero_class.zero}, T)), []) =>
           if is_built_in_const thy stds false x then Cst (Num 0, T, Any)
-          else if is_constr thy stds x then do_construct x []
+          else if is_constr ctxt stds x then do_construct x []
           else ConstName (s, T, Any)
         | (Const (x as (s as @{const_name one_class.one}, T)), []) =>
           if is_built_in_const thy stds false x then Cst (Num 1, T, Any)
@@ -653,7 +653,7 @@ fun nut_from_term (hol_ctxt as {thy, stds, fast_descrs, ...}) eq =
            [t1, t2]) =>
           Op2 (Union, T1, Any, sub t1, sub t2)
         | (t0 as Const (x as (s, T)), ts) =>
-          if is_constr thy stds x then
+          if is_constr ctxt stds x then
             do_construct x ts
           else if String.isPrefix numeral_prefix s then
             Cst (Num (the (Int.fromString (unprefix numeral_prefix s))), T, Any)
@@ -687,13 +687,13 @@ fun choose_rep_for_free_var scope v (vs, table) =
     val R = best_non_opt_set_rep_for_type scope (type_of v)
     val v = modify_name_rep v R
   in (v :: vs, NameTable.update (v, R) table) end
-fun choose_rep_for_const (scope as {hol_ctxt = {thy, ...}, ...}) all_exact v
+fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) all_exact v
                          (vs, table) =
   let
     val x as (s, T) = (nickname_of v, type_of v)
-    val R = (if is_abs_fun thy x then
+    val R = (if is_abs_fun ctxt x then
                rep_for_abs_fun
-             else if is_rep_fun thy x then
+             else if is_rep_fun ctxt x then
                Func oo best_non_opt_symmetric_reps_for_fun_type
              else if all_exact orelse is_skolem_name v orelse
                     member (op =) [@{const_name undefined_fast_The},

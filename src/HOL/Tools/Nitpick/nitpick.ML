@@ -242,7 +242,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 *)
     val max_bisim_depth = fold Integer.max bisim_depths ~1
     val case_names = case_const_names thy stds
-    val (defs, built_in_nondefs, user_nondefs) = all_axioms_of thy subst
+    val (defs, built_in_nondefs, user_nondefs) = all_axioms_of ctxt subst
     val def_table = const_def_table ctxt subst defs
     val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
     val simp_table = Unsynchronized.ref (const_simp_table ctxt subst)
@@ -322,8 +322,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         ". " ^ extra
       end
     fun is_type_fundamentally_monotonic T =
-      (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
-       (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
+      (is_datatype ctxt stds T andalso not (is_quot_type thy T) andalso
+       (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
       is_number_type thy T orelse is_bit_type T
     fun is_type_actually_monotonic T =
       formulas_monotonic hol_ctxt binarize T (nondef_ts, def_ts)
@@ -369,7 +369,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       else
         ()
     val (deep_dataTs, shallow_dataTs) =
-      all_Ts |> filter (is_datatype thy stds) |> List.partition is_datatype_deep
+      all_Ts |> filter (is_datatype ctxt stds)
+             |> List.partition is_datatype_deep
     val finitizable_dataTs =
       shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
                      |> filter is_shallow_datatype_finitizable

@@ -162,8 +162,8 @@ fun could_exist_alpha_subtype alpha_T (T as Type (_, Ts)) =
   | could_exist_alpha_subtype alpha_T T = (T = alpha_T)
 fun could_exist_alpha_sub_mtype _ (alpha_T as TFree _) T =
     could_exist_alpha_subtype alpha_T T
-  | could_exist_alpha_sub_mtype thy alpha_T T =
-    (T = alpha_T orelse is_datatype thy [(NONE, true)] T)
+  | could_exist_alpha_sub_mtype ctxt alpha_T T =
+    (T = alpha_T orelse is_datatype ctxt [(NONE, true)] T)
 
 fun exists_alpha_sub_mtype MAlpha = true
   | exists_alpha_sub_mtype (MFun (M1, _, M2)) =
@@ -243,7 +243,7 @@ fun fresh_mfun_for_fun_type (mdata as {max_fresh, ...} : mdata) all_minus
             else
               S Minus
   in (M1, a, M2) end
-and fresh_mtype_for_type (mdata as {hol_ctxt as {thy, ...}, binarize, alpha_T,
+and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
                                     datatype_mcache, constr_mcache, ...})
                          all_minus =
   let
@@ -255,7 +255,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {thy, ...}, binarize, alpha_T,
         MFun (fresh_mfun_for_fun_type mdata false T1 T2)
       | Type (@{type_name "*"}, [T1, T2]) => MPair (pairself do_type (T1, T2))
       | Type (z as (s, _)) =>
-        if could_exist_alpha_sub_mtype thy alpha_T T then
+        if could_exist_alpha_sub_mtype ctxt alpha_T T then
           case AList.lookup (op =) (!datatype_mcache) z of
             SOME M => M
           | NONE =>
@@ -304,9 +304,9 @@ fun sel_mtype_from_constr_mtype s M =
           case sel_no_from_name s of ~1 => bool_M | n => nth arg_Ms n)
   end
 
-fun mtype_for_constr (mdata as {hol_ctxt = {thy, ...}, alpha_T, constr_mcache,
+fun mtype_for_constr (mdata as {hol_ctxt = {ctxt, ...}, alpha_T, constr_mcache,
                                 ...}) (x as (_, T)) =
-  if could_exist_alpha_sub_mtype thy alpha_T T then
+  if could_exist_alpha_sub_mtype ctxt alpha_T T then
     case AList.lookup (op =) (!constr_mcache) x of
       SOME M => M
     | NONE => if T = alpha_T then
@@ -741,7 +741,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                   do_robust_set_operation T accum
                 else if is_sel s then
                   (mtype_for_sel mdata x, accum)
-                else if is_constr thy stds x then
+                else if is_constr ctxt stds x then
                   (mtype_for_constr mdata x, accum)
                 else if is_built_in_const thy stds fast_descrs x then
                   (fresh_mtype_for_type mdata true T, accum)
@@ -924,8 +924,8 @@ fun consider_nondefinitional_axiom mdata t =
   if is_harmless_axiom mdata t then pair (MRaw (t, dummy_M))
   else consider_general_formula mdata Plus t
 
-fun consider_definitional_axiom (mdata as {hol_ctxt = {thy, ...}, ...}) t =
-  if not (is_constr_pattern_formula thy t) then
+fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
+  if not (is_constr_pattern_formula ctxt t) then
     consider_nondefinitional_axiom mdata t
   else if is_harmless_axiom mdata t then
     pair (MRaw (t, dummy_M))
@@ -1027,7 +1027,8 @@ val formulas_monotonic = is_some oooo infer "Monotonicity" false
 fun fin_fun_constr T1 T2 =
   (@{const_name FinFun}, (T1 --> T2) --> Type (@{type_name fin_fun}, [T1, T2]))
 
-fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
+fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
+                                ...})
                   binarize finitizes alpha_T tsp =
   case infer "Finiteness" true hol_ctxt binarize alpha_T tsp of
     SOME (lits, msp, constr_mtypes) =>
@@ -1085,7 +1086,7 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
                   Const (s, T')
                 else if is_built_in_const thy stds fast_descrs x then
                   coerce_term hol_ctxt Ts T' T t
-                else if is_constr thy stds x then
+                else if is_constr ctxt stds x then
                   Const (finitize_constr x)
                 else if is_sel s then
                   let
@@ -1112,7 +1113,7 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
                 case T1 of
                   Type (s, [T11, T12]) => 
                   (if s = @{type_name fin_fun} then
-                     select_nth_constr_arg thy stds (fin_fun_constr T11 T12) t1
+                     select_nth_constr_arg ctxt stds (fin_fun_constr T11 T12) t1
                                            0 (T11 --> T12)
                    else
                      t1, T11)
@@ -1127,7 +1128,7 @@ fun finitize_funs (hol_ctxt as {thy, stds, fast_descrs, constr_cache, ...})
             in
               Abs (s, T, t')
               |> should_finitize (T --> T') a
-                 ? construct_value thy stds (fin_fun_constr T T') o single
+                 ? construct_value ctxt stds (fin_fun_constr T T') o single
             end
       in
         Unsynchronized.change constr_cache (map (apsnd (map finitize_constr)));
