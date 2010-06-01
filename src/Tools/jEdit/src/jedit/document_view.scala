@@ -19,6 +19,7 @@ import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 
 object Document_View
@@ -76,6 +77,24 @@ object Document_View
 class Document_View(val model: Document_Model, text_area: TextArea)
 {
   private val session = model.session
+
+
+  /* extended token styles */
+
+  private var styles: Array[SyntaxStyle] = null  // owned by Swing thread
+
+  def extend_styles()
+  {
+    Swing_Thread.assert()
+    styles = Isabelle_Token_Marker.extend_styles(text_area.getPainter.getStyles)
+  }
+  extend_styles()
+
+  def set_styles()
+  {
+    Swing_Thread.assert()
+    text_area.getPainter.setStyles(styles)
+  }
 
 
   /* commands_changed_actor */

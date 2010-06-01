@@ -1,6 +1,6 @@
 # -*- shell-script -*- :mode=shellscript:
 
-  POLYML_HOME="/home/isatest/homebroy/home/polyml/polyml-5.3.0"
+  POLYML_HOME="/home/isatest/polyml-5.3.0"
   ML_SYSTEM="polyml-5.3.0"
   ML_PLATFORM="x86-cygwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"

@@ -228,6 +228,11 @@ class Plugin extends EBPlugin
         }
 
       case msg: PropertiesChanged =>
+        Swing_Thread.now {
+          for (text_area <- Isabelle.jedit_text_areas if Document_View(text_area).isDefined)
+            Document_View(text_area).get.extend_styles()
+        }
+
         Isabelle.session.global_settings.event(Session.Global_Settings)
 
       case _ =>
