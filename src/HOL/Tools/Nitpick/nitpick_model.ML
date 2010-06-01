@@ -23,7 +23,7 @@ sig
 
   val irrelevant : string
   val unknown : string
-  val unrep : string
+  val unrep : unit -> string
   val register_term_postprocessor :
     typ -> term_postprocessor -> theory -> theory
   val unregister_term_postprocessor : typ -> theory -> theory
@@ -65,17 +65,19 @@ structure Data = Theory_Data(
   val extend = I
   fun merge (x, y) = AList.merge (op =) (K true) (x, y))
 
+fun xsym s s' () = if print_mode_active Symbol.xsymbolsN then s else s'
+
 val irrelevant = "_"
 val unknown = "?"
-val unrep = "\<dots>"
-val maybe_mixfix = "_\<^sup>?"
-val base_mixfix = "_\<^bsub>base\<^esub>"
-val step_mixfix = "_\<^bsub>step\<^esub>"
-val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
+val unrep = xsym "\<dots>" "..."
+val maybe_mixfix = xsym "_\<^sup>?" "_?"
+val base_mixfix = xsym "_\<^bsub>base\<^esub>" "_.base"
+val step_mixfix = xsym "_\<^bsub>step\<^esub>" "_.step"
+val abs_mixfix = xsym "\<guillemotleft>_\<guillemotright>" "\"_\""
 val arg_var_prefix = "x"
-val cyclic_co_val_name = "\<omega>"
-val cyclic_const_prefix = "\<xi>"
-val cyclic_type_name = nitpick_prefix ^ cyclic_const_prefix
+val cyclic_co_val_name = xsym "\<omega>" "w"
+val cyclic_const_prefix = xsym "\<xi>" "X"
+fun cyclic_type_name () = nitpick_prefix ^ cyclic_const_prefix ()
 val opt_flag = nitpick_prefix ^ "opt"
 val non_opt_flag = nitpick_prefix ^ "non_opt"
 
@@ -87,16 +89,16 @@ fun add_wacky_syntax ctxt =
     val thy = ProofContext.theory_of ctxt |> Context.reject_draft
     val (maybe_t, thy) =
       Sign.declare_const ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
-                          Mixfix (maybe_mixfix, [1000], 1000)) thy
+                          Mixfix (maybe_mixfix (), [1000], 1000)) thy
     val (abs_t, thy) =
       Sign.declare_const ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
-                          Mixfix (abs_mixfix, [40], 40)) thy
+                          Mixfix (abs_mixfix (), [40], 40)) thy
     val (base_t, thy) =
       Sign.declare_const ((@{binding nitpick_base}, @{typ "'a => 'a"}),
-                          Mixfix (base_mixfix, [1000], 1000)) thy
+                          Mixfix (base_mixfix (), [1000], 1000)) thy
     val (step_t, thy) =
       Sign.declare_const ((@{binding nitpick_step}, @{typ "'a => 'a"}),
-                          Mixfix (step_mixfix, [1000], 1000)) thy
+                          Mixfix (step_mixfix (), [1000], 1000)) thy
   in
     (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
      ProofContext.transfer_syntax thy ctxt)
@@ -322,7 +324,7 @@ fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
       in
         case term false of
           t as Const (s, _) =>
-          if String.isPrefix cyclic_const_prefix s then
+          if String.isPrefix (cyclic_const_prefix ()) s then
             HOLogic.mk_eq (t, term true)
           else
             t
@@ -367,7 +369,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
                                   T1 --> (T1 --> T2) --> T1 --> T2)
         fun aux [] =
             if maybe_opt andalso not (is_complete_type datatypes false T1) then
-              insert_const $ Const (unrep, T1) $ empty_const
+              insert_const $ Const (unrep (), T1) $ empty_const
             else
               empty_const
           | aux ((t1, t2) :: zs) =
@@ -396,7 +398,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
              | _ => update_const $ aux' tps $ t1 $ t2)
         fun aux tps =
           if maybe_opt andalso not (is_complete_type datatypes false T1) then
-            update_const $ aux' tps $ Const (unrep, T1)
+            update_const $ aux' tps $ Const (unrep (), T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
             aux' tps
@@ -491,7 +493,8 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
             fun tuples_for_const (s, T) =
               tuple_list_for_name rel_table bounds (ConstName (s, T, Any))
             fun cyclic_atom () =
-              nth_atom thy atomss pool for_auto (Type (cyclic_type_name, [])) j
+              nth_atom thy atomss pool for_auto (Type (cyclic_type_name (), []))
+                       j
             fun cyclic_var () =
               Var ((nth_atom_name thy atomss pool "" T j, 0), T)
             val discr_jsss = map (tuples_for_const o discr_for_constr o #const)
@@ -559,14 +562,15 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
                   let val var = cyclic_var () in
                     if unfold andalso not standard andalso
                        length seen = 1 andalso
-                       exists_subterm (fn Const (s, _) =>
-                                          String.isPrefix cyclic_const_prefix s
-                                        | t' => t' = var) t then
+                       exists_subterm
+                           (fn Const (s, _) =>
+                               String.isPrefix (cyclic_const_prefix ()) s
+                             | t' => t' = var) t then
                       subst_atomic [(var, cyclic_atom ())] t
                     else if exists_subterm (curry (op =) var) t then
                       if co then
                         Const (@{const_name The}, (T --> bool_T) --> T)
-                        $ Abs (cyclic_co_val_name, T,
+                        $ Abs (cyclic_co_val_name (), T,
                                Const (@{const_name "op ="}, T --> T --> bool_T)
                                $ Bound 0 $ abstract_over (var, t))
                       else
@@ -814,9 +818,11 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
 
 fun assign_operator_for_const (s, T) =
   if String.isPrefix ubfp_prefix s then
-    if is_fun_type T then "\<subseteq>" else "\<le>"
+    if is_fun_type T then xsym "\<subseteq>" "<=" ()
+    else xsym "\<le>" "<=" ()
   else if String.isPrefix lbfp_prefix s then
-    if is_fun_type T then "\<supseteq>" else "\<ge>"
+    if is_fun_type T then xsym "\<supseteq>" ">=" ()
+    else xsym "\<ge>" ">=" ()
   else if original_name s <> s then
     assign_operator_for_const (strip_first_name_sep s |> snd, T)
   else
@@ -891,7 +897,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       let fun aux unfold = term_for_rep unfold T T (Atom (card, 0)) [[n]] in
         case aux false of
           t as Const (s, _) =>
-          if String.isPrefix cyclic_const_prefix s then
+          if String.isPrefix (cyclic_const_prefix ()) s then
             HOLogic.mk_eq (t, aux true)
           else
             t
@@ -944,7 +950,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
             Pretty.enum "," "{" "}"
                 (map (Syntax.pretty_term ctxt) (all_values card typ) @
                  (if fun_from_pair complete false then []
-                  else [Pretty.str unrep]))]))
+                  else [Pretty.str (unrep ())]))]))
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
         standard = true, complete = (false, false), concrete = (true, true),

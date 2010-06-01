@@ -244,12 +244,17 @@ val get_class_def = Refute.get_classdef
 val monomorphic_term = Sledgehammer_Util.monomorphic_term
 val specialize_type = Sledgehammer_Util.specialize_type
 
-val subscript = implode o map (prefix "\<^isub>") o explode
+val i_subscript = implode o map (prefix "\<^isub>") o explode
+fun be_subscript s = "\<^bsub>" ^ s ^ "\<^esub>"
 fun nat_subscript n =
-  (* cheap trick to ensure proper alphanumeric ordering for one- and two-digit
-     numbers *)
-  if n <= 9 then "\<^bsub>" ^ signed_string_of_int n ^ "\<^esub>"
-  else subscript (string_of_int n)
+  let val s = signed_string_of_int n in
+    if print_mode_active Symbol.xsymbolsN then
+      (* cheap trick to ensure proper alphanumeric ordering for one- and
+         two-digit numbers *)
+      (if n <= 9 then be_subscript else i_subscript) s
+    else
+      s
+  end
 
 fun time_limit NONE = I
   | time_limit (SOME delay) = TimeLimit.timeLimit delay

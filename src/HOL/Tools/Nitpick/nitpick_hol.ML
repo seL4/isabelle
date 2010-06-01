@@ -829,7 +829,7 @@ fun eta_expand _ t 0 = t
   | eta_expand Ts (Abs (s, T, t')) n =
     Abs (s, T, eta_expand (T :: Ts) t' (n - 1))
   | eta_expand Ts t n =
-    fold_rev (curry3 Abs ("x\<^isub>\<eta>" ^ nat_subscript n))
+    fold_rev (curry3 Abs ("x" ^ nat_subscript n))
              (List.take (binder_types (fastype_of1 (Ts, t)), n))
              (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
 
