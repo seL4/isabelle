@@ -25,6 +25,10 @@ fun is_positive_existential polar quant_s =
   (polar = Pos andalso quant_s = @{const_name Ex}) orelse
   (polar = Neg andalso quant_s <> @{const_name Ex})
 
+val is_descr =
+  member (op =) [@{const_name The}, @{const_name Eps}, @{const_name safe_The},
+                 @{const_name safe_Eps}]
+
 (** Binary coding of integers **)
 
 (* If a formula contains a numeral whose absolute value is more than this
@@ -179,7 +183,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
         list_comb (Const (s0, T --> T --> body_type T0),
                    map2 (coerce_term hol_ctxt new_Ts T) [T1, T2] [t1, t2])
       end
-    and do_description_operator s T =
+    and do_descr s T =
       let val T1 = box_type hol_ctxt InFunLHS (range_type T) in
         Const (s, (T1 --> bool_T) --> T1)
       end
@@ -214,27 +218,26 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
       | @{const "op -->"} $ t1 $ t2 =>
         @{const "op -->"} $ do_term new_Ts old_Ts (flip_polarity polar) t1
         $ do_term new_Ts old_Ts polar t2
-      | Const (s as @{const_name The}, T) => do_description_operator s T
-      | Const (s as @{const_name Eps}, T) => do_description_operator s T
-      | Const (s as @{const_name safe_The}, T) => do_description_operator s T
-      | Const (s as @{const_name safe_Eps}, T) => do_description_operator s T
       | Const (x as (s, T)) =>
-        Const (s, if s = @{const_name converse} orelse
-                     s = @{const_name trancl} then
-                    box_relational_operator_type T
-                  else if String.isPrefix quot_normal_prefix s then
-                    let val T' = box_type hol_ctxt InFunLHS (domain_type T) in
-                      T' --> T'
-                    end
-                  else if is_built_in_const thy stds fast_descrs x orelse
-                          s = @{const_name Sigma} then
-                    T
-                  else if is_constr_like ctxt x then
-                    box_type hol_ctxt InConstr T
-                  else if is_sel s orelse is_rep_fun ctxt x then
-                    box_type hol_ctxt InSel T
-                  else
-                    box_type hol_ctxt InExpr T)
+        if is_descr s then
+          do_descr s T
+        else
+          Const (s, if s = @{const_name converse} orelse
+                       s = @{const_name trancl} then
+                      box_relational_operator_type T
+                    else if String.isPrefix quot_normal_prefix s then
+                      let val T' = box_type hol_ctxt InFunLHS (domain_type T) in
+                        T' --> T'
+                      end
+                    else if is_built_in_const thy stds fast_descrs x orelse
+                            s = @{const_name Sigma} then
+                      T
+                    else if is_constr_like ctxt x then
+                      box_type hol_ctxt InConstr T
+                    else if is_sel s orelse is_rep_fun ctxt x then
+                      box_type hol_ctxt InSel T
+                    else
+                      box_type hol_ctxt InExpr T)
       | t1 $ Abs (s, T, t2') =>
         let
           val t1 = do_term new_Ts old_Ts Neut t1
@@ -924,6 +927,9 @@ fun axioms_for_term
                end
              else if is_constr ctxt stds x then
                accum
+             else if is_descr (original_name s) then
+               fold (add_nondef_axiom depth) (equational_fun_axioms hol_ctxt x)
+                    accum
              else if is_equational_fun hol_ctxt x then
                fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
