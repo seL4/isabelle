@@ -235,11 +235,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                        |> pairf hd tl
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
-(*
-    val _ = print_g ("*** " ^ Syntax.string_of_term ctxt orig_t)
-    val _ = List.app (fn t => print_g ("*** " ^ Syntax.string_of_term ctxt t))
-                     orig_assm_ts
-*)
     val max_bisim_depth = fold Integer.max bisim_depths ~1
     val case_names = case_const_names thy stds
     val (defs, built_in_nondefs, user_nondefs) = all_axioms_of ctxt subst
