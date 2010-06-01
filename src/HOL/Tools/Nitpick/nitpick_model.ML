@@ -23,7 +23,7 @@ sig
 
   val irrelevant : string
   val unknown : string
-  val unrep : string
+  val unrep : unit -> string
   val register_term_postprocessor :
     typ -> term_postprocessor -> theory -> theory
   val unregister_term_postprocessor : typ -> theory -> theory
@@ -31,8 +31,9 @@ sig
     nut NameTable.table -> Kodkod.raw_bound list -> nut -> int list list
   val dest_plain_fun : term -> bool * (term list * term list)
   val reconstruct_hol_model :
-    params -> scope -> (term option * int list) list -> styp list -> nut list
-    -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
+    params -> scope -> (term option * int list) list
+    -> (typ option * string list) list -> styp list -> nut list -> nut list
+    -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
     -> Pretty.T * bool
   val prove_hol_model :
     scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
@@ -64,17 +65,19 @@ structure Data = Theory_Data(
   val extend = I
   fun merge (x, y) = AList.merge (op =) (K true) (x, y))
 
+fun xsym s s' () = if print_mode_active Symbol.xsymbolsN then s else s'
+
 val irrelevant = "_"
 val unknown = "?"
-val unrep = "\<dots>"
-val maybe_mixfix = "_\<^sup>?"
-val base_mixfix = "_\<^bsub>base\<^esub>"
-val step_mixfix = "_\<^bsub>step\<^esub>"
-val abs_mixfix = "\<guillemotleft>_\<guillemotright>"
+val unrep = xsym "\<dots>" "..."
+val maybe_mixfix = xsym "_\<^sup>?" "_?"
+val base_mixfix = xsym "_\<^bsub>base\<^esub>" "_.base"
+val step_mixfix = xsym "_\<^bsub>step\<^esub>" "_.step"
+val abs_mixfix = xsym "\<guillemotleft>_\<guillemotright>" "\"_\""
 val arg_var_prefix = "x"
-val cyclic_co_val_name = "\<omega>"
-val cyclic_const_prefix = "\<xi>"
-val cyclic_type_name = nitpick_prefix ^ cyclic_const_prefix
+val cyclic_co_val_name = xsym "\<omega>" "w"
+val cyclic_const_prefix = xsym "\<xi>" "X"
+fun cyclic_type_name () = nitpick_prefix ^ cyclic_const_prefix ()
 val opt_flag = nitpick_prefix ^ "opt"
 val non_opt_flag = nitpick_prefix ^ "non_opt"
 
@@ -86,16 +89,16 @@ fun add_wacky_syntax ctxt =
     val thy = ProofContext.theory_of ctxt |> Context.reject_draft
     val (maybe_t, thy) =
       Sign.declare_const ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
-                          Mixfix (maybe_mixfix, [1000], 1000)) thy
+                          Mixfix (maybe_mixfix (), [1000], 1000)) thy
     val (abs_t, thy) =
       Sign.declare_const ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
-                          Mixfix (abs_mixfix, [40], 40)) thy
+                          Mixfix (abs_mixfix (), [40], 40)) thy
     val (base_t, thy) =
       Sign.declare_const ((@{binding nitpick_base}, @{typ "'a => 'a"}),
-                          Mixfix (base_mixfix, [1000], 1000)) thy
+                          Mixfix (base_mixfix (), [1000], 1000)) thy
     val (step_t, thy) =
       Sign.declare_const ((@{binding nitpick_step}, @{typ "'a => 'a"}),
-                          Mixfix (step_mixfix, [1000], 1000)) thy
+                          Mixfix (step_mixfix (), [1000], 1000)) thy
   in
     (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
      ProofContext.transfer_syntax thy ctxt)
@@ -103,31 +106,41 @@ fun add_wacky_syntax ctxt =
 
 (** Term reconstruction **)
 
-fun nth_atom_suffix pool s j k =
-  (case AList.lookup (op =) (!pool) (s, k) of
-     SOME js =>
-     (case find_index (curry (op =) j) js of
-        ~1 => (Unsynchronized.change pool (cons ((s, k), j :: js));
-               length js + 1)
-      | n => length js - n)
-   | NONE => (Unsynchronized.change pool (cons ((s, k), [j])); 1))
-  |> nat_subscript
-  |> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
+fun nth_atom_number pool T j =
+  case AList.lookup (op =) (!pool) T of
+    SOME js =>
+    (case find_index (curry (op =) j) js of
+       ~1 => (Unsynchronized.change pool (cons (T, j :: js));
+              length js + 1)
+     | n => length js - n)
+  | NONE => (Unsynchronized.change pool (cons (T, [j])); 1)
+fun atom_suffix s =
+  nat_subscript
+  #> (s <> "" andalso Symbol.is_ascii_digit (List.last (explode s)))
      ? prefix "\<^isub>,"
-fun nth_atom_name pool prefix (Type (s, _)) j k =
-    let val s' = shortest_name s in
-      prefix ^ (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
-      nth_atom_suffix pool s j k
-    end
-  | nth_atom_name pool prefix (TFree (s, _)) j k =
-    prefix ^ perhaps (try (unprefix "'")) s ^ nth_atom_suffix pool s j k
-  | nth_atom_name _ _ T _ _ =
-    raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
-fun nth_atom pool for_auto T j k =
+fun nth_atom_name thy atomss pool prefix T j =
+  let
+    val ss = these (triple_lookup (type_match thy) atomss T)
+    val m = nth_atom_number pool T j
+  in
+    if m <= length ss then
+      nth ss (m - 1)
+    else case T of
+      Type (s, _) =>
+      let val s' = shortest_name s in
+        prefix ^
+        (if String.isPrefix "\\" s' then s' else substring (s', 0, 1)) ^
+        atom_suffix s m
+      end
+    | TFree (s, _) => prefix ^ perhaps (try (unprefix "'")) s ^ atom_suffix s m
+    | _ => raise TYPE ("Nitpick_Model.nth_atom_name", [T], [])
+  end
+fun nth_atom thy atomss pool for_auto T j =
   if for_auto then
-    Free (nth_atom_name pool (hd (space_explode "." nitpick_prefix)) T j k, T)
+    Free (nth_atom_name thy atomss pool (hd (space_explode "." nitpick_prefix))
+                        T j, T)
   else
-    Const (nth_atom_name pool "" T j k, T)
+    Const (nth_atom_name thy atomss pool "" T j, T)
 
 fun extract_real_number (Const (@{const_name divide}, _) $ t1 $ t2) =
     real (snd (HOLogic.dest_number t1)) / real (snd (HOLogic.dest_number t2))
@@ -300,27 +313,29 @@ fun varified_type_match thy (candid_T, pat_T) =
   strict_type_match thy (candid_T, Logic.varifyT_global pat_T)
 
 fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
-                       sel_names rel_table bounds card T =
+                       atomss sel_names rel_table bounds card T =
   let
     val card = if card = 0 then card_of_type card_assigns T else card
     fun nth_value_of_type n =
       let
         fun term unfold =
-          reconstruct_term unfold pool wacky_names scope sel_names rel_table
-                           bounds T T (Atom (card, 0)) [[n]]
+          reconstruct_term true unfold pool wacky_names scope atomss sel_names
+                           rel_table bounds T T (Atom (card, 0)) [[n]]
       in
         case term false of
           t as Const (s, _) =>
-          if String.isPrefix cyclic_const_prefix s then
+          if String.isPrefix (cyclic_const_prefix ()) s then
             HOLogic.mk_eq (t, term true)
           else
             t
         | t => t
       end
   in index_seq 0 card |> map nth_value_of_type |> sort nice_term_ord end
-and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
-        (scope as {hol_ctxt as {ctxt, thy, stds, ...}, binarize, card_assigns,
-                   bits, datatypes, ofs, ...}) sel_names rel_table bounds =
+and reconstruct_term maybe_opt unfold pool
+        (wacky_names as ((maybe_name, abs_name), _))
+        (scope as {hol_ctxt as {thy, ctxt, stds, ...}, binarize, card_assigns,
+                   bits, datatypes, ofs, ...})
+        atomss sel_names rel_table bounds =
   let
     val for_auto = (maybe_name = "")
     fun value_of_bits jss =
@@ -332,7 +347,8 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
              js 0
       end
     val all_values =
-      all_values_of_type pool wacky_names scope sel_names rel_table bounds 0
+      all_values_of_type pool wacky_names scope atomss sel_names rel_table
+                         bounds 0
     fun postprocess_term (Type (@{type_name fun}, _)) = I
       | postprocess_term T =
         if null (Data.get thy) then
@@ -354,7 +370,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
                                   T1 --> (T1 --> T2) --> T1 --> T2)
         fun aux [] =
             if maybe_opt andalso not (is_complete_type datatypes false T1) then
-              insert_const $ Const (unrep, T1) $ empty_const
+              insert_const $ Const (unrep (), T1) $ empty_const
             else
               empty_const
           | aux ((t1, t2) :: zs) =
@@ -383,7 +399,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
              | _ => update_const $ aux' tps $ t1 $ t2)
         fun aux tps =
           if maybe_opt andalso not (is_complete_type datatypes false T1) then
-            update_const $ aux' tps $ Const (unrep, T1)
+            update_const $ aux' tps $ Const (unrep (), T1)
             $ (Const (@{const_name Some}, T2' --> T2) $ Const (unknown, T2'))
           else
             aux' tps
@@ -471,16 +487,17 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
         else if T = @{typ bisim_iterator} then
           HOLogic.mk_number nat_T j
         else case datatype_spec datatypes T of
-          NONE => nth_atom pool for_auto T j k
-        | SOME {deep = false, ...} => nth_atom pool for_auto T j k
+          NONE => nth_atom thy atomss pool for_auto T j
+        | SOME {deep = false, ...} => nth_atom thy atomss pool for_auto T j
         | SOME {co, standard, constrs, ...} =>
           let
             fun tuples_for_const (s, T) =
               tuple_list_for_name rel_table bounds (ConstName (s, T, Any))
             fun cyclic_atom () =
-              nth_atom pool for_auto (Type (cyclic_type_name, [])) j k
-            fun cyclic_var () = Var ((nth_atom_name pool "" T j k, 0), T)
-
+              nth_atom thy atomss pool for_auto (Type (cyclic_type_name (), []))
+                       j
+            fun cyclic_var () =
+              Var ((nth_atom_name thy atomss pool "" T j, 0), T)
             val discr_jsss = map (tuples_for_const o discr_for_constr o #const)
                                  constrs
             val real_j = j + offset_of_type ofs T
@@ -536,7 +553,7 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
                     | _ => raise TERM ("Nitpick_Model.reconstruct_term.\
                                        \term_for_atom (Abs_Frac)", ts)
                   else if not for_auto andalso
-                          (is_abs_fun thy constr_x orelse
+                          (is_abs_fun ctxt constr_x orelse
                            constr_s = @{const_name Quot}) then
                     Const (abs_name, constr_T) $ the_single ts
                   else
@@ -546,14 +563,15 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
                   let val var = cyclic_var () in
                     if unfold andalso not standard andalso
                        length seen = 1 andalso
-                       exists_subterm (fn Const (s, _) =>
-                                          String.isPrefix cyclic_const_prefix s
-                                        | t' => t' = var) t then
+                       exists_subterm
+                           (fn Const (s, _) =>
+                               String.isPrefix (cyclic_const_prefix ()) s
+                             | t' => t' = var) t then
                       subst_atomic [(var, cyclic_atom ())] t
                     else if exists_subterm (curry (op =) var) t then
                       if co then
                         Const (@{const_name The}, (T --> bool_T) --> T)
-                        $ Abs (cyclic_co_val_name, T,
+                        $ Abs (cyclic_co_val_name (), T,
                                Const (@{const_name "op ="}, T --> T --> bool_T)
                                $ Bound 0 $ abstract_over (var, t))
                       else
@@ -612,11 +630,11 @@ and reconstruct_term unfold pool (wacky_names as ((maybe_name, abs_name), _))
         else term_for_rep true seen T T' R jss
       | term_for_rep _ _ T _ R jss =
         raise ARG ("Nitpick_Model.reconstruct_term.term_for_rep",
-                   Refute.string_of_typ T ^ " " ^ string_for_rep R ^ " " ^
+                   Syntax.string_of_typ ctxt T ^ " " ^ string_for_rep R ^ " " ^
                    string_of_int (length jss))
   in
     postprocess_subterms [] o polish_funs [] o unarize_unbox_etc_term
-    oooo term_for_rep true []
+    oooo term_for_rep maybe_opt []
   end
 
 (** Constant postprocessing **)
@@ -801,22 +819,17 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
 
 fun assign_operator_for_const (s, T) =
   if String.isPrefix ubfp_prefix s then
-    if is_fun_type T then "\<subseteq>" else "\<le>"
+    if is_fun_type T then xsym "\<subseteq>" "<=" ()
+    else xsym "\<le>" "<=" ()
   else if String.isPrefix lbfp_prefix s then
-    if is_fun_type T then "\<supseteq>" else "\<ge>"
+    if is_fun_type T then xsym "\<supseteq>" ">=" ()
+    else xsym "\<ge>" ">=" ()
   else if original_name s <> s then
     assign_operator_for_const (strip_first_name_sep s |> snd, T)
   else
     "="
 
 (** Model reconstruction **)
-
-fun term_for_name pool scope sel_names rel_table bounds name =
-  let val T = type_of name in
-    tuple_list_for_name rel_table bounds name
-    |> reconstruct_term false pool (("", ""), ("", "")) scope sel_names
-                        rel_table bounds T T (rep_of name)
-  end
 
 fun unfold_outer_the_binders (t as Const (@{const_name The}, _)
                                    $ Abs (s, T, Const (@{const_name "op ="}, _)
@@ -848,7 +861,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache},
          binarize, card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
-        formats all_frees free_names sel_names nonsel_names rel_table bounds =
+        formats atomss all_frees free_names sel_names nonsel_names rel_table
+        bounds =
   let
     val pool = Unsynchronized.ref []
     val (wacky_names as (_, base_step_names), ctxt) =
@@ -870,22 +884,24 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
     val scope =
       {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
        bits = bits, bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}
-    fun term_for_rep unfold =
-      reconstruct_term unfold pool wacky_names scope sel_names rel_table bounds
+    fun term_for_rep maybe_opt unfold =
+      reconstruct_term maybe_opt unfold pool wacky_names scope atomss
+                       sel_names rel_table bounds
     fun nth_value_of_type card T n =
       let
-        fun aux unfold = term_for_rep unfold T T (Atom (card, 0)) [[n]]
+        fun aux unfold = term_for_rep true unfold T T (Atom (card, 0)) [[n]]
       in
         case aux false of
           t as Const (s, _) =>
-          if String.isPrefix cyclic_const_prefix s then
+          if String.isPrefix (cyclic_const_prefix ()) s then
             HOLogic.mk_eq (t, aux true)
           else
             t
         | t => t
       end
     val all_values =
-      all_values_of_type pool wacky_names scope sel_names rel_table bounds
+      all_values_of_type pool wacky_names scope atomss sel_names rel_table
+                         bounds
     fun is_codatatype_wellformed (cos : dtype_spec list)
                                  ({typ, card, ...} : dtype_spec) =
       let
@@ -912,7 +928,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                    Const (@{const_name undefined}, T')
                  else
                    tuple_list_for_name rel_table bounds name
-                   |> term_for_rep false T T' (rep_of name)
+                   |> term_for_rep (not (is_fully_representable_set name)) false
+                                   T T' (rep_of name)
       in
         Pretty.block (Pretty.breaks
             [setmp_show_all_types (Syntax.pretty_term ctxt) t1,
@@ -930,7 +947,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
             Pretty.enum "," "{" "}"
                 (map (Syntax.pretty_term ctxt) (all_values card typ) @
                  (if fun_from_pair complete false then []
-                  else [Pretty.str unrep]))]))
+                  else [Pretty.str (unrep ())]))]))
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
         standard = true, complete = (false, false), concrete = (true, true),
@@ -991,14 +1008,23 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
      forall (is_codatatype_wellformed codatatypes) codatatypes)
   end
 
+fun term_for_name pool scope atomss sel_names rel_table bounds name =
+  let val T = type_of name in
+    tuple_list_for_name rel_table bounds name
+    |> reconstruct_term (not (is_fully_representable_set name)) false pool
+                        (("", ""), ("", "")) scope atomss sel_names rel_table
+                        bounds T T (rep_of name)
+  end
+
 fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
                                card_assigns, ...})
                     auto_timeout free_names sel_names rel_table bounds prop =
   let
     val pool = Unsynchronized.ref []
+    val atomss = [(NONE, [])]
     fun free_type_assm (T, k) =
       let
-        fun atom j = nth_atom pool true T j k
+        fun atom j = nth_atom thy atomss pool true T j
         fun equation_for_atom j = HOLogic.eq_const T $ Bound 0 $ atom j
         val eqs = map equation_for_atom (index_seq 0 k)
         val compreh_assm =
@@ -1008,7 +1034,8 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
       in s_conj (compreh_assm, distinct_assm) end
     fun free_name_assm name =
       HOLogic.mk_eq (Free (nickname_of name, type_of name),
-                     term_for_name pool scope sel_names rel_table bounds name)
+                     term_for_name pool scope atomss sel_names rel_table bounds
+                                   name)
     val freeT_assms = map free_type_assm (filter (is_TFree o fst) card_assigns)
     val model_assms = map free_name_assm free_names
     val assm = foldr1 s_conj (freeT_assms @ model_assms)

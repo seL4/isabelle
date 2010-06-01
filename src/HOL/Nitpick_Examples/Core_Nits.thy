@@ -1051,6 +1051,52 @@ lemma "Q = {x\<Colon>nat} \<Longrightarrow> (Q\<Colon>nat set) (The Q)"
 nitpick [expect = none]
 sorry
 
+lemma "(THE j. j > Suc 10 \<and> j \<le> 11) \<noteq> 0"
+nitpick [card nat = 4, full_descrs, unary_ints, expect = potential]
+nitpick [card nat = 14, full_descrs, unary_ints, expect = potential] (* unfortunate *)
+oops
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x \<noteq> 0"
+nitpick [card nat = 4, full_descrs, unary_ints, expect = potential]
+nitpick [card nat = 14, full_descrs, unary_ints, expect = none]
+sorry
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 4, full_descrs, unary_ints, expect = potential]
+nitpick [card nat = 14, full_descrs, unary_ints, expect = none]
+sorry
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 14, full_descrs, unary_ints, expect = genuine]
+oops
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12 \<or> x = 13"
+nitpick [card nat = 14, full_descrs, unary_ints, expect = genuine]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 11) \<noteq> 0"
+nitpick [card nat = 4, full_descrs, unary_ints, expect = potential]
+nitpick [card nat = 14, full_descrs, unary_ints, expect = genuine]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x \<noteq> 0"
+nitpick [card nat = 4, full_descrs, unary_ints, expect = potential]
+nitpick [card nat = 14, full_descrs, unary_ints, expect = none]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 4, full_descrs, unary_ints, expect = potential]
+nitpick [card nat = 14, full_descrs, unary_ints, expect = none]
+sorry
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 14, full_descrs, unary_ints, expect = genuine]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12 \<or> x = 13"
+nitpick [card nat = 14, full_descrs, unary_ints, expect = none]
+sorry
+
 subsection {* Destructors and Recursors *}
 
 lemma "(x\<Colon>'a) = (case True of True \<Rightarrow> x | False \<Rightarrow> x)"

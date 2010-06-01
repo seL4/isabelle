@@ -543,10 +543,6 @@ let
         (* do not call solver "auto" from within "auto" *)
         loop solvers
       else (
-        (if name="dpll" orelse name="enumerate" then
-          warning ("Using SAT solver " ^ quote name ^ "; for better performance, consider using an external solver.")
-        else
-          ());
         (* apply 'solver' to 'fm' *)
         solver fm
           handle SatSolver.NOT_CONFIGURED => loop solvers
