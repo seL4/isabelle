@@ -12,9 +12,10 @@ code_type char
   (SML "char")
   (OCaml "char")
   (Haskell "Char")
+  (Scala "Char")
 
 setup {*
-  fold String_Code.add_literal_char ["SML", "OCaml", "Haskell"] 
+  fold String_Code.add_literal_char ["SML", "OCaml", "Haskell", "Scala"] 
   #> String_Code.add_literal_list_string "Haskell"
 *}
 
@@ -27,10 +28,14 @@ code_reserved SML
 code_reserved OCaml
   char
 
+code_reserved Scala
+  char
+
 code_const "eq_class.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) = _)")
   (OCaml "!((_ : char) = _)")
   (Haskell infixl 4 "==")
+  (Scala infixl 5 "==")
 
 code_const "Code_Evaluation.term_of \<Colon> char \<Rightarrow> term"
   (Eval "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
@@ -53,10 +58,12 @@ code_const implode
   (SML "String.implode")
   (OCaml "failwith/ \"implode\"")
   (Haskell "_")
+  (Scala "List.toString((_))")
 
 code_const explode
   (SML "String.explode")
   (OCaml "failwith/ \"explode\"")
   (Haskell "_")
+  (Scala "List.fromString((_))")
 
 end
