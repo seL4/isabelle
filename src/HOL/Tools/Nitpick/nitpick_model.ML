@@ -608,7 +608,6 @@ and reconstruct_term maybe_opt unfold pool
       | term_for_rep maybe_opt seen (Type (@{type_name fun}, [T1, T2])) T'
                      (Func (R1, Formula Neut)) jss =
         let
-val _ = priority ("HERE: " ^ (if maybe_opt then "y" else "n")) (* ### *)
           val jss1 = all_combinations_for_rep R1
           val ts1 = map (term_for_rep true seen T1 T1 R1 o single) jss1
           val ts2 =
