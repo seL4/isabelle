@@ -28,11 +28,7 @@ fun frees_of t = map Free (rev (Term.add_frees t []));
 fun forall_intr_vfs prop = fold_rev Logic.all
   (vars_of prop @ frees_of prop) prop;
 
-fun forall_intr_prf t prf =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, SOME T, prf_abstract_over t prf) end;
-
-fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_prf
+fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof'
   (vars_of prop @ frees_of prop) prf;
 
 
