@@ -1055,11 +1055,11 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
           (s, case AList.lookup (op =) constr_mtypes x of
                 SOME M => type_from_mtype T M
               | NONE => T)
-        fun term_from_mterm Ts m =
+        fun term_from_mterm new_Ts old_Ts m =
           case m of
             MRaw (t, M) =>
             let
-              val T = fastype_of1 (Ts, t)
+              val T = fastype_of1 (old_Ts, t)
               val T' = type_from_mtype T M
             in
               case t of
@@ -1073,7 +1073,7 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
                           $ (Const (@{const_name is_unknown},
                                     elem_T' --> bool_T) $ Bound 1)
                           $ (Const (@{const_name unknown}, set_T'))
-                          $ (coerce_term hol_ctxt Ts T' T (Const x)
+                          $ (coerce_term hol_ctxt new_Ts T' T (Const x)
                              $ Bound 1 $ Bound 0)))
                   | _ => Const (s, T')
                 else if s = @{const_name finite} then
@@ -1085,7 +1085,7 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
                         s = @{const_name "op ="} then
                   Const (s, T')
                 else if is_built_in_const thy stds fast_descrs x then
-                  coerce_term hol_ctxt Ts T' T t
+                  coerce_term hol_ctxt new_Ts T' T t
                 else if is_constr ctxt stds x then
                   Const (finitize_constr x)
                 else if is_sel s then
@@ -1107,8 +1107,8 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
             end
           | MApp (m1, m2) =>
             let
-              val (t1, t2) = pairself (term_from_mterm Ts) (m1, m2)
-              val (T1, T2) = pairself (curry fastype_of1 Ts) (t1, t2)
+              val (t1, t2) = pairself (term_from_mterm new_Ts old_Ts) (m1, m2)
+              val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
               val (t1', T2') =
                 case T1 of
                   Type (s, [T11, T12]) => 
@@ -1119,20 +1119,20 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
                      t1, T11)
                 | _ => raise TYPE ("Nitpick_Mono.finitize_funs.term_from_mterm",
                                    [T1], [])
-            in betapply (t1', coerce_term hol_ctxt Ts T2' T2 t2) end
-          | MAbs (s, T, M, a, m') =>
+            in betapply (t1', coerce_term hol_ctxt new_Ts T2' T2 t2) end
+          | MAbs (s, old_T, M, a, m') =>
             let
-              val T = type_from_mtype T M
-              val t' = term_from_mterm (T :: Ts) m'
-              val T' = fastype_of1 (T :: Ts, t')
+              val new_T = type_from_mtype old_T M
+              val t' = term_from_mterm (new_T :: new_Ts) (old_T :: old_Ts) m'
+              val T' = fastype_of1 (new_T :: new_Ts, t')
             in
-              Abs (s, T, t')
-              |> should_finitize (T --> T') a
-                 ? construct_value ctxt stds (fin_fun_constr T T') o single
+              Abs (s, new_T, t')
+              |> should_finitize (new_T --> T') a
+                 ? construct_value ctxt stds (fin_fun_constr new_T T') o single
             end
       in
         Unsynchronized.change constr_cache (map (apsnd (map finitize_constr)));
-        pairself (map (term_from_mterm [])) msp
+        pairself (map (term_from_mterm [] [])) msp
       end
   | NONE => tsp
 
