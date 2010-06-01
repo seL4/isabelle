@@ -11,8 +11,9 @@ sig
   val proof_of_term: theory -> bool -> term -> Proofterm.proof
   val term_of_proof: Proofterm.proof -> term
   val cterm_of_proof: theory -> Proofterm.proof -> cterm * (cterm -> Proofterm.proof)
-  val read_term: theory -> typ -> string -> term
-  val read_proof: theory -> bool -> string -> Proofterm.proof
+  val strip_sorts_consttypes: Proof.context -> Proof.context
+  val read_term: theory -> bool -> typ -> string -> term
+  val read_proof: theory -> bool -> bool -> string -> Proofterm.proof
   val proof_syntax: Proofterm.proof -> theory -> theory
   val proof_of: bool -> thm -> Proofterm.proof
   val pretty_proof: Proof.context -> Proofterm.proof -> Pretty.T
@@ -109,7 +110,7 @@ fun proof_of_term thy ty =
              | "thm" :: xs =>
                  let val name = Long_Name.implode xs;
                  in (case AList.lookup (op =) thms name of
-                     SOME thm => fst (strip_combt (Thm.proof_of thm))
+                     SOME thm => fst (strip_combt (fst (strip_combP (Thm.proof_of thm))))
                    | NONE => error ("Unknown theorem " ^ quote name))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
@@ -198,7 +199,14 @@ fun cterm_of_proof thy prf =
     (cterm_of thy' (term_of_proof prf), proof_of_term thy true o Thm.term_of)
   end;
 
-fun read_term thy =
+fun strip_sorts_consttypes ctxt =
+  let val {constants = (_, tab), ...} = Consts.dest (ProofContext.consts_of ctxt)
+  in Symtab.fold (fn (s, (T, _)) =>
+      ProofContext.add_const_constraint (s, SOME (Type.strip_sorts T)))
+    tab ctxt
+  end;
+
+fun read_term thy topsort =
   let
     val thm_names = filter_out (fn s => s = "") (map fst (PureThy.all_thms_of thy));
     val axm_names = map fst (Theory.all_axioms_of thy);
@@ -208,15 +216,19 @@ fun read_term thy =
         (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names)
       |> ProofContext.init_global
       |> ProofContext.allow_dummies
-      |> ProofContext.set_mode ProofContext.mode_schematic;
+      |> ProofContext.set_mode ProofContext.mode_schematic
+      |> (if topsort then
+            strip_sorts_consttypes #>
+            ProofContext.set_defsort []
+          else I);
   in
     fn ty => fn s =>
       (if ty = propT then Syntax.parse_prop else Syntax.parse_term) ctxt s
       |> TypeInfer.constrain ty |> Syntax.check_term ctxt
   end;
 
-fun read_proof thy =
-  let val rd = read_term thy proofT
+fun read_proof thy topsort =
+  let val rd = read_term thy topsort proofT
   in fn ty => fn s => proof_of_term thy ty (Logic.varify_global (rd s)) end;
 
 fun proof_syntax prf =
