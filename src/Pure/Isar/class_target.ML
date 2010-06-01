@@ -243,7 +243,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
       | NONE => I
   in
     thy
-    |> AxClass.add_classrel classrel
+    |> AxClass.add_classrel true classrel
     |> ClassData.map (Graph.add_edge (sub, sup))
     |> activate_defs sub (these_defs thy diff_sort)
     |> add_dependency
@@ -366,7 +366,7 @@ local
 fun gen_classrel mk_prop classrel thy =
   let
     fun after_qed results =
-      ProofContext.theory ((fold o fold) AxClass.add_classrel results);
+      ProofContext.theory ((fold o fold) (AxClass.add_classrel true) results);
   in
     thy
     |> ProofContext.init_global
@@ -531,7 +531,7 @@ fun gen_instantiation_instance do_proof after_qed lthy =
     val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
     val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, map snd vs, sort)) tycos;
     fun after_qed' results =
-      Local_Theory.theory (fold (AxClass.add_arity o Thm.varifyT_global) results)
+      Local_Theory.theory (fold (AxClass.add_arity true o Thm.varifyT_global) results)
       #> after_qed;
   in
     lthy
@@ -591,7 +591,7 @@ fun instance_arity_cmd raw_arities thy =
     val sorts = map snd vs;
     val arities = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
     fun after_qed results = ProofContext.theory
-      ((fold o fold) AxClass.add_arity results);
+      ((fold o fold) (AxClass.add_arity true) results);
   in
     thy
     |> ProofContext.init_global
