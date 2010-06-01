@@ -963,17 +963,17 @@ val setup =
   Code_Target.add_target (target_SML, (isar_seri_sml, literals_sml))
   #> Code_Target.add_target (target_OCaml, (isar_seri_ocaml, literals_ocaml))
   #> Code_Target.add_syntax_tyco target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
-      brackify_infix (1, R) fxy [
+      brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
         str "->",
         print_typ (INFX (1, R)) ty2
-      ]))
+      )))
   #> Code_Target.add_syntax_tyco target_OCaml "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
-      brackify_infix (1, R) fxy [
+      brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
         str "->",
         print_typ (INFX (1, R)) ty2
-      ]))
+      )))
   #> fold (Code_Target.add_reserved target_SML) ML_Syntax.reserved_names
   #> fold (Code_Target.add_reserved target_SML)
       ["o" (*dictionary projections use it already*), "Fail", "div", "mod" (*standard infixes*), "IntInf"]

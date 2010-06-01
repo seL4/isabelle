@@ -447,7 +447,7 @@ fun pretty_haskell_monad c_bind =
             (ps @| print_term vars' NOBR t'')
         end
       | NONE => brackify_infix (1, L) fxy
-          [print_term vars (INFX (1, L)) t1, str ">>=", print_term vars (INFX (1, X)) t2]
+          (print_term vars (INFX (1, L)) t1, str ">>=", print_term vars (INFX (1, X)) t2)
   in (2, ([c_bind], pretty)) end;
 
 fun add_monad target' raw_c_bind thy =
@@ -477,11 +477,11 @@ val _ =
 val setup =
   Code_Target.add_target (target, (isar_seri_haskell, literals))
   #> Code_Target.add_syntax_tyco target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
-      brackify_infix (1, R) fxy [
+      brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
         str "->",
         print_typ (INFX (1, R)) ty2
-      ]))
+      )))
   #> fold (Code_Target.add_reserved target) [
       "hiding", "deriving", "where", "case", "of", "infix", "infixl", "infixr",
       "import", "default", "forall", "let", "in", "class", "qualified", "data",

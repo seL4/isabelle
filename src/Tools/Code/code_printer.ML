@@ -61,7 +61,7 @@ sig
   val INFX: int * lrx -> fixity
   val APP: fixity
   val brackify: fixity -> Pretty.T list -> Pretty.T
-  val brackify_infix: int * lrx -> fixity -> Pretty.T list -> Pretty.T
+  val brackify_infix: int * lrx -> fixity -> Pretty.T * Pretty.T * Pretty.T -> Pretty.T
   val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
   val applify: string -> string -> fixity -> Pretty.T -> Pretty.T list -> Pretty.T
 
@@ -219,8 +219,9 @@ fun gen_brackify _ [p] = p
 fun brackify fxy_ctxt =
   gen_brackify (fixity BR fxy_ctxt) o Pretty.breaks;
 
-fun brackify_infix infx fxy_ctxt =
-  gen_brackify (fixity (INFX infx) fxy_ctxt) o Pretty.breaks;
+fun brackify_infix infx fxy_ctxt (l, m, r) =
+  (if fixity (INFX infx) fxy_ctxt then enclose "(" ")" else Pretty.block)
+    ([l, str " ", m, Pretty.brk 1, r]);
 
 fun brackify_block fxy_ctxt p1 ps p2 =
   let val p = Pretty.block_enclose (p1, p2) ps
@@ -304,7 +305,7 @@ fun parse_infix prep_arg (x, i) s =
     val r = case x of R => INFX (i, R) | _ => INFX (i, X);
   in
     mk_mixfix prep_arg (INFX (i, x),
-      [Arg l, (Pretty o Pretty.brk) 1, (Pretty o str) s, (Pretty o Pretty.brk) 1, Arg r])
+      [Arg l, (Pretty o str) " ", (Pretty o str) s, (Pretty o Pretty.brk) 1, Arg r])
   end;
 
 fun parse_mixfix prep_arg s =
