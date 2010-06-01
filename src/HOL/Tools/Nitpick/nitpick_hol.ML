@@ -533,9 +533,10 @@ fun typedef_info ctxt s =
                             |> Logic.varify_global,
             set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
     else case Typedef.get_info ctxt s of
-      (* ### multiple *)
-      [({abs_type, rep_type, Abs_name, Rep_name, ...},
-        {set_def, Rep, Abs_inverse, Rep_inverse, ...})] =>
+      (* When several entries are returned, it shouldn't matter much which one
+         we take (according to Florian Haftmann). *)
+      ({abs_type, rep_type, Abs_name, Rep_name, ...},
+       {set_def, Rep, Abs_inverse, Rep_inverse, ...}) :: _ =>
       SOME {abs_type = abs_type, rep_type = rep_type, Abs_name = Abs_name,
             Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
             set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
