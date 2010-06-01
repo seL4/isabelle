@@ -22,10 +22,6 @@ fun subsets i j =
     in map (fn ks => i::ks) is @ is end
   else [[]];
 
-fun forall_intr_prf (t, prf) =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, SOME T, Proofterm.prf_abstract_over t prf) end;
-
 fun prf_of thm =
   Reconstruct.reconstruct_proof (Thm.theory_of_thm thm) (Thm.prop_of thm) (Thm.proof_of thm);
 
@@ -130,12 +126,12 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
 
     val ivs = rev (Term.add_vars (Logic.varify_global (Datatype_Prop.make_ind [descr] sorts)) []);
     val rvs = rev (Thm.fold_terms Term.add_vars thm' []);
-    val ivs1 = map Var (filter_out (fn (_, T) =>  (* FIXME set (!??) *)
-      member (op =) [@{type_abbrev set}, @{type_name bool}] (tname_of (body_type T))) ivs);
+    val ivs1 = map Var (filter_out (fn (_, T) =>
+      @{type_name bool} = tname_of (body_type T)) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, the (AList.lookup (op =) rvs ixn))) ivs;
 
     val prf =
-      List.foldr forall_intr_prf
+      Extraction.abs_corr_shyps thy' induct vs ivs2
         (fold_rev (fn (f, p) => fn prf =>
           (case head_of (strip_abs_body f) of
              Free (s, T) =>
@@ -145,7 +141,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
                end
           | _ => AbsP ("H", SOME p, prf)))
             (rec_fns ~~ prems_of thm)
-            (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0)))) ivs2;
+            (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0))));
 
     val r' =
       if null is then r
@@ -198,18 +194,21 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
       ||> Sign.restore_naming thy;
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
-    val prf = forall_intr_prf (y, forall_intr_prf (P,
-      fold_rev (fn (p, r) => fn prf =>
-          forall_intr_prf (Logic.varify_global r, AbsP ("H", SOME (Logic.varify_global p), prf)))
+    val prf = Extraction.abs_corr_shyps thy' exhaust ["P"] [y, P]
+      (fold_rev (fn (p, r) => fn prf =>
+          Proofterm.forall_intr_proof' (Logic.varify_global r)
+            (AbsP ("H", SOME (Logic.varify_global p), prf)))
         (prems ~~ rs)
-        (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0)))));
+        (Proofterm.proof_combP (prf_of thm', map PBound (length prems - 1 downto 0))));
+    val prf' = Extraction.abs_corr_shyps thy' exhaust []
+      (map Var (Term.add_vars (prop_of exhaust) [])) (prf_of exhaust);
     val r' = Logic.varify_global (Abs ("y", T,
       list_abs (map dest_Free rs, list_comb (r,
         map Bound ((length rs - 1 downto 0) @ [length rs])))));
 
   in Extraction.add_realizers_i
     [(exh_name, (["P"], r', prf)),
-     (exh_name, ([], Extraction.nullt, prf_of exhaust))] thy'
+     (exh_name, ([], Extraction.nullt, prf'))] thy'
   end;
 
 fun add_dt_realizers config names thy =

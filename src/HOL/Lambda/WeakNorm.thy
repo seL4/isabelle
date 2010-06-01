@@ -264,6 +264,7 @@ declare rtyping.induct [ind_realizer]
 lemmas [extraction_expand] = conj_assoc listall_cons_eq
 
 extract type_NF
+
 lemma rtranclR_rtrancl_eq: "rtranclpR r a b = r\<^sup>*\<^sup>* a b"
   apply (rule iffI)
   apply (erule rtranclpR.induct)

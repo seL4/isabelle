@@ -6,14 +6,17 @@ Simplification functions for proof terms involving meta level rules.
 
 signature PROOF_REWRITE_RULES =
 sig
-  val rew : bool -> typ list -> Proofterm.proof -> (Proofterm.proof * Proofterm.proof) option
+  val rew : bool -> typ list -> term option list -> Proofterm.proof -> (Proofterm.proof * Proofterm.proof) option
   val rprocs : bool ->
-    (typ list -> Proofterm.proof -> (Proofterm.proof * Proofterm.proof) option) list
+    (typ list -> term option list -> Proofterm.proof -> (Proofterm.proof * Proofterm.proof) option) list
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
   val elim_defs : theory -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
   val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
   val hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
   val un_hhf_proof : term -> term -> Proofterm.proof -> Proofterm.proof
+  val mk_of_sort_proof : theory -> term option list -> typ * sort -> Proofterm.proof list
+  val expand_of_class : theory -> typ list -> term option list -> Proofterm.proof ->
+    (Proofterm.proof * Proofterm.proof) option
 end;
 
 structure ProofRewriteRules : PROOF_REWRITE_RULES =
@@ -21,7 +24,7 @@ struct
 
 open Proofterm;
 
-fun rew b _ =
+fun rew b _ _ =
   let
     fun ?? x = if b then SOME x else NONE;
     fun ax (prf as PAxm (s, prop, _)) Ts =
@@ -219,31 +222,36 @@ fun rewrite_terms r =
 fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
 
 fun insert_refl defs Ts (prf1 %% prf2) =
-      insert_refl defs Ts prf1 %% insert_refl defs Ts prf2
+      let val (prf1', b) = insert_refl defs Ts prf1
+      in
+        if b then (prf1', true)
+        else (prf1' %% fst (insert_refl defs Ts prf2), false)
+      end
   | insert_refl defs Ts (Abst (s, SOME T, prf)) =
-      Abst (s, SOME T, insert_refl defs (T :: Ts) prf)
+      (Abst (s, SOME T, fst (insert_refl defs (T :: Ts) prf)), false)
   | insert_refl defs Ts (AbsP (s, t, prf)) =
-      AbsP (s, t, insert_refl defs Ts prf)
+      (AbsP (s, t, fst (insert_refl defs Ts prf)), false)
   | insert_refl defs Ts prf = (case strip_combt prf of
         (PThm (_, ((s, prop, SOME Ts), _)), ts) =>
           if member (op =) defs s then
             let
               val vs = vars_of prop;
               val tvars = Term.add_tvars prop [] |> rev;
-              val (_, rhs) = Logic.dest_equals prop;
+              val (_, rhs) = Logic.dest_equals (Logic.strip_imp_concl prop);
               val rhs' = Term.betapplys (subst_TVars (map fst tvars ~~ Ts)
                 (fold_rev (fn x => fn b => Abs ("", dummyT, abstract_over (x, b))) vs rhs),
                 map the ts);
             in
-              change_type (SOME [fastype_of1 (Ts, rhs')]) reflexive_axm %> rhs'
+              (change_type (SOME [fastype_of1 (Ts, rhs')]) reflexive_axm %> rhs', true)
             end
-          else prf
-      | (_, []) => prf
-      | (prf', ts) => proof_combt' (insert_refl defs Ts prf', ts));
+          else (prf, false)
+      | (_, []) => (prf, false)
+      | (prf', ts) => (proof_combt' (fst (insert_refl defs Ts prf'), ts), false));
 
 fun elim_defs thy r defs prf =
   let
-    val defs' = map (Logic.dest_equals o prop_of o Drule.abs_def) defs
+    val defs' = map (Logic.dest_equals o
+      map_types Type.strip_sorts o prop_of o Drule.abs_def) defs;
     val defnames = map Thm.derivation_name defs;
     val f = if not r then I else
       let
@@ -258,7 +266,7 @@ fun elim_defs thy r defs prf =
       in Reconstruct.expand_proof thy thms end;
   in
     rewrite_terms (Pattern.rewrite_term thy defs' [])
-      (insert_refl defnames [] (f prf))
+      (fst (insert_refl defnames [] (f prf)))
   end;
 
 
@@ -326,5 +334,36 @@ and un_hhf_proof P Q prf =
       (Hs ~~ Hs' ~~ (k - 1 downto 0)) |>
     mk_prf Q
   end;
+
+
+(**** expand OfClass proofs ****)
+
+fun mk_of_sort_proof thy hs (T, S) =
+  let
+    val hs' = map
+      (fn SOME t => (SOME (Logic.dest_of_class t) handle TERM _ => NONE)
+        | NONE => NONE) hs;
+    val sorts = AList.coalesce (op =) (rev (map_filter I hs'));
+    fun get_sort T = the_default [] (AList.lookup (op =) sorts T);
+    val subst = map_atyps
+      (fn T as TVar (ixn, _) => TVar (ixn, get_sort T)
+        | T as TFree (s, _) => TFree (s, get_sort T));
+    fun hyp T_c = case find_index (equal (SOME T_c)) hs' of
+        ~1 => error "expand_of_class: missing class hypothesis"
+      | i => PBound i;
+    fun reconstruct prf prop = prf |>
+      Reconstruct.reconstruct_proof thy prop |>
+      Reconstruct.expand_proof thy [("", NONE)] |>
+      Same.commit (map_proof_same Same.same Same.same hyp)
+  in
+    map2 reconstruct
+      (of_sort_proof thy (OfClass o apfst Type.strip_sorts) (subst T, S))
+      (Logic.mk_of_sort (T, S))
+  end;
+
+fun expand_of_class thy Ts hs (OfClass (T, c)) =
+      mk_of_sort_proof thy hs (T, [c]) |>
+      hd |> rpair no_skel |> SOME
+  | expand_of_class thy Ts hs _ = NONE;
 
 end;
