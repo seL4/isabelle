@@ -58,6 +58,8 @@ sig
   val strip_combt: proof -> proof * term option list
   val strip_combP: proof -> proof * proof list
   val strip_thm: proof_body -> proof_body
+  val map_proof_same: term Same.operation -> typ Same.operation
+    -> (typ * class -> proof) -> proof Same.operation
   val map_proof_terms_same: term Same.operation -> typ Same.operation -> proof Same.operation
   val map_proof_types_same: typ Same.operation -> proof Same.operation
   val map_proof_terms: (term -> term) -> (typ -> typ) -> proof -> proof
@@ -80,7 +82,9 @@ sig
 
   (** proof terms for specific inference rules **)
   val implies_intr_proof: term -> proof -> proof
+  val implies_intr_proof': term -> proof -> proof
   val forall_intr_proof: term -> string -> proof -> proof
+  val forall_intr_proof': term -> proof -> proof
   val varify_proof: term -> (string * sort) list -> proof -> proof
   val legacy_freezeT: term -> proof -> proof
   val rotate_proof: term list -> term -> int -> proof -> proof
@@ -121,13 +125,13 @@ sig
 
   (** rewriting on proof terms **)
   val add_prf_rrule: proof * proof -> theory -> theory
-  val add_prf_rproc: (typ list -> proof -> (proof * proof) option) -> theory -> theory
+  val add_prf_rproc: (typ list -> term option list -> proof -> (proof * proof) option) -> theory -> theory
   val no_skel: proof
   val normal_skel: proof
   val rewrite_proof: theory -> (proof * proof) list *
-    (typ list -> proof -> (proof * proof) option) list -> proof -> proof
+    (typ list -> term option list -> proof -> (proof * proof) option) list -> proof -> proof
   val rewrite_proof_notypes: (proof * proof) list *
-    (typ list -> proof -> (proof * proof) option) list -> proof -> proof
+    (typ list -> term option list -> proof -> (proof * proof) option) list -> proof -> proof
   val rew_proof: theory -> proof -> proof
 
   val promise_proof: theory -> serial -> term -> proof
@@ -618,7 +622,7 @@ fun freeze_thaw_prf prf =
 
 (***** implication introduction *****)
 
-fun implies_intr_proof h prf =
+fun gen_implies_intr_proof f h prf =
   let
     fun abshyp i (Hyp t) = if h aconv t then PBound i else raise Same.SAME
       | abshyp i (Abst (s, T, prf)) = Abst (s, T, abshyp i prf)
@@ -630,13 +634,20 @@ fun implies_intr_proof h prf =
       | abshyp _ _ = raise Same.SAME
     and abshyph i prf = (abshyp i prf handle Same.SAME => prf);
   in
-    AbsP ("H", NONE (*h*), abshyph 0 prf)
+    AbsP ("H", f h, abshyph 0 prf)
   end;
+
+val implies_intr_proof = gen_implies_intr_proof (K NONE);
+val implies_intr_proof' = gen_implies_intr_proof SOME;
 
 
 (***** forall introduction *****)
 
 fun forall_intr_proof x a prf = Abst (a, NONE, prf_abstract_over x prf);
+
+fun forall_intr_proof' t prf =
+  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
+  in Abst (a, SOME T, prf_abstract_over t prf) end;
 
 
 (***** varify *****)
@@ -1105,7 +1116,7 @@ exception PMatch;
 
 fun flt (i: int) = filter (fn n => n < i);
 
-fun fomatch Ts tymatch j =
+fun fomatch Ts tymatch j instsp p =
   let
     fun mtch (instsp as (tyinsts, insts)) = fn
         (Var (ixn, T), t)  =>
@@ -1120,7 +1131,7 @@ fun fomatch Ts tymatch j =
       | (f $ t, g $ u) => mtch (mtch instsp (f, g)) (t, u)
       | (Bound i, Bound j) => if i=j then instsp else raise PMatch
       | _ => raise PMatch
-  in mtch end;
+  in mtch instsp (pairself Envir.beta_eta_contract p) end;
 
 fun match_proof Ts tymatch =
   let
@@ -1253,72 +1264,72 @@ val normal_skel = Hyp (Var ((Name.uu, 0), propT));
 
 fun rewrite_prf tymatch (rules, procs) prf =
   let
-    fun rew _ (Abst (_, _, body) % SOME t) = SOME (prf_subst_bounds [t] body, no_skel)
-      | rew _ (AbsP (_, _, body) %% prf) = SOME (prf_subst_pbounds [prf] body, no_skel)
-      | rew Ts prf =
-          (case get_first (fn r => r Ts prf) procs of
+    fun rew _ _ (Abst (_, _, body) % SOME t) = SOME (prf_subst_bounds [t] body, no_skel)
+      | rew _ _ (AbsP (_, _, body) %% prf) = SOME (prf_subst_pbounds [prf] body, no_skel)
+      | rew Ts hs prf =
+          (case get_first (fn r => r Ts hs prf) procs of
             NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
               (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
                  handle PMatch => NONE) (filter (could_unify prf o fst) rules)
           | some => some);
 
-    fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
-          if prf_loose_Pbvar1 prf' 0 then rew Ts prf
+    fun rew0 Ts hs (prf as AbsP (_, _, prf' %% PBound 0)) =
+          if prf_loose_Pbvar1 prf' 0 then rew Ts hs prf
           else
             let val prf'' = incr_pboundvars (~1) 0 prf'
-            in SOME (the_default (prf'', no_skel) (rew Ts prf'')) end
-      | rew0 Ts (prf as Abst (_, _, prf' % SOME (Bound 0))) =
-          if prf_loose_bvar1 prf' 0 then rew Ts prf
+            in SOME (the_default (prf'', no_skel) (rew Ts hs prf'')) end
+      | rew0 Ts hs (prf as Abst (_, _, prf' % SOME (Bound 0))) =
+          if prf_loose_bvar1 prf' 0 then rew Ts hs prf
           else
             let val prf'' = incr_pboundvars 0 (~1) prf'
-            in SOME (the_default (prf'', no_skel) (rew Ts prf'')) end
-      | rew0 Ts prf = rew Ts prf;
+            in SOME (the_default (prf'', no_skel) (rew Ts hs prf'')) end
+      | rew0 Ts hs prf = rew Ts hs prf;
 
-    fun rew1 _ (Hyp (Var _)) _ = NONE
-      | rew1 Ts skel prf = (case rew2 Ts skel prf of
-          SOME prf1 => (case rew0 Ts prf1 of
-              SOME (prf2, skel') => SOME (the_default prf2 (rew1 Ts skel' prf2))
+    fun rew1 _ _ (Hyp (Var _)) _ = NONE
+      | rew1 Ts hs skel prf = (case rew2 Ts hs skel prf of
+          SOME prf1 => (case rew0 Ts hs prf1 of
+              SOME (prf2, skel') => SOME (the_default prf2 (rew1 Ts hs skel' prf2))
             | NONE => SOME prf1)
-        | NONE => (case rew0 Ts prf of
-              SOME (prf1, skel') => SOME (the_default prf1 (rew1 Ts skel' prf1))
+        | NONE => (case rew0 Ts hs prf of
+              SOME (prf1, skel') => SOME (the_default prf1 (rew1 Ts hs skel' prf1))
             | NONE => NONE))
 
-    and rew2 Ts skel (prf % SOME t) = (case prf of
+    and rew2 Ts hs skel (prf % SOME t) = (case prf of
             Abst (_, _, body) =>
               let val prf' = prf_subst_bounds [t] body
-              in SOME (the_default prf' (rew2 Ts no_skel prf')) end
-          | _ => (case rew1 Ts (case skel of skel' % _ => skel' | _ => no_skel) prf of
+              in SOME (the_default prf' (rew2 Ts hs no_skel prf')) end
+          | _ => (case rew1 Ts hs (case skel of skel' % _ => skel' | _ => no_skel) prf of
               SOME prf' => SOME (prf' % SOME t)
             | NONE => NONE))
-      | rew2 Ts skel (prf % NONE) = Option.map (fn prf' => prf' % NONE)
-          (rew1 Ts (case skel of skel' % _ => skel' | _ => no_skel) prf)
-      | rew2 Ts skel (prf1 %% prf2) = (case prf1 of
+      | rew2 Ts hs skel (prf % NONE) = Option.map (fn prf' => prf' % NONE)
+          (rew1 Ts hs (case skel of skel' % _ => skel' | _ => no_skel) prf)
+      | rew2 Ts hs skel (prf1 %% prf2) = (case prf1 of
             AbsP (_, _, body) =>
               let val prf' = prf_subst_pbounds [prf2] body
-              in SOME (the_default prf' (rew2 Ts no_skel prf')) end
+              in SOME (the_default prf' (rew2 Ts hs no_skel prf')) end
           | _ =>
             let val (skel1, skel2) = (case skel of
                 skel1 %% skel2 => (skel1, skel2)
               | _ => (no_skel, no_skel))
-            in case rew1 Ts skel1 prf1 of
-                SOME prf1' => (case rew1 Ts skel2 prf2 of
+            in case rew1 Ts hs skel1 prf1 of
+                SOME prf1' => (case rew1 Ts hs skel2 prf2 of
                     SOME prf2' => SOME (prf1' %% prf2')
                   | NONE => SOME (prf1' %% prf2))
-              | NONE => (case rew1 Ts skel2 prf2 of
+              | NONE => (case rew1 Ts hs skel2 prf2 of
                     SOME prf2' => SOME (prf1 %% prf2')
                   | NONE => NONE)
             end)
-      | rew2 Ts skel (Abst (s, T, prf)) = (case rew1 (the_default dummyT T :: Ts)
+      | rew2 Ts hs skel (Abst (s, T, prf)) = (case rew1 (the_default dummyT T :: Ts) hs
               (case skel of Abst (_, _, skel') => skel' | _ => no_skel) prf of
             SOME prf' => SOME (Abst (s, T, prf'))
           | NONE => NONE)
-      | rew2 Ts skel (AbsP (s, t, prf)) = (case rew1 Ts
+      | rew2 Ts hs skel (AbsP (s, t, prf)) = (case rew1 Ts (t :: hs)
               (case skel of AbsP (_, _, skel') => skel' | _ => no_skel) prf of
             SOME prf' => SOME (AbsP (s, t, prf'))
           | NONE => NONE)
-      | rew2 _ _ _ = NONE;
+      | rew2 _ _ _ _ = NONE;
 
-  in the_default prf (rew1 [] no_skel prf) end;
+  in the_default prf (rew1 [] [] no_skel prf) end;
 
 fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
   Sign.typ_match thy (f ()) tyenv handle Type.TYPE_MATCH => raise PMatch);
@@ -1332,7 +1343,7 @@ structure ProofData = Theory_Data
 (
   type T =
     (stamp * (proof * proof)) list *
-    (stamp * (typ list -> proof -> (proof * proof) option)) list;
+    (stamp * (typ list -> term option list -> proof -> (proof * proof) option)) list;
 
   val empty = ([], []);
   val extend = I;
@@ -1373,7 +1384,7 @@ fun fulfill_norm_proof thy ps body0 =
           | SOME prf => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) prf, normal_skel))
       | fill _ = NONE;
     val (rules, procs) = get_data thy;
-    val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
+    val proof = rewrite_prf fst (rules, K (K fill) :: procs) proof0;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
 fun fulfill_proof_future _ [] postproc body = Future.value (postproc body)
@@ -1421,12 +1432,13 @@ fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
     val (postproc, ofclasses, prop1, args1) =
       if do_unconstrain then
         let
-          val ((atyp_map, constraints), prop1) = Logic.unconstrainT shyps prop;
+          val ((atyp_map, constraints, outer_constraints), prop1) =
+            Logic.unconstrainT shyps prop;
           val postproc = unconstrainT_body thy (atyp_map, constraints);
           val args1 =
             (map o Option.map o Term.map_types o Term.map_atyps)
               (Type.strip_sorts o atyp_map) args;
-        in (postproc, map (OfClass o fst) constraints, prop1, args1) end
+        in (postproc, map OfClass outer_constraints, prop1, args1) end
       else (I, [], prop, args);
     val argsP = ofclasses @ map Hyp hyps;
 
@@ -1447,7 +1459,7 @@ fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
     val head = PThm (i, ((name, prop1, NONE), body'));
   in ((i, (name, prop1, body')), head, args, argsP, args1) end;
 
-val unconstrain_thm_proofs = Unsynchronized.ref false;
+val unconstrain_thm_proofs = Unsynchronized.ref true;
 
 fun thm_proof thy name shyps hyps concl promises body =
   let val (pthm, head, args, argsP, _) =
