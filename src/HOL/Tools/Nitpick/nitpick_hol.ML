@@ -1674,10 +1674,14 @@ fun const_choice_spec_table ctxt subst =
   map (subst_atomic subst o prop_of) (Nitpick_Choice_Specs.get ctxt)
   |> const_nondef_table
 fun inductive_intro_table ctxt subst def_table =
-  def_table_for
-      (map (unfold_mutually_inductive_preds (ProofContext.theory_of ctxt)
-                                            def_table o prop_of)
-           o Nitpick_Intros.get) ctxt subst
+  let val thy = ProofContext.theory_of ctxt in
+    def_table_for
+        (maps (map (unfold_mutually_inductive_preds thy def_table o prop_of)
+               o snd o snd)
+         o filter (fn (cat, _) => cat = Spec_Rules.Inductive orelse
+                                  cat = Spec_Rules.Co_Inductive)
+         o Spec_Rules.get) ctxt subst
+  end
 fun ground_theorem_table thy =
   fold ((fn @{const Trueprop} $ t1 =>
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)

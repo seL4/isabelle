@@ -435,6 +435,7 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
     "SAT4J_Light".  INCOMPATIBILITY.
   - Removed "skolemize", "uncurry", "sym_break", "flatten_prop",
     "sharing_depth", and "show_skolems" options.  INCOMPATIBILITY.
+  - Removed "nitpick_intro" attribute.  INCOMPATIBILITY.
 
 * Moved the SMT binding into the HOL image.
 

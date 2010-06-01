@@ -2033,11 +2033,6 @@ structure Nitpick_Psimps = Named_Thms
   val name = "nitpick_psimp"
   val description = "partial equational specification of constants as needed by Nitpick"
 )
-structure Nitpick_Intros = Named_Thms
-(
-  val name = "nitpick_intro"
-  val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
-)
 structure Nitpick_Choice_Specs = Named_Thms
 (
   val name = "nitpick_choice_spec"
@@ -2049,7 +2044,6 @@ setup {*
   Nitpick_Defs.setup
   #> Nitpick_Simps.setup
   #> Nitpick_Psimps.setup
-  #> Nitpick_Intros.setup
   #> Nitpick_Choice_Specs.setup
 *}
 

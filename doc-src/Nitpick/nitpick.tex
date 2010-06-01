@@ -2578,21 +2578,6 @@ the form
 
 \qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \,=\, u$.
 
-\flushitem{\textit{nitpick\_intro}}
-
-\nopagebreak
-This attribute specifies the introduction rules of a (co)in\-duc\-tive predicate.
-For predicates defined using the \textbf{inductive} or \textbf{coinductive}
-command, this corresponds to the \textit{intros} rules. The introduction rules
-must be of the form
-
-\qquad $\lbrakk P_1;\> \ldots;\> P_m;\> M~(c\ t_{11}\ \ldots\ t_{1n});\>
-\ldots;\> M~(c\ t_{k1}\ \ldots\ t_{kn})\rbrakk$ \\
-\hbox{}\qquad ${\Longrightarrow}\;\, c\ u_1\ \ldots\ u_n$,
-
-where the $P_i$'s are side conditions that do not involve $c$ and $M$ is an
-optional monotonic operator. The order of the assumptions is irrelevant.
-
 \flushitem{\textit{nitpick\_choice\_spec}}
 
 \nopagebreak
@@ -2641,9 +2626,8 @@ As an illustration, consider the inductive definition
 ``\textit{odd}~$n\,\Longrightarrow\, \textit{odd}~(\textit{Suc}~(\textit{Suc}~n))$''
 \postw
 
-Isabelle automatically attaches the \textit{nitpick\_intro} attribute to
-the above rules. Nitpick then uses the \textit{lfp}-based definition in
-conjunction with these rules. To override this, we can specify an alternative
+By default, Nitpick uses the \textit{lfp}-based definition in conjunction with
+the introduction rules. To override this, we can specify an alternative
 definition as follows:
 
 \prew
