@@ -24,8 +24,8 @@ sig
   val read_classrel: theory -> xstring * xstring -> class * class
   val declare_overloaded: string * typ -> theory -> term * theory
   val define_overloaded: binding -> string * term -> theory -> thm * theory
-  val add_classrel: thm -> theory -> theory
-  val add_arity: thm -> theory -> theory
+  val add_classrel: bool -> thm -> theory -> theory
+  val add_arity: bool -> thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
   val define_class: binding * class list -> string list ->
@@ -412,46 +412,55 @@ fun define_overloaded b (c, t) thy =
 
 (* primitive rules *)
 
-fun add_classrel raw_th thy =
+fun add_classrel store raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
     val prop = Thm.plain_prop_of th;
     fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
-    val th' = th
+    val (th', thy') =
+      if store then PureThy.store_thm
+        (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th) thy
+      else (th, thy);
+    val th'' = th'
       |> Thm.unconstrainT
-      |> Drule.instantiate' [SOME (ctyp_of thy (TVar ((Name.aT, 0), [])))] [];
+      |> Drule.instantiate' [SOME (ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
   in
-    thy
+    thy'
     |> Sign.primitive_classrel (c1, c2)
-    |> (#2 oo put_trancl_classrel) ((c1, c2), th')
+    |> (#2 oo put_trancl_classrel) ((c1, c2), th'')
     |> perhaps complete_arities
   end;
 
-fun add_arity raw_th thy =
+fun add_arity store raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
     val prop = Thm.plain_prop_of th;
     fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
-    val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
+    val arity as (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
+
+    val (th', thy') =
+      if store then PureThy.store_thm
+        (Binding.name (prefix arity_prefix (Logic.name_arity arity)), th) thy
+      else (th, thy);
 
     val args = Name.names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
-    val std_vars = map (fn (a, S) => SOME (ctyp_of thy (TVar ((a, 0), [])))) args;
+    val std_vars = map (fn (a, S) => SOME (ctyp_of thy' (TVar ((a, 0), [])))) args;
 
-    val missing_params = Sign.complete_sort thy [c]
-      |> maps (these o Option.map #params o try (get_info thy))
-      |> filter_out (fn (const, _) => can (get_inst_param thy) (const, t))
+    val missing_params = Sign.complete_sort thy' [c]
+      |> maps (these o Option.map #params o try (get_info thy'))
+      |> filter_out (fn (const, _) => can (get_inst_param thy') (const, t))
       |> (map o apsnd o map_atyps) (K T);
-    val th' = th
+    val th'' = th'
       |> Thm.unconstrainT
       |> Drule.instantiate' std_vars [];
   in
-    thy
+    thy'
     |> fold (#2 oo declare_overloaded) missing_params
     |> Sign.primitive_arity (t, Ss, [c])
-    |> put_arity ((t, Ss, c), th')
+    |> put_arity ((t, Ss, c), th'')
   end;
 
 
@@ -468,7 +477,7 @@ fun prove_classrel raw_rel tac thy =
     thy
     |> PureThy.add_thms [((Binding.name
         (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th), [])]
-    |-> (fn [th'] => add_classrel th')
+    |-> (fn [th'] => add_classrel false th')
   end;
 
 fun prove_arity raw_arity tac thy =
@@ -484,7 +493,7 @@ fun prove_arity raw_arity tac thy =
   in
     thy
     |> PureThy.add_thms (map (rpair []) (map Binding.name names ~~ ths))
-    |-> fold add_arity
+    |-> fold (add_arity false)
   end;
 
 
@@ -618,11 +627,11 @@ fun axiomatize prep mk name add raw_args thy =
 
 fun ax_classrel prep =
   axiomatize (map o prep) (map Logic.mk_classrel)
-    (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
+    (map (prefix classrel_prefix o Logic.name_classrel)) (add_classrel false);
 
 fun ax_arity prep =
   axiomatize (prep o ProofContext.init_global) Logic.mk_arities
-    (map (prefix arity_prefix) o Logic.name_arities) add_arity;
+    (map (prefix arity_prefix) o Logic.name_arities) (add_arity false);
 
 fun class_const c =
   (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);

@@ -295,11 +295,11 @@ fun unify pp tsig =
       | occurs_check tye i (PType (_, Ts)) = List.app (occurs_check tye i) Ts
       | occurs_check _ _ _ = ();
 
-    fun assign i (T as Param (i', _)) S (tye_idx as (tye, idx)) =
+    fun assign i (T as Param (i', _)) S tye_idx =
           if i = i' then tye_idx
-          else meet (T, S) (Inttab.update_new (i, T) tye, idx)
-      | assign i T S (tye, idx) =
-          (occurs_check tye i T; meet (T, S) (Inttab.update_new (i, T) tye, idx));
+          else tye_idx |> meet (T, S) |>> Inttab.update_new (i, T)
+      | assign i T S (tye_idx as (tye, _)) =
+          (occurs_check tye i T; tye_idx |> meet (T, S) |>> Inttab.update_new (i, T));
 
 
     (* unification *)

@@ -24,6 +24,7 @@ sig
   val mk_typ : typ -> term
   val etype_of : theory -> string list -> typ list -> term -> typ
   val realizes_of: theory -> string list -> term -> term -> term
+  val abs_corr_shyps: theory -> thm -> string list -> term list -> Proofterm.proof -> Proofterm.proof
 end;
 
 structure Extraction : EXTRACTION =
@@ -126,11 +127,9 @@ fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
 fun vfs_of t = vars_of t @ frees_of t;
 
-fun forall_intr_prf (t, prf) =
-  let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
-  in Abst (a, SOME T, prf_abstract_over t prf) end;
+val mkabs = fold_rev (fn v => fn t => Abs ("x", fastype_of v, abstract_over (v, t)));
 
-val mkabs = List.foldr (fn (v, t) => Abs ("x", fastype_of v, abstract_over (v, t)));
+val mkabsp = fold_rev (fn t => fn prf => AbsP ("H", SOME t, prf));
 
 fun strip_abs 0 t = t
   | strip_abs n (Abs (_, _, t)) = strip_abs (n-1) t
@@ -161,6 +160,14 @@ fun get_var_type t =
     | _ => error "get_var_type: not a variable"
   end;
 
+fun read_term thy T s =
+  let
+    val ctxt = ProofContext.init_global thy
+      |> Proof_Syntax.strip_sorts_consttypes
+      |> ProofContext.set_defsort [];
+    val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
+  in parse ctxt s |> Type_Infer.constrain T |> Syntax.check_term ctxt end;
+
 
 (**** theory data ****)
 
@@ -175,7 +182,7 @@ structure ExtractionData = Theory_Data
        (term -> typ -> term -> typ -> term) option)) list,
      realizers : (string list * (term * proof)) list Symtab.table,
      defs : thm list,
-     expand : (string * term) list,
+     expand : string list,
      prep : (theory -> proof -> proof) option}
 
   val empty =
@@ -198,14 +205,14 @@ structure ExtractionData = Theory_Data
      types = AList.merge (op =) (K true) (types1, types2),
      realizers = Symtab.merge_list (eq_set (op =) o pairself #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
-     expand = Library.merge (op =) (expand1, expand2),   (* FIXME proper aconv !?! *)
+     expand = Library.merge (op =) (expand1, expand2),
      prep = (case prep1 of NONE => prep2 | _ => prep1)};
 );
 
 fun read_condeq thy =
   let val thy' = add_syntax thy
   in fn s =>
-    let val t = Logic.varify_global (Syntax.read_prop_global thy' s)
+    let val t = Logic.varify_global (read_term thy' propT s)
     in
       (map Logic.dest_equals (Logic.strip_imp_prems t),
         Logic.dest_equals (Logic.strip_imp_concl t))
@@ -274,7 +281,7 @@ fun etype_of thy vs Ts t =
     fun err () = error ("Unable to determine type of extracted program for\n" ^
       Syntax.string_of_term_global thy t)
   in case strip_abs_body (freeze_thaw (condrew thy (#net typeof_eqns)
-    [typeof_proc (Sign.defaultS thy) vs]) (list_abs (map (pair "x") (rev Ts),
+    [typeof_proc [] vs]) (list_abs (map (pair "x") (rev Ts),
       Const ("typeof", fastype_of1 (Ts, t) --> Type ("Type", [])) $ t))) of
       Const ("Type", _) $ u => (Logic.dest_type u handle TERM _ => err ())
     | _ => err ()
@@ -300,25 +307,30 @@ fun prep_realizer thy =
     val rtypes = map fst types;
     val eqns = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
     val thy' = add_syntax thy;
-    val rd = Proof_Syntax.read_proof thy' false;
+    val rd = Proof_Syntax.read_proof thy' true false;
   in fn (thm, (vs, s1, s2)) =>
     let
       val name = Thm.derivation_name thm;
       val _ = name <> "" orelse error "add_realizers: unnamed theorem";
-      val prop = Pattern.rewrite_term thy'
-        (map (Logic.dest_equals o prop_of) defs) [] (prop_of thm);
+      val prop = Thm.unconstrainT thm |> prop_of |>
+        Pattern.rewrite_term thy' (map (Logic.dest_equals o prop_of) defs) [];
       val vars = vars_of prop;
       val vars' = filter_out (fn v =>
         member (op =) rtypes (tname_of (body_type (fastype_of v)))) vars;
+      val shyps = maps (fn Var ((x, i), _) =>
+        if member (op =) vs x then Logic.mk_of_sort
+          (TVar (("'" ^ x, i), []), Sign.defaultS thy')
+        else []) vars;
       val T = etype_of thy' vs [] prop;
       val (T', thw) = Type.legacy_freeze_thaw_type
         (if T = nullT then nullT else map fastype_of vars' ---> T);
-      val t = map_types thw (OldGoals.simple_read_term thy' T' s1);
+      val t = map_types thw (read_term thy' T' s1);
       val r' = freeze_thaw (condrew thy' eqns
-        (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
+        (procs @ [typeof_proc [] vs, rlz_proc]))
           (Const ("realizes", T --> propT --> propT) $
             (if T = nullT then t else list_comb (t, vars')) $ prop);
-      val r = fold_rev Logic.all (map (get_var_type r') vars) r';
+      val r = Logic.list_implies (shyps,
+        fold_rev Logic.all (map (get_var_type r') vars) r');
       val prf = Reconstruct.reconstruct_proof thy' r (rd s2);
     in (name, (vs, (t, prf))) end
   end;
@@ -337,8 +349,32 @@ fun realizes_of thy vs t prop =
     val prop' = Pattern.rewrite_term thy'
       (map (Logic.dest_equals o prop_of) defs) [] prop;
   in freeze_thaw (condrew thy' eqns
-    (procs @ [typeof_proc (Sign.defaultS thy') vs, rlz_proc]))
+    (procs @ [typeof_proc [] vs, rlz_proc]))
       (Const ("realizes", fastype_of t --> propT --> propT) $ t $ prop')
+  end;
+
+fun abs_corr_shyps thy thm vs xs prf =
+  let
+    val S = Sign.defaultS thy;
+    val ((atyp_map, constraints, _), prop') =
+      Logic.unconstrainT (#shyps (rep_thm thm)) (prop_of thm);
+    val atyps = fold_types (fold_atyps (insert (op =))) (prop_of thm) [];
+    val Ts = map_filter (fn ((v, i), _) => if member (op =) vs v then
+        SOME (TVar (("'" ^ v, i), [])) else NONE)
+      (rev (Term.add_vars prop' []));
+    val cs = maps (fn T => map (pair T) S) Ts;
+    val constraints' = map Logic.mk_of_class cs;
+    val cs' = rev (cs @ map (Logic.dest_of_class o snd) constraints);
+    fun typ_map T = Type.strip_sorts
+      (map_atyps (fn U => if member (op =) atyps U then atyp_map U else U) T);
+    fun mk_hyp (T, c) = Hyp (Logic.mk_of_class (typ_map T, c));
+    val xs' = map (map_types typ_map) xs
+  in
+    prf |>
+    Same.commit (map_proof_same (map_types typ_map) typ_map mk_hyp) |>
+    fold_rev implies_intr_proof' (map snd constraints) |>
+    fold_rev forall_intr_proof' xs' |>
+    fold_rev implies_intr_proof' constraints'
   end;
 
 (** expanding theorems / definitions **)
@@ -354,15 +390,15 @@ fun add_expand_thm is_def thm thy =
     thy |> ExtractionData.put
       (if is_def then
         {realizes_eqns = realizes_eqns,
-         typeof_eqns = add_rule ([],
-           Logic.dest_equals (prop_of (Drule.abs_def thm))) typeof_eqns,
+         typeof_eqns = add_rule ([], Logic.dest_equals (map_types
+           Type.strip_sorts (prop_of (Drule.abs_def thm)))) typeof_eqns,
          types = types,
          realizers = realizers, defs = insert Thm.eq_thm thm defs,
          expand = expand, prep = prep}
       else
         {realizes_eqns = realizes_eqns, typeof_eqns = typeof_eqns, types = types,
          realizers = realizers, defs = defs,
-         expand = insert (op =) (name, prop_of thm) expand, prep = prep})
+         expand = insert (op =) name expand, prep = prep})
   end;
 
 fun extraction_expand is_def =
@@ -443,9 +479,9 @@ fun extract thms thy =
       ExtractionData.get thy;
     val procs = maps (rev o fst o snd) types;
     val rtypes = map fst types;
-    val typroc = typeof_proc (Sign.defaultS thy');
+    val typroc = typeof_proc [];
     val prep = the_default (K I) prep thy' o ProofRewriteRules.elim_defs thy' false defs o
-      Reconstruct.expand_proof thy' (("", NONE) :: map (apsnd SOME) expand);
+      Reconstruct.expand_proof thy' (map (rpair NONE) ("" :: expand));
     val rrews = Net.merge (K false) (#net realizes_eqns, #net typeof_eqns);
 
     fun find_inst prop Ts ts vs =
@@ -464,6 +500,13 @@ fun extract thms thy =
 
       in fold_rev add_args (take n vars ~~ take n ts) ([], []) end;
 
+    fun mk_shyps tye = maps (fn (ixn, _) =>
+      Logic.mk_of_sort (TVar (ixn, []), Sign.defaultS thy)) tye;
+
+    fun mk_sprfs cs tye = maps (fn (_, T) =>
+      ProofRewriteRules.mk_of_sort_proof thy (map SOME cs)
+        (T, Sign.defaultS thy)) tye;
+
     fun find (vs: string list) = Option.map snd o find_first (curry (eq_set (op =)) vs o fst);
     fun find' (s: string) = map_filter (fn (s', x) => if s = s' then SOME x else NONE);
 
@@ -474,22 +517,22 @@ fun extract thms thy =
     fun realizes_null vs prop = app_rlz_rews [] vs
       (Const ("realizes", nullT --> propT --> propT) $ nullt $ prop);
 
-    fun corr d defs vs ts Ts hs (PBound i) _ _ = (defs, PBound i)
+    fun corr d defs vs ts Ts hs cs (PBound i) _ _ = (defs, PBound i)
 
-      | corr d defs vs ts Ts hs (Abst (s, SOME T, prf)) (Abst (_, _, prf')) t =
+      | corr d defs vs ts Ts hs cs (Abst (s, SOME T, prf)) (Abst (_, _, prf')) t =
           let val (defs', corr_prf) = corr d defs vs [] (T :: Ts)
-            (dummyt :: hs) prf (incr_pboundvars 1 0 prf')
+            (dummyt :: hs) cs prf (incr_pboundvars 1 0 prf')
             (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE)
           in (defs', Abst (s, SOME T, corr_prf)) end
 
-      | corr d defs vs ts Ts hs (AbsP (s, SOME prop, prf)) (AbsP (_, _, prf')) t =
+      | corr d defs vs ts Ts hs cs (AbsP (s, SOME prop, prf)) (AbsP (_, _, prf')) t =
           let
             val T = etype_of thy' vs Ts prop;
             val u = if T = nullT then 
                 (case t of SOME u => SOME (incr_boundvars 1 u) | NONE => NONE)
               else (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE);
             val (defs', corr_prf) = corr d defs vs [] (T :: Ts) (prop :: hs)
-              (incr_pboundvars 0 1 prf) (incr_pboundvars 0 1 prf') u;
+              (prop :: cs) (incr_pboundvars 0 1 prf) (incr_pboundvars 0 1 prf') u;
             val rlz = Const ("realizes", T --> propT --> propT)
           in (defs',
             if T = nullT then AbsP ("R",
@@ -500,10 +543,10 @@ fun extract thms thy =
                 (rlz $ Bound 0 $ incr_boundvars 1 prop)), corr_prf)))
           end
 
-      | corr d defs vs ts Ts hs (prf % SOME t) (prf' % _) t' =
+      | corr d defs vs ts Ts hs cs (prf % SOME t) (prf' % _) t' =
           let
             val (Us, T) = strip_type (fastype_of1 (Ts, t));
-            val (defs', corr_prf) = corr d defs vs (t :: ts) Ts hs prf prf'
+            val (defs', corr_prf) = corr d defs vs (t :: ts) Ts hs cs prf prf'
               (if member (op =) rtypes (tname_of T) then t'
                else (case t' of SOME (u $ _) => SOME u | _ => NONE));
             val u = if not (member (op =) rtypes (tname_of T)) then t else
@@ -519,7 +562,7 @@ fun extract thms thy =
               in app_rlz_rews Ts vs (list_abs (map (pair "x") Us', u')) end
           in (defs', corr_prf % SOME u) end
 
-      | corr d defs vs ts Ts hs (prf1 %% prf2) (prf1' %% prf2') t =
+      | corr d defs vs ts Ts hs cs (prf1 %% prf2) (prf1' %% prf2') t =
           let
             val prop = Reconstruct.prop_of' hs prf2';
             val T = etype_of thy' vs Ts prop;
@@ -529,17 +572,19 @@ fun extract thms thy =
                | _ =>
                  let val (defs1, u) = extr d defs vs [] Ts hs prf2'
                  in (defs1, NONE, SOME u) end)
-            val (defs2, corr_prf1) = corr d defs1 vs [] Ts hs prf1 prf1' f;
-            val (defs3, corr_prf2) = corr d defs2 vs [] Ts hs prf2 prf2' u;
+            val (defs2, corr_prf1) = corr d defs1 vs [] Ts hs cs prf1 prf1' f;
+            val (defs3, corr_prf2) = corr d defs2 vs [] Ts hs cs prf2 prf2' u;
           in
             if T = nullT then (defs3, corr_prf1 %% corr_prf2) else
               (defs3, corr_prf1 % u %% corr_prf2)
           end
 
-      | corr d defs vs ts Ts hs (prf0 as PThm (_, ((name, prop, SOME Ts'), body))) _ _ =
+      | corr d defs vs ts Ts hs cs (prf0 as PThm (_, ((name, prop, SOME Ts'), body))) _ _ =
           let
             val prf = join_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
+            val shyps = mk_shyps tye;
+            val sprfs = mk_sprfs cs tye;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye;
             val T = etype_of thy' vs' [] prop;
             val defs' = if T = nullT then defs
@@ -555,28 +600,31 @@ fun extract thms thy =
                       (if null vs' then ""
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
                     val prf' = prep (Reconstruct.reconstruct_proof thy' prop prf);
-                    val (defs'', corr_prf) =
-                      corr (d + 1) defs' vs' [] [] [] prf' prf' NONE;
+                    val (defs'', corr_prf0) = corr (d + 1) defs' vs' [] [] []
+                      (rev shyps) prf' prf' NONE;
+                    val corr_prf = mkabsp shyps corr_prf0;
                     val corr_prop = Reconstruct.prop_of corr_prf;
-                    val corr_prf' = List.foldr forall_intr_prf
-                      (proof_combt
+                    val corr_prf' =
+                      proof_combP (proof_combt
                          (PThm (serial (),
                           ((corr_name name vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev))),
-                            Future.value (approximate_proof_body corr_prf))), vfs_of corr_prop))
-                      (map (get_var_type corr_prop) (vfs_of prop))
+                            Future.value (approximate_proof_body corr_prf))), vfs_of corr_prop),
+                              map PBound (length shyps - 1 downto 0)) |>
+                      fold_rev forall_intr_proof' (map (get_var_type corr_prop) (vfs_of prop)) |>
+                      mkabsp shyps
                   in
                     ((name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'',
-                     prf_subst_TVars tye' corr_prf')
+                     proof_combP (prf_subst_TVars tye' corr_prf', sprfs))
                   end
-              | SOME (_, (_, prf')) => (defs', prf_subst_TVars tye' prf'))
+              | SOME (_, (_, prf')) => (defs', proof_combP (prf_subst_TVars tye' prf', sprfs)))
             | SOME rs => (case find vs' rs of
-                SOME (_, prf') => (defs', prf_subst_TVars tye' prf')
+                SOME (_, prf') => (defs', proof_combP (prf_subst_TVars tye' prf', sprfs))
               | NONE => error ("corr: no realizer for instance of theorem " ^
                   quote name ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                     (Reconstruct.prop_of (proof_combt (prf0, ts))))))
           end
 
-      | corr d defs vs ts Ts hs (prf0 as PAxm (s, prop, SOME Ts')) _ _ =
+      | corr d defs vs ts Ts hs cs (prf0 as PAxm (s, prop, SOME Ts')) _ _ =
           let
             val (vs', tye) = find_inst prop Ts ts vs;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye
@@ -584,13 +632,14 @@ fun extract thms thy =
             if etype_of thy' vs' [] prop = nullT andalso
               realizes_null vs' prop aconv prop then (defs, prf0)
             else case find vs' (Symtab.lookup_list realizers s) of
-              SOME (_, prf) => (defs, prf_subst_TVars tye' prf)
+              SOME (_, prf) => (defs,
+                proof_combP (prf_subst_TVars tye' prf, mk_sprfs cs tye))
             | NONE => error ("corr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
                   (Reconstruct.prop_of (proof_combt (prf0, ts)))))
           end
 
-      | corr d defs vs ts Ts hs _ _ _ = error "corr: bad proof"
+      | corr d defs vs ts Ts hs _ _ _ _ = error "corr: bad proof"
 
     and extr d defs vs ts Ts hs (PBound i) = (defs, Bound i)
 
@@ -630,6 +679,7 @@ fun extract thms thy =
           let
             val prf = join_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
+            val shyps = mk_shyps tye;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye
           in
             case Symtab.lookup realizers s of
@@ -641,18 +691,18 @@ fun extract thms thy =
                        else " (relevant variables: " ^ commas_quote vs' ^ ")"));
                     val prf' = prep (Reconstruct.reconstruct_proof thy' prop prf);
                     val (defs', t) = extr (d + 1) defs vs' [] [] [] prf';
-                    val (defs'', corr_prf) =
-                      corr (d + 1) defs' vs' [] [] [] prf' prf' (SOME t);
+                    val (defs'', corr_prf) = corr (d + 1) defs' vs' [] [] []
+                      (rev shyps) prf' prf' (SOME t);
 
                     val nt = Envir.beta_norm t;
                     val args = filter_out (fn v => member (op =) rtypes
                       (tname_of (body_type (fastype_of v)))) (vfs_of prop);
                     val args' = filter (fn v => Logic.occs (v, nt)) args;
-                    val t' = mkabs nt args';
+                    val t' = mkabs args' nt;
                     val T = fastype_of t';
                     val cname = extr_name s vs';
                     val c = Const (cname, T);
-                    val u = mkabs (list_comb (c, args')) args;
+                    val u = mkabs args (list_comb (c, args'));
                     val eqn = Logic.mk_equals (c, t');
                     val rlz =
                       Const ("realizes", fastype_of nt --> propT --> propT);
@@ -661,20 +711,22 @@ fun extract thms thy =
                     val f = app_rlz_rews [] vs'
                       (Abs ("x", T, rlz $ list_comb (Bound 0, args') $ prop));
 
-                    val corr_prf' =
-                      chtype [] equal_elim_axm %> lhs %> rhs %%
+                    val corr_prf' = mkabsp shyps
+                      (chtype [] equal_elim_axm %> lhs %> rhs %%
                        (chtype [propT] symmetric_axm %> rhs %> lhs %%
                          (chtype [T, propT] combination_axm %> f %> f %> c %> t' %%
                            (chtype [T --> propT] reflexive_axm %> f) %%
                            PAxm (cname ^ "_def", eqn,
-                             SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf;
+                             SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Reconstruct.prop_of corr_prf';
-                    val corr_prf'' = List.foldr forall_intr_prf
-                      (proof_combt
+                    val corr_prf'' =
+                      proof_combP (proof_combt
                         (PThm (serial (),
                          ((corr_name s vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev))),
-                           Future.value (approximate_proof_body corr_prf'))), vfs_of corr_prop))
-                      (map (get_var_type corr_prop) (vfs_of prop));
+                           Future.value (approximate_proof_body corr_prf'))), vfs_of corr_prop),
+                             map PBound (length shyps - 1 downto 0)) |>
+                      fold_rev forall_intr_proof' (map (get_var_type corr_prop) (vfs_of prop)) |>
+                      mkabsp shyps
                   in
                     ((s, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'',
                      subst_TVars tye' u)
@@ -731,7 +783,7 @@ fun extract thms thy =
            in
              thy'
              |> PureThy.store_thm (Binding.qualified_name (corr_name s vs),
-                  Thm.varifyT_global (funpow (length (OldTerm.term_vars corr_prop))
+                  Thm.varifyT_global (funpow (length (vars_of corr_prop))
                     (Thm.forall_elim_var 0) (Thm.forall_intr_frees
                       (ProofChecker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf))))))
