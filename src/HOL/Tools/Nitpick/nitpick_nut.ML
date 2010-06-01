@@ -689,7 +689,8 @@ fun is_fully_representable_set u =
       forall is_fully_representable_set [u1, u2]
     else if oper = Apply then
       case u1 of
-        ConstName (s, _, _) => is_sel_like_and_no_discr s
+        ConstName (s, _, _) =>
+        is_sel_like_and_no_discr s orelse s = @{const_name set}
       | _ => false
     else
       false
