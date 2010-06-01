@@ -719,8 +719,7 @@ fun declare_rules rec_binding coind no_ind cnames
       Local_Theory.notes
         (map (rec_qualified false) intr_bindings ~~ intr_atts ~~
           map (fn th => [([th],
-           [Attrib.internal (K (Context_Rules.intro_query NONE)),
-            Attrib.internal (K Nitpick_Intros.add)])]) intrs) |>>
+           [Attrib.internal (K (Context_Rules.intro_query NONE))])]) intrs) |>>
       map (hd o snd);
     val (((_, elims'), (_, [induct'])), lthy2) =
       lthy1 |>

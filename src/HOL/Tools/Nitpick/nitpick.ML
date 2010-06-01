@@ -42,6 +42,7 @@ sig
      show_consts: bool,
      evals: term list,
      formats: (term option * int list) list,
+     atomss: (typ option * string list) list,
      max_potential: int,
      max_genuine: int,
      check_potential: bool,
@@ -112,6 +113,7 @@ type params =
    show_consts: bool,
    evals: term list,
    formats: (term option * int list) list,
+   atomss: (typ option * string list) list,
    max_potential: int,
    max_genuine: int,
    check_potential: bool,
@@ -190,7 +192,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
          destroy_constrs, specialize, star_linear_preds, fast_descrs,
          peephole_optim, tac_timeout, max_threads, show_datatypes, show_consts,
-         evals, formats, max_potential, max_genuine, check_potential,
+         evals, formats, atomss, max_potential, max_genuine, check_potential,
          check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
@@ -235,14 +237,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                        |> pairf hd tl
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
-(*
-    val _ = print_g ("*** " ^ Syntax.string_of_term ctxt orig_t)
-    val _ = List.app (fn t => print_g ("*** " ^ Syntax.string_of_term ctxt t))
-                     orig_assm_ts
-*)
     val max_bisim_depth = fold Integer.max bisim_depths ~1
     val case_names = case_const_names thy stds
-    val (defs, built_in_nondefs, user_nondefs) = all_axioms_of thy subst
+    val (defs, built_in_nondefs, user_nondefs) = all_axioms_of ctxt subst
     val def_table = const_def_table ctxt subst defs
     val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
     val simp_table = Unsynchronized.ref (const_simp_table ctxt subst)
@@ -322,8 +319,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         ". " ^ extra
       end
     fun is_type_fundamentally_monotonic T =
-      (is_datatype thy stds T andalso not (is_quot_type thy T) andalso
-       (not (is_pure_typedef thy T) orelse is_univ_typedef thy T)) orelse
+      (is_datatype ctxt stds T andalso not (is_quot_type thy T) andalso
+       (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
       is_number_type thy T orelse is_bit_type T
     fun is_type_actually_monotonic T =
       formulas_monotonic hol_ctxt binarize T (nondef_ts, def_ts)
@@ -369,7 +366,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       else
         ()
     val (deep_dataTs, shallow_dataTs) =
-      all_Ts |> filter (is_datatype thy stds) |> List.partition is_datatype_deep
+      all_Ts |> filter (is_datatype ctxt stds)
+             |> List.partition is_datatype_deep
     val finitizable_dataTs =
       shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
                      |> filter is_shallow_datatype_finitizable
@@ -579,8 +577,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val (reconstructed_model, codatatypes_ok) =
           reconstruct_hol_model {show_datatypes = show_datatypes,
                                  show_consts = show_consts}
-              scope formats frees free_names sel_names nonsel_names rel_table
-              bounds
+              scope formats atomss frees free_names sel_names nonsel_names
+              rel_table bounds
         val genuine_means_genuine =
           got_all_user_axioms andalso none_true wfs andalso
           sound_finitizes andalso codatatypes_ok

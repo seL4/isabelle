@@ -25,6 +25,10 @@ fun is_positive_existential polar quant_s =
   (polar = Pos andalso quant_s = @{const_name Ex}) orelse
   (polar = Neg andalso quant_s <> @{const_name Ex})
 
+val is_descr =
+  member (op =) [@{const_name The}, @{const_name Eps}, @{const_name safe_The},
+                 @{const_name safe_Eps}]
+
 (** Binary coding of integers **)
 
 (* If a formula contains a numeral whose absolute value is more than this
@@ -65,14 +69,15 @@ val should_use_binary_ints =
 
 (** Uncurrying **)
 
-fun add_to_uncurry_table thy t =
+fun add_to_uncurry_table ctxt t =
   let
+    val thy = ProofContext.theory_of ctxt
     fun aux (t1 $ t2) args table =
         let val table = aux t2 [] table in aux t1 (t2 :: args) table end
       | aux (Abs (_, _, t')) _ table = aux t' [] table
       | aux (t as Const (x as (s, _))) args table =
         if is_built_in_const thy [(NONE, true)] true x orelse
-           is_constr_like thy x orelse
+           is_constr_like ctxt x orelse
            is_sel s orelse s = @{const_name Sigma} then
           table
         else
@@ -121,8 +126,8 @@ fun uncurry_term table t =
 
 (** Boxing **)
 
-fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
-                             orig_t =
+fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
+                             def orig_t =
   let
     fun box_relational_operator_type (Type (@{type_name fun}, Ts)) =
         Type (@{type_name fun}, map box_relational_operator_type Ts)
@@ -178,7 +183,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
         list_comb (Const (s0, T --> T --> body_type T0),
                    map2 (coerce_term hol_ctxt new_Ts T) [T1, T2] [t1, t2])
       end
-    and do_description_operator s T =
+    and do_descr s T =
       let val T1 = box_type hol_ctxt InFunLHS (range_type T) in
         Const (s, (T1 --> bool_T) --> T1)
       end
@@ -213,28 +218,26 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
       | @{const "op -->"} $ t1 $ t2 =>
         @{const "op -->"} $ do_term new_Ts old_Ts (flip_polarity polar) t1
         $ do_term new_Ts old_Ts polar t2
-      | Const (s as @{const_name The}, T) => do_description_operator s T
-      | Const (s as @{const_name Eps}, T) => do_description_operator s T
-      | Const (s as @{const_name safe_The}, T) => do_description_operator s T
-      | Const (s as @{const_name safe_Eps}, T) => do_description_operator s T
       | Const (x as (s, T)) =>
-        Const (s, if s = @{const_name converse} orelse
-                     s = @{const_name trancl} then
-                    box_relational_operator_type T
-                  else if String.isPrefix quot_normal_prefix s then
-                    let val T' = box_type hol_ctxt InFunLHS (domain_type T) in
-                      T' --> T'
-                    end
-                  else if is_built_in_const thy stds fast_descrs x orelse
-                          s = @{const_name Sigma} then
-                    T
-                  else if is_constr_like thy x then
-                    box_type hol_ctxt InConstr T
-                  else if is_sel s
-                       orelse is_rep_fun thy x then
-                    box_type hol_ctxt InSel T
-                  else
-                    box_type hol_ctxt InExpr T)
+        if is_descr s then
+          do_descr s T
+        else
+          Const (s, if s = @{const_name converse} orelse
+                       s = @{const_name trancl} then
+                      box_relational_operator_type T
+                    else if String.isPrefix quot_normal_prefix s then
+                      let val T' = box_type hol_ctxt InFunLHS (domain_type T) in
+                        T' --> T'
+                      end
+                    else if is_built_in_const thy stds fast_descrs x orelse
+                            s = @{const_name Sigma} then
+                      T
+                    else if is_constr_like ctxt x then
+                      box_type hol_ctxt InConstr T
+                    else if is_sel s orelse is_rep_fun ctxt x then
+                      box_type hol_ctxt InSel T
+                    else
+                      box_type hol_ctxt InExpr T)
       | t1 $ Abs (s, T, t2') =>
         let
           val t1 = do_term new_Ts old_Ts Neut t1
@@ -248,7 +251,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
           betapply (if s1 = @{type_name fun} then
                       t1
                     else
-                      select_nth_constr_arg thy stds
+                      select_nth_constr_arg ctxt stds
                           (@{const_name FunBox},
                            Type (@{type_name fun}, Ts1) --> T1) t1 0
                           (Type (@{type_name fun}, Ts1)), t2)
@@ -265,7 +268,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {thy, stds, fast_descrs, ...}) def
           betapply (if s1 = @{type_name fun} then
                       t1
                     else
-                      select_nth_constr_arg thy stds
+                      select_nth_constr_arg ctxt stds
                           (@{const_name FunBox},
                            Type (@{type_name fun}, Ts1) --> T1) t1 0
                           (Type (@{type_name fun}, Ts1)), t2)
@@ -293,12 +296,12 @@ fun has_heavy_bounds_or_vars Ts t =
       | aux _ = true
   in aux (map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t)) end
 
-fun pull_out_constr_comb ({thy, stds, ...} : hol_context) Ts relax k level t
+fun pull_out_constr_comb ({ctxt, stds, ...} : hol_context) Ts relax k level t
                          args seen =
   let val t_comb = list_comb (t, args) in
     case t of
       Const x =>
-      if not relax andalso is_constr thy stds x andalso
+      if not relax andalso is_constr ctxt stds x andalso
          not (is_fun_type (fastype_of1 (Ts, t_comb))) andalso
          has_heavy_bounds_or_vars Ts t_comb andalso
          not (loose_bvar (t_comb, level)) then
@@ -397,7 +400,7 @@ fun hol_let n abs_T body_T f t =
       $ t $ abs_var z (incr_boundvars 1 (f (Var z)))
     end
 
-fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
+fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
   let
     val num_occs_of_var =
       fold_aterms (fn Var z => (fn f => fn z' => f z' |> z = z' ? Integer.add 1)
@@ -432,7 +435,7 @@ fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
             val n = length arg_Ts
           in
             if length args = n andalso
-               (is_constr thy stds x orelse s = @{const_name Pair} orelse
+               (is_constr ctxt stds x orelse s = @{const_name Pair} orelse
                 x = (@{const_name Suc}, nat_T --> nat_T)) andalso
                (not careful orelse not (is_Var t1) orelse
                 String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
@@ -449,7 +452,7 @@ fun destroy_pulled_out_constrs (hol_ctxt as {thy, stds, ...}) axiom t =
                         else t0 $ aux false t2 $ aux false t1
     and sel_eq x t n nth_T nth_t =
       HOLogic.eq_const nth_T $ nth_t
-                             $ select_nth_constr_arg thy stds x t n nth_T
+                             $ select_nth_constr_arg ctxt stds x t n nth_T
       |> aux false
   in aux axiom t end
 
@@ -484,7 +487,7 @@ val destroy_universal_equalities =
         aux (t1 :: prems) (Term.add_vars t1 zs) t2
   in aux [] [] end
 
-fun find_bound_assign thy stds j =
+fun find_bound_assign ctxt stds j =
   let
     fun do_term _ [] = NONE
       | do_term seen (t :: ts) =
@@ -497,8 +500,9 @@ fun find_bound_assign thy stds j =
              | Const (s, Type (@{type_name fun}, [T1, T2])) $ Bound j' =>
                if j' = j andalso
                   s = nth_sel_name_for_constr_name @{const_name FunBox} 0 then
-                 SOME (construct_value thy stds (@{const_name FunBox}, T2 --> T1)
-                                       [t2], ts @ seen)
+                 SOME (construct_value ctxt stds
+                                       (@{const_name FunBox}, T2 --> T1) [t2],
+                       ts @ seen)
                else
                  raise SAME ()
              | _ => raise SAME ())
@@ -523,11 +527,11 @@ fun subst_one_bound j arg t =
       | aux _ = raise SAME ()
   in aux (t, j) handle SAME () => t end
 
-fun destroy_existential_equalities ({thy, stds, ...} : hol_context) =
+fun destroy_existential_equalities ({ctxt, stds, ...} : hol_context) =
   let
     fun kill [] [] ts = foldr1 s_conj ts
       | kill (s :: ss) (T :: Ts) ts =
-        (case find_bound_assign thy stds (length ss) [] ts of
+        (case find_bound_assign ctxt stds (length ss) [] ts of
            SOME (_, []) => @{const True}
          | SOME (arg_t, ts) =>
            kill ss Ts (map (subst_one_bound (length ss)
@@ -893,7 +897,7 @@ fun axioms_for_term
       (if head_of t <> @{const "==>"} then add_def_axiom
        else add_nondef_axiom) depth t
     and add_eq_axiom depth t =
-      (if is_constr_pattern_formula thy t then add_def_axiom
+      (if is_constr_pattern_formula ctxt t then add_def_axiom
        else add_nondef_axiom) depth t
     and add_axioms_for_term depth t (accum as (xs, axs)) =
       case t of
@@ -909,27 +913,30 @@ fun axioms_for_term
                                 \add_axioms_for_term",
                                 "too many nested axioms (" ^
                                 string_of_int depth ^ ")")
-             else if Refute.is_const_of_class thy x then
+             else if is_of_class_const thy x then
                let
                  val class = Logic.class_of_const s
                  val of_class = Logic.mk_of_class (TVar (("'a", 0), [class]),
                                                    class)
                  val ax1 = try (specialize_type thy x) of_class
                  val ax2 = Option.map (specialize_type thy x o snd)
-                                      (Refute.get_classdef thy class)
+                                      (get_class_def thy class)
                in
                  fold (add_maybe_def_axiom depth) (map_filter I [ax1, ax2])
                       accum
                end
-             else if is_constr thy stds x then
+             else if is_constr ctxt stds x then
                accum
+             else if is_descr (original_name s) then
+               fold (add_nondef_axiom depth) (equational_fun_axioms hol_ctxt x)
+                    accum
              else if is_equational_fun hol_ctxt x then
                fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
              else if is_choice_spec_fun hol_ctxt x then
                fold (add_nondef_axiom depth)
                     (nondef_props_for_const thy true choice_spec_table x) accum
-             else if is_abs_fun thy x then
+             else if is_abs_fun ctxt x then
                if is_quot_type thy (range_type T) then
                  raise NOT_SUPPORTED "\"Abs_\" function of quotient type"
                else
@@ -940,7 +947,7 @@ fun axioms_for_term
                           ? fold (add_maybe_def_axiom depth)
                                  (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
-             else if is_rep_fun thy x then
+             else if is_rep_fun ctxt x then
                if is_quot_type thy (domain_type T) then
                  raise NOT_SUPPORTED "\"Rep_\" function of quotient type"
                else
@@ -952,9 +959,11 @@ fun axioms_for_term
                                  (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
                        |> add_axioms_for_term depth
-                                              (Const (mate_of_rep_fun thy x))
+                                              (Const (mate_of_rep_fun ctxt x))
                        |> fold (add_def_axiom depth)
-                               (inverse_axioms_for_rep_fun thy x)
+                               (inverse_axioms_for_rep_fun ctxt x)
+             else if s = @{const_name TYPE} then
+               accum
              else
                accum |> user_axioms <> SOME false
                         ? fold (add_nondef_axiom depth)
@@ -977,8 +986,8 @@ fun axioms_for_term
       | TVar (_, S) => add_axioms_for_sort depth T S
       | Type (z as (_, Ts)) =>
         fold (add_axioms_for_type depth) Ts
-        #> (if is_pure_typedef thy T then
-              fold (add_maybe_def_axiom depth) (optimized_typedef_axioms thy z)
+        #> (if is_pure_typedef ctxt T then
+              fold (add_maybe_def_axiom depth) (optimized_typedef_axioms ctxt z)
             else if is_quot_type thy T then
               fold (add_def_axiom depth)
                    (optimized_quot_type_axioms ctxt stds z)
@@ -1018,7 +1027,7 @@ fun axioms_for_term
 
 (** Simplification of constructor/selector terms **)
 
-fun simplify_constrs_and_sels thy t =
+fun simplify_constrs_and_sels ctxt t =
   let
     fun is_nth_sel_on t' n (Const (s, _) $ t) =
         (t = t' andalso is_sel_like_and_no_discr s andalso
@@ -1030,7 +1039,7 @@ fun simplify_constrs_and_sels thy t =
                  $ (Const (@{const_name Rep_Frac}, _) $ t1)) [] = do_term t1 []
       | do_term (t1 $ t2) args = do_term t1 (do_term t2 [] :: args)
       | do_term (t as Const (x as (s, T))) (args as _ :: _) =
-        ((if is_constr_like thy x then
+        ((if is_constr_like ctxt x then
             if length args = num_binder_types T then
               case hd args of
                 Const (_, T') $ t' =>
@@ -1046,7 +1055,7 @@ fun simplify_constrs_and_sels thy t =
           else if is_sel_like_and_no_discr s then
             case strip_comb (hd args) of
               (Const (x' as (s', T')), ts') =>
-              if is_constr_like thy x' andalso
+              if is_constr_like ctxt x' andalso
                  constr_name_for_sel_like s = s' andalso
                  not (exists is_pair_type (binder_types T')) then
                 list_comb (nth ts' (sel_no_from_name s), tl args)
@@ -1228,7 +1237,7 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
 
 val max_skolem_depth = 4
 
-fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
+fun preprocess_term (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs,
                                   boxes, ...}) finitizes monos t =
   let
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
@@ -1248,7 +1257,7 @@ fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
     val box = exists (not_equal (SOME false) o snd) boxes
     val table =
       Termtab.empty
-      |> box ? fold (add_to_uncurry_table thy) (nondef_ts @ def_ts)
+      |> box ? fold (add_to_uncurry_table ctxt) (nondef_ts @ def_ts)
     fun do_rest def =
       binarize ? binarize_nat_and_int_in_term
       #> box ? uncurry_term table
@@ -1259,7 +1268,7 @@ fun preprocess_term (hol_ctxt as {thy, stds, binary_ints, destroy_constrs,
       #> curry_assms
       #> destroy_universal_equalities
       #> destroy_existential_equalities hol_ctxt
-      #> simplify_constrs_and_sels thy
+      #> simplify_constrs_and_sels ctxt
       #> distribute_quantifiers
       #> push_quantifiers_inward
       #> close_form

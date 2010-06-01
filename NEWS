@@ -425,8 +425,10 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
   - Improved efficiency of "destroy_constrs" optimization.
   - Fixed soundness bugs related to "destroy_constrs" optimization and
     record getters.
-  - Fixed soundness bug related to higher-order constructors
+  - Fixed soundness bug related to higher-order constructors.
+  - Fixed soundness bug when "full_descrs" is enabled.
   - Improved precision of set constructs.
+  - Added "atoms" option.
   - Added cache to speed up repeated Kodkod invocations on the same
     problems.
   - Renamed "MiniSatJNI", "zChaffJNI", "BerkMinAlloy", and
@@ -434,6 +436,7 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
     "SAT4J_Light".  INCOMPATIBILITY.
   - Removed "skolemize", "uncurry", "sym_break", "flatten_prop",
     "sharing_depth", and "show_skolems" options.  INCOMPATIBILITY.
+  - Removed "nitpick_intro" attribute.  INCOMPATIBILITY.
 
 * Moved the SMT binding into the HOL image.
 

@@ -15,7 +15,7 @@ ML {*
 exception FAIL
 
 val subst = []
-val defs = Nitpick_HOL.all_axioms_of @{theory} subst |> #1
+val defs = Nitpick_HOL.all_axioms_of @{context} subst |> #1
 val def_table = Nitpick_HOL.const_def_table @{context} subst defs
 val hol_ctxt : Nitpick_HOL.hol_context =
   {thy = @{theory}, ctxt = @{context}, max_bisim_depth = ~1, boxes = [],

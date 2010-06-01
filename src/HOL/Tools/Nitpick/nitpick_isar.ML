@@ -65,6 +65,7 @@ val default_default_params =
    ("show_datatypes", "false"),
    ("show_consts", "false"),
    ("format", "1"),
+   ("atoms", ""),
    ("max_potential", "1"),
    ("max_genuine", "1"),
    ("check_potential", "false"),
@@ -98,10 +99,11 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
-  s = "max" orelse s = "show_all" orelse s = "eval" orelse s = "expect" orelse
+  member (op =) ["max", "show_all", "eval", "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
-          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format"]
+          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format",
+          "atoms"]
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
@@ -149,8 +151,8 @@ fun extract_params ctxt auto default_params override_params =
   let
     val override_params = maps normalize_raw_param override_params
     val raw_params = rev override_params @ rev default_params
-    val lookup =
-      Option.map stringify_raw_param_value o AList.lookup (op =) raw_params
+    val raw_lookup = AList.lookup (op =) raw_params
+    val lookup = Option.map stringify_raw_param_value o raw_lookup
     val lookup_string = the_default "" o lookup
     fun general_lookup_bool option default_value name =
       case lookup name of
@@ -191,27 +193,21 @@ fun extract_params ctxt auto default_params override_params =
                      [] => [min_int]
                    | value => value)
       | NONE => [min_int]
+    fun lookup_assigns read prefix default convert =
+      (NONE, convert (the_default default (lookup prefix)))
+      :: map (fn (name, value) =>
+                 (SOME (read (String.extract (name, size prefix + 1, NONE))),
+                  convert (stringify_raw_param_value value)))
+             (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
     fun lookup_ints_assigns read prefix min_int =
-      (NONE, lookup_int_seq prefix min_int)
-      :: map (fn (name, value) =>
-                 (SOME (read (String.extract (name, size prefix + 1, NONE))),
-                  value |> stringify_raw_param_value
-                        |> int_seq_from_string name min_int))
-             (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
+      lookup_assigns read prefix (signed_string_of_int min_int)
+                     (int_seq_from_string prefix min_int)
     fun lookup_bool_assigns read prefix =
-      (NONE, lookup_bool prefix)
-      :: map (fn (name, value) =>
-                 (SOME (read (String.extract (name, size prefix + 1, NONE))),
-                  value |> stringify_raw_param_value
-                        |> parse_bool_option false name |> the))
-             (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
+      lookup_assigns read prefix "" (the o parse_bool_option false prefix)
     fun lookup_bool_option_assigns read prefix =
-      (NONE, lookup_bool_option prefix)
-      :: map (fn (name, value) =>
-                 (SOME (read (String.extract (name, size prefix + 1, NONE))),
-                  value |> stringify_raw_param_value
-                        |> parse_bool_option true name))
-             (filter (String.isPrefix (prefix ^ " ") o fst) raw_params)
+      lookup_assigns read prefix "" (parse_bool_option true prefix)
+    fun lookup_strings_assigns read prefix =
+      lookup_assigns read prefix "" (space_explode " ")
     fun lookup_time name =
       case lookup name of
         NONE => NONE
@@ -255,6 +251,7 @@ fun extract_params ctxt auto default_params override_params =
     val show_datatypes = debug orelse lookup_bool "show_datatypes"
     val show_consts = debug orelse lookup_bool "show_consts"
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
+    val atomss = lookup_strings_assigns read_type_polymorphic "atoms"
     val evals = lookup_term_list "eval"
     val max_potential =
       if auto then 0 else Int.max (0, lookup_int "max_potential")
@@ -279,9 +276,10 @@ fun extract_params ctxt auto default_params override_params =
      peephole_optim = peephole_optim, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,
      show_datatypes = show_datatypes, show_consts = show_consts,
-     formats = formats, evals = evals, max_potential = max_potential,
-     max_genuine = max_genuine, check_potential = check_potential,
-     check_genuine = check_genuine, batch_size = batch_size, expect = expect}
+     formats = formats, atomss = atomss, evals = evals,
+     max_potential = max_potential, max_genuine = max_genuine,
+     check_potential = check_potential, check_genuine = check_genuine,
+     batch_size = batch_size, expect = expect}
   end
 
 fun default_params thy =

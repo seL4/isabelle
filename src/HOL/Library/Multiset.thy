@@ -1711,7 +1711,8 @@ fun multiset_postproc _ maybe_name all_values (T as Type (_, [elem_T]))
         | NONE => [Const (maybe_name, elem_T --> elem_T) $ t]
     in
       case maps elems_for (all_values elem_T) @
-           (if maybe_opt then [Const (Nitpick_Model.unrep, elem_T)] else []) of
+           (if maybe_opt then [Const (Nitpick_Model.unrep (), elem_T)]
+            else []) of
         [] => Const (@{const_name zero_class.zero}, T)
       | ts => foldl1 (fn (t1, t2) =>
                          Const (@{const_name plus_class.plus}, T --> T --> T)

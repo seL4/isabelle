@@ -1897,6 +1897,8 @@ The descriptions below refer to the following syntactic quantities:
 
 \begin{enum}
 \item[$\bullet$] \qtybf{string}: A string.
+\item[$\bullet$] \qtybf{string\_list\/}: A space-separated list of strings
+(e.g., ``\textit{ichi ni san}'').
 \item[$\bullet$] \qtybf{bool\/}: \textit{true} or \textit{false}.
 \item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or \textit{smart}.
 \item[$\bullet$] \qtybf{int\/}: An integer. Negative integers are prefixed with a hyphen.
@@ -2256,6 +2258,19 @@ Specifies the list of terms whose values should be displayed along with
 counterexamples. This option suffers from an ``observer effect'': Nitpick might
 find different counterexamples for different values of this option.
 
+\oparg{atoms}{type}{string\_list}
+Specifies the names to use to refer to the atoms of the given type. By default,
+Nitpick generates names of the form $a_1, \ldots, a_n$, where $a$ is the first
+letter of the type's name.
+
+\opnodefault{atoms}{string\_list}
+Specifies the default names to use to refer to atoms of any type. For example,
+to call the three atoms of type ${'}a$ \textit{ichi}, \textit{ni}, and
+\textit{san} instead of $a_1$, $a_2$, $a_3$, specify the option
+``\textit{atoms}~${'}a$ = \textit{ichi~ni~san}''. The default names can be
+overridden on a per-type basis using the \textit{atoms}~\qty{type} option
+described above.
+
 \oparg{format}{term}{int\_seq}
 Specifies how to uncurry the value displayed for a variable or constant.
 Uncurrying sometimes increases the readability of the output for high-arity
@@ -2563,21 +2578,6 @@ the form
 
 \qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \,=\, u$.
 
-\flushitem{\textit{nitpick\_intro}}
-
-\nopagebreak
-This attribute specifies the introduction rules of a (co)in\-duc\-tive predicate.
-For predicates defined using the \textbf{inductive} or \textbf{coinductive}
-command, this corresponds to the \textit{intros} rules. The introduction rules
-must be of the form
-
-\qquad $\lbrakk P_1;\> \ldots;\> P_m;\> M~(c\ t_{11}\ \ldots\ t_{1n});\>
-\ldots;\> M~(c\ t_{k1}\ \ldots\ t_{kn})\rbrakk$ \\
-\hbox{}\qquad ${\Longrightarrow}\;\, c\ u_1\ \ldots\ u_n$,
-
-where the $P_i$'s are side conditions that do not involve $c$ and $M$ is an
-optional monotonic operator. The order of the assumptions is irrelevant.
-
 \flushitem{\textit{nitpick\_choice\_spec}}
 
 \nopagebreak
@@ -2626,9 +2626,8 @@ As an illustration, consider the inductive definition
 ``\textit{odd}~$n\,\Longrightarrow\, \textit{odd}~(\textit{Suc}~(\textit{Suc}~n))$''
 \postw
 
-Isabelle automatically attaches the \textit{nitpick\_intro} attribute to
-the above rules. Nitpick then uses the \textit{lfp}-based definition in
-conjunction with these rules. To override this, we can specify an alternative
+By default, Nitpick uses the \textit{lfp}-based definition in conjunction with
+the introduction rules. To override this, we can specify an alternative
 definition as follows:
 
 \prew
