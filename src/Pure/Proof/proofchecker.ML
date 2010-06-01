@@ -28,6 +28,48 @@ fun lookup_thm thy =
 val beta_eta_convert =
   Conv.fconv_rule Drule.beta_eta_conversion;
 
+(* equality modulo renaming of type variables *)
+fun is_equal t t' =
+  let
+    val atoms = fold_types (fold_atyps (insert (op =))) t [];
+    val atoms' = fold_types (fold_atyps (insert (op =))) t' []
+  in
+    length atoms = length atoms' andalso
+    map_types (map_atyps (the o AList.lookup (op =) (atoms ~~ atoms'))) t aconv t'
+  end;
+
+fun pretty_prf thy vs Hs prf =
+  let val prf' = prf |> prf_subst_bounds (map Free vs) |>
+    prf_subst_pbounds (map (Hyp o prop_of) Hs)
+  in
+    (Proof_Syntax.pretty_proof (Syntax.init_pretty_global thy) prf',
+     Syntax.pretty_term_global thy (Reconstruct.prop_of prf'))
+  end;
+
+fun pretty_term thy vs _ t =
+  let val t' = subst_bounds (map Free vs, t)
+  in
+    (Syntax.pretty_term_global thy t',
+     Syntax.pretty_typ_global thy (fastype_of t'))
+  end;
+
+fun appl_error thy prt vs Hs s f a =
+  let
+    val (pp_f, pp_fT) = pretty_prf thy vs Hs f;
+    val (pp_a, pp_aT) = prt thy vs Hs a
+  in
+    error (cat_lines
+      [s,
+       "",
+       Pretty.string_of (Pretty.block
+         [Pretty.str "Operator:", Pretty.brk 2, pp_f,
+           Pretty.str " ::", Pretty.brk 1, pp_fT]),
+       Pretty.string_of (Pretty.block
+         [Pretty.str "Operand:", Pretty.brk 3, pp_a,
+           Pretty.str " ::", Pretty.brk 1, pp_aT]),
+       ""])
+  end;
+
 fun thm_of_proof thy prf =
   let
     val prf_names = Proofterm.fold_proof_terms Term.declare_term_frees (K I) prf Name.context;
@@ -45,9 +87,9 @@ fun thm_of_proof thy prf =
 
     fun thm_of _ _ (PThm (_, ((name, prop', SOME Ts), _))) =
           let
-            val thm = Drule.implies_intr_hyps (lookup name);
+            val thm = Thm.unconstrainT (Drule.implies_intr_hyps (lookup name));
             val {prop, ...} = rep_thm thm;
-            val _ = if prop aconv prop' then () else
+            val _ = if is_equal prop prop' then () else
               error ("Duplicate use of theorem name " ^ quote name ^ "\n" ^
                 Syntax.string_of_term_global thy prop ^ "\n\n" ^
                 Syntax.string_of_term_global thy prop');
@@ -70,7 +112,10 @@ fun thm_of_proof thy prf =
           let
             val thm = thm_of (vs, names) Hs prf;
             val ct = Thm.cterm_of thy (Term.subst_bounds (map Free vs, t));
-          in Thm.forall_elim ct thm end
+          in
+            Thm.forall_elim ct thm
+            handle THM (s, _, _) => appl_error thy pretty_term vs Hs s prf t
+          end
 
       | thm_of (vs, names) Hs (AbsP (s, SOME t, prf)) =
           let
@@ -86,6 +131,7 @@ fun thm_of_proof thy prf =
             val thm' = beta_eta_convert (thm_of vars Hs prf');
           in
             Thm.implies_elim thm thm'
+            handle THM (s, _, _) => appl_error thy pretty_prf (fst vars) Hs s prf prf'
           end
 
       | thm_of _ _ (Hyp t) = Thm.assume (Thm.cterm_of thy t)
