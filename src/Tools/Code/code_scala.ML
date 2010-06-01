@@ -400,10 +400,11 @@ fun serialize_scala raw_module_name labelled_name
   end;
 
 val literals = let
-  fun char_scala c =
-    let
-      val s = ML_Syntax.print_char c;
-    in if s = "'" then "\\'" else s end;
+  fun char_scala c = if c = "'" then "\\'"
+    else if c = "\"" then "\\\""
+    else if c = "\\" then "\\\\"
+    else let val k = ord c
+    in if k < 32 orelse k > 126 then "\\" ^ radixstring (8, "0", k) else c end
   fun numeral_scala k = if k < 0
     then if k <= 2147483647 then "- " ^ string_of_int (~ k)
       else quote ("- " ^ string_of_int (~ k))
