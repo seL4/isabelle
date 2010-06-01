@@ -24,8 +24,8 @@ sig
   val read_classrel: theory -> xstring * xstring -> class * class
   val declare_overloaded: string * typ -> theory -> term * theory
   val define_overloaded: binding -> string * term -> theory -> thm * theory
-  val add_classrel: bool -> thm -> theory -> theory
-  val add_arity: bool -> thm -> theory -> theory
+  val add_classrel: thm -> theory -> theory
+  val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
   val prove_arity: string * sort list * sort -> tactic -> theory -> theory
   val define_class: binding * class list -> string list ->
@@ -412,7 +412,7 @@ fun define_overloaded b (c, t) thy =
 
 (* primitive rules *)
 
-fun add_classrel store raw_th thy =
+fun gen_add_classrel store raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
     val prop = Thm.plain_prop_of th;
@@ -433,7 +433,7 @@ fun add_classrel store raw_th thy =
     |> perhaps complete_arities
   end;
 
-fun add_arity store raw_th thy =
+fun gen_add_arity store raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
     val prop = Thm.plain_prop_of th;
@@ -463,6 +463,9 @@ fun add_arity store raw_th thy =
     |> put_arity ((t, Ss, c), th'')
   end;
 
+val add_classrel = gen_add_classrel true;
+val add_arity = gen_add_arity true;
+
 
 (* tactical proofs *)
 
@@ -477,7 +480,7 @@ fun prove_classrel raw_rel tac thy =
     thy
     |> PureThy.add_thms [((Binding.name
         (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th), [])]
-    |-> (fn [th'] => add_classrel false th')
+    |-> (fn [th'] => gen_add_classrel false th')
   end;
 
 fun prove_arity raw_arity tac thy =
@@ -493,7 +496,7 @@ fun prove_arity raw_arity tac thy =
   in
     thy
     |> PureThy.add_thms (map (rpair []) (map Binding.name names ~~ ths))
-    |-> fold (add_arity false)
+    |-> fold (gen_add_arity false)
   end;
 
 
@@ -627,11 +630,11 @@ fun axiomatize prep mk name add raw_args thy =
 
 fun ax_classrel prep =
   axiomatize (map o prep) (map Logic.mk_classrel)
-    (map (prefix classrel_prefix o Logic.name_classrel)) (add_classrel false);
+    (map (prefix classrel_prefix o Logic.name_classrel)) (gen_add_classrel false);
 
 fun ax_arity prep =
   axiomatize (prep o ProofContext.init_global) Logic.mk_arities
-    (map (prefix arity_prefix) o Logic.name_arities) (add_arity false);
+    (map (prefix arity_prefix) o Logic.name_arities) (gen_add_arity false);
 
 fun class_const c =
   (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);
