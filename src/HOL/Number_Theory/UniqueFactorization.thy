@@ -72,6 +72,14 @@ syntax
 translations
   "PROD i :# A. b" == "CONST msetprod (%i. b) A"
 
+lemma msetprod_empty:
+  "msetprod f {#} = 1"
+  by (simp add: msetprod_def)
+
+lemma msetprod_singleton:
+  "msetprod f {#x#} = f x"
+  by (simp add: msetprod_def)
+
 lemma msetprod_Un: "msetprod f (A+B) = msetprod f A * msetprod f B" 
   apply (simp add: msetprod_def power_add)
   apply (subst setprod_Un2)

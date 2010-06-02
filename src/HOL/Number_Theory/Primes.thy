@@ -28,7 +28,7 @@ Tobias Nipkow cleaned up a lot.
 header {* Primes *}
 
 theory Primes
-imports GCD
+imports "~~/src/HOL/GCD"
 begin
 
 declare One_nat_def [simp del]

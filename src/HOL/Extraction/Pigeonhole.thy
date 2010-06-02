@@ -236,16 +236,25 @@ instance ..
 
 end
 
-consts_code
-  "default :: nat" ("{* 0::nat *}")
-  "default :: nat \<times> nat" ("{* (0::nat, 0::nat) *}")
-
 definition
   "test n u = pigeonhole n (\<lambda>m. m - 1)"
 definition
   "test' n u = pigeonhole_slow n (\<lambda>m. m - 1)"
 definition
   "test'' u = pigeonhole 8 (op ! [0, 1, 2, 3, 4, 5, 6, 3, 7, 8])"
+
+ML "timeit (@{code test} 10)" 
+ML "timeit (@{code test'} 10)"
+ML "timeit (@{code test} 20)"
+ML "timeit (@{code test'} 20)"
+ML "timeit (@{code test} 25)"
+ML "timeit (@{code test'} 25)"
+ML "timeit (@{code test} 500)"
+ML "timeit @{code test''}"
+
+consts_code
+  "default :: nat" ("{* 0::nat *}")
+  "default :: nat \<times> nat" ("{* (0::nat, 0::nat) *}")
 
 code_module PH
 contains
@@ -254,27 +263,13 @@ contains
   test'' = test''
 
 ML "timeit (PH.test 10)"
-ML "timeit (@{code test} 10)" 
-
 ML "timeit (PH.test' 10)"
-ML "timeit (@{code test'} 10)"
-
 ML "timeit (PH.test 20)"
-ML "timeit (@{code test} 20)"
-
 ML "timeit (PH.test' 20)"
-ML "timeit (@{code test'} 20)"
-
 ML "timeit (PH.test 25)"
-ML "timeit (@{code test} 25)"
-
 ML "timeit (PH.test' 25)"
-ML "timeit (@{code test'} 25)"
-
 ML "timeit (PH.test 500)"
-ML "timeit (@{code test} 500)"
-
 ML "timeit PH.test''"
-ML "timeit @{code test''}"
 
 end
+

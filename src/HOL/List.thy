@@ -451,6 +451,23 @@ lemma length_induct:
   "(\<And>xs. \<forall>ys. length ys < length xs \<longrightarrow> P ys \<Longrightarrow> P xs) \<Longrightarrow> P xs"
 by (rule measure_induct [of length]) iprover
 
+lemma list_nonempty_induct [consumes 1, case_names single cons]:
+  assumes "xs \<noteq> []"
+  assumes single: "\<And>x. P [x]"
+  assumes cons: "\<And>x xs. xs \<noteq> [] \<Longrightarrow> P xs \<Longrightarrow> P (x # xs)"
+  shows "P xs"
+using `xs \<noteq> []` proof (induct xs)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs) show ?case proof (cases xs)
+    case Nil with single show ?thesis by simp
+  next
+    case Cons then have "xs \<noteq> []" by simp
+    moreover with Cons.hyps have "P xs" .
+    ultimately show ?thesis by (rule cons)
+  qed
+qed
+
 
 subsubsection {* @{const length} *}
 
