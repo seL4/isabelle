@@ -17,6 +17,9 @@ Contributions to Isabelle2009-2
 * March 2010: Sascha Boehme, TUM
   Efficient SHA1 library for Poly/ML.
 
+* February 2010: Cezary Kaliszyk and Christian Urban, TUM
+  Quotient type package for Isabelle/HOL.
+
 
 Contributions to Isabelle2009-1
 -------------------------------
