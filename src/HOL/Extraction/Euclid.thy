@@ -7,16 +7,43 @@
 header {* Euclid's theorem *}
 
 theory Euclid
-imports "~~/src/HOL/Old_Number_Theory/Factorization" Util Efficient_Nat
+imports "~~/src/HOL/Number_Theory/UniqueFactorization" Util Efficient_Nat
 begin
+
+lemma list_nonempty_induct [consumes 1, case_names single cons]:
+  assumes "xs \<noteq> []"
+  assumes single: "\<And>x. P [x]"
+  assumes cons: "\<And>x xs. xs \<noteq> [] \<Longrightarrow> P xs \<Longrightarrow> P (x # xs)"
+  shows "P xs"
+using `xs \<noteq> []` proof (induct xs)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs) show ?case proof (cases xs)
+    case Nil with single show ?thesis by simp
+  next
+    case Cons then have "xs \<noteq> []" by simp
+    moreover with Cons.hyps have "P xs" .
+    ultimately show ?thesis by (rule cons)
+  qed
+qed
 
 text {*
 A constructive version of the proof of Euclid's theorem by
 Markus Wenzel and Freek Wiedijk \cite{Wenzel-Wiedijk-JAR2002}.
 *}
 
-lemma prime_eq: "prime p = (1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p))"
-  apply (simp add: prime_def)
+lemma factor_greater_one1: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < m"
+  by (induct m) auto
+
+lemma factor_greater_one2: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < k"
+  by (induct k) auto
+
+lemma prod_mn_less_k:
+  "(0::nat) < n ==> 0 < k ==> Suc 0 < m ==> m * n = k ==> n < k"
+  by (induct m) auto
+
+lemma prime_eq: "prime (p::nat) = (1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 1 < m \<longrightarrow> m = p))"
+  apply (simp add: prime_nat_def)
   apply (rule iffI)
   apply blast
   apply (erule conjE)
@@ -33,14 +60,8 @@ lemma prime_eq: "prime p = (1 < p \<and> (\<forall>m. m dvd p \<longrightarrow> 
   apply simp
   done
 
-lemma prime_eq': "prime p = (1 < p \<and> (\<forall>m k. p = m * k \<longrightarrow> 1 < m \<longrightarrow> m = p))"
+lemma prime_eq': "prime (p::nat) = (1 < p \<and> (\<forall>m k. p = m * k \<longrightarrow> 1 < m \<longrightarrow> m = p))"
   by (simp add: prime_eq dvd_def all_simps [symmetric] del: all_simps)
-
-lemma factor_greater_one1: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < m"
-  by (induct m) auto
-
-lemma factor_greater_one2: "n = m * k \<Longrightarrow> m < n \<Longrightarrow> k < n \<Longrightarrow> Suc 0 < k"
-  by (induct k) auto
 
 lemma not_prime_ex_mk:
   assumes n: "Suc 0 < n"
@@ -96,7 +117,55 @@ proof -
   qed
 qed
 
-lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>l. primel l \<and> prod l = n)"
+lemma dvd_factorial: "0 < m \<Longrightarrow> m \<le> n \<Longrightarrow> m dvd fact (n::nat)"
+proof (induct n rule: nat_induct)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  from `m \<le> Suc n` show ?case
+  proof (rule le_SucE)
+    assume "m \<le> n"
+    with `0 < m` have "m dvd fact n" by (rule Suc)
+    then have "m dvd (fact n * Suc n)" by (rule dvd_mult2)
+    then show ?thesis by (simp add: mult_commute)
+  next
+    assume "m = Suc n"
+    then have "m dvd (fact n * Suc n)"
+      by (auto intro: dvdI simp: mult_ac)
+    then show ?thesis by (simp add: mult_commute)
+  qed
+qed
+
+lemma dvd_prod [iff]: "n dvd (PROD m\<Colon>nat:#multiset_of (n # ns). m)"
+  by (simp add: msetprod_Un msetprod_singleton)
+
+abbreviation (input) "primel ps \<equiv> (\<forall>(p::nat)\<in>set ps. prime p)"
+
+lemma prime_primel: "prime n \<Longrightarrow> primel [n]"
+  by simp
+
+lemma split_primel:
+  assumes "primel ms" and "primel ns"
+  shows "\<exists>qs. primel qs \<and> (PROD m\<Colon>nat:#multiset_of qs. m) =
+    (PROD m\<Colon>nat:#multiset_of ms. m) * (PROD m\<Colon>nat:#multiset_of ns. m)" (is "\<exists>qs. ?P qs \<and> ?Q qs")
+proof -
+  from assms have "primel (ms @ ns)"
+    unfolding set_append ball_Un by iprover
+  moreover from assms have "(PROD m\<Colon>nat:#multiset_of (ms @ ns). m) =
+    (PROD m\<Colon>nat:#multiset_of ms. m) * (PROD m\<Colon>nat:#multiset_of ns. m)"
+    by (simp add: msetprod_Un)
+  ultimately have "?P (ms @ ns) \<and> ?Q (ms @ ns)" ..
+  then show ?thesis ..
+qed
+
+lemma primel_nempty_g_one:
+  assumes "primel ps" and "ps \<noteq> []"
+  shows "Suc 0 < (PROD m\<Colon>nat:#multiset_of ps. m)"
+  using `ps \<noteq> []` `primel ps` unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
+    (simp_all add: msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
+
+lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) = n)"
 proof (induct n rule: nat_wf_ind)
   case (1 n)
   from `Suc 0 < n`
@@ -107,51 +176,22 @@ proof (induct n rule: nat_wf_ind)
     assume "\<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k"
     then obtain m k where m: "Suc 0 < m" and k: "Suc 0 < k" and mn: "m < n"
       and kn: "k < n" and nmk: "n = m * k" by iprover
-    from mn and m have "\<exists>l. primel l \<and> prod l = m" by (rule 1)
-    then obtain l1 where primel_l1: "primel l1" and prod_l1_m: "prod l1 = m"
+    from mn and m have "\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) = m" by (rule 1)
+    then obtain l1 where primel_l1: "primel l1" and prod_l1_m: "(PROD m\<Colon>nat:#multiset_of l1. m) = m"
       by iprover
-    from kn and k have "\<exists>l. primel l \<and> prod l = k" by (rule 1)
-    then obtain l2 where primel_l2: "primel l2" and prod_l2_k: "prod l2 = k"
+    from kn and k have "\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) = k" by (rule 1)
+    then obtain l2 where primel_l2: "primel l2" and prod_l2_k: "(PROD m\<Colon>nat:#multiset_of l2. m) = k"
       by iprover
     from primel_l1 primel_l2
-    have "\<exists>l. primel l \<and> prod l = prod l1 * prod l2"
+    have "\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) =
+      (PROD m\<Colon>nat:#multiset_of l1. m) * (PROD m\<Colon>nat:#multiset_of l2. m)"
       by (rule split_primel)
     with prod_l1_m prod_l2_k nmk show ?thesis by simp
   next
-    assume "prime n"
-    hence "primel [n] \<and> prod [n] = n" by (rule prime_primel)
-    thus ?thesis ..
-  qed
-qed
-
-lemma dvd_prod [iff]: "n dvd prod (n # ns)"
-  by simp
-
-primrec fact :: "nat \<Rightarrow> nat"    ("(_!)" [1000] 999)
-where
-    "0! = 1"
-  | "(Suc n)! = n! * Suc n"
-
-lemma fact_greater_0 [iff]: "0 < n!"
-  by (induct n) simp_all
-
-lemma dvd_factorial: "0 < m \<Longrightarrow> m \<le> n \<Longrightarrow> m dvd n!"
-proof (induct n)
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  from `m \<le> Suc n` show ?case
-  proof (rule le_SucE)
-    assume "m \<le> n"
-    with `0 < m` have "m dvd n!" by (rule Suc)
-    then have "m dvd (n! * Suc n)" by (rule dvd_mult2)
-    then show ?thesis by simp
-  next
-    assume "m = Suc n"
-    then have "m dvd (n! * Suc n)"
-      by (auto intro: dvdI simp: mult_ac)
-    then show ?thesis by simp
+    assume "prime n" then have "primel [n]" by (rule prime_primel)
+    moreover have "(PROD m\<Colon>nat:#multiset_of [n]. m) = n" by (simp add: msetprod_singleton)
+    ultimately have "primel [n] \<and> (PROD m\<Colon>nat:#multiset_of [n]. m) = n" ..
+    then show ?thesis ..
   qed
 qed
 
@@ -160,13 +200,14 @@ lemma prime_factor_exists:
   shows "\<exists>p. prime p \<and> p dvd n"
 proof -
   from N obtain l where primel_l: "primel l"
-    and prod_l: "n = prod l" using factor_exists
+    and prod_l: "n = (PROD m\<Colon>nat:#multiset_of l. m)" using factor_exists
     by simp iprover
-  from prems have "l \<noteq> []"
-    by (auto simp add: primel_nempty_g_one)
+  with N have "l \<noteq> []"
+    by (auto simp add: primel_nempty_g_one msetprod_empty)
   then obtain x xs where l: "l = x # xs"
     by (cases l) simp
-  from primel_l l have "prime x" by (simp add: primel_hd_tl)
+  then have "x \<in> set l" by (simp only: insert_def set.simps) (iprover intro: UnI1 CollectI)
+  with primel_l have "prime x" ..
   moreover from primel_l l prod_l
   have "x dvd n" by (simp only: dvd_prod)
   ultimately show ?thesis by iprover
@@ -176,21 +217,21 @@ text {*
 Euclid's theorem: there are infinitely many primes.
 *}
 
-lemma Euclid: "\<exists>p. prime p \<and> n < p"
+lemma Euclid: "\<exists>p::nat. prime p \<and> n < p"
 proof -
-  let ?k = "n! + 1"
-  have "1 < n! + 1" by simp
+  let ?k = "fact n + 1"
+  have "1 < fact n + 1" by simp
   then obtain p where prime: "prime p" and dvd: "p dvd ?k" using prime_factor_exists by iprover
   have "n < p"
   proof -
     have "\<not> p \<le> n"
     proof
       assume pn: "p \<le> n"
-      from `prime p` have "0 < p" by (rule prime_g_zero)
-      then have "p dvd n!" using pn by (rule dvd_factorial)
-      with dvd have "p dvd ?k - n!" by (rule dvd_diff_nat)
+      from `prime p` have "0 < p" by (rule prime_gt_0_nat)
+      then have "p dvd fact n" using pn by (rule dvd_factorial)
+      with dvd have "p dvd ?k - fact n" by (rule dvd_diff_nat)
       then have "p dvd 1" by simp
-      with prime show False using prime_nd_one by auto
+      with prime show False by auto
     qed
     then show ?thesis by simp
   qed
@@ -224,29 +265,26 @@ instance ..
 
 end
 
-consts_code
-  default ("(error \"default\")")
-
-lemma "factor_exists 1007 = [53, 19]" by evaluation
-lemma "factor_exists 1007 = [53, 19]" by eval
-
-lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by evaluation
-lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by eval
-
-lemma "factor_exists 345 = [23, 5, 3]" by evaluation
-lemma "factor_exists 345 = [23, 5, 3]" by eval
-
-lemma "factor_exists 999 = [37, 3, 3, 3]" by evaluation
-lemma "factor_exists 999 = [37, 3, 3, 3]" by eval
-
-lemma "factor_exists 876 = [73, 3, 2, 2]" by evaluation
-lemma "factor_exists 876 = [73, 3, 2, 2]" by eval
-
 primrec iterate :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list" where
   "iterate 0 f x = []"
   | "iterate (Suc n) f x = (let y = f x in y # iterate n f y)"
 
-lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by evaluation
+lemma "factor_exists 1007 = [53, 19]" by eval
+lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by eval
+lemma "factor_exists 345 = [23, 5, 3]" by eval
+lemma "factor_exists 999 = [37, 3, 3, 3]" by eval
+lemma "factor_exists 876 = [73, 3, 2, 2]" by eval
+
 lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by eval
+
+consts_code
+  default ("(error \"default\")")
+
+lemma "factor_exists 1007 = [53, 19]" by evaluation
+lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by evaluation
+lemma "factor_exists 345 = [23, 5, 3]" by evaluation
+lemma "factor_exists 999 = [37, 3, 3, 3]" by evaluation
+lemma "factor_exists 876 = [73, 3, 2, 2]" by evaluation
+lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by evaluation
 
 end
