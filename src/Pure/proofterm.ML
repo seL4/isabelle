@@ -1387,10 +1387,12 @@ fun fulfill_norm_proof thy ps body0 =
     val proof = rewrite_prf fst (rules, K (K fill) :: procs) proof0;
   in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
-fun fulfill_proof_future _ [] postproc body = Future.value (postproc body)
+fun fulfill_proof_future _ [] postproc body =
+      if not (Multithreading.enabled ()) then Future.value (postproc (Future.join body))
+      else Future.map postproc body
   | fulfill_proof_future thy promises postproc body =
-      Future.fork_deps (map snd promises) (fn () =>
-        postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) body));
+      Future.fork_deps (body :: map snd promises) (fn () =>
+        postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
 
 
 (***** abstraction over sort constraints *****)
@@ -1442,11 +1444,14 @@ fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
       else (I, [], prop, args);
     val argsP = ofclasses @ map Hyp hyps;
 
-    val proof0 =
-      if ! proofs = 2 then
-        #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
-      else MinProof;
-    val body0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
+    fun full_proof0 () =
+      #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)));
+
+    fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
+    val body0 =
+      if ! proofs <> 2 then Future.value (make_body0 MinProof)
+      else if not (Multithreading.enabled ()) then Future.value (make_body0 (full_proof0 ()))
+      else Future.fork_pri ~1 (make_body0 o full_proof0);
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
