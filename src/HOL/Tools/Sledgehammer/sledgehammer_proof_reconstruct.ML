@@ -487,8 +487,8 @@ fun decode_line full_types tfrees (Definition (num, u, us)) ctxt =
 fun decode_lines ctxt full_types tfrees lines =
   fst (fold_map (decode_line full_types tfrees) lines ctxt)
 
-fun aint_inference _ (Definition _) = true
-  | aint_inference t (Inference (_, t', _)) = not (t aconv t')
+fun aint_actual_inference _ (Definition _) = true
+  | aint_actual_inference t (Inference (_, t', _)) = not (t aconv t')
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
@@ -510,7 +510,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
       if is_only_type_information t then
         map (replace_deps_in_line (num, [])) lines
       (* Is there a repetition? If so, replace later line by earlier one. *)
-      else case take_prefix (aint_inference t) lines of
+      else case take_prefix (aint_actual_inference t) lines of
         (_, []) => lines (*no repetition of proof line*)
       | (pre, Inference (num', _, _) :: post) =>
         pre @ map (replace_deps_in_line (num', [num])) post
@@ -523,7 +523,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
     if is_only_type_information t then
       Inference (num, t, deps) :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
-    else case take_prefix (aint_inference t) lines of
+    else case take_prefix (aint_actual_inference t) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
          types?? *)
        (_, []) => Inference (num, t, deps) :: lines
@@ -539,8 +539,8 @@ fun add_nontrivial_line (Inference (num, t, [])) lines =
 and delete_dep num lines =
   fold_rev add_nontrivial_line (map (replace_deps_in_line (num, [])) lines) []
 
-(* ATPs sometimes reuse free variable names in the strangest ways. Surprisingly,
-   removing the offending lines often does the trick. *)
+(* ATPs sometimes reuse free variable names in the strangest ways. Removing
+   offending lines often does the trick. *)
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
@@ -549,8 +549,8 @@ fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
                                         $ t1 $ t2)) = (t1 aconv t2)
   | is_trivial_formula t = false
 
-fun add_desired_line _ _ _ _ _ (line as Definition _) (j, lines) =
-    (j, line :: lines)
+fun add_desired_line _ _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
+    (j, line :: map (replace_deps_in_line (num, [])) lines)
   | add_desired_line ctxt isar_shrink_factor conjecture_shape thm_names frees
                      (Inference (num, t, deps)) (j, lines) =
     (j + 1,
