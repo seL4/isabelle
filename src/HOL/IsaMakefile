@@ -352,6 +352,9 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
 $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
+$(OUT)/HOL-Proofs: main.ML $(MAIN_DEPENDENCIES)
+	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true -p 2 -q 0 $(OUT)/Pure HOL-Proofs
+
 HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
   Archimedean_Field.thy \
   Complex.thy \
@@ -382,9 +385,6 @@ HOL_DEPENDENCIES = $(MAIN_DEPENDENCIES) \
 
 $(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -g true $(OUT)/Pure HOL
-
-$(OUT)/HOL-Proofs: ROOT.ML $(HOL_DEPENDENCIES)
-	@$(ISABELLE_TOOL) usedir -b -g true -p 2 -q 0 $(OUT)/Pure HOL-Proofs
 
 
 
