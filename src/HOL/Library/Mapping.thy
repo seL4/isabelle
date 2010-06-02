@@ -287,6 +287,7 @@ lemma [code]:
   by (cases m) simp
 
 
-hide_const (open) empty is_empty lookup update delete ordered_keys keys size replace tabulate bulkload
+hide_const (open) empty is_empty lookup update delete ordered_keys keys size
+  replace default map_entry map_default tabulate bulkload
 
 end
