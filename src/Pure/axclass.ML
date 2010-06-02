@@ -412,17 +412,15 @@ fun define_overloaded b (c, t) thy =
 
 (* primitive rules *)
 
-fun gen_add_classrel store raw_th thy =
+fun add_classrel raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
     val prop = Thm.plain_prop_of th;
     fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
-    val (th', thy') =
-      if store then PureThy.store_thm
-        (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th) thy
-      else (th, thy);
+    val (th', thy') = PureThy.store_thm
+      (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th) thy;
     val th'' = th'
       |> Thm.unconstrainT
       |> Drule.instantiate' [SOME (ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
@@ -433,17 +431,15 @@ fun gen_add_classrel store raw_th thy =
     |> perhaps complete_arities
   end;
 
-fun gen_add_arity store raw_th thy =
+fun add_arity raw_th thy =
   let
     val th = Thm.strip_shyps (Thm.transfer thy raw_th);
     val prop = Thm.plain_prop_of th;
     fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
     val arity as (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
 
-    val (th', thy') =
-      if store then PureThy.store_thm
-        (Binding.name (prefix arity_prefix (Logic.name_arity arity)), th) thy
-      else (th, thy);
+    val (th', thy') = PureThy.store_thm
+      (Binding.name (prefix arity_prefix (Logic.name_arity arity)), th) thy;
 
     val args = Name.names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
@@ -463,9 +459,6 @@ fun gen_add_arity store raw_th thy =
     |> put_arity ((t, Ss, c), th'')
   end;
 
-val add_classrel = gen_add_classrel true;
-val add_arity = gen_add_arity true;
-
 
 (* tactical proofs *)
 
@@ -477,10 +470,7 @@ fun prove_classrel raw_rel tac thy =
       cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
         quote (Syntax.string_of_classrel ctxt [c1, c2]));
   in
-    thy
-    |> PureThy.add_thms [((Binding.name
-        (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th), [])]
-    |-> (fn [th'] => gen_add_classrel false th')
+    thy |> add_classrel th
   end;
 
 fun prove_arity raw_arity tac thy =
@@ -494,9 +484,7 @@ fun prove_arity raw_arity tac thy =
         cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
           quote (Syntax.string_of_arity ctxt arity));
   in
-    thy
-    |> PureThy.add_thms (map (rpair []) (map Binding.name names ~~ ths))
-    |-> fold (gen_add_arity false)
+    thy |> fold add_arity ths
   end;
 
 
@@ -613,10 +601,6 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 local
 
 (*old-style axioms*)
-fun add_axiom (b, prop) =
-  Thm.add_axiom (b, prop) #->
-  (fn (_, thm) => PureThy.add_thm ((b, Drule.export_without_context thm), []));
-
 fun axiomatize prep mk name add raw_args thy =
   let
     val args = prep thy raw_args;
@@ -624,17 +608,17 @@ fun axiomatize prep mk name add raw_args thy =
     val names = name args;
   in
     thy
-    |> fold_map add_axiom (map Binding.name names ~~ specs)
-    |-> fold add
+    |> fold_map Thm.add_axiom (map Binding.name names ~~ specs)
+    |-> fold (add o Drule.export_without_context o snd)
   end;
 
 fun ax_classrel prep =
   axiomatize (map o prep) (map Logic.mk_classrel)
-    (map (prefix classrel_prefix o Logic.name_classrel)) (gen_add_classrel false);
+    (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
 
 fun ax_arity prep =
   axiomatize (prep o ProofContext.init_global) Logic.mk_arities
-    (map (prefix arity_prefix) o Logic.name_arities) (gen_add_arity false);
+    (map (prefix arity_prefix) o Logic.name_arities) add_arity;
 
 fun class_const c =
   (Logic.const_of_class c, Term.itselfT (Term.aT []) --> propT);

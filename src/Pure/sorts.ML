@@ -26,7 +26,7 @@ sig
   val insert_terms: term list -> sort OrdList.T -> sort OrdList.T
   type algebra
   val classes_of: algebra -> serial Graph.T
-  val arities_of: algebra -> (class * (class * sort list)) list Symtab.table
+  val arities_of: algebra -> (class * sort list) list Symtab.table
   val all_classes: algebra -> class list
   val super_classes: algebra -> class -> class list
   val class_less: algebra -> class * class -> bool
@@ -105,15 +105,14 @@ fun insert_terms [] Ss = Ss
 
   arities: table of association lists of all type arities; (t, ars)
     means that type constructor t has the arities ars; an element
-    (c, (c0, Ss)) of ars represents the arity t::(Ss)c being derived
-    via c0 <= c.  "Coregularity" of the arities structure requires
-    that for any two declarations t::(Ss1)c1 and t::(Ss2)c2 such that
-    c1 <= c2 holds Ss1 <= Ss2.
+    (c, Ss) of ars represents the arity t::(Ss)c.  "Coregularity" of
+    the arities structure requires that for any two declarations
+    t::(Ss1)c1 and t::(Ss2)c2 such that c1 <= c2 holds Ss1 <= Ss2.
 *)
 
 datatype algebra = Algebra of
  {classes: serial Graph.T,
-  arities: (class * (class * sort list)) list Symtab.table};
+  arities: (class * sort list) list Symtab.table};
 
 fun classes_of (Algebra {classes, ...}) = classes;
 fun arities_of (Algebra {arities, ...}) = arities;
@@ -225,9 +224,9 @@ fun err_conflict pp t cc (c, Ss) (c', Ss') =
     Pretty.string_of_arity pp (t, Ss, [c]) ^ " and\n  " ^
     Pretty.string_of_arity pp (t, Ss', [c']));
 
-fun coregular pp algebra t (c, (c0, Ss)) ars =
+fun coregular pp algebra t (c, Ss) ars =
   let
-    fun conflict (c', (_, Ss')) =
+    fun conflict (c', Ss') =
       if class_le algebra (c, c') andalso not (sorts_le algebra (Ss, Ss')) then
         SOME ((c, c'), (c', Ss'))
       else if class_le algebra (c', c) andalso not (sorts_le algebra (Ss', Ss)) then
@@ -236,19 +235,18 @@ fun coregular pp algebra t (c, (c0, Ss)) ars =
   in
     (case get_first conflict ars of
       SOME ((c1, c2), (c', Ss')) => err_conflict pp t (SOME (c1, c2)) (c, Ss) (c', Ss')
-    | NONE => (c, (c0, Ss)) :: ars)
+    | NONE => (c, Ss) :: ars)
   end;
 
-fun complete algebra (c0, Ss) = map (rpair (c0, Ss)) (c0 :: super_classes algebra c0);
+fun complete algebra (c, Ss) = map (rpair Ss) (c :: super_classes algebra c);
 
-fun insert pp algebra t (c, (c0, Ss)) ars =
+fun insert pp algebra t (c, Ss) ars =
   (case AList.lookup (op =) ars c of
-    NONE => coregular pp algebra t (c, (c0, Ss)) ars
-  | SOME (_, Ss') =>
+    NONE => coregular pp algebra t (c, Ss) ars
+  | SOME Ss' =>
       if sorts_le algebra (Ss, Ss') then ars
-      else if sorts_le algebra (Ss', Ss) then
-        coregular pp algebra t (c, (c0, Ss))
-          (filter_out (fn (c'', (_, Ss'')) => c = c'' andalso Ss'' = Ss') ars)
+      else if sorts_le algebra (Ss', Ss)
+      then coregular pp algebra t (c, Ss) (remove (op =) (c, Ss') ars)
       else err_conflict pp t NONE (c, Ss) (c, Ss'));
 
 in
@@ -265,7 +263,7 @@ fun add_arities pp arg algebra =
   algebra |> map_arities (insert_complete_ars pp algebra arg);
 
 fun add_arities_table pp algebra =
-  Symtab.fold (fn (t, ars) => insert_complete_ars pp algebra (t, map snd ars));
+  Symtab.fold (fn (t, ars) => insert_complete_ars pp algebra (t, ars));
 
 end;
 
@@ -310,16 +308,17 @@ fun merge_algebra pp
   in make_algebra (classes', arities') end;
 
 
-(* algebra projections *)
+(* algebra projections *)  (* FIXME potentially violates abstract type integrity *)
 
 fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
   let
     val restrict_sort = minimize_sort algebra o filter P o Graph.all_succs classes;
-    fun restrict_arity tyco (c, (_, Ss)) =
-      if P c then case sargs (c, tyco)
-       of SOME sorts => SOME (c, (c, Ss |> map2 (curry (inter_sort algebra)) sorts
-          |> map restrict_sort))
-        | NONE => NONE
+    fun restrict_arity t (c, Ss) =
+      if P c then
+        (case sargs (c, t) of
+          SOME sorts =>
+            SOME (c, Ss |> map2 (curry (inter_sort algebra)) sorts |> map restrict_sort)
+        | NONE => NONE)
       else NONE;
     val classes' = classes |> Graph.subgraph P;
     val arities' = arities |> Symtab.map' (map_filter o restrict_arity);
@@ -355,7 +354,7 @@ fun mg_domain algebra a S =
     fun dom c =
       (case AList.lookup (op =) (Symtab.lookup_list arities a) c of
         NONE => raise CLASS_ERROR (No_Arity (a, c))
-      | SOME (_, Ss) => Ss);
+      | SOME Ss => Ss);
     fun dom_inter c Ss = ListPair.map (inter_sort algebra) (dom c, Ss);
   in
     (case S of
@@ -380,11 +379,8 @@ fun meet_sort algebra =
   in uncurry meet end;
 
 fun meet_sort_typ algebra (T, S) =
-  let
-    val tab = meet_sort algebra (T, S) Vartab.empty;
-  in Term.map_type_tvar (fn (v, _) =>
-    TVar (v, (the o Vartab.lookup tab) v))
-  end;
+  let val tab = meet_sort algebra (T, S) Vartab.empty;
+  in Term.map_type_tvar (fn (v, _) => TVar (v, (the o Vartab.lookup tab) v)) end;
 
 
 (* of_sort *)
@@ -425,9 +421,9 @@ fun of_sort_derivation algebra {class_relation, type_constructor, type_variable}
           in
             S |> map (fn c =>
               let
-                val (c0, Ss') = the (AList.lookup (op =) (Symtab.lookup_list arities a) c);
+                val Ss' = the (AList.lookup (op =) (Symtab.lookup_list arities a) c);
                 val dom' = map (fn ((U, d), S') => weaken U d S' ~~ S') ((Us ~~ dom) ~~ Ss');
-              in class_relation T (type_constructor (a, Us) dom' c0, c0) c end)
+              in type_constructor (a, Us) dom' c end)
           end
       | derive (T, S) = weaken T (type_variable T) S;
   in derive end;
