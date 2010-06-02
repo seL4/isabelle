@@ -11,8 +11,8 @@ theory Core_Nits
 imports Main
 begin
 
-nitpick_params [max_potential = 0, sat_solver = MiniSat_JNI, max_threads = 1,
-                timeout = 60 s]
+nitpick_params [unary_ints, max_potential = 0, sat_solver = MiniSat_JNI,
+                max_threads = 1, timeout = 60 s]
 
 subsection {* Curry in a Hurry *}
 
@@ -1050,6 +1050,56 @@ sorry
 lemma "Q = {x\<Colon>nat} \<Longrightarrow> (Q\<Colon>nat set) (The Q)"
 nitpick [expect = none]
 sorry
+
+nitpick_params [full_descrs, max_potential = 1]
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 11) \<noteq> 0"
+nitpick [card nat = 4, expect = potential]
+nitpick [card nat = 14, expect = potential] (* unfortunate *)
+oops
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x \<noteq> 0"
+nitpick [card nat = 4, expect = potential]
+nitpick [card nat = 14, expect = none]
+sorry
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 4, expect = potential]
+nitpick [card nat = 14, expect = none]
+sorry
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 14, expect = genuine]
+oops
+
+lemma "(THE j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12 \<or> x = 13"
+nitpick [card nat = 14, expect = genuine]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 11) \<noteq> 0"
+nitpick [card nat = 4, expect = potential]
+nitpick [card nat = 14, expect = genuine]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x \<noteq> 0"
+nitpick [card nat = 4, expect = potential]
+nitpick [card nat = 14, expect = none]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 4, expect = potential]
+nitpick [card nat = 14, expect = none]
+sorry
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12"
+nitpick [card nat = 14, expect = genuine]
+oops
+
+lemma "(SOME j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12 \<or> x = 13"
+nitpick [card nat = 14, expect = none]
+sorry
+
+nitpick_params [fast_descrs, max_potential = 0]
 
 subsection {* Destructors and Recursors *}
 
