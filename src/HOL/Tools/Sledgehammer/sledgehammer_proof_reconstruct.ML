@@ -680,13 +680,12 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
 val indent_size = 2
 val no_label = ("", ~1)
 
-fun no_show qs = not (member (op =) qs Show)
-
 (* When redirecting proofs, we keep information about the labels seen so far in
    the "backpatches" data structure. The first component indicates which facts
    should be associated with forthcoming proof steps. The second component is a
-   pair ("keep_ls", "drop_ls"), where "keep_ls" are the labels to keep and
-   "drop_ls" are those that should be dropped in a case split. *)
+   pair ("assum_ls", "drop_ls"), where "assum_ls" are the labels that should
+   become assumptions and "drop_ls" are the labels that should be dropped in a
+   case split. *)
 type backpatches = (label * facts) list * (label list * label list)
 
 fun used_labels_of_step (Have (_, _, _, by)) =
@@ -767,12 +766,16 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
       | second_pass end_qs (Have (qs, l, t, ByMetis (ls, ss)) :: proof, assums,
                             patches) =
         if member (op =) (snd (snd patches)) l andalso
+           not (member (op =) (fst (snd patches)) l) andalso
            not (AList.defined (op =) (fst patches) l) then
           second_pass end_qs (proof, assums, patches ||> apsnd (append ls))
         else
           (case List.partition (member (op =) contra_ls) ls of
              ([contra_l], co_ls) =>
-             if no_show qs then
+             if member (op =) qs Show then
+               second_pass end_qs (proof, assums,
+                                   patches |>> cons (contra_l, (co_ls, ss)))
+             else
                second_pass end_qs
                            (proof, assums,
                             patches |>> cons (contra_l, (l :: co_ls, ss)))
@@ -781,9 +784,6 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                          else
                            Have (qs, l, negate_term thy t,
                                  ByMetis (backpatch_label patches l)))
-             else
-               second_pass end_qs (proof, assums,
-                                   patches |>> cons (contra_l, (co_ls, ss)))
            | (contra_ls as _ :: _, co_ls) =>
              let
                val proofs =
