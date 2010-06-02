@@ -136,13 +136,11 @@ sig
 
   val promise_proof: theory -> serial -> term -> proof
   val fulfill_norm_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
-  val unconstrain_thm_proofs: bool Unsynchronized.ref
   val thm_proof: theory -> string -> sort list -> term list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
   val unconstrain_thm_proof: theory -> sort list -> term ->
     (serial * proof_body future) list -> proof_body -> pthm * proof
-  val get_name: term list -> term -> proof -> string
-  val get_name_unconstrained: sort list -> term list -> term -> proof -> string
+  val get_name: sort list -> term list -> term -> proof -> string
   val guess_name: proof -> string
 end
 
@@ -1422,7 +1420,7 @@ fun unconstrainT_body thy constrs (PBody {oracles, thms, proof}) =
 
 (***** theorems *****)
 
-fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
+fun prepare_thm_proof thy name shyps hyps concl promises body =
   let
     val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val prop = Logic.list_implies (hyps, concl);
@@ -1431,18 +1429,12 @@ fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
       map SOME (frees_of prop);
 
-    val (postproc, ofclasses, prop1, args1) =
-      if do_unconstrain then
-        let
-          val ((atyp_map, constraints, outer_constraints), prop1) =
-            Logic.unconstrainT shyps prop;
-          val postproc = unconstrainT_body thy (atyp_map, constraints);
-          val args1 =
-            (map o Option.map o Term.map_types o Term.map_atyps)
-              (Type.strip_sorts o atyp_map) args;
-        in (postproc, map OfClass outer_constraints, prop1, args1) end
-      else (I, [], prop, args);
-    val argsP = ofclasses @ map Hyp hyps;
+    val ((atyp_map, constraints, outer_constraints), prop1) = Logic.unconstrainT shyps prop;
+    val postproc = unconstrainT_body thy (atyp_map, constraints);
+    val args1 =
+      (map o Option.map o Term.map_types o Term.map_atyps)
+        (Type.strip_sorts o atyp_map) args;
+    val argsP = map OfClass outer_constraints @ map Hyp hyps;
 
     fun full_proof0 () =
       #4 (shrink_proof [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)));
@@ -1464,28 +1456,17 @@ fun prepare_thm_proof do_unconstrain thy name shyps hyps concl promises body =
     val head = PThm (i, ((name, prop1, NONE), body'));
   in ((i, (name, prop1, body')), head, args, argsP, args1) end;
 
-val unconstrain_thm_proofs = Unsynchronized.ref true;
-
 fun thm_proof thy name shyps hyps concl promises body =
-  let val (pthm, head, args, argsP, _) =
-    prepare_thm_proof (! unconstrain_thm_proofs) thy name shyps hyps concl promises body
+  let val (pthm, head, args, argsP, _) = prepare_thm_proof thy name shyps hyps concl promises body
   in (pthm, proof_combP (proof_combt' (head, args), argsP)) end;
 
 fun unconstrain_thm_proof thy shyps concl promises body =
   let
-    val (pthm, head, _, _, args) =
-      prepare_thm_proof true thy "" shyps [] concl promises body
+    val (pthm, head, _, _, args) = prepare_thm_proof thy "" shyps [] concl promises body
   in (pthm, proof_combt' (head, args)) end;
 
 
-fun get_name hyps prop prf =
-  let val prop = Logic.list_implies (hyps, prop) in
-    (case strip_combt (fst (strip_combP prf)) of
-      (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
-    | _ => "")
-  end;
-
-fun get_name_unconstrained shyps hyps prop prf =
+fun get_name shyps hyps prop prf =
   let val (_, prop) = Logic.unconstrainT shyps (Logic.list_implies (hyps, prop)) in
     (case strip_combt (fst (strip_combP prf)) of
       (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""

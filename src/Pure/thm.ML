@@ -584,8 +584,8 @@ fun future future_thm ct =
 
 (* closed derivations with official name *)
 
-fun derivation_name thm =
-  Pt.guess_name (Pt.proof_of (raw_body thm));   (* FIXME tmp *)
+fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
+  Pt.get_name shyps hyps prop (Pt.proof_of body);
 
 fun name_derivation name (thm as Thm (der, args)) =
   let
