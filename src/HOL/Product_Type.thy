@@ -856,8 +856,22 @@ definition prod_fun :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd
 lemma prod_fun [simp, code]: "prod_fun f g (a, b) = (f a, g b)"
   by (simp add: prod_fun_def)
 
-lemma prod_fun_compose: "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
-  by (rule ext) auto
+lemma fst_prod_fun[simp]: "fst (prod_fun f g x) = f (fst x)"
+by (cases x, auto)
+
+lemma snd_prod_fun[simp]: "snd (prod_fun f g x) = g (snd x)"
+by (cases x, auto)
+
+lemma fst_comp_prod_fun[simp]: "fst \<circ> prod_fun f g = f \<circ> fst"
+by (rule ext) auto
+
+lemma snd_comp_prod_fun[simp]: "snd \<circ> prod_fun f g = g \<circ> snd"
+by (rule ext) auto
+
+
+lemma prod_fun_compose:
+  "prod_fun (f1 o f2) (g1 o g2) = (prod_fun f1 g1 o prod_fun f2 g2)"
+by (rule ext) auto
 
 lemma prod_fun_ident [simp]: "prod_fun (%x. x) (%y. y) = (%z. z)"
   by (rule ext) auto
@@ -877,6 +891,7 @@ lemma prod_fun_imageE [elim!]:
    apply (blast intro: prod_fun)
   apply blast
   done
+
 
 definition apfst :: "('a \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'b" where
   "apfst f = prod_fun f id"
@@ -1097,6 +1112,66 @@ by blast
 
 lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd \<circ> f) -` B)"
   by (auto, case_tac "f x", auto)
+
+text{* The following @{const prod_fun} lemmas are due to Joachim Breitner: *}
+
+lemma prod_fun_inj_on:
+  assumes "inj_on f A" and "inj_on g B"
+  shows "inj_on (prod_fun f g) (A \<times> B)"
+proof (rule inj_onI)
+  fix x :: "'a \<times> 'c" and y :: "'a \<times> 'c"
+  assume "x \<in> A \<times> B" hence "fst x \<in> A" and "snd x \<in> B" by auto
+  assume "y \<in> A \<times> B" hence "fst y \<in> A" and "snd y \<in> B" by auto
+  assume "prod_fun f g x = prod_fun f g y"
+  hence "fst (prod_fun f g x) = fst (prod_fun f g y)" by (auto)
+  hence "f (fst x) = f (fst y)" by (cases x,cases y,auto)
+  with `inj_on f A` and `fst x \<in> A` and `fst y \<in> A`
+  have "fst x = fst y" by (auto dest:dest:inj_onD)
+  moreover from `prod_fun f g x = prod_fun f g y`
+  have "snd (prod_fun f g x) = snd (prod_fun f g y)" by (auto)
+  hence "g (snd x) = g (snd y)" by (cases x,cases y,auto)
+  with `inj_on g B` and `snd x \<in> B` and `snd y \<in> B`
+  have "snd x = snd y" by (auto dest:dest:inj_onD)
+  ultimately show "x = y" by(rule prod_eqI)
+qed
+
+lemma prod_fun_surj:
+  assumes "surj f" and "surj g"
+  shows "surj (prod_fun f g)"
+unfolding surj_def
+proof
+  fix y :: "'b \<times> 'd"
+  from `surj f` obtain a where "fst y = f a" by (auto elim:surjE)
+  moreover
+  from `surj g` obtain b where "snd y = g b" by (auto elim:surjE)
+  ultimately have "(fst y, snd y) = prod_fun f g (a,b)" by auto
+  thus "\<exists>x. y = prod_fun f g x" by auto
+qed
+
+lemma prod_fun_surj_on:
+  assumes "f ` A = A'" and "g ` B = B'"
+  shows "prod_fun f g ` (A \<times> B) = A' \<times> B'"
+unfolding image_def
+proof(rule set_ext,rule iffI)
+  fix x :: "'a \<times> 'c"
+  assume "x \<in> {y\<Colon>'a \<times> 'c. \<exists>x\<Colon>'b \<times> 'd\<in>A \<times> B. y = prod_fun f g x}"
+  then obtain y where "y \<in> A \<times> B" and "x = prod_fun f g y" by blast
+  from `image f A = A'` and `y \<in> A \<times> B` have "f (fst y) \<in> A'" by auto
+  moreover from `image g B = B'` and `y \<in> A \<times> B` have "g (snd y) \<in> B'" by auto
+  ultimately have "(f (fst y), g (snd y)) \<in> (A' \<times> B')" by auto
+  with `x = prod_fun f g y` show "x \<in> A' \<times> B'" by (cases y, auto)
+next
+  fix x :: "'a \<times> 'c"
+  assume "x \<in> A' \<times> B'" hence "fst x \<in> A'" and "snd x \<in> B'" by auto
+  from `image f A = A'` and `fst x \<in> A'` have "fst x \<in> image f A" by auto
+  then obtain a where "a \<in> A" and "fst x = f a" by (rule imageE)
+  moreover from `image g B = B'` and `snd x \<in> B'`
+  obtain b where "b \<in> B" and "snd x = g b" by auto
+  ultimately have "(fst x, snd x) = prod_fun f g (a,b)" by auto
+  moreover from `a \<in> A` and  `b \<in> B` have "(a , b) \<in> A \<times> B" by auto
+  ultimately have "\<exists>y \<in> A \<times> B. x = prod_fun f g y" by auto
+  thus "x \<in> {x. \<exists>y \<in> A \<times> B. x = prod_fun f g y}" by auto
+qed
 
 lemma swap_inj_on:
   "inj_on (\<lambda>(i, j). (j, i)) A"
