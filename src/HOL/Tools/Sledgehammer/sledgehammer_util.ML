@@ -91,7 +91,8 @@ fun parse_time_option _ "none" = NONE
     end
 
 val subscript = implode o map (prefix "\<^isub>") o explode
-val nat_subscript = subscript o string_of_int
+fun nat_subscript n =
+  n |> string_of_int |> print_mode_active Symbol.xsymbolsN ? subscript
 
 fun plain_string_from_xml_tree t =
   Buffer.empty |> XML.add_content t |> Buffer.content
