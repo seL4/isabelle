@@ -87,11 +87,11 @@ tar xzf "$ARCHIVE_FULL"
 cd "$ISABELLE_NAME"
 
 perl -pi \
-  -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-M 1 -p 1":;' \
+  -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-M 1":;' \
   etc/settings
 
 if [ -n "$DO_LIBRARY" ]; then
-  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-M 1 -p 1 -i true -d pdf -V outline=/proof,/ML":;' \
+  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-M 1 -i true -d pdf -V outline=/proof,/ML":;' \
     etc/settings
 fi
 
