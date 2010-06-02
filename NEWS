@@ -86,6 +86,9 @@ disabled via the ProofGeneral settings menu.
 'hide_fact' replace the former 'hide' KIND command.  Minor
 INCOMPATIBILITY.
 
+* Improved parallelism of proof term normalization: usedir -p2 -q0 is
+more efficient than combinations with -q1 or -q2.
+
 
 *** Pure ***
 
