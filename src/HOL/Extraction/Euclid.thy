@@ -10,23 +10,6 @@ theory Euclid
 imports "~~/src/HOL/Number_Theory/UniqueFactorization" Util Efficient_Nat
 begin
 
-lemma list_nonempty_induct [consumes 1, case_names single cons]:
-  assumes "xs \<noteq> []"
-  assumes single: "\<And>x. P [x]"
-  assumes cons: "\<And>x xs. xs \<noteq> [] \<Longrightarrow> P xs \<Longrightarrow> P (x # xs)"
-  shows "P xs"
-using `xs \<noteq> []` proof (induct xs)
-  case Nil then show ?case by simp
-next
-  case (Cons x xs) show ?case proof (cases xs)
-    case Nil with single show ?thesis by simp
-  next
-    case Cons then have "xs \<noteq> []" by simp
-    moreover with Cons.hyps have "P xs" .
-    ultimately show ?thesis by (rule cons)
-  qed
-qed
-
 text {*
 A constructive version of the proof of Euclid's theorem by
 Markus Wenzel and Freek Wiedijk \cite{Wenzel-Wiedijk-JAR2002}.
@@ -285,6 +268,7 @@ lemma "factor_exists 567 = [7, 3, 3, 3, 3]" by evaluation
 lemma "factor_exists 345 = [23, 5, 3]" by evaluation
 lemma "factor_exists 999 = [37, 3, 3, 3]" by evaluation
 lemma "factor_exists 876 = [73, 3, 2, 2]" by evaluation
+
 lemma "iterate 4 Euclid 0 = [2, 3, 7, 71]" by evaluation
 
 end
