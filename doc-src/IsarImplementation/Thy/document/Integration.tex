@@ -335,7 +335,6 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
   \indexdef{}{ML}{Isar.loop}\verb|Isar.loop: unit -> unit| \\
   \indexdef{}{ML}{Isar.state}\verb|Isar.state: unit -> Toplevel.state| \\
   \indexdef{}{ML}{Isar.exn}\verb|Isar.exn: unit -> (exn * string) option| \\
-  \indexdef{}{ML}{Isar.context}\verb|Isar.context: unit -> Proof.context| \\
   \indexdef{}{ML}{Isar.goal}\verb|Isar.goal: unit ->|\isasep\isanewline%
 \verb|  {context: Proof.context, facts: thm list, goal: thm}| \\
   \end{mldecls}
@@ -351,9 +350,6 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
   \item \verb|Isar.state ()| and \verb|Isar.exn ()| get current
   toplevel state and error condition, respectively.  This only works
   after having dropped out of the Isar toplevel loop.
-
-  \item \verb|Isar.context ()| produces the proof context from \verb|Isar.state ()|, analogous to \verb|Context.proof_of|
-  (\secref{sec:generic-context}).
 
   \item \verb|Isar.goal ()| produces the full Isar goal state,
   consisting of proof context, facts that have been indicated for

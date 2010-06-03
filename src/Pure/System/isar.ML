@@ -1,7 +1,7 @@
 (*  Title:      Pure/System/isar.ML
     Author:     Makarius
 
-The global Isabelle/Isar state and main read-eval-print loop.
+Global state of the raw Isar read-eval-print loop.
 *)
 
 signature ISAR =
@@ -9,7 +9,6 @@ sig
   val init: unit -> unit
   val exn: unit -> (exn * string) option
   val state: unit -> Toplevel.state
-  val context: unit -> Proof.context
   val goal: unit -> {context: Proof.context, facts: thm list, goal: thm}
   val print: unit -> unit
   val >> : Toplevel.transition -> bool
@@ -56,9 +55,6 @@ end;
 
 
 fun init () = edit_history 1 (K (K (Toplevel.toplevel, [])));
-
-fun context () = Toplevel.context_of (state ())
-  handle Toplevel.UNDEF => error "Unknown context";
 
 fun goal () = Proof.goal (Toplevel.proof_of (state ()))
   handle Toplevel.UNDEF => error "No goal present";

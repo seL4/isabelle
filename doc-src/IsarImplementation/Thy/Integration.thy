@@ -274,7 +274,6 @@ text %mlref {*
   @{index_ML Isar.loop: "unit -> unit"} \\
   @{index_ML Isar.state: "unit -> Toplevel.state"} \\
   @{index_ML Isar.exn: "unit -> (exn * string) option"} \\
-  @{index_ML Isar.context: "unit -> Proof.context"} \\
   @{index_ML Isar.goal: "unit ->
   {context: Proof.context, facts: thm list, goal: thm}"} \\
   \end{mldecls}
@@ -290,10 +289,6 @@ text %mlref {*
   \item @{ML "Isar.state ()"} and @{ML "Isar.exn ()"} get current
   toplevel state and error condition, respectively.  This only works
   after having dropped out of the Isar toplevel loop.
-
-  \item @{ML "Isar.context ()"} produces the proof context from @{ML
-  "Isar.state ()"}, analogous to @{ML Context.proof_of}
-  (\secref{sec:generic-context}).
 
   \item @{ML "Isar.goal ()"} produces the full Isar goal state,
   consisting of proof context, facts that have been indicated for
