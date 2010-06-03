@@ -6,6 +6,10 @@ distribution.
 Contributions to Isabelle2009-2
 --------------------------------------
 
+* 2009/2010: Stefan Berghofer, Alexander Krauss, and Andreas Schropp, TUM,
+  Makarius Wenzel, TUM / LRI
+  Elimination of type classes from proof terms.
+
 * April 2010: Florian Haftmann, TUM
   Reorganization of abstract algebra type classes.
 
