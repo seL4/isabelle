@@ -46,7 +46,7 @@ fun inline name scan = ML_Context.add_antiq name
 fun declaration kind name scan = ML_Context.add_antiq name
   (fn _ => scan >> (fn s => fn background =>
     let
-      val (a, background') = variant name background;
+      val (a, background') = variant (translate_string (fn "." => "_" | c => c) name) background;
       val env = kind ^ " " ^ a ^ " = " ^ s ^ ";\n";
       val body = "Isabelle." ^ a;
     in (K (env, body), background') end));
