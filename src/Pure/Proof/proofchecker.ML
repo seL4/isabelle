@@ -13,8 +13,6 @@ end;
 structure ProofChecker : PROOF_CHECKER =
 struct
 
-open Proofterm;
-
 (***** construct a theorem out of a proof term *****)
 
 fun lookup_thm thy =
@@ -39,8 +37,8 @@ fun is_equal t t' =
   end;
 
 fun pretty_prf thy vs Hs prf =
-  let val prf' = prf |> prf_subst_bounds (map Free vs) |>
-    prf_subst_pbounds (map (Hyp o prop_of) Hs)
+  let val prf' = prf |> Proofterm.prf_subst_bounds (map Free vs) |>
+    Proofterm.prf_subst_pbounds (map (Hyp o prop_of) Hs)
   in
     (Proof_Syntax.pretty_proof (Syntax.init_pretty_global thy) prf',
      Syntax.pretty_term_global thy (Reconstruct.prop_of prf'))

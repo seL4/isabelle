@@ -17,8 +17,6 @@ end;
 structure Reconstruct : RECONSTRUCT =
 struct
 
-open Proofterm;
-
 val quiet_mode = Unsynchronized.ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
@@ -28,7 +26,7 @@ fun frees_of t = map Free (rev (Term.add_frees t []));
 fun forall_intr_vfs prop = fold_rev Logic.all
   (vars_of prop @ frees_of prop) prop;
 
-fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_proof'
+fun forall_intr_vfs_prf prop prf = fold_rev Proofterm.forall_intr_proof'
   (vars_of prop @ frees_of prop) prf;
 
 
@@ -140,8 +138,8 @@ fun make_constraints_cprf thy env cprf =
               | SOME Ts => (Ts, env));
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
               (forall_intr_vfs prop) handle Library.UnequalLengths =>
-                error ("Wrong number of type arguments for " ^ quote (guess_name prf))
-          in (prop', change_type (SOME Ts) prf, [], env', vTs) end;
+                error ("Wrong number of type arguments for " ^ quote (Proofterm.guess_name prf))
+          in (prop', Proofterm.change_type (SOME Ts) prf, [], env', vTs) end;
 
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
@@ -285,17 +283,17 @@ fun solve _ [] bigenv = bigenv
 
 fun reconstruct_proof thy prop cprf =
   let
-    val (cprf' % SOME prop', thawf) = freeze_thaw_prf (cprf % SOME prop);
+    val (cprf' % SOME prop', thawf) = Proofterm.freeze_thaw_prf (cprf % SOME prop);
     val _ = message "Collecting constraints...";
     val (t, prf, cs, env, _) = make_constraints_cprf thy
-      (Envir.empty (maxidx_proof cprf ~1)) cprf';
+      (Envir.empty (Proofterm.maxidx_proof cprf ~1)) cprf';
     val cs' = map (fn p => (true, p, uncurry (union (op =)) 
         (pairself (map (fst o dest_Var) o OldTerm.term_vars) p)))
       (map (pairself (Envir.norm_term env)) ((t, prop')::cs));
     val _ = message ("Solving remaining constraints (" ^ string_of_int (length cs') ^ ") ...");
     val env' = solve thy cs' env
   in
-    thawf (norm_proof env' prf)
+    thawf (Proofterm.norm_proof env' prf)
   end;
 
 fun prop_of_atom prop Ts = subst_atomic_types
@@ -357,24 +355,24 @@ fun expand_proof thy thms prf =
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Syntax.string_of_term_global thy prop);
                     val prf' = forall_intr_vfs_prf prop
-                      (reconstruct_proof thy prop (join_proof body));
+                      (reconstruct_proof thy prop (Proofterm.join_proof body));
                     val (maxidx', prfs', prf) = expand
-                      (maxidx_proof prf' ~1) prfs prf'
-                  in (maxidx' + maxidx + 1, incr_indexes (maxidx + 1) prf,
+                      (Proofterm.maxidx_proof prf' ~1) prfs prf'
+                  in (maxidx' + maxidx + 1, Proofterm.incr_indexes (maxidx + 1) prf,
                     ((a, prop), (maxidx', prf)) :: prfs')
                   end
               | SOME (maxidx', prf) => (maxidx' + maxidx + 1,
-                  incr_indexes (maxidx + 1) prf, prfs));
+                  Proofterm.incr_indexes (maxidx + 1) prf, prfs));
             val tfrees = Term.add_tfrees prop [] |> rev;
             val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
               (Term.add_tvars prop [] |> rev) @ map (rpair ~1 o fst) tfrees ~~ Ts;
             val varify = map_type_tfree (fn p as (a, S) =>
               if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
           in
-            (maxidx', prfs', map_proof_types (typ_subst_TVars tye o varify) prf)
+            (maxidx', prfs', Proofterm.map_proof_types (typ_subst_TVars tye o varify) prf)
           end
       | expand maxidx prfs prf = (maxidx, prfs, prf);
 
-  in #3 (expand (maxidx_proof prf ~1) [] prf) end;
+  in #3 (expand (Proofterm.maxidx_proof prf ~1) [] prf) end;
 
 end;

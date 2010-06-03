@@ -23,8 +23,6 @@ end;
 structure Proof_Syntax : PROOF_SYNTAX =
 struct
 
-open Proofterm;
-
 (**** add special syntax for embedding proof terms ****)
 
 val proofT = Type ("proof", []);
@@ -98,7 +96,7 @@ fun proof_of_term thy ty =
 
     fun prf_of [] (Bound i) = PBound i
       | prf_of Ts (Const (s, Type ("proof", _))) =
-          change_type (if ty then SOME Ts else NONE)
+          Proofterm.change_type (if ty then SOME Ts else NONE)
             (case Long_Name.explode s of
                "axm" :: xs =>
                  let
@@ -110,14 +108,15 @@ fun proof_of_term thy ty =
              | "thm" :: xs =>
                  let val name = Long_Name.implode xs;
                  in (case AList.lookup (op =) thms name of
-                     SOME thm => fst (strip_combt (fst (strip_combP (Thm.proof_of thm))))
+                     SOME thm =>
+                      fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of thm))))
                    | NONE => error ("Unknown theorem " ^ quote name))
                  end
              | _ => error ("Illegal proof constant name: " ^ quote s))
       | prf_of Ts (Const ("OfClass", _) $ Const (c_class, _)) =
           (case try Logic.class_of_const c_class of
             SOME c =>
-              change_type (if ty then SOME Ts else NONE)
+              Proofterm.change_type (if ty then SOME Ts else NONE)
                 (OfClass (TVar ((Name.aT, 0), []), c))
           | NONE => error ("Bad class constant: " ^ quote c_class))
       | prf_of Ts (Const ("Hyp", _) $ prop) = Hyp prop
@@ -126,13 +125,13 @@ fun proof_of_term thy ty =
           if T = proofT then
             error ("Term variable abstraction may not bind proof variable " ^ quote s)
           else Abst (s, if ty then SOME T else NONE,
-            incr_pboundvars (~1) 0 (prf_of [] prf))
+            Proofterm.incr_pboundvars (~1) 0 (prf_of [] prf))
       | prf_of [] (Const ("AbsP", _) $ t $ Abs (s, _, prf)) =
           AbsP (s, case t of
                 Const ("dummy_pattern", _) => NONE
               | _ $ Const ("dummy_pattern", _) => NONE
               | _ => SOME (mk_term t),
-            incr_pboundvars 0 (~1) (prf_of [] prf))
+            Proofterm.incr_pboundvars 0 (~1) (prf_of [] prf))
       | prf_of [] (Const ("AppP", _) $ prf1 $ prf2) =
           prf_of [] prf1 %% prf_of [] prf2
       | prf_of Ts (Const ("Appt", _) $ prf $ Const ("TYPE", Type (_, [T]))) =
@@ -168,11 +167,11 @@ fun term_of _ (PThm (_, ((name, _, NONE), _))) =
   | term_of Ts (Abst (s, opT, prf)) =
       let val T = the_default dummyT opT
       in Const ("Abst", (T --> proofT) --> proofT) $
-        Abs (s, T, term_of (T::Ts) (incr_pboundvars 1 0 prf))
+        Abs (s, T, term_of (T::Ts) (Proofterm.incr_pboundvars 1 0 prf))
       end
   | term_of Ts (AbsP (s, t, prf)) =
       AbsPt $ the_default (Term.dummy_pattern propT) t $
-        Abs (s, proofT, term_of (proofT::Ts) (incr_pboundvars 0 1 prf))
+        Abs (s, proofT, term_of (proofT::Ts) (Proofterm.incr_pboundvars 0 1 prf))
   | term_of Ts (prf1 %% prf2) =
       AppPt $ term_of Ts prf1 $ term_of Ts prf2
   | term_of Ts (prf % opt) =
@@ -233,10 +232,10 @@ fun read_proof thy topsort =
 
 fun proof_syntax prf =
   let
-    val thm_names = Symtab.keys (fold_proof_atoms true
+    val thm_names = Symtab.keys (Proofterm.fold_proof_atoms true
       (fn PThm (_, ((name, _, _), _)) => if name <> "" then Symtab.update (name, ()) else I
         | _ => I) [prf] Symtab.empty);
-    val axm_names = Symtab.keys (fold_proof_atoms true
+    val axm_names = Symtab.keys (Proofterm.fold_proof_atoms true
       (fn PAxm (name, _, _) => Symtab.update (name, ()) | _ => I) [prf] Symtab.empty);
   in
     add_proof_syntax #>
@@ -249,8 +248,10 @@ fun proof_of full thm =
     val thy = Thm.theory_of_thm thm;
     val prop = Thm.full_prop_of thm;
     val prf = Thm.proof_of thm;
-    val prf' = (case strip_combt (fst (strip_combP prf)) of
-        (PThm (_, ((_, prop', _), body)), _) => if prop = prop' then join_proof body else prf
+    val prf' =
+      (case Proofterm.strip_combt (fst (Proofterm.strip_combP prf)) of
+        (PThm (_, ((_, prop', _), body)), _) =>
+          if prop = prop' then Proofterm.join_proof body else prf
       | _ => prf)
   in if full then Reconstruct.reconstruct_proof thy prop prf' else prf' end;
 

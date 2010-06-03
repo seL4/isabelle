@@ -13,8 +13,6 @@ end;
 structure RewriteHOLProof : REWRITE_HOL_PROOF =
 struct
 
-open Proofterm;
-
 val rews = map (pairself (Proof_Syntax.proof_of_term @{theory} true) o
     Logic.dest_equals o Logic.varify_global o Proof_Syntax.read_term @{theory} true propT)
 
@@ -311,14 +309,14 @@ fun strip_cong ps (PThm (_, (("HOL.cong", _, _), _)) % _ % _ % SOME x % SOME y %
   | strip_cong ps (PThm (_, (("HOL.refl", _, _), _)) % SOME f %% _) = SOME (f, ps)
   | strip_cong _ _ = NONE;
 
-val subst_prf = fst (strip_combt (fst (strip_combP (Thm.proof_of subst))));
-val sym_prf = fst (strip_combt (fst (strip_combP (Thm.proof_of sym))));
+val subst_prf = fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of subst))));
+val sym_prf = fst (Proofterm.strip_combt (fst (Proofterm.strip_combP (Thm.proof_of sym))));
 
 fun make_subst Ts prf xs (_, []) = prf
   | make_subst Ts prf xs (f, ((x, y), (prf', clprf)) :: ps) =
       let val T = fastype_of1 (Ts, x)
       in if x aconv y then make_subst Ts prf (xs @ [x]) (f, ps)
-        else change_type (SOME [T]) subst_prf %> x %> y %>
+        else Proofterm.change_type (SOME [T]) subst_prf %> x %> y %>
           Abs ("z", T, list_comb (incr_boundvars 1 f,
             map (incr_boundvars 1) xs @ Bound 0 ::
             map (incr_boundvars 1 o snd o fst) ps)) %% clprf %% prf' %%
@@ -326,7 +324,8 @@ fun make_subst Ts prf xs (_, []) = prf
       end;
 
 fun make_sym Ts ((x, y), (prf, clprf)) =
-  ((y, x), (change_type (SOME [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% clprf %% prf, clprf));
+  ((y, x),
+    (Proofterm.change_type (SOME [fastype_of1 (Ts, x)]) sym_prf %> x %> y %% clprf %% prf, clprf));
 
 fun mk_AbsP P t = AbsP ("H", Option.map HOLogic.mk_Trueprop P, t);
 
@@ -334,15 +333,15 @@ fun elim_cong_aux Ts (PThm (_, (("HOL.iffD1", _, _), _)) % _ % _ %% prf1 %% prf2
       Option.map (make_subst Ts prf2 []) (strip_cong [] prf1)
   | elim_cong_aux Ts (PThm (_, (("HOL.iffD1", _, _), _)) % P % _ %% prf) =
       Option.map (mk_AbsP P o make_subst Ts (PBound 0) [])
-        (strip_cong [] (incr_pboundvars 1 0 prf))
+        (strip_cong [] (Proofterm.incr_pboundvars 1 0 prf))
   | elim_cong_aux Ts (PThm (_, (("HOL.iffD2", _, _), _)) % _ % _ %% prf1 %% prf2) =
       Option.map (make_subst Ts prf2 [] o
         apsnd (map (make_sym Ts))) (strip_cong [] prf1)
   | elim_cong_aux Ts (PThm (_, (("HOL.iffD2", _, _), _)) % _ % P %% prf) =
       Option.map (mk_AbsP P o make_subst Ts (PBound 0) [] o
-        apsnd (map (make_sym Ts))) (strip_cong [] (incr_pboundvars 1 0 prf))
+        apsnd (map (make_sym Ts))) (strip_cong [] (Proofterm.incr_pboundvars 1 0 prf))
   | elim_cong_aux _ _ = NONE;
 
-fun elim_cong Ts hs prf = Option.map (rpair no_skel) (elim_cong_aux Ts prf);
+fun elim_cong Ts hs prf = Option.map (rpair Proofterm.no_skel) (elim_cong_aux Ts prf);
 
 end;

@@ -22,8 +22,6 @@ end;
 structure ProofRewriteRules : PROOF_REWRITE_RULES =
 struct
 
-open Proofterm;
-
 fun rew b _ _ =
   let
     fun ?? x = if b then SOME x else NONE;
@@ -33,9 +31,9 @@ fun rew b _ _ =
         let val Type (_, [Type (_, [U, _]), _]) = T
         in SOME U end
       else NONE;
-    val equal_intr_axm = ax equal_intr_axm [];
-    val equal_elim_axm = ax equal_elim_axm [];
-    val symmetric_axm = ax symmetric_axm [propT];
+    val equal_intr_axm = ax Proofterm.equal_intr_axm [];
+    val equal_elim_axm = ax Proofterm.equal_elim_axm [];
+    val symmetric_axm = ax Proofterm.symmetric_axm [propT];
 
     fun rew' (PThm (_, (("Pure.protectD", _, _), _)) % _ %%
         (PThm (_, (("Pure.protectI", _, _), _)) % _ %% prf)) = SOME prf
@@ -71,9 +69,10 @@ fun rew b _ _ =
           val _ $ A $ C = Envir.beta_norm X;
           val _ $ B $ D = Envir.beta_norm Y
         in SOME (AbsP ("H1", ?? X, AbsP ("H2", ?? B,
-          equal_elim_axm %> C %> D %% incr_pboundvars 2 0 prf2 %%
+          Proofterm.equal_elim_axm %> C %> D %% Proofterm.incr_pboundvars 2 0 prf2 %%
             (PBound 1 %% (equal_elim_axm %> B %> A %%
-              (symmetric_axm % ?? A % ?? B %% incr_pboundvars 2 0 prf1) %% PBound 0)))))
+              (Proofterm.symmetric_axm % ?? A % ?? B %% Proofterm.incr_pboundvars 2 0 prf1) %%
+                PBound 0)))))
         end
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
@@ -86,8 +85,9 @@ fun rew b _ _ =
           val _ $ B $ D = Envir.beta_norm X
         in SOME (AbsP ("H1", ?? X, AbsP ("H2", ?? A,
           equal_elim_axm %> D %> C %%
-            (symmetric_axm % ?? C % ?? D %% incr_pboundvars 2 0 prf2)
-              %% (PBound 1 %% (equal_elim_axm %> A %> B %% incr_pboundvars 2 0 prf1 %% PBound 0)))))
+            (symmetric_axm % ?? C % ?? D %% Proofterm.incr_pboundvars 2 0 prf2) %%
+              (PBound 1 %%
+                (equal_elim_axm %> A %> B %% Proofterm.incr_pboundvars 2 0 prf1 %% PBound 0)))))
         end
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
@@ -99,7 +99,7 @@ fun rew b _ _ =
           val _ $ Q = Envir.beta_norm Y;
         in SOME (AbsP ("H", ?? X, Abst ("x", ty T,
             equal_elim_axm %> incr_boundvars 1 P $ Bound 0 %> incr_boundvars 1 Q $ Bound 0 %%
-              (incr_pboundvars 1 1 prf %> Bound 0) %% (PBound 0 %> Bound 0))))
+              (Proofterm.incr_pboundvars 1 1 prf %> Bound 0) %% (PBound 0 %> Bound 0))))
         end
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME X % SOME Y %%
@@ -114,7 +114,7 @@ fun rew b _ _ =
           val u = incr_boundvars 1 Q $ Bound 0
         in SOME (AbsP ("H", ?? X, Abst ("x", ty T,
           equal_elim_axm %> t %> u %%
-            (symmetric_axm % ?? u % ?? t %% (incr_pboundvars 1 1 prf %> Bound 0))
+            (symmetric_axm % ?? u % ?? t %% (Proofterm.incr_pboundvars 1 1 prf %> Bound 0))
               %% (PBound 0 %> Bound 0))))
         end
 
@@ -182,12 +182,12 @@ fun rew b _ _ =
           (PAxm ("Pure.reflexive", _, _) % _)) =
         let val (U, V) = (case T of
           Type (_, [U, V]) => (U, V) | _ => (dummyT, dummyT))
-        in SOME (prf %% (ax combination_axm [U, V] %> eq % ?? eq % ?? t % ?? t %%
-          (ax reflexive_axm [T] % ?? eq) %% (ax reflexive_axm [U] % ?? t)))
+        in SOME (prf %% (ax Proofterm.combination_axm [U, V] %> eq % ?? eq % ?? t % ?? t %%
+          (ax Proofterm.reflexive_axm [T] % ?? eq) %% (ax Proofterm.reflexive_axm [U] % ?? t)))
         end
 
       | rew' _ = NONE;
-  in rew' #> Option.map (rpair no_skel) end;
+  in rew' #> Option.map (rpair Proofterm.no_skel) end;
 
 fun rprocs b = [rew b];
 val _ = Context.>> (Context.map_theory (fold Proofterm.add_prf_rproc (rprocs false)));
@@ -231,7 +231,8 @@ fun insert_refl defs Ts (prf1 %% prf2) =
       (Abst (s, SOME T, fst (insert_refl defs (T :: Ts) prf)), false)
   | insert_refl defs Ts (AbsP (s, t, prf)) =
       (AbsP (s, t, fst (insert_refl defs Ts prf)), false)
-  | insert_refl defs Ts prf = (case strip_combt prf of
+  | insert_refl defs Ts prf =
+      (case Proofterm.strip_combt prf of
         (PThm (_, ((s, prop, SOME Ts), _)), ts) =>
           if member (op =) defs s then
             let
@@ -242,11 +243,12 @@ fun insert_refl defs Ts (prf1 %% prf2) =
                 (fold_rev (fn x => fn b => Abs ("", dummyT, abstract_over (x, b))) vs rhs),
                 map the ts);
             in
-              (change_type (SOME [fastype_of1 (Ts, rhs')]) reflexive_axm %> rhs', true)
+              (Proofterm.change_type (SOME [fastype_of1 (Ts, rhs')])
+                Proofterm.reflexive_axm %> rhs', true)
             end
           else (prf, false)
       | (_, []) => (prf, false)
-      | (prf', ts) => (proof_combt' (fst (insert_refl defs Ts prf'), ts), false));
+      | (prf', ts) => (Proofterm.proof_combt' (fst (insert_refl defs Ts prf'), ts), false));
 
 fun elim_defs thy r defs prf =
   let
@@ -256,7 +258,7 @@ fun elim_defs thy r defs prf =
     val f = if not r then I else
       let
         val cnames = map (fst o dest_Const o fst) defs';
-        val thms = fold_proof_atoms true
+        val thms = Proofterm.fold_proof_atoms true
           (fn PThm (_, ((name, prop, _), _)) =>
               if member (op =) defnames name orelse
                 not (exists_Const (member (op =) cnames o #1) prop)
@@ -291,7 +293,7 @@ fun elim_vars mk_default prf =
       | elim_varst (t as Var (xi, T)) = if member (op =) tv (xi, T) then t else mk_default' T
       | elim_varst t = t;
   in
-    map_proof_terms (fn t =>
+    Proofterm.map_proof_terms (fn t =>
       if Term.exists_subterm hidden_variable t then Envir.beta_norm (elim_varst t) else t) I prf
   end;
 
@@ -354,16 +356,16 @@ fun mk_of_sort_proof thy hs (T, S) =
     fun reconstruct prf prop = prf |>
       Reconstruct.reconstruct_proof thy prop |>
       Reconstruct.expand_proof thy [("", NONE)] |>
-      Same.commit (map_proof_same Same.same Same.same hyp)
+      Same.commit (Proofterm.map_proof_same Same.same Same.same hyp)
   in
     map2 reconstruct
-      (of_sort_proof thy (OfClass o apfst Type.strip_sorts) (subst T, S))
+      (Proofterm.of_sort_proof thy (OfClass o apfst Type.strip_sorts) (subst T, S))
       (Logic.mk_of_sort (T, S))
   end;
 
 fun expand_of_class thy Ts hs (OfClass (T, c)) =
       mk_of_sort_proof thy hs (T, [c]) |>
-      hd |> rpair no_skel |> SOME
+      hd |> rpair Proofterm.no_skel |> SOME
   | expand_of_class thy Ts hs _ = NONE;
 
 end;

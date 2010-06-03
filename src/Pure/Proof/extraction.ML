@@ -30,8 +30,6 @@ end;
 structure Extraction : EXTRACTION =
 struct
 
-open Proofterm;
-
 (**** tools ****)
 
 fun add_syntax thy =
@@ -116,7 +114,7 @@ fun condrew thy rules procs =
 
   in rew end;
 
-val chtype = change_type o SOME;
+val chtype = Proofterm.change_type o SOME;
 
 fun extr_name s vs = Long_Name.append "extr" (space_implode "_" (s :: vs));
 fun corr_name s vs = extr_name s vs ^ "_correctness";
@@ -135,7 +133,7 @@ fun strip_abs 0 t = t
   | strip_abs n (Abs (_, _, t)) = strip_abs (n-1) t
   | strip_abs _ _ = error "strip_abs: not an abstraction";
 
-val prf_subst_TVars = map_proof_types o typ_subst_TVars;
+val prf_subst_TVars = Proofterm.map_proof_types o typ_subst_TVars;
 
 fun relevant_vars types prop = List.foldr (fn
       (Var ((a, _), T), vs) => (case strip_type T of
@@ -371,10 +369,10 @@ fun abs_corr_shyps thy thm vs xs prf =
     val xs' = map (map_types typ_map) xs
   in
     prf |>
-    Same.commit (map_proof_same (map_types typ_map) typ_map mk_hyp) |>
-    fold_rev implies_intr_proof' (map snd constraints) |>
-    fold_rev forall_intr_proof' xs' |>
-    fold_rev implies_intr_proof' constraints'
+    Same.commit (Proofterm.map_proof_same (map_types typ_map) typ_map mk_hyp) |>
+    fold_rev Proofterm.implies_intr_proof' (map snd constraints) |>
+    fold_rev Proofterm.forall_intr_proof' xs' |>
+    fold_rev Proofterm.implies_intr_proof' constraints'
   end;
 
 (** expanding theorems / definitions **)
@@ -521,7 +519,7 @@ fun extract thms thy =
 
       | corr d defs vs ts Ts hs cs (Abst (s, SOME T, prf)) (Abst (_, _, prf')) t =
           let val (defs', corr_prf) = corr d defs vs [] (T :: Ts)
-            (dummyt :: hs) cs prf (incr_pboundvars 1 0 prf')
+            (dummyt :: hs) cs prf (Proofterm.incr_pboundvars 1 0 prf')
             (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE)
           in (defs', Abst (s, SOME T, corr_prf)) end
 
@@ -531,13 +529,15 @@ fun extract thms thy =
             val u = if T = nullT then 
                 (case t of SOME u => SOME (incr_boundvars 1 u) | NONE => NONE)
               else (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE);
-            val (defs', corr_prf) = corr d defs vs [] (T :: Ts) (prop :: hs)
-              (prop :: cs) (incr_pboundvars 0 1 prf) (incr_pboundvars 0 1 prf') u;
+            val (defs', corr_prf) =
+              corr d defs vs [] (T :: Ts) (prop :: hs)
+                (prop :: cs) (Proofterm.incr_pboundvars 0 1 prf)
+                (Proofterm.incr_pboundvars 0 1 prf') u;
             val rlz = Const ("realizes", T --> propT --> propT)
           in (defs',
             if T = nullT then AbsP ("R",
               SOME (app_rlz_rews Ts vs (rlz $ nullt $ prop)),
-                prf_subst_bounds [nullt] corr_prf)
+                Proofterm.prf_subst_bounds [nullt] corr_prf)
             else Abst (s, SOME T, AbsP ("R",
               SOME (app_rlz_rews (T :: Ts) vs
                 (rlz $ Bound 0 $ incr_boundvars 1 prop)), corr_prf)))
@@ -581,7 +581,7 @@ fun extract thms thy =
 
       | corr d defs vs ts Ts hs cs (prf0 as PThm (_, ((name, prop, SOME Ts'), body))) _ _ =
           let
-            val prf = join_proof body;
+            val prf = Proofterm.join_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
             val sprfs = mk_sprfs cs tye;
@@ -605,23 +605,26 @@ fun extract thms thy =
                     val corr_prf = mkabsp shyps corr_prf0;
                     val corr_prop = Reconstruct.prop_of corr_prf;
                     val corr_prf' =
-                      proof_combP (proof_combt
+                      Proofterm.proof_combP (Proofterm.proof_combt
                          (PThm (serial (),
                           ((corr_name name vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev))),
-                            Future.value (approximate_proof_body corr_prf))), vfs_of corr_prop),
+                            Future.value (Proofterm.approximate_proof_body corr_prf))),
+                              vfs_of corr_prop),
                               map PBound (length shyps - 1 downto 0)) |>
-                      fold_rev forall_intr_proof' (map (get_var_type corr_prop) (vfs_of prop)) |>
+                      fold_rev Proofterm.forall_intr_proof'
+                        (map (get_var_type corr_prop) (vfs_of prop)) |>
                       mkabsp shyps
                   in
                     ((name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'',
-                     proof_combP (prf_subst_TVars tye' corr_prf', sprfs))
+                     Proofterm.proof_combP (prf_subst_TVars tye' corr_prf', sprfs))
                   end
-              | SOME (_, (_, prf')) => (defs', proof_combP (prf_subst_TVars tye' prf', sprfs)))
+              | SOME (_, (_, prf')) =>
+                  (defs', Proofterm.proof_combP (prf_subst_TVars tye' prf', sprfs)))
             | SOME rs => (case find vs' rs of
-                SOME (_, prf') => (defs', proof_combP (prf_subst_TVars tye' prf', sprfs))
+                SOME (_, prf') => (defs', Proofterm.proof_combP (prf_subst_TVars tye' prf', sprfs))
               | NONE => error ("corr: no realizer for instance of theorem " ^
                   quote name ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
-                    (Reconstruct.prop_of (proof_combt (prf0, ts))))))
+                    (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts))))))
           end
 
       | corr d defs vs ts Ts hs cs (prf0 as PAxm (s, prop, SOME Ts')) _ _ =
@@ -633,10 +636,10 @@ fun extract thms thy =
               realizes_null vs' prop aconv prop then (defs, prf0)
             else case find vs' (Symtab.lookup_list realizers s) of
               SOME (_, prf) => (defs,
-                proof_combP (prf_subst_TVars tye' prf, mk_sprfs cs tye))
+                Proofterm.proof_combP (prf_subst_TVars tye' prf, mk_sprfs cs tye))
             | NONE => error ("corr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
-                  (Reconstruct.prop_of (proof_combt (prf0, ts)))))
+                  (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
       | corr d defs vs ts Ts hs _ _ _ _ = error "corr: bad proof"
@@ -645,14 +648,14 @@ fun extract thms thy =
 
       | extr d defs vs ts Ts hs (Abst (s, SOME T, prf)) =
           let val (defs', t) = extr d defs vs []
-            (T :: Ts) (dummyt :: hs) (incr_pboundvars 1 0 prf)
+            (T :: Ts) (dummyt :: hs) (Proofterm.incr_pboundvars 1 0 prf)
           in (defs', Abs (s, T, t)) end
 
       | extr d defs vs ts Ts hs (AbsP (s, SOME t, prf)) =
           let
             val T = etype_of thy' vs Ts t;
-            val (defs', t) = extr d defs vs [] (T :: Ts) (t :: hs)
-              (incr_pboundvars 0 1 prf)
+            val (defs', t) =
+              extr d defs vs [] (T :: Ts) (t :: hs) (Proofterm.incr_pboundvars 0 1 prf)
           in (defs',
             if T = nullT then subst_bound (nullt, t) else Abs (s, T, t))
           end
@@ -677,7 +680,7 @@ fun extract thms thy =
 
       | extr d defs vs ts Ts hs (prf0 as PThm (_, ((s, prop, SOME Ts'), body))) =
           let
-            val prf = join_proof body;
+            val prf = Proofterm.join_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
             val shyps = mk_shyps tye;
             val tye' = (map fst (Term.add_tvars prop [] |> rev) ~~ Ts') @ tye
@@ -712,20 +715,22 @@ fun extract thms thy =
                       (Abs ("x", T, rlz $ list_comb (Bound 0, args') $ prop));
 
                     val corr_prf' = mkabsp shyps
-                      (chtype [] equal_elim_axm %> lhs %> rhs %%
-                       (chtype [propT] symmetric_axm %> rhs %> lhs %%
-                         (chtype [T, propT] combination_axm %> f %> f %> c %> t' %%
-                           (chtype [T --> propT] reflexive_axm %> f) %%
+                      (chtype [] Proofterm.equal_elim_axm %> lhs %> rhs %%
+                       (chtype [propT] Proofterm.symmetric_axm %> rhs %> lhs %%
+                         (chtype [T, propT] Proofterm.combination_axm %> f %> f %> c %> t' %%
+                           (chtype [T --> propT] Proofterm.reflexive_axm %> f) %%
                            PAxm (cname ^ "_def", eqn,
                              SOME (map TVar (Term.add_tvars eqn [] |> rev))))) %% corr_prf);
                     val corr_prop = Reconstruct.prop_of corr_prf';
                     val corr_prf'' =
-                      proof_combP (proof_combt
+                      Proofterm.proof_combP (Proofterm.proof_combt
                         (PThm (serial (),
                          ((corr_name s vs', corr_prop, SOME (map TVar (Term.add_tvars corr_prop [] |> rev))),
-                           Future.value (approximate_proof_body corr_prf'))), vfs_of corr_prop),
+                           Future.value (Proofterm.approximate_proof_body corr_prf'))),
+                            vfs_of corr_prop),
                              map PBound (length shyps - 1 downto 0)) |>
-                      fold_rev forall_intr_proof' (map (get_var_type corr_prop) (vfs_of prop)) |>
+                      fold_rev Proofterm.forall_intr_proof'
+                        (map (get_var_type corr_prop) (vfs_of prop)) |>
                       mkabsp shyps
                   in
                     ((s, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'',
@@ -736,7 +741,7 @@ fun extract thms thy =
                 SOME (t, _) => (defs, subst_TVars tye' t)
               | NONE => error ("extr: no realizer for instance of theorem " ^
                   quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
-                    (Reconstruct.prop_of (proof_combt (prf0, ts))))))
+                    (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts))))))
           end
 
       | extr d defs vs ts Ts hs (prf0 as PAxm (s, prop, SOME Ts')) =
@@ -748,7 +753,7 @@ fun extract thms thy =
               SOME (t, _) => (defs, subst_TVars tye' t)
             | NONE => error ("extr: no realizer for instance of axiom " ^
                 quote s ^ ":\n" ^ Syntax.string_of_term_global thy' (Envir.beta_norm
-                  (Reconstruct.prop_of (proof_combt (prf0, ts)))))
+                  (Reconstruct.prop_of (Proofterm.proof_combt (prf0, ts)))))
           end
 
       | extr d defs vs ts Ts hs _ = error "extr: bad proof";
