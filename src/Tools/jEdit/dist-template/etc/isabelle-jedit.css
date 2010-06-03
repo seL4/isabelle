@@ -3,7 +3,7 @@
 .message { margin-top: 0.3ex; background-color: #F0F0F0; }
 
 .writeln { }
-.tracing { background-color: #EAF8FF; }
+.tracing { background-color: #F0F8FF; }
 .warning { background-color: #EEE8AA; }
 .error { background-color: #FFC1C1; }
 .debug { background-color: #FFE4E1; }
