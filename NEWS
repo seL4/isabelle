@@ -143,6 +143,13 @@ within a local theory context.  Minor INCOMPATIBILITY.
 order of type variables. Potential INCOMPATIBILITY for tools working
 with proof terms.
 
+* New operation Thm.unconstrainT eliminates all sort constraints from
+a theorem and proof, introducing explicit OFCLASS-premises. On the
+proof term level, this operation is automatically applied at PThm
+boundaries, such that closed proofs are always free of sort
+constraints. The old (axiomatic) unconstrain operation has been
+discontinued.  INCOMPATIBILITY for tools working with proof terms.
+
 
 *** HOL ***
 
