@@ -42,6 +42,8 @@ sig
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
   val ml_diag: bool -> Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
+  val diag_state: unit -> Toplevel.state
+  val diag_goal: unit -> {context: Proof.context, facts: thm list, goal: thm}
   val cd: Path.T -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
@@ -299,9 +301,26 @@ val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 (* diagnostic ML evaluation *)
 
+structure Diag_State = Proof_Data
+(
+  type T = Toplevel.state;
+  fun init _ = Toplevel.toplevel;
+);
+
 fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
-  (ML_Context.eval_text_in
-    (Option.map Context.proof_of (try Toplevel.generic_theory_of state)) verbose pos txt));
+  let val opt_ctxt =
+    try Toplevel.generic_theory_of state
+    |> Option.map (Context.proof_of #> Diag_State.put state)
+  in ML_Context.eval_text_in opt_ctxt verbose pos txt end);
+
+fun diag_state () = Diag_State.get (ML_Context.the_local_context ());
+
+fun diag_goal () =
+  Proof.goal (Toplevel.proof_of (diag_state ()))
+    handle Toplevel.UNDEF => error "No goal present";
+
+val _ = ML_Antiquote.value "Isar.state" (Scan.succeed "Isar_Cmd.diag_state ()");
+val _ = ML_Antiquote.value "Isar.goal" (Scan.succeed "Isar_Cmd.diag_goal ()");
 
 
 (* current working directory *)

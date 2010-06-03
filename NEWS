@@ -558,6 +558,11 @@ syntax constant (cf. 'syntax' command).
 values similar to the ML toplevel.  The result is compiler dependent
 and may fall back on "?" in certain situations.
 
+* Diagnostic commands 'ML_val' and 'ML_command' may refer to
+antiquotations @{Isar.state} and @{Isar.goal}.  This replaces impure
+Isar.state() and Isar.goal(), which belong to the old TTY loop and do
+not work with the asynchronous Isar document model.
+
 * Sorts.certify_sort and derived "cert" operations for types and terms
 no longer minimize sorts.  Thus certification at the boundary of the
 inference kernel becomes invariant under addition of class relations,
