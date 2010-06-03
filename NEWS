@@ -140,8 +140,8 @@ assumptions, which is not possible in Isabelle/Pure.
 within a local theory context.  Minor INCOMPATIBILITY.
 
 * Proof terms: Type substitutions on proof constants now use canonical
-order of type variables. Potential INCOMPATIBILITY for tools working
-with proof terms.
+order of type variables.  INCOMPATIBILITY for tools working with proof
+terms.
 
 * New operation Thm.unconstrainT eliminates all sort constraints from
 a theorem and proof, introducing explicit OFCLASS-premises. On the
