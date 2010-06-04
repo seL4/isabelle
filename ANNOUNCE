@@ -7,8 +7,25 @@ This release improves upon Isabelle2009-1 in many respects, see the
 NEWS file in the distribution for more details.  Some notable changes
 are:
 
-* FIXME
+* Explicit proof terms for type class reasoning.
 
+* Authentic syntax for *all* logical entities (type classes, type
+constructors, term constants): provides simple and robust
+correspondence between formal entities and concrete syntax.
+
+* HOL: Package for constructing quotient types.
+
+* HOL: Code generation now with simple concept for abstract
+datatypes obeying invariants;  applications for typical data structures
+(e.g. search trees) can be found in the library.
+
+* HOL: New development of the Reals using Cauchy Sequences.
+
+* HOL: Reorganization of abstract algebra type class hierarchy.
+
+* Commands 'types', 'typedecl' and 'typedef' now work within a local theory
+context -- without introducing dependencies on parameters or
+assumptions.
 
 You may get Isabelle2009-2 from the following mirror sites:
 
