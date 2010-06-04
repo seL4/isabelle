@@ -2,11 +2,6 @@
 #
 # makebundle -- re-package with add-on components
 
-## global settings
-
-TMP="/var/tmp/isabelle-makebundle$$"
-
-
 ## diagnostics
 
 PRG=$(basename "$0")
@@ -14,9 +9,10 @@ PRG=$(basename "$0")
 function usage()
 {
   echo
-  echo "Usage: $PRG ARCHIVE COMPONENTS"
+  echo "Usage: $PRG ARCHIVE PLATFORM"
   echo
-  echo "  Re-package Isabelle distribution with add-on components."
+  echo "  Re-package Isabelle source distribution with add-on components"
+  echo "  and logic images"
   echo
   exit 1
 }
@@ -28,34 +24,37 @@ function fail()
 }
 
 
-## process command line
+## implicit and explicit arguments
 
-[ "$#" -lt 1 ] && usage
+TMP="/var/tmp/isabelle-makebundle$$"
+mkdir "$TMP" || fail "Cannot create directory $TMP"
+
+LOGICS="HOL HOL-Nominal HOLCF ZF"
+
+[ "$#" -ne 2 ] && usage
 
 ARCHIVE="$1"; shift
+PLATFORM="$1"; shift
 
-declare -a COMPONENTS
-COMPONENTS=("$@")
+[ -f "$ARCHIVE" ] || fail "Bad source archive: $ARCHIVE"
 
 
 ## main
-
-mkdir "$TMP" || fail "Cannot create directory $TMP"
 
 ARCHIVE_DIR="$(cd $(dirname "$ARCHIVE"); echo "$PWD")"
 ISABELLE_NAME="$(basename "$ARCHIVE" .tar.gz)"
 ISABELLE_HOME="$TMP/$ISABELLE_NAME"
 
-[ ! -f "$ARCHIVE" ] && fail "Bad archive file $ARCHIVE"
 tar -C "$TMP" -x -z -f "$ARCHIVE"
+
 
 echo "#bundled components" >> "$ISABELLE_HOME/etc/components"
 
-for COMPONENT in "${COMPONENTS[@]}"
+for CONTRIB in "$ARCHIVE_DIR"/contrib/*.tar.gz
 do
-  tar -C "$ISABELLE_HOME/contrib" -x -z -f "$COMPONENT"
-  NAME="$(basename "$COMPONENT" .tar.gz)"
-  [ -d "$ISABELLE_HOME/contrib/$NAME" ] || fail "Bad archive content $COMPONENT"
+  tar -C "$ISABELLE_HOME/contrib" -x -z -f "$CONTRIB"
+  NAME="$(basename "$CONTRIB" .tar.gz)"
+  [ -d "$ISABELLE_HOME/contrib/$NAME" ] || fail "Bad archive content $CONTRIB"
 
   if [ -e "$ISABELLE_HOME/contrib/$NAME/etc/settings" ]; then
     echo "component $NAME"
@@ -65,9 +64,20 @@ do
   fi
 done
 
-tar -C "$TMP" -c -z \
-  -f "${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle.tar.gz" \
-  Isabelle "$ISABELLE_NAME"
+
+for LOGIC in $LOGICS
+do
+  LOGIC_ARCHIVE="$ARCHIVE_DIR/${LOGIC}_${PLATFORM}.tar.gz"
+  [ -f "$LOGIC_ARCHIVE" ] || fail "Bad logic archive: $LOGIC_ARCHIVE"
+  echo "logic $LOGIC"
+  tar -C "$ISABELLE_HOME" -x -z -f "$LOGIC_ARCHIVE"
+done
+
+
+BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle_${PLATFORM}.tar.gz"
+
+echo "$(basename "$BUNDLE_ARCHIVE")"
+tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" Isabelle "$ISABELLE_NAME"
 
 
 # clean up
