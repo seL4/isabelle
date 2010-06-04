@@ -732,17 +732,19 @@ fun gen_add_locale prep_decl
       prep_decl raw_import I raw_body (ProofContext.init_global thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
+    val extraTs =
+      subtract (op =) (fold Term.add_tfreesT (map snd parms) []) (fold Term.add_tfrees exts' []);
+    val _ =
+      if null extraTs then ()
+      else warning ("Additional type variable(s) in locale specification " ^
+        quote (Binding.str_of binding) ^ ": " ^
+          commas (map (Syntax.string_of_typ ctxt' o TFree) (sort_wrt #1 extraTs)));
+
     val predicate_binding =
       if Binding.is_empty raw_predicate_binding then binding
       else raw_predicate_binding;
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_binding parms text thy;
-
-    val extraTs = subtract (op =) (fold Term.add_tfreesT (map snd parms) []) (fold Term.add_tfrees exts' []);
-    val _ =
-      if null extraTs then ()
-      else warning ("Additional type variable(s) in locale specification " ^
-        quote (Binding.str_of binding));
 
     val a_satisfy = Element.satisfy_morphism a_axioms;
     val b_satisfy = Element.satisfy_morphism b_axioms;
