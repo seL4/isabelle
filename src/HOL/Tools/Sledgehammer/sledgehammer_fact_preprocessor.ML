@@ -457,7 +457,7 @@ fun saturate_skolem_cache thy =
 
 end;
 
-val suppress_endtheory = Unsynchronized.ref false;
+val suppress_endtheory = Unsynchronized.ref false
 
 fun clause_cache_endtheory thy =
   if ! suppress_endtheory then NONE
@@ -478,21 +478,18 @@ fun strip_subgoal goal i =
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
 fun neg_skolemize_tac ctxt =
-  EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
-
-fun neg_skolemize_tac ctxt =
-  EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt];
+  EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt]
 
 val neg_clausify =
   single #> Meson.make_clauses_unsorted #> map combinators #> Meson.finish_cnf
 
 fun neg_conjecture_clauses ctxt st0 n =
   let
-    val st = Seq.hd (neg_skolemize_tac ctxt n st0)
-    val ({params, prems, ...}, _) = Subgoal.focus (Variable.set_body false ctxt) n st
-  in
-    (map neg_clausify prems, map (Term.dest_Free o Thm.term_of o #2) params)
-  end
+    (* "Option" is thrown if the assumptions contain schematic variables. *)
+    val st = Seq.hd (neg_skolemize_tac ctxt n st0) handle Option.Option => st0
+    val ({params, prems, ...}, _) =
+      Subgoal.focus (Variable.set_body false ctxt) n st
+  in (map neg_clausify prems, map (dest_Free o term_of o #2) params) end
 
 (*Conversion of a subgoal to conjecture clauses. Each clause has
   leading !!-bound universal variables, to express generality. *)
