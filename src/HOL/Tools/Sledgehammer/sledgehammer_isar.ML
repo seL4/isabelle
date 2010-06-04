@@ -28,8 +28,11 @@ open Sledgehammer_Fact_Minimizer
 
 val neg_clausify_setup =
   Method.setup @{binding neg_clausify}
-               (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac))
-               "conversion of goal to negated conjecture clauses"
+               (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac)
+                o tap (fn _ => legacy_feature "Old 'neg_clausify' method -- \
+                                   \rerun Sledgehammer to obtain a direct \
+                                   \proof"))
+               "conversion of goal to negated conjecture clauses (legacy)"
 
 (** Attribute for converting a theorem into clauses **)
 
