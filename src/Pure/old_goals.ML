@@ -189,28 +189,28 @@ fun metahyps_thms i state =
 
 local
 
-fun print_vars_terms thy (n,thm) =
+fun print_vars_terms n thm =
   let
-    fun typed ty = " has type: " ^ Syntax.string_of_typ_global thy ty;
-    fun find_vars thy (Const (c, ty)) =
+    val thy = theory_of_thm thm
+    fun typed s ty =
+      "  " ^ s ^ " has type: " ^ Syntax.string_of_typ_global thy ty;
+    fun find_vars (Const (c, ty)) =
           if null (Term.add_tvarsT ty []) then I
-          else insert (op =) (c ^ typed ty)
-      | find_vars thy (Var (xi, ty)) = insert (op =) (Term.string_of_vname xi ^ typed ty)
-      | find_vars _ (Free _) = I
-      | find_vars _ (Bound _) = I
-      | find_vars thy (Abs (_, _, t)) = find_vars thy t
-      | find_vars thy (t1 $ t2) =
-          find_vars thy t1 #> find_vars thy t1;
+          else insert (op =) (typed c ty)
+      | find_vars (Var (xi, ty)) =
+          insert (op =) (typed (Term.string_of_vname xi) ty)
+      | find_vars (Free _) = I
+      | find_vars (Bound _) = I
+      | find_vars (Abs (_, _, t)) = find_vars t
+      | find_vars (t1 $ t2) = find_vars t1 #> find_vars t2;
     val prem = Logic.nth_prem (n, Thm.prop_of thm)
-    val tms = find_vars thy prem []
-  in
-    (warning "Found schematic vars in assumptions:"; warning (cat_lines tms))
-  end;
+    val tms = find_vars prem []
+  in warning (cat_lines ("Found schematic vars in assumptions:" :: tms)) end;
 
 in
 
 fun METAHYPS tacf n thm = SUBGOAL (metahyps_aux_tac tacf) n thm
-  handle THM("assume: variables",_,_) => (print_vars_terms (theory_of_thm thm) (n,thm); Seq.empty)
+  handle THM("assume: variables",_,_) => (print_vars_terms n thm; Seq.empty)
 
 end;
 
