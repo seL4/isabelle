@@ -139,6 +139,10 @@ assumptions, which is not possible in Isabelle/Pure.
 * Command 'defaultsort' has been renamed to 'default_sort', it works
 within a local theory context.  Minor INCOMPATIBILITY.
 
+* Raw axioms/defs may no longer carry sort constraints, and raw defs
+may no longer carry premises. User-level specifications are
+transformed accordingly by Thm.add_axiom/add_def.
+
 * Proof terms: Type substitutions on proof constants now use canonical
 order of type variables.  INCOMPATIBILITY for tools working with proof
 terms.
