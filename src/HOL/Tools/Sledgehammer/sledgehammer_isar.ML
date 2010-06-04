@@ -226,7 +226,7 @@ fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
       let
         val birth_time = Time.now ()
         val death_time = Time.+ (birth_time, timeout)
-        val _ = kill_atps ()  (* race w.r.t. other Sledgehammer invocations *)
+        val _ = kill_atps ()
         val _ = priority "Sledgehammering..."
         val _ = app (start_prover_thread params birth_time death_time i n
                                          relevance_override minimize_command
@@ -249,8 +249,10 @@ fun minimize override_params i frefs state =
   in
     case subgoal_count state of
       0 => priority "No subgoal!"
-    | n => priority (#2 (minimize_theorems (get_params thy override_params) i n
-                                           state name_thms_pairs))
+    | n =>
+      (kill_atps ();
+       priority (#2 (minimize_theorems (get_params thy override_params) i n
+                                       state name_thms_pairs)))
   end
 
 val sledgehammerN = "sledgehammer"
