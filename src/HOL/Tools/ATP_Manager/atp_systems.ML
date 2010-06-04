@@ -275,6 +275,7 @@ val vampire_config : prover_config =
       ("% SZS output start Refutation", "% SZS output end Refutation")],
    known_failures =
      [(Unprovable, "Satisfiability detected"),
+      (Unprovable, "UNPROVABLE"),
       (OutOfResources, "CANNOT PROVE"),
       (OutOfResources, "Refutation not found")],
    max_axiom_clauses = 60,
