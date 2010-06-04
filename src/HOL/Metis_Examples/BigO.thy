@@ -880,25 +880,18 @@ apply (erule thin_rl)
 (* apply (metis abs_le_iff add_le_imp_le_right diff_minus le_less
                 le_max_iff_disj min_max.le_supE min_max.sup_absorb2
                 min_max.sup_commute) *)
-proof (neg_clausify)
-fix x
-assume 0: "\<And>A. k A \<le> f A"
-have 1: "\<And>(X1\<Colon>'b\<Colon>linordered_idom) X2. \<not> max X1 X2 < X1"
-  by (metis linorder_not_less le_maxI1)  (*sort inserted by hand*)
-assume 2: "(0\<Colon>'b) \<le> k x - g x"
-have 3: "\<not> k x - g x < (0\<Colon>'b)"
-  by (metis 2 linorder_not_less)
-have 4: "\<And>X1 X2. min X1 (k X2) \<le> f X2"
-  by (metis min_max.inf_le2 min_max.le_inf_iff min_max.le_iff_inf 0)
-have 5: "\<bar>g x - f x\<bar> = f x - g x"
-  by (metis abs_minus_commute combine_common_factor mult_zero_right minus_add_cancel minus_zero abs_if diff_less_eq min_max.inf_commute 4 linorder_not_le min_max.le_iff_inf 3 diff_less_0_iff_less linorder_not_less)
-have 6: "max (0\<Colon>'b) (k x - g x) = k x - g x"
-  by (metis min_max.le_iff_sup 2)
-assume 7: "\<not> max (k x - g x) (0\<Colon>'b) \<le> \<bar>f x - g x\<bar>"
-have 8: "\<not> k x - g x \<le> f x - g x"
-  by (metis 5 abs_minus_commute 7 min_max.sup_commute 6)
-show "False"
-  by (metis min_max.sup_commute min_max.inf_commute min_max.sup_inf_absorb min_max.le_iff_inf 0 max_diff_distrib_left 1 linorder_not_le 8)
+proof -
+  fix x :: 'a
+  assume "\<forall>x\<Colon>'a. k x \<le> f x"
+  hence F1: "\<forall>x\<^isub>1\<Colon>'a. max (k x\<^isub>1) (f x\<^isub>1) = f x\<^isub>1" by (metis min_max.sup_absorb2)
+  assume "(0\<Colon>'b) \<le> k x - g x"
+  hence F2: "max (0\<Colon>'b) (k x - g x) = k x - g x" by (metis min_max.sup_absorb2)
+  have F3: "\<forall>x\<^isub>1\<Colon>'b. x\<^isub>1 \<le> \<bar>x\<^isub>1\<bar>" by (metis abs_le_iff le_less)
+  have "\<forall>(x\<^isub>2\<Colon>'b) x\<^isub>1\<Colon>'b. max x\<^isub>1 x\<^isub>2 \<le> x\<^isub>2 \<or> max x\<^isub>1 x\<^isub>2 \<le> x\<^isub>1" by (metis le_less le_max_iff_disj)
+  hence "\<forall>(x\<^isub>3\<Colon>'b) (x\<^isub>2\<Colon>'b) x\<^isub>1\<Colon>'b. x\<^isub>1 - x\<^isub>2 \<le> x\<^isub>3 - x\<^isub>2 \<or> x\<^isub>3 \<le> x\<^isub>1" by (metis add_le_imp_le_right diff_minus min_max.le_supE)
+  hence "k x - g x \<le> f x - g x" by (metis F1 le_less min_max.sup_absorb2 min_max.sup_commute)
+  hence "k x - g x \<le> \<bar>f x - g x\<bar>" by (metis F3 le_max_iff_disj min_max.sup_absorb2)
+  thus "max (k x - g x) (0\<Colon>'b) \<le> \<bar>f x - g x\<bar>" by (metis F2 min_max.sup_commute)
 next
   show "\<And>x\<Colon>'a.
        \<lbrakk>\<forall>x\<Colon>'a. (0\<Colon>'b) \<le> k x; \<forall>x\<Colon>'a. k x \<le> f x; \<not> (0\<Colon>'b) \<le> k x - g x\<rbrakk>

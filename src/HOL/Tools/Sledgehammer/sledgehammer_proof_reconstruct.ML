@@ -487,8 +487,8 @@ fun decode_line full_types tfrees (Definition (num, u, us)) ctxt =
 fun decode_lines ctxt full_types tfrees lines =
   fst (fold_map (decode_line full_types tfrees) lines ctxt)
 
-fun aint_inference _ (Definition _) = true
-  | aint_inference t (Inference (_, t', _)) = not (t aconv t')
+fun aint_actual_inference _ (Definition _) = true
+  | aint_actual_inference t (Inference (_, t', _)) = not (t aconv t')
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
@@ -510,7 +510,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
       if is_only_type_information t then
         map (replace_deps_in_line (num, [])) lines
       (* Is there a repetition? If so, replace later line by earlier one. *)
-      else case take_prefix (aint_inference t) lines of
+      else case take_prefix (aint_actual_inference t) lines of
         (_, []) => lines (*no repetition of proof line*)
       | (pre, Inference (num', _, _) :: post) =>
         pre @ map (replace_deps_in_line (num', [num])) post
@@ -523,7 +523,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
     if is_only_type_information t then
       Inference (num, t, deps) :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
-    else case take_prefix (aint_inference t) lines of
+    else case take_prefix (aint_actual_inference t) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
          types?? *)
        (_, []) => Inference (num, t, deps) :: lines
@@ -539,8 +539,8 @@ fun add_nontrivial_line (Inference (num, t, [])) lines =
 and delete_dep num lines =
   fold_rev add_nontrivial_line (map (replace_deps_in_line (num, [])) lines) []
 
-(* ATPs sometimes reuse free variable names in the strangest ways. Surprisingly,
-   removing the offending lines often does the trick. *)
+(* ATPs sometimes reuse free variable names in the strangest ways. Removing
+   offending lines often does the trick. *)
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
@@ -549,8 +549,8 @@ fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
                                         $ t1 $ t2)) = (t1 aconv t2)
   | is_trivial_formula t = false
 
-fun add_desired_line _ _ _ _ _ (line as Definition _) (j, lines) =
-    (j, line :: lines)
+fun add_desired_line _ _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
+    (j, line :: map (replace_deps_in_line (num, [])) lines)
   | add_desired_line ctxt isar_shrink_factor conjecture_shape thm_names frees
                      (Inference (num, t, deps)) (j, lines) =
     (j + 1,
@@ -639,6 +639,9 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
+val indent_size = 2
+val no_label = ("", ~1)
+
 val raw_prefix = "X"
 val assum_prefix = "A"
 val fact_prefix = "F"
@@ -677,16 +680,12 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
     map2 (step_for_line thm_names) (length lines downto 1) lines
   end
 
-val indent_size = 2
-val no_label = ("", ~1)
-
-fun no_show qs = not (member (op =) qs Show)
-
 (* When redirecting proofs, we keep information about the labels seen so far in
    the "backpatches" data structure. The first component indicates which facts
    should be associated with forthcoming proof steps. The second component is a
-   pair ("keep_ls", "drop_ls"), where "keep_ls" are the labels to keep and
-   "drop_ls" are those that should be dropped in a case split. *)
+   pair ("assum_ls", "drop_ls"), where "assum_ls" are the labels that should
+   become assumptions and "drop_ls" are the labels that should be dropped in a
+   case split. *)
 type backpatches = (label * facts) list * (label list * label list)
 
 fun used_labels_of_step (Have (_, _, _, by)) =
@@ -731,8 +730,15 @@ fun case_split_qualifiers proofs =
 
 fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
   let
-    val concl_ls = map (pair raw_prefix) (List.last conjecture_shape)
+    (* The first pass outputs those steps that are independent of the negated
+       conjecture. The second pass flips the proof by contradiction to obtain a
+       direct proof, introducing case splits when an inference depends on
+       several facts that depend on the negated conjecture. *)
     fun find_hyp num = nth hyp_ts (index_in_shape num conjecture_shape)
+    val concl_ls = map (pair raw_prefix) (List.last conjecture_shape)
+    val canonicalize_labels =
+      map (fn l => if member (op =) concl_ls l then hd concl_ls else l)
+      #> distinct (op =)
     fun first_pass ([], contra) = ([], contra)
       | first_pass ((step as Fix _) :: proof, contra) =
         first_pass (proof, contra) |>> cons step
@@ -740,15 +746,19 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
         first_pass (proof, contra) |>> cons step
       | first_pass ((step as Assume (l as (_, num), t)) :: proof, contra) =
         if member (op =) concl_ls l then
-          first_pass (proof, contra ||> cons step)
+          first_pass (proof, contra ||> l = hd concl_ls ? cons step)
         else
           first_pass (proof, contra) |>> cons (Assume (l, find_hyp num))
-      | first_pass ((step as Have (qs, l, t, ByMetis (ls, ss))) :: proof,
-                    contra) =
-        if exists (member (op =) (fst contra)) ls then
-          first_pass (proof, contra |>> cons l ||> cons step)
-        else
-          first_pass (proof, contra) |>> cons step
+      | first_pass (Have (qs, l, t, ByMetis (ls, ss)) :: proof, contra) =
+        let
+          val ls = canonicalize_labels ls
+          val step = Have (qs, l, t, ByMetis (ls, ss))
+        in
+          if exists (member (op =) (fst contra)) ls then
+            first_pass (proof, contra |>> cons l ||> cons step)
+          else
+            first_pass (proof, contra) |>> cons step
+        end
       | first_pass _ = raise Fail "malformed proof"
     val (proof_top, (contra_ls, contra_proof)) =
       first_pass (proof, (concl_ls, []))
@@ -756,23 +766,23 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
     fun backpatch_labels patches ls =
       fold merge_fact_sets (map (backpatch_label patches) ls) ([], [])
     fun second_pass end_qs ([], assums, patches) =
-        ([Have (end_qs, no_label,
-                if length assums < length concl_ls then
-                  clause_for_literals thy (map (negate_term thy o fst) assums)
-                else
-                  concl_t,
+        ([Have (end_qs, no_label, concl_t,
                 ByMetis (backpatch_labels patches (map snd assums)))], patches)
       | second_pass end_qs (Assume (l, t) :: proof, assums, patches) =
         second_pass end_qs (proof, (t, l) :: assums, patches)
       | second_pass end_qs (Have (qs, l, t, ByMetis (ls, ss)) :: proof, assums,
                             patches) =
         if member (op =) (snd (snd patches)) l andalso
+           not (member (op =) (fst (snd patches)) l) andalso
            not (AList.defined (op =) (fst patches) l) then
           second_pass end_qs (proof, assums, patches ||> apsnd (append ls))
         else
           (case List.partition (member (op =) contra_ls) ls of
              ([contra_l], co_ls) =>
-             if no_show qs then
+             if member (op =) qs Show then
+               second_pass end_qs (proof, assums,
+                                   patches |>> cons (contra_l, (co_ls, ss)))
+             else
                second_pass end_qs
                            (proof, assums,
                             patches |>> cons (contra_l, (l :: co_ls, ss)))
@@ -781,9 +791,6 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                          else
                            Have (qs, l, negate_term thy t,
                                  ByMetis (backpatch_label patches l)))
-             else
-               second_pass end_qs (proof, assums,
-                                   patches |>> cons (contra_l, (co_ls, ss)))
            | (contra_ls as _ :: _, co_ls) =>
              let
                val proofs =
@@ -801,7 +808,11 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                                           ||> apsnd (union (op =) drop_ls))
                              |> fst |> SOME
                            end) contra_ls
-               val facts = (co_ls, [])
+               val (assumes, facts) =
+                 if member (op =) (fst (snd patches)) l then
+                   ([Assume (l, negate_term thy t)], (l :: co_ls, ss))
+                 else
+                   ([], (co_ls, ss))
              in
                (case join_proofs proofs of
                   SOME (l, t, proofs, proof_tail) =>
@@ -812,6 +823,7 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                   [Have (case_split_qualifiers proofs @ end_qs, no_label,
                          concl_t, smart_case_split proofs facts)],
                 patches)
+               |>> append assumes
              end
            | _ => raise Fail "malformed proof")
        | second_pass _ _ = raise Fail "malformed proof"
@@ -914,9 +926,11 @@ val relabel_proof =
 
 fun string_for_proof ctxt i n =
   let
-    fun fix_print_mode f =
-      Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                      (print_mode_value ())) f
+    fun fix_print_mode f x =
+      setmp_CRITICAL show_no_free_types true
+          (setmp_CRITICAL show_types true
+               (Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+                                         (print_mode_value ())) f)) x
     fun do_indent ind = replicate_string (ind * indent_size) " "
     fun do_free (s, T) =
       maybe_quote s ^ " :: " ^

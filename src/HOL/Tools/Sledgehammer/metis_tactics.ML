@@ -409,9 +409,10 @@ fun inst_inf ctxt mode thpairs fsubst th =
           (substs' |> map (fn (x, y) =>
             Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
             Syntax.string_of_term ctxt (term_of y)))));
-  in  cterm_instantiate substs' i_th
-      handle THM (msg, _, _) => error ("metis error (inst_inf): " ^ msg)
-  end;
+  in  cterm_instantiate substs' i_th end
+  handle THM (msg, _, _) => error ("metis error (inst_inf):\n" ^ msg)
+       | ERROR msg => error ("metis error (inst_inf):\n" ^ msg ^
+                             "\n(Perhaps you want to try \"metisFT\".)")
 
 (* INFERENCE RULE: RESOLVE *)
 

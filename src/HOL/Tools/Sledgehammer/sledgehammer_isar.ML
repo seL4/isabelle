@@ -28,8 +28,11 @@ open Sledgehammer_Fact_Minimizer
 
 val neg_clausify_setup =
   Method.setup @{binding neg_clausify}
-               (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac))
-               "conversion of goal to negated conjecture clauses"
+               (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac)
+                o tap (fn _ => legacy_feature "Old 'neg_clausify' method -- \
+                                   \rerun Sledgehammer to obtain a direct \
+                                   \proof"))
+               "conversion of goal to negated conjecture clauses (legacy)"
 
 (** Attribute for converting a theorem into clauses **)
 
@@ -41,7 +44,9 @@ val parse_clausify_attribute : attribute context_parser =
                   end))
 
 val clausify_setup =
-  Attrib.setup @{binding clausify} parse_clausify_attribute
+  Attrib.setup @{binding clausify}
+               (parse_clausify_attribute
+                o tap (fn _ => legacy_feature "Old 'clausify' attribute"))
                "conversion of theorem to clauses"
 
 (** Sledgehammer commands **)
@@ -226,7 +231,7 @@ fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
       let
         val birth_time = Time.now ()
         val death_time = Time.+ (birth_time, timeout)
-        val _ = kill_atps ()  (* race w.r.t. other Sledgehammer invocations *)
+        val _ = kill_atps ()
         val _ = priority "Sledgehammering..."
         val _ = app (start_prover_thread params birth_time death_time i n
                                          relevance_override minimize_command
@@ -249,8 +254,10 @@ fun minimize override_params i frefs state =
   in
     case subgoal_count state of
       0 => priority "No subgoal!"
-    | n => priority (#2 (minimize_theorems (get_params thy override_params) i n
-                                           state name_thms_pairs))
+    | n =>
+      (kill_atps ();
+       priority (#2 (minimize_theorems (get_params thy override_params) i n
+                                       state name_thms_pairs)))
   end
 
 val sledgehammerN = "sledgehammer"
