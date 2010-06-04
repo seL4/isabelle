@@ -228,7 +228,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                   concat [enum "," "(" ")" (map (print_typ tyvars NOBR) tys),
                     str "=>", print_typ tyvars NOBR ty];
             fun print_classparam_val (classparam, ty) =
-              concat [str "val", (str o suffix "$:" o deresolve_base) classparam,
+              concat [str "val", (str o Library.enclose "`" "+`:" o deresolve_base) classparam,
                 (print_tupled_typ o Code_Thingol.unfold_fun) ty]
             fun print_classparam_def (classparam, ty) =
               let
@@ -239,7 +239,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                 val head = print_defhead tyvars vars' ((str o deresolve) classparam) vs params tys [p_implicit] ty;
               in
                 concat [head, applify "(" ")" NOBR
-                  (Pretty.block [str implicit, str ".", (str o suffix "$" o deresolve_base) classparam])
+                  (Pretty.block [str implicit, str ".", (str o Library.enclose "`" "+`" o deresolve_base) classparam])
                   (map (str o lookup_var vars') params)]
               end;
           in
@@ -268,7 +268,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                   [concat [enum "," "(" ")" (map2 (fn aux => fn ty => print_typed tyvars ((str o lookup_var vars) aux) ty)
                     auxs tys), str "=>"]];
               in 
-                concat ([str "val", (str o suffix "$" o deresolve_base) classparam,
+                concat ([str "val", (str o Library.enclose "`" "+`" o deresolve_base) classparam,
                   str "="] @ args @ [print_app tyvars false (SOME thm) vars NOBR (const, map (IVar o SOME) auxs)])
               end;
           in
