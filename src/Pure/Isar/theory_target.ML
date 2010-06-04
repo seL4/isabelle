@@ -180,12 +180,34 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
   end;
 
 
-(* consts *)
+(* mixfix notation *)
+
+local
 
 fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   if not is_locale then (NoSyn, NoSyn, mx)
   else if not is_class then (NoSyn, mx, NoSyn)
   else (mx, NoSyn, NoSyn);
+
+in
+
+fun prep_mixfix ctxt ta (b, extra_tfrees) mx =
+  let
+    val mx' =
+      if null extra_tfrees then mx
+      else
+        (warning
+          ("Additional type variable(s) in specification of " ^ Binding.str_of b ^ ": " ^
+            commas (map (Syntax.string_of_typ ctxt o TFree) (sort_wrt #1 extra_tfrees)) ^
+            (if mx = NoSyn then ""
+             else "\nDropping mixfix syntax " ^ Pretty.string_of (Syntax.pretty_mixfix mx)));
+          NoSyn);
+  in fork_mixfix ta mx' end;
+
+end;
+
+
+(* consts *)
 
 fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) phi =
   let
@@ -218,10 +240,14 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
     val thy_ctxt = ProofContext.init_global (ProofContext.theory_of lthy);
     val target_ctxt = Local_Theory.target_of lthy;
 
-    val (mx1, mx2, mx3) = fork_mixfix ta mx;
     val t' = Assumption.export_term lthy target_ctxt t;
     val xs = map Free (rev (Variable.add_fixed target_ctxt t' []));
     val u = fold_rev lambda xs t';
+
+    val extra_tfrees =
+      subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
+    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
+
     val global_rhs =
       singleton (Variable.export_terms (Variable.declare_term u target_ctxt) thy_ctxt) u;
   in
@@ -261,7 +287,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...})
     val params = type_params @ term_params;
 
     val U = map Term.fastype_of params ---> T;
-    val (mx1, mx2, mx3) = fork_mixfix ta mx;
+    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
     val (const, lthy') = lthy |>
       (case Class_Target.instantiation_param lthy b of
         SOME c' =>
@@ -299,10 +325,7 @@ fun define ta ((b, mx), ((name, atts), rhs)) lthy =
     val xs = Variable.add_fixed (Local_Theory.target_of lthy) rhs' [];
     val T = Term.fastype_of rhs;
     val tfreesT = Term.add_tfreesT T (fold (Term.add_tfreesT o #2) xs []);
-    val extra_tfrees =
-      fold_types (fold_atyps
-        (fn TFree v => if member (op =) tfreesT v then I else insert (op =) v | _ => I)) rhs []
-      |> sort_wrt #1;
+    val extra_tfrees = rev (subtract (op =) tfreesT (Term.add_tfrees rhs []));
 
     (*const*)
     val ((lhs, local_def), lthy2) = lthy |> declare_const ta extra_tfrees xs ((b, T), mx);
