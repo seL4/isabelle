@@ -123,18 +123,25 @@ qed
 lemma dvd_prod [iff]: "n dvd (PROD m\<Colon>nat:#multiset_of (n # ns). m)"
   by (simp add: msetprod_Un msetprod_singleton)
 
-abbreviation (input) "primel ps \<equiv> (\<forall>(p::nat)\<in>set ps. prime p)"
+definition all_prime :: "nat list \<Rightarrow> bool" where
+  "all_prime ps \<longleftrightarrow> (\<forall>p\<in>set ps. prime p)"
 
-lemma prime_primel: "prime n \<Longrightarrow> primel [n]"
-  by simp
+lemma all_prime_simps:
+  "all_prime []"
+  "all_prime (p # ps) \<longleftrightarrow> prime p \<and> all_prime ps"
+  by (simp_all add: all_prime_def)
 
-lemma split_primel:
-  assumes "primel ms" and "primel ns"
-  shows "\<exists>qs. primel qs \<and> (PROD m\<Colon>nat:#multiset_of qs. m) =
+lemma all_prime_append:
+  "all_prime (ps @ qs) \<longleftrightarrow> all_prime ps \<and> all_prime qs"
+  by (simp add: all_prime_def ball_Un)
+
+lemma split_all_prime:
+  assumes "all_prime ms" and "all_prime ns"
+  shows "\<exists>qs. all_prime qs \<and> (PROD m\<Colon>nat:#multiset_of qs. m) =
     (PROD m\<Colon>nat:#multiset_of ms. m) * (PROD m\<Colon>nat:#multiset_of ns. m)" (is "\<exists>qs. ?P qs \<and> ?Q qs")
 proof -
-  from assms have "primel (ms @ ns)"
-    unfolding set_append ball_Un by iprover
+  from assms have "all_prime (ms @ ns)"
+    by (simp add: all_prime_append)
   moreover from assms have "(PROD m\<Colon>nat:#multiset_of (ms @ ns). m) =
     (PROD m\<Colon>nat:#multiset_of ms. m) * (PROD m\<Colon>nat:#multiset_of ns. m)"
     by (simp add: msetprod_Un)
@@ -142,13 +149,13 @@ proof -
   then show ?thesis ..
 qed
 
-lemma primel_nempty_g_one:
-  assumes "primel ps" and "ps \<noteq> []"
+lemma all_prime_nempty_g_one:
+  assumes "all_prime ps" and "ps \<noteq> []"
   shows "Suc 0 < (PROD m\<Colon>nat:#multiset_of ps. m)"
-  using `ps \<noteq> []` `primel ps` unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
-    (simp_all add: msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
+  using `ps \<noteq> []` `all_prime ps` unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
+    (simp_all add: all_prime_simps msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult  del: One_nat_def)
 
-lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) = n)"
+lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>ps. all_prime ps \<and> (PROD m\<Colon>nat:#multiset_of ps. m) = n)"
 proof (induct n rule: nat_wf_ind)
   case (1 n)
   from `Suc 0 < n`
@@ -159,21 +166,21 @@ proof (induct n rule: nat_wf_ind)
     assume "\<exists>m k. Suc 0 < m \<and> Suc 0 < k \<and> m < n \<and> k < n \<and> n = m * k"
     then obtain m k where m: "Suc 0 < m" and k: "Suc 0 < k" and mn: "m < n"
       and kn: "k < n" and nmk: "n = m * k" by iprover
-    from mn and m have "\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) = m" by (rule 1)
-    then obtain l1 where primel_l1: "primel l1" and prod_l1_m: "(PROD m\<Colon>nat:#multiset_of l1. m) = m"
+    from mn and m have "\<exists>ps. all_prime ps \<and> (PROD m\<Colon>nat:#multiset_of ps. m) = m" by (rule 1)
+    then obtain ps1 where "all_prime ps1" and prod_ps1_m: "(PROD m\<Colon>nat:#multiset_of ps1. m) = m"
       by iprover
-    from kn and k have "\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) = k" by (rule 1)
-    then obtain l2 where primel_l2: "primel l2" and prod_l2_k: "(PROD m\<Colon>nat:#multiset_of l2. m) = k"
+    from kn and k have "\<exists>ps. all_prime ps \<and> (PROD m\<Colon>nat:#multiset_of ps. m) = k" by (rule 1)
+    then obtain ps2 where "all_prime ps2" and prod_ps2_k: "(PROD m\<Colon>nat:#multiset_of ps2. m) = k"
       by iprover
-    from primel_l1 primel_l2
-    have "\<exists>l. primel l \<and> (PROD m\<Colon>nat:#multiset_of l. m) =
-      (PROD m\<Colon>nat:#multiset_of l1. m) * (PROD m\<Colon>nat:#multiset_of l2. m)"
-      by (rule split_primel)
-    with prod_l1_m prod_l2_k nmk show ?thesis by simp
+    from `all_prime ps1` `all_prime ps2`
+    have "\<exists>ps. all_prime ps \<and> (PROD m\<Colon>nat:#multiset_of ps. m) =
+      (PROD m\<Colon>nat:#multiset_of ps1. m) * (PROD m\<Colon>nat:#multiset_of ps2. m)"
+      by (rule split_all_prime)
+    with prod_ps1_m prod_ps2_k nmk show ?thesis by simp
   next
-    assume "prime n" then have "primel [n]" by (rule prime_primel)
+    assume "prime n" then have "all_prime [n]" by (simp add: all_prime_simps)
     moreover have "(PROD m\<Colon>nat:#multiset_of [n]. m) = n" by (simp add: msetprod_singleton)
-    ultimately have "primel [n] \<and> (PROD m\<Colon>nat:#multiset_of [n]. m) = n" ..
+    ultimately have "all_prime [n] \<and> (PROD m\<Colon>nat:#multiset_of [n]. m) = n" ..
     then show ?thesis ..
   qed
 qed
@@ -182,17 +189,15 @@ lemma prime_factor_exists:
   assumes N: "(1::nat) < n"
   shows "\<exists>p. prime p \<and> p dvd n"
 proof -
-  from N obtain l where primel_l: "primel l"
-    and prod_l: "n = (PROD m\<Colon>nat:#multiset_of l. m)" using factor_exists
+  from N obtain ps where "all_prime ps"
+    and prod_ps: "n = (PROD m\<Colon>nat:#multiset_of ps. m)" using factor_exists
     by simp iprover
-  with N have "l \<noteq> []"
-    by (auto simp add: primel_nempty_g_one msetprod_empty)
-  then obtain x xs where l: "l = x # xs"
-    by (cases l) simp
-  then have "x \<in> set l" by (simp only: insert_def set.simps) (iprover intro: UnI1 CollectI)
-  with primel_l have "prime x" ..
-  moreover from primel_l l prod_l
-  have "x dvd n" by (simp only: dvd_prod)
+  with N have "ps \<noteq> []"
+    by (auto simp add: all_prime_nempty_g_one msetprod_empty)
+  then obtain p qs where ps: "ps = p # qs" by (cases ps) simp
+  with `all_prime ps` have "prime p" by (simp add: all_prime_simps)
+  moreover from `all_prime ps` ps prod_ps
+  have "p dvd n" by (simp only: dvd_prod)
   ultimately show ?thesis by iprover
 qed
 
