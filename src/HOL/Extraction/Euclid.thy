@@ -153,7 +153,7 @@ lemma all_prime_nempty_g_one:
   assumes "all_prime ps" and "ps \<noteq> []"
   shows "Suc 0 < (PROD m\<Colon>nat:#multiset_of ps. m)"
   using `ps \<noteq> []` `all_prime ps` unfolding One_nat_def [symmetric] by (induct ps rule: list_nonempty_induct)
-    (simp_all add: all_prime_simps msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult  del: One_nat_def)
+    (simp_all add: all_prime_simps msetprod_singleton msetprod_Un prime_gt_1_nat less_1_mult del: One_nat_def)
 
 lemma factor_exists: "Suc 0 < n \<Longrightarrow> (\<exists>ps. all_prime ps \<and> (PROD m\<Colon>nat:#multiset_of ps. m) = n)"
 proof (induct n rule: nat_wf_ind)
