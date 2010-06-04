@@ -92,7 +92,7 @@ more efficient than combinations with -q1 or -q2.
 
 *** Pure ***
 
-* Predicates of locales introduces by classes carry a mandatory
+* Predicates of locales introduced by classes carry a mandatory
 "class" prefix.  INCOMPATIBILITY.
 
 * Command 'code_reflect' allows to incorporate generated ML code into
