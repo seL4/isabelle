@@ -44,7 +44,9 @@ val parse_clausify_attribute : attribute context_parser =
                   end))
 
 val clausify_setup =
-  Attrib.setup @{binding clausify} parse_clausify_attribute
+  Attrib.setup @{binding clausify}
+               (parse_clausify_attribute
+                o tap (fn _ => legacy_feature "Old 'clausify' attribute"))
                "conversion of theorem to clauses"
 
 (** Sledgehammer commands **)
