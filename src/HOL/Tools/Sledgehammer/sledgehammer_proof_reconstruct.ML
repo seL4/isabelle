@@ -639,6 +639,9 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
+val indent_size = 2
+val no_label = ("", ~1)
+
 val raw_prefix = "X"
 val assum_prefix = "A"
 val fact_prefix = "F"
@@ -676,9 +679,6 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
     (if null params then [] else [Fix params]) @
     map2 (step_for_line thm_names) (length lines downto 1) lines
   end
-
-val indent_size = 2
-val no_label = ("", ~1)
 
 (* When redirecting proofs, we keep information about the labels seen so far in
    the "backpatches" data structure. The first component indicates which facts
@@ -730,8 +730,15 @@ fun case_split_qualifiers proofs =
 
 fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
   let
-    val concl_ls = map (pair raw_prefix) (List.last conjecture_shape)
+    (* The first pass outputs those steps that are independent of the negated
+       conjecture. The second pass flips the proof by contradiction to obtain a
+       direct proof, introducing case splits when an inference depends on
+       several facts that depend on the negated conjecture. *)
     fun find_hyp num = nth hyp_ts (index_in_shape num conjecture_shape)
+    val concl_ls = map (pair raw_prefix) (List.last conjecture_shape)
+    val canonicalize_labels =
+      map (fn l => if member (op =) concl_ls l then hd concl_ls else l)
+      #> distinct (op =)
     fun first_pass ([], contra) = ([], contra)
       | first_pass ((step as Fix _) :: proof, contra) =
         first_pass (proof, contra) |>> cons step
@@ -739,15 +746,19 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
         first_pass (proof, contra) |>> cons step
       | first_pass ((step as Assume (l as (_, num), t)) :: proof, contra) =
         if member (op =) concl_ls l then
-          first_pass (proof, contra ||> cons step)
+          first_pass (proof, contra ||> l = hd concl_ls ? cons step)
         else
           first_pass (proof, contra) |>> cons (Assume (l, find_hyp num))
-      | first_pass ((step as Have (qs, l, t, ByMetis (ls, ss))) :: proof,
-                    contra) =
-        if exists (member (op =) (fst contra)) ls then
-          first_pass (proof, contra |>> cons l ||> cons step)
-        else
-          first_pass (proof, contra) |>> cons step
+      | first_pass (Have (qs, l, t, ByMetis (ls, ss)) :: proof, contra) =
+        let
+          val ls = canonicalize_labels ls
+          val step = Have (qs, l, t, ByMetis (ls, ss))
+        in
+          if exists (member (op =) (fst contra)) ls then
+            first_pass (proof, contra |>> cons l ||> cons step)
+          else
+            first_pass (proof, contra) |>> cons step
+        end
       | first_pass _ = raise Fail "malformed proof"
     val (proof_top, (contra_ls, contra_proof)) =
       first_pass (proof, (concl_ls, []))
@@ -755,11 +766,7 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
     fun backpatch_labels patches ls =
       fold merge_fact_sets (map (backpatch_label patches) ls) ([], [])
     fun second_pass end_qs ([], assums, patches) =
-        ([Have (end_qs, no_label,
-                if length assums < length concl_ls then
-                  clause_for_literals thy (map (negate_term thy o fst) assums)
-                else
-                  concl_t,
+        ([Have (end_qs, no_label, concl_t,
                 ByMetis (backpatch_labels patches (map snd assums)))], patches)
       | second_pass end_qs (Assume (l, t) :: proof, assums, patches) =
         second_pass end_qs (proof, (t, l) :: assums, patches)
@@ -801,7 +808,11 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                                           ||> apsnd (union (op =) drop_ls))
                              |> fst |> SOME
                            end) contra_ls
-               val facts = (co_ls, [])
+               val (assumes, facts) =
+                 if member (op =) (fst (snd patches)) l then
+                   ([Assume (l, negate_term thy t)], (l :: co_ls, ss))
+                 else
+                   ([], (co_ls, ss))
              in
                (case join_proofs proofs of
                   SOME (l, t, proofs, proof_tail) =>
@@ -812,6 +823,7 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                   [Have (case_split_qualifiers proofs @ end_qs, no_label,
                          concl_t, smart_case_split proofs facts)],
                 patches)
+               |>> append assumes
              end
            | _ => raise Fail "malformed proof")
        | second_pass _ _ = raise Fail "malformed proof"
