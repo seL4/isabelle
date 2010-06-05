@@ -21,8 +21,8 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
-  val get_relevant_facts :
-    bool -> real -> real -> bool -> int -> bool -> relevance_override
+  val relevant_facts :
+    bool -> bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> thm list
     -> (thm * (string * int)) list
   val prepare_clauses :
@@ -255,13 +255,17 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
       end
   end;
 
+fun cnf_for_facts ctxt =
+  let val thy = ProofContext.theory_of ctxt in
+    maps (maps (cnf_axiom thy) o ProofContext.get_fact ctxt)
+  end
+
 fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                      (relevance_override as {add, del, ...}) ctab =
   let
     val thy = ProofContext.theory_of ctxt
-    val cnf_for_facts = maps (maps (cnf_axiom thy) o ProofContext.get_fact ctxt)
-    val add_thms = cnf_for_facts add
-    val del_thms = cnf_for_facts del
+    val add_thms = cnf_for_facts ctxt add
+    val del_thms = cnf_for_facts ctxt del
     fun iter threshold rel_consts =
       let
         fun relevant ([], _) [] = []  (* Nothing added this iteration *)
@@ -372,7 +376,7 @@ fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
 
           val name1 = Facts.extern facts name;
           val name2 = Name_Space.extern full_space name;
-          val ths = filter_out bad_for_atp ths0;
+          val ths = filter_out is_bad_for_atp ths0;
         in
           if Facts.is_concealed facts name orelse
              (respect_no_atp andalso is_package_def name) then
@@ -472,7 +476,8 @@ fun type_consts_of_terms thy ts =
 fun restrict_to_logic thy true cls = filter (Meson.is_fol_term thy o prop_of o fst) cls
   | restrict_to_logic thy false cls = cls;
 
-(**** Predicates to detect unwanted clauses (prolific or likely to cause unsoundness) ****)
+(**** Predicates to detect unwanted clauses (prolific or likely to cause
+      unsoundness) ****)
 
 (** Too general means, positive equality literal with a variable X as one operand,
   when X does not occur properly in the other operand. This rules out clearly
@@ -501,31 +506,41 @@ fun too_general_equality (Const (@{const_name "op ="}, _) $ x $ y) =
 fun has_typed_var tycons = exists_subterm
   (fn Var (_, Type (a, _)) => member (op =) tycons a | _ => false);
 
-(*Clauses are forbidden to contain variables of these types. The typical reason is that
-  they lead to unsoundness. Note that "unit" satisfies numerous equations like ?X=().
-  The resulting clause will have no type constraint, yielding false proofs. Even "bool"
-  leads to many unsound proofs, though (obviously) only for higher-order problems.*)
-val unwanted_types = [@{type_name unit}, @{type_name bool}];
+(* Clauses are forbidden to contain variables of these types. The typical reason
+   is that they lead to unsoundness. Note that "unit" satisfies numerous
+   equations like "?x = ()". The resulting clause will have no type constraint,
+   yielding false proofs. Even "bool" leads to many unsound proofs, though only
+   for higher-order problems. *)
+val dangerous_types = [@{type_name unit}, @{type_name bool}];
 
-fun unwanted t =
-  t = @{prop True} orelse has_typed_var unwanted_types t orelse
-  forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t));
+(* Clauses containing variables of type "unit" or "bool" or of the form
+   "?x = A | ?x = B | ?x = C" are likely to lead to unsound proofs if types are
+   omitted. *)
+fun is_dangerous_term _ @{prop True} = true
+  | is_dangerous_term full_types t =
+    not full_types andalso 
+    (has_typed_var dangerous_types t orelse
+     forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t)))
 
-(*Clauses containing variables of type "unit" or "bool" are unlikely to be useful and
-  likely to lead to unsound proofs.*)
-fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
+fun is_dangerous_theorem full_types add_thms thm =
+  not (member Thm.eq_thm add_thms thm) andalso
+  is_dangerous_term full_types (prop_of thm)
+
+fun remove_dangerous_clauses full_types add_thms =
+  filter_out (is_dangerous_theorem full_types add_thms o fst)
 
 fun is_first_order thy = forall (Meson.is_fol_term thy) o map prop_of
 
-fun get_relevant_facts respect_no_atp relevance_threshold relevance_convergence
-                       defs_relevant max_new theory_relevant
-                       (relevance_override as {add, del, only})
-                       (ctxt, (chained_ths, _)) goal_cls =
+fun relevant_facts full_types respect_no_atp relevance_threshold
+                   relevance_convergence defs_relevant max_new theory_relevant
+                   (relevance_override as {add, del, only})
+                   (ctxt, (chained_ths, _)) goal_cls =
   if (only andalso null add) orelse relevance_threshold > 1.0 then
     []
   else
     let
       val thy = ProofContext.theory_of ctxt
+      val add_thms = cnf_for_facts ctxt add
       val has_override = not (null add) orelse not (null del)
       val is_FO = is_first_order thy goal_cls
       val axioms =
@@ -535,7 +550,7 @@ fun get_relevant_facts respect_no_atp relevance_threshold relevance_convergence
         |> cnf_rules_pairs thy
         |> not has_override ? make_unique
         |> restrict_to_logic thy is_FO
-        |> remove_unwanted_clauses
+        |> not only ? remove_dangerous_clauses full_types add_thms
     in
       relevance_filter ctxt relevance_threshold relevance_convergence
                        defs_relevant max_new theory_relevant relevance_override

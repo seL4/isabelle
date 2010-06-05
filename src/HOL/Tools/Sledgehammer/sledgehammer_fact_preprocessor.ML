@@ -14,7 +14,7 @@ sig
   val skolem_infix: string
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
-  val bad_for_atp: thm -> bool
+  val is_bad_for_atp: thm -> bool
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
   val suppress_endtheory: bool Unsynchronized.ref
@@ -340,10 +340,9 @@ fun is_strange_thm th =
                        a <> @{const_name "=="})
     | _ => false;
 
-fun bad_for_atp th =
-  too_complex (prop_of th)
-  orelse exists_type type_has_topsort (prop_of th)
-  orelse is_strange_thm th;
+fun is_bad_for_atp th =
+  too_complex (prop_of th) orelse
+  exists_type type_has_topsort (prop_of th) orelse is_strange_thm th
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
@@ -357,7 +356,7 @@ fun fake_name th =
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm (s, th) =
   if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse
-     bad_for_atp th then
+     is_bad_for_atp th then
     []
   else
     let
@@ -443,7 +442,7 @@ fun saturate_skolem_cache thy =
     val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
       if member (op =) multi_base_blacklist (Long_Name.base_name name) then I
       else fold_index (fn (i, th) =>
-        if bad_for_atp th orelse is_some (lookup_cache thy th) then I
+        if is_bad_for_atp th orelse is_some (lookup_cache thy th) then I
         else cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths);
   in
     if null new_facts then NONE
