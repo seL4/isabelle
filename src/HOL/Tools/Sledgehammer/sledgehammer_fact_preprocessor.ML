@@ -356,7 +356,9 @@ fun fake_name th =
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm (s, th) =
-  if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse bad_for_atp th then []
+  if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse
+     bad_for_atp th then
+    []
   else
     let
       val ctxt0 = Variable.global_thm_context th

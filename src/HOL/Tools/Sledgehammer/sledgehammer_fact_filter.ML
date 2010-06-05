@@ -281,9 +281,8 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
           | relevant (newrels, rejects)
                      ((ax as (clsthm as (thm, (name, n)), consts_typs)) :: axs) =
             let
-              (* FIXME: "add" and "del" don't always work *)
-              val weight = if member Thm.eq_thm del_thms thm then 0.0
-                           else if member Thm.eq_thm add_thms thm then 1.0
+              val weight = if member Thm.eq_thm add_thms thm then 1.0
+                           else if member Thm.eq_thm del_thms thm then 0.0
                            else clause_weight ctab rel_consts consts_typs
             in
               if weight >= threshold orelse
@@ -356,7 +355,7 @@ fun make_unique xs =
 fun subtract_cls ax_clauses =
   filter_out (Termtab.defined (mk_clause_table ax_clauses) o prop_of)
 
-fun all_valid_thms respect_no_atp ctxt chained_ths =
+fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
@@ -520,25 +519,28 @@ fun is_first_order thy = forall (Meson.is_fol_term thy) o map prop_of
 
 fun get_relevant_facts respect_no_atp relevance_threshold relevance_convergence
                        defs_relevant max_new theory_relevant
-                       (relevance_override as {add, only, ...})
+                       (relevance_override as {add, del, only})
                        (ctxt, (chained_ths, _)) goal_cls =
   if (only andalso null add) orelse relevance_threshold > 1.0 then
     []
   else
     let
       val thy = ProofContext.theory_of ctxt
+      val has_override = not (null add) orelse not (null del)
       val is_FO = is_first_order thy goal_cls
-      val included_cls =
+      val axioms =
         checked_name_thm_pairs respect_no_atp ctxt
             (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
-             else all_valid_thms respect_no_atp ctxt chained_ths)
-        |> cnf_rules_pairs thy |> make_unique
+             else all_name_thms_pairs respect_no_atp ctxt chained_ths)
+        |> cnf_rules_pairs thy
+        |> not has_override ? make_unique
         |> restrict_to_logic thy is_FO
         |> remove_unwanted_clauses
     in
       relevance_filter ctxt relevance_threshold relevance_convergence
                        defs_relevant max_new theory_relevant relevance_override
-                       thy included_cls (map prop_of goal_cls)
+                       thy axioms (map prop_of goal_cls)
+      |> has_override ? make_unique
     end
 
 (* prepare for passing to writer,
