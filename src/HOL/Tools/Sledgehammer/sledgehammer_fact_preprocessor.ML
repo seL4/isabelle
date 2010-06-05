@@ -14,11 +14,12 @@ sig
   val skolem_infix: string
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
-  val is_bad_for_atp: thm -> bool
+  val is_theorem_bad_for_atps: thm -> bool
   val type_has_topsort: typ -> bool
-  val cnf_rules_pairs: theory -> (string * thm) list -> (thm * (string * int)) list
-  val suppress_endtheory: bool Unsynchronized.ref
-    (*for emergency use where endtheory causes problems*)
+  val cnf_rules_pairs:
+    theory -> (string * thm) list -> (thm * (string * int)) list
+  val use_skolem_cache: bool Unsynchronized.ref
+    (* for emergency use where the Skolem cache causes problems *)
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
@@ -86,9 +87,9 @@ fun rhs_extra_types lhsT rhs =
       val rhs_consts = fold_aterms (fn Const c => insert (op =) c | _ => I) rhs []
   in fold (#2 #> Term.fold_atyps add_new_TFrees) rhs_consts [] end;
 
-(*Traverse a theorem, declaring Skolem function definitions. String s is the suggested
-  prefix for the Skolem constant.*)
-fun declare_skofuns s th =
+(* Traverse a theorem, declaring Skolem function definitions. String "s" is the
+   suggested prefix for the Skolem constants. *)
+fun declare_skolem_funs s th =
   let
     val nref = Unsynchronized.ref 0    (* FIXME ??? *)
     fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) (axs, thy) =
@@ -121,7 +122,7 @@ fun declare_skofuns s th =
   in fn thy => dec_sko (Thm.prop_of th) ([], thy) end;
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
-fun assume_skofuns s th =
+fun assume_skolem_funs s th =
   let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
       fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
@@ -302,37 +303,43 @@ fun to_nnf th ctxt0 =
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
 fun assume_skolem_of_def s th =
-  map (skolem_of_def o Thm.assume o (cterm_of (theory_of_thm th))) (assume_skofuns s th);
+  map (skolem_of_def o Thm.assume o (cterm_of (theory_of_thm th)))
+      (assume_skolem_funs s th)
 
 
 (*** Blacklisting (FIXME: duplicated in "Sledgehammer_Fact_Filter"?) ***)
 
-val max_lambda_nesting = 3;
+val max_lambda_nesting = 3
 
-fun excessive_lambdas (f$t, k) = excessive_lambdas (f,k) orelse excessive_lambdas (t,k)
-  | excessive_lambdas (Abs(_,_,t), k) = k=0 orelse excessive_lambdas (t,k-1)
-  | excessive_lambdas _ = false;
+fun term_has_too_many_lambdas max (t1 $ t2) =
+    exists (term_has_too_many_lambdas max) [t1, t2]
+  | term_has_too_many_lambdas max (Abs (_, _, t)) =
+    max = 0 orelse term_has_too_many_lambdas (max - 1) t
+  | term_has_too_many_lambdas _ _ = false
 
-fun is_formula_type T = (T = HOLogic.boolT orelse T = propT);
+fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
-(*Don't count nested lambdas at the level of formulas, as they are quantifiers*)
-fun excessive_lambdas_fm Ts (Abs(_,T,t)) = excessive_lambdas_fm (T::Ts) t
-  | excessive_lambdas_fm Ts t =
-      if is_formula_type (fastype_of1 (Ts, t))
-      then exists (excessive_lambdas_fm Ts) (#2 (strip_comb t))
-      else excessive_lambdas (t, max_lambda_nesting);
+(* Don't count nested lambdas at the level of formulas, since they are
+   quantifiers. *)
+fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
+    formula_has_too_many_lambdas (T :: Ts) t
+  | formula_has_too_many_lambdas Ts t =
+    if is_formula_type (fastype_of1 (Ts, t)) then
+      exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
+    else
+      term_has_too_many_lambdas max_lambda_nesting t
 
-(*The max apply_depth of any metis call in Metis_Examples (on 31-10-2007) was 11.*)
-val max_apply_depth = 15;
+(* The max apply depth of any "metis" call in "Metis_Examples" (on 31-10-2007)
+   was 11. *)
+val max_apply_depth = 15
 
-fun apply_depth (f$t) = Int.max (apply_depth f, apply_depth t + 1)
-  | apply_depth (Abs(_,_,t)) = apply_depth t
-  | apply_depth _ = 0;
+fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
+  | apply_depth (Abs (_, _, t)) = apply_depth t
+  | apply_depth _ = 0
 
-fun too_complex t =
-  apply_depth t > max_apply_depth orelse
-  Meson.too_many_clauses NONE t orelse
-  excessive_lambdas_fm [] t;
+fun is_formula_too_complex t =
+  apply_depth t > max_apply_depth orelse Meson.too_many_clauses NONE t orelse
+  formula_has_too_many_lambdas [] t
 
 fun is_strange_thm th =
   case head_of (concl_of th) of
@@ -340,9 +347,11 @@ fun is_strange_thm th =
                        a <> @{const_name "=="})
     | _ => false;
 
-fun is_bad_for_atp th =
-  too_complex (prop_of th) orelse
-  exists_type type_has_topsort (prop_of th) orelse is_strange_thm th
+fun is_theorem_bad_for_atps thm =
+  let val t = prop_of thm in
+    is_formula_too_complex t orelse exists_type type_has_topsort t orelse
+    is_strange_thm thm
+  end
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
@@ -356,7 +365,7 @@ fun fake_name th =
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm (s, th) =
   if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse
-     is_bad_for_atp th then
+     is_theorem_bad_for_atps th then
     []
   else
     let
@@ -414,11 +423,11 @@ local
 
 fun skolem_def (name, th) thy =
   let val ctxt0 = Variable.global_thm_context th in
-    (case try (to_nnf th) ctxt0 of
+    case try (to_nnf th) ctxt0 of
       NONE => (NONE, thy)
     | SOME (nnfth, ctxt1) =>
-        let val (defs, thy') = declare_skofuns (flatten_name name) nnfth thy
-        in (SOME (th, ctxt0, ctxt1, nnfth, defs), thy') end)
+      let val (defs, thy') = declare_skolem_funs (flatten_name name) nnfth thy
+      in (SOME (th, ctxt0, ctxt1, nnfth, defs), thy') end
   end;
 
 fun skolem_cnfs (th, ctxt0, ctxt1, nnfth, defs) =
@@ -442,8 +451,10 @@ fun saturate_skolem_cache thy =
     val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
       if member (op =) multi_base_blacklist (Long_Name.base_name name) then I
       else fold_index (fn (i, th) =>
-        if is_bad_for_atp th orelse is_some (lookup_cache thy th) then I
-        else cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths);
+        if is_theorem_bad_for_atps th orelse is_some (lookup_cache thy th) then
+          I
+        else
+          cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths)
   in
     if null new_facts then NONE
     else
@@ -458,11 +469,10 @@ fun saturate_skolem_cache thy =
 
 end;
 
-val suppress_endtheory = Unsynchronized.ref false
+val use_skolem_cache = Unsynchronized.ref true
 
 fun clause_cache_endtheory thy =
-  if ! suppress_endtheory then NONE
-  else saturate_skolem_cache thy;
+  if !use_skolem_cache then saturate_skolem_cache thy else NONE
 
 
 (*The cache can be kept smaller by inspecting the prop of each thm. Can ignore all that are
@@ -510,7 +520,7 @@ fun neg_clausify_tac ctxt =
 (** setup **)
 
 val setup =
-  perhaps saturate_skolem_cache #>
-  Theory.at_end clause_cache_endtheory;
+  perhaps saturate_skolem_cache
+  #> Theory.at_end clause_cache_endtheory
 
 end;

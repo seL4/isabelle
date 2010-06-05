@@ -376,7 +376,7 @@ fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
 
           val name1 = Facts.extern facts name;
           val name2 = Name_Space.extern full_space name;
-          val ths = filter_out is_bad_for_atp ths0;
+          val ths = filter_out is_theorem_bad_for_atps ths0;
         in
           if Facts.is_concealed facts name orelse
              (respect_no_atp andalso is_package_def name) then
@@ -483,20 +483,22 @@ fun restrict_to_logic thy true cls = filter (Meson.is_fol_term thy o prop_of o f
   when X does not occur properly in the other operand. This rules out clearly
   inconsistent clauses such as V=a|V=b, though it by no means guarantees soundness. **)
 
-fun occurs ix =
-    let fun occ(Var (jx,_)) = (ix=jx)
-          | occ(t1$t2)      = occ t1 orelse occ t2
-          | occ(Abs(_,_,t)) = occ t
-          | occ _           = false
-    in occ end;
+fun var_occurs_in_term ix =
+  let
+    fun aux (Var (jx, _)) = (ix = jx)
+      | aux (t1 $ t2) = aux t1 orelse aux t2
+      | aux (Abs (_, _, t)) = aux t
+      | aux _ = false
+  in aux end
 
-fun is_recordtype T = not (null (Record.dest_recTs T));
+fun is_record_type T = not (null (Record.dest_recTs T))
 
 (*Unwanted equalities include
   (1) those between a variable that does not properly occur in the second operand,
   (2) those between a variable and a record, since these seem to be prolific "cases" thms
 *)
-fun too_general_eqterms (Var (ix,T), t) = not (occurs ix t) orelse is_recordtype T
+fun too_general_eqterms (Var (ix,T), t) =
+    not (var_occurs_in_term ix t) orelse is_record_type T
   | too_general_eqterms _ = false;
 
 fun too_general_equality (Const (@{const_name "op ="}, _) $ x $ y) =
