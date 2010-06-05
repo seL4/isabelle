@@ -16,6 +16,8 @@ sig
      del: Facts.ref list,
      only: bool}
 
+  val name_thms_pair_from_ref :
+    Proof.context -> thm list -> Facts.ref -> string * thm list
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
@@ -254,35 +256,37 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
   end;
 
 fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
-                     (relevance_override as {add, del, only}) thy ctab =
+                     (relevance_override as {add, del, ...}) ctab =
   let
-    val thms_for_facts =
-      maps (maps (cnf_axiom thy) o ProofContext.get_fact ctxt)
-    val add_thms = thms_for_facts add
-    val del_thms = thms_for_facts del
-    fun iter p rel_consts =
+    val thy = ProofContext.theory_of ctxt
+    val cnf_for_facts = maps (maps (cnf_axiom thy) o ProofContext.get_fact ctxt)
+    val add_thms = cnf_for_facts add
+    val del_thms = cnf_for_facts del
+    fun iter threshold rel_consts =
       let
         fun relevant ([], _) [] = []  (* Nothing added this iteration *)
-          | relevant (newpairs,rejects) [] =
+          | relevant (newpairs, rejects) [] =
             let
               val (newrels, more_rejects) = take_best max_new newpairs
               val new_consts = maps #2 newrels
               val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
-              val newp = p + (1.0 - p) / relevance_convergence
+              val threshold =
+                threshold + (1.0 - threshold) / relevance_convergence
             in
               trace_msg (fn () => "relevant this iteration: " ^
                                   Int.toString (length newrels));
-              map #1 newrels @ iter newp rel_consts' (more_rejects @ rejects)
+              map #1 newrels @ iter threshold rel_consts'
+                  (more_rejects @ rejects)
             end
           | relevant (newrels, rejects)
                      ((ax as (clsthm as (thm, (name, n)), consts_typs)) :: axs) =
             let
+              (* FIXME: "add" and "del" don't always work *)
               val weight = if member Thm.eq_thm del_thms thm then 0.0
                            else if member Thm.eq_thm add_thms thm then 1.0
-                           else if only then 0.0
                            else clause_weight ctab rel_consts consts_typs
             in
-              if p <= weight orelse
+              if weight >= threshold orelse
                  (defs_relevant andalso defines thy (#1 clsthm) rel_consts) then
                 (trace_msg (fn () => name ^ " clause " ^ Int.toString n ^ 
                                      " passes: " ^ Real.toString weight);
@@ -291,8 +295,8 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                 relevant (newrels, ax :: rejects) axs
             end
         in
-          trace_msg (fn () => "relevant_clauses, current pass mark: " ^
-                              Real.toString p);
+          trace_msg (fn () => "relevant_clauses, current threshold: " ^
+                              Real.toString threshold);
           relevant ([], [])
         end
   in iter end
@@ -310,7 +314,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                             commas (Symtab.keys goal_const_tab))
       val relevant =
         relevant_clauses ctxt relevance_convergence defs_relevant max_new
-                         relevance_override thy const_tab relevance_threshold
+                         relevance_override const_tab relevance_threshold
                          goal_const_tab
                          (map (pair_consts_typs_axiom theory_relevant thy)
                               axioms)
@@ -398,26 +402,32 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
-fun name_thm_pairs respect_no_atp ctxt chained_ths =
+fun name_thm_pairs respect_no_atp ctxt name_thms_pairs =
   let
-    val (mults, singles) =
-      List.partition is_multi (all_valid_thms respect_no_atp ctxt chained_ths)
+    val (mults, singles) = List.partition is_multi name_thms_pairs
     val ps = [] |> fold add_single_names singles
                 |> fold add_multi_names mults
   in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
 
-fun check_named ("", th) =
-      (warning ("No name for theorem " ^ Display.string_of_thm_without_context th); false)
-  | check_named _ = true;
+fun is_named ("", th) =
+    (warning ("No name for theorem " ^
+              Display.string_of_thm_without_context th); false)
+  | is_named _ = true
+fun checked_name_thm_pairs respect_no_atp ctxt =
+  name_thm_pairs respect_no_atp ctxt
+  #> tap (fn ps => trace_msg
+                        (fn () => ("Considering " ^ Int.toString (length ps) ^
+                                   " theorems")))
+  #> filter is_named
 
-fun get_all_lemmas respect_no_atp ctxt chained_ths =
-  let val included_thms =
-        tap (fn ths => trace_msg
-                     (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
-            (name_thm_pairs respect_no_atp ctxt chained_ths)
-  in
-    filter check_named included_thms
-  end;
+fun name_thms_pair_from_ref ctxt chained_ths xref =
+  let
+    val ths = ProofContext.get_fact ctxt xref
+    val name = Facts.string_of_ref xref
+               |> forall (member Thm.eq_thm chained_ths) ths
+                  ? prefix chained_prefix
+  in (name, ths) end
+
 
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
@@ -518,7 +528,10 @@ fun get_relevant_facts respect_no_atp relevance_threshold relevance_convergence
     let
       val thy = ProofContext.theory_of ctxt
       val is_FO = is_first_order thy goal_cls
-      val included_cls = get_all_lemmas respect_no_atp ctxt chained_ths
+      val included_cls =
+        checked_name_thm_pairs respect_no_atp ctxt
+            (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
+             else all_valid_thms respect_no_atp ctxt chained_ths)
         |> cnf_rules_pairs thy |> make_unique
         |> restrict_to_logic thy is_FO
         |> remove_unwanted_clauses

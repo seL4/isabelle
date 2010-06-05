@@ -19,6 +19,7 @@ structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
 open Sledgehammer_Util
+open Sledgehammer_Fact_Filter
 open Sledgehammer_Fact_Preprocessor
 open ATP_Manager
 open ATP_Systems
@@ -238,19 +239,12 @@ fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
                                          state) atps
       in () end
 
-fun minimize override_params i frefs state =
+fun minimize override_params i refs state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val chained_ths = #facts (Proof.goal state)
-    fun theorems_from_ref ctxt fref =
-      let
-        val ths = ProofContext.get_fact ctxt fref
-        val name = Facts.string_of_ref fref
-                   |> forall (member Thm.eq_thm chained_ths) ths
-                      ? prefix chained_prefix
-      in (name, ths) end
-    val name_thms_pairs = map (theorems_from_ref ctxt) frefs
+    val name_thms_pairs = map (name_thms_pair_from_ref ctxt chained_ths) refs
   in
     case subgoal_count state of
       0 => priority "No subgoal!"
