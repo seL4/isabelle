@@ -21,7 +21,6 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -l           produce library"
-  echo "    -n           dry run"
   echo
   echo "  Precompile Isabelle for the current platform."
   echo
@@ -40,16 +39,12 @@ function fail()
 # options
 
 DO_LIBRARY=""
-DRY_RUN=""
 
 while getopts "ln" OPT
 do
   case "$OPT" in
     l)
       DO_LIBRARY=true
-      ;;
-    n)
-      DRY_RUN=true
       ;;
     \?)
       usage
@@ -102,24 +97,12 @@ ISABELLE_HOME_USER=$(./bin/isabelle getenv -b ISABELLE_HOME_USER)
 COMPILER=$(./bin/isabelle getenv -b ML_IDENTIFIER)
 PLATFORM=$(./bin/isabelle getenv -b ML_PLATFORM)
 
-if [ -n "$DRY_RUN" ]; then
-  mkdir -p "heaps/$COMPILER/log"
-  touch "heaps/$COMPILER/HOL"
-  touch "heaps/$COMPILER/log/HOL.gz"
-  touch "heaps/$COMPILER/HOL-Nominal"
-  touch "heaps/$COMPILER/log/HOL-Nominal.gz"
-  touch "heaps/$COMPILER/HOLCF"
-  touch "heaps/$COMPILER/log/HOLCF.gz"
-  touch "heaps/$COMPILER/ZF"
-  touch "heaps/$COMPILER/log/ZF.gz"
-  mkdir browser_info
-elif [ -n "$DO_LIBRARY" ]; then
+if [ -n "$DO_LIBRARY" ]; then
   ./build -bait
 else
   ./build -b -m HOL-Nominal HOL
   ./build -b HOLCF
   ./build -b ZF
-  rm -f "heaps/$COMPILER/Pure" "heaps/$COMPILER/FOL"
 fi
 
 
@@ -131,18 +114,9 @@ chmod -R g=o "$TMP"
 chgrp -R isabelle "$TMP"
 
 if [ -n "$DO_LIBRARY" ]; then
-  tar cf "${ISABELLE_NAME}_library.tar" $ISABELLE_NAME/browser_info && \
-    gzip -f "${ISABELLE_NAME}_library.tar"
-    cp -f "${ISABELLE_NAME}_library.tar.gz" "$ARCHIVE_DIR"
+  tar -c -z -f "$ARCHIVE_DIR/${ISABELLE_NAME}_library.tar.gz" "$ISABELLE_NAME/browser_info"
 else
-  for IMG in HOL HOL-Nominal HOLCF ZF
-  do
-    tar cf "${IMG}_$PLATFORM.tar" \
-      "$ISABELLE_NAME/heaps/$COMPILER/$IMG" \
-      "$ISABELLE_NAME/heaps/$COMPILER/log/$IMG.gz"
-    gzip -f "${IMG}_$PLATFORM.tar"
-    cp -f "${IMG}_$PLATFORM.tar.gz" "$ARCHIVE_DIR"
-  done
+  tar -c -z -f "$ARCHIVE_DIR/${ISABELLE_NAME}_heaps_${PLATFORM}.tar.gz" "$ISABELLE_NAME/heaps"
 fi
 
 
