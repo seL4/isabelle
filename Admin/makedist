@@ -172,10 +172,10 @@ perl -pi -e "s,unidentified repository version,$DISTVERSION,g" src/Pure/ROOT.ML 
 perl -pi -e "s,some unidentified repository version of Isabelle,$DISTVERSION,g" README
 
 
-# create archives
+# create archive
 
 echo "###"
-echo "### Creating archives ..."
+echo "### Creating archive ..."
 echo "###"
 
 cd "$DISTBASE"
@@ -210,3 +210,5 @@ chgrp -R isabelle "$DISTNAME"
 
 rm -rf "${DISTNAME}-old"
 
+
+echo "DONE"
