@@ -12,7 +12,7 @@ function usage()
   echo "Usage: $PRG ARCHIVE PLATFORM"
   echo
   echo "  Re-package Isabelle source distribution with add-on components"
-  echo "  and logic images"
+  echo "  and heap images"
   echo
   exit 1
 }
@@ -28,8 +28,6 @@ function fail()
 
 TMP="/var/tmp/isabelle-makebundle$$"
 mkdir "$TMP" || fail "Cannot create directory $TMP"
-
-LOGICS="HOL HOL-Nominal HOLCF ZF"
 
 [ "$#" -ne 2 ] && usage
 
@@ -65,13 +63,10 @@ do
 done
 
 
-for LOGIC in $LOGICS
-do
-  LOGIC_ARCHIVE="$ARCHIVE_DIR/${LOGIC}_${PLATFORM}.tar.gz"
-  [ -f "$LOGIC_ARCHIVE" ] || fail "Bad logic archive: $LOGIC_ARCHIVE"
-  echo "logic $LOGIC"
-  tar -C "$ISABELLE_HOME" -x -z -f "$LOGIC_ARCHIVE"
-done
+HEAPS_ARCHIVE="$ARCHIVE_DIR/${ISABELLE_NAME}_heaps_${PLATFORM}.tar.gz"
+[ -f "$HEAPS_ARCHIVE" ] || fail "Bad heaps archive: $HEAPS_ARCHIVE"
+echo "heaps"
+tar -C "$ISABELLE_HOME" -x -z -f "$HEAPS_ARCHIVE"
 
 
 BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle_${PLATFORM}.tar.gz"
