@@ -89,7 +89,7 @@ fun rhs_extra_types lhsT rhs =
 
 (* Traverse a theorem, declaring Skolem function definitions. String "s" is the
    suggested prefix for the Skolem constants. *)
-fun declare_skolem_funs s th =
+fun declare_skolem_funs s th thy =
   let
     val nref = Unsynchronized.ref 0    (* FIXME ??? *)
     fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) (axs, thy) =
@@ -104,13 +104,13 @@ fun declare_skolem_funs s th =
             val cT = extraTs ---> Ts ---> T
             val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
                     (*Forms a lambda-abstraction over the formal parameters*)
-            val (c, thy') =
+            val (c, thy) =
               Sign.declare_const ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
             val cdef = cname ^ "_def"
-            val ((_, ax), thy'') =
-              Thm.add_def true false (Binding.name cdef, Logic.mk_equals (c, rhs)) thy'
+            val ((_, ax), thy) =
+              Thm.add_def true false (Binding.name cdef, Logic.mk_equals (c, rhs)) thy
             val ax' = Drule.export_without_context ax
-          in dec_sko (subst_bound (list_comb (c, args), p)) (ax' :: axs, thy'') end
+          in dec_sko (subst_bound (list_comb (c, args), p)) (ax' :: axs, thy) end
       | dec_sko (Const (@{const_name All}, _) $ (Abs (a, T, p))) thx =
           (*Universal quant: insert a free variable into body and continue*)
           let val fname = Name.variant (OldTerm.add_term_names (p, [])) a
@@ -118,8 +118,8 @@ fun declare_skolem_funs s th =
       | dec_sko (@{const "op &"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const "op |"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const Trueprop} $ p) thx = dec_sko p thx
-      | dec_sko t thx = thx (*Do nothing otherwise*)
-  in fn thy => dec_sko (Thm.prop_of th) ([], thy) end;
+      | dec_sko t thx = thx
+  in dec_sko (prop_of th) ([], thy) end
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skolem_funs s th =
@@ -136,9 +136,7 @@ fun assume_skolem_funs s th =
                                          HOLogic.choice_const T $ xtp)
                       (*Forms a lambda-abstraction over the formal parameters*)
                 val def = Logic.mk_equals (c, rhs)
-            in dec_sko (subst_bound (list_comb(c,args), p))
-                       (def :: defs)
-            end
+            in dec_sko (subst_bound (list_comb(c,args), p)) (def :: defs) end
         | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) defs =
             (*Universal quant: insert a free variable into body and continue*)
             let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
@@ -220,41 +218,44 @@ fun abstract ct =
                      val crator = cterm_of thy rator
                      val abs_B' = cterm_instantiate [(f_B,crator),(g_B,crand)] @{thm abs_B}
                      val (_,rhs) = Thm.dest_equals (cprop_of abs_B')
-                 in
-                   Thm.transitive abs_B' (Conv.arg_conv abstract rhs)
-                 end
+                 in Thm.transitive abs_B' (Conv.arg_conv abstract rhs) end
             else makeK()
-        | _ => error "abstract: Bad term"
+        | _ => raise Fail "abstract: Bad term"
   end;
 
-(*Traverse a theorem, declaring abstraction function definitions. String s is the suggested
-  prefix for the constants.*)
-fun combinators_aux ct =
-  if lambda_free (term_of ct) then Thm.reflexive ct
-  else
-  case term_of ct of
-      Abs _ =>
-        let val (cv, cta) = Thm.dest_abs NONE ct
-            val (v, _) = dest_Free (term_of cv)
-            val u_th = combinators_aux cta
-            val cu = Thm.rhs_of u_th
-            val comb_eq = abstract (Thm.cabs cv cu)
-        in Thm.transitive (Thm.abstract_rule v cv u_th) comb_eq end
-    | _ $ _ =>
-        let val (ct1, ct2) = Thm.dest_comb ct
-        in  Thm.combination (combinators_aux ct1) (combinators_aux ct2)  end;
+(* Traverse a theorem, remplacing lambda-abstractions with combinators. *)
+fun do_introduce_combinators ct =
+  if lambda_free (term_of ct) then
+    Thm.reflexive ct
+  else case term_of ct of
+    Abs _ =>
+    let
+      val (cv, cta) = Thm.dest_abs NONE ct
+      val (v, _) = dest_Free (term_of cv)
+      val u_th = do_introduce_combinators cta
+      val cu = Thm.rhs_of u_th
+      val comb_eq = abstract (Thm.cabs cv cu)
+    in Thm.transitive (Thm.abstract_rule v cv u_th) comb_eq end
+  | _ $ _ =>
+    let val (ct1, ct2) = Thm.dest_comb ct in
+        Thm.combination (do_introduce_combinators ct1)
+                        (do_introduce_combinators ct2)
+    end
 
-fun combinators th =
-  if lambda_free (prop_of th) then th
+fun introduce_combinators th =
+  if lambda_free (prop_of th) then
+    th
   else
-    let val th = Drule.eta_contraction_rule th
-        val eqth = combinators_aux (cprop_of th)
-    in  Thm.equal_elim eqth th   end
-    handle THM (msg,_,_) =>
-      (warning (cat_lines
-        ["Error in the combinator translation of " ^ Display.string_of_thm_without_context th,
-          "  Exception message: " ^ msg]);
-       TrueI);  (*A type variable of sort {} will cause make abstraction fail.*)
+    let
+      val th = Drule.eta_contraction_rule th
+      val eqth = do_introduce_combinators (cprop_of th)
+    in Thm.equal_elim eqth th end
+    handle THM (msg, _, _) =>
+           (warning ("Error in the combinator translation of " ^
+                     Display.string_of_thm_without_context th ^
+                     "\nException message: " ^ msg ^ ".");
+            (* A type variable of sort "{}" will make abstraction fail. *)
+            TrueI)
 
 (*cterms are used throughout for efficiency*)
 val cTrueprop = Thm.cterm_of @{theory HOL} HOLogic.Trueprop;
@@ -303,11 +304,11 @@ fun to_nnf th ctxt0 =
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
 fun assume_skolem_of_def s th =
-  map (skolem_of_def o Thm.assume o (cterm_of (theory_of_thm th)))
+  map (skolem_of_def o Thm.assume o cterm_of (theory_of_thm th))
       (assume_skolem_funs s th)
 
 
-(*** Blacklisting (FIXME: duplicated in "Sledgehammer_Fact_Filter"?) ***)
+(*** Blacklisting (more in "Sledgehammer_Fact_Filter") ***)
 
 val max_lambda_nesting = 3
 
@@ -370,10 +371,15 @@ fun skolem_thm (s, th) =
   else
     let
       val ctxt0 = Variable.global_thm_context th
-      val (nnfth, ctxt1) = to_nnf th ctxt0
-      val (cnfs, ctxt2) = Meson.make_cnf (assume_skolem_of_def s nnfth) nnfth ctxt1
-    in  cnfs |> map combinators |> Variable.export ctxt2 ctxt0 |> Meson.finish_cnf  end
-    handle THM _ => [];
+      val (nnfth, ctxt) = to_nnf th ctxt0
+      val defs = assume_skolem_of_def s nnfth
+      val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
+    in
+      cnfs |> map introduce_combinators
+           |> Variable.export ctxt ctxt0
+           |> Meson.finish_cnf
+    end
+    handle THM _ => []
 
 (*The cache prevents repeated clausification of a theorem, and also repeated declaration of
   Skolem functions.*)
@@ -425,17 +431,17 @@ fun skolem_def (name, th) thy =
   let val ctxt0 = Variable.global_thm_context th in
     case try (to_nnf th) ctxt0 of
       NONE => (NONE, thy)
-    | SOME (nnfth, ctxt1) =>
+    | SOME (nnfth, ctxt) =>
       let val (defs, thy') = declare_skolem_funs (flatten_name name) nnfth thy
-      in (SOME (th, ctxt0, ctxt1, nnfth, defs), thy') end
+      in (SOME (th, ctxt0, ctxt, nnfth, defs), thy') end
   end;
 
-fun skolem_cnfs (th, ctxt0, ctxt1, nnfth, defs) =
+fun skolem_cnfs (th, ctxt0, ctxt, nnfth, defs) =
   let
-    val (cnfs, ctxt2) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt1;
+    val (cnfs, ctxt) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt;
     val cnfs' = cnfs
-      |> map combinators
-      |> Variable.export ctxt2 ctxt0
+      |> map introduce_combinators
+      |> Variable.export ctxt ctxt0
       |> Meson.finish_cnf
       |> map Thm.close_derivation;
     in (th, cnfs') end;
@@ -492,7 +498,10 @@ fun neg_skolemize_tac ctxt =
   EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt]
 
 val neg_clausify =
-  single #> Meson.make_clauses_unsorted #> map combinators #> Meson.finish_cnf
+  single
+  #> Meson.make_clauses_unsorted
+  #> map introduce_combinators
+  #> Meson.finish_cnf
 
 fun neg_conjecture_clauses ctxt st0 n =
   let
