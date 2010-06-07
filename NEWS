@@ -3368,6 +3368,8 @@ defined as range of_real; potential INCOMPATIBILITY.
 * Real: proper support for ML code generation, including 'quickcheck'.
 Reals are implemented as arbitrary precision rationals.
 
+* Real: new development using Cauchy Sequences.
+
 * Hyperreal: Several constants that previously worked only for the
 reals have been generalized, so they now work over arbitrary vector
 spaces. Type annotations may need to be added in some cases; potential
