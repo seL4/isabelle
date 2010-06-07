@@ -11,7 +11,7 @@ SUPER=$(cd "$THIS/.."; pwd)
 
 ## diagnostics
 
-JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre17"
+JEDIT_HOME=""
 
 function usage()
 {
@@ -20,7 +20,6 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -j DIR       specify original jEdit distribution"
-  echo "                 (default: $JEDIT_HOME)"
   echo
   echo "  Produce Isabelle/jEdit distribution from Netbeans build"
   echo "  in $THIS/dist"
@@ -66,12 +65,13 @@ cd "$THIS/dist" || fail "Bad directory: $THIS/dist"
 
 # target name
 
+[ -z "$JEDIT_HOME" ] && fail "Unknown JEDIT_HOME"
+
 VERSION=$(basename "$JEDIT_HOME")
 JEDIT="jedit-${VERSION}"
 
 rm -rf "$JEDIT" jedit
 mkdir "$JEDIT"
-ln -s "$JEDIT" jedit
 
 
 # copy stuff
@@ -95,5 +95,4 @@ perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
 # build archive
 
 echo "${JEDIT}.tar.gz"
-tar czf "${JEDIT}.tar.gz" "$JEDIT" jedit
-ln -sf "${JEDIT}.tar.gz" jedit.tar.gz
+tar czf "${JEDIT}.tar.gz" "$JEDIT"
