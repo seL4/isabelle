@@ -261,7 +261,7 @@ fun cnf_for_facts ctxt =
   end
 
 fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
-                     (relevance_override as {add, del, ...}) ctab =
+                     (relevance_override as {add, del, only}) ctab =
   let
     val thy = ProofContext.theory_of ctxt
     val add_thms = cnf_for_facts ctxt add
