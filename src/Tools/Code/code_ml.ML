@@ -32,7 +32,7 @@ val target_OCaml = "OCaml";
 datatype ml_binding =
     ML_Function of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
   | ML_Instance of string * ((class * (string * (vname * sort) list))
-        * ((class * (string * (string * dict list list))) list
+        * (((class * (string * (string * dict list list))) list * (class * class) list list)
       * ((string * const) * (thm * bool)) list));
 
 datatype ml_stmt =
@@ -219,19 +219,19 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             ))
           end
       | print_def is_pseudo_fun _ definer
-          (ML_Instance (inst, ((class, (tyco, vs)), (superinsts, classparams)))) =
+          (ML_Instance (inst, ((class, (tyco, vs)), ((super_instances, _), classparam_instances)))) =
           let
-            fun print_superinst (_, (classrel, dss)) =
+            fun print_super_instance (_, (classrel, dss)) =
               concat [
                 (str o Long_Name.base_name o deresolve) classrel,
                 str "=",
                 print_dict is_pseudo_fun NOBR (DictConst dss)
               ];
-            fun print_classparam ((classparam, c_inst), (thm, _)) =
+            fun print_classparam_instance ((classparam, const), (thm, _)) =
               concat [
                 (str o Long_Name.base_name o deresolve) classparam,
                 str "=",
-                print_app (K false) (SOME thm) reserved NOBR (c_inst, [])
+                print_app (K false) (SOME thm) reserved NOBR (const, [])
               ];
           in pair
             (print_val_decl print_dicttypscheme
@@ -243,7 +243,8 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
                   else print_dict_args vs)
               @ str "="
               :: enum "," "{" "}"
-                (map print_superinst superinsts @ map print_classparam classparams)
+                (map print_super_instance super_instances
+                  @ map print_classparam_instance classparam_instances)
               :: str ":"
               @@ print_tyco_expr NOBR (class, [tyco `%% map (ITyVar o fst) vs])
             ))
@@ -300,19 +301,19 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             sig_ps
             (Pretty.chunks (ps @| semicolon [p]))
           end
-     | print_stmt (ML_Class (class, (v, (superclasses, classparams)))) =
+     | print_stmt (ML_Class (class, (v, (super_classes, classparams)))) =
           let
             fun print_field s p = concat [str s, str ":", p];
             fun print_proj s p = semicolon
               (map str ["val", s, "=", "#" ^ s, ":"] @| p);
-            fun print_superclass_decl (superclass, classrel) =
+            fun print_super_class_decl (super_class, classrel) =
               print_val_decl print_dicttypscheme
-                (classrel, ([(v, [class])], (superclass, ITyVar v)));
-            fun print_superclass_field (superclass, classrel) =
-              print_field (deresolve classrel) (print_dicttyp (superclass, ITyVar v));
-            fun print_superclass_proj (superclass, classrel) =
+                (classrel, ([(v, [class])], (super_class, ITyVar v)));
+            fun print_super_class_field (super_class, classrel) =
+              print_field (deresolve classrel) (print_dicttyp (super_class, ITyVar v));
+            fun print_super_class_proj (super_class, classrel) =
               print_proj (deresolve classrel)
-                (print_dicttypscheme ([(v, [class])], (superclass, ITyVar v)));
+                (print_dicttypscheme ([(v, [class])], (super_class, ITyVar v)));
             fun print_classparam_decl (classparam, ty) =
               print_val_decl print_typscheme
                 (classparam, ([(v, [class])], ty));
@@ -323,7 +324,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
                 (print_typscheme ([(v, [class])], ty));
           in pair
             (concat [str "type", print_dicttyp (class, ITyVar v)]
-              :: map print_superclass_decl superclasses
+              :: map print_super_class_decl super_classes
               @ map print_classparam_decl classparams)
             (Pretty.chunks (
               concat [
@@ -331,11 +332,11 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
                 (str o deresolve) class,
                 str "=",
                 enum "," "{" "};" (
-                  map print_superclass_field superclasses
+                  map print_super_class_field super_classes
                   @ map print_classparam_field classparams
                 )
               ]
-              :: map print_superclass_proj superclasses
+              :: map print_super_class_proj super_classes
               @ map print_classparam_proj classparams
             ))
           end;
@@ -552,19 +553,20 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
               @| print_eqns (is_pseudo_fun name) eqs
             ))
           end
-      | print_def is_pseudo_fun _ definer (ML_Instance (inst, ((class, (tyco, vs)), (superinsts, classparams)))) =
+      | print_def is_pseudo_fun _ definer
+            (ML_Instance (inst, ((class, (tyco, vs)), ((super_instances, _), classparam_instances)))) =
           let
-            fun print_superinst (_, (classrel, dss)) =
+            fun print_super_instance (_, (classrel, dss)) =
               concat [
                 (str o deresolve) classrel,
                 str "=",
                 print_dict is_pseudo_fun NOBR (DictConst dss)
               ];
-            fun print_classparam ((classparam, c_inst), (thm, _)) =
+            fun print_classparam_instance ((classparam, const), (thm, _)) =
               concat [
                 (str o deresolve) classparam,
                 str "=",
-                print_app (K false) (SOME thm) reserved NOBR (c_inst, [])
+                print_app (K false) (SOME thm) reserved NOBR (const, [])
               ];
           in pair
             (print_val_decl print_dicttypscheme
@@ -575,8 +577,8 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
               :: print_dict_args vs
               @ str "="
               @@ brackets [
-                enum_default "()" ";" "{" "}" (map print_superinst superinsts
-                  @ map print_classparam classparams),
+                enum_default "()" ";" "{" "}" (map print_super_instance super_instances
+                  @ map print_classparam_instance classparam_instances),
                 str ":",
                 print_tyco_expr NOBR (class, [tyco `%% map (ITyVar o fst) vs])
               ]
@@ -633,11 +635,11 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
             sig_ps
             (Pretty.chunks (ps @| doublesemicolon [p]))
           end
-     | print_stmt (ML_Class (class, (v, (superclasses, classparams)))) =
+     | print_stmt (ML_Class (class, (v, (super_classes, classparams)))) =
           let
             fun print_field s p = concat [str s, str ":", p];
-            fun print_superclass_field (superclass, classrel) =
-              print_field (deresolve classrel) (print_dicttyp (superclass, ITyVar v));
+            fun print_super_class_field (super_class, classrel) =
+              print_field (deresolve classrel) (print_dicttyp (super_class, ITyVar v));
             fun print_classparam_decl (classparam, ty) =
               print_val_decl print_typscheme
                 (classparam, ([(v, [class])], ty));
@@ -652,7 +654,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                 (str o deresolve) class,
                 str "=",
                 enum_default "unit" ";" "{" "}" (
-                  map print_superclass_field superclasses
+                  map print_super_class_field super_classes
                   @ map print_classparam_field classparams
                 )
               ];

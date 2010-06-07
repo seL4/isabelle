@@ -212,13 +212,13 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
               :: map print_co cos
             )
           end
-      | print_stmt (name, Code_Thingol.Class (_, (v, (superclasses, classparams)))) =
+      | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
           let
             val tyvars = intro_vars [v] reserved;
             val vs = [(v, [name])];
             fun add_typarg p = applify "[" "]" NOBR p [(str o lookup_tyvar tyvars) v];
-            fun print_superclasses [] = NONE
-              | print_superclasses classes = SOME (concat (str "extends"
+            fun print_super_classes [] = NONE
+              | print_super_classes classes = SOME (concat (str "extends"
                   :: separate (str "with") (map (add_typarg o str o deresolve o fst) classes)));
             fun print_tupled_typ ([], ty) =
                   print_typ tyvars NOBR ty
@@ -246,13 +246,13 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
             Pretty.chunks (
               (Pretty.block_enclose
                 (concat ([str "trait", add_typarg ((str o deresolve_base) name)]
-                  @ the_list (print_superclasses superclasses) @ [str "{"]), str "}")
+                  @ the_list (print_super_classes super_classes) @ [str "{"]), str "}")
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
             )
           end
       | print_stmt (name, Code_Thingol.Classinst ((class, (tyco, vs)),
-            (super_instances, classparam_insts))) =
+            ((super_instances, _), classparam_instances))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
             val insttyp = tyco `%% map (ITyVar o fst) vs;
@@ -260,7 +260,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
             fun add_typ_params p = applify "[" "]" NOBR p (map (str o lookup_tyvar tyvars o fst) vs);
             fun add_inst_typ p = Pretty.block [p, str "[", p_inst_typ, str "]"];
             val ((implicit_names, implicit_ps), vars) = implicit_arguments tyvars vs reserved;
-            fun print_classparam_inst ((classparam, const as (_, (_, tys))), (thm, _)) =
+            fun print_classparam_instance ((classparam, const as (_, (_, tys))), (thm, _)) =
               let
                 val auxs = Name.invents (snd reserved) "a" (length tys);
                 val vars = intro_vars auxs reserved;
@@ -278,10 +278,10 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                     add_typ_params ((str o deresolve_base) name),
                     str "extends",
                     Pretty.block [(str o deresolve) class, str "[", p_inst_typ, str "]"]]
-                    @ map (fn (_, (_, (superinst, _))) => add_typ_params (str ("with " ^ deresolve superinst)))
+                    @ map (fn (_, (_, (super_instance, _))) => add_typ_params (str ("with " ^ deresolve super_instance)))
                       super_instances @| str "{"), str "}")
                 (map (fn p => Pretty.block [str "implicit val arg$", p]) implicit_ps
-                  @ map print_classparam_inst classparam_insts),
+                  @ map print_classparam_instance classparam_instances),
               concat [str "implicit", str (if null vs then "val" else "def"),
                 applify "(implicit " ")" NOBR (applify "[" "]" NOBR
                   ((str o deresolve_base) name) (map (str o lookup_tyvar tyvars o fst) vs))

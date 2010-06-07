@@ -32,9 +32,9 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
       | SOME class => class;
     fun print_typcontext tyvars vs = case maps (fn (v, sort) => map (pair v) sort) vs
      of [] => []
-      | classbinds => enum "," "(" ")" (
+      | constraints => enum "," "(" ")" (
           map (fn (v, class) =>
-            str (class_name class ^ " " ^ lookup_var tyvars v)) classbinds)
+            str (class_name class ^ " " ^ lookup_var tyvars v)) constraints)
           @@ str " => ";
     fun print_typforall tyvars vs = case map fst vs
      of [] => []
@@ -194,7 +194,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
               @ (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
           end
-      | print_stmt (name, Code_Thingol.Class (_, (v, (superclasses, classparams)))) =
+      | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
           let
             val tyvars = intro_vars [v] reserved;
             fun print_classparam (classparam, ty) =
@@ -207,32 +207,31 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
             Pretty.block_enclose (
               Pretty.block [
                 str "class ",
-                Pretty.block (print_typcontext tyvars [(v, map fst superclasses)]),
+                Pretty.block (print_typcontext tyvars [(v, map fst super_classes)]),
                 str (deresolve_base name ^ " " ^ lookup_var tyvars v),
                 str " where {"
               ],
               str "};"
             ) (map print_classparam classparams)
           end
-      | print_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, classparam_insts))) =
+      | print_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, classparam_instances))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
-            fun print_instdef ((classparam, c_inst), (thm, _)) = case syntax_const classparam
+            fun print_classparam_instance ((classparam, const), (thm, _)) = case syntax_const classparam
              of NONE => semicolon [
                     (str o deresolve_base) classparam,
                     str "=",
-                    print_app tyvars (SOME thm) reserved NOBR (c_inst, [])
+                    print_app tyvars (SOME thm) reserved NOBR (const, [])
                   ]
               | SOME (k, pr) =>
                   let
-                    val (c_inst_name, (_, tys)) = c_inst;
-                    val const = if (is_some o syntax_const) c_inst_name
-                      then NONE else (SOME o Long_Name.base_name o deresolve) c_inst_name;
-                    val proto_rhs = Code_Thingol.eta_expand k (c_inst, []);
-                    val (vs, rhs) = (apfst o map) fst (Code_Thingol.unfold_abs proto_rhs);
+                    val (c, (_, tys)) = const;
+                    val (vs, rhs) = (apfst o map) fst
+                      (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
+                    val s = if (is_some o syntax_const) c
+                      then NONE else (SOME o Long_Name.base_name o deresolve) c;
                     val vars = reserved
-                      |> intro_vars (the_list const)
-                      |> intro_vars (map_filter I vs);
+                      |> intro_vars (map_filter I (s :: vs));
                     val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
                       (*dictionaries are not relevant at this late stage*)
                   in
@@ -252,7 +251,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                 str " where {"
               ],
               str "};"
-            ) (map print_instdef classparam_insts)
+            ) (map print_classparam_instance classparam_instances)
           end;
   in print_stmt end;
 

@@ -262,11 +262,11 @@ fun obtain_instance thy arities (inst as (class, tyco)) =
    of SOME classess => (classess, ([], []))
     | NONE => let
         val all_classes = complete_proper_sort thy [class];
-        val superclasses = remove (op =) class all_classes;
+        val super_classes = remove (op =) class all_classes;
         val classess = map (complete_proper_sort thy)
           (Sign.arity_sorts thy tyco [class]);
         val inst_params = inst_params thy tyco all_classes;
-      in (classess, (superclasses, inst_params)) end;
+      in (classess, (super_classes, inst_params)) end;
 
 
 (* computing instantiations *)
@@ -284,14 +284,14 @@ fun add_classes thy arities eqngr c_k new_classes vardeps_data =
     |> fold (fn styp => fold (ensure_typmatch_inst thy arities eqngr styp) new_classes) styps
     |> fold (fn c_k => add_classes thy arities eqngr c_k diff_classes) c_ks
   end end
-and add_styp thy arities eqngr c_k tyco_styps vardeps_data =
+and add_styp thy arities eqngr c_k new_tyco_styps vardeps_data =
   let
-    val (old_styps, classes) = Vargraph.get_node (fst vardeps_data) c_k;
-  in if member (op =) old_styps tyco_styps then vardeps_data
+    val (old_tyco_stypss, classes) = Vargraph.get_node (fst vardeps_data) c_k;
+  in if member (op =) old_tyco_stypss new_tyco_styps then vardeps_data
   else
     vardeps_data
-    |> (apfst o Vargraph.map_node c_k o apfst) (cons tyco_styps)
-    |> fold (ensure_typmatch_inst thy arities eqngr tyco_styps) classes
+    |> (apfst o Vargraph.map_node c_k o apfst) (cons new_tyco_styps)
+    |> fold (ensure_typmatch_inst thy arities eqngr new_tyco_styps) classes
   end
 and add_dep thy arities eqngr c_k c_k' vardeps_data =
   let
@@ -311,20 +311,20 @@ and ensure_typmatch_inst thy arities eqngr (tyco, styps) class vardeps_data =
 and ensure_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (_, insts))) =
   if member (op =) insts inst then vardeps_data
   else let
-    val (classess, (superclasses, inst_params)) =
+    val (classess, (super_classes, inst_params)) =
       obtain_instance thy arities inst;
   in
     vardeps_data
     |> (apsnd o apsnd) (insert (op =) inst)
     |> fold_index (fn (k, _) =>
          apfst (Vargraph.new_node ((Inst (class, tyco), k), ([] ,[])))) classess
-    |> fold (fn superclass => ensure_inst thy arities eqngr (superclass, tyco)) superclasses
+    |> fold (fn super_class => ensure_inst thy arities eqngr (super_class, tyco)) super_classes
     |> fold (ensure_fun thy arities eqngr) inst_params
     |> fold_index (fn (k, classes) =>
          add_classes thy arities eqngr (Inst (class, tyco), k) classes
-         #> fold (fn superclass =>
-             add_dep thy arities eqngr (Inst (superclass, tyco), k)
-             (Inst (class, tyco), k)) superclasses
+         #> fold (fn super_class =>
+             add_dep thy arities eqngr (Inst (super_class, tyco), k)
+             (Inst (class, tyco), k)) super_classes
          #> fold (fn inst_param =>
              add_dep thy arities eqngr (Fun inst_param, k)
              (Inst (class, tyco), k)

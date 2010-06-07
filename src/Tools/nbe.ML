@@ -404,9 +404,9 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, (_, []))) =
       []
   | eqns_of_stmt (_, Code_Thingol.Datatype _) =
       []
-  | eqns_of_stmt (class, Code_Thingol.Class (_, (v, (superclasses, classops)))) =
+  | eqns_of_stmt (class, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
       let
-        val names = map snd superclasses @ map fst classops;
+        val names = map snd super_classes @ map fst classparams;
         val params = Name.invent_list [] "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
@@ -417,10 +417,10 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, (_, []))) =
       []
   | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
-  | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arities)), (superinsts, instops))) =
-      [(inst, (arities, [([], IConst (class, (([], []), [])) `$$
-        map (fn (_, (_, (inst, dicts))) => IConst (inst, (([], dicts), []))) superinsts
-        @ map (IConst o snd o fst) instops)]))];
+  | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arity_args)), ((super_instances, _), classparam_instances))) =
+      [(inst, (arity_args, [([], IConst (class, (([], []), [])) `$$
+        map (fn (_, (_, (inst, dss))) => IConst (inst, (([], dss), []))) super_instances
+        @ map (IConst o snd o fst) classparam_instances)]))];
 
 fun compile_stmts ctxt stmts_deps =
   let

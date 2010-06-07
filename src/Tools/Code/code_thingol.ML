@@ -72,9 +72,10 @@ sig
     | Class of class * (vname * ((class * string) list * (string * itype) list))
     | Classrel of class * class
     | Classparam of string * class
-    | Classinst of (class * (string * (vname * sort) list))
-          * ((class * (string * (string * dict list list))) list
-        * ((string * const) * (thm * bool)) list)
+    | Classinst of (class * (string * (vname * sort) list) (*class and arity*) )
+          * (((class * (string * (string * dict list list))) list (*super instances*)
+            * (class * class) list list (*type argument weakening mapping*))
+        * ((string * const) * (thm * bool)) list (*class parameter instances*))
   type program = stmt Graph.T
   val empty_funs: program -> string list
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
@@ -276,8 +277,8 @@ local
 in
 
 fun namify_class thy = namify thy Long_Name.base_name thyname_of_class;
-fun namify_classrel thy = namify thy (fn (class1, class2) => 
-    Long_Name.base_name class2 ^ "_" ^ Long_Name.base_name class1)
+fun namify_classrel thy = namify thy (fn (sub_class, super_class) => 
+    Long_Name.base_name sub_class ^ "_" ^ Long_Name.base_name super_class)
   (fn thy => thyname_of_class thy o fst);
   (*order fits nicely with composed projections*)
 fun namify_tyco thy "fun" = "Pure.fun"
@@ -386,11 +387,12 @@ fun ensure_declared_const thy const naming =
    of SOME const' => (const', naming)
     | NONE => declare_const thy const naming;
 
-val fun_tyco = "Pure.fun.tyco" (*depends on suffix_tyco and namify_tyco!*);
+val fun_tyco = Long_Name.append (namify_tyco Pure.thy "fun") suffix_tyco
+  (*depends on add_suffix*);
 
 val unfold_fun = unfoldr
   (fn tyco `%% [ty1, ty2] => if tyco = fun_tyco then SOME (ty1, ty2) else NONE
-    | _ => NONE); (*depends on suffix_tyco and namify_tyco!*)
+    | _ => NONE);
 
 end; (* local *)
 
@@ -407,8 +409,9 @@ datatype stmt =
   | Classrel of class * class
   | Classparam of string * class
   | Classinst of (class * (string * (vname * sort) list))
-        * ((class * (string * (string * dict list list))) list
-      * ((string * const) * (thm * bool)) list);
+        * (((class * (string * (string * dict list list))) list
+          * (class * class) list list)
+      * ((string * const) * (thm * bool)) list) (*see also signature*);
 
 type program = stmt Graph.T;
 
@@ -434,8 +437,8 @@ fun map_terms_stmt f NoStmt = NoStmt
   | map_terms_stmt f (stmt as Class _) = stmt
   | map_terms_stmt f (stmt as Classrel _) = stmt
   | map_terms_stmt f (stmt as Classparam _) = stmt
-  | map_terms_stmt f (Classinst (arity, (superinsts, classparams))) =
-      Classinst (arity, (superinsts, (map o apfst o apsnd) (fn const =>
+  | map_terms_stmt f (Classinst (arity, ((super_instances, weakening), classparams))) =
+      Classinst (arity, ((super_instances, weakening), (map o apfst o apsnd) (fn const =>
         case f (IConst const) of IConst const' => const') classparams));
 
 fun is_cons program name = case Graph.get_node program name
@@ -580,25 +583,25 @@ and ensure_const thy algbr eqngr permissive c =
   in ensure_stmt lookup_const (declare_const thy) stmt_const c end
 and ensure_class thy (algbr as (_, algebra)) eqngr permissive class =
   let
-    val superclasses = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
+    val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
     val cs = #params (AxClass.get_info thy class);
     val stmt_class =
-      fold_map (fn superclass => ensure_class thy algbr eqngr permissive superclass
-        ##>> ensure_classrel thy algbr eqngr permissive (class, superclass)) superclasses
+      fold_map (fn super_class => ensure_class thy algbr eqngr permissive super_class
+        ##>> ensure_classrel thy algbr eqngr permissive (class, super_class)) super_classes
       ##>> fold_map (fn (c, ty) => ensure_const thy algbr eqngr permissive c
         ##>> translate_typ thy algbr eqngr permissive ty) cs
       #>> (fn info => Class (class, (unprefix "'" Name.aT, info)))
   in ensure_stmt lookup_class (declare_class thy) stmt_class class end
-and ensure_classrel thy algbr eqngr permissive (subclass, superclass) =
+and ensure_classrel thy algbr eqngr permissive (sub_class, super_class) =
   let
     val stmt_classrel =
-      ensure_class thy algbr eqngr permissive subclass
-      ##>> ensure_class thy algbr eqngr permissive superclass
+      ensure_class thy algbr eqngr permissive sub_class
+      ##>> ensure_class thy algbr eqngr permissive super_class
       #>> Classrel;
-  in ensure_stmt lookup_classrel (declare_classrel thy) stmt_classrel (subclass, superclass) end
+  in ensure_stmt lookup_classrel (declare_classrel thy) stmt_classrel (sub_class, super_class) end
 and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
   let
-    val superclasses = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
+    val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
     val classparams = these (try (#params o AxClass.get_info thy) class);
     val vs = Name.names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
@@ -606,31 +609,31 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
       Sorts.inter_sort (Sign.classes_of thy) (sort1, sort2))) vs sorts';
     val arity_typ = Type (tyco, map TFree vs);
     val arity_typ' = Type (tyco, map (fn (v, sort) => TVar ((v, 0), sort)) vs');
-    fun translate_superarity superclass =
-      ensure_class thy algbr eqngr permissive superclass
-      ##>> ensure_classrel thy algbr eqngr permissive (class, superclass)
-      ##>> translate_dicts thy algbr eqngr permissive NONE (arity_typ, [superclass])
-      #>> (fn ((superclass, classrel), [DictConst (inst, dss)]) =>
-            (superclass, (classrel, (inst, dss))));
-    fun translate_classparam_inst (c, ty) =
+    fun translate_super_instance super_class =
+      ensure_class thy algbr eqngr permissive super_class
+      ##>> ensure_classrel thy algbr eqngr permissive (class, super_class)
+      ##>> translate_dicts thy algbr eqngr permissive NONE (arity_typ, [super_class])
+      #>> (fn ((super_class, classrel), [DictConst (inst, dss)]) =>
+            (super_class, (classrel, (inst, dss))));
+    fun translate_classparam_instance (c, ty) =
       let
-        val c_inst = Const (c, map_type_tfree (K arity_typ') ty);
-        val thm = AxClass.unoverload_conv thy (Thm.cterm_of thy c_inst);
-        val c_ty = (apsnd Logic.unvarifyT_global o dest_Const o snd
+        val raw_const = Const (c, map_type_tfree (K arity_typ') ty);
+        val thm = AxClass.unoverload_conv thy (Thm.cterm_of thy raw_const);
+        val const = (apsnd Logic.unvarifyT_global o dest_Const o snd
           o Logic.dest_equals o Thm.prop_of) thm;
       in
         ensure_const thy algbr eqngr permissive c
-        ##>> translate_const thy algbr eqngr permissive (SOME thm) (c_ty, NONE)
-        #>> (fn (c, IConst c_inst) => ((c, c_inst), (thm, true)))
+        ##>> translate_const thy algbr eqngr permissive (SOME thm) (const, NONE)
+        #>> (fn (c, IConst const') => ((c, const'), (thm, true)))
       end;
     val stmt_inst =
       ensure_class thy algbr eqngr permissive class
       ##>> ensure_tyco thy algbr eqngr permissive tyco
       ##>> fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
-      ##>> fold_map translate_superarity superclasses
-      ##>> fold_map translate_classparam_inst classparams
-      #>> (fn ((((class, tyco), arity), superinsts), classparams) =>
-             Classinst ((class, (tyco, arity)), (superinsts, classparams)));
+      ##>> fold_map translate_super_instance super_classes
+      ##>> fold_map translate_classparam_instance classparams
+      #>> (fn ((((class, tyco), arity_args), super_instances), classparam_instances) =>
+             Classinst ((class, (tyco, arity_args)), ((super_instances, []), classparam_instances)));
   in ensure_stmt lookup_instance (declare_instance thy) stmt_inst (class, tyco) end
 and translate_typ thy algbr eqngr permissive (TFree (v, _)) =
       pair (ITyVar (unprefix "'" v))
@@ -772,8 +775,8 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_th
       | Local of (class * class) list * (string * (int * sort));
     fun class_relation (Global ((_, tyco), yss), _) class =
           Global ((class, tyco), yss)
-      | class_relation (Local (classrels, v), subclass) superclass =
-          Local ((subclass, superclass) :: classrels, v);
+      | class_relation (Local (classrels, v), sub_class) super_class =
+          Local ((sub_class, super_class) :: classrels, v);
     fun type_constructor (tyco, _) yss class =
       Global ((class, tyco), (map o map) fst yss);
     fun type_variable (TFree (v, sort)) =
