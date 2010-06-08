@@ -12,6 +12,7 @@ import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
   BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, IOException}
 import java.awt.{GraphicsEnvironment, Font}
+import java.awt.font.TextAttribute
 
 import scala.io.Source
 import scala.util.matching.Regex
@@ -336,31 +337,23 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   /* fonts */
 
   val font_family = getenv_strict("ISABELLE_FONT_FAMILY")
+  val font_family_default = "IsabelleText"
 
   def get_font(size: Int = 1, bold: Boolean = false): Font =
     new Font(font_family, if (bold) Font.BOLD else Font.PLAIN, size)
 
+  def create_default_font(bold: Boolean = false): Font =
+    if (bold)
+      Font.createFont(Font.TRUETYPE_FONT,
+        platform_file("$ISABELLE_HOME/lib/fonts/IsabelleTextBold.ttf"))
+    else
+      Font.createFont(Font.TRUETYPE_FONT,
+        platform_file("$ISABELLE_HOME/lib/fonts/IsabelleText.ttf"))
+
   def install_fonts()
   {
-    def create_font(bold: Boolean): Font =
-    {
-      val name =
-        if (bold) "$ISABELLE_HOME/lib/fonts/IsabelleTextBold.ttf"
-        else "$ISABELLE_HOME/lib/fonts/IsabelleText.ttf"
-      Font.createFont(Font.TRUETYPE_FONT, platform_file(name))
-    }
-    def check_font() = get_font().getFamily == font_family
-
-    if (!check_font()) {
-      val font = create_font(false)
-      val bold_font = create_font(true)
-
-      val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-      ge.registerFont(font)
-      // workaround strange problem with Apple's Java 1.6 font manager
-      // FIXME does not quite work!?
-      if (bold_font.getFamily == font_family) ge.registerFont(bold_font)
-      if (!check_font()) error("Failed to install IsabelleText fonts")
-    }
+    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
+    ge.registerFont(create_default_font(bold = false))
+    ge.registerFont(create_default_font(bold = true))
   }
 }
