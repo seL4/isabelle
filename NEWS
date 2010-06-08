@@ -1,16 +1,15 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+New in this Isabelle version
+----------------------------
+
+
+
 New in Isabelle2009-2 (June 2010)
 ---------------------------------
 
 *** General ***
-
-* Schematic theorem statements need to be explicitly markup as such,
-via commands 'schematic_lemma', 'schematic_theorem',
-'schematic_corollary'.  Thus the relevance of the proof is made
-syntactically clear, which impacts performance in a parallel or
-asynchronous interactive environment.  Minor INCOMPATIBILITY.
 
 * Authentic syntax for *all* logical entities (type classes, type
 constructors, term constants): provides simple and robust
@@ -69,8 +68,19 @@ body, too.  This works via regular mixfix annotations for 'fix',
 'def', 'obtain' etc. or via the explicit 'write' command, which is
 similar to the 'notation' command in theory specifications.
 
+* Discontinued unnamed infix syntax (legacy feature for many years) --
+need to specify constant name and syntax separately.  Internal ML
+datatype constructors have been renamed from InfixName to Infix etc.
+Minor INCOMPATIBILITY.
+
+* Schematic theorem statements need to be explicitly markup as such,
+via commands 'schematic_lemma', 'schematic_theorem',
+'schematic_corollary'.  Thus the relevance of the proof is made
+syntactically clear, which impacts performance in a parallel or
+asynchronous interactive environment.  Minor INCOMPATIBILITY.
+
 * Use of cumulative prems via "!" in some proof methods has been
-discontinued (legacy feature).
+discontinued (old legacy feature).
 
 * References 'trace_simp' and 'debug_simp' have been replaced by
 configuration options stored in the context. Enabling tracing (the
@@ -92,20 +102,13 @@ more efficient than combinations with -q1 or -q2.
 
 *** Pure ***
 
-* Predicates of locales introduced by classes carry a mandatory
-"class" prefix.  INCOMPATIBILITY.
-
-* Command 'code_reflect' allows to incorporate generated ML code into
-runtime environment; replaces immature code_datatype antiquotation.
-INCOMPATIBILITY.
-
-* Empty class specifications observe default sort.  INCOMPATIBILITY.
-
-* Old 'axclass' command has been discontinued.  Use 'class' instead.
-INCOMPATIBILITY.
-
-* Code generator: simple concept for abstract datatypes obeying
-invariants.
+* Proofterms record type-class reasoning explicitly, using the
+"unconstrain" operation internally.  This eliminates all sort
+constraints from a theorem and proof, introducing explicit
+OFCLASS-premises.  On the proof term level, this operation is
+automatically applied at theorem boundaries, such that closed proofs
+are always free of sort constraints.  INCOMPATIBILITY for tools that
+inspect proof terms.
 
 * Local theory specifications may depend on extra type variables that
 are not present in the result type -- arguments TYPE('a) :: 'a itself
@@ -113,17 +116,27 @@ are added internally.  For example:
 
   definition unitary :: bool where "unitary = (ALL (x::'a) y. x = y)"
 
+* Predicates of locales introduced by classes carry a mandatory
+"class" prefix.  INCOMPATIBILITY.
+
+* Vacuous class specifications observe default sort.  INCOMPATIBILITY.
+
+* Old 'axclass' command has been discontinued.  INCOMPATIBILITY, use
+'class' instead.
+
+* Command 'code_reflect' allows to incorporate generated ML code into
+runtime environment; replaces immature code_datatype antiquotation.
+INCOMPATIBILITY.
+
+* Code generator: simple concept for abstract datatypes obeying
+invariants.
+
 * Code generator: details of internal data cache have no impact on the
 user space functionality any longer.
 
-* Methods unfold_locales and intro_locales ignore non-locale subgoals.
-This is more appropriate for interpretations with 'where'.
+* Methods "unfold_locales" and "intro_locales" ignore non-locale
+subgoals.  This is more appropriate for interpretations with 'where'.
 INCOMPATIBILITY.
-
-* Discontinued unnamed infix syntax (legacy feature for many years) --
-need to specify constant name and syntax separately.  Internal ML
-datatype constructors have been renamed from InfixName to Infix etc.
-Minor INCOMPATIBILITY.
 
 * Command 'example_proof' opens an empty proof body.  This allows to
 experiment with Isar, without producing any persistent result.
@@ -139,23 +152,41 @@ assumptions, which is not possible in Isabelle/Pure.
 * Command 'defaultsort' has been renamed to 'default_sort', it works
 within a local theory context.  Minor INCOMPATIBILITY.
 
-* Raw axioms/defs may no longer carry sort constraints, and raw defs
-may no longer carry premises. User-level specifications are
-transformed accordingly by Thm.add_axiom/add_def.
-
-* Proof terms: Type substitutions on proof constants now use canonical
-order of type variables.  INCOMPATIBILITY for tools working with proof
-terms.
-
-* New operation Thm.unconstrainT eliminates all sort constraints from
-a theorem and proof, introducing explicit OFCLASS-premises. On the
-proof term level, this operation is automatically applied at PThm
-boundaries, such that closed proofs are always free of sort
-constraints. The old (axiomatic) unconstrain operation has been
-discontinued.  INCOMPATIBILITY for tools working with proof terms.
-
 
 *** HOL ***
+
+* Command 'typedef' now works within a local theory context -- without
+introducing dependencies on parameters or assumptions, which is not
+possible in Isabelle/Pure/HOL.  Note that the logical environment may
+contain multiple interpretations of local typedefs (with different
+non-emptiness proofs), even in a global theory context.
+
+* New package for quotient types.  Commands 'quotient_type' and
+'quotient_definition' may be used for defining types and constants by
+quotient constructions.  An example is the type of integers created by
+quotienting pairs of natural numbers:
+  
+  fun
+    intrel :: "(nat * nat) => (nat * nat) => bool" 
+  where
+    "intrel (x, y) (u, v) = (x + v = u + y)"
+
+  quotient_type int = "nat × nat" / intrel
+    by (auto simp add: equivp_def expand_fun_eq)
+  
+  quotient_definition
+    "0::int" is "(0::nat, 0::nat)"
+
+The method "lifting" can be used to lift of theorems from the
+underlying "raw" type to the quotient type.  The example
+src/HOL/Quotient_Examples/FSet.thy includes such a quotient
+construction and provides a reasoning infrastructure for finite sets.
+
+* Renamed Library/Quotient.thy to Library/Quotient_Type.thy to avoid
+clash with new theory Quotient in Main HOL.
+
+* Moved the SMT binding into the main HOL session, eliminating
+separate HOL-SMT session.
 
 * List membership infix mem operation is only an input abbreviation.
 INCOMPATIBILITY.
@@ -177,8 +208,8 @@ INCOMPATIBILITY.
 instead.  INCOMPATIBILITY.
 
 * Dropped several real-specific versions of lemmas about floor and
-ceiling; use the generic lemmas from Archimedean_Field.thy instead.
-INCOMPATIBILITY.
+ceiling; use the generic lemmas from theory "Archimedean_Field"
+instead.  INCOMPATIBILITY.
 
   floor_number_of_eq         ~> floor_number_of
   le_floor_eq_number_of      ~> number_of_le_floor
@@ -218,26 +249,19 @@ application of the various fold combinators on finite sets.
 provides abstract red-black tree type which is backed by "RBT_Impl" as
 implementation.  INCOMPATIBILTY.
 
-* Command 'typedef' now works within a local theory context -- without
-introducing dependencies on parameters or assumptions, which is not
-possible in Isabelle/Pure/HOL.  Note that the logical environment may
-contain multiple interpretations of local typedefs (with different
-non-emptiness proofs), even in a global theory context.
-
 * Theory Library/Coinductive_List has been removed -- superseded by
 AFP/thys/Coinductive.
 
 * Theory PReal, including the type "preal" and related operations, has
 been removed.  INCOMPATIBILITY.
 
-* Split off theory Big_Operators containing setsum, setprod, Inf_fin,
-Sup_fin, Min, Max from theory Finite_Set.  INCOMPATIBILITY.
+* Split off theory "Big_Operators" containing setsum, setprod,
+Inf_fin, Sup_fin, Min, Max from theory Finite_Set.  INCOMPATIBILITY.
 
 * Theory "Rational" renamed to "Rat", for consistency with "Nat",
 "Int" etc.  INCOMPATIBILITY.
 
-* Constant Rat.normalize needs to be qualified.  Minor
-INCOMPATIBILITY.
+* Constant Rat.normalize needs to be qualified.  INCOMPATIBILITY.
 
 * New set of rules "ac_simps" provides combined assoc / commute
 rewrites for all interpretations of the appropriate generic locales.
@@ -295,7 +319,7 @@ lattices):
     ordered_semiring_strict             ~> linordered_semiring_strict
 
   The following slightly odd type classes have been moved to a
-  separate theory Library/Lattice_Algebras.thy:
+  separate theory Library/Lattice_Algebras:
 
     lordered_ab_group_add               ~> lattice_ab_group_add
     lordered_ab_group_add_abs           ~> lattice_ab_group_add_abs
@@ -335,18 +359,16 @@ sets to lattices:
   INTER_fold_inter              ~> INFI_fold_inf
   UNION_fold_union              ~> SUPR_fold_sup
 
-* Theory Complete_Lattice: lemmas top_def and bot_def have been
+* Theory "Complete_Lattice": lemmas top_def and bot_def have been
 replaced by the more convenient lemmas Inf_empty and Sup_empty.
 Dropped lemmas Inf_insert_simp and Sup_insert_simp, which are subsumed
 by Inf_insert and Sup_insert.  Lemmas Inf_UNIV and Sup_UNIV replace
 former Inf_Univ and Sup_Univ.  Lemmas inf_top_right and sup_bot_right
 subsume inf_top and sup_bot respectively.  INCOMPATIBILITY.
 
-* HOLogic.strip_psplit: types are returned in syntactic order, similar
-to other strip and tuple operations.  INCOMPATIBILITY.
-
 * Reorganized theory Multiset: swapped notation of pointwise and
 multiset order:
+
   - pointwise ordering is instance of class order with standard syntax
     <= and <;
   - multiset ordering has syntax <=# and <#; partial order properties
@@ -357,10 +379,13 @@ multiset order:
     generation;
   - use insert_DiffM2 [symmetric] instead of elem_imp_eq_diff_union,
     if needed.
+
 Renamed:
-  multiset_eq_conv_count_eq -> multiset_ext_iff
-  multi_count_ext -> multiset_ext
-  diff_union_inverse2 -> diff_union_cancelR
+
+  multiset_eq_conv_count_eq  ~>  multiset_ext_iff
+  multi_count_ext  ~>  multiset_ext
+  diff_union_inverse2  ~>  diff_union_cancelR
+
 INCOMPATIBILITY.
 
 * Theory Permutation: replaced local "remove" by List.remove1.
@@ -368,9 +393,6 @@ INCOMPATIBILITY.
 * Code generation: ML and OCaml code is decorated with signatures.
 
 * Theory List: added transpose.
-
-* Renamed Library/Quotient.thy to Library/Quotient_Type.thy to avoid
-clash with new theory Quotient in Main HOL.
 
 * Library/Nat_Bijection.thy is a collection of bijective functions
 between nat and other types, which supersedes the older libraries
@@ -452,8 +474,6 @@ Library/Nat_Int_Bij.thy and HOLCF/NatIso.thy.  INCOMPATIBILITY.
     "sharing_depth", and "show_skolems" options.  INCOMPATIBILITY.
   - Removed "nitpick_intro" attribute.  INCOMPATIBILITY.
 
-* Moved the SMT binding into the HOL image.
-
 
 *** HOLCF ***
 
@@ -469,7 +489,7 @@ be reformulated in terms of "foo_take", INCOMPATIBILITY.
 * Most definedness lemmas generated by the domain package (previously
 of the form "x ~= UU ==> foo$x ~= UU") now have an if-and-only-if form
 like "foo$x = UU <-> x = UU", which works better as a simp rule.
-Proof scripts that used definedness lemmas as intro rules may break,
+Proofs that used definedness lemmas as intro rules may break,
 potential INCOMPATIBILITY.
 
 * Induction and casedist rules generated by the domain package now
@@ -513,6 +533,38 @@ Pair, fst, and snd from Isabelle/HOL, INCOMPATIBILITY.
 
 *** ML ***
 
+* Antiquotations for basic formal entities:
+
+    @{class NAME}         -- type class
+    @{class_syntax NAME}  -- syntax representation of the above
+
+    @{type_name NAME}     -- logical type
+    @{type_abbrev NAME}   -- type abbreviation
+    @{nonterminal NAME}   -- type of concrete syntactic category
+    @{type_syntax NAME}   -- syntax representation of any of the above
+
+    @{const_name NAME}    -- logical constant (INCOMPATIBILITY)
+    @{const_abbrev NAME}  -- abbreviated constant
+    @{const_syntax NAME}  -- syntax representation of any of the above
+
+* Antiquotation @{syntax_const NAME} ensures that NAME refers to a raw
+syntax constant (cf. 'syntax' command).
+
+* Antiquotation @{make_string} inlines a function to print arbitrary
+values similar to the ML toplevel.  The result is compiler dependent
+and may fall back on "?" in certain situations.
+
+* Diagnostic commands 'ML_val' and 'ML_command' may refer to
+antiquotations @{Isar.state} and @{Isar.goal}.  This replaces impure
+Isar.state() and Isar.goal(), which belong to the old TTY loop and do
+not work with the asynchronous Isar document model.
+
+* Configuration options now admit dynamic default values, depending on
+the context or even global references.
+
+* SHA1.digest digests strings according to SHA-1 (see RFC 3174).  It
+uses an efficient external library if available (for Poly/ML).
+
 * Renamed some important ML structures, while keeping the old names
 for some time as aliases within the structure Legacy:
 
@@ -541,32 +593,6 @@ needs to be pure.  Functor Theory_Data_PP retains the traditional
 Pretty.pp argument to merge, which is absent in the standard
 Theory_Data version.
 
-* Antiquotations for basic formal entities:
-
-    @{class NAME}         -- type class
-    @{class_syntax NAME}  -- syntax representation of the above
-
-    @{type_name NAME}     -- logical type
-    @{type_abbrev NAME}   -- type abbreviation
-    @{nonterminal NAME}   -- type of concrete syntactic category
-    @{type_syntax NAME}   -- syntax representation of any of the above
-
-    @{const_name NAME}    -- logical constant (INCOMPATIBILITY)
-    @{const_abbrev NAME}  -- abbreviated constant
-    @{const_syntax NAME}  -- syntax representation of any of the above
-
-* Antiquotation @{syntax_const NAME} ensures that NAME refers to a raw
-syntax constant (cf. 'syntax' command).
-
-* Antiquotation @{make_string} inlines a function to print arbitrary
-values similar to the ML toplevel.  The result is compiler dependent
-and may fall back on "?" in certain situations.
-
-* Diagnostic commands 'ML_val' and 'ML_command' may refer to
-antiquotations @{Isar.state} and @{Isar.goal}.  This replaces impure
-Isar.state() and Isar.goal(), which belong to the old TTY loop and do
-not work with the asynchronous Isar document model.
-
 * Sorts.certify_sort and derived "cert" operations for types and terms
 no longer minimize sorts.  Thus certification at the boundary of the
 inference kernel becomes invariant under addition of class relations,
@@ -586,14 +612,16 @@ usual for resolution.  Rare INCOMPATIBILITY.
 to emphasize that these only work in a global situation (which is
 quite rare).
 
-* Configuration options now admit dynamic default values, depending on
-the context or even global references.
-
-* SHA1.digest digests strings according to SHA-1 (see RFC 3174).  It
-uses an efficient external library if available (for Poly/ML).
-
 * Curried take and drop in library.ML; negative length is interpreted
 as infinity (as in chop).  Subtle INCOMPATIBILITY.
+
+* Proof terms: type substitutions on proof constants now use canonical
+order of type variables.  INCOMPATIBILITY for tools working with proof
+terms.
+
+* Raw axioms/defs may no longer carry sort constraints, and raw defs
+may no longer carry premises.  User-level specifications are
+transformed accordingly by Thm.add_axiom/add_def.
 
 
 *** System ***
@@ -3344,6 +3372,8 @@ defined as range of_real; potential INCOMPATIBILITY.
 
 * Real: proper support for ML code generation, including 'quickcheck'.
 Reals are implemented as arbitrary precision rationals.
+
+* Real: new development using Cauchy Sequences.
 
 * Hyperreal: Several constants that previously worked only for the
 reals have been generalized, so they now work over arbitrary vector
