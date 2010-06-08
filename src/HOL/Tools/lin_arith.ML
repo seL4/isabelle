@@ -461,7 +461,7 @@ in
     (* ?P ((?n::nat) mod (number_of ?k)) =
          ((number_of ?k = 0 --> ?P ?n) & (~ (number_of ?k = 0) -->
            (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P j))) *)
-    | (Const ("Divides.div_class.mod", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
+    | (Const ("Divides.div_class.mod", Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)
@@ -493,7 +493,7 @@ in
     (* ?P ((?n::nat) div (number_of ?k)) =
          ((number_of ?k = 0 --> ?P 0) & (~ (number_of ?k = 0) -->
            (ALL i j. j < number_of ?k --> ?n = number_of ?k * i + j --> ?P i))) *)
-    | (Const ("Divides.div_class.div", Type ("fun", [Type ("nat", []), _])), [t1, t2]) =>
+    | (Const ("Divides.div_class.div", Type ("fun", [@{typ nat}, _])), [t1, t2]) =>
       let
         val rev_terms               = rev terms
         val zero                    = Const (@{const_name Groups.zero}, split_type)

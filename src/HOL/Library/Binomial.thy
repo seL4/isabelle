@@ -235,7 +235,7 @@ proof-
     have eq: "insert 0 {1 .. n} = {0..n}" by auto
     have th1: "(\<Prod>n\<in>{1\<Colon>nat..n}. a + of_nat n) =
       (\<Prod>n\<in>{0\<Colon>nat..n - 1}. a + 1 + of_nat n)"
-      apply (rule setprod_reindex_cong[where f = "Suc"])
+      apply (rule setprod_reindex_cong [where f = Suc])
       using n0 by (auto simp add: expand_fun_eq field_simps)
     have ?thesis apply (simp add: pochhammer_def)
     unfolding setprod_insert[OF th0, unfolded eq]

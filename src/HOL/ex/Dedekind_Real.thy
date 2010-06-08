@@ -2006,7 +2006,7 @@ proof (rule ccontr)
 qed
 
 text {*
-  There must be other proofs, e.g. @{text "Suc"} of the largest
+  There must be other proofs, e.g. @{text Suc} of the largest
   integer in the cut representing @{text "x"}.
 *}
 

@@ -11,7 +11,7 @@ begin
 text {*
   When generating code for functions on natural numbers, the
   canonical representation using @{term "0::nat"} and
-  @{term "Suc"} is unsuitable for computations involving large
+  @{term Suc} is unsuitable for computations involving large
   numbers.  The efficiency of the generated code can be improved
   drastically by implementing natural numbers by target-language
   integers.  To do this, just include this theory.
@@ -362,7 +362,7 @@ text {*
   Since natural numbers are implemented
   using integers in ML, the coercion function @{const "of_nat"} of type
   @{typ "nat \<Rightarrow> int"} is simply implemented by the identity function.
-  For the @{const "nat"} function for converting an integer to a natural
+  For the @{const nat} function for converting an integer to a natural
   number, we give a specific implementation using an ML function that
   returns its input value, provided that it is non-negative, and otherwise
   returns @{text "0"}.

@@ -395,7 +395,7 @@ fun has_bool (Type("bool",_)) = true
   since this code expects to be called on a clause form.*)
 val is_conn = member (op =)
     ["Trueprop", "op &", "op |", "op -->", "Not",
-     "All", "Ex", "Ball", "Bex"];
+     "All", "Ex", @{const_name Ball}, @{const_name Bex}];
 
 (*True if the term contains a function--not a logical connective--where the type
   of any argument contains bool.*)

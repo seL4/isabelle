@@ -37,7 +37,7 @@ val allowed_consts =
    @{term "max :: int => _"}, @{term "max :: nat => _"},
    @{term "min :: int => _"}, @{term "min :: nat => _"},
    @{term "uminus :: int => _"}, (*@ {term "uminus :: nat => _"},*)
-   @{term "Not"}, @{term "Suc"},
+   @{term "Not"}, @{term Suc},
    @{term "Ex :: (int => _) => _"}, @{term "Ex :: (nat => _) => _"},
    @{term "All :: (int => _) => _"}, @{term "All :: (nat => _) => _"},
    @{term "nat"}, @{term "int"},
@@ -726,7 +726,7 @@ local
  fun isnum t = case t of 
    Const(@{const_name Groups.zero},_) => true
  | Const(@{const_name Groups.one},_) => true
- | @{term "Suc"}$s => isnum s
+ | @{term Suc}$s => isnum s
  | @{term "nat"}$s => isnum s
  | @{term "int"}$s => isnum s
  | Const(@{const_name Groups.uminus},_)$s => isnum s

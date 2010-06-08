@@ -2031,7 +2031,7 @@ proof-
     done
   also have "\<dots> = setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
     unfolding fps_deriv_nth
-    apply (rule setsum_reindex_cong[where f="Suc"])
+    apply (rule setsum_reindex_cong [where f = Suc])
     by (auto simp add: mult_assoc)
   finally have th0: "(fps_deriv (a oo b))$n = setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}" .
 

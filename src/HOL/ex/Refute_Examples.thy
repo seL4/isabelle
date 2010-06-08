@@ -774,7 +774,7 @@ lemma "P (Suc 0)"
 oops
 
 lemma "P Suc"
-  refute  -- {* @{term "Suc"} is a partial function (regardless of the size
+  refute  -- {* @{term Suc} is a partial function (regardless of the size
                 of the model), hence @{term "P Suc"} is undefined, hence no
                 model will be found *}
 oops

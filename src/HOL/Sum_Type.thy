@@ -17,21 +17,17 @@ definition Inl_Rep :: "'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \
 definition Inr_Rep :: "'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \<Rightarrow> bool" where
   "Inr_Rep b x y p \<longleftrightarrow> y = b \<and> \<not> p"
 
-global
-
-typedef (Sum) ('a, 'b) "+" (infixr "+" 10) = "{f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
+typedef (sum) ('a, 'b) "+" (infixr "+" 10) = "{f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
   by auto
 
-local
+lemma Inl_RepI: "Inl_Rep a \<in> sum"
+  by (auto simp add: sum_def)
 
-lemma Inl_RepI: "Inl_Rep a \<in> Sum"
-  by (auto simp add: Sum_def)
+lemma Inr_RepI: "Inr_Rep b \<in> sum"
+  by (auto simp add: sum_def)
 
-lemma Inr_RepI: "Inr_Rep b \<in> Sum"
-  by (auto simp add: Sum_def)
-
-lemma inj_on_Abs_Sum: "A \<subseteq> Sum \<Longrightarrow> inj_on Abs_Sum A"
-  by (rule inj_on_inverseI, rule Abs_Sum_inverse) auto
+lemma inj_on_Abs_sum: "A \<subseteq> sum \<Longrightarrow> inj_on Abs_sum A"
+  by (rule inj_on_inverseI, rule Abs_sum_inverse) auto
 
 lemma Inl_Rep_inject: "inj_on Inl_Rep A"
 proof (rule inj_onI)
@@ -49,28 +45,28 @@ lemma Inl_Rep_not_Inr_Rep: "Inl_Rep a \<noteq> Inr_Rep b"
   by (auto simp add: Inl_Rep_def Inr_Rep_def expand_fun_eq)
 
 definition Inl :: "'a \<Rightarrow> 'a + 'b" where
-  "Inl = Abs_Sum \<circ> Inl_Rep"
+  "Inl = Abs_sum \<circ> Inl_Rep"
 
 definition Inr :: "'b \<Rightarrow> 'a + 'b" where
-  "Inr = Abs_Sum \<circ> Inr_Rep"
+  "Inr = Abs_sum \<circ> Inr_Rep"
 
 lemma inj_Inl [simp]: "inj_on Inl A"
-by (auto simp add: Inl_def intro!: comp_inj_on Inl_Rep_inject inj_on_Abs_Sum Inl_RepI)
+by (auto simp add: Inl_def intro!: comp_inj_on Inl_Rep_inject inj_on_Abs_sum Inl_RepI)
 
 lemma Inl_inject: "Inl x = Inl y \<Longrightarrow> x = y"
 using inj_Inl by (rule injD)
 
 lemma inj_Inr [simp]: "inj_on Inr A"
-by (auto simp add: Inr_def intro!: comp_inj_on Inr_Rep_inject inj_on_Abs_Sum Inr_RepI)
+by (auto simp add: Inr_def intro!: comp_inj_on Inr_Rep_inject inj_on_Abs_sum Inr_RepI)
 
 lemma Inr_inject: "Inr x = Inr y \<Longrightarrow> x = y"
 using inj_Inr by (rule injD)
 
 lemma Inl_not_Inr: "Inl a \<noteq> Inr b"
 proof -
-  from Inl_RepI [of a] Inr_RepI [of b] have "{Inl_Rep a, Inr_Rep b} \<subseteq> Sum" by auto
-  with inj_on_Abs_Sum have "inj_on Abs_Sum {Inl_Rep a, Inr_Rep b}" .
-  with Inl_Rep_not_Inr_Rep [of a b] inj_on_contraD have "Abs_Sum (Inl_Rep a) \<noteq> Abs_Sum (Inr_Rep b)" by auto
+  from Inl_RepI [of a] Inr_RepI [of b] have "{Inl_Rep a, Inr_Rep b} \<subseteq> sum" by auto
+  with inj_on_Abs_sum have "inj_on Abs_sum {Inl_Rep a, Inr_Rep b}" .
+  with Inl_Rep_not_Inr_Rep [of a b] inj_on_contraD have "Abs_sum (Inl_Rep a) \<noteq> Abs_sum (Inr_Rep b)" by auto
   then show ?thesis by (simp add: Inl_def Inr_def)
 qed
 
@@ -81,10 +77,10 @@ lemma sumE:
   assumes "\<And>x::'a. s = Inl x \<Longrightarrow> P"
     and "\<And>y::'b. s = Inr y \<Longrightarrow> P"
   shows P
-proof (rule Abs_Sum_cases [of s])
+proof (rule Abs_sum_cases [of s])
   fix f 
-  assume "s = Abs_Sum f" and "f \<in> Sum"
-  with assms show P by (auto simp add: Sum_def Inl_def Inr_def)
+  assume "s = Abs_sum f" and "f \<in> sum"
+  with assms show P by (auto simp add: sum_def Inl_def Inr_def)
 qed
 
 rep_datatype (sum) Inl Inr

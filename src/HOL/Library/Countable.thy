@@ -70,7 +70,7 @@ instance "*" :: (countable, countable) countable
 
 text {* Sums *}
 
-instance "+":: (countable, countable) countable
+instance "+" :: (countable, countable) countable
   by (rule countable_classI [of "(\<lambda>x. case x of Inl a \<Rightarrow> to_nat (False, to_nat a)
                                      | Inr b \<Rightarrow> to_nat (True, to_nat b))"])
     (simp split: sum.split_asm)

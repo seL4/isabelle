@@ -770,7 +770,7 @@ proof -
 qed
 
 lemma card_less_Suc2: "0 \<notin> M \<Longrightarrow> card {k. Suc k \<in> M \<and> k < i} = card {k \<in> M. k < Suc i}"
-apply (rule card_bij_eq [of "Suc" _ _ "\<lambda>x. x - Suc 0"])
+apply (rule card_bij_eq [of Suc _ _ "\<lambda>x. x - Suc 0"])
 apply simp
 apply fastsimp
 apply auto

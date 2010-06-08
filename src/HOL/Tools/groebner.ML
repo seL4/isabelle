@@ -698,7 +698,7 @@ fun grobify_equations tm =
 
 val holify_polynomial =
  let fun holify_varpow (v,n) =
-  if n = 1 then v else ring_mk_pow v (Numeral.mk_cnumber @{ctyp "nat"} n)  (* FIXME *)
+  if n = 1 then v else ring_mk_pow v (Numeral.mk_cnumber @{ctyp nat} n)  (* FIXME *)
  fun holify_monomial vars (c,m) =
   let val xps = map holify_varpow (filter (fn (_,n) => n <> 0) (vars ~~ m))
    in end_itlist ring_mk_mul (mk_const c :: xps)
