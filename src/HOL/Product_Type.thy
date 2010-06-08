@@ -788,11 +788,8 @@ hide_const internal_split
 
 subsubsection {* Derived operations *}
 
-global consts
-  curry    :: "('a \<times> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c"
-
-local defs
-  curry_def:    "curry == (%c x y. c (Pair x y))"
+definition curry    :: "('a \<times> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'c" where
+  "curry = (\<lambda>c x y. c (x, y))"
 
 lemma curry_conv [simp, code]: "curry f a b = f (a, b)"
   by (simp add: curry_def)

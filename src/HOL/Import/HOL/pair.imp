@@ -16,7 +16,7 @@ const_maps
   "RPROD" > "HOL4Base.pair.RPROD"
   "LEX" > "HOL4Base.pair.LEX"
   "FST" > "fst"
-  "CURRY" > "curry"
+  "CURRY" > "Product_Type.curry"
   "," > "Pair"
   "##" > "prod_fun"
 

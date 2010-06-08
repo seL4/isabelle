@@ -438,16 +438,16 @@ val strip_psplits =
 
 (* nat *)
 
-val natT = Type ("nat", []);
+val natT = Type ("Nat.nat", []);
 
 val zero = Const ("Groups.zero_class.zero", natT);
 
 fun is_zero (Const ("Groups.zero_class.zero", _)) = true
   | is_zero _ = false;
 
-fun mk_Suc t = Const ("Suc", natT --> natT) $ t;
+fun mk_Suc t = Const ("Nat.Suc", natT --> natT) $ t;
 
-fun dest_Suc (Const ("Suc", _) $ t) = t
+fun dest_Suc (Const ("Nat.Suc", _) $ t) = t
   | dest_Suc t = raise TERM ("dest_Suc", [t]);
 
 val Suc_zero = mk_Suc zero;
@@ -459,7 +459,7 @@ fun mk_nat n =
   in if n < 0 then raise TERM ("mk_nat: negative number", []) else mk n end;
 
 fun dest_nat (Const ("Groups.zero_class.zero", _)) = 0
-  | dest_nat (Const ("Suc", _) $ t) = dest_nat t + 1
+  | dest_nat (Const ("Nat.Suc", _) $ t) = dest_nat t + 1
   | dest_nat t = raise TERM ("dest_nat", [t]);
 
 val class_size = "Nat.size";
