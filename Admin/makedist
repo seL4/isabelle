@@ -145,6 +145,11 @@ rm doc/adaptation.dvi doc/adaptation.pdf doc/architecture.dvi doc/architecture.p
 rm -rf doc-src
 
 mkdir -p contrib
+cat >contrib/README <<EOF
+This directory contains add-on components that contribute to the main
+Isabelle distribution.  Separate licensing conditions apply, see each
+directory individually.
+EOF
 
 cp doc/isabelle*.eps lib/logo
 
