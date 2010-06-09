@@ -200,9 +200,8 @@ tar -czf "$DISTNAME.tar.gz" Isabelle "$DISTNAME"
 mv "$DISTNAME" "${DISTNAME}-old"
 mkdir "$DISTNAME"
 
-mv "${DISTNAME}-old/README" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" \
-  "${DISTNAME}-old/ANNOUNCE" "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" \
-  "$DISTNAME"
+mv "${DISTNAME}-old/README" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" \
+  "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" "$DISTNAME"
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
 

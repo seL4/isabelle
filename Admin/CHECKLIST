@@ -15,7 +15,7 @@ Checklist for official releases
 
 - Admin/update-keywords;
 
-- check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS;
+- check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
 
 - diff NEWS wrt. last official release, which is read-only;
 
