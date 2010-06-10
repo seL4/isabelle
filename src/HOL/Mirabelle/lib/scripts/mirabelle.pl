@@ -63,10 +63,10 @@ $tools
 begin
 
 setup {* 
-  Config.put_thy Mirabelle.logfile "$log_file" #>
-  Config.put_thy Mirabelle.timeout $timeout #>
-  Config.put_thy Mirabelle.start_line $start_line #>
-  Config.put_thy Mirabelle.end_line $end_line
+  Config.put_global Mirabelle.logfile "$log_file" #>
+  Config.put_global Mirabelle.timeout $timeout #>
+  Config.put_global Mirabelle.start_line $start_line #>
+  Config.put_global Mirabelle.end_line $end_line
 *}
 
 END
