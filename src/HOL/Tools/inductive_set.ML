@@ -401,7 +401,7 @@ fun codegen_preproc thy =
       else thm
   in map preproc end;
 
-fun code_ind_att optmod = to_pred_att [] #> InductiveCodegen.add optmod NONE;
+fun code_ind_att optmod = to_pred_att [] #> Inductive_Codegen.add optmod NONE;
 
 
 (**** definition of inductive sets ****)
