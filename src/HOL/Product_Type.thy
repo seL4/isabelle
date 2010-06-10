@@ -9,6 +9,7 @@ theory Product_Type
 imports Typedef Inductive Fun
 uses
   ("Tools/split_rule.ML")
+  ("Tools/inductive_codegen.ML")
   ("Tools/inductive_set.ML")
 begin
 
@@ -128,13 +129,10 @@ subsubsection {* Type definition *}
 definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
   "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
-global
-
-typedef (Prod)
-  ('a, 'b) "*"    (infixr "*" 20)
-    = "{f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
+typedef (prod) ('a, 'b) "*" (infixr "*" 20)
+  = "{f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
 proof
-  fix a b show "Pair_Rep a b \<in> ?Prod"
+  fix a b show "Pair_Rep a b \<in> ?prod"
     by rule+
 qed
 
@@ -143,35 +141,27 @@ type_notation (xsymbols)
 type_notation (HTML output)
   "*"  ("(_ \<times>/ _)" [21, 20] 20)
 
-consts
-  Pair     :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b"
-
-local
-
-defs
-  Pair_def:     "Pair a b == Abs_Prod (Pair_Rep a b)"
+definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
+  "Pair a b = Abs_prod (Pair_Rep a b)"
 
 rep_datatype (prod) Pair proof -
   fix P :: "'a \<times> 'b \<Rightarrow> bool" and p
   assume "\<And>a b. P (Pair a b)"
-  then show "P p" by (cases p) (auto simp add: Prod_def Pair_def Pair_Rep_def)
+  then show "P p" by (cases p) (auto simp add: prod_def Pair_def Pair_Rep_def)
 next
   fix a c :: 'a and b d :: 'b
   have "Pair_Rep a b = Pair_Rep c d \<longleftrightarrow> a = c \<and> b = d"
     by (auto simp add: Pair_Rep_def expand_fun_eq)
-  moreover have "Pair_Rep a b \<in> Prod" and "Pair_Rep c d \<in> Prod"
-    by (auto simp add: Prod_def)
+  moreover have "Pair_Rep a b \<in> prod" and "Pair_Rep c d \<in> prod"
+    by (auto simp add: prod_def)
   ultimately show "Pair a b = Pair c d \<longleftrightarrow> a = c \<and> b = d"
-    by (simp add: Pair_def Abs_Prod_inject)
+    by (simp add: Pair_def Abs_prod_inject)
 qed
 
 
 subsubsection {* Tuple syntax *}
 
-global consts
-  split    :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c"
-
-local defs
+definition split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
   split_prod_case: "split == prod_case"
 
 text {*
@@ -393,13 +383,11 @@ subsubsection {* Fundamental operations and properties *}
 lemma surj_pair [simp]: "EX x y. p = (x, y)"
   by (cases p) simp
 
-global consts
-  fst      :: "'a \<times> 'b \<Rightarrow> 'a"
-  snd      :: "'a \<times> 'b \<Rightarrow> 'b"
+definition fst :: "'a \<times> 'b \<Rightarrow> 'a" where
+  "fst p = (case p of (a, b) \<Rightarrow> a)"
 
-local defs
-  fst_def:      "fst p == case p of (a, b) \<Rightarrow> a"
-  snd_def:      "snd p == case p of (a, b) \<Rightarrow> b"
+definition snd :: "'a \<times> 'b \<Rightarrow> 'b" where
+  "snd p = (case p of (a, b) \<Rightarrow> b)"
 
 lemma fst_conv [simp, code]: "fst (a, b) = a"
   unfolding fst_def by simp
@@ -1188,6 +1176,9 @@ qed simp_all
 
 
 subsection {* Inductively defined sets *}
+
+use "Tools/inductive_codegen.ML"
+setup Inductive_Codegen.setup
 
 use "Tools/inductive_set.ML"
 setup Inductive_Set.setup

@@ -289,42 +289,42 @@ fun is_unit (Const ("Product_Type.Unity", _)) = true
 
 (* prod *)
 
-fun mk_prodT (T1, T2) = Type ("*", [T1, T2]);
+fun mk_prodT (T1, T2) = Type ("Product_Type.*", [T1, T2]);
 
-fun dest_prodT (Type ("*", [T1, T2])) = (T1, T2)
+fun dest_prodT (Type ("Product_Type.*", [T1, T2])) = (T1, T2)
   | dest_prodT T = raise TYPE ("dest_prodT", [T], []);
 
-fun pair_const T1 T2 = Const ("Pair", [T1, T2] ---> mk_prodT (T1, T2));
+fun pair_const T1 T2 = Const ("Product_Type.Pair", [T1, T2] ---> mk_prodT (T1, T2));
 
 fun mk_prod (t1, t2) =
   let val T1 = fastype_of t1 and T2 = fastype_of t2 in
     pair_const T1 T2 $ t1 $ t2
   end;
 
-fun dest_prod (Const ("Pair", _) $ t1 $ t2) = (t1, t2)
+fun dest_prod (Const ("Product_Type.Pair", _) $ t1 $ t2) = (t1, t2)
   | dest_prod t = raise TERM ("dest_prod", [t]);
 
 fun mk_fst p =
   let val pT = fastype_of p in
-    Const ("fst", pT --> fst (dest_prodT pT)) $ p
+    Const ("Product_Type.fst", pT --> fst (dest_prodT pT)) $ p
   end;
 
 fun mk_snd p =
   let val pT = fastype_of p in
-    Const ("snd", pT --> snd (dest_prodT pT)) $ p
+    Const ("Product_Type.snd", pT --> snd (dest_prodT pT)) $ p
   end;
 
 fun split_const (A, B, C) =
-  Const ("split", (A --> B --> C) --> mk_prodT (A, B) --> C);
+  Const ("Product_Type.split", (A --> B --> C) --> mk_prodT (A, B) --> C);
 
 fun mk_split t =
   (case Term.fastype_of t of
     T as (Type ("fun", [A, Type ("fun", [B, C])])) =>
-      Const ("split", T --> mk_prodT (A, B) --> C) $ t
+      Const ("Product_Type.split", T --> mk_prodT (A, B) --> C) $ t
   | _ => raise TERM ("mk_split: bad body type", [t]));
 
 (*Maps the type T1 * ... * Tn to [T1, ..., Tn], however nested*)
-fun flatten_tupleT (Type ("*", [T1, T2])) = flatten_tupleT T1 @ flatten_tupleT T2
+fun flatten_tupleT (Type ("Product_Type.*", [T1, T2])) = flatten_tupleT T1 @ flatten_tupleT T2
   | flatten_tupleT T = [T];
 
 
@@ -334,14 +334,14 @@ fun mk_tupleT [] = unitT
   | mk_tupleT Ts = foldr1 mk_prodT Ts;
 
 fun strip_tupleT (Type ("Product_Type.unit", [])) = []
-  | strip_tupleT (Type ("*", [T1, T2])) = T1 :: strip_tupleT T2
+  | strip_tupleT (Type ("Product_Type.*", [T1, T2])) = T1 :: strip_tupleT T2
   | strip_tupleT T = [T];
 
 fun mk_tuple [] = unit
   | mk_tuple ts = foldr1 mk_prod ts;
 
 fun strip_tuple (Const ("Product_Type.Unity", _)) = []
-  | strip_tuple (Const ("Pair", _) $ t1 $ t2) = t1 :: strip_tuple t2
+  | strip_tuple (Const ("Product_Type.Pair", _) $ t1 $ t2) = t1 :: strip_tuple t2
   | strip_tuple t = [t];
 
 
@@ -367,14 +367,14 @@ fun mk_ptupleT ps =
 fun strip_ptupleT ps =
   let
     fun factors p T = if member (op =) ps p then (case T of
-        Type ("*", [T1, T2]) =>
+        Type ("Product_Type.*", [T1, T2]) =>
           factors (1::p) T1 @ factors (2::p) T2
       | _ => ptuple_err "strip_ptupleT") else [T]
   in factors [] end;
 
 val flat_tupleT_paths =
   let
-    fun factors p (Type ("*", [T1, T2])) =
+    fun factors p (Type ("Product_Type.*", [T1, T2])) =
           p :: factors (1::p) T1 @ factors (2::p) T2
       | factors p _ = []
   in factors [] end;
@@ -383,7 +383,7 @@ fun mk_ptuple ps =
   let
     fun mk p T ts =
       if member (op =) ps p then (case T of
-          Type ("*", [T1, T2]) =>
+          Type ("Product_Type.*", [T1, T2]) =>
             let
               val (t, ts') = mk (1::p) T1 ts;
               val (u, ts'') = mk (2::p) T2 ts'
@@ -395,14 +395,14 @@ fun mk_ptuple ps =
 fun strip_ptuple ps =
   let
     fun dest p t = if member (op =) ps p then (case t of
-        Const ("Pair", _) $ t $ u =>
+        Const ("Product_Type.Pair", _) $ t $ u =>
           dest (1::p) t @ dest (2::p) u
       | _ => ptuple_err "strip_ptuple") else [t]
   in dest [] end;
 
 val flat_tuple_paths =
   let
-    fun factors p (Const ("Pair", _) $ t $ u) =
+    fun factors p (Const ("Product_Type.Pair", _) $ t $ u) =
           p :: factors (1::p) t @ factors (2::p) u
       | factors p _ = []
   in factors [] end;
@@ -414,7 +414,7 @@ fun mk_psplits ps T T3 u =
   let
     fun ap ((p, T) :: pTs) =
           if member (op =) ps p then (case T of
-              Type ("*", [T1, T2]) =>
+              Type ("Product_Type.*", [T1, T2]) =>
                 split_const (T1, T2, map snd pTs ---> T3) $
                   ap ((1::p, T1) :: (2::p, T2) :: pTs)
             | _ => ptuple_err "mk_psplits")
@@ -427,7 +427,7 @@ fun mk_psplits ps T T3 u =
 val strip_psplits =
   let
     fun strip [] qs Ts t = (t, rev Ts, qs)
-      | strip (p :: ps) qs Ts (Const ("split", _) $ t) =
+      | strip (p :: ps) qs Ts (Const ("Product_Type.split", _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) Ts t
       | strip (p :: ps) qs Ts (Abs (s, T, t)) = strip ps qs (T :: Ts) t
       | strip (p :: ps) qs Ts t = strip ps qs
