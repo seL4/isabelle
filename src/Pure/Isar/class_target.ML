@@ -465,8 +465,8 @@ val sanitize_name = (*FIXME*)
     explode #> scan_valids #> implode
   end;
 
-fun type_name "*" = "prod"
-  | type_name "+" = "sum"
+fun type_name "Product_Type.*" = "prod"
+  | type_name "Sum_Type.+" = "sum"
   | type_name s = sanitize_name (Long_Name.base_name s);
 
 fun resort_terms pp algebra consts constraints ts =
