@@ -3,10 +3,10 @@ import
 import_segment "hol4"
 
 type_maps
-  "num" > "nat"
+  "num" > "Nat.nat"
 
 const_maps
-  "SUC" > "Suc"
+  "SUC" > "Nat.Suc"
   "0" > "0" :: "nat"
 
 thm_maps

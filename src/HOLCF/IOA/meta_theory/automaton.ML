@@ -298,7 +298,7 @@ st_type_of thy t = error ("could not extract state type of following automaton t
 (string_of_typ thy t));
 
 fun comp_st_type_of thy [a] = st_type_of thy (aut_type_of thy a) |
-comp_st_type_of thy (a::r) = Type("*",[st_type_of thy (aut_type_of thy a), comp_st_type_of thy r]) |
+comp_st_type_of thy (a::r) = Type(@{type_name "*"},[st_type_of thy (aut_type_of thy a), comp_st_type_of thy r]) |
 comp_st_type_of _ _ = error "empty automaton list";
 
 (* checking consistency of action types (for composition) *)
@@ -387,11 +387,11 @@ in
 thy
 |> Sign.add_consts_i
 [(Binding.name automaton_name,
-Type("*",
-[Type("*",[Type("set",[acttyp]),Type("*",[Type("set",[acttyp]),Type("set",[acttyp])])]),
- Type("*",[Type("set",[st_typ]),
-  Type("*",[Type("set",[Type("*",[st_typ,Type("*",[acttyp,st_typ])])]),
-   Type("*",[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
+Type(@{type_name "*"},
+[Type(@{type_name "*"},[Type("set",[acttyp]),Type(@{type_name "*"},[Type("set",[acttyp]),Type("set",[acttyp])])]),
+ Type(@{type_name "*"},[Type("set",[st_typ]),
+  Type(@{type_name "*"},[Type("set",[Type(@{type_name "*"},[st_typ,Type(@{type_name "*"},[acttyp,st_typ])])]),
+   Type(@{type_name "*"},[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
 ,NoSyn)]
 |> add_defs
 [(automaton_name ^ "_def",
@@ -442,11 +442,11 @@ in
 thy
 |> Sign.add_consts_i
 [(Binding.name automaton_name,
-Type("*",
-[Type("*",[Type("set",[acttyp]),Type("*",[Type("set",[acttyp]),Type("set",[acttyp])])]),
- Type("*",[Type("set",[st_typ]),
-  Type("*",[Type("set",[Type("*",[st_typ,Type("*",[acttyp,st_typ])])]),
-   Type("*",[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
+Type(@{type_name "*"},
+[Type(@{type_name "*"},[Type("set",[acttyp]),Type(@{type_name "*"},[Type("set",[acttyp]),Type("set",[acttyp])])]),
+ Type(@{type_name "*"},[Type("set",[st_typ]),
+  Type(@{type_name "*"},[Type("set",[Type(@{type_name "*"},[st_typ,Type(@{type_name "*"},[acttyp,st_typ])])]),
+   Type(@{type_name "*"},[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
 ,NoSyn)]
 |> add_defs
 [(automaton_name ^ "_def",

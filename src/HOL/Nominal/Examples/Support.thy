@@ -31,7 +31,7 @@ where
 
 text {* An atom is either even or odd. *}
 lemma even_or_odd:
-  fixes n::"nat"
+  fixes n :: nat
   shows "\<exists>i. (n = 2*i) \<or> (n=2*i+1)"
   by (induct n) (presburger)+
 

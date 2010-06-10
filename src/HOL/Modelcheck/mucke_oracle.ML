@@ -832,7 +832,7 @@ let
 
 (* OUTPUT - relevant *)
 (* transforms constructor term to a mucke-suitable output *)
-fun term_OUTPUT sg (Const("Pair",_) $ a $ b) =
+fun term_OUTPUT sg (Const(@{const_name Pair},_) $ a $ b) =
                 (term_OUTPUT sg a) ^ "_I_" ^ (term_OUTPUT sg b) |
 term_OUTPUT sg (a $ b) = (term_OUTPUT sg a) ^ "_I_" ^ (term_OUTPUT sg b) |
 term_OUTPUT sg (Const(s,t)) = post_last_dot s |

@@ -38,9 +38,9 @@ type_maps
   bool > bool
   fun > fun
   N_1 >  Product_Type.unit
-  prod > "*"
-  num > nat
-  sum > "+"
+  prod > "Product_Type.*"
+  num > Nat.nat
+  sum > "Sum_Type.+"
 (*  option > Datatype.option*);
 
 const_renames

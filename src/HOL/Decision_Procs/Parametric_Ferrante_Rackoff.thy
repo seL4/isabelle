@@ -2964,7 +2964,7 @@ fun eqt rT = Const("op =",rrT rT);
 fun rz rT = Const(@{const_name Groups.zero},rT);
 
 fun dest_nat t = case t of
-  Const ("Suc",_)$t' => 1 + dest_nat t'
+  Const (@{const_name Suc}, _) $ t' => 1 + dest_nat t'
 | _ => (snd o HOLogic.dest_number) t;
 
 fun num_of_term m t = 

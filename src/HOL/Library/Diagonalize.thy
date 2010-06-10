@@ -81,7 +81,7 @@ apply (simp add: strict_mono_less_eq [OF sum_strict_mono, symmetric, of m n])
 done
 
 
-subsection {* Diagonalization: an injective embedding of two @{typ "nat"}s to one @{typ "nat"} *}
+subsection {* Diagonalization: an injective embedding of two @{typ nat}s to one @{typ nat} *}
 
 definition diagonalize :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
   "diagonalize m n = sum (m + n) + m"

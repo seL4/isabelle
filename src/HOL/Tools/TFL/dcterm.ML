@@ -129,7 +129,7 @@ fun dest_binder expected tm =
 
 
 val dest_neg    = dest_monop "not"
-val dest_pair   = dest_binop "Pair";
+val dest_pair   = dest_binop @{const_name Pair};
 val dest_eq     = dest_binop "op ="
 val dest_imp    = dest_binop "op -->"
 val dest_conj   = dest_binop "op &"

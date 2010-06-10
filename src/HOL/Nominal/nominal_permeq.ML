@@ -103,7 +103,7 @@ fun perm_simproc_app' sg ss redex =
     case redex of 
         (* case pi o (f x) == (pi o f) (pi o x)          *)
         (Const("Nominal.perm",
-          Type("fun",[Type("List.list",[Type("*",[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
+          Type("fun",[Type("List.list",[Type(@{type_name "*"},[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
             (if (applicable_app f) then
               let
                 val name = Long_Name.base_name n
@@ -190,8 +190,8 @@ val eqvt_asm_full_simp_tac_i = eqvt_simp_tac_gen_i asm_full_simp_tac
 fun perm_compose_simproc' sg ss redex =
   (case redex of
      (Const ("Nominal.perm", Type ("fun", [Type ("List.list", 
-       [Type ("*", [T as Type (tname,_),_])]),_])) $ pi1 $ (Const ("Nominal.perm", 
-         Type ("fun", [Type ("List.list", [Type ("*", [U as Type (uname,_),_])]),_])) $ 
+       [Type (@{type_name "*"}, [T as Type (tname,_),_])]),_])) $ pi1 $ (Const ("Nominal.perm", 
+         Type ("fun", [Type ("List.list", [Type (@{type_name "*"}, [U as Type (uname,_),_])]),_])) $ 
           pi2 $ t)) =>
     let
       val tname' = Long_Name.base_name tname

@@ -14,7 +14,7 @@ sig
   val quickcheck_setup : theory -> theory
 end;
 
-structure InductiveCodegen : INDUCTIVE_CODEGEN =
+structure Inductive_Codegen : INDUCTIVE_CODEGEN =
 struct
 
 open Codegen;
@@ -41,7 +41,7 @@ structure CodegenData = Theory_Data
 );
 
 
-fun warn thm = warning ("InductiveCodegen: Not a proper clause:\n" ^
+fun warn thm = warning ("Inductive_Codegen: Not a proper clause:\n" ^
   Display.string_of_thm_without_context thm);
 
 fun add_node x g = Graph.new_node (x, ()) g handle Graph.DUP _ => g;
@@ -324,7 +324,7 @@ fun distinct_v (Var ((s, 0), T)) nvs =
   | distinct_v t nvs = (t, nvs);
 
 fun is_exhaustive (Var _) = true
-  | is_exhaustive (Const ("Pair", _) $ t $ u) =
+  | is_exhaustive (Const (@{const_name Pair}, _) $ t $ u) =
       is_exhaustive t andalso is_exhaustive u
   | is_exhaustive _ = false;
 
@@ -569,7 +569,7 @@ fun mk_extra_defs thy defs gr dep names module ts =
 and mk_ind_def thy defs gr dep names module modecs intrs nparms =
   add_edge_acyclic (hd names, dep) gr handle
     Graph.CYCLES (xs :: _) =>
-      error ("InductiveCodegen: illegal cyclic dependencies:\n" ^ commas xs)
+      error ("Inductive_Codegen: illegal cyclic dependencies:\n" ^ commas xs)
   | Graph.UNDEF _ =>
     let
       val _ $ u = Logic.strip_imp_concl (hd intrs);
@@ -825,7 +825,7 @@ fun test_term ctxt report t =
     val s = "structure TestTerm =\nstruct\n\n" ^
       cat_lines (map snd code) ^
       "\nopen Generated;\n\n" ^ string_of
-        (Pretty.block [str "val () = InductiveCodegen.test_fn :=",
+        (Pretty.block [str "val () = Inductive_Codegen.test_fn :=",
           Pretty.brk 1, str "(fn p =>", Pretty.brk 1,
           str "case Seq.pull (testf p) of", Pretty.brk 1,
           str "SOME ", mk_tuple [mk_tuple (map (str o fst) args'), str "_"],

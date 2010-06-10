@@ -151,17 +151,11 @@ notation (xsymbols)
   supset_eq  ("op \<supseteq>") and
   supset_eq  ("(_/ \<supseteq> _)" [50, 51] 50)
 
-global
+definition Ball :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "Ball A P \<longleftrightarrow> (\<forall>x. x \<in> A \<longrightarrow> P x)"   -- "bounded universal quantifiers"
 
-consts
-  Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
-  Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
-
-local
-
-defs
-  Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
-  Bex_def:      "Bex A P        == EX x. x:A & P(x)"
+definition Bex :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
+  "Bex A P \<longleftrightarrow> (\<exists>x. x \<in> A \<and> P x)"   -- "bounded existential quantifiers"
 
 syntax
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)

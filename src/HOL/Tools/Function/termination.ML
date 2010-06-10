@@ -106,7 +106,7 @@ fun mk_skel ps =
   end
 
 (* compute list of types for nodes *)
-fun node_types sk T = dest_tree (fn Type ("+", [LT, RT]) => (LT, RT)) sk T |> map snd
+fun node_types sk T = dest_tree (fn Type (@{type_name "+"}, [LT, RT]) => (LT, RT)) sk T |> map snd
 
 (* find index and raw term *)
 fun dest_inj (SLeaf i) trm = (i, trm)
@@ -148,7 +148,7 @@ fun mk_sum_skel rel =
     val cs = Function_Lib.dest_binop_list @{const_name Lattices.sup} rel
     fun collect_pats (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
       let
-        val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const ("Pair", _) $ r $ l)) $ _)
+        val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ _)
           = Term.strip_qnt_body "Ex" c
       in cons r o cons l end
   in
@@ -185,7 +185,7 @@ fun dest_call D (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
     val vs = Term.strip_qnt_vars "Ex" c
 
     (* FIXME: throw error "dest_call" for malformed terms *)
-    val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const ("Pair", _) $ r $ l)) $ Gam)
+    val (Const ("op &", _) $ (Const ("op =", _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ Gam)
       = Term.strip_qnt_body "Ex" c
     val (p, l') = dest_inj sk l
     val (q, r') = dest_inj sk r

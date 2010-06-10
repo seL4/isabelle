@@ -97,7 +97,7 @@ fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])
 
 (*Split up a sum into the list of its constituent terms, on the way removing any
   Sucs and counting them.*)
-fun dest_Suc_sum (Const ("Suc", _) $ t, (k,ts)) = dest_Suc_sum (t, (k+1,ts))
+fun dest_Suc_sum (Const (@{const_name Suc}, _) $ t, (k,ts)) = dest_Suc_sum (t, (k+1,ts))
   | dest_Suc_sum (t, (k,ts)) = 
       let val (t1,t2) = dest_plus t
       in  dest_Suc_sum (t1, dest_Suc_sum (t2, (k,ts)))  end

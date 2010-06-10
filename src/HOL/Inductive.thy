@@ -9,7 +9,6 @@ imports Complete_Lattice
 uses
   ("Tools/inductive.ML")
   "Tools/dseq.ML"
-  ("Tools/inductive_codegen.ML")
   "Tools/Datatype/datatype_aux.ML"
   "Tools/Datatype/datatype_prop.ML"
   "Tools/Datatype/datatype_case.ML"
@@ -285,9 +284,6 @@ setup Datatype_Codegen.setup
 
 use "Tools/old_primrec.ML"
 use "Tools/primrec.ML"
-
-use "Tools/inductive_codegen.ML"
-setup InductiveCodegen.setup
 
 text{* Lambda-abstractions with pattern matching: *}
 

@@ -117,7 +117,7 @@ fun mk_fun_comp (t, u) =
   end;
 
 fun dest_randomT (Type ("fun", [@{typ Random.seed},
-  Type ("*", [Type ("*", [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
+  Type (@{type_name "*"}, [Type (@{type_name "*"}, [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
   | dest_randomT T = raise TYPE ("dest_randomT", [T], [])
 
 fun mk_tracing s t =
@@ -467,7 +467,7 @@ fun import_intros inp_pred [] ctxt =
 
 (* generation of case rules from user-given introduction rules *)
 
-fun mk_args2 (Type ("*", [T1, T2])) st =
+fun mk_args2 (Type (@{type_name "*"}, [T1, T2])) st =
     let
       val (t1, st') = mk_args2 T1 st
       val (t2, st'') = mk_args2 T2 st'
@@ -1099,7 +1099,7 @@ fun is_all_input mode =
 fun all_input_of T =
   let
     val (Ts, U) = strip_type T
-    fun input_of (Type ("*", [T1, T2])) = Pair (input_of T1, input_of T2)
+    fun input_of (Type (@{type_name "*"}, [T1, T2])) = Pair (input_of T1, input_of T2)
       | input_of _ = Input
   in
     if U = HOLogic.boolT then
@@ -1190,7 +1190,7 @@ fun is_constructable vs t = forall (member (op =) vs) (term_vs t)
 
 fun missing_vars vs t = subtract (op =) vs (term_vs t)
 
-fun output_terms (Const ("Pair", _) $ t1 $ t2, Mode_Pair (d1, d2)) =
+fun output_terms (Const (@{const_name Pair}, _) $ t1 $ t2, Mode_Pair (d1, d2)) =
     output_terms (t1, d1)  @ output_terms (t2, d2)
   | output_terms (t1 $ t2, Mode_App (d1, d2)) =
     output_terms (t1, d1)  @ output_terms (t2, d2)
@@ -1206,7 +1206,7 @@ fun lookup_mode modes (Const (s, T)) =
       SOME ms => SOME (map (fn m => (Context m , [])) ms)
     | NONE => NONE)
 
-fun derivations_of (ctxt : Proof.context) modes vs (Const ("Pair", _) $ t1 $ t2) (Pair (m1, m2)) =
+fun derivations_of (ctxt : Proof.context) modes vs (Const (@{const_name Pair}, _) $ t1 $ t2) (Pair (m1, m2)) =
     map_product
       (fn (m1, mvars1) => fn (m2, mvars2) => (Mode_Pair (m1, m2), union (op =) mvars1 mvars2))
         (derivations_of ctxt modes vs t1 m1) (derivations_of ctxt modes vs t2 m2)
@@ -1236,7 +1236,7 @@ fun derivations_of (ctxt : Proof.context) modes vs (Const ("Pair", _) $ t1 $ t2)
     else if eq_mode (m, Output) then
       (if is_possible_output ctxt vs t then [(Term Output, [])] else [])
     else []
-and all_derivations_of ctxt modes vs (Const ("Pair", _) $ t1 $ t2) =
+and all_derivations_of ctxt modes vs (Const (@{const_name Pair}, _) $ t1 $ t2) =
   let
     val derivs1 = all_derivations_of ctxt modes vs t1
     val derivs2 = all_derivations_of ctxt modes vs t2
@@ -1665,7 +1665,7 @@ fun string_of_tderiv ctxt (t, deriv) =
   (case (t, deriv) of
     (t1 $ t2, Mode_App (deriv1, deriv2)) =>
       string_of_tderiv ctxt (t1, deriv1) ^ " $ " ^ string_of_tderiv ctxt (t2, deriv2)
-  | (Const ("Pair", _) $ t1 $ t2, Mode_Pair (deriv1, deriv2)) =>
+  | (Const (@{const_name Pair}, _) $ t1 $ t2, Mode_Pair (deriv1, deriv2)) =>
     "(" ^ string_of_tderiv ctxt (t1, deriv1) ^ ", " ^ string_of_tderiv ctxt (t2, deriv2) ^ ")"
   | (t, Term Input) => Syntax.string_of_term ctxt t ^ "[Input]"
   | (t, Term Output) => Syntax.string_of_term ctxt t ^ "[Output]"
@@ -1692,7 +1692,7 @@ fun compile_expr compilation_modifiers ctxt (t, deriv) additional_arguments =
           val bs = map (pair "x") (binder_types (fastype_of t))
           val bounds = map Bound (rev (0 upto (length bs) - 1))
         in SOME (list_abs (bs, mk_if compfuns (list_comb (t, bounds)))) end
-      | (Const ("Pair", _) $ t1 $ t2, Mode_Pair (d1, d2)) =>
+      | (Const (@{const_name Pair}, _) $ t1 $ t2, Mode_Pair (d1, d2)) =>
         (case (expr_of (t1, d1), expr_of (t2, d2)) of
           (NONE, NONE) => NONE
         | (NONE, SOME t) => SOME t
@@ -2010,7 +2010,7 @@ fun print_arities arities = tracing ("Arities:\n" ^
         (ks @ [SOME k]))) arities));
 
 fun split_lambda (x as Free _) t = lambda x t
-  | split_lambda (Const ("Pair", _) $ t1 $ t2) t =
+  | split_lambda (Const (@{const_name Pair}, _) $ t1 $ t2) t =
     HOLogic.mk_split (split_lambda t1 (split_lambda t2 t))
   | split_lambda (Const ("Product_Type.Unity", _)) t = Abs ("x", HOLogic.unitT, t)
   | split_lambda t _ = raise (TERM ("split_lambda", [t]))
@@ -2019,7 +2019,7 @@ fun strip_split_abs (Const (@{const_name split}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 
-fun mk_args is_eval (m as Pair (m1, m2), T as Type ("*", [T1, T2])) names =
+fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name "*"}, [T1, T2])) names =
     if eq_mode (m, Input) orelse eq_mode (m, Output) then
       let
         val x = Name.variant names "x"
@@ -3112,7 +3112,7 @@ fun analyze_compr ctxt compfuns param_user_modes (compilation, arguments) t_comp
   in
     if defined_functions compilation ctxt name then
       let
-        fun extract_mode (Const ("Pair", _) $ t1 $ t2) = Pair (extract_mode t1, extract_mode t2)
+        fun extract_mode (Const (@{const_name Pair}, _) $ t1 $ t2) = Pair (extract_mode t1, extract_mode t2)
           | extract_mode (Free (x, _)) = if member (op =) output_names x then Output else Input
           | extract_mode _ = Input
         val user_mode = fold_rev (curry Fun) (map extract_mode all_args) Bool

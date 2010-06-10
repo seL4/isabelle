@@ -543,7 +543,7 @@ fun create_nom_typedecls ak_names thy =
         |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
         |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
         |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
-        |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
+        |> AxClass.prove_arity (@{type_name "*"},[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
         |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                     (pt_proof pt_thm_nprod)
         |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
@@ -604,7 +604,7 @@ fun create_nom_typedecls ak_names thy =
         in 
          thy
          |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (fs_proof fs_thm_unit) 
-         |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
+         |> AxClass.prove_arity (@{type_name "*"},[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
          |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                      (fs_proof fs_thm_nprod) 
          |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
@@ -686,7 +686,7 @@ fun create_nom_typedecls ak_names thy =
         in
          thy'
          |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
-         |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
+         |> AxClass.prove_arity (@{type_name "*"}, [[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
          |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
          |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
          |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)

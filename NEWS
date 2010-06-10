@@ -4,6 +4,26 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Some previously unqualified names have been qualified:
+
+  types
+    nat ~> Nat.nat
+    * ~> Product_Type,*
+    + ~> Sum_Type.+
+
+  constants
+    Ball ~> Set.Ball
+    Bex ~> Set.Bex
+    Suc ~> Nat.Suc
+    Pair ~> Product_Type.Pair
+    fst ~> Product_Type.fst
+    snd ~> Product_Type.snd
+    split ~> Product_Type.split
+    curry ~> Product_Type.curry
+
+INCOMPATIBILITY.
 
 
 New in Isabelle2009-2 (June 2010)

@@ -657,14 +657,14 @@ val specialize_type = Sledgehammer_Util.specialize_type
       (* other optimizations *)
       | Const (@{const_name Finite_Set.card}, _) => t
       | Const (@{const_name Finite_Set.finite}, _) => t
-      | Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
-      | Const (@{const_name Groups.plus}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const (@{const_name Groups.minus}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const (@{const_name Groups.times}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
+      | Const (@{const_name Orderings.less}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, Type ("bool", [])])])) => t
+      | Const (@{const_name Groups.plus}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) => t
+      | Const (@{const_name Groups.minus}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) => t
+      | Const (@{const_name Groups.times}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) => t
       | Const (@{const_name List.append}, _) => t
 (* UNSOUND
       | Const (@{const_name lfp}, _) => t
@@ -834,17 +834,17 @@ val specialize_type = Sledgehammer_Util.specialize_type
       | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms T axs
       | Const (@{const_name Finite_Set.finite}, T) =>
         collect_type_axioms T axs
-      | Const (@{const_name Orderings.less}, T as Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
+      | Const (@{const_name Orderings.less}, T as Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, Type ("bool", [])])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Groups.plus}, T as Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+      | Const (@{const_name Groups.plus}, T as Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Groups.minus}, T as Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+      | Const (@{const_name Groups.minus}, T as Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
           collect_type_axioms T axs
-      | Const (@{const_name Groups.times}, T as Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+      | Const (@{const_name Groups.times}, T as Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
           collect_type_axioms T axs
       | Const (@{const_name List.append}, T) => collect_type_axioms T axs
 (* UNSOUND
@@ -2654,7 +2654,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
     case t of
       Const (@{const_name Finite_Set.card},
         Type ("fun", [Type ("fun", [T, Type ("bool", [])]),
-                      Type ("nat", [])])) =>
+                      @{typ nat}])) =>
       let
         (* interpretation -> int *)
         fun number_of_elements (Node xs) =
@@ -2670,7 +2670,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
           | number_of_elements (Leaf _) =
           raise REFUTE ("Finite_Set_card_interpreter",
             "interpretation for set type is a leaf")
-        val size_of_nat = size_of_type thy model (Type ("nat", []))
+        val size_of_nat = size_of_type thy model (@{typ nat})
         (* takes an interpretation for a set and returns an interpretation *)
         (* for a 'nat' denoting the set's cardinality                      *)
         (* interpretation -> interpretation *)
@@ -2730,10 +2730,10 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Nat_less_interpreter thy model args t =
     case t of
-      Const (@{const_name Orderings.less}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
+      Const (@{const_name Orderings.less}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, Type ("bool", [])])])) =>
       let
-        val size_of_nat = size_of_type thy model (Type ("nat", []))
+        val size_of_nat = size_of_type thy model (@{typ nat})
         (* the 'n'-th nat is not less than the first 'n' nats, while it *)
         (* is less than the remaining 'size_of_nat - n' nats            *)
         (* int -> interpretation *)
@@ -2753,10 +2753,10 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Nat_plus_interpreter thy model args t =
     case t of
-      Const (@{const_name Groups.plus}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+      Const (@{const_name Groups.plus}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
       let
-        val size_of_nat = size_of_type thy model (Type ("nat", []))
+        val size_of_nat = size_of_type thy model (@{typ nat})
         (* int -> int -> interpretation *)
         fun plus m n =
           let
@@ -2784,10 +2784,10 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Nat_minus_interpreter thy model args t =
     case t of
-      Const (@{const_name Groups.minus}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+      Const (@{const_name Groups.minus}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
       let
-        val size_of_nat = size_of_type thy model (Type ("nat", []))
+        val size_of_nat = size_of_type thy model (@{typ nat})
         (* int -> int -> interpretation *)
         fun minus m n =
           let
@@ -2812,10 +2812,10 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Nat_times_interpreter thy model args t =
     case t of
-      Const (@{const_name Groups.times}, Type ("fun", [Type ("nat", []),
-        Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
+      Const (@{const_name Groups.times}, Type ("fun", [@{typ nat},
+        Type ("fun", [@{typ nat}, @{typ nat}])])) =>
       let
-        val size_of_nat = size_of_type thy model (Type ("nat", []))
+        val size_of_nat = size_of_type thy model (@{typ nat})
         (* nat -> nat -> interpretation *)
         fun mult m n =
           let
@@ -3050,7 +3050,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Product_Type_fst_interpreter thy model args t =
     case t of
-      Const (@{const_name fst}, Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const (@{const_name fst}, Type ("fun", [Type (@{type_name "*"}, [T, U]), _])) =>
       let
         val constants_T = make_constants thy model T
         val size_U      = size_of_type thy model U
@@ -3069,7 +3069,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Product_Type_snd_interpreter thy model args t =
     case t of
-      Const (@{const_name snd}, Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const (@{const_name snd}, Type ("fun", [Type (@{type_name "*"}, [T, U]), _])) =>
       let
         val size_T      = size_of_type thy model T
         val constants_U = make_constants thy model U
@@ -3279,8 +3279,8 @@ val specialize_type = Sledgehammer_Util.specialize_type
      add_interpreter "lfp" lfp_interpreter #>
      add_interpreter "gfp" gfp_interpreter #>
 *)
-     add_interpreter "fst" Product_Type_fst_interpreter #>
-     add_interpreter "snd" Product_Type_snd_interpreter #>
+     add_interpreter "Product_Type.fst" Product_Type_fst_interpreter #>
+     add_interpreter "Product_Type.snd" Product_Type_snd_interpreter #>
      add_printer "stlc" stlc_printer #>
      add_printer "IDT"  IDT_printer;
 

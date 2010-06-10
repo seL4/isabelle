@@ -103,7 +103,7 @@ fun get_pi t thy =
   let fun get_pi_aux s =
         (case s of
           (Const (@{const_name "perm"} ,typrm) $
-             (Var (pi,typi as Type(@{type_name "list"}, [Type ("*", [Type (tyatm,[]),_])]))) $
+             (Var (pi,typi as Type(@{type_name "list"}, [Type (@{type_name "*"}, [Type (tyatm,[]),_])]))) $
                (Var (n,ty))) =>
              let
                 (* FIXME: this should be an operation the library *)

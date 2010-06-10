@@ -24,7 +24,7 @@ fun tupled_lambda vars t =
   case vars of
     (Free v) => lambda (Free v) t
   | (Var v) => lambda (Var v) t
-  | (Const ("Pair", Type ("fun", [Ta, Type ("fun", [Tb, _])]))) $ us $ vs =>
+  | (Const (@{const_name Pair}, Type ("fun", [Ta, Type ("fun", [Tb, _])]))) $ us $ vs =>
       (HOLogic.split_const (Ta,Tb, fastype_of t)) $ (tupled_lambda us (tupled_lambda vs t))
   | _ => raise Match
 

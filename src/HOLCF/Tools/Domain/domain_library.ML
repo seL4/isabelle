@@ -215,7 +215,7 @@ fun prj _  _  x (   _::[]) _ = x
   | prj _  _  _ []         _ = raise Fail "Domain_Library.prj: empty list"
   | prj f1 _  x (_::y::ys) 0 = f1 x y
   | prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
-fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
+fun proj x = prj (fn S => K (%%: @{const_name fst} $ S)) (fn S => K (%%: @{const_name snd} $ S)) x;
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
 val UU = %%: @{const_name UU};

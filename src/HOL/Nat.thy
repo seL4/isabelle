@@ -39,16 +39,11 @@ where
     Zero_RepI: "Nat Zero_Rep"
   | Suc_RepI: "Nat i \<Longrightarrow> Nat (Suc_Rep i)"
 
-global
-
-typedef (open Nat)
-  nat = Nat
+typedef (open Nat) nat = Nat
   by (rule exI, unfold mem_def, rule Nat.Zero_RepI)
 
 definition Suc :: "nat => nat" where
-  Suc_def: "Suc == (%n. Abs_Nat (Suc_Rep (Rep_Nat n)))"
-
-local
+  "Suc n = Abs_Nat (Suc_Rep (Rep_Nat n))"
 
 instantiation nat :: zero
 begin
@@ -1457,8 +1452,7 @@ by(blast intro: less_asym' lift_Suc_mono_less[of f]
 end
 
 lemma mono_iff_le_Suc: "mono f = (\<forall>n. f n \<le> f (Suc n))"
-unfolding mono_def
-by (auto intro:lift_Suc_mono_le[of f])
+  unfolding mono_def by (auto intro: lift_Suc_mono_le [of f])
 
 lemma mono_nat_linear_lb:
   "(!!m n::nat. m<n \<Longrightarrow> f m < f n) \<Longrightarrow> f(m)+k \<le> f(m+k)"

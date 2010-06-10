@@ -197,7 +197,7 @@ fun prod_ty ty1 ty2 = HOLogic.mk_prodT (ty1,ty2);
 local
 fun mk_uncurry (xt, yt, zt) =
     Const(@{const_name split}, (xt --> yt --> zt) --> prod_ty xt yt --> zt)
-fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
+fun dest_pair(Const(@{const_name Pair},_) $ M $ N) = {fst=M, snd=N}
   | dest_pair _ = raise USYN_ERR "dest_pair" "not a pair"
 fun is_var (Var _) = true | is_var (Free _) = true | is_var _ = false
 in
@@ -268,11 +268,11 @@ fun dest_disj(Const("op |",_) $ M $ N) = {disj1=M, disj2=N}
 fun mk_pair{fst,snd} =
    let val ty1 = type_of fst
        val ty2 = type_of snd
-       val c = Const("Pair",ty1 --> ty2 --> prod_ty ty1 ty2)
+       val c = Const(@{const_name Pair},ty1 --> ty2 --> prod_ty ty1 ty2)
    in list_comb(c,[fst,snd])
    end;
 
-fun dest_pair(Const("Pair",_) $ M $ N) = {fst=M, snd=N}
+fun dest_pair(Const(@{const_name Pair},_) $ M $ N) = {fst=M, snd=N}
   | dest_pair _ = raise USYN_ERR "dest_pair" "not a pair";
 
 
@@ -372,7 +372,7 @@ fun strip_disj w =
 (* Miscellaneous *)
 
 fun mk_vstruct ty V =
-  let fun follow_prod_type (Type("*",[ty1,ty2])) vs =
+  let fun follow_prod_type (Type(@{type_name "*"},[ty1,ty2])) vs =
               let val (ltm,vs1) = follow_prod_type ty1 vs
                   val (rtm,vs2) = follow_prod_type ty2 vs1
               in (mk_pair{fst=ltm, snd=rtm}, vs2) end
@@ -393,7 +393,7 @@ fun find_term p =
 
 fun dest_relation tm =
    if (type_of tm = HOLogic.boolT)
-   then let val (Const("op :",_) $ (Const("Pair",_)$y$x) $ R) = tm
+   then let val (Const("op :",_) $ (Const(@{const_name Pair},_)$y$x) $ R) = tm
         in (R,y,x)
         end handle Bind => raise USYN_ERR "dest_relation" "unexpected term structure"
    else raise USYN_ERR "dest_relation" "not a boolean term";
