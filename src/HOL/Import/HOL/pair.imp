@@ -7,17 +7,17 @@ def_maps
   "LEX" > "LEX_def"
 
 type_maps
-  "prod" > "*"
+  "prod" > "Product_Type.*"
 
 const_maps
-  "pair_case" > "split"
-  "UNCURRY" > "split"
-  "SND" > "snd"
+  "pair_case" > "Product_Type.split"
+  "UNCURRY" > "Product_Type.split"
+  "FST" > "Product_Type.fst"
+  "SND" > "Product_Type.snd"
   "RPROD" > "HOL4Base.pair.RPROD"
   "LEX" > "HOL4Base.pair.LEX"
-  "FST" > "fst"
   "CURRY" > "Product_Type.curry"
-  "," > "Pair"
+  "," > "Product_Type.Pair"
   "##" > "prod_fun"
 
 thm_maps

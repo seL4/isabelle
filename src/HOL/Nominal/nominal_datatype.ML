@@ -121,7 +121,7 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 val dj_cp = thm "dj_cp";
 
-fun dest_permT (Type ("fun", [Type ("List.list", [Type ("*", [T, _])]),
+fun dest_permT (Type ("fun", [Type ("List.list", [Type (@{type_name "*"}, [T, _])]),
       Type ("fun", [_, U])])) = (T, U);
 
 fun permTs_of (Const ("Nominal.perm", T) $ t $ u) = fst (dest_permT T) :: permTs_of u

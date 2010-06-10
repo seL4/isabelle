@@ -41,9 +41,9 @@ fun mk_bodyC []      = HOLogic.unit
                else let val (n, T) = dest_Free x ;
                         val z = mk_bodyC xs;
                         val T2 = case z of Free(_, T) => T
-                                         | Const ("Pair", Type ("fun", [_, Type
+                                         | Const (@{const_name Pair}, Type ("fun", [_, Type
                                             ("fun", [_, T])])) $ _ $ _ => T;
-                 in Const ("Pair", [T, T2] ---> mk_prodT (T, T2)) $ x $ z end;
+                 in Const (@{const_name Pair}, [T, T2] ---> mk_prodT (T, T2)) $ x $ z end;
 
 (** maps a subgoal of the form:
         VARS x1 ... xn {._.} _ {._.} or to [x1,...,xn]**)

@@ -3440,7 +3440,7 @@ ML {*
 
   fun dest_float (@{const "Float"} $ m $ e) = (snd (HOLogic.dest_number m), snd (HOLogic.dest_number e))
   fun dest_ivl (Const (@{const_name "Some"}, _) $
-                (Const (@{const_name "Pair"}, _) $ u $ l)) = SOME (dest_float u, dest_float l)
+                (Const (@{const_name Pair}, _) $ u $ l)) = SOME (dest_float u, dest_float l)
     | dest_ivl (Const (@{const_name "None"}, _)) = NONE
     | dest_ivl t = raise TERM ("dest_result", [t])
 

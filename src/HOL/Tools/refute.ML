@@ -3050,7 +3050,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Product_Type_fst_interpreter thy model args t =
     case t of
-      Const (@{const_name fst}, Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const (@{const_name fst}, Type ("fun", [Type (@{type_name "*"}, [T, U]), _])) =>
       let
         val constants_T = make_constants thy model T
         val size_U      = size_of_type thy model U
@@ -3069,7 +3069,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Product_Type_snd_interpreter thy model args t =
     case t of
-      Const (@{const_name snd}, Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const (@{const_name snd}, Type ("fun", [Type (@{type_name "*"}, [T, U]), _])) =>
       let
         val size_T      = size_of_type thy model T
         val constants_U = make_constants thy model U
@@ -3279,8 +3279,8 @@ val specialize_type = Sledgehammer_Util.specialize_type
      add_interpreter "lfp" lfp_interpreter #>
      add_interpreter "gfp" gfp_interpreter #>
 *)
-     add_interpreter "fst" Product_Type_fst_interpreter #>
-     add_interpreter "snd" Product_Type_snd_interpreter #>
+     add_interpreter "Product_Type.fst" Product_Type_fst_interpreter #>
+     add_interpreter "Product_Type.snd" Product_Type_snd_interpreter #>
      add_printer "stlc" stlc_printer #>
      add_printer "IDT"  IDT_printer;
 

@@ -179,7 +179,7 @@ local
           then copy_of_dtyp map_tab
                  mk_take (dtyp_of arg) ` (%# arg)
           else (%# arg);
-      val lhs = (dc_take dname $ (%%:"Suc" $ %:"n"))`(con_app con args);
+      val lhs = (dc_take dname $ (%%: @{const_name Suc} $ %:"n")) ` (con_app con args);
       val rhs = con_app2 con one_rhs args;
       val goal = mk_trp (lhs === rhs);
       val rules =

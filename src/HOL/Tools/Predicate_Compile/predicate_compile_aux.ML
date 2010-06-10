@@ -265,12 +265,12 @@ fun ho_args_of mode ts =
 fun replace_ho_args mode hoargs ts =
   let
     fun replace (Fun _, _) (arg' :: hoargs') = (arg', hoargs')
-      | replace (Pair (m1, m2), Const ("Pair", T) $ t1 $ t2) hoargs =
+      | replace (Pair (m1, m2), Const (@{const_name Pair}, T) $ t1 $ t2) hoargs =
         let
           val (t1', hoargs') = replace (m1, t1) hoargs
           val (t2', hoargs'') = replace (m2, t2) hoargs'
         in
-          (Const ("Pair", T) $ t1' $ t2', hoargs'')
+          (Const (@{const_name Pair}, T) $ t1' $ t2', hoargs'')
         end
       | replace (_, t) hoargs = (t, hoargs)
   in
@@ -290,7 +290,7 @@ fun ho_argsT_of mode Ts =
 fun split_map_mode f mode ts =
   let
     fun split_arg_mode' (m as Fun _) t = f m t
-      | split_arg_mode' (Pair (m1, m2)) (Const ("Pair", _) $ t1 $ t2) =
+      | split_arg_mode' (Pair (m1, m2)) (Const (@{const_name Pair}, _) $ t1 $ t2) =
         let
           val (i1, o1) = split_arg_mode' m1 t1
           val (i2, o2) = split_arg_mode' m2 t2
@@ -334,7 +334,7 @@ fun fold_map_aterms_prodT comb f (Type (@{type_name "*"}, [T1, T2])) s =
   end
   | fold_map_aterms_prodT comb f T s = f T s
 
-fun map_filter_prod f (Const ("Pair", _) $ t1 $ t2) =
+fun map_filter_prod f (Const (@{const_name Pair}, _) $ t1 $ t2) =
   comb_option HOLogic.mk_prod (map_filter_prod f t1, map_filter_prod f t2)
   | map_filter_prod f t = f t
 
@@ -561,8 +561,8 @@ fun map_concl f intro =
 
 (* combinators to apply a function to all basic parts of nested products *)
 
-fun map_products f (Const ("Pair", T) $ t1 $ t2) =
-  Const ("Pair", T) $ map_products f t1 $ map_products f t2
+fun map_products f (Const (@{const_name Pair}, T) $ t1 $ t2) =
+  Const (@{const_name Pair}, T) $ map_products f t1 $ map_products f t2
   | map_products f t = f t
 
 (* split theorems of case expressions *)
@@ -756,7 +756,7 @@ fun expand_tuples thy intro =
       (case HOLogic.strip_tupleT (fastype_of arg) of
         (Ts as _ :: _ :: _) =>
         let
-          fun rewrite_arg' (Const (@{const_name "Pair"}, _) $ _ $ t2, Type (@{type_name "*"}, [_, T2]))
+          fun rewrite_arg' (Const (@{const_name Pair}, _) $ _ $ t2, Type (@{type_name "*"}, [_, T2]))
             (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
             | rewrite_arg' (t, Type (@{type_name "*"}, [T1, T2])) (args, (pats, intro_t, ctxt)) =
               let
