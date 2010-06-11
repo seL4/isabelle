@@ -21,6 +21,7 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
+  val is_quasi_fol_term : theory -> term -> bool
   val relevant_facts :
     bool -> bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> thm list
@@ -116,6 +117,8 @@ fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
       add_const_typ_table (const_with_typ thy (c,typ), tab) 
   | add_term_consts_typs_rm thy (Free(c, typ), tab) =
       add_const_typ_table (const_with_typ thy (c,typ), tab) 
+  | add_term_consts_typs_rm _ (Const (@{const_name skolem_Eps}, _) $ _, tab) =
+      tab
   | add_term_consts_typs_rm thy (t $ u, tab) =
       add_term_consts_typs_rm thy (t, add_term_consts_typs_rm thy (u, tab))
   | add_term_consts_typs_rm thy (Abs(_,_,t), tab) = add_term_consts_typs_rm thy (t, tab)
@@ -368,38 +371,35 @@ fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
 
     fun valid_facts facts =
       (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
-        let
-          fun check_thms a =
-            (case try (ProofContext.get_thms ctxt) a of
-              NONE => false
-            | SOME ths1 => Thm.eq_thms (ths0, ths1));
+        if Facts.is_concealed facts name orelse
+           (respect_no_atp andalso is_package_def name) orelse
+           member (op =) multi_base_blacklist (Long_Name.base_name name) then
+          I
+        else
+          let
+            fun check_thms a =
+              (case try (ProofContext.get_thms ctxt) a of
+                NONE => false
+              | SOME ths1 => Thm.eq_thms (ths0, ths1));
 
-          val name1 = Facts.extern facts name;
-          val name2 = Name_Space.extern full_space name;
-          val ths = filter_out is_theorem_bad_for_atps ths0;
-        in
-          if Facts.is_concealed facts name orelse
-             (respect_no_atp andalso is_package_def name) then
-            I
-          else case find_first check_thms [name1, name2, name] of
-            NONE => I
-          | SOME name' =>
-            cons (name' |> forall (member Thm.eq_thm chained_ths) ths
-                           ? prefix chained_prefix, ths)
-        end);
+            val name1 = Facts.extern facts name;
+            val name2 = Name_Space.extern full_space name;
+            val ths = filter_out is_theorem_bad_for_atps ths0;
+          in
+            case find_first check_thms [name1, name2, name] of
+              NONE => I
+            | SOME name' =>
+              cons (name' |> forall (member Thm.eq_thm chained_ths) ths
+                             ? prefix chained_prefix, ths)
+          end)
   in valid_facts global_facts @ valid_facts local_facts end;
 
 fun multi_name a th (n, pairs) =
   (n + 1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs);
 
-fun add_single_names (a, []) pairs = pairs
-  | add_single_names (a, [th]) pairs = (a, th) :: pairs
-  | add_single_names (a, ths) pairs = #2 (fold (multi_name a) ths (1, pairs));
-
-(*Ignore blacklisted basenames*)
-fun add_multi_names (a, ths) pairs =
-  if member (op =) multi_base_blacklist (Long_Name.base_name a) then pairs
-  else add_single_names (a, ths) pairs;
+fun add_names (a, []) pairs = pairs
+  | add_names (a, [th]) pairs = (a, th) :: pairs
+  | add_names (a, ths) pairs = #2 (fold (multi_name a) ths (1, pairs))
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
@@ -408,8 +408,7 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 fun name_thm_pairs respect_no_atp ctxt name_thms_pairs =
   let
     val (mults, singles) = List.partition is_multi name_thms_pairs
-    val ps = [] |> fold add_single_names singles
-                |> fold add_multi_names mults
+    val ps = [] |> fold add_names singles |> fold add_names mults
   in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
 
 fun is_named ("", th) =
@@ -472,8 +471,11 @@ fun type_consts_of_terms thy ts =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
+fun is_quasi_fol_term thy = Meson.is_fol_term thy o snd o kill_skolem_Eps ~1 []
+
 (*Ensures that no higher-order theorems "leak out"*)
-fun restrict_to_logic thy true cls = filter (Meson.is_fol_term thy o prop_of o fst) cls
+fun restrict_to_logic thy true cls =
+    filter (is_quasi_fol_term thy o prop_of o fst) cls
   | restrict_to_logic thy false cls = cls;
 
 (**** Predicates to detect unwanted clauses (prolific or likely to cause
@@ -531,7 +533,7 @@ fun is_dangerous_theorem full_types add_thms thm =
 fun remove_dangerous_clauses full_types add_thms =
   filter_out (is_dangerous_theorem full_types add_thms o fst)
 
-fun is_first_order thy = forall (Meson.is_fol_term thy) o map prop_of
+fun is_fol_goal thy = forall (Meson.is_fol_term thy) o map prop_of
 
 fun relevant_facts full_types respect_no_atp relevance_threshold
                    relevance_convergence defs_relevant max_new theory_relevant
@@ -542,17 +544,17 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
   else
     let
       val thy = ProofContext.theory_of ctxt
-      val add_thms = cnf_for_facts ctxt add
       val has_override = not (null add) orelse not (null del)
-      val is_FO = is_first_order thy goal_cls
+      val is_FO = is_fol_goal thy goal_cls
       val axioms =
-        checked_name_thm_pairs respect_no_atp ctxt
+        checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
             (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
              else all_name_thms_pairs respect_no_atp ctxt chained_ths)
         |> cnf_rules_pairs thy
         |> not has_override ? make_unique
-        |> restrict_to_logic thy is_FO
-        |> not only ? remove_dangerous_clauses full_types add_thms
+        |> not only ? restrict_to_logic thy is_FO
+        |> (if only then I
+            else remove_dangerous_clauses full_types (cnf_for_facts ctxt add))
     in
       relevance_filter ctxt relevance_threshold relevance_convergence
                        defs_relevant max_new theory_relevant relevance_override
@@ -564,7 +566,7 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
    create additional clauses based on the information from extra_cls *)
 fun prepare_clauses dfg goal_cls chained_ths axcls extra_cls thy =
   let
-    val is_FO = is_first_order thy goal_cls
+    val is_FO = is_fol_goal thy goal_cls
     val ccls = subtract_cls extra_cls goal_cls
     val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls
@@ -576,7 +578,7 @@ fun prepare_clauses dfg goal_cls chained_ths axcls extra_cls thy =
     val conjectures = make_conjecture_clauses dfg thy ccls
     val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses dfg thy extra_cls)
     val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses dfg thy axcls)
-    val helper_clauses = get_helper_clauses dfg thy is_FO (conjectures, extra_cls, [])
+    val helper_clauses = get_helper_clauses dfg thy is_FO conjectures extra_cls
     val (supers', arity_clauses) = make_arity_clauses_dfg dfg thy tycons supers
     val classrel_clauses = make_classrel_clauses thy subs supers'
   in
