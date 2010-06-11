@@ -517,7 +517,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
   end
 
 (* ------------------------------------------------------------------------- *)
-(* get_def: looks up the definition of a constant, as created by "constdefs" *)
+(* get_def: looks up the definition of a constant                            *)
 (* ------------------------------------------------------------------------- *)
 
   (* theory -> string * Term.typ -> (string * Term.term) option *)
@@ -711,7 +711,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   (* Note: currently we use "inverse" functions to the definitional         *)
   (*       mechanisms provided by Isabelle/HOL, e.g. for "axclass",         *)
-  (*       "typedef", "constdefs".  A more general approach could consider  *)
+  (*       "typedef", "definition".  A more general approach could consider *)
   (*       *every* axiom of the theory and collect it if it has a constant/ *)
   (*       type/typeclass in common with the term 't'.                      *)
 

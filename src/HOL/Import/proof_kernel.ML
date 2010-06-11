@@ -1946,7 +1946,7 @@ fun new_definition thyname constname rhs thy =
                             val p3 = string_of_mixfix csyn
                             val p4 = smart_string_of_cterm crhs
                         in
-                          add_dump ("constdefs\n  " ^ p1 ^ " :: \"" ^ p2 ^ "\" "^ p3 ^ "\n  " ^ p4) thy''
+                          add_dump ("definition\n  " ^ p1 ^ " :: \"" ^ p2 ^ "\" "^ p3 ^ " where\n  " ^ p4) thy''
                         end
                     else
                         add_dump ("consts\n  " ^ quotename constname ^ " :: \"" ^
@@ -2138,18 +2138,6 @@ fun new_type_definition thyname thmname tycname hth thy =
             (thy6,hth')
         end
         handle e => (message "exception in new_type_definition"; print_exn e)
-
-fun add_dump_constdefs thy defname constname rhs ty =
-    let
-        val n = quotename constname
-        val t = Syntax.string_of_typ_global thy ty
-        val syn = string_of_mixfix (mk_syn thy constname)
-        (*val eq = smart_string_of_cterm (cterm_of thy (Const(rhs, ty)))*)
-        val eq = quote (constname ^ " == "^rhs)
-        val d = case defname of NONE => "" | SOME defname => (quotename defname)^" : "
-    in
-        add_dump ("constdefs\n  " ^ n ^ " :: \"" ^ t ^ "\" " ^ syn ^ "\n  " ^ d ^ eq) thy
-    end
 
 fun add_dump_syntax thy name =
     let
