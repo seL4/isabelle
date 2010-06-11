@@ -15,48 +15,53 @@ text {*
   to type \emph{checking}.
 *}
 
-constdefs
+definition
   -- "The program counter will always be inside the method:"
-  check_bounded :: "instr list \<Rightarrow> exception_table \<Rightarrow> bool"
-  "check_bounded ins et \<equiv> 
+  check_bounded :: "instr list \<Rightarrow> exception_table \<Rightarrow> bool" where
+  "check_bounded ins et \<longleftrightarrow>
   (\<forall>pc < length ins. \<forall>pc' \<in> set (succs (ins!pc) pc). pc' < length ins) \<and>
                      (\<forall>e \<in> set et. fst (snd (snd e)) < length ins)"
 
+definition
   -- "The method type only contains declared classes:"
-  check_types :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool"
-  "check_types G mxs mxr phi \<equiv> set phi \<subseteq> states G mxs mxr"
+  check_types :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool" where
+  "check_types G mxs mxr phi \<longleftrightarrow> set phi \<subseteq> states G mxs mxr"
 
+definition
   -- "An instruction is welltyped if it is applicable and its effect"
   -- "is compatible with the type at all successor instructions:"
   wt_instr :: "[instr,jvm_prog,ty,method_type,nat,p_count,
-                exception_table,p_count] \<Rightarrow> bool"
-  "wt_instr i G rT phi mxs max_pc et pc \<equiv>
+                exception_table,p_count] \<Rightarrow> bool" where
+  "wt_instr i G rT phi mxs max_pc et pc \<longleftrightarrow>
   app i G mxs rT pc et (phi!pc) \<and>
   (\<forall>(pc',s') \<in> set (eff i G pc et (phi!pc)). pc' < max_pc \<and> G \<turnstile> s' <=' phi!pc')"
 
+definition
   -- {* The type at @{text "pc=0"} conforms to the method calling convention: *}
-  wt_start :: "[jvm_prog,cname,ty list,nat,method_type] \<Rightarrow> bool"
-  "wt_start G C pTs mxl phi == 
+  wt_start :: "[jvm_prog,cname,ty list,nat,method_type] \<Rightarrow> bool" where
+  "wt_start G C pTs mxl phi \<longleftrightarrow>
   G \<turnstile> Some ([],(OK (Class C))#((map OK pTs))@(replicate mxl Err)) <=' phi!0"
 
+definition
   -- "A method is welltyped if the body is not empty, if execution does not"
   -- "leave the body, if the method type covers all instructions and mentions"
   -- "declared classes only, if the method calling convention is respected, and"
   -- "if all instructions are welltyped."
   wt_method :: "[jvm_prog,cname,ty list,ty,nat,nat,instr list,
-                 exception_table,method_type] \<Rightarrow> bool"
-  "wt_method G C pTs rT mxs mxl ins et phi \<equiv>
-  let max_pc = length ins in
+                 exception_table,method_type] \<Rightarrow> bool" where
+  "wt_method G C pTs rT mxs mxl ins et phi \<longleftrightarrow>
+  (let max_pc = length ins in
   0 < max_pc \<and> 
   length phi = length ins \<and>
   check_bounded ins et \<and> 
   check_types G mxs (1+length pTs+mxl) (map OK phi) \<and>
   wt_start G C pTs mxl phi \<and>
-  (\<forall>pc. pc<max_pc \<longrightarrow> wt_instr (ins!pc) G rT phi mxs max_pc et pc)"
+  (\<forall>pc. pc<max_pc \<longrightarrow> wt_instr (ins!pc) G rT phi mxs max_pc et pc))"
 
+definition
   -- "A program is welltyped if it is wellformed and all methods are welltyped"
-  wt_jvm_prog :: "[jvm_prog,prog_type] \<Rightarrow> bool"
-  "wt_jvm_prog G phi ==
+  wt_jvm_prog :: "[jvm_prog,prog_type] \<Rightarrow> bool" where
+  "wt_jvm_prog G phi \<longleftrightarrow>
   wf_prog (\<lambda>G C (sig,rT,(maxs,maxl,b,et)).
            wt_method G C (snd sig) rT maxs maxl b et (phi C sig)) G"
 
