@@ -26,8 +26,6 @@ imports
   While_Combinator
 begin
 
-declare lexn.simps [code del]
-
 inductive sublist :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
     empty: "sublist [] xs"
   | drop: "sublist ys xs \<Longrightarrow> sublist ys (x # xs)"
