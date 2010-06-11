@@ -652,6 +652,13 @@ Isabelle/Scala layer for advanced prover interaction and integration.
 See src/Tools/jEdit or "isabelle jedit" provided by the properly built
 component.
 
+* "IsabelleText" is a Unicode font derived from Bitstream Vera Mono
+and Bluesky TeX fonts.  It provides the usual Isabelle symbols,
+similar to the default assignment of the document preparation system
+(cf. isabellesym.sty).  The Isabelle/Scala class Isabelle_System
+provides some operations for direct access to the font without asking
+the user for manual installation.
+
 
 
 New in Isabelle2009-1 (December 2009)
