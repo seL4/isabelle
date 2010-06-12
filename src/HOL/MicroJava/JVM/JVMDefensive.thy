@@ -117,10 +117,10 @@ definition exec_d :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> 
     | Normal s' \<Rightarrow> if check G s' then Normal (exec (G, s')) else TypeError"
 
 
-constdefs
+definition
   exec_all_d :: "jvm_prog \<Rightarrow> jvm_state type_error \<Rightarrow> jvm_state type_error \<Rightarrow> bool" 
-                   ("_ |- _ -jvmd-> _" [61,61,61]60)
-  "G |- s -jvmd-> t \<equiv>
+                   ("_ |- _ -jvmd-> _" [61,61,61]60) where
+  "G |- s -jvmd-> t \<longleftrightarrow>
          (s,t) \<in> ({(s,t). exec_d G s = TypeError \<and> t = TypeError} \<union>
                   {(s,t). \<exists>t'. exec_d G s = Normal (Some t') \<and> t = Normal t'})\<^sup>*"
 

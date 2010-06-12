@@ -199,10 +199,7 @@ syntax (HTML output)
 finalconsts
   0 Pow Inf Union PrimReplace mem
 
-defs 
-(*don't try to use constdefs: the declaration order is tightly constrained*)
-
-  (* Bounded Quantifiers *)
+defs  (* Bounded Quantifiers *)
   Ball_def:      "Ball(A, P) == \<forall>x. x\<in>A --> P(x)"
   Bex_def:       "Bex(A, P) == \<exists>x. x\<in>A & P(x)"
 

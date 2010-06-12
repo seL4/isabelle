@@ -103,22 +103,23 @@ primrec
 "mheads G S (ClassT C) = cmheads G S C"
 "mheads G S (ArrayT T) = accObjectmheads G S (ArrayT T)"
 
-constdefs
+definition
   --{* applicable methods, cf. 15.11.2.1 *}
-  appl_methds   :: "prog \<Rightarrow> qtname \<Rightarrow>  ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set"
- "appl_methds G S rt \<equiv> \<lambda> sig. 
+  appl_methds   :: "prog \<Rightarrow> qtname \<Rightarrow>  ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
+ "appl_methds G S rt = (\<lambda> sig. 
       {(mh,pTs') |mh pTs'. mh \<in> mheads G S rt \<lparr>name=name sig,parTs=pTs'\<rparr> \<and> 
-                           G\<turnstile>(parTs sig)[\<preceq>]pTs'}"
+                           G\<turnstile>(parTs sig)[\<preceq>]pTs'})"
 
+definition
   --{* more specific methods, cf. 15.11.2.2 *}
-  more_spec     :: "prog \<Rightarrow> emhead \<times> ty list \<Rightarrow> emhead \<times> ty list \<Rightarrow> bool"
- "more_spec G \<equiv> \<lambda>(mh,pTs). \<lambda>(mh',pTs'). G\<turnstile>pTs[\<preceq>]pTs'"
+  more_spec     :: "prog \<Rightarrow> emhead \<times> ty list \<Rightarrow> emhead \<times> ty list \<Rightarrow> bool" where
+ "more_spec G = (\<lambda>(mh,pTs). \<lambda>(mh',pTs'). G\<turnstile>pTs[\<preceq>]pTs')"
 (*more_spec G \<equiv>\<lambda>((d,h),pTs). \<lambda>((d',h'),pTs'). G\<turnstile>RefT d\<preceq>RefT d'\<and>G\<turnstile>pTs[\<preceq>]pTs'*)
 
+definition
   --{* maximally specific methods, cf. 15.11.2.2 *}
-   max_spec     :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set"
-
- "max_spec G S rt sig \<equiv>{m. m \<in>appl_methds G S rt sig \<and>
+   max_spec     :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
+ "max_spec G S rt sig = {m. m \<in>appl_methds G S rt sig \<and>
                       (\<forall>m'\<in>appl_methds G S rt sig. more_spec G m' m \<longrightarrow> m'=m)}"
 
 

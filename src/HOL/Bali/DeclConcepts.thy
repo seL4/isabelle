@@ -244,30 +244,30 @@ by (simp add: memberdecl_is_static_def)
 lemma mhead_static_simp [simp]: "is_static (mhead m) = is_static m"
 by (cases m) (simp add: mhead_def member_is_static_simp)
 
-constdefs  --{* some mnemotic selectors for various pairs *} 
-           
- "decliface":: "(qtname \<times> ('a::type) decl_scheme) \<Rightarrow> qtname"
- "decliface \<equiv> fst"          --{* get the interface component *}
+-- {* some mnemotic selectors for various pairs *} 
 
- "mbr"::   "(qtname \<times> memberdecl) \<Rightarrow> memberdecl"
- "mbr \<equiv> snd"            --{* get the memberdecl component *}
+definition decliface :: "qtname \<times> 'a decl_scheme \<Rightarrow> qtname" where
+  "decliface = fst"          --{* get the interface component *}
 
- "mthd"::   "('b \<times> 'a) \<Rightarrow> 'a"
-                           --{* also used for mdecl, mhead *}
- "mthd \<equiv> snd"              --{* get the method component *}
+definition mbr :: "qtname \<times> memberdecl \<Rightarrow> memberdecl" where
+  "mbr = snd"            --{* get the memberdecl component *}
 
- "fld"::   "('b \<times> ('a::type) decl_scheme) \<Rightarrow> ('a::type) decl_scheme"
-              --{* also used for @{text "((vname \<times> qtname)\<times> field)"} *}
- "fld \<equiv> snd"               --{* get the field component *}
+definition mthd :: "'b \<times> 'a \<Rightarrow> 'a" where
+  "mthd = snd"              --{* get the method component *}
+    --{* also used for mdecl, mhead *}
 
+definition fld :: "'b \<times> 'a decl_scheme \<Rightarrow> 'a decl_scheme" where
+  "fld = snd"               --{* get the field component *}
+    --{* also used for @{text "((vname \<times> qtname)\<times> field)"} *}
 
-constdefs --{* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
- fname:: "(vname \<times> 'a) \<Rightarrow> vname" --{* also used for fdecl *}
- "fname \<equiv> fst"
-  
-  declclassf:: "(vname \<times> qtname) \<Rightarrow> qtname"
- "declclassf \<equiv> snd"
+-- {* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
 
+definition fname:: "vname \<times> 'a \<Rightarrow> vname" where 
+  "fname = fst"
+    --{* also used for fdecl *}
+
+definition declclassf:: "(vname \<times> qtname) \<Rightarrow> qtname" where
+  "declclassf = snd"
 
 
 lemma decliface_simp[simp]: "decliface (I,m) = I"
@@ -318,12 +318,13 @@ by (simp add: fname_def)
 lemma declclassf_simp[simp]:"declclassf (n,c) = c"
 by (simp add: declclassf_def)
 
-constdefs  --{* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
-  "fldname"  :: "(vname \<times> qtname) \<Rightarrow> vname" 
-  "fldname \<equiv> fst"
+  --{* some mnemotic selectors for @{text "(vname \<times> qtname)"} *}
 
-  "fldclass" :: "(vname \<times> qtname) \<Rightarrow> qtname"
-  "fldclass \<equiv> snd"
+definition fldname :: "vname \<times> qtname \<Rightarrow> vname"  where
+  "fldname = fst"
+
+definition fldclass :: "vname \<times> qtname \<Rightarrow> qtname" where
+  "fldclass = snd"
 
 lemma fldname_simp[simp]: "fldname (n,c) = n"
 by (simp add: fldname_def)
@@ -337,8 +338,8 @@ by (simp add: fldname_def fldclass_def)
 text {* Convert a qualified method declaration (qualified with its declaring 
 class) to a qualified member declaration:  @{text methdMembr}  *}
 
-definition methdMembr :: "(qtname \<times> mdecl) \<Rightarrow> (qtname \<times> memberdecl)" where
- "methdMembr m \<equiv> (fst m,mdecl (snd m))"
+definition methdMembr :: "qtname \<times> mdecl \<Rightarrow> qtname \<times> memberdecl" where
+ "methdMembr m = (fst m, mdecl (snd m))"
 
 lemma methdMembr_simp[simp]: "methdMembr (c,m) = (c,mdecl m)"
 by (simp add: methdMembr_def)
