@@ -4188,8 +4188,8 @@ text{*These orderings preserve well-foundedness: shorter lists
         
 primrec -- {*The lexicographic ordering for lists of the specified length*}
   lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
-    "lexn r 0 = {}"
-  | "lexn r (Suc n) = (prod_fun (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
+    [code del]: "lexn r 0 = {}"
+  | [code del]: "lexn r (Suc n) = (prod_fun (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
       {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
 definition
