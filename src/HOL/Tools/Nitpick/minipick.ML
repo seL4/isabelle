@@ -80,7 +80,7 @@ fun atom_from_formula f = RelIf (f, true_atom, false_atom)
 
 fun kodkod_formula_from_term ctxt card frees =
   let
-    fun R_rep_from_S_rep (T as Type (@{type_name fun}, [T1, @{typ bool}])) r =
+    fun R_rep_from_S_rep (Type (@{type_name fun}, [T1, @{typ bool}])) r =
         let
           val jss = atom_schema_of SRep card T1 |> map (rpair 0)
                     |> all_combinations
@@ -115,7 +115,7 @@ fun kodkod_formula_from_term ctxt card frees =
          @{const Not} $ t1 => Not (to_F Ts t1)
        | @{const False} => False
        | @{const True} => True
-       | Const (@{const_name All}, _) $ Abs (s, T, t') =>
+       | Const (@{const_name All}, _) $ Abs (_, T, t') =>
          All (decls_for SRep card Ts T, to_F (T :: Ts) t')
        | (t0 as Const (@{const_name All}, _)) $ t1 =>
          to_F Ts (t0 $ eta_expand Ts t1 1)

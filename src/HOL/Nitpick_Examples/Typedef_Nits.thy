@@ -95,20 +95,20 @@ lemma "Rep_unit () = False"
 nitpick [expect = genuine]
 oops
 
-lemma "Pair a b \<equiv> Abs_Prod (Pair_Rep a b)"
+lemma "Pair a b = Abs_prod (Pair_Rep a b)"
 nitpick [card = 1\<midarrow>2, expect = none]
 by (rule Pair_def)
 
-lemma "Pair a b \<equiv> Abs_Prod (Pair_Rep b a)"
+lemma "Pair a b = Abs_prod (Pair_Rep b a)"
 nitpick [card = 1\<midarrow>2, expect = none]
 nitpick [dont_box, expect = genuine]
 oops
 
-lemma "fst (Abs_Prod (Pair_Rep a b)) = a"
+lemma "fst (Abs_prod (Pair_Rep a b)) = a"
 nitpick [card = 2, expect = none]
-by (simp add: Pair_def [THEN symmetric])
+by (simp add: Pair_def [THEN sym])
 
-lemma "fst (Abs_Prod (Pair_Rep a b)) = b"
+lemma "fst (Abs_prod (Pair_Rep a b)) = b"
 nitpick [card = 1\<midarrow>2, expect = none]
 nitpick [dont_box, expect = genuine]
 oops
@@ -117,19 +117,19 @@ lemma "a \<noteq> a' \<Longrightarrow> Pair_Rep a b \<noteq> Pair_Rep a' b"
 nitpick [expect = none]
 apply (rule ccontr)
 apply simp
-apply (drule subst [where P = "\<lambda>r. Abs_Prod r = Abs_Prod (Pair_Rep a b)"])
+apply (drule subst [where P = "\<lambda>r. Abs_prod r = Abs_prod (Pair_Rep a b)"])
  apply (rule refl)
-by (simp add: Pair_def [THEN symmetric])
+by (simp add: Pair_def [THEN sym])
 
-lemma "Abs_Prod (Rep_Prod a) = a"
+lemma "Abs_prod (Rep_prod a) = a"
 nitpick [card = 2, expect = none]
-by (rule Rep_Prod_inverse)
+by (rule Rep_prod_inverse)
 
-lemma "Inl \<equiv> \<lambda>a. Abs_Sum (Inl_Rep a)"
+lemma "Inl \<equiv> \<lambda>a. Abs_sum (Inl_Rep a)"
 nitpick [card = 1, expect = none]
-by (simp only: Inl_def o_def)
+by (simp add: Inl_def o_def)
 
-lemma "Inl \<equiv> \<lambda>a. Abs_Sum (Inr_Rep a)"
+lemma "Inl \<equiv> \<lambda>a. Abs_sum (Inr_Rep a)"
 nitpick [card = 1, card "'a + 'a" = 2, expect = genuine]
 oops
 
@@ -137,20 +137,20 @@ lemma "Inl_Rep a \<noteq> Inr_Rep a"
 nitpick [expect = none]
 by (rule Inl_Rep_not_Inr_Rep)
 
-lemma "Abs_Sum (Rep_Sum a) = a"
+lemma "Abs_sum (Rep_sum a) = a"
 nitpick [card = 1, expect = none]
 nitpick [card = 2, expect = none]
-by (rule Rep_Sum_inverse)
+by (rule Rep_sum_inverse)
 
 lemma "0::nat \<equiv> Abs_Nat Zero_Rep"
 nitpick [expect = none]
 by (rule Zero_nat_def_raw)
 
-lemma "Suc \<equiv> \<lambda>n. Abs_Nat (Suc_Rep (Rep_Nat n))"
+lemma "Suc n = Abs_Nat (Suc_Rep (Rep_Nat n))"
 nitpick [expect = none]
 by (rule Suc_def)
 
-lemma "Suc \<equiv> \<lambda>n. Abs_Nat (Suc_Rep (Suc_Rep (Rep_Nat n)))"
+lemma "Suc n = Abs_Nat (Suc_Rep (Suc_Rep (Rep_Nat n)))"
 nitpick [expect = genuine]
 oops
 

@@ -9,7 +9,6 @@ signature MESON =
 sig
   val trace: bool Unsynchronized.ref
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
-  val first_order_resolve: thm -> thm -> thm
   val flexflex_first_order: thm -> thm
   val size_of_subgoals: thm -> int
   val too_many_clauses: Proof.context option -> term -> bool
@@ -98,11 +97,14 @@ fun first_order_resolve thA thB =
       let val thy = theory_of_thm thA
           val tmA = concl_of thA
           val Const("==>",_) $ tmB $ _ = prop_of thB
-          val (tyenv, tenv) = Pattern.first_order_match thy (tmB, tmA) (Vartab.empty, Vartab.empty)
+          val tenv =
+            Pattern.first_order_match thy
+                (pairself Envir.beta_eta_contract (tmB, tmA))
+                (Vartab.empty, Vartab.empty) |> snd
           val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
       in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
     SOME th => th
-  | NONE => raise THM ("first_order_resolve", 0, [thA, thB]));
+  | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
 
 fun flexflex_first_order th =
   case (tpairs_of th) of
@@ -316,9 +318,11 @@ val has_meta_conn =
     exists_Const (member (op =) ["==", "==>", "=simp=>", "all", "prop"] o #1);
 
 fun apply_skolem_ths (th, rls) =
-  let fun tryall [] = raise THM("apply_skolem_ths", 0, th::rls)
-        | tryall (rl::rls) = (first_order_resolve th rl handle THM _ => tryall rls)
-  in  tryall rls  end;
+  let
+    fun tryall [] = raise THM ("apply_skolem_ths", 0, th::rls)
+      | tryall (rl :: rls) =
+        first_order_resolve th rl handle THM _ => tryall rls
+  in tryall rls end
 
 (*Conjunctive normal form, adding clauses from th in front of ths (for foldr).
   Strips universal quantifiers and breaks up conjunctions.

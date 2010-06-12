@@ -25,6 +25,12 @@ uses
   ("Tools/Sledgehammer/metis_tactics.ML")
 begin
 
+definition skolem_Eps :: "('a \<Rightarrow> bool) \<Rightarrow> 'a" where
+[no_atp]: "skolem_Eps = Eps"
+
+lemma skolem_someI_ex [no_atp]: "\<exists>x. P x \<Longrightarrow> P (skolem_Eps (\<lambda>x. P x))"
+unfolding skolem_Eps_def by (rule someI_ex)
+
 definition COMBI :: "'a \<Rightarrow> 'a" where
 [no_atp]: "COMBI P \<equiv> P"
 

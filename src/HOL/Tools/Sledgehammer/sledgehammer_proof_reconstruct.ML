@@ -41,12 +41,6 @@ type minimize_command = string list -> string
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
 
-(* Hack: Could return false positives (e.g., a user happens to declare a
-   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
-val is_skolem_const_name =
-  Long_Name.base_name
-  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
-
 val index_in_shape : int -> int list list -> int =
   find_index o exists o curry (op =)
 fun is_axiom_clause_number thm_names num = num <= Vector.length thm_names
@@ -263,9 +257,16 @@ val const_trans_table_inv =
 
 fun invert_const c = c |> Symtab.lookup const_trans_table_inv |> the_default c
 
-(*The number of type arguments of a constant, zero if it's monomorphic*)
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
 fun num_type_args thy s =
-  length (Sign.const_typargs thy (s, Sign.the_const_type thy s))
+  if String.isPrefix skolem_Eps_pseudo_theory s then
+    s |> unprefix skolem_Eps_pseudo_theory
+      |> space_explode skolem_infix |> hd
+      |> space_explode "_" |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 fun fix_atp_variable_name s =
   let
@@ -323,9 +324,12 @@ fun term_from_node thy full_types tfrees =
                         else
                           (* Extra args from "hAPP" come after any arguments
                              given directly to the constant. *)
-                          Sign.const_instance thy (c,
-                                    map (type_from_node tfrees)
-                                        (drop num_term_args us)))
+                          if String.isPrefix skolem_Eps_pseudo_theory c then
+                            map fastype_of ts ---> HOLogic.typeT
+                          else
+                            Sign.const_instance thy (c,
+                                map (type_from_node tfrees)
+                                    (drop num_term_args us)))
           in list_comb (t, ts) end
         | NONE => (* a free or schematic variable *)
           let
@@ -580,16 +584,29 @@ fun extract_clause_numbers_in_atp_proof atp_proof =
       | extract_num (num :: "0" :: "Inp" :: _) = Int.fromString num
       | extract_num _ = NONE
   in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
-  
-fun apply_command _ 1 = "by "
-  | apply_command 1 _ = "apply "
-  | apply_command i _ = "prefer " ^ string_of_int i ^ " apply "
-fun metis_command i n [] = apply_command i n ^ "metis"
-  | metis_command i n ss =
-    apply_command i n ^ "(metis " ^ space_implode " " ss ^ ")"
-fun metis_line i n xs =
+
+val indent_size = 2
+val no_label = ("", ~1)
+
+val raw_prefix = "X"
+val assum_prefix = "A"
+val fact_prefix = "F"
+
+fun string_for_label (s, num) = s ^ string_of_int num
+
+fun metis_using [] = ""
+  | metis_using ls =
+    "using " ^ space_implode " " (map string_for_label ls) ^ " "
+fun metis_apply _ 1 = "by "
+  | metis_apply 1 _ = "apply "
+  | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
+fun metis_itself [] = "metis"
+  | metis_itself ss = "(metis " ^ space_implode " " ss ^ ")"
+fun metis_command i n (ls, ss) =
+  metis_using ls ^ metis_apply i n ^ metis_itself ss
+fun metis_line i n ss =
   "Try this command: " ^
-  Markup.markup Markup.sendback (metis_command i n xs) ^ ".\n" 
+  Markup.markup Markup.sendback (metis_command i n ([], ss)) ^ ".\n"
 fun minimize_line _ [] = ""
   | minimize_line minimize_command facts =
     case minimize_command facts of
@@ -638,15 +655,6 @@ and byline =
 
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
-
-val indent_size = 2
-val no_label = ("", ~1)
-
-val raw_prefix = "X"
-val assum_prefix = "A"
-val fact_prefix = "F"
-
-fun string_for_label (s, num) = s ^ string_of_int num
 
 fun add_fact_from_dep thm_names num =
   if is_axiom_clause_number thm_names num then
@@ -948,7 +956,7 @@ fun string_for_proof ctxt i n =
       let
         val ls = ls |> sort_distinct (prod_ord string_ord int_ord)
         val ss = ss |> map unprefix_chained |> sort_distinct string_ord
-      in metis_command 1 1 (map string_for_label ls @ ss) end
+      in metis_command 1 1 (ls, ss) end
     and do_step ind (Fix xs) =
         do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
       | do_step ind (Let (t1, t2)) =

@@ -298,7 +298,6 @@ fun problem_for_nut ctxt (name, u) =
     val peephole_optim = true
     val nat_card = 4
     val int_card = 9
-    val bits = 8
     val j0 = 0
     val constrs = kodkod_constrs peephole_optim nat_card int_card j0
     val (free_rels, pool, table) =

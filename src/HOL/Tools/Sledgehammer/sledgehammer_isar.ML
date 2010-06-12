@@ -345,8 +345,8 @@ val parse_relevance_override =
                               >> merge_relevance_overrides))
                 (add_to_relevance_override [])
 val parse_sledgehammer_command =
-  (Scan.optional Parse.short_ident runN -- parse_params -- parse_relevance_override
-   -- Scan.option Parse.nat) #>> sledgehammer_trans
+  (Scan.optional Parse.short_ident runN -- parse_params
+   -- parse_relevance_override -- Scan.option Parse.nat) #>> sledgehammer_trans
 val parse_sledgehammer_params_command =
   parse_params #>> sledgehammer_params_trans
 

@@ -10,8 +10,11 @@ sig
   val chained_prefix: string
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
+  val skolem_Eps_pseudo_theory: string
   val skolem_prefix: string
   val skolem_infix: string
+  val is_skolem_const_name: string -> bool
+  val skolem_type_and_args: typ -> term -> typ * term list
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
   val is_theorem_bad_for_atps: thm -> bool
@@ -39,6 +42,7 @@ val chained_prefix = "Sledgehammer.chained_"
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
+val skolem_Eps_pseudo_theory = "Sledgehammer.Eps"
 val skolem_prefix = "sko_"
 val skolem_infix = "$"
 
@@ -72,12 +76,21 @@ exception Clausify_failure of theory;
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
+fun skolem_Eps_const T =
+  Const (@{const_name skolem_Eps}, (T --> HOLogic.boolT) --> T)
+
 (*Keep the full complexity of the original name*)
 fun flatten_name s = space_implode "_X" (Long_Name.explode s);
 
-fun skolem_name thm_name nref var_name =
-  skolem_prefix ^ thm_name ^ "_" ^ Int.toString (Unsynchronized.inc nref) ^
+fun skolem_name thm_name j var_name =
+  skolem_prefix ^ thm_name ^ "_" ^ Int.toString j ^
   skolem_infix ^ (if var_name = "" then "g" else flatten_name var_name)
+
+(* Hack: Could return false positives (e.g., a user happens to declare a
+   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
+val is_skolem_const_name =
+  Long_Name.base_name
+  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
 
 fun rhs_extra_types lhsT rhs =
   let val lhs_vars = Term.add_tfreesT lhsT []
@@ -87,34 +100,39 @@ fun rhs_extra_types lhsT rhs =
       val rhs_consts = fold_aterms (fn Const c => insert (op =) c | _ => I) rhs []
   in fold (#2 #> Term.fold_atyps add_new_TFrees) rhs_consts [] end;
 
+fun skolem_type_and_args bound_T body =
+  let
+    val args1 = OldTerm.term_frees body
+    val Ts1 = map type_of args1
+    val Ts2 = rhs_extra_types (Ts1 ---> bound_T) body
+    val args2 = map (fn T => Free (gensym "vsk", T)) Ts2
+  in (Ts2 ---> Ts1 ---> bound_T, args2 @ args1) end
+
 (* Traverse a theorem, declaring Skolem function definitions. String "s" is the
    suggested prefix for the Skolem constants. *)
 fun declare_skolem_funs s th thy =
   let
-    val nref = Unsynchronized.ref 0    (* FIXME ??? *)
-    fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) (axs, thy) =
-          (*Existential: declare a Skolem function, then insert into body and continue*)
-          let
-            val cname = skolem_name s nref s'
-            val args0 = OldTerm.term_frees xtp  (*get the formal parameter list*)
-            val Ts = map type_of args0
-            val extraTs = rhs_extra_types (Ts ---> T) xtp
-            val argsx = map (fn T => Free (gensym "vsk", T)) extraTs
-            val args = argsx @ args0
-            val cT = extraTs ---> Ts ---> T
-            val rhs = list_abs_free (map dest_Free args, HOLogic.choice_const T $ xtp)
-                    (*Forms a lambda-abstraction over the formal parameters*)
-            val (c, thy) =
-              Sign.declare_const ((Binding.conceal (Binding.name cname), cT), NoSyn) thy
-            val cdef = cname ^ "_def"
-            val ((_, ax), thy) =
-              Thm.add_def true false (Binding.name cdef, Logic.mk_equals (c, rhs)) thy
-            val ax' = Drule.export_without_context ax
-          in dec_sko (subst_bound (list_comb (c, args), p)) (ax' :: axs, thy) end
+    val skolem_count = Unsynchronized.ref 0    (* FIXME ??? *)
+    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (s', T, p)))
+                (axs, thy) =
+        (*Existential: declare a Skolem function, then insert into body and continue*)
+        let
+          val id = skolem_name s (Unsynchronized.inc skolem_count) s'
+          val (cT, args) = skolem_type_and_args T body
+          val rhs = list_abs_free (map dest_Free args,
+                                   skolem_Eps_const T $ body)
+                  (*Forms a lambda-abstraction over the formal parameters*)
+          val (c, thy) =
+            Sign.declare_const ((Binding.conceal (Binding.name id), cT), NoSyn) thy
+          val cdef = id ^ "_def"
+          val ((_, ax), thy) =
+            Thm.add_def true false (Binding.name cdef, Logic.mk_equals (c, rhs)) thy
+          val ax' = Drule.export_without_context ax
+        in dec_sko (subst_bound (list_comb (c, args), p)) (ax' :: axs, thy) end
       | dec_sko (Const (@{const_name All}, _) $ (Abs (a, T, p))) thx =
-          (*Universal quant: insert a free variable into body and continue*)
-          let val fname = Name.variant (OldTerm.add_term_names (p, [])) a
-          in dec_sko (subst_bound (Free (fname, T), p)) thx end
+        (*Universal quant: insert a free variable into body and continue*)
+        let val fname = Name.variant (OldTerm.add_term_names (p, [])) a
+        in dec_sko (subst_bound (Free (fname, T), p)) thx end
       | dec_sko (@{const "op &"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const "op |"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const Trueprop} $ p) thx = dec_sko p thx
@@ -122,29 +140,31 @@ fun declare_skolem_funs s th thy =
   in dec_sko (prop_of th) ([], thy) end
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
-fun assume_skolem_funs s th =
-  let val sko_count = Unsynchronized.ref 0   (* FIXME ??? *)
-      fun dec_sko (Const (@{const_name Ex}, _) $ (xtp as Abs (s', T, p))) defs =
-            (*Existential: declare a Skolem function, then insert into body and continue*)
-            let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
-                val args = subtract (op =) skos (OldTerm.term_frees xtp) (*the formal parameters*)
-                val Ts = map type_of args
-                val cT = Ts ---> T
-                val id = skolem_name s sko_count s'
-                val c = Free (id, cT)
-                val rhs = list_abs_free (map dest_Free args,
-                                         HOLogic.choice_const T $ xtp)
-                      (*Forms a lambda-abstraction over the formal parameters*)
-                val def = Logic.mk_equals (c, rhs)
-            in dec_sko (subst_bound (list_comb(c,args), p)) (def :: defs) end
-        | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) defs =
-            (*Universal quant: insert a free variable into body and continue*)
-            let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
-            in dec_sko (subst_bound (Free(fname,T), p)) defs end
-        | dec_sko (@{const "op &"} $ p $ q) defs = dec_sko q (dec_sko p defs)
-        | dec_sko (@{const "op |"} $ p $ q) defs = dec_sko q (dec_sko p defs)
-        | dec_sko (@{const Trueprop} $ p) defs = dec_sko p defs
-        | dec_sko t defs = defs (*Do nothing otherwise*)
+fun assume_skolem_funs inline s th =
+  let
+    val skolem_count = Unsynchronized.ref 0   (* FIXME ??? *)
+    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (s', T, p))) defs =
+        (*Existential: declare a Skolem function, then insert into body and continue*)
+        let
+          val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
+          val args = subtract (op =) skos (OldTerm.term_frees body) (*the formal parameters*)
+          val Ts = map type_of args
+          val cT = Ts ---> T (* FIXME: use "skolem_type_and_args" *)
+          val id = skolem_name s (Unsynchronized.inc skolem_count) s'
+          val c = Free (id, cT)
+          val rhs = list_abs_free (map dest_Free args, skolem_Eps_const T $ body)
+                (*Forms a lambda-abstraction over the formal parameters*)
+          val def = Logic.mk_equals (c, rhs)
+          val comb = list_comb (if inline then rhs else c, args)
+        in dec_sko (subst_bound (comb, p)) (def :: defs) end
+      | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) defs =
+        (*Universal quant: insert a free variable into body and continue*)
+        let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
+        in dec_sko (subst_bound (Free(fname,T), p)) defs end
+      | dec_sko (@{const "op &"} $ p $ q) defs = dec_sko q (dec_sko p defs)
+      | dec_sko (@{const "op |"} $ p $ q) defs = dec_sko q (dec_sko p defs)
+      | dec_sko (@{const Trueprop} $ p) defs = dec_sko p defs
+      | dec_sko t defs = defs (*Do nothing otherwise*)
   in  dec_sko (prop_of th) []  end;
 
 
@@ -273,19 +293,25 @@ fun c_variant_abs_multi (ct0, vars) =
 (*Given the definition of a Skolem function, return a theorem to replace
   an existential formula by a use of that function.
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
-fun skolem_of_def def =
-  let val (c,rhs) = Thm.dest_equals (cprop_of (freeze_thm def))
+fun skolem_theorem_of_def inline def =
+  let
+      val (c,rhs) = Thm.dest_equals (cprop_of (freeze_thm def))
       val (ch, frees) = c_variant_abs_multi (rhs, [])
       val (chilbert,cabs) = Thm.dest_comb ch
       val thy = Thm.theory_of_cterm chilbert
       val t = Thm.term_of chilbert
-      val T = case t of
-                Const (@{const_name Eps}, Type (@{type_name fun},[_,T])) => T
-              | _ => raise THM ("skolem_of_def: expected Eps", 0, [def])
+      val T =
+        case t of
+          Const (@{const_name skolem_Eps}, Type (@{type_name fun}, [_, T])) => T
+        | _ => raise THM ("skolem_theorem_of_def: expected \"Eps\"", 0, [def])
       val cex = Thm.cterm_of thy (HOLogic.exists_const T)
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
-      and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
-      fun tacf [prem] = rewrite_goals_tac [def] THEN rtac (prem RS @{thm someI_ex}) 1
+      and conc =
+        Drule.list_comb (if inline then rhs else c, frees)
+        |> Drule.beta_conv cabs |> c_mkTrueprop
+      fun tacf [prem] =
+        (if inline then all_tac else rewrite_goals_tac [def])
+        THEN rtac (prem RS @{thm skolem_someI_ex}) 1
   in  Goal.prove_internal [ex_tm] conc tacf
        |> forall_intr_list frees
        |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
@@ -303,9 +329,9 @@ fun to_nnf th ctxt0 =
   in  (th3, ctxt)  end;
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
-fun assume_skolem_of_def s th =
-  map (skolem_of_def o Thm.assume o cterm_of (theory_of_thm th))
-      (assume_skolem_funs s th)
+fun skolem_theorems_of_assume inline s th =
+  map (skolem_theorem_of_def inline o Thm.assume o cterm_of (theory_of_thm th))
+      (assume_skolem_funs inline s th)
 
 
 (*** Blacklisting (more in "Sledgehammer_Fact_Filter") ***)
@@ -364,7 +390,7 @@ fun fake_name th =
   else gensym "unknown_thm_";
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
-fun skolem_thm (s, th) =
+fun skolemize_theorem s th =
   if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse
      is_theorem_bad_for_atps th then
     []
@@ -372,7 +398,13 @@ fun skolem_thm (s, th) =
     let
       val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt) = to_nnf th ctxt0
-      val defs = assume_skolem_of_def s nnfth
+
+      val inline = false
+(*
+FIXME: Reintroduce code:
+      val inline = exists_type (exists_subtype (can dest_TFree)) (prop_of nnfth)
+*)
+      val defs = skolem_theorems_of_assume inline s nnfth
       val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
     in
       cnfs |> map introduce_combinators
@@ -402,7 +434,7 @@ fun mark_seen name = ThmCache.map (apsnd (Symtab.update (name, ())));
 fun cnf_axiom thy th0 =
   let val th = Thm.transfer thy th0 in
     case lookup_cache thy th of
-      NONE => map Thm.close_derivation (skolem_thm (fake_name th, th))
+      NONE => map Thm.close_derivation (skolemize_theorem (fake_name th) th)
     | SOME cls => cls
   end;
 
@@ -438,7 +470,8 @@ fun skolem_def (name, th) thy =
 
 fun skolem_cnfs (th, ctxt0, ctxt, nnfth, defs) =
   let
-    val (cnfs, ctxt) = Meson.make_cnf (map skolem_of_def defs) nnfth ctxt;
+    val (cnfs, ctxt) =
+      Meson.make_cnf (map (skolem_theorem_of_def false) defs) nnfth ctxt
     val cnfs' = cnfs
       |> map introduce_combinators
       |> Variable.export ctxt ctxt0
@@ -455,14 +488,17 @@ fun saturate_skolem_cache thy =
       if Facts.is_concealed facts name orelse already_seen thy name then I
       else cons (name, ths));
     val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
-      if member (op =) multi_base_blacklist (Long_Name.base_name name) then I
-      else fold_index (fn (i, th) =>
-        if is_theorem_bad_for_atps th orelse is_some (lookup_cache thy th) then
-          I
-        else
-          cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths)
+      if member (op =) multi_base_blacklist (Long_Name.base_name name) then
+        I
+      else
+        fold_index (fn (i, th) =>
+          if is_theorem_bad_for_atps th orelse is_some (lookup_cache thy th) then
+            I
+          else
+            cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths)
   in
-    if null new_facts then NONE
+    if null new_facts then
+      NONE
     else
       let
         val (defs, thy') = thy
