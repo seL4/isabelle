@@ -398,7 +398,12 @@ fun skolemize_theorem s th =
     let
       val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt) = to_nnf th ctxt0
+
+      val inline = false
+(*
+FIXME: Reintroduce code:
       val inline = exists_type (exists_subtype (can dest_TFree)) (prop_of nnfth)
+*)
       val defs = skolem_theorems_of_assume inline s nnfth
       val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
     in
