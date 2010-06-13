@@ -48,8 +48,7 @@ class Command(
 
   def name: String = if (is_command) span.head.content else ""
   override def toString =
-    if (is_command) name + "(" + id + ")"
-    else if (is_ignored) "<ignored>" else "<malformed>"
+    id + "/" + (if (is_command) name else if (is_ignored) "IGNORED" else "MALFORMED")
 
 
   /* source text */
