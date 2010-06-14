@@ -87,6 +87,8 @@ fun extract_proof_and_outcome res_code proof_delims known_failures output =
   | (failure :: _) => ("", SOME failure)
 
 fun string_for_failure Unprovable = "The ATP problem is unprovable."
+  | string_for_failure IncompleteUnprovable =
+    "The ATP cannot prove the problem."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
   | string_for_failure OldSpass =
@@ -337,10 +339,11 @@ val spass_config : prover_config =
      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
-     [(Unprovable, "SPASS beiseite: Completion found"),
+     [(IncompleteUnprovable, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
-      (MalformedInput, "Undefined symbol")],
+      (MalformedInput, "Undefined symbol"),
+      (MalformedInput, "Free Variable")],
    max_axiom_clauses = 40,
    prefers_theory_relevant = true}
 val spass = dfg_prover "spass" spass_config

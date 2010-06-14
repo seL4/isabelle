@@ -34,8 +34,8 @@ sig
      axiom_clauses: (thm * (string * int)) list option,
      filtered_clauses: (thm * (string * int)) list option}
   datatype failure =
-    Unprovable | TimedOut | OutOfResources | OldSpass | MalformedInput |
-    MalformedOutput | UnknownError
+    Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
+    MalformedInput | MalformedOutput | UnknownError
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -95,8 +95,8 @@ type problem =
    filtered_clauses: (thm * (string * int)) list option};
 
 datatype failure =
-  Unprovable | TimedOut | OutOfResources | OldSpass | MalformedInput |
-  MalformedOutput | UnknownError
+  Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
+  MalformedInput | MalformedOutput | UnknownError
 
 type prover_result =
   {outcome: failure option,
