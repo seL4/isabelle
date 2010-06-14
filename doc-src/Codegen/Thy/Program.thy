@@ -134,7 +134,8 @@ text %quote {*@{code_stmts bexp (Haskell)}*}
 
 text {*
   \noindent This is a convenient place to show how explicit dictionary construction
-  manifests in generated code (here, the same example in @{text SML}):
+  manifests in generated code (here, the same example in @{text SML})
+  \cite{Haftmann-Nipkow:2010:code}:
 *}
 
 text %quote {*@{code_stmts bexp (SML)}*}
