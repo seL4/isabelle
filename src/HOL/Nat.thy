@@ -1203,15 +1203,20 @@ definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \
 lemmas [code_unfold] = funpow_code_def [symmetric]
 
 lemma [code]:
-  "funpow 0 f = id"
   "funpow (Suc n) f = f o funpow n f"
-  unfolding funpow_code_def by simp_all
+  "funpow 0 f = id"
+  by (simp_all add: funpow_code_def)
 
 hide_const (open) funpow
 
 lemma funpow_add:
   "f ^^ (m + n) = f ^^ m \<circ> f ^^ n"
   by (induct m) simp_all
+
+lemma funpow_mult:
+  fixes f :: "'a \<Rightarrow> 'a"
+  shows "(f ^^ m) ^^ n = f ^^ (m * n)"
+  by (induct n) (simp_all add: funpow_add)
 
 lemma funpow_swap1:
   "f ((f ^^ n) x) = (f ^^ n) (f x)"

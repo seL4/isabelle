@@ -14,11 +14,6 @@ text {*
 
 subsection {* Locales and interpretation *}
 
-lemma funpow_mult: -- FIXME
-  fixes f :: "'a \<Rightarrow> 'a"
-  shows "(f ^^ m) ^^ n = f ^^ (m * n)"
-  by (induct n) (simp_all add: funpow_add)
-
 text {*
   A technical issue comes to surface when generating code from
   specifications stemming from locale interpretation.
@@ -86,7 +81,7 @@ text {*
 interpretation %quote fun_power: power "\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n" where
   "power.powers (\<lambda>n f. f ^^ n) = funpows"
   by unfold_locales
-    (simp_all add: expand_fun_eq funpow_mult mult_commute funpows_def)
+    (simp_all add: expand_fun_eq funpow_mult [symmetric] mult_commute funpows_def)
 
 text {*
   \noindent This additional equation is trivially proved by the definition
