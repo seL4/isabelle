@@ -1066,7 +1066,7 @@ text {*
     target: 'OCaml' | 'SML' | 'Haskell'
     ;
 
-    'code\_datatype' const +
+    'code\_datatype' ( const + )
     ;
 
     'code\_const' (const + 'and') \\
