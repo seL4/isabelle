@@ -33,6 +33,191 @@ To dive deeper into the issue of code generation, you should visit
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Locales and interpretation%
+}
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ funpow{\isacharunderscore}mult{\isacharcolon}\ %
+\isamarkupcmt{FIXME%
+}
+\isanewline
+\ \ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}f\ {\isacharcircum}{\isacharcircum}\ m{\isacharparenright}\ {\isacharcircum}{\isacharcircum}\ n\ {\isacharequal}\ f\ {\isacharcircum}{\isacharcircum}\ {\isacharparenleft}m\ {\isacharasterisk}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ funpow{\isacharunderscore}add{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+A technical issue comes to surface when generating code from
+  specifications stemming from locale interpretation.
+
+  Let us assume a locale specifying a power operation
+  on arbitrary types:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{locale}\isamarkupfalse%
+\ power\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ power\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{assumes}\ power{\isacharunderscore}commute{\isacharcolon}\ {\isachardoublequoteopen}power\ x\ {\isasymcirc}\ power\ y\ {\isacharequal}\ power\ y\ {\isasymcirc}\ power\ x{\isachardoublequoteclose}\isanewline
+\isakeyword{begin}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Inside that locale we can lift \isa{power} to exponent lists
+  by means of specification relative to that locale:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{primrec}\isamarkupfalse%
+\ powers\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}powers\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ id{\isachardoublequoteclose}\isanewline
+{\isacharbar}\ {\isachardoublequoteopen}powers\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ {\isacharequal}\ power\ x\ {\isasymcirc}\ powers\ xs{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ powers{\isacharunderscore}append{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}powers\ {\isacharparenleft}xs\ {\isacharat}\ ys{\isacharparenright}\ {\isacharequal}\ powers\ xs\ {\isasymcirc}\ powers\ ys{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ powers{\isacharunderscore}power{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}powers\ xs\ {\isasymcirc}\ power\ x\ {\isacharequal}\ power\ x\ {\isasymcirc}\ powers\ xs{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs{\isacharparenright}\isanewline
+\ \ \ \ {\isacharparenleft}simp{\isacharunderscore}all\ del{\isacharcolon}\ o{\isacharunderscore}apply\ id{\isacharunderscore}apply\ add{\isacharcolon}\ o{\isacharunderscore}assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharcomma}\isanewline
+\ \ \ \ \ \ simp\ del{\isacharcolon}\ o{\isacharunderscore}apply\ add{\isacharcolon}\ o{\isacharunderscore}assoc\ power{\isacharunderscore}commute{\isacharparenright}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ powers{\isacharunderscore}rev{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}powers\ {\isacharparenleft}rev\ xs{\isacharparenright}\ {\isacharequal}\ powers\ xs{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ xs{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ powers{\isacharunderscore}append\ powers{\isacharunderscore}power{\isacharparenright}\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+After an interpretation of this locale (say, \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}} \isa{fun{\isacharunderscore}power{\isacharcolon}} \isa{{\isachardoublequote}power\ {\isacharparenleft}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequote}}), one would expect to have a constant \isa{fun{\isacharunderscore}power{\isachardot}powers\ {\isacharcolon}{\isacharcolon}\ nat\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} for which code
+  can be generated.  But this not the case: internally, the term
+  \isa{fun{\isacharunderscore}power{\isachardot}powers} is an abbreviation for the foundational
+  term \isa{{\isachardoublequote}power{\isachardot}powers\ {\isacharparenleft}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequote}}
+  (see \cite{isabelle-locale} for the details behind).
+
+  Furtunately, with minor effort the desired behaviour can be achieved.
+  First, a dedicated definition of the constant on which the local \isa{powers}
+  after interpretation is supposed to be mapped on:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{definition}\isamarkupfalse%
+\ funpows\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isacharbrackleft}code\ del{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}funpows\ {\isacharequal}\ power{\isachardot}powers\ {\isacharparenleft}{\isasymlambda}n\ f{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent In general, the pattern is \isa{c\ {\isacharequal}\ t} where \isa{c} is
+  the name of the future constant and \isa{t} the foundational term
+  corresponding to the local constant after interpretation.
+
+  The interpretation itself is enriched with an equation \isa{t\ {\isacharequal}\ c}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{interpretation}\isamarkupfalse%
+\ fun{\isacharunderscore}power{\isacharcolon}\ power\ {\isachardoublequoteopen}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}power{\isachardot}powers\ {\isacharparenleft}{\isasymlambda}n\ f{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}\ {\isacharequal}\ funpows{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ unfold{\isacharunderscore}locales\isanewline
+\ \ \ \ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ expand{\isacharunderscore}fun{\isacharunderscore}eq\ funpow{\isacharunderscore}mult\ mult{\isacharunderscore}commute\ funpows{\isacharunderscore}def{\isacharparenright}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This additional equation is trivially proved by the definition
+  itself.
+
+  After this setup procedure, code generation can continue as usual:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}funpow ::~forall a.~Nat -> (a -> a) -> a -> a;\\
+\hspace*{0pt}funpow (Suc n) f = f .~funpow n f;\\
+\hspace*{0pt}funpow Zero{\char95}nat f = id;\\
+\hspace*{0pt}\\
+\hspace*{0pt}funpows ::~forall a.~[Nat] -> (a -> a) -> a -> a;\\
+\hspace*{0pt}funpows [] = id;\\
+\hspace*{0pt}funpows (x :~xs) = funpow x .~funpows xs;%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \isamarkupsubsection{Modules%
 }
 \isamarkuptrue%
