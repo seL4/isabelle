@@ -44,14 +44,16 @@ val ssubst_em = @{lemma "s = t ==> P t ==> ~ P s ==> False" by simp}
 (* Useful Functions                                                          *)
 (* ------------------------------------------------------------------------- *)
 
-(* match untyped terms*)
-fun untyped_aconv (Const(a,_))   (Const(b,_))   = (a=b)
-  | untyped_aconv (Free(a,_))    (Free(b,_))    = (a=b)
-  | untyped_aconv (Var((a,_),_)) (Var((b,_),_)) = (a=b)   (*the index is ignored!*)
-  | untyped_aconv (Bound i)      (Bound j)      = (i=j)
-  | untyped_aconv (Abs(a,_,t))  (Abs(b,_,u))    = (a=b) andalso untyped_aconv t u
-  | untyped_aconv (t1$t2) (u1$u2)  = untyped_aconv t1 u1 andalso untyped_aconv t2 u2
-  | untyped_aconv _              _              = false;
+(* Match untyped terms. *)
+fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
+  | untyped_aconv (Free (a, _)) (Free (b, _)) = (a = b)
+  | untyped_aconv (Var ((a, _), _)) (Var ((b, _), _)) =
+    (a = b) (* The index is ignored, for some reason. *)
+  | untyped_aconv (Bound i) (Bound j) = (i = j)
+  | untyped_aconv (Abs (_, _, t)) (Abs (_, _, u)) = untyped_aconv t u
+  | untyped_aconv (t1 $ t2) (u1 $ u2) =
+    untyped_aconv t1 u1 andalso untyped_aconv t2 u2
+  | untyped_aconv _ _ = false
 
 (* Finding the relative location of an untyped term within a list of terms *)
 fun get_index lit =
