@@ -195,7 +195,11 @@ fun strip_lambdas 0 th = th
               strip_lambdas (n-1) (freeze_thm (th RS xfun_cong x))
         | _ => th;
 
-val lambda_free = not o Term.has_abs;
+fun is_quasi_lambda_free (Const (@{const_name skolem_id}, _) $ _) = true
+  | is_quasi_lambda_free (t1 $ t2) =
+    is_quasi_lambda_free t1 andalso is_quasi_lambda_free t2
+  | is_quasi_lambda_free (Abs _) = false
+  | is_quasi_lambda_free _ = true
 
 val [f_B,g_B] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_B}));
 val [g_C,f_C] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_C}));
@@ -246,7 +250,7 @@ fun abstract ct =
 
 (* Traverse a theorem, remplacing lambda-abstractions with combinators. *)
 fun do_introduce_combinators ct =
-  if lambda_free (term_of ct) then
+  if is_quasi_lambda_free (term_of ct) then
     Thm.reflexive ct
   else case term_of ct of
     Abs _ =>
@@ -264,7 +268,7 @@ fun do_introduce_combinators ct =
     end
 
 fun introduce_combinators th =
-  if lambda_free (prop_of th) then
+  if is_quasi_lambda_free (prop_of th) then
     th
   else
     let
@@ -433,8 +437,8 @@ fun mark_seen name = ThmCache.map (apsnd (Symtab.update (name, ())));
 fun cnf_axiom thy th0 =
   let val th = Thm.transfer thy th0 in
     case lookup_cache thy th of
-      NONE => map Thm.close_derivation (skolemize_theorem (fake_name th) th)
-    | SOME cls => cls
+      SOME cls => cls
+    | NONE => map Thm.close_derivation (skolemize_theorem (fake_name th) th)
   end;
 
 
@@ -443,15 +447,17 @@ fun cnf_axiom thy th0 =
 fun pair_name_cls k (n, []) = []
   | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
 
-fun cnf_rules_pairs_aux _ pairs [] = pairs
-  | cnf_rules_pairs_aux thy pairs ((name,th)::ths) =
-      let val pairs' = (pair_name_cls 0 (name, cnf_axiom thy th)) @ pairs
-                       handle THM _ => pairs |
-                              CLAUSE _ => pairs
-      in  cnf_rules_pairs_aux thy pairs' ths  end;
-
 (*The combination of rev and tail recursion preserves the original order*)
-fun cnf_rules_pairs thy l = cnf_rules_pairs_aux thy [] (rev l);
+fun cnf_rules_pairs thy =
+  let
+    fun aux pairs [] = pairs
+      | aux pairs ((name, th) :: ths) =
+        let
+          val new_pairs = pair_name_cls 0 (name, cnf_axiom thy th)
+                          handle THM _ => [] |
+                                 CLAUSE _ => []
+        in aux (new_pairs @ pairs) ths end
+  in aux [] o rev end
 
 
 (**** Convert all facts of the theory into FOL or HOL clauses ****)
@@ -517,9 +523,9 @@ fun clause_cache_endtheory thy =
   if !use_skolem_cache then saturate_skolem_cache thy else NONE
 
 
-(*The cache can be kept smaller by inspecting the prop of each thm. Can ignore all that are
-  lambda_free, but then the individual theory caches become much bigger.*)
-
+(* The cache can be kept smaller by inspecting the prop of each thm. Can ignore
+   all that are quasi-lambda-free, but then the individual theory caches become
+   much bigger. *)
 
 fun strip_subgoal goal i =
   let
