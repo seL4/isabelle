@@ -278,7 +278,7 @@ in
 
 fun namify_class thy = namify thy Long_Name.base_name thyname_of_class;
 fun namify_classrel thy = namify thy (fn (sub_class, super_class) => 
-    Long_Name.base_name sub_class ^ "_" ^ Long_Name.base_name super_class)
+    Long_Name.base_name super_class ^ "_" ^ Long_Name.base_name sub_class)
   (fn thy => thyname_of_class thy o fst);
   (*order fits nicely with composed projections*)
 fun namify_tyco thy "fun" = "Pure.fun"
