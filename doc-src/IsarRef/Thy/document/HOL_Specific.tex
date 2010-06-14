@@ -981,7 +981,211 @@ Isabelle/Pure provides two generic frameworks to support code
   instantiates these mechanisms in a way that is amenable to end-user
   applications.
 
-  One framework generates code from both functional and relational
+  \medskip One framework generates code from functional programs
+  (including overloading using type classes) to SML \cite{SML}, OCaml
+  \cite{OCaml} and Haskell \cite{haskell-revised-report}.
+  Conceptually, code generation is split up in three steps:
+  \emph{selection} of code theorems, \emph{translation} into an
+  abstract executable view and \emph{serialization} to a specific
+  \emph{target language}.  Inductive specifications can be executed
+  using the predicate compiler which operates within HOL.
+  See \cite{isabelle-codegen} for an introduction.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{export\_code}\hypertarget{command.HOL.export-code}{\hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{command}{code\_abort}\hypertarget{command.HOL.code-abort}{\hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_datatype}\hypertarget{command.HOL.code-datatype}{\hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{print\_codesetup}\hypertarget{command.HOL.print-codesetup}{\hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{HOL}{attribute}{code\_inline}\hypertarget{attribute.HOL.code-inline}{\hyperlink{attribute.HOL.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{code\_post}\hypertarget{attribute.HOL.code-post}{\hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isacharunderscore}post}}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{command}{print\_codeproc}\hypertarget{command.HOL.print-codeproc}{\hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_thms}\hypertarget{command.HOL.code-thms}{\hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_deps}\hypertarget{command.HOL.code-deps}{\hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_const}\hypertarget{command.HOL.code-const}{\hyperlink{command.HOL.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_type}\hypertarget{command.HOL.code-type}{\hyperlink{command.HOL.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_class}\hypertarget{command.HOL.code-class}{\hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_instance}\hypertarget{command.HOL.code-instance}{\hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_reserved}\hypertarget{command.HOL.code-reserved}{\hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_monad}\hypertarget{command.HOL.code-monad}{\hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_include}\hypertarget{command.HOL.code-include}{\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{HOL}{command}{code\_modulename}\hypertarget{command.HOL.code-modulename}{\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+  \end{matharray}
+
+  \begin{rail}
+    'export\_code' ( constexpr + ) \\
+      ( ( 'in' target ( 'module\_name' string ) ? \\
+        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
+    ;
+
+    const: term
+    ;
+
+    constexpr: ( const | 'name.*' | '*' )
+    ;
+
+    typeconstructor: nameref
+    ;
+
+    class: nameref
+    ;
+
+    target: 'OCaml' | 'SML' | 'Haskell'
+    ;
+
+    'code' ( 'del' ) ?
+    ;
+
+    'code\_abort' ( const + )
+    ;
+
+    'code\_datatype' ( const + )
+    ;
+
+    'code_inline' ( 'del' ) ?
+    ;
+
+    'code_post' ( 'del' ) ?
+    ;
+
+    'code\_thms' ( constexpr + ) ?
+    ;
+
+    'code\_deps' ( constexpr + ) ?
+    ;
+
+    'code\_const' (const + 'and') \\
+      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_type' (typeconstructor + 'and') \\
+      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_class' (class + 'and') \\
+      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_instance' (( typeconstructor '::' class ) + 'and') \\
+      ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_reserved' target ( string + )
+    ;
+
+    'code\_monad' const const target
+    ;
+
+    'code\_include' target ( string ( string | '-') )
+    ;
+
+    'code\_modulename' target ( ( string string ) + )
+    ;
+
+    syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
+    ;
+
+  \end{rail}
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} generates code for a given list
+  of constants in the specified target language(s).  If no serialization
+  instruction is given, only abstract code is generated internally.
+
+  Constants may be specified by giving them literally, referring to
+  all executable contants within a certain theory by giving \isa{{\isachardoublequote}name{\isachardot}{\isacharasterisk}{\isachardoublequote}}, or referring to \emph{all} executable constants currently
+  available by giving \isa{{\isachardoublequote}{\isacharasterisk}{\isachardoublequote}}.
+
+  By default, for each involved theory one corresponding name space
+  module is generated.  Alternativly, a module name may be specified
+  after the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} keyword; then \emph{all} code is
+  placed in this module.
+
+  For \emph{SML} and \emph{OCaml}, the file specification refers to a
+  single file; for \emph{Haskell}, it refers to a whole directory,
+  where code is generated in multiple files reflecting the module
+  hierarchy.  The file specification ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' denotes standard
+  output.  For \emph{SML}, omitting the file specification compiles
+  code internally in the context of the current ML session.
+
+  Serializers take an optional list of arguments in parentheses.  For
+  \emph{SML} and \emph{OCaml}, ``\isa{no{\isacharunderscore}signatures}`` omits
+  explicit module signatures.
+  
+  For \emph{Haskell} a module name prefix may be given using the ``\isa{{\isachardoublequote}root{\isacharcolon}{\isachardoublequote}}'' argument; ``\isa{string{\isacharunderscore}classes}'' adds a ``\verb|deriving (Read, Show)|'' clause to each appropriate datatype
+  declaration.
+
+  \item \hyperlink{attribute.HOL.code}{\mbox{\isa{code}}} explicitly selects (or with option
+  ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' deselects) a code equation for code
+  generation.  Usually packages introducing code equations provide
+  a reasonable default setup for selection.
+
+  \item \hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}} declares constants which are not
+  required to have a definition by means of code equations; if
+  needed these are implemented by program abort instead.
+
+  \item \hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}} specifies a constructor set
+  for a logical type.
+
+  \item \hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} gives an overview on
+  selected code equations and code generator datatypes.
+
+  \item \hyperlink{attribute.HOL.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} declares (or with
+  option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) inlining theorems which are
+  applied as rewrite rules to any code equation during
+  preprocessing.
+
+  \item \hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isacharunderscore}post}}} declares (or with
+  option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) theorems which are
+  applied as rewrite rules to any result of an evaluation.
+
+  \item \hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}} prints the setup
+  of the code generator preprocessor.
+
+  \item \hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} prints a list of theorems
+  representing the corresponding program containing all given
+  constants after preprocessing.
+
+  \item \hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}} visualizes dependencies of
+  theorems representing the corresponding program containing all given
+  constants after preprocessing.
+
+  \item \hyperlink{command.HOL.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}} associates a list of constants
+  with target-specific serializations; omitting a serialization
+  deletes an existing serialization.
+
+  \item \hyperlink{command.HOL.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}} associates a list of type
+  constructors with target-specific serializations; omitting a
+  serialization deletes an existing serialization.
+
+  \item \hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}} associates a list of classes
+  with target-specific class names; omitting a serialization deletes
+  an existing serialization.  This applies only to \emph{Haskell}.
+
+  \item \hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}} declares a list of type
+  constructor / class instance relations as ``already present'' for a
+  given target.  Omitting a ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' deletes an existing
+  ``already present'' declaration.  This applies only to
+  \emph{Haskell}.
+
+  \item \hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}} declares a list of names as
+  reserved for a given target, preventing it to be shadowed by any
+  generated code.
+
+  \item \hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}} provides an auxiliary mechanism
+  to generate monadic code for Haskell.
+
+  \item \hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}} adds arbitrary named content
+  (``include'') to generated code.  A ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' as last argument
+  will remove an already added ``include''.
+
+  \item \hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}} declares aliasings from one
+  module name onto another.
+
+  \end{description}
+
+  The other framework generates code from both functional and relational
   programs to SML.  See \cite{isabelle-HOL} for further information
   (this actually covers the new-style theory format as well).
 
@@ -1025,208 +1229,7 @@ Isabelle/Pure provides two generic frameworks to support code
 
   'code' (name)?
   ;
-  \end{rail}
-
-  \medskip The other framework generates code from functional programs
-  (including overloading using type classes) to SML \cite{SML}, OCaml
-  \cite{OCaml} and Haskell \cite{haskell-revised-report}.
-  Conceptually, code generation is split up in three steps:
-  \emph{selection} of code theorems, \emph{translation} into an
-  abstract executable view and \emph{serialization} to a specific
-  \emph{target language}.  See \cite{isabelle-codegen} for an
-  introduction on how to use it.
-
-  \begin{matharray}{rcl}
-    \indexdef{HOL}{command}{export\_code}\hypertarget{command.HOL.export-code}{\hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_thms}\hypertarget{command.HOL.code-thms}{\hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_deps}\hypertarget{command.HOL.code-deps}{\hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_datatype}\hypertarget{command.HOL.code-datatype}{\hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_const}\hypertarget{command.HOL.code-const}{\hyperlink{command.HOL.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_type}\hypertarget{command.HOL.code-type}{\hyperlink{command.HOL.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_class}\hypertarget{command.HOL.code-class}{\hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_instance}\hypertarget{command.HOL.code-instance}{\hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_monad}\hypertarget{command.HOL.code-monad}{\hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_reserved}\hypertarget{command.HOL.code-reserved}{\hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_include}\hypertarget{command.HOL.code-include}{\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_modulename}\hypertarget{command.HOL.code-modulename}{\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{code\_abort}\hypertarget{command.HOL.code-abort}{\hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{print\_codesetup}\hypertarget{command.HOL.print-codesetup}{\hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
-    \indexdef{HOL}{command}{print\_codeproc}\hypertarget{command.HOL.print-codeproc}{\hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
-    \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isa{attribute} \\
-  \end{matharray}
-
-  \begin{rail}
-    'export\_code' ( constexpr + ) \\
-      ( ( 'in' target ( 'module\_name' string ) ? \\
-        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
-    ;
-
-    'code\_thms' ( constexpr + ) ?
-    ;
-
-    'code\_deps' ( constexpr + ) ?
-    ;
-
-    const: term
-    ;
-
-    constexpr: ( const | 'name.*' | '*' )
-    ;
-
-    typeconstructor: nameref
-    ;
-
-    class: nameref
-    ;
-
-    target: 'OCaml' | 'SML' | 'Haskell'
-    ;
-
-    'code\_datatype' ( const + )
-    ;
-
-    'code\_const' (const + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_type' (typeconstructor + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_class' (class + 'and') \\
-      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_instance' (( typeconstructor '::' class ) + 'and') \\
-      ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_monad' const const target
-    ;
-
-    'code\_reserved' target ( string + )
-    ;
-
-    'code\_include' target ( string ( string | '-') )
-    ;
-
-    'code\_modulename' target ( ( string string ) + )
-    ;
-
-    'code\_abort' ( const + )
-    ;
-
-    syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
-    ;
-
-    'code' ( 'del' ) ?
-    ;
-
-    'code_unfold' ( 'del' ) ?
-    ;
-
-    'code_post' ( 'del' ) ?
-    ;
-  \end{rail}
-
-  \begin{description}
-
-  \item \hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} is the canonical interface for
-  generating and serializing code: for a given list of constants, code
-  is generated for the specified target languages.  If no serialization
-  instruction is given, only abstract code is generated internally.
-
-  Constants may be specified by giving them literally, referring to
-  all executable contants within a certain theory by giving \isa{{\isachardoublequote}name{\isachardot}{\isacharasterisk}{\isachardoublequote}}, or referring to \emph{all} executable constants currently
-  available by giving \isa{{\isachardoublequote}{\isacharasterisk}{\isachardoublequote}}.
-
-  By default, for each involved theory one corresponding name space
-  module is generated.  Alternativly, a module name may be specified
-  after the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} keyword; then \emph{all} code is
-  placed in this module.
-
-  For \emph{SML} and \emph{OCaml}, the file specification refers to a
-  single file; for \emph{Haskell}, it refers to a whole directory,
-  where code is generated in multiple files reflecting the module
-  hierarchy.  The file specification ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' denotes standard
-  output.  For \emph{SML}, omitting the file specification compiles
-  code internally in the context of the current ML session.
-
-  Serializers take an optional list of arguments in parentheses.  For
-  \emph{SML} and \emph{OCaml}, ``\isa{no{\isacharunderscore}signatures}`` omits
-  explicit module signatures.
-  
-  For \emph{Haskell} a module name prefix may be given using the ``\isa{{\isachardoublequote}root{\isacharcolon}{\isachardoublequote}}'' argument; ``\isa{string{\isacharunderscore}classes}'' adds a ``\verb|deriving (Read, Show)|'' clause to each appropriate datatype
-  declaration.
-
-  \item \hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} prints a list of theorems
-  representing the corresponding program containing all given
-  constants.
-
-  \item \hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}} visualizes dependencies of
-  theorems representing the corresponding program containing all given
-  constants.
-
-  \item \hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}} specifies a constructor set
-  for a logical type.
-
-  \item \hyperlink{command.HOL.code-const}{\mbox{\isa{\isacommand{code{\isacharunderscore}const}}}} associates a list of constants
-  with target-specific serializations; omitting a serialization
-  deletes an existing serialization.
-
-  \item \hyperlink{command.HOL.code-type}{\mbox{\isa{\isacommand{code{\isacharunderscore}type}}}} associates a list of type
-  constructors with target-specific serializations; omitting a
-  serialization deletes an existing serialization.
-
-  \item \hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}} associates a list of classes
-  with target-specific class names; omitting a serialization deletes
-  an existing serialization.  This applies only to \emph{Haskell}.
-
-  \item \hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isacharunderscore}instance}}}} declares a list of type
-  constructor / class instance relations as ``already present'' for a
-  given target.  Omitting a ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' deletes an existing
-  ``already present'' declaration.  This applies only to
-  \emph{Haskell}.
-
-  \item \hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isacharunderscore}monad}}}} provides an auxiliary mechanism
-  to generate monadic code for Haskell.
-
-  \item \hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isacharunderscore}reserved}}}} declares a list of names as
-  reserved for a given target, preventing it to be shadowed by any
-  generated code.
-
-  \item \hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isacharunderscore}include}}}} adds arbitrary named content
-  (``include'') to generated code.  A ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' as last argument
-  will remove an already added ``include''.
-
-  \item \hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isacharunderscore}modulename}}}} declares aliasings from one
-  module name onto another.
-
-  \item \hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}} declares constants which are not
-  required to have a definition by means of code equations; if
-  needed these are implemented by program abort instead.
-
-  \item \hyperlink{attribute.HOL.code}{\mbox{\isa{code}}} explicitly selects (or with option
-  ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' deselects) a code equation for code
-  generation.  Usually packages introducing code equations provide
-  a reasonable default setup for selection.
-
-  \item \hyperlink{attribute.HOL.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} declares (or with
-  option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) inlining theorems which are
-  applied as rewrite rules to any code equation during
-  preprocessing.
-
-  \item \hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isacharunderscore}post}}} declares (or with
-  option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) theorems which are
-  applied as rewrite rules to any result of an evaluation.
-
-  \item \hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} gives an overview on
-  selected code equations and code generator datatypes.
-
-  \item \hyperlink{command.HOL.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}} prints the setup
-  of the code generator preprocessor.
-
-  \end{description}%
+  \end{rail}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

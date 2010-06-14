@@ -965,7 +965,214 @@ text {*
   instantiates these mechanisms in a way that is amenable to end-user
   applications.
 
-  One framework generates code from both functional and relational
+  \medskip One framework generates code from functional programs
+  (including overloading using type classes) to SML \cite{SML}, OCaml
+  \cite{OCaml} and Haskell \cite{haskell-revised-report}.
+  Conceptually, code generation is split up in three steps:
+  \emph{selection} of code theorems, \emph{translation} into an
+  abstract executable view and \emph{serialization} to a specific
+  \emph{target language}.  Inductive specifications can be executed
+  using the predicate compiler which operates within HOL.
+  See \cite{isabelle-codegen} for an introduction.
+
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "export_code"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def (HOL) code} & : & @{text attribute} \\
+    @{command_def (HOL) "code_abort"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def (HOL) code_inline} & : & @{text attribute} \\
+    @{attribute_def (HOL) code_post} & : & @{text attribute} \\
+    @{command_def (HOL) "print_codeproc"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "code_const"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_type"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_class"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_instance"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_reserved"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_include"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
+  \end{matharray}
+
+  \begin{rail}
+    'export\_code' ( constexpr + ) \\
+      ( ( 'in' target ( 'module\_name' string ) ? \\
+        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
+    ;
+
+    const: term
+    ;
+
+    constexpr: ( const | 'name.*' | '*' )
+    ;
+
+    typeconstructor: nameref
+    ;
+
+    class: nameref
+    ;
+
+    target: 'OCaml' | 'SML' | 'Haskell'
+    ;
+
+    'code' ( 'del' ) ?
+    ;
+
+    'code\_abort' ( const + )
+    ;
+
+    'code\_datatype' ( const + )
+    ;
+
+    'code_inline' ( 'del' ) ?
+    ;
+
+    'code_post' ( 'del' ) ?
+    ;
+
+    'code\_thms' ( constexpr + ) ?
+    ;
+
+    'code\_deps' ( constexpr + ) ?
+    ;
+
+    'code\_const' (const + 'and') \\
+      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_type' (typeconstructor + 'and') \\
+      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_class' (class + 'and') \\
+      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_instance' (( typeconstructor '::' class ) + 'and') \\
+      ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
+    ;
+
+    'code\_reserved' target ( string + )
+    ;
+
+    'code\_monad' const const target
+    ;
+
+    'code\_include' target ( string ( string | '-') )
+    ;
+
+    'code\_modulename' target ( ( string string ) + )
+    ;
+
+    syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
+    ;
+
+  \end{rail}
+
+  \begin{description}
+
+  \item @{command (HOL) "export_code"} generates code for a given list
+  of constants in the specified target language(s).  If no serialization
+  instruction is given, only abstract code is generated internally.
+
+  Constants may be specified by giving them literally, referring to
+  all executable contants within a certain theory by giving @{text
+  "name.*"}, or referring to \emph{all} executable constants currently
+  available by giving @{text "*"}.
+
+  By default, for each involved theory one corresponding name space
+  module is generated.  Alternativly, a module name may be specified
+  after the @{keyword "module_name"} keyword; then \emph{all} code is
+  placed in this module.
+
+  For \emph{SML} and \emph{OCaml}, the file specification refers to a
+  single file; for \emph{Haskell}, it refers to a whole directory,
+  where code is generated in multiple files reflecting the module
+  hierarchy.  The file specification ``@{text "-"}'' denotes standard
+  output.  For \emph{SML}, omitting the file specification compiles
+  code internally in the context of the current ML session.
+
+  Serializers take an optional list of arguments in parentheses.  For
+  \emph{SML} and \emph{OCaml}, ``@{text no_signatures}`` omits
+  explicit module signatures.
+  
+  For \emph{Haskell} a module name prefix may be given using the ``@{text
+  "root:"}'' argument; ``@{text string_classes}'' adds a ``@{verbatim
+  "deriving (Read, Show)"}'' clause to each appropriate datatype
+  declaration.
+
+  \item @{attribute (HOL) code} explicitly selects (or with option
+  ``@{text "del"}'' deselects) a code equation for code
+  generation.  Usually packages introducing code equations provide
+  a reasonable default setup for selection.
+
+  \item @{command (HOL) "code_abort"} declares constants which are not
+  required to have a definition by means of code equations; if
+  needed these are implemented by program abort instead.
+
+  \item @{command (HOL) "code_datatype"} specifies a constructor set
+  for a logical type.
+
+  \item @{command (HOL) "print_codesetup"} gives an overview on
+  selected code equations and code generator datatypes.
+
+  \item @{attribute (HOL) code_inline} declares (or with
+  option ``@{text "del"}'' removes) inlining theorems which are
+  applied as rewrite rules to any code equation during
+  preprocessing.
+
+  \item @{attribute (HOL) code_post} declares (or with
+  option ``@{text "del"}'' removes) theorems which are
+  applied as rewrite rules to any result of an evaluation.
+
+  \item @{command (HOL) "print_codeproc"} prints the setup
+  of the code generator preprocessor.
+
+  \item @{command (HOL) "code_thms"} prints a list of theorems
+  representing the corresponding program containing all given
+  constants after preprocessing.
+
+  \item @{command (HOL) "code_deps"} visualizes dependencies of
+  theorems representing the corresponding program containing all given
+  constants after preprocessing.
+
+  \item @{command (HOL) "code_const"} associates a list of constants
+  with target-specific serializations; omitting a serialization
+  deletes an existing serialization.
+
+  \item @{command (HOL) "code_type"} associates a list of type
+  constructors with target-specific serializations; omitting a
+  serialization deletes an existing serialization.
+
+  \item @{command (HOL) "code_class"} associates a list of classes
+  with target-specific class names; omitting a serialization deletes
+  an existing serialization.  This applies only to \emph{Haskell}.
+
+  \item @{command (HOL) "code_instance"} declares a list of type
+  constructor / class instance relations as ``already present'' for a
+  given target.  Omitting a ``@{text "-"}'' deletes an existing
+  ``already present'' declaration.  This applies only to
+  \emph{Haskell}.
+
+  \item @{command (HOL) "code_reserved"} declares a list of names as
+  reserved for a given target, preventing it to be shadowed by any
+  generated code.
+
+  \item @{command (HOL) "code_monad"} provides an auxiliary mechanism
+  to generate monadic code for Haskell.
+
+  \item @{command (HOL) "code_include"} adds arbitrary named content
+  (``include'') to generated code.  A ``@{text "-"}'' as last argument
+  will remove an already added ``include''.
+
+  \item @{command (HOL) "code_modulename"} declares aliasings from one
+  module name onto another.
+
+  \end{description}
+
+  The other framework generates code from both functional and relational
   programs to SML.  See \cite{isabelle-HOL} for further information
   (this actually covers the new-style theory format as well).
 
@@ -1011,209 +1218,6 @@ text {*
   ;
   \end{rail}
 
-  \medskip The other framework generates code from functional programs
-  (including overloading using type classes) to SML \cite{SML}, OCaml
-  \cite{OCaml} and Haskell \cite{haskell-revised-report}.
-  Conceptually, code generation is split up in three steps:
-  \emph{selection} of code theorems, \emph{translation} into an
-  abstract executable view and \emph{serialization} to a specific
-  \emph{target language}.  See \cite{isabelle-codegen} for an
-  introduction on how to use it.
-
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "export_code"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "code_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "code_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "code_datatype"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_const"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_type"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_class"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_instance"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_monad"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_reserved"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_include"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "code_abort"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{command_def (HOL) "print_codeproc"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def (HOL) code} & : & @{text attribute} \\
-  \end{matharray}
-
-  \begin{rail}
-    'export\_code' ( constexpr + ) \\
-      ( ( 'in' target ( 'module\_name' string ) ? \\
-        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
-    ;
-
-    'code\_thms' ( constexpr + ) ?
-    ;
-
-    'code\_deps' ( constexpr + ) ?
-    ;
-
-    const: term
-    ;
-
-    constexpr: ( const | 'name.*' | '*' )
-    ;
-
-    typeconstructor: nameref
-    ;
-
-    class: nameref
-    ;
-
-    target: 'OCaml' | 'SML' | 'Haskell'
-    ;
-
-    'code\_datatype' ( const + )
-    ;
-
-    'code\_const' (const + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_type' (typeconstructor + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_class' (class + 'and') \\
-      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_instance' (( typeconstructor '::' class ) + 'and') \\
-      ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
-    ;
-
-    'code\_monad' const const target
-    ;
-
-    'code\_reserved' target ( string + )
-    ;
-
-    'code\_include' target ( string ( string | '-') )
-    ;
-
-    'code\_modulename' target ( ( string string ) + )
-    ;
-
-    'code\_abort' ( const + )
-    ;
-
-    syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
-    ;
-
-    'code' ( 'del' ) ?
-    ;
-
-    'code_unfold' ( 'del' ) ?
-    ;
-
-    'code_post' ( 'del' ) ?
-    ;
-  \end{rail}
-
-  \begin{description}
-
-  \item @{command (HOL) "export_code"} is the canonical interface for
-  generating and serializing code: for a given list of constants, code
-  is generated for the specified target languages.  If no serialization
-  instruction is given, only abstract code is generated internally.
-
-  Constants may be specified by giving them literally, referring to
-  all executable contants within a certain theory by giving @{text
-  "name.*"}, or referring to \emph{all} executable constants currently
-  available by giving @{text "*"}.
-
-  By default, for each involved theory one corresponding name space
-  module is generated.  Alternativly, a module name may be specified
-  after the @{keyword "module_name"} keyword; then \emph{all} code is
-  placed in this module.
-
-  For \emph{SML} and \emph{OCaml}, the file specification refers to a
-  single file; for \emph{Haskell}, it refers to a whole directory,
-  where code is generated in multiple files reflecting the module
-  hierarchy.  The file specification ``@{text "-"}'' denotes standard
-  output.  For \emph{SML}, omitting the file specification compiles
-  code internally in the context of the current ML session.
-
-  Serializers take an optional list of arguments in parentheses.  For
-  \emph{SML} and \emph{OCaml}, ``@{text no_signatures}`` omits
-  explicit module signatures.
-  
-  For \emph{Haskell} a module name prefix may be given using the ``@{text
-  "root:"}'' argument; ``@{text string_classes}'' adds a ``@{verbatim
-  "deriving (Read, Show)"}'' clause to each appropriate datatype
-  declaration.
-
-  \item @{command (HOL) "code_thms"} prints a list of theorems
-  representing the corresponding program containing all given
-  constants.
-
-  \item @{command (HOL) "code_deps"} visualizes dependencies of
-  theorems representing the corresponding program containing all given
-  constants.
-
-  \item @{command (HOL) "code_datatype"} specifies a constructor set
-  for a logical type.
-
-  \item @{command (HOL) "code_const"} associates a list of constants
-  with target-specific serializations; omitting a serialization
-  deletes an existing serialization.
-
-  \item @{command (HOL) "code_type"} associates a list of type
-  constructors with target-specific serializations; omitting a
-  serialization deletes an existing serialization.
-
-  \item @{command (HOL) "code_class"} associates a list of classes
-  with target-specific class names; omitting a serialization deletes
-  an existing serialization.  This applies only to \emph{Haskell}.
-
-  \item @{command (HOL) "code_instance"} declares a list of type
-  constructor / class instance relations as ``already present'' for a
-  given target.  Omitting a ``@{text "-"}'' deletes an existing
-  ``already present'' declaration.  This applies only to
-  \emph{Haskell}.
-
-  \item @{command (HOL) "code_monad"} provides an auxiliary mechanism
-  to generate monadic code for Haskell.
-
-  \item @{command (HOL) "code_reserved"} declares a list of names as
-  reserved for a given target, preventing it to be shadowed by any
-  generated code.
-
-  \item @{command (HOL) "code_include"} adds arbitrary named content
-  (``include'') to generated code.  A ``@{text "-"}'' as last argument
-  will remove an already added ``include''.
-
-  \item @{command (HOL) "code_modulename"} declares aliasings from one
-  module name onto another.
-
-  \item @{command (HOL) "code_abort"} declares constants which are not
-  required to have a definition by means of code equations; if
-  needed these are implemented by program abort instead.
-
-  \item @{attribute (HOL) code} explicitly selects (or with option
-  ``@{text "del"}'' deselects) a code equation for code
-  generation.  Usually packages introducing code equations provide
-  a reasonable default setup for selection.
-
-  \item @{attribute (HOL) code_inline} declares (or with
-  option ``@{text "del"}'' removes) inlining theorems which are
-  applied as rewrite rules to any code equation during
-  preprocessing.
-
-  \item @{attribute (HOL) code_post} declares (or with
-  option ``@{text "del"}'' removes) theorems which are
-  applied as rewrite rules to any result of an evaluation.
-
-  \item @{command (HOL) "print_codesetup"} gives an overview on
-  selected code equations and code generator datatypes.
-
-  \item @{command (HOL) "print_codeproc"} prints the setup
-  of the code generator preprocessor.
-
-  \end{description}
 *}
 
 
