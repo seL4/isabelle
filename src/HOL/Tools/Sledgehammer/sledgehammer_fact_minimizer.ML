@@ -38,6 +38,7 @@ fun linear_minimize test s =
 (* wrapper for calling external prover *)
 
 fun string_for_failure Unprovable = "Unprovable."
+  | string_for_failure IncompleteUnprovable = "Failed."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "Failed."
   | string_for_failure OldSpass = "Error."
