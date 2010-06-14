@@ -25,6 +25,9 @@ New in this Isabelle version
 
 INCOMPATIBILITY.
 
+* Removed simplifier congruence rule of "prod_case", as has for long
+been the case with "split".
+
 
 New in Isabelle2009-2 (June 2010)
 ---------------------------------

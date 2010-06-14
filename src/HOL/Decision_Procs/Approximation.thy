@@ -2552,9 +2552,7 @@ using assms proof (induct f arbitrary: vs)
     where l_eq: "Some (l, u') = approx prec a vs"
     and u_eq: "Some (l', u) = approx prec b vs"
     and approx_form': "approx_form' prec f (ss ! n) n l u vs ss"
-    by (cases "approx prec a vs", simp,
-        cases "approx prec b vs", auto) blast
-
+    by (cases "approx prec a vs", simp) (cases "approx prec b vs", auto)
   { assume "xs ! n \<in> { interpret_floatarith a xs .. interpret_floatarith b xs }"
     with approx[OF Bound.prems(2) l_eq] and approx[OF Bound.prems(2) u_eq]
     have "xs ! n \<in> { real l .. real u}" by auto

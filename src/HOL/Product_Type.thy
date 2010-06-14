@@ -158,6 +158,8 @@ next
     by (simp add: Pair_def Abs_prod_inject)
 qed
 
+declare weak_case_cong [cong del]
+
 
 subsubsection {* Tuple syntax *}
 
