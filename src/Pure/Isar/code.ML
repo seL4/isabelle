@@ -59,6 +59,9 @@ sig
   val add_default_eqn: thm -> theory -> theory
   val add_default_eqn_attribute: attribute
   val add_default_eqn_attrib: Attrib.src
+  val add_nbe_default_eqn: thm -> theory -> theory
+  val add_nbe_default_eqn_attribute: attribute
+  val add_nbe_default_eqn_attrib: Attrib.src
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
   val add_case: thm -> theory -> theory
@@ -1066,17 +1069,24 @@ fun add_warning_eqn thm thy =
    of SOME eqn => gen_add_eqn false eqn thy
     | NONE => thy;
 
+fun add_nbe_eqn thm thy =
+  gen_add_eqn false (mk_eqn thy (thm, false)) thy;
+
 fun add_default_eqn thm thy =
   case mk_eqn_liberal thy thm
    of SOME eqn => gen_add_eqn true eqn thy
     | NONE => thy;
 
-fun add_nbe_eqn thm thy =
-  gen_add_eqn false (mk_eqn thy (thm, false)) thy;
-
 val add_default_eqn_attribute = Thm.declaration_attribute
   (fn thm => Context.mapping (add_default_eqn thm) I);
 val add_default_eqn_attrib = Attrib.internal (K add_default_eqn_attribute);
+
+fun add_nbe_default_eqn thm thy =
+  gen_add_eqn true (mk_eqn thy (thm, false)) thy;
+
+val add_nbe_default_eqn_attribute = Thm.declaration_attribute
+  (fn thm => Context.mapping (add_nbe_default_eqn thm) I);
+val add_nbe_default_eqn_attrib = Attrib.internal (K add_nbe_default_eqn_attribute);
 
 fun add_abs_eqn raw_thm thy =
   let

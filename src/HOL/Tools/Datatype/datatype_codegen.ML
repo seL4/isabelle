@@ -105,12 +105,14 @@ fun add_equality vs dtcos thy =
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
+    fun prefix dtco = Binding.qualify true (Long_Name.base_name dtco) o Binding.qualify true "eq" o Binding.name;
     fun add_eq_thms dtco =
       Theory.checkpoint
       #> `(fn thy => mk_eq_eqns thy dtco)
-      #-> (fn (thms, thm) =>
-        Code.add_nbe_eqn thm
-        #> fold_rev Code.add_eqn thms);
+      #-> (fn (thms, thm) => PureThy.note_thmss Thm.lemmaK
+          [((prefix dtco "refl", [Code.add_nbe_default_eqn_attribute]), [([thm], [])]),
+            ((prefix dtco "simps", [Code.add_default_eqn_attribute]), [(rev thms, [])])])
+      #> snd
   in
     thy
     |> Theory_Target.instantiation (dtcos, vs, [HOLogic.class_eq])
