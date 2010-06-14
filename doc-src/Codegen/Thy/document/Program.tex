@@ -323,7 +323,8 @@ Concerning type classes and code generation, let us examine an example
 %
 \begin{isamarkuptext}%
 \noindent This is a convenient place to show how explicit dictionary construction
-  manifests in generated code (here, the same example in \isa{SML}):%
+  manifests in generated code (here, the same example in \isa{SML})
+  \cite{Haftmann-Nipkow:2010:code}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -341,7 +342,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt} ~type 'a semigroup\\
 \hspace*{0pt} ~val mult :~'a semigroup -> 'a -> 'a -> 'a\\
 \hspace*{0pt} ~type 'a monoid\\
-\hspace*{0pt} ~val semigroup{\char95}monoid :~'a monoid -> 'a semigroup\\
+\hspace*{0pt} ~val monoid{\char95}semigroup :~'a monoid -> 'a semigroup\\
 \hspace*{0pt} ~val neutral :~'a monoid -> 'a\\
 \hspace*{0pt} ~val pow :~'a monoid -> nat -> 'a -> 'a\\
 \hspace*{0pt} ~val plus{\char95}nat :~nat -> nat -> nat\\
@@ -357,12 +358,12 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
 \hspace*{0pt}val mult = {\char35}mult :~'a semigroup -> 'a -> 'a -> 'a;\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a monoid = {\char123}semigroup{\char95}monoid :~'a semigroup,~neutral :~'a{\char125};\\
-\hspace*{0pt}val semigroup{\char95}monoid = {\char35}semigroup{\char95}monoid :~'a monoid -> 'a semigroup;\\
+\hspace*{0pt}type 'a monoid = {\char123}monoid{\char95}semigroup :~'a semigroup,~neutral :~'a{\char125};\\
+\hspace*{0pt}val monoid{\char95}semigroup = {\char35}monoid{\char95}semigroup :~'a monoid -> 'a semigroup;\\
 \hspace*{0pt}val neutral = {\char35}neutral :~'a monoid -> 'a;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow A{\char95}~Zero{\char95}nat a = neutral A{\char95}\\
-\hspace*{0pt} ~| pow A{\char95}~(Suc n) a = mult (semigroup{\char95}monoid A{\char95}) a (pow A{\char95}~n a);\\
+\hspace*{0pt} ~| pow A{\char95}~(Suc n) a = mult (monoid{\char95}semigroup A{\char95}) a (pow A{\char95}~n a);\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
 \hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
@@ -374,7 +375,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}\\
 \hspace*{0pt}val semigroup{\char95}nat = {\char123}mult = mult{\char95}nat{\char125}~:~nat semigroup;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val monoid{\char95}nat = {\char123}semigroup{\char95}monoid = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}\\
+\hspace*{0pt}val monoid{\char95}nat = {\char123}monoid{\char95}semigroup = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}\\
 \hspace*{0pt} ~:~nat monoid;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun bexp n = pow monoid{\char95}nat n (Suc (Suc Zero{\char95}nat));\\
