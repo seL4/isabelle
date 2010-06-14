@@ -423,10 +423,13 @@ fun add_clause_decls params (HOLClause {literals, ...}) decls =
     fold (add_literal_decls params) literals decls
     handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
 
-fun decls_of_clauses params clauses arity_clauses =
-  let val functab =
-        init_functab |> fold Symtab.update [(type_wrapper_name, 2), ("hAPP", 2),
-                                            ("tc_bool", 0)]
+fun decls_of_clauses (params as (full_types, explicit_apply, _, _)) clauses
+                     arity_clauses =
+  let
+    val functab =
+      init_functab
+      |> fold Symtab.update [(type_wrapper_name, 2), ("hAPP", 2),
+                             ("tc_bool", 0)]
       val predtab = Symtab.empty |> Symtab.update ("hBOOL", 1)
       val (functab, predtab) =
         (functab, predtab) |> fold (add_clause_decls params) clauses
@@ -595,7 +598,8 @@ fun write_dfg_file full_types explicit_apply file clauses =
     val tfree_preds = map dfg_tfree_predicate tfree_lits
     val (helper_clauses_strs, pool) =
       pool_map (apfst fst oo dfg_clause params) helper_clauses pool
-    val (funcs, cl_preds) = decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
+    val (funcs, cl_preds) =
+      decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
     val ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
     val preds = tfree_preds @ cl_preds @ ty_preds
     val conjecture_offset =

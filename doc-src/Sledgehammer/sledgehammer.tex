@@ -338,11 +338,13 @@ or install the prebuilt E package from Isabelle's download page. See
 Weidenbach et al.\ \cite{weidenbach-et-al-2009}. To use SPASS, set the
 environment variable \texttt{SPASS\_HOME} to the directory that contains the
 \texttt{SPASS} executable, or install the prebuilt SPASS package from Isabelle's
-download page. See \S\ref{installation} for details.
+download page. Sledgehammer requires version 3.5 or above. See
+\S\ref{installation} for details.
 
-\item[$\bullet$] \textbf{\textit{spass\_tptp}:} Same as the above, except that
-Sledgehammer communicates with SPASS using the TPTP syntax rather than the
-native DFG syntax. This ATP is provided for experimental purposes.
+\item[$\bullet$] \textbf{\textit{spass\_dfg}:} Same as the above, except that
+Sledgehammer communicates with SPASS using the native DFG syntax rather than the
+TPTP syntax. Sledgehammer requires version 3.0 or above. This ATP is provided
+for compatibility reasons.
 
 \item[$\bullet$] \textbf{\textit{vampire}:} Vampire is an ATP developed by
 Andrei Voronkov and his colleagues \cite{riazanov-voronkov-2002}. To use

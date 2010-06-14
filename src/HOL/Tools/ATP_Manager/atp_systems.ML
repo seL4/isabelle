@@ -331,40 +331,29 @@ fun dfg_prover name p = (name, generic_dfg_prover (name, p))
 
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
-val spass_config : prover_config =
+fun generic_spass_config dfg : prover_config =
   {home_var = "SPASS_HOME",
    executable = "SPASS",
    arguments = fn timeout =>
      "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout),
+     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout)
+     |> not dfg ? prefix "-TPTP ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(IncompleteUnprovable, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
-      (MalformedInput, "Free Variable")],
+      (MalformedInput, "Free Variable"),
+      (OldSpass, "unrecognized option `-TPTP'"),
+      (OldSpass, "Unrecognized option TPTP")],
    max_axiom_clauses = 40,
    prefers_theory_relevant = true}
-val spass = dfg_prover "spass" spass_config
+val spass_dfg_config = generic_spass_config true
+val spass_dfg = dfg_prover "spass_dfg" spass_dfg_config
 
-(* SPASS 3.7 supports both the DFG and the TPTP syntax, whereas SPASS 3.0
-   supports only the DFG syntax. As soon as all Isabelle repository/snapshot
-   users have upgraded to 3.7, we can kill "spass" (and all DFG support in
-   Sledgehammer) and rename "spass_tptp" "spass". *)
-
-val spass_tptp_config =
-  {home_var = #home_var spass_config,
-   executable = #executable spass_config,
-   arguments = prefix "-TPTP " o #arguments spass_config,
-   proof_delims = #proof_delims spass_config,
-   known_failures =
-     #known_failures spass_config @
-     [(OldSpass, "unrecognized option `-TPTP'"),
-      (OldSpass, "Unrecognized option TPTP")],
-   max_axiom_clauses = #max_axiom_clauses spass_config,
-   prefers_theory_relevant = #prefers_theory_relevant spass_config}
-val spass_tptp = tptp_prover "spass_tptp" spass_tptp_config
+val spass_config = generic_spass_config false
+val spass = tptp_prover "spass" spass_config
 
 (* remote prover invocation via SystemOnTPTP *)
 
@@ -426,7 +415,7 @@ fun default_atps_param_value () =
                      remotify (fst vampire)]
 
 val provers =
-  [spass, spass_tptp, vampire, e, remote_vampire, remote_spass, remote_e]
+  [spass, spass_dfg, vampire, e, remote_vampire, remote_spass, remote_e]
 val prover_setup = fold add_prover provers
 
 val setup =

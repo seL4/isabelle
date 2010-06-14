@@ -193,8 +193,7 @@ fun make_schematic_type_var (x,i) =
       tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
-val max_dfg_symbol_length =
-  if is_new_spass_version then 1000000 (* arbitrary large number *) else 63
+val max_dfg_symbol_length = 63
 
 (* HACK because SPASS 3.0 truncates identifiers to 63 characters. *)
 fun controlled_length dfg s =
