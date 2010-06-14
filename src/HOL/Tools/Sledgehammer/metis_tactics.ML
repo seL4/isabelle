@@ -139,7 +139,7 @@ fun hol_thm_to_fol is_conjecture ctxt mode j skolem_somes th =
   let
     val thy = ProofContext.theory_of ctxt
     val (skolem_somes, (mlits, types_sorts)) =
-     th |> prop_of |> kill_skolem_Eps j skolem_somes
+     th |> prop_of |> conceal_skolem_somes j skolem_somes
         ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy mode)
   in
       if is_conjecture then
@@ -235,24 +235,14 @@ fun fol_type_to_isa _ (Metis.Term.Var v) =
           SOME tf => mk_tfree ctxt tf
         | NONE    => raise Fail ("fol_type_to_isa: " ^ x));
 
-fun reintroduce_skolem_Eps thy skolem_somes =
-  let
-    fun aux Ts args t =
-      case t of
-        t1 $ t2 => aux Ts (aux Ts [] t2 :: args) t1
-      | Abs (s, T, t') => list_comb (Abs (s, T, aux (T :: Ts) [] t'), args)
-      | Const (s, T) =>
-        if String.isPrefix skolem_Eps_pseudo_theory s then
-          let
-            val (T', args', def') = AList.lookup (op =) skolem_somes s |> the
-          in
-            def' |> subst_free (args' ~~ args)
-                 |> map_types Type_Infer.paramify_vars
-          end
-        else
-          list_comb (t, args)
-      | t => list_comb (t, args)
-  in aux [] [] end
+fun reveal_skolem_somes skolem_somes =
+  map_aterms (fn t as Const (s, T) =>
+                 if String.isPrefix skolem_theory_name s then
+                   AList.lookup (op =) skolem_somes s
+                   |> the |> map_types Type_Infer.paramify_vars
+                 else
+                   t
+               | t => t)
 
 (*Maps metis terms to isabelle terms*)
 fun hol_term_from_fol_PT ctxt fol_tm =
@@ -360,8 +350,7 @@ fun hol_terms_from_fol ctxt mode skolem_somes fol_tms =
       val ts = map (hol_term_from_fol mode ctxt) fol_tms
       val _ = trace_msg (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg (fn () => Syntax.string_of_term ctxt t)) ts
-      val ts' =
-        ts |> map (reintroduce_skolem_Eps thy skolem_somes) |> infer_types ctxt
+      val ts' = ts |> map (reveal_skolem_somes skolem_somes) |> infer_types ctxt
       val _ = app (fn t => trace_msg
                     (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
                               "  of type  " ^ Syntax.string_of_typ ctxt (type_of t)))
@@ -418,7 +407,7 @@ fun inst_inf ctxt mode skolem_somes thpairs fsubst th =
       fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
       fun subst_translation (x,y) =
             let val v = find_var x
-                (* We call "reintroduce_skolem_Eps" and "infer_types" below. *)
+                (* We call "reveal_skolem_somes" and "infer_types" below. *)
                 val t = hol_term_from_fol mode ctxt y
             in  SOME (cterm_of thy (Var v), t)  end
             handle Option =>
@@ -434,7 +423,7 @@ fun inst_inf ctxt mode skolem_somes thpairs fsubst th =
       val _ = trace_msg (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
       val substs = map_filter remove_typeinst (Metis.Subst.toList fsubst)
       val (vars,rawtms) = ListPair.unzip (map_filter subst_translation substs)
-      val tms = rawtms |> map (reintroduce_skolem_Eps thy skolem_somes)
+      val tms = rawtms |> map (reveal_skolem_somes skolem_somes)
                        |> infer_types ctxt
       val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
       val substs' = ListPair.zip (vars, map ctm_of tms)
@@ -638,7 +627,7 @@ fun type_ext thy tms =
 type logic_map =
   {axioms: (Metis.Thm.thm * thm) list,
    tfrees: type_literal list,
-   skolem_somes: (string * (typ * term list * term)) list}
+   skolem_somes: (string * term) list}
 
 fun const_in_metis c (pred, tm_list) =
   let
@@ -708,12 +697,7 @@ fun build_map mode0 ctxt cls ths =
       val lmap =
         lmap |> mode <> FO
                 ? fold (add_thm false) (thEQ @ thS @ thC @ thB @ thK @ thI)
-  in
-      (mode, add_type_thm (type_ext thy 
-                                (* FIXME: Call"kill_skolem_Eps" here? *)
-                          (map ((*snd o kill_skolem_Eps ~1 skolem_somes o*) prop_of)
-                               (cls @ ths))) lmap)
-  end;
+  in (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap) end
 
 fun refute cls =
     Metis.Resolution.loop (Metis.Resolution.new Metis.Resolution.default cls);

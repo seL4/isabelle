@@ -98,9 +98,8 @@ fun first_order_resolve thA thB =
           val tmA = concl_of thA
           val Const("==>",_) $ tmB $ _ = prop_of thB
           val tenv =
-            Pattern.first_order_match thy
-                (pairself Envir.beta_eta_contract (tmB, tmA))
-                (Vartab.empty, Vartab.empty) |> snd
+            Pattern.first_order_match thy (tmB, tmA)
+                                          (Vartab.empty, Vartab.empty) |> snd
           val ct_pairs = map (pairself (cterm_of thy) o term_pair_of) (Vartab.dest tenv)
       in  thA RS (cterm_instantiate ct_pairs thB)  end) () of
     SOME th => th
@@ -317,17 +316,17 @@ fun resop nf [prem] = resolve_tac (nf prem) 1;
 val has_meta_conn =
     exists_Const (member (op =) ["==", "==>", "=simp=>", "all", "prop"] o #1);
 
-fun apply_skolem_ths (th, rls) =
+fun apply_skolem_theorem (th, rls) =
   let
-    fun tryall [] = raise THM ("apply_skolem_ths", 0, th::rls)
+    fun tryall [] = raise THM ("apply_skolem_theorem", 0, th::rls)
       | tryall (rl :: rls) =
         first_order_resolve th rl handle THM _ => tryall rls
   in tryall rls end
 
-(*Conjunctive normal form, adding clauses from th in front of ths (for foldr).
-  Strips universal quantifiers and breaks up conjunctions.
-  Eliminates existential quantifiers using skoths: Skolemization theorems.*)
-fun cnf skoths ctxt (th,ths) =
+(* Conjunctive normal form, adding clauses from th in front of ths (for foldr).
+   Strips universal quantifiers and breaks up conjunctions.
+   Eliminates existential quantifiers using Skolemization theorems. *)
+fun cnf skolem_ths ctxt (th, ths) =
   let val ctxtr = Unsynchronized.ref ctxt   (* FIXME ??? *)
       fun cnf_aux (th,ths) =
         if not (can HOLogic.dest_Trueprop (prop_of th)) then ths (*meta-level: ignore*)
@@ -341,7 +340,7 @@ fun cnf skoths ctxt (th,ths) =
                 in  ctxtr := ctxt'; cnf_aux (th', ths) end
           | Const ("Ex", _) =>
               (*existential quantifier: Insert Skolem functions*)
-              cnf_aux (apply_skolem_ths (th,skoths), ths)
+              cnf_aux (apply_skolem_theorem (th, skolem_ths), ths)
           | Const ("op |", _) =>
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
@@ -357,7 +356,7 @@ fun cnf skoths ctxt (th,ths) =
             else cnf_aux (th,ths)
   in  (cls, !ctxtr)  end;
 
-fun make_cnf skoths th ctxt = cnf skoths ctxt (th, []);
+fun make_cnf skolem_ths th ctxt = cnf skolem_ths ctxt (th, []);
 
 (*Generalization, removal of redundant equalities, removal of tautologies.*)
 fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);

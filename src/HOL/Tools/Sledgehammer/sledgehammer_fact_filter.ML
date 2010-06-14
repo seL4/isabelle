@@ -117,7 +117,7 @@ fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
       add_const_typ_table (const_with_typ thy (c,typ), tab) 
   | add_term_consts_typs_rm thy (Free(c, typ), tab) =
       add_const_typ_table (const_with_typ thy (c,typ), tab) 
-  | add_term_consts_typs_rm _ (Const (@{const_name skolem_Eps}, _) $ _, tab) =
+  | add_term_consts_typs_rm _ (Const (@{const_name skolem_id}, _) $ _, tab) =
       tab
   | add_term_consts_typs_rm thy (t $ u, tab) =
       add_term_consts_typs_rm thy (t, add_term_consts_typs_rm thy (u, tab))
@@ -471,7 +471,8 @@ fun type_consts_of_terms thy ts =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-fun is_quasi_fol_term thy = Meson.is_fol_term thy o snd o kill_skolem_Eps ~1 []
+fun is_quasi_fol_term thy =
+  Meson.is_fol_term thy o snd o conceal_skolem_somes ~1 []
 
 (*Ensures that no higher-order theorems "leak out"*)
 fun restrict_to_logic thy true cls =

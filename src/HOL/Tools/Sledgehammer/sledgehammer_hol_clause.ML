@@ -29,9 +29,8 @@ sig
   val type_of_combterm : combterm -> fol_type
   val strip_combterm_comb : combterm -> combterm * combterm list
   val literals_of_term : theory -> term -> literal list * typ list
-  val kill_skolem_Eps :
-    int -> (string * (typ * term list * term)) list -> term
-    -> (string * (typ * term list * term)) list * term
+  val conceal_skolem_somes :
+    int -> (string * term) list -> term -> (string * term) list * term
   exception TRIVIAL
   val make_conjecture_clauses : bool -> theory -> thm list -> hol_clause list
   val make_axiom_clauses : bool -> theory ->
@@ -123,7 +122,7 @@ fun combterm_of dfg thy (Const (c, T)) =
       let
         val (tp, ts) = type_of dfg T
         val tvar_list =
-          (if String.isPrefix skolem_Eps_pseudo_theory c then
+          (if String.isPrefix skolem_theory_name c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
@@ -163,46 +162,24 @@ fun skolem_name i j num_T_args =
   skolem_prefix ^ (space_implode "_" (map Int.toString [i, j, num_T_args])) ^
   skolem_infix ^ "g"
 
-val flip_type =
-  map_atyps (fn TFree (s, S) => TVar ((s, 0), S)
-              | TVar ((s, 0), S) => TFree (s, S)
-              | T as TVar (_, S) => raise TYPE ("nonzero TVar", [T], [])
-              | T => T)
-val flip_term =
-  map_aterms (fn Free (s, T) => Var ((s, 0), T)
-               | Var ((s, 0), T) => Free (s, T)
-               | t as Var (_, S) => raise TERM ("nonzero Var", [t])
-               | t => t)
-  #> map_types flip_type
-
-fun flipped_skolem_type_and_args bound_T body =
-  skolem_type_and_args (flip_type bound_T) (flip_term body)
-  |>> flip_type ||> map flip_term
-
-fun triple_aconv ((T1, ts1, t1), (T2, ts2, t2)) =
-  T1 = T2 andalso length ts1 = length ts2 andalso
-  forall (op aconv) (ts1 ~~ ts2) andalso t1 aconv t2
-
-fun kill_skolem_Eps i skolem_somes t =
-  if exists_Const (curry (op =) @{const_name skolem_Eps} o fst) t then
+fun conceal_skolem_somes i skolem_somes t =
+  if exists_Const (curry (op =) @{const_name skolem_id} o fst) t then
     let
       fun aux skolem_somes
-              (t as (Const (@{const_name skolem_Eps}, eps_T) $ t2)) =
+              (t as (Const (@{const_name skolem_id}, Type (_, [_, T])) $ _)) =
           let
-            val bound_T = range_type eps_T
-            val (T, args) = flipped_skolem_type_and_args bound_T t2
             val (skolem_somes, s) =
               if i = ~1 then
                 (skolem_somes, @{const_name undefined})
-              else case AList.find triple_aconv skolem_somes (T, args, t) of
+              else case AList.find (op aconv) skolem_somes t of
                 s :: _ => (skolem_somes, s)
               | _ =>
                 let
-                  val s = skolem_Eps_pseudo_theory ^ "." ^
+                  val s = skolem_theory_name ^ "." ^
                           skolem_name i (length skolem_somes)
                                         (length (Term.add_tvarsT T []))
-                in ((s, (T, args, t)) :: skolem_somes, s) end
-          in (skolem_somes, list_comb (Const (s, T), args)) end
+                in ((s, t) :: skolem_somes, s) end
+          in (skolem_somes, Const (s, T)) end
         | aux skolem_somes (t1 $ t2) =
           let
             val (skolem_somes, t1) = aux skolem_somes t1
@@ -224,7 +201,7 @@ exception TRIVIAL;
 fun make_clause dfg thy (clause_id, axiom_name, kind, th) skolem_somes =
   let
     val (skolem_somes, t) =
-      th |> prop_of |> kill_skolem_Eps clause_id skolem_somes
+      th |> prop_of |> conceal_skolem_somes clause_id skolem_somes
     val (lits, ctypes_sorts) = literals_of_term_dfg dfg thy t
   in
     if forall isFalse lits then

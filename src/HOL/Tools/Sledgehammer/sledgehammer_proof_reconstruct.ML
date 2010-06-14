@@ -261,8 +261,8 @@ fun invert_const c = c |> Symtab.lookup const_trans_table_inv |> the_default c
    (instances of) Skolem pseudoconstants, this information is encoded in the
    constant name. *)
 fun num_type_args thy s =
-  if String.isPrefix skolem_Eps_pseudo_theory s then
-    s |> unprefix skolem_Eps_pseudo_theory
+  if String.isPrefix skolem_theory_name s then
+    s |> unprefix skolem_theory_name
       |> space_explode skolem_infix |> hd
       |> space_explode "_" |> List.last |> Int.fromString |> the
   else
@@ -324,7 +324,7 @@ fun term_from_node thy full_types tfrees =
                         else
                           (* Extra args from "hAPP" come after any arguments
                              given directly to the constant. *)
-                          if String.isPrefix skolem_Eps_pseudo_theory c then
+                          if String.isPrefix skolem_theory_name c then
                             map fastype_of ts ---> HOLogic.typeT
                           else
                             Sign.const_instance thy (c,
