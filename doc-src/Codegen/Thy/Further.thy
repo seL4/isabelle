@@ -12,6 +12,87 @@ text {*
   contains exhaustive syntax diagrams.
 *}
 
+subsection {* Locales and interpretation *}
+
+text {*
+  A technical issue comes to surface when generating code from
+  specifications stemming from locale interpretation.
+
+  Let us assume a locale specifying a power operation
+  on arbitrary types:
+*}
+
+locale %quote power =
+  fixes power :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  assumes power_commute: "power x \<circ> power y = power y \<circ> power x"
+begin
+
+text {*
+  \noindent Inside that locale we can lift @{text power} to exponent lists
+  by means of specification relative to that locale:
+*}
+
+primrec %quote powers :: "'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
+  "powers [] = id"
+| "powers (x # xs) = power x \<circ> powers xs"
+
+lemma %quote powers_append:
+  "powers (xs @ ys) = powers xs \<circ> powers ys"
+  by (induct xs) simp_all
+
+lemma %quote powers_power:
+  "powers xs \<circ> power x = power x \<circ> powers xs"
+  by (induct xs)
+    (simp_all del: o_apply id_apply add: o_assoc [symmetric],
+      simp del: o_apply add: o_assoc power_commute)
+
+lemma %quote powers_rev:
+  "powers (rev xs) = powers xs"
+    by (induct xs) (simp_all add: powers_append powers_power)
+
+end %quote
+
+text {*
+  After an interpretation of this locale (say, @{command
+  interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f ::
+  'a \<Rightarrow> 'a). f ^^ n)"}), one would expect to have a constant @{text
+  "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"} for which code
+  can be generated.  But this not the case: internally, the term
+  @{text "fun_power.powers"} is an abbreviation for the foundational
+  term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
+  (see \cite{isabelle-locale} for the details behind).
+
+  Furtunately, with minor effort the desired behaviour can be achieved.
+  First, a dedicated definition of the constant on which the local @{text "powers"}
+  after interpretation is supposed to be mapped on:
+*}
+
+definition %quote funpows :: "nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  [code del]: "funpows = power.powers (\<lambda>n f. f ^^ n)"
+
+text {*
+  \noindent In general, the pattern is @{text "c = t"} where @{text c} is
+  the name of the future constant and @{text t} the foundational term
+  corresponding to the local constant after interpretation.
+
+  The interpretation itself is enriched with an equation @{text "t = c"}:
+*}
+
+interpretation %quote fun_power: power "\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n" where
+  "power.powers (\<lambda>n f. f ^^ n) = funpows"
+  by unfold_locales
+    (simp_all add: expand_fun_eq funpow_mult mult_commute funpows_def)
+
+text {*
+  \noindent This additional equation is trivially proved by the definition
+  itself.
+
+  After this setup procedure, code generation can continue as usual:
+*}
+
+text %quote {*@{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}*}
+
+
 subsection {* Modules *}
 
 text {*

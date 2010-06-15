@@ -28,6 +28,14 @@ INCOMPATIBILITY.
 * Removed simplifier congruence rule of "prod_case", as has for long
 been the case with "split".
 
+* Datatype package: theorems generated for executable equality
+(class eq) carry proper names and are treated as default code
+equations.
+
+* List.thy: use various operations from the Haskell prelude when
+generating Haskell code.
+
+
 
 New in Isabelle2009-2 (June 2010)
 ---------------------------------

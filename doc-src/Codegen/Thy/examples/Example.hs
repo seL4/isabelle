@@ -2,13 +2,6 @@
 
 module Example where {
 
-foldla :: forall a b. (a -> b -> a) -> a -> [b] -> a;
-foldla f a [] = a;
-foldla f a (x : xs) = foldla f (f a x) xs;
-
-rev :: forall a. [a] -> [a];
-rev xs = foldla (\ xsa x -> x : xsa) [] xs;
-
 list_case :: forall a b. a -> (b -> [b] -> a) -> [b] -> a;
 list_case f1 f2 (a : list) = f2 a list;
 list_case f1 f2 [] = f1;

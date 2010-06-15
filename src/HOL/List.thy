@@ -4929,4 +4929,40 @@ lemma list_ex_iff_not_all_from_to_not_int[code_unfold]:
   "list_ex P [i..j] = (~ all_from_to_int (%x. ~P x) i j)"
 by(simp add: all_from_to_int_iff_ball list_ex_iff)
 
+
+subsubsection {* Use convenient predefined operations *}
+
+code_const "op @"
+  (SML infixr 7 "@")
+  (OCaml infixr 6 "@")
+  (Haskell infixr 5 "++")
+  (Scala infixl 7 "++")
+
+code_const map
+  (Haskell "map")
+
+code_const filter
+  (Haskell "filter")
+
+code_const concat
+  (Haskell "concat")
+
+code_const rev
+  (Haskell "rev")
+
+code_const zip
+  (Haskell "zip")
+
+code_const takeWhile
+  (Haskell "takeWhile")
+
+code_const dropWhile
+  (Haskell "dropWhile")
+
+code_const hd
+  (Haskell "head")
+
+code_const last
+  (Haskell "last")
+
 end

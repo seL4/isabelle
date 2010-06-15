@@ -1800,8 +1800,8 @@ declare equals_eq [code]
 setup {*
   Code_Preproc.map_pre (fn simpset =>
     simpset addsimprocs [Simplifier.simproc_i @{theory} "eq" [@{term "op ="}]
-      (fn thy => fn _ => fn t as Const (_, T) => case strip_type T
-        of ((T as Type _) :: _, _) => SOME @{thm equals_eq}
+      (fn thy => fn _ => fn Const (_, T) => case strip_type T
+        of (Type _ :: _, _) => SOME @{thm equals_eq}
          | _ => NONE)])
 *}
 
