@@ -396,9 +396,9 @@ fun compile_eqnss ctxt gr raw_deps [] = []
 
 (* preparing function equations *)
 
-fun eqns_of_stmt (_, Code_Thingol.Fun (_, (_, []))) =
+fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
       []
-  | eqns_of_stmt (const, Code_Thingol.Fun (_, ((vs, _), eqns))) =
+  | eqns_of_stmt (const, Code_Thingol.Fun (_, (((vs, _), eqns), _))) =
       [(const, (vs, map fst eqns))]
   | eqns_of_stmt (_, Code_Thingol.Datatypecons _) =
       []

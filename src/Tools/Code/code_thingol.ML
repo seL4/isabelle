@@ -66,7 +66,7 @@ sig
 
   datatype stmt =
       NoStmt
-    | Fun of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
+    | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
     | Datatype of string * ((vname * sort) list * (string * itype list) list)
     | Datatypecons of string * string
     | Class of class * (vname * ((class * string) list * (string * itype) list))
@@ -402,7 +402,7 @@ end; (* local *)
 type typscheme = (vname * sort) list * itype;
 datatype stmt =
     NoStmt
-  | Fun of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
+  | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
   | Datatype of string * ((vname * sort) list * (string * itype list) list)
   | Datatypecons of string * string
   | Class of class * (vname * ((class * string) list * (string * itype) list))
@@ -416,7 +416,7 @@ datatype stmt =
 type program = stmt Graph.T;
 
 fun empty_funs program =
-  Graph.fold (fn (name, (Fun (c, (_, [])), _)) => cons c
+  Graph.fold (fn (name, (Fun (c, ((_, []), _)), _)) => cons c
                | _ => I) program [];
 
 fun map_terms_bottom_up f (t as IConst _) = f t
@@ -430,8 +430,8 @@ fun map_terms_bottom_up f (t as IConst _) = f t
         (map_terms_bottom_up f) ps), map_terms_bottom_up f t0));
 
 fun map_terms_stmt f NoStmt = NoStmt
-  | map_terms_stmt f (Fun (c, (tysm, eqs))) = Fun (c, (tysm, (map o apfst)
-      (fn (ts, t) => (map f ts, f t)) eqs))
+  | map_terms_stmt f (Fun (c, ((tysm, eqs), case_cong))) = Fun (c, ((tysm, (map o apfst)
+      (fn (ts, t) => (map f ts, f t)) eqs), case_cong))
   | map_terms_stmt f (stmt as Datatype _) = stmt
   | map_terms_stmt f (stmt as Datatypecons _) = stmt
   | map_terms_stmt f (stmt as Class _) = stmt
@@ -573,7 +573,7 @@ and ensure_const thy algbr eqngr permissive c =
         ##>> translate_typ thy algbr eqngr permissive ty
         ##>> (fold_map (translate_equation thy algbr eqngr permissive) eqns
           #>> map_filter I)
-        #>> (fn info => Fun (c, info))
+        #>> (fn info => Fun (c, (info, NONE)))
       end;
     val stmt_const = case Code.get_type_of_constr_or_abstr thy c
      of SOME (tyco, _) => stmt_datatypecons tyco
@@ -847,10 +847,10 @@ fun ensure_value thy algbr eqngr t =
       ##>> translate_typ thy algbr eqngr false ty
       ##>> translate_term thy algbr eqngr false NONE (Code.subst_signatures thy t, NONE)
       #>> (fn ((vs, ty), t) => Fun
-        (Term.dummy_patternN, ((vs, ty), [(([], t), (NONE, true))])));
+        (Term.dummy_patternN, (((vs, ty), [(([], t), (NONE, true))]), NONE)));
     fun term_value (dep, (naming, program1)) =
       let
-        val Fun (_, (vs_ty, [(([], t), _)])) =
+        val Fun (_, ((vs_ty, [(([], t), _)]), _)) =
           Graph.get_node program1 Term.dummy_patternN;
         val deps = Graph.imm_succs program1 Term.dummy_patternN;
         val program2 = Graph.del_nodes [Term.dummy_patternN] program1;

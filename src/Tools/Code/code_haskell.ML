@@ -115,7 +115,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           end
       | print_case tyvars some_thm vars fxy ((_, []), _) =
           (brackify fxy o Pretty.breaks o map str) ["error", "\"empty case\""];
-    fun print_stmt (name, Code_Thingol.Fun (_, ((vs, ty), raw_eqs))) =
+    fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
             fun print_err n =

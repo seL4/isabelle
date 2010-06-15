@@ -758,7 +758,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         val base' = if upper then first_upper base else base;
         val ([base''], nsp') = Name.variants [base'] nsp;
       in (base'', nsp') end;
-    fun ml_binding_of_stmt (name, Code_Thingol.Fun (_, (tysm as (vs, ty), raw_eqs))) =
+    fun ml_binding_of_stmt (name, Code_Thingol.Fun (_, ((tysm as (vs, ty), raw_eqs), _))) =
           let
             val eqs = filter (snd o snd) raw_eqs;
             val (eqs', is_value) = if null (filter_out (null o snd) vs) then case eqs
