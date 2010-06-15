@@ -81,6 +81,7 @@ sig
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
   val is_cons: program -> string -> bool
+  val is_case: stmt -> bool
   val contr_classparam_typs: program -> string -> itype option list
   val labelled_name: theory -> program -> string -> string
   val group_stmts: theory -> program
@@ -445,6 +446,9 @@ fun is_cons program name = case Graph.get_node program name
  of Datatypecons _ => true
   | _ => false;
 
+fun is_case (Fun (_, (_, SOME _))) = true
+  | is_case _ = false;
+
 fun contr_classparam_typs program name = case Graph.get_node program name
  of Classparam (_, class) => let
         val Class (_, (_, (_, params))) = Graph.get_node program class;
@@ -473,6 +477,10 @@ fun labelled_name thy program name = case Graph.get_node program name
         val Datatype (tyco, _) = Graph.get_node program tyco
       in quote (Sign.extern_type thy tyco ^ " :: " ^ Sign.extern_class thy class) end
 
+fun linear_stmts program =
+  rev (Graph.strong_conn program)
+  |> map (AList.make (Graph.get_node program));
+
 fun group_stmts thy program =
   let
     fun is_fun (_, Fun _) = true | is_fun _ = false;
@@ -492,8 +500,7 @@ fun group_stmts thy program =
       else error ("Illegal mutual dependencies: " ^
         (commas o map (labelled_name thy program o fst)) stmts)
   in
-    rev (Graph.strong_conn program)
-    |> map (AList.make (Graph.get_node program))
+    linear_stmts program
     |> map group
   end;
 
@@ -568,12 +575,12 @@ and ensure_const thy algbr eqngr permissive c =
     fun stmt_fun cert =
       let
         val ((vs, ty), eqns) = Code.equations_of_cert thy cert;
+        val some_case_cong = Code.get_case_cong thy c;
       in
         fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
         ##>> translate_typ thy algbr eqngr permissive ty
-        ##>> (fold_map (translate_equation thy algbr eqngr permissive) eqns
-          #>> map_filter I)
-        #>> (fn info => Fun (c, (info, NONE)))
+        ##>> translate_eqns thy algbr eqngr permissive eqns
+        #>> (fn info => Fun (c, (info, some_case_cong)))
       end;
     val stmt_const = case Code.get_type_of_constr_or_abstr thy c
      of SOME (tyco, _) => stmt_datatypecons tyco
@@ -667,9 +674,9 @@ and translate_eqn thy algbr eqngr permissive ((args, (rhs, some_abs)), (some_thm
   fold_map (translate_term thy algbr eqngr permissive some_thm) args
   ##>> translate_term thy algbr eqngr permissive some_thm (rhs, some_abs)
   #>> rpair (some_thm, proper)
-and translate_equation thy algbr eqngr permissive eqn prgrm =
-  prgrm |> translate_eqn thy algbr eqngr permissive eqn |>> SOME
-    handle PERMISSIVE () => (NONE, prgrm)
+and translate_eqns thy algbr eqngr permissive eqns prgrm =
+  prgrm |> fold_map (translate_eqn thy algbr eqngr permissive) eqns
+    handle PERMISSIVE () => ([], prgrm)
 and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
   let
     val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
