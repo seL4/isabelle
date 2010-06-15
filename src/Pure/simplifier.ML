@@ -36,7 +36,7 @@ sig
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
   val context: Proof.context -> simpset -> simpset
-  val global_context: theory  -> simpset -> simpset
+  val global_context: theory -> simpset -> simpset
   val with_context: Proof.context -> (simpset -> simpset) -> simpset -> simpset
   val simproc_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
