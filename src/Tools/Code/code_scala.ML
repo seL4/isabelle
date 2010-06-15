@@ -334,8 +334,9 @@ fun scala_program_of_program labelled_name module_name reserved raw_module_alias
         |> add_name
         |-> (fn base' => rpair (add_stmt base' stmts))
       end;
-    val (_, sca_program) = fold prepare_stmt (AList.make (fn name => Graph.get_node program name)
-      (Graph.strong_conn program |> flat)) (((reserved, reserved), reserved), []);
+    val stmts = AList.make (Graph.get_node program) (Graph.strong_conn program |> flat)
+      |> filter_out (Code_Thingol.is_case o snd);
+    val (_, sca_program) = fold prepare_stmt stmts (((reserved, reserved), reserved), []);
     fun deresolver name = (fst o the o AList.lookup (op =) sca_program) name
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, (the_module_name, sca_program)) end;

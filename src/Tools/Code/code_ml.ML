@@ -758,6 +758,11 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         val base' = if upper then first_upper base else base;
         val ([base''], nsp') = Name.variants [base'] nsp;
       in (base'', nsp') end;
+    fun deps_of names =
+      []
+      |> fold (fold (insert (op =)) o Graph.imm_succs program) names
+      |> subtract (op =) names
+      |> filter_out (Code_Thingol.is_case o Graph.get_node program);
     fun ml_binding_of_stmt (name, Code_Thingol.Fun (_, ((tysm as (vs, ty), raw_eqs), _))) =
           let
             val eqs = filter (snd o snd) raw_eqs;
@@ -845,10 +850,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
     fun add_stmts' stmts nsp_nodes =
       let
         val names as (name :: names') = map fst stmts;
-        val deps =
-          []
-          |> fold (fold (insert (op =)) o Graph.imm_succs program) names
-          |> subtract (op =) names;
+        val deps = deps_of names;
         val (module_names, _) = (split_list o map dest_name) names;
         val module_name = (the_single o distinct (op =) o map mk_name_module) module_names
           handle Empty =>
@@ -882,9 +884,9 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         |> apsnd (fold (fn name => fold (add_dep name) deps) names)
         |> apsnd (fold_product (curry (map_node module_name_path o Graph.add_edge)) names names)
       end;
-    val (_, nodes) = empty_module
-      |> fold add_stmts' (map (AList.make (Graph.get_node program))
-          (rev (Graph.strong_conn program)));
+    val stmts = map (AList.make (Graph.get_node program)) (rev (Graph.strong_conn program))
+      |> filter_out (fn [(_, stmt)] => Code_Thingol.is_case stmt | _ => false);
+    val (_, nodes) = fold add_stmts' stmts empty_module;
     fun deresolver prefix name = 
       let
         val module_name = (fst o dest_name) name;

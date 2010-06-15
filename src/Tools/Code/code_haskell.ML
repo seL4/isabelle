@@ -275,7 +275,8 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved 
             val (base', nsp_typ') = mk_name_stmt (first_upper base) nsp_typ
           in (base', (nsp_fun, nsp_typ')) end;
         val add_name = case stmt
-         of Code_Thingol.Fun _ => add_fun false
+         of Code_Thingol.Fun (_, (_, SOME _)) => pair base
+          | Code_Thingol.Fun _ => add_fun false
           | Code_Thingol.Datatype _ => add_typ
           | Code_Thingol.Datatypecons _ => add_fun true
           | Code_Thingol.Class _ => add_typ
@@ -283,7 +284,9 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved 
           | Code_Thingol.Classparam _ => add_fun false
           | Code_Thingol.Classinst _ => pair base;
         fun add_stmt' base' = case stmt
-         of Code_Thingol.Datatypecons _ =>
+         of Code_Thingol.Fun (_, (_, SOME _)) =>
+              I
+          | Code_Thingol.Datatypecons _ =>
               cons (name, (Long_Name.append module_name' base', NONE))
           | Code_Thingol.Classrel _ => I
           | Code_Thingol.Classparam _ =>
