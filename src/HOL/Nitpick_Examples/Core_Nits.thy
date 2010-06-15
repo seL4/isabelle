@@ -1053,50 +1053,50 @@ sorry
 
 nitpick_params [full_descrs, max_potential = 1]
 
-lemma "(THE j. j > Suc 10 \<and> j \<le> 11) \<noteq> 0"
-nitpick [card nat = 4, expect = potential]
-nitpick [card nat = 14, expect = potential] (* unfortunate *)
+lemma "(THE j. j > Suc 2 \<and> j \<le> 3) \<noteq> 0"
+nitpick [card nat = 2, expect = potential]
+nitpick [card nat = 6, expect = potential] (* unfortunate *)
 oops
 
-lemma "(THE j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x \<noteq> 0"
-nitpick [card nat = 4, expect = potential]
-nitpick [card nat = 14, expect = none]
+lemma "(THE j. j > Suc 2 \<and> j \<le> 4) = x \<Longrightarrow> x \<noteq> 0"
+nitpick [card nat = 2, expect = potential]
+nitpick [card nat = 6, expect = none]
 sorry
 
-lemma "(THE j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x = 12"
-nitpick [card nat = 4, expect = potential]
-nitpick [card nat = 14, expect = none]
+lemma "(THE j. j > Suc 2 \<and> j \<le> 4) = x \<Longrightarrow> x = 4"
+nitpick [card nat = 2, expect = potential]
+nitpick [card nat = 6, expect = none]
 sorry
 
-lemma "(THE j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12"
-nitpick [card nat = 14, expect = genuine]
+lemma "(THE j. j > Suc 2 \<and> j \<le> 5) = x \<Longrightarrow> x = 4"
+nitpick [card nat = 6, expect = genuine]
 oops
 
-lemma "(THE j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12 \<or> x = 13"
-nitpick [card nat = 14, expect = genuine]
+lemma "(THE j. j > Suc 2 \<and> j \<le> 5) = x \<Longrightarrow> x = 4 \<or> x = 5"
+nitpick [card nat = 6, expect = genuine]
 oops
 
-lemma "(SOME j. j > Suc 10 \<and> j \<le> 11) \<noteq> 0"
-nitpick [card nat = 4, expect = potential]
-nitpick [card nat = 14, expect = genuine]
+lemma "(SOME j. j > Suc 2 \<and> j \<le> 3) \<noteq> 0"
+nitpick [card nat = 2, expect = potential]
+nitpick [card nat = 6, expect = genuine]
 oops
 
-lemma "(SOME j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x \<noteq> 0"
-nitpick [card nat = 4, expect = potential]
-nitpick [card nat = 14, expect = none]
+lemma "(SOME j. j > Suc 2 \<and> j \<le> 4) = x \<Longrightarrow> x \<noteq> 0"
+nitpick [card nat = 2, expect = potential]
+nitpick [card nat = 6, expect = none]
 oops
 
-lemma "(SOME j. j > Suc 10 \<and> j \<le> 12) = x \<Longrightarrow> x = 12"
-nitpick [card nat = 4, expect = potential]
-nitpick [card nat = 14, expect = none]
+lemma "(SOME j. j > Suc 2 \<and> j \<le> 4) = x \<Longrightarrow> x = 4"
+nitpick [card nat = 2, expect = potential]
+nitpick [card nat = 6, expect = none]
 sorry
 
-lemma "(SOME j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12"
-nitpick [card nat = 14, expect = genuine]
+lemma "(SOME j. j > Suc 2 \<and> j \<le> 5) = x \<Longrightarrow> x = 4"
+nitpick [card nat = 6, expect = genuine]
 oops
 
-lemma "(SOME j. j > Suc 10 \<and> j \<le> 13) = x \<Longrightarrow> x = 12 \<or> x = 13"
-nitpick [card nat = 14, expect = none]
+lemma "(SOME j. j > Suc 2 \<and> j \<le> 5) = x \<Longrightarrow> x = 4 \<or> x = 5"
+nitpick [card nat = 6, expect = none]
 sorry
 
 nitpick_params [fast_descrs, max_potential = 0]
