@@ -36,27 +36,6 @@ To dive deeper into the issue of code generation, you should visit
 \isamarkupsubsection{Locales and interpretation%
 }
 \isamarkuptrue%
-\isacommand{lemma}\isamarkupfalse%
-\ funpow{\isacharunderscore}mult{\isacharcolon}\ %
-\isamarkupcmt{FIXME%
-}
-\isanewline
-\ \ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}f\ {\isacharcircum}{\isacharcircum}\ m{\isacharparenright}\ {\isacharcircum}{\isacharcircum}\ n\ {\isacharequal}\ f\ {\isacharcircum}{\isacharcircum}\ {\isacharparenleft}m\ {\isacharasterisk}\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
-%
-\isadelimproof
-\ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ funpow{\isacharunderscore}add{\isacharparenright}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
 %
 \begin{isamarkuptext}%
 A technical issue comes to surface when generating code from
@@ -202,8 +181,8 @@ After an interpretation of this locale (say, \hyperlink{command.interpretation}{
 \isatypewriter%
 \noindent%
 \hspace*{0pt}funpow ::~forall a.~Nat -> (a -> a) -> a -> a;\\
-\hspace*{0pt}funpow (Suc n) f = f .~funpow n f;\\
 \hspace*{0pt}funpow Zero{\char95}nat f = id;\\
+\hspace*{0pt}funpow (Suc n) f = f .~funpow n f;\\
 \hspace*{0pt}\\
 \hspace*{0pt}funpows ::~forall a.~[Nat] -> (a -> a) -> a -> a;\\
 \hspace*{0pt}funpows [] = id;\\
