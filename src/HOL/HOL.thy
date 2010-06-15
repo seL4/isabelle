@@ -1773,6 +1773,7 @@ subsubsection {* Generic code generator preprocessor setup *}
 setup {*
   Code_Preproc.map_pre (K HOL_basic_ss)
   #> Code_Preproc.map_post (K HOL_basic_ss)
+  #> Code_Simp.map_ss (K HOL_basic_ss)
 *}
 
 subsubsection {* Equality *}

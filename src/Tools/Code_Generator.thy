@@ -13,6 +13,7 @@ uses
   "~~/src/Tools/value.ML"
   "~~/src/Tools/Code/code_preproc.ML" 
   "~~/src/Tools/Code/code_thingol.ML"
+  "~~/src/Tools/Code/code_simp.ML"
   "~~/src/Tools/Code/code_printer.ML"
   "~~/src/Tools/Code/code_target.ML"
   "~~/src/Tools/Code/code_ml.ML"
@@ -24,6 +25,7 @@ begin
 
 setup {*
   Code_Preproc.setup
+  #> Code_Simp.setup
   #> Code_ML.setup
   #> Code_Eval.setup
   #> Code_Haskell.setup

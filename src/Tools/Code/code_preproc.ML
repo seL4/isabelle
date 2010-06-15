@@ -28,6 +28,7 @@ sig
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
   val eval: theory -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
+  val pre_post_conv: theory -> (cterm -> thm) -> cterm -> thm
 
   val setup: theory -> theory
 end
@@ -456,6 +457,8 @@ fun eval_conv thy =
 
 fun eval thy postproc evaluator = gen_eval thy (Thm.cterm_of thy)
   (K o postproc (postprocess_term thy)) (simple_evaluator evaluator);
+
+fun pre_post_conv thy conv = (preprocess_conv thy) then_conv conv then_conv (postprocess_conv thy);
 
 
 (** setup **)

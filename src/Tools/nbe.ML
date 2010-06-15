@@ -581,19 +581,6 @@ val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
 fun norm_oracle thy program vsp_ty_t deps ct =
   raw_norm_oracle (thy, program, vsp_ty_t, deps, ct);
 
-fun no_frees_conv conv ct =
-  let
-    val frees = Thm.add_cterm_frees ct [];
-    fun apply_beta free thm = Thm.combination thm (Thm.reflexive free)
-      |> Conv.fconv_rule (Conv.arg_conv (Conv.try_conv (Thm.beta_conversion false)))
-      |> Conv.fconv_rule (Conv.arg1_conv (Thm.beta_conversion false));
-  in
-    ct
-    |> fold_rev Thm.cabs frees
-    |> conv
-    |> fold apply_beta frees
-  end;
-
 fun no_frees_rew rew t =
   let
     val frees = map Free (Term.add_frees t []);
@@ -604,7 +591,7 @@ fun no_frees_rew rew t =
     |> (fn t' => Term.betapplys (t', frees))
   end;
 
-val norm_conv = no_frees_conv (fn ct =>
+val norm_conv = Code_Simp.no_frees_conv (fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
   in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (K (norm_oracle thy))) ct end);
