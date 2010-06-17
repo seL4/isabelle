@@ -5266,7 +5266,7 @@ lemma homeomorphic_compact:
     (* class constraint due to continuous_on_inverse *)
   shows "compact s \<Longrightarrow> continuous_on s f \<Longrightarrow> (f ` s = t) \<Longrightarrow> inj_on f s
           \<Longrightarrow> s homeomorphic t"
-  unfolding homeomorphic_def by(metis homeomorphism_compact)
+  unfolding homeomorphic_def by (auto intro: homeomorphism_compact)
 
 text{* Preservation of topological properties.                                   *}
 
