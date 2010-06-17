@@ -173,7 +173,7 @@ fun conceal_skolem_somes i skolem_somes t =
                 (skolem_somes, @{const_name undefined})
               else case AList.find (op aconv) skolem_somes t of
                 s :: _ => (skolem_somes, s)
-              | _ =>
+              | [] =>
                 let
                   val s = skolem_theory_name ^ "." ^
                           skolem_name i (length skolem_somes)
