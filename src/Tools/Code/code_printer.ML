@@ -256,12 +256,12 @@ fun activate_const_syntax thy literals (n, (cs, f)) naming =
   fold_map (Code_Thingol.ensure_declared_const thy) cs naming
   |-> (fn cs' => pair (n, f literals cs'));
 
-fun gen_print_app print_app_expr print_term syntax_const thm vars fxy (app as ((c, (_, tys)), ts)) =
+fun gen_print_app print_app_expr print_term syntax_const thm vars fxy (app as ((c, (_, function_typs)), ts)) =
   case syntax_const c
    of NONE => brackify fxy (print_app_expr thm vars app)
     | SOME (k, print) =>
         let
-          fun print' fxy ts = print (print_term thm) thm vars fxy (ts ~~ take k tys);
+          fun print' fxy ts = print (print_term thm) thm vars fxy (ts ~~ take k function_typs);
         in if k = length ts
           then print' fxy ts
         else if k < length ts

@@ -417,7 +417,7 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
       []
   | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
-  | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arity_args)), (super_instances, classparam_instances))) =
+  | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arity_args)), (super_instances, (classparam_instances, _)))) =
       [(inst, (arity_args, [([], IConst (class, (([], []), [])) `$$
         map (fn (_, (_, (inst, dss))) => IConst (inst, (([], dss), []))) super_instances
         @ map (IConst o snd o fst) classparam_instances)]))];

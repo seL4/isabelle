@@ -33,13 +33,13 @@ datatype ml_binding =
     ML_Function of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
   | ML_Instance of string * ((class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
-      * ((string * const) * (thm * bool)) list));
+      * (((string * const) * (thm * bool)) list * ((string * const) * (thm * bool)) list)));
 
 datatype ml_stmt =
     ML_Exc of string * (typscheme * int)
   | ML_Val of ml_binding
   | ML_Funs of ml_binding list * string list
-  | ML_Datas of (string * ((vname * sort) list * (string * itype list) list)) list
+  | ML_Datas of (string * ((vname * sort) list * ((string * vname list) * itype list) list)) list
   | ML_Class of string * (vname * ((class * string) list * (string * itype) list));
 
 fun stmt_name_of_binding (ML_Function (name, _)) = name
@@ -121,9 +121,9 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
                 then print_case is_pseudo_fun some_thm vars fxy cases
                 else print_app is_pseudo_fun some_thm vars fxy c_ts
             | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
-    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, ((_, iss), tys)), ts)) =
+    and print_app_expr is_pseudo_fun some_thm vars (app as ((c, ((_, iss), function_typs)), ts)) =
       if is_cons c then
-        let val k = length tys in
+        let val k = length function_typs in
           if k < 2 orelse length ts = k
           then (str o deresolve) c
             :: the_list (print_tuple (print_term is_pseudo_fun some_thm vars) BR ts)
@@ -174,8 +174,8 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
       [str "val", str (deresolve name), str ":", print_typscheme typscheme];
     fun print_datatype_decl definer (tyco, (vs, cos)) =
       let
-        fun print_co (co, []) = str (deresolve co)
-          | print_co (co, tys) = concat [str (deresolve co), str "of",
+        fun print_co ((co, _), []) = str (deresolve co)
+          | print_co ((co, _), tys) = concat [str (deresolve co), str "of",
               enum " *" "" "" (map (print_typ (INFX (2, X))) tys)];
       in
         concat (
@@ -219,7 +219,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             ))
           end
       | print_def is_pseudo_fun _ definer
-          (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, classparam_instances)))) =
+          (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, (classparam_instances, _))))) =
           let
             fun print_super_instance (_, (classrel, dss)) =
               concat [
@@ -466,8 +466,8 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
       [str "val", str (deresolve name), str ":", print_typscheme typscheme];
     fun print_datatype_decl definer (tyco, (vs, cos)) =
       let
-        fun print_co (co, []) = str (deresolve co)
-          | print_co (co, tys) = concat [str (deresolve co), str "of",
+        fun print_co ((co, _), []) = str (deresolve co)
+          | print_co ((co, _), tys) = concat [str (deresolve co), str "of",
               enum " *" "" "" (map (print_typ (INFX (2, X))) tys)];
       in
         concat (
@@ -554,7 +554,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
             ))
           end
       | print_def is_pseudo_fun _ definer
-            (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, classparam_instances)))) =
+            (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, (classparam_instances, _))))) =
           let
             fun print_super_instance (_, (classrel, dss)) =
               concat [
