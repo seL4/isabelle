@@ -122,7 +122,7 @@ end; (*local*)
 
 fun check_datatype thy tyco consts =
   let
-    val constrs = (map fst o snd o Code.get_type thy) tyco;
+    val constrs = (map (fst o fst) o snd o Code.get_type thy) tyco;
     val missing_constrs = subtract (op =) consts constrs;
     val _ = if null missing_constrs then []
       else error ("Missing constructor(s) " ^ commas (map quote missing_constrs)

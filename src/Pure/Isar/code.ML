@@ -66,7 +66,7 @@ sig
   val del_eqns: string -> theory -> theory
   val add_case: thm -> theory -> theory
   val add_undefined: string -> theory -> theory
-  val get_type: theory -> string -> ((string * sort) list * (string * typ list) list)
+  val get_type: theory -> string -> ((string * sort) list * ((string * string list) * typ list) list)
   val get_type_of_constr_or_abstr: theory -> string -> (string * bool) option
   val is_constr: theory -> string -> bool
   val is_abstr: theory -> string -> bool
@@ -429,7 +429,13 @@ fun get_abstype_spec thy tyco = case get_type_entry thy tyco
  of SOME (vs, Abstractor spec) => (vs, spec)
   | _ => error ("Not an abstract type: " ^ tyco);
  
-fun get_type thy = fst o get_type_spec thy;
+fun get_type thy tyco =
+  let
+    val ((vs, cos), _) = get_type_spec thy tyco;
+    fun args_of c tys = map (fst o dest_TFree)
+      (Sign.const_typargs thy (c, tys ---> Type (tyco, map TFree vs)));
+    fun add_typargs (c, tys) = ((c, args_of c tys), tys);
+  in (vs, map add_typargs cos) end;
 
 fun get_type_of_constr_or_abstr thy c =
   case (snd o strip_type o const_typ thy) c
@@ -1115,7 +1121,7 @@ fun case_cong thy case_const (num_args, (pos, constrs)) =
     val ([x, y], ctxt) = Name.variants ["A", "A'"] Name.context;
     val (zs, _) = Name.variants (replicate (num_args - 1) "") ctxt;
     val (ws, vs) = chop pos zs;
-    val T = Logic.unvarifyT_global (const_typ thy case_const);
+    val T = Logic.unvarifyT_global (Sign.the_const_type thy case_const);
     val Ts = (fst o strip_type) T;
     val T_cong = nth Ts pos;
     fun mk_prem z = Free (z, T_cong);
@@ -1177,7 +1183,7 @@ structure Datatype_Interpretation =
   Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);
 
 fun datatype_interpretation f = Datatype_Interpretation.interpretation
-  (fn (tyco, _) => fn thy => f (tyco, get_type thy tyco) thy);
+  (fn (tyco, _) => fn thy => f (tyco, fst (get_type_spec thy tyco)) thy);
 
 fun add_datatype proto_constrs thy =
   let

@@ -67,14 +67,16 @@ sig
   datatype stmt =
       NoStmt
     | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
-    | Datatype of string * ((vname * sort) list * (string * itype list) list)
+    | Datatype of string * ((vname * sort) list *
+        ((string * vname list (*type argument wrt. canonical order*)) * itype list) list)
     | Datatypecons of string * string
     | Class of class * (vname * ((class * string) list * (string * itype) list))
     | Classrel of class * class
     | Classparam of string * class
-    | Classinst of (class * (string * (vname * sort) list) (*class and arity*) )
+    | Classinst of (class * (string * (vname * sort) list) (*class and arity*))
           * ((class * (string * (string * dict list list))) list (*super instances*)
-        * ((string * const) * (thm * bool)) list (*class parameter instances*))
+        * (((string * const) * (thm * bool)) list (*class parameter instances*)
+          * ((string * const) * (thm * bool)) list (*super class parameter instances*)))
   type program = stmt Graph.T
   val empty_funs: program -> string list
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
@@ -403,14 +405,16 @@ type typscheme = (vname * sort) list * itype;
 datatype stmt =
     NoStmt
   | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
-  | Datatype of string * ((vname * sort) list * (string * itype list) list)
+  | Datatype of string * ((vname * sort) list * ((string * vname list) * itype list) list)
   | Datatypecons of string * string
   | Class of class * (vname * ((class * string) list * (string * itype) list))
   | Classrel of class * class
   | Classparam of string * class
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
-      * ((string * const) * (thm * bool)) list) (*see also signature*);
+      * (((string * const) * (thm * bool)) list
+        * ((string * const) * (thm * bool)) list))
+      (*see also signature*);
 
 type program = stmt Graph.T;
 
@@ -428,6 +432,9 @@ fun map_terms_bottom_up f (t as IConst _) = f t
       (ICase (((map_terms_bottom_up f t, ty), (map o pairself)
         (map_terms_bottom_up f) ps), map_terms_bottom_up f t0));
 
+fun map_classparam_instances_as_term f =
+  (map o apfst o apsnd) (fn const => case f (IConst const) of IConst const' => const')
+
 fun map_terms_stmt f NoStmt = NoStmt
   | map_terms_stmt f (Fun (c, ((tysm, eqs), case_cong))) = Fun (c, ((tysm, (map o apfst)
       (fn (ts, t) => (map f ts, f t)) eqs), case_cong))
@@ -436,9 +443,8 @@ fun map_terms_stmt f NoStmt = NoStmt
   | map_terms_stmt f (stmt as Class _) = stmt
   | map_terms_stmt f (stmt as Classrel _) = stmt
   | map_terms_stmt f (stmt as Classparam _) = stmt
-  | map_terms_stmt f (Classinst (arity, (super_instances, classparams))) =
-      Classinst (arity, (super_instances, (map o apfst o apsnd) (fn const =>
-        case f (IConst const) of IConst const' => const') classparams));
+  | map_terms_stmt f (Classinst (arity, (super_instances, classparam_instances))) =
+      Classinst (arity, (super_instances, (pairself o map_classparam_instances_as_term) f classparam_instances));
 
 fun is_cons program name = case Graph.get_node program name
  of Datatypecons _ => true
@@ -557,8 +563,9 @@ fun ensure_tyco thy algbr eqngr permissive tyco =
     val (vs, cos) = Code.get_type thy tyco;
     val stmt_datatype =
       fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
-      ##>> fold_map (fn (c, tys) =>
+      ##>> fold_map (fn ((c, vs), tys) =>
         ensure_const thy algbr eqngr permissive c
+        ##>> pair (map (unprefix "'") vs)
         ##>> fold_map (translate_typ thy algbr eqngr permissive) tys) cos
       #>> (fn info => Datatype (tyco, info));
   in ensure_stmt lookup_tyco (declare_tyco thy) stmt_datatype tyco end
@@ -607,7 +614,10 @@ and ensure_classrel thy algbr eqngr permissive (sub_class, super_class) =
 and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
   let
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
-    val classparams = these (try (#params o AxClass.get_info thy) class);
+    val these_classparams = these o try (#params o AxClass.get_info thy);
+    val classparams = these_classparams class;
+    val further_classparams = maps these_classparams
+      ((Sorts.complete_sort algebra o Sorts.super_classes algebra) class);
     val vs = Name.names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
     val vs' = map2 (fn (v, sort1) => fn sort2 => (v,
@@ -637,8 +647,11 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
       ##>> fold_map (translate_tyvar_sort thy algbr eqngr permissive) vs
       ##>> fold_map translate_super_instance super_classes
       ##>> fold_map translate_classparam_instance classparams
-      #>> (fn ((((class, tyco), arity_args), super_instances), classparam_instances) =>
-             Classinst ((class, (tyco, arity_args)), (super_instances, classparam_instances)));
+      ##>> fold_map translate_classparam_instance further_classparams
+      #>> (fn (((((class, tyco), arity_args), super_instances),
+        classparam_instances), further_classparam_instances) =>
+          Classinst ((class, (tyco, arity_args)), (super_instances,
+            (classparam_instances, further_classparam_instances))));
   in ensure_stmt lookup_instance (declare_instance thy) stmt_inst (class, tyco) end
 and translate_typ thy algbr eqngr permissive (TFree (v, _)) =
       pair (ITyVar (unprefix "'" v))
@@ -682,15 +695,15 @@ and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
         then translation_error thy permissive some_thm
           "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
       else ()
-    val tys = Sign.const_typargs thy (c, ty);
+    val arg_typs = Sign.const_typargs thy (c, ty);
     val sorts = Code_Preproc.sortargs eqngr c;
-    val tys_args = (fst o Term.strip_type) ty;
+    val function_typs = (fst o Term.strip_type) ty;
   in
     ensure_const thy algbr eqngr permissive c
-    ##>> fold_map (translate_typ thy algbr eqngr permissive) tys
-    ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (tys ~~ sorts)
-    ##>> fold_map (translate_typ thy algbr eqngr permissive) tys_args
-    #>> (fn (((c, tys), iss), tys_args) => IConst (c, ((tys, iss), tys_args)))
+    ##>> fold_map (translate_typ thy algbr eqngr permissive) arg_typs
+    ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (arg_typs ~~ sorts)
+    ##>> fold_map (translate_typ thy algbr eqngr permissive) function_typs
+    #>> (fn (((c, arg_typs), dss), function_typs) => IConst (c, ((arg_typs, dss), function_typs)))
   end
 and translate_app_const thy algbr eqngr permissive some_thm ((c_ty, ts), some_abs) =
   translate_const thy algbr eqngr permissive some_thm (c_ty, some_abs)
