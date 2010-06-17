@@ -252,7 +252,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
             )
           end
       | print_stmt (name, Code_Thingol.Classinst ((class, (tyco, vs)),
-            ((super_instances, _), classparam_instances))) =
+            (super_instances, classparam_instances))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
             val insttyp = tyco `%% map (ITyVar o fst) vs;

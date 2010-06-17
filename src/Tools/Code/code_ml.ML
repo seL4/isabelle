@@ -32,7 +32,7 @@ val target_OCaml = "OCaml";
 datatype ml_binding =
     ML_Function of string * (typscheme * ((iterm list * iterm) * (thm option * bool)) list)
   | ML_Instance of string * ((class * (string * (vname * sort) list))
-        * (((class * (string * (string * dict list list))) list * (class * class) list list)
+        * ((class * (string * (string * dict list list))) list
       * ((string * const) * (thm * bool)) list));
 
 datatype ml_stmt =
@@ -219,7 +219,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             ))
           end
       | print_def is_pseudo_fun _ definer
-          (ML_Instance (inst, ((class, (tyco, vs)), ((super_instances, _), classparam_instances)))) =
+          (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, classparam_instances)))) =
           let
             fun print_super_instance (_, (classrel, dss)) =
               concat [
@@ -554,7 +554,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
             ))
           end
       | print_def is_pseudo_fun _ definer
-            (ML_Instance (inst, ((class, (tyco, vs)), ((super_instances, _), classparam_instances)))) =
+            (ML_Instance (inst, ((class, (tyco, vs)), (super_instances, classparam_instances)))) =
           let
             fun print_super_instance (_, (classrel, dss)) =
               concat [

@@ -73,8 +73,7 @@ sig
     | Classrel of class * class
     | Classparam of string * class
     | Classinst of (class * (string * (vname * sort) list) (*class and arity*) )
-          * (((class * (string * (string * dict list list))) list (*super instances*)
-            * (class * class) list list (*type argument weakening mapping*))
+          * ((class * (string * (string * dict list list))) list (*super instances*)
         * ((string * const) * (thm * bool)) list (*class parameter instances*))
   type program = stmt Graph.T
   val empty_funs: program -> string list
@@ -410,8 +409,7 @@ datatype stmt =
   | Classrel of class * class
   | Classparam of string * class
   | Classinst of (class * (string * (vname * sort) list))
-        * (((class * (string * (string * dict list list))) list
-          * (class * class) list list)
+        * ((class * (string * (string * dict list list))) list
       * ((string * const) * (thm * bool)) list) (*see also signature*);
 
 type program = stmt Graph.T;
@@ -438,8 +436,8 @@ fun map_terms_stmt f NoStmt = NoStmt
   | map_terms_stmt f (stmt as Class _) = stmt
   | map_terms_stmt f (stmt as Classrel _) = stmt
   | map_terms_stmt f (stmt as Classparam _) = stmt
-  | map_terms_stmt f (Classinst (arity, ((super_instances, weakening), classparams))) =
-      Classinst (arity, ((super_instances, weakening), (map o apfst o apsnd) (fn const =>
+  | map_terms_stmt f (Classinst (arity, (super_instances, classparams))) =
+      Classinst (arity, (super_instances, (map o apfst o apsnd) (fn const =>
         case f (IConst const) of IConst const' => const') classparams));
 
 fun is_cons program name = case Graph.get_node program name
@@ -640,7 +638,7 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
       ##>> fold_map translate_super_instance super_classes
       ##>> fold_map translate_classparam_instance classparams
       #>> (fn ((((class, tyco), arity_args), super_instances), classparam_instances) =>
-             Classinst ((class, (tyco, arity_args)), ((super_instances, []), classparam_instances)));
+             Classinst ((class, (tyco, arity_args)), (super_instances, classparam_instances)));
   in ensure_stmt lookup_instance (declare_instance thy) stmt_inst (class, tyco) end
 and translate_typ thy algbr eqngr permissive (TFree (v, _)) =
       pair (ITyVar (unprefix "'" v))
