@@ -404,7 +404,7 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
       []
   | eqns_of_stmt (_, Code_Thingol.Datatype _) =
       []
-  | eqns_of_stmt (class, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
+  | eqns_of_stmt (class, Code_Thingol.Class (_, (v, ((super_classes, _), classparams)))) =
       let
         val names = map snd super_classes @ map fst classparams;
         val params = Name.invent_list [] "d" (length names);

@@ -194,7 +194,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
               @ (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
           end
-      | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
+      | print_stmt (name, Code_Thingol.Class (_, (v, ((super_classes, _), classparams)))) =
           let
             val tyvars = intro_vars [v] reserved;
             fun print_classparam (classparam, ty) =

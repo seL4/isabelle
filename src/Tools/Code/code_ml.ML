@@ -40,7 +40,7 @@ datatype ml_stmt =
   | ML_Val of ml_binding
   | ML_Funs of ml_binding list * string list
   | ML_Datas of (string * ((vname * sort) list * (string * itype list) list)) list
-  | ML_Class of string * (vname * ((class * string) list * (string * itype) list));
+  | ML_Class of string * (vname * (((class * string) list * (class * string) list) * (string * itype) list));
 
 fun stmt_name_of_binding (ML_Function (name, _)) = name
   | stmt_name_of_binding (ML_Instance (name, _)) = name;
@@ -301,7 +301,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             sig_ps
             (Pretty.chunks (ps @| semicolon [p]))
           end
-     | print_stmt (ML_Class (class, (v, (super_classes, classparams)))) =
+     | print_stmt (ML_Class (class, (v, ((super_classes, _), classparams)))) =
           let
             fun print_field s p = concat [str s, str ":", p];
             fun print_proj s p = semicolon
@@ -635,7 +635,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
             sig_ps
             (Pretty.chunks (ps @| doublesemicolon [p]))
           end
-     | print_stmt (ML_Class (class, (v, (super_classes, classparams)))) =
+     | print_stmt (ML_Class (class, (v, ((super_classes, _), classparams)))) =
           let
             fun print_field s p = concat [str s, str ":", p];
             fun print_super_class_field (super_class, classrel) =

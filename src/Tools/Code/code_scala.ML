@@ -212,7 +212,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
               :: map print_co cos
             )
           end
-      | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
+      | print_stmt (name, Code_Thingol.Class (_, (v, ((super_classes, all_super_classes), classparams)))) =
           let
             val tyvars = intro_vars [v] reserved;
             val vs = [(v, [name])];

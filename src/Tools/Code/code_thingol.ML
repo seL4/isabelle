@@ -69,10 +69,13 @@ sig
     | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
     | Datatype of string * ((vname * sort) list * (string * itype list) list)
     | Datatypecons of string * string
-    | Class of class * (vname * ((class * string) list * (string * itype) list))
+    | Class of class * (vname
+        * (((class * string) list (*direct superclasses*)
+          * (class * string) list) (*indirect superclasses*)
+            * (string * itype) list (*class operations*)))
     | Classrel of class * class
     | Classparam of string * class
-    | Classinst of (class * (string * (vname * sort) list) (*class and arity*) )
+    | Classinst of (class * (string * (vname * sort) list) (*class and arity*))
           * ((class * (string * (string * dict list list))) list (*super instances*)
         * ((string * const) * (thm * bool)) list (*class parameter instances*))
   type program = stmt Graph.T
@@ -400,17 +403,17 @@ end; (* local *)
 (** statements, abstract programs **)
 
 type typscheme = (vname * sort) list * itype;
-datatype stmt =
+datatype stmt = (*see also signature*)
     NoStmt
   | Fun of string * ((typscheme * ((iterm list * iterm) * (thm option * bool)) list) * thm option)
   | Datatype of string * ((vname * sort) list * (string * itype list) list)
   | Datatypecons of string * string
-  | Class of class * (vname * ((class * string) list * (string * itype) list))
+  | Class of class * (vname * (((class * string) list * (class * string) list) * (string * itype) list))
   | Classrel of class * class
   | Classparam of string * class
   | Classinst of (class * (string * (vname * sort) list))
         * ((class * (string * (string * dict list list))) list
-      * ((string * const) * (thm * bool)) list) (*see also signature*);
+      * ((string * const) * (thm * bool)) list);
 
 type program = stmt Graph.T;
 
@@ -593,6 +596,7 @@ and ensure_class thy (algbr as (_, algebra)) eqngr permissive class =
     val stmt_class =
       fold_map (fn super_class => ensure_class thy algbr eqngr permissive super_class
         ##>> ensure_classrel thy algbr eqngr permissive (class, super_class)) super_classes
+      ##>> pair [] (*FIXME*)
       ##>> fold_map (fn (c, ty) => ensure_const thy algbr eqngr permissive c
         ##>> translate_typ thy algbr eqngr permissive ty) cs
       #>> (fn info => Class (class, (unprefix "'" Name.aT, info)))
