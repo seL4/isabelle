@@ -4948,7 +4948,7 @@ code_const concat
   (Haskell "concat")
 
 code_const rev
-  (Haskell "rev")
+  (Haskell "reverse")
 
 code_const zip
   (Haskell "zip")
