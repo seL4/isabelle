@@ -882,9 +882,10 @@ Identifying incorrect propositions usually involves evaluation of
     Internally, the evaluation is performed by registered evaluators,
     which are invoked sequentially until a result is returned.
     Alternatively a specific evaluator can be selected using square
-    brackets; available evaluators include \isa{nbe} for
-    \emph{normalization by evaluation} and \emph{code} for code
-    generation in SML.
+    brackets; typical evaluators use the current set of code equations
+    to normalize and include \isa{simp} for fully symbolic evaluation
+    using the simplifier, \isa{nbe} for \emph{normalization by evaluation}
+    and \emph{code} for code generation in SML.
 
   \item \hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}} tests the current goal for
     counter examples using a series of arbitrary assignments for its

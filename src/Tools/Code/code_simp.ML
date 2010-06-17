@@ -10,6 +10,7 @@ sig
   val map_ss: (simpset -> simpset) -> theory -> theory
   val current_conv: theory -> conv
   val current_tac: theory -> int -> tactic
+  val current_value: theory -> term -> term
   val make_conv: theory -> simpset option -> string list -> conv
   val make_tac: theory -> simpset option -> string list -> int -> tactic
   val setup: theory -> theory
@@ -68,9 +69,12 @@ fun current_conv thy = no_frees_conv (Code_Thingol.eval_conv thy
 
 fun current_tac thy = CONVERSION (current_conv thy);
 
+fun current_value thy = snd o Logic.dest_equals o Thm.prop_of o current_conv thy o Thm.cterm_of thy
+
 val setup = Method.setup (Binding.name "code_simp")
   (Scan.succeed (SIMPLE_METHOD' o current_tac o ProofContext.theory_of))
   "simplification with code equations"
+  #> Value.add_evaluator ("simp", current_value o ProofContext.theory_of);
 
 
 (* evaluation with freezed code context *)

@@ -864,9 +864,10 @@ text {*
     Internally, the evaluation is performed by registered evaluators,
     which are invoked sequentially until a result is returned.
     Alternatively a specific evaluator can be selected using square
-    brackets; available evaluators include @{text nbe} for
-    \emph{normalization by evaluation} and \emph{code} for code
-    generation in SML.
+    brackets; typical evaluators use the current set of code equations
+    to normalize and include @{text simp} for fully symbolic evaluation
+    using the simplifier, @{text nbe} for \emph{normalization by evaluation}
+    and \emph{code} for code generation in SML.
 
   \item @{command (HOL) "quickcheck"} tests the current goal for
     counter examples using a series of arbitrary assignments for its
