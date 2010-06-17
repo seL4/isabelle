@@ -61,18 +61,18 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars is_pat some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
-    and print_app tyvars is_pat some_thm vars fxy (app as ((c, ((tys, _), tys_args)), ts)) =
+    and print_app tyvars is_pat some_thm vars fxy (app as ((c, ((arg_typs, _), function_typs)), ts)) =
       let
         val k = length ts;
         val l = case syntax_const c of NONE => args_num c | SOME (l, _) => l;
-        val tys' = if is_pat orelse
-          (is_none (syntax_const c) andalso is_singleton c) then [] else tys;
+        val arg_typs' = if is_pat orelse
+          (is_none (syntax_const c) andalso is_singleton c) then [] else arg_typs;
         val (no_syntax, print') = case syntax_const c
          of NONE => (true, fn ts => applify "(" ")" fxy
-              (applify "[" "]" NOBR ((str o deresolve) c) (map (print_typ tyvars NOBR) tys'))
+              (applify "[" "]" NOBR ((str o deresolve) c) (map (print_typ tyvars NOBR) arg_typs'))
                 (map (print_term tyvars is_pat some_thm vars NOBR) ts))
           | SOME (_, print) => (false, fn ts =>
-              print (print_term tyvars is_pat some_thm) some_thm vars fxy (ts ~~ take l tys_args));
+              print (print_term tyvars is_pat some_thm) some_thm vars fxy (ts ~~ take l function_typs));
       in if k = l then print' ts
       else if k < l then
         print_term tyvars is_pat some_thm vars fxy (Code_Thingol.eta_expand l app)
@@ -122,10 +122,11 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
         val implicit_ps = map2 (fn v => fn p => concat [str (v ^ ":"), p])
           implicit_names implicit_typ_ps;
       in ((implicit_names, implicit_ps), vars') end;
-    fun print_defhead tyvars vars p vs params tys implicits ty =
+    fun print_defhead tyvars vars p vs params tys implicits (*FIXME simplify*) ty =
       Pretty.block [str "def ", print_typed tyvars (applify "(implicit " ")" NOBR
         (applify "(" ")" NOBR
-          (applify "[" "]" NOBR p (map (str o lookup_tyvar tyvars o fst) vs))
+          (applify "[" "]" NOBR p (map (fn (v, sort) =>
+              (str o implode) (lookup_tyvar tyvars v :: map (prefix ": " o deresolve) sort)) vs))
             (map2 (fn param => fn ty => print_typed tyvars
                 ((str o lookup_var vars) param) ty)
               params tys)) implicits) ty, str " ="]
@@ -156,7 +157,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                 val vars1 = reserved
                   |> intro_base_names
                        (is_none o syntax_const) deresolve consts
-                val ((_, implicit_ps), vars2) = implicit_arguments tyvars vs vars1;
+                val ((_, implicit_ps), vars2) = implicit_arguments tyvars vs vars1; (*FIXME drop*)
                 val params = if simple then (map (fn IVar (SOME x) => x) o fst o fst o hd) eqs
                   else aux_params vars2 (map (fst o fst) eqs);
                 val vars3 = intro_vars params vars2;
@@ -174,7 +175,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                     concat [str "case", print_tuple (map (print_term tyvars true some_thm vars' NOBR) ts),
                       str "=>", print_rhs vars' eq]
                   end;
-                val head = print_defhead tyvars vars3 ((str o deresolve) name) vs params tys1 implicit_ps ty2;
+                val head = print_defhead tyvars vars3 ((str o deresolve) name) vs params tys1 [] ty2;
               in if simple then
                 concat [head, print_rhs vars3 (hd eqs)]
               else
@@ -186,23 +187,25 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
-            fun print_co (co, []) =
+            fun print_co ((co, _), []) =
                   concat [str "final", str "case", str "object", (str o deresolve_base) co,
                     str "extends", applify "[" "]" NOBR ((str o deresolve_base) name)
                       (replicate (length vs) (str "Nothing"))]
-              | print_co (co, tys) =
+              | print_co ((co, vs_args), tys) =
                   let
                     val fields = Name.names (snd reserved) "a" tys;
                     val vars = intro_vars (map fst fields) reserved;
-                    fun add_typargs p = applify "[" "]" NOBR p
-                      (map (str o lookup_tyvar tyvars o fst) vs);
+                    fun add_typargs1 p = applify "[" "]" NOBR p
+                      (map (str o lookup_tyvar tyvars o fst) vs); (*FIXME*)
+                    fun add_typargs2 p = applify "[" "]" NOBR p
+                      (map (str o lookup_tyvar tyvars) vs_args); (*FIXME*)
                   in
                     concat [
                       applify "(" ")" NOBR
-                        (add_typargs ((concat o map str) ["final", "case", "class", deresolve_base co]))
+                        (add_typargs2 ((concat o map str) ["final", "case", "class", deresolve_base co]))
                         (map (uncurry (print_typed tyvars) o apfst str) fields),
                       str "extends",
-                      add_typargs ((str o deresolve_base) name)
+                      add_typargs1 ((str o deresolve_base) name)
                     ]
                   end
           in
@@ -230,13 +233,24 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
             fun print_classparam_val (classparam, ty) =
               concat [str "val", (str o Library.enclose "`" "+`:" o deresolve_base) classparam,
                 (print_tupled_typ o Code_Thingol.unfold_fun) ty]
+            fun implicit_arguments tyvars vs vars = (*FIXME simplifiy*)
+              let
+                val implicit_typ_ps = maps (fn (v, sort) => map (fn class => Pretty.block
+                  [(str o deresolve) class, str "[", (str o lookup_tyvar tyvars) v, str "]"]) sort) vs;
+                val implicit_names = Name.variant_list [] (maps (fn (v, sort) => map (fn class =>
+                  lookup_tyvar tyvars v ^ "_" ^ (Long_Name.base_name o deresolve) class) sort) vs);
+                val vars' = intro_vars implicit_names vars;
+                val implicit_ps = map2 (fn v => fn p => concat [str (v ^ ":"), p])
+                  implicit_names implicit_typ_ps;
+              in ((implicit_names, implicit_ps), vars') end;
             fun print_classparam_def (classparam, ty) =
               let
                 val (tys, ty) = Code_Thingol.unfold_fun ty;
                 val params = Name.invents (snd reserved) "a" (length tys);
                 val vars = intro_vars params reserved;
                 val (([implicit], [p_implicit]), vars') = implicit_arguments tyvars vs vars;
-                val head = print_defhead tyvars vars' ((str o deresolve) classparam) vs params tys [p_implicit] ty;
+                val head = print_defhead tyvars vars' ((str o deresolve) classparam)
+                  ((map o apsnd) (K []) vs) params tys [p_implicit] ty;
               in
                 concat [head, applify "(" ")" NOBR
                   (Pretty.block [str implicit, str ".", (str o Library.enclose "`" "+`" o deresolve_base) classparam])
@@ -252,8 +266,38 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
             )
           end
       | print_stmt (name, Code_Thingol.Classinst ((class, (tyco, vs)),
-            (super_instances, classparam_instances))) =
+            (super_instances, (classparam_instances, further_classparam_instances)))) =
           let
+            val tyvars = intro_vars (map fst vs) reserved;
+            val classtyp = (class, (tyco, map fst vs));
+            fun print_classtyp' (class, (tyco, vs)) = (*FIXME already exists?*)
+              applify "[" "]" NOBR(*? FIXME*) ((str o deresolve) class)
+                [print_typ tyvars NOBR (tyco `%% map ITyVar vs)]; (*FIXME a mess...*)
+            fun print_typed' tyvars p classtyp = (*FIXME unify with existing print_typed*)
+              Pretty.block [p, str ":", Pretty.brk 1, print_classtyp' classtyp];
+            fun print_defhead' tyvars vars p vs params tys classtyp = (*FIXME unify with existing def_head*)
+              Pretty.block [str "def ", print_typed' tyvars
+                (applify "(" ")" NOBR
+                  (applify "[" "]" NOBR p (map (fn (v, sort) =>
+                      (str o implode) (lookup_tyvar tyvars v :: map (prefix ": " o deresolve) sort)) vs))
+                    (map2 (fn param => fn ty => print_typed tyvars ((str o lookup_var vars) param) ty)
+                      params tys)) classtyp, str " ="];
+            fun print_classparam_instance ((classparam, const as (_, (_, tys))), (thm, _)) =
+              let
+                val auxs = Name.invents (snd reserved) "a" (length tys);
+                val vars = intro_vars auxs reserved;
+                val args = if null auxs then [] else
+                  [concat [enum "," "(" ")" (map2 (fn aux => fn ty => print_typed tyvars ((str o lookup_var vars) aux) ty)
+                    auxs tys), str "=>"]];
+              in 
+                concat ([str "val", (str o Library.enclose "`" "+`" o deresolve_base) classparam,
+                  str "="] @ args @ [print_app tyvars false (SOME thm) vars NOBR (const, map (IVar o SOME) auxs)])
+              end;
+            val head = print_defhead' tyvars reserved ((str o deresolve) name) vs [] [] classtyp;
+            val body = [str "new", print_classtyp' classtyp,
+              Pretty.enum ";" "{ " " }" (map print_classparam_instance (classparam_instances @ further_classparam_instances))];
+          in concat (str "implicit" :: head :: body) end;
+          (*let
             val tyvars = intro_vars (map fst vs) reserved;
             val insttyp = tyco `%% map (ITyVar o fst) vs;
             val p_inst_typ = print_typ tyvars NOBR insttyp;
@@ -291,7 +335,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
                     Pretty.enum ";" "{ " " }" (map (str o (fn v => "val arg$" ^ v ^ " = " ^ v) o lookup_var vars)
                       implicit_names)]
             ]
-          end;
+          end;*)
   in print_stmt end;
 
 fun scala_program_of_program labelled_name module_name reserved raw_module_alias program =
@@ -356,14 +400,14 @@ fun serialize_scala raw_module_name labelled_name
       | Code_Thingol.Fun (_, ((_, ((ts, _), _) :: _), _)) => length ts
       | Code_Thingol.Datatypecons (_, tyco) =>
           let val Code_Thingol.Datatype (_, (_, constrs)) = Graph.get_node program tyco
-          in (length o the o AList.lookup (op =) constrs) c end
+          in (length o the o AList.lookup (eq_fst op =) constrs) (c, []) end (*FIXME simplify lookup*)
       | Code_Thingol.Classparam (_, class) =>
           let val Code_Thingol.Class (_, (_, (_, classparams))) = Graph.get_node program class
           in (length o fst o Code_Thingol.unfold_fun o the o AList.lookup (op =) classparams) c end;
     fun is_singleton c = case Graph.get_node program c
      of Code_Thingol.Datatypecons (_, tyco) =>
           let val Code_Thingol.Datatype (_, (_, constrs)) = Graph.get_node program tyco
-          in (null o the o AList.lookup (op =) constrs) c end
+          in (null o the o AList.lookup (eq_fst op =) constrs) (c, []) end (*FIXME simplify lookup*)
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
       reserved args_num is_singleton deresolver;
