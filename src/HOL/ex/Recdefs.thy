@@ -120,11 +120,13 @@ text {*
 *}
 
 consts mapf :: "nat => nat list"
-recdef (permissive) mapf  "measure (\<lambda>m. m)"
+recdef mapf  "measure (\<lambda>m. m)"
   "mapf 0 = []"
   "mapf (Suc n) = concat (map (\<lambda>x. mapf x) (replicate n n))"
   (hints cong: map_cong)
 
+(* This used to be an example where recdef_tc etc is needed,
+   but now termination is proved outright
 recdef_tc mapf_tc: mapf
   apply (rule allI)
   apply (case_tac "n = 0")
@@ -138,5 +140,6 @@ lemma "mapf (Suc n) = concat (map mapf (replicate n n))"
   done
 
 lemmas mapf_induct = mapf.induct [OF mapf_tc]
+*)
 
 end

@@ -2372,9 +2372,6 @@ apply (simp add: check_type_def wf_mhead_def start_ST_def start_LT_def)
 apply (simp add: check_type_simps)
 apply (simp only: list_def)
 apply (auto simp: err_def)
-apply (subgoal_tac "set (replicate mxl Err) \<subseteq>  {Err}")
-apply blast
-apply (rule subset_replicate)
 done
 
 

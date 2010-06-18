@@ -3190,6 +3190,9 @@ by (fast dest!: not0_implies_Suc intro!: set_replicate_Suc)
 lemma set_replicate_conv_if: "set (replicate n x) = (if n = 0 then {} else {x})"
 by auto
 
+lemma in_set_replicate[simp]: "(x : set (replicate n y)) = (x = y & n \<noteq> 0)"
+by (simp add: set_replicate_conv_if)
+
 lemma Ball_set_replicate[simp]:
   "(ALL x : set(replicate n a). P x) = (P a | n=0)"
 by(simp add: set_replicate_conv_if)
@@ -3197,9 +3200,6 @@ by(simp add: set_replicate_conv_if)
 lemma Bex_set_replicate[simp]:
   "(EX x : set(replicate n a). P x) = (P a & n\<noteq>0)"
 by(simp add: set_replicate_conv_if)
-
-lemma in_set_replicateD: "x : set (replicate n y) ==> x = y"
-by (simp add: set_replicate_conv_if split: split_if_asm)
 
 lemma replicate_append_same:
   "replicate i x @ [x] = x # replicate i x"

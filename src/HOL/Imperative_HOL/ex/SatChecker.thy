@@ -555,7 +555,6 @@ prefer 2 apply simp
 apply auto
 apply (drule fold_steps_correct)
 apply (simp add: correctArray_def array_ran_def)
-apply (cases "n = 0", auto)
 apply (rule implies_empty_inconsistent)
 apply (simp add:correctArray_def)
 apply (drule bspec)
