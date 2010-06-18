@@ -2180,6 +2180,55 @@ lemma card_bij_eq:
 by (auto intro: le_antisym card_inj_on_le)
 
 
+subsubsection {* Pigeonhole Principles *}
+
+lemma pigeonhole: "finite(A) \<Longrightarrow> card A > card(f ` A) \<Longrightarrow> ~ inj_on f A "
+by (auto dest: card_image less_irrefl_nat)
+
+lemma pigeonhole_infinite:
+assumes  "~ finite A" and "finite(f`A)"
+shows "EX a0:A. ~finite{a:A. f a = f a0}"
+proof -
+  have "finite(f`A) \<Longrightarrow> ~ finite A \<Longrightarrow> EX a0:A. ~finite{a:A. f a = f a0}"
+  proof(induct "f`A" arbitrary: A rule: finite_induct)
+    case empty thus ?case by simp
+  next
+    case (insert b F)
+    show ?case
+    proof cases
+      assume "finite{a:A. f a = b}"
+      hence "~ finite(A - {a:A. f a = b})" using `\<not> finite A` by simp
+      also have "A - {a:A. f a = b} = {a:A. f a \<noteq> b}" by blast
+      finally have "~ finite({a:A. f a \<noteq> b})" .
+      from insert(3)[OF _ this]
+      show ?thesis using insert(2,4) by simp (blast intro: rev_finite_subset)
+    next
+      assume 1: "~finite{a:A. f a = b}"
+      hence "{a \<in> A. f a = b} \<noteq> {}" by force
+      thus ?thesis using 1 by blast
+    qed
+  qed
+  from this[OF assms(2,1)] show ?thesis .
+qed
+
+lemma pigeonhole_infinite_rel:
+assumes "~finite A" and "finite B" and "ALL a:A. EX b:B. R a b"
+shows "EX b:B. ~finite{a:A. R a b}"
+proof -
+   let ?F = "%a. {b:B. R a b}"
+   from finite_Pow_iff[THEN iffD2, OF `finite B`]
+   have "finite(?F ` A)" by(blast intro: rev_finite_subset)
+   from pigeonhole_infinite[where f = ?F, OF assms(1) this]
+   obtain a0 where "a0\<in>A" and 1: "\<not> finite {a\<in>A. ?F a = ?F a0}" ..
+   obtain b0 where "b0 : B" and "R a0 b0" using `a0:A` assms(3) by blast
+   { assume "finite{a:A. R a b0}"
+     then have "finite {a\<in>A. ?F a = ?F a0}"
+       using `b0 : B` `R a0 b0` by(blast intro: rev_finite_subset)
+   }
+   with 1 `b0 : B` show ?thesis by blast
+qed
+
+
 subsubsection {* Cardinality of sums *}
 
 lemma card_Plus:
@@ -2210,7 +2259,7 @@ apply (unfold inj_on_def)
 apply (blast elim!: equalityE)
 done
 
-text {* Relates to equivalence classes.  Based on a theorem of F. KammÃ¼ller.  *}
+text {* Relates to equivalence classes.  Based on a theorem of F. Kammüller.  *}
 
 lemma dvd_partition:
   "finite (Union C) ==>
