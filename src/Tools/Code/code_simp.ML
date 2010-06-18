@@ -46,6 +46,8 @@ structure Simpset = Theory_Data (
 
 val map_ss = Simpset.map;
 
+fun simpset_default thy = Simplifier.global_context thy o the_default (Simpset.get thy);
+
 
 (* build simpset and conversion from program *)
 
@@ -58,8 +60,9 @@ fun add_stmt (Code_Thingol.Fun (_, ((_, eqs), some_cong))) ss =
 val add_program = Graph.fold (add_stmt o fst o snd)
 
 fun rewrite_modulo thy some_ss program = Simplifier.full_rewrite
-  (add_program program (Simplifier.global_context thy
-    (the_default (Simpset.get thy) some_ss)));
+  (add_program program (simpset_default thy some_ss));
+
+fun conclude_tac thy some_ss = Simplifier.full_simp_tac (simpset_default thy some_ss);
 
 
 (* evaluation with current code context *)
@@ -67,9 +70,9 @@ fun rewrite_modulo thy some_ss program = Simplifier.full_rewrite
 fun current_conv thy = no_frees_conv (Code_Thingol.eval_conv thy
   (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program));
 
-fun current_tac thy = CONVERSION (current_conv thy);
+fun current_tac thy = CONVERSION (current_conv thy) THEN' conclude_tac thy NONE;
 
-fun current_value thy = snd o Logic.dest_equals o Thm.prop_of o current_conv thy o Thm.cterm_of thy
+fun current_value thy = snd o Logic.dest_equals o Thm.prop_of o current_conv thy o Thm.cterm_of thy;
 
 val setup = Method.setup (Binding.name "code_simp")
   (Scan.succeed (SIMPLE_METHOD' o current_tac o ProofContext.theory_of))
@@ -82,6 +85,7 @@ val setup = Method.setup (Binding.name "code_simp")
 fun make_conv thy some_ss consts = no_frees_conv (Code_Preproc.pre_post_conv thy
   ((rewrite_modulo thy some_ss o snd o snd o Code_Thingol.consts_program thy false) consts));
 
-fun make_tac thy some_ss consts = CONVERSION (make_conv thy some_ss consts);
+fun make_tac thy some_ss consts = CONVERSION (make_conv thy some_ss consts)
+  THEN' conclude_tac thy some_ss;
 
 end;
