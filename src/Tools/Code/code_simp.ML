@@ -75,7 +75,7 @@ fun current_tac thy = CONVERSION (current_conv thy) THEN' conclude_tac thy NONE;
 fun current_value thy = snd o Logic.dest_equals o Thm.prop_of o current_conv thy o Thm.cterm_of thy;
 
 val setup = Method.setup (Binding.name "code_simp")
-  (Scan.succeed (SIMPLE_METHOD' o current_tac o ProofContext.theory_of))
+  (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo current_tac o ProofContext.theory_of)))
   "simplification with code equations"
   #> Value.add_evaluator ("simp", current_value o ProofContext.theory_of);
 
