@@ -297,45 +297,6 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved args_num is
             val body = [str "new", print_classtyp' classtyp,
               Pretty.enum ";" "{ " " }" (map print_classparam_instance (classparam_instances @ further_classparam_instances))];
           in concat (str "implicit" :: head :: body) end;
-          (*let
-            val tyvars = intro_vars (map fst vs) reserved;
-            val insttyp = tyco `%% map (ITyVar o fst) vs;
-            val p_inst_typ = print_typ tyvars NOBR insttyp;
-            fun add_typ_params p = applify "[" "]" NOBR p (map (str o lookup_tyvar tyvars o fst) vs);
-            fun add_inst_typ p = Pretty.block [p, str "[", p_inst_typ, str "]"];
-            val ((implicit_names, implicit_ps), vars) = implicit_arguments tyvars vs reserved;
-            fun print_classparam_instance ((classparam, const as (_, (_, tys))), (thm, _)) =
-              let
-                val auxs = Name.invents (snd reserved) "a" (length tys);
-                val vars = intro_vars auxs reserved;
-                val args = if null auxs then [] else
-                  [concat [enum "," "(" ")" (map2 (fn aux => fn ty => print_typed tyvars ((str o lookup_var vars) aux) ty)
-                    auxs tys), str "=>"]];
-              in 
-                concat ([str "val", (str o Library.enclose "`" "+`" o deresolve_base) classparam,
-                  str "="] @ args @ [print_app tyvars false (SOME thm) vars NOBR (const, map (IVar o SOME) auxs)])
-              end;
-          in
-            Pretty.chunks [
-              Pretty.block_enclose
-                (concat ([str "trait",
-                    add_typ_params ((str o deresolve_base) name),
-                    str "extends",
-                    Pretty.block [(str o deresolve) class, str "[", p_inst_typ, str "]"]]
-                    @ map (fn (_, (_, (super_instance, _))) => add_typ_params (str ("with " ^ deresolve super_instance)))
-                      super_instances @| str "{"), str "}")
-                (map (fn p => Pretty.block [str "implicit val arg$", p]) implicit_ps
-                  @ map print_classparam_instance classparam_instances),
-              concat [str "implicit", str (if null vs then "val" else "def"),
-                applify "(implicit " ")" NOBR (applify "[" "]" NOBR
-                  ((str o deresolve_base) name) (map (str o lookup_tyvar tyvars o fst) vs))
-                    implicit_ps,
-                  str "=", str "new", applify "[" "]" NOBR ((str o deresolve_base) name)
-                      (map (str o lookup_tyvar tyvars o fst) vs),
-                    Pretty.enum ";" "{ " " }" (map (str o (fn v => "val arg$" ^ v ^ " = " ^ v) o lookup_var vars)
-                      implicit_names)]
-            ]
-          end;*)
   in print_stmt end;
 
 fun scala_program_of_program labelled_name module_name reserved raw_module_alias program =
