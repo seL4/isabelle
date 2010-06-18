@@ -5,7 +5,7 @@
 header {* Map operations implemented on association lists*}
 
 theory AssocList 
-imports Main Mapping
+imports Main More_List Mapping
 begin
 
 text {*
@@ -79,7 +79,7 @@ lemma image_update [simp]:
   by (simp add: update_conv' image_map_upd)
 
 definition updates :: "'key list \<Rightarrow> 'val list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list" where
-  "updates ks vs al = foldl (\<lambda>al (k, v). update k v al) al (zip ks vs)"
+  "updates ks vs = More_List.fold (prod_case update) (zip ks vs)"
 
 lemma updates_simps [simp]:
   "updates [] vs ps = ps"
@@ -94,11 +94,10 @@ lemma updates_key_simp [simp]:
 
 lemma updates_conv': "map_of (updates ks vs al) = (map_of al)(ks[\<mapsto>]vs)"
 proof -
-  have "foldl (\<lambda>f (k, v). f(k \<mapsto> v)) (map_of al) (zip ks vs) =
-     map_of (foldl (\<lambda>al (k, v). update k v al) al (zip ks vs))"
-    by (rule foldl_apply) (auto simp add: expand_fun_eq update_conv')
-  then show ?thesis
-    by (simp add: updates_def map_upds_fold_map_upd)
+  have "map_of \<circ> More_List.fold (prod_case update) (zip ks vs) =
+    More_List.fold (\<lambda>(k, v) f. f(k \<mapsto> v)) (zip ks vs) \<circ> map_of"
+    by (rule fold_apply) (auto simp add: expand_fun_eq update_conv')
+  then show ?thesis by (auto simp add: updates_def expand_fun_eq map_upds_fold_map_upd foldl_fold split_def)
 qed
 
 lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
@@ -108,15 +107,14 @@ lemma distinct_updates:
   assumes "distinct (map fst al)"
   shows "distinct (map fst (updates ks vs al))"
 proof -
-  from assms have "distinct (foldl
-       (\<lambda>al (k, v). if k \<in> set al then al else al @ [k])
-       (map fst al) (zip ks vs))"
-    by (rule foldl_invariant) auto
-  moreover have "foldl (\<lambda>al (k, v). if k \<in> set al then al else al @ [k])
-       (map fst al) (zip ks vs)
-       = map fst (foldl (\<lambda>al (k, v). update k v al) al (zip ks vs))"
-    by (rule foldl_apply) (simp add: update_keys split_def comp_def)
-  ultimately show ?thesis by (simp add: updates_def)
+  have "distinct (More_List.fold
+       (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k])
+       (zip ks vs) (map fst al))"
+    by (rule fold_invariant [of "zip ks vs" "\<lambda>_. True"]) (auto intro: assms)
+  moreover have "map fst \<circ> More_List.fold (prod_case update) (zip ks vs) =
+    More_List.fold (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k]) (zip ks vs) \<circ> map fst"
+    by (rule fold_apply) (simp add: update_keys split_def prod_case_beta comp_def)
+  ultimately show ?thesis by (simp add: updates_def expand_fun_eq)
 qed
 
 lemma updates_append1[simp]: "size ks < size vs \<Longrightarrow>
@@ -341,10 +339,10 @@ lemma clearjunk_update:
 lemma clearjunk_updates:
   "clearjunk (updates ks vs al) = updates ks vs (clearjunk al)"
 proof -
-  have "foldl (\<lambda>al (k, v). update k v al) (clearjunk al) (zip ks vs) =
-    clearjunk (foldl (\<lambda>al (k, v). update k v al) al (zip ks vs))"
-    by (rule foldl_apply) (simp add: clearjunk_update expand_fun_eq split_def)
-  then show ?thesis by (simp add: updates_def)
+  have "clearjunk \<circ> More_List.fold (prod_case update) (zip ks vs) =
+    More_List.fold (prod_case update) (zip ks vs) \<circ> clearjunk"
+    by (rule fold_apply) (simp add: clearjunk_update prod_case_beta o_def)
+  then show ?thesis by (simp add: updates_def expand_fun_eq)
 qed
 
 lemma clearjunk_delete:
@@ -429,8 +427,8 @@ lemma merge_simps [simp]:
 
 lemma merge_updates:
   "merge qs ps = updates (rev (map fst ps)) (rev (map snd ps)) qs"
-  by (simp add: merge_def updates_def split_def
-    foldr_foldl zip_rev zip_map_fst_snd)
+  by (simp add: merge_def updates_def split_prod_case
+    foldr_fold_rev zip_rev zip_map_fst_snd)
 
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
   by (induct ys arbitrary: xs) (auto simp add: dom_update)
@@ -447,11 +445,11 @@ lemma clearjunk_merge:
 lemma merge_conv':
   "map_of (merge xs ys) = map_of xs ++ map_of ys"
 proof -
-  have "foldl (\<lambda>m (k, v). m(k \<mapsto> v)) (map_of xs) (rev ys) =
-    map_of (foldl (\<lambda>xs (k, v). update k v xs) xs (rev ys)) "
-    by (rule foldl_apply) (simp add: expand_fun_eq split_def update_conv')
+  have "map_of \<circ> More_List.fold (prod_case update) (rev ys) =
+    More_List.fold (\<lambda>(k, v) m. m(k \<mapsto> v)) (rev ys) \<circ> map_of"
+    by (rule fold_apply) (simp add: update_conv' prod_case_beta split_def expand_fun_eq)
   then show ?thesis
-    by (simp add: merge_def map_add_map_of_foldr foldr_foldl split_def)
+    by (simp add: merge_def map_add_map_of_foldr foldr_fold_rev split_prod_case expand_fun_eq)
 qed
 
 corollary merge_conv:

@@ -143,7 +143,7 @@ lemma lookup_map [simp]:
   by (simp add: map_def lookup_RBT lookup_map lookup_impl_of)
 
 lemma fold_fold:
-  "fold f t = (\<lambda>s. foldl (\<lambda>s (k, v). f k v s) s (entries t))"
+  "fold f t = More_List.fold (prod_case f) (entries t)"
   by (simp add: fold_def expand_fun_eq RBT_Impl.fold_def entries_impl_of)
 
 lemma is_empty_empty [simp]:

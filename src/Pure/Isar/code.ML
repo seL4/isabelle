@@ -146,12 +146,12 @@ fun constructors_of (Constructors cos) = (cos, false)
 
 (* functions *)
 
-datatype fun_spec = Default of (thm * bool) list
+datatype fun_spec = Default of (thm * bool) list * (thm * bool) list lazy
   | Eqns of (thm * bool) list
   | Proj of term * string
   | Abstr of thm * string;
 
-val empty_fun_spec = Default [];
+val empty_fun_spec = Default ([], Lazy.value []);
 
 fun is_default (Default _) = true
   | is_default _ = false;
@@ -879,10 +879,10 @@ end;
 fun retrieve_raw thy c =
   Symtab.lookup ((the_functions o the_exec) thy) c
   |> Option.map (snd o fst)
-  |> the_default (Default [])
+  |> the_default empty_fun_spec
 
 fun get_cert thy f c = case retrieve_raw thy c
- of Default eqns => eqns
+ of Default (_, eqns_lazy) => Lazy.force eqns_lazy
       |> (map o apfst) (Thm.transfer thy)
       |> f
       |> (map o apfst) (AxClass.unoverload thy)
@@ -958,7 +958,7 @@ fun print_codesetup thy =
       (Pretty.block o Pretty.fbreaks) (
         Pretty.str (string_of_const thy const) :: map (Display.pretty_thm ctxt) thms
       );
-    fun pretty_function (const, Default eqns) = pretty_equations const (map fst eqns)
+    fun pretty_function (const, Default (_, eqns_lazy)) = pretty_equations const (map fst (Lazy.force eqns_lazy))
       | pretty_function (const, Eqns eqns) = pretty_equations const (map fst eqns)
       | pretty_function (const, Proj (proj, _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]
@@ -1051,21 +1051,26 @@ fun gen_add_eqn default (raw_thm, proper) thy =
   let
     val thm = Thm.close_derivation raw_thm;
     val c = const_eqn thy thm;
-    fun add_eqn' true (Default eqns) = Default (eqns @ [(thm, proper)])
-      | add_eqn' _ (Eqns eqns) =
-          let
-            val args_of = snd o strip_comb o map_types Type.strip_sorts
-              o fst o Logic.dest_equals o Thm.plain_prop_of;
-            val args = args_of thm;
-            val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
-            fun matches_args args' = length args <= length args' andalso
-              Pattern.matchess thy (args, (map incr_idx o take (length args)) args');
-            fun drop (thm', proper') = if (proper orelse not proper')
-              andalso matches_args (args_of thm') then 
-                (warning ("Code generator: dropping redundant code equation\n" ^
-                    Display.string_of_thm_global thy thm'); true)
-              else false;
-          in Eqns ((thm, proper) :: filter_out drop eqns) end
+    fun update_subsume thy (thm, proper) eqns = 
+      let
+        val args_of = snd o strip_comb o map_types Type.strip_sorts
+          o fst o Logic.dest_equals o Thm.plain_prop_of;
+        val args = args_of thm;
+        val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
+        fun matches_args args' = length args <= length args' andalso
+          Pattern.matchess thy (args, (map incr_idx o take (length args)) args');
+        fun drop (thm', proper') = if (proper orelse not proper')
+          andalso matches_args (args_of thm') then 
+            (warning ("Code generator: dropping subsumed code equation\n" ^
+                Display.string_of_thm_global thy thm'); true)
+          else false;
+      in (thm, proper) :: filter_out drop eqns end;
+    fun natural_order thy_ref eqns =
+      (eqns, Lazy.lazy (fn () => fold (update_subsume (Theory.deref thy_ref)) eqns []))
+    fun add_eqn' true (Default (eqns, _)) =
+          Default (natural_order (Theory.check_thy thy) ((thm, proper) :: eqns))
+          (*this restores the natural order and drops syntactic redundancies*)
+      | add_eqn' _ (Eqns eqns) = Eqns (update_subsume thy (thm, proper) eqns)
       | add_eqn' false _ = Eqns [(thm, proper)];
   in change_fun_spec false c (add_eqn' default) thy end;
 

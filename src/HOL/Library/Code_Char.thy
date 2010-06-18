@@ -58,12 +58,12 @@ code_const implode
   (SML "String.implode")
   (OCaml "failwith/ \"implode\"")
   (Haskell "_")
-  (Scala "List.toString((_))")
+  (Scala "!(\"\" ++/ _)")
 
 code_const explode
   (SML "String.explode")
   (OCaml "failwith/ \"explode\"")
   (Haskell "_")
-  (Scala "List.fromString((_))")
+  (Scala "!(_.toList)")
 
 end
