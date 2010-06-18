@@ -3190,6 +3190,14 @@ by (fast dest!: not0_implies_Suc intro!: set_replicate_Suc)
 lemma set_replicate_conv_if: "set (replicate n x) = (if n = 0 then {} else {x})"
 by auto
 
+lemma Ball_set_replicate[simp]:
+  "(ALL x : set(replicate n a). P x) = (P a | n=0)"
+by(simp add: set_replicate_conv_if)
+
+lemma Bex_set_replicate[simp]:
+  "(EX x : set(replicate n a). P x) = (P a & n\<noteq>0)"
+by(simp add: set_replicate_conv_if)
+
 lemma in_set_replicateD: "x : set (replicate n y) ==> x = y"
 by (simp add: set_replicate_conv_if split: split_if_asm)
 
@@ -4706,7 +4714,11 @@ by (simp add: list_all_iff)
 
 lemma list_all_length:
   "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
-  unfolding list_all_iff by (auto intro: all_nth_imp_all_set)
+unfolding list_all_iff by (auto intro: all_nth_imp_all_set)
+
+lemma list_all_cong[fundef_cong]:
+  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_all f xs = list_all g ys"
+by (simp add: list_all_iff)
 
 lemma list_ex_iff [code_post]:
   "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
@@ -4717,7 +4729,11 @@ lemmas list_bex_code [code_unfold] =
 
 lemma list_ex_length:
   "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
-  unfolding list_ex_iff set_conv_nth by auto
+unfolding list_ex_iff set_conv_nth by auto
+
+lemma list_ex_cong[fundef_cong]:
+  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
+by (simp add: list_ex_iff)
 
 lemma filtermap_conv:
    "filtermap f xs = map (\<lambda>x. the (f x)) (filter (\<lambda>x. f x \<noteq> None) xs)"
