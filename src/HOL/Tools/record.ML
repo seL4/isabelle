@@ -64,7 +64,7 @@ end;
 
 signature ISO_TUPLE_SUPPORT =
 sig
-  val add_iso_tuple_type: bstring * (string * sort) list ->
+  val add_iso_tuple_type: binding * (string * sort) list ->
     typ * typ -> theory -> (term * term) * theory
   val mk_cons_tuple: term * term -> term
   val dest_cons_tuple: term -> term * term
@@ -80,7 +80,7 @@ val isoN = "_Tuple_Iso";
 val iso_tuple_intro = @{thm isomorphic_tuple_intro};
 val iso_tuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
 
-val tuple_iso_tuple = (@{const_name tuple_iso_tuple}, @{thm tuple_iso_tuple});
+val tuple_iso_tuple = (@{const_name Record.tuple_iso_tuple}, @{thm tuple_iso_tuple});
 
 fun named_cterm_instantiate values thm =
   let
@@ -101,9 +101,9 @@ structure Iso_Tuple_Thms = Theory_Data
   fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
 
-fun do_typedef tyco repT alphas thy =
+fun do_typedef b repT alphas thy =
   let
-    val (b_constr, b_proj) = pairself Binding.name ("Abs_" ^  tyco, "Rep_" ^  tyco); (*FIXME*)
+    val (b_constr, b_proj) = (Binding.prefix_name "make_" b, Binding.prefix_name "dest_" b);
     fun get_thms thy tyco =
       let
         val SOME { vs, constr, typ = repT, proj_inject, proj_constr, ... } =
@@ -114,7 +114,7 @@ fun do_typedef tyco repT alphas thy =
       end;
   in
     thy
-    |> Typecopy.typecopy (Binding.name tyco, alphas) repT b_constr b_proj
+    |> Typecopy.typecopy (b, alphas) repT b_constr b_proj
     |-> (fn (tyco, _) => `(fn thy => get_thms thy tyco))
   end;
 
@@ -124,21 +124,21 @@ fun mk_cons_tuple (left, right) =
     val prodT = HOLogic.mk_prodT (leftT, rightT);
     val isomT = Type (@{type_name tuple_isomorphism}, [prodT, leftT, rightT]);
   in
-    Const (@{const_name iso_tuple_cons}, isomT --> leftT --> rightT --> prodT) $
+    Const (@{const_name Record.iso_tuple_cons}, isomT --> leftT --> rightT --> prodT) $
       Const (fst tuple_iso_tuple, isomT) $ left $ right
   end;
 
-fun dest_cons_tuple (Const (@{const_name iso_tuple_cons}, _) $ Const _ $ t $ u) = (t, u)
+fun dest_cons_tuple (Const (@{const_name Record.iso_tuple_cons}, _) $ Const _ $ t $ u) = (t, u)
   | dest_cons_tuple t = raise TERM ("dest_cons_tuple", [t]);
 
-fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
+fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
   let
     val repT = HOLogic.mk_prodT (leftT, rightT);
 
     val (((rep_inject, abs_inverse), absC, absT), typ_thy) =
       thy
-      |> do_typedef name repT alphas
-      ||> Sign.add_path name;
+      |> do_typedef b repT alphas
+      ||> Sign.add_path (Binding.name_of b); (*FIXME proper prefixing instead*)
 
     (*construct a type and body for the isomorphism constant by
       instantiating the theorem to which the definition will be applied*)
@@ -146,7 +146,7 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
       rep_inject RS named_cterm_instantiate [("abst", cterm_of typ_thy absC)] iso_tuple_intro;
     val (_, body) = Logic.dest_equals (List.last (prems_of intro_inst));
     val isomT = fastype_of body;
-    val isom_binding = Binding.name (name ^ isoN);
+    val isom_binding = Binding.suffix_name isoN b;
     val isom_name = Sign.full_name typ_thy isom_binding;
     val isom = Const (isom_name, isomT);
 
@@ -157,7 +157,7 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
         [((Binding.conceal (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
 
     val iso_tuple = isom_def RS (abs_inverse RS (rep_inject RS iso_tuple_intro));
-    val cons = Const (@{const_name iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
+    val cons = Const (@{const_name Record.iso_tuple_cons}, isomT --> leftT --> rightT --> absT);
 
     val thm_thy =
       cdef_thy
@@ -1654,7 +1654,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
         val ((_, cons), thy') = thy
           |> Iso_Tuple_Support.add_iso_tuple_type
-            (suffix suff base_name, alphas_zeta) (fastype_of left, fastype_of right);
+            (Binding.suffix_name suff (Binding.name base_name), alphas_zeta) (fastype_of left, fastype_of right);
       in
         (cons $ left $ right, (thy', i + 1))
       end;
@@ -1846,8 +1846,9 @@ fun meta_to_obj_all thm =
 
 fun record_definition (alphas, binding) parent (parents: parent_info list) raw_fields thy =
   let
+    val prefix = Binding.name_of binding;
     val name = Sign.full_name thy binding;
-    val full = Sign.full_name_path thy (Binding.name_of binding); (* FIXME Binding.qualified (!?) *)
+    val full = Sign.full_name_path thy prefix;
 
     val bfields = map (fn (x, T, _) => (x, T)) raw_fields;
     val field_syntax = map #3 raw_fields;
@@ -1859,7 +1860,7 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
     val parent_fields_len = length parent_fields;
     val parent_variants =
       Name.variant_list [moreN, rN, rN ^ "'", wN] (map Long_Name.base_name parent_names);
-    val parent_vars = ListPair.map Free (parent_variants, parent_types);
+    val parent_vars = map2 (curry Free) parent_variants parent_types;
     val parent_len = length parents;
 
     val fields = map (apfst full) bfields;
@@ -1871,7 +1872,7 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
     val variants =
       Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants)
         (map (Binding.name_of o fst) bfields);
-    val vars = ListPair.map Free (variants, types);
+    val vars = map2 (curry Free) variants types;
     val named_vars = names ~~ vars;
     val idxms = 0 upto len;
 
@@ -2090,13 +2091,13 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
        map (fn (c, x as Free (_, T)) => mk_sel r_rec0 (c, T) === x) named_vars_more;
 
     (*updates*)
-    fun mk_upd_prop (i, (c, T)) =
+    fun mk_upd_prop i (c, T) =
       let
         val x' = Free (Name.variant all_variants (Long_Name.base_name c ^ "'"), T --> T);
         val n = parent_fields_len + i;
         val args' = nth_map n (K (x' $ nth all_vars_more n)) all_vars_more;
       in mk_upd updateN c x' r_rec0 === mk_rec args' 0 end;
-    val upd_conv_props = ListPair.map mk_upd_prop (idxms, fields_more);
+    val upd_conv_props = map2 mk_upd_prop idxms fields_more;
 
     (*induct*)
     val induct_scheme_prop =
