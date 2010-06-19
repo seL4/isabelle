@@ -101,21 +101,21 @@ structure Iso_Tuple_Thms = Theory_Data
   fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
 
-fun do_typedef name repT alphas thy =
+fun do_typedef tyco repT alphas thy =
   let
-    fun get_thms thy name =
+    val (b_constr, b_proj) = pairself Binding.name ("Abs_" ^  tyco, "Rep_" ^  tyco); (*FIXME*)
+    fun get_thms thy tyco =
       let
-        val [({Abs_name, abs_type = absT, ...}, {Rep_inject, Abs_inverse, ...})] =
-          Typedef.get_info_global thy name;
-        val rewrite_rule =
-          MetaSimplifier.rewrite_rule [@{thm iso_tuple_UNIV_I}, @{thm iso_tuple_True_simp}];
+        val SOME { vs, constr, typ = repT, proj_inject, proj_constr, ... } =
+          Typecopy.get_info thy tyco;
+        val absT = Type (tyco, map TFree vs);
       in
-        (map rewrite_rule [Rep_inject, Abs_inverse], Const (Abs_name, repT --> absT), absT)
+        ((proj_inject, proj_constr), Const (constr, repT --> absT), absT)
       end;
   in
     thy
-    |> Typecopy.typecopy (Binding.name name, alphas) repT NONE
-    |-> (fn (name, _) => `(fn thy => get_thms thy name))
+    |> Typecopy.typecopy (Binding.name tyco, alphas) repT b_constr b_proj
+    |-> (fn (tyco, _) => `(fn thy => get_thms thy tyco))
   end;
 
 fun mk_cons_tuple (left, right) =
@@ -135,7 +135,7 @@ fun add_iso_tuple_type (name, alphas) (leftT, rightT) thy =
   let
     val repT = HOLogic.mk_prodT (leftT, rightT);
 
-    val (([rep_inject, abs_inverse], absC, absT), typ_thy) =
+    val (((rep_inject, abs_inverse), absC, absT), typ_thy) =
       thy
       |> do_typedef name repT alphas
       ||> Sign.add_path name;

@@ -6,9 +6,9 @@ Introducing copies of types using trivial typedefs; datatype-like abstraction.
 
 signature TYPECOPY =
 sig
-  type info = { vs: (string * sort) list, constr: string, typ: typ,
-    inject: thm, proj: string * typ, proj_def: thm }
-  val typecopy: binding * (string * sort) list -> typ -> (binding * binding) option
+  type info = { vs: (string * sort) list, typ: typ, constr: string, proj: string,
+    constr_inject: thm, proj_inject: thm, constr_proj: thm, proj_constr: thm }
+  val typecopy: binding * (string * sort) list -> typ -> binding -> binding
     -> theory -> (string * info) * theory
   val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
@@ -23,14 +23,16 @@ struct
 
 type info = {
   vs: (string * sort) list,
-  constr: string,
   typ: typ,
-  inject: thm,
-  proj: string * typ,
-  proj_def: thm
+  constr: string,
+  proj: string,
+  constr_inject: thm,
+  proj_inject: thm,
+  constr_proj: thm,
+  proj_constr: thm
 };
 
-structure TypecopyData = Theory_Data
+structure Typecopy_Data = Theory_Data
 (
   type T = info Symtab.table;
   val empty = Symtab.empty;
@@ -38,7 +40,7 @@ structure TypecopyData = Theory_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-val get_info = Symtab.lookup o TypecopyData.get;
+val get_info = Symtab.lookup o Typecopy_Data.get;
 
 
 (* interpretation of type copies *)
@@ -49,40 +51,42 @@ val interpretation = Typecopy_Interpretation.interpretation;
 
 (* introducing typecopies *)
 
-fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
+fun add_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
+    { Abs_inject, Rep_inject, Abs_inverse, Rep_inverse, ... }) : Typedef.info) thy =
+  let
+    val exists_thm =
+      UNIV_I
+      |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global rep_type))] [];
+    val constr_inject = Abs_inject OF [exists_thm, exists_thm];
+    val proj_constr = Abs_inverse OF [exists_thm];
+    val info = {
+      vs = vs,
+      typ = rep_type,
+      constr = Abs_name,
+      proj = Rep_name,
+      constr_inject = constr_inject,
+      proj_inject = Rep_inject,
+      constr_proj = Rep_inverse,
+      proj_constr = proj_constr
+    };
+  in
+    thy
+    |> (Typecopy_Data.map o Symtab.update_new) (tyco, info)
+    |> Typecopy_Interpretation.data tyco
+    |> pair (tyco, info)
+  end
+
+fun typecopy (raw_tyco, raw_vs) raw_ty constr proj thy =
   let
     val ty = Sign.certify_typ thy raw_ty;
     val ctxt = ProofContext.init_global thy |> Variable.declare_typ ty;
     val vs = map (ProofContext.check_tfree ctxt) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
-    fun add_info tyco (({ abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
-          Rep_name = c_rep, ...}, { Abs_inject = inject, Abs_inverse = inverse, ... })
-          : Typedef.info) thy =
-        let
-          val exists_thm =
-            UNIV_I
-            |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global ty_rep))] [];
-          val inject' = inject OF [exists_thm, exists_thm];
-          val proj_def = inverse OF [exists_thm];
-          val info = {
-            vs = vs,
-            constr = c_abs,
-            typ = ty_rep,
-            inject = inject',
-            proj = (c_rep, ty_abs --> ty_rep),
-            proj_def = proj_def
-          };
-        in
-          thy
-          |> (TypecopyData.map o Symtab.update_new) (tyco, info)
-          |> Typecopy_Interpretation.data tyco
-          |> pair (tyco, info)
-        end
   in
     thy
     |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, vs, NoSyn)
-      (HOLogic.mk_UNIV ty) (Option.map swap constr_proj) tac
-    |-> (fn (tyco, info) => add_info tyco info)
+      (HOLogic.mk_UNIV ty) (SOME (proj, constr)) tac
+    |-> (fn (tyco, info) => add_info tyco vs info)
   end;
 
 
@@ -90,10 +94,8 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
 
 fun add_default_code tyco thy =
   let
-    val SOME { constr = c, proj = (proj, _), proj_def = proj_eq, vs = vs,
-      typ = ty_rep, ... } = get_info thy tyco;
-    (* FIXME handle multiple typedef interpretations (!??) *)
-    val [(_, { Rep_inject = proj_inject, ... })] = Typedef.get_info_global thy tyco;
+    val SOME { vs, typ = ty_rep, constr = c, proj, proj_constr, proj_inject, ... } =
+      get_info thy tyco;
     val constr = (c, Logic.unvarifyT_global (Sign.the_const_type thy c));
     val ty = Type (tyco, map TFree vs);
     val proj = Const (proj, ty --> ty_rep);
@@ -113,7 +115,7 @@ fun add_default_code tyco thy =
   in
     thy
     |> Code.add_datatype [constr]
-    |> Code.add_eqn proj_eq
+    |> Code.add_eqn proj_constr
     |> Theory_Target.instantiation ([tyco], vs, [HOLogic.class_eq])
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition
