@@ -7,22 +7,26 @@ theory Fset
 imports More_Set More_List
 begin
 
-declare mem_def [simp]
-
 subsection {* Lifting *}
 
-datatype 'a fset = Fset "'a set"
+typedef (open) 'a fset = "UNIV :: 'a set set"
+  morphisms member Fset by rule+
 
-primrec member :: "'a fset \<Rightarrow> 'a set" where
+lemma member_Fset [simp]:
   "member (Fset A) = A"
-
-lemma member_inject [simp]:
-  "member A = member B \<Longrightarrow> A = B"
-  by (cases A, cases B) simp
+  by (rule Fset_inverse) rule
 
 lemma Fset_member [simp]:
   "Fset (member A) = A"
-  by (cases A) simp
+  by (rule member_inverse)
+
+declare member_inject [simp]
+
+lemma Fset_inject [simp]:
+  "Fset A = Fset B \<longleftrightarrow> A = B"
+  by (simp add: Fset_inject)
+
+declare mem_def [simp]
 
 definition Set :: "'a list \<Rightarrow> 'a fset" where
   "Set xs = Fset (set xs)"
@@ -55,6 +59,27 @@ proof -
   qed
   then show ?thesis by (simp add: image_def)
 qed
+
+definition (in term_syntax)
+  setify :: "'a\<Colon>typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
+    \<Rightarrow> 'a fset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
+  [code_unfold]: "setify xs = Code_Evaluation.valtermify Set {\<cdot>} xs"
+
+notation fcomp (infixl "o>" 60)
+notation scomp (infixl "o\<rightarrow>" 60)
+
+instantiation fset :: (random) random
+begin
+
+definition
+  "Quickcheck.random i = Quickcheck.random i o\<rightarrow> (\<lambda>xs. Pair (setify xs))"
+
+instance ..
+
+end
+
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
 
 
 subsection {* Lattice instantiation *}
@@ -117,11 +142,11 @@ lemma is_empty_Set [code]:
 
 lemma empty_Set [code]:
   "bot = Set []"
-  by simp
+  by (simp add: Set_def)
 
 lemma UNIV_Set [code]:
   "top = Coset []"
-  by simp
+  by (simp add: Coset_def)
 
 definition insert :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
   [simp]: "insert x A = Fset (Set.insert x (member A))"
@@ -198,9 +223,16 @@ lemma subfset_subfset_eq [code]:
   "A < B \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> (A :: 'a fset)"
   by (fact less_le_not_le)
 
-lemma eq_fset_subfset_eq [code]:
-  "eq_class.eq A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a fset)"
-  by (cases A, cases B) (simp add: eq set_eq)
+instantiation fset :: (type) eq
+begin
+
+definition
+  "eq_fset A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a fset)"
+
+instance proof
+qed (simp add: eq_fset_def set_eq [symmetric])
+
+end
 
 
 subsection {* Functorial operations *}
@@ -276,22 +308,6 @@ lemma Supremum_sup [code]:
 end
 
 
-subsection {* Misc operations *}
-
-lemma size_fset [code]:
-  "fset_size f A = 0"
-  "size A = 0"
-  by (cases A, simp) (cases A, simp)
-
-lemma fset_case_code [code]:
-  "fset_case f A = f (member A)"
-  by (cases A) simp
-
-lemma fset_rec_code [code]:
-  "fset_rec f A = f (member A)"
-  by (cases A) simp
-
-
 subsection {* Simplified simprules *}
 
 lemma is_empty_simp [simp]:
@@ -312,7 +328,7 @@ declare filter_def [simp del]
 declare mem_def [simp del]
 
 
-hide_const (open) is_empty insert remove map filter forall exists card
+hide_const (open) setify is_empty insert remove map filter forall exists card
   Inter Union
 
 end
