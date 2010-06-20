@@ -73,6 +73,7 @@ sig
   val add_dependency: string -> string * morphism -> morphism -> theory -> theory
 
   (* Diagnostic *)
+  val all_locales: theory -> string list
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> xstring -> unit
   val print_registrations: theory -> string -> unit
@@ -148,10 +149,6 @@ fun register_locale binding parameters spec intros axioms syntax_decls notes dep
 
 fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
-
-fun print_locales thy =
-  Pretty.strs ("locales:" :: map #1 (Name_Space.extern_table (Locales.get thy)))
-  |> Pretty.writeln;
 
 
 (*** Primitive operations ***)
@@ -343,20 +340,6 @@ fun init name thy =
   activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
     ([], Context.Proof (ProofContext.init_global thy)) |-> put_idents |> Context.proof_of;
 
-fun print_locale thy show_facts raw_name =
-  let
-    val name = intern thy raw_name;
-    val ctxt = init name thy;
-    fun cons_elem (elem as Notes _) = show_facts ? cons elem
-      | cons_elem elem = cons elem;
-    val elems =
-      activate_all name thy cons_elem (K (Element.transfer_morphism thy)) ([], [])
-      |> snd |> rev;
-  in
-    Pretty.big_list "locale elements:" (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)
-    |> Pretty.writeln
-  end;
-
 
 (*** Registrations: interpretations in theories ***)
 
@@ -456,15 +439,6 @@ fun activate_facts' export dep context =
     val thy = Context.theory_of context;
     val activate = activate_notes' Element.init (Element.transfer_morphism o Context.theory_of) thy export;
   in roundup thy activate export dep (get_idents context, context) |-> put_idents end;
-
-
-(* Diagnostic *)
-
-fun print_registrations thy raw_name =
-  (case these_registrations thy (intern thy raw_name) of
-      [] => Pretty.str ("no interpretations")
-    | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
-  |> Pretty.writeln;
 
 
 (* Add and extend registrations *)
@@ -594,5 +568,34 @@ val _ = Context.>> (Context.map_theory
     "back-chain introduction rules of locales without unfolding predicates" #>
   Method.setup (Binding.name "unfold_locales") (Scan.succeed (METHOD o try_intro_locales_tac true))
     "back-chain all introduction rules of locales"));
+
+
+(*** diagnostic commands and interfaces ***)
+
+fun all_locales thy = map #1 (Name_Space.extern_table (Locales.get thy));
+
+fun print_locales thy =
+  Pretty.strs ("locales:" :: all_locales thy)
+  |> Pretty.writeln;
+
+fun print_locale thy show_facts raw_name =
+  let
+    val name = intern thy raw_name;
+    val ctxt = init name thy;
+    fun cons_elem (elem as Notes _) = show_facts ? cons elem
+      | cons_elem elem = cons elem;
+    val elems =
+      activate_all name thy cons_elem (K (Element.transfer_morphism thy)) ([], [])
+      |> snd |> rev;
+  in
+    Pretty.big_list "locale elements:" (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)
+    |> Pretty.writeln
+  end;
+
+fun print_registrations thy raw_name =
+  (case these_registrations thy (intern thy raw_name) of
+      [] => Pretty.str ("no interpretations")
+    | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
+  |> Pretty.writeln;
 
 end;
