@@ -137,7 +137,7 @@ fun declare_skolem_funs s th thy =
 
 fun mk_skolem_id t =
   let val T = fastype_of t in
-    Const (@{const_name skolem_id}, T --> T) $ Envir.beta_eta_contract t
+    Const (@{const_name skolem_id}, T --> T) $ Envir.beta_norm t
   end
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
@@ -446,7 +446,7 @@ fun cnf_axiom thy th0 =
 
 (**** Translate a set of theorems into CNF ****)
 
-fun pair_name_cls k (n, []) = []
+fun pair_name_cls _ (_, []) = []
   | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
 
 (*The combination of rev and tail recursion preserves the original order*)
