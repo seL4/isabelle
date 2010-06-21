@@ -160,15 +160,15 @@ non-emptiness proofs), even in a global theory context.
 'quotient_definition' may be used for defining types and constants by
 quotient constructions.  An example is the type of integers created by
 quotienting pairs of natural numbers:
-  
+
   fun
-    intrel :: "(nat * nat) => (nat * nat) => bool" 
+    intrel :: "(nat * nat) => (nat * nat) => bool"
   where
     "intrel (x, y) (u, v) = (x + v = u + y)"
 
-  quotient_type int = "nat × nat" / intrel
+  quotient_type int = "nat * nat" / intrel
     by (auto simp add: equivp_def expand_fun_eq)
-  
+
   quotient_definition
     "0::int" is "(0::nat, 0::nat)"
 
@@ -249,6 +249,8 @@ AFP/thys/Coinductive.
 
 * Theory PReal, including the type "preal" and related operations, has
 been removed.  INCOMPATIBILITY.
+
+* Real: new development using Cauchy Sequences.
 
 * Split off theory "Big_Operators" containing setsum, setprod,
 Inf_fin, Sup_fin, Min, Max from theory Finite_Set.  INCOMPATIBILITY.
@@ -3385,8 +3387,6 @@ defined as range of_real; potential INCOMPATIBILITY.
 
 * Real: proper support for ML code generation, including 'quickcheck'.
 Reals are implemented as arbitrary precision rationals.
-
-* Real: new development using Cauchy Sequences.
 
 * Hyperreal: Several constants that previously worked only for the
 reals have been generalized, so they now work over arbitrary vector
