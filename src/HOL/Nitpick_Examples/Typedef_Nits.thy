@@ -174,7 +174,7 @@ record point =
   Xcoord :: int
   Ycoord :: int
 
-lemma "Abs_point_ext_type (Rep_point_ext_type a) = a"
+lemma "make_point_ext_type (dest_point_ext_type a) = a"
 nitpick [expect = none]
 by (rule Rep_point_ext_type_inverse)
 
