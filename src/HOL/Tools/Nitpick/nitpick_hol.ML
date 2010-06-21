@@ -1523,7 +1523,7 @@ fun optimized_case_def (hol_ctxt as {ctxt, stds, ...}) dataT res_T func_ts =
                   discriminate_value hol_ctxt x (Bound 0)))
       |> AList.group (op aconv)
       |> map (apsnd (List.foldl s_disj @{const False}))
-      |> sort (int_ord o pairself (size_of_term o fst))
+      |> sort (int_ord o pairself (size_of_term o snd))
       |> rev
   in
     if res_T = bool_T then
