@@ -866,24 +866,8 @@ fun kodkod_formula_from_nut ofs
       | _ => kk_rel_eq r (KK.Atom (j0 + 1))
     val formula_from_atom = formula_from_opt_atom Pos
 
-    fun kk_notimplies f1 f2 = kk_and f1 (kk_not f2)
-    val kk_or3 =
-      double_rel_rel_let kk
-          (fn r1 => fn r2 =>
-              kk_rel_if (kk_subset true_atom (kk_union r1 r2)) true_atom
-                        (kk_intersect r1 r2))
-    val kk_and3 =
-      double_rel_rel_let kk
-          (fn r1 => fn r2 =>
-              kk_rel_if (kk_subset false_atom (kk_union r1 r2)) false_atom
-                        (kk_intersect r1 r2))
-    fun kk_notimplies3 r1 r2 = kk_and3 r1 (kk_not3 r2)
-
     val unpack_formulas =
       map (formula_from_atom bool_j0) oo unpack_vect_in_chunks kk 1
-    fun kk_vect_set_op connective k r1 r2 =
-      fold1 kk_product (map2 (atom_from_formula kk bool_j0 oo connective)
-                             (unpack_formulas k r1) (unpack_formulas k r2))
     fun kk_vect_set_bool_op connective k r1 r2 =
       fold1 kk_and (map2 connective (unpack_formulas k r1)
                          (unpack_formulas k r2))
@@ -1369,14 +1353,6 @@ fun kodkod_formula_from_nut ofs
             kk_union (kk_rel_if f1 true_atom KK.None)
                      (kk_rel_if f2 KK.None false_atom)
         end
-      | Op2 (Union, _, R, u1, u2) =>
-        to_set_op kk_or kk_or3 kk_union kk_union kk_intersect false R u1 u2
-      | Op2 (SetDifference, _, R, u1, u2) =>
-        to_set_op kk_notimplies kk_notimplies3 kk_difference kk_intersect
-                  kk_union true R u1 u2
-      | Op2 (Intersect, _, R, u1, u2) =>
-        to_set_op kk_and kk_and3 kk_intersect kk_intersect kk_union false R
-                  u1 u2
       | Op2 (Composition, _, R, u1, u2) =>
         let
           val (a_T, b_T) = HOLogic.dest_prodT (domain_type (type_of u1))
@@ -1643,37 +1619,6 @@ fun kodkod_formula_from_nut ofs
         | Func (_, Atom _) => set_oper (kk_join r1 true_atom)
                                        (kk_join r2 true_atom)
         | _ => raise REP ("Nitpick_Kodkod.to_set_bool_op", [min_R])
-      end
-    and to_set_op connective connective3 set_oper true_set_oper false_set_oper
-                  neg_second R u1 u2 =
-      let
-        val min_R = min_rep (rep_of u1) (rep_of u2)
-        val r1 = to_rep min_R u1
-        val r2 = to_rep min_R u2
-        val unopt_R = unopt_rep R
-      in
-        rel_expr_from_rel_expr kk unopt_R (unopt_rep min_R)
-            (case min_R of
-               Opt (Vect (k, Atom _)) => kk_vect_set_op connective k r1 r2
-             | Vect (k, Atom _) => kk_vect_set_op connective k r1 r2
-             | Func (_, Formula Neut) => set_oper r1 r2
-             | Func (Unit, _) => connective3 r1 r2
-             | Func _ =>
-               double_rel_rel_let kk
-                   (fn r1 => fn r2 =>
-                       kk_union
-                           (kk_product
-                                (true_set_oper (kk_join r1 true_atom)
-                                     (kk_join r2 (atom_for_bool bool_j0
-                                                             (not neg_second))))
-                                true_atom)
-                           (kk_product
-                                (false_set_oper (kk_join r1 false_atom)
-                                     (kk_join r2 (atom_for_bool bool_j0
-                                                                neg_second)))
-                                false_atom))
-                   r1 r2
-             | _ => raise REP ("Nitpick_Kodkod.to_set_op", [min_R]))
       end
     and to_bit_word_unary_op T R oper =
       let

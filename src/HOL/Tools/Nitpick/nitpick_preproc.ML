@@ -91,7 +91,7 @@ fun uncurry_prefix_for k j =
 fun uncurry_term table t =
   let
     fun aux (t1 $ t2) args = aux t1 (aux t2 [] :: args)
-      | aux (Abs (s, T, t')) args = betapplys (Abs (s, T, aux t' []), args)
+      | aux (Abs (s, T, t')) args = s_betapplys [] (Abs (s, T, aux t' []), args)
       | aux (t as Const (s, T)) args =
         (case Termtab.lookup table t of
            SOME n =>
@@ -111,17 +111,18 @@ fun uncurry_term table t =
                val tuple_T = HOLogic.mk_tupleT tuple_arg_Ts
              in
                if n - j < 2 then
-                 betapplys (t, args)
+                 s_betapplys [] (t, args)
                else
-                 betapplys (Const (uncurry_prefix_for (n - j) j ^ s,
-                                   before_arg_Ts ---> tuple_T --> rest_T),
-                            before_args @ [mk_flat_tuple tuple_T tuple_args] @
-                            after_args)
+                 s_betapplys []
+                     (Const (uncurry_prefix_for (n - j) j ^ s,
+                             before_arg_Ts ---> tuple_T --> rest_T),
+                      before_args @ [mk_flat_tuple tuple_T tuple_args] @
+                      after_args)
              end
            else
-             betapplys (t, args)
-         | NONE => betapplys (t, args))
-      | aux t args = betapplys (t, args)
+             s_betapplys [] (t, args)
+         | NONE => s_betapplys [] (t, args))
+      | aux t args = s_betapplys [] (t, args)
   in aux t [] end
 
 (** Boxing **)
@@ -248,13 +249,13 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
           val T2 = fastype_of1 (new_Ts, t2)
           val t2 = coerce_term hol_ctxt new_Ts (hd Ts1) T2 t2
         in
-          betapply (if s1 = @{type_name fun} then
-                      t1
-                    else
-                      select_nth_constr_arg ctxt stds
-                          (@{const_name FunBox},
-                           Type (@{type_name fun}, Ts1) --> T1) t1 0
-                          (Type (@{type_name fun}, Ts1)), t2)
+          s_betapply new_Ts (if s1 = @{type_name fun} then
+                               t1
+                             else
+                               select_nth_constr_arg ctxt stds
+                                   (@{const_name FunBox},
+                                    Type (@{type_name fun}, Ts1) --> T1) t1 0
+                                   (Type (@{type_name fun}, Ts1)), t2)
         end
       | t1 $ t2 =>
         let
@@ -265,13 +266,13 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
           val T2 = fastype_of1 (new_Ts, t2)
           val t2 = coerce_term hol_ctxt new_Ts (hd Ts1) T2 t2
         in
-          betapply (if s1 = @{type_name fun} then
-                      t1
-                    else
-                      select_nth_constr_arg ctxt stds
-                          (@{const_name FunBox},
-                           Type (@{type_name fun}, Ts1) --> T1) t1 0
-                          (Type (@{type_name fun}, Ts1)), t2)
+          s_betapply new_Ts (if s1 = @{type_name fun} then
+                               t1
+                             else
+                               select_nth_constr_arg ctxt stds
+                                   (@{const_name FunBox},
+                                    Type (@{type_name fun}, Ts1) --> T1) t1 0
+                                   (Type (@{type_name fun}, Ts1)), t2)
         end
       | Free (s, T) => Free (s, box_type hol_ctxt InExpr T)
       | Var (z as (x, T)) =>
@@ -388,18 +389,6 @@ fun pull_out_existential_constrs hol_ctxt t =
           (list_comb (t, args), seen)
   in aux [] 0 t [] [] |> fst end
 
-val let_var_prefix = nitpick_prefix ^ "l"
-val let_inline_threshold = 32
-
-fun hol_let n abs_T body_T f t =
-  if n * size_of_term t <= let_inline_threshold then
-    f t
-  else
-    let val z = ((let_var_prefix, 0), abs_T) in
-      Const (@{const_name Let}, abs_T --> (abs_T --> body_T) --> body_T)
-      $ t $ abs_var z (incr_boundvars 1 (f (Var z)))
-    end
-
 fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
   let
     val num_occs_of_var =
@@ -439,10 +428,10 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
                 x = (@{const_name Suc}, nat_T --> nat_T)) andalso
                (not careful orelse not (is_Var t1) orelse
                 String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
-                hol_let (n + 1) dataT bool_T
-                    (fn t1 => discriminate_value hol_ctxt x t1 ::
-                              map3 (sel_eq x t1) (index_seq 0 n) arg_Ts args
-                              |> foldr1 s_conj) t1
+                s_let "l" (n + 1) dataT bool_T
+                      (fn t1 => discriminate_value hol_ctxt x t1 ::
+                                map3 (sel_eq x t1) (index_seq 0 n) arg_Ts args
+                                |> foldr1 s_conj) t1
             else
               raise SAME ()
           end
@@ -572,7 +561,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
                                      map Bound (rev js))
               val abs_t = Abs (abs_s, abs_T, aux ss Ts (incrs js) depth polar t)
             in
-              if null js then betapply (abs_t, sko_t)
+              if null js then s_betapply Ts (abs_t, sko_t)
               else Const (@{const_name Let}, abs_T --> quant_T) $ sko_t $ abs_t
             end
           else
@@ -602,11 +591,9 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
         | Const (s0 as @{const_name Ex}, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | @{const "op &"} $ t1 $ t2 =>
-          @{const "op &"} $ aux ss Ts js depth polar t1
-          $ aux ss Ts js depth polar t2
+          s_conj (pairself (aux ss Ts js depth polar) (t1, t2))
         | @{const "op |"} $ t1 $ t2 =>
-          @{const "op |"} $ aux ss Ts js depth polar t1
-          $ aux ss Ts js depth polar t2
+          s_disj (pairself (aux ss Ts js depth polar) (t1, t2))
         | @{const "op -->"} $ t1 $ t2 =>
           @{const "op -->"} $ aux ss Ts js depth (flip_polarity polar) t1
           $ aux ss Ts js depth polar t2
@@ -617,42 +604,30 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
              not (is_well_founded_inductive_pred hol_ctxt x) then
             let
               val gfp = (fixpoint_kind_of_const thy def_table x = Gfp)
-              val (pref, connective, set_oper) =
-                if gfp then
-                  (lbfp_prefix, @{const "op |"},
-                   @{const_name semilattice_sup_class.sup})
-                else
-                  (ubfp_prefix, @{const "op &"},
-                   @{const_name semilattice_inf_class.inf})
+              val (pref, connective) =
+                if gfp then (lbfp_prefix, @{const "op |"})
+                else (ubfp_prefix, @{const "op &"})
               fun pos () = unrolled_inductive_pred_const hol_ctxt gfp x
                            |> aux ss Ts js depth polar
               fun neg () = Const (pref ^ s, T)
             in
-              (case polar |> gfp ? flip_polarity of
-                 Pos => pos ()
-               | Neg => neg ()
-               | Neut =>
-                 if is_fun_type T then
-                   let
-                     val ((trunk_arg_Ts, rump_arg_T), body_T) =
-                       T |> strip_type |>> split_last
-                     val set_T = rump_arg_T --> body_T
-                     fun app f =
-                       list_comb (f (),
-                                  map Bound (length trunk_arg_Ts - 1 downto 0))
-                   in
-                     List.foldr absdummy
-                                (Const (set_oper, set_T --> set_T --> set_T)
-                                        $ app pos $ app neg) trunk_arg_Ts
-                   end
-                 else
-                   connective $ pos () $ neg ())
+              case polar |> gfp ? flip_polarity of
+                Pos => pos ()
+              | Neg => neg ()
+              | Neut =>
+                let
+                  val arg_Ts = binder_types T
+                  fun app f =
+                    list_comb (f (), map Bound (length arg_Ts - 1 downto 0))
+                in
+                  List.foldr absdummy (connective $ app pos $ app neg) arg_Ts
+                end
             end
           else
             Const x
         | t1 $ t2 =>
-          betapply (aux ss Ts [] (skolem_depth + 1) polar t1,
-                    aux ss Ts [] depth Neut t2)
+          s_betapply Ts (aux ss Ts [] (skolem_depth + 1) polar t1,
+                         aux ss Ts [] depth Neut t2)
         | Abs (s, T, t1) => Abs (s, T, aux ss Ts (incrs js) depth polar t1)
         | _ => t
       end
@@ -1064,10 +1039,10 @@ fun simplify_constrs_and_sels ctxt t =
             | _ => raise SAME ()
           else
             raise SAME ())
-         handle SAME () => betapplys (t, args))
+         handle SAME () => s_betapplys [] (t, args))
       | do_term (Abs (s, T, t')) args =
-        betapplys (Abs (s, T, do_term t' []), args)
-      | do_term t args = betapplys (t, args)
+        s_betapplys [] (Abs (s, T, do_term t' []), args)
+      | do_term t args = s_betapplys [] (t, args)
   in do_term t [] end
 
 (** Quantifier massaging: Distributing quantifiers **)
@@ -1223,15 +1198,20 @@ val push_quantifiers_inward =
 
 fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
                                (nondef_ts, def_ts) =
-  let
-    val Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
-             |> filter_out (fn Type (@{type_name fun_box}, _) => true
-                             | @{typ signed_bit} => true
-                             | @{typ unsigned_bit} => true
-                             | T => is_small_finite_type hol_ctxt T orelse
-                                    triple_lookup (type_match thy) monos T
-                                    = SOME (SOME false))
-  in fold (finitize_funs hol_ctxt binarize finitizes) Ts (nondef_ts, def_ts) end
+  if forall (curry (op =) (SOME false) o snd) finitizes then
+    (nondef_ts, def_ts)
+  else
+    let
+      val Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
+               |> filter_out (fn Type (@{type_name fun_box}, _) => true
+                               | @{typ signed_bit} => true
+                               | @{typ unsigned_bit} => true
+                               | T => is_small_finite_type hol_ctxt T orelse
+                                      triple_lookup (type_match thy) monos T
+                                      = SOME (SOME false))
+    in
+      fold (finitize_funs hol_ctxt binarize finitizes) Ts (nondef_ts, def_ts)
+    end
 
 (** Preprocessor entry point **)
 

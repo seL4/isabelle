@@ -56,9 +56,6 @@ sig
     The |
     Eps |
     Triad |
-    Union |
-    SetDifference |
-    Intersect |
     Composition |
     Product |
     Image |
@@ -176,9 +173,6 @@ datatype op2 =
   The |
   Eps |
   Triad |
-  Union |
-  SetDifference |
-  Intersect |
   Composition |
   Product |
   Image |
@@ -247,9 +241,6 @@ fun string_for_op2 All = "All"
   | string_for_op2 The = "The"
   | string_for_op2 Eps = "Eps"
   | string_for_op2 Triad = "Triad"
-  | string_for_op2 Union = "Union"
-  | string_for_op2 SetDifference = "SetDifference"
-  | string_for_op2 Intersect = "Intersect"
   | string_for_op2 Composition = "Composition"
   | string_for_op2 Product = "Product"
   | string_for_op2 Image = "Image"
@@ -525,6 +516,8 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
           do_description_operator The @{const_name undefined_fast_The} x t1
         | (Const (x as (@{const_name Eps}, _)), [t1]) =>
           do_description_operator Eps @{const_name undefined_fast_Eps} x t1
+        | (Const (@{const_name "op ="}, T), [t1]) =>
+          Op1 (SingletonSet, range_type T, Any, sub t1)
         | (Const (@{const_name "op ="}, T), [t1, t2]) => sub_equals T t1 t2
         | (Const (@{const_name "op &"}, _), [t1, t2]) =>
           Op2 (And, bool_T, Any, sub' t1, sub' t2)
@@ -547,13 +540,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
         | (Const (@{const_name snd}, T), [t1]) =>
           Op1 (Second, range_type T, Any, sub t1)
         | (Const (@{const_name Id}, T), []) => Cst (Iden, T, Any)
-        | (Const (@{const_name insert}, T), [t1, t2]) =>
-          (case t2 of
-             Abs (_, _, @{const False}) =>
-             Op1 (SingletonSet, nth_range_type 2 T, Any, sub t1)
-           | _ =>
-             Op2 (Union, nth_range_type 2 T, Any,
-                  Op1 (SingletonSet, nth_range_type 2 T, Any, sub t1), sub t2))
         | (Const (@{const_name converse}, T), [t1]) =>
           Op1 (Converse, range_type T, Any, sub t1)
         | (Const (@{const_name trancl}, T), [t1]) =>
@@ -585,11 +571,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
         | (Const (x as (s as @{const_name plus_class.plus}, T)), []) =>
           if is_built_in_const thy stds false x then Cst (Add, T, Any)
           else ConstName (s, T, Any)
-        | (Const (@{const_name minus_class.minus},
-                  Type (@{type_name fun},
-                        [T1 as Type (@{type_name fun}, [_, @{typ bool}]), _])),
-           [t1, t2]) =>
-          Op2 (SetDifference, T1, Any, sub t1, sub t2)
         | (Const (x as (s as @{const_name minus_class.minus}, T)), []) =>
           if is_built_in_const thy stds false x then Cst (Subtract, T, Any)
           else ConstName (s, T, Any)
@@ -643,16 +624,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
         | (Const (@{const_name of_nat},
                   T as @{typ "unsigned_bit word => signed_bit word"}), []) =>
           Cst (NatToInt, T, Any)
-        | (Const (@{const_name semilattice_inf_class.inf},
-                  Type (@{type_name fun},
-                        [T1 as Type (@{type_name fun}, [_, @{typ bool}]), _])),
-           [t1, t2]) =>
-          Op2 (Intersect, T1, Any, sub t1, sub t2)
-        | (Const (@{const_name semilattice_sup_class.sup},
-                  Type (@{type_name fun},
-                        [T1 as Type (@{type_name fun}, [_, @{typ bool}]), _])),
-           [t1, t2]) =>
-          Op2 (Union, T1, Any, sub t1, sub t2)
         | (t0 as Const (x as (s, T)), ts) =>
           if is_constr ctxt stds x then
             do_construct x ts
@@ -685,15 +656,14 @@ fun is_fully_representable_set u =
   | Op1 (SingletonSet, _, _, _) => true
   | Op1 (Converse, _, _, u1) => is_fully_representable_set u1
   | Op2 (oper, _, _, u1, u2) =>
-    if oper = Union orelse oper = SetDifference orelse oper = Intersect then
-      forall is_fully_representable_set [u1, u2]
-    else if oper = Apply then
+    if oper = Apply then
       case u1 of
         ConstName (s, _, _) =>
         is_sel_like_and_no_discr s orelse s = @{const_name set}
       | _ => false
     else
       false
+  | Op2 (Lambda, _, _, _, Cst (False, _, _)) => true
   | _ => false
 
 fun rep_for_abs_fun scope T =
