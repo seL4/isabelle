@@ -5,7 +5,7 @@
 header {* Continuous paths and path-connected sets *}
 
 theory Path_Connected
-imports Convex_Euclidean_Space
+imports Cartesian_Euclidean_Space
 begin
 
 subsection {* Paths. *}
@@ -66,7 +66,7 @@ lemma connected_path_image[intro]: "path g \<Longrightarrow> connected(path_imag
 
 lemma compact_path_image[intro]: "path g \<Longrightarrow> compact(path_image g)"
   unfolding path_def path_image_def
-  by (erule compact_continuous_image, rule compact_real_interval)
+  by (erule compact_continuous_image, rule compact_interval)
 
 lemma reversepath_reversepath[simp]: "reversepath(reversepath g) = g"
   unfolding reversepath_def by auto
@@ -118,7 +118,7 @@ lemma path_join[simp]: assumes "pathfinish g1 = pathstart g2" shows "path (g1 ++
     fix x assume "x \<in> (\<lambda>x. (1 / 2) *\<^sub>R (x + 1)) ` {0::real..1}"
     hence "x \<ge> 1 / 2" unfolding image_iff by auto
     thus "(g1 +++ g2) x = g2 (2 *\<^sub>R x - 1)" proof(cases "x = 1 / 2")
-      case True hence "x = (1/2) *\<^sub>R 1" unfolding Cart_eq by auto
+      case True hence "x = (1/2) *\<^sub>R 1" by auto 
       thus ?thesis unfolding joinpaths_def using assms[unfolded pathstart_def pathfinish_def] by (auto simp add: mult_ac)
     qed (auto simp add:le_less joinpaths_def) qed
 next assume as:"continuous_on {0..1} g1" "continuous_on {0..1} g2"
@@ -504,12 +504,14 @@ lemma path_connected_Un: assumes "path_connected s" "path_connected t" "s \<inte
 
 subsection {* sphere is path-connected. *}
 
+(** TODO covert this to ordered_euclidean_space **)
+
 lemma path_connected_punctured_universe:
  assumes "2 \<le> CARD('n::finite)" shows "path_connected((UNIV::(real^'n) set) - {a})" proof-
   obtain \<psi> where \<psi>:"bij_betw \<psi> {1..CARD('n)} (UNIV::'n set)" using ex_bij_betw_nat_finite_1[OF finite_UNIV] by auto
   let ?U = "UNIV::(real^'n) set" let ?u = "?U - {0}"
-  let ?basis = "\<lambda>k. basis (\<psi> k)"
-  let ?A = "\<lambda>k. {x::real^'n. \<exists>i\<in>{1..k}. inner (basis (\<psi> i)) x \<noteq> 0}"
+  let ?basis = "\<lambda>k. cart_basis (\<psi> k)"
+  let ?A = "\<lambda>k. {x::real^'n. \<exists>i\<in>{1..k}. inner (cart_basis (\<psi> i)) x \<noteq> 0}"
   have "\<forall>k\<in>{2..CARD('n)}. path_connected (?A k)" proof
     have *:"\<And>k. ?A (Suc k) = {x. inner (?basis (Suc k)) x < 0} \<union> {x. inner (?basis (Suc k)) x > 0} \<union> ?A k" apply(rule set_ext,rule) defer
       apply(erule UnE)+  unfolding mem_Collect_eq apply(rule_tac[1-2] x="Suc k" in bexI)
@@ -537,15 +539,15 @@ lemma path_connected_punctured_universe:
           using d unfolding *** by(auto intro!: convex_halfspace_gt convex_halfspace_lt, auto simp add: inner_basis)
   qed qed auto qed note lem = this
 
-  have ***:"\<And>x::real^'n. (\<exists>i\<in>{1..CARD('n)}. inner (basis (\<psi> i)) x \<noteq> 0) \<longleftrightarrow> (\<exists>i. inner (basis i) x \<noteq> 0)"
+  have ***:"\<And>x::real^'n. (\<exists>i\<in>{1..CARD('n)}. inner (cart_basis (\<psi> i)) x \<noteq> 0) \<longleftrightarrow> (\<exists>i. inner (cart_basis i) x \<noteq> 0)"
     apply rule apply(erule bexE) apply(rule_tac x="\<psi> i" in exI) defer apply(erule exE) proof- 
-    fix x::"real^'n" and i assume as:"inner (basis i) x \<noteq> 0"
+    fix x::"real^'n" and i assume as:"inner (cart_basis i) x \<noteq> 0"
     have "i\<in>\<psi> ` {1..CARD('n)}" using \<psi>[unfolded bij_betw_def, THEN conjunct2] by auto
     then obtain j where "j\<in>{1..CARD('n)}" "\<psi> j = i" by auto
-    thus "\<exists>i\<in>{1..CARD('n)}. inner (basis (\<psi> i)) x \<noteq> 0" apply(rule_tac x=j in bexI) using as by auto qed auto
+    thus "\<exists>i\<in>{1..CARD('n)}. inner (cart_basis (\<psi> i)) x \<noteq> 0" apply(rule_tac x=j in bexI) using as by auto qed auto
   have *:"?U - {a} = (\<lambda>x. x + a) ` {x. x \<noteq> 0}" apply(rule set_ext) unfolding image_iff 
     apply rule apply(rule_tac x="x - a" in bexI) by auto
-  have **:"\<And>x::real^'n. x\<noteq>0 \<longleftrightarrow> (\<exists>i. inner (basis i) x \<noteq> 0)" unfolding Cart_eq by(auto simp add: inner_basis)
+  have **:"\<And>x::real^'n. x\<noteq>0 \<longleftrightarrow> (\<exists>i. inner (cart_basis i) x \<noteq> 0)" unfolding Cart_eq by(auto simp add: inner_basis)
   show ?thesis unfolding * apply(rule path_connected_continuous_image) apply(rule continuous_on_intros)+ 
     unfolding ** apply(rule lem[THEN bspec[where x="CARD('n)"], unfolded ***]) using assms by auto qed
 

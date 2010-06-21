@@ -6,9 +6,8 @@
 header {* Multivariate calculus in Euclidean space. *}
 
 theory Derivative
-imports Brouwer_Fixpoint Vec1 RealVector Operator_Norm
+imports Brouwer_Fixpoint Operator_Norm
 begin
-
 
 (* Because I do not want to type this all the time *)
 lemmas linear_linear = linear_conv_bounded_linear[THEN sym]
@@ -74,7 +73,7 @@ lemma has_derivative_within':
         (\<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. 0 < norm(x' - x) \<and> norm(x' - x) < d
         \<longrightarrow> norm(f x' - f x - f'(x' - x)) / norm(x' - x) < e)"
   unfolding has_derivative_within Lim_within dist_norm
-  unfolding diff_0_right norm_mul by (simp add: diff_diff_eq)
+  unfolding diff_0_right by (simp add: diff_diff_eq)
 
 lemma has_derivative_at':
  "(f has_derivative f') (at x) \<longleftrightarrow> bounded_linear f' \<and>
@@ -89,47 +88,9 @@ lemma has_derivative_within_open:
   "a \<in> s \<Longrightarrow> open s \<Longrightarrow> ((f has_derivative f') (at a within s) \<longleftrightarrow> (f has_derivative f') (at a))"
   unfolding has_derivative_within has_derivative_at using Lim_within_open by auto
 
-subsection {* Derivatives on real = Derivatives on @{typ "real^1"} *}
-
-lemma has_derivative_within_vec1_dest_vec1: fixes f::"real\<Rightarrow>real" shows
-  "((vec1 \<circ> f \<circ> dest_vec1) has_derivative (vec1 \<circ> f' \<circ> dest_vec1)) (at (vec1 x) within vec1 ` s)
-  = (f has_derivative f') (at x within s)"
-  unfolding has_derivative_within unfolding bounded_linear_vec1_dest_vec1[unfolded linear_conv_bounded_linear]
-  unfolding o_def Lim_within Ball_def unfolding forall_vec1 
-  unfolding vec1_dest_vec1_simps dist_vec1_0 image_iff by auto  
-
-lemma has_derivative_at_vec1_dest_vec1: fixes f::"real\<Rightarrow>real" shows
-  "((vec1 \<circ> f \<circ> dest_vec1) has_derivative (vec1 \<circ> f' \<circ> dest_vec1)) (at (vec1 x)) = (f has_derivative f') (at x)"
-  using has_derivative_within_vec1_dest_vec1[where s=UNIV, unfolded range_vec1 within_UNIV] by auto
-
-lemma bounded_linear_vec1: fixes f::"'a::real_normed_vector\<Rightarrow>real"
-  shows "bounded_linear f = bounded_linear (vec1 \<circ> f)"
-  unfolding bounded_linear_def additive_def bounded_linear_axioms_def o_def
-  unfolding vec1_dest_vec1_simps by auto
-
-lemma bounded_linear_dest_vec1: fixes f::"real\<Rightarrow>'a::real_normed_vector"
-  shows "bounded_linear f = bounded_linear (f \<circ> dest_vec1)"
-  unfolding bounded_linear_def additive_def bounded_linear_axioms_def o_def
-  unfolding vec1_dest_vec1_simps by auto
-
-lemma has_derivative_at_vec1: fixes f::"'a::real_normed_vector\<Rightarrow>real" shows
-  "(f has_derivative f') (at x) = ((vec1 \<circ> f) has_derivative (vec1 \<circ> f')) (at x)"
-  unfolding has_derivative_at unfolding bounded_linear_vec1[unfolded linear_conv_bounded_linear]
-  unfolding o_def Lim_at unfolding vec1_dest_vec1_simps dist_vec1_0 by auto
-
-lemma has_derivative_within_dest_vec1:fixes f::"real\<Rightarrow>'a::real_normed_vector" shows
-  "((f \<circ> dest_vec1) has_derivative (f' \<circ> dest_vec1)) (at (vec1 x) within vec1 ` s) = (f has_derivative f') (at x within s)"
-  unfolding has_derivative_within bounded_linear_dest_vec1 unfolding o_def Lim_within Ball_def
-  unfolding vec1_dest_vec1_simps dist_vec1_0 image_iff by auto
-
-lemma has_derivative_at_dest_vec1:fixes f::"real\<Rightarrow>'a::real_normed_vector" shows
-  "((f \<circ> dest_vec1) has_derivative (f' \<circ> dest_vec1)) (at (vec1 x)) = (f has_derivative f') (at x)"
-  using has_derivative_within_dest_vec1[where s=UNIV] by(auto simp add:within_UNIV)
-
-lemma derivative_is_linear: fixes f::"real^'a \<Rightarrow> real^'b" shows
+lemma derivative_is_linear: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space" shows
   "(f has_derivative f') net \<Longrightarrow> linear f'"
   unfolding has_derivative_def and linear_conv_bounded_linear by auto
-
 
 subsection {* Combining theorems. *}
 
@@ -198,37 +159,47 @@ lemma has_derivative_setsum_numseg:
 
 subsection {* somewhat different results for derivative of scalar multiplier. *}
 
-lemma has_derivative_vmul_component: fixes c::"real^'a \<Rightarrow> real^'b" and v::"real^'c"
+(** move **)
+lemma linear_vmul_component:
+  assumes lf: "linear f"
+  shows "linear (\<lambda>x. f x $$ k *\<^sub>R v)"
+  using lf
+  by (auto simp add: linear_def algebra_simps)
+
+lemma has_derivative_vmul_component: fixes c::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space" and v::"'c::euclidean_space"
   assumes "(c has_derivative c') net"
-  shows "((\<lambda>x. c(x)$k *\<^sub>R v) has_derivative (\<lambda>x. (c' x)$k *\<^sub>R v)) net" proof-
-  have *:"\<And>y. (c y $ k *\<^sub>R v - (c (netlimit net) $ k *\<^sub>R v + c' (y - netlimit net) $ k *\<^sub>R v)) = 
-        (c y $ k - (c (netlimit net) $ k + c' (y - netlimit net) $ k)) *\<^sub>R v" 
+  shows "((\<lambda>x. c(x)$$k *\<^sub>R v) has_derivative (\<lambda>x. (c' x)$$k *\<^sub>R v)) net" proof-
+  have *:"\<And>y. (c y $$ k *\<^sub>R v - (c (netlimit net) $$ k *\<^sub>R v + c' (y - netlimit net) $$ k *\<^sub>R v)) = 
+        (c y $$ k - (c (netlimit net) $$ k + c' (y - netlimit net) $$ k)) *\<^sub>R v" 
     unfolding scaleR_left_diff_distrib scaleR_left_distrib by auto
   show ?thesis unfolding has_derivative_def and * and linear_conv_bounded_linear[symmetric]
-    apply(rule,rule linear_vmul_component[of c' k v, unfolded smult_conv_scaleR]) defer 
-    apply(subst vector_smult_lzero[THEN sym, of v]) unfolding scaleR_scaleR smult_conv_scaleR apply(rule Lim_vmul)
+    apply(rule,rule linear_vmul_component[of c' k v]) defer 
+    apply(subst scaleR_zero_left[THEN sym, of v]) unfolding scaleR_scaleR apply(rule Lim_vmul)
     using assms[unfolded has_derivative_def] unfolding Lim o_def apply- apply(cases "trivial_limit net")
     apply(rule,assumption,rule disjI2,rule,rule) proof-
-    have *:"\<And>x. x - vec 0 = (x::real^'n)" by auto 
-    have **:"\<And>d x. d * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k)) = (d *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net) ))) $k" by(auto simp add:field_simps)
+    have *:"\<And>x. x - 0 = (x::'a)" by auto 
+    have **:"\<And>d x. d * (c x $$ k - (c (netlimit net) $$ k + c' (x - netlimit net) $$ k)) =
+      (d *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net) ))) $$k" by(auto simp add:field_simps)
     fix e assume "\<not> trivial_limit net" "0 < (e::real)"
-    then have "eventually (\<lambda>x. dist ((1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net)))) 0 < e) net"
+    then have "eventually (\<lambda>x. dist ((1 / norm (x - netlimit net)) *\<^sub>R
+      (c x - (c (netlimit net) + c' (x - netlimit net)))) 0 < e) net"
       using assms[unfolded has_derivative_def Lim] by auto
-    thus "eventually (\<lambda>x. dist (1 / norm (x - netlimit net) * (c x $ k - (c (netlimit net) $ k + c' (x - netlimit net) $ k))) 0 < e) net"
+    thus "eventually (\<lambda>x. dist (1 / norm (x - netlimit net) *
+      (c x $$ k - (c (netlimit net) $$ k + c' (x - netlimit net) $$ k))) 0 < e) net"
       proof (rule eventually_elim1)
-      case goal1 thus ?case apply - unfolding dist_norm  apply(rule le_less_trans) prefer 2 apply assumption unfolding * ** and norm_vec1
-        using component_le_norm[of "(1 / norm (x - netlimit net)) *\<^sub>R (c x - (c (netlimit net) + c' (x - netlimit net))) - 0" k] by auto
-      qed
-      qed(insert assms[unfolded has_derivative_def], auto simp add:linear_conv_bounded_linear) qed 
+      case goal1 thus ?case apply - unfolding dist_norm  apply(rule le_less_trans)
+        prefer 2 apply assumption unfolding * **
+        using component_le_norm[of "(1 / norm (x - netlimit net)) *\<^sub>R
+          (c x - (c (netlimit net) + c' (x - netlimit net))) - 0" k] by auto
+    qed
+  qed(insert assms[unfolded has_derivative_def], auto simp add:linear_conv_bounded_linear) qed 
 
-lemma has_derivative_vmul_within: fixes c::"real \<Rightarrow> real" and v::"real^'a"
+lemma has_derivative_vmul_within: fixes c::"real \<Rightarrow> real" and v::"'a::euclidean_space"
   assumes "(c has_derivative c') (at x within s)"
-  shows "((\<lambda>x. (c x) *\<^sub>R v) has_derivative (\<lambda>x. (c' x) *\<^sub>R v)) (at x within s)" proof-
-  have *:"\<And>c. (\<lambda>x. (vec1 \<circ> c \<circ> dest_vec1) x $ 1 *\<^sub>R v) = (\<lambda>x. (c x) *\<^sub>R v) \<circ> dest_vec1" unfolding o_def by auto
-  show ?thesis using has_derivative_vmul_component[of "vec1 \<circ> c \<circ> dest_vec1" "vec1 \<circ> c' \<circ> dest_vec1" "at (vec1 x) within vec1 ` s" 1 v]
-  unfolding * and has_derivative_within_vec1_dest_vec1 unfolding has_derivative_within_dest_vec1 using assms by auto qed
+  shows "((\<lambda>x. (c x) *\<^sub>R v) has_derivative (\<lambda>x. (c' x) *\<^sub>R v)) (at x within s)"
+  using has_derivative_vmul_component[OF assms, of 0 v] by auto
 
-lemma has_derivative_vmul_at: fixes c::"real \<Rightarrow> real" and v::"real^'a"
+lemma has_derivative_vmul_at: fixes c::"real \<Rightarrow> real" and v::"'a::euclidean_space"
   assumes "(c has_derivative c') (at x)"
   shows "((\<lambda>x. (c x) *\<^sub>R v) has_derivative (\<lambda>x. (c' x) *\<^sub>R v)) (at x)"
   using has_derivative_vmul_within[where s=UNIV] and assms by(auto simp add: within_UNIV)
@@ -287,9 +258,6 @@ lemma differentiable_within_open: assumes "a \<in> s" "open s" shows
   "f differentiable (at a within s) \<longleftrightarrow> (f differentiable (at a))"
   unfolding differentiable_def has_derivative_within_open[OF assms] by auto
 
-lemma differentiable_at_imp_differentiable_on: "(\<forall>x\<in>(s::(real^'n) set). f differentiable at x) \<Longrightarrow> f differentiable_on s"
-  unfolding differentiable_on_def by(auto intro!: differentiable_at_withinI)
-
 lemma differentiable_on_eq_differentiable_at: "open s \<Longrightarrow> (f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable at x))"
   unfolding differentiable_on_def by(auto simp add: differentiable_within_open)
 
@@ -311,22 +279,16 @@ lemma frechet_derivative_works:
  "f differentiable net \<longleftrightarrow> (f has_derivative (frechet_derivative f net)) net"
   unfolding frechet_derivative_def differentiable_def and some_eq_ex[of "\<lambda> f' . (f has_derivative f') net"] ..
 
-lemma linear_frechet_derivative: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma linear_frechet_derivative: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "f differentiable net \<Longrightarrow> linear(frechet_derivative f net)"
   unfolding frechet_derivative_works has_derivative_def unfolding linear_conv_bounded_linear by auto
-
-definition "jacobian f net = matrix(frechet_derivative f net)"
-
-lemma jacobian_works: "(f::(real^'a) \<Rightarrow> (real^'b)) differentiable net \<longleftrightarrow> (f has_derivative (\<lambda>h. (jacobian f net) *v h)) net"
-  apply rule unfolding jacobian_def apply(simp only: matrix_works[OF linear_frechet_derivative]) defer
-  apply(rule differentiableI) apply assumption unfolding frechet_derivative_works by assumption
 
 subsection {* Differentiability implies continuity. *}
 
 lemma Lim_mul_norm_within: fixes f::"'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> 0) (at a within s) \<Longrightarrow> ((\<lambda>x. norm(x - a) *\<^sub>R f(x)) ---> 0) (at a within s)"
   unfolding Lim_within apply(rule,rule) apply(erule_tac x=e in allE,erule impE,assumption,erule exE,erule conjE)
-  apply(rule_tac x="min d 1" in exI) apply rule defer apply(rule,erule_tac x=x in ballE) unfolding dist_norm diff_0_right norm_mul
+  apply(rule_tac x="min d 1" in exI) apply rule defer apply(rule,erule_tac x=x in ballE) unfolding dist_norm diff_0_right
   by(auto intro!: mult_strict_mono[of _ "1::real", unfolded mult_1_left])
 
 lemma differentiable_imp_continuous_within: assumes "f differentiable (at x within s)" 
@@ -379,7 +341,7 @@ proof assume ?lhs thus ?rhs unfolding has_derivative_within apply-apply(erule co
     show "norm (f y - f x - f' (y - x)) \<le> e * norm (y - x)" proof(cases "y=x")
       case True thus ?thesis using `bounded_linear f'` by(auto simp add: zero) next
       case False hence "norm (f y - (f x + f' (y - x))) < e * norm (y - x)" using as(4)[rule_format, OF `y\<in>s`]
-	unfolding dist_norm diff_0_right norm_mul using as(3)
+	unfolding dist_norm diff_0_right using as(3)
 	using pos_divide_less_eq[OF False[unfolded dist_nz], unfolded dist_norm]
 	by (auto simp add: linear_0 linear_sub)
       thus ?thesis by(auto simp add:algebra_simps) qed qed next
@@ -480,13 +442,13 @@ lemma differentiable_sub: "f differentiable net \<Longrightarrow> g differentiab
   unfolding differentiable_def apply(erule exE)+ apply(rule_tac x="\<lambda>z. f' z - f'a z" in exI)
     apply(rule has_derivative_sub) by auto 
 
-lemma differentiable_setsum: fixes f::"'a \<Rightarrow> (real^'n \<Rightarrow>real^'n)"
+lemma differentiable_setsum: fixes f::"'a \<Rightarrow> ('n::euclidean_space \<Rightarrow> 'n::euclidean_space)"
   assumes "finite s" "\<forall>a\<in>s. (f a) differentiable net"
   shows "(\<lambda>x. setsum (\<lambda>a. f a x) s) differentiable net" proof-
   guess f' using bchoice[OF assms(2)[unfolded differentiable_def]] ..
   thus ?thesis unfolding differentiable_def apply- apply(rule,rule has_derivative_setsum[where f'=f'],rule assms(1)) by auto qed
 
-lemma differentiable_setsum_numseg: fixes f::"_ \<Rightarrow> (real^'n \<Rightarrow>real^'n)"
+lemma differentiable_setsum_numseg: fixes f::"_ \<Rightarrow> ('n::euclidean_space \<Rightarrow> 'n::euclidean_space)"
   shows "\<forall>i. m \<le> i \<and> i \<le> n \<longrightarrow> (f i) differentiable net \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) {m::nat..n}) differentiable net"
   apply(rule differentiable_setsum) using finite_atLeastAtMost[of n m] by auto
 
@@ -504,135 +466,178 @@ subsection {* Uniqueness of derivative.                                         
 (* The general result is a bit messy because we need approachability of the  *)
 (* limit point from any direction. But OK for nontrivial intervals etc. *}
     
-lemma frechet_derivative_unique_within: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma frechet_derivative_unique_within: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "(f has_derivative f') (at x within s)" "(f has_derivative f'') (at x within s)"
-  "(\<forall>i::'a::finite. \<forall>e>0. \<exists>d. 0 < abs(d) \<and> abs(d) < e \<and> (x + d *\<^sub>R basis i) \<in> s)" shows "f' = f''" proof-
+  "(\<forall>i<DIM('a). \<forall>e>0. \<exists>d. 0 < abs(d) \<and> abs(d) < e \<and> (x + d *\<^sub>R basis i) \<in> s)" shows "f' = f''" proof-
   note as = assms(1,2)[unfolded has_derivative_def]
   then interpret f': bounded_linear f' by auto from as interpret f'': bounded_linear f'' by auto
   have "x islimpt s" unfolding islimpt_approachable proof(rule,rule)
-    guess a using UNIV_witness[where 'a='a] ..
-    fix e::real assume "0<e" guess d using assms(3)[rule_format,OF`e>0`,of a] ..
-    thus "\<exists>x'\<in>s. x' \<noteq> x \<and> dist x' x < e" apply(rule_tac x="x + d*\<^sub>R basis a" in bexI)
-      using basis_nonzero[of a] norm_basis[of a] unfolding dist_norm by auto qed
+    fix e::real assume "0<e" guess d using assms(3)[rule_format,OF DIM_positive `e>0`] ..
+    thus "\<exists>x'\<in>s. x' \<noteq> x \<and> dist x' x < e" apply(rule_tac x="x + d *\<^sub>R basis 0" in bexI)
+      unfolding dist_norm by auto qed
   hence *:"netlimit (at x within s) = x" apply-apply(rule netlimit_within) unfolding trivial_limit_within by simp
   show ?thesis  apply(rule linear_eq_stdbasis) unfolding linear_conv_bounded_linear
-    apply(rule as(1,2)[THEN conjunct1])+ proof(rule,rule ccontr)
-    fix i::'a def e \<equiv> "norm (f' (basis i) - f'' (basis i))"
+    apply(rule as(1,2)[THEN conjunct1])+ proof(rule,rule,rule ccontr)
+    fix i assume i:"i<DIM('a)" def e \<equiv> "norm (f' (basis i) - f'' (basis i))"
     assume "f' (basis i) \<noteq> f'' (basis i)" hence "e>0" unfolding e_def by auto
     guess d using Lim_sub[OF as(1,2)[THEN conjunct2], unfolded * Lim_within,rule_format,OF `e>0`] .. note d=this
-    guess c using assms(3)[rule_format,OF d[THEN conjunct1],of i] .. note c=this
+    guess c using assms(3)[rule_format,OF i d[THEN conjunct1]] .. note c=this
     have *:"norm (- ((1 / \<bar>c\<bar>) *\<^sub>R f' (c *\<^sub>R basis i)) + (1 / \<bar>c\<bar>) *\<^sub>R f'' (c *\<^sub>R basis i)) = norm ((1 / abs c) *\<^sub>R (- (f' (c *\<^sub>R basis i)) + f'' (c *\<^sub>R basis i)))"
       unfolding scaleR_right_distrib by auto
     also have "\<dots> = norm ((1 / abs c) *\<^sub>R (c *\<^sub>R (- (f' (basis i)) + f'' (basis i))))"  
       unfolding f'.scaleR f''.scaleR unfolding scaleR_right_distrib scaleR_minus_right by auto
-    also have "\<dots> = e" unfolding e_def norm_mul using c[THEN conjunct1] using norm_minus_cancel[of "f' (basis i) - f'' (basis i)"] by (auto simp add: add.commute ab_diff_minus)
-    finally show False using c using d[THEN conjunct2,rule_format,of "x + c *\<^sub>R basis i"] using norm_basis[of i] unfolding dist_norm 
-      unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib by auto qed qed
+    also have "\<dots> = e" unfolding e_def using c[THEN conjunct1] using norm_minus_cancel[of "f' (basis i) - f'' (basis i)"] by (auto simp add: add.commute ab_diff_minus)
+    finally show False using c using d[THEN conjunct2,rule_format,of "x + c *\<^sub>R basis i"] 
+      unfolding dist_norm unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff
+        scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib using i by auto qed qed
 
-lemma frechet_derivative_unique_at: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma frechet_derivative_unique_at: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f'') (at x) \<Longrightarrow> f' = f''"
   apply(rule frechet_derivative_unique_within[of f f' x UNIV f'']) unfolding within_UNIV apply(assumption)+
-  apply(rule,rule,rule) apply(rule_tac x="e/2" in exI) by auto
+  apply(rule,rule,rule,rule) apply(rule_tac x="e/2" in exI) by auto
  
 lemma "isCont f x = continuous (at x) f" unfolding isCont_def LIM_def
   unfolding continuous_at Lim_at unfolding dist_nz by auto
 
-lemma frechet_derivative_unique_within_closed_interval: fixes f::"real^'a \<Rightarrow> real^'b"
-  assumes "\<forall>i. a$i < b$i" "x \<in> {a..b}" (is "x\<in>?I") and
+lemma frechet_derivative_unique_within_closed_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+  assumes "\<forall>i<DIM('a). a$$i < b$$i" "x \<in> {a..b}" (is "x\<in>?I") and
   "(f has_derivative f' ) (at x within {a..b})" and
   "(f has_derivative f'') (at x within {a..b})"
-  shows "f' = f''" apply(rule frechet_derivative_unique_within) apply(rule assms(3,4))+ proof(rule,rule,rule)
-  fix e::real and i::'a assume "e>0"
-  thus "\<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R basis i \<in> {a..b}" proof(cases "x$i=a$i")
-    case True thus ?thesis apply(rule_tac x="(min (b$i - a$i)  e) / 2" in exI)
+  shows "f' = f''" apply(rule frechet_derivative_unique_within) apply(rule assms(3,4))+ proof(rule,rule,rule,rule)
+  fix e::real and i assume "e>0" and i:"i<DIM('a)"
+  thus "\<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R basis i \<in> {a..b}" proof(cases "x$$i=a$$i")
+    case True thus ?thesis apply(rule_tac x="(min (b$$i - a$$i)  e) / 2" in exI)
       using assms(1)[THEN spec[where x=i]] and `e>0` and assms(2)
-      unfolding mem_interval by(auto simp add:field_simps) next
-    note * = assms(2)[unfolded mem_interval,THEN spec[where x=i]]
-    case False moreover have "a $ i < x $ i" using False * by auto
-    moreover { have "a $ i * 2 + min (x $ i - a $ i) e \<le> a$i *2 + x$i - a$i" by auto
-    also have "\<dots> = a$i + x$i" by auto also have "\<dots> \<le> 2 * x$i" using * by auto 
-    finally have "a $ i * 2 + min (x $ i - a $ i) e \<le> x $ i * 2" by auto }
-    moreover have "min (x $ i - a $ i) e \<ge> 0" using * and `e>0` by auto
-    hence "x $ i * 2 \<le> b $ i * 2 + min (x $ i - a $ i) e" using * by auto
-    ultimately show ?thesis apply(rule_tac x="- (min (x$i - a$i) e) / 2" in exI)
+      unfolding mem_interval euclidean_simps basis_component using i by(auto simp add:field_simps)
+  next note * = assms(2)[unfolded mem_interval,THEN spec[where x=i]]
+    case False moreover have "a $$ i < x $$ i" using False * by auto
+    moreover { have "a $$ i * 2 + min (x $$ i - a $$ i) e \<le> a$$i *2 + x$$i - a$$i" by auto
+    also have "\<dots> = a$$i + x$$i" by auto also have "\<dots> \<le> 2 * x$$i" using * by auto 
+    finally have "a $$ i * 2 + min (x $$ i - a $$ i) e \<le> x $$ i * 2" by auto }
+    moreover have "min (x $$ i - a $$ i) e \<ge> 0" using * and `e>0` by auto
+    hence "x $$ i * 2 \<le> b $$ i * 2 + min (x $$ i - a $$ i) e" using * by auto
+    ultimately show ?thesis apply(rule_tac x="- (min (x$$i - a$$i) e) / 2" in exI)
       using assms(1)[THEN spec[where x=i]] and `e>0` and assms(2)
-      unfolding mem_interval by(auto simp add:field_simps) qed qed
+      unfolding mem_interval euclidean_simps basis_component using i by(auto simp add:field_simps) qed qed
 
-lemma frechet_derivative_unique_within_open_interval: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma frechet_derivative_unique_within_open_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
   assumes "x \<in> {a<..<b}" "(f has_derivative f' ) (at x within {a<..<b})"
                          "(f has_derivative f'') (at x within {a<..<b})"
-  shows "f' = f''" apply(rule frechet_derivative_unique_within) apply(rule assms(2-3))+ proof(rule,rule,rule)
-  fix e::real and i::'a assume "e>0"
-  note * = assms(1)[unfolded mem_interval,THEN spec[where x=i]]
-  have "a $ i < x $ i" using  * by auto
-  moreover { have "a $ i * 2 + min (x $ i - a $ i) e \<le> a$i *2 + x$i - a$i" by auto
-  also have "\<dots> = a$i + x$i" by auto also have "\<dots> < 2 * x$i" using * by auto 
-  finally have "a $ i * 2 + min (x $ i - a $ i) e < x $ i * 2" by auto }
-  moreover have "min (x $ i - a $ i) e \<ge> 0" using * and `e>0` by auto
-  hence "x $ i * 2 < b $ i * 2 + min (x $ i - a $ i) e" using * by auto
+  shows "f' = f''" apply(rule frechet_derivative_unique_within) apply(rule assms(2-3))+ proof(rule,rule,rule,rule)
+  fix e::real and i assume "e>0" and i:"i<DIM('a)"
+  note * = assms(1)[unfolded mem_interval,rule_format,OF i]
+  have "a $$ i < x $$ i" using  * by auto
+  moreover { have "a $$ i * 2 + min (x $$ i - a $$ i) e \<le> a$$i *2 + x$$i - a$$i" by auto
+  also have "\<dots> = a$$i + x$$i" by auto also have "\<dots> < 2 * x$$i" using * by auto 
+  finally have "a $$ i * 2 + min (x $$ i - a $$ i) e < x $$ i * 2" by auto }
+  moreover have "min (x $$ i - a $$ i) e \<ge> 0" using * and `e>0` by auto
+  hence "x $$ i * 2 < b $$ i * 2 + min (x $$ i - a $$ i) e" using * by auto
   ultimately show "\<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R basis i \<in> {a<..<b}"
-    apply(rule_tac x="- (min (x$i - a$i) e) / 2" in exI)
-    using `e>0` and assms(1) unfolding mem_interval by(auto simp add:field_simps) qed
+    apply(rule_tac x="- (min (x$$i - a$$i) e) / 2" in exI)
+    using `e>0` and assms(1) unfolding mem_interval euclidean_simps apply safe unfolding basis_component
+    by(auto simp add:field_simps) qed
 
-lemma frechet_derivative_at: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma frechet_derivative_at: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f' = frechet_derivative f (at x))"
   apply(rule frechet_derivative_unique_at[of f],assumption)
   unfolding frechet_derivative_works[THEN sym] using differentiable_def by auto
 
-lemma frechet_derivative_within_closed_interval: fixes f::"real^'a \<Rightarrow> real^'b"
-  assumes "\<forall>i. a$i < b$i" "x \<in> {a..b}" "(f has_derivative f') (at x within {a.. b})"
+lemma frechet_derivative_within_closed_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+  assumes "\<forall>i<DIM('a). a$$i < b$$i" "x \<in> {a..b}" "(f has_derivative f') (at x within {a.. b})"
   shows "frechet_derivative f (at x within {a.. b}) = f'"
   apply(rule frechet_derivative_unique_within_closed_interval[where f=f]) 
   apply(rule assms(1,2))+ unfolding frechet_derivative_works[THEN sym]
   unfolding differentiable_def using assms(3) by auto 
 
-subsection {* Component of the differential must be zero if it exists at a local        *)
-(* maximum or minimum for that corresponding component. *}
+subsection {* The traditional Rolle theorem in one dimension. *}
 
-lemma differential_zero_maxmin_component: fixes f::"real^'a \<Rightarrow> real^'b"
-  assumes "0 < e" "((\<forall>y \<in> ball x e. (f y)$k \<le> (f x)$k) \<or> (\<forall>y\<in>ball x e. (f x)$k \<le> (f y)$k))"
-  "f differentiable (at x)" shows "jacobian f (at x) $ k = 0" proof(rule ccontr)
-  def D \<equiv> "jacobian f (at x)" assume "jacobian f (at x) $ k \<noteq> 0"
-  then obtain j where j:"D$k$j \<noteq> 0" unfolding Cart_eq D_def by auto
-  hence *:"abs (jacobian f (at x) $ k $ j) / 2 > 0" unfolding D_def by auto
-  note as = assms(3)[unfolded jacobian_works has_derivative_at_alt]
-  guess e' using as[THEN conjunct2,rule_format,OF *] .. note e' = this
-  guess d using real_lbound_gt_zero[OF assms(1) e'[THEN conjunct1]] .. note d = this
-  { fix c assume "abs c \<le> d" 
+lemma linear_componentwise:
+  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes lf: "linear f"
+  shows "(f x) $$ j = (\<Sum>i<DIM('a). (x$$i) * (f (basis i)$$j))" (is "?lhs = ?rhs")
+proof -
+  have fA: "finite {..<DIM('a)}" by simp
+  have "?rhs = (\<Sum>i<DIM('a). x$$i *\<^sub>R f (basis i))$$j"
+    by (simp add: euclidean_simps)
+  then show ?thesis
+    unfolding linear_setsum_mul[OF lf fA, symmetric]
+    unfolding euclidean_representation[symmetric] ..
+qed
+
+text {* We do not introduce @{text jacobian}, which is defined on matrices, instead we use
+  the unfolding of it. *}
+
+lemma jacobian_works:
+  "(f::('a::euclidean_space) \<Rightarrow> ('b::euclidean_space)) differentiable net \<longleftrightarrow>
+   (f has_derivative (\<lambda>h. \<chi>\<chi> i.
+      \<Sum>j<DIM('a). frechet_derivative f net (basis j) $$ i * h $$ j)) net"
+  (is "?differentiable \<longleftrightarrow> (f has_derivative (\<lambda>h. \<chi>\<chi> i. ?SUM h i)) net")
+proof
+  assume *: ?differentiable
+  { fix h i
+    have "?SUM h i = frechet_derivative f net h $$ i" using *
+      by (auto intro!: setsum_cong
+               simp: linear_componentwise[of _ h i] linear_frechet_derivative) }
+  thus "(f has_derivative (\<lambda>h. \<chi>\<chi> i. ?SUM h i)) net"
+    using * by (simp add: frechet_derivative_works)
+qed (auto intro!: differentiableI)
+
+lemma differential_zero_maxmin_component:
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  assumes k: "k < DIM('b)"
+    and ball: "0 < e" "((\<forall>y \<in> ball x e. (f y)$$k \<le> (f x)$$k) \<or> (\<forall>y\<in>ball x e. (f x)$$k \<le> (f y)$$k))"
+    and diff: "f differentiable (at x)"
+  shows "(\<chi>\<chi> j. frechet_derivative f (at x) (basis j) $$ k) = (0::'a)" (is "?D k = 0")
+proof (rule ccontr)
+  assume "?D k \<noteq> 0"
+  then obtain j where j: "?D k $$ j \<noteq> 0" "j < DIM('a)"
+    unfolding euclidean_lambda_beta euclidean_eq[of _ "0::'a"] by auto
+  hence *: "\<bar>?D k $$ j\<bar> / 2 > 0" by auto
+  note as = diff[unfolded jacobian_works has_derivative_at_alt]
+  guess e' using as[THEN conjunct2, rule_format, OF *] .. note e' = this
+  guess d using real_lbound_gt_zero[OF ball(1) e'[THEN conjunct1]] .. note d = this
+  { fix c assume "abs c \<le> d"
     hence *:"norm (x + c *\<^sub>R basis j - x) < e'" using norm_basis[of j] d by auto
-    have "\<bar>(f (x + c *\<^sub>R basis j) - f x - D *v (c *\<^sub>R basis j)) $ k\<bar> \<le> norm (f (x + c *\<^sub>R basis j) - f x - D *v (c *\<^sub>R basis j))" by(rule component_le_norm)
-    also have "\<dots> \<le> \<bar>D $ k $ j\<bar> / 2 * \<bar>c\<bar>" using e'[THEN conjunct2,rule_format,OF *] and norm_basis[of j] unfolding D_def[symmetric] by auto
-    finally have "\<bar>(f (x + c *\<^sub>R basis j) - f x - D *v (c *\<^sub>R basis j)) $ k\<bar> \<le> \<bar>D $ k $ j\<bar> / 2 * \<bar>c\<bar>" by simp
-    hence "\<bar>f (x + c *\<^sub>R basis j) $ k - f x $ k - c * D $ k $ j\<bar> \<le> \<bar>D $ k $ j\<bar> / 2 * \<bar>c\<bar>"
-      unfolding vector_component_simps matrix_vector_mul_component unfolding smult_conv_scaleR[symmetric] 
-      unfolding inner_simps dot_basis smult_conv_scaleR by simp  } note * = this
+    let ?v = "(\<chi>\<chi> i. \<Sum>l<DIM('a). ?D i $$ l * (c *\<^sub>R basis j :: 'a) $$ l)"
+    have if_dist: "\<And> P a b c. a * (if P then b else c) = (if P then a * b else a * c)" by auto
+    have "\<bar>(f (x + c *\<^sub>R basis j) - f x - ?v) $$ k\<bar> \<le>
+        norm (f (x + c *\<^sub>R basis j) - f x - ?v)" by (rule component_le_norm)
+    also have "\<dots> \<le> \<bar>?D k $$ j\<bar> / 2 * \<bar>c\<bar>"
+      using e'[THEN conjunct2, rule_format, OF *] and norm_basis[of j] by fastsimp
+    finally have "\<bar>(f (x + c *\<^sub>R basis j) - f x - ?v) $$ k\<bar> \<le> \<bar>?D k $$ j\<bar> / 2 * \<bar>c\<bar>" by simp
+    hence "\<bar>f (x + c *\<^sub>R basis j) $$ k - f x $$ k - c * ?D k $$ j\<bar> \<le> \<bar>?D k $$ j\<bar> / 2 * \<bar>c\<bar>"
+      unfolding euclidean_simps euclidean_lambda_beta using j k
+      by (simp add: if_dist setsum_cases field_simps) } note * = this
   have "x + d *\<^sub>R basis j \<in> ball x e" "x - d *\<^sub>R basis j \<in> ball x e"
     unfolding mem_ball dist_norm using norm_basis[of j] d by auto
-  hence **:"((f (x - d *\<^sub>R basis j))$k \<le> (f x)$k \<and> (f (x + d *\<^sub>R basis j))$k \<le> (f x)$k) \<or>
-         ((f (x - d *\<^sub>R basis j))$k \<ge> (f x)$k \<and> (f (x + d *\<^sub>R basis j))$k \<ge> (f x)$k)" using assms(2) by auto
-  have ***:"\<And>y y1 y2 d dx::real. (y1\<le>y\<and>y2\<le>y) \<or> (y\<le>y1\<and>y\<le>y2) \<Longrightarrow> d < abs dx \<Longrightarrow> abs(y1 - y - - dx) \<le> d \<Longrightarrow> (abs (y2 - y - dx) \<le> d) \<Longrightarrow> False" by arith
-  show False apply(rule ***[OF **, where dx="d * D $ k $ j" and d="\<bar>D $ k $ j\<bar> / 2 * \<bar>d\<bar>"]) 
+  hence **:"((f (x - d *\<^sub>R basis j))$$k \<le> (f x)$$k \<and> (f (x + d *\<^sub>R basis j))$$k \<le> (f x)$$k) \<or>
+         ((f (x - d *\<^sub>R basis j))$$k \<ge> (f x)$$k \<and> (f (x + d *\<^sub>R basis j))$$k \<ge> (f x)$$k)" using ball by auto
+  have ***: "\<And>y y1 y2 d dx::real.
+    (y1\<le>y\<and>y2\<le>y) \<or> (y\<le>y1\<and>y\<le>y2) \<Longrightarrow> d < abs dx \<Longrightarrow> abs(y1 - y - - dx) \<le> d \<Longrightarrow> (abs (y2 - y - dx) \<le> d) \<Longrightarrow> False" by arith
+  show False apply(rule ***[OF **, where dx="d * ?D k $$ j" and d="\<bar>?D k $$ j\<bar> / 2 * \<bar>d\<bar>"])
     using *[of "-d"] and *[of d] and d[THEN conjunct1] and j unfolding mult_minus_left
     unfolding abs_mult diff_minus_eq_add scaleR.minus_left unfolding algebra_simps by (auto intro: mult_pos_pos)
 qed
 
-subsection {* In particular if we have a mapping into @{typ "real^1"}. *}
+subsection {* In particular if we have a mapping into @{typ "real"}. *}
 
-lemma differential_zero_maxmin: fixes f::"real^'a \<Rightarrow> real"
-  assumes "x \<in> s" "open s" "(f has_derivative f') (at x)"
-  "(\<forall>y\<in>s. f y \<le> f x) \<or> (\<forall>y\<in>s. f x \<le> f y)"
-  shows "f' = (\<lambda>v. 0)" proof-
-  note deriv = assms(3)[unfolded has_derivative_at_vec1]
-  obtain e where e:"e>0" "ball x e \<subseteq> s" using assms(2)[unfolded open_contains_ball] and assms(1) by auto
-  hence **:"(jacobian (vec1 \<circ> f) (at x)) $ 1 = 0" using differential_zero_maxmin_component[of e x "\<lambda>x. vec1 (f x)" 1]
-    using assms(4) and assms(3)[unfolded has_derivative_at_vec1 o_def]
-    unfolding differentiable_def o_def by auto 
-  have *:"jacobian (vec1 \<circ> f) (at x) = matrix (vec1 \<circ> f')" unfolding jacobian_def and frechet_derivative_at[OF deriv] ..
-  have "vec1 \<circ> f' = (\<lambda>x. 0)" apply(rule) unfolding matrix_works[OF derivative_is_linear[OF deriv],THEN sym]
-    unfolding Cart_eq matrix_vector_mul_component using **[unfolded *] by auto
-  thus ?thesis apply-apply(rule,subst vec1_eq[THEN sym]) unfolding o_def apply(drule fun_cong) by auto qed
-
-subsection {* The traditional Rolle theorem in one dimension. *}
+lemma differential_zero_maxmin:
+  fixes f::"'a\<Colon>ordered_euclidean_space \<Rightarrow> real"
+  assumes "x \<in> s" "open s"
+  and deriv: "(f has_derivative f') (at x)"
+  and mono: "(\<forall>y\<in>s. f y \<le> f x) \<or> (\<forall>y\<in>s. f x \<le> f y)"
+  shows "f' = (\<lambda>v. 0)"
+proof -
+  obtain e where e:"e>0" "ball x e \<subseteq> s" using `open s`[unfolded open_contains_ball] and `x \<in> s` by auto
+  with differential_zero_maxmin_component[where 'b=real, of 0 e x f, simplified]
+  have "(\<chi>\<chi> j. frechet_derivative f (at x) (basis j)) = (0::'a)"
+    unfolding differentiable_def using mono deriv by auto
+  with frechet_derivative_at[OF deriv, symmetric]
+  have "\<forall>i<DIM('a). f' (basis i) = 0"
+    by (simp add: euclidean_eq[of _ "0::'a"])
+  with derivative_is_linear[OF deriv, THEN linear_componentwise, of _ 0]
+  show ?thesis by (simp add: expand_fun_eq)
+qed
 
 lemma rolle: fixes f::"real\<Rightarrow>real"
   assumes "a < b" "f a = f b" "continuous_on {a..b} f"
@@ -640,8 +645,8 @@ lemma rolle: fixes f::"real\<Rightarrow>real"
   shows "\<exists>x\<in>{a<..<b}. f' x = (\<lambda>v. 0)" proof-
   have "\<exists>x\<in>{a<..<b}. ((\<forall>y\<in>{a<..<b}. f x \<le> f y) \<or> (\<forall>y\<in>{a<..<b}. f y \<le> f x))" proof-
     have "(a + b) / 2 \<in> {a .. b}" using assms(1) by auto hence *:"{a .. b}\<noteq>{}" by auto
-    guess d using continuous_attains_sup[OF compact_real_interval * assms(3)] .. note d=this
-    guess c using continuous_attains_inf[OF compact_real_interval * assms(3)] .. note c=this
+    guess d using continuous_attains_sup[OF compact_interval * assms(3)] .. note d=this
+    guess c using continuous_attains_inf[OF compact_interval * assms(3)] .. note c=this
     show ?thesis proof(cases "d\<in>{a<..<b} \<or> c\<in>{a<..<b}")
       case True thus ?thesis apply(erule_tac disjE) apply(rule_tac x=d in bexI)
 	apply(rule_tac[3] x=c in bexI) using d c by auto next def e \<equiv> "(a + b) /2"
@@ -649,12 +654,12 @@ lemma rolle: fixes f::"real\<Rightarrow>real"
       hence "\<And>x. x\<in>{a..b} \<Longrightarrow> f x = f d" using c d apply- apply(erule_tac x=x in ballE)+ by auto
       thus ?thesis apply(rule_tac x=e in bexI) unfolding e_def using assms(1) by auto qed qed
   then guess x .. note x=this
-  hence "f' x \<circ> dest_vec1 = (\<lambda>v. 0)" apply(rule_tac differential_zero_maxmin[of "vec1 x" "vec1 ` {a<..<b}" "f \<circ> dest_vec1" "(f' x) \<circ> dest_vec1"]) 
-    unfolding vec1_interval defer apply(rule open_interval) 
-    apply(rule assms(4)[unfolded has_derivative_at_dest_vec1[THEN sym],THEN bspec[where x=x]],assumption)
-    unfolding o_def apply(erule disjE,rule disjI2) by(auto simp add: vector_less_def) 
-  thus ?thesis apply(rule_tac x=x in bexI) unfolding o_def apply rule 
-    apply(drule_tac x="vec1 v" in fun_cong) unfolding vec1_dest_vec1 using x(1) by auto qed
+  hence "f' x = (\<lambda>v. 0)" apply(rule_tac differential_zero_maxmin[of x "{a<..<b}" f "f' x"])
+    defer apply(rule open_interval)
+    apply(rule assms(4)[unfolded has_derivative_at[THEN sym],THEN bspec[where x=x]],assumption)
+    unfolding o_def apply(erule disjE,rule disjI2) by auto
+  thus ?thesis apply(rule_tac x=x in bexI) unfolding o_def apply rule
+    apply(drule_tac x=v in fun_cong) using x(1) by auto qed
 
 subsection {* One-dimensional mean value theorem. *}
 
@@ -676,7 +681,8 @@ lemma mvt_simple: fixes f::"real \<Rightarrow> real"
   shows "\<exists>x\<in>{a<..<b}. f b - f a = f' x (b - a)"
   apply(rule mvt) apply(rule assms(1), rule differentiable_imp_continuous_on)
   unfolding differentiable_on_def differentiable_def defer proof 
-  fix x assume x:"x \<in> {a<..<b}" show "(f has_derivative f' x) (at x)" unfolding has_derivative_within_open[OF x open_interval_real,THEN sym] 
+  fix x assume x:"x \<in> {a<..<b}" show "(f has_derivative f' x) (at x)"
+    unfolding has_derivative_within_open[OF x open_interval,THEN sym] 
     apply(rule has_derivative_within_subset) apply(rule assms(2)[rule_format]) using x by auto qed(insert assms(2), auto)
 
 lemma mvt_very_simple: fixes f::"real \<Rightarrow> real"
@@ -690,7 +696,7 @@ lemma mvt_very_simple: fixes f::"real \<Rightarrow> real"
 
 subsection {* A nice generalization (see Havin's proof of 5.19 from Rudin's book). *}
 
-lemma mvt_general: fixes f::"real\<Rightarrow>real^'n"
+lemma mvt_general: fixes f::"real\<Rightarrow>'a::euclidean_space"
   assumes "a<b" "continuous_on {a..b} f" "\<forall>x\<in>{a<..<b}. (f has_derivative f'(x)) (at x)"
   shows "\<exists>x\<in>{a<..<b}. norm(f b - f a) \<le> norm(f'(x) (b - a))" proof-
   have "\<exists>x\<in>{a<..<b}. (op \<bullet> (f b - f a) \<circ> f) b - (op \<bullet> (f b - f a) \<circ> f) a = (f b - f a) \<bullet> f' x (b - a)"
@@ -708,7 +714,7 @@ lemma mvt_general: fixes f::"real\<Rightarrow>real^'n"
 
 subsection {* Still more general bound theorem. *}
 
-lemma differentiable_bound: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma differentiable_bound: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "convex s" "\<forall>x\<in>s. (f has_derivative f'(x)) (at x within s)" "\<forall>x\<in>s. onorm(f' x) \<le> B" and x:"x\<in>s" and y:"y\<in>s"
   shows "norm(f x - f y) \<le> B * norm(x - y)" proof-
   let ?p = "\<lambda>u. x + u *\<^sub>R (y - x)"
@@ -723,7 +729,7 @@ lemma differentiable_bound: fixes f::"real^'a \<Rightarrow> real^'b"
     have "(f \<circ> ?p has_derivative (f' ?u) \<circ> (\<lambda>u. 0 + u *\<^sub>R (y - x))) (at u within {0<..<1})" 
       apply(rule diff_chain_within) apply(rule has_derivative_intros)+ 
       apply(rule has_derivative_within_subset) apply(rule assms(2)[rule_format]) using goal1 * by auto
-    thus ?case unfolding has_derivative_within_open[OF goal1 open_interval_real] by auto qed
+    thus ?case unfolding has_derivative_within_open[OF goal1 open_interval] by auto qed
   guess u using mvt_general[OF zero_less_one 1 2] .. note u = this
   have **:"\<And>x y. x\<in>s \<Longrightarrow> norm (f' x y) \<le> B * norm y" proof- case goal1
     have "norm (f' x y) \<le> onorm (f' x) * norm y"
@@ -737,25 +743,12 @@ lemma differentiable_bound: fixes f::"real^'a \<Rightarrow> real^'b"
   also have "\<dots> \<le> B * norm(y - x)" apply(rule **) using * and u by auto
   finally show ?thesis by(auto simp add:norm_minus_commute) qed 
 
-lemma onorm_vec1: fixes f::"real \<Rightarrow> real"
-  shows "onorm (\<lambda>x. vec1 (f (dest_vec1 x))) = onorm f" proof-
-  have "\<forall>x::real^1. norm x = 1 \<longleftrightarrow> x\<in>{vec1 -1, vec1 (1::real)}" unfolding forall_vec1 by(auto simp add:Cart_eq)
-  hence 1:"{x. norm x = 1} = {vec1 -1, vec1 (1::real)}" by auto
-  have 2:"{norm (vec1 (f (dest_vec1 x))) |x. norm x = 1} = (\<lambda>x. norm (vec1 (f (dest_vec1 x)))) ` {x. norm x=1}" by auto
-  have "\<forall>x::real. norm x = 1 \<longleftrightarrow> x\<in>{-1, 1}" by auto hence 3:"{x. norm x = 1} = {-1, (1::real)}" by auto
-  have 4:"{norm (f x) |x. norm x = 1} = (\<lambda>x. norm (f x)) ` {x. norm x=1}" by auto
-  show ?thesis unfolding onorm_def 1 2 3 4 by(simp add:Sup_finite_Max) qed
-
-lemma convex_vec1:"convex (vec1 ` s) = convex (s::real set)"
-  unfolding convex_def Ball_def forall_vec1 unfolding vec1_dest_vec1_simps image_iff by auto
-
 lemma differentiable_bound_real: fixes f::"real \<Rightarrow> real"
   assumes "convex s" "\<forall>x\<in>s. (f has_derivative f' x) (at x within s)" "\<forall>x\<in>s. onorm(f' x) \<le> B" and x:"x\<in>s" and y:"y\<in>s"
-  shows "norm(f x - f y) \<le> B * norm(x - y)" 
-  using differentiable_bound[of "vec1 ` s" "vec1 \<circ> f \<circ> dest_vec1" "\<lambda>x. vec1 \<circ> (f' (dest_vec1 x)) \<circ> dest_vec1" B "vec1 x" "vec1 y"]
-  unfolding Ball_def forall_vec1 unfolding has_derivative_within_vec1_dest_vec1 image_iff 
-  unfolding convex_vec1 unfolding o_def vec1_dest_vec1_simps onorm_vec1 using assms by auto
- 
+  shows "norm(f x - f y) \<le> B * norm(x - y)"
+  using differentiable_bound[of s f f' B x y]
+  unfolding Ball_def image_iff o_def using assms by auto
+
 subsection {* In particular. *}
 
 lemma has_derivative_zero_constant: fixes f::"real\<Rightarrow>real"
@@ -764,7 +757,7 @@ lemma has_derivative_zero_constant: fixes f::"real\<Rightarrow>real"
   case False then obtain x where "x\<in>s" by auto
   have "\<And>y. y\<in>s \<Longrightarrow> f x = f y" proof- case goal1
     thus ?case using differentiable_bound_real[OF assms(1-2), of 0 x y] and `x\<in>s`
-    unfolding onorm_vec1[of "\<lambda>x. 0", THEN sym] onorm_const norm_vec1 by auto qed
+    unfolding onorm_const by auto qed
   thus ?thesis apply(rule_tac x="f x" in exI) by auto qed auto
 
 lemma has_derivative_zero_unique: fixes f::"real\<Rightarrow>real"
@@ -773,7 +766,7 @@ lemma has_derivative_zero_unique: fixes f::"real\<Rightarrow>real"
 
 subsection {* Differentiability of inverse function (most basic form). *}
 
-lemma has_derivative_inverse_basic: fixes f::"real^'b \<Rightarrow> real^'c"
+lemma has_derivative_inverse_basic: fixes f::"'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
   assumes "(f has_derivative f') (at (g y))" "bounded_linear g'" "g' \<circ> f' = id" "continuous (at y) g"
   "open t" "y \<in> t" "\<forall>z\<in>t. f(g z) = z"
   shows "(g has_derivative g') (at y)" proof-
@@ -817,7 +810,7 @@ lemma has_derivative_inverse_basic: fixes f::"real^'b \<Rightarrow> real^'c"
 
 subsection {* Simply rewrite that based on the domain point x. *}
 
-lemma has_derivative_inverse_basic_x: fixes f::"real^'b \<Rightarrow> real^'c"
+lemma has_derivative_inverse_basic_x: fixes f::"'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
   assumes "(f has_derivative f') (at x)" "bounded_linear g'" "g' o f' = id"
   "continuous (at (f x)) g" "g(f x) = x" "open t" "f x \<in> t" "\<forall>y\<in>t. f(g y) = y"
   shows "(g has_derivative g') (at (f(x)))"
@@ -825,7 +818,7 @@ lemma has_derivative_inverse_basic_x: fixes f::"real^'b \<Rightarrow> real^'c"
 
 subsection {* This is the version in Dieudonne', assuming continuity of f and g. *}
 
-lemma has_derivative_inverse_dieudonne: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma has_derivative_inverse_dieudonne: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "open s" "open (f ` s)" "continuous_on s f" "continuous_on (f ` s) g" "\<forall>x\<in>s. g(f x) = x"
   (**) "x\<in>s" "(f has_derivative f') (at x)"  "bounded_linear g'" "g' o f' = id"
   shows "(g has_derivative g') (at (f x))"
@@ -834,7 +827,7 @@ lemma has_derivative_inverse_dieudonne: fixes f::"real^'a \<Rightarrow> real^'b"
 
 subsection {* Here's the simplest way of not assuming much about g. *}
 
-lemma has_derivative_inverse: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma has_derivative_inverse: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "compact s" "x \<in> s" "f x \<in> interior(f ` s)" "continuous_on s f"
   "\<forall>y\<in>s. g(f y) = y" "(f has_derivative f') (at x)" "bounded_linear g'" "g' \<circ> f' = id"
   shows "(g has_derivative g') (at (f x))" proof-
@@ -847,7 +840,7 @@ lemma has_derivative_inverse: fixes f::"real^'a \<Rightarrow> real^'b"
 
 subsection {* Proving surjectivity via Brouwer fixpoint theorem. *}
 
-lemma brouwer_surjective: fixes f::"real^'n \<Rightarrow> real^'n"
+lemma brouwer_surjective: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'n"
   assumes "compact t" "convex t"  "t \<noteq> {}" "continuous_on t f"
   "\<forall>x\<in>s. \<forall>y\<in>t. x + (y - f y) \<in> t" "x\<in>s"
   shows "\<exists>y\<in>t. f y = x" proof-
@@ -855,7 +848,7 @@ lemma brouwer_surjective: fixes f::"real^'n \<Rightarrow> real^'n"
   show ?thesis  unfolding * apply(rule brouwer[OF assms(1-3), of "\<lambda>y. x + (y - f y)"])
     apply(rule continuous_on_intros assms)+ using assms(4-6) by auto qed
 
-lemma brouwer_surjective_cball: fixes f::"real^'n \<Rightarrow> real^'n"
+lemma brouwer_surjective_cball: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'n"
   assumes "0 < e" "continuous_on (cball a e) f"
   "\<forall>x\<in>s. \<forall>y\<in>cball a e. x + (y - f y) \<in> cball a e" "x\<in>s"
   shows "\<exists>y\<in>cball a e. f y = x" apply(rule brouwer_surjective) apply(rule compact_cball convex_cball)+
@@ -863,10 +856,10 @@ lemma brouwer_surjective_cball: fixes f::"real^'n \<Rightarrow> real^'n"
 
 text {* See Sussmann: "Multidifferential calculus", Theorem 2.1.1 *}
 
-lemma sussmann_open_mapping: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma sussmann_open_mapping: fixes f::"'a::euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
   assumes "open s" "continuous_on s f" "x \<in> s" 
   "(f has_derivative f') (at x)" "bounded_linear g'" "f' \<circ> g' = id"
-  (**) "t \<subseteq> s" "x \<in> interior t"
+  "t \<subseteq> s" "x \<in> interior t"
   shows "f x \<in> interior (f ` t)" proof- 
   interpret f':bounded_linear f' using assms unfolding has_derivative_def by auto
   interpret g':bounded_linear g' using assms by auto
@@ -920,7 +913,24 @@ text {* Hence the following eccentric variant of the inverse function theorem.  
 (* We could put f' o g = I but this happens to fit with the minimal linear   *)
 (* algebra theory I've set up so far. *}
 
-lemma has_derivative_inverse_strong: fixes f::"real^'n \<Rightarrow> real^'n"
+(* move  before left_inverse_linear in Euclidean_Space*)
+
+ lemma right_inverse_linear: fixes f::"'a::euclidean_space => 'a"
+   assumes lf: "linear f" and gf: "f o g = id"
+   shows "linear g"
+ proof-
+   from gf have fi: "surj f" apply (auto simp add: surj_def o_def id_def expand_fun_eq)
+     by metis 
+   from linear_surjective_isomorphism[OF lf fi]
+   obtain h:: "'a => 'a" where
+     h: "linear h" "\<forall>x. h (f x) = x" "\<forall>x. f (h x) = x" by blast
+   have "h = g" apply (rule ext) using gf h(2,3)
+     apply (simp add: o_def id_def expand_fun_eq)
+     by metis
+   with h(1) show ?thesis by blast
+ qed
+ 
+lemma has_derivative_inverse_strong: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'n"
   assumes "open s" "x \<in> s" "continuous_on s f"
   "\<forall>x\<in>s. g(f x) = x" "(f has_derivative f') (at x)" "f' o g' = id"
   shows "(g has_derivative g') (at (f x))" proof-
@@ -951,7 +961,7 @@ lemma has_derivative_inverse_strong: fixes f::"real^'n \<Rightarrow> real^'n"
 
 subsection {* A rewrite based on the other domain. *}
 
-lemma has_derivative_inverse_strong_x: fixes f::"real^'n \<Rightarrow> real^'n"
+lemma has_derivative_inverse_strong_x: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a"
   assumes "open s" "g y \<in> s" "continuous_on s f"
   "\<forall>x\<in>s. g(f x) = x" "(f has_derivative f') (at (g y))" "f' o g' = id" "f(g y) = y"
   shows "(g has_derivative g') (at y)"
@@ -959,7 +969,7 @@ lemma has_derivative_inverse_strong_x: fixes f::"real^'n \<Rightarrow> real^'n"
 
 subsection {* On a region. *}
 
-lemma has_derivative_inverse_on: fixes f::"real^'n \<Rightarrow> real^'n"
+lemma has_derivative_inverse_on: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'n"
   assumes "open s" "\<forall>x\<in>s. (f has_derivative f'(x)) (at x)" "\<forall>x\<in>s. g(f x) = x" "f'(x) o g'(x) = id" "x\<in>s"
   shows "(g has_derivative g'(x)) (at (f x))"
   apply(rule has_derivative_inverse_strong[where g'="g' x" and f=f]) apply(rule assms)+
@@ -974,14 +984,15 @@ subsection {* Invertible derivative continous at a point implies local injectivi
 lemma bounded_linear_sub: "bounded_linear f \<Longrightarrow> bounded_linear g ==> bounded_linear (\<lambda>x. f x - g x)"
   using bounded_linear_add[of f "\<lambda>x. - g x"] bounded_linear_minus[of g] by(auto simp add:algebra_simps)
 
-lemma has_derivative_locally_injective: fixes f::"real^'n \<Rightarrow> real^'m"
+lemma has_derivative_locally_injective: fixes f::"'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "a \<in> s" "open s" "bounded_linear g'" "g' o f'(a) = id"
   "\<forall>x\<in>s. (f has_derivative f'(x)) (at x)"
   "\<forall>e>0. \<exists>d>0. \<forall>x. dist a x < d \<longrightarrow> onorm(\<lambda>v. f' x v - f' a v) < e"
   obtains t where "a \<in> t" "open t" "\<forall>x\<in>t. \<forall>x'\<in>t. (f x' = f x) \<longrightarrow> (x' = x)" proof-
   interpret bounded_linear g' using assms by auto
   note f'g' = assms(4)[unfolded id_def o_def,THEN cong]
-  have "g' (f' a 1) = 1" using f'g' by auto
+  have "g' (f' a (\<chi>\<chi> i.1)) = (\<chi>\<chi> i.1)" "(\<chi>\<chi> i.1) \<noteq> (0::'n)" defer 
+    apply(subst euclidean_eq) using f'g' by auto
   hence *:"0 < onorm g'" unfolding onorm_pos_lt[OF assms(3)[unfolded linear_linear]] by fastsimp
   def k \<equiv> "1 / onorm g' / 2" have *:"k>0" unfolding k_def using * by auto
   guess d1 using assms(6)[rule_format,OF *] .. note d1=this
@@ -1018,7 +1029,7 @@ lemma has_derivative_locally_injective: fixes f::"real^'n \<Rightarrow> real^'m"
 
 subsection {* Uniformly convergent sequence of derivatives. *}
 
-lemma has_derivative_sequence_lipschitz_lemma: fixes f::"nat \<Rightarrow> real^'m \<Rightarrow> real^'n"
+lemma has_derivative_sequence_lipschitz_lemma: fixes f::"nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "convex s" "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
   "\<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm(f' n x h - g' x h) \<le> e * norm(h)"
   shows "\<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm((f m x - f n x) - (f m y - f n y)) \<le> 2 * e * norm(x - y)" proof(default)+ 
@@ -1035,7 +1046,7 @@ lemma has_derivative_sequence_lipschitz_lemma: fixes f::"nat \<Rightarrow> real^
     thus "onorm (\<lambda>h. f' m x h - f' n x h) \<le> 2 * e" apply-apply(rule onorm(2)) apply(rule linear_compose_sub)
       unfolding linear_conv_bounded_linear using assms(2)[rule_format,OF `x\<in>s`, THEN derivative_linear] by auto qed qed
 
-lemma has_derivative_sequence_lipschitz: fixes f::"nat \<Rightarrow> real^'m \<Rightarrow> real^'n"
+lemma has_derivative_sequence_lipschitz: fixes f::"nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "convex s" "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
   "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm(f' n x h - g' x h) \<le> e * norm(h)" "0 < e"
   shows "\<forall>e>0. \<exists>N. \<forall>m\<ge>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>y\<in>s. norm((f m x - f n x) - (f m y - f n y)) \<le> e * norm(x - y)" proof(rule,rule)
@@ -1043,7 +1054,7 @@ lemma has_derivative_sequence_lipschitz: fixes f::"nat \<Rightarrow> real^'m \<R
   guess N using assms(3)[rule_format,OF *(2)] ..
   thus ?case apply(rule_tac x=N in exI) apply(rule has_derivative_sequence_lipschitz_lemma[where e="1/2 *e", unfolded *]) using assms by auto qed
 
-lemma has_derivative_sequence: fixes f::"nat\<Rightarrow>real^'m\<Rightarrow>real^'n"
+lemma has_derivative_sequence: fixes f::"nat\<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "convex s" "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
   "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm(f' n x h - g' x h) \<le> e * norm(h)"
   "x0 \<in> s"  "((\<lambda>n. f n x0) ---> l) sequentially"
@@ -1089,10 +1100,10 @@ lemma has_derivative_sequence: fixes f::"nat\<Rightarrow>real^'m\<Rightarrow>rea
 	  show ?case unfolding dist_norm using N[rule_format,OF goal1 `x\<in>s`, of u] False `e>0`
 	    by (auto simp add:field_simps) qed qed qed
     show "bounded_linear (g' x)" unfolding linear_linear linear_def apply(rule,rule,rule) defer proof(rule,rule)
-      fix x' y z::"real^'m" and c::real
+      fix x' y z::"'m" and c::real
       note lin = assms(2)[rule_format,OF `x\<in>s`,THEN derivative_linear]
       show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'" apply(rule Lim_unique[OF trivial_limit_sequentially])
-	apply(rule lem3[rule_format]) unfolding smult_conv_scaleR 
+	apply(rule lem3[rule_format])
         unfolding lin[unfolded bounded_linear_def bounded_linear_axioms_def,THEN conjunct2,THEN conjunct1,rule_format]
 	apply(rule Lim_cmul) by(rule lem3[rule_format])
       show "g' x (y + z) = g' x y + g' x z" apply(rule Lim_unique[OF trivial_limit_sequentially])
@@ -1117,7 +1128,7 @@ lemma has_derivative_sequence: fixes f::"nat\<Rightarrow>real^'m\<Rightarrow>rea
 
 subsection {* Can choose to line up antiderivatives if we want. *}
 
-lemma has_antiderivative_sequence: fixes f::"nat\<Rightarrow> real^'m \<Rightarrow> real^'n"
+lemma has_antiderivative_sequence: fixes f::"nat\<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "convex s" "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
   "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm(f' n x h - g' x h) \<le> e * norm h"
   shows "\<exists>g. \<forall>x\<in>s. (g has_derivative g'(x)) (at x within s)" proof(cases "s={}")
@@ -1126,7 +1137,7 @@ lemma has_antiderivative_sequence: fixes f::"nat\<Rightarrow> real^'m \<Rightarr
     apply(rule,rule) apply(rule has_derivative_add_const, rule assms(2)[rule_format], assumption)  
     apply(rule `a\<in>s`) by(auto intro!: Lim_const) qed auto
 
-lemma has_antiderivative_limit: fixes g'::"real^'m \<Rightarrow> real^'m \<Rightarrow> real^'n"
+lemma has_antiderivative_limit: fixes g'::"'m::euclidean_space \<Rightarrow> 'm \<Rightarrow> 'n::euclidean_space"
   assumes "convex s" "\<forall>e>0. \<exists>f f'. \<forall>x\<in>s. (f has_derivative (f' x)) (at x within s) \<and> (\<forall>h. norm(f' x h - g' x h) \<le> e * norm(h))"
   shows "\<exists>g. \<forall>x\<in>s. (g has_derivative g'(x)) (at x within s)" proof-
   have *:"\<forall>n. \<exists>f f'. \<forall>x\<in>s. (f has_derivative (f' x)) (at x within s) \<and> (\<forall>h. norm(f' x h - g' x h) \<le> inverse (real (Suc n)) * norm(h))"
@@ -1145,7 +1156,7 @@ subsection {* Differentiation of a series. *}
 definition sums_seq :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a \<Rightarrow> (nat set) \<Rightarrow> bool"
 (infixl "sums'_seq" 12) where "(f sums_seq l) s \<equiv> ((\<lambda>n. setsum f (s \<inter> {0..n})) ---> l) sequentially"
 
-lemma has_derivative_series: fixes f::"nat \<Rightarrow> real^'m \<Rightarrow> real^'n"
+lemma has_derivative_series: fixes f::"nat \<Rightarrow> 'm::euclidean_space \<Rightarrow> 'n::euclidean_space"
   assumes "convex s" "\<forall>n. \<forall>x\<in>s. ((f n) has_derivative (f' n x)) (at x within s)"
   "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>x\<in>s. \<forall>h. norm(setsum (\<lambda>i. f' i x h) (k \<inter> {0..n}) - g' x h) \<le> e * norm(h)"
   "x\<in>s" "((\<lambda>n. f n x) sums_seq l) k"
@@ -1156,7 +1167,8 @@ lemma has_derivative_series: fixes f::"nat \<Rightarrow> real^'m \<Rightarrow> r
 
 subsection {* Derivative with composed bilinear function. *}
 
-lemma has_derivative_bilinear_within: fixes h::"real^'m \<Rightarrow> real^'n \<Rightarrow> real^'p" and f::"real^'q \<Rightarrow> real^'m"
+lemma has_derivative_bilinear_within: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space"
+  and f::"'q::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "(f has_derivative f') (at x within s)" "(g has_derivative g') (at x within s)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_derivative (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))) (at x within s)" proof-
   have "(g ---> g x) (at x within s)" apply(rule differentiable_imp_continuous_within[unfolded continuous_within])
@@ -1189,21 +1201,21 @@ lemma has_derivative_bilinear_within: fixes h::"real^'m \<Rightarrow> real^'n \<
       finally show "dist ((1 / norm (y - x)) *\<^sub>R h (f' (y - x)) (g' (y - x))) 0 < e"
 	unfolding dist_norm apply-apply(cases "y = x") by(auto simp add:field_simps) qed qed
   have "bounded_linear (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))" unfolding linear_linear linear_def
-    unfolding smult_conv_scaleR unfolding g'.add f'.scaleR f'.add g'.scaleR 
+    unfolding g'.add f'.scaleR f'.add g'.scaleR 
     unfolding h.add_right h.add_left scaleR_right_distrib h.scaleR_left h.scaleR_right by auto
   thus ?thesis using Lim_add[OF * **] unfolding has_derivative_within 
-    unfolding smult_conv_scaleR unfolding g'.add f'.scaleR f'.add g'.scaleR f'.diff g'.diff
+    unfolding g'.add f'.scaleR f'.add g'.scaleR f'.diff g'.diff
      h.add_right h.add_left scaleR_right_distrib h.scaleR_left h.scaleR_right h.diff_right h.diff_left
     scaleR_right_diff_distrib h.zero_right h.zero_left by(auto simp add:field_simps) qed
 
-lemma has_derivative_bilinear_at: fixes h::"real^'m \<Rightarrow> real^'n \<Rightarrow> real^'p" and f::"real^'p \<Rightarrow> real^'m"
+lemma has_derivative_bilinear_at: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space" and f::"'p::euclidean_space \<Rightarrow> 'm::euclidean_space"
   assumes "(f has_derivative f') (at x)" "(g has_derivative g') (at x)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_derivative (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))) (at x)"
   using has_derivative_bilinear_within[of f f' x UNIV g g' h] unfolding within_UNIV using assms by auto
 
-subsection {* Considering derivative @{typ "real^1 \<Rightarrow> real^'n"} as a vector. *}
+subsection {* Considering derivative @{typ "real \<Rightarrow> 'b\<Colon>real_normed_vector"} as a vector. *}
 
-definition has_vector_derivative :: "(real \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> ('b) \<Rightarrow> (real net \<Rightarrow> bool)"
+definition has_vector_derivative :: "(real \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'b \<Rightarrow> (real net \<Rightarrow> bool)"
 (infixl "has'_vector'_derivative" 12) where
  "(f has_vector_derivative f') net \<equiv> (f has_derivative (\<lambda>x. x *\<^sub>R f')) net"
 
@@ -1218,33 +1230,32 @@ proof assume ?l guess f' using `?l`[unfolded differentiable_def] .. note f' = th
     using f' unfolding scaleR[THEN sym] by auto
 next assume ?r thus ?l  unfolding vector_derivative_def has_vector_derivative_def differentiable_def by auto qed
 
-lemma vector_derivative_unique_at: fixes f::"real\<Rightarrow>real^'n"
+lemma vector_derivative_unique_at: fixes f::"real\<Rightarrow> 'n::euclidean_space"
   assumes "(f has_vector_derivative f') (at x)" "(f has_vector_derivative f'') (at x)" shows "f' = f''" proof-
-  have *:"(\<lambda>x. x *\<^sub>R f') \<circ> dest_vec1 = (\<lambda>x. x *\<^sub>R f'') \<circ> dest_vec1" apply(rule frechet_derivative_unique_at)
-    using assms[unfolded has_vector_derivative_def] unfolding has_derivative_at_dest_vec1[THEN sym] by auto
+  have *:"(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')" apply(rule frechet_derivative_unique_at)
+    using assms[unfolded has_vector_derivative_def] by auto
   show ?thesis proof(rule ccontr) assume "f' \<noteq> f''" moreover
-    hence "((\<lambda>x. x *\<^sub>R f') \<circ> dest_vec1) (vec1 1) = ((\<lambda>x. x *\<^sub>R f'') \<circ> dest_vec1) (vec1 1)" using * by auto
-    ultimately show False unfolding o_def vec1_dest_vec1 by auto qed qed
+    hence "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')" using * by auto
+    ultimately show False unfolding expand_fun_eq by auto qed qed
 
-lemma vector_derivative_unique_within_closed_interval: fixes f::"real \<Rightarrow> real^'n"
+lemma vector_derivative_unique_within_closed_interval: fixes f::"real \<Rightarrow> 'n::ordered_euclidean_space"
   assumes "a < b" "x \<in> {a..b}"
   "(f has_vector_derivative f') (at x within {a..b})"
   "(f has_vector_derivative f'') (at x within {a..b})" shows "f' = f''" proof-
-  have *:"(\<lambda>x. x *\<^sub>R f') \<circ> dest_vec1 = (\<lambda>x. x *\<^sub>R f'') \<circ> dest_vec1"
-    apply(rule frechet_derivative_unique_within_closed_interval[of "vec1 a" "vec1 b"])
-    using assms(3-)[unfolded has_vector_derivative_def]
-    unfolding has_derivative_within_dest_vec1[THEN sym] vec1_interval using assms(1-2) by auto
+  have *:"(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
+    apply(rule frechet_derivative_unique_within_closed_interval[of "a" "b"])
+    using assms(3-)[unfolded has_vector_derivative_def] using assms(1-2) by auto
   show ?thesis proof(rule ccontr) assume "f' \<noteq> f''" moreover
-    hence "((\<lambda>x. x *\<^sub>R f') \<circ> dest_vec1) (vec1 1) = ((\<lambda>x. x *\<^sub>R f'') \<circ> dest_vec1) (vec1 1)" using * by auto
-    ultimately show False unfolding o_def vec1_dest_vec1 by auto qed qed
+    hence "(\<lambda>x. x *\<^sub>R f') 1 = (\<lambda>x. x *\<^sub>R f'') 1" using * by (auto simp: expand_fun_eq)
+    ultimately show False unfolding o_def by auto qed qed
 
-lemma vector_derivative_at: fixes f::"real \<Rightarrow> real^'a" shows
+lemma vector_derivative_at: fixes f::"real \<Rightarrow> 'a::euclidean_space" shows
  "(f has_vector_derivative f') (at x) \<Longrightarrow> vector_derivative f (at x) = f'"
   apply(rule vector_derivative_unique_at) defer apply assumption
   unfolding vector_derivative_works[THEN sym] differentiable_def
   unfolding has_vector_derivative_def by auto
 
-lemma vector_derivative_within_closed_interval: fixes f::"real \<Rightarrow> real^'a"
+lemma vector_derivative_within_closed_interval: fixes f::"real \<Rightarrow> 'a::ordered_euclidean_space"
   assumes "a < b" "x \<in> {a..b}" "(f has_vector_derivative f') (at x within {a..b})"
   shows "vector_derivative f (at x within {a..b}) = f'"
   apply(rule vector_derivative_unique_within_closed_interval)
@@ -1286,16 +1297,15 @@ lemma has_vector_derivative_sub:
   using has_derivative_sub[OF assms[unfolded has_vector_derivative_def]]
   unfolding has_vector_derivative_def scaleR_right_diff_distrib by auto
 
-lemma has_vector_derivative_bilinear_within: fixes h::"real^'m \<Rightarrow> real^'n \<Rightarrow> real^'p"
+lemma has_vector_derivative_bilinear_within: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space"
   assumes "(f has_vector_derivative f') (at x within s)" "(g has_vector_derivative g') (at x within s)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_vector_derivative (h (f x) g' + h f' (g x))) (at x within s)" proof-
   interpret bounded_bilinear h using assms by auto 
-  show ?thesis using has_derivative_bilinear_within[OF assms(1-2)[unfolded has_vector_derivative_def has_derivative_within_dest_vec1[THEN sym]], where h=h]
-    unfolding o_def vec1_dest_vec1 has_vector_derivative_def
-    unfolding has_derivative_within_dest_vec1[unfolded o_def, where f="\<lambda>x. h (f x) (g x)" and f'="\<lambda>d. h (f x) (d *\<^sub>R g') + h (d *\<^sub>R f') (g x)"]
+  show ?thesis using has_derivative_bilinear_within[OF assms(1-2)[unfolded has_vector_derivative_def], of h]
+    unfolding o_def has_vector_derivative_def
     using assms(3) unfolding scaleR_right scaleR_left scaleR_right_distrib by auto qed
 
-lemma has_vector_derivative_bilinear_at: fixes h::"real^'m \<Rightarrow> real^'n \<Rightarrow> real^'p"
+lemma has_vector_derivative_bilinear_at: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space"
   assumes "(f has_vector_derivative f') (at x)" "(g has_vector_derivative g') (at x)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_vector_derivative (h (f x) g' + h f' (g x))) (at x)"
   apply(rule has_vector_derivative_bilinear_within[where s=UNIV, unfolded within_UNIV]) using assms by auto

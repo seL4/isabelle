@@ -1108,8 +1108,8 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Real_Integration.thy				\
   Multivariate_Analysis/Topology_Euclidean_Space.thy			\
   Multivariate_Analysis/document/root.tex				\
-  Multivariate_Analysis/normarith.ML Multivariate_Analysis/Vec1.thy	\
-  Library/Glbs.thy Library/Inner_Product.thy Library/Numeral_Type.thy	\
+  Multivariate_Analysis/normarith.ML Library/Glbs.thy	\
+  Library/Inner_Product.thy Library/Numeral_Type.thy	\
   Library/Convex.thy Library/FrechetDeriv.thy				\
   Library/Product_Vector.thy Library/Product_plus.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis

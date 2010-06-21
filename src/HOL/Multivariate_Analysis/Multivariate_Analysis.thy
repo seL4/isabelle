@@ -1,5 +1,5 @@
 theory Multivariate_Analysis
-imports Determinants Integration Real_Integration Fashoda
+imports Integration Fashoda
 begin
 
 end

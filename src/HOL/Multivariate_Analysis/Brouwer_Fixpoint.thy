@@ -23,7 +23,7 @@ theory Brouwer_Fixpoint
 begin
 
 lemma brouwer_compactness_lemma:
-  assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::real^'n)))"
+  assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::_::euclidean_space)))"
   obtains d where "0 < d" "\<forall>x\<in>s. d \<le> norm(f x)" proof(cases "s={}") case False
   have "continuous_on s (norm \<circ> f)" by(rule continuous_on_intros continuous_on_norm assms(2))+
   then obtain x where x:"x\<in>s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
@@ -31,21 +31,21 @@ lemma brouwer_compactness_lemma:
   have "(norm \<circ> f) x > 0" using assms(3) and x(1) by auto
   thus ?thesis apply(rule that) using x(2) unfolding o_def by auto qed(rule that[of 1], auto)
 
-lemma kuhn_labelling_lemma:
-  assumes "(\<forall>x::real^_. P x \<longrightarrow> P (f x))"  "\<forall>x. P x \<longrightarrow> (\<forall>i. Q i \<longrightarrow> 0 \<le> x$i \<and> x$i \<le> 1)"
-  shows "\<exists>l. (\<forall>x i. l x i \<le> (1::nat)) \<and>
-             (\<forall>x i. P x \<and> Q i \<and> (x$i = 0) \<longrightarrow> (l x i = 0)) \<and>
-             (\<forall>x i. P x \<and> Q i \<and> (x$i = 1) \<longrightarrow> (l x i = 1)) \<and>
-             (\<forall>x i. P x \<and> Q i \<and> (l x i = 0) \<longrightarrow> x$i \<le> f(x)$i) \<and>
-             (\<forall>x i. P x \<and> Q i \<and> (l x i = 1) \<longrightarrow> f(x)$i \<le> x$i)" proof-
+lemma kuhn_labelling_lemma: fixes type::"'a::euclidean_space"
+  assumes "(\<forall>x::'a. P x \<longrightarrow> P (f x))"  "\<forall>x. P x \<longrightarrow> (\<forall>i<DIM('a). Q i \<longrightarrow> 0 \<le> x$$i \<and> x$$i \<le> 1)"
+  shows "\<exists>l. (\<forall>x.\<forall> i<DIM('a). l x i \<le> (1::nat)) \<and>
+             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 0) \<longrightarrow> (l x i = 0)) \<and>
+             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 1) \<longrightarrow> (l x i = 1)) \<and>
+             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (l x i = 0) \<longrightarrow> x$$i \<le> f(x)$$i) \<and>
+             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (l x i = 1) \<longrightarrow> f(x)$$i \<le> x$$i)" proof-
   have and_forall_thm:"\<And>P Q. (\<forall>x. P x) \<and> (\<forall>x. Q x) \<longleftrightarrow> (\<forall>x. P x \<and> Q x)" by auto
   have *:"\<forall>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1 \<longrightarrow> (x \<noteq> 1 \<and> x \<le> y \<or> x \<noteq> 0 \<and> y \<le> x)" by auto
   show ?thesis unfolding and_forall_thm apply(subst choice_iff[THEN sym])+ proof(rule,rule) case goal1
-    let ?R = "\<lambda>y. (P x \<and> Q xa \<and> x $ xa = 0 \<longrightarrow> y = (0::nat)) \<and>
-        (P x \<and> Q xa \<and> x $ xa = 1 \<longrightarrow> y = 1) \<and> (P x \<and> Q xa \<and> y = 0 \<longrightarrow> x $ xa \<le> f x $ xa) \<and> (P x \<and> Q xa \<and> y = 1 \<longrightarrow> f x $ xa \<le> x $ xa)"
-    { assume "P x" "Q xa" hence "0 \<le> f x $ xa \<and> f x $ xa \<le> 1" using assms(2)[rule_format,of "f x" xa]
+    let ?R = "\<lambda>y. (P x \<and> Q xa \<and> x $$ xa = 0 \<longrightarrow> y = (0::nat)) \<and>
+        (P x \<and> Q xa \<and> x $$ xa = 1 \<longrightarrow> y = 1) \<and> (P x \<and> Q xa \<and> y = 0 \<longrightarrow> x $$ xa \<le> f x $$ xa) \<and> (P x \<and> Q xa \<and> y = 1 \<longrightarrow> f x $$ xa \<le> x $$ xa)"
+    { assume "P x" "Q xa" "xa<DIM('a)" hence "0 \<le> f x $$ xa \<and> f x $$ xa \<le> 1" using assms(2)[rule_format,of "f x" xa]
         apply(drule_tac assms(1)[rule_format]) by auto }
-    hence "?R 0 \<or> ?R 1" by auto thus ?case by auto qed qed 
+    hence "xa<DIM('a) \<Longrightarrow> ?R 0 \<or> ?R 1" by auto thus ?case by auto qed qed 
  
 subsection {* The key "counting" observation, somewhat abstracted. *}
 
@@ -1159,49 +1159,50 @@ lemma kuhn_labelling_lemma':
         apply(drule_tac assms(1)[rule_format]) by auto }
     hence "?R 0 \<or> ?R 1" by auto thus ?case by auto qed qed 
 
-lemma brouwer_cube: fixes f::"real^'n \<Rightarrow> real^'n"
-  assumes "continuous_on {0..1} f" "f ` {0..1} \<subseteq> {0..1}"
-  shows "\<exists>x\<in>{0..1}. f x = x" apply(rule ccontr) proof-
-  def n \<equiv> "CARD('n)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfolding n_def by auto
-  assume "\<not> (\<exists>x\<in>{0..1}. f x = x)" hence *:"\<not> (\<exists>x\<in>{0..1}. f x - x = 0)" by auto
+lemma brouwer_cube: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::ordered_euclidean_space"
+  assumes "continuous_on {0..\<chi>\<chi> i. 1} f" "f ` {0..\<chi>\<chi> i. 1} \<subseteq> {0..\<chi>\<chi> i. 1}"
+  shows "\<exists>x\<in>{0..\<chi>\<chi> i. 1}. f x = x" apply(rule ccontr) proof-
+  def n \<equiv> "DIM('a)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfolding n_def by(auto simp add:Suc_le_eq)
+  assume "\<not> (\<exists>x\<in>{0..\<chi>\<chi> i. 1}. f x = x)" hence *:"\<not> (\<exists>x\<in>{0..\<chi>\<chi> i. 1}. f x - x = 0)" by auto
   guess d apply(rule brouwer_compactness_lemma[OF compact_interval _ *]) 
     apply(rule continuous_on_intros assms)+ . note d=this[rule_format]
-  have *:"\<forall>x. x \<in> {0..1} \<longrightarrow> f x \<in> {0..1}"  "\<forall>x. x \<in> {0..1::real^'n} \<longrightarrow> (\<forall>i. True \<longrightarrow> 0 \<le> x $ i \<and> x $ i \<le> 1)"
+  have *:"\<forall>x. x \<in> {0..\<chi>\<chi> i. 1} \<longrightarrow> f x \<in> {0..\<chi>\<chi> i. 1}"  "\<forall>x. x \<in> {0..(\<chi>\<chi> i. 1)::'a} \<longrightarrow>
+    (\<forall>i<DIM('a). True \<longrightarrow> 0 \<le> x $$ i \<and> x $$ i \<le> 1)"
     using assms(2)[unfolded image_subset_iff Ball_def] unfolding mem_interval by auto
   guess label using kuhn_labelling_lemma[OF *] apply-apply(erule exE,(erule conjE)+) . note label = this[rule_format]
-  have lem1:"\<forall>x\<in>{0..1}.\<forall>y\<in>{0..1}.\<forall>i. label x i \<noteq> label y i
-            \<longrightarrow> abs(f x $ i - x $ i) \<le> norm(f y - f x) + norm(y - x)" proof(rule,rule,rule,rule)
-    fix x y assume xy:"x\<in>{0..1::real^'n}" "y\<in>{0..1::real^'n}" fix i::'n assume i:"label x i \<noteq> label y i"
+  have lem1:"\<forall>x\<in>{0..\<chi>\<chi> i. 1}.\<forall>y\<in>{0..\<chi>\<chi> i. 1}.\<forall>i<DIM('a). label x i \<noteq> label y i
+            \<longrightarrow> abs(f x $$ i - x $$ i) \<le> norm(f y - f x) + norm(y - x)" proof safe
+    fix x y::'a assume xy:"x\<in>{0..\<chi>\<chi> i. 1}" "y\<in>{0..\<chi>\<chi> i. 1}" fix i assume i:"label x i \<noteq> label y i" "i<DIM('a)"
     have *:"\<And>x y fx fy::real. (x \<le> fx \<and> fy \<le> y \<or> fx \<le> x \<and> y \<le> fy)
              \<Longrightarrow> abs(fx - x) \<le> abs(fy - fx) + abs(y - x)" by auto
-    have "\<bar>(f x - x) $ i\<bar> \<le> abs((f y - f x)$i) + abs((y - x)$i)" unfolding vector_minus_component
+    have "\<bar>(f x - x) $$ i\<bar> \<le> abs((f y - f x)$$i) + abs((y - x)$$i)" unfolding euclidean_simps
       apply(rule *) apply(cases "label x i = 0") apply(rule disjI1,rule) prefer 3 proof(rule disjI2,rule)
-      assume lx:"label x i = 0" hence ly:"label y i = 1" using i label(1)[of y i] by auto
-      show "x $ i \<le> f x $ i" apply(rule label(4)[rule_format]) using xy lx by auto
-      show "f y $ i \<le> y $ i" apply(rule label(5)[rule_format]) using xy ly by auto next
+      assume lx:"label x i = 0" hence ly:"label y i = 1" using i label(1)[of i y] by auto
+      show "x $$ i \<le> f x $$ i" apply(rule label(4)[rule_format]) using xy lx i(2) by auto
+      show "f y $$ i \<le> y $$ i" apply(rule label(5)[rule_format]) using xy ly i(2) by auto next
       assume "label x i \<noteq> 0" hence l:"label x i = 1" "label y i = 0"
-        using i label(1)[of x i] label(1)[of y i] by auto
-      show "f x $ i \<le> x $ i" apply(rule label(5)[rule_format]) using xy l  by auto
-      show "y $ i \<le> f y $ i" apply(rule label(4)[rule_format]) using xy l  by auto qed 
+        using i label(1)[of i x] label(1)[of i y] by auto
+      show "f x $$ i \<le> x $$ i" apply(rule label(5)[rule_format]) using xy l i(2) by auto
+      show "y $$ i \<le> f y $$ i" apply(rule label(4)[rule_format]) using xy l i(2) by auto qed 
     also have "\<dots> \<le> norm (f y - f x) + norm (y - x)" apply(rule add_mono) by(rule component_le_norm)+
-    finally show "\<bar>f x $ i - x $ i\<bar> \<le> norm (f y - f x) + norm (y - x)" unfolding vector_minus_component . qed
-  have "\<exists>e>0. \<forall>x\<in>{0..1}. \<forall>y\<in>{0..1}. \<forall>z\<in>{0..1}. \<forall>i.
-    norm(x - z) < e \<and> norm(y - z) < e \<and> label x i \<noteq> label y i \<longrightarrow> abs((f(z) - z)$i) < d / (real n)" proof-
+    finally show "\<bar>f x $$ i - x $$ i\<bar> \<le> norm (f y - f x) + norm (y - x)" unfolding euclidean_simps . qed
+  have "\<exists>e>0. \<forall>x\<in>{0..\<chi>\<chi> i. 1}. \<forall>y\<in>{0..\<chi>\<chi> i. 1}. \<forall>z\<in>{0..\<chi>\<chi> i. 1}. \<forall>i<DIM('a).
+    norm(x - z) < e \<and> norm(y - z) < e \<and> label x i \<noteq> label y i \<longrightarrow> abs((f(z) - z)$$i) < d / (real n)" proof-
     have d':"d / real n / 8 > 0" apply(rule divide_pos_pos)+ using d(1) unfolding n_def by auto
-    have *:"uniformly_continuous_on {0..1} f" by(rule compact_uniformly_continuous[OF assms(1) compact_interval])
+    have *:"uniformly_continuous_on {0..\<chi>\<chi> i. 1} f" by(rule compact_uniformly_continuous[OF assms(1) compact_interval])
     guess e using *[unfolded uniformly_continuous_on_def,rule_format,OF d'] apply-apply(erule exE,(erule conjE)+) .
     note e=this[rule_format,unfolded dist_norm]
-    show ?thesis apply(rule_tac x="min (e/2) (d/real n/8)" in exI) apply(rule) defer
-      apply(rule,rule,rule,rule,rule) apply(erule conjE)+ proof-
-      show "0 < min (e / 2) (d / real n / 8)" using d' e by auto
-      fix x y z i assume as:"x \<in> {0..1}" "y \<in> {0..1}" "z \<in> {0..1}" "norm (x - z) < min (e / 2) (d / real n / 8)"
-        "norm (y - z) < min (e / 2) (d / real n / 8)" "label x i \<noteq> label y i"
+    show ?thesis apply(rule_tac x="min (e/2) (d/real n/8)" in exI)
+    proof safe show "0 < min (e / 2) (d / real n / 8)" using d' e by auto
+      fix x y z i assume as:"x \<in> {0..\<chi>\<chi> i. 1}" "y \<in> {0..\<chi>\<chi> i. 1}" "z \<in> {0..\<chi>\<chi> i. 1}"
+        "norm (x - z) < min (e / 2) (d / real n / 8)"
+        "norm (y - z) < min (e / 2) (d / real n / 8)" "label x i \<noteq> label y i" and i:"i<DIM('a)"
       have *:"\<And>z fz x fx n1 n2 n3 n4 d4 d::real. abs(fx - x) \<le> n1 + n2 \<Longrightarrow> abs(fx - fz) \<le> n3 \<Longrightarrow> abs(x - z) \<le> n4 \<Longrightarrow>
         n1 < d4 \<Longrightarrow> n2 < 2 * d4 \<Longrightarrow> n3 < d4 \<Longrightarrow> n4 < d4 \<Longrightarrow> (8 * d4 = d) \<Longrightarrow> abs(fz - z) < d" by auto
-      show "\<bar>(f z - z) $ i\<bar> < d / real n" unfolding vector_minus_component proof(rule *)
-        show "\<bar>f x $ i - x $ i\<bar> \<le> norm (f y -f x) + norm (y - x)" apply(rule lem1[rule_format]) using as by auto
-        show "\<bar>f x $ i - f z $ i\<bar> \<le> norm (f x - f z)" "\<bar>x $ i - z $ i\<bar> \<le> norm (x - z)"
-          unfolding vector_minus_component[THEN sym] by(rule component_le_norm)+
+      show "\<bar>(f z - z) $$ i\<bar> < d / real n" unfolding euclidean_simps proof(rule *)
+        show "\<bar>f x $$ i - x $$ i\<bar> \<le> norm (f y -f x) + norm (y - x)" apply(rule lem1[rule_format]) using as i  by auto
+        show "\<bar>f x $$ i - f z $$ i\<bar> \<le> norm (f x - f z)" "\<bar>x $$ i - z $$ i\<bar> \<le> norm (x - z)"
+          unfolding euclidean_component.diff[THEN sym] by(rule component_le_norm)+
         have tria:"norm (y - x) \<le> norm (y - z) + norm (x - z)" using dist_triangle[of y x z,unfolded dist_norm]
           unfolding norm_minus_commute by auto
         also have "\<dots> < e / 2 + e / 2" apply(rule add_strict_mono) using as(4,5) by auto
@@ -1213,83 +1214,99 @@ lemma brouwer_cube: fixes f::"real^'n \<Rightarrow> real^'n"
   guess p using real_arch_simple[of "1 + real n / e"] .. note p=this
   have "1 + real n / e > 0" apply(rule add_pos_pos) defer apply(rule divide_pos_pos) using e(1) n by auto
   hence "p > 0" using p by auto
-  guess b using ex_bij_betw_nat_finite_1[OF finite_UNIV[where 'a='n]] .. note b=this
+  def b \<equiv> "\<lambda>i. i - 1::nat" have b:"bij_betw b {1..n} {..<DIM('a)}"
+    unfolding bij_betw_def inj_on_def b_def n_def apply rule defer
+    apply safe defer unfolding image_iff apply(rule_tac x="Suc x" in bexI) by auto
   def b' \<equiv> "inv_into {1..n} b"
-  have b':"bij_betw b' UNIV {1..n}" using bij_betw_inv_into[OF b] unfolding b'_def n_def by auto
-  have bb'[simp]:"\<And>i. b (b' i) = i" unfolding b'_def apply(rule f_inv_into_f) unfolding n_def using b  
+  have b':"bij_betw b' {..<DIM('a)} {1..n}" using bij_betw_inv_into[OF b] unfolding b'_def n_def by auto
+  have bb'[simp]:"\<And>i. i<DIM('a) \<Longrightarrow> b (b' i) = i" unfolding b'_def apply(rule f_inv_into_f) using b  
     unfolding bij_betw_def by auto
   have b'b[simp]:"\<And>i. i\<in>{1..n} \<Longrightarrow> b' (b i) = i" unfolding b'_def apply(rule inv_into_f_eq)
     using b unfolding n_def bij_betw_def by auto
   have *:"\<And>x::nat. x=0 \<or> x=1 \<longleftrightarrow> x\<le>1" by auto
+  have b'':"\<And>j. j\<in>{1..n} \<Longrightarrow> b j <DIM('a)" using b unfolding bij_betw_def by auto
   have q1:"0 < p" "0 < n"  "\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow>
-    (\<forall>i\<in>{1..n}. (label (\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0 \<or> (label (\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1)"
-    unfolding * using `p>0` `n>0` using label(1) by auto
-  have q2:"\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = 0 \<longrightarrow> (label (\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0)"
-    "\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = p \<longrightarrow> (label (\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1)"
+    (\<forall>i\<in>{1..n}. (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0 \<or> (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1)"
+    unfolding * using `p>0` `n>0` using label(1)[OF b'']  by auto
+  have q2:"\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = 0 \<longrightarrow> (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0)"
+    "\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = p \<longrightarrow> (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1)"
     apply(rule,rule,rule,rule) defer proof(rule,rule,rule,rule) fix x i 
     assume as:"\<forall>i\<in>{1..n}. x i \<le> p" "i \<in> {1..n}"
     { assume "x i = p \<or> x i = 0" 
-      have "(\<chi> i. real (x (b' i)) / real p) \<in> {0..1}" unfolding mem_interval Cart_lambda_beta proof(rule,rule)
-        fix j::'n have j:"b' j \<in> {1..n}" using b' unfolding n_def bij_betw_def by auto
-        show "0 $ j \<le> real (x (b' j)) / real p" unfolding zero_index
+      have "(\<chi>\<chi> i. real (x (b' i)) / real p) \<in> {0::'a..\<chi>\<chi> i. 1}" unfolding mem_interval 
+        apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+      proof (simp_all only: if_P) fix j assume j':"j<DIM('a)"
+        hence j:"b' j \<in> {1..n}" using b' unfolding n_def bij_betw_def by auto
+        show "0 \<le> real (x (b' j)) / real p"
           apply(rule divide_nonneg_pos) using `p>0` using as(1)[rule_format,OF j] by auto
-        show "real (x (b' j)) / real p \<le> 1 $ j" unfolding one_index divide_le_eq_1
+        show "real (x (b' j)) / real p \<le> 1" unfolding divide_le_eq_1
           using as(1)[rule_format,OF j] by auto qed } note cube=this
-    { assume "x i = p" thus "(label (\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1" unfolding o_def
-        apply-apply(rule label(3)) using cube using as `p>0` by auto }
-    { assume "x i = 0" thus "(label (\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0" unfolding o_def
-        apply-apply(rule label(2)) using cube using as `p>0` by auto } qed
+    { assume "x i = p" thus "(label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1" unfolding o_def
+        apply- apply(rule label(3)) apply(rule b'') using cube using as `p>0`
+      proof safe assume i:"i\<in>{1..n}"
+        show "((\<chi>\<chi> ia. real (x (b' ia)) / real (x i))::'a) $$ b i = 1"
+          unfolding euclidean_lambda_beta apply(subst if_P) apply(rule b''[OF i]) unfolding b'b[OF i] 
+          unfolding  `x i = p` using q1(1) by auto
+      qed auto }
+    { assume "x i = 0" thus "(label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0" unfolding o_def
+        apply-apply(rule label(2)[OF b'']) using cube using as `p>0`
+      proof safe assume i:"i\<in>{1..n}"
+        show "((\<chi>\<chi> ia. real (x (b' ia)) / real p)::'a) $$ b i = 0"
+          unfolding euclidean_lambda_beta apply (subst if_P) apply(rule b''[OF i]) unfolding b'b[OF i] 
+          unfolding `x i = 0` using q1(1) by auto 
+      qed auto }
+  qed
   guess q apply(rule kuhn_lemma[OF q1 q2]) . note q=this
-  def z \<equiv> "\<chi> i. real (q (b' i)) / real p"
-  have "\<exists>i. d / real n \<le> abs((f z - z)$i)" proof(rule ccontr)
-    have "\<forall>i. q (b' i) \<in> {0..<p}" using q(1) b'[unfolded bij_betw_def] by auto 
-    hence "\<forall>i. q (b' i) \<in> {0..p}" apply-apply(rule,erule_tac x=i in allE) by auto
-    hence "z\<in>{0..1}" unfolding z_def mem_interval unfolding one_index zero_index Cart_lambda_beta
-      apply-apply(rule,rule) apply(rule divide_nonneg_pos) using `p>0` unfolding divide_le_eq_1 by auto
+  def z \<equiv> "(\<chi>\<chi> i. real (q (b' i)) / real p)::'a"
+  have "\<exists>i<DIM('a). d / real n \<le> abs((f z - z)$$i)" proof(rule ccontr)
+    have "\<forall>i<DIM('a). q (b' i) \<in> {0..<p}" using q(1) b'[unfolded bij_betw_def] by auto 
+    hence "\<forall>i<DIM('a). q (b' i) \<in> {0..p}" apply-apply(rule,erule_tac x=i in allE) by auto
+    hence "z\<in>{0..\<chi>\<chi> i.1}" unfolding z_def mem_interval apply safe unfolding euclidean_lambda_beta
+      unfolding euclidean_component.zero apply (simp_all only: if_P)
+      apply(rule divide_nonneg_pos) using `p>0` unfolding divide_le_eq_1 by auto
     hence d_fz_z:"d \<le> norm (f z - z)" apply(drule_tac d) .
-    case goal1 hence as:"\<forall>i. \<bar>f z $ i - z $ i\<bar> < d / real n" using `n>0` by(auto simp add:not_le)
-    have "norm (f z - z) \<le> (\<Sum>i\<in>UNIV. \<bar>f z $ i - z $ i\<bar>)" unfolding vector_minus_component[THEN sym] by(rule norm_le_l1)
-    also have "\<dots> < (\<Sum>(i::'n)\<in>UNIV. d / real n)" apply(rule setsum_strict_mono) using as by auto
-    also have "\<dots> = d" unfolding real_eq_of_nat n_def using n by auto
+    case goal1 hence as:"\<forall>i<DIM('a). \<bar>f z $$ i - z $$ i\<bar> < d / real n" using `n>0` by(auto simp add:not_le)
+    have "norm (f z - z) \<le> (\<Sum>i<DIM('a). \<bar>f z $$ i - z $$ i\<bar>)" unfolding euclidean_component.diff[THEN sym] by(rule norm_le_l1)
+    also have "\<dots> < (\<Sum>i<DIM('a). d / real n)" apply(rule setsum_strict_mono) using as by auto
+    also have "\<dots> = d" unfolding real_eq_of_nat n_def using n using DIM_positive[where 'a='a] by auto
     finally show False using d_fz_z by auto qed then guess i .. note i=this
-  have *:"b' i \<in> {1..n}" using b'[unfolded bij_betw_def] by auto
+  have *:"b' i \<in> {1..n}" using i using b'[unfolded bij_betw_def] by auto
   guess r using q(2)[rule_format,OF *] .. then guess s apply-apply(erule exE,(erule conjE)+) . note rs=this[rule_format]
-  have b'_im:"\<And>i. b' i \<in> {1..n}" using b' unfolding bij_betw_def by auto
-  def r' \<equiv> "\<chi> i. real (r (b' i)) / real p"
-  have "\<And>i. r (b' i) \<le> p" apply(rule order_trans) apply(rule rs(1)[OF b'_im,THEN conjunct2])
+  have b'_im:"\<And>i. i<DIM('a) \<Longrightarrow>  b' i \<in> {1..n}" using b' unfolding bij_betw_def by auto
+  def r' \<equiv> "(\<chi>\<chi> i. real (r (b' i)) / real p)::'a"
+  have "\<And>i. i<DIM('a) \<Longrightarrow> r (b' i) \<le> p" apply(rule order_trans) apply(rule rs(1)[OF b'_im,THEN conjunct2])
     using q(1)[rule_format,OF b'_im] by(auto simp add: Suc_le_eq)
-  hence "r' \<in> {0..1::real^'n}" unfolding r'_def mem_interval Cart_lambda_beta one_index zero_index
-    apply-apply(rule,rule,rule divide_nonneg_pos)
-    using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
-  def s' \<equiv> "\<chi> i. real (s (b' i)) / real p"
-  have "\<And>i. s (b' i) \<le> p" apply(rule order_trans) apply(rule rs(2)[OF b'_im,THEN conjunct2])
+  hence "r' \<in> {0..\<chi>\<chi> i. 1}"  unfolding r'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+    apply (simp only: if_P)
+    apply(rule divide_nonneg_pos) using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
+  def s' \<equiv> "(\<chi>\<chi> i. real (s (b' i)) / real p)::'a"
+  have "\<And>i. i<DIM('a) \<Longrightarrow> s (b' i) \<le> p" apply(rule order_trans) apply(rule rs(2)[OF b'_im,THEN conjunct2])
     using q(1)[rule_format,OF b'_im] by(auto simp add: Suc_le_eq)
-  hence "s' \<in> {0..1::real^'n}" unfolding s'_def mem_interval Cart_lambda_beta one_index zero_index
-    apply-apply(rule,rule,rule divide_nonneg_pos)
-    using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
-  have "z\<in>{0..1}" unfolding z_def mem_interval Cart_lambda_beta one_index zero_index 
-    apply(rule,rule,rule divide_nonneg_pos) using q(1)[rule_format,OF b'_im] `p>0` by(auto intro:less_imp_le)
+  hence "s' \<in> {0..\<chi>\<chi> i.1}" unfolding s'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+    apply (simp_all only: if_P) apply(rule divide_nonneg_pos) using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
+  have "z\<in>{0..\<chi>\<chi> i.1}" unfolding z_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component.zero
+    apply (simp_all only: if_P) apply(rule divide_nonneg_pos) using q(1)[rule_format,OF b'_im] `p>0` by(auto intro:less_imp_le)
   have *:"\<And>x. 1 + real x = real (Suc x)" by auto
-  { have "(\<Sum>i\<in>UNIV. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'n)\<in>UNIV. 1)" 
+  { have "(\<Sum>i<DIM('a). \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>i<DIM('a). 1)" 
       apply(rule setsum_mono) using rs(1)[OF b'_im] by(auto simp add:* field_simps)
     also have "\<dots> < e * real p" using p `e>0` `p>0` unfolding n_def real_of_nat_def
       by(auto simp add:field_simps)
-    finally have "(\<Sum>i\<in>UNIV. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) < e * real p" . } moreover
-  { have "(\<Sum>i\<in>UNIV. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'n)\<in>UNIV. 1)" 
+    finally have "(\<Sum>i<DIM('a). \<bar>real (r (b' i)) - real (q (b' i))\<bar>) < e * real p" . } moreover
+  { have "(\<Sum>i<DIM('a). \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>i<DIM('a). 1)" 
       apply(rule setsum_mono) using rs(2)[OF b'_im] by(auto simp add:* field_simps)
     also have "\<dots> < e * real p" using p `e>0` `p>0` unfolding n_def real_of_nat_def
       by(auto simp add:field_simps)
-    finally have "(\<Sum>i\<in>UNIV. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) < e * real p" . } ultimately
+    finally have "(\<Sum>i<DIM('a). \<bar>real (s (b' i)) - real (q (b' i))\<bar>) < e * real p" . } ultimately
   have "norm (r' - z) < e" "norm (s' - z) < e" unfolding r'_def s'_def z_def apply-
     apply(rule_tac[!] le_less_trans[OF norm_le_l1]) using `p>0`
     by(auto simp add:field_simps setsum_divide_distrib[THEN sym])
-  hence "\<bar>(f z - z) $ i\<bar> < d / real n" apply-apply(rule e(2)[OF `r'\<in>{0..1}` `s'\<in>{0..1}` `z\<in>{0..1}`])
-    using rs(3) unfolding r'_def[symmetric] s'_def[symmetric] o_def bb' by auto
+  hence "\<bar>(f z - z) $$ i\<bar> < d / real n" apply-apply(rule e(2)[OF `r'\<in>{0..\<chi>\<chi> i.1}` `s'\<in>{0..\<chi>\<chi> i.1}` `z\<in>{0..\<chi>\<chi> i.1}`])
+    using rs(3) unfolding r'_def[symmetric] s'_def[symmetric] o_def bb' using i by auto
   thus False using i by auto qed
 
 subsection {* Retractions. *}
 
-definition "retraction s t (r::real^'n\<Rightarrow>real^'n) \<longleftrightarrow>
+definition "retraction s t r \<longleftrightarrow>
   t \<subseteq> s \<and> continuous_on s r \<and> (r ` s \<subseteq> t) \<and> (\<forall>x\<in>t. r x = x)"
 
 definition retract_of (infixl "retract'_of" 12) where
@@ -1300,7 +1317,7 @@ lemma retraction_idempotent: "retraction s t r \<Longrightarrow> x \<in> s \<Lon
 
 subsection {*preservation of fixpoints under (more general notion of) retraction. *}
 
-lemma invertible_fixpoint_property: fixes s::"(real^'n) set" and t::"(real^'m) set" 
+lemma invertible_fixpoint_property: fixes s::"('a::euclidean_space) set" and t::"('b::euclidean_space) set" 
   assumes "continuous_on t i" "i ` t \<subseteq> s" "continuous_on s r" "r ` s \<subseteq> t" "\<forall>y\<in>t. r (i y) = y"
   "\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)" "continuous_on t g" "g ` t \<subseteq> t"
   obtains y where "y\<in>t" "g y = y" proof-
@@ -1313,7 +1330,7 @@ lemma invertible_fixpoint_property: fixes s::"(real^'n) set" and t::"(real^'m) s
       unfolding assms(5)[rule_format,OF *] using assms(4) by auto qed
 
 lemma homeomorphic_fixpoint_property:
-  fixes s::"(real^'n) set" and t::"(real^'m) set" assumes "s homeomorphic t"
+  fixes s::"('a::euclidean_space) set" and t::"('b::euclidean_space) set" assumes "s homeomorphic t"
   shows "(\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)) \<longleftrightarrow>
          (\<forall>g. continuous_on t g \<and> g ` t \<subseteq> t \<longrightarrow> (\<exists>y\<in>t. g y = y))" proof-
   guess r using assms[unfolded homeomorphic_def homeomorphism_def] .. then guess i ..
@@ -1321,7 +1338,7 @@ lemma homeomorphic_fixpoint_property:
     apply(rule_tac g=g in invertible_fixpoint_property[of t i s r]) prefer 10
     apply(rule_tac g=f in invertible_fixpoint_property[of s r t i]) by auto qed
 
-lemma retract_fixpoint_property:
+lemma retract_fixpoint_property: fixes f::"'a::euclidean_space => 'b::euclidean_space" and s::"'a set"
   assumes "t retract_of s"  "\<forall>f. continuous_on s f \<and> f ` s \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. f x = x)"  "continuous_on t g" "g ` t \<subseteq> t"
   obtains y where "y \<in> t" "g y = y" proof- guess h using assms(1) unfolding retract_of_def .. 
   thus ?thesis unfolding retraction_def apply-
@@ -1330,18 +1347,19 @@ lemma retract_fixpoint_property:
 
 subsection {*So the Brouwer theorem for any set with nonempty interior. *}
 
-lemma brouwer_weak: fixes f::"real^'n \<Rightarrow> real^'n"
+lemma brouwer_weak: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::ordered_euclidean_space"
   assumes "compact s" "convex s" "interior s \<noteq> {}" "continuous_on s f" "f ` s \<subseteq> s"
   obtains x where "x \<in> s" "f x = x" proof-
-  have *:"interior {0..1::real^'n} \<noteq> {}" unfolding interior_closed_interval interval_eq_empty by auto
-  have *:"{0..1::real^'n} homeomorphic s" using homeomorphic_convex_compact[OF convex_interval(1) compact_interval * assms(2,1,3)] .
-  have "\<forall>f. continuous_on {0..1} f \<and> f ` {0..1} \<subseteq> {0..1} \<longrightarrow> (\<exists>x\<in>{0..1::real^'n}. f x = x)" using brouwer_cube by auto
+  have *:"interior {0::'a..\<chi>\<chi> i.1} \<noteq> {}" unfolding interior_closed_interval interval_eq_empty by auto
+  have *:"{0::'a..\<chi>\<chi> i.1} homeomorphic s" using homeomorphic_convex_compact[OF convex_interval(1) compact_interval * assms(2,1,3)] .
+  have "\<forall>f. continuous_on {0::'a..\<chi>\<chi> i.1} f \<and> f ` {0::'a..\<chi>\<chi> i.1} \<subseteq> {0::'a..\<chi>\<chi> i.1} \<longrightarrow> (\<exists>x\<in>{0::'a..\<chi>\<chi> i.1}. f x = x)"
+    using brouwer_cube by auto
   thus ?thesis unfolding homeomorphic_fixpoint_property[OF *] apply(erule_tac x=f in allE)
     apply(erule impE) defer apply(erule bexE) apply(rule_tac x=y in that) using assms by auto qed
 
 subsection {* And in particular for a closed ball. *}
 
-lemma brouwer_ball: fixes f::"real^'n \<Rightarrow> real^'n"
+lemma brouwer_ball: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a"
   assumes "0 < e" "continuous_on (cball a e) f" "f ` (cball a e) \<subseteq> (cball a e)"
   obtains x where "x \<in> cball a e" "f x = x"
   using brouwer_weak[OF compact_cball convex_cball,of a e f] unfolding interior_cball ball_eq_empty
@@ -1351,7 +1369,7 @@ text {*Still more general form; could derive this directly without using the
   rather involved @{text "HOMEOMORPHIC_CONVEX_COMPACT"} theorem, just using
   a scaling and translation to put the set inside the unit cube. *}
 
-lemma brouwer: fixes f::"real^'n \<Rightarrow> real^'n"
+lemma brouwer: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a"
   assumes "compact s" "convex s" "s \<noteq> {}" "continuous_on s f" "f ` s \<subseteq> s"
   obtains x where "x \<in> s" "f x = x" proof-
   have "\<exists>e>0. s \<subseteq> cball 0 e" using compact_imp_bounded[OF assms(1)] unfolding bounded_pos
@@ -1371,10 +1389,10 @@ lemma brouwer: fixes f::"real^'n \<Rightarrow> real^'n"
   show thesis apply(rule_tac x="closest_point s x" in that) unfolding x(2)[unfolded o_def]
     apply(rule closest_point_in_set[OF compact_imp_closed[OF assms(1)] assms(3)]) using * by auto qed
 
-text {*So we get the no-retraction theorem. *}                                      
+text {*So we get the no-retraction theorem. *}
 
-lemma no_retraction_cball: assumes "0 < e" 
-  shows "\<not> (frontier(cball a e) retract_of (cball a e))" proof case goal1
+lemma no_retraction_cball: assumes "0 < e" fixes type::"'a::ordered_euclidean_space"
+  shows "\<not> (frontier(cball a e) retract_of (cball (a::'a) e))" proof case goal1
   have *:"\<And>xa. a - (2 *\<^sub>R a - xa) = -(a - xa)" using scaleR_left_distrib[of 1 1 a] by auto
   guess x apply(rule retract_fixpoint_property[OF goal1, of "\<lambda>x. scaleR 2 a - x"])
     apply(rule,rule,erule conjE) apply(rule brouwer_ball[OF assms]) apply assumption+
@@ -1387,20 +1405,20 @@ lemma no_retraction_cball: assumes "0 < e"
 
 subsection {*Bijections between intervals. *}
 
-definition "interval_bij = (\<lambda> (a,b) (u,v) (x::real^'n).
-    (\<chi> i. u$i + (x$i - a$i) / (b$i - a$i) * (v$i - u$i))::real^'n)"
+definition "interval_bij = (\<lambda> (a::'a,b::'a) (u::'a,v::'a) (x::'a::ordered_euclidean_space).
+    (\<chi>\<chi> i. u$$i + (x$$i - a$$i) / (b$$i - a$$i) * (v$$i - u$$i))::'a)"
 
 lemma interval_bij_affine:
- "interval_bij (a,b) (u,v) = (\<lambda>x. (\<chi> i. (v$i - u$i) / (b$i - a$i) * x$i) +
-            (\<chi> i. u$i - (v$i - u$i) / (b$i - a$i) * a$i))"
-  apply rule unfolding Cart_eq interval_bij_def vector_component_simps
-  by(auto simp add: field_simps add_divide_distrib[THEN sym]) 
+ "interval_bij (a,b) (u,v) = (\<lambda>x. (\<chi>\<chi> i. (v$$i - u$$i) / (b$$i - a$$i) * x$$i) +
+            (\<chi>\<chi> i. u$$i - (v$$i - u$$i) / (b$$i - a$$i) * a$$i))"
+  apply rule apply(subst euclidean_eq,safe) unfolding euclidean_simps interval_bij_def euclidean_lambda_beta
+  by(auto simp add: field_simps add_divide_distrib[THEN sym])
 
 lemma continuous_interval_bij:
-  "continuous (at x) (interval_bij (a,b::real^'n) (u,v))" 
+  "continuous (at x) (interval_bij (a,b::'a::ordered_euclidean_space) (u,v::'a))" 
   unfolding interval_bij_affine apply(rule continuous_intros)
     apply(rule linear_continuous_at) unfolding linear_conv_bounded_linear[THEN sym]
-    unfolding linear_def unfolding Cart_eq unfolding Cart_lambda_beta defer
+    unfolding linear_def euclidean_eq[where 'a='a] apply safe unfolding euclidean_lambda_beta prefer 3
     apply(rule continuous_intros) by(auto simp add:field_simps add_divide_distrib[THEN sym])
 
 lemma continuous_on_interval_bij: "continuous_on s (interval_bij (a,b) (u,v))"
@@ -1411,23 +1429,25 @@ lemma divide_nonneg_nonneg:assumes "a \<ge> 0" "b \<ge> 0" shows "0 \<le> a / (b
   apply(cases "b=0") defer apply(rule divide_nonneg_pos) using assms by auto
 
 lemma in_interval_interval_bij: assumes "x \<in> {a..b}" "{u..v} \<noteq> {}"
-  shows "interval_bij (a,b) (u,v) x \<in> {u..v::real^'n}" 
-  unfolding interval_bij_def split_conv mem_interval Cart_lambda_beta proof(rule,rule) 
-  fix i::'n have "{a..b} \<noteq> {}" using assms by auto
-  hence *:"a$i \<le> b$i" "u$i \<le> v$i" using assms(2) unfolding interval_eq_empty not_ex apply-
+  shows "interval_bij (a,b) (u,v) x \<in> {u..v::'a::ordered_euclidean_space}" 
+  unfolding interval_bij_def split_conv mem_interval apply safe unfolding euclidean_lambda_beta
+proof (simp_all only: if_P)
+  fix i assume i:"i<DIM('a)" have "{a..b} \<noteq> {}" using assms by auto
+  hence *:"a$$i \<le> b$$i" "u$$i \<le> v$$i" using assms(2) unfolding interval_eq_empty not_ex apply-
     apply(erule_tac[!] x=i in allE)+ by auto
-  have x:"a$i\<le>x$i" "x$i\<le>b$i" using assms(1)[unfolded mem_interval] by auto
-  have "0 \<le> (x $ i - a $ i) / (b $ i - a $ i) * (v $ i - u $ i)"
+  have x:"a$$i\<le>x$$i" "x$$i\<le>b$$i" using assms(1)[unfolded mem_interval] using i by auto
+  have "0 \<le> (x $$ i - a $$ i) / (b $$ i - a $$ i) * (v $$ i - u $$ i)"
     apply(rule mult_nonneg_nonneg) apply(rule divide_nonneg_nonneg)
     using * x by(auto simp add:field_simps)
-  thus "u $ i \<le> u $ i + (x $ i - a $ i) / (b $ i - a $ i) * (v $ i - u $ i)" using * by auto
-  have "((x $ i - a $ i) / (b $ i - a $ i)) * (v $ i - u $ i) \<le> 1 * (v $ i - u $ i)"
+  thus "u $$ i \<le> u $$ i + (x $$ i - a $$ i) / (b $$ i - a $$ i) * (v $$ i - u $$ i)" using * by auto
+  have "((x $$ i - a $$ i) / (b $$ i - a $$ i)) * (v $$ i - u $$ i) \<le> 1 * (v $$ i - u $$ i)"
     apply(rule mult_right_mono) unfolding divide_le_eq_1 using * x by auto
-  thus "u $ i + (x $ i - a $ i) / (b $ i - a $ i) * (v $ i - u $ i) \<le> v $ i" using * by auto qed
+  thus "u $$ i + (x $$ i - a $$ i) / (b $$ i - a $$ i) * (v $$ i - u $$ i) \<le> v $$ i" using * by auto
+qed
 
-lemma interval_bij_bij: assumes "\<forall>i. a$i < b$i \<and> u$i < v$i" 
+lemma interval_bij_bij: fixes x::"'a::ordered_euclidean_space" assumes "\<forall>i. a$$i < b$$i \<and> u$$i < v$$i" 
   shows "interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
-  unfolding interval_bij_def split_conv Cart_eq Cart_lambda_beta
+  unfolding interval_bij_def split_conv euclidean_eq[where 'a='a]
   apply(rule,insert assms,erule_tac x=i in allE) by auto
 
 end
