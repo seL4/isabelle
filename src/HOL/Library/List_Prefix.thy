@@ -10,17 +10,20 @@ begin
 
 subsection {* Prefix order on lists *}
 
-instantiation list :: (type) order
+instantiation list :: (type) "{order, bot}"
 begin
 
 definition
-  prefix_def [code del]: "xs \<le> ys = (\<exists>zs. ys = xs @ zs)"
+  prefix_def: "xs \<le> ys \<longleftrightarrow> (\<exists>zs. ys = xs @ zs)"
 
 definition
-  strict_prefix_def [code del]: "xs < ys = (xs \<le> ys \<and> xs \<noteq> (ys::'a list))"
+  strict_prefix_def: "xs < ys \<longleftrightarrow> xs \<le> ys \<and> xs \<noteq> (ys::'a list)"
 
-instance
-  by intro_classes (auto simp add: prefix_def strict_prefix_def)
+definition
+  "bot = []"
+
+instance proof
+qed (auto simp add: prefix_def strict_prefix_def bot_list_def)
 
 end
 
@@ -77,6 +80,12 @@ qed
 lemma Cons_prefix_Cons [simp]: "(x # xs \<le> y # ys) = (x = y \<and> xs \<le> ys)"
   by (auto simp add: prefix_def)
 
+lemma less_eq_list_code [code]:
+  "([]\<Colon>'a\<Colon>{eq, ord} list) \<le> xs \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> [] \<longleftrightarrow> False"
+  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
+  by simp_all
+
 lemma same_prefix_prefix [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"
   by (induct xs) simp_all
 
@@ -125,10 +134,10 @@ lemma map_prefixI: "xs \<le> ys \<Longrightarrow> map f xs \<le> map f ys"
 lemma prefix_length_less: "xs < ys \<Longrightarrow> length xs < length ys"
   by (auto simp: strict_prefix_def prefix_def)
 
-lemma strict_prefix_simps [simp]:
-    "xs < [] = False"
-    "[] < (x # xs) = True"
-    "(x # xs) < (y # ys) = (x = y \<and> xs < ys)"
+lemma strict_prefix_simps [simp, code]:
+  "xs < [] \<longleftrightarrow> False"
+  "[] < x # xs \<longleftrightarrow> True"
+  "x # xs < y # ys \<longleftrightarrow> x = y \<and> xs < ys"
   by (simp_all add: strict_prefix_def cong: conj_cong)
 
 lemma take_strict_prefix: "xs < ys \<Longrightarrow> take n xs < ys"
@@ -301,7 +310,7 @@ proof -
     by (induct zs) (auto intro!: postfix_appendI postfix_ConsI)
 qed
 
-lemma postfix_to_prefix: "xs >>= ys \<longleftrightarrow> rev ys \<le> rev xs"
+lemma postfix_to_prefix [code]: "xs >>= ys \<longleftrightarrow> rev ys \<le> rev xs"
 proof
   assume "xs >>= ys"
   then obtain zs where "xs = zs @ ys" ..
@@ -369,22 +378,5 @@ next
     then show ?thesis by (rule Cons_parallelI1)
   qed
 qed
-
-
-subsection {* Executable code *}
-
-lemma less_eq_code [code]:
-    "([]\<Colon>'a\<Colon>{eq, ord} list) \<le> xs \<longleftrightarrow> True"
-    "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> [] \<longleftrightarrow> False"
-    "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
-  by simp_all
-
-lemma less_code [code]:
-    "xs < ([]\<Colon>'a\<Colon>{eq, ord} list) \<longleftrightarrow> False"
-    "[] < (x\<Colon>'a\<Colon>{eq, ord})# xs \<longleftrightarrow> True"
-    "(x\<Colon>'a\<Colon>{eq, ord}) # xs < y # ys \<longleftrightarrow> x = y \<and> xs < ys"
-  unfolding strict_prefix_def by auto
-
-lemmas [code] = postfix_to_prefix
 
 end

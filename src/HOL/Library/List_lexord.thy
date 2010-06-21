@@ -12,10 +12,10 @@ instantiation list :: (ord) ord
 begin
 
 definition
-  list_less_def [code del]: "(xs::('a::ord) list) < ys \<longleftrightarrow> (xs, ys) \<in> lexord {(u,v). u < v}"
+  list_less_def: "xs < ys \<longleftrightarrow> (xs, ys) \<in> lexord {(u, v). u < v}"
 
 definition
-  list_le_def [code del]: "(xs::('a::ord) list) \<le> ys \<longleftrightarrow> (xs < ys \<or> xs = ys)"
+  list_le_def: "(xs :: _ list) \<le> ys \<longleftrightarrow> xs < ys \<or> xs = ys"
 
 instance ..
 
@@ -91,13 +91,24 @@ lemma Nil_le_Cons [simp]: "[] \<le> x"
 lemma Cons_le_Cons [simp]: "a # x \<le> b # y \<longleftrightarrow> a < b \<or> a = b \<and> x \<le> y"
   by (unfold list_le_def) auto
 
-lemma less_code [code]:
+instantiation list :: (order) bot
+begin
+
+definition
+  "bot = []"
+
+instance proof
+qed (simp add: bot_list_def)
+
+end
+
+lemma less_list_code [code]:
   "xs < ([]\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> False"
   "[] < (x\<Colon>'a\<Colon>{eq, order}) # xs \<longleftrightarrow> True"
   "(x\<Colon>'a\<Colon>{eq, order}) # xs < y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs < ys"
   by simp_all
 
-lemma less_eq_code [code]:
+lemma less_eq_list_code [code]:
   "x # xs \<le> ([]\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> False"
   "[] \<le> (xs\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> True"
   "(x\<Colon>'a\<Colon>{eq, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
