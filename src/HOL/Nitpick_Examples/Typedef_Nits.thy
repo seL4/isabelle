@@ -176,7 +176,7 @@ record point =
 
 lemma "make_point_ext_type (dest_point_ext_type a) = a"
 nitpick [expect = none]
-by (rule Rep_point_ext_type_inverse)
+by (rule dest_point_ext_type_inverse)
 
 lemma "Fract a b = of_int a / of_int b"
 nitpick [card = 1, expect = none]
