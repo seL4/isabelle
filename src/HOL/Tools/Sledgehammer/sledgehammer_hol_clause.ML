@@ -37,7 +37,7 @@ sig
        (thm * (axiom_name * hol_clause_id)) list -> (axiom_name * hol_clause) list
   val type_wrapper_name : string
   val get_helper_clauses :
-    bool -> theory -> bool -> hol_clause list
+    bool -> theory -> bool -> bool -> hol_clause list
       -> (thm * (axiom_name * hol_clause_id)) list -> hol_clause list
   val write_tptp_file : bool -> bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
@@ -54,13 +54,13 @@ open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 
-fun min_arity_of const_min_arity c = the_default 0 (Symtab.lookup const_min_arity c);
+fun min_arity_of const_min_arity c =
+  the_default 0 (Symtab.lookup const_min_arity c)
 
 (*True if the constant ever appears outside of the top-level position in literals.
   If false, the constant always receives all of its arguments and is used as a predicate.*)
 fun needs_hBOOL explicit_apply const_needs_hBOOL c =
-  explicit_apply orelse
-    the_default false (Symtab.lookup const_needs_hBOOL c);
+  explicit_apply orelse the_default false (Symtab.lookup const_needs_hBOOL c)
 
 
 (******************************************************)
@@ -452,10 +452,6 @@ fun preds_of_clauses clauses clsrel_clauses arity_clauses =
 (* write clauses to files                                             *)
 (**********************************************************************)
 
-val init_counters =
-  Symtab.make [("c_COMBI", 0), ("c_COMBK", 0), ("c_COMBB", 0), ("c_COMBC", 0),
-               ("c_COMBS", 0)];
-
 fun count_combterm (CombConst ((c, _), _, _)) =
     Symtab.map_entry c (Integer.add 1)
   | count_combterm (CombVar _) = I
@@ -465,28 +461,37 @@ fun count_literal (Literal (_, t)) = count_combterm t
 
 fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
 
-fun cnf_helper_thms thy = cnf_rules_pairs thy o map (`Thm.get_name_hint)
+val raw_cnf_rules_pairs = map (fn (name, thm) => (thm, (name, 0)))
+fun cnf_helper_thms thy raw =
+  map (`Thm.get_name_hint)
+  #> (if raw then raw_cnf_rules_pairs else cnf_rules_pairs thy)
 
-fun get_helper_clauses dfg thy isFO conjectures axcls =
-  if isFO then
-    []
-  else
-    let
-        val axclauses = map snd (make_axiom_clauses dfg thy axcls)
-        val ct = init_counters
-                 |> fold (fold count_clause) [conjectures, axclauses]
-        fun needed c = the (Symtab.lookup ct c) > 0
-        val IK = if needed "c_COMBI" orelse needed "c_COMBK"
-                 then cnf_helper_thms thy [@{thm COMBI_def}, @{thm COMBK_def}]
-                 else []
-        val BC = if needed "c_COMBB" orelse needed "c_COMBC"
-                 then cnf_helper_thms thy [@{thm COMBB_def}, @{thm COMBC_def}]
-                 else []
-        val S = if needed "c_COMBS" then cnf_helper_thms thy [@{thm COMBS_def}]
-                else []
-        val other = cnf_helper_thms thy [@{thm fequal_imp_equal},
-                                         @{thm equal_imp_fequal}]
-    in map snd (make_axiom_clauses dfg thy (other @ IK @ BC @ S)) end
+val optional_helpers =
+  [(["c_COMBI", "c_COMBK"], (false, @{thms COMBI_def COMBK_def})),
+   (["c_COMBB", "c_COMBC"], (false, @{thms COMBB_def COMBC_def})),
+   (["c_COMBS"], (false, @{thms COMBS_def}))]
+val optional_typed_helpers =
+  [(["c_True", "c_False"], (true, @{thms True_or_False})),
+   (["c_If"], (true, @{thms if_True if_False True_or_False}))]
+val mandatory_helpers = @{thms fequal_imp_equal equal_imp_fequal}
+
+val init_counters =
+  Symtab.make (maps (maps (map (rpair 0) o fst))
+                    [optional_helpers, optional_typed_helpers])
+
+fun get_helper_clauses dfg thy is_FO full_types conjectures axcls =
+  let
+    val axclauses = map snd (make_axiom_clauses dfg thy axcls)
+    val ct = fold (fold count_clause) [conjectures, axclauses] init_counters
+    fun is_needed c = the (Symtab.lookup ct c) > 0
+    val cnfs =
+      (optional_helpers
+       |> full_types ? append optional_typed_helpers
+       |> maps (fn (ss, (raw, ths)) =>
+                   if exists is_needed ss then cnf_helper_thms thy raw ths
+                   else []))
+      @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
+  in map snd (make_axiom_clauses dfg thy cnfs) end
 
 (*Find the minimal arity of each function mentioned in the term. Also, note which uses
   are not at top level, to see if hBOOL is needed.*)

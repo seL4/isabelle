@@ -27,7 +27,8 @@ sig
     -> Proof.context * (thm list * 'a) -> thm list
     -> (thm * (string * int)) list
   val prepare_clauses :
-    bool -> thm list -> thm list -> (thm * (axiom_name * hol_clause_id)) list
+    bool -> bool -> thm list -> thm list
+    -> (thm * (axiom_name * hol_clause_id)) list
     -> (thm * (axiom_name * hol_clause_id)) list -> theory
     -> axiom_name vector
        * (hol_clause list * hol_clause list * hol_clause list *
@@ -565,7 +566,7 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
-fun prepare_clauses dfg goal_cls chained_ths axcls extra_cls thy =
+fun prepare_clauses dfg full_types goal_cls chained_ths axcls extra_cls thy =
   let
     val is_FO = is_fol_goal thy goal_cls
     val ccls = subtract_cls extra_cls goal_cls
@@ -579,7 +580,8 @@ fun prepare_clauses dfg goal_cls chained_ths axcls extra_cls thy =
     val conjectures = make_conjecture_clauses dfg thy ccls
     val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses dfg thy extra_cls)
     val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses dfg thy axcls)
-    val helper_clauses = get_helper_clauses dfg thy is_FO conjectures extra_cls
+    val helper_clauses =
+      get_helper_clauses dfg thy is_FO full_types conjectures extra_cls
     val (supers', arity_clauses) = make_arity_clauses_dfg dfg thy tycons supers
     val classrel_clauses = make_classrel_clauses thy subs supers'
   in

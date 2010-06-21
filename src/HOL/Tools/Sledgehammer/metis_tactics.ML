@@ -611,7 +611,8 @@ fun used_axioms axioms (th, Metis.Proof.Axiom _) = SOME (lookth axioms th)
 (* Translation of HO Clauses                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun cnf_th thy th = hd (cnf_axiom thy th);
+fun cnf_helper_theorem thy raw th =
+  if raw then th else the_single (cnf_axiom thy th)
 
 fun type_ext thy tms =
   let val subs = tfree_classes_of_terms tms
@@ -661,6 +662,17 @@ fun string_of_mode FO = "FO"
   | string_of_mode HO = "HO"
   | string_of_mode FT = "FT"
 
+val helpers =
+  [("c_COMBI", (false, @{thms COMBI_def})),
+   ("c_COMBK", (false, @{thms COMBK_def})),
+   ("c_COMBB", (false, @{thms COMBB_def})),
+   ("c_COMBC", (false, @{thms COMBC_def})),
+   ("c_COMBS", (false, @{thms COMBS_def})),
+   ("c_fequal", (false, @{thms fequal_imp_equal equal_imp_fequal})),
+   ("c_True", (true, @{thms True_or_False})),
+   ("c_False", (true, @{thms True_or_False})),
+   ("c_If", (true, @{thms if_True if_False True_or_False}))]
+
 (* Function to generate metis clauses, including comb and type clauses *)
 fun build_map mode0 ctxt cls ths =
   let val thy = ProofContext.theory_of ctxt
@@ -688,17 +700,21 @@ fun build_map mode0 ctxt cls ths =
         |> add_tfrees
         |> fold (add_thm false) ths
       val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
-      fun used c = exists (Metis.LiteralSet.exists (const_in_metis c o #2)) clause_lists
-      (*Now check for the existence of certain combinators*)
-      val thI  = if used "c_COMBI" then [cnf_th @{theory} @{thm COMBI_def}] else []
-      val thK  = if used "c_COMBK" then [cnf_th @{theory} @{thm COMBK_def}] else []
-      val thB   = if used "c_COMBB" then [cnf_th @{theory} @{thm COMBB_def}] else []
-      val thC   = if used "c_COMBC" then [cnf_th @{theory} @{thm COMBC_def}] else []
-      val thS   = if used "c_COMBS" then [cnf_th @{theory} @{thm COMBS_def}] else []
-      val thEQ  = if used "c_fequal" then [cnf_th @{theory} @{thm fequal_imp_equal}, cnf_th @{theory} @{thm equal_imp_fequal}] else []
+      fun is_used c =
+        exists (Metis.LiteralSet.exists (const_in_metis c o #2)) clause_lists
       val lmap =
-        lmap |> mode <> FO
-                ? fold (add_thm false) (thEQ @ thS @ thC @ thB @ thK @ thI)
+        if mode = FO then
+          lmap
+        else
+          let
+            val helper_ths =
+              helpers |> filter (is_used o fst)
+                      |> maps (fn (_, (raw, thms)) =>
+                                  if mode = FT orelse not raw then
+                                    map (cnf_helper_theorem @{theory} raw) thms
+                                  else
+                                    [])
+          in lmap |> fold (add_thm false) helper_ths end
   in (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap) end
 
 fun refute cls =

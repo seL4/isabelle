@@ -14,17 +14,17 @@ sig
   val invert_type_const: string -> string
   val num_type_args: theory -> string -> int
   val strip_prefix: string -> string -> string option
-  val metis_line: int -> int -> string list -> string
+  val metis_line: bool -> int -> int -> string list -> string
   val metis_proof_text:
-    minimize_command * string * string vector * thm * int
+    bool * minimize_command * string * string vector * thm * int
     -> string * string list
   val isar_proof_text:
-    name_pool option * bool * bool * int * Proof.context * int list list
-    -> minimize_command * string * string vector * thm * int
+    name_pool option * bool * int * Proof.context * int list list
+    -> bool * minimize_command * string * string vector * thm * int
     -> string * string list
   val proof_text:
-    bool -> name_pool option * bool * bool * int * Proof.context * int list list
-    -> minimize_command * string * string vector * thm * int
+    bool -> name_pool option * bool * int * Proof.context * int list list
+    -> bool * minimize_command * string * string vector * thm * int
     -> string * string list
 end;
 
@@ -600,13 +600,15 @@ fun metis_using [] = ""
 fun metis_apply _ 1 = "by "
   | metis_apply 1 _ = "apply "
   | metis_apply i _ = "prefer " ^ string_of_int i ^ " apply "
-fun metis_itself [] = "metis"
-  | metis_itself ss = "(metis " ^ space_implode " " ss ^ ")"
-fun metis_command i n (ls, ss) =
-  metis_using ls ^ metis_apply i n ^ metis_itself ss
-fun metis_line i n ss =
+fun metis_name full_types = if full_types then "metisFT" else "metis"
+fun metis_call full_types [] = metis_name full_types
+  | metis_call full_types ss =
+    "(" ^ metis_name full_types ^ " " ^ space_implode " " ss ^ ")"
+fun metis_command full_types i n (ls, ss) =
+  metis_using ls ^ metis_apply i n ^ metis_call full_types ss
+fun metis_line full_types i n ss =
   "Try this command: " ^
-  Markup.markup Markup.sendback (metis_command i n ([], ss)) ^ ".\n"
+  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ ".\n"
 fun minimize_line _ [] = ""
   | minimize_line minimize_command facts =
     case minimize_command facts of
@@ -617,7 +619,8 @@ fun minimize_line _ [] = ""
 
 val unprefix_chained = perhaps (try (unprefix chained_prefix))
 
-fun metis_proof_text (minimize_command, atp_proof, thm_names, goal, i) =
+fun metis_proof_text (full_types, minimize_command, atp_proof, thm_names, goal,
+                      i) =
   let
     val raw_lemmas =
       atp_proof |> extract_clause_numbers_in_atp_proof
@@ -630,8 +633,8 @@ fun metis_proof_text (minimize_command, atp_proof, thm_names, goal, i) =
     val lemmas = other_lemmas @ chained_lemmas
     val n = Logic.count_prems (prop_of goal)
   in
-    (metis_line i n other_lemmas ^ minimize_line minimize_command lemmas,
-     lemmas)
+    (metis_line full_types i n other_lemmas ^
+     minimize_line minimize_command lemmas, lemmas)
   end
 
 (** Isar proof construction and manipulation **)
@@ -932,7 +935,7 @@ val relabel_proof =
         step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
-fun string_for_proof ctxt i n =
+fun string_for_proof ctxt full_types i n =
   let
     fun fix_print_mode f x =
       setmp_CRITICAL show_no_free_types true
@@ -956,7 +959,7 @@ fun string_for_proof ctxt i n =
       let
         val ls = ls |> sort_distinct (prod_ord string_ord int_ord)
         val ss = ss |> map unprefix_chained |> sort_distinct string_ord
-      in metis_command 1 1 (ls, ss) end
+      in metis_command full_types 1 1 (ls, ss) end
     and do_step ind (Fix xs) =
         do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
       | do_step ind (Let (t1, t2)) =
@@ -989,17 +992,16 @@ fun string_for_proof ctxt i n =
         do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
   in do_proof end
 
-fun isar_proof_text (pool, debug, full_types, isar_shrink_factor, ctxt,
-                     conjecture_shape)
-                    (minimize_command, atp_proof, thm_names, goal, i) =
+fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
+                    (other_params as (full_types, _, atp_proof, thm_names, goal,
+                                      i)) =
   let
     val thy = ProofContext.theory_of ctxt
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
     val n = Logic.count_prems (prop_of goal)
-    val (one_line_proof, lemma_names) =
-      metis_proof_text (minimize_command, atp_proof, thm_names, goal, i)
+    val (one_line_proof, lemma_names) = metis_proof_text other_params
     fun isar_proof_for () =
       case proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
                                 atp_proof conjecture_shape thm_names params
@@ -1009,7 +1011,7 @@ fun isar_proof_text (pool, debug, full_types, isar_shrink_factor, ctxt,
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt i n of
+           |> string_for_proof ctxt full_types i n of
         "" => ""
       | proof => "\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
