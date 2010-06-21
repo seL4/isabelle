@@ -26,6 +26,10 @@ lemma Fset_inject [simp]:
   "Fset A = Fset B \<longleftrightarrow> A = B"
   by (simp add: Fset_inject)
 
+lemma fset_eqI:
+  "member A = member B \<Longrightarrow> A = B"
+  by simp
+
 declare mem_def [simp]
 
 definition Set :: "'a list \<Rightarrow> 'a fset" where

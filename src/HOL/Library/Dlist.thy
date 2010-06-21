@@ -3,7 +3,7 @@
 header {* Lists with elements distinct as canonical example for datatype invariants *}
 
 theory Dlist
-imports Main More_List Fset
+imports Main Fset
 begin
 
 section {* The type of distinct lists *}
@@ -181,11 +181,11 @@ declare Supremum_sup [code del]
 
 lemma Set_Dlist [simp]:
   "Set (Dlist xs) = Fset (set xs)"
-  by (simp add: Set_def Fset.Set_def)
+  by (rule fset_eqI) (simp add: Set_def)
 
 lemma Coset_Dlist [simp]:
   "Coset (Dlist xs) = Fset (- set xs)"
-  by (simp add: Coset_def Fset.Coset_def)
+  by (rule fset_eqI) (simp add: Coset_def)
 
 lemma member_Set [simp]:
   "Fset.member (Set dxs) = List.member (list_of_dlist dxs)"
@@ -197,11 +197,11 @@ lemma member_Coset [simp]:
 
 lemma Set_dlist_of_list [code]:
   "Fset.Set xs = Set (dlist_of_list xs)"
-  by simp
+  by (rule fset_eqI) simp
 
 lemma Coset_dlist_of_list [code]:
   "Fset.Coset xs = Coset (dlist_of_list xs)"
-  by simp
+  by (rule fset_eqI) simp
 
 lemma is_empty_Set [code]:
   "Fset.is_empty (Set dxs) \<longleftrightarrow> null dxs"
@@ -233,15 +233,15 @@ lemma member_code [code]:
 lemma compl_code [code]:
   "- Set dxs = Coset dxs"
   "- Coset dxs = Set dxs"
-  by (simp_all add: not_set_compl member_set)
+  by (rule fset_eqI, simp add: member_set not_set_compl)+
 
 lemma map_code [code]:
   "Fset.map f (Set dxs) = Set (map f dxs)"
-  by (simp add: member_set)
+  by (rule fset_eqI) (simp add: member_set)
   
 lemma filter_code [code]:
   "Fset.filter f (Set dxs) = Set (filter f dxs)"
-  by (simp add: member_set)
+  by (rule fset_eqI) (simp add: member_set)
 
 lemma forall_Set [code]:
   "Fset.forall P (Set xs) \<longleftrightarrow> list_all P (list_of_dlist xs)"
