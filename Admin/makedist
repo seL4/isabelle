@@ -4,7 +4,7 @@
 
 ## global settings
 
-REPOS_NAME="isabelle-release"
+REPOS_NAME="isabelle"
 REPOS="http://isabelle.in.tum.de/repos/${REPOS_NAME}"
 
 DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
@@ -152,8 +152,6 @@ directory individually.
 EOF
 
 cp doc/isabelle*.eps lib/logo
-
-rm Isabelle Isabelle.exe
 
 
 if [ -z "$RELEASE" ]; then
