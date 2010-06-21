@@ -222,9 +222,9 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
       case outcome of
         NONE =>
         proof_text isar_proof
-            (pool, debug, full_types, isar_shrink_factor, ctxt,
-             conjecture_shape)
-            (minimize_command, proof, internal_thm_names, th, subgoal)
+            (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
+            (full_types, minimize_command, proof, internal_thm_names, th,
+             subgoal)
       | SOME failure => (string_for_failure failure ^ "\n", [])
   in
     {outcome = outcome, message = message, pool = pool,
@@ -249,7 +249,7 @@ fun generic_tptp_prover
       (relevant_facts full_types respect_no_atp relevance_threshold
                       relevance_convergence defs_relevant max_axiom_clauses
                       (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses false)
+      (prepare_clauses false full_types)
       (write_tptp_file (debug andalso overlord)) home_var
       executable (arguments timeout) proof_delims known_failures name params
       minimize_command
@@ -323,7 +323,7 @@ fun generic_dfg_prover
       (relevant_facts full_types respect_no_atp relevance_threshold
                       relevance_convergence defs_relevant max_axiom_clauses
                       (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses true) write_dfg_file home_var executable
+      (prepare_clauses true full_types) write_dfg_file home_var executable
       (arguments timeout) proof_delims known_failures name params
       minimize_command
 

@@ -336,8 +336,9 @@ fun available_atps thy =
 
 (* start prover thread *)
 
-fun start_prover_thread (params as {timeout, ...}) birth_time death_time i n
-                        relevance_override minimize_command proof_state name =
+fun start_prover_thread (params as {full_types, timeout, ...}) birth_time
+                        death_time i n relevance_override minimize_command
+                        proof_state name =
   let
     val prover = get_prover (Proof.theory_of proof_state) name
     val {context = ctxt, facts, goal} = Proof.goal proof_state;
@@ -353,7 +354,7 @@ fun start_prover_thread (params as {timeout, ...}) birth_time death_time i n
            filtered_clauses = NONE}
         val message =
           #message (prover params (minimize_command name) timeout problem)
-          handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line i n []
+          handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line full_types i n []
                | ERROR message => "Error: " ^ message ^ "\n"
         val _ = unregister params message (Thread.self ());
       in () end)
