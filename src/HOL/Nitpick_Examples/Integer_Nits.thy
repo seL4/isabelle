@@ -187,7 +187,7 @@ oops
 
 lemma "y \<noteq> 0 \<Longrightarrow> x * y div y = (x::int)"
 nitpick [unary_ints, expect = none]
-nitpick [binary_ints, expect = none, card = 1\<midarrow>5, bits = 1\<midarrow>5]
+nitpick [binary_ints, card = 1\<midarrow>4, bits = 1\<midarrow>4, expect = none]
 sorry
 
 lemma "(x * y < 0) \<longleftrightarrow> (x > 0 \<and> y < 0) \<or> (x < 0 \<and> y > (0::int))"
@@ -213,7 +213,7 @@ primrec labels where
 "labels (Node x t u) = {x} \<union> labels t \<union> labels u"
 
 lemma "labels (Node x t u) \<noteq> labels (Node y v w)"
-nitpick [expect = genuine]
+nitpick [expect = potential] (* unfortunate *)
 nitpick [dont_finitize, expect = potential]
 oops
 
@@ -222,12 +222,12 @@ nitpick [expect = none]
 oops
 
 lemma "card (labels t) > 0"
-nitpick [expect = genuine]
+nitpick [expect = potential] (* unfortunate *)
 nitpick [dont_finitize, expect = potential]
 oops
 
 lemma "(\<Sum>n \<in> labels t. n + 2) \<ge> 2"
-nitpick [expect = genuine]
+nitpick [expect = potential] (* unfortunate *)
 nitpick [dont_finitize, expect = potential]
 oops
 
@@ -237,7 +237,7 @@ nitpick [dont_finitize, expect = none]
 sorry
 
 lemma "(\<Sum>i \<in> labels (Node x t u). f i\<Colon>nat) = f x + (\<Sum>i \<in> labels t. f i) + (\<Sum>i \<in> labels u. f i)"
-nitpick [expect = genuine]
+nitpick [expect = none] (* unfortunate *)
 nitpick [dont_finitize, expect = none]
 oops
 

@@ -76,8 +76,8 @@ ML {* const @{term "[a::'a]"} *}
 ML {* const @{term "[a::'a set]"} *}
 ML {* const @{term "[A \<union> (B::'a set)]"} *}
 ML {* const @{term "[A \<union> (B::'a set)] = [C]"} *}
+ML {* const @{term "{(\<lambda>x::'a. x = a)} = C"} *}
 
-ML {* nonconst @{term "{(\<lambda>x::'a. x = a)} = C"} *}
 ML {* nonconst @{term "\<forall>P (a::'a). P a"} *}
 ML {* nonconst @{term "\<forall>a::'a. P a"} *}
 ML {* nonconst @{term "(\<lambda>a::'a. \<not> A a) = B"} *}

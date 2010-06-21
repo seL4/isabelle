@@ -7,13 +7,17 @@ Examples from the Nitpick manual.
 
 header {* Examples from the Nitpick Manual *}
 
+(* The "expect" arguments to Nitpick in this theory and the other example
+   theories are there so that the example can also serve as a regression test
+   suite. *)
+
 theory Manual_Nits
 imports Main Quotient_Product RealDef
 begin
 
 chapter {* 3. First Steps *}
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1]
+nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
 
 subsection {* 3.1. Propositional Logic *}
 
@@ -379,7 +383,7 @@ inductive_set S\<^isub>3 and A\<^isub>3 and B\<^isub>3 where
 
 theorem S\<^isub>3_sound:
 "w \<in> S\<^isub>3 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 theorem S\<^isub>3_complete:
@@ -398,19 +402,19 @@ inductive_set S\<^isub>4 and A\<^isub>4 and B\<^isub>4 where
 
 theorem S\<^isub>4_sound:
 "w \<in> S\<^isub>4 \<longrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 theorem S\<^isub>4_complete:
 "length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] \<longrightarrow> w \<in> S\<^isub>4"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 theorem S\<^isub>4_A\<^isub>4_B\<^isub>4_sound_and_complete:
 "w \<in> S\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b]"
 "w \<in> A\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = a] = length [x \<leftarrow> w. x = b] + 1"
 "w \<in> B\<^isub>4 \<longleftrightarrow> length [x \<leftarrow> w. x = b] = length [x \<leftarrow> w. x = a] + 1"
-nitpick [card = 1\<midarrow>6, expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 subsection {* 4.2. AA Trees *}
