@@ -129,19 +129,18 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     reactions += { case ButtonClicked(_) => show_tracing = this.selected; handle_update() }
   }
   tracing.selected = show_tracing
-  tracing.tooltip =
-    "<html>Indicate output of tracing messages<br>(also needs to be enabled on the prover side)</html>"
+  tracing.tooltip = "Indicate output of tracing messages"
 
   private val auto_update = new CheckBox("Auto update") {
     reactions += { case ButtonClicked(_) => follow_caret = this.selected; handle_update() }
   }
   auto_update.selected = follow_caret
-  auto_update.tooltip = "<html>Indicate automatic update following cursor movement</html>"
+  auto_update.tooltip = "Indicate automatic update following cursor movement"
 
   private val update = new Button("Update") {
     reactions += { case ButtonClicked(_) => handle_caret(); handle_update() }
   }
-  update.tooltip = "<html>Update display according to the command at cursor position</html>"
+  update.tooltip = "Update display according to the command at cursor position"
 
   val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, debug, tracing, auto_update, update)
   add(controls.peer, BorderLayout.NORTH)

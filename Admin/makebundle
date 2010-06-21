@@ -66,7 +66,7 @@ done
 HEAPS_ARCHIVE="$ARCHIVE_DIR/${ISABELLE_NAME}_heaps_${PLATFORM}.tar.gz"
 [ -f "$HEAPS_ARCHIVE" ] || fail "Bad heaps archive: $HEAPS_ARCHIVE"
 echo "heaps"
-tar -C "$ISABELLE_HOME" -x -z -f "$HEAPS_ARCHIVE"
+tar -C "$TMP" -x -z -f "$HEAPS_ARCHIVE"
 
 
 BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle_${PLATFORM}.tar.gz"

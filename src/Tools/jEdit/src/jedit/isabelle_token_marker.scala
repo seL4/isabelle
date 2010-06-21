@@ -155,9 +155,11 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     def to: Int => Int = model.to_current(document, _)
     def from: Int => Int = model.from_current(document, _)
 
+    /* FIXME
     for (text_area <- Isabelle.jedit_text_areas(model.buffer)
           if Document_View(text_area).isDefined)
       Document_View(text_area).get.set_styles()
+    */
 
     def handle_token(style: Byte, offset: Int, length: Int) =
       handler.handleToken(line_segment, style, offset, length, context)

@@ -54,6 +54,7 @@ fun exn_message exn_position e =
     val detailed = ! Output.debugging;
 
     fun exn_msg _ (CONTEXT (ctxt, exn)) = exn_msg (SOME ctxt) exn
+      | exn_msg _ (Exn.EXCEPTIONS []) = "Exception."
       | exn_msg ctxt (Exn.EXCEPTIONS exns) = cat_lines (map (exn_msg ctxt) exns)
       | exn_msg ctxt (EXCURSION_FAIL (exn, loc)) =
           exn_msg ctxt exn ^ Markup.markup Markup.location ("\n" ^ loc)
