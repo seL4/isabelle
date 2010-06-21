@@ -874,7 +874,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
           end
         | Cst (cst, T, _) =>
           if cst = Unknown orelse cst = Unrep then
-            case (is_boolean_type T, polar) of
+            case (is_boolean_type T, polar |> unsound ? flip_polarity) of
               (true, Pos) => Cst (False, T, Formula Pos)
             | (true, Neg) => Cst (True, T, Formula Neg)
             | _ => Cst (cst, T, best_opt_set_rep_for_type scope T)
