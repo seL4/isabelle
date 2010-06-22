@@ -50,19 +50,6 @@ type relevance_override =
 fun strip_Trueprop (@{const Trueprop} $ t) = t
   | strip_Trueprop t = t;
 
-(*A surprising number of theorems contain only a few significant constants.
-  These include all induction rules, and other general theorems. Filtering
-  theorems in clause form reveals these complexities in the form of Skolem 
-  functions. If we were instead to filter theorems in their natural form,
-  some other method of measuring theorem complexity would become necessary.*)
-
-fun log_weight2 (x:real) = 1.0 + 2.0/Math.ln (x+1.0);
-
-(*The default seems best in practice. A constant function of one ignores
-  the constant frequencies.*)
-val weight_fn = log_weight2;
-
-
 (*** constants with types ***)
 
 (*An abstraction of Isabelle types*)
@@ -158,20 +145,22 @@ end;
 
 structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_ord);
 
-fun count_axiom_consts theory_relevant thy ((thm,_), tab) = 
-  let fun count_const (a, T, tab) =
-        let val (c, cts) = const_with_typ thy (a,T)
-        in  (*Two-dimensional table update. Constant maps to types maps to count.*)
-            Symtab.map_default (c, CTtab.empty) 
-                               (CTtab.map_default (cts,0) (fn n => n+1)) tab
-        end
-      fun count_term_consts (Const(a,T), tab) = count_const(a,T,tab)
-        | count_term_consts (Free(a,T), tab) = count_const(a,T,tab)
-        | count_term_consts (t $ u, tab) =
-            count_term_consts (t, count_term_consts (u, tab))
-        | count_term_consts (Abs(_,_,t), tab) = count_term_consts (t, tab)
-        | count_term_consts (_, tab) = tab
-  in  count_term_consts (const_prop_of theory_relevant thm, tab)  end;
+fun count_axiom_consts theory_relevant thy (thm, _) = 
+  let
+    fun do_const (a, T) =
+      let val (c, cts) = const_with_typ thy (a,T) in
+        (* Two-dimensional table update. Constant maps to types maps to
+           count. *)
+        CTtab.map_default (cts, 0) (Integer.add 1)
+        |> Symtab.map_default (c, CTtab.empty)
+      end
+    fun do_term (Const x) = do_const x
+      | do_term (Free x) = do_const x
+      | do_term (Const (@{const_name skolem_id}, _) $ _) = I
+      | do_term (t $ u) = do_term t #> do_term u
+      | do_term (Abs (_, _, t)) = do_term t
+      | do_term _ = I
+  in do_term (const_prop_of theory_relevant thm) end
 
 
 (**** Actual Filtering Code ****)
@@ -181,16 +170,25 @@ fun const_frequency ctab (c, cts) =
   CTtab.fold (fn (cts', m) => match_types cts cts' ? Integer.add m)
              (the (Symtab.lookup ctab c)) 0
 
-(*Add in a constant's weight, as determined by its frequency.*)
-fun add_ct_weight ctab ((c,T), w) =
-  w + weight_fn (real (const_frequency ctab (c,T)));
+(*A surprising number of theorems contain only a few significant constants.
+  These include all induction rules, and other general theorems. Filtering
+  theorems in clause form reveals these complexities in the form of Skolem 
+  functions. If we were instead to filter theorems in their natural form,
+  some other method of measuring theorem complexity would become necessary.*)
+
+(* "log" seems best in practice. A constant function of one ignores the constant
+   frequencies. *)
+fun log_weight2 (x:real) = 1.0 + 2.0 / Math.ln (x + 1.0)
+
+(* Computes a constant's weight, as determined by its frequency. *)
+val ct_weight = log_weight2 o real oo const_frequency
 
 (*Relevant constants are weighted according to frequency, 
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
   which are rare, would harm a clause's chances of being picked.*)
 fun clause_weight ctab gctyps consts_typs =
     let val rel = filter (uni_mem gctyps) consts_typs
-        val rel_weight = List.foldl (add_ct_weight ctab) 0.0 rel
+        val rel_weight = fold (curry Real.+ o ct_weight ctab) rel 0.0
     in
         rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
@@ -276,7 +274,7 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                   (more_rejects @ rejects)
             end
           | relevant (newrels, rejects)
-                     ((ax as (clsthm as (thm, ((name, n), orig_th)),
+                     ((ax as (clsthm as (_, ((name, n), orig_th)),
                               consts_typs)) :: axs) =
             let
               val weight = if member Thm.eq_thm add_thms orig_th then 1.0
@@ -303,8 +301,8 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                      thy (axioms : cnf_thm list) goals = 
   if relevance_threshold > 0.0 then
     let
-      val const_tab = List.foldl (count_axiom_consts theory_relevant thy)
-                                 Symtab.empty axioms
+      val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
+                           Symtab.empty
       val goal_const_tab = get_goal_consts_typs thy goals
       val _ =
         trace_msg (fn () => "Initial constants: " ^
