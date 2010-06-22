@@ -15,6 +15,7 @@ sig
      del: Facts.ref list,
      only: bool}
 
+  val use_natural_form : bool Unsynchronized.ref
   val name_thms_pair_from_ref :
     Proof.context -> thm list -> Facts.ref -> string * thm list
   val tvar_classes_of_terms : term list -> string list
@@ -38,6 +39,9 @@ open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 
+(* Experimental feature: Filter theorems in natural form or in CNF? *)
+val use_natural_form = ref false
+
 type relevance_override =
   {add: Facts.ref list,
    del: Facts.ref list,
@@ -56,7 +60,7 @@ fun strip_Trueprop (@{const Trueprop} $ t) = t
 datatype const_typ =  CTVar | CType of string * const_typ list
 
 (*Is the second type an instance of the first one?*)
-fun match_type (CType(con1,args1)) (CType(con2,args2)) = 
+fun match_type (CType(con1,args1)) (CType(con2,args2)) =
       con1=con2 andalso match_types args1 args2
   | match_type CTVar _ = true
   | match_type _ CTVar = false
@@ -64,21 +68,19 @@ and match_types [] [] = true
   | match_types (a1::as1) (a2::as2) = match_type a1 a2 andalso match_types as1 as2;
 
 (*Is there a unifiable constant?*)
-fun uni_mem gctab (c,c_typ) =
-  case Symtab.lookup gctab c of
-      NONE => false
-    | SOME ctyps_list => exists (match_types c_typ) ctyps_list;
-  
+fun uni_mem goal_const_tab (c, c_typ) =
+  exists (match_types c_typ) (these (Symtab.lookup goal_const_tab c))
+
 (*Maps a "real" type to a const_typ*)
-fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs) 
+fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs)
   | const_typ_of (TFree _) = CTVar
   | const_typ_of (TVar _) = CTVar
 
 (*Pairs a constant with the list of its type instantiations (using const_typ)*)
-fun const_with_typ thy (c,typ) = 
+fun const_with_typ thy (c,typ) =
     let val tvars = Sign.const_typargs thy (c,typ)
     in (c, map const_typ_of tvars) end
-    handle TYPE _ => (c,[]);   (*Variable (locale constant): monomorphic*)   
+    handle TYPE _ => (c,[]);   (*Variable (locale constant): monomorphic*)
 
 (*Add a const/type pair to the table, but a [] entry means a standard connective,
   which we ignore.*)
@@ -86,48 +88,65 @@ fun add_const_type_to_table (c, ctyps) =
   Symtab.map_default (c, [ctyps])
                      (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
 
-(*Free variables are included, as well as constants, to handle locales*)
-fun add_term_consts_typs_rm thy (Const x) =
-    add_const_type_to_table (const_with_typ thy x)
-  | add_term_consts_typs_rm thy (Free x) =
-    add_const_type_to_table (const_with_typ thy x)
-  | add_term_consts_typs_rm _ (Const (@{const_name skolem_id}, _) $ _) = I
-  | add_term_consts_typs_rm thy (t $ u) =
-    add_term_consts_typs_rm thy t #> add_term_consts_typs_rm thy u
-  | add_term_consts_typs_rm thy (Abs (_, _, t)) = add_term_consts_typs_rm thy t
-  | add_term_consts_typs_rm _ _ = I
-
-
-(* Including equality in this list might be expected to stop rules like
-   subset_antisym from being chosen, but for some reason filtering works better
-   with them listed. The logical signs All, Ex, &, and --> are omitted because
-   any remaining occurrences must be within comprehensions. *)
-val standard_consts =
-  [@{const_name Trueprop}, @{const_name "==>"}, @{const_name all},
-   @{const_name "=="}, @{const_name "op |"}, @{const_name Not},
-   @{const_name "op ="}];
-
-val null_const_tab : const_typ list list Symtab.table = 
-    fold (Symtab.update o rpair []) standard_consts Symtab.empty
+val fresh_Ex_prefix = "Sledgehammer.Ex."
 
 fun get_goal_consts_typs thy goals =
-  fold (add_term_consts_typs_rm thy) goals null_const_tab
+  let
+    val use_natural_form = !use_natural_form
+    (* Free variables are included, as well as constants, to handle locales.
+       "skolem_id" is included to increase the complexity of theorems containing
+       Skolem functions. In non-CNF form, "Ex" is included but each occurrence
+       is considered fresh, to simulate the effect of Skolemization. *)
+    fun aux (Const (x as (s, _))) =
+        (if s = @{const_name Ex} andalso use_natural_form then
+           (gensym fresh_Ex_prefix, [])
+         else
+           (const_with_typ thy x))
+        |> add_const_type_to_table
+      | aux (Free x) = add_const_type_to_table (const_with_typ thy x)
+      | aux ((t as Const (@{const_name skolem_id}, _)) $ _) = aux t
+      | aux (t $ u) = aux t #> aux u
+      | aux (Abs (_, _, t)) = aux t
+      | aux _ = I
+    (* Including equality in this list might be expected to stop rules like
+       subset_antisym from being chosen, but for some reason filtering works better
+       with them listed. The logical signs All, Ex, &, and --> are omitted for CNF
+       because any remaining occurrences must be within comprehensions. *)
+    val standard_consts =
+      [@{const_name Trueprop}, @{const_name "==>"}, @{const_name all},
+       @{const_name "=="}, @{const_name "op |"}, @{const_name Not},
+       @{const_name "op ="}] @
+      (if use_natural_form then
+         [@{const_name All}, @{const_name Ex}, @{const_name "op &"},
+          @{const_name "op -->"}]
+       else
+         [])
+  in
+    Symtab.empty |> fold (Symtab.update o rpair []) standard_consts
+                 |> fold aux goals
+  end
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
 fun const_prop_of theory_relevant th =
- if theory_relevant then
-  let val name = Context.theory_name (theory_of_thm th)
-      val t = Const (name ^ ". 1", HOLogic.boolT)
-  in  t $ prop_of th  end
- else prop_of th;
+  if theory_relevant then
+    let
+      val name = Context.theory_name (theory_of_thm th)
+      val t = Const (name ^ ". 1", @{typ bool})
+    in t $ prop_of th end
+  else
+    prop_of th
+
+fun appropriate_prop_of theory_relevant (cnf_thm, (_, orig_thm)) =
+  (if !use_natural_form then orig_thm else cnf_thm)
+  |> const_prop_of theory_relevant
 
 (**** Constant / Type Frequencies ****)
 
 (*A two-dimensional symbol table counts frequencies of constants. It's keyed first by
   constant name and second by its list of type instantiations. For the latter, we need
   a linear ordering on type const_typ list.*)
-  
+
 local
 
 fun cons_nr CTVar = 0
@@ -145,7 +164,7 @@ end;
 
 structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_ord);
 
-fun count_axiom_consts theory_relevant thy (thm, _) = 
+fun count_axiom_consts theory_relevant thy axiom =
   let
     fun do_const (a, T) =
       let val (c, cts) = const_with_typ thy (a,T) in
@@ -160,19 +179,20 @@ fun count_axiom_consts theory_relevant thy (thm, _) =
       | do_term (t $ u) = do_term t #> do_term u
       | do_term (Abs (_, _, t)) = do_term t
       | do_term _ = I
-  in do_term (const_prop_of theory_relevant thm) end
+  in axiom |> appropriate_prop_of theory_relevant |> do_term end
 
 
 (**** Actual Filtering Code ****)
 
 (*The frequency of a constant is the sum of those of all instances of its type.*)
-fun const_frequency ctab (c, cts) =
+fun const_frequency const_tab (c, cts) =
   CTtab.fold (fn (cts', m) => match_types cts cts' ? Integer.add m)
-             (the (Symtab.lookup ctab c)) 0
+             (the (Symtab.lookup const_tab c)
+              handle Option.Option => raise Fail ("Const: " ^ c)) 0
 
 (*A surprising number of theorems contain only a few significant constants.
   These include all induction rules, and other general theorems. Filtering
-  theorems in clause form reveals these complexities in the form of Skolem 
+  theorems in clause form reveals these complexities in the form of Skolem
   functions. If we were instead to filter theorems in their natural form,
   some other method of measuring theorem complexity would become necessary.*)
 
@@ -183,52 +203,52 @@ fun log_weight2 (x:real) = 1.0 + 2.0 / Math.ln (x + 1.0)
 (* Computes a constant's weight, as determined by its frequency. *)
 val ct_weight = log_weight2 o real oo const_frequency
 
-(*Relevant constants are weighted according to frequency, 
+(*Relevant constants are weighted according to frequency,
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
   which are rare, would harm a clause's chances of being picked.*)
-fun clause_weight ctab gctyps consts_typs =
+fun clause_weight const_tab gctyps consts_typs =
     let val rel = filter (uni_mem gctyps) consts_typs
-        val rel_weight = fold (curry Real.+ o ct_weight ctab) rel 0.0
+        val rel_weight = fold (curry Real.+ o ct_weight const_tab) rel 0.0
     in
         rel_weight / (rel_weight + real (length consts_typs - length rel))
     end;
-    
+
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
 fun add_expand_pairs (x,ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys;
 
-fun consts_typs_of_term thy t = 
-  let val tab = add_term_consts_typs_rm thy t null_const_tab in
-    Symtab.fold add_expand_pairs tab []
-  end
+fun consts_typs_of_term thy t =
+  Symtab.fold add_expand_pairs (get_goal_consts_typs thy [t]) []
 
-fun pair_consts_typs_axiom theory_relevant thy (p as (thm, _)) =
-  (p, (consts_typs_of_term thy (const_prop_of theory_relevant thm)));
+fun pair_consts_typs_axiom theory_relevant thy axiom =
+  (axiom, axiom |> appropriate_prop_of theory_relevant
+                |> consts_typs_of_term thy)
 
-exception ConstFree;
-fun dest_ConstFree (Const aT) = aT
-  | dest_ConstFree (Free aT) = aT
-  | dest_ConstFree _ = raise ConstFree;
+exception CONST_OR_FREE of unit
+
+fun dest_Const_or_Free (Const x) = x
+  | dest_Const_or_Free (Free x) = x
+  | dest_Const_or_Free _ = raise CONST_OR_FREE ()
 
 (*Look for definitions of the form f ?x1 ... ?xn = t, but not reversed.*)
 fun defines thy thm gctypes =
     let val tm = prop_of thm
         fun defs lhs rhs =
             let val (rator,args) = strip_comb lhs
-                val ct = const_with_typ thy (dest_ConstFree rator)
+                val ct = const_with_typ thy (dest_Const_or_Free rator)
             in
               forall is_Var args andalso uni_mem gctypes ct andalso
                 subset (op =) (Term.add_vars rhs [], Term.add_vars lhs [])
             end
-            handle ConstFree => false
-    in    
+            handle CONST_OR_FREE () => false
+    in
         case tm of
-          @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ lhs $ rhs) => 
-            defs lhs rhs 
+          @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ lhs $ rhs) =>
+            defs lhs rhs
         | _ => false
     end;
 
 type annotated_clause = cnf_thm * ((string * const_typ list) list)
-       
+
 (*For a reverse sort, putting the largest values first.*)
 fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
 
@@ -237,11 +257,11 @@ fun take_best max_new (newpairs : (annotated_clause * real) list) =
   let val nnew = length newpairs
   in
     if nnew <= max_new then (map #1 newpairs, [])
-    else 
+    else
       let val cls = sort compare_pairs newpairs
           val accepted = List.take (cls, max_new)
       in
-        trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^ 
+        trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^
                        ", exceeds the limit of " ^ Int.toString (max_new)));
         trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         trace_msg (fn () => "Actually passed: " ^
@@ -252,38 +272,41 @@ fun take_best max_new (newpairs : (annotated_clause * real) list) =
   end;
 
 fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
-                     ({add, del, ...} : relevance_override) ctab =
+                     ({add, del, ...} : relevance_override) const_tab =
   let
     val thy = ProofContext.theory_of ctxt
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
-    fun iter threshold rel_consts =
+    fun iter threshold rel_const_tab =
       let
         fun relevant ([], _) [] = []  (* Nothing added this iteration *)
           | relevant (newpairs, rejects) [] =
             let
               val (newrels, more_rejects) = take_best max_new newpairs
               val new_consts = maps #2 newrels
-              val rel_consts' = fold add_const_type_to_table new_consts rel_consts
+              val rel_const_tab =
+                rel_const_tab |> fold add_const_type_to_table new_consts
               val threshold =
                 threshold + (1.0 - threshold) / relevance_convergence
             in
               trace_msg (fn () => "relevant this iteration: " ^
                                   Int.toString (length newrels));
-              map #1 newrels @ iter threshold rel_consts'
+              map #1 newrels @ iter threshold rel_const_tab
                   (more_rejects @ rejects)
             end
           | relevant (newrels, rejects)
                      ((ax as (clsthm as (_, ((name, n), orig_th)),
                               consts_typs)) :: axs) =
             let
-              val weight = if member Thm.eq_thm add_thms orig_th then 1.0
-                           else if member Thm.eq_thm del_thms orig_th then 0.0
-                           else clause_weight ctab rel_consts consts_typs
+              val weight =
+                if member Thm.eq_thm add_thms orig_th then 1.0
+                else if member Thm.eq_thm del_thms orig_th then 0.0
+                else clause_weight const_tab rel_const_tab consts_typs
             in
               if weight >= threshold orelse
-                 (defs_relevant andalso defines thy (#1 clsthm) rel_consts) then
-                (trace_msg (fn () => name ^ " clause " ^ Int.toString n ^ 
+                 (defs_relevant andalso
+                  defines thy (#1 clsthm) rel_const_tab) then
+                (trace_msg (fn () => name ^ " clause " ^ Int.toString n ^
                                      " passes: " ^ Real.toString weight);
                 relevant ((ax, weight) :: newrels, rejects) axs)
               else
@@ -295,10 +318,10 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
           relevant ([], [])
         end
   in iter end
-        
+
 fun relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
-                     thy (axioms : cnf_thm list) goals = 
+                     thy (axioms : cnf_thm list) goals =
   if relevance_threshold > 0.0 then
     let
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
@@ -512,7 +535,7 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}];
    omitted. *)
 fun is_dangerous_term _ @{prop True} = true
   | is_dangerous_term full_types t =
-    not full_types andalso 
+    not full_types andalso
     (has_typed_var dangerous_types t orelse
      forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t)))
 
