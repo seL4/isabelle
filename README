@@ -21,10 +21,9 @@ System requirements
 
 Installation
 
-   Binary packages are available for Isabelle/HOL etc. for several
-   platforms from the Isabelle web page. The system may be also built
-   from scratch, using the tar.gz source distribution. See file
-   INSTALL as distributed with Isabelle for more information.
+   Completely integrated bundles including the full Isabelle sources,
+   documentation, add-on tools and precompiled logic images for
+   several platforms are available from the Isabelle web page.
 
    Further background information may be found in the Isabelle System
    Manual, distributed with the sources (directory doc).

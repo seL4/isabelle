@@ -137,7 +137,7 @@ fun declare_skolem_funs s th thy =
 
 fun mk_skolem_id t =
   let val T = fastype_of t in
-    Const (@{const_name skolem_id}, T --> T) $ Envir.beta_eta_contract t
+    Const (@{const_name skolem_id}, T --> T) $ Envir.beta_norm t
   end
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
@@ -409,6 +409,7 @@ fun skolemize_theorem s th =
       val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt) = to_nnf th ctxt0
       val inline = exists_type (exists_subtype (can dest_TFree)) (prop_of nnfth)
+      val inline = false (* FIXME: temporary *)
       val defs = skolem_theorems_of_assume inline s nnfth
       val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
     in
@@ -446,7 +447,7 @@ fun cnf_axiom thy th0 =
 
 (**** Translate a set of theorems into CNF ****)
 
-fun pair_name_cls k (n, []) = []
+fun pair_name_cls _ (_, []) = []
   | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
 
 (*The combination of rev and tail recursion preserves the original order*)

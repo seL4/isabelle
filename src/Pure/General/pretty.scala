@@ -134,7 +134,7 @@ object Pretty
 
   def string_of(input: List[XML.Tree], margin: Int = margin_default,
       metric: String => Double = metric_default): String =
-    formatted(input).iterator.flatMap(XML.content).mkString
+    formatted(input, margin, metric).iterator.flatMap(XML.content).mkString
 
 
   /* unformatted output */
