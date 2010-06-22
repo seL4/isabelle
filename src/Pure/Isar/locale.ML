@@ -396,38 +396,33 @@ fun get_mixins thy (name, morph) =
     | SOME (_, serial) => the_default [] (Inttab.lookup mixins serial)
   end;
 
-fun collect_mixins thy (name, morph) =
-  roundup thy (fn dep => fn mixins =>
-    merge (eq_snd op =) (mixins, get_mixins thy dep)) Morphism.identity (name, morph) ([], [])
-  |> snd |> filter (snd o fst);  (* only inheritable mixins *) (* FIXME *)
-  (* FIXME refactor usage *)
-
 fun compose_mixins mixins =
   fold_rev Morphism.compose (map (fst o fst) mixins) Morphism.identity;
 
-fun reg_morph mixins ((name, (base, export)), serial) =
-  let val mix = the_default [] (AList.lookup (op =) mixins serial) |> compose_mixins;
-  in (name, base $> mix $> export) end;
+fun collect_mixins thy (name, morph) =
+  roundup thy (fn dep => fn mixins => merge (eq_snd op =) (mixins, get_mixins thy dep))
+    Morphism.identity (name, morph) ([(name, instance_of thy name morph)], [])
+  |> snd |> filter (snd o fst)  (* only inheritable mixins *)
+  |> (fn x => merge (eq_snd op =) (x, get_mixins thy (name, morph)))
+  |> compose_mixins;
 
-fun these_registrations thy name = Registrations.get thy
-  |>> Idtab.dest
-  |>> filter (curry (op =) name o fst o fst)
+fun get_registrations thy select = Registrations.get thy
+  |>> Idtab.dest |>> select
   (* with inherited mixins *)
   |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
-    (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
+    (name, base $> (collect_mixins thy (name, base $> export)) $> export)) regs);
 
-fun all_registrations thy = Registrations.get thy (* FIXME clone *)
-  |>> Idtab.dest
-  (* with inherited mixins *)
-  |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
-    (name, base $> (collect_mixins thy (name, base $> export) |> compose_mixins) $> export)) regs);
+fun these_registrations thy name =
+  get_registrations thy (filter (curry (op =) name o fst o fst));
+
+fun all_registrations thy = get_registrations thy I;
 
 fun activate_notes' activ_elem transfer thy export (name, morph) input =
   let
     val {notes, ...} = the_locale thy name;
     fun activate ((kind, facts), _) input =
       let
-        val mixin = collect_mixins thy (name, morph $> export) |> compose_mixins;
+        val mixin = collect_mixins thy (name, morph $> export);
         val facts' = facts |> Element.facts_map (Element.morph_ctxt (transfer input $> morph $> mixin $> export))
       in activ_elem (Notes (kind, facts')) input end;
   in
