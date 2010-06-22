@@ -63,16 +63,6 @@ fun log_weight2 (x:real) = 1.0 + 2.0/Math.ln (x+1.0);
 val weight_fn = log_weight2;
 
 
-(*Including equality in this list might be expected to stop rules like subset_antisym from
-  being chosen, but for some reason filtering works better with them listed. The
-  logical signs All, Ex, &, and --> are omitted because any remaining occurrrences
-  must be within comprehensions.*)
-val standard_consts =
-  [@{const_name Trueprop}, @{const_name "==>"}, @{const_name all},
-   @{const_name "=="}, @{const_name "op |"}, @{const_name Not},
-   @{const_name "op ="}];
-
-
 (*** constants with types ***)
 
 (*An abstraction of Isabelle types*)
@@ -105,29 +95,36 @@ fun const_with_typ thy (c,typ) =
 
 (*Add a const/type pair to the table, but a [] entry means a standard connective,
   which we ignore.*)
-fun add_const_typ_table ((c,ctyps), tab) =
-  Symtab.map_default (c, [ctyps]) (fn [] => [] | ctyps_list => insert (op =) ctyps ctyps_list) 
-    tab;
+fun add_const_type_to_table (c, ctyps) =
+  Symtab.map_default (c, [ctyps])
+                     (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
 
 (*Free variables are included, as well as constants, to handle locales*)
-fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
-      add_const_typ_table (const_with_typ thy (c,typ), tab) 
-  | add_term_consts_typs_rm thy (Free(c, typ), tab) =
-      add_const_typ_table (const_with_typ thy (c,typ), tab) 
-  | add_term_consts_typs_rm _ (Const (@{const_name skolem_id}, _) $ _, tab) =
-      tab
-  | add_term_consts_typs_rm thy (t $ u, tab) =
-      add_term_consts_typs_rm thy (t, add_term_consts_typs_rm thy (u, tab))
-  | add_term_consts_typs_rm thy (Abs(_,_,t), tab) = add_term_consts_typs_rm thy (t, tab)
-  | add_term_consts_typs_rm _ (_, tab) = tab;
+fun add_term_consts_typs_rm thy (Const x) =
+    add_const_type_to_table (const_with_typ thy x)
+  | add_term_consts_typs_rm thy (Free x) =
+    add_const_type_to_table (const_with_typ thy x)
+  | add_term_consts_typs_rm _ (Const (@{const_name skolem_id}, _) $ _) = I
+  | add_term_consts_typs_rm thy (t $ u) =
+    add_term_consts_typs_rm thy t #> add_term_consts_typs_rm thy u
+  | add_term_consts_typs_rm thy (Abs (_, _, t)) = add_term_consts_typs_rm thy t
+  | add_term_consts_typs_rm _ _ = I
 
-(*The empty list here indicates that the constant is being ignored*)
-fun add_standard_const (s,tab) = Symtab.update (s,[]) tab;
+
+(* Including equality in this list might be expected to stop rules like
+   subset_antisym from being chosen, but for some reason filtering works better
+   with them listed. The logical signs All, Ex, &, and --> are omitted because
+   any remaining occurrences must be within comprehensions. *)
+val standard_consts =
+  [@{const_name Trueprop}, @{const_name "==>"}, @{const_name all},
+   @{const_name "=="}, @{const_name "op |"}, @{const_name Not},
+   @{const_name "op ="}];
 
 val null_const_tab : const_typ list list Symtab.table = 
-    List.foldl add_standard_const Symtab.empty standard_consts;
+    fold (Symtab.update o rpair []) standard_consts Symtab.empty
 
-fun get_goal_consts_typs thy = List.foldl (add_term_consts_typs_rm thy) null_const_tab;
+fun get_goal_consts_typs thy goals =
+  fold (add_term_consts_typs_rm thy) goals null_const_tab
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
@@ -202,8 +199,9 @@ fun clause_weight ctab gctyps consts_typs =
 fun add_expand_pairs (x,ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys;
 
 fun consts_typs_of_term thy t = 
-  let val tab = add_term_consts_typs_rm thy (t, null_const_tab)
-  in  Symtab.fold add_expand_pairs tab []  end;
+  let val tab = add_term_consts_typs_rm thy t null_const_tab in
+    Symtab.fold add_expand_pairs tab []
+  end
 
 fun pair_consts_typs_axiom theory_relevant thy (p as (thm, _)) =
   (p, (consts_typs_of_term thy (const_prop_of theory_relevant thm)));
@@ -268,7 +266,7 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
             let
               val (newrels, more_rejects) = take_best max_new newpairs
               val new_consts = maps #2 newrels
-              val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
+              val rel_consts' = fold add_const_type_to_table new_consts rel_consts
               val threshold =
                 threshold + (1.0 - threshold) / relevance_convergence
             in
