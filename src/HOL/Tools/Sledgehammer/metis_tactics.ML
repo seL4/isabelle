@@ -24,6 +24,7 @@ open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Proof_Reconstruct
 open Sledgehammer_Fact_Filter
+open Sledgehammer_TPTP_Format
 
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();

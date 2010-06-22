@@ -10,11 +10,11 @@ FIXME: combine with sledgehammer_hol_clause!
 
 signature SLEDGEHAMMER_FOL_CLAUSE =
 sig
+  val type_wrapper_name : string
   val schematic_var_prefix: string
   val fixed_var_prefix: string
   val tvar_prefix: string
   val tfree_prefix: string
-  val clause_prefix: string
   val const_prefix: string
   val tconst_prefix: string
   val class_prefix: string
@@ -23,7 +23,6 @@ sig
   val type_const_trans_table: string Symtab.table
   val ascii_of: string -> string
   val undo_ascii_of: string -> string
-  val paren_pack : string list -> string
   val make_schematic_var : string * int -> string
   val make_fixed_var : string -> string
   val make_schematic_type_var : string * int -> string
@@ -37,12 +36,6 @@ sig
   val pool_map : ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val nice_name : name -> name_pool option -> string * name_pool option
   datatype kind = Axiom | Conjecture
-  datatype fol_type =
-    TyVar of name |
-    TyFree of name |
-    TyConstr of name * fol_type list
-  val string_of_fol_type :
-    fol_type -> name_pool option -> string * name_pool option
   datatype type_literal =
     TyLitVar of string * name |
     TyLitFree of string * name
@@ -57,13 +50,6 @@ sig
    {axiom_name: string, subclass: class, superclass: class}
   val make_classrel_clauses: theory -> class list -> class list -> classrel_clause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
-  val tptp_sign: bool -> string -> string
-  val tptp_of_type_literal :
-    bool -> type_literal -> name_pool option -> string * name_pool option
-  val gen_tptp_cls : int * string * kind * string list * string list -> string
-  val tptp_tfree_clause : string -> string
-  val tptp_arity_clause : arity_clause -> string
-  val tptp_classrel_clause : classrel_clause -> string
 end
 
 structure Sledgehammer_FOL_Clause : SLEDGEHAMMER_FOL_CLAUSE =
@@ -71,15 +57,15 @@ struct
 
 open Sledgehammer_Util
 
+val type_wrapper_name = "ti"
+
 val schematic_var_prefix = "V_";
 val fixed_var_prefix = "v_";
 
 val tvar_prefix = "T_";
 val tfree_prefix = "t_";
 
-val clause_prefix = "cls_";
-val arclause_prefix = "clsarity_"
-val clrelclause_prefix = "clsrel_";
+val classrel_clause_prefix = "clsrel_";
 
 val const_prefix = "c_";
 val tconst_prefix = "tc_";
@@ -151,12 +137,6 @@ fun undo_ascii_aux rcs [] = String.implode(rev rcs)
   | undo_ascii_aux rcs (c::cs) = undo_ascii_aux (c::rcs) cs;
 
 val undo_ascii_of = undo_ascii_aux [] o String.explode;
-
-(* convert a list of strings into one single string; surrounded by brackets *)
-fun paren_pack [] = ""   (*empty argument list*)
-  | paren_pack strings = "(" ^ commas strings ^ ")";
-
-fun tptp_clause strings = "(" ^ space_implode " | " strings ^ ")"
 
 (*Remove the initial ' character from a type variable, if it is present*)
 fun trim_type_var s =
@@ -260,19 +240,6 @@ datatype kind = Axiom | Conjecture;
 
 (**** Isabelle FOL clauses ****)
 
-datatype fol_type =
-  TyVar of name |
-  TyFree of name |
-  TyConstr of name * fol_type list
-
-fun string_of_fol_type (TyVar sp) pool = nice_name sp pool
-  | string_of_fol_type (TyFree sp) pool = nice_name sp pool
-  | string_of_fol_type (TyConstr (sp, tys)) pool =
-    let
-      val (s, pool) = nice_name sp pool
-      val (ss, pool) = pool_map string_of_fol_type tys pool
-    in (s ^ paren_pack ss, pool) end
-
 (* The first component is the type class; the second is a TVar or TFree. *)
 datatype type_literal =
   TyLitVar of string * name |
@@ -341,7 +308,8 @@ fun class_pairs _ [] _ = []
       in fold add_supers subs [] end
 
 fun make_classrel_clause (sub,super) =
-  ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of sub ^ "_" ^ ascii_of super,
+  ClassrelClause {axiom_name = classrel_clause_prefix ^ ascii_of sub ^ "_" ^
+                               ascii_of super,
                   subclass = make_type_class sub,
                   superclass = make_type_class super};
 
@@ -389,49 +357,5 @@ fun iter_type_class_pairs _ _ [] = ([], [])
 fun make_arity_clauses thy tycons classes =
   let val (classes', cpairs) = iter_type_class_pairs thy tycons classes
   in  (classes', multi_arity_clause cpairs)  end;
-
-
-(**** Produce TPTP files ****)
-
-fun string_of_clausename (cls_id, ax_name) =
-    clause_prefix ^ ascii_of ax_name ^ "_" ^ Int.toString cls_id
-
-fun tptp_sign true s = s
-  | tptp_sign false s = "~ " ^ s
-
-fun tptp_of_type_literal pos (TyLitVar (s, name)) =
-    nice_name name #>> (fn s' => tptp_sign pos (s ^ "(" ^ s' ^ ")"))
-  | tptp_of_type_literal pos (TyLitFree (s, name)) =
-    nice_name name #>> (fn s' => tptp_sign pos (s ^ "(" ^ s' ^ ")"))
-
-fun tptp_cnf name kind formula =
-  "cnf(" ^ name ^ ", " ^ kind ^ ",\n    " ^ formula ^ ").\n"
-
-fun gen_tptp_cls (cls_id, ax_name, Axiom, lits, tylits) =
-      tptp_cnf (string_of_clausename (cls_id, ax_name)) "axiom"
-               (tptp_clause (tylits @ lits))
-  | gen_tptp_cls (cls_id, ax_name, Conjecture, lits, _) =
-      tptp_cnf (string_of_clausename (cls_id, ax_name)) "negated_conjecture"
-               (tptp_clause lits)
-
-fun tptp_tfree_clause tfree_lit =
-    tptp_cnf "tfree_tcs" "negated_conjecture" (tptp_clause [tfree_lit])
-
-fun tptp_of_arLit (TConsLit (c,t,args)) =
-      tptp_sign true (make_type_class c ^ "(" ^ t ^ paren_pack args ^ ")")
-  | tptp_of_arLit (TVarLit (c,str)) =
-      tptp_sign false (make_type_class c ^ "(" ^ str ^ ")")
-
-fun tptp_arity_clause (ArityClause {axiom_name, conclLit, premLits, ...}) =
-  tptp_cnf (arclause_prefix ^ ascii_of axiom_name) "axiom"
-           (tptp_clause (map tptp_of_arLit (conclLit :: premLits)))
-
-fun tptp_classrelLits sub sup =
-  let val tvar = "(T)"
-  in  tptp_clause [tptp_sign false (sub^tvar), tptp_sign true (sup^tvar)]  end;
-
-fun tptp_classrel_clause (ClassrelClause {axiom_name, subclass, superclass,
-                                          ...}) =
-  tptp_cnf axiom_name "axiom" (tptp_classrelLits subclass superclass)
 
 end;

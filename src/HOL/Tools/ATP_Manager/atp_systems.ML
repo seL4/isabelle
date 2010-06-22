@@ -27,6 +27,7 @@ open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
+open Sledgehammer_TPTP_Format
 open ATP_Manager
 
 (** generic ATP **)
@@ -191,8 +192,8 @@ fun generic_tptp_prover
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
-    fun split_time' s =
-      if Config.get ctxt measure_runtime then split_time s else (s, 0)
+    val split_time' =
+      if Config.get ctxt measure_runtime then split_time else rpair 0
     fun run_on probfile =
       if File.exists command then
         write_tptp_file (debug andalso overlord) full_types explicit_apply
@@ -244,34 +245,7 @@ fun generic_tptp_prover
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
-
-(** common provers **)
-
 fun to_generous_secs time = (Time.toMilliseconds time + 999) div 1000
-
-(* Vampire *)
-
-(* Vampire requires an explicit time limit. *)
-
-val vampire_config : prover_config =
-  {home_var = "VAMPIRE_HOME",
-   executable = "vampire",
-   arguments = fn timeout =>
-     "--output_syntax tptp --mode casc -t " ^
-     string_of_int (to_generous_secs timeout),
-   proof_delims =
-     [("=========== Refutation ==========",
-       "======= End of refutation ======="),
-      ("% SZS output start Refutation", "% SZS output end Refutation")],
-   known_failures =
-     [(Unprovable, "UNPROVABLE"),
-      (IncompleteUnprovable, "CANNOT PROVE"),
-      (Unprovable, "Satisfiability detected"),
-      (OutOfResources, "Refutation not found")],
-   max_axiom_clauses = 60,
-   prefers_theory_relevant = false}
-val vampire = tptp_prover "vampire" vampire_config
-
 
 (* E prover *)
 
@@ -299,8 +273,6 @@ val e_config : prover_config =
 val e = tptp_prover "e" e_config
 
 
-(* SPASS *)
-
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
@@ -322,7 +294,28 @@ val spass_config : prover_config =
    prefers_theory_relevant = true}
 val spass = tptp_prover "spass" spass_config
 
-(* remote prover invocation via SystemOnTPTP *)
+(* Vampire *)
+
+val vampire_config : prover_config =
+  {home_var = "VAMPIRE_HOME",
+   executable = "vampire",
+   arguments = fn timeout =>
+     "--output_syntax tptp --mode casc -t " ^
+     string_of_int (to_generous_secs timeout),
+   proof_delims =
+     [("=========== Refutation ==========",
+       "======= End of refutation ======="),
+      ("% SZS output start Refutation", "% SZS output end Refutation")],
+   known_failures =
+     [(Unprovable, "UNPROVABLE"),
+      (IncompleteUnprovable, "CANNOT PROVE"),
+      (Unprovable, "Satisfiability detected"),
+      (OutOfResources, "Refutation not found")],
+   max_axiom_clauses = 60,
+   prefers_theory_relevant = false}
+val vampire = tptp_prover "vampire" vampire_config
+
+(* Remote prover invocation via SystemOnTPTP *)
 
 val systems = Synchronized.var "atp_systems" ([]: string list);
 
@@ -333,7 +326,7 @@ fun get_systems () =
     error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
 
 fun refresh_systems_on_tptp () =
-  Synchronized.change systems (fn _ => get_systems ());
+  Synchronized.change systems (fn _ => get_systems ())
 
 fun get_system prefix = Synchronized.change_result systems (fn systems =>
   (if null systems then get_systems () else systems)
@@ -341,15 +334,14 @@ fun get_system prefix = Synchronized.change_result systems (fn systems =>
 
 fun the_system prefix =
   (case get_system prefix of
-    NONE => error ("System " ^ quote prefix ^
-                   " not available at SystemOnTPTP.")
+    NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP.")
   | SOME sys => sys);
 
 val remote_known_failures =
   [(TimedOut, "says Timeout"),
    (MalformedOutput, "Remote script could not extract proof")]
 
-fun remote_prover_config atp_prefix args
+fun remote_config atp_prefix args
         ({proof_delims, known_failures, max_axiom_clauses,
           prefers_theory_relevant, ...} : prover_config) : prover_config =
   {home_var = "ISABELLE_ATP_MANAGER",
@@ -362,17 +354,12 @@ fun remote_prover_config atp_prefix args
    max_axiom_clauses = max_axiom_clauses,
    prefers_theory_relevant = prefers_theory_relevant}
 
-val remote_vampire =
-  tptp_prover (remotify (fst vampire))
-              (remote_prover_config "Vampire---9" "" vampire_config)
+fun remote_tptp_prover prover atp_prefix args config =
+  tptp_prover (remotify (fst prover)) (remote_config atp_prefix args config)
 
-val remote_e =
-  tptp_prover (remotify (fst e))
-              (remote_prover_config "EP---" "" e_config)
-
-val remote_spass =
-  tptp_prover (remotify (fst spass))
-              (remote_prover_config "SPASS---" "-x" spass_config)
+val remote_e = remote_tptp_prover e "EP---" "" e_config
+val remote_spass = remote_tptp_prover spass "SPASS---" "-x" spass_config
+val remote_vampire = remote_tptp_prover vampire "Vampire---9" "" vampire_config
 
 fun maybe_remote (name, _) ({home_var, ...} : prover_config) =
   name |> getenv home_var = "" ? remotify
@@ -381,7 +368,7 @@ fun default_atps_param_value () =
   space_implode " " [maybe_remote e e_config, maybe_remote spass spass_config,
                      remotify (fst vampire)]
 
-val provers = [spass, vampire, e, remote_vampire, remote_spass, remote_e]
+val provers = [e, spass, vampire, remote_e, remote_spass, remote_vampire]
 val prover_setup = fold add_prover provers
 
 val setup =
