@@ -441,16 +441,16 @@ fun tfree_classes_of_terms ts =
 fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
   | fold_type_consts _ _ x = x;
 
-val add_type_consts_in_type = fold_type_consts setinsert;
-
 (*Type constructors used to instantiate overloaded constants are the only ones needed.*)
 fun add_type_consts_in_term thy =
-  let val const_typargs = Sign.const_typargs thy
-      fun add_tcs (Const cT) x = fold add_type_consts_in_type (const_typargs cT) x
-        | add_tcs (Abs (_, _, u)) x = add_tcs u x
-        | add_tcs (t $ u) x = add_tcs t (add_tcs u x)
-        | add_tcs _ x = x
-  in  add_tcs  end
+  let
+    val const_typargs = Sign.const_typargs thy
+    fun aux (Const cT) = fold (fold_type_consts setinsert) (const_typargs cT)
+      | aux (Abs (_, _, u)) = aux u
+      | aux (Const (@{const_name skolem_id}, _) $ _) = I
+      | aux (t $ u) = aux t #> aux u
+      | aux _ = I
+  in aux end
 
 fun type_consts_of_terms thy ts =
   Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty);
