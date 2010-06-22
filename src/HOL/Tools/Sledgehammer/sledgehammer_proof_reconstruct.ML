@@ -368,7 +368,7 @@ fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint _ = I
 
 fun is_positive_literal (@{const Not} $ _) = false
-  | is_positive_literal t = true
+  | is_positive_literal _ = true
 
 fun negate_term thy (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     Const (@{const_name Ex}, T) $ Abs (s, T', negate_term thy t')
@@ -551,11 +551,11 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
 (* Vampire is keen on producing these. *)
 fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
                                         $ t1 $ t2)) = (t1 aconv t2)
-  | is_trivial_formula t = false
+  | is_trivial_formula _ = false
 
-fun add_desired_line _ _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
+fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
     (j, line :: map (replace_deps_in_line (num, [])) lines)
-  | add_desired_line ctxt isar_shrink_factor conjecture_shape thm_names frees
+  | add_desired_line isar_shrink_factor conjecture_shape thm_names frees
                      (Inference (num, t, deps)) (j, lines) =
     (j + 1,
      if is_axiom_clause_number thm_names num orelse
@@ -667,7 +667,7 @@ fun add_fact_from_dep thm_names num =
 
 fun forall_vars t = fold_rev forall_of (map Var (Term.add_vars t [])) t
 
-fun step_for_line _ _ (Definition (num, t1, t2)) = Let (t1, t2)
+fun step_for_line _ _ (Definition (_, t1, t2)) = Let (t1, t2)
   | step_for_line _ _ (Inference (num, t, [])) = Assume ((raw_prefix, num), t)
   | step_for_line thm_names j (Inference (num, t, deps)) =
     Have (if j = 1 then [Show] else [], (raw_prefix, num),
@@ -683,7 +683,7 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
-      |> rpair (0, []) |-> fold_rev (add_desired_line ctxt isar_shrink_factor
+      |> rpair (0, []) |-> fold_rev (add_desired_line isar_shrink_factor
                                                conjecture_shape thm_names frees)
       |> snd
   in
@@ -722,7 +722,7 @@ val join_proofs =
         else if forall (curry (op =) (hd proof1) o hd) (tl proofs) then
           aux (hd proof1 :: proof_tail) (map tl proofs)
         else case hd proof1 of
-          Have ([], l, t, by) =>
+          Have ([], l, t, _) => (* FIXME: should we really ignore the "by"? *)
           if forall (fn Have ([], l', t', _) :: _ => (l, t) = (l', t')
                       | _ => false) (tl proofs) andalso
              not (exists (member (op =) (maps new_labels_of proofs))
@@ -755,7 +755,7 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
         first_pass (proof, contra) |>> cons step
       | first_pass ((step as Let _) :: proof, contra) =
         first_pass (proof, contra) |>> cons step
-      | first_pass ((step as Assume (l as (_, num), t)) :: proof, contra) =
+      | first_pass ((step as Assume (l as (_, num), _)) :: proof, contra) =
         if member (op =) concl_ls l then
           first_pass (proof, contra ||> l = hd concl_ls ? cons step)
         else
@@ -991,6 +991,13 @@ fun string_for_proof ctxt full_types i n =
         do_steps "" "" 1 proof ^
         do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
   in do_proof end
+
+fun strip_subgoal goal i =
+  let
+    val (t, frees) = Logic.goal_params (prop_of goal) i
+    val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
+    val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
+  in (rev (map dest_Free frees), hyp_ts, concl_t) end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
                     (other_params as (full_types, _, atp_proof, thm_names, goal,

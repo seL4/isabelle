@@ -110,33 +110,39 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
 
 fun shape_of_clauses _ [] = []
   | shape_of_clauses j ([] :: clauses) = [] :: shape_of_clauses j clauses
-  | shape_of_clauses j ((lit :: lits) :: clauses) =
+  | shape_of_clauses j ((_ :: lits) :: clauses) =
     let val shape = shape_of_clauses (j + 1) (lits :: clauses) in
       (j :: hd shape) :: tl shape
     end
 
-fun generic_prover overlord get_facts prepare write_file home_var executable
-        args proof_delims known_failures name
-        ({debug, full_types, explicit_apply, isar_proof, isar_shrink_factor,
-         ...} : params) minimize_command
+(* generic TPTP-based provers *)
+
+fun generic_tptp_prover
+        (name, {home_var, executable, arguments, proof_delims, known_failures,
+                max_axiom_clauses, prefers_theory_relevant})
+        ({debug, overlord, full_types, explicit_apply, respect_no_atp,
+          relevance_threshold, relevance_convergence, theory_relevant,
+          defs_relevant, isar_proof, isar_shrink_factor, ...} : params)
+        minimize_command timeout
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
     (* get clauses and prepare them for writing *)
-    val (ctxt, (chained_ths, th)) = goal;
+    val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
     val goal_clss = #1 (neg_conjecture_clauses ctxt th subgoal)
     val goal_cls = List.concat goal_clss
     val the_filtered_clauses =
       (case filtered_clauses of
-        NONE => get_facts relevance_override goal goal_cls
+        NONE => relevant_facts full_types respect_no_atp relevance_threshold
+                    relevance_convergence defs_relevant max_axiom_clauses
+                    (the_default prefers_theory_relevant theory_relevant)
+                    relevance_override goal goal_cls
       | SOME fcls => fcls);
-    val the_axiom_clauses =
-      (case axiom_clauses of
-        NONE => the_filtered_clauses
-      | SOME axcls => axcls);
+    val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
-      prepare goal_cls chained_ths the_axiom_clauses the_filtered_clauses thy;
+      prepare_clauses full_types goal_cls the_axiom_clauses the_filtered_clauses
+                      thy
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -161,10 +167,10 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
     fun command_line probfile =
       (if Config.get ctxt measure_runtime then
          "TIMEFORMAT='%3U'; { time " ^
-         space_implode " " [File.shell_path command, args,
+         space_implode " " [File.shell_path command, arguments timeout,
                             File.shell_path probfile] ^ " ; } 2>&1"
        else
-         space_implode " " ["exec", File.shell_path command, args,
+         space_implode " " ["exec", File.shell_path command, arguments timeout,
                             File.shell_path probfile, "2>&1"]) ^
       (if overlord then
          " | sed 's/,/, /g' \
@@ -189,7 +195,8 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
       if Config.get ctxt measure_runtime then split_time s else (s, 0)
     fun run_on probfile =
       if File.exists command then
-        write_file full_types explicit_apply probfile clauses
+        write_tptp_file (debug andalso overlord) full_types explicit_apply
+                        probfile clauses
         |> pair (apfst split_time' (bash_output (command_line probfile)))
       else if home = "" then
         error ("The environment variable " ^ quote home_var ^ " is not set.")
@@ -233,26 +240,7 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
      proof = proof, internal_thm_names = internal_thm_names,
      conjecture_shape = conjecture_shape,
      filtered_clauses = the_filtered_clauses}
-  end;
-
-
-(* generic TPTP-based provers *)
-
-fun generic_tptp_prover
-        (name, {home_var, executable, arguments, proof_delims, known_failures,
-                max_axiom_clauses, prefers_theory_relevant})
-        (params as {debug, overlord, full_types, respect_no_atp,
-                    relevance_threshold, relevance_convergence, theory_relevant,
-                    defs_relevant, isar_proof, ...})
-        minimize_command timeout =
-  generic_prover overlord
-      (relevant_facts full_types respect_no_atp relevance_threshold
-                      relevance_convergence defs_relevant max_axiom_clauses
-                      (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses false full_types)
-      (write_tptp_file (debug andalso overlord)) home_var
-      executable (arguments timeout) proof_delims known_failures name params
-      minimize_command
+  end
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
@@ -313,31 +301,14 @@ val e = tptp_prover "e" e_config
 
 (* SPASS *)
 
-fun generic_dfg_prover
-        (name, {home_var, executable, arguments, proof_delims, known_failures,
-                max_axiom_clauses, prefers_theory_relevant})
-        (params as {overlord, full_types, respect_no_atp, relevance_threshold,
-                    relevance_convergence, theory_relevant, defs_relevant, ...})
-        minimize_command timeout =
-  generic_prover overlord
-      (relevant_facts full_types respect_no_atp relevance_threshold
-                      relevance_convergence defs_relevant max_axiom_clauses
-                      (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses true full_types) write_dfg_file home_var executable
-      (arguments timeout) proof_delims known_failures name params
-      minimize_command
-
-fun dfg_prover name p = (name, generic_dfg_prover (name, p))
-
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
-fun generic_spass_config dfg : prover_config =
+val spass_config : prover_config =
   {home_var = "SPASS_HOME",
    executable = "SPASS",
    arguments = fn timeout =>
-     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout)
-     |> not dfg ? prefix "-TPTP ",
+     "-TPTP -Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
+     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(IncompleteUnprovable, "SPASS beiseite: Completion found"),
@@ -349,10 +320,6 @@ fun generic_spass_config dfg : prover_config =
       (OldSpass, "Unrecognized option TPTP")],
    max_axiom_clauses = 40,
    prefers_theory_relevant = true}
-val spass_dfg_config = generic_spass_config true
-val spass_dfg = dfg_prover "spass_dfg" spass_dfg_config
-
-val spass_config = generic_spass_config false
 val spass = tptp_prover "spass" spass_config
 
 (* remote prover invocation via SystemOnTPTP *)
@@ -414,8 +381,7 @@ fun default_atps_param_value () =
   space_implode " " [maybe_remote e e_config, maybe_remote spass spass_config,
                      remotify (fst vampire)]
 
-val provers =
-  [spass, spass_dfg, vampire, e, remote_vampire, remote_spass, remote_e]
+val provers = [spass, vampire, e, remote_vampire, remote_spass, remote_e]
 val prover_setup = fold add_prover provers
 
 val setup =

@@ -58,7 +58,6 @@ fun del_from_relevance_override ns : relevance_override =
   {add = [], del = ns, only = false}
 fun only_relevance_override ns : relevance_override =
   {add = ns, del = [], only = true}
-val no_relevance_override = add_to_relevance_override []
 fun merge_relevance_override_pairwise (r1 : relevance_override)
                                       (r2 : relevance_override) =
   {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
@@ -166,7 +165,7 @@ fun default_raw_params thy =
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
-fun extract_params thy default_params override_params =
+fun extract_params default_params override_params =
   let
     val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
@@ -216,7 +215,7 @@ fun extract_params thy default_params override_params =
      timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
-fun get_params thy = extract_params thy (default_raw_params thy)
+fun get_params thy = extract_params (default_raw_params thy)
 fun default_params thy = get_params thy o map (apsnd single)
 
 val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
@@ -264,7 +263,6 @@ val available_atpsN = "available_atps"
 val running_atpsN = "running_atps"
 val kill_atpsN = "kill_atps"
 val refresh_tptpN = "refresh_tptp"
-val helpN = "help"
 
 fun minimizize_raw_param_name "timeout" = "minimize_timeout"
   | minimizize_raw_param_name name = name

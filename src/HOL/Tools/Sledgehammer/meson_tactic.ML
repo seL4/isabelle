@@ -17,11 +17,11 @@ struct
 open Sledgehammer_Fact_Preprocessor
 
 (*Expand all new definitions of abstraction or Skolem functions in a proof state.*)
-fun is_absko (Const (@{const_name "=="}, _) $ Free (a, _) $ u) =
+fun is_absko (Const (@{const_name "=="}, _) $ Free (a, _) $ _) =
     String.isPrefix skolem_prefix a
   | is_absko _ = false;
 
-fun is_okdef xs (Const (@{const_name "=="}, _) $ t $ u) =   (*Definition of Free, not in certain terms*)
+fun is_okdef xs (Const (@{const_name "=="}, _) $ t $ _) =   (*Definition of Free, not in certain terms*)
       is_Free t andalso not (member (op aconv) xs t)
   | is_okdef _ _ = false
 

@@ -14,14 +14,19 @@ begin
 ML {*
 exception FAIL
 
-(* int -> term -> string *)
+val has_kodkodi = (getenv "KODKODI" <> "")
+
 fun minipick n t =
   map (fn k => Minipick.kodkod_problem_from_term @{context} (K k) t) (1 upto n)
   |> Minipick.solve_any_kodkod_problem @{theory}
-(* int -> term -> bool *)
-fun none n t = (minipick n t = "none" orelse raise FAIL)
-fun genuine n t = (minipick n t = "genuine" orelse raise FAIL)
-fun unknown n t = (minipick n t = "unknown" orelse raise FAIL)
+fun minipick_expect expect n t =
+  if has_kodkodi then
+    if minipick n t = expect then () else raise FAIL
+  else
+    ()
+val none = minipick_expect "none"
+val genuine = minipick_expect "genuine"
+val unknown = minipick_expect "unknown"
 *}
 
 ML {* genuine 1 @{prop "x = Not"} *}

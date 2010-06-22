@@ -58,7 +58,7 @@ fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
 (* Finding the relative location of an untyped term within a list of terms *)
 fun get_index lit =
   let val lit = Envir.eta_contract lit
-      fun get n [] = raise Empty
+      fun get _ [] = raise Empty
         | get n (x::xs) = if untyped_aconv lit (Envir.eta_contract (HOLogic.dest_Trueprop x))
                           then n  else get (n+1) xs
   in get 1 end;
@@ -238,7 +238,7 @@ fun fol_type_to_isa _ (Metis.Term.Var v) =
         | NONE    => raise Fail ("fol_type_to_isa: " ^ x));
 
 fun reveal_skolem_somes skolem_somes =
-  map_aterms (fn t as Const (s, T) =>
+  map_aterms (fn t as Const (s, _) =>
                  if String.isPrefix skolem_theory_name s then
                    AList.lookup (op =) skolem_somes s
                    |> the |> map_types Type_Infer.paramify_vars
@@ -348,8 +348,7 @@ fun hol_term_from_fol FT = hol_term_from_fol_FT
   | hol_term_from_fol _ = hol_term_from_fol_PT
 
 fun hol_terms_from_fol ctxt mode skolem_somes fol_tms =
-  let val thy = ProofContext.theory_of ctxt
-      val ts = map (hol_term_from_fol mode ctxt) fol_tms
+  let val ts = map (hol_term_from_fol mode ctxt) fol_tms
       val _ = trace_msg (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg (fn () => Syntax.string_of_term ctxt t)) ts
       val ts' = ts |> map (reveal_skolem_somes skolem_somes) |> infer_types ctxt
@@ -694,11 +693,10 @@ fun build_map mode0 ctxt cls ths =
             tfrees = union (op =) tfree_lits tfrees,
             skolem_somes = skolem_somes}
         end;
-      val lmap as {skolem_somes, ...} =
-        {axioms = [], tfrees = init_tfrees ctxt, skolem_somes = []}
-        |> fold (add_thm true) cls
-        |> add_tfrees
-        |> fold (add_thm false) ths
+      val lmap = {axioms = [], tfrees = init_tfrees ctxt, skolem_somes = []}
+                 |> fold (add_thm true) cls
+                 |> add_tfrees
+                 |> fold (add_thm false) ths
       val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
       fun is_used c =
         exists (Metis.LiteralSet.exists (const_in_metis c o #2)) clause_lists
