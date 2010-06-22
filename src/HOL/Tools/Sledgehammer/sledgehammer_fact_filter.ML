@@ -255,17 +255,12 @@ fun take_best max_new (newpairs : (annotated_clause * real) list) =
       end
   end;
 
-fun cnf_for_facts ctxt =
-  let val thy = ProofContext.theory_of ctxt in
-    maps (maps (cnf_axiom thy) o ProofContext.get_fact ctxt)
-  end
-
 fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                      ({add, del, ...} : relevance_override) ctab =
   let
     val thy = ProofContext.theory_of ctxt
-    val add_thms = cnf_for_facts ctxt add
-    val del_thms = cnf_for_facts ctxt del
+    val add_thms = maps (ProofContext.get_fact ctxt) add
+    val del_thms = maps (ProofContext.get_fact ctxt) del
     fun iter threshold rel_consts =
       let
         fun relevant ([], _) [] = []  (* Nothing added this iteration *)
@@ -283,11 +278,11 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                   (more_rejects @ rejects)
             end
           | relevant (newrels, rejects)
-                     ((ax as (clsthm as (thm, ((name, n), _)), consts_typs)) ::
-                      axs) =
+                     ((ax as (clsthm as (thm, ((name, n), orig_th)),
+                              consts_typs)) :: axs) =
             let
-              val weight = if member Thm.eq_thm add_thms thm then 1.0
-                           else if member Thm.eq_thm del_thms thm then 0.0
+              val weight = if member Thm.eq_thm add_thms orig_th then 1.0
+                           else if member Thm.eq_thm del_thms orig_th then 0.0
                            else clause_weight ctab rel_consts consts_typs
             in
               if weight >= threshold orelse
@@ -525,12 +520,10 @@ fun is_dangerous_term _ @{prop True} = true
     (has_typed_var dangerous_types t orelse
      forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t)))
 
-fun is_dangerous_theorem full_types add_thms thm =
-  not (member Thm.eq_thm add_thms thm) andalso
-  is_dangerous_term full_types (prop_of thm)
-
 fun remove_dangerous_clauses full_types add_thms =
-  filter_out (is_dangerous_theorem full_types add_thms o fst)
+  filter_out (fn (cnf_th, (_, orig_th)) =>
+                 not (member Thm.eq_thm add_thms orig_th) andalso
+                 is_dangerous_term full_types (prop_of cnf_th))
 
 fun is_fol_goal thy = forall (Meson.is_fol_term thy) o map prop_of
 
@@ -552,8 +545,11 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
         |> cnf_rules_pairs thy
         |> not has_override ? make_unique
         |> not only ? restrict_to_logic thy is_FO
-        |> (if only then I
-            else remove_dangerous_clauses full_types (cnf_for_facts ctxt add))
+        |> (if only then
+              I
+            else
+              remove_dangerous_clauses full_types
+                                       (maps (ProofContext.get_fact ctxt) add))
     in
       relevance_filter ctxt relevance_threshold relevance_convergence
                        defs_relevant max_new theory_relevant relevance_override
