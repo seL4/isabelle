@@ -47,8 +47,8 @@ fun string_for_failure Unprovable = "Unprovable."
 fun string_for_outcome NONE = "Success."
   | string_for_outcome (SOME failure) = string_for_failure failure
 
-fun sledgehammer_test_theorems (params as {full_types, ...} : params) prover
-        timeout subgoal state filtered_clauses name_thms_pairs =
+fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
+                               filtered_clauses name_thms_pairs =
   let
     val num_theorems = length name_thms_pairs
     val _ = priority ("Testing " ^ string_of_int num_theorems ^
@@ -88,7 +88,7 @@ fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
         (result as {outcome = NONE, ...}) => SOME result
       | _ => NONE
 
-    val {context = ctxt, facts, goal} = Proof.goal state;
+    val {context = ctxt, goal, ...} = Proof.goal state;
   in
     (* try prove first to check result and get used theorems *)
     (case test_thms_fun NONE name_thms_pairs of

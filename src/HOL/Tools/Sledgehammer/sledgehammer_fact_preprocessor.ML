@@ -21,9 +21,8 @@ sig
   val cnf_rules_pairs:
     theory -> (string * thm) list -> (thm * (string * int)) list
   val saturate_skolem_cache: theory -> theory option
-  val use_skolem_cache: bool Unsynchronized.ref
+  val auto_saturate_skolem_cache: bool Unsynchronized.ref
     (* for emergency use where the Skolem cache causes problems *)
-  val strip_subgoal : thm -> int -> (string * typ) list * term list * term
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
@@ -133,7 +132,7 @@ fun declare_skolem_funs s th thy =
       | dec_sko (@{const "op &"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const "op |"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const Trueprop} $ p) thx = dec_sko p thx
-      | dec_sko t thx = thx
+      | dec_sko _ thx = thx
   in dec_sko (prop_of th) ([], thy) end
 
 fun mk_skolem_id t =
@@ -168,7 +167,7 @@ fun assume_skolem_funs inline s th =
       | dec_sko (@{const "op &"} $ p $ q) defs = dec_sko q (dec_sko p defs)
       | dec_sko (@{const "op |"} $ p $ q) defs = dec_sko q (dec_sko p defs)
       | dec_sko (@{const Trueprop} $ p) defs = dec_sko p defs
-      | dec_sko t defs = defs (*Do nothing otherwise*)
+      | dec_sko _ defs = defs
   in  dec_sko (prop_of th) []  end;
 
 
@@ -520,22 +519,11 @@ fun saturate_skolem_cache thy =
 
 end;
 
-val use_skolem_cache = Unsynchronized.ref true
+val auto_saturate_skolem_cache = Unsynchronized.ref true
 
-fun clause_cache_endtheory thy =
-  if !use_skolem_cache then saturate_skolem_cache thy else NONE
+fun conditionally_saturate_skolem_cache thy =
+  if !auto_saturate_skolem_cache then saturate_skolem_cache thy else NONE
 
-
-(* The cache can be kept smaller by inspecting the prop of each thm. Can ignore
-   all that are quasi-lambda-free, but then the individual theory caches become
-   much bigger. *)
-
-fun strip_subgoal goal i =
-  let
-    val (t, frees) = Logic.goal_params (prop_of goal) i
-    val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
-    val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
-  in (rev (map dest_Free frees), hyp_ts, concl_t) end
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
@@ -574,7 +562,7 @@ fun neg_clausify_tac ctxt =
 (** setup **)
 
 val setup =
-  perhaps saturate_skolem_cache
-  #> Theory.at_end clause_cache_endtheory
+  perhaps conditionally_saturate_skolem_cache
+  #> Theory.at_end conditionally_saturate_skolem_cache
 
 end;

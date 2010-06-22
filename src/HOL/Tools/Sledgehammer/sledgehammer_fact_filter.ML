@@ -27,8 +27,7 @@ sig
     -> Proof.context * (thm list * 'a) -> thm list
     -> (thm * (string * int)) list
   val prepare_clauses :
-    bool -> bool -> thm list -> thm list
-    -> (thm * (axiom_name * hol_clause_id)) list
+    bool -> thm list -> (thm * (axiom_name * hol_clause_id)) list
     -> (thm * (axiom_name * hol_clause_id)) list -> theory
     -> axiom_name vector
        * (hol_clause list * hol_clause list * hol_clause list *
@@ -265,7 +264,7 @@ fun cnf_for_facts ctxt =
   end
 
 fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
-                     (relevance_override as {add, del, only}) ctab =
+                     ({add, del, ...} : relevance_override) ctab =
   let
     val thy = ProofContext.theory_of ctxt
     val add_thms = cnf_for_facts ctxt add
@@ -398,7 +397,7 @@ fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
 fun multi_name a th (n, pairs) =
   (n + 1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs);
 
-fun add_names (a, []) pairs = pairs
+fun add_names (_, []) pairs = pairs
   | add_names (a, [th]) pairs = (a, th) :: pairs
   | add_names (a, ths) pairs = #2 (fold (multi_name a) ths (1, pairs))
 
@@ -478,7 +477,7 @@ fun is_quasi_fol_term thy =
 (*Ensures that no higher-order theorems "leak out"*)
 fun restrict_to_logic thy true cls =
     filter (is_quasi_fol_term thy o prop_of o fst) cls
-  | restrict_to_logic thy false cls = cls;
+  | restrict_to_logic _ false cls = cls
 
 (**** Predicates to detect unwanted clauses (prolific or likely to cause
       unsoundness) ****)
@@ -566,7 +565,7 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
-fun prepare_clauses dfg full_types goal_cls chained_ths axcls extra_cls thy =
+fun prepare_clauses full_types goal_cls axcls extra_cls thy =
   let
     val is_FO = is_fol_goal thy goal_cls
     val ccls = subtract_cls extra_cls goal_cls
@@ -577,12 +576,12 @@ fun prepare_clauses dfg full_types goal_cls chained_ths axcls extra_cls thy =
     and supers = tvar_classes_of_terms axtms
     and tycons = type_consts_of_terms thy (ccltms @ axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val conjectures = make_conjecture_clauses dfg thy ccls
-    val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses dfg thy extra_cls)
-    val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses dfg thy axcls)
+    val conjectures = make_conjecture_clauses thy ccls
+    val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses thy extra_cls)
+    val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses thy axcls)
     val helper_clauses =
-      get_helper_clauses dfg thy is_FO full_types conjectures extra_cls
-    val (supers', arity_clauses) = make_arity_clauses_dfg dfg thy tycons supers
+      get_helper_clauses thy is_FO full_types conjectures extra_cls
+    val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val classrel_clauses = make_classrel_clauses thy subs supers'
   in
     (Vector.fromList clnames,

@@ -32,17 +32,15 @@ sig
   val conceal_skolem_somes :
     int -> (string * term) list -> term -> (string * term) list * term
   exception TRIVIAL
-  val make_conjecture_clauses : bool -> theory -> thm list -> hol_clause list
-  val make_axiom_clauses : bool -> theory ->
-       (thm * (axiom_name * hol_clause_id)) list -> (axiom_name * hol_clause) list
+  val make_conjecture_clauses : theory -> thm list -> hol_clause list
+  val make_axiom_clauses :
+    theory -> (thm * (axiom_name * hol_clause_id)) list
+    -> (axiom_name * hol_clause) list
   val type_wrapper_name : string
   val get_helper_clauses :
-    bool -> theory -> bool -> bool -> hol_clause list
-      -> (thm * (axiom_name * hol_clause_id)) list -> hol_clause list
+    theory -> bool -> bool -> hol_clause list
+    -> (thm * (axiom_name * hol_clause_id)) list -> hol_clause list
   val write_tptp_file : bool -> bool -> bool -> Path.T ->
-    hol_clause list * hol_clause list * hol_clause list * hol_clause list *
-    classrel_clause list * arity_clause list -> name_pool option * int
-  val write_dfg_file : bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list -> name_pool option * int
 end
@@ -98,65 +96,66 @@ fun isTrue (Literal (pol, CombConst ((c, _), _, _))) =
 
 fun isTaut (HOLClause {literals,...}) = exists isTrue literals;
 
-fun type_of dfg (Type (a, Ts)) =
-    let val (folTypes,ts) = types_of dfg Ts in
-      (TyConstr (`(make_fixed_type_const dfg) a, folTypes), ts)
+fun type_of (Type (a, Ts)) =
+    let val (folTypes,ts) = types_of Ts in
+      (TyConstr (`make_fixed_type_const a, folTypes), ts)
     end
-  | type_of _ (tp as TFree (a, _)) = (TyFree (`make_fixed_type_var a), [tp])
-  | type_of _ (tp as TVar (x, _)) =
+  | type_of (tp as TFree (a, _)) = (TyFree (`make_fixed_type_var a), [tp])
+  | type_of (tp as TVar (x, _)) =
     (TyVar (make_schematic_type_var x, string_of_indexname x), [tp])
-and types_of dfg Ts =
-      let val (folTyps,ts) = ListPair.unzip (map (type_of dfg) Ts)
-      in  (folTyps, union_all ts)  end;
+and types_of Ts =
+    let val (folTyps, ts) = ListPair.unzip (map type_of Ts) in
+      (folTyps, union_all ts)
+    end
 
 (* same as above, but no gathering of sort information *)
-fun simp_type_of dfg (Type (a, Ts)) =
-      TyConstr (`(make_fixed_type_const dfg) a, map (simp_type_of dfg) Ts)
-  | simp_type_of _ (TFree (a, _)) = TyFree (`make_fixed_type_var a)
-  | simp_type_of _ (TVar (x, _)) =
-    TyVar (make_schematic_type_var x, string_of_indexname x);
+fun simp_type_of (Type (a, Ts)) =
+      TyConstr (`make_fixed_type_const a, map simp_type_of Ts)
+  | simp_type_of (TFree (a, _)) = TyFree (`make_fixed_type_var a)
+  | simp_type_of (TVar (x, _)) =
+    TyVar (make_schematic_type_var x, string_of_indexname x)
 
 
 (* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
-fun combterm_of dfg thy (Const (c, T)) =
+fun combterm_of thy (Const (c, T)) =
       let
-        val (tp, ts) = type_of dfg T
+        val (tp, ts) = type_of T
         val tvar_list =
           (if String.isPrefix skolem_theory_name c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
-          |> map (simp_type_of dfg)
-        val c' = CombConst (`(make_fixed_const dfg) c, tp, tvar_list)
+          |> map simp_type_of
+        val c' = CombConst (`make_fixed_const c, tp, tvar_list)
       in  (c',ts)  end
-  | combterm_of dfg _ (Free(v, T)) =
-      let val (tp,ts) = type_of dfg T
+  | combterm_of _ (Free(v, T)) =
+      let val (tp,ts) = type_of T
           val v' = CombConst (`make_fixed_var v, tp, [])
       in  (v',ts)  end
-  | combterm_of dfg _ (Var(v, T)) =
-      let val (tp,ts) = type_of dfg T
+  | combterm_of _ (Var(v, T)) =
+      let val (tp,ts) = type_of T
           val v' = CombVar ((make_schematic_var v, string_of_indexname v), tp)
       in  (v',ts)  end
-  | combterm_of dfg thy (P $ Q) =
-      let val (P',tsP) = combterm_of dfg thy P
-          val (Q',tsQ) = combterm_of dfg thy Q
-      in  (CombApp(P',Q'), union (op =) tsP tsQ)  end
-  | combterm_of _ _ (t as Abs _) = raise CLAUSE ("HOL clause", t);
+  | combterm_of thy (P $ Q) =
+      let val (P', tsP) = combterm_of thy P
+          val (Q', tsQ) = combterm_of thy Q
+      in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
+  | combterm_of _ (t as Abs _) = raise CLAUSE ("HOL clause", t)
 
-fun predicate_of dfg thy ((@{const Not} $ P), polarity) = predicate_of dfg thy (P, not polarity)
-  | predicate_of dfg thy (t,polarity) = (combterm_of dfg thy (Envir.eta_contract t), polarity);
+fun predicate_of thy ((@{const Not} $ P), polarity) =
+    predicate_of thy (P, not polarity)
+  | predicate_of thy (t, polarity) =
+    (combterm_of thy (Envir.eta_contract t), polarity)
 
-fun literals_of_term1 dfg thy args (@{const Trueprop} $ P) = literals_of_term1 dfg thy args P
-  | literals_of_term1 dfg thy args (@{const "op |"} $ P $ Q) =
-      literals_of_term1 dfg thy (literals_of_term1 dfg thy args P) Q
-  | literals_of_term1 dfg thy (lits,ts) P =
-      let val ((pred,ts'),pol) = predicate_of dfg thy (P,true)
-      in
-          (Literal(pol,pred)::lits, union (op =) ts ts')
-      end;
-
-fun literals_of_term_dfg dfg thy P = literals_of_term1 dfg thy ([],[]) P;
-val literals_of_term = literals_of_term_dfg false;
+fun literals_of_term1 args thy (@{const Trueprop} $ P) =
+    literals_of_term1 args thy P
+  | literals_of_term1 args thy (@{const "op |"} $ P $ Q) =
+    literals_of_term1 (literals_of_term1 args thy P) thy Q
+  | literals_of_term1 (lits, ts) thy P =
+    let val ((pred, ts'), pol) = predicate_of thy (P, true) in
+      (Literal (pol, pred) :: lits, union (op =) ts ts')
+    end
+val literals_of_term = literals_of_term1 ([], [])
 
 fun skolem_name i j num_T_args =
   skolem_prefix ^ (space_implode "_" (map Int.toString [i, j, num_T_args])) ^
@@ -199,11 +198,11 @@ fun conceal_skolem_somes i skolem_somes t =
 exception TRIVIAL;
 
 (* making axiom and conjecture clauses *)
-fun make_clause dfg thy (clause_id, axiom_name, kind, th) skolem_somes =
+fun make_clause thy (clause_id, axiom_name, kind, th) skolem_somes =
   let
     val (skolem_somes, t) =
       th |> prop_of |> conceal_skolem_somes clause_id skolem_somes
-    val (lits, ctypes_sorts) = literals_of_term_dfg dfg thy t
+    val (lits, ctypes_sorts) = literals_of_term thy t
   in
     if forall isFalse lits then
       raise TRIVIAL
@@ -213,29 +212,26 @@ fun make_clause dfg thy (clause_id, axiom_name, kind, th) skolem_somes =
                   kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
   end
 
-fun add_axiom_clause dfg thy (th, (name, id)) (skolem_somes, clss) =
+fun add_axiom_clause thy (th, (name, id)) (skolem_somes, clss) =
   let
-    val (skolem_somes, cls) =
-      make_clause dfg thy (id, name, Axiom, th) skolem_somes
+    val (skolem_somes, cls) = make_clause thy (id, name, Axiom, th) skolem_somes
   in (skolem_somes, clss |> not (isTaut cls) ? cons (name, cls)) end
 
-fun make_axiom_clauses dfg thy clauses =
-  ([], []) |> fold (add_axiom_clause dfg thy) clauses |> snd
+fun make_axiom_clauses thy clauses =
+  ([], []) |> fold (add_axiom_clause thy) clauses |> snd
 
-fun make_conjecture_clauses dfg thy =
+fun make_conjecture_clauses thy =
   let
     fun aux _ _ [] = []
       | aux n skolem_somes (th :: ths) =
         let
           val (skolem_somes, cls) =
-            make_clause dfg thy (n, "conjecture", Conjecture, th) skolem_somes
+            make_clause thy (n, "conjecture", Conjecture, th) skolem_somes
         in cls :: aux (n + 1) skolem_somes ths end
   in aux 0 [] end
 
 (**********************************************************************)
-(* convert clause into ATP specific formats:                          *)
-(* TPTP used by Vampire and E                                         *)
-(* DFG used by SPASS                                                  *)
+(* convert clause into TPTP format                                    *)
 (**********************************************************************)
 
 (*Result of a function type; no need to check that the argument type matches.*)
@@ -315,17 +311,11 @@ fun boolify params c =
   string_of_combterm params c #>> prefix "hBOOL" o paren_pack o single
 
 fun string_of_predicate (params as (_, explicit_apply, _, cnh)) t =
-  case t of
-    (CombApp (CombApp (CombConst (("equal", _), _, _), t1), t2)) =>
-    (* DFG only: new TPTP prefers infix equality *)
-    pool_map (string_of_combterm params) [t1, t2]
-    #>> prefix "equal" o paren_pack
-  | _ =>
-    case #1 (strip_combterm_comb t) of
-      CombConst ((s, _), _, _) =>
-      (if needs_hBOOL explicit_apply cnh s then boolify else string_of_combterm)
-          params t
-    | _ => boolify params t
+  case #1 (strip_combterm_comb t) of
+    CombConst ((s, _), _, _) =>
+    (if needs_hBOOL explicit_apply cnh s then boolify else string_of_combterm)
+        params t
+  | _ => boolify params t
 
 
 (*** TPTP format ***)
@@ -353,101 +343,13 @@ fun tptp_type_literals params pos (HOLClause {literals, ctypes_sorts, ...})
 
 fun tptp_clause params (cls as HOLClause {axiom_name, clause_id, kind, ...})
                 pool =
-let
+  let
     val ((lits, tylits), pool) =
       tptp_type_literals params (kind = Conjecture) cls pool
   in
     ((gen_tptp_cls (clause_id, axiom_name, kind, lits, tylits), tylits), pool)
   end
 
-
-(*** DFG format ***)
-
-fun dfg_literal params (Literal (pos, pred)) =
-  string_of_predicate params pred #>> dfg_sign pos
-
-fun dfg_type_literals params pos (HOLClause {literals, ctypes_sorts, ...}) =
-  pool_map (dfg_literal params) literals
-  #>> rpair (map (dfg_of_type_literal pos)
-                 (type_literals_for_types ctypes_sorts))
-
-fun get_uvars (CombConst _) vars pool = (vars, pool)
-  | get_uvars (CombVar (name, _)) vars pool =
-    nice_name name pool |>> (fn var => var :: vars)
-  | get_uvars (CombApp (P, Q)) vars pool =
-    let val (vars, pool) = get_uvars P vars pool in get_uvars Q vars pool end
-
-fun get_uvars_l (Literal (_, c)) = get_uvars c [];
-
-fun dfg_vars (HOLClause {literals, ...}) =
-  pool_map get_uvars_l literals #>> union_all
-
-fun dfg_clause params (cls as HOLClause {axiom_name, clause_id, kind,
-                                         ctypes_sorts, ...}) pool =
-  let
-    val ((lits, tylits), pool) =
-      dfg_type_literals params (kind = Conjecture) cls pool
-    val (vars, pool) = dfg_vars cls pool
-    val tvars = get_tvar_strs ctypes_sorts
-  in
-    ((gen_dfg_cls (clause_id, axiom_name, kind, lits, tylits, tvars @ vars),
-      tylits), pool)
-  end
-
-
-(** For DFG format: accumulate function and predicate declarations **)
-
-fun add_types tvars = fold add_fol_type_funcs tvars
-
-fun add_decls (full_types, explicit_apply, cma, cnh)
-              (CombConst ((c, _), ctp, tvars)) (funcs, preds) =
-      (if c = "equal" then
-         (add_types tvars funcs, preds)
-       else
-         let val arity = min_arity_of cma c
-             val ntys = if not full_types then length tvars else 0
-             val addit = Symtab.update(c, arity + ntys)
-         in
-             if needs_hBOOL explicit_apply cnh c then
-               (add_types tvars (addit funcs), preds)
-             else
-               (add_types tvars funcs, addit preds)
-         end) |>> full_types ? add_fol_type_funcs ctp
-  | add_decls _ (CombVar (_, ctp)) (funcs, preds) =
-      (add_fol_type_funcs ctp funcs, preds)
-  | add_decls params (CombApp (P, Q)) decls =
-      decls |> add_decls params P |> add_decls params Q
-
-fun add_literal_decls params (Literal (_, c)) = add_decls params c
-
-fun add_clause_decls params (HOLClause {literals, ...}) decls =
-    fold (add_literal_decls params) literals decls
-    handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
-
-fun decls_of_clauses (params as (full_types, explicit_apply, _, _)) clauses
-                     arity_clauses =
-  let
-    val functab =
-      init_functab
-      |> fold Symtab.update [(type_wrapper_name, 2), ("hAPP", 2),
-                             ("tc_bool", 0)]
-      val predtab = Symtab.empty |> Symtab.update ("hBOOL", 1)
-      val (functab, predtab) =
-        (functab, predtab) |> fold (add_clause_decls params) clauses
-                           |>> fold add_arity_clause_funcs arity_clauses
-  in (Symtab.dest functab, Symtab.dest predtab) end
-
-fun add_clause_preds (HOLClause {ctypes_sorts, ...}) preds =
-  fold add_type_sort_preds ctypes_sorts preds
-  handle Symtab.DUP a => error ("predicate " ^ a ^ " has multiple arities")
-
-(*Higher-order clauses have only the predicates hBOOL and type classes.*)
-fun preds_of_clauses clauses clsrel_clauses arity_clauses =
-  Symtab.empty
-  |> fold add_clause_preds clauses
-  |> fold add_arity_clause_preds arity_clauses
-  |> fold add_classrel_clause_preds clsrel_clauses
-  |> Symtab.dest
 
 (**********************************************************************)
 (* write clauses to files                                             *)
@@ -480,9 +382,9 @@ val init_counters =
   Symtab.make (maps (maps (map (rpair 0) o fst))
                     [optional_helpers, optional_typed_helpers])
 
-fun get_helper_clauses dfg thy is_FO full_types conjectures axcls =
+fun get_helper_clauses thy is_FO full_types conjectures axcls =
   let
-    val axclauses = map snd (make_axiom_clauses dfg thy axcls)
+    val axclauses = map snd (make_axiom_clauses thy axcls)
     val ct = fold (fold count_clause) [conjectures, axclauses] init_counters
     fun is_needed c = the (Symtab.lookup ct c) > 0
     val cnfs =
@@ -492,7 +394,7 @@ fun get_helper_clauses dfg thy is_FO full_types conjectures axcls =
                    if exists is_needed ss then cnf_helper_thms thy raw ths
                    else []))
       @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
-  in map snd (make_axiom_clauses dfg thy cnfs) end
+  in map snd (make_axiom_clauses thy cnfs) end
 
 (*Find the minimal arity of each function mentioned in the term. Also, note which uses
   are not at top level, to see if hBOOL is needed.*)
@@ -521,7 +423,7 @@ fun count_constants_clause (HOLClause {literals, ...})
                            (const_min_arity, const_needs_hBOOL) =
   fold count_constants_lit literals (const_min_arity, const_needs_hBOOL);
 
-fun display_arity explicit_apply const_needs_hBOOL (c,n) =
+fun display_arity explicit_apply const_needs_hBOOL (c, n) =
   trace_msg (fn () => "Constant: " ^ c ^
                 " arity:\t" ^ Int.toString n ^
                 (if needs_hBOOL explicit_apply const_needs_hBOOL c then
@@ -540,10 +442,6 @@ fun count_constants explicit_apply
                  (Symtab.dest (const_min_arity))
      in (const_min_arity, const_needs_hBOOL) end
   else (Symtab.empty, Symtab.empty);
-
-fun header () =
-  "% This file was generated by Isabelle (most likely Sledgehammer)\n" ^
-  "% " ^ timestamp () ^ "\n"
 
 (* TPTP format *)
 
@@ -572,62 +470,14 @@ fun write_tptp_file readable_names full_types explicit_apply file clauses =
       + length helper_clss
     val _ =
       File.write_list file
-          (header () ::
+          ("% This file was generated by Isabelle (most likely Sledgehammer)\n\
+           \% " ^ timestamp () ^ "\n" ::
            section "Relevant fact" ax_clss @
            section "Class relationship" classrel_clss @
            section "Arity declaration" arity_clss @
            section "Helper fact" helper_clss @
            section "Conjecture" conjecture_clss @
            section "Type variable" tfree_clss)
-  in (pool, conjecture_offset) end
-
-(* DFG format *)
-
-fun dfg_tfree_predicate s = (first_field "(" s |> the |> fst, 1)
-
-fun write_dfg_file full_types explicit_apply file clauses =
-  let
-    (* Some of the helper functions below are not name-pool-aware. However,
-       there's no point in adding name pool support if the DFG format is on its
-       way out anyway. *)
-    val pool = NONE
-    val (conjectures, axclauses, _, helper_clauses,
-      classrel_clauses, arity_clauses) = clauses
-    val (cma, cnh) = count_constants explicit_apply clauses
-    val params = (full_types, explicit_apply, cma, cnh)
-    val ((conjecture_clss, tfree_litss), pool) =
-      pool_map (dfg_clause params) conjectures pool |>> ListPair.unzip
-    val tfree_lits = union_all tfree_litss
-    val problem_name = Path.implode (Path.base file)
-    val (axstrs, pool) = pool_map (apfst fst oo dfg_clause params) axclauses pool
-    val tfree_clss = map dfg_tfree_clause tfree_lits
-    val tfree_preds = map dfg_tfree_predicate tfree_lits
-    val (helper_clauses_strs, pool) =
-      pool_map (apfst fst oo dfg_clause params) helper_clauses pool
-    val (funcs, cl_preds) =
-      decls_of_clauses params (helper_clauses @ conjectures @ axclauses) arity_clauses
-    val ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
-    val preds = tfree_preds @ cl_preds @ ty_preds
-    val conjecture_offset =
-      length axclauses + length classrel_clauses + length arity_clauses
-      + length helper_clauses
-    val _ =
-      File.write_list file
-          (header () ::
-           string_of_start problem_name ::
-           string_of_descrip problem_name ::
-           string_of_symbols (string_of_funcs funcs)
-                             (string_of_preds preds) ::
-           "list_of_clauses(axioms, cnf).\n" ::
-           axstrs @
-           map dfg_classrel_clause classrel_clauses @
-           map dfg_arity_clause arity_clauses @
-           helper_clauses_strs @
-           ["end_of_list.\n\nlist_of_clauses(conjectures, cnf).\n"] @
-           conjecture_clss @
-           tfree_clss @
-           ["end_of_list.\n\n",
-            "end_problem.\n"])
   in (pool, conjecture_offset) end
 
 end;
