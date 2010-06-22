@@ -30,7 +30,7 @@ sig
   val literals_of_term : theory -> term -> literal list * typ list
   val conceal_skolem_somes :
     int -> (string * term) list -> term -> (string * term) list * term
-  exception TRIVIAL
+  exception TRIVIAL of unit
   val make_conjecture_clauses : theory -> thm list -> hol_clause list
   val make_axiom_clauses : theory -> cnf_thm list -> (string * hol_clause) list
   val type_wrapper_name : string
@@ -189,7 +189,7 @@ fun conceal_skolem_somes i skolem_somes t =
     (skolem_somes, t)
 
 (* Trivial problem, which resolution cannot handle (empty clause) *)
-exception TRIVIAL;
+exception TRIVIAL of unit
 
 (* making axiom and conjecture clauses *)
 fun make_clause thy (clause_id, axiom_name, kind, th) skolem_somes =
@@ -199,7 +199,7 @@ fun make_clause thy (clause_id, axiom_name, kind, th) skolem_somes =
     val (lits, ctypes_sorts) = literals_of_term thy t
   in
     if forall isFalse lits then
-      raise TRIVIAL
+      raise TRIVIAL ()
     else
       (skolem_somes,
        HOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,

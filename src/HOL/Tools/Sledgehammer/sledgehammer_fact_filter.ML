@@ -40,7 +40,7 @@ open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 
 (* Experimental feature: Filter theorems in natural form or in CNF? *)
-val use_natural_form = ref false
+val use_natural_form = Unsynchronized.ref false
 
 type relevance_override =
   {add: Facts.ref list,

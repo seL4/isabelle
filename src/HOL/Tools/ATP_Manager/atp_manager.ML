@@ -67,6 +67,7 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
+open Sledgehammer_HOL_Clause
 open Sledgehammer_Proof_Reconstruct
 
 (** problems, results, provers, etc. **)
@@ -355,7 +356,7 @@ fun start_prover_thread (params as {full_types, timeout, ...}) birth_time
            filtered_clauses = NONE}
         val message =
           #message (prover params (minimize_command name) timeout problem)
-          handle Sledgehammer_HOL_Clause.TRIVIAL => metis_line full_types i n []
+          handle TRIVIAL () => metis_line full_types i n []
                | ERROR message => "Error: " ^ message ^ "\n"
         val _ = unregister params message (Thread.self ());
       in () end)

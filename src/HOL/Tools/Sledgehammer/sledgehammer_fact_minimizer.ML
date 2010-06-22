@@ -20,6 +20,7 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_Fact_Preprocessor
+open Sledgehammer_HOL_Clause
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 
@@ -125,8 +126,7 @@ fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
                \option (e.g., \"timeout = " ^
                string_of_int (10 + msecs div 1000) ^ " s\").")
     | {message, ...} => (NONE, "ATP error: " ^ message))
-    handle Sledgehammer_HOL_Clause.TRIVIAL =>
-           (SOME [], metis_line full_types i n [])
+    handle TRIVIAL () => (SOME [], metis_line full_types i n [])
          | ERROR msg => (NONE, "Error: " ^ msg)
   end
 

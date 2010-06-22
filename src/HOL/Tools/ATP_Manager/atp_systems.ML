@@ -139,10 +139,7 @@ fun generic_tptp_prover
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal goal_cls
       | SOME fcls => fcls);
-    val the_axiom_clauses =
-      (case axiom_clauses of
-        NONE => the_filtered_clauses
-      | SOME axcls => axcls);
+    val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
       prepare_clauses full_types goal_cls the_axiom_clauses the_filtered_clauses
                       thy
