@@ -37,7 +37,6 @@ sig
   val pool_map : ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val nice_name : name -> name_pool option -> string * name_pool option
   datatype kind = Axiom | Conjecture
-  type axiom_name = string
   datatype fol_type =
     TyVar of name |
     TyFree of name |
@@ -53,9 +52,9 @@ sig
       TConsLit of class * string * string list
     | TVarLit of class * string
   datatype arity_clause = ArityClause of
-   {axiom_name: axiom_name, conclLit: arLit, premLits: arLit list}
+   {axiom_name: string, conclLit: arLit, premLits: arLit list}
   datatype classrel_clause = ClassrelClause of
-   {axiom_name: axiom_name, subclass: class, superclass: class}
+   {axiom_name: string, subclass: class, superclass: class}
   val make_classrel_clauses: theory -> class list -> class list -> classrel_clause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
   val tptp_sign: bool -> string -> string
@@ -259,8 +258,6 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
 
 datatype kind = Axiom | Conjecture;
 
-type axiom_name = string;
-
 (**** Isabelle FOL clauses ****)
 
 datatype fol_type =
@@ -308,9 +305,7 @@ datatype arLit = TConsLit of class * string * string list
                | TVarLit of class * string;
 
 datatype arity_clause =
-         ArityClause of {axiom_name: axiom_name,
-                         conclLit: arLit,
-                         premLits: arLit list};
+  ArityClause of {axiom_name: string, conclLit: arLit, premLits: arLit list}
 
 
 fun gen_TVars 0 = []
@@ -334,9 +329,7 @@ fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
 (**** Isabelle class relations ****)
 
 datatype classrel_clause =
-         ClassrelClause of {axiom_name: axiom_name,
-                            subclass: class,
-                            superclass: class};
+  ClassrelClause of {axiom_name: string, subclass: class, superclass: class}
 
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs _ [] _ = []
@@ -437,7 +430,8 @@ fun tptp_classrelLits sub sup =
   let val tvar = "(T)"
   in  tptp_clause [tptp_sign false (sub^tvar), tptp_sign true (sup^tvar)]  end;
 
-fun tptp_classrel_clause (ClassrelClause {axiom_name,subclass,superclass,...}) =
+fun tptp_classrel_clause (ClassrelClause {axiom_name, subclass, superclass,
+                                          ...}) =
   tptp_cnf axiom_name "axiom" (tptp_classrelLits subclass superclass)
 
 end;

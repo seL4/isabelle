@@ -7,6 +7,7 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature SLEDGEHAMMER_FACT_PREPROCESSOR =
 sig
+  type cnf_thm = thm * ((string * int) * thm)
   val chained_prefix: string
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
@@ -18,8 +19,7 @@ sig
   val multi_base_blacklist: string list
   val is_theorem_bad_for_atps: thm -> bool
   val type_has_topsort: typ -> bool
-  val cnf_rules_pairs:
-    theory -> (string * thm) list -> (thm * (string * int)) list
+  val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
   val saturate_skolem_cache: theory -> theory option
   val auto_saturate_skolem_cache: bool Unsynchronized.ref
     (* for emergency use where the Skolem cache causes problems *)
@@ -34,6 +34,8 @@ structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
 struct
 
 open Sledgehammer_FOL_Clause
+
+type cnf_thm = thm * ((string * int) * thm)
 
 (* Used to label theorems chained into the goal. *)
 val chained_prefix = "Sledgehammer.chained_"
@@ -153,10 +155,11 @@ fun assume_skolem_funs inline s th =
           val cT = Ts ---> T (* FIXME: use "skolem_type_and_args" *)
           val id = skolem_name s (Unsynchronized.inc skolem_count) s'
           val c = Free (id, cT)
-          val rhs = list_abs_free (map dest_Free args,
-                                   HOLogic.choice_const T $ body)
-                    |> inline ? mk_skolem_id
-                (*Forms a lambda-abstraction over the formal parameters*)
+          (* Forms a lambda-abstraction over the formal parameters *)
+          val rhs =
+            list_abs_free (map dest_Free args,
+                           HOLogic.choice_const T $ body)
+            |> inline ? mk_skolem_id
           val def = Logic.mk_equals (c, rhs)
           val comb = list_comb (if inline then rhs else c, args)
         in dec_sko (subst_bound (comb, p)) (def :: defs) end
@@ -446,20 +449,20 @@ fun cnf_axiom thy th0 =
 
 (**** Translate a set of theorems into CNF ****)
 
-fun pair_name_cls _ (_, []) = []
-  | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
-
 (*The combination of rev and tail recursion preserves the original order*)
 fun cnf_rules_pairs thy =
   let
-    fun aux pairs [] = pairs
-      | aux pairs ((name, th) :: ths) =
+    fun do_one _ [] = []
+      | do_one ((name, k), th) (cls :: clss) =
+        (cls, ((name, k), th)) :: do_one ((name, k + 1), th) clss
+    fun do_all pairs [] = pairs
+      | do_all pairs ((name, th) :: ths) =
         let
-          val new_pairs = pair_name_cls 0 (name, cnf_axiom thy th)
+          val new_pairs = do_one ((name, 0), th) (cnf_axiom thy th)
                           handle THM _ => [] |
                                  CLAUSE _ => []
-        in aux (new_pairs @ pairs) ths end
-  in aux [] o rev end
+        in do_all (new_pairs @ pairs) ths end
+  in do_all [] o rev end
 
 
 (**** Convert all facts of the theory into FOL or HOL clauses ****)

@@ -7,15 +7,14 @@ FOL clauses translated from HOL formulae.
 
 signature SLEDGEHAMMER_HOL_CLAUSE =
 sig
+  type cnf_thm = Sledgehammer_Fact_Preprocessor.cnf_thm
   type name = Sledgehammer_FOL_Clause.name
   type name_pool = Sledgehammer_FOL_Clause.name_pool
   type kind = Sledgehammer_FOL_Clause.kind
   type fol_type = Sledgehammer_FOL_Clause.fol_type
   type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
   type arity_clause = Sledgehammer_FOL_Clause.arity_clause
-  type axiom_name = string
   type polarity = bool
-  type hol_clause_id = int
 
   datatype combterm =
     CombConst of name * fol_type * fol_type list (* Const and Free *) |
@@ -23,8 +22,8 @@ sig
     CombApp of combterm * combterm
   datatype literal = Literal of polarity * combterm
   datatype hol_clause =
-    HOLClause of {clause_id: hol_clause_id, axiom_name: axiom_name, th: thm,
-                  kind: kind, literals: literal list, ctypes_sorts: typ list}
+    HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
+                  literals: literal list, ctypes_sorts: typ list}
 
   val type_of_combterm : combterm -> fol_type
   val strip_combterm_comb : combterm -> combterm * combterm list
@@ -33,13 +32,10 @@ sig
     int -> (string * term) list -> term -> (string * term) list * term
   exception TRIVIAL
   val make_conjecture_clauses : theory -> thm list -> hol_clause list
-  val make_axiom_clauses :
-    theory -> (thm * (axiom_name * hol_clause_id)) list
-    -> (axiom_name * hol_clause) list
+  val make_axiom_clauses : theory -> cnf_thm list -> (string * hol_clause) list
   val type_wrapper_name : string
   val get_helper_clauses :
-    theory -> bool -> bool -> hol_clause list
-    -> (thm * (axiom_name * hol_clause_id)) list -> hol_clause list
+    theory -> bool -> bool -> hol_clause list -> cnf_thm list -> hol_clause list
   val write_tptp_file : bool -> bool -> bool -> Path.T ->
     hol_clause list * hol_clause list * hol_clause list * hol_clause list *
     classrel_clause list * arity_clause list -> name_pool option * int
@@ -65,9 +61,7 @@ fun needs_hBOOL explicit_apply const_needs_hBOOL c =
 (* data types for typed combinator expressions        *)
 (******************************************************)
 
-type axiom_name = string;
-type polarity = bool;
-type hol_clause_id = int;
+type polarity = bool
 
 datatype combterm =
   CombConst of name * fol_type * fol_type list (* Const and Free *) |
@@ -77,8 +71,8 @@ datatype combterm =
 datatype literal = Literal of polarity * combterm;
 
 datatype hol_clause =
-  HOLClause of {clause_id: hol_clause_id, axiom_name: axiom_name, th: thm,
-                kind: kind, literals: literal list, ctypes_sorts: typ list};
+  HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
+                literals: literal list, ctypes_sorts: typ list}
 
 
 (*********************************************************************)
@@ -212,7 +206,7 @@ fun make_clause thy (clause_id, axiom_name, kind, th) skolem_somes =
                   kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
   end
 
-fun add_axiom_clause thy (th, (name, id)) (skolem_somes, clss) =
+fun add_axiom_clause thy (th, ((name, id), _ : thm)) (skolem_somes, clss) =
   let
     val (skolem_somes, cls) = make_clause thy (id, name, Axiom, th) skolem_somes
   in (skolem_somes, clss |> not (isTaut cls) ? cons (name, cls)) end
@@ -364,7 +358,7 @@ fun count_literal (Literal (_, t)) = count_combterm t
 
 fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
 
-val raw_cnf_rules_pairs = map (fn (name, thm) => (thm, (name, 0)))
+val raw_cnf_rules_pairs = map (fn (name, thm) => (thm, ((name, 0), thm)))
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)
   #> (if raw then raw_cnf_rules_pairs else cnf_rules_pairs thy)

@@ -5,11 +5,10 @@
 
 signature SLEDGEHAMMER_FACT_FILTER =
 sig
+  type cnf_thm = Sledgehammer_Fact_Preprocessor.cnf_thm
   type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
   type arity_clause = Sledgehammer_FOL_Clause.arity_clause
-  type axiom_name = Sledgehammer_HOL_Clause.axiom_name
   type hol_clause = Sledgehammer_HOL_Clause.hol_clause
-  type hol_clause_id = Sledgehammer_HOL_Clause.hol_clause_id
 
   type relevance_override =
     {add: Facts.ref list,
@@ -24,14 +23,12 @@ sig
   val is_quasi_fol_term : theory -> term -> bool
   val relevant_facts :
     bool -> bool -> real -> real -> bool -> int -> bool -> relevance_override
-    -> Proof.context * (thm list * 'a) -> thm list
-    -> (thm * (string * int)) list
+    -> Proof.context * (thm list * 'a) -> thm list -> cnf_thm list
   val prepare_clauses :
-    bool -> thm list -> (thm * (axiom_name * hol_clause_id)) list
-    -> (thm * (axiom_name * hol_clause_id)) list -> theory
-    -> axiom_name vector
-       * (hol_clause list * hol_clause list * hol_clause list *
-          hol_clause list * classrel_clause list * arity_clause list)
+    bool -> thm list -> cnf_thm list -> cnf_thm list -> theory
+    -> string vector
+       * (hol_clause list * hol_clause list * hol_clause list
+          * hol_clause list * classrel_clause list * arity_clause list)
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
@@ -234,13 +231,13 @@ fun defines thy thm gctypes =
         | _ => false
     end;
 
-type annotd_cls = (thm * (string * int)) * ((string * const_typ list) list);
+type annotated_clause = cnf_thm * ((string * const_typ list) list)
        
 (*For a reverse sort, putting the largest values first.*)
-fun compare_pairs ((_,w1),(_,w2)) = Real.compare (w2,w1);
+fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
 
 (*Limit the number of new clauses, to prevent runaway acceptance.*)
-fun take_best max_new (newpairs : (annotd_cls*real) list) =
+fun take_best max_new (newpairs : (annotated_clause * real) list) =
   let val nnew = length newpairs
   in
     if nnew <= max_new then (map #1 newpairs, [])
@@ -252,7 +249,7 @@ fun take_best max_new (newpairs : (annotd_cls*real) list) =
                        ", exceeds the limit of " ^ Int.toString (max_new)));
         trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         trace_msg (fn () => "Actually passed: " ^
-          space_implode ", " (map (fn (((_,(name,_)),_),_) => name) accepted));
+          space_implode ", " (map (fn (((_,((name,_), _)),_),_) => name) accepted));
 
         (map #1 accepted, map #1 (List.drop (cls, max_new)))
       end
@@ -286,7 +283,8 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                   (more_rejects @ rejects)
             end
           | relevant (newrels, rejects)
-                     ((ax as (clsthm as (thm, (name, n)), consts_typs)) :: axs) =
+                     ((ax as (clsthm as (thm, ((name, n), _)), consts_typs)) ::
+                      axs) =
             let
               val weight = if member Thm.eq_thm add_thms thm then 1.0
                            else if member Thm.eq_thm del_thms thm then 0.0
@@ -309,7 +307,7 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
         
 fun relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
-                     thy axioms goals = 
+                     thy (axioms : cnf_thm list) goals = 
   if relevance_threshold > 0.0 then
     let
       val const_tab = List.foldl (count_axiom_consts theory_relevant thy)

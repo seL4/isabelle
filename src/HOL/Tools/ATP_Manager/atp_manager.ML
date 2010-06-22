@@ -8,7 +8,8 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
-  type name_pool = Sledgehammer_HOL_Clause.name_pool
+  type name_pool = Sledgehammer_FOL_Clause.name_pool
+  type cnf_thm = Sledgehammer_Fact_Preprocessor.cnf_thm
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
@@ -31,8 +32,8 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: (thm * (string * int)) list option,
-     filtered_clauses: (thm * (string * int)) list option}
+     axiom_clauses: cnf_thm list option,
+     filtered_clauses: cnf_thm list option}
   datatype failure =
     Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
     MalformedInput | MalformedOutput | UnknownError
@@ -46,7 +47,7 @@ sig
      proof: string,
      internal_thm_names: string Vector.vector,
      conjecture_shape: int list list,
-     filtered_clauses: (thm * (string * int)) list}
+     filtered_clauses: cnf_thm list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
 
@@ -91,8 +92,8 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: (thm * (string * int)) list option,
-   filtered_clauses: (thm * (string * int)) list option};
+   axiom_clauses: cnf_thm list option,
+   filtered_clauses: cnf_thm list option}
 
 datatype failure =
   Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
@@ -108,7 +109,7 @@ type prover_result =
    proof: string,
    internal_thm_names: string Vector.vector,
    conjecture_shape: int list list,
-   filtered_clauses: (thm * (string * int)) list};
+   filtered_clauses: cnf_thm list}
 
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result
