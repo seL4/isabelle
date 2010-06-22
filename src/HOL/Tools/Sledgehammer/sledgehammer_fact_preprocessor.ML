@@ -20,6 +20,7 @@ sig
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs:
     theory -> (string * thm) list -> (thm * (string * int)) list
+  val saturate_skolem_cache: theory -> theory option
   val use_skolem_cache: bool Unsynchronized.ref
     (* for emergency use where the Skolem cache causes problems *)
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
@@ -137,7 +138,7 @@ fun declare_skolem_funs s th thy =
 
 fun mk_skolem_id t =
   let val T = fastype_of t in
-    Const (@{const_name skolem_id}, T --> T) $ Envir.beta_norm t
+    Const (@{const_name skolem_id}, T --> T) $ t
   end
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
@@ -409,7 +410,6 @@ fun skolemize_theorem s th =
       val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt) = to_nnf th ctxt0
       val inline = exists_type (exists_subtype (can dest_TFree)) (prop_of nnfth)
-      val inline = false (* FIXME: temporary *)
       val defs = skolem_theorems_of_assume inline s nnfth
       val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
     in
