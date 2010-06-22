@@ -27,6 +27,7 @@ open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
+open Sledgehammer_TPTP_Format
 open ATP_Manager
 
 (** generic ATP **)
@@ -110,33 +111,39 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
 
 fun shape_of_clauses _ [] = []
   | shape_of_clauses j ([] :: clauses) = [] :: shape_of_clauses j clauses
-  | shape_of_clauses j ((lit :: lits) :: clauses) =
+  | shape_of_clauses j ((_ :: lits) :: clauses) =
     let val shape = shape_of_clauses (j + 1) (lits :: clauses) in
       (j :: hd shape) :: tl shape
     end
 
-fun generic_prover overlord get_facts prepare write_file home_var executable
-        args proof_delims known_failures name
-        ({debug, full_types, explicit_apply, isar_proof, isar_shrink_factor,
-         ...} : params) minimize_command
+(* generic TPTP-based provers *)
+
+fun generic_tptp_prover
+        (name, {home_var, executable, arguments, proof_delims, known_failures,
+                max_axiom_clauses, prefers_theory_relevant})
+        ({debug, overlord, full_types, explicit_apply, respect_no_atp,
+          relevance_threshold, relevance_convergence, theory_relevant,
+          defs_relevant, isar_proof, isar_shrink_factor, ...} : params)
+        minimize_command timeout
         ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
          : problem) =
   let
     (* get clauses and prepare them for writing *)
-    val (ctxt, (chained_ths, th)) = goal;
+    val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
     val goal_clss = #1 (neg_conjecture_clauses ctxt th subgoal)
     val goal_cls = List.concat goal_clss
     val the_filtered_clauses =
       (case filtered_clauses of
-        NONE => get_facts relevance_override goal goal_cls
+        NONE => relevant_facts full_types respect_no_atp relevance_threshold
+                    relevance_convergence defs_relevant max_axiom_clauses
+                    (the_default prefers_theory_relevant theory_relevant)
+                    relevance_override goal goal_cls
       | SOME fcls => fcls);
-    val the_axiom_clauses =
-      (case axiom_clauses of
-        NONE => the_filtered_clauses
-      | SOME axcls => axcls);
+    val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
-      prepare goal_cls chained_ths the_axiom_clauses the_filtered_clauses thy;
+      prepare_clauses full_types goal_cls the_axiom_clauses the_filtered_clauses
+                      thy
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -161,10 +168,10 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
     fun command_line probfile =
       (if Config.get ctxt measure_runtime then
          "TIMEFORMAT='%3U'; { time " ^
-         space_implode " " [File.shell_path command, args,
+         space_implode " " [File.shell_path command, arguments timeout,
                             File.shell_path probfile] ^ " ; } 2>&1"
        else
-         space_implode " " ["exec", File.shell_path command, args,
+         space_implode " " ["exec", File.shell_path command, arguments timeout,
                             File.shell_path probfile, "2>&1"]) ^
       (if overlord then
          " | sed 's/,/, /g' \
@@ -185,11 +192,12 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
-    fun split_time' s =
-      if Config.get ctxt measure_runtime then split_time s else (s, 0)
+    val split_time' =
+      if Config.get ctxt measure_runtime then split_time else rpair 0
     fun run_on probfile =
       if File.exists command then
-        write_file full_types explicit_apply probfile clauses
+        write_tptp_file (debug andalso overlord) full_types explicit_apply
+                        probfile clauses
         |> pair (apfst split_time' (bash_output (command_line probfile)))
       else if home = "" then
         error ("The environment variable " ^ quote home_var ^ " is not set.")
@@ -233,57 +241,11 @@ fun generic_prover overlord get_facts prepare write_file home_var executable
      proof = proof, internal_thm_names = internal_thm_names,
      conjecture_shape = conjecture_shape,
      filtered_clauses = the_filtered_clauses}
-  end;
-
-
-(* generic TPTP-based provers *)
-
-fun generic_tptp_prover
-        (name, {home_var, executable, arguments, proof_delims, known_failures,
-                max_axiom_clauses, prefers_theory_relevant})
-        (params as {debug, overlord, full_types, respect_no_atp,
-                    relevance_threshold, relevance_convergence, theory_relevant,
-                    defs_relevant, isar_proof, ...})
-        minimize_command timeout =
-  generic_prover overlord
-      (relevant_facts full_types respect_no_atp relevance_threshold
-                      relevance_convergence defs_relevant max_axiom_clauses
-                      (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses false full_types)
-      (write_tptp_file (debug andalso overlord)) home_var
-      executable (arguments timeout) proof_delims known_failures name params
-      minimize_command
+  end
 
 fun tptp_prover name p = (name, generic_tptp_prover (name, p));
 
-
-(** common provers **)
-
 fun to_generous_secs time = (Time.toMilliseconds time + 999) div 1000
-
-(* Vampire *)
-
-(* Vampire requires an explicit time limit. *)
-
-val vampire_config : prover_config =
-  {home_var = "VAMPIRE_HOME",
-   executable = "vampire",
-   arguments = fn timeout =>
-     "--output_syntax tptp --mode casc -t " ^
-     string_of_int (to_generous_secs timeout),
-   proof_delims =
-     [("=========== Refutation ==========",
-       "======= End of refutation ======="),
-      ("% SZS output start Refutation", "% SZS output end Refutation")],
-   known_failures =
-     [(Unprovable, "UNPROVABLE"),
-      (IncompleteUnprovable, "CANNOT PROVE"),
-      (Unprovable, "Satisfiability detected"),
-      (OutOfResources, "Refutation not found")],
-   max_axiom_clauses = 60,
-   prefers_theory_relevant = false}
-val vampire = tptp_prover "vampire" vampire_config
-
 
 (* E prover *)
 
@@ -311,33 +273,14 @@ val e_config : prover_config =
 val e = tptp_prover "e" e_config
 
 
-(* SPASS *)
-
-fun generic_dfg_prover
-        (name, {home_var, executable, arguments, proof_delims, known_failures,
-                max_axiom_clauses, prefers_theory_relevant})
-        (params as {overlord, full_types, respect_no_atp, relevance_threshold,
-                    relevance_convergence, theory_relevant, defs_relevant, ...})
-        minimize_command timeout =
-  generic_prover overlord
-      (relevant_facts full_types respect_no_atp relevance_threshold
-                      relevance_convergence defs_relevant max_axiom_clauses
-                      (the_default prefers_theory_relevant theory_relevant))
-      (prepare_clauses true full_types) write_dfg_file home_var executable
-      (arguments timeout) proof_delims known_failures name params
-      minimize_command
-
-fun dfg_prover name p = (name, generic_dfg_prover (name, p))
-
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
-fun generic_spass_config dfg : prover_config =
+val spass_config : prover_config =
   {home_var = "SPASS_HOME",
    executable = "SPASS",
    arguments = fn timeout =>
-     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout)
-     |> not dfg ? prefix "-TPTP ",
+     "-TPTP -Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
+     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout),
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(IncompleteUnprovable, "SPASS beiseite: Completion found"),
@@ -349,13 +292,30 @@ fun generic_spass_config dfg : prover_config =
       (OldSpass, "Unrecognized option TPTP")],
    max_axiom_clauses = 40,
    prefers_theory_relevant = true}
-val spass_dfg_config = generic_spass_config true
-val spass_dfg = dfg_prover "spass_dfg" spass_dfg_config
-
-val spass_config = generic_spass_config false
 val spass = tptp_prover "spass" spass_config
 
-(* remote prover invocation via SystemOnTPTP *)
+(* Vampire *)
+
+val vampire_config : prover_config =
+  {home_var = "VAMPIRE_HOME",
+   executable = "vampire",
+   arguments = fn timeout =>
+     "--output_syntax tptp --mode casc -t " ^
+     string_of_int (to_generous_secs timeout),
+   proof_delims =
+     [("=========== Refutation ==========",
+       "======= End of refutation ======="),
+      ("% SZS output start Refutation", "% SZS output end Refutation")],
+   known_failures =
+     [(Unprovable, "UNPROVABLE"),
+      (IncompleteUnprovable, "CANNOT PROVE"),
+      (Unprovable, "Satisfiability detected"),
+      (OutOfResources, "Refutation not found")],
+   max_axiom_clauses = 60,
+   prefers_theory_relevant = false}
+val vampire = tptp_prover "vampire" vampire_config
+
+(* Remote prover invocation via SystemOnTPTP *)
 
 val systems = Synchronized.var "atp_systems" ([]: string list);
 
@@ -366,7 +326,7 @@ fun get_systems () =
     error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
 
 fun refresh_systems_on_tptp () =
-  Synchronized.change systems (fn _ => get_systems ());
+  Synchronized.change systems (fn _ => get_systems ())
 
 fun get_system prefix = Synchronized.change_result systems (fn systems =>
   (if null systems then get_systems () else systems)
@@ -374,15 +334,14 @@ fun get_system prefix = Synchronized.change_result systems (fn systems =>
 
 fun the_system prefix =
   (case get_system prefix of
-    NONE => error ("System " ^ quote prefix ^
-                   " not available at SystemOnTPTP.")
+    NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP.")
   | SOME sys => sys);
 
 val remote_known_failures =
   [(TimedOut, "says Timeout"),
    (MalformedOutput, "Remote script could not extract proof")]
 
-fun remote_prover_config atp_prefix args
+fun remote_config atp_prefix args
         ({proof_delims, known_failures, max_axiom_clauses,
           prefers_theory_relevant, ...} : prover_config) : prover_config =
   {home_var = "ISABELLE_ATP_MANAGER",
@@ -395,17 +354,12 @@ fun remote_prover_config atp_prefix args
    max_axiom_clauses = max_axiom_clauses,
    prefers_theory_relevant = prefers_theory_relevant}
 
-val remote_vampire =
-  tptp_prover (remotify (fst vampire))
-              (remote_prover_config "Vampire---9" "" vampire_config)
+fun remote_tptp_prover prover atp_prefix args config =
+  tptp_prover (remotify (fst prover)) (remote_config atp_prefix args config)
 
-val remote_e =
-  tptp_prover (remotify (fst e))
-              (remote_prover_config "EP---" "" e_config)
-
-val remote_spass =
-  tptp_prover (remotify (fst spass))
-              (remote_prover_config "SPASS---" "-x" spass_config)
+val remote_e = remote_tptp_prover e "EP---" "" e_config
+val remote_spass = remote_tptp_prover spass "SPASS---" "-x" spass_config
+val remote_vampire = remote_tptp_prover vampire "Vampire---9" "" vampire_config
 
 fun maybe_remote (name, _) ({home_var, ...} : prover_config) =
   name |> getenv home_var = "" ? remotify
@@ -414,8 +368,7 @@ fun default_atps_param_value () =
   space_implode " " [maybe_remote e e_config, maybe_remote spass spass_config,
                      remotify (fst vampire)]
 
-val provers =
-  [spass, spass_dfg, vampire, e, remote_vampire, remote_spass, remote_e]
+val provers = [e, spass, vampire, remote_e, remote_spass, remote_vampire]
 val prover_setup = fold add_prover provers
 
 val setup =

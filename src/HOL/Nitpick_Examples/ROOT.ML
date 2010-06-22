@@ -5,8 +5,4 @@
 Nitpick examples.
 *)
 
-if getenv "KODKODI" = "" then
-  ()
-else
-  setmp_noncritical quick_and_dirty true use_thys
-                    ["Nitpick_Examples"];
+setmp_noncritical quick_and_dirty true use_thys ["Nitpick_Examples"];

@@ -322,6 +322,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_hol_clause.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
+  Tools/Sledgehammer/sledgehammer_tptp_format.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
   Tools/SMT/cvc3_solver.ML \
   Tools/SMT/smtlib_interface.ML \

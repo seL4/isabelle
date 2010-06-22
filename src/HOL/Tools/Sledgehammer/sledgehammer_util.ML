@@ -6,7 +6,6 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
-  val pairf : ('a -> 'b) -> ('a -> 'c) -> 'a -> 'b * 'c
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val replace_all : string -> string -> string -> string
@@ -23,8 +22,6 @@ end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
-
-fun pairf f g x = (f x, g x)
 
 fun plural_s n = if n = 1 then "" else "s"
 
