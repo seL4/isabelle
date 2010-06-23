@@ -26,6 +26,8 @@ open Sledgehammer_Proof_Reconstruct
 open Sledgehammer_Fact_Filter
 open Sledgehammer_TPTP_Format
 
+exception METIS of string * string
+
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
@@ -435,10 +437,8 @@ fun inst_inf ctxt mode skolem_somes thpairs fsubst th =
             Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
             Syntax.string_of_term ctxt (term_of y)))));
   in cterm_instantiate substs' i_th end
-  handle THM (msg, _, _) => error ("metis error (inst_inf):\n" ^ msg)
-       | ERROR msg => error ("metis error (inst_inf):\n" ^ msg ^
-                             "\n(Perhaps you want to try \"metisFT\" if you \
-                             \haven't done so already.)")
+  handle THM (msg, _, _) => raise METIS ("inst_inf", msg)
+       | ERROR msg => raise METIS ("inst_inf", msg)
 
 (* INFERENCE RULE: RESOLVE *)
 
@@ -507,7 +507,7 @@ fun equality_inf ctxt mode skolem_somes (pos, atm) fp fr =
                 val adjustment = get_ty_arg_size thy tm1
                 val p' = if adjustment > p then p else p-adjustment
                 val tm_p = List.nth(args,p')
-                  handle Subscript => error ("equality_inf: " ^ Int.toString p ^ " adj " ^
+                  handle Subscript => raise METIS ("equality_inf", Int.toString p ^ " adj " ^
                     Int.toString adjustment  ^ " term " ^  Syntax.string_of_term ctxt tm)
                 val _ = trace_msg (fn () => "path_finder: " ^ Int.toString p ^
                                       "  " ^ Syntax.string_of_term ctxt tm_p)
@@ -599,7 +599,7 @@ fun translate _ _ _ thpairs [] = thpairs
             length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
       in
           if nprems_of th = n_metis_lits then ()
-          else error "Metis: proof reconstruction has gone wrong";
+          else raise METIS ("translate", "Proof reconstruction has gone wrong.");
           translate ctxt mode skolem_somes ((fol_th, th) :: thpairs) infpairs
       end;
 
@@ -723,9 +723,7 @@ fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
 fun common_thm ths1 ths2 = exists (member Thm.eq_thm ths1) (map Meson.make_meta_clause ths2);
 
-exception METIS of string;
-
-(* Main function to start metis proof and reconstruction *)
+(* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val th_cls_pairs =
@@ -776,40 +774,48 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                         (trace_msg (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
                          [ith])
                   | _ => (trace_msg (fn () => "Metis: No result");
-                          [])
+                          raise METIS ("FOL_SOLVE", ""))
             end
         | Metis.Resolution.Satisfiable _ =>
             (trace_msg (fn () => "Metis: No first-order proof with the lemmas supplied");
-             [])
+             raise METIS ("FOL_SOLVE", ""))
   end;
 
-fun metis_general_tac mode ctxt ths i st0 =
+fun generic_metis_tac mode ctxt ths i st0 =
   let val _ = trace_msg (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
-    if exists_type type_has_topsort (prop_of st0)
-    then raise METIS "Metis: Proof state contains the universal sort {}"
+    if exists_type type_has_topsort (prop_of st0) then
+      (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
       (Meson.MESON (maps neg_clausify)
-        (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1) ctxt i
-          THEN Meson_Tactic.expand_defs_tac st0) st0
+                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
+                   ctxt i
+       THEN Meson_Tactic.expand_defs_tac st0) st0
+     handle ERROR msg => raise METIS ("generic_metis_tac", msg)
   end
-  handle METIS s => (warning ("Metis: " ^ s); Seq.empty);
+  handle METIS (loc, msg) =>
+         if mode = HO then
+           (warning ("Metis: Falling back on \"metisFT\".");
+            generic_metis_tac FT ctxt ths i st0)
+         else if msg = "" then
+           Seq.empty
+         else
+           raise error ("Metis (" ^ loc ^ "): " ^ msg)
 
-val metis_tac = metis_general_tac HO;
-val metisF_tac = metis_general_tac FO;
-val metisFT_tac = metis_general_tac FT;
+val metis_tac = generic_metis_tac HO
+val metisF_tac = generic_metis_tac FO
+val metisFT_tac = generic_metis_tac FT
 
-fun method name mode comment = Method.setup name (Attrib.thms >> (fn ths => fn ctxt =>
-  SIMPLE_METHOD' (CHANGED_PROP o metis_general_tac mode ctxt ths))) comment;
+fun method name mode =
+  Method.setup name (Attrib.thms >> (fn ths => fn ctxt =>
+    SIMPLE_METHOD' (CHANGED_PROP o generic_metis_tac mode ctxt ths)))
 
 val setup =
-  type_lits_setup #>
-  method @{binding metis} HO "METIS for FOL and HOL problems" #>
-  method @{binding metisF} FO "METIS for FOL problems" #>
-  method @{binding metisFT} FT "METIS with fully-typed translation" #>
-  Method.setup @{binding finish_clausify}
-    (Scan.succeed (K (SIMPLE_METHOD (Meson_Tactic.expand_defs_tac refl))))
-    "cleanup after conversion to clauses";
+  type_lits_setup
+  #> method @{binding metis} HO "Metis for FOL/HOL problems"
+  #> method @{binding metisF} FO "Metis for FOL problems"
+  #> method @{binding metisFT} FT
+            "Metis for FOL/HOL problems with fully-typed translation"
 
 end;
