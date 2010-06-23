@@ -175,7 +175,7 @@ fun count_axiom_consts theory_relevant thy axiom =
       end
     fun do_term (Const x) = do_const x
       | do_term (Free x) = do_const x
-      | do_term (Const (@{const_name skolem_id}, _) $ _) = I
+      | do_term (Const (x as (@{const_name skolem_id}, _)) $ _) = do_const x
       | do_term (t $ u) = do_term t #> do_term u
       | do_term (Abs (_, _, t)) = do_term t
       | do_term _ = I
@@ -574,6 +574,7 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
                        defs_relevant max_new theory_relevant relevance_override
                        thy axioms (map prop_of goal_cls)
       |> has_override ? make_unique
+      |> sort (prod_ord string_ord int_ord o pairself (fst o snd))
     end
 
 (** Helper clauses **)

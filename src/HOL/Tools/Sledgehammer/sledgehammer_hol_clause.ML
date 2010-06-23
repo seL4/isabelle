@@ -216,7 +216,7 @@ fun add_axiom_clause thy (th, ((name, id), _ : thm)) (skolem_somes, clss) =
   in (skolem_somes, clss |> not (isTaut cls) ? cons (name, cls)) end
 
 fun make_axiom_clauses thy clauses =
-  ([], []) |> fold (add_axiom_clause thy) clauses |> snd
+  ([], []) |> fold_rev (add_axiom_clause thy) clauses |> snd
 
 fun make_conjecture_clauses thy =
   let
