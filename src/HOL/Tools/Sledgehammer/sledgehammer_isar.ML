@@ -12,7 +12,6 @@ sig
   val timeout: int Unsynchronized.ref
   val full_types: bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
-  val setup: theory -> theory
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
@@ -24,31 +23,6 @@ open Sledgehammer_Fact_Preprocessor
 open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer
-
-(** Proof method used in Isar proofs **)
-
-val neg_clausify_setup =
-  Method.setup @{binding neg_clausify}
-               (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac)
-                o tap (fn _ => legacy_feature "Old 'neg_clausify' method -- \
-                                   \rerun Sledgehammer to obtain a direct \
-                                   \proof"))
-               "conversion of goal to negated conjecture clauses (legacy)"
-
-(** Attribute for converting a theorem into clauses **)
-
-val parse_clausify_attribute : attribute context_parser =
-  Scan.lift Parse.nat
-  >> (fn i => Thm.rule_attribute (fn context => fn th =>
-                  let val thy = Context.theory_of context in
-                    Meson.make_meta_clause (nth (cnf_axiom thy th) i)
-                  end))
-
-val clausify_setup =
-  Attrib.setup @{binding clausify}
-               (parse_clausify_attribute
-                o tap (fn _ => legacy_feature "Old 'clausify' attribute"))
-               "conversion of theorem to clauses"
 
 (** Sledgehammer commands **)
 
@@ -356,9 +330,5 @@ val _ =
   Outer_Syntax.command sledgehammer_paramsN
       "set and display the default parameters for Sledgehammer" Keyword.thy_decl
       parse_sledgehammer_params_command
-
-val setup =
-  neg_clausify_setup
-  #> clausify_setup
 
 end;

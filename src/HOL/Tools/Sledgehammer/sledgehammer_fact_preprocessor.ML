@@ -22,11 +22,9 @@ sig
   val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
   val saturate_skolem_cache: theory -> theory option
   val auto_saturate_skolem_cache: bool Unsynchronized.ref
-    (* for emergency use where the Skolem cache causes problems *)
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
-  val neg_clausify_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
 
@@ -522,6 +520,7 @@ fun saturate_skolem_cache thy =
 
 end;
 
+(* For emergency use where the Skolem cache causes problems. *)
 val auto_saturate_skolem_cache = Unsynchronized.ref true
 
 fun conditionally_saturate_skolem_cache thy =
@@ -546,20 +545,6 @@ fun neg_conjecture_clauses ctxt st0 n =
     val ({params, prems, ...}, _) =
       Subgoal.focus (Variable.set_body false ctxt) n st
   in (map neg_clausify prems, map (dest_Free o term_of o #2) params) end
-
-(*Conversion of a subgoal to conjecture clauses. Each clause has
-  leading !!-bound universal variables, to express generality. *)
-fun neg_clausify_tac ctxt =
-  neg_skolemize_tac ctxt THEN'
-  SUBGOAL (fn (prop, i) =>
-    let val ts = Logic.strip_assums_hyp prop in
-      EVERY'
-       [Subgoal.FOCUS
-         (fn {prems, ...} =>
-           (Method.insert_tac
-             (map forall_intr_vars (maps neg_clausify prems)) i)) ctxt,
-        REPEAT_DETERM_N (length ts) o etac thin_rl] i
-     end);
 
 
 (** setup **)

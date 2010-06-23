@@ -110,7 +110,6 @@ use "Tools/ATP_Manager/atp_systems.ML"
 setup ATP_Systems.setup
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
-setup Sledgehammer_Isar.setup
 
 
 subsection {* The MESON prover *}
