@@ -12,7 +12,6 @@ sig
   val timeout: int Unsynchronized.ref
   val full_types: bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
-  val setup: theory -> theory
 end;
 
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
@@ -25,31 +24,6 @@ open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer
 
-(** Proof method used in Isar proofs **)
-
-val neg_clausify_setup =
-  Method.setup @{binding neg_clausify}
-               (Scan.succeed (SIMPLE_METHOD' o neg_clausify_tac)
-                o tap (fn _ => legacy_feature "Old 'neg_clausify' method -- \
-                                   \rerun Sledgehammer to obtain a direct \
-                                   \proof"))
-               "conversion of goal to negated conjecture clauses (legacy)"
-
-(** Attribute for converting a theorem into clauses **)
-
-val parse_clausify_attribute : attribute context_parser =
-  Scan.lift Parse.nat
-  >> (fn i => Thm.rule_attribute (fn context => fn th =>
-                  let val thy = Context.theory_of context in
-                    Meson.make_meta_clause (nth (cnf_axiom thy th) i)
-                  end))
-
-val clausify_setup =
-  Attrib.setup @{binding clausify}
-               (parse_clausify_attribute
-                o tap (fn _ => legacy_feature "Old 'clausify' attribute"))
-               "conversion of theorem to clauses"
-
 (** Sledgehammer commands **)
 
 fun add_to_relevance_override ns : relevance_override =
@@ -58,7 +32,6 @@ fun del_from_relevance_override ns : relevance_override =
   {add = [], del = ns, only = false}
 fun only_relevance_override ns : relevance_override =
   {add = ns, del = [], only = true}
-val no_relevance_override = add_to_relevance_override []
 fun merge_relevance_override_pairwise (r1 : relevance_override)
                                       (r2 : relevance_override) =
   {add = #add r1 @ #add r2, del = #del r1 @ #del r2,
@@ -166,7 +139,7 @@ fun default_raw_params thy =
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
-fun extract_params thy default_params override_params =
+fun extract_params default_params override_params =
   let
     val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
@@ -216,7 +189,7 @@ fun extract_params thy default_params override_params =
      timeout = timeout, minimize_timeout = minimize_timeout}
   end
 
-fun get_params thy = extract_params thy (default_raw_params thy)
+fun get_params thy = extract_params (default_raw_params thy)
 fun default_params thy = get_params thy o map (apsnd single)
 
 val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
@@ -264,7 +237,6 @@ val available_atpsN = "available_atps"
 val running_atpsN = "running_atps"
 val kill_atpsN = "kill_atps"
 val refresh_tptpN = "refresh_tptp"
-val helpN = "help"
 
 fun minimizize_raw_param_name "timeout" = "minimize_timeout"
   | minimizize_raw_param_name name = name
@@ -358,9 +330,5 @@ val _ =
   Outer_Syntax.command sledgehammer_paramsN
       "set and display the default parameters for Sledgehammer" Keyword.thy_decl
       parse_sledgehammer_params_command
-
-val setup =
-  neg_clausify_setup
-  #> clausify_setup
 
 end;

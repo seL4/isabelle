@@ -943,15 +943,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst orig_assm_ts orig_t =
-  let
-    val warning_m = if auto then K () else warning
-    val unknown_outcome = ("unknown", state)
-  in
+  let val warning_m = if auto then K () else warning in
     if getenv "KODKODI" = "" then
+      (* The "expect" argument is deliberately ignored if Kodkodi is missing so
+         that the "Nitpick_Examples" can be processed on any machine. *)
       (warning_m (Pretty.string_of (plazy install_kodkodi_message));
-       unknown_outcome)
+       ("no_kodkodi", state))
     else
       let
+        val unknown_outcome = ("unknown", state)
         val deadline = Option.map (curry Time.+ (Time.now ())) timeout
         val outcome as (outcome_code, _) =
           time_limit (if debug then NONE else timeout)

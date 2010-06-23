@@ -7,6 +7,7 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature SLEDGEHAMMER_FACT_PREPROCESSOR =
 sig
+  type cnf_thm = thm * ((string * int) * thm)
   val chained_prefix: string
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
@@ -18,15 +19,12 @@ sig
   val multi_base_blacklist: string list
   val is_theorem_bad_for_atps: thm -> bool
   val type_has_topsort: typ -> bool
-  val cnf_rules_pairs:
-    theory -> (string * thm) list -> (thm * (string * int)) list
-  val use_skolem_cache: bool Unsynchronized.ref
-    (* for emergency use where the Skolem cache causes problems *)
-  val strip_subgoal : thm -> int -> (string * typ) list * term list * term
+  val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
+  val saturate_skolem_cache: theory -> theory option
+  val auto_saturate_skolem_cache: bool Unsynchronized.ref
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
-  val neg_clausify_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
 end;
 
@@ -34,6 +32,8 @@ structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
 struct
 
 open Sledgehammer_FOL_Clause
+
+type cnf_thm = thm * ((string * int) * thm)
 
 (* Used to label theorems chained into the goal. *)
 val chained_prefix = "Sledgehammer.chained_"
@@ -132,13 +132,17 @@ fun declare_skolem_funs s th thy =
       | dec_sko (@{const "op &"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const "op |"} $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (@{const Trueprop} $ p) thx = dec_sko p thx
-      | dec_sko t thx = thx
+      | dec_sko _ thx = thx
   in dec_sko (prop_of th) ([], thy) end
 
 fun mk_skolem_id t =
   let val T = fastype_of t in
-    Const (@{const_name skolem_id}, T --> T) $ Envir.beta_norm t
+    Const (@{const_name skolem_id}, T --> T) $ t
   end
+
+fun quasi_beta_eta_contract (Abs (s, T, t')) =
+    Abs (s, T, quasi_beta_eta_contract t')
+  | quasi_beta_eta_contract t = Envir.beta_eta_contract t
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
 fun assume_skolem_funs inline s th =
@@ -153,10 +157,12 @@ fun assume_skolem_funs inline s th =
           val cT = Ts ---> T (* FIXME: use "skolem_type_and_args" *)
           val id = skolem_name s (Unsynchronized.inc skolem_count) s'
           val c = Free (id, cT)
-          val rhs = list_abs_free (map dest_Free args,
-                                   HOLogic.choice_const T $ body)
-                    |> inline ? mk_skolem_id
-                (*Forms a lambda-abstraction over the formal parameters*)
+          (* Forms a lambda-abstraction over the formal parameters *)
+          val rhs =
+            list_abs_free (map dest_Free args,
+                           HOLogic.choice_const T
+                           $ quasi_beta_eta_contract body)
+            |> inline ? mk_skolem_id
           val def = Logic.mk_equals (c, rhs)
           val comb = list_comb (if inline then rhs else c, args)
         in dec_sko (subst_bound (comb, p)) (def :: defs) end
@@ -167,7 +173,7 @@ fun assume_skolem_funs inline s th =
       | dec_sko (@{const "op &"} $ p $ q) defs = dec_sko q (dec_sko p defs)
       | dec_sko (@{const "op |"} $ p $ q) defs = dec_sko q (dec_sko p defs)
       | dec_sko (@{const Trueprop} $ p) defs = dec_sko p defs
-      | dec_sko t defs = defs (*Do nothing otherwise*)
+      | dec_sko _ defs = defs
   in  dec_sko (prop_of th) []  end;
 
 
@@ -409,7 +415,6 @@ fun skolemize_theorem s th =
       val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt) = to_nnf th ctxt0
       val inline = exists_type (exists_subtype (can dest_TFree)) (prop_of nnfth)
-      val inline = false (* FIXME: temporary *)
       val defs = skolem_theorems_of_assume inline s nnfth
       val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
     in
@@ -447,20 +452,20 @@ fun cnf_axiom thy th0 =
 
 (**** Translate a set of theorems into CNF ****)
 
-fun pair_name_cls _ (_, []) = []
-  | pair_name_cls k (n, cls::clss) = (cls, (n,k)) :: pair_name_cls (k+1) (n, clss)
-
 (*The combination of rev and tail recursion preserves the original order*)
 fun cnf_rules_pairs thy =
   let
-    fun aux pairs [] = pairs
-      | aux pairs ((name, th) :: ths) =
+    fun do_one _ [] = []
+      | do_one ((name, k), th) (cls :: clss) =
+        (cls, ((name, k), th)) :: do_one ((name, k + 1), th) clss
+    fun do_all pairs [] = pairs
+      | do_all pairs ((name, th) :: ths) =
         let
-          val new_pairs = pair_name_cls 0 (name, cnf_axiom thy th)
+          val new_pairs = do_one ((name, 0), th) (cnf_axiom thy th)
                           handle THM _ => [] |
                                  CLAUSE _ => []
-        in aux (new_pairs @ pairs) ths end
-  in aux [] o rev end
+        in do_all (new_pairs @ pairs) ths end
+  in do_all [] o rev end
 
 
 (**** Convert all facts of the theory into FOL or HOL clauses ****)
@@ -520,22 +525,12 @@ fun saturate_skolem_cache thy =
 
 end;
 
-val use_skolem_cache = Unsynchronized.ref true
+(* For emergency use where the Skolem cache causes problems. *)
+val auto_saturate_skolem_cache = Unsynchronized.ref true
 
-fun clause_cache_endtheory thy =
-  if !use_skolem_cache then saturate_skolem_cache thy else NONE
+fun conditionally_saturate_skolem_cache thy =
+  if !auto_saturate_skolem_cache then saturate_skolem_cache thy else NONE
 
-
-(* The cache can be kept smaller by inspecting the prop of each thm. Can ignore
-   all that are quasi-lambda-free, but then the individual theory caches become
-   much bigger. *)
-
-fun strip_subgoal goal i =
-  let
-    val (t, frees) = Logic.goal_params (prop_of goal) i
-    val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
-    val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
-  in (rev (map dest_Free frees), hyp_ts, concl_t) end
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
 
@@ -556,25 +551,11 @@ fun neg_conjecture_clauses ctxt st0 n =
       Subgoal.focus (Variable.set_body false ctxt) n st
   in (map neg_clausify prems, map (dest_Free o term_of o #2) params) end
 
-(*Conversion of a subgoal to conjecture clauses. Each clause has
-  leading !!-bound universal variables, to express generality. *)
-fun neg_clausify_tac ctxt =
-  neg_skolemize_tac ctxt THEN'
-  SUBGOAL (fn (prop, i) =>
-    let val ts = Logic.strip_assums_hyp prop in
-      EVERY'
-       [Subgoal.FOCUS
-         (fn {prems, ...} =>
-           (Method.insert_tac
-             (map forall_intr_vars (maps neg_clausify prems)) i)) ctxt,
-        REPEAT_DETERM_N (length ts) o etac thin_rl] i
-     end);
-
 
 (** setup **)
 
 val setup =
-  perhaps saturate_skolem_cache
-  #> Theory.at_end clause_cache_endtheory
+  perhaps conditionally_saturate_skolem_cache
+  #> Theory.at_end conditionally_saturate_skolem_cache
 
 end;
