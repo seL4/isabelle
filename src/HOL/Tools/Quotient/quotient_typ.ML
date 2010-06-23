@@ -7,13 +7,13 @@ Definition of a quotient type.
 
 signature QUOTIENT_TYPE =
 sig
-  val add_quotient_type: ((string list * binding * mixfix) * (typ * term)) * thm
+  val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) * thm
     -> Proof.context -> (thm * thm) * local_theory
 
-  val quotient_type: ((string list * binding * mixfix) * (typ * term)) list
+  val quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) list
     -> Proof.context -> Proof.state
 
-  val quotient_type_cmd: ((((string list * binding) * mixfix) * string) * string) list
+  val quotient_type_cmd: ((((string list * binding) * mixfix) * string) * (bool * string)) list
     -> Proof.context -> Proof.state
 end;
 
@@ -64,15 +64,15 @@ let
     |> map Free
 in
   lambda c (HOLogic.exists_const rty $
-     lambda x (HOLogic.mk_eq (c, (rel $ x))))
+     lambda x (HOLogic.mk_conj ((rel $ x $ x), (HOLogic.mk_eq (c, (rel $ x))))))
 end
 
 
 (* makes the new type definitions and proves non-emptyness *)
-fun typedef_make (vs, qty_name, mx, rel, rty) lthy =
+fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
 let
   val typedef_tac =
-    EVERY1 (map rtac [@{thm exI}, mem_def2, @{thm exI}, @{thm refl}])
+    EVERY1 (map rtac [@{thm part_equivp_typedef}, equiv_thm])
 in
 (* FIXME: purely local typedef causes at the moment 
    problems with type variables
@@ -93,14 +93,14 @@ fun typedef_quot_type_tac equiv_thm ((_, typedef_info): Typedef.info) =
 let
   val rep_thm = #Rep typedef_info RS mem_def1
   val rep_inv = #Rep_inverse typedef_info
-  val abs_inv = mem_def2 RS #Abs_inverse typedef_info
+  val abs_inv = #Abs_inverse typedef_info
   val rep_inj = #Rep_inject typedef_info
 in
   (rtac @{thm quot_type.intro} THEN' RANGE [
     rtac equiv_thm,
     rtac rep_thm,
     rtac rep_inv,
-    EVERY' (map rtac [abs_inv, @{thm exI}, @{thm refl}]),
+    rtac abs_inv THEN' rtac mem_def2 THEN' atac,
     rtac rep_inj]) 1
 end
 
@@ -137,10 +137,12 @@ end
 
 
 (* main function for constructing a quotient type *)
-fun add_quotient_type (((vs, qty_name, mx), (rty, rel)), equiv_thm) lthy =
+fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lthy =
 let
+  val part_equiv = if partial then equiv_thm else equiv_thm RS @{thm equivp_implies_part_equivp}
+
   (* generates the typedef *)
-  val ((qty_full_name, typedef_info), lthy1) = typedef_make (vs, qty_name, mx, rel, rty) lthy
+  val ((qty_full_name, typedef_info), lthy1) = typedef_make (vs, qty_name, mx, rel, rty) part_equiv lthy
 
   (* abs and rep functions from the typedef *)
   val Abs_ty = #abs_type (#1 typedef_info)
@@ -162,7 +164,7 @@ let
   val ((rep, rep_def), lthy3) = define (rep_name, NoSyn, rep_trm) lthy2
 
   (* quot_type theorem *)
-  val quot_thm = typedef_quot_type_thm (rel, Abs_const, Rep_const, equiv_thm, typedef_info) lthy3
+  val quot_thm = typedef_quot_type_thm (rel, Abs_const, Rep_const, part_equiv, typedef_info) lthy3
 
   (* quotient theorem *)
   val quotient_thm = typedef_quotient_thm (rel, abs, rep, abs_def, rep_def, quot_thm) lthy3
@@ -179,12 +181,12 @@ let
 in
   lthy4
   |> note (quotient_thm_name, quotient_thm, [intern_attr quotient_rules_add])
-  ||>> note (equiv_thm_name, equiv_thm, [intern_attr equiv_rules_add])
+  ||>> note (equiv_thm_name, equiv_thm, if partial then [] else [intern_attr equiv_rules_add])
 end
 
 
 (* sanity checks for the quotient type specifications *)
-fun sanity_check ((vs, qty_name, _), (rty, rel)) =
+fun sanity_check ((vs, qty_name, _), (rty, rel, _)) =
 let
   val rty_tfreesT = map fst (Term.add_tfreesT rty [])
   val rel_tfrees = map fst (Term.add_tfrees rel [])
@@ -223,7 +225,7 @@ in
 end
 
 (* check for existence of map functions *)
-fun map_check ctxt (_, (rty, _)) =
+fun map_check ctxt (_, (rty, _, _)) =
 let
   val thy = ProofContext.theory_of ctxt
 
@@ -263,11 +265,12 @@ let
   val _ = List.app sanity_check quot_list
   val _ = List.app (map_check lthy) quot_list
 
-  fun mk_goal (rty, rel) =
+  fun mk_goal (rty, rel, partial) =
   let
     val equivp_ty = ([rty, rty] ---> @{typ bool}) --> @{typ bool}
+    val const = if partial then @{const_name part_equivp} else @{const_name equivp}
   in
-    HOLogic.mk_Trueprop (Const (@{const_name equivp}, equivp_ty) $ rel)
+    HOLogic.mk_Trueprop (Const (const, equivp_ty) $ rel)
   end
 
   val goals = map (mk_goal o snd) quot_list
@@ -280,7 +283,7 @@ end
 
 fun quotient_type_cmd specs lthy =
 let
-  fun parse_spec ((((vs, qty_name), mx), rty_str), rel_str) lthy =
+  fun parse_spec ((((vs, qty_name), mx), rty_str), (partial, rel_str)) lthy =
   let
     val rty = Syntax.read_typ lthy rty_str
     val lthy1 = Variable.declare_typ rty lthy
@@ -290,7 +293,7 @@ let
       |> Syntax.check_term lthy1 
     val lthy2 = Variable.declare_term rel lthy1 
   in
-    (((vs, qty_name, mx), (rty, rel)), lthy2)
+    (((vs, qty_name, mx), (rty, rel, partial)), lthy2)
   end
 
   val (spec', lthy') = fold_map parse_spec specs lthy
@@ -298,11 +301,13 @@ in
   quotient_type spec' lthy'
 end
 
+val partial = Scan.optional (Parse.reserved "partial" -- Parse.$$$ ":" >> K true) false
+
 val quotspec_parser =
-    Parse.and_list1
-     ((Parse.type_args -- Parse.binding) --
-        Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
-         (Parse.$$$ "/" |-- Parse.term))
+  Parse.and_list1
+    ((Parse.type_args -- Parse.binding) --
+      Parse.opt_mixfix -- (Parse.$$$ "=" |-- Parse.typ) --
+        (Parse.$$$ "/" |-- (partial -- Parse.term)))
 
 val _ = Keyword.keyword "/"
 

@@ -59,7 +59,7 @@ lemma identity_equivp:
   unfolding equivp_def
   by auto
 
-text {* Partial equivalences: not yet used anywhere *}
+text {* Partial equivalences *}
 
 definition
   "part_equivp E \<equiv> (\<exists>x. E x x) \<and> (\<forall>x y. E x y = (E x x \<and> E y y \<and> (E x = E y)))"
@@ -70,6 +70,23 @@ lemma equivp_implies_part_equivp:
   using a
   unfolding equivp_def part_equivp_def
   by auto
+
+lemma part_equivp_symp:
+  assumes e: "part_equivp R"
+  and a: "R x y"
+  shows "R y x"
+  using e[simplified part_equivp_def] a
+  by (metis)
+
+lemma part_equivp_typedef:
+  shows "part_equivp R \<Longrightarrow> \<exists>d. d \<in> (\<lambda>c. \<exists>x. R x x \<and> c = R x)"
+  unfolding part_equivp_def mem_def
+  apply clarify
+  apply (intro exI)
+  apply (rule conjI)
+  apply assumption
+  apply (rule refl)
+  done
 
 text {* Composition of Relations *}
 
@@ -630,10 +647,10 @@ locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   and   Abs :: "('a \<Rightarrow> bool) \<Rightarrow> 'b"
   and   Rep :: "'b \<Rightarrow> ('a \<Rightarrow> bool)"
-  assumes equivp: "equivp R"
-  and     rep_prop: "\<And>y. \<exists>x. Rep y = R x"
+  assumes equivp: "part_equivp R"
+  and     rep_prop: "\<And>y. \<exists>x. R x x \<and> Rep y = R x"
   and     rep_inverse: "\<And>x. Abs (Rep x) = x"
-  and     abs_inverse: "\<And>x. (Rep (Abs (R x))) = (R x)"
+  and     abs_inverse: "\<And>c. (\<exists>x. ((R x x) \<and> (c = R x))) \<Longrightarrow> (Rep (Abs c)) = c"
   and     rep_inject: "\<And>x y. (Rep x = Rep y) = (x = y)"
 begin
 
@@ -647,63 +664,45 @@ definition
 where
   "rep a = Eps (Rep a)"
 
-lemma homeier_lem9:
-  shows "R (Eps (R x)) = R x"
-proof -
-  have a: "R x x" using equivp by (simp add: equivp_reflp_symp_transp reflp_def)
-  then have "R x (Eps (R x))" by (rule someI)
-  then show "R (Eps (R x)) = R x"
-    using equivp unfolding equivp_def by simp
-qed
+lemma homeier5:
+  assumes a: "R r r"
+  shows "Rep (Abs (R r)) = R r"
+  apply (subst abs_inverse)
+  using a by auto
 
-theorem homeier_thm10:
-  shows "abs (rep a) = a"
-  unfolding abs_def rep_def
-proof -
-  from rep_prop
-  obtain x where eq: "Rep a = R x" by auto
-  have "Abs (R (Eps (Rep a))) = Abs (R (Eps (R x)))" using eq by simp
-  also have "\<dots> = Abs (R x)" using homeier_lem9 by simp
-  also have "\<dots> = Abs (Rep a)" using eq by simp
-  also have "\<dots> = a" using rep_inverse by simp
-  finally
-  show "Abs (R (Eps (Rep a))) = a" by simp
-qed
+theorem homeier6:
+  assumes a: "R r r"
+  and b: "R s s"
+  shows "Abs (R r) = Abs (R s) \<longleftrightarrow> R r = R s"
+  by (metis a b homeier5)
 
-lemma homeier_lem7:
-  shows "(R x = R y) = (Abs (R x) = Abs (R y))" (is "?LHS = ?RHS")
-proof -
-  have "?RHS = (Rep (Abs (R x)) = Rep (Abs (R y)))" by (simp add: rep_inject)
-  also have "\<dots> = ?LHS" by (simp add: abs_inverse)
-  finally show "?LHS = ?RHS" by simp
-qed
-
-theorem homeier_thm11:
-  shows "R r r' = (abs r = abs r')"
-  unfolding abs_def
-  by (simp only: equivp[simplified equivp_def] homeier_lem7)
-
-lemma rep_refl:
-  shows "R (rep a) (rep a)"
-  unfolding rep_def
-  by (simp add: equivp[simplified equivp_def])
-
-
-lemma rep_abs_rsp:
-  shows "R f (rep (abs g)) = R f g"
-  and   "R (rep (abs g)) f = R g f"
-  by (simp_all add: homeier_thm10 homeier_thm11)
+theorem homeier8:
+  assumes "R r r"
+  shows "R (Eps (R r)) = R r"
+  using assms equivp[simplified part_equivp_def]
+  apply clarify
+  by (metis assms exE_some)
 
 lemma Quotient:
   shows "Quotient R abs rep"
-  unfolding Quotient_def
-  apply(simp add: homeier_thm10)
-  apply(simp add: rep_refl)
-  apply(subst homeier_thm11[symmetric])
-  apply(simp add: equivp[simplified equivp_def])
-  done
+  unfolding Quotient_def abs_def rep_def
+  proof (intro conjI allI)
+    fix a r s
+    show "Abs (R (Eps (Rep a))) = a"
+      by (metis equivp exE_some part_equivp_def rep_inverse rep_prop)
+    show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (R r) = Abs (R s))"
+      by (metis homeier6 equivp[simplified part_equivp_def])
+    show "R (Eps (Rep a)) (Eps (Rep a))" proof -
+      obtain x where r: "R x x" and rep: "Rep a = R x" using rep_prop[of a] by auto
+      have "R (Eps (R x)) x" using homeier8 r by simp
+      then have "R x (Eps (R x))" using part_equivp_symp[OF equivp] by fast
+      then have "R (Eps (R x)) (Eps (R x))" using homeier8[OF r] by simp
+      then show "R (Eps (Rep a)) (Eps (Rep a))" using rep by simp
+    qed
+  qed
 
 end
+
 
 subsection {* ML setup *}
 

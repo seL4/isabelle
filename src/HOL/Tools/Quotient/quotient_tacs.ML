@@ -147,6 +147,14 @@ end
   finally jump back to 1
 *)
 
+fun reflp_get ctxt =
+  map_filter (fn th => if prems_of th = [] then SOME (OF1 @{thm equivp_reflp} th) else NONE
+    handle THM _ => NONE) (equiv_rules_get ctxt)
+
+val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
+
+fun eq_imp_rel_get ctxt = map (OF1 eq_imp_rel) (equiv_rules_get ctxt)
+
 fun regularize_tac ctxt =
 let
   val thy = ProofContext.theory_of ctxt
@@ -157,8 +165,7 @@ let
                        addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
                        addsimprocs [simproc]
                        addSolver equiv_solver addSolver quotient_solver
-  val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
-  val eq_eqvs = map (OF1 eq_imp_rel) (equiv_rules_get ctxt)
+  val eq_eqvs = eq_imp_rel_get ctxt
 in
   simp_tac simpset THEN'
   REPEAT_ALL_NEW (CHANGED o FIRST'
@@ -254,7 +261,7 @@ val apply_rsp_tac =
              val inst_thm = Drule.instantiate' ty_inst
                ([NONE, NONE, NONE] @ t_inst) @{thm apply_rsp}
            in
-             (rtac inst_thm THEN' quotient_tac context) 1
+             (rtac inst_thm THEN' SOLVED' (quotient_tac context)) 1
            end
     | _ => no_tac
   end)
@@ -406,7 +413,7 @@ fun injection_step_tac ctxt rel_refl =
 
 fun injection_tac ctxt =
 let
-  val rel_refl = map (OF1 @{thm equivp_reflp}) (equiv_rules_get ctxt)
+  val rel_refl = reflp_get ctxt
 in
   injection_step_tac ctxt rel_refl
 end
