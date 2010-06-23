@@ -975,12 +975,12 @@ lemma matrix_adjoint: assumes lf: "linear (f :: real^'n \<Rightarrow> real ^'m)"
   apply (subst matrix_vector_mul[OF lf])
   unfolding adjoint_matrix matrix_of_matrix_vector_mul ..
 
-section {* lambda_skolem on cartesian products *}
+section {* lambda skolemization on cartesian products *}
 
 (* FIXME: rename do choice_cart *)
 
 lemma lambda_skolem: "(\<forall>i. \<exists>x. P i x) \<longleftrightarrow>
-   (\<exists>x::'a ^ 'n. \<forall>i. P i (x$i))" (is "?lhs \<longleftrightarrow> ?rhs")
+   (\<exists>x::'a ^ 'n. \<forall>i. P i (x $ i))" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   let ?S = "(UNIV :: 'n set)"
   {assume H: "?rhs"
@@ -991,7 +991,7 @@ proof-
     let ?x = "(\<chi> i. (f i)) :: 'a ^ 'n"
     {fix i
       from f have "P i (f i)" by metis
-      then have "P i (?x$i)" by auto
+      then have "P i (?x $ i)" by auto
     }
     hence "\<forall>i. P i (?x$i)" by metis
     hence ?rhs by metis }
@@ -1830,7 +1830,7 @@ proof(rule ccontr)
     unfolding abs_mult diff_minus_eq_add scaleR.minus_left unfolding algebra_simps by (auto intro: mult_pos_pos)
 qed
 
-subsection {* Lemmas for working on real^1 *}
+subsection {* Lemmas for working on @{typ "real^1"} *}
 
 lemma forall_1[simp]: "(\<forall>i::1. P i) \<longleftrightarrow> P 1"
   by (metis num1_eq_iff)
