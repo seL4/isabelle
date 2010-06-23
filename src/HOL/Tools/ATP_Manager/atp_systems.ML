@@ -49,7 +49,7 @@ val (measure_runtime, measure_runtime_setup) =
 type prover_config =
   {home_var: string,
    executable: string,
-   arguments: Time.time -> string,
+   arguments: bool -> Time.time -> string,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
    max_axiom_clauses: int,
@@ -77,7 +77,8 @@ fun extract_proof delims output =
      handle Option.Option => "")
   | _ => ""
 
-fun extract_proof_and_outcome res_code proof_delims known_failures output =
+fun extract_proof_and_outcome complete res_code proof_delims known_failures
+                              output =
   case map_filter (fn (failure, pattern) =>
                       if String.isSubstring pattern output then SOME failure
                       else NONE) known_failures of
@@ -85,7 +86,11 @@ fun extract_proof_and_outcome res_code proof_delims known_failures output =
              "" => ("", SOME UnknownError)
            | proof => if res_code = 0 then (proof, NONE)
                       else ("", SOME UnknownError))
-  | (failure :: _) => ("", SOME failure)
+  | (failure :: _) =>
+    ("", SOME (if failure = IncompleteUnprovable andalso complete then
+                 Unprovable
+               else
+                 failure))
 
 fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure IncompleteUnprovable =
@@ -165,22 +170,24 @@ fun generic_tptp_prover
     val home = getenv home_var
     val command = Path.explode (home ^ "/" ^ executable)
     (* write out problem file and call prover *)
-    fun command_line probfile =
-      (if Config.get ctxt measure_runtime then
-         "TIMEFORMAT='%3U'; { time " ^
-         space_implode " " [File.shell_path command, arguments timeout,
-                            File.shell_path probfile] ^ " ; } 2>&1"
-       else
-         space_implode " " ["exec", File.shell_path command, arguments timeout,
-                            File.shell_path probfile, "2>&1"]) ^
-      (if overlord then
-         " | sed 's/,/, /g' \
-         \| sed 's/\\([^!=<]\\)\\([=|]\\)\\([^=>]\\)/\\1 \\2 \\3/g' \
-         \| sed 's/  / /g' | sed 's/| |/||/g' \
-         \| sed 's/ = = =/===/g' \
-         \| sed 's/= = /== /g'"
-       else
-         "")
+    fun command_line complete probfile =
+      let
+        val core = File.shell_path command ^ " " ^ arguments complete timeout ^
+                   " " ^ File.shell_path probfile
+      in
+        (if Config.get ctxt measure_runtime then
+           "TIMEFORMAT='%3U'; { time " ^ core ^ " ; }"
+         else
+           "exec " ^ core) ^ " 2>&1" ^
+        (if overlord then
+           " | sed 's/,/, /g' \
+           \| sed 's/\\([^!=<]\\)\\([=|]\\)\\([^=>]\\)/\\1 \\2 \\3/g' \
+           \| sed 's/  / /g' | sed 's/| |/||/g' \
+           \| sed 's/ = = =/===/g' \
+           \| sed 's/= = /== /g'"
+         else
+           "")
+      end
     fun split_time s =
       let
         val split = String.tokens (fn c => str c = "\n");
@@ -192,13 +199,36 @@ fun generic_tptp_prover
         val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
-    val split_time' =
-      if Config.get ctxt measure_runtime then split_time else rpair 0
     fun run_on probfile =
       if File.exists command then
-        write_tptp_file (debug andalso overlord) full_types explicit_apply
-                        probfile clauses
-        |> pair (apfst split_time' (bash_output (command_line probfile)))
+        let
+          fun do_run complete =
+            let
+              val command = command_line complete probfile
+              val ((output, msecs), res_code) =
+                bash_output command
+                |>> (if overlord then
+                       prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
+                     else
+                       I)
+                |>> (if Config.get ctxt measure_runtime then split_time
+                     else rpair 0)
+              val (proof, outcome) =
+                extract_proof_and_outcome complete res_code proof_delims
+                                          known_failures output
+            in (output, msecs, proof, outcome) end
+          val (pool, conjecture_offset) =
+            write_tptp_file (debug andalso overlord) full_types explicit_apply
+                            probfile clauses
+          val conjecture_shape = shape_of_clauses (conjecture_offset + 1) goal_clss
+          val result =
+            do_run false
+            |> (fn (_, msecs0, _, SOME IncompleteUnprovable) =>
+                   do_run true
+                   |> (fn (output, msecs, proof, outcome) =>
+                          (output, msecs0 + msecs, proof, outcome))
+                 | result => result)
+        in ((pool, conjecture_shape), result) end
       else if home = "" then
         error ("The environment variable " ^ quote home_var ^ " is not set.")
       else
@@ -208,24 +238,15 @@ fun generic_tptp_prover
        the proof file too. *)
     fun cleanup probfile =
       if the_dest_dir = "" then try File.rm probfile else NONE
-    fun export probfile (((output, _), _), _) =
+    fun export probfile (_, (output, _, _, _)) =
       if the_dest_dir = "" then
         ()
       else
-        File.write (Path.explode (Path.implode probfile ^ "_proof"))
-                   ((if overlord then
-                       "% " ^ command_line probfile ^ "\n% " ^ timestamp () ^
-                       "\n"
-                     else
-                       "") ^ output)
+        File.write (Path.explode (Path.implode probfile ^ "_proof")) output
 
-    val (((output, atp_run_time_in_msecs), res_code),
-         (pool, conjecture_offset)) =
-      with_path cleanup export run_on (prob_pathname subgoal);
-    val conjecture_shape = shape_of_clauses (conjecture_offset + 1) goal_clss
-    (* Check for success and print out some information on failure. *)
-    val (proof, outcome) =
-      extract_proof_and_outcome res_code proof_delims known_failures output
+    val ((pool, conjecture_shape), (output, msecs, proof, outcome)) =
+      with_path cleanup export run_on (prob_pathname subgoal)
+
     val (message, relevant_thm_names) =
       case outcome of
         NONE =>
@@ -236,9 +257,8 @@ fun generic_tptp_prover
       | SOME failure => (string_for_failure failure ^ "\n", [])
   in
     {outcome = outcome, message = message, pool = pool,
-     relevant_thm_names = relevant_thm_names,
-     atp_run_time_in_msecs = atp_run_time_in_msecs, output = output,
-     proof = proof, internal_thm_names = internal_thm_names,
+     relevant_thm_names = relevant_thm_names, atp_run_time_in_msecs = msecs,
+     output = output, proof = proof, internal_thm_names = internal_thm_names,
      conjecture_shape = conjecture_shape,
      filtered_clauses = the_filtered_clauses}
   end
@@ -255,7 +275,7 @@ val tstp_proof_delims =
 val e_config : prover_config =
   {home_var = "E_HOME",
    executable = "eproof",
-   arguments = fn timeout =>
+   arguments = fn _ => fn timeout =>
      "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^
      string_of_int (to_generous_secs timeout),
    proof_delims = [tstp_proof_delims],
@@ -278,9 +298,10 @@ val e = tptp_prover "e" e_config
 val spass_config : prover_config =
   {home_var = "SPASS_HOME",
    executable = "SPASS",
-   arguments = fn timeout =>
-     "-TPTP -Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-     \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout),
+   arguments = fn complete => fn timeout =>
+     ("-TPTP -Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
+      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout))
+     |> not complete ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      [(IncompleteUnprovable, "SPASS beiseite: Completion found"),
@@ -299,7 +320,7 @@ val spass = tptp_prover "spass" spass_config
 val vampire_config : prover_config =
   {home_var = "VAMPIRE_HOME",
    executable = "vampire",
-   arguments = fn timeout =>
+   arguments = fn _ => fn timeout =>
      "--output_syntax tptp --mode casc -t " ^
      string_of_int (to_generous_secs timeout),
    proof_delims =
@@ -346,7 +367,7 @@ fun remote_config atp_prefix args
           prefers_theory_relevant, ...} : prover_config) : prover_config =
   {home_var = "ISABELLE_ATP_MANAGER",
    executable = "SystemOnTPTP",
-   arguments = fn timeout =>
+   arguments = fn _ => fn timeout =>
      args ^ " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
      the_system atp_prefix,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
