@@ -145,7 +145,7 @@ fun quasi_beta_eta_contract (Abs (s, T, t')) =
   | quasi_beta_eta_contract t = Envir.beta_eta_contract t
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
-fun assume_skolem_funs inline s th =
+fun assume_skolem_funs s th =
   let
     val skolem_count = Unsynchronized.ref 0   (* FIXME ??? *)
     fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (s', T, p))) defs =
@@ -156,15 +156,15 @@ fun assume_skolem_funs inline s th =
           val Ts = map type_of args
           val cT = Ts ---> T (* FIXME: use "skolem_type_and_args" *)
           val id = skolem_name s (Unsynchronized.inc skolem_count) s'
-          val c = Free (id, cT)
+          val c = Free (id, cT) (* FIXME: needed? ### *)
           (* Forms a lambda-abstraction over the formal parameters *)
           val rhs =
             list_abs_free (map dest_Free args,
                            HOLogic.choice_const T
                            $ quasi_beta_eta_contract body)
-            |> inline ? mk_skolem_id
+            |> mk_skolem_id
           val def = Logic.mk_equals (c, rhs)
-          val comb = list_comb (if inline then rhs else c, args)
+          val comb = list_comb (rhs, args)
         in dec_sko (subst_bound (comb, p)) (def :: defs) end
       | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) defs =
         (*Universal quant: insert a free variable into body and continue*)
@@ -345,9 +345,9 @@ fun to_nnf th ctxt0 =
   in  (th3, ctxt)  end;
 
 (*Generate Skolem functions for a theorem supplied in nnf*)
-fun skolem_theorems_of_assume inline s th =
-  map (skolem_theorem_of_def inline o Thm.assume o cterm_of (theory_of_thm th))
-      (assume_skolem_funs inline s th)
+fun skolem_theorems_of_assume s th =
+  map (skolem_theorem_of_def true o Thm.assume o cterm_of (theory_of_thm th))
+      (assume_skolem_funs s th)
 
 
 (*** Blacklisting (more in "Sledgehammer_Fact_Filter") ***)
@@ -414,8 +414,7 @@ fun skolemize_theorem s th =
     let
       val ctxt0 = Variable.global_thm_context th
       val (nnfth, ctxt) = to_nnf th ctxt0
-      val inline = exists_type (exists_subtype (can dest_TFree)) (prop_of nnfth)
-      val defs = skolem_theorems_of_assume inline s nnfth
+      val defs = skolem_theorems_of_assume s nnfth
       val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
     in
       cnfs |> map introduce_combinators
