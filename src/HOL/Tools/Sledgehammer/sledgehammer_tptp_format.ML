@@ -62,8 +62,8 @@ fun wrap_type full_types (s, ty) pool =
   else
     (s, pool)
 
-fun wrap_type_if full_types explicit_apply cnh (head, s, tp) =
-  if head_needs_hBOOL explicit_apply cnh head then
+fun wrap_type_if full_types explicit_apply const_needs_hBOOL (head, s, tp) =
+  if head_needs_hBOOL explicit_apply const_needs_hBOOL head then
     wrap_type full_types (s, tp)
   else
     pair s
@@ -79,11 +79,11 @@ fun min_arity_of const_min_arity = the_default 0 o Symtab.lookup const_min_arity
 
 (* Apply an operator to the argument strings, using either the "apply" operator
    or direct function application. *)
-fun string_of_application full_types cma (CombConst ((s, s'), _, tvars), args)
-                          pool =
+fun string_of_application full_types const_min_arity
+                          (CombConst ((s, s'), _, tvars), args) pool =
     let
       val s = if s = "equal" then "c_fequal" else s
-      val nargs = min_arity_of cma s
+      val nargs = min_arity_of const_min_arity s
       val args1 = List.take (args, nargs)
         handle Subscript =>
                raise Fail (quote s ^ " has arity " ^ Int.toString nargs ^
@@ -96,26 +96,28 @@ fun string_of_application full_types cma (CombConst ((s, s'), _, tvars), args)
   | string_of_application _ _ (CombVar (name, _), args) pool =
     nice_name name pool |>> (fn s => string_apply (s, args))
 
-fun string_of_combterm (params as (full_types, explicit_apply, cma, cnh)) t
-                       pool =
+fun string_of_combterm (params as (full_types, explicit_apply, const_min_arity,
+                                   const_needs_hBOOL)) t pool =
   let
     val (head, args) = strip_combterm_comb t
     val (ss, pool) = pool_map (string_of_combterm params) args pool
-    val (s, pool) = string_of_application full_types cma (head, ss) pool
+    val (s, pool) =
+      string_of_application full_types const_min_arity (head, ss) pool
   in
-    wrap_type_if full_types explicit_apply cnh (head, s, type_of_combterm t)
-                 pool
+    wrap_type_if full_types explicit_apply const_needs_hBOOL
+                 (head, s, type_of_combterm t) pool
   end
 
 (*Boolean-valued terms are here converted to literals.*)
 fun boolify params c =
   string_of_combterm params c #>> prefix "hBOOL" o paren_pack o single
 
-fun string_of_predicate (params as (_, explicit_apply, _, cnh)) t =
+fun string_of_predicate (params as (_, explicit_apply, _, const_needs_hBOOL))
+                        t =
   case #1 (strip_combterm_comb t) of
     CombConst ((s, _), _, _) =>
-    (if needs_hBOOL explicit_apply cnh s then boolify else string_of_combterm)
-        params t
+    (if needs_hBOOL explicit_apply const_needs_hBOOL s then boolify
+     else string_of_combterm) params t
   | _ => boolify params t
 
 fun tptp_of_equality params pos (t1, t2) =
@@ -226,8 +228,10 @@ fun write_tptp_file readable_names full_types explicit_apply file clauses =
     val pool = empty_name_pool readable_names
     val (conjectures, axclauses, _, helper_clauses,
       classrel_clauses, arity_clauses) = clauses
-    val (cma, cnh) = count_constants explicit_apply clauses
-    val params = (full_types, explicit_apply, cma, cnh)
+    val (const_min_arity, const_needs_hBOOL) =
+      count_constants explicit_apply clauses
+    val params = (full_types, explicit_apply, const_min_arity,
+                  const_needs_hBOOL)
     val ((conjecture_clss, tfree_litss), pool) =
       pool_map (tptp_clause params) conjectures pool |>> ListPair.unzip
     val tfree_clss = map tptp_tfree_clause (fold (union (op =)) tfree_litss [])
