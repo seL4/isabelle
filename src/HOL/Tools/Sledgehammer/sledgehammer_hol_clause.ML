@@ -166,7 +166,6 @@ fun conceal_skolem_somes i skolem_somes t =
       fun aux skolem_somes
               (t as (Const (@{const_name skolem_id}, Type (_, [_, T])) $ _)) =
           let
-            val t = Envir.beta_eta_contract t
             val (skolem_somes, s) =
               if i = ~1 then
                 (skolem_somes, @{const_name undefined})
