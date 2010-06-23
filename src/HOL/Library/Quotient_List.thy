@@ -8,15 +8,7 @@ theory Quotient_List
 imports Main Quotient_Syntax
 begin
 
-fun
-  list_rel
-where
-  "list_rel R [] [] = True"
-| "list_rel R (x#xs) [] = False"
-| "list_rel R [] (x#xs) = False"
-| "list_rel R (x#xs) (y#ys) = (R x y \<and> list_rel R xs ys)"
-
-declare [[map list = (map, list_rel)]]
+declare [[map list = (map, list_all2)]]
 
 lemma split_list_all:
   shows "(\<forall>x. P x) \<longleftrightarrow> P [] \<and> (\<forall>x xs. P (x#xs))"
@@ -33,52 +25,47 @@ lemma map_id[id_simps]:
   apply(simp_all)
   done
 
+lemma list_all2_reflp:
+  shows "equivp R \<Longrightarrow> list_all2 R xs xs"
+  by (induct xs, simp_all add: equivp_reflp)
 
-lemma list_rel_reflp:
-  shows "equivp R \<Longrightarrow> list_rel R xs xs"
-  apply(induct xs)
-  apply(simp_all add: equivp_reflp)
-  done
-
-lemma list_rel_symp:
+lemma list_all2_symp:
   assumes a: "equivp R"
-  shows "list_rel R xs ys \<Longrightarrow> list_rel R ys xs"
-  apply(induct xs ys rule: list_induct2')
+  and b: "list_all2 R xs ys"
+  shows "list_all2 R ys xs"
+  using list_all2_lengthD[OF b] b
+  apply(induct xs ys rule: list_induct2)
   apply(simp_all)
   apply(rule equivp_symp[OF a])
   apply(simp)
   done
 
-lemma list_rel_transp:
+thm list_induct3
+
+lemma list_all2_transp:
   assumes a: "equivp R"
-  shows "list_rel R xs1 xs2 \<Longrightarrow> list_rel R xs2 xs3 \<Longrightarrow> list_rel R xs1 xs3"
-  using a
-  apply(induct R xs1 xs2 arbitrary: xs3 rule: list_rel.induct)
-  apply(simp)
-  apply(simp)
-  apply(simp)
-  apply(case_tac xs3)
-  apply(clarify)
-  apply(simp (no_asm_use))
-  apply(clarify)
-  apply(simp (no_asm_use))
-  apply(auto intro: equivp_transp)
+  and b: "list_all2 R xs1 xs2"
+  and c: "list_all2 R xs2 xs3"
+  shows "list_all2 R xs1 xs3"
+  using list_all2_lengthD[OF b] list_all2_lengthD[OF c] b c
+  apply(induct rule: list_induct3)
+  apply(simp_all)
+  apply(auto intro: equivp_transp[OF a])
   done
 
 lemma list_equivp[quot_equiv]:
   assumes a: "equivp R"
-  shows "equivp (list_rel R)"
-  apply(rule equivpI)
+  shows "equivp (list_all2 R)"
+  apply (intro equivpI)
   unfolding reflp_def symp_def transp_def
-  apply(subst split_list_all)
-  apply(simp add: equivp_reflp[OF a] list_rel_reflp[OF a])
-  apply(blast intro: list_rel_symp[OF a])
-  apply(blast intro: list_rel_transp[OF a])
+  apply(simp add: list_all2_reflp[OF a])
+  apply(blast intro: list_all2_symp[OF a])
+  apply(blast intro: list_all2_transp[OF a])
   done
 
-lemma list_rel_rel:
+lemma list_all2_rel:
   assumes q: "Quotient R Abs Rep"
-  shows "list_rel R r s = (list_rel R r r \<and> list_rel R s s \<and> (map Abs r = map Abs s))"
+  shows "list_all2 R r s = (list_all2 R r r \<and> list_all2 R s s \<and> (map Abs r = map Abs s))"
   apply(induct r s rule: list_induct2')
   apply(simp_all)
   using Quotient_rel[OF q]
@@ -87,20 +74,15 @@ lemma list_rel_rel:
 
 lemma list_quotient[quot_thm]:
   assumes q: "Quotient R Abs Rep"
-  shows "Quotient (list_rel R) (map Abs) (map Rep)"
+  shows "Quotient (list_all2 R) (map Abs) (map Rep)"
   unfolding Quotient_def
   apply(subst split_list_all)
   apply(simp add: Quotient_abs_rep[OF q] abs_o_rep[OF q] map_id)
-  apply(rule conjI)
-  apply(rule allI)
+  apply(intro conjI allI)
   apply(induct_tac a)
-  apply(simp)
-  apply(simp)
-  apply(simp add: Quotient_rep_reflp[OF q])
-  apply(rule allI)+
-  apply(rule list_rel_rel[OF q])
+  apply(simp_all add: Quotient_rep_reflp[OF q])
+  apply(rule list_all2_rel[OF q])
   done
-
 
 lemma cons_prs_aux:
   assumes q: "Quotient R Abs Rep"
@@ -115,7 +97,7 @@ lemma cons_prs[quot_preserve]:
 
 lemma cons_rsp[quot_respect]:
   assumes q: "Quotient R Abs Rep"
-  shows "(R ===> list_rel R ===> list_rel R) (op #) (op #)"
+  shows "(R ===> list_all2 R ===> list_all2 R) (op #) (op #)"
   by (auto)
 
 lemma nil_prs[quot_preserve]:
@@ -125,7 +107,7 @@ lemma nil_prs[quot_preserve]:
 
 lemma nil_rsp[quot_respect]:
   assumes q: "Quotient R Abs Rep"
-  shows "list_rel R [] []"
+  shows "list_all2 R [] []"
   by simp
 
 lemma map_prs_aux:
@@ -146,8 +128,8 @@ lemma map_prs[quot_preserve]:
 lemma map_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
-  shows "((R1 ===> R2) ===> (list_rel R1) ===> list_rel R2) map map"
-  and   "((R1 ===> op =) ===> (list_rel R1) ===> op =) map map"
+  shows "((R1 ===> R2) ===> (list_all2 R1) ===> list_all2 R2) map map"
+  and   "((R1 ===> op =) ===> (list_all2 R1) ===> op =) map map"
   apply simp_all
   apply(rule_tac [!] allI)+
   apply(rule_tac [!] impI)
@@ -183,53 +165,45 @@ lemma foldl_prs[quot_preserve]:
   by (simp only: expand_fun_eq fun_map_def foldl_prs_aux[OF a b])
      (simp)
 
-lemma list_rel_empty:
-  shows "list_rel R [] b \<Longrightarrow> length b = 0"
+lemma list_all2_empty:
+  shows "list_all2 R [] b \<Longrightarrow> length b = 0"
   by (induct b) (simp_all)
-
-lemma list_rel_len:
-  shows "list_rel R a b \<Longrightarrow> length a = length b"
-  apply (induct a arbitrary: b)
-  apply (simp add: list_rel_empty)
-  apply (case_tac b)
-  apply simp_all
-  done
 
 (* induct_tac doesn't accept 'arbitrary', so we manually 'spec' *)
 lemma foldl_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
-  shows "((R1 ===> R2 ===> R1) ===> R1 ===> list_rel R2 ===> R1) foldl foldl"
+  shows "((R1 ===> R2 ===> R1) ===> R1 ===> list_all2 R2 ===> R1) foldl foldl"
   apply(auto)
-  apply (subgoal_tac "R1 xa ya \<longrightarrow> list_rel R2 xb yb \<longrightarrow> R1 (foldl x xa xb) (foldl y ya yb)")
+  apply (subgoal_tac "R1 xa ya \<longrightarrow> list_all2 R2 xb yb \<longrightarrow> R1 (foldl x xa xb) (foldl y ya yb)")
   apply simp
   apply (rule_tac x="xa" in spec)
   apply (rule_tac x="ya" in spec)
   apply (rule_tac xs="xb" and ys="yb" in list_induct2)
-  apply (rule list_rel_len)
+  apply (rule list_all2_lengthD)
   apply (simp_all)
   done
 
 lemma foldr_rsp[quot_respect]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
-  shows "((R1 ===> R2 ===> R2) ===> list_rel R1 ===> R2 ===> R2) foldr foldr"
+  shows "((R1 ===> R2 ===> R2) ===> list_all2 R1 ===> R2 ===> R2) foldr foldr"
   apply auto
-  apply(subgoal_tac "R2 xb yb \<longrightarrow> list_rel R1 xa ya \<longrightarrow> R2 (foldr x xa xb) (foldr y ya yb)")
+  apply(subgoal_tac "R2 xb yb \<longrightarrow> list_all2 R1 xa ya \<longrightarrow> R2 (foldr x xa xb) (foldr y ya yb)")
   apply simp
   apply (rule_tac xs="xa" and ys="ya" in list_induct2)
-  apply (rule list_rel_len)
+  apply (rule list_all2_lengthD)
   apply (simp_all)
   done
 
-lemma list_rel_rsp:
+lemma list_all2_rsp:
   assumes r: "\<forall>x y. R x y \<longrightarrow> (\<forall>a b. R a b \<longrightarrow> S x a = T y b)"
-  and l1: "list_rel R x y"
-  and l2: "list_rel R a b"
-  shows "list_rel S x a = list_rel T y b"
+  and l1: "list_all2 R x y"
+  and l2: "list_all2 R a b"
+  shows "list_all2 S x a = list_all2 T y b"
   proof -
-    have a: "length y = length x" by (rule list_rel_len[OF l1, symmetric])
-    have c: "length a = length b" by (rule list_rel_len[OF l2])
+    have a: "length y = length x" by (rule list_all2_lengthD[OF l1, symmetric])
+    have c: "length a = length b" by (rule list_all2_lengthD[OF l2])
     show ?thesis proof (cases "length x = length a")
       case True
       have b: "length x = length a" by fact
@@ -243,20 +217,20 @@ lemma list_rel_rsp:
     next
       case False
       have d: "length x \<noteq> length a" by fact
-      then have e: "\<not>list_rel S x a" using list_rel_len by auto
+      then have e: "\<not>list_all2 S x a" using list_all2_lengthD by auto
       have "length y \<noteq> length b" using d a c by simp
-      then have "\<not>list_rel T y b" using list_rel_len by auto
+      then have "\<not>list_all2 T y b" using list_all2_lengthD by auto
       then show ?thesis using e by simp
     qed
   qed
 
 lemma[quot_respect]:
-  "((R ===> R ===> op =) ===> list_rel R ===> list_rel R ===> op =) list_rel list_rel"
-  by (simp add: list_rel_rsp)
+  "((R ===> R ===> op =) ===> list_all2 R ===> list_all2 R ===> op =) list_all2 list_all2"
+  by (simp add: list_all2_rsp)
 
 lemma[quot_preserve]:
   assumes a: "Quotient R abs1 rep1"
-  shows "((abs1 ---> abs1 ---> id) ---> map rep1 ---> map rep1 ---> id) list_rel = list_rel"
+  shows "((abs1 ---> abs1 ---> id) ---> map rep1 ---> map rep1 ---> id) list_all2 = list_all2"
   apply (simp add: expand_fun_eq)
   apply clarify
   apply (induct_tac xa xb rule: list_induct2')
@@ -265,29 +239,29 @@ lemma[quot_preserve]:
 
 lemma[quot_preserve]:
   assumes a: "Quotient R abs1 rep1"
-  shows "(list_rel ((rep1 ---> rep1 ---> id) R) l m) = (l = m)"
+  shows "(list_all2 ((rep1 ---> rep1 ---> id) R) l m) = (l = m)"
   by (induct l m rule: list_induct2') (simp_all add: Quotient_rel_rep[OF a])
 
-lemma list_rel_eq[id_simps]:
-  shows "(list_rel (op =)) = (op =)"
+lemma list_all2_eq[id_simps]:
+  shows "(list_all2 (op =)) = (op =)"
   unfolding expand_fun_eq
   apply(rule allI)+
   apply(induct_tac x xa rule: list_induct2')
   apply(simp_all)
   done
 
-lemma list_rel_find_element:
+lemma list_all2_find_element:
   assumes a: "x \<in> set a"
-  and b: "list_rel R a b"
+  and b: "list_all2 R a b"
   shows "\<exists>y. (y \<in> set b \<and> R x y)"
 proof -
-  have "length a = length b" using b by (rule list_rel_len)
+  have "length a = length b" using b by (rule list_all2_lengthD)
   then show ?thesis using a b by (induct a b rule: list_induct2) auto
 qed
 
-lemma list_rel_refl:
+lemma list_all2_refl:
   assumes a: "\<And>x y. R x y = (R x = R y)"
-  shows "list_rel R x x"
+  shows "list_all2 R x x"
   by (induct x) (auto simp add: a)
 
 end
