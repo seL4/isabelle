@@ -521,10 +521,9 @@ fun make_nnf1 ctxt th =
   nnf_ss also includes the one-point simprocs,
   which are needed to avoid the various one-point theorems from generating junk clauses.*)
 val nnf_simps =
-  [@{thm simp_implies_def}, @{thm Ex1_def}, @{thm Ball_def},@{thm  Bex_def}, @{thm if_True},
-    @{thm if_False}, @{thm if_cancel}, @{thm if_eq_cancel}, @{thm cases_simp}];
-val nnf_extra_simps =
-  @{thms split_ifs} @ @{thms ex_simps} @ @{thms all_simps} @ @{thms simp_thms};
+  @{thms simp_implies_def Ex1_def Ball_def Bex_def if_True if_False if_cancel
+         if_eq_cancel cases_simp}
+val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 
 val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
