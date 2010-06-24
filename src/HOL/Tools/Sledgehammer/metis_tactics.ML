@@ -446,13 +446,15 @@ fun inst_inf ctxt mode skolem_somes thpairs fsubst th =
   of 1, and the use of RSN would increase this typically to 3. Instantiations of those Vars
   could then fail. See comment on mk_var.*)
 fun resolve_inc_tyvars(tha,i,thb) =
-  let val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
+  let
+      val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
       val ths = Seq.list_of (Thm.bicompose false (false,tha,nprems_of tha) i thb)
   in
       case distinct Thm.eq_thm ths of
         [th] => th
       | _ => raise THM ("resolve_inc_tyvars: unique result expected", i, [tha,thb])
-  end;
+  end
+  handle TERM (msg, _) => raise METIS ("resolve_inc_tyvars", msg)
 
 fun resolve_inf ctxt mode skolem_somes thpairs atm th1 th2 =
   let
