@@ -334,10 +334,10 @@ fun compile_match nvs eq_ps out_ps success_p can_fail =
   in
     Pretty.block
      ([str "(fn ", mk_tuple out_ps, str " =>", Pretty.brk 1] @
-      (Pretty.block ((if eqs=[] then [] else str "if " ::
+      (Pretty.block ((if null eqs then [] else str "if " ::
          [Pretty.block eqs, Pretty.brk 1, str "then "]) @
          (success_p ::
-          (if eqs=[] then [] else [Pretty.brk 1, str "else DSeq.empty"]))) ::
+          (if null eqs then [] else [Pretty.brk 1, str "else DSeq.empty"]))) ::
        (if can_fail then
           [Pretty.brk 1, str "| _ => DSeq.empty)"]
         else [str ")"])))
