@@ -7,13 +7,13 @@ Definitions for constants on quotient types.
 signature QUOTIENT_DEF =
 sig
   val quotient_def: (binding option * mixfix) * (Attrib.binding * (term * term)) ->
-    local_theory -> (term * thm) * local_theory
+    local_theory -> Quotient_Info.qconsts_info * local_theory
 
   val quotdef_cmd: (binding option * mixfix) * (Attrib.binding * (string * string)) ->
-    local_theory -> (term * thm) * local_theory
+    local_theory -> Quotient_Info.qconsts_info * local_theory
 
   val quotient_lift_const: typ list -> string * term -> local_theory ->
-    (term * thm) * local_theory
+    Quotient_Info.qconsts_info * local_theory
 end;
 
 structure Quotient_Def: QUOTIENT_DEF =
@@ -45,7 +45,7 @@ let
   val pos = Position.str_of (Binding.pos_of bind)
 in
   error ("Head of quotient_definition " ^ 
-    (quote str) ^ " differs from declaration " ^ name ^ pos)
+    quote str ^ " differs from declaration " ^ name ^ pos)
 end
 
 fun quotient_def ((optbind, mx), (attr, (lhs, rhs))) lthy =
@@ -69,12 +69,14 @@ let
   val ((trm, (_ , thm)), lthy') = Local_Theory.define ((qconst_bname, mx), (attr, newrhs)) lthy
 
   (* data storage *)
-  fun qcinfo phi = transform_qconsts phi {qconst = trm, rconst = rhs, def = thm}
+  val qconst_data = {qconst = trm, rconst = rhs, def = thm}
+
+  fun qcinfo phi = transform_qconsts phi qconst_data
   fun trans_name phi = (fst o dest_Const o #qconst) (qcinfo phi)
   val lthy'' = Local_Theory.declaration true
                  (fn phi => qconsts_update_gen (trans_name phi) (qcinfo phi)) lthy'
 in
-  ((trm, thm), lthy'')
+  (qconst_data, lthy'')
 end
 
 fun quotdef_cmd (decl, (attr, (lhs_str, rhs_str))) lthy =

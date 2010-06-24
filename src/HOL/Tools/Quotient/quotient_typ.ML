@@ -8,7 +8,7 @@ Definition of a quotient type.
 signature QUOTIENT_TYPE =
 sig
   val add_quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) * thm
-    -> Proof.context -> (thm * thm) * local_theory
+    -> Proof.context -> Quotient_Info.quotdata_info * local_theory
 
   val quotient_type: ((string list * binding * mixfix) * (typ * term * bool)) list
     -> Proof.context -> Proof.state
@@ -32,11 +32,8 @@ in
 end
 
 fun note (name, thm, attrs) lthy =
-let
-  val ((_,[thm']), lthy') = Local_Theory.note ((name, attrs), [thm]) lthy
-in
-  (thm', lthy')
-end
+  Local_Theory.note ((name, attrs), [thm]) lthy |> snd
+
 
 fun intern_attr at = Attrib.internal (K at)
 
@@ -64,7 +61,7 @@ let
     |> map Free
 in
   lambda c (HOLogic.exists_const rty $
-     lambda x (HOLogic.mk_conj ((rel $ x $ x), (HOLogic.mk_eq (c, (rel $ x))))))
+     lambda x (HOLogic.mk_conj (rel $ x $ x, HOLogic.mk_eq (c, rel $ x))))
 end
 
 
@@ -139,7 +136,10 @@ end
 (* main function for constructing a quotient type *)
 fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lthy =
 let
-  val part_equiv = if partial then equiv_thm else equiv_thm RS @{thm equivp_implies_part_equivp}
+  val part_equiv = 
+    if partial 
+    then equiv_thm 
+    else equiv_thm RS @{thm equivp_implies_part_equivp}
 
   (* generates the typedef *)
   val ((qty_full_name, typedef_info), lthy1) = typedef_make (vs, qty_name, mx, rel, rty) part_equiv lthy
@@ -173,15 +173,17 @@ let
   (* name equivalence theorem *)
   val equiv_thm_name = Binding.suffix_name "_equivp" qty_name
 
-  (* storing the quot-info *)
-  fun qinfo phi = transform_quotdata phi
-    {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm}
-  val lthy4 = Local_Theory.declaration true
-    (fn phi => quotdata_update_gen qty_full_name (qinfo phi)) lthy3
+  (* storing the quotdata *)
+  val quotdata = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm}
+
+  fun qinfo phi = transform_quotdata phi quotdata
+
+  val lthy4 = lthy3
+     |> Local_Theory.declaration true (fn phi => quotdata_update_gen qty_full_name (qinfo phi))
+     |> note (equiv_thm_name, equiv_thm, if partial then [] else [intern_attr equiv_rules_add])
+     |> note (quotient_thm_name, quotient_thm, [intern_attr quotient_rules_add])
 in
-  lthy4
-  |> note (quotient_thm_name, quotient_thm, [intern_attr quotient_rules_add])
-  ||>> note (equiv_thm_name, equiv_thm, if partial then [] else [intern_attr equiv_rules_add])
+  (quotdata, lthy4)
 end
 
 
@@ -253,6 +255,7 @@ end
  - its free type variables (first argument)
  - its mixfix annotation
  - the type to be quotient
+ - the partial flag (a boolean)
  - the relation according to which the type is quotient
 
  it opens a proof-state in which one has to show that the
@@ -268,7 +271,8 @@ let
   fun mk_goal (rty, rel, partial) =
   let
     val equivp_ty = ([rty, rty] ---> @{typ bool}) --> @{typ bool}
-    val const = if partial then @{const_name part_equivp} else @{const_name equivp}
+    val const = 
+      if partial then @{const_name part_equivp} else @{const_name equivp}
   in
     HOLogic.mk_Trueprop (Const (const, equivp_ty) $ rel)
   end

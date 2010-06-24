@@ -84,7 +84,7 @@ fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
 *)
 fun mk_mapfun ctxt vs rty =
 let
-  val vs' = map (mk_Free) vs
+  val vs' = map mk_Free vs
 
   fun mk_mapfun_aux rty =
     case rty of
@@ -103,7 +103,7 @@ fun get_rty_qty ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
   val exn = LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
-  val qdata = (quotdata_lookup thy s) handle Quotient_Info.NotFound => raise exn
+  val qdata = quotdata_lookup thy s handle Quotient_Info.NotFound => raise exn
 in
   (#rtyp qdata, #qtyp qdata)
 end
