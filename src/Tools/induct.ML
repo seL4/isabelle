@@ -85,24 +85,14 @@ end;
 functor Induct(Data: INDUCT_DATA): INDUCT =
 struct
 
-
-(** misc utils **)
-
-(* encode_type -- for indexing purposes *)
-
-fun encode_type (Type (c, Ts)) = Term.list_comb (Const (c, dummyT), map encode_type Ts)
-  | encode_type (TFree (a, _)) = Free (a, dummyT)
-  | encode_type (TVar (a, _)) = Var (a, dummyT);
-
-
-(* variables -- ordered left-to-right, preferring right *)
+(** variables -- ordered left-to-right, preferring right **)
 
 fun vars_of tm =
   rev (distinct (op =) (Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []));
 
 local
 
-val mk_var = encode_type o #2 o Term.dest_Var;
+val mk_var = Net.encode_type o #2 o Term.dest_Var;
 
 fun concl_var which thm = mk_var (which (vars_of (Thm.concl_of thm))) handle Empty =>
   raise THM ("No variables in conclusion of rule", 0, [thm]);
@@ -272,11 +262,11 @@ val lookup_coinductP = lookup_rule o #2 o #3 o get_local;
 fun find_rules which how ctxt x =
   map snd (Item_Net.retrieve (which (get_local ctxt)) (how x));
 
-val find_casesT = find_rules (#1 o #1) encode_type;
+val find_casesT = find_rules (#1 o #1) Net.encode_type;
 val find_casesP = find_rules (#2 o #1) I;
-val find_inductT = find_rules (#1 o #2) encode_type;
+val find_inductT = find_rules (#1 o #2) Net.encode_type;
 val find_inductP = find_rules (#2 o #2) I;
-val find_coinductT = find_rules (#1 o #3) encode_type;
+val find_coinductT = find_rules (#1 o #3) Net.encode_type;
 val find_coinductP = find_rules (#2 o #3) I;
 
 
