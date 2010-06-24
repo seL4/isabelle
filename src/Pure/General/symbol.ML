@@ -491,7 +491,11 @@ end;
 
 (* escape *)
 
-val esc = fn s => if is_char s then s else "\\" ^ s;
+val esc = fn s =>
+  if is_char s then s
+  else if is_utf8 s then translate_string (fn c => "\\" ^ string_of_int (ord c)) s
+  else "\\" ^ s;
+
 val escape = implode o map esc o sym_explode;
 
 
