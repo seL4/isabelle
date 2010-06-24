@@ -406,6 +406,9 @@ fun make_unique xs =
 fun subtract_cls ax_clauses =
   filter_out (Termtab.defined (mk_clause_table ax_clauses) o prop_of)
 
+val exists_sledgehammer_const =
+  exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s) o prop_of
+
 fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
@@ -428,7 +431,8 @@ fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
 
             val name1 = Facts.extern facts name;
             val name2 = Name_Space.extern full_space name;
-            val ths = filter_out is_theorem_bad_for_atps ths0;
+            val ths = filter_out (is_theorem_bad_for_atps orf
+                                  exists_sledgehammer_const) ths0
           in
             case find_first check_thms [name1, name2, name] of
               NONE => I

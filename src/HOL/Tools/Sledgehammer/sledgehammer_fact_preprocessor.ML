@@ -8,6 +8,8 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 signature SLEDGEHAMMER_FACT_PREPROCESSOR =
 sig
   type cnf_thm = thm * ((string * int) * thm)
+
+  val sledgehammer_prefix: string
   val chained_prefix: string
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
@@ -384,8 +386,6 @@ fun is_strange_thm th =
 fun is_theorem_bad_for_atps thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_topsort t orelse
-    exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s
-                   | _ => false) t orelse
     is_strange_thm thm
   end
 
