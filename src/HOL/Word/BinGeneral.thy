@@ -127,28 +127,25 @@ lemma bin_exhaust:
 
 subsection {* Destructors for binary integers *}
 
+definition bin_last :: "int \<Rightarrow> bit" where
+  "bin_last w = (if w mod 2 = 0 then bit.B0 else bit.B1)"
+
+definition bin_rest :: "int \<Rightarrow> int" where
+  "bin_rest w = w div 2"
+
 definition bin_rl :: "int \<Rightarrow> int \<times> bit" where 
-  [code del]: "bin_rl w = (THE (r, l). w = r BIT l)"
+  "bin_rl w = (bin_rest w, bin_last w)"
 
-lemma bin_rl_char: "(bin_rl w = (r, l)) = (r BIT l = w)"
-  apply (unfold bin_rl_def)
-  apply safe
-   apply (cases w rule: bin_exhaust)
-   apply auto
+lemma bin_rl_char: "bin_rl w = (r, l) \<longleftrightarrow> r BIT l = w"
+  apply (cases l)
+  apply (auto simp add: bin_rl_def bin_last_def bin_rest_def)
+  unfolding Pls_def Min_def Bit0_def Bit1_def number_of_is_id
+  apply arith+
   done
-
-definition
-  bin_rest_def [code del]: "bin_rest w = fst (bin_rl w)"
-
-definition
-  bin_last_def [code del] : "bin_last w = snd (bin_rl w)"
 
 primrec bin_nth where
   Z: "bin_nth w 0 = (bin_last w = bit.B1)"
   | Suc: "bin_nth w (Suc n) = bin_nth (bin_rest w) n"
-
-lemma bin_rl: "bin_rl w = (bin_rest w, bin_last w)"
-  unfolding bin_rest_def bin_last_def by auto
 
 lemma bin_rl_simps [simp]:
   "bin_rl Int.Pls = (Int.Pls, bit.B0)"
@@ -160,7 +157,11 @@ lemma bin_rl_simps [simp]:
 
 declare bin_rl_simps(1-4) [code]
 
-lemmas bin_rl_simp [simp] = iffD1 [OF bin_rl_char bin_rl]
+thm iffD1 [OF bin_rl_char bin_rl_def]
+
+lemma bin_rl_simp [simp]:
+  "bin_rest w BIT bin_last w = w"
+  by (simp add: iffD1 [OF bin_rl_char bin_rl_def])
 
 lemma bin_abs_lem:
   "bin = (w BIT b) ==> ~ bin = Int.Min --> ~ bin = Int.Pls -->
@@ -209,7 +210,7 @@ lemma bin_rest_simps [simp]:
   "bin_rest (Int.Bit0 w) = w"
   "bin_rest (Int.Bit1 w) = w"
   "bin_rest (w BIT b) = w"
-  unfolding bin_rest_def by auto
+  using bin_rl_simps bin_rl_def by auto
 
 declare bin_rest_simps(1-4) [code]
 
@@ -219,7 +220,7 @@ lemma bin_last_simps [simp]:
   "bin_last (Int.Bit0 w) = bit.B0"
   "bin_last (Int.Bit1 w) = bit.B1"
   "bin_last (w BIT b) = b"
-  unfolding bin_last_def by auto
+  using bin_rl_simps bin_rl_def by auto
 
 declare bin_last_simps(1-4) [code]
 
@@ -345,14 +346,9 @@ where
 
 termination 
   apply (relation "measure (nat o abs o snd o snd o snd)")
-   apply simp
-  apply (simp add: Pls_def brlem)
-  apply (clarsimp simp: bin_rl_char pred_def)
-  apply (frule thin_rl [THEN refl [THEN bin_abs_lem [rule_format]]]) 
-    apply (unfold Pls_def Min_def number_of_eq)
-    prefer 2
-    apply (erule asm_rl)
-   apply auto
+  apply (auto simp add: bin_rl_def bin_last_def bin_rest_def)
+  unfolding Pls_def Min_def Bit0_def Bit1_def number_of_is_id
+  apply auto
   done
 
 declare bin_rec.simps [simp del]
