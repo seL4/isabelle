@@ -29,3 +29,17 @@ Checklist for official releases
     build
     lib/html/library_index_content.template
 
+
+Packaging
+=========
+
+- makedist -r DISTNAME
+
+- makebin (multiplatform);
+
+- makebin -l on fast machine;
+
+- makebundle (multiplatform);
+
+- hdiutil create -srcfolder DIR DMG (Mac OS);
+
