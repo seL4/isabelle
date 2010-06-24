@@ -77,6 +77,7 @@ val output_chrs = translate_string output_chr;
 fun output_known_sym (known_sym, known_ctrl) sym =
   (case Symbol.decode sym of
     Symbol.Char s => output_chr s
+  | Symbol.UTF8 s => s
   | Symbol.Sym s => if known_sym s then enclose "{\\isasym" "}" s else output_chrs sym
   | Symbol.Ctrl s => if known_ctrl s then enclose "\\isactrl" " " s else output_chrs sym
   | Symbol.Raw s => s);

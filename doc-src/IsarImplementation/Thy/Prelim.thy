@@ -527,8 +527,10 @@ text {* A \emph{symbol} constitutes the smallest textual unit in
 
   \begin{enumerate}
 
-  \item a single ASCII character ``@{text "c"}'' or raw byte in the
-  range of 128\dots 255, for example ``\verb,a,'',
+  \item a single ASCII character ``@{text "c"}'', for example
+  ``\verb,a,'',
+
+  \item a codepoint according to UTF8 (non-ASCII byte sequence),
 
   \item a regular symbol ``\verb,\,\verb,<,@{text "ident"}\verb,>,'',
   for example ``\verb,\,\verb,<alpha>,'',
@@ -555,19 +557,17 @@ text {* A \emph{symbol} constitutes the smallest textual unit in
   ``\verb,\,\verb,<alpha>,'' is classified as a letter, which means it
   may occur within regular Isabelle identifiers.
 
-  Since the character set underlying Isabelle symbols is 7-bit ASCII
-  and 8-bit characters are passed through transparently, Isabelle can
-  also process Unicode/UCS data in UTF-8 encoding.\footnote{When
-  counting precise source positions internally, bytes in the range of
-  128\dots 191 are ignored.  In UTF-8 encoding, this interval covers
-  the additional trailer bytes, so Isabelle happens to count Unicode
-  characters here, not bytes in memory.  In ISO-Latin encoding, the
-  ignored range merely includes some extra punctuation characters that
-  even have replacements within the standard collection of Isabelle
-  symbols; the accented letters range is counted properly.} Unicode
-  provides its own collection of mathematical symbols, but within the
-  core Isabelle/ML world there is no link to the standard collection
-  of Isabelle regular symbols.
+  The character set underlying Isabelle symbols is 7-bit ASCII, but
+  8-bit character sequences are passed-through unchanged.  Unicode/UCS
+  data in UTF-8 encoding is processed in a non-strict fashion, such
+  that well-formed code sequences are recognized
+  accordingly.\footnote{Note that ISO-Latin-1 differs from UTF-8 only
+  in some special punctuation characters that even have replacements
+  within the standard collection of Isabelle symbols.  Text consisting
+  of ASCII plus accented letters can be processed in either encoding.}
+  Unicode provides its own collection of mathematical symbols, but
+  within the core Isabelle/ML world there is no link to the standard
+  collection of Isabelle regular symbols.
 
   \medskip Output of Isabelle symbols depends on the print mode
   (\secref{print-mode}).  For example, the standard {\LaTeX} setup of
@@ -612,8 +612,8 @@ text %mlref {*
 
   \item @{ML_type "Symbol.sym"} is a concrete datatype that represents
   the different kinds of symbols explicitly, with constructors @{ML
-  "Symbol.Char"}, @{ML "Symbol.Sym"}, @{ML "Symbol.Ctrl"}, @{ML
-  "Symbol.Raw"}.
+  "Symbol.Char"}, @{ML "Symbol.Sym"}, @{ML "Symbol.UTF8"}, @{ML
+  "Symbol.Ctrl"}, @{ML "Symbol.Raw"}.
 
   \item @{ML "Symbol.decode"} converts the string representation of a
   symbol into the datatype version.
