@@ -53,16 +53,6 @@ lemma fequal_imp_equal [no_atp]: "fequal X Y \<Longrightarrow> X = Y"
 lemma equal_imp_fequal [no_atp]: "X = Y \<Longrightarrow> fequal X Y"
   by (simp add: fequal_def)
 
-text{*These two represent the equivalence between Boolean equality and iff.
-They can't be converted to clauses automatically, as the iff would be
-expanded...*}
-
-lemma iff_positive: "P \<or> Q \<or> P = Q"
-by blast
-
-lemma iff_negative: "\<not> P \<or> \<not> Q \<or> P = Q"
-by blast
-
 text{*Theorems for translation to combinators*}
 
 lemma abs_S [no_atp]: "\<lambda>x. (f x) (g x) \<equiv> COMBS f g"

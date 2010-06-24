@@ -35,13 +35,15 @@ open Sledgehammer_FOL_Clause
 
 type cnf_thm = thm * ((string * int) * thm)
 
+val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
+
 (* Used to label theorems chained into the goal. *)
-val chained_prefix = "Sledgehammer.chained_"
+val chained_prefix = sledgehammer_prefix ^ "chained_"
 
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
-val skolem_theory_name = "Sledgehammer.Sko"
+val skolem_theory_name = sledgehammer_prefix ^ "Sko"
 val skolem_prefix = "sko_"
 val skolem_infix = "$"
 
@@ -382,6 +384,8 @@ fun is_strange_thm th =
 fun is_theorem_bad_for_atps thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_topsort t orelse
+    exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s
+                   | _ => false) t orelse
     is_strange_thm thm
   end
 
