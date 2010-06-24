@@ -118,14 +118,14 @@ fun swap_params_conv ctxt i j cv =
     fun conv1 0 ctxt = Conv.forall_conv (cv o snd) ctxt
       | conv1 k ctxt =
           Conv.rewr_conv @{thm swap_params} then_conv
-          Conv.forall_conv (conv1 (k-1) o snd) ctxt
+          Conv.forall_conv (conv1 (k - 1) o snd) ctxt
     fun conv2 0 ctxt = conv1 j ctxt
-      | conv2 k ctxt = Conv.forall_conv (conv2 (k-1) o snd) ctxt
+      | conv2 k ctxt = Conv.forall_conv (conv2 (k - 1) o snd) ctxt
   in conv2 i ctxt end;
 
 fun swap_prems_conv 0 = Conv.all_conv
   | swap_prems_conv i =
-      Conv.implies_concl_conv (swap_prems_conv (i-1)) then_conv
+      Conv.implies_concl_conv (swap_prems_conv (i - 1)) then_conv
       Conv.rewr_conv Drule.swap_prems_eq
 
 fun drop_judgment ctxt = Object_Logic.drop_judgment (ProofContext.theory_of ctxt);
@@ -135,35 +135,40 @@ fun find_eq ctxt t =
     val l = length (Logic.strip_params t);
     val Hs = Logic.strip_assums_hyp t;
     fun find (i, t) =
-      case Induct_Args.dest_def (drop_judgment ctxt t) of
+      (case Induct_Args.dest_def (drop_judgment ctxt t) of
         SOME (Bound j, _) => SOME (i, j)
       | SOME (_, Bound j) => SOME (i, j)
-      | _ => NONE
+      | _ => NONE);
   in
-    case get_first find (map_index I Hs) of
+    (case get_first find (map_index I Hs) of
       NONE => NONE
     | SOME (0, 0) => NONE
-    | SOME (i, j) => SOME (i, l-j-1, j)
+    | SOME (i, j) => SOME (i, l - j - 1, j))
   end;
 
-fun mk_swap_rrule ctxt ct = case find_eq ctxt (term_of ct) of
+fun mk_swap_rrule ctxt ct =
+  (case find_eq ctxt (term_of ct) of
     NONE => NONE
-  | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct);
+  | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
-val rearrange_eqs_simproc = Simplifier.simproc
-  (Thm.theory_of_thm Drule.swap_prems_eq) "rearrange_eqs" ["all t"]
-  (fn thy => fn ss => fn t =>
-     mk_swap_rrule (Simplifier.the_context ss) (cterm_of thy t))
+val rearrange_eqs_simproc =
+  Simplifier.simproc
+    (Thm.theory_of_thm Drule.swap_prems_eq) "rearrange_eqs" ["all t"]
+    (fn thy => fn ss => fn t =>
+      mk_swap_rrule (Simplifier.the_context ss) (cterm_of thy t));
+
 
 (* rotate k premises to the left by j, skipping over first j premises *)
 
 fun rotate_conv 0 j 0 = Conv.all_conv
-  | rotate_conv 0 j k = swap_prems_conv j then_conv rotate_conv 1 j (k-1)
-  | rotate_conv i j k = Conv.implies_concl_conv (rotate_conv (i-1) j k);
+  | rotate_conv 0 j k = swap_prems_conv j then_conv rotate_conv 1 j (k - 1)
+  | rotate_conv i j k = Conv.implies_concl_conv (rotate_conv (i - 1) j k);
 
 fun rotate_tac j 0 = K all_tac
-  | rotate_tac j k = SUBGOAL (fn (goal, i) => CONVERSION (rotate_conv
-      j (length (Logic.strip_assums_hyp goal) - j - k) k) i);
+  | rotate_tac j k = SUBGOAL (fn (goal, i) =>
+      CONVERSION (rotate_conv
+        j (length (Logic.strip_assums_hyp goal) - j - k) k) i);
+
 
 (* rulify operators around definition *)
 
@@ -278,8 +283,9 @@ local
 fun mk_att f g name arg =
   let val (x, thm) = g arg in (Data.map (f (name, thm)) x, thm) end;
 
-fun del_att which = Thm.declaration_attribute (fn th => Data.map (which (pairself (fn rs =>
-  fold Item_Net.remove (filter_rules rs th) rs))));
+fun del_att which =
+  Thm.declaration_attribute (fn th => Data.map (which (pairself (fn rs =>
+    fold Item_Net.remove (filter_rules rs th) rs))));
 
 fun map1 f (x, y, z, s) = (f x, y, z, s);
 fun map2 f (x, y, z, s) = (x, f y, z, s);
@@ -314,8 +320,8 @@ fun map_simpset f = Data.map (map4 f);
 
 fun induct_simp f =
   Thm.declaration_attribute (fn thm => fn context =>
-      (map_simpset
-        (Simplifier.with_context (Context.proof_of context) (fn ss => f (ss, [thm]))) context));
+      map_simpset
+        (Simplifier.with_context (Context.proof_of context) (fn ss => f (ss, [thm]))) context);
 
 val induct_simp_add = induct_simp (op addsimps);
 val induct_simp_del = induct_simp (op delsimps);
@@ -418,6 +424,7 @@ fun mark_constraints n ctxt = Conv.fconv_rule
 
 val unmark_constraints = Conv.fconv_rule
   (MetaSimplifier.rewrite true [Induct_Args.equal_def]);
+
 
 (* simplify *)
 
