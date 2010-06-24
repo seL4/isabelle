@@ -102,10 +102,11 @@ val add_indent = Buffer.add o output_spaces;
 
 (** printing items: compound phrases, strings, and breaks **)
 
-datatype T =
+abstype T =
   Block of (output * output) * T list * int * int |  (*markup output, body, indentation, length*)
   String of output * int |                           (*text, length*)
-  Break of bool * int;                               (*mandatory flag, width if not taken*)
+  Break of bool * int                                (*mandatory flag, width if not taken*)
+with
 
 fun length (Block (_, _, _, len)) = len
   | length (String (_, len)) = len
@@ -322,6 +323,8 @@ fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
 fun from_ML (ML_Pretty.Block (m, prts, ind)) = block_markup m (ind, map from_ML prts)
   | from_ML (ML_Pretty.String s) = String s
   | from_ML (ML_Pretty.Break b) = Break b;
+
+end;
 
 
 
