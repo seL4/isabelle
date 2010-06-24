@@ -26,7 +26,7 @@ sig
   val inj_repabs_trm: Proof.context -> term * term -> term
   val inj_repabs_trm_chk: Proof.context -> term * term -> term
 
-  val quotient_lift_const: typ list -> string * term -> local_theory -> term
+  val derive_qtyp: typ list -> typ -> Proof.context -> typ
   val quotient_lift_all: typ list -> Proof.context -> term -> term
 end;
 
@@ -84,7 +84,7 @@ fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
 *)
 fun mk_mapfun ctxt vs rty =
 let
-  val vs' = map (mk_Free) vs
+  val vs' = map mk_Free vs
 
   fun mk_mapfun_aux rty =
     case rty of
@@ -103,7 +103,7 @@ fun get_rty_qty ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
   val exn = LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
-  val qdata = (quotdata_lookup thy s) handle Quotient_Info.NotFound => raise exn
+  val qdata = quotdata_lookup thy s handle Quotient_Info.NotFound => raise exn
 in
   (#rtyp qdata, #qtyp qdata)
 end
@@ -738,14 +738,12 @@ in
   (ty_substs, filter valid_trm_subst all_trm_substs)
 end
 
-fun quotient_lift_const qtys (b, t) ctxt =
+fun derive_qtyp qtys rty ctxt =
 let
   val thy = ProofContext.theory_of ctxt
-  val (ty_substs, _) = get_ty_trm_substs qtys ctxt;
-  val (_, ty) = dest_Const t;
-  val nty = subst_tys thy ty_substs ty;
+  val (ty_substs, _) = get_ty_trm_substs qtys ctxt
 in
-  Free(b, nty)
+  subst_tys thy ty_substs rty
 end
 
 (*

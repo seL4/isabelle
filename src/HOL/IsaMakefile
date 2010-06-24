@@ -1093,6 +1093,7 @@ HOL-Multivariate_Analysis: HOL $(OUT)/HOL-Multivariate_Analysis
 
 $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Brouwer_Fixpoint.thy				\
+  Multivariate_Analysis/Cartesian_Euclidean_Space.thy                   \
   Multivariate_Analysis/Convex_Euclidean_Space.thy			\
   Multivariate_Analysis/Derivative.thy					\
   Multivariate_Analysis/Determinants.thy				\

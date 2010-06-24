@@ -4,7 +4,7 @@
 Proof by cases, induction, and coinduction.
 *)
 
-signature INDUCT_DATA =
+signature INDUCT_ARGS =
 sig
   val cases_default: thm
   val atomize: thm list
@@ -82,27 +82,17 @@ sig
   val setup: theory -> theory
 end;
 
-functor Induct(Data: INDUCT_DATA): INDUCT =
+functor Induct(Induct_Args: INDUCT_ARGS): INDUCT =
 struct
 
-
-(** misc utils **)
-
-(* encode_type -- for indexing purposes *)
-
-fun encode_type (Type (c, Ts)) = Term.list_comb (Const (c, dummyT), map encode_type Ts)
-  | encode_type (TFree (a, _)) = Free (a, dummyT)
-  | encode_type (TVar (a, _)) = Var (a, dummyT);
-
-
-(* variables -- ordered left-to-right, preferring right *)
+(** variables -- ordered left-to-right, preferring right **)
 
 fun vars_of tm =
   rev (distinct (op =) (Term.fold_aterms (fn (t as Var _) => cons t | _ => I) tm []));
 
 local
 
-val mk_var = encode_type o #2 o Term.dest_Var;
+val mk_var = Net.encode_type o #2 o Term.dest_Var;
 
 fun concl_var which thm = mk_var (which (vars_of (Thm.concl_of thm))) handle Empty =>
   raise THM ("No variables in conclusion of rule", 0, [thm]);
@@ -128,14 +118,14 @@ fun swap_params_conv ctxt i j cv =
     fun conv1 0 ctxt = Conv.forall_conv (cv o snd) ctxt
       | conv1 k ctxt =
           Conv.rewr_conv @{thm swap_params} then_conv
-          Conv.forall_conv (conv1 (k-1) o snd) ctxt
+          Conv.forall_conv (conv1 (k - 1) o snd) ctxt
     fun conv2 0 ctxt = conv1 j ctxt
-      | conv2 k ctxt = Conv.forall_conv (conv2 (k-1) o snd) ctxt
+      | conv2 k ctxt = Conv.forall_conv (conv2 (k - 1) o snd) ctxt
   in conv2 i ctxt end;
 
 fun swap_prems_conv 0 = Conv.all_conv
   | swap_prems_conv i =
-      Conv.implies_concl_conv (swap_prems_conv (i-1)) then_conv
+      Conv.implies_concl_conv (swap_prems_conv (i - 1)) then_conv
       Conv.rewr_conv Drule.swap_prems_eq
 
 fun drop_judgment ctxt = Object_Logic.drop_judgment (ProofContext.theory_of ctxt);
@@ -145,46 +135,51 @@ fun find_eq ctxt t =
     val l = length (Logic.strip_params t);
     val Hs = Logic.strip_assums_hyp t;
     fun find (i, t) =
-      case Data.dest_def (drop_judgment ctxt t) of
+      (case Induct_Args.dest_def (drop_judgment ctxt t) of
         SOME (Bound j, _) => SOME (i, j)
       | SOME (_, Bound j) => SOME (i, j)
-      | _ => NONE
+      | _ => NONE);
   in
-    case get_first find (map_index I Hs) of
+    (case get_first find (map_index I Hs) of
       NONE => NONE
     | SOME (0, 0) => NONE
-    | SOME (i, j) => SOME (i, l-j-1, j)
+    | SOME (i, j) => SOME (i, l - j - 1, j))
   end;
 
-fun mk_swap_rrule ctxt ct = case find_eq ctxt (term_of ct) of
+fun mk_swap_rrule ctxt ct =
+  (case find_eq ctxt (term_of ct) of
     NONE => NONE
-  | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct);
+  | SOME (i, k, j) => SOME (swap_params_conv ctxt k j (K (swap_prems_conv i)) ct));
 
-val rearrange_eqs_simproc = Simplifier.simproc
-  (Thm.theory_of_thm Drule.swap_prems_eq) "rearrange_eqs" ["all t"]
-  (fn thy => fn ss => fn t =>
-     mk_swap_rrule (Simplifier.the_context ss) (cterm_of thy t))
+val rearrange_eqs_simproc =
+  Simplifier.simproc
+    (Thm.theory_of_thm Drule.swap_prems_eq) "rearrange_eqs" ["all t"]
+    (fn thy => fn ss => fn t =>
+      mk_swap_rrule (Simplifier.the_context ss) (cterm_of thy t));
+
 
 (* rotate k premises to the left by j, skipping over first j premises *)
 
 fun rotate_conv 0 j 0 = Conv.all_conv
-  | rotate_conv 0 j k = swap_prems_conv j then_conv rotate_conv 1 j (k-1)
-  | rotate_conv i j k = Conv.implies_concl_conv (rotate_conv (i-1) j k);
+  | rotate_conv 0 j k = swap_prems_conv j then_conv rotate_conv 1 j (k - 1)
+  | rotate_conv i j k = Conv.implies_concl_conv (rotate_conv (i - 1) j k);
 
 fun rotate_tac j 0 = K all_tac
-  | rotate_tac j k = SUBGOAL (fn (goal, i) => CONVERSION (rotate_conv
-      j (length (Logic.strip_assums_hyp goal) - j - k) k) i);
+  | rotate_tac j k = SUBGOAL (fn (goal, i) =>
+      CONVERSION (rotate_conv
+        j (length (Logic.strip_assums_hyp goal) - j - k) k) i);
+
 
 (* rulify operators around definition *)
 
 fun rulify_defs_conv ctxt ct =
-  if exists_subterm (is_some o Data.dest_def) (term_of ct) andalso
-    not (is_some (Data.dest_def (drop_judgment ctxt (term_of ct))))
+  if exists_subterm (is_some o Induct_Args.dest_def) (term_of ct) andalso
+    not (is_some (Induct_Args.dest_def (drop_judgment ctxt (term_of ct))))
   then
     (Conv.forall_conv (rulify_defs_conv o snd) ctxt else_conv
      Conv.implies_conv (Conv.try_conv (rulify_defs_conv ctxt))
        (Conv.try_conv (rulify_defs_conv ctxt)) else_conv
-     Conv.first_conv (map Conv.rewr_conv Data.rulify) then_conv
+     Conv.first_conv (map Conv.rewr_conv Induct_Args.rulify) then_conv
        Conv.try_conv (rulify_defs_conv ctxt)) ct
   else Conv.no_conv ct;
 
@@ -213,7 +208,7 @@ fun pretty_rules ctxt kind rs =
 
 (* context data *)
 
-structure InductData = Generic_Data
+structure Data = Generic_Data
 (
   type T = (rules * rules) * (rules * rules) * (rules * rules) * simpset;
   val empty =
@@ -230,7 +225,7 @@ structure InductData = Generic_Data
      merge_ss (simpset1, simpset2));
 );
 
-val get_local = InductData.get o Context.Proof;
+val get_local = Data.get o Context.Proof;
 
 fun dest_rules ctxt =
   let val ((casesT, casesP), (inductT, inductP), (coinductT, coinductP), _) = get_local ctxt in
@@ -272,11 +267,11 @@ val lookup_coinductP = lookup_rule o #2 o #3 o get_local;
 fun find_rules which how ctxt x =
   map snd (Item_Net.retrieve (which (get_local ctxt)) (how x));
 
-val find_casesT = find_rules (#1 o #1) encode_type;
+val find_casesT = find_rules (#1 o #1) Net.encode_type;
 val find_casesP = find_rules (#2 o #1) I;
-val find_inductT = find_rules (#1 o #2) encode_type;
+val find_inductT = find_rules (#1 o #2) Net.encode_type;
 val find_inductP = find_rules (#2 o #2) I;
-val find_coinductT = find_rules (#1 o #3) encode_type;
+val find_coinductT = find_rules (#1 o #3) Net.encode_type;
 val find_coinductP = find_rules (#2 o #3) I;
 
 
@@ -286,10 +281,11 @@ val find_coinductP = find_rules (#2 o #3) I;
 local
 
 fun mk_att f g name arg =
-  let val (x, thm) = g arg in (InductData.map (f (name, thm)) x, thm) end;
+  let val (x, thm) = g arg in (Data.map (f (name, thm)) x, thm) end;
 
-fun del_att which = Thm.declaration_attribute (fn th => InductData.map (which (pairself (fn rs =>
-  fold Item_Net.remove (filter_rules rs th) rs))));
+fun del_att which =
+  Thm.declaration_attribute (fn th => Data.map (which (pairself (fn rs =>
+    fold Item_Net.remove (filter_rules rs th) rs))));
 
 fun map1 f (x, y, z, s) = (f x, y, z, s);
 fun map2 f (x, y, z, s) = (x, f y, z, s);
@@ -320,12 +316,12 @@ val coinduct_type = mk_att add_coinductT consumes0;
 val coinduct_pred = mk_att add_coinductP consumes1;
 val coinduct_del = del_att map3;
 
-fun map_simpset f = InductData.map (map4 f);
+fun map_simpset f = Data.map (map4 f);
 
 fun induct_simp f =
   Thm.declaration_attribute (fn thm => fn context =>
-      (map_simpset
-        (Simplifier.with_context (Context.proof_of context) (fn ss => f (ss, [thm]))) context));
+      map_simpset
+        (Simplifier.with_context (Context.proof_of context) (fn ss => f (ss, [thm]))) context);
 
 val induct_simp_add = induct_simp (op addsimps);
 val induct_simp_del = induct_simp (op delsimps);
@@ -420,14 +416,15 @@ fun trace_rules _ kind [] = error ("Unable to figure out " ^ kind ^ " rule")
 
 (* mark equality constraints in cases rule *)
 
-val equal_def' = Thm.symmetric Data.equal_def;
+val equal_def' = Thm.symmetric Induct_Args.equal_def;
 
 fun mark_constraints n ctxt = Conv.fconv_rule
   (Conv.prems_conv (~1) (Conv.params_conv ~1 (K (Conv.prems_conv n
      (MetaSimplifier.rewrite false [equal_def']))) ctxt));
 
 val unmark_constraints = Conv.fconv_rule
-  (MetaSimplifier.rewrite true [Data.equal_def]);
+  (MetaSimplifier.rewrite true [Induct_Args.equal_def]);
+
 
 (* simplify *)
 
@@ -435,7 +432,7 @@ fun simplify_conv' ctxt =
   Simplifier.full_rewrite (Simplifier.context ctxt (#4 (get_local ctxt)));
 
 fun simplify_conv ctxt ct =
-  if exists_subterm (is_some o Data.dest_def) (term_of ct) then
+  if exists_subterm (is_some o Induct_Args.dest_def) (term_of ct) then
     (Conv.try_conv (rulify_defs_conv ctxt) then_conv simplify_conv' ctxt) ct
   else Conv.all_conv ct;
 
@@ -447,7 +444,7 @@ val simplified_rule = gen_simplified_rule simplify_conv;
 
 fun simplify_tac ctxt = CONVERSION (simplify_conv ctxt);
 
-val trivial_tac = Data.trivial_tac;
+val trivial_tac = Induct_Args.trivial_tac;
 
 
 
@@ -487,7 +484,7 @@ fun cases_tac ctxt simp insts opt_rule facts =
       (case opt_rule of
         SOME r => Seq.single (inst_rule r)
       | NONE =>
-          (get_casesP ctxt facts @ get_casesT ctxt insts @ [Data.cases_default])
+          (get_casesP ctxt facts @ get_casesT ctxt insts @ [Induct_Args.cases_default])
           |> tap (trace_rules ctxt casesN)
           |> Seq.of_list |> Seq.maps (Seq.try inst_rule));
   in
@@ -517,12 +514,12 @@ val conjunction_congs = [@{thm Pure.all_conjunction}, @{thm imp_conjunction}];
 (* atomize *)
 
 fun atomize_term thy =
-  MetaSimplifier.rewrite_term thy Data.atomize []
+  MetaSimplifier.rewrite_term thy Induct_Args.atomize []
   #> Object_Logic.drop_judgment thy;
 
-val atomize_cterm = MetaSimplifier.rewrite true Data.atomize;
+val atomize_cterm = MetaSimplifier.rewrite true Induct_Args.atomize;
 
-val atomize_tac = Simplifier.rewrite_goal_tac Data.atomize;
+val atomize_tac = Simplifier.rewrite_goal_tac Induct_Args.atomize;
 
 val inner_atomize_tac =
   Simplifier.rewrite_goal_tac (map Thm.symmetric conjunction_congs) THEN' atomize_tac;
@@ -531,8 +528,8 @@ val inner_atomize_tac =
 (* rulify *)
 
 fun rulify_term thy =
-  MetaSimplifier.rewrite_term thy (Data.rulify @ conjunction_congs) [] #>
-  MetaSimplifier.rewrite_term thy Data.rulify_fallback [];
+  MetaSimplifier.rewrite_term thy (Induct_Args.rulify @ conjunction_congs) [] #>
+  MetaSimplifier.rewrite_term thy Induct_Args.rulify_fallback [];
 
 fun rulified_term thm =
   let
@@ -542,8 +539,8 @@ fun rulified_term thm =
   in (thy, Logic.list_implies (map rulify As, rulify B)) end;
 
 val rulify_tac =
-  Simplifier.rewrite_goal_tac (Data.rulify @ conjunction_congs) THEN'
-  Simplifier.rewrite_goal_tac Data.rulify_fallback THEN'
+  Simplifier.rewrite_goal_tac (Induct_Args.rulify @ conjunction_congs) THEN'
+  Simplifier.rewrite_goal_tac Induct_Args.rulify_fallback THEN'
   Goal.conjunction_tac THEN_ALL_NEW
   (Simplifier.rewrite_goal_tac [@{thm Pure.conjunction_imp}] THEN' Goal.norm_hhf_tac);
 

@@ -1132,7 +1132,7 @@ fun case_cong thy case_const (num_args, (pos, constrs)) =
     fun mk_prem z = Free (z, T_cong);
     fun mk_concl z = list_comb (Const (case_const, T), map2 (curry Free) (ws @ z :: vs) Ts);
     val (prem, concl) = pairself Logic.mk_equals (pairself mk_prem (x, y), pairself mk_concl (x, y));
-    fun tac { prems, ... } = Simplifier.rewrite_goals_tac prems
+    fun tac { context, prems } = Simplifier.rewrite_goals_tac prems
       THEN ALLGOALS (ProofContext.fact_tac [Drule.reflexive_thm]);
   in Skip_Proof.prove_global thy (x :: y :: zs) [prem] concl tac end;
 

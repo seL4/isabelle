@@ -17,6 +17,7 @@ signature NET =
 sig
   type key
   val key_of_term: term -> key list
+  val encode_type: typ -> term
   type 'a net
   val empty: 'a net
   exception INSERT
@@ -61,6 +62,11 @@ fun add_key_of_terms (t, cs) =
 
 (*convert a term to a list of keys*)
 fun key_of_term t = add_key_of_terms (t, []);
+
+(*encode_type -- for indexing purposes*)
+fun encode_type (Type (c, Ts)) = Term.list_comb (Const (c, dummyT), map encode_type Ts)
+  | encode_type (TFree (a, _)) = Free (a, dummyT)
+  | encode_type (TVar (a, _)) = Var (a, dummyT);
 
 
 (*Trees indexed by key lists: each arc is labelled by a key.
