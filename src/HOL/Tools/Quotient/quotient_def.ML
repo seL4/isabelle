@@ -12,7 +12,7 @@ sig
   val quotdef_cmd: (binding option * mixfix) * (Attrib.binding * (string * string)) ->
     local_theory -> Quotient_Info.qconsts_info * local_theory
 
-  val quotient_lift_const: typ list -> string * term -> local_theory ->
+  val lift_raw_const: typ list -> string * term -> local_theory ->
     Quotient_Info.qconsts_info * local_theory
 end;
 
@@ -32,12 +32,10 @@ open Quotient_Term;
     - the new constant as term
     - the rhs of the definition as term
 
-   It returns the defined constant and its definition
-   theorem; stores the data in the qconsts data slot.
+   It stores the qconst_info in the qconsts data slot.
 
-   Restriction: At the moment the right-hand side of the
-   definition must be a constant. Similarly the left-hand 
-   side must be a constant.
+   Restriction: At the moment the left- and right-hand 
+   side of the definition must be a constant. 
 *)
 fun error_msg bind str = 
 let 
@@ -89,10 +87,17 @@ in
   quotient_def (decl, (attr, (lhs, rhs))) lthy''
 end
 
-fun quotient_lift_const qtys (b, t) ctxt =
+(* a wrapper for automatically lifting a raw constant *)
+fun lift_raw_const qtys (qconst_name, rconst) ctxt =
+let
+  val rty = fastype_of rconst
+  val qty = derive_qtyp qtys rty ctxt
+in
   quotient_def ((NONE, NoSyn), (Attrib.empty_binding,
-    (Quotient_Term.quotient_lift_const qtys (b, t) ctxt, t))) ctxt
+    (Free (qconst_name, qty), rconst))) ctxt
+end
 
+(* parser and command *)
 val quotdef_decl = (Parse.binding >> SOME) -- Parse.opt_mixfix' --| Parse.$$$ "where"
 
 val quotdef_parser =
