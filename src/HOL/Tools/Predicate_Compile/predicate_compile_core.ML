@@ -2520,6 +2520,8 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
   let
     val pred_intro_rule = nth (intros_of ctxt pred) (i - 1)
     val (in_ts, clause_out_ts) = split_mode mode ts;
+    val split_ss = HOL_basic_ss' addsimps [@{thm split_eta}, @{thm split_beta},
+      @{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
     fun prove_prems2 out_ts [] =
       print_tac options "before prove_match2 - last call:"
       THEN prove_match2 options ctxt out_ts
@@ -2530,14 +2532,12 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
       THEN (REPEAT_DETERM (etac @{thm Pair_inject} 1))
       THEN (asm_full_simp_tac HOL_basic_ss' 1)
       THEN SOLVED (print_tac options "state before applying intro rule:"
-      THEN (rtac pred_intro_rule 1)
+      THEN (rtac pred_intro_rule
       (* How to handle equality correctly? *)
-      THEN (print_tac options "state before assumption matching")
-      THEN (REPEAT (atac 1 ORELSE 
-         (CHANGED (asm_full_simp_tac (HOL_basic_ss' addsimps
-           [@{thm split_eta}, @{thm "split_beta"}, @{thm "fst_conv"},
-             @{thm "snd_conv"}, @{thm pair_collapse}]) 1)
-          THEN print_tac options "state after simp_tac:"))))
+      THEN_ALL_NEW (K (print_tac options "state before assumption matching")
+      THEN' (fn i => REPEAT (atac i ORELSE (CHANGED (asm_full_simp_tac split_ss i)
+        THEN print_tac options "state after pre-simplification:")))
+      THEN' (K (print_tac options "state after assumption matching:")))) 1)
     | prove_prems2 out_ts ((p, deriv) :: ps) =
       let
         val mode = head_mode_of deriv
