@@ -154,7 +154,7 @@ val global_state = Synchronized.var "atp_manager"
 
 (* unregister ATP thread *)
 
-fun unregister ({verbose, ...} : params) message thread =
+fun unregister verbose message thread =
   Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     (case lookup_thread active thread of
@@ -209,7 +209,7 @@ fun print_new_messages () =
          |> (fn msg :: msgs => "Sledgehammer: " ^ msg :: msgs)
          |> List.app priority
 
-fun check_thread_manager params = Synchronized.change global_state
+fun check_thread_manager verbose = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     if (case manager of SOME thread => Thread.isActive thread | NONE => false) then state
     else let val manager = SOME (Toplevel.thread false (fn () =>
@@ -242,7 +242,7 @@ fun check_thread_manager params = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister params "Timed out.\n");
+            |> List.app (unregister verbose "Timed out.\n");
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
@@ -252,7 +252,7 @@ fun check_thread_manager params = Synchronized.change global_state
 
 (* register ATP thread *)
 
-fun register params birth_time death_time (thread, desc) =
+fun register verbose birth_time death_time (thread, desc) =
  (Synchronized.change global_state
     (fn {manager, timeout_heap, active, canceling, messages, store} =>
       let
@@ -260,7 +260,7 @@ fun register params birth_time death_time (thread, desc) =
         val active' = update_thread (thread, (birth_time, death_time, desc)) active;
         val state' = make_state manager timeout_heap' active' canceling messages store;
       in state' end);
-  check_thread_manager params);
+  check_thread_manager verbose);
 
 
 
@@ -342,9 +342,9 @@ fun available_atps thy =
 
 (* start prover thread *)
 
-fun start_prover_thread (params as {full_types, timeout, ...}) birth_time
-                        death_time i n relevance_override minimize_command
-                        proof_state name =
+fun start_prover_thread (params as {verbose, full_types, timeout, ...})
+                        birth_time death_time i n relevance_override
+                        minimize_command proof_state name =
   let
     val prover = get_prover (Proof.theory_of proof_state) name
     val {context = ctxt, facts, goal} = Proof.goal proof_state;
@@ -353,7 +353,7 @@ fun start_prover_thread (params as {full_types, timeout, ...}) birth_time
       Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
     val _ = Toplevel.thread true (fn () =>
       let
-        val _ = register params birth_time death_time (Thread.self (), desc)
+        val _ = register verbose birth_time death_time (Thread.self (), desc)
         val problem =
           {subgoal = i, goal = (ctxt, (facts, goal)),
            relevance_override = relevance_override, axiom_clauses = NONE,
@@ -362,7 +362,7 @@ fun start_prover_thread (params as {full_types, timeout, ...}) birth_time
           #message (prover params (minimize_command name) timeout problem)
           handle TRIVIAL () => metis_line full_types i n []
                | ERROR message => "Error: " ^ message ^ "\n"
-        val _ = unregister params message (Thread.self ());
+        val _ = unregister verbose message (Thread.self ());
       in () end)
   in () end
 
