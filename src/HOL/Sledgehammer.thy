@@ -11,16 +11,16 @@ theory Sledgehammer
 imports Plain Hilbert_Choice
 uses
   "~~/src/Tools/Metis/metis.ML"
-  "Tools/Sledgehammer/sledgehammer_util.ML"
-  ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
+  ("Tools/Sledgehammer/sledgehammer_util.ML")
+  ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
   ("Tools/Sledgehammer/sledgehammer_hol_clause.ML")
-  ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
   ("Tools/Sledgehammer/sledgehammer_tptp_format.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
   ("Tools/ATP_Manager/atp_systems.ML")
+  ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
@@ -85,19 +85,20 @@ apply (rule ext)
 apply (simp add: COMBC_def) 
 done
 
-
-use "Tools/Sledgehammer/sledgehammer_fol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML"
 setup Sledgehammer_Fact_Preprocessor.setup
 use "Tools/Sledgehammer/meson_tactic.ML"
 setup Meson_Tactic.setup
+
+use "Tools/Sledgehammer/sledgehammer_util.ML"
+use "Tools/Sledgehammer/sledgehammer_fol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
-use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/Sledgehammer/sledgehammer_tptp_format.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_systems.ML"
 setup ATP_Systems.setup
+use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
 use "Tools/Sledgehammer/metis_tactics.ML"

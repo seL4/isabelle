@@ -35,8 +35,6 @@ end;
 structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
 struct
 
-open Sledgehammer_FOL_Clause
-
 type cnf_thm = thm * ((string * int) * thm)
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
