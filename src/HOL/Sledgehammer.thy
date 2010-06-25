@@ -19,6 +19,7 @@ uses
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
   ("Tools/Sledgehammer/sledgehammer_tptp_format.ML")
   ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
+  ("Tools/ATP_Manager/async_manager.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
   ("Tools/ATP_Manager/atp_systems.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
@@ -97,6 +98,7 @@ use "Tools/Sledgehammer/sledgehammer_util.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/Sledgehammer/sledgehammer_tptp_format.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
+use "Tools/ATP_Manager/async_manager.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
 use "Tools/ATP_Manager/atp_systems.ML"
 setup ATP_Systems.setup
