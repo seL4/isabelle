@@ -19,10 +19,9 @@ structure Metis_Tactics : METIS_TACTICS =
 struct
 
 open Sledgehammer_Util
-open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
+open Sledgehammer_FOL_Clause
 open Sledgehammer_HOL_Clause
-open Sledgehammer_TPTP_Format
 
 exception METIS of string * string
 
@@ -722,6 +721,7 @@ fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
 fun common_thm ths1 ths2 = exists (member Thm.eq_thm ths1) (map Meson.make_meta_clause ths2);
 
+
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
@@ -735,7 +735,8 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val (mode, {axioms, tfrees, skolem_somes}) = build_map mode ctxt cls ths
       val _ = if null tfrees then ()
               else (trace_msg (fn () => "TFREE CLAUSES");
-                    app (fn tf => trace_msg (fn _ => tptp_of_type_literal true tf NONE |> fst)) tfrees)
+                    app (fn TyLitFree (s, (s', _)) =>
+                            trace_msg (fn _ => s ^ "(" ^ s' ^ ")")) tfrees)
       val _ = trace_msg (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms
       val _ = app (fn th => trace_msg (fn () => Metis.Thm.toString th)) thms
