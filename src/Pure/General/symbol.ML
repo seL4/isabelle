@@ -15,9 +15,9 @@ sig
   val space: symbol
   val spaces: int -> string
   val is_char: symbol -> bool
+  val is_utf8: symbol -> bool
   val is_symbolic: symbol -> bool
   val is_printable: symbol -> bool
-  val is_utf8_trailer: symbol -> bool
   val eof: symbol
   val is_eof: symbol -> bool
   val not_eof: symbol -> bool
@@ -42,7 +42,7 @@ sig
   val is_raw: symbol -> bool
   val decode_raw: symbol -> string
   val encode_raw: string -> string
-  datatype sym = Char of string | Sym of string | Ctrl of string | Raw of string
+  datatype sym = Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
@@ -108,14 +108,14 @@ end;
 
 fun is_char s = size s = 1;
 
+fun is_utf8 s = size s > 0 andalso forall_string (fn c => ord c >= 128) s;
+
 fun is_symbolic s =
   String.isPrefix "\\<" s andalso not (String.isPrefix "\\<^" s);
 
 fun is_printable s =
   if is_char s then ord space <= ord s andalso ord s <= ord "~"
-  else not (String.isPrefix "\\<^" s);
-
-fun is_utf8_trailer s = is_char s andalso 128 <= ord s andalso ord s < 192;
+  else is_utf8 s orelse not (String.isPrefix "\\<^" s);
 
 
 (* input source control *)
@@ -224,10 +224,12 @@ fun decode_raw s =
 
 (* symbol variants *)
 
-datatype sym = Char of string | Sym of string | Ctrl of string | Raw of string;
+datatype sym =
+  Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string;
 
 fun decode s =
   if is_char s then Char s
+  else if is_utf8 s then UTF8 s
   else if is_raw s then Raw (decode_raw s)
   else if String.isPrefix "\\<^" s then Ctrl (String.substring (s, 3, size s - 4))
   else if String.isPrefix "\\<" s then Sym (String.substring (s, 2, size s - 3))
@@ -426,7 +428,9 @@ val scan_id = Scan.one is_letter ^^ (Scan.many is_letdig >> implode);
 
 local
 
-fun is_plain s = s <> "\^M" andalso s <> "\\" andalso not_eof s;
+fun is_plain s = is_ascii s andalso s <> "\^M" andalso s <> "\\";
+
+fun is_utf8_trailer s = is_char s andalso 128 <= ord s andalso ord s < 192;
 
 val scan_encoded_newline =
   $$ "\^M" -- $$ "\n" >> K "\n" ||
@@ -439,6 +443,7 @@ val scan_raw =
 
 val scan =
   Scan.one is_plain ||
+  Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode ||
   scan_encoded_newline ||
   ($$ "\\" ^^ $$ "<" ^^
     !! (fn (cs, _) => malformed_msg (beginning 10 ("\\" :: "<" :: cs)))
@@ -471,7 +476,7 @@ local
 fun no_explode [] = true
   | no_explode ("\\" :: "<" :: _) = false
   | no_explode ("\^M" :: _) = false
-  | no_explode (_ :: cs) = no_explode cs;
+  | no_explode (c :: cs) = is_ascii c andalso no_explode cs;
 
 in
 
@@ -486,7 +491,11 @@ end;
 
 (* escape *)
 
-val esc = fn s => if is_char s then s else "\\" ^ s;
+val esc = fn s =>
+  if is_char s then s
+  else if is_utf8 s then translate_string (fn c => "\\" ^ string_of_int (ord c)) s
+  else "\\" ^ s;
+
 val escape = implode o map esc o sym_explode;
 
 

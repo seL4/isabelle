@@ -26,6 +26,7 @@ sig
   val print_sort: sort -> string
   val print_typ: typ -> string
   val print_term: term -> string
+  val pretty_string: string -> Pretty.T
 end;
 
 structure ML_Syntax: ML_SYNTAX =
@@ -91,5 +92,16 @@ fun print_term (Const arg) = "Const " ^ print_pair print_string print_typ arg
   | print_term (Abs (s, T, t)) =
       "Abs (" ^ print_string s ^ ", " ^ print_typ T ^ ", " ^ print_term t ^ ")"
   | print_term (t1 $ t2) = atomic (print_term t1) ^ " $ " ^ atomic (print_term t2);
+
+
+(* toplevel pretty printing *)
+
+fun pretty_string raw_str =
+  let
+    val str =
+      implode (map (fn XML.Elem _ => "<markup>" | XML.Text s => s) (YXML.parse_body raw_str))
+        handle Fail _ => raw_str;
+    val syms = Symbol.explode str handle ERROR _ => explode str;
+  in Pretty.str (quote (implode (map print_char syms))) end;
 
 end;
