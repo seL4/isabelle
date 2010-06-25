@@ -223,7 +223,7 @@ fun generic_tptp_prover
           val conjecture_shape = shape_of_clauses (conjecture_offset + 1) goal_clss
           val result =
             do_run false
-            |> (fn (_, msecs0, _, SOME IncompleteUnprovable) =>
+            |> (fn (_, msecs0, _, SOME _) =>
                    do_run true
                    |> (fn (output, msecs, proof, outcome) =>
                           (output, msecs0 + msecs, proof, outcome))
@@ -298,9 +298,11 @@ val e = tptp_prover "e" e_config
 val spass_config : prover_config =
   {home_var = "SPASS_HOME",
    executable = "SPASS",
+   (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
      ("-TPTP -Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout))
+      \-VarWeight=3 -TimeLimit=" ^
+      string_of_int (to_generous_secs timeout div 2))
      |> not complete ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =

@@ -88,10 +88,11 @@ fun add_const_type_to_table (c, ctyps) =
   Symtab.map_default (c, [ctyps])
                      (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
 
-val fresh_sko_prefix = "Sledgehammer.Skox."
+val fresh_prefix = "Sledgehammer.Fresh."
 
 val flip = Option.map not
 
+val boring_natural_consts = [@{const_name If}]
 (* Including equality in this list might be expected to stop rules like
    subset_antisym from being chosen, but for some reason filtering works better
    with them listed. The logical signs All, Ex, &, and --> are omitted for CNF
@@ -113,12 +114,15 @@ fun get_consts_typs thy pos ts =
       | Free x => add_const_type_to_table (const_with_typ thy x)
       | (t as Const (@{const_name skolem_id}, _)) $ _ => do_term t
       | t1 $ t2 => do_term t1 #> do_term t2
-      | Abs (_, _, t) => do_term t
+      | Abs (_, _, t) =>
+        (* Abstractions lead to combinators, so we add a penalty for them. *)
+        add_const_type_to_table (gensym fresh_prefix, [])
+        #> do_term t
       | _ => I
     fun do_quantifier sweet_pos pos body_t =
       do_formula pos body_t
       #> (if pos = SOME sweet_pos then I
-          else add_const_type_to_table (gensym fresh_sko_prefix, []))
+          else add_const_type_to_table (gensym fresh_prefix, []))
     and do_equality T t1 t2 =
       fold (if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE
             else do_term) [t1, t2]
@@ -148,7 +152,8 @@ fun get_consts_typs thy pos ts =
   in
     Symtab.empty
     |> (if !use_natural_form then
-          fold (do_formula pos) ts
+          fold (Symtab.update o rpair []) boring_natural_consts
+          #> fold (do_formula pos) ts
         else
           fold (Symtab.update o rpair []) boring_cnf_consts
           #> fold do_term ts)
@@ -361,9 +366,15 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
                            Symtab.empty
       val goal_const_tab = get_consts_typs thy (SOME true) goals
+      val relevance_threshold =
+        if !use_natural_form then 0.9 * relevance_threshold (* experimental *)
+        else relevance_threshold
       val _ =
         trace_msg (fn () => "Initial constants: " ^
-                            commas (Symtab.keys goal_const_tab))
+                            commas (goal_const_tab
+                                    |> Symtab.dest
+                                    |> filter (curry (op <>) [] o snd)
+                                    |> map fst))
       val relevant =
         relevant_clauses ctxt relevance_convergence defs_relevant max_new
                          relevance_override const_tab relevance_threshold
@@ -609,7 +620,7 @@ fun count_combterm (CombConst ((c, _), _, _)) =
 fun count_literal (Literal (_, t)) = count_combterm t
 fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
 
-val raw_cnf_rules_pairs = map (fn (name, thm) => (thm, ((name, 0), thm)))
+fun raw_cnf_rules_pairs ps = map (fn (name, thm) => (thm, ((name, 0), thm))) ps
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)
   #> (if raw then raw_cnf_rules_pairs else cnf_rules_pairs thy)

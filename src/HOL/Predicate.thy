@@ -645,7 +645,7 @@ lemma not_predE': "eval (not_pred P) x \<Longrightarrow> (\<not> eval P x \<Long
 lemma "f () = False \<or> f () = True"
 by simp
 
-lemma closure_of_bool_cases:
+lemma closure_of_bool_cases [no_atp]:
 assumes "(f :: unit \<Rightarrow> bool) = (%u. False) \<Longrightarrow> P f"
 assumes "f = (%u. True) \<Longrightarrow> P f"
 shows "P f"
