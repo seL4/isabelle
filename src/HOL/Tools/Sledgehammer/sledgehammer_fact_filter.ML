@@ -6,9 +6,6 @@
 signature SLEDGEHAMMER_FACT_FILTER =
 sig
   type cnf_thm = Sledgehammer_Fact_Preprocessor.cnf_thm
-  type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
-  type arity_clause = Sledgehammer_FOL_Clause.arity_clause
-  type hol_clause = Sledgehammer_HOL_Clause.hol_clause
 
   type relevance_override =
     {add: Facts.ref list,
@@ -269,13 +266,13 @@ fun defines thy thm gctypes =
         | _ => false
     end;
 
-type annotated_clause = cnf_thm * ((string * const_typ list) list)
+type annotated_cnf_thm = cnf_thm * ((string * const_typ list) list)
 
 (*For a reverse sort, putting the largest values first.*)
 fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
 
 (*Limit the number of new clauses, to prevent runaway acceptance.*)
-fun take_best max_new (newpairs : (annotated_clause * real) list) =
+fun take_best max_new (newpairs : (annotated_cnf_thm * real) list) =
   let val nnew = length newpairs
   in
     if nnew <= max_new then (map #1 newpairs, [])
