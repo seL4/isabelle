@@ -56,9 +56,9 @@ sig
   val add_prover: string * prover -> theory -> theory
   val get_prover: theory -> string -> prover
   val available_atps: theory -> unit
-  val start_prover_thread:
-    params -> Time.time -> Time.time -> int -> int -> relevance_override
-    -> (string -> minimize_command) -> Proof.state -> string -> unit
+  val start_prover_thread :
+    params -> int -> int -> relevance_override -> (string -> minimize_command)
+    -> Proof.state -> string -> unit
 end;
 
 structure ATP_Manager : ATP_MANAGER =
@@ -67,13 +67,12 @@ struct
 open Metis_Clauses
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
-open Async_Manager
 
 (** The Sledgehammer **)
 
-fun kill_atps () = kill_threads "ATPs"
-fun running_atps () = running_threads "ATPs"
-val messages = thread_messages "ATP"
+fun kill_atps () = Async_Manager.kill_threads "ATPs"
+fun running_atps () = Async_Manager.running_threads "ATPs"
+val messages = Async_Manager.thread_messages "ATP"
 
 (** problems, results, provers, etc. **)
 
@@ -145,29 +144,29 @@ fun available_atps thy =
 
 (* start prover thread *)
 
-fun start_prover_thread (params as {verbose, full_types, timeout, ...})
-                        birth_time death_time i n relevance_override
-                        minimize_command proof_state name =
+fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
+                        relevance_override minimize_command proof_state name =
   let
+    val birth_time = Time.now ()
+    val death_time = Time.+ (birth_time, timeout)
     val prover = get_prover (Proof.theory_of proof_state) name
     val {context = ctxt, facts, goal} = Proof.goal proof_state;
     val desc =
       "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
       Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
-    val _ = Toplevel.thread true (fn () =>
-      let
-        val _ = register "Sledgehammer" verbose birth_time death_time
-                         (Thread.self (), desc)
-        val problem =
-          {subgoal = i, goal = (ctxt, (facts, goal)),
-           relevance_override = relevance_override, axiom_clauses = NONE,
-           filtered_clauses = NONE}
-        val message =
-          #message (prover params (minimize_command name) timeout problem)
-          handle TRIVIAL () => metis_line full_types i n []
-               | ERROR message => "Error: " ^ message ^ "\n"
-        val _ = unregister verbose message (Thread.self ());
-      in () end)
-  in () end
+  in
+    Async_Manager.launch "Sledgehammer" verbose birth_time death_time desc
+        (fn () =>
+            let
+              val problem =
+                {subgoal = i, goal = (ctxt, (facts, goal)),
+                 relevance_override = relevance_override, axiom_clauses = NONE,
+                 filtered_clauses = NONE}
+            in
+              prover params (minimize_command name) timeout problem |> #message
+              handle TRIVIAL () => metis_line full_types i n []
+                   | ERROR message => "Error: " ^ message ^ "\n"
+            end)
+  end
 
 end;

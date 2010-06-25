@@ -8,9 +8,9 @@ Central manager for asynchronous diagnosis tool threads.
 
 signature ASYNC_MANAGER =
 sig
-  val unregister : bool -> string -> Thread.thread -> unit
-  val register :
-    string -> bool -> Time.time -> Time.time -> Thread.thread * string -> unit
+  val launch :
+    string -> bool -> Time.time -> Time.time -> string -> (unit -> string)
+    -> unit
   val kill_threads : string -> unit
   val running_threads : string -> unit
   val thread_messages : string -> int option -> unit
@@ -158,7 +158,7 @@ fun check_thread_manager tool verbose = Synchronized.change global_state
 
 (* register thread *)
 
-fun register tool verbose birth_time death_time (thread, desc) =
+fun register tool verbose birth_time death_time desc thread =
  (Synchronized.change global_state
     (fn {manager, timeout_heap, active, canceling, messages, store} =>
       let
@@ -168,6 +168,16 @@ fun register tool verbose birth_time death_time (thread, desc) =
       in state' end);
   check_thread_manager tool verbose);
 
+
+fun launch tool verbose birth_time death_time desc f =
+  (Toplevel.thread true
+       (fn () =>
+           let
+             val self = Thread.self ()
+             val _ = register tool verbose birth_time death_time desc self
+             val message = f ()
+           in unregister verbose message self end);
+   ())
 
 
 (** user commands **)

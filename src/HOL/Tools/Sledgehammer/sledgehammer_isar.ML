@@ -199,13 +199,10 @@ fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
       0 => priority "No subgoal!"
     | n =>
       let
-        val birth_time = Time.now ()
-        val death_time = Time.+ (birth_time, timeout)
         val _ = kill_atps ()
         val _ = priority "Sledgehammering..."
-        val _ = app (start_prover_thread params birth_time death_time i n
-                                         relevance_override minimize_command
-                                         state) atps
+        val _ = app (start_prover_thread params i n relevance_override
+                                         minimize_command state) atps
       in () end
 
 fun minimize override_params i refs state =

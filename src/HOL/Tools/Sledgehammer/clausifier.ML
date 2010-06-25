@@ -25,8 +25,8 @@ sig
   val is_theorem_bad_for_atps: thm -> bool
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
-  val saturate_skolem_cache: theory -> theory option
-  val auto_saturate_skolem_cache: bool Unsynchronized.ref
+  val saturate_cache: theory -> theory option
+  val auto_saturate_cache: bool Unsynchronized.ref
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
@@ -504,7 +504,7 @@ fun skolem_cnfs (th, ctxt0, ctxt, nnfth, defs) =
 
 in
 
-fun saturate_skolem_cache thy =
+fun saturate_cache thy =
   let
     val facts = PureThy.facts_of thy;
     val new_facts = (facts, []) |-> Facts.fold_static (fn (name, ths) =>
@@ -536,10 +536,10 @@ fun saturate_skolem_cache thy =
 end;
 
 (* For emergency use where the Skolem cache causes problems. *)
-val auto_saturate_skolem_cache = Unsynchronized.ref true
+val auto_saturate_cache = Unsynchronized.ref true
 
-fun conditionally_saturate_skolem_cache thy =
-  if !auto_saturate_skolem_cache then saturate_skolem_cache thy else NONE
+fun conditionally_saturate_cache thy =
+  if !auto_saturate_cache then saturate_cache thy else NONE
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
@@ -565,7 +565,7 @@ fun neg_conjecture_clauses ctxt st0 n =
 (** setup **)
 
 val setup =
-  perhaps conditionally_saturate_skolem_cache
-  #> Theory.at_end conditionally_saturate_skolem_cache
+  perhaps conditionally_saturate_cache
+  #> Theory.at_end conditionally_saturate_cache
 
 end;
