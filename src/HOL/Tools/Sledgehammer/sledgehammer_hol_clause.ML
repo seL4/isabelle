@@ -13,7 +13,6 @@ sig
   type kind = Sledgehammer_FOL_Clause.kind
   type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
   type arity_clause = Sledgehammer_FOL_Clause.arity_clause
-  type polarity = bool
 
   datatype combtyp =
     TyVar of name |
@@ -23,7 +22,7 @@ sig
     CombConst of name * combtyp * combtyp list (* Const and Free *) |
     CombVar of name * combtyp |
     CombApp of combterm * combterm
-  datatype literal = Literal of polarity * combterm
+  datatype literal = Literal of bool * combterm
   datatype hol_clause =
     HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
                   literals: literal list, ctypes_sorts: typ list}
@@ -57,8 +56,6 @@ open Sledgehammer_FOL_Clause
 (* data types for typed combinator expressions        *)
 (******************************************************)
 
-type polarity = bool
-
 datatype combtyp =
   TyVar of name |
   TyFree of name |
@@ -69,7 +66,7 @@ datatype combterm =
   CombVar of name * combtyp |
   CombApp of combterm * combterm
 
-datatype literal = Literal of polarity * combterm;
+datatype literal = Literal of bool * combterm
 
 datatype hol_clause =
   HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
@@ -149,10 +146,8 @@ fun combterm_of thy (Const (c, T)) =
       in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
   | combterm_of _ (t as Abs _) = raise Fail "HOL clause: Abs"
 
-fun predicate_of thy ((@{const Not} $ P), polarity) =
-    predicate_of thy (P, not polarity)
-  | predicate_of thy (t, polarity) =
-    (combterm_of thy (Envir.eta_contract t), polarity)
+fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
+  | predicate_of thy (t, pos) = (combterm_of thy (Envir.eta_contract t), pos)
 
 fun literals_of_term1 args thy (@{const Trueprop} $ P) =
     literals_of_term1 args thy P
