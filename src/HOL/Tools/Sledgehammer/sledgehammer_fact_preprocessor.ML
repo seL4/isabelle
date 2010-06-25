@@ -13,6 +13,8 @@ sig
   val chained_prefix: string
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
+  val name_thms_pair_from_ref :
+    Proof.context -> thm list -> Facts.ref -> string * thm list
   val skolem_theory_name: string
   val skolem_prefix: string
   val skolem_infix: string
@@ -45,11 +47,17 @@ val chained_prefix = sledgehammer_prefix ^ "chained_"
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
+fun name_thms_pair_from_ref ctxt chained_ths xref =
+  let
+    val ths = ProofContext.get_fact ctxt xref
+    val name = Facts.string_of_ref xref
+               |> forall (member Thm.eq_thm chained_ths) ths
+                  ? prefix chained_prefix
+  in (name, ths) end
+
 val skolem_theory_name = sledgehammer_prefix ^ "Sko"
 val skolem_prefix = "sko_"
 val skolem_infix = "$"
-
-fun freeze_thm th = #1 (Drule.legacy_freeze_thaw th);
 
 val type_has_topsort = Term.exists_subtype
   (fn TFree (_, []) => true
@@ -301,7 +309,8 @@ fun c_variant_abs_multi (ct0, vars) =
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
 fun skolem_theorem_of_def inline def =
   let
-      val (c, rhs) = Thm.dest_equals (cprop_of (freeze_thm def))
+      val (c, rhs) = def |> Drule.legacy_freeze_thaw |> #1 |> cprop_of
+                         |> Thm.dest_equals
       val rhs' = rhs |> inline ? (snd o Thm.dest_comb)
       val (ch, frees) = c_variant_abs_multi (rhs', [])
       val (chilbert, cabs) = ch |> Thm.dest_comb

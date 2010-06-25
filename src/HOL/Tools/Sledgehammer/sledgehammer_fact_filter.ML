@@ -16,8 +16,6 @@ sig
      only: bool}
 
   val use_natural_form : bool Unsynchronized.ref
-  val name_thms_pair_from_ref :
-    Proof.context -> thm list -> Facts.ref -> string * thm list
   val relevant_facts :
     bool -> bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> thm list -> cnf_thm list
@@ -458,15 +456,6 @@ fun checked_name_thm_pairs respect_no_atp ctxt =
                         (fn () => ("Considering " ^ Int.toString (length ps) ^
                                    " theorems")))
   #> filter is_named
-
-fun name_thms_pair_from_ref ctxt chained_ths xref =
-  let
-    val ths = ProofContext.get_fact ctxt xref
-    val name = Facts.string_of_ref xref
-               |> forall (member Thm.eq_thm chained_ths) ths
-                  ? prefix chained_prefix
-  in (name, ths) end
-
 
 (***************************************************************)
 (* ATP invocation methods setup                                *)
