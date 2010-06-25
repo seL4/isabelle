@@ -54,8 +54,6 @@ end
 structure Sledgehammer_FOL_Clause : SLEDGEHAMMER_FOL_CLAUSE =
 struct
 
-open Sledgehammer_Util
-
 val type_wrapper_name = "ti"
 
 val schematic_var_prefix = "V_";
@@ -209,8 +207,7 @@ fun translate_first_char f s =
 
 fun readable_name full_name s =
   let
-    val s = s |> Long_Name.base_name
-              |> fold remove_all ["\<^sub>", "\<^bsub>", "\<^esub>", "\<^isub>"]
+    val s = s |> Long_Name.base_name |> Name.desymbolize false
     val s' = s |> explode |> rev |> dropwhile (curry (op =) "'")
     val s' =
       (s' |> rev

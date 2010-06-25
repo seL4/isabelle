@@ -186,6 +186,16 @@ fun unregister ({verbose, ...} : params) message thread =
 val min_wait_time = Time.fromMilliseconds 300;
 val max_wait_time = Time.fromSeconds 10;
 
+fun replace_all bef aft =
+  let
+    fun aux seen "" = String.implode (rev seen)
+      | aux seen s =
+        if String.isPrefix bef s then
+          aux seen "" ^ aft ^ aux [] (unprefix bef s)
+        else
+          aux (String.sub (s, 0) :: seen) (String.extract (s, 1, NONE))
+  in aux [] end
+
 (* This is a workaround for Proof General's off-by-a-few sendback display bug,
    whereby "pr" in "proof" is not highlighted. *)
 val break_into_chunks =
