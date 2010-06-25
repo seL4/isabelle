@@ -19,6 +19,7 @@ sig
   val skolem_prefix: string
   val skolem_infix: string
   val is_skolem_const_name: string -> bool
+  val num_type_args: theory -> string -> int
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
   val is_theorem_bad_for_atps: thm -> bool
@@ -97,6 +98,17 @@ fun skolem_name thm_name j var_name =
 val is_skolem_const_name =
   Long_Name.base_name
   #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
+
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
+fun num_type_args thy s =
+  if String.isPrefix skolem_theory_name s then
+    s |> unprefix skolem_theory_name
+      |> space_explode skolem_infix |> hd
+      |> space_explode "_" |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 fun rhs_extra_types lhsT rhs =
   let val lhs_vars = Term.add_tfreesT lhsT []

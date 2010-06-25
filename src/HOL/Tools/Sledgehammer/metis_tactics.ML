@@ -22,7 +22,6 @@ open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
-open Sledgehammer_Proof_Reconstruct
 open Sledgehammer_TPTP_Format
 
 exception METIS of string * string
@@ -233,7 +232,7 @@ fun fol_type_to_isa _ (Metis.Term.Var v) =
         | NONE   => make_tvar v)
   | fol_type_to_isa ctxt (Metis.Term.Fn(x, tys)) =
      (case strip_prefix tconst_prefix x of
-          SOME tc => Term.Type (invert_type_const tc, map (fol_type_to_isa ctxt) tys)
+          SOME tc => Term.Type (invert_const tc, map (fol_type_to_isa ctxt) tys)
         | NONE    =>
       case strip_prefix tfree_prefix x of
           SOME tf => mk_tfree ctxt tf
@@ -294,7 +293,7 @@ fun hol_term_from_fol_PT ctxt fol_tm =
               | NONE => (*Not a constant. Is it a type constructor?*)
             case strip_prefix tconst_prefix a of
                 SOME b =>
-                  Type (Term.Type (invert_type_const b, types_of (map tm_to_tt ts)))
+                  Type (Term.Type (invert_const b, types_of (map tm_to_tt ts)))
               | NONE => (*Maybe a TFree. Should then check that ts=[].*)
             case strip_prefix tfree_prefix a of
                 SOME b => Type (mk_tfree ctxt b)

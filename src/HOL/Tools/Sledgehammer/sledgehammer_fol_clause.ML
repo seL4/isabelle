@@ -19,10 +19,10 @@ sig
   val tconst_prefix: string
   val class_prefix: string
   val union_all: ''a list list -> ''a list
-  val const_trans_table: string Symtab.table
-  val type_const_trans_table: string Symtab.table
+  val invert_const: string -> string
   val ascii_of: string -> string
   val undo_ascii_of: string -> string
+  val strip_prefix: string -> string -> string option
   val make_schematic_var : string * int -> string
   val make_fixed_var : string -> string
   val make_schematic_type_var : string * int -> string
@@ -88,11 +88,16 @@ val const_trans_table =
                (@{const_name COMBS}, "COMBS"),
                (@{const_name True}, "True"),
                (@{const_name False}, "False"),
-               (@{const_name If}, "If")]
-
-val type_const_trans_table =
-  Symtab.make [(@{type_name "*"}, "prod"),
+               (@{const_name If}, "If"),
+               (@{type_name "*"}, "prod"),
                (@{type_name "+"}, "sum")]
+
+(* Invert the table of translations between Isabelle and ATPs. *)
+val const_trans_table_inv =
+  Symtab.update ("fequal", @{const_name "op ="})
+                (Symtab.make (map swap (Symtab.dest const_trans_table)))
+
+val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -137,6 +142,14 @@ fun undo_ascii_aux rcs [] = String.implode(rev rcs)
 
 val undo_ascii_of = undo_ascii_aux [] o String.explode;
 
+(* If string s has the prefix s1, return the result of deleting it,
+   un-ASCII'd. *)
+fun strip_prefix s1 s =
+  if String.isPrefix s1 s then
+    SOME (undo_ascii_of (String.extract (s, size s1, NONE)))
+  else
+    NONE
+
 (*Remove the initial ' character from a type variable, if it is present*)
 fun trim_type_var s =
   if s <> "" andalso String.sub(s,0) = #"'" then String.extract(s,1,NONE)
@@ -157,16 +170,11 @@ fun lookup_const c =
     SOME c' => c'
   | NONE => ascii_of c
 
-fun lookup_type_const c =
-  case Symtab.lookup type_const_trans_table c of
-    SOME c' => c'
-  | NONE => ascii_of c
-
 (* "op =" MUST BE "equal" because it's built into ATPs. *)
 fun make_fixed_const @{const_name "op ="} = "equal"
   | make_fixed_const c = const_prefix ^ lookup_const c
 
-fun make_fixed_type_const c = tconst_prefix ^ lookup_type_const c
+fun make_fixed_type_const c = tconst_prefix ^ lookup_const c
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
@@ -323,10 +331,10 @@ fun arity_clause _ _ (_, []) = []
       arity_clause seen n (tcons,ars)
   | arity_clause seen n (tcons, (ar as (class,_)) :: ars) =
       if member (op =) seen class then (*multiple arities for the same tycon, class pair*)
-          make_axiom_arity_clause (tcons, lookup_type_const tcons ^ "_" ^ class ^ "_" ^ Int.toString n, ar) ::
+          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class ^ "_" ^ Int.toString n, ar) ::
           arity_clause seen (n+1) (tcons,ars)
       else
-          make_axiom_arity_clause (tcons, lookup_type_const tcons ^ "_" ^ class, ar) ::
+          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class, ar) ::
           arity_clause (class::seen) n (tcons,ars)
 
 fun multi_arity_clause [] = []
