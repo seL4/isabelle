@@ -19,8 +19,7 @@ structure Metis_Tactics : METIS_TACTICS =
 struct
 
 open Clausifier
-open Sledgehammer_Util
-open Sledgehammer_FOL_Clause
+open Metis_Clauses
 
 exception METIS of string * string
 

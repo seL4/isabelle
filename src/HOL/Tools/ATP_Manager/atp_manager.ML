@@ -9,7 +9,7 @@ Central manager component for ATP threads.
 signature ATP_MANAGER =
 sig
   type cnf_thm = Clausifier.cnf_thm
-  type name_pool = Sledgehammer_FOL_Clause.name_pool
+  type name_pool = Metis_Clauses.name_pool
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
@@ -65,9 +65,8 @@ end;
 structure ATP_Manager : ATP_MANAGER =
 struct
 
-open Sledgehammer_Util
+open Metis_Clauses
 open Sledgehammer_Fact_Filter
-open Sledgehammer_FOL_Clause
 open Sledgehammer_Proof_Reconstruct
 
 (** problems, results, provers, etc. **)

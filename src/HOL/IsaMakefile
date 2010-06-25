@@ -315,10 +315,10 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/semiring_normalizer.ML \
   Tools/Sledgehammer/clausifier.ML \
   Tools/Sledgehammer/meson_tactic.ML \
+  Tools/Sledgehammer/metis_clauses.ML \
   Tools/Sledgehammer/metis_tactics.ML \
   Tools/Sledgehammer/sledgehammer_fact_filter.ML \
   Tools/Sledgehammer/sledgehammer_fact_minimizer.ML \
-  Tools/Sledgehammer/sledgehammer_fol_clause.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
   Tools/Sledgehammer/sledgehammer_tptp_format.ML \

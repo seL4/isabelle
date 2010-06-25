@@ -325,7 +325,7 @@ fun run_sh prover hard_timeout timeout dir st =
       NONE => (message, SH_OK (time_isa, time_atp, relevant_thm_names))
     | SOME _ => (message, SH_FAIL (time_isa, time_atp))
   end
-  handle Sledgehammer_FOL_Clause.TRIVIAL () => ("trivial", SH_OK (0, 0, []))
+  handle Metis_Clauses.TRIVIAL () => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 
@@ -382,7 +382,7 @@ val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
 
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
-    open Sledgehammer_Fact_Minimizer
+    open Metis_Clauses
     open Sledgehammer_Isar
     val thy = Proof.theory_of st
     val n0 = length (these (!named_thms))

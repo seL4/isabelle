@@ -23,11 +23,11 @@ structure ATP_Systems : ATP_SYSTEMS =
 struct
 
 open Clausifier
+open Metis_Clauses
 open Sledgehammer_Util
-open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Filter
-open Sledgehammer_Proof_Reconstruct
 open Sledgehammer_TPTP_Format
+open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 
 (** generic ATP **)

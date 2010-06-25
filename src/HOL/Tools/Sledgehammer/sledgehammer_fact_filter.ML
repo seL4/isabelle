@@ -22,7 +22,7 @@ structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
 struct
 
 open Clausifier
-open Sledgehammer_FOL_Clause
+open Metis_Clauses
 
 (* Experimental feature: Filter theorems in natural form or in CNF? *)
 val use_natural_form = Unsynchronized.ref false

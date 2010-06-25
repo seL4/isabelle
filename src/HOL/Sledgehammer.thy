@@ -13,8 +13,9 @@ uses
   "~~/src/Tools/Metis/metis.ML"
   ("Tools/Sledgehammer/clausifier.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
+  ("Tools/Sledgehammer/metis_clauses.ML")
+  ("Tools/Sledgehammer/metis_tactics.ML")
   ("Tools/Sledgehammer/sledgehammer_util.ML")
-  ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
   ("Tools/Sledgehammer/sledgehammer_tptp_format.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
@@ -22,7 +23,6 @@ uses
   ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
-  ("Tools/Sledgehammer/metis_tactics.ML")
 begin
 
 definition skolem_id :: "'a \<Rightarrow> 'a" where
@@ -86,11 +86,14 @@ done
 
 use "Tools/Sledgehammer/clausifier.ML"
 setup Clausifier.setup
+
 use "Tools/Sledgehammer/meson_tactic.ML"
 setup Meson_Tactic.setup
 
+use "Tools/Sledgehammer/metis_clauses.ML"
+use "Tools/Sledgehammer/metis_tactics.ML"
+
 use "Tools/Sledgehammer/sledgehammer_util.ML"
-use "Tools/Sledgehammer/sledgehammer_fol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/Sledgehammer/sledgehammer_tptp_format.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
@@ -99,7 +102,6 @@ setup ATP_Systems.setup
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
-use "Tools/Sledgehammer/metis_tactics.ML"
 setup Metis_Tactics.setup
 
 end

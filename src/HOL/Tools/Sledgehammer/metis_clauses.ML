@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fol_clause.ML
+(*  Title:      HOL/Tools/Sledgehammer/metis_clauses.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
@@ -6,7 +6,7 @@ Storing/printing FOL clauses and arity clauses.  Typed equality is
 treated differently.
 *)
 
-signature SLEDGEHAMMER_FOL_CLAUSE =
+signature METIS_CLAUSES =
 sig
   type cnf_thm = Clausifier.cnf_thm
   type name = string * string
@@ -79,7 +79,7 @@ sig
           * classrel_clause list * arity_clause list)
 end
 
-structure Sledgehammer_FOL_Clause : SLEDGEHAMMER_FOL_CLAUSE =
+structure Metis_Clauses : METIS_CLAUSES =
 struct
 
 open Clausifier

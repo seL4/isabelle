@@ -19,8 +19,8 @@ structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
 struct
 
 open Clausifier
+open Metis_Clauses
 open Sledgehammer_Util
-open Sledgehammer_FOL_Clause
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 
