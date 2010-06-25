@@ -70,9 +70,11 @@ open Sledgehammer_Proof_Reconstruct
 
 (** The Sledgehammer **)
 
-fun kill_atps () = Async_Manager.kill_threads "ATPs"
-fun running_atps () = Async_Manager.running_threads "ATPs"
-val messages = Async_Manager.thread_messages "ATP"
+val das_Tool = "Sledgehammer"
+
+fun kill_atps () = Async_Manager.kill_threads das_Tool "ATPs"
+fun running_atps () = Async_Manager.running_threads das_Tool "ATPs"
+val messages = Async_Manager.thread_messages das_Tool "ATP"
 
 (** problems, results, provers, etc. **)
 
@@ -155,7 +157,7 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
       "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
       Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
   in
-    Async_Manager.launch "Sledgehammer" verbose birth_time death_time desc
+    Async_Manager.launch das_Tool verbose birth_time death_time desc
         (fn () =>
             let
               val problem =
