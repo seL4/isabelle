@@ -463,8 +463,7 @@ fun cnf_rules_pairs thy =
       | do_all pairs ((name, th) :: ths) =
         let
           val new_pairs = do_one ((name, 0), th) (cnf_axiom thy th)
-                          handle THM _ => [] |
-                                 CLAUSE _ => []
+                          handle THM _ => []
         in do_all (new_pairs @ pairs) ths end
   in do_all [] o rev end
 

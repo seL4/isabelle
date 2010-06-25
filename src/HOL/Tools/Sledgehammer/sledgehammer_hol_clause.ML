@@ -147,7 +147,7 @@ fun combterm_of thy (Const (c, T)) =
       let val (P', tsP) = combterm_of thy P
           val (Q', tsQ) = combterm_of thy Q
       in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
-  | combterm_of _ (t as Abs _) = raise CLAUSE ("HOL clause", t)
+  | combterm_of _ (t as Abs _) = raise Fail "HOL clause: Abs"
 
 fun predicate_of thy ((@{const Not} $ P), polarity) =
     predicate_of thy (P, not polarity)

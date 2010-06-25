@@ -39,7 +39,6 @@ sig
   datatype type_literal =
     TyLitVar of string * name |
     TyLitFree of string * name
-  exception CLAUSE of string * term
   val type_literals_for_types : typ list -> type_literal list
   datatype arLit =
       TConsLit of class * string * string list
