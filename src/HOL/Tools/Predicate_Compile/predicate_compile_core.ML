@@ -2535,8 +2535,8 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
       THEN (rtac pred_intro_rule
       (* How to handle equality correctly? *)
       THEN_ALL_NEW (K (print_tac options "state before assumption matching")
-      THEN' (fn i => REPEAT (atac i ORELSE (CHANGED (asm_full_simp_tac split_ss i)
-        THEN print_tac options "state after pre-simplification:")))
+      THEN' (atac ORELSE' ((CHANGED o asm_full_simp_tac split_ss) THEN' (TRY o atac)))
+        THEN' (K (print_tac options "state after pre-simplification:"))
       THEN' (K (print_tac options "state after assumption matching:")))) 1)
     | prove_prems2 out_ts ((p, deriv) :: ps) =
       let
