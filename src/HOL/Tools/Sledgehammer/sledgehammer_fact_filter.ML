@@ -14,7 +14,7 @@ sig
 
   val use_natural_form : bool Unsynchronized.ref
   val relevant_facts :
-    bool -> bool -> real -> real -> bool -> int -> bool -> relevance_override
+    bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> thm list -> cnf_thm list
 end;
 
@@ -24,6 +24,7 @@ struct
 open Clausifier
 open Metis_Clauses
 
+val respect_no_atp = true
 (* Experimental feature: Filter theorems in natural form or in CNF? *)
 val use_natural_form = Unsynchronized.ref false
 
@@ -392,7 +393,7 @@ fun make_unique xs = Termtab.fold (cons o snd) (make_clause_table xs) []
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s) o prop_of
 
-fun all_name_thms_pairs respect_no_atp ctxt chained_ths =
+fun all_name_thms_pairs ctxt chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
@@ -436,7 +437,7 @@ fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
 
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
-fun name_thm_pairs respect_no_atp ctxt name_thms_pairs =
+fun name_thm_pairs ctxt respect_no_atp name_thms_pairs =
   let
     val (mults, singles) = List.partition is_multi name_thms_pairs
     val ps = [] |> fold add_names singles |> fold add_names mults
@@ -447,7 +448,7 @@ fun is_named ("", th) =
               Display.string_of_thm_without_context th); false)
   | is_named _ = true
 fun checked_name_thm_pairs respect_no_atp ctxt =
-  name_thm_pairs respect_no_atp ctxt
+  name_thm_pairs ctxt respect_no_atp
   #> tap (fn ps => trace_msg
                         (fn () => ("Considering " ^ Int.toString (length ps) ^
                                    " theorems")))
@@ -505,8 +506,8 @@ fun is_dangerous_term _ @{prop True} = true
     (has_typed_var dangerous_types t orelse
      forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t)))
 
-fun relevant_facts full_types respect_no_atp relevance_threshold
-                   relevance_convergence defs_relevant max_new theory_relevant
+fun relevant_facts full_types relevance_threshold relevance_convergence
+                   defs_relevant max_new theory_relevant
                    (relevance_override as {add, del, only})
                    (ctxt, (chained_ths, _)) goal_cls =
   let
@@ -517,8 +518,7 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (map (name_thms_pair_from_ref ctxt chained_ths) add @
-           (if only then []
-            else all_name_thms_pairs respect_no_atp ctxt chained_ths))
+           (if only then [] else all_name_thms_pairs ctxt chained_ths))
       |> cnf_rules_pairs thy
       |> not has_override ? make_unique
       |> filter (fn (cnf_thm, (_, orig_thm)) =>
