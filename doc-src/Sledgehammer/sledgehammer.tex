@@ -448,13 +448,6 @@ Specifies whether the definition of constants occurring in the formula to prove
 should be considered particularly relevant. Enabling this option tends to lead
 to larger problems and typically slows down the ATPs.
 
-\optrue{respect\_no\_atp}{ignore\_no\_atp}
-Specifies whether Sledgehammer should honor the \textit{no\_atp} attributes. The
-\textit{no\_atp} attributes marks theorems that tend to confuse ATPs, typically
-because they can lead to unsound ATP proofs \cite{boehme-nipkow-2010}. It is
-normally a good idea to leave this option enabled, unless you are debugging
-Sledgehammer.
-
 \end{enum}
 
 \subsection{Output Format}
