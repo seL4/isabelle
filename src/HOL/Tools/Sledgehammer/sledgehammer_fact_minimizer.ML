@@ -18,8 +18,8 @@ end;
 structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
 struct
 
+open Clausifier
 open Sledgehammer_Util
-open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager

@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML
+(*  Title:      HOL/Tools/Sledgehammer/clausifier.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
 
-signature SLEDGEHAMMER_FACT_PREPROCESSOR =
+signature CLAUSIFIER =
 sig
   type cnf_thm = thm * ((string * int) * thm)
 
@@ -33,7 +33,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
+structure Clausifier : CLAUSIFIER =
 struct
 
 type cnf_thm = thm * ((string * int) * thm)

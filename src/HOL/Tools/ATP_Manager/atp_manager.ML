@@ -8,8 +8,8 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
+  type cnf_thm = Clausifier.cnf_thm
   type name_pool = Sledgehammer_FOL_Clause.name_pool
-  type cnf_thm = Sledgehammer_Fact_Preprocessor.cnf_thm
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =

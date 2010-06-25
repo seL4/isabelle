@@ -27,10 +27,10 @@ end;
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
 struct
 
+open Clausifier
 open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
 open Sledgehammer_HOL_Clause
-open Sledgehammer_Fact_Preprocessor
 
 type minimize_command = string list -> string
 

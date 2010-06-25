@@ -17,8 +17,8 @@ end;
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
+open Clausifier
 open Sledgehammer_Util
-open Sledgehammer_Fact_Preprocessor
 open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer

@@ -22,8 +22,8 @@ end;
 structure ATP_Systems : ATP_SYSTEMS =
 struct
 
+open Clausifier
 open Sledgehammer_Util
-open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct

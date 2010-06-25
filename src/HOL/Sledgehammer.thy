@@ -11,7 +11,7 @@ theory Sledgehammer
 imports Plain Hilbert_Choice
 uses
   "~~/src/Tools/Metis/metis.ML"
-  ("Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML")
+  ("Tools/Sledgehammer/clausifier.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
   ("Tools/Sledgehammer/sledgehammer_util.ML")
   ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
@@ -85,8 +85,8 @@ apply (rule ext)
 apply (simp add: COMBC_def) 
 done
 
-use "Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML"
-setup Sledgehammer_Fact_Preprocessor.setup
+use "Tools/Sledgehammer/clausifier.ML"
+setup Clausifier.setup
 use "Tools/Sledgehammer/meson_tactic.ML"
 setup Meson_Tactic.setup
 

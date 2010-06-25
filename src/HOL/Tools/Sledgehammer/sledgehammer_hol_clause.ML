@@ -7,7 +7,7 @@ FOL clauses translated from HOL formulas.
 
 signature SLEDGEHAMMER_HOL_CLAUSE =
 sig
-  type cnf_thm = Sledgehammer_Fact_Preprocessor.cnf_thm
+  type cnf_thm = Clausifier.cnf_thm
   type name = Sledgehammer_FOL_Clause.name
   type name_pool = Sledgehammer_FOL_Clause.name_pool
   type kind = Sledgehammer_FOL_Clause.kind
@@ -49,9 +49,9 @@ end
 structure Sledgehammer_HOL_Clause : SLEDGEHAMMER_HOL_CLAUSE =
 struct
 
+open Clausifier
 open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
-open Sledgehammer_Fact_Preprocessor
 
 (******************************************************)
 (* data types for typed combinator expressions        *)

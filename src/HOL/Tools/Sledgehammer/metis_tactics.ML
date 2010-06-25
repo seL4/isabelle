@@ -18,8 +18,8 @@ end
 structure Metis_Tactics : METIS_TACTICS =
 struct
 
+open Clausifier
 open Sledgehammer_Util
-open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_FOL_Clause
 open Sledgehammer_HOL_Clause
 

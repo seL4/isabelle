@@ -14,7 +14,7 @@ end;
 structure Meson_Tactic : MESON_TACTIC =
 struct
 
-open Sledgehammer_Fact_Preprocessor
+open Clausifier
 
 (*Expand all new definitions of abstraction or Skolem functions in a proof state.*)
 fun is_absko (Const (@{const_name "=="}, _) $ Free (a, _) $ _) =

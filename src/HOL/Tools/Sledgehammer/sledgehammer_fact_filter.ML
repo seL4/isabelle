@@ -5,7 +5,7 @@
 
 signature SLEDGEHAMMER_FACT_FILTER =
 sig
-  type cnf_thm = Sledgehammer_Fact_Preprocessor.cnf_thm
+  type cnf_thm = Clausifier.cnf_thm
 
   type relevance_override =
     {add: Facts.ref list,
@@ -21,8 +21,8 @@ end;
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
 struct
 
+open Clausifier
 open Sledgehammer_FOL_Clause
-open Sledgehammer_Fact_Preprocessor
 open Sledgehammer_HOL_Clause
 
 (* Experimental feature: Filter theorems in natural form or in CNF? *)
