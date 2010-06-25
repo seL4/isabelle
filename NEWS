@@ -4,6 +4,17 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Explicit treatment of UTF8 sequences as Isabelle symbols, such that
+a Unicode character is treated as a single symbol, not a sequence of
+non-ASCII bytes as before.  Since Isabelle/ML string literals may
+contain symbols without further backslash escapes, Unicode can now be
+used here as well.  Recall that Symbol.explode in ML provides a
+consistent view on symbols, while raw explode (or String.explode)
+merely give a byte-oriented representation.
+
+
 *** HOL ***
 
 * Some previously unqualified names have been qualified:
