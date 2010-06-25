@@ -24,7 +24,7 @@ struct
 
 open Clausifier
 open Sledgehammer_Util
-open Sledgehammer_HOL_Clause
+open Sledgehammer_FOL_Clause
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
 open Sledgehammer_TPTP_Format

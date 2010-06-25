@@ -319,7 +319,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_fact_filter.ML \
   Tools/Sledgehammer/sledgehammer_fact_minimizer.ML \
   Tools/Sledgehammer/sledgehammer_fol_clause.ML \
-  Tools/Sledgehammer/sledgehammer_hol_clause.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
   Tools/Sledgehammer/sledgehammer_tptp_format.ML \

@@ -11,7 +11,7 @@ sig
   type type_literal = Sledgehammer_FOL_Clause.type_literal
   type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
   type arity_clause = Sledgehammer_FOL_Clause.arity_clause
-  type hol_clause = Sledgehammer_HOL_Clause.hol_clause
+  type hol_clause = Sledgehammer_FOL_Clause.hol_clause
 
   val tptp_of_type_literal :
     bool -> type_literal -> name_pool option -> string * name_pool option
@@ -27,7 +27,6 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
-open Sledgehammer_HOL_Clause
 
 type const_info = {min_arity: int, max_arity: int, sub_level: bool}
 

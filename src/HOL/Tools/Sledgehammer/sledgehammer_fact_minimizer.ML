@@ -20,7 +20,7 @@ struct
 
 open Clausifier
 open Sledgehammer_Util
-open Sledgehammer_HOL_Clause
+open Sledgehammer_FOL_Clause
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 

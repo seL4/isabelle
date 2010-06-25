@@ -21,7 +21,6 @@ struct
 open Clausifier
 open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
-open Sledgehammer_HOL_Clause
 
 exception METIS of string * string
 

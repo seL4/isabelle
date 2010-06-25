@@ -15,7 +15,6 @@ uses
   ("Tools/Sledgehammer/meson_tactic.ML")
   ("Tools/Sledgehammer/sledgehammer_util.ML")
   ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
-  ("Tools/Sledgehammer/sledgehammer_hol_clause.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
   ("Tools/Sledgehammer/sledgehammer_tptp_format.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
@@ -92,7 +91,6 @@ setup Meson_Tactic.setup
 
 use "Tools/Sledgehammer/sledgehammer_util.ML"
 use "Tools/Sledgehammer/sledgehammer_fol_clause.ML"
-use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/Sledgehammer/sledgehammer_tptp_format.ML"
 use "Tools/ATP_Manager/atp_manager.ML"

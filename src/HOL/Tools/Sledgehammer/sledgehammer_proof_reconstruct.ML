@@ -30,7 +30,6 @@ struct
 open Clausifier
 open Sledgehammer_Util
 open Sledgehammer_FOL_Clause
-open Sledgehammer_HOL_Clause
 
 type minimize_command = string list -> string
 

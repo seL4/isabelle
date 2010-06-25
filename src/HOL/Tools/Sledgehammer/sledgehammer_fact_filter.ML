@@ -23,7 +23,6 @@ struct
 
 open Clausifier
 open Sledgehammer_FOL_Clause
-open Sledgehammer_HOL_Clause
 
 (* Experimental feature: Filter theorems in natural form or in CNF? *)
 val use_natural_form = Unsynchronized.ref false

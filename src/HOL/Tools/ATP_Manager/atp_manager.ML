@@ -67,7 +67,7 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
-open Sledgehammer_HOL_Clause
+open Sledgehammer_FOL_Clause
 open Sledgehammer_Proof_Reconstruct
 
 (** problems, results, provers, etc. **)
