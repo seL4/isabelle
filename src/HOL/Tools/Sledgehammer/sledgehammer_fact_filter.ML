@@ -620,7 +620,7 @@ fun count_combterm (CombConst ((c, _), _, _)) =
 fun count_literal (Literal (_, t)) = count_combterm t
 fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
 
-val raw_cnf_rules_pairs = map (fn (name, thm) => (thm, ((name, 0), thm)))
+fun raw_cnf_rules_pairs ps = map (fn (name, thm) => (thm, ((name, 0), thm))) ps
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)
   #> (if raw then raw_cnf_rules_pairs else cnf_rules_pairs thy)
