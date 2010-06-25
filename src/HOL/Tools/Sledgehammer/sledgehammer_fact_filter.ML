@@ -18,18 +18,9 @@ sig
   val use_natural_form : bool Unsynchronized.ref
   val name_thms_pair_from_ref :
     Proof.context -> thm list -> Facts.ref -> string * thm list
-  val tvar_classes_of_terms : term list -> string list
-  val tfree_classes_of_terms : term list -> string list
-  val type_consts_of_terms : theory -> term list -> string list
-  val is_quasi_fol_theorem : theory -> thm -> bool
   val relevant_facts :
     bool -> bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> thm list -> cnf_thm list
-  val prepare_clauses :
-    bool -> thm list -> cnf_thm list -> cnf_thm list -> theory
-    -> string vector
-       * (hol_clause list * hol_clause list * hol_clause list
-          * hol_clause list * classrel_clause list * arity_clause list)
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
@@ -392,10 +383,6 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
 
 (*** retrieve lemmas and filter them ***)
 
-(*Hashing to detect duplicate and variant clauses, e.g. from the [iff] attribute*)
-
-fun setinsert (x,s) = Symtab.update (x,()) s;
-
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.*)
 fun is_package_def a =
@@ -406,16 +393,7 @@ fun is_package_def a =
      String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
   end;
 
-fun mk_clause_table xs =
-  fold (Termtab.update o `(prop_of o fst)) xs Termtab.empty
-
-fun make_unique xs =
-  Termtab.fold (cons o snd) (mk_clause_table xs) []
-
-(* Remove existing axiom clauses from the conjecture clauses, as this can
-   dramatically boost an ATP's performance (for some reason). *)
-fun subtract_cls ax_clauses =
-  filter_out (Termtab.defined (mk_clause_table ax_clauses) o prop_of)
+fun make_unique xs = Termtab.fold (cons o snd) (make_clause_table xs) []
 
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s) o prop_of
@@ -491,47 +469,8 @@ fun name_thms_pair_from_ref ctxt chained_ths xref =
 
 
 (***************************************************************)
-(* Type Classes Present in the Axiom or Conjecture Clauses     *)
-(***************************************************************)
-
-fun add_classes (sorts, cset) = List.foldl setinsert cset (flat sorts);
-
-(*Remove this trivial type class*)
-fun delete_type cset = Symtab.delete_safe (the_single @{sort HOL.type}) cset;
-
-fun tvar_classes_of_terms ts =
-  let val sorts_list = map (map #2 o OldTerm.term_tvars) ts
-  in  Symtab.keys (delete_type (List.foldl add_classes Symtab.empty sorts_list))  end;
-
-fun tfree_classes_of_terms ts =
-  let val sorts_list = map (map #2 o OldTerm.term_tfrees) ts
-  in  Symtab.keys (delete_type (List.foldl add_classes Symtab.empty sorts_list))  end;
-
-(*fold type constructors*)
-fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
-  | fold_type_consts _ _ x = x;
-
-(*Type constructors used to instantiate overloaded constants are the only ones needed.*)
-fun add_type_consts_in_term thy =
-  let
-    val const_typargs = Sign.const_typargs thy
-    fun aux (Const cT) = fold (fold_type_consts setinsert) (const_typargs cT)
-      | aux (Abs (_, _, u)) = aux u
-      | aux (Const (@{const_name skolem_id}, _) $ _) = I
-      | aux (t $ u) = aux t #> aux u
-      | aux _ = I
-  in aux end
-
-fun type_consts_of_terms thy ts =
-  Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty);
-
-
-(***************************************************************)
 (* ATP invocation methods setup                                *)
 (***************************************************************)
-
-fun is_quasi_fol_theorem thy =
-  Meson.is_fol_term thy o snd o conceal_skolem_somes ~1 [] o prop_of
 
 (**** Predicates to detect unwanted clauses (prolific or likely to cause
       unsoundness) ****)
@@ -581,8 +520,6 @@ fun is_dangerous_term _ @{prop True} = true
     (has_typed_var dangerous_types t orelse
      forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t)))
 
-fun is_fol_goal thy = forall (Meson.is_fol_term thy) o map prop_of
-
 fun relevant_facts full_types respect_no_atp relevance_threshold
                    relevance_convergence defs_relevant max_new theory_relevant
                    (relevance_override as {add, del, only})
@@ -591,7 +528,7 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
     val thy = ProofContext.theory_of ctxt
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val has_override = not (null add) orelse not (null del)
-    val is_FO = is_fol_goal thy goal_cls
+    val is_FO = forall (Meson.is_fol_term thy o prop_of) goal_cls
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (map (name_thms_pair_from_ref ctxt chained_ths) add @
@@ -609,72 +546,6 @@ fun relevant_facts full_types respect_no_atp relevance_threshold
                      thy axioms (map prop_of goal_cls)
     |> has_override ? make_unique
     |> sort (prod_ord string_ord int_ord o pairself (fst o snd))
-  end
-
-(** Helper clauses **)
-
-fun count_combterm (CombConst ((c, _), _, _)) =
-    Symtab.map_entry c (Integer.add 1)
-  | count_combterm (CombVar _) = I
-  | count_combterm (CombApp (t1, t2)) = count_combterm t1 #> count_combterm t2
-fun count_literal (Literal (_, t)) = count_combterm t
-fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
-
-fun raw_cnf_rules_pairs ps = map (fn (name, thm) => (thm, ((name, 0), thm))) ps
-fun cnf_helper_thms thy raw =
-  map (`Thm.get_name_hint)
-  #> (if raw then raw_cnf_rules_pairs else cnf_rules_pairs thy)
-
-val optional_helpers =
-  [(["c_COMBI", "c_COMBK"], (false, @{thms COMBI_def COMBK_def})),
-   (["c_COMBB", "c_COMBC"], (false, @{thms COMBB_def COMBC_def})),
-   (["c_COMBS"], (false, @{thms COMBS_def}))]
-val optional_typed_helpers =
-  [(["c_True", "c_False"], (true, @{thms True_or_False})),
-   (["c_If"], (true, @{thms if_True if_False True_or_False}))]
-val mandatory_helpers = @{thms fequal_imp_equal equal_imp_fequal}
-
-val init_counters =
-  Symtab.make (maps (maps (map (rpair 0) o fst))
-                    [optional_helpers, optional_typed_helpers])
-
-fun get_helper_clauses thy is_FO full_types conjectures axcls =
-  let
-    val axclauses = map snd (make_axiom_clauses thy axcls)
-    val ct = fold (fold count_clause) [conjectures, axclauses] init_counters
-    fun is_needed c = the (Symtab.lookup ct c) > 0
-    val cnfs =
-      (optional_helpers
-       |> full_types ? append optional_typed_helpers
-       |> maps (fn (ss, (raw, ths)) =>
-                   if exists is_needed ss then cnf_helper_thms thy raw ths
-                   else []))
-      @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
-  in map snd (make_axiom_clauses thy cnfs) end
-
-(* prepare for passing to writer,
-   create additional clauses based on the information from extra_cls *)
-fun prepare_clauses full_types goal_cls axcls extra_cls thy =
-  let
-    val is_FO = is_fol_goal thy goal_cls
-    val ccls = subtract_cls extra_cls goal_cls
-    val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
-    val ccltms = map prop_of ccls
-    and axtms = map (prop_of o #1) extra_cls
-    val subs = tfree_classes_of_terms ccltms
-    and supers = tvar_classes_of_terms axtms
-    and tycons = type_consts_of_terms thy (ccltms @ axtms)
-    (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val conjectures = make_conjecture_clauses thy ccls
-    val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses thy extra_cls)
-    val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses thy axcls)
-    val helper_clauses =
-      get_helper_clauses thy is_FO full_types conjectures extra_cls
-    val (supers', arity_clauses) = make_arity_clauses thy tycons supers
-    val classrel_clauses = make_classrel_clauses thy subs supers'
-  in
-    (Vector.fromList clnames,
-      (conjectures, axiom_clauses, extra_clauses, helper_clauses, classrel_clauses, arity_clauses))
   end
 
 end;
