@@ -14,6 +14,7 @@ uses
   "Tools/Sledgehammer/sledgehammer_util.ML"
   ("Tools/Sledgehammer/sledgehammer_fol_clause.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML")
+  ("Tools/Sledgehammer/meson_tactic.ML")
   ("Tools/Sledgehammer/sledgehammer_hol_clause.ML")
   ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
@@ -22,7 +23,6 @@ uses
   ("Tools/ATP_Manager/atp_systems.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
-  ("Tools/Sledgehammer/meson_tactic.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
 begin
 
@@ -86,11 +86,11 @@ apply (simp add: COMBC_def)
 done
 
 
-subsection {* Setup of external ATPs *}
-
 use "Tools/Sledgehammer/sledgehammer_fol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML"
 setup Sledgehammer_Fact_Preprocessor.setup
+use "Tools/Sledgehammer/meson_tactic.ML"
+setup Meson_Tactic.setup
 use "Tools/Sledgehammer/sledgehammer_hol_clause.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
@@ -100,16 +100,6 @@ use "Tools/ATP_Manager/atp_systems.ML"
 setup ATP_Systems.setup
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
-
-
-subsection {* The MESON prover *}
-
-use "Tools/Sledgehammer/meson_tactic.ML"
-setup Meson_Tactic.setup
-
-
-subsection {* The Metis prover *}
-
 use "Tools/Sledgehammer/metis_tactics.ML"
 setup Metis_Tactics.setup
 
