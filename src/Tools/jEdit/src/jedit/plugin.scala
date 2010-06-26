@@ -20,7 +20,7 @@ import scala.collection.mutable
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.JEditTextArea
-import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
+import org.gjt.sp.jedit.msg.{BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
@@ -203,6 +203,13 @@ class Plugin extends EBPlugin
   override def handleMessage(message: EBMessage)
   {
     message match {
+      case msg: BufferUpdate
+        if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
+        Document_Model(msg.getBuffer) match {
+          case Some(model) => model.refresh()
+          case _ =>
+        }
+
       case msg: EditPaneUpdate =>
         val edit_pane = msg.getEditPane
         val buffer = edit_pane.getBuffer

@@ -140,14 +140,21 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* activation */
 
+  private val token_marker = new Isabelle_Token_Marker(this)
+
   def activate()
   {
-    buffer.setTokenMarker(new Isabelle_Token_Marker(this))
+    buffer.setTokenMarker(token_marker)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
 
     edits_buffer += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
     edits_delay()
+  }
+
+  def refresh()
+  {
+    buffer.setTokenMarker(token_marker)
   }
 
   def deactivate()
