@@ -649,13 +649,21 @@ let
      so we do it both in the original theorem *)
   val thm' = Drule.eta_contraction_rule thm
   val ((_, [thm'']), ctxt') = Variable.import false [thm'] ctxt
-  val goal = (quotient_lift_all qtys ctxt' o prop_of) thm''
+  val goal = derive_qtrm qtys (prop_of thm'') ctxt' 
 in
   Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm'] 1))
   |> singleton (ProofContext.export ctxt' ctxt)
 end;
 
-(* An Attribute which automatically constructs the qthm *)
-val lifted_attrib = Thm.rule_attribute (fn ctxt => lifted [] (Context.proof_of ctxt))
+(* An attribute which automatically constructs the qthm 
+   using all quotients defined so far.
+*)
+val lifted_attrib = Thm.rule_attribute (fn context => 
+       let
+         val ctxt = Context.proof_of context
+         val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
+       in
+         lifted qtys ctxt
+       end)
 
 end; (* structure *)

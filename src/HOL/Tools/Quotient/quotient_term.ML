@@ -27,7 +27,7 @@ sig
   val inj_repabs_trm_chk: Proof.context -> term * term -> term
 
   val derive_qtyp: typ list -> typ -> Proof.context -> typ
-  val quotient_lift_all: typ list -> Proof.context -> term -> term
+  val derive_qtrm: typ list -> term -> Proof.context -> term
 end;
 
 structure Quotient_Term: QUOTIENT_TERM =
@@ -692,94 +692,85 @@ fun inj_repabs_trm_chk ctxt (rtrm, qtrm) =
 
 (* subst_tys takes a list of (rty, qty) substitution pairs
    and replaces all occurences of rty in the given type
-   by appropriate qty, with substitution *)
-fun subst_ty thy ty (rty, qty) r =
-  if r <> NONE then r else
-  case try (Sign.typ_match thy (rty, ty)) Vartab.empty of
-    SOME inst => SOME (Envir.subst_type inst qty)
-  | NONE => NONE
-fun subst_tys thy substs ty =
-  case fold (subst_ty thy ty) substs NONE of
-    SOME ty => ty
-  | NONE =>
-      (case ty of
-        Type (s, tys) => Type (s, map (subst_tys thy substs) tys)
-      | x => x)
-
-(* subst_trms takes a list of (rtrm, qtrm) substitution pairs
-   and if the given term matches any of the raw terms it
-   returns the appropriate qtrm instantiated. If none of
-   them matched it returns NONE. *)
-fun subst_trm thy t (rtrm, qtrm) s =
-  if s <> NONE then s else
-    case try (Pattern.match thy (rtrm, t)) (Vartab.empty, Vartab.empty) of
-      SOME inst => SOME (Envir.subst_term inst qtrm)
-    | NONE => NONE;
-fun subst_trms thy substs t = fold (subst_trm thy t) substs NONE
-
-(* prepares type and term substitution pairs to be used by above
-   functions that let replace all raw constructs by appropriate
-   lifted counterparts. *)
-fun get_ty_trm_substs qtys ctxt =
-let
-  val thy = ProofContext.theory_of ctxt
-  val quot_infos  = Quotient_Info.quotdata_dest ctxt
-  val const_infos = Quotient_Info.qconsts_dest ctxt
-  val all_ty_substs = map (fn ri => (#rtyp ri, #qtyp ri)) quot_infos
-  val ty_substs =
-    if qtys = [] then all_ty_substs else
-    filter (fn (_, qty) => member (op =) qtys qty) all_ty_substs
-  val const_substs = map (fn ci => (#rconst ci, #qconst ci)) const_infos
-  fun rel_eq rel = HOLogic.eq_const (subst_tys thy ty_substs (domain_type (fastype_of rel)))
-  val rel_substs = map (fn ri => (#equiv_rel ri, rel_eq (#equiv_rel ri))) quot_infos
-  fun valid_trm_subst (rt, qt) = (subst_tys thy ty_substs (fastype_of rt) = fastype_of qt)
-  val all_trm_substs = const_substs @ rel_substs
-in
-  (ty_substs, filter valid_trm_subst all_trm_substs)
-end
-
-fun derive_qtyp qtys rty ctxt =
-let
-  val thy = ProofContext.theory_of ctxt
-  val (ty_substs, _) = get_ty_trm_substs qtys ctxt
-in
-  subst_tys thy ty_substs rty
-end
-
-(*
-Takes a term and
-
-* replaces raw constants by the quotient constants
-
-* replaces equivalence relations by equalities
-
-* replaces raw types by the quotient types
-
+   by an appropriate qty
 *)
+fun subst_rtyp ctxt ty_subst rty =
+  case rty of
+    Type (s, rtys) =>
+      let
+        val thy = ProofContext.theory_of ctxt
+        val rty' = Type (s, map (subst_rtyp ctxt ty_subst) rtys)
 
-fun quotient_lift_all qtys ctxt t =
-let
-  val thy = ProofContext.theory_of ctxt
-  val (ty_substs, substs) = get_ty_trm_substs qtys ctxt
-  fun lift_aux t =
-    case subst_trms thy substs t of
-      SOME x => x
-    | NONE =>
-      (case t of
-        a $ b => lift_aux a $ lift_aux b
-      | Abs(a, ty, s) =>
-          let
-            val (y, s') = Term.dest_abs (a, ty, s)
-            val nty = subst_tys thy ty_substs ty
-          in
-            Abs(y, nty, abstract_over (Free (y, nty), lift_aux s'))
-          end
-      | Free(n, ty) => Free(n, subst_tys thy ty_substs ty)
-      | Var(n, ty) => Var(n, subst_tys thy ty_substs ty)
-      | Bound i => Bound i
-      | Const(s, ty) => Const(s, subst_tys thy ty_substs ty))
+        fun matches [] = rty'
+          | matches ((rty, qty)::tail) =
+              case try (Sign.typ_match thy (rty, rty')) Vartab.empty of
+                NONE => matches tail
+              | SOME inst => Envir.subst_type inst qty
+      in
+        matches ty_subst 
+      end 
+  | _ => rty
+
+(* subst_trms takes a list of (rconst, qconst) substitution pairs,
+   as well as (rty, qty) substitution pairs, and replaces all
+   occurences of rconst and rty by appropriate instances of
+   qconst and qty
+*)
+fun subst_rtrm ctxt ty_subst trm_subst rtrm =
+  case rtrm of
+    t1 $ t2 => (subst_rtrm ctxt ty_subst trm_subst t1) $ (subst_rtrm ctxt ty_subst trm_subst t2)
+  | Abs (x, ty, t) => Abs (x, subst_rtyp ctxt ty_subst ty, subst_rtrm ctxt ty_subst trm_subst t)
+  | Free(n, ty) => Free(n, subst_rtyp ctxt ty_subst ty)
+  | Var(n, ty) => Var(n, subst_rtyp ctxt ty_subst ty)
+  | Bound i => Bound i
+  | Const (a, ty) => 
+      let
+        val thy = ProofContext.theory_of ctxt
+
+        fun matches [] = Const (a, subst_rtyp ctxt ty_subst ty)
+          | matches ((rconst, qconst)::tail) =
+              case try (Pattern.match thy (rconst, rtrm)) (Vartab.empty, Vartab.empty) of
+                NONE => matches tail
+              | SOME inst => Envir.subst_term inst qconst
+      in
+        matches trm_subst
+      end
+
+(* generates type substitutions out of the
+   types involved in a quotient
+*)
+fun get_ty_subst qtys ctxt =
+  Quotient_Info.quotdata_dest ctxt
+   |> map (fn x => (#rtyp x, #qtyp x))
+   |> filter (fn (_, qty) => member (op =) qtys qty)
+
+(* generates term substitutions out of the qconst 
+   definitions and relations in a quotient
+*)
+fun get_trm_subst qtys ctxt =
+let  
+  val subst_rtyp' = subst_rtyp ctxt (get_ty_subst qtys ctxt)
+  fun proper (rt, qt) = (subst_rtyp' (fastype_of rt) = fastype_of qt)
+  
+  val const_substs = 
+    Quotient_Info.qconsts_dest ctxt
+     |> map (fn x => (#rconst x, #qconst x)) 
+
+  val rel_substs = 
+    Quotient_Info.quotdata_dest ctxt
+     |> map (fn x => (#equiv_rel x, HOLogic.eq_const (#qtyp x)))
 in
-  lift_aux t
+  filter proper (const_substs @ rel_substs)
 end
+
+(* derives a qtyp and qtrm out of a rtyp and rtrm,
+   respectively 
+*)
+fun derive_qtyp qtys rty ctxt =
+  subst_rtyp ctxt (get_ty_subst qtys ctxt) rty
+
+fun derive_qtrm qtys rtrm ctxt =
+  subst_rtrm ctxt (get_ty_subst qtys ctxt) (get_trm_subst qtys ctxt) rtrm
+
 
 end; (* structure *)
