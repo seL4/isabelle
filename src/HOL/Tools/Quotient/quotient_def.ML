@@ -12,7 +12,7 @@ sig
   val quotdef_cmd: (binding option * mixfix) * (Attrib.binding * (string * string)) ->
     local_theory -> Quotient_Info.qconsts_info * local_theory
 
-  val lift_raw_const: typ list -> string * term -> local_theory ->
+  val lift_raw_const: typ list -> (string * term * mixfix) -> local_theory ->
     Quotient_Info.qconsts_info * local_theory
 end;
 
@@ -88,13 +88,13 @@ in
 end
 
 (* a wrapper for automatically lifting a raw constant *)
-fun lift_raw_const qtys (qconst_name, rconst) ctxt =
+fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
 let
   val rty = fastype_of rconst
   val qty = derive_qtyp qtys rty ctxt
+  val lhs = Free (qconst_name, qty)
 in
-  quotient_def ((NONE, NoSyn), (Attrib.empty_binding,
-    (Free (qconst_name, qty), rconst))) ctxt
+  quotient_def ((NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt
 end
 
 (* parser and command *)
