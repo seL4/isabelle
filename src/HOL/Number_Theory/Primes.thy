@@ -208,22 +208,20 @@ lemma Suc_0_not_prime_nat [simp]: "~prime (Suc 0)"
 lemma one_not_prime_int [simp]: "~prime (1::int)"
   by (simp add: prime_int_def)
 
-lemma prime_nat_code[code]:
- "prime(p::nat) = (p > 1 & (ALL n : {1<..<p}. ~(n dvd p)))"
-apply(simp add: Ball_def)
+lemma prime_nat_code [code]:
+ "prime (p::nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)"
+apply (simp add: Ball_def)
 apply (metis less_not_refl prime_nat_def dvd_triv_right not_prime_eq_prod_nat)
 done
 
 lemma prime_nat_simp:
- "prime(p::nat) = (p > 1 & (list_all (%n. ~ n dvd p) [2..<p]))"
-apply(simp only:prime_nat_code list_ball_code greaterThanLessThan_upt)
-apply(simp add:nat_number One_nat_def)
-done
+ "prime (p::nat) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..<p]. \<not> n dvd p)"
+by (auto simp add: prime_nat_code)
 
-lemmas prime_nat_simp_number_of[simp] = prime_nat_simp[of "number_of m", standard]
+lemmas prime_nat_simp_number_of [simp] = prime_nat_simp [of "number_of m", standard]
 
-lemma prime_int_code[code]:
-  "prime(p::int) = (p > 1 & (ALL n : {1<..<p}. ~(n dvd p)))" (is "?L = ?R")
+lemma prime_int_code [code]:
+  "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> {1<..<p}. ~ n dvd p)" (is "?L = ?R")
 proof
   assume "?L" thus "?R"
     by (clarsimp simp: prime_gt_1_int) (metis int_one_le_iff_zero_less prime_int_altdef zless_le)
@@ -232,12 +230,10 @@ next
 qed
 
 lemma prime_int_simp:
-  "prime(p::int) = (p > 1 & (list_all (%n. ~ n dvd p) [2..p - 1]))"
-apply(simp only:prime_int_code list_ball_code greaterThanLessThan_upto)
-apply simp
-done
+  "prime (p::int) \<longleftrightarrow> p > 1 \<and> (\<forall>n \<in> set [2..p - 1]. ~ n dvd p)"
+by (auto simp add: prime_int_code)
 
-lemmas prime_int_simp_number_of[simp] = prime_int_simp[of "number_of m", standard]
+lemmas prime_int_simp_number_of [simp] = prime_int_simp [of "number_of m", standard]
 
 lemma two_is_prime_nat [simp]: "prime (2::nat)"
 by simp
