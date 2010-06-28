@@ -49,7 +49,7 @@ end
 fun quotient_def ((optbind, mx), (attr, (lhs, rhs))) lthy =
 let
   val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined."
-  val _ = if null (strip_abs_vars rhs) then () else error "The definiens cannot be an abstraction"
+  val _ = if is_Const rhs then () else error "The definiens should be a constant"
   
   fun sanity_test NONE _ = true
     | sanity_test (SOME bind) str =
