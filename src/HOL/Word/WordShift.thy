@@ -988,8 +988,10 @@ lemma test_bit_split':
    apply (erule bin_nth_uint_imp)+
   done
 
-lemmas test_bit_split = 
-  test_bit_split' [THEN mp, simplified all_simps, standard]
+lemma test_bit_split:
+  "word_split c = (a, b) \<Longrightarrow>
+    (\<forall>n\<Colon>nat. b !! n \<longleftrightarrow> n < size b \<and> c !! n) \<and> (\<forall>m\<Colon>nat. a !! m \<longleftrightarrow> m < size a \<and> c !! (m + size b))"
+  by (simp add: test_bit_split')
 
 lemma test_bit_split_eq: "word_split c = (a, b) <-> 
   ((ALL n::nat. b !! n = (n < size b & c !! n)) &

@@ -133,7 +133,7 @@ apply (induct_tac "n")
  apply  (clarify intro!: Impl_nvalid_0)
 apply (clarify  intro!: Impl_nvalid_Suc)
 apply (drule nvalids_SucD)
-apply (simp only: all_simps)
+apply (simp only: HOL.all_simps)
 apply (erule (1) impE)
 apply (drule (2) Impl_sound_lemma)
  apply  blast
