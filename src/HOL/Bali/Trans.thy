@@ -10,7 +10,7 @@ PRELIMINARY!!!!!!!!
 theory Trans imports Evaln begin
 
 definition groundVar :: "var \<Rightarrow> bool" where
-"groundVar v \<equiv> (case v of
+"groundVar v \<longleftrightarrow> (case v of
                    LVar ln \<Rightarrow> True
                  | {accC,statDeclC,stat}e..fn \<Rightarrow> \<exists> a. e=Lit a
                  | e1.[e2] \<Rightarrow> \<exists> a i. e1= Lit a \<and> e2 = Lit i
@@ -35,19 +35,15 @@ proof -
 qed
 
 definition groundExprs :: "expr list \<Rightarrow> bool" where
-"groundExprs es \<equiv> list_all (\<lambda> e. \<exists> v. e=Lit v) es"
+  "groundExprs es \<longleftrightarrow> (\<forall>e \<in> set es. \<exists>v. e = Lit v)"
   
-consts the_val:: "expr \<Rightarrow> val"
-primrec
-"the_val (Lit v) = v"
+primrec the_val:: "expr \<Rightarrow> val" where
+  "the_val (Lit v) = v"
 
-consts the_var:: "prog \<Rightarrow> state \<Rightarrow> var \<Rightarrow> (vvar \<times> state)"
-primrec
-"the_var G s (LVar ln)                    =(lvar ln (store s),s)"
-the_var_FVar_def:
-"the_var G s ({accC,statDeclC,stat}a..fn) =fvar statDeclC stat fn (the_val a) s"
-the_var_AVar_def:
-"the_var G s(a.[i])                       =avar G (the_val i) (the_val a) s"
+primrec the_var:: "prog \<Rightarrow> state \<Rightarrow> var \<Rightarrow> (vvar \<times> state)" where
+  "the_var G s (LVar ln)                    =(lvar ln (store s),s)"
+| the_var_FVar_def: "the_var G s ({accC,statDeclC,stat}a..fn) =fvar statDeclC stat fn (the_val a) s"
+| the_var_AVar_def: "the_var G s(a.[i])                       =avar G (the_val i) (the_val a) s"
 
 lemma the_var_FVar_simp[simp]:
 "the_var G s ({accC,statDeclC,stat}(Lit a)..fn) = fvar statDeclC stat fn a s"
