@@ -86,7 +86,7 @@ mkfin_cons:
   "(mkfin (a>>s)) = (a>>(mkfin s))"
 
 
-lemmas [simp del] = ex_simps all_simps split_paired_Ex
+lemmas [simp del] = HOL.ex_simps HOL.all_simps split_paired_Ex
 
 declaration {* fn _ => Classical.map_cs (fn cs => cs delSWrapper "split_all_tac") *}
 

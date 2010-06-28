@@ -204,7 +204,7 @@ apply simp
 done
 
 lemma lemma4: "is_g(g) --> def_g(g)"
-apply (tactic {* simp_tac (HOL_ss delsimps (thms "ex_simps" @ thms "all_simps")
+apply (tactic {* simp_tac (HOL_ss delsimps (@{thms HOL.ex_simps} @ @{thms HOL.all_simps})
   addsimps [thm "lemma1", thm "lemma2", thm "def_g_def"]) 1 *})
 apply (rule impI)
 apply (erule exE)

@@ -228,7 +228,7 @@ val choice_iff = @{lemma "(ALL x. EX y. P x y) = (EX f. ALL x. P x (f x))" by me
 val prenex_simps =
   map (fn th => th RS sym)
     ([@{thm "all_conj_distrib"}, @{thm "ex_disj_distrib"}] @
-      @{thms "all_simps"(1-4)} @ @{thms "ex_simps"(1-4)});
+      @{thms "HOL.all_simps"(1-4)} @ @{thms "ex_simps"(1-4)});
 
 val real_abs_thms1 = @{lemma
   "((-1 * abs(x::real) >= r) = (-1 * x >= r & 1 * x >= r))" and

@@ -44,7 +44,7 @@ lemma prime_eq: "prime (p::nat) = (1 < p \<and> (\<forall>m. m dvd p \<longright
   done
 
 lemma prime_eq': "prime (p::nat) = (1 < p \<and> (\<forall>m k. p = m * k \<longrightarrow> 1 < m \<longrightarrow> m = p))"
-  by (simp add: prime_eq dvd_def all_simps [symmetric] del: all_simps)
+  by (simp add: prime_eq dvd_def HOL.all_simps [symmetric] del: HOL.all_simps)
 
 lemma not_prime_ex_mk:
   assumes n: "Suc 0 < n"
