@@ -190,25 +190,24 @@ fun tptp_arity_clause (ArityClause {axiom_name, conclLit, premLits, ...}) =
 
 (* Find the minimal arity of each function mentioned in the term. Also, note
    which uses are not at top level, to see if "hBOOL" is needed. *)
-fun count_constants_term top_level t the_const_tab =
-  let
-    val (head, args) = strip_combterm_comb t
-    val n = length args
-    val the_const_tab = the_const_tab |> fold (count_constants_term false) args
-  in
-    case head of
-      CombConst ((a, _), _, ty) =>
-      (* Predicate or function version of "equal"? *)
-      let val a = if a = "equal" andalso not top_level then "c_fequal" else a in
-        the_const_tab
-        |> Symtab.map_default
-               (a, {min_arity = n, max_arity = n, sub_level = false})
-               (fn {min_arity, max_arity, sub_level} =>
-                   {min_arity = Int.min (n, min_arity),
-                    max_arity = Int.max (n, max_arity),
-                    sub_level = sub_level orelse not top_level})
-      end
-      | _ => the_const_tab
+fun count_constants_term top_level t =
+  let val (head, args) = strip_combterm_comb t in
+    (case head of
+       CombConst ((a, _), _, _) =>
+       let
+         (* Predicate or function version of "equal"? *)
+         val a = if a = "equal" andalso not top_level then "c_fequal" else a
+         val n = length args
+       in
+         Symtab.map_default
+             (a, {min_arity = n, max_arity = 0, sub_level = false})
+             (fn {min_arity, max_arity, sub_level} =>
+                 {min_arity = Int.min (n, min_arity),
+                  max_arity = Int.max (n, max_arity),
+                  sub_level = sub_level orelse not top_level})
+       end
+     | _ => I)
+    #> fold (count_constants_term false) args
   end
 fun count_constants_literal (Literal (_, t)) = count_constants_term true t
 fun count_constants_clause (HOLClause {literals, ...}) =
