@@ -7,11 +7,11 @@ TPTP syntax.
 
 signature SLEDGEHAMMER_TPTP_FORMAT =
 sig
-  type name_pool = Sledgehammer_FOL_Clause.name_pool
-  type type_literal = Sledgehammer_FOL_Clause.type_literal
-  type classrel_clause = Sledgehammer_FOL_Clause.classrel_clause
-  type arity_clause = Sledgehammer_FOL_Clause.arity_clause
-  type hol_clause = Sledgehammer_HOL_Clause.hol_clause
+  type name_pool = Metis_Clauses.name_pool
+  type type_literal = Metis_Clauses.type_literal
+  type classrel_clause = Metis_Clauses.classrel_clause
+  type arity_clause = Metis_Clauses.arity_clause
+  type hol_clause = Metis_Clauses.hol_clause
 
   val tptp_of_type_literal :
     bool -> type_literal -> name_pool option -> string * name_pool option
@@ -25,9 +25,8 @@ end;
 structure Sledgehammer_TPTP_Format : SLEDGEHAMMER_TPTP_FORMAT =
 struct
 
+open Metis_Clauses
 open Sledgehammer_Util
-open Sledgehammer_FOL_Clause
-open Sledgehammer_HOL_Clause
 
 type const_info = {min_arity: int, max_arity: int, sub_level: bool}
 

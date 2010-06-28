@@ -14,11 +14,9 @@ end;
 structure Meson_Tactic : MESON_TACTIC =
 struct
 
-open Sledgehammer_Fact_Preprocessor
-
 (*Expand all new definitions of abstraction or Skolem functions in a proof state.*)
 fun is_absko (Const (@{const_name "=="}, _) $ Free (a, _) $ _) =
-    String.isPrefix skolem_prefix a
+    String.isPrefix Clausifier.skolem_prefix a
   | is_absko _ = false;
 
 fun is_okdef xs (Const (@{const_name "=="}, _) $ t $ _) =   (*Definition of Free, not in certain terms*)
@@ -43,7 +41,10 @@ fun meson_general_tac ctxt ths i st0 =
   let
     val thy = ProofContext.theory_of ctxt
     val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in (Meson.meson_tac ctxt0 (maps (cnf_axiom thy) ths) i THEN expand_defs_tac st0) st0 end;
+  in
+    (Meson.meson_tac ctxt0 (maps (Clausifier.cnf_axiom thy) ths) i
+     THEN expand_defs_tac st0) st0
+  end
 
 val setup =
   Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>

@@ -8,8 +8,6 @@ signature SLEDGEHAMMER_UTIL =
 sig
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
-  val replace_all : string -> string -> string -> string
-  val remove_all : string -> string -> string
   val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
@@ -30,17 +28,6 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2] = [s1, conj, s2]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
-
-fun replace_all bef aft =
-  let
-    fun aux seen "" = String.implode (rev seen)
-      | aux seen s =
-        if String.isPrefix bef s then
-          aux seen "" ^ aft ^ aux [] (unprefix bef s)
-        else
-          aux (String.sub (s, 0) :: seen) (String.extract (s, 1, NONE))
-  in aux [] end
-fun remove_all bef = replace_all bef ""
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
