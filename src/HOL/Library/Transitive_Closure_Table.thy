@@ -189,7 +189,7 @@ declare rtranclp_eq_rtrancl_tab_nil [code_unfold, code_inline del]
 
 declare rtranclp_eq_rtrancl_tab_nil[THEN iffD2, code_pred_intro]
 
-code_pred rtranclp using rtranclp_eq_rtrancl_tab_nil[THEN iffD1] by fastsimp
+code_pred rtranclp using rtranclp_eq_rtrancl_tab_nil [THEN iffD1] by fastsimp
 
 subsection {* A simple example *}
 
