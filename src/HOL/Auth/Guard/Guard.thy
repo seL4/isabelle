@@ -201,14 +201,16 @@ subsection{*basic facts about @{term cnb}*}
 lemma cnb_app [simp]: "cnb (l @ l') = cnb l + cnb l'"
 by (induct l, auto)
 
-lemma mem_cnb_minus: "x mem l ==> cnb l = crypt_nb x + (cnb l - crypt_nb x)"
-by (induct l, auto)
+lemma mem_cnb_minus: "x \<in> set l ==> cnb l = crypt_nb x + (cnb l - crypt_nb x)"
+  by (induct l) auto
 
 lemmas mem_cnb_minus_substI = mem_cnb_minus [THEN ssubst]
 
-lemma cnb_minus [simp]: "x mem l ==> cnb (remove l x) = cnb l - crypt_nb x"
+lemma cnb_minus [simp]: "x \<in> set l ==> cnb (remove l x) = cnb l - crypt_nb x"
 apply (induct l, auto)
-by (erule_tac l1=l and x1=x in mem_cnb_minus_substI, simp)
+apply (erule_tac l1=l and x1=x in mem_cnb_minus_substI)
+apply simp
+done
 
 lemma parts_cnb: "Z:parts (set l) ==>
 cnb l = (cnb l - crypt_nb Z) + crypt_nb Z"
@@ -272,7 +274,7 @@ apply (case_tac "K:invKey`Ks")
 apply (clarsimp, blast)
 (* K ~:invKey`Ks *)
 apply (subgoal_tac "Guard n Ks (set (decrypt' l' K Y))")
-apply (drule_tac x="decrypt' l' K Y" in spec, simp add: mem_iff)
+apply (drule_tac x="decrypt' l' K Y" in spec, simp)
 apply (subgoal_tac "Crypt K Y:parts (set l)")
 apply (drule parts_cnb, rotate_tac -1, simp)
 apply (clarify, drule_tac X="Key Ka" and H="insert Y (set l')" in analz_sub)

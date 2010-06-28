@@ -6,6 +6,7 @@ theory HOL4Compat
 imports HOL4Setup Complex_Main "~~/src/HOL/Old_Number_Theory/Primes" ContNotDenum
 begin
 
+abbreviation (input) mem (infixl "mem" 55) where "x mem xs \<equiv> List.member xs x"
 no_notation differentiable (infixl "differentiable" 60)
 no_notation sums (infixr "sums" 80)
 
@@ -326,8 +327,8 @@ next
   qed
 qed
 
-lemma NULL_DEF: "(null [] = True) & (!h t. null (h # t) = False)"
-  by simp
+lemma NULL_DEF: "(List.null [] = True) & (!h t. List.null (h # t) = False)"
+  by (simp add: null_def)
 
 definition sum :: "nat list \<Rightarrow> nat" where
   "sum l == foldr (op +) l 0"
@@ -347,8 +348,8 @@ lemma LENGTH: "(length [] = 0) & (!h t. length (h#t) = Suc (length t))"
 lemma MAP: "(!f. map f [] = []) & (!f h t. map f (h#t) = f h#map f t)"
   by simp
 
-lemma MEM: "(!x. x mem [] = False) & (!x h t. x mem (h#t) = ((x = h) | x mem t))"
-  by auto
+lemma MEM: "(!x. List.member [] x = False) & (!x h t. List.member (h#t) x = ((x = h) | List.member t x))"
+  by (simp add: member_def)
 
 lemma FILTER: "(!P. filter P [] = []) & (!P h t.
            filter P (h#t) = (if P h then h#filter P t else filter P t))"
@@ -373,15 +374,7 @@ lemma FOLDL: "(!f e. foldl f e [] = e) & (!f e x l. foldl f e (x#l) = foldl f (f
 lemma EVERY_DEF: "(!P. list_all P [] = True) & (!P h t. list_all P (h#t) = (P h & list_all P t))"
   by simp
 
-consts
-  list_exists :: "['a \<Rightarrow> bool,'a list] \<Rightarrow> bool"
-
-primrec
-  list_exists_Nil: "list_exists P Nil = False"
-  list_exists_Cons: "list_exists P (x#xs) = (if P x then True else list_exists P xs)"
-
-lemma list_exists_DEF: "(!P. list_exists P [] = False) &
-         (!P h t. list_exists P (h#t) = (P h | list_exists P t))"
+lemma list_exists_DEF: "(!P. list_ex P [] = False) & (!P h t. list_ex P (h#t) = (P h | list_ex P t))"
   by simp
 
 consts
