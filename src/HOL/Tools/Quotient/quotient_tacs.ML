@@ -11,7 +11,7 @@ sig
   val injection_tac: Proof.context -> int -> tactic
   val all_injection_tac: Proof.context -> int -> tactic
   val clean_tac: Proof.context -> int -> tactic
-  val procedure_tac: Proof.context -> thm -> int -> tactic
+  val procedure_tac: Proof.context -> thm list -> int -> tactic
   val lift_tac: Proof.context -> thm list -> int -> tactic
   val quotient_tac: Proof.context -> int -> tactic
   val quot_true_tac: Proof.context -> (term -> term) -> int -> tactic
@@ -620,12 +620,23 @@ fun procedure_tac ctxt rthm =
   Object_Logic.full_atomize_tac
   THEN' gen_frees_tac ctxt
   THEN' SUBGOAL (fn (goal, i) =>
-    let
-      val rthm' = atomize_thm rthm
-      val rule = procedure_inst ctxt (prop_of rthm') goal
-    in
-      (rtac rule THEN' rtac rthm') i
-    end)
+    case rthm of
+      [] =>
+        let
+          val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
+          val rtrm = derive_qtrm qtys goal true ctxt
+          val rule = procedure_inst ctxt rtrm goal
+        in
+          rtac rule i
+        end
+    | [rthm'] =>
+        let
+          val rthm'' = atomize_thm rthm'
+          val rule = procedure_inst ctxt (prop_of rthm'') goal
+        in
+          (rtac rule THEN' rtac rthm'') i
+        end
+    | _ => error "more than one raw theorem given")
 
 
 (* Automatic Proofs *)
@@ -633,14 +644,24 @@ fun procedure_tac ctxt rthm =
 fun lift_tac ctxt rthms =
 let
   fun mk_tac rthm =
-    procedure_tac ctxt rthm
+    procedure_tac ctxt [rthm]
     THEN' RANGE
       [regularize_tac ctxt,
+       all_injection_tac ctxt,
+       clean_tac ctxt];
+  val mk_tac_raw =
+    procedure_tac ctxt []
+    THEN' RANGE
+      [fn _ => all_tac,
+       regularize_tac ctxt,
        all_injection_tac ctxt,
        clean_tac ctxt]
 in
   simp_tac (mk_minimal_ss ctxt) (* unfolding multiple &&& *)
-  THEN' RANGE (map mk_tac rthms)
+  THEN'
+    (case rthms of
+      [] => mk_tac_raw
+    | _ => RANGE (map mk_tac rthms))
 end
 
 fun lifted qtys ctxt thm =

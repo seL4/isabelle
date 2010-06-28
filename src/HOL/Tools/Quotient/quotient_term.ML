@@ -759,9 +759,9 @@ let
      |> map (fn (x, y) => if reverse then (y, x) else (x, y))
 
   val rel_substs =
-    if reverse then [] else
     Quotient_Info.quotdata_dest ctxt
      |> map (fn x => (#equiv_rel x, HOLogic.eq_const (#qtyp x)))
+     |> map (fn (x, y) => if reverse then (y, x) else (x, y))
 in
   filter proper (const_substs @ rel_substs)
 end

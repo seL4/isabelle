@@ -768,7 +768,7 @@ method_setup lifting =
   {* lifts theorems to quotient types *}
 
 method_setup lifting_setup =
-  {* Attrib.thm >> (fn thms => fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.procedure_tac ctxt thms))) *}
+  {* Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.procedure_tac ctxt thms))) *}
   {* sets up the three goals for the quotient lifting procedure *}
 
 method_setup regularize =
