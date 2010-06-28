@@ -8,7 +8,6 @@ treated differently.
 
 signature METIS_CLAUSES =
 sig
-  type cnf_thm = Clausifier.cnf_thm
   type name = string * string
   type name_pool = string Symtab.table * string Symtab.table
   datatype kind = Axiom | Conjecture
@@ -78,7 +77,8 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val prepare_clauses :
-    bool -> thm list -> cnf_thm list -> cnf_thm list -> theory
+    bool -> thm list -> ((string * int) * thm) list
+    -> ((string * int) * thm) list -> theory
     -> string vector
        * (hol_clause list * hol_clause list * hol_clause list * hol_clause list
           * classrel_clause list * arity_clause list)
@@ -583,9 +583,9 @@ fun make_clause thy (clause_id, axiom_name, kind, th) skolem_somes =
                   kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
   end
 
-fun add_axiom_clause thy (th, ((name, id), _ : thm)) (skolem_somes, clss) =
+fun add_axiom_clause thy ((name, k), th) (skolem_somes, clss) =
   let
-    val (skolem_somes, cls) = make_clause thy (id, name, Axiom, th) skolem_somes
+    val (skolem_somes, cls) = make_clause thy (k, name, Axiom, th) skolem_somes
   in (skolem_somes, clss |> not (isTaut cls) ? cons (name, cls)) end
 
 fun make_axiom_clauses thy clauses =
@@ -610,10 +610,9 @@ fun count_combterm (CombConst ((c, _), _, _)) =
 fun count_literal (Literal (_, t)) = count_combterm t
 fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
 
-fun raw_cnf_rules_pairs ps = map (fn (name, thm) => (thm, ((name, 0), thm))) ps
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)
-  #> (if raw then raw_cnf_rules_pairs else cnf_rules_pairs thy)
+  #> (if raw then  map (apfst (rpair 0)) else cnf_rules_pairs thy)
 
 val optional_helpers =
   [(["c_COMBI", "c_COMBK"], (false, @{thms COMBI_def COMBK_def})),
@@ -641,9 +640,6 @@ fun get_helper_clauses thy is_FO full_types conjectures axcls =
                    else []))
       @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
   in map snd (make_axiom_clauses thy cnfs) end
-
-fun make_clause_table xs =
-  fold (Termtab.update o `(prop_of o fst)) xs Termtab.empty
 
 
 (***************************************************************)
@@ -683,6 +679,9 @@ fun add_type_consts_in_term thy =
 fun type_consts_of_terms thy ts =
   Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty);
 
+fun make_clause_table xs =
+  fold (Termtab.update o `(prop_of o snd)) xs Termtab.empty
+
 (* Remove existing axiom clauses from the conjecture clauses, as this can
    dramatically boost an ATP's performance (for some reason). *)
 fun subtract_cls ax_clauses =
@@ -696,7 +695,7 @@ fun prepare_clauses full_types goal_cls axcls extra_cls thy =
     val ccls = subtract_cls extra_cls goal_cls
     val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
     val ccltms = map prop_of ccls
-    and axtms = map (prop_of o #1) extra_cls
+    and axtms = map (prop_of o snd) extra_cls
     val subs = tfree_classes_of_terms ccltms
     and supers = tvar_classes_of_terms axtms
     and tycons = type_consts_of_terms thy (ccltms @ axtms)

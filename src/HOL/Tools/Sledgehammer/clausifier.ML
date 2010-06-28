@@ -7,13 +7,12 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature CLAUSIFIER =
 sig
-  type cnf_thm = thm * ((string * int) * thm)
-
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
   val is_theorem_bad_for_atps: thm -> bool
   val type_has_topsort: typ -> bool
-  val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
+  val cnf_rules_pairs :
+    theory -> (string * thm) list -> ((string * int) * thm) list
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
@@ -21,8 +20,6 @@ end;
 
 structure Clausifier : CLAUSIFIER =
 struct
-
-type cnf_thm = thm * ((string * int) * thm)
 
 val type_has_topsort = Term.exists_subtype
   (fn TFree (_, []) => true
@@ -324,7 +321,7 @@ fun cnf_rules_pairs thy =
   let
     fun do_one _ [] = []
       | do_one ((name, k), th) (cls :: clss) =
-        (cls, ((name, k), th)) :: do_one ((name, k + 1), th) clss
+        ((name, k), cls) :: do_one ((name, k + 1), th) clss
     fun do_all pairs [] = pairs
       | do_all pairs ((name, th) :: ths) =
         let
