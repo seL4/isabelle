@@ -31,7 +31,9 @@ object Symbol
   /* Symbol regexps */
 
   private val plain = new Regex("""(?xs)
-    [^\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
+      [^\r\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
+
+  private val newline = new Regex("""(?xs) \r\n | \r """)
 
   private val symbol = new Regex("""(?xs)
       \\ < (?:
@@ -39,17 +41,17 @@ object Symbol
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
   // FIXME cover bad surrogates!?
-  // FIXME check wrt. ML version
+  // FIXME check wrt. Isabelle/ML version
   private val bad_symbol = new Regex("(?xs) (?!" + symbol + ")" +
     """ \\ < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
   // total pattern
-  val regex = new Regex(plain + "|" + symbol + "|" + bad_symbol + "| .")
+  val regex = new Regex(plain + "|" + newline + "|" + symbol + "|" + bad_symbol + "| .")
 
 
   /* basic matching */
 
-  def is_plain(c: Char): Boolean = !(c == '\\' || '\ud800' <= c && c <= '\udfff')
+  def is_plain(c: Char): Boolean = !(c == '\r' || c == '\\' || '\ud800' <= c && c <= '\udfff')
 
   def is_wellformed(s: CharSequence): Boolean =
     s.length == 1 && is_plain(s.charAt(0)) || !bad_symbol.pattern.matcher(s).matches

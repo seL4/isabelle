@@ -56,6 +56,19 @@ object Document_Model
 
 class Document_Model(val session: Session, val buffer: Buffer)
 {
+  /* visible line end */
+
+  // simplify slightly odd result of TextArea.getLineEndOffset
+  // NB: jEdit already normalizes \r\n and \r to \n
+  def visible_line_end(start: Int, end: Int): Int =
+  {
+    val end1 = end - 1
+    if (start <= end1 && end1 < buffer.getLength &&
+        buffer.getSegment(end1, 1).charAt(0) == '\n') end1
+    else end
+  }
+
+
   /* history */
 
   private val document_0 = session.begin_document(buffer.getName)
@@ -127,14 +140,21 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* activation */
 
+  private val token_marker = new Isabelle_Token_Marker(this)
+
   def activate()
   {
-    buffer.setTokenMarker(new Isabelle_Token_Marker(this))
+    buffer.setTokenMarker(token_marker)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
 
     edits_buffer += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
     edits_delay()
+  }
+
+  def refresh()
+  {
+    buffer.setTokenMarker(token_marker)
   }
 
   def deactivate()

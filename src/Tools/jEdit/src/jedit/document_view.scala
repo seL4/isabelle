@@ -129,16 +129,20 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val document = model.recent_document()
       def from_current(pos: Int) = model.from_current(document, pos)
       def to_current(pos: Int) = model.to_current(document, pos)
-      val metrics = text_area.getPainter.getFontMetrics
+
+      val line_end = model.visible_line_end(start, end)
+      val line_height = text_area.getPainter.getFontMetrics.getHeight
+
       val saved_color = gfx.getColor
       try {
         for ((command, command_start) <-
-          document.command_range(from_current(start), from_current(end)) if !command.is_ignored)
+          document.command_range(from_current(start), from_current(line_end)) if !command.is_ignored)
         {
-          val begin = start max to_current(command_start)
-          val finish = (end - 1) min to_current(command_start + command.length)
-          encolor(gfx, y, metrics.getHeight, begin, finish,
-            Document_View.choose_color(document, command), true)
+          val p = text_area.offsetToXY(start max to_current(command_start))
+          val q = text_area.offsetToXY(line_end min to_current(command_start + command.length))
+          assert(p.y == q.y)
+          gfx.setColor(Document_View.choose_color(document, command))
+          gfx.fillRect(p.x, y, q.x - p.x, line_height)
         }
       }
       finally { gfx.setColor(saved_color) }
@@ -204,26 +208,6 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   private def invalidate_all() =
     text_area.invalidateLineRange(text_area.getFirstPhysicalLine,
       text_area.getLastPhysicalLine)
-
-  private def encolor(gfx: Graphics2D,
-    y: Int, height: Int, begin: Int, finish: Int, color: Color, fill: Boolean)
-  {
-    val start = text_area.offsetToXY(begin)
-    val stop =
-      if (finish < model.buffer.getLength) text_area.offsetToXY(finish)
-      else {
-        val p = text_area.offsetToXY(finish - 1)
-        val metrics = text_area.getPainter.getFontMetrics
-        p.x = p.x + (metrics.charWidth(' ') max metrics.getMaxAdvance)
-        p
-      }
-
-    if (start != null && stop != null) {
-      gfx.setColor(color)
-      if (fill) gfx.fillRect(start.x, y, stop.x - start.x, height)
-      else gfx.drawRect(start.x, y, stop.x - start.x, height)
-    }
-  }
 
 
   /* overview of command status left of scrollbar */
