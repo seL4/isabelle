@@ -374,7 +374,7 @@ fun mk_generator_expr thy prop Ts =
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
     fun mk_split T = Sign.mk_const thy
-      (@{const_name split}, [T, @{typ "unit => term"}, liftT @{typ "term list option"} @{typ Random.seed}]);
+      (@{const_name prod_case}, [T, @{typ "unit => term"}, liftT @{typ "term list option"} @{typ Random.seed}]);
     fun mk_scomp_split T t t' =
       mk_scomp (mk_termtyp T) @{typ "term list option"} @{typ Random.seed} t
         (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
@@ -414,7 +414,7 @@ fun mk_reporting_generator_expr thy prop Ts =
     fun mk_scomp T1 T2 sT f g = Const (@{const_name scomp},
       liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
     fun mk_split T = Sign.mk_const thy
-      (@{const_name split}, [T, @{typ "unit => term"},
+      (@{const_name prod_case}, [T, @{typ "unit => term"},
         liftT @{typ "term list option * (bool list * bool)"} @{typ Random.seed}]);
     fun mk_scomp_split T t t' =
       mk_scomp (mk_termtyp T) @{typ "term list option * (bool list * bool)"} @{typ Random.seed} t

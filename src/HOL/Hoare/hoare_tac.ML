@@ -16,7 +16,7 @@ Derivation of the proof rules and, most importantly, the VCG tactic.
 local open HOLogic in
 
 (** maps (%x1 ... xn. t) to [x1,...,xn] **)
-fun abs2list (Const (@{const_name split}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
+fun abs2list (Const (@{const_name prod_case}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
   | abs2list (Abs (x, T, t)) = [Free (x, T)]
   | abs2list _ = [];
 
@@ -32,7 +32,7 @@ fun mk_abstupleC []     body = absfree ("x", unitT, body)
         else let val z  = mk_abstupleC w body;
                  val T2 = case z of Abs(_,T,_) => T
                         | Const (_, Type (_,[_, Type (_,[T,_])])) $ _ => T;
-       in Const (@{const_name split}, (T --> T2 --> boolT) --> mk_prodT (T,T2) --> boolT)
+       in Const (@{const_name prod_case}, (T --> T2 --> boolT) --> mk_prodT (T,T2) --> boolT)
           $ absfree (n, T, z) end end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)

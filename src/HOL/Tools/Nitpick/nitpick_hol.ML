@@ -2080,7 +2080,7 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
     list_abs (outer,
               Const (@{const_name Image}, uncurried_T --> set_T --> set_T)
               $ (Const (@{const_name rtrancl}, uncurried_T --> uncurried_T)
-                 $ (Const (@{const_name split}, curried_T --> uncurried_T)
+                 $ (Const (@{const_name prod_case}, curried_T --> uncurried_T)
                     $ list_comb (Const step_x, outer_bounds)))
               $ list_comb (Const base_x, outer_bounds)
               |> ap_curry tuple_arg_Ts tuple_T)

@@ -10,8 +10,8 @@ type_maps
   "prod" > "Product_Type.*"
 
 const_maps
-  "pair_case" > "Product_Type.split"
-  "UNCURRY" > "Product_Type.split"
+  "pair_case" > "Product_Type.prod_case"
+  "UNCURRY" > "Product_Type.prod_case"
   "FST" > "Product_Type.fst"
   "SND" > "Product_Type.snd"
   "RPROD" > "HOL4Base.pair.RPROD"

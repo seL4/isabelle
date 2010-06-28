@@ -427,8 +427,7 @@ lemma merge_simps [simp]:
 
 lemma merge_updates:
   "merge qs ps = updates (rev (map fst ps)) (rev (map snd ps)) qs"
-  by (simp add: merge_def updates_def split_prod_case
-    foldr_fold_rev zip_rev zip_map_fst_snd)
+  by (simp add: merge_def updates_def foldr_fold_rev zip_rev zip_map_fst_snd)
 
 lemma dom_merge: "fst ` set (merge xs ys) = fst ` set xs \<union> fst ` set ys"
   by (induct ys arbitrary: xs) (auto simp add: dom_update)
@@ -449,7 +448,7 @@ proof -
     More_List.fold (\<lambda>(k, v) m. m(k \<mapsto> v)) (rev ys) \<circ> map_of"
     by (rule fold_apply) (simp add: update_conv' prod_case_beta split_def expand_fun_eq)
   then show ?thesis
-    by (simp add: merge_def map_add_map_of_foldr foldr_fold_rev split_prod_case expand_fun_eq)
+    by (simp add: merge_def map_add_map_of_foldr foldr_fold_rev expand_fun_eq)
 qed
 
 corollary merge_conv:

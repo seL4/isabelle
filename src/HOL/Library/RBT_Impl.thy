@@ -1076,7 +1076,7 @@ proof -
   from this Empty_is_rbt have
     "lookup (More_List.fold (prod_case insert) (rev xs) Empty) = lookup Empty ++ map_of xs"
      by (simp add: `ys = rev xs`)
-  then show ?thesis by (simp add: bulkload_def lookup_Empty foldr_fold_rev prod_case_split)
+  then show ?thesis by (simp add: bulkload_def lookup_Empty foldr_fold_rev)
 qed
 
 hide_const (open) Empty insert delete entries keys bulkload lookup map_entry map fold union sorted

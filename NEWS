@@ -17,6 +17,10 @@ merely give a byte-oriented representation.
 
 *** HOL ***
 
+* Constant "split" has been merged with constant "prod_case";  names
+of ML functions, facts etc. involving split have been retained so far,
+though.  INCOMPATIBILITY.
+
 * Some previously unqualified names have been qualified:
 
   types

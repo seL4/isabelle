@@ -203,7 +203,7 @@ proof (auto simp add: surj_def nat_to_rat_surj_def)
         by (metis surj_def)
 
       from Fract i j n show ?thesis
-        by (metis prod.cases prod_case_split)
+        by (metis prod.cases)
   qed
 qed
 

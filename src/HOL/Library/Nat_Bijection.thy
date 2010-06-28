@@ -213,6 +213,7 @@ by pat_completeness auto
 termination list_decode
 apply (relation "measure id", simp_all)
 apply (drule arg_cong [where f="prod_encode"])
+apply (drule sym)
 apply (simp add: le_imp_less_Suc le_prod_encode_2)
 done
 

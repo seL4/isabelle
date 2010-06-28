@@ -829,7 +829,7 @@ proof (auto simp add: countably_subadditive_def o_def, rule field_le_epsilon)
         with sbBB [of i] obtain j where "x \<in> BB i j"
           by blast        
         thus "\<exists>i. x \<in> split BB (prod_decode i)"
-          by (metis prod_encode_inverse prod.cases prod_case_split)
+          by (metis prod_encode_inverse prod.cases)
       qed 
     have "(f \<circ> C) = (f \<circ> (\<lambda>(x, y). BB x y)) \<circ> prod_decode"
       by (rule ext)  (auto simp add: C_def) 

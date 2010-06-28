@@ -163,8 +163,8 @@ declare weak_case_cong [cong del]
 
 subsubsection {* Tuple syntax *}
 
-definition split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
-  split_prod_case: "split == prod_case"
+abbreviation (input) split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
+  "split \<equiv> prod_case"
 
 text {*
   Patterns -- extends pre-defined type @{typ pttrn} used in
@@ -185,8 +185,8 @@ syntax
 translations
   "(x, y)" == "CONST Pair x y"
   "_tuple x (_tuple_args y z)" == "_tuple x (_tuple_arg (_tuple y z))"
-  "%(x, y, zs). b" == "CONST split (%x (y, zs). b)"
-  "%(x, y). b" == "CONST split (%x y. b)"
+  "%(x, y, zs). b" == "CONST prod_case (%x (y, zs). b)"
+  "%(x, y). b" == "CONST prod_case (%x y. b)"
   "_abs (CONST Pair x y) t" => "%(x, y). t"
   -- {* The last rule accommodates tuples in `case C ... (x,y) ... => ...'
      The (x,y) is parsed as `Pair x y' because it is logic, not pttrn *}
@@ -204,7 +204,7 @@ let
           Syntax.const @{syntax_const "_abs"} $
             (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
         end
-    | split_tr' [Abs (x, T, (s as Const (@{const_syntax split}, _) $ t))] =
+    | split_tr' [Abs (x, T, (s as Const (@{const_syntax prod_case}, _) $ t))] =
         (* split (%x. (split (%y z. t))) => %(x,y,z). t *)
         let
           val Const (@{syntax_const "_abs"}, _) $
@@ -215,7 +215,7 @@ let
             (Syntax.const @{syntax_const "_pattern"} $ x' $
               (Syntax.const @{syntax_const "_patterns"} $ y $ z)) $ t''
         end
-    | split_tr' [Const (@{const_syntax split}, _) $ t] =
+    | split_tr' [Const (@{const_syntax prod_case}, _) $ t] =
         (* split (split (%x y z. t)) => %((x, y), z). t *)
         split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
     | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
@@ -225,7 +225,7 @@ let
             (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
         end
     | split_tr' _ = raise Match;
-in [(@{const_syntax split}, split_tr')] end
+in [(@{const_syntax prod_case}, split_tr')] end
 *}
 
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
@@ -234,7 +234,7 @@ let
   fun split_guess_names_tr' _ T [Abs (x, _, Abs _)] = raise Match
     | split_guess_names_tr' _ T [Abs (x, xT, t)] =
         (case (head_of t) of
-          Const (@{const_syntax split}, _) => raise Match
+          Const (@{const_syntax prod_case}, _) => raise Match
         | _ =>
           let 
             val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
@@ -246,7 +246,7 @@ let
           end)
     | split_guess_names_tr' _ T [t] =
         (case head_of t of
-          Const (@{const_syntax split}, _) => raise Match
+          Const (@{const_syntax prod_case}, _) => raise Match
         | _ =>
           let
             val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
@@ -257,20 +257,11 @@ let
               (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
           end)
     | split_guess_names_tr' _ _ _ = raise Match;
-in [(@{const_syntax split}, split_guess_names_tr')] end
+in [(@{const_syntax prod_case}, split_guess_names_tr')] end
 *}
 
 
 subsubsection {* Code generator setup *}
-
-lemma split_case_cert:
-  assumes "CASE \<equiv> split f"
-  shows "CASE (a, b) \<equiv> f a b"
-  using assms by (simp add: split_prod_case)
-
-setup {*
-  Code.add_case @{thm split_case_cert}
-*}
 
 code_type *
   (SML infix 2 "*")
@@ -315,7 +306,7 @@ fun strip_abs_split 0 t = ([], t)
         val s' = Codegen.new_name t s;
         val v = Free (s', T)
       in apfst (cons v) (strip_abs_split (i-1) (subst_bound (v, t))) end
-  | strip_abs_split i (u as Const (@{const_name split}, _) $ t) =
+  | strip_abs_split i (u as Const (@{const_name prod_case}, _) $ t) =
       (case strip_abs_split (i+1) t of
         (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
       | _ => ([], u))
@@ -357,7 +348,7 @@ fun let_codegen thy defs dep thyname brack t gr =
   | _ => NONE);
 
 fun split_codegen thy defs dep thyname brack t gr = (case strip_comb t of
-    (t1 as Const (@{const_name split}, _), t2 :: ts) =>
+    (t1 as Const (@{const_name prod_case}, _), t2 :: ts) =>
       let
         val ([p], u) = strip_abs_split 1 (t1 $ t2);
         val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;
@@ -421,7 +412,7 @@ lemma prod_eqI [intro?]: "fst p = fst q \<Longrightarrow> snd p = snd q \<Longri
   by (simp add: Pair_fst_snd_eq)
 
 lemma split_conv [simp, code]: "split f (a, b) = f a b"
-  by (simp add: split_prod_case)
+  by (fact prod.cases)
 
 lemma splitI: "f a b \<Longrightarrow> split f (a, b)"
   by (rule split_conv [THEN iffD2])
@@ -430,11 +421,11 @@ lemma splitD: "split f (a, b) \<Longrightarrow> f a b"
   by (rule split_conv [THEN iffD1])
 
 lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
-  by (simp add: split_prod_case expand_fun_eq split: prod.split)
+  by (simp add: expand_fun_eq split: prod.split)
 
 lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
   -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
-  by (simp add: split_prod_case expand_fun_eq split: prod.split)
+  by (simp add: expand_fun_eq split: prod.split)
 
 lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
   by (cases x) simp
@@ -443,7 +434,7 @@ lemma split_twice: "split f (split g p) = split (\<lambda>x y. split f (g x y)) 
   by (cases p) simp
 
 lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
-  by (simp add: split_prod_case prod_case_unfold)
+  by (simp add: prod_case_unfold)
 
 lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
   -- {* Prevents simplification of @{term c}: much faster *}
@@ -529,7 +520,7 @@ local
     | no_args k i (Bound m) = m < k orelse m > k + i
     | no_args _ _ _ = true;
   fun split_pat tp i (Abs  (_, _, t)) = if tp 0 i t then SOME (i, t) else NONE
-    | split_pat tp i (Const (@{const_name split}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
+    | split_pat tp i (Const (@{const_name prod_case}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
     | split_pat tp i _ = NONE;
   fun metaeq ss lhs rhs = mk_meta_eq (Goal.prove (Simplifier.the_context ss) [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
@@ -546,12 +537,12 @@ local
         if Pair_pat k i (t $ u) then incr_boundvars k arg
         else (subst arg k i t $ subst arg k i u)
     | subst arg k i t = t;
-  fun beta_proc ss (s as Const (@{const_name split}, _) $ Abs (_, _, t) $ arg) =
+  fun beta_proc ss (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
           SOME (i, f) => SOME (metaeq ss s (subst arg 0 i f))
         | NONE => NONE)
     | beta_proc _ _ = NONE;
-  fun eta_proc ss (s as Const (@{const_name split}, _) $ Abs (_, _, t)) =
+  fun eta_proc ss (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
           SOME (_, ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
@@ -598,10 +589,10 @@ lemma splitI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> split c p x"
   done
 
 lemma splitE: "split c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
-  by (induct p) (auto simp add: split_prod_case)
+  by (induct p) auto
 
 lemma splitE': "split c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
-  by (induct p) (auto simp add: split_prod_case)
+  by (induct p) auto
 
 lemma splitE2:
   "[| Q (split P z);  !!x y. [|z = (x, y); Q (P x y)|] ==> R |] ==> R"
@@ -627,14 +618,14 @@ lemma mem_splitE:
   assumes major: "z \<in> split c p"
     and cases: "\<And>x y. p = (x, y) \<Longrightarrow> z \<in> c x y \<Longrightarrow> Q"
   shows Q
-  by (rule major [unfolded split_prod_case prod_case_unfold] cases surjective_pairing)+
+  by (rule major [unfolded prod_case_unfold] cases surjective_pairing)+
 
 declare mem_splitI2 [intro!] mem_splitI [intro!] splitI2' [intro!] splitI2 [intro!] splitI [intro!]
 declare mem_splitE [elim!] splitE' [elim!] splitE [elim!]
 
 ML {*
 local (* filtering with exists_p_split is an essential optimization *)
-  fun exists_p_split (Const (@{const_name split},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
+  fun exists_p_split (Const (@{const_name prod_case},_) $ _ $ (Const (@{const_name Pair},_)$_$_)) = true
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
@@ -712,13 +703,9 @@ lemma prod_caseE': "prod_case c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==
 declare prod_caseI2' [intro!] prod_caseI2 [intro!] prod_caseI [intro!]
 declare prod_caseE' [elim!] prod_caseE [elim!]
 
-lemma prod_case_split:
-  "prod_case = split"
-  by (auto simp add: expand_fun_eq)
-
 lemma prod_case_beta:
   "prod_case f p = f (fst p) (snd p)"
-  unfolding prod_case_split split_beta ..
+  by (fact split_beta)
 
 lemma prod_cases3 [cases type]:
   obtains (fields) a b c where "y = (a, b, c)"
@@ -762,7 +749,7 @@ lemma prod_induct7 [case_names fields, induct type]:
 
 lemma split_def:
   "split = (\<lambda>c p. c (fst p) (snd p))"
-  unfolding split_prod_case prod_case_unfold ..
+  by (fact prod_case_unfold)
 
 definition internal_split :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c" where
   "internal_split == split"

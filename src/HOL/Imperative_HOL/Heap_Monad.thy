@@ -379,7 +379,7 @@ proof -
         from this Inl 1(1) exec_f mrec show ?thesis
         proof (cases "ret_mrec")
           case (Inl aaa)
-          from this mrec exec_f Inl' Inr' 1(1) mrec_rec 1(2)[OF exec_f Inl' Inr', of "aaa" "h2"] 1(3)
+          from this mrec exec_f Inl' Inr' 1(1) mrec_rec 1(2) [OF exec_f [symmetric] Inl' Inr', of "aaa" "h2"] 1(3)
             show ?thesis
               apply auto
               apply (rule rec_case)
