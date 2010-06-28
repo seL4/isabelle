@@ -9,36 +9,20 @@ signature CLAUSIFIER =
 sig
   type cnf_thm = thm * ((string * int) * thm)
 
-  val trace: bool Unsynchronized.ref
-  val skolem_theory_name: string
-  val skolem_prefix: string
-  val skolem_infix: string
-  val is_skolem_const_name: string -> bool
-  val num_type_args: theory -> string -> int
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
   val is_theorem_bad_for_atps: thm -> bool
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
-  val saturate_cache: theory -> theory option
-  val auto_saturate_cache: bool Unsynchronized.ref
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
-  val setup: theory -> theory
 end;
 
 structure Clausifier : CLAUSIFIER =
 struct
 
 type cnf_thm = thm * ((string * int) * thm)
-
-val trace = Unsynchronized.ref false;
-fun trace_msg msg = if !trace then tracing (msg ()) else ();
-
-val skolem_theory_name = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
-val skolem_prefix = "sko_"
-val skolem_infix = "$"
 
 val type_has_topsort = Term.exists_subtype
   (fn TFree (_, []) => true
@@ -67,30 +51,6 @@ exception Clausify_failure of theory;
 
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
-
-(*Keep the full complexity of the original name*)
-fun flatten_name s = space_implode "_X" (Long_Name.explode s);
-
-fun skolem_name thm_name j var_name =
-  skolem_prefix ^ thm_name ^ "_" ^ Int.toString j ^
-  skolem_infix ^ (if var_name = "" then "g" else flatten_name var_name)
-
-(* Hack: Could return false positives (e.g., a user happens to declare a
-   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
-val is_skolem_const_name =
-  Long_Name.base_name
-  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
-
-(* The number of type arguments of a constant, zero if it's monomorphic. For
-   (instances of) Skolem pseudoconstants, this information is encoded in the
-   constant name. *)
-fun num_type_args thy s =
-  if String.isPrefix skolem_theory_name s then
-    s |> unprefix skolem_theory_name
-      |> space_explode skolem_infix |> hd
-      |> space_explode "_" |> List.last |> Int.fromString |> the
-  else
-    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 fun mk_skolem_id t =
   let val T = fastype_of t in
@@ -352,24 +312,9 @@ fun skolemize_theorem thy th =
     end
     handle THM _ => []
 
-(*The cache prevents repeated clausification of a theorem, and also repeated declaration of
-  Skolem functions.*)
-structure ThmCache = Theory_Data
-(
-  type T = thm list Thmtab.table * unit Symtab.table;
-  val empty = (Thmtab.empty, Symtab.empty);
-  val extend = I;
-  fun merge ((cache1, seen1), (cache2, seen2)) : T =
-    (Thmtab.merge (K true) (cache1, cache2), Symtab.merge (K true) (seen1, seen2));
-);
-
 (* Convert Isabelle theorems into axiom clauses. *)
-fun cnf_axiom thy th0 =
-  let val th = Thm.transfer thy th0 in
-    case Thmtab.lookup (#1 (ThmCache.get thy)) th of
-      SOME cls => cls
-    | NONE => skolemize_theorem thy th
-  end
+(* FIXME: is transfer necessary? *)
+fun cnf_axiom thy = skolemize_theorem thy o Thm.transfer thy
 
 
 (**** Translate a set of theorems into CNF ****)
@@ -387,44 +332,6 @@ fun cnf_rules_pairs thy =
                           handle THM _ => []
         in do_all (new_pairs @ pairs) ths end
   in do_all [] o rev end
-
-
-(**** Convert all facts of the theory into FOL or HOL clauses ****)
-
-fun saturate_cache thy =
-  let
-    val (cache, seen) = ThmCache.get thy
-    val facts = PureThy.facts_of thy
-    val new_facts = (facts, []) |-> Facts.fold_static (fn (name, ths) =>
-      if Facts.is_concealed facts name orelse Symtab.defined seen name then I
-      else cons (name, ths))
-    val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
-      if member (op =) multi_base_blacklist (Long_Name.base_name name) then
-        I
-      else
-        fold_index (fn (i, th) =>
-          if is_theorem_bad_for_atps th orelse Thmtab.defined cache th then
-            I
-          else
-            cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths)
-    val entries =
-      Par_List.map (fn (_, th) => (th, skolemize_theorem thy th))
-                   (sort_distinct (Thm.thm_ord o pairself snd) new_thms)
-  in
-    if null entries then
-      NONE
-    else
-      thy |> ThmCache.map (fn p => p |>> fold Thmtab.update entries
-                                     ||> fold Symtab.update
-                                              (map (rpair () o #1) new_facts))
-          |> SOME
-  end
-
-(* For emergency use where the Skolem cache causes problems. *)
-val auto_saturate_cache = Unsynchronized.ref true
-
-fun conditionally_saturate_cache thy =
-  if !auto_saturate_cache then saturate_cache thy else NONE
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
@@ -446,11 +353,5 @@ fun neg_conjecture_clauses ctxt st0 n =
       Subgoal.focus (Variable.set_body false ctxt) n st
   in (map neg_clausify prems, map (dest_Free o term_of o #2) params) end
 
-
-(** setup **)
-
-val setup =
-  perhaps conditionally_saturate_cache
-  #> Theory.at_end conditionally_saturate_cache
 
 end;

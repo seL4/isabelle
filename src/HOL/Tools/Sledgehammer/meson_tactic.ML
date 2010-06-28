@@ -16,7 +16,7 @@ struct
 
 (*Expand all new definitions of abstraction or Skolem functions in a proof state.*)
 fun is_absko (Const (@{const_name "=="}, _) $ Free (a, _) $ _) =
-    String.isPrefix Clausifier.skolem_prefix a
+(*  FIXME  String.isPrefix Clausifier.skolem_prefix a *) true
   | is_absko _ = false;
 
 fun is_okdef xs (Const (@{const_name "=="}, _) $ t $ _) =   (*Definition of Free, not in certain terms*)

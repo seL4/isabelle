@@ -57,6 +57,11 @@ sig
   val make_fixed_const : string -> string
   val make_fixed_type_const : string -> string
   val make_type_class : string -> string
+  val skolem_theory_name: string
+  val skolem_prefix: string
+  val skolem_infix: string
+  val is_skolem_const_name: string -> bool
+  val num_type_args: theory -> string -> int
   val empty_name_pool : bool -> name_pool option
   val pool_map : ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
   val nice_name : name -> name_pool option -> string * name_pool option
@@ -209,6 +214,29 @@ fun make_fixed_type_const c = tconst_prefix ^ lookup_const c
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
+val skolem_theory_name = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
+val skolem_prefix = "sko_"
+val skolem_infix = "$"
+
+(*Keep the full complexity of the original name*)
+fun flatten_name s = space_implode "_X" (Long_Name.explode s);
+
+(* Hack: Could return false positives (e.g., a user happens to declare a
+   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
+val is_skolem_const_name =
+  Long_Name.base_name
+  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
+
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
+fun num_type_args thy s =
+  if String.isPrefix skolem_theory_name s then
+    s |> unprefix skolem_theory_name
+      |> space_explode skolem_infix |> hd
+      |> space_explode "_" |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 (**** name pool ****)
  
