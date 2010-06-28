@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_preprocessor.ML
+(*  Title:      HOL/Tools/Sledgehammer/clausifier.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
 
-signature SLEDGEHAMMER_FACT_PREPROCESSOR =
+signature CLAUSIFIER =
 sig
   type cnf_thm = thm * ((string * int) * thm)
 
@@ -13,27 +13,28 @@ sig
   val chained_prefix: string
   val trace: bool Unsynchronized.ref
   val trace_msg: (unit -> string) -> unit
+  val name_thms_pair_from_ref :
+    Proof.context -> thm list -> Facts.ref -> string * thm list
   val skolem_theory_name: string
   val skolem_prefix: string
   val skolem_infix: string
   val is_skolem_const_name: string -> bool
+  val num_type_args: theory -> string -> int
   val cnf_axiom: theory -> thm -> thm list
   val multi_base_blacklist: string list
   val is_theorem_bad_for_atps: thm -> bool
   val type_has_topsort: typ -> bool
   val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
-  val saturate_skolem_cache: theory -> theory option
-  val auto_saturate_skolem_cache: bool Unsynchronized.ref
+  val saturate_cache: theory -> theory option
+  val auto_saturate_cache: bool Unsynchronized.ref
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
   val setup: theory -> theory
 end;
 
-structure Sledgehammer_Fact_Preprocessor : SLEDGEHAMMER_FACT_PREPROCESSOR =
+structure Clausifier : CLAUSIFIER =
 struct
-
-open Sledgehammer_FOL_Clause
 
 type cnf_thm = thm * ((string * int) * thm)
 
@@ -45,11 +46,17 @@ val chained_prefix = sledgehammer_prefix ^ "chained_"
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
+fun name_thms_pair_from_ref ctxt chained_ths xref =
+  let
+    val ths = ProofContext.get_fact ctxt xref
+    val name = Facts.string_of_ref xref
+               |> forall (member Thm.eq_thm chained_ths) ths
+                  ? prefix chained_prefix
+  in (name, ths) end
+
 val skolem_theory_name = sledgehammer_prefix ^ "Sko"
 val skolem_prefix = "sko_"
 val skolem_infix = "$"
-
-fun freeze_thm th = #1 (Drule.legacy_freeze_thaw th);
 
 val type_has_topsort = Term.exists_subtype
   (fn TFree (_, []) => true
@@ -91,6 +98,17 @@ fun skolem_name thm_name j var_name =
 val is_skolem_const_name =
   Long_Name.base_name
   #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
+
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
+fun num_type_args thy s =
+  if String.isPrefix skolem_theory_name s then
+    s |> unprefix skolem_theory_name
+      |> space_explode skolem_infix |> hd
+      |> space_explode "_" |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 fun rhs_extra_types lhsT rhs =
   let val lhs_vars = Term.add_tfreesT lhsT []
@@ -301,7 +319,8 @@ fun c_variant_abs_multi (ct0, vars) =
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
 fun skolem_theorem_of_def inline def =
   let
-      val (c, rhs) = Thm.dest_equals (cprop_of (freeze_thm def))
+      val (c, rhs) = def |> Drule.legacy_freeze_thaw |> #1 |> cprop_of
+                         |> Thm.dest_equals
       val rhs' = rhs |> inline ? (snd o Thm.dest_comb)
       val (ch, frees) = c_variant_abs_multi (rhs', [])
       val (chilbert, cabs) = ch |> Thm.dest_comb
@@ -454,8 +473,7 @@ fun cnf_rules_pairs thy =
       | do_all pairs ((name, th) :: ths) =
         let
           val new_pairs = do_one ((name, 0), th) (cnf_axiom thy th)
-                          handle THM _ => [] |
-                                 CLAUSE _ => []
+                          handle THM _ => []
         in do_all (new_pairs @ pairs) ths end
   in do_all [] o rev end
 
@@ -486,7 +504,7 @@ fun skolem_cnfs (th, ctxt0, ctxt, nnfth, defs) =
 
 in
 
-fun saturate_skolem_cache thy =
+fun saturate_cache thy =
   let
     val facts = PureThy.facts_of thy;
     val new_facts = (facts, []) |-> Facts.fold_static (fn (name, ths) =>
@@ -518,10 +536,10 @@ fun saturate_skolem_cache thy =
 end;
 
 (* For emergency use where the Skolem cache causes problems. *)
-val auto_saturate_skolem_cache = Unsynchronized.ref true
+val auto_saturate_cache = Unsynchronized.ref true
 
-fun conditionally_saturate_skolem_cache thy =
-  if !auto_saturate_skolem_cache then saturate_skolem_cache thy else NONE
+fun conditionally_saturate_cache thy =
+  if !auto_saturate_cache then saturate_cache thy else NONE
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
@@ -547,7 +565,7 @@ fun neg_conjecture_clauses ctxt st0 n =
 (** setup **)
 
 val setup =
-  perhaps conditionally_saturate_skolem_cache
-  #> Theory.at_end conditionally_saturate_skolem_cache
+  perhaps conditionally_saturate_cache
+  #> Theory.at_end conditionally_saturate_cache
 
 end;

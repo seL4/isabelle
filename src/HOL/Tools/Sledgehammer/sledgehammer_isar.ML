@@ -17,9 +17,8 @@ end;
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
+open Clausifier
 open Sledgehammer_Util
-open Sledgehammer_Fact_Filter
-open Sledgehammer_Fact_Preprocessor
 open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer
@@ -69,7 +68,6 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("explicit_apply", "false"),
-   ("respect_no_atp", "true"),
    ("relevance_threshold", "50"),
    ("relevance_convergence", "320"),
    ("theory_relevant", "smart"),
@@ -86,7 +84,6 @@ val negated_alias_params =
    ("no_overlord", "overlord"),
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
-   ("ignore_no_atp", "respect_no_atp"),
    ("theory_irrelevant", "theory_relevant"),
    ("defs_irrelevant", "defs_relevant"),
    ("no_isar_proof", "isar_proof")]
@@ -168,7 +165,6 @@ fun extract_params default_params override_params =
     val atps = lookup_string "atps" |> space_explode " "
     val full_types = lookup_bool "full_types"
     val explicit_apply = lookup_bool "explicit_apply"
-    val respect_no_atp = lookup_bool "respect_no_atp"
     val relevance_threshold =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
     val relevance_convergence =
@@ -182,7 +178,7 @@ fun extract_params default_params override_params =
   in
     {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
      full_types = full_types, explicit_apply = explicit_apply,
-     respect_no_atp = respect_no_atp, relevance_threshold = relevance_threshold,
+     relevance_threshold = relevance_threshold,
      relevance_convergence = relevance_convergence,
      theory_relevant = theory_relevant, defs_relevant = defs_relevant,
      isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
@@ -203,13 +199,10 @@ fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
       0 => priority "No subgoal!"
     | n =>
       let
-        val birth_time = Time.now ()
-        val death_time = Time.+ (birth_time, timeout)
         val _ = kill_atps ()
         val _ = priority "Sledgehammering..."
-        val _ = app (start_prover_thread params birth_time death_time i n
-                                         relevance_override minimize_command
-                                         state) atps
+        val _ = app (start_prover_thread params i n relevance_override
+                                         minimize_command state) atps
       in () end
 
 fun minimize override_params i refs state =

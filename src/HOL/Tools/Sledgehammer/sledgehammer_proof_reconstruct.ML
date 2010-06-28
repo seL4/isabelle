@@ -8,12 +8,8 @@ Transfer of proofs from external provers.
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
   type minimize_command = string list -> string
-  type name_pool = Sledgehammer_FOL_Clause.name_pool
+  type name_pool = Metis_Clauses.name_pool
 
-  val invert_const: string -> string
-  val invert_type_const: string -> string
-  val num_type_args: theory -> string -> int
-  val strip_prefix: string -> string -> string option
   val metis_line: bool -> int -> int -> string list -> string
   val metis_proof_text:
     bool * minimize_command * string * string vector * thm * int
@@ -31,10 +27,9 @@ end;
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
 struct
 
+open Clausifier
+open Metis_Clauses
 open Sledgehammer_Util
-open Sledgehammer_FOL_Clause
-open Sledgehammer_HOL_Clause
-open Sledgehammer_Fact_Preprocessor
 
 type minimize_command = string list -> string
 
@@ -212,28 +207,13 @@ fun parse_proof pool =
 
 exception NODE of node list
 
-(*If string s has the prefix s1, return the result of deleting it.*)
-fun strip_prefix s1 s =
-  if String.isPrefix s1 s
-  then SOME (undo_ascii_of (String.extract (s, size s1, NONE)))
-  else NONE;
-
-(*Invert the table of translations between Isabelle and ATPs*)
-val type_const_trans_table_inv =
-      Symtab.make (map swap (Symtab.dest type_const_trans_table));
-
-fun invert_type_const c =
-    case Symtab.lookup type_const_trans_table_inv c of
-        SOME c' => c'
-      | NONE => c;
-
 (* Type variables are given the basic sort "HOL.type". Some will later be
   constrained by information from type literals, or by type inference. *)
 fun type_from_node _ (u as IntLeaf _) = raise NODE [u]
   | type_from_node tfrees (u as StrNode (a, us)) =
     let val Ts = map (type_from_node tfrees) us in
       case strip_prefix tconst_prefix a of
-        SOME b => Type (invert_type_const b, Ts)
+        SOME b => Type (invert_const b, Ts)
       | NONE =>
         if not (null us) then
           raise NODE [u]  (* only "tconst"s have type arguments *)
@@ -249,24 +229,6 @@ fun type_from_node _ (u as IntLeaf _) = raise NODE [u]
             (* Variable from the ATP, say "X1" *)
             Type_Infer.param 0 (a, HOLogic.typeS)
     end
-
-(*Invert the table of translations between Isabelle and ATPs*)
-val const_trans_table_inv =
-  Symtab.update ("fequal", @{const_name "op ="})
-                (Symtab.make (map swap (Symtab.dest const_trans_table)))
-
-fun invert_const c = c |> Symtab.lookup const_trans_table_inv |> the_default c
-
-(* The number of type arguments of a constant, zero if it's monomorphic. For
-   (instances of) Skolem pseudoconstants, this information is encoded in the
-   constant name. *)
-fun num_type_args thy s =
-  if String.isPrefix skolem_theory_name s then
-    s |> unprefix skolem_theory_name
-      |> space_explode skolem_infix |> hd
-      |> space_explode "_" |> List.last |> Int.fromString |> the
-  else
-    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 fun fix_atp_variable_name s =
   let
