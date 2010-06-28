@@ -50,9 +50,9 @@ lemma [code]:
   by simp
 
 lemma [code]:
-  "x \<in> Set xs \<longleftrightarrow> member xs x"
-  "x \<in> Coset xs \<longleftrightarrow> \<not> member xs x"
-  by (simp_all add: mem_iff)
+  "x \<in> Set xs \<longleftrightarrow> List.member xs x"
+  "x \<in> Coset xs \<longleftrightarrow> \<not> List.member xs x"
+  by (simp_all add: member_def)
 
 definition is_empty :: "'a set \<Rightarrow> bool" where
   [simp]: "is_empty A \<longleftrightarrow> A = {}"
@@ -85,8 +85,8 @@ setup {*
 *}
 
 lemma is_empty_Set [code]:
-  "is_empty (Set xs) \<longleftrightarrow> null xs"
-  by (simp add: empty_null)
+  "is_empty (Set xs) \<longleftrightarrow> List.null xs"
+  by (simp add: null_def)
 
 lemma empty_Set [code]:
   "empty = Set []"
@@ -112,11 +112,11 @@ lemma project_Set [code]:
 
 lemma Ball_Set [code]:
   "Ball (Set xs) P \<longleftrightarrow> list_all P xs"
-  by (simp add: ball_set)
+  by (simp add: list_all_iff)
 
 lemma Bex_Set [code]:
   "Bex (Set xs) P \<longleftrightarrow> list_ex P xs"
-  by (simp add: bex_set)
+  by (simp add: list_ex_iff)
 
 lemma card_Set [code]:
   "card (Set xs) = length (remdups xs)"

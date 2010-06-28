@@ -675,8 +675,8 @@ lemma empty_Mapping [code]:
   by (rule mapping_eqI) simp
 
 lemma is_empty_Mapping [code]:
-  "Mapping.is_empty (Mapping xs) \<longleftrightarrow> null xs"
-  by (cases xs) (simp_all add: is_empty_def)
+  "Mapping.is_empty (Mapping xs) \<longleftrightarrow> List.null xs"
+  by (cases xs) (simp_all add: is_empty_def null_def)
 
 lemma update_Mapping [code]:
   "Mapping.update k v (Mapping xs) = Mapping (update k v xs)"

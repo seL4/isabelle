@@ -51,7 +51,7 @@ code_datatype Set Coset
 lemma member_code [code]:
   "member (Set xs) = List.member xs"
   "member (Coset xs) = Not \<circ> List.member xs"
-  by (simp_all add: expand_fun_eq mem_iff fun_Compl_def bool_Compl_def)
+  by (simp_all add: expand_fun_eq member_def fun_Compl_def bool_Compl_def)
 
 lemma member_image_UNIV [simp]:
   "member ` UNIV = UNIV"
@@ -141,7 +141,7 @@ definition is_empty :: "'a fset \<Rightarrow> bool" where
   [simp]: "is_empty A \<longleftrightarrow> More_Set.is_empty (member A)"
 
 lemma is_empty_Set [code]:
-  "is_empty (Set xs) \<longleftrightarrow> null xs"
+  "is_empty (Set xs) \<longleftrightarrow> List.null xs"
   by (simp add: is_empty_set)
 
 lemma empty_Set [code]:
@@ -188,14 +188,14 @@ definition forall :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow
 
 lemma forall_Set [code]:
   "forall P (Set xs) \<longleftrightarrow> list_all P xs"
-  by (simp add: Set_def ball_set)
+  by (simp add: Set_def list_all_iff)
 
 definition exists :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> bool" where
   [simp]: "exists P A \<longleftrightarrow> Bex (member A) P"
 
 lemma exists_Set [code]:
   "exists P (Set xs) \<longleftrightarrow> list_ex P xs"
-  by (simp add: Set_def bex_set)
+  by (simp add: Set_def list_ex_iff)
 
 definition card :: "'a fset \<Rightarrow> nat" where
   [simp]: "card A = Finite_Set.card (member A)"

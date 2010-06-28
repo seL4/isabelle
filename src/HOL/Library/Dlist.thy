@@ -122,7 +122,7 @@ proof (cases dxs)
   next
     case (insert x xs)
     then have "\<not> member (Dlist xs) x" and "P (Dlist xs)"
-      by (simp_all add: member_def mem_iff)
+      by (simp_all add: member_def List.member_def)
     with insrt have "P (insert x (Dlist xs))" .
     with insert show ?case by (simp add: insert_def distinct_remdups_id)
   qed
@@ -144,7 +144,7 @@ proof (cases dxs)
     case (Cons x xs)
     with dxs distinct have "\<not> member (Dlist xs) x"
       and "dxs = insert x (Dlist xs)"
-      by (simp_all add: member_def mem_iff insert_def distinct_remdups_id)
+      by (simp_all add: member_def List.member_def insert_def distinct_remdups_id)
     with insert show P .
   qed
 qed
@@ -205,7 +205,7 @@ lemma Coset_dlist_of_list [code]:
 
 lemma is_empty_Set [code]:
   "Fset.is_empty (Set dxs) \<longleftrightarrow> null dxs"
-  by (simp add: null_def null_empty member_set)
+  by (simp add: null_def List.null_def member_set)
 
 lemma bot_code [code]:
   "bot = Set empty"

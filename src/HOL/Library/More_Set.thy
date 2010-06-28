@@ -37,16 +37,8 @@ definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow
 subsection {* Basic set operations *}
 
 lemma is_empty_set:
-  "is_empty (set xs) \<longleftrightarrow> null xs"
-  by (simp add: is_empty_def null_empty)
-
-lemma ball_set:
-  "(\<forall>x\<in>set xs. P x) \<longleftrightarrow> list_all P xs"
-  by (rule list_ball_code)
-
-lemma bex_set:
-  "(\<exists>x\<in>set xs. P x) \<longleftrightarrow> list_ex P xs"
-  by (rule list_bex_code)
+  "is_empty (set xs) \<longleftrightarrow> List.null xs"
+  by (simp add: is_empty_def null_def)
 
 lemma empty_set:
   "{} = set []"
