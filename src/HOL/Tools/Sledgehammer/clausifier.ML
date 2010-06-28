@@ -9,12 +9,7 @@ signature CLAUSIFIER =
 sig
   type cnf_thm = thm * ((string * int) * thm)
 
-  val sledgehammer_prefix: string
-  val chained_prefix: string
   val trace: bool Unsynchronized.ref
-  val trace_msg: (unit -> string) -> unit
-  val name_thms_pair_from_ref :
-    Proof.context -> thm list -> Facts.ref -> string * thm list
   val skolem_theory_name: string
   val skolem_prefix: string
   val skolem_infix: string
@@ -38,23 +33,10 @@ struct
 
 type cnf_thm = thm * ((string * int) * thm)
 
-val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
-
-(* Used to label theorems chained into the goal. *)
-val chained_prefix = sledgehammer_prefix ^ "chained_"
-
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
-fun name_thms_pair_from_ref ctxt chained_ths xref =
-  let
-    val ths = ProofContext.get_fact ctxt xref
-    val name = Facts.string_of_ref xref
-               |> forall (member Thm.eq_thm chained_ths) ths
-                  ? prefix chained_prefix
-  in (name, ths) end
-
-val skolem_theory_name = sledgehammer_prefix ^ "Sko"
+val skolem_theory_name = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
 val skolem_prefix = "sko_"
 val skolem_infix = "$"
 
@@ -409,6 +391,7 @@ fun is_theorem_bad_for_atps thm =
   end
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
+(* FIXME: move to "Sledgehammer_Fact_Filter" *)
 val multi_base_blacklist =
   ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
    "split_asm", "cases", "ext_cases"];

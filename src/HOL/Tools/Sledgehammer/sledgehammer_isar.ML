@@ -19,6 +19,7 @@ struct
 
 open Clausifier
 open Sledgehammer_Util
+open Sledgehammer_Fact_Filter
 open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer

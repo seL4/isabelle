@@ -30,6 +30,7 @@ struct
 open Clausifier
 open Metis_Clauses
 open Sledgehammer_Util
+open Sledgehammer_Fact_Filter
 
 type minimize_command = string list -> string
 

@@ -36,6 +36,7 @@ sig
                   literals: literal list, ctypes_sorts: typ list}
   exception TRIVIAL of unit
 
+  val trace : bool Unsynchronized.ref
   val type_wrapper_name : string
   val schematic_var_prefix: string
   val fixed_var_prefix: string
@@ -68,7 +69,6 @@ sig
   val conceal_skolem_somes :
     int -> (string * term) list -> term -> (string * term) list * term
   val is_quasi_fol_theorem : theory -> thm -> bool
-  val make_clause_table : (thm * 'a) list -> (thm * 'a) Termtab.table
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
@@ -83,6 +83,9 @@ structure Metis_Clauses : METIS_CLAUSES =
 struct
 
 open Clausifier
+
+val trace = Unsynchronized.ref false
+fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 val type_wrapper_name = "ti"
 
