@@ -8,7 +8,6 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
-  type cnf_thm = Clausifier.cnf_thm
   type name_pool = Metis_Clauses.name_pool
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
@@ -31,8 +30,8 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: cnf_thm list option,
-     filtered_clauses: cnf_thm list option}
+     axiom_clauses: ((string * int) * thm) list option,
+     filtered_clauses: ((string * int) * thm) list option}
   datatype failure =
     Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
     MalformedInput | MalformedOutput | UnknownError
@@ -46,7 +45,7 @@ sig
      proof: string,
      internal_thm_names: string Vector.vector,
      conjecture_shape: int list list,
-     filtered_clauses: cnf_thm list}
+     filtered_clauses: ((string * int) * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
 
@@ -98,8 +97,8 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: cnf_thm list option,
-   filtered_clauses: cnf_thm list option}
+   axiom_clauses: ((string * int) * thm) list option,
+   filtered_clauses: ((string * int) * thm) list option}
 
 datatype failure =
   Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
@@ -115,7 +114,7 @@ type prover_result =
    proof: string,
    internal_thm_names: string Vector.vector,
    conjecture_shape: int list list,
-   filtered_clauses: cnf_thm list}
+   filtered_clauses: ((string * int) * thm) list}
 
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result

@@ -139,12 +139,13 @@ fun generic_tptp_prover
     val goal_clss = #1 (neg_conjecture_clauses ctxt th subgoal)
     val goal_cls = List.concat goal_clss
     val the_filtered_clauses =
-      (case filtered_clauses of
-        NONE => relevant_facts full_types relevance_threshold
+      case filtered_clauses of
+        SOME fcls => fcls
+      | NONE => relevant_facts full_types relevance_threshold
                     relevance_convergence defs_relevant max_axiom_clauses
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal goal_cls
-      | SOME fcls => fcls);
+                |> cnf_rules_pairs thy
     val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
       prepare_clauses full_types goal_cls the_axiom_clauses the_filtered_clauses
