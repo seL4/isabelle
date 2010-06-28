@@ -624,7 +624,7 @@ fun procedure_tac ctxt rthm =
       [] =>
         let
           val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
-          val rtrm = derive_qtrm qtys goal true ctxt
+          val rtrm = derive_rtrm qtys goal ctxt
           val rule = procedure_inst ctxt rtrm goal
         in
           rtac rule i
@@ -670,7 +670,7 @@ let
      so we do it both in the original theorem *)
   val thm' = Drule.eta_contraction_rule thm
   val ((_, [thm'']), ctxt') = Variable.import false [thm'] ctxt
-  val goal = derive_qtrm qtys (prop_of thm'') false ctxt'
+  val goal = derive_qtrm qtys (prop_of thm'') ctxt'
 in
   Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm'] 1))
   |> singleton (ProofContext.export ctxt' ctxt)
