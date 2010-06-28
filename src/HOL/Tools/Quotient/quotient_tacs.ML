@@ -649,7 +649,7 @@ let
      so we do it both in the original theorem *)
   val thm' = Drule.eta_contraction_rule thm
   val ((_, [thm'']), ctxt') = Variable.import false [thm'] ctxt
-  val goal = derive_qtrm qtys (prop_of thm'') ctxt' 
+  val goal = derive_qtrm qtys (prop_of thm'') false ctxt'
 in
   Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm'] 1))
   |> singleton (ProofContext.export ctxt' ctxt)

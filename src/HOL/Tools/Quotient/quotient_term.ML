@@ -26,8 +26,8 @@ sig
   val inj_repabs_trm: Proof.context -> term * term -> term
   val inj_repabs_trm_chk: Proof.context -> term * term -> term
 
-  val derive_qtyp: typ list -> typ -> Proof.context -> typ
-  val derive_qtrm: typ list -> term -> Proof.context -> term
+  val derive_qtyp: typ list -> typ -> bool -> Proof.context -> typ
+  val derive_qtrm: typ list -> term -> bool -> Proof.context -> term
 end;
 
 structure Quotient_Term: QUOTIENT_TERM =
@@ -690,7 +690,7 @@ fun inj_repabs_trm_chk ctxt (rtrm, qtrm) =
 
 (*** Wrapper for automatically transforming an rthm into a qthm ***)
 
-(* subst_tys takes a list of (rty, qty) substitution pairs
+(* subst_rty takes a list of (rty, qty) substitution pairs
    and replaces all occurences of rty in the given type
    by an appropriate qty
 *)
@@ -711,7 +711,7 @@ fun subst_rtyp ctxt ty_subst rty =
       end 
   | _ => rty
 
-(* subst_trms takes a list of (rconst, qconst) substitution pairs,
+(* subst_rtrm takes a list of (rconst, qconst) substitution pairs,
    as well as (rty, qty) substitution pairs, and replaces all
    occurences of rconst and rty by appropriate instances of
    qconst and qty
@@ -739,24 +739,27 @@ fun subst_rtrm ctxt ty_subst trm_subst rtrm =
 (* generates type substitutions out of the
    types involved in a quotient
 *)
-fun get_ty_subst qtys ctxt =
+fun get_ty_subst qtys reverse ctxt =
   Quotient_Info.quotdata_dest ctxt
    |> map (fn x => (#rtyp x, #qtyp x))
    |> filter (fn (_, qty) => member (op =) qtys qty)
+   |> map (fn (x, y) => if reverse then (y, x) else (x, y))
 
 (* generates term substitutions out of the qconst 
    definitions and relations in a quotient
 *)
-fun get_trm_subst qtys ctxt =
-let  
-  val subst_rtyp' = subst_rtyp ctxt (get_ty_subst qtys ctxt)
+fun get_trm_subst qtys reverse ctxt =
+let
+  val subst_rtyp' = subst_rtyp ctxt (get_ty_subst qtys reverse ctxt)
   fun proper (rt, qt) = (subst_rtyp' (fastype_of rt) = fastype_of qt)
-  
+
   val const_substs = 
     Quotient_Info.qconsts_dest ctxt
-     |> map (fn x => (#rconst x, #qconst x)) 
+     |> map (fn x => (#rconst x, #qconst x))
+     |> map (fn (x, y) => if reverse then (y, x) else (x, y))
 
-  val rel_substs = 
+  val rel_substs =
+    if reverse then [] else
     Quotient_Info.quotdata_dest ctxt
      |> map (fn x => (#equiv_rel x, HOLogic.eq_const (#qtyp x)))
 in
@@ -766,11 +769,11 @@ end
 (* derives a qtyp and qtrm out of a rtyp and rtrm,
    respectively 
 *)
-fun derive_qtyp qtys rty ctxt =
-  subst_rtyp ctxt (get_ty_subst qtys ctxt) rty
+fun derive_qtyp qtys rty unlift ctxt =
+  subst_rtyp ctxt (get_ty_subst qtys unlift ctxt) rty
 
-fun derive_qtrm qtys rtrm ctxt =
-  subst_rtrm ctxt (get_ty_subst qtys ctxt) (get_trm_subst qtys ctxt) rtrm
+fun derive_qtrm qtys rtrm unlift ctxt =
+  subst_rtrm ctxt (get_ty_subst qtys unlift ctxt) (get_trm_subst qtys unlift ctxt) rtrm
 
 
 end; (* structure *)

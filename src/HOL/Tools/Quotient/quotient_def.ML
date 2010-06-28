@@ -91,7 +91,7 @@ end
 fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
 let
   val rty = fastype_of rconst
-  val qty = derive_qtyp qtys rty ctxt
+  val qty = derive_qtyp qtys rty false ctxt
   val lhs = Free (qconst_name, qty)
 in
   quotient_def ((NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt
