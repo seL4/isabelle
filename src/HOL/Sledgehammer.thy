@@ -86,8 +86,6 @@ apply (simp add: COMBC_def)
 done
 
 use "Tools/Sledgehammer/clausifier.ML"
-setup Clausifier.setup
-
 use "Tools/Sledgehammer/meson_tactic.ML"
 setup Meson_Tactic.setup
 
