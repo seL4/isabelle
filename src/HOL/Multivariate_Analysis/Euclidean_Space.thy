@@ -15,7 +15,7 @@ begin
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
   by auto
 
-abbreviation inner_bullet (infix "\<bullet>" 70)  where "x \<bullet> y \<equiv> inner x y"
+notation inner (infix "\<bullet>" 70)
 
 subsection {* A connectedness or intermediate value lemma with several applications. *}
 
@@ -466,8 +466,8 @@ lemma orthogonal_clauses:
   "orthogonal x a \<Longrightarrow> orthogonal (-x) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x + y) a"
   "orthogonal x a \<Longrightarrow> orthogonal y a \<Longrightarrow> orthogonal (x - y) a"
-  unfolding orthogonal_def inner_simps by auto
-
+  unfolding orthogonal_def inner_simps inner_add_left inner_add_right inner_diff_left inner_diff_right (*FIXME*) by auto
+ 
 end
 
 lemma orthogonal_commute: "orthogonal x y \<longleftrightarrow> orthogonal y x"
