@@ -170,79 +170,87 @@ fun string_of_combterm params t pool =
 fun boolify params c =
   string_of_combterm params c #>> prefix "hBOOL" o paren_pack o single
 
-fun string_of_predicate (params as (_, const_tab)) t =
+fun string_for_predicate (params as (_, const_tab)) t =
   case #1 (strip_combterm_comb t) of
     CombConst ((s, _), _, _) =>
     (if needs_hBOOL const_tab s then boolify else string_of_combterm) params t
   | _ => boolify params t
 
-fun tptp_of_equality params pos (t1, t2) =
+fun string_for_equality params pos (t1, t2) =
   pool_map (string_of_combterm params) [t1, t2]
   #>> space_implode (if pos then " = " else " != ")
 
-fun tptp_sign true s = s
-  | tptp_sign false s = "~ " ^ s
+fun string_for_sign true s = s
+  | string_for_sign false s = "~ " ^ s
 
-fun tptp_literal params
+fun string_for_literal params
         (Literal (pos, CombApp (CombApp (CombConst (("equal", _), _, _), t1),
                                          t2))) =
-    tptp_of_equality params pos (t1, t2)
-  | tptp_literal params (Literal (pos, pred)) =
-    string_of_predicate params pred #>> tptp_sign pos
+    string_for_equality params pos (t1, t2)
+  | string_for_literal params (Literal (pos, pred)) =
+    string_for_predicate params pred #>> string_for_sign pos
  
-fun tptp_of_type_literal pos (TyLitVar (s, name)) =
-    nice_name name #>> (fn s' => tptp_sign pos (s ^ "(" ^ s' ^ ")"))
-  | tptp_of_type_literal pos (TyLitFree (s, name)) =
-    nice_name name #>> (fn s' => tptp_sign pos (s ^ "(" ^ s' ^ ")"))
+fun string_for_type_literal pos (TyLitVar (s, name)) =
+    nice_name name #>> (fn s' => string_for_sign pos (s ^ "(" ^ s' ^ ")"))
+  | string_for_type_literal pos (TyLitFree (s, name)) =
+    nice_name name #>> (fn s' => string_for_sign pos (s ^ "(" ^ s' ^ ")"))
 
 (* Given a clause, returns its literals paired with a list of literals
    concerning TFrees; the latter should only occur in conjecture clauses. *)
-fun tptp_type_literals params pos (HOLClause {literals, ctypes_sorts, ...})
-                       pool =
+fun string_for_type_literals params pos
+                             (HOLClause {literals, ctypes_sorts, ...}) pool =
   let
-    val (lits, pool) = pool_map (tptp_literal params) literals pool
-    val (tylits, pool) = pool_map (tptp_of_type_literal pos)
+    (* ### FIXME: use combinator *)
+    val (lits, pool) = pool_map (string_for_literal params) literals pool
+    val (tylits, pool) = pool_map (string_for_type_literal pos)
                                   (type_literals_for_types ctypes_sorts) pool
   in ((lits, tylits), pool) end
 
-fun tptp_cnf name kind formula =
+fun string_for_cnf_clause name kind formula =
   "cnf(" ^ name ^ ", " ^ kind ^ ",\n    " ^ formula ^ ").\n"
 
-fun tptp_raw_clause strings = "(" ^ space_implode " | " strings ^ ")"
+fun string_for_disjunction strings = "(" ^ space_implode " | " strings ^ ")"
 
-val tptp_tfree_clause =
-  tptp_cnf "tfree_tcs" "negated_conjecture" o tptp_raw_clause o single
+val string_for_tfree_clause =
+  string_for_cnf_clause "tfree_tcs" "negated_conjecture"
+  o string_for_disjunction o single
 
-fun tptp_classrel_literals sub sup =
+fun string_for_classrel_literals sub sup =
   let val tvar = "(T)" in
-    tptp_raw_clause [tptp_sign false (sub ^ tvar), tptp_sign true (sup ^ tvar)]
+    string_for_disjunction [string_for_sign false (sub ^ tvar),
+                            string_for_sign true (sup ^ tvar)]
   end
 
-fun tptp_clause params (cls as HOLClause {axiom_name, clause_id, kind, ...})
-                pool =
+fun string_for_clause params
+        (cls as HOLClause {axiom_name, clause_id, kind, ...}) pool =
   let
     val ((lits, tylits), pool) =
-      tptp_type_literals params (kind = Conjecture) cls pool
+      string_for_type_literals params (kind = Conjecture) cls pool
     val name = clause_prefix ^ ascii_of axiom_name ^ "_" ^
                Int.toString clause_id
     val cnf =
       case kind of
-        Axiom => tptp_cnf name "axiom" (tptp_raw_clause (tylits @ lits))
-      | Conjecture => tptp_cnf name "negated_conjecture" (tptp_raw_clause lits)
+        Axiom => string_for_cnf_clause name "axiom"
+                                       (string_for_disjunction (tylits @ lits))
+      | Conjecture => string_for_cnf_clause name "negated_conjecture"
+                                       (string_for_disjunction lits)
   in ((cnf, tylits), pool) end
 
-fun tptp_classrel_clause (ClassrelClause {axiom_name, subclass, superclass,
+fun string_for_classrel_clause (ClassrelClause {axiom_name, subclass,
+                                                superclass, ...}) =
+  string_for_cnf_clause axiom_name "axiom"
+                        (string_for_classrel_literals subclass superclass)
+
+fun string_for_arity_literal (TConsLit (c, t, args)) =
+    string_for_sign true (make_type_class c ^ "(" ^ t ^ paren_pack args ^ ")")
+  | string_for_arity_literal (TVarLit (c, str)) =
+    string_for_sign false (make_type_class c ^ "(" ^ str ^ ")")
+
+fun string_for_arity_clause (ArityClause {axiom_name, conclLit, premLits,
                                           ...}) =
-  tptp_cnf axiom_name "axiom" (tptp_classrel_literals subclass superclass)
-
-fun tptp_of_arity_literal (TConsLit (c, t, args)) =
-    tptp_sign true (make_type_class c ^ "(" ^ t ^ paren_pack args ^ ")")
-  | tptp_of_arity_literal (TVarLit (c, str)) =
-    tptp_sign false (make_type_class c ^ "(" ^ str ^ ")")
-
-fun tptp_arity_clause (ArityClause {axiom_name, conclLit, premLits, ...}) =
-  tptp_cnf (arity_clause_prefix ^ ascii_of axiom_name) "axiom"
-           (tptp_raw_clause (map tptp_of_arity_literal (conclLit :: premLits)))
+  string_for_cnf_clause (arity_clause_prefix ^ ascii_of axiom_name) "axiom"
+                        (string_for_disjunction (map string_for_arity_literal
+                                                (conclLit :: premLits)))
 
 (* Find the minimal arity of each function mentioned in the term. Also, note
    which uses are not at top level, to see if "hBOOL" is needed. *)
@@ -285,13 +293,14 @@ fun write_tptp_file readable_names full_types explicit_apply file clauses =
                     else SOME (Symtab.empty |> count_constants clauses)
     val params = (full_types, const_tab)
     val ((conjecture_clss, tfree_litss), pool) =
-      pool_map (tptp_clause params) conjectures pool |>> ListPair.unzip
-    val tfree_clss = map tptp_tfree_clause (fold (union (op =)) tfree_litss [])
+      pool_map (string_for_clause params) conjectures pool |>> ListPair.unzip
+    val tfree_clss =
+      map string_for_tfree_clause (fold (union (op =)) tfree_litss [])
     val (ax_clss, pool) =
-      pool_map (apfst fst oo tptp_clause params) axclauses pool
-    val classrel_clss = map tptp_classrel_clause classrel_clauses
-    val arity_clss = map tptp_arity_clause arity_clauses
-    val (helper_clss, pool) = pool_map (apfst fst oo tptp_clause params)
+      pool_map (apfst fst oo string_for_clause params) axclauses pool
+    val classrel_clss = map string_for_classrel_clause classrel_clauses
+    val arity_clss = map string_for_arity_clause arity_clauses
+    val (helper_clss, pool) = pool_map (apfst fst oo string_for_clause params)
                                        helper_clauses pool
     val conjecture_offset =
       length ax_clss + length classrel_clss + length arity_clss
