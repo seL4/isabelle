@@ -95,6 +95,7 @@ fun extract_proof_and_outcome complete res_code proof_delims known_failures
 fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure IncompleteUnprovable =
     "The ATP cannot prove the problem."
+  | string_for_failure CantConnect = "Can't connect to remote ATP."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
   | string_for_failure OldSpass =
@@ -465,7 +466,8 @@ fun get_systems () =
   case bash_output "\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w" of
     (answer, 0) => split_lines answer
   | (answer, _) =>
-    error ("Failed to get available systems at SystemOnTPTP:\n" ^ answer)
+    error ("Failed to get available systems at SystemOnTPTP:\n" ^
+           perhaps (try (unsuffix "\n")) answer)
 
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
@@ -480,7 +482,8 @@ fun the_system prefix =
   | SOME sys => sys);
 
 val remote_known_failures =
-  [(TimedOut, "says Timeout"),
+  [(CantConnect, "HTTP-Error"),
+   (TimedOut, "says Timeout"),
    (MalformedOutput, "Remote script could not extract proof")]
 
 fun remote_config atp_prefix args
