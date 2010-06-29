@@ -67,7 +67,7 @@ fun binder_types env =
   let
     val tyenv = Envir.type_env env;
     fun bTs (Type ("fun", [T, U])) = T :: bTs U
-      | bTs (T as TVar v) =
+      | bTs (TVar v) =
           (case Type.lookup tyenv v of
             NONE => []
           | SOME T' => bTs T')
@@ -110,7 +110,7 @@ fun occurs_terms (seen: indexname list Unsynchronized.ref,
       env: Envir.env, v: indexname, ts: term list): bool =
   let
     fun occurs [] = false
-      | occurs (t::ts) =  occur t  orelse  occurs ts
+      | occurs (t :: ts) = occur t orelse occurs ts
     and occur (Const _) = false
       | occur (Bound _) = false
       | occur (Free _) = false
@@ -196,7 +196,7 @@ fun rigid_occurs_term (seen: indexname list Unsynchronized.ref, env, v: indexnam
             Var (w,_) => (*w is not assigned*)
               if Term.eq_ix (v, w) then Rigid
               else nonrigid t
-          | Abs (_, _, body) => nonrigid t (*not in normal form*)
+          | Abs _ => nonrigid t (*not in normal form*)
           | _ => occomb t)
   in occur t end;
 
@@ -331,7 +331,7 @@ fun SIMPL thy (env,dpairs) : Envir.env * dpair list * dpair list =
   The B.j are bound vars of binder.
   The terms are not made in eta-normal-form, SIMPL does that later.
   If done here, eta-expansion must be recursive in the arguments! *)
-fun make_args name (binder: typ list, env, []) = (env, [])   (*frequent case*)
+fun make_args _ (_, env, []) = (env, [])   (*frequent case*)
   | make_args name (binder: typ list, env, Ts) : Envir.env * term list =
       let
         fun funtype T = binder ---> T;
@@ -410,7 +410,7 @@ fun matchcopy thy vname =
         Abs (a, T, body) =>
           Seq.map (fn (body', ed') => (Abs (a, T, body'), ed'))
             (mc ((a, T) :: rbinder, (map (incr_boundvars 1) targs) @ [Bound 0], body, ed))
-      | Var (w, uary) =>
+      | Var (w, _) =>
           (*a flex-flex dpair: make variable for t*)
           let
             val (env', newhd) = Envir.genvar (#1 w) (env, Ts ---> base);
@@ -652,7 +652,7 @@ fun var_head_of (env,t) : indexname * typ =
   Unlike Huet (1975), does not smash together all variables of same type --
     requires more work yet gives a less general unifier (fewer variables).
   Handles ?f(t1...rm) with ?f(u1...um) to avoid multiple updates. *)
-fun smash_flexflex1 ((t,u), env) : Envir.env =
+fun smash_flexflex1 ((t, u), env) : Envir.env =
   let
     val vT as (v, T) = var_head_of (env, t)
     and wU as (w, U) = var_head_of (env, u);
@@ -665,7 +665,7 @@ fun smash_flexflex1 ((t,u), env) : Envir.env =
 
 
 (*Smash all flex-flexpairs.  Should allow selection of pairs by a predicate?*)
-fun smash_flexflex (env,tpairs) : Envir.env =
+fun smash_flexflex (env, tpairs) : Envir.env =
   List.foldr smash_flexflex1 env tpairs;
 
 (*Returns unifiers with no remaining disagreement pairs*)
