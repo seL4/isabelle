@@ -1,7 +1,6 @@
 structure Example : sig
   val foldl : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
   val rev : 'a list -> 'a list
-  val list_case : 'a -> ('b -> 'b list -> 'a) -> 'b list -> 'a
   datatype 'a queue = AQueue of 'a list * 'a list
   val empty : 'a queue
   val dequeue : 'a queue -> 'a option * 'a queue
@@ -12,9 +11,6 @@ fun foldl f a [] = a
   | foldl f a (x :: xs) = foldl f (f a x) xs;
 
 fun rev xs = foldl (fn xsa => fn x => x :: xsa) [] xs;
-
-fun list_case f1 f2 (a :: lista) = f2 a lista
-  | list_case f1 f2 [] = f1;
 
 datatype 'a queue = AQueue of 'a list * 'a list;
 

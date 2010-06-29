@@ -31,7 +31,7 @@ text %mlref {*
   @{index_ML Code_Preproc.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
   @{index_ML Code.get_type: "theory -> string
-    -> (string * sort) list * (string * typ list) list"} \\
+    -> (string * sort) list * ((string * string list) * typ list) list"} \\
   @{index_ML Code.get_type_of_constr_or_abstr: "theory -> string -> (string * bool) option"}
   \end{mldecls}
 
