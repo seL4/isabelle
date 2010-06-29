@@ -32,7 +32,7 @@ lemmas msgrel.intros[intro]
 text{*Proving that it is an equivalence relation*}
 
 lemma msgrel_refl: "X \<sim> X"
-by (induct X, (blast intro: msgrel.intros)+)
+by (induct X) (auto intro: msgrel.intros)
 
 theorem equiv_msgrel: "equivp msgrel"
 proof (rule equivpI)
@@ -263,68 +263,47 @@ lemma right_Decrypt [simp]:
 
 subsection{*Injectivity Properties of Some Constructors*}
 
-lemma NONCE_imp_eq:
-  shows "NONCE m \<sim> NONCE n \<Longrightarrow> m = n"
-  by (drule msgrel_imp_eq_freenonces, simp)
-
 text{*Can also be proved using the function @{term nonces}*}
 lemma Nonce_Nonce_eq [iff]:
   shows "(Nonce m = Nonce n) = (m = n)"
 proof
   assume "Nonce m = Nonce n"
-  then show "m = n" by (lifting NONCE_imp_eq)
+  then show "m = n" 
+    by (descending) (drule msgrel_imp_eq_freenonces, simp)
 next
   assume "m = n"
   then show "Nonce m = Nonce n" by simp
 qed
 
-lemma MPAIR_imp_eqv_left:
-  shows "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> X \<sim> X'"
-  by (drule msgrel_imp_eqv_freeleft) (simp)
-
 lemma MPair_imp_eq_left:
   assumes eq: "MPair X Y = MPair X' Y'"
   shows "X = X'"
-  using eq by (lifting MPAIR_imp_eqv_left)
-
-lemma MPAIR_imp_eqv_right:
-  shows "MPAIR X Y \<sim> MPAIR X' Y' \<Longrightarrow> Y \<sim> Y'"
-  by (drule msgrel_imp_eqv_freeright) (simp)
+  using eq 
+  by (descending) (drule msgrel_imp_eqv_freeleft, simp)
 
 lemma MPair_imp_eq_right:
   shows "MPair X Y = MPair X' Y' \<Longrightarrow> Y = Y'"
-  by (lifting  MPAIR_imp_eqv_right)
+  by (descending) (drule msgrel_imp_eqv_freeright, simp)
 
 theorem MPair_MPair_eq [iff]:
   shows "(MPair X Y = MPair X' Y') = (X=X' & Y=Y')"
   by (blast dest: MPair_imp_eq_left MPair_imp_eq_right)
 
-lemma NONCE_neqv_MPAIR:
-  shows "\<not>(NONCE m \<sim> MPAIR X Y)"
-  by (auto dest: msgrel_imp_eq_freediscrim)
-
 theorem Nonce_neq_MPair [iff]:
   shows "Nonce N \<noteq> MPair X Y"
-  by (lifting NONCE_neqv_MPAIR)
+  by (descending) (auto dest: msgrel_imp_eq_freediscrim)
 
 text{*Example suggested by a referee*}
 
-lemma CRYPT_NONCE_neq_NONCE:
-  shows "\<not>(CRYPT K (NONCE M) \<sim> NONCE N)"
-  by (auto dest: msgrel_imp_eq_freediscrim)
-
 theorem Crypt_Nonce_neq_Nonce:
   shows "Crypt K (Nonce M) \<noteq> Nonce N"
-  by (lifting CRYPT_NONCE_neq_NONCE)
+  by (descending) (auto dest: msgrel_imp_eq_freediscrim) 
 
 text{*...and many similar results*}
-lemma CRYPT2_NONCE_neq_NONCE:
-  shows "\<not>(CRYPT K (CRYPT K' (NONCE M)) \<sim> NONCE N)"
-  by (auto dest: msgrel_imp_eq_freediscrim)
 
 theorem Crypt2_Nonce_neq_Nonce:
   shows "Crypt K (Crypt K' (Nonce M)) \<noteq> Nonce N"
-  by (lifting CRYPT2_NONCE_neq_NONCE)
+  by (descending) (auto dest: msgrel_imp_eq_freediscrim)
 
 theorem Crypt_Crypt_eq [iff]:
   shows "(Crypt K X = Crypt K X') = (X=X')"

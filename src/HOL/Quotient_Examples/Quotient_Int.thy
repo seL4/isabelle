@@ -114,43 +114,6 @@ lemma [quot_respect]:
   apply(assumption)
   done
 
-lemma plus_assoc_raw:
-  shows "plus_int_raw (plus_int_raw i j) k \<approx> plus_int_raw i (plus_int_raw j k)"
-  by (cases i, cases j, cases k) (simp)
-
-lemma plus_sym_raw:
-  shows "plus_int_raw i j \<approx> plus_int_raw j i"
-  by (cases i, cases j) (simp)
-
-lemma plus_zero_raw:
-  shows "plus_int_raw (0, 0) i \<approx> i"
-  by (cases i) (simp)
-
-lemma plus_minus_zero_raw:
-  shows "plus_int_raw (uminus_int_raw i) i \<approx> (0, 0)"
-  by (cases i) (simp)
-
-lemma times_assoc_raw:
-  shows "times_int_raw (times_int_raw i j) k \<approx> times_int_raw i (times_int_raw j k)"
-  by (cases i, cases j, cases k)
-     (simp add: algebra_simps)
-
-lemma times_sym_raw:
-  shows "times_int_raw i j \<approx> times_int_raw j i"
-  by (cases i, cases j) (simp add: algebra_simps)
-
-lemma times_one_raw:
-  shows "times_int_raw  (1, 0) i \<approx> i"
-  by (cases i) (simp)
-
-lemma times_plus_comm_raw:
-  shows "times_int_raw (plus_int_raw i j) k \<approx> plus_int_raw (times_int_raw i k) (times_int_raw j k)"
-by (cases i, cases j, cases k)
-   (simp add: algebra_simps)
-
-lemma one_zero_distinct:
-  shows "\<not> (0, 0) \<approx> ((1::nat), (0::nat))"
-  by simp
 
 text{* The integers form a @{text comm_ring_1}*}
 
@@ -158,25 +121,25 @@ instance int :: comm_ring_1
 proof
   fix i j k :: int
   show "(i + j) + k = i + (j + k)"
-    by (lifting plus_assoc_raw)
+    by (descending) (auto)
   show "i + j = j + i"
-    by (lifting plus_sym_raw)
+    by (descending) (auto)
   show "0 + i = (i::int)"
-    by (lifting plus_zero_raw)
+    by (descending) (auto)
   show "- i + i = 0"
-    by (lifting plus_minus_zero_raw)
+    by (descending) (auto)
   show "i - j = i + - j"
     by (simp add: minus_int_def)
   show "(i * j) * k = i * (j * k)"
-    by (lifting times_assoc_raw)
+    by (descending) (auto simp add: algebra_simps)
   show "i * j = j * i"
-    by (lifting times_sym_raw)
+    by (descending) (auto)
   show "1 * i = i"
-    by (lifting times_one_raw)
+    by (descending) (auto)
   show "(i + j) * k = i * k + j * k"
-    by (lifting times_plus_comm_raw)
+    by (descending) (auto simp add: algebra_simps)
   show "0 \<noteq> (1::int)"
-    by (lifting one_zero_distinct)
+    by (descending) (auto)
 qed
 
 lemma plus_int_raw_rsp_aux:
@@ -211,36 +174,19 @@ lemma int_of_nat:
   by (induct m)
      (simp_all add: zero_int_def one_int_def int_of_nat_def int_of_nat_raw add_abs_int)
 
-lemma le_antisym_raw:
-  shows "le_int_raw i j \<Longrightarrow> le_int_raw j i \<Longrightarrow> i \<approx> j"
-  by (cases i, cases j) (simp)
-
-lemma le_refl_raw:
-  shows "le_int_raw i i"
-  by (cases i) (simp)
-
-lemma le_trans_raw:
-  shows "le_int_raw i j \<Longrightarrow> le_int_raw j k \<Longrightarrow> le_int_raw i k"
-  by (cases i, cases j, cases k) (simp)
-
-lemma le_cases_raw:
-  shows "le_int_raw i j \<or> le_int_raw j i"
-  by (cases i, cases j)
-     (simp add: linorder_linear)
-
 instance int :: linorder
 proof
   fix i j k :: int
   show antisym: "i \<le> j \<Longrightarrow> j \<le> i \<Longrightarrow> i = j"
-    by (lifting le_antisym_raw)
+    by (descending) (auto)
   show "(i < j) = (i \<le> j \<and> \<not> j \<le> i)"
     by (auto simp add: less_int_def dest: antisym)
   show "i \<le> i"
-    by (lifting le_refl_raw)
+    by (descending) (auto)
   show "i \<le> j \<Longrightarrow> j \<le> k \<Longrightarrow> i \<le> k"
-    by (lifting le_trans_raw)
+    by (descending) (auto)
   show "i \<le> j \<or> j \<le> i"
-    by (lifting le_cases_raw)
+    by (descending) (auto)
 qed
 
 instantiation int :: distrib_lattice
@@ -258,15 +204,11 @@ instance
 
 end
 
-lemma le_plus_int_raw:
-  shows "le_int_raw i j \<Longrightarrow> le_int_raw (plus_int_raw k i) (plus_int_raw k j)"
-  by (cases i, cases j, cases k) (simp)
-
 instance int :: ordered_cancel_ab_semigroup_add
 proof
   fix i j k :: int
   show "i \<le> j \<Longrightarrow> k + i \<le> k + j"
-    by (lifting le_plus_int_raw)
+    by (descending) (auto)
 qed
 
 abbreviation
@@ -296,7 +238,7 @@ lemma zero_le_imp_eq_int:
   fixes k::int
   shows "0 < k \<Longrightarrow> \<exists>n > 0. k = of_nat n"
   unfolding less_int_def int_of_nat
-  by (lifting zero_le_imp_eq_int_raw)
+  by (descending) (rule zero_le_imp_eq_int_raw)
 
 lemma zmult_zless_mono2:
   fixes i j k::int
@@ -365,16 +307,10 @@ lemma [quot_respect]:
   shows "(intrel ===> op =) int_to_nat_raw int_to_nat_raw"
   by (auto iff: int_to_nat_raw_def)
 
-lemma nat_le_eq_zle_raw:
-  assumes a: "less_int_raw (0, 0) w \<or> le_int_raw (0, 0) z"
-  shows "(int_to_nat_raw w \<le> int_to_nat_raw z) = (le_int_raw w z)"
-  using a
-  by (cases w, cases z) (auto simp add: int_to_nat_raw_def)
-
 lemma nat_le_eq_zle:
   fixes w z::"int"
   shows "0 < w \<or> 0 \<le> z \<Longrightarrow> (int_to_nat w \<le> int_to_nat z) = (w \<le> z)"
   unfolding less_int_def
-  by (lifting nat_le_eq_zle_raw)
+  by (descending) (auto simp add: int_to_nat_raw_def)
 
 end
