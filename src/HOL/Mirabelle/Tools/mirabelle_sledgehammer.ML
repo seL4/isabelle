@@ -299,7 +299,6 @@ datatype sh_result =
 
 fun run_sh prover hard_timeout timeout dir st =
   let
-    val _ = Sledgehammer_Fact_Filter.use_natural_form := true (* experimental *)
     val {context = ctxt, facts, goal} = Proof.goal st
     val thy = ProofContext.theory_of ctxt
     val change_dir = (fn SOME d => Config.put ATP_Systems.dest_dir d | _ => I)
