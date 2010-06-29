@@ -64,7 +64,7 @@ sig
   val type_of_combterm : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
   val literals_of_term : theory -> term -> literal list * typ list
-  val conceal_skolem_somes :
+  val conceal_skolem_terms :
     int -> (string * term) list -> term -> (string * term) list * term
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
@@ -441,37 +441,37 @@ fun skolem_name i j num_T_args =
   skolem_prefix ^ (space_implode "_" (map Int.toString [i, j, num_T_args])) ^
   skolem_infix ^ "g"
 
-fun conceal_skolem_somes i skolem_somes t =
+fun conceal_skolem_terms i skolems t =
   if exists_Const (curry (op =) @{const_name skolem_id} o fst) t then
     let
-      fun aux skolem_somes
+      fun aux skolems
               (t as (Const (@{const_name skolem_id}, Type (_, [_, T])) $ _)) =
           let
-            val (skolem_somes, s) =
+            val (skolems, s) =
               if i = ~1 then
-                (skolem_somes, @{const_name undefined})
-              else case AList.find (op aconv) skolem_somes t of
-                s :: _ => (skolem_somes, s)
+                (skolems, @{const_name undefined})
+              else case AList.find (op aconv) skolems t of
+                s :: _ => (skolems, s)
               | [] =>
                 let
                   val s = skolem_theory_name ^ "." ^
-                          skolem_name i (length skolem_somes)
+                          skolem_name i (length skolems)
                                         (length (Term.add_tvarsT T []))
-                in ((s, t) :: skolem_somes, s) end
-          in (skolem_somes, Const (s, T)) end
-        | aux skolem_somes (t1 $ t2) =
+                in ((s, t) :: skolems, s) end
+          in (skolems, Const (s, T)) end
+        | aux skolems (t1 $ t2) =
           let
-            val (skolem_somes, t1) = aux skolem_somes t1
-            val (skolem_somes, t2) = aux skolem_somes t2
-          in (skolem_somes, t1 $ t2) end
-        | aux skolem_somes (Abs (s, T, t')) =
-          let val (skolem_somes, t') = aux skolem_somes t' in
-            (skolem_somes, Abs (s, T, t'))
+            val (skolems, t1) = aux skolems t1
+            val (skolems, t2) = aux skolems t2
+          in (skolems, t1 $ t2) end
+        | aux skolems (Abs (s, T, t')) =
+          let val (skolems, t') = aux skolems t' in
+            (skolems, Abs (s, T, t'))
           end
-        | aux skolem_somes t = (skolem_somes, t)
-    in aux skolem_somes t end
+        | aux skolems t = (skolems, t)
+    in aux skolems t end
   else
-    (skolem_somes, t)
+    (skolems, t)
 
 
 (***************************************************************)

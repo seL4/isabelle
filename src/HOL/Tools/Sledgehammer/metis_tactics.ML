@@ -135,16 +135,16 @@ fun default_sort _ (TVar _) = false
 fun metis_of_tfree tf =
   Metis.Thm.axiom (Metis.LiteralSet.singleton (metis_of_type_literals true tf));
 
-fun hol_thm_to_fol is_conjecture ctxt mode j skolem_somes th =
+fun hol_thm_to_fol is_conjecture ctxt mode j skolems th =
   let
     val thy = ProofContext.theory_of ctxt
-    val (skolem_somes, (mlits, types_sorts)) =
-     th |> prop_of |> conceal_skolem_somes j skolem_somes
+    val (skolems, (mlits, types_sorts)) =
+     th |> prop_of |> conceal_skolem_terms j skolems
         ||> (HOLogic.dest_Trueprop #> literals_of_hol_term thy mode)
   in
       if is_conjecture then
           (Metis.Thm.axiom (Metis.LiteralSet.fromList mlits),
-           type_literals_for_types types_sorts, skolem_somes)
+           type_literals_for_types types_sorts, skolems)
       else
         let val tylits = filter_out (default_sort ctxt) types_sorts
                          |> type_literals_for_types
@@ -152,7 +152,7 @@ fun hol_thm_to_fol is_conjecture ctxt mode j skolem_somes th =
                           then map (metis_of_type_literals false) tylits else []
         in
           (Metis.Thm.axiom (Metis.LiteralSet.fromList(mtylits @ mlits)), [],
-           skolem_somes)
+           skolems)
         end
   end;
 
@@ -235,11 +235,11 @@ fun fol_type_to_isa _ (Metis.Term.Var v) =
           SOME tf => mk_tfree ctxt tf
         | NONE    => raise Fail ("fol_type_to_isa: " ^ x));
 
-fun reveal_skolem_somes skolem_somes =
+fun reveal_skolem_terms skolems =
   map_aterms (fn t as Const (s, _) =>
                  if String.isPrefix skolem_theory_name s then
-                   AList.lookup (op =) skolem_somes s
-                   |> the |> map_types Type_Infer.paramify_vars
+                   AList.lookup (op =) skolems s |> the
+                   |> map_types Type_Infer.paramify_vars
                  else
                    t
                | t => t)
@@ -345,11 +345,11 @@ fun hol_term_from_fol_FT ctxt fol_tm =
 fun hol_term_from_fol FT = hol_term_from_fol_FT
   | hol_term_from_fol _ = hol_term_from_fol_PT
 
-fun hol_terms_from_fol ctxt mode skolem_somes fol_tms =
+fun hol_terms_from_fol ctxt mode skolems fol_tms =
   let val ts = map (hol_term_from_fol mode ctxt) fol_tms
       val _ = trace_msg (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg (fn () => Syntax.string_of_term ctxt t)) ts
-      val ts' = ts |> map (reveal_skolem_somes skolem_somes) |> infer_types ctxt
+      val ts' = ts |> map (reveal_skolem_terms skolems) |> infer_types ctxt
       val _ = app (fn t => trace_msg
                     (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
                               "  of type  " ^ Syntax.string_of_typ ctxt (type_of t)))
@@ -391,22 +391,22 @@ fun axiom_inf thpairs th = Thm.incr_indexes 1 (lookth thpairs th);
     (*This causes variables to have an index of 1 by default. SEE ALSO mk_var above.*)
 
 (* INFERENCE RULE: ASSUME *)
-fun assume_inf ctxt mode skolem_somes atm =
+fun assume_inf ctxt mode skolems atm =
   inst_excluded_middle
-    (ProofContext.theory_of ctxt)
-    (singleton (hol_terms_from_fol ctxt mode skolem_somes) (Metis.Term.Fn atm))
+      (ProofContext.theory_of ctxt)
+      (singleton (hol_terms_from_fol ctxt mode skolems) (Metis.Term.Fn atm))
 
 (* INFERENCE RULE: INSTANTIATE (Subst). Type instantiations are ignored. Trying to reconstruct
    them admits new possibilities of errors, e.g. concerning sorts. Instead we try to arrange
    that new TVars are distinct and that types can be inferred from terms.*)
-fun inst_inf ctxt mode skolem_somes thpairs fsubst th =
+fun inst_inf ctxt mode skolems thpairs fsubst th =
   let val thy = ProofContext.theory_of ctxt
       val i_th   = lookth thpairs th
       val i_th_vars = Term.add_vars (prop_of i_th) []
       fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
       fun subst_translation (x,y) =
             let val v = find_var x
-                (* We call "reveal_skolem_somes" and "infer_types" below. *)
+                (* We call "reveal_skolem_terms" and "infer_types" below. *)
                 val t = hol_term_from_fol mode ctxt y
             in  SOME (cterm_of thy (Var v), t)  end
             handle Option =>
@@ -422,8 +422,7 @@ fun inst_inf ctxt mode skolem_somes thpairs fsubst th =
       val _ = trace_msg (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
       val substs = map_filter remove_typeinst (Metis.Subst.toList fsubst)
       val (vars,rawtms) = ListPair.unzip (map_filter subst_translation substs)
-      val tms = rawtms |> map (reveal_skolem_somes skolem_somes)
-                       |> infer_types ctxt
+      val tms = rawtms |> map (reveal_skolem_terms skolems) |> infer_types ctxt
       val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
       val substs' = ListPair.zip (vars, map ctm_of tms)
       val _ = trace_msg (fn () =>
@@ -451,7 +450,7 @@ fun resolve_inc_tyvars(tha,i,thb) =
   end
   handle TERM (msg, _) => raise METIS ("resolve_inc_tyvars", msg)
 
-fun resolve_inf ctxt mode skolem_somes thpairs atm th1 th2 =
+fun resolve_inf ctxt mode skolems thpairs atm th1 th2 =
   let
     val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
     val _ = trace_msg (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
@@ -461,7 +460,7 @@ fun resolve_inf ctxt mode skolem_somes thpairs atm th1 th2 =
     else if is_TrueI i_th2 then i_th1
     else
       let
-        val i_atm = singleton (hol_terms_from_fol ctxt mode skolem_somes)
+        val i_atm = singleton (hol_terms_from_fol ctxt mode skolems)
                               (Metis.Term.Fn atm)
         val _ = trace_msg (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
         val prems_th1 = prems_of i_th1
@@ -479,9 +478,9 @@ fun resolve_inf ctxt mode skolem_somes thpairs atm th1 th2 =
 val refl_x = cterm_of @{theory} (Var (hd (Term.add_vars (prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
-fun refl_inf ctxt mode skolem_somes t =
+fun refl_inf ctxt mode skolems t =
   let val thy = ProofContext.theory_of ctxt
-      val i_t = singleton (hol_terms_from_fol ctxt mode skolem_somes) t
+      val i_t = singleton (hol_terms_from_fol ctxt mode skolems) t
       val _ = trace_msg (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
       val c_t = cterm_incr_types thy refl_idx i_t
   in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
@@ -491,10 +490,10 @@ fun get_ty_arg_size _ (Const (@{const_name "op ="}, _)) = 0  (*equality has no t
   | get_ty_arg_size _ _ = 0;
 
 (* INFERENCE RULE: EQUALITY *)
-fun equality_inf ctxt mode skolem_somes (pos, atm) fp fr =
+fun equality_inf ctxt mode skolems (pos, atm) fp fr =
   let val thy = ProofContext.theory_of ctxt
       val m_tm = Metis.Term.Fn atm
-      val [i_atm,i_tm] = hol_terms_from_fol ctxt mode skolem_somes [m_tm, fr]
+      val [i_atm,i_tm] = hol_terms_from_fol ctxt mode skolems [m_tm, fr]
       val _ = trace_msg (fn () => "sign of the literal: " ^ Bool.toString pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
@@ -568,27 +567,27 @@ fun equality_inf ctxt mode skolem_somes (pos, atm) fp fr =
 
 val factor = Seq.hd o distinct_subgoals_tac;
 
-fun step ctxt mode skolem_somes thpairs p =
+fun step ctxt mode skolems thpairs p =
   case p of
     (fol_th, Metis.Proof.Axiom _) => factor (axiom_inf thpairs fol_th)
-  | (_, Metis.Proof.Assume f_atm) => assume_inf ctxt mode skolem_somes f_atm
+  | (_, Metis.Proof.Assume f_atm) => assume_inf ctxt mode skolems f_atm
   | (_, Metis.Proof.Subst (f_subst, f_th1)) =>
-    factor (inst_inf ctxt mode skolem_somes thpairs f_subst f_th1)
+    factor (inst_inf ctxt mode skolems thpairs f_subst f_th1)
   | (_, Metis.Proof.Resolve(f_atm, f_th1, f_th2)) =>
-    factor (resolve_inf ctxt mode skolem_somes thpairs f_atm f_th1 f_th2)
-  | (_, Metis.Proof.Refl f_tm) => refl_inf ctxt mode skolem_somes f_tm
+    factor (resolve_inf ctxt mode skolems thpairs f_atm f_th1 f_th2)
+  | (_, Metis.Proof.Refl f_tm) => refl_inf ctxt mode skolems f_tm
   | (_, Metis.Proof.Equality (f_lit, f_p, f_r)) =>
-    equality_inf ctxt mode skolem_somes f_lit f_p f_r
+    equality_inf ctxt mode skolems f_lit f_p f_r
 
 fun real_literal (_, (c, _)) = not (String.isPrefix class_prefix c);
 
 (* FIXME: use "fold" instead *)
 fun translate _ _ _ thpairs [] = thpairs
-  | translate ctxt mode skolem_somes thpairs ((fol_th, inf) :: infpairs) =
+  | translate ctxt mode skolems thpairs ((fol_th, inf) :: infpairs) =
       let val _ = trace_msg (fn () => "=============================================")
           val _ = trace_msg (fn () => "METIS THM: " ^ Metis.Thm.toString fol_th)
           val _ = trace_msg (fn () => "INFERENCE: " ^ Metis.Proof.inferenceToString inf)
-          val th = Meson.flexflex_first_order (step ctxt mode skolem_somes
+          val th = Meson.flexflex_first_order (step ctxt mode skolems
                                                     thpairs (fol_th, inf))
           val _ = trace_msg (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
           val _ = trace_msg (fn () => "=============================================")
@@ -597,7 +596,7 @@ fun translate _ _ _ thpairs [] = thpairs
       in
           if nprems_of th = n_metis_lits then ()
           else raise METIS ("translate", "Proof reconstruction has gone wrong.");
-          translate ctxt mode skolem_somes ((fol_th, th) :: thpairs) infpairs
+          translate ctxt mode skolems ((fol_th, th) :: thpairs) infpairs
       end;
 
 (*Determining which axiom clauses are actually used*)
@@ -627,7 +626,7 @@ fun type_ext thy tms =
 type logic_map =
   {axioms: (Metis.Thm.thm * thm) list,
    tfrees: type_literal list,
-   skolem_somes: (string * term) list}
+   skolems: (string * term) list}
 
 fun const_in_metis c (pred, tm_list) =
   let
@@ -645,15 +644,15 @@ fun init_tfrees ctxt =
 
 (*transform isabelle type / arity clause to metis clause *)
 fun add_type_thm [] lmap = lmap
-  | add_type_thm ((ith, mth) :: cls) {axioms, tfrees, skolem_somes} =
+  | add_type_thm ((ith, mth) :: cls) {axioms, tfrees, skolems} =
       add_type_thm cls {axioms = (mth, ith) :: axioms, tfrees = tfrees,
-                        skolem_somes = skolem_somes}
+                        skolems = skolems}
 
 (*Insert non-logical axioms corresponding to all accumulated TFrees*)
-fun add_tfrees {axioms, tfrees, skolem_somes} : logic_map =
+fun add_tfrees {axioms, tfrees, skolems} : logic_map =
      {axioms = map (rpair TrueI o metis_of_tfree) (distinct (op =) tfrees) @
                axioms,
-      tfrees = tfrees, skolem_somes = skolem_somes}
+      tfrees = tfrees, skolems = skolems}
 
 fun string_of_mode FO = "FO"
   | string_of_mode HO = "HO"
@@ -671,7 +670,7 @@ val helpers =
    ("c_If", (true, @{thms if_True if_False True_or_False}))]
 
 fun is_quasi_fol_clause thy =
-  Meson.is_fol_term thy o snd o conceal_skolem_somes ~1 [] o prop_of
+  Meson.is_fol_term thy o snd o conceal_skolem_terms ~1 [] o prop_of
 
 (* Function to generate metis clauses, including comb and type clauses *)
 fun build_map mode0 ctxt cls ths =
@@ -683,17 +682,15 @@ fun build_map mode0 ctxt cls ths =
         | set_mode FT = FT
       val mode = set_mode mode0
       (*transform isabelle clause to metis clause *)
-      fun add_thm is_conjecture ith {axioms, tfrees, skolem_somes} : logic_map =
+      fun add_thm is_conjecture ith {axioms, tfrees, skolems} : logic_map =
         let
-          val (mth, tfree_lits, skolem_somes) =
-            hol_thm_to_fol is_conjecture ctxt mode (length axioms) skolem_somes
-                           ith
+          val (mth, tfree_lits, skolems) =
+            hol_thm_to_fol is_conjecture ctxt mode (length axioms) skolems ith
         in
            {axioms = (mth, Meson.make_meta_clause ith) :: axioms,
-            tfrees = union (op =) tfree_lits tfrees,
-            skolem_somes = skolem_somes}
+            tfrees = union (op =) tfree_lits tfrees, skolems = skolems}
         end;
-      val lmap = {axioms = [], tfrees = init_tfrees ctxt, skolem_somes = []}
+      val lmap = {axioms = [], tfrees = init_tfrees ctxt, skolems = []}
                  |> fold (add_thm true) cls
                  |> add_tfrees
                  |> fold (add_thm false) ths
@@ -733,7 +730,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg (fn () => "THEOREM CLAUSES")
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) ths
-      val (mode, {axioms, tfrees, skolem_somes}) = build_map mode ctxt cls ths
+      val (mode, {axioms, tfrees, skolems}) = build_map mode ctxt cls ths
       val _ = if null tfrees then ()
               else (trace_msg (fn () => "TFREE CLAUSES");
                     app (fn TyLitFree (s, (s', _)) =>
@@ -754,7 +751,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                              (*add constraints arising from converting goal to clause form*)
                 val proof = Metis.Proof.proof mth
-                val result = translate ctxt' mode skolem_somes axioms proof
+                val result = translate ctxt' mode skolems axioms proof
                 and used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) used

@@ -142,24 +142,23 @@ fun is_true_literal (Literal (pol, CombConst ((c, _), _, _))) =
 fun is_tautology (HOLClause {literals,...}) = exists is_true_literal literals
 
 (* making axiom and conjecture clauses *)
-fun make_clause thy (clause_id, axiom_name, kind, th) skolem_somes =
+fun make_clause thy (clause_id, axiom_name, kind, th) skolems =
   let
-    val (skolem_somes, t) =
-      th |> prop_of |> conceal_skolem_somes clause_id skolem_somes
+    val (skolems, t) = th |> prop_of |> conceal_skolem_terms clause_id skolems
     val (lits, ctypes_sorts) = literals_of_term thy t
   in
     if forall is_false_literal lits then
       raise TRIVIAL ()
     else
-      (skolem_somes,
+      (skolems,
        HOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,
                   kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
   end
 
-fun add_axiom_clause thy ((name, k), th) (skolem_somes, clss) =
+fun add_axiom_clause thy ((name, k), th) (skolems, clss) =
   let
-    val (skolem_somes, cls) = make_clause thy (k, name, Axiom, th) skolem_somes
-  in (skolem_somes, clss |> not (is_tautology cls) ? cons (name, cls)) end
+    val (skolems, cls) = make_clause thy (k, name, Axiom, th) skolems
+  in (skolems, clss |> not (is_tautology cls) ? cons (name, cls)) end
 
 fun make_axiom_clauses thy clauses =
   ([], []) |> fold_rev (add_axiom_clause thy) clauses |> snd
@@ -167,11 +166,11 @@ fun make_axiom_clauses thy clauses =
 fun make_conjecture_clauses thy =
   let
     fun aux _ _ [] = []
-      | aux n skolem_somes (th :: ths) =
+      | aux n skolems (th :: ths) =
         let
-          val (skolem_somes, cls) =
-            make_clause thy (n, "conjecture", Conjecture, th) skolem_somes
-        in cls :: aux (n + 1) skolem_somes ths end
+          val (skolems, cls) =
+            make_clause thy (n, "conjecture", Conjecture, th) skolems
+        in cls :: aux (n + 1) skolems ths end
   in aux 0 [] end
 
 (** Helper clauses **)
