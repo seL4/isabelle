@@ -185,7 +185,7 @@ fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
 
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)
-  #> (if raw then  map (apfst (rpair 0)) else cnf_rules_pairs thy)
+  #> (if raw then map (apfst (rpair 0)) else cnf_rules_pairs thy true)
 
 val optional_helpers =
   [(["c_COMBI", "c_COMBK"], (false, @{thms COMBI_def COMBK_def})),
@@ -264,7 +264,7 @@ fun generic_tptp_prover
                     relevance_convergence defs_relevant max_axiom_clauses
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal goal_cls
-                |> cnf_rules_pairs thy
+                |> cnf_rules_pairs thy true
     val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
       prepare_clauses full_types goal_cls the_axiom_clauses the_filtered_clauses

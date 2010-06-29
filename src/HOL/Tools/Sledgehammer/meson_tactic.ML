@@ -18,7 +18,7 @@ fun meson_general_tac ctxt ths =
   let
     val thy = ProofContext.theory_of ctxt
     val ctxt0 = Classical.put_claset HOL_cs ctxt
-  in Meson.meson_tac ctxt0 (maps (Clausifier.cnf_axiom thy) ths) end
+  in Meson.meson_tac ctxt0 (maps (Clausifier.cnf_axiom thy false) ths) end
 
 val setup =
   Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn ctxt =>
