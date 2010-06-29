@@ -205,21 +205,21 @@ fun skolem_theorem_of_def thy cheat rhs0 =
       | _ => raise TERM ("skolem_theorem_of_def: expected \"Eps\"", [hilbert])
     val cex = Thm.cterm_of thy (HOLogic.exists_const T)
     val ex_tm = Thm.capply cTrueprop (Thm.capply cex cabs)
-    and conc =
+    val conc =
       Drule.list_comb (rhs, frees)
       |> Drule.beta_conv cabs |> Thm.capply cTrueprop
     fun tacf [prem] =
-      rewrite_goals_tac skolem_id_def_raw
-      THEN rtac ((prem |> rewrite_rule skolem_id_def_raw)
-                 RS @{thm someI_ex}) 1
+      if cheat then
+        Skip_Proof.cheat_tac thy
+      else
+        rewrite_goals_tac skolem_id_def_raw
+        THEN rtac ((prem |> rewrite_rule skolem_id_def_raw)
+                   RS @{thm someI_ex}) 1
   in
-    (if cheat then
-      Skip_Proof.make_thm thy (Logic.mk_implies (pairself term_of (ex_tm, conc)))
-    else
-      Goal.prove_internal [ex_tm] conc tacf
-      |> forall_intr_list frees
-      |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
-      |> Thm.varifyT_global)
+    Goal.prove_internal [ex_tm] conc tacf
+    |> forall_intr_list frees
+    |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
+    |> Thm.varifyT_global
   end
 
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
