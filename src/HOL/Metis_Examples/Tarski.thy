@@ -507,9 +507,8 @@ done
 
 (*never proved, 2007-01-22*)
 declare [[ atp_problem_prefix = "Tarski__CLF_lubH_is_fixp" ]]
-(*Single-step version fails. The conjecture clauses refer to local abstraction
-functions (Frees), which prevents expand_defs_tac from removing those 
-"definitions" at the end of the proof. *)
+(* Single-step version fails. The conjecture clauses refer to local abstraction
+functions (Frees). *)
 lemma (in CLF) lubH_is_fixp:
      "H = {x. (x, f x) \<in> r & x \<in> A} ==> lub H cl \<in> fix f A"
 apply (simp add: fix_def)

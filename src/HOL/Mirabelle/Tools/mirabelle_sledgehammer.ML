@@ -299,7 +299,6 @@ datatype sh_result =
 
 fun run_sh prover hard_timeout timeout dir st =
   let
-    val _ = Sledgehammer_Fact_Filter.use_natural_form := true (* experimental *)
     val {context = ctxt, facts, goal} = Proof.goal st
     val thy = ProofContext.theory_of ctxt
     val change_dir = (fn SOME d => Config.put ATP_Systems.dest_dir d | _ => I)
@@ -325,7 +324,7 @@ fun run_sh prover hard_timeout timeout dir st =
       NONE => (message, SH_OK (time_isa, time_atp, relevant_thm_names))
     | SOME _ => (message, SH_FAIL (time_isa, time_atp))
   end
-  handle Metis_Clauses.TRIVIAL () => ("trivial", SH_OK (0, 0, []))
+  handle ATP_Manager.TRIVIAL () => ("trivial", SH_OK (0, 0, []))
        | ERROR msg => ("error: " ^ msg, SH_ERROR)
        | TimeLimit.TimeOut => ("timeout", SH_ERROR)
 

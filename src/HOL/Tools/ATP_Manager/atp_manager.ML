@@ -8,9 +8,8 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
-  type cnf_thm = Clausifier.cnf_thm
-  type name_pool = Metis_Clauses.name_pool
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
+  type name_pool = Sledgehammer_TPTP_Format.name_pool
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
     {debug: bool,
@@ -31,11 +30,11 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: cnf_thm list option,
-     filtered_clauses: cnf_thm list option}
+     axiom_clauses: ((string * int) * thm) list option,
+     filtered_clauses: ((string * int) * thm) list option}
   datatype failure =
-    Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
-    MalformedInput | MalformedOutput | UnknownError
+    Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
+    OutOfResources | OldSpass | MalformedInput | MalformedOutput | UnknownError
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -46,9 +45,10 @@ sig
      proof: string,
      internal_thm_names: string Vector.vector,
      conjecture_shape: int list list,
-     filtered_clauses: cnf_thm list}
+     filtered_clauses: ((string * int) * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
+  exception TRIVIAL of unit
 
   val kill_atps: unit -> unit
   val running_atps: unit -> unit
@@ -98,12 +98,12 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: cnf_thm list option,
-   filtered_clauses: cnf_thm list option}
+   axiom_clauses: ((string * int) * thm) list option,
+   filtered_clauses: ((string * int) * thm) list option}
 
 datatype failure =
-  Unprovable | IncompleteUnprovable | TimedOut | OutOfResources | OldSpass |
-  MalformedInput | MalformedOutput | UnknownError
+  Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
+  OldSpass | MalformedInput | MalformedOutput | UnknownError
 
 type prover_result =
   {outcome: failure option,
@@ -115,10 +115,13 @@ type prover_result =
    proof: string,
    internal_thm_names: string Vector.vector,
    conjecture_shape: int list list,
-   filtered_clauses: cnf_thm list}
+   filtered_clauses: ((string * int) * thm) list}
 
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result
+
+(* Trivial problem, which resolution cannot handle (empty clause) *)
+exception TRIVIAL of unit
 
 (* named provers *)
 

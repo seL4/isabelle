@@ -19,6 +19,7 @@ struct
 
 open Clausifier
 open Sledgehammer_Util
+open Sledgehammer_Fact_Filter
 open ATP_Manager
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer
@@ -193,8 +194,7 @@ val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
 (* Sledgehammer the given subgoal *)
 
 fun run {atps = [], ...} _ _ _ _ = error "No ATP is set."
-  | run (params as {atps, timeout, ...}) i relevance_override minimize_command
-        state =
+  | run (params as {atps, ...}) i relevance_override minimize_command state =
     case subgoal_count state of
       0 => priority "No subgoal!"
     | n =>

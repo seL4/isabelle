@@ -7,62 +7,16 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature CLAUSIFIER =
 sig
-  type cnf_thm = thm * ((string * int) * thm)
-
-  val sledgehammer_prefix: string
-  val chained_prefix: string
-  val trace: bool Unsynchronized.ref
-  val trace_msg: (unit -> string) -> unit
-  val name_thms_pair_from_ref :
-    Proof.context -> thm list -> Facts.ref -> string * thm list
-  val skolem_theory_name: string
-  val skolem_prefix: string
-  val skolem_infix: string
-  val is_skolem_const_name: string -> bool
-  val num_type_args: theory -> string -> int
-  val cnf_axiom: theory -> thm -> thm list
-  val multi_base_blacklist: string list
-  val is_theorem_bad_for_atps: thm -> bool
-  val type_has_topsort: typ -> bool
-  val cnf_rules_pairs : theory -> (string * thm) list -> cnf_thm list
-  val saturate_cache: theory -> theory option
-  val auto_saturate_cache: bool Unsynchronized.ref
+  val cnf_axiom: theory -> bool -> thm -> thm list
+  val cnf_rules_pairs :
+    theory -> bool -> (string * thm) list -> ((string * int) * thm) list
   val neg_clausify: thm -> thm list
   val neg_conjecture_clauses:
     Proof.context -> thm -> int -> thm list list * (string * typ) list
-  val setup: theory -> theory
 end;
 
 structure Clausifier : CLAUSIFIER =
 struct
-
-type cnf_thm = thm * ((string * int) * thm)
-
-val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
-
-(* Used to label theorems chained into the goal. *)
-val chained_prefix = sledgehammer_prefix ^ "chained_"
-
-val trace = Unsynchronized.ref false;
-fun trace_msg msg = if !trace then tracing (msg ()) else ();
-
-fun name_thms_pair_from_ref ctxt chained_ths xref =
-  let
-    val ths = ProofContext.get_fact ctxt xref
-    val name = Facts.string_of_ref xref
-               |> forall (member Thm.eq_thm chained_ths) ths
-                  ? prefix chained_prefix
-  in (name, ths) end
-
-val skolem_theory_name = sledgehammer_prefix ^ "Sko"
-val skolem_prefix = "sko_"
-val skolem_infix = "$"
-
-val type_has_topsort = Term.exists_subtype
-  (fn TFree (_, []) => true
-    | TVar (_, []) => true
-    | _ => false);
-
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -86,116 +40,39 @@ exception Clausify_failure of theory;
 
 (**** SKOLEMIZATION BY INFERENCE (lcp) ****)
 
-(*Keep the full complexity of the original name*)
-fun flatten_name s = space_implode "_X" (Long_Name.explode s);
-
-fun skolem_name thm_name j var_name =
-  skolem_prefix ^ thm_name ^ "_" ^ Int.toString j ^
-  skolem_infix ^ (if var_name = "" then "g" else flatten_name var_name)
-
-(* Hack: Could return false positives (e.g., a user happens to declare a
-   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
-val is_skolem_const_name =
-  Long_Name.base_name
-  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
-
-(* The number of type arguments of a constant, zero if it's monomorphic. For
-   (instances of) Skolem pseudoconstants, this information is encoded in the
-   constant name. *)
-fun num_type_args thy s =
-  if String.isPrefix skolem_theory_name s then
-    s |> unprefix skolem_theory_name
-      |> space_explode skolem_infix |> hd
-      |> space_explode "_" |> List.last |> Int.fromString |> the
-  else
-    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
-
-fun rhs_extra_types lhsT rhs =
-  let val lhs_vars = Term.add_tfreesT lhsT []
-      fun add_new_TFrees (TFree v) =
-            if member (op =) lhs_vars v then I else insert (op =) (TFree v)
-        | add_new_TFrees _ = I
-      val rhs_consts = fold_aterms (fn Const c => insert (op =) c | _ => I) rhs []
-  in fold (#2 #> Term.fold_atyps add_new_TFrees) rhs_consts [] end;
-
-fun skolem_type_and_args bound_T body =
-  let
-    val args1 = OldTerm.term_frees body
-    val Ts1 = map type_of args1
-    val Ts2 = rhs_extra_types (Ts1 ---> bound_T) body
-    val args2 = map (fn T => Free (gensym "vsk", T)) Ts2
-  in (Ts2 ---> Ts1 ---> bound_T, args2 @ args1) end
-
-(* Traverse a theorem, declaring Skolem function definitions. String "s" is the
-   suggested prefix for the Skolem constants. *)
-fun declare_skolem_funs s th thy =
-  let
-    val skolem_count = Unsynchronized.ref 0    (* FIXME ??? *)
-    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (s', T, p)))
-                (axs, thy) =
-        (*Existential: declare a Skolem function, then insert into body and continue*)
-        let
-          val id = skolem_name s (Unsynchronized.inc skolem_count) s'
-          val (cT, args) = skolem_type_and_args T body
-          val rhs = list_abs_free (map dest_Free args,
-                                   HOLogic.choice_const T $ body)
-                  (*Forms a lambda-abstraction over the formal parameters*)
-          val (c, thy) =
-            Sign.declare_const ((Binding.conceal (Binding.name id), cT), NoSyn) thy
-          val cdef = id ^ "_def"
-          val ((_, ax), thy) =
-            Thm.add_def true false (Binding.name cdef, Logic.mk_equals (c, rhs)) thy
-          val ax' = Drule.export_without_context ax
-        in dec_sko (subst_bound (list_comb (c, args), p)) (ax' :: axs, thy) end
-      | dec_sko (Const (@{const_name All}, _) $ (Abs (a, T, p))) thx =
-        (*Universal quant: insert a free variable into body and continue*)
-        let val fname = Name.variant (OldTerm.add_term_names (p, [])) a
-        in dec_sko (subst_bound (Free (fname, T), p)) thx end
-      | dec_sko (@{const "op &"} $ p $ q) thx = dec_sko q (dec_sko p thx)
-      | dec_sko (@{const "op |"} $ p $ q) thx = dec_sko q (dec_sko p thx)
-      | dec_sko (@{const Trueprop} $ p) thx = dec_sko p thx
-      | dec_sko _ thx = thx
-  in dec_sko (prop_of th) ([], thy) end
-
 fun mk_skolem_id t =
   let val T = fastype_of t in
     Const (@{const_name skolem_id}, T --> T) $ t
   end
 
-fun quasi_beta_eta_contract (Abs (s, T, t')) =
-    Abs (s, T, quasi_beta_eta_contract t')
-  | quasi_beta_eta_contract t = Envir.beta_eta_contract t
+fun beta_eta_under_lambdas (Abs (s, T, t')) =
+    Abs (s, T, beta_eta_under_lambdas t')
+  | beta_eta_under_lambdas t = Envir.beta_eta_contract t
 
 (*Traverse a theorem, accumulating Skolem function definitions.*)
-fun assume_skolem_funs s th =
+fun assume_skolem_funs th =
   let
-    val skolem_count = Unsynchronized.ref 0   (* FIXME ??? *)
-    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (s', T, p))) defs =
+    fun dec_sko (Const (@{const_name Ex}, _) $ (body as Abs (s', T, p))) rhss =
         (*Existential: declare a Skolem function, then insert into body and continue*)
         let
-          val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
-          val args = subtract (op =) skos (OldTerm.term_frees body) (*the formal parameters*)
+          val args = OldTerm.term_frees body
           val Ts = map type_of args
           val cT = Ts ---> T (* FIXME: use "skolem_type_and_args" *)
-          val id = skolem_name s (Unsynchronized.inc skolem_count) s'
-          val c = Free (id, cT) (* FIXME: needed? ### *)
           (* Forms a lambda-abstraction over the formal parameters *)
           val rhs =
             list_abs_free (map dest_Free args,
-                           HOLogic.choice_const T
-                           $ quasi_beta_eta_contract body)
+                           HOLogic.choice_const T $ beta_eta_under_lambdas body)
             |> mk_skolem_id
-          val def = Logic.mk_equals (c, rhs)
           val comb = list_comb (rhs, args)
-        in dec_sko (subst_bound (comb, p)) (def :: defs) end
-      | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) defs =
+        in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
+      | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) rhss =
         (*Universal quant: insert a free variable into body and continue*)
         let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
-        in dec_sko (subst_bound (Free(fname,T), p)) defs end
-      | dec_sko (@{const "op &"} $ p $ q) defs = dec_sko q (dec_sko p defs)
-      | dec_sko (@{const "op |"} $ p $ q) defs = dec_sko q (dec_sko p defs)
-      | dec_sko (@{const Trueprop} $ p) defs = dec_sko p defs
-      | dec_sko _ defs = defs
+        in dec_sko (subst_bound (Free(fname,T), p)) rhss end
+      | dec_sko (@{const "op &"} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko (@{const "op |"} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
+      | dec_sko (@{const Trueprop} $ p) rhss = dec_sko p rhss
+      | dec_sko _ rhss = rhss
   in  dec_sko (prop_of th) []  end;
 
 
@@ -304,9 +181,6 @@ fun introduce_combinators th =
 (*cterms are used throughout for efficiency*)
 val cTrueprop = Thm.cterm_of @{theory HOL} HOLogic.Trueprop;
 
-(*cterm version of mk_cTrueprop*)
-fun c_mkTrueprop A = Thm.capply cTrueprop A;
-
 (*Given an abstraction over n variables, replace the bound variables by free
   ones. Return the body, along with the list of free variables.*)
 fun c_variant_abs_multi (ct0, vars) =
@@ -314,38 +188,39 @@ fun c_variant_abs_multi (ct0, vars) =
       in  c_variant_abs_multi (ct, cv::vars)  end
       handle CTERM _ => (ct0, rev vars);
 
-(*Given the definition of a Skolem function, return a theorem to replace
-  an existential formula by a use of that function.
-   Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
-fun skolem_theorem_of_def inline def =
-  let
-      val (c, rhs) = def |> Drule.legacy_freeze_thaw |> #1 |> cprop_of
-                         |> Thm.dest_equals
-      val rhs' = rhs |> inline ? (snd o Thm.dest_comb)
-      val (ch, frees) = c_variant_abs_multi (rhs', [])
-      val (chilbert, cabs) = ch |> Thm.dest_comb
-      val thy = Thm.theory_of_cterm chilbert
-      val t = Thm.term_of chilbert
-      val T =
-        case t of
-          Const (@{const_name Eps}, Type (@{type_name fun}, [_, T])) => T
-        | _ => raise TERM ("skolem_theorem_of_def: expected \"Eps\"", [t])
-      val cex = Thm.cterm_of thy (HOLogic.exists_const T)
-      val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
-      and conc =
-        Drule.list_comb (if inline then rhs else c, frees)
-        |> Drule.beta_conv cabs |> c_mkTrueprop
-      fun tacf [prem] =
-        (if inline then rewrite_goals_tac @{thms skolem_id_def_raw}
-         else rewrite_goals_tac [def])
-        THEN rtac ((prem |> inline ? rewrite_rule @{thms skolem_id_def_raw})
-                   RS @{thm someI_ex}) 1
-  in  Goal.prove_internal [ex_tm] conc tacf
-       |> forall_intr_list frees
-       |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
-       |> Thm.varifyT_global
-  end;
+val skolem_id_def_raw = @{thms skolem_id_def_raw}
 
+(* Given the definition of a Skolem function, return a theorem to replace
+   an existential formula by a use of that function.
+   Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
+fun skolem_theorem_of_def thy cheat rhs0 =
+  let
+    val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.cterm_of thy
+    val rhs' = rhs |> Thm.dest_comb |> snd
+    val (ch, frees) = c_variant_abs_multi (rhs', [])
+    val (hilbert, cabs) = ch |> Thm.dest_comb |>> term_of
+    val T =
+      case hilbert of
+        Const (@{const_name Eps}, Type (@{type_name fun}, [_, T])) => T
+      | _ => raise TERM ("skolem_theorem_of_def: expected \"Eps\"", [hilbert])
+    val cex = Thm.cterm_of thy (HOLogic.exists_const T)
+    val ex_tm = Thm.capply cTrueprop (Thm.capply cex cabs)
+    val conc =
+      Drule.list_comb (rhs, frees)
+      |> Drule.beta_conv cabs |> Thm.capply cTrueprop
+    fun tacf [prem] =
+      if cheat then
+        Skip_Proof.cheat_tac thy
+      else
+        rewrite_goals_tac skolem_id_def_raw
+        THEN rtac ((prem |> rewrite_rule skolem_id_def_raw)
+                   RS @{thm someI_ex}) 1
+  in
+    Goal.prove_internal [ex_tm] conc tacf
+    |> forall_intr_list frees
+    |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)
+    |> Thm.varifyT_global
+  end
 
 (*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
 fun to_nnf th ctxt0 =
@@ -356,190 +231,42 @@ fun to_nnf th ctxt0 =
                     |> Meson.make_nnf ctxt
   in  (th3, ctxt)  end;
 
-(*Generate Skolem functions for a theorem supplied in nnf*)
-fun skolem_theorems_of_assume s th =
-  map (skolem_theorem_of_def true o Thm.assume o cterm_of (theory_of_thm th))
-      (assume_skolem_funs s th)
-
-
-(*** Blacklisting (more in "Sledgehammer_Fact_Filter") ***)
-
-val max_lambda_nesting = 3
-
-fun term_has_too_many_lambdas max (t1 $ t2) =
-    exists (term_has_too_many_lambdas max) [t1, t2]
-  | term_has_too_many_lambdas max (Abs (_, _, t)) =
-    max = 0 orelse term_has_too_many_lambdas (max - 1) t
-  | term_has_too_many_lambdas _ _ = false
-
-fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
-
-(* Don't count nested lambdas at the level of formulas, since they are
-   quantifiers. *)
-fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
-    formula_has_too_many_lambdas (T :: Ts) t
-  | formula_has_too_many_lambdas Ts t =
-    if is_formula_type (fastype_of1 (Ts, t)) then
-      exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
-    else
-      term_has_too_many_lambdas max_lambda_nesting t
-
-(* The max apply depth of any "metis" call in "Metis_Examples" (on 31-10-2007)
-   was 11. *)
-val max_apply_depth = 15
-
-fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
-  | apply_depth (Abs (_, _, t)) = apply_depth t
-  | apply_depth _ = 0
-
-fun is_formula_too_complex t =
-  apply_depth t > max_apply_depth orelse Meson.too_many_clauses NONE t orelse
-  formula_has_too_many_lambdas [] t
-
-fun is_strange_thm th =
-  case head_of (concl_of th) of
-      Const (a, _) => (a <> @{const_name Trueprop} andalso
-                       a <> @{const_name "=="})
-    | _ => false;
-
-fun is_theorem_bad_for_atps thm =
-  let val t = prop_of thm in
-    is_formula_too_complex t orelse exists_type type_has_topsort t orelse
-    is_strange_thm thm
-  end
-
-(* FIXME: put other record thms here, or declare as "no_atp" *)
-val multi_base_blacklist =
-  ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
-   "split_asm", "cases", "ext_cases"];
-
-fun fake_name th =
-  if Thm.has_name_hint th then flatten_name (Thm.get_name_hint th)
-  else gensym "unknown_thm_";
-
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
-fun skolemize_theorem s th =
-  if member (op =) multi_base_blacklist (Long_Name.base_name s) orelse
-     is_theorem_bad_for_atps th then
-    []
-  else
-    let
-      val ctxt0 = Variable.global_thm_context th
-      val (nnfth, ctxt) = to_nnf th ctxt0
-      val defs = skolem_theorems_of_assume s nnfth
-      val (cnfs, ctxt) = Meson.make_cnf defs nnfth ctxt
-    in
-      cnfs |> map introduce_combinators
-           |> Variable.export ctxt ctxt0
-           |> Meson.finish_cnf
-    end
-    handle THM _ => []
-
-(*The cache prevents repeated clausification of a theorem, and also repeated declaration of
-  Skolem functions.*)
-structure ThmCache = Theory_Data
-(
-  type T = thm list Thmtab.table * unit Symtab.table;
-  val empty = (Thmtab.empty, Symtab.empty);
-  val extend = I;
-  fun merge ((cache1, seen1), (cache2, seen2)) : T =
-    (Thmtab.merge (K true) (cache1, cache2), Symtab.merge (K true) (seen1, seen2));
-);
-
-val lookup_cache = Thmtab.lookup o #1 o ThmCache.get;
-val already_seen = Symtab.defined o #2 o ThmCache.get;
-
-val update_cache = ThmCache.map o apfst o Thmtab.update;
-fun mark_seen name = ThmCache.map (apsnd (Symtab.update (name, ())));
+fun skolemize_theorem thy cheat th =
+  let
+    val ctxt0 = Variable.global_thm_context th
+    val (nnfth, ctxt) = to_nnf th ctxt0
+    val sko_ths = map (skolem_theorem_of_def thy cheat)
+                      (assume_skolem_funs nnfth)
+    val (cnfs, ctxt) = Meson.make_cnf sko_ths nnfth ctxt
+  in
+    cnfs |> map introduce_combinators
+         |> Variable.export ctxt ctxt0
+         |> Meson.finish_cnf
+         |> map Thm.close_derivation
+  end
+  handle THM _ => []
 
 (* Convert Isabelle theorems into axiom clauses. *)
-fun cnf_axiom thy th0 =
-  let val th = Thm.transfer thy th0 in
-    case lookup_cache thy th of
-      SOME cls => cls
-    | NONE => map Thm.close_derivation (skolemize_theorem (fake_name th) th)
-  end;
+(* FIXME: is transfer necessary? *)
+fun cnf_axiom thy cheat = skolemize_theorem thy cheat o Thm.transfer thy
 
 
 (**** Translate a set of theorems into CNF ****)
 
 (*The combination of rev and tail recursion preserves the original order*)
-fun cnf_rules_pairs thy =
+fun cnf_rules_pairs thy cheat =
   let
     fun do_one _ [] = []
       | do_one ((name, k), th) (cls :: clss) =
-        (cls, ((name, k), th)) :: do_one ((name, k + 1), th) clss
+        ((name, k), cls) :: do_one ((name, k + 1), th) clss
     fun do_all pairs [] = pairs
       | do_all pairs ((name, th) :: ths) =
         let
-          val new_pairs = do_one ((name, 0), th) (cnf_axiom thy th)
+          val new_pairs = do_one ((name, 0), th) (cnf_axiom thy cheat th)
                           handle THM _ => []
         in do_all (new_pairs @ pairs) ths end
   in do_all [] o rev end
-
-
-(**** Convert all facts of the theory into FOL or HOL clauses ****)
-
-local
-
-fun skolem_def (name, th) thy =
-  let val ctxt0 = Variable.global_thm_context th in
-    case try (to_nnf th) ctxt0 of
-      NONE => (NONE, thy)
-    | SOME (nnfth, ctxt) =>
-      let val (defs, thy') = declare_skolem_funs (flatten_name name) nnfth thy
-      in (SOME (th, ctxt0, ctxt, nnfth, defs), thy') end
-  end;
-
-fun skolem_cnfs (th, ctxt0, ctxt, nnfth, defs) =
-  let
-    val (cnfs, ctxt) =
-      Meson.make_cnf (map (skolem_theorem_of_def false) defs) nnfth ctxt
-    val cnfs' = cnfs
-      |> map introduce_combinators
-      |> Variable.export ctxt ctxt0
-      |> Meson.finish_cnf
-      |> map Thm.close_derivation;
-    in (th, cnfs') end;
-
-in
-
-fun saturate_cache thy =
-  let
-    val facts = PureThy.facts_of thy;
-    val new_facts = (facts, []) |-> Facts.fold_static (fn (name, ths) =>
-      if Facts.is_concealed facts name orelse already_seen thy name then I
-      else cons (name, ths));
-    val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
-      if member (op =) multi_base_blacklist (Long_Name.base_name name) then
-        I
-      else
-        fold_index (fn (i, th) =>
-          if is_theorem_bad_for_atps th orelse
-             is_some (lookup_cache thy th) then
-            I
-          else
-            cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths)
-  in
-    if null new_facts then
-      NONE
-    else
-      let
-        val (defs, thy') = thy
-          |> fold (mark_seen o #1) new_facts
-          |> fold_map skolem_def (sort_distinct (Thm.thm_ord o pairself snd) new_thms)
-          |>> map_filter I;
-        val cache_entries = Par_List.map skolem_cnfs defs;
-      in SOME (fold update_cache cache_entries thy') end
-  end;
-
-end;
-
-(* For emergency use where the Skolem cache causes problems. *)
-val auto_saturate_cache = Unsynchronized.ref true
-
-fun conditionally_saturate_cache thy =
-  if !auto_saturate_cache then saturate_cache thy else NONE
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
@@ -561,11 +288,5 @@ fun neg_conjecture_clauses ctxt st0 n =
       Subgoal.focus (Variable.set_body false ctxt) n st
   in (map neg_clausify prems, map (dest_Free o term_of o #2) params) end
 
-
-(** setup **)
-
-val setup =
-  perhaps conditionally_saturate_cache
-  #> Theory.at_end conditionally_saturate_cache
 
 end;

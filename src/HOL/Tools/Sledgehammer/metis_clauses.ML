@@ -8,9 +8,7 @@ treated differently.
 
 signature METIS_CLAUSES =
 sig
-  type cnf_thm = Clausifier.cnf_thm
   type name = string * string
-  type name_pool = string Symtab.table * string Symtab.table
   datatype kind = Axiom | Conjecture
   datatype type_literal =
     TyLitVar of string * name |
@@ -34,7 +32,6 @@ sig
   datatype hol_clause =
     HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
                   literals: literal list, ctypes_sorts: typ list}
-  exception TRIVIAL of unit
 
   val type_wrapper_name : string
   val schematic_var_prefix: string
@@ -56,27 +53,23 @@ sig
   val make_fixed_const : string -> string
   val make_fixed_type_const : string -> string
   val make_type_class : string -> string
-  val empty_name_pool : bool -> name_pool option
-  val pool_map : ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b
-  val nice_name : name -> name_pool option -> string * name_pool option
+  val skolem_theory_name: string
+  val skolem_prefix: string
+  val skolem_infix: string
+  val is_skolem_const_name: string -> bool
+  val num_type_args: theory -> string -> int
   val type_literals_for_types : typ list -> type_literal list
   val make_classrel_clauses: theory -> class list -> class list -> classrel_clause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
   val type_of_combterm : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
   val literals_of_term : theory -> term -> literal list * typ list
-  val conceal_skolem_somes :
+  val conceal_skolem_terms :
     int -> (string * term) list -> term -> (string * term) list * term
-  val is_quasi_fol_theorem : theory -> thm -> bool
-  val make_clause_table : (thm * 'a) list -> (thm * 'a) Termtab.table
+  val reveal_skolem_terms : (string * term) list -> term -> term
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
-  val prepare_clauses :
-    bool -> thm list -> cnf_thm list -> cnf_thm list -> theory
-    -> string vector
-       * (hol_clause list * hol_clause list * hol_clause list * hol_clause list
-          * classrel_clause list * arity_clause list)
 end
 
 structure Metis_Clauses : METIS_CLAUSES =
@@ -206,69 +199,30 @@ fun make_fixed_type_const c = tconst_prefix ^ lookup_const c
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
+val skolem_theory_name = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
+val skolem_prefix = "sko_"
+val skolem_infix = "$"
 
-(**** name pool ****)
- 
-type name = string * string
-type name_pool = string Symtab.table * string Symtab.table
+(* Hack: Could return false positives (e.g., a user happens to declare a
+   constant called "SomeTheory.sko_means_shoe_in_$wedish". *)
+val is_skolem_const_name =
+  Long_Name.base_name
+  #> String.isPrefix skolem_prefix andf String.isSubstring skolem_infix
 
-fun empty_name_pool readable_names =
-  if readable_names then SOME (`I Symtab.empty) else NONE
-
-fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
-fun pool_map f xs =
-  pool_fold (fn x => fn ys => fn pool => f x pool |>> (fn y => y :: ys)) xs []
-
-fun add_nice_name full_name nice_prefix j the_pool =
-  let
-    val nice_name = nice_prefix ^ (if j = 0 then "" else "_" ^ Int.toString j)
-  in
-    case Symtab.lookup (snd the_pool) nice_name of
-      SOME full_name' =>
-      if full_name = full_name' then (nice_name, the_pool)
-      else add_nice_name full_name nice_prefix (j + 1) the_pool
-    | NONE =>
-      (nice_name, (Symtab.update_new (full_name, nice_name) (fst the_pool),
-                   Symtab.update_new (nice_name, full_name) (snd the_pool)))
-  end
-
-fun translate_first_char f s =
-  String.str (f (String.sub (s, 0))) ^ String.extract (s, 1, NONE)
-
-fun readable_name full_name s =
-  let
-    val s = s |> Long_Name.base_name |> Name.desymbolize false
-    val s' = s |> explode |> rev |> dropwhile (curry (op =) "'")
-    val s' =
-      (s' |> rev
-          |> implode
-          |> String.translate
-                 (fn c => if Char.isAlphaNum c orelse c = #"_" then String.str c
-                          else ""))
-      ^ replicate_string (String.size s - length s') "_"
-    val s' =
-      if s' = "" orelse not (Char.isAlpha (String.sub (s', 0))) then "X" ^ s'
-      else s'
-    (* Avoid "equal", since it's built into ATPs; and "op" is very ambiguous
-       ("op &", "op |", etc.). *)
-    val s' = if s' = "equal" orelse s' = "op" then full_name else s'
-  in
-    case (Char.isLower (String.sub (full_name, 0)),
-          Char.isLower (String.sub (s', 0))) of
-      (true, false) => translate_first_char Char.toLower s'
-    | (false, true) => translate_first_char Char.toUpper s'
-    | _ => s'
-  end
-
-fun nice_name (full_name, _) NONE = (full_name, NONE)
-  | nice_name (full_name, desired_name) (SOME the_pool) =
-    case Symtab.lookup (fst the_pool) full_name of
-      SOME nice_name => (nice_name, SOME the_pool)
-    | NONE => add_nice_name full_name (readable_name full_name desired_name) 0
-                            the_pool
-              |> apsnd SOME
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
+fun num_type_args thy s =
+  if String.isPrefix skolem_theory_name s then
+    s |> unprefix skolem_theory_name
+      |> space_explode skolem_infix |> hd
+      |> space_explode "_" |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 (**** Definitions and functions for FOL clauses for TPTP format output ****)
+
+type name = string * string
 
 datatype kind = Axiom | Conjecture
 
@@ -426,17 +380,6 @@ fun strip_combterm_comb u =
         |   stripc  x =  x
     in stripc(u,[]) end
 
-fun isFalse (Literal (pol, CombConst ((c, _), _, _))) =
-      (pol andalso c = "c_False") orelse (not pol andalso c = "c_True")
-  | isFalse _ = false;
-
-fun isTrue (Literal (pol, CombConst ((c, _), _, _))) =
-      (pol andalso c = "c_True") orelse
-      (not pol andalso c = "c_False")
-  | isTrue _ = false;
-
-fun isTaut (HOLClause {literals,...}) = exists isTrue literals;
-
 fun type_of (Type (a, Ts)) =
     let val (folTypes,ts) = types_of Ts in
       (TyConstr (`make_fixed_type_const a, folTypes), ts)
@@ -480,7 +423,7 @@ fun combterm_of thy (Const (c, T)) =
       let val (P', tsP) = combterm_of thy P
           val (Q', tsQ) = combterm_of thy Q
       in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
-  | combterm_of _ (t as Abs _) = raise Fail "HOL clause: Abs"
+  | combterm_of _ (Abs _) = raise Fail "HOL clause: Abs"
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
   | predicate_of thy (t, pos) = (combterm_of thy (Envir.eta_contract t), pos)
@@ -499,120 +442,46 @@ fun skolem_name i j num_T_args =
   skolem_prefix ^ (space_implode "_" (map Int.toString [i, j, num_T_args])) ^
   skolem_infix ^ "g"
 
-fun conceal_skolem_somes i skolem_somes t =
+fun conceal_skolem_terms i skolems t =
   if exists_Const (curry (op =) @{const_name skolem_id} o fst) t then
     let
-      fun aux skolem_somes
+      fun aux skolems
               (t as (Const (@{const_name skolem_id}, Type (_, [_, T])) $ _)) =
           let
-            val (skolem_somes, s) =
+            val (skolems, s) =
               if i = ~1 then
-                (skolem_somes, @{const_name undefined})
-              else case AList.find (op aconv) skolem_somes t of
-                s :: _ => (skolem_somes, s)
+                (skolems, @{const_name undefined})
+              else case AList.find (op aconv) skolems t of
+                s :: _ => (skolems, s)
               | [] =>
                 let
                   val s = skolem_theory_name ^ "." ^
-                          skolem_name i (length skolem_somes)
+                          skolem_name i (length skolems)
                                         (length (Term.add_tvarsT T []))
-                in ((s, t) :: skolem_somes, s) end
-          in (skolem_somes, Const (s, T)) end
-        | aux skolem_somes (t1 $ t2) =
+                in ((s, t) :: skolems, s) end
+          in (skolems, Const (s, T)) end
+        | aux skolems (t1 $ t2) =
           let
-            val (skolem_somes, t1) = aux skolem_somes t1
-            val (skolem_somes, t2) = aux skolem_somes t2
-          in (skolem_somes, t1 $ t2) end
-        | aux skolem_somes (Abs (s, T, t')) =
-          let val (skolem_somes, t') = aux skolem_somes t' in
-            (skolem_somes, Abs (s, T, t'))
+            val (skolems, t1) = aux skolems t1
+            val (skolems, t2) = aux skolems t2
+          in (skolems, t1 $ t2) end
+        | aux skolems (Abs (s, T, t')) =
+          let val (skolems, t') = aux skolems t' in
+            (skolems, Abs (s, T, t'))
           end
-        | aux skolem_somes t = (skolem_somes, t)
-    in aux skolem_somes t end
+        | aux skolems t = (skolems, t)
+    in aux skolems t end
   else
-    (skolem_somes, t)
+    (skolems, t)
 
-fun is_quasi_fol_theorem thy =
-  Meson.is_fol_term thy o snd o conceal_skolem_somes ~1 [] o prop_of
-
-(* Trivial problem, which resolution cannot handle (empty clause) *)
-exception TRIVIAL of unit
-
-(* making axiom and conjecture clauses *)
-fun make_clause thy (clause_id, axiom_name, kind, th) skolem_somes =
-  let
-    val (skolem_somes, t) =
-      th |> prop_of |> conceal_skolem_somes clause_id skolem_somes
-    val (lits, ctypes_sorts) = literals_of_term thy t
-  in
-    if forall isFalse lits then
-      raise TRIVIAL ()
-    else
-      (skolem_somes,
-       HOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,
-                  kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
-  end
-
-fun add_axiom_clause thy (th, ((name, id), _ : thm)) (skolem_somes, clss) =
-  let
-    val (skolem_somes, cls) = make_clause thy (id, name, Axiom, th) skolem_somes
-  in (skolem_somes, clss |> not (isTaut cls) ? cons (name, cls)) end
-
-fun make_axiom_clauses thy clauses =
-  ([], []) |> fold_rev (add_axiom_clause thy) clauses |> snd
-
-fun make_conjecture_clauses thy =
-  let
-    fun aux _ _ [] = []
-      | aux n skolem_somes (th :: ths) =
-        let
-          val (skolem_somes, cls) =
-            make_clause thy (n, "conjecture", Conjecture, th) skolem_somes
-        in cls :: aux (n + 1) skolem_somes ths end
-  in aux 0 [] end
-
-(** Helper clauses **)
-
-fun count_combterm (CombConst ((c, _), _, _)) =
-    Symtab.map_entry c (Integer.add 1)
-  | count_combterm (CombVar _) = I
-  | count_combterm (CombApp (t1, t2)) = count_combterm t1 #> count_combterm t2
-fun count_literal (Literal (_, t)) = count_combterm t
-fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
-
-fun raw_cnf_rules_pairs ps = map (fn (name, thm) => (thm, ((name, 0), thm))) ps
-fun cnf_helper_thms thy raw =
-  map (`Thm.get_name_hint)
-  #> (if raw then raw_cnf_rules_pairs else cnf_rules_pairs thy)
-
-val optional_helpers =
-  [(["c_COMBI", "c_COMBK"], (false, @{thms COMBI_def COMBK_def})),
-   (["c_COMBB", "c_COMBC"], (false, @{thms COMBB_def COMBC_def})),
-   (["c_COMBS"], (false, @{thms COMBS_def}))]
-val optional_typed_helpers =
-  [(["c_True", "c_False"], (true, @{thms True_or_False})),
-   (["c_If"], (true, @{thms if_True if_False True_or_False}))]
-val mandatory_helpers = @{thms fequal_imp_equal equal_imp_fequal}
-
-val init_counters =
-  Symtab.make (maps (maps (map (rpair 0) o fst))
-                    [optional_helpers, optional_typed_helpers])
-
-fun get_helper_clauses thy is_FO full_types conjectures axcls =
-  let
-    val axclauses = map snd (make_axiom_clauses thy axcls)
-    val ct = fold (fold count_clause) [conjectures, axclauses] init_counters
-    fun is_needed c = the (Symtab.lookup ct c) > 0
-    val cnfs =
-      (optional_helpers
-       |> full_types ? append optional_typed_helpers
-       |> maps (fn (ss, (raw, ths)) =>
-                   if exists is_needed ss then cnf_helper_thms thy raw ths
-                   else []))
-      @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
-  in map snd (make_axiom_clauses thy cnfs) end
-
-fun make_clause_table xs =
-  fold (Termtab.update o `(prop_of o fst)) xs Termtab.empty
+fun reveal_skolem_terms skolems =
+  map_aterms (fn t as Const (s, _) =>
+                 if String.isPrefix skolem_theory_name s then
+                   AList.lookup (op =) skolems s |> the
+                   |> map_types Type_Infer.paramify_vars
+                 else
+                   t
+               | t => t)
 
 
 (***************************************************************)
@@ -651,35 +520,5 @@ fun add_type_consts_in_term thy =
 
 fun type_consts_of_terms thy ts =
   Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty);
-
-(* Remove existing axiom clauses from the conjecture clauses, as this can
-   dramatically boost an ATP's performance (for some reason). *)
-fun subtract_cls ax_clauses =
-  filter_out (Termtab.defined (make_clause_table ax_clauses) o prop_of)
-
-(* prepare for passing to writer,
-   create additional clauses based on the information from extra_cls *)
-fun prepare_clauses full_types goal_cls axcls extra_cls thy =
-  let
-    val is_FO = forall (Meson.is_fol_term thy o prop_of) goal_cls
-    val ccls = subtract_cls extra_cls goal_cls
-    val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
-    val ccltms = map prop_of ccls
-    and axtms = map (prop_of o #1) extra_cls
-    val subs = tfree_classes_of_terms ccltms
-    and supers = tvar_classes_of_terms axtms
-    and tycons = type_consts_of_terms thy (ccltms @ axtms)
-    (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val conjectures = make_conjecture_clauses thy ccls
-    val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses thy extra_cls)
-    val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses thy axcls)
-    val helper_clauses =
-      get_helper_clauses thy is_FO full_types conjectures extra_cls
-    val (supers', arity_clauses) = make_arity_clauses thy tycons supers
-    val classrel_clauses = make_classrel_clauses thy subs supers'
-  in
-    (Vector.fromList clnames,
-      (conjectures, axiom_clauses, extra_clauses, helper_clauses, classrel_clauses, arity_clauses))
-  end
 
 end;

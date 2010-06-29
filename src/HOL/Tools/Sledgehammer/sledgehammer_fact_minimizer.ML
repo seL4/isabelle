@@ -51,11 +51,12 @@ fun string_for_outcome NONE = "Success."
 fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
                                filtered_clauses name_thms_pairs =
   let
+    val thy = Proof.theory_of state
     val num_theorems = length name_thms_pairs
     val _ = priority ("Testing " ^ string_of_int num_theorems ^
                       " theorem" ^ plural_s num_theorems ^ "...")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
-    val axclauses = cnf_rules_pairs (Proof.theory_of state) name_thm_pairs
+    val axclauses = cnf_rules_pairs thy true name_thm_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
