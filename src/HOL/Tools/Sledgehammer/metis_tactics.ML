@@ -670,13 +670,16 @@ val helpers =
    ("c_False", (true, @{thms True_or_False})),
    ("c_If", (true, @{thms if_True if_False True_or_False}))]
 
+fun is_quasi_fol_clause thy =
+  Meson.is_fol_term thy o snd o conceal_skolem_somes ~1 [] o prop_of
+
 (* Function to generate metis clauses, including comb and type clauses *)
 fun build_map mode0 ctxt cls ths =
   let val thy = ProofContext.theory_of ctxt
       (*The modes FO and FT are sticky. HO can be downgraded to FO.*)
       fun set_mode FO = FO
         | set_mode HO =
-          if forall (is_quasi_fol_theorem thy) (cls @ ths) then FO else HO
+          if forall (is_quasi_fol_clause thy) (cls @ ths) then FO else HO
         | set_mode FT = FT
       val mode = set_mode mode0
       (*transform isabelle clause to metis clause *)

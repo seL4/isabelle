@@ -48,6 +48,7 @@ sig
      filtered_clauses: ((string * int) * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
+  exception TRIVIAL of unit
 
   val kill_atps: unit -> unit
   val running_atps: unit -> unit
@@ -118,6 +119,9 @@ type prover_result =
 
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result
+
+(* Trivial problem, which resolution cannot handle (empty clause) *)
+exception TRIVIAL of unit
 
 (* named provers *)
 
