@@ -8,7 +8,7 @@ Transfer of proofs from external provers.
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
   type minimize_command = string list -> string
-  type name_pool = Metis_Clauses.name_pool
+  type name_pool = Sledgehammer_TPTP_Format.name_pool
 
   val metis_line: bool -> int -> int -> string list -> string
   val metis_proof_text:
@@ -31,6 +31,7 @@ open Clausifier
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
+open Sledgehammer_TPTP_Format
 
 type minimize_command = string list -> string
 

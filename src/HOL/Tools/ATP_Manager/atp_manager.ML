@@ -8,8 +8,8 @@ Central manager component for ATP threads.
 
 signature ATP_MANAGER =
 sig
-  type name_pool = Metis_Clauses.name_pool
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
+  type name_pool = Sledgehammer_TPTP_Format.name_pool
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
     {debug: bool,

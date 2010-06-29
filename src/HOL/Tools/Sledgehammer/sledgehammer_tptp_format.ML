@@ -7,14 +7,11 @@ TPTP syntax.
 
 signature SLEDGEHAMMER_TPTP_FORMAT =
 sig
-  type name_pool = Metis_Clauses.name_pool
-  type type_literal = Metis_Clauses.type_literal
   type classrel_clause = Metis_Clauses.classrel_clause
   type arity_clause = Metis_Clauses.arity_clause
   type hol_clause = Metis_Clauses.hol_clause
+  type name_pool = string Symtab.table * string Symtab.table
 
-  val tptp_of_type_literal :
-    bool -> type_literal -> name_pool option -> string * name_pool option
   val write_tptp_file :
     bool -> bool -> bool -> Path.T
     -> hol_clause list * hol_clause list * hol_clause list * hol_clause list
@@ -27,6 +24,65 @@ struct
 
 open Metis_Clauses
 open Sledgehammer_Util
+
+type name_pool = string Symtab.table * string Symtab.table
+
+fun empty_name_pool readable_names =
+  if readable_names then SOME (`I Symtab.empty) else NONE
+
+fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
+fun pool_map f xs =
+  pool_fold (fn x => fn ys => fn pool => f x pool |>> (fn y => y :: ys)) xs []
+
+fun translate_first_char f s =
+  String.str (f (String.sub (s, 0))) ^ String.extract (s, 1, NONE)
+fun readable_name full_name s =
+  let
+    val s = s |> Long_Name.base_name |> Name.desymbolize false
+    val s' = s |> explode |> rev |> dropwhile (curry (op =) "'")
+    val s' =
+      (s' |> rev
+          |> implode
+          |> String.translate
+                 (fn c => if Char.isAlphaNum c orelse c = #"_" then String.str c
+                          else ""))
+      ^ replicate_string (String.size s - length s') "_"
+    val s' =
+      if s' = "" orelse not (Char.isAlpha (String.sub (s', 0))) then "X" ^ s'
+      else s'
+    (* Avoid "equal", since it's built into ATPs; and "op" is very ambiguous
+       ("op &", "op |", etc.). *)
+    val s' = if s' = "equal" orelse s' = "op" then full_name else s'
+  in
+    case (Char.isLower (String.sub (full_name, 0)),
+          Char.isLower (String.sub (s', 0))) of
+      (true, false) => translate_first_char Char.toLower s'
+    | (false, true) => translate_first_char Char.toUpper s'
+    | _ => s'
+  end
+
+fun nice_name (full_name, _) NONE = (full_name, NONE)
+  | nice_name (full_name, desired_name) (SOME the_pool) =
+    case Symtab.lookup (fst the_pool) full_name of
+      SOME nice_name => (nice_name, SOME the_pool)
+    | NONE =>
+      let
+        val nice_prefix = readable_name full_name desired_name
+        fun add j =
+          let
+            val nice_name = nice_prefix ^
+                            (if j = 0 then "" else "_" ^ Int.toString j)
+          in
+            case Symtab.lookup (snd the_pool) nice_name of
+              SOME full_name' =>
+              if full_name = full_name' then (nice_name, the_pool)
+              else add (j + 1)
+            | NONE =>
+              (nice_name,
+               (Symtab.update_new (full_name, nice_name) (fst the_pool),
+                Symtab.update_new (nice_name, full_name) (snd the_pool)))
+          end
+      in add 0 |> apsnd SOME end
 
 type const_info = {min_arity: int, max_arity: int, sub_level: bool}
 
