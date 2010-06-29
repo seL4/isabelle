@@ -779,11 +779,14 @@ fun FOL_SOLVE mode ctxt cls ths0 =
              raise METIS ("FOL_SOLVE", ""))
   end;
 
+val type_has_top_sort =
+  exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
+
 fun generic_metis_tac mode ctxt ths i st0 =
   let val _ = trace_msg (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
-    if exists_type type_has_topsort (prop_of st0) then
+    if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
       (Meson.MESON (maps neg_clausify)

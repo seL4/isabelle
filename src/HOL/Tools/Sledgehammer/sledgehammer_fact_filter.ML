@@ -393,8 +393,60 @@ fun make_clause_table xs =
 fun make_unique xs =
   Termtab.fold (cons o snd) (make_clause_table xs) []
 
+(* FIXME: put other record thms here, or declare as "no_atp" *)
+val multi_base_blacklist =
+  ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
+   "split_asm", "cases", "ext_cases"]
+
+val max_lambda_nesting = 3
+
+fun term_has_too_many_lambdas max (t1 $ t2) =
+    exists (term_has_too_many_lambdas max) [t1, t2]
+  | term_has_too_many_lambdas max (Abs (_, _, t)) =
+    max = 0 orelse term_has_too_many_lambdas (max - 1) t
+  | term_has_too_many_lambdas _ _ = false
+
+fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
+
+(* Don't count nested lambdas at the level of formulas, since they are
+   quantifiers. *)
+fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
+    formula_has_too_many_lambdas (T :: Ts) t
+  | formula_has_too_many_lambdas Ts t =
+    if is_formula_type (fastype_of1 (Ts, t)) then
+      exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
+    else
+      term_has_too_many_lambdas max_lambda_nesting t
+
+(* The max apply depth of any "metis" call in "Metis_Examples" (on 31-10-2007)
+   was 11. *)
+val max_apply_depth = 15
+
+fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
+  | apply_depth (Abs (_, _, t)) = apply_depth t
+  | apply_depth _ = 0
+
+fun is_formula_too_complex t =
+  apply_depth t > max_apply_depth orelse Meson.too_many_clauses NONE t orelse
+  formula_has_too_many_lambdas [] t
+
 val exists_sledgehammer_const =
-  exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s) o prop_of
+  exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
+
+fun is_strange_thm th =
+  case head_of (concl_of th) of
+      Const (a, _) => (a <> @{const_name Trueprop} andalso
+                       a <> @{const_name "=="})
+    | _ => false
+
+val type_has_top_sort =
+  exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
+
+fun is_theorem_bad_for_atps thm =
+  let val t = prop_of thm in
+    is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
+    exists_sledgehammer_const t orelse is_strange_thm thm
+  end
 
 fun all_name_thms_pairs ctxt chained_ths =
   let
@@ -407,8 +459,7 @@ fun all_name_thms_pairs ctxt chained_ths =
       (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
         if Facts.is_concealed facts name orelse
            (respect_no_atp andalso is_package_def name) orelse
-           member (op =) Clausifier.multi_base_blacklist
-                  (Long_Name.base_name name) then
+           member (op =) multi_base_blacklist (Long_Name.base_name name) then
           I
         else
           let
@@ -419,8 +470,7 @@ fun all_name_thms_pairs ctxt chained_ths =
 
             val name1 = Facts.extern facts name;
             val name2 = Name_Space.extern full_space name;
-            val ths = filter_out (Clausifier.is_theorem_bad_for_atps orf
-                                  exists_sledgehammer_const) ths0
+            val ths = filter_out is_theorem_bad_for_atps ths0
           in
             case find_first check_thms [name1, name2, name] of
               NONE => I

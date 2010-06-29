@@ -8,9 +8,6 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 signature CLAUSIFIER =
 sig
   val cnf_axiom: theory -> thm -> thm list
-  val multi_base_blacklist: string list
-  val is_theorem_bad_for_atps: thm -> bool
-  val type_has_topsort: typ -> bool
   val cnf_rules_pairs :
     theory -> (string * thm) list -> ((string * int) * thm) list
   val neg_clausify: thm -> thm list
@@ -20,12 +17,6 @@ end;
 
 structure Clausifier : CLAUSIFIER =
 struct
-
-val type_has_topsort = Term.exists_subtype
-  (fn TFree (_, []) => true
-    | TVar (_, []) => true
-    | _ => false);
-
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -237,77 +228,20 @@ fun to_nnf th ctxt0 =
                     |> Meson.make_nnf ctxt
   in  (th3, ctxt)  end;
 
-(*** Blacklisting (more in "Sledgehammer_Fact_Filter") ***)
-
-val max_lambda_nesting = 3
-
-fun term_has_too_many_lambdas max (t1 $ t2) =
-    exists (term_has_too_many_lambdas max) [t1, t2]
-  | term_has_too_many_lambdas max (Abs (_, _, t)) =
-    max = 0 orelse term_has_too_many_lambdas (max - 1) t
-  | term_has_too_many_lambdas _ _ = false
-
-fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
-
-(* Don't count nested lambdas at the level of formulas, since they are
-   quantifiers. *)
-fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
-    formula_has_too_many_lambdas (T :: Ts) t
-  | formula_has_too_many_lambdas Ts t =
-    if is_formula_type (fastype_of1 (Ts, t)) then
-      exists (formula_has_too_many_lambdas Ts) (#2 (strip_comb t))
-    else
-      term_has_too_many_lambdas max_lambda_nesting t
-
-(* The max apply depth of any "metis" call in "Metis_Examples" (on 31-10-2007)
-   was 11. *)
-val max_apply_depth = 15
-
-fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
-  | apply_depth (Abs (_, _, t)) = apply_depth t
-  | apply_depth _ = 0
-
-fun is_formula_too_complex t =
-  apply_depth t > max_apply_depth orelse Meson.too_many_clauses NONE t orelse
-  formula_has_too_many_lambdas [] t
-
-fun is_strange_thm th =
-  case head_of (concl_of th) of
-      Const (a, _) => (a <> @{const_name Trueprop} andalso
-                       a <> @{const_name "=="})
-    | _ => false;
-
-fun is_theorem_bad_for_atps thm =
-  let val t = prop_of thm in
-    is_formula_too_complex t orelse exists_type type_has_topsort t orelse
-    is_strange_thm thm
-  end
-
-(* FIXME: put other record thms here, or declare as "no_atp" *)
-(* FIXME: move to "Sledgehammer_Fact_Filter" *)
-val multi_base_blacklist =
-  ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
-   "split_asm", "cases", "ext_cases"];
-
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolemize_theorem thy th =
-  if member (op =) multi_base_blacklist
-            (Long_Name.base_name (Thm.get_name_hint th)) orelse
-     is_theorem_bad_for_atps th then
-    []
-  else
-    let
-      val ctxt0 = Variable.global_thm_context th
-      val (nnfth, ctxt) = to_nnf th ctxt0
-      val sko_ths = map (skolem_theorem_of_def thy) (assume_skolem_funs nnfth)
-      val (cnfs, ctxt) = Meson.make_cnf sko_ths nnfth ctxt
-    in
-      cnfs |> map introduce_combinators
-           |> Variable.export ctxt ctxt0
-           |> Meson.finish_cnf
-           |> map Thm.close_derivation
-    end
-    handle THM _ => []
+  let
+    val ctxt0 = Variable.global_thm_context th
+    val (nnfth, ctxt) = to_nnf th ctxt0
+    val sko_ths = map (skolem_theorem_of_def thy) (assume_skolem_funs nnfth)
+    val (cnfs, ctxt) = Meson.make_cnf sko_ths nnfth ctxt
+  in
+    cnfs |> map introduce_combinators
+         |> Variable.export ctxt ctxt0
+         |> Meson.finish_cnf
+         |> map Thm.close_derivation
+  end
+  handle THM _ => []
 
 (* Convert Isabelle theorems into axiom clauses. *)
 (* FIXME: is transfer necessary? *)
