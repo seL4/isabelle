@@ -457,7 +457,7 @@ type flarg = {t: term, T: typ, j: int};
 (*Form the arguments into records for deletion/sorting.*)
 fun flexargs ([], [], []) = [] : flarg list
   | flexargs (j :: js, t :: ts, T :: Ts) = {j = j, t = t, T = T} :: flexargs (js, ts, Ts)
-  | flexargs _ = error "flexargs";
+  | flexargs _ = raise Fail "flexargs";
 
 
 (*If an argument contains a banned Bound, then it should be deleted.
