@@ -21,6 +21,22 @@ merely give a byte-oriented representation.
 of ML functions, facts etc. involving split have been retained so far,
 though.  INCOMPATIBILITY.
 
+* Dropped old infix syntax "mem" for List.member;  use "in set"
+instead.  INCOMPATIBILITY.
+
+* Refactoring of code-generation specific operations in List.thy
+
+  constants
+    null ~> List.null
+
+  facts
+    mem_iff ~> member_def
+    null_empty ~> null_def
+
+INCOMPATIBILITY.  Note that these were not suppossed to be used
+regularly unless for striking reasons;  their main purpose was code
+generation.
+
 * Some previously unqualified names have been qualified:
 
   types

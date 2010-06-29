@@ -1174,7 +1174,8 @@ next
   ultimately show ?case using prime_divprod[OF p] by blast
 qed
 
-lemma primefact_variant: "primefact ps n \<longleftrightarrow> foldr op * ps 1 = n \<and> list_all prime ps" by (auto simp add: primefact_def list_all_iff)
+lemma primefact_variant: "primefact ps n \<longleftrightarrow> foldr op * ps 1 = n \<and> list_all prime ps"
+  by (auto simp add: primefact_def list_all_iff)
 
 (* Variant of Lucas theorem.                                                 *)
 

@@ -38,7 +38,7 @@ theorem is_path'_snoc [simp]:
   "\<And>x. is_path' r x (ys @ [y]) z = (is_path' r x ys y \<and> r y z = T)"
   by (induct ys) simp+
 
-theorem list_all_scoc [simp]: "list_all P (xs @ [x]) = (P x \<and> list_all P xs)"
+theorem list_all_scoc [simp]: "list_all P (xs @ [x]) \<longleftrightarrow> P x \<and> list_all P xs"
   by (induct xs, simp+, iprover)
 
 theorem list_all_lemma: 

@@ -3130,7 +3130,7 @@ lemma EVERY_MEM: "ALL (P::'a::type => bool) l::'a::type list.
   by (import list EVERY_MEM)
 
 lemma EXISTS_MEM: "ALL (P::'a::type => bool) l::'a::type list.
-   list_exists P l = (EX e::'a::type. e mem l & P e)"
+   list_ex P l = (EX e::'a::type. e mem l & P e)"
   by (import list EXISTS_MEM)
 
 lemma MEM_APPEND: "ALL (e::'a::type) (l1::'a::type list) l2::'a::type list.
@@ -3138,15 +3138,15 @@ lemma MEM_APPEND: "ALL (e::'a::type) (l1::'a::type list) l2::'a::type list.
   by (import list MEM_APPEND)
 
 lemma EXISTS_APPEND: "ALL (P::'a::type => bool) (l1::'a::type list) l2::'a::type list.
-   list_exists P (l1 @ l2) = (list_exists P l1 | list_exists P l2)"
+   list_ex P (l1 @ l2) = (list_ex P l1 | list_ex P l2)"
   by (import list EXISTS_APPEND)
 
 lemma NOT_EVERY: "ALL (P::'a::type => bool) l::'a::type list.
-   (~ list_all P l) = list_exists (Not o P) l"
+   (~ list_all P l) = list_ex (Not o P) l"
   by (import list NOT_EVERY)
 
 lemma NOT_EXISTS: "ALL (P::'a::type => bool) l::'a::type list.
-   (~ list_exists P l) = list_all (Not o P) l"
+   (~ list_ex P l) = list_all (Not o P) l"
   by (import list NOT_EXISTS)
 
 lemma MEM_MAP: "ALL (l::'a::type list) (f::'a::type => 'b::type) x::'b::type.
@@ -3220,7 +3220,7 @@ lemma MAP_CONG: "ALL (l1::'a::type list) (l2::'a::type list) (f::'a::type => 'b:
 lemma EXISTS_CONG: "ALL (l1::'a::type list) (l2::'a::type list) (P::'a::type => bool)
    P'::'a::type => bool.
    l1 = l2 & (ALL x::'a::type. x mem l2 --> P x = P' x) -->
-   list_exists P l1 = list_exists P' l2"
+   list_ex P l1 = list_ex P' l2"
   by (import list EXISTS_CONG)
 
 lemma EVERY_CONG: "ALL (l1::'a::type list) (l2::'a::type list) (P::'a::type => bool)
@@ -4598,7 +4598,7 @@ specification (SCANR) SCANR: "(ALL (f::'a::type => 'b::type => 'b::type) e::'b::
     SCANR f e (x # l) = f x (hd (SCANR f e l)) # SCANR f e l)"
   by (import rich_list SCANR)
 
-lemma IS_EL_DEF: "ALL (x::'a::type) l::'a::type list. x mem l = list_exists (op = x) l"
+lemma IS_EL_DEF: "ALL (x::'a::type) l::'a::type list. x mem l = list_ex (op = x) l"
   by (import rich_list IS_EL_DEF)
 
 definition AND_EL :: "bool list => bool" where 
@@ -4608,9 +4608,9 @@ lemma AND_EL_DEF: "AND_EL = list_all I"
   by (import rich_list AND_EL_DEF)
 
 definition OR_EL :: "bool list => bool" where 
-  "OR_EL == list_exists I"
+  "OR_EL == list_ex I"
 
-lemma OR_EL_DEF: "OR_EL = list_exists I"
+lemma OR_EL_DEF: "OR_EL = list_ex I"
   by (import rich_list OR_EL_DEF)
 
 consts
@@ -4937,7 +4937,7 @@ lemma ALL_EL_MAP: "ALL (P::'b::type => bool) (f::'a::type => 'b::type) l::'a::ty
   by (import rich_list ALL_EL_MAP)
 
 lemma SOME_EL_SNOC: "ALL (P::'a::type => bool) (x::'a::type) l::'a::type list.
-   list_exists P (SNOC x l) = (P x | list_exists P l)"
+   list_ex P (SNOC x l) = (P x | list_ex P l)"
   by (import rich_list SOME_EL_SNOC)
 
 lemma IS_EL_SNOC: "ALL (y::'a::type) (x::'a::type) l::'a::type list.
@@ -5080,11 +5080,11 @@ lemma ALL_EL_FOLDL: "ALL (P::'a::type => bool) l::'a::type list.
   by (import rich_list ALL_EL_FOLDL)
 
 lemma SOME_EL_FOLDR: "ALL (P::'a::type => bool) l::'a::type list.
-   list_exists P l = foldr (%x::'a::type. op | (P x)) l False"
+   list_ex P l = foldr (%x::'a::type. op | (P x)) l False"
   by (import rich_list SOME_EL_FOLDR)
 
 lemma SOME_EL_FOLDL: "ALL (P::'a::type => bool) l::'a::type list.
-   list_exists P l = foldl (%(l'::bool) x::'a::type. l' | P x) False l"
+   list_ex P l = foldl (%(l'::bool) x::'a::type. l' | P x) False l"
   by (import rich_list SOME_EL_FOLDL)
 
 lemma ALL_EL_FOLDR_MAP: "ALL (x::'a::type => bool) xa::'a::type list.
@@ -5096,11 +5096,11 @@ lemma ALL_EL_FOLDL_MAP: "ALL (x::'a::type => bool) xa::'a::type list.
   by (import rich_list ALL_EL_FOLDL_MAP)
 
 lemma SOME_EL_FOLDR_MAP: "ALL (x::'a::type => bool) xa::'a::type list.
-   list_exists x xa = foldr op | (map x xa) False"
+   list_ex x xa = foldr op | (map x xa) False"
   by (import rich_list SOME_EL_FOLDR_MAP)
 
 lemma SOME_EL_FOLDL_MAP: "ALL (x::'a::type => bool) xa::'a::type list.
-   list_exists x xa = foldl op | False (map x xa)"
+   list_ex x xa = foldl op | False (map x xa)"
   by (import rich_list SOME_EL_FOLDL_MAP)
 
 lemma FOLDR_FILTER: "ALL (f::'a::type => 'a::type => 'a::type) (e::'a::type)
@@ -5132,12 +5132,12 @@ lemma ASSOC_FOLDL_FLAT: "ALL f::'a::type => 'a::type => 'a::type.
   by (import rich_list ASSOC_FOLDL_FLAT)
 
 lemma SOME_EL_MAP: "ALL (P::'b::type => bool) (f::'a::type => 'b::type) l::'a::type list.
-   list_exists P (map f l) = list_exists (P o f) l"
+   list_ex P (map f l) = list_ex (P o f) l"
   by (import rich_list SOME_EL_MAP)
 
 lemma SOME_EL_DISJ: "ALL (P::'a::type => bool) (Q::'a::type => bool) l::'a::type list.
-   list_exists (%x::'a::type. P x | Q x) l =
-   (list_exists P l | list_exists Q l)"
+   list_ex (%x::'a::type. P x | Q x) l =
+   (list_ex P l | list_ex Q l)"
   by (import rich_list SOME_EL_DISJ)
 
 lemma IS_EL_FOLDR: "ALL (x::'a::type) xa::'a::type list.
@@ -5579,7 +5579,7 @@ lemma FLAT_FLAT: "ALL l::'a::type list list list. concat (concat l) = concat (ma
   by (import rich_list FLAT_FLAT)
 
 lemma SOME_EL_REVERSE: "ALL (P::'a::type => bool) l::'a::type list.
-   list_exists P (rev l) = list_exists P l"
+   list_ex P (rev l) = list_ex P l"
   by (import rich_list SOME_EL_REVERSE)
 
 lemma ALL_EL_SEG: "ALL (P::'a::type => bool) l::'a::type list.
@@ -5621,29 +5621,29 @@ lemma ALL_EL_BUTFIRSTN: "(All::(('a::type => bool) => bool) => bool)
 
 lemma SOME_EL_SEG: "ALL (m::nat) (k::nat) l::'a::type list.
    m + k <= length l -->
-   (ALL P::'a::type => bool. list_exists P (SEG m k l) --> list_exists P l)"
+   (ALL P::'a::type => bool. list_ex P (SEG m k l) --> list_ex P l)"
   by (import rich_list SOME_EL_SEG)
 
 lemma SOME_EL_FIRSTN: "ALL (m::nat) l::'a::type list.
    m <= length l -->
-   (ALL P::'a::type => bool. list_exists P (FIRSTN m l) --> list_exists P l)"
+   (ALL P::'a::type => bool. list_ex P (FIRSTN m l) --> list_ex P l)"
   by (import rich_list SOME_EL_FIRSTN)
 
 lemma SOME_EL_BUTFIRSTN: "ALL (m::nat) l::'a::type list.
    m <= length l -->
    (ALL P::'a::type => bool.
-       list_exists P (BUTFIRSTN m l) --> list_exists P l)"
+       list_ex P (BUTFIRSTN m l) --> list_ex P l)"
   by (import rich_list SOME_EL_BUTFIRSTN)
 
 lemma SOME_EL_LASTN: "ALL (m::nat) l::'a::type list.
    m <= length l -->
-   (ALL P::'a::type => bool. list_exists P (LASTN m l) --> list_exists P l)"
+   (ALL P::'a::type => bool. list_ex P (LASTN m l) --> list_ex P l)"
   by (import rich_list SOME_EL_LASTN)
 
 lemma SOME_EL_BUTLASTN: "ALL (m::nat) l::'a::type list.
    m <= length l -->
    (ALL P::'a::type => bool.
-       list_exists P (BUTLASTN m l) --> list_exists P l)"
+       list_ex P (BUTLASTN m l) --> list_ex P l)"
   by (import rich_list SOME_EL_BUTLASTN)
 
 lemma IS_EL_REVERSE: "ALL (x::'a::type) l::'a::type list. x mem rev l = x mem l"
@@ -5657,7 +5657,7 @@ lemma IS_EL_SEG: "ALL (n::nat) (m::nat) l::'a::type list.
    n + m <= length l --> (ALL x::'a::type. x mem SEG n m l --> x mem l)"
   by (import rich_list IS_EL_SEG)
 
-lemma IS_EL_SOME_EL: "ALL (x::'a::type) l::'a::type list. x mem l = list_exists (op = x) l"
+lemma IS_EL_SOME_EL: "ALL (x::'a::type) l::'a::type list. x mem l = list_ex (op = x) l"
   by (import rich_list IS_EL_SOME_EL)
 
 lemma IS_EL_FIRSTN: "ALL (x::nat) xa::'a::type list.

@@ -192,7 +192,7 @@ Traces_def:
   "Traces A == (traces A,asig_of A)"
 
 
-lemmas [simp del] = ex_simps all_simps split_paired_Ex
+lemmas [simp del] = HOL.ex_simps HOL.all_simps split_paired_Ex
 declare Let_def [simp]
 declaration {* fn _ => Classical.map_cs (fn cs => cs delSWrapper "split_all_tac") *}
 

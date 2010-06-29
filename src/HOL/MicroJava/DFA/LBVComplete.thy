@@ -10,17 +10,17 @@ imports LBVSpec Typing_Framework
 begin
 
 definition is_target :: "['s step_type, 's list, nat] \<Rightarrow> bool" where 
-  "is_target step phi pc' \<equiv>
-     \<exists>pc s'. pc' \<noteq> pc+1 \<and> pc < length phi \<and> (pc',s') \<in> set (step pc (phi!pc))"
+  "is_target step phi pc' \<longleftrightarrow>
+     (\<exists>pc s'. pc' \<noteq> pc+1 \<and> pc < length phi \<and> (pc',s') \<in> set (step pc (phi!pc)))"
 
 definition make_cert :: "['s step_type, 's list, 's] \<Rightarrow> 's certificate" where
-  "make_cert step phi B \<equiv> 
+  "make_cert step phi B =
      map (\<lambda>pc. if is_target step phi pc then phi!pc else B) [0..<length phi] @ [B]"
 
 lemma [code]:
   "is_target step phi pc' =
-  list_ex (\<lambda>pc. pc' \<noteq> pc+1 \<and> pc' mem (map fst (step pc (phi!pc)))) [0..<length phi]"
-by (force simp: list_ex_iff is_target_def mem_iff)
+    list_ex (\<lambda>pc. pc' \<noteq> pc+1 \<and> List.member (map fst (step pc (phi!pc))) pc') [0..<length phi]"
+by (force simp: list_ex_iff member_def is_target_def)
 
 
 locale lbvc = lbv + 

@@ -707,7 +707,7 @@ lemma mvt_general: fixes f::"real\<Rightarrow>'a::euclidean_space"
     case False
     have "norm (f b - f a) * norm (f b - f a) = norm (f b - f a)^2" by(simp add: power2_eq_square)
     also have "\<dots> = (f b - f a) \<bullet> (f b - f a)" unfolding power2_norm_eq_inner ..
-    also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)" using x unfolding inner_simps by auto
+    also have "\<dots> = (f b - f a) \<bullet> f' x (b - a)" using x unfolding inner_simps by (auto simp add: inner_diff_left)
     also have "\<dots> \<le> norm (f b - f a) * norm (f' x (b - a))" by(rule norm_cauchy_schwarz)
     finally show ?thesis using False x(1) by(auto simp add: real_mult_left_cancel) next
     case True thus ?thesis using assms(1) apply(rule_tac x="(a + b) /2" in bexI) by auto qed qed

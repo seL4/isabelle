@@ -2352,6 +2352,22 @@ next
   case (Cons x xs) with assms show ?case by (simp add: foldl_fun_comm)
 qed
 
+lemma rev_foldl_cons [code]:
+  "rev xs = foldl (\<lambda>xs x. x # xs) [] xs"
+proof (induct xs)
+  case Nil then show ?case by simp
+next
+  case Cons
+  {
+    fix x xs ys
+    have "foldl (\<lambda>xs x. x # xs) ys xs @ [x]
+      = foldl (\<lambda>xs x. x # xs) (ys @ [x]) xs"
+    by (induct xs arbitrary: ys) auto
+  }
+  note aux = this
+  show ?case by (induct xs) (auto simp add: Cons aux)
+qed
+
 
 text{* The ``First Duality Theorem'' in Bird \& Wadler: *}
 
@@ -2507,120 +2523,6 @@ lemma (in complete_lattice) SUPR_set_fold:
   "SUPR (set xs) f = foldl (\<lambda>y x. sup (f x) y) bot xs"
   unfolding SUPR_def set_map [symmetric] Sup_set_fold foldl_map
     by (simp add: sup_commute)
-
-
-subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
-
-lemma listsum_append [simp]: "listsum (xs @ ys) = listsum xs + listsum ys"
-by (induct xs) (simp_all add:add_assoc)
-
-lemma listsum_rev [simp]:
-  fixes xs :: "'a\<Colon>comm_monoid_add list"
-  shows "listsum (rev xs) = listsum xs"
-by (induct xs) (simp_all add:add_ac)
-
-lemma listsum_map_remove1:
-fixes f :: "'a \<Rightarrow> ('b::comm_monoid_add)"
-shows "x : set xs \<Longrightarrow> listsum(map f xs) = f x + listsum(map f (remove1 x xs))"
-by (induct xs)(auto simp add:add_ac)
-
-lemma list_size_conv_listsum:
-  "list_size f xs = listsum (map f xs) + size xs"
-by(induct xs) auto
-
-lemma listsum_foldr: "listsum xs = foldr (op +) xs 0"
-by (induct xs) auto
-
-lemma length_concat: "length (concat xss) = listsum (map length xss)"
-by (induct xss) simp_all
-
-lemma listsum_map_filter:
-  fixes f :: "'a \<Rightarrow> 'b \<Colon> comm_monoid_add"
-  assumes "\<And> x. \<lbrakk> x \<in> set xs ; \<not> P x \<rbrakk> \<Longrightarrow> f x = 0"
-  shows "listsum (map f (filter P xs)) = listsum (map f xs)"
-using assms by (induct xs) auto
-
-text{* For efficient code generation ---
-       @{const listsum} is not tail recursive but @{const foldl} is. *}
-lemma listsum[code_unfold]: "listsum xs = foldl (op +) 0 xs"
-by(simp add:listsum_foldr foldl_foldr1)
-
-lemma distinct_listsum_conv_Setsum:
-  "distinct xs \<Longrightarrow> listsum xs = Setsum(set xs)"
-by (induct xs) simp_all
-
-lemma listsum_eq_0_nat_iff_nat[simp]:
-  "listsum ns = (0::nat) \<longleftrightarrow> (\<forall> n \<in> set ns. n = 0)"
-by(simp add: listsum)
-
-lemma elem_le_listsum_nat: "k<size ns \<Longrightarrow> ns!k <= listsum(ns::nat list)"
-apply(induct ns arbitrary: k)
- apply simp
-apply(fastsimp simp add:nth_Cons split: nat.split)
-done
-
-lemma listsum_update_nat: "k<size ns \<Longrightarrow>
-  listsum (ns[k := (n::nat)]) = listsum ns + n - ns!k"
-apply(induct ns arbitrary:k)
- apply (auto split:nat.split)
-apply(drule elem_le_listsum_nat)
-apply arith
-done
-
-text{* Some syntactic sugar for summing a function over a list: *}
-
-syntax
-  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
-syntax (xsymbols)
-  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
-syntax (HTML output)
-  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
-
-translations -- {* Beware of argument permutation! *}
-  "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
-  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
-
-lemma listsum_triv: "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
-  by (induct xs) (simp_all add: left_distrib)
-
-lemma listsum_0 [simp]: "(\<Sum>x\<leftarrow>xs. 0) = 0"
-  by (induct xs) (simp_all add: left_distrib)
-
-text{* For non-Abelian groups @{text xs} needs to be reversed on one side: *}
-lemma uminus_listsum_map:
-  fixes f :: "'a \<Rightarrow> 'b\<Colon>ab_group_add"
-  shows "- listsum (map f xs) = (listsum (map (uminus o f) xs))"
-by (induct xs) simp_all
-
-lemma listsum_addf:
-  fixes f g :: "'a \<Rightarrow> 'b::comm_monoid_add"
-  shows "(\<Sum>x\<leftarrow>xs. f x + g x) = listsum (map f xs) + listsum (map g xs)"
-by (induct xs) (simp_all add: algebra_simps)
-
-lemma listsum_subtractf:
-  fixes f g :: "'a \<Rightarrow> 'b::ab_group_add"
-  shows "(\<Sum>x\<leftarrow>xs. f x - g x) = listsum (map f xs) - listsum (map g xs)"
-by (induct xs) simp_all
-
-lemma listsum_const_mult:
-  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "(\<Sum>x\<leftarrow>xs. c * f x) = c * (\<Sum>x\<leftarrow>xs. f x)"
-by (induct xs, simp_all add: algebra_simps)
-
-lemma listsum_mult_const:
-  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
-  shows "(\<Sum>x\<leftarrow>xs. f x * c) = (\<Sum>x\<leftarrow>xs. f x) * c"
-by (induct xs, simp_all add: algebra_simps)
-
-lemma listsum_abs:
-  fixes xs :: "'a::ordered_ab_group_add_abs list"
-  shows "\<bar>listsum xs\<bar> \<le> listsum (map abs xs)"
-by (induct xs, simp, simp add: order_trans [OF abs_triangle_ineq])
-
-lemma listsum_mono:
-  fixes f g :: "'a \<Rightarrow> 'b::{comm_monoid_add, ordered_ab_semigroup_add}"
-  shows "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sum>x\<leftarrow>xs. f x) \<le> (\<Sum>x\<leftarrow>xs. g x)"
-by (induct xs, simp, simp add: add_mono)
 
 
 subsubsection {* @{text upt} *}
@@ -2959,6 +2861,137 @@ proof -
   from `xs \<noteq> []` obtain ys y where "xs = ys @ [y]" by (cases xs rule: rev_cases) auto
   with `distinct xs` show ?thesis by simp
 qed
+
+
+subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
+
+lemma listsum_append [simp]: "listsum (xs @ ys) = listsum xs + listsum ys"
+by (induct xs) (simp_all add:add_assoc)
+
+lemma listsum_rev [simp]:
+  fixes xs :: "'a\<Colon>comm_monoid_add list"
+  shows "listsum (rev xs) = listsum xs"
+by (induct xs) (simp_all add:add_ac)
+
+lemma listsum_map_remove1:
+fixes f :: "'a \<Rightarrow> ('b::comm_monoid_add)"
+shows "x : set xs \<Longrightarrow> listsum(map f xs) = f x + listsum(map f (remove1 x xs))"
+by (induct xs)(auto simp add:add_ac)
+
+lemma list_size_conv_listsum:
+  "list_size f xs = listsum (map f xs) + size xs"
+by(induct xs) auto
+
+lemma listsum_foldr: "listsum xs = foldr (op +) xs 0"
+by (induct xs) auto
+
+lemma length_concat: "length (concat xss) = listsum (map length xss)"
+by (induct xss) simp_all
+
+lemma listsum_map_filter:
+  fixes f :: "'a \<Rightarrow> 'b \<Colon> comm_monoid_add"
+  assumes "\<And> x. \<lbrakk> x \<in> set xs ; \<not> P x \<rbrakk> \<Longrightarrow> f x = 0"
+  shows "listsum (map f (filter P xs)) = listsum (map f xs)"
+using assms by (induct xs) auto
+
+text{* For efficient code generation ---
+       @{const listsum} is not tail recursive but @{const foldl} is. *}
+lemma listsum[code_unfold]: "listsum xs = foldl (op +) 0 xs"
+by(simp add:listsum_foldr foldl_foldr1)
+
+lemma distinct_listsum_conv_Setsum:
+  "distinct xs \<Longrightarrow> listsum xs = Setsum(set xs)"
+by (induct xs) simp_all
+
+lemma listsum_eq_0_nat_iff_nat[simp]:
+  "listsum ns = (0::nat) \<longleftrightarrow> (\<forall> n \<in> set ns. n = 0)"
+by(simp add: listsum)
+
+lemma elem_le_listsum_nat: "k<size ns \<Longrightarrow> ns!k <= listsum(ns::nat list)"
+apply(induct ns arbitrary: k)
+ apply simp
+apply(fastsimp simp add:nth_Cons split: nat.split)
+done
+
+lemma listsum_update_nat: "k<size ns \<Longrightarrow>
+  listsum (ns[k := (n::nat)]) = listsum ns + n - ns!k"
+apply(induct ns arbitrary:k)
+ apply (auto split:nat.split)
+apply(drule elem_le_listsum_nat)
+apply arith
+done
+
+text{* Some syntactic sugar for summing a function over a list: *}
+
+syntax
+  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3SUM _<-_. _)" [0, 51, 10] 10)
+syntax (xsymbols)
+  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
+syntax (HTML output)
+  "_listsum" :: "pttrn => 'a list => 'b => 'b"    ("(3\<Sum>_\<leftarrow>_. _)" [0, 51, 10] 10)
+
+translations -- {* Beware of argument permutation! *}
+  "SUM x<-xs. b" == "CONST listsum (CONST map (%x. b) xs)"
+  "\<Sum>x\<leftarrow>xs. b" == "CONST listsum (CONST map (%x. b) xs)"
+
+lemma listsum_triv: "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
+  by (induct xs) (simp_all add: left_distrib)
+
+lemma listsum_0 [simp]: "(\<Sum>x\<leftarrow>xs. 0) = 0"
+  by (induct xs) (simp_all add: left_distrib)
+
+text{* For non-Abelian groups @{text xs} needs to be reversed on one side: *}
+lemma uminus_listsum_map:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>ab_group_add"
+  shows "- listsum (map f xs) = (listsum (map (uminus o f) xs))"
+by (induct xs) simp_all
+
+lemma listsum_addf:
+  fixes f g :: "'a \<Rightarrow> 'b::comm_monoid_add"
+  shows "(\<Sum>x\<leftarrow>xs. f x + g x) = listsum (map f xs) + listsum (map g xs)"
+by (induct xs) (simp_all add: algebra_simps)
+
+lemma listsum_subtractf:
+  fixes f g :: "'a \<Rightarrow> 'b::ab_group_add"
+  shows "(\<Sum>x\<leftarrow>xs. f x - g x) = listsum (map f xs) - listsum (map g xs)"
+by (induct xs) simp_all
+
+lemma listsum_const_mult:
+  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
+  shows "(\<Sum>x\<leftarrow>xs. c * f x) = c * (\<Sum>x\<leftarrow>xs. f x)"
+by (induct xs, simp_all add: algebra_simps)
+
+lemma listsum_mult_const:
+  fixes f :: "'a \<Rightarrow> 'b::semiring_0"
+  shows "(\<Sum>x\<leftarrow>xs. f x * c) = (\<Sum>x\<leftarrow>xs. f x) * c"
+by (induct xs, simp_all add: algebra_simps)
+
+lemma listsum_abs:
+  fixes xs :: "'a::ordered_ab_group_add_abs list"
+  shows "\<bar>listsum xs\<bar> \<le> listsum (map abs xs)"
+by (induct xs, simp, simp add: order_trans [OF abs_triangle_ineq])
+
+lemma listsum_mono:
+  fixes f g :: "'a \<Rightarrow> 'b::{comm_monoid_add, ordered_ab_semigroup_add}"
+  shows "(\<And>x. x \<in> set xs \<Longrightarrow> f x \<le> g x) \<Longrightarrow> (\<Sum>x\<leftarrow>xs. f x) \<le> (\<Sum>x\<leftarrow>xs. g x)"
+by (induct xs, simp, simp add: add_mono)
+
+lemma listsum_distinct_conv_setsum_set:
+  "distinct xs \<Longrightarrow> listsum (map f xs) = setsum f (set xs)"
+  by (induct xs) simp_all
+
+lemma interv_listsum_conv_setsum_set_nat:
+  "listsum (map f [m..<n]) = setsum f (set [m..<n])"
+  by (simp add: listsum_distinct_conv_setsum_set)
+
+lemma interv_listsum_conv_setsum_set_int:
+  "listsum (map f [k..l]) = setsum f (set [k..l])"
+  by (simp add: listsum_distinct_conv_setsum_set)
+
+text {* General equivalence between @{const listsum} and @{const setsum} *}
+lemma listsum_setsum_nth:
+  "listsum xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
+  using interv_listsum_conv_setsum_set_nat [of "op ! xs" 0 "length xs"] by (simp add: map_nth)
 
 
 subsubsection {* @{const insert} *}
@@ -4513,9 +4546,266 @@ lemma transfer_nat_int_fold1: "fold f l x =
 *)
 
 
-subsection {* Code generator *}
+subsection {* Code generation *}
 
-subsubsection {* Setup *}
+subsubsection {* Counterparts for set-related operations *}
+
+definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
+  [code_post]: "member xs x \<longleftrightarrow> x \<in> set xs"
+
+text {*
+  Only use @{text member} for generating executable code.  Otherwise use
+  @{prop "x \<in> set xs"} instead --- it is much easier to reason about.
+*}
+
+lemma member_set:
+  "member = set"
+  by (simp add: expand_fun_eq member_def mem_def)
+
+lemma member_rec [code]:
+  "member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y"
+  "member [] y \<longleftrightarrow> False"
+  by (auto simp add: member_def)
+
+lemma in_set_member [code_unfold]:
+  "x \<in> set xs \<longleftrightarrow> member xs x"
+  by (simp add: member_def)
+
+declare INFI_def [code_unfold]
+declare SUPR_def [code_unfold]
+
+declare set_map [symmetric, code_unfold]
+
+definition list_all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
+  list_all_iff [code_post]: "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
+
+definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
+  list_ex_iff [code_post]: "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
+
+text {*
+  Usually you should prefer @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"}
+  over @{const list_all} and @{const list_ex} in specifications.
+*}
+
+lemma list_all_simps [simp, code]:
+  "list_all P (x # xs) \<longleftrightarrow> P x \<and> list_all P xs"
+  "list_all P [] \<longleftrightarrow> True"
+  by (simp_all add: list_all_iff)
+
+lemma list_ex_simps [simp, code]:
+  "list_ex P (x # xs) \<longleftrightarrow> P x \<or> list_ex P xs"
+  "list_ex P [] \<longleftrightarrow> False"
+  by (simp_all add: list_ex_iff)
+
+lemma Ball_set_list_all [code_unfold]:
+  "Ball (set xs) P \<longleftrightarrow> list_all P xs"
+  by (simp add: list_all_iff)
+
+lemma Bex_set_list_ex [code_unfold]:
+  "Bex (set xs) P \<longleftrightarrow> list_ex P xs"
+  by (simp add: list_ex_iff)
+
+lemma list_all_append [simp]:
+  "list_all P (xs @ ys) \<longleftrightarrow> list_all P xs \<and> list_all P ys"
+  by (auto simp add: list_all_iff)
+
+lemma list_ex_append [simp]:
+  "list_ex P (xs @ ys) \<longleftrightarrow> list_ex P xs \<or> list_ex P ys"
+  by (auto simp add: list_ex_iff)
+
+lemma list_all_rev [simp]:
+  "list_all P (rev xs) \<longleftrightarrow> list_all P xs"
+  by (simp add: list_all_iff)
+
+lemma list_ex_rev [simp]:
+  "list_ex P (rev xs) \<longleftrightarrow> list_ex P xs"
+  by (simp add: list_ex_iff)
+
+lemma list_all_length:
+  "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
+  by (auto simp add: list_all_iff set_conv_nth)
+
+lemma list_ex_length:
+  "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
+  by (auto simp add: list_ex_iff set_conv_nth)
+
+lemma list_all_cong [fundef_cong]:
+  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_all f xs = list_all g ys"
+  by (simp add: list_all_iff)
+
+lemma list_any_cong [fundef_cong]:
+  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
+  by (simp add: list_ex_iff)
+
+text {* Bounded quantification and summation over nats. *}
+
+lemma atMost_upto [code_unfold]:
+  "{..n} = set [0..<Suc n]"
+  by auto
+
+lemma atLeast_upt [code_unfold]:
+  "{..<n} = set [0..<n]"
+  by auto
+
+lemma greaterThanLessThan_upt [code_unfold]:
+  "{n<..<m} = set [Suc n..<m]"
+  by auto
+
+lemmas atLeastLessThan_upt [code_unfold] = set_upt [symmetric]
+
+lemma greaterThanAtMost_upt [code_unfold]:
+  "{n<..m} = set [Suc n..<Suc m]"
+  by auto
+
+lemma atLeastAtMost_upt [code_unfold]:
+  "{n..m} = set [n..<Suc m]"
+  by auto
+
+lemma all_nat_less_eq [code_unfold]:
+  "(\<forall>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
+  by auto
+
+lemma ex_nat_less_eq [code_unfold]:
+  "(\<exists>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
+  by auto
+
+lemma all_nat_less [code_unfold]:
+  "(\<forall>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
+  by auto
+
+lemma ex_nat_less [code_unfold]:
+  "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
+  by auto
+
+lemma setsum_set_upt_conv_listsum_nat [code_unfold]:
+  "setsum f (set [m..<n]) = listsum (map f [m..<n])"
+  by (simp add: interv_listsum_conv_setsum_set_nat)
+
+text {* Summation over ints. *}
+
+lemma greaterThanLessThan_upto [code_unfold]:
+  "{i<..<j::int} = set [i+1..j - 1]"
+by auto
+
+lemma atLeastLessThan_upto [code_unfold]:
+  "{i..<j::int} = set [i..j - 1]"
+by auto
+
+lemma greaterThanAtMost_upto [code_unfold]:
+  "{i<..j::int} = set [i+1..j]"
+by auto
+
+lemmas atLeastAtMost_upto [code_unfold] = set_upto [symmetric]
+
+lemma setsum_set_upto_conv_listsum_int [code_unfold]:
+  "setsum f (set [i..j::int]) = listsum (map f [i..j])"
+  by (simp add: interv_listsum_conv_setsum_set_int)
+
+
+subsubsection {* Optimizing by rewriting *}
+
+definition null :: "'a list \<Rightarrow> bool" where
+  [code_post]: "null xs \<longleftrightarrow> xs = []"
+
+text {*
+  Efficient emptyness check is implemented by @{const null}.
+*}
+
+lemma null_rec [code]:
+  "null (x # xs) \<longleftrightarrow> False"
+  "null [] \<longleftrightarrow> True"
+  by (simp_all add: null_def)
+
+lemma eq_Nil_null [code_unfold]:
+  "xs = [] \<longleftrightarrow> null xs"
+  by (simp add: null_def)
+
+lemma equal_Nil_null [code_unfold]:
+  "eq_class.eq xs [] \<longleftrightarrow> null xs"
+  by (simp add: eq eq_Nil_null)
+
+definition maps :: "('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
+  [code_post]: "maps f xs = concat (map f xs)"
+
+definition map_filter :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
+  [code_post]: "map_filter f xs = map (the \<circ> f) (filter (\<lambda>x. f x \<noteq> None) xs)"
+
+text {*
+  Operations @{const maps} and @{const map_filter} avoid
+  intermediate lists on execution -- do not use for proving.
+*}
+
+lemma maps_simps [code]:
+  "maps f (x # xs) = f x @ maps f xs"
+  "maps f [] = []"
+  by (simp_all add: maps_def)
+
+lemma map_filter_simps [code]:
+  "map_filter f (x # xs) = (case f x of None \<Rightarrow> map_filter f xs | Some y \<Rightarrow> y # map_filter f xs)"
+  "map_filter f [] = []"
+  by (simp_all add: map_filter_def split: option.split)
+
+lemma concat_map_maps [code_unfold]:
+  "concat (map f xs) = maps f xs"
+  by (simp add: maps_def)
+
+lemma map_filter_map_filter [code_unfold]:
+  "map f (filter P xs) = map_filter (\<lambda>x. if P x then Some (f x) else None) xs"
+  by (simp add: map_filter_def)
+
+text {* Optimized code for @{text"\<forall>i\<in>{a..b::int}"} and @{text"\<forall>n:{a..<b::nat}"}
+and similiarly for @{text"\<exists>"}. *}
+
+definition all_interval_nat :: "(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
+  "all_interval_nat P i j \<longleftrightarrow> (\<forall>n \<in> {i..<j}. P n)"
+
+lemma [code]:
+  "all_interval_nat P i j \<longleftrightarrow> i \<ge> j \<or> P i \<and> all_interval_nat P (Suc i) j"
+proof -
+  have *: "\<And>n. P i \<Longrightarrow> \<forall>n\<in>{Suc i..<j}. P n \<Longrightarrow> i \<le> n \<Longrightarrow> n < j \<Longrightarrow> P n"
+  proof -
+    fix n
+    assume "P i" "\<forall>n\<in>{Suc i..<j}. P n" "i \<le> n" "n < j"
+    then show "P n" by (cases "n = i") simp_all
+  qed
+  show ?thesis by (auto simp add: all_interval_nat_def intro: *)
+qed
+
+lemma list_all_iff_all_interval_nat [code_unfold]:
+  "list_all P [i..<j] \<longleftrightarrow> all_interval_nat P i j"
+  by (simp add: list_all_iff all_interval_nat_def)
+
+lemma list_ex_iff_not_all_inverval_nat [code_unfold]:
+  "list_ex P [i..<j] \<longleftrightarrow> \<not> (all_interval_nat (Not \<circ> P) i j)"
+  by (simp add: list_ex_iff all_interval_nat_def)
+
+definition all_interval_int :: "(int \<Rightarrow> bool) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool" where
+  "all_interval_int P i j \<longleftrightarrow> (\<forall>k \<in> {i..j}. P k)"
+
+lemma [code]:
+  "all_interval_int P i j \<longleftrightarrow> i > j \<or> P i \<and> all_interval_int P (i + 1) j"
+proof -
+  have *: "\<And>k. P i \<Longrightarrow> \<forall>k\<in>{i+1..j}. P k \<Longrightarrow> i \<le> k \<Longrightarrow> k \<le> j \<Longrightarrow> P k"
+  proof -
+    fix k
+    assume "P i" "\<forall>k\<in>{i+1..j}. P k" "i \<le> k" "k \<le> j"
+    then show "P k" by (cases "k = i") simp_all
+  qed
+  show ?thesis by (auto simp add: all_interval_int_def intro: *)
+qed
+
+lemma list_all_iff_all_interval_int [code_unfold]:
+  "list_all P [i..j] \<longleftrightarrow> all_interval_int P i j"
+  by (simp add: list_all_iff all_interval_int_def)
+
+lemma list_ex_iff_not_all_inverval_int [code_unfold]:
+  "list_ex P [i..j] \<longleftrightarrow> \<not> (all_interval_int (Not \<circ> P) i j)"
+  by (simp add: list_ex_iff all_interval_int_def)
+
+hide_const (open) member null maps map_filter all_interval_nat all_interval_int
+
+
+subsubsection {* Pretty lists *}
 
 use "Tools/list_code.ML"
 
@@ -4578,374 +4868,6 @@ end
 *}
 
 
-subsubsection {* Generation of efficient code *}
-
-definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
-  mem_iff [code_post]: "member xs x \<longleftrightarrow> x \<in> set xs"
-
-primrec
-  null:: "'a list \<Rightarrow> bool"
-where
-  "null [] = True"
-  | "null (x#xs) = False"
-
-primrec
-  list_inter :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list"
-where
-  "list_inter [] bs = []"
-  | "list_inter (a#as) bs =
-     (if a \<in> set bs then a # list_inter as bs else list_inter as bs)"
-
-primrec
-  list_all :: "('a \<Rightarrow> bool) \<Rightarrow> ('a list \<Rightarrow> bool)"
-where
-  "list_all P [] = True"
-  | "list_all P (x#xs) = (P x \<and> list_all P xs)"
-
-primrec
-  list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool"
-where
-  "list_ex P [] = False"
-  | "list_ex P (x#xs) = (P x \<or> list_ex P xs)"
-
-primrec
-  filtermap :: "('a \<Rightarrow> 'b option) \<Rightarrow> 'a list \<Rightarrow> 'b list"
-where
-  "filtermap f [] = []"
-  | "filtermap f (x#xs) =
-     (case f x of None \<Rightarrow> filtermap f xs
-      | Some y \<Rightarrow> y # filtermap f xs)"
-
-primrec
-  map_filter :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list"
-where
-  "map_filter f P [] = []"
-  | "map_filter f P (x#xs) =
-     (if P x then f x # map_filter f P xs else map_filter f P xs)"
-
-primrec
-  length_unique :: "'a list \<Rightarrow> nat"
-where
-  "length_unique [] = 0"
-  | "length_unique (x#xs) =
-      (if x \<in> set xs then length_unique xs else Suc (length_unique xs))"
-
-primrec
-  concat_map :: "('a => 'b list) => 'a list => 'b list"
-where
-  "concat_map f [] = []"
-  | "concat_map f (x#xs) = f x @ concat_map f xs"
-
-text {*
-  Only use @{text member} for generating executable code.  Otherwise use
-  @{prop "x : set xs"} instead --- it is much easier to reason about.
-  The same is true for @{const list_all} and @{const list_ex}: write
-  @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"} instead because the HOL
-  quantifiers are aleady known to the automatic provers. In fact, the
-  declarations in the code subsection make sure that @{text "\<in>"},
-  @{text "\<forall>x\<in>set xs"} and @{text "\<exists>x\<in>set xs"} are implemented
-  efficiently.
-
-  Efficient emptyness check is implemented by @{const null}.
-
-  The functions @{const filtermap} and @{const map_filter} are just
-  there to generate efficient code. Do not use
-  them for modelling and proving.
-*}
-
-lemma rev_foldl_cons [code]:
-  "rev xs = foldl (\<lambda>xs x. x # xs) [] xs"
-proof (induct xs)
-  case Nil then show ?case by simp
-next
-  case Cons
-  {
-    fix x xs ys
-    have "foldl (\<lambda>xs x. x # xs) ys xs @ [x]
-      = foldl (\<lambda>xs x. x # xs) (ys @ [x]) xs"
-    by (induct xs arbitrary: ys) auto
-  }
-  note aux = this
-  show ?case by (induct xs) (auto simp add: Cons aux)
-qed
-
-lemmas in_set_code [code_unfold] = mem_iff [symmetric]
-
-lemma member_simps [simp, code]:
-  "member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y"
-  "member [] y \<longleftrightarrow> False"
-  by (auto simp add: mem_iff)
-
-lemma member_set:
-  "member = set"
-  by (simp add: expand_fun_eq mem_iff mem_def)
-
-abbreviation (input) mem :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55) where
-  "x mem xs \<equiv> member xs x" -- "for backward compatibility"
-
-lemma empty_null:
-  "xs = [] \<longleftrightarrow> null xs"
-by (cases xs) simp_all
-
-lemma [code_unfold]:
-  "eq_class.eq xs [] \<longleftrightarrow> null xs"
-by (simp add: eq empty_null)
-
-lemmas null_empty [code_post] =
-  empty_null [symmetric]
-
-lemma list_inter_conv:
-  "set (list_inter xs ys) = set xs \<inter> set ys"
-by (induct xs) auto
-
-lemma list_all_iff [code_post]:
-  "list_all P xs \<longleftrightarrow> (\<forall>x \<in> set xs. P x)"
-by (induct xs) auto
-
-lemmas list_ball_code [code_unfold] = list_all_iff [symmetric]
-
-lemma list_all_append [simp]:
-  "list_all P (xs @ ys) \<longleftrightarrow> (list_all P xs \<and> list_all P ys)"
-by (induct xs) auto
-
-lemma list_all_rev [simp]:
-  "list_all P (rev xs) \<longleftrightarrow> list_all P xs"
-by (simp add: list_all_iff)
-
-lemma list_all_length:
-  "list_all P xs \<longleftrightarrow> (\<forall>n < length xs. P (xs ! n))"
-unfolding list_all_iff by (auto intro: all_nth_imp_all_set)
-
-lemma list_all_cong[fundef_cong]:
-  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_all f xs = list_all g ys"
-by (simp add: list_all_iff)
-
-lemma list_ex_iff [code_post]:
-  "list_ex P xs \<longleftrightarrow> (\<exists>x \<in> set xs. P x)"
-by (induct xs) simp_all
-
-lemmas list_bex_code [code_unfold] =
-  list_ex_iff [symmetric]
-
-lemma list_ex_length:
-  "list_ex P xs \<longleftrightarrow> (\<exists>n < length xs. P (xs ! n))"
-unfolding list_ex_iff set_conv_nth by auto
-
-lemma list_ex_cong[fundef_cong]:
-  "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
-by (simp add: list_ex_iff)
-
-lemma filtermap_conv:
-   "filtermap f xs = map (\<lambda>x. the (f x)) (filter (\<lambda>x. f x \<noteq> None) xs)"
-by (induct xs) (simp_all split: option.split) 
-
-lemma map_filter_conv [simp]:
-  "map_filter f P xs = map f (filter P xs)"
-by (induct xs) auto
-
-lemma length_remdups_length_unique [code_unfold]:
-  "length (remdups xs) = length_unique xs"
-by (induct xs) simp_all
-
-lemma concat_map_code[code_unfold]:
-  "concat(map f xs) = concat_map f xs"
-by (induct xs) simp_all
-
-declare INFI_def [code_unfold]
-declare SUPR_def [code_unfold]
-
-declare set_map [symmetric, code_unfold]
-
-hide_const (open) length_unique
-
-
-text {* Code for bounded quantification and summation over nats. *}
-
-lemma atMost_upto [code_unfold]:
-  "{..n} = set [0..<Suc n]"
-by auto
-
-lemma atLeast_upt [code_unfold]:
-  "{..<n} = set [0..<n]"
-by auto
-
-lemma greaterThanLessThan_upt [code_unfold]:
-  "{n<..<m} = set [Suc n..<m]"
-by auto
-
-lemmas atLeastLessThan_upt [code_unfold] = set_upt [symmetric]
-
-lemma greaterThanAtMost_upt [code_unfold]:
-  "{n<..m} = set [Suc n..<Suc m]"
-by auto
-
-lemma atLeastAtMost_upt [code_unfold]:
-  "{n..m} = set [n..<Suc m]"
-by auto
-
-lemma all_nat_less_eq [code_unfold]:
-  "(\<forall>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..<n}. P m)"
-by auto
-
-lemma ex_nat_less_eq [code_unfold]:
-  "(\<exists>m<n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..<n}. P m)"
-by auto
-
-lemma all_nat_less [code_unfold]:
-  "(\<forall>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<forall>m \<in> {0..n}. P m)"
-by auto
-
-lemma ex_nat_less [code_unfold]:
-  "(\<exists>m\<le>n\<Colon>nat. P m) \<longleftrightarrow> (\<exists>m \<in> {0..n}. P m)"
-by auto
-
-lemma setsum_set_distinct_conv_listsum:
-  "distinct xs \<Longrightarrow> setsum f (set xs) = listsum (map f xs)"
-by (induct xs) simp_all
-
-lemma setsum_set_upt_conv_listsum [code_unfold]:
-  "setsum f (set [m..<n]) = listsum (map f [m..<n])"
-by (rule setsum_set_distinct_conv_listsum) simp
-
-text {* General equivalence between @{const listsum} and @{const setsum} *}
-lemma listsum_setsum_nth:
-  "listsum xs = (\<Sum> i = 0 ..< length xs. xs ! i)"
-using setsum_set_upt_conv_listsum[of "op ! xs" 0 "length xs"]
-by (simp add: map_nth)
-
-text {* Code for summation over ints. *}
-
-lemma greaterThanLessThan_upto [code_unfold]:
-  "{i<..<j::int} = set [i+1..j - 1]"
-by auto
-
-lemma atLeastLessThan_upto [code_unfold]:
-  "{i..<j::int} = set [i..j - 1]"
-by auto
-
-lemma greaterThanAtMost_upto [code_unfold]:
-  "{i<..j::int} = set [i+1..j]"
-by auto
-
-lemmas atLeastAtMost_upto [code_unfold] = set_upto[symmetric]
-
-lemma setsum_set_upto_conv_listsum [code_unfold]:
-  "setsum f (set [i..j::int]) = listsum (map f [i..j])"
-by (rule setsum_set_distinct_conv_listsum) simp
-
-
-text {* Optimized code for @{text"\<forall>i\<in>{a..b::int}"} and @{text"\<forall>n:{a..<b::nat}"}
-and similiarly for @{text"\<exists>"}. *}
-
-function all_from_to_nat :: "(nat \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
-"all_from_to_nat P i j =
- (if i < j then if P i then all_from_to_nat P (i+1) j else False
-  else True)"
-by auto
-termination
-by (relation "measure(%(P,i,j). j - i)") auto
-
-declare all_from_to_nat.simps[simp del]
-
-lemma all_from_to_nat_iff_ball:
-  "all_from_to_nat P i j = (ALL n : {i ..< j}. P n)"
-proof(induct P i j rule:all_from_to_nat.induct)
-  case (1 P i j)
-  let ?yes = "i < j & P i"
-  show ?case
-  proof (cases)
-    assume ?yes
-    hence "all_from_to_nat P i j = (P i & all_from_to_nat P (i+1) j)"
-      by(simp add: all_from_to_nat.simps)
-    also have "... = (P i & (ALL n : {i+1 ..< j}. P n))" using `?yes` 1 by simp
-    also have "... = (ALL n : {i ..< j}. P n)" (is "?L = ?R")
-    proof
-      assume L: ?L
-      show ?R
-      proof clarify
-        fix n assume n: "n : {i..<j}"
-        show "P n"
-        proof cases
-          assume "n = i" thus "P n" using L by simp
-        next
-          assume "n ~= i"
-          hence "i+1 <= n" using n by auto
-          thus "P n" using L n by simp
-        qed
-      qed
-    next
-      assume R: ?R thus ?L using `?yes` 1 by auto
-    qed
-    finally show ?thesis .
-  next
-    assume "~?yes" thus ?thesis by(auto simp add: all_from_to_nat.simps)
-  qed
-qed
-
-
-lemma list_all_iff_all_from_to_nat[code_unfold]:
-  "list_all P [i..<j] = all_from_to_nat P i j"
-by(simp add: all_from_to_nat_iff_ball list_all_iff)
-
-lemma list_ex_iff_not_all_from_to_not_nat[code_unfold]:
-  "list_ex P [i..<j] = (~all_from_to_nat (%x. ~P x) i j)"
-by(simp add: all_from_to_nat_iff_ball list_ex_iff)
-
-
-function all_from_to_int :: "(int \<Rightarrow> bool) \<Rightarrow> int \<Rightarrow> int \<Rightarrow> bool" where
-"all_from_to_int P i j =
- (if i <= j then if P i then all_from_to_int P (i+1) j else False
-  else True)"
-by auto
-termination
-by (relation "measure(%(P,i,j). nat(j - i + 1))") auto
-
-declare all_from_to_int.simps[simp del]
-
-lemma all_from_to_int_iff_ball:
-  "all_from_to_int P i j = (ALL n : {i .. j}. P n)"
-proof(induct P i j rule:all_from_to_int.induct)
-  case (1 P i j)
-  let ?yes = "i <= j & P i"
-  show ?case
-  proof (cases)
-    assume ?yes
-    hence "all_from_to_int P i j = (P i & all_from_to_int P (i+1) j)"
-      by(simp add: all_from_to_int.simps)
-    also have "... = (P i & (ALL n : {i+1 .. j}. P n))" using `?yes` 1 by simp
-    also have "... = (ALL n : {i .. j}. P n)" (is "?L = ?R")
-    proof
-      assume L: ?L
-      show ?R
-      proof clarify
-        fix n assume n: "n : {i..j}"
-        show "P n"
-        proof cases
-          assume "n = i" thus "P n" using L by simp
-        next
-          assume "n ~= i"
-          hence "i+1 <= n" using n by auto
-          thus "P n" using L n by simp
-        qed
-      qed
-    next
-      assume R: ?R thus ?L using `?yes` 1 by auto
-    qed
-    finally show ?thesis .
-  next
-    assume "~?yes" thus ?thesis by(auto simp add: all_from_to_int.simps)
-  qed
-qed
-
-lemma list_all_iff_all_from_to_int[code_unfold]:
-  "list_all P [i..j] = all_from_to_int P i j"
-by(simp add: all_from_to_int_iff_ball list_all_iff)
-
-lemma list_ex_iff_not_all_from_to_not_int[code_unfold]:
-  "list_ex P [i..j] = (~ all_from_to_int (%x. ~P x) i j)"
-by(simp add: all_from_to_int_iff_ball list_ex_iff)
-
-
 subsubsection {* Use convenient predefined operations *}
 
 code_const "op @"
@@ -4963,11 +4885,17 @@ code_const filter
 code_const concat
   (Haskell "concat")
 
+code_const List.maps
+  (Haskell "concatMap")
+
 code_const rev
   (Haskell "reverse")
 
 code_const zip
   (Haskell "zip")
+
+code_const List.null
+  (Haskell "null")
 
 code_const takeWhile
   (Haskell "takeWhile")
@@ -4980,5 +4908,11 @@ code_const hd
 
 code_const last
   (Haskell "last")
+
+code_const list_all
+  (Haskell "all")
+
+code_const list_ex
+  (Haskell "any")
 
 end

@@ -425,7 +425,7 @@ done
 
 lemma poly_exp_eq_zero:
      "(poly (p %^ n) = poly ([]::('a::idom) list)) = (poly p = poly [] & n \<noteq> 0)"
-apply (simp only: fun_eq add: all_simps [symmetric]) 
+apply (simp only: fun_eq add: HOL.all_simps [symmetric]) 
 apply (rule arg_cong [where f = All]) 
 apply (rule ext)
 apply (induct_tac "n")

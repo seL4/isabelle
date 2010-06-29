@@ -2234,7 +2234,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
                       (* sanity check: every element of terms' must also be *)
                       (*               present in terms                     *)
                       val _ =
-                        if List.all (member (op =) terms) terms' then ()
+                        if forall (member (op =) terms) terms' then ()
                         else
                           raise REFUTE ("IDT_constructor_interpreter",
                             "element has disappeared")
@@ -2957,7 +2957,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
         (* "lfp(f) == Inter({u. f(u) <= u})" *)
         (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
-          List.all (fn (sub, sup) => (sub = FF) orelse (sup = TT))
+          forall (fn (sub, sup) => (sub = FF) orelse (sup = TT))
             (subs ~~ sups)
           | is_subset (_, _) =
           raise REFUTE ("lfp_interpreter",
@@ -3012,7 +3012,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
         (* "gfp(f) == Union({u. u <= f(u)})" *)
         (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
-          List.all (fn (sub, sup) => (sub = FF) orelse (sup = TT))
+          forall (fn (sub, sup) => (sub = FF) orelse (sup = TT))
             (subs ~~ sups)
           | is_subset (_, _) =
           raise REFUTE ("gfp_interpreter",

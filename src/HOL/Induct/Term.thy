@@ -13,18 +13,12 @@ datatype ('a, 'b) "term" =
 
 text {* \medskip Substitution function on terms *}
 
-consts
-  subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term"
-  subst_term_list ::
-    "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list"
-
-primrec
+primrec subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term"
+  and subst_term_list :: "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list" where
   "subst_term f (Var a) = f a"
-  "subst_term f (App b ts) = App b (subst_term_list f ts)"
-
-  "subst_term_list f [] = []"
-  "subst_term_list f (t # ts) =
-     subst_term f t # subst_term_list f ts"
+| "subst_term f (App b ts) = App b (subst_term_list f ts)"
+| "subst_term_list f [] = []"
+| "subst_term_list f (t # ts) = subst_term f t # subst_term_list f ts"
 
 
 text {* \medskip A simple theorem about composition of substitutions *}
@@ -41,9 +35,9 @@ text {* \medskip Alternative induction rule *}
 
 lemma
   assumes var: "!!v. P (Var v)"
-    and app: "!!f ts. list_all P ts ==> P (App f ts)"
+    and app: "!!f ts. (\<forall>t \<in> set ts. P t) ==> P (App f ts)"
   shows term_induct2: "P t"
-    and "list_all P ts"
+    and "\<forall>t \<in> set ts. P t"
   apply (induct t and ts)
      apply (rule var)
     apply (rule app)
