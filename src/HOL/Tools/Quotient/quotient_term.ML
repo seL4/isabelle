@@ -734,7 +734,7 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
 
 (* generate type and term substitutions out of the
    qtypes involved in a quotient; the direction flag 
-   indicates in which direction the substitution work: 
+   indicates in which direction the substitutions work: 
    
      true:  quotient -> raw
      false: raw -> quotient
@@ -748,7 +748,7 @@ fun mk_ty_subst qtys direction ctxt =
 fun mk_trm_subst qtys direction ctxt =
 let
   val subst_typ' = subst_typ ctxt (mk_ty_subst qtys direction ctxt)
-  fun proper (t1, t2) = (subst_typ' (fastype_of t1) = fastype_of t2)
+  fun proper (t1, t2) = subst_typ' (fastype_of t1) = fastype_of t2
 
   val const_substs = 
     Quotient_Info.qconsts_dest ctxt
