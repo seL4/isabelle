@@ -60,7 +60,7 @@ denote the same function.
 Internally, \isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ t} becomes \isa{split\ {\isacharparenleft}{\isasymlambda}x\ y{\isachardot}\ t{\isacharparenright}}, where
 \cdx{split} is the uncurrying function of type \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c} defined as
 \begin{center}
-\isa{split\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}c\ p{\isachardot}\ c\ {\isacharparenleft}fst\ p{\isacharparenright}\ {\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}}
+\isa{prod{\isacharunderscore}case\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}c\ p{\isachardot}\ c\ {\isacharparenleft}fst\ p{\isacharparenright}\ {\isacharparenleft}snd\ p{\isacharparenright}{\isacharparenright}}
 \hfill(\isa{split{\isacharunderscore}def})
 \end{center}
 Pattern matching in
@@ -74,7 +74,7 @@ understand how to reason about such constructs.%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The most obvious approach is the brute force expansion of \isa{split}:%
+The most obvious approach is the brute force expansion of \isa{prod{\isacharunderscore}case}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{lemma}\isamarkupfalse%
@@ -105,10 +105,10 @@ can be effective in small ones.
 If we consider why this lemma presents a problem, 
 we realize that we need to replace variable~\isa{p} by some pair \isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}}.  Then both sides of the
 equation would simplify to \isa{a} by the simplification rules
-\isa{split\ f\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ f\ a\ b} and \isa{fst\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ a}.  
+\isa{prod{\isacharunderscore}case\ f\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ f\ a\ b} and \isa{fst\ {\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}\ {\isacharequal}\ a}.  
 To reason about tuple patterns requires some way of
 converting a variable of product type into a pair.
-In case of a subterm of the form \isa{split\ f\ p} this is easy: the split
+In case of a subterm of the form \isa{prod{\isacharunderscore}case\ f\ p} this is easy: the split
 rule \isa{split{\isacharunderscore}split} replaces \isa{p} by a pair:%
 \index{*split (method)}%
 \end{isamarkuptext}%
@@ -169,7 +169,7 @@ Let us look at a second example:%
 {\isacharparenleft}simp\ only{\isacharcolon}\ Let{\isacharunderscore}def{\isacharparenright}%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isacharparenleft}{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ fst\ p\ {\isacharequal}\ x{\isacharparenright}\ p%
+\ {\isadigit{1}}{\isachardot}\ case\ p\ of\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isasymRightarrow}\ fst\ p\ {\isacharequal}\ x%
 \end{isabelle}
 A paired \isa{let} reduces to a paired $\lambda$-abstraction, which
 can be split as above. The same is true for paired set comprehension:%
@@ -194,7 +194,7 @@ can be split as above. The same is true for paired set comprehension:%
 \ simp%
 \begin{isamarkuptxt}%
 \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ split\ op\ {\isacharequal}\ p\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p%
+\ {\isadigit{1}}{\isachardot}\ prod{\isacharunderscore}case\ op\ {\isacharequal}\ p\ {\isasymlongrightarrow}\ fst\ p\ {\isacharequal}\ snd\ p%
 \end{isabelle}
 Again, simplification produces a term suitable for \isa{split{\isacharunderscore}split}
 as above. If you are worried about the strange form of the premise:
@@ -220,9 +220,9 @@ The same proof procedure works for%
 \begin{isamarkuptxt}%
 \noindent
 except that we now have to use \isa{split{\isacharunderscore}split{\isacharunderscore}asm}, because
-\isa{split} occurs in the assumptions.
+\isa{prod{\isacharunderscore}case} occurs in the assumptions.
 
-However, splitting \isa{split} is not always a solution, as no \isa{split}
+However, splitting \isa{prod{\isacharunderscore}case} is not always a solution, as no \isa{prod{\isacharunderscore}case}
 may be present in the goal. Consider the following function:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
@@ -253,7 +253,7 @@ because \isa{{\isasymtimes}} is a datatype. When we now try to prove%
 \noindent
 simplification will do nothing, because the defining equation for
 \isa{swap} expects a pair. Again, we need to turn \isa{p}
-into a pair first, but this time there is no \isa{split} in sight.
+into a pair first, but this time there is no \isa{prod{\isacharunderscore}case} in sight.
 The only thing we can do is to split the term by hand:%
 \end{isamarkuptxt}%
 \isamarkuptrue%

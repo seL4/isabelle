@@ -149,7 +149,6 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}structure Example :~sig\\
 \hspace*{0pt} ~val foldl :~('a -> 'b -> 'a) -> 'a -> 'b list -> 'a\\
 \hspace*{0pt} ~val rev :~'a list -> 'a list\\
-\hspace*{0pt} ~val list{\char95}case :~'a -> ('b -> 'b list -> 'a) -> 'b list -> 'a\\
 \hspace*{0pt} ~datatype 'a queue = AQueue of 'a list * 'a list\\
 \hspace*{0pt} ~val empty :~'a queue\\
 \hspace*{0pt} ~val dequeue :~'a queue -> 'a option * 'a queue\\
@@ -160,9 +159,6 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun list{\char95}case f1 f2 (a ::~lista) = f2 a lista\\
-\hspace*{0pt} ~| list{\char95}case f1 f2 [] = f1;\\
 \hspace*{0pt}\\
 \hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
 \hspace*{0pt}\\
@@ -234,10 +230,6 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \noindent%
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
-\hspace*{0pt}list{\char95}case ::~forall a b.~a -> (b -> [b] -> a) -> [b] -> a;\\
-\hspace*{0pt}list{\char95}case f1 f2 (a :~list) = f2 a list;\\
-\hspace*{0pt}list{\char95}case f1 f2 [] = f1;\\
-\hspace*{0pt}\\
 \hspace*{0pt}data Queue a = AQueue [a] [a];\\
 \hspace*{0pt}\\
 \hspace*{0pt}empty ::~forall a.~Queue a;\\
@@ -248,7 +240,7 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
 \hspace*{0pt}dequeue (AQueue (v :~va) []) =\\
 \hspace*{0pt} ~let {\char123}\\
-\hspace*{0pt} ~~~(y :~ys) = rev (v :~va);\\
+\hspace*{0pt} ~~~(y :~ys) = reverse (v :~va);\\
 \hspace*{0pt} ~{\char125}~in (Just y,~AQueue [] ys);\\
 \hspace*{0pt}\\
 \hspace*{0pt}enqueue ::~forall a.~a -> Queue a -> Queue a;\\
