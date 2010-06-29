@@ -66,6 +66,7 @@ sig
   val literals_of_term : theory -> term -> literal list * typ list
   val conceal_skolem_terms :
     int -> (string * term) list -> term -> (string * term) list * term
+  val reveal_skolem_terms : (string * term) list -> term -> term
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
@@ -472,6 +473,15 @@ fun conceal_skolem_terms i skolems t =
     in aux skolems t end
   else
     (skolems, t)
+
+fun reveal_skolem_terms skolems =
+  map_aterms (fn t as Const (s, _) =>
+                 if String.isPrefix skolem_theory_name s then
+                   AList.lookup (op =) skolems s |> the
+                   |> map_types Type_Infer.paramify_vars
+                 else
+                   t
+               | t => t)
 
 
 (***************************************************************)

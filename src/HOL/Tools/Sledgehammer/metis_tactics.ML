@@ -235,15 +235,6 @@ fun fol_type_to_isa _ (Metis.Term.Var v) =
           SOME tf => mk_tfree ctxt tf
         | NONE    => raise Fail ("fol_type_to_isa: " ^ x));
 
-fun reveal_skolem_terms skolems =
-  map_aterms (fn t as Const (s, _) =>
-                 if String.isPrefix skolem_theory_name s then
-                   AList.lookup (op =) skolems s |> the
-                   |> map_types Type_Infer.paramify_vars
-                 else
-                   t
-               | t => t)
-
 (*Maps metis terms to isabelle terms*)
 fun hol_term_from_fol_PT ctxt fol_tm =
   let val thy = ProofContext.theory_of ctxt
