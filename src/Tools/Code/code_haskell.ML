@@ -382,7 +382,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
           | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
                 o Long_Name.explode) modlname;
         val pathname = Path.append destination filename;
-        val _ = File.mkdir (Path.dir pathname);
+        val _ = File.mkdir_leaf (Path.dir pathname);
       in File.write pathname
         ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
           ^ code_of_pretty content)
