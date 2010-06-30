@@ -11,15 +11,15 @@ sig
   type name = string * string
   datatype kind = Axiom | Conjecture
   datatype type_literal =
-    TyLitVar of string * name |
-    TyLitFree of string * name
+    TyLitVar of name * name |
+    TyLitFree of name * name
   datatype arLit =
-      TConsLit of class * string * string list
-    | TVarLit of class * string
+    TConsLit of name * name * name list |
+    TVarLit of name * name
   datatype arity_clause = ArityClause of
    {axiom_name: string, conclLit: arLit, premLits: arLit list}
   datatype classrel_clause = ClassrelClause of
-   {axiom_name: string, subclass: class, superclass: class}
+   {axiom_name: string, subclass: name, superclass: name}
   datatype combtyp =
     TyVar of name |
     TyFree of name |
@@ -39,7 +39,7 @@ sig
   val tvar_prefix: string
   val tfree_prefix: string
   val const_prefix: string
-  val tconst_prefix: string
+  val type_const_prefix: string
   val class_prefix: string
   val union_all: ''a list list -> ''a list
   val invert_const: string -> string
@@ -88,7 +88,7 @@ val tfree_prefix = "t_";
 val classrel_clause_prefix = "clsrel_";
 
 val const_prefix = "c_";
-val tconst_prefix = "tc_";
+val type_const_prefix = "tc_";
 val class_prefix = "class_";
 
 fun union_all xss = fold (union (op =)) xss []
@@ -96,7 +96,9 @@ fun union_all xss = fold (union (op =)) xss []
 (* Readable names for the more common symbolic functions. Do not mess with the
    last nine entries of the table unless you know what you are doing. *)
 val const_trans_table =
-  Symtab.make [(@{const_name "op ="}, "equal"),
+  Symtab.make [(@{type_name "*"}, "prod"),
+               (@{type_name "+"}, "sum"),
+               (@{const_name "op ="}, "equal"),
                (@{const_name "op &"}, "and"),
                (@{const_name "op |"}, "or"),
                (@{const_name "op -->"}, "implies"),
@@ -109,9 +111,7 @@ val const_trans_table =
                (@{const_name COMBS}, "COMBS"),
                (@{const_name True}, "True"),
                (@{const_name False}, "False"),
-               (@{const_name If}, "If"),
-               (@{type_name "*"}, "prod"),
-               (@{type_name "+"}, "sum")]
+               (@{const_name If}, "If")]
 
 (* Invert the table of translations between Isabelle and ATPs. *)
 val const_trans_table_inv =
@@ -195,7 +195,7 @@ fun lookup_const c =
 fun make_fixed_const @{const_name "op ="} = "equal"
   | make_fixed_const c = const_prefix ^ lookup_const c
 
-fun make_fixed_type_const c = tconst_prefix ^ lookup_const c
+fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
@@ -230,8 +230,8 @@ datatype kind = Axiom | Conjecture
 
 (* The first component is the type class; the second is a TVar or TFree. *)
 datatype type_literal =
-  TyLitVar of string * name |
-  TyLitFree of string * name
+  TyLitVar of name * name |
+  TyLitFree of name * name
 
 exception CLAUSE of string * term;
 
@@ -241,8 +241,8 @@ fun sorts_on_typs_aux (_, [])   = []
       let val sorts = sorts_on_typs_aux ((x,i), ss)
       in
           if s = "HOL.type" then sorts
-          else if i = ~1 then TyLitFree (make_type_class s, `make_fixed_type_var x) :: sorts
-          else TyLitVar (make_type_class s, (make_schematic_type_var (x,i), x)) :: sorts
+          else if i = ~1 then TyLitFree (`make_type_class s, `make_fixed_type_var x) :: sorts
+          else TyLitVar (`make_type_class s, (make_schematic_type_var (x,i), x)) :: sorts
       end;
 
 fun sorts_on_typs (TFree (a,s)) = sorts_on_typs_aux ((a,~1),s)
@@ -256,8 +256,9 @@ fun type_literals_for_types Ts =
 
 (**** Isabelle arities ****)
 
-datatype arLit = TConsLit of class * string * string list
-               | TVarLit of class * string;
+datatype arLit =
+  TConsLit of name * name * name list |
+  TVarLit of name * name
 
 datatype arity_clause =
   ArityClause of {axiom_name: string, conclLit: arLit, premLits: arLit list}
@@ -267,24 +268,28 @@ fun gen_TVars 0 = []
   | gen_TVars n = ("T_" ^ Int.toString n) :: gen_TVars (n-1);
 
 fun pack_sort(_,[])  = []
-  | pack_sort(tvar, "HOL.type"::srt) = pack_sort(tvar, srt)   (*IGNORE sort "type"*)
-  | pack_sort(tvar, cls::srt) =  (cls, tvar) :: pack_sort(tvar, srt);
+  | pack_sort(tvar, "HOL.type"::srt) = pack_sort (tvar, srt)   (*IGNORE sort "type"*)
+  | pack_sort(tvar, cls::srt) =
+    (`make_type_class cls, (tvar, tvar)) :: pack_sort (tvar, srt)
 
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
 fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
-   let val tvars = gen_TVars (length args)
-       val tvars_srts = ListPair.zip (tvars,args)
-   in
-     ArityClause {axiom_name = axiom_name, 
-                  conclLit = TConsLit (cls, make_fixed_type_const tcons, tvars),
-                  premLits = map TVarLit (union_all(map pack_sort tvars_srts))}
-   end;
+  let
+    val tvars = gen_TVars (length args)
+    val tvars_srts = ListPair.zip (tvars, args)
+  in
+    ArityClause {axiom_name = axiom_name, 
+                 conclLit = TConsLit (`make_type_class cls,
+                                      `make_fixed_type_const tcons,
+                                      tvars ~~ tvars),
+                 premLits = map TVarLit (union_all (map pack_sort tvars_srts))}
+  end
 
 
 (**** Isabelle class relations ****)
 
 datatype classrel_clause =
-  ClassrelClause of {axiom_name: string, subclass: class, superclass: class}
+  ClassrelClause of {axiom_name: string, subclass: name, superclass: name}
 
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs _ [] _ = []
@@ -298,8 +303,8 @@ fun class_pairs _ [] _ = []
 fun make_classrel_clause (sub,super) =
   ClassrelClause {axiom_name = classrel_clause_prefix ^ ascii_of sub ^ "_" ^
                                ascii_of super,
-                  subclass = make_type_class sub,
-                  superclass = make_type_class super};
+                  subclass = `make_type_class sub,
+                  superclass = `make_type_class super};
 
 fun make_classrel_clauses thy subs supers =
   map make_classrel_clause (class_pairs thy subs supers);

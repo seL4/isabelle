@@ -337,8 +337,9 @@ fun generic_tptp_prover
                 extract_proof_and_outcome complete res_code proof_delims
                                           known_failures output
             in (output, msecs, proof, outcome) end
+          val readable_names = debug andalso overlord
           val (pool, conjecture_offset) =
-            write_tptp_file (debug andalso overlord) full_types explicit_apply
+            write_tptp_file thy readable_names full_types explicit_apply
                             probfile clauses
           val conjecture_shape = shape_of_clauses (conjecture_offset + 1) goal_clss
           val result =
