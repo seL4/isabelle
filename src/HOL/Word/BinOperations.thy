@@ -476,37 +476,6 @@ lemmas bin_sc_Suc_minus =
 lemmas bin_sc_Suc_pred [simp] = 
   bin_sc_Suc_minus [of "number_of bin", simplified nobm1, standard]
 
-subsection {* Operations on lists of booleans *}
-
-primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
-  Nil: "bl_to_bin_aux [] w = w"
-  | Cons: "bl_to_bin_aux (b # bs) w = 
-      bl_to_bin_aux bs (w BIT (if b then 1 else 0))"
-
-definition bl_to_bin :: "bool list \<Rightarrow> int" where
-  bl_to_bin_def : "bl_to_bin bs = bl_to_bin_aux bs Int.Pls"
-
-primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list" where
-  Z: "bin_to_bl_aux 0 w bl = bl"
-  | Suc: "bin_to_bl_aux (Suc n) w bl =
-      bin_to_bl_aux n (bin_rest w) ((bin_last w = 1) # bl)"
-
-definition bin_to_bl :: "nat \<Rightarrow> int \<Rightarrow> bool list" where
-  bin_to_bl_def : "bin_to_bl n w = bin_to_bl_aux n w []"
-
-primrec bl_of_nth :: "nat \<Rightarrow> (nat \<Rightarrow> bool) \<Rightarrow> bool list" where
-  Suc: "bl_of_nth (Suc n) f = f n # bl_of_nth n f"
-  | Z: "bl_of_nth 0 f = []"
-
-primrec takefill :: "'a \<Rightarrow> nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  Z: "takefill fill 0 xs = []"
-  | Suc: "takefill fill (Suc n) xs = (
-      case xs of [] => fill # takefill fill n xs
-        | y # ys => y # takefill fill n ys)"
-
-definition map2 :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'c list" where
-  "map2 f as bs = map (split f) (zip as bs)"
-
 
 subsection {* Splitting and concatenation *}
 
