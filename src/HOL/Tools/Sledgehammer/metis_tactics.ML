@@ -124,9 +124,9 @@ fun literals_of_hol_term thy mode t =
       in  (map (hol_literal_to_fol mode) lits, types_sorts) end;
 
 (*Sign should be "true" for conjecture type constraints, "false" for type lits in clauses.*)
-fun metis_of_type_literals pos (TyLitVar (s, (s', _))) =
+fun metis_of_type_literals pos (TyLitVar ((s, _), (s', _))) =
     metis_lit pos s [Metis.Term.Var s']
-  | metis_of_type_literals pos (TyLitFree (s, (s', _))) =
+  | metis_of_type_literals pos (TyLitFree ((s, _), (s', _))) =
     metis_lit pos s [Metis.Term.Fn (s',[])]
 
 fun default_sort _ (TVar _) = false
@@ -158,10 +158,10 @@ fun hol_thm_to_fol is_conjecture ctxt mode j skolems th =
 
 (* ARITY CLAUSE *)
 
-fun m_arity_cls (TConsLit (c,t,args)) =
-      metis_lit true (make_type_class c) [Metis.Term.Fn(t, map Metis.Term.Var args)]
-  | m_arity_cls (TVarLit (c,str))     =
-      metis_lit false (make_type_class c) [Metis.Term.Var str];
+fun m_arity_cls (TConsLit ((c, _), (t, _), args)) =
+    metis_lit true c [Metis.Term.Fn(t, map (Metis.Term.Var o fst) args)]
+  | m_arity_cls (TVarLit ((c, _), (s, _))) =
+    metis_lit false c [Metis.Term.Var s]
 
 (*TrueI is returned as the Isabelle counterpart because there isn't any.*)
 fun arity_cls (ArityClause {conclLit, premLits, ...}) =
@@ -170,7 +170,7 @@ fun arity_cls (ArityClause {conclLit, premLits, ...}) =
 
 (* CLASSREL CLAUSE *)
 
-fun m_classrel_cls subclass superclass =
+fun m_classrel_cls (subclass, _) (superclass, _) =
   [metis_lit false subclass [Metis.Term.Var "T"], metis_lit true superclass [Metis.Term.Var "T"]];
 
 fun classrel_cls (ClassrelClause {subclass, superclass, ...}) =
@@ -228,7 +228,7 @@ fun fol_type_to_isa _ (Metis.Term.Var v) =
           SOME w => make_tvar w
         | NONE   => make_tvar v)
   | fol_type_to_isa ctxt (Metis.Term.Fn(x, tys)) =
-     (case strip_prefix tconst_prefix x of
+     (case strip_prefix type_const_prefix x of
           SOME tc => Term.Type (invert_const tc, map (fol_type_to_isa ctxt) tys)
         | NONE    =>
       case strip_prefix tfree_prefix x of
@@ -279,7 +279,7 @@ fun hol_term_from_fol_PT ctxt fol_tm =
                                    cat_lines (map (Syntax.string_of_term ctxt) (terms_of tts)))
                      end
               | NONE => (*Not a constant. Is it a type constructor?*)
-            case strip_prefix tconst_prefix a of
+            case strip_prefix type_const_prefix a of
                 SOME b =>
                   Type (Term.Type (invert_const b, types_of (map tm_to_tt ts)))
               | NONE => (*Maybe a TFree. Should then check that ts=[].*)
@@ -724,7 +724,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
       val (mode, {axioms, tfrees, skolems}) = build_map mode ctxt cls ths
       val _ = if null tfrees then ()
               else (trace_msg (fn () => "TFREE CLAUSES");
-                    app (fn TyLitFree (s, (s', _)) =>
+                    app (fn TyLitFree ((s, _), (s', _)) =>
                             trace_msg (fn _ => s ^ "(" ^ s' ^ ")")) tfrees)
       val _ = trace_msg (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms

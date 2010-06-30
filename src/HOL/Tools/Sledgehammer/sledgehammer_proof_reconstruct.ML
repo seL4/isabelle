@@ -214,7 +214,7 @@ exception NODE of node list
 fun type_from_node _ (u as IntLeaf _) = raise NODE [u]
   | type_from_node tfrees (u as StrNode (a, us)) =
     let val Ts = map (type_from_node tfrees) us in
-      case strip_prefix tconst_prefix a of
+      case strip_prefix type_const_prefix a of
         SOME b => Type (invert_const b, Ts)
       | NONE =>
         if not (null us) then
@@ -253,17 +253,17 @@ fun fix_atp_variable_name s =
    should allow them to be inferred.*)
 fun term_from_node thy full_types tfrees =
   let
-    fun aux opt_T args u =
+    fun aux opt_T extra_us u =
       case u of
         IntLeaf _ => raise NODE [u]
       | StrNode ("hBOOL", [u1]) => aux (SOME @{typ bool}) [] u1
-      | StrNode ("hAPP", [u1, u2]) => aux opt_T (u2 :: args) u1
+      | StrNode ("hAPP", [u1, u2]) => aux opt_T (u2 :: extra_us) u1
       | StrNode ("c_Not", [u1]) => @{const Not} $ aux (SOME @{typ bool}) [] u1
       | StrNode (a, us) =>
         if a = type_wrapper_name then
           case us of
-            [term_u, typ_u] =>
-            aux (SOME (type_from_node tfrees typ_u)) args term_u
+            [typ_u, term_u] =>
+            aux (SOME (type_from_node tfrees typ_u)) extra_us term_u
           | _ => raise NODE us
         else case strip_prefix const_prefix a of
           SOME "equal" =>
@@ -273,31 +273,31 @@ fun term_from_node thy full_types tfrees =
           let
             val c = invert_const b
             val num_type_args = num_type_args thy c
-            val actual_num_type_args = if full_types then 0 else num_type_args
-            val num_term_args = length us - actual_num_type_args
-            val ts = map (aux NONE []) (take num_term_args us @ args)
+            val (type_us, term_us) =
+              chop (if full_types then 0 else num_type_args) us
+            (* Extra args from "hAPP" come after any arguments given directly to
+               the constant. *)
+            val term_ts = map (aux NONE []) term_us
+            val extra_ts = map (aux NONE []) extra_us
             val t =
               Const (c, if full_types then
                           case opt_T of
-                            SOME T => map fastype_of ts ---> T
+                            SOME T => map fastype_of term_ts ---> T
                           | NONE =>
                             if num_type_args = 0 then
                               Sign.const_instance thy (c, [])
                             else
                               raise Fail ("no type information for " ^ quote c)
                         else
-                          (* Extra args from "hAPP" come after any arguments
-                             given directly to the constant. *)
                           if String.isPrefix skolem_theory_name c then
-                            map fastype_of ts ---> HOLogic.typeT
+                            map fastype_of term_ts ---> HOLogic.typeT
                           else
                             Sign.const_instance thy (c,
-                                map (type_from_node tfrees)
-                                    (drop num_term_args us)))
-          in list_comb (t, ts) end
+                                map (type_from_node tfrees) type_us))
+          in list_comb (t, term_ts @ extra_ts) end
         | NONE => (* a free or schematic variable *)
           let
-            val ts = map (aux NONE []) (us @ args)
+            val ts = map (aux NONE []) (us @ extra_us)
             val T = map fastype_of ts ---> HOLogic.typeT
             val t =
               case strip_prefix fixed_var_prefix a of
