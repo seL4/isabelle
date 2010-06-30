@@ -59,9 +59,6 @@ lemma norm_minus_eqI:"x = - y \<Longrightarrow> norm x = norm y" by auto
 lemma Min_grI: assumes "finite A" "A \<noteq> {}" "\<forall>a\<in>A. x < a" shows "x < Min A"
   unfolding Min_gr_iff[OF assms(1,2)] using assms(3) by auto
 
-lemma dimindex_ge_1:"CARD(_::finite) \<ge> 1"
-  using one_le_card_finite by auto
-
 lemma norm_lt: "norm x < norm y \<longleftrightarrow> inner x x < inner y y"
   unfolding norm_eq_sqrt_inner by simp
 
@@ -1648,7 +1645,7 @@ show "\<Inter> f \<noteq> {}" apply(cases "n = DIM('a)") apply(rule Suc(5)[rule_
       thus "x\<in>\<Inter>g" using X[THEN bspec[where x=y]] using * f by auto
     qed(auto)
     thus ?thesis unfolding f using mp(3)[unfolded gh] by blast qed
-qed(insert dimindex_ge_1, auto) qed(auto)
+qed(auto) qed(auto)
 
 lemma helly: fixes f::"('a::euclidean_space) set set"
   assumes "card f \<ge> DIM('a) + 1" "\<forall>s\<in>f. convex s"
@@ -2227,8 +2224,6 @@ lemma convex_on_continuous:
   have "x\<in>{x - ?d..x + ?d}" using `d>0` unfolding mem_interval by(auto simp add:euclidean_simps)
   hence "c\<noteq>{}" using c by auto
   def k \<equiv> "Max (f ` c)"
-  have real_dimindex_ge_1:"real (CARD('n::finite)) \<ge> 1" 
-    by(metis dimindex_ge_1 real_eq_of_nat real_of_nat_1 real_of_nat_le_iff) 
   have "convex_on {x - ?d..x + ?d} f" apply(rule convex_on_subset[OF assms(2)])
     apply(rule subset_trans[OF _ e(1)]) unfolding subset_eq mem_cball proof 
     fix z assume z:"z\<in>{x - ?d..x + ?d}"
@@ -2238,7 +2233,7 @@ lemma convex_on_continuous:
       using z[unfolded mem_interval] apply(erule_tac x=i in allE) by(auto simp add:euclidean_simps) qed
   hence k:"\<forall>y\<in>{x - ?d..x + ?d}. f y \<le> k" unfolding c(2) apply(rule_tac convex_on_convex_hull_bound) apply assumption
     unfolding k_def apply(rule, rule Max_ge) using c(1) by auto
-  have "d \<le> e" unfolding d_def apply(rule mult_imp_div_pos_le) using `e>0` dimge1 unfolding mult_le_cancel_left1 using real_dimindex_ge_1 by auto
+  have "d \<le> e" unfolding d_def apply(rule mult_imp_div_pos_le) using `e>0` dimge1 unfolding mult_le_cancel_left1 by auto
   hence dsube:"cball x d \<subseteq> cball x e" unfolding subset_eq Ball_def mem_cball by auto
   have conv:"convex_on (cball x d) f" apply(rule convex_on_subset, rule convex_on_subset[OF assms(2)]) apply(rule e(1)) using dsube by auto
   hence "\<forall>y\<in>cball x d. abs (f y) \<le> k + 2 * abs (f x)" apply(rule_tac convex_bounds_lemma) apply assumption proof
@@ -2519,7 +2514,7 @@ next fix x::"'a" assume as:"\<forall>i<DIM('a). 0 < x $$ i" "setsum (op $$ x) {.
   guess a using UNIV_witness[where 'a='b] ..
   let ?d = "(1 - setsum (op $$ x) {..<DIM('a)}) / real (DIM('a))"
   have "Min ((op $$ x) ` {..<DIM('a)}) > 0" apply(rule Min_grI) using as(1) by auto
-  moreover have"?d > 0" apply(rule divide_pos_pos) using as(2) using dimindex_ge_1 by(auto simp add: Suc_le_eq)
+  moreover have"?d > 0" apply(rule divide_pos_pos) using as(2) by(auto simp add: Suc_le_eq)
   ultimately show "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> (\<forall>i<DIM('a). 0 \<le> y $$ i) \<and> setsum (op $$ y) {..<DIM('a)} \<le> 1"
     apply(rule_tac x="min (Min ((op $$ x) ` {..<DIM('a)})) ?D" in exI) apply rule defer apply(rule,rule) proof-
     fix y assume y:"dist x y < min (Min (op $$ x ` {..<DIM('a)})) ?d"
@@ -2528,7 +2523,7 @@ next fix x::"'a" assume as:"\<forall>i<DIM('a). 0 < x $$ i" "setsum (op $$ x) {.
         using component_le_norm[of "y - x" i]
         using y[unfolded min_less_iff_conj dist_norm, THEN conjunct2] by(auto simp add: norm_minus_commute)
       thus "y $$ i \<le> x $$ i + ?d" by auto qed
-    also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant card_enum real_eq_of_nat using dimindex_ge_1 by(auto simp add: Suc_le_eq)
+    also have "\<dots> \<le> 1" unfolding setsum_addf setsum_constant card_enum real_eq_of_nat by(auto simp add: Suc_le_eq)
     finally show "(\<forall>i<DIM('a). 0 \<le> y $$ i) \<and> setsum (op $$ y) {..<DIM('a)} \<le> 1" 
     proof safe fix i assume i:"i<DIM('a)"
       have "norm (x - y) < x$$i" apply(rule less_le_trans) 
