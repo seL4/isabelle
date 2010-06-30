@@ -8,7 +8,7 @@
 header {* Definition of Word Type *}
 
 theory WordDefinition
-imports Type_Length Misc_Typedef BinBoolList
+imports Type_Length Misc_Typedef Bool_List_Representation
 begin
 
 subsection {* Type definition *}

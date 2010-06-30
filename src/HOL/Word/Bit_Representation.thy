@@ -8,7 +8,7 @@
 
 header {* Basic Definitions for Binary Integers *}
 
-theory BinGeneral
+theory Bit_Representation
 imports Misc_Numeric Bit
 begin
 

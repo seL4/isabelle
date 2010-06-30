@@ -8,8 +8,8 @@
 
 header {* Bitwise Operations on Binary Integers *}
 
-theory BinOperations
-imports Bit_Operations BinGeneral
+theory Bit_Int
+imports Bit_Representation Bit_Operations
 begin
 
 subsection {* Logical operations *}

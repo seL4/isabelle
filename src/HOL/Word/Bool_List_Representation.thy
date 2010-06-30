@@ -8,8 +8,8 @@
 
 header "Bool lists and integers"
 
-theory BinBoolList
-imports BinOperations
+theory Bool_List_Representation
+imports Bit_Int
 begin
 
 subsection {* Operations on lists of booleans *}
