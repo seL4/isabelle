@@ -40,6 +40,7 @@ sig
   val unfoldl: ('a -> ('a * 'b) option) -> 'a -> 'a * 'b list
   val unfoldr: ('a -> ('b * 'a) option) -> 'a -> 'b list * 'a
   val unfold_fun: itype -> itype list * itype
+  val unfold_fun_n: int -> itype -> itype list * itype
   val unfold_app: iterm -> iterm * iterm list
   val unfold_abs: iterm -> (vname option * itype) list * iterm
   val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option
@@ -395,6 +396,13 @@ val fun_tyco = Long_Name.append (namify_tyco Pure.thy "fun") suffix_tyco
 val unfold_fun = unfoldr
   (fn tyco `%% [ty1, ty2] => if tyco = fun_tyco then SOME (ty1, ty2) else NONE
     | _ => NONE);
+
+fun unfold_fun_n n ty =
+  let
+    val (tys1, ty1) = unfold_fun ty;
+    val (tys3, tys2) = chop n tys1;
+    val ty3 = Library.foldr (fn (ty1, ty2) => fun_tyco `%% [ty1, ty2]) (tys2, ty1);
+  in (tys3, ty3) end;
 
 end; (* local *)
 
