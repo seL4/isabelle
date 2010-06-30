@@ -1,14 +1,11 @@
-(* 
-  Author: Brian Huffman, PSU and Gerwin Klein, NICTA
-
-  Syntactic class for bitwise operations.
+(*  Title:      HOL/Word/Bit_Operations.thy
+    Author:     Author: Brian Huffman, PSU and Gerwin Klein, NICTA
 *)
-
 
 header {* Syntactic classes for bitwise operations *}
 
-theory BitSyntax
-imports BinGeneral
+theory Bit_Operations
+imports Bit
 begin
 
 class bit =
@@ -45,20 +42,20 @@ instantiation bit :: bit
 begin
 
 primrec bitNOT_bit where
-  "NOT bit.B0 = bit.B1"
-  | "NOT bit.B1 = bit.B0"
+  "NOT 0 = (1::bit)"
+  | "NOT 1 = (0::bit)"
 
 primrec bitAND_bit where
-  "bit.B0 AND y = bit.B0"
-  | "bit.B1 AND y = y"
+  "0 AND y = (0::bit)"
+  | "1 AND y = (y::bit)"
 
 primrec bitOR_bit where
-  "bit.B0 OR y = y"
-  | "bit.B1 OR y = bit.B1"
+  "0 OR y = (y::bit)"
+  | "1 OR y = (1::bit)"
 
 primrec bitXOR_bit where
-  "bit.B0 XOR y = y"
-  | "bit.B1 XOR y = NOT y"
+  "0 XOR y = (y::bit)"
+  | "1 XOR y = (NOT y :: bit)"
 
 instance  ..
 
@@ -68,12 +65,12 @@ lemmas bit_simps =
   bitNOT_bit.simps bitAND_bit.simps bitOR_bit.simps bitXOR_bit.simps
 
 lemma bit_extra_simps [simp]: 
-  "x AND bit.B0 = bit.B0"
-  "x AND bit.B1 = x"
-  "x OR bit.B1 = bit.B1"
-  "x OR bit.B0 = x"
-  "x XOR bit.B1 = NOT x"
-  "x XOR bit.B0 = x"
+  "x AND 0 = (0::bit)"
+  "x AND 1 = (x::bit)"
+  "x OR 1 = (1::bit)"
+  "x OR 0 = (x::bit)"
+  "x XOR 1 = NOT (x::bit)"
+  "x XOR 0 = (x::bit)"
   by (cases x, auto)+
 
 lemma bit_ops_comm: 
@@ -85,7 +82,7 @@ lemma bit_ops_comm:
 lemma bit_ops_same [simp]: 
   "(x::bit) AND x = x"
   "(x::bit) OR x = x"
-  "(x::bit) XOR x = bit.B0"
+  "(x::bit) XOR x = 0"
   by (cases x, auto)+
 
 lemma bit_not_not [simp]: "NOT (NOT (x::bit)) = x"

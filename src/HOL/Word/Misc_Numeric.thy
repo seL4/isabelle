@@ -4,7 +4,7 @@
 
 header {* Useful Numerical Lemmas *}
 
-theory Num_Lemmas
+theory Misc_Numeric
 imports Main Parity
 begin
 

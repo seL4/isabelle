@@ -397,8 +397,8 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 $(LOG)/HOL-Library.gz: $(OUT)/HOL $(SRC)/HOL/Tools/float_arith.ML	\
   $(SRC)/Tools/float.ML Library/Abstract_Rat.thy Library/AssocList.thy	\
   Library/BigO.thy Library/Binomial.thy Library/Bit.thy			\
-  Library/Boolean_Algebra.thy Library/Char_nat.thy			\
-  Library/Code_Char.thy Library/Code_Char_chr.thy			\
+  Library/Boolean_Algebra.thy Library/Cardinality.thy			\
+  Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	
   Library/Code_Integer.thy Library/ContNotDenum.thy			\
   Library/Continuity.thy Library/Convex.thy Library/Countable.thy	\
   Library/Diagonalize.thy Library/Dlist.thy Library/Efficient_Nat.thy	\
@@ -1191,9 +1191,9 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
 HOL-Word: HOL $(OUT)/HOL-Word
 
 $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML Library/Boolean_Algebra.thy	\
-  Library/Numeral_Type.thy Word/Num_Lemmas.thy Word/TdThs.thy		\
-  Word/Size.thy Word/BinGeneral.thy Word/BinOperations.thy		\
-  Word/BinBoolList.thy Word/BitSyntax.thy Word/WordDefinition.thy	\
+  Library/Numeral_Type.thy Word/Misc_Numeric.thy Word/Misc_Typedef.thy	\
+  Word/Type_Length.thy Word/BinGeneral.thy Word/BinOperations.thy	\
+  Word/BinBoolList.thy Word/Bit_Operations.thy Word/WordDefinition.thy	\
   Word/WordArith.thy Word/WordBitwise.thy Word/WordShift.thy		\
   Word/WordGenLib.thy Word/Word.thy Word/document/root.tex		\
   Word/document/root.bib Tools/SMT/smt_word.ML
