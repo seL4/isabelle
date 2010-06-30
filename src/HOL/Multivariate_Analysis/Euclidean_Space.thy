@@ -1582,21 +1582,13 @@ class real_basis = real_vector +
     independent (basis ` {..<d}) \<and>
     inj_on basis {..<d}"
 
-definition (in real_basis) dimension :: "'a set \<Rightarrow> nat" where
+definition (in real_basis) dimension :: "'a itself \<Rightarrow> nat" where
   "dimension x =
     (THE d. basis ` {d..} = {0} \<and> independent (basis ` {..<d}) \<and> inj_on basis {..<d})"
 
 syntax "_type_dimension" :: "type => nat" ("(1DIM/(1'(_')))")
 
-translations "DIM('t)" => "CONST dimension (CONST UNIV \<Colon> 't set)"
-
-typed_print_translation {*
-let
-  fun card_univ_tr' show_sorts _ [Const (@{const_syntax UNIV}, Type(_, [T, _]))] =
-    Syntax.const @{syntax_const "_type_dimension"} $ Syntax.term_of_typ show_sorts T;
-in [(@{const_syntax dimension}, card_univ_tr')]
-end
-*}
+translations "DIM('t)" == "CONST dimension (TYPE('t))"
 
 lemma (in real_basis) dimensionI:
   assumes "\<And>d. \<lbrakk> 0 < d; basis ` {d..} = {0}; independent (basis ` {..<d});
@@ -2067,7 +2059,7 @@ subsection {* We continue. *}
 
 (** move **)
 lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = UNIV"
-  apply(subst(2) span_basis[THEN sym]) unfolding basis_range by auto
+  apply(subst span_basis[THEN sym]) unfolding basis_range by auto
 
 lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = DIM('a)"
   apply(subst card_image) using basis_inj by auto
