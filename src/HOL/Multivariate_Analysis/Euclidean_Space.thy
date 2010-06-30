@@ -1891,7 +1891,7 @@ class ordered_euclidean_space = ord + euclidean_space +
 subsection {* Linearity and Bilinearity continued *}
 
 lemma linear_bounded:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
   shows "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
 proof-
@@ -1919,7 +1919,7 @@ proof-
 qed
 
 lemma linear_bounded_pos:
-  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
   shows "\<exists>B > 0. \<forall>x. norm (f x) \<le> B * norm x"
 proof-
@@ -1947,7 +1947,7 @@ proof-
 qed
 
 lemma linear_conv_bounded_linear:
-  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+  fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   shows "linear f \<longleftrightarrow> bounded_linear f"
 proof
   assume "linear f"
@@ -1971,14 +1971,14 @@ next
     by (simp add: f.add f.scaleR linear_def)
 qed
 
-lemma bounded_linearI': fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+lemma bounded_linearI': fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<And>x y. f (x + y) = f x + f y" "\<And>c x. f (c *\<^sub>R x) = c *\<^sub>R f x"
   shows "bounded_linear f" unfolding linear_conv_bounded_linear[THEN sym]
   by(rule linearI[OF assms])
 
 
 lemma bilinear_bounded:
-  fixes h:: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'k::euclidean_space"
+  fixes h:: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'k::real_normed_vector"
   assumes bh: "bilinear h"
   shows "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
 proof-
@@ -2008,7 +2008,7 @@ proof-
 qed
 
 lemma bilinear_bounded_pos:
-  fixes h:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
+  fixes h:: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
   assumes bh: "bilinear h"
   shows "\<exists>B > 0. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
 proof-
@@ -2029,7 +2029,7 @@ proof-
 qed
 
 lemma bilinear_conv_bounded_bilinear:
-  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::euclidean_space"
+  fixes h :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> 'c::real_normed_vector"
   shows "bilinear h \<longleftrightarrow> bounded_bilinear h"
 proof
   assume "bilinear h"
