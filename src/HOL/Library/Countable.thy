@@ -97,6 +97,45 @@ instance list :: (countable) countable
     (simp add: list_encode_eq)
 
 
+text {* Further *}
+
+instance String.literal :: countable
+  by (rule countable_classI [of "String.literal_case to_nat"])
+   (auto split: String.literal.splits)
+
+instantiation typerep :: countable
+begin
+
+fun to_nat_typerep :: "typerep \<Rightarrow> nat" where
+  "to_nat_typerep (Typerep.Typerep c ts) = to_nat (to_nat c, to_nat (map to_nat_typerep ts))"
+
+instance proof (rule countable_classI)
+  fix t t' :: typerep and ts
+  have "(\<forall>t'. to_nat_typerep t = to_nat_typerep t' \<longrightarrow> t = t')
+    \<and> (\<forall>ts'. map to_nat_typerep ts = map to_nat_typerep ts' \<longrightarrow> ts = ts')"
+  proof (induct rule: typerep.induct)
+    case (Typerep c ts) show ?case
+    proof (rule allI, rule impI)
+      fix t'
+      assume hyp: "to_nat_typerep (Typerep.Typerep c ts) = to_nat_typerep t'"
+      then obtain c' ts' where t': "t' = (Typerep.Typerep c' ts')"
+        by (cases t') auto
+      with Typerep hyp have "c = c'" and "ts = ts'" by simp_all
+      with t' show "Typerep.Typerep c ts = t'" by simp
+    qed
+  next
+    case Nil_typerep then show ?case by simp
+  next
+    case (Cons_typerep t ts) then show ?case by auto
+  qed
+  then have "to_nat_typerep t = to_nat_typerep t' \<Longrightarrow> t = t'" by auto
+  moreover assume "to_nat_typerep t = to_nat_typerep t'"
+  ultimately show "t = t'" by simp
+qed
+
+end
+
+
 text {* Functions *}
 
 instance "fun" :: (finite, countable) countable
