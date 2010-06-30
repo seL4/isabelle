@@ -9,7 +9,7 @@
 header {* Bitwise Operations on Binary Integers *}
 
 theory BinOperations
-imports BinGeneral BitSyntax
+imports Bit_Operations BinGeneral
 begin
 
 subsection {* Logical operations *}
@@ -76,8 +76,8 @@ lemma int_xor_Bits2 [simp, code]:
   unfolding BIT_simps [symmetric] int_xor_Bits by simp_all
 
 lemma int_xor_x_simps':
-  "w XOR (Int.Pls BIT bit.B0) = w"
-  "w XOR (Int.Min BIT bit.B1) = NOT w"
+  "w XOR (Int.Pls BIT 0) = w"
+  "w XOR (Int.Min BIT 1) = NOT w"
   apply (induct w rule: bin_induct)
        apply simp_all[4]
    apply (unfold int_xor_Bits)
@@ -109,8 +109,8 @@ lemma int_or_Bits2 [simp, code]:
   unfolding BIT_simps [symmetric] int_or_Bits by simp_all
 
 lemma int_or_x_simps': 
-  "w OR (Int.Pls BIT bit.B0) = w"
-  "w OR (Int.Min BIT bit.B1) = Int.Min"
+  "w OR (Int.Pls BIT 0) = w"
+  "w OR (Int.Min BIT 1) = Int.Min"
   apply (induct w rule: bin_induct)
        apply simp_all[4]
    apply (unfold int_or_Bits)
@@ -142,8 +142,8 @@ lemma int_and_Bits2 [simp, code]:
   unfolding BIT_simps [symmetric] int_and_Bits by simp_all
 
 lemma int_and_x_simps': 
-  "w AND (Int.Pls BIT bit.B0) = Int.Pls"
-  "w AND (Int.Min BIT bit.B1) = w"
+  "w AND (Int.Pls BIT 0) = Int.Pls"
+  "w AND (Int.Min BIT 1) = w"
   apply (induct w rule: bin_induct)
        apply simp_all[4]
    apply (unfold int_and_Bits)
@@ -384,7 +384,7 @@ where
 (** nth bit, set/clear **)
 
 lemma bin_nth_sc [simp]: 
-  "!!w. bin_nth (bin_sc n b w) n = (b = bit.B1)"
+  "!!w. bin_nth (bin_sc n b w) n = (b = 1)"
   by (induct n)  auto
 
 lemma bin_sc_sc_same [simp]: 
@@ -400,11 +400,11 @@ lemma bin_sc_sc_diff:
   done
 
 lemma bin_nth_sc_gen: 
-  "!!w m. bin_nth (bin_sc n b w) m = (if m = n then b = bit.B1 else bin_nth w m)"
+  "!!w m. bin_nth (bin_sc n b w) m = (if m = n then b = 1 else bin_nth w m)"
   by (induct n) (case_tac [!] m, auto)
   
 lemma bin_sc_nth [simp]:
-  "!!w. (bin_sc n (If (bin_nth w n) bit.B1 bit.B0) w) = w"
+  "!!w. (bin_sc n (If (bin_nth w n) 1 0) w) = w"
   by (induct n) auto
 
 lemma bin_sign_sc [simp]:
@@ -419,7 +419,7 @@ lemma bin_sc_bintr [simp]:
   done
 
 lemma bin_clr_le:
-  "!!w. bin_sc n bit.B0 w <= w"
+  "!!w. bin_sc n 0 w <= w"
   apply (induct n) 
    apply (case_tac [!] w rule: bin_exhaust)
    apply (auto simp del: BIT_simps)
@@ -428,7 +428,7 @@ lemma bin_clr_le:
   done
 
 lemma bin_set_ge:
-  "!!w. bin_sc n bit.B1 w >= w"
+  "!!w. bin_sc n 1 w >= w"
   apply (induct n) 
    apply (case_tac [!] w rule: bin_exhaust)
    apply (auto simp del: BIT_simps)
@@ -437,7 +437,7 @@ lemma bin_set_ge:
   done
 
 lemma bintr_bin_clr_le:
-  "!!w m. bintrunc n (bin_sc m bit.B0 w) <= bintrunc n w"
+  "!!w m. bintrunc n (bin_sc m 0 w) <= bintrunc n w"
   apply (induct n)
    apply simp
   apply (case_tac w rule: bin_exhaust)
@@ -448,7 +448,7 @@ lemma bintr_bin_clr_le:
   done
 
 lemma bintr_bin_set_ge:
-  "!!w m. bintrunc n (bin_sc m bit.B1 w) >= bintrunc n w"
+  "!!w m. bintrunc n (bin_sc m 1 w) >= bintrunc n w"
   apply (induct n)
    apply simp
   apply (case_tac w rule: bin_exhaust)
@@ -458,10 +458,10 @@ lemma bintr_bin_set_ge:
    apply (simp_all split: bit.split)
   done
 
-lemma bin_sc_FP [simp]: "bin_sc n bit.B0 Int.Pls = Int.Pls"
+lemma bin_sc_FP [simp]: "bin_sc n 0 Int.Pls = Int.Pls"
   by (induct n) auto
 
-lemma bin_sc_TM [simp]: "bin_sc n bit.B1 Int.Min = Int.Min"
+lemma bin_sc_TM [simp]: "bin_sc n 1 Int.Min = Int.Min"
   by (induct n) auto
   
 lemmas bin_sc_simps = bin_sc.Z bin_sc.Suc bin_sc_TM bin_sc_FP
@@ -481,7 +481,7 @@ subsection {* Operations on lists of booleans *}
 primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
   Nil: "bl_to_bin_aux [] w = w"
   | Cons: "bl_to_bin_aux (b # bs) w = 
-      bl_to_bin_aux bs (w BIT (if b then bit.B1 else bit.B0))"
+      bl_to_bin_aux bs (w BIT (if b then 1 else 0))"
 
 definition bl_to_bin :: "bool list \<Rightarrow> int" where
   bl_to_bin_def : "bl_to_bin bs = bl_to_bin_aux bs Int.Pls"
@@ -489,7 +489,7 @@ definition bl_to_bin :: "bool list \<Rightarrow> int" where
 primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list" where
   Z: "bin_to_bl_aux 0 w bl = bl"
   | Suc: "bin_to_bl_aux (Suc n) w bl =
-      bin_to_bl_aux n (bin_rest w) ((bin_last w = bit.B1) # bl)"
+      bin_to_bl_aux n (bin_rest w) ((bin_last w = 1) # bl)"
 
 definition bin_to_bl :: "nat \<Rightarrow> int \<Rightarrow> bool list" where
   bin_to_bl_def : "bin_to_bl n w = bin_to_bl_aux n w []"

@@ -386,12 +386,12 @@ lemma nth_sint:
   by (clarsimp simp add: nth_sbintr word_test_bit_def [symmetric])
 
 lemma word_lsb_no: 
-  "lsb (number_of bin :: 'a :: len word) = (bin_last bin = bit.B1)"
+  "lsb (number_of bin :: 'a :: len word) = (bin_last bin = 1)"
   unfolding word_lsb_alt test_bit_no by auto
 
 lemma word_set_no: 
   "set_bit (number_of bin::'a::len0 word) n b = 
-    number_of (bin_sc n (if b then bit.B1 else bit.B0) bin)"
+    number_of (bin_sc n (if b then 1 else 0) bin)"
   apply (unfold word_set_bit_def word_number_of_def [symmetric])
   apply (rule word_eqI)
   apply (clarsimp simp: word_size bin_nth_sc_gen number_of_is_id 

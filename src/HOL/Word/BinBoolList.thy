@@ -53,7 +53,7 @@ lemma bin_to_bl_aux_Min_minus_simp [simp]:
 
 lemma bin_to_bl_aux_Bit_minus_simp [simp]:
   "0 < n ==> bin_to_bl_aux n (w BIT b) bl = 
-    bin_to_bl_aux (n - 1) w ((b = bit.B1) # bl)"
+    bin_to_bl_aux (n - 1) w ((b = 1) # bl)"
   by (cases n) auto
 
 lemma bin_to_bl_aux_Bit0_minus_simp [simp]:
@@ -387,15 +387,15 @@ lemma hd_butlast: "size xs > 1 ==> hd (butlast xs) = hd xs"
   by (cases xs) auto
 
 lemma last_bin_last': 
-  "size xs > 0 \<Longrightarrow> last xs = (bin_last (bl_to_bin_aux xs w) = bit.B1)" 
+  "size xs > 0 \<Longrightarrow> last xs = (bin_last (bl_to_bin_aux xs w) = 1)" 
   by (induct xs arbitrary: w) auto
 
 lemma last_bin_last: 
-  "size xs > 0 ==> last xs = (bin_last (bl_to_bin xs) = bit.B1)" 
+  "size xs > 0 ==> last xs = (bin_last (bl_to_bin xs) = 1)" 
   unfolding bl_to_bin_def by (erule last_bin_last')
   
 lemma bin_last_last: 
-  "bin_last w = (if last (bin_to_bl (Suc n) w) then bit.B1 else bit.B0)" 
+  "bin_last w = (if last (bin_to_bl (Suc n) w) then 1 else 0)" 
   apply (unfold bin_to_bl_def)
   apply simp
   apply (auto simp add: bin_to_bl_aux_alt)
@@ -815,7 +815,7 @@ lemma rbl_mult_gt:
 lemmas rbl_mult_Suc = lessI [THEN rbl_mult_gt]
 
 lemma rbbl_Cons: 
-  "b # rev (bin_to_bl n x) = rev (bin_to_bl (Suc n) (x BIT If b bit.B1 bit.B0))"
+  "b # rev (bin_to_bl n x) = rev (bin_to_bl (Suc n) (x BIT If b 1 0))"
   apply (unfold bin_to_bl_def)
   apply simp
   apply (simp add: bin_to_bl_aux_alt)

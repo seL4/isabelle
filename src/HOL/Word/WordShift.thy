@@ -13,7 +13,7 @@ begin
 subsection "Bit shifting"
 
 lemma shiftl1_number [simp] :
-  "shiftl1 (number_of w) = number_of (w BIT bit.B0)"
+  "shiftl1 (number_of w) = number_of (w BIT 0)"
   apply (unfold shiftl1_def word_number_of_def)
   apply (simp add: word_ubin.norm_eq_iff [symmetric] word_ubin.eq_norm
               del: BIT_simps)
@@ -27,7 +27,7 @@ lemma shiftl1_0 [simp] : "shiftl1 0 = 0"
 
 lemmas shiftl1_def_u = shiftl1_def [folded word_number_of_def]
 
-lemma shiftl1_def_s: "shiftl1 w = number_of (sint w BIT bit.B0)"
+lemma shiftl1_def_s: "shiftl1 w = number_of (sint w BIT 0)"
   by (rule trans [OF _ shiftl1_number]) simp
 
 lemma shiftr1_0 [simp] : "shiftr1 0 = 0"

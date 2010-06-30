@@ -8,7 +8,7 @@
 header {* Definition of Word Type *}
 
 theory WordDefinition
-imports Size BinBoolList TdThs
+imports Type_Length Misc_Typedef BinBoolList
 begin
 
 subsection {* Type definition *}
@@ -204,16 +204,16 @@ definition
 
 definition
   word_set_bit_def: "set_bit a n x =
-   word_of_int (bin_sc n (If x bit.B1 bit.B0) (uint a))"
+   word_of_int (bin_sc n (If x 1 0) (uint a))"
 
 definition
   word_set_bits_def: "(BITS n. f n) = of_bl (bl_of_nth (len_of TYPE ('a)) f)"
 
 definition
-  word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a) = bit.B1"
+  word_lsb_def: "lsb a \<longleftrightarrow> bin_last (uint a) = 1"
 
 definition shiftl1 :: "'a word \<Rightarrow> 'a word" where
-  "shiftl1 w = word_of_int (uint w BIT bit.B0)"
+  "shiftl1 w = word_of_int (uint w BIT 0)"
 
 definition shiftr1 :: "'a word \<Rightarrow> 'a word" where
   -- "shift right as unsigned or as signed, ie logical or arithmetic"

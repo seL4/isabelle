@@ -60,11 +60,11 @@ lemmas word_sle_no [simp] =
 lemmas word_0_wi_Pls = word_0_wi [folded Pls_def]
 lemmas word_0_no = word_0_wi_Pls [folded word_no_wi]
 
-lemma int_one_bin: "(1 :: int) == (Int.Pls BIT bit.B1)"
+lemma int_one_bin: "(1 :: int) == (Int.Pls BIT 1)"
   unfolding Pls_def Bit_def by auto
 
 lemma word_1_no: 
-  "(1 :: 'a :: len0 word) == number_of (Int.Pls BIT bit.B1)"
+  "(1 :: 'a :: len0 word) == number_of (Int.Pls BIT 1)"
   unfolding word_1_wi word_number_of_def int_one_bin by auto
 
 lemma word_m1_wi: "-1 == word_of_int -1" 
