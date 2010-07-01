@@ -406,7 +406,8 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL $(SRC)/HOL/Tools/float_arith.ML	\
   Library/Float.thy Library/Formal_Power_Series.thy			\
   Library/Fraction_Field.thy Library/FrechetDeriv.thy Library/Fset.thy	\
   Library/FuncSet.thy Library/Fundamental_Theorem_Algebra.thy		\
-  Library/Glbs.thy Library/Infinite_Set.thy Library/Inner_Product.thy	\
+  Library/Glbs.thy Library/Indicator_Function.thy			\
+  Library/Infinite_Set.thy Library/Inner_Product.thy			\
   Library/HOL_Library_ROOT.ML Library/Kleene_Algebra.thy		\
   Library/LaTeXsugar.thy Library/Lattice_Algebras.thy			\
   Library/Lattice_Syntax.thy Library/Library.thy			\

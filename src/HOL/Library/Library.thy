@@ -27,6 +27,7 @@ imports
   Fset
   FuncSet
   Fundamental_Theorem_Algebra
+  Indicator_Function
   Infinite_Set
   Inner_Product
   Lattice_Algebras

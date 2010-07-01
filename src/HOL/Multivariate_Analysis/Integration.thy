@@ -4,7 +4,7 @@ header {* Kurzweil-Henstock Gauge Integration in many dimensions. *}
     Translation from HOL light: Robert Himmelmann, TU Muenchen *)
 
 theory Integration
-  imports Derivative "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+  imports Derivative "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Indicator_Function
 begin
 
 declare [[smt_certificates="~~/src/HOL/Multivariate_Analysis/Integration.certs"]]
@@ -2468,22 +2468,7 @@ proof- { presume *:"content {a..b} > 0 \<Longrightarrow> ?thesis"
 
 subsection {* Negligible sets. *}
 
-definition "indicator s \<equiv> (\<lambda>x. if x \<in> s then 1 else (0::real))"
-
-lemma dest_vec1_indicator:
- "indicator s x = (if x \<in> s then 1 else 0)" unfolding indicator_def by auto
-
-lemma indicator_pos_le[intro]: "0 \<le> (indicator s x)" unfolding indicator_def by auto
-
-lemma indicator_le_1[intro]: "(indicator s x) \<le> 1" unfolding indicator_def by auto
-
-lemma dest_vec1_indicator_abs_le_1: "abs(indicator s x) \<le> 1"
-  unfolding indicator_def by auto
-
-definition "negligible (s::(_::ordered_euclidean_space) set) \<equiv> (\<forall>a b. ((indicator s) has_integral 0) {a..b})"
-
-lemma indicator_simps[simp]:"x\<in>s \<Longrightarrow> indicator s x = 1" "x\<notin>s \<Longrightarrow> indicator s x = 0"
-  unfolding indicator_def by auto
+definition "negligible (s::('a::ordered_euclidean_space) set) \<equiv> (\<forall>a b. ((indicator s :: 'a\<Rightarrow>real) has_integral 0) {a..b})"
 
 subsection {* Negligibility of hyperplane. *}
 
@@ -2543,7 +2528,9 @@ next case False def d \<equiv> "e / 3 / setprod (\<lambda>i. b$$i - a$$i) ({..<D
 lemma negligible_standard_hyperplane[intro]: fixes type::"'a::ordered_euclidean_space" assumes k:"k<DIM('a)"
   shows "negligible {x::'a. x$$k = (c::real)}" 
   unfolding negligible_def has_integral apply(rule,rule,rule,rule)
-proof- case goal1 from content_doublesplit[OF this k,of a b c] guess d . note d=this let ?i = "indicator {x::'a. x$$k = c}"
+proof-
+  case goal1 from content_doublesplit[OF this k,of a b c] guess d . note d=this
+  let ?i = "indicator {x::'a. x$$k = c} :: 'a\<Rightarrow>real"
   show ?case apply(rule_tac x="\<lambda>x. ball x d" in exI) apply(rule,rule gauge_ball,rule d)
   proof(rule,rule) fix p assume p:"p tagged_division_of {a..b} \<and> (\<lambda>x. ball x d) fine p"
     have *:"(\<Sum>(x, ka)\<in>p. content ka *\<^sub>R ?i x) = (\<Sum>(x, ka)\<in>p. content (ka \<inter> {x. abs(x$$k - c) \<le> d}) *\<^sub>R ?i x)"
@@ -2684,13 +2671,13 @@ next fix f::"'b \<Rightarrow> 'a" and a b::"'b" assume assm:"\<forall>x. x \<not
       have "\<forall>i. \<exists>q. q tagged_division_of {a..b} \<and> (d i) fine q \<and> (\<forall>(x, k)\<in>p. k \<subseteq> (d i) x \<longrightarrow> (x, k) \<in> q)"
         apply(rule,rule tagged_division_finer[OF as(1) d(1)]) by auto
       from choice[OF this] guess q .. note q=conjunctD3[OF this[rule_format]]
-      have *:"\<And>i. (\<Sum>(x, k)\<in>q i. content k *\<^sub>R indicator s x) \<ge> 0" apply(rule setsum_nonneg,safe) 
+      have *:"\<And>i. (\<Sum>(x, k)\<in>q i. content k *\<^sub>R indicator s x) \<ge> (0::real)" apply(rule setsum_nonneg,safe) 
         unfolding real_scaleR_def apply(rule mult_nonneg_nonneg) apply(drule tagged_division_ofD(4)[OF q(1)]) by auto
       have **:"\<And>f g s t. finite s \<Longrightarrow> finite t \<Longrightarrow> (\<forall>(x,y) \<in> t. (0::real) \<le> g(x,y)) \<Longrightarrow> (\<forall>y\<in>s. \<exists>x. (x,y) \<in> t \<and> f(y) \<le> g(x,y)) \<Longrightarrow> setsum f s \<le> setsum g t"
       proof- case goal1 thus ?case apply-apply(rule setsum_le_included[of s t g snd f]) prefer 4
           apply safe apply(erule_tac x=x in ballE) apply(erule exE) apply(rule_tac x="(xa,x)" in bexI) by auto qed
       have "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) \<le> setsum (\<lambda>i. (real i + 1) *
-                     norm(setsum (\<lambda>(x,k). content k *\<^sub>R indicator s x) (q i))) {0..N+1}"
+                     norm(setsum (\<lambda>(x,k). content k *\<^sub>R indicator s x :: real) (q i))) {0..N+1}"
         unfolding real_norm_def setsum_right_distrib abs_of_nonneg[OF *] diff_0_right
         apply(rule order_trans,rule setsum_norm) defer apply(subst sum_sum_product) prefer 3 
       proof(rule **,safe) show "finite {(i, j) |i j. i \<in> {0..N + 1} \<and> j \<in> q i}" apply(rule finite_product_dependent) using q by auto
@@ -2780,14 +2767,14 @@ lemma negligible_finite[intro]: assumes "finite s" shows "negligible s"
 lemma negligible_unions[intro]: assumes "finite s" "\<forall>t\<in>s. negligible t" shows "negligible(\<Union>s)"
   using assms by(induct,auto) 
 
-lemma negligible:  "negligible s \<longleftrightarrow> (\<forall>t::('a::ordered_euclidean_space) set. (indicator s has_integral 0) t)"
+lemma negligible:  "negligible s \<longleftrightarrow> (\<forall>t::('a::ordered_euclidean_space) set. ((indicator s::'a\<Rightarrow>real) has_integral 0) t)"
   apply safe defer apply(subst negligible_def)
 proof- fix t::"'a set" assume as:"negligible s"
   have *:"(\<lambda>x. if x \<in> s \<inter> t then 1 else 0) = (\<lambda>x. if x\<in>t then if x\<in>s then 1 else 0 else 0)" by(rule ext,auto)  
-  show "(indicator s has_integral 0) t" apply(subst has_integral_alt)
+  show "((indicator s::'a\<Rightarrow>real) has_integral 0) t" apply(subst has_integral_alt)
     apply(cases,subst if_P,assumption) unfolding if_not_P apply(safe,rule as[unfolded negligible_def,rule_format])
     apply(rule_tac x=1 in exI) apply(safe,rule zero_less_one) apply(rule_tac x=0 in exI)
-    using negligible_subset[OF as,of "s \<inter> t"] unfolding negligible_def indicator_def unfolding * by auto qed auto
+    using negligible_subset[OF as,of "s \<inter> t"] unfolding negligible_def indicator_def_raw unfolding * by auto qed auto
 
 subsection {* Finite case of the spike theorem is quite commonly needed. *}
 

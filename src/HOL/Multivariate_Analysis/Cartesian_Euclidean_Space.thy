@@ -179,9 +179,6 @@ qed simp
 
 subsection{* Basic componentwise operations on vectors. *}
 
-lemma dimindex_ge_1:"CARD(_::finite) \<ge> 1"
-  using one_le_card_finite by auto
-
 instantiation cart :: (times,finite) times
 begin
   definition vector_mult_def : "op * \<equiv> (\<lambda> x y.  (\<chi> i. (x$i) * (y$i)))"
