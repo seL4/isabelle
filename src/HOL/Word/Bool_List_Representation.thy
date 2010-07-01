@@ -22,6 +22,10 @@ primrec bl_to_bin_aux :: "bool list \<Rightarrow> int \<Rightarrow> int" where
 definition bl_to_bin :: "bool list \<Rightarrow> int" where
   bl_to_bin_def : "bl_to_bin bs = bl_to_bin_aux bs Int.Pls"
 
+lemma [code]:
+  "bl_to_bin bs = bl_to_bin_aux bs 0"
+  by (simp add: bl_to_bin_def Pls_def)
+
 primrec bin_to_bl_aux :: "nat \<Rightarrow> int \<Rightarrow> bool list \<Rightarrow> bool list" where
   Z: "bin_to_bl_aux 0 w bl = bl"
   | Suc: "bin_to_bl_aux (Suc n) w bl =
