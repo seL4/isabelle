@@ -1012,7 +1012,8 @@ $(LOG)/HOL-Isar_Examples.gz: $(OUT)/HOL Isar_Examples/Basic_Logic.thy	\
   Isar_Examples/Puzzle.thy Isar_Examples/Summation.thy			\
   Isar_Examples/ROOT.ML Isar_Examples/document/proof.sty		\
   Isar_Examples/document/root.bib Isar_Examples/document/root.tex	\
-  Isar_Examples/document/style.tex Hoare/hoare_tac.ML
+  Isar_Examples/document/style.tex Hoare/hoare_tac.ML			\
+  Number_Theory/Primes.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Isar_Examples
 
 

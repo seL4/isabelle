@@ -1,6 +1,6 @@
 (* Miscellaneous Isabelle/Isar examples for Higher-Order Logic. *)
 
-no_document use_thys ["../Old_Number_Theory/Primes", "../Old_Number_Theory/Fibonacci"];
+no_document use_thys ["../Number_Theory/Primes"];
 
 use_thys [
   "Basic_Logic",
