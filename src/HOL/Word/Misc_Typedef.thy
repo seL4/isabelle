@@ -7,7 +7,7 @@
 
 header {* Type Definition Theorems *}
 
-theory TdThs
+theory Misc_Typedef
 imports Main
 begin
 

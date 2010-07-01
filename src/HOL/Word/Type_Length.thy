@@ -1,13 +1,10 @@
-(* 
+(*  Title:      HOL/Word/Type_Length.thy
     Author:     John Matthews, Galois Connections, Inc., copyright 2006
-
-    A typeclass for parameterizing types by size.
-    Used primarily to parameterize machine word sizes. 
 *)
 
-header "The len classes"
+header {* Assigning lengths to types by typeclasses *}
 
-theory Size
+theory Type_Length
 imports Numeral_Type
 begin
 
@@ -55,17 +52,9 @@ end
 
 lemmas len_of_numeral_defs [simp] = len_num0 len_num1 len_bit0 len_bit1
 
-instance num1 :: len by (intro_classes) simp
-instance bit0 :: (len) len by (intro_classes) simp
-instance bit1 :: (len0) len by (intro_classes) simp
+instance num1 :: len proof qed simp
+instance bit0 :: (len) len proof qed simp
+instance bit1 :: (len0) len proof qed simp
 
--- "Examples:"
-lemma "len_of TYPE(17) = 17" by simp
-lemma "len_of TYPE(0) = 0" by simp
-
--- "not simplified:"
-lemma "len_of TYPE('a::len0) = x"
-  oops
-   
 end
 

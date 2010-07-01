@@ -21,6 +21,7 @@ sig
   val check: Path.T -> unit
   val rm: Path.T -> unit
   val mkdir: Path.T -> unit
+  val mkdir_leaf: Path.T -> unit
   val open_input: (TextIO.instream -> 'a) -> Path.T -> 'a
   val open_output: (TextIO.outstream -> 'a) -> Path.T -> 'a
   val open_append: (TextIO.outstream -> 'a) -> Path.T -> 'a
@@ -134,6 +135,8 @@ fun check path =
 val rm = OS.FileSys.remove o platform_path;
 
 fun mkdir path = system_command ("mkdir -p " ^ shell_path path);
+
+fun mkdir_leaf path = system_command ("mkdir " ^ shell_path path);
 
 fun is_dir path =
   the_default false (try OS.FileSys.isDir (platform_path path));
