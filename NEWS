@@ -41,7 +41,7 @@ generation.
 
   types
     nat ~> Nat.nat
-    * ~> Product_Type,*
+    * ~> Product_Type.*
     + ~> Sum_Type.+
 
   constants
@@ -72,6 +72,26 @@ code generator.
 * code generator: do not print function definitions for case
 combinators any longer.
 
+* Multivariate Analysis: Introduced a type class for euclidean space. Most
+theorems are now stated in terms of euclidean spaces instead of finite
+cartesian products.
+
+  types
+    real ^ 'n ~>  'a::real_vector
+              ~>  'a::euclidean_space
+              ~>  'a::ordered_euclidean_space
+        (depends on your needs)
+
+  constants
+     _ $ _        ~> _ $$ _
+     \<chi> x. _  ~> \<chi>\<chi> x. _
+     CARD('n)     ~> DIM('a)
+
+Also note that the indices are now natural numbers and not from some finite
+type. Finite cartesian products of euclidean spaces, products of euclidean
+spaces the real and complex numbers are instantiated to be euclidean_spaces.
+
+INCOMPATIBILITY.
 
 
 New in Isabelle2009-2 (June 2010)
