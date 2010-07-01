@@ -539,19 +539,13 @@ lemma frechet_derivative_unique_within_closed_interval: fixes f::"'a::ordered_eu
 lemma frechet_derivative_unique_within_open_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "x \<in> {a<..<b}" "(f has_derivative f' ) (at x within {a<..<b})"
                          "(f has_derivative f'') (at x within {a<..<b})"
-  shows "f' = f''" apply(rule frechet_derivative_unique_within) apply(rule assms(2-3))+ proof(rule,rule,rule,rule)
-  fix e::real and i assume "e>0" and i:"i<DIM('a)"
-  note * = assms(1)[unfolded mem_interval,rule_format,OF i]
-  have "a $$ i < x $$ i" using  * by auto
-  moreover { have "a $$ i * 2 + min (x $$ i - a $$ i) e \<le> a$$i *2 + x$$i - a$$i" by auto
-  also have "\<dots> = a$$i + x$$i" by auto also have "\<dots> < 2 * x$$i" using * by auto 
-  finally have "a $$ i * 2 + min (x $$ i - a $$ i) e < x $$ i * 2" by auto }
-  moreover have "min (x $$ i - a $$ i) e \<ge> 0" using * and `e>0` by auto
-  hence "x $$ i * 2 < b $$ i * 2 + min (x $$ i - a $$ i) e" using * by auto
-  ultimately show "\<exists>d. 0 < \<bar>d\<bar> \<and> \<bar>d\<bar> < e \<and> x + d *\<^sub>R basis i \<in> {a<..<b}"
-    apply(rule_tac x="- (min (x$$i - a$$i) e) / 2" in exI)
-    using `e>0` and assms(1) unfolding mem_interval euclidean_simps apply safe unfolding basis_component
-    by(auto simp add:field_simps) qed
+  shows "f' = f''"
+proof -
+  from assms(1) have *: "at x within {a<..<b} = at x"
+    by (simp add: at_within_interior interior_open open_interval)
+  from assms(2,3) [unfolded *] show "f' = f''"
+    by (rule frechet_derivative_unique_at)
+qed
 
 lemma frechet_derivative_at: fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f' = frechet_derivative f (at x))"
@@ -638,7 +632,7 @@ qed
 subsection {* In particular if we have a mapping into @{typ "real"}. *}
 
 lemma differential_zero_maxmin:
-  fixes f::"'a\<Colon>ordered_euclidean_space \<Rightarrow> real"
+  fixes f::"'a\<Colon>euclidean_space \<Rightarrow> real"
   assumes "x \<in> s" "open s"
   and deriv: "(f has_derivative f') (at x)"
   and mono: "(\<forall>y\<in>s. f y \<le> f x) \<or> (\<forall>y\<in>s. f x \<le> f y)"
@@ -1183,8 +1177,7 @@ lemma has_derivative_series: fixes f::"nat \<Rightarrow> 'm::euclidean_space \<R
 
 subsection {* Derivative with composed bilinear function. *}
 
-lemma has_derivative_bilinear_within: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space"
-  and f::"'q::euclidean_space \<Rightarrow> 'm::euclidean_space"
+lemma has_derivative_bilinear_within:
   assumes "(f has_derivative f') (at x within s)" "(g has_derivative g') (at x within s)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_derivative (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))) (at x within s)" proof-
   have "(g ---> g x) (at x within s)" apply(rule differentiable_imp_continuous_within[unfolded continuous_within])
@@ -1216,15 +1209,17 @@ lemma has_derivative_bilinear_within: fixes h::"'m::euclidean_space \<Rightarrow
 	using as(3)[unfolded dist_norm] and as(2) unfolding pos_less_divide_eq[OF bcd] by (auto simp add:field_simps)
       finally show "dist ((1 / norm (y - x)) *\<^sub>R h (f' (y - x)) (g' (y - x))) 0 < e"
 	unfolding dist_norm apply-apply(cases "y = x") by(auto simp add:field_simps) qed qed
-  have "bounded_linear (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))" unfolding linear_linear linear_def
-    unfolding g'.add f'.scaleR f'.add g'.scaleR 
-    unfolding h.add_right h.add_left scaleR_right_distrib h.scaleR_left h.scaleR_right by auto
+  have "bounded_linear (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))"
+    apply (rule bounded_linear_add)
+    apply (rule bounded_linear_compose [OF h.bounded_linear_right `bounded_linear g'`])
+    apply (rule bounded_linear_compose [OF h.bounded_linear_left `bounded_linear f'`])
+    done
   thus ?thesis using Lim_add[OF * **] unfolding has_derivative_within 
     unfolding g'.add f'.scaleR f'.add g'.scaleR f'.diff g'.diff
      h.add_right h.add_left scaleR_right_distrib h.scaleR_left h.scaleR_right h.diff_right h.diff_left
     scaleR_right_diff_distrib h.zero_right h.zero_left by(auto simp add:field_simps) qed
 
-lemma has_derivative_bilinear_at: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space" and f::"'p::euclidean_space \<Rightarrow> 'm::euclidean_space"
+lemma has_derivative_bilinear_at:
   assumes "(f has_derivative f') (at x)" "(g has_derivative g') (at x)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_derivative (\<lambda>d. h (f x) (g' d) + h (f' d) (g x))) (at x)"
   using has_derivative_bilinear_within[of f f' x UNIV g g' h] unfolding within_UNIV using assms by auto
@@ -1313,7 +1308,7 @@ lemma has_vector_derivative_sub:
   using has_derivative_sub[OF assms[unfolded has_vector_derivative_def]]
   unfolding has_vector_derivative_def scaleR_right_diff_distrib by auto
 
-lemma has_vector_derivative_bilinear_within: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space"
+lemma has_vector_derivative_bilinear_within:
   assumes "(f has_vector_derivative f') (at x within s)" "(g has_vector_derivative g') (at x within s)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_vector_derivative (h (f x) g' + h f' (g x))) (at x within s)" proof-
   interpret bounded_bilinear h using assms by auto 
@@ -1321,7 +1316,7 @@ lemma has_vector_derivative_bilinear_within: fixes h::"'m::euclidean_space \<Rig
     unfolding o_def has_vector_derivative_def
     using assms(3) unfolding scaleR_right scaleR_left scaleR_right_distrib by auto qed
 
-lemma has_vector_derivative_bilinear_at: fixes h::"'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'p::euclidean_space"
+lemma has_vector_derivative_bilinear_at:
   assumes "(f has_vector_derivative f') (at x)" "(g has_vector_derivative g') (at x)" "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_vector_derivative (h (f x) g' + h f' (g x))) (at x)"
   apply(rule has_vector_derivative_bilinear_within[where s=UNIV, unfolded within_UNIV]) using assms by auto
