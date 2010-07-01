@@ -4,7 +4,7 @@
 header {* Fashoda meet theorem. *}
 
 theory Fashoda
-imports Brouwer_Fixpoint Path_Connected
+imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space
 begin
 
 subsection {*Fashoda meet theorem. *}

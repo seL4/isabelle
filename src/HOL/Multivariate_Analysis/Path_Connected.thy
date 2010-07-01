@@ -5,7 +5,7 @@
 header {* Continuous paths and path-connected sets *}
 
 theory Path_Connected
-imports Cartesian_Euclidean_Space
+imports Convex_Euclidean_Space
 begin
 
 subsection {* Paths. *}
@@ -502,71 +502,80 @@ lemma path_connected_Un: assumes "path_connected s" "path_connected t" "s \<inte
     apply(erule_tac[!] UnE)+ apply(rule_tac[2-3] path_component_trans[of _ _ z])
     by(auto simp add:path_component_of_subset [OF Un_upper1] path_component_of_subset[OF Un_upper2]) qed
 
+lemma path_connected_UNION:
+  assumes "\<And>i. i \<in> A \<Longrightarrow> path_connected (S i)"
+  assumes "\<And>i. i \<in> A \<Longrightarrow> z \<in> S i"
+  shows "path_connected (\<Union>i\<in>A. S i)"
+unfolding path_connected_component proof(clarify)
+  fix x i y j
+  assume *: "i \<in> A" "x \<in> S i" "j \<in> A" "y \<in> S j"
+  hence "path_component (S i) x z" and "path_component (S j) z y"
+    using assms by (simp_all add: path_connected_component)
+  hence "path_component (\<Union>i\<in>A. S i) x z" and "path_component (\<Union>i\<in>A. S i) z y"
+    using *(1,3) by (auto elim!: path_component_of_subset [COMP swap_prems_rl])
+  thus "path_component (\<Union>i\<in>A. S i) x y"
+    by (rule path_component_trans)
+qed
+
 subsection {* sphere is path-connected. *}
 
-(** TODO covert this to ordered_euclidean_space **)
-
 lemma path_connected_punctured_universe:
- assumes "2 \<le> CARD('n::finite)" shows "path_connected((UNIV::(real^'n) set) - {a})" proof-
-  obtain \<psi> where \<psi>:"bij_betw \<psi> {1..CARD('n)} (UNIV::'n set)" using ex_bij_betw_nat_finite_1[OF finite_UNIV] by auto
-  let ?U = "UNIV::(real^'n) set" let ?u = "?U - {0}"
-  let ?basis = "\<lambda>k. cart_basis (\<psi> k)"
-  let ?A = "\<lambda>k. {x::real^'n. \<exists>i\<in>{1..k}. inner (cart_basis (\<psi> i)) x \<noteq> 0}"
-  have "\<forall>k\<in>{2..CARD('n)}. path_connected (?A k)" proof
-    have *:"\<And>k. ?A (Suc k) = {x. inner (?basis (Suc k)) x < 0} \<union> {x. inner (?basis (Suc k)) x > 0} \<union> ?A k" apply(rule set_ext,rule) defer
-      apply(erule UnE)+  unfolding mem_Collect_eq apply(rule_tac[1-2] x="Suc k" in bexI)
-      by(auto elim!: ballE simp add: not_less le_Suc_eq)
-    fix k assume "k \<in> {2..CARD('n)}" thus "path_connected (?A k)" proof(induct k)
-      case (Suc k) show ?case proof(cases "k = 1")
-        case False from Suc have d:"k \<in> {1..CARD('n)}" "Suc k \<in> {1..CARD('n)}" by auto
-        hence "\<psi> k \<noteq> \<psi> (Suc k)" using \<psi>[unfolded bij_betw_def inj_on_def, THEN conjunct1, THEN bspec[where x=k]] by auto
-        hence **:"?basis k + ?basis (Suc k) \<in> {x. 0 < inner (?basis (Suc k)) x} \<inter> (?A k)" 
-          "?basis k - ?basis (Suc k) \<in> {x. 0 > inner (?basis (Suc k)) x} \<inter> ({x. 0 < inner (?basis (Suc k)) x} \<union> (?A k))" using d
-          by(auto simp add: inner_basis intro!:bexI[where x=k])
-        show ?thesis unfolding * Un_assoc apply(rule path_connected_Un) defer apply(rule path_connected_Un) 
-          prefer 5 apply(rule_tac[1-2] convex_imp_path_connected, rule convex_halfspace_lt, rule convex_halfspace_gt)
-          apply(rule Suc(1)) using d ** False by auto
-      next case True hence d:"1\<in>{1..CARD('n)}" "2\<in>{1..CARD('n)}" using Suc(2) by auto
-        have ***:"Suc 1 = 2" by auto
-        have **:"\<And>s t P Q. s \<union> t \<union> {x. P x \<or> Q x} = (s \<union> {x. P x}) \<union> (t \<union> {x. Q x})" by auto
-        have nequals0I:"\<And>x A. x\<in>A \<Longrightarrow> A \<noteq> {}" by auto
-        have "\<psi> 2 \<noteq> \<psi> (Suc 0)" using \<psi>[unfolded bij_betw_def inj_on_def, THEN conjunct1, THEN bspec[where x=2]] using assms by auto
-        thus ?thesis unfolding * True unfolding ** neq_iff bex_disj_distrib apply -
-          apply(rule path_connected_Un, rule_tac[1-2] path_connected_Un) defer 3 apply(rule_tac[1-4] convex_imp_path_connected) 
-          apply(rule_tac[5] x=" ?basis 1 + ?basis 2" in nequals0I)
-          apply(rule_tac[6] x="-?basis 1 + ?basis 2" in nequals0I)
-          apply(rule_tac[7] x="-?basis 1 - ?basis 2" in nequals0I)
-          using d unfolding *** by(auto intro!: convex_halfspace_gt convex_halfspace_lt, auto simp add: inner_basis)
-  qed qed auto qed note lem = this
+  assumes "2 \<le> DIM('a::euclidean_space)"
+  shows "path_connected((UNIV::'a::euclidean_space set) - {a})"
+proof-
+  let ?A = "{x::'a. \<exists>i\<in>{..<DIM('a)}. x $$ i < a $$ i}"
+  let ?B = "{x::'a. \<exists>i\<in>{..<DIM('a)}. a $$ i < x $$ i}"
 
-  have ***:"\<And>x::real^'n. (\<exists>i\<in>{1..CARD('n)}. inner (cart_basis (\<psi> i)) x \<noteq> 0) \<longleftrightarrow> (\<exists>i. inner (cart_basis i) x \<noteq> 0)"
-    apply rule apply(erule bexE) apply(rule_tac x="\<psi> i" in exI) defer apply(erule exE) proof- 
-    fix x::"real^'n" and i assume as:"inner (cart_basis i) x \<noteq> 0"
-    have "i\<in>\<psi> ` {1..CARD('n)}" using \<psi>[unfolded bij_betw_def, THEN conjunct2] by auto
-    then obtain j where "j\<in>{1..CARD('n)}" "\<psi> j = i" by auto
-    thus "\<exists>i\<in>{1..CARD('n)}. inner (cart_basis (\<psi> i)) x \<noteq> 0" apply(rule_tac x=j in bexI) using as by auto qed auto
-  have *:"?U - {a} = (\<lambda>x. x + a) ` {x. x \<noteq> 0}" apply(rule set_ext) unfolding image_iff 
-    apply rule apply(rule_tac x="x - a" in bexI) by auto
-  have **:"\<And>x::real^'n. x\<noteq>0 \<longleftrightarrow> (\<exists>i. inner (cart_basis i) x \<noteq> 0)" unfolding Cart_eq by(auto simp add: inner_basis)
-  show ?thesis unfolding * apply(rule path_connected_continuous_image) apply(rule continuous_on_intros)+ 
-    unfolding ** apply(rule lem[THEN bspec[where x="CARD('n)"], unfolded ***]) using assms by auto qed
+  have A: "path_connected ?A" unfolding Collect_bex_eq
+  proof (rule path_connected_UNION)
+    fix i assume "i \<in> {..<DIM('a)}"
+    thus "(\<chi>\<chi> i. a $$ i - 1) \<in> {x::'a. x $$ i < a $$ i}" by simp
+    show "path_connected {x. x $$ i < a $$ i}" unfolding euclidean_component_def
+      by (rule convex_imp_path_connected [OF convex_halfspace_lt])
+  qed
+  have B: "path_connected ?B" unfolding Collect_bex_eq
+  proof (rule path_connected_UNION)
+    fix i assume "i \<in> {..<DIM('a)}"
+    thus "(\<chi>\<chi> i. a $$ i + 1) \<in> {x::'a. a $$ i < x $$ i}" by simp
+    show "path_connected {x. a $$ i < x $$ i}" unfolding euclidean_component_def
+      by (rule convex_imp_path_connected [OF convex_halfspace_gt])
+  qed
+  from assms have "1 < DIM('a)" by auto
+  hence "a + basis 0 - basis 1 \<in> ?A \<inter> ?B" by auto
+  hence "?A \<inter> ?B \<noteq> {}" by fast
+  with A B have "path_connected (?A \<union> ?B)"
+    by (rule path_connected_Un)
+  also have "?A \<union> ?B = {x. \<exists>i\<in>{..<DIM('a)}. x $$ i \<noteq> a $$ i}"
+    unfolding neq_iff bex_disj_distrib Collect_disj_eq ..
+  also have "\<dots> = {x. x \<noteq> a}"
+    unfolding Bex_def euclidean_eq [where 'a='a] by simp
+  also have "\<dots> = UNIV - {a}" by auto
+  finally show ?thesis .
+qed
 
-lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_connected {x::real^'n. norm(x - a) = r}" proof(cases "r\<le>0")
-  case True thus ?thesis proof(cases "r=0") 
-    case False hence "{x::real^'n. norm(x - a) = r} = {}" using True by auto
-    thus ?thesis using path_connected_empty by auto
-  qed(auto intro!:path_connected_singleton) next
-  case False hence *:"{x::real^'n. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}" unfolding not_le apply -apply(rule set_ext,rule)
+lemma path_connected_sphere:
+  assumes "2 \<le> DIM('a::euclidean_space)"
+  shows "path_connected {x::'a::euclidean_space. norm(x - a) = r}"
+proof (rule linorder_cases [of r 0])
+  assume "r < 0" hence "{x::'a. norm(x - a) = r} = {}" by auto
+  thus ?thesis using path_connected_empty by simp
+next
+  assume "r = 0"
+  thus ?thesis using path_connected_singleton by simp
+next
+  assume r: "0 < r"
+  hence *:"{x::'a. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}" apply -apply(rule set_ext,rule)
     unfolding image_iff apply(rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI) unfolding mem_Collect_eq norm_scaleR by (auto simp add: scaleR_right_diff_distrib)
-  have **:"{x::real^'n. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_ext,rule)
+  have **:"{x::'a. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_ext,rule)
     unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq by(auto split:split_if_asm)
-  have "continuous_on (UNIV - {0}) (\<lambda>x::real^'n. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
+  have "continuous_on (UNIV - {0}) (\<lambda>x::'a. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
     apply(rule, rule continuous_at_within_inv[unfolded o_def inverse_eq_divide]) apply(rule continuous_at_within)
     apply(rule continuous_at_norm[unfolded o_def]) by auto
   thus ?thesis unfolding * ** using path_connected_punctured_universe[OF assms]
-    by(auto intro!: path_connected_continuous_image continuous_on_intros) qed
+    by(auto intro!: path_connected_continuous_image continuous_on_intros)
+qed
 
-lemma connected_sphere: "2 \<le> CARD('n) \<Longrightarrow> connected {x::real^'n. norm(x - a) = r}"
+lemma connected_sphere: "2 \<le> DIM('a::euclidean_space) \<Longrightarrow> connected {x::'a. norm(x - a) = r}"
   using path_connected_sphere path_connected_imp_connected by auto
 
 end
