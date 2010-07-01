@@ -240,6 +240,10 @@ instance ..
 
 end
 
+lemma [code]:
+  "msb a \<longleftrightarrow> bin_sign (sint a) = (- 1 :: int)"
+  by (simp only: word_msb_def Min_def)
+
 definition setBit :: "'a :: len0 word => nat => 'a word" where 
   "setBit w n == set_bit w n True"
 

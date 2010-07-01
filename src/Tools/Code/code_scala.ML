@@ -376,7 +376,7 @@ fun serialize_scala raw_module_name labelled_name
           | _ => (Path.ext "scala" o Path.explode o implode o separate "/"
                 o Long_Name.explode) modlname;
         val pathname = Path.append destination filename;
-        val _ = File.mkdir (Path.dir pathname);
+        val _ = File.mkdir_leaf (Path.dir pathname);
       in File.write pathname (code_of_pretty content) end
   in
     Code_Target.mk_serialization target NONE

@@ -136,7 +136,7 @@ val rm = OS.FileSys.remove o platform_path;
 
 fun mkdir path = system_command ("mkdir -p " ^ shell_path path);
 
-fun mkdir_leaf path = system_command ("mkdir " ^ shell_path path);
+fun mkdir_leaf path = (check (Path.dir path); mkdir path);
 
 fun is_dir path =
   the_default false (try OS.FileSys.isDir (platform_path path));
