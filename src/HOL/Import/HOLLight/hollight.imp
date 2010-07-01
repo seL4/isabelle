@@ -6,7 +6,7 @@ type_maps
   "sum" > "+"
   "recspace" > "HOLLight.hollight.recspace"
   "real" > "HOLLight.hollight.real"
-  "prod" > "Product_Type.*"
+  "prod" > "Product_Type.prod"
   "option" > "HOLLight.hollight.option"
   "num" > "Nat.nat"
   "nadd" > "HOLLight.hollight.nadd"

@@ -5,7 +5,7 @@ theory Cartesian_Euclidean_Space
 imports Finite_Cartesian_Product Integration
 begin
 
-instantiation * :: (real_basis, real_basis) real_basis
+instantiation prod :: (real_basis, real_basis) real_basis
 begin
 
 definition "basis i = (if i < DIM('a) then (basis i, 0) else (0, basis (i - DIM('a))))"
@@ -131,7 +131,7 @@ end
 lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('b::real_basis) + DIM('a::real_basis)"
   by (rule dimension_eq) (auto simp: basis_prod_def zero_prod_def basis_eq_0_iff)
 
-instance * :: (euclidean_space, euclidean_space) euclidean_space
+instance prod :: (euclidean_space, euclidean_space) euclidean_space
 proof (default, safe)
   let ?b = "basis :: nat \<Rightarrow> 'a \<times> 'b"
   fix i j assume "i < DIM('a \<times> 'b)" "j < DIM('a \<times> 'b)"
@@ -139,7 +139,7 @@ proof (default, safe)
     unfolding basis_prod_def by (auto simp: dot_basis)
 qed
 
-instantiation * :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
+instantiation prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
 begin
 
 definition "x \<le> (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i<DIM('a\<times>'b). x $$ i \<le> y $$ i)"

@@ -7,7 +7,7 @@ def_maps
   "LEX" > "LEX_def"
 
 type_maps
-  "prod" > "Product_Type.*"
+  "prod" > "Product_Type.prod"
 
 const_maps
   "pair_case" > "Product_Type.prod_case"

@@ -210,7 +210,7 @@ fun all_modes_of_typ' (T as Type ("fun", _)) =
     else
       [Input, Output]
   end
-  | all_modes_of_typ' (Type (@{type_name "*"}, [T1, T2])) = 
+  | all_modes_of_typ' (Type (@{type_name Product_Type.prod}, [T1, T2])) = 
     map_product (curry Pair) (all_modes_of_typ' T1) (all_modes_of_typ' T2)
   | all_modes_of_typ' _ = [Input, Output]
 
@@ -230,7 +230,7 @@ fun all_modes_of_typ (T as Type ("fun", _)) =
 fun all_smodes_of_typ (T as Type ("fun", _)) =
   let
     val (S, U) = strip_type T
-    fun all_smodes (Type (@{type_name "*"}, [T1, T2])) = 
+    fun all_smodes (Type (@{type_name Product_Type.prod}, [T1, T2])) = 
       map_product (curry Pair) (all_smodes T1) (all_smodes T2)
       | all_smodes _ = [Input, Output]
   in
@@ -280,7 +280,7 @@ fun replace_ho_args mode hoargs ts =
 fun ho_argsT_of mode Ts =
   let
     fun ho_arg (Fun _) T = [T]
-      | ho_arg (Pair (m1, m2)) (Type (@{type_name "*"}, [T1, T2])) = ho_arg m1 T1 @ ho_arg m2 T2
+      | ho_arg (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) = ho_arg m1 T1 @ ho_arg m2 T2
       | ho_arg _ _ = []
   in
     flat (map2 ho_arg (strip_fun_mode mode) Ts)
@@ -309,7 +309,7 @@ fun split_map_mode f mode ts =
 fun split_map_modeT f mode Ts =
   let
     fun split_arg_mode' (m as Fun _) T = f m T
-      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name "*"}, [T1, T2])) =
+      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
         let
           val (i1, o1) = split_arg_mode' m1 T1
           val (i2, o2) = split_arg_mode' m2 T2
@@ -325,7 +325,7 @@ fun split_map_modeT f mode Ts =
 
 fun split_mode mode ts = split_map_mode (fn _ => fn _ => (NONE, NONE)) mode ts
 
-fun fold_map_aterms_prodT comb f (Type (@{type_name "*"}, [T1, T2])) s =
+fun fold_map_aterms_prodT comb f (Type (@{type_name Product_Type.prod}, [T1, T2])) s =
   let
     val (x1, s') = fold_map_aterms_prodT comb f T1 s
     val (x2, s'') = fold_map_aterms_prodT comb f T2 s'
@@ -343,7 +343,7 @@ fun map_filter_prod f (Const (@{const_name Pair}, _) $ t1 $ t2) =
 fun split_modeT' mode Ts =
   let
     fun split_arg_mode' (Fun _) T = ([], [])
-      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name "*"}, [T1, T2])) =
+      | split_arg_mode' (Pair (m1, m2)) (Type (@{type_name Product_Type.prod}, [T1, T2])) =
         let
           val (i1, o1) = split_arg_mode' m1 T1
           val (i2, o2) = split_arg_mode' m2 T2
@@ -756,9 +756,9 @@ fun expand_tuples thy intro =
       (case HOLogic.strip_tupleT (fastype_of arg) of
         (Ts as _ :: _ :: _) =>
         let
-          fun rewrite_arg' (Const (@{const_name Pair}, _) $ _ $ t2, Type (@{type_name "*"}, [_, T2]))
+          fun rewrite_arg' (Const (@{const_name Pair}, _) $ _ $ t2, Type (@{type_name Product_Type.prod}, [_, T2]))
             (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
-            | rewrite_arg' (t, Type (@{type_name "*"}, [T1, T2])) (args, (pats, intro_t, ctxt)) =
+            | rewrite_arg' (t, Type (@{type_name Product_Type.prod}, [T1, T2])) (args, (pats, intro_t, ctxt)) =
               let
                 val ([x, y], ctxt') = Variable.variant_fixes ["x", "y"] ctxt
                 val pat = (t, HOLogic.mk_prod (Free (x, T1), Free (y, T2)))

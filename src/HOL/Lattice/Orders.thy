@@ -196,7 +196,7 @@ text {*
   \emph{not} be linear in general.
 *}
 
-instantiation * :: (leq, leq) leq
+instantiation prod :: (leq, leq) leq
 begin
 
 definition
@@ -214,7 +214,7 @@ lemma leq_prodE [elim?]:
     "p \<sqsubseteq> q \<Longrightarrow> (fst p \<sqsubseteq> fst q \<Longrightarrow> snd p \<sqsubseteq> snd q \<Longrightarrow> C) \<Longrightarrow> C"
   by (unfold leq_prod_def) blast
 
-instance * :: (quasi_order, quasi_order) quasi_order
+instance prod :: (quasi_order, quasi_order) quasi_order
 proof
   fix p q r :: "'a::quasi_order \<times> 'b::quasi_order"
   show "p \<sqsubseteq> p"
@@ -234,7 +234,7 @@ proof
   qed
 qed
 
-instance * :: (partial_order, partial_order) partial_order
+instance prod :: (partial_order, partial_order) partial_order
 proof
   fix p q :: "'a::partial_order \<times> 'b::partial_order"
   assume pq: "p \<sqsubseteq> q" and qp: "q \<sqsubseteq> p"

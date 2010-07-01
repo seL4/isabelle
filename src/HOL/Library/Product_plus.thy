@@ -10,7 +10,7 @@ begin
 
 subsection {* Operations *}
 
-instantiation "*" :: (zero, zero) zero
+instantiation prod :: (zero, zero) zero
 begin
 
 definition zero_prod_def: "0 = (0, 0)"
@@ -18,7 +18,7 @@ definition zero_prod_def: "0 = (0, 0)"
 instance ..
 end
 
-instantiation "*" :: (plus, plus) plus
+instantiation prod :: (plus, plus) plus
 begin
 
 definition plus_prod_def:
@@ -27,7 +27,7 @@ definition plus_prod_def:
 instance ..
 end
 
-instantiation "*" :: (minus, minus) minus
+instantiation prod :: (minus, minus) minus
 begin
 
 definition minus_prod_def:
@@ -36,7 +36,7 @@ definition minus_prod_def:
 instance ..
 end
 
-instantiation "*" :: (uminus, uminus) uminus
+instantiation prod :: (uminus, uminus) uminus
 begin
 
 definition uminus_prod_def:
@@ -83,33 +83,33 @@ lemmas expand_prod_eq = Pair_fst_snd_eq
 
 subsection {* Class instances *}
 
-instance "*" :: (semigroup_add, semigroup_add) semigroup_add
+instance prod :: (semigroup_add, semigroup_add) semigroup_add
   by default (simp add: expand_prod_eq add_assoc)
 
-instance "*" :: (ab_semigroup_add, ab_semigroup_add) ab_semigroup_add
+instance prod :: (ab_semigroup_add, ab_semigroup_add) ab_semigroup_add
   by default (simp add: expand_prod_eq add_commute)
 
-instance "*" :: (monoid_add, monoid_add) monoid_add
+instance prod :: (monoid_add, monoid_add) monoid_add
   by default (simp_all add: expand_prod_eq)
 
-instance "*" :: (comm_monoid_add, comm_monoid_add) comm_monoid_add
+instance prod :: (comm_monoid_add, comm_monoid_add) comm_monoid_add
   by default (simp add: expand_prod_eq)
 
-instance "*" ::
+instance prod ::
   (cancel_semigroup_add, cancel_semigroup_add) cancel_semigroup_add
     by default (simp_all add: expand_prod_eq)
 
-instance "*" ::
+instance prod ::
   (cancel_ab_semigroup_add, cancel_ab_semigroup_add) cancel_ab_semigroup_add
     by default (simp add: expand_prod_eq)
 
-instance "*" ::
+instance prod ::
   (cancel_comm_monoid_add, cancel_comm_monoid_add) cancel_comm_monoid_add ..
 
-instance "*" :: (group_add, group_add) group_add
+instance prod :: (group_add, group_add) group_add
   by default (simp_all add: expand_prod_eq diff_minus)
 
-instance "*" :: (ab_group_add, ab_group_add) ab_group_add
+instance prod :: (ab_group_add, ab_group_add) ab_group_add
   by default (simp_all add: expand_prod_eq)
 
 lemma fst_setsum: "fst (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. fst (f x))"

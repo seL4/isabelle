@@ -37,7 +37,7 @@ datatype rep = SRep | RRep
 
 fun check_type ctxt (Type (@{type_name fun}, Ts)) =
     List.app (check_type ctxt) Ts
-  | check_type ctxt (Type (@{type_name "*"}, Ts)) =
+  | check_type ctxt (Type (@{type_name Product_Type.prod}, Ts)) =
     List.app (check_type ctxt) Ts
   | check_type _ @{typ bool} = ()
   | check_type _ (TFree (_, @{sort "{}"})) = ()
@@ -51,7 +51,7 @@ fun atom_schema_of SRep card (Type (@{type_name fun}, [T1, T2])) =
     atom_schema_of SRep card T1
   | atom_schema_of RRep card (Type (@{type_name fun}, [T1, T2])) =
     atom_schema_of SRep card T1 @ atom_schema_of RRep card T2
-  | atom_schema_of _ card (Type (@{type_name "*"}, Ts)) =
+  | atom_schema_of _ card (Type (@{type_name Product_Type.prod}, Ts)) =
     maps (atom_schema_of SRep card) Ts
   | atom_schema_of _ card T = [card T]
 val arity_of = length ooo atom_schema_of
@@ -290,7 +290,7 @@ fun kodkod_problem_from_term ctxt raw_card t =
     val thy = ProofContext.theory_of ctxt
     fun card (Type (@{type_name fun}, [T1, T2])) =
         reasonable_power (card T2) (card T1)
-      | card (Type (@{type_name "*"}, [T1, T2])) = card T1 * card T2
+      | card (Type (@{type_name Product_Type.prod}, [T1, T2])) = card T1 * card T2
       | card @{typ bool} = 2
       | card T = Int.max (1, raw_card T)
     val neg_t = @{const Not} $ Object_Logic.atomize_term thy t

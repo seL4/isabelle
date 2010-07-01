@@ -2422,7 +2422,7 @@ apply (simp add: dist_Pair_Pair)
 apply (erule order_trans [OF real_sqrt_sum_squares_ge2])
 done
 
-instance "*" :: (heine_borel, heine_borel) heine_borel
+instance prod :: (heine_borel, heine_borel) heine_borel
 proof
   fix s :: "('a * 'b) set" and f :: "nat \<Rightarrow> 'a * 'b"
   assume s: "bounded s" and f: "\<forall>n. f n \<in> s"

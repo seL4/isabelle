@@ -249,7 +249,7 @@ fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
     (case best_one_rep_for_type scope T2 of
        Unit => Unit
      | R2 => Vect (card_of_type card_assigns T1, R2))
-  | best_one_rep_for_type scope (Type (@{type_name "*"}, [T1, T2])) =
+  | best_one_rep_for_type scope (Type (@{type_name Product_Type.prod}, [T1, T2])) =
     (case (best_one_rep_for_type scope T1, best_one_rep_for_type scope T2) of
        (Unit, Unit) => Unit
      | (R1, R2) => Struct [R1, R2])
@@ -302,7 +302,7 @@ and atom_schema_of_reps Rs = maps atom_schema_of_rep Rs
 fun type_schema_of_rep _ (Formula _) = []
   | type_schema_of_rep _ Unit = []
   | type_schema_of_rep T (Atom _) = [T]
-  | type_schema_of_rep (Type (@{type_name "*"}, [T1, T2])) (Struct [R1, R2]) =
+  | type_schema_of_rep (Type (@{type_name Product_Type.prod}, [T1, T2])) (Struct [R1, R2]) =
     type_schema_of_reps [T1, T2] [R1, R2]
   | type_schema_of_rep (Type (@{type_name fun}, [_, T2])) (Vect (k, R)) =
     replicate_list k (type_schema_of_rep T2 R)

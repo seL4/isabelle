@@ -10,7 +10,7 @@ begin
 
 subsection {* Ordering on sum type *}
 
-instantiation "+" :: (below, below) below
+instantiation sum :: (below, below) below
 begin
 
 definition below_sum_def:
@@ -56,7 +56,7 @@ by (cases x, safe elim!: sum_below_elims, auto)
 
 subsection {* Sum type is a complete partial order *}
 
-instance "+" :: (po, po) po
+instance sum :: (po, po) po
 proof
   fix x :: "'a + 'b"
   show "x \<sqsubseteq> x"
@@ -117,7 +117,7 @@ lemma is_lub_Inr: "range S <<| x \<Longrightarrow> range (\<lambda>i. Inr (S i))
  apply (drule ub_rangeD, simp)
 done
 
-instance "+" :: (cpo, cpo) cpo
+instance sum :: (cpo, cpo) cpo
  apply intro_classes
  apply (erule sum_chain_cases, safe)
   apply (rule exI)
@@ -217,20 +217,20 @@ by (safe elim!: compact_Inl compact_Inl_rev)
 lemma compact_Inr_iff [simp]: "compact (Inr a) = compact a"
 by (safe elim!: compact_Inr compact_Inr_rev)
 
-instance "+" :: (chfin, chfin) chfin
+instance sum :: (chfin, chfin) chfin
 apply intro_classes
 apply (erule compact_imp_max_in_chain)
 apply (case_tac "\<Squnion>i. Y i", simp_all)
 done
 
-instance "+" :: (finite_po, finite_po) finite_po ..
+instance sum :: (finite_po, finite_po) finite_po ..
 
-instance "+" :: (discrete_cpo, discrete_cpo) discrete_cpo
+instance sum :: (discrete_cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_sum_def split: sum.split)
 
 subsection {* Sum type is a bifinite domain *}
 
-instantiation "+" :: (profinite, profinite) profinite
+instantiation sum :: (profinite, profinite) profinite
 begin
 
 definition

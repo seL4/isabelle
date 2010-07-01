@@ -31,7 +31,7 @@ val remove_internal_split = eval_internal_split o split_all;
 (*In ap_split S T u, term u expects separate arguments for the factors of S,
   with result type T.  The call creates a new term expecting one argument
   of type S.*)
-fun ap_split (Type (@{type_name "*"}, [T1, T2])) T3 u =
+fun ap_split (Type (@{type_name Product_Type.prod}, [T1, T2])) T3 u =
       internal_split_const (T1, T2, T3) $
       Abs ("v", T1,
           ap_split T2 T3

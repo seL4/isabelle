@@ -10,7 +10,7 @@ begin
 
 subsection {* Product is a real vector space *}
 
-instantiation "*" :: (real_vector, real_vector) real_vector
+instantiation prod :: (real_vector, real_vector) real_vector
 begin
 
 definition scaleR_prod_def:
@@ -41,8 +41,7 @@ end
 
 subsection {* Product is a topological space *}
 
-instantiation
-  "*" :: (topological_space, topological_space) topological_space
+instantiation prod :: (topological_space, topological_space) topological_space
 begin
 
 definition open_prod_def:
@@ -157,8 +156,7 @@ qed
 
 subsection {* Product is a metric space *}
 
-instantiation
-  "*" :: (metric_space, metric_space) metric_space
+instantiation prod :: (metric_space, metric_space) metric_space
 begin
 
 definition dist_prod_def:
@@ -340,7 +338,7 @@ lemma isCont_Pair [simp]:
 
 subsection {* Product is a complete metric space *}
 
-instance "*" :: (complete_space, complete_space) complete_space
+instance prod :: (complete_space, complete_space) complete_space
 proof
   fix X :: "nat \<Rightarrow> 'a \<times> 'b" assume "Cauchy X"
   have 1: "(\<lambda>n. fst (X n)) ----> lim (\<lambda>n. fst (X n))"
@@ -357,8 +355,7 @@ qed
 
 subsection {* Product is a normed vector space *}
 
-instantiation
-  "*" :: (real_normed_vector, real_normed_vector) real_normed_vector
+instantiation prod :: (real_normed_vector, real_normed_vector) real_normed_vector
 begin
 
 definition norm_prod_def:
@@ -397,11 +394,11 @@ qed
 
 end
 
-instance "*" :: (banach, banach) banach ..
+instance prod :: (banach, banach) banach ..
 
 subsection {* Product is an inner product space *}
 
-instantiation "*" :: (real_inner, real_inner) real_inner
+instantiation prod :: (real_inner, real_inner) real_inner
 begin
 
 definition inner_prod_def:

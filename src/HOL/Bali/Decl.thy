@@ -257,7 +257,7 @@ by (simp add: memberdecl_memberid_def)
 lemma memberid_mdecl_simp1: "memberid (mdecl m) = mid (fst m)"
 by (cases m) (simp add: memberdecl_memberid_def)
 
-instantiation * :: (type, has_memberid) has_memberid
+instantiation prod :: (type, has_memberid) has_memberid
 begin
 
 definition

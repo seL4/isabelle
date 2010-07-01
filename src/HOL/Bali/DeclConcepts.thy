@@ -109,7 +109,7 @@ end
 lemma decl_acc_modi_simp[simp]: "accmodi (d::('a::type) decl_scheme) = access d"
 by (simp add: decl_acc_modi_def)
 
-instantiation * :: (type, has_accmodi) has_accmodi
+instantiation prod :: (type, has_accmodi) has_accmodi
 begin
 
 definition
@@ -165,7 +165,7 @@ lemma qtname_declclass_def:
 lemma qtname_declclass_simp[simp]: "declclass (q::qtname) = q"
 by (simp add: qtname_declclass_def)
 
-instantiation * :: (has_declclass, type) has_declclass
+instantiation prod :: (has_declclass, type) has_declclass
 begin
 
 definition
@@ -204,7 +204,7 @@ axiomatization where
 lemma member_is_static_simp: "is_static (m::'a member_scheme) = static m"
 by (simp add: static_field_type_is_static_def)
 
-instantiation * :: (type, has_static) has_static
+instantiation prod :: (type, has_static) has_static
 begin
 
 definition
@@ -472,7 +472,7 @@ by (simp add: mhead_ext_type_resTy_def)
 lemma resTy_mhead [simp]:"resTy (mhead m) = resTy m"
 by (simp add: mhead_def mhead_resTy_simp)
 
-instantiation * :: ("type","has_resTy") has_resTy
+instantiation prod :: ("type","has_resTy") has_resTy
 begin
 
 definition

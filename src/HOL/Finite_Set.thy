@@ -530,7 +530,7 @@ lemma UNIV_bool [no_atp]:
 instance bool :: finite proof
 qed (simp add: UNIV_bool)
 
-instance * :: (finite, finite) finite proof
+instance prod :: (finite, finite) finite proof
 qed (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product finite)
 
 lemma finite_option_UNIV [simp]:
@@ -557,7 +557,7 @@ proof
   qed
 qed
 
-instance "+" :: (finite, finite) finite proof
+instance sum :: (finite, finite) finite proof
 qed (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
 
 

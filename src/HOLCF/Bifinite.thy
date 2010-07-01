@@ -161,7 +161,7 @@ proof (intro finite_deflation.intro finite_deflation_axioms.intro)
     by (rule finite_subset, simp add: d1.finite_fixes d2.finite_fixes)
 qed
 
-instantiation "*" :: (profinite, profinite) profinite
+instantiation prod :: (profinite, profinite) profinite
 begin
 
 definition
@@ -187,7 +187,7 @@ qed
 
 end
 
-instance "*" :: (bifinite, bifinite) bifinite ..
+instance prod :: (bifinite, bifinite) bifinite ..
 
 lemma approx_Pair [simp]:
   "approx i\<cdot>(x, y) = (approx i\<cdot>x, approx i\<cdot>y)"

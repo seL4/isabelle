@@ -298,7 +298,7 @@ st_type_of thy t = error ("could not extract state type of following automaton t
 (string_of_typ thy t));
 
 fun comp_st_type_of thy [a] = st_type_of thy (aut_type_of thy a) |
-comp_st_type_of thy (a::r) = Type(@{type_name "*"},[st_type_of thy (aut_type_of thy a), comp_st_type_of thy r]) |
+comp_st_type_of thy (a::r) = HOLogic.mk_prodT (st_type_of thy (aut_type_of thy a), comp_st_type_of thy r) |
 comp_st_type_of _ _ = error "empty automaton list";
 
 (* checking consistency of action types (for composition) *)
@@ -378,25 +378,22 @@ error("Precondition or assignment terms in postconditions contain following prim
 end)
 
 fun add_composition automaton_name aut_list thy =
-(writeln("Constructing automaton " ^ automaton_name ^ " ...");
-let
-val acttyp = check_ac thy aut_list; 
-val st_typ = comp_st_type_of thy aut_list; 
-val comp_list = clist aut_list;
-in
-thy
-|> Sign.add_consts_i
-[(Binding.name automaton_name,
-Type(@{type_name "*"},
-[Type(@{type_name "*"},[Type("set",[acttyp]),Type(@{type_name "*"},[Type("set",[acttyp]),Type("set",[acttyp])])]),
- Type(@{type_name "*"},[Type("set",[st_typ]),
-  Type(@{type_name "*"},[Type("set",[Type(@{type_name "*"},[st_typ,Type(@{type_name "*"},[acttyp,st_typ])])]),
-   Type(@{type_name "*"},[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
-,NoSyn)]
-|> add_defs
-[(automaton_name ^ "_def",
-automaton_name ^ " == " ^ comp_list)]
-end)
+  let
+    val _ = writeln("Constructing automaton " ^ automaton_name ^ " ...")
+    val acttyp = check_ac thy aut_list; 
+    val st_typ = comp_st_type_of thy aut_list; 
+    val comp_list = clist aut_list;
+  in
+    thy
+    |> Sign.add_consts_i
+        [(Binding.name automaton_name, HOLogic.mk_prodT (HOLogic.mk_prodT
+          (HOLogic.mk_setT acttyp, HOLogic.mk_prodT (HOLogic.mk_setT acttyp, HOLogic.mk_setT acttyp)),
+          HOLogic.mk_prodT (HOLogic.mk_setT st_typ, HOLogic.mk_prodT (HOLogic.mk_setT
+          (HOLogic.mk_prodT (st_typ, HOLogic.mk_prodT (acttyp, st_typ))),
+          HOLogic.mk_prodT (HOLogic.mk_setT (HOLogic.mk_setT acttyp), HOLogic.mk_setT (HOLogic.mk_setT acttyp))))),
+            NoSyn)]
+    |> add_defs [(automaton_name ^ "_def", automaton_name ^ " == " ^ comp_list)]
+  end
 
 fun add_restriction automaton_name aut_source actlist thy =
 (writeln("Constructing automaton " ^ automaton_name ^ " ...");
@@ -433,25 +430,23 @@ fun ren_act_type_of thy funct =
   | _ => error "could not extract argument type of renaming function term");
  
 fun add_rename automaton_name aut_source fun_name thy =
-(writeln("Constructing automaton " ^ automaton_name ^ " ...");
-let
-val auttyp = aut_type_of thy aut_source;
-val st_typ = st_type_of thy auttyp;
-val acttyp = ren_act_type_of thy fun_name
-in
-thy
-|> Sign.add_consts_i
-[(Binding.name automaton_name,
-Type(@{type_name "*"},
-[Type(@{type_name "*"},[Type("set",[acttyp]),Type(@{type_name "*"},[Type("set",[acttyp]),Type("set",[acttyp])])]),
- Type(@{type_name "*"},[Type("set",[st_typ]),
-  Type(@{type_name "*"},[Type("set",[Type(@{type_name "*"},[st_typ,Type(@{type_name "*"},[acttyp,st_typ])])]),
-   Type(@{type_name "*"},[Type("set",[Type("set",[acttyp])]),Type("set",[Type("set",[acttyp])])])])])])
-,NoSyn)]
-|> add_defs
-[(automaton_name ^ "_def",
-automaton_name ^ " == rename " ^ aut_source ^ " (" ^ fun_name ^ ")")]
-end)
+  let
+    val _ = writeln("Constructing automaton " ^ automaton_name ^ " ...")
+    val auttyp = aut_type_of thy aut_source;
+    val st_typ = st_type_of thy auttyp;
+    val acttyp = ren_act_type_of thy fun_name
+  in
+    thy
+    |> Sign.add_consts_i
+        [(Binding.name automaton_name,
+        Type(@{type_name prod},
+        [Type(@{type_name prod},[HOLogic.mk_setT acttyp,Type(@{type_name prod},[HOLogic.mk_setT acttyp,HOLogic.mk_setT acttyp])]),
+         Type(@{type_name prod},[HOLogic.mk_setT st_typ,
+          Type(@{type_name prod},[HOLogic.mk_setT (Type(@{type_name prod},[st_typ,Type(@{type_name prod},[acttyp,st_typ])])),
+           Type(@{type_name prod},[HOLogic.mk_setT (HOLogic.mk_setT acttyp),HOLogic.mk_setT (HOLogic.mk_setT acttyp)])])])])
+        ,NoSyn)]
+    |> add_defs [(automaton_name ^ "_def", automaton_name ^ " == rename " ^ aut_source ^ " (" ^ fun_name ^ ")")]
+  end
 
 
 (** outer syntax **)

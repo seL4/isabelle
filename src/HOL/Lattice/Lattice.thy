@@ -453,7 +453,7 @@ proof
   qed
 qed
 
-instance * :: (lattice, lattice) lattice
+instance prod :: (lattice, lattice) lattice
 proof
   fix p q :: "'a::lattice \<times> 'b::lattice"
   from is_inf_prod show "\<exists>inf. is_inf p q inf" ..

@@ -17,7 +17,7 @@ definition Inl_Rep :: "'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \
 definition Inr_Rep :: "'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \<Rightarrow> bool" where
   "Inr_Rep b x y p \<longleftrightarrow> y = b \<and> \<not> p"
 
-typedef (sum) ('a, 'b) "+" (infixr "+" 10) = "{f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
+typedef ('a, 'b) sum (infixr "+" 10) = "{f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
   by auto
 
 lemma Inl_RepI: "Inl_Rep a \<in> sum"
@@ -83,7 +83,7 @@ proof (rule Abs_sum_cases [of s])
   with assms show P by (auto simp add: sum_def Inl_def Inr_def)
 qed
 
-rep_datatype (sum) Inl Inr
+rep_datatype Inl Inr
 proof -
   fix P
   fix s :: "'a + 'b"

@@ -209,7 +209,7 @@ lemma distinct_product:
   using assms by (induct xs)
     (auto intro: inj_onI simp add: product_list_set distinct_map)
 
-instantiation * :: (enum, enum) enum
+instantiation prod :: (enum, enum) enum
 begin
 
 definition
@@ -220,7 +220,7 @@ instance by default
 
 end
 
-instantiation "+" :: (enum, enum) enum
+instantiation sum :: (enum, enum) enum
 begin
 
 definition

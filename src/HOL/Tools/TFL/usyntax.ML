@@ -372,7 +372,7 @@ fun strip_disj w =
 (* Miscellaneous *)
 
 fun mk_vstruct ty V =
-  let fun follow_prod_type (Type(@{type_name "*"},[ty1,ty2])) vs =
+  let fun follow_prod_type (Type(@{type_name Product_Type.prod},[ty1,ty2])) vs =
               let val (ltm,vs1) = follow_prod_type ty1 vs
                   val (rtm,vs2) = follow_prod_type ty2 vs1
               in (mk_pair{fst=ltm, snd=rtm}, vs2) end
@@ -393,7 +393,7 @@ fun find_term p =
 
 fun dest_relation tm =
    if (type_of tm = HOLogic.boolT)
-   then let val (Const("op :",_) $ (Const(@{const_name Pair},_)$y$x) $ R) = tm
+   then let val (Const(@{const_name Set.member},_) $ (Const(@{const_name Pair},_)$y$x) $ R) = tm
         in (R,y,x)
         end handle Bind => raise USYN_ERR "dest_relation" "unexpected term structure"
    else raise USYN_ERR "dest_relation" "not a boolean term";

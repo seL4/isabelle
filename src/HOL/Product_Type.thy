@@ -129,7 +129,7 @@ subsubsection {* Type definition *}
 definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
   "Pair_Rep a b = (\<lambda>x y. x = a \<and> y = b)"
 
-typedef (prod) ('a, 'b) "*" (infixr "*" 20)
+typedef ('a, 'b) prod (infixr "*" 20)
   = "{f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
 proof
   fix a b show "Pair_Rep a b \<in> ?prod"
@@ -137,14 +137,14 @@ proof
 qed
 
 type_notation (xsymbols)
-  "*"  ("(_ \<times>/ _)" [21, 20] 20)
+  "prod"  ("(_ \<times>/ _)" [21, 20] 20)
 type_notation (HTML output)
-  "*"  ("(_ \<times>/ _)" [21, 20] 20)
+  "prod"  ("(_ \<times>/ _)" [21, 20] 20)
 
 definition Pair :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<times> 'b" where
   "Pair a b = Abs_prod (Pair_Rep a b)"
 
-rep_datatype (prod) Pair proof -
+rep_datatype Pair proof -
   fix P :: "'a \<times> 'b \<Rightarrow> bool" and p
   assume "\<And>a b. P (Pair a b)"
   then show "P p" by (cases p) (auto simp add: prod_def Pair_def Pair_Rep_def)
@@ -263,7 +263,7 @@ in [(@{const_syntax prod_case}, split_guess_names_tr')] end
 
 subsubsection {* Code generator setup *}
 
-code_type *
+code_type prod
   (SML infix 2 "*")
   (OCaml infix 2 "*")
   (Haskell "!((_),/ (_))")
@@ -275,19 +275,19 @@ code_const Pair
   (Haskell "!((_),/ (_))")
   (Scala "!((_),/ (_))")
 
-code_instance * :: eq
+code_instance prod :: eq
   (Haskell -)
 
 code_const "eq_class.eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 types_code
-  "*"     ("(_ */ _)")
+  "prod"     ("(_ */ _)")
 attach (term_of) {*
-fun term_of_id_42 aF aT bF bT (x, y) = HOLogic.pair_const aT bT $ aF x $ bF y;
+fun term_of_prod aF aT bF bT (x, y) = HOLogic.pair_const aT bT $ aF x $ bF y;
 *}
 attach (test) {*
-fun gen_id_42 aG aT bG bT i =
+fun term_of_prod aG aT bG bT i =
   let
     val (x, t) = aG i;
     val (y, u) = bG i
@@ -438,7 +438,7 @@ lemma The_split: "The (split P) = (THE xy. P (fst xy) (snd xy))"
 
 lemma split_weak_cong: "p = q \<Longrightarrow> split c p = split c q"
   -- {* Prevents simplification of @{term c}: much faster *}
-  by (erule arg_cong)
+  by (fact weak_case_cong)
 
 lemma cond_split_eta: "(!!x y. f x y = g (x, y)) ==> (%(x, y). f x y) = g"
   by (simp add: split_eta)
@@ -689,19 +689,18 @@ text {*
 lemmas prod_caseI = prod.cases [THEN iffD2, standard]
 
 lemma prod_caseI2: "!!p. [| !!a b. p = (a, b) ==> c a b |] ==> prod_case c p"
-  by auto
+  by (fact splitI2)
 
 lemma prod_caseI2': "!!p. [| !!a b. (a, b) = p ==> c a b x |] ==> prod_case c p x"
-  by (auto simp: split_tupled_all)
+  by (fact splitI2')
 
 lemma prod_caseE: "prod_case c p ==> (!!x y. p = (x, y) ==> c x y ==> Q) ==> Q"
-  by (induct p) auto
+  by (fact splitE)
 
 lemma prod_caseE': "prod_case c p z ==> (!!x y. p = (x, y) ==> c x y z ==> Q) ==> Q"
-  by (induct p) auto
+  by (fact splitE')
 
-declare prod_caseI2' [intro!] prod_caseI2 [intro!] prod_caseI [intro!]
-declare prod_caseE' [elim!] prod_caseE [elim!]
+declare prod_caseI [intro!]
 
 lemma prod_case_beta:
   "prod_case f p = f (fst p) (snd p)"
@@ -795,8 +794,11 @@ notation fcomp (infixl "o>" 60)
 definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "o\<rightarrow>" 60) where
   "f o\<rightarrow> g = (\<lambda>x. split g (f x))"
 
+lemma scomp_unfold: "scomp = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
+  by (simp add: expand_fun_eq scomp_def split_def)
+
 lemma scomp_apply:  "(f o\<rightarrow> g) x = split g (f x)"
-  by (simp add: scomp_def)
+  by (simp add: scomp_unfold split_def)
 
 lemma Pair_scomp: "Pair x o\<rightarrow> f = f x"
   by (simp add: expand_fun_eq scomp_apply)
@@ -805,13 +807,13 @@ lemma scomp_Pair: "x o\<rightarrow> Pair = x"
   by (simp add: expand_fun_eq scomp_apply)
 
 lemma scomp_scomp: "(f o\<rightarrow> g) o\<rightarrow> h = f o\<rightarrow> (\<lambda>x. g x o\<rightarrow> h)"
-  by (simp add: expand_fun_eq split_twice scomp_def)
+  by (simp add: expand_fun_eq scomp_unfold)
 
 lemma scomp_fcomp: "(f o\<rightarrow> g) o> h = f o\<rightarrow> (\<lambda>x. g x o> h)"
-  by (simp add: expand_fun_eq scomp_apply fcomp_def split_def)
+  by (simp add: expand_fun_eq scomp_unfold fcomp_def)
 
 lemma fcomp_scomp: "(f o> g) o\<rightarrow> h = f o> (g o\<rightarrow> h)"
-  by (simp add: expand_fun_eq scomp_apply fcomp_apply)
+  by (simp add: expand_fun_eq scomp_unfold fcomp_apply)
 
 code_const scomp
   (Eval infixl 3 "#->")

@@ -8,7 +8,7 @@ theory Product_ord
 imports Main
 begin
 
-instantiation "*" :: (ord, ord) ord
+instantiation prod :: (ord, ord) ord
 begin
 
 definition
@@ -26,16 +26,16 @@ lemma [code]:
   "(x1\<Colon>'a\<Colon>{ord, eq}, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 \<le> x2 \<and> y1 < y2"
   unfolding prod_le_def prod_less_def by simp_all
 
-instance * :: (preorder, preorder) preorder proof
+instance prod :: (preorder, preorder) preorder proof
 qed (auto simp: prod_le_def prod_less_def less_le_not_le intro: order_trans)
 
-instance * :: (order, order) order proof
+instance prod :: (order, order) order proof
 qed (auto simp add: prod_le_def)
 
-instance * :: (linorder, linorder) linorder proof
+instance prod :: (linorder, linorder) linorder proof
 qed (auto simp: prod_le_def)
 
-instantiation * :: (linorder, linorder) distrib_lattice
+instantiation prod :: (linorder, linorder) distrib_lattice
 begin
 
 definition
@@ -49,7 +49,7 @@ qed (auto simp add: inf_prod_def sup_prod_def min_max.sup_inf_distrib1)
 
 end
 
-instantiation * :: (bot, bot) bot
+instantiation prod :: (bot, bot) bot
 begin
 
 definition
@@ -60,7 +60,7 @@ qed (auto simp add: bot_prod_def prod_le_def)
 
 end
 
-instantiation * :: (top, top) top
+instantiation prod :: (top, top) top
 begin
 
 definition
