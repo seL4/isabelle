@@ -1959,20 +1959,19 @@ proof-
   show "?thesis" ..
 qed
 
+lemma at_within_interior:
+  "x \<in> interior S \<Longrightarrow> at x within S = at x"
+  by (simp add: expand_net_eq eventually_within_interior)
+
 lemma lim_within_interior:
   "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
-  unfolding tendsto_def by (simp add: eventually_within_interior)
+  by (simp add: at_within_interior)
 
 lemma netlimit_within_interior:
-  fixes x :: "'a::{perfect_space, real_normed_vector}"
-    (* FIXME: generalize to perfect_space *)
+  fixes x :: "'a::perfect_space"
   assumes "x \<in> interior S"
-  shows "netlimit(at x within S) = x" (is "?lhs = ?rhs")
-proof-
-  from assms obtain e::real where e:"e>0" "ball x e \<subseteq> S" using open_interior[of S] unfolding open_contains_ball using interior_subset[of S] by auto
-  hence "\<not> trivial_limit (at x within S)" using islimpt_subset[of x "ball x e" S] unfolding trivial_limit_within islimpt_ball centre_in_cball by auto
-  thus ?thesis using netlimit_within by auto
-qed
+  shows "netlimit (at x within S) = x"
+using assms by (simp add: at_within_interior netlimit_at)
 
 subsection{* Boundedness. *}
 
