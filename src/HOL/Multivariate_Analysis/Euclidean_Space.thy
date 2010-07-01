@@ -1402,6 +1402,42 @@ proof-
   ultimately show ?thesis by blast
 qed
 
+lemma Int_Un_cancel: "(A \<union> B) \<inter> A = A" "(A \<union> B) \<inter> B = B" by auto
+
+lemma span_union: "span (A \<union> B) = (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
+proof safe
+  fix x assume "x \<in> span (A \<union> B)"
+  then obtain S u where S: "finite S" "S \<subseteq> A \<union> B" and x: "x = (\<Sum>v\<in>S. u v *\<^sub>R v)"
+    unfolding span_explicit by auto
+
+  let ?Sa = "\<Sum>v\<in>S\<inter>A. u v *\<^sub>R v"
+  let ?Sb = "(\<Sum>v\<in>S\<inter>(B - A). u v *\<^sub>R v)"
+  show "x \<in> (\<lambda>(a, b). a + b) ` (span A \<times> span B)"
+  proof
+    show "x = (case (?Sa, ?Sb) of (a, b) \<Rightarrow> a + b)"
+      unfolding x using S
+      by (simp, subst setsum_Un_disjoint[symmetric]) (auto intro!: setsum_cong)
+
+    from S have "?Sa \<in> span A" unfolding span_explicit
+      by (auto intro!: exI[of _ "S \<inter> A"])
+    moreover from S have "?Sb \<in> span B" unfolding span_explicit
+      by (auto intro!: exI[of _ "S \<inter> (B - A)"])
+    ultimately show "(?Sa, ?Sb) \<in> span A \<times> span B" by simp
+  qed
+next
+  fix a b assume "a \<in> span A" and "b \<in> span B"
+  then obtain Sa ua Sb ub where span:
+    "finite Sa" "Sa \<subseteq> A" "a = (\<Sum>v\<in>Sa. ua v *\<^sub>R v)"
+    "finite Sb" "Sb \<subseteq> B" "b = (\<Sum>v\<in>Sb. ub v *\<^sub>R v)"
+    unfolding span_explicit by auto
+  let "?u v" = "(if v \<in> Sa then ua v else 0) + (if v \<in> Sb then ub v else 0)"
+  from span have "finite (Sa \<union> Sb)" "Sa \<union> Sb \<subseteq> A \<union> B"
+    and "a + b = (\<Sum>v\<in>(Sa\<union>Sb). ?u v *\<^sub>R v)"
+    unfolding setsum_addf scaleR_left_distrib
+    by (auto simp add: if_distrib cond_application_beta setsum_cases Int_Un_cancel)
+  thus "a + b \<in> span (A \<union> B)"
+    unfolding span_explicit by (auto intro!: exI[of _ ?u])
+qed
 
 text {* This is useful for building a basis step-by-step. *}
 
@@ -1645,10 +1681,6 @@ next
   thus "basis j = 0 \<Longrightarrow> DIM('a) \<le> j" unfolding not_le[symmetric] by blast
 qed
 
-lemma (in real_basis) basis_range:
-    "range (basis) = {0} \<union> basis ` {..<DIM('a)}"
-  using basis_finite by (fastsimp simp: image_def)
-
 lemma (in real_basis) range_basis:
     "range basis = insert 0 (basis ` {..<DIM('a)})"
 proof -
@@ -1681,6 +1713,27 @@ proof -
   have "\<exists>u. (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R v) = x"
     unfolding range_basis span_insert_0 apply(subst (asm) span_finite) by auto
   thus ?thesis by fastsimp
+qed
+
+lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = UNIV"
+  apply(subst span_basis[symmetric]) unfolding range_basis by auto
+
+lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = DIM('a)"
+  apply(subst card_image) using basis_inj by auto
+
+lemma in_span_basis: "(x::'a::real_basis) \<in> span (basis ` {..<DIM('a)})"
+  unfolding span_basis' ..
+
+lemma independent_eq_inj_on:
+  fixes D :: nat and f :: "nat \<Rightarrow> 'c::real_vector" assumes *: "inj_on f {..<D}"
+  shows "independent (f ` {..<D}) \<longleftrightarrow> (\<forall>a u. a < D \<longrightarrow> (\<Sum>i\<in>{..<D}-{a}. u (f i) *\<^sub>R f i) \<noteq> f a)"
+proof -
+  from * have eq: "\<And>i. i < D \<Longrightarrow> f ` {..<D} - {f i} = f`({..<D} - {i})"
+    and inj: "\<And>i. inj_on f ({..<D} - {i})"
+    by (auto simp: inj_on_def)
+  have *: "\<And>i. finite (f ` {..<D} - {i})" by simp
+  show ?thesis unfolding dependent_def span_finite[OF *]
+    by (auto simp: eq setsum_reindex[OF inj])
 qed
 
 class real_basis_with_inner = real_inner + real_basis
@@ -2056,13 +2109,6 @@ next
 qed
 
 subsection {* We continue. *}
-
-(** move **)
-lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = UNIV"
-  apply(subst span_basis[THEN sym]) unfolding basis_range by auto
-
-lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::real_basis)}) = DIM('a)"
-  apply(subst card_image) using basis_inj by auto
 
 lemma independent_bound:
   fixes S:: "('a::euclidean_space) set"

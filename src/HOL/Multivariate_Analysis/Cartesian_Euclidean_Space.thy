@@ -5,9 +5,148 @@ theory Cartesian_Euclidean_Space
 imports Finite_Cartesian_Product Integration
 begin
 
-(* TODO:  real_vector^'n is instance of real_vector *)
+instantiation * :: (real_basis, real_basis) real_basis
+begin
 
-(* Some strange lemmas, are they really needed? *)
+definition "basis i = (if i < DIM('a) then (basis i, 0) else (0, basis (i - DIM('a))))"
+
+instance
+proof
+  let ?b = "basis :: nat \<Rightarrow> 'a \<times> 'b"
+  let ?b_a = "basis :: nat \<Rightarrow> 'a"
+  let ?b_b = "basis :: nat \<Rightarrow> 'b"
+
+  note image_range =
+    image_add_atLeastLessThan[symmetric, of 0 "DIM('a)" "DIM('b)", simplified]
+
+  have split_range:
+    "{..<DIM('b) + DIM('a)} = {..<DIM('a)} \<union> {DIM('a)..<DIM('b) + DIM('a)}"
+    by auto
+  have *: "?b ` {DIM('a)..<DIM('b) + DIM('a)} = {0} \<times> (?b_b ` {..<DIM('b)})"
+    "?b ` {..<DIM('a)} = (?b_a ` {..<DIM('a)}) \<times> {0}"
+    unfolding image_range image_image basis_prod_def_raw range_basis
+    by (auto simp: zero_prod_def basis_eq_0_iff)
+  hence b_split:
+    "?b ` {..<DIM('b) + DIM('a)} = (?b_a ` {..<DIM('a)}) \<times> {0} \<union> {0} \<times> (?b_b ` {..<DIM('b)})" (is "_ = ?prod")
+    by (subst split_range) (simp add: image_Un)
+
+  have b_0: "?b ` {DIM('b) + DIM('a)..} = {0}" unfolding basis_prod_def_raw
+    by (auto simp: zero_prod_def image_iff basis_eq_0_iff elim!: ballE[of _ _ "DIM('a) + DIM('b)"])
+
+  have split_UNIV:
+    "UNIV = {..<DIM('b) + DIM('a)} \<union> {DIM('b)+DIM('a)..}"
+    by auto
+
+  have range_b: "range ?b = ?prod \<union> {0}"
+    by (subst split_UNIV) (simp add: image_Un b_split b_0)
+
+  have prod: "\<And>f A B. setsum f (A \<times> B) = (\<Sum>a\<in>A. \<Sum>b\<in>B. f (a, b))"
+    by (simp add: setsum_cartesian_product)
+
+  show "span (range ?b) = UNIV"
+    unfolding span_explicit range_b
+  proof safe
+    fix a::'a and b::'b
+    from in_span_basis[of a] in_span_basis[of b]
+    obtain Sa ua Sb ub where span:
+        "finite Sa" "Sa \<subseteq> basis ` {..<DIM('a)}" "a = (\<Sum>v\<in>Sa. ua v *\<^sub>R v)"
+        "finite Sb" "Sb \<subseteq> basis ` {..<DIM('b)}" "b = (\<Sum>v\<in>Sb. ub v *\<^sub>R v)"
+      unfolding span_explicit by auto
+
+    let ?S = "((Sa - {0}) \<times> {0} \<union> {0} \<times> (Sb - {0}))"
+    have *:
+      "?S \<inter> {v. fst v = 0} \<inter> {v. snd v = 0} = {}"
+      "?S \<inter> - {v. fst v = 0} \<inter> {v. snd v = 0} = (Sa - {0}) \<times> {0}"
+      "?S \<inter> {v. fst v = 0} \<inter> - {v. snd v = 0} = {0} \<times> (Sb - {0})"
+      by (auto simp: zero_prod_def)
+    show "\<exists>S u. finite S \<and> S \<subseteq> ?prod \<union> {0} \<and> (\<Sum>v\<in>S. u v *\<^sub>R v) = (a, b)"
+      apply (rule exI[of _ ?S])
+      apply (rule exI[of _ "\<lambda>(v, w). (if w = 0 then ua v else 0) + (if v = 0 then ub w else 0)"])
+      using span
+      apply (simp add: prod_case_unfold setsum_addf if_distrib cond_application_beta setsum_cases prod *)
+      by (auto simp add: setsum_prod intro!: setsum_mono_zero_cong_left)
+  qed simp
+
+  show "\<exists>d>0. ?b ` {d..} = {0} \<and> independent (?b ` {..<d}) \<and> inj_on ?b {..<d}"
+    apply (rule exI[of _ "DIM('b) + DIM('a)"]) unfolding b_0
+  proof (safe intro!: DIM_positive del: notI)
+    show inj_on: "inj_on ?b {..<DIM('b) + DIM('a)}" unfolding split_range
+      using inj_on_iff[OF basis_inj[where 'a='a]] inj_on_iff[OF basis_inj[where 'a='b]]
+      by (auto intro!: inj_onI simp: basis_prod_def basis_eq_0_iff)
+
+    show "independent (?b ` {..<DIM('b) + DIM('a)})"
+      unfolding independent_eq_inj_on[OF inj_on]
+    proof safe
+      fix i u assume i_upper: "i < DIM('b) + DIM('a)" and
+          "(\<Sum>j\<in>{..<DIM('b) + DIM('a)} - {i}. u (?b j) *\<^sub>R ?b j) = ?b i" (is "?SUM = _")
+      let ?left = "{..<DIM('a)}" and ?right = "{DIM('a)..<DIM('b) + DIM('a)}"
+      show False
+      proof cases
+        assume "i < DIM('a)"
+        hence "(basis i, 0) = ?SUM" unfolding `?SUM = ?b i` unfolding basis_prod_def by auto
+        also have "\<dots> = (\<Sum>j\<in>?left - {i}. u (?b j) *\<^sub>R ?b j) +
+          (\<Sum>j\<in>?right. u (?b j) *\<^sub>R ?b j)"
+          using `i < DIM('a)` by (subst setsum_Un_disjoint[symmetric]) (auto intro!: setsum_cong)
+        also have "\<dots> =  (\<Sum>j\<in>?left - {i}. u (?b_a j, 0) *\<^sub>R (?b_a j, 0)) +
+          (\<Sum>j\<in>?right. u (0, ?b_b (j-DIM('a))) *\<^sub>R (0, ?b_b (j-DIM('a))))"
+          unfolding basis_prod_def by auto
+        finally have "basis i = (\<Sum>j\<in>?left - {i}. u (?b_a j, 0) *\<^sub>R ?b_a j)"
+          by (simp add: setsum_prod)
+        moreover
+        note independent_basis[where 'a='a, unfolded independent_eq_inj_on[OF basis_inj]]
+        note this[rule_format, of i "\<lambda>v. u (v, 0)"]
+        ultimately show False using `i < DIM('a)` by auto
+      next
+        let ?i = "i - DIM('a)"
+        assume not: "\<not> i < DIM('a)" hence "DIM('a) \<le> i" by auto
+        hence "?i < DIM('b)" using `i < DIM('b) + DIM('a)` by auto
+
+        have inj_on: "inj_on (\<lambda>j. j - DIM('a)) {DIM('a)..<DIM('b) + DIM('a)}"
+          by (auto intro!: inj_onI)
+        with i_upper not have *: "{..<DIM('b)} - {?i} = (\<lambda>j. j-DIM('a))`(?right - {i})"
+          by (auto simp: inj_on_image_set_diff image_minus_const_atLeastLessThan_nat)
+
+        have "(0, basis ?i) = ?SUM" unfolding `?SUM = ?b i`
+          unfolding basis_prod_def using not `?i < DIM('b)` by auto
+        also have "\<dots> = (\<Sum>j\<in>?left. u (?b j) *\<^sub>R ?b j) +
+          (\<Sum>j\<in>?right - {i}. u (?b j) *\<^sub>R ?b j)"
+          using not by (subst setsum_Un_disjoint[symmetric]) (auto intro!: setsum_cong)
+        also have "\<dots> =  (\<Sum>j\<in>?left. u (?b_a j, 0) *\<^sub>R (?b_a j, 0)) +
+          (\<Sum>j\<in>?right - {i}. u (0, ?b_b (j-DIM('a))) *\<^sub>R (0, ?b_b (j-DIM('a))))"
+          unfolding basis_prod_def by auto
+        finally have "basis ?i = (\<Sum>j\<in>{..<DIM('b)} - {?i}. u (0, ?b_b j) *\<^sub>R ?b_b j)"
+          unfolding *
+          by (subst setsum_reindex[OF inj_on[THEN subset_inj_on]])
+             (auto simp: setsum_prod)
+        moreover
+        note independent_basis[where 'a='b, unfolded independent_eq_inj_on[OF basis_inj]]
+        note this[rule_format, of ?i "\<lambda>v. u (0, v)"]
+        ultimately show False using `?i < DIM('b)` by auto
+      qed
+    qed
+  qed
+qed
+end
+
+lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('b::real_basis) + DIM('a::real_basis)"
+  by (rule dimension_eq) (auto simp: basis_prod_def zero_prod_def basis_eq_0_iff)
+
+instance * :: (euclidean_space, euclidean_space) euclidean_space
+proof (default, safe)
+  let ?b = "basis :: nat \<Rightarrow> 'a \<times> 'b"
+  fix i j assume "i < DIM('a \<times> 'b)" "j < DIM('a \<times> 'b)"
+  thus "?b i \<bullet> ?b j = (if i = j then 1 else 0)"
+    unfolding basis_prod_def by (auto simp: dot_basis)
+qed
+
+instantiation * :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
+begin
+
+definition "x \<le> (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i<DIM('a\<times>'b). x $$ i \<le> y $$ i)"
+definition "x < (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i<DIM('a\<times>'b). x $$ i < y $$ i)"
+
+instance proof qed (auto simp: less_prod_def less_eq_prod_def)
+end
 
 lemma delta_mult_idempotent:
   "(if k=a then 1 else (0::'a::semiring_1)) * (if k=a then 1 else 0) = (if k=a then 1 else 0)" by (cases "k=a", auto)
@@ -39,6 +178,9 @@ proof (rule setsum_cong, simp, rule setsum_reindex_cong)
 qed simp
 
 subsection{* Basic componentwise operations on vectors. *}
+
+lemma dimindex_ge_1:"CARD(_::finite) \<ge> 1"
+  using one_le_card_finite by auto
 
 instantiation cart :: (times,finite) times
 begin
@@ -426,17 +568,6 @@ proof
   let ?b = "basis :: nat \<Rightarrow> 'a^'b"
   let ?b' = "basis :: nat \<Rightarrow> 'a"
 
-  { fix D :: nat and f :: "nat \<Rightarrow> 'c::real_vector"
-    assume "inj_on f {..<D}"
-    hence eq: "\<And>i. i < D \<Longrightarrow> f ` {..<D} - {f i} = f`({..<D} - {i})"
-      and inj: "\<And>i. inj_on f ({..<D} - {i})"
-      by (auto simp: inj_on_def)
-    have *: "\<And>i. finite (f ` {..<D} - {i})" by simp
-    have "independent (f ` {..<D}) \<longleftrightarrow> (\<forall>a u. a < D \<longrightarrow> (\<Sum>i\<in>{..<D}-{a}. u (f i) *\<^sub>R f i) \<noteq> f a)"
-      unfolding dependent_def span_finite[OF *]
-      by (auto simp: eq setsum_reindex[OF inj]) }
-  note independentI = this
-
   have setsum_basis:
     "\<And>f. (\<Sum>x\<in>range basis. f (x::'a)) = f 0 + (\<Sum>i<DIM('a). f (basis i))"
     unfolding range_basis apply (subst setsum.insert)
@@ -448,7 +579,7 @@ proof
                        inj_on_iff[OF basis_inj])
   moreover
   hence indep: "independent (?b ` {..<CARD('b) * DIM('a)})"
-  proof (rule independentI[THEN iffD2], safe elim!: split_CARD_DIM del: notI)
+  proof (rule independent_eq_inj_on[THEN iffD2], safe elim!: split_CARD_DIM del: notI)
     fix j and i :: 'b and u :: "'a^'b \<Rightarrow> real" assume "j < DIM('a)"
     let ?x = "j + \<pi>' i * DIM('a)"
     show "(\<Sum>k\<in>{..<CARD('b) * DIM('a)} - {?x}. u(?b k) *\<^sub>R ?b k) \<noteq> ?b ?x"
@@ -484,7 +615,7 @@ proof
         by (subst setsum_reindex) (auto simp: basis_eq_pi' intro!: inj_onI)
       also have "\<dots> \<noteq> ?b ?x $ i"
       proof -
-        note independentI[THEN iffD1, OF basis_inj independent_basis, rule_format]
+        note independent_eq_inj_on[THEN iffD1, OF basis_inj independent_basis, rule_format]
         note this[of j "\<lambda>v. u (\<chi> ka::'b. if ka = i then v else (0\<Colon>'a))"]
         thus ?thesis by (simp add: `j < DIM('a)` basis_eq pi'_range)
       qed
@@ -506,7 +637,7 @@ proof
         by (rule the_equality) (simp_all split: split_if_asm add: basis_neq_0)
       { fix x :: 'a
         have "x \<in> span (range basis)"
-          using span_basis by (auto simp: basis_range)
+          using span_basis by (auto simp: range_basis)
         hence "\<exists>u. (\<Sum>x<DIM('a). u (?b' x) *\<^sub>R ?b' x) = x"
           by (subst (asm) span_finite) (auto simp: setsum_basis) }
       hence "\<forall>i. \<exists>u. (\<Sum>x<DIM('a). u (?b' x) *\<^sub>R ?b' x) = i" by auto
@@ -523,7 +654,7 @@ proof
       by (auto simp: image_def basis_cart_def)
     ultimately
     show ?thesis
-      by (auto simp add: Cart_eq setsum_reindex[OF inj] basis_range
+      by (auto simp add: Cart_eq setsum_reindex[OF inj] range_basis
           setsum_mult_product basis_eq if_distrib setsum_cases span_finite
           setsum_reindex[OF basis_inj])
   qed

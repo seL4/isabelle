@@ -118,4 +118,7 @@ by (cases "finite A", induct set: finite, simp_all)
 lemma snd_setsum: "snd (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. snd (f x))"
 by (cases "finite A", induct set: finite, simp_all)
 
+lemma setsum_prod: "(\<Sum>x\<in>A. (f x, g x)) = (\<Sum>x\<in>A. f x, \<Sum>x\<in>A. g x)"
+by (cases "finite A", induct set: finite) (simp_all add: zero_prod_def)
+
 end

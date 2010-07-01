@@ -456,6 +456,23 @@ lemma image_add_int_atLeastLessThan:
   apply auto
   done
 
+lemma image_minus_const_atLeastLessThan_nat:
+  fixes c :: nat
+  shows "(\<lambda>i. i - c) ` {x ..< y} =
+      (if c < y then {x - c ..< y - c} else if x < y then {0} else {})"
+    (is "_ = ?right")
+proof safe
+  fix a assume a: "a \<in> ?right"
+  show "a \<in> (\<lambda>i. i - c) ` {x ..< y}"
+  proof cases
+    assume "c < y" with a show ?thesis
+      by (auto intro!: image_eqI[of _ _ "a + c"])
+  next
+    assume "\<not> c < y" with a show ?thesis
+      by (auto intro!: image_eqI[of _ _ x] split: split_if_asm)
+  qed
+qed auto
+
 context ordered_ab_group_add
 begin
 
