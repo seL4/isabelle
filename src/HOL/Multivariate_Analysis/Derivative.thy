@@ -88,9 +88,17 @@ lemma has_derivative_within_open:
   "a \<in> s \<Longrightarrow> open s \<Longrightarrow> ((f has_derivative f') (at a within s) \<longleftrightarrow> (f has_derivative f') (at a))"
   unfolding has_derivative_within has_derivative_at using Lim_within_open by auto
 
-lemma derivative_is_linear: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space" shows
+lemma bounded_linear_imp_linear: "bounded_linear f \<Longrightarrow> linear f" (* TODO: move elsewhere *)
+proof -
+  assume "bounded_linear f"
+  then interpret f: bounded_linear f .
+  show "linear f"
+    by (simp add: f.add f.scaleR linear_def)
+qed
+
+lemma derivative_is_linear:
   "(f has_derivative f') net \<Longrightarrow> linear f'"
-  unfolding has_derivative_def and linear_conv_bounded_linear by auto
+  by (rule derivative_linear [THEN bounded_linear_imp_linear])
 
 subsection {* Combining theorems. *}
 
@@ -166,14 +174,21 @@ lemma linear_vmul_component:
   using lf
   by (auto simp add: linear_def algebra_simps)
 
-lemma has_derivative_vmul_component: fixes c::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space" and v::"'c::euclidean_space"
+lemma bounded_linear_euclidean_component: "bounded_linear (\<lambda>x. x $$ k)"
+  unfolding euclidean_component_def
+  by (rule inner.bounded_linear_right)
+
+lemma has_derivative_vmul_component: fixes c::"'a::real_normed_vector \<Rightarrow> 'b::euclidean_space" and v::"'c::real_normed_vector"
   assumes "(c has_derivative c') net"
   shows "((\<lambda>x. c(x)$$k *\<^sub>R v) has_derivative (\<lambda>x. (c' x)$$k *\<^sub>R v)) net" proof-
   have *:"\<And>y. (c y $$ k *\<^sub>R v - (c (netlimit net) $$ k *\<^sub>R v + c' (y - netlimit net) $$ k *\<^sub>R v)) = 
         (c y $$ k - (c (netlimit net) $$ k + c' (y - netlimit net) $$ k)) *\<^sub>R v" 
     unfolding scaleR_left_diff_distrib scaleR_left_distrib by auto
-  show ?thesis unfolding has_derivative_def and * and linear_conv_bounded_linear[symmetric]
-    apply(rule,rule linear_vmul_component[of c' k v]) defer 
+  show ?thesis unfolding has_derivative_def and *
+    apply (rule conjI)
+    apply (rule bounded_linear_compose [OF scaleR.bounded_linear_left])
+    apply (rule bounded_linear_compose [OF bounded_linear_euclidean_component])
+    apply (rule derivative_linear [OF assms])
     apply(subst scaleR_zero_left[THEN sym, of v]) unfolding scaleR_scaleR apply(rule Lim_vmul)
     using assms[unfolded has_derivative_def] unfolding Lim o_def apply- apply(cases "trivial_limit net")
     apply(rule,assumption,rule disjI2,rule,rule) proof-
@@ -192,14 +207,15 @@ lemma has_derivative_vmul_component: fixes c::"'a::euclidean_space \<Rightarrow>
         using component_le_norm[of "(1 / norm (x - netlimit net)) *\<^sub>R
           (c x - (c (netlimit net) + c' (x - netlimit net))) - 0" k] by auto
     qed
-  qed(insert assms[unfolded has_derivative_def], auto simp add:linear_conv_bounded_linear) qed 
+  qed
+qed
 
-lemma has_derivative_vmul_within: fixes c::"real \<Rightarrow> real" and v::"'a::euclidean_space"
+lemma has_derivative_vmul_within: fixes c::"real \<Rightarrow> real"
   assumes "(c has_derivative c') (at x within s)"
   shows "((\<lambda>x. (c x) *\<^sub>R v) has_derivative (\<lambda>x. (c' x) *\<^sub>R v)) (at x within s)"
   using has_derivative_vmul_component[OF assms, of 0 v] by auto
 
-lemma has_derivative_vmul_at: fixes c::"real \<Rightarrow> real" and v::"'a::euclidean_space"
+lemma has_derivative_vmul_at: fixes c::"real \<Rightarrow> real"
   assumes "(c has_derivative c') (at x)"
   shows "((\<lambda>x. (c x) *\<^sub>R v) has_derivative (\<lambda>x. (c' x) *\<^sub>R v)) (at x)"
   using has_derivative_vmul_within[where s=UNIV] and assms by(auto simp add: within_UNIV)
@@ -279,9 +295,9 @@ lemma frechet_derivative_works:
  "f differentiable net \<longleftrightarrow> (f has_derivative (frechet_derivative f net)) net"
   unfolding frechet_derivative_def differentiable_def and some_eq_ex[of "\<lambda> f' . (f has_derivative f') net"] ..
 
-lemma linear_frechet_derivative: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+lemma linear_frechet_derivative:
   shows "f differentiable net \<Longrightarrow> linear(frechet_derivative f net)"
-  unfolding frechet_derivative_works has_derivative_def unfolding linear_conv_bounded_linear by auto
+  unfolding frechet_derivative_works has_derivative_def by (auto intro: bounded_linear_imp_linear)
 
 subsection {* Differentiability implies continuity. *}
 
@@ -442,13 +458,13 @@ lemma differentiable_sub: "f differentiable net \<Longrightarrow> g differentiab
   unfolding differentiable_def apply(erule exE)+ apply(rule_tac x="\<lambda>z. f' z - f'a z" in exI)
     apply(rule has_derivative_sub) by auto 
 
-lemma differentiable_setsum: fixes f::"'a \<Rightarrow> ('n::euclidean_space \<Rightarrow> 'n::euclidean_space)"
+lemma differentiable_setsum:
   assumes "finite s" "\<forall>a\<in>s. (f a) differentiable net"
   shows "(\<lambda>x. setsum (\<lambda>a. f a x) s) differentiable net" proof-
   guess f' using bchoice[OF assms(2)[unfolded differentiable_def]] ..
   thus ?thesis unfolding differentiable_def apply- apply(rule,rule has_derivative_setsum[where f'=f'],rule assms(1)) by auto qed
 
-lemma differentiable_setsum_numseg: fixes f::"_ \<Rightarrow> ('n::euclidean_space \<Rightarrow> 'n::euclidean_space)"
+lemma differentiable_setsum_numseg:
   shows "\<forall>i. m \<le> i \<and> i \<le> n \<longrightarrow> (f i) differentiable net \<Longrightarrow> (\<lambda>x. setsum (\<lambda>a. f a x) {m::nat..n}) differentiable net"
   apply(rule differentiable_setsum) using finite_atLeastAtMost[of n m] by auto
 
@@ -466,7 +482,7 @@ subsection {* Uniqueness of derivative.                                         
 (* The general result is a bit messy because we need approachability of the  *)
 (* limit point from any direction. But OK for nontrivial intervals etc. *}
     
-lemma frechet_derivative_unique_within: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+lemma frechet_derivative_unique_within: fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "(f has_derivative f') (at x within s)" "(f has_derivative f'') (at x within s)"
   "(\<forall>i<DIM('a). \<forall>e>0. \<exists>d. 0 < abs(d) \<and> abs(d) < e \<and> (x + d *\<^sub>R basis i) \<in> s)" shows "f' = f''" proof-
   note as = assms(1,2)[unfolded has_derivative_def]
@@ -491,7 +507,7 @@ lemma frechet_derivative_unique_within: fixes f::"'a::euclidean_space \<Rightarr
       unfolding dist_norm unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff
         scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib using i by auto qed qed
 
-lemma frechet_derivative_unique_at: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
+lemma frechet_derivative_unique_at: fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f'') (at x) \<Longrightarrow> f' = f''"
   apply(rule frechet_derivative_unique_within[of f f' x UNIV f'']) unfolding within_UNIV apply(assumption)+
   apply(rule,rule,rule,rule) apply(rule_tac x="e/2" in exI) by auto
@@ -499,7 +515,7 @@ lemma frechet_derivative_unique_at: fixes f::"'a::euclidean_space \<Rightarrow> 
 lemma "isCont f x = continuous (at x) f" unfolding isCont_def LIM_def
   unfolding continuous_at Lim_at unfolding dist_nz by auto
 
-lemma frechet_derivative_unique_within_closed_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+lemma frechet_derivative_unique_within_closed_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<forall>i<DIM('a). a$$i < b$$i" "x \<in> {a..b}" (is "x\<in>?I") and
   "(f has_derivative f' ) (at x within {a..b})" and
   "(f has_derivative f'') (at x within {a..b})"
@@ -520,7 +536,7 @@ lemma frechet_derivative_unique_within_closed_interval: fixes f::"'a::ordered_eu
       using assms(1)[THEN spec[where x=i]] and `e>0` and assms(2)
       unfolding mem_interval euclidean_simps basis_component using i by(auto simp add:field_simps) qed qed
 
-lemma frechet_derivative_unique_within_open_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+lemma frechet_derivative_unique_within_open_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "x \<in> {a<..<b}" "(f has_derivative f' ) (at x within {a<..<b})"
                          "(f has_derivative f'') (at x within {a<..<b})"
   shows "f' = f''" apply(rule frechet_derivative_unique_within) apply(rule assms(2-3))+ proof(rule,rule,rule,rule)
@@ -537,12 +553,12 @@ lemma frechet_derivative_unique_within_open_interval: fixes f::"'a::ordered_eucl
     using `e>0` and assms(1) unfolding mem_interval euclidean_simps apply safe unfolding basis_component
     by(auto simp add:field_simps) qed
 
-lemma frechet_derivative_at: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+lemma frechet_derivative_at: fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f' = frechet_derivative f (at x))"
   apply(rule frechet_derivative_unique_at[of f],assumption)
   unfolding frechet_derivative_works[THEN sym] using differentiable_def by auto
 
-lemma frechet_derivative_within_closed_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+lemma frechet_derivative_within_closed_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<forall>i<DIM('a). a$$i < b$$i" "x \<in> {a..b}" "(f has_derivative f') (at x within {a.. b})"
   shows "frechet_derivative f (at x within {a.. b}) = f'"
   apply(rule frechet_derivative_unique_within_closed_interval[where f=f]) 
