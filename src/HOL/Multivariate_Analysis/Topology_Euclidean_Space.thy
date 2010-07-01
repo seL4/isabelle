@@ -4994,7 +4994,7 @@ lemma inter_interval_mixed_eq_empty: fixes a :: "'a::ordered_euclidean_space"
 
 (* Some stuff for half-infinite intervals too; FIXME: notation?  *)
 
-lemma closed_interval_left: fixes b::"'a::ordered_euclidean_space"
+lemma closed_interval_left: fixes b::"'a::euclidean_space"
   shows "closed {x::'a. \<forall>i<DIM('a). x$$i \<le> b$$i}"
 proof-
   { fix i assume i:"i<DIM('a)"
@@ -5008,7 +5008,7 @@ proof-
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
 
-lemma closed_interval_right: fixes a::"'a::ordered_euclidean_space"
+lemma closed_interval_right: fixes a::"'a::euclidean_space"
   shows "closed {x::'a. \<forall>i<DIM('a). a$$i \<le> x$$i}"
 proof-
   { fix i assume i:"i<DIM('a)"
@@ -5076,11 +5076,11 @@ proof-
 qed
 
 lemma closed_halfspace_component_le:
-  shows "closed {x::'a::ordered_euclidean_space. x$$i \<le> a}"
+  shows "closed {x::'a::euclidean_space. x$$i \<le> a}"
   using closed_halfspace_le[of "(basis i)::'a" a] unfolding euclidean_component_def .
 
 lemma closed_halfspace_component_ge:
-  shows "closed {x::'a::ordered_euclidean_space. x$$i \<ge> a}"
+  shows "closed {x::'a::euclidean_space. x$$i \<ge> a}"
   using closed_halfspace_ge[of a "(basis i)::'a"] unfolding euclidean_component_def .
 
 text{* Openness of halfspaces.                                                   *}
@@ -5098,16 +5098,16 @@ proof-
 qed
 
 lemma open_halfspace_component_lt:
-  shows "open {x::'a::ordered_euclidean_space. x$$i < a}"
+  shows "open {x::'a::euclidean_space. x$$i < a}"
   using open_halfspace_lt[of "(basis i)::'a" a] unfolding euclidean_component_def .
 
 lemma open_halfspace_component_gt:
-  shows "open {x::'a::ordered_euclidean_space. x$$i  > a}"
+  shows "open {x::'a::euclidean_space. x$$i  > a}"
   using open_halfspace_gt[of a "(basis i)::'a"] unfolding euclidean_component_def .
 
 text{* This gives a simple derivation of limit component bounds.                 *}
 
-lemma Lim_component_le: fixes f :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
+lemma Lim_component_le: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$$i \<le> b) net"
   shows "l$$i \<le> b"
 proof-
@@ -5117,7 +5117,7 @@ proof-
     using closed_halfspace_le[of "(basis i)::'b" b] and assms(1,2,3) by auto
 qed
 
-lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
+lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes "(f ---> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$$i) net"
   shows "b \<le> l$$i"
 proof-
@@ -5127,7 +5127,7 @@ proof-
     using closed_halfspace_ge[of b "(basis i)"] and assms(1,2,3) by auto
 qed
 
-lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
+lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
   assumes net:"(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$$i = b) net"
   shows "l$$i = b"
   using ev[unfolded order_eq_iff eventually_and] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
@@ -5187,7 +5187,7 @@ proof(rule ccontr)
   ultimately show False using assms(1)[unfolded connected_def not_ex, THEN spec[where x="?A"], THEN spec[where x="?B"]] and assms(2-5) by auto
 qed
 
-lemma connected_ivt_component: fixes x::"'a::ordered_euclidean_space" shows
+lemma connected_ivt_component: fixes x::"'a::euclidean_space" shows
  "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$$k \<le> a \<Longrightarrow> a \<le> y$$k \<Longrightarrow> (\<exists>z\<in>s.  z$$k = a)"
   using connected_ivt_hyperplane[of s x y "(basis k)::'a" a]
   unfolding euclidean_component_def by auto

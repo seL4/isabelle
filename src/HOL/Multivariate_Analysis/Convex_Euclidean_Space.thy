@@ -1998,7 +1998,7 @@ by(metis is_interval_convex convex_connected is_interval_connected_1)
 *)
 subsection {* Another intermediate value theorem formulation. *}
 
-lemma ivt_increasing_component_on_1: fixes f::"real \<Rightarrow> 'a::ordered_euclidean_space"
+lemma ivt_increasing_component_on_1: fixes f::"real \<Rightarrow> 'a::euclidean_space"
   assumes "a \<le> b" "continuous_on {a .. b} f" "(f a)$$k \<le> y" "y \<le> (f b)$$k"
   shows "\<exists>x\<in>{a..b}. (f x)$$k = y"
 proof- have "f a \<in> f ` {a..b}" "f b \<in> f ` {a..b}" apply(rule_tac[!] imageI) 
@@ -2007,20 +2007,20 @@ proof- have "f a \<in> f ` {a..b}" "f b \<in> f ` {a..b}" apply(rule_tac[!] imag
     using connected_continuous_image[OF assms(2) convex_connected[OF convex_real_interval(5)]]
     using assms by(auto intro!: imageI) qed
 
-lemma ivt_increasing_component_1: fixes f::"real \<Rightarrow> 'a::ordered_euclidean_space"
+lemma ivt_increasing_component_1: fixes f::"real \<Rightarrow> 'a::euclidean_space"
   shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
    \<Longrightarrow> f a$$k \<le> y \<Longrightarrow> y \<le> f b$$k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)$$k = y"
 by(rule ivt_increasing_component_on_1)
   (auto simp add: continuous_at_imp_continuous_on)
 
-lemma ivt_decreasing_component_on_1: fixes f::"real \<Rightarrow> 'a::ordered_euclidean_space"
+lemma ivt_decreasing_component_on_1: fixes f::"real \<Rightarrow> 'a::euclidean_space"
   assumes "a \<le> b" "continuous_on {a .. b} f" "(f b)$$k \<le> y" "y \<le> (f a)$$k"
   shows "\<exists>x\<in>{a..b}. (f x)$$k = y"
   apply(subst neg_equal_iff_equal[THEN sym])
   using ivt_increasing_component_on_1[of a b "\<lambda>x. - f x" k "- y"] using assms using continuous_on_neg
   by (auto simp add:euclidean_simps)
 
-lemma ivt_decreasing_component_1: fixes f::"real \<Rightarrow> 'a::ordered_euclidean_space"
+lemma ivt_decreasing_component_1: fixes f::"real \<Rightarrow> 'a::euclidean_space"
   shows "a \<le> b \<Longrightarrow> \<forall>x\<in>{a .. b}. continuous (at x) f
     \<Longrightarrow> f b$$k \<le> y \<Longrightarrow> y \<le> f a$$k \<Longrightarrow> \<exists>x\<in>{a..b}. (f x)$$k = y"
 by(rule ivt_decreasing_component_on_1)
@@ -2212,6 +2212,7 @@ subsection {* Hence a convex function on an open set is continuous. *}
 
 lemma convex_on_continuous:
   assumes "open (s::('a::ordered_euclidean_space) set)" "convex_on s f" 
+  (* FIXME: generalize to euclidean_space *)
   shows "continuous_on s f"
   unfolding continuous_on_eq_continuous_at[OF assms(1)] proof
   note dimge1 = DIM_positive[where 'a='a]
