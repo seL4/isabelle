@@ -121,7 +121,7 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 val dj_cp = thm "dj_cp";
 
-fun dest_permT (Type ("fun", [Type ("List.list", [Type (@{type_name "*"}, [T, _])]),
+fun dest_permT (Type ("fun", [Type ("List.list", [Type (@{type_name Product_Type.prod}, [T, _])]),
       Type ("fun", [_, U])])) = (T, U);
 
 fun permTs_of (Const ("Nominal.perm", T) $ t $ u) = fst (dest_permT T) :: permTs_of u
@@ -617,7 +617,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
           Typedef.add_typedef_global false (SOME (Binding.name name'))
             (Binding.name name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
-            (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
+            (Const (@{const_name Collect}, (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)

@@ -8,42 +8,36 @@ begin
 
 subsection {* Sets as predicates *}
 
-global
+types 'a set = "'a \<Rightarrow> bool"
 
-types 'a set = "'a => bool"
+definition Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" where -- "comprehension"
+  "Collect P = P"
 
-consts
-  Collect       :: "('a => bool) => 'a set"              -- "comprehension"
-  "op :"        :: "'a => 'a set => bool"                -- "membership"
-
-local
+definition member :: "'a \<Rightarrow> 'a set \<Rightarrow> bool" where -- "membership"
+  mem_def: "member x A = A x"
 
 notation
-  "op :"  ("op :") and
-  "op :"  ("(_/ : _)" [50, 51] 50)
+  member  ("op :") and
+  member  ("(_/ : _)" [50, 51] 50)
 
-defs
-  mem_def [code]: "x : S == S x"
-  Collect_def [code]: "Collect P == P"
-
-abbreviation
-  "not_mem x A == ~ (x : A)" -- "non-membership"
+abbreviation not_member where
+  "not_member x A \<equiv> ~ (x : A)" -- "non-membership"
 
 notation
-  not_mem  ("op ~:") and
-  not_mem  ("(_/ ~: _)" [50, 51] 50)
+  not_member  ("op ~:") and
+  not_member  ("(_/ ~: _)" [50, 51] 50)
 
 notation (xsymbols)
-  "op :"  ("op \<in>") and
-  "op :"  ("(_/ \<in> _)" [50, 51] 50) and
-  not_mem  ("op \<notin>") and
-  not_mem  ("(_/ \<notin> _)" [50, 51] 50)
+  member      ("op \<in>") and
+  member      ("(_/ \<in> _)" [50, 51] 50) and
+  not_member  ("op \<notin>") and
+  not_member  ("(_/ \<notin> _)" [50, 51] 50)
 
 notation (HTML output)
-  "op :"  ("op \<in>") and
-  "op :"  ("(_/ \<in> _)" [50, 51] 50) and
-  not_mem  ("op \<notin>") and
-  not_mem  ("(_/ \<notin> _)" [50, 51] 50)
+  member      ("op \<in>") and
+  member      ("(_/ \<in> _)" [50, 51] 50) and
+  not_member  ("op \<notin>") and
+  not_member  ("(_/ \<notin> _)" [50, 51] 50)
 
 text {* Set comprehensions *}
 
@@ -312,7 +306,7 @@ let
         in
           case t of
             Const (@{const_syntax "op &"}, _) $
-              (Const (@{const_syntax "op :"}, _) $
+              (Const (@{const_syntax Set.member}, _) $
                 (Const (@{syntax_const "_bound"}, _) $ Free (yN, _)) $ A) $ P =>
             if xN = yN then Syntax.const @{syntax_const "_Collect"} $ x $ A $ P else M
           | _ => M
@@ -922,7 +916,7 @@ lemma split_if_mem2: "(a : (if Q then x else y)) = ((Q --> a : x) & (~ Q --> a :
 lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
 
 (*Would like to add these, but the existing code only searches for the
-  outer-level constant, which in this case is just "op :"; we instead need
+  outer-level constant, which in this case is just Set.member; we instead need
   to use term-nets to associate patterns with rules.  Also, if a rule fails to
   apply, then the formula should be kept.
   [("uminus", Compl_iff RS iffD1), ("minus", [Diff_iff RS iffD1]),
@@ -1691,6 +1685,7 @@ lemma insert_code [code]: "insert y A x \<longleftrightarrow> y = x \<or> A x"
 lemma vimage_code [code]: "(f -` A) x = A (f x)"
   by (simp add: vimage_def Collect_def mem_def)
 
+hide_const (open) member
 
 text {* Misc theorem and ML bindings *}
 

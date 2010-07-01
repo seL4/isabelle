@@ -2088,7 +2088,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val (HOLThm(rens,td_th)) = norm_hthm thy hth
             val th2 = beta_eta_thm (td_th RS ex_imp_nonempty)
             val c = case concl_of th2 of
-                        _ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
+                        _ $ (Const("Ex",_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
                       | _ => raise ERR "new_type_definition" "Bad type definition theorem"
             val tfrees = OldTerm.term_tfrees c
             val tnames = map fst tfrees
@@ -2118,7 +2118,7 @@ fun new_type_definition thyname thmname tycname hth thy =
                           let
                               val PT = domain_type exT
                           in
-                              Const("Collect",PT-->HOLogic.mk_setT (domain_type PT)) $ P
+                              Const (@{const_name Collect},PT-->HOLogic.mk_setT (domain_type PT)) $ P
                           end
                         | _ => error "Internal error in ProofKernel.new_typedefinition"
             val tnames_string = if null tnames
@@ -2164,7 +2164,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
                                     SOME (cterm_of thy t)] light_nonempty
             val th2 = beta_eta_thm (td_th RS (beta_eta_thm light_nonempty'))
             val c = case concl_of th2 of
-                        _ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
+                        _ $ (Const("Ex",_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
                       | _ => raise ERR "type_introduction" "Bad type definition theorem"
             val tfrees = OldTerm.term_tfrees c
             val tnames = sort_strings (map fst tfrees)
@@ -2202,7 +2202,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
                 let
                     val PT = type_of P'
                 in
-                    Const("Collect",PT-->HOLogic.mk_setT (domain_type PT)) $ P'
+                    Const (@{const_name Collect},PT-->HOLogic.mk_setT (domain_type PT)) $ P'
                 end
 
             val tnames_string = if null tnames

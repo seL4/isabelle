@@ -36,7 +36,7 @@ val collect_mem_simproc =
     fn S as Const (@{const_name Collect}, Type ("fun", [_, T])) $ t =>
          let val (u, _, ps) = HOLogic.strip_psplits t
          in case u of
-           (c as Const (@{const_name "op :"}, _)) $ q $ S' =>
+           (c as Const (@{const_name Set.member}, _)) $ q $ S' =>
              (case try (HOLogic.strip_ptuple ps) q of
                 NONE => NONE
               | SOME ts =>
@@ -84,10 +84,10 @@ fun strong_ind_simproc tab =
         in HOLogic.Collect_const U $
           HOLogic.mk_psplits (HOLogic.flat_tuple_paths p) U HOLogic.boolT t
         end;
-      fun decomp (Const (s, _) $ ((m as Const (@{const_name "op :"},
+      fun decomp (Const (s, _) $ ((m as Const (@{const_name Set.member},
             Type (_, [_, Type (_, [T, _])]))) $ p $ S) $ u) =
               mkop s T (m, p, S, mk_collect p T (head_of u))
-        | decomp (Const (s, _) $ u $ ((m as Const (@{const_name "op :"},
+        | decomp (Const (s, _) $ u $ ((m as Const (@{const_name Set.member},
             Type (_, [_, Type (_, [T, _])]))) $ p $ S)) =
               mkop s T (m, p, mk_collect p T (head_of u), S)
         | decomp _ = NONE;
@@ -271,7 +271,7 @@ fun add ctxt thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities
            let
              val thy = Context.theory_of ctxt;
              fun factors_of t fs = case strip_abs_body t of
-                 Const (@{const_name "op :"}, _) $ u $ S =>
+                 Const (@{const_name Set.member}, _) $ u $ S =>
                    if is_Free S orelse is_Var S then
                      let val ps = HOLogic.flat_tuple_paths u
                      in (SOME ps, (S, ps) :: fs) end
@@ -281,7 +281,7 @@ fun add ctxt thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities
              val (pfs, fs) = fold_map factors_of ts [];
              val ((h', ts'), fs') = (case rhs of
                  Abs _ => (case strip_abs_body rhs of
-                     Const (@{const_name "op :"}, _) $ u $ S =>
+                     Const (@{const_name Set.member}, _) $ u $ S =>
                        (strip_comb S, SOME (HOLogic.flat_tuple_paths u))
                    | _ => error "member symbol on right-hand side expected")
                | _ => (strip_comb rhs, NONE))
@@ -414,7 +414,7 @@ fun add_ind_set_def
     val {set_arities, pred_arities, to_pred_simps, ...} =
       PredSetConvData.get (Context.Proof lthy);
     fun infer (Abs (_, _, t)) = infer t
-      | infer (Const (@{const_name "op :"}, _) $ t $ u) =
+      | infer (Const (@{const_name Set.member}, _) $ t $ u) =
           infer_arities thy set_arities (SOME (HOLogic.flat_tuple_paths t), u)
       | infer (t $ u) = infer t #> infer u
       | infer _ = I;

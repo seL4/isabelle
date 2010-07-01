@@ -220,7 +220,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
     val ihyp = Term.all T $ Abs ("z", T,
       Logic.mk_implies
         (HOLogic.mk_Trueprop (
-          Const ("op :", HOLogic.mk_prodT (T, T) --> mk_relT T --> HOLogic.boolT) 
+          Const (@{const_name Set.member}, HOLogic.mk_prodT (T, T) --> mk_relT T --> HOLogic.boolT) 
           $ (HOLogic.pair_const T T $ Bound 0 $ x)
           $ R),
          HOLogic.mk_Trueprop (P_comp $ Bound 0)))
