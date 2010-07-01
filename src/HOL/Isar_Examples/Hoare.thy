@@ -13,14 +13,12 @@ begin
 
 subsection {* Abstract syntax and semantics *}
 
-text {*
- The following abstract syntax and semantics of Hoare Logic over
- \texttt{WHILE} programs closely follows the existing tradition in
- Isabelle/HOL of formalizing the presentation given in
- \cite[\S6]{Winskel:1993}.  See also
- \url{http://isabelle.in.tum.de/library/Hoare/} and
- \cite{Nipkow:1998:Winskel}.
-*}
+text {* The following abstract syntax and semantics of Hoare Logic
+  over \texttt{WHILE} programs closely follows the existing tradition
+  in Isabelle/HOL of formalizing the presentation given in
+  \cite[\S6]{Winskel:1993}.  See also
+  \url{http://isabelle.in.tum.de/library/Hoare/} and
+  \cite{Nipkow:1998:Winskel}. *}
 
 types
   'a bexp = "'a set"
@@ -32,33 +30,31 @@ datatype 'a com =
   | Cond "'a bexp" "'a com" "'a com"
   | While "'a bexp" "'a assn" "'a com"
 
-abbreviation
-  Skip  ("SKIP") where
-  "SKIP == Basic id"
+abbreviation Skip  ("SKIP")
+  where "SKIP == Basic id"
 
 types
   'a sem = "'a => 'a => bool"
 
-consts
-  iter :: "nat => 'a bexp => 'a sem => 'a sem"
-primrec
+primrec iter :: "nat => 'a bexp => 'a sem => 'a sem"
+where
   "iter 0 b S s s' = (s ~: b & s = s')"
-  "iter (Suc n) b S s s' =
-    (s : b & (EX s''. S s s'' & iter n b S s'' s'))"
+| "iter (Suc n) b S s s' = (s : b & (EX s''. S s s'' & iter n b S s'' s'))"
 
-consts
-  Sem :: "'a com => 'a sem"
-primrec
+primrec Sem :: "'a com => 'a sem"
+where
   "Sem (Basic f) s s' = (s' = f s)"
-  "Sem (c1; c2) s s' = (EX s''. Sem c1 s s'' & Sem c2 s'' s')"
-  "Sem (Cond b c1 c2) s s' =
+| "Sem (c1; c2) s s' = (EX s''. Sem c1 s s'' & Sem c2 s'' s')"
+| "Sem (Cond b c1 c2) s s' =
     (if s : b then Sem c1 s s' else Sem c2 s s')"
-  "Sem (While b x c) s s' = (EX n. iter n b (Sem c) s s')"
+| "Sem (While b x c) s s' = (EX n. iter n b (Sem c) s s')"
 
-definition Valid :: "'a bexp => 'a com => 'a bexp => bool" ("(3|- _/ (2_)/ _)" [100, 55, 100] 50) where
-  "|- P c Q == ALL s s'. Sem c s s' --> s : P --> s' : Q"
+definition
+  Valid :: "'a bexp => 'a com => 'a bexp => bool"
+    ("(3|- _/ (2_)/ _)" [100, 55, 100] 50)
+  where "|- P c Q \<longleftrightarrow> (\<forall>s s'. Sem c s s' --> s : P --> s' : Q)"
 
-notation (xsymbols) Valid ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
+notation (xsymbols) Valid  ("(3\<turnstile> _/ (2_)/ _)" [100, 55, 100] 50)
 
 lemma ValidI [intro?]:
     "(!!s s'. Sem c s s' ==> s : P ==> s' : Q) ==> |- P c Q"
@@ -71,22 +67,20 @@ lemma ValidD [dest?]:
 
 subsection {* Primitive Hoare rules *}
 
-text {*
- From the semantics defined above, we derive the standard set of
- primitive Hoare rules; e.g.\ see \cite[\S6]{Winskel:1993}.  Usually,
- variant forms of these rules are applied in actual proof, see also
- \S\ref{sec:hoare-isar} and \S\ref{sec:hoare-vcg}.
+text {* From the semantics defined above, we derive the standard set
+  of primitive Hoare rules; e.g.\ see \cite[\S6]{Winskel:1993}.
+  Usually, variant forms of these rules are applied in actual proof,
+  see also \S\ref{sec:hoare-isar} and \S\ref{sec:hoare-vcg}.
 
- \medskip The \name{basic} rule represents any kind of atomic access
- to the state space.  This subsumes the common rules of \name{skip}
- and \name{assign}, as formulated in \S\ref{sec:hoare-isar}.
-*}
+  \medskip The \name{basic} rule represents any kind of atomic access
+  to the state space.  This subsumes the common rules of \name{skip}
+  and \name{assign}, as formulated in \S\ref{sec:hoare-isar}. *}
 
 theorem basic: "|- {s. f s : P} (Basic f) P"
 proof
   fix s s' assume s: "s : {s. f s : P}"
   assume "Sem (Basic f) s s'"
-  hence "s' = f s" by simp
+  then have "s' = f s" by simp
   with s show "s' : P" by simp
 qed
 
@@ -117,11 +111,9 @@ proof
   with QQ' show "s' : Q'" ..
 qed
 
-text {*
- The rule for conditional commands is directly reflected by the
- corresponding semantics; in the proof we just have to look closely
- which cases apply.
-*}
+text {* The rule for conditional commands is directly reflected by the
+  corresponding semantics; in the proof we just have to look closely
+  which cases apply. *}
 
 theorem cond:
   "|- (P Int b) c1 Q ==> |- (P Int -b) c2 Q ==> |- P (Cond b c1 c2) Q"
@@ -147,14 +139,12 @@ proof
   qed
 qed
 
-text {*
- The \name{while} rule is slightly less trivial --- it is the only one
- based on recursion, which is expressed in the semantics by a
- Kleene-style least fixed-point construction.  The auxiliary statement
- below, which is by induction on the number of iterations is the main
- point to be proven; the rest is by routine application of the
- semantics of \texttt{WHILE}.
-*}
+text {* The @{text while} rule is slightly less trivial --- it is the
+  only one based on recursion, which is expressed in the semantics by
+  a Kleene-style least fixed-point construction.  The auxiliary
+  statement below, which is by induction on the number of iterations
+  is the main point to be proven; the rest is by routine application
+  of the semantics of \texttt{WHILE}. *}
 
 theorem while:
   assumes body: "|- (P Int b) c P"
@@ -166,12 +156,11 @@ proof
   from this and s show "s' : P Int -b"
   proof (induct n arbitrary: s)
     case 0
-    thus ?case by auto
+    then show ?case by auto
   next
     case (Suc n)
     then obtain s'' where b: "s : b" and sem: "Sem c s s''"
-      and iter: "iter n b (Sem c) s'' s'"
-      by auto
+      and iter: "iter n b (Sem c) s'' s'" by auto
     from Suc and b have "s : P Int b" by simp
     with body sem have "s'' : P" ..
     with iter show ?case by (rule Suc)
@@ -181,30 +170,26 @@ qed
 
 subsection {* Concrete syntax for assertions *}
 
-text {*
- We now introduce concrete syntax for describing commands (with
- embedded expressions) and assertions. The basic technique is that of
- semantic ``quote-antiquote''.  A \emph{quotation} is a syntactic
- entity delimited by an implicit abstraction, say over the state
- space.  An \emph{antiquotation} is a marked expression within a
- quotation that refers the implicit argument; a typical antiquotation
- would select (or even update) components from the state.
+text {* We now introduce concrete syntax for describing commands (with
+  embedded expressions) and assertions. The basic technique is that of
+  semantic ``quote-antiquote''.  A \emph{quotation} is a syntactic
+  entity delimited by an implicit abstraction, say over the state
+  space.  An \emph{antiquotation} is a marked expression within a
+  quotation that refers the implicit argument; a typical antiquotation
+  would select (or even update) components from the state.
 
- We will see some examples later in the concrete rules and
- applications.
-*}
+  We will see some examples later in the concrete rules and
+  applications. *}
 
-text {*
- The following specification of syntax and translations is for
- Isabelle experts only; feel free to ignore it.
+text {* The following specification of syntax and translations is for
+  Isabelle experts only; feel free to ignore it.
 
- While the first part is still a somewhat intelligible specification
- of the concrete syntactic representation of our Hoare language, the
- actual ``ML drivers'' is quite involved.  Just note that the we
- re-use the basic quote/antiquote translations as already defined in
- Isabelle/Pure (see \verb,Syntax.quote_tr, and
- \verb,Syntax.quote_tr',).
-*}
+  While the first part is still a somewhat intelligible specification
+  of the concrete syntactic representation of our Hoare language, the
+  actual ``ML drivers'' is quite involved.  Just note that the we
+  re-use the basic quote/antiquote translations as already defined in
+  Isabelle/Pure (see \verb,Syntax.quote_tr, and
+  \verb,Syntax.quote_tr',). *}
 
 syntax
   "_quote"       :: "'b => ('a => 'b)"       ("(.'(_').)" [0] 1000)
@@ -238,11 +223,10 @@ parse_translation {*
   in [(@{syntax_const "_quote"}, quote_tr)] end
 *}
 
-text {*
- As usual in Isabelle syntax translations, the part for printing is
- more complicated --- we cannot express parts as macro rules as above.
- Don't look here, unless you have to do similar things for yourself.
-*}
+text {* As usual in Isabelle syntax translations, the part for
+  printing is more complicated --- we cannot express parts as macro
+  rules as above.  Don't look here, unless you have to do similar
+  things for yourself. *}
 
 print_translation {*
   let
@@ -277,15 +261,13 @@ print_translation {*
 
 subsection {* Rules for single-step proof \label{sec:hoare-isar} *}
 
-text {*
- We are now ready to introduce a set of Hoare rules to be used in
- single-step structured proofs in Isabelle/Isar.  We refer to the
- concrete syntax introduce above.
+text {* We are now ready to introduce a set of Hoare rules to be used
+  in single-step structured proofs in Isabelle/Isar.  We refer to the
+  concrete syntax introduce above.
 
- \medskip Assertions of Hoare Logic may be manipulated in
- calculational proofs, with the inclusion expressed in terms of sets
- or predicates.  Reversed order is supported as well.
-*}
+  \medskip Assertions of Hoare Logic may be manipulated in
+  calculational proofs, with the inclusion expressed in terms of sets
+  or predicates.  Reversed order is supported as well. *}
 
 lemma [trans]: "|- P c Q ==> P' <= P ==> |- P' c Q"
   by (unfold Valid_def) blast
@@ -312,49 +294,41 @@ lemma [trans]:
   by (simp add: Valid_def)
 
 
-text {*
- Identity and basic assignments.\footnote{The $\idt{hoare}$ method
- introduced in \S\ref{sec:hoare-vcg} is able to provide proper
- instances for any number of basic assignments, without producing
- additional verification conditions.}
-*}
+text {* Identity and basic assignments.\footnote{The $\idt{hoare}$
+  method introduced in \S\ref{sec:hoare-vcg} is able to provide proper
+  instances for any number of basic assignments, without producing
+  additional verification conditions.} *}
 
 lemma skip [intro?]: "|- P SKIP P"
 proof -
   have "|- {s. id s : P} SKIP P" by (rule basic)
-  thus ?thesis by simp
+  then show ?thesis by simp
 qed
 
 lemma assign: "|- P [\<acute>a/\<acute>x] \<acute>x := \<acute>a P"
   by (rule basic)
 
-text {*
- Note that above formulation of assignment corresponds to our
- preferred way to model state spaces, using (extensible) record types
- in HOL \cite{Naraschewski-Wenzel:1998:HOOL}.  For any record field
- $x$, Isabelle/HOL provides a functions $x$ (selector) and
- $\idt{x{\dsh}update}$ (update).  Above, there is only a place-holder
- appearing for the latter kind of function: due to concrete syntax
- \isa{\'x := \'a} also contains \isa{x\_update}.\footnote{Note that due
- to the external nature of HOL record fields, we could not even state
- a general theorem relating selector and update functions (if this
- were required here); this would only work for any particular instance
- of record fields introduced so far.}
-*}
+text {* Note that above formulation of assignment corresponds to our
+  preferred way to model state spaces, using (extensible) record types
+  in HOL \cite{Naraschewski-Wenzel:1998:HOOL}.  For any record field
+  $x$, Isabelle/HOL provides a functions $x$ (selector) and
+  $\idt{x{\dsh}update}$ (update).  Above, there is only a place-holder
+  appearing for the latter kind of function: due to concrete syntax
+  \isa{\'x := \'a} also contains \isa{x\_update}.\footnote{Note that
+  due to the external nature of HOL record fields, we could not even
+  state a general theorem relating selector and update functions (if
+  this were required here); this would only work for any particular
+  instance of record fields introduced so far.} *}
 
-text {*
- Sequential composition --- normalizing with associativity achieves
- proper of chunks of code verified separately.
-*}
+text {* Sequential composition --- normalizing with associativity
+  achieves proper of chunks of code verified separately. *}
 
 lemmas [trans, intro?] = seq
 
 lemma seq_assoc [simp]: "( |- P c1;(c2;c3) Q) = ( |- P (c1;c2);c3 Q)"
   by (auto simp add: Valid_def)
 
-text {*
- Conditional statements.
-*}
+text {* Conditional statements. *}
 
 lemmas [trans, intro?] = cond
 
@@ -364,9 +338,7 @@ lemma [trans, intro?]:
       ==> |- .{\<acute>P}. IF \<acute>b THEN c1 ELSE c2 FI Q"
     by (rule cond) (simp_all add: Valid_def)
 
-text {*
- While statements --- with optional invariant.
-*}
+text {* While statements --- with optional invariant. *}
 
 lemma [intro?]:
     "|- (P Int b) c P ==> |- P (While b P c) (P Int -b)"
@@ -390,18 +362,16 @@ lemma [intro?]:
 
 subsection {* Verification conditions \label{sec:hoare-vcg} *}
 
-text {*
- We now load the \emph{original} ML file for proof scripts and tactic
- definition for the Hoare Verification Condition Generator (see
- \url{http://isabelle.in.tum.de/library/Hoare/}).  As far as we are
- concerned here, the result is a proof method \name{hoare}, which may
- be applied to a Hoare Logic assertion to extract purely logical
- verification conditions.  It is important to note that the method
- requires \texttt{WHILE} loops to be fully annotated with invariants
- beforehand.  Furthermore, only \emph{concrete} pieces of code are
- handled --- the underlying tactic fails ungracefully if supplied with
- meta-variables or parameters, for example.
-*}
+text {* We now load the \emph{original} ML file for proof scripts and
+  tactic definition for the Hoare Verification Condition Generator
+  (see \url{http://isabelle.in.tum.de/library/Hoare/}).  As far as we
+  are concerned here, the result is a proof method \name{hoare}, which
+  may be applied to a Hoare Logic assertion to extract purely logical
+  verification conditions.  It is important to note that the method
+  requires \texttt{WHILE} loops to be fully annotated with invariants
+  beforehand.  Furthermore, only \emph{concrete} pieces of code are
+  handled --- the underlying tactic fails ungracefully if supplied
+  with meta-variables or parameters, for example. *}
 
 lemma SkipRule: "p \<subseteq> q \<Longrightarrow> Valid p (Basic id) q"
   by (auto simp add: Valid_def)

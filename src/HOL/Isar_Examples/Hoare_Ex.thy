@@ -6,11 +6,9 @@ begin
 
 subsection {* State spaces *}
 
-text {*
- First of all we provide a store of program variables that
- occur in any of the programs considered later.  Slightly unexpected
- things may happen when attempting to work with undeclared variables.
-*}
+text {* First of all we provide a store of program variables that
+  occur in any of the programs considered later.  Slightly unexpected
+  things may happen when attempting to work with undeclared variables. *}
 
 record vars =
   I :: nat
@@ -18,37 +16,29 @@ record vars =
   N :: nat
   S :: nat
 
-text {*
- While all of our variables happen to have the same type, nothing
- would prevent us from working with many-sorted programs as well, or
- even polymorphic ones.  Also note that Isabelle/HOL's extensible
- record types even provides simple means to extend the state space
- later.
-*}
+text {* While all of our variables happen to have the same type,
+  nothing would prevent us from working with many-sorted programs as
+  well, or even polymorphic ones.  Also note that Isabelle/HOL's
+  extensible record types even provides simple means to extend the
+  state space later. *}
 
 
 subsection {* Basic examples *}
 
-text {*
- We look at few trivialities involving assignment and sequential
- composition, in order to get an idea of how to work with our
- formulation of Hoare Logic.
-*}
+text {* We look at few trivialities involving assignment and
+  sequential composition, in order to get an idea of how to work with
+  our formulation of Hoare Logic. *}
 
-text {*
- Using the basic \name{assign} rule directly is a bit cumbersome.
-*}
+text {* Using the basic @{text assign} rule directly is a bit
+  cumbersome. *}
 
-lemma
-  "|- .{\<acute>(N_update (\<lambda>_. (2 * \<acute>N))) : .{\<acute>N = 10}.}. \<acute>N := 2 * \<acute>N .{\<acute>N = 10}."
+lemma "|- .{\<acute>(N_update (\<lambda>_. (2 * \<acute>N))) : .{\<acute>N = 10}.}. \<acute>N := 2 * \<acute>N .{\<acute>N = 10}."
   by (rule assign)
 
-text {*
- Certainly we want the state modification already done, e.g.\ by
- simplification.  The \name{hoare} method performs the basic state
- update for us; we may apply the Simplifier afterwards to achieve
- ``obvious'' consequences as well.
-*}
+text {* Certainly we want the state modification already done, e.g.\
+  by simplification.  The \name{hoare} method performs the basic state
+  update for us; we may apply the Simplifier afterwards to achieve
+  ``obvious'' consequences as well. *}
 
 lemma "|- .{True}. \<acute>N := 10 .{\<acute>N = 10}."
   by hoare
@@ -77,12 +67,10 @@ lemma
     .{\<acute>M = b & \<acute>N = a}."
   by hoare simp
 
-text {*
- It is important to note that statements like the following one can
- only be proven for each individual program variable.  Due to the
- extra-logical nature of record fields, we cannot formulate a theorem
- relating record selectors and updates schematically.
-*}
+text {* It is important to note that statements like the following one
+  can only be proven for each individual program variable.  Due to the
+  extra-logical nature of record fields, we cannot formulate a theorem
+  relating record selectors and updates schematically. *}
 
 lemma "|- .{\<acute>N = a}. \<acute>N := \<acute>N .{\<acute>N = a}."
   by hoare
@@ -96,11 +84,9 @@ lemma
   oops
 
 
-text {*
- In the following assignments we make use of the consequence rule in
- order to achieve the intended precondition.  Certainly, the
- \name{hoare} method is able to handle this case, too.
-*}
+text {* In the following assignments we make use of the consequence
+  rule in order to achieve the intended precondition.  Certainly, the
+  \name{hoare} method is able to handle this case, too. *}
 
 lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<acute>N}."
 proof -
@@ -128,12 +114,10 @@ lemma "|- .{\<acute>M = \<acute>N}. \<acute>M := \<acute>M + 1 .{\<acute>M ~= \<
 
 subsection {* Multiplication by addition *}
 
-text {*
- We now do some basic examples of actual \texttt{WHILE} programs.
- This one is a loop for calculating the product of two natural
- numbers, by iterated addition.  We first give detailed structured
- proof based on single-step Hoare rules.
-*}
+text {* We now do some basic examples of actual \texttt{WHILE}
+  programs.  This one is a loop for calculating the product of two
+  natural numbers, by iterated addition.  We first give detailed
+  structured proof based on single-step Hoare rules. *}
 
 lemma
   "|- .{\<acute>M = 0 & \<acute>S = 0}.
@@ -157,12 +141,10 @@ proof -
   finally show ?thesis .
 qed
 
-text {*
- The subsequent version of the proof applies the \name{hoare} method
- to reduce the Hoare statement to a purely logical problem that can be
- solved fully automatically.  Note that we have to specify the
- \texttt{WHILE} loop invariant in the original statement.
-*}
+text {* The subsequent version of the proof applies the @{text hoare}
+  method to reduce the Hoare statement to a purely logical problem
+  that can be solved fully automatically.  Note that we have to
+  specify the \texttt{WHILE} loop invariant in the original statement. *}
 
 lemma
   "|- .{\<acute>M = 0 & \<acute>S = 0}.
@@ -175,21 +157,15 @@ lemma
 
 subsection {* Summing natural numbers *}
 
-text {*
- We verify an imperative program to sum natural numbers up to a given
- limit.  First some functional definition for proper specification of
- the problem.
-*}
+text {* We verify an imperative program to sum natural numbers up to a
+  given limit.  First some functional definition for proper
+  specification of the problem. *}
 
-text {*
- The following proof is quite explicit in the individual steps taken,
- with the \name{hoare} method only applied locally to take care of
- assignment and sequential composition.  Note that we express
- intermediate proof obligation in pure logic, without referring to the
- state space.
-*}
-
-declare atLeast0LessThan[symmetric,simp]
+text {* The following proof is quite explicit in the individual steps
+  taken, with the \name{hoare} method only applied locally to take
+  care of assignment and sequential composition.  Note that we express
+  intermediate proof obligation in pure logic, without referring to
+  the state space. *}
 
 theorem
   "|- .{True}.
@@ -227,10 +203,9 @@ proof -
   finally show ?thesis .
 qed
 
-text {*
- The next version uses the \name{hoare} method, while still explaining
- the resulting proof obligations in an abstract, structured manner.
-*}
+text {* The next version uses the @{text hoare} method, while still
+  explaining the resulting proof obligations in an abstract,
+  structured manner. *}
 
 theorem
   "|- .{True}.
@@ -251,17 +226,15 @@ proof -
     show "?inv 0 1" by simp
   next
     fix s i assume "?inv s i & i ~= n"
-    thus "?inv (s + i) (i + 1)" by simp
+    then show "?inv (s + i) (i + 1)" by simp
   next
     fix s i assume "?inv s i & ~ i ~= n"
-    thus "s = ?sum n" by simp
+    then show "s = ?sum n" by simp
   qed
 qed
 
-text {*
- Certainly, this proof may be done fully automatic as well, provided
- that the invariant is given beforehand.
-*}
+text {* Certainly, this proof may be done fully automatic as well,
+  provided that the invariant is given beforehand. *}
 
 theorem
   "|- .{True}.
@@ -278,21 +251,19 @@ theorem
 
 subsection{* Time *}
 
-text{*
-  A simple embedding of time in Hoare logic: function @{text timeit}
-  inserts an extra variable to keep track of the elapsed time.
-*}
+text{* A simple embedding of time in Hoare logic: function @{text
+  timeit} inserts an extra variable to keep track of the elapsed time. *}
 
 record tstate = time :: nat
 
 types 'a time = "\<lparr>time :: nat, \<dots> :: 'a\<rparr>"
 
-consts timeit :: "'a time com \<Rightarrow> 'a time com"
-primrec
+primrec timeit :: "'a time com \<Rightarrow> 'a time com"
+where
   "timeit (Basic f) = (Basic f; Basic(\<lambda>s. s\<lparr>time := Suc (time s)\<rparr>))"
-  "timeit (c1; c2) = (timeit c1; timeit c2)"
-  "timeit (Cond b c1 c2) = Cond b (timeit c1) (timeit c2)"
-  "timeit (While b iv c) = While b iv (timeit c)"
+| "timeit (c1; c2) = (timeit c1; timeit c2)"
+| "timeit (Cond b c1 c2) = Cond b (timeit c1) (timeit c2)"
+| "timeit (While b iv c) = While b iv (timeit c)"
 
 record tvars = tstate +
   I :: nat

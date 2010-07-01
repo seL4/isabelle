@@ -4,17 +4,13 @@ theory Puzzle
 imports Main
 begin
 
-text_raw {*
-  \footnote{A question from ``Bundeswettbewerb Mathematik''.  Original
-  pen-and-paper proof due to Herbert Ehler; Isabelle tactic script by
-  Tobias Nipkow.}
-*}
+text_raw {* \footnote{A question from ``Bundeswettbewerb Mathematik''.
+  Original pen-and-paper proof due to Herbert Ehler; Isabelle tactic
+  script by Tobias Nipkow.} *}
 
-text {*
-  \textbf{Problem.}  Given some function $f\colon \Nat \to \Nat$ such
-  that $f \ap (f \ap n) < f \ap (\idt{Suc} \ap n)$ for all $n$.
-  Demonstrate that $f$ is the identity.
-*}
+text {* \textbf{Problem.}  Given some function $f\colon \Nat \to \Nat$
+  such that $f \ap (f \ap n) < f \ap (\idt{Suc} \ap n)$ for all $n$.
+  Demonstrate that $f$ is the identity. *}
 
 theorem
   assumes f_ax: "\<And>n. f (f n) < f (Suc n)"

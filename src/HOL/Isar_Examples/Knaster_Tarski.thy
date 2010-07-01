@@ -13,10 +13,10 @@ begin
 
 subsection {* Prose version *}
 
-text {*
-  According to the textbook \cite[pages 93--94]{davey-priestley}, the
-  Knaster-Tarski fixpoint theorem is as follows.\footnote{We have
-  dualized the argument, and tuned the notation a little bit.}
+text {* According to the textbook \cite[pages
+  93--94]{davey-priestley}, the Knaster-Tarski fixpoint theorem is as
+  follows.\footnote{We have dualized the argument, and tuned the
+  notation a little bit.}
 
   \textbf{The Knaster-Tarski Fixpoint Theorem.}  Let @{text L} be a
   complete lattice and @{text "f: L \<rightarrow> L"} an order-preserving map.
@@ -28,19 +28,16 @@ text {*
   H}, whence @{text "f(a) \<le> a"}.  We now use this inequality to prove
   the reverse one (!) and thereby complete the proof that @{text a} is
   a fixpoint.  Since @{text f} is order-preserving, @{text "f(f(a)) \<le>
-  f(a)"}.  This says @{text "f(a) \<in> H"}, so @{text "a \<le> f(a)"}.
-*}
+  f(a)"}.  This says @{text "f(a) \<in> H"}, so @{text "a \<le> f(a)"}. *}
 
 
 subsection {* Formal versions *}
 
-text {*
-  The Isar proof below closely follows the original presentation.
-  Virtually all of the prose narration has been rephrased in terms of
-  formal Isar language elements.  Just as many textbook-style proofs,
-  there is a strong bias towards forward proof, and several bends in
-  the course of reasoning.
-*}
+text {* The Isar proof below closely follows the original
+  presentation.  Virtually all of the prose narration has been
+  rephrased in terms of formal Isar language elements.  Just as many
+  textbook-style proofs, there is a strong bias towards forward proof,
+  and several bends in the course of reasoning. *}
 
 theorem Knaster_Tarski:
   fixes f :: "'a::complete_lattice \<Rightarrow> 'a"
@@ -70,17 +67,15 @@ proof
   qed
 qed
 
-text {*
-  Above we have used several advanced Isar language elements, such as
-  explicit block structure and weak assumptions.  Thus we have
+text {* Above we have used several advanced Isar language elements,
+  such as explicit block structure and weak assumptions.  Thus we have
   mimicked the particular way of reasoning of the original text.
 
   In the subsequent version the order of reasoning is changed to
   achieve structured top-down decomposition of the problem at the
   outer level, while only the inner steps of reasoning are done in a
   forward manner.  We are certainly more at ease here, requiring only
-  the most basic features of the Isar language.
-*}
+  the most basic features of the Isar language. *}
 
 theorem Knaster_Tarski':
   fixes f :: "'a::complete_lattice \<Rightarrow> 'a"

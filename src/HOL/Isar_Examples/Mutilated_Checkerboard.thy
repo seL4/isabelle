@@ -9,27 +9,26 @@ theory Mutilated_Checkerboard
 imports Main
 begin
 
-text {*
- The Mutilated Checker Board Problem, formalized inductively.  See
- \cite{paulson-mutilated-board} and
- \url{http://isabelle.in.tum.de/library/HOL/Induct/Mutil.html} for the
- original tactic script version.
-*}
+text {* The Mutilated Checker Board Problem, formalized inductively.
+  See \cite{paulson-mutilated-board} and
+  \url{http://isabelle.in.tum.de/library/HOL/Induct/Mutil.html} for
+  the original tactic script version. *}
 
 subsection {* Tilings *}
 
-inductive_set
-  tiling :: "'a set set => 'a set set"
+inductive_set tiling :: "'a set set => 'a set set"
   for A :: "'a set set"
-  where
-    empty: "{} : tiling A"
-  | Un: "a : A ==> t : tiling A ==> a <= - t ==> a Un t : tiling A"
+where
+  empty: "{} : tiling A"
+| Un: "a : A ==> t : tiling A ==> a <= - t ==> a Un t : tiling A"
 
 
 text "The union of two disjoint tilings is a tiling."
 
 lemma tiling_Un:
-  assumes "t : tiling A" and "u : tiling A" and "t Int u = {}"
+  assumes "t : tiling A"
+    and "u : tiling A"
+    and "t Int u = {}"
   shows "t Un u : tiling A"
 proof -
   let ?T = "tiling A"
@@ -60,8 +59,8 @@ qed
 
 subsection {* Basic properties of ``below'' *}
 
-definition below :: "nat => nat set" where
-  "below n == {i. i < n}"
+definition below :: "nat => nat set"
+  where "below n = {i. i < n}"
 
 lemma below_less_iff [iff]: "(i: below k) = (i < k)"
   by (simp add: below_def)
@@ -74,8 +73,8 @@ lemma Sigma_Suc1:
   by (simp add: below_def less_Suc_eq) blast
 
 lemma Sigma_Suc2:
-    "m = n + 2 ==> A <*> below m =
-      (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)"
+  "m = n + 2 ==> A <*> below m =
+    (A <*> {n}) Un (A <*> {n + 1}) Un (A <*> below n)"
   by (auto simp add: below_def)
 
 lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2
@@ -83,27 +82,26 @@ lemmas Sigma_Suc = Sigma_Suc1 Sigma_Suc2
 
 subsection {* Basic properties of ``evnodd'' *}
 
-definition evnodd :: "(nat * nat) set => nat => (nat * nat) set" where
-  "evnodd A b == A Int {(i, j). (i + j) mod 2 = b}"
+definition evnodd :: "(nat * nat) set => nat => (nat * nat) set"
+  where "evnodd A b = A Int {(i, j). (i + j) mod 2 = b}"
 
-lemma evnodd_iff:
-    "(i, j): evnodd A b = ((i, j): A  & (i + j) mod 2 = b)"
+lemma evnodd_iff: "(i, j): evnodd A b = ((i, j): A  & (i + j) mod 2 = b)"
   by (simp add: evnodd_def)
 
 lemma evnodd_subset: "evnodd A b <= A"
-  by (unfold evnodd_def, rule Int_lower1)
+  unfolding evnodd_def by (rule Int_lower1)
 
 lemma evnoddD: "x : evnodd A b ==> x : A"
-  by (rule subsetD, rule evnodd_subset)
+  by (rule subsetD) (rule evnodd_subset)
 
 lemma evnodd_finite: "finite A ==> finite (evnodd A b)"
-  by (rule finite_subset, rule evnodd_subset)
+  by (rule finite_subset) (rule evnodd_subset)
 
 lemma evnodd_Un: "evnodd (A Un B) b = evnodd A b Un evnodd B b"
-  by (unfold evnodd_def) blast
+  unfolding evnodd_def by blast
 
 lemma evnodd_Diff: "evnodd (A - B) b = evnodd A b - evnodd B b"
-  by (unfold evnodd_def) blast
+  unfolding evnodd_def by blast
 
 lemma evnodd_empty: "evnodd {} b = {}"
   by (simp add: evnodd_def)
@@ -116,11 +114,10 @@ lemma evnodd_insert: "evnodd (insert (i, j) C) b =
 
 subsection {* Dominoes *}
 
-inductive_set
-  domino :: "(nat * nat) set set"
-  where
-    horiz: "{(i, j), (i, j + 1)} : domino"
-  | vertl: "{(i, j), (i + 1, j)} : domino"
+inductive_set domino :: "(nat * nat) set set"
+where
+  horiz: "{(i, j), (i, j + 1)} : domino"
+| vertl: "{(i, j), (i + 1, j)} : domino"
 
 lemma dominoes_tile_row:
   "{i} <*> below (2 * n) : tiling domino"
@@ -165,9 +162,10 @@ next
 qed
 
 lemma domino_singleton:
-  assumes d: "d : domino" and "b < 2"
+  assumes "d : domino"
+    and "b < 2"
   shows "EX i j. evnodd d b = {(i, j)}"  (is "?P d")
-  using d
+  using assms
 proof induct
   from `b < 2` have b_cases: "b = 0 | b = 1" by arith
   fix i j
@@ -177,9 +175,9 @@ proof induct
 qed
 
 lemma domino_finite:
-  assumes d: "d: domino"
+  assumes "d: domino"
   shows "finite d"
-  using d
+  using assms
 proof induct
   fix i j :: nat
   show "finite {(i, j), (i, j + 1)}" by (intro finite.intros)
@@ -245,8 +243,9 @@ qed
 
 subsection {* Main theorem *}
 
-definition mutilated_board :: "nat => nat => (nat * nat) set" where
-  "mutilated_board m n ==
+definition mutilated_board :: "nat => nat => (nat * nat) set"
+where
+  "mutilated_board m n =
     below (2 * (m + 1)) <*> below (2 * (n + 1))
       - {(0, 0)} - {(2 * m + 1, 2 * n + 1)}"
 
@@ -256,7 +255,7 @@ proof (unfold mutilated_board_def)
   let ?t = "below (2 * (m + 1)) <*> below (2 * (n + 1))"
   let ?t' = "?t - {(0, 0)}"
   let ?t'' = "?t' - {(2 * m + 1, 2 * n + 1)}"
-
+  
   show "?t'' ~: ?T"
   proof
     have t: "?t : ?T" by (rule dominoes_tile_matrix)
