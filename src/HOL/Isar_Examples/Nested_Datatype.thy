@@ -10,8 +10,10 @@ datatype ('a, 'b) "term" =
     Var 'a
   | App 'b "('a, 'b) term list"
 
-primrec subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term" and
-  subst_term_list :: "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list" where
+primrec
+  subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term" and
+  subst_term_list :: "('a => ('a, 'b) term) => ('a, 'b) term list => ('a, 'b) term list"
+where
   "subst_term f (Var a) = f a"
 | "subst_term f (App b ts) = App b (subst_term_list f ts)"
 | "subst_term_list f [] = []"
@@ -19,18 +21,18 @@ primrec subst_term :: "('a => ('a, 'b) term) => ('a, 'b) term => ('a, 'b) term" 
 
 lemmas subst_simps = subst_term_subst_term_list.simps
 
-text {*
- \medskip A simple lemma about composition of substitutions.
-*}
+text {* \medskip A simple lemma about composition of substitutions. *}
 
-lemma "subst_term (subst_term f1 o f2) t =
-      subst_term f1 (subst_term f2 t)"
-  and "subst_term_list (subst_term f1 o f2) ts =
-      subst_term_list f1 (subst_term_list f2 ts)"
+lemma
+  "subst_term (subst_term f1 o f2) t =
+    subst_term f1 (subst_term f2 t)"
+  and
+  "subst_term_list (subst_term f1 o f2) ts =
+    subst_term_list f1 (subst_term_list f2 ts)"
   by (induct t and ts) simp_all
 
 lemma "subst_term (subst_term f1 o f2) t =
-  subst_term f1 (subst_term f2 t)"
+    subst_term f1 (subst_term f2 t)"
 proof -
   let "?P t" = ?thesis
   let ?Q = "\<lambda>ts. subst_term_list (subst_term f1 o f2) ts =

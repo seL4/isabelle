@@ -8,24 +8,21 @@ theory Drinker
 imports Main
 begin
 
-text {*
-  Here is another example of classical reasoning: the Drinker's
+text {* Here is another example of classical reasoning: the Drinker's
   Principle says that for some person, if he is drunk, everybody else
   is drunk!
 
-  We first prove a classical part of de-Morgan's law.
-*}
+  We first prove a classical part of de-Morgan's law. *}
 
-lemma deMorgan:
+lemma de_Morgan:
   assumes "\<not> (\<forall>x. P x)"
   shows "\<exists>x. \<not> P x"
-  using prems
+  using assms
 proof (rule contrapos_np)
   assume a: "\<not> (\<exists>x. \<not> P x)"
   show "\<forall>x. P x"
   proof
-    fix x
-    show "P x"
+    fix x show "P x"
     proof (rule classical)
       assume "\<not> P x"
       then have "\<exists>x. \<not> P x" ..
@@ -41,12 +38,12 @@ proof cases
   then show ?thesis ..
 next
   assume "\<not> (\<forall>x. drunk x)"
-  then have "\<exists>x. \<not> drunk x" by (rule deMorgan)
+  then have "\<exists>x. \<not> drunk x" by (rule de_Morgan)
   then obtain a where a: "\<not> drunk a" ..
   have "drunk a \<longrightarrow> (\<forall>x. drunk x)"
   proof
     assume "drunk a"
-    with a show "\<forall>x. drunk x" by (contradiction)
+    with a show "\<forall>x. drunk x" by contradiction
   qed
   then show ?thesis ..
 qed
