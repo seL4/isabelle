@@ -167,15 +167,15 @@ fun dest_set (Const ("Orderings.bot_class.bot", _)) = []
   | dest_set (Const ("Set.insert", _) $ t $ u) = t :: dest_set u
   | dest_set t = raise TERM ("dest_set", [t]);
 
-fun Collect_const T = Const ("Collect", (T --> boolT) --> mk_setT T);
+fun Collect_const T = Const ("Set.Collect", (T --> boolT) --> mk_setT T);
 fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T, t);
 
 fun mk_mem (x, A) =
   let val setT = fastype_of A in
-    Const ("op :", dest_setT setT --> setT --> boolT) $ x $ A
+    Const ("Set.member", dest_setT setT --> setT --> boolT) $ x $ A
   end;
 
-fun dest_mem (Const ("op :", _) $ x $ A) = (x, A)
+fun dest_mem (Const ("Set.member", _) $ x $ A) = (x, A)
   | dest_mem t = raise TERM ("dest_mem", [t]);
 
 
@@ -289,9 +289,9 @@ fun is_unit (Const ("Product_Type.Unity", _)) = true
 
 (* prod *)
 
-fun mk_prodT (T1, T2) = Type ("Product_Type.*", [T1, T2]);
+fun mk_prodT (T1, T2) = Type ("Product_Type.prod", [T1, T2]);
 
-fun dest_prodT (Type ("Product_Type.*", [T1, T2])) = (T1, T2)
+fun dest_prodT (Type ("Product_Type.prod", [T1, T2])) = (T1, T2)
   | dest_prodT T = raise TYPE ("dest_prodT", [T], []);
 
 fun pair_const T1 T2 = Const ("Product_Type.Pair", [T1, T2] ---> mk_prodT (T1, T2));
@@ -324,7 +324,7 @@ fun mk_split t =
   | _ => raise TERM ("mk_split: bad body type", [t]));
 
 (*Maps the type T1 * ... * Tn to [T1, ..., Tn], however nested*)
-fun flatten_tupleT (Type ("Product_Type.*", [T1, T2])) = flatten_tupleT T1 @ flatten_tupleT T2
+fun flatten_tupleT (Type ("Product_Type.prod", [T1, T2])) = flatten_tupleT T1 @ flatten_tupleT T2
   | flatten_tupleT T = [T];
 
 
@@ -334,7 +334,7 @@ fun mk_tupleT [] = unitT
   | mk_tupleT Ts = foldr1 mk_prodT Ts;
 
 fun strip_tupleT (Type ("Product_Type.unit", [])) = []
-  | strip_tupleT (Type ("Product_Type.*", [T1, T2])) = T1 :: strip_tupleT T2
+  | strip_tupleT (Type ("Product_Type.prod", [T1, T2])) = T1 :: strip_tupleT T2
   | strip_tupleT T = [T];
 
 fun mk_tuple [] = unit
@@ -367,14 +367,14 @@ fun mk_ptupleT ps =
 fun strip_ptupleT ps =
   let
     fun factors p T = if member (op =) ps p then (case T of
-        Type ("Product_Type.*", [T1, T2]) =>
+        Type ("Product_Type.prod", [T1, T2]) =>
           factors (1::p) T1 @ factors (2::p) T2
       | _ => ptuple_err "strip_ptupleT") else [T]
   in factors [] end;
 
 val flat_tupleT_paths =
   let
-    fun factors p (Type ("Product_Type.*", [T1, T2])) =
+    fun factors p (Type ("Product_Type.prod", [T1, T2])) =
           p :: factors (1::p) T1 @ factors (2::p) T2
       | factors p _ = []
   in factors [] end;
@@ -383,7 +383,7 @@ fun mk_ptuple ps =
   let
     fun mk p T ts =
       if member (op =) ps p then (case T of
-          Type ("Product_Type.*", [T1, T2]) =>
+          Type ("Product_Type.prod", [T1, T2]) =>
             let
               val (t, ts') = mk (1::p) T1 ts;
               val (u, ts'') = mk (2::p) T2 ts'
@@ -414,7 +414,7 @@ fun mk_psplits ps T T3 u =
   let
     fun ap ((p, T) :: pTs) =
           if member (op =) ps p then (case T of
-              Type ("Product_Type.*", [T1, T2]) =>
+              Type ("Product_Type.prod", [T1, T2]) =>
                 split_const (T1, T2, map snd pTs ---> T3) $
                   ap ((1::p, T1) :: (2::p, T2) :: pTs)
             | _ => ptuple_err "mk_psplits")
