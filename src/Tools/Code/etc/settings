@@ -1,2 +1,12 @@
 
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$COMPONENT/lib/Tools"
+
+EXEC_GHC=$(choosefrom \
+  "$ISABELLE_HOME/contrib/ghc" \
+  "$ISABELLE_HOME/../ghc" \
+  $(type -p ghc))
+
+EXEC_OCAML=$(choosefrom \
+  "$ISABELLE_HOME/contrib/ocaml" \
+  "$ISABELLE_HOME/../ocaml" \
+  $(type -p ocaml))
