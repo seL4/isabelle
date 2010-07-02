@@ -8,9 +8,9 @@ signature PARSER =
 sig
   type gram
   val empty_gram: gram
-  val extend_gram: gram -> Syn_Ext.xprod list -> gram
+  val extend_gram: Syn_Ext.xprod list -> gram -> gram
   val make_gram: Syn_Ext.xprod list -> gram
-  val merge_grams: gram -> gram -> gram
+  val merge_gram: gram * gram -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype parsetree =
     Node of string * parsetree list |
@@ -435,76 +435,75 @@ fun inverse_chains [] result = result
 
 
 (*Add productions to a grammar*)
-fun extend_gram gram [] = gram
-  | extend_gram (Gram {nt_count, prod_count, tags, chains, lambdas, prods})
-                xprods =
-  let
-    (*Get tag for existing nonterminal or create a new one*)
-    fun get_tag nt_count tags nt =
-      case Symtab.lookup tags nt of
-        SOME tag => (nt_count, tags, tag)
-      | NONE => (nt_count+1, Symtab.update_new (nt, nt_count) tags,
-                 nt_count);
+fun extend_gram [] gram = gram
+  | extend_gram xprods (Gram {nt_count, prod_count, tags, chains, lambdas, prods}) =
+    let
+      (*Get tag for existing nonterminal or create a new one*)
+      fun get_tag nt_count tags nt =
+        case Symtab.lookup tags nt of
+          SOME tag => (nt_count, tags, tag)
+        | NONE => (nt_count+1, Symtab.update_new (nt, nt_count) tags,
+                   nt_count);
 
-    (*Convert symbols to the form used by the parser;
-      delimiters and predefined terms are stored as terminals,
-      nonterminals are converted to integer tags*)
-    fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
-      | symb_of ((Syn_Ext.Delim s) :: ss) nt_count tags result =
-          symb_of ss nt_count tags
-            (Terminal (Lexicon.Token (Lexicon.Literal, s, Position.no_range)) :: result)
-      | symb_of ((Syn_Ext.Argument (s, p)) :: ss) nt_count tags result =
-          let
-            val (nt_count', tags', new_symb) =
-              case Lexicon.predef_term s of
-                NONE =>
-                  let val (nt_count', tags', s_tag) = get_tag nt_count tags s;
-                  in (nt_count', tags', Nonterminal (s_tag, p)) end
-              | SOME tk => (nt_count, tags, Terminal tk);
-          in symb_of ss nt_count' tags' (new_symb :: result) end
-      | symb_of (_ :: ss) nt_count tags result =
-          symb_of ss nt_count tags result;
+      (*Convert symbols to the form used by the parser;
+        delimiters and predefined terms are stored as terminals,
+        nonterminals are converted to integer tags*)
+      fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
+        | symb_of ((Syn_Ext.Delim s) :: ss) nt_count tags result =
+            symb_of ss nt_count tags
+              (Terminal (Lexicon.Token (Lexicon.Literal, s, Position.no_range)) :: result)
+        | symb_of ((Syn_Ext.Argument (s, p)) :: ss) nt_count tags result =
+            let
+              val (nt_count', tags', new_symb) =
+                case Lexicon.predef_term s of
+                  NONE =>
+                    let val (nt_count', tags', s_tag) = get_tag nt_count tags s;
+                    in (nt_count', tags', Nonterminal (s_tag, p)) end
+                | SOME tk => (nt_count, tags, Terminal tk);
+            in symb_of ss nt_count' tags' (new_symb :: result) end
+        | symb_of (_ :: ss) nt_count tags result =
+            symb_of ss nt_count tags result;
 
-    (*Convert list of productions by invoking symb_of for each of them*)
-    fun prod_of [] nt_count prod_count tags result =
-          (nt_count, prod_count, tags, result)
-      | prod_of ((Syn_Ext.XProd (lhs, xsymbs, const, pri)) :: ps)
-                nt_count prod_count tags result =
-        let val (nt_count', tags', lhs_tag) = get_tag nt_count tags lhs;
+      (*Convert list of productions by invoking symb_of for each of them*)
+      fun prod_of [] nt_count prod_count tags result =
+            (nt_count, prod_count, tags, result)
+        | prod_of ((Syn_Ext.XProd (lhs, xsymbs, const, pri)) :: ps)
+                  nt_count prod_count tags result =
+          let val (nt_count', tags', lhs_tag) = get_tag nt_count tags lhs;
 
-            val (nt_count'', tags'', prods) =
-              symb_of xsymbs nt_count' tags' [];
-        in prod_of ps nt_count'' (prod_count+1) tags''
-                   ((lhs_tag, (prods, const, pri)) :: result)
-        end;
+              val (nt_count'', tags'', prods) =
+                symb_of xsymbs nt_count' tags' [];
+          in prod_of ps nt_count'' (prod_count+1) tags''
+                     ((lhs_tag, (prods, const, pri)) :: result)
+          end;
 
-    val (nt_count', prod_count', tags', xprods') =
-      prod_of xprods nt_count prod_count tags [];
+      val (nt_count', prod_count', tags', xprods') =
+        prod_of xprods nt_count prod_count tags [];
 
-    (*Copy array containing productions of old grammar;
-      this has to be done to preserve the old grammar while being able
-      to change the array's content*)
-    val prods' =
-      let fun get_prod i = if i < nt_count then Array.sub (prods, i)
-                           else (([], []), []);
-      in Array.tabulate (nt_count', get_prod) end;
+      (*Copy array containing productions of old grammar;
+        this has to be done to preserve the old grammar while being able
+        to change the array's content*)
+      val prods' =
+        let fun get_prod i = if i < nt_count then Array.sub (prods, i)
+                             else (([], []), []);
+        in Array.tabulate (nt_count', get_prod) end;
 
-    val fromto_chains = inverse_chains chains [];
+      val fromto_chains = inverse_chains chains [];
 
-    (*Add new productions to old ones*)
-    val (fromto_chains', lambdas', _) =
-      add_prods prods' fromto_chains lambdas NONE xprods';
+      (*Add new productions to old ones*)
+      val (fromto_chains', lambdas', _) =
+        add_prods prods' fromto_chains lambdas NONE xprods';
 
-    val chains' = inverse_chains fromto_chains' [];
-  in Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
-           chains = chains', lambdas = lambdas', prods = prods'}
-  end;
+      val chains' = inverse_chains fromto_chains' [];
+    in Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
+             chains = chains', lambdas = lambdas', prods = prods'}
+    end;
 
-val make_gram = extend_gram empty_gram;
+fun make_gram xprods = extend_gram xprods empty_gram;
 
 
 (*Merge two grammars*)
-fun merge_grams gram_a gram_b =
+fun merge_gram (gram_a, gram_b) =
   let
     (*find out which grammar is bigger*)
     val (Gram {nt_count = nt_count1, prod_count = prod_count1, tags = tags1,
@@ -811,7 +810,7 @@ fun earley prods tags chains startsymbol indata =
     val start_tag =
       (case Symtab.lookup tags startsymbol of
         SOME tag => tag
-      | NONE => error ("parse: Unknown startsymbol " ^ quote startsymbol));
+      | NONE => error ("Inner syntax: unknown startsymbol " ^ quote startsymbol));
     val S0 = [(~1, 0, [], [Nonterminal (start_tag, 0), Terminal Lexicon.eof], "", 0)];
     val s = length indata + 1;
     val Estate = Array.array (s, []);
@@ -829,7 +828,7 @@ fun parse (Gram {tags, prods, chains, ...}) start toks =
       | SOME (Lexicon.Token (_, _, (_, end_pos))) => end_pos);
     val r =
       (case earley prods tags chains start (toks @ [Lexicon.mk_eof end_pos]) of
-        [] => sys_error "parse: no parse trees"
+        [] => raise Fail "no parse trees"
       | pts => pts);
   in r end;
 
