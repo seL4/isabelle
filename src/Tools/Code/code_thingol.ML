@@ -86,6 +86,7 @@ sig
   val is_case: stmt -> bool
   val contr_classparam_typs: program -> string -> itype option list
   val labelled_name: theory -> program -> string -> string
+  val labelled_traceback: theory -> program -> string -> string
   val group_stmts: theory -> program
     -> ((string * stmt) list * (string * stmt) list
       * ((string * stmt) list * (string * stmt) list)) list
@@ -489,6 +490,15 @@ fun labelled_name thy program name = case Graph.get_node program name
         val Datatype (tyco, _) = Graph.get_node program tyco
       in quote (Sign.extern_type thy tyco ^ " :: " ^ Sign.extern_class thy class) end
 
+fun labelled_traceback thy program name =
+  let
+    val minimals = Graph.minimals program;
+    val traceback = these (get_first
+      (fn minimal => case Graph.irreducible_paths program (minimal, name)
+        of [] => NONE
+         | p :: ps => SOME p) minimals);
+  in space_implode " -> " (map (labelled_name thy program) traceback) end;
+
 fun linear_stmts program =
   rev (Graph.strong_conn program)
   |> map (AList.make (Graph.get_node program));
@@ -547,21 +557,19 @@ fun ensure_stmt lookup declare generate thing (dep, (naming, program)) =
 
 exception PERMISSIVE of unit;
 
-fun translation_error thy permissive some_thm msg sub_msg =
+fun translation_error thy permissive some_thm msg sub_msg (dep, (_, program)) =
   if permissive
   then raise PERMISSIVE ()
   else let
     val err_thm = case some_thm
      of SOME thm => "\n(in code equation " ^ Display.string_of_thm_global thy thm ^ ")"
       | NONE => "";
-  in error (msg ^ err_thm ^ ":\n" ^ sub_msg) end;
-
-fun not_wellsorted thy permissive some_thm ty sort e =
-  let
-    val err_class = Sorts.class_error (Syntax.pp_global thy) e;
-    val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
-      ^ Syntax.string_of_sort_global thy sort;
-  in translation_error thy permissive some_thm "Wellsortedness error" (err_typ ^ "\n" ^ err_class) end;
+    val traceback = case dep
+     of SOME name => labelled_traceback thy program name
+      | NONE => "";
+    val err_traceback = if traceback = ""
+      then "" else "\n(dependencies " ^ traceback ^ ")";
+  in error (msg ^ err_thm ^ err_traceback ^ ":\n" ^ sub_msg) end;
 
 
 (* translation *)
@@ -698,16 +706,15 @@ and translate_eqns thy algbr eqngr permissive eqns prgrm =
     handle PERMISSIVE () => ([], prgrm)
 and translate_const thy algbr eqngr permissive some_thm ((c, ty), some_abs) =
   let
-    val _ = if (case some_abs of NONE => true | SOME abs => not (c = abs))
+    val abstraction_violation = (case some_abs of NONE => true | SOME abs => not (c = abs))
         andalso Code.is_abstr thy c
-        then translation_error thy permissive some_thm
-          "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
-      else ()
     val arg_typs = Sign.const_typargs thy (c, ty);
     val sorts = Code_Preproc.sortargs eqngr c;
     val function_typs = (fst o Term.strip_type) ty;
   in
-    ensure_const thy algbr eqngr permissive c
+    abstraction_violation ? translation_error thy permissive some_thm
+      "Abstraction violation" ("constant " ^ Code.string_of_const thy c)
+    #> ensure_const thy algbr eqngr permissive c
     ##>> fold_map (translate_typ thy algbr eqngr permissive) arg_typs
     ##>> fold_map (translate_dicts thy algbr eqngr permissive some_thm) (arg_typs ~~ sorts)
     ##>> fold_map (translate_typ thy algbr eqngr permissive) function_typs
@@ -796,6 +803,12 @@ and translate_tyvar_sort thy (algbr as (proj_sort, _)) eqngr permissive (v, sort
   #>> (fn sort => (unprefix "'" v, sort))
 and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_thm (ty, sort) =
   let
+    fun format_class_error e =
+      let
+        val err_class = Sorts.class_error (Syntax.pp_global thy) e;
+        val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
+          ^ Syntax.string_of_sort_global thy sort;
+      in err_typ ^ "\n" ^ err_class end;
     datatype typarg =
         Global of (class * string) * typarg list list
       | Local of (class * class) list * (string * (int * sort));
@@ -809,11 +822,11 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_th
       let
         val sort' = proj_sort sort;
       in map_index (fn (n, class) => (Local ([], (v, (n, sort'))), class)) sort' end;
-    val typargs = Sorts.of_sort_derivation algebra
+    val (class_error, typargs) = ("", Sorts.of_sort_derivation algebra
       {class_relation = K (Sorts.classrel_derivation algebra class_relation),
        type_constructor = type_constructor,
-       type_variable = type_variable} (ty, proj_sort sort)
-      handle Sorts.CLASS_ERROR e => not_wellsorted thy permissive some_thm ty sort e;
+       type_variable = type_variable} (ty, proj_sort sort))
+      handle Sorts.CLASS_ERROR e => (format_class_error e, []);
     fun mk_dict (Global (inst, yss)) =
           ensure_inst thy algbr eqngr permissive inst
           ##>> (fold_map o fold_map) mk_dict yss
@@ -821,7 +834,11 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) eqngr permissive some_th
       | mk_dict (Local (classrels, (v, (n, sort)))) =
           fold_map (ensure_classrel thy algbr eqngr permissive) classrels
           #>> (fn classrels => DictVar (classrels, (unprefix "'" v, (n, length sort))))
-  in fold_map mk_dict typargs end;
+  in
+    not (class_error = "")
+      ? translation_error thy permissive some_thm "Wellsortedness error" class_error
+    #> fold_map mk_dict typargs
+  end;
 
 
 (* store *)
