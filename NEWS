@@ -18,7 +18,7 @@ merely give a byte-oriented representation.
 *** HOL ***
 
 * Abolished symbol type names:  "prod" and "sum" replace "*" and "+"
-respectively.  INCOMPATBILITY.
+respectively.  INCOMPATIBILITY.
 
 * Constant "split" has been merged with constant "prod_case";  names
 of ML functions, facts etc. involving split have been retained so far,
