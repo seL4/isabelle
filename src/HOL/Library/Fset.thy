@@ -18,7 +18,7 @@ lemma member_Fset [simp]:
 
 lemma Fset_member [simp]:
   "Fset (member A) = A"
-  by (rule member_inverse)
+  by (fact member_inverse)
 
 declare member_inject [simp]
 
