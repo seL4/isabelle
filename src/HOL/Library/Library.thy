@@ -8,18 +8,14 @@ imports
   Bit
   Boolean_Algebra
   Char_ord
-  Code_Char_chr
-  Code_Integer
   Continuity
   ContNotDenum
   Convex
   Countable
   Diagonalize
   Dlist
-  Efficient_Nat
   Enum
   Eval_Witness
-  Executable_Set
   Float
   Formal_Power_Series
   Fraction_Field
