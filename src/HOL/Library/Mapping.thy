@@ -278,6 +278,8 @@ lemma ordered_keys_bulkload [simp]:
 
 subsection {* Code generator setup *}
 
+code_datatype empty update
+
 instantiation mapping :: (type, type) eq
 begin
 
