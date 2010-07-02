@@ -17,11 +17,11 @@ nitpick_params [unary_ints, max_potential = 0, sat_solver = MiniSat_JNI,
 subsection {* Curry in a Hurry *}
 
 lemma "(\<lambda>f x y. (curry o split) f x y) = (\<lambda>f x y. (\<lambda>x. x) f x y)"
-nitpick [card = 1\<midarrow>12, expect = unknown (*none*)]
+nitpick [card = 1\<midarrow>12, expect = none]
 by auto
 
 lemma "(\<lambda>f p. (split o curry) f p) = (\<lambda>f p. (\<lambda>x. x) f p)"
-nitpick [card = 1\<midarrow>12, expect = unknown (*none*)]
+nitpick [card = 1\<midarrow>12, expect = none]
 by auto
 
 lemma "split (curry f) = f"
@@ -61,12 +61,12 @@ nitpick [card = 1\<midarrow>12, expect = none]
 by auto
 
 lemma "split o curry = (\<lambda>x. x)"
-nitpick [card = 1\<midarrow>12, expect = unknown (*none*)]
+nitpick [card = 1\<midarrow>12, expect = none]
 apply (rule ext)+
 by auto
 
 lemma "curry o split = (\<lambda>x. x)"
-nitpick [card = 1\<midarrow>12, expect = unknown (*none*)]
+nitpick [card = 1\<midarrow>12, expect = none]
 apply (rule ext)+
 by auto
 

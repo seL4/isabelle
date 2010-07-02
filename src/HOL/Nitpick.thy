@@ -69,9 +69,6 @@ apply (rule iffI)
  apply (erule_tac x = y in allE)
 by (auto simp: mem_def)
 
-lemma split_def [nitpick_def]: "split f = (\<lambda>p. f (fst p) (snd p))"
-by (simp add: prod_case_unfold split_def)
-
 lemma rtrancl_def [nitpick_def, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
 by simp
 
@@ -252,12 +249,12 @@ hide_const (open) unknown is_unknown undefined_fast_The undefined_fast_Eps bisim
     less_frac less_eq_frac of_frac
 hide_type (open) bisim_iterator fin_fun fun_box pair_box unsigned_bit signed_bit
     word
-hide_fact (open) If_def Ex1_def split_def rtrancl_def rtranclp_def tranclp_def
-    refl'_def wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def
-    fold_graph'_def The_psimp Eps_psimp unit_case_def nat_case_def
-    list_size_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def
-    zero_frac_def one_frac_def num_def denom_def norm_frac_def frac_def
-    plus_frac_def times_frac_def uminus_frac_def number_of_frac_def
-    inverse_frac_def less_frac_def less_eq_frac_def of_frac_def
+hide_fact (open) If_def Ex1_def rtrancl_def rtranclp_def tranclp_def refl'_def
+    wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def fold_graph'_def
+    The_psimp Eps_psimp unit_case_def nat_case_def list_size_simp nat_gcd_def
+    nat_lcm_def int_gcd_def int_lcm_def Frac_def zero_frac_def one_frac_def
+    num_def denom_def norm_frac_def frac_def plus_frac_def times_frac_def
+    uminus_frac_def number_of_frac_def inverse_frac_def less_frac_def
+    less_eq_frac_def of_frac_def
 
 end

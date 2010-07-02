@@ -69,7 +69,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "fs (Pd ((a, b), (c, d))) = (a, b)"
-nitpick [card = 1\<midarrow>9, expect = unknown (*none*)]
+nitpick [card = 1\<midarrow>9, expect = none]
 sorry
 
 lemma "fs (Pd ((a, b), (c, d))) = (c, d)"

@@ -628,7 +628,9 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
       end
     and do_term t (accum as (gamma as {bound_Ts, bound_Ms, frees, consts},
                              cset)) =
-        (case t of
+        (print_g (fn () => "  \<Gamma> \<turnstile> " ^
+                           Syntax.string_of_term ctxt t ^ " : _?");
+         case t of
            Const (x as (s, T)) =>
            (case AList.lookup (op =) consts x of
               SOME M => (M, accum)
@@ -846,48 +848,54 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
               Plus => do_term t accum
             | Minus => consider_general_equals mdata false x t1 t2 accum
         in
-          case t of
-            Const (x as (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
-            do_quantifier x s1 T1 t1
-          | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 => do_equals x t1 t2
-          | @{const Trueprop} $ t1 =>
-            let val (m1, accum) = do_formula sn t1 accum in
-              (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)),
-                     m1), accum)
-            end
-          | @{const Not} $ t1 =>
-            let val (m1, accum) = do_formula (negate sn) t1 accum in
-              (MApp (MRaw (@{const Not}, mtype_for (bool_T --> bool_T)), m1),
-               accum)
-            end
-          | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
-            do_quantifier x s1 T1 t1
-          | Const (x0 as (s0 as @{const_name Ex}, T0))
-            $ (t1 as Abs (s1, T1, t1')) =>
-            (case sn of
-               Plus => do_quantifier x0 s1 T1 t1'
-             | Minus =>
-               (* FIXME: Move elsewhere *)
-               do_term (@{const Not}
-                        $ (HOLogic.eq_const (domain_type T0) $ t1
-                           $ Abs (Name.uu, T1, @{const False}))) accum)
-          | Const (x as (@{const_name "op ="}, _)) $ t1 $ t2 =>
-            do_equals x t1 t2
-          | (t0 as Const (s0, _)) $ t1 $ t2 =>
-            if s0 = @{const_name "==>"} orelse s0 = @{const_name "op &"} orelse
-               s0 = @{const_name "op |"} orelse s0 = @{const_name "op -->"} then
-              let
-                val impl = (s0 = @{const_name "==>"} orelse
-                           s0 = @{const_name "op -->"})
-                val (m1, accum) = do_formula (sn |> impl ? negate) t1 accum
-                val (m2, accum) = do_formula sn t2 accum
-              in
-                (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
-                 accum)
-              end 
-            else
-              do_term t accum
-          | _ => do_term t accum
+          (print_g (fn () => "  \<Gamma> \<turnstile> " ^
+                           Syntax.string_of_term ctxt t ^ " : o\<^sup>" ^
+                           string_for_sign sn ^ "?");
+           case t of
+             Const (x as (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
+             do_quantifier x s1 T1 t1
+           | Const (x as (@{const_name "=="}, _)) $ t1 $ t2 => do_equals x t1 t2
+           | @{const Trueprop} $ t1 =>
+             let val (m1, accum) = do_formula sn t1 accum in
+               (MApp (MRaw (@{const Trueprop}, mtype_for (bool_T --> prop_T)),
+                      m1), accum)
+             end
+           | @{const Not} $ t1 =>
+             let val (m1, accum) = do_formula (negate sn) t1 accum in
+               (MApp (MRaw (@{const Not}, mtype_for (bool_T --> bool_T)), m1),
+                accum)
+             end
+           | Const (x as (@{const_name All}, _)) $ Abs (s1, T1, t1) =>
+             do_quantifier x s1 T1 t1
+           | Const (x0 as (s0 as @{const_name Ex}, T0))
+             $ (t1 as Abs (s1, T1, t1')) =>
+             (case sn of
+                Plus => do_quantifier x0 s1 T1 t1'
+              | Minus =>
+                (* FIXME: Move elsewhere *)
+                do_term (@{const Not}
+                         $ (HOLogic.eq_const (domain_type T0) $ t1
+                            $ Abs (Name.uu, T1, @{const False}))) accum)
+           | Const (x as (@{const_name "op ="}, _)) $ t1 $ t2 =>
+             do_equals x t1 t2
+           | Const (@{const_name Let}, _) $ t1 $ t2 =>
+             do_formula sn (betapply (t2, t1)) accum
+           | (t0 as Const (s0, _)) $ t1 $ t2 =>
+             if s0 = @{const_name "==>"} orelse s0 = @{const_name "op &"} orelse
+                s0 = @{const_name "op |"} orelse
+                s0 = @{const_name "op -->"} then
+               let
+                 val impl = (s0 = @{const_name "==>"} orelse
+                             s0 = @{const_name "op -->"})
+                 val (m1, accum) = do_formula (sn |> impl ? negate) t1 accum
+                 val (m2, accum) = do_formula sn t2 accum
+               in
+                 (MApp (MApp (MRaw (t0, mtype_for (fastype_of t0)), m1), m2),
+                  accum)
+               end 
+             else
+               do_term t accum
+           | _ => do_term t accum)
         end
         |> tap (fn (m, _) =>
                    print_g (fn () => "\<Gamma> \<turnstile> " ^

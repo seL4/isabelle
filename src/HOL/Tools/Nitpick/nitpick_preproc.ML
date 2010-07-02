@@ -179,7 +179,8 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
       let
         val (t1, t2) = pairself (do_term new_Ts old_Ts Neut) (t1, t2)
         val (T1, T2) = pairself (curry fastype_of1 new_Ts) (t1, t2)
-        val T = [T1, T2] |> sort Term_Ord.typ_ord |> List.last
+        val T = if def then T1
+                else [T1, T2] |> sort (int_ord o pairself size_of_typ) |> hd
       in
         list_comb (Const (s0, T --> T --> body_type T0),
                    map2 (coerce_term hol_ctxt new_Ts T) [T1, T2] [t1, t2])

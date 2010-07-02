@@ -158,6 +158,8 @@ next
     by (simp add: Pair_def Abs_prod_inject)
 qed
 
+declare prod.simps(2) [nitpick_simp del]
+
 declare weak_case_cong [cong del]
 
 
@@ -391,7 +393,7 @@ lemma snd_conv [simp, code]: "snd (a, b) = b"
 code_const fst and snd
   (Haskell "fst" and "snd")
 
-lemma prod_case_unfold: "prod_case = (%c p. c (fst p) (snd p))"
+lemma prod_case_unfold [nitpick_def]: "prod_case = (%c p. c (fst p) (snd p))"
   by (simp add: expand_fun_eq split: prod.split)
 
 lemma fst_eqD: "fst (x, y) = a ==> x = a"

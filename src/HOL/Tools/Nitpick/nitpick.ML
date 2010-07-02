@@ -876,33 +876,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
            "") ^ "."
       end
 
-    fun run_batches _ _ []
-                    (found_really_genuine, max_potential, max_genuine, donno) =
-        if donno > 0 andalso max_genuine > 0 then
-          (print_m (fn () => excipit "checked"); "unknown")
-        else if max_genuine = original_max_genuine then
-          if max_potential = original_max_potential then
-            (print_m (fn () =>
-                 "Nitpick found no " ^ das_wort_model ^ "." ^
-                 (if not standard andalso likely_in_struct_induct_step then
-                    " This suggests that the induction hypothesis might be \
-                    \general enough to prove this subgoal."
-                  else
-                    "")); "none")
-          else
-            (print_m (fn () =>
-                 "Nitpick could not find a" ^
-                 (if max_genuine = 1 then " better " ^ das_wort_model ^ "."
-                  else "ny better " ^ das_wort_model ^ "s.")); "potential")
-        else if found_really_genuine then
-          "genuine"
-        else
-          "quasi_genuine"
-      | run_batches j n (batch :: batches) z =
-        let val (z as (_, _, max_genuine, _)) = run_batch j n batch z in
-          run_batches (j + 1) n (if max_genuine > 0 then batches else []) z
-        end
-
     val (skipped, the_scopes) =
       all_scopes hol_ctxt binarize cards_assigns maxes_assigns iters_assigns
                  bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
@@ -916,6 +889,33 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             else
               ()
     val _ = scopes := the_scopes
+
+    fun run_batches _ _ []
+                    (found_really_genuine, max_potential, max_genuine, donno) =
+        if donno > 0 andalso max_genuine > 0 then
+          (print_m (fn () => excipit "checked"); "unknown")
+        else if max_genuine = original_max_genuine then
+          if max_potential = original_max_potential then
+            (print_m (fn () =>
+                 "Nitpick found no " ^ das_wort_model ^ "." ^
+                 (if not standard andalso likely_in_struct_induct_step then
+                    " This suggests that the induction hypothesis might be \
+                    \general enough to prove this subgoal."
+                  else
+                    "")); if skipped > 0 then "unknown" else "none")
+          else
+            (print_m (fn () =>
+                 "Nitpick could not find a" ^
+                 (if max_genuine = 1 then " better " ^ das_wort_model ^ "."
+                  else "ny better " ^ das_wort_model ^ "s.")); "potential")
+        else if found_really_genuine then
+          "genuine"
+        else
+          "quasi_genuine"
+      | run_batches j n (batch :: batches) z =
+        let val (z as (_, _, max_genuine, _)) = run_batch j n batch z in
+          run_batches (j + 1) n (if max_genuine > 0 then batches else []) z
+        end
 
     val batches = batch_list batch_size (!scopes)
     val outcome_code =
