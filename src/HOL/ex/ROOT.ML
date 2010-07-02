@@ -8,8 +8,6 @@ no_document use_thys [
   "Efficient_Nat_examples",
   "FuncSet",
   "Eval_Examples",
-  "Codegenerator_Test",
-  "Codegenerator_Pretty_Test",
   "NormalForm"
 ];
 
