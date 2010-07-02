@@ -173,7 +173,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
                     (Free (r, U) :: Free (x, T) :: args) (x :: r :: used) prems'
                 end
               else (case strip_type T of
-                  (Ts, Type (@{type_name "*"}, [T1, T2])) =>
+                  (Ts, Type (@{type_name Product_Type.prod}, [T1, T2])) =>
                     let
                       val fx = Free (x, Ts ---> T1);
                       val fr = Free (r, Ts ---> T2);

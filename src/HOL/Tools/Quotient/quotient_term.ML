@@ -54,15 +54,15 @@ datatype flag = AbsF | RepF
 fun negF AbsF = RepF
   | negF RepF = AbsF
 
-fun is_identity (Const (@{const_name "id"}, _)) = true
+fun is_identity (Const (@{const_name id}, _)) = true
   | is_identity _ = false
 
-fun mk_identity ty = Const (@{const_name "id"}, ty --> ty)
+fun mk_identity ty = Const (@{const_name id}, ty --> ty)
 
 fun mk_fun_compose flag (trm1, trm2) =
   case flag of
-    AbsF => Const (@{const_name "comp"}, dummyT) $ trm1 $ trm2
-  | RepF => Const (@{const_name "comp"}, dummyT) $ trm2 $ trm1
+    AbsF => Const (@{const_name comp}, dummyT) $ trm1 $ trm2
+  | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
 
 fun get_mapfun ctxt s =
 let
@@ -450,7 +450,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          if ty = ty' then subtrm
          else mk_babs $ (mk_resp $ equiv_relation ctxt (ty, ty')) $ subtrm
        end
-  | (Const (@{const_name "Babs"}, T) $ resrel $ (t as (Abs (_, ty, _))), t' as (Abs (_, ty', _))) =>
+  | (Const (@{const_name Babs}, T) $ resrel $ (t as (Abs (_, ty, _))), t' as (Abs (_, ty', _))) =>
        let
          val subtrm = regularize_trm ctxt (t, t')
          val needres = mk_resp $ equiv_relation_chk ctxt (ty, ty')
@@ -460,26 +460,26 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else mk_babs $ resrel $ subtrm
        end
 
-  | (Const (@{const_name "All"}, ty) $ t, Const (@{const_name "All"}, ty') $ t') =>
+  | (Const (@{const_name All}, ty) $ t, Const (@{const_name All}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
        in
-         if ty = ty' then Const (@{const_name "All"}, ty) $ subtrm
+         if ty = ty' then Const (@{const_name All}, ty) $ subtrm
          else mk_ball $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
        end
 
-  | (Const (@{const_name "Ex"}, ty) $ t, Const (@{const_name "Ex"}, ty') $ t') =>
+  | (Const (@{const_name Ex}, ty) $ t, Const (@{const_name Ex}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
        in
-         if ty = ty' then Const (@{const_name "Ex"}, ty) $ subtrm
+         if ty = ty' then Const (@{const_name Ex}, ty) $ subtrm
          else mk_bex $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
        end
 
-  | (Const (@{const_name "Ex1"}, ty) $ (Abs (_, _,
-      (Const (@{const_name "op &"}, _) $ (Const (@{const_name "op :"}, _) $ _ $
-        (Const (@{const_name "Respects"}, _) $ resrel)) $ (t $ _)))),
-     Const (@{const_name "Ex1"}, ty') $ t') =>
+  | (Const (@{const_name Ex1}, ty) $ (Abs (_, _,
+      (Const (@{const_name "op &"}, _) $ (Const (@{const_name Set.member}, _) $ _ $
+        (Const (@{const_name Respects}, _) $ resrel)) $ (t $ _)))),
+     Const (@{const_name Ex1}, ty') $ t') =>
        let
          val t_ = incr_boundvars (~1) t
          val subtrm = apply_subt (regularize_trm ctxt) (t_, t')

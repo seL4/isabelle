@@ -21,7 +21,7 @@ fun abs2list (Const (@{const_name prod_case}, _) $ Abs (x, T, t)) = Free (x, T) 
   | abs2list _ = [];
 
 (** maps {(x1,...,xn). t} to [x1,...,xn] **)
-fun mk_vars (Const ("Collect",_) $ T) = abs2list T
+fun mk_vars (Const (@{const_name Collect},_) $ T) = abs2list T
   | mk_vars _ = [];
 
 (** abstraction of body over a tuple formed from a list of free variables.

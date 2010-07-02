@@ -2168,7 +2168,7 @@ proof -
       by (force dest!: ws_dynmethd accmethd_SomeD)
     with dynlookup eq_mheads 
     show ?thesis 
-      by (cases emh type: *) (auto)
+      by (cases emh type: prod) (auto)
   next
     case Iface_methd
     fix I im
@@ -2191,7 +2191,7 @@ proof -
       by (force dest: implmt_methd)
     with dynlookup eq_mheads
     show ?thesis 
-      by (cases emh type: *) (auto)
+      by (cases emh type: prod) (auto)
   next
     case Iface_Object_methd
     fix I sm
@@ -2217,7 +2217,7 @@ proof -
                   intro: class_Object [OF wf] intro: that)
        with dynlookup eq_mheads
        show ?thesis 
-         by (cases emh type: *) (auto)
+         by (cases emh type: prod) (auto)
      next
        case False
        with statI
@@ -2243,7 +2243,7 @@ proof -
          by (auto dest: implmt_methd)
        with wf eq_stat resProp dynlookup eq_mheads
        show ?thesis 
-         by (cases emh type: *) (auto intro: widen_trans)
+         by (cases emh type: prod) (auto intro: widen_trans)
      qed
   next
     case Array_Object_methd
@@ -2256,7 +2256,7 @@ proof -
       by (auto simp add: dynlookup_def dynmethd_C_C)
     with sm eq_mheads sm 
     show ?thesis 
-      by (cases emh type: *) (auto dest: accmethd_SomeD)
+      by (cases emh type: prod) (auto dest: accmethd_SomeD)
   qed
 qed
 declare split_paired_All [simp] split_paired_Ex [simp]

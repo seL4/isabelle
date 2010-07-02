@@ -96,13 +96,13 @@ fun union_all xss = fold (union (op =)) xss []
 (* Readable names for the more common symbolic functions. Do not mess with the
    last nine entries of the table unless you know what you are doing. *)
 val const_trans_table =
-  Symtab.make [(@{type_name "*"}, "prod"),
-               (@{type_name "+"}, "sum"),
+  Symtab.make [(@{type_name Product_Type.prod}, "prod"),
+               (@{type_name Sum_Type.sum}, "sum"),
                (@{const_name "op ="}, "equal"),
                (@{const_name "op &"}, "and"),
                (@{const_name "op |"}, "or"),
                (@{const_name "op -->"}, "implies"),
-               (@{const_name "op :"}, "in"),
+               (@{const_name Set.member}, "in"),
                (@{const_name fequal}, "fequal"),
                (@{const_name COMBI}, "COMBI"),
                (@{const_name COMBK}, "COMBK"),

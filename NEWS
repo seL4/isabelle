@@ -17,6 +17,9 @@ merely give a byte-oriented representation.
 
 *** HOL ***
 
+* Abolished symbol type names:  "prod" and "sum" replace "*" and "+"
+respectively.  INCOMPATBILITY.
+
 * Constant "split" has been merged with constant "prod_case";  names
 of ML functions, facts etc. involving split have been retained so far,
 though.  INCOMPATIBILITY.
@@ -41,8 +44,6 @@ generation.
 
   types
     nat ~> Nat.nat
-    * ~> Product_Type.*
-    + ~> Sum_Type.+
 
   constants
     Ball ~> Set.Ball
@@ -51,8 +52,9 @@ generation.
     Pair ~> Product_Type.Pair
     fst ~> Product_Type.fst
     snd ~> Product_Type.snd
-    split ~> Product_Type.split
     curry ~> Product_Type.curry
+    op : ~> Set.member
+    Collect ~> Set.Collect
 
 INCOMPATIBILITY.
 

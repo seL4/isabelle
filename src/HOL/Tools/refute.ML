@@ -653,7 +653,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
       | Const (@{const_name "op -->"}, _) => t
       (* sets *)
       | Const (@{const_name Collect}, _) => t
-      | Const (@{const_name "op :"}, _) => t
+      | Const (@{const_name Set.member}, _) => t
       (* other optimizations *)
       | Const (@{const_name Finite_Set.card}, _) => t
       | Const (@{const_name Finite_Set.finite}, _) => t
@@ -829,7 +829,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
       | Const (@{const_name "op -->"}, _) => axs
       (* sets *)
       | Const (@{const_name Collect}, T) => collect_type_axioms T axs
-      | Const (@{const_name "op :"}, T) => collect_type_axioms T axs
+      | Const (@{const_name Set.member}, T) => collect_type_axioms T axs
       (* other optimizations *)
       | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms T axs
       | Const (@{const_name Finite_Set.finite}, T) =>
@@ -2634,11 +2634,11 @@ val specialize_type = Sledgehammer_Util.specialize_type
       | Const (@{const_name Collect}, _) =>
         SOME (interpret thy model args (eta_expand t 1))
       (* 'op :' == application *)
-      | Const (@{const_name "op :"}, _) $ t1 $ t2 =>
+      | Const (@{const_name Set.member}, _) $ t1 $ t2 =>
         SOME (interpret thy model args (t2 $ t1))
-      | Const (@{const_name "op :"}, _) $ t1 =>
+      | Const (@{const_name Set.member}, _) $ t1 =>
         SOME (interpret thy model args (eta_expand t 1))
-      | Const (@{const_name "op :"}, _) =>
+      | Const (@{const_name Set.member}, _) =>
         SOME (interpret thy model args (eta_expand t 2))
       | _ => NONE)
   end;
@@ -3050,7 +3050,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Product_Type_fst_interpreter thy model args t =
     case t of
-      Const (@{const_name fst}, Type ("fun", [Type (@{type_name "*"}, [T, U]), _])) =>
+      Const (@{const_name fst}, Type ("fun", [Type (@{type_name Product_Type.prod}, [T, U]), _])) =>
       let
         val constants_T = make_constants thy model T
         val size_U      = size_of_type thy model U
@@ -3069,7 +3069,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
 
   fun Product_Type_snd_interpreter thy model args t =
     case t of
-      Const (@{const_name snd}, Type ("fun", [Type (@{type_name "*"}, [T, U]), _])) =>
+      Const (@{const_name snd}, Type ("fun", [Type (@{type_name Product_Type.prod}, [T, U]), _])) =>
       let
         val size_T      = size_of_type thy model T
         val constants_U = make_constants thy model U

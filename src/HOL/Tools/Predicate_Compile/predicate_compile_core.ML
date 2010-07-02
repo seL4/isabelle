@@ -117,7 +117,7 @@ fun mk_fun_comp (t, u) =
   end;
 
 fun dest_randomT (Type ("fun", [@{typ Random.seed},
-  Type (@{type_name "*"}, [Type (@{type_name "*"}, [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
+  Type (@{type_name Product_Type.prod}, [Type (@{type_name Product_Type.prod}, [T, @{typ "unit => Code_Evaluation.term"}]) ,@{typ Random.seed}])])) = T
   | dest_randomT T = raise TYPE ("dest_randomT", [T], [])
 
 fun mk_tracing s t =
@@ -467,7 +467,7 @@ fun import_intros inp_pred [] ctxt =
 
 (* generation of case rules from user-given introduction rules *)
 
-fun mk_args2 (Type (@{type_name "*"}, [T1, T2])) st =
+fun mk_args2 (Type (@{type_name Product_Type.prod}, [T1, T2])) st =
     let
       val (t1, st') = mk_args2 T1 st
       val (t2, st'') = mk_args2 T2 st'
@@ -1099,7 +1099,7 @@ fun is_all_input mode =
 fun all_input_of T =
   let
     val (Ts, U) = strip_type T
-    fun input_of (Type (@{type_name "*"}, [T1, T2])) = Pair (input_of T1, input_of T2)
+    fun input_of (Type (@{type_name Product_Type.prod}, [T1, T2])) = Pair (input_of T1, input_of T2)
       | input_of _ = Input
   in
     if U = HOLogic.boolT then
@@ -2019,7 +2019,7 @@ fun strip_split_abs (Const (@{const_name prod_case}, _) $ t) = strip_split_abs t
   | strip_split_abs (Abs (_, _, t)) = strip_split_abs t
   | strip_split_abs t = t
 
-fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name "*"}, [T1, T2])) names =
+fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name Product_Type.prod}, [T1, T2])) names =
     if eq_mode (m, Input) orelse eq_mode (m, Output) then
       let
         val x = Name.variant names "x"

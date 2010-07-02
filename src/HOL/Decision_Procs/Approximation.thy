@@ -3302,7 +3302,7 @@ ML {*
   fun reorder_bounds_tac prems i =
     let
       fun variable_of_bound (Const ("Trueprop", _) $
-                             (Const (@{const_name "op :"}, _) $
+                             (Const (@{const_name Set.member}, _) $
                               Free (name, _) $ _)) = name
         | variable_of_bound (Const ("Trueprop", _) $
                              (Const ("op =", _) $

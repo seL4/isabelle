@@ -36,7 +36,7 @@ fun (ex ?? f) thms = if exists (ex o Thm.prop_of) thms then f thms else thms
 
 val pair_rules = [@{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
 
-val pair_type = (fn Type (@{type_name "*"}, _) => true | _ => false)
+val pair_type = (fn Type (@{type_name Product_Type.prod}, _) => true | _ => false)
 val exists_pair_type = Term.exists_type (Term.exists_subtype pair_type)
 
 val add_pair_rules = exists_pair_type ?? append pair_rules

@@ -69,7 +69,7 @@ instance ..
 
 end
 
-instantiation * :: (default, default) default
+instantiation prod :: (default, default) default
 begin
 
 definition "default = (default, default)"

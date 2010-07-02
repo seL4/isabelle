@@ -34,9 +34,9 @@ local
 
 exception malformed;
 
-fun fst_type (Type(@{type_name "*"},[a,_])) = a |
+fun fst_type (Type(@{type_name prod},[a,_])) = a |
 fst_type _ = raise malformed; 
-fun snd_type (Type(@{type_name "*"},[_,a])) = a |
+fun snd_type (Type(@{type_name prod},[_,a])) = a |
 snd_type _ = raise malformed;
 
 fun element_type (Type("set",[a])) = a |
@@ -121,10 +121,10 @@ fun delete_ul [] = []
 
 fun delete_ul_string s = implode(delete_ul (explode s));
 
-fun type_list_of sign (Type(@{type_name "*"},a::b::_)) = (type_list_of sign a) @ (type_list_of sign b) |
+fun type_list_of sign (Type(@{type_name prod},a::b::_)) = (type_list_of sign a) @ (type_list_of sign b) |
 type_list_of sign a = [(Syntax.string_of_typ_global sign a)];
 
-fun structured_tuple l (Type(@{type_name "*"},s::t::_)) =
+fun structured_tuple l (Type(@{type_name prod},s::t::_)) =
 let
 val (r,str) = structured_tuple l s;
 in

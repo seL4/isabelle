@@ -70,7 +70,7 @@ struct
 fun mk_randompredT T =
   @{typ Random.seed} --> HOLogic.mk_prodT (PredicateCompFuns.mk_predT T, @{typ Random.seed})
 
-fun dest_randompredT (Type ("fun", [@{typ Random.seed}, Type (@{type_name "*"},
+fun dest_randompredT (Type ("fun", [@{typ Random.seed}, Type (@{type_name Product_Type.prod},
   [Type (@{type_name "Predicate.pred"}, [T]), @{typ Random.seed}])])) = T
   | dest_randompredT T = raise TYPE ("dest_randompredT", [T], []);
 
@@ -278,7 +278,7 @@ fun mk_random_dseqT T =
 
 fun dest_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ code_numeral},
   Type ("fun", [@{typ Random.seed},
-  Type (@{type_name "*"}, [T, @{typ Random.seed}])])])])) = DSequence_CompFuns.dest_dseqT T
+  Type (@{type_name Product_Type.prod}, [T, @{typ Random.seed}])])])])) = DSequence_CompFuns.dest_dseqT T
   | dest_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
 
 fun mk_bot T = Const (@{const_name Random_Sequence.empty}, mk_random_dseqT T);

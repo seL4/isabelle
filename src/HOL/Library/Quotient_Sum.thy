@@ -22,7 +22,7 @@ where
   "sum_map f1 f2 (Inl a) = Inl (f1 a)"
 | "sum_map f1 f2 (Inr a) = Inr (f2 a)"
 
-declare [[map "+" = (sum_map, sum_rel)]]
+declare [[map sum = (sum_map, sum_rel)]]
 
 
 text {* should probably be in @{theory Sum_Type} *}

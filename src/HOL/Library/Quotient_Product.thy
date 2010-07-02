@@ -13,7 +13,7 @@ fun
 where
   "prod_rel R1 R2 = (\<lambda>(a, b) (c, d). R1 a c \<and> R2 b d)"
 
-declare [[map * = (prod_fun, prod_rel)]]
+declare [[map prod = (prod_fun, prod_rel)]]
 
 
 lemma prod_equivp[quot_equiv]:

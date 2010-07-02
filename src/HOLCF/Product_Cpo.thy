@@ -32,7 +32,7 @@ by intro_classes simp
 
 subsection {* Product type is a partial order *}
 
-instantiation "*" :: (below, below) below
+instantiation prod :: (below, below) below
 begin
 
 definition
@@ -41,7 +41,7 @@ definition
 instance ..
 end
 
-instance "*" :: (po, po) po
+instance prod :: (po, po) po
 proof
   fix x :: "'a \<times> 'b"
   show "x \<sqsubseteq> x"
@@ -148,7 +148,7 @@ lemma thelub_cprod:
     \<Longrightarrow> (\<Squnion>i. S i) = (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
 by (rule lub_cprod [THEN thelubI])
 
-instance "*" :: (cpo, cpo) cpo
+instance prod :: (cpo, cpo) cpo
 proof
   fix S :: "nat \<Rightarrow> ('a \<times> 'b)"
   assume "chain S"
@@ -157,9 +157,9 @@ proof
   thus "\<exists>x. range S <<| x" ..
 qed
 
-instance "*" :: (finite_po, finite_po) finite_po ..
+instance prod :: (finite_po, finite_po) finite_po ..
 
-instance "*" :: (discrete_cpo, discrete_cpo) discrete_cpo
+instance prod :: (discrete_cpo, discrete_cpo) discrete_cpo
 proof
   fix x y :: "'a \<times> 'b"
   show "x \<sqsubseteq> y \<longleftrightarrow> x = y"
@@ -172,7 +172,7 @@ subsection {* Product type is pointed *}
 lemma minimal_cprod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
 by (simp add: below_prod_def)
 
-instance "*" :: (pcpo, pcpo) pcpo
+instance prod :: (pcpo, pcpo) pcpo
 by intro_classes (fast intro: minimal_cprod)
 
 lemma inst_cprod_pcpo: "\<bottom> = (\<bottom>, \<bottom>)"
@@ -297,7 +297,7 @@ apply (drule compact_fst, simp)
 apply (drule compact_snd, simp)
 done
 
-instance "*" :: (chfin, chfin) chfin
+instance prod :: (chfin, chfin) chfin
 apply intro_classes
 apply (erule compact_imp_max_in_chain)
 apply (case_tac "\<Squnion>i. Y i", simp)

@@ -427,7 +427,7 @@ fun mk_snd (_, Const (@{const_name Pair}, T) $ _ $ t2) =
     let val res_T = snd (HOLogic.dest_prodT T) in
       (res_T, Const (@{const_name snd}, T --> res_T) $ t)
     end
-fun factorize (z as (Type (@{type_name "*"}, _), _)) =
+fun factorize (z as (Type (@{type_name Product_Type.prod}, _), _)) =
     maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
@@ -1199,7 +1199,7 @@ fun rename_plain_var v (ws, pool, table) =
     val w = constr (j, type_of v, rep_of v)
   in (w :: ws, pool, NameTable.update (v, w) table) end
 
-fun shape_tuple (T as Type (@{type_name "*"}, [T1, T2])) (R as Struct [R1, R2])
+fun shape_tuple (T as Type (@{type_name Product_Type.prod}, [T1, T2])) (R as Struct [R1, R2])
                 us =
     let val arity1 = arity_of_rep R1 in
       Tuple (T, R, [shape_tuple T1 R1 (List.take (us, arity1)),

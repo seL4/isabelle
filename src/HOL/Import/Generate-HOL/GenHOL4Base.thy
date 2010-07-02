@@ -123,7 +123,7 @@ end_import;
 import_theory pair;
 
 type_maps
-    prod > "Product_Type.*";
+    prod > Product_Type.prod;
 
 const_maps
     ","       > Pair

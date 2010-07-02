@@ -18,9 +18,9 @@ text {* Instances for common HOL types *}
 
 instance nat :: heap ..
 
-instance "*" :: (heap, heap) heap ..
+instance prod :: (heap, heap) heap ..
 
-instance "+" :: (heap, heap) heap ..
+instance sum :: (heap, heap) heap ..
 
 instance list :: (heap) heap ..
 

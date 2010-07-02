@@ -858,7 +858,7 @@ structure Trancl_Tac = Trancl_Tac
   val rtrancl_trans = @{thm rtrancl_trans};
 
   fun decomp (@{const Trueprop} $ t) =
-    let fun dec (Const ("op :", _) $ (Const (@{const_name Pair}, _) $ a $ b) $ rel ) =
+    let fun dec (Const (@{const_name Set.member}, _) $ (Const (@{const_name Pair}, _) $ a $ b) $ rel ) =
         let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
               | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
               | decr r = (r,"r");

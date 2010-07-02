@@ -106,7 +106,7 @@ fun mk_skel ps =
   end
 
 (* compute list of types for nodes *)
-fun node_types sk T = dest_tree (fn Type (@{type_name "+"}, [LT, RT]) => (LT, RT)) sk T |> map snd
+fun node_types sk T = dest_tree (fn Type (@{type_name Sum_Type.sum}, [LT, RT]) => (LT, RT)) sk T |> map snd
 
 (* find index and raw term *)
 fun dest_inj (SLeaf i) trm = (i, trm)

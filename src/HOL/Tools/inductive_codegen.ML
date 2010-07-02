@@ -579,7 +579,7 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
       fun get_nparms s = if member (op =) names s then SOME nparms else
         Option.map #3 (get_clauses thy s);
 
-      fun dest_prem (_ $ (Const (@{const_name "op :"}, _) $ t $ u)) =
+      fun dest_prem (_ $ (Const (@{const_name Set.member}, _) $ t $ u)) =
             Prem ([t], Envir.beta_eta_contract u, true)
         | dest_prem (_ $ ((eq as Const (@{const_name "op ="}, _)) $ t $ u)) =
             Prem ([t, u], eq, false)
