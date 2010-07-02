@@ -1,2 +1,4 @@
-(*side-entry for HOL-Base*)
+
+(* side-entry for HOL-Base *)
+
 use_thys ["HOL"];

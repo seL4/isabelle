@@ -1,3 +1,4 @@
-(* Classical Higher-order Logic -- batteries included *)
+
+(* Classical Higher-order Logic *)
 
 use_thys ["Complex_Main"];

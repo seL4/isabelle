@@ -1,2 +1,4 @@
-(*side-entry for HOL-Plain*)
+
+(* side-entry for HOL-Plain *)
+
 use_thys ["Plain"];
