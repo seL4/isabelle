@@ -8,19 +8,36 @@ begin
 
 subsection {* Type definition and primitive operations *}
 
-datatype ('a, 'b) mapping = Mapping "'a \<rightharpoonup> 'b"
+typedef (open) ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
+  morphisms lookup Mapping ..
+
+lemma lookup_Mapping [simp]:
+  "lookup (Mapping f) = f"
+  by (rule Mapping_inverse) rule
+
+lemma Mapping_lookup [simp]:
+  "Mapping (lookup m) = m"
+  by (fact lookup_inverse)
+
+declare lookup_inject [simp]
+
+lemma Mapping_inject [simp]:
+  "Mapping f = Mapping g \<longleftrightarrow> f = g"
+  by (simp add: Mapping_inject)
+
+lemma mapping_eqI:
+  assumes "lookup m = lookup n"
+  shows "m = n"
+  using assms by simp
 
 definition empty :: "('a, 'b) mapping" where
   "empty = Mapping (\<lambda>_. None)"
 
-primrec lookup :: "('a, 'b) mapping \<Rightarrow> 'a \<rightharpoonup> 'b" where
-  "lookup (Mapping f) = f"
+definition update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
+  "update k v m = Mapping ((lookup m)(k \<mapsto> v))"
 
-primrec update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
-  "update k v (Mapping f) = Mapping (f (k \<mapsto> v))"
-
-primrec delete :: "'a \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
-  "delete k (Mapping f) = Mapping (f (k := None))"
+definition delete :: "'a \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
+  "delete k m = Mapping ((lookup m)(k := None))"
 
 
 subsection {* Derived operations *}
@@ -59,15 +76,6 @@ definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping" where
 
 subsection {* Properties *}
 
-lemma lookup_inject [simp]:
-  "lookup m = lookup n \<longleftrightarrow> m = n"
-  by (cases m, cases n) simp
-
-lemma mapping_eqI:
-  assumes "lookup m = lookup n"
-  shows "m = n"
-  using assms by simp
-
 lemma keys_is_none_lookup [code_inline]:
   "k \<in> keys m \<longleftrightarrow> \<not> (Option.is_none (lookup m k))"
   by (auto simp add: keys_def is_none_def)
@@ -78,11 +86,11 @@ lemma lookup_empty [simp]:
 
 lemma lookup_update [simp]:
   "lookup (update k v m) = (lookup m) (k \<mapsto> v)"
-  by (cases m) simp
+  by (simp add: update_def)
 
 lemma lookup_delete [simp]:
   "lookup (delete k m) = (lookup m) (k := None)"
-  by (cases m) simp
+  by (simp add: delete_def)
 
 lemma lookup_map_entry [simp]:
   "lookup (map_entry k f m) = (lookup m) (k := Option.map f (lookup m k))"
@@ -150,11 +158,11 @@ lemma is_empty_empty' [simp]:
 
 lemma is_empty_update [simp]:
   "\<not> is_empty (update k v m)"
-  by (cases m) (simp add: is_empty_empty)
+  by (simp add: is_empty_empty update_def)
 
 lemma is_empty_delete:
   "is_empty (delete k m) \<longleftrightarrow> is_empty m \<or> keys m = {k}"
-  by (cases m) (auto simp add: is_empty_empty keys_def dom_eq_empty_conv [symmetric] simp del: dom_eq_empty_conv)
+  by (auto simp add: delete_def is_empty_def keys_def simp del: dom_eq_empty_conv)
 
 lemma is_empty_replace [simp]:
   "is_empty (replace k v m) \<longleftrightarrow> is_empty m"
@@ -268,23 +276,18 @@ lemma ordered_keys_bulkload [simp]:
   by (simp add: ordered_keys_def)
 
 
-subsection {* Some technical code lemmas *}
+subsection {* Code generator setup *}
 
-lemma [code]:
-  "mapping_case f m = f (Mapping.lookup m)"
-  by (cases m) simp
+instantiation mapping :: (type, type) eq
+begin
 
-lemma [code]:
-  "mapping_rec f m = f (Mapping.lookup m)"
-  by (cases m) simp
+definition [code del]:
+  "HOL.eq m n \<longleftrightarrow> lookup m = lookup n"
 
-lemma [code]:
-  "Nat.size (m :: (_, _) mapping) = 0"
-  by (cases m) simp
+instance proof
+qed (simp add: eq_mapping_def)
 
-lemma [code]:
-  "mapping_size f g m = 0"
-  by (cases m) simp
+end
 
 
 hide_const (open) empty is_empty lookup update delete ordered_keys keys size
