@@ -53,8 +53,6 @@ lemma nibble_of_nat_norm:
   "nibble_of_nat (n mod 16) = nibble_of_nat n"
   unfolding nibble_of_nat_def mod_mod_trivial ..
 
-lemmas [code] = nibble_of_nat_norm [symmetric]
-
 lemma nibble_of_nat_simps [simp]:
   "nibble_of_nat  0 = Nibble0"
   "nibble_of_nat  1 = Nibble1"
@@ -73,9 +71,6 @@ lemma nibble_of_nat_simps [simp]:
   "nibble_of_nat 14 = NibbleE"
   "nibble_of_nat 15 = NibbleF"
   unfolding nibble_of_nat_def by auto
-
-lemmas nibble_of_nat_code [code] = nibble_of_nat_simps
-  [simplified nat_number Let_def not_neg_number_of_Pls neg_number_of_Bit0 neg_number_of_Bit1 if_False add_0 add_Suc One_nat_def]
 
 lemma nibble_of_nat_of_nibble: "nibble_of_nat (nat_of_nibble n) = n"
   by (cases n) (simp_all only: nat_of_nibble.simps nibble_of_nat_simps)
