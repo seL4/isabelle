@@ -284,7 +284,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       if forall (Thread.isActive o #1) (! workers) then ()
       else
         let
-          val  (alive, dead) = List.partition (Thread.isActive o #1) (! workers);
+          val (alive, dead) = List.partition (Thread.isActive o #1) (! workers);
           val _ = workers := alive;
         in
           Multithreading.tracing 0 (fn () =>
