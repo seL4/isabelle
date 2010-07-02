@@ -10,27 +10,28 @@ generate: HOL-Generate-HOL HOL-Generate-HOLLight
 
 images: \
   HOL \
+  HOL-Library \
   HOL-Algebra \
-  HOL-Base \
   HOL-Boogie \
-  HOL-Main \
   HOL-Multivariate_Analysis \
   HOL-NSA \
   HOL-Nominal \
-  HOL-Plain \
   HOL-Probability \
   HOL-Proofs \
   HOL-Word \
   HOL4 \
-  TLA
+  TLA \
+  HOL-Base \
+  HOL-Main \
+  HOL-Plain
 
-#Note: keep targets sorted (except for HOL-Library and HOL-ex)
+#Note: keep targets sorted (except for HOL-ex)
 test: \
-  HOL-Library \
   HOL-ex \
   HOL-Auth \
   HOL-Bali \
   HOL-Boogie-Examples \
+  HOL-Codegenerator_Test \
   HOL-Decision_Procs \
   HOL-Hahn_Banach \
   HOL-Hoare \
@@ -392,10 +393,11 @@ $(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
 
 ## HOL-Library
 
-HOL-Library: HOL $(LOG)/HOL-Library.gz
+HOL-Library: HOL $(OUT)/HOL-Library
 
-$(LOG)/HOL-Library.gz: $(OUT)/HOL $(SRC)/HOL/Tools/float_arith.ML	\
-  $(SRC)/Tools/float.ML Library/Abstract_Rat.thy Library/AssocList.thy	\
+$(OUT)/HOL-Library: $(OUT)/HOL library.ML				\
+  $(SRC)/HOL/Tools/float_arith.ML $(SRC)/Tools/float.ML			\
+  Library/Abstract_Rat.thy Library/AssocList.thy			\
   Library/BigO.thy Library/Binomial.thy Library/Bit.thy			\
   Library/Boolean_Algebra.thy Library/Cardinality.thy			\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
@@ -408,7 +410,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL $(SRC)/HOL/Tools/float_arith.ML	\
   Library/FuncSet.thy Library/Fundamental_Theorem_Algebra.thy		\
   Library/Glbs.thy Library/Indicator_Function.thy			\
   Library/Infinite_Set.thy Library/Inner_Product.thy			\
-  Library/HOL_Library_ROOT.ML Library/Kleene_Algebra.thy		\
+  Library/Kleene_Algebra.thy						\
   Library/LaTeXsugar.thy Library/Lattice_Algebras.thy			\
   Library/Lattice_Syntax.thy Library/Library.thy			\
   Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
@@ -432,10 +434,10 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL $(SRC)/HOL/Tools/float_arith.ML	\
   Library/Sum_Of_Squares/sum_of_squares.ML				\
   Library/Transitive_Closure_Table.thy Library/Univ_Poly.thy		\
   Library/While_Combinator.thy Library/Zorn.thy				\
-  Library/document/root.bib Library/document/root.tex			\
   Library/positivstellensatz.ML Library/reflection.ML			\
-  Library/reify_data.ML
-	@$(ISABELLE_TOOL) usedir -f HOL_Library_ROOT.ML $(OUT)/HOL Library
+  Library/reify_data.ML							\
+  Library/document/root.bib Library/document/root.tex
+	@$(ISABELLE_TOOL) usedir -b -f library.ML $(OUT)/HOL HOL-Library
 
 
 ## HOL-Hahn_Banach
@@ -630,6 +632,18 @@ $(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
   Hoare_Parallel/RG_Tran.thy Hoare_Parallel/ROOT.ML			\
   Hoare_Parallel/document/root.tex Hoare_Parallel/document/root.bib
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hoare_Parallel
+
+
+## HOL-Codegenerator_Test
+
+HOL-Codegenerator_Test: HOL-Library $(LOG)/HOL-Codegenerator_Test.gz
+
+$(LOG)/HOL-Codegenerator_Test.gz: $(OUT)/HOL-Library			\
+  Codegenerator_Test/ROOT.ML Codegenerator_Test/Candidates.thy		\
+  Codegenerator_Test/Candidates_Pretty.thy				\
+  Codegenerator_Test/Generate.thy					\
+  Codegenerator_Test/Generate_Pretty.thy
+	@$(ISABELLE_TOOL) usedir -d false -g false -i false $(OUT)/HOL-Library Codegenerator_Test
 
 
 ## HOL-Metis_Examples
@@ -976,9 +990,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy		\
   ex/Arithmetic_Series_Complex.thy ex/BT.thy ex/BinEx.thy		\
   ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
-  ex/CodegenSML_Test.thy ex/Codegenerator_Candidates.thy		\
-  ex/Codegenerator_Pretty.thy ex/Codegenerator_Pretty_Test.thy		\
-  ex/Codegenerator_Test.thy ex/Coherent.thy ex/Dedekind_Real.thy	\
+  ex/CodegenSML_Test.thy ex/Coherent.thy ex/Dedekind_Real.thy		\
   ex/Efficient_Nat_examples.thy ex/Eval_Examples.thy ex/Fundefs.thy	\
   ex/Gauge_Integration.thy ex/Groebner_Examples.thy ex/Guess.thy	\
   ex/HarmonicSeries.thy ex/Hebrew.thy ex/Hex_Bin_Examples.thy		\
