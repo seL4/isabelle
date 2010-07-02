@@ -12,7 +12,6 @@ sig
   type hol_clause = Metis_Clauses.hol_clause
   type name_pool = string Symtab.table * string Symtab.table
 
-  val type_wrapper_name : string
   val write_tptp_file :
     theory -> bool -> bool -> bool -> Path.T
     -> hol_clause list * hol_clause list * hol_clause list * hol_clause list
