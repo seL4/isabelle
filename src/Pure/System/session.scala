@@ -110,14 +110,14 @@ class Session(system: Isabelle_System)
     {
       raw_results.event(result)
 
-      val target_id: Option[Session.Entity_ID] = Position.get_id(result.props)
+      val target_id: Option[Session.Entity_ID] = Position.get_id(result.message.attributes)
       val target: Option[Session.Entity] =
         target_id match {
           case None => None
           case Some(id) => lookup_entity(id)
         }
       if (target.isDefined) target.get.consume(result.message, indicate_command_change)
-      else if (result.kind == Isabelle_Process.Kind.STATUS) {
+      else if (result.is_status) {
         // global status message
         result.body match {
 
@@ -145,7 +145,7 @@ class Session(system: Isabelle_System)
           case _ => if (!result.is_ready) bad_result(result)
         }
       }
-      else if (result.kind == Isabelle_Process.Kind.EXIT)
+      else if (result.kind == Markup.EXIT)
         prover = null
       else if (result.is_raw)
         raw_output.event(result)
@@ -176,7 +176,7 @@ class Session(system: Isabelle_System)
     {
       receiveWithin(timeout) {
         case result: Isabelle_Process.Result
-          if result.kind == Isabelle_Process.Kind.INIT =>
+          if result.kind == Markup.INIT =>
           while (receive {
             case result: Isabelle_Process.Result =>
               handle_result(result); !result.is_ready
@@ -184,7 +184,7 @@ class Session(system: Isabelle_System)
           None
 
         case result: Isabelle_Process.Result
-          if result.kind == Isabelle_Process.Kind.EXIT =>
+          if result.kind == Markup.EXIT =>
           Some(startup_error())
 
         case TIMEOUT =>  // FIXME clarify
