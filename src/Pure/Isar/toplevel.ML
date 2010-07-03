@@ -561,9 +561,11 @@ fun setmp_thread_position (Transition {pos, ...}) f x =
 fun status tr m =
   setmp_thread_position tr (fn () => Output.status (Markup.markup m "")) ();
 
-fun async_state tr st =
-  Future.fork_group (Task_Queue.new_group (Future.worker_group ())) (fn () =>
-    setmp_thread_position tr (fn () => print_state false st) ());
+fun async_state (tr as Transition {print, ...}) st =
+  if print then
+    ignore (Future.fork_group (Task_Queue.new_group (Future.worker_group ())) (fn () =>
+      setmp_thread_position tr (fn () => print_state false st) ()))
+  else ();
 
 fun error_msg tr exn_info =
   setmp_thread_position tr (fn () =>
