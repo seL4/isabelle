@@ -104,13 +104,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       react {
         case Command_Set(changed) =>
           Swing_Thread.now {
-            val document = model.recent_document()
             // FIXME cover doc states as well!!?
-            for (command <- changed if document.commands.contains(command)) {
-              update_syntax(document, command)
-              invalidate_line(document, command)
-              overview.repaint()
-            }
+            val document = model.recent_document()
+            if (changed.exists(document.commands.contains))
+              full_repaint(document, changed)
           }
 
         case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
@@ -118,34 +115,82 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     }
   }
 
+  def full_repaint(document: Document, changed: Set[Command])
+  {
+    Swing_Thread.assert()
+
+    val buffer = model.buffer
+    var visible_change = false
+
+    for ((command, start) <- document.command_starts) {
+      if (changed(command)) {
+        val stop = start + command.length
+        val line1 = buffer.getLineOfOffset(model.to_current(document, start))
+        val line2 = buffer.getLineOfOffset(model.to_current(document, stop))
+        if (line2 >= text_area.getFirstLine &&
+            line1 <= text_area.getFirstLine + text_area.getVisibleLines)
+          visible_change = true
+        text_area.invalidateLineRange(line1, line2)
+      }
+    }
+    if (visible_change) model.buffer.propertiesChanged()
+
+    overview.repaint()  // FIXME paint here!?
+  }
+
 
   /* text_area_extension */
 
   private val text_area_extension = new TextAreaExtension
   {
-    override def paintValidLine(gfx: Graphics2D,
-      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+    override def paintScreenLineRange(gfx: Graphics2D,
+      first_line: Int, last_line: Int, physical_lines: Array[Int],
+      start: Array[Int], end: Array[Int], y0: Int, line_height: Int)
     {
-      val document = model.recent_document()
-      def from_current(pos: Int) = model.from_current(document, pos)
-      def to_current(pos: Int) = model.to_current(document, pos)
+      Swing_Thread.now {
+        val document = model.recent_document()
+        def from_current(pos: Int) = model.from_current(document, pos)
+        def to_current(pos: Int) = model.to_current(document, pos)
 
-      val line_end = model.visible_line_end(start, end)
-      val line_height = text_area.getPainter.getFontMetrics.getHeight
-
-      val saved_color = gfx.getColor
-      try {
-        for ((command, command_start) <-
-          document.command_range(from_current(start), from_current(line_end)) if !command.is_ignored)
+        val command_range: Iterable[(Command, Int)] =
         {
-          val p = text_area.offsetToXY(start max to_current(command_start))
-          val q = text_area.offsetToXY(line_end min to_current(command_start + command.length))
-          assert(p.y == q.y)
-          gfx.setColor(Document_View.choose_color(document, command))
-          gfx.fillRect(p.x, y, q.x - p.x, line_height)
+          val range = document.command_range(from_current(start(0)))
+          if (range.hasNext) {
+            val (cmd0, start0) = range.next
+            new Iterable[(Command, Int)] {
+              def iterator = Document.command_starts(document.commands.iterator(cmd0), start0)
+            }
+          }
+          else Iterable.empty
         }
+
+        val saved_color = gfx.getColor
+        try {
+          var y = y0
+          for (i <- 0 until physical_lines.length) {
+            if (physical_lines(i) != -1) {
+              val line_start = start(i)
+              val line_end = model.visible_line_end(line_start, end(i))
+
+              val a = from_current(line_start)
+              val b = from_current(line_end)
+              val cmds = command_range.iterator.
+                dropWhile { case (cmd, c) => c + cmd.length <= a } .
+                takeWhile { case (_, c) => c < b }
+
+              for ((command, command_start) <- cmds if !command.is_ignored) {
+                val p = text_area.offsetToXY(line_start max to_current(command_start))
+                val q = text_area.offsetToXY(line_end min to_current(command_start + command.length))
+                assert(p.y == q.y)
+                gfx.setColor(Document_View.choose_color(document, command))
+                gfx.fillRect(p.x, y, q.x - p.x, line_height)
+              }
+            }
+            y += line_height
+          }
+        }
+        finally { gfx.setColor(saved_color) }
       }
-      finally { gfx.setColor(saved_color) }
     }
 
     override def getToolTipText(x: Int, y: Int): String =
@@ -184,30 +229,6 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       }
     }
   }
-
-
-  /* (re)painting */
-
-  private val update_delay = Swing_Thread.delay_first(500) { model.buffer.propertiesChanged() }
-  // FIXME update_delay property
-
-  private def update_syntax(document: Document, cmd: Command)
-  {
-    val (line1, line2) = model.lines_of_command(document, cmd)
-    if (line2 >= text_area.getFirstLine &&
-      line1 <= text_area.getFirstLine + text_area.getVisibleLines)
-        update_delay()
-  }
-
-  private def invalidate_line(document: Document, cmd: Command) =
-  {
-    val (start, stop) = model.lines_of_command(document, cmd)
-    text_area.invalidateLineRange(start, stop)
-  }
-
-  private def invalidate_all() =
-    text_area.invalidateLineRange(text_area.getFirstPhysicalLine,
-      text_area.getLastPhysicalLine)
 
 
   /* overview of command status left of scrollbar */
@@ -252,9 +273,9 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val buffer = model.buffer
       val document = model.recent_document()
       def to_current(pos: Int) = model.to_current(document, pos)
-      val saved_color = gfx.getColor
+      val saved_color = gfx.getColor  // FIXME needed!?
       try {
-        for ((command, start) <- document.command_range(0) if !command.is_ignored) {
+        for ((command, start) <- document.command_starts if !command.is_ignored) {
           val line1 = buffer.getLineOfOffset(to_current(start))
           val line2 = buffer.getLineOfOffset(to_current(start + command.length)) + 1
           val y = line_to_y(line1)
