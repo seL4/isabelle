@@ -563,8 +563,8 @@ fun status tr m =
 
 fun async_state (tr as Transition {print, ...}) st =
   if print then
-    ignore (Future.fork_group (Task_Queue.new_group (Future.worker_group ())) (fn () =>
-      setmp_thread_position tr (fn () => print_state false st) ()))
+    ignore (Future.fork_group (Task_Queue.new_group (Future.worker_group ()))
+      (fn () => Future.report (setmp_thread_position tr (fn () => print_state false st))))
   else ();
 
 fun error_msg tr exn_info =
