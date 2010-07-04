@@ -139,6 +139,47 @@ lemma FDERIV_diff:
    \<Longrightarrow> FDERIV (\<lambda>x. f x - g x) x :> (\<lambda>h. F h - G h)"
 by (simp only: diff_minus FDERIV_add FDERIV_minus)
 
+subsection {* Uniqueness *}
+
+lemma FDERIV_zero_unique:
+  assumes "FDERIV (\<lambda>x. 0) x :> F" shows "F = (\<lambda>h. 0)"
+proof -
+  interpret F: bounded_linear F
+    using assms by (rule FDERIV_bounded_linear)
+  let ?r = "\<lambda>h. norm (F h) / norm h"
+  have *: "?r -- 0 --> 0"
+    using assms unfolding fderiv_def by simp
+  show "F = (\<lambda>h. 0)"
+  proof
+    fix h show "F h = 0"
+    proof (rule ccontr)
+      assume "F h \<noteq> 0"
+      moreover from this have h: "h \<noteq> 0"
+        by (clarsimp simp add: F.zero)
+      ultimately have "0 < ?r h"
+        by (simp add: divide_pos_pos)
+      from LIM_D [OF * this] obtain s where s: "0 < s"
+        and r: "\<And>x. x \<noteq> 0 \<Longrightarrow> norm x < s \<Longrightarrow> ?r x < ?r h" by auto
+      from dense [OF s] obtain t where t: "0 < t \<and> t < s" ..
+      let ?x = "scaleR (t / norm h) h"
+      have "?x \<noteq> 0" and "norm ?x < s" using t h by simp_all
+      hence "?r ?x < ?r h" by (rule r)
+      thus "False" using t h by (simp add: F.scaleR)
+    qed
+  qed
+qed
+
+lemma FDERIV_unique:
+  assumes "FDERIV f x :> F" and "FDERIV f x :> F'" shows "F = F'"
+proof -
+  have "FDERIV (\<lambda>x. 0) x :> (\<lambda>h. F h - F' h)"
+    using FDERIV_diff [OF assms] by simp
+  hence "(\<lambda>h. F h - F' h) = (\<lambda>h. 0)"
+    by (rule FDERIV_zero_unique)
+  thus "F = F'"
+    unfolding expand_fun_eq right_minus_eq .
+qed
+
 subsection {* Continuity *}
 
 lemma FDERIV_isCont:
@@ -470,7 +511,7 @@ next
       also have "\<dots> = norm (?inv (x + h) - ?inv x) * norm (?inv x)"
         by simp
       finally show "norm ((?inv (x + h) - ?inv x) * h * ?inv x) / norm h
-            \<le> norm (?inv (x + h) - ?inv x) * norm (?inv x)" .   
+            \<le> norm (?inv (x + h) - ?inv x) * norm (?inv x)" .
     qed
   qed
 qed
