@@ -39,7 +39,24 @@ next assume ?r note this[unfolded has_derivative_def Lim_at] note as=conjunct2[O
     unfolding dist_norm diff_0_right norm_scaleR
     unfolding dist_norm netlimit_at[of x] by(auto simp add:algebra_simps *) qed
 
-lemma FDERIV_conv_has_derivative:"FDERIV f (x::'a::{real_normed_vector,perfect_space}) :> f' = (f has_derivative f') (at x)" (is "?l = ?r") proof 
+lemma netlimit_at_vector:
+  fixes a :: "'a::real_normed_vector"
+  shows "netlimit (at a) = a"
+proof (cases "\<exists>x. x \<noteq> a")
+  case True then obtain x where x: "x \<noteq> a" ..
+  have "\<not> trivial_limit (at a)"
+    unfolding trivial_limit_def eventually_at dist_norm
+    apply clarsimp
+    apply (rule_tac x="a + scaleR (d / 2) (sgn (x - a))" in exI)
+    apply (simp add: norm_sgn sgn_zero_iff x)
+    done
+  thus ?thesis
+    by (rule netlimit_within [of a UNIV, unfolded within_UNIV])
+qed simp
+
+lemma FDERIV_conv_has_derivative:
+  shows "FDERIV f x :> f' = (f has_derivative f') (at x)" (is "?l = ?r")
+proof
   assume ?l note as = this[unfolded fderiv_def]
   show ?r unfolding has_derivative_def Lim_at apply-apply(rule,rule as[THEN conjunct1]) proof(rule,rule)
     fix e::real assume "e>0"
@@ -47,14 +64,14 @@ lemma FDERIV_conv_has_derivative:"FDERIV f (x::'a::{real_normed_vector,perfect_s
     thus "\<exists>d>0. \<forall>xa. 0 < dist xa x \<and> dist xa x < d \<longrightarrow>
       dist ((1 / norm (xa - netlimit (at x))) *\<^sub>R (f xa - (f (netlimit (at x)) + f' (xa - netlimit (at x))))) (0) < e"
       apply(rule_tac x=d in exI) apply(erule conjE,rule,assumption) apply rule apply(erule_tac x="xa - x" in allE)
-      unfolding dist_norm netlimit_at[of x] by (auto simp add: diff_diff_eq) qed next
+      unfolding dist_norm netlimit_at_vector[of x] by (auto simp add: diff_diff_eq) qed next
   assume ?r note as = this[unfolded has_derivative_def]
   show ?l unfolding fderiv_def LIM_def apply-apply(rule,rule as[THEN conjunct1]) proof(rule,rule)
     fix e::real assume "e>0"
     guess d using as[THEN conjunct2,unfolded Lim_at,rule_format,OF`e>0`] ..
     thus "\<exists>s>0. \<forall>xa. xa \<noteq> 0 \<and> dist xa 0 < s \<longrightarrow> dist (norm (f (x + xa) - f x - f' xa) / norm xa) 0 < e" apply-
       apply(rule_tac x=d in exI) apply(erule conjE,rule,assumption) apply rule apply(erule_tac x="xa + x" in allE)
-      unfolding dist_norm netlimit_at[of x] by (auto simp add: diff_diff_eq add.commute) qed qed
+      unfolding dist_norm netlimit_at_vector[of x] by (auto simp add: diff_diff_eq add.commute) qed qed
 
 subsection {* These are the only cases we'll care about, probably. *}
 
@@ -86,7 +103,7 @@ lemma has_derivative_at_within: "(f has_derivative f') (at x) \<Longrightarrow> 
 
 lemma has_derivative_within_open:
   "a \<in> s \<Longrightarrow> open s \<Longrightarrow> ((f has_derivative f') (at a within s) \<longleftrightarrow> (f has_derivative f') (at a))"
-  unfolding has_derivative_within has_derivative_at using Lim_within_open by auto
+  by (simp only: at_within_interior interior_open)
 
 lemma bounded_linear_imp_linear: "bounded_linear f \<Longrightarrow> linear f" (* TODO: move elsewhere *)
 proof -
@@ -272,7 +289,7 @@ lemma differentiable_at_withinI: "f differentiable (at x) \<Longrightarrow> f di
 
 lemma differentiable_within_open: assumes "a \<in> s" "open s" shows 
   "f differentiable (at a within s) \<longleftrightarrow> (f differentiable (at a))"
-  unfolding differentiable_def has_derivative_within_open[OF assms] by auto
+  using assms by (simp only: at_within_interior interior_open)
 
 lemma differentiable_on_eq_differentiable_at: "open s \<Longrightarrow> (f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable at x))"
   unfolding differentiable_on_def by(auto simp add: differentiable_within_open)
@@ -477,10 +494,12 @@ lemma differentiable_chain_within:
    \<Longrightarrow> (g o f) differentiable (at x within s)"
   unfolding differentiable_def by(meson diff_chain_within)
 
-subsection {* Uniqueness of derivative.                                                 *)
-(*                                                                           *)
-(* The general result is a bit messy because we need approachability of the  *)
-(* limit point from any direction. But OK for nontrivial intervals etc. *}
+subsection {* Uniqueness of derivative *}
+
+text {*
+ The general result is a bit messy because we need approachability of the
+ limit point from any direction. But OK for nontrivial intervals etc.
+*}
     
 lemma frechet_derivative_unique_within: fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "(f has_derivative f') (at x within s)" "(f has_derivative f'') (at x within s)"
@@ -507,10 +526,10 @@ lemma frechet_derivative_unique_within: fixes f::"'a::euclidean_space \<Rightarr
       unfolding dist_norm unfolding f'.scaleR f''.scaleR f'.add f''.add f'.diff f''.diff
         scaleR_scaleR scaleR_right_diff_distrib scaleR_right_distrib using i by auto qed qed
 
-lemma frechet_derivative_unique_at: fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+lemma frechet_derivative_unique_at:
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f'') (at x) \<Longrightarrow> f' = f''"
-  apply(rule frechet_derivative_unique_within[of f f' x UNIV f'']) unfolding within_UNIV apply(assumption)+
-  apply(rule,rule,rule,rule) apply(rule_tac x="e/2" in exI) by auto
+  unfolding FDERIV_conv_has_derivative [symmetric]
+  by (rule FDERIV_unique)
  
 lemma "isCont f x = continuous (at x) f" unfolding isCont_def LIM_def
   unfolding continuous_at Lim_at unfolding dist_nz by auto
@@ -547,7 +566,7 @@ proof -
     by (rule frechet_derivative_unique_at)
 qed
 
-lemma frechet_derivative_at: fixes f::"'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
+lemma frechet_derivative_at:
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f' = frechet_derivative f (at x))"
   apply(rule frechet_derivative_unique_at[of f],assumption)
   unfolding frechet_derivative_works[THEN sym] using differentiable_def by auto
@@ -1241,13 +1260,16 @@ proof assume ?l guess f' using `?l`[unfolded differentiable_def] .. note f' = th
     using f' unfolding scaleR[THEN sym] by auto
 next assume ?r thus ?l  unfolding vector_derivative_def has_vector_derivative_def differentiable_def by auto qed
 
-lemma vector_derivative_unique_at: fixes f::"real\<Rightarrow> 'n::euclidean_space"
-  assumes "(f has_vector_derivative f') (at x)" "(f has_vector_derivative f'') (at x)" shows "f' = f''" proof-
-  have *:"(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')" apply(rule frechet_derivative_unique_at)
-    using assms[unfolded has_vector_derivative_def] by auto
-  show ?thesis proof(rule ccontr) assume "f' \<noteq> f''" moreover
-    hence "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')" using * by auto
-    ultimately show False unfolding expand_fun_eq by auto qed qed
+lemma vector_derivative_unique_at:
+  assumes "(f has_vector_derivative f') (at x)"
+  assumes "(f has_vector_derivative f'') (at x)"
+  shows "f' = f''"
+proof-
+  have "(\<lambda>x. x *\<^sub>R f') = (\<lambda>x. x *\<^sub>R f'')"
+    using assms [unfolded has_vector_derivative_def]
+    by (rule frechet_derivative_unique_at)
+  thus ?thesis unfolding expand_fun_eq by auto
+qed
 
 lemma vector_derivative_unique_within_closed_interval: fixes f::"real \<Rightarrow> 'n::ordered_euclidean_space"
   assumes "a < b" "x \<in> {a..b}"
@@ -1260,8 +1282,8 @@ lemma vector_derivative_unique_within_closed_interval: fixes f::"real \<Rightarr
     hence "(\<lambda>x. x *\<^sub>R f') 1 = (\<lambda>x. x *\<^sub>R f'') 1" using * by (auto simp: expand_fun_eq)
     ultimately show False unfolding o_def by auto qed qed
 
-lemma vector_derivative_at: fixes f::"real \<Rightarrow> 'a::euclidean_space" shows
- "(f has_vector_derivative f') (at x) \<Longrightarrow> vector_derivative f (at x) = f'"
+lemma vector_derivative_at:
+  shows "(f has_vector_derivative f') (at x) \<Longrightarrow> vector_derivative f (at x) = f'"
   apply(rule vector_derivative_unique_at) defer apply assumption
   unfolding vector_derivative_works[THEN sym] differentiable_def
   unfolding has_vector_derivative_def by auto
