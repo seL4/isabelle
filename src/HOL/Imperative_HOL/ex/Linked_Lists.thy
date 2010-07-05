@@ -56,7 +56,7 @@ lemma traverse_simps[code, simp]:
                             return (x#xs)
                          done"
 unfolding traverse_def
-by (auto simp: traverse_def monad_simp MREC_rule)
+by (auto simp: traverse_def MREC_rule)
 
 
 section {* Proving correctness with relational abstraction *}
@@ -531,7 +531,7 @@ lemma rev'_simps [code]:
   done"
   unfolding rev'_def MREC_rule[of _ _ "(q, p)"] unfolding rev'_def[symmetric]
 thm arg_cong2
-  by (auto simp add: monad_simp expand_fun_eq intro: arg_cong2[where f = "op \<guillemotright>="] split: node.split)
+  by (auto simp add: expand_fun_eq intro: arg_cong2[where f = "op \<guillemotright>="] split: node.split)
 
 fun rev :: "('a:: heap) node \<Rightarrow> 'a node Heap" 
 where

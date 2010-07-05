@@ -12,16 +12,12 @@ subsection {* The monad *}
 
 subsubsection {* Monad combinators *}
 
-datatype exception = Exn
-
 text {* Monadic heap actions either produce values
   and transform the heap, or fail *}
-datatype 'a Heap = Heap "heap \<Rightarrow> ('a + exception) \<times> heap"
+datatype 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
 
-primrec
-  execute :: "'a Heap \<Rightarrow> heap \<Rightarrow> ('a + exception) \<times> heap" where
-  "execute (Heap f) = f"
-lemmas [code del] = execute.simps
+primrec execute :: "'a Heap \<Rightarrow> heap \<Rightarrow> ('a \<times> heap) option" where
+  [code del]: "execute (Heap f) = f"
 
 lemma Heap_execute [simp]:
   "Heap (execute f) = f" by (cases f) simp_all
@@ -34,57 +30,66 @@ lemma Heap_eqI':
   "(\<And>h. (\<lambda>x. execute (f x) h) = (\<lambda>y. execute (g y) h)) \<Longrightarrow> f = g"
     by (auto simp: expand_fun_eq intro: Heap_eqI)
 
-lemma Heap_strip: "(\<And>f. PROP P f) \<equiv> (\<And>g. PROP P (Heap g))"
-proof
-  fix g :: "heap \<Rightarrow> ('a + exception) \<times> heap" 
-  assume "\<And>f. PROP P f"
-  then show "PROP P (Heap g)" .
-next
-  fix f :: "'a Heap" 
-  assume assm: "\<And>g. PROP P (Heap g)"
-  then have "PROP P (Heap (execute f))" .
-  then show "PROP P f" by simp
-qed
-
-definition
-  heap :: "(heap \<Rightarrow> 'a \<times> heap) \<Rightarrow> 'a Heap" where
-  [code del]: "heap f = Heap (\<lambda>h. apfst Inl (f h))"
+definition heap :: "(heap \<Rightarrow> 'a \<times> heap) \<Rightarrow> 'a Heap" where
+  [code del]: "heap f = Heap (Some \<circ> f)"
 
 lemma execute_heap [simp]:
-  "execute (heap f) h = apfst Inl (f h)"
+  "execute (heap f) = Some \<circ> f"
   by (simp add: heap_def)
 
-definition
-  bindM :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where
-  [code del]: "f >>= g = Heap (\<lambda>h. case execute f h of
-                  (Inl x, h') \<Rightarrow> execute (g x) h'
-                | r \<Rightarrow> r)"
+lemma heap_cases [case_names succeed fail]:
+  fixes f and h
+  assumes succeed: "\<And>x h'. execute f h = Some (x, h') \<Longrightarrow> P"
+  assumes fail: "execute f h = None \<Longrightarrow> P"
+  shows P
+  using assms by (cases "execute f h") auto
 
-notation
-  bindM (infixl "\<guillemotright>=" 54)
-
-abbreviation
-  chainM :: "'a Heap \<Rightarrow> 'b Heap \<Rightarrow> 'b Heap"  (infixl ">>" 54) where
-  "f >> g \<equiv> f >>= (\<lambda>_. g)"
-
-notation
-  chainM (infixl "\<guillemotright>" 54)
-
-definition
-  return :: "'a \<Rightarrow> 'a Heap" where
+definition return :: "'a \<Rightarrow> 'a Heap" where
   [code del]: "return x = heap (Pair x)"
 
 lemma execute_return [simp]:
-  "execute (return x) h = apfst Inl (x, h)"
+  "execute (return x) = Some \<circ> Pair x"
   by (simp add: return_def)
 
-definition
-  raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
-  [code del]: "raise s = Heap (Pair (Inr Exn))"
+definition raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
+  [code del]: "raise s = Heap (\<lambda>_. None)"
 
 lemma execute_raise [simp]:
-  "execute (raise s) h = (Inr Exn, h)"
+  "execute (raise s) = (\<lambda>_. None)"
   by (simp add: raise_def)
+
+definition bindM :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where
+  [code del]: "f >>= g = Heap (\<lambda>h. case execute f h of
+                  Some (x, h') \<Rightarrow> execute (g x) h'
+                | None \<Rightarrow> None)"
+
+notation bindM (infixl "\<guillemotright>=" 54)
+
+lemma execute_bind [simp]:
+  "execute f h = Some (x, h') \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g x) h'"
+  "execute f h = None \<Longrightarrow> execute (f \<guillemotright>= g) h = None"
+  by (simp_all add: bindM_def)
+
+lemma execute_bind_heap [simp]:
+  "execute (heap f \<guillemotright>= g) h = execute (g (fst (f h))) (snd (f h))"
+  by (simp add: bindM_def split_def)
+  
+lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
+  by (rule Heap_eqI) simp
+
+lemma bind_return [simp]: "f \<guillemotright>= return = f"
+  by (rule Heap_eqI) (simp add: bindM_def split: option.splits)
+
+lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= k)"
+  by (rule Heap_eqI) (simp add: bindM_def split: option.splits)
+
+lemma raise_bind [simp]: "raise e \<guillemotright>= f = raise e"
+  by (rule Heap_eqI) simp
+
+abbreviation chainM :: "'a Heap \<Rightarrow> 'b Heap \<Rightarrow> 'b Heap"  (infixl ">>" 54) where
+  "f >> g \<equiv> f >>= (\<lambda>_. g)"
+
+notation chainM (infixl "\<guillemotright>" 54)
 
 
 subsubsection {* do-syntax *}
@@ -170,88 +175,10 @@ end;
 
 subsection {* Monad properties *}
 
-subsubsection {* Monad laws *}
-
-lemma return_bind: "return x \<guillemotright>= f = f x"
-  by (simp add: bindM_def return_def)
-
-lemma bind_return: "f \<guillemotright>= return = f"
-proof (rule Heap_eqI)
-  fix h
-  show "execute (f \<guillemotright>= return) h = execute f h"
-    by (auto simp add: bindM_def return_def split: sum.splits prod.splits)
-qed
-
-lemma bind_bind: "(f \<guillemotright>= g) \<guillemotright>= h = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= h)"
-  by (rule Heap_eqI) (auto simp add: bindM_def split: split: sum.splits prod.splits)
-
-lemma bind_bind': "f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= h x) = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= (\<lambda>y. return (x, y))) \<guillemotright>= (\<lambda>(x, y). h x y)"
-  by (rule Heap_eqI) (auto simp add: bindM_def split: split: sum.splits prod.splits)
-
-lemma raise_bind: "raise e \<guillemotright>= f = raise e"
-  by (simp add: raise_def bindM_def)
-
-
-lemmas monad_simp = return_bind bind_return bind_bind raise_bind
-
-
 subsection {* Generic combinators *}
 
-definition
-  liftM :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b Heap"
-where
-  "liftM f = return o f"
-
-definition
-  compM :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> ('b \<Rightarrow> 'c Heap) \<Rightarrow> 'a \<Rightarrow> 'c Heap" (infixl ">>==" 54)
-where
-  "(f >>== g) = (\<lambda>x. f x \<guillemotright>= g)"
-
-notation
-  compM (infixl "\<guillemotright>==" 54)
-
-lemma liftM_collapse: "liftM f x = return (f x)"
-  by (simp add: liftM_def)
-
-lemma liftM_compM: "liftM f \<guillemotright>== g = g o f"
-  by (auto intro: Heap_eqI' simp add: expand_fun_eq liftM_def compM_def bindM_def)
-
-lemma compM_return: "f \<guillemotright>== return = f"
-  by (simp add: compM_def monad_simp)
-
-lemma compM_compM: "(f \<guillemotright>== g) \<guillemotright>== h = f \<guillemotright>== (g \<guillemotright>== h)"
-  by (simp add: compM_def monad_simp)
-
-lemma liftM_bind:
-  "(\<lambda>x. liftM f x \<guillemotright>= liftM g) = liftM (\<lambda>x. g (f x))"
-  by (rule Heap_eqI') (simp add: monad_simp liftM_def bindM_def)
-
-lemma liftM_comp:
-  "liftM f o g = liftM (f o g)"
-  by (rule Heap_eqI') (simp add: liftM_def)
-
-lemmas monad_simp' = monad_simp liftM_compM compM_return
-  compM_compM liftM_bind liftM_comp
-
-primrec 
-  mapM :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b list Heap"
-where
-  "mapM f [] = return []"
-  | "mapM f (x#xs) = do y \<leftarrow> f x;
-                        ys \<leftarrow> mapM f xs;
-                        return (y # ys)
-                     done"
-
-primrec
-  foldM :: "('a \<Rightarrow> 'b \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b Heap"
-where
-  "foldM f [] s = return s"
-  | "foldM f (x#xs) s = f x s \<guillemotright>= foldM f xs"
-
-definition
-  assert :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a Heap"
-where
-  "assert P x = (if P x then return x else raise (''assert''))"
+definition assert :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a Heap" where
+  "assert P x = (if P x then return x else raise ''assert'')"
 
 lemma assert_cong [fundef_cong]:
   assumes "P = P'"
@@ -259,28 +186,42 @@ lemma assert_cong [fundef_cong]:
   shows "(assert P x >>= f) = (assert P' x >>= f')"
   using assms by (auto simp add: assert_def return_bind raise_bind)
 
+definition liftM :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b Heap" where
+  "liftM f = return o f"
+
+lemma liftM_collapse [simp]:
+  "liftM f x = return (f x)"
+  by (simp add: liftM_def)
+
+lemma bind_liftM:
+  "(f \<guillemotright>= liftM g) = (f \<guillemotright>= (\<lambda>x. return (g x)))"
+  by (simp add: liftM_def comp_def)
+
+primrec mapM :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b list Heap" where
+  "mapM f [] = return []"
+| "mapM f (x#xs) = do
+     y \<leftarrow> f x;
+     ys \<leftarrow> mapM f xs;
+     return (y # ys)
+   done"
+
+
 subsubsection {* A monadic combinator for simple recursive functions *}
 
 text {* Using a locale to fix arguments f and g of MREC *}
 
 locale mrec =
-fixes
-  f :: "'a => ('b + 'a) Heap"
-  and g :: "'a => 'a => 'b => 'b Heap"
+  fixes f :: "'a \<Rightarrow> ('b + 'a) Heap"
+  and g :: "'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b Heap"
 begin
 
-function (default "\<lambda>(x,h). (Inr Exn, undefined)") 
-  mrec 
-where
-  "mrec x h = 
-   (case Heap_Monad.execute (f x) h of
-     (Inl (Inl r), h') \<Rightarrow> (Inl r, h')
-   | (Inl (Inr s), h') \<Rightarrow> 
-          (case mrec s h' of
-             (Inl z, h'') \<Rightarrow> Heap_Monad.execute (g x s z) h''
-           | (Inr e, h'') \<Rightarrow> (Inr e, h''))
-   | (Inr e, h') \<Rightarrow> (Inr e, h')
-   )"
+function (default "\<lambda>(x, h). None") mrec :: "'a \<Rightarrow> heap \<Rightarrow> ('b \<times> heap) option" where
+  "mrec x h = (case execute (f x) h of
+     Some (Inl r, h') \<Rightarrow> Some (r, h')
+   | Some (Inr s, h') \<Rightarrow> (case mrec s h' of
+             Some (z, h'') \<Rightarrow> execute (g x s z) h''
+           | None \<Rightarrow> None)
+   | None \<Rightarrow> None)"
 by auto
 
 lemma graph_implies_dom:
@@ -290,38 +231,37 @@ apply (rule accpI)
 apply (erule mrec_rel.cases)
 by simp
 
-lemma mrec_default: "\<not> mrec_dom (x, h) \<Longrightarrow> mrec x h = (Inr Exn, undefined)"
+lemma mrec_default: "\<not> mrec_dom (x, h) \<Longrightarrow> mrec x h = None"
   unfolding mrec_def 
   by (rule fundef_default_value[OF mrec_sumC_def graph_implies_dom, of _ _ "(x, h)", simplified])
 
 lemma mrec_di_reverse: 
   assumes "\<not> mrec_dom (x, h)"
   shows "
-   (case Heap_Monad.execute (f x) h of
-     (Inl (Inl r), h') \<Rightarrow> False
-   | (Inl (Inr s), h') \<Rightarrow> \<not> mrec_dom (s, h')
-   | (Inr e, h') \<Rightarrow> False
+   (case execute (f x) h of
+     Some (Inl r, h') \<Rightarrow> False
+   | Some (Inr s, h') \<Rightarrow> \<not> mrec_dom (s, h')
+   | None \<Rightarrow> False
    )" 
-using assms
-by (auto split:prod.splits sum.splits)
- (erule notE, rule accpI, elim mrec_rel.cases, simp)+
-
+using assms apply (auto split: option.split sum.split)
+apply (rule ccontr)
+apply (erule notE, rule accpI, elim mrec_rel.cases, auto)+
+done
 
 lemma mrec_rule:
   "mrec x h = 
-   (case Heap_Monad.execute (f x) h of
-     (Inl (Inl r), h') \<Rightarrow> (Inl r, h')
-   | (Inl (Inr s), h') \<Rightarrow> 
+   (case execute (f x) h of
+     Some (Inl r, h') \<Rightarrow> Some (r, h')
+   | Some (Inr s, h') \<Rightarrow> 
           (case mrec s h' of
-             (Inl z, h'') \<Rightarrow> Heap_Monad.execute (g x s z) h''
-           | (Inr e, h'') \<Rightarrow> (Inr e, h''))
-   | (Inr e, h') \<Rightarrow> (Inr e, h')
+             Some (z, h'') \<Rightarrow> execute (g x s z) h''
+           | None \<Rightarrow> None)
+   | None \<Rightarrow> None
    )"
 apply (cases "mrec_dom (x,h)", simp)
 apply (frule mrec_default)
 apply (frule mrec_di_reverse, simp)
-by (auto split: sum.split prod.split simp: mrec_default)
-
+by (auto split: sum.split option.split simp: mrec_default)
 
 definition
   "MREC x = Heap (mrec x)"
@@ -340,32 +280,31 @@ lemma MREC_rule:
   apply simp
   apply (rule ext)
   apply (unfold mrec_rule[of x])
-  by (auto split:prod.splits sum.splits)
-
+  by (auto split: option.splits prod.splits sum.splits)
 
 lemma MREC_pinduct:
-  assumes "Heap_Monad.execute (MREC x) h = (Inl r, h')"
-  assumes non_rec_case: "\<And> x h h' r. Heap_Monad.execute (f x) h = (Inl (Inl r), h') \<Longrightarrow> P x h h' r"
-  assumes rec_case: "\<And> x h h1 h2 h' s z r. Heap_Monad.execute (f x) h = (Inl (Inr s), h1) \<Longrightarrow> Heap_Monad.execute (MREC s) h1 = (Inl z, h2) \<Longrightarrow> P s h1 h2 z
-    \<Longrightarrow> Heap_Monad.execute (g x s z) h2 = (Inl r, h') \<Longrightarrow> P x h h' r"
+  assumes "execute (MREC x) h = Some (r, h')"
+  assumes non_rec_case: "\<And> x h h' r. execute (f x) h = Some (Inl r, h') \<Longrightarrow> P x h h' r"
+  assumes rec_case: "\<And> x h h1 h2 h' s z r. execute (f x) h = Some (Inr s, h1) \<Longrightarrow> execute (MREC s) h1 = Some (z, h2) \<Longrightarrow> P s h1 h2 z
+    \<Longrightarrow> execute (g x s z) h2 = Some (r, h') \<Longrightarrow> P x h h' r"
   shows "P x h h' r"
 proof -
-  from assms(1) have mrec: "mrec x h = (Inl r, h')"
+  from assms(1) have mrec: "mrec x h = Some (r, h')"
     unfolding MREC_def execute.simps .
   from mrec have dom: "mrec_dom (x, h)"
     apply -
     apply (rule ccontr)
     apply (drule mrec_default) by auto
-  from mrec have h'_r: "h' = (snd (mrec x h))" "r = (Sum_Type.Projl (fst (mrec x h)))"
+  from mrec have h'_r: "h' = snd (the (mrec x h))" "r = fst (the (mrec x h))"
     by auto
-  from mrec have "P x h (snd (mrec x h)) (Sum_Type.Projl (fst (mrec x h)))"
+  from mrec have "P x h (snd (the (mrec x h))) (fst (the (mrec x h)))"
   proof (induct arbitrary: r h' rule: mrec.pinduct[OF dom])
     case (1 x h)
-    obtain rr h' where "mrec x h = (rr, h')" by fastsimp
-    obtain fret h1 where exec_f: "Heap_Monad.execute (f x) h = (fret, h1)" by fastsimp
+    obtain rr h' where "the (mrec x h) = (rr, h')" by fastsimp
     show ?case
-    proof (cases fret)
-      case (Inl a)
+    proof (cases "execute (f x) h")
+      case (Some result)
+      then obtain a h1 where exec_f: "execute (f x) h = Some (a, h1)" by fastsimp
       note Inl' = this
       show ?thesis
       proof (cases a)
@@ -375,23 +314,28 @@ proof -
       next
         case (Inr b)
         note Inr' = this
-        obtain ret_mrec h2 where mrec_rec: "mrec b h1 = (ret_mrec, h2)" by fastsimp
-        from this Inl 1(1) exec_f mrec show ?thesis
-        proof (cases "ret_mrec")
-          case (Inl aaa)
-          from this mrec exec_f Inl' Inr' 1(1) mrec_rec 1(2) [OF exec_f [symmetric] Inl' Inr', of "aaa" "h2"] 1(3)
-            show ?thesis
-              apply auto
-              apply (rule rec_case)
-              unfolding MREC_def by auto
+        show ?thesis
+        proof (cases "mrec b h1")
+          case (Some result)
+          then obtain aaa h2 where mrec_rec: "mrec b h1 = Some (aaa, h2)" by fastsimp
+          moreover from this have "P b h1 (snd (the (mrec b h1))) (fst (the (mrec b h1)))"
+            apply (intro 1(2))
+            apply (auto simp add: Inr Inl')
+            done
+          moreover note mrec mrec_rec exec_f Inl' Inr' 1(1) 1(3)
+          ultimately show ?thesis
+            apply auto
+            apply (rule rec_case)
+            apply auto
+            unfolding MREC_def by auto
         next
-          case (Inr b)
-          from this Inl 1(1) exec_f mrec Inr' mrec_rec 1(3) show ?thesis by auto
+          case None
+          from this 1(1) exec_f mrec Inr' 1(3) show ?thesis by auto
         qed
       qed
     next
-      case (Inr b)
-      from this 1(1) mrec exec_f 1(3) show ?thesis by simp
+      case None
+      from this 1(1) mrec 1(3) show ?thesis by simp
     qed
   qed
   from this h'_r show ?thesis by simp
@@ -412,38 +356,29 @@ subsection {* Code generator setup *}
 
 subsubsection {* Logical intermediate layer *}
 
-definition
-  Fail :: "String.literal \<Rightarrow> exception"
-where
-  [code del]: "Fail s = Exn"
+primrec raise' :: "String.literal \<Rightarrow> 'a Heap" where
+  [code del, code_post]: "raise' (STR s) = raise s"
 
-definition
-  raise_exc :: "exception \<Rightarrow> 'a Heap"
-where
-  [code del]: "raise_exc e = raise []"
+lemma raise_raise' [code_inline]:
+  "raise s = raise' (STR s)"
+  by simp
 
-lemma raise_raise_exc [code, code_unfold]:
-  "raise s = raise_exc (Fail (STR s))"
-  unfolding Fail_def raise_exc_def raise_def ..
+code_datatype raise' -- {* avoid @{const "Heap"} formally *}
 
-hide_const (open) Fail raise_exc
+hide_const (open) raise'
 
 
 subsubsection {* SML and OCaml *}
 
 code_type Heap (SML "unit/ ->/ _")
-code_const Heap (SML "raise/ (Fail/ \"bare Heap\")")
 code_const "op \<guillemotright>=" (SML "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())")
 code_const return (SML "!(fn/ ()/ =>/ _)")
-code_const "Heap_Monad.Fail" (SML "Fail")
-code_const "Heap_Monad.raise_exc" (SML "!(fn/ ()/ =>/ raise/ _)")
+code_const Heap_Monad.raise' (SML "!(raise/ Fail/ _)")
 
 code_type Heap (OCaml "_")
-code_const Heap (OCaml "failwith/ \"bare Heap\"")
 code_const "op \<guillemotright>=" (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
 code_const return (OCaml "!(fun/ ()/ ->/ _)")
-code_const "Heap_Monad.Fail" (OCaml "Failure")
-code_const "Heap_Monad.raise_exc" (OCaml "!(fun/ ()/ ->/ raise/ _)")
+code_const Heap_Monad.raise' (OCaml "failwith/ _")
 
 setup {*
 
@@ -514,8 +449,6 @@ end
 
 *}
 
-code_reserved OCaml Failure raise
-
 
 subsubsection {* Haskell *}
 
@@ -556,10 +489,8 @@ code_reserved Haskell Heap
 text {* Monad *}
 
 code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
-code_const Heap (Haskell "error/ \"bare Heap\"")
 code_monad "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
-code_const "Heap_Monad.Fail" (Haskell "_")
-code_const "Heap_Monad.raise_exc" (Haskell "error")
+code_const Heap_Monad.raise' (Haskell "error/ _")
 
 end

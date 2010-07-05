@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Ref.thy
-    ID:         $Id$
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
@@ -53,7 +52,7 @@ lemma lookup_chain:
 
 lemma update_change [code]:
   "r := e = Ref.change (\<lambda>_. e) r \<guillemotright> return ()"
-  by (auto simp add: monad_simp change_def lookup_chain)
+  by (auto simp add: change_def lookup_chain)
 
 
 subsection {* Code generator setup *}

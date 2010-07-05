@@ -28,7 +28,7 @@ where
   [code del]: "nth a i = (do len \<leftarrow> length a;
                  (if i < len
                      then Heap_Monad.heap (\<lambda>h. (get_array a h ! i, h))
-                     else raise (''array lookup: index out of range''))
+                     else raise ''array lookup: index out of range'')
               done)"
 
 definition
@@ -37,18 +37,12 @@ where
   [code del]: "upd i x a = (do len \<leftarrow> length a;
                       (if i < len
                            then Heap_Monad.heap (\<lambda>h. (a, Heap.upd a i x h))
-                           else raise (''array update: index out of range''))
+                           else raise ''array update: index out of range'')
                    done)" 
 
 lemma upd_return:
   "upd i x a \<guillemotright> return a = upd i x a"
-proof (rule Heap_eqI)
-  fix h
-  obtain len h' where "Heap_Monad.execute (Array.length a) h = (len, h')"
-    by (cases "Heap_Monad.execute (Array.length a) h")
-  then show "Heap_Monad.execute (upd i x a \<guillemotright> return a) h = Heap_Monad.execute (upd i x a) h"
-    by (auto simp add: upd_def bindM_def split: sum.split)
-qed
+  by (rule Heap_eqI) (simp add: upd_def bindM_def split: option.split) 
 
 
 subsection {* Derivates *}
@@ -99,14 +93,11 @@ subsection {* Properties *}
 
 lemma array_make [code]:
   "Array.new n x = make n (\<lambda>_. x)"
-  by (induct n) (simp_all add: make_def new_def Heap_Monad.heap_def
-    monad_simp array_of_list_replicate [symmetric]
-    map_replicate_trivial replicate_append_same
-    of_list_def)
+  by (rule Heap_eqI) (simp add: make_def new_def array_of_list_replicate map_replicate_trivial of_list_def)
 
 lemma array_of_list_make [code]:
   "of_list xs = make (List.length xs) (\<lambda>n. xs ! n)"
-  unfolding make_def map_nth ..
+  by (rule Heap_eqI) (simp add: make_def map_nth)
 
 
 subsection {* Code generator setup *}
@@ -135,13 +126,11 @@ lemma [code]:
   by (simp add: make'_def o_def)
 
 definition length' where
-  [code del]: "length' = Array.length \<guillemotright>== liftM Code_Numeral.of_nat"
+  [code del]: "length' a = Array.length a \<guillemotright>= (\<lambda>n. return (Code_Numeral.of_nat n))"
 hide_const (open) length'
 lemma [code]:
-  "Array.length = Array.length' \<guillemotright>== liftM Code_Numeral.nat_of"
-  by (simp add: length'_def monad_simp',
-    simp add: liftM_def comp_def monad_simp,
-    simp add: monad_simp')
+  "Array.length a = Array.length' a \<guillemotright>= (\<lambda>i. return (Code_Numeral.nat_of i))"
+  by (simp add: length'_def)
 
 definition nth' where
   [code del]: "nth' a = Array.nth a o Code_Numeral.nat_of"
@@ -155,7 +144,7 @@ definition upd' where
 hide_const (open) upd'
 lemma [code]:
   "Array.upd i x a = Array.upd' a (Code_Numeral.of_nat i) x \<guillemotright> return a"
-  by (simp add: upd'_def monad_simp upd_return)
+  by (simp add: upd'_def upd_return)
 
 
 subsubsection {* SML *}
