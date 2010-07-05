@@ -59,6 +59,7 @@ sig
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
   val shutdown: unit -> unit
+  val report: (unit -> 'a) -> 'a
 end;
 
 structure Future: FUTURE =
@@ -284,7 +285,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       if forall (Thread.isActive o #1) (! workers) then ()
       else
         let
-          val  (alive, dead) = List.partition (Thread.isActive o #1) (! workers);
+          val (alive, dead) = List.partition (Thread.isActive o #1) (! workers);
           val _ = workers := alive;
         in
           Multithreading.tracing 0 (fn () =>
@@ -521,6 +522,16 @@ fun shutdown () =
      while scheduler_active () do
       (wait scheduler_event; broadcast_work ()))
   else ();
+
+
+(* report markup *)
+
+fun report e =
+  let
+    val _ = Output.status (Markup.markup Markup.forked "");
+    val x = e ();  (*sic -- report "joined" only for success*)
+    val _ = Output.status (Markup.markup Markup.joined "");
+  in x end;
 
 
 (*final declarations of this structure!*)

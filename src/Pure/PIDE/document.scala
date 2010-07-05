@@ -14,13 +14,13 @@ object Document
 {
   /* command start positions */
 
-  def command_starts(commands: Linear_Set[Command]): Iterator[(Command, Int)] =
+  def command_starts(commands: Iterator[Command], offset: Int = 0): Iterator[(Command, Int)] =
   {
-    var offset = 0
-    for (cmd <- commands.iterator) yield {
-      val start = offset
-      offset += cmd.length
-      (cmd, start)
+    var i = offset
+    for (command <- commands) yield {
+      val start = i
+      i += command.length
+      (command, start)
     }
   }
 
@@ -60,9 +60,10 @@ object Document
     {
       eds match {
         case e :: es =>
-          command_starts(commands).find {   // FIXME relative search!
+          command_starts(commands.iterator).find {
             case (cmd, cmd_start) =>
-              e.can_edit(cmd.source, cmd_start) || e.is_insert && e.start == cmd_start + cmd.length
+              e.can_edit(cmd.source, cmd_start) ||
+                e.is_insert && e.start == cmd_start + cmd.length
           } match {
             case Some((cmd, cmd_start)) if e.can_edit(cmd.source, cmd_start) =>
               val (rest, text) = e.edit(cmd.source, cmd_start)
@@ -144,7 +145,7 @@ class Document(
 {
   /* command ranges */
 
-  def command_starts: Iterator[(Command, Int)] = Document.command_starts(commands)
+  def command_starts: Iterator[(Command, Int)] = Document.command_starts(commands.iterator)
 
   def command_start(cmd: Command): Option[Int] =
     command_starts.find(_._1 == cmd).map(_._2)
