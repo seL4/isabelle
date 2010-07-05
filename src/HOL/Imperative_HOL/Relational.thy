@@ -101,8 +101,8 @@ lemma crel_length:
 lemma crel_new_weak:
   assumes "crel (Array.new n v) h h' r"
   obtains "get_array r h' = List.replicate n v"
-  using assms unfolding  Array.new_def
-  by (elim crel_heap) (auto simp:Heap.array_def Let_def split_def)
+  using assms unfolding Array.new_def
+  by (elim crel_heap) (auto simp: array_def Let_def split_def)
 
 lemma crel_nth[consumes 1]:
   assumes "crel (nth a i) h h' r"

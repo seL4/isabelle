@@ -136,15 +136,9 @@ definition
          in (r, h''))"
 
 definition
-  array :: "nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
-  "array n x h = (let (r, h') = new_array h;
-                       h'' = set_array r (replicate n x) h'
-        in (r, h''))"
-
-definition
-  array_of_list :: "'a list \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
-  "array_of_list xs h = (let (r, h') = new_array h;
-           h'' = set_array r xs h'
+  array :: "'a list \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
+  "array xs h = (let (r, h') = new_array h;
+                      h'' = set_array r xs h'
         in (r, h''))"  
 
 definition
@@ -154,11 +148,6 @@ definition
 definition
   length :: "'a\<Colon>heap array \<Rightarrow> heap \<Rightarrow> nat" where
   "length a h = size (get_array a h)"
-
-definition
-  array_ran :: "('a\<Colon>heap) option array \<Rightarrow> heap \<Rightarrow> 'a set" where
-  "array_ran a h = {e. Some e \<in> set (get_array a h)}"
-    -- {*FIXME*}
 
 
 subsubsection {* Reference equality *}
@@ -189,7 +178,7 @@ lemma noteq_refs_irrefl: "r =!= r \<Longrightarrow> False"
 lemma present_new_ref: "ref_present r h \<Longrightarrow> r =!= fst (ref v h)"
   by (simp add: ref_present_def new_ref_def ref_def Let_def noteq_refs_def)
 
-lemma present_new_arr: "array_present a h \<Longrightarrow> a =!!= fst (array v x h)"
+lemma present_new_arr: "array_present a h \<Longrightarrow> a =!!= fst (array xs h)"
   by (simp add: array_present_def noteq_arrs_def new_array_def array_def Let_def)
 
 
@@ -255,22 +244,22 @@ lemma upd_swap_neqIndex:
 by (auto simp add: upd_def array_set_set_swap list_update_swap)
 
 lemma get_array_init_array_list:
-  "get_array (fst (array_of_list ls h)) (snd (array_of_list ls' h)) = ls'"
-  by (simp add: Let_def split_def array_of_list_def)
+  "get_array (fst (array ls h)) (snd (array ls' h)) = ls'"
+  by (simp add: Let_def split_def array_def)
 
 lemma set_array:
-  "set_array (fst (array_of_list ls h))
-     new_ls (snd (array_of_list ls h))
-       = snd (array_of_list new_ls h)"
-  by (simp add: Let_def split_def array_of_list_def)
+  "set_array (fst (array ls h))
+     new_ls (snd (array ls h))
+       = snd (array new_ls h)"
+  by (simp add: Let_def split_def array_def)
 
 lemma array_present_upd [simp]: 
   "array_present a (upd b i v h) = array_present a h"
   by (simp add: upd_def array_present_def set_array_def get_array_def)
 
-lemma array_of_list_replicate:
+(*lemma array_of_list_replicate:
   "array_of_list (replicate n x) = array n x"
-  by (simp add: expand_fun_eq array_of_list_def array_def)
+  by (simp add: expand_fun_eq array_of_list_def array_def)*)
 
 text {* Properties of imperative references *}
 
@@ -338,28 +327,6 @@ lemma noteq_refsI: "\<lbrakk> ref_present r h; \<not>ref_present r' h \<rbrakk> 
   unfolding noteq_refs_def ref_present_def
   by auto
 
-lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Heap.length a h \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
-unfolding array_ran_def Heap.length_def by simp
-
-lemma array_ran_upd_array_Some:
-  assumes "cl \<in> array_ran a (Heap.upd a i (Some b) h)"
-  shows "cl \<in> array_ran a h \<or> cl = b"
-proof -
-  have "set (get_array a h[i := Some b]) \<subseteq> insert (Some b) (set (get_array a h))" by (rule set_update_subset_insert)
-  with assms show ?thesis 
-    unfolding array_ran_def Heap.upd_def by fastsimp
-qed
-
-lemma array_ran_upd_array_None:
-  assumes "cl \<in> array_ran a (Heap.upd a i None h)"
-  shows "cl \<in> array_ran a h"
-proof -
-  have "set (get_array a h[i := None]) \<subseteq> insert None (set (get_array a h))" by (rule set_update_subset_insert)
-  with assms show ?thesis
-    unfolding array_ran_def Heap.upd_def by auto
-qed
-
-
 text {* Non-interaction between imperative array and imperative references *}
 
 lemma get_array_set_ref [simp]: "get_array a (set_ref r v h) = get_array a h"
@@ -401,6 +368,6 @@ lemma array_present_new_ref [simp]:
   "array_present a h \<Longrightarrow> array_present a (snd (ref v h))"
   by (simp add: array_present_def new_ref_def ref_def Let_def)
 
-hide_const (open) empty array array_of_list upd length ref
+hide_const (open) empty upd length array ref
 
 end

@@ -12,11 +12,11 @@ subsection {* Primitives *}
 
 definition
   new :: "nat \<Rightarrow> 'a\<Colon>heap \<Rightarrow> 'a array Heap" where
-  [code del]: "new n x = Heap_Monad.heap (Heap.array n x)"
+  [code del]: "new n x = Heap_Monad.heap (Heap.array (replicate n x))"
 
 definition
   of_list :: "'a\<Colon>heap list \<Rightarrow> 'a array Heap" where
-  [code del]: "of_list xs = Heap_Monad.heap (Heap.array_of_list xs)"
+  [code del]: "of_list xs = Heap_Monad.heap (Heap.array xs)"
 
 definition
   length :: "'a\<Colon>heap array \<Rightarrow> nat Heap" where
@@ -93,7 +93,7 @@ subsection {* Properties *}
 
 lemma array_make [code]:
   "Array.new n x = make n (\<lambda>_. x)"
-  by (rule Heap_eqI) (simp add: make_def new_def array_of_list_replicate map_replicate_trivial of_list_def)
+  by (rule Heap_eqI) (simp add: make_def new_def map_replicate_trivial of_list_def)
 
 lemma array_of_list_make [code]:
   "of_list xs = make (List.length xs) (\<lambda>n. xs ! n)"
