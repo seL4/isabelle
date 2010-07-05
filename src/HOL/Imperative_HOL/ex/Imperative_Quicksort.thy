@@ -27,7 +27,7 @@ lemma swap_permutes:
   = multiset_of (get_array a h)"
   using assms
   unfolding swap_def
-  by (auto simp add: Heap.length_def multiset_of_swap dest: sym [of _ "h'"] elim!: crelE crel_nth crel_return crel_upd)
+  by (auto simp add: Array.length_def multiset_of_swap dest: sym [of _ "h'"] elim!: crelE crel_nth crel_return crel_upd)
 
 function part1 :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
 where
@@ -101,7 +101,7 @@ qed
 
 lemma part_length_remains:
   assumes "crel (part1 a l r p) h h' rs"
-  shows "Heap.length a h = Heap.length a h'"
+  shows "Array.length a h = Array.length a h'"
 using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
@@ -207,7 +207,7 @@ proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
         by (elim crelE crel_nth crel_if crel_return) auto
       from swp False have "get_array a h1 ! r \<ge> p"
         unfolding swap_def
-        by (auto simp add: Heap.length_def elim!: crelE crel_nth crel_upd crel_return)
+        by (auto simp add: Array.length_def elim!: crelE crel_nth crel_upd crel_return)
       with part_outer_remains [OF rec2] lr have a_r: "get_array a h' ! r \<ge> p"
         by fastsimp
       have "\<forall>i. (i \<le> r = (i = r \<or> i \<le> r - 1))" by arith
@@ -243,7 +243,7 @@ qed
 
 lemma partition_length_remains:
   assumes "crel (partition a l r) h h' rs"
-  shows "Heap.length a h = Heap.length a h'"
+  shows "Array.length a h = Array.length a h'"
 proof -
   from assms part_length_remains show ?thesis
     unfolding partition.simps swap_def
@@ -287,14 +287,14 @@ proof -
          else middle)"
     unfolding partition.simps
     by (elim crelE crel_return crel_nth crel_if crel_upd) simp
-  from swap have h'_def: "h' = Heap.upd a r (get_array a h1 ! rs)
-    (Heap.upd a rs (get_array a h1 ! r) h1)"
+  from swap have h'_def: "h' = Array.change a r (get_array a h1 ! rs)
+    (Array.change a rs (get_array a h1 ! r) h1)"
     unfolding swap_def
     by (elim crelE crel_return crel_nth crel_upd) simp
-  from swap have in_bounds: "r < Heap.length a h1 \<and> rs < Heap.length a h1"
+  from swap have in_bounds: "r < Array.length a h1 \<and> rs < Array.length a h1"
     unfolding swap_def
     by (elim crelE crel_return crel_nth crel_upd) simp
-  from swap have swap_length_remains: "Heap.length a h1 = Heap.length a h'"
+  from swap have swap_length_remains: "Array.length a h1 = Array.length a h'"
     unfolding swap_def by (elim crelE crel_return crel_nth crel_upd) auto
   from `l < r` have "l \<le> r - 1" by simp 
   note middle_in_bounds = part_returns_index_in_bounds[OF part this]
@@ -304,7 +304,7 @@ proof -
   with swap
   have right_remains: "get_array a h ! r = get_array a h' ! rs"
     unfolding swap_def
-    by (auto simp add: Heap.length_def elim!: crelE crel_return crel_nth crel_upd) (cases "r = rs", auto)
+    by (auto simp add: Array.length_def elim!: crelE crel_return crel_nth crel_upd) (cases "r = rs", auto)
   from part_partitions [OF part]
   show ?thesis
   proof (cases "get_array a h1 ! middle \<le> ?pivot")
@@ -314,12 +314,12 @@ proof -
       fix i
       assume i_is_left: "l \<le> i \<and> i < rs"
       with swap_length_remains in_bounds middle_in_bounds rs_equals `l < r`
-      have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+      have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
       from i_is_left rs_equals have "l \<le> i \<and> i < middle \<or> i = middle" by arith
       with part_partitions[OF part] right_remains True
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
       with i_props h'_def in_bounds have "get_array a h' ! i \<le> get_array a h' ! rs"
-        unfolding Heap.upd_def Heap.length_def by simp
+        unfolding Array.change_def Array.length_def by simp
     }
     moreover
     {
@@ -331,7 +331,7 @@ proof -
       proof
         assume i_is: "rs < i \<and> i \<le> r - 1"
         with swap_length_remains in_bounds middle_in_bounds rs_equals
-        have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+        have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
         from part_partitions[OF part] rs_equals right_remains i_is
         have "get_array a h' ! rs \<le> get_array a h1 ! i"
           by fastsimp
@@ -345,7 +345,7 @@ proof -
           by fastsimp
         with i_is True rs_equals right_remains h'_def
         show ?thesis using in_bounds
-          unfolding Heap.upd_def Heap.length_def
+          unfolding Array.change_def Array.length_def
           by auto
       qed
     }
@@ -357,11 +357,11 @@ proof -
       fix i
       assume i_is_left: "l \<le> i \<and> i < rs"
       with swap_length_remains in_bounds middle_in_bounds rs_equals
-      have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+      have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
       from part_partitions[OF part] rs_equals right_remains i_is_left
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
       with i_props h'_def have "get_array a h' ! i \<le> get_array a h' ! rs"
-        unfolding Heap.upd_def by simp
+        unfolding Array.change_def by simp
     }
     moreover
     {
@@ -372,7 +372,7 @@ proof -
       proof
         assume i_is: "rs < i \<and> i \<le> r - 1"
         with swap_length_remains in_bounds middle_in_bounds rs_equals
-        have i_props: "i < Heap.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+        have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
         from part_partitions[OF part] rs_equals right_remains i_is
         have "get_array a h' ! rs \<le> get_array a h1 ! i"
           by fastsimp
@@ -381,7 +381,7 @@ proof -
         assume i_is: "i = r"
         from i_is False rs_equals right_remains h'_def
         show ?thesis using in_bounds
-          unfolding Heap.upd_def Heap.length_def
+          unfolding Array.change_def Array.length_def
           by auto
       qed
     }
@@ -425,7 +425,7 @@ qed
 
 lemma length_remains:
   assumes "crel (quicksort a l r) h h' rs"
-  shows "Heap.length a h = Heap.length a h'"
+  shows "Array.length a h = Array.length a h'"
 using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
@@ -482,7 +482,7 @@ lemma quicksort_is_skip:
  
 lemma quicksort_sorts:
   assumes "crel (quicksort a l r) h h' rs"
-  assumes l_r_length: "l < Heap.length a h" "r < Heap.length a h" 
+  assumes l_r_length: "l < Array.length a h" "r < Array.length a h" 
   shows "sorted (subarray l (r + 1) a h')"
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
@@ -524,7 +524,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       from quicksort_outer_remains [OF qs1] quicksort_permutes [OF qs1] True
         length_remains 1(5) pivot multiset_of_sublist [of l p "get_array a h1" "get_array a h2"]
       have multiset_partconds1: "multiset_of (subarray l p a h2) = multiset_of (subarray l p a h1)"
-        unfolding Heap.length_def subarray_def by (cases p, auto)
+        unfolding Array.length_def subarray_def by (cases p, auto)
       with left_subarray_remains part_conds1 pivot_unchanged
       have part_conds2': "\<forall>j. j \<in> set (subarray l p a h') \<longrightarrow> j \<le> get_array a h' ! p"
         by (simp, subst set_of_multiset_of[symmetric], simp)
@@ -535,7 +535,7 @@ proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
       from quicksort_outer_remains [OF qs2] quicksort_permutes [OF qs2] True
         length_remains 1(5) pivot multiset_of_sublist [of "p + 1" "r + 1" "get_array a h2" "get_array a h'"]
       have multiset_partconds2: "multiset_of (subarray (p + 1) (r + 1) a h') = multiset_of (subarray (p + 1) (r + 1) a h2)"
-        unfolding Heap.length_def subarray_def by auto
+        unfolding Array.length_def subarray_def by auto
       with right_subarray_remains part_conds2 pivot_unchanged
       have part_conds1': "\<forall>j. j \<in> set (subarray (p + 1) (r + 1) a h') \<longrightarrow> get_array a h' ! p \<le> j"
         by (simp, subst set_of_multiset_of[symmetric], simp)
@@ -556,18 +556,18 @@ qed
 
 
 lemma quicksort_is_sort:
-  assumes crel: "crel (quicksort a 0 (Heap.length a h - 1)) h h' rs"
+  assumes crel: "crel (quicksort a 0 (Array.length a h - 1)) h h' rs"
   shows "get_array a h' = sort (get_array a h)"
 proof (cases "get_array a h = []")
   case True
   with quicksort_is_skip[OF crel] show ?thesis
-  unfolding Heap.length_def by simp
+  unfolding Array.length_def by simp
 next
   case False
   from quicksort_sorts [OF crel] False have "sorted (sublist' 0 (List.length (get_array a h)) (get_array a h'))"
-    unfolding Heap.length_def subarray_def by auto
+    unfolding Array.length_def subarray_def by auto
   with length_remains[OF crel] have "sorted (get_array a h')"
-    unfolding Heap.length_def by simp
+    unfolding Array.length_def by simp
   with quicksort_permutes [OF crel] properties_for_sort show ?thesis by fastsimp
 qed
 
@@ -576,7 +576,7 @@ text {* We have proved that quicksort sorts (if no exceptions occur).
 We will now show that exceptions do not occur. *}
 
 lemma noError_part1: 
-  assumes "l < Heap.length a h" "r < Heap.length a h"
+  assumes "l < Array.length a h" "r < Array.length a h"
   shows "noError (part1 a l r p) h"
   using assms
 proof (induct a l r p arbitrary: h rule: part1.induct)
@@ -587,7 +587,7 @@ proof (induct a l r p arbitrary: h rule: part1.induct)
 qed
 
 lemma noError_partition:
-  assumes "l < r" "l < Heap.length a h" "r < Heap.length a h"
+  assumes "l < r" "l < Array.length a h" "r < Array.length a h"
   shows "noError (partition a l r) h"
 using assms
 unfolding partition.simps swap_def
@@ -603,7 +603,7 @@ apply auto
 done
 
 lemma noError_quicksort:
-  assumes "l < Heap.length a h" "r < Heap.length a h"
+  assumes "l < Array.length a h" "r < Array.length a h"
   shows "noError (quicksort a l r) h"
 using assms
 proof (induct a l r arbitrary: h rule: quicksort.induct)
@@ -628,7 +628,7 @@ qed
 subsection {* Example *}
 
 definition "qsort a = do
-    k \<leftarrow> length a;
+    k \<leftarrow> len a;
     quicksort a 0 (k - 1);
     return a
   done"

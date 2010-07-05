@@ -37,7 +37,7 @@ lemma swap_pointwise: assumes "crel (swap a i j) h h' r"
       else get_array a h ! k)"
 using assms unfolding swap.simps
 by (elim crel_elim_all)
- (auto simp: Heap.length_def)
+ (auto simp: length_def)
 
 lemma rev_pointwise: assumes "crel (rev a i j) h h' r"
   shows "get_array a h' ! k = (if k < i then get_array a h ! k
@@ -69,7 +69,7 @@ qed
 
 lemma rev_length:
   assumes "crel (rev a i j) h h' r"
-  shows "Heap.length a h = Heap.length a h'"
+  shows "Array.length a h = Array.length a h'"
 using assms
 proof (induct a i j arbitrary: h h' rule: rev.induct)
   case (1 a i j h h'')
@@ -93,7 +93,7 @@ proof (induct a i j arbitrary: h h' rule: rev.induct)
 qed
 
 lemma rev2_rev': assumes "crel (rev a i j) h h' u"
-  assumes "j < Heap.length a h"
+  assumes "j < Array.length a h"
   shows "subarray i (j + 1) a h' = List.rev (subarray i (j + 1) a h)"
 proof - 
   {
@@ -103,15 +103,15 @@ proof -
       by auto
   } 
   with assms(2) rev_length[OF assms(1)] show ?thesis
-  unfolding subarray_def Heap.length_def
+  unfolding subarray_def Array.length_def
   by (auto simp add: length_sublist' rev_nth min_def nth_sublist' intro!: nth_equalityI)
 qed
 
 lemma rev2_rev: 
-  assumes "crel (rev a 0 (Heap.length a h - 1)) h h' u"
+  assumes "crel (rev a 0 (Array.length a h - 1)) h h' u"
   shows "get_array a h' = List.rev (get_array a h)"
   using rev2_rev'[OF assms] rev_length[OF assms] assms
-    by (cases "Heap.length a h = 0", auto simp add: Heap.length_def
+    by (cases "Array.length a h = 0", auto simp add: Array.length_def
       subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elim_all)
   (drule sym[of "List.length (get_array a h)"], simp)
 
