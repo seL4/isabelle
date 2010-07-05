@@ -203,7 +203,7 @@ fun mk_auto_tac (cs, ss) m n =
           (CHANGED o nodup_depth_tac cs' n); (* slower but more general *)
     in  EVERY [ALLGOALS (Simplifier.asm_full_simp_tac ss),
                TRY (Classical.safe_tac cs),
-               REPEAT (FIRSTGOAL maintac),
+               REPEAT_DETERM (FIRSTGOAL maintac),
                TRY (Classical.safe_tac (cs addSss ss)),
                prune_params_tac]
     end;
