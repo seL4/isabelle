@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Heap.thy
+(*  Title:      HOL/Imperative_HOL/Heap.thy
     Author:     John Matthews, Galois Connections; Alexander Krauss, TU Muenchen
 *)
 
@@ -13,8 +13,6 @@ subsection {* Representable types *}
 text {* The type class of representable types *}
 
 class heap = typerep + countable
-
-text {* Instances for common HOL types *}
 
 instance nat :: heap ..
 
@@ -34,47 +32,23 @@ instance String.literal :: countable
 
 instance String.literal :: heap ..
 
-text {* Reflected types themselves are heap-representable *}
-
-instantiation typerep :: countable
-begin
-
-fun to_nat_typerep :: "typerep \<Rightarrow> nat" where
-  "to_nat_typerep (Typerep.Typerep c ts) = to_nat (to_nat c, to_nat (map to_nat_typerep ts))"
-
-instance
-proof (rule countable_classI)
-  fix t t' :: typerep and ts
-  have "(\<forall>t'. to_nat_typerep t = to_nat_typerep t' \<longrightarrow> t = t')
-    \<and> (\<forall>ts'. map to_nat_typerep ts = map to_nat_typerep ts' \<longrightarrow> ts = ts')"
-  proof (induct rule: typerep.induct)
-    case (Typerep c ts) show ?case
-    proof (rule allI, rule impI)
-      fix t'
-      assume hyp: "to_nat_typerep (Typerep.Typerep c ts) = to_nat_typerep t'"
-      then obtain c' ts' where t': "t' = (Typerep.Typerep c' ts')"
-        by (cases t') auto
-      with Typerep hyp have "c = c'" and "ts = ts'" by simp_all
-      with t' show "Typerep.Typerep c ts = t'" by simp
-    qed
-  next
-    case Nil_typerep then show ?case by simp
-  next
-    case (Cons_typerep t ts) then show ?case by auto
-  qed
-  then have "to_nat_typerep t = to_nat_typerep t' \<Longrightarrow> t = t'" by auto
-  moreover assume "to_nat_typerep t = to_nat_typerep t'"
-  ultimately show "t = t'" by simp
-qed
-
-end
-
 instance typerep :: heap ..
 
 
 subsection {* A polymorphic heap with dynamic arrays and references *}
 
+subsubsection {* Type definitions *}
+
 types addr = nat -- "untyped heap references"
+types heap_rep = nat -- "representable values"
+
+record heap =
+  arrays :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep list"
+  refs :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep"
+  lim  :: addr
+
+definition empty :: heap where
+  "empty = \<lparr>arrays = (\<lambda>_ _. []), refs = (\<lambda>_ _. 0), lim = 0\<rparr>" -- "why undefined?"
 
 datatype 'a array = Array addr
 datatype 'a ref = Ref addr -- "note the phantom type 'a "
@@ -99,22 +73,14 @@ instance array :: (type) countable
 instance ref :: (type) countable
   by (rule countable_classI [of addr_of_ref]) simp
 
+text {* Syntactic convenience *}
+
 setup {*
   Sign.add_const_constraint (@{const_name Array}, SOME @{typ "nat \<Rightarrow> 'a\<Colon>heap array"})
   #> Sign.add_const_constraint (@{const_name Ref}, SOME @{typ "nat \<Rightarrow> 'a\<Colon>heap ref"})
   #> Sign.add_const_constraint (@{const_name addr_of_array}, SOME @{typ "'a\<Colon>heap array \<Rightarrow> nat"})
   #> Sign.add_const_constraint (@{const_name addr_of_ref}, SOME @{typ "'a\<Colon>heap ref \<Rightarrow> nat"})
 *}
-
-types heap_rep = nat -- "representable values"
-
-record heap =
-  arrays :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep list"
-  refs :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep"
-  lim  :: addr
-
-definition empty :: heap where
-  "empty = \<lparr>arrays = (\<lambda>_. undefined), refs = (\<lambda>_. undefined), lim = 0\<rparr>" -- "why undefined?"
 
 
 subsection {* Imperative references and arrays *}
@@ -159,6 +125,7 @@ definition
   set_array :: "'a\<Colon>heap array \<Rightarrow> 'a list \<Rightarrow> heap \<Rightarrow> heap" where
   "set_array a x = 
   arrays_update (\<lambda>h. h(TYPEREP('a) := ((h(TYPEREP('a))) (addr_of_array a:=map to_nat x))))"
+
 
 subsubsection {* Interface operations *}
 
@@ -304,7 +271,6 @@ lemma array_present_upd [simp]:
 lemma array_of_list_replicate:
   "array_of_list (replicate n x) = array n x"
   by (simp add: expand_fun_eq array_of_list_def array_def)
-
 
 text {* Properties of imperative references *}
 
