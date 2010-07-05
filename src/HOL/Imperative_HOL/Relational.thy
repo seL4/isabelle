@@ -9,10 +9,10 @@ text {* The crel predicate states that when a computation c runs with the heap h
 
 definition crel :: "'a Heap \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool"
 where
-  crel_def': "crel c h h' r \<longleftrightarrow> Heap_Monad.execute c h = (Inl r, h')"
+  crel_def': "crel c h h' r \<longleftrightarrow> Heap_Monad.execute c h = Some (r, h')"
 
 lemma crel_def: -- FIXME
-  "crel c h h' r \<longleftrightarrow> (Inl r, h') = Heap_Monad.execute c h"
+  "crel c h h' r \<longleftrightarrow> Some (r, h') = Heap_Monad.execute c h"
   unfolding crel_def' by auto
 
 lemma crel_deterministic: "\<lbrakk> crel f h h' a; crel f h h'' b \<rbrakk> \<Longrightarrow> (a = b) \<and> (h' = h'')"
@@ -28,8 +28,7 @@ subsection {* Elimination rules for basic monadic commands *}
 lemma crelE[consumes 1]:
   assumes "crel (f >>= g) h h'' r'"
   obtains h' r where "crel f h h' r" "crel (g r) h' h'' r'"
-  using assms
-  by (auto simp add: crel_def bindM_def Let_def prod_case_beta split_def Pair_fst_snd_eq split add: sum.split_asm)
+  using assms by (auto simp add: crel_def bindM_def split: option.split_asm)
 
 lemma crelE'[consumes 1]:
   assumes "crel (f >> g) h h'' r'"
@@ -86,8 +85,8 @@ qed
 lemma crel_heap:
   assumes "crel (Heap_Monad.heap f) h h' r"
   obtains "h' = snd (f h)" "r = fst (f h)"
-  using assms
-  unfolding heap_def crel_def apfst_def split_def prod_fun_def by simp_all
+  using assms by (cases "f h") (simp add: crel_def)
+
 
 subsection {* Elimination rules for array commands *}
 
@@ -369,11 +368,9 @@ unfolding crel_def bindM_def Let_def assert_def
 apply (cases f)
 apply simp
 apply (simp add: expand_fun_eq split_def)
-apply auto
-apply (case_tac "fst (fun x)")
-apply (simp_all add: Pair_fst_snd_eq)
+apply (auto split: option.split)
 apply (erule_tac x="x" in meta_allE)
-apply fastsimp
+apply auto
 done
 
 section {* Introduction rules *}
@@ -502,10 +499,10 @@ lemma MREC_induct:
   shows "P x h h' r"
 proof (rule MREC_pinduct[OF assms(1)[unfolded crel_def, symmetric]])
   fix x h h1 h2 h' s z r
-  assume "Heap_Monad.execute (f x) h = (Inl (Inr s), h1)"
-    "Heap_Monad.execute (MREC f g s) h1 = (Inl z, h2)"
+  assume "Heap_Monad.execute (f x) h = Some (Inr s, h1)"
+    "Heap_Monad.execute (MREC f g s) h1 = Some (z, h2)"
     "P s h1 h2 z"
-    "Heap_Monad.execute (g x s z) h2 = (Inl r, h')"
+    "Heap_Monad.execute (g x s z) h2 = Some (r, h')"
   from assms(3)[unfolded crel_def, OF this(1)[symmetric] this(2)[symmetric] this(3) this(4)[symmetric]]
   show "P x h h' r" .
 next
@@ -519,15 +516,15 @@ text {* We add a simple definitional setting for crel intro rules
 
 definition noError :: "'a Heap \<Rightarrow> heap \<Rightarrow> bool"
 where
-  "noError c h \<longleftrightarrow> (\<exists>r h'. (Inl r, h') = Heap_Monad.execute c h)"
+  "noError c h \<longleftrightarrow> (\<exists>r h'. Some (r, h') = Heap_Monad.execute c h)"
 
 lemma noError_def': -- FIXME
-  "noError c h \<longleftrightarrow> (\<exists>r h'. Heap_Monad.execute c h = (Inl r, h'))"
+  "noError c h \<longleftrightarrow> (\<exists>r h'. Heap_Monad.execute c h = Some (r, h'))"
   unfolding noError_def apply auto proof -
   fix r h'
-  assume "(Inl r, h') = Heap_Monad.execute c h"
-  then have "Heap_Monad.execute c h = (Inl r, h')" ..
-  then show "\<exists>r h'. Heap_Monad.execute c h = (Inl r, h')" by blast
+  assume "Some (r, h') = Heap_Monad.execute c h"
+  then have "Heap_Monad.execute c h = Some (r, h')" ..
+  then show "\<exists>r h'. Heap_Monad.execute c h = Some (r, h')" by blast
 qed
 
 subsection {* Introduction rules for basic monadic commands *}
@@ -640,7 +637,7 @@ lemma noError_make:
 (*TODO: move to HeapMonad *)
 lemma mapM_append:
   "mapM f (xs @ ys) = mapM f xs \<guillemotright>= (\<lambda>xs. mapM f ys \<guillemotright>= (\<lambda>ys. return (xs @ ys)))"
-  by (induct xs) (simp_all add: monad_simp)
+  by (induct xs) simp_all
 
 lemma noError_freeze:
   shows "noError (freeze a) h"

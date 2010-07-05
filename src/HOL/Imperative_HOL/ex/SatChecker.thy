@@ -402,6 +402,12 @@ where
          res_thm' l cli clj
       done))"
 
+primrec
+  foldM :: "('a \<Rightarrow> 'b \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b Heap"
+where
+  "foldM f [] s = return s"
+  | "foldM f (x#xs) s = f x s \<guillemotright>= foldM f xs"
+
 fun doProofStep2 :: "Clause option array \<Rightarrow> ProofStep \<Rightarrow> Clause list \<Rightarrow> Clause list Heap"
 where
   "doProofStep2 a (Conflict saveTo (i, rs)) rcs =
