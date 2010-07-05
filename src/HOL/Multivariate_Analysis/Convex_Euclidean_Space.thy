@@ -1940,10 +1940,15 @@ lemma convex_on:
 
 subsection {* Convexity of general and special intervals. *}
 
+lemma convexI: (* TODO: move to Library/Convex.thy *)
+  assumes "\<And>x y u v. \<lbrakk>x \<in> s; y \<in> s; 0 \<le> u; 0 \<le> v; u + v = 1\<rbrakk> \<Longrightarrow> u *\<^sub>R x + v *\<^sub>R y \<in> s"
+  shows "convex s"
+using assms unfolding convex_def by fast
+
 lemma is_interval_convex:
-  fixes s :: "('a::ordered_euclidean_space) set"
+  fixes s :: "('a::euclidean_space) set"
   assumes "is_interval s" shows "convex s"
-  unfolding convex_def apply(rule,rule,rule,rule,rule,rule,rule) proof-
+proof (rule convexI)
   fix x y u v assume as:"x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
   hence *:"u = 1 - v" "1 - v \<ge> 0" and **:"v = 1 - u" "1 - u \<ge> 0" by auto
   { fix a b assume "\<not> b \<le> u * a + v * b"
@@ -1959,7 +1964,7 @@ lemma is_interval_convex:
     using as(3-) DIM_positive[where 'a='a] by(auto simp add:euclidean_simps) qed
 
 lemma is_interval_connected:
-  fixes s :: "('a::ordered_euclidean_space) set"
+  fixes s :: "('a::euclidean_space) set"
   shows "is_interval s \<Longrightarrow> connected s"
   using is_interval_convex convex_connected by auto
 

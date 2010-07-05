@@ -5023,7 +5023,7 @@ qed
 
 text {* Intervals in general, including infinite and mixtures of open and closed. *}
 
-definition "is_interval (s::('a::ordered_euclidean_space) set) \<longleftrightarrow>
+definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i<DIM('a). ((a$$i \<le> x$$i \<and> x$$i \<le> b$$i) \<or> (b$$i \<le> x$$i \<and> x$$i \<le> a$$i))) \<longrightarrow> x \<in> s)"
 
 lemma is_interval_interval: "is_interval {a .. b::'a::ordered_euclidean_space}" (is ?th1)
