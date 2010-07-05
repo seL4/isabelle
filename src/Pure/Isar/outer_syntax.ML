@@ -240,7 +240,10 @@ fun prepare_span commands span =
     val _ = List.app Thy_Syntax.report_token toks;
   in
     (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
-      [tr] => (tr, true)
+      [tr] =>
+        if Keyword.is_control (Toplevel.name_of tr) then
+          (Toplevel.malformed range_pos "Illegal control command", true)
+        else (tr, true)
     | [] => (Toplevel.ignored range_pos, false)
     | _ => (Toplevel.malformed range_pos not_singleton, true))
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
