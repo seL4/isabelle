@@ -93,14 +93,6 @@ text {*
 subsubsection {* Primitive operations *}
 
 definition
-  new_ref :: "heap \<Rightarrow> ('a\<Colon>heap) ref \<times> heap" where
-  "new_ref h = (let l = lim h in (Ref l, h\<lparr>lim := l + 1\<rparr>))"
-
-definition
-  new_array :: "heap \<Rightarrow> ('a\<Colon>heap) array \<times> heap" where
-  "new_array h = (let l = lim h in (Array l, h\<lparr>lim := l + 1\<rparr>))"
-
-definition
   ref_present :: "'a\<Colon>heap ref \<Rightarrow> heap \<Rightarrow> bool" where
   "ref_present r h \<longleftrightarrow> addr_of_ref r < lim h"
 
@@ -126,21 +118,20 @@ definition
   "set_array a x = 
   arrays_update (\<lambda>h. h(TYPEREP('a) := ((h(TYPEREP('a))) (addr_of_array a:=map to_nat x))))"
 
+definition ref :: "'a \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap ref \<times> heap" where
+  "ref x h = (let
+     l = lim h;
+     r = Ref l;
+     h'' = set_ref r x (h\<lparr>lim := l + 1\<rparr>)
+   in (r, h''))"
 
-subsubsection {* Interface operations *}
-
-definition
-  ref :: "'a \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap ref \<times> heap" where
-  "ref x h = (let (r, h') = new_ref h;
-                   h''    = set_ref r x h'
-         in (r, h''))"
-
-definition
-  array :: "'a list \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
-  "array xs h = (let (r, h') = new_array h;
-                      h'' = set_array r xs h'
-        in (r, h''))"  
-
+definition array :: "'a list \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
+  "array xs h = (let
+     l = lim h;
+     r = Array l;
+     h'' = set_array r xs (h\<lparr>lim := l + 1\<rparr>)
+   in (r, h''))"
+  
 definition
   upd :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
   "upd a i x h = set_array a ((get_array a h)[i:=x]) h"
@@ -176,10 +167,10 @@ lemma noteq_refs_irrefl: "r =!= r \<Longrightarrow> False"
   unfolding noteq_refs_def by auto
 
 lemma present_new_ref: "ref_present r h \<Longrightarrow> r =!= fst (ref v h)"
-  by (simp add: ref_present_def new_ref_def ref_def Let_def noteq_refs_def)
+  by (simp add: ref_present_def ref_def Let_def noteq_refs_def)
 
 lemma present_new_arr: "array_present a h \<Longrightarrow> a =!!= fst (array xs h)"
-  by (simp add: array_present_def noteq_arrs_def new_array_def array_def Let_def)
+  by (simp add: array_present_def noteq_arrs_def array_def Let_def)
 
 
 subsubsection {* Properties of heap containers *}
@@ -264,14 +255,14 @@ lemma array_present_upd [simp]:
 text {* Properties of imperative references *}
 
 lemma next_ref_fresh [simp]:
-  assumes "(r, h') = new_ref h"
+  assumes "(r, h') = ref x h"
   shows "\<not> ref_present r h"
-  using assms by (cases h) (auto simp add: new_ref_def ref_present_def Let_def)
+  using assms by (cases h) (auto simp add: ref_def ref_present_def Let_def)
 
 lemma next_ref_present [simp]:
-  assumes "(r, h') = new_ref h"
+  assumes "(r, h') = ref x h"
   shows "ref_present r h'"
-  using assms by (cases h) (auto simp add: new_ref_def ref_present_def Let_def)
+  using assms by (cases h) (auto simp add: ref_def set_ref_def ref_present_def Let_def)
 
 lemma ref_get_set_eq [simp]: "get_ref r (set_ref r x h) = x"
   by (simp add: get_ref_def set_ref_def)
@@ -297,7 +288,7 @@ lemma ref_set_set_swap:
   by (simp add: Let_def expand_fun_eq noteq_refs_def set_ref_def)
 
 lemma ref_new_set: "fst (ref v (set_ref r v' h)) = fst (ref v h)"
-  by (simp add: ref_def new_ref_def set_ref_def Let_def)
+  by (simp add: ref_def set_ref_def Let_def)
 
 lemma ref_get_new [simp]:
   "get_ref (fst (ref v h)) (snd (ref v' h)) = v'"
@@ -309,7 +300,7 @@ lemma ref_set_new [simp]:
 
 lemma ref_get_new_neq: "r =!= (fst (ref v h)) \<Longrightarrow> 
   get_ref r (snd (ref v h)) = get_ref r h"
-  by (simp add: get_ref_def set_ref_def ref_def Let_def new_ref_def noteq_refs_def)
+  by (simp add: get_ref_def set_ref_def ref_def Let_def noteq_refs_def)
 
 lemma lim_set_ref [simp]:
   "lim (set_ref r v h) = lim h"
@@ -317,7 +308,7 @@ lemma lim_set_ref [simp]:
 
 lemma ref_present_new_ref [simp]: 
   "ref_present r h \<Longrightarrow> ref_present r (snd (ref v h))"
-  by (simp add: new_ref_def ref_present_def ref_def Let_def)
+  by (simp add: ref_present_def ref_def Let_def)
 
 lemma ref_present_set_ref [simp]:
   "ref_present r (set_ref r' v h) = ref_present r h"
@@ -339,7 +330,7 @@ lemma get_ref_upd [simp]: "get_ref r (upd a i v h) = get_ref r h"
   by (simp add: get_ref_def set_array_def upd_def)
 
 lemma new_ref_upd: "fst (ref v (upd a i v' h)) = fst (ref v h)"
-  by (simp add: set_array_def get_array_def Let_def ref_new_set upd_def ref_def  new_ref_def)
+  by (simp add: set_array_def get_array_def Let_def ref_new_set upd_def ref_def)
 
 text {*not actually true ???*}
 lemma upd_set_ref_swap: "upd a i v (set_ref r v' h) = set_ref r v' (upd a i v h)"
@@ -350,11 +341,11 @@ oops
 
 lemma length_new_ref[simp]: 
   "length a (snd (ref v h)) = length a h"
-  by (simp add: get_array_def set_ref_def length_def new_ref_def ref_def Let_def)
+  by (simp add: get_array_def set_ref_def length_def  ref_def Let_def)
 
 lemma get_array_new_ref [simp]: 
   "get_array a (snd (ref v h)) = get_array a h"
-  by (simp add: new_ref_def ref_def set_ref_def get_array_def Let_def)
+  by (simp add: ref_def set_ref_def get_array_def Let_def)
 
 lemma ref_present_upd [simp]: 
   "ref_present r (upd a i v h) = ref_present r h"
@@ -366,7 +357,7 @@ lemma array_present_set_ref [simp]:
 
 lemma array_present_new_ref [simp]:
   "array_present a h \<Longrightarrow> array_present a (snd (ref v h))"
-  by (simp add: array_present_def new_ref_def ref_def Let_def)
+  by (simp add: array_present_def ref_def Let_def)
 
 hide_const (open) empty upd length array ref
 

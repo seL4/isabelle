@@ -324,8 +324,6 @@ lemma crel_Ref_new:
   apply (elim crel_heap)
   unfolding Heap.ref_def
   apply (simp add: Let_def)
-  unfolding Heap.new_ref_def
-  apply (simp add: Let_def)
   unfolding ref_present_def
   apply auto
   unfolding get_ref_def set_ref_def
