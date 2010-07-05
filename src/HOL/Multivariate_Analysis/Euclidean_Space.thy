@@ -3317,7 +3317,7 @@ done
 
 print_antiquotations
 
-section "Instanciate @{typ real} and @{typ complex} as typeclass @{text ordered_euclidean_space}."
+subsection "Instantiate @{typ real} and @{typ complex} as typeclass @{text ordered_euclidean_space}."
 
 instantiation real :: real_basis_with_inner
 begin
