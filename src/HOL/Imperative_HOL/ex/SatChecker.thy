@@ -118,6 +118,32 @@ by auto
 
 text {* Specific definition for derived clauses in the Array *}
 
+definition
+  array_ran :: "('a\<Colon>heap) option array \<Rightarrow> heap \<Rightarrow> 'a set" where
+  "array_ran a h = {e. Some e \<in> set (get_array a h)}"
+    -- {*FIXME*}
+
+lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Heap.length a h \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
+unfolding array_ran_def Heap.length_def by simp
+
+lemma array_ran_upd_array_Some:
+  assumes "cl \<in> array_ran a (Heap.upd a i (Some b) h)"
+  shows "cl \<in> array_ran a h \<or> cl = b"
+proof -
+  have "set (get_array a h[i := Some b]) \<subseteq> insert (Some b) (set (get_array a h))" by (rule set_update_subset_insert)
+  with assms show ?thesis 
+    unfolding array_ran_def Heap.upd_def by fastsimp
+qed
+
+lemma array_ran_upd_array_None:
+  assumes "cl \<in> array_ran a (Heap.upd a i None h)"
+  shows "cl \<in> array_ran a h"
+proof -
+  have "set (get_array a h[i := None]) \<subseteq> insert None (set (get_array a h))" by (rule set_update_subset_insert)
+  with assms show ?thesis
+    unfolding array_ran_def Heap.upd_def by auto
+qed
+
 definition correctArray :: "Clause list \<Rightarrow> Clause option array \<Rightarrow> heap \<Rightarrow> bool"
 where
   "correctArray rootcls a h =
