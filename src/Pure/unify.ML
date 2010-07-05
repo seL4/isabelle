@@ -451,20 +451,23 @@ fun ff_assign thy (env, rbinder, t, u) : Envir.env =
   end;
 
 
+(*If an argument contains a banned Bound, then it should be deleted.
+  But if the only path is flexible, this is difficult; the code gives up!
+  In  %x y.?a(x) =?= %x y.?b(?c(y)) should we instantiate ?b or ?c *)
+exception CHANGE_FAIL;   (*flexible occurrence of banned variable, or other reason to quit*)
+
+
 (*Flex argument: a term, its type, and the index that refers to it.*)
 type flarg = {t: term, T: typ, j: int};
 
 (*Form the arguments into records for deletion/sorting.*)
 fun flexargs ([], [], []) = [] : flarg list
   | flexargs (j :: js, t :: ts, T :: Ts) = {j = j, t = t, T = T} :: flexargs (js, ts, Ts)
-  | flexargs _ = raise Fail "flexargs";
-
-
-(*If an argument contains a banned Bound, then it should be deleted.
-  But if the only path is flexible, this is difficult; the code gives up!
-  In  %x y.?a(x) =?= %x y.?b(?c(y)) should we instantiate ?b or ?c *)
-exception CHANGE_FAIL;   (*flexible occurrence of banned variable*)
-
+  | flexargs _ = raise CHANGE_FAIL;
+(*We give up if we see a variable of function type not applied to a full list of 
+  arguments (remember, this code assumes that terms are fully eta-expanded).  This situation 
+  can occur if a type variable is instantiated with a function type.
+*)
 
 (*Check whether the 'banned' bound var indices occur rigidly in t*)
 fun rigid_bound (lev, banned) t =
@@ -516,7 +519,7 @@ fun clean_term banned (env,t) =
     val (Var (v, T), ts) = strip_comb t;
     val (Ts, U) = strip_type env T
     and js = length ts - 1  downto 0;
-    val args = sort (make_ord arg_less) (List.foldr (change_arg banned) [] (flexargs (js, ts, Ts)))
+    val args = sort (make_ord arg_less) (List.foldr (change_arg banned) [] (flexargs (js, ts, Ts))) 
     val ts' = map #t args;
   in
     if decreasing (length Ts) args then (env, (list_comb (Var (v, T), ts')))
