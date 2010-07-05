@@ -194,7 +194,7 @@ text {*
   using our simple algebra:
 *}
 
-instantiation %quote * :: (semigroup, semigroup) semigroup
+instantiation %quote prod :: (semigroup, semigroup) semigroup
 begin
 
 definition %quote
@@ -260,7 +260,7 @@ qed
 
 end %quote
 
-instantiation %quote * :: (monoidl, monoidl) monoidl
+instantiation %quote prod :: (monoidl, monoidl) monoidl
 begin
 
 definition %quote
@@ -297,7 +297,7 @@ qed
 
 end %quote
 
-instantiation %quote * :: (monoid, monoid) monoid
+instantiation %quote prod :: (monoid, monoid) monoid
 begin
 
 instance %quote proof 
