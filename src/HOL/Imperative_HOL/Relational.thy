@@ -311,42 +311,42 @@ extends h' h x \<Longrightarrow> ref_present y h \<Longrightarrow> get_ref y h =
 extends h' h x \<Longrightarrow> lim h' = Suc (lim h)
 *)
 
-lemma crel_Ref_new:
-  assumes "crel (Ref.new v) h h' x"
-  obtains "get_ref x h' = v"
-  and "\<not> ref_present x h"
-  and "ref_present x h'"
-  and "\<forall>y. ref_present y h \<longrightarrow> get_ref y h = get_ref y h'"
+lemma crel_ref:
+  assumes "crel (ref v) h h' x"
+  obtains "Ref.get h' x = v"
+  and "\<not> Ref.present h x"
+  and "Ref.present h' x"
+  and "\<forall>y. Ref.present h y \<longrightarrow> Ref.get h y = Ref.get h' y"
  (* and "lim h' = Suc (lim h)" *)
-  and "\<forall>y. ref_present y h \<longrightarrow> ref_present y h'"
+  and "\<forall>y. Ref.present h y \<longrightarrow> Ref.present h' y"
   using assms
-  unfolding Ref.new_def
-  apply (elim crel_heap)
   unfolding Ref.ref_def
+  apply (elim crel_heap)
+  unfolding Ref.alloc_def
   apply (simp add: Let_def)
-  unfolding ref_present_def
+  unfolding Ref.present_def
   apply auto
-  unfolding get_ref_def set_ref_def
+  unfolding Ref.get_def Ref.set_def
   apply auto
   done
 
 lemma crel_lookup:
   assumes "crel (!r') h h' r"
-  obtains "h = h'" "r = get_ref r' h"
+  obtains "h = h'" "r = Ref.get h r'"
 using assms
 unfolding Ref.lookup_def
 by (auto elim: crel_heap)
 
 lemma crel_update:
   assumes "crel (r' := v) h h' r"
-  obtains "h' = set_ref r' v h" "r = ()"
+  obtains "h' = Ref.set r' v h" "r = ()"
 using assms
 unfolding Ref.update_def
 by (auto elim: crel_heap)
 
 lemma crel_change:
   assumes "crel (Ref.change f r') h h' r"
-  obtains "h' = set_ref r' (f (get_ref r' h)) h" "r = f (get_ref r' h)"
+  obtains "h' = Ref.set r' (f (Ref.get h r')) h" "r = f (Ref.get h r')"
 using assms
 unfolding Ref.change_def Let_def
 by (auto elim!: crelE crel_lookup crel_update crel_return)
@@ -467,15 +467,15 @@ lemma crel_updI:
 subsubsection {* Introduction rules for reference commands *}
 
 lemma crel_lookupI:
-  shows "crel (!r) h h (get_ref r h)"
+  shows "crel (!r) h h (Ref.get h r)"
   unfolding lookup_def by (auto intro!: crel_heapI')
 
 lemma crel_updateI:
-  shows "crel (r := v) h (set_ref r v h) ()"
+  shows "crel (r := v) h (Ref.set r v h) ()"
   unfolding update_def by (auto intro!: crel_heapI')
 
 lemma crel_changeI: 
-  shows "crel (Ref.change f r) h (set_ref r (f (get_ref r h)) h) (f (get_ref r h))"
+  shows "crel (Ref.change f r) h (Ref.set r (f (Ref.get h r)) h) (f (Ref.get h r))"
 unfolding change_def Let_def by (auto intro!: crelI crel_returnI crel_lookupI crel_updateI)
 
 subsubsection {* Introduction rules for the assert command *}
@@ -667,8 +667,8 @@ by (auto intro: noErrorI noError_length noError_return elim!: crel_length)
 subsection {* Introduction rules for the reference commands *}
 
 lemma noError_Ref_new:
-  shows "noError (Ref.new v) h"
-unfolding Ref.new_def by (intro noError_heap)
+  shows "noError (ref v) h"
+  unfolding Ref.ref_def by (intro noError_heap)
 
 lemma noError_lookup:
   shows "noError (!r) h"
@@ -696,7 +696,7 @@ section {* Cumulative lemmas *}
 lemmas crel_elim_all =
   crelE crelE' crel_return crel_raise crel_if crel_option_case
   crel_length crel_new_weak crel_nth crel_upd crel_of_list_weak crel_map_entry crel_swap crel_make_weak crel_freeze crel_map_weak
-  crel_Ref_new crel_lookup crel_update crel_change
+  crel_ref crel_lookup crel_update crel_change
   crel_assert
 
 lemmas crel_intro_all =
