@@ -33,7 +33,7 @@ by (induct xs ys rule: merge.induct, auto simp add: sorted_Cons)
 
 text {* The remove function removes an element from a sorted list *}
 
-fun remove :: "('a :: linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list"
+primrec remove :: "('a :: linorder) \<Rightarrow> 'a list \<Rightarrow> 'a list"
 where
   "remove a [] = []"
   |  "remove a (x#xs) = (if a > x then (x # remove a xs) else (if a = x then xs else x#xs))" 
@@ -86,16 +86,13 @@ apply (induct xs)
 apply (auto simp add: sorted_Cons)
 done
 
-subsection {* Efficient member function for sorted lists: smem *}
+subsection {* Efficient member function for sorted lists *}
 
-fun smember :: "('a::linorder) \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "smem" 55)
-where
-  "x smem [] = False"
-|  "x smem (y#ys) = (if x = y then True else (if (x > y) then x smem ys else False))" 
+primrec smember :: "'a list \<Rightarrow> 'a::linorder \<Rightarrow> bool" where
+  "smember [] x \<longleftrightarrow> False"
+| "smember (y#ys) x \<longleftrightarrow> x = y \<or> (x > y \<and> smember ys x)"
 
-lemma "sorted xs \<Longrightarrow> x smem xs = (x \<in> set xs)" 
-apply (induct xs)
-apply (auto simp add: sorted_Cons)
-done
+lemma "sorted xs \<Longrightarrow> smember xs x \<longleftrightarrow> (x \<in> set xs)" 
+  by (induct xs) (auto simp add: sorted_Cons)
 
 end

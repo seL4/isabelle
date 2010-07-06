@@ -171,7 +171,7 @@ text{* This version just uses a single list traversal. *}
 
 subsection{* Function definitions *}
 
-fun res_mem :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause Heap"
+primrec res_mem :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "res_mem l [] = raise ''MiniSatChecked.res_thm: Cannot find literal''"
 | "res_mem l (x#xs) = (if (x = l) then return xs else (do v \<leftarrow> res_mem l xs; return (x # v) done))"
@@ -419,7 +419,7 @@ where
         done)"
 
 
-fun res_thm2 :: "Clause option array \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap"
+primrec res_thm2 :: "Clause option array \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "res_thm2 a (l, j) cli =
   ( if l = 0 then raise(''Illegal literal'')
@@ -632,7 +632,7 @@ where
 
 subsection {* Checker functions *}
 
-fun lres_thm :: "Clause option list \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap" 
+primrec lres_thm :: "Clause option list \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap" 
 where
   "lres_thm xs (l, j) cli = (if (j < List.length xs) then (case (xs ! j) of
   None \<Rightarrow> raise (''MiniSatChecked.res_thm: No resolvant clause in thms array for Conflict step.'')
@@ -666,7 +666,7 @@ where
 
 section {* Functional version with RedBlackTrees *}
 
-fun tres_thm :: "(ClauseId, Clause) RBT_Impl.rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
+primrec tres_thm :: "(ClauseId, Clause) RBT_Impl.rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "tres_thm t (l, j) cli =
   (case (RBT_Impl.lookup t j) of 
