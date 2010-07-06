@@ -51,7 +51,7 @@ record heap =
   lim  :: addr
 
 definition empty :: heap where
-  "empty = \<lparr>arrays = (\<lambda>_ _. []), refs = (\<lambda>_ _. 0), lim = 0\<rparr>" -- "why undefined?"
+  "empty = \<lparr>arrays = (\<lambda>_ _. []), refs = (\<lambda>_ _. 0), lim = 0\<rparr>"
 
 datatype 'a array = Array addr
 datatype 'a ref = Ref addr -- "note the phantom type 'a "
@@ -84,5 +84,7 @@ setup {*
   #> Sign.add_const_constraint (@{const_name addr_of_array}, SOME @{typ "'a\<Colon>heap array \<Rightarrow> nat"})
   #> Sign.add_const_constraint (@{const_name addr_of_ref}, SOME @{typ "'a\<Colon>heap ref \<Rightarrow> nat"})
 *}
+
+hide_const (open) empty
 
 end
