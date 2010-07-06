@@ -157,8 +157,11 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
     output_sync("Isabelle.command " + Isabelle_Syntax.encode_properties(props) + " " +
       Isabelle_Syntax.encode_string(text))
 
-  def ML(text: String) =
+  def ML_val(text: String) =
     output_sync("ML_val " + Isabelle_Syntax.encode_string(text))
+
+  def ML_command(text: String) =
+    output_sync("ML_command " + Isabelle_Syntax.encode_string(text))
 
   def close() = synchronized {    // FIXME watchdog/timeout
     output_raw("\u0000")
