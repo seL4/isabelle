@@ -349,8 +349,6 @@ abbreviation "MREC == mrec.MREC"
 lemmas MREC_rule = mrec.MREC_rule
 lemmas MREC_pinduct = mrec.MREC_pinduct
 
-hide_const (open) heap execute
-
 
 subsection {* Code generator setup *}
 
@@ -364,8 +362,6 @@ lemma raise_raise' [code_inline]:
   by simp
 
 code_datatype raise' -- {* avoid @{const "Heap"} formally *}
-
-hide_const (open) raise'
 
 
 subsubsection {* SML and OCaml *}
@@ -492,5 +488,7 @@ code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
 code_monad "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
 code_const Heap_Monad.raise' (Haskell "error/ _")
+
+hide_const (open) Heap heap execute raise'
 
 end
