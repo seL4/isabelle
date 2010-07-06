@@ -297,7 +297,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     Syntax
     ({input = new_xprods @ input,
       lexicon = fold Scan.extend_lexicon (Syn_Ext.delims_of new_xprods) lexicon,
-      gram = Parser.extend_gram gram new_xprods,
+      gram = Parser.extend_gram new_xprods gram,
       consts = Library.merge (op =) (consts1, filter_out Lexicon.is_marked consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
       parse_ast_trtab =
@@ -362,7 +362,7 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
     Syntax
     ({input = Library.merge (op =) (input1, input2),
       lexicon = Scan.merge_lexicons (lexicon1, lexicon2),
-      gram = Parser.merge_grams gram1 gram2,
+      gram = Parser.merge_gram (gram1, gram2),
       consts = sort_distinct string_ord (consts1 @ consts2),
       prmodes = Library.merge (op =) (prmodes1, prmodes2),
       parse_ast_trtab =

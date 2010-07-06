@@ -129,11 +129,12 @@ object Library
 
   def timeit[A](message: String)(e: => A) =
   {
-    val start = System.currentTimeMillis()
+    val start = System.nanoTime()
     val result = Exn.capture(e)
-    val stop = System.currentTimeMillis()
+    val stop = System.nanoTime()
     System.err.println(
-      (if (message.isEmpty) "" else message + ": ") + (stop - start) + "ms elapsed time")
+      (if (message == null || message.isEmpty) "" else message + ": ") +
+        ((stop - start).toDouble / 1000000) + "ms elapsed time")
     Exn.release(result)
   }
 }

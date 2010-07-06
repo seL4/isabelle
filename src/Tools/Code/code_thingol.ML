@@ -267,10 +267,7 @@ local
     | purify_base "op &" = "and"
     | purify_base "op |" = "or"
     | purify_base "op -->" = "implies"
-    | purify_base "op :" = "member"
     | purify_base "op =" = "eq"
-    | purify_base "*" = "product"
-    | purify_base "+" = "sum"
     | purify_base s = Name.desymbolize false s;
   fun namify thy get_basename get_thyname name =
     let

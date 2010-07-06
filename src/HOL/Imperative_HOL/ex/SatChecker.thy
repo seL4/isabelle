@@ -118,6 +118,32 @@ by auto
 
 text {* Specific definition for derived clauses in the Array *}
 
+definition
+  array_ran :: "('a\<Colon>heap) option array \<Rightarrow> heap \<Rightarrow> 'a set" where
+  "array_ran a h = {e. Some e \<in> set (get_array a h)}"
+    -- {*FIXME*}
+
+lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Array.length a h \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
+unfolding array_ran_def Array.length_def by simp
+
+lemma array_ran_upd_array_Some:
+  assumes "cl \<in> array_ran a (Array.change a i (Some b) h)"
+  shows "cl \<in> array_ran a h \<or> cl = b"
+proof -
+  have "set (get_array a h[i := Some b]) \<subseteq> insert (Some b) (set (get_array a h))" by (rule set_update_subset_insert)
+  with assms show ?thesis 
+    unfolding array_ran_def Array.change_def by fastsimp
+qed
+
+lemma array_ran_upd_array_None:
+  assumes "cl \<in> array_ran a (Array.change a i None h)"
+  shows "cl \<in> array_ran a h"
+proof -
+  have "set (get_array a h[i := None]) \<subseteq> insert None (set (get_array a h))" by (rule set_update_subset_insert)
+  with assms show ?thesis
+    unfolding array_ran_def Array.change_def by auto
+qed
+
 definition correctArray :: "Clause list \<Rightarrow> Clause option array \<Rightarrow> heap \<Rightarrow> bool"
 where
   "correctArray rootcls a h =
@@ -126,7 +152,7 @@ where
 lemma correctArray_update:
   assumes "correctArray rcs a h"
   assumes "correctClause rcs c" "sorted c" "distinct c"
-  shows "correctArray rcs a (Heap.upd a i (Some c) h)"
+  shows "correctArray rcs a (Array.change a i (Some c) h)"
   using assms
   unfolding correctArray_def
   by (auto dest:array_ran_upd_array_Some)
@@ -145,7 +171,7 @@ text{* This version just uses a single list traversal. *}
 
 subsection{* Function definitions *}
 
-fun res_mem :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause Heap"
+primrec res_mem :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "res_mem l [] = raise ''MiniSatChecked.res_thm: Cannot find literal''"
 | "res_mem l (x#xs) = (if (x = l) then return xs else (do v \<leftarrow> res_mem l xs; return (x # v) done))"
@@ -393,7 +419,7 @@ where
         done)"
 
 
-fun res_thm2 :: "Clause option array \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap"
+primrec res_thm2 :: "Clause option array \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "res_thm2 a (l, j) cli =
   ( if l = 0 then raise(''Illegal literal'')
@@ -401,6 +427,12 @@ where
      (do clj \<leftarrow> get_clause a j;
          res_thm' l cli clj
       done))"
+
+primrec
+  foldM :: "('a \<Rightarrow> 'b \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b Heap"
+where
+  "foldM f [] s = return s"
+  | "foldM f (x#xs) s = f x s \<guillemotright>= foldM f xs"
 
 fun doProofStep2 :: "Clause option array \<Rightarrow> ProofStep \<Rightarrow> Clause list \<Rightarrow> Clause list Heap"
 where
@@ -439,7 +471,7 @@ proof -
     fix clj
     let ?rs = "merge (remove l cli) (remove (compl l) clj)"
     let ?rs' = "merge (remove (compl l) cli) (remove l clj)"
-    assume "h = h'" "Some clj = get_array a h' ! j" "j < Heap.length a h'"
+    assume "h = h'" "Some clj = get_array a h' ! j" "j < Array.length a h'"
     with correct_a have clj: "correctClause r clj" "sorted clj" "distinct clj"
       unfolding correctArray_def by (auto intro: array_ranI)
     with clj l_not_zero correct_cli
@@ -453,7 +485,7 @@ proof -
   }
   {
     fix v clj
-    assume "Some clj = get_array a h ! j" "j < Heap.length a h"
+    assume "Some clj = get_array a h ! j" "j < Array.length a h"
     with correct_a have clj: "correctClause r clj \<and> sorted clj \<and> distinct clj"
       unfolding correctArray_def by (auto intro: array_ranI)
     assume "crel (res_thm' l cli clj) h h' rs"
@@ -600,7 +632,7 @@ where
 
 subsection {* Checker functions *}
 
-fun lres_thm :: "Clause option list \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap" 
+primrec lres_thm :: "Clause option list \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap" 
 where
   "lres_thm xs (l, j) cli = (if (j < List.length xs) then (case (xs ! j) of
   None \<Rightarrow> raise (''MiniSatChecked.res_thm: No resolvant clause in thms array for Conflict step.'')
@@ -634,7 +666,7 @@ where
 
 section {* Functional version with RedBlackTrees *}
 
-fun tres_thm :: "(ClauseId, Clause) RBT_Impl.rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
+primrec tres_thm :: "(ClauseId, Clause) RBT_Impl.rbt \<Rightarrow> Lit \<times> ClauseId \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "tres_thm t (l, j) cli =
   (case (RBT_Impl.lookup t j) of 

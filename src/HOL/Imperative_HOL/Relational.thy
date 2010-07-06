@@ -9,10 +9,10 @@ text {* The crel predicate states that when a computation c runs with the heap h
 
 definition crel :: "'a Heap \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool"
 where
-  crel_def': "crel c h h' r \<longleftrightarrow> Heap_Monad.execute c h = (Inl r, h')"
+  crel_def': "crel c h h' r \<longleftrightarrow> Heap_Monad.execute c h = Some (r, h')"
 
 lemma crel_def: -- FIXME
-  "crel c h h' r \<longleftrightarrow> (Inl r, h') = Heap_Monad.execute c h"
+  "crel c h h' r \<longleftrightarrow> Some (r, h') = Heap_Monad.execute c h"
   unfolding crel_def' by auto
 
 lemma crel_deterministic: "\<lbrakk> crel f h h' a; crel f h h'' b \<rbrakk> \<Longrightarrow> (a = b) \<and> (h' = h'')"
@@ -28,8 +28,7 @@ subsection {* Elimination rules for basic monadic commands *}
 lemma crelE[consumes 1]:
   assumes "crel (f >>= g) h h'' r'"
   obtains h' r where "crel f h h' r" "crel (g r) h' h'' r'"
-  using assms
-  by (auto simp add: crel_def bindM_def Let_def prod_case_beta split_def Pair_fst_snd_eq split add: sum.split_asm)
+  using assms by (auto simp add: crel_def bindM_def split: option.split_asm)
 
 lemma crelE'[consumes 1]:
   assumes "crel (f >> g) h h'' r'"
@@ -86,35 +85,35 @@ qed
 lemma crel_heap:
   assumes "crel (Heap_Monad.heap f) h h' r"
   obtains "h' = snd (f h)" "r = fst (f h)"
-  using assms
-  unfolding heap_def crel_def apfst_def split_def prod_fun_def by simp_all
+  using assms by (cases "f h") (simp add: crel_def)
+
 
 subsection {* Elimination rules for array commands *}
 
 lemma crel_length:
-  assumes "crel (length a) h h' r"
-  obtains "h = h'" "r = Heap.length a h'"
+  assumes "crel (len a) h h' r"
+  obtains "h = h'" "r = Array.length a h'"
   using assms
-  unfolding length_def
+  unfolding Array.len_def
   by (elim crel_heap) simp
 
 (* Strong version of the lemma for this operation is missing *) 
 lemma crel_new_weak:
   assumes "crel (Array.new n v) h h' r"
   obtains "get_array r h' = List.replicate n v"
-  using assms unfolding  Array.new_def
-  by (elim crel_heap) (auto simp:Heap.array_def Let_def split_def)
+  using assms unfolding Array.new_def
+  by (elim crel_heap) (auto simp: array_def Let_def split_def)
 
 lemma crel_nth[consumes 1]:
   assumes "crel (nth a i) h h' r"
-  obtains "r = (get_array a h) ! i" "h = h'" "i < Heap.length a h"
+  obtains "r = (get_array a h) ! i" "h = h'" "i < Array.length a h"
   using assms
   unfolding nth_def
   by (auto elim!: crelE crel_if crel_raise crel_length crel_heap)
 
 lemma crel_upd[consumes 1]:
   assumes "crel (upd i v a) h h' r"
-  obtains "r = a" "h' = Heap.upd a i v h"
+  obtains "r = a" "h' = Array.change a i v h"
   using assms
   unfolding upd_def
   by (elim crelE crel_if crel_return crel_raise
@@ -130,14 +129,14 @@ lemma crel_of_list_weak:
 
 lemma crel_map_entry:
   assumes "crel (Array.map_entry i f a) h h' r"
-  obtains "r = a" "h' = Heap.upd a i (f (get_array a h ! i)) h"
+  obtains "r = a" "h' = Array.change a i (f (get_array a h ! i)) h"
   using assms
   unfolding Array.map_entry_def
   by (elim crelE crel_upd crel_nth) auto
 
 lemma crel_swap:
   assumes "crel (Array.swap i x a) h h' r"
-  obtains "r = get_array a h ! i" "h' = Heap.upd a i x h"
+  obtains "r = get_array a h ! i" "h' = Array.change a i x h"
   using assms
   unfolding Array.swap_def
   by (elim crelE crel_upd crel_nth crel_return) auto
@@ -161,25 +160,25 @@ qed
 
 lemma crel_mapM_nth:
   assumes
-  "crel (mapM (Array.nth a) [Heap.length a h - n..<Heap.length a h]) h h' xs"
-  assumes "n \<le> Heap.length a h"
-  shows "h = h' \<and> xs = drop (Heap.length a h - n) (get_array a h)"
+  "crel (mapM (Array.nth a) [Array.length a h - n..<Array.length a h]) h h' xs"
+  assumes "n \<le> Array.length a h"
+  shows "h = h' \<and> xs = drop (Array.length a h - n) (get_array a h)"
 using assms
 proof (induct n arbitrary: xs h h')
   case 0 thus ?case
-    by (auto elim!: crel_return simp add: Heap.length_def)
+    by (auto elim!: crel_return simp add: Array.length_def)
 next
   case (Suc n)
-  from Suc(3) have "[Heap.length a h - Suc n..<Heap.length a h] = (Heap.length a h - Suc n)#[Heap.length a h - n..<Heap.length a h]"
+  from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   with Suc(2) obtain r where
-    crel_mapM: "crel (mapM (Array.nth a) [Heap.length a h - n..<Heap.length a h]) h h' r"
-    and xs_def: "xs = get_array a h ! (Heap.length a h - Suc n) # r"
+    crel_mapM: "crel (mapM (Array.nth a) [Array.length a h - n..<Array.length a h]) h h' r"
+    and xs_def: "xs = get_array a h ! (Array.length a h - Suc n) # r"
     by (auto elim!: crelE crel_nth crel_return)
-  from Suc(3) have "Heap.length a h - n = Suc (Heap.length a h - Suc n)" 
+  from Suc(3) have "Array.length a h - n = Suc (Array.length a h - Suc n)" 
     by arith
   with Suc.hyps[OF crel_mapM] xs_def show ?case
-    unfolding Heap.length_def
+    unfolding Array.length_def
     by (auto simp add: nth_drop')
 qed
 
@@ -187,17 +186,17 @@ lemma crel_freeze:
   assumes "crel (Array.freeze a) h h' xs"
   obtains "h = h'" "xs = get_array a h"
 proof 
-  from assms have "crel (mapM (Array.nth a) [0..<Heap.length a h]) h h' xs"
+  from assms have "crel (mapM (Array.nth a) [0..<Array.length a h]) h h' xs"
     unfolding freeze_def
     by (auto elim: crelE crel_length)
-  hence "crel (mapM (Array.nth a) [(Heap.length a h - Heap.length a h)..<Heap.length a h]) h h' xs"
+  hence "crel (mapM (Array.nth a) [(Array.length a h - Array.length a h)..<Array.length a h]) h h' xs"
     by simp
   from crel_mapM_nth[OF this] show "h = h'" and "xs = get_array a h" by auto
 qed
 
 lemma crel_mapM_map_entry_remains:
-  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - n..<Heap.length a h]) h h' r"
-  assumes "i < Heap.length a h - n"
+  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
+  assumes "i < Array.length a h - n"
   shows "get_array a h ! i = get_array a h' ! i"
 using assms
 proof (induct n arbitrary: h h' r)
@@ -206,23 +205,23 @@ proof (induct n arbitrary: h h' r)
     by (auto elim: crel_return)
 next
   case (Suc n)
-  let ?h1 = "Heap.upd a (Heap.length a h - Suc n) (f (get_array a h ! (Heap.length a h - Suc n))) h"
-  from Suc(3) have "[Heap.length a h - Suc n..<Heap.length a h] = (Heap.length a h - Suc n)#[Heap.length a h - n..<Heap.length a h]"
+  let ?h1 = "Array.change a (Array.length a h - Suc n) (f (get_array a h ! (Array.length a h - Suc n))) h"
+  from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   from Suc(2) this obtain r where
-    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - n..<Heap.length a h]) ?h1 h' r"
+    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
     by (auto simp add: elim!: crelE crel_map_entry crel_return)
-  have length_remains: "Heap.length a ?h1 = Heap.length a h" by simp
-  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a ?h1 - n..<Heap.length a ?h1]) ?h1 h' r"
+  have length_remains: "Array.length a ?h1 = Array.length a h" by simp
+  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
     by simp
   from Suc(1)[OF this] length_remains Suc(3) show ?case by simp
 qed
 
 lemma crel_mapM_map_entry_changes:
-  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - n..<Heap.length a h]) h h' r"
-  assumes "n \<le> Heap.length a h"  
-  assumes "i \<ge> Heap.length a h - n"
-  assumes "i < Heap.length a h"
+  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
+  assumes "n \<le> Array.length a h"  
+  assumes "i \<ge> Array.length a h - n"
+  assumes "i < Array.length a h"
   shows "get_array a h' ! i = f (get_array a h ! i)"
 using assms
 proof (induct n arbitrary: h h' r)
@@ -231,54 +230,54 @@ proof (induct n arbitrary: h h' r)
     by (auto elim!: crel_return)
 next
   case (Suc n)
-  let ?h1 = "Heap.upd a (Heap.length a h - Suc n) (f (get_array a h ! (Heap.length a h - Suc n))) h"
-  from Suc(3) have "[Heap.length a h - Suc n..<Heap.length a h] = (Heap.length a h - Suc n)#[Heap.length a h - n..<Heap.length a h]"
+  let ?h1 = "Array.change a (Array.length a h - Suc n) (f (get_array a h ! (Array.length a h - Suc n))) h"
+  from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   from Suc(2) this obtain r where
-    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - n..<Heap.length a h]) ?h1 h' r"
+    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
     by (auto simp add: elim!: crelE crel_map_entry crel_return)
-  have length_remains: "Heap.length a ?h1 = Heap.length a h" by simp
-  from Suc(3) have less: "Heap.length a h - Suc n < Heap.length a h - n" by arith
-  from Suc(3) have less2: "Heap.length a h - Suc n < Heap.length a h" by arith
-  from Suc(4) length_remains have cases: "i = Heap.length a ?h1 - Suc n \<or> i \<ge> Heap.length a ?h1 - n" by arith
-  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a ?h1 - n..<Heap.length a ?h1]) ?h1 h' r"
+  have length_remains: "Array.length a ?h1 = Array.length a h" by simp
+  from Suc(3) have less: "Array.length a h - Suc n < Array.length a h - n" by arith
+  from Suc(3) have less2: "Array.length a h - Suc n < Array.length a h" by arith
+  from Suc(4) length_remains have cases: "i = Array.length a ?h1 - Suc n \<or> i \<ge> Array.length a ?h1 - n" by arith
+  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
     by simp
   from Suc(1)[OF this] cases Suc(3) Suc(5) length_remains
-    crel_mapM_map_entry_remains[OF this, of "Heap.length a h - Suc n", symmetric] less less2
+    crel_mapM_map_entry_remains[OF this, of "Array.length a h - Suc n", symmetric] less less2
   show ?case
-    by (auto simp add: nth_list_update_eq Heap.length_def)
+    by (auto simp add: nth_list_update_eq Array.length_def)
 qed
 
 lemma crel_mapM_map_entry_length:
-  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - n..<Heap.length a h]) h h' r"
-  assumes "n \<le> Heap.length a h"
-  shows "Heap.length a h' = Heap.length a h"
+  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
+  assumes "n \<le> Array.length a h"
+  shows "Array.length a h' = Array.length a h"
 using assms
 proof (induct n arbitrary: h h' r)
   case 0
   thus ?case by (auto elim!: crel_return)
 next
   case (Suc n)
-  let ?h1 = "Heap.upd a (Heap.length a h - Suc n) (f (get_array a h ! (Heap.length a h - Suc n))) h"
-  from Suc(3) have "[Heap.length a h - Suc n..<Heap.length a h] = (Heap.length a h - Suc n)#[Heap.length a h - n..<Heap.length a h]"
+  let ?h1 = "Array.change a (Array.length a h - Suc n) (f (get_array a h ! (Array.length a h - Suc n))) h"
+  from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   from Suc(2) this obtain r where 
-    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - n..<Heap.length a h]) ?h1 h' r"
+    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
     by (auto elim!: crelE crel_map_entry crel_return)
-  have length_remains: "Heap.length a ?h1 = Heap.length a h" by simp
-  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a ?h1 - n..<Heap.length a ?h1]) ?h1 h' r"
+  have length_remains: "Array.length a ?h1 = Array.length a h" by simp
+  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
     by simp
   from Suc(1)[OF this] length_remains Suc(3) show ?case by simp
 qed
 
 lemma crel_mapM_map_entry:
-assumes "crel (mapM (\<lambda>n. map_entry n f a) [0..<Heap.length a h]) h h' r"
+assumes "crel (mapM (\<lambda>n. map_entry n f a) [0..<Array.length a h]) h h' r"
   shows "get_array a h' = List.map f (get_array a h)"
 proof -
-  from assms have "crel (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - Heap.length a h..<Heap.length a h]) h h' r" by simp
+  from assms have "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - Array.length a h..<Array.length a h]) h h' r" by simp
   from crel_mapM_map_entry_length[OF this]
   crel_mapM_map_entry_changes[OF this] show ?thesis
-    unfolding Heap.length_def
+    unfolding Array.length_def
     by (auto intro: nth_equalityI)
 qed
 
@@ -312,44 +311,42 @@ extends h' h x \<Longrightarrow> ref_present y h \<Longrightarrow> get_ref y h =
 extends h' h x \<Longrightarrow> lim h' = Suc (lim h)
 *)
 
-lemma crel_Ref_new:
-  assumes "crel (Ref.new v) h h' x"
-  obtains "get_ref x h' = v"
-  and "\<not> ref_present x h"
-  and "ref_present x h'"
-  and "\<forall>y. ref_present y h \<longrightarrow> get_ref y h = get_ref y h'"
+lemma crel_ref:
+  assumes "crel (ref v) h h' x"
+  obtains "Ref.get h' x = v"
+  and "\<not> Ref.present h x"
+  and "Ref.present h' x"
+  and "\<forall>y. Ref.present h y \<longrightarrow> Ref.get h y = Ref.get h' y"
  (* and "lim h' = Suc (lim h)" *)
-  and "\<forall>y. ref_present y h \<longrightarrow> ref_present y h'"
+  and "\<forall>y. Ref.present h y \<longrightarrow> Ref.present h' y"
   using assms
-  unfolding Ref.new_def
+  unfolding Ref.ref_def
   apply (elim crel_heap)
-  unfolding Heap.ref_def
+  unfolding Ref.alloc_def
   apply (simp add: Let_def)
-  unfolding Heap.new_ref_def
-  apply (simp add: Let_def)
-  unfolding ref_present_def
+  unfolding Ref.present_def
   apply auto
-  unfolding get_ref_def set_ref_def
+  unfolding Ref.get_def Ref.set_def
   apply auto
   done
 
 lemma crel_lookup:
-  assumes "crel (!ref) h h' r"
-  obtains "h = h'" "r = get_ref ref h"
+  assumes "crel (!r') h h' r"
+  obtains "h = h'" "r = Ref.get h r'"
 using assms
 unfolding Ref.lookup_def
 by (auto elim: crel_heap)
 
 lemma crel_update:
-  assumes "crel (ref := v) h h' r"
-  obtains "h' = set_ref ref v h" "r = ()"
+  assumes "crel (r' := v) h h' r"
+  obtains "h' = Ref.set r' v h" "r = ()"
 using assms
 unfolding Ref.update_def
 by (auto elim: crel_heap)
 
 lemma crel_change:
-  assumes "crel (Ref.change f ref) h h' r"
-  obtains "h' = set_ref ref (f (get_ref ref h)) h" "r = f (get_ref ref h)"
+  assumes "crel (Ref.change f r') h h' r"
+  obtains "h' = Ref.set r' (f (Ref.get h r')) h" "r = f (Ref.get h r')"
 using assms
 unfolding Ref.change_def Let_def
 by (auto elim!: crelE crel_lookup crel_update crel_return)
@@ -369,11 +366,9 @@ unfolding crel_def bindM_def Let_def assert_def
 apply (cases f)
 apply simp
 apply (simp add: expand_fun_eq split_def)
-apply auto
-apply (case_tac "fst (fun x)")
-apply (simp_all add: Pair_fst_snd_eq)
+apply (auto split: option.split)
 apply (erule_tac x="x" in meta_allE)
-apply fastsimp
+apply auto
 done
 
 section {* Introduction rules *}
@@ -436,22 +431,22 @@ lemma crel_ifI2:
 subsection {* Introduction rules for array commands *}
 
 lemma crel_lengthI:
-  shows "crel (length a) h h (Heap.length a h)"
-  unfolding length_def
+  shows "crel (Array.len a) h h (Array.length a h)"
+  unfolding len_def
   by (rule crel_heapI') auto
 
 (* thm crel_newI for Array.new is missing *)
 
 lemma crel_nthI:
-  assumes "i < Heap.length a h"
+  assumes "i < Array.length a h"
   shows "crel (nth a i) h h ((get_array a h) ! i)"
   using assms
   unfolding nth_def
   by (auto intro!: crelI crel_ifI crel_raiseI crel_lengthI crel_heapI')
 
 lemma crel_updI:
-  assumes "i < Heap.length a h"
-  shows "crel (upd i v a) h (Heap.upd a i v h) a"
+  assumes "i < Array.length a h"
+  shows "crel (upd i v a) h (Array.change a i v h) a"
   using assms
   unfolding upd_def
   by (auto intro!: crelI crel_ifI crel_returnI crel_raiseI
@@ -472,15 +467,15 @@ lemma crel_updI:
 subsubsection {* Introduction rules for reference commands *}
 
 lemma crel_lookupI:
-  shows "crel (!ref) h h (get_ref ref h)"
+  shows "crel (!r) h h (Ref.get h r)"
   unfolding lookup_def by (auto intro!: crel_heapI')
 
 lemma crel_updateI:
-  shows "crel (ref := v) h (set_ref ref v h) ()"
+  shows "crel (r := v) h (Ref.set r v h) ()"
   unfolding update_def by (auto intro!: crel_heapI')
 
 lemma crel_changeI: 
-  shows "crel (Ref.change f ref) h (set_ref ref (f (get_ref ref h)) h) (f (get_ref ref h))"
+  shows "crel (Ref.change f r) h (Ref.set r (f (Ref.get h r)) h) (f (Ref.get h r))"
 unfolding change_def Let_def by (auto intro!: crelI crel_returnI crel_lookupI crel_updateI)
 
 subsubsection {* Introduction rules for the assert command *}
@@ -502,10 +497,10 @@ lemma MREC_induct:
   shows "P x h h' r"
 proof (rule MREC_pinduct[OF assms(1)[unfolded crel_def, symmetric]])
   fix x h h1 h2 h' s z r
-  assume "Heap_Monad.execute (f x) h = (Inl (Inr s), h1)"
-    "Heap_Monad.execute (MREC f g s) h1 = (Inl z, h2)"
+  assume "Heap_Monad.execute (f x) h = Some (Inr s, h1)"
+    "Heap_Monad.execute (MREC f g s) h1 = Some (z, h2)"
     "P s h1 h2 z"
-    "Heap_Monad.execute (g x s z) h2 = (Inl r, h')"
+    "Heap_Monad.execute (g x s z) h2 = Some (r, h')"
   from assms(3)[unfolded crel_def, OF this(1)[symmetric] this(2)[symmetric] this(3) this(4)[symmetric]]
   show "P x h h' r" .
 next
@@ -519,15 +514,15 @@ text {* We add a simple definitional setting for crel intro rules
 
 definition noError :: "'a Heap \<Rightarrow> heap \<Rightarrow> bool"
 where
-  "noError c h \<longleftrightarrow> (\<exists>r h'. (Inl r, h') = Heap_Monad.execute c h)"
+  "noError c h \<longleftrightarrow> (\<exists>r h'. Some (r, h') = Heap_Monad.execute c h)"
 
 lemma noError_def': -- FIXME
-  "noError c h \<longleftrightarrow> (\<exists>r h'. Heap_Monad.execute c h = (Inl r, h'))"
+  "noError c h \<longleftrightarrow> (\<exists>r h'. Heap_Monad.execute c h = Some (r, h'))"
   unfolding noError_def apply auto proof -
   fix r h'
-  assume "(Inl r, h') = Heap_Monad.execute c h"
-  then have "Heap_Monad.execute c h = (Inl r, h')" ..
-  then show "\<exists>r h'. Heap_Monad.execute c h = (Inl r, h')" by blast
+  assume "Some (r, h') = Heap_Monad.execute c h"
+  then have "Heap_Monad.execute c h = Some (r, h')" ..
+  then show "\<exists>r h'. Heap_Monad.execute c h = Some (r, h')" by blast
 qed
 
 subsection {* Introduction rules for basic monadic commands *}
@@ -592,8 +587,8 @@ lemma noError_heap:
 subsection {* Introduction rules for array commands *}
 
 lemma noError_length:
-  shows "noError (Array.length a) h"
-  unfolding length_def
+  shows "noError (Array.len a) h"
+  unfolding len_def
   by (intro noError_heap)
 
 lemma noError_new:
@@ -601,14 +596,14 @@ lemma noError_new:
 unfolding Array.new_def by (intro noError_heap)
 
 lemma noError_upd:
-  assumes "i < Heap.length a h"
+  assumes "i < Array.length a h"
   shows "noError (Array.upd i v a) h"
   using assms
   unfolding upd_def
   by (auto intro!: noErrorI noError_if noError_return noError_length noError_heap) (auto elim: crel_length)
 
 lemma noError_nth:
-assumes "i < Heap.length a h"
+assumes "i < Array.length a h"
   shows "noError (Array.nth a i) h"
   using assms
   unfolding nth_def
@@ -619,14 +614,14 @@ lemma noError_of_list:
   unfolding of_list_def by (rule noError_heap)
 
 lemma noError_map_entry:
-  assumes "i < Heap.length a h"
+  assumes "i < Array.length a h"
   shows "noError (map_entry i f a) h"
   using assms
   unfolding map_entry_def
   by (auto elim: crel_nth intro!: noErrorI noError_nth noError_upd)
 
 lemma noError_swap:
-  assumes "i < Heap.length a h"
+  assumes "i < Array.length a h"
   shows "noError (swap i x a) h"
   using assms
   unfolding swap_def
@@ -640,7 +635,7 @@ lemma noError_make:
 (*TODO: move to HeapMonad *)
 lemma mapM_append:
   "mapM f (xs @ ys) = mapM f xs \<guillemotright>= (\<lambda>xs. mapM f ys \<guillemotright>= (\<lambda>ys. return (xs @ ys)))"
-  by (induct xs) (simp_all add: monad_simp)
+  by (induct xs) simp_all
 
 lemma noError_freeze:
   shows "noError (freeze a) h"
@@ -649,42 +644,42 @@ by (auto intro!: noErrorI noError_length noError_mapM[of _ _ _ "\<lambda>x. get_
   noError_nth crel_nthI elim: crel_length)
 
 lemma noError_mapM_map_entry:
-  assumes "n \<le> Heap.length a h"
-  shows "noError (mapM (\<lambda>n. map_entry n f a) [Heap.length a h - n..<Heap.length a h]) h"
+  assumes "n \<le> Array.length a h"
+  shows "noError (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h"
 using assms
 proof (induct n arbitrary: h)
   case 0
   thus ?case by (auto intro: noError_return)
 next
   case (Suc n)
-  from Suc.prems have "[Heap.length a h - Suc n..<Heap.length a h] = (Heap.length a h - Suc n)#[Heap.length a h - n..<Heap.length a h]"
+  from Suc.prems have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
-  with Suc.hyps[of "(Heap.upd a (Heap.length a h - Suc n) (f (get_array a h ! (Heap.length a h - Suc n))) h)"] Suc.prems show ?case
+  with Suc.hyps[of "(Array.change a (Array.length a h - Suc n) (f (get_array a h ! (Array.length a h - Suc n))) h)"] Suc.prems show ?case
     by (auto simp add: intro!: noErrorI noError_return noError_map_entry elim: crel_map_entry)
 qed
 
 lemma noError_map:
   shows "noError (Array.map f a) h"
-using noError_mapM_map_entry[of "Heap.length a h" a h]
+using noError_mapM_map_entry[of "Array.length a h" a h]
 unfolding Array.map_def
 by (auto intro: noErrorI noError_length noError_return elim!: crel_length)
 
 subsection {* Introduction rules for the reference commands *}
 
 lemma noError_Ref_new:
-  shows "noError (Ref.new v) h"
-unfolding Ref.new_def by (intro noError_heap)
+  shows "noError (ref v) h"
+  unfolding Ref.ref_def by (intro noError_heap)
 
 lemma noError_lookup:
-  shows "noError (!ref) h"
+  shows "noError (!r) h"
   unfolding lookup_def by (intro noError_heap)
 
 lemma noError_update:
-  shows "noError (ref := v) h"
+  shows "noError (r := v) h"
   unfolding update_def by (intro noError_heap)
 
 lemma noError_change:
-  shows "noError (Ref.change f ref) h"
+  shows "noError (Ref.change f r) h"
   unfolding Ref.change_def Let_def by (intro noErrorI noError_lookup noError_update noError_return)
 
 subsection {* Introduction rules for the assert command *}
@@ -701,7 +696,7 @@ section {* Cumulative lemmas *}
 lemmas crel_elim_all =
   crelE crelE' crel_return crel_raise crel_if crel_option_case
   crel_length crel_new_weak crel_nth crel_upd crel_of_list_weak crel_map_entry crel_swap crel_make_weak crel_freeze crel_map_weak
-  crel_Ref_new crel_lookup crel_update crel_change
+  crel_ref crel_lookup crel_update crel_change
   crel_assert
 
 lemmas crel_intro_all =

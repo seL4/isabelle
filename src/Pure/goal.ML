@@ -104,12 +104,7 @@ val norm_result =
 
 (* parallel proofs *)
 
-fun fork e = Future.fork_pri ~1 (fn () =>
-  let
-    val _ = Output.status (Markup.markup Markup.forked "");
-    val x = e ();  (*sic*)
-    val _ = Output.status (Markup.markup Markup.joined "");
-  in x end);
+fun fork e = Future.fork_pri ~1 (fn () => Future.report e);
 
 val parallel_proofs = Unsynchronized.ref 1;
 
