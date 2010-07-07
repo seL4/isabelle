@@ -85,46 +85,18 @@ where
 | "B(b0 andi b1) = (%s. (B b0 s) & (B b1 s))"
 | "B(b0 ori b1) = (%s. (B b0 s) | (B b1 s))"
 
-lemma [simp]: "(N(n),s) -a-> n' = (n = n')"
-  by (rule,cases set: evala) auto
-
-lemma [simp]: "(X(x),sigma) -a-> i = (i = sigma x)"
-  by (rule,cases set: evala) auto
-
-lemma   [simp]:
-  "(Op1 f e,sigma) -a-> i = (\<exists>n. i = f n \<and> (e,sigma) -a-> n)"
-  by (rule,cases set: evala) auto
-
-lemma [simp]:
-  "(Op2 f a1 a2,sigma) -a-> i =
-  (\<exists>n0 n1. i = f n0 n1 \<and> (a1, sigma) -a-> n0 \<and> (a2, sigma) -a-> n1)"
-  by (rule,cases set: evala) auto
-
-lemma [simp]: "((true,sigma) -b-> w) = (w=True)"
-  by (rule,cases set: evalb) auto
-
-lemma [simp]:
-  "((false,sigma) -b-> w) = (w=False)"
-  by (rule,cases set: evalb) auto
-
-lemma [simp]:
-  "((ROp f a0 a1,sigma) -b-> w) =
-  (? m. (a0,sigma) -a-> m & (? n. (a1,sigma) -a-> n & w = f m n))"
-  by (rule,cases set: evalb) blast+
-
-lemma [simp]:
-  "((noti(b),sigma) -b-> w) = (? x. (b,sigma) -b-> x & w = (~x))"
-  by (rule,cases set: evalb) blast+
-
-lemma [simp]:
-  "((b0 andi b1,sigma) -b-> w) =
-  (? x. (b0,sigma) -b-> x & (? y. (b1,sigma) -b-> y & w = (x&y)))"
-  by (rule,cases set: evalb) blast+
-
-lemma [simp]:
-  "((b0 ori b1,sigma) -b-> w) =
-  (? x. (b0,sigma) -b-> x & (? y. (b1,sigma) -b-> y & w = (x|y)))"
-  by (rule,cases set: evalb) blast+
+inductive_simps
+  evala_simps [simp]:
+  "(N(n),s) -a-> n'" 
+  "(X(x),sigma) -a-> i"
+  "(Op1 f e,sigma) -a-> i"
+  "(Op2 f a1 a2,sigma) -a-> i"
+  "((true,sigma) -b-> w)"
+  "((false,sigma) -b-> w)"
+  "((ROp f a0 a1,sigma) -b-> w)"
+  "((noti(b),sigma) -b-> w)"
+  "((b0 andi b1,sigma) -b-> w)"
+  "((b0 ori b1,sigma) -b-> w)"
 
 
 lemma aexp_iff: "((a,s) -a-> n) = (A a s = n)"

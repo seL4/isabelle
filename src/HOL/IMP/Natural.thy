@@ -79,17 +79,10 @@ inductive_cases whileE [elim]:  "\<langle>\<WHILE> b \<DO> c,s\<rangle> \<longri
 text {* The next proofs are all trivial by rule inversion.
 *}
 
-lemma skip:
-  "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s)"
-  by auto
-
-lemma assign:
-  "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c s' = (s' = s[x\<mapsto>a s])"
-  by auto
-
-lemma semi:
-  "\<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>c s' = (\<exists>s''. \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'' \<and> \<langle>c1,s''\<rangle> \<longrightarrow>\<^sub>c s')"
-  by auto
+inductive_simps
+  skip: "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c s'"
+  and assign: "\<langle>x :== a,s\<rangle> \<longrightarrow>\<^sub>c s'"
+  and semi: "\<langle>c0; c1, s\<rangle> \<longrightarrow>\<^sub>c s'"
 
 lemma ifTrue:
   "b s \<Longrightarrow> \<langle>\<IF> b \<THEN> c0 \<ELSE> c1, s\<rangle> \<longrightarrow>\<^sub>c s' = \<langle>c0,s\<rangle> \<longrightarrow>\<^sub>c s'"
