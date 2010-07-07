@@ -22,7 +22,7 @@ signature BASIC_INDUCTIVE =
 sig
   type inductive_result =
     {preds: term list, elims: thm list, raw_induct: thm,
-     induct: thm, inducts: thm list, intrs: thm list}
+     induct: thm, inducts: thm list, intrs: thm list, eqs: thm list}
   val morph_result: morphism -> inductive_result -> inductive_result
   type inductive_info = {names: string list, coind: bool} * inductive_result
   val the_inductive: Proof.context -> string -> inductive_info
@@ -73,7 +73,7 @@ sig
     local_theory -> inductive_result * local_theory
   val declare_rules: binding -> bool -> bool -> string list -> term list ->
     thm list -> binding list -> Attrib.src list list -> (thm * string list * int) list ->
-    thm -> local_theory -> thm list * thm list * thm * thm list * local_theory
+    thm list -> thm -> local_theory -> thm list * thm list * thm list * thm * thm list * local_theory
   val add_ind_def: add_ind_def
   val gen_add_inductive_i: add_ind_def -> inductive_flags ->
     ((binding * typ) * mixfix) list -> (string * typ) list -> (Attrib.binding * term) list ->
@@ -120,16 +120,16 @@ val simp_thms''' = map mk_meta_eq
 
 type inductive_result =
   {preds: term list, elims: thm list, raw_induct: thm,
-   induct: thm, inducts: thm list, intrs: thm list};
+   induct: thm, inducts: thm list, intrs: thm list, eqs: thm list};
 
-fun morph_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs} =
+fun morph_result phi {preds, elims, raw_induct: thm, induct, inducts, intrs, eqs} =
   let
     val term = Morphism.term phi;
     val thm = Morphism.thm phi;
     val fact = Morphism.fact phi;
   in
    {preds = map term preds, elims = fact elims, raw_induct = thm raw_induct,
-    induct = thm induct, inducts = fact inducts, intrs = fact intrs}
+    induct = thm induct, inducts = fact inducts, intrs = fact intrs, eqs = fact eqs}
   end;
 
 type inductive_info =
@@ -244,6 +244,9 @@ fun mk_names a 0 = []
   | mk_names a 1 = [a]
   | mk_names a n = map (fn i => a ^ string_of_int i) (1 upto n);
 
+fun select_disj 1 1 = []
+  | select_disj _ 1 = [rtac disjI1]
+  | select_disj n i = (rtac disjI2)::(select_disj (n - 1) (i - 1));
 
 
 (** process rules **)
@@ -347,10 +350,6 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
       (mono RS (fp_def RS
         (if coind then @{thm def_gfp_unfold} else @{thm def_lfp_unfold})));
 
-    fun select_disj 1 1 = []
-      | select_disj _ 1 = [rtac disjI1]
-      | select_disj n i = (rtac disjI2)::(select_disj (n - 1) (i - 1));
-
     val rules = [refl, TrueI, notFalseI, exI, conjI];
 
     val intrs = map_index (fn (i, intr) =>
@@ -361,7 +360,6 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
         (*Not ares_tac, since refl must be tried before any equality assumptions;
           backtracking may occur if the premises have extra variables!*)
         DEPTH_SOLVE_1 (resolve_tac rules 1 APPEND assume_tac 1)])
-       |> rulify
        |> singleton (ProofContext.export ctxt ctxt')) intr_ts
 
   in (intrs, unfold) end;
@@ -408,14 +406,78 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
              REPEAT (FIRSTGOAL (eresolve_tac rules2)),
              EVERY (map (fn prem =>
                DEPTH_SOLVE_1 (ares_tac [rewrite_rule rec_preds_defs prem, conjI] 1)) (tl prems))])
-          |> rulify
           |> singleton (ProofContext.export ctxt'' ctxt'''),
          map #2 c_intrs, length Ts)
       end
 
    in map prove_elim cs end;
 
+(* prove simplification equations *)
 
+fun prove_eqs quiet_mode cs params intr_ts intrs elims ctxt ctxt'' =
+  let
+    val _ = clean_message quiet_mode "  Proving the simplification rules ...";
+    
+    fun dest_intr r =
+      (the (dest_predicate cs params (HOLogic.dest_Trueprop (Logic.strip_assums_concl r))),
+       Logic.strip_assums_hyp r, Logic.strip_params r);
+    val intr_ts' = map dest_intr intr_ts;
+    fun prove_eq c elim =
+      let
+        val Ts = arg_types_of (length params) c;
+        val (anames, ctxt') = Variable.variant_fixes (mk_names "a" (length Ts)) ctxt;
+        val frees = map Free (anames ~~ Ts);
+        val c_intrs = filter (equal c o #1 o #1 o #1) (intr_ts' ~~ intrs);
+        fun mk_intr_conj (((_, _, us, _), ts, params'), _) =
+          let
+            fun list_ex ([], t) = t
+              | list_ex ((a,T)::vars, t) =
+                 (HOLogic.exists_const T) $ (Abs(a, T, list_ex(vars,t)));
+            val conjs = map2 (curry HOLogic.mk_eq) frees us @ (map HOLogic.dest_Trueprop ts)
+          in
+            list_ex (params', if null conjs then @{term True} else foldr1 HOLogic.mk_conj conjs)
+          end;
+        val lhs = list_comb (c, params @ frees)
+        val rhs =
+          if null c_intrs then @{term False} else foldr1 HOLogic.mk_disj (map mk_intr_conj c_intrs)
+        val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs))
+        fun prove_intr1 (i, _) = Subgoal.FOCUS_PREMS (fn {params, prems, ...} =>
+            let
+              val (prems', last_prem) = split_last prems
+            in
+              EVERY1 (select_disj (length c_intrs) (i + 1))
+              THEN EVERY (replicate (length params) (rtac @{thm exI} 1))
+              THEN EVERY (map (fn prem => (rtac @{thm conjI} 1 THEN rtac prem 1)) prems')
+              THEN rtac last_prem 1
+            end) ctxt' 1
+        fun prove_intr2 (((_, _, us, _), ts, params'), intr) =
+          EVERY (replicate (length params') (etac @{thm exE} 1))
+          THEN EVERY (replicate (length ts + length us - 1) (etac @{thm conjE} 1))
+          THEN Subgoal.FOCUS_PREMS (fn {params, prems, ...} =>
+            let
+              val (eqs, prems') = chop (length us) prems
+              val rew_thms = map (fn th => th RS @{thm eq_reflection}) eqs
+            in
+              rewrite_goal_tac rew_thms 1
+              THEN rtac intr 1
+              THEN (EVERY (map (fn p => rtac p 1) prems'))              
+            end) ctxt' 1 
+      in
+        Skip_Proof.prove ctxt' [] [] eq (fn {...} =>
+          rtac @{thm iffI} 1 THEN etac (#1 elim) 1
+          THEN EVERY (map_index prove_intr1 c_intrs)
+          THEN (if null c_intrs then etac @{thm FalseE} 1 else
+            let val (c_intrs', last_c_intr) = split_last c_intrs in
+              EVERY (map (fn ci => etac @{thm disjE} 1 THEN prove_intr2 ci) c_intrs')
+              THEN prove_intr2 last_c_intr
+            end))
+        |> rulify
+        |> singleton (ProofContext.export ctxt' ctxt'')
+      end;  
+  in
+    map2 prove_eq cs elims
+  end;
+  
 (* derivation of simplified elimination rules *)
 
 local
@@ -455,7 +517,6 @@ fun mk_cases ctxt prop =
 
 end;
 
-
 (* inductive_cases *)
 
 fun gen_inductive_cases prep_att prep_prop args lthy =
@@ -483,7 +544,37 @@ val ind_cases_setup =
         in Method.erule 0 rules end))
     "dynamic case analysis on predicates";
 
+(* derivation of simplified equation *)
 
+fun mk_simp_eq ctxt prop =
+  let
+    val (c, args) = strip_comb (HOLogic.dest_Trueprop prop)
+    val ctxt' = Variable.auto_fixes prop ctxt
+    val cname = fst (dest_Const c)
+    val info = the_inductive ctxt cname
+    val eq = nth (#eqs (snd info)) (find_index (fn c => c = cname) (#names (fst info)))
+    val (_, args') = strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of eq))))
+    val certify = cterm_of (ProofContext.theory_of ctxt)
+  in
+    cterm_instantiate (map (pairself certify) (args' ~~ args)) eq
+    |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv
+      (Simplifier.full_rewrite (simpset_of ctxt))))
+    |> singleton (Variable.export ctxt' ctxt)
+  end
+
+(* inductive simps *)
+
+fun gen_inductive_simps prep_att prep_prop args lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val facts = args |> map (fn ((a, atts), props) =>
+      ((a, map (prep_att thy) atts),
+        map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
+  in lthy |> Local_Theory.notes facts |>> map snd end;
+
+val inductive_simps = gen_inductive_simps Attrib.intern_src Syntax.read_prop;
+val inductive_simps_i = gen_inductive_simps (K I) Syntax.check_prop;
+    
 (* prove induction rule *)
 
 fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
@@ -697,7 +788,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
   end;
 
 fun declare_rules rec_binding coind no_ind cnames
-    preds intrs intr_bindings intr_atts elims raw_induct lthy =
+    preds intrs intr_bindings intr_atts elims eqs raw_induct lthy =
   let
     val rec_name = Binding.name_of rec_binding;
     fun rec_qualified qualified = Binding.qualify qualified rec_name;
@@ -737,18 +828,23 @@ fun declare_rules rec_binding coind no_ind cnames
         ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")),
           map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
 
-    val (inducts, lthy3) =
-      if no_ind orelse coind then ([], lthy2)
+    val (eqs', lthy3) = lthy2 |> 
+      fold_map (fn (name, eq) => Local_Theory.note
+          ((Binding.qualify true (Long_Name.base_name name) (Binding.name "simps"), []), [eq])
+          #> apfst (hd o snd))
+        (if null eqs then [] else (cnames ~~ eqs))
+    val (inducts, lthy4) =
+      if no_ind orelse coind then ([], lthy3)
       else
-        let val inducts = cnames ~~ Project_Rule.projects lthy2 (1 upto length cnames) induct' in
-          lthy2 |>
+        let val inducts = cnames ~~ Project_Rule.projects lthy3 (1 upto length cnames) induct' in
+          lthy3 |>
           Local_Theory.notes [((rec_qualified true (Binding.name "inducts"), []),
             inducts |> map (fn (name, th) => ([th],
               [Attrib.internal (K ind_case_names),
                Attrib.internal (K (Rule_Cases.consumes 1)),
                Attrib.internal (K (Induct.induct_pred name))])))] |>> snd o hd
         end;
-  in (intrs', elims', induct', inducts, lthy3) end;
+  in (intrs', elims', eqs', induct', inducts, lthy4) end;
 
 type inductive_flags =
   {quiet_mode: bool, verbose: bool, alt_name: binding, coind: bool,
@@ -794,17 +890,23 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
        else
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
            rec_preds_defs lthy2 lthy1);
+    val eqs =
+      if no_elim then [] else prove_eqs quiet_mode cs params intr_ts intrs elims lthy2 lthy1
 
-    val (intrs', elims', induct, inducts, lthy3) = declare_rules rec_name coind no_ind
-      cnames preds intrs intr_names intr_atts elims raw_induct lthy1;
+    val elims' = map (fn (th, ns, i) => (rulify th, ns, i)) elims
+    val intrs' = map rulify intrs
+
+    val (intrs'', elims'', eqs', induct, inducts, lthy3) = declare_rules rec_name coind no_ind
+      cnames preds intrs' intr_names intr_atts elims' eqs raw_induct lthy1;
 
     val result =
       {preds = preds,
-       intrs = intrs',
-       elims = elims',
+       intrs = intrs'',
+       elims = elims'',
        raw_induct = rulify raw_induct,
        induct = induct,
-       inducts = inducts};
+       inducts = inducts,
+       eqs = eqs'};
 
     val lthy4 = lthy3
       |> Local_Theory.declaration false (fn phi =>
@@ -992,5 +1094,10 @@ val _ =
   Outer_Syntax.local_theory "inductive_cases"
     "create simplified instances of elimination rules (improper)" Keyword.thy_script
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
+
+val _ =
+  Outer_Syntax.local_theory "inductive_simps"
+    "create simplification rules for inductive predicates" Keyword.thy_script
+    (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_simps));
 
 end;

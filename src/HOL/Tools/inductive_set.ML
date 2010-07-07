@@ -520,16 +520,17 @@ fun add_ind_set_def
     val cnames = map (Local_Theory.full_name lthy3 o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;
-    val (intrs', elims', induct, inducts, lthy4) =
+    val eqs = [] (* TODO: define equations *)
+    val (intrs', elims', eqs', induct, inducts, lthy4) =
       Inductive.declare_rules rec_name coind no_ind cnames (map fst defs)
         (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
         (map (fn th => (to_set [] (Context.Proof lthy3) th,
            map fst (fst (Rule_Cases.get th)),
            Rule_Cases.get_constraints th)) elims)
-        raw_induct' lthy3;
+        eqs raw_induct' lthy3;
   in
     ({intrs = intrs', elims = elims', induct = induct, inducts = inducts,
-      raw_induct = raw_induct', preds = map fst defs},
+      raw_induct = raw_induct', preds = map fst defs, eqs = eqs'},
      lthy4)
   end;
 

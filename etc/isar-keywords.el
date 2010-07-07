@@ -120,6 +120,7 @@
     "inductive"
     "inductive_cases"
     "inductive_set"
+    "inductive_simps"
     "init_toplevel"
     "instance"
     "instantiation"
@@ -550,7 +551,8 @@
     "use"))
 
 (defconst isar-keywords-theory-script
-  '("inductive_cases"))
+  '("inductive_cases"
+    "inductive_simps"))
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
