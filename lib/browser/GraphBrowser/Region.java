@@ -79,7 +79,7 @@ class Region {
 	public int spaceBetween(Region r2) {
 		return ((Vertex)(r2.getVertices().nextElement())).leftX()-
 			((Vertex)(vertices.lastElement())).rightX()-
-			gra.box_hspace+gra.box_width;
+			20;
 	}
 
 	public boolean touching(Region r2) {

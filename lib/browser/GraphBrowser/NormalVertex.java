@@ -58,28 +58,23 @@ class NormalVertex extends Vertex {
 
 	public void setDir(String d) { dir=d; }
 
-	public int leftX() { return getX()-gra.box_width2; }
+	public int leftX() { return getX()-box_width2(); }
 
-	public int rightX() { return getX()+gra.box_width2; }
+	public int rightX() { return getX()+box_width2(); }
 
 	public void drawBox(Graphics g,Color boxColor) {
 		FontMetrics fm = g.getFontMetrics(g.getFont());
 		int h=fm.getAscent()+fm.getDescent();
 
 		g.setColor(boxColor);
-		g.fillRect(getX()-gra.box_width2,getY(),gra.box_width,gra.box_height);
+		g.fillRect(getX()-box_width2(),getY(),box_width(),gra.box_height);
 		g.setColor(Color.black);
-		g.drawRect(getX()-gra.box_width2,getY(),gra.box_width,gra.box_height);
-		if (getNumber()<0) {
+		g.drawRect(getX()-box_width2(),getY(),box_width(),gra.box_height);
+		if (getNumber()<0)
 			g.setColor(Color.red);
-			label=label.substring(1,label.length()-1);
-			while (label.length()>0 && fm.stringWidth("["+label+"]")>gra.box_width-8)
-					label=label.substring(0,label.length()-1);
-			label="["+label+"]";
-		}
 
 		g.drawString(label,
-		             (int)Math.round((gra.box_width-fm.stringWidth(label))/2.0)+getX()-gra.box_width2,
+		             (int)Math.round((box_width()-fm.stringWidth(label))/2.0)+getX()-box_width2(),
 				fm.getAscent()+(int)Math.round((gra.box_height-h)/2.0)+getY());
 	}
 
@@ -136,7 +131,7 @@ class NormalVertex extends Vertex {
 	}
 
 	public void PS(PrintWriter p) {
-		p.print(leftX()+" "+getY()+" "+gra.box_width+" "+
+		p.print(leftX()+" "+getY()+" "+box_width()+" "+
 		        gra.box_height+" (");
 		for (int i=0;i<label.length();i++)
 		{

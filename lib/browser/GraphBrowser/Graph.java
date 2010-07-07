@@ -17,9 +17,7 @@ public class Graph {
 
 	public int box_height=0;
 	public int box_height2;
-	public int box_width;
-	public int box_width2;
-	public int box_hspace;
+	public Graphics gfx;
 
 	Vector vertices=new Vector(10,10);
 	Vector splines=new Vector(10,10);
@@ -185,19 +183,16 @@ public class Graph {
 
 	public void setParameters(Graphics g) {
 		Enumeration e1=vertices.elements();
-		int h,w;
-		h=w=Integer.MIN_VALUE;
+		int h;
+		h=Integer.MIN_VALUE;
 
 		while (e1.hasMoreElements()) {
 		  Box dim=((Vertex)(e1.nextElement())).getLabelSize(g);
 			h=Math.max(h,dim.height);
-			w=Math.max(w,dim.width);
 		}
 		box_height=h+4;
 		box_height2=box_height/2;
-		box_width=w+8;
-		box_width2=box_width/2;
-		box_hspace=box_width+20;
+		gfx=g;
 	}
 
 	/********************************************************************/
@@ -538,12 +533,12 @@ public class Graph {
 		while (e1.hasMoreElements()) {
 			Vector v1=(Vector)(e1.nextElement());
 			Enumeration e2=v1.elements();
-			int x=box_width2;
+			int x=0;
 			while (e2.hasMoreElements()) {
 				Vertex ve=(Vertex)(e2.nextElement());
-				ve.setX(x);
+				ve.setX(x+ve.box_width2());
 				ve.setY(y);
-				x+=box_hspace;
+				x+=ve.box_width()+20;
 			}
 			y+=box_height+Math.max(35,7*(((Integer)(e3.nextElement())).intValue()));
 		}
@@ -638,8 +633,8 @@ public class Graph {
 					}
 					d2=(n!=0?d/n:0);
 
-					if (d<0 && (i==0 || ((Vertex)(v.elementAt(i-1))).rightX()+box_hspace-box_width < vx.leftX()+d2) ||
-						d>0 && (i==v.size()-1 || ((Vertex)(v.elementAt(i+1))).leftX()-box_hspace+box_width > vx.rightX()+d2))
+					if (d<0 && (i==0 || ((Vertex)(v.elementAt(i-1))).rightX()+20 < vx.leftX()+d2) ||
+						d>0 && (i==v.size()-1 || ((Vertex)(v.elementAt(i+1))).leftX()-20 > vx.rightX()+d2))
 						vx.setX(vx.getX()+d2);
 				}
 			}
@@ -743,8 +738,6 @@ public class Graph {
 							vx2=(Vertex)((vx2.getChildren()).nextElement());
 							x3=vx2.getX();
 							y3=vx2.getY();
-							// spc=(box_hspace-box_width)/3;
-							// spc=box_height*3/4;
 							spc=0;
 							leftx = k==0 /* || ((Vertex)(layer.elementAt(k-1))).isDummy() */ ?
 								Integer.MIN_VALUE:
