@@ -95,6 +95,10 @@ spaces the real and complex numbers are instantiated to be euclidean_spaces.
 
 INCOMPATIBILITY.
 
+* Inductive package: offers new command "inductive_simps" to automatically
+  derive instantiated and simplified equations for inductive predicates,
+  similar to inductive_cases.
+
 
 New in Isabelle2009-2 (June 2010)
 ---------------------------------
