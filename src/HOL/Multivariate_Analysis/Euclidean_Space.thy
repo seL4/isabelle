@@ -3315,8 +3315,6 @@ apply simp
 apply simp
 done
 
-print_antiquotations
-
 subsection "Instantiate @{typ real} and @{typ complex} as typeclass @{text ordered_euclidean_space}."
 
 instantiation real :: real_basis_with_inner
