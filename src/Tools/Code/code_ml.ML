@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_ml.ML
+(*  Title:      Tools/Code/code_ml.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer for SML and OCaml.
@@ -7,10 +7,13 @@ Serializer for SML and OCaml.
 signature CODE_ML =
 sig
   val target_SML: string
+  val target_OCaml: string
   val evaluation_code_of: theory -> string -> string
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val print_tuple: (Code_Printer.fixity -> 'a -> Pretty.T)
     -> Code_Printer.fixity -> 'a list -> Pretty.T option
+  val check_SML: theory -> Path.T -> unit
+  val check_OCaml: theory -> Path.T -> unit
   val setup: theory -> theory
 end;
 
@@ -948,6 +951,17 @@ end; (*local*)
 fun evaluation_code_of thy target struct_name =
   Code_Target.serialize_custom thy (target, (fn _ => fn [] =>
     serialize_ml target (SOME (K ())) print_sml_module print_sml_stmt (SOME struct_name) true, literals_sml));
+
+
+(** formal checking of compiled code **)
+
+fun check_SML thy = Code_Target.external_check thy target_SML
+  "ISABELLE_PROCESS" (fn p => Path.append p (Path.explode "ROOT.ML"))
+  (fn isabelle => fn p => fn _ => isabelle ^ " -r -q -u Pure");
+
+fun check_OCaml thy = Code_Target.external_check thy target_OCaml
+  "EXEC_OCAML" (fn p => Path.append p (Path.explode "ROOT.ocaml"))
+  (fn ocaml => fn p => fn _ => ocaml ^ " -w pu nums.cma " ^ File.shell_path p);
 
 
 (** Isar setup **)

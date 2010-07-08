@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_haskell.ML
+(*  Title:      Tools/Code/code_haskell.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer for Haskell.
@@ -6,6 +6,8 @@ Serializer for Haskell.
 
 signature CODE_HASKELL =
 sig
+  val target: string
+  val check: theory -> Path.T -> unit
   val setup: theory -> theory
 end;
 
@@ -460,6 +462,14 @@ fun add_monad target' raw_c_bind thy =
     |> Code_Target.add_syntax_const target c_bind
         (SOME (pretty_haskell_monad c_bind))
   else error "Only Haskell target allows for monad syntax" end;
+
+
+(** formal checking of compiled code **)
+
+fun check thy = Code_Target.external_check thy target
+  "EXEC_GHC" I (fn ghc => fn p => fn module_name =>
+    ghc ^ " -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^ module_name ^ ".hs");
+
 
 
 (** Isar setup **)

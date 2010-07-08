@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_target.ML
+(*  Title:      Tools/Code/code_target.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer from intermediate language ("Thin-gol") to target languages.
@@ -36,6 +36,8 @@ sig
   val string: string list -> serialization -> string
   val code_of: theory -> string -> int option -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string
+  val external_check: theory -> string -> string
+    -> (Path.T -> Path.T) -> (string -> Path.T -> string -> string) -> Path.T -> unit
   val set_default_code_width: int -> theory -> theory
   val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
 
@@ -354,6 +356,27 @@ fun read_const_exprs thy cs =
     val cs3 = map_filter (fn (c, name) =>
       if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
   in union (op =) cs3 cs1 end;
+
+fun external_check thy target env_var make_destination make_command p =
+  let
+    val env_param = getenv env_var;
+    fun ext_check env_param =
+      let 
+        val module_name = "Code_Test";
+        val (cs, (naming, program)) =
+          Code_Thingol.consts_program thy false (read_const_exprs thy ["*"]);
+        val destination = make_destination p;
+        val _ = file destination (serialize thy target (SOME 80)
+          (SOME module_name) [] naming program cs);
+        val cmd = make_command env_param destination module_name;
+      in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd) <> 0
+        then error ("Code check failed for " ^ target ^ ": " ^ cmd)
+        else ()
+      end;
+  in if env_param = ""
+    then warning (env_var ^ " not set; skipped code check for " ^ target)
+    else ext_check env_param
+  end;
 
 fun export_code thy cs seris =
   let

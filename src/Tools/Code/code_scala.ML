@@ -1,10 +1,13 @@
-(*  Author:     Florian Haftmann, TU Muenchen
+(*  Title:      Tools/Code/code_scala.ML
+    Author:     Florian Haftmann, TU Muenchen
 
 Serializer for Scala.
 *)
 
 signature CODE_SCALA =
 sig
+  val target: string
+  val check: theory -> Path.T -> unit
   val setup: theory -> theory
 end;
 
@@ -409,6 +412,14 @@ in Literals {
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")
 } end;
+
+
+(** formal checking of compiled code **)
+
+fun check thy = Code_Target.external_check thy target
+  "SCALA_HOME" I (fn scala_home => fn p => fn _ =>
+    Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " *.scala");
+
 
 
 (** Isar setup **)
