@@ -219,4 +219,16 @@ in Codegen.add_codegen "char_codegen" char_codegen end
 
 hide_type (open) literal
 
+
+text {* Code generator setup *}
+
+code_modulename SML
+  String String
+
+code_modulename OCaml
+  String String
+
+code_modulename Haskell
+  String String
+
 end
