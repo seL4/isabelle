@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #
-# check_ml_headers - check headers of *.ML files in Distribution for inconsistencies
+# check_ml_headers - check headers of *.ML files in distribution for inconsistencies
 #
 # requires some GNU tools
 #
 
-ONLY_FILENAMES=1
+ONLY_FILENAMES=""
 if [ "$1" == "-o" ]
 then
-  ONLY_FILENAMES=""
+  ONLY_FILENAMES=1
 fi
 
 REPORT_EMPTY=""
@@ -25,9 +25,9 @@ do
   FILELOC="${LOC:${#ISABELLE_SRC}}"
   if [ "$TITLE" != "$FILELOC" ]
   then
-    if [ -n "$REPORT_EMPTY" -o -n "$TITLE" ]
+    if [ -n "$TITLE" -o \( -n "$REPORT_EMPTY" -a $(basename "$FILELOC") != "ROOT.ML" \) ]
     then
-      if [ -n "$ONLY_FILENAMES" ]
+      if [ -z "$ONLY_FILENAMES" ]
       then
         echo "Inconsistency in $LOC: $TITLE"
       else
