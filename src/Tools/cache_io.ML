@@ -7,6 +7,7 @@ Cache for output of external processes.
 signature CACHE_IO =
 sig
   val with_tmp_file: string -> (Path.T -> 'a) -> 'a
+  val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   val run: (Path.T -> Path.T -> string) -> string -> string list * string list
 
   type cache
@@ -29,6 +30,14 @@ fun with_tmp_file name f =
     val path = File.tmp_path (Path.explode (name ^ serial_string ()))
     val x = Exn.capture f path
     val _ = try File.rm path
+  in Exn.release x end
+
+fun with_tmp_dir name f =
+  let
+    val path = File.tmp_path (Path.explode (name ^ serial_string ()))
+    val _ = File.mkdir path
+    val x = Exn.capture f path
+    val _ = try File.rm_tree path
   in Exn.release x end
 
 fun run make_cmd str =
