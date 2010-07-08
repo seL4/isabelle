@@ -999,4 +999,9 @@ ML {* @{code test_1} () *}
 ML {* @{code test_2} () *}
 ML {* @{code test_3} () *}
 
+export_code test_1 test_2 test_3 in SML_imp module_name QSort file -
+export_code test_1 test_2 test_3 in OCaml module_name QSort file -
+export_code test_1 test_2 test_3 in OCaml_imp module_name QSort file -
+export_code test_1 test_2 test_3 in Haskell module_name QSort file -
+
 end
