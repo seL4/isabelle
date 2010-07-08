@@ -1000,7 +1000,7 @@ text {*
   \begin{rail}
     'export\_code' ( constexpr + ) \\
       ( ( 'in' target ( 'module\_name' string ) ? \\
-        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
+        'file' ( string | '-' ) ( '(' args ')' ) ?) + ) ?
     ;
 
     const: term
@@ -1092,8 +1092,7 @@ text {*
   single file; for \emph{Haskell}, it refers to a whole directory,
   where code is generated in multiple files reflecting the module
   hierarchy.  The file specification ``@{text "-"}'' denotes standard
-  output.  For \emph{SML}, omitting the file specification compiles
-  code internally in the context of the current ML session.
+  output.
 
   Serializers take an optional list of arguments in parentheses.  For
   \emph{SML} and \emph{OCaml}, ``@{text no_signatures}`` omits

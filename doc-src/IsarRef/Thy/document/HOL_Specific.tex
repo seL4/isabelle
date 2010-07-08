@@ -1016,7 +1016,7 @@ Isabelle/Pure provides two generic frameworks to support code
   \begin{rail}
     'export\_code' ( constexpr + ) \\
       ( ( 'in' target ( 'module\_name' string ) ? \\
-        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
+        'file' ( string | '-' ) ( '(' args ')' ) ?) + ) ?
     ;
 
     const: term
@@ -1107,8 +1107,7 @@ Isabelle/Pure provides two generic frameworks to support code
   single file; for \emph{Haskell}, it refers to a whole directory,
   where code is generated in multiple files reflecting the module
   hierarchy.  The file specification ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' denotes standard
-  output.  For \emph{SML}, omitting the file specification compiles
-  code internally in the context of the current ML session.
+  output.
 
   Serializers take an optional list of arguments in parentheses.  For
   \emph{SML} and \emph{OCaml}, ``\isa{no{\isacharunderscore}signatures}`` omits
