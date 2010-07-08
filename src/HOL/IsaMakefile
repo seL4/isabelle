@@ -531,7 +531,7 @@ $(LOG)/HOL-Generate-HOL.gz: $(OUT)/HOL			\
 
 HOL-Generate-HOLLight: HOL $(LOG)/HOL-Generate-HOLLight.gz
 
-$(LOG)/HOL-Generate-HOLLight.gz: $(OUT)/HOL		\
+$(LOG)/HOL-Generate-HOLLight.gz: $(OUT)/HOL				\
   $(IMPORTER_HOLLIGHT_FILES) Import/Generate-HOLLight/GenHOLLight.thy	\
   Import/Generate-HOLLight/ROOT.ML
 	@cd Import; $(ISABELLE_TOOL) usedir $(OUT)/HOL Generate-HOLLight
@@ -552,7 +552,7 @@ HOL_IMPORT_FILES = arithmetic.imp bits.imp boolean_sequence.imp bool.imp \
   seq.imp state_transformer.imp sum.imp topology.imp transc.imp word32.imp \
   word_base.imp word_bitop.imp word_num.imp
 
-$(LOG)/HOL4.gz: $(OUT)/HOL $(IMPORTER_FILES)			\
+$(LOG)/HOL4.gz: $(OUT)/HOL $(IMPORTER_FILES)				\
   $(HOL_IMPORT_FILES:%=Import/HOL/%) Import/HOL/HOL4Base.thy		\
   Import/HOL/HOL4Prob.thy Import/HOL/HOL4Real.thy			\
   Import/HOL/HOL4Vec.thy Import/HOL/HOL4Word32.thy Import/HOL/HOL4.thy	\
@@ -561,7 +561,7 @@ $(LOG)/HOL4.gz: $(OUT)/HOL $(IMPORTER_FILES)			\
 
 HOLLight: HOL $(LOG)/HOLLight.gz
 
-$(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)	\
+$(LOG)/HOLLight.gz: $(OUT)/HOL $(IMPORTER_HOLLIGHT_FILES)		\
   Import/HOLLight/hollight.imp Import/HOLLight/HOLLight.thy		\
   Import/HOLLight/ROOT.ML
 	@cd Import/HOLLight; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOLLight
@@ -639,7 +639,8 @@ $(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
 HOL-Codegenerator_Test: HOL-Library $(LOG)/HOL-Codegenerator_Test.gz
 
 $(LOG)/HOL-Codegenerator_Test.gz: $(OUT)/HOL-Library			\
-  Codegenerator_Test/ROOT.ML Codegenerator_Test/Candidates.thy		\
+  Codegenerator_Test/ROOT.ML 						\
+  Codegenerator_Test/Candidates.thy					\
   Codegenerator_Test/Candidates_Pretty.thy				\
   Codegenerator_Test/Generate.thy					\
   Codegenerator_Test/Generate_Pretty.thy
@@ -650,10 +651,10 @@ $(LOG)/HOL-Codegenerator_Test.gz: $(OUT)/HOL-Library			\
 
 HOL-Metis_Examples: HOL $(LOG)/HOL-Metis_Examples.gz
 
-$(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML	\
-  Metis_Examples/Abstraction.thy Metis_Examples/BigO.thy	\
-  Metis_Examples/BT.thy Metis_Examples/Message.thy		\
-  Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy	\
+$(LOG)/HOL-Metis_Examples.gz: $(OUT)/HOL Metis_Examples/ROOT.ML		\
+  Metis_Examples/Abstraction.thy Metis_Examples/BigO.thy		\
+  Metis_Examples/BT.thy Metis_Examples/Message.thy			\
+  Metis_Examples/Tarski.thy Metis_Examples/TransClosure.thy		\
   Metis_Examples/set.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Metis_Examples
 
@@ -778,8 +779,8 @@ $(LOG)/HOL-UNITY.gz: $(OUT)/HOL Library/Multiset.thy UNITY/ROOT.ML	\
 
 HOL-Unix: HOL $(LOG)/HOL-Unix.gz
 
-$(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy	\
-  Library/List_Prefix.thy Unix/ROOT.ML Unix/Unix.thy		\
+$(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy		\
+  Library/List_Prefix.thy Unix/ROOT.ML Unix/Unix.thy			\
   Unix/document/root.bib Unix/document/root.tex
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Unix
 
@@ -797,10 +798,10 @@ $(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/LProd.thy	\
 
 HOL-Modelcheck: HOL $(LOG)/HOL-Modelcheck.gz
 
-$(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy		\
-  Modelcheck/EindhovenExample.thy Modelcheck/EindhovenSyn.thy	\
-  Modelcheck/MuCalculus.thy Modelcheck/MuckeExample1.thy	\
-  Modelcheck/MuckeExample2.thy Modelcheck/MuckeSyn.thy		\
+$(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy			\
+  Modelcheck/EindhovenExample.thy Modelcheck/EindhovenSyn.thy		\
+  Modelcheck/MuCalculus.thy Modelcheck/MuckeExample1.thy		\
+  Modelcheck/MuckeExample2.thy Modelcheck/MuckeSyn.thy			\
   Modelcheck/ROOT.ML Modelcheck/mucke_oracle.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Modelcheck
 
@@ -859,7 +860,7 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
 
 HOL-Docs: HOL $(LOG)/HOL-Docs.gz
 
-$(LOG)/HOL-Docs.gz: $(OUT)/HOL Docs/Main_Doc.thy Docs/ROOT.ML	\
+$(LOG)/HOL-Docs.gz: $(OUT)/HOL Docs/Main_Doc.thy Docs/ROOT.ML		\
   Docs/document/root.tex
 	@$(ISABELLE_TOOL) usedir -D generated $(OUT)/HOL Docs
 
@@ -1124,8 +1125,8 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Real_Integration.thy				\
   Multivariate_Analysis/Topology_Euclidean_Space.thy			\
   Multivariate_Analysis/document/root.tex				\
-  Multivariate_Analysis/normarith.ML Library/Glbs.thy	\
-  Library/Inner_Product.thy Library/Numeral_Type.thy	\
+  Multivariate_Analysis/normarith.ML Library/Glbs.thy			\
+  Library/Inner_Product.thy Library/Numeral_Type.thy			\
   Library/Convex.thy Library/FrechetDeriv.thy				\
   Library/Product_Vector.thy Library/Product_plus.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
@@ -1135,15 +1136,15 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
 
 HOL-Probability: HOL $(OUT)/HOL-Probability
 
-$(OUT)/HOL-Probability: $(OUT)/HOL Probability/ROOT.ML		\
-  Probability/Probability.thy Probability/Sigma_Algebra.thy	\
-  Probability/SeriesPlus.thy Probability/Caratheodory.thy	\
-  Probability/Borel.thy Probability/Measure.thy			\
-  Probability/Lebesgue.thy Probability/Product_Measure.thy	\
-  Probability/Probability_Space.thy Probability/Information.thy \
-  Probability/ex/Dining_Cryptographers.thy Library/FuncSet.thy	\
-  Library/Convex.thy Library/Product_Vector.thy 		\
-  Library/Product_plus.thy Library/Inner_Product.thy		\
+$(OUT)/HOL-Probability: $(OUT)/HOL Probability/ROOT.ML			\
+  Probability/Probability.thy Probability/Sigma_Algebra.thy		\
+  Probability/SeriesPlus.thy Probability/Caratheodory.thy		\
+  Probability/Borel.thy Probability/Measure.thy				\
+  Probability/Lebesgue.thy Probability/Product_Measure.thy		\
+  Probability/Probability_Space.thy Probability/Information.thy		\
+  Probability/ex/Dining_Cryptographers.thy Library/FuncSet.thy		\
+  Library/Convex.thy Library/Product_Vector.thy 			\
+  Library/Product_plus.thy Library/Inner_Product.thy			\
   Library/Nat_Bijection.thy
 	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Probability
 
@@ -1252,7 +1253,7 @@ $(OUT)/HOL-NSA: $(OUT)/HOL NSA/CLim.thy NSA/CStar.thy NSA/NSCA.thy	\
 
 HOL-NSA-Examples: HOL-NSA $(LOG)/HOL-NSA-Examples.gz
 
-$(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
+$(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML		\
   NSA/Examples/NSPrimes.thy
 	@cd NSA; $(ISABELLE_TOOL) usedir $(OUT)/HOL-NSA Examples
 
@@ -1320,7 +1321,7 @@ $(LOG)/HOL-Mutabelle.gz: $(OUT)/HOL Mutabelle/MutabelleExtra.thy	\
 HOL-Quotient_Examples: HOL $(LOG)/HOL-Quotient_Examples.gz
 
 $(LOG)/HOL-Quotient_Examples.gz: $(OUT)/HOL				\
-  Quotient_Examples/FSet.thy Quotient_Examples/Quotient_Int.thy         \
+  Quotient_Examples/FSet.thy Quotient_Examples/Quotient_Int.thy		\
   Quotient_Examples/Quotient_Message.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Quotient_Examples
 
