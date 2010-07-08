@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Groebner_Basis/normalizer.ML
+(*  Title:      HOL/Tools/semiring_normalizer.ML
     Author:     Amine Chaieb, TU Muenchen
 
 Normalization of expressions in semirings.

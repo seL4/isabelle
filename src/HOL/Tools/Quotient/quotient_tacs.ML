@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Quotient/quotient_tacs.thy
+(*  Title:      HOL/Tools/Quotient/quotient_tacs.ML
     Author:     Cezary Kaliszyk and Christian Urban
 
 Tactics for solving goal arising from lifting theorems to quotient

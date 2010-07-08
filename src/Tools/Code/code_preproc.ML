@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_preproc.ML
+(*  Title:      Tools/Code/code_preproc.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Preprocessing code equations into a well-sorted system

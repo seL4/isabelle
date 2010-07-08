@@ -1,4 +1,5 @@
-(* Author: Florian Haftmann, TU Muenchen
+(*  Title:      HOL/Tools/quickcheck_generators.ML
+    Author:     Florian Haftmann, TU Muenchen
 
 Quickcheck generators for various types.
 *)

@@ -1,6 +1,7 @@
-(*
-    Title:      Transitivity reasoner for transitive closures of relations
+(*  Title:      Provers/trancl.ML
     Author:     Oliver Kutter, TU Muenchen
+
+Transitivity reasoner for transitive closures of relations
 *)
 
 (*

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Function/fundef_datatype.ML
+(*  Title:      HOL/Tools/Function/pat_completeness.ML
     Author:     Alexander Krauss, TU Muenchen
 
 Method "pat_completeness" to prove completeness of datatype patterns.

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/domain/domain_constructors.ML
+(*  Title:      HOLCF/Tools/Domain/domain_constructors.ML
     Author:     Brian Huffman
 
 Defines constructor functions for a given domain isomorphism

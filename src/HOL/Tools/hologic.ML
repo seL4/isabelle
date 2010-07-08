@@ -1,4 +1,4 @@
-(*  Title:      HOL/hologic.ML
+(*  Title:      HOL/Tools/hologic.ML
     Author:     Lawrence C Paulson and Markus Wenzel
 
 Abstract syntax operations for HOL.

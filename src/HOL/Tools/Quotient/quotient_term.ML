@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Quotient/quotient_term.thy
+(*  Title:      HOL/Tools/Quotient/quotient_term.ML
     Author:     Cezary Kaliszyk and Christian Urban
 
 Constructs terms corresponding to goals from lifting theorems to

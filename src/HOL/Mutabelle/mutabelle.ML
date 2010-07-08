@@ -1,5 +1,4 @@
-(*
-    Title:      HOL/Mutabelle/mutabelle.ML
+(*  Title:      HOL/Mutabelle/mutabelle.ML
     Author:     Veronika Ortner, TU Muenchen
 
     Mutation of theorems

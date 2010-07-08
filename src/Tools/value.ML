@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/value.ML
+(*  Title:      Tools/value.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Generic value command for arbitrary evaluators.

@@ -1,4 +1,5 @@
-(*  Author:     Oliver Kutter, TU Muenchen
+(*  Title:      Provers/quasi.ML
+    Author:     Oliver Kutter, TU Muenchen
 
 Reasoner for simple transitivity and quasi orders.
 *)

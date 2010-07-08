@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_thingol.ML
+(*  Title:      Tools/Code/code_thingol.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Intermediate language ("Thin-gol") representing executable code.

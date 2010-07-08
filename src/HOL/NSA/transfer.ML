@@ -1,6 +1,5 @@
-(*  Title       : HOL/Hyperreal/transfer.ML
-    ID          : $Id$
-    Author      : Brian Huffman
+(*  Title:      HOL/NSA/transfer.ML
+    Author:     Brian Huffman
 
 Transfer principle tactic for nonstandard analysis.
 *)

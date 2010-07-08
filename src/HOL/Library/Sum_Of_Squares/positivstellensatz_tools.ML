@@ -1,4 +1,4 @@
-(* Title:      positivstellensatz_tools.ML
+(* Title:      HOL/Library/Sum_Of_Squares/positivstellensatz_tools.ML
    Author:     Philipp Meyer, TU Muenchen
 
 Functions for generating a certificate from a positivstellensatz and vice versa

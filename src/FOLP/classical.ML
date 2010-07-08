@@ -1,4 +1,4 @@
-(*  Title:      FOLP/classical
+(*  Title:      FOLP/classical.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 

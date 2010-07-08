@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Qelim/langford.ML
+(*  Title:      HOL/Decision_Procs/langford.ML
     Author:     Amine Chaieb, TU Muenchen
 *)
 

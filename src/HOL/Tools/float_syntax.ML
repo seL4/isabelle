@@ -1,4 +1,5 @@
-(*  Author:     Tobias Nipkow, TU Muenchen
+(*  Title:      HOL/Tools/float_syntax.ML
+    Author:     Tobias Nipkow, TU Muenchen
 
 Concrete syntax for floats.
 *)

@@ -1,4 +1,5 @@
-(*  Author:     Oliver Kutter, TU Muenchen
+(*  Title:      Provers/order.ML
+    Author:     Oliver Kutter, TU Muenchen
 
 Transitivity reasoner for partial and linear orders.
 *)

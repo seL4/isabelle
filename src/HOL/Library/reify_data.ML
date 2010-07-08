@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/reflection_data.ML
+(*  Title:      HOL/Library/reify_data.ML
     Author:     Amine Chaieb, TU Muenchen
 
 Data for the reification and reflection methods.

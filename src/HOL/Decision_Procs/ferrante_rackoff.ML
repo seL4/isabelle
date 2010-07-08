@@ -1,4 +1,4 @@
-(* Title:      HOL/Tools/Qelim/ferrante_rackoff.ML
+(* Title:      HOL/Decision_Procs/ferrante_rackoff.ML
    Author:     Amine Chaieb, TU Muenchen
 
 Ferrante and Rackoff's algorithm for quantifier elimination in dense

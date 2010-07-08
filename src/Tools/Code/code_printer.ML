@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_printer.ML
+(*  Title:      Tools/Code/code_printer.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Generic operations for pretty printing of target language code.

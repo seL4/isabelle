@@ -1,4 +1,4 @@
-(*  Title:      FOLP/hypsubst
+(*  Title:      FOLP/hypsubst.ML
     Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 

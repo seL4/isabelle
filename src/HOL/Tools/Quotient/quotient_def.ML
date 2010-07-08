@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Quotient/quotient_def.thy
+(*  Title:      HOL/Tools/Quotient/quotient_def.ML
     Author:     Cezary Kaliszyk and Christian Urban
 
 Definitions for constants on quotient types.

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Groebner_Basis/groebner.ML
+(*  Title:      HOL/Tools/groebner.ML
     Author:     Amine Chaieb, TU Muenchen
 *)
 

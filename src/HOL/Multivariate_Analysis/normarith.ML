@@ -1,4 +1,4 @@
-(*  Title:      Library/normarith.ML
+(*  Title:      HOL/Multivariate_Analysis/normarith.ML
     Author:     Amine Chaieb, University of Cambridge
 
 Simple decision procedure for linear problems in Euclidean space.

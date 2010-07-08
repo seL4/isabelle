@@ -1,4 +1,4 @@
-(*  Title:      HOL/simpdata.ML
+(*  Title:      HOL/Tools/simpdata.ML
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 

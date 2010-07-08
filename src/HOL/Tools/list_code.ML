@@ -1,4 +1,5 @@
-(* Author: Florian Haftmann, TU Muenchen
+(*  Title:  HOL/Tools/list_code.ML
+    Author: Florian Haftmann, TU Muenchen
 
 Code generation for list literals.
 *)

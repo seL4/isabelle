@@ -1,5 +1,4 @@
-(*
-    Title:      HOL/Mutabelle/mutabelle_extra.ML
+(*  Title:      HOL/Mutabelle/mutabelle_extra.ML
     Author:     Stefan Berghofer, Jasmin Blanchette, Lukas Bulwahn, TU Muenchen
 
     Invokation of Counterexample generators

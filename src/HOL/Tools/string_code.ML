@@ -1,4 +1,5 @@
-(* Author: Florian Haftmann, TU Muenchen
+(*  Title:      HOL/Tools/string_code.ML
+    Author:     Florian Haftmann, TU Muenchen
 
 Code generation for character and string literals.
 *)

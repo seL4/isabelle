@@ -1,4 +1,5 @@
-(*  Author:     Amine Chaieb
+(*  Title:      HOL/Decision_Procs/commutative_ring_tac.ML
+    Author:     Amine Chaieb
 
 Tactic for solving equalities over commutative rings.
 *)

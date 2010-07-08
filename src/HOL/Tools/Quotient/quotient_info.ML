@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Quotient/quotient_info.thy
+(*  Title:      HOL/Tools/Quotient/quotient_info.ML
     Author:     Cezary Kaliszyk and Christian Urban
 
 Data slots for the quotient package.

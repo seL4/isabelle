@@ -1,6 +1,7 @@
-(*  Author:   Amine Chaieb, University of Cambridge, 2009
-              Jeremy Avigad, Carnegie Mellon University
-              Florian Haftmann, TU Muenchen
+(*  Title:      HOL/Tools/transfer.ML
+    Author:     Amine Chaieb, University of Cambridge, 2009
+                Jeremy Avigad, Carnegie Mellon University
+                Florian Haftmann, TU Muenchen
 
 Simple transfer principle on theorems.
 *)

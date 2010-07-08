@@ -1,4 +1,4 @@
-(*  Title:      Tools/code/code_simp.ML
+(*  Title:      Tools/Code/code_simp.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Connecting the simplifier and the code generator.
