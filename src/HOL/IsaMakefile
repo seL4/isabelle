@@ -31,7 +31,6 @@ test: \
   HOL-Auth \
   HOL-Bali \
   HOL-Boogie-Examples \
-  HOL-Codegenerator_Test \
   HOL-Decision_Procs \
   HOL-Hahn_Banach \
   HOL-Hoare \
@@ -44,6 +43,7 @@ test: \
   HOL-Induct \
   HOL-Isar_Examples \
   HOL-Lattice \
+  HOL-Library-Codegenerator_Test \
   HOL-Matrix \
   HOL-Metis_Examples \
   HOL-MicroJava \
@@ -634,11 +634,11 @@ $(LOG)/HOL-Hoare_Parallel.gz: $(OUT)/HOL Hoare_Parallel/Gar_Coll.thy	\
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Hoare_Parallel
 
 
-## HOL-Codegenerator_Test
+## HOL-Library-Codegenerator_Test
 
-HOL-Codegenerator_Test: HOL-Library $(LOG)/HOL-Codegenerator_Test.gz
+HOL-Library-Codegenerator_Test: HOL-Library $(LOG)/HOL-Library-Codegenerator_Test.gz
 
-$(LOG)/HOL-Codegenerator_Test.gz: $(OUT)/HOL-Library			\
+$(LOG)/HOL-Library-Codegenerator_Test.gz: $(OUT)/HOL-Library		\
   Codegenerator_Test/ROOT.ML 						\
   Codegenerator_Test/Candidates.thy					\
   Codegenerator_Test/Candidates_Pretty.thy				\
