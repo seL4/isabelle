@@ -20,6 +20,7 @@ sig
   val exists: Path.T -> bool
   val check: Path.T -> unit
   val rm: Path.T -> unit
+  val rm_tree: Path.T -> unit
   val mkdir: Path.T -> unit
   val mkdir_leaf: Path.T -> unit
   val open_input: (TextIO.instream -> 'a) -> Path.T -> 'a
@@ -133,6 +134,8 @@ fun check path =
   else error ("No such file or directory: " ^ quote (Path.implode path));
 
 val rm = OS.FileSys.remove o platform_path;
+
+fun rm_tree path = system_command ("rm -r " ^ shell_path path);
 
 fun mkdir path = system_command ("mkdir -p " ^ shell_path path);
 
