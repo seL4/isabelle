@@ -907,7 +907,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
 
-fun serialize_ml target compile print_module print_stmt raw_module_name with_signatures labelled_name
+fun serialize_ml target print_module print_stmt raw_module_name with_signatures labelled_name
   reserved includes raw_module_alias _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program stmt_names destination =
   let
     val is_cons = Code_Thingol.is_cons program;
@@ -938,7 +938,6 @@ fun serialize_ml target compile print_module print_stmt raw_module_name with_sig
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
   in
     Code_Target.mk_serialization target
-      (case compile of SOME compile => SOME (compile o code_of_pretty) | NONE => NONE)
       (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty)
       (rpair stmt_names' o code_of_pretty) p destination
   end;
@@ -950,7 +949,7 @@ end; (*local*)
 
 fun evaluation_code_of thy target struct_name =
   Code_Target.serialize_custom thy (target, (fn _ => fn [] =>
-    serialize_ml target (SOME (K ())) print_sml_module print_sml_stmt (SOME struct_name) true, literals_sml));
+    serialize_ml target print_sml_module print_sml_stmt (SOME struct_name) true, literals_sml));
 
 
 (** formal checking of compiled code **)
@@ -969,12 +968,11 @@ fun check_OCaml thy = Code_Target.external_check thy target_OCaml
 fun isar_seri_sml module_name =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_SML
-      (SOME (use_text ML_Env.local_context (1, "generated code") false))
       print_sml_module print_sml_stmt module_name with_signatures));
 
 fun isar_seri_ocaml module_name =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
-  >> (fn with_signatures => serialize_ml target_OCaml NONE
+  >> (fn with_signatures => serialize_ml target_OCaml
       print_ocaml_module print_ocaml_stmt module_name with_signatures));
 
 val setup =

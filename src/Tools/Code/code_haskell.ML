@@ -390,7 +390,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
           ^ code_of_pretty content)
       end
   in
-    Code_Target.mk_serialization target NONE
+    Code_Target.mk_serialization target
       (fn NONE => K () o map (code_writeln o snd) | SOME file => K () o map
         (write_module (check_destination file)))
       (rpair [] o cat_lines o map (code_of_pretty o snd))

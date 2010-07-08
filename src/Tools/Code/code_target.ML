@@ -21,8 +21,7 @@ sig
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val stmt_names_of_destination: destination -> string list
-  val mk_serialization: string -> ('a -> unit) option
-    -> (Path.T option -> 'a -> unit)
+  val mk_serialization: string -> (Path.T option -> 'a -> unit)
     -> ('a -> string * string option list)
     -> 'a -> serialization
   val serialize: theory -> string -> int option -> string option -> Token.T list
@@ -30,7 +29,6 @@ sig
   val serialize_custom: theory -> string * (serializer * literals)
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val the_literals: theory -> string -> literals
-  val compile: serialization -> unit
   val export: serialization -> unit
   val file: Path.T -> serialization -> unit
   val string: string list -> serialization -> string
@@ -64,10 +62,9 @@ type proto_const_syntax = Code_Printer.proto_const_syntax;
 
 (** basics **)
 
-datatype destination = Compile | Export | File of Path.T | String of string list;
+datatype destination = Export | File of Path.T | String of string list;
 type serialization = destination -> (string * string option list) option;
 
-fun compile f = (f Compile; ());
 fun export f = (f Export; ());
 fun file p f = (f (File p); ());
 fun string stmts f = fst (the (f (String stmts)));
@@ -75,11 +72,9 @@ fun string stmts f = fst (the (f (String stmts)));
 fun stmt_names_of_destination (String stmts) = stmts
   | stmt_names_of_destination _ = [];
 
-fun mk_serialization target (SOME comp) _ _ code Compile = (comp code; NONE)
-  | mk_serialization target NONE _ _ _ Compile = error (target ^ ": no internal compilation")
-  | mk_serialization target _ output _ code Export = (output NONE code ; NONE)
-  | mk_serialization target _ output _ code (File file) = (output (SOME file) code; NONE)
-  | mk_serialization target _ _ string code (String _) = SOME (string code);
+fun mk_serialization target output _ code Export = (output NONE code ; NONE)
+  | mk_serialization target output _ code (File file) = (output (SOME file) code; NONE)
+  | mk_serialization target _ string code (String _) = SOME (string code);
 
 
 (** theory data **)
@@ -382,9 +377,8 @@ fun export_code thy cs seris =
   let
     val (cs', (naming, program)) = Code_Thingol.consts_program thy false cs;
     fun mk_seri_dest dest = case dest
-     of NONE => compile
-      | SOME "-" => export
-      | SOME f => file (Path.explode f)
+     of "-" => export
+      | f => file (Path.explode f)
     val _ = map (fn (((target, module), dest), args) =>
       (mk_seri_dest dest (serialize thy target NONE module args naming program cs'))) seris;
   in () end;
@@ -530,7 +524,7 @@ val code_exprP =
   (Scan.repeat1 Parse.term_group
   -- Scan.repeat (Parse.$$$ inK |-- Parse.name
      -- Scan.option (Parse.$$$ module_nameK |-- Parse.name)
-     -- Scan.option (Parse.$$$ fileK |-- Parse.name)
+     --| Parse.$$$ fileK -- Parse.name
      -- Scan.optional (Parse.$$$ "(" |-- Args.parse --| Parse.$$$ ")") []
   ) >> (fn (raw_cs, seris) => export_code_cmd raw_cs seris));
 
