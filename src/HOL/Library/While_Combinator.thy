@@ -1,5 +1,6 @@
 (*  Title:      HOL/Library/While_Combinator.thy
     Author:     Tobias Nipkow
+    Author:     Alexander Krauss
     Copyright   2000 TU Muenchen
 *)
 
@@ -9,27 +10,90 @@ theory While_Combinator
 imports Main
 begin
 
-text {* 
-  We define the while combinator as the "mother of all tail recursive functions".
-*}
+subsection {* Option result *}
 
-function (tailrec) while :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
-where
-  while_unfold[simp del]: "while b c s = (if b s then while b c (c s) else s)"
-by auto
+definition while_option :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
+"while_option b c s = (if (\<exists>k. ~ b ((c ^^ k) s))
+   then Some ((c ^^ (LEAST k. ~ b ((c ^^ k) s))) s)
+   else None)"
 
-declare while_unfold[code]
+theorem while_option_unfold[code]:
+"while_option b c s = (if b s then while_option b c (c s) else Some s)"
+proof cases
+  assume "b s"
+  show ?thesis
+  proof (cases "\<exists>k. ~ b ((c ^^ k) s)")
+    case True
+    then obtain k where 1: "~ b ((c ^^ k) s)" ..
+    with `b s` obtain l where "k = Suc l" by (cases k) auto
+    with 1 have "~ b ((c ^^ l) (c s))" by (auto simp: funpow_swap1)
+    then have 2: "\<exists>l. ~ b ((c ^^ l) (c s))" ..
+    from 1
+    have "(LEAST k. ~ b ((c ^^ k) s)) = Suc (LEAST l. ~ b ((c ^^ Suc l) s))"
+      by (rule Least_Suc) (simp add: `b s`)
+    also have "... = Suc (LEAST l. ~ b ((c ^^ l) (c s)))"
+      by (simp add: funpow_swap1)
+    finally
+    show ?thesis 
+      using True 2 `b s` by (simp add: funpow_swap1 while_option_def)
+  next
+    case False
+    then have "~ (\<exists>l. ~ b ((c ^^ Suc l) s))" by blast
+    then have "~ (\<exists>l. ~ b ((c ^^ l) (c s)))"
+      by (simp add: funpow_swap1)
+    with False  `b s` show ?thesis by (simp add: while_option_def)
+  qed
+next
+  assume [simp]: "~ b s"
+  have least: "(LEAST k. ~ b ((c ^^ k) s)) = 0"
+    by (rule Least_equality) auto
+  moreover 
+  have "\<exists>k. ~ b ((c ^^ k) s)" by (rule exI[of _ "0::nat"]) auto
+  ultimately show ?thesis unfolding while_option_def by auto 
+qed
+
+lemma while_option_stop:
+assumes "while_option b c s = Some t"
+shows "~ b t"
+proof -
+  from assms have ex: "\<exists>k. ~ b ((c ^^ k) s)"
+  and t: "t = (c ^^ (LEAST k. ~ b ((c ^^ k) s))) s"
+    by (auto simp: while_option_def split: if_splits)
+  from LeastI_ex[OF ex]
+  show "~ b t" unfolding t .
+qed
+
+theorem while_option_rule:
+assumes step: "!!s. P s ==> b s ==> P (c s)"
+and result: "while_option b c s = Some t"
+and init: "P s"
+shows "P t"
+proof -
+  def k == "LEAST k. ~ b ((c ^^ k) s)"
+  from assms have t: "t = (c ^^ k) s"
+    by (simp add: while_option_def k_def split: if_splits)    
+  have 1: "ALL i<k. b ((c ^^ i) s)"
+    by (auto simp: k_def dest: not_less_Least)
+
+  { fix i assume "i <= k" then have "P ((c ^^ i) s)"
+      by (induct i) (auto simp: init step 1) }
+  thus "P t" by (auto simp: t)
+qed
+
+
+subsection {* Totalized version *}
+
+definition while :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
+where "while b c s = the (while_option b c s)"
+
+lemma while_unfold:
+  "while b c s = (if b s then while b c (c s) else s)"
+unfolding while_def by (subst while_option_unfold) simp
 
 lemma def_while_unfold:
   assumes fdef: "f == while test do"
   shows "f x = (if test x then f(do x) else x)"
-proof -
-  have "f x = while test do x" using fdef by simp
-  also have "\<dots> = (if test x then while test do (do x) else x)"
-    by(rule while_unfold)
-  also have "\<dots> = (if test x then f(do x) else x)" by(simp add:fdef[symmetric])
-  finally show ?thesis .
-qed
+unfolding fdef by (fact while_unfold)
 
 
 text {*
@@ -88,9 +152,7 @@ apply (blast intro!: finite_Diff dest: monoD)
 done
 
 
-text {*
- An example of using the @{term while} combinator.
-*}
+subsection {* Example *}
 
 text{* Cannot use @{thm[source]set_eq_subset} because it leads to
 looping because the antisymmetry simproc turns the subset relationship
