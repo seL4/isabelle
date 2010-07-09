@@ -10,7 +10,7 @@ begin
 
 subsection {* The monad *}
 
-subsubsection {* Monad combinators *}
+subsubsection {* Monad construction *}
 
 text {* Monadic heap actions either produce values
   and transform the heap, or fail *}
@@ -19,6 +19,13 @@ datatype 'a Heap = Heap "heap \<Rightarrow> ('a \<times> heap) option"
 primrec execute :: "'a Heap \<Rightarrow> heap \<Rightarrow> ('a \<times> heap) option" where
   [code del]: "execute (Heap f) = f"
 
+lemma Heap_cases [case_names succeed fail]:
+  fixes f and h
+  assumes succeed: "\<And>x h'. execute f h = Some (x, h') \<Longrightarrow> P"
+  assumes fail: "execute f h = None \<Longrightarrow> P"
+  shows P
+  using assms by (cases "execute f h") auto
+
 lemma Heap_execute [simp]:
   "Heap (execute f) = f" by (cases f) simp_all
 
@@ -26,43 +33,98 @@ lemma Heap_eqI:
   "(\<And>h. execute f h = execute g h) \<Longrightarrow> f = g"
     by (cases f, cases g) (auto simp: expand_fun_eq)
 
-lemma Heap_eqI':
-  "(\<And>h. (\<lambda>x. execute (f x) h) = (\<lambda>y. execute (g y) h)) \<Longrightarrow> f = g"
-    by (auto simp: expand_fun_eq intro: Heap_eqI)
+ML {* structure Execute_Simps = Named_Thms(
+  val name = "execute_simps"
+  val description = "simplification rules for execute"
+) *}
+
+setup Execute_Simps.setup
+
+lemma execute_Let [simp, execute_simps]:
+  "execute (let x = t in f x) = (let x = t in execute (f x))"
+  by (simp add: Let_def)
+
+
+subsubsection {* Specialised lifters *}
+
+definition tap :: "(heap \<Rightarrow> 'a) \<Rightarrow> 'a Heap" where
+  [code del]: "tap f = Heap (\<lambda>h. Some (f h, h))"
+
+lemma execute_tap [simp, execute_simps]:
+  "execute (tap f) h = Some (f h, h)"
+  by (simp add: tap_def)
 
 definition heap :: "(heap \<Rightarrow> 'a \<times> heap) \<Rightarrow> 'a Heap" where
   [code del]: "heap f = Heap (Some \<circ> f)"
 
-lemma execute_heap [simp]:
+lemma execute_heap [simp, execute_simps]:
   "execute (heap f) = Some \<circ> f"
   by (simp add: heap_def)
 
 definition guard :: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> 'a \<times> heap) \<Rightarrow> 'a Heap" where
   [code del]: "guard P f = Heap (\<lambda>h. if P h then Some (f h) else None)"
 
-lemma execute_guard [simp]:
+lemma execute_guard [execute_simps]:
   "\<not> P h \<Longrightarrow> execute (guard P f) h = None"
   "P h \<Longrightarrow> execute (guard P f) h = Some (f h)"
   by (simp_all add: guard_def)
 
-lemma heap_cases [case_names succeed fail]:
-  fixes f and h
-  assumes succeed: "\<And>x h'. execute f h = Some (x, h') \<Longrightarrow> P"
-  assumes fail: "execute f h = None \<Longrightarrow> P"
-  shows P
-  using assms by (cases "execute f h") auto
+
+subsubsection {* Predicate classifying successful computations *}
+
+definition success :: "'a Heap \<Rightarrow> heap \<Rightarrow> bool" where
+  "success f h \<longleftrightarrow> execute f h \<noteq> None"
+
+lemma successI:
+  "execute f h \<noteq> None \<Longrightarrow> success f h"
+  by (simp add: success_def)
+
+lemma successE:
+  assumes "success f h"
+  obtains r h' where "execute f h = Some (r, h')"
+  using assms by (auto simp add: success_def)
+
+ML {* structure Success_Intros = Named_Thms(
+  val name = "success_intros"
+  val description = "introduction rules for success"
+) *}
+
+setup Success_Intros.setup
+
+lemma success_tapI [iff, success_intros]:
+  "success (tap f) h"
+  by (rule successI) simp
+
+lemma success_heapI [iff, success_intros]:
+  "success (heap f) h"
+  by (rule successI) simp
+
+lemma success_guardI [success_intros]:
+  "P h \<Longrightarrow> success (guard P f) h"
+  by (rule successI) (simp add: execute_guard)
+
+lemma success_LetI [success_intros]:
+  "x = t \<Longrightarrow> success (f x) h \<Longrightarrow> success (let x = t in f x) h"
+  by (simp add: Let_def)
+
+
+subsubsection {* Monad combinators *}
 
 definition return :: "'a \<Rightarrow> 'a Heap" where
   [code del]: "return x = heap (Pair x)"
 
-lemma execute_return [simp]:
+lemma execute_return [simp, execute_simps]:
   "execute (return x) = Some \<circ> Pair x"
   by (simp add: return_def)
+
+lemma success_returnI [iff, success_intros]:
+  "success (return x) h"
+  by (rule successI) simp
 
 definition raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
   [code del]: "raise s = Heap (\<lambda>_. None)"
 
-lemma execute_raise [simp]:
+lemma execute_raise [simp, execute_simps]:
   "execute (raise s) = (\<lambda>_. None)"
   by (simp add: raise_def)
 
@@ -73,14 +135,18 @@ definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarro
 
 notation bind (infixl "\<guillemotright>=" 54)
 
-lemma execute_bind [simp]:
+lemma execute_bind [execute_simps]:
   "execute f h = Some (x, h') \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g x) h'"
   "execute f h = None \<Longrightarrow> execute (f \<guillemotright>= g) h = None"
   by (simp_all add: bind_def)
 
-lemma execute_bind_heap [simp]:
-  "execute (heap f \<guillemotright>= g) h = execute (g (fst (f h))) (snd (f h))"
-  by (simp add: bind_def split_def)
+lemma success_bindI [success_intros]:
+  "success f h \<Longrightarrow> success (g (fst (the (execute f h)))) (snd (the (execute f h))) \<Longrightarrow> success (f \<guillemotright>= g) h"
+  by (auto intro!: successI elim!: successE simp add: bind_def)
+
+lemma execute_bind_successI [execute_simps]:
+  "success f h \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g (fst (the (execute f h)))) (snd (the (execute f h)))"
+  by (cases f h rule: Heap_cases) (auto elim!: successE simp add: bind_def)
   
 lemma execute_eq_SomeI:
   assumes "Heap_Monad.execute f h = Some (x, h')"
@@ -89,7 +155,7 @@ lemma execute_eq_SomeI:
   using assms by (simp add: bind_def)
 
 lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
-  by (rule Heap_eqI) simp
+  by (rule Heap_eqI) (simp add: execute_bind)
 
 lemma bind_return [simp]: "f \<guillemotright>= return = f"
   by (rule Heap_eqI) (simp add: bind_def split: option.splits)
@@ -98,7 +164,7 @@ lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = f \<gui
   by (rule Heap_eqI) (simp add: bind_def split: option.splits)
 
 lemma raise_bind [simp]: "raise e \<guillemotright>= f = raise e"
-  by (rule Heap_eqI) simp
+  by (rule Heap_eqI) (simp add: execute_bind)
 
 abbreviation chain :: "'a Heap \<Rightarrow> 'b Heap \<Rightarrow> 'b Heap"  (infixl ">>" 54) where
   "f >> g \<equiv> f >>= (\<lambda>_. g)"
@@ -187,23 +253,30 @@ end;
 *}
 
 
-subsection {* Monad properties *}
-
 subsection {* Generic combinators *}
+
+subsubsection {* Assertions *}
 
 definition assert :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a Heap" where
   "assert P x = (if P x then return x else raise ''assert'')"
 
-lemma execute_assert [simp]:
+lemma execute_assert [execute_simps]:
   "P x \<Longrightarrow> execute (assert P x) h = Some (x, h)"
   "\<not> P x \<Longrightarrow> execute (assert P x) h = None"
   by (simp_all add: assert_def)
+
+lemma success_assertI [success_intros]:
+  "P x \<Longrightarrow> success (assert P x) h"
+  by (rule successI) (simp add: execute_assert)
 
 lemma assert_cong [fundef_cong]:
   assumes "P = P'"
   assumes "\<And>x. P' x \<Longrightarrow> f x = f' x"
   shows "(assert P x >>= f) = (assert P' x >>= f')"
   by (rule Heap_eqI) (insert assms, simp add: assert_def)
+
+
+subsubsection {* Plain lifting *}
 
 definition lift :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b Heap" where
   "lift f = return o f"
@@ -215,6 +288,9 @@ lemma lift_collapse [simp]:
 lemma bind_lift:
   "(f \<guillemotright>= lift g) = (f \<guillemotright>= (\<lambda>x. return (g x)))"
   by (simp add: lift_def comp_def)
+
+
+subsubsection {* Iteration -- warning: this is rarely useful! *}
 
 primrec fold_map :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b list Heap" where
   "fold_map f [] = return []"
@@ -228,7 +304,7 @@ lemma fold_map_append:
   "fold_map f (xs @ ys) = fold_map f xs \<guillemotright>= (\<lambda>xs. fold_map f ys \<guillemotright>= (\<lambda>ys. return (xs @ ys)))"
   by (induct xs) simp_all
 
-lemma execute_fold_map_unchanged_heap:
+lemma execute_fold_map_unchanged_heap [execute_simps]:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> \<exists>y. execute (f x) h = Some (y, h)"
   shows "execute (fold_map f xs) h =
     Some (List.map (\<lambda>x. fst (the (execute (f x) h))) xs, h)"
@@ -527,6 +603,6 @@ code_monad "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
 code_const Heap_Monad.raise' (Haskell "error/ _")
 
-hide_const (open) Heap heap guard execute raise' fold_map
+hide_const (open) Heap heap guard raise' fold_map
 
 end

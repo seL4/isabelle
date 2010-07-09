@@ -575,23 +575,35 @@ subsection {* No Errors in quicksort *}
 text {* We have proved that quicksort sorts (if no exceptions occur).
 We will now show that exceptions do not occur. *}
 
-lemma noError_part1: 
+lemma success_part1I: 
   assumes "l < Array.length a h" "r < Array.length a h"
-  shows "noError (part1 a l r p) h"
+  shows "success (part1 a l r p) h"
   using assms
 proof (induct a l r p arbitrary: h rule: part1.induct)
   case (1 a l r p)
   thus ?case
     unfolding part1.simps [of a l r] swap_def
-    by (auto intro!: noError_if noErrorI noError_return noError_nth noError_upd elim!: crelE crel_upd crel_nth crel_return)
+    by (auto simp add: execute_simps intro!: success_intros elim!: crelE crel_upd crel_nth crel_return)
 qed
 
-lemma noError_partition:
+lemma success_ifI: (*FIXME move*)
+  assumes "c \<Longrightarrow> success t h" "\<not> c \<Longrightarrow> success e h"
+  shows "success (if c then t else e) h"
+  using assms
+  unfolding success_def
+  by auto
+
+lemma success_bindI' [success_intros]: (*FIXME move*)
+  assumes "success f h"
+  assumes "\<And>h' r. crel f h h' r \<Longrightarrow> success (g r) h'"
+  shows "success (f \<guillemotright>= g) h"
+  using assms by (auto intro!: successI elim!: successE simp add: bind_def crel_def success_def) blast
+
+lemma success_partitionI:
   assumes "l < r" "l < Array.length a h" "r < Array.length a h"
-  shows "noError (partition a l r) h"
-using assms
-unfolding partition.simps swap_def
-apply (auto intro!: noError_if noErrorI noError_return noError_nth noError_upd noError_part1 elim!: crelE crel_upd crel_nth crel_return)
+  shows "success (partition a l r) h"
+using assms unfolding partition.simps swap_def
+apply (auto intro!: success_bindI' success_ifI success_returnI success_nthI success_updI success_part1I elim!: crelE crel_upd crel_nth crel_return simp add:)
 apply (frule part_length_remains)
 apply (frule part_returns_index_in_bounds)
 apply auto
@@ -602,15 +614,15 @@ apply (frule part_length_remains)
 apply auto
 done
 
-lemma noError_quicksort:
+lemma success_quicksortI:
   assumes "l < Array.length a h" "r < Array.length a h"
-  shows "noError (quicksort a l r) h"
+  shows "success (quicksort a l r) h"
 using assms
 proof (induct a l r arbitrary: h rule: quicksort.induct)
   case (1 a l ri h)
   thus ?case
     unfolding quicksort.simps [of a l ri]
-    apply (auto intro!: noError_if noErrorI noError_return noError_nth noError_upd noError_assert noError_partition)
+    apply (auto intro!: success_ifI success_bindI' success_returnI success_nthI success_updI success_assertI success_partitionI)
     apply (frule partition_returns_index_in_bounds)
     apply auto
     apply (frule partition_returns_index_in_bounds)
@@ -620,7 +632,7 @@ proof (induct a l r arbitrary: h rule: quicksort.induct)
     apply (erule disjE)
     apply auto
     unfolding quicksort.simps [of a "Suc ri" ri]
-    apply (auto intro!: noError_if noError_return)
+    apply (auto intro!: success_ifI success_returnI)
     done
 qed
 
