@@ -954,21 +954,21 @@ definition (in term_syntax)
     \<Rightarrow> 'a multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "bagify xs = Code_Evaluation.valtermify Bag {\<cdot>} xs"
 
-notation fcomp (infixl "o>" 60)
-notation scomp (infixl "o\<rightarrow>" 60)
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 instantiation multiset :: (random) random
 begin
 
 definition
-  "Quickcheck.random i = Quickcheck.random i o\<rightarrow> (\<lambda>xs. Pair (bagify xs))"
+  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>xs. Pair (bagify xs))"
 
 instance ..
 
 end
 
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 hide_const (open) bagify
 

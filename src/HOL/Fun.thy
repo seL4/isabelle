@@ -95,26 +95,26 @@ by (unfold comp_def, blast)
 subsection {* The Forward Composition Operator @{text fcomp} *}
 
 definition
-  fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "o>" 60)
+  fcomp :: "('a \<Rightarrow> 'b) \<Rightarrow> ('b \<Rightarrow> 'c) \<Rightarrow> 'a \<Rightarrow> 'c" (infixl "\<circ>>" 60)
 where
-  "f o> g = (\<lambda>x. g (f x))"
+  "f \<circ>> g = (\<lambda>x. g (f x))"
 
-lemma fcomp_apply:  "(f o> g) x = g (f x)"
+lemma fcomp_apply [simp]:  "(f \<circ>> g) x = g (f x)"
   by (simp add: fcomp_def)
 
-lemma fcomp_assoc: "(f o> g) o> h = f o> (g o> h)"
+lemma fcomp_assoc: "(f \<circ>> g) \<circ>> h = f \<circ>> (g \<circ>> h)"
   by (simp add: fcomp_def)
 
-lemma id_fcomp [simp]: "id o> g = g"
+lemma id_fcomp [simp]: "id \<circ>> g = g"
   by (simp add: fcomp_def)
 
-lemma fcomp_id [simp]: "f o> id = f"
+lemma fcomp_id [simp]: "f \<circ>> id = f"
   by (simp add: fcomp_def)
 
 code_const fcomp
   (Eval infixl 1 "#>")
 
-no_notation fcomp (infixl "o>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
 
 
 subsection {* Injectivity and Surjectivity *}

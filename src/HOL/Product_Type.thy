@@ -791,37 +791,37 @@ text {*
   The composition-uncurry combinator.
 *}
 
-notation fcomp (infixl "o>" 60)
+notation fcomp (infixl "\<circ>>" 60)
 
-definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "o\<rightarrow>" 60) where
-  "f o\<rightarrow> g = (\<lambda>x. split g (f x))"
+definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> 'a \<Rightarrow> 'd" (infixl "\<circ>\<rightarrow>" 60) where
+  "f \<circ>\<rightarrow> g = (\<lambda>x. prod_case g (f x))"
 
 lemma scomp_unfold: "scomp = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
-  by (simp add: expand_fun_eq scomp_def split_def)
+  by (simp add: expand_fun_eq scomp_def prod_case_unfold)
 
-lemma scomp_apply:  "(f o\<rightarrow> g) x = split g (f x)"
-  by (simp add: scomp_unfold split_def)
+lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = prod_case g (f x)"
+  by (simp add: scomp_unfold prod_case_unfold)
 
-lemma Pair_scomp: "Pair x o\<rightarrow> f = f x"
+lemma Pair_scomp: "Pair x \<circ>\<rightarrow> f = f x"
   by (simp add: expand_fun_eq scomp_apply)
 
-lemma scomp_Pair: "x o\<rightarrow> Pair = x"
+lemma scomp_Pair: "x \<circ>\<rightarrow> Pair = x"
   by (simp add: expand_fun_eq scomp_apply)
 
-lemma scomp_scomp: "(f o\<rightarrow> g) o\<rightarrow> h = f o\<rightarrow> (\<lambda>x. g x o\<rightarrow> h)"
+lemma scomp_scomp: "(f \<circ>\<rightarrow> g) \<circ>\<rightarrow> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>\<rightarrow> h)"
   by (simp add: expand_fun_eq scomp_unfold)
 
-lemma scomp_fcomp: "(f o\<rightarrow> g) o> h = f o\<rightarrow> (\<lambda>x. g x o> h)"
+lemma scomp_fcomp: "(f \<circ>\<rightarrow> g) \<circ>> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>> h)"
   by (simp add: expand_fun_eq scomp_unfold fcomp_def)
 
-lemma fcomp_scomp: "(f o> g) o\<rightarrow> h = f o> (g o\<rightarrow> h)"
+lemma fcomp_scomp: "(f \<circ>> g) \<circ>\<rightarrow> h = f \<circ>> (g \<circ>\<rightarrow> h)"
   by (simp add: expand_fun_eq scomp_unfold fcomp_apply)
 
 code_const scomp
   (Eval infixl 3 "#->")
 
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text {*
   @{term prod_fun} --- action of the product functor upon

@@ -7,8 +7,8 @@ theory Random
 imports Code_Numeral List
 begin
 
-notation fcomp (infixl "o>" 60)
-notation scomp (infixl "o\<rightarrow>" 60)
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
 subsection {* Auxiliary functions *}
@@ -48,12 +48,12 @@ definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
 subsection {* Base selectors *}
 
 fun iterate :: "code_numeral \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
-  "iterate k f x = (if k = 0 then Pair x else f x o\<rightarrow> iterate (k - 1) f)"
+  "iterate k f x = (if k = 0 then Pair x else f x \<circ>\<rightarrow> iterate (k - 1) f)"
 
 definition range :: "code_numeral \<Rightarrow> seed \<Rightarrow> code_numeral \<times> seed" where
   "range k = iterate (log 2147483561 k)
-      (\<lambda>l. next o\<rightarrow> (\<lambda>v. Pair (v + l * 2147483561))) 1
-    o\<rightarrow> (\<lambda>v. Pair (v mod k))"
+      (\<lambda>l. next \<circ>\<rightarrow> (\<lambda>v. Pair (v + l * 2147483561))) 1
+    \<circ>\<rightarrow> (\<lambda>v. Pair (v mod k))"
 
 lemma range:
   "k > 0 \<Longrightarrow> fst (range k s) < k"
@@ -61,7 +61,7 @@ lemma range:
 
 definition select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   "select xs = range (Code_Numeral.of_nat (length xs))
-    o\<rightarrow> (\<lambda>k. Pair (nth xs (Code_Numeral.nat_of k)))"
+    \<circ>\<rightarrow> (\<lambda>k. Pair (nth xs (Code_Numeral.nat_of k)))"
      
 lemma select:
   assumes "xs \<noteq> []"
@@ -97,7 +97,7 @@ qed
 
 definition select_weight :: "(code_numeral \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   "select_weight xs = range (listsum (map fst xs))
-   o\<rightarrow> (\<lambda>k. Pair (pick xs k))"
+   \<circ>\<rightarrow> (\<lambda>k. Pair (pick xs k))"
 
 lemma select_weight_member:
   assumes "0 < listsum (map fst xs)"
@@ -184,8 +184,8 @@ hide_const (open) inc_shift minus_shift log "next" split_seed
   iterate range select pick select_weight
 hide_fact (open) range_def
 
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 end
 

@@ -7,8 +7,8 @@ imports Random Code_Evaluation
 uses ("Tools/quickcheck_generators.ML")
 begin
 
-notation fcomp (infixl "o>" 60)
-notation scomp (infixl "o\<rightarrow>" 60)
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
 subsection {* The @{text random} class *}
@@ -23,7 +23,7 @@ instantiation bool :: random
 begin
 
 definition
-  "random i = Random.range 2 o\<rightarrow>
+  "random i = Random.range 2 \<circ>\<rightarrow>
     (\<lambda>k. Pair (if k = 0 then Code_Evaluation.valtermify False else Code_Evaluation.valtermify True))"
 
 instance ..
@@ -44,7 +44,7 @@ instantiation char :: random
 begin
 
 definition
-  "random _ = Random.select chars o\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Evaluation.term_of c))"
+  "random _ = Random.select chars \<circ>\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Evaluation.term_of c))"
 
 instance ..
 
@@ -64,7 +64,7 @@ instantiation nat :: random
 begin
 
 definition random_nat :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed" where
-  "random_nat i = Random.range (i + 1) o\<rightarrow> (\<lambda>k. Pair (
+  "random_nat i = Random.range (i + 1) \<circ>\<rightarrow> (\<lambda>k. Pair (
      let n = Code_Numeral.nat_of k
      in (n, \<lambda>_. Code_Evaluation.term_of n)))"
 
@@ -76,7 +76,7 @@ instantiation int :: random
 begin
 
 definition
-  "random i = Random.range (2 * i + 1) o\<rightarrow> (\<lambda>k. Pair (
+  "random i = Random.range (2 * i + 1) \<circ>\<rightarrow> (\<lambda>k. Pair (
      let j = (if k \<ge> i then Code_Numeral.int_of (k - i) else - Code_Numeral.int_of (i - k))
      in (j, \<lambda>_. Code_Evaluation.term_of j)))"
 
@@ -110,7 +110,7 @@ end
 text {* Towards type copies and datatypes *}
 
 definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
-  "collapse f = (f o\<rightarrow> id)"
+  "collapse f = (f \<circ>\<rightarrow> id)"
 
 definition beyond :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
   "beyond k l = (if l > k then l else 0)"
@@ -139,8 +139,8 @@ code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
 
 code_reserved Quickcheck Quickcheck_Generators
 
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
 subsection {* The Random-Predicate Monad *} 

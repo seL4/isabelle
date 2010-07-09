@@ -26,14 +26,14 @@ lemma uint_word_of_int [code]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word
 
 code_datatype word_of_int
 
-notation fcomp (infixl "o>" 60)
-notation scomp (infixl "o\<rightarrow>" 60)
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 instantiation word :: ("{len0, typerep}") random
 begin
 
 definition
-  "random_word i = Random.range (max i (2 ^ len_of TYPE('a))) o\<rightarrow> (\<lambda>k. Pair (
+  "random_word i = Random.range (max i (2 ^ len_of TYPE('a))) \<circ>\<rightarrow> (\<lambda>k. Pair (
      let j = word_of_int (Code_Numeral.int_of k) :: 'a word
      in (j, \<lambda>_::unit. Code_Evaluation.term_of j)))"
 
@@ -41,8 +41,8 @@ instance ..
 
 end
 
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 
 subsection {* Type conversions and casting *}

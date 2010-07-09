@@ -1114,14 +1114,14 @@ definition (in term_syntax)
   valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "valterm_fract k l = Code_Evaluation.valtermify Fract {\<cdot>} k {\<cdot>} l"
 
-notation fcomp (infixl "o>" 60)
-notation scomp (infixl "o\<rightarrow>" 60)
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 instantiation rat :: random
 begin
 
 definition
-  "Quickcheck.random i = Quickcheck.random i o\<rightarrow> (\<lambda>num. Random.range i o\<rightarrow> (\<lambda>denom. Pair (
+  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>num. Random.range i \<circ>\<rightarrow> (\<lambda>denom. Pair (
      let j = Code_Numeral.int_of (denom + 1)
      in valterm_fract num (j, \<lambda>u. Code_Evaluation.term_of j))))"
 
@@ -1129,8 +1129,8 @@ instance ..
 
 end
 
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text {* Setup for SML code generator *}
 

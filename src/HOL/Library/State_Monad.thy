@@ -55,23 +55,23 @@ text {*
   we use a set of monad combinators:
 *}
 
-notation fcomp (infixl "o>" 60)
-notation (xsymbols) fcomp (infixl "o>" 60)
+notation fcomp (infixl "\<circ>>" 60)
+notation (xsymbols) fcomp (infixl "\<circ>>" 60)
 notation scomp (infixl "o->" 60)
-notation (xsymbols) scomp (infixl "o\<rightarrow>" 60)
+notation (xsymbols) scomp (infixl "\<circ>\<rightarrow>" 60)
 
 abbreviation (input)
   "return \<equiv> Pair"
 
 text {*
   Given two transformations @{term f} and @{term g}, they
-  may be directly composed using the @{term "op o>"} combinator,
-  forming a forward composition: @{prop "(f o> g) s = f (g s)"}.
+  may be directly composed using the @{term "op \<circ>>"} combinator,
+  forming a forward composition: @{prop "(f \<circ>> g) s = f (g s)"}.
 
   After any yielding transformation, we bind the side result
   immediately using a lambda abstraction.  This 
-  is the purpose of the @{term "op o\<rightarrow>"} combinator:
-  @{prop "(f o\<rightarrow> (\<lambda>x. g)) s = (let (x, s') = f s in g s')"}.
+  is the purpose of the @{term "op \<circ>\<rightarrow>"} combinator:
+  @{prop "(f \<circ>\<rightarrow> (\<lambda>x. g)) s = (let (x, s') = f s in g s')"}.
 
   For queries, the existing @{term "Let"} is appropriate.
 
@@ -141,8 +141,8 @@ syntax (xsymbols)
 
 translations
   "_do f" => "f"
-  "_scomp x f g" => "f o\<rightarrow> (\<lambda>x. g)"
-  "_fcomp f g" => "f o> g"
+  "_scomp x f g" => "f \<circ>\<rightarrow> (\<lambda>x. g)"
+  "_fcomp f g" => "f \<circ>> g"
   "_let x t f" => "CONST Let t (\<lambda>x. f)"
   "_done f" => "f"
 

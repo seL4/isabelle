@@ -1743,21 +1743,21 @@ definition (in term_syntax)
   valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Evaluation.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
   [code_unfold]: "valterm_ratreal k = Code_Evaluation.valtermify Ratreal {\<cdot>} k"
 
-notation fcomp (infixl "o>" 60)
-notation scomp (infixl "o\<rightarrow>" 60)
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 instantiation real :: random
 begin
 
 definition
-  "Quickcheck.random i = Quickcheck.random i o\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
+  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
 
 instance ..
 
 end
 
-no_notation fcomp (infixl "o>" 60)
-no_notation scomp (infixl "o\<rightarrow>" 60)
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 text {* Setup for SML code generator *}
 
