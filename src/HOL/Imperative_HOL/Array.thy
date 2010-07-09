@@ -201,7 +201,7 @@ lemma execute_freeze [simp]:
 
 lemma upd_return:
   "upd i x a \<guillemotright> return a = upd i x a"
-  by (rule Heap_eqI) (simp add: bindM_def guard_def upd_def)
+  by (rule Heap_eqI) (simp add: bind_def guard_def upd_def)
 
 lemma array_make:
   "new n x = make n (\<lambda>_. x)"
@@ -265,7 +265,7 @@ lemma [code]:
      x \<leftarrow> nth a i;
      upd i (f x) a
    done)"
-  by (rule Heap_eqI) (simp add: bindM_def guard_def map_entry_def)
+  by (rule Heap_eqI) (simp add: bind_def guard_def map_entry_def)
 
 lemma [code]:
   "swap i x a = (do
@@ -273,12 +273,12 @@ lemma [code]:
      upd i x a;
      return y
    done)"
-  by (rule Heap_eqI) (simp add: bindM_def guard_def swap_def)
+  by (rule Heap_eqI) (simp add: bind_def guard_def swap_def)
 
 lemma [code]:
   "freeze a = (do
      n \<leftarrow> len a;
-     mapM (\<lambda>i. nth a i) [0..<n]
+     Heap_Monad.fold_map (\<lambda>i. nth a i) [0..<n]
    done)"
 proof (rule Heap_eqI)
   fix h
@@ -288,20 +288,20 @@ proof (rule Heap_eqI)
      [0..<length a h] =
        List.map (List.nth (get_array a h)) [0..<length a h]"
     by simp
-  have "Heap_Monad.execute (mapM (Array.nth a) [0..<length a h]) h =
+  have "Heap_Monad.execute (Heap_Monad.fold_map (Array.nth a) [0..<length a h]) h =
     Some (get_array a h, h)"
-    apply (subst execute_mapM_unchanged_heap)
+    apply (subst execute_fold_map_unchanged_heap)
     apply (simp_all add: nth_def guard_def *)
     apply (simp add: length_def map_nth)
     done
   then have "Heap_Monad.execute (do
       n \<leftarrow> len a;
-      mapM (Array.nth a) [0..<n]
+      Heap_Monad.fold_map (Array.nth a) [0..<n]
     done) h = Some (get_array a h, h)"
     by (auto intro: execute_eq_SomeI)
   then show "Heap_Monad.execute (freeze a) h = Heap_Monad.execute (do
       n \<leftarrow> len a;
-      mapM (Array.nth a) [0..<n]
+      Heap_Monad.fold_map (Array.nth a) [0..<n]
     done) h" by simp
 qed
 

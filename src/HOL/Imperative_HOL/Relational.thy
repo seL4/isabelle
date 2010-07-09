@@ -39,7 +39,7 @@ subsection {* Elimination rules for basic monadic commands *}
 lemma crelE[consumes 1]:
   assumes "crel (f >>= g) h h'' r'"
   obtains h' r where "crel f h h' r" "crel (g r) h' h'' r'"
-  using assms by (auto simp add: crel_def bindM_def split: option.split_asm)
+  using assms by (auto simp add: crel_def bind_def split: option.split_asm)
 
 lemma crelE'[consumes 1]:
   assumes "crel (f >> g) h h'' r'"
@@ -73,10 +73,10 @@ lemma crel_option_case:
   using assms
   unfolding crel_def by auto
 
-lemma crel_mapM:
-  assumes "crel (mapM f xs) h h' r"
+lemma crel_fold_map:
+  assumes "crel (Heap_Monad.fold_map f xs) h h' r"
   assumes "\<And>h h'. P f [] h h' []"
-  assumes "\<And>h h1 h' x xs y ys. \<lbrakk> crel (f x) h h1 y; crel (mapM f xs) h1 h' ys; P f xs h1 h' ys \<rbrakk> \<Longrightarrow> P f (x#xs) h h' (y#ys)"
+  assumes "\<And>h h1 h' x xs y ys. \<lbrakk> crel (f x) h h1 y; crel (Heap_Monad.fold_map f xs) h1 h' ys; P f xs h1 h' ys \<rbrakk> \<Longrightarrow> P f (x#xs) h h' (y#ys)"
   shows "P f xs h h' r"
 using assms(1)
 proof (induct xs arbitrary: h h' r)
@@ -85,11 +85,11 @@ proof (induct xs arbitrary: h h' r)
 next
   case (Cons x xs)
   from Cons(2) obtain h1 y ys where crel_f: "crel (f x) h h1 y"
-    and crel_mapM: "crel (mapM f xs) h1 h' ys"
+    and crel_fold_map: "crel (Heap_Monad.fold_map f xs) h1 h' ys"
     and r_def: "r = y#ys"
-    unfolding mapM.simps
+    unfolding fold_map.simps
     by (auto elim!: crelE crel_return)
-  from Cons(1)[OF crel_mapM] crel_mapM crel_f assms(3) r_def
+  from Cons(1)[OF crel_fold_map] crel_fold_map crel_f assms(3) r_def
   show ?case by auto
 qed
 
@@ -156,9 +156,9 @@ proof -
   with l show ?thesis by (simp add: upt_conv_Cons)
 qed
 
-lemma crel_mapM_nth:
+lemma crel_fold_map_nth:
   assumes
-  "crel (mapM (Array.nth a) [Array.length a h - n..<Array.length a h]) h h' xs"
+  "crel (Heap_Monad.fold_map (Array.nth a) [Array.length a h - n..<Array.length a h]) h h' xs"
   assumes "n \<le> Array.length a h"
   shows "h = h' \<and> xs = drop (Array.length a h - n) (get_array a h)"
 using assms
@@ -170,12 +170,12 @@ next
   from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   with Suc(2) obtain r where
-    crel_mapM: "crel (mapM (Array.nth a) [Array.length a h - n..<Array.length a h]) h h' r"
+    crel_fold_map: "crel (Heap_Monad.fold_map (Array.nth a) [Array.length a h - n..<Array.length a h]) h h' r"
     and xs_def: "xs = get_array a h ! (Array.length a h - Suc n) # r"
     by (auto elim!: crelE crel_nth crel_return)
   from Suc(3) have "Array.length a h - n = Suc (Array.length a h - Suc n)" 
     by arith
-  with Suc.hyps[OF crel_mapM] xs_def show ?case
+  with Suc.hyps[OF crel_fold_map] xs_def show ?case
     unfolding Array.length_def
     by (auto simp add: nth_drop')
 qed
@@ -186,8 +186,8 @@ lemma crel_freeze:
   using assms unfolding freeze_def
   by (elim crel_heap) simp
 
-lemma crel_mapM_map_entry_remains:
-  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
+lemma crel_fold_map_map_entry_remains:
+  assumes "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
   assumes "i < Array.length a h - n"
   shows "get_array a h ! i = get_array a h' ! i"
 using assms
@@ -201,16 +201,16 @@ next
   from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   from Suc(2) this obtain r where
-    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
+    crel_fold_map: "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
     by (auto simp add: elim!: crelE crel_map_entry crel_return)
   have length_remains: "Array.length a ?h1 = Array.length a h" by simp
-  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
+  from crel_fold_map have crel_fold_map': "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
     by simp
   from Suc(1)[OF this] length_remains Suc(3) show ?case by simp
 qed
 
-lemma crel_mapM_map_entry_changes:
-  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
+lemma crel_fold_map_map_entry_changes:
+  assumes "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
   assumes "n \<le> Array.length a h"  
   assumes "i \<ge> Array.length a h - n"
   assumes "i < Array.length a h"
@@ -226,22 +226,22 @@ next
   from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   from Suc(2) this obtain r where
-    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
+    crel_fold_map: "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
     by (auto simp add: elim!: crelE crel_map_entry crel_return)
   have length_remains: "Array.length a ?h1 = Array.length a h" by simp
   from Suc(3) have less: "Array.length a h - Suc n < Array.length a h - n" by arith
   from Suc(3) have less2: "Array.length a h - Suc n < Array.length a h" by arith
   from Suc(4) length_remains have cases: "i = Array.length a ?h1 - Suc n \<or> i \<ge> Array.length a ?h1 - n" by arith
-  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
+  from crel_fold_map have crel_fold_map': "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
     by simp
   from Suc(1)[OF this] cases Suc(3) Suc(5) length_remains
-    crel_mapM_map_entry_remains[OF this, of "Array.length a h - Suc n", symmetric] less less2
+    crel_fold_map_map_entry_remains[OF this, of "Array.length a h - Suc n", symmetric] less less2
   show ?case
     by (auto simp add: nth_list_update_eq Array.length_def)
 qed
 
-lemma crel_mapM_map_entry_length:
-  assumes "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
+lemma crel_fold_map_map_entry_length:
+  assumes "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
   assumes "n \<le> Array.length a h"
   shows "Array.length a h' = Array.length a h"
 using assms
@@ -254,21 +254,21 @@ next
   from Suc(3) have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
   from Suc(2) this obtain r where 
-    crel_mapM: "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
+    crel_fold_map: "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) ?h1 h' r"
     by (auto elim!: crelE crel_map_entry crel_return)
   have length_remains: "Array.length a ?h1 = Array.length a h" by simp
-  from crel_mapM have crel_mapM': "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
+  from crel_fold_map have crel_fold_map': "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a ?h1 - n..<Array.length a ?h1]) ?h1 h' r"
     by simp
   from Suc(1)[OF this] length_remains Suc(3) show ?case by simp
 qed
 
-lemma crel_mapM_map_entry:
-assumes "crel (mapM (\<lambda>n. map_entry n f a) [0..<Array.length a h]) h h' r"
+lemma crel_fold_map_map_entry:
+assumes "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [0..<Array.length a h]) h h' r"
   shows "get_array a h' = List.map f (get_array a h)"
 proof -
-  from assms have "crel (mapM (\<lambda>n. map_entry n f a) [Array.length a h - Array.length a h..<Array.length a h]) h h' r" by simp
-  from crel_mapM_map_entry_length[OF this]
-  crel_mapM_map_entry_changes[OF this] show ?thesis
+  from assms have "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - Array.length a h..<Array.length a h]) h h' r" by simp
+  from crel_fold_map_map_entry_length[OF this]
+  crel_fold_map_map_entry_changes[OF this] show ?thesis
     unfolding Array.length_def
     by (auto intro: nth_equalityI)
 qed
@@ -342,7 +342,7 @@ lemma crel_assert[consumes 1]:
   by (elim crel_if crel_return crel_raise) auto
 
 lemma crel_assert_eq: "(\<And>h h' r. crel f h h' r \<Longrightarrow> P r) \<Longrightarrow> f \<guillemotright>= assert P = f"
-unfolding crel_def bindM_def Let_def assert_def
+unfolding crel_def bind_def Let_def assert_def
   raise_def return_def prod_case_beta
 apply (cases f)
 apply simp
@@ -359,7 +359,7 @@ subsection {* Introduction rules for basic monadic commands *}
 lemma crelI:
   assumes "crel f h h' r" "crel (g r) h' h'' r'"
   shows "crel (f >>= g) h h'' r'"
-  using assms by (simp add: crel_def' bindM_def)
+  using assms by (simp add: crel_def' bind_def)
 
 lemma crelI':
   assumes "crel f h h' r" "crel g h' h'' r'"
@@ -513,19 +513,19 @@ lemma noErrorI:
   assumes "\<And>h' r. crel f h h' r \<Longrightarrow> noError (g r) h'"
   shows "noError (f \<guillemotright>= g) h"
   using assms
-  by (auto simp add: noError_def' crel_def' bindM_def)
+  by (auto simp add: noError_def' crel_def' bind_def)
 
 lemma noErrorI':
   assumes "noError f h"
   assumes "\<And>h' r. crel f h h' r \<Longrightarrow> noError g h'"
   shows "noError (f \<guillemotright> g) h"
   using assms
-  by (auto simp add: noError_def' crel_def' bindM_def)
+  by (auto simp add: noError_def' crel_def' bind_def)
 
 lemma noErrorI2:
 "\<lbrakk>crel f h h' r ; noError f h; noError (g r) h'\<rbrakk>
 \<Longrightarrow> noError (f \<guillemotright>= g) h"
-by (auto simp add: noError_def' crel_def' bindM_def)
+by (auto simp add: noError_def' crel_def' bind_def)
 
 lemma noError_return: 
   shows "noError (return x) h"
@@ -546,18 +546,18 @@ lemma noError_option_case:
 using assms
 by (auto split: option.split)
 
-lemma noError_mapM: 
+lemma noError_fold_map: 
 assumes "\<forall>x \<in> set xs. noError (f x) h \<and> crel (f x) h h (r x)" 
-shows "noError (mapM f xs) h"
+shows "noError (Heap_Monad.fold_map f xs) h"
 using assms
 proof (induct xs)
   case Nil
   thus ?case
-    unfolding mapM.simps by (intro noError_return)
+    unfolding fold_map.simps by (intro noError_return)
 next
   case (Cons x xs)
   thus ?case
-    unfolding mapM.simps
+    unfolding fold_map.simps
     by (auto intro: noErrorI2[of "f x"] noErrorI noError_return)
 qed
 
@@ -611,9 +611,9 @@ lemma noError_freeze:
   "noError (freeze a) h"
   by (simp add: freeze_def)
 
-lemma noError_mapM_map_entry:
+lemma noError_fold_map_map_entry:
   assumes "n \<le> Array.length a h"
-  shows "noError (mapM (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h"
+  shows "noError (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h"
 using assms
 proof (induct n arbitrary: h)
   case 0

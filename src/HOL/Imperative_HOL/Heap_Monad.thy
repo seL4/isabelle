@@ -66,36 +66,36 @@ lemma execute_raise [simp]:
   "execute (raise s) = (\<lambda>_. None)"
   by (simp add: raise_def)
 
-definition bindM :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where (*FIXME just bind*)
+definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where
   [code del]: "f >>= g = Heap (\<lambda>h. case execute f h of
                   Some (x, h') \<Rightarrow> execute (g x) h'
                 | None \<Rightarrow> None)"
 
-notation bindM (infixl "\<guillemotright>=" 54)
+notation bind (infixl "\<guillemotright>=" 54)
 
 lemma execute_bind [simp]:
   "execute f h = Some (x, h') \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g x) h'"
   "execute f h = None \<Longrightarrow> execute (f \<guillemotright>= g) h = None"
-  by (simp_all add: bindM_def)
+  by (simp_all add: bind_def)
 
 lemma execute_bind_heap [simp]:
   "execute (heap f \<guillemotright>= g) h = execute (g (fst (f h))) (snd (f h))"
-  by (simp add: bindM_def split_def)
+  by (simp add: bind_def split_def)
   
 lemma execute_eq_SomeI:
   assumes "Heap_Monad.execute f h = Some (x, h')"
     and "Heap_Monad.execute (g x) h' = Some (y, h'')"
   shows "Heap_Monad.execute (f \<guillemotright>= g) h = Some (y, h'')"
-  using assms by (simp add: bindM_def)
+  using assms by (simp add: bind_def)
 
 lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
   by (rule Heap_eqI) simp
 
 lemma bind_return [simp]: "f \<guillemotright>= return = f"
-  by (rule Heap_eqI) (simp add: bindM_def split: option.splits)
+  by (rule Heap_eqI) (simp add: bind_def split: option.splits)
 
 lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= k)"
-  by (rule Heap_eqI) (simp add: bindM_def split: option.splits)
+  by (rule Heap_eqI) (simp add: bind_def split: option.splits)
 
 lemma raise_bind [simp]: "raise e \<guillemotright>= f = raise e"
   by (rule Heap_eqI) simp
@@ -149,7 +149,7 @@ let
         let
           val (v, t) = Syntax.variant_abs ("", dummyT, t $ Bound 0);
         in (Free (v, dummyT), t) end;
-  fun unfold_monad (Const (@{const_syntax bindM}, _) $ f $ g) =
+  fun unfold_monad (Const (@{const_syntax bind}, _) $ f $ g) =
         let
           val (v, g') = dest_abs_eta g;
           val vs = fold_aterms (fn Free (v, _) => insert (op =) v | _ => I) v [];
@@ -169,19 +169,19 @@ let
     | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
         Const (@{const_syntax return}, dummyT) $ f
     | unfold_monad f = f;
-  fun contains_bind (Const (@{const_syntax bindM}, _) $ _ $ _) = true
+  fun contains_bind (Const (@{const_syntax bind}, _) $ _ $ _) = true
     | contains_bind (Const (@{const_syntax Let}, _) $ _ $ Abs (_, _, t)) =
         contains_bind t;
-  fun bindM_monad_tr' (f::g::ts) = list_comb
+  fun bind_monad_tr' (f::g::ts) = list_comb
     (Const (@{syntax_const "_do"}, dummyT) $
-      unfold_monad (Const (@{const_syntax bindM}, dummyT) $ f $ g), ts);
+      unfold_monad (Const (@{const_syntax bind}, dummyT) $ f $ g), ts);
   fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) =
     if contains_bind g' then list_comb
       (Const (@{syntax_const "_do"}, dummyT) $
         unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
     else raise Match;
 in
- [(@{const_syntax bindM}, bindM_monad_tr'),
+ [(@{const_syntax bind}, bind_monad_tr'),
   (@{const_syntax Let}, Let_monad_tr')]
 end;
 *}
@@ -216,21 +216,21 @@ lemma bind_lift:
   "(f \<guillemotright>= lift g) = (f \<guillemotright>= (\<lambda>x. return (g x)))"
   by (simp add: lift_def comp_def)
 
-primrec mapM :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b list Heap" where (*FIXME just map?*)
-  "mapM f [] = return []"
-| "mapM f (x # xs) = do
+primrec fold_map :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b list Heap" where
+  "fold_map f [] = return []"
+| "fold_map f (x # xs) = do
      y \<leftarrow> f x;
-     ys \<leftarrow> mapM f xs;
+     ys \<leftarrow> fold_map f xs;
      return (y # ys)
    done"
 
-lemma mapM_append:
-  "mapM f (xs @ ys) = mapM f xs \<guillemotright>= (\<lambda>xs. mapM f ys \<guillemotright>= (\<lambda>ys. return (xs @ ys)))"
+lemma fold_map_append:
+  "fold_map f (xs @ ys) = fold_map f xs \<guillemotright>= (\<lambda>xs. fold_map f ys \<guillemotright>= (\<lambda>ys. return (xs @ ys)))"
   by (induct xs) simp_all
 
-lemma execute_mapM_unchanged_heap:
+lemma execute_fold_map_unchanged_heap:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> \<exists>y. execute (f x) h = Some (y, h)"
-  shows "execute (mapM f xs) h =
+  shows "execute (fold_map f xs) h =
     Some (List.map (\<lambda>x. fst (the (execute (f x) h))) xs, h)"
 using assms proof (induct xs)
   case Nil show ?case by simp
@@ -238,7 +238,7 @@ next
   case (Cons x xs)
   from Cons.prems obtain y
     where y: "execute (f x) h = Some (y, h)" by auto
-  moreover from Cons.prems Cons.hyps have "execute (mapM f xs) h =
+  moreover from Cons.prems Cons.hyps have "execute (fold_map f xs) h =
     Some (map (\<lambda>x. fst (the (execute (f x) h))) xs, h)" by auto
   ultimately show ?case by (simp, simp only: execute_bind(1), simp)
 qed
@@ -314,7 +314,7 @@ lemma MREC_rule:
                    g x s z
                 done) done)"
   unfolding MREC_def
-  unfolding bindM_def return_def
+  unfolding bind_def return_def
   apply simp
   apply (rule ext)
   apply (unfold mrec_rule[of x])
@@ -426,7 +426,7 @@ fun imp_program naming =
     fun is_const c = case lookup_const naming c
      of SOME c' => (fn c'' => c' = c'')
       | NONE => K false;
-    val is_bind = is_const @{const_name bindM};
+    val is_bind = is_const @{const_name bind};
     val is_return = is_const @{const_name return};
     val dummy_name = "";
     val dummy_type = ITyVar dummy_name;
@@ -527,6 +527,6 @@ code_monad "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
 code_const Heap_Monad.raise' (Haskell "error/ _")
 
-hide_const (open) Heap heap guard execute raise'
+hide_const (open) Heap heap guard execute raise' fold_map
 
 end
