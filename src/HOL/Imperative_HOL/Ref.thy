@@ -14,7 +14,7 @@ text {*
   and http://www.smlnj.org/doc/Conversion/top-level-comparison.html
 *}
 
-subsection {* Primitive layer *}
+subsection {* Primitives *}
 
 definition present :: "heap \<Rightarrow> 'a\<Colon>heap ref \<Rightarrow> bool" where
   "present h r \<longleftrightarrow> addr_of_ref r < lim h"
@@ -34,6 +34,29 @@ definition alloc :: "'a \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap ref \<ti
 
 definition noteq :: "'a\<Colon>heap ref \<Rightarrow> 'b\<Colon>heap ref \<Rightarrow> bool" (infix "=!=" 70) where
   "r =!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_ref r \<noteq> addr_of_ref s"
+
+
+subsection {* Monad operations *}
+
+definition ref :: "'a\<Colon>heap \<Rightarrow> 'a ref Heap" where
+  [code del]: "ref v = Heap_Monad.heap (alloc v)"
+
+definition lookup :: "'a\<Colon>heap ref \<Rightarrow> 'a Heap" ("!_" 61) where
+  [code del]: "lookup r = Heap_Monad.heap (\<lambda>h. (get h r, h))"
+
+definition update :: "'a ref \<Rightarrow> 'a\<Colon>heap \<Rightarrow> unit Heap" ("_ := _" 62) where
+  [code del]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
+
+definition change :: "('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a Heap" where
+  "change f r = (do
+     x \<leftarrow> ! r;
+     let y = f x;
+     r := y;
+     return y
+   done)"
+
+
+subsection {* Properties *}
 
 lemma noteq_sym: "r =!= s \<Longrightarrow> s =!= r"
   and unequal [simp]: "r \<noteq> r' \<longleftrightarrow> r =!= r'" -- "same types!"
@@ -103,31 +126,22 @@ lemma noteq_I:
   "present h r \<Longrightarrow> \<not> present h r' \<Longrightarrow> r =!= r'"
   by (auto simp add: noteq_def present_def)
 
+lemma execute_ref [simp]:
+  "Heap_Monad.execute (ref v) h = Some (alloc v h)"
+  by (simp add: ref_def)
 
-subsection {* Primitives *}
+lemma execute_lookup [simp]:
+  "Heap_Monad.execute (lookup r) h = Some (get h r, h)"
+  by (simp add: lookup_def)
 
-definition ref :: "'a\<Colon>heap \<Rightarrow> 'a ref Heap" where
-  [code del]: "ref v = Heap_Monad.heap (alloc v)"
+lemma execute_update [simp]:
+  "Heap_Monad.execute (update r v) h = Some ((), set r v h)"
+  by (simp add: update_def)
 
-definition lookup :: "'a\<Colon>heap ref \<Rightarrow> 'a Heap" ("!_" 61) where
-  [code del]: "lookup r = Heap_Monad.heap (\<lambda>h. (get h r, h))"
-
-definition update :: "'a ref \<Rightarrow> 'a\<Colon>heap \<Rightarrow> unit Heap" ("_ := _" 62) where
-  [code del]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
-
-
-subsection {* Derivates *}
-
-definition change :: "('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a Heap" where
-  "change f r = (do
-     x \<leftarrow> ! r;
-     let y = f x;
-     r := y;
-     return y
-   done)"
-
-
-subsection {* Properties *}
+lemma execute_change [simp]:
+  "Heap_Monad.execute (change f r) h = Some (f (get h r), set r (f (get h r)) h)"
+  by (cases "!r" h rule: heap_cases)
+    (simp_all only: change_def execute_bind, auto simp add: Let_def)
 
 lemma lookup_chain:
   "(!r \<guillemotright> f) = f"
@@ -189,7 +203,7 @@ hide_const (open) present get set alloc lookup update change
 
 subsection {* Code generator setup *}
 
-subsubsection {* SML *}
+text {* SML *}
 
 code_type ref (SML "_/ Unsynchronized.ref")
 code_const Ref (SML "raise/ (Fail/ \"bare Ref\")")
@@ -200,7 +214,7 @@ code_const Ref.update (SML "(fn/ ()/ =>/ _/ :=/ _)")
 code_reserved SML ref
 
 
-subsubsection {* OCaml *}
+text {* OCaml *}
 
 code_type ref (OCaml "_/ ref")
 code_const Ref (OCaml "failwith/ \"bare Ref\")")
@@ -211,7 +225,7 @@ code_const Ref.update (OCaml "(fn/ ()/ =>/ _/ :=/ _)")
 code_reserved OCaml ref
 
 
-subsubsection {* Haskell *}
+text {* Haskell *}
 
 code_type ref (Haskell "Heap.STRef/ Heap.RealWorld/ _")
 code_const Ref (Haskell "error/ \"bare Ref\"")
