@@ -23,6 +23,7 @@ use_thys [
   "InductiveInvariant_examples",
   "LocaleTest2",
   "Records",
+  "While_Combinator_Example",
   "MonoidGroup",
   "BinEx",
   "Hex_Bin_Examples",

@@ -1006,7 +1006,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy ex/Sudoku.thy		\
   ex/Tarski.thy ex/Termination.thy ex/Transfer_Ex.thy ex/Tree23.thy	\
-  ex/Unification.thy ex/document/root.bib ex/document/root.tex		\
+  ex/Unification.thy ex/While_Combinator_Example.thy ex/document/root.bib \
+	ex/document/root.tex		\
   ex/set.thy ex/svc_funcs.ML ex/svc_test.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
