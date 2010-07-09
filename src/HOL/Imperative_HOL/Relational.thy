@@ -23,6 +23,11 @@ section {* Elimination rules *}
 text {* For all commands, we define simple elimination rules. *}
 (* FIXME: consumes 1 necessary ?? *)
 
+lemma crel_tap:
+  assumes "crel (Heap_Monad.tap f) h h' r"
+  obtains "h' = h" "r = f h"
+  using assms by (simp add: crel_def)
+
 lemma crel_heap:
   assumes "crel (Heap_Monad.heap f) h h' r"
   obtains "h' = snd (f h)" "r = fst (f h)"
@@ -31,7 +36,7 @@ lemma crel_heap:
 lemma crel_guard:
   assumes "crel (Heap_Monad.guard P f) h h' r"
   obtains "h' = snd (f h)" "r = fst (f h)" "P h"
-  using assms by (cases "f h", cases "P h") (simp_all add: crel_def)
+  using assms by (cases "f h", cases "P h") (simp_all add: crel_def execute_simps)
 
 
 subsection {* Elimination rules for basic monadic commands *}
@@ -121,7 +126,7 @@ lemma crel_length:
   assumes "crel (len a) h h' r"
   obtains "h = h'" "r = Array.length a h'"
   using assms unfolding Array.len_def
-  by (elim crel_heap) simp
+  by (elim crel_tap) simp
 
 lemma crel_nth[consumes 1]:
   assumes "crel (nth a i) h h' r"
@@ -184,7 +189,7 @@ lemma crel_freeze:
   assumes "crel (Array.freeze a) h h' xs"
   obtains "h = h'" "xs = get_array a h"
   using assms unfolding freeze_def
-  by (elim crel_heap) simp
+  by (elim crel_tap) simp
 
 lemma crel_fold_map_map_entry_remains:
   assumes "crel (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h h' r"
@@ -314,23 +319,20 @@ lemma crel_ref:
 lemma crel_lookup:
   assumes "crel (!r') h h' r"
   obtains "h = h'" "r = Ref.get h r'"
-using assms
-unfolding Ref.lookup_def
-by (auto elim: crel_heap)
+  using assms unfolding Ref.lookup_def
+  by (auto elim: crel_tap)
 
 lemma crel_update:
   assumes "crel (r' := v) h h' r"
   obtains "h' = Ref.set r' v h" "r = ()"
-using assms
-unfolding Ref.update_def
-by (auto elim: crel_heap)
+  using assms unfolding Ref.update_def
+  by (auto elim: crel_heap)
 
 lemma crel_change:
   assumes "crel (Ref.change f r') h h' r"
   obtains "h' = Ref.set r' (f (Ref.get h r')) h" "r = f (Ref.get h r')"
-using assms
-unfolding Ref.change_def Let_def
-by (auto elim!: crelE crel_lookup crel_update crel_return)
+  using assms unfolding Ref.change_def Let_def
+  by (auto elim!: crelE crel_lookup crel_update crel_return)
 
 subsection {* Elimination rules for the assert command *}
 
@@ -388,6 +390,11 @@ lemma crel_option_caseI:
 using assms
 by (auto split: option.split)
 
+lemma crel_tapI:
+  assumes "h' = h" "r = f h"
+  shows "crel (Heap_Monad.tap f) h h' r"
+  using assms by (simp add: crel_def)
+
 lemma crel_heapI:
   shows "crel (Heap_Monad.heap f) h (snd (f h)) (fst (f h))"
   by (simp add: crel_def apfst_def split_def prod_fun_def)
@@ -401,7 +408,7 @@ lemma crel_heapI': (*FIXME keep only this version*)
 lemma crel_guardI:
   assumes "P h" "h' = snd (f h)" "r = fst (f h)"
   shows "crel (Heap_Monad.guard P f) h h' r"
-  using assms by (simp add: crel_def)
+  using assms by (simp add: crel_def execute_simps)
 
 lemma crelI2:
   assumes "\<exists>h' rs'. crel f h h' rs' \<and> (\<exists>h'' rs. crel (g rs') h' h'' rs)"
@@ -418,8 +425,7 @@ subsection {* Introduction rules for array commands *}
 
 lemma crel_lengthI:
   shows "crel (Array.len a) h h (Array.length a h)"
-  unfolding len_def
-  by (rule crel_heapI') auto
+  unfolding len_def by (rule crel_tapI) simp_all
 
 (* thm crel_newI for Array.new is missing *)
 
@@ -449,7 +455,7 @@ subsubsection {* Introduction rules for reference commands *}
 
 lemma crel_lookupI:
   shows "crel (!r) h h (Ref.get h r)"
-  unfolding lookup_def by (auto intro!: crel_heapI')
+  unfolding lookup_def by (auto intro!: crel_tapI)
 
 lemma crel_updateI:
   shows "crel (r := v) h (Ref.set r v h) ()"
@@ -457,7 +463,7 @@ lemma crel_updateI:
 
 lemma crel_changeI: 
   shows "crel (Ref.change f r) h (Ref.set r (f (Ref.get h r)) h) (f (Ref.get h r))"
-unfolding change_def Let_def by (auto intro!: crelI crel_returnI crel_lookupI crel_updateI)
+  unfolding change_def Let_def by (auto intro!: crelI crel_returnI crel_lookupI crel_updateI)
 
 subsubsection {* Introduction rules for the assert command *}
 
@@ -487,172 +493,25 @@ proof (rule MREC_pinduct[OF assms(1)[unfolded crel_def, symmetric]])
 next
 qed (auto simp add: assms(2)[unfolded crel_def])
 
-section {* Definition of the noError predicate *}
 
-text {* We add a simple definitional setting for crel intro rules
-  where we only would like to show that the computation does not result in a exception for heap h,
-  but we do not care about statements about the resulting heap and return value.*}
-
-definition noError :: "'a Heap \<Rightarrow> heap \<Rightarrow> bool"
-where
-  "noError c h \<longleftrightarrow> (\<exists>r h'. Some (r, h') = Heap_Monad.execute c h)"
-
-lemma noError_def': -- FIXME
-  "noError c h \<longleftrightarrow> (\<exists>r h'. Heap_Monad.execute c h = Some (r, h'))"
-  unfolding noError_def apply auto proof -
-  fix r h'
-  assume "Some (r, h') = Heap_Monad.execute c h"
-  then have "Heap_Monad.execute c h = Some (r, h')" ..
-  then show "\<exists>r h'. Heap_Monad.execute c h = Some (r, h')" by blast
-qed
-
-subsection {* Introduction rules for basic monadic commands *}
-
-lemma noErrorI:
-  assumes "noError f h"
-  assumes "\<And>h' r. crel f h h' r \<Longrightarrow> noError (g r) h'"
-  shows "noError (f \<guillemotright>= g) h"
-  using assms
-  by (auto simp add: noError_def' crel_def' bind_def)
-
-lemma noErrorI':
-  assumes "noError f h"
-  assumes "\<And>h' r. crel f h h' r \<Longrightarrow> noError g h'"
-  shows "noError (f \<guillemotright> g) h"
-  using assms
-  by (auto simp add: noError_def' crel_def' bind_def)
-
-lemma noErrorI2:
-"\<lbrakk>crel f h h' r ; noError f h; noError (g r) h'\<rbrakk>
-\<Longrightarrow> noError (f \<guillemotright>= g) h"
-by (auto simp add: noError_def' crel_def' bind_def)
-
-lemma noError_return: 
-  shows "noError (return x) h"
-  unfolding noError_def return_def
-  by auto
-
-lemma noError_if:
-  assumes "c \<Longrightarrow> noError t h" "\<not> c \<Longrightarrow> noError e h"
-  shows "noError (if c then t else e) h"
-  using assms
-  unfolding noError_def
-  by auto
-
-lemma noError_option_case:
-  assumes "\<And>y. x = Some y \<Longrightarrow> noError (s y) h"
-  assumes "noError n h"
-  shows "noError (case x of None \<Rightarrow> n | Some y \<Rightarrow> s y) h"
-using assms
-by (auto split: option.split)
-
-lemma noError_fold_map: 
-assumes "\<forall>x \<in> set xs. noError (f x) h \<and> crel (f x) h h (r x)" 
-shows "noError (Heap_Monad.fold_map f xs) h"
-using assms
-proof (induct xs)
-  case Nil
-  thus ?case
-    unfolding fold_map.simps by (intro noError_return)
-next
-  case (Cons x xs)
-  thus ?case
-    unfolding fold_map.simps
-    by (auto intro: noErrorI2[of "f x"] noErrorI noError_return)
-qed
-
-lemma noError_heap [simp]:
-  "noError (Heap_Monad.heap f) h"
-  by (simp add: noError_def')
-
-lemma noError_guard [simp]:
-  "P h \<Longrightarrow> noError (Heap_Monad.guard P f) h"
-  by (simp add: noError_def')
-
-subsection {* Introduction rules for array commands *}
-
-lemma noError_length:
-  shows "noError (Array.len a) h"
-  by (simp add: len_def)
-
-lemma noError_new:
-  shows "noError (Array.new n v) h"
-  by (simp add: Array.new_def)
-
-lemma noError_upd:
-  assumes "i < Array.length a h"
-  shows "noError (Array.upd i v a) h"
-  using assms by (simp add: upd_def)
-
-lemma noError_nth:
-  assumes "i < Array.length a h"
-  shows "noError (Array.nth a i) h"
-  using assms by (simp add: nth_def)
-
-lemma noError_of_list:
-  "noError (of_list ls) h"
-  by (simp add: of_list_def)
-
-lemma noError_map_entry:
-  assumes "i < Array.length a h"
-  shows "noError (map_entry i f a) h"
-  using assms by (simp add: map_entry_def)
-
-lemma noError_swap:
-  assumes "i < Array.length a h"
-  shows "noError (swap i x a) h"
-  using assms by (simp add: swap_def)
-
-lemma noError_make:
-  "noError (make n f) h"
-  by (simp add: make_def)
-
-lemma noError_freeze:
-  "noError (freeze a) h"
-  by (simp add: freeze_def)
-
-lemma noError_fold_map_map_entry:
+lemma success_fold_map_map_entry:
   assumes "n \<le> Array.length a h"
-  shows "noError (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h"
+  shows "success (Heap_Monad.fold_map (\<lambda>n. map_entry n f a) [Array.length a h - n..<Array.length a h]) h"
 using assms
 proof (induct n arbitrary: h)
   case 0
-  thus ?case by (auto intro: noError_return)
+  thus ?case by (auto intro: success_returnI)
 next
   case (Suc n)
-  from Suc.prems have "[Array.length a h - Suc n..<Array.length a h] = (Array.length a h - Suc n)#[Array.length a h - n..<Array.length a h]"
+  from Suc.prems have "[Array.length a h - Suc n..<Array.length a h] =
+    (Array.length a h - Suc n) # [Array.length a h - n..<Array.length a h]"
     by (simp add: upt_conv_Cons')
-  with Suc.hyps[of "(Array.change a (Array.length a h - Suc n) (f (get_array a h ! (Array.length a h - Suc n))) h)"] Suc.prems show ?case
-    by (auto simp add: intro!: noErrorI noError_return noError_map_entry elim: crel_map_entry)
+  with Suc.hyps [of "(Array.change a (Array.length a h - Suc n) (f (get_array a h ! (Array.length a h - Suc n))) h)"] Suc.prems show ?case apply -
+    apply (auto simp add: execute_simps intro!: successI success_returnI success_map_entryI elim: crel_map_entry)
+    apply (subst execute_bind) apply (auto simp add: execute_simps)
+    done
 qed
 
-
-subsection {* Introduction rules for the reference commands *}
-
-lemma noError_Ref_new:
-  shows "noError (ref v) h"
-  by (simp add: Ref.ref_def)
-
-lemma noError_lookup:
-  shows "noError (!r) h"
-  by (simp add: lookup_def)
-
-lemma noError_update:
-  shows "noError (r := v) h"
-  by (simp add: update_def)
-
-lemma noError_change:
-  shows "noError (Ref.change f r) h"
-  by (simp add: change_def)
-    (auto intro!: noErrorI2 noError_lookup noError_update noError_return crel_lookupI crel_updateI simp add: Let_def)
-
-subsection {* Introduction rules for the assert command *}
-
-lemma noError_assert:
-  assumes "P x"
-  shows "noError (assert P x) h"
-  using assms unfolding assert_def
-  by (auto intro: noError_if noError_return)
 
 section {* Cumulative lemmas *}
 
@@ -668,10 +527,5 @@ lemmas crel_intro_all =
   (* crel_Ref_newI *) crel_lookupI crel_updateI crel_changeI
   crel_assert
 
-lemmas noError_intro_all = 
-  noErrorI noErrorI' noError_return noError_if noError_option_case
-  noError_length noError_new noError_nth noError_upd noError_of_list noError_map_entry noError_swap noError_make noError_freeze
-  noError_Ref_new noError_lookup noError_update noError_change
-  noError_assert
 
 end

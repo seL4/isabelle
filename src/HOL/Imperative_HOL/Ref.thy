@@ -42,7 +42,7 @@ definition ref :: "'a\<Colon>heap \<Rightarrow> 'a ref Heap" where
   [code del]: "ref v = Heap_Monad.heap (alloc v)"
 
 definition lookup :: "'a\<Colon>heap ref \<Rightarrow> 'a Heap" ("!_" 61) where
-  [code del]: "lookup r = Heap_Monad.heap (\<lambda>h. (get h r, h))"
+  [code del]: "lookup r = Heap_Monad.tap (\<lambda>h. get h r)"
 
 definition update :: "'a ref \<Rightarrow> 'a\<Colon>heap \<Rightarrow> unit Heap" ("_ := _" 62) where
   [code del]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
@@ -57,6 +57,8 @@ definition change :: "('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<R
 
 
 subsection {* Properties *}
+
+text {* Primitives *}
 
 lemma noteq_sym: "r =!= s \<Longrightarrow> s =!= r"
   and unequal [simp]: "r \<noteq> r' \<longleftrightarrow> r =!= r'" -- "same types!"
@@ -126,26 +128,44 @@ lemma noteq_I:
   "present h r \<Longrightarrow> \<not> present h r' \<Longrightarrow> r =!= r'"
   by (auto simp add: noteq_def present_def)
 
-lemma execute_ref [simp]:
-  "Heap_Monad.execute (ref v) h = Some (alloc v h)"
+
+text {* Monad operations *}
+
+lemma execute_ref [simp, execute_simps]:
+  "execute (ref v) h = Some (alloc v h)"
   by (simp add: ref_def)
 
-lemma execute_lookup [simp]:
+lemma success_refI [iff, success_intros]:
+  "success (ref v) h"
+  by (auto simp add: ref_def)
+
+lemma execute_lookup [simp, execute_simps]:
   "Heap_Monad.execute (lookup r) h = Some (get h r, h)"
   by (simp add: lookup_def)
 
-lemma execute_update [simp]:
+lemma success_lookupI [iff, success_intros]:
+  "success (lookup r) h"
+  by (auto simp add: lookup_def)
+
+lemma execute_update [simp, execute_simps]:
   "Heap_Monad.execute (update r v) h = Some ((), set r v h)"
   by (simp add: update_def)
 
-lemma execute_change [simp]:
+lemma success_updateI [iff, success_intros]:
+  "success (update r v) h"
+  by (auto simp add: update_def)
+
+lemma execute_change [simp, execute_simps]:
   "Heap_Monad.execute (change f r) h = Some (f (get h r), set r (f (get h r)) h)"
-  by (cases "!r" h rule: heap_cases)
-    (simp_all only: change_def execute_bind, auto simp add: Let_def)
+  by (simp add: change_def bind_def Let_def)
+
+lemma success_changeI [iff, success_intros]:
+  "success (change f r) h"
+  by (auto intro!: success_intros simp add: change_def)
 
 lemma lookup_chain:
   "(!r \<guillemotright> f) = f"
-  by (rule Heap_eqI) (simp add: lookup_def)
+  by (rule Heap_eqI) (auto simp add: lookup_def execute_simps)
 
 lemma update_change [code]:
   "r := e = change (\<lambda>_. e) r \<guillemotright> return ()"

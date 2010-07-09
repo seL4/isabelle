@@ -56,7 +56,7 @@ definition make :: "nat \<Rightarrow> (nat \<Rightarrow> 'a\<Colon>heap) \<Right
   [code del]: "make n f = Heap_Monad.heap (array (map f [0 ..< n]))"
 
 definition len :: "'a\<Colon>heap array \<Rightarrow> nat Heap" where
-  [code del]: "len a = Heap_Monad.heap (\<lambda>h. (length a h, h))"
+  [code del]: "len a = Heap_Monad.tap (\<lambda>h. length a h)"
 
 definition nth :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a Heap" where
   [code del]: "nth a i = Heap_Monad.guard (\<lambda>h. i < length a h)
@@ -75,13 +75,15 @@ definition swap :: "nat \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>heap array \<Ri
     (\<lambda>h. (get_array a h ! i, change a i x h))"
 
 definition freeze :: "'a\<Colon>heap array \<Rightarrow> 'a list Heap" where
-  [code del]: "freeze a = Heap_Monad.heap (\<lambda>h. (get_array a h, h))"
+  [code del]: "freeze a = Heap_Monad.tap (\<lambda>h. get_array a h)"
 
 
 subsection {* Properties *}
 
 text {* FIXME: Does there exist a "canonical" array axiomatisation in
 the literature?  *}
+
+text {* Primitives *}
 
 lemma noteq_arrs_sym: "a =!!= b \<Longrightarrow> b =!!= a"
   and unequal_arrs [simp]: "a \<noteq> a' \<longleftrightarrow> a =!!= a'"
@@ -153,50 +155,89 @@ lemma array_present_change [simp]:
   "array_present a (change b i v h) = array_present a h"
   by (simp add: change_def array_present_def set_array_def get_array_def)
 
-lemma execute_new [simp]:
-  "Heap_Monad.execute (new n x) h = Some (array (replicate n x) h)"
+
+text {* Monad operations *}
+
+lemma execute_new [simp, execute_simps]:
+  "execute (new n x) h = Some (array (replicate n x) h)"
   by (simp add: new_def)
 
-lemma execute_of_list [simp]:
-  "Heap_Monad.execute (of_list xs) h = Some (array xs h)"
+lemma success_newI [iff, success_intros]:
+  "success (new n x) h"
+  by (simp add: new_def)
+
+lemma execute_of_list [simp, execute_simps]:
+  "execute (of_list xs) h = Some (array xs h)"
   by (simp add: of_list_def)
 
-lemma execute_make [simp]:
-  "Heap_Monad.execute (make n f) h = Some (array (map f [0 ..< n]) h)"
+lemma success_of_listI [iff, success_intros]:
+  "success (of_list xs) h"
+  by (simp add: of_list_def)
+
+lemma execute_make [simp, execute_simps]:
+  "execute (make n f) h = Some (array (map f [0 ..< n]) h)"
   by (simp add: make_def)
 
-lemma execute_len [simp]:
-  "Heap_Monad.execute (len a) h = Some (length a h, h)"
+lemma success_makeI [iff, success_intros]:
+  "success (make n f) h"
+  by (simp add: make_def)
+
+lemma execute_len [simp, execute_simps]:
+  "execute (len a) h = Some (length a h, h)"
   by (simp add: len_def)
 
-lemma execute_nth [simp]:
-  "i < length a h \<Longrightarrow>
-    Heap_Monad.execute (nth a i) h = Some (get_array a h ! i, h)"
-  "i \<ge> length a h \<Longrightarrow> Heap_Monad.execute (nth a i) h = None"
-  by (simp_all add: nth_def)
+lemma success_lenI [iff, success_intros]:
+  "success (len a) h"
+  by (simp add: len_def)
 
-lemma execute_upd [simp]:
+lemma execute_nth [execute_simps]:
   "i < length a h \<Longrightarrow>
-    Heap_Monad.execute (upd i x a) h = Some (a, change a i x h)"
-  "i \<ge> length a h \<Longrightarrow> Heap_Monad.execute (nth a i) h = None"
-  by (simp_all add: upd_def)
+    execute (nth a i) h = Some (get_array a h ! i, h)"
+  "i \<ge> length a h \<Longrightarrow> execute (nth a i) h = None"
+  by (simp_all add: nth_def execute_simps)
 
-lemma execute_map_entry [simp]:
+lemma success_nthI [success_intros]:
+  "i < length a h \<Longrightarrow> success (nth a i) h"
+  by (auto intro: success_intros simp add: nth_def)
+
+lemma execute_upd [execute_simps]:
   "i < length a h \<Longrightarrow>
-   Heap_Monad.execute (map_entry i f a) h =
+    execute (upd i x a) h = Some (a, change a i x h)"
+  "i \<ge> length a h \<Longrightarrow> execute (nth a i) h = None"
+  by (simp_all add: upd_def execute_simps)
+
+lemma success_updI [success_intros]:
+  "i < length a h \<Longrightarrow> success (upd i x a) h"
+  by (auto intro: success_intros simp add: upd_def)
+
+lemma execute_map_entry [execute_simps]:
+  "i < length a h \<Longrightarrow>
+   execute (map_entry i f a) h =
       Some (a, change a i (f (get_array a h ! i)) h)"
-  "i \<ge> length a h \<Longrightarrow> Heap_Monad.execute (nth a i) h = None"
-  by (simp_all add: map_entry_def)
+  "i \<ge> length a h \<Longrightarrow> execute (nth a i) h = None"
+  by (simp_all add: map_entry_def execute_simps)
 
-lemma execute_swap [simp]:
+lemma success_map_entryI [success_intros]:
+  "i < length a h \<Longrightarrow> success (map_entry i f a) h"
+  by (auto intro: success_intros simp add: map_entry_def)
+
+lemma execute_swap [execute_simps]:
   "i < length a h \<Longrightarrow>
-   Heap_Monad.execute (swap i x a) h =
+   execute (swap i x a) h =
       Some (get_array a h ! i, change a i x h)"
-  "i \<ge> length a h \<Longrightarrow> Heap_Monad.execute (nth a i) h = None"
-  by (simp_all add: swap_def)
+  "i \<ge> length a h \<Longrightarrow> execute (nth a i) h = None"
+  by (simp_all add: swap_def execute_simps)
 
-lemma execute_freeze [simp]:
-  "Heap_Monad.execute (freeze a) h = Some (get_array a h, h)"
+lemma success_swapI [success_intros]:
+  "i < length a h \<Longrightarrow> success (swap i x a) h"
+  by (auto intro: success_intros simp add: swap_def)
+
+lemma execute_freeze [simp, execute_simps]:
+  "execute (freeze a) h = Some (get_array a h, h)"
+  by (simp add: freeze_def)
+
+lemma success_freezeI [iff, success_intros]:
+  "success (freeze a) h"
   by (simp add: freeze_def)
 
 lemma upd_return:
@@ -265,7 +306,7 @@ lemma [code]:
      x \<leftarrow> nth a i;
      upd i (f x) a
    done)"
-  by (rule Heap_eqI) (simp add: bind_def guard_def map_entry_def)
+  by (rule Heap_eqI) (simp add: bind_def guard_def map_entry_def execute_simps)
 
 lemma [code]:
   "swap i x a = (do
@@ -273,7 +314,7 @@ lemma [code]:
      upd i x a;
      return y
    done)"
-  by (rule Heap_eqI) (simp add: bind_def guard_def swap_def)
+  by (rule Heap_eqI) (simp add: bind_def guard_def swap_def execute_simps)
 
 lemma [code]:
   "freeze a = (do
@@ -288,18 +329,18 @@ proof (rule Heap_eqI)
      [0..<length a h] =
        List.map (List.nth (get_array a h)) [0..<length a h]"
     by simp
-  have "Heap_Monad.execute (Heap_Monad.fold_map (Array.nth a) [0..<length a h]) h =
+  have "execute (Heap_Monad.fold_map (Array.nth a) [0..<length a h]) h =
     Some (get_array a h, h)"
     apply (subst execute_fold_map_unchanged_heap)
     apply (simp_all add: nth_def guard_def *)
     apply (simp add: length_def map_nth)
     done
-  then have "Heap_Monad.execute (do
+  then have "execute (do
       n \<leftarrow> len a;
       Heap_Monad.fold_map (Array.nth a) [0..<n]
     done) h = Some (get_array a h, h)"
     by (auto intro: execute_eq_SomeI)
-  then show "Heap_Monad.execute (freeze a) h = Heap_Monad.execute (do
+  then show "execute (freeze a) h = execute (do
       n \<leftarrow> len a;
       Heap_Monad.fold_map (Array.nth a) [0..<n]
     done) h" by simp
