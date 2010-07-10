@@ -432,6 +432,10 @@ fun is_plain s = is_ascii s andalso s <> "\^M" andalso s <> "\\";
 
 fun is_utf8_trailer s = is_char s andalso 128 <= ord s andalso ord s < 192;
 
+fun implode_pseudo_utf8 (cs as ["\192", c]) =
+      if ord c < 160 then chr (ord c - 128) else implode cs
+  | implode_pseudo_utf8 cs = implode cs;
+
 val scan_encoded_newline =
   $$ "\^M" -- $$ "\n" >> K "\n" ||
   $$ "\^M" >> K "\n" ||
@@ -443,7 +447,7 @@ val scan_raw =
 
 val scan =
   Scan.one is_plain ||
-  Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode ||
+  Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode_pseudo_utf8 ||
   scan_encoded_newline ||
   ($$ "\\" ^^ $$ "<" ^^
     !! (fn (cs, _) => malformed_msg (beginning 10 ("\\" :: "<" :: cs)))
