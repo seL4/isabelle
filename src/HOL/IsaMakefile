@@ -395,7 +395,7 @@ $(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
 
 HOL-Library: HOL $(OUT)/HOL-Library
 
-$(OUT)/HOL-Library: $(OUT)/HOL library.ML				\
+$(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
   $(SRC)/HOL/Tools/float_arith.ML $(SRC)/Tools/float.ML			\
   Library/Abstract_Rat.thy Library/AssocList.thy			\
   Library/BigO.thy Library/Binomial.thy Library/Bit.thy			\
@@ -437,7 +437,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL library.ML				\
   Library/positivstellensatz.ML Library/reflection.ML			\
   Library/reify_data.ML							\
   Library/document/root.bib Library/document/root.tex
-	@$(ISABELLE_TOOL) usedir -b -f library.ML $(OUT)/HOL HOL-Library
+	@cd Library; $(ISABELLE_TOOL) usedir -b -f HOL_Library_ROOT.ML $(OUT)/HOL HOL-Library
 
 
 ## HOL-Hahn_Banach
