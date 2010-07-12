@@ -292,22 +292,3 @@ use "ProofGeneral/proof_general_emacs.ML";
 
 use "pure_setup.ML";
 
-
-(* legacy aliases *)
-
-structure Legacy =
-struct
-
-structure OuterKeyword = Keyword;
-structure OuterLex = struct open Token type token = T end;
-structure OuterParse = Parse;
-structure OuterSyntax = Outer_Syntax;
-structure PrintMode = Print_Mode;
-structure SpecParse = Parse_Spec;
-structure ThyInfo = Thy_Info;
-structure ThyLoad = Thy_Load;
-structure ThyOutput = Thy_Output;
-structure TypeInfer = Type_Infer;
-
-end;
-
