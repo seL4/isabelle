@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Boogie + HOL-Nominal + HOL-Statespace.
+;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + HOL-Boogie + HOL-Nominal + HOL-Statespace.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -31,7 +31,6 @@
     "assume"
     "atom_decl"
     "attribute_setup"
-    "automaton"
     "ax_specification"
     "axiomatization"
     "axioms"
@@ -279,15 +278,13 @@
     "}"))
 
 (defconst isar-keywords-minor
-  '("actions"
-    "advanced"
+  '("advanced"
     "and"
     "assumes"
     "attach"
     "avoids"
     "begin"
     "binder"
-    "compose"
     "congs"
     "constrains"
     "contains"
@@ -297,7 +294,6 @@
     "fixes"
     "for"
     "functions"
-    "hide_action"
     "hints"
     "identifier"
     "if"
@@ -306,9 +302,6 @@
     "infix"
     "infixl"
     "infixr"
-    "initially"
-    "inputs"
-    "internals"
     "is"
     "lazy"
     "module_name"
@@ -318,21 +311,11 @@
     "obtains"
     "open"
     "output"
-    "outputs"
     "overloaded"
     "permissive"
     "pervasive"
-    "post"
-    "pre"
-    "rename"
-    "restrict"
     "shows"
-    "signature"
-    "states"
     "structure"
-    "to"
-    "transitions"
-    "transrel"
     "unchecked"
     "uses"
     "where"))
@@ -453,7 +436,6 @@
     "arities"
     "atom_decl"
     "attribute_setup"
-    "automaton"
     "axiomatization"
     "axioms"
     "boogie_end"
