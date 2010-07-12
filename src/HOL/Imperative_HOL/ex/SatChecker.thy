@@ -459,6 +459,12 @@ where
                 else raise(''No empty clause''))
    done)"
 
+lemma crel_option_case:
+  assumes "crel (case x of None \<Rightarrow> n | Some y \<Rightarrow> s y) h h' r"
+  obtains "x = None" "crel n h h' r"
+         | y where "x = Some y" "crel (s y) h h' r" 
+  using assms unfolding crel_def by (auto split: option.splits)
+
 lemma res_thm2_Inv:
   assumes res_thm: "crel (res_thm2 a (l, j) cli) h h' rs"
   assumes correct_a: "correctArray r a h"
