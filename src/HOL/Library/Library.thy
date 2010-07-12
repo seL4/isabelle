@@ -32,6 +32,7 @@ imports
   ListVector
   Kleene_Algebra
   Mapping
+  Monad_Syntax
   More_List
   Multiset
   Nat_Infinity
