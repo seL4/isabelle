@@ -9,7 +9,7 @@ begin
 instantiation real :: Sup 
 begin
 definition
-  Sup_real_def [code del]: "Sup X == (LEAST z::real. \<forall>x\<in>X. x\<le>z)"
+  Sup_real_def: "Sup X == (LEAST z::real. \<forall>x\<in>X. x\<le>z)"
 
 instance ..
 end
@@ -17,7 +17,7 @@ end
 instantiation real :: Inf 
 begin
 definition
-  Inf_real_def [code del]: "Inf (X::real set) == - (Sup (uminus ` X))"
+  Inf_real_def: "Inf (X::real set) == - (Sup (uminus ` X))"
 
 instance ..
 end

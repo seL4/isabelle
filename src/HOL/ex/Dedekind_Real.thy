@@ -19,7 +19,7 @@ by (rule_tac x="b-a" in exI, simp)
 
 definition
   cut :: "rat set => bool" where
-  [code del]: "cut A = ({} \<subset> A &
+  "cut A = ({} \<subset> A &
             A < {r. 0 < r} &
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
 
@@ -49,7 +49,7 @@ typedef preal = "{A. cut A}"
 
 definition
   psup :: "preal set => preal" where
-  [code del]: "psup P = Abs_preal (\<Union>X \<in> P. Rep_preal X)"
+  "psup P = Abs_preal (\<Union>X \<in> P. Rep_preal X)"
 
 definition
   add_set :: "[rat set,rat set] => rat set" where
@@ -57,7 +57,7 @@ definition
 
 definition
   diff_set :: "[rat set,rat set] => rat set" where
-  [code del]: "diff_set A B = {w. \<exists>x. 0 < w & 0 < x & x \<notin> B & x + w \<in> A}"
+  "diff_set A B = {w. \<exists>x. 0 < w & 0 < x & x \<notin> B & x + w \<in> A}"
 
 definition
   mult_set :: "[rat set,rat set] => rat set" where
@@ -65,17 +65,17 @@ definition
 
 definition
   inverse_set :: "rat set => rat set" where
-  [code del]: "inverse_set A = {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
+  "inverse_set A = {x. \<exists>y. 0 < x & x < y & inverse y \<notin> A}"
 
 instantiation preal :: "{ord, plus, minus, times, inverse, one}"
 begin
 
 definition
-  preal_less_def [code del]:
+  preal_less_def:
     "R < S == Rep_preal R < Rep_preal S"
 
 definition
-  preal_le_def [code del]:
+  preal_le_def:
     "R \<le> S == Rep_preal R \<subseteq> Rep_preal S"
 
 definition
@@ -1162,7 +1162,7 @@ section {*Defining the Reals from the Positive Reals*}
 
 definition
   realrel   ::  "((preal * preal) * (preal * preal)) set" where
-  [code del]: "realrel = {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
+  "realrel = {p. \<exists>x1 y1 x2 y2. p = ((x1,y1),(x2,y2)) & x1+y2 = x2+y1}"
 
 typedef (Real)  real = "UNIV//realrel"
   by (auto simp add: quotient_def)
@@ -1170,46 +1170,46 @@ typedef (Real)  real = "UNIV//realrel"
 definition
   (** these don't use the overloaded "real" function: users don't see them **)
   real_of_preal :: "preal => real" where
-  [code del]: "real_of_preal m = Abs_Real (realrel `` {(m + 1, 1)})"
+  "real_of_preal m = Abs_Real (realrel `` {(m + 1, 1)})"
 
 instantiation real :: "{zero, one, plus, minus, uminus, times, inverse, ord, abs, sgn}"
 begin
 
 definition
-  real_zero_def [code del]: "0 = Abs_Real(realrel``{(1, 1)})"
+  real_zero_def: "0 = Abs_Real(realrel``{(1, 1)})"
 
 definition
-  real_one_def [code del]: "1 = Abs_Real(realrel``{(1 + 1, 1)})"
+  real_one_def: "1 = Abs_Real(realrel``{(1 + 1, 1)})"
 
 definition
-  real_add_def [code del]: "z + w =
+  real_add_def: "z + w =
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
                  { Abs_Real(realrel``{(x+u, y+v)}) })"
 
 definition
-  real_minus_def [code del]: "- r =  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
+  real_minus_def: "- r =  contents (\<Union>(x,y) \<in> Rep_Real(r). { Abs_Real(realrel``{(y,x)}) })"
 
 definition
-  real_diff_def [code del]: "r - (s::real) = r + - s"
+  real_diff_def: "r - (s::real) = r + - s"
 
 definition
-  real_mult_def [code del]:
+  real_mult_def:
     "z * w =
        contents (\<Union>(x,y) \<in> Rep_Real(z). \<Union>(u,v) \<in> Rep_Real(w).
                  { Abs_Real(realrel``{(x*u + y*v, x*v + y*u)}) })"
 
 definition
-  real_inverse_def [code del]: "inverse (R::real) = (THE S. (R = 0 & S = 0) | S * R = 1)"
+  real_inverse_def: "inverse (R::real) = (THE S. (R = 0 & S = 0) | S * R = 1)"
 
 definition
-  real_divide_def [code del]: "R / (S::real) = R * inverse S"
+  real_divide_def: "R / (S::real) = R * inverse S"
 
 definition
-  real_le_def [code del]: "z \<le> (w::real) \<longleftrightarrow>
+  real_le_def: "z \<le> (w::real) \<longleftrightarrow>
     (\<exists>x y u v. x+v \<le> u+y & (x,y) \<in> Rep_Real z & (u,v) \<in> Rep_Real w)"
 
 definition
-  real_less_def [code del]: "x < (y\<Colon>real) \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
+  real_less_def: "x < (y\<Colon>real) \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
 
 definition
   real_abs_def:  "abs (r::real) = (if r < 0 then - r else r)"
@@ -1656,7 +1656,7 @@ instantiation real :: number_ring
 begin
 
 definition
-  real_number_of_def [code del]: "(number_of w :: real) = of_int w"
+  real_number_of_def: "(number_of w :: real) = of_int w"
 
 instance
   by intro_classes (simp add: real_number_of_def)

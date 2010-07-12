@@ -62,10 +62,10 @@ instantiation list :: (linorder) distrib_lattice
 begin
 
 definition
-  [code del]: "(inf \<Colon> 'a list \<Rightarrow> _) = min"
+  "(inf \<Colon> 'a list \<Rightarrow> _) = min"
 
 definition
-  [code del]: "(sup \<Colon> 'a list \<Rightarrow> _) = max"
+  "(sup \<Colon> 'a list \<Rightarrow> _) = max"
 
 instance
   by intro_classes

@@ -1,1 +1,2 @@
-use_thys ["SparseMatrix", "cplex/Cplex"];
+
+use_thy "Cplex";

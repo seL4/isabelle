@@ -63,11 +63,11 @@ instantiation char :: linorder
 begin
 
 definition
-  char_less_eq_def [code del]: "c1 \<le> c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
+  char_less_eq_def: "c1 \<le> c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
     n1 < n2 \<or> n1 = n2 \<and> m1 \<le> m2)"
 
 definition
-  char_less_def [code del]: "c1 < c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
+  char_less_def: "c1 < c2 \<longleftrightarrow> (case c1 of Char n1 m1 \<Rightarrow> case c2 of Char n2 m2 \<Rightarrow>
     n1 < n2 \<or> n1 = n2 \<and> m1 < m2)"
 
 instance

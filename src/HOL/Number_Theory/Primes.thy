@@ -45,7 +45,7 @@ begin
 definition
   prime_nat :: "nat \<Rightarrow> bool"
 where
-  [code del]: "prime_nat p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
+  "prime_nat p = (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
 instance proof qed
 
@@ -58,7 +58,7 @@ begin
 definition
   prime_int :: "int \<Rightarrow> bool"
 where
-  [code del]: "prime_int p = prime (nat p)"
+  "prime_int p = prime (nat p)"
 
 instance proof qed
 

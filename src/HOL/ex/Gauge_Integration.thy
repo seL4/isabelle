@@ -28,7 +28,7 @@ subsection {* Gauges *}
 
 definition
   gauge :: "[real set, real => real] => bool" where
-  [code del]: "gauge E g = (\<forall>x\<in>E. 0 < g(x))"
+  "gauge E g = (\<forall>x\<in>E. 0 < g(x))"
 
 
 subsection {* Gauge-fine divisions *}
@@ -259,7 +259,7 @@ subsection {* Gauge integrability (definite) *}
 
 definition
   Integral :: "[(real*real),real=>real,real] => bool" where
-  [code del]: "Integral = (%(a,b) f k. \<forall>e > 0.
+  "Integral = (%(a,b) f k. \<forall>e > 0.
                                (\<exists>\<delta>. gauge {a .. b} \<delta> &
                                (\<forall>D. fine \<delta> (a,b) D -->
                                          \<bar>rsum D f - k\<bar> < e)))"

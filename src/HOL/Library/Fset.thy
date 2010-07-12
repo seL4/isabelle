@@ -124,10 +124,10 @@ instantiation fset :: (type) complete_lattice
 begin
 
 definition Inf_fset :: "'a fset set \<Rightarrow> 'a fset" where
-  [simp, code del]: "Inf_fset As = Fset (Inf (image member As))"
+  [simp]: "Inf_fset As = Fset (Inf (image member As))"
 
 definition Sup_fset :: "'a fset set \<Rightarrow> 'a fset" where
-  [simp, code del]: "Sup_fset As = Fset (Sup (image member As))"
+  [simp]: "Sup_fset As = Fset (Sup (image member As))"
 
 instance proof
 qed (auto simp add: le_fun_def le_bool_def)

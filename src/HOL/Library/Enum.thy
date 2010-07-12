@@ -149,7 +149,7 @@ instantiation "fun" :: (enum, enum) enum
 begin
 
 definition
-  [code del]: "enum = map (\<lambda>ys. the o map_of (zip (enum\<Colon>'a list) ys)) (n_lists (length (enum\<Colon>'a\<Colon>enum list)) enum)"
+  "enum = map (\<lambda>ys. the o map_of (zip (enum\<Colon>'a list) ys)) (n_lists (length (enum\<Colon>'a\<Colon>enum list)) enum)"
 
 instance proof
   show "UNIV = set (enum \<Colon> ('a \<Rightarrow> 'b) list)"
@@ -278,7 +278,7 @@ instantiation char :: enum
 begin
 
 definition
-  [code del]: "enum = map (split Char) (product enum enum)"
+  "enum = map (split Char) (product enum enum)"
 
 lemma enum_chars [code]:
   "enum = chars"

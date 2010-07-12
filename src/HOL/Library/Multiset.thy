@@ -978,11 +978,11 @@ subsection {* The multiset order *}
 subsubsection {* Well-foundedness *}
 
 definition mult1 :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
-  [code del]: "mult1 r = {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
+  "mult1 r = {(N, M). \<exists>a M0 K. M = M0 + {#a#} \<and> N = M0 + K \<and>
       (\<forall>b. b :# K --> (b, a) \<in> r)}"
 
 definition mult :: "('a \<times> 'a) set => ('a multiset \<times> 'a multiset) set" where
-  [code del]: "mult r = (mult1 r)\<^sup>+"
+  "mult r = (mult1 r)\<^sup>+"
 
 lemma not_less_empty [iff]: "(M, {#}) \<notin> mult1 r"
 by (simp add: mult1_def)
@@ -1498,7 +1498,7 @@ lemma multi_member_skip: "x \<in># XS \<Longrightarrow> x \<in># {# y #} + XS"
   by auto
 
 definition "ms_strict = mult pair_less"
-definition [code del]: "ms_weak = ms_strict \<union> Id"
+definition "ms_weak = ms_strict \<union> Id"
 
 lemma ms_reduction_pair: "reduction_pair (ms_strict, ms_weak)"
 unfolding reduction_pair_def ms_strict_def ms_weak_def pair_less_def

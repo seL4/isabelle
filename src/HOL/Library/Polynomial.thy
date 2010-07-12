@@ -98,7 +98,7 @@ subsection {* List-style constructor for polynomials *}
 definition
   pCons :: "'a::zero \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
 where
-  [code del]: "pCons a p = Abs_poly (nat_case a (coeff p))"
+  "pCons a p = Abs_poly (nat_case a (coeff p))"
 
 syntax
   "_poly" :: "args \<Rightarrow> 'a poly"  ("[:(_):]")
@@ -209,7 +209,7 @@ subsection {* Recursion combinator for polynomials *}
 function
   poly_rec :: "'b \<Rightarrow> ('a::zero \<Rightarrow> 'a poly \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a poly \<Rightarrow> 'b"
 where
-  poly_rec_pCons_eq_if [simp del, code del]:
+  poly_rec_pCons_eq_if [simp del]:
     "poly_rec z f (pCons a p) = f a p (if p = 0 then z else poly_rec z f p)"
 by (case_tac x, rename_tac q, case_tac q, auto)
 
@@ -266,7 +266,7 @@ instantiation poly :: (comm_monoid_add) comm_monoid_add
 begin
 
 definition
-  plus_poly_def [code del]:
+  plus_poly_def:
     "p + q = Abs_poly (\<lambda>n. coeff p n + coeff q n)"
 
 lemma Poly_add:
@@ -305,11 +305,11 @@ instantiation poly :: (ab_group_add) ab_group_add
 begin
 
 definition
-  uminus_poly_def [code del]:
+  uminus_poly_def:
     "- p = Abs_poly (\<lambda>n. - coeff p n)"
 
 definition
-  minus_poly_def [code del]:
+  minus_poly_def:
     "p - q = Abs_poly (\<lambda>n. coeff p n - coeff q n)"
 
 lemma Poly_minus:
@@ -512,7 +512,7 @@ instantiation poly :: (comm_semiring_0) comm_semiring_0
 begin
 
 definition
-  times_poly_def [code del]:
+  times_poly_def:
     "p * q = poly_rec 0 (\<lambda>a p pq. smult a q + pCons 0 pq) p"
 
 lemma mult_poly_0_left: "(0::'a poly) * q = 0"
@@ -736,20 +736,16 @@ instantiation poly :: (linordered_idom) linordered_idom
 begin
 
 definition
-  [code del]:
-    "x < y \<longleftrightarrow> pos_poly (y - x)"
+  "x < y \<longleftrightarrow> pos_poly (y - x)"
 
 definition
-  [code del]:
-    "x \<le> y \<longleftrightarrow> x = y \<or> pos_poly (y - x)"
+  "x \<le> y \<longleftrightarrow> x = y \<or> pos_poly (y - x)"
 
 definition
-  [code del]:
-    "abs (x::'a poly) = (if x < 0 then - x else x)"
+  "abs (x::'a poly) = (if x < 0 then - x else x)"
 
 definition
-  [code del]:
-    "sgn (x::'a poly) = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
+  "sgn (x::'a poly) = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
 
 instance proof
   fix x y :: "'a poly"
@@ -818,7 +814,6 @@ subsection {* Long division of polynomials *}
 definition
   pdivmod_rel :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
 where
-  [code del]:
   "pdivmod_rel x y q r \<longleftrightarrow>
     x = q * y + r \<and> (if y = 0 then q = 0 else r = 0 \<or> degree r < degree y)"
 
@@ -943,10 +938,10 @@ instantiation poly :: (field) ring_div
 begin
 
 definition div_poly where
-  [code del]: "x div y = (THE q. \<exists>r. pdivmod_rel x y q r)"
+  "x div y = (THE q. \<exists>r. pdivmod_rel x y q r)"
 
 definition mod_poly where
-  [code del]: "x mod y = (THE r. \<exists>q. pdivmod_rel x y q r)"
+  "x mod y = (THE r. \<exists>q. pdivmod_rel x y q r)"
 
 lemma div_poly_eq:
   "pdivmod_rel x y q r \<Longrightarrow> x div y = q"
@@ -1133,7 +1128,7 @@ termination poly_gcd
 by (relation "measure (\<lambda>(x, y). if y = 0 then 0 else Suc (degree y))")
    (auto dest: degree_mod_less)
 
-declare poly_gcd.simps [simp del, code del]
+declare poly_gcd.simps [simp del]
 
 lemma poly_gcd_dvd1 [iff]: "poly_gcd x y dvd x"
   and poly_gcd_dvd2 [iff]: "poly_gcd x y dvd y"
@@ -1287,7 +1282,7 @@ text {*
 
 definition
   synthetic_divmod :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly \<times> 'a"
-where [code del]:
+where
   "synthetic_divmod p c =
     poly_rec (0, 0) (\<lambda>a p (q, r). (pCons r q, a + c * r)) p"
 
@@ -1442,7 +1437,6 @@ subsection {* Order of polynomial roots *}
 definition
   order :: "'a::idom \<Rightarrow> 'a poly \<Rightarrow> nat"
 where
-  [code del]:
   "order a p = (LEAST n. \<not> [:-a, 1:] ^ Suc n dvd p)"
 
 lemma coeff_linear_power:
@@ -1514,7 +1508,7 @@ declare pCons_0_0 [code_post]
 instantiation poly :: ("{zero,eq}") eq
 begin
 
-definition [code del]:
+definition
   "eq_class.eq (p::'a poly) q \<longleftrightarrow> p = q"
 
 instance
@@ -1574,7 +1568,7 @@ text {* code generator setup for div and mod *}
 definition
   pdivmod :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly"
 where
-  [code del]: "pdivmod x y = (x div y, x mod y)"
+  "pdivmod x y = (x div y, x mod y)"
 
 lemma div_poly_code [code]: "x div y = fst (pdivmod x y)"
   unfolding pdivmod_def by simp

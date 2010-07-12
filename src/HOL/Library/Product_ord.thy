@@ -12,10 +12,10 @@ instantiation prod :: (ord, ord) ord
 begin
 
 definition
-  prod_le_def [code del]: "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x \<le> snd y"
+  prod_le_def: "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x \<le> snd y"
 
 definition
-  prod_less_def [code del]: "x < y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x < snd y"
+  prod_less_def: "x < y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x < snd y"
 
 instance ..
 
