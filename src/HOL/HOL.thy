@@ -15,6 +15,7 @@ uses
   "~~/src/Tools/intuitionistic.ML"
   "~~/src/Tools/project_rule.ML"
   "~~/src/Tools/cong_tac.ML"
+  "~~/src/Tools/misc_legacy.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/classical.ML"

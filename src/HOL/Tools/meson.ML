@@ -140,7 +140,7 @@ fun forward_res ctxt nf st =
                 Display.string_of_thm ctxt st ::
                 "Premises:" :: map (Display.string_of_thm ctxt) prems))
   in
-    case Seq.pull (ALLGOALS (OldGoals.METAHYPS forward_tacf) st)
+    case Seq.pull (ALLGOALS (Misc_Legacy.METAHYPS forward_tacf) st)
     of SOME(th,_) => th
      | NONE => raise THM("forward_res", 0, [st])
   end;
@@ -234,7 +234,7 @@ fun refl_clause th =
 fun forward_res2 ctxt nf hyps st =
   case Seq.pull
         (REPEAT
-         (OldGoals.METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
+         (Misc_Legacy.METAHYPS (fn major::minors => rtac (nf (minors@hyps) major) 1) 1)
          st)
   of SOME(th,_) => th
    | NONE => raise THM("forward_res2", 0, [st]);
@@ -345,8 +345,8 @@ fun cnf skolem_ths ctxt (th, ths) =
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
               let val tac =
-                  OldGoals.METAHYPS (resop cnf_nil) 1 THEN
-                   (fn st' => st' |> OldGoals.METAHYPS (resop cnf_nil) 1)
+                  Misc_Legacy.METAHYPS (resop cnf_nil) 1 THEN
+                   (fn st' => st' |> Misc_Legacy.METAHYPS (resop cnf_nil) 1)
               in  Seq.list_of (tac (th RS disj_forward)) @ ths  end
           | _ => nodups ctxt th :: ths  (*no work to do*)
       and cnf_nil th = cnf_aux (th,[])
@@ -706,7 +706,7 @@ fun skolemize_tac ctxt = SUBGOAL (fn (goal, i) =>
   let val ts = Logic.strip_assums_hyp goal
   in
     EVERY'
-     [OldGoals.METAHYPS (fn hyps =>
+     [Misc_Legacy.METAHYPS (fn hyps =>
         (cut_facts_tac (skolemize_nnf_list ctxt hyps) 1
           THEN REPEAT (etac exE 1))),
       REPEAT_DETERM_N (length ts) o (etac thin_rl)] i

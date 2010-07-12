@@ -5,7 +5,10 @@
 
 header{*Zermelo-Fraenkel Set Theory*}
 
-theory ZF imports FOL begin
+theory ZF
+imports FOL
+uses "~~/src/Tools/misc_legacy.ML"
+begin
 
 ML {* Unsynchronized.reset eta_contract *}
 

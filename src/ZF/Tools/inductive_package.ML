@@ -156,7 +156,7 @@ let
   val big_rec_tm = list_comb(Const(big_rec_name,recT), rec_params);
 
   (*The individual sets must already be declared*)
-  val axpairs = map OldGoals.mk_defpair
+  val axpairs = map Misc_Legacy.mk_defpair
         ((big_rec_tm, fp_rhs) ::
          (case parts of
              [_] => []                        (*no mutual recursion*)
@@ -179,7 +179,7 @@ let
 
   (*fetch fp definitions from the theory*)
   val big_rec_def::part_rec_defs =
-    map (OldGoals.get_def thy1)
+    map (Misc_Legacy.get_def thy1)
         (case rec_names of [_] => rec_names
                          | _   => big_rec_base_name::rec_names);
 

@@ -26,18 +26,19 @@ ZF: FOL $(OUT)/ZF
 FOL:
 	@cd $(SRC)/FOL; $(ISABELLE_TOOL) make FOL
 
-$(OUT)/ZF: $(OUT)/FOL AC.thy Arith.thy ArithSimp.thy Bin.thy Bool.thy	\
-  Cardinal.thy CardinalArith.thy Cardinal_AC.thy Datatype_ZF.thy	\
-  Epsilon.thy EquivClass.thy Finite.thy Fixedpt.thy Inductive_ZF.thy	\
-  InfDatatype.thy Int_ZF.thy IntArith.thy IntDiv_ZF.thy List_ZF.thy	\
-  Main.thy Main_ZF.thy Main_ZFC.thy Nat_ZF.thy OrdQuant.thy Order.thy	\
-  OrderArith.thy OrderType.thy Ordinal.thy Perm.thy QPair.thy		\
-  QUniv.thy ROOT.ML Sum.thy Tools/cartprod.ML				\
-  Tools/datatype_package.ML Tools/ind_cases.ML Tools/induct_tacs.ML	\
-  Tools/inductive_package.ML Tools/numeral_syntax.ML			\
-  Tools/primrec_package.ML Tools/typechk.ML Trancl.thy Univ.thy WF.thy	\
-  ZF.thy Zorn.thy arith_data.ML equalities.thy func.thy ind_syntax.ML	\
-  int_arith.ML pair.thy simpdata.ML upair.thy
+$(OUT)/ZF: $(OUT)/FOL $(SRC)/Tools/misc_legacy.ML AC.thy Arith.thy	\
+  ArithSimp.thy Bin.thy Bool.thy Cardinal.thy CardinalArith.thy		\
+  Cardinal_AC.thy Datatype_ZF.thy Epsilon.thy EquivClass.thy		\
+  Finite.thy Fixedpt.thy Inductive_ZF.thy InfDatatype.thy Int_ZF.thy	\
+  IntArith.thy IntDiv_ZF.thy List_ZF.thy Main.thy Main_ZF.thy		\
+  Main_ZFC.thy Nat_ZF.thy OrdQuant.thy Order.thy OrderArith.thy		\
+  OrderType.thy Ordinal.thy Perm.thy QPair.thy QUniv.thy ROOT.ML	\
+  Sum.thy Tools/cartprod.ML Tools/datatype_package.ML			\
+  Tools/ind_cases.ML Tools/induct_tacs.ML Tools/inductive_package.ML	\
+  Tools/numeral_syntax.ML Tools/primrec_package.ML Tools/typechk.ML	\
+  Trancl.thy Univ.thy WF.thy ZF.thy Zorn.thy arith_data.ML		\
+  equalities.thy func.thy ind_syntax.ML int_arith.ML pair.thy		\
+  simpdata.ML upair.thy
 	@$(ISABELLE_TOOL) usedir -b -g true -r $(OUT)/FOL ZF
 
 

@@ -108,7 +108,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
     let val ncon = length con_ty_list    (*number of constructors*)
         fun mk_def (((id,T,syn), name, args, prems), kcon) =
               (*kcon is index of constructor*)
-            OldGoals.mk_defpair (list_comb (Const (full_name name, T), args),
+            Misc_Legacy.mk_defpair (list_comb (Const (full_name name, T), args),
                         mk_inject npart kpart
                         (mk_inject ncon kcon (mk_tuple args)))
     in  ListPair.map mk_def (con_ty_list, 1 upto ncon)  end;
@@ -157,7 +157,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val case_const = Const (case_name, case_typ);
   val case_tm = list_comb (case_const, case_args);
 
-  val case_def = OldGoals.mk_defpair
+  val case_def = Misc_Legacy.mk_defpair
     (case_tm, Balanced_Tree.make (fn (t1, t2) => Su.elim $ t1 $ t2) (map call_case case_lists));
 
 
@@ -232,7 +232,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val recursor_cases = map call_recursor (flat case_lists ~~ flat recursor_lists);
 
   val recursor_def =
-      OldGoals.mk_defpair
+      Misc_Legacy.mk_defpair
         (recursor_tm,
          @{const Univ.Vrecursor} $
            absfree ("rec", @{typ i}, list_comb (case_const, recursor_cases)));
@@ -300,7 +300,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*** Prove the recursor theorems ***)
 
-  val recursor_eqns = case try (OldGoals.get_def thy1) recursor_base_name of
+  val recursor_eqns = case try (Misc_Legacy.get_def thy1) recursor_base_name of
      NONE => (writeln "  [ No recursion operator ]";
               [])
    | SOME recursor_def =>
