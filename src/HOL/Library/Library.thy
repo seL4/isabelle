@@ -2,6 +2,7 @@
 theory Library
 imports
   Abstract_Rat
+  Adhoc_Overloading
   AssocList
   BigO
   Binomial
