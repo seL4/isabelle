@@ -1,7 +1,7 @@
 (*  Title:      Pure/old_term.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Some old-style term operations.
+Some outdated term operations.
 *)
 
 signature OLD_TERM =
