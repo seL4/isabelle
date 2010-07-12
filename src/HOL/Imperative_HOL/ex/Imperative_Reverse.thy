@@ -5,7 +5,7 @@
 header {* An imperative in-place reversal on arrays *}
 
 theory Imperative_Reverse
-imports "~~/src/HOL/Imperative_HOL/Imperative_HOL" Subarray
+imports Imperative_HOL Subarray
 begin
 
 hide_const (open) swap rev
@@ -36,7 +36,7 @@ lemma swap_pointwise: assumes "crel (swap a i j) h h' r"
       else if k = j then get_array a h ! i
       else get_array a h ! k)"
 using assms unfolding swap.simps
-by (elim crel_elim_all)
+by (elim crel_elims)
  (auto simp: length_def)
 
 lemma rev_pointwise: assumes "crel (rev a i j) h h' r"
@@ -52,7 +52,7 @@ using assms proof (induct a i j arbitrary: h h' rule: rev.induct)
     obtain h' where
       swp: "crel (swap a i j) h h' ()"
       and rev: "crel (rev a (i + 1) (j - 1)) h' h'' ()"
-      by (auto elim: crel_elim_all)
+      by (auto elim: crel_elims)
     from rev 1 True
     have eq: "?P a (i + 1) (j - 1) h' h''" by auto
 
@@ -63,7 +63,7 @@ using assms proof (induct a i j arbitrary: h h' rule: rev.induct)
     case False
     with 1[unfolded rev.simps[of a i j]]
     show ?thesis
-      by (cases "k = j") (auto elim: crel_elim_all)
+      by (cases "k = j") (auto elim: crel_elims)
   qed
 qed
 
@@ -80,15 +80,15 @@ proof (induct a i j arbitrary: h h' rule: rev.induct)
     obtain h' where
       swp: "crel (swap a i j) h h' ()"
       and rev: "crel (rev a (i + 1) (j - 1)) h' h'' ()"
-      by (auto elim: crel_elim_all)
+      by (auto elim: crel_elims)
     from swp rev 1 True show ?thesis
       unfolding swap.simps
-      by (elim crel_elim_all) fastsimp
+      by (elim crel_elims) fastsimp
   next
     case False
     with 1[unfolded rev.simps[of a i j]]
     show ?thesis
-      by (auto elim: crel_elim_all)
+      by (auto elim: crel_elims)
   qed
 qed
 
@@ -112,7 +112,7 @@ lemma rev2_rev:
   shows "get_array a h' = List.rev (get_array a h)"
   using rev2_rev'[OF assms] rev_length[OF assms] assms
     by (cases "Array.length a h = 0", auto simp add: Array.length_def
-      subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elim_all)
+      subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elims)
   (drule sym[of "List.length (get_array a h)"], simp)
 
 end

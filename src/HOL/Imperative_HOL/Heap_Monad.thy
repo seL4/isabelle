@@ -2,7 +2,7 @@
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
-header {* A monad with a polymorphic heap *}
+header {* A monad with a polymorphic heap and primitive reasoning infrastructure *}
 
 theory Heap_Monad
 imports Heap
@@ -81,8 +81,10 @@ lemma successI:
 
 lemma successE:
   assumes "success f h"
-  obtains r h' where "execute f h = Some (r, h')"
-  using assms by (auto simp add: success_def)
+  obtains r h' where "r = fst (the (execute c h))"
+    and "h' = snd (the (execute c h))"
+    and "execute f h \<noteq> None"
+  using assms by (simp add: success_def)
 
 ML {* structure Success_Intros = Named_Thms(
   val name = "success_intros"
@@ -107,6 +109,121 @@ lemma success_LetI [success_intros]:
   "x = t \<Longrightarrow> success (f x) h \<Longrightarrow> success (let x = t in f x) h"
   by (simp add: Let_def)
 
+lemma success_ifI:
+  "(c \<Longrightarrow> success t h) \<Longrightarrow> (\<not> c \<Longrightarrow> success e h) \<Longrightarrow>
+    success (if c then t else e) h"
+  by (simp add: success_def)
+
+
+subsubsection {* Predicate for a simple relational calculus *}
+
+text {*
+  The @{text crel} predicate states that when a computation @{text c}
+  runs with the heap @{text h} will result in return value @{text r}
+  and a heap @{text "h'"}, i.e.~no exception occurs.
+*}  
+
+definition crel :: "'a Heap \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool" where
+  crel_def: "crel c h h' r \<longleftrightarrow> Heap_Monad.execute c h = Some (r, h')"
+
+lemma crelI:
+  "Heap_Monad.execute c h = Some (r, h') \<Longrightarrow> crel c h h' r"
+  by (simp add: crel_def)
+
+lemma crelE:
+  assumes "crel c h h' r"
+  obtains "r = fst (the (execute c h))"
+    and "h' = snd (the (execute c h))"
+    and "success c h"
+proof (rule that)
+  from assms have *: "execute c h = Some (r, h')" by (simp add: crel_def)
+  then show "success c h" by (simp add: success_def)
+  from * have "fst (the (execute c h)) = r" and "snd (the (execute c h)) = h'"
+    by simp_all
+  then show "r = fst (the (execute c h))"
+    and "h' = snd (the (execute c h))" by simp_all
+qed
+
+lemma crel_success:
+  "crel c h h' r \<Longrightarrow> success c h"
+  by (simp add: crel_def success_def)
+
+lemma success_crelE:
+  assumes "success c h"
+  obtains r h' where "crel c h h' r"
+  using assms by (auto simp add: crel_def success_def)
+
+lemma crel_deterministic:
+  assumes "crel f h h' a"
+    and "crel f h h'' b"
+  shows "a = b" and "h' = h''"
+  using assms unfolding crel_def by auto
+
+ML {* structure Crel_Intros = Named_Thms(
+  val name = "crel_intros"
+  val description = "introduction rules for crel"
+) *}
+
+ML {* structure Crel_Elims = Named_Thms(
+  val name = "crel_elims"
+  val description = "elimination rules for crel"
+) *}
+
+setup "Crel_Intros.setup #> Crel_Elims.setup"
+
+lemma crel_LetI [crel_intros]:
+  assumes "x = t" "crel (f x) h h' r"
+  shows "crel (let x = t in f x) h h' r"
+  using assms by simp
+
+lemma crel_LetE [crel_elims]:
+  assumes "crel (let x = t in f x) h h' r"
+  obtains "crel (f t) h h' r"
+  using assms by simp
+
+lemma crel_ifI:
+  assumes "c \<Longrightarrow> crel t h h' r"
+    and "\<not> c \<Longrightarrow> crel e h h' r"
+  shows "crel (if c then t else e) h h' r"
+  by (cases c) (simp_all add: assms)
+
+lemma crel_ifE:
+  assumes "crel (if c then t else e) h h' r"
+  obtains "c" "crel t h h' r"
+    | "\<not> c" "crel e h h' r"
+  using assms by (cases c) simp_all
+
+lemma crel_tapI [crel_intros]:
+  assumes "h' = h" "r = f h"
+  shows "crel (tap f) h h' r"
+  by (rule crelI) (simp add: assms)
+
+lemma crel_tapE [crel_elims]:
+  assumes "crel (tap f) h h' r"
+  obtains "h' = h" and "r = f h"
+  using assms by (rule crelE) auto
+
+lemma crel_heapI [crel_intros]:
+  assumes "h' = snd (f h)" "r = fst (f h)"
+  shows "crel (heap f) h h' r"
+  by (rule crelI) (simp add: assms)
+
+lemma crel_heapE [crel_elims]:
+  assumes "crel (heap f) h h' r"
+  obtains "h' = snd (f h)" and "r = fst (f h)"
+  using assms by (rule crelE) simp
+
+lemma crel_guardI [crel_intros]:
+  assumes "P h" "h' = snd (f h)" "r = fst (f h)"
+  shows "crel (guard P f) h h' r"
+  by (rule crelI) (simp add: assms execute_simps)
+
+lemma crel_guardE [crel_elims]:
+  assumes "crel (guard P f) h h' r"
+  obtains "h' = snd (f h)" "r = fst (f h)" "P h"
+  using assms by (rule crelE)
+    (auto simp add: execute_simps elim!: successE, cases "P h", auto simp add: execute_simps)
+
 
 subsubsection {* Monad combinators *}
 
@@ -121,12 +238,26 @@ lemma success_returnI [iff, success_intros]:
   "success (return x) h"
   by (rule successI) simp
 
+lemma crel_returnI [crel_intros]:
+  "h = h' \<Longrightarrow> crel (return x) h h' x"
+  by (rule crelI) simp
+
+lemma crel_returnE [crel_elims]:
+  assumes "crel (return x) h h' r"
+  obtains "r = x" "h' = h"
+  using assms by (rule crelE) simp
+
 definition raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
   [code del]: "raise s = Heap (\<lambda>_. None)"
 
 lemma execute_raise [simp, execute_simps]:
   "execute (raise s) = (\<lambda>_. None)"
   by (simp add: raise_def)
+
+lemma crel_raiseE [crel_elims]:
+  assumes "crel (raise x) h h' r"
+  obtains "False"
+  using assms by (rule crelE) (simp add: success_def)
 
 definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where
   [code del]: "f >>= g = Heap (\<lambda>h. case execute f h of
@@ -140,15 +271,32 @@ lemma execute_bind [execute_simps]:
   "execute f h = None \<Longrightarrow> execute (f \<guillemotright>= g) h = None"
   by (simp_all add: bind_def)
 
-lemma success_bindI [success_intros]:
-  "success f h \<Longrightarrow> success (g (fst (the (execute f h)))) (snd (the (execute f h))) \<Longrightarrow> success (f \<guillemotright>= g) h"
-  by (auto intro!: successI elim!: successE simp add: bind_def)
-
-lemma execute_bind_successI [execute_simps]:
+lemma execute_bind_success:
   "success f h \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g (fst (the (execute f h)))) (snd (the (execute f h)))"
   by (cases f h rule: Heap_cases) (auto elim!: successE simp add: bind_def)
-  
-lemma execute_eq_SomeI:
+
+lemma success_bind_executeI:
+  "execute f h = Some (x, h') \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
+  by (auto intro!: successI elim!: successE simp add: bind_def)
+
+lemma success_bind_crelI [success_intros]:
+  "crel f h h' x \<Longrightarrow> success (g x) h' \<Longrightarrow> success (f \<guillemotright>= g) h"
+  by (auto simp add: crel_def success_def bind_def)
+
+lemma crel_bindI [crel_intros]:
+  assumes "crel f h h' r" "crel (g r) h' h'' r'"
+  shows "crel (f \<guillemotright>= g) h h'' r'"
+  using assms
+  apply (auto intro!: crelI elim!: crelE successE)
+  apply (subst execute_bind, simp_all)
+  done
+
+lemma crel_bindE [crel_elims]:
+  assumes "crel (f \<guillemotright>= g) h h'' r'"
+  obtains h' r where "crel f h h' r" "crel (g r) h' h'' r'"
+  using assms by (auto simp add: crel_def bind_def split: option.split_asm)
+
+lemma execute_bind_eq_SomeI:
   assumes "Heap_Monad.execute f h = Some (x, h')"
     and "Heap_Monad.execute (g x) h' = Some (y, h'')"
   shows "Heap_Monad.execute (f \<guillemotright>= g) h = Some (y, h'')"
@@ -268,6 +416,15 @@ lemma execute_assert [execute_simps]:
 lemma success_assertI [success_intros]:
   "P x \<Longrightarrow> success (assert P x) h"
   by (rule successI) (simp add: execute_assert)
+
+lemma crel_assertI [crel_intros]:
+  "P x \<Longrightarrow> h' = h \<Longrightarrow> r = x \<Longrightarrow> crel (assert P x) h h' r"
+  by (rule crelI) (simp add: execute_assert)
+ 
+lemma crel_assertE [crel_elims]:
+  assumes "crel (assert P x) h h' r"
+  obtains "P x" "r = x" "h' = h"
+  using assms by (rule crelE) (cases "P x", simp_all add: execute_assert success_def)
 
 lemma assert_cong [fundef_cong]:
   assumes "P = P'"

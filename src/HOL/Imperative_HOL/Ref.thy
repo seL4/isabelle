@@ -92,6 +92,10 @@ lemma set_same [simp]:
   "set r x (set r y h) = set r x h"
   by (simp add: set_def)
 
+lemma not_present_alloc [simp]:
+  "\<not> present h (fst (alloc v h))"
+  by (simp add: present_def alloc_def Let_def)
+
 lemma set_set_swap:
   "r =!= r' \<Longrightarrow> set r x (set r' x' h) = set r' x' (set r x h)"
   by (simp add: noteq_def set_def expand_fun_eq)
@@ -139,6 +143,16 @@ lemma success_refI [iff, success_intros]:
   "success (ref v) h"
   by (auto simp add: ref_def)
 
+lemma crel_refI [crel_intros]:
+  assumes "(r, h') = alloc v h"
+  shows "crel (ref v) h h' r"
+  by (rule crelI) (insert assms, simp)
+
+lemma crel_refE [crel_elims]:
+  assumes "crel (ref v) h h' r"
+  obtains "Ref.get h' r = v" and "Ref.present h' r" and "\<not> Ref.present h r"
+  using assms by (rule crelE) simp
+
 lemma execute_lookup [simp, execute_simps]:
   "Heap_Monad.execute (lookup r) h = Some (get h r, h)"
   by (simp add: lookup_def)
@@ -146,6 +160,16 @@ lemma execute_lookup [simp, execute_simps]:
 lemma success_lookupI [iff, success_intros]:
   "success (lookup r) h"
   by (auto simp add: lookup_def)
+
+lemma crel_lookupI [crel_intros]:
+  assumes "h' = h" "x = Ref.get h r"
+  shows "crel (!r) h h' x"
+  by (rule crelI) (insert assms, simp)
+
+lemma crel_lookupE [crel_elims]:
+  assumes "crel (!r) h h' x"
+  obtains "h' = h" "x = Ref.get h r"
+  using assms by (rule crelE) simp
 
 lemma execute_update [simp, execute_simps]:
   "Heap_Monad.execute (update r v) h = Some ((), set r v h)"
@@ -155,17 +179,37 @@ lemma success_updateI [iff, success_intros]:
   "success (update r v) h"
   by (auto simp add: update_def)
 
+lemma crel_updateI [crel_intros]:
+  assumes "h' = Ref.set r v h"
+  shows "crel (r := v) h h' x"
+  by (rule crelI) (insert assms, simp)
+
+lemma crel_updateE [crel_elims]:
+  assumes "crel (r' := v) h h' r"
+  obtains "h' = Ref.set r' v h"
+  using assms by (rule crelE) simp
+
 lemma execute_change [simp, execute_simps]:
   "Heap_Monad.execute (change f r) h = Some (f (get h r), set r (f (get h r)) h)"
   by (simp add: change_def bind_def Let_def)
 
 lemma success_changeI [iff, success_intros]:
   "success (change f r) h"
-  by (auto intro!: success_intros simp add: change_def)
+  by (auto intro!: success_intros crel_intros simp add: change_def)
+
+lemma crel_changeI [crel_intros]: 
+  assumes "h' = Ref.set r (f (Ref.get h r)) h" "x = f (Ref.get h r)"
+  shows "crel (Ref.change f r) h h' x"
+  by (rule crelI) (insert assms, simp)  
+
+lemma crel_changeE [crel_elims]:
+  assumes "crel (Ref.change f r') h h' r"
+  obtains "h' = Ref.set r' (f (Ref.get h r')) h" "r = f (Ref.get h r')"
+  using assms by (rule crelE) simp
 
 lemma lookup_chain:
   "(!r \<guillemotright> f) = f"
-  by (rule Heap_eqI) (auto simp add: lookup_def execute_simps)
+  by (rule Heap_eqI) (auto simp add: lookup_def execute_simps intro: execute_bind)
 
 lemma update_change [code]:
   "r := e = change (\<lambda>_. e) r \<guillemotright> return ()"

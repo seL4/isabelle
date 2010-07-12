@@ -5,7 +5,7 @@
 header {* An efficient checker for proofs from a SAT solver *}
 
 theory SatChecker
-imports RBT_Impl Sorted_List "~~/src/HOL/Imperative_HOL/Imperative_HOL" 
+imports RBT_Impl Sorted_List Imperative_HOL
 begin
 
 section{* General settings and functions for our representation of clauses *}
@@ -217,12 +217,12 @@ assumes "crel (res_mem l xs) h h' r"
 using assms
 proof (induct xs arbitrary: r)
   case Nil
-  thus ?case unfolding res_mem.simps by (auto elim: crel_raise)
+  thus ?case unfolding res_mem.simps by (auto elim: crel_raiseE)
 next
   case (Cons x xs')
   thus ?case
     unfolding res_mem.simps
-    by (elim crel_raise crel_return crel_if crelE) auto
+    by (elim crel_raiseE crel_returnE crel_ifE crel_bindE) auto
 qed
 
 lemma resolve1_Inv:
@@ -233,12 +233,12 @@ proof (induct xs ys arbitrary: r rule: resolve1.induct)
   case (1 l x xs y ys r)
   thus ?case
     unfolding resolve1.simps
-    by (elim crelE crel_if crel_return) auto
+    by (elim crel_bindE crel_ifE crel_returnE) auto
 next
   case (2 l ys r)
   thus ?case
     unfolding resolve1.simps
-    by (elim crel_raise) auto
+    by (elim crel_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
@@ -254,12 +254,12 @@ proof (induct xs ys arbitrary: r rule: resolve2.induct)
   case (1 l x xs y ys r)
   thus ?case
     unfolding resolve2.simps
-    by (elim crelE crel_if crel_return) auto
+    by (elim crel_bindE crel_ifE crel_returnE) auto
 next
   case (2 l ys r)
   thus ?case
     unfolding resolve2.simps
-    by (elim crel_raise) auto
+    by (elim crel_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
@@ -312,7 +312,7 @@ case (1 l x xs y ys r)
   note "1.prems"
   ultimately show ?case
     unfolding res_thm'.simps
-    apply (elim crelE crel_if crel_return)
+    apply (elim crel_bindE crel_ifE crel_returnE)
     apply simp
     apply simp
     apply simp
@@ -323,12 +323,12 @@ next
   case (2 l ys r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raise) auto
+    by (elim crel_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raise) auto
+    by (elim crel_raiseE) auto
 qed
 
 lemma res_mem_no_heap:
@@ -337,9 +337,9 @@ assumes "crel (res_mem l xs) h h' r"
 using assms
 apply (induct xs arbitrary: r)
 unfolding res_mem.simps
-apply (elim crel_raise)
+apply (elim crel_raiseE)
 apply auto
-apply (elim crel_if crelE crel_raise crel_return)
+apply (elim crel_ifE crel_bindE crel_raiseE crel_returnE)
 apply auto
 done
 
@@ -349,9 +349,9 @@ assumes "crel (resolve1 l xs ys) h h' r"
 using assms
 apply (induct xs ys arbitrary: r rule: resolve1.induct)
 unfolding resolve1.simps
-apply (elim crelE crel_if crel_return crel_raise)
+apply (elim crel_bindE crel_ifE crel_returnE crel_raiseE)
 apply (auto simp add: res_mem_no_heap)
-by (elim crel_raise) auto
+by (elim crel_raiseE) auto
 
 lemma resolve2_no_heap:
 assumes "crel (resolve2 l xs ys) h h' r"
@@ -359,9 +359,9 @@ assumes "crel (resolve2 l xs ys) h h' r"
 using assms
 apply (induct xs ys arbitrary: r rule: resolve2.induct)
 unfolding resolve2.simps
-apply (elim crelE crel_if crel_return crel_raise)
+apply (elim crel_bindE crel_ifE crel_returnE crel_raiseE)
 apply (auto simp add: res_mem_no_heap)
-by (elim crel_raise) auto
+by (elim crel_raiseE) auto
 
 
 lemma res_thm'_no_heap:
@@ -372,18 +372,18 @@ proof (induct xs ys arbitrary: r rule: res_thm'.induct)
   case (1 l x xs y ys r)
   thus ?thesis
     unfolding res_thm'.simps
-    by (elim crelE crel_if crel_return)
+    by (elim crel_bindE crel_ifE crel_returnE)
   (auto simp add: resolve1_no_heap resolve2_no_heap)
 next
   case (2 l ys r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raise) auto
+    by (elim crel_raiseE) auto
 next
   case (3 l v va r)
   thus ?case
     unfolding res_thm'.simps
-    by (elim crel_raise) auto
+    by (elim crel_raiseE) auto
 qed
 
 
@@ -466,7 +466,7 @@ lemma res_thm2_Inv:
   shows "h = h' \<and> correctClause r rs \<and> sorted rs \<and> distinct rs"
 proof -
   from res_thm have l_not_zero: "l \<noteq> 0" 
-    by (auto elim: crel_raise)
+    by (auto elim: crel_raiseE)
   {
     fix clj
     let ?rs = "merge (remove l cli) (remove (compl l) clj)"
@@ -494,7 +494,7 @@ proof -
   }
   with assms show ?thesis
     unfolding res_thm2.simps get_clause_def
-    by (elim crelE crelE' crel_if crel_nth crel_raise crel_return crel_option_case) auto
+    by (elim crel_bindE crel_ifE crel_nthE crel_raiseE crel_returnE crel_option_case) auto
 qed
 
 lemma foldM_Inv2:
@@ -506,7 +506,7 @@ using assms
 proof (induct rs arbitrary: h h' cli)
   case Nil thus ?case
     unfolding foldM.simps
-    by (elim crel_return) auto
+    by (elim crel_returnE) auto
 next
   case (Cons x xs)
   {
@@ -523,7 +523,7 @@ next
   }
   with Cons show ?case
     unfolding foldM.simps
-    by (elim crelE) auto
+    by (elim crel_bindE) auto
 qed
 
 
@@ -536,9 +536,9 @@ proof (cases "(a,step,rcs)" rule: doProofStep2.cases)
   with crel correctArray
   show ?thesis
     apply auto
-    apply (auto simp: get_clause_def elim!: crelE crel_nth)
-    apply (auto elim!: crelE crel_nth crel_option_case crel_raise 
-      crel_return crel_upd)
+    apply (auto simp: get_clause_def elim!: crel_bindE crel_nthE)
+    apply (auto elim!: crel_bindE crel_nthE crel_option_case crel_raiseE
+      crel_returnE crel_updE)
     apply (frule foldM_Inv2)
     apply assumption
     apply (simp add: correctArray_def)
@@ -549,24 +549,24 @@ next
   case (2 a cid rcs)
   with crel correctArray
   show ?thesis
-    by (auto simp: correctArray_def elim!: crelE crel_upd crel_return
+    by (auto simp: correctArray_def elim!: crel_bindE crel_updE crel_returnE
      dest: array_ran_upd_array_None)
 next
   case (3 a cid c rcs)
   with crel correctArray
   show ?thesis
-    apply (auto elim!: crelE crel_upd crel_return)
+    apply (auto elim!: crel_bindE crel_updE crel_returnE)
     apply (auto simp: correctArray_def dest!: array_ran_upd_array_Some)
     apply (auto intro: correctClause_mono)
     by (auto simp: correctClause_def)
 next
   case 4
   with crel correctArray
-  show ?thesis by (auto elim: crel_raise)
+  show ?thesis by (auto elim: crel_raiseE)
 next
   case 5
   with crel correctArray
-  show ?thesis by (auto elim: crel_raise)
+  show ?thesis by (auto elim: crel_raiseE)
 qed
   
 
@@ -576,13 +576,13 @@ theorem fold_steps_correct:
   shows "correctArray res a h'"
 using assms
 by (induct steps arbitrary: rcs h h' res)
- (auto elim!: crelE crel_return dest:step_correct2)
+ (auto elim!: crel_bindE crel_returnE dest:step_correct2)
 
 theorem checker_soundness:
   assumes "crel (checker n p i) h h' cs"
   shows "inconsistent cs"
 using assms unfolding checker_def
-apply (elim crelE crel_nth crel_if crel_return crel_raise crel_new_weak)
+apply (elim crel_bindE crel_nthE crel_ifE crel_returnE crel_raiseE crel_newE)
 prefer 2 apply simp
 apply auto
 apply (drule fold_steps_correct)
