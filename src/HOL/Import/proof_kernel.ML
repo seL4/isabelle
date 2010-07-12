@@ -175,10 +175,6 @@ datatype proof = Proof of proof_info * proof_content
 exception PK of string * string
 fun ERR f mesg = PK (f,mesg)
 
-fun print_exn e =
-    case e of
-        PK (m,s) => (writeln ("PK (" ^ m ^ "): " ^ s); raise e)
-      | _ => OldGoals.print_exn e
 
 (* Compatibility. *)
 
@@ -1311,8 +1307,10 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                     end
                   | NONE => (thy,NONE)
             end
-    end
-    handle e => (message "Exception in get_isabelle_thm"; if_debug print_exn e handle _ => (); (thy,NONE))
+    end  (* FIXME avoid handle _ *)
+    handle e =>
+      (if_debug (fn () => writeln ("Exception in get_isabelle_thm:\n" ^ ML_Compiler.exn_message e)) ();
+        (thy,NONE))
 
 fun get_isabelle_thm_and_warn thyname thmname hol4conc thy =
   let
@@ -1974,7 +1972,6 @@ fun new_definition thyname constname rhs thy =
     in
         (thy22',hth)
     end
-    handle e => (message "exception in new_definition"; print_exn e)
 
 local
     val helper = thm "termspec_help"
@@ -2056,7 +2053,6 @@ fun new_specification thyname thmname names hth thy =
         in
             intern_store_thm false thyname thmname hth thy''
         end
-        handle e => (message "exception in new_specification"; print_exn e)
 
 end
 
@@ -2137,7 +2133,6 @@ fun new_type_definition thyname thmname tycname hth thy =
         in
             (thy6,hth')
         end
-        handle e => (message "exception in new_type_definition"; print_exn e)
 
 fun add_dump_syntax thy name =
     let
@@ -2230,7 +2225,6 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
         in
             (thy,hth')
         end
-        handle e => (message "exception in type_introduction"; print_exn e)
 end
 
 val prin = prin

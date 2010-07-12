@@ -219,7 +219,7 @@ fun rew_th thy (xv as (x,xT)) (yv as (y,yT)) t =
         val rew = Logic.mk_equals (lhs,rhs)
         val init = Thm.trivial (cterm_of thy rew)
     in
-        (all_comm RS init handle e => (message "rew_th"; OldGoals.print_exn e))
+        all_comm RS init
     end
 
 fun quant_rewrite thy assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) $ Abs(y,yT,body)))) =
@@ -315,7 +315,7 @@ fun eta_contract thy assumes origt =
     in
         case t of
             Const("all",_) $ (Abs(x,xT,Const("==",eqT) $ P $ Q)) =>
-            ((if eta_redex P andalso eta_redex Q
+            (if eta_redex P andalso eta_redex Q
               then
                   let
                       val cert = cterm_of thy
@@ -340,7 +340,6 @@ fun eta_contract thy assumes origt =
                        SOME res
                   end
               else NONE)
-             handle e => OldGoals.print_exn e)
           | _ => NONE
        end
 
@@ -521,7 +520,7 @@ fun close_thm th =
     in
         Drule.forall_intr_list (map (cterm_of thy) vars) th
     end
-    handle e => (writeln "close_thm internal error"; OldGoals.print_exn e)
+
 
 (* Normalizes a theorem's conclusion using norm_term. *)
 
@@ -618,7 +617,6 @@ fun set_prop thy t =
                                         else error "Internal error in set_prop"
              | NONE => NONE
     end
-    handle e => (writeln "set_prop internal error"; OldGoals.print_exn e)
 
 fun find_potential thy t =
     let

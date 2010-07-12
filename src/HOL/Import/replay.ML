@@ -272,12 +272,12 @@ fun replay_proof int_thms thyname thmname prf thy =
             end
     in
         let
-            val x = rp' prf thy handle e => (writeln "Exception in replay_proof"; OldGoals.print_exn e)
+            val x = rp' prf thy
             val _ = ImportRecorder.stop_replay_proof thyname thmname
         in
             x
         end
-    end handle x => (ImportRecorder.abort_replay_proof thyname thmname; raise x)
+    end handle x => (ImportRecorder.abort_replay_proof thyname thmname; reraise x)
 
 fun setup_int_thms thyname thy =
     let
