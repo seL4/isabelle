@@ -5,7 +5,7 @@
 header {* Entry point into monadic imperative HOL *}
 
 theory Imperative_HOL
-imports Array Ref Relational Mrec
+imports Array Ref Mrec
 begin
 
 end

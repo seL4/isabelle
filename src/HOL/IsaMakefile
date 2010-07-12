@@ -813,8 +813,7 @@ HOL-Imperative_HOL: HOL $(LOG)/HOL-Imperative_HOL.gz
 $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Array.thy	\
   Imperative_HOL/Heap.thy Imperative_HOL/Heap_Monad.thy			\
   Imperative_HOL/Imperative_HOL.thy Imperative_HOL/Imperative_HOL_ex.thy\
-  Imperative_HOL/Mrec.thy Imperative_HOL/Relational.thy			\
-  Imperative_HOL/Ref.thy						\
+  Imperative_HOL/Mrec.thy Imperative_HOL/Ref.thy			\
   Imperative_HOL/ex/Imperative_Quicksort.thy				\
   Imperative_HOL/ex/Imperative_Reverse.thy				\
   Imperative_HOL/ex/Linked_Lists.thy					\
