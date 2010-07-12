@@ -48,7 +48,6 @@ test: \
   HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-Mirabelle \
-  HOL-Modelcheck \
   HOL-Mutabelle \
   HOL-NanoJava \
   HOL-Nitpick_Examples \
@@ -794,18 +793,6 @@ $(LOG)/HOL-ZF.gz: $(OUT)/HOL ZF/ROOT.ML ZF/LProd.thy	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ZF
 
 
-## HOL-Modelcheck
-
-HOL-Modelcheck: HOL $(LOG)/HOL-Modelcheck.gz
-
-$(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy			\
-  Modelcheck/EindhovenExample.thy Modelcheck/EindhovenSyn.thy		\
-  Modelcheck/MuCalculus.thy Modelcheck/MuckeExample1.thy		\
-  Modelcheck/MuckeExample2.thy Modelcheck/MuckeSyn.thy			\
-  Modelcheck/ROOT.ML Modelcheck/mucke_oracle.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Modelcheck
-
-
 ## HOL-Imperative_HOL
 
 HOL-Imperative_HOL: HOL $(LOG)/HOL-Imperative_HOL.gz
@@ -1353,7 +1340,6 @@ clean:
 		$(LOG)/HOL-Main.gz $(LOG)/HOL-Matrix			\
 		$(LOG)/HOL-Matrix.gz $(LOG)/HOL-Metis_Examples.gz	\
 		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-Mirabelle.gz		\
-		$(LOG)/HOL-Modelcheck.gz				\
 		$(LOG)/HOL-Multivariate_Analysis.gz			\
 		$(LOG)/HOL-NSA-Examples.gz $(LOG)/HOL-NSA.gz		\
 		$(LOG)/HOL-NanoJava.gz $(LOG)/HOL-Nitpick_Examples.gz	\
