@@ -264,10 +264,10 @@ by (rule class.linorder.intro, rule dual_order) (unfold_locales, rule linear)
 text {* min/max *}
 
 definition (in ord) min :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  [code del]: "min a b = (if a \<le> b then a else b)"
+  "min a b = (if a \<le> b then a else b)"
 
 definition (in ord) max :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-  [code del]: "max a b = (if a \<le> b then b else a)"
+  "max a b = (if a \<le> b then b else a)"
 
 lemma min_le_iff_disj:
   "min x y \<le> z \<longleftrightarrow> x \<le> z \<or> y \<le> z"
@@ -1196,10 +1196,10 @@ instantiation bool :: "{order, top, bot}"
 begin
 
 definition
-  le_bool_def [code del]: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
+  le_bool_def: "P \<le> Q \<longleftrightarrow> P \<longrightarrow> Q"
 
 definition
-  less_bool_def [code del]: "(P\<Colon>bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
+  less_bool_def: "(P\<Colon>bool) < Q \<longleftrightarrow> \<not> P \<and> Q"
 
 definition
   top_bool_eq: "top = True"
@@ -1244,10 +1244,10 @@ instantiation "fun" :: (type, ord) ord
 begin
 
 definition
-  le_fun_def [code del]: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
+  le_fun_def: "f \<le> g \<longleftrightarrow> (\<forall>x. f x \<le> g x)"
 
 definition
-  less_fun_def [code del]: "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> (g \<le> f)"
+  less_fun_def: "(f\<Colon>'a \<Rightarrow> 'b) < g \<longleftrightarrow> f \<le> g \<and> \<not> (g \<le> f)"
 
 instance ..
 

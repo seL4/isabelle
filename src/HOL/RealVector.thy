@@ -305,9 +305,8 @@ instance real_field < field_char_0 ..
 
 subsection {* The Set of Real Numbers *}
 
-definition
-  Reals :: "'a::real_algebra_1 set" where
-  [code del]: "Reals = range of_real"
+definition Reals :: "'a::real_algebra_1 set" where
+  "Reals = range of_real"
 
 notation (xsymbols)
   Reals  ("\<real>")
@@ -786,7 +785,7 @@ definition real_norm_def [simp]:
 definition dist_real_def:
   "dist x y = \<bar>x - y\<bar>"
 
-definition open_real_def [code del]:
+definition open_real_def:
   "open (S :: real set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
 
 instance

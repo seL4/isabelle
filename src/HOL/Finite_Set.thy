@@ -589,7 +589,7 @@ for f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and z :: 'b where
 inductive_cases empty_fold_graphE [elim!]: "fold_graph f z {} x"
 
 definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b" where
-[code del]: "fold f z A = (THE y. fold_graph f z A y)"
+  "fold f z A = (THE y. fold_graph f z A y)"
 
 text{*A tempting alternative for the definiens is
 @{term "if finite A then THE y. fold_graph f z A y else e"}.

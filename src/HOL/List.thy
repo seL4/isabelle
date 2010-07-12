@@ -208,7 +208,7 @@ definition
 
 definition
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where
-  [code del]: "list_all2 P xs ys =
+  "list_all2 P xs ys =
     (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
 
 definition
@@ -4206,7 +4206,7 @@ text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
 
 definition
   set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" where
-  [code del]: "set_Cons A XS = {z. \<exists>x xs. z = x # xs \<and> x \<in> A \<and> xs \<in> XS}"
+  "set_Cons A XS = {z. \<exists>x xs. z = x # xs \<and> x \<in> A \<and> xs \<in> XS}"
 
 lemma set_Cons_sing_Nil [simp]: "set_Cons A {[]} = (%x. [x])`A"
 by (auto simp add: set_Cons_def)
@@ -4229,17 +4229,17 @@ text{*These orderings preserve well-foundedness: shorter lists
         
 primrec -- {*The lexicographic ordering for lists of the specified length*}
   lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
-    [code del]: "lexn r 0 = {}"
-  | [code del]: "lexn r (Suc n) = (prod_fun (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
+    "lexn r 0 = {}"
+  | "lexn r (Suc n) = (prod_fun (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
       {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
 definition
   lex :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
-  [code del]: "lex r = (\<Union>n. lexn r n)" -- {*Holds only between lists of the same length*}
+  "lex r = (\<Union>n. lexn r n)" -- {*Holds only between lists of the same length*}
 
 definition
   lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set" where
-  [code del]: "lenlex r = inv_image (less_than <*lex*> lex r) (\<lambda>xs. (length xs, xs))"
+  "lenlex r = inv_image (less_than <*lex*> lex r) (\<lambda>xs. (length xs, xs))"
         -- {*Compares lists by their length and then lexicographically*}
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
@@ -4313,7 +4313,7 @@ text {* Classical lexicographic ordering on lists, ie. "a" < "ab" < "b".
 
 definition
   lexord :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
-  [code del]: "lexord r = {(x,y ). \<exists> a v. y = x @ a # v \<or>
+  "lexord r = {(x,y ). \<exists> a v. y = x @ a # v \<or>
             (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
 
 lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"

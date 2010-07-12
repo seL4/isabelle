@@ -1574,7 +1574,7 @@ lemma eq_to_mono: "a = b ==> c = d ==> b --> d ==> a --> c"
 subsubsection {* Inverse image of a function *}
 
 definition vimage :: "('a => 'b) => 'b set => 'a set" (infixr "-`" 90) where
-  [code del]: "f -` B == {x. f x : B}"
+  "f -` B == {x. f x : B}"
 
 lemma vimage_eq [simp]: "(a : f -` B) = (f a : B)"
   by (unfold vimage_def) blast
@@ -1657,7 +1657,7 @@ by blast
 subsubsection {* Getting the Contents of a Singleton Set *}
 
 definition contents :: "'a set \<Rightarrow> 'a" where
-  [code del]: "contents X = (THE x. X = {x})"
+  "contents X = (THE x. X = {x})"
 
 lemma contents_eq [simp]: "contents {x} = x"
   by (simp add: contents_def)

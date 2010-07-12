@@ -31,7 +31,7 @@ definition
 definition
   Bseq :: "(nat => 'a::real_normed_vector) => bool" where
     --{*Standard definition for bounded sequence*}
-  [code del]: "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
+  "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
 
 definition
   monoseq :: "(nat=>real)=>bool" where
@@ -39,27 +39,27 @@ definition
         The use of disjunction here complicates proofs considerably. 
         One alternative is to add a Boolean argument to indicate the direction. 
         Another is to develop the notions of increasing and decreasing first.*}
-  [code del]: "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
+  "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
 
 definition
   incseq :: "(nat=>real)=>bool" where
     --{*Increasing sequence*}
-  [code del]: "incseq X = (\<forall>m. \<forall>n\<ge>m. X m \<le> X n)"
+  "incseq X = (\<forall>m. \<forall>n\<ge>m. X m \<le> X n)"
 
 definition
   decseq :: "(nat=>real)=>bool" where
     --{*Increasing sequence*}
-  [code del]: "decseq X = (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
+  "decseq X = (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
 
 definition
   subseq :: "(nat => nat) => bool" where
     --{*Definition of subsequence*}
-  [code del]:   "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
+  "subseq f = (\<forall>m. \<forall>n>m. (f m) < (f n))"
 
 definition
   Cauchy :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> bool" where
     --{*Standard definition of the Cauchy condition*}
-  [code del]: "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < e)"
+  "Cauchy X = (\<forall>e>0. \<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. dist (X m) (X n) < e)"
 
 
 subsection {* Bounded Sequences *}

@@ -623,10 +623,10 @@ instantiation "fun" :: (type, lattice) lattice
 begin
 
 definition
-  inf_fun_eq [code del]: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
+  inf_fun_eq: "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
 
 definition
-  sup_fun_eq [code del]: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
+  sup_fun_eq: "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
 
 instance proof
 qed (simp_all add: le_fun_def inf_fun_eq sup_fun_eq)

@@ -37,9 +37,8 @@ using assms by (simp add: Abs_net_inverse)
 
 subsection {* Eventually *}
 
-definition
-  eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a net \<Rightarrow> bool" where
-  [code del]: "eventually P net \<longleftrightarrow> Rep_net net P"
+definition eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a net \<Rightarrow> bool" where
+  "eventually P net \<longleftrightarrow> Rep_net net P"
 
 lemma eventually_Abs_net:
   assumes "is_filter net" shows "eventually P (Abs_net net) = net P"
@@ -114,37 +113,29 @@ instantiation net :: (type) complete_lattice
 begin
 
 definition
-  le_net_def [code del]:
-    "net \<le> net' \<longleftrightarrow> (\<forall>P. eventually P net' \<longrightarrow> eventually P net)"
+  le_net_def: "net \<le> net' \<longleftrightarrow> (\<forall>P. eventually P net' \<longrightarrow> eventually P net)"
 
 definition
-  less_net_def [code del]:
-    "(net :: 'a net) < net' \<longleftrightarrow> net \<le> net' \<and> \<not> net' \<le> net"
+  less_net_def: "(net :: 'a net) < net' \<longleftrightarrow> net \<le> net' \<and> \<not> net' \<le> net"
 
 definition
-  top_net_def [code del]:
-    "top = Abs_net (\<lambda>P. \<forall>x. P x)"
+  top_net_def: "top = Abs_net (\<lambda>P. \<forall>x. P x)"
 
 definition
-  bot_net_def [code del]:
-    "bot = Abs_net (\<lambda>P. True)"
+  bot_net_def: "bot = Abs_net (\<lambda>P. True)"
 
 definition
-  sup_net_def [code del]:
-    "sup net net' = Abs_net (\<lambda>P. eventually P net \<and> eventually P net')"
+  sup_net_def: "sup net net' = Abs_net (\<lambda>P. eventually P net \<and> eventually P net')"
 
 definition
-  inf_net_def [code del]:
-    "inf a b = Abs_net
+  inf_net_def: "inf a b = Abs_net
       (\<lambda>P. \<exists>Q R. eventually Q a \<and> eventually R b \<and> (\<forall>x. Q x \<and> R x \<longrightarrow> P x))"
 
 definition
-  Sup_net_def [code del]:
-    "Sup A = Abs_net (\<lambda>P. \<forall>net\<in>A. eventually P net)"
+  Sup_net_def: "Sup A = Abs_net (\<lambda>P. \<forall>net\<in>A. eventually P net)"
 
 definition
-  Inf_net_def [code del]:
-    "Inf A = Sup {x::'a net. \<forall>y\<in>A. x \<le> y}"
+  Inf_net_def: "Inf A = Sup {x::'a net. \<forall>y\<in>A. x \<le> y}"
 
 lemma eventually_top [simp]: "eventually P top \<longleftrightarrow> (\<forall>x. P x)"
 unfolding top_net_def
@@ -243,9 +234,7 @@ unfolding expand_net_eq by (auto elim: eventually_rev_mp)
 
 subsection {* Map function for nets *}
 
-definition
-  netmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a net \<Rightarrow> 'b net"
-where [code del]:
+definition netmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a net \<Rightarrow> 'b net" where
   "netmap f net = Abs_net (\<lambda>P. eventually (\<lambda>x. P (f x)) net)"
 
 lemma eventually_netmap:
@@ -271,9 +260,7 @@ by (simp add: expand_net_eq eventually_netmap)
 
 subsection {* Sequentially *}
 
-definition
-  sequentially :: "nat net"
-where [code del]:
+definition sequentially :: "nat net" where
   "sequentially = Abs_net (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
 
 lemma eventually_sequentially:
@@ -302,19 +289,13 @@ by (safe, fast, drule_tac x=N in spec, auto elim: eventually_rev_mp)
 
 subsection {* Standard Nets *}
 
-definition
-  within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70)
-where [code del]:
+definition within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70) where
   "net within S = Abs_net (\<lambda>P. eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) net)"
 
-definition
-  nhds :: "'a::topological_space \<Rightarrow> 'a net"
-where [code del]:
+definition nhds :: "'a::topological_space \<Rightarrow> 'a net" where
   "nhds a = Abs_net (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
 
-definition
-  at :: "'a::topological_space \<Rightarrow> 'a net"
-where [code del]:
+definition at :: "'a::topological_space \<Rightarrow> 'a net" where
   "at a = nhds a within - {a}"
 
 lemma eventually_within:
@@ -368,9 +349,8 @@ unfolding at_def eventually_within eventually_nhds_metric by auto
 
 subsection {* Boundedness *}
 
-definition
-  Bfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" where
-  [code del]: "Bfun f net = (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) net)"
+definition Bfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" where
+  "Bfun f net = (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) net)"
 
 lemma BfunI:
   assumes K: "eventually (\<lambda>x. norm (f x) \<le> K) net" shows "Bfun f net"
@@ -390,9 +370,8 @@ using assms unfolding Bfun_def by fast
 
 subsection {* Convergence to Zero *}
 
-definition
-  Zfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" where
-  [code del]: "Zfun f net = (\<forall>r>0. eventually (\<lambda>x. norm (f x) < r) net)"
+definition Zfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" where
+  "Zfun f net = (\<forall>r>0. eventually (\<lambda>x. norm (f x) < r) net)"
 
 lemma ZfunI:
   "(\<And>r. 0 < r \<Longrightarrow> eventually (\<lambda>x. norm (f x) < r) net) \<Longrightarrow> Zfun f net"
@@ -547,10 +526,8 @@ lemmas Zfun_mult_left = mult.Zfun_left
 
 subsection {* Limits *}
 
-definition
-  tendsto :: "('a \<Rightarrow> 'b::topological_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool"
-    (infixr "--->" 55)
-where [code del]:
+definition tendsto :: "('a \<Rightarrow> 'b::topological_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool"
+    (infixr "--->" 55) where
   "(f ---> l) net \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
 
 ML {*

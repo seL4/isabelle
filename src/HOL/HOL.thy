@@ -1138,7 +1138,7 @@ text {*
 *}
 
 definition simp_implies :: "[prop, prop] => prop"  (infixr "=simp=>" 1) where
-  [code del]: "simp_implies \<equiv> op ==>"
+  "simp_implies \<equiv> op ==>"
 
 lemma simp_impliesI:
   assumes PQ: "(PROP P \<Longrightarrow> PROP Q)"

@@ -42,7 +42,7 @@ quotient_definition
   "(uminus \<Colon> (int \<Rightarrow> int))" is "uminus_int_raw"
 
 definition
-  minus_int_def [code del]:  "z - w = z + (-w\<Colon>int)"
+  minus_int_def:  "z - w = z + (-w\<Colon>int)"
 
 fun
   times_int_raw :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
@@ -61,7 +61,7 @@ quotient_definition
   le_int_def: "(op \<le>) :: int \<Rightarrow> int \<Rightarrow> bool" is "le_int_raw"
 
 definition
-  less_int_def [code del]: "(z\<Colon>int) < w = (z \<le> w \<and> z \<noteq> w)"
+  less_int_def: "(z\<Colon>int) < w = (z \<le> w \<and> z \<noteq> w)"
 
 definition
   zabs_def: "\<bar>i\<Colon>int\<bar> = (if i < 0 then - i else i)"

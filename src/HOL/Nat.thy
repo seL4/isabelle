@@ -48,7 +48,7 @@ definition Suc :: "nat => nat" where
 instantiation nat :: zero
 begin
 
-definition Zero_nat_def [code del]:
+definition Zero_nat_def:
   "0 = Abs_Nat Zero_Rep"
 
 instance ..
@@ -1362,9 +1362,8 @@ subsection {* The Set of Natural Numbers *}
 context semiring_1
 begin
 
-definition
-  Nats  :: "'a set" where
-  [code del]: "Nats = range of_nat"
+definition Nats  :: "'a set" where
+  "Nats = range of_nat"
 
 notation (xsymbols)
   Nats  ("\<nat>")

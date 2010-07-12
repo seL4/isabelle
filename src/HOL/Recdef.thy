@@ -38,7 +38,7 @@ definition
 
 definition
   wfrec :: "('a * 'a) set => (('a => 'b) => 'a => 'b) => 'a => 'b" where
-  [code del]: "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
+  "wfrec R F == %x. THE y. wfrec_rel R (%f x. F (cut f R x) x) x y"
 
 subsection{*Well-Founded Recursion*}
 

@@ -408,10 +408,10 @@ definition
   "P \<squnion> Q = Pred (eval P \<squnion> eval Q)"
 
 definition
-  [code del]: "\<Sqinter>A = Pred (INFI A eval)"
+  "\<Sqinter>A = Pred (INFI A eval)"
 
 definition
-  [code del]: "\<Squnion>A = Pred (SUPR A eval)"
+  "\<Squnion>A = Pred (SUPR A eval)"
 
 definition
   "- P = Pred (- eval P)"
@@ -873,7 +873,7 @@ where
 
 definition the :: "'a pred => 'a"
 where
-  [code del]: "the A = (THE x. eval A x)"
+  "the A = (THE x. eval A x)"
 
 lemma the_eq[code]: "the A = singleton (\<lambda>x. not_unique A) A"
 by (auto simp add: the_def singleton_def not_unique_def)

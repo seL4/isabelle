@@ -193,10 +193,10 @@ instantiation "fun" :: (type, complete_lattice) complete_lattice
 begin
 
 definition
-  Inf_fun_def [code del]: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+  Inf_fun_def: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
 
 definition
-  Sup_fun_def [code del]: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+  Sup_fun_def: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
 
 instance proof
 qed (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
@@ -457,7 +457,7 @@ abbreviation Inter :: "'a set set \<Rightarrow> 'a set" where
 notation (xsymbols)
   Inter  ("\<Inter>_" [90] 90)
 
-lemma Inter_eq [code del]:
+lemma Inter_eq:
   "\<Inter>A = {x. \<forall>B \<in> A. x \<in> B}"
 proof (rule set_ext)
   fix x

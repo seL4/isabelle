@@ -131,7 +131,7 @@ abbreviation
 
 definition
   bij_betw :: "('a => 'b) => 'a set => 'b set => bool" where -- "bijective"
-  [code del]: "bij_betw f A B \<longleftrightarrow> inj_on f A & f ` A = B"
+  "bij_betw f A B \<longleftrightarrow> inj_on f A & f ` A = B"
 
 definition
   surj :: "('a => 'b) => bool" where

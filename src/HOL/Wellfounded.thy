@@ -682,9 +682,8 @@ done
 
 text{* Lexicographic combinations *}
 
-definition
-  lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set" (infixr "<*lex*>" 80) where
-  [code del]: "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
+definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set" (infixr "<*lex*>" 80) where
+  "ra <*lex*> rb = {((a, b), (a', b')). (a, a') \<in> ra \<or> a = a' \<and> (b, b') \<in> rb}"
 
 lemma wf_lex_prod [intro!]: "[| wf(ra); wf(rb) |] ==> wf(ra <*lex*> rb)"
 apply (unfold wf_def lex_prod_def) 
@@ -819,10 +818,8 @@ lemma max_ext_additive:
 by (force elim!: max_ext.cases)
 
 
-definition
-  min_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set" 
-where
-  [code del]: "min_ext r = {(X, Y) | X Y. X \<noteq> {} \<and> (\<forall>y \<in> Y. (\<exists>x \<in> X. (x, y) \<in> r))}"
+definition min_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set"  where
+  "min_ext r = {(X, Y) | X Y. X \<noteq> {} \<and> (\<forall>y \<in> Y. (\<exists>x \<in> X. (x, y) \<in> r))}"
 
 lemma min_ext_wf:
   assumes "wf r"

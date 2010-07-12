@@ -281,7 +281,7 @@ definition complex_sgn_def:
 definition dist_complex_def:
   "dist x y = cmod (x - y)"
 
-definition open_complex_def [code del]:
+definition open_complex_def:
   "open (S :: complex set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
 
 lemmas cmod_def = complex_norm_def

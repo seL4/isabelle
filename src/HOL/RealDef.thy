@@ -751,7 +751,7 @@ instantiation real :: number_ring
 begin
 
 definition
-  [code del]: "(number_of x :: real) = of_int x"
+  "(number_of x :: real) = of_int x"
 
 instance proof
 qed (rule number_of_real_def)

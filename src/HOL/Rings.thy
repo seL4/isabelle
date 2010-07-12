@@ -96,7 +96,7 @@ class dvd = times
 begin
 
 definition dvd :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50) where
-  [code del]: "b dvd a \<longleftrightarrow> (\<exists>k. a = b * k)"
+  "b dvd a \<longleftrightarrow> (\<exists>k. a = b * k)"
 
 lemma dvdI [intro?]: "a = b * k \<Longrightarrow> b dvd a"
   unfolding dvd_def ..

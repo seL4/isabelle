@@ -527,7 +527,7 @@ instantiation nat :: semiring_div
 begin
 
 definition divmod_nat :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
-  [code del]: "divmod_nat m n = (THE qr. divmod_nat_rel m n qr)"
+  "divmod_nat m n = (THE qr. divmod_nat_rel m n qr)"
 
 lemma divmod_nat_rel_divmod_nat:
   "divmod_nat_rel m n (divmod_nat m n)"

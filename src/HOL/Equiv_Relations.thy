@@ -93,7 +93,7 @@ theorem eq_equiv_class_iff:
 subsection {* Quotients *}
 
 definition quotient :: "'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set set"  (infixl "'/'/" 90) where
-  [code del]: "A//r = (\<Union>x \<in> A. {r``{x}})"  -- {* set of equiv classes *}
+  "A//r = (\<Union>x \<in> A. {r``{x}})"  -- {* set of equiv classes *}
 
 lemma quotientI: "x \<in> A ==> r``{x} \<in> A//r"
   by (unfold quotient_def) blast
