@@ -738,6 +738,43 @@ text {*
 *}
 
 
+subsection {* Co-regularity of type classes and arities *}
+
+text {* The class relation together with the collection of
+  type-constructor arities must obey the principle of
+  \emph{co-regularity} as defined below.
+
+  \medskip For the subsequent formulation of co-regularity we assume
+  that the class relation is closed by transitivity and reflexivity.
+  Moreover the collection of arities @{text "t :: (\<^vec>s)c"} is
+  completed such that @{text "t :: (\<^vec>s)c"} and @{text "c \<subseteq> c'"}
+  implies @{text "t :: (\<^vec>s)c'"} for all such declarations.
+
+  Treating sorts as finite sets of classes (meaning the intersection),
+  the class relation @{text "c\<^sub>1 \<subseteq> c\<^sub>2"} is extended to sorts as
+  follows:
+  \[
+    @{text "s\<^sub>1 \<subseteq> s\<^sub>2 \<equiv> \<forall>c\<^sub>2 \<in> s\<^sub>2. \<exists>c\<^sub>1 \<in> s\<^sub>1. c\<^sub>1 \<subseteq> c\<^sub>2"}
+  \]
+
+  This relation on sorts is further extended to tuples of sorts (of
+  the same length) in the component-wise way.
+
+  \smallskip Co-regularity of the class relation together with the
+  arities relation means:
+  \[
+    @{text "t :: (\<^vec>s\<^sub>1)c\<^sub>1 \<Longrightarrow> t :: (\<^vec>s\<^sub>2)c\<^sub>2 \<Longrightarrow> c\<^sub>1 \<subseteq> c\<^sub>2 \<Longrightarrow> \<^vec>s\<^sub>1 \<subseteq> \<^vec>s\<^sub>2"}
+  \]
+  \noindent for all such arities.  In other words, whenever the result
+  classes of some type-constructor arities are related, then the
+  argument sorts need to be related in the same way.
+
+  \medskip Co-regularity is a very fundamental property of the
+  order-sorted algebra of types.  For example, it entails principle
+  types and most general unifiers, e.g.\ see \cite{nipkow-prehofer}.
+*}
+
+
 section {* Unrestricted overloading *}
 
 text {*
@@ -902,8 +939,7 @@ text {*
   \begin{matharray}{rcll}
     @{command_def "classes"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "classrel"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
-    @{command_def "default_sort"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "class_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "default_sort"} & : & @{text "local_theory \<rightarrow> local_theory"}
   \end{matharray}
 
   \begin{rail}
@@ -924,10 +960,9 @@ text {*
 
   \item @{command "classrel"}~@{text "c\<^sub>1 \<subseteq> c\<^sub>2"} states subclass
   relations between existing classes @{text "c\<^sub>1"} and @{text "c\<^sub>2"}.
-  This is done axiomatically!  The @{command_ref "instance"}
-  and @{command_ref "subclass"} command
-  (see \secref{sec:class}) provide a way to introduce proven class
-  relations.
+  This is done axiomatically!  The @{command_ref "subclass"} and
+  @{command_ref "instance"} commands (see \secref{sec:class}) provide
+  a way to introduce proven class relations.
 
   \item @{command "default_sort"}~@{text s} makes sort @{text s} the
   new default sort for any type variable that is given explicitly in
@@ -941,9 +976,6 @@ text {*
   When merging theories, the default sorts of the parents are
   logically intersected, i.e.\ the representations as lists of classes
   are joined.
-
-  \item @{command "class_deps"} visualizes the subclass relation,
-  using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
 
   \end{description}
 *}
@@ -989,43 +1021,6 @@ text {*
   proven type arities.
 
   \end{description}
-*}
-
-
-subsection {* Co-regularity of type classes and arities *}
-
-text {* The class relation together with the collection of
-  type-constructor arities must obey the principle of
-  \emph{co-regularity} as defined below.
-
-  \medskip For the subsequent formulation of co-regularity we assume
-  that the class relation is closed by transitivity and reflexivity.
-  Moreover the collection of arities @{text "t :: (\<^vec>s)c"} is
-  completed such that @{text "t :: (\<^vec>s)c"} and @{text "c \<subseteq> c'"}
-  implies @{text "t :: (\<^vec>s)c'"} for all such declarations.
-
-  Treating sorts as finite sets of classes (meaning the intersection),
-  the class relation @{text "c\<^sub>1 \<subseteq> c\<^sub>2"} is extended to sorts as
-  follows:
-  \[
-    @{text "s\<^sub>1 \<subseteq> s\<^sub>2 \<equiv> \<forall>c\<^sub>2 \<in> s\<^sub>2. \<exists>c\<^sub>1 \<in> s\<^sub>1. c\<^sub>1 \<subseteq> c\<^sub>2"}
-  \]
-
-  This relation on sorts is further extended to tuples of sorts (of
-  the same length) in the component-wise way.
-
-  \smallskip Co-regularity of the class relation together with the
-  arities relation means:
-  \[
-    @{text "t :: (\<^vec>s\<^sub>1)c\<^sub>1 \<Longrightarrow> t :: (\<^vec>s\<^sub>2)c\<^sub>2 \<Longrightarrow> c\<^sub>1 \<subseteq> c\<^sub>2 \<Longrightarrow> \<^vec>s\<^sub>1 \<subseteq> \<^vec>s\<^sub>2"}
-  \]
-  \noindent for all such arities.  In other words, whenever the result
-  classes of some type-constructor arities are related, then the
-  argument sorts need to be related in the same way.
-
-  \medskip Co-regularity is a very fundamental property of the
-  order-sorted algebra of types.  For example, it entails principle
-  types and most general unifiers, e.g.\ see \cite{nipkow-prehofer}.
 *}
 
 

@@ -755,6 +755,46 @@ A class is a particular locale with \emph{exactly one} type variable
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Co-regularity of type classes and arities%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The class relation together with the collection of
+  type-constructor arities must obey the principle of
+  \emph{co-regularity} as defined below.
+
+  \medskip For the subsequent formulation of co-regularity we assume
+  that the class relation is closed by transitivity and reflexivity.
+  Moreover the collection of arities \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isachardoublequote}} is
+  completed such that \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isachardoublequote}} and \isa{{\isachardoublequote}c\ {\isasymsubseteq}\ c{\isacharprime}{\isachardoublequote}}
+  implies \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isacharprime}{\isachardoublequote}} for all such declarations.
+
+  Treating sorts as finite sets of classes (meaning the intersection),
+  the class relation \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}} is extended to sorts as
+  follows:
+  \[
+    \isa{{\isachardoublequote}s\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlsub {\isadigit{2}}\ {\isasymequiv}\ {\isasymforall}c\isactrlsub {\isadigit{2}}\ {\isasymin}\ s\isactrlsub {\isadigit{2}}{\isachardot}\ {\isasymexists}c\isactrlsub {\isadigit{1}}\ {\isasymin}\ s\isactrlsub {\isadigit{1}}{\isachardot}\ c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}}
+  \]
+
+  This relation on sorts is further extended to tuples of sorts (of
+  the same length) in the component-wise way.
+
+  \smallskip Co-regularity of the class relation together with the
+  arities relation means:
+  \[
+    \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlsub {\isadigit{1}}{\isacharparenright}c\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlsub {\isadigit{2}}{\isacharparenright}c\isactrlsub {\isadigit{2}}\ {\isasymLongrightarrow}\ c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}\ {\isasymLongrightarrow}\ \isactrlvec s\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlsub {\isadigit{2}}{\isachardoublequote}}
+  \]
+  \noindent for all such arities.  In other words, whenever the result
+  classes of some type-constructor arities are related, then the
+  argument sorts need to be related in the same way.
+
+  \medskip Co-regularity is a very fundamental property of the
+  order-sorted algebra of types.  For example, it entails principle
+  types and most general unifiers, e.g.\ see \cite{nipkow-prehofer}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Unrestricted overloading%
 }
 \isamarkuptrue%
@@ -937,8 +977,7 @@ Isabelle/Pure's definitional schemes support certain forms of
 \begin{matharray}{rcll}
     \indexdef{}{command}{classes}\hypertarget{command.classes}{\hyperlink{command.classes}{\mbox{\isa{\isacommand{classes}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{}{command}{classrel}\hypertarget{command.classrel}{\hyperlink{command.classrel}{\mbox{\isa{\isacommand{classrel}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} & (axiomatic!) \\
-    \indexdef{}{command}{default\_sort}\hypertarget{command.default-sort}{\hyperlink{command.default-sort}{\mbox{\isa{\isacommand{default{\isacharunderscore}sort}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
-    \indexdef{}{command}{class\_deps}\hypertarget{command.class-deps}{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{default\_sort}\hypertarget{command.default-sort}{\hyperlink{command.default-sort}{\mbox{\isa{\isacommand{default{\isacharunderscore}sort}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}}
   \end{matharray}
 
   \begin{rail}
@@ -959,10 +998,9 @@ Isabelle/Pure's definitional schemes support certain forms of
 
   \item \hyperlink{command.classrel}{\mbox{\isa{\isacommand{classrel}}}}~\isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}} states subclass
   relations between existing classes \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}{\isachardoublequote}} and \isa{{\isachardoublequote}c\isactrlsub {\isadigit{2}}{\isachardoublequote}}.
-  This is done axiomatically!  The \indexref{}{command}{instance}\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}
-  and \indexref{}{command}{subclass}\hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}} command
-  (see \secref{sec:class}) provide a way to introduce proven class
-  relations.
+  This is done axiomatically!  The \indexref{}{command}{subclass}\hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}} and
+  \indexref{}{command}{instance}\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}} commands (see \secref{sec:class}) provide
+  a way to introduce proven class relations.
 
   \item \hyperlink{command.default-sort}{\mbox{\isa{\isacommand{default{\isacharunderscore}sort}}}}~\isa{s} makes sort \isa{s} the
   new default sort for any type variable that is given explicitly in
@@ -976,9 +1014,6 @@ Isabelle/Pure's definitional schemes support certain forms of
   When merging theories, the default sorts of the parents are
   logically intersected, i.e.\ the representations as lists of classes
   are joined.
-
-  \item \hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}} visualizes the subclass relation,
-  using Isabelle's graph browser tool (see also \cite{isabelle-sys}).
 
   \end{description}%
 \end{isamarkuptext}%
@@ -1025,46 +1060,6 @@ Isabelle/Pure's definitional schemes support certain forms of
   proven type arities.
 
   \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Co-regularity of type classes and arities%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-The class relation together with the collection of
-  type-constructor arities must obey the principle of
-  \emph{co-regularity} as defined below.
-
-  \medskip For the subsequent formulation of co-regularity we assume
-  that the class relation is closed by transitivity and reflexivity.
-  Moreover the collection of arities \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isachardoublequote}} is
-  completed such that \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isachardoublequote}} and \isa{{\isachardoublequote}c\ {\isasymsubseteq}\ c{\isacharprime}{\isachardoublequote}}
-  implies \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s{\isacharparenright}c{\isacharprime}{\isachardoublequote}} for all such declarations.
-
-  Treating sorts as finite sets of classes (meaning the intersection),
-  the class relation \isa{{\isachardoublequote}c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}} is extended to sorts as
-  follows:
-  \[
-    \isa{{\isachardoublequote}s\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ s\isactrlsub {\isadigit{2}}\ {\isasymequiv}\ {\isasymforall}c\isactrlsub {\isadigit{2}}\ {\isasymin}\ s\isactrlsub {\isadigit{2}}{\isachardot}\ {\isasymexists}c\isactrlsub {\isadigit{1}}\ {\isasymin}\ s\isactrlsub {\isadigit{1}}{\isachardot}\ c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}{\isachardoublequote}}
-  \]
-
-  This relation on sorts is further extended to tuples of sorts (of
-  the same length) in the component-wise way.
-
-  \smallskip Co-regularity of the class relation together with the
-  arities relation means:
-  \[
-    \isa{{\isachardoublequote}t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlsub {\isadigit{1}}{\isacharparenright}c\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ t\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}\isactrlvec s\isactrlsub {\isadigit{2}}{\isacharparenright}c\isactrlsub {\isadigit{2}}\ {\isasymLongrightarrow}\ c\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ c\isactrlsub {\isadigit{2}}\ {\isasymLongrightarrow}\ \isactrlvec s\isactrlsub {\isadigit{1}}\ {\isasymsubseteq}\ \isactrlvec s\isactrlsub {\isadigit{2}}{\isachardoublequote}}
-  \]
-  \noindent for all such arities.  In other words, whenever the result
-  classes of some type-constructor arities are related, then the
-  argument sorts need to be related in the same way.
-
-  \medskip Co-regularity is a very fundamental property of the
-  order-sorted algebra of types.  For example, it entails principle
-  types and most general unifiers, e.g.\ see \cite{nipkow-prehofer}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
