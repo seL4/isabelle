@@ -68,13 +68,16 @@ fun datatype_info thy name =
 (*Given a variable, find the inductive set associated it in the assumptions*)
 exception Find_tname of string
 
-fun find_tname var Bi =
+fun find_tname ctxt var As =
   let fun mk_pair (Const(@{const_name mem},_) $ Free (v,_) $ A) =
              (v, #1 (dest_Const (head_of A)))
         | mk_pair _ = raise Match
-      val pairs = map_filter (try (mk_pair o FOLogic.dest_Trueprop))
-          (#2 (OldGoals.strip_context Bi))
-  in case AList.lookup (op =) pairs var of
+      val pairs = map_filter (try (mk_pair o FOLogic.dest_Trueprop)) As
+      val x =
+        (case try (dest_Free o Syntax.read_term ctxt) var of
+          SOME (x, _) => x
+        | _ => raise Find_tname ("Bad variable " ^ quote var))
+  in case AList.lookup (op =) pairs x of
        NONE => raise Find_tname ("Cannot determine datatype of " ^ quote var)
      | SOME t => t
   end;
@@ -89,8 +92,8 @@ fun find_tname var Bi =
 fun exhaust_induct_tac exh ctxt var i state =
   let
     val thy = ProofContext.theory_of ctxt
-    val (_, _, Bi, _) = Thm.dest_state (state, i)
-    val tn = find_tname var Bi
+    val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i state
+    val tn = find_tname ctxt' var (map term_of asms)
     val rule =
         if exh then #exhaustion (datatype_info thy tn)
                else #induct  (datatype_info thy tn)
