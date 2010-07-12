@@ -11,7 +11,6 @@ sig
   val priority: string -> unit
   val tracing: string -> unit
   val warning: string -> unit
-  val tolerate_legacy_features: bool Unsynchronized.ref
   val legacy_feature: string -> unit
   val cond_timeit: bool -> string -> (unit -> 'a) -> 'a
   val timeit: (unit -> 'a) -> 'a
@@ -108,9 +107,7 @@ fun error_msg s = ! error_fn (output s);
 fun prompt s = ! prompt_fn (output s);
 fun status s = ! status_fn (output s);
 
-val tolerate_legacy_features = Unsynchronized.ref true;
-fun legacy_feature s =
-  (if ! tolerate_legacy_features then warning else error) ("Legacy feature! " ^ s);
+fun legacy_feature s = warning ("Legacy feature! " ^ s);
 
 fun no_warnings_CRITICAL f = setmp_CRITICAL warning_fn (K ()) f;
 
