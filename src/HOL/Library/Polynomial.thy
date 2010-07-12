@@ -1195,7 +1195,7 @@ proof -
     by (rule poly_dvd_antisym)
 qed
 
-interpretation poly_gcd!: abel_semigroup poly_gcd
+interpretation poly_gcd: abel_semigroup poly_gcd
 proof
   fix x y z :: "'a poly"
   show "poly_gcd (poly_gcd x y) z = poly_gcd x (poly_gcd y z)"

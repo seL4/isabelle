@@ -234,7 +234,7 @@ lemma approx_lower_plus [simp]:
   "approx n\<cdot>(xs +\<flat> ys) = (approx n\<cdot>xs) +\<flat> (approx n\<cdot>ys)"
 by (induct xs ys rule: lower_pd.principal_induct2, simp, simp, simp)
 
-interpretation lower_add!: semilattice lower_add proof
+interpretation lower_add: semilattice lower_add proof
   fix xs ys zs :: "'a lower_pd"
   show "(xs +\<flat> ys) +\<flat> zs = xs +\<flat> (ys +\<flat> zs)"
     apply (induct xs ys arbitrary: zs rule: lower_pd.principal_induct2, simp, simp)

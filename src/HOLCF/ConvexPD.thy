@@ -279,7 +279,7 @@ lemma approx_convex_plus [simp]:
   "approx n\<cdot>(xs +\<natural> ys) = approx n\<cdot>xs +\<natural> approx n\<cdot>ys"
 by (induct xs ys rule: convex_pd.principal_induct2, simp, simp, simp)
 
-interpretation convex_add!: semilattice convex_add proof
+interpretation convex_add: semilattice convex_add proof
   fix xs ys zs :: "'a convex_pd"
   show "(xs +\<natural> ys) +\<natural> zs = xs +\<natural> (ys +\<natural> zs)"
     apply (induct xs ys arbitrary: zs rule: convex_pd.principal_induct2, simp, simp)

@@ -232,7 +232,7 @@ lemma approx_upper_plus [simp]:
   "approx n\<cdot>(xs +\<sharp> ys) = (approx n\<cdot>xs) +\<sharp> (approx n\<cdot>ys)"
 by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
 
-interpretation upper_add!: semilattice upper_add proof
+interpretation upper_add: semilattice upper_add proof
   fix xs ys zs :: "'a upper_pd"
   show "(xs +\<sharp> ys) +\<sharp> zs = xs +\<sharp> (ys +\<sharp> zs)"
     apply (induct xs ys arbitrary: zs rule: upper_pd.principal_induct2, simp, simp)

@@ -302,11 +302,11 @@ lemma gcd_pos_nat [simp]: "(gcd (m::nat) n > 0) = (m ~= 0 | n ~= 0)"
 lemma gcd_pos_int [simp]: "(gcd (m::int) n > 0) = (m ~= 0 | n ~= 0)"
   by (insert gcd_zero_int [of m n], insert gcd_ge_0_int [of m n], arith)
 
-interpretation gcd_nat!: abel_semigroup "gcd :: nat \<Rightarrow> nat \<Rightarrow> nat"
+interpretation gcd_nat: abel_semigroup "gcd :: nat \<Rightarrow> nat \<Rightarrow> nat"
 proof
 qed (auto intro: dvd_antisym dvd_trans)
 
-interpretation gcd_int!: abel_semigroup "gcd :: int \<Rightarrow> int \<Rightarrow> int"
+interpretation gcd_int: abel_semigroup "gcd :: int \<Rightarrow> int \<Rightarrow> int"
 proof
 qed (simp_all add: gcd_int_def gcd_nat.assoc gcd_nat.commute gcd_nat.left_commute)
 
@@ -1383,7 +1383,7 @@ lemma lcm_unique_int: "d >= 0 \<and> (a::int) dvd d \<and> b dvd d \<and>
     (\<forall>e. a dvd e \<and> b dvd e \<longrightarrow> d dvd e) \<longleftrightarrow> d = lcm a b"
   by (auto intro: dvd_antisym [transferred] lcm_least_int)
 
-interpretation lcm_nat!: abel_semigroup "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat"
+interpretation lcm_nat: abel_semigroup "lcm :: nat \<Rightarrow> nat \<Rightarrow> nat"
 proof
   fix n m p :: nat
   show "lcm (lcm n m) p = lcm n (lcm m p)"
@@ -1392,7 +1392,7 @@ proof
     by (simp add: lcm_nat_def gcd_commute_nat field_simps)
 qed
 
-interpretation lcm_int!: abel_semigroup "lcm :: int \<Rightarrow> int \<Rightarrow> int"
+interpretation lcm_int: abel_semigroup "lcm :: int \<Rightarrow> int \<Rightarrow> int"
 proof
   fix n m p :: int
   show "lcm (lcm n m) p = lcm n (lcm m p)"

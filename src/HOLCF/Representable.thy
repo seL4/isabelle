@@ -21,7 +21,7 @@ class rep = bifinite +
   fixes prj :: "udom \<rightarrow> 'a::pcpo"
   assumes ep_pair_emb_prj: "ep_pair emb prj"
 
-interpretation rep!:
+interpretation rep:
   pcpo_ep_pair
     "emb :: 'a::rep \<rightarrow> udom"
     "prj :: udom \<rightarrow> 'a::rep"

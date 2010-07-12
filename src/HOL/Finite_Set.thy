@@ -1888,7 +1888,7 @@ But now that we have @{text fold_image} things are easy:
 definition card :: "'a set \<Rightarrow> nat" where
   "card A = (if finite A then fold_image (op +) (\<lambda>x. 1) 0 A else 0)"
 
-interpretation card!: folding_image_simple "op +" 0 "\<lambda>x. 1" card proof
+interpretation card: folding_image_simple "op +" 0 "\<lambda>x. 1" card proof
 qed (simp add: card_def)
 
 lemma card_infinite [simp]:
