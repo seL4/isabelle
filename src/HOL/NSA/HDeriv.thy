@@ -26,7 +26,7 @@ definition
 
 definition
   increment :: "[real=>real,real,hypreal] => hypreal" where
-  [code del]: "increment f x h = (@inc. f NSdifferentiable x &
+  "increment f x h = (@inc. f NSdifferentiable x &
            inc = ( *f* f)(hypreal_of_real x + h) - hypreal_of_real (f x))"
 
 

@@ -26,7 +26,7 @@ inductive less_eq_list where
   | take: "ys \<le> xs \<Longrightarrow> x # ys \<le> x # xs"
 
 definition
-  [code del]: "(xs \<Colon> 'a list) < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
+  "(xs \<Colon> 'a list) < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
 
 instance proof qed
 

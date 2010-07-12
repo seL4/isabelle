@@ -42,7 +42,7 @@ text {* define traverse using the MREC combinator *}
 definition
   traverse :: "'a\<Colon>heap node \<Rightarrow> 'a list Heap"
 where
-[code del]: "traverse = MREC (\<lambda>n. case n of Empty \<Rightarrow> return (Inl [])
+  "traverse = MREC (\<lambda>n. case n of Empty \<Rightarrow> return (Inl [])
                                 | Node x r \<Rightarrow> (do tl \<leftarrow> Ref.lookup r;
                                                   return (Inr tl) done))
                    (\<lambda>n tl xs. case n of Empty \<Rightarrow> undefined

@@ -143,7 +143,7 @@ subsection {* Floor function *}
 
 definition
   floor :: "'a::archimedean_field \<Rightarrow> int" where
-  [code del]: "floor x = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
+  "floor x = (THE z. of_int z \<le> x \<and> x < of_int (z + 1))"
 
 notation (xsymbols)
   floor  ("\<lfloor>_\<rfloor>")
@@ -274,7 +274,7 @@ subsection {* Ceiling function *}
 
 definition
   ceiling :: "'a::archimedean_field \<Rightarrow> int" where
-  [code del]: "ceiling x = - floor (- x)"
+  "ceiling x = - floor (- x)"
 
 notation (xsymbols)
   ceiling  ("\<lceil>_\<rceil>")

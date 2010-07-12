@@ -776,7 +776,7 @@ qed
 instantiation matrix :: (zero) zero
 begin
 
-definition zero_matrix_def [code del]: "0 = Abs_matrix (\<lambda>j i. 0)"
+definition zero_matrix_def: "0 = Abs_matrix (\<lambda>j i. 0)"
 
 instance ..
 
@@ -1459,9 +1459,9 @@ lemma move_matrix_le_move_matrix_iff[simp]: "0 <= j \<Longrightarrow> 0 <= i \<L
 instantiation matrix :: ("{lattice, zero}") lattice
 begin
 
-definition [code del]: "inf = combine_matrix inf"
+definition "inf = combine_matrix inf"
 
-definition [code del]: "sup = combine_matrix sup"
+definition "sup = combine_matrix sup"
 
 instance
   by default (auto simp add: inf_le1 inf_le2 le_infI le_matrix_def inf_matrix_def sup_matrix_def)
@@ -1472,7 +1472,7 @@ instantiation matrix :: ("{plus, zero}") plus
 begin
 
 definition
-  plus_matrix_def [code del]: "A + B = combine_matrix (op +) A B"
+  plus_matrix_def: "A + B = combine_matrix (op +) A B"
 
 instance ..
 
@@ -1482,7 +1482,7 @@ instantiation matrix :: ("{uminus, zero}") uminus
 begin
 
 definition
-  minus_matrix_def [code del]: "- A = apply_matrix uminus A"
+  minus_matrix_def: "- A = apply_matrix uminus A"
 
 instance ..
 
@@ -1492,7 +1492,7 @@ instantiation matrix :: ("{minus, zero}") minus
 begin
 
 definition
-  diff_matrix_def [code del]: "A - B = combine_matrix (op -) A B"
+  diff_matrix_def: "A - B = combine_matrix (op -) A B"
 
 instance ..
 
@@ -1502,7 +1502,7 @@ instantiation matrix :: ("{plus, times, zero}") times
 begin
 
 definition
-  times_matrix_def [code del]: "A * B = mult_matrix (op *) (op +) A B"
+  times_matrix_def: "A * B = mult_matrix (op *) (op +) A B"
 
 instance ..
 
@@ -1512,7 +1512,7 @@ instantiation matrix :: ("{lattice, uminus, zero}") abs
 begin
 
 definition
-  abs_matrix_def [code del]: "abs (A \<Colon> 'a matrix) = sup A (- A)"
+  abs_matrix_def: "abs (A \<Colon> 'a matrix) = sup A (- A)"
 
 instance ..
 

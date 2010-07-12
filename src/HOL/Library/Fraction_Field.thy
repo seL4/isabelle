@@ -69,7 +69,7 @@ subsubsection {* Representation and basic operations *}
 
 definition
   Fract :: "'a::idom \<Rightarrow> 'a \<Rightarrow> 'a fract" where
-  [code del]: "Fract a b = Abs_fract (fractrel `` {if b = 0 then (0, 1) else (a, b)})"
+  "Fract a b = Abs_fract (fractrel `` {if b = 0 then (0, 1) else (a, b)})"
 
 code_datatype Fract
 
@@ -93,13 +93,13 @@ instantiation fract :: (idom) "{comm_ring_1, power}"
 begin
 
 definition
-  Zero_fract_def [code, code_unfold]: "0 = Fract 0 1"
+  Zero_fract_def [code_unfold]: "0 = Fract 0 1"
 
 definition
-  One_fract_def [code, code_unfold]: "1 = Fract 1 1"
+  One_fract_def [code_unfold]: "1 = Fract 1 1"
 
 definition
-  add_fract_def [code del]:
+  add_fract_def:
   "q + r = Abs_fract (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
     fractrel `` {(fst x * snd y + fst y * snd x, snd x * snd y)})"
 
@@ -115,7 +115,7 @@ proof -
 qed
 
 definition
-  minus_fract_def [code del]:
+  minus_fract_def:
   "- q = Abs_fract (\<Union>x \<in> Rep_fract q. fractrel `` {(- fst x, snd x)})"
 
 lemma minus_fract [simp, code]: "- Fract a b = Fract (- a) (b::'a::idom)"
@@ -129,7 +129,7 @@ lemma minus_fract_cancel [simp]: "Fract (- a) (- b) = Fract a b"
   by (cases "b = 0") (simp_all add: eq_fract)
 
 definition
-  diff_fract_def [code del]: "q - r = q + - (r::'a fract)"
+  diff_fract_def: "q - r = q + - (r::'a fract)"
 
 lemma diff_fract [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
@@ -137,7 +137,7 @@ lemma diff_fract [simp]:
   using assms by (simp add: diff_fract_def diff_minus)
 
 definition
-  mult_fract_def [code del]:
+  mult_fract_def:
   "q * r = Abs_fract (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
     fractrel``{(fst x * fst y, snd x * snd y)})"
 
@@ -236,7 +236,7 @@ instantiation fract :: (idom) field_inverse_zero
 begin
 
 definition
-  inverse_fract_def [code del]:
+  inverse_fract_def:
   "inverse q = Abs_fract (\<Union>x \<in> Rep_fract q.
      fractrel `` {if fst x = 0 then (0, 1) else (snd x, fst x)})"
 
@@ -250,7 +250,7 @@ proof -
 qed
 
 definition
-  divide_fract_def [code del]: "q / r = q * inverse (r:: 'a fract)"
+  divide_fract_def: "q / r = q * inverse (r:: 'a fract)"
 
 lemma divide_fract [simp]: "Fract a b / Fract c d = Fract (a * d) (b * c)"
   by (simp add: divide_fract_def)
@@ -318,12 +318,12 @@ instantiation fract :: (linordered_idom) linorder
 begin
 
 definition
-  le_fract_def [code del]:
+  le_fract_def:
    "q \<le> r \<longleftrightarrow> contents (\<Union>x \<in> Rep_fract q. \<Union>y \<in> Rep_fract r.
       {(fst x * snd y)*(snd x * snd y) \<le> (fst y * snd x)*(snd x * snd y)})"
 
 definition
-  less_fract_def [code del]: "z < (w::'a fract) \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
+  less_fract_def: "z < (w::'a fract) \<longleftrightarrow> z \<le> w \<and> \<not> w \<le> z"
 
 lemma le_fract [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"

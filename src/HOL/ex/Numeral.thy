@@ -106,16 +106,16 @@ instantiation num :: "{plus,times,ord}"
 begin
 
 definition plus_num :: "num \<Rightarrow> num \<Rightarrow> num" where
-  [code del]: "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
+  "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
 
 definition times_num :: "num \<Rightarrow> num \<Rightarrow> num" where
-  [code del]: "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
+  "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
 
 definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
+  "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
 
 definition less_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
+  "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
 
 instance ..
 
@@ -761,10 +761,10 @@ code_datatype "0::int" Pls Mns
 lemmas [code_unfold] = Pls_def [symmetric] Mns_def [symmetric]
 
 definition sub :: "num \<Rightarrow> num \<Rightarrow> int" where
-  [simp, code del]: "sub m n = (of_num m - of_num n)"
+  [simp]: "sub m n = (of_num m - of_num n)"
 
 definition dup :: "int \<Rightarrow> int" where
-  [code del]: "dup k = 2 * k"
+  "dup k = 2 * k"
 
 lemma Dig_sub [code]:
   "sub One One = 0"

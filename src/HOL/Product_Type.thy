@@ -829,7 +829,7 @@ text {*
 *}
 
 definition prod_fun :: "('a \<Rightarrow> 'c) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> 'a \<times> 'b \<Rightarrow> 'c \<times> 'd" where
-  [code del]: "prod_fun f g = (\<lambda>(x, y). (f x, g y))"
+  "prod_fun f g = (\<lambda>(x, y). (f x, g y))"
 
 lemma prod_fun [simp, code]: "prod_fun f g (a, b) = (f a, g b)"
   by (simp add: prod_fun_def)

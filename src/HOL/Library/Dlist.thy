@@ -23,7 +23,7 @@ lemma dlist_ext:
 text {* Formal, totalized constructor for @{typ "'a dlist"}: *}
 
 definition Dlist :: "'a list \<Rightarrow> 'a dlist" where
-  [code del]: "Dlist xs = Abs_dlist (remdups xs)"
+  "Dlist xs = Abs_dlist (remdups xs)"
 
 lemma distinct_list_of_dlist [simp]:
   "distinct (list_of_dlist dxs)"

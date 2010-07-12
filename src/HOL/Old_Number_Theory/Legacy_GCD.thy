@@ -17,7 +17,7 @@ subsection {* Specification of GCD on nats *}
 
 definition
   is_gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where -- {* @{term gcd} as a relation *}
-  [code del]: "is_gcd m n p \<longleftrightarrow> p dvd m \<and> p dvd n \<and>
+  "is_gcd m n p \<longleftrightarrow> p dvd m \<and> p dvd n \<and>
     (\<forall>d. d dvd m \<longrightarrow> d dvd n \<longrightarrow> d dvd p)"
 
 text {* Uniqueness *}
