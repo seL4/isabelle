@@ -84,6 +84,7 @@ lemma
 
 lemma
   "case P of True \<Rightarrow> P | False \<Rightarrow> \<not>P"
+  "case P of False \<Rightarrow> \<not>P | True \<Rightarrow> P"
   "case \<not>P of True \<Rightarrow> \<not>P | False \<Rightarrow> P"
   "case P of True \<Rightarrow> (Q \<longrightarrow> P) | False \<Rightarrow> (P \<longrightarrow> Q)"
   by smt+
@@ -173,6 +174,11 @@ lemma
   "P a \<longrightarrow> (\<forall>x. P x \<longrightarrow> x = a) \<longrightarrow> (\<exists>!x. P x)"
   "(\<exists>x. P x) \<and> (\<forall>x y. P x \<and> P y \<longrightarrow> x = y) \<longrightarrow> (\<exists>!x. P x)"
   "(\<exists>!x. P x) \<and> (\<forall>x. P x \<and> (\<forall>y. P y \<longrightarrow> y = x) \<longrightarrow> R) \<longrightarrow> R"
+  by smt+
+
+lemma
+  "(\<forall>x\<in>M. P x) \<and> c \<in> M \<longrightarrow> P c"
+  "(\<exists>x\<in>M. P x) \<or> \<not>(P c \<and> c \<in> M)"
   by smt+
 
 lemma

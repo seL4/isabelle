@@ -41,10 +41,10 @@ local
         length (HOLogic.dest_list t) <= 2
     | is_trivial_distinct _ = false
 
-  val thms = @{lemma
-    "distinct [] == True"
-    "distinct [x] == True"
-    "distinct [x, y] == (x ~= y)"
+  val thms = map mk_meta_eq @{lemma
+    "distinct [] = True"
+    "distinct [x] = True"
+    "distinct [x, y] = (x ~= y)"
     by simp_all}
   fun distinct_conv _ =
     if_true_conv is_trivial_distinct (Conv.rewrs_conv thms)
@@ -63,10 +63,10 @@ local
       Const (@{const_name "bool.bool_case"}, _) $ _ $ _ $ _ => true
     | _ => false)
 
-  val thms = @{lemma
-    "(case P of True => x | False => y) == (if P then x else y)"
-    "(case P of False => y | True => x) == (if P then x else y)"
-    by (rule eq_reflection, simp)+}
+  val thms = map mk_meta_eq @{lemma
+    "(case P of True => x | False => y) = (if P then x else y)"
+    "(case P of False => y | True => x) = (if P then x else y)"
+    by simp_all}
   val unfold_conv = if_true_conv is_bool_case (Conv.rewrs_conv thms)
 in
 fun rewrite_bool_cases ctxt =
@@ -201,8 +201,8 @@ local
     (Conv.arg_conv (norm_conv ctxt)) (eta_conv norm_conv ctxt)
   and unfold_conv thm ctxt = Conv.rewr_conv thm then_conv keep_conv ctxt
   and unfold_ex1_conv ctxt = unfold_conv @{thm Ex1_def} ctxt
-  and unfold_ball_conv ctxt = unfold_conv @{thm Ball_def} ctxt
-  and unfold_bex_conv ctxt = unfold_conv @{thm Bex_def} ctxt
+  and unfold_ball_conv ctxt = unfold_conv (mk_meta_eq @{thm Ball_def}) ctxt
+  and unfold_bex_conv ctxt = unfold_conv (mk_meta_eq @{thm Bex_def}) ctxt
   and norm_conv ctxt ct =
     (case Thm.term_of ct of
       Const (@{const_name All}, _) $ Abs _ => keep_conv

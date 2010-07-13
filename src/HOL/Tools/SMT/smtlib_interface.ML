@@ -60,9 +60,9 @@ val exists_abs_min_max = Term.exists_subterm (fn
   | Const (@{const_name max}, _) => true
   | _ => false)
 
-val unfold_abs_conv = Conv.rewr_conv @{thm abs_if[THEN eq_reflection]}
-val unfold_min_conv = Conv.rewr_conv @{thm min_def[THEN eq_reflection]}
-val unfold_max_conv = Conv.rewr_conv @{thm max_def[THEN eq_reflection]}
+val unfold_abs_conv = Conv.rewr_conv (mk_meta_eq @{thm abs_if})
+val unfold_min_conv = Conv.rewr_conv (mk_meta_eq @{thm min_def})
+val unfold_max_conv = Conv.rewr_conv (mk_meta_eq @{thm max_def})
 
 fun expand_conv cv = N.eta_expand_conv (K cv)
 fun expand2_conv cv = N.eta_expand_conv (N.eta_expand_conv (K cv))
