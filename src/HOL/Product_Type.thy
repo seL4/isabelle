@@ -289,7 +289,7 @@ attach (term_of) {*
 fun term_of_prod aF aT bF bT (x, y) = HOLogic.pair_const aT bT $ aF x $ bF y;
 *}
 attach (test) {*
-fun term_of_prod aG aT bG bT i =
+fun gen_prod aG aT bG bT i =
   let
     val (x, t) = aG i;
     val (y, u) = bG i
