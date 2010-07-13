@@ -127,21 +127,21 @@ lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Array.length a h \<
 unfolding array_ran_def Array.length_def by simp
 
 lemma array_ran_upd_array_Some:
-  assumes "cl \<in> array_ran a (Array.change a i (Some b) h)"
+  assumes "cl \<in> array_ran a (Array.update a i (Some b) h)"
   shows "cl \<in> array_ran a h \<or> cl = b"
 proof -
   have "set (get_array a h[i := Some b]) \<subseteq> insert (Some b) (set (get_array a h))" by (rule set_update_subset_insert)
   with assms show ?thesis 
-    unfolding array_ran_def Array.change_def by fastsimp
+    unfolding array_ran_def Array.update_def by fastsimp
 qed
 
 lemma array_ran_upd_array_None:
-  assumes "cl \<in> array_ran a (Array.change a i None h)"
+  assumes "cl \<in> array_ran a (Array.update a i None h)"
   shows "cl \<in> array_ran a h"
 proof -
   have "set (get_array a h[i := None]) \<subseteq> insert None (set (get_array a h))" by (rule set_update_subset_insert)
   with assms show ?thesis
-    unfolding array_ran_def Array.change_def by auto
+    unfolding array_ran_def Array.update_def by auto
 qed
 
 definition correctArray :: "Clause list \<Rightarrow> Clause option array \<Rightarrow> heap \<Rightarrow> bool"
@@ -152,7 +152,7 @@ where
 lemma correctArray_update:
   assumes "correctArray rcs a h"
   assumes "correctClause rcs c" "sorted c" "distinct c"
-  shows "correctArray rcs a (Array.change a i (Some c) h)"
+  shows "correctArray rcs a (Array.update a i (Some c) h)"
   using assms
   unfolding correctArray_def
   by (auto dest:array_ran_upd_array_Some)
@@ -413,7 +413,7 @@ subsection {* res_thm and doProofStep *}
 definition get_clause :: "Clause option array \<Rightarrow> ClauseId \<Rightarrow> Clause Heap"
 where
   "get_clause a i = 
-       do { c \<leftarrow> nth a i;
+       do { c \<leftarrow> Array.nth a i;
            (case c of None \<Rightarrow> raise (''Clause not found'')
                     | Some x \<Rightarrow> return x)
        }"
@@ -440,11 +440,11 @@ where
   do {
      cli \<leftarrow> get_clause a i;
      result \<leftarrow> foldM (res_thm2 a) rs cli;
-     upd saveTo (Some result) a; 
+     Array.upd saveTo (Some result) a; 
      return rcs
   }"
-| "doProofStep2 a (Delete cid) rcs = do { upd cid None a; return rcs }"
-| "doProofStep2 a (Root cid clause) rcs = do { upd cid (Some (remdups (sort clause))) a; return (clause # rcs) }"
+| "doProofStep2 a (Delete cid) rcs = do { Array.upd cid None a; return rcs }"
+| "doProofStep2 a (Root cid clause) rcs = do { Array.upd cid (Some (remdups (sort clause))) a; return (clause # rcs) }"
 | "doProofStep2 a (Xstep cid1 cid2) rcs = raise ''MiniSatChecked.doProofStep: Xstep constructor found.''"
 | "doProofStep2 a (ProofDone b) rcs = raise ''MiniSatChecked.doProofStep: ProofDone constructor found.''"
 
