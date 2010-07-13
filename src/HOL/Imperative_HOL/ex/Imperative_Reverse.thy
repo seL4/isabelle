@@ -8,14 +8,12 @@ theory Imperative_Reverse
 imports Imperative_HOL Subarray
 begin
 
-hide_const (open) swap rev
-
 fun swap :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
   "swap a i j = (do
-     x \<leftarrow> nth a i;
-     y \<leftarrow> nth a j;
-     upd i y a;
-     upd j x a;
+     x \<leftarrow> Array.nth a i;
+     y \<leftarrow> Array.nth a j;
+     Array.upd i y a;
+     Array.upd j x a;
      return ()
    done)"
 

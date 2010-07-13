@@ -35,9 +35,8 @@ definition (*FIXME length :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarr
   length :: "'a\<Colon>heap array \<Rightarrow> heap \<Rightarrow> nat" where
   "length a h = List.length (get_array a h)"
   
-definition (*FIXME update*)
-  change :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
-  "change a i x h = set_array a ((get_array a h)[i:=x]) h"
+definition update :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
+  "update a i x h = set_array a ((get_array a h)[i:=x]) h"
 
 definition (*FIXME noteq*)
   noteq_arrs :: "'a\<Colon>heap array \<Rightarrow> 'b\<Colon>heap array \<Rightarrow> bool" (infix "=!!=" 70) where
@@ -64,15 +63,15 @@ definition nth :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a Heap"
 
 definition upd :: "nat \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a\<Colon>heap array Heap" where
   [code del]: "upd i x a = Heap_Monad.guard (\<lambda>h. i < length a h)
-    (\<lambda>h. (a, change a i x h))"
+    (\<lambda>h. (a, update a i x h))"
 
 definition map_entry :: "nat \<Rightarrow> ('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a array \<Rightarrow> 'a array Heap" where
   [code del]: "map_entry i f a = Heap_Monad.guard (\<lambda>h. i < length a h)
-    (\<lambda>h. (a, change a i (f (get_array a h ! i)) h))"
+    (\<lambda>h. (a, update a i (f (get_array a h ! i)) h))"
 
 definition swap :: "nat \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a Heap" where
   [code del]: "swap i x a = Heap_Monad.guard (\<lambda>h. i < length a h)
-    (\<lambda>h. (get_array a h ! i, change a i x h))"
+    (\<lambda>h. (get_array a h ! i, update a i x h))"
 
 definition freeze :: "'a\<Colon>heap array \<Rightarrow> 'a list Heap" where
   [code del]: "freeze a = Heap_Monad.tap (\<lambda>h. get_array a h)"
@@ -109,27 +108,27 @@ lemma array_set_set_swap:
   "r =!!= r' \<Longrightarrow> set_array r x (set_array r' x' h) = set_array r' x' (set_array r x h)"
   by (simp add: Let_def expand_fun_eq noteq_arrs_def set_array_def)
 
-lemma get_array_change_eq [simp]:
-  "get_array a (change a i v h) = (get_array a h) [i := v]"
-  by (simp add: change_def)
+lemma get_array_update_eq [simp]:
+  "get_array a (update a i v h) = (get_array a h) [i := v]"
+  by (simp add: update_def)
 
-lemma nth_change_array_neq_array [simp]:
-  "a =!!= b \<Longrightarrow> get_array a (change b j v h) ! i = get_array a h ! i"
-  by (simp add: change_def noteq_arrs_def)
+lemma nth_update_array_neq_array [simp]:
+  "a =!!= b \<Longrightarrow> get_array a (update b j v h) ! i = get_array a h ! i"
+  by (simp add: update_def noteq_arrs_def)
 
-lemma get_arry_array_change_elem_neqIndex [simp]:
-  "i \<noteq> j \<Longrightarrow> get_array a (change a j v h) ! i = get_array a h ! i"
+lemma get_arry_array_update_elem_neqIndex [simp]:
+  "i \<noteq> j \<Longrightarrow> get_array a (update a j v h) ! i = get_array a h ! i"
   by simp
 
-lemma length_change [simp]: 
-  "length a (change b i v h) = length a h"
-  by (simp add: change_def length_def set_array_def get_array_def)
+lemma length_update [simp]: 
+  "length a (update b i v h) = length a h"
+  by (simp add: update_def length_def set_array_def get_array_def)
 
-lemma change_swap_neqArray:
+lemma update_swap_neqArray:
   "a =!!= a' \<Longrightarrow> 
-  change a i v (change a' i' v' h) 
-  = change a' i' v' (change a i v h)"
-apply (unfold change_def)
+  update a i v (update a' i' v' h) 
+  = update a' i' v' (update a i v h)"
+apply (unfold update_def)
 apply simp
 apply (subst array_set_set_swap, assumption)
 apply (subst array_get_set_neq)
@@ -137,9 +136,9 @@ apply (erule noteq_arrs_sym)
 apply (simp)
 done
 
-lemma change_swap_neqIndex:
-  "\<lbrakk> i \<noteq> i' \<rbrakk> \<Longrightarrow> change a i v (change a i' v' h) = change a i' v' (change a i v h)"
-  by (auto simp add: change_def array_set_set_swap list_update_swap)
+lemma update_swap_neqIndex:
+  "\<lbrakk> i \<noteq> i' \<rbrakk> \<Longrightarrow> update a i v (update a i' v' h) = update a i' v' (update a i v h)"
+  by (auto simp add: update_def array_set_set_swap list_update_swap)
 
 lemma get_array_init_array_list:
   "get_array (fst (array ls h)) (snd (array ls' h)) = ls'"
@@ -151,9 +150,9 @@ lemma set_array:
        = snd (array new_ls h)"
   by (simp add: Let_def split_def array_def)
 
-lemma array_present_change [simp]: 
-  "array_present a (change b i v h) = array_present a h"
-  by (simp add: change_def array_present_def set_array_def get_array_def)
+lemma array_present_update [simp]: 
+  "array_present a (update b i v h) = array_present a h"
+  by (simp add: update_def array_present_def set_array_def get_array_def)
 
 lemma array_present_array [simp]:
   "array_present (fst (array xs h)) (snd (array xs h))"
@@ -264,7 +263,7 @@ lemma crel_nthE [crel_elims]:
 
 lemma execute_upd [execute_simps]:
   "i < length a h \<Longrightarrow>
-    execute (upd i x a) h = Some (a, change a i x h)"
+    execute (upd i x a) h = Some (a, update a i x h)"
   "i \<ge> length a h \<Longrightarrow> execute (upd i x a) h = None"
   by (simp_all add: upd_def execute_simps)
 
@@ -273,20 +272,20 @@ lemma success_updI [success_intros]:
   by (auto intro: success_intros simp add: upd_def)
 
 lemma crel_updI [crel_intros]:
-  assumes "i < length a h" "h' = change a i v h"
+  assumes "i < length a h" "h' = update a i v h"
   shows "crel (upd i v a) h h' a"
   by (rule crelI) (insert assms, simp add: execute_simps)
 
 lemma crel_updE [crel_elims]:
   assumes "crel (upd i v a) h h' r"
-  obtains "r = a" "h' = change a i v h" "i < length a h"
+  obtains "r = a" "h' = update a i v h" "i < length a h"
   using assms by (rule crelE)
     (erule successE, cases "i < length a h", simp_all add: execute_simps)
 
 lemma execute_map_entry [execute_simps]:
   "i < length a h \<Longrightarrow>
    execute (map_entry i f a) h =
-      Some (a, change a i (f (get_array a h ! i)) h)"
+      Some (a, update a i (f (get_array a h ! i)) h)"
   "i \<ge> length a h \<Longrightarrow> execute (map_entry i f a) h = None"
   by (simp_all add: map_entry_def execute_simps)
 
@@ -295,20 +294,20 @@ lemma success_map_entryI [success_intros]:
   by (auto intro: success_intros simp add: map_entry_def)
 
 lemma crel_map_entryI [crel_intros]:
-  assumes "i < length a h" "h' = change a i (f (get_array a h ! i)) h" "r = a"
+  assumes "i < length a h" "h' = update a i (f (get_array a h ! i)) h" "r = a"
   shows "crel (map_entry i f a) h h' r"
   by (rule crelI) (insert assms, simp add: execute_simps)
 
 lemma crel_map_entryE [crel_elims]:
   assumes "crel (map_entry i f a) h h' r"
-  obtains "r = a" "h' = change a i (f (get_array a h ! i)) h" "i < length a h"
+  obtains "r = a" "h' = update a i (f (get_array a h ! i)) h" "i < length a h"
   using assms by (rule crelE)
     (erule successE, cases "i < length a h", simp_all add: execute_simps)
 
 lemma execute_swap [execute_simps]:
   "i < length a h \<Longrightarrow>
    execute (swap i x a) h =
-      Some (get_array a h ! i, change a i x h)"
+      Some (get_array a h ! i, update a i x h)"
   "i \<ge> length a h \<Longrightarrow> execute (swap i x a) h = None"
   by (simp_all add: swap_def execute_simps)
 
@@ -317,13 +316,13 @@ lemma success_swapI [success_intros]:
   by (auto intro: success_intros simp add: swap_def)
 
 lemma crel_swapI [crel_intros]:
-  assumes "i < length a h" "h' = change a i x h" "r = get_array a h ! i"
+  assumes "i < length a h" "h' = update a i x h" "r = get_array a h ! i"
   shows "crel (swap i x a) h h' r"
   by (rule crelI) (insert assms, simp add: execute_simps)
 
 lemma crel_swapE [crel_elims]:
   assumes "crel (swap i x a) h h' r"
-  obtains "r = get_array a h ! i" "h' = change a i x h" "i < length a h"
+  obtains "r = get_array a h ! i" "h' = update a i x h" "i < length a h"
   using assms by (rule crelE)
     (erule successE, cases "i < length a h", simp_all add: execute_simps)
 
@@ -357,7 +356,7 @@ lemma array_of_list_make:
   "of_list xs = make (List.length xs) (\<lambda>n. xs ! n)"
   by (rule Heap_eqI) (simp add: map_nth execute_simps)
 
-hide_const (open) new
+hide_const (open) update new of_list make len nth upd map_entry swap freeze
 
 
 subsection {* Code generator setup *}
@@ -407,24 +406,24 @@ lemma [code]:
   by (simp add: upd'_def upd_return)
 
 lemma [code]:
-  "map_entry i f a = (do
-     x \<leftarrow> nth a i;
-     upd i (f x) a
+  "Array.map_entry i f a = (do
+     x \<leftarrow> Array.nth a i;
+     Array.upd i (f x) a
    done)"
   by (rule Heap_eqI) (simp add: bind_def guard_def map_entry_def execute_simps)
 
 lemma [code]:
-  "swap i x a = (do
-     y \<leftarrow> nth a i;
-     upd i x a;
+  "Array.swap i x a = (do
+     y \<leftarrow> Array.nth a i;
+     Array.upd i x a;
      return y
    done)"
   by (rule Heap_eqI) (simp add: bind_def guard_def swap_def execute_simps)
 
 lemma [code]:
-  "freeze a = (do
-     n \<leftarrow> len a;
-     Heap_Monad.fold_map (\<lambda>i. nth a i) [0..<n]
+  "Array.freeze a = (do
+     n \<leftarrow> Array.len a;
+     Heap_Monad.fold_map (\<lambda>i. Array.nth a i) [0..<n]
    done)"
 proof (rule Heap_eqI)
   fix h
@@ -441,12 +440,12 @@ proof (rule Heap_eqI)
     apply (simp add: length_def map_nth)
     done
   then have "execute (do
-      n \<leftarrow> len a;
+      n \<leftarrow> Array.len a;
       Heap_Monad.fold_map (Array.nth a) [0..<n]
     done) h = Some (get_array a h, h)"
     by (auto intro: execute_bind_eq_SomeI simp add: execute_simps)
-  then show "execute (freeze a) h = execute (do
-      n \<leftarrow> len a;
+  then show "execute (Array.freeze a) h = execute (do
+      n \<leftarrow> Array.len a;
       Heap_Monad.fold_map (Array.nth a) [0..<n]
     done) h" by (simp add: execute_simps)
 qed
