@@ -407,25 +407,25 @@ lemma [code]:
   by (simp add: upd'_def upd_return)
 
 lemma [code]:
-  "map_entry i f a = (do
+  "map_entry i f a = do {
      x \<leftarrow> nth a i;
      upd i (f x) a
-   done)"
+   }"
   by (rule Heap_eqI) (simp add: bind_def guard_def map_entry_def execute_simps)
 
 lemma [code]:
-  "swap i x a = (do
+  "swap i x a = do {
      y \<leftarrow> nth a i;
      upd i x a;
      return y
-   done)"
+   }"
   by (rule Heap_eqI) (simp add: bind_def guard_def swap_def execute_simps)
 
 lemma [code]:
-  "freeze a = (do
+  "freeze a = do {
      n \<leftarrow> len a;
      Heap_Monad.fold_map (\<lambda>i. nth a i) [0..<n]
-   done)"
+   }"
 proof (rule Heap_eqI)
   fix h
   have *: "List.map
@@ -440,15 +440,15 @@ proof (rule Heap_eqI)
     apply (simp_all add: nth_def guard_def *)
     apply (simp add: length_def map_nth)
     done
-  then have "execute (do
+  then have "execute (do {
       n \<leftarrow> len a;
       Heap_Monad.fold_map (Array.nth a) [0..<n]
-    done) h = Some (get_array a h, h)"
+    }) h = Some (get_array a h, h)"
     by (auto intro: execute_bind_eq_SomeI simp add: execute_simps)
-  then show "execute (freeze a) h = execute (do
+  then show "execute (freeze a) h = execute (do {
       n \<leftarrow> len a;
       Heap_Monad.fold_map (Array.nth a) [0..<n]
-    done) h" by (simp add: execute_simps)
+    }) h" by (simp add: execute_simps)
 qed
 
 hide_const (open) new' of_list' make' len' nth' upd'

@@ -64,13 +64,12 @@ definition
 
 lemma MREC_rule:
   "MREC x = 
-  (do y \<leftarrow> f x;
+  do { y \<leftarrow> f x;
                 (case y of 
                 Inl r \<Rightarrow> return r
               | Inr s \<Rightarrow> 
-                do z \<leftarrow> MREC s ;
-                   g x s z
-                done) done)"
+                do { z \<leftarrow> MREC s ;
+                     g x s z })}"
   unfolding MREC_def
   unfolding bind_def return_def
   apply simp
