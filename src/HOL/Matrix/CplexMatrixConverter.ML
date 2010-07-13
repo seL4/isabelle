@@ -1,4 +1,4 @@
-(*  Title:      HOL/Matrix/cplex/CplexMatrixConverter.ML
+(*  Title:      HOL/Matrix/CplexMatrixConverter.ML
     Author:     Steven Obua
 *)
 
