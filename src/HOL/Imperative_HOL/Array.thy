@@ -77,27 +77,27 @@ the literature?  *}
 
 text {* Primitives *}
 
-lemma noteq_arrs_sym: "a =!!= b \<Longrightarrow> b =!!= a"
-  and unequal_arrs [simp]: "a \<noteq> a' \<longleftrightarrow> a =!!= a'"
+lemma noteq_sym: "a =!!= b \<Longrightarrow> b =!!= a"
+  and unequal [simp]: "a \<noteq> a' \<longleftrightarrow> a =!!= a'"
   unfolding noteq_def by auto
 
-lemma noteq_arrs_irrefl: "r =!!= r \<Longrightarrow> False"
+lemma noteq_irrefl: "r =!!= r \<Longrightarrow> False"
   unfolding noteq_def by auto
 
-lemma present_new_arr: "present h a \<Longrightarrow> a =!!= fst (alloc xs h)"
+lemma present_alloc_noteq: "present h a \<Longrightarrow> a =!!= fst (alloc xs h)"
   by (simp add: present_def noteq_def alloc_def Let_def)
 
-lemma array_get_set_eq [simp]: "get (set r x h) r = x"
+lemma get_set_eq [simp]: "get (set r x h) r = x"
   by (simp add: get_def set_def o_def)
 
-lemma array_get_set_neq [simp]: "r =!!= s \<Longrightarrow> get (set s x h) r = get h r"
+lemma get_set_neq [simp]: "r =!!= s \<Longrightarrow> get (set s x h) r = get h r"
   by (simp add: noteq_def get_def set_def)
 
-lemma set_array_same [simp]:
+lemma set_same [simp]:
   "set r x (set r y h) = set r x h"
   by (simp add: set_def)
 
-lemma array_set_set_swap:
+lemma set_set_swap:
   "r =!!= r' \<Longrightarrow> set r x (set r' x' h) = set r' x' (set r x h)"
   by (simp add: Let_def expand_fun_eq noteq_def set_def)
 
@@ -105,11 +105,11 @@ lemma get_update_eq [simp]:
   "get (update a i v h) a = (get h a) [i := v]"
   by (simp add: update_def)
 
-lemma nth_update_array_neq_array [simp]:
+lemma nth_update_neq [simp]:
   "a =!!= b \<Longrightarrow> get (update b j v h) a ! i = get h a ! i"
   by (simp add: update_def noteq_def)
 
-lemma get_arry_array_update_elem_neqIndex [simp]:
+lemma get_update_elem_neqIndex [simp]:
   "i \<noteq> j \<Longrightarrow> get (update a j v h) a ! i = get h a ! i"
   by simp
 
@@ -117,41 +117,41 @@ lemma length_update [simp]:
   "length (update b i v h) = length h"
   by (simp add: update_def length_def set_def get_def expand_fun_eq)
 
-lemma update_swap_neqArray:
+lemma update_swap_neq:
   "a =!!= a' \<Longrightarrow> 
   update a i v (update a' i' v' h) 
   = update a' i' v' (update a i v h)"
 apply (unfold update_def)
 apply simp
-apply (subst array_set_set_swap, assumption)
-apply (subst array_get_set_neq)
-apply (erule noteq_arrs_sym)
-apply (simp)
+apply (subst set_set_swap, assumption)
+apply (subst get_set_neq)
+apply (erule noteq_sym)
+apply simp
 done
 
 lemma update_swap_neqIndex:
   "\<lbrakk> i \<noteq> i' \<rbrakk> \<Longrightarrow> update a i v (update a i' v' h) = update a i' v' (update a i v h)"
-  by (auto simp add: update_def array_set_set_swap list_update_swap)
+  by (auto simp add: update_def set_set_swap list_update_swap)
 
-lemma get_init_array_list:
+lemma get_alloc:
   "get (snd (alloc ls' h)) (fst (alloc ls h)) = ls'"
   by (simp add: Let_def split_def alloc_def)
 
-lemma set_array:
+lemma set:
   "set (fst (alloc ls h))
      new_ls (snd (alloc ls h))
        = snd (alloc new_ls h)"
   by (simp add: Let_def split_def alloc_def)
 
-lemma array_present_update [simp]: 
+lemma present_update [simp]: 
   "present (update b i v h) = present h"
   by (simp add: update_def present_def set_def get_def expand_fun_eq)
 
-lemma array_present_array [simp]:
+lemma present_alloc [simp]:
   "present (snd (alloc xs h)) (fst (alloc xs h))"
   by (simp add: present_def alloc_def set_def Let_def)
 
-lemma not_array_present_array [simp]:
+lemma not_present_alloc [simp]:
   "\<not> present h (fst (alloc xs h))"
   by (simp add: present_def alloc_def Let_def)
 
@@ -175,7 +175,7 @@ lemma crel_newE [crel_elims]:
   assumes "crel (new n x) h h' r"
   obtains "r = fst (alloc (replicate n x) h)" "h' = snd (alloc (replicate n x) h)" 
     "get h' r = replicate n x" "present h' r" "\<not> present h r"
-  using assms by (rule crelE) (simp add: get_init_array_list execute_simps)
+  using assms by (rule crelE) (simp add: get_alloc execute_simps)
 
 lemma execute_of_list [execute_simps]:
   "execute (of_list xs) h = Some (alloc xs h)"
@@ -194,7 +194,7 @@ lemma crel_of_listE [crel_elims]:
   assumes "crel (of_list xs) h h' r"
   obtains "r = fst (alloc xs h)" "h' = snd (alloc xs h)" 
     "get h' r = xs" "present h' r" "\<not> present h r"
-  using assms by (rule crelE) (simp add: get_init_array_list execute_simps)
+  using assms by (rule crelE) (simp add: get_alloc execute_simps)
 
 lemma execute_make [execute_simps]:
   "execute (make n f) h = Some (alloc (map f [0 ..< n]) h)"
@@ -213,7 +213,7 @@ lemma crel_makeE [crel_elims]:
   assumes "crel (make n f) h h' r"
   obtains "r = fst (alloc (map f [0 ..< n]) h)" "h' = snd (alloc (map f [0 ..< n]) h)" 
     "get h' r = map f [0 ..< n]" "present h' r" "\<not> present h r"
-  using assms by (rule crelE) (simp add: get_init_array_list execute_simps)
+  using assms by (rule crelE) (simp add: get_alloc execute_simps)
 
 lemma execute_len [execute_simps]:
   "execute (len a) h = Some (length h a, h)"
