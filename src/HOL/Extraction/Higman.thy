@@ -350,15 +350,14 @@ instance ..
 end
 
 function mk_word_aux :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed" where
-  "mk_word_aux k = (do
+  "mk_word_aux k = (do {
      i \<leftarrow> Random.range 10;
      (if i > 7 \<and> k > 2 \<or> k > 1000 then return []
-     else do
+     else do {
        let l = (if i mod 2 = 0 then A else B);
        ls \<leftarrow> mk_word_aux (Suc k);
        return (l # ls)
-     done)
-   done)"
+     })})"
 by pat_completeness auto
 termination by (relation "measure ((op -) 1001)") auto
 
@@ -367,10 +366,10 @@ definition mk_word :: "Random.seed \<Rightarrow> letter list \<times> Random.see
 
 primrec mk_word_s :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed" where
   "mk_word_s 0 = mk_word"
-  | "mk_word_s (Suc n) = (do
+  | "mk_word_s (Suc n) = (do {
        _ \<leftarrow> mk_word;
        mk_word_s n
-     done)"
+     })"
 
 definition g1 :: "nat \<Rightarrow> letter list" where
   "g1 s = fst (mk_word_s s (20000, 1))"

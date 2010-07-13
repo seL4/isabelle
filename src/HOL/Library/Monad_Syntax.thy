@@ -8,6 +8,12 @@ theory Monad_Syntax
 imports Adhoc_Overloading
 begin
 
+text {*
+  We provide a convenient do-notation for monadic expressions
+  well-known from Haskell.  @{const Let} is printed
+  specially in do-expressions.
+*}
+
 consts
   bindM :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c" (infixr ">>=" 54)
 
