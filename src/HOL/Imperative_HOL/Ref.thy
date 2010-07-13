@@ -218,9 +218,9 @@ lemma update_change [code]:
 
 text {* Non-interaction between imperative array and imperative references *}
 
-lemma get_array_set [simp]:
-  "get_array (set r v h) = get_array h"
-  by (simp add: get_array_def set_def expand_fun_eq)
+lemma array_get_set [simp]:
+  "Array.get (set r v h) = Array.get h"
+  by (simp add: Array.get_def set_def expand_fun_eq)
 
 lemma get_update [simp]:
   "get (Array.update a i v h) r = get h r"
@@ -228,19 +228,19 @@ lemma get_update [simp]:
 
 lemma alloc_update:
   "fst (alloc v (Array.update a i v' h)) = fst (alloc v h)"
-  by (simp add: Array.update_def get_array_def Array.set_def alloc_def Let_def)
+  by (simp add: Array.update_def Array.get_def Array.set_def alloc_def Let_def)
 
 lemma update_set_swap:
   "Array.update a i v (set r v' h) = set r v' (Array.update a i v h)"
-  by (simp add: Array.update_def get_array_def Array.set_def set_def)
+  by (simp add: Array.update_def Array.get_def Array.set_def set_def)
 
 lemma length_alloc [simp]: 
   "Array.length (snd (alloc v h)) a = Array.length h a"
-  by (simp add: Array.length_def get_array_def alloc_def set_def Let_def)
+  by (simp add: Array.length_def Array.get_def alloc_def set_def Let_def)
 
-lemma get_array_alloc [simp]: 
-  "get_array (snd (alloc v h)) = get_array h"
-  by (simp add: get_array_def alloc_def set_def Let_def expand_fun_eq)
+lemma array_get_alloc [simp]: 
+  "Array.get (snd (alloc v h)) = Array.get h"
+  by (simp add: Array.get_def alloc_def set_def Let_def expand_fun_eq)
 
 lemma present_update [simp]: 
   "present (Array.update a i v h) = present h"
