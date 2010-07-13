@@ -14,17 +14,17 @@ definition swap :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> 
 where
   "swap arr i j =
      do {
-       x \<leftarrow> nth arr i;
-       y \<leftarrow> nth arr j;
-       upd i y arr;
-       upd j x arr;
+       x \<leftarrow> Array.nth arr i;
+       y \<leftarrow> Array.nth arr j;
+       Array.upd i y arr;
+       Array.upd j x arr;
        return ()
      }"
 
 lemma crel_swapI [crel_intros]:
   assumes "i < Array.length a h" "j < Array.length a h"
     "x = get_array a h ! i" "y = get_array a h ! j"
-    "h' = Array.change a j x (Array.change a i y h)"
+    "h' = Array.update a j x (Array.update a i y h)"
   shows "crel (swap a i j) h h' r"
   unfolding swap_def using assms by (auto intro!: crel_intros)
 
@@ -41,7 +41,7 @@ where
   "part1 a left right p = (
      if (right \<le> left) then return right
      else do {
-       v \<leftarrow> nth a left;
+       v \<leftarrow> Array.nth a left;
        (if (v \<le> p) then (part1 a (left + 1) right p)
                     else (do { swap a left right;
   part1 a left (right - 1) p }))
@@ -228,9 +228,9 @@ qed
 fun partition :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
 where
   "partition a left right = do {
-     pivot \<leftarrow> nth a right;
+     pivot \<leftarrow> Array.nth a right;
      middle \<leftarrow> part1 a left (right - 1) pivot;
-     v \<leftarrow> nth a middle;
+     v \<leftarrow> Array.nth a middle;
      m \<leftarrow> return (if (v \<le> pivot) then (middle + 1) else middle);
      swap a m right;
      return m
@@ -294,8 +294,8 @@ proof -
          else middle)"
     unfolding partition.simps
     by (elim crel_bindE crel_returnE crel_nthE crel_ifE crel_updE) simp
-  from swap have h'_def: "h' = Array.change a r (get_array a h1 ! rs)
-    (Array.change a rs (get_array a h1 ! r) h1)"
+  from swap have h'_def: "h' = Array.update a r (get_array a h1 ! rs)
+    (Array.update a rs (get_array a h1 ! r) h1)"
     unfolding swap_def
     by (elim crel_bindE crel_returnE crel_nthE crel_updE) simp
   from swap have in_bounds: "r < Array.length a h1 \<and> rs < Array.length a h1"
@@ -326,7 +326,7 @@ proof -
       with part_partitions[OF part] right_remains True
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
       with i_props h'_def in_bounds have "get_array a h' ! i \<le> get_array a h' ! rs"
-        unfolding Array.change_def Array.length_def by simp
+        unfolding Array.update_def Array.length_def by simp
     }
     moreover
     {
@@ -352,7 +352,7 @@ proof -
           by fastsimp
         with i_is True rs_equals right_remains h'_def
         show ?thesis using in_bounds
-          unfolding Array.change_def Array.length_def
+          unfolding Array.update_def Array.length_def
           by auto
       qed
     }
@@ -368,7 +368,7 @@ proof -
       from part_partitions[OF part] rs_equals right_remains i_is_left
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
       with i_props h'_def have "get_array a h' ! i \<le> get_array a h' ! rs"
-        unfolding Array.change_def by simp
+        unfolding Array.update_def by simp
     }
     moreover
     {
@@ -388,7 +388,7 @@ proof -
         assume i_is: "i = r"
         from i_is False rs_equals right_remains h'_def
         show ?thesis using in_bounds
-          unfolding Array.change_def Array.length_def
+          unfolding Array.update_def Array.length_def
           by auto
       qed
     }
@@ -646,7 +646,7 @@ qed
 subsection {* Example *}
 
 definition "qsort a = do {
-    k \<leftarrow> len a;
+    k \<leftarrow> Array.len a;
     quicksort a 0 (k - 1);
     return a
   }"
