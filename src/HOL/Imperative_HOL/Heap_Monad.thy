@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Heap_Monad.thy
+(*  Title:      HOL/Imperative_HOL/Heap_Monad.thy
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
@@ -40,7 +40,7 @@ ML {* structure Execute_Simps = Named_Thms(
 
 setup Execute_Simps.setup
 
-lemma execute_Let [simp, execute_simps]:
+lemma execute_Let [execute_simps]:
   "execute (let x = t in f x) = (let x = t in execute (f x))"
   by (simp add: Let_def)
 
@@ -50,14 +50,14 @@ subsubsection {* Specialised lifters *}
 definition tap :: "(heap \<Rightarrow> 'a) \<Rightarrow> 'a Heap" where
   [code del]: "tap f = Heap (\<lambda>h. Some (f h, h))"
 
-lemma execute_tap [simp, execute_simps]:
+lemma execute_tap [execute_simps]:
   "execute (tap f) h = Some (f h, h)"
   by (simp add: tap_def)
 
 definition heap :: "(heap \<Rightarrow> 'a \<times> heap) \<Rightarrow> 'a Heap" where
   [code del]: "heap f = Heap (Some \<circ> f)"
 
-lemma execute_heap [simp, execute_simps]:
+lemma execute_heap [execute_simps]:
   "execute (heap f) = Some \<circ> f"
   by (simp add: heap_def)
 
@@ -93,13 +93,13 @@ ML {* structure Success_Intros = Named_Thms(
 
 setup Success_Intros.setup
 
-lemma success_tapI [iff, success_intros]:
+lemma success_tapI [success_intros]:
   "success (tap f) h"
-  by (rule successI) simp
+  by (rule successI) (simp add: execute_simps)
 
-lemma success_heapI [iff, success_intros]:
+lemma success_heapI [success_intros]:
   "success (heap f) h"
-  by (rule successI) simp
+  by (rule successI) (simp add: execute_simps)
 
 lemma success_guardI [success_intros]:
   "P h \<Longrightarrow> success (guard P f) h"
@@ -196,22 +196,22 @@ lemma crel_ifE:
 lemma crel_tapI [crel_intros]:
   assumes "h' = h" "r = f h"
   shows "crel (tap f) h h' r"
-  by (rule crelI) (simp add: assms)
+  by (rule crelI) (simp add: assms execute_simps)
 
 lemma crel_tapE [crel_elims]:
   assumes "crel (tap f) h h' r"
   obtains "h' = h" and "r = f h"
-  using assms by (rule crelE) auto
+  using assms by (rule crelE) (auto simp add: execute_simps)
 
 lemma crel_heapI [crel_intros]:
   assumes "h' = snd (f h)" "r = fst (f h)"
   shows "crel (heap f) h h' r"
-  by (rule crelI) (simp add: assms)
+  by (rule crelI) (simp add: assms execute_simps)
 
 lemma crel_heapE [crel_elims]:
   assumes "crel (heap f) h h' r"
   obtains "h' = snd (f h)" and "r = fst (f h)"
-  using assms by (rule crelE) simp
+  using assms by (rule crelE) (simp add: execute_simps)
 
 lemma crel_guardI [crel_intros]:
   assumes "P h" "h' = snd (f h)" "r = fst (f h)"
@@ -230,34 +230,34 @@ subsubsection {* Monad combinators *}
 definition return :: "'a \<Rightarrow> 'a Heap" where
   [code del]: "return x = heap (Pair x)"
 
-lemma execute_return [simp, execute_simps]:
+lemma execute_return [execute_simps]:
   "execute (return x) = Some \<circ> Pair x"
-  by (simp add: return_def)
+  by (simp add: return_def execute_simps)
 
-lemma success_returnI [iff, success_intros]:
+lemma success_returnI [success_intros]:
   "success (return x) h"
-  by (rule successI) simp
+  by (rule successI) (simp add: execute_simps)
 
 lemma crel_returnI [crel_intros]:
   "h = h' \<Longrightarrow> crel (return x) h h' x"
-  by (rule crelI) simp
+  by (rule crelI) (simp add: execute_simps)
 
 lemma crel_returnE [crel_elims]:
   assumes "crel (return x) h h' r"
   obtains "r = x" "h' = h"
-  using assms by (rule crelE) simp
+  using assms by (rule crelE) (simp add: execute_simps)
 
 definition raise :: "string \<Rightarrow> 'a Heap" where -- {* the string is just decoration *}
   [code del]: "raise s = Heap (\<lambda>_. None)"
 
-lemma execute_raise [simp, execute_simps]:
+lemma execute_raise [execute_simps]:
   "execute (raise s) = (\<lambda>_. None)"
   by (simp add: raise_def)
 
 lemma crel_raiseE [crel_elims]:
   assumes "crel (raise x) h h' r"
   obtains "False"
-  using assms by (rule crelE) (simp add: success_def)
+  using assms by (rule crelE) (simp add: success_def execute_simps)
 
 definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where
   [code del]: "f >>= g = Heap (\<lambda>h. case execute f h of
@@ -303,16 +303,16 @@ lemma execute_bind_eq_SomeI:
   using assms by (simp add: bind_def)
 
 lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
-  by (rule Heap_eqI) (simp add: execute_bind)
+  by (rule Heap_eqI) (simp add: execute_bind execute_simps)
 
 lemma bind_return [simp]: "f \<guillemotright>= return = f"
-  by (rule Heap_eqI) (simp add: bind_def split: option.splits)
+  by (rule Heap_eqI) (simp add: bind_def execute_simps split: option.splits)
 
 lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= k)"
-  by (rule Heap_eqI) (simp add: bind_def split: option.splits)
+  by (rule Heap_eqI) (simp add: bind_def execute_simps split: option.splits)
 
 lemma raise_bind [simp]: "raise e \<guillemotright>= f = raise e"
-  by (rule Heap_eqI) (simp add: execute_bind)
+  by (rule Heap_eqI) (simp add: execute_simps)
 
 abbreviation chain :: "'a Heap \<Rightarrow> 'b Heap \<Rightarrow> 'b Heap"  (infixl ">>" 54) where
   "f >> g \<equiv> f >>= (\<lambda>_. g)"
@@ -411,7 +411,7 @@ definition assert :: "('a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'a 
 lemma execute_assert [execute_simps]:
   "P x \<Longrightarrow> execute (assert P x) h = Some (x, h)"
   "\<not> P x \<Longrightarrow> execute (assert P x) h = None"
-  by (simp_all add: assert_def)
+  by (simp_all add: assert_def execute_simps)
 
 lemma success_assertI [success_intros]:
   "P x \<Longrightarrow> success (assert P x) h"
@@ -466,14 +466,14 @@ lemma execute_fold_map_unchanged_heap [execute_simps]:
   shows "execute (fold_map f xs) h =
     Some (List.map (\<lambda>x. fst (the (execute (f x) h))) xs, h)"
 using assms proof (induct xs)
-  case Nil show ?case by simp
+  case Nil show ?case by (simp add: execute_simps)
 next
   case (Cons x xs)
   from Cons.prems obtain y
     where y: "execute (f x) h = Some (y, h)" by auto
   moreover from Cons.prems Cons.hyps have "execute (fold_map f xs) h =
     Some (map (\<lambda>x. fst (the (execute (f x) h))) xs, h)" by auto
-  ultimately show ?case by (simp, simp only: execute_bind(1), simp)
+  ultimately show ?case by (simp, simp only: execute_bind(1), simp add: execute_simps)
 qed
 
 subsection {* Code generator setup *}

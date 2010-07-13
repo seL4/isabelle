@@ -76,7 +76,7 @@ lemma MREC_rule:
   apply simp
   apply (rule ext)
   apply (unfold mrec_rule[of x])
-  by (auto split: option.splits prod.splits sum.splits)
+  by (auto simp add: execute_simps split: option.splits prod.splits sum.splits)
 
 lemma MREC_pinduct:
   assumes "execute (MREC x) h = Some (r, h')"
