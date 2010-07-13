@@ -5,7 +5,7 @@
 header {* A monad with a polymorphic heap and primitive reasoning infrastructure *}
 
 theory Heap_Monad
-imports Heap
+imports Heap Monad_Syntax
 begin
 
 subsection {* The monad *}
@@ -259,12 +259,16 @@ lemma crel_raiseE [crel_elims]:
   obtains "False"
   using assms by (rule crelE) (simp add: success_def execute_simps)
 
-definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" (infixl ">>=" 54) where
-  [code del]: "f >>= g = Heap (\<lambda>h. case execute f h of
+definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarrow> 'b Heap" where
+  [code del]: "bind f g = Heap (\<lambda>h. case execute f h of
                   Some (x, h') \<Rightarrow> execute (g x) h'
                 | None \<Rightarrow> None)"
 
-notation bind (infixl "\<guillemotright>=" 54)
+setup {*
+  Adhoc_Overloading.add_variant 
+    @{const_name Monad_Syntax.bindM} @{const_name Heap_Monad.bind}
+*}
+
 
 lemma execute_bind [execute_simps]:
   "execute f h = Some (x, h') \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g x) h'"
@@ -313,92 +317,6 @@ lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = f \<gui
 
 lemma raise_bind [simp]: "raise e \<guillemotright>= f = raise e"
   by (rule Heap_eqI) (simp add: execute_simps)
-
-abbreviation chain :: "'a Heap \<Rightarrow> 'b Heap \<Rightarrow> 'b Heap"  (infixl ">>" 54) where
-  "f >> g \<equiv> f >>= (\<lambda>_. g)"
-
-notation chain (infixl "\<guillemotright>" 54)
-
-
-subsubsection {* do-syntax *}
-
-text {*
-  We provide a convenient do-notation for monadic expressions
-  well-known from Haskell.  @{const Let} is printed
-  specially in do-expressions.
-*}
-
-nonterminals do_expr
-
-syntax
-  "_do" :: "do_expr \<Rightarrow> 'a"
-    ("(do (_)//done)" [12] 100)
-  "_bind" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
-    ("_ <- _;//_" [1000, 13, 12] 12)
-  "_chain" :: "'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
-    ("_;//_" [13, 12] 12)
-  "_let" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
-    ("let _ = _;//_" [1000, 13, 12] 12)
-  "_nil" :: "'a \<Rightarrow> do_expr"
-    ("_" [12] 12)
-
-syntax (xsymbols)
-  "_bind" :: "pttrn \<Rightarrow> 'a \<Rightarrow> do_expr \<Rightarrow> do_expr"
-    ("_ \<leftarrow> _;//_" [1000, 13, 12] 12)
-
-translations
-  "_do f" => "f"
-  "_bind x f g" => "f \<guillemotright>= (\<lambda>x. g)"
-  "_chain f g" => "f \<guillemotright> g"
-  "_let x t f" => "CONST Let t (\<lambda>x. f)"
-  "_nil f" => "f"
-
-print_translation {*
-let
-  fun dest_abs_eta (Abs (abs as (_, ty, _))) =
-        let
-          val (v, t) = Syntax.variant_abs abs;
-        in (Free (v, ty), t) end
-    | dest_abs_eta t =
-        let
-          val (v, t) = Syntax.variant_abs ("", dummyT, t $ Bound 0);
-        in (Free (v, dummyT), t) end;
-  fun unfold_monad (Const (@{const_syntax bind}, _) $ f $ g) =
-        let
-          val (v, g') = dest_abs_eta g;
-          val vs = fold_aterms (fn Free (v, _) => insert (op =) v | _ => I) v [];
-          val v_used = fold_aterms
-            (fn Free (w, _) => (fn s => s orelse member (op =) vs w) | _ => I) g' false;
-        in if v_used then
-          Const (@{syntax_const "_bind"}, dummyT) $ v $ f $ unfold_monad g'
-        else
-          Const (@{syntax_const "_chain"}, dummyT) $ f $ unfold_monad g'
-        end
-    | unfold_monad (Const (@{const_syntax chain}, _) $ f $ g) =
-        Const (@{syntax_const "_chain"}, dummyT) $ f $ unfold_monad g
-    | unfold_monad (Const (@{const_syntax Let}, _) $ f $ g) =
-        let
-          val (v, g') = dest_abs_eta g;
-        in Const (@{syntax_const "_let"}, dummyT) $ v $ f $ unfold_monad g' end
-    | unfold_monad (Const (@{const_syntax Pair}, _) $ f) =
-        Const (@{const_syntax return}, dummyT) $ f
-    | unfold_monad f = f;
-  fun contains_bind (Const (@{const_syntax bind}, _) $ _ $ _) = true
-    | contains_bind (Const (@{const_syntax Let}, _) $ _ $ Abs (_, _, t)) =
-        contains_bind t;
-  fun bind_monad_tr' (f::g::ts) = list_comb
-    (Const (@{syntax_const "_do"}, dummyT) $
-      unfold_monad (Const (@{const_syntax bind}, dummyT) $ f $ g), ts);
-  fun Let_monad_tr' (f :: (g as Abs (_, _, g')) :: ts) =
-    if contains_bind g' then list_comb
-      (Const (@{syntax_const "_do"}, dummyT) $
-        unfold_monad (Const (@{const_syntax Let}, dummyT) $ f $ g), ts)
-    else raise Match;
-in
- [(@{const_syntax bind}, bind_monad_tr'),
-  (@{const_syntax Let}, Let_monad_tr')]
-end;
-*}
 
 
 subsection {* Generic combinators *}
@@ -451,11 +369,11 @@ subsubsection {* Iteration -- warning: this is rarely useful! *}
 
 primrec fold_map :: "('a \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b list Heap" where
   "fold_map f [] = return []"
-| "fold_map f (x # xs) = do
+| "fold_map f (x # xs) = do {
      y \<leftarrow> f x;
      ys \<leftarrow> fold_map f xs;
      return (y # ys)
-   done"
+   }"
 
 lemma fold_map_append:
   "fold_map f (xs @ ys) = fold_map f xs \<guillemotright>= (\<lambda>xs. fold_map f ys \<guillemotright>= (\<lambda>ys. return (xs @ ys)))"
@@ -611,7 +529,7 @@ code_reserved Haskell Heap
 text {* Monad *}
 
 code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
-code_monad "op \<guillemotright>=" Haskell
+code_monad bind Haskell
 code_const return (Haskell "return")
 code_const Heap_Monad.raise' (Haskell "error/ _")
 

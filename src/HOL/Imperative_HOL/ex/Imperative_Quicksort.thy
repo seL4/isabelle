@@ -12,14 +12,14 @@ text {* We prove QuickSort correct in the Relational Calculus. *}
 
 definition swap :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap"
 where
-  "swap arr i j = (
-     do
+  "swap arr i j =
+     do {
        x \<leftarrow> nth arr i;
        y \<leftarrow> nth arr j;
        upd i y arr;
        upd j x arr;
        return ()
-     done)"
+     }"
 
 lemma crel_swapI [crel_intros]:
   assumes "i < Array.length a h" "j < Array.length a h"
@@ -40,12 +40,12 @@ function part1 :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> n
 where
   "part1 a left right p = (
      if (right \<le> left) then return right
-     else (do
+     else do {
        v \<leftarrow> nth a left;
        (if (v \<le> p) then (part1 a (left + 1) right p)
-                    else (do swap a left right;
-  part1 a left (right - 1) p done))
-     done))"
+                    else (do { swap a left right;
+  part1 a left (right - 1) p }))
+     })"
 by pat_completeness auto
 
 termination
@@ -227,14 +227,14 @@ qed
 
 fun partition :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat Heap"
 where
-  "partition a left right = (do
+  "partition a left right = do {
      pivot \<leftarrow> nth a right;
      middle \<leftarrow> part1 a left (right - 1) pivot;
      v \<leftarrow> nth a middle;
      m \<leftarrow> return (if (v \<le> pivot) then (middle + 1) else middle);
      swap a m right;
      return m
-   done)"
+   }"
 
 declare partition.simps[simp del]
 
@@ -402,12 +402,12 @@ function quicksort :: "nat array \<Rightarrow> nat \<Rightarrow> nat \<Rightarro
 where
   "quicksort arr left right =
      (if (right > left)  then
-        do
+        do {
           pivotNewIndex \<leftarrow> partition arr left right;
           pivotNewIndex \<leftarrow> assert (\<lambda>x. left \<le> x \<and> x \<le> right) pivotNewIndex;
           quicksort arr left (pivotNewIndex - 1);
           quicksort arr (pivotNewIndex + 1) right
-        done
+        }
      else return ())"
 by pat_completeness auto
 
@@ -645,11 +645,11 @@ qed
 
 subsection {* Example *}
 
-definition "qsort a = do
+definition "qsort a = do {
     k \<leftarrow> len a;
     quicksort a 0 (k - 1);
     return a
-  done"
+  }"
 
 code_reserved SML upto
 

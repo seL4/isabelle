@@ -174,15 +174,15 @@ subsection{* Function definitions *}
 primrec res_mem :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "res_mem l [] = raise ''MiniSatChecked.res_thm: Cannot find literal''"
-| "res_mem l (x#xs) = (if (x = l) then return xs else (do v \<leftarrow> res_mem l xs; return (x # v) done))"
+| "res_mem l (x#xs) = (if (x = l) then return xs else do { v \<leftarrow> res_mem l xs; return (x # v) })"
 
 fun resolve1 :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause \<Rightarrow> Clause Heap"
 where
   "resolve1 l (x#xs) (y#ys) =
   (if (x = l) then return (merge xs (y#ys))
-  else (if (x < y) then (do v \<leftarrow> resolve1 l xs (y#ys); return (x # v) done)
-  else (if (x > y) then (do v \<leftarrow> resolve1 l (x#xs) ys; return (y # v) done)
-  else (do v \<leftarrow> resolve1 l xs ys; return (x # v) done))))"
+  else (if (x < y) then do { v \<leftarrow> resolve1 l xs (y#ys); return (x # v) }
+  else (if (x > y) then do { v \<leftarrow> resolve1 l (x#xs) ys; return (y # v) }
+  else do { v \<leftarrow> resolve1 l xs ys; return (x # v) })))"
 | "resolve1 l [] ys = raise ''MiniSatChecked.res_thm: Cannot find literal''"
 | "resolve1 l xs [] = res_mem l xs"
 
@@ -190,9 +190,9 @@ fun resolve2 :: "Lit \<Rightarrow> Clause \<Rightarrow> Clause \<Rightarrow> Cla
 where
   "resolve2 l (x#xs) (y#ys) =
   (if (y = l) then return (merge (x#xs) ys)
-  else (if (x < y) then (do v \<leftarrow> resolve2 l xs (y#ys); return (x # v) done)
-  else (if (x > y) then (do v \<leftarrow> resolve2 l (x#xs) ys; return (y # v) done) 
-  else (do v \<leftarrow> resolve2 l xs ys; return (x # v) done))))"
+  else (if (x < y) then do { v \<leftarrow> resolve2 l xs (y#ys); return (x # v) }
+  else (if (x > y) then do { v \<leftarrow> resolve2 l (x#xs) ys; return (y # v) }
+  else do { v \<leftarrow> resolve2 l xs ys; return (x # v) })))"
   | "resolve2 l xs [] = raise ''MiniSatChecked.res_thm: Cannot find literal''"
   | "resolve2 l [] ys = res_mem l ys"
 
@@ -413,10 +413,10 @@ subsection {* res_thm and doProofStep *}
 definition get_clause :: "Clause option array \<Rightarrow> ClauseId \<Rightarrow> Clause Heap"
 where
   "get_clause a i = 
-       (do c \<leftarrow> nth a i;
+       do { c \<leftarrow> nth a i;
            (case c of None \<Rightarrow> raise (''Clause not found'')
                     | Some x \<Rightarrow> return x)
-        done)"
+       }"
 
 
 primrec res_thm2 :: "Clause option array \<Rightarrow> (Lit * ClauseId) \<Rightarrow> Clause \<Rightarrow> Clause Heap"
@@ -424,9 +424,9 @@ where
   "res_thm2 a (l, j) cli =
   ( if l = 0 then raise(''Illegal literal'')
     else
-     (do clj \<leftarrow> get_clause a j;
+     do { clj \<leftarrow> get_clause a j;
          res_thm' l cli clj
-      done))"
+     })"
 
 primrec
   foldM :: "('a \<Rightarrow> 'b \<Rightarrow> 'b Heap) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b Heap"
@@ -437,27 +437,27 @@ where
 fun doProofStep2 :: "Clause option array \<Rightarrow> ProofStep \<Rightarrow> Clause list \<Rightarrow> Clause list Heap"
 where
   "doProofStep2 a (Conflict saveTo (i, rs)) rcs =
-  (do
+  do {
      cli \<leftarrow> get_clause a i;
      result \<leftarrow> foldM (res_thm2 a) rs cli;
      upd saveTo (Some result) a; 
      return rcs
-   done)"
-| "doProofStep2 a (Delete cid) rcs = (do upd cid None a; return rcs done)"
-| "doProofStep2 a (Root cid clause) rcs = (do upd cid (Some (remdups (sort clause))) a; return (clause # rcs) done)"
+  }"
+| "doProofStep2 a (Delete cid) rcs = do { upd cid None a; return rcs }"
+| "doProofStep2 a (Root cid clause) rcs = do { upd cid (Some (remdups (sort clause))) a; return (clause # rcs) }"
 | "doProofStep2 a (Xstep cid1 cid2) rcs = raise ''MiniSatChecked.doProofStep: Xstep constructor found.''"
 | "doProofStep2 a (ProofDone b) rcs = raise ''MiniSatChecked.doProofStep: ProofDone constructor found.''"
 
 definition checker :: "nat \<Rightarrow> ProofStep list \<Rightarrow> nat \<Rightarrow> Clause list Heap"
 where
   "checker n p i =
-  (do 
+  do {
      a \<leftarrow> Array.new n None;
      rcs \<leftarrow> foldM (doProofStep2 a) p [];
      ec \<leftarrow> Array.nth a i;
      (if ec = Some [] then return rcs 
                 else raise(''No empty clause''))
-   done)"
+  }"
 
 lemma crel_option_case:
   assumes "crel (case x of None \<Rightarrow> n | Some y \<Rightarrow> s y) h h' r"
@@ -651,10 +651,10 @@ where
   "ldoProofStep (Conflict saveTo (i, rs)) (xs, rcl) =
      (case (xs ! i) of
        None \<Rightarrow> raise (''MiniSatChecked.doProofStep: No starting clause in thms array for Conflict step.'')
-     | Some cli \<Rightarrow> (do
+     | Some cli \<Rightarrow> do {
                       result \<leftarrow> foldM (lres_thm xs) rs cli ;
                       return ((xs[saveTo:=Some result]), rcl)
-                    done))"
+                   })"
 | "ldoProofStep (Delete cid) (xs, rcl) = return (xs[cid:=None], rcl)"
 | "ldoProofStep (Root cid clause) (xs, rcl) = return (xs[cid:=Some (sort clause)], (remdups(sort clause)) # rcl)"
 | "ldoProofStep (Xstep cid1 cid2) (xs, rcl) = raise ''MiniSatChecked.doProofStep: Xstep constructor found.''"
@@ -663,11 +663,11 @@ where
 definition lchecker :: "nat \<Rightarrow> ProofStep list \<Rightarrow> nat \<Rightarrow> Clause list Heap"
 where
   "lchecker n p i =
-  (do 
+  do {
      rcs \<leftarrow> foldM (ldoProofStep) p ([], []);
      (if (fst rcs ! i) = Some [] then return (snd rcs) 
                 else raise(''No empty clause''))
-   done)"
+  }"
 
 
 section {* Functional version with RedBlackTrees *}
@@ -684,10 +684,10 @@ where
   "tdoProofStep (Conflict saveTo (i, rs)) (t, rcl) =
      (case (RBT_Impl.lookup t i) of
        None \<Rightarrow> raise (''MiniSatChecked.doProofStep: No starting clause in thms array for Conflict step.'')
-     | Some cli \<Rightarrow> (do
+     | Some cli \<Rightarrow> do {
                       result \<leftarrow> foldM (tres_thm t) rs cli;
                       return ((RBT_Impl.insert saveTo result t), rcl)
-                    done))"
+                   })"
 | "tdoProofStep (Delete cid) (t, rcl) = return ((RBT_Impl.delete cid t), rcl)"
 | "tdoProofStep (Root cid clause) (t, rcl) = return (RBT_Impl.insert cid (sort clause) t, (remdups(sort clause)) # rcl)"
 | "tdoProofStep (Xstep cid1 cid2) (t, rcl) = raise ''MiniSatChecked.doProofStep: Xstep constructor found.''"
@@ -696,11 +696,11 @@ where
 definition tchecker :: "nat \<Rightarrow> ProofStep list \<Rightarrow> nat \<Rightarrow> Clause list Heap"
 where
   "tchecker n p i =
-  (do 
+  do {
      rcs \<leftarrow> foldM (tdoProofStep) p (RBT_Impl.Empty, []);
      (if (RBT_Impl.lookup (fst rcs) i) = Some [] then return (snd rcs) 
                 else raise(''No empty clause''))
-   done)"
+  }"
 
 section {* Code generation setup *}
 

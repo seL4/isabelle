@@ -31,10 +31,10 @@ instance node :: (heap) heap ..
 primrec make_llist :: "'a\<Colon>heap list \<Rightarrow> 'a node Heap"
 where 
   [simp del]: "make_llist []     = return Empty"
-            | "make_llist (x#xs) = do tl   \<leftarrow> make_llist xs;
-                                      next \<leftarrow> ref tl;
-                                      return (Node x next)
-                                   done"
+            | "make_llist (x#xs) = do { tl \<leftarrow> make_llist xs;
+                                        next \<leftarrow> ref tl;
+                                        return (Node x next)
+                                   }"
 
 
 text {* define traverse using the MREC combinator *}
@@ -43,18 +43,18 @@ definition
   traverse :: "'a\<Colon>heap node \<Rightarrow> 'a list Heap"
 where
 [code del]: "traverse = MREC (\<lambda>n. case n of Empty \<Rightarrow> return (Inl [])
-                                | Node x r \<Rightarrow> (do tl \<leftarrow> Ref.lookup r;
-                                                  return (Inr tl) done))
+                                | Node x r \<Rightarrow> do { tl \<leftarrow> Ref.lookup r;
+                                                  return (Inr tl) })
                    (\<lambda>n tl xs. case n of Empty \<Rightarrow> undefined
                                       | Node x r \<Rightarrow> return (x # xs))"
 
 
 lemma traverse_simps[code, simp]:
   "traverse Empty      = return []"
-  "traverse (Node x r) = do tl \<leftarrow> Ref.lookup r;
-                            xs \<leftarrow> traverse tl;
-                            return (x#xs)
-                         done"
+  "traverse (Node x r) = do { tl \<leftarrow> Ref.lookup r;
+                              xs \<leftarrow> traverse tl;
+                              return (x#xs)
+                         }"
 unfolding traverse_def
 by (auto simp: traverse_def MREC_rule)
 
@@ -529,25 +529,25 @@ section {* Proving correctness of in-place reversal *}
 subsection {* Definition of in-place reversal *}
 
 definition rev' :: "(('a::heap) node ref \<times> 'a node ref) \<Rightarrow> 'a node ref Heap"
-where "rev' = MREC (\<lambda>(q, p). do v \<leftarrow> !p; (case v of Empty \<Rightarrow> (return (Inl q))
-                            | Node x next \<Rightarrow> do
+where "rev' = MREC (\<lambda>(q, p). do { v \<leftarrow> !p; (case v of Empty \<Rightarrow> (return (Inl q))
+                            | Node x next \<Rightarrow> do {
                                     p := Node x q;
                                     return (Inr (p, next))
-                                  done) done)
+                                  })})
              (\<lambda>x s z. return z)"
 
 lemma rev'_simps [code]:
   "rev' (q, p) =
-   do
+   do {
      v \<leftarrow> !p;
      (case v of
         Empty \<Rightarrow> return q
       | Node x next \<Rightarrow>
-        do
+        do {
           p := Node x q;
           rev' (p, next)
-        done)
-  done"
+        })
+  }"
   unfolding rev'_def MREC_rule[of _ _ "(q, p)"] unfolding rev'_def[symmetric]
 thm arg_cong2
   by (auto simp add: expand_fun_eq intro: arg_cong2[where f = "op \<guillemotright>="] split: node.split)
@@ -555,7 +555,7 @@ thm arg_cong2
 primrec rev :: "('a:: heap) node \<Rightarrow> 'a node Heap" 
 where
   "rev Empty = return Empty"
-| "rev (Node x n) = (do q \<leftarrow> ref Empty; p \<leftarrow> ref (Node x n); v \<leftarrow> rev' (q, p); !v done)"
+| "rev (Node x n) = do { q \<leftarrow> ref Empty; p \<leftarrow> ref (Node x n); v \<leftarrow> rev' (q, p); !v }"
 
 subsection {* Correctness Proof *}
 
@@ -680,7 +680,7 @@ subsection {* Definition of merge function *}
 
 definition merge' :: "(('a::{heap, ord}) node ref * ('a::{heap, ord})) * ('a::{heap, ord}) node ref * ('a::{heap, ord}) node ref \<Rightarrow> ('a::{heap, ord}) node ref Heap"
 where
-"merge' = MREC (\<lambda>(_, p, q). (do v \<leftarrow> !p; w \<leftarrow> !q;
+"merge' = MREC (\<lambda>(_, p, q). do { v \<leftarrow> !p; w \<leftarrow> !q;
   (case v of Empty \<Rightarrow> return (Inl q)
           | Node valp np \<Rightarrow>
             (case w of Empty \<Rightarrow> return (Inl p)
@@ -688,8 +688,8 @@ where
                        if (valp \<le> valq) then
                          return (Inr ((p, valp), np, q))
                        else
-                         return (Inr ((q, valq), p, nq)))) done))
- (\<lambda> _ ((n, v), _, _) r. do n := Node v r; return n done)"
+                         return (Inr ((q, valq), p, nq)))) })
+ (\<lambda> _ ((n, v), _, _) r. do { n := Node v r; return n })"
 
 definition merge where "merge p q = merge' (undefined, p, q)"
 
@@ -713,21 +713,21 @@ apply (simp add: MREC_rule) done
 term "Ref.change"
 lemma merge_simps [code]:
 shows "merge p q =
-do v \<leftarrow> !p;
+do { v \<leftarrow> !p;
    w \<leftarrow> !q;
    (case v of node.Empty \<Rightarrow> return q
     | Node valp np \<Rightarrow>
         case w of node.Empty \<Rightarrow> return p
         | Node valq nq \<Rightarrow>
-            if valp \<le> valq then do r \<leftarrow> merge np q;
+            if valp \<le> valq then do { r \<leftarrow> merge np q;
                                    p := (Node valp r);
                                    return p
-                                done
-            else do r \<leftarrow> merge p nq;
+                                }
+            else do { r \<leftarrow> merge p nq;
                     q := (Node valq r);
                     return q
-                 done)
-done"
+                 })
+}"
 proof -
   {fix v x y
     have case_return: "(case v of Empty \<Rightarrow> return x | Node v n \<Rightarrow> return (y v n)) = return (case v of Empty \<Rightarrow> x | Node v n \<Rightarrow> y v n)" by (cases v) auto
@@ -997,11 +997,11 @@ export_code rev in SML file -
 
 text {* A simple example program *}
 
-definition test_1 where "test_1 = (do ll_xs <- make_llist [1..(15::int)]; xs <- traverse ll_xs; return xs done)" 
-definition test_2 where "test_2 = (do ll_xs <- make_llist [1..(15::int)]; ll_ys <- rev ll_xs; ys <- traverse ll_ys; return ys done)"
+definition test_1 where "test_1 = (do { ll_xs <- make_llist [1..(15::int)]; xs <- traverse ll_xs; return xs })" 
+definition test_2 where "test_2 = (do { ll_xs <- make_llist [1..(15::int)]; ll_ys <- rev ll_xs; ys <- traverse ll_ys; return ys })"
 
 definition test_3 where "test_3 =
-  (do
+  (do {
     ll_xs \<leftarrow> make_llist (filter (%n. n mod 2 = 0) [2..8]);
     ll_ys \<leftarrow> make_llist (filter (%n. n mod 2 = 1) [5..11]);
     r \<leftarrow> ref ll_xs;
@@ -1010,7 +1010,7 @@ definition test_3 where "test_3 =
     ll_zs \<leftarrow> !p;
     zs \<leftarrow> traverse ll_zs;
     return zs
-  done)"
+  })"
 
 code_reserved SML upto
 

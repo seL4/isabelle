@@ -48,12 +48,12 @@ definition update :: "'a ref \<Rightarrow> 'a\<Colon>heap \<Rightarrow> unit Hea
   [code del]: "update r v = Heap_Monad.heap (\<lambda>h. ((), set r v h))"
 
 definition change :: "('a\<Colon>heap \<Rightarrow> 'a) \<Rightarrow> 'a ref \<Rightarrow> 'a Heap" where
-  "change f r = (do
+  "change f r = do {
      x \<leftarrow> ! r;
      let y = f x;
      r := y;
      return y
-   done)"
+   }"
 
 
 subsection {* Properties *}

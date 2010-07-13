@@ -11,19 +11,19 @@ begin
 hide_const (open) swap rev
 
 fun swap :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
-  "swap a i j = (do
+  "swap a i j = do {
      x \<leftarrow> nth a i;
      y \<leftarrow> nth a j;
      upd i y a;
      upd j x a;
      return ()
-   done)"
+   }"
 
 fun rev :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
-  "rev a i j = (if (i < j) then (do
+  "rev a i j = (if (i < j) then do {
      swap a i j;
      rev a (i + 1) (j - 1)
-   done)
+   }
    else return ())"
 
 notation (output) swap ("swap")
