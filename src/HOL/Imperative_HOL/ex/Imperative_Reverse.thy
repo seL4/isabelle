@@ -27,17 +27,17 @@ fun rev :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarro
 declare swap.simps [simp del] rev.simps [simp del]
 
 lemma swap_pointwise: assumes "crel (swap a i j) h h' r"
-  shows "get_array a h' ! k = (if k = i then get_array a h ! j
-      else if k = j then get_array a h ! i
-      else get_array a h ! k)"
+  shows "get_array h' a ! k = (if k = i then get_array h a ! j
+      else if k = j then get_array h a ! i
+      else get_array h a ! k)"
 using assms unfolding swap.simps
 by (elim crel_elims)
  (auto simp: length_def)
 
 lemma rev_pointwise: assumes "crel (rev a i j) h h' r"
-  shows "get_array a h' ! k = (if k < i then get_array a h ! k
-      else if j < k then get_array a h ! k
-      else get_array a h ! (j - (k - i)))" (is "?P a i j h h'")
+  shows "get_array h' a ! k = (if k < i then get_array h a ! k
+      else if j < k then get_array h a ! k
+      else get_array h a ! (j - (k - i)))" (is "?P a i j h h'")
 using assms proof (induct a i j arbitrary: h h' rule: rev.induct)
   case (1 a i j h h'')
   thus ?case
@@ -94,7 +94,7 @@ proof -
   {
     fix k
     assume "k < Suc j - i"
-    with rev_pointwise[OF assms(1)] have "get_array a h' ! (i + k) = get_array a h ! (j - k)"
+    with rev_pointwise[OF assms(1)] have "get_array h' a ! (i + k) = get_array h a ! (j - k)"
       by auto
   } 
   with assms(2) rev_length[OF assms(1)] show ?thesis
@@ -104,10 +104,10 @@ qed
 
 lemma rev2_rev: 
   assumes "crel (rev a 0 (Array.length h a - 1)) h h' u"
-  shows "get_array a h' = List.rev (get_array a h)"
+  shows "get_array h' a = List.rev (get_array h a)"
   using rev2_rev'[OF assms] rev_length[OF assms] assms
     by (cases "Array.length h a = 0", auto simp add: Array.length_def
       subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elims)
-  (drule sym[of "List.length (get_array a h)"], simp)
+  (drule sym[of "List.length (get_array h a)"], simp)
 
 end

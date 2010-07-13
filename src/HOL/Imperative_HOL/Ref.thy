@@ -219,15 +219,11 @@ lemma update_change [code]:
 text {* Non-interaction between imperative array and imperative references *}
 
 lemma get_array_set [simp]:
-  "get_array a (set r v h) = get_array a h"
-  by (simp add: get_array_def set_def)
-
-lemma nth_set [simp]:
-  "get_array a (set r v h) ! i = get_array a h ! i"
-  by simp
+  "get_array (set r v h) = get_array h"
+  by (simp add: get_array_def set_def expand_fun_eq)
 
 lemma get_update [simp]:
-  "get (Array.update a i v h) r  = get h r"
+  "get (Array.update a i v h) r = get h r"
   by (simp add: get_def Array.update_def Array.set_def)
 
 lemma alloc_update:
@@ -243,8 +239,8 @@ lemma length_alloc [simp]:
   by (simp add: Array.length_def get_array_def alloc_def set_def Let_def)
 
 lemma get_array_alloc [simp]: 
-  "get_array a (snd (alloc v h)) = get_array a h"
-  by (simp add: get_array_def alloc_def set_def Let_def)
+  "get_array (snd (alloc v h)) = get_array h"
+  by (simp add: get_array_def alloc_def set_def Let_def expand_fun_eq)
 
 lemma present_update [simp]: 
   "present (Array.update a i v h) = present h"

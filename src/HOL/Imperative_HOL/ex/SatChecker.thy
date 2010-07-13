@@ -120,17 +120,17 @@ text {* Specific definition for derived clauses in the Array *}
 
 definition
   array_ran :: "('a\<Colon>heap) option array \<Rightarrow> heap \<Rightarrow> 'a set" where
-  "array_ran a h = {e. Some e \<in> set (get_array a h)}"
+  "array_ran a h = {e. Some e \<in> set (get_array h a)}"
     -- {*FIXME*}
 
-lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Array.length h a \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
+lemma array_ranI: "\<lbrakk> Some b = get_array h a ! i; i < Array.length h a \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
 unfolding array_ran_def Array.length_def by simp
 
 lemma array_ran_upd_array_Some:
   assumes "cl \<in> array_ran a (Array.update a i (Some b) h)"
   shows "cl \<in> array_ran a h \<or> cl = b"
 proof -
-  have "set (get_array a h[i := Some b]) \<subseteq> insert (Some b) (set (get_array a h))" by (rule set_update_subset_insert)
+  have "set (get_array h a[i := Some b]) \<subseteq> insert (Some b) (set (get_array h a))" by (rule set_update_subset_insert)
   with assms show ?thesis 
     unfolding array_ran_def Array.update_def by fastsimp
 qed
@@ -139,7 +139,7 @@ lemma array_ran_upd_array_None:
   assumes "cl \<in> array_ran a (Array.update a i None h)"
   shows "cl \<in> array_ran a h"
 proof -
-  have "set (get_array a h[i := None]) \<subseteq> insert None (set (get_array a h))" by (rule set_update_subset_insert)
+  have "set (get_array h a[i := None]) \<subseteq> insert None (set (get_array h a))" by (rule set_update_subset_insert)
   with assms show ?thesis
     unfolding array_ran_def Array.update_def by auto
 qed
@@ -477,7 +477,7 @@ proof -
     fix clj
     let ?rs = "merge (remove l cli) (remove (compl l) clj)"
     let ?rs' = "merge (remove (compl l) cli) (remove l clj)"
-    assume "h = h'" "Some clj = get_array a h' ! j" "j < Array.length h' a"
+    assume "h = h'" "Some clj = get_array h' a ! j" "j < Array.length h' a"
     with correct_a have clj: "correctClause r clj" "sorted clj" "distinct clj"
       unfolding correctArray_def by (auto intro: array_ranI)
     with clj l_not_zero correct_cli
@@ -491,7 +491,7 @@ proof -
   }
   {
     fix v clj
-    assume "Some clj = get_array a h ! j" "j < Array.length h a"
+    assume "Some clj = get_array h a ! j" "j < Array.length h a"
     with correct_a have clj: "correctClause r clj \<and> sorted clj \<and> distinct clj"
       unfolding correctArray_def by (auto intro: array_ranI)
     assume "crel (res_thm' l cli clj) h h' rs"
