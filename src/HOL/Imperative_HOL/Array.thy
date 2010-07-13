@@ -10,9 +10,9 @@ begin
 
 subsection {* Primitives *}
 
-definition (*FIXME present :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> bool" where*)
-  array_present :: "'a\<Colon>heap array \<Rightarrow> heap \<Rightarrow> bool" where
-  "array_present a h \<longleftrightarrow> addr_of_array a < lim h"
+definition (*FIXME present *)
+  array_present :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> bool" where
+  "array_present h a \<longleftrightarrow> addr_of_array a < lim h"
 
 definition (*FIXME get :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a list" where*)
   get_array :: "'a\<Colon>heap array \<Rightarrow> heap \<Rightarrow> 'a list" where
@@ -90,7 +90,7 @@ lemma noteq_arrs_sym: "a =!!= b \<Longrightarrow> b =!!= a"
 lemma noteq_arrs_irrefl: "r =!!= r \<Longrightarrow> False"
   unfolding noteq_arrs_def by auto
 
-lemma present_new_arr: "array_present a h \<Longrightarrow> a =!!= fst (array xs h)"
+lemma present_new_arr: "array_present h a \<Longrightarrow> a =!!= fst (array xs h)"
   by (simp add: array_present_def noteq_arrs_def array_def Let_def)
 
 lemma array_get_set_eq [simp]: "get_array r (set_array r x h) = x"
@@ -150,15 +150,15 @@ lemma set_array:
   by (simp add: Let_def split_def array_def)
 
 lemma array_present_update [simp]: 
-  "array_present a (update b i v h) = array_present a h"
-  by (simp add: update_def array_present_def set_array_def get_array_def)
+  "array_present (update b i v h) = array_present h"
+  by (simp add: update_def array_present_def set_array_def get_array_def expand_fun_eq)
 
 lemma array_present_array [simp]:
-  "array_present (fst (array xs h)) (snd (array xs h))"
+  "array_present (snd (array xs h)) (fst (array xs h))"
   by (simp add: array_present_def array_def set_array_def Let_def)
 
 lemma not_array_present_array [simp]:
-  "\<not> array_present (fst (array xs h)) h"
+  "\<not> array_present h (fst (array xs h))"
   by (simp add: array_present_def array_def Let_def)
 
 
@@ -180,7 +180,7 @@ lemma crel_newI [crel_intros]:
 lemma crel_newE [crel_elims]:
   assumes "crel (new n x) h h' r"
   obtains "r = fst (array (replicate n x) h)" "h' = snd (array (replicate n x) h)" 
-    "get_array r h' = replicate n x" "array_present r h'" "\<not> array_present r h"
+    "get_array r h' = replicate n x" "array_present h' r" "\<not> array_present h r"
   using assms by (rule crelE) (simp add: get_array_init_array_list execute_simps)
 
 lemma execute_of_list [execute_simps]:
@@ -199,7 +199,7 @@ lemma crel_of_listI [crel_intros]:
 lemma crel_of_listE [crel_elims]:
   assumes "crel (of_list xs) h h' r"
   obtains "r = fst (array xs h)" "h' = snd (array xs h)" 
-    "get_array r h' = xs" "array_present r h'" "\<not> array_present r h"
+    "get_array r h' = xs" "array_present h' r" "\<not> array_present h r"
   using assms by (rule crelE) (simp add: get_array_init_array_list execute_simps)
 
 lemma execute_make [execute_simps]:
@@ -218,7 +218,7 @@ lemma crel_makeI [crel_intros]:
 lemma crel_makeE [crel_elims]:
   assumes "crel (make n f) h h' r"
   obtains "r = fst (array (map f [0 ..< n]) h)" "h' = snd (array (map f [0 ..< n]) h)" 
-    "get_array r h' = map f [0 ..< n]" "array_present r h'" "\<not> array_present r h"
+    "get_array r h' = map f [0 ..< n]" "array_present h' r" "\<not> array_present h r"
   using assms by (rule crelE) (simp add: get_array_init_array_list execute_simps)
 
 lemma execute_len [execute_simps]:

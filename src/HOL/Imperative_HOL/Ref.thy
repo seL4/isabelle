@@ -251,11 +251,11 @@ lemma present_update [simp]:
   by (simp add: Array.update_def set_array_def expand_fun_eq present_def)
 
 lemma array_present_set [simp]:
-  "array_present a (set r v h) = array_present a h"
-  by (simp add: array_present_def set_def)
+  "array_present (set r v h) = array_present h"
+  by (simp add: array_present_def set_def expand_fun_eq)
 
 lemma array_present_alloc [simp]:
-  "array_present a h \<Longrightarrow> array_present a (snd (alloc v h))"
+  "array_present h a \<Longrightarrow> array_present (snd (alloc v h)) a"
   by (simp add: array_present_def alloc_def Let_def)
 
 lemma set_array_set_swap:
