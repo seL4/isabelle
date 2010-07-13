@@ -123,7 +123,7 @@ definition
   "array_ran a h = {e. Some e \<in> set (get_array a h)}"
     -- {*FIXME*}
 
-lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Array.length a h \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
+lemma array_ranI: "\<lbrakk> Some b = get_array a h ! i; i < Array.length h a \<rbrakk> \<Longrightarrow> b \<in> array_ran a h"
 unfolding array_ran_def Array.length_def by simp
 
 lemma array_ran_upd_array_Some:
@@ -477,7 +477,7 @@ proof -
     fix clj
     let ?rs = "merge (remove l cli) (remove (compl l) clj)"
     let ?rs' = "merge (remove (compl l) cli) (remove l clj)"
-    assume "h = h'" "Some clj = get_array a h' ! j" "j < Array.length a h'"
+    assume "h = h'" "Some clj = get_array a h' ! j" "j < Array.length h' a"
     with correct_a have clj: "correctClause r clj" "sorted clj" "distinct clj"
       unfolding correctArray_def by (auto intro: array_ranI)
     with clj l_not_zero correct_cli
@@ -491,7 +491,7 @@ proof -
   }
   {
     fix v clj
-    assume "Some clj = get_array a h ! j" "j < Array.length a h"
+    assume "Some clj = get_array a h ! j" "j < Array.length h a"
     with correct_a have clj: "correctClause r clj \<and> sorted clj \<and> distinct clj"
       unfolding correctArray_def by (auto intro: array_ranI)
     assume "crel (res_thm' l cli clj) h h' rs"

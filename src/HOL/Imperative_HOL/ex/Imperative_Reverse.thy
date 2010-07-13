@@ -64,7 +64,7 @@ qed
 
 lemma rev_length:
   assumes "crel (rev a i j) h h' r"
-  shows "Array.length a h = Array.length a h'"
+  shows "Array.length h a = Array.length h' a"
 using assms
 proof (induct a i j arbitrary: h h' rule: rev.induct)
   case (1 a i j h h'')
@@ -88,7 +88,7 @@ proof (induct a i j arbitrary: h h' rule: rev.induct)
 qed
 
 lemma rev2_rev': assumes "crel (rev a i j) h h' u"
-  assumes "j < Array.length a h"
+  assumes "j < Array.length h a"
   shows "subarray i (j + 1) a h' = List.rev (subarray i (j + 1) a h)"
 proof - 
   {
@@ -103,10 +103,10 @@ proof -
 qed
 
 lemma rev2_rev: 
-  assumes "crel (rev a 0 (Array.length a h - 1)) h h' u"
+  assumes "crel (rev a 0 (Array.length h a - 1)) h h' u"
   shows "get_array a h' = List.rev (get_array a h)"
   using rev2_rev'[OF assms] rev_length[OF assms] assms
-    by (cases "Array.length a h = 0", auto simp add: Array.length_def
+    by (cases "Array.length h a = 0", auto simp add: Array.length_def
       subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elims)
   (drule sym[of "List.length (get_array a h)"], simp)
 

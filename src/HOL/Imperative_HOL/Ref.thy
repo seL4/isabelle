@@ -239,7 +239,7 @@ lemma update_set_swap:
   by (simp add: Array.update_def get_array_def set_array_def set_def)
 
 lemma length_alloc [simp]: 
-  "Array.length a (snd (alloc v h)) = Array.length a h"
+  "Array.length (snd (alloc v h)) a = Array.length h a"
   by (simp add: Array.length_def get_array_def alloc_def set_def Let_def)
 
 lemma get_array_alloc [simp]: 

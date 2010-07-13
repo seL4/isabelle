@@ -22,7 +22,7 @@ where
      }"
 
 lemma crel_swapI [crel_intros]:
-  assumes "i < Array.length a h" "j < Array.length a h"
+  assumes "i < Array.length h a" "j < Array.length h a"
     "x = get_array a h ! i" "y = get_array a h ! j"
     "h' = Array.update a j x (Array.update a i y h)"
   shows "crel (swap a i j) h h' r"
@@ -108,7 +108,7 @@ qed
 
 lemma part_length_remains:
   assumes "crel (part1 a l r p) h h' rs"
-  shows "Array.length a h = Array.length a h'"
+  shows "Array.length h a = Array.length h' a"
 using assms
 proof (induct a l r p arbitrary: h h' rs rule:part1.induct)
   case (1 a l r p h h' rs)
@@ -250,7 +250,7 @@ qed
 
 lemma partition_length_remains:
   assumes "crel (partition a l r) h h' rs"
-  shows "Array.length a h = Array.length a h'"
+  shows "Array.length h a = Array.length h' a"
 proof -
   from assms part_length_remains show ?thesis
     unfolding partition.simps swap_def
@@ -298,10 +298,10 @@ proof -
     (Array.update a rs (get_array a h1 ! r) h1)"
     unfolding swap_def
     by (elim crel_bindE crel_returnE crel_nthE crel_updE) simp
-  from swap have in_bounds: "r < Array.length a h1 \<and> rs < Array.length a h1"
+  from swap have in_bounds: "r < Array.length h1 a \<and> rs < Array.length h1 a"
     unfolding swap_def
     by (elim crel_bindE crel_returnE crel_nthE crel_updE) simp
-  from swap have swap_length_remains: "Array.length a h1 = Array.length a h'"
+  from swap have swap_length_remains: "Array.length h1 a = Array.length h' a"
     unfolding swap_def by (elim crel_bindE crel_returnE crel_nthE crel_updE) auto
   from `l < r` have "l \<le> r - 1" by simp
   note middle_in_bounds = part_returns_index_in_bounds[OF part this]
@@ -321,7 +321,7 @@ proof -
       fix i
       assume i_is_left: "l \<le> i \<and> i < rs"
       with swap_length_remains in_bounds middle_in_bounds rs_equals `l < r`
-      have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+      have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
       from i_is_left rs_equals have "l \<le> i \<and> i < middle \<or> i = middle" by arith
       with part_partitions[OF part] right_remains True
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
@@ -338,7 +338,7 @@ proof -
       proof
         assume i_is: "rs < i \<and> i \<le> r - 1"
         with swap_length_remains in_bounds middle_in_bounds rs_equals
-        have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+        have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
         from part_partitions[OF part] rs_equals right_remains i_is
         have "get_array a h' ! rs \<le> get_array a h1 ! i"
           by fastsimp
@@ -364,7 +364,7 @@ proof -
       fix i
       assume i_is_left: "l \<le> i \<and> i < rs"
       with swap_length_remains in_bounds middle_in_bounds rs_equals
-      have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+      have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
       from part_partitions[OF part] rs_equals right_remains i_is_left
       have "get_array a h1 ! i \<le> get_array a h' ! rs" by fastsimp
       with i_props h'_def have "get_array a h' ! i \<le> get_array a h' ! rs"
@@ -379,7 +379,7 @@ proof -
       proof
         assume i_is: "rs < i \<and> i \<le> r - 1"
         with swap_length_remains in_bounds middle_in_bounds rs_equals
-        have i_props: "i < Array.length a h'" "i \<noteq> r" "i \<noteq> rs" by auto
+        have i_props: "i < Array.length h' a" "i \<noteq> r" "i \<noteq> rs" by auto
         from part_partitions[OF part] rs_equals right_remains i_is
         have "get_array a h' ! rs \<le> get_array a h1 ! i"
           by fastsimp
@@ -432,7 +432,7 @@ qed
 
 lemma length_remains:
   assumes "crel (quicksort a l r) h h' rs"
-  shows "Array.length a h = Array.length a h'"
+  shows "Array.length h a = Array.length h' a"
 using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
   case (1 a l r h h' rs)
@@ -489,7 +489,7 @@ lemma quicksort_is_skip:
  
 lemma quicksort_sorts:
   assumes "crel (quicksort a l r) h h' rs"
-  assumes l_r_length: "l < Array.length a h" "r < Array.length a h" 
+  assumes l_r_length: "l < Array.length h a" "r < Array.length h a" 
   shows "sorted (subarray l (r + 1) a h')"
   using assms
 proof (induct a l r arbitrary: h h' rs rule: quicksort.induct)
@@ -563,7 +563,7 @@ qed
 
 
 lemma quicksort_is_sort:
-  assumes crel: "crel (quicksort a 0 (Array.length a h - 1)) h h' rs"
+  assumes crel: "crel (quicksort a 0 (Array.length h a - 1)) h h' rs"
   shows "get_array a h' = sort (get_array a h)"
 proof (cases "get_array a h = []")
   case True
@@ -583,7 +583,7 @@ text {* We have proved that quicksort sorts (if no exceptions occur).
 We will now show that exceptions do not occur. *}
 
 lemma success_part1I: 
-  assumes "l < Array.length a h" "r < Array.length a h"
+  assumes "l < Array.length h a" "r < Array.length h a"
   shows "success (part1 a l r p) h"
   using assms
 proof (induct a l r p arbitrary: h rule: part1.induct)
@@ -606,7 +606,7 @@ using assms(1) proof (rule success_crelE)
 qed
 
 lemma success_partitionI:
-  assumes "l < r" "l < Array.length a h" "r < Array.length a h"
+  assumes "l < r" "l < Array.length h a" "r < Array.length h a"
   shows "success (partition a l r) h"
 using assms unfolding partition.simps swap_def
 apply (auto intro!: success_bindI' success_ifI success_returnI success_nthI success_updI success_part1I elim!: crel_bindE crel_updE crel_nthE crel_returnE simp add:)
@@ -621,7 +621,7 @@ apply auto
 done
 
 lemma success_quicksortI:
-  assumes "l < Array.length a h" "r < Array.length a h"
+  assumes "l < Array.length h a" "r < Array.length h a"
   shows "success (quicksort a l r) h"
 using assms
 proof (induct a l r arbitrary: h rule: quicksort.induct)
