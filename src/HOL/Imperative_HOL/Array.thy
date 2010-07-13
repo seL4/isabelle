@@ -10,48 +10,43 @@ begin
 
 subsection {* Primitives *}
 
-definition (*FIXME present *)
-  array_present :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> bool" where
-  "array_present h a \<longleftrightarrow> addr_of_array a < lim h"
+definition present :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> bool" where
+  "present h a \<longleftrightarrow> addr_of_array a < lim h"
 
 definition (*FIXME get :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a list" where*)
   get_array :: "'a\<Colon>heap array \<Rightarrow> heap \<Rightarrow> 'a list" where
   "get_array a h = map from_nat (arrays h (TYPEREP('a)) (addr_of_array a))"
 
-definition (*FIXME set*)
-  set_array :: "'a\<Colon>heap array \<Rightarrow> 'a list \<Rightarrow> heap \<Rightarrow> heap" where
-  "set_array a x = 
-  arrays_update (\<lambda>h. h(TYPEREP('a) := ((h(TYPEREP('a))) (addr_of_array a:=map to_nat x))))"
+definition set :: "'a\<Colon>heap array \<Rightarrow> 'a list \<Rightarrow> heap \<Rightarrow> heap" where
+  "set a x = arrays_update (\<lambda>h. h(TYPEREP('a) := ((h(TYPEREP('a))) (addr_of_array a:=map to_nat x))))"
 
-definition (*FIXME alloc*)
-  array :: "'a list \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
-  "array xs h = (let
+definition alloc :: "'a list \<Rightarrow> heap \<Rightarrow> 'a\<Colon>heap array \<times> heap" where
+  "alloc xs h = (let
      l = lim h;
      r = Array l;
-     h'' = set_array r xs (h\<lparr>lim := l + 1\<rparr>)
+     h'' = set r xs (h\<lparr>lim := l + 1\<rparr>)
    in (r, h''))"
 
 definition length :: "heap \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> nat" where
   "length h a = List.length (get_array a h)"
   
 definition update :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> heap \<Rightarrow> heap" where
-  "update a i x h = set_array a ((get_array a h)[i:=x]) h"
+  "update a i x h = set a ((get_array a h)[i:=x]) h"
 
-definition (*FIXME noteq*)
-  noteq_arrs :: "'a\<Colon>heap array \<Rightarrow> 'b\<Colon>heap array \<Rightarrow> bool" (infix "=!!=" 70) where
+definition noteq :: "'a\<Colon>heap array \<Rightarrow> 'b\<Colon>heap array \<Rightarrow> bool" (infix "=!!=" 70) where
   "r =!!= s \<longleftrightarrow> TYPEREP('a) \<noteq> TYPEREP('b) \<or> addr_of_array r \<noteq> addr_of_array s"
 
 
 subsection {* Monad operations *}
 
 definition new :: "nat \<Rightarrow> 'a\<Colon>heap \<Rightarrow> 'a array Heap" where
-  [code del]: "new n x = Heap_Monad.heap (array (replicate n x))"
+  [code del]: "new n x = Heap_Monad.heap (alloc (replicate n x))"
 
 definition of_list :: "'a\<Colon>heap list \<Rightarrow> 'a array Heap" where
-  [code del]: "of_list xs = Heap_Monad.heap (array xs)"
+  [code del]: "of_list xs = Heap_Monad.heap (alloc xs)"
 
 definition make :: "nat \<Rightarrow> (nat \<Rightarrow> 'a\<Colon>heap) \<Rightarrow> 'a array Heap" where
-  [code del]: "make n f = Heap_Monad.heap (array (map f [0 ..< n]))"
+  [code del]: "make n f = Heap_Monad.heap (alloc (map f [0 ..< n]))"
 
 definition len :: "'a\<Colon>heap array \<Rightarrow> nat Heap" where
   [code del]: "len a = Heap_Monad.tap (\<lambda>h. length h a)"
@@ -85,27 +80,27 @@ text {* Primitives *}
 
 lemma noteq_arrs_sym: "a =!!= b \<Longrightarrow> b =!!= a"
   and unequal_arrs [simp]: "a \<noteq> a' \<longleftrightarrow> a =!!= a'"
-  unfolding noteq_arrs_def by auto
+  unfolding noteq_def by auto
 
 lemma noteq_arrs_irrefl: "r =!!= r \<Longrightarrow> False"
-  unfolding noteq_arrs_def by auto
+  unfolding noteq_def by auto
 
-lemma present_new_arr: "array_present h a \<Longrightarrow> a =!!= fst (array xs h)"
-  by (simp add: array_present_def noteq_arrs_def array_def Let_def)
+lemma present_new_arr: "present h a \<Longrightarrow> a =!!= fst (alloc xs h)"
+  by (simp add: present_def noteq_def alloc_def Let_def)
 
-lemma array_get_set_eq [simp]: "get_array r (set_array r x h) = x"
-  by (simp add: get_array_def set_array_def o_def)
+lemma array_get_set_eq [simp]: "get_array r (set r x h) = x"
+  by (simp add: get_array_def set_def o_def)
 
-lemma array_get_set_neq [simp]: "r =!!= s \<Longrightarrow> get_array r (set_array s x h) = get_array r h"
-  by (simp add: noteq_arrs_def get_array_def set_array_def)
+lemma array_get_set_neq [simp]: "r =!!= s \<Longrightarrow> get_array r (set s x h) = get_array r h"
+  by (simp add: noteq_def get_array_def set_def)
 
 lemma set_array_same [simp]:
-  "set_array r x (set_array r y h) = set_array r x h"
-  by (simp add: set_array_def)
+  "set r x (set r y h) = set r x h"
+  by (simp add: set_def)
 
 lemma array_set_set_swap:
-  "r =!!= r' \<Longrightarrow> set_array r x (set_array r' x' h) = set_array r' x' (set_array r x h)"
-  by (simp add: Let_def expand_fun_eq noteq_arrs_def set_array_def)
+  "r =!!= r' \<Longrightarrow> set r x (set r' x' h) = set r' x' (set r x h)"
+  by (simp add: Let_def expand_fun_eq noteq_def set_def)
 
 lemma get_array_update_eq [simp]:
   "get_array a (update a i v h) = (get_array a h) [i := v]"
@@ -113,7 +108,7 @@ lemma get_array_update_eq [simp]:
 
 lemma nth_update_array_neq_array [simp]:
   "a =!!= b \<Longrightarrow> get_array a (update b j v h) ! i = get_array a h ! i"
-  by (simp add: update_def noteq_arrs_def)
+  by (simp add: update_def noteq_def)
 
 lemma get_arry_array_update_elem_neqIndex [simp]:
   "i \<noteq> j \<Longrightarrow> get_array a (update a j v h) ! i = get_array a h ! i"
@@ -121,7 +116,7 @@ lemma get_arry_array_update_elem_neqIndex [simp]:
 
 lemma length_update [simp]: 
   "length (update b i v h) = length h"
-  by (simp add: update_def length_def set_array_def get_array_def expand_fun_eq)
+  by (simp add: update_def length_def set_def get_array_def expand_fun_eq)
 
 lemma update_swap_neqArray:
   "a =!!= a' \<Longrightarrow> 
@@ -140,32 +135,32 @@ lemma update_swap_neqIndex:
   by (auto simp add: update_def array_set_set_swap list_update_swap)
 
 lemma get_array_init_array_list:
-  "get_array (fst (array ls h)) (snd (array ls' h)) = ls'"
-  by (simp add: Let_def split_def array_def)
+  "get_array (fst (alloc ls h)) (snd (alloc ls' h)) = ls'"
+  by (simp add: Let_def split_def alloc_def)
 
 lemma set_array:
-  "set_array (fst (array ls h))
-     new_ls (snd (array ls h))
-       = snd (array new_ls h)"
-  by (simp add: Let_def split_def array_def)
+  "set (fst (alloc ls h))
+     new_ls (snd (alloc ls h))
+       = snd (alloc new_ls h)"
+  by (simp add: Let_def split_def alloc_def)
 
 lemma array_present_update [simp]: 
-  "array_present (update b i v h) = array_present h"
-  by (simp add: update_def array_present_def set_array_def get_array_def expand_fun_eq)
+  "present (update b i v h) = present h"
+  by (simp add: update_def present_def set_def get_array_def expand_fun_eq)
 
 lemma array_present_array [simp]:
-  "array_present (snd (array xs h)) (fst (array xs h))"
-  by (simp add: array_present_def array_def set_array_def Let_def)
+  "present (snd (alloc xs h)) (fst (alloc xs h))"
+  by (simp add: present_def alloc_def set_def Let_def)
 
 lemma not_array_present_array [simp]:
-  "\<not> array_present h (fst (array xs h))"
-  by (simp add: array_present_def array_def Let_def)
+  "\<not> present h (fst (alloc xs h))"
+  by (simp add: present_def alloc_def Let_def)
 
 
 text {* Monad operations *}
 
 lemma execute_new [execute_simps]:
-  "execute (new n x) h = Some (array (replicate n x) h)"
+  "execute (new n x) h = Some (alloc (replicate n x) h)"
   by (simp add: new_def execute_simps)
 
 lemma success_newI [success_intros]:
@@ -173,18 +168,18 @@ lemma success_newI [success_intros]:
   by (auto intro: success_intros simp add: new_def)
 
 lemma crel_newI [crel_intros]:
-  assumes "(a, h') = array (replicate n x) h"
+  assumes "(a, h') = alloc (replicate n x) h"
   shows "crel (new n x) h h' a"
   by (rule crelI) (simp add: assms execute_simps)
 
 lemma crel_newE [crel_elims]:
   assumes "crel (new n x) h h' r"
-  obtains "r = fst (array (replicate n x) h)" "h' = snd (array (replicate n x) h)" 
-    "get_array r h' = replicate n x" "array_present h' r" "\<not> array_present h r"
+  obtains "r = fst (alloc (replicate n x) h)" "h' = snd (alloc (replicate n x) h)" 
+    "get_array r h' = replicate n x" "present h' r" "\<not> present h r"
   using assms by (rule crelE) (simp add: get_array_init_array_list execute_simps)
 
 lemma execute_of_list [execute_simps]:
-  "execute (of_list xs) h = Some (array xs h)"
+  "execute (of_list xs) h = Some (alloc xs h)"
   by (simp add: of_list_def execute_simps)
 
 lemma success_of_listI [success_intros]:
@@ -192,18 +187,18 @@ lemma success_of_listI [success_intros]:
   by (auto intro: success_intros simp add: of_list_def)
 
 lemma crel_of_listI [crel_intros]:
-  assumes "(a, h') = array xs h"
+  assumes "(a, h') = alloc xs h"
   shows "crel (of_list xs) h h' a"
   by (rule crelI) (simp add: assms execute_simps)
 
 lemma crel_of_listE [crel_elims]:
   assumes "crel (of_list xs) h h' r"
-  obtains "r = fst (array xs h)" "h' = snd (array xs h)" 
-    "get_array r h' = xs" "array_present h' r" "\<not> array_present h r"
+  obtains "r = fst (alloc xs h)" "h' = snd (alloc xs h)" 
+    "get_array r h' = xs" "present h' r" "\<not> present h r"
   using assms by (rule crelE) (simp add: get_array_init_array_list execute_simps)
 
 lemma execute_make [execute_simps]:
-  "execute (make n f) h = Some (array (map f [0 ..< n]) h)"
+  "execute (make n f) h = Some (alloc (map f [0 ..< n]) h)"
   by (simp add: make_def execute_simps)
 
 lemma success_makeI [success_intros]:
@@ -211,14 +206,14 @@ lemma success_makeI [success_intros]:
   by (auto intro: success_intros simp add: make_def)
 
 lemma crel_makeI [crel_intros]:
-  assumes "(a, h') = array (map f [0 ..< n]) h"
+  assumes "(a, h') = alloc (map f [0 ..< n]) h"
   shows "crel (make n f) h h' a"
   by (rule crelI) (simp add: assms execute_simps)
 
 lemma crel_makeE [crel_elims]:
   assumes "crel (make n f) h h' r"
-  obtains "r = fst (array (map f [0 ..< n]) h)" "h' = snd (array (map f [0 ..< n]) h)" 
-    "get_array r h' = map f [0 ..< n]" "array_present h' r" "\<not> array_present h r"
+  obtains "r = fst (alloc (map f [0 ..< n]) h)" "h' = snd (alloc (map f [0 ..< n]) h)" 
+    "get_array r h' = map f [0 ..< n]" "present h' r" "\<not> present h r"
   using assms by (rule crelE) (simp add: get_array_init_array_list execute_simps)
 
 lemma execute_len [execute_simps]:
@@ -355,7 +350,7 @@ lemma array_of_list_make:
   "of_list xs = make (List.length xs) (\<lambda>n. xs ! n)"
   by (rule Heap_eqI) (simp add: map_nth execute_simps)
 
-hide_const (open) update new of_list make len nth upd map_entry swap freeze
+hide_const (open) present (*get*) set alloc length update noteq new of_list make len nth upd map_entry swap freeze
 
 
 subsection {* Code generator setup *}
@@ -427,12 +422,12 @@ lemma [code]:
 proof (rule Heap_eqI)
   fix h
   have *: "List.map
-     (\<lambda>x. fst (the (if x < length h a
+     (\<lambda>x. fst (the (if x < Array.length h a
                     then Some (get_array a h ! x, h) else None)))
-     [0..<length h a] =
-       List.map (List.nth (get_array a h)) [0..<length h a]"
+     [0..<Array.length h a] =
+       List.map (List.nth (get_array a h)) [0..<Array.length h a]"
     by simp
-  have "execute (Heap_Monad.fold_map (Array.nth a) [0..<length h a]) h =
+  have "execute (Heap_Monad.fold_map (Array.nth a) [0..<Array.length h a]) h =
     Some (get_array a h, h)"
     apply (subst execute_fold_map_unchanged_heap)
     apply (simp_all add: nth_def guard_def *)

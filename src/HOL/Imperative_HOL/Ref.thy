@@ -228,15 +228,15 @@ lemma nth_set [simp]:
 
 lemma get_update [simp]:
   "get (Array.update a i v h) r  = get h r"
-  by (simp add: get_def Array.update_def set_array_def)
+  by (simp add: get_def Array.update_def Array.set_def)
 
 lemma alloc_update:
   "fst (alloc v (Array.update a i v' h)) = fst (alloc v h)"
-  by (simp add: Array.update_def get_array_def set_array_def alloc_def Let_def)
+  by (simp add: Array.update_def get_array_def Array.set_def alloc_def Let_def)
 
 lemma update_set_swap:
   "Array.update a i v (set r v' h) = set r v' (Array.update a i v h)"
-  by (simp add: Array.update_def get_array_def set_array_def set_def)
+  by (simp add: Array.update_def get_array_def Array.set_def set_def)
 
 lemma length_alloc [simp]: 
   "Array.length (snd (alloc v h)) a = Array.length h a"
@@ -248,19 +248,19 @@ lemma get_array_alloc [simp]:
 
 lemma present_update [simp]: 
   "present (Array.update a i v h) = present h"
-  by (simp add: Array.update_def set_array_def expand_fun_eq present_def)
+  by (simp add: Array.update_def Array.set_def expand_fun_eq present_def)
 
 lemma array_present_set [simp]:
-  "array_present (set r v h) = array_present h"
-  by (simp add: array_present_def set_def expand_fun_eq)
+  "Array.present (set r v h) = Array.present h"
+  by (simp add: Array.present_def set_def expand_fun_eq)
 
 lemma array_present_alloc [simp]:
-  "array_present h a \<Longrightarrow> array_present (snd (alloc v h)) a"
-  by (simp add: array_present_def alloc_def Let_def)
+  "Array.present h a \<Longrightarrow> Array.present (snd (alloc v h)) a"
+  by (simp add: Array.present_def alloc_def Let_def)
 
 lemma set_array_set_swap:
-  "set_array a xs (set r x' h) = set r x' (set_array a xs h)"
-  by (simp add: set_array_def set_def)
+  "Array.set a xs (set r x' h) = set r x' (Array.set a xs h)"
+  by (simp add: Array.set_def set_def)
 
 hide_const (open) present get set alloc noteq lookup update change
 
