@@ -150,7 +150,7 @@ lemma crel_refI [crel_intros]:
 
 lemma crel_refE [crel_elims]:
   assumes "crel (ref v) h h' r"
-  obtains "Ref.get h' r = v" and "Ref.present h' r" and "\<not> Ref.present h r"
+  obtains "get h' r = v" and "present h' r" and "\<not> present h r"
   using assms by (rule crelE) (simp add: execute_simps)
 
 lemma execute_lookup [execute_simps]:
@@ -162,13 +162,13 @@ lemma success_lookupI [success_intros]:
   by (auto intro: success_intros  simp add: lookup_def)
 
 lemma crel_lookupI [crel_intros]:
-  assumes "h' = h" "x = Ref.get h r"
+  assumes "h' = h" "x = get h r"
   shows "crel (!r) h h' x"
   by (rule crelI) (insert assms, simp add: execute_simps)
 
 lemma crel_lookupE [crel_elims]:
   assumes "crel (!r) h h' x"
-  obtains "h' = h" "x = Ref.get h r"
+  obtains "h' = h" "x = get h r"
   using assms by (rule crelE) (simp add: execute_simps)
 
 lemma execute_update [execute_simps]:
@@ -180,13 +180,13 @@ lemma success_updateI [success_intros]:
   by (auto intro: success_intros  simp add: update_def)
 
 lemma crel_updateI [crel_intros]:
-  assumes "h' = Ref.set r v h"
+  assumes "h' = set r v h"
   shows "crel (r := v) h h' x"
   by (rule crelI) (insert assms, simp add: execute_simps)
 
 lemma crel_updateE [crel_elims]:
   assumes "crel (r' := v) h h' r"
-  obtains "h' = Ref.set r' v h"
+  obtains "h' = set r' v h"
   using assms by (rule crelE) (simp add: execute_simps)
 
 lemma execute_change [execute_simps]:
@@ -198,13 +198,13 @@ lemma success_changeI [success_intros]:
   by (auto intro!: success_intros crel_intros simp add: change_def)
 
 lemma crel_changeI [crel_intros]: 
-  assumes "h' = Ref.set r (f (Ref.get h r)) h" "x = f (Ref.get h r)"
-  shows "crel (Ref.change f r) h h' x"
+  assumes "h' = set r (f (get h r)) h" "x = f (get h r)"
+  shows "crel (change f r) h h' x"
   by (rule crelI) (insert assms, simp add: execute_simps)  
 
 lemma crel_changeE [crel_elims]:
-  assumes "crel (Ref.change f r') h h' r"
-  obtains "h' = Ref.set r' (f (Ref.get h r')) h" "r = f (Ref.get h r')"
+  assumes "crel (change f r') h h' r"
+  obtains "h' = set r' (f (get h r')) h" "r = f (get h r')"
   using assms by (rule crelE) (simp add: execute_simps)
 
 lemma lookup_chain:
@@ -226,17 +226,17 @@ lemma nth_set [simp]:
   "get_array a (set r v h) ! i = get_array a h ! i"
   by simp
 
-lemma get_change [simp]:
-  "get (Array.change a i v h) r  = get h r"
-  by (simp add: get_def Array.change_def set_array_def)
+lemma get_update [simp]:
+  "get (Array.update a i v h) r  = get h r"
+  by (simp add: get_def Array.update_def set_array_def)
 
-lemma alloc_change:
-  "fst (alloc v (Array.change a i v' h)) = fst (alloc v h)"
-  by (simp add: Array.change_def get_array_def set_array_def alloc_def Let_def)
+lemma alloc_update:
+  "fst (alloc v (Array.update a i v' h)) = fst (alloc v h)"
+  by (simp add: Array.update_def get_array_def set_array_def alloc_def Let_def)
 
-lemma change_set_swap:
-  "Array.change a i v (set r v' h) = set r v' (Array.change a i v h)"
-  by (simp add: Array.change_def get_array_def set_array_def set_def)
+lemma update_set_swap:
+  "Array.update a i v (set r v' h) = set r v' (Array.update a i v h)"
+  by (simp add: Array.update_def get_array_def set_array_def set_def)
 
 lemma length_alloc [simp]: 
   "Array.length a (snd (alloc v h)) = Array.length a h"
@@ -246,9 +246,9 @@ lemma get_array_alloc [simp]:
   "get_array a (snd (alloc v h)) = get_array a h"
   by (simp add: get_array_def alloc_def set_def Let_def)
 
-lemma present_change [simp]: 
-  "present (Array.change a i v h) = present h"
-  by (simp add: Array.change_def set_array_def expand_fun_eq present_def)
+lemma present_update [simp]: 
+  "present (Array.update a i v h) = present h"
+  by (simp add: Array.update_def set_array_def expand_fun_eq present_def)
 
 lemma array_present_set [simp]:
   "array_present a (set r v h) = array_present a h"
@@ -262,7 +262,7 @@ lemma set_array_set_swap:
   "set_array a xs (set r x' h) = set r x' (set_array a xs h)"
   by (simp add: set_array_def set_def)
 
-hide_const (open) present get set alloc lookup update change
+hide_const (open) present get set alloc noteq lookup update change
 
 
 subsection {* Code generator setup *}

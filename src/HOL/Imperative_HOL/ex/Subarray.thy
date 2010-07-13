@@ -11,20 +11,20 @@ begin
 definition subarray :: "nat \<Rightarrow> nat \<Rightarrow> ('a::heap) array \<Rightarrow> heap \<Rightarrow> 'a list" where
   "subarray n m a h \<equiv> sublist' n m (get_array a h)"
 
-lemma subarray_upd: "i \<ge> m \<Longrightarrow> subarray n m a (Array.change a i v h) = subarray n m a h"
-apply (simp add: subarray_def Array.change_def)
+lemma subarray_upd: "i \<ge> m \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h"
+apply (simp add: subarray_def Array.update_def)
 apply (simp add: sublist'_update1)
 done
 
-lemma subarray_upd2: " i < n  \<Longrightarrow> subarray n m a (Array.change a i v h) = subarray n m a h"
-apply (simp add: subarray_def Array.change_def)
+lemma subarray_upd2: " i < n  \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h"
+apply (simp add: subarray_def Array.update_def)
 apply (subst sublist'_update2)
 apply fastsimp
 apply simp
 done
 
-lemma subarray_upd3: "\<lbrakk> n \<le> i; i < m\<rbrakk> \<Longrightarrow> subarray n m a (Array.change a i v h) = subarray n m a h[i - n := v]"
-unfolding subarray_def Array.change_def
+lemma subarray_upd3: "\<lbrakk> n \<le> i; i < m\<rbrakk> \<Longrightarrow> subarray n m a (Array.update a i v h) = subarray n m a h[i - n := v]"
+unfolding subarray_def Array.update_def
 by (simp add: sublist'_update3)
 
 lemma subarray_Nil: "n \<ge> m \<Longrightarrow> subarray n m a h = []"
