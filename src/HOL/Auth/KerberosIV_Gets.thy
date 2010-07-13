@@ -31,8 +31,8 @@ definition
 
 definition
  (* States than an event really appears only once on a trace *)
-  Unique :: "[event, event list] => bool" ("Unique _ on _")
-  where "Unique ev on evs = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
+  Unique :: "[event, event list] => bool" ("Unique _ on _" [0, 50] 50)
+  where "(Unique ev on evs) = (ev \<notin> set (tl (dropWhile (% z. z \<noteq> ev) evs)))"
 
 
 consts
@@ -82,7 +82,7 @@ abbreviation
   "expiredA T evs == authlife + T < CT evs"
 
 abbreviation
-  valid :: "[nat, nat] => bool" ("valid _ wrt _") where
+  valid :: "[nat, nat] => bool" ("valid _ wrt _" [0, 50] 50) where
   "valid T1 wrt T2 == T1 <= replylife + T2"
 
 (*---------------------------------------------------------------------*)
@@ -252,25 +252,19 @@ done
 
 lemma Gets_imp_knows_Spy: 
      "\<lbrakk> Gets B X \<in> set evs; evs \<in> kerbIV_gets \<rbrakk>  \<Longrightarrow> X \<in> knows Spy evs"
-apply (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
-done
+by (blast dest!: Gets_imp_Says Says_imp_knows_Spy)
 
 (*Needed for force to work for example in new_keys_not_used*)
 declare Gets_imp_knows_Spy [THEN parts.Inj, dest]
 
 lemma Gets_imp_knows:
      "\<lbrakk> Gets B X \<in> set evs; evs \<in> kerbIV_gets \<rbrakk>  \<Longrightarrow> X \<in> knows B evs"
-apply (case_tac "B = Spy")
-apply (blast dest!: Gets_imp_knows_Spy)
-apply (blast dest!: Gets_imp_knows_agents)
-done
+by (metis Gets_imp_knows_Spy Gets_imp_knows_agents)
 
 subsection{*Lemmas about @{term authKeys}*}
 
 lemma authKeys_empty: "authKeys [] = {}"
-apply (unfold authKeys_def)
-apply (simp (no_asm))
-done
+by (simp add: authKeys_def)
 
 lemma authKeys_not_insert:
  "(\<forall>A Ta akey Peer.
@@ -308,14 +302,12 @@ subsection{*Forwarding Lemmas*}
 lemma Says_ticket_parts:
      "Says S A (Crypt K \<lbrace>SesKey, B, TimeStamp, Ticket\<rbrace>) \<in> set evs
       \<Longrightarrow> Ticket \<in> parts (spies evs)"
-apply blast
-done
+by blast
 
 lemma Gets_ticket_parts:
      "\<lbrakk>Gets A (Crypt K \<lbrace>SesKey, Peer, Ta, Ticket\<rbrace>) \<in> set evs; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Ticket \<in> parts (spies evs)"
-apply (blast dest: Gets_imp_knows_Spy [THEN parts.Inj])
-done
+by (blast dest: Gets_imp_knows_Spy [THEN parts.Inj])
 
 lemma Oops_range_spies1:
      "\<lbrakk> Says Kas A (Crypt KeyA \<lbrace>Key authK, Peer, Ta, authTicket\<rbrace>)
@@ -619,8 +611,7 @@ lemma servTicket_authentic_Kas:
          (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta,
             Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>\<rbrace>)
         \<in> set evs"
-apply (blast dest!: servTicket_authentic_Tgs K4_imp_K2)
-done
+by (blast dest!: servTicket_authentic_Tgs K4_imp_K2)
 
 lemma u_servTicket_authentic_Kas:
      "\<lbrakk> Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>
@@ -630,8 +621,7 @@ lemma u_servTicket_authentic_Kas:
            Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, Number Ta\<rbrace>\<rbrace>)
              \<in> set evs
            & servKlife + Ts <= authKlife + Ta"
-apply (blast dest!: servTicket_authentic_Tgs u_K4_imp_K2)
-done
+by (blast dest!: servTicket_authentic_Tgs u_K4_imp_K2)
 
 lemma servTicket_authentic:
      "\<lbrakk> Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>
@@ -644,8 +634,7 @@ lemma servTicket_authentic:
      & Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts,
                    Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>)
        \<in> set evs"
-apply (blast dest: servTicket_authentic_Tgs K4_imp_K2)
-done
+by (blast dest: servTicket_authentic_Tgs K4_imp_K2)
 
 lemma u_servTicket_authentic:
      "\<lbrakk> Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>
@@ -659,14 +648,12 @@ lemma u_servTicket_authentic:
                    Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>\<rbrace>)
        \<in> set evs
      & servKlife + Ts <= authKlife + Ta)"
-apply (blast dest: servTicket_authentic_Tgs u_K4_imp_K2)
-done
+by (blast dest: servTicket_authentic_Tgs u_K4_imp_K2)
 
 lemma u_NotexpiredSK_NotexpiredAK:
      "\<lbrakk> \<not> expiredSK Ts evs; servKlife + Ts <= authKlife + Ta \<rbrakk>
       \<Longrightarrow> \<not> expiredAK Ta evs"
-apply (blast dest: leI le_trans dest: leD)
-done
+by (blast dest: leI le_trans dest: leD)
 
 
 subsection{* Reliability: friendly agents send something if something else happened*}
@@ -901,10 +888,7 @@ lemma AKcryptSK_Says [simp]:
                 \<lbrace>Key servK, Agent B, Number Ts,
                   Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace> \<rbrace>)
      | AKcryptSK authK servK evs)"
-apply (unfold AKcryptSK_def)
-apply (simp (no_asm))
-apply blast
-done
+by (auto simp add: AKcryptSK_def)
 
 (*A fresh authK cannot be associated with any other
   (with respect to a given trace). *)
@@ -922,8 +906,7 @@ done
   (with respect to a given trace). *)
 lemma Serv_fresh_not_AKcryptSK:
  "Key servK \<notin> used evs \<Longrightarrow> \<not> AKcryptSK authK servK evs"
-apply (unfold AKcryptSK_def, blast)
-done
+by (unfold AKcryptSK_def, blast)
 
 lemma authK_not_AKcryptSK:
      "\<lbrakk> Crypt (shrK Tgs) \<lbrace>Agent A, Agent Tgs, Key authK, tk\<rbrace>
@@ -940,8 +923,7 @@ apply (simp add: AKcryptSK_def)
 txt{*K2: by freshness*}
 apply (simp add: AKcryptSK_def)
 txt{*K4*}
-apply (blast+)
-done
+by (blast+)
 
 text{*A secure serverkey cannot have been used to encrypt others*}
 lemma servK_not_AKcryptSK:
@@ -962,8 +944,7 @@ txt{*servK can't have been enclosed in two certificates*}
  prefer 2 apply (blast dest: unique_CryptKey)
 txt{*servK is fresh and so could not have been used, by
    @{text new_keys_not_used}*}
-apply (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
-done
+by (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
 
 text{*Long term keys are not issued as servKeys*}
 lemma shrK_not_AKcryptSK:
@@ -971,8 +952,7 @@ lemma shrK_not_AKcryptSK:
 apply (unfold AKcryptSK_def)
 apply (erule kerbIV_gets.induct)
 apply (frule_tac [8] Gets_ticket_parts)
-apply (frule_tac [6] Gets_ticket_parts, auto)
-done
+by (frule_tac [6] Gets_ticket_parts, auto)
 
 text{*The Tgs message associates servK with authK and therefore not with any
   other key authK.*}
@@ -982,8 +962,7 @@ lemma Says_Tgs_AKcryptSK:
          authK' \<noteq> authK;  evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK' servK evs"
 apply (unfold AKcryptSK_def)
-apply (blast dest: unique_servKeys)
-done
+by (blast dest: unique_servKeys)
 
 text{*Equivalently*}
 lemma not_different_AKcryptSK:
@@ -991,8 +970,7 @@ lemma not_different_AKcryptSK:
         authK' \<noteq> authK;  evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK authK' servK evs  \<and> servK \<in> symKeys"
 apply (simp add: AKcryptSK_def)
-apply (blast dest: unique_servKeys Says_Tgs_message_form)
-done
+by (blast dest: unique_servKeys Says_Tgs_message_form)
 
 lemma AKcryptSK_not_AKcryptSK:
      "\<lbrakk> AKcryptSK authK servK evs;  evs \<in> kerbIV_gets \<rbrakk>
@@ -1011,8 +989,7 @@ txt{*servK is fresh and so could not have been used, by
  prefer 2 
  apply (force dest!: Crypt_imp_invKey_keysFor simp add: AKcryptSK_def)
 txt{*Others by freshness*}
-apply (blast+)
-done
+by (blast+)
 
 text{*The only session keys that can be found with the help of session keys are
   those sent by Tgs in step K4.  *}
@@ -1030,23 +1007,20 @@ lemma AKcryptSK_analz_insert:
      "\<lbrakk> AKcryptSK K K' evs; K \<in> symKeys; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Key K' \<in> analz (insert (Key K) (spies evs))"
 apply (simp add: AKcryptSK_def, clarify)
-apply (drule Says_imp_spies [THEN analz.Inj, THEN analz_insertI], auto)
-done
+by (drule Says_imp_spies [THEN analz.Inj, THEN analz_insertI], auto)
 
 lemma authKeys_are_not_AKcryptSK:
      "\<lbrakk> K \<in> authKeys evs Un range shrK;  evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> \<forall>SK. \<not> AKcryptSK SK K evs \<and> K \<in> symKeys"
 apply (simp add: authKeys_def AKcryptSK_def)
-apply (blast dest: Says_Kas_message_form Says_Tgs_message_form)
-done
+by (blast dest: Says_Kas_message_form Says_Tgs_message_form)
 
 lemma not_authKeys_not_AKcryptSK:
      "\<lbrakk> K \<notin> authKeys evs;
          K \<notin> range shrK; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> \<forall>SK. \<not> AKcryptSK K SK evs"
 apply (simp add: AKcryptSK_def)
-apply (blast dest: Says_Tgs_message_form)
-done
+by (blast dest: Says_Tgs_message_form)
 
 
 subsection{*Secrecy Theorems*}
@@ -1058,8 +1032,7 @@ lemma Oops2_not_AKcryptSK:
                      \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
            \<in> set evs \<rbrakk>
       \<Longrightarrow> \<not> AKcryptSK servK SK evs"
-apply (blast dest: AKcryptSKI AKcryptSK_not_AKcryptSK)
-done
+by (blast dest: AKcryptSKI AKcryptSK_not_AKcryptSK)
    
 text{* Big simplification law for keys SK that are not crypted by keys in KK
  It helps prove three, otherwise hard, facts about keys. These facts are
@@ -1107,8 +1080,7 @@ txt{*Another K5 case*}
 apply blast 
 txt{*Oops1*}
 apply simp 
-apply (blast dest!: AKcryptSK_analz_insert)
-done
+by (blast dest!: AKcryptSK_analz_insert)
 
 text{* First simplification law for analz: no session keys encrypt
 authentication keys or shared keys. *}
@@ -1155,8 +1127,7 @@ lemma analz_insert_freshK3_bis:
         \<Longrightarrow> (Key servK \<in> analz (insert (Key authK') (spies evs))) =
                 (servK = authK' | Key servK \<in> analz (spies evs))"
 apply (frule AKcryptSKI, assumption)
-apply (simp add: analz_insert_freshK3)
-done
+by (simp add: analz_insert_freshK3)
 
 text{*a weakness of the protocol*}
 lemma authK_compromises_servK:
@@ -1180,8 +1151,7 @@ apply (simp add: authKeys_def)
 apply (erule kerbIV_gets.induct, analz_mono_contra)
 apply (frule_tac [8] Gets_ticket_parts)
 apply (frule_tac [6] Gets_ticket_parts, simp_all)
-apply (blast+)
-done
+by (blast+)
 
 
 text{*If Spy sees the Authentication Key sent in msg K2, then
@@ -1213,8 +1183,7 @@ apply (blast dest: servK_notin_authKeysD Says_Kas_message_form intro: less_SucI)
 txt{*Oops1*}
 apply (blast dest!: unique_authKeys intro: less_SucI)
 txt{*Oops2*}
-apply (blast dest: Says_Tgs_message_form Says_Kas_message_form)
-done
+by (blast dest: Says_Tgs_message_form Says_Kas_message_form)
 
 lemma Confidentiality_Kas:
      "\<lbrakk> Says Kas A
@@ -1242,7 +1211,7 @@ lemma Confidentiality_lemma [rule_format]:
 apply (erule rev_mp)
 apply (erule rev_mp)
 apply (erule kerbIV_gets.induct)
-apply (rule_tac [10] impI)+;
+apply (rule_tac [10] impI)+
   --{*The Oops1 case is unusual: must simplify
     @{term "Authkey \<notin> analz (spies (ev#evs))"}, not letting
    @{text analz_mono_contra} weaken it to
@@ -1274,8 +1243,7 @@ apply (erule_tac V = "Says Aa Tgs ?X \<in> set ?evs" in thin_rl)
 apply (frule Gets_imp_knows_Spy [THEN parts.Inj, THEN servK_notin_authKeysD])
 apply (assumption, assumption, blast, assumption)
 apply (simp add: analz_insert_freshK2)
-apply (blast dest: Says_imp_spies [THEN parts.Inj] Key_unique_SesKey intro: less_SucI)
-done
+by (blast dest: Says_imp_spies [THEN parts.Inj] Key_unique_SesKey intro: less_SucI)
 
 
 text{* In the real world Tgs can't check wheter authK is secure! *}
@@ -1287,8 +1255,7 @@ lemma Confidentiality_Tgs:
          \<not> expiredSK Ts evs;
          A \<notin> bad;  B \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Key servK \<notin> analz (spies evs)"
-apply (blast dest: Says_Tgs_message_form Confidentiality_lemma)
-done
+by (blast dest: Says_Tgs_message_form Confidentiality_lemma)
 
 text{* In the real world Tgs CAN check what Kas sends! *}
 lemma Confidentiality_Tgs_bis:
@@ -1301,8 +1268,7 @@ lemma Confidentiality_Tgs_bis:
          \<not> expiredAK Ta evs; \<not> expiredSK Ts evs;
          A \<notin> bad;  B \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Key servK \<notin> analz (spies evs)"
-apply (blast dest!: Confidentiality_Kas Confidentiality_Tgs)
-done
+by (blast dest!: Confidentiality_Kas Confidentiality_Tgs)
 
 text{*Most general form*}
 lemmas Confidentiality_Tgs_ter = authTicket_authentic [THEN Confidentiality_Tgs_bis]
@@ -1319,8 +1285,7 @@ lemma servK_authentic_bis_r:
          \<not> expiredAK Ta evs; A \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
  \<Longrightarrow>Says Tgs A (Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>)
        \<in> set evs"
-apply (blast dest: authK_authentic Confidentiality_Auth_A servK_authentic_ter)
-done
+by (blast dest: authK_authentic Confidentiality_Auth_A servK_authentic_ter)
 
 lemma Confidentiality_Serv_A:
      "\<lbrakk> Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta, authTicket\<rbrace>
@@ -1330,25 +1295,9 @@ lemma Confidentiality_Serv_A:
          \<not> expiredAK Ta evs; \<not> expiredSK Ts evs;
          A \<notin> bad;  B \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Key servK \<notin> analz (spies evs)"
-apply (drule authK_authentic, assumption, assumption)
-apply (blast dest: Confidentiality_Kas Says_Kas_message_form servK_authentic_ter Confidentiality_Tgs_bis)
-done
+by (metis Confidentiality_Auth_A Confidentiality_Tgs K4_imp_K2 authK_authentic authTicket_form servK_authentic unique_authKeys)
 
-lemma Confidentiality_B:
-     "\<lbrakk> Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>
-           \<in> parts (spies evs);
-         Crypt authK \<lbrace>Key servK, Agent B, Number Ts, servTicket\<rbrace>
-           \<in> parts (spies evs);
-         Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta, authTicket\<rbrace>
-           \<in> parts (spies evs);
-         \<not> expiredSK Ts evs; \<not> expiredAK Ta evs;
-         A \<notin> bad;  B \<notin> bad; B \<noteq> Tgs; evs \<in> kerbIV_gets \<rbrakk>
-      \<Longrightarrow> Key servK \<notin> analz (spies evs)"
-apply (frule authK_authentic)
-apply (frule_tac [3] Confidentiality_Kas)
-apply (frule_tac [6] servTicket_authentic, auto)
-apply (blast dest!: Confidentiality_Tgs_bis dest: Says_Kas_message_form servK_authentic unique_servKeys unique_authKeys)
-done
+(*deleted Confidentiality_B, which was identical to Confidentiality_Serv_A*)
 
 lemma u_Confidentiality_B:
      "\<lbrakk> Crypt (shrK B) \<lbrace>Agent A, Agent B, Key servK, Number Ts\<rbrace>
@@ -1356,8 +1305,7 @@ lemma u_Confidentiality_B:
          \<not> expiredSK Ts evs;
          A \<notin> bad;  B \<notin> bad;  B \<noteq> Tgs; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Key servK \<notin> analz (spies evs)"
-apply (blast dest: u_servTicket_authentic u_NotexpiredSK_NotexpiredAK Confidentiality_Tgs_bis)
-done
+by (blast dest: u_servTicket_authentic u_NotexpiredSK_NotexpiredAK Confidentiality_Tgs_bis)
 
 
 
@@ -1375,20 +1323,12 @@ lemma A_authenticates_B:
          Key authK \<notin> analz (spies evs); Key servK \<notin> analz (spies evs);
          A \<notin> bad;  B \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
       \<Longrightarrow> Says B A (Crypt servK (Number T3)) \<in> set evs"
-apply (frule authK_authentic)
-apply assumption+
-apply (frule servK_authentic)
-prefer 2 apply (blast dest: authK_authentic Says_Kas_message_form)
-apply assumption+
-apply (blast dest: K4_imp_K2 Key_unique_SesKey intro!: Says_K6)
-(*Single command proof: slower!
-apply (blast dest: authK_authentic servK_authentic Says_Kas_message_form Key_unique_SesKey K4_imp_K2 intro!: Says_K6)
-*)
-done
+by (blast dest: authK_authentic servK_authentic Says_Kas_message_form Key_unique_SesKey K4_imp_K2 intro: Says_K6)
 
 (*These two have never been proved, because never were they needed before!*)
 lemma shrK_in_initState_Server[iff]:  "Key (shrK A) \<in> initState Kas"
 by (induct_tac "A", auto)
+
 lemma shrK_in_knows_Server [iff]: "Key (shrK A) \<in> knows Kas evs"
 by (simp add: initState_subset_knows [THEN subsetD])
 (*Because of our simple model of Tgs, the equivalent for it required an axiom*)
@@ -1399,8 +1339,7 @@ lemma A_authenticates_and_keydist_to_Kas:
       A \<notin> bad;  evs \<in> kerbIV_gets \<rbrakk>
   \<Longrightarrow> Says Kas A (Crypt (shrK A) \<lbrace>Key authK, Peer, Ta, authTicket\<rbrace>) \<in> set evs
   \<and> Key authK \<in> analz(knows Kas evs)"
-apply (force dest!: authK_authentic Says_imp_knows [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
-done
+by (force dest!: authK_authentic Says_imp_knows [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
 
 
 lemma K3_imp_Gets_evs:
@@ -1459,9 +1398,7 @@ apply (frule authK_authentic, assumption+)
 apply (drule servK_authentic_ter, assumption+)
 apply (frule K4_imp_Gets, assumption, erule exE, erule exE)
 apply (drule Gets_imp_knows [THEN analz.Inj, THEN analz.Fst, THEN analz.Decrypt, THEN analz.Snd, THEN analz.Snd, THEN analz.Fst], assumption, force)
-apply (frule Says_imp_knows [THEN analz.Inj, THEN analz.Decrypt, THEN analz.Fst])
-apply (force dest!: authK_authentic Says_Kas_message_form)
-apply simp
+apply (metis Says_imp_knows analz.Fst analz.Inj analz_symKeys_Decrypt authTicket_form)
 done
 
 lemma K5_imp_Gets:
@@ -1479,7 +1416,7 @@ lemma K3_imp_Gets:
   "\<lbrakk> Says A Tgs \<lbrace>authTicket, Crypt authK \<lbrace>Agent A, Number T2\<rbrace>, Agent B\<rbrace>
        \<in> set evs;
     A \<notin> bad; evs \<in> kerbIV_gets \<rbrakk>
- \<Longrightarrow> \<exists> Ta. Gets A (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta, authTicket\<rbrace>) \<in> set evs";
+ \<Longrightarrow> \<exists> Ta. Gets A (Crypt (shrK A) \<lbrace>Key authK, Agent Tgs, Number Ta, authTicket\<rbrace>) \<in> set evs"
 apply (erule rev_mp)
 apply (erule kerbIV_gets.induct)
 apply auto
@@ -1531,8 +1468,6 @@ apply (drule Gets_imp_knows_Spy [THEN parts.Inj], assumption)
 apply (drule A_authenticates_B, assumption+)
 apply (force dest!: K6_imp_Gets Gets_imp_knows [THEN analz.Inj, THEN analz.Fst, THEN analz.Decrypt, THEN analz.Snd, THEN analz.Snd, THEN analz.Fst])
 done
-
- 
 
 end
 
