@@ -439,7 +439,7 @@ fun pretty_haskell_monad c_bind =
           |>> (fn p => semicolon [p, str "<-", print_term vars NOBR t])
       | print_monad print_bind print_term (SOME ((bind, _), false), t) vars = vars
           |> print_bind NOBR bind
-          |>> (fn p => semicolon [str "let", p, str "=", print_term vars NOBR t]);
+          |>> (fn p => semicolon [str "let", str "{", p, str "=", print_term vars NOBR t, str "}"]);
     fun pretty _ [c_bind'] print_term thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
      of SOME (bind, t') => let
           val (binds, t'') = implode_monad c_bind' t'
