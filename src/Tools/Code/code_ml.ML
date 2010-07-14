@@ -12,8 +12,6 @@ sig
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val print_tuple: (Code_Printer.fixity -> 'a -> Pretty.T)
     -> Code_Printer.fixity -> 'a list -> Pretty.T option
-  val check_SML: theory -> unit
-  val check_OCaml: theory -> unit
   val setup: theory -> theory
 end;
 
@@ -952,17 +950,6 @@ fun evaluation_code_of thy target struct_name =
     serialize_ml target print_sml_module print_sml_stmt (SOME struct_name) true);
 
 
-(** formal checking of compiled code **)
-
-fun check_SML thy = Code_Target.external_check thy target_SML
-  "ISABELLE_PROCESS" (fn p => Path.append p (Path.explode "ROOT.ML"))
-  (fn isabelle => fn p => fn _ => isabelle ^ " -r -q -u Pure");
-
-fun check_OCaml thy = Code_Target.external_check thy target_OCaml
-  "EXEC_OCAML" (fn p => Path.append p (Path.explode "ROOT.ocaml"))
-  (fn ocaml => fn p => fn _ => ocaml ^ " -w pu nums.cma " ^ File.shell_path p);
-
-
 (** Isar setup **)
 
 fun isar_serializer_sml module_name =
@@ -977,9 +964,13 @@ fun isar_serializer_ocaml module_name =
 
 val setup =
   Code_Target.add_target
-    (target_SML, { serializer = isar_serializer_sml, literals = literals_sml, check = () })
+    (target_SML, { serializer = isar_serializer_sml, literals = literals_sml,
+      check = { env_var = "ISABELLE_PROCESS", make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
+        make_command = fn isabelle => fn p => fn _ => isabelle ^ " -r -q -u Pure" } })
   #> Code_Target.add_target
-    (target_OCaml, { serializer = isar_serializer_ocaml, literals = literals_ocaml, check = () })
+    (target_OCaml, { serializer = isar_serializer_ocaml, literals = literals_ocaml,
+      check = { env_var = "EXEC_OCAML", make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
+        make_command = fn ocaml => fn p => fn _ => ocaml ^ " -w pu nums.cma " ^ File.shell_path p } })
   #> Code_Target.add_syntax_tyco target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,

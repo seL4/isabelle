@@ -7,7 +7,6 @@ Serializer for Haskell.
 signature CODE_HASKELL =
 sig
   val target: string
-  val check: theory -> unit
   val setup: theory -> theory
 end;
 
@@ -464,14 +463,6 @@ fun add_monad target' raw_c_bind thy =
   else error "Only Haskell target allows for monad syntax" end;
 
 
-(** formal checking of compiled code **)
-
-fun check thy = Code_Target.external_check thy target
-  "EXEC_GHC" I (fn ghc => fn p => fn module_name =>
-    ghc ^ " -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^ module_name ^ ".hs");
-
-
-
 (** Isar setup **)
 
 fun isar_serializer module_name =
@@ -488,7 +479,10 @@ val _ =
 
 val setup =
   Code_Target.add_target
-    (target, { serializer = isar_serializer, literals = literals, check = () })
+    (target, { serializer = isar_serializer, literals = literals,
+      check = { env_var = "EXEC_GHC", make_destination = I,
+        make_command = fn ghc => fn p => fn module_name =>
+          ghc ^ " -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^ module_name ^ ".hs" } })
   #> Code_Target.add_syntax_tyco target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,

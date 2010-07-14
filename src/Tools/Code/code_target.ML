@@ -11,8 +11,9 @@ sig
 
   type serializer
   type literals = Code_Printer.literals
-  val add_target: string * { serializer: serializer, literals: literals, check: unit }
-    -> theory -> theory
+  val add_target: string * { serializer: serializer, literals: literals,
+    check: { env_var: string, make_destination: Path.T -> Path.T,
+      make_command: string -> Path.T -> string -> string } } -> theory -> theory
   val extend_target: string *
       (string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
@@ -35,8 +36,7 @@ sig
   val string: string list -> serialization -> string
   val code_of: theory -> string -> int option -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string
-  val external_check: theory -> string -> string
-    -> (Path.T -> Path.T) -> (string -> Path.T -> string -> string) -> unit
+  val check: theory -> string -> unit
   val set_default_code_width: int -> theory -> theory
   val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
 
@@ -115,7 +115,9 @@ type serializer =
   -> string list                        (*selected statements*)
   -> serialization;
 
-datatype description = Fundamental of { serializer: serializer, literals: Code_Printer.literals, check: unit }
+datatype description = Fundamental of { serializer: serializer, literals: Code_Printer.literals,
+      check: { env_var: string, make_destination: Path.T -> Path.T,
+        make_command: string -> Path.T -> string -> string } }
   | Extension of string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
 
 datatype target = Target of {
@@ -221,15 +223,17 @@ fun set_default_code_width k = (Targets.map o apsnd) (K k);
 
 (* montage *)
 
-fun the_literals thy =
+fun the_fundamental thy =
   let
     val ((targets, _), _) = Targets.get thy;
-    fun literals target = case Symtab.lookup targets target
+    fun fundamental target = case Symtab.lookup targets target
      of SOME data => (case the_description data
-         of Fundamental { literals, ... } => literals
-          | Extension (super, _) => literals super)
+         of Fundamental data => data
+          | Extension (super, _) => fundamental super)
       | NONE => error ("Unknown code target language: " ^ quote target);
-  in literals end;
+  in fundamental end;
+
+fun the_literals thy = #literals o the_fundamental thy;
 
 local
 
@@ -353,8 +357,10 @@ fun read_const_exprs thy cs =
       if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
   in union (op =) cs3 cs1 end;
 
-fun external_check thy target env_var make_destination make_command =
+fun check thy target =
   let
+    val { env_var, make_destination, make_command } =
+      (#check o the_fundamental thy) target;
     val env_param = getenv env_var;
     fun ext_check env_param p =
       let 
@@ -373,6 +379,7 @@ fun external_check thy target env_var make_destination make_command =
     then warning (env_var ^ " not set; skipped code check for " ^ target)
     else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
+
 
 fun export_code thy cs seris =
   let

@@ -7,7 +7,6 @@ Serializer for Scala.
 signature CODE_SCALA =
 sig
   val target: string
-  val check: theory -> unit
   val setup: theory -> theory
 end;
 
@@ -414,14 +413,6 @@ in Literals {
 } end;
 
 
-(** formal checking of compiled code **)
-
-fun check thy = Code_Target.external_check thy target
-  "SCALA_HOME" I (fn scala_home => fn p => fn _ =>
-    Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " *.scala");
-
-
-
 (** Isar setup **)
 
 fun isar_serializer module_name =
@@ -430,7 +421,10 @@ fun isar_serializer module_name =
 
 val setup =
   Code_Target.add_target
-    (target, { serializer = isar_serializer, literals = literals, check = () })
+    (target, { serializer = isar_serializer, literals = literals,
+      check = { env_var = "SCALA_HOME", make_destination = I,
+        make_command = fn scala_home => fn p => fn _ =>
+          Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " *.scala" } })
   #> Code_Target.add_syntax_tyco target "fun"
      (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
         brackify_infix (1, R) fxy (
