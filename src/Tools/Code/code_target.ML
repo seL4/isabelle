@@ -36,7 +36,6 @@ sig
   val string: string list -> serialization -> string
   val code_of: theory -> string -> int option -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string
-  val check: theory -> string -> unit
   val set_default_code_width: int -> theory -> theory
   val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
 
@@ -322,6 +321,27 @@ in
 
 fun serialize thy = mount_serializer thy NONE;
 
+fun check thy names_cs naming program target args =
+  let
+    val module_name = "Code_Test";
+    val { env_var, make_destination, make_command } =
+      (#check o the_fundamental thy) target;
+    val env_param = getenv env_var;
+    fun ext_check env_param p =
+      let 
+        val destination = make_destination p;
+        val _ = file destination (serialize thy target (SOME 80)
+          (SOME module_name) args naming program names_cs);
+        val cmd = make_command env_param destination module_name;
+      in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
+        then error ("Code check failed for " ^ target ^ ": " ^ cmd)
+        else ()
+      end;
+  in if env_param = ""
+    then warning (env_var ^ " not set; skipped code check for " ^ target)
+    else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
+  end;
+
 fun serialize_custom thy (target_name, seri) naming program names =
   mount_serializer thy (SOME seri) target_name NONE NONE [] naming program names (String [])
   |> the;
@@ -357,40 +377,24 @@ fun read_const_exprs thy cs =
       if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
   in union (op =) cs3 cs1 end;
 
-fun check thy target =
-  let
-    val { env_var, make_destination, make_command } =
-      (#check o the_fundamental thy) target;
-    val env_param = getenv env_var;
-    fun ext_check env_param p =
-      let 
-        val module_name = "Code_Test";
-        val (cs, (naming, program)) =
-          Code_Thingol.consts_program thy false (read_const_exprs thy ["*"]);
-        val destination = make_destination p;
-        val _ = file destination (serialize thy target (SOME 80)
-          (SOME module_name) [] naming program cs);
-        val cmd = make_command env_param destination module_name;
-      in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
-        then error ("Code check failed for " ^ target ^ ": " ^ cmd)
-        else ()
-      end;
-  in if env_param = ""
-    then warning (env_var ^ " not set; skipped code check for " ^ target)
-    else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
-  end;
-
-
 fun export_code thy cs seris =
   let
-    val (cs', (naming, program)) = Code_Thingol.consts_program thy false cs;
+    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
     fun mk_seri_dest dest = if dest = "" orelse dest = "-" then export
       else file (Path.explode dest);
     val _ = map (fn (((target, module), dest), args) =>
-      (mk_seri_dest dest (serialize thy target NONE module args naming program cs'))) seris;
+      (mk_seri_dest dest (serialize thy target NONE module args naming program names_cs))) seris;
   in () end;
 
 fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs) seris;
+
+fun check_code thy cs seris =
+  let
+    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
+    val _ = map (fn (target, args) => check thy names_cs naming program target args) seris;
+  in () end;
+
+fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;
 
 
 (** serializer configuration **)
@@ -525,17 +529,20 @@ fun parse_args f args =
 
 (** Isar setup **)
 
-val (inK, module_nameK, fileK) = ("in", "module_name", "file");
+val (inK, module_nameK, fileK, checkingK) = ("in", "module_name", "file", "checking");
+
+val code_expr_argsP = Scan.optional (Parse.$$$ "(" |-- Args.parse --| Parse.$$$ ")") [];
 
 val code_exprP =
-  (Scan.repeat1 Parse.term_group
-  -- Scan.repeat (Parse.$$$ inK |-- Parse.name
-     -- Scan.option (Parse.$$$ module_nameK |-- Parse.name)
-     -- Scan.optional (Parse.$$$ fileK |-- Parse.name) ""
-     -- Scan.optional (Parse.$$$ "(" |-- Args.parse --| Parse.$$$ ")") []
-  ) >> (fn (raw_cs, seris) => export_code_cmd raw_cs seris));
+  Scan.repeat1 Parse.term_group :|-- (fn raw_cs =>
+    ((Parse.$$$ checkingK |-- Scan.repeat (Parse.name -- code_expr_argsP))
+      >> (fn seris => check_code_cmd raw_cs seris)
+    || Scan.repeat (Parse.$$$ inK |-- Parse.name
+       -- Scan.option (Parse.$$$ module_nameK |-- Parse.name)
+       -- Scan.optional (Parse.$$$ fileK |-- Parse.name) ""
+       -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
 
-val _ = List.app Keyword.keyword [inK, module_nameK, fileK];
+val _ = List.app Keyword.keyword [inK, module_nameK, fileK, checkingK];
 
 val _ =
   Outer_Syntax.command "code_class" "define code syntax for class" Keyword.thy_decl (
