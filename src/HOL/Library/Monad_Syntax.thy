@@ -15,21 +15,21 @@ text {*
 *}
 
 consts
-  bindM :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c" (infixr ">>=" 54)
+  bind :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c" (infixr ">>=" 54)
 
 notation (xsymbols)
-  bindM (infixr "\<guillemotright>=" 54)
+  bind (infixr "\<guillemotright>=" 54)
 
 abbreviation (do_notation)
-  bindM_do :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c"
+  bind_do :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c"
 where
-  "bindM_do \<equiv> bindM"
+  "bind_do \<equiv> bind"
 
 notation (output)
-  bindM_do (infixr ">>=" 54)
+  bind_do (infixr ">>=" 54)
 
 notation (xsymbols output)
-  bindM_do (infixr "\<guillemotright>=" 54)
+  bind_do (infixr "\<guillemotright>=" 54)
 
 nonterminals
   do_binds do_bind
@@ -49,9 +49,9 @@ syntax (xsymbols)
 
 translations
   "_do_block (_do_cons (_do_then t) (_do_final e))"
-    == "CONST bindM_do t (\<lambda>_. e)"
+    == "CONST bind_do t (\<lambda>_. e)"
   "_do_block (_do_cons (_do_bind p t) (_do_final e))"
-    == "CONST bindM_do t (\<lambda>p. e)"
+    == "CONST bind_do t (\<lambda>p. e)"
   "_do_block (_do_cons (_do_let p t) bs)"
     == "let p = t in _do_block bs"
   "_do_block (_do_cons b (_do_cons c cs))"
@@ -61,6 +61,9 @@ translations
   "_do_block (_do_final e)" => "e"
   "(m >> n)" => "(m >>= (\<lambda>_. n))"
 
-setup {* Adhoc_Overloading.add_overloaded @{const_name bindM} *}
+setup {*
+  Adhoc_Overloading.add_overloaded @{const_name bind}
+  #> Adhoc_Overloading.add_variant @{const_name bind} @{const_name Predicate.bind}
+*}
 
 end

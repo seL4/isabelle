@@ -266,9 +266,8 @@ definition bind :: "'a Heap \<Rightarrow> ('a \<Rightarrow> 'b Heap) \<Rightarro
 
 setup {*
   Adhoc_Overloading.add_variant 
-    @{const_name Monad_Syntax.bindM} @{const_name Heap_Monad.bind}
+    @{const_name Monad_Syntax.bind} @{const_name Heap_Monad.bind}
 *}
-
 
 lemma execute_bind [execute_simps]:
   "execute f h = Some (x, h') \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g x) h'"
