@@ -508,11 +508,14 @@ newSTRef = Data.STRef.newSTRef;
 readSTRef = Data.STRef.readSTRef;
 writeSTRef = Data.STRef.writeSTRef;
 
-newArray :: (Int, Int) -> a -> ST s (STArray s a);
-newArray = Data.Array.ST.newArray;
+newArray :: Int -> a -> ST s (STArray s a);
+newArray k = Data.Array.ST.newArray (0, k);
 
-newListArray :: (Int, Int) -> [a] -> ST s (STArray s a);
-newListArray = Data.Array.ST.newListArray;
+newListArray :: [a] -> ST s (STArray s a);
+newListArray xs = Data.Array.ST.newListArray (0, length xs) xs;
+
+newFunArray :: Int -> (Int -> a) -> ST s (STArray s a);
+newFunArray k f = Data.Array.ST.newListArray (0, k) (map f [0..k-1]);
 
 lengthArray :: STArray s a -> ST s Int;
 lengthArray a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
@@ -533,5 +536,7 @@ code_const return (Haskell "return")
 code_const Heap_Monad.raise' (Haskell "error")
 
 hide_const (open) Heap heap guard raise' fold_map
+
+export_code return in Haskell file "/tmp/"
 
 end

@@ -363,13 +363,6 @@ lemma [code]:
   "Array.new = new' o Code_Numeral.of_nat"
   by (simp add: new'_def o_def)
 
-definition of_list' where
-  [code del]: "of_list' i xs = Array.of_list (take (Code_Numeral.nat_of i) xs)"
-
-lemma [code]:
-  "Array.of_list xs = of_list' (Code_Numeral.of_nat (List.length xs)) xs"
-  by (simp add: of_list'_def)
-
 definition make' where
   [code del]: "make' i f = Array.make (Code_Numeral.nat_of i) (f o Code_Numeral.of_nat)"
 
@@ -443,7 +436,7 @@ proof (rule Heap_eqI)
     }) h" by (simp add: execute_simps)
 qed
 
-hide_const (open) new' of_list' make' len' nth' upd'
+hide_const (open) new' make' len' nth' upd'
 
 
 text {* SML *}
@@ -451,7 +444,7 @@ text {* SML *}
 code_type array (SML "_/ array")
 code_const Array (SML "raise/ (Fail/ \"bare Array\")")
 code_const Array.new' (SML "(fn/ ()/ =>/ Array.array/ ((_),/ (_)))")
-code_const Array.of_list' (SML "((_); fn/ ()/ =>/ Array.fromList/ _)")
+code_const Array.of_list (SML "(fn/ ()/ =>/ Array.fromList/ _)")
 code_const Array.make' (SML "(fn/ ()/ =>/ Array.tabulate/ ((_),/ (_)))")
 code_const Array.len' (SML "(fn/ ()/ =>/ Array.length/ _)")
 code_const Array.nth' (SML "(fn/ ()/ =>/ Array.sub/ ((_),/ (_)))")
@@ -465,7 +458,9 @@ text {* OCaml *}
 code_type array (OCaml "_/ array")
 code_const Array (OCaml "failwith/ \"bare Array\"")
 code_const Array.new' (OCaml "(fun/ ()/ ->/ Array.make/ (Big'_int.int'_of'_big'_int/ _)/ _)")
-code_const Array.of_list' (OCaml "((_); fun/ ()/ ->/ Array.of'_list/ _)")
+code_const Array.of_list (OCaml "(fun/ ()/ ->/ Array.of'_list/ _)")
+code_const Array.make' (OCaml "(fun/ ()/ ->/ Array.init/ (Big'_int.int'_of'_big'_int/ _)/
+  (fun k'_ ->/ _/ (Big'_int.big'_int'_of'_int/ k'_)))")
 code_const Array.len' (OCaml "(fun/ ()/ ->/ Big'_int.big'_int'_of'_int/ (Array.length/ _))")
 code_const Array.nth' (OCaml "(fun/ ()/ ->/ Array.get/ _/ (Big'_int.int'_of'_big'_int/ _))")
 code_const Array.upd' (OCaml "(fun/ ()/ ->/ Array.set/ _/ (Big'_int.int'_of'_big'_int/ _)/ _)")
@@ -477,8 +472,9 @@ text {* Haskell *}
 
 code_type array (Haskell "Heap.STArray/ Heap.RealWorld/ _")
 code_const Array (Haskell "error/ \"bare Array\"")
-code_const Array.new' (Haskell "Heap.newArray/ (0,/ _)")
-code_const Array.of_list' (Haskell "Heap.newListArray/ (0,/ _)")
+code_const Array.new' (Haskell "Heap.newArray")
+code_const Array.of_list (Haskell "Heap.newListArray")
+code_const Array.make' (Haskell "Heap.newFunArray")
 code_const Array.len' (Haskell "Heap.lengthArray")
 code_const Array.nth' (Haskell "Heap.readArray")
 code_const Array.upd' (Haskell "Heap.writeArray")
