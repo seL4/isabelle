@@ -446,7 +446,7 @@ fun pretty_haskell_monad c_bind =
           val (ps, vars') = fold_map (print_monad (gen_print_bind (K print_term) thm) print_term)
             (bind :: binds) vars;
         in
-          (brackify fxy o single o enclose "do {" "}" o Pretty.breaks)
+          (brackify fxy o single o enclose "do { " " }" o Pretty.breaks)
             (ps @| print_term vars' NOBR t'')
         end
       | NONE => brackify_infix (1, L) fxy
