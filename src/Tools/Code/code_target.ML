@@ -364,7 +364,7 @@ fun external_check thy target env_var make_destination make_command p =
         val _ = file destination (serialize thy target (SOME 80)
           (SOME module_name) [] naming program cs);
         val cmd = make_command env_param destination module_name;
-      in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd) <> 0
+      in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target ^ ": " ^ cmd)
         else ()
       end;
