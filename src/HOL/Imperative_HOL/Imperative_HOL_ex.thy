@@ -10,4 +10,6 @@ imports Imperative_HOL
   "ex/Imperative_Quicksort" "ex/Imperative_Reverse" "ex/Linked_Lists" "ex/SatChecker"
 begin
 
+export_code "Array.*" "Ref.*" checking SML SML_imp OCaml? OCaml_imp? Haskell?
+
 end

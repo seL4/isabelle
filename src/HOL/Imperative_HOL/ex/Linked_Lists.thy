@@ -991,10 +991,6 @@ qed
 
 section {* Code generation *}
 
-export_code merge in SML file -
-
-export_code rev in SML file -
-
 text {* A simple example program *}
 
 definition test_1 where "test_1 = (do { ll_xs <- make_llist [1..(15::int)]; xs <- traverse ll_xs; return xs })" 
@@ -1018,9 +1014,6 @@ ML {* @{code test_1} () *}
 ML {* @{code test_2} () *}
 ML {* @{code test_3} () *}
 
-export_code test_1 test_2 test_3 in SML_imp module_name QSort file -
-export_code test_1 test_2 test_3 in OCaml module_name QSort file -
-export_code test_1 test_2 test_3 in OCaml_imp module_name QSort file -
-export_code test_1 test_2 test_3 in Haskell module_name QSort file -
+export_code test_1 test_2 test_3 checking SML SML_imp OCaml? OCaml_imp? Haskell?
 
 end

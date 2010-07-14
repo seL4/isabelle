@@ -346,6 +346,6 @@ record ('a, 'b, 'c) bar = bar1 :: 'a
 
 subsection {* Some code generation *}
 
-export_code foo1 foo3 foo5 foo10 foo11 in SML file -
+export_code foo1 foo3 foo5 foo10 checking SML
 
 end

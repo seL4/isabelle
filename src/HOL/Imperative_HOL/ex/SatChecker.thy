@@ -710,8 +710,6 @@ code_type ProofStep
 code_const ProofDone  and  Root              and  Conflict              and  Delete  and  Xstep
      (SML "MinisatProofStep.ProofDone" and "MinisatProofStep.Root ((_),/ (_))" and "MinisatProofStep.Conflict ((_),/ (_))" and "MinisatProofStep.Delete" and "MinisatProofStep.Xstep ((_),/ (_))")
 
-export_code checker in SML module_name SAT file -
-export_code tchecker in SML module_name SAT file -
-export_code lchecker in SML module_name SAT file -
+export_code checker tchecker lchecker in SML
 
 end

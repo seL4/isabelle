@@ -988,9 +988,9 @@ simproc_setup semiring_assoc_fold' ("(a::'a::semiring_numeral) * b") =
 subsection {* Toy examples *}
 
 definition "bar \<longleftrightarrow> #4 * #2 + #7 = (#8 :: nat) \<and> #4 * #2 + #7 \<ge> (#8 :: int) - #3"
+
 code_thms bar
-export_code bar in Haskell file -
-export_code bar in OCaml module_name Foo file -
-ML {* @{code bar} *}
+
+export_code bar checking SML OCaml? Haskell?
 
 end
