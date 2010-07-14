@@ -1014,9 +1014,9 @@ Isabelle/Pure provides two generic frameworks to support code
   \end{matharray}
 
   \begin{rail}
-    'export\_code' ( constexpr + ) \\
-      ( ( 'in' target ( 'module\_name' string ) ? \\
-        'file' ( string | '-' ) ( '(' args ')' ) ?) + ) ?
+     'export\_code' ( constexpr + ) \\
+       ( ( 'in' target ( 'module\_name' string ) ? \\
+        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
     ;
 
     const: term
@@ -1106,7 +1106,7 @@ Isabelle/Pure provides two generic frameworks to support code
   For \emph{SML} and \emph{OCaml}, the file specification refers to a
   single file; for \emph{Haskell}, it refers to a whole directory,
   where code is generated in multiple files reflecting the module
-  hierarchy.  The file specification ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' denotes standard
+  hierarchy.  Omitting the file specification denotes standard
   output.
 
   Serializers take an optional list of arguments in parentheses.  For

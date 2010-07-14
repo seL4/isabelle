@@ -998,9 +998,9 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    'export\_code' ( constexpr + ) \\
-      ( ( 'in' target ( 'module\_name' string ) ? \\
-        'file' ( string | '-' ) ( '(' args ')' ) ?) + ) ?
+     'export\_code' ( constexpr + ) \\
+       ( ( 'in' target ( 'module\_name' string ) ? \\
+        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
     ;
 
     const: term
@@ -1091,7 +1091,7 @@ text {*
   For \emph{SML} and \emph{OCaml}, the file specification refers to a
   single file; for \emph{Haskell}, it refers to a whole directory,
   where code is generated in multiple files reflecting the module
-  hierarchy.  The file specification ``@{text "-"}'' denotes standard
+  hierarchy.  Omitting the file specification denotes standard
   output.
 
   Serializers take an optional list of arguments in parentheses.  For

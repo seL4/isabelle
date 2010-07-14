@@ -17,6 +17,9 @@ merely give a byte-oriented representation.
 
 *** HOL ***
 
+* code generator: export_code without explicit file declaration prints
+to standard output.  INCOMPATIBILITY.
+
 * Abolished symbol type names:  "prod" and "sum" replace "*" and "+"
 respectively.  INCOMPATIBILITY.
 
