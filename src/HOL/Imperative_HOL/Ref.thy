@@ -277,10 +277,10 @@ code_reserved SML ref
 text {* OCaml *}
 
 code_type ref (OCaml "_/ ref")
-code_const Ref (OCaml "failwith/ \"bare Ref\")")
-code_const ref (OCaml "(fn/ ()/ =>/ ref/ _)")
-code_const Ref.lookup (OCaml "(fn/ ()/ =>/ !/ _)")
-code_const Ref.update (OCaml "(fn/ ()/ =>/ _/ :=/ _)")
+code_const Ref (OCaml "failwith/ \"bare Ref\"")
+code_const ref (OCaml "(fun/ ()/ ->/ ref/ _)")
+code_const Ref.lookup (OCaml "(fun/ ()/ ->/ !/ _)")
+code_const Ref.update (OCaml "(fun/ ()/ ->/ _/ :=/ _)")
 
 code_reserved OCaml ref
 
