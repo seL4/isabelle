@@ -56,9 +56,7 @@ text {*
 *}
 
 notation fcomp (infixl "\<circ>>" 60)
-notation (xsymbols) fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "o->" 60)
-notation (xsymbols) scomp (infixl "\<circ>\<rightarrow>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 abbreviation (input)
   "return \<equiv> Pair"
@@ -112,9 +110,13 @@ text {*
 
 lemmas monad_collapse = monad_simp fcomp_apply scomp_apply split_beta
 
+
+subsection {* Do-syntax *}
+
 setup {*
-  Adhoc_Overloading.add_variant @{const_name bindM} @{const_name scomp}
+  Adhoc_Overloading.add_variant @{const_name bind} @{const_name scomp}
 *}
+
 
 text {*
   For an example, see HOL/Extraction/Higman.thy.
