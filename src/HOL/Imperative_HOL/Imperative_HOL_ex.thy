@@ -10,6 +10,10 @@ imports Imperative_HOL
   "ex/Imperative_Quicksort" "ex/Imperative_Reverse" "ex/Linked_Lists" "ex/SatChecker"
 begin
 
-export_code "Array.*" "Ref.*" checking SML SML_imp OCaml? OCaml_imp? Haskell?
+definition "everything = (Array.new, Array.of_list, (*Array.make,*) Array.len, Array.nth,
+  Array.upd, Array.map_entry, Array.swap, Array.freeze,
+  ref, Ref.lookup, Ref.update(*, Ref.change*))"
+
+export_code everything checking SML SML_imp OCaml? OCaml_imp? Haskell?
 
 end
