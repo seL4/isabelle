@@ -106,6 +106,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/quantifier1.ML \
   $(SRC)/Provers/splitter.ML \
+  $(SRC)/Tools/cache_io.ML \
   $(SRC)/Tools/Code/code_eval.ML \
   $(SRC)/Tools/Code/code_haskell.ML \
   $(SRC)/Tools/Code/code_ml.ML \
@@ -266,7 +267,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
-  $(SRC)/Tools/cache_io.ML \
   $(SRC)/Tools/Metis/metis.ML \
   Tools/ATP_Manager/async_manager.ML \
   Tools/ATP_Manager/atp_manager.ML \
@@ -397,7 +397,8 @@ HOL-Library: HOL $(OUT)/HOL-Library
 
 $(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
   $(SRC)/HOL/Tools/float_arith.ML $(SRC)/Tools/float.ML			\
-  Library/Abstract_Rat.thy Library/Adhoc_Overloading.thy Library/AssocList.thy	\
+  Library/Abstract_Rat.thy $(SRC)/Tools/Adhoc_Overloading.thy		\
+  Library/AssocList.thy							\
   Library/BigO.thy Library/Binomial.thy Library/Bit.thy			\
   Library/Boolean_Algebra.thy Library/Cardinality.thy			\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
@@ -415,7 +416,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
   Library/Lattice_Syntax.thy Library/Library.thy			\
   Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
   Library/Monad_Syntax.thy Library/More_List.thy Library/More_Set.thy	\
-  Library/Multiset.thy Library/Nat_Bijection.thy Library/Nat_Infinity.thy	\
+  Library/Multiset.thy Library/Nat_Bijection.thy			\
+  Library/Nat_Infinity.thy						\
   Library/Nested_Environment.thy Library/Numeral_Type.thy		\
   Library/OptionalSugar.thy Library/Order_Relation.thy			\
   Library/Permutation.thy Library/Permutations.thy			\
@@ -434,7 +436,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
   Library/Sum_Of_Squares/sum_of_squares.ML				\
   Library/Transitive_Closure_Table.thy Library/Univ_Poly.thy		\
   Library/While_Combinator.thy Library/Zorn.thy				\
-  Library/adhoc_overloading.ML Library/positivstellensatz.ML		\
+  $(SRC)/Tools/adhoc_overloading.ML Library/positivstellensatz.ML	\
   Library/reflection.ML Library/reify_data.ML				\
   Library/document/root.bib Library/document/root.tex
 	@cd Library; $(ISABELLE_TOOL) usedir -b -f HOL_Library_ROOT.ML $(OUT)/HOL HOL-Library

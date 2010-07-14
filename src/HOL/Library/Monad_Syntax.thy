@@ -5,7 +5,7 @@
 header {* Monad notation for arbitrary types *}
 
 theory Monad_Syntax
-imports Adhoc_Overloading
+imports "~~/src/Tools/Adhoc_Overloading"
 begin
 
 text {*

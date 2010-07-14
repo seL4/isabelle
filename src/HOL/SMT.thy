@@ -7,7 +7,6 @@ header {* Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 theory SMT
 imports List
 uses
-  "~~/src/Tools/cache_io.ML"
   ("Tools/SMT/smt_monomorph.ML")
   ("Tools/SMT/smt_normalize.ML")
   ("Tools/SMT/smt_translate.ML")

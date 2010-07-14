@@ -5,10 +5,11 @@
 header {* Ad-hoc overloading of constants based on their types *}
 
 theory Adhoc_Overloading
-imports Main
+imports Pure
 uses "adhoc_overloading.ML"
 begin
 
 setup Adhoc_Overloading.setup
 
 end
+
