@@ -321,7 +321,7 @@ in
 
 fun serialize thy = mount_serializer thy NONE;
 
-fun check thy names_cs naming program target args =
+fun check thy names_cs naming program target strict args =
   let
     val module_name = "Code_Test";
     val { env_var, make_destination, make_command } =
@@ -338,7 +338,9 @@ fun check thy names_cs naming program target args =
         else ()
       end;
   in if env_param = ""
-    then warning (env_var ^ " not set; skipped code check for " ^ target)
+    then if strict
+      then error (env_var ^ " not set; cannot check code for " ^ target)
+      else warning (env_var ^ " not set; skipped checking code for " ^ target)
     else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
 
@@ -391,7 +393,8 @@ fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw
 fun check_code thy cs seris =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-    val _ = map (fn (target, args) => check thy names_cs naming program target args) seris;
+    val _ = map (fn ((target, strict), args) => check thy names_cs naming program
+      target strict args) seris;
   in () end;
 
 fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;
@@ -535,7 +538,8 @@ val code_expr_argsP = Scan.optional (Parse.$$$ "(" |-- Args.parse --| Parse.$$$ 
 
 val code_exprP =
   Scan.repeat1 Parse.term_group :|-- (fn raw_cs =>
-    ((Parse.$$$ checkingK |-- Scan.repeat (Parse.name -- code_expr_argsP))
+    ((Parse.$$$ checkingK |-- Scan.repeat (Parse.name
+      -- ((Parse.$$$ "?" |-- Scan.succeed false) || Scan.succeed true) -- code_expr_argsP))
       >> (fn seris => check_code_cmd raw_cs seris)
     || Scan.repeat (Parse.$$$ inK |-- Parse.name
        -- Scan.option (Parse.$$$ module_nameK |-- Parse.name)
