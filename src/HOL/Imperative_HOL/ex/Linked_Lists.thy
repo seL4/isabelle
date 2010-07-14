@@ -550,7 +550,7 @@ lemma rev'_simps [code]:
   }"
   unfolding rev'_def MREC_rule[of _ _ "(q, p)"] unfolding rev'_def[symmetric]
 thm arg_cong2
-  by (auto simp add: expand_fun_eq intro: arg_cong2[where f = "op \<guillemotright>="] split: node.split)
+  by (auto simp add: expand_fun_eq intro: arg_cong2[where f = bind] split: node.split)
 
 primrec rev :: "('a:: heap) node \<Rightarrow> 'a node Heap" 
 where

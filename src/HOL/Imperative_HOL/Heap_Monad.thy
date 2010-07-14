@@ -311,7 +311,7 @@ lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
 lemma bind_return [simp]: "f \<guillemotright>= return = f"
   by (rule Heap_eqI) (simp add: bind_def execute_simps split: option.splits)
 
-lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = f \<guillemotright>= (\<lambda>x. g x \<guillemotright>= k)"
+lemma bind_bind [simp]: "(f \<guillemotright>= g) \<guillemotright>= k = (f :: 'a Heap) \<guillemotright>= (\<lambda>x. g x \<guillemotright>= k)"
   by (rule Heap_eqI) (simp add: bind_def execute_simps split: option.splits)
 
 lemma raise_bind [simp]: "raise e \<guillemotright>= f = raise e"
@@ -410,14 +410,14 @@ code_datatype raise' -- {* avoid @{const "Heap"} formally *}
 subsubsection {* SML and OCaml *}
 
 code_type Heap (SML "unit/ ->/ _")
-code_const "op \<guillemotright>=" (SML "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())")
+code_const bind (SML "!(fn/ f'_/ =>/ fn/ ()/ =>/ f'_/ (_/ ())/ ())")
 code_const return (SML "!(fn/ ()/ =>/ _)")
 code_const Heap_Monad.raise' (SML "!(raise/ Fail/ _)")
 
 code_type Heap (OCaml "unit/ ->/ _")
-code_const "op \<guillemotright>=" (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
+code_const bind (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
 code_const return (OCaml "!(fun/ ()/ ->/ _)")
-code_const Heap_Monad.raise' (OCaml "failwith/ _")
+code_const Heap_Monad.raise' (OCaml "failwith")
 
 setup {*
 
@@ -530,7 +530,7 @@ text {* Monad *}
 code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
 code_monad bind Haskell
 code_const return (Haskell "return")
-code_const Heap_Monad.raise' (Haskell "error/ _")
+code_const Heap_Monad.raise' (Haskell "error")
 
 hide_const (open) Heap heap guard raise' fold_map
 
