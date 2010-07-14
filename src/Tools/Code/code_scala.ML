@@ -7,7 +7,7 @@ Serializer for Scala.
 signature CODE_SCALA =
 sig
   val target: string
-  val check: theory -> Path.T -> unit
+  val check: theory -> unit
   val setup: theory -> theory
 end;
 

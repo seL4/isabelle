@@ -35,7 +35,7 @@ sig
   val code_of: theory -> string -> int option -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string
   val external_check: theory -> string -> string
-    -> (Path.T -> Path.T) -> (string -> Path.T -> string -> string) -> Path.T -> unit
+    -> (Path.T -> Path.T) -> (string -> Path.T -> string -> string) -> unit
   val set_default_code_width: int -> theory -> theory
   val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
 
@@ -352,10 +352,10 @@ fun read_const_exprs thy cs =
       if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
   in union (op =) cs3 cs1 end;
 
-fun external_check thy target env_var make_destination make_command p =
+fun external_check thy target env_var make_destination make_command =
   let
     val env_param = getenv env_var;
-    fun ext_check env_param =
+    fun ext_check env_param p =
       let 
         val module_name = "Code_Test";
         val (cs, (naming, program)) =
@@ -370,7 +370,7 @@ fun external_check thy target env_var make_destination make_command p =
       end;
   in if env_param = ""
     then warning (env_var ^ " not set; skipped code check for " ^ target)
-    else ext_check env_param
+    else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
 
 fun export_code thy cs seris =

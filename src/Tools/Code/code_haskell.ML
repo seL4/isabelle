@@ -7,7 +7,7 @@ Serializer for Haskell.
 signature CODE_HASKELL =
 sig
   val target: string
-  val check: theory -> Path.T -> unit
+  val check: theory -> unit
   val setup: theory -> theory
 end;
 

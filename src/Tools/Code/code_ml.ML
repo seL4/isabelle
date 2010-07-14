@@ -12,8 +12,8 @@ sig
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val print_tuple: (Code_Printer.fixity -> 'a -> Pretty.T)
     -> Code_Printer.fixity -> 'a list -> Pretty.T option
-  val check_SML: theory -> Path.T -> unit
-  val check_OCaml: theory -> Path.T -> unit
+  val check_SML: theory -> unit
+  val check_OCaml: theory -> unit
   val setup: theory -> theory
 end;
 

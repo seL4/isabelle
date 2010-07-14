@@ -15,15 +15,15 @@ text {*
 *}
 
 export_code "*" in SML module_name Code_Test file -
-ML {* Cache_IO.with_tmp_dir "Code_Test" (Code_ML.check_SML @{theory}) *}
+ML {* Code_ML.check_SML @{theory} *}
 
 export_code "*" in OCaml module_name Code_Test file -
-ML {* Cache_IO.with_tmp_dir "Code_Test" (Code_ML.check_OCaml @{theory}) *}
+ML {* Code_ML.check_OCaml @{theory} *}
 
 export_code "*" in Haskell module_name Code_Test file -
-ML {* Cache_IO.with_tmp_dir "Code_Test" (Code_Haskell.check @{theory}) *}
+ML {* Code_Haskell.check @{theory} *}
 
 export_code "*" in Scala module_name Code_Test file -
-ML {* Cache_IO.with_tmp_dir "Code_Test" (Code_Scala.check @{theory}) *}
+ML {* Code_Scala.check @{theory} *}
 
 end
