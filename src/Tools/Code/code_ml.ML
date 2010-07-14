@@ -948,8 +948,8 @@ end; (*local*)
 (** for instrumentalization **)
 
 fun evaluation_code_of thy target struct_name =
-  Code_Target.serialize_custom thy (target, (fn _ => fn [] =>
-    serialize_ml target print_sml_module print_sml_stmt (SOME struct_name) true, literals_sml));
+  Code_Target.serialize_custom thy (target, fn _ => fn [] =>
+    serialize_ml target print_sml_module print_sml_stmt (SOME struct_name) true);
 
 
 (** formal checking of compiled code **)
@@ -965,19 +965,21 @@ fun check_OCaml thy = Code_Target.external_check thy target_OCaml
 
 (** Isar setup **)
 
-fun isar_seri_sml module_name =
+fun isar_serializer_sml module_name =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_SML
       print_sml_module print_sml_stmt module_name with_signatures));
 
-fun isar_seri_ocaml module_name =
+fun isar_serializer_ocaml module_name =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_OCaml
       print_ocaml_module print_ocaml_stmt module_name with_signatures));
 
 val setup =
-  Code_Target.add_target (target_SML, (isar_seri_sml, literals_sml))
-  #> Code_Target.add_target (target_OCaml, (isar_seri_ocaml, literals_ocaml))
+  Code_Target.add_target
+    (target_SML, { serializer = isar_serializer_sml, literals = literals_sml, check = () })
+  #> Code_Target.add_target
+    (target_OCaml, { serializer = isar_serializer_ocaml, literals = literals_ocaml, check = () })
   #> Code_Target.add_syntax_tyco target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,

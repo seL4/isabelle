@@ -424,12 +424,13 @@ fun check thy = Code_Target.external_check thy target
 
 (** Isar setup **)
 
-fun isar_seri_scala module_name =
+fun isar_serializer module_name =
   Code_Target.parse_args (Scan.succeed ())
   #> (fn () => serialize_scala module_name);
 
 val setup =
-  Code_Target.add_target (target, (isar_seri_scala, literals))
+  Code_Target.add_target
+    (target, { serializer = isar_serializer, literals = literals, check = () })
   #> Code_Target.add_syntax_tyco target "fun"
      (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
         brackify_infix (1, R) fxy (

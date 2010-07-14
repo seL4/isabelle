@@ -474,7 +474,7 @@ fun check thy = Code_Target.external_check thy target
 
 (** Isar setup **)
 
-fun isar_seri_haskell module_name =
+fun isar_serializer module_name =
   Code_Target.parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
     -- Scan.optional (Args.$$$ "string_classes" >> K true) false
     >> (fn (module_prefix, string_classes) =>
@@ -487,7 +487,8 @@ val _ =
   );
 
 val setup =
-  Code_Target.add_target (target, (isar_seri_haskell, literals))
+  Code_Target.add_target
+    (target, { serializer = isar_serializer, literals = literals, check = () })
   #> Code_Target.add_syntax_tyco target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
