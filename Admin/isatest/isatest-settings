@@ -15,7 +15,7 @@ MAILTO="kleing@cse.unsw.edu.au nipkow@in.tum.de berghofe@in.tum.de schirmer@in.t
 
 LOGPREFIX=$HOME/log
 MASTERLOG=$LOGPREFIX/isatest.log
-LOGSERVER=macbroy23.informatik.tu-muenchen.de
+LOGSERVER=macbroy28.informatik.tu-muenchen.de
 
 ERRORDIR=$HOME/var
 ERRORLOG=$ERRORDIR/error.log
