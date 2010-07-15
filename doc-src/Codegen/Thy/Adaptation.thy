@@ -220,12 +220,12 @@ text {*
   infix ``@{verbatim "*"}'' type constructor and parentheses:
 *}
 (*<*)
-code_type %invisible *
+code_type %invisible prod
   (SML)
 code_const %invisible Pair
   (SML)
 (*>*)
-code_type %quotett *
+code_type %quotett prod
   (SML infix 2 "*")
 code_const %quotett Pair
   (SML "!((_),/ (_))")
