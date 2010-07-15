@@ -62,7 +62,7 @@ text {*
   term @{term [source] "power.powers (\<lambda>n (f :: 'a \<Rightarrow> 'a). f ^^ n)"}
   (see \cite{isabelle-locale} for the details behind).
 
-  Furtunately, with minor effort the desired behaviour can be achieved.
+  Fortunately, with minor effort the desired behaviour can be achieved.
   First, a dedicated definition of the constant on which the local @{text "powers"}
   after interpretation is supposed to be mapped on:
 *}
