@@ -537,6 +537,4 @@ code_const Heap_Monad.raise' (Haskell "error")
 
 hide_const (open) Heap heap guard raise' fold_map
 
-export_code return in Haskell file "/tmp/"
-
 end
