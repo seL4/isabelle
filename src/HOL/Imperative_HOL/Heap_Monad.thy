@@ -419,6 +419,69 @@ code_const bind (OCaml "!(fun/ f'_/ ()/ ->/ f'_/ (_/ ())/ ())")
 code_const return (OCaml "!(fun/ ()/ ->/ _)")
 code_const Heap_Monad.raise' (OCaml "failwith")
 
+
+subsubsection {* Haskell *}
+
+text {* Adaption layer *}
+
+code_include Haskell "Heap"
+{*import qualified Control.Monad;
+import qualified Control.Monad.ST;
+import qualified Data.STRef;
+import qualified Data.Array.ST;
+
+type RealWorld = Control.Monad.ST.RealWorld;
+type ST s a = Control.Monad.ST.ST s a;
+type STRef s a = Data.STRef.STRef s a;
+type STArray s a = Data.Array.ST.STArray s Int a;
+
+newSTRef = Data.STRef.newSTRef;
+readSTRef = Data.STRef.readSTRef;
+writeSTRef = Data.STRef.writeSTRef;
+
+newArray :: Int -> a -> ST s (STArray s a);
+newArray k = Data.Array.ST.newArray (0, k);
+
+newListArray :: [a] -> ST s (STArray s a);
+newListArray xs = Data.Array.ST.newListArray (0, length xs) xs;
+
+newFunArray :: Int -> (Int -> a) -> ST s (STArray s a);
+newFunArray k f = Data.Array.ST.newListArray (0, k) (map f [0..k-1]);
+
+lengthArray :: STArray s a -> ST s Int;
+lengthArray a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
+
+readArray :: STArray s a -> Int -> ST s a;
+readArray = Data.Array.ST.readArray;
+
+writeArray :: STArray s a -> Int -> a -> ST s ();
+writeArray = Data.Array.ST.writeArray;*}
+
+code_reserved Haskell Heap
+
+text {* Monad *}
+
+code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
+code_monad bind Haskell
+code_const return (Haskell "return")
+code_const Heap_Monad.raise' (Haskell "error")
+
+
+subsubsection {* Scala *}
+
+code_include Haskell "Heap"
+{*def bind[A, B](f: Unit => A, g: A => Unit => B, u: Unit): B = g (f ()) ()*}
+
+code_reserved Scala Heap
+
+code_type Heap (Scala "Unit/ =>/ _")
+code_const bind (Scala "Heap.bind")
+code_const return (Scala "!(()/ =>/ _)")
+code_const Heap_Monad.raise' (Scala "!error(_)")
+
+
+subsubsection {* Target variants with less units *}
+
 setup {*
 
 let
@@ -483,57 +546,12 @@ in
 
 Code_Target.extend_target ("SML_imp", ("SML", imp_program))
 #> Code_Target.extend_target ("OCaml_imp", ("OCaml", imp_program))
+#> Code_Target.extend_target ("Scala_imp", ("Scala", imp_program))
 
 end
 
 *}
 
-
-subsubsection {* Haskell *}
-
-text {* Adaption layer *}
-
-code_include Haskell "Heap"
-{*import qualified Control.Monad;
-import qualified Control.Monad.ST;
-import qualified Data.STRef;
-import qualified Data.Array.ST;
-
-type RealWorld = Control.Monad.ST.RealWorld;
-type ST s a = Control.Monad.ST.ST s a;
-type STRef s a = Data.STRef.STRef s a;
-type STArray s a = Data.Array.ST.STArray s Int a;
-
-newSTRef = Data.STRef.newSTRef;
-readSTRef = Data.STRef.readSTRef;
-writeSTRef = Data.STRef.writeSTRef;
-
-newArray :: Int -> a -> ST s (STArray s a);
-newArray k = Data.Array.ST.newArray (0, k);
-
-newListArray :: [a] -> ST s (STArray s a);
-newListArray xs = Data.Array.ST.newListArray (0, length xs) xs;
-
-newFunArray :: Int -> (Int -> a) -> ST s (STArray s a);
-newFunArray k f = Data.Array.ST.newListArray (0, k) (map f [0..k-1]);
-
-lengthArray :: STArray s a -> ST s Int;
-lengthArray a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
-
-readArray :: STArray s a -> Int -> ST s a;
-readArray = Data.Array.ST.readArray;
-
-writeArray :: STArray s a -> Int -> a -> ST s ();
-writeArray = Data.Array.ST.writeArray;*}
-
-code_reserved Haskell Heap
-
-text {* Monad *}
-
-code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
-code_monad bind Haskell
-code_const return (Haskell "return")
-code_const Heap_Monad.raise' (Haskell "error")
 
 hide_const (open) Heap heap guard raise' fold_map
 
