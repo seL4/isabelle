@@ -222,10 +222,12 @@ fun unfold_abs_eta [] t = ([], t)
         val vs_tys = (map o apfst) SOME (Name.names ctxt "a" tys);
       in (vs_tys, t `$$ map (IVar o fst) vs_tys) end;
 
-fun eta_expand k (c as (_, (_, tys)), ts) =
+fun eta_expand k (c as (name, (_, tys)), ts) =
   let
     val j = length ts;
     val l = k - j;
+    val _ = if l > length tys
+      then error ("Impossible eta-expansion for constant " ^ quote name) else ();
     val ctxt = (fold o fold_varnames) Name.declare ts Name.context;
     val vs_tys = (map o apfst) SOME
       (Name.names ctxt "a" ((take l o drop j) tys));

@@ -425,32 +425,32 @@ fun cert_inst thy (class, tyco) =
 fun read_inst thy (raw_tyco, raw_class) =
   (read_class thy raw_class, read_tyco thy raw_tyco);
 
-fun gen_add_syntax upd del mapp check_x check_raw_syn prep_syn prep_x target raw_x some_raw_syn thy =
+fun gen_add_syntax (mapp, upd, del) prep_x prep_syn check target raw_x some_raw_syn thy =
   let
-    val x = prep_x thy raw_x |> tap (check_x thy);
-    fun prep_check raw_syn = prep_syn (raw_syn |> tap (check_raw_syn thy target));
+    val x = prep_x thy raw_x;
+    fun make_syn raw_syn = (check thy x raw_syn: unit; prep_syn raw_syn);
   in case some_raw_syn
-   of SOME raw_syn => (map_name_syntax target o mapp) (upd (x, prep_check raw_syn)) thy
+   of SOME raw_syn => (map_name_syntax target o mapp) (upd (x, make_syn raw_syn)) thy
     | NONE => (map_name_syntax target o mapp) (del x) thy
   end;
 
 fun gen_add_syntax_class prep_class =
-  gen_add_syntax Symtab.update Symtab.delete_safe (apfst o apfst) (K I) ((K o K o K) ()) I prep_class;
+  gen_add_syntax (apfst o apfst, Symtab.update, Symtab.delete_safe) prep_class I ((K o K o K) ());
 
 fun gen_add_syntax_inst prep_inst =
-  gen_add_syntax Symreltab.update Symreltab.delete_safe (apfst o apsnd) (K I) ((K o K o K) ()) I prep_inst;
+  gen_add_syntax (apfst o apsnd, Symreltab.update, Symreltab.delete_safe) prep_inst I ((K o K o K) ());
 
 fun gen_add_syntax_tyco prep_tyco =
-  gen_add_syntax Symtab.update Symtab.delete_safe (apsnd o apfst)
+  gen_add_syntax (apsnd o apfst, Symtab.update, Symtab.delete_safe) prep_tyco I
     (fn thy => fn tyco => fn (n, _) => if n <> Sign.arity_number thy tyco
       then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
-      else ()) ((K o K o K) ()) I prep_tyco;
+      else ());
 
-fun gen_add_syntax_const prep_const check_raw_syn prep_syn =
-  gen_add_syntax Symtab.update Symtab.delete_safe (apsnd o apsnd)
+fun gen_add_syntax_const prep_const prep_syn check_raw_syn =
+  gen_add_syntax (apsnd o apsnd, Symtab.update, Symtab.delete_safe) prep_const prep_syn
     (fn thy => fn c => fn (n, _) => if n > Code.args_number thy c
       then error ("Too many arguments in syntax for constant " ^ quote c)
-      else ()) check_raw_syn prep_syn prep_const;
+      else ()) check_raw_syn;
 
 fun add_reserved target =
   let
@@ -510,8 +510,8 @@ in
 val add_syntax_class = gen_add_syntax_class cert_class;
 val add_syntax_inst = gen_add_syntax_inst cert_inst;
 val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
-val add_syntax_const_simple = gen_add_syntax_const (K I) ((K o K o K) ()) Code_Printer.simple_const_syntax;
-val add_syntax_const = gen_add_syntax_const (K I) ((K o K o K) ()) I;
+val add_syntax_const_simple = gen_add_syntax_const (K I) Code_Printer.simple_const_syntax;
+val add_syntax_const = gen_add_syntax_const (K I) I;
 val allow_abort = gen_allow_abort (K I);
 val add_reserved = add_reserved;
 val add_include = add_include;
@@ -519,8 +519,8 @@ val add_include = add_include;
 val add_syntax_class_cmd = gen_add_syntax_class read_class;
 val add_syntax_inst_cmd = gen_add_syntax_inst read_inst;
 val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
-val add_syntax_const_simple_cmd = gen_add_syntax_const Code.read_const ((K o K o K) ()) Code_Printer.simple_const_syntax;
-val add_syntax_const_cmd = gen_add_syntax_const Code.read_const ((K o K o K) ()) I;
+val add_syntax_const_simple_cmd = gen_add_syntax_const Code.read_const Code_Printer.simple_const_syntax;
+val add_syntax_const_cmd = gen_add_syntax_const Code.read_const I;
 
 val allow_abort_cmd = gen_allow_abort Code.read_const;
 
