@@ -67,20 +67,20 @@ sig
 
   type tyco_syntax
   type simple_const_syntax
-  type proto_const_syntax
   type const_syntax
+  type activated_const_syntax
   val parse_infix: ('a -> 'b) -> lrx * int -> string
     -> int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)
   val parse_syntax: ('a -> 'b) -> Token.T list
     -> (int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)) option * Token.T list
-  val simple_const_syntax: simple_const_syntax -> proto_const_syntax
+  val simple_const_syntax: simple_const_syntax -> const_syntax
   val activate_const_syntax: theory -> literals
-    -> proto_const_syntax -> Code_Thingol.naming -> const_syntax * Code_Thingol.naming
+    -> const_syntax -> Code_Thingol.naming -> activated_const_syntax * Code_Thingol.naming
   val gen_print_app: (thm option -> var_ctxt -> const * iterm list -> Pretty.T list)
     -> (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> (string -> const_syntax option)
+    -> (string -> activated_const_syntax option)
     -> thm option -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
   val gen_print_bind: (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm option -> fixity
@@ -243,10 +243,10 @@ type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
 
 type simple_const_syntax = int * ((fixity -> iterm -> Pretty.T)
   -> fixity -> (iterm * itype) list -> Pretty.T);
-type proto_const_syntax = int * (string list * (literals -> string list
+type const_syntax = int * (string list * (literals -> string list
   -> (var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
-type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
+type activated_const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
   -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
 fun simple_const_syntax syn =

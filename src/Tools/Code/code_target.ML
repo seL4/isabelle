@@ -41,11 +41,11 @@ sig
 
   val allow_abort: string -> theory -> theory
   type tyco_syntax = Code_Printer.tyco_syntax
-  type proto_const_syntax = Code_Printer.proto_const_syntax
+  type const_syntax = Code_Printer.const_syntax
   val add_syntax_class: string -> class -> string option -> theory -> theory
   val add_syntax_inst: string -> class * string -> unit option -> theory -> theory
   val add_syntax_tyco: string -> string -> tyco_syntax option -> theory -> theory
-  val add_syntax_const: string -> string -> proto_const_syntax option -> theory -> theory
+  val add_syntax_const: string -> string -> const_syntax option -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
   val add_include: string -> string * (string * string list) option -> theory -> theory
 end;
@@ -57,7 +57,7 @@ open Basic_Code_Thingol;
 
 type literals = Code_Printer.literals;
 type tyco_syntax = Code_Printer.tyco_syntax;
-type proto_const_syntax = Code_Printer.proto_const_syntax;
+type const_syntax = Code_Printer.const_syntax;
 
 
 (** basics **)
@@ -83,7 +83,7 @@ datatype name_syntax_table = NameSyntaxTable of {
   class: string Symtab.table,
   instance: unit Symreltab.table,
   tyco: Code_Printer.tyco_syntax Symtab.table,
-  const: Code_Printer.proto_const_syntax Symtab.table
+  const: Code_Printer.const_syntax Symtab.table
 };
 
 fun mk_name_syntax_table ((class, instance), (tyco, const)) =
@@ -108,7 +108,7 @@ type serializer =
   -> (string -> string option)          (*module aliasses*)
   -> (string -> string option)          (*class syntax*)
   -> (string -> Code_Printer.tyco_syntax option)
-  -> (string -> Code_Printer.const_syntax option)
+  -> (string -> Code_Printer.activated_const_syntax option)
   -> ((Pretty.T -> string) * (Pretty.T -> unit))
   -> Code_Thingol.program
   -> string list                        (*selected statements*)
