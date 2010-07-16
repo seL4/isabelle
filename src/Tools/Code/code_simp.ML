@@ -57,7 +57,7 @@ fun add_stmt (Code_Thingol.Fun (_, ((_, eqs), some_cong))) ss =
       ss addsimps (map (fst o snd) classparam_instances)
   | add_stmt _ ss = ss;
 
-val add_program = Graph.fold (add_stmt o fst o snd)
+val add_program = Graph.fold (add_stmt o fst o snd);
 
 fun rewrite_modulo thy some_ss program = Simplifier.full_rewrite
   (add_program program (simpset_default thy some_ss));
