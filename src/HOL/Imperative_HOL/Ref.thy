@@ -293,4 +293,13 @@ code_const ref (Haskell "Heap.newSTRef")
 code_const Ref.lookup (Haskell "Heap.readSTRef")
 code_const Ref.update (Haskell "Heap.writeSTRef")
 
+
+text {* Scala *}
+
+code_type ref (Scala "!Heap.Ref[_]")
+code_const Ref (Scala "!error(\"bare Ref\")")
+code_const ref (Scala "('_: Unit)/ =>/ Heap.Ref((_))")
+code_const Ref.lookup (Scala "('_: Unit)/ =>/ Heap.lookup((_))")
+code_const Ref.update (Scala "('_: Unit)/ =>/ Heap.update((_), (_))")
+
 end

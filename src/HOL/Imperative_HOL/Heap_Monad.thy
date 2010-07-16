@@ -469,14 +469,26 @@ code_const Heap_Monad.raise' (Haskell "error")
 
 subsubsection {* Scala *}
 
-code_include Haskell "Heap"
-{*def bind[A, B](f: Unit => A, g: A => Unit => B, u: Unit): B = g (f ()) ()*}
+code_include Scala "Heap"
+{*def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
+
+class Ref[A](x: A) {
+  var value = x
+}
+
+object Ref {
+  def apply[A](x: A): Ref[A] = new Ref[A](x)
+}
+
+def lookup[A](r: Ref[A]): A = r.value
+
+def update[A](r: Ref[A], x: A): Unit = { r.value = x }*}
 
 code_reserved Scala Heap
 
 code_type Heap (Scala "Unit/ =>/ _")
-code_const bind (Scala "Heap.bind")
-code_const return (Scala "!(()/ =>/ _)")
+code_const bind (Scala "!Heap.bind((_), (_))")
+code_const return (Scala "('_: Unit)/ =>/ _")
 code_const Heap_Monad.raise' (Scala "!error(_)")
 
 

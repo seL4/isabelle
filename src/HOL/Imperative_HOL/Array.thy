@@ -479,4 +479,19 @@ code_const Array.len' (Haskell "Heap.lengthArray")
 code_const Array.nth' (Haskell "Heap.readArray")
 code_const Array.upd' (Haskell "Heap.writeArray")
 
+
+text {* Scala *}
+
+code_type array (Scala "!Array[_]")
+code_const Array (Scala "!error(\"bare Array\")")
+code_const Array.new' (Scala "('_: Unit)/ => / Array.fill((_))((_))")
+code_const Array.of_list (Scala "('_: Unit)/ =>/ _.toArray")
+code_const Array.make' (Scala "('_: Unit)/ =>/ Array.tabulate((_),/ (_))")
+code_const Array.len' (Scala "('_: Unit)/ =>/ _.length")
+code_const Array.nth' (Scala "('_: Unit)/ =>/ _((_))")
+code_const Array.upd' (Scala "('_: Unit)/ =>/ _.update((_),/ (_))")
+code_const Array.freeze (Scala "('_: Unit)/ =>/ _.toList")
+
+code_reserved Scala Array
+
 end
