@@ -110,6 +110,6 @@ lemma rev2_rev:
       subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elims)
   (drule sym[of "List.length (Array.get h a)"], simp)
 
-export_code rev checking SML SML_imp OCaml? OCaml_imp? Haskell?
+export_code rev checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala?
 
 end

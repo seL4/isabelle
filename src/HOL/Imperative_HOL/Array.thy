@@ -345,7 +345,7 @@ lemma array_make:
   "new n x = make n (\<lambda>_. x)"
   by (rule Heap_eqI) (simp add: map_replicate_trivial execute_simps)
 
-lemma array_of_list_make:
+lemma array_of_list_make [code]:
   "of_list xs = make (List.length xs) (\<lambda>n. xs ! n)"
   by (rule Heap_eqI) (simp add: map_nth execute_simps)
 
@@ -482,11 +482,10 @@ code_const Array.upd' (Haskell "Heap.writeArray")
 
 text {* Scala *}
 
-code_type array (Scala "!Array[_]")
+code_type array (Scala "!collection.mutable.ArraySeq[_]")
 code_const Array (Scala "!error(\"bare Array\")")
-code_const Array.new' (Scala "('_: Unit)/ => / Array.fill((_))((_))")
-code_const Array.of_list (Scala "('_: Unit)/ =>/ _.toArray")
-code_const Array.make' (Scala "('_: Unit)/ =>/ Array.tabulate((_),/ (_))")
+code_const Array.new' (Scala "('_: Unit)/ => / collection.mutable.ArraySeq.fill((_))((_))")
+code_const Array.make' (Scala "('_: Unit)/ =>/ collection.mutable.ArraySeq.tabulate((_))((_))")
 code_const Array.len' (Scala "('_: Unit)/ =>/ _.length")
 code_const Array.nth' (Scala "('_: Unit)/ =>/ _((_))")
 code_const Array.upd' (Scala "('_: Unit)/ =>/ _.update((_),/ (_))")
