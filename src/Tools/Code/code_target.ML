@@ -425,32 +425,32 @@ fun cert_inst thy (class, tyco) =
 fun read_inst thy (raw_tyco, raw_class) =
   (read_class thy raw_class, read_tyco thy raw_tyco);
 
-fun gen_add_syntax (mapp, upd, del) prep_x prep_syn check target raw_x some_raw_syn thy =
+fun gen_add_syntax (mapp, upd, del) prep_x prep_syn target raw_x some_raw_syn thy =
   let
     val x = prep_x thy raw_x;
-    fun make_syn raw_syn = (check thy x raw_syn: unit; prep_syn raw_syn);
-  in case some_raw_syn
-   of SOME raw_syn => (map_name_syntax target o mapp) (upd (x, make_syn raw_syn)) thy
-    | NONE => (map_name_syntax target o mapp) (del x) thy
-  end;
+    val change = case some_raw_syn
+     of SOME raw_syn => upd (x, prep_syn thy x raw_syn)
+      | NONE => del x;
+  in (map_name_syntax target o mapp) change thy end;
 
 fun gen_add_syntax_class prep_class =
-  gen_add_syntax (apfst o apfst, Symtab.update, Symtab.delete_safe) prep_class I ((K o K o K) ());
+  gen_add_syntax (apfst o apfst, Symtab.update, Symtab.delete_safe) prep_class ((K o K) I);
 
 fun gen_add_syntax_inst prep_inst =
-  gen_add_syntax (apfst o apsnd, Symreltab.update, Symreltab.delete_safe) prep_inst I ((K o K o K) ());
+  gen_add_syntax (apfst o apsnd, Symreltab.update, Symreltab.delete_safe) prep_inst ((K o K) I);
 
 fun gen_add_syntax_tyco prep_tyco =
-  gen_add_syntax (apsnd o apfst, Symtab.update, Symtab.delete_safe) prep_tyco I
-    (fn thy => fn tyco => fn (n, _) => if n <> Sign.arity_number thy tyco
+  gen_add_syntax (apsnd o apfst, Symtab.update, Symtab.delete_safe) prep_tyco
+    (fn thy => fn tyco => fn syn => if fst syn <> Sign.arity_number thy tyco
       then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
-      else ());
+      else syn);
 
-fun gen_add_syntax_const prep_const prep_syn check_raw_syn =
-  gen_add_syntax (apsnd o apsnd, Symtab.update, Symtab.delete_safe) prep_const prep_syn
-    (fn thy => fn c => fn (n, _) => if n > Code.args_number thy c
+fun gen_add_syntax_const prep_const prep_syn =
+  gen_add_syntax (apsnd o apsnd, Symtab.update, Symtab.delete_safe) prep_const
+    (fn thy => fn c => fn raw_syn => let val syn = prep_syn raw_syn in
+      if fst syn > Code.args_number thy c
       then error ("Too many arguments in syntax for constant " ^ quote c)
-      else ()) check_raw_syn;
+      else syn end);
 
 fun add_reserved target =
   let
