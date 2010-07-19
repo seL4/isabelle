@@ -22,12 +22,6 @@ number is the sum of four squares, provided all prime numbers are.
 However, this is an abstract theorem about commutative rings.  It has,
 a priori, nothing to do with nat. *}
 
-(* These two simprocs are even less efficient than ordered rewriting
-   and kill the second example: *)
-ML {*
-  Delsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
-*}
-
 lemma Lagrange_lemma: fixes x1 :: "'a::comm_ring" shows
   "(sq x1 + sq x2 + sq x3 + sq x4) * (sq y1 + sq y2 + sq y3 + sq y4) =
    sq (x1*y1 - x2*y2 - x3*y3 - x4*y4)  +
