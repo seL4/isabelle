@@ -2,7 +2,7 @@
 Requirements to build from sources
 ==================================
 
-* Proper Java JRE/JDK from Sun, e.g. 1.6.0_20
+* Proper Java JRE/JDK from Sun, e.g. 1.6.0_21
   http://java.sun.com/javase/downloads/index.jsp
 
 * Netbeans 6.8
@@ -31,7 +31,7 @@ Requirements to build from sources
 * Isabelle/Pure Scala components
   Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
 
-* Scala Compiler 2.8
+* Scala Compiler 2.8.0.final
   http://www.scala-lang.org
   Netbeans Library "Scala-compiler" = $SCALA_HOME/lib/scala-compiler.jar
 
