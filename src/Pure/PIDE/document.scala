@@ -162,6 +162,12 @@ class Document(
     if (range.hasNext) Some(range.next) else None
   }
 
+  def proper_command_at(i: Int): Option[Command] =
+    command_at(i) match {
+      case Some((command, _)) => commands.reverse_iterator(command).find(cmd => !cmd.is_ignored)
+      case None => None
+    }
+
 
   /* command state assignment */
 

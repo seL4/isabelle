@@ -16,6 +16,7 @@ object Session
   /* events */
 
   case object Global_Settings
+  case object Perspective
 
 
   /* managed entities */
@@ -32,12 +33,25 @@ object Session
 
 class Session(system: Isabelle_System)
 {
+  /* real time parameters */  // FIXME properties or settings (!?)
+
+  // user input (e.g. text edits, cursor movement)
+  val input_delay = 300
+
+  // prover output (markup, common messages)
+  val output_delay = 100
+
+  // GUI layout updates
+  val update_delay = 500
+
+
   /* pervasive event buses */
 
   val global_settings = new Event_Bus[Session.Global_Settings.type]
   val raw_results = new Event_Bus[Isabelle_Process.Result]
   val raw_output = new Event_Bus[Isabelle_Process.Result]
   val commands_changed = new Event_Bus[Command_Set]
+  val perspective = new Event_Bus[Session.Perspective.type]
 
 
   /* unique ids */
@@ -263,7 +277,7 @@ class Session(system: Isabelle_System)
     {
       val now = currentTime
       flush_time match {
-        case None => flush_time = Some(now + 100)   // FIXME output_delay property
+        case None => flush_time = Some(now + output_delay)
         case Some(time) => if (now >= time) flush()
       }
     }
