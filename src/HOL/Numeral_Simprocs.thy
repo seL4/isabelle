@@ -92,7 +92,6 @@ lemma nat_mult_div_cancel_disj[simp]:
      "(k*m) div (k*n) = (if k = (0::nat) then 0 else m div n)"
 by (simp add: nat_mult_div_cancel1)
 
-
 use "Tools/numeral_simprocs.ML"
 
 use "Tools/nat_numeral_simprocs.ML"
