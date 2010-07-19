@@ -1269,7 +1269,7 @@ proof (rule ccontr, cases "a = b")
       and "f b - f a = (b - a) * l"
     by auto
   from prems have "~(l >= 0)"
-    by (metis diff_self diff_eq_diff_less_eq' le_iff_diff_le_0 order_antisym linear
+    by (metis diff_self diff_eq_diff_less_eq le_iff_diff_le_0 order_antisym linear
               split_mult_pos_le)
   with prems show False
     by (metis DERIV_unique order_less_imp_le)
