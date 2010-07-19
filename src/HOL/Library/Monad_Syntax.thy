@@ -20,6 +20,9 @@ consts
 notation (xsymbols)
   bind (infixr "\<guillemotright>=" 54)
 
+notation (latex output)
+  bind (infixr "\<bind>" 54)
+
 abbreviation (do_notation)
   bind_do :: "['a, 'b \<Rightarrow> 'c] \<Rightarrow> 'c"
 where
@@ -30,6 +33,9 @@ notation (output)
 
 notation (xsymbols output)
   bind_do (infixr "\<guillemotright>=" 54)
+
+notation (latex output)
+  bind_do (infixr "\<bind>" 54)
 
 nonterminals
   do_binds do_bind
@@ -46,6 +52,9 @@ syntax
 syntax (xsymbols)
   "_do_bind"  :: "[pttrn, 'a] \<Rightarrow> do_bind" ("(_ \<leftarrow>/ _)" 13)
   "_thenM" :: "['a, 'b] \<Rightarrow> 'b" (infixr "\<guillemotright>" 54)
+
+syntax (latex output)
+  "_thenM" :: "['a, 'b] \<Rightarrow> 'b" (infixr "\<then>" 54)
 
 translations
   "_do_block (_do_cons (_do_then t) (_do_final e))"
