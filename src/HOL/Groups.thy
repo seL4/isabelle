@@ -796,21 +796,21 @@ lemma diff_eq_diff_less:
   "a - b = c - d \<Longrightarrow> a < b \<longleftrightarrow> c < d"
   by (auto simp only: less_iff_diff_less_0 [of a b] less_iff_diff_less_0 [of c d])
 
-lemma diff_eq_diff_less_eq': -- "FIXME orientation"
-  "a - b = c - d \<Longrightarrow> b \<le> a \<longleftrightarrow> d \<le> c"
-proof -
-  assume "a - b = c - d"
-  then have "b - a = d - c" by (simp add: algebra_simps)
-  then show "b \<le> a \<longleftrightarrow> d \<le> c" by (auto simp only: le_iff_diff_le_0 [of b a] le_iff_diff_le_0 [of d c])
-qed
+lemma diff_eq_diff_less_eq:
+  "a - b = c - d \<Longrightarrow> a \<le> b \<longleftrightarrow> c \<le> d"
+  by (auto simp only: le_iff_diff_le_0 [of a b] le_iff_diff_le_0 [of c d])
 
 end
 
 use "~~/src/HOL/Tools/abel_cancel.ML"
 
-ML {*
-  Addsimprocs [Abel_Cancel.sum_conv, Abel_Cancel.rel_conv];
-*}
+simproc_setup abel_cancel_sum
+  ("a + b::'a::ab_group_add" | "a - b::'a::ab_group_add") =
+  {* fn phi => Abel_Cancel.sum_proc *}
+
+simproc_setup abel_cancel_relation
+  ("a < (b::'a::ordered_ab_group_add)" | "a \<le> (b::'a::ordered_ab_group_add)" | "c = (d::'b::ab_group_add)") =
+  {* fn phi => Abel_Cancel.rel_proc *}
 
 class linordered_ab_semigroup_add =
   linorder + ordered_ab_semigroup_add
@@ -1222,5 +1222,10 @@ code_modulename OCaml
 
 code_modulename Haskell
   Groups Arith
+
+
+text {* Legacy *}
+
+lemmas diff_def = diff_minus
 
 end
