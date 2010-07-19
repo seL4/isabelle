@@ -218,30 +218,35 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
       | print_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, (classparam_instances, _)))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
-            fun print_classparam_instance ((classparam, const), (thm, _)) = case syntax_const classparam
-             of NONE => semicolon [
-                    (str o deresolve_base) classparam,
-                    str "=",
-                    print_app tyvars (SOME thm) reserved NOBR (const, [])
-                  ]
-              | SOME (k, pr) =>
-                  let
-                    val (c, (_, tys)) = const;
-                    val (vs, rhs) = (apfst o map) fst
-                      (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
-                    val s = if (is_some o syntax_const) c
-                      then NONE else (SOME o Long_Name.base_name o deresolve) c;
-                    val vars = reserved
-                      |> intro_vars (map_filter I (s :: vs));
-                    val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
-                      (*dictionaries are not relevant at this late stage*)
-                  in
-                    semicolon [
-                      print_term tyvars (SOME thm) vars NOBR lhs,
+            fun requires_args classparam = case syntax_const classparam
+             of NONE => 0
+              | SOME (Code_Printer.Plain_const_syntax _) => 0
+              | SOME (Code_Printer.Complex_const_syntax (k,_ )) => k;
+            fun print_classparam_instance ((classparam, const), (thm, _)) =
+              case requires_args classparam
+               of 0 => semicolon [
+                      (str o deresolve_base) classparam,
                       str "=",
-                      print_term tyvars (SOME thm) vars NOBR rhs
+                      print_app tyvars (SOME thm) reserved NOBR (const, [])
                     ]
-                  end;
+                | k =>
+                    let
+                      val (c, (_, tys)) = const;
+                      val (vs, rhs) = (apfst o map) fst
+                        (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
+                      val s = if (is_some o syntax_const) c
+                        then NONE else (SOME o Long_Name.base_name o deresolve) c;
+                      val vars = reserved
+                        |> intro_vars (map_filter I (s :: vs));
+                      val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
+                        (*dictionaries are not relevant at this late stage*)
+                    in
+                      semicolon [
+                        print_term tyvars (SOME thm) vars NOBR lhs,
+                        str "=",
+                        print_term tyvars (SOME thm) vars NOBR rhs
+                      ]
+                    end;
           in
             Pretty.block_enclose (
               Pretty.block [
@@ -459,7 +464,7 @@ fun add_monad target' raw_c_bind thy =
   in if target = target' then
     thy
     |> Code_Target.add_syntax_const target c_bind
-        (SOME (pretty_haskell_monad c_bind))
+        (SOME (Code_Printer.complex_const_syntax (pretty_haskell_monad c_bind)))
   else error "Only Haskell target allows for monad syntax" end;
 
 

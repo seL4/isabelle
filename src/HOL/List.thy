@@ -4819,7 +4819,7 @@ code_const Nil
   (SML "[]")
   (OCaml "[]")
   (Haskell "[]")
-  (Scala "Nil")
+  (Scala "!Nil")
 
 code_instance list :: eq
   (Haskell -)

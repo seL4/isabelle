@@ -76,17 +76,20 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
         (app as ((c, ((arg_typs, _), function_typs)), ts)) =
       let
         val k = length ts;
-        val l = case syntax_const c of NONE => args_num c | SOME (l, _) => l;
         val arg_typs' = if is_pat orelse
           (is_none (syntax_const c) andalso is_singleton_constr c) then [] else arg_typs;
-        val (no_syntax, print') = case syntax_const c
-         of NONE => (true, fn ts => applify "(" ")"
+        val (l, print') = case syntax_const c
+         of NONE => (args_num c, fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
                   NOBR ((str o deresolve) c) arg_typs') ts)
-          | SOME (_, print) => (false, fn ts =>
-              print (print_term tyvars is_pat some_thm) some_thm vars fxy
-                (ts ~~ take l function_typs));
+          | SOME (Plain_const_syntax (k, s)) => (k, fn ts => applify "(" ")"
+              (print_term tyvars is_pat some_thm vars NOBR) fxy
+                (applify "[" "]" (print_typ tyvars NOBR)
+                  NOBR (str s) arg_typs') ts)
+          | SOME (Complex_const_syntax (k, print)) =>
+              (k, fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
+                (ts ~~ take k function_typs))
       in if k = l then print' ts
       else if k < l then
         print_term tyvars is_pat some_thm vars fxy (Code_Thingol.eta_expand l app)
@@ -355,20 +358,22 @@ fun serialize_scala raw_module_name labelled_name
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
       reserved args_num is_singleton_constr deresolver;
-    fun print_module name content =
-      (name, Pretty.chunks [
-        str ("object " ^ name ^ " {"),
-        str "",
+    fun print_module name imports content =
+      (name, Pretty.chunks (
+        str ("object " ^ name ^ " {")
+        :: (if null imports then []
+          else str "" :: map (fn name => str ("import " ^ name ^ "._")) imports)
+        @ [str "",
         content,
         str "",
-        str "}"
-      ]);
+        str "}"]
+      ));
     fun serialize_module the_module_name sca_program =
       let
         val content = Pretty.chunks2 (map_filter
           (fn (name, (_, SOME stmt)) => SOME (print_stmt (name, stmt))
             | (_, (_, NONE)) => NONE) sca_program);
-      in print_module the_module_name content end;
+      in print_module the_module_name (map fst includes) content end;
     fun check_destination destination =
       (File.check destination; destination);
     fun write_module destination (modlname, content) =
@@ -385,7 +390,7 @@ fun serialize_scala raw_module_name labelled_name
       (fn NONE => K () o map (code_writeln o snd) | SOME file => K () o map
         (write_module (check_destination file)))
       (rpair [] o cat_lines o map (code_of_pretty o snd))
-      (map (uncurry print_module) includes
+      (map (fn (name, content) => print_module name [] content) includes
         @| serialize_module the_module_name sca_program)
       destination
   end;
@@ -405,7 +410,7 @@ in Literals {
   literal_char = Library.enclose "'" "'" o char_scala,
   literal_string = quote o translate_string char_scala,
   literal_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
-  literal_positive_numeral = fn k => "Nat.Nat(" ^ numeral_scala k ^ ")",
+  literal_positive_numeral = fn k => "Nat(" ^ numeral_scala k ^ ")",
   literal_naive_numeral = fn k => if k >= 0
     then string_of_int k else "(- " ^ string_of_int (~ k) ^ ")",
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],

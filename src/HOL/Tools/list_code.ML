@@ -46,8 +46,8 @@ fun add_literal_list target =
             Code_Printer.literal_list literals (map (pr vars Code_Printer.NOBR) ts)
         | NONE =>
             default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
-  in Code_Target.add_syntax_const target
-    @{const_name Cons} (SOME (2, ([@{const_name Nil}, @{const_name Cons}], pretty)))
+  in Code_Target.add_syntax_const target @{const_name Cons}
+    (SOME (Code_Printer.complex_const_syntax (2, ([@{const_name Nil}, @{const_name Cons}], pretty))))
   end
 
 end;

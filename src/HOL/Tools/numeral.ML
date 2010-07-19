@@ -77,8 +77,8 @@ fun add_code number_of negative print target thy =
       (Code_Printer.str o print literals o the_default 0 o dest_numeral pls' min' bit0' bit1' thm) t;
   in
     thy |> Code_Target.add_syntax_const target number_of
-      (SOME (1, ([@{const_name Int.Pls}, @{const_name Int.Min},
-        @{const_name Int.Bit0}, @{const_name Int.Bit1}], pretty)))
+      (SOME (Code_Printer.complex_const_syntax (1, ([@{const_name Int.Pls}, @{const_name Int.Min},
+        @{const_name Int.Bit0}, @{const_name Int.Bit1}], pretty))))
   end;
 
 end; (*local*)

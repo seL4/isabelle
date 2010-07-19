@@ -114,7 +114,7 @@ code_const None and Some
   (SML "NONE" and "SOME")
   (OCaml "None" and "Some _")
   (Haskell "Nothing" and "Just")
-  (Scala "None" and "!Some((_))")
+  (Scala "!None" and "Some")
 
 code_instance option :: eq
   (Haskell -)

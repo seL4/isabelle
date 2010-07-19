@@ -60,7 +60,7 @@ fun add_literal_list_string target =
         | NONE =>
             List_Code.default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
   in Code_Target.add_syntax_const target
-    @{const_name Cons} (SOME (2, (cs_summa, pretty)))
+    @{const_name Cons} (SOME (Code_Printer.complex_const_syntax (2, (cs_summa, pretty))))
   end;
 
 fun add_literal_char target =
@@ -70,7 +70,7 @@ fun add_literal_char target =
        of SOME c => (Code_Printer.str o Code_Printer.literal_char literals) c
         | NONE => Code_Printer.eqn_error thm "Illegal character expression";
   in Code_Target.add_syntax_const target
-    @{const_name Char} (SOME (2, (cs_nibbles, pretty)))
+    @{const_name Char} (SOME (Code_Printer.complex_const_syntax (2, (cs_nibbles, pretty))))
   end;
 
 fun add_literal_string target =
@@ -83,7 +83,7 @@ fun add_literal_string target =
               | NONE => Code_Printer.eqn_error thm "Illegal message expression")
         | NONE => Code_Printer.eqn_error thm "Illegal message expression";
   in Code_Target.add_syntax_const target 
-    @{const_name STR} (SOME (1, (cs_summa, pretty)))
+    @{const_name STR} (SOME (Code_Printer.complex_const_syntax (1, (cs_summa, pretty))))
   end;
 
 end;
