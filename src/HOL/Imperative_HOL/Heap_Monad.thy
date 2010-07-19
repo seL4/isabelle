@@ -124,10 +124,10 @@ text {*
 *}  
 
 definition crel :: "'a Heap \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool" where
-  crel_def: "crel c h h' r \<longleftrightarrow> Heap_Monad.execute c h = Some (r, h')"
+  crel_def: "crel c h h' r \<longleftrightarrow> execute c h = Some (r, h')"
 
 lemma crelI:
-  "Heap_Monad.execute c h = Some (r, h') \<Longrightarrow> crel c h h' r"
+  "execute c h = Some (r, h') \<Longrightarrow> crel c h h' r"
   by (simp add: crel_def)
 
 lemma crelE:
@@ -300,9 +300,9 @@ lemma crel_bindE [crel_elims]:
   using assms by (auto simp add: crel_def bind_def split: option.split_asm)
 
 lemma execute_bind_eq_SomeI:
-  assumes "Heap_Monad.execute f h = Some (x, h')"
-    and "Heap_Monad.execute (g x) h' = Some (y, h'')"
-  shows "Heap_Monad.execute (f \<guillemotright>= g) h = Some (y, h'')"
+  assumes "execute f h = Some (x, h')"
+    and "execute (g x) h' = Some (y, h'')"
+  shows "execute (f \<guillemotright>= g) h = Some (y, h'')"
   using assms by (simp add: bind_def)
 
 lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
@@ -487,7 +487,7 @@ def update[A](r: Ref[A], x: A): Unit = { r.value = x }*}
 code_reserved Scala Heap
 
 code_type Heap (Scala "Unit/ =>/ _")
-code_const bind (Scala "!Heap.bind((_), (_))")
+code_const bind (Scala "bind")
 code_const return (Scala "('_: Unit)/ =>/ _")
 code_const Heap_Monad.raise' (Scala "!error((_))")
 

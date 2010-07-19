@@ -337,7 +337,7 @@ code_reserved Scala Nat
 
 code_type nat
   (Haskell "Nat.Nat")
-  (Scala "Nat.Nat")
+  (Scala "Nat")
 
 code_instance nat :: eq
   (Haskell -)
@@ -405,7 +405,7 @@ text {* For Haskell and Scala, things are slightly different again. *}
 
 code_const int and nat
   (Haskell "toInteger" and "fromInteger")
-  (Scala "!_.as'_BigInt" and "!Nat.Nat((_))")
+  (Scala "!_.as'_BigInt" and "Nat")
 
 text {* Conversion from and to indices. *}
 
@@ -419,7 +419,7 @@ code_const Code_Numeral.nat_of
   (SML "IntInf.fromInt")
   (OCaml "_")
   (Haskell "toEnum")
-  (Scala "!Nat.Nat((_))")
+  (Scala "Nat")
 
 text {* Using target language arithmetic operations whenever appropriate *}
 
