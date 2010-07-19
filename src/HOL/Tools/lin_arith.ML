@@ -818,7 +818,7 @@ val init_arith_data =
         @{thm "order_less_irrefl"}, @{thm "zero_neq_one"}, @{thm "zero_less_one"},
         @{thm "zero_le_one"}, @{thm "zero_neq_one"} RS not_sym, @{thm "not_one_le_zero"},
         @{thm "not_one_less_zero"}]
-      addsimprocs [Abel_Cancel.sum_conv, Abel_Cancel.rel_conv]
+      addsimprocs [@{simproc abel_cancel_sum}, @{simproc abel_cancel_relation}]
        (*abel_cancel helps it work in abstract algebraic domains*)
       addsimprocs Nat_Arith.nat_cancel_sums_add
       addcongs [@{thm if_weak_cong}],

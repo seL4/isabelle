@@ -9,8 +9,8 @@ Simplification procedures for abelian groups:
 
 signature ABEL_CANCEL =
 sig
-  val sum_conv: simproc
-  val rel_conv: simproc
+  val sum_proc: simpset -> cterm -> thm option
+  val rel_proc: simpset -> cterm -> thm option
 end;
 
 structure Abel_Cancel: ABEL_CANCEL =
@@ -48,12 +48,7 @@ val cancel_ss = HOL_basic_ss settermless termless_agrp
    @{thm right_minus}, @{thm left_minus}, @{thm add_minus_cancel},
    @{thm minus_add_cancel}];
 
-val sum_pats = [@{cterm "x + y::'a::ab_group_add"}, @{cterm "x - y::'a::ab_group_add"}];
-  
-val eqI_rules = [@{thm diff_eq_diff_less}, @{thm diff_eq_diff_less_eq'}, @{thm diff_eq_diff_eq}];
-
-val dest_eqI = 
-  fst o HOLogic.dest_bin @{const_name "op ="} HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
+val eqI_rules = [@{thm diff_eq_diff_less}, @{thm diff_eq_diff_less_eq}, @{thm diff_eq_diff_eq}];
 
 fun zero t = Const (@{const_name Groups.zero}, t);
 fun minus t = Const (@{const_name Groups.uminus}, t --> t);
@@ -106,34 +101,28 @@ fun cancel t =
 
 
 (*A simproc to cancel complementary terms in arbitrary sums.*)
-fun sum_proc ss t =
-   let
-     val t' = cancel t
-     val thm =
-       Goal.prove (Simplifier.the_context ss) [] [] (Logic.mk_equals (t, t'))
-         (fn _ => simp_tac (Simplifier.inherit_context ss cancel_ss) 1)
-   in SOME thm end handle Cancel => NONE;
-
-val sum_conv =
-  Simplifier.mk_simproc "cancel_sums"
-    (map (Drule.cterm_fun Logic.varify_global) sum_pats) (K sum_proc);
+fun sum_proc ss ct =
+  let
+    val t = Thm.term_of ct;
+    val t' = cancel t;
+    val thm =
+      Goal.prove (Simplifier.the_context ss) [] [] (Logic.mk_equals (t, t'))
+        (fn _ => simp_tac (Simplifier.inherit_context ss cancel_ss) 1)
+  in SOME thm end handle Cancel => NONE;
 
 
 (*A simproc to cancel like terms on the opposite sides of relations:
    (x + y - z < -z + x) = (y < 0)
   Works for (=) and (<=) as well as (<), if the necessary rules are supplied.
   Reduces the problem to subtraction.*)
-fun rel_proc ss t =
+fun rel_proc ss ct =
   let
-    val t' = cancel t
+    val t = Thm.term_of ct;
+    val t' = cancel t;
     val thm = Goal.prove (Simplifier.the_context ss) [] [] (Logic.mk_equals (t, t'))
       (fn _ => rtac @{thm eq_reflection} 1 THEN
                     resolve_tac eqI_rules 1 THEN
                     simp_tac (Simplifier.inherit_context ss cancel_ss) 1)
-   in SOME thm end handle Cancel => NONE;
-
-val rel_conv =
-  Simplifier.mk_simproc "cancel_relations"
-    (map (fn th => Thm.cterm_of (Thm.theory_of_thm th) (dest_eqI th)) eqI_rules) (K rel_proc);
+  in SOME thm end handle Cancel => NONE;
 
 end;
