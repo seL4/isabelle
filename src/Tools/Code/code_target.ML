@@ -244,11 +244,11 @@ fun activate_syntax lookup_name src_tab = Symtab.empty
   |>> map_filter I;
 
 fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
-  |> fold_map (fn thing_identifier => fn (tab, naming) =>
-      case Code_Thingol.lookup_const naming thing_identifier
+  |> fold_map (fn c => fn (tab, naming) =>
+      case Code_Thingol.lookup_const naming c
        of SOME name => let
               val (syn, naming') = Code_Printer.activate_const_syntax thy
-                literals (the (Symtab.lookup src_tab thing_identifier)) naming
+                literals c (the (Symtab.lookup src_tab c)) naming
             in (SOME name, (Symtab.update_new (name, syn) tab, naming')) end
         | NONE => (NONE, (tab, naming))) (Symtab.keys src_tab)
   |>> map_filter I;
@@ -445,12 +445,12 @@ fun gen_add_syntax_tyco prep_tyco =
       then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
       else syn);
 
-fun gen_add_syntax_const prep_const prep_syn =
+fun gen_add_syntax_const prep_const =
   gen_add_syntax (apsnd o apsnd, Symtab.update, Symtab.delete_safe) prep_const
-    (fn thy => fn c => fn raw_syn => let val syn = prep_syn raw_syn in
-      if fst syn > Code.args_number thy c
+    (fn thy => fn c => fn syn =>
+      if Code_Printer.requires_args syn > Code.args_number thy c
       then error ("Too many arguments in syntax for constant " ^ quote c)
-      else syn end);
+      else syn);
 
 fun add_reserved target =
   let
@@ -496,22 +496,23 @@ local
 
 fun zip_list (x::xs) f g =
   f
-  #-> (fn y =>
+  :|-- (fn y =>
     fold_map (fn x => g |-- f >> pair x) xs
-    #-> (fn xys => pair ((x, y) :: xys)));
+    :|-- (fn xys => pair ((x, y) :: xys)));
 
-fun parse_multi_syntax parse_thing parse_syntax =
-  Parse.and_list1 parse_thing
-  #-> (fn things => Scan.repeat1 (Parse.$$$ "(" |-- Parse.name --
-        (zip_list things parse_syntax (Parse.$$$ "and")) --| Parse.$$$ ")"));
+fun process_multi_syntax parse_thing parse_syntax change =
+  (Parse.and_list1 parse_thing
+  :|-- (fn things => Scan.repeat1 (Parse.$$$ "(" |-- Parse.name --
+        (zip_list things parse_syntax (Parse.$$$ "and")) --| Parse.$$$ ")")))
+  >> (Toplevel.theory oo fold)
+    (fn (target, syns) => fold (fn (raw_x, syn) => change target raw_x syn) syns);
 
 in
 
 val add_syntax_class = gen_add_syntax_class cert_class;
 val add_syntax_inst = gen_add_syntax_inst cert_inst;
 val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
-val add_syntax_const_simple = gen_add_syntax_const (K I) Code_Printer.simple_const_syntax;
-val add_syntax_const = gen_add_syntax_const (K I) I;
+val add_syntax_const = gen_add_syntax_const (K I);
 val allow_abort = gen_allow_abort (K I);
 val add_reserved = add_reserved;
 val add_include = add_include;
@@ -519,9 +520,7 @@ val add_include = add_include;
 val add_syntax_class_cmd = gen_add_syntax_class read_class;
 val add_syntax_inst_cmd = gen_add_syntax_inst read_inst;
 val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
-val add_syntax_const_simple_cmd = gen_add_syntax_const Code.read_const Code_Printer.simple_const_syntax;
-val add_syntax_const_cmd = gen_add_syntax_const Code.read_const I;
-
+val add_syntax_const_cmd = gen_add_syntax_const Code.read_const;
 val allow_abort_cmd = gen_allow_abort Code.read_const;
 
 fun parse_args f args =
@@ -550,32 +549,24 @@ val _ = List.app Keyword.keyword [inK, module_nameK, fileK, checkingK];
 
 val _ =
   Outer_Syntax.command "code_class" "define code syntax for class" Keyword.thy_decl (
-    parse_multi_syntax Parse.xname (Scan.option Parse.string)
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_class, syn) => add_syntax_class_cmd target raw_class syn) syns)
-  );
+    process_multi_syntax Parse.xname (Scan.option Parse.string)
+    add_syntax_class_cmd);
 
 val _ =
   Outer_Syntax.command "code_instance" "define code syntax for instance" Keyword.thy_decl (
-    parse_multi_syntax (Parse.xname --| Parse.$$$ "::" -- Parse.xname)
+    process_multi_syntax (Parse.xname --| Parse.$$$ "::" -- Parse.xname)
       (Scan.option (Parse.minus >> K ()))
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_inst, add_del) => add_syntax_inst_cmd target raw_inst add_del) syns)
-  );
+    add_syntax_inst_cmd);
 
 val _ =
   Outer_Syntax.command "code_type" "define code syntax for type constructor" Keyword.thy_decl (
-    parse_multi_syntax Parse.xname (Code_Printer.parse_syntax I)
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-          fold (fn (raw_tyco, syn) => add_syntax_tyco_cmd target raw_tyco syn) syns)
-  );
+    process_multi_syntax Parse.xname Code_Printer.parse_tyco_syntax
+    add_syntax_tyco_cmd);
 
 val _ =
   Outer_Syntax.command "code_const" "define code syntax for constant" Keyword.thy_decl (
-    parse_multi_syntax Parse.term_group (Code_Printer.parse_syntax fst)
-    >> (Toplevel.theory oo fold) (fn (target, syns) =>
-      fold (fn (raw_const, syn) => add_syntax_const_simple_cmd target raw_const syn) syns)
-  );
+    process_multi_syntax Parse.term_group Code_Printer.parse_const_syntax
+    add_syntax_const_cmd);
 
 val _ =
   Outer_Syntax.command "code_reserved" "declare words as reserved for target language"

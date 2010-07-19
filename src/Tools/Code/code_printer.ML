@@ -67,17 +67,19 @@ sig
 
   type tyco_syntax
   type simple_const_syntax
+  type complex_const_syntax
   type const_syntax
-  type activated_const_syntax
-  val parse_infix: ('a -> 'b) -> lrx * int -> string
-    -> int * ((fixity -> 'b -> Pretty.T)
-    -> fixity -> 'a list -> Pretty.T)
-  val parse_syntax: ('a -> 'b) -> Token.T list
-    -> (int * ((fixity -> 'b -> Pretty.T)
-    -> fixity -> 'a list -> Pretty.T)) option * Token.T list
+  type activated_complex_const_syntax
+  datatype activated_const_syntax = Plain_const_syntax of int * string
+    | Complex_const_syntax of activated_complex_const_syntax
+  val requires_args: const_syntax -> int
+  val parse_const_syntax: Token.T list -> const_syntax option * Token.T list
+  val parse_tyco_syntax: Token.T list -> tyco_syntax option * Token.T list
+  val plain_const_syntax: string -> const_syntax
   val simple_const_syntax: simple_const_syntax -> const_syntax
+  val complex_const_syntax: complex_const_syntax -> const_syntax
   val activate_const_syntax: theory -> literals
-    -> const_syntax -> Code_Thingol.naming -> activated_const_syntax * Code_Thingol.naming
+    -> string -> const_syntax -> Code_Thingol.naming -> activated_const_syntax * Code_Thingol.naming
   val gen_print_app: (thm option -> var_ctxt -> const * iterm list -> Pretty.T list)
     -> (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> (string -> activated_const_syntax option)
@@ -243,31 +245,45 @@ type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
 
 type simple_const_syntax = int * ((fixity -> iterm -> Pretty.T)
   -> fixity -> (iterm * itype) list -> Pretty.T);
-type const_syntax = int * (string list * (literals -> string list
+
+type complex_const_syntax = int * (string list * (literals -> string list
   -> (var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
-type activated_const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+
+datatype const_syntax = plain_const_syntax of string
+  | complex_const_syntax of complex_const_syntax;
+
+fun requires_args (plain_const_syntax _) = 0
+  | requires_args (complex_const_syntax (k, _)) = k;
 
 fun simple_const_syntax syn =
-  apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars)))) syn;
+  complex_const_syntax (apsnd (fn f => ([], (fn _ => fn _ => fn print => fn _ => fn vars => f (print vars)))) syn);
 
-fun activate_const_syntax thy literals (n, (cs, f)) naming =
-  fold_map (Code_Thingol.ensure_declared_const thy) cs naming
-  |-> (fn cs' => pair (n, f literals cs'));
+type activated_complex_const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
+  -> thm option -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T)
 
-fun gen_print_app print_app_expr print_term syntax_const thm vars fxy (app as ((c, (_, function_typs)), ts)) =
+datatype activated_const_syntax = Plain_const_syntax of int * string
+  | Complex_const_syntax of activated_complex_const_syntax;
+
+fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
+      (Plain_const_syntax (Code.args_number thy c, s), naming)
+  | activate_const_syntax thy literals c (complex_const_syntax (n, (cs, f))) naming =
+      fold_map (Code_Thingol.ensure_declared_const thy) cs naming
+      |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
+
+fun gen_print_app print_app_expr print_term syntax_const some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
   case syntax_const c
-   of NONE => brackify fxy (print_app_expr thm vars app)
-    | SOME (k, print) =>
+   of NONE => brackify fxy (print_app_expr some_thm vars app)
+    | SOME (Plain_const_syntax (_, s)) => brackify fxy (str s :: map (print_term some_thm vars BR) ts)
+    | SOME (Complex_const_syntax (k, print)) =>
         let
-          fun print' fxy ts = print (print_term thm) thm vars fxy (ts ~~ take k function_typs);
+          fun print' fxy ts = print (print_term some_thm) some_thm vars fxy (ts ~~ take k function_typs);
         in if k = length ts
           then print' fxy ts
         else if k < length ts
           then case chop k ts of (ts1, ts2) =>
-            brackify fxy (print' APP ts1 :: map (print_term thm vars BR) ts2)
-          else print_term thm vars fxy (Code_Thingol.eta_expand k app)
+            brackify fxy (print' APP ts1 :: map (print_term some_thm vars BR) ts2)
+          else print_term some_thm vars fxy (Code_Thingol.eta_expand k app)
         end;
 
 fun gen_print_bind print_term thm (fxy : fixity) pat vars =
@@ -281,7 +297,8 @@ fun gen_print_bind print_term thm (fxy : fixity) pat vars =
 
 datatype 'a mixfix =
     Arg of fixity
-  | Pretty of Pretty.T;
+  | String of string
+  | Break;
 
 fun mk_mixfix prep_arg (fixity_this, mfx) =
   let
@@ -292,8 +309,10 @@ fun mk_mixfix prep_arg (fixity_this, mfx) =
           []
       | fillin print (Arg fxy :: mfx) (a :: args) =
           (print fxy o prep_arg) a :: fillin print mfx args
-      | fillin print (Pretty p :: mfx) args =
-          p :: fillin print mfx args;
+      | fillin print (String s :: mfx) args =
+          str s :: fillin print mfx args
+      | fillin print (Break :: mfx) args =
+          Pretty.brk 1 :: fillin print mfx args;
   in
     (i, fn print => fn fixity_ctxt => fn args =>
       gen_brackify (fixity fixity_this fixity_ctxt) (fillin print mfx args))
@@ -304,41 +323,44 @@ fun parse_infix prep_arg (x, i) s =
     val l = case x of L => INFX (i, L) | _ => INFX (i, X);
     val r = case x of R => INFX (i, R) | _ => INFX (i, X);
   in
-    mk_mixfix prep_arg (INFX (i, x),
-      [Arg l, (Pretty o str) " ", (Pretty o str) s, (Pretty o Pretty.brk) 1, Arg r])
+    mk_mixfix prep_arg (INFX (i, x), [Arg l, String " ", String s, Break, Arg r])
   end;
 
-fun parse_mixfix prep_arg s =
+fun parse_mixfix mk_plain mk_complex prep_arg s =
   let
     val sym_any = Scan.one Symbol.is_regular;
     val parse = Scan.optional ($$ "!" >> K true) false -- Scan.repeat (
          ($$ "(" -- $$ "_" -- $$ ")" >> K (Arg NOBR))
       || ($$ "_" >> K (Arg BR))
-      || ($$ "/" |-- Scan.repeat ($$ " ") >> (Pretty o Pretty.brk o length))
+      || ($$ "/" |-- Scan.repeat ($$ " ") >> (K Break))
       || (Scan.repeat1
            (   $$ "'" |-- sym_any
             || Scan.unless ($$ "_" || $$ "/" || $$ "(" |-- $$ "_" |-- $$ ")")
-                 sym_any) >> (Pretty o str o implode)));
+                 sym_any) >> (String o implode)));
   in case Scan.finite Symbol.stopper parse (Symbol.explode s)
-   of ((_, p as [_]), []) => mk_mixfix prep_arg (NOBR, p)
-    | ((b, p as _ :: _ :: _), []) => mk_mixfix prep_arg (if b then NOBR else BR, p)
+   of ((false, [String s]), []) => mk_plain s
+    | ((_, p as [_]), []) => mk_complex (mk_mixfix prep_arg (NOBR, p))
+    | ((b, p as _ :: _ :: _), []) => mk_complex (mk_mixfix prep_arg (if b then NOBR else BR, p))
     | _ => Scan.!!
         (the_default ("malformed mixfix annotation: " ^ quote s) o snd) Scan.fail ()
   end;
 
 val (infixK, infixlK, infixrK) = ("infix", "infixl", "infixr");
 
-fun parse_syntax prep_arg xs =
-  Scan.option ((
+fun parse_syntax mk_plain mk_complex prep_arg =
+  Scan.option (
       ((Parse.$$$ infixK >> K X)
         || (Parse.$$$ infixlK >> K L)
         || (Parse.$$$ infixrK >> K R))
-        -- Parse.nat >> parse_infix prep_arg
-      || Scan.succeed (parse_mixfix prep_arg))
-      -- Parse.string
-      >> (fn (parse, s) => parse s)) xs;
+        -- Parse.nat -- Parse.string
+        >> (fn ((x, i), s) => mk_complex (parse_infix prep_arg (x, i) s))
+      || Parse.string >> (fn s => (parse_mixfix mk_plain mk_complex prep_arg s)));
 
 val _ = List.app Keyword.keyword [infixK, infixlK, infixrK];
+
+val parse_tyco_syntax = parse_syntax (fn s => (0, (K o K o K o str) s)) I I;
+
+val parse_const_syntax = parse_syntax plain_const_syntax simple_const_syntax fst;
 
 
 (** module name spaces **)
