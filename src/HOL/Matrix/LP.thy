@@ -6,6 +6,15 @@ theory LP
 imports Main Lattice_Algebras
 begin
 
+lemma le_add_right_mono: 
+  assumes 
+  "a <= b + (c::'a::ordered_ab_group_add)"
+  "c <= d"    
+  shows "a <= b + d"
+  apply (rule_tac order_trans[where y = "b+c"])
+  apply (simp_all add: prems)
+  done
+
 lemma linprog_dual_estimate:
   assumes
   "A * x \<le> (b::'a::lattice_ring)"
@@ -49,8 +58,8 @@ proof -
     done    
   from 6 7 8 9 12 13 r have 14:" abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <=(abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * r"     
     by (simp)
-  show ?thesis 
-    apply (rule_tac le_add_right_mono[of _ _ "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"])
+  show ?thesis
+    apply (rule le_add_right_mono[of _ _ "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"])
     apply (simp_all only: 5 14[simplified abs_of_nonneg[of y, simplified prems]])
     done
 qed
@@ -138,9 +147,9 @@ proof -
   then have "c * x <= y * b - (y * A - c) * x" by (simp add: le_diff_eq)
   then have cx: "c * x <= y * b + (c - y * A) * x" by (simp add: algebra_simps)
   have s2: "c - y * A <= c2 - y * A1"
-    by (simp add: diff_def prems add_mono mult_left_mono)
+    by (simp add: diff_minus prems add_mono mult_left_mono)
   have s1: "c1 - y * A2 <= c - y * A"
-    by (simp add: diff_def prems add_mono mult_left_mono)
+    by (simp add: diff_minus prems add_mono mult_left_mono)
   have prts: "(c - y * A) * x <= ?C"
     apply (simp add: Let_def)
     apply (rule mult_le_prts)

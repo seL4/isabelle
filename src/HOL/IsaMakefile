@@ -168,6 +168,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   SAT.thy \
   Set.thy \
   Sum_Type.thy \
+  Tools/abel_cancel.ML \
   Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
   Tools/Datatype/datatype_abs_proofs.ML \
@@ -219,7 +220,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Transitive_Closure.thy \
   Typedef.thy \
   Wellfounded.thy \
-  $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/cancel_div_mod.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/Provers/Arith/fast_lin_arith.ML \

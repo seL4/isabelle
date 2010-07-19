@@ -1,31 +1,59 @@
-(*  Title:      Provers/Arith/abel_cancel.ML
+(*  Title:      HOL/Tools/abel_cancel.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-Simplification procedures for abelian groups (e.g. integers, reals,
-polymorphic types).
-
-- Cancel complementary terms in sums
-- Cancel like terms on opposite sides of relations
+Simplification procedures for abelian groups:
+- Cancel complementary terms in sums.
+- Cancel like terms on opposite sides of relations.
 *)
 
 signature ABEL_CANCEL =
 sig
-  val eq_reflection   : thm           (*object-equality to meta-equality*)
-  val T               : typ           (*the type of group elements*)
-  val cancel_ss       : simpset       (*abelian group cancel simpset*)
-  val sum_pats        : cterm list
-  val eqI_rules       : thm list
-  val dest_eqI        : thm -> term
+  val sum_conv: simproc
+  val rel_conv: simproc
 end;
 
-
-functor Abel_Cancel (Data: ABEL_CANCEL) =
+structure Abel_Cancel: ABEL_CANCEL =
 struct
 
-open Data;
+(* term order for abelian groups *)
 
-(* FIXME dependent on abstract syntax *)
+fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
+      [@{const_name Groups.zero}, @{const_name Groups.plus},
+        @{const_name Groups.uminus}, @{const_name Groups.minus}]
+  | agrp_ord _ = ~1;
+
+fun termless_agrp (a, b) = (Term_Ord.term_lpo agrp_ord (a, b) = LESS);
+
+local
+  val ac1 = mk_meta_eq @{thm add_assoc};
+  val ac2 = mk_meta_eq @{thm add_commute};
+  val ac3 = mk_meta_eq @{thm add_left_commute};
+  fun solve_add_ac thy _ (_ $ (Const (@{const_name Groups.plus},_) $ _ $ _) $ _) =
+        SOME ac1
+    | solve_add_ac thy _ (_ $ x $ (Const (@{const_name Groups.plus},_) $ y $ z)) =
+        if termless_agrp (y, x) then SOME ac3 else NONE
+    | solve_add_ac thy _ (_ $ x $ y) =
+        if termless_agrp (y, x) then SOME ac2 else NONE
+    | solve_add_ac thy _ _ = NONE
+in
+  val add_ac_proc = Simplifier.simproc @{theory}
+    "add_ac_proc" ["x + y::'a::ab_semigroup_add"] solve_add_ac;
+end;
+
+val cancel_ss = HOL_basic_ss settermless termless_agrp
+  addsimprocs [add_ac_proc] addsimps
+  [@{thm add_0_left}, @{thm add_0_right}, @{thm diff_minus},
+   @{thm minus_add_distrib}, @{thm minus_minus}, @{thm minus_zero},
+   @{thm right_minus}, @{thm left_minus}, @{thm add_minus_cancel},
+   @{thm minus_add_cancel}];
+
+val sum_pats = [@{cterm "x + y::'a::ab_group_add"}, @{cterm "x - y::'a::ab_group_add"}];
+  
+val eqI_rules = [@{thm diff_eq_diff_less}, @{thm diff_eq_diff_less_eq'}, @{thm diff_eq_diff_eq}];
+
+val dest_eqI = 
+  fst o HOLogic.dest_bin @{const_name "op ="} HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
 
 fun zero t = Const (@{const_name Groups.zero}, t);
 fun minus t = Const (@{const_name Groups.uminus}, t --> t);
@@ -88,7 +116,7 @@ fun sum_proc ss t =
 
 val sum_conv =
   Simplifier.mk_simproc "cancel_sums"
-    (map (Drule.cterm_fun Logic.varify_global) Data.sum_pats) (K sum_proc);
+    (map (Drule.cterm_fun Logic.varify_global) sum_pats) (K sum_proc);
 
 
 (*A simproc to cancel like terms on the opposite sides of relations:
@@ -99,13 +127,13 @@ fun rel_proc ss t =
   let
     val t' = cancel t
     val thm = Goal.prove (Simplifier.the_context ss) [] [] (Logic.mk_equals (t, t'))
-      (fn _ => rtac eq_reflection 1 THEN
+      (fn _ => rtac @{thm eq_reflection} 1 THEN
                     resolve_tac eqI_rules 1 THEN
                     simp_tac (Simplifier.inherit_context ss cancel_ss) 1)
    in SOME thm end handle Cancel => NONE;
 
 val rel_conv =
   Simplifier.mk_simproc "cancel_relations"
-    (map (fn th => Thm.cterm_of (Thm.theory_of_thm th) (Data.dest_eqI th)) eqI_rules) (K rel_proc);
+    (map (fn th => Thm.cterm_of (Thm.theory_of_thm th) (dest_eqI th)) eqI_rules) (K rel_proc);
 
 end;

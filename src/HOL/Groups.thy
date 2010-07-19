@@ -6,7 +6,7 @@ header {* Groups, also combined with orderings *}
 
 theory Groups
 imports Orderings
-uses ("~~/src/Provers/Arith/abel_cancel.ML")
+uses ("~~/src/HOL/Tools/abel_cancel.ML")
 begin
 
 subsection {* Fact collections *}
@@ -145,8 +145,6 @@ class uminus =
 
 class times =
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
-
-use "~~/src/Provers/Arith/abel_cancel.ML"
 
 
 subsection {* Semigroups and Monoids *}
@@ -453,7 +451,12 @@ by (simp add: algebra_simps)
 lemma diff_eq_0_iff_eq [simp, no_atp]: "a - b = 0 \<longleftrightarrow> a = b"
 by (simp add: algebra_simps)
 
+lemma diff_eq_diff_eq:
+  "a - b = c - d \<Longrightarrow> a = b \<longleftrightarrow> c = d"
+  by (auto simp add: algebra_simps)
+  
 end
+
 
 subsection {* (Partially) Ordered Groups *} 
 
@@ -755,13 +758,15 @@ qed
 lemma minus_le_iff: "- a \<le> b \<longleftrightarrow> - b \<le> a"
 by (auto simp add: le_less minus_less_iff)
 
-lemma less_iff_diff_less_0: "a < b \<longleftrightarrow> a - b < 0"
+lemma diff_less_0_iff_less [simp, no_atp]:
+  "a - b < 0 \<longleftrightarrow> a < b"
 proof -
-  have  "(a < b) = (a + (- b) < b + (-b))"  
-    by (simp only: add_less_cancel_right)
-  also have "... =  (a - b < 0)" by (simp add: diff_minus)
+  have "a - b < 0 \<longleftrightarrow> a + (- b) < b + (- b)" by (simp add: diff_minus)
+  also have "... \<longleftrightarrow> a < b" by (simp only: add_less_cancel_right)
   finally show ?thesis .
 qed
+
+lemmas less_iff_diff_less_0 = diff_less_0_iff_less [symmetric]
 
 lemma diff_less_eq[algebra_simps, field_simps]: "a - b < c \<longleftrightarrow> a < c + b"
 apply (subst less_iff_diff_less_0 [of a])
@@ -781,10 +786,31 @@ by (auto simp add: le_less diff_less_eq diff_add_cancel add_diff_cancel)
 lemma le_diff_eq[algebra_simps, field_simps]: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
 by (auto simp add: le_less less_diff_eq diff_add_cancel add_diff_cancel)
 
-lemma le_iff_diff_le_0: "a \<le> b \<longleftrightarrow> a - b \<le> 0"
-by (simp add: algebra_simps)
+lemma diff_le_0_iff_le [simp, no_atp]:
+  "a - b \<le> 0 \<longleftrightarrow> a \<le> b"
+  by (simp add: algebra_simps)
+
+lemmas le_iff_diff_le_0 = diff_le_0_iff_le [symmetric]
+
+lemma diff_eq_diff_less:
+  "a - b = c - d \<Longrightarrow> a < b \<longleftrightarrow> c < d"
+  by (auto simp only: less_iff_diff_less_0 [of a b] less_iff_diff_less_0 [of c d])
+
+lemma diff_eq_diff_less_eq': -- "FIXME orientation"
+  "a - b = c - d \<Longrightarrow> b \<le> a \<longleftrightarrow> d \<le> c"
+proof -
+  assume "a - b = c - d"
+  then have "b - a = d - c" by (simp add: algebra_simps)
+  then show "b \<le> a \<longleftrightarrow> d \<le> c" by (auto simp only: le_iff_diff_le_0 [of b a] le_iff_diff_le_0 [of d c])
+qed
 
 end
+
+use "~~/src/HOL/Tools/abel_cancel.ML"
+
+ML {*
+  Addsimprocs [Abel_Cancel.sum_conv, Abel_Cancel.rel_conv];
+*}
 
 class linordered_ab_semigroup_add =
   linorder + ordered_ab_semigroup_add
@@ -1167,42 +1193,6 @@ qed
 
 end
 
-text {* Needed for abelian cancellation simprocs: *}
-
-lemma add_cancel_21: "((x::'a::ab_group_add) + (y + z) = y + u) = (x + z = u)"
-apply (subst add_left_commute)
-apply (subst add_left_cancel)
-apply simp
-done
-
-lemma add_cancel_end: "(x + (y + z) = y) = (x = - (z::'a::ab_group_add))"
-apply (subst add_cancel_21[of _ _ _ 0, simplified])
-apply (simp add: add_right_cancel[symmetric, of "x" "-z" "z", simplified])
-done
-
-lemma less_eqI: "(x::'a::ordered_ab_group_add) - y = x' - y' \<Longrightarrow> (x < y) = (x' < y')"
-by (simp add: less_iff_diff_less_0[of x y] less_iff_diff_less_0[of x' y'])
-
-lemma le_eqI: "(x::'a::ordered_ab_group_add) - y = x' - y' \<Longrightarrow> (y <= x) = (y' <= x')"
-apply (simp add: le_iff_diff_le_0[of y x] le_iff_diff_le_0[of  y' x'])
-apply (simp add: neg_le_iff_le[symmetric, of "y-x" 0] neg_le_iff_le[symmetric, of "y'-x'" 0])
-done
-
-lemma eq_eqI: "(x::'a::ab_group_add) - y = x' - y' \<Longrightarrow> (x = y) = (x' = y')"
-by (simp only: eq_iff_diff_eq_0[of x y] eq_iff_diff_eq_0[of x' y'])
-
-lemma diff_def: "(x::'a::ab_group_add) - y == x + (-y)"
-by (simp add: diff_minus)
-
-lemma le_add_right_mono: 
-  assumes 
-  "a <= b + (c::'a::ordered_ab_group_add)"
-  "c <= d"    
-  shows "a <= b + d"
-  apply (rule_tac order_trans[where y = "b+c"])
-  apply (simp_all add: prems)
-  done
-
 
 subsection {* Tools setup *}
 
@@ -1223,64 +1213,6 @@ lemma add_mono_thms_linordered_field [no_atp]:
     and "i < j \<and> k < l \<Longrightarrow> i + k < j + l"
 by (auto intro: add_strict_right_mono add_strict_left_mono
   add_less_le_mono add_le_less_mono add_strict_mono)
-
-text{*Simplification of @{term "x-y < 0"}, etc.*}
-lemmas diff_less_0_iff_less [simp, no_atp] = less_iff_diff_less_0 [symmetric]
-lemmas diff_le_0_iff_le [simp, no_atp] = le_iff_diff_le_0 [symmetric]
-
-ML {*
-structure ab_group_add_cancel = Abel_Cancel
-(
-
-(* term order for abelian groups *)
-
-fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
-      [@{const_name Groups.zero}, @{const_name Groups.plus},
-        @{const_name Groups.uminus}, @{const_name Groups.minus}]
-  | agrp_ord _ = ~1;
-
-fun termless_agrp (a, b) = (Term_Ord.term_lpo agrp_ord (a, b) = LESS);
-
-local
-  val ac1 = mk_meta_eq @{thm add_assoc};
-  val ac2 = mk_meta_eq @{thm add_commute};
-  val ac3 = mk_meta_eq @{thm add_left_commute};
-  fun solve_add_ac thy _ (_ $ (Const (@{const_name Groups.plus},_) $ _ $ _) $ _) =
-        SOME ac1
-    | solve_add_ac thy _ (_ $ x $ (Const (@{const_name Groups.plus},_) $ y $ z)) =
-        if termless_agrp (y, x) then SOME ac3 else NONE
-    | solve_add_ac thy _ (_ $ x $ y) =
-        if termless_agrp (y, x) then SOME ac2 else NONE
-    | solve_add_ac thy _ _ = NONE
-in
-  val add_ac_proc = Simplifier.simproc @{theory}
-    "add_ac_proc" ["x + y::'a::ab_semigroup_add"] solve_add_ac;
-end;
-
-val eq_reflection = @{thm eq_reflection};
-  
-val T = @{typ "'a::ab_group_add"};
-
-val cancel_ss = HOL_basic_ss settermless termless_agrp
-  addsimprocs [add_ac_proc] addsimps
-  [@{thm add_0_left}, @{thm add_0_right}, @{thm diff_def},
-   @{thm minus_add_distrib}, @{thm minus_minus}, @{thm minus_zero},
-   @{thm right_minus}, @{thm left_minus}, @{thm add_minus_cancel},
-   @{thm minus_add_cancel}];
-
-val sum_pats = [@{cterm "x + y::'a::ab_group_add"}, @{cterm "x - y::'a::ab_group_add"}];
-  
-val eqI_rules = [@{thm less_eqI}, @{thm le_eqI}, @{thm eq_eqI}];
-
-val dest_eqI = 
-  fst o HOLogic.dest_bin @{const_name "op ="} HOLogic.boolT o HOLogic.dest_Trueprop o concl_of;
-
-);
-*}
-
-ML {*
-  Addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv];
-*}
 
 code_modulename SML
   Groups Arith

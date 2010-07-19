@@ -376,9 +376,10 @@ lemma estimate_by_abs:
   "a + b <= (c::'a::lattice_ab_group_add_abs) \<Longrightarrow> a <= c + abs b" 
 proof -
   assume "a+b <= c"
-  hence 2: "a <= c+(-b)" by (simp add: algebra_simps)
-  have 3: "(-b) <= abs b" by (rule abs_ge_minus_self)
-  show ?thesis by (rule le_add_right_mono[OF 2 3])
+  then have "a <= c+(-b)" by (simp add: algebra_simps)
+  have "(-b) <= abs b" by (rule abs_ge_minus_self)
+  then have "c + (- b) \<le> c + \<bar>b\<bar>" by (rule add_left_mono)
+  with `a \<le> c + (- b)` show ?thesis by (rule order_trans)
 qed
 
 class lattice_ring = ordered_ring + lattice_ab_group_add_abs
@@ -411,7 +412,7 @@ proof -
     apply (simp_all add: mult_nonneg_nonneg mult_nonpos_nonpos)
     done
   have yx: "?y <= ?x"
-    apply (simp add:diff_def)
+    apply (simp add:diff_minus)
     apply (rule order_trans [OF add_nonpos_nonpos add_nonneg_nonneg])
     apply (simp_all add: mult_nonneg_nonpos mult_nonpos_nonneg)
     done
