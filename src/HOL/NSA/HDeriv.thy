@@ -174,7 +174,7 @@ lemma NSDERIV_add: "[| NSDERIV f x :> Da;  NSDERIV g x :> Db |]
 apply (auto simp add: NSDERIV_NSLIM_iff NSLIM_def)
 apply (auto simp add: add_divide_distrib diff_divide_distrib dest!: spec)
 apply (drule_tac b = "star_of Da" and d = "star_of Db" in approx_add)
-apply (auto simp add: diff_def add_ac)
+apply (auto simp add: diff_minus add_ac)
 done
 
 text{*Product of functions - Proof is trivial but tedious
@@ -234,7 +234,7 @@ proof (simp add: NSDERIV_NSLIM_iff)
   hence deriv: "(\<lambda>h. - ((f(x+h) - f x) / h)) -- 0 --NS> - D"
     by (rule NSLIM_minus)
   have "\<forall>h. - ((f (x + h) - f x) / h) = (- f (x + h) + f x) / h"
-    by (simp add: minus_divide_left diff_def)
+    by (simp add: minus_divide_left diff_minus)
   with deriv
   show "(\<lambda>h. (- f (x + h) + f x) / h) -- 0 --NS> - D" by simp
 qed
@@ -353,7 +353,7 @@ apply (simp add: add_commute)
 (*apply (auto simp add: starfun_inverse_inverse realpow_two
         simp del: minus_mult_left [symmetric] minus_mult_right [symmetric])*)
 apply (simp add: inverse_add nonzero_inverse_mult_distrib [symmetric] power_Suc
-              nonzero_inverse_minus_eq [symmetric] add_ac mult_ac diff_def
+              nonzero_inverse_minus_eq [symmetric] add_ac mult_ac diff_minus
             del: inverse_mult_distrib inverse_minus_eq
                  minus_mult_left [symmetric] minus_mult_right [symmetric])
 apply (subst mult_commute, simp add: nonzero_mult_divide_cancel_right)

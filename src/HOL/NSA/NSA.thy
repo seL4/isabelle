@@ -368,7 +368,7 @@ by (subst Infinitesimal_hnorm_iff [symmetric], simp)
 
 lemma Infinitesimal_diff:
      "[| x \<in> Infinitesimal;  y \<in> Infinitesimal |] ==> x-y \<in> Infinitesimal"
-by (simp add: diff_def Infinitesimal_add)
+by (simp add: diff_minus Infinitesimal_add)
 
 lemma Infinitesimal_mult:
   fixes x y :: "'a::real_normed_algebra star"
@@ -637,7 +637,7 @@ done
 lemma approx_trans: "[| x @= y; y @= z |] ==> x @= z"
 apply (simp add: approx_def)
 apply (drule (1) Infinitesimal_add)
-apply (simp add: diff_def)
+apply (simp add: diff_minus)
 done
 
 lemma approx_trans2: "[| r @= x; s @= x |] ==> r @= s"
@@ -714,7 +714,7 @@ qed
 lemma approx_minus: "a @= b ==> -a @= -b"
 apply (rule approx_minus_iff [THEN iffD2, THEN approx_sym])
 apply (drule approx_minus_iff [THEN iffD1])
-apply (simp add: add_commute diff_def)
+apply (simp add: add_commute diff_minus)
 done
 
 lemma approx_minus2: "-a @= -b ==> a @= b"

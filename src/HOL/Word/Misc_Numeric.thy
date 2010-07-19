@@ -292,7 +292,7 @@ lemma mem_same: "a : S ==> a = b ==> b : S"
 
 (* two alternative proofs of this *)
 lemma RI_eq_diff': "(a, b) : Rep_Integ (int a - int b)"
-  apply (unfold diff_def)
+  apply (unfold diff_minus)
   apply (rule mem_same)
    apply (rule RI_minus RI_add RI_int)+
   apply simp

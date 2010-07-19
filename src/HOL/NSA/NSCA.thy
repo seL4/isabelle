@@ -178,7 +178,7 @@ lemma Infinitesimal_hcmod_add_diff:
      "u @= 0 ==> hcmod(x + u) - hcmod x \<in> Infinitesimal"
 apply (drule approx_approx_zero_iff [THEN iffD1])
 apply (rule_tac e = "hcmod u" and e' = "- hcmod u" in Infinitesimal_interval2)
-apply (auto simp add: mem_infmal_iff [symmetric] diff_def)
+apply (auto simp add: mem_infmal_iff [symmetric] diff_minus)
 apply (rule_tac c1 = "hcmod x" in add_le_cancel_left [THEN iffD1])
 apply (auto simp add: diff_minus [symmetric])
 done

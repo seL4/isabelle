@@ -118,7 +118,7 @@ lemma (in vectorspace) diff_mult_distrib2:
 proof -
   assume x: "x \<in> V"
   have " (a - b) \<cdot> x = (a + - b) \<cdot> x"
-    by (simp add: diff_def)
+    by (simp add: diff_minus)
   also from x have "\<dots> = a \<cdot> x + (- b) \<cdot> x"
     by (rule add_mult_distrib2)
   also from x have "\<dots> = a \<cdot> x + - (b \<cdot> x)"

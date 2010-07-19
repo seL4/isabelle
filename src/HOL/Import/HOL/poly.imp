@@ -13,7 +13,7 @@ def_maps
   "poly_add" > "poly_add_primdef"
   "poly" > "poly_primdef"
   "normalize" > "normalize_def"
-  "diff" > "diff_def"
+  "diff" > "diff_minus"
   "degree" > "degree_def"
   "##" > "##_def"
 

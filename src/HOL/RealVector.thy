@@ -30,7 +30,7 @@ proof -
 qed
 
 lemma diff: "f (x - y) = f x - f y"
-by (simp add: diff_def add minus)
+by (simp add: add minus diff_minus)
 
 lemma setsum: "f (setsum g A) = (\<Sum>x\<in>A. f (g x))"
 apply (cases "finite A")

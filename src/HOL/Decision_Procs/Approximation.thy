@@ -18,7 +18,7 @@ lemma horner_schema': fixes x :: real  and a :: "nat \<Rightarrow> real"
   shows "a 0 - x * (\<Sum> i=0..<n. (-1)^i * a (Suc i) * x^i) = (\<Sum> i=0..<Suc n. (-1)^i * a i * x^i)"
 proof -
   have shift_pow: "\<And>i. - (x * ((-1)^i * a (Suc i) * x ^ i)) = (-1)^(Suc i) * a (Suc i) * x ^ (Suc i)" by auto
-  show ?thesis unfolding setsum_right_distrib shift_pow diff_def setsum_negf[symmetric] setsum_head_upt_Suc[OF zero_less_Suc]
+  show ?thesis unfolding setsum_right_distrib shift_pow diff_minus setsum_negf[symmetric] setsum_head_upt_Suc[OF zero_less_Suc]
     setsum_reindex[OF inj_Suc, unfolded comp_def, symmetric, of "\<lambda> n. (-1)^n  *a n * x^n"] by auto
 qed
 
@@ -45,14 +45,14 @@ proof (induct n arbitrary: j')
   case 0 thus ?case unfolding lb_0 ub_0 horner.simps by auto
 next
   case (Suc n)
-  have "?lb (Suc n) j' \<le> ?horner (Suc n) j'" unfolding lb_Suc ub_Suc horner.simps real_of_float_sub diff_def
+  have "?lb (Suc n) j' \<le> ?horner (Suc n) j'" unfolding lb_Suc ub_Suc horner.simps real_of_float_sub diff_minus
   proof (rule add_mono)
     show "real (lapprox_rat prec 1 (int (f j'))) \<le> 1 / real (f j')" using lapprox_rat[of prec 1  "int (f j')"] by auto
     from Suc[where j'="Suc j'", unfolded funpow.simps comp_def f_Suc, THEN conjunct2] `0 \<le> real x`
     show "- real (x * ub n (F ((F ^^ j') s)) (G ((F ^^ j') s) (f j')) x) \<le> - (real x * horner F G n (F ((F ^^ j') s)) (G ((F ^^ j') s) (f j')) (real x))"
       unfolding real_of_float_mult neg_le_iff_le by (rule mult_left_mono)
   qed
-  moreover have "?horner (Suc n) j' \<le> ?ub (Suc n) j'" unfolding ub_Suc ub_Suc horner.simps real_of_float_sub diff_def
+  moreover have "?horner (Suc n) j' \<le> ?ub (Suc n) j'" unfolding ub_Suc ub_Suc horner.simps real_of_float_sub diff_minus
   proof (rule add_mono)
     show "1 / real (f j') \<le> real (rapprox_rat prec 1 (int (f j')))" using rapprox_rat[of 1 "int (f j')" prec] by auto
     from Suc[where j'="Suc j'", unfolded funpow.simps comp_def f_Suc, THEN conjunct1] `0 \<le> real x`
@@ -1213,7 +1213,7 @@ proof ((rule allI | rule impI | erule conjE) +)
           round_down[of prec "lb_pi prec"] by auto
   hence "real ?lx \<le> x - real k * 2 * pi \<and> x - real k * 2 * pi \<le> real ?ux"
     using x by (cases "k = 0") (auto intro!: add_mono
-                simp add: diff_def k[symmetric] less_float_def)
+                simp add: diff_minus k[symmetric] less_float_def)
   note lx = this[THEN conjunct1] and ux = this[THEN conjunct2]
   hence lx_less_ux: "real ?lx \<le> real ?ux" by (rule order_trans)
 
@@ -1227,7 +1227,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
       using cos_monotone_minus_pi_0'[OF pi_lx lx x_le_0]
       by (simp only: real_of_float_minus real_of_int_minus
-        cos_minus diff_def mult_minus_left)
+        cos_minus diff_minus mult_minus_left)
     finally have "real (lb_cos prec (- ?lx)) \<le> cos x"
       unfolding cos_periodic_int . }
   note negative_lx = this
@@ -1240,7 +1240,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + real (-k) * 2 * pi) \<le> cos (real ?lx)"
       using cos_monotone_0_pi'[OF lx_0 lx pi_x]
       by (simp only: real_of_float_minus real_of_int_minus
-        cos_minus diff_def mult_minus_left)
+        cos_minus diff_minus mult_minus_left)
     also have "\<dots> \<le> real (ub_cos prec ?lx)"
       using lb_cos[OF lx_0 pi_lx] by simp
     finally have "cos x \<le> real (ub_cos prec ?lx)"
@@ -1255,7 +1255,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     have "cos (x + real (-k) * 2 * pi) \<le> cos (real (- ?ux))"
       using cos_monotone_minus_pi_0'[OF pi_x ux ux_0]
       by (simp only: real_of_float_minus real_of_int_minus
-          cos_minus diff_def mult_minus_left)
+          cos_minus diff_minus mult_minus_left)
     also have "\<dots> \<le> real (ub_cos prec (- ?ux))"
       using lb_cos_minus[OF pi_ux ux_0, of prec] by simp
     finally have "cos x \<le> real (ub_cos prec (- ?ux))"
@@ -1272,7 +1272,7 @@ proof ((rule allI | rule impI | erule conjE) +)
     also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
       using cos_monotone_0_pi'[OF x_ge_0 ux pi_ux]
       by (simp only: real_of_float_minus real_of_int_minus
-        cos_minus diff_def mult_minus_left)
+        cos_minus diff_minus mult_minus_left)
     finally have "real (lb_cos prec ?ux) \<le> cos x"
       unfolding cos_periodic_int . }
   note positive_ux = this
@@ -1347,7 +1347,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       also have "\<dots> \<le> cos (real (?ux - 2 * ?lpi))"
         using cos_monotone_minus_pi_0'[OF pi_x x_le_ux ux_0]
         by (simp only: real_of_float_minus real_of_int_minus real_of_one
-            number_of_Min diff_def mult_minus_left mult_1_left)
+            number_of_Min diff_minus mult_minus_left mult_1_left)
       also have "\<dots> = cos (real (- (?ux - 2 * ?lpi)))"
         unfolding real_of_float_minus cos_minus ..
       also have "\<dots> \<le> real (ub_cos prec (- (?ux - 2 * ?lpi)))"
@@ -1391,7 +1391,7 @@ proof ((rule allI | rule impI | erule conjE) +)
       also have "\<dots> \<le> cos (real (?lx + 2 * ?lpi))"
         using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
         by (simp only: real_of_float_minus real_of_int_minus real_of_one
-          number_of_Min diff_def mult_minus_left mult_1_left)
+          number_of_Min diff_minus mult_minus_left mult_1_left)
       also have "\<dots> \<le> real (ub_cos prec (?lx + 2 * ?lpi))"
         using lb_cos[OF lx_0 pi_lx] by simp
       finally show ?thesis unfolding u by (simp add: real_of_float_max)
@@ -2091,12 +2091,12 @@ lemma interpret_floatarith_divide: "interpret_floatarith (Mult a (Inverse b)) vs
   unfolding divide_inverse interpret_floatarith.simps ..
 
 lemma interpret_floatarith_diff: "interpret_floatarith (Add a (Minus b)) vs = (interpret_floatarith a vs) - (interpret_floatarith b vs)"
-  unfolding diff_def interpret_floatarith.simps ..
+  unfolding diff_minus interpret_floatarith.simps ..
 
 lemma interpret_floatarith_sin: "interpret_floatarith (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) vs =
   sin (interpret_floatarith a vs)"
   unfolding sin_cos_eq interpret_floatarith.simps
-            interpret_floatarith_divide interpret_floatarith_diff diff_def
+            interpret_floatarith_divide interpret_floatarith_diff diff_minus
   by auto
 
 lemma interpret_floatarith_tan:

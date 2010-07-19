@@ -2952,7 +2952,7 @@ proof -
       }
       hence "\<forall> x \<in> { 0 <..< 1 }. 0 \<le> ?a x n - ?diff x n" by auto
       moreover have "\<And>x. isCont (\<lambda> x. ?a x n - ?diff x n) x"
-        unfolding diff_def divide_inverse
+        unfolding diff_minus divide_inverse
         by (auto intro!: isCont_add isCont_rabs isCont_ident isCont_minus isCont_arctan isCont_inverse isCont_mult isCont_power isCont_const isCont_setsum)
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n" by (rule LIM_less_bound)
       hence "?diff 1 n \<le> ?a 1 n" by auto
@@ -2968,7 +2968,7 @@ proof -
         have "norm (?diff 1 n - 0) < r" by auto }
       thus "\<exists> N. \<forall> n \<ge> N. norm (?diff 1 n - 0) < r" by blast
     qed
-    from this[unfolded LIMSEQ_rabs_zero diff_def add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN LIMSEQ_minus]
+    from this[unfolded LIMSEQ_rabs_zero diff_minus add_commute[of "arctan 1"], THEN LIMSEQ_add_const, of "- arctan 1", THEN LIMSEQ_minus]
     have "(?c 1) sums (arctan 1)" unfolding sums_def by auto
     hence "arctan 1 = (\<Sum> i. ?c 1 i)" by (rule sums_unique)
     

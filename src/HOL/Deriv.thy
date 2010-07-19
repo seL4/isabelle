@@ -57,7 +57,7 @@ by (simp only: deriv_def minus_diff_minus divide_minus_left LIM_minus)
 
 lemma DERIV_diff:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x - g x) x :> D - E"
-by (simp only: diff_def DERIV_add DERIV_minus)
+by (simp only: diff_minus DERIV_add DERIV_minus)
 
 lemma DERIV_add_minus:
   "\<lbrakk>DERIV f x :> D; DERIV g x :> E\<rbrakk> \<Longrightarrow> DERIV (\<lambda>x. f x + - g x) x :> D + - E"
@@ -1269,7 +1269,7 @@ proof (rule ccontr, cases "a = b")
       and "f b - f a = (b - a) * l"
     by auto
   from prems have "~(l >= 0)"
-    by (metis diff_self le_eqI le_iff_diff_le_0 order_antisym linear
+    by (metis diff_self diff_eq_diff_less_eq' le_iff_diff_le_0 order_antisym linear
               split_mult_pos_le)
   with prems show False
     by (metis DERIV_unique order_less_imp_le)

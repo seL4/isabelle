@@ -153,7 +153,7 @@ proof -
   have "x = y-(y-x)" by simp
   also from suc q have "\<dots> < real (Suc p)/real q - inverse (real q)" by arith
   also have "\<dots> = real p / real q"
-    by (simp only: inverse_eq_divide diff_def real_of_nat_Suc 
+    by (simp only: inverse_eq_divide diff_minus real_of_nat_Suc 
     minus_divide_left add_divide_distrib[THEN sym]) simp
   finally have "x<r" by (unfold r_def)
   have "p<Suc p" .. also note main[THEN sym]

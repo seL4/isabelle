@@ -357,7 +357,7 @@ proof -
                     borel_measurable_uminus_borel_measurable f g)
   finally have 2: "(\<lambda>x. -((f x + -g x) ^ 2 * inverse 4)) \<in> borel_measurable M" .
   show ?thesis
-    apply (simp add: times_eq_sum_squares diff_def) 
+    apply (simp add: times_eq_sum_squares diff_minus) 
     using 1 2 apply (simp add: borel_measurable_add_borel_measurable) 
     done
 qed
@@ -366,7 +366,7 @@ lemma (in measure_space) borel_measurable_diff_borel_measurable:
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
-unfolding diff_def
+unfolding diff_minus
   by (fast intro: borel_measurable_add_borel_measurable 
                   borel_measurable_uminus_borel_measurable f g)
 
@@ -626,11 +626,11 @@ using assms
 proof -
   from assms have "y - z > 0" by simp
   hence A: "\<exists>n. (\<forall> m \<ge> n. \<bar> x m + - y \<bar> < y - z)" using assms
-    unfolding incseq_def LIMSEQ_def dist_real_def diff_def
+    unfolding incseq_def LIMSEQ_def dist_real_def diff_minus
     by simp
   have "\<forall>m. x m \<le> y" using incseq_le assms by auto
   hence B: "\<forall>m. \<bar> x m + - y \<bar> = y - x m"
-    by (metis abs_if abs_minus_add_cancel less_iff_diff_less_0 linorder_not_le diff_def)
+    by (metis abs_if abs_minus_add_cancel less_iff_diff_less_0 linorder_not_le diff_minus)
   from A B show ?thesis by auto
 qed
 

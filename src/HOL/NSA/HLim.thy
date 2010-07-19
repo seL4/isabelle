@@ -73,7 +73,7 @@ by (simp add: NSLIM_def)
 
 lemma NSLIM_diff:
   "\<lbrakk>f -- x --NS> l; g -- x --NS> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --NS> (l - m)"
-by (simp only: diff_def NSLIM_add NSLIM_minus)
+by (simp only: diff_minus NSLIM_add NSLIM_minus)
 
 lemma NSLIM_add_minus: "[| f -- x --NS> l; g -- x --NS> m |] ==> (%x. f(x) + -g(x)) -- x --NS> (l + -m)"
 by (simp only: NSLIM_add NSLIM_minus)
@@ -245,7 +245,7 @@ apply (drule_tac x = "star_of a + x" in spec)
 apply (drule_tac [2] x = "- star_of a + x" in spec, safe, simp)
 apply (erule mem_infmal_iff [THEN iffD2, THEN Infinitesimal_add_approx_self [THEN approx_sym]])
 apply (erule_tac [3] approx_minus_iff2 [THEN iffD1])
- prefer 2 apply (simp add: add_commute diff_def [symmetric])
+ prefer 2 apply (simp add: add_commute diff_minus [symmetric])
 apply (rule_tac x = x in star_cases)
 apply (rule_tac [2] x = x in star_cases)
 apply (auto simp add: starfun star_of_def star_n_minus star_n_add add_assoc approx_refl star_n_zero_num)

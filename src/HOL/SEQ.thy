@@ -506,8 +506,7 @@ proof (rule classical)
       from this obtain no where "\<forall>n\<ge>no. \<bar>f n - lim f\<bar> < lim f - x"
         by blast
       thus "lim f \<le> x"
-        by (metis add_cancel_end add_minus_cancel diff_def linorder_linear 
-                  linorder_not_le minus_diff_eq abs_diff_less_iff fn_le) 
+        by (metis 1 LIMSEQ_le_const2 fn_le)
     qed
 qed
 
@@ -971,7 +970,7 @@ apply (rule_tac [2] x = "k + norm x" in exI)
 apply (rule_tac x = K in exI, simp)
 apply (rule exI [where x = 0], auto)
 apply (erule order_less_le_trans, simp)
-apply (drule_tac x=n in spec, fold diff_def)
+apply (drule_tac x=n in spec, fold diff_minus)
 apply (drule order_trans [OF norm_triangle_ineq2])
 apply simp
 done

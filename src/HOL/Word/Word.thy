@@ -1130,14 +1130,14 @@ lemma wi_homs:
 lemmas wi_hom_syms = wi_homs [symmetric]
 
 lemma word_sub_def: "a - b == a + - (b :: 'a :: len0 word)"
-  unfolding word_sub_wi diff_def
+  unfolding word_sub_wi diff_minus
   by (simp only : word_uint.Rep_inverse wi_hom_syms)
     
 lemmas word_diff_minus = word_sub_def [THEN meta_eq_to_obj_eq, standard]
 
 lemma word_of_int_sub_hom:
   "(word_of_int a) - word_of_int b = word_of_int (a - b)"
-  unfolding word_sub_def diff_def by (simp only : wi_homs)
+  unfolding word_sub_def diff_minus by (simp only : wi_homs)
 
 lemmas new_word_of_int_homs = 
   word_of_int_sub_hom wi_homs word_0_wi word_1_wi 

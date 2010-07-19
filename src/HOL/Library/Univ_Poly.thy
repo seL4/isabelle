@@ -204,7 +204,7 @@ next
     from Cons.hyps[rule_format, of x]
     obtain q r where qr: "x#xs = [r] +++ [- a, 1] *** q" by blast
     have "h#x#xs = [a*r + h] +++ [-a, 1] *** (r#q)"
-      using qr by(cases q, simp_all add: algebra_simps diff_def[symmetric]
+      using qr by(cases q, simp_all add: algebra_simps diff_minus[symmetric]
         minus_mult_left[symmetric] right_minus)
     hence "\<exists>q r. h#x#xs = [r] +++ [-a, 1] *** q" by blast}
   thus ?case by blast

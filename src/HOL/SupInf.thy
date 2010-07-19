@@ -417,7 +417,7 @@ proof -
   also have "... \<le> e" 
     apply (rule Sup_asclose) 
     apply (auto simp add: S)
-    apply (metis abs_minus_add_cancel b add_commute diff_def)
+    apply (metis abs_minus_add_cancel b add_commute diff_minus)
     done
   finally have "\<bar>- Sup (uminus ` S) - l\<bar> \<le> e" .
   thus ?thesis

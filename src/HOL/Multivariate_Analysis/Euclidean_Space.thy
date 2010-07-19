@@ -523,7 +523,7 @@ lemma linear_neg: "linear f ==> f (-x) = - f x"
 lemma linear_add: "linear f ==> f(x + y) = f x + f y" by (metis linear_def)
 
 lemma linear_sub: "linear f ==> f(x - y) = f x - f y"
-  by (simp add: diff_def linear_add linear_neg)
+  by (simp add: diff_minus linear_add linear_neg)
 
 lemma linear_setsum:
   assumes lf: "linear f" and fS: "finite S"
@@ -592,10 +592,10 @@ lemma bilinear_rzero:
     by (simp add: eq_add_iff field_simps)
 
 lemma bilinear_lsub: "bilinear h ==> h (x - y) z = h x z - h y z"
-  by (simp  add: diff_def bilinear_ladd bilinear_lneg)
+  by (simp  add: diff_minus bilinear_ladd bilinear_lneg)
 
 lemma bilinear_rsub: "bilinear h ==> h z (x - y) = h z x - h z y"
-  by (simp  add: diff_def bilinear_radd bilinear_rneg)
+  by (simp  add: diff_minus bilinear_radd bilinear_rneg)
 
 lemma bilinear_setsum:
   assumes bh: "bilinear h" and fS: "finite S" and fT: "finite T"
@@ -902,7 +902,7 @@ lemma subspace_neg: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> - 
   by (metis scaleR_minus1_left subspace_mul)
 
 lemma subspace_sub: "subspace S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x - y \<in> S"
-  by (metis diff_def subspace_add subspace_neg)
+  by (metis diff_minus subspace_add subspace_neg)
 
 lemma (in real_vector) subspace_setsum:
   assumes sA: "subspace A" and fB: "finite B"
@@ -3082,7 +3082,7 @@ proof-
   from infnorm_triangle[of "x - y" " y"] infnorm_triangle[of "x - y" "-x"]
   have ths: "infnorm x \<le> infnorm (x - y) + infnorm y"
     "infnorm y \<le> infnorm (x - y) + infnorm x"
-    by (simp_all add: field_simps infnorm_neg diff_def[symmetric])
+    by (simp_all add: field_simps infnorm_neg diff_minus[symmetric])
   from th[OF ths]  show ?thesis .
 qed
 

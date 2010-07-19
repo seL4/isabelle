@@ -734,7 +734,7 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "times_divide_eq_left"}, @{thm "times_divide_eq_right"},
            @{thm "times_divide_times_eq"},
            @{thm "divide_divide_eq_right"},
-           @{thm "diff_def"}, @{thm "minus_divide_left"},
+           @{thm "diff_minus"}, @{thm "minus_divide_left"},
            @{thm "Numeral1_eq1_nat"}, @{thm "add_divide_distrib"} RS sym,
            @{thm field_divide_inverse} RS sym, @{thm inverse_divide}, 
            Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (Conv.rewr_conv (mk_meta_eq @{thm mult_commute}))))   

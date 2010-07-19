@@ -566,7 +566,7 @@ theorem int_diff_cases:
   obtains (diff) m n where "(z\<Colon>int) = of_nat m - of_nat n"
 apply (cases z rule: eq_Abs_Integ)
 apply (rule_tac m=x and n=y in diff)
-apply (simp add: int_def diff_def minus add)
+apply (simp add: int_def minus add diff_minus)
 done
 
 
