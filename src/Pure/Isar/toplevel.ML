@@ -24,6 +24,7 @@ sig
   val enter_proof_body: state -> Proof.state
   val print_state_context: state -> unit
   val print_state: bool -> state -> unit
+  val pretty_abstract: state -> Pretty.T
   val quiet: bool Unsynchronized.ref
   val debug: bool Unsynchronized.ref
   val interact: bool Unsynchronized.ref
@@ -211,6 +212,8 @@ fun print_state prf_only state =
       Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
   | SOME (SkipProof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
   |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
+
+fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
 
 
