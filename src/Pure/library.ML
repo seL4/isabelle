@@ -1000,21 +1000,23 @@ fun divide_and_conquer' decomp x s =
 (*Partition a list into buckets  [ bi, b(i+1), ..., bj ]
    putting x in bk if p(k)(x) holds.  Preserve order of elements if possible.*)
 fun partition_list p i j =
-  let fun part k xs =
-            if k>j then
-              (case xs of [] => []
-                         | _ => raise Fail "partition_list")
-            else
-            let val (ns, rest) = List.partition (p k) xs;
-            in  ns :: part(k+1)rest  end
-  in  part (i: int) end;
+  let
+    fun part (k: int) xs =
+      if k > j then
+        (case xs of
+          [] => []
+        | _ => raise Fail "partition_list")
+      else
+        let val (ns, rest) = List.partition (p k) xs
+        in ns :: part (k + 1) rest end;
+  in part (i: int) end;
 
-fun partition_eq (eq:'a * 'a -> bool) =
+fun partition_eq (eq: 'a * 'a -> bool) =
   let
     fun part [] = []
       | part (x :: ys) =
           let val (xs, xs') = List.partition (fn y => eq (x, y)) ys
-          in (x::xs)::(part xs') end
+          in (x :: xs) :: part xs' end;
   in part end;
 
 
