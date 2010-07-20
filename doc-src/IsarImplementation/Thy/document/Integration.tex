@@ -433,9 +433,9 @@ The theory database maintains a collection of theories, together
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{theory}\verb|theory: string -> theory| \\
   \indexdef{}{ML}{use\_thy}\verb|use_thy: string -> unit| \\
   \indexdef{}{ML}{use\_thys}\verb|use_thys: string list -> unit| \\
+  \indexdef{}{ML}{Thy\_Info.get\_theory}\verb|Thy_Info.get_theory: string -> theory| \\
   \indexdef{}{ML}{Thy\_Info.touch\_thy}\verb|Thy_Info.touch_thy: string -> unit| \\
   \indexdef{}{ML}{Thy\_Info.remove\_thy}\verb|Thy_Info.remove_thy: string -> unit| \\[1ex]
   \indexdef{}{ML}{Thy\_Info.begin\_theory}\verb|Thy_Info.begin_theory|\verb|: ... -> bool -> theory| \\
@@ -447,10 +447,6 @@ The theory database maintains a collection of theories, together
 
   \begin{description}
 
-  \item \verb|theory|~\isa{A} retrieves the theory value presently
-  associated with name \isa{A}.  Note that the result might be
-  outdated.
-
   \item \verb|use_thy|~\isa{A} ensures that theory \isa{A} is fully
   up-to-date wrt.\ the external file store, reloading outdated
   ancestors as required.  In batch mode, the simultaneous \verb|use_thys| should be used exclusively.
@@ -461,6 +457,10 @@ The theory database maintains a collection of theories, together
   result.  By loading a whole sub-graph of theories like that, the
   intrinsic parallelism can be exploited by the system, to speedup
   loading.
+
+  \item \verb|Thy_Info.get_theory|~\isa{A} retrieves the theory value
+  presently associated with name \isa{A}.  Note that the result
+  might be outdated.
 
   \item \verb|Thy_Info.touch_thy|~\isa{A} performs and \isa{outdate} action
   on theory \isa{A} and all descendants.
