@@ -699,7 +699,7 @@ fun proof_result immediate (tr, proof_trs) st =
 
         val states =
           (case States.get (presentation_context_of st'') of
-            NONE => sys_error ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
+            NONE => raise Fail ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
           | SOME states => states);
         val result = Lazy.lazy
           (fn () => (tr, st') :: (body_trs ~~ Future.join states) @ [(end_tr, st'')]);

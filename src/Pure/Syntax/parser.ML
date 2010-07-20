@@ -828,7 +828,7 @@ fun parse (Gram {tags, prods, chains, ...}) start toks =
       | SOME (Lexicon.Token (_, _, (_, end_pos))) => end_pos);
     val r =
       (case earley prods tags chains start (toks @ [Lexicon.mk_eof end_pos]) of
-        [] => raise Fail "no parse trees"
+        [] => raise Fail "Inner syntax: no parse trees"
       | pts => pts);
   in r end;
 

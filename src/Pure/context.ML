@@ -120,7 +120,7 @@ val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
 fun invoke f k =
   (case Datatab.lookup (! kinds) k of
     SOME kind => f kind
-  | NONE => sys_error "Invalid theory data identifier");
+  | NONE => raise Fail "Invalid theory data identifier");
 
 in
 
@@ -459,7 +459,7 @@ val kinds = Unsynchronized.ref (Datatab.empty: (theory -> Object.T) Datatab.tabl
 fun invoke_init k =
   (case Datatab.lookup (! kinds) k of
     SOME init => init
-  | NONE => sys_error "Invalid proof data identifier");
+  | NONE => raise Fail "Invalid proof data identifier");
 
 fun init_data thy =
   Datatab.map' (fn k => fn _ => invoke_init k thy) (! kinds);

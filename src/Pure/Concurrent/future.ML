@@ -409,7 +409,7 @@ local
 
 fun get_result x =
   (case peek x of
-    NONE => Exn.Exn (SYS_ERROR "unfinished future")
+    NONE => Exn.Exn (Fail "Unfinished future")
   | SOME (exn as Exn.Exn Exn.Interrupt) =>
       (case Exn.flatten_list (Task_Queue.group_status (group_of x)) of
         [] => exn

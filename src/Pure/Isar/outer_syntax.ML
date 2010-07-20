@@ -62,7 +62,7 @@ fun body cmd (name, _) =
   (case cmd name of
     SOME (Command {int_only, parse, ...}) =>
       Parse.!!! (Scan.prompt (name ^ "# ") (Parse.tags |-- parse >> pair int_only))
-  | NONE => sys_error ("no parser for outer syntax command " ^ quote name));
+  | NONE => raise Fail ("No parser for outer syntax command " ^ quote name));
 
 in
 
