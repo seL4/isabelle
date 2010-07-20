@@ -312,7 +312,7 @@ class Nat private(private val value: BigInt) {
   def equals(that: Nat): Boolean = this.value == that.value
 
   def as_BigInt: BigInt = this.value
-  def as_Int: Int = if (this.value >= Math.MIN_INT && this.value <= Math.MAX_INT)
+  def as_Int: Int = if (this.value >= Int.MinValue && this.value <= Int.MaxValue)
       this.value.intValue
     else this.value.intValue
 
