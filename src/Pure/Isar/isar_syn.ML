@@ -184,9 +184,9 @@ val _ =
 val _ =
   Outer_Syntax.command "axioms" "state arbitrary propositions (axiomatic!)" Keyword.thy_decl
     (Scan.repeat1 Parse_Spec.spec >>
-      (Toplevel.theory o
-        (Isar_Cmd.add_axioms o
-          tap (fn _ => legacy_feature "Old 'axioms' command -- use 'axiomatization' instead"))));
+      (fn spec => Toplevel.theory (fn thy =>
+        (legacy_feature "Old 'axioms' command -- use 'axiomatization' instead";
+          Isar_Cmd.add_axioms spec thy))));
 
 val opt_unchecked_overloaded =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!!
