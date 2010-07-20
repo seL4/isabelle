@@ -28,16 +28,16 @@ fun add_atoms pos (Const (@{const_name Groups.plus}, _) $ x $ y) =
 
 fun atoms fml = add_atoms true fml [];
 
-fun zero1 pt (c as Const (@{const_name Groups.plus}, _) $ x $ y) =
+fun zero1 pt ((c as Const (@{const_name Groups.plus}, _)) $ x $ y) =
       (case zero1 pt x of NONE => (case zero1 pt y of NONE => NONE
-                                   | SOME z => SOME(c $ x $ z))
+                                   | SOME z => SOME (c $ x $ z))
        | SOME z => SOME (c $ z $ y))
-  | zero1 pt (c as Const (@{const_name Groups.minus}, _) $ x $ y) =
+  | zero1 pt ((c as Const (@{const_name Groups.minus}, _)) $ x $ y) =
       (case zero1 pt x of
          NONE => (case zero1 (apfst not pt) y of NONE => NONE
                   | SOME z => SOME (c $ x $ z))
        | SOME z => SOME (c $ z $ y))
-  | zero1 pt (c as Const (@{const_name Groups.uminus}, _) $ x) =
+  | zero1 pt ((c as Const (@{const_name Groups.uminus}, _)) $ x) =
       (case zero1 (apfst not pt) x of NONE => NONE
        | SOME z => SOME (c $ z))
   | zero1 (pos, t) u =
