@@ -26,21 +26,22 @@ fun add_atoms pos (Const (@{const_name Groups.plus}, _) $ x $ y) =
       add_atoms (not pos) x
   | add_atoms pos x = cons (pos, x);
 
-fun atoms fml = add_atoms true fml [];
+fun atoms t = add_atoms true t [];
 
-fun zero1 pt ((c as Const (@{const_name Groups.plus}, _)) $ x $ y) =
-      (case zero1 pt x of NONE => (case zero1 pt y of NONE => NONE
-                                   | SOME z => SOME (c $ x $ z))
+fun zerofy pt ((c as Const (@{const_name Groups.plus}, _)) $ x $ y) =
+      (case zerofy pt x of NONE =>
+        (case zerofy pt y of NONE => NONE
+         | SOME z => SOME (c $ x $ z))
        | SOME z => SOME (c $ z $ y))
-  | zero1 pt ((c as Const (@{const_name Groups.minus}, _)) $ x $ y) =
-      (case zero1 pt x of
-         NONE => (case zero1 (apfst not pt) y of NONE => NONE
-                  | SOME z => SOME (c $ x $ z))
+  | zerofy pt ((c as Const (@{const_name Groups.minus}, _)) $ x $ y) =
+      (case zerofy pt x of NONE =>
+        (case zerofy (apfst not pt) y of NONE => NONE
+         | SOME z => SOME (c $ x $ z))
        | SOME z => SOME (c $ z $ y))
-  | zero1 pt ((c as Const (@{const_name Groups.uminus}, _)) $ x) =
-      (case zero1 (apfst not pt) x of NONE => NONE
+  | zerofy pt ((c as Const (@{const_name Groups.uminus}, _)) $ x) =
+      (case zerofy (apfst not pt) x of NONE => NONE
        | SOME z => SOME (c $ z))
-  | zero1 (pos, t) u =
+  | zerofy (pos, t) u =
       if pos andalso (t aconv u)
         then SOME (Const (@{const_name Groups.zero}, fastype_of t))
         else NONE
@@ -57,13 +58,12 @@ fun find_common _ [] _ = raise Cancel
 (* turns t1(t) OP t2(t) into t1(0) OP t2(0) where OP can be +, -, =, etc.
    If OP = +, it must be t2(-t) rather than t2(t)
 *)
-fun cancel t =
+fun cancel (c $ lhs $ rhs) =
   let
-    val c $ lhs $ rhs = t
     val opp = case c of Const(@{const_name Groups.plus}, _) => true | _ => false;
     val (pos, l) = find_common opp (atoms lhs) (atoms rhs);
     val posr = if opp then not pos else pos;
-  in c $ the (zero1 (pos, l) lhs) $ the (zero1 (posr, l) rhs) end;
+  in c $ the (zerofy (pos, l) lhs) $ the (zerofy (posr, l) rhs) end;
 
 
 (** prove cancellation **)
@@ -107,10 +107,9 @@ fun cancel_simp_tac ss = simp_tac (Simplifier.inherit_context ss cancel_ss);
 fun sum_proc ss ct =
   let
     val t = Thm.term_of ct;
-    val t' = cancel t;
-    val thm =
-      Goal.prove (Simplifier.the_context ss) [] [] (Logic.mk_equals (t, t'))
-        (fn _ => cancel_simp_tac ss 1)
+    val prop = Logic.mk_equals (t, cancel t);
+    val thm = Goal.prove (Simplifier.the_context ss) [] [] prop
+      (fn _ => cancel_simp_tac ss 1)
   in SOME thm end handle Cancel => NONE;
 
 
@@ -122,11 +121,11 @@ fun sum_proc ss ct =
 fun rel_proc ss ct =
   let
     val t = Thm.term_of ct;
-    val t' = cancel t;
-    val thm = Goal.prove (Simplifier.the_context ss) [] [] (Logic.mk_equals (t, t'))
+    val prop = Logic.mk_equals (t, cancel t);
+    val thm = Goal.prove (Simplifier.the_context ss) [] [] prop
       (fn _ => rtac @{thm eq_reflection} 1 THEN
-                    resolve_tac [@{thm diff_eq_diff_less}, @{thm diff_eq_diff_less_eq}, @{thm diff_eq_diff_eq}] 1 THEN
-                    cancel_simp_tac ss 1)
+        resolve_tac [@{thm diff_eq_diff_less}, @{thm diff_eq_diff_less_eq}, @{thm diff_eq_diff_eq}] 1 THEN
+        cancel_simp_tac ss 1)
   in SOME thm end handle Cancel => NONE;
 
 end;
