@@ -1255,8 +1255,9 @@ proof (rule ccontr, cases "a = b")
   assume "~ f a \<le> f b"
   assume "a = b"
   with prems show False by auto
-  next assume "~ f a \<le> f b"
-  assume "a ~= b"
+next
+  assume A: "~ f a \<le> f b"
+  assume B: "a ~= b"
   with assms have "EX l z. a < z & z < b & DERIV f z :> l
       & f b - f a = (b - a) * l"
     apply -
@@ -1266,11 +1267,11 @@ proof (rule ccontr, cases "a = b")
      apply (metis differentiableI less_le)
     done
   then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
-      and "f b - f a = (b - a) * l"
+      and C: "f b - f a = (b - a) * l"
     by auto
-  from prems have "~(l >= 0)"
-    by (metis diff_self diff_eq_diff_less_eq le_iff_diff_le_0 order_antisym linear
-              split_mult_pos_le)
+  with A have "a < b" "f b < f a" by auto
+  with C have "\<not> l \<ge> 0" by (auto simp add: not_le algebra_simps)
+    (metis A add_le_cancel_right assms(1) less_eq_real_def mult_right_mono real_add_left_mono real_le_linear real_le_refl)
   with prems show False
     by (metis DERIV_unique order_less_imp_le)
 qed
