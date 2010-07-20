@@ -18,7 +18,9 @@ Thy_Info.register_theory Pure.thy;
 
 (* ML toplevel pretty printing *)
 
-toplevel_pp ["String", "string"] "ML_Syntax.pretty_string";
+if String.isPrefix "smlnj" ml_system then ()
+else toplevel_pp ["String", "string"] "ML_Syntax.pretty_string";
+
 toplevel_pp ["Pretty", "T"] "(fn _: Pretty.T => Pretty.str \"<pretty>\")";
 toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
 toplevel_pp ["Task_Queue", "group"] "Pretty.str o Task_Queue.str_of_group";
