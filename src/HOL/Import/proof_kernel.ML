@@ -466,13 +466,11 @@ val invented_isavar = Unsynchronized.ref 0
 
 fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_" s)
 
-val check_name_thy = theory "Main"
-
 fun valid_boundvarname s =
-  can (fn () => Syntax.read_term_global check_name_thy ("SOME "^s^". True")) ();
+  can (fn () => Syntax.read_term_global @{theory Main} ("SOME "^s^". True")) ();
 
 fun valid_varname s =
-  can (fn () => Syntax.read_term_global check_name_thy s) ();
+  can (fn () => Syntax.read_term_global @{theory Main} s) ();
 
 fun protect_varname s =
     if innocent_varname s andalso valid_varname s then s else

@@ -6,8 +6,6 @@ Pure theory and ML toplevel setup.
 
 (* the Pure theories *)
 
-val theory = Thy_Info.get_theory;
-
 Context.>> (Context.map_theory
  (Outer_Syntax.process_file (Path.explode "Pure.thy") #>
   Theory.end_theory));
