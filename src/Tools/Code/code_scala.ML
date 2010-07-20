@@ -214,7 +214,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
                   ];
           in
             Pretty.chunks (applify "[" "]" (str o prefix "+" o lookup_tyvar tyvars o fst)
-              NOBR ((concat o map str) ["sealed", "class", deresolve_base name]) vs
+              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_base name]) vs
                 :: map print_co cos)
           end
       | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
