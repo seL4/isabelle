@@ -20,6 +20,7 @@ sig
   val minimals: 'a T -> key list
   val maximals: 'a T -> key list
   val subgraph: (key -> bool) -> 'a T -> 'a T
+  val get_entry: 'a T -> key -> 'a * (key list * key list)            (*exception UNDEF*)
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
