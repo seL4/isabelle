@@ -106,9 +106,13 @@ fun is_finished x = is_some (peek x);
 
 fun assign_result group result res =
   let
-    val _ = Single_Assignment.assign result res;
+    val _ = Single_Assignment.assign result res
+      handle exn as Fail _ =>
+        (case Single_Assignment.peek result of
+          SOME (Exn.Exn Exn.Interrupt) => raise Exn.Interrupt
+        | _ => reraise exn);
     val ok =
-      (case res of
+      (case the (Single_Assignment.peek result) of
         Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
       | Exn.Result _ => true);
   in ok end;
@@ -481,8 +485,9 @@ fun map_future f x =
 fun promise_group group : 'a future =
   let
     val result = Single_Assignment.var "promise" : 'a result;
-    val task = SYNCHRONIZED "enqueue" (fn () =>
-      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group));
+    fun abort () = assign_result group result (Exn.Exn Exn.Interrupt) handle Fail _ => true;
+    val task = SYNCHRONIZED "enqueue_passive" (fn () =>
+      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group abort));
   in Future {promised = true, task = task, group = group, result = result} end;
 
 fun promise () = promise_group (new_group ());
@@ -509,8 +514,10 @@ fun interruptible_task f x =
   else interruptible f x;
 
 (*cancel: present and future group members will be interrupted eventually*)
-fun cancel_group group =
-  SYNCHRONIZED "cancel" (fn () => if cancel_now group then () else cancel_later group);
+fun cancel_group group = SYNCHRONIZED "cancel" (fn () =>
+ (if cancel_now group then () else cancel_later group;
+  signal work_available; scheduler_check ()));
+
 fun cancel x = cancel_group (group_of x);
 
 
