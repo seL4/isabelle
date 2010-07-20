@@ -630,7 +630,7 @@ fun run_command thy_name (tr as Transition {print, ...}) st =
         SOME name => Exn.capture (fn () => Thy_Load.check_name thy_name name) ()
       | NONE => Exn.Result ()) of
     Exn.Result () =>
-      (case transition false tr st of
+      (case transition (is_some (init_of tr)) tr st of
         SOME (st', NONE) => (status tr Markup.finished; async_state tr st'; SOME st')
       | SOME (_, SOME (exn as Exn.Interrupt, _)) => reraise exn
       | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
