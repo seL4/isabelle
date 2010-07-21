@@ -9,12 +9,12 @@ signature SLEDGEHAMMER_TPTP_FORMAT =
 sig
   type classrel_clause = Metis_Clauses.classrel_clause
   type arity_clause = Metis_Clauses.arity_clause
-  type hol_clause = Metis_Clauses.hol_clause
+  type fol_clause = Metis_Clauses.fol_clause
   type name_pool = string Symtab.table * string Symtab.table
 
   val write_tptp_file :
     theory -> bool -> bool -> bool -> Path.T
-    -> hol_clause list * hol_clause list * hol_clause list * hol_clause list
+    -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
        * classrel_clause list * arity_clause list
     -> name_pool option * int
 end;
@@ -154,13 +154,13 @@ fun atp_literal_for_type_literal pos (TyLitVar (class, name)) =
     (pos, ATerm (class, [ATerm (name, [])]))
 
 fun atp_literals_for_axiom full_types
-        (HOLClause {literals, ctypes_sorts, ...}) =
+                           (FOLClause {literals, ctypes_sorts, ...}) =
   map (atp_literal_for_literal full_types) literals @
   map (atp_literal_for_type_literal false)
       (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_axiom full_types
-        (clause as HOLClause {axiom_name, clause_id, kind, ...}) =
+        (clause as FOLClause {axiom_name, clause_id, kind, ...}) =
   Cnf (hol_ident axiom_name clause_id, kind,
        atp_literals_for_axiom full_types clause)
 
@@ -181,11 +181,11 @@ fun problem_line_for_arity (ArityClause {axiom_name, conclLit, premLits, ...}) =
        map atp_literal_for_arity_literal (conclLit :: premLits))
 
 fun problem_line_for_conjecture full_types
-        (clause as HOLClause {axiom_name, clause_id, kind, literals, ...}) =
+        (clause as FOLClause {axiom_name, clause_id, kind, literals, ...}) =
   Cnf (hol_ident axiom_name clause_id, kind,
        map (atp_literal_for_literal full_types) literals)
 
-fun atp_free_type_literals_for_conjecture (HOLClause {ctypes_sorts, ...}) =
+fun atp_free_type_literals_for_conjecture (FOLClause {ctypes_sorts, ...}) =
   map (atp_literal_for_type_literal true) (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit = Cnf ("tfree_tcs", Conjecture, [lit])

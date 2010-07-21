@@ -140,7 +140,7 @@ fun is_true_literal (Literal (pol, CombConst ((c, _), _, _))) =
       (pol andalso c = "c_True") orelse
       (not pol andalso c = "c_False")
   | is_true_literal _ = false;
-fun is_tautology (HOLClause {literals,...}) = exists is_true_literal literals
+fun is_tautology (FOLClause {literals,...}) = exists is_true_literal literals
 
 (* making axiom and conjecture clauses *)
 fun make_clause thy (clause_id, axiom_name, kind, th) skolems =
@@ -152,7 +152,7 @@ fun make_clause thy (clause_id, axiom_name, kind, th) skolems =
       raise TRIVIAL ()
     else
       (skolems,
-       HOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,
+       FOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,
                   kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
   end
 
@@ -181,7 +181,7 @@ fun count_combterm (CombConst ((c, _), _, _)) =
   | count_combterm (CombVar _) = I
   | count_combterm (CombApp (t1, t2)) = count_combterm t1 #> count_combterm t2
 fun count_literal (Literal (_, t)) = count_combterm t
-fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
+fun count_clause (FOLClause {literals, ...}) = fold count_literal literals
 
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)

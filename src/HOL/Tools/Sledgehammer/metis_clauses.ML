@@ -29,8 +29,8 @@ sig
     CombVar of name * combtyp |
     CombApp of combterm * combterm
   datatype literal = Literal of bool * combterm
-  datatype hol_clause =
-    HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
+  datatype fol_clause =
+    FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
                   literals: literal list, ctypes_sorts: typ list}
 
   val type_wrapper_name : string
@@ -363,8 +363,8 @@ datatype combterm =
 
 datatype literal = Literal of bool * combterm
 
-datatype hol_clause =
-  HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
+datatype fol_clause =
+  FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
                 literals: literal list, ctypes_sorts: typ list}
 
 (*********************************************************************)
