@@ -18,7 +18,7 @@ sig
     TVarLit of name * name
   datatype arity_clause = ArityClause of
    {axiom_name: string, conclLit: arLit, premLits: arLit list}
-  datatype classrel_clause = ClassrelClause of
+  datatype class_rel_clause = ClassRelClause of
    {axiom_name: string, subclass: name, superclass: name}
   datatype combtyp =
     CombTVar of name |
@@ -59,7 +59,7 @@ sig
   val is_skolem_const_name: string -> bool
   val num_type_args: theory -> string -> int
   val type_literals_for_types : typ list -> type_literal list
-  val make_classrel_clauses: theory -> class list -> class list -> classrel_clause list
+  val make_class_rel_clauses: theory -> class list -> class list -> class_rel_clause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
   val type_of_combterm : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
@@ -85,7 +85,7 @@ val fixed_var_prefix = "v_";
 val tvar_prefix = "T_";
 val tfree_prefix = "t_";
 
-val classrel_clause_prefix = "clsrel_";
+val class_rel_clause_prefix = "clsrel_";
 
 val const_prefix = "c_";
 val type_const_prefix = "tc_";
@@ -288,8 +288,8 @@ fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
 
 (**** Isabelle class relations ****)
 
-datatype classrel_clause =
-  ClassrelClause of {axiom_name: string, subclass: name, superclass: name}
+datatype class_rel_clause =
+  ClassRelClause of {axiom_name: string, subclass: name, superclass: name}
 
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs _ [] _ = []
@@ -300,14 +300,14 @@ fun class_pairs _ [] _ = []
         fun add_supers sub = fold (add_super sub) supers
       in fold add_supers subs [] end
 
-fun make_classrel_clause (sub,super) =
-  ClassrelClause {axiom_name = classrel_clause_prefix ^ ascii_of sub ^ "_" ^
+fun make_class_rel_clause (sub,super) =
+  ClassRelClause {axiom_name = class_rel_clause_prefix ^ ascii_of sub ^ "_" ^
                                ascii_of super,
                   subclass = `make_type_class sub,
                   superclass = `make_type_class super};
 
-fun make_classrel_clauses thy subs supers =
-  map make_classrel_clause (class_pairs thy subs supers);
+fun make_class_rel_clauses thy subs supers =
+  map make_class_rel_clause (class_pairs thy subs supers);
 
 
 (** Isabelle arities **)

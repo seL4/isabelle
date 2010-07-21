@@ -170,11 +170,11 @@ fun arity_cls (ArityClause {conclLit, premLits, ...}) =
 
 (* CLASSREL CLAUSE *)
 
-fun m_classrel_cls (subclass, _) (superclass, _) =
+fun m_class_rel_cls (subclass, _) (superclass, _) =
   [metis_lit false subclass [Metis.Term.Var "T"], metis_lit true superclass [Metis.Term.Var "T"]];
 
-fun classrel_cls (ClassrelClause {subclass, superclass, ...}) =
-  (TrueI, Metis.Thm.axiom (Metis.LiteralSet.fromList (m_classrel_cls subclass superclass)));
+fun class_rel_cls (ClassRelClause {subclass, superclass, ...}) =
+  (TrueI, Metis.Thm.axiom (Metis.LiteralSet.fromList (m_class_rel_cls subclass superclass)));
 
 (* ------------------------------------------------------------------------- *)
 (* FOL to HOL  (Metis to Isabelle)                                           *)
@@ -606,8 +606,8 @@ fun type_ext thy tms =
       val supers = tvar_classes_of_terms tms
       and tycons = type_consts_of_terms thy tms
       val (supers', arity_clauses) = make_arity_clauses thy tycons supers
-      val classrel_clauses = make_classrel_clauses thy subs supers'
-  in  map classrel_cls classrel_clauses @ map arity_cls arity_clauses
+      val class_rel_clauses = make_class_rel_clauses thy subs supers'
+  in  map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses
   end;
 
 (* ------------------------------------------------------------------------- *)

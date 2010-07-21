@@ -7,7 +7,7 @@ TPTP syntax.
 
 signature SLEDGEHAMMER_TPTP_FORMAT =
 sig
-  type classrel_clause = Metis_Clauses.classrel_clause
+  type class_rel_clause = Metis_Clauses.class_rel_clause
   type arity_clause = Metis_Clauses.arity_clause
   type fol_clause = Metis_Clauses.fol_clause
   type name_pool = string Symtab.table * string Symtab.table
@@ -15,7 +15,7 @@ sig
   val write_tptp_file :
     theory -> bool -> bool -> bool -> Path.T
     -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
-       * classrel_clause list * arity_clause list
+       * class_rel_clause list * arity_clause list
     -> name_pool option * int
 end;
 
@@ -164,8 +164,8 @@ fun problem_line_for_axiom full_types
   Cnf (hol_ident axiom_name clause_id, kind,
        atp_literals_for_axiom full_types clause)
 
-fun problem_line_for_classrel
-        (ClassrelClause {axiom_name, subclass, superclass, ...}) =
+fun problem_line_for_class_rel
+        (ClassRelClause {axiom_name, subclass, superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
     Cnf (ascii_of axiom_name, Axiom, [(false, ATerm (subclass, [ty_arg])),
                                       (true, ATerm (superclass, [ty_arg]))])
@@ -303,17 +303,17 @@ fun repair_problem thy full_types explicit_apply problem =
 
 fun write_tptp_file thy readable_names full_types explicit_apply file
                     (conjectures, axiom_clauses, extra_clauses, helper_clauses,
-                     classrel_clauses, arity_clauses) =
+                     class_rel_clauses, arity_clauses) =
   let
     val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
-    val classrel_lines = map problem_line_for_classrel classrel_clauses
+    val class_rel_lines = map problem_line_for_class_rel class_rel_clauses
     val arity_lines = map problem_line_for_arity arity_clauses
     val helper_lines = map (problem_line_for_axiom full_types) helper_clauses
     val conjecture_lines =
       map (problem_line_for_conjecture full_types) conjectures
     val tfree_lines = problem_lines_for_free_types conjectures
     val problem = [("Relevant facts", axiom_lines),
-                   ("Class relationships", classrel_lines),
+                   ("Class relationships", class_rel_lines),
                    ("Arity declarations", arity_lines),
                    ("Helper facts", helper_lines),
                    ("Conjectures", conjecture_lines),
@@ -321,7 +321,7 @@ fun write_tptp_file thy readable_names full_types explicit_apply file
                   |> repair_problem thy full_types explicit_apply
     val (problem, pool) = nice_problem problem (empty_name_pool readable_names)
     val conjecture_offset =
-      length axiom_lines + length classrel_lines + length arity_lines
+      length axiom_lines + length class_rel_lines + length arity_lines
       + length helper_lines
     val _ = File.write_list file (strings_for_problem problem)
   in (pool, conjecture_offset) end

@@ -233,10 +233,11 @@ fun prepare_clauses full_types goal_cls axcls extra_cls thy =
     val helper_clauses =
       get_helper_clauses thy is_FO full_types conjectures extra_cls
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
-    val classrel_clauses = make_classrel_clauses thy subs supers'
+    val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
-      (conjectures, axiom_clauses, extra_clauses, helper_clauses, classrel_clauses, arity_clauses))
+      (conjectures, axiom_clauses, extra_clauses, helper_clauses,
+       class_rel_clauses, arity_clauses))
   end
 
 
