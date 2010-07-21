@@ -190,12 +190,7 @@ fun add_instances thy (Instances (cfilter, ctab,minsets,substs)) cs =
 
 fun substs_of (Instances (_,_,_,substs)) = Substtab.keys substs
 
-local
-    fun get_thm thmname = PureThy.get_thm @{theory Main} thmname
-    val eq_th = get_thm "HOL.eq_reflection"
-in
-  fun eq_to_meta th = (eq_th OF [th] handle THM _ => th)
-end
+fun eq_to_meta th = (@{thm HOL.eq_reflection} OF [th] handle THM _ => th)
 
 
 local
