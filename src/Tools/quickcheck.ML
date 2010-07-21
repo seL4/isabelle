@@ -6,19 +6,24 @@ Generic counterexample search engine.
 
 signature QUICKCHECK =
 sig
+  val setup: theory -> theory
+  (* configuration *)
   val auto: bool Unsynchronized.ref
   val timing : bool Unsynchronized.ref
   datatype report = Report of
     { iterations : int, raised_match_errors : int,
       satisfied_assms : int list, positive_concl_tests : int }
+  datatype test_params = Test_Params of
+  { size: int, iterations: int, default_type: typ list, no_assms: bool, report: bool, quiet : bool};
+  val test_params_of: theory -> test_params 
+  val add_generator:
+    string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))
+      -> theory -> theory
+  (* testing terms and proof states *)
   val gen_test_term: Proof.context -> bool -> bool -> string option -> int -> int -> term ->
     (string * term) list option * ((string * int) list * ((int * report list) list) option)
   val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
     (string * term) list option
-  val add_generator:
-    string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))
-      -> theory -> theory
-  val setup: theory -> theory
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
 end;
 
@@ -91,6 +96,8 @@ structure Data = Theory_Data
     (AList.merge (op =) (K true) (generators1, generators2),
       merge_test_params (params1, params2));
 );
+
+val test_params_of = snd o Data.get;
 
 val add_generator = Data.map o apfst o AList.update (op =);
 
