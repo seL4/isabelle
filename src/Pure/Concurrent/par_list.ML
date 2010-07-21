@@ -28,8 +28,8 @@ struct
 
 fun raw_map f xs =
   if Multithreading.enabled () andalso not (Multithreading.self_critical ()) then
-    let val group = Task_Queue.new_group (Future.worker_group ())
-    in Future.join_results (map (fn x => Future.fork_group group (fn () => f x)) xs) end
+    let val shared_group = Task_Queue.new_group (Future.worker_group ())
+    in Future.join_results (map (fn x => Future.fork_group shared_group (fn () => f x)) xs) end
   else map (Exn.capture f) xs;
 
 fun map f xs = Exn.release_first (raw_map f xs);

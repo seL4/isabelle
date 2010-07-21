@@ -567,8 +567,7 @@ fun status tr m =
 fun async_state (tr as Transition {print, ...}) st =
   if print then
     ignore
-      (Future.fork_group (Task_Queue.new_group (Future.worker_group ()))
-        (fn () =>
+      (Future.fork (fn () =>
           setmp_thread_position tr (fn () => Future.report (fn () => print_state false st)) ()))
   else ();
 

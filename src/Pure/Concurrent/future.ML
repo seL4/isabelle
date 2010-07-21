@@ -36,6 +36,7 @@ sig
   val is_worker: unit -> bool
   val worker_task: unit -> Task_Queue.task option
   val worker_group: unit -> Task_Queue.group option
+  val worker_subgroup: unit -> Task_Queue.group
   type 'a future
   val task_of: 'a future -> task
   val group_of: 'a future -> group
@@ -83,8 +84,7 @@ end;
 val is_worker = is_some o thread_data;
 val worker_task = Option.map #1 o thread_data;
 val worker_group = Option.map #2 o thread_data;
-
-fun new_group () = Task_Queue.new_group (worker_group ());
+fun worker_subgroup () = Task_Queue.new_group (worker_group ());
 
 
 (* datatype future *)
@@ -388,7 +388,7 @@ fun fork_future opt_group deps pri e =
   let
     val group =
       (case opt_group of
-        NONE => new_group ()
+        NONE => worker_subgroup ()
       | SOME group => group);
     val (result, job) = future_job group e;
     val task = SYNCHRONIZED "enqueue" (fn () =>
@@ -490,7 +490,7 @@ fun promise_group group : 'a future =
       Unsynchronized.change_result queue (Task_Queue.enqueue_passive group abort));
   in Future {promised = true, task = task, group = group, result = result} end;
 
-fun promise () = promise_group (new_group ());
+fun promise () = promise_group (worker_subgroup ());
 
 fun fulfill_result (Future {promised, task, group, result}) res =
   let
