@@ -180,20 +180,25 @@ fun gen_test_term ctxt quiet report generator_name size i t =
 fun test_term ctxt quiet generator_name size i t =
   fst (gen_test_term ctxt quiet false generator_name size i t)
 
+exception WELLSORTED of string
+
 fun monomorphic_term thy insts default_T = 
   let
     fun subst (T as TFree (v, S)) =
           let
             val T' = AList.lookup (op =) insts v
               |> the_default default_T
-          in if Sign.of_sort thy (T, S) then T'
-            else error ("Type " ^ Syntax.string_of_typ_global thy T ^
+          in if Sign.of_sort thy (T', S) then T'
+            else raise (WELLSORTED ("For instantiation with default_type " ^ Syntax.string_of_typ_global thy default_T ^
+              ":\n" ^ Syntax.string_of_typ_global thy T' ^
               " to be substituted for variable " ^
-              Syntax.string_of_typ_global thy T ^ "\ndoes not have sort " ^
-              Syntax.string_of_sort_global thy S)
+              Syntax.string_of_typ_global thy T ^ " does not have sort " ^
+              Syntax.string_of_sort_global thy S))
           end
       | subst T = T;
   in (map_types o map_atyps) subst end;
+
+datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
 fun test_goal quiet report generator_name size iterations default_T no_assms insts i assms state =
   let
@@ -203,16 +208,23 @@ fun test_goal quiet report generator_name size iterations default_T no_assms ins
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val gis' = Logic.list_implies (if no_assms then [] else assms,
+    val gi' = Logic.list_implies (if no_assms then [] else assms,
                                   subst_bounds (frees, strip gi))
-      |> (fn t => map (fn T => monomorphic_term thy insts T t) default_T)  
-      |> map (Object_Logic.atomize_term thy);
+    val inst_goals = map (fn T =>
+      Term (monomorphic_term thy insts T gi |> Object_Logic.atomize_term thy)
+        handle WELLSORTED s => Wellsorted_Error s) default_T
+    val error_msg = cat_lines (map_filter (fn Term t => NONE | Wellsorted_Error s => SOME s) inst_goals)
+    val correct_inst_goals =
+      case map_filter (fn Term t => SOME t | Wellsorted_Error s => NONE) inst_goals of
+        [] => error error_msg
+      | xs => xs
+    val _ = if quiet then () else warning error_msg
     fun collect_results f reports [] = (NONE, rev reports)
       | collect_results f reports (t :: ts) =
         case f t of
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
-  in (collect_results (gen_test_term ctxt quiet report generator_name size iterations) [] gis') end;
+  in collect_results (gen_test_term ctxt quiet report generator_name size iterations) [] correct_inst_goals end;
 
 (* pretty printing *)
 
