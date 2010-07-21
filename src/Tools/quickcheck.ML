@@ -13,8 +13,10 @@ sig
   datatype report = Report of
     { iterations : int, raised_match_errors : int,
       satisfied_assms : int list, positive_concl_tests : int }
+  datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of
-  { size: int, iterations: int, default_type: typ list, no_assms: bool, report: bool, quiet : bool};
+  { size: int, iterations: int, default_type: typ list, no_assms: bool,
+    expect : expectation, report: bool, quiet : bool};
   val test_params_of: theory -> test_params 
   val add_generator:
     string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))
@@ -65,32 +67,41 @@ fun collect_single_report single_report
          (if null satisfied_assms then replicate (length assms) 0 else satisfied_assms),
       positive_concl_tests = if concl then positive_concl_tests + 1 else positive_concl_tests}
 
+(* expectation *)
+
+datatype expectation = No_Expectation | No_Counterexample | Counterexample; 
+
+fun merge_expectation (expect1, expect2) =
+  if expect1 = expect2 then expect1 else No_Expectation
+
 (* quickcheck configuration -- default parameters, test generators *)
 
 datatype test_params = Test_Params of
-  { size: int, iterations: int, default_type: typ list, no_assms: bool, report: bool, quiet : bool};
+  { size: int, iterations: int, default_type: typ list, no_assms: bool,
+  expect : expectation, report: bool, quiet : bool};
 
-fun dest_test_params (Test_Params { size, iterations, default_type, no_assms, report, quiet }) =
-  ((size, iterations), ((default_type, no_assms), (report, quiet)));
-fun make_test_params ((size, iterations), ((default_type, no_assms), (report, quiet))) =
+fun dest_test_params (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
+  ((size, iterations), ((default_type, no_assms), ((expect, report), quiet)));
+fun make_test_params ((size, iterations), ((default_type, no_assms), ((expect, report), quiet))) =
   Test_Params { size = size, iterations = iterations, default_type = default_type,
-                no_assms = no_assms, report = report, quiet = quiet };
-fun map_test_params f (Test_Params { size, iterations, default_type, no_assms, report, quiet }) =
-  make_test_params (f ((size, iterations), ((default_type, no_assms), (report, quiet))));
+                no_assms = no_assms, expect = expect, report = report, quiet = quiet };
+fun map_test_params f (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
+  make_test_params (f ((size, iterations), ((default_type, no_assms), ((expect, report), quiet))));
 fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1,
-                                     no_assms = no_assms1, report = report1, quiet = quiet1 },
+                                     no_assms = no_assms1, expect = expect1, report = report1, quiet = quiet1 },
   Test_Params { size = size2, iterations = iterations2, default_type = default_type2,
-                no_assms = no_assms2, report = report2, quiet = quiet2 }) =
+                no_assms = no_assms2, expect = expect2, report = report2, quiet = quiet2 }) =
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     ((merge (op =) (default_type1, default_type2), no_assms1 orelse no_assms2),
-    (report1 orelse report2, quiet1 orelse quiet2)));
+    ((merge_expectation (expect1, expect2), report1 orelse report2), quiet1 orelse quiet2)));
 
 structure Data = Theory_Data
 (
   type T = (string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))) list
     * test_params;
   val empty = ([], Test_Params
-    { size = 10, iterations = 100, default_type = [], no_assms = false, report = false, quiet = false});
+    { size = 10, iterations = 100, default_type = [], no_assms = false,
+      expect = No_Expectation, report = false, quiet = false});
   val extend = I;
   fun merge ((generators1, params1), (generators2, params2)) : T =
     (AList.merge (op =) (K true) (generators1, generators2),
@@ -271,7 +282,7 @@ fun auto_quickcheck state =
     let
       val ctxt = Proof.context_of state;
       val assms = map term_of (Assumption.all_assms_of ctxt);
-      val Test_Params { size, iterations, default_type, no_assms, report, quiet } =
+      val Test_Params {size, iterations, default_type, no_assms, ...} =
         (snd o Data.get o Proof.theory_of) state;
       val res =
         try (test_goal true false NONE size iterations default_type no_assms [] 1 assms) state;
@@ -297,6 +308,11 @@ fun read_bool "false" = false
   | read_bool "true" = true
   | read_bool s = error ("Not a Boolean value: " ^ s)
 
+fun read_expectation "no_expectation" = No_Expectation
+  | read_expectation "no_counterexample" = No_Counterexample 
+  | read_expectation "counterexample" = Counterexample
+  | read_expectation s = error ("Not an expectation value: " ^ s)  
+
 fun parse_test_param ctxt ("size", [arg]) =
       (apfst o apfst o K) (read_nat arg)
   | parse_test_param ctxt ("iterations", [arg]) =
@@ -305,10 +321,12 @@ fun parse_test_param ctxt ("size", [arg]) =
       (apsnd o apfst o apfst o K) (map (ProofContext.read_typ ctxt) arg)
   | parse_test_param ctxt ("no_assms", [arg]) =
       (apsnd o apfst o apsnd o K) (read_bool arg)
+  | parse_test_param ctxt ("expect", [arg]) =
+      (apsnd o apsnd o apfst o apfst o K) (read_expectation arg)
   | parse_test_param ctxt ("report", [arg]) =
-      (apsnd o apsnd o apfst o K) (read_bool arg)
+      (apsnd o apsnd o apfst o apsnd o K) (read_bool arg)
   | parse_test_param ctxt ("quiet", [arg]) =
-      (apsnd o apsnd o apsnd o K) (read_bool arg)
+      (apsnd o apsnd o apsnd o K) (read_bool arg)       
   | parse_test_param ctxt (name, _) =
       error ("Unknown test parameter: " ^ name);
 
@@ -336,10 +354,14 @@ fun gen_quickcheck args i state =
     val assms = map term_of (Assumption.all_assms_of ctxt);
     val default_params = (dest_test_params o snd o Data.get) thy;
     val f = fold (parse_test_param_inst ctxt) args;
-    val (((size, iterations), ((default_type, no_assms), (report, quiet))), (generator_name, insts)) =
+    val (((size, iterations), ((default_type, no_assms), ((expect, report), quiet))), (generator_name, insts)) =
       f (default_params, (NONE, []));
   in
     test_goal quiet report generator_name size iterations default_type no_assms insts i assms state
+    |> tap (fn (SOME x, _) => if expect = No_Counterexample then
+                 error ("quickcheck expect to find no counterexample but found one") else ()
+             | (NONE, _) => if expect = Counterexample then
+                 error ("quickcheck expected to find a counterexample but did not find one") else ())
   end;
 
 fun quickcheck args i state = fst (gen_quickcheck args i state);

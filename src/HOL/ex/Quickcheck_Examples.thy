@@ -19,27 +19,27 @@ but cannot handle quantifiers.
 subsection {* Lists *}
 
 theorem "map g (map f xs) = map (g o f) xs"
-  quickcheck
+  quickcheck[expect = no_counterexample]
   oops
 
 theorem "map g (map f xs) = map (f o g) xs"
-  quickcheck
+  quickcheck[expect = counterexample]
   oops
 
 theorem "rev (xs @ ys) = rev ys @ rev xs"
-  quickcheck
+  quickcheck[expect = no_counterexample]
   oops
 
 theorem "rev (xs @ ys) = rev xs @ rev ys"
-  quickcheck
+  quickcheck[expect = counterexample]
   oops
 
 theorem "rev (rev xs) = xs"
-  quickcheck
+  quickcheck[expect = no_counterexample]
   oops
 
 theorem "rev xs = xs"
-  quickcheck
+  quickcheck[expect = counterexample]
   oops
 
 text {* An example involving functions inside other data structures *}
@@ -49,11 +49,11 @@ primrec app :: "('a \<Rightarrow> 'a) list \<Rightarrow> 'a \<Rightarrow> 'a" wh
   | "app (f # fs) x = app fs (f x)"
 
 lemma "app (fs @ gs) x = app gs (app fs x)"
-  quickcheck
+  quickcheck[expect = no_counterexample]
   by (induct fs arbitrary: x) simp_all
 
 lemma "app (fs @ gs) x = app fs (app gs x)"
-  quickcheck
+  quickcheck[expect = counterexample]
   oops
 
 primrec occurs :: "'a \<Rightarrow> 'a list \<Rightarrow> nat" where
@@ -67,16 +67,16 @@ primrec del1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 text {* A lemma, you'd think to be true from our experience with delAll *}
 lemma "Suc (occurs a (del1 a xs)) = occurs a xs"
   -- {* Wrong. Precondition needed.*}
-  quickcheck
+  quickcheck[expect = counterexample]
   oops
 
 lemma "xs ~= [] \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
-  quickcheck
+  quickcheck[expect = counterexample]
     -- {* Also wrong.*}
   oops
 
 lemma "0 < occurs a xs \<longrightarrow> Suc (occurs a (del1 a xs)) = occurs a xs"
-  quickcheck
+  quickcheck[expect = no_counterexample]
   by (induct xs) auto
 
 primrec replace :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -85,12 +85,12 @@ primrec replace :: "'a \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a l
                             else (x#(replace a b xs)))"
 
 lemma "occurs a xs = occurs b (replace a b xs)"
-  quickcheck
+  quickcheck[expect = counterexample]
   -- {* Wrong. Precondition needed.*}
   oops
 
 lemma "occurs b xs = 0 \<or> a=b \<longrightarrow> occurs a xs = occurs b (replace a b xs)"
-  quickcheck
+  quickcheck[expect = no_counterexample]
   by (induct xs) simp_all
 
 
@@ -113,12 +113,12 @@ primrec mirror :: "'a tree \<Rightarrow> 'a tree" where
   | "mirror (Branch l r) = Branch (mirror r) (mirror l)"
 
 theorem "plant (rev (leaves xt)) = mirror xt"
-  quickcheck
+  quickcheck[expect = counterexample]
     --{* Wrong! *} 
   oops
 
 theorem "plant((leaves xt) @ (leaves yt)) = Branch xt yt"
-  quickcheck
+  quickcheck[expect = counterexample]
     --{* Wrong! *} 
   oops
 
@@ -133,7 +133,7 @@ primrec root :: "'a ntree \<Rightarrow> 'a" where
   | "root (Node f x y) = f"
 
 theorem "hd (inOrder xt) = root xt"
-  quickcheck
+  quickcheck[expect = counterexample]
     --{* Wrong! *} 
   oops
 
