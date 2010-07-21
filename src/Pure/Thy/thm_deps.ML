@@ -6,7 +6,7 @@ Visualize dependencies of theorems.
 
 signature THM_DEPS =
 sig
-  val thm_deps: thm list -> unit
+  val thm_deps: theory -> thm list -> unit
   val unused_thms: theory list * theory list -> (string * thm) list
 end;
 
@@ -15,7 +15,7 @@ struct
 
 (* thm_deps *)
 
-fun thm_deps thms =
+fun thm_deps thy thms =
   let
     fun add_dep ("", _, _) = I
       | add_dep (name, _, PBody {thms = thms', ...}) =
@@ -24,7 +24,7 @@ fun thm_deps thms =
             val session =
               (case prefix of
                 a :: _ =>
-                  (case Thy_Info.lookup_theory a of
+                  (case try (Context.get_theory thy) a of
                     SOME thy =>
                       (case Present.session_name thy of
                         "" => []

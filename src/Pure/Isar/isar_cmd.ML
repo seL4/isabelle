@@ -434,7 +434,8 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   in Present.display_graph gr end);
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  Thm_Deps.thm_deps (Proof.get_thmss_cmd (Toplevel.enter_proof_body state) args));
+  Thm_Deps.thm_deps (Toplevel.theory_of state)
+    (Proof.get_thmss_cmd (Toplevel.enter_proof_body state) args));
 
 
 (* find unused theorems *)
@@ -444,12 +445,13 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
     val thy = Toplevel.theory_of state;
     val ctxt = Toplevel.context_of state;
     fun pretty_thm (a, th) = ProofContext.pretty_fact ctxt (a, [th]);
+    val get_theory = Context.get_theory thy;
   in
     Thm_Deps.unused_thms
       (case opt_range of
         NONE => (Theory.parents_of thy, [thy])
-      | SOME (xs, NONE) => (map Thy_Info.get_theory xs, [thy])
-      | SOME (xs, SOME ys) => (map Thy_Info.get_theory xs, map Thy_Info.get_theory ys))
+      | SOME (xs, NONE) => (map get_theory xs, [thy])
+      | SOME (xs, SOME ys) => (map get_theory xs, map get_theory ys))
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
 
