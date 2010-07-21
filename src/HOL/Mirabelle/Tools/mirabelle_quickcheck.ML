@@ -13,7 +13,7 @@ fun done _ _ = ()
 fun run args id ({pre, timeout, log, ...}: Mirabelle.run_args) =
   let
     val has_valid_key = member (op =) ["iterations", "size", "generator"] o fst
-    val quickcheck = Quickcheck.quickcheck (filter has_valid_key args) 1
+    val quickcheck = Quickcheck.quickcheck (map (apsnd single) (filter has_valid_key args)) 1
   in
     (case TimeLimit.timeLimit timeout quickcheck pre of
       NONE => log (qc_tag id ^ "no counterexample")
