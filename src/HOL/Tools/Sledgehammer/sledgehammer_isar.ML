@@ -17,7 +17,6 @@ end;
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
-open Clausifier
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open ATP_Manager

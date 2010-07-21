@@ -10,13 +10,12 @@ sig
   type class_rel_clause = Metis_Clauses.class_rel_clause
   type arity_clause = Metis_Clauses.arity_clause
   type fol_clause = Metis_Clauses.fol_clause
-  type name_pool = string Symtab.table * string Symtab.table
 
   val write_tptp_file :
     theory -> bool -> bool -> bool -> Path.T
     -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
        * class_rel_clause list * arity_clause list
-    -> name_pool option * int
+    -> string Symtab.table * int
 end;
 
 structure Sledgehammer_TPTP_Format : SLEDGEHAMMER_TPTP_FORMAT =
@@ -55,8 +54,6 @@ fun strings_for_problem problem =
 
 
 (** Nice names **)
-
-type name_pool = string Symtab.table * string Symtab.table
 
 fun empty_name_pool readable_names =
   if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
@@ -164,7 +161,7 @@ fun problem_line_for_axiom full_types
   Cnf (hol_ident axiom_name clause_id, kind,
        atp_literals_for_axiom full_types clause)
 
-fun problem_line_for_class_rel
+fun problem_line_for_class_rel_clause
         (ClassRelClause {axiom_name, subclass, superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
     Cnf (ascii_of axiom_name, Axiom, [(false, ATerm (subclass, [ty_arg])),
@@ -176,7 +173,8 @@ fun atp_literal_for_arity_literal (TConsLit (c, t, args)) =
   | atp_literal_for_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun problem_line_for_arity (ArityClause {axiom_name, conclLit, premLits, ...}) =
+fun problem_line_for_arity_clause
+        (ArityClause {axiom_name, conclLit, premLits, ...}) =
   Cnf (arity_clause_prefix ^ ascii_of axiom_name, Axiom,
        map atp_literal_for_arity_literal (conclLit :: premLits))
 
@@ -306,8 +304,9 @@ fun write_tptp_file thy readable_names full_types explicit_apply file
                      class_rel_clauses, arity_clauses) =
   let
     val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
-    val class_rel_lines = map problem_line_for_class_rel class_rel_clauses
-    val arity_lines = map problem_line_for_arity arity_clauses
+    val class_rel_lines =
+      map problem_line_for_class_rel_clause class_rel_clauses
+    val arity_lines = map problem_line_for_arity_clause arity_clauses
     val helper_lines = map (problem_line_for_axiom full_types) helper_clauses
     val conjecture_lines =
       map (problem_line_for_conjecture full_types) conjectures
@@ -324,6 +323,9 @@ fun write_tptp_file thy readable_names full_types explicit_apply file
       length axiom_lines + length class_rel_lines + length arity_lines
       + length helper_lines
     val _ = File.write_list file (strings_for_problem problem)
-  in (pool, conjecture_offset) end
+  in
+    (case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
+     conjecture_offset)
+  end
 
 end;

@@ -75,8 +75,6 @@ end
 structure Metis_Clauses : METIS_CLAUSES =
 struct
 
-open Clausifier
-
 val type_wrapper_name = "ti"
 
 val schematic_var_prefix = "V_";

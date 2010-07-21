@@ -584,8 +584,7 @@ fun depth_prolog_tac horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 fun skolemize_prems_tac ctxt prems =
-    cut_facts_tac (skolemize_nnf_list ctxt prems) THEN'
-    REPEAT o (etac exE);
+  cut_facts_tac (skolemize_nnf_list ctxt prems) THEN' REPEAT o etac exE
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
