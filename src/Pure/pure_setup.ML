@@ -6,8 +6,6 @@ Pure theory and ML toplevel setup.
 
 (* the Pure theories *)
 
-val theory = Thy_Info.get_theory;
-
 Context.>> (Context.map_theory
  (Outer_Syntax.process_file (Path.explode "Pure.thy") #>
   Theory.end_theory));
@@ -18,7 +16,9 @@ Thy_Info.register_theory Pure.thy;
 
 (* ML toplevel pretty printing *)
 
-toplevel_pp ["String", "string"] "ML_Syntax.pretty_string";
+if String.isPrefix "smlnj" ml_system then ()
+else toplevel_pp ["String", "string"] "ML_Syntax.pretty_string";
+
 toplevel_pp ["Pretty", "T"] "(fn _: Pretty.T => Pretty.str \"<pretty>\")";
 toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
 toplevel_pp ["Task_Queue", "group"] "Pretty.str o Task_Queue.str_of_group";
@@ -34,6 +34,8 @@ toplevel_pp ["Context", "Proof", "context"] "Proof_Display.pp_context";
 toplevel_pp ["Syntax", "ast"] "Syntax.pretty_ast";
 toplevel_pp ["Path", "T"] "Pretty.str o quote o Path.implode";
 toplevel_pp ["File", "ident"] "Pretty.str o quote o File.rep_ident";
+toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>\")";
+toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 
 if ml_system = "polyml-5.3.0"
 then use "ML-Systems/install_pp_polyml-5.3.ML"
@@ -52,8 +54,6 @@ else ();
 fun use name = Toplevel.program (fn () => Thy_Info.use name);
 fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
 fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
-fun time_use name = Toplevel.program (fn () => Thy_Info.time_use name);
-fun time_use_thy name = Toplevel.program (fn () => Thy_Info.time_use_thy name);
 
 
 (* misc *)

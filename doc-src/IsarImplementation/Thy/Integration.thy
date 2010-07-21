@@ -360,9 +360,9 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML theory: "string -> theory"} \\
   @{index_ML use_thy: "string -> unit"} \\
   @{index_ML use_thys: "string list -> unit"} \\
+  @{index_ML Thy_Info.get_theory: "string -> theory"} \\
   @{index_ML Thy_Info.touch_thy: "string -> unit"} \\
   @{index_ML Thy_Info.remove_thy: "string -> unit"} \\[1ex]
   @{index_ML Thy_Info.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
@@ -373,10 +373,6 @@ text %mlref {*
   \end{mldecls}
 
   \begin{description}
-
-  \item @{ML theory}~@{text A} retrieves the theory value presently
-  associated with name @{text A}.  Note that the result might be
-  outdated.
 
   \item @{ML use_thy}~@{text A} ensures that theory @{text A} is fully
   up-to-date wrt.\ the external file store, reloading outdated
@@ -389,6 +385,10 @@ text %mlref {*
   result.  By loading a whole sub-graph of theories like that, the
   intrinsic parallelism can be exploited by the system, to speedup
   loading.
+
+  \item @{ML Thy_Info.get_theory}~@{text A} retrieves the theory value
+  presently associated with name @{text A}.  Note that the result
+  might be outdated.
 
   \item @{ML Thy_Info.touch_thy}~@{text A} performs and @{text outdate} action
   on theory @{text A} and all descendants.

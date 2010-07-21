@@ -505,7 +505,7 @@ fun undostep (Undostep vs) =
         isarcmd ("undos_proof " ^ Int.toString times)
     end
 
-fun redostep _ = sys_error "redo unavailable"
+fun redostep _ = raise Fail "redo unavailable"
 
 fun abortgoal _ = isarcmd "kill" (* was: ProofGeneral.kill_proof *)
 

@@ -241,8 +241,8 @@ fun execute document =
     let
       val old_execution = ! execution;
       val _ = Future.cancel old_execution;
-      val new_execution = Future.fork (fn () =>
-       (Future.join_result old_execution;
+      val new_execution = Future.fork_pri 1 (fn () =>
+       (uninterruptible (K Future.join_result) old_execution;
         fold_entries no_id (fn (_, {state, ...}) => fn () => force_state state) document ()));
     in execution := new_execution end);
 

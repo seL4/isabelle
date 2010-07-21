@@ -64,12 +64,14 @@ val _ = value "binding"
     >> (fn name => ML_Syntax.atomic (ML_Syntax.make_binding name)));
 
 val _ = value "theory"
-  (Scan.lift Args.name >> (fn name => "Thy_Info.get_theory " ^ ML_Syntax.print_string name)
+  (Scan.lift Args.name >> (fn name =>
+    "Context.get_theory (ML_Context.the_global_context ()) " ^ ML_Syntax.print_string name)
   || Scan.succeed "ML_Context.the_global_context ()");
 
 val _ = value "theory_ref"
   (Scan.lift Args.name >> (fn name =>
-    "Theory.check_thy (Thy_Info.theory " ^ ML_Syntax.print_string name ^ ")")
+    "Theory.check_thy (Context.get_theory (ML_Context.the_global_context ()) " ^
+      ML_Syntax.print_string name ^ ")")
   || Scan.succeed "Theory.check_thy (ML_Context.the_global_context ())");
 
 val _ = value "context" (Scan.succeed "ML_Context.the_local_context ()");

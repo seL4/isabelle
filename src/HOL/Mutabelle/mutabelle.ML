@@ -82,7 +82,7 @@ fun consts_of thy =
 
 (*helper function in order to properly print a term*)
 
-fun prt x = Pretty.writeln (Syntax.pretty_term_global (theory "Main") x);
+fun prt x = Pretty.writeln (Syntax.pretty_term_global @{theory Main} x);
 
 
 (*possibility to print a given term for debugging purposes*)
@@ -460,7 +460,7 @@ fun mutate option origTerm tsig commutatives forbidden_funs 0 = []
 (*mutate origTerm iter times by only exchanging subterms*)
 
 fun mutate_exc origTerm commutatives iter =
- mutate 0 origTerm (theory "Main") commutatives [] iter;
+ mutate 0 origTerm @{theory Main} commutatives [] iter;
 
 
 (*mutate origTerm iter times by only inserting signature functions*)

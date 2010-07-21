@@ -184,9 +184,9 @@ val _ =
 val _ =
   Outer_Syntax.command "axioms" "state arbitrary propositions (axiomatic!)" Keyword.thy_decl
     (Scan.repeat1 Parse_Spec.spec >>
-      (Toplevel.theory o
-        (Isar_Cmd.add_axioms o
-          tap (fn _ => legacy_feature "Old 'axioms' command -- use 'axiomatization' instead"))));
+      (fn spec => Toplevel.theory (fn thy =>
+        (legacy_feature "Old 'axioms' command -- use 'axiomatization' instead";
+          Isar_Cmd.add_axioms spec thy))));
 
 val opt_unchecked_overloaded =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!!
@@ -314,7 +314,7 @@ fun propagate_env_prf prf = Proof.map_contexts
 val _ =
   Outer_Syntax.command "use" "ML text from file" (Keyword.tag_ml Keyword.thy_decl)
     (Parse.path >>
-      (fn path => Toplevel.generic_theory (Thy_Info.exec_file false path #> propagate_env)));
+      (fn path => Toplevel.generic_theory (Thy_Info.exec_file path #> propagate_env)));
 
 val _ =
   Outer_Syntax.command "ML" "ML text within theory or local theory"

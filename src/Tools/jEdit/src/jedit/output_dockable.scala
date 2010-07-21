@@ -46,20 +46,21 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     }
   }
 
-  private def handle_caret()
-  {
+  private def handle_perspective(): Boolean =
     Swing_Thread.now {
       Document_View(view.getTextArea) match {
-        case Some(doc_view) => current_command = doc_view.selected_command
-        case None =>
+        case Some(doc_view) =>
+          val cmd = doc_view.selected_command()
+          if (current_command == cmd) false
+          else { current_command = cmd; true }
+        case None => false
       }
     }
-  }
 
   private def handle_update(restriction: Option[Set[Command]] = None)
   {
     Swing_Thread.now {
-      if (follow_caret) handle_caret()
+      if (follow_caret) handle_perspective()
       Document_View(view.getTextArea) match {
         case Some(doc_view) =>
           current_command match {
@@ -87,6 +88,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       react {
         case Session.Global_Settings => handle_resize()
         case Command_Set(changed) => handle_update(Some(changed))
+        case Session.Perspective => if (follow_caret && handle_perspective()) handle_update()
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }
     }
@@ -94,21 +96,23 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   override def init()
   {
-    Isabelle.session.commands_changed += main_actor
     Isabelle.session.global_settings += main_actor
+    Isabelle.session.commands_changed += main_actor
+    Isabelle.session.perspective += main_actor
   }
 
   override def exit()
   {
-    Isabelle.session.commands_changed -= main_actor
     Isabelle.session.global_settings -= main_actor
+    Isabelle.session.commands_changed -= main_actor
+    Isabelle.session.perspective -= main_actor
   }
 
 
   /* resize */
 
   addComponentListener(new ComponentAdapter {
-    val delay = Swing_Thread.delay_last(500) { handle_resize() }  // FIXME update_delay property
+    val delay = Swing_Thread.delay_last(Isabelle.session.update_delay) { handle_resize() }
     override def componentResized(e: ComponentEvent) { delay() }
   })
 
@@ -138,7 +142,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   auto_update.tooltip = "Indicate automatic update following cursor movement"
 
   private val update = new Button("Update") {
-    reactions += { case ButtonClicked(_) => handle_caret(); handle_update() }
+    reactions += { case ButtonClicked(_) => handle_perspective(); handle_update() }
   }
   update.tooltip = "Update display according to the command at cursor position"
 

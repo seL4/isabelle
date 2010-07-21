@@ -24,6 +24,7 @@ sig
   val enter_proof_body: state -> Proof.state
   val print_state_context: state -> unit
   val print_state: bool -> state -> unit
+  val pretty_abstract: state -> Pretty.T
   val quiet: bool Unsynchronized.ref
   val debug: bool Unsynchronized.ref
   val interact: bool Unsynchronized.ref
@@ -211,6 +212,8 @@ fun print_state prf_only state =
       Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
   | SOME (SkipProof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
   |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
+
+fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 
 
 
@@ -564,8 +567,7 @@ fun status tr m =
 fun async_state (tr as Transition {print, ...}) st =
   if print then
     ignore
-      (Future.fork_group (Task_Queue.new_group (Future.worker_group ()))
-        (fn () =>
+      (Future.fork (fn () =>
           setmp_thread_position tr (fn () => Future.report (fn () => print_state false st)) ()))
   else ();
 
@@ -630,11 +632,14 @@ fun run_command thy_name (tr as Transition {print, ...}) st =
         SOME name => Exn.capture (fn () => Thy_Load.check_name thy_name name) ()
       | NONE => Exn.Result ()) of
     Exn.Result () =>
-      (case transition false tr st of
-        SOME (st', NONE) => (status tr Markup.finished; async_state tr st'; SOME st')
-      | SOME (_, SOME (exn as Exn.Interrupt, _)) => reraise exn
-      | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
-      | NONE => (error_msg tr (TERMINATE, at_command tr); status tr Markup.failed; NONE))
+      let val int = is_some (init_of tr) in
+        (case transition int tr st of
+          SOME (st', NONE) =>
+            (status tr Markup.finished; if int then () else async_state tr st'; SOME st')
+        | SOME (_, SOME (exn as Exn.Interrupt, _)) => reraise exn
+        | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
+        | NONE => (error_msg tr (TERMINATE, at_command tr); status tr Markup.failed; NONE))
+      end
   | Exn.Exn exn => (error_msg tr (exn, at_command tr); status tr Markup.failed; NONE));
 
 
@@ -699,7 +704,7 @@ fun proof_result immediate (tr, proof_trs) st =
 
         val states =
           (case States.get (presentation_context_of st'') of
-            NONE => sys_error ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
+            NONE => raise Fail ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
           | SOME states => states);
         val result = Lazy.lazy
           (fn () => (tr, st') :: (body_trs ~~ Future.join states) @ [(end_tr, st'')]);

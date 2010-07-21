@@ -103,6 +103,15 @@ INCOMPATIBILITY.
   similar to inductive_cases.
 
 
+*** ML ***
+
+* ML antiquotations @{theory} and @{theory_ref} refer to named
+theories from the ancestry of the current context, not any accidental
+theory loader state as before.  Potential INCOMPATIBILITY, subtle
+change in semantics.
+
+
+
 New in Isabelle2009-2 (June 2010)
 ---------------------------------
 
