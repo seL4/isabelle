@@ -1036,21 +1036,17 @@ $(LOG)/HOL-SET_Protocol.gz: $(OUT)/HOL SET_Protocol/ROOT.ML		\
 
 HOL-Matrix: HOL $(LOG)/HOL-Matrix.gz
 
-$(LOG)/HOL-Matrix.gz: $(OUT)/HOL					\
-  $(SRC)/Tools/Compute_Oracle/Compute_Oracle.thy			\
-  $(SRC)/Tools/Compute_Oracle/am_compiler.ML				\
-  $(SRC)/Tools/Compute_Oracle/am_interpreter.ML				\
-  $(SRC)/Tools/Compute_Oracle/am.ML					\
-  $(SRC)/Tools/Compute_Oracle/linker.ML					\
-  $(SRC)/Tools/Compute_Oracle/am_ghc.ML					\
-  $(SRC)/Tools/Compute_Oracle/am_sml.ML					\
-  $(SRC)/Tools/Compute_Oracle/compute.ML Matrix/ComputeFloat.thy	\
-  Matrix/ComputeHOL.thy Matrix/ComputeNumeral.thy Tools/float_arith.ML	\
-  Matrix/Matrix.thy Matrix/SparseMatrix.thy Matrix/LP.thy		\
-  Matrix/document/root.tex Matrix/ROOT.ML Matrix/Cplex.thy		\
+$(LOG)/HOL-Matrix.gz: $(OUT)/HOL Matrix/ComputeFloat.thy		\
+  Matrix/ComputeHOL.thy Matrix/ComputeNumeral.thy			\
+  Matrix/Compute_Oracle/Compute_Oracle.thy Matrix/Compute_Oracle/am.ML	\
+  Matrix/Compute_Oracle/am_compiler.ML Matrix/Compute_Oracle/am_ghc.ML	\
+  Matrix/Compute_Oracle/am_interpreter.ML				\
+  Matrix/Compute_Oracle/am_sml.ML Matrix/Compute_Oracle/compute.ML	\
+  Matrix/Compute_Oracle/linker.ML Matrix/Cplex.thy			\
   Matrix/CplexMatrixConverter.ML Matrix/Cplex_tools.ML			\
-  Matrix/FloatSparseMatrixBuilder.ML Matrix/fspmlp.ML			\
-  Matrix/matrixlp.ML
+  Matrix/FloatSparseMatrixBuilder.ML Matrix/LP.thy Matrix/Matrix.thy	\
+  Matrix/ROOT.ML Matrix/SparseMatrix.thy Matrix/document/root.tex	\
+  Matrix/fspmlp.ML Matrix/matrixlp.ML Tools/float_arith.ML
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Matrix
 
 
