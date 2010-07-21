@@ -82,7 +82,7 @@ fun merge_test_params (Test_Params { size = size1, iterations = iterations1, def
   Test_Params { size = size2, iterations = iterations2, default_type = default_type2,
                 no_assms = no_assms2, report = report2, quiet = quiet2 }) =
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
-    ((default_type1 @ default_type2, no_assms1 orelse no_assms2),
+    ((merge (op =) (default_type1, default_type2), no_assms1 orelse no_assms2),
     (report1 orelse report2, quiet1 orelse quiet2)));
 
 structure Data = Theory_Data
