@@ -40,6 +40,7 @@ sig
   val string_of_thy: theory -> string
   val pretty_abbrev_thy: theory -> Pretty.T
   val str_of_thy: theory -> string
+  val get_theory: theory -> string -> theory
   val deref: theory_ref -> theory
   val check_thy: theory -> theory_ref
   val eq_thy: theory * theory -> bool
@@ -243,6 +244,14 @@ fun pretty_abbrev_thy thy =
   in Pretty.str_list "{" "}" abbrev end;
 
 val str_of_thy = Pretty.str_of o pretty_abbrev_thy;
+
+fun get_theory thy name =
+  if theory_name thy <> name then
+    (case find_first (fn thy' => theory_name thy' = name) (ancestors_of thy) of
+      SOME thy' => thy'
+    | NONE => error ("Unknown ancestor theory " ^ quote name))
+  else if #stage (history_of thy) = finished then thy
+  else error ("Unfinished theory " ^ quote name);
 
 
 (* theory references *)
