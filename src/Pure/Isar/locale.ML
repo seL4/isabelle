@@ -77,6 +77,9 @@ sig
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> xstring -> unit
   val print_registrations: theory -> string -> unit
+  val locale_deps: theory ->
+    { params: ((string * typ) * mixfix) list, axioms: term list, registrations: term list list } Graph.T
+      * term list list Symtab.table Symtab.table
 end;
 
 structure Locale: LOCALE =
@@ -567,10 +570,10 @@ val _ = Context.>> (Context.map_theory
 
 (*** diagnostic commands and interfaces ***)
 
-fun all_locales thy = map #1 (Name_Space.extern_table (Locales.get thy));
+val all_locales = Symtab.keys o snd o Locales.get;
 
 fun print_locales thy =
-  Pretty.strs ("locales:" :: all_locales thy)
+  Pretty.strs ("locales:" :: map #1 (Name_Space.extern_table (Locales.get thy)))
   |> Pretty.writeln;
 
 fun print_locale thy show_facts raw_name =
@@ -592,5 +595,33 @@ fun print_registrations thy raw_name =
       [] => Pretty.str ("no interpretations")
     | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
   |> Pretty.writeln;
+
+fun locale_deps thy =
+  let
+    val names = all_locales thy
+    fun add_locale_node name =
+      let
+        val params = params_of thy name;
+        val axioms = (these o Option.map (Logic.strip_imp_prems o Thm.prop_of) o fst o intros_of thy) name;
+        val registrations = map (instance_of thy name o snd)
+          (these_registrations thy name);
+      in 
+        Graph.new_node (name, { params = params, axioms = axioms, registrations = registrations })
+      end;
+    fun add_locale_deps name =
+      let
+        val dependencies = (map o apsnd) (instance_of thy name o op $>)
+          (dependencies_of thy name);
+      in
+        fold (fn (super, ts) => fn (gr, deps) => (gr |> Graph.add_edge (super, name),
+          deps |> Symtab.map_default (super, Symtab.empty) (Symtab.cons_list (name, ts))))
+            dependencies
+      end;
+  in
+    Graph.empty
+    |> fold add_locale_node names
+    |> rpair Symtab.empty
+    |> fold add_locale_deps names
+  end;
 
 end;
