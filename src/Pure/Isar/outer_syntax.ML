@@ -31,7 +31,7 @@ sig
   type isar
   val isar: bool -> isar
   val prepare_command: Position.T -> string -> Toplevel.transition
-  val load_thy: string -> Position.T -> string list -> bool -> unit -> unit
+  val load_thy: string -> Position.T -> string list -> unit -> unit
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -268,9 +268,10 @@ fun prepare_command pos str =
 
 (* load_thy *)
 
-fun load_thy name pos text time =
+fun load_thy name pos text =
   let
     val (lexs, commands) = get_syntax ();
+    val time = ! Output.timing;
 
     val _ = Present.init_theory name;
 

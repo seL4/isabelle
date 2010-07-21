@@ -26,13 +26,11 @@ sig
   val remove_thy: string -> unit
   val kill_thy: string -> unit
   val provide_file: Path.T -> string -> unit
-  val load_file: bool -> Path.T -> unit
-  val exec_file: bool -> Path.T -> Context.generic -> Context.generic
+  val load_file: Path.T -> unit
+  val exec_file: Path.T -> Context.generic -> Context.generic
   val use: string -> unit
-  val time_use: string -> unit
   val use_thys: string list -> unit
   val use_thy: string -> unit
-  val time_use_thy: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> unit
   val register_thy: string -> unit
@@ -306,8 +304,8 @@ fun provide_file path name =
     | NONE => error ("Could not find file " ^ quote (Path.implode path)))
   end;
 
-fun load_file time path =
-  if time then
+fun load_file path =
+  if ! Output.timing then
     let val name = Path.implode path in
       timeit (fn () =>
        (priority ("\n**** Starting file " ^ quote name ^ " ****");
@@ -316,10 +314,9 @@ fun load_file time path =
     end
   else run_file path;
 
-fun exec_file time path = ML_Context.exec (fn () => load_file time path);
+fun exec_file path = ML_Context.exec (fn () => load_file path);
 
-val use = load_file false o Path.explode;
-val time_use = load_file true o Path.explode;
+val use = load_file o Path.explode;
 
 end;
 
@@ -329,7 +326,7 @@ end;
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy time upd_time initiators name =
+fun load_thy upd_time initiators name =
   let
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
     val (pos, text, _) =
@@ -341,7 +338,7 @@ fun load_thy time upd_time initiators name =
     val _ = CRITICAL (fn () =>
       change_deps name (Option.map (fn {master, text, parents, files, ...} =>
         make_deps upd_time master text parents files)));
-    val after_load = Outer_Syntax.load_thy name pos text (time orelse ! Output.timing);
+    val after_load = Outer_Syntax.load_thy name pos text;
     val _ =
       CRITICAL (fn () =>
        (change_deps name
@@ -458,9 +455,9 @@ fun read_text (SOME {update_time, master = master as SOME (path, _), text = _, p
 
 in
 
-fun require_thys time initiators dir strs tasks =
-      fold_map (require_thy time initiators dir) strs tasks |>> forall I
-and require_thy time initiators dir str tasks =
+fun require_thys initiators dir strs tasks =
+      fold_map (require_thy initiators dir) strs tasks |>> forall I
+and require_thy initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
@@ -478,8 +475,7 @@ and require_thy time initiators dir str tasks =
           val parent_names = map base_name parents;
 
           val (parents_current, tasks_graph') =
-            require_thys time (name :: initiators)
-              (Path.append dir (master_dir' deps)) parents tasks;
+            require_thys (name :: initiators) (Path.append dir (master_dir' deps)) parents tasks;
 
           val all_current = current andalso parents_current;
           val _ = if not all_current andalso known_thy name then outdate_thy name else ();
@@ -491,7 +487,7 @@ and require_thy time initiators dir str tasks =
           val upd_time = serial ();
           val tasks_graph'' = tasks_graph' |> new_deps name parent_names
            (if all_current then Finished
-            else Task (fn () => load_thy time upd_time initiators name));
+            else Task (fn () => load_thy upd_time initiators name));
         in (all_current, tasks_graph'') end)
   end;
 
@@ -500,25 +496,16 @@ end;
 
 (* use_thy etc. *)
 
-local
+fun use_thys_dir dir arg =
+  schedule_tasks (snd (require_thys [] dir arg Graph.empty));
 
-fun gen_use_thy' req dir arg =
-  schedule_tasks (snd (req [] dir arg Graph.empty));
-
-fun gen_use_thy req str =
-  let val name = base_name str in
-    check_unfinished warning name;
-    gen_use_thy' req Path.current str
-  end;
-
-in
-
-val use_thys_dir = gen_use_thy' (require_thys false);
 val use_thys = use_thys_dir Path.current;
-val use_thy = gen_use_thy (require_thy false);
-val time_use_thy = gen_use_thy (require_thy true);
 
-end;
+fun use_thy str =
+  let
+    val name = base_name str;
+    val _ = check_unfinished warning name;
+  in use_thys [str] end;
 
 
 (* begin / end theory *)
@@ -545,7 +532,7 @@ fun begin_theory name parents uses int =
 
     val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
     val theory'' =
-      fold (fn x => Context.theory_map (exec_file false x) o Theory.checkpoint) uses_now theory';
+      fold (fn x => Context.theory_map (exec_file x) o Theory.checkpoint) uses_now theory';
   in theory'' end;
 
 fun end_theory theory =

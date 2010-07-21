@@ -54,8 +54,6 @@ else ();
 fun use name = Toplevel.program (fn () => Thy_Info.use name);
 fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
 fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
-fun time_use name = Toplevel.program (fn () => Thy_Info.time_use name);
-fun time_use_thy name = Toplevel.program (fn () => Thy_Info.time_use_thy name);
 
 
 (* misc *)

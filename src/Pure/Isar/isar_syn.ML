@@ -314,7 +314,7 @@ fun propagate_env_prf prf = Proof.map_contexts
 val _ =
   Outer_Syntax.command "use" "ML text from file" (Keyword.tag_ml Keyword.thy_decl)
     (Parse.path >>
-      (fn path => Toplevel.generic_theory (Thy_Info.exec_file false path #> propagate_env)));
+      (fn path => Toplevel.generic_theory (Thy_Info.exec_file path #> propagate_env)));
 
 val _ =
   Outer_Syntax.command "ML" "ML text within theory or local theory"
