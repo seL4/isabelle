@@ -16,7 +16,6 @@ sig
   val if_known_thy: (string -> unit) -> string -> unit
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
-  val the_theory: string -> theory -> theory
   val is_finished: string -> bool
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
@@ -175,10 +174,6 @@ fun get_theory name =
   (case lookup_theory name of
     SOME theory => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
-
-fun the_theory name thy =
-  if Context.theory_name thy = name then thy
-  else get_theory name;
 
 
 

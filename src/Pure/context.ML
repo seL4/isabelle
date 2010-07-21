@@ -41,6 +41,7 @@ sig
   val pretty_abbrev_thy: theory -> Pretty.T
   val str_of_thy: theory -> string
   val get_theory: theory -> string -> theory
+  val this_theory: theory -> string -> theory
   val deref: theory_ref -> theory
   val check_thy: theory -> theory_ref
   val eq_thy: theory * theory -> bool
@@ -252,6 +253,10 @@ fun get_theory thy name =
     | NONE => error ("Unknown ancestor theory " ^ quote name))
   else if #stage (history_of thy) = finished then thy
   else error ("Unfinished theory " ^ quote name);
+
+fun this_theory thy name =
+  if theory_name thy = name then thy
+  else get_theory thy name;
 
 
 (* theory references *)
