@@ -8,8 +8,8 @@ val tests = ["Brackin", "Instructions", "SML", "Verilog"];
 Unsynchronized.set timing;
 
 warning "\nset quick_and_dirty\n"; Unsynchronized.set quick_and_dirty;
-List.app time_use_thy tests;
+use_thys tests;
 
 warning "\nreset quick_and_dirty\n"; Unsynchronized.reset quick_and_dirty;
-List.app ThyInfo.remove_thy tests;
-List.app time_use_thy tests;
+List.app Thy_Info.remove_thy tests;
+use_thys tests;

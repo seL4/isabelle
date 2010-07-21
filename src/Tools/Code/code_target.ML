@@ -603,7 +603,7 @@ val _ =
 fun shell_command thyname cmd = Toplevel.program (fn _ =>
   (use_thy thyname; case Scan.read Token.stopper (Parse.!!! code_exprP)
     ((filter Token.is_proper o Outer_Syntax.scan Position.none) cmd)
-   of SOME f => (writeln "Now generating code..."; f (theory thyname))
+   of SOME f => (writeln "Now generating code..."; f (Thy_Info.get_theory thyname))
     | NONE => error ("Bad directive " ^ quote cmd)))
   handle Runtime.TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
 

@@ -80,7 +80,7 @@ fun simple_ast_of (Const (c, _)) = Ast.Constant c
         Ast.mk_appl (simple_ast_of f) (map simple_ast_of args)
       end
   | simple_ast_of (Bound i) = Ast.Variable ("B." ^ string_of_int i)
-  | simple_ast_of (Abs _) = sys_error "simple_ast_of: Abs";
+  | simple_ast_of (Abs _) = raise Fail "simple_ast_of: Abs";
 
 
 
@@ -246,7 +246,7 @@ fun xprod_to_fmt (Syn_Ext.XProd (_, _, "", _)) = NONE
       in
         (case xsyms_to_syms xsymbs of
           (symbs, []) => SOME (const, (symbs, nargs symbs, pri))
-        | _ => sys_error "xprod_to_fmt: unbalanced blocks")
+        | _ => raise Fail "Unbalanced pretty-printing blocks")
       end;
 
 

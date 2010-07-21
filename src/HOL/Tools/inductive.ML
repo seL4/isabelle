@@ -414,7 +414,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
 
 (* prove simplification equations *)
 
-fun prove_eqs quiet_mode cs params intr_ts intrs elims ctxt ctxt'' =
+fun prove_eqs quiet_mode cs params intr_ts intrs (elims: (thm * bstring list * int) list) ctxt ctxt'' =
   let
     val _ = clean_message quiet_mode "  Proving the simplification rules ...";
     
@@ -422,7 +422,7 @@ fun prove_eqs quiet_mode cs params intr_ts intrs elims ctxt ctxt'' =
       (the (dest_predicate cs params (HOLogic.dest_Trueprop (Logic.strip_assums_concl r))),
        Logic.strip_assums_hyp r, Logic.strip_params r);
     val intr_ts' = map dest_intr intr_ts;
-    fun prove_eq c elim =
+    fun prove_eq c (elim: thm * 'a * 'b) =
       let
         val Ts = arg_types_of (length params) c;
         val (anames, ctxt') = Variable.variant_fixes (mk_names "a" (length Ts)) ctxt;

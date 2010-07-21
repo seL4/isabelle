@@ -408,14 +408,16 @@ val print_antiquotations = Toplevel.imperative Thy_Output.print_antiquotations;
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
+    val thy_session = Present.session_name thy;
+
     val all_thys = sort Thy_Info.thy_ord (thy :: Theory.ancestors_of thy);
     val gr = all_thys |> map (fn node =>
       let
         val name = Context.theory_name node;
         val parents = map Context.theory_name (Theory.parents_of node);
-        val dir = Present.session_name node;
-        val unfold = not (Thy_Info.known_thy name andalso Thy_Info.is_finished name);
-      in {name = name, ID = name, parents = parents, dir = dir, unfold = unfold, path = ""} end);
+        val session = Present.session_name node;
+        val unfold = (session = thy_session);
+      in {name = name, ID = name, parents = parents, dir = session, unfold = unfold, path = ""} end);
   in Present.display_graph gr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
@@ -432,7 +434,8 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   in Present.display_graph gr end);
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  Thm_Deps.thm_deps (Proof.get_thmss_cmd (Toplevel.enter_proof_body state) args));
+  Thm_Deps.thm_deps (Toplevel.theory_of state)
+    (Proof.get_thmss_cmd (Toplevel.enter_proof_body state) args));
 
 
 (* find unused theorems *)
@@ -442,12 +445,13 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
     val thy = Toplevel.theory_of state;
     val ctxt = Toplevel.context_of state;
     fun pretty_thm (a, th) = ProofContext.pretty_fact ctxt (a, [th]);
+    val get_theory = Context.get_theory thy;
   in
     Thm_Deps.unused_thms
       (case opt_range of
         NONE => (Theory.parents_of thy, [thy])
-      | SOME (xs, NONE) => (map Thy_Info.get_theory xs, [thy])
-      | SOME (xs, SOME ys) => (map Thy_Info.get_theory xs, map Thy_Info.get_theory ys))
+      | SOME (xs, NONE) => (map get_theory xs, [thy])
+      | SOME (xs, SOME ys) => (map get_theory xs, map get_theory ys))
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
 

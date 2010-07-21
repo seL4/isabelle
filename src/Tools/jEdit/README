@@ -44,14 +44,19 @@ Known problems with Mac OS
   e.g. between the editor and the Console plugin, which is a standard
   swing text box.  Similar for search boxes etc.
 
+- ToggleButton selected state is not rendered if window focus is lost,
+  which is probably a genuine feature of the Apple look-and-feel.
+
 - Anti-aliasing does not really work as well as for Linux or Windows.
   (General Apple/Swing problem?)
 
 - Font.createFont mangles the font family of non-regular fonts,
   e.g. bold.  IsabelleText font files need to be installed manually.
 
-- ToggleButton selected state is not rendered if window focus is lost,
-  which is probably a genuine feature of the Apple look-and-feel.
+- Missing glyphs are collected from other fonts (like Emacs, Firefox).
+  This is actually an advantage over the Oracle/Sun JVM on Windows or
+  Linux, but probably also the deeper reason for the other oddities of
+  Apple font management.
 
 
 Windows/Linux

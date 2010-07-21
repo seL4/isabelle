@@ -13,7 +13,7 @@ uses
 begin
 
 ML {*
-structure HOL = struct val thy = theory "HOL" end;
+structure HOL = struct val thy = @{theory HOL} end;
 *}  -- "belongs to theory HOL"
 
 locale type_definition =

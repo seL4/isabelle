@@ -36,6 +36,7 @@ sig
   val is_worker: unit -> bool
   val worker_task: unit -> Task_Queue.task option
   val worker_group: unit -> Task_Queue.group option
+  val worker_subgroup: unit -> Task_Queue.group
   type 'a future
   val task_of: 'a future -> task
   val group_of: 'a future -> group
@@ -83,8 +84,7 @@ end;
 val is_worker = is_some o thread_data;
 val worker_task = Option.map #1 o thread_data;
 val worker_group = Option.map #2 o thread_data;
-
-fun new_group () = Task_Queue.new_group (worker_group ());
+fun worker_subgroup () = Task_Queue.new_group (worker_group ());
 
 
 (* datatype future *)
@@ -106,9 +106,13 @@ fun is_finished x = is_some (peek x);
 
 fun assign_result group result res =
   let
-    val _ = Single_Assignment.assign result res;
+    val _ = Single_Assignment.assign result res
+      handle exn as Fail _ =>
+        (case Single_Assignment.peek result of
+          SOME (Exn.Exn Exn.Interrupt) => raise Exn.Interrupt
+        | _ => reraise exn);
     val ok =
-      (case res of
+      (case the (Single_Assignment.peek result) of
         Exn.Exn exn => (Task_Queue.cancel_group group exn; false)
       | Exn.Result _ => true);
   in ok end;
@@ -384,7 +388,7 @@ fun fork_future opt_group deps pri e =
   let
     val group =
       (case opt_group of
-        NONE => new_group ()
+        NONE => worker_subgroup ()
       | SOME group => group);
     val (result, job) = future_job group e;
     val task = SYNCHRONIZED "enqueue" (fn () =>
@@ -409,7 +413,7 @@ local
 
 fun get_result x =
   (case peek x of
-    NONE => Exn.Exn (SYS_ERROR "unfinished future")
+    NONE => Exn.Exn (Fail "Unfinished future")
   | SOME (exn as Exn.Exn Exn.Interrupt) =>
       (case Exn.flatten_list (Task_Queue.group_status (group_of x)) of
         [] => exn
@@ -481,11 +485,12 @@ fun map_future f x =
 fun promise_group group : 'a future =
   let
     val result = Single_Assignment.var "promise" : 'a result;
-    val task = SYNCHRONIZED "enqueue" (fn () =>
-      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group));
+    fun abort () = assign_result group result (Exn.Exn Exn.Interrupt) handle Fail _ => true;
+    val task = SYNCHRONIZED "enqueue_passive" (fn () =>
+      Unsynchronized.change_result queue (Task_Queue.enqueue_passive group abort));
   in Future {promised = true, task = task, group = group, result = result} end;
 
-fun promise () = promise_group (new_group ());
+fun promise () = promise_group (worker_subgroup ());
 
 fun fulfill_result (Future {promised, task, group, result}) res =
   let
@@ -509,8 +514,10 @@ fun interruptible_task f x =
   else interruptible f x;
 
 (*cancel: present and future group members will be interrupted eventually*)
-fun cancel_group group =
-  SYNCHRONIZED "cancel" (fn () => if cancel_now group then () else cancel_later group);
+fun cancel_group group = SYNCHRONIZED "cancel" (fn () =>
+ (if cancel_now group then () else cancel_later group;
+  signal work_available; scheduler_check ()));
+
 fun cancel x = cancel_group (group_of x);
 
 

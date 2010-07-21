@@ -32,7 +32,7 @@ struct
 (**** simplify {(x1, ..., xn). (x1, ..., xn) : S} to S ****)
 
 val collect_mem_simproc =
-  Simplifier.simproc (theory "Set") "Collect_mem" ["Collect t"] (fn thy => fn ss =>
+  Simplifier.simproc @{theory Set} "Collect_mem" ["Collect t"] (fn thy => fn ss =>
     fn S as Const (@{const_name Collect}, Type ("fun", [_, T])) $ t =>
          let val (u, _, ps) = HOLogic.strip_psplits t
          in case u of

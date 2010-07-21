@@ -84,7 +84,7 @@ fun atoms_ord (Abs (_, _, t), Abs (_, _, u)) = atoms_ord (t, u)
   | atoms_ord (Free (x, _), Free (y, _)) = fast_string_ord (x, y)
   | atoms_ord (Var (xi, _), Var (yj, _)) = fast_indexname_ord (xi, yj)
   | atoms_ord (Bound i, Bound j) = int_ord (i, j)
-  | atoms_ord _ = sys_error "atoms_ord";
+  | atoms_ord _ = raise Fail "atoms_ord";
 
 fun types_ord (Abs (_, T, t), Abs (_, U, u)) =
       (case typ_ord (T, U) of EQUAL => types_ord (t, u) | ord => ord)
@@ -94,7 +94,7 @@ fun types_ord (Abs (_, T, t), Abs (_, U, u)) =
   | types_ord (Free (_, T), Free (_, U)) = typ_ord (T, U)
   | types_ord (Var (_, T), Var (_, U)) = typ_ord (T, U)
   | types_ord (Bound _, Bound _) = EQUAL
-  | types_ord _ = sys_error "types_ord";
+  | types_ord _ = raise Fail "types_ord";
 
 in
 

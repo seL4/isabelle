@@ -211,23 +211,14 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   /* caret handling */
 
-  def selected_command: Option[Command] =
-    model.recent_document().command_at(text_area.getCaretPosition) match {
-      case Some((command, _)) => Some(command)
-      case None => None
-    }
+  def selected_command(): Option[Command] =
+    model.recent_document().proper_command_at(text_area.getCaretPosition)
 
-  private val caret_listener = new CaretListener
-  {
-    private var last_selected_command: Option[Command] = None
-    override def caretUpdate(e: CaretEvent)
-    {
-      val selected = selected_command
-      if (selected != last_selected_command) {
-        last_selected_command = selected
-        if (selected.isDefined) session.indicate_command_change(selected.get)
-      }
+  private val caret_listener = new CaretListener {
+    private val delay = Swing_Thread.delay_last(session.input_delay) {
+      session.perspective.event(Session.Perspective)
     }
+    override def caretUpdate(e: CaretEvent) { delay() }
   }
 
 

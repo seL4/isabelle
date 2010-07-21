@@ -100,7 +100,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   private val edits_buffer = new mutable.ListBuffer[Text_Edit]   // owned by Swing thread
 
-  private val edits_delay = Swing_Thread.delay_last(300) {  // FIXME input_delay property
+  private val edits_delay = Swing_Thread.delay_last(session.input_delay) {
     if (!edits_buffer.isEmpty) {
       val new_change = current_change().edit(session, edits_buffer.toList)
       edits_buffer.clear

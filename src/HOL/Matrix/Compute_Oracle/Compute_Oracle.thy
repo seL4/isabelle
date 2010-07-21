@@ -4,7 +4,7 @@
 Steven Obua's evaluator.
 *)
 
-theory Compute_Oracle imports Pure
+theory Compute_Oracle imports HOL
 uses "am.ML" "am_compiler.ML" "am_interpreter.ML" "am_ghc.ML" "am_sml.ML" "report.ML" "compute.ML" "linker.ML"
 begin
 
