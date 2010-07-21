@@ -801,8 +801,7 @@ val metisFT_tac = generic_metis_tac FT
 
 fun method name mode =
   Method.setup name (Attrib.thms >> (fn ths => fn ctxt =>
-      METHOD (fn facts => HEADGOAL (CHANGED_PROP
-                                 o generic_metis_tac mode ctxt (facts @ ths)))))
+    SIMPLE_METHOD' (CHANGED_PROP o generic_metis_tac mode ctxt ths)))
 
 val setup =
   type_lits_setup
