@@ -408,14 +408,16 @@ val print_antiquotations = Toplevel.imperative Thy_Output.print_antiquotations;
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
+    val thy_session = Present.session_name thy;
+
     val all_thys = sort Thy_Info.thy_ord (thy :: Theory.ancestors_of thy);
     val gr = all_thys |> map (fn node =>
       let
         val name = Context.theory_name node;
         val parents = map Context.theory_name (Theory.parents_of node);
-        val dir = Present.session_name node;
-        val unfold = not (Thy_Info.known_thy name andalso Thy_Info.is_finished name);
-      in {name = name, ID = name, parents = parents, dir = dir, unfold = unfold, path = ""} end);
+        val session = Present.session_name node;
+        val unfold = (session = thy_session);
+      in {name = name, ID = name, parents = parents, dir = session, unfold = unfold, path = ""} end);
   in Present.display_graph gr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
