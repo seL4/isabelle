@@ -59,6 +59,7 @@ use_thys [
   "HarmonicSeries",
   "Refute_Examples",
   "Quickcheck_Examples",
+  "Quickcheck_Lattice_Examples",
   "Landau",
   "Execute_Choice",
   "Summation",
