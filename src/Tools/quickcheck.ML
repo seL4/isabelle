@@ -19,7 +19,7 @@ sig
     string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))
       -> theory -> theory
   val setup: theory -> theory
-  val quickcheck: (string * string) list -> int -> Proof.state -> (string * term) list option
+  val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
 end;
 
 structure Quickcheck : QUICKCHECK =
@@ -63,7 +63,7 @@ fun collect_single_report single_report
 (* quickcheck configuration -- default parameters, test generators *)
 
 datatype test_params = Test_Params of
-  { size: int, iterations: int, default_type: typ option, no_assms: bool, report: bool, quiet : bool};
+  { size: int, iterations: int, default_type: typ list, no_assms: bool, report: bool, quiet : bool};
 
 fun dest_test_params (Test_Params { size, iterations, default_type, no_assms, report, quiet }) =
   ((size, iterations), ((default_type, no_assms), (report, quiet)));
@@ -77,7 +77,7 @@ fun merge_test_params (Test_Params { size = size1, iterations = iterations1, def
   Test_Params { size = size2, iterations = iterations2, default_type = default_type2,
                 no_assms = no_assms2, report = report2, quiet = quiet2 }) =
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
-    ((case default_type1 of NONE => default_type2 | _ => default_type1, no_assms1 orelse no_assms2),
+    ((default_type1 @ default_type2, no_assms1 orelse no_assms2),
     (report1 orelse report2, quiet1 orelse quiet2)));
 
 structure Data = Theory_Data
@@ -85,7 +85,7 @@ structure Data = Theory_Data
   type T = (string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))) list
     * test_params;
   val empty = ([], Test_Params
-    { size = 10, iterations = 100, default_type = NONE, no_assms = false, report = false, quiet = false});
+    { size = 10, iterations = 100, default_type = [], no_assms = false, report = false, quiet = false});
   val extend = I;
   fun merge ((generators1, params1), (generators2, params2)) : T =
     (AList.merge (op =) (K true) (generators1, generators2),
@@ -196,9 +196,14 @@ fun test_goal quiet report generator_name size iterations default_T no_assms ins
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
+    val default_T' =
+      case default_T of
+        [] => NONE
+      | [T] => SOME T
+      | _ => error "Multiple default types not yet supported"
     val gi' = Logic.list_implies (if no_assms then [] else assms,
                                   subst_bounds (frees, strip gi))
-      |> monomorphic_term thy insts default_T
+      |> monomorphic_term thy insts default_T'
       |> Object_Logic.atomize_term thy;
   in gen_test_term ctxt quiet report generator_name size iterations gi' end;
 
@@ -266,31 +271,32 @@ fun read_nat s = case (Library.read_int o Symbol.explode) s
  of (k, []) => if k >= 0 then k
       else error ("Not a natural number: " ^ s)
   | (_, _ :: _) => error ("Not a natural number: " ^ s);
+
 fun read_bool "false" = false
   | read_bool "true" = true
   | read_bool s = error ("Not a Boolean value: " ^ s)
 
-fun parse_test_param ctxt ("size", arg) =
+fun parse_test_param ctxt ("size", [arg]) =
       (apfst o apfst o K) (read_nat arg)
-  | parse_test_param ctxt ("iterations", arg) =
+  | parse_test_param ctxt ("iterations", [arg]) =
       (apfst o apsnd o K) (read_nat arg)
   | parse_test_param ctxt ("default_type", arg) =
-      (apsnd o apfst o apfst o K o SOME) (ProofContext.read_typ ctxt arg)
-  | parse_test_param ctxt ("no_assms", arg) =
+      (apsnd o apfst o apfst o K) (map (ProofContext.read_typ ctxt) arg)
+  | parse_test_param ctxt ("no_assms", [arg]) =
       (apsnd o apfst o apsnd o K) (read_bool arg)
-  | parse_test_param ctxt ("report", arg) =
+  | parse_test_param ctxt ("report", [arg]) =
       (apsnd o apsnd o apfst o K) (read_bool arg)
-  | parse_test_param ctxt ("quiet", arg) =
+  | parse_test_param ctxt ("quiet", [arg]) =
       (apsnd o apsnd o apsnd o K) (read_bool arg)
   | parse_test_param ctxt (name, _) =
       error ("Unknown test parameter: " ^ name);
 
-fun parse_test_param_inst ctxt ("generator", arg) =
+fun parse_test_param_inst ctxt ("generator", [arg]) =
       (apsnd o apfst o K o SOME) arg
   | parse_test_param_inst ctxt (name, arg) =
       case try (ProofContext.read_typ ctxt) name
        of SOME (TFree (v, _)) => (apsnd o apsnd o AList.update (op =))
-              (v, ProofContext.read_typ ctxt arg)
+              (v, ProofContext.read_typ ctxt (the_single arg))
         | _ => (apfst o parse_test_param ctxt) (name, arg);
 
 fun quickcheck_params_cmd args thy =
@@ -321,7 +327,8 @@ fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
   |> Pretty.writeln o pretty_counterex_and_reports (Toplevel.context_of state);
 
-val parse_arg = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- Parse.name) "true");
+val parse_arg = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- 
+  ((Parse.name >> single) || (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]"))) ["true"]);
 
 val parse_args = Parse.$$$ "[" |-- Parse.list1 parse_arg --| Parse.$$$ "]"
   || Scan.succeed [];
