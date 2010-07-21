@@ -27,7 +27,7 @@ sig
   val check_thy: Path.T -> string -> Path.T * File.ident
   val check_name: string -> string -> unit
   val deps_thy: Path.T -> string ->
-   {master: Path.T * File.ident, text: string list, imports: string list, uses: Path.T list}
+   {master: Path.T * File.ident, text: string, imports: string list, uses: Path.T list}
   val load_ml: Path.T -> Path.T -> Path.T * File.ident
 end;
 
@@ -114,9 +114,9 @@ fun check_name name name' =
 fun deps_thy dir name =
   let
     val master as (path, _) = check_thy dir name;
-    val text = explode (File.read path);
+    val text = File.read path;
     val (name', imports, uses) =
-      Thy_Header.read (Path.position path) (Source.of_list_limited 8000 text);
+      Thy_Header.read (Path.position path) (Source.of_list_limited 8000 (explode text));
     val _ = check_name name name';
     val uses = map (Path.explode o #1) uses;
   in {master = master, text = text, imports = imports, uses = uses} end;

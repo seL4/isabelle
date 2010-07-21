@@ -31,7 +31,7 @@ sig
   type isar
   val isar: bool -> isar
   val prepare_command: Position.T -> string -> Toplevel.transition
-  val load_thy: string -> Position.T -> string list -> unit -> unit
+  val load_thy: string -> Position.T -> string -> unit -> unit
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -275,7 +275,7 @@ fun load_thy name pos text =
 
     val _ = Present.init_theory name;
 
-    val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_list text));
+    val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_string text));
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
     val _ = List.app Thy_Syntax.report_span spans;
     val units = Source.exhaust (Thy_Syntax.unit_source (Source.of_list spans))
