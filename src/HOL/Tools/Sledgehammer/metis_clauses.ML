@@ -28,10 +28,10 @@ sig
     CombConst of name * combtyp * combtyp list (* Const and Free *) |
     CombVar of name * combtyp |
     CombApp of combterm * combterm
-  datatype literal = Literal of bool * combterm
+  datatype fol_literal = FOLLiteral of bool * combterm
   datatype fol_clause =
     FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
-                  literals: literal list, ctypes_sorts: typ list}
+                  literals: fol_literal list, ctypes_sorts: typ list}
 
   val type_wrapper_name : string
   val schematic_var_prefix: string
@@ -63,7 +63,7 @@ sig
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
   val type_of_combterm : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
-  val literals_of_term : theory -> term -> literal list * typ list
+  val literals_of_term : theory -> term -> fol_literal list * typ list
   val conceal_skolem_terms :
     int -> (string * term) list -> term -> (string * term) list * term
   val reveal_skolem_terms : (string * term) list -> term -> term
@@ -361,11 +361,11 @@ datatype combterm =
   CombVar of name * combtyp |
   CombApp of combterm * combterm
 
-datatype literal = Literal of bool * combterm
+datatype fol_literal = FOLLiteral of bool * combterm
 
 datatype fol_clause =
   FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
-                literals: literal list, ctypes_sorts: typ list}
+                literals: fol_literal list, ctypes_sorts: typ list}
 
 (*********************************************************************)
 (* convert a clause with type Term.term to a clause with type clause *)
@@ -439,7 +439,7 @@ fun literals_of_term1 args thy (@{const Trueprop} $ P) =
     literals_of_term1 (literals_of_term1 args thy P) thy Q
   | literals_of_term1 (lits, ts) thy P =
     let val ((pred, ts'), pol) = predicate_of thy (P, true) in
-      (Literal (pol, pred) :: lits, union (op =) ts ts')
+      (FOLLiteral (pol, pred) :: lits, union (op =) ts ts')
     end
 val literals_of_term = literals_of_term1 ([], [])
 

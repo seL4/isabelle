@@ -103,21 +103,21 @@ fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis.Term.Var s, ty)
        wrap_type (Metis.Term.Fn(".", map hol_term_to_fol_FT [tm1,tm2]),
                   type_of_combterm tm);
 
-fun hol_literal_to_fol FO (Literal (pol, tm)) =
+fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
       let val (CombConst((p, _), _, tys), tms) = strip_combterm_comb tm
           val tylits = if p = "equal" then [] else map hol_type_to_fol tys
           val lits = map hol_term_to_fol_FO tms
-      in metis_lit pol (fn_isa_to_met p) (tylits @ lits) end
-  | hol_literal_to_fol HO (Literal (pol, tm)) =
+      in metis_lit pos (fn_isa_to_met p) (tylits @ lits) end
+  | hol_literal_to_fol HO (FOLLiteral (pos, tm)) =
      (case strip_combterm_comb tm of
           (CombConst(("equal", _), _, _), tms) =>
-            metis_lit pol "=" (map hol_term_to_fol_HO tms)
-        | _ => metis_lit pol "{}" [hol_term_to_fol_HO tm])   (*hBOOL*)
-  | hol_literal_to_fol FT (Literal (pol, tm)) =
+            metis_lit pos "=" (map hol_term_to_fol_HO tms)
+        | _ => metis_lit pos "{}" [hol_term_to_fol_HO tm])   (*hBOOL*)
+  | hol_literal_to_fol FT (FOLLiteral (pos, tm)) =
      (case strip_combterm_comb tm of
           (CombConst(("equal", _), _, _), tms) =>
-            metis_lit pol "=" (map hol_term_to_fol_FT tms)
-        | _ => metis_lit pol "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
+            metis_lit pos "=" (map hol_term_to_fol_FT tms)
+        | _ => metis_lit pos "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
 
 fun literals_of_hol_term thy mode t =
       let val (lits, types_sorts) = literals_of_term thy t

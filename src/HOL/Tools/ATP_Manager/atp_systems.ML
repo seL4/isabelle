@@ -133,10 +133,10 @@ fun make_clause_table xs =
 fun subtract_cls ax_clauses =
   filter_out (Termtab.defined (make_clause_table ax_clauses) o prop_of)
 
-fun is_false_literal (Literal (pos, CombConst ((c, _), _, _))) =
+fun is_false_literal (FOLLiteral (pos, CombConst ((c, _), _, _))) =
       (pos andalso c = "c_False") orelse (not pos andalso c = "c_True")
   | is_false_literal _ = false
-fun is_true_literal (Literal (pol, CombConst ((c, _), _, _))) =
+fun is_true_literal (FOLLiteral (pol, CombConst ((c, _), _, _))) =
       (pol andalso c = "c_True") orelse
       (not pol andalso c = "c_False")
   | is_true_literal _ = false;
@@ -180,7 +180,7 @@ fun count_combterm (CombConst ((c, _), _, _)) =
     Symtab.map_entry c (Integer.add 1)
   | count_combterm (CombVar _) = I
   | count_combterm (CombApp (t1, t2)) = count_combterm t1 #> count_combterm t2
-fun count_literal (Literal (_, t)) = count_combterm t
+fun count_literal (FOLLiteral (_, t)) = count_combterm t
 fun count_clause (FOLClause {literals, ...}) = fold count_literal literals
 
 fun cnf_helper_thms thy raw =

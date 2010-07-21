@@ -145,7 +145,7 @@ fun atp_term_for_combterm full_types top_level u =
     else t
   end
 
-fun atp_literal_for_literal full_types (Literal (pos, t)) =
+fun atp_literal_for_literal full_types (FOLLiteral (pos, t)) =
   (pos, atp_term_for_combterm full_types true t)
 
 fun atp_literal_for_type_literal pos (TyLitVar (class, name)) =
