@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Quickcheck_Examples.thy
-    ID:         $Id$
     Author:     Stefan Berghofer
     Copyright   2004 TU Muenchen
 *)
