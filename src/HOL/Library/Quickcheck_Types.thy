@@ -52,6 +52,8 @@ qed (auto simp add: inf_non_distrib_lattice_def sup_non_distrib_lattice_def less
 
 end
 
+hide_const Zero A B C One
+
 subsection {* Values extended by a bottom element *}
 
 datatype 'a bot = Value 'a | Bot
