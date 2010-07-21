@@ -185,7 +185,7 @@ fun monomorphic_term thy insts default_T =
     fun subst (T as TFree (v, S)) =
           let
             val T' = AList.lookup (op =) insts v
-              |> the_default (the_default T default_T)
+              |> the_default default_T
           in if Sign.of_sort thy (T, S) then T'
             else error ("Type " ^ Syntax.string_of_typ_global thy T ^
               " to be substituted for variable " ^
@@ -203,16 +203,18 @@ fun test_goal quiet report generator_name size iterations default_T no_assms ins
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val default_T' =
-      case default_T of
-        [] => NONE
-      | [T] => SOME T
-      | _ => error "Multiple default types not yet supported"
-    val gi' = Logic.list_implies (if no_assms then [] else assms,
+    val gis' = Logic.list_implies (if no_assms then [] else assms,
                                   subst_bounds (frees, strip gi))
-      |> monomorphic_term thy insts default_T'
-      |> Object_Logic.atomize_term thy;
-  in gen_test_term ctxt quiet report generator_name size iterations gi' end;
+      |> (fn t => map (fn T => monomorphic_term thy insts T t) default_T)  
+      |> map (Object_Logic.atomize_term thy);
+    fun collect_results f reports [] = (NONE, rev reports)
+      | collect_results f reports (t :: ts) =
+        case f t of
+          (SOME res, report) => (SOME res, rev (report :: reports))
+        | (NONE, report) => collect_results f (report :: reports) ts
+  in (collect_results (gen_test_term ctxt quiet report generator_name size iterations) [] gis') end;
+
+(* pretty printing *)
 
 fun pretty_counterex ctxt NONE = Pretty.str "Quickcheck found no counterexample."
   | pretty_counterex ctxt (SOME cex) =
@@ -245,8 +247,8 @@ fun pretty_reports ctxt (SOME reports) =
       (rev reports))
   | pretty_reports ctxt NONE = Pretty.str ""
 
-fun pretty_counterex_and_reports ctxt (cex, (timing, reports)) =
-  Pretty.chunks [pretty_counterex ctxt cex, pretty_reports ctxt reports]
+fun pretty_counterex_and_reports ctxt (cex, timing_and_reports) =
+  Pretty.chunks (pretty_counterex ctxt cex :: map (pretty_reports ctxt) (map snd timing_and_reports))
 
 (* automatic testing *)
 
