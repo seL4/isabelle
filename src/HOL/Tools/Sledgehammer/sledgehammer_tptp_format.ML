@@ -120,9 +120,9 @@ fun hol_ident axiom_name clause_id =
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
-fun atp_term_for_combtyp (TyVar name) = ATerm (name, [])
-  | atp_term_for_combtyp (TyFree name) = ATerm (name, [])
-  | atp_term_for_combtyp (TyConstr (name, tys)) =
+fun atp_term_for_combtyp (CombTVar name) = ATerm (name, [])
+  | atp_term_for_combtyp (CombTFree name) = ATerm (name, [])
+  | atp_term_for_combtyp (CombType (name, tys)) =
     ATerm (name, map atp_term_for_combtyp tys)
 
 fun atp_term_for_combterm full_types top_level u =

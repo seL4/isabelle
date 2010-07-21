@@ -70,9 +70,9 @@ fun fn_isa_to_met "equal" = "="
 
 fun metis_lit b c args = (b, (c, args));
 
-fun hol_type_to_fol (TyVar (x, _)) = Metis.Term.Var x
-  | hol_type_to_fol (TyFree (s, _)) = Metis.Term.Fn (s, [])
-  | hol_type_to_fol (TyConstr ((s, _), tps)) =
+fun hol_type_to_fol (CombTVar (x, _)) = Metis.Term.Var x
+  | hol_type_to_fol (CombTFree (s, _)) = Metis.Term.Fn (s, [])
+  | hol_type_to_fol (CombType ((s, _), tps)) =
     Metis.Term.Fn (s, map hol_type_to_fol tps);
 
 (*These two functions insert type literals before the real literals. That is the

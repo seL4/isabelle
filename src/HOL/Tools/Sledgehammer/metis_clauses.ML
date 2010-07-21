@@ -21,9 +21,9 @@ sig
   datatype classrel_clause = ClassrelClause of
    {axiom_name: string, subclass: name, superclass: name}
   datatype combtyp =
-    TyVar of name |
-    TyFree of name |
-    TyConstr of name * combtyp list
+    CombTVar of name |
+    CombTFree of name |
+    CombType of name * combtyp list
   datatype combterm =
     CombConst of name * combtyp * combtyp list (* Const and Free *) |
     CombVar of name * combtyp |
@@ -352,9 +352,9 @@ fun make_arity_clauses thy tycons classes =
   in  (classes', multi_arity_clause cpairs)  end;
 
 datatype combtyp =
-  TyVar of name |
-  TyFree of name |
-  TyConstr of name * combtyp list
+  CombTVar of name |
+  CombTFree of name |
+  CombType of name * combtyp list
 
 datatype combterm =
   CombConst of name * combtyp * combtyp list (* Const and Free *) |
@@ -372,7 +372,7 @@ datatype fol_clause =
 (*********************************************************************)
 
 (*Result of a function type; no need to check that the argument type matches.*)
-fun result_type (TyConstr (_, [_, tp2])) = tp2
+fun result_type (CombType (_, [_, tp2])) = tp2
   | result_type _ = raise Fail "non-function type"
 
 fun type_of_combterm (CombConst (_, tp, _)) = tp
@@ -387,11 +387,11 @@ fun strip_combterm_comb u =
 
 fun type_of (Type (a, Ts)) =
     let val (folTypes,ts) = types_of Ts in
-      (TyConstr (`make_fixed_type_const a, folTypes), ts)
+      (CombType (`make_fixed_type_const a, folTypes), ts)
     end
-  | type_of (tp as TFree (a, _)) = (TyFree (`make_fixed_type_var a), [tp])
+  | type_of (tp as TFree (a, _)) = (CombTFree (`make_fixed_type_var a), [tp])
   | type_of (tp as TVar (x, _)) =
-    (TyVar (make_schematic_type_var x, string_of_indexname x), [tp])
+    (CombTVar (make_schematic_type_var x, string_of_indexname x), [tp])
 and types_of Ts =
     let val (folTyps, ts) = ListPair.unzip (map type_of Ts) in
       (folTyps, union_all ts)
@@ -399,10 +399,10 @@ and types_of Ts =
 
 (* same as above, but no gathering of sort information *)
 fun simp_type_of (Type (a, Ts)) =
-      TyConstr (`make_fixed_type_const a, map simp_type_of Ts)
-  | simp_type_of (TFree (a, _)) = TyFree (`make_fixed_type_var a)
+      CombType (`make_fixed_type_const a, map simp_type_of Ts)
+  | simp_type_of (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
   | simp_type_of (TVar (x, _)) =
-    TyVar (make_schematic_type_var x, string_of_indexname x)
+    CombTVar (make_schematic_type_var x, string_of_indexname x)
 
 (* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
 fun combterm_of thy (Const (c, T)) =
