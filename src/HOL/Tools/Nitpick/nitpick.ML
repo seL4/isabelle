@@ -492,7 +492,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           else
             0
         val settings = [("solver", commas_quote kodkod_sat_solver),
-                        ("skolem_depth", "-1"),
                         ("bit_width", string_of_int bit_width),
                         ("symmetry_breaking", "20"),
                         ("sharing", "3"),
