@@ -309,7 +309,7 @@ fun begin_index up (index_path, session) docs graph =
   begin_document ("Index of " ^ session) ^ up_link up ^
   para ("View " ^ href_path graph "theory dependencies" ^
     implode (map (fn (p, name) => "<br/>\nView " ^ href_path p name) docs)) ^
-  "\n</div>\n<hr/>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
+  "\n</div>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
 
 fun choice chs s = space_implode " " (map (fn (s', lnk) =>
   enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
@@ -329,12 +329,12 @@ fun applet_pages session back =
         (name, begin_document ("Theory dependencies of " ^ session) ^
           back_link back ^
           para browser_size ^
-          "\n</div>\n<hr/>\n<div class=\"graphbrowser\">\n\
+          "\n</div>\n<div class=\"graphbrowser\">\n\
           \<applet code=\"GraphBrowser/GraphBrowser.class\" \
           \archive=\"GraphBrowser.jar\" \
           \width=" ^ quote width ^ " height=" ^ quote height ^ ">\n\
           \<param name=\"graphfile\" value=\"" ^ "session.graph" ^ "\"/>\n\
-          \</applet>\n<hr/>" ^ end_document)
+          \</applet>" ^ end_document)
       end;
   in map applet_page sizes end;
 
@@ -345,15 +345,15 @@ val theory_entry = entry;
 
 fun session_entries [] = "</ul>"
   | session_entries es =
-      "</ul>\n</div>\n<hr/>\n<div class=\"sessions\">\n\
+      "</ul>\n</div>\n<div class=\"sessions\">\n\
       \<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
 
 
 (* theory *)
 
 val theory_source = enclose
-  "\n</div>\n<hr/>\n<div class=\"source\">\n<pre>"
-  "</pre>\n<hr/>\n";
+  "\n</div>\n<div class=\"source\">\n<pre>"
+  "</pre>\n";
 
 
 local
@@ -383,9 +383,9 @@ end;
 
 fun external_file path str =
   begin_document ("File " ^ Url.implode path) ^
-  "\n</div>\n<hr/><div class=\"external_source\">\n" ^
+  "\n</div><div class=\"external_source\">\n" ^
   verbatim str ^
-  "\n</div>\n<hr/>\n<div class=\"external_footer\">" ^
+  "\n</div>\n<div class=\"external_footer\">" ^
   end_document;
 
 end;

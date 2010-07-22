@@ -14,9 +14,6 @@ body { background-color: #FFFFFF; }
 .name     { font-style: italic; }
 .filename { font-family: fixed; }
 
-/* hide hr for this style */
-hr { height: 0px; border: 0px; }
-
 
 /* basic syntax markup */
 
