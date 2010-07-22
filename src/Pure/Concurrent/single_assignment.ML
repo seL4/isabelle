@@ -31,7 +31,7 @@ fun var name = Var
 
 fun peek (Var {var, ...}) = SingleAssignment.savalue var;
 
-fun await (v as Var {name, lock, cond, var}) =
+fun await (v as Var {name, lock, cond, ...}) =
   Simple_Thread.synchronized name lock (fn () =>
     let
       fun wait () =

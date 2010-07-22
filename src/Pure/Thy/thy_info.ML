@@ -85,7 +85,7 @@ fun new_deps name parents entry G =
 type deps =
   {update_time: int,                      (*symbolic time of update; negative value means outdated*)
     master: (Path.T * File.ident) option, (*master dependencies for thy file*)
-    text: string list,                    (*source text for thy*)
+    text: string,                         (*source text for thy*)
     parents: string list,                 (*source specification of parents (partially qualified)*)
       (*auxiliary files: source path, physical path + identifier*)
     files: (Path.T * (Path.T * File.ident) option) list};
@@ -105,10 +105,8 @@ fun master_dir'' d = the_default Path.current (Option.map master_dir' d);
 fun base_name s = Path.implode (Path.base (Path.explode s));
 
 
-type thy = deps option * theory option;
-
 local
-  val database = Unsynchronized.ref (Graph.empty: thy Graph.T);
+  val database = Unsynchronized.ref (Graph.empty: (deps option * theory option) Graph.T);
 in
   fun get_thys () = ! database;
   fun change_thys f = CRITICAL (fn () => Unsynchronized.change database f);
@@ -329,11 +327,13 @@ fun required_by _ [] = ""
 fun load_thy upd_time initiators name =
   let
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
+    fun corrupted () = error (loader_msg "corrupted dependency information" [name]);
     val (pos, text, _) =
       (case get_deps name of
-        SOME {master = SOME (master_path, _), text as _ :: _, files, ...} =>
-          (Path.position master_path, text, files)
-      | _ => error (loader_msg "corrupted dependency information" [name]));
+        SOME {master = SOME (master_path, _), text, files, ...} =>
+          if text = "" then corrupted ()
+          else (Path.position master_path, text, files)
+      | _ => corrupted ());
     val _ = touch_thy name;
     val _ = CRITICAL (fn () =>
       change_deps name (Option.map (fn {master, text, parents, files, ...} =>
@@ -343,7 +343,7 @@ fun load_thy upd_time initiators name =
       CRITICAL (fn () =>
        (change_deps name
           (Option.map (fn {update_time, master, parents, files, ...} =>
-            make_deps update_time master [] parents files));
+            make_deps update_time master "" parents files));
         perform Update name));
   in after_load end;
 
@@ -419,9 +419,11 @@ local
 
 fun check_ml master (src_path, info) =
   let val info' =
-    (case info of NONE => NONE
+    (case info of
+      NONE => NONE
     | SOME (_, id) =>
-        (case Thy_Load.check_ml (master_dir master) src_path of NONE => NONE
+        (case Thy_Load.check_ml (master_dir master) src_path of
+          NONE => NONE
         | SOME (path', id') => if id <> id' then NONE else SOME (path', id')))
   in (src_path, info') end;
 
@@ -451,7 +453,7 @@ fun check_deps dir name =
       end);
 
 fun read_text (SOME {update_time, master = master as SOME (path, _), text = _, parents, files}) =
-  SOME (make_deps update_time master (explode (File.read path)) parents files);
+  SOME (make_deps update_time master (File.read path) parents files);
 
 in
 
@@ -521,7 +523,7 @@ fun begin_theory name parents uses int =
 
     val deps =
       if known_thy name then get_deps name
-      else init_deps NONE [] parents (map #1 uses);
+      else init_deps NONE "" parents (map #1 uses);
     val _ = change_thys (new_deps name parent_names (deps, NONE));
 
     val update_time = (case deps of NONE => 0 | SOME {update_time, ...} => update_time);
@@ -558,7 +560,7 @@ fun register_thy name =
   in
     CRITICAL (fn () =>
      (change_deps name (Option.map
-       (fn {parents, files, ...} => make_deps upd_time (SOME master) [] parents files));
+       (fn {parents, files, ...} => make_deps upd_time (SOME master) "" parents files));
       perform Update name))
   end;
 

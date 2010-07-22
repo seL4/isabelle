@@ -3,6 +3,7 @@
 
 Future values, see also
 http://www4.in.tum.de/~wenzelm/papers/parallel-isabelle.pdf
+http://www4.in.tum.de/~wenzelm/papers/parallel-ml.pdf
 
 Notes:
 
