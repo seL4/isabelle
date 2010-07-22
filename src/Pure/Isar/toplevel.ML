@@ -629,7 +629,7 @@ end;
 
 (* managed execution *)
 
-fun run_command thy_name (tr as Transition {print, ...}) st =
+fun run_command thy_name tr st =
   (case
       (case init_of tr of
         SOME name => Exn.capture (fn () => Thy_Load.check_name thy_name name) ()
