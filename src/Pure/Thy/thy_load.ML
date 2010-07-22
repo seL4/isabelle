@@ -1,7 +1,8 @@
 (*  Title:      Pure/Thy/thy_load.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Theory loader primitives, including load path.
+Loading files that contribute to a theory, including global load path
+management.
 *)
 
 signature BASIC_THY_LOAD =
@@ -16,13 +17,12 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
-  val ml_exts: string list
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
   val split_thy_path: Path.T -> Path.T * string
   val consistent_name: string -> string -> unit
-  val check_file: Path.T -> Path.T -> (Path.T * File.ident) option
-  val check_ml: Path.T -> Path.T -> (Path.T * File.ident) option
+  val test_file: Path.T -> Path.T -> (Path.T * File.ident) option
+  val check_file: Path.T -> Path.T -> Path.T * File.ident
   val check_thy: Path.T -> string -> Path.T * File.ident
   val deps_thy: Path.T -> string ->
    {master: Path.T * File.ident, text: string, imports: string list, uses: Path.T list}
@@ -58,7 +58,6 @@ end;
 
 (* file formats *)
 
-val ml_exts = ["ML", "sml"];
 val ml_path = Path.ext "ML" o Path.basic;
 val thy_path = Path.ext "thy" o Path.basic;
 
@@ -75,30 +74,38 @@ fun consistent_name name name' =
 
 (* check files *)
 
-fun check_ext exts paths src_path =
+local
+
+exception NOT_FOUND of Path.T list * Path.T;
+
+fun try_file dir src_path =
   let
+    val prfxs = search_path dir src_path;
     val path = Path.expand src_path;
     val _ = Path.is_current path andalso error "Bad file specification";
-
-    fun try_ext rel_path ext =
-      let val ext_path = Path.expand (Path.ext ext rel_path)
-      in Option.map (fn id => (File.full_path ext_path, id)) (File.ident ext_path) end;
-    fun try_prfx prfx = get_first (try_ext (Path.append prfx path)) ("" :: exts);
-  in get_first try_prfx paths end;
-
-fun check_file dir path = check_ext [] (search_path dir path) path;
-fun check_ml dir path = check_ext ml_exts (search_path dir path) path;
-
-fun check_thy dir name =
-  let
-    val thy_file = thy_path name;
-    val paths = search_path dir thy_file;
+    val result =
+      prfxs |> get_first (fn prfx =>
+        let val full_path = File.full_path (Path.append prfx path)
+        in Option.map (pair full_path) (File.ident full_path) end);
   in
-    (case check_ext [] paths thy_file of
-      NONE => error ("Could not find theory file " ^ quote (Path.implode thy_file) ^
-        " in " ^ commas_quote (map Path.implode paths))
-    | SOME thy_id => thy_id)
+    (case result of
+      SOME res => res
+    | NONE => raise NOT_FOUND (prfxs, path))
   end;
+
+in
+
+fun test_file dir file =
+  SOME (try_file dir file) handle NOT_FOUND _ => NONE;
+
+fun check_file dir file =
+  try_file dir file handle NOT_FOUND (prfxs, path) =>
+    error ("Could not find file " ^ quote (Path.implode path) ^
+      " in " ^ commas_quote (map Path.implode prfxs));
+
+fun check_thy dir name = check_file dir (thy_path name);
+
+end;
 
 
 (* theory deps *)
@@ -114,12 +121,13 @@ fun deps_thy dir name =
   in {master = master, text = text, imports = imports, uses = uses} end;
 
 
-(* load files *)
+(* ML files *)
 
 fun load_ml dir raw_path =
-  (case check_ml dir raw_path of
-    NONE => error ("Could not find ML file " ^ quote (Path.implode raw_path))
-  | SOME (path, id) => (ML_Context.eval_file path; (path, id)));
+  let
+    val (path, id) = check_file dir raw_path;
+    val _ = ML_Context.eval_file path;
+  in (path, id) end;
 
 end;
 

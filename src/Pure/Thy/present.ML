@@ -460,18 +460,14 @@ fun begin_theory update_time dir files thy =
     val parents = Theory.parents_of thy;
     val parent_specs = map (parent_link remote_path path) parents;
 
-    fun prep_file (raw_path, loadit) =
-      (case Thy_Load.check_ml dir raw_path of
-        SOME (path, _) =>
-          let
-            val base = Path.base path;
-            val base_html = html_ext base;
-            val _ = add_file (Path.append html_prefix base_html,
-              HTML.ml_file (Url.File base) (File.read path));
-            in (Url.File base_html, Url.File raw_path, loadit) end
-      | NONE => error ("Browser info: expected to find ML file " ^ quote (Path.implode raw_path)));
-
-    val files_html = map prep_file files;
+    val files_html = files |> map (fn (raw_path, loadit) =>
+      let
+        val path = #1 (Thy_Load.check_file dir raw_path);
+        val base = Path.base path;
+        val base_html = html_ext base;
+        val _ = add_file (Path.append html_prefix base_html,
+          HTML.ml_file (Url.File base) (File.read path));
+      in (Url.File base_html, Url.File raw_path, loadit) end);
 
     fun prep_html_source (tex_source, html_source, html) =
       let
