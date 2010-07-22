@@ -101,7 +101,7 @@ fun test_file dir file =
 fun check_file dir file =
   try_file dir file handle NOT_FOUND (prfxs, path) =>
     error ("Could not find file " ^ quote (Path.implode path) ^
-      " in " ^ commas_quote (map Path.implode prfxs));
+      "\nin " ^ commas_quote (map Path.implode prfxs));
 
 fun check_thy dir name = check_file dir (thy_path name);
 
