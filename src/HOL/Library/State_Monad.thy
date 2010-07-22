@@ -5,7 +5,7 @@
 header {* Combinator syntax for generic, open state monads (single threaded monads) *}
 
 theory State_Monad
-imports Monad_Syntax
+imports Main Monad_Syntax
 begin
 
 subsection {* Motivation *}
@@ -113,10 +113,32 @@ lemmas monad_collapse = monad_simp fcomp_apply scomp_apply split_beta
 
 subsection {* Do-syntax *}
 
-setup {*
-  Adhoc_Overloading.add_variant @{const_name bind} @{const_name scomp}
-*}
+nonterminals
+  sdo_binds sdo_bind
 
+syntax
+  "_sdo_block" :: "sdo_binds \<Rightarrow> 'a" ("exec {//(2  _)//}" [12] 62)
+  "_sdo_bind" :: "[pttrn, 'a] \<Rightarrow> sdo_bind" ("(_ <-/ _)" 13)
+  "_sdo_let" :: "[pttrn, 'a] \<Rightarrow> sdo_bind" ("(2let _ =/ _)" [1000, 13] 13)
+  "_sdo_then" :: "'a \<Rightarrow> sdo_bind" ("_" [14] 13)
+  "_sdo_final" :: "'a \<Rightarrow> sdo_binds" ("_")
+  "_sdo_cons" :: "[sdo_bind, sdo_binds] \<Rightarrow> sdo_binds" ("_;//_" [13, 12] 12)
+
+syntax (xsymbols)
+  "_sdo_bind"  :: "[pttrn, 'a] \<Rightarrow> sdo_bind" ("(_ \<leftarrow>/ _)" 13)
+
+translations
+  "_sdo_block (_sdo_cons (_sdo_bind p t) (_sdo_final e))"
+    == "CONST scomp t (\<lambda>p. e)"
+  "_sdo_block (_sdo_cons (_sdo_then t) (_sdo_final e))"
+    == "CONST fcomp t e"
+  "_sdo_block (_sdo_cons (_sdo_let p t) bs)"
+    == "let p = t in _sdo_block bs"
+  "_sdo_block (_sdo_cons b (_sdo_cons c cs))"
+    == "_sdo_block (_sdo_cons b (_sdo_final (_sdo_block (_sdo_cons c cs))))"
+  "_sdo_cons (_sdo_let p t) (_sdo_final s)"
+    == "_sdo_final (let p = t in s)"
+  "_sdo_block (_sdo_final e)" => "e"
 
 text {*
   For an example, see HOL/Extraction/Higman.thy.
