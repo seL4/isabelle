@@ -19,7 +19,6 @@ end;
 structure ATP_Systems : ATP_SYSTEMS =
 struct
 
-open Clausifier
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
@@ -133,14 +132,14 @@ fun make_clause_table xs =
 fun subtract_cls ax_clauses =
   filter_out (Termtab.defined (make_clause_table ax_clauses) o prop_of)
 
-fun is_false_literal (Literal (pos, CombConst ((c, _), _, _))) =
-      (pos andalso c = "c_False") orelse (not pos andalso c = "c_True")
+fun is_false_literal (FOLLiteral (pos, CombConst ((c, _), _, _))) =
+    c = (if pos then "c_False" else "c_True")
   | is_false_literal _ = false
-fun is_true_literal (Literal (pol, CombConst ((c, _), _, _))) =
+fun is_true_literal (FOLLiteral (pol, CombConst ((c, _), _, _))) =
       (pol andalso c = "c_True") orelse
       (not pol andalso c = "c_False")
   | is_true_literal _ = false;
-fun is_tautology (HOLClause {literals,...}) = exists is_true_literal literals
+fun is_tautology (FOLClause {literals,...}) = exists is_true_literal literals
 
 (* making axiom and conjecture clauses *)
 fun make_clause thy (clause_id, axiom_name, kind, th) skolems =
@@ -152,7 +151,7 @@ fun make_clause thy (clause_id, axiom_name, kind, th) skolems =
       raise TRIVIAL ()
     else
       (skolems,
-       HOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,
+       FOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,
                   kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
   end
 
@@ -180,12 +179,12 @@ fun count_combterm (CombConst ((c, _), _, _)) =
     Symtab.map_entry c (Integer.add 1)
   | count_combterm (CombVar _) = I
   | count_combterm (CombApp (t1, t2)) = count_combterm t1 #> count_combterm t2
-fun count_literal (Literal (_, t)) = count_combterm t
-fun count_clause (HOLClause {literals, ...}) = fold count_literal literals
+fun count_literal (FOLLiteral (_, t)) = count_combterm t
+fun count_clause (FOLClause {literals, ...}) = fold count_literal literals
 
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)
-  #> (if raw then map (apfst (rpair 0)) else cnf_rules_pairs thy true)
+  #> (if raw then map (apfst (rpair 0)) else Clausifier.cnf_rules_pairs thy true)
 
 val optional_helpers =
   [(["c_COMBI", "c_COMBK"], (false, @{thms COMBI_def COMBK_def})),
@@ -233,10 +232,11 @@ fun prepare_clauses full_types goal_cls axcls extra_cls thy =
     val helper_clauses =
       get_helper_clauses thy is_FO full_types conjectures extra_cls
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
-    val classrel_clauses = make_classrel_clauses thy subs supers'
+    val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
-      (conjectures, axiom_clauses, extra_clauses, helper_clauses, classrel_clauses, arity_clauses))
+      (conjectures, axiom_clauses, extra_clauses, helper_clauses,
+       class_rel_clauses, arity_clauses))
   end
 
 
@@ -255,7 +255,7 @@ fun generic_tptp_prover
     (* get clauses and prepare them for writing *)
     val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
-    val goal_clss = #1 (neg_conjecture_clauses ctxt th subgoal)
+    val goal_clss = #1 (Clausifier.neg_conjecture_clauses ctxt th subgoal)
     val goal_cls = List.concat goal_clss
     val the_filtered_clauses =
       case filtered_clauses of
@@ -264,7 +264,7 @@ fun generic_tptp_prover
                     relevance_convergence defs_relevant max_axiom_clauses
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal goal_cls
-                |> cnf_rules_pairs thy true
+                |> Clausifier.cnf_rules_pairs thy true
     val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
       prepare_clauses full_types goal_cls the_axiom_clauses the_filtered_clauses

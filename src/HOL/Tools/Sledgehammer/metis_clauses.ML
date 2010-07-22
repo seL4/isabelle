@@ -18,20 +18,20 @@ sig
     TVarLit of name * name
   datatype arity_clause = ArityClause of
    {axiom_name: string, conclLit: arLit, premLits: arLit list}
-  datatype classrel_clause = ClassrelClause of
+  datatype class_rel_clause = ClassRelClause of
    {axiom_name: string, subclass: name, superclass: name}
   datatype combtyp =
-    TyVar of name |
-    TyFree of name |
-    TyConstr of name * combtyp list
+    CombTVar of name |
+    CombTFree of name |
+    CombType of name * combtyp list
   datatype combterm =
     CombConst of name * combtyp * combtyp list (* Const and Free *) |
     CombVar of name * combtyp |
     CombApp of combterm * combterm
-  datatype literal = Literal of bool * combterm
-  datatype hol_clause =
-    HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
-                  literals: literal list, ctypes_sorts: typ list}
+  datatype fol_literal = FOLLiteral of bool * combterm
+  datatype fol_clause =
+    FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
+                  literals: fol_literal list, ctypes_sorts: typ list}
 
   val type_wrapper_name : string
   val schematic_var_prefix: string
@@ -59,11 +59,11 @@ sig
   val is_skolem_const_name: string -> bool
   val num_type_args: theory -> string -> int
   val type_literals_for_types : typ list -> type_literal list
-  val make_classrel_clauses: theory -> class list -> class list -> classrel_clause list
+  val make_class_rel_clauses: theory -> class list -> class list -> class_rel_clause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
   val type_of_combterm : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
-  val literals_of_term : theory -> term -> literal list * typ list
+  val literals_of_term : theory -> term -> fol_literal list * typ list
   val conceal_skolem_terms :
     int -> (string * term) list -> term -> (string * term) list * term
   val reveal_skolem_terms : (string * term) list -> term -> term
@@ -75,8 +75,6 @@ end
 structure Metis_Clauses : METIS_CLAUSES =
 struct
 
-open Clausifier
-
 val type_wrapper_name = "ti"
 
 val schematic_var_prefix = "V_";
@@ -85,7 +83,7 @@ val fixed_var_prefix = "v_";
 val tvar_prefix = "T_";
 val tfree_prefix = "t_";
 
-val classrel_clause_prefix = "clsrel_";
+val class_rel_clause_prefix = "clsrel_";
 
 val const_prefix = "c_";
 val type_const_prefix = "tc_";
@@ -288,8 +286,8 @@ fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
 
 (**** Isabelle class relations ****)
 
-datatype classrel_clause =
-  ClassrelClause of {axiom_name: string, subclass: name, superclass: name}
+datatype class_rel_clause =
+  ClassRelClause of {axiom_name: string, subclass: name, superclass: name}
 
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs _ [] _ = []
@@ -300,14 +298,14 @@ fun class_pairs _ [] _ = []
         fun add_supers sub = fold (add_super sub) supers
       in fold add_supers subs [] end
 
-fun make_classrel_clause (sub,super) =
-  ClassrelClause {axiom_name = classrel_clause_prefix ^ ascii_of sub ^ "_" ^
+fun make_class_rel_clause (sub,super) =
+  ClassRelClause {axiom_name = class_rel_clause_prefix ^ ascii_of sub ^ "_" ^
                                ascii_of super,
                   subclass = `make_type_class sub,
                   superclass = `make_type_class super};
 
-fun make_classrel_clauses thy subs supers =
-  map make_classrel_clause (class_pairs thy subs supers);
+fun make_class_rel_clauses thy subs supers =
+  map make_class_rel_clause (class_pairs thy subs supers);
 
 
 (** Isabelle arities **)
@@ -352,27 +350,27 @@ fun make_arity_clauses thy tycons classes =
   in  (classes', multi_arity_clause cpairs)  end;
 
 datatype combtyp =
-  TyVar of name |
-  TyFree of name |
-  TyConstr of name * combtyp list
+  CombTVar of name |
+  CombTFree of name |
+  CombType of name * combtyp list
 
 datatype combterm =
   CombConst of name * combtyp * combtyp list (* Const and Free *) |
   CombVar of name * combtyp |
   CombApp of combterm * combterm
 
-datatype literal = Literal of bool * combterm
+datatype fol_literal = FOLLiteral of bool * combterm
 
-datatype hol_clause =
-  HOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
-                literals: literal list, ctypes_sorts: typ list}
+datatype fol_clause =
+  FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
+                literals: fol_literal list, ctypes_sorts: typ list}
 
 (*********************************************************************)
 (* convert a clause with type Term.term to a clause with type clause *)
 (*********************************************************************)
 
 (*Result of a function type; no need to check that the argument type matches.*)
-fun result_type (TyConstr (_, [_, tp2])) = tp2
+fun result_type (CombType (_, [_, tp2])) = tp2
   | result_type _ = raise Fail "non-function type"
 
 fun type_of_combterm (CombConst (_, tp, _)) = tp
@@ -387,11 +385,11 @@ fun strip_combterm_comb u =
 
 fun type_of (Type (a, Ts)) =
     let val (folTypes,ts) = types_of Ts in
-      (TyConstr (`make_fixed_type_const a, folTypes), ts)
+      (CombType (`make_fixed_type_const a, folTypes), ts)
     end
-  | type_of (tp as TFree (a, _)) = (TyFree (`make_fixed_type_var a), [tp])
+  | type_of (tp as TFree (a, _)) = (CombTFree (`make_fixed_type_var a), [tp])
   | type_of (tp as TVar (x, _)) =
-    (TyVar (make_schematic_type_var x, string_of_indexname x), [tp])
+    (CombTVar (make_schematic_type_var x, string_of_indexname x), [tp])
 and types_of Ts =
     let val (folTyps, ts) = ListPair.unzip (map type_of Ts) in
       (folTyps, union_all ts)
@@ -399,10 +397,10 @@ and types_of Ts =
 
 (* same as above, but no gathering of sort information *)
 fun simp_type_of (Type (a, Ts)) =
-      TyConstr (`make_fixed_type_const a, map simp_type_of Ts)
-  | simp_type_of (TFree (a, _)) = TyFree (`make_fixed_type_var a)
+      CombType (`make_fixed_type_const a, map simp_type_of Ts)
+  | simp_type_of (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
   | simp_type_of (TVar (x, _)) =
-    TyVar (make_schematic_type_var x, string_of_indexname x)
+    CombTVar (make_schematic_type_var x, string_of_indexname x)
 
 (* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
 fun combterm_of thy (Const (c, T)) =
@@ -439,7 +437,7 @@ fun literals_of_term1 args thy (@{const Trueprop} $ P) =
     literals_of_term1 (literals_of_term1 args thy P) thy Q
   | literals_of_term1 (lits, ts) thy P =
     let val ((pred, ts'), pol) = predicate_of thy (P, true) in
-      (Literal (pol, pred) :: lits, union (op =) ts ts')
+      (FOLLiteral (pol, pred) :: lits, union (op =) ts ts')
     end
 val literals_of_term = literals_of_term1 ([], [])
 

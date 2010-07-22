@@ -547,59 +547,74 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
                             skolem_depth =
   let
     val incrs = map (Integer.add 1)
-    fun aux ss Ts js depth polar t =
+    fun aux ss Ts js skolemizable polar t =
       let
         fun do_quantifier quant_s quant_T abs_s abs_T t =
-          if not (loose_bvar1 (t, 0)) then
-            aux ss Ts js depth polar (incr_boundvars ~1 t)
-          else if depth <= skolem_depth andalso
-                  is_positive_existential polar quant_s then
-            let
-              val j = length (!skolems) + 1
-              val sko_s = skolem_prefix_for (length js) j ^ abs_s
-              val _ = Unsynchronized.change skolems (cons (sko_s, ss))
-              val sko_t = list_comb (Const (sko_s, rev Ts ---> abs_T),
-                                     map Bound (rev js))
-              val abs_t = Abs (abs_s, abs_T, aux ss Ts (incrs js) depth polar t)
-            in
-              if null js then s_betapply Ts (abs_t, sko_t)
-              else Const (@{const_name Let}, abs_T --> quant_T) $ sko_t $ abs_t
-            end
-          else
-            Const (quant_s, quant_T)
-            $ Abs (abs_s, abs_T,
-                   if is_higher_order_type abs_T then
-                     t
+          (if not (loose_bvar1 (t, 0)) then
+             aux ss Ts js skolemizable polar (incr_boundvars ~1 t)
+           else if is_positive_existential polar quant_s then
+             let
+               val j = length (!skolems) + 1
+               val (js', (ss', Ts')) =
+                 js ~~ (ss ~~ Ts)
+                 |> filter (fn (j, _) => loose_bvar1 (t, j + 1))
+                 |> ListPair.unzip ||> ListPair.unzip
+             in
+               if skolemizable andalso length js' <= skolem_depth then
+                 let
+                   val sko_s = skolem_prefix_for (length js') j ^ abs_s
+                   val _ = Unsynchronized.change skolems (cons (sko_s, ss'))
+                   val sko_t = list_comb (Const (sko_s, rev Ts' ---> abs_T),
+                                          map Bound (rev js'))
+                   val abs_t = Abs (abs_s, abs_T,
+                                    aux ss Ts (incrs js) skolemizable polar t)
+                 in
+                   if null js' then
+                     s_betapply Ts (abs_t, sko_t)
                    else
-                     aux (abs_s :: ss) (abs_T :: Ts) (0 :: incrs js)
-                         (depth + 1) polar t)
+                     Const (@{const_name Let}, abs_T --> quant_T) $ sko_t
+                     $ abs_t
+                 end
+               else
+                 raise SAME ()
+             end
+           else
+             raise SAME ())
+          handle SAME () =>
+                 Const (quant_s, quant_T)
+                 $ Abs (abs_s, abs_T,
+                        if is_higher_order_type abs_T then
+                          t
+                        else
+                          aux (abs_s :: ss) (abs_T :: Ts) (0 :: incrs js)
+                              skolemizable polar t)
       in
         case t of
           Const (s0 as @{const_name all}, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | @{const "==>"} $ t1 $ t2 =>
-          @{const "==>"} $ aux ss Ts js depth (flip_polarity polar) t1
-          $ aux ss Ts js depth polar t2
+          @{const "==>"} $ aux ss Ts js skolemizable (flip_polarity polar) t1
+          $ aux ss Ts js skolemizable polar t2
         | @{const Pure.conjunction} $ t1 $ t2 =>
-          @{const Pure.conjunction} $ aux ss Ts js depth polar t1
-          $ aux ss Ts js depth polar t2
+          @{const Pure.conjunction} $ aux ss Ts js skolemizable polar t1
+          $ aux ss Ts js skolemizable polar t2
         | @{const Trueprop} $ t1 =>
-          @{const Trueprop} $ aux ss Ts js depth polar t1
+          @{const Trueprop} $ aux ss Ts js skolemizable polar t1
         | @{const Not} $ t1 =>
-          @{const Not} $ aux ss Ts js depth (flip_polarity polar) t1
+          @{const Not} $ aux ss Ts js skolemizable (flip_polarity polar) t1
         | Const (s0 as @{const_name All}, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | Const (s0 as @{const_name Ex}, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
         | @{const "op &"} $ t1 $ t2 =>
-          s_conj (pairself (aux ss Ts js depth polar) (t1, t2))
+          s_conj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
         | @{const "op |"} $ t1 $ t2 =>
-          s_disj (pairself (aux ss Ts js depth polar) (t1, t2))
+          s_disj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
         | @{const "op -->"} $ t1 $ t2 =>
-          @{const "op -->"} $ aux ss Ts js depth (flip_polarity polar) t1
-          $ aux ss Ts js depth polar t2
+          @{const "op -->"} $ aux ss Ts js skolemizable (flip_polarity polar) t1
+          $ aux ss Ts js skolemizable polar t2
         | (t0 as Const (@{const_name Let}, _)) $ t1 $ t2 =>
-          t0 $ t1 $ aux ss Ts js depth polar t2
+          t0 $ t1 $ aux ss Ts js skolemizable polar t2
         | Const (x as (s, T)) =>
           if is_inductive_pred hol_ctxt x andalso
              not (is_well_founded_inductive_pred hol_ctxt x) then
@@ -609,7 +624,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
                 if gfp then (lbfp_prefix, @{const "op |"})
                 else (ubfp_prefix, @{const "op &"})
               fun pos () = unrolled_inductive_pred_const hol_ctxt gfp x
-                           |> aux ss Ts js depth polar
+                           |> aux ss Ts js skolemizable polar
               fun neg () = Const (pref ^ s, T)
             in
               case polar |> gfp ? flip_polarity of
@@ -627,12 +642,13 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
           else
             Const x
         | t1 $ t2 =>
-          s_betapply Ts (aux ss Ts [] (skolem_depth + 1) polar t1,
-                         aux ss Ts [] depth Neut t2)
-        | Abs (s, T, t1) => Abs (s, T, aux ss Ts (incrs js) depth polar t1)
+          s_betapply Ts (aux ss Ts [] false polar t1,
+                         aux ss Ts [] skolemizable Neut t2)
+        | Abs (s, T, t1) =>
+          Abs (s, T, aux ss Ts (incrs js) skolemizable polar t1)
         | _ => t
       end
-  in aux [] [] [] 0 Pos end
+  in aux [] [] [] true Pos end
 
 (** Function specialization **)
 
@@ -1216,7 +1232,7 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
 
 (** Preprocessor entry point **)
 
-val max_skolem_depth = 4
+val max_skolem_depth = 3
 
 fun preprocess_term (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs,
                                   boxes, ...}) finitizes monos t =

@@ -7,16 +7,15 @@ TPTP syntax.
 
 signature SLEDGEHAMMER_TPTP_FORMAT =
 sig
-  type classrel_clause = Metis_Clauses.classrel_clause
+  type class_rel_clause = Metis_Clauses.class_rel_clause
   type arity_clause = Metis_Clauses.arity_clause
-  type hol_clause = Metis_Clauses.hol_clause
-  type name_pool = string Symtab.table * string Symtab.table
+  type fol_clause = Metis_Clauses.fol_clause
 
   val write_tptp_file :
     theory -> bool -> bool -> bool -> Path.T
-    -> hol_clause list * hol_clause list * hol_clause list * hol_clause list
-       * classrel_clause list * arity_clause list
-    -> name_pool option * int
+    -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
+       * class_rel_clause list * arity_clause list
+    -> string Symtab.table * int
 end;
 
 structure Sledgehammer_TPTP_Format : SLEDGEHAMMER_TPTP_FORMAT =
@@ -55,8 +54,6 @@ fun strings_for_problem problem =
 
 
 (** Nice names **)
-
-type name_pool = string Symtab.table * string Symtab.table
 
 fun empty_name_pool readable_names =
   if readable_names then SOME (Symtab.empty, Symtab.empty) else NONE
@@ -120,9 +117,9 @@ fun hol_ident axiom_name clause_id =
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
-fun atp_term_for_combtyp (TyVar name) = ATerm (name, [])
-  | atp_term_for_combtyp (TyFree name) = ATerm (name, [])
-  | atp_term_for_combtyp (TyConstr (name, tys)) =
+fun atp_term_for_combtyp (CombTVar name) = ATerm (name, [])
+  | atp_term_for_combtyp (CombTFree name) = ATerm (name, [])
+  | atp_term_for_combtyp (CombType (name, tys)) =
     ATerm (name, map atp_term_for_combtyp tys)
 
 fun atp_term_for_combterm full_types top_level u =
@@ -145,7 +142,7 @@ fun atp_term_for_combterm full_types top_level u =
     else t
   end
 
-fun atp_literal_for_literal full_types (Literal (pos, t)) =
+fun atp_literal_for_literal full_types (FOLLiteral (pos, t)) =
   (pos, atp_term_for_combterm full_types true t)
 
 fun atp_literal_for_type_literal pos (TyLitVar (class, name)) =
@@ -154,18 +151,18 @@ fun atp_literal_for_type_literal pos (TyLitVar (class, name)) =
     (pos, ATerm (class, [ATerm (name, [])]))
 
 fun atp_literals_for_axiom full_types
-        (HOLClause {literals, ctypes_sorts, ...}) =
+                           (FOLClause {literals, ctypes_sorts, ...}) =
   map (atp_literal_for_literal full_types) literals @
   map (atp_literal_for_type_literal false)
       (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_axiom full_types
-        (clause as HOLClause {axiom_name, clause_id, kind, ...}) =
+        (clause as FOLClause {axiom_name, clause_id, kind, ...}) =
   Cnf (hol_ident axiom_name clause_id, kind,
        atp_literals_for_axiom full_types clause)
 
-fun problem_line_for_classrel
-        (ClassrelClause {axiom_name, subclass, superclass, ...}) =
+fun problem_line_for_class_rel_clause
+        (ClassRelClause {axiom_name, subclass, superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
     Cnf (ascii_of axiom_name, Axiom, [(false, ATerm (subclass, [ty_arg])),
                                       (true, ATerm (superclass, [ty_arg]))])
@@ -176,16 +173,17 @@ fun atp_literal_for_arity_literal (TConsLit (c, t, args)) =
   | atp_literal_for_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun problem_line_for_arity (ArityClause {axiom_name, conclLit, premLits, ...}) =
+fun problem_line_for_arity_clause
+        (ArityClause {axiom_name, conclLit, premLits, ...}) =
   Cnf (arity_clause_prefix ^ ascii_of axiom_name, Axiom,
        map atp_literal_for_arity_literal (conclLit :: premLits))
 
 fun problem_line_for_conjecture full_types
-        (clause as HOLClause {axiom_name, clause_id, kind, literals, ...}) =
+        (clause as FOLClause {axiom_name, clause_id, kind, literals, ...}) =
   Cnf (hol_ident axiom_name clause_id, kind,
        map (atp_literal_for_literal full_types) literals)
 
-fun atp_free_type_literals_for_conjecture (HOLClause {ctypes_sorts, ...}) =
+fun atp_free_type_literals_for_conjecture (FOLClause {ctypes_sorts, ...}) =
   map (atp_literal_for_type_literal true) (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit = Cnf ("tfree_tcs", Conjecture, [lit])
@@ -303,17 +301,18 @@ fun repair_problem thy full_types explicit_apply problem =
 
 fun write_tptp_file thy readable_names full_types explicit_apply file
                     (conjectures, axiom_clauses, extra_clauses, helper_clauses,
-                     classrel_clauses, arity_clauses) =
+                     class_rel_clauses, arity_clauses) =
   let
     val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
-    val classrel_lines = map problem_line_for_classrel classrel_clauses
-    val arity_lines = map problem_line_for_arity arity_clauses
+    val class_rel_lines =
+      map problem_line_for_class_rel_clause class_rel_clauses
+    val arity_lines = map problem_line_for_arity_clause arity_clauses
     val helper_lines = map (problem_line_for_axiom full_types) helper_clauses
     val conjecture_lines =
       map (problem_line_for_conjecture full_types) conjectures
     val tfree_lines = problem_lines_for_free_types conjectures
     val problem = [("Relevant facts", axiom_lines),
-                   ("Class relationships", classrel_lines),
+                   ("Class relationships", class_rel_lines),
                    ("Arity declarations", arity_lines),
                    ("Helper facts", helper_lines),
                    ("Conjectures", conjecture_lines),
@@ -321,9 +320,12 @@ fun write_tptp_file thy readable_names full_types explicit_apply file
                   |> repair_problem thy full_types explicit_apply
     val (problem, pool) = nice_problem problem (empty_name_pool readable_names)
     val conjecture_offset =
-      length axiom_lines + length classrel_lines + length arity_lines
+      length axiom_lines + length class_rel_lines + length arity_lines
       + length helper_lines
     val _ = File.write_list file (strings_for_problem problem)
-  in (pool, conjecture_offset) end
+  in
+    (case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
+     conjecture_offset)
+  end
 
 end;

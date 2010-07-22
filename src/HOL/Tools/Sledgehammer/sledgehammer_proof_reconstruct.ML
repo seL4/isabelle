@@ -8,18 +8,17 @@ Transfer of proofs from external provers.
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
   type minimize_command = string list -> string
-  type name_pool = Sledgehammer_TPTP_Format.name_pool
 
   val metis_line: bool -> int -> int -> string list -> string
   val metis_proof_text:
     bool * minimize_command * string * string vector * thm * int
     -> string * string list
   val isar_proof_text:
-    name_pool option * bool * int * Proof.context * int list list
+    string Symtab.table * bool * int * Proof.context * int list list
     -> bool * minimize_command * string * string vector * thm * int
     -> string * string list
   val proof_text:
-    bool -> name_pool option * bool * int * Proof.context * int list list
+    bool -> string Symtab.table * bool * int * Proof.context * int list list
     -> bool * minimize_command * string * string vector * thm * int
     -> string * string list
 end;
@@ -27,7 +26,6 @@ end;
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
 struct
 
-open Clausifier
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
@@ -43,12 +41,6 @@ val index_in_shape : int -> int list list -> int =
 fun is_axiom_clause_number thm_names num = num <= Vector.length thm_names
 fun is_conjecture_clause_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
-
-fun ugly_name NONE s = s
-  | ugly_name (SOME the_pool) s =
-    case Symtab.lookup (snd the_pool) s of
-      SOME s' => s'
-    | NONE => s
 
 fun smart_lambda v t =
   Abs (case v of
@@ -104,7 +96,7 @@ fun repair_name _ "$true" = "c_True"
   | repair_name _ "$false" = "c_False"
   | repair_name _ "$$e" = "c_equal" (* seen in Vampire 11 proofs *)
   | repair_name _ "equal" = "c_equal" (* probably not needed *)
-  | repair_name pool s = ugly_name pool s
+  | repair_name pool s = Symtab.lookup pool s |> the_default s
 (* Generalized first-order terms, which include file names, numbers, etc. *)
 (* The "x" argument is not strictly necessary, but without it Poly/ML loops
    forever at compile time. *)
@@ -144,12 +136,12 @@ fun parse_clause pool =
 fun ints_of_node (IntLeaf n) = cons n
   | ints_of_node (StrNode (_, us)) = fold ints_of_node us
 val parse_tstp_annotations =
-  Scan.optional ($$ "," |-- parse_term NONE
-                   --| Scan.option ($$ "," |-- parse_terms NONE)
+  Scan.optional ($$ "," |-- parse_term Symtab.empty
+                   --| Scan.option ($$ "," |-- parse_terms Symtab.empty)
                  >> (fn source => ints_of_node source [])) []
 
 fun parse_definition pool =
-  $$ "(" |-- parse_literal NONE --| Scan.this_string "<=>"
+  $$ "(" |-- parse_literal pool --| Scan.this_string "<=>"
   -- parse_clause pool --| $$ ")"
 
 (* Syntax: cnf(<num>, <formula_role>, <cnf_formula> <annotations>).

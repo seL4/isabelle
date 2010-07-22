@@ -18,7 +18,6 @@ end
 structure Metis_Tactics : METIS_TACTICS =
 struct
 
-open Clausifier
 open Metis_Clauses
 
 exception METIS of string * string
@@ -70,10 +69,10 @@ fun fn_isa_to_met "equal" = "="
 
 fun metis_lit b c args = (b, (c, args));
 
-fun hol_type_to_fol (TyVar (x, _)) = Metis.Term.Var x
-  | hol_type_to_fol (TyFree (s, _)) = Metis.Term.Fn (s, [])
-  | hol_type_to_fol (TyConstr ((s, _), tps)) =
-    Metis.Term.Fn (s, map hol_type_to_fol tps);
+fun metis_term_from_combtyp (CombTVar (s, _)) = Metis.Term.Var s
+  | metis_term_from_combtyp (CombTFree (s, _)) = Metis.Term.Fn (s, [])
+  | metis_term_from_combtyp (CombType ((s, _), tps)) =
+    Metis.Term.Fn (s, map metis_term_from_combtyp tps);
 
 (*These two functions insert type literals before the real literals. That is the
   opposite order from TPTP linkup, but maybe OK.*)
@@ -81,7 +80,7 @@ fun hol_type_to_fol (TyVar (x, _)) = Metis.Term.Var x
 fun hol_term_to_fol_FO tm =
   case strip_combterm_comb tm of
       (CombConst ((c, _), _, tys), tms) =>
-        let val tyargs = map hol_type_to_fol tys
+        let val tyargs = map metis_term_from_combtyp tys
             val args   = map hol_term_to_fol_FO tms
         in Metis.Term.Fn (c, tyargs @ args) end
     | (CombVar ((v, _), _), []) => Metis.Term.Var v
@@ -89,12 +88,12 @@ fun hol_term_to_fol_FO tm =
 
 fun hol_term_to_fol_HO (CombVar ((s, _), _)) = Metis.Term.Var s
   | hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
-      Metis.Term.Fn (fn_isa_to_met a, map hol_type_to_fol tylist)
+      Metis.Term.Fn (fn_isa_to_met a, map metis_term_from_combtyp tylist)
   | hol_term_to_fol_HO (CombApp (tm1, tm2)) =
        Metis.Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
 
 (*The fully-typed translation, to avoid type errors*)
-fun wrap_type (tm, ty) = Metis.Term.Fn("ti", [tm, hol_type_to_fol ty]);
+fun wrap_type (tm, ty) = Metis.Term.Fn("ti", [tm, metis_term_from_combtyp ty]);
 
 fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis.Term.Var s, ty)
   | hol_term_to_fol_FT (CombConst((a, _), ty, _)) =
@@ -103,21 +102,21 @@ fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis.Term.Var s, ty)
        wrap_type (Metis.Term.Fn(".", map hol_term_to_fol_FT [tm1,tm2]),
                   type_of_combterm tm);
 
-fun hol_literal_to_fol FO (Literal (pol, tm)) =
+fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
       let val (CombConst((p, _), _, tys), tms) = strip_combterm_comb tm
-          val tylits = if p = "equal" then [] else map hol_type_to_fol tys
+          val tylits = if p = "equal" then [] else map metis_term_from_combtyp tys
           val lits = map hol_term_to_fol_FO tms
-      in metis_lit pol (fn_isa_to_met p) (tylits @ lits) end
-  | hol_literal_to_fol HO (Literal (pol, tm)) =
+      in metis_lit pos (fn_isa_to_met p) (tylits @ lits) end
+  | hol_literal_to_fol HO (FOLLiteral (pos, tm)) =
      (case strip_combterm_comb tm of
           (CombConst(("equal", _), _, _), tms) =>
-            metis_lit pol "=" (map hol_term_to_fol_HO tms)
-        | _ => metis_lit pol "{}" [hol_term_to_fol_HO tm])   (*hBOOL*)
-  | hol_literal_to_fol FT (Literal (pol, tm)) =
+            metis_lit pos "=" (map hol_term_to_fol_HO tms)
+        | _ => metis_lit pos "{}" [hol_term_to_fol_HO tm])   (*hBOOL*)
+  | hol_literal_to_fol FT (FOLLiteral (pos, tm)) =
      (case strip_combterm_comb tm of
           (CombConst(("equal", _), _, _), tms) =>
-            metis_lit pol "=" (map hol_term_to_fol_FT tms)
-        | _ => metis_lit pol "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
+            metis_lit pos "=" (map hol_term_to_fol_FT tms)
+        | _ => metis_lit pos "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
 
 fun literals_of_hol_term thy mode t =
       let val (lits, types_sorts) = literals_of_term thy t
@@ -170,11 +169,11 @@ fun arity_cls (ArityClause {conclLit, premLits, ...}) =
 
 (* CLASSREL CLAUSE *)
 
-fun m_classrel_cls (subclass, _) (superclass, _) =
+fun m_class_rel_cls (subclass, _) (superclass, _) =
   [metis_lit false subclass [Metis.Term.Var "T"], metis_lit true superclass [Metis.Term.Var "T"]];
 
-fun classrel_cls (ClassrelClause {subclass, superclass, ...}) =
-  (TrueI, Metis.Thm.axiom (Metis.LiteralSet.fromList (m_classrel_cls subclass superclass)));
+fun class_rel_cls (ClassRelClause {subclass, superclass, ...}) =
+  (TrueI, Metis.Thm.axiom (Metis.LiteralSet.fromList (m_class_rel_cls subclass superclass)));
 
 (* ------------------------------------------------------------------------- *)
 (* FOL to HOL  (Metis to Isabelle)                                           *)
@@ -223,22 +222,23 @@ fun strip_happ args (Metis.Term.Fn(".",[t,u])) = strip_happ (u::args) t
 
 fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS)
 
-fun fol_type_to_isa _ (Metis.Term.Var v) =
+fun hol_type_from_metis_term _ (Metis.Term.Var v) =
      (case strip_prefix tvar_prefix v of
           SOME w => make_tvar w
         | NONE   => make_tvar v)
-  | fol_type_to_isa ctxt (Metis.Term.Fn(x, tys)) =
+  | hol_type_from_metis_term ctxt (Metis.Term.Fn(x, tys)) =
      (case strip_prefix type_const_prefix x of
-          SOME tc => Term.Type (invert_const tc, map (fol_type_to_isa ctxt) tys)
+          SOME tc => Term.Type (invert_const tc,
+                                map (hol_type_from_metis_term ctxt) tys)
         | NONE    =>
       case strip_prefix tfree_prefix x of
           SOME tf => mk_tfree ctxt tf
-        | NONE    => raise Fail ("fol_type_to_isa: " ^ x));
+        | NONE    => raise Fail ("hol_type_from_metis_term: " ^ x));
 
 (*Maps metis terms to isabelle terms*)
-fun hol_term_from_fol_PT ctxt fol_tm =
+fun hol_term_from_metis_PT ctxt fol_tm =
   let val thy = ProofContext.theory_of ctxt
-      val _ = trace_msg (fn () => "hol_term_from_fol_PT: " ^
+      val _ = trace_msg (fn () => "hol_term_from_metis_PT: " ^
                                   Metis.Term.toString fol_tm)
       fun tm_to_tt (Metis.Term.Var v) =
              (case strip_prefix tvar_prefix v of
@@ -298,8 +298,8 @@ fun hol_term_from_fol_PT ctxt fol_tm =
   end
 
 (*Maps fully-typed metis terms to isabelle terms*)
-fun hol_term_from_fol_FT ctxt fol_tm =
-  let val _ = trace_msg (fn () => "hol_term_from_fol_FT: " ^
+fun hol_term_from_metis_FT ctxt fol_tm =
+  let val _ = trace_msg (fn () => "hol_term_from_metis_FT: " ^
                                   Metis.Term.toString fol_tm)
       fun cvt (Metis.Term.Fn ("ti", [Metis.Term.Var v, _])) =
              (case strip_prefix schematic_var_prefix v of
@@ -312,8 +312,8 @@ fun hol_term_from_fol_FT ctxt fol_tm =
                 SOME c => Const (invert_const c, dummyT)
               | NONE => (*Not a constant. Is it a fixed variable??*)
             case strip_prefix fixed_var_prefix x of
-                SOME v => Free (v, fol_type_to_isa ctxt ty)
-              | NONE => raise Fail ("hol_term_from_fol_FT bad constant: " ^ x))
+                SOME v => Free (v, hol_type_from_metis_term ctxt ty)
+              | NONE => raise Fail ("hol_term_from_metis_FT bad constant: " ^ x))
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (".",[tm1,tm2]), _])) =
             cvt tm1 $ cvt tm2
         | cvt (Metis.Term.Fn (".",[tm1,tm2])) = (*untyped application*)
@@ -327,17 +327,17 @@ fun hol_term_from_fol_FT ctxt fol_tm =
               | NONE => (*Not a constant. Is it a fixed variable??*)
             case strip_prefix fixed_var_prefix x of
                 SOME v => Free (v, dummyT)
-              | NONE => (trace_msg (fn () => "hol_term_from_fol_FT bad const: " ^ x);
-                  hol_term_from_fol_PT ctxt t))
-        | cvt t = (trace_msg (fn () => "hol_term_from_fol_FT bad term: " ^ Metis.Term.toString t);
-            hol_term_from_fol_PT ctxt t)
+              | NONE => (trace_msg (fn () => "hol_term_from_metis_FT bad const: " ^ x);
+                  hol_term_from_metis_PT ctxt t))
+        | cvt t = (trace_msg (fn () => "hol_term_from_metis_FT bad term: " ^ Metis.Term.toString t);
+            hol_term_from_metis_PT ctxt t)
   in fol_tm |> cvt end
 
-fun hol_term_from_fol FT = hol_term_from_fol_FT
-  | hol_term_from_fol _ = hol_term_from_fol_PT
+fun hol_term_from_metis FT = hol_term_from_metis_FT
+  | hol_term_from_metis _ = hol_term_from_metis_PT
 
 fun hol_terms_from_fol ctxt mode skolems fol_tms =
-  let val ts = map (hol_term_from_fol mode ctxt) fol_tms
+  let val ts = map (hol_term_from_metis mode ctxt) fol_tms
       val _ = trace_msg (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg (fn () => Syntax.string_of_term ctxt t)) ts
       val ts' = ts |> map (reveal_skolem_terms skolems) |> infer_types ctxt
@@ -398,7 +398,7 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
       fun subst_translation (x,y) =
             let val v = find_var x
                 (* We call "reveal_skolem_terms" and "infer_types" below. *)
-                val t = hol_term_from_fol mode ctxt y
+                val t = hol_term_from_metis mode ctxt y
             in  SOME (cterm_of thy (Var v), t)  end
             handle Option =>
                 (trace_msg (fn() => "List.find failed for the variable " ^ x ^
@@ -599,15 +599,15 @@ fun used_axioms axioms (th, Metis.Proof.Axiom _) = SOME (lookth axioms th)
 (* ------------------------------------------------------------------------- *)
 
 fun cnf_helper_theorem thy raw th =
-  if raw then th else the_single (cnf_axiom thy false th)
+  if raw then th else the_single (Clausifier.cnf_axiom thy false th)
 
 fun type_ext thy tms =
   let val subs = tfree_classes_of_terms tms
       val supers = tvar_classes_of_terms tms
       and tycons = type_consts_of_terms thy tms
       val (supers', arity_clauses) = make_arity_clauses thy tycons supers
-      val classrel_clauses = make_classrel_clauses thy subs supers'
-  in  map classrel_cls classrel_clauses @ map arity_cls arity_clauses
+      val class_rel_clauses = make_class_rel_clauses thy subs supers'
+  in  map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -715,7 +715,7 @@ fun common_thm ths1 ths2 = exists (member Thm.eq_thm ths1) (map Meson.make_meta_
 fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val th_cls_pairs =
-        map (fn th => (Thm.get_name_hint th, cnf_axiom thy false th)) ths0
+        map (fn th => (Thm.get_name_hint th, Clausifier.cnf_axiom thy false th)) ths0
       val ths = maps #2 th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls
@@ -774,15 +774,16 @@ val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
 fun generic_metis_tac mode ctxt ths i st0 =
-  let val _ = trace_msg (fn () =>
+  let
+    val _ = trace_msg (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
     if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
-      (Meson.MESON (maps neg_clausify)
-                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
-                   ctxt i) st0
+      Meson.MESON (maps Clausifier.neg_clausify)
+                  (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
+                  ctxt i st0
      handle ERROR msg => raise METIS ("generic_metis_tac", msg)
   end
   handle METIS (loc, msg) =>
