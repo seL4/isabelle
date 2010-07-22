@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/WooLam
-    ID:         $Id$
+(*  Title:      HOL/Auth/WooLam.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)

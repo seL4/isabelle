@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/Channel
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Simple/Channel.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

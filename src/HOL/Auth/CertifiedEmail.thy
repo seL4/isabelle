@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/CertifiedEmail
-    ID:         $Id$
+(*  Title:      HOL/Auth/CertifiedEmail.thy
     Author:     Giampaolo Bella, Christiano Longo and Lawrence C Paulson
 *)
 

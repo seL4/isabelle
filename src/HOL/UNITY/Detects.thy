@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/Detects
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Detects.thy
     Author:     Tanja Vos, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Lift.thy
+(*  Title:      HOL/UNITY/Simple/Lift.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

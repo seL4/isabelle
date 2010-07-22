@@ -1,5 +1,4 @@
 (*  Title:      HOL/UNITY/UNITY_tactics.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 

@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/Recur
-    ID:         $Id$
+(*  Title:      HOL/Auth/Recur.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)

@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Token
+(*  Title:      HOL/UNITY/Simple/Token.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 *)

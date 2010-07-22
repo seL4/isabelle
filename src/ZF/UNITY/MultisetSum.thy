@@ -1,4 +1,4 @@
-(*  Title:      ZF/UNITY/MultusetSum.thy
+(*  Title:      ZF/UNITY/MultisetSum.thy
     Author:     Sidi O Ehmety
 *)
 

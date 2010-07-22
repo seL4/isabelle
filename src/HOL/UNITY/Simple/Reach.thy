@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Reach.thy
+(*  Title:      HOL/UNITY/Simple/Reach.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

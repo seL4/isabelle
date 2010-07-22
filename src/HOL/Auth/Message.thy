@@ -1,4 +1,4 @@
-(*  Title:      HOL/Auth/Message
+(*  Title:      HOL/Auth/Message.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 

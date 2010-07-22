@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/TLS
-    ID:         $Id$
+(*  Title:      HOL/Auth/TLS.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 

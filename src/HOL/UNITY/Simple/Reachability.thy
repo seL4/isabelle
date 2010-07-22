@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Reachability.thy
+(*  Title:      HOL/UNITY/Simple/Reachability.thy
     Author:     Tanja Vos, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 

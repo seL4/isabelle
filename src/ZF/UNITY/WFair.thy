@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/WFair.thy
+(*  Title:      ZF/UNITY/WFair.thy
     Author:     Sidi Ehmety, Computer Laboratory
     Copyright   1998  University of Cambridge
 *)

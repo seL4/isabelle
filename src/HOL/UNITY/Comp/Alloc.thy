@@ -1,4 +1,4 @@
-(*  ID:         $Id$
+(*  Title:      HOL/UNITY/Comp/Alloc.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

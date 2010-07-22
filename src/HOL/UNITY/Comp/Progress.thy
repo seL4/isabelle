@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Progress
+(*  Title:      HOL/UNITY/Comp/Progress.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 

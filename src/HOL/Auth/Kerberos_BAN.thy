@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/Kerberos_BAN
-    ID:         $Id$
+(*  Title:      HOL/Auth/Kerberos_BAN.thy
     Author:     Giampaolo Bella, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 *)

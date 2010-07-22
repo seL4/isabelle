@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Priority
+(*  Title:      HOL/UNITY/Comp/Priority.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 *)

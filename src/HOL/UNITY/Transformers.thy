@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Transformers
+(*  Title:      HOL/UNITY/Transformers.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
 

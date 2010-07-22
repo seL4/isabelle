@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/KerberosIV
-    ID:         $Id$
+(*  Title:      HOL/Auth/KerberosIV.thy
     Author:     Giampaolo Bella, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 *)

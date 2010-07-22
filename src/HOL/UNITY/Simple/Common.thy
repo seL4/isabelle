@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Common
+(*  Title:      HOL/UNITY/Simple/Common.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

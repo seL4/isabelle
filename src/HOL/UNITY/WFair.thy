@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/WFair
+(*  Title:      HOL/UNITY/WFair.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

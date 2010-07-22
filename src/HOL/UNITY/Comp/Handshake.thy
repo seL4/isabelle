@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/Handshake.thy
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Comp/Handshake.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

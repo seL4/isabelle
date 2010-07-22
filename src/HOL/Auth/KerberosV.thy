@@ -1,4 +1,4 @@
-(*  ID:         $Id$
+(*  Title:      HOL/Auth/KerberosV.thy
     Author:     Giampaolo Bella, Catania University
 *)
 

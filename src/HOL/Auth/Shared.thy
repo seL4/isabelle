@@ -1,4 +1,4 @@
-(*  Title:      HOL/Auth/Shared
+(*  Title:      HOL/Auth/Shared.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 

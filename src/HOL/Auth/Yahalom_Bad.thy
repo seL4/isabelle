@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/Yahalom
-    ID:         $Id$
+(*  Title:      HOL/Auth/Yahalom_Bad.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)

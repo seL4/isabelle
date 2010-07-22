@@ -1,5 +1,4 @@
-(*  Title:      HOL/UNITY/PriorityAux
-    ID:         $Id$
+(*  Title:      HOL/UNITY/Comp/PriorityAux.thy
     Author:     Sidi O Ehmety, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 

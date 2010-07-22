@@ -1,4 +1,4 @@
-(*  ID:         $Id$
+(*  Title:      HOL/Auth/Kerberos_BAN_Gets.thy
     Author:     Giampaolo Bella, Catania University
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/TimerArray.thy
+(*  Title:      HOL/UNITY/Comp/TimerArray.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

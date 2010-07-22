@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/NS_Shared
-    ID:         $Id$
+(*  Title:      HOL/Auth/NS_Shared.thy
     Author:     Lawrence C Paulson and Giampaolo Bella 
     Copyright   1996  University of Cambridge
 *)

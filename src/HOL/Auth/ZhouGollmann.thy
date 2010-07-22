@@ -1,5 +1,4 @@
-(*  Title:      HOL/Auth/ZhouGollmann
-    ID:         $Id$
+(*  Title:      HOL/Auth/ZhouGollmann.thy
     Author:     Giampaolo Bella and L C Paulson, Cambridge Univ Computer Lab
     Copyright   2003  University of Cambridge
 
