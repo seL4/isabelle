@@ -102,9 +102,9 @@ fun nice_atp_term (ATerm (name, ts)) =
 fun nice_atp_literal (pos, t) = nice_atp_term t #>> pair pos
 fun nice_problem_line (Cnf (ident, kind, lits)) =
   pool_map nice_atp_literal lits #>> (fn lits => Cnf (ident, kind, lits))
-val nice_problem =
+fun nice_problem problem =
   pool_map (fn (heading, lines) =>
-               pool_map nice_problem_line lines #>> pair heading)
+               pool_map nice_problem_line lines #>> pair heading) problem
 
 
 (** Sledgehammer stuff **)
@@ -214,7 +214,7 @@ fun consider_term top_level (ATerm ((s, _), ts)) =
   #> fold (consider_term (top_level andalso s = type_wrapper_name)) ts
 fun consider_literal (_, t) = consider_term true t
 fun consider_problem_line (Cnf (_, _, lits)) = fold consider_literal lits
-val consider_problem = fold (fold consider_problem_line o snd)
+fun consider_problem problem = fold (fold consider_problem_line o snd) problem
 
 fun const_table_for_problem explicit_apply problem =
   if explicit_apply then NONE
@@ -293,8 +293,8 @@ fun repair_literal thy full_types const_tab (pos, t) =
           |> repair_predicates_in_term const_tab)
 fun repair_problem_line thy full_types const_tab (Cnf (ident, kind, lits)) =
   Cnf (ident, kind, map (repair_literal thy full_types const_tab) lits)
-val repair_problem_with_const_table = map o apsnd o map ooo repair_problem_line
-
+fun repair_problem_with_const_table thy full_types const_tab problem =
+  map (apsnd (map (repair_problem_line thy full_types const_tab))) problem
 fun repair_problem thy full_types explicit_apply problem =
   repair_problem_with_const_table thy full_types
       (const_table_for_problem explicit_apply problem) problem
