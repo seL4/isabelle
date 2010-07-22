@@ -10,8 +10,6 @@ sig
   val add_path: string -> unit
   val path_add: string -> unit
   val del_path: string -> unit
-  val with_path: string -> ('a -> 'b) -> 'a -> 'b
-  val with_paths: string list -> ('a -> 'b) -> 'a -> 'b
   val reset_path: unit -> unit
 end;
 
@@ -50,13 +48,7 @@ fun path_add s =
   CRITICAL (fn () =>
     (del_path s; Unsynchronized.change load_path (fn path => path @ [Path.explode s])));
 
-fun reset_path () = load_path := [Path.current];
-
-fun with_paths ss f x =
-  CRITICAL (fn () =>
-    setmp_CRITICAL load_path (! load_path @ map Path.explode ss) f x);
-
-fun with_path s f x = with_paths [s] f x;
+fun reset_path () = CRITICAL (fn () => load_path := [Path.current]);
 
 fun search_path dir path =
   distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
