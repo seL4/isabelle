@@ -8,7 +8,6 @@ file dependencies.
 signature THY_INFO =
 sig
   datatype action = Update | Outdate | Remove
-  val str_of_action: action -> string
   val add_hook: (action -> string -> unit) -> unit
   val get_names: unit -> string list
   val known_thy: string -> bool
@@ -19,7 +18,6 @@ sig
   val is_finished: string -> bool
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
-  val get_parents: string -> string list
   val touch_thy: string -> unit
   val touch_child_thys: string -> unit
   val thy_ord: theory * theory -> order
@@ -44,7 +42,6 @@ struct
 (** theory loader actions and hooks **)
 
 datatype action = Update | Outdate | Remove;
-val str_of_action = fn Update => "Update" | Outdate => "Outdate" | Remove => "Remove";
 
 local
   val hooks = Unsynchronized.ref ([]: (action -> string -> unit) list);
