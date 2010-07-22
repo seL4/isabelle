@@ -105,10 +105,8 @@ fun master_dir'' d = the_default Path.current (Option.map master_dir' d);
 fun base_name s = Path.implode (Path.base (Path.explode s));
 
 
-type thy = deps option * theory option;
-
 local
-  val database = Unsynchronized.ref (Graph.empty: thy Graph.T);
+  val database = Unsynchronized.ref (Graph.empty: (deps option * theory option) Graph.T);
 in
   fun get_thys () = ! database;
   fun change_thys f = CRITICAL (fn () => Unsynchronized.change database f);
@@ -421,9 +419,11 @@ local
 
 fun check_ml master (src_path, info) =
   let val info' =
-    (case info of NONE => NONE
+    (case info of
+      NONE => NONE
     | SOME (_, id) =>
-        (case Thy_Load.check_ml (master_dir master) src_path of NONE => NONE
+        (case Thy_Load.check_ml (master_dir master) src_path of
+          NONE => NONE
         | SOME (path', id') => if id <> id' then NONE else SOME (path', id')))
   in (src_path, info') end;
 

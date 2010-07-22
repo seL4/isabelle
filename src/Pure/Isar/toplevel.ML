@@ -578,7 +578,9 @@ fun error_msg tr exn_info =
 
 (* post-transition hooks *)
 
-local val hooks = Unsynchronized.ref ([]: (transition -> state -> state -> unit) list) in
+local
+  val hooks = Unsynchronized.ref ([]: (transition -> state -> state -> unit) list);
+in
 
 fun add_hook f = CRITICAL (fn () => Unsynchronized.change hooks (cons f));
 fun get_hooks () = ! hooks;
@@ -597,9 +599,10 @@ fun app int (tr as Transition {trans, print, no_timing, ...}) =
       fun do_profiling f x = profile (! profiling) f x;
 
       val (result, status) =
-         state |> (apply_trans int trans
-          |> (if ! profiling > 0 andalso not no_timing then do_profiling else I)
-          |> (if ! profiling > 0 orelse ! timing andalso not no_timing then do_timing else I));
+         state |>
+          (apply_trans int trans
+            |> (! profiling > 0 andalso not no_timing) ? do_profiling
+            |> (! profiling > 0 orelse ! timing andalso not no_timing) ? do_timing);
 
       val _ = if int andalso not (! quiet) andalso print then print_state false result else ();
     in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) status) end);
