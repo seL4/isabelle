@@ -466,7 +466,7 @@ fun begin_theory update_time dir files thy =
         val base = Path.base path;
         val base_html = html_ext base;
         val _ = add_file (Path.append html_prefix base_html,
-          HTML.ml_file (Url.File base) (File.read path));
+          HTML.external_file (Url.File base) (File.read path));
       in (Url.File base_html, Url.File raw_path, loadit) end);
 
     fun prep_html_source (tex_source, html_source, html) =

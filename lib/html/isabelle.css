@@ -5,8 +5,8 @@ body { background-color: #FFFFFF; }
 .head     { background-color: #FFFFFF; }
 .source   { background-color: #F0F0F0; padding: 10px; }
 
-.mlsource { background-color: #F0F0F0; padding: 10px; }
-.mlfooter { background-color: #FFFFFF; }
+.external_source { background-color: #F0F0F0; padding: 10px; }
+.external_footer { background-color: #FFFFFF; }
 
 .theories { background-color: #F0F0F0; padding: 10px; }
 .sessions { background-color: #F0F0F0; padding: 10px; }

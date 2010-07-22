@@ -30,7 +30,7 @@ sig
   val theory_source: text -> text
   val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
     (Url.T * Url.T * bool) list -> text -> text
-  val ml_file: Url.T -> string -> text
+  val external_file: Url.T -> string -> text
 end;
 
 structure HTML: HTML =
@@ -379,13 +379,13 @@ fun begin_theory up A Bs Ps body =
 end;
 
 
-(* ML file *)
+(* external file *)
 
-fun ml_file path str =
+fun external_file path str =
   begin_document ("File " ^ Url.implode path) ^
-  "\n</div>\n<hr/><div class=\"mlsource\">\n" ^
+  "\n</div>\n<hr/><div class=\"external_source\">\n" ^
   verbatim str ^
-  "\n</div>\n<hr/>\n<div class=\"mlfooter\">" ^
+  "\n</div>\n<hr/>\n<div class=\"external_footer\">" ^
   end_document;
 
 end;
