@@ -36,7 +36,7 @@ lemma add_0_iff:
 
 end
 
-sublocale idom < comm_semiring_1_cancel_crossproduct
+subclass (in idom) comm_semiring_1_cancel_crossproduct
 proof
   fix w x y z
   show "w * y + x * z = w * z + x * y \<longleftrightarrow> w = x \<or> y = z"
