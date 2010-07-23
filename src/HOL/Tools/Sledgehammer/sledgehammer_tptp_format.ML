@@ -11,6 +11,7 @@ sig
   type arity_clause = Metis_Clauses.arity_clause
   type fol_clause = Metis_Clauses.fol_clause
 
+  val axiom_prefix : string
   val write_tptp_file :
     theory -> bool -> bool -> bool -> Path.T
     -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
@@ -136,11 +137,11 @@ fun nice_problem problem =
 
 (** Sledgehammer stuff **)
 
-val clause_prefix = "cls_"
+val axiom_prefix = "ax_"
+val conjecture_prefix = "conj_"
 val arity_clause_prefix = "clsarity_"
 
-fun hol_ident axiom_name clause_id =
-  clause_prefix ^ ascii_of axiom_name ^ "_" ^ Int.toString clause_id
+fun hol_ident prefix axiom_name = prefix ^ ascii_of axiom_name
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
@@ -189,8 +190,8 @@ fun formula_for_axiom full_types (FOLClause {literals, ctypes_sorts, ...}) =
   |> formula_for_fo_literals
 
 fun problem_line_for_axiom full_types
-        (clause as FOLClause {axiom_name, clause_id, kind, ...}) =
-  Fof (hol_ident axiom_name clause_id, kind,
+        (clause as FOLClause {axiom_name, kind, ...}) =
+  Fof (hol_ident axiom_prefix axiom_name, kind,
        formula_for_axiom full_types clause)
 
 fun problem_line_for_class_rel_clause
@@ -213,8 +214,8 @@ fun problem_line_for_arity_clause
        |> formula_for_fo_literals)
 
 fun problem_line_for_conjecture full_types
-        (clause as FOLClause {axiom_name, clause_id, kind, literals, ...}) =
-  Fof (hol_ident axiom_name clause_id, kind,
+        (clause as FOLClause {axiom_name, kind, literals, ...}) =
+  Fof (hol_ident conjecture_prefix axiom_name, kind,
        map (fo_literal_for_literal full_types) literals
        |> formula_for_fo_literals |> mk_anot)
 
