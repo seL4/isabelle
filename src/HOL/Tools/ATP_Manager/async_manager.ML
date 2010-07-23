@@ -101,8 +101,8 @@ fun replace_all bef aft =
 
 (* This is a workaround for Proof General's off-by-a-few sendback display bug,
    whereby "pr" in "proof" is not highlighted. *)
-val break_into_chunks =
-  maps (space_explode "\000" o replace_all "\n\n" "\000" o snd)
+fun break_into_chunks xs =
+  maps (space_explode "\000" o replace_all "\n\n" "\000" o snd) xs
 
 fun print_new_messages () =
   case Synchronized.change_result global_state
