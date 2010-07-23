@@ -632,7 +632,7 @@ end;
 fun run_command thy_name tr st =
   (case
       (case init_of tr of
-        SOME name => Exn.capture (fn () => Thy_Load.check_name thy_name name) ()
+        SOME name => Exn.capture (fn () => Thy_Load.consistent_name thy_name name) ()
       | NONE => Exn.Result ()) of
     Exn.Result () =>
       let val int = is_some (init_of tr) in

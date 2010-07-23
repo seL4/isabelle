@@ -8,7 +8,6 @@ file dependencies.
 signature THY_INFO =
 sig
   datatype action = Update | Outdate | Remove
-  val str_of_action: action -> string
   val add_hook: (action -> string -> unit) -> unit
   val get_names: unit -> string list
   val known_thy: string -> bool
@@ -19,7 +18,6 @@ sig
   val is_finished: string -> bool
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
-  val get_parents: string -> string list
   val touch_thy: string -> unit
   val touch_child_thys: string -> unit
   val thy_ord: theory * theory -> order
@@ -44,7 +42,6 @@ struct
 (** theory loader actions and hooks **)
 
 datatype action = Update | Outdate | Remove;
-val str_of_action = fn Update => "Update" | Outdate => "Outdate" | Remove => "Remove";
 
 local
   val hooks = Unsynchronized.ref ([]: (action -> string -> unit) list);
@@ -296,11 +293,7 @@ fun provide_file path name =
   let
     val dir = master_directory name;
     val _ = check_unfinished error name;
-  in
-    (case Thy_Load.check_file dir path of
-      SOME path_info => change_deps name (provide path name path_info)
-    | NONE => error ("Could not find file " ^ quote (Path.implode path)))
-  end;
+  in change_deps name (provide path name (Thy_Load.check_file dir path)) end;
 
 fun load_file path =
   if ! Output.timing then
@@ -417,12 +410,12 @@ end;
 
 local
 
-fun check_ml master (src_path, info) =
+fun check_file master (src_path, info) =
   let val info' =
     (case info of
       NONE => NONE
     | SOME (_, id) =>
-        (case Thy_Load.check_ml (master_dir master) src_path of
+        (case Thy_Load.test_file (master_dir master) src_path of
           NONE => NONE
         | SOME (path', id') => if id <> id' then NONE else SOME (path', id')))
   in (src_path, info') end;
@@ -444,7 +437,7 @@ fun check_deps dir name =
           in (false, init_deps master' text' parents' files', parents') end
         else
           let
-            val files' = map (check_ml master') files;
+            val files' = map (check_file master') files;
             val current = update_time >= 0 andalso can get_theory name
               andalso forall (is_some o snd) files';
             val update_time' = if current then update_time else ~1;

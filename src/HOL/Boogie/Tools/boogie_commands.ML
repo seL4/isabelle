@@ -268,7 +268,7 @@ val vc_offsets = Scan.optional (Args.bracks (Parse.list1
 
 val _ =
   Outer_Syntax.command "boogie_open"
-    "Open a new Boogie environment and load a Boogie-generated .b2i file."
+    "open a new Boogie environment and load a Boogie-generated .b2i file"
     Keyword.thy_decl
     (scan_opt "quiet" -- Parse.name -- vc_offsets >> 
       (Toplevel.theory o boogie_open))
@@ -296,7 +296,7 @@ val vc_opts =
 
 val _ =
   Outer_Syntax.command "boogie_vc"
-    "Enter into proof mode for a specific verification condition."
+    "enter into proof mode for a specific verification condition"
     Keyword.thy_goal
     (vc_name -- vc_opts >> (fn args =>
       (Toplevel.print o Toplevel.theory_to_proof (boogie_vc args))))
@@ -329,7 +329,7 @@ fun status_cmd f = Toplevel.no_timing o Toplevel.keep (fn state =>
 
 val _ =
   Outer_Syntax.improper_command "boogie_status"
-    "Show the name and state of all loaded verification conditions."
+    "show the name and state of all loaded verification conditions"
     Keyword.diag
     (status_test >> status_cmd ||
      status_vc >> status_cmd ||
@@ -338,7 +338,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command "boogie_end"
-    "Close the current Boogie environment."
+    "close the current Boogie environment"
     Keyword.thy_decl
     (Scan.succeed (Toplevel.theory boogie_end))
 
