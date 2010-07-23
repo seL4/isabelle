@@ -433,28 +433,28 @@ import qualified Data.Array.ST;
 type RealWorld = Control.Monad.ST.RealWorld;
 type ST s a = Control.Monad.ST.ST s a;
 type STRef s a = Data.STRef.STRef s a;
-type STArray s a = Data.Array.ST.STArray s Int a;
+type STArray s a = Data.Array.ST.STArray s Integer a;
 
 newSTRef = Data.STRef.newSTRef;
 readSTRef = Data.STRef.readSTRef;
 writeSTRef = Data.STRef.writeSTRef;
 
-newArray :: Int -> a -> ST s (STArray s a);
+newArray :: Integer -> a -> ST s (STArray s a);
 newArray k = Data.Array.ST.newArray (0, k);
 
 newListArray :: [a] -> ST s (STArray s a);
-newListArray xs = Data.Array.ST.newListArray (0, length xs) xs;
+newListArray xs = Data.Array.ST.newListArray (0, toInteger (length xs)) xs;
 
-newFunArray :: Int -> (Int -> a) -> ST s (STArray s a);
+newFunArray :: Integer -> (Integer -> a) -> ST s (STArray s a);
 newFunArray k f = Data.Array.ST.newListArray (0, k) (map f [0..k-1]);
 
-lengthArray :: STArray s a -> ST s Int;
+lengthArray :: STArray s a -> ST s Integer;
 lengthArray a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
 
-readArray :: STArray s a -> Int -> ST s a;
+readArray :: STArray s a -> Integer -> ST s a;
 readArray = Data.Array.ST.readArray;
 
-writeArray :: STArray s a -> Int -> a -> ST s ();
+writeArray :: STArray s a -> Integer -> a -> ST s ();
 writeArray = Data.Array.ST.writeArray;*}
 
 code_reserved Haskell Heap

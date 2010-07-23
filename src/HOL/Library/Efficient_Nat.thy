@@ -412,13 +412,13 @@ text {* Conversion from and to indices. *}
 code_const Code_Numeral.of_nat
   (SML "IntInf.toInt")
   (OCaml "_")
-  (Haskell "fromEnum")
+  (Haskell "toInteger")
   (Scala "!_.as'_Int")
 
 code_const Code_Numeral.nat_of
   (SML "IntInf.fromInt")
   (OCaml "_")
-  (Haskell "toEnum")
+  (Haskell "fromInteger")
   (Scala "Nat")
 
 text {* Using target language arithmetic operations whenever appropriate *}

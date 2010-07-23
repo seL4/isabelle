@@ -298,7 +298,7 @@ text {* Implementation of indices by bounded integers *}
 code_type code_numeral
   (SML "int")
   (OCaml "Big'_int.big'_int")
-  (Haskell "Int")
+  (Haskell "Integer")
   (Scala "Int")
 
 code_instance code_numeral :: eq
@@ -306,11 +306,9 @@ code_instance code_numeral :: eq
 
 setup {*
   fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false Code_Printer.literal_naive_numeral) ["SML", "Haskell"]
-  #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false Code_Printer.literal_numeral "OCaml"
-  #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false Code_Printer.literal_naive_numeral "Scala"
+    false Code_Printer.literal_naive_numeral) ["SML", "Scala"]
+  #> fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
+    false Code_Printer.literal_numeral) ["OCaml", "Haskell"]
 *}
 
 code_reserved SML Int int
@@ -325,7 +323,7 @@ code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 
 code_const "subtract_code_numeral \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.max/ (_/ -/ _,/ 0 : int)")
   (OCaml "Big'_int.max'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)/ Big'_int.zero'_big'_int")
-  (Haskell "max/ (_/ -/ _)/ (0 :: Int)")
+  (Haskell "max/ (_/ -/ _)/ (0 :: Integer)")
   (Scala "!(_/ -/ _).max(0)")
 
 code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"

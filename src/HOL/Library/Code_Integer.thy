@@ -112,7 +112,7 @@ code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
 code_const Code_Numeral.int_of
   (SML "IntInf.fromInt")
   (OCaml "_")
-  (Haskell "toEnum")
+  (Haskell "_")
   (Scala "!BigInt((_))")
 
 text {* Evaluation *}
