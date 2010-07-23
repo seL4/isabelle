@@ -529,14 +529,14 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
 (** EXTRACTING LEMMAS **)
 
 (* A list consisting of the first number in each line is returned.
-   TSTP: Interesting lines have the form "cnf(108, axiom, ...)", where the
+   TSTP: Interesting lines have the form "fof(108, axiom, ...)", where the
    number (108) is extracted.
    SPASS: Lines have the form "108[0:Inp] ...", where the first number (108) is
    extracted. *)
-fun extract_clause_numbers_in_atp_proof atp_proof =
+fun extract_formula_numbers_in_atp_proof atp_proof =
   let
     val tokens_of = String.tokens (not o is_ident_char)
-    fun extract_num ("cnf" :: num :: "axiom" :: _) = Int.fromString num
+    fun extract_num ("fof" :: num :: "axiom" :: _) = Int.fromString num
       | extract_num (num :: "0" :: "Inp" :: _) = Int.fromString num
       | extract_num _ = NONE
   in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
@@ -579,7 +579,7 @@ fun metis_proof_text (full_types, minimize_command, atp_proof, thm_names, goal,
                       i) =
   let
     val raw_lemmas =
-      atp_proof |> extract_clause_numbers_in_atp_proof
+      atp_proof |> extract_formula_numbers_in_atp_proof
                 |> filter (is_axiom_clause_number thm_names)
                 |> map (fn i => Vector.sub (thm_names, i - 1))
     val (chained_lemmas, other_lemmas) =
