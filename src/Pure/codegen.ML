@@ -1019,12 +1019,12 @@ val setup = add_codegen "default" default_codegen
 
 val _ =
   Outer_Syntax.command "code_library"
-    "generates code for terms (one structure for each theory)" Keyword.thy_decl
+    "generate code for terms (one structure for each theory)" Keyword.thy_decl
     (parse_code true);
 
 val _ =
   Outer_Syntax.command "code_module"
-    "generates code for terms (single structure, incremental)" Keyword.thy_decl
+    "generate code for terms (single structure, incremental)" Keyword.thy_decl
     (parse_code false);
 
 end;
