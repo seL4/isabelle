@@ -17,6 +17,7 @@ sig
   val theory_of: state -> theory
   val map_context: (context -> context) -> state -> state
   val map_contexts: (context -> context) -> state -> state
+  val propagate_ml_env: state -> state
   val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
@@ -206,6 +207,9 @@ fun map_context_result f state =
   f (context_of state) ||> (fn ctxt => map_context (K ctxt) state);
 
 fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
+
+fun propagate_ml_env state = map_contexts
+  (Context.proof_map (ML_Env.inherit (Context.Proof (context_of state)))) state;
 
 val bind_terms = map_context o ProofContext.bind_terms;
 val put_thms = map_context oo ProofContext.put_thms;

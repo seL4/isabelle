@@ -51,7 +51,8 @@ else ();
 
 (* ML toplevel use commands *)
 
-fun use name = Toplevel.program (fn () => Thy_Info.use name);
+fun use name = Toplevel.program (fn () => Thy_Load.use_ml (Path.explode name));
+
 fun use_thys name = Toplevel.program (fn () => Thy_Info.use_thys name);
 fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
 

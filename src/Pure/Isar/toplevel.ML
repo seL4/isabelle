@@ -7,7 +7,6 @@ Isabelle/Isar toplevel transactions.
 signature TOPLEVEL =
 sig
   exception UNDEF
-  type generic_theory
   type state
   val toplevel: state
   val is_toplevel: state -> bool
@@ -102,8 +101,6 @@ exception UNDEF = Runtime.UNDEF;
 
 
 (* local theory wrappers *)
-
-type generic_theory = Context.generic;    (*theory or local_theory*)
 
 val loc_init = Theory_Target.context_cmd;
 val loc_exit = Local_Theory.exit_global;

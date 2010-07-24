@@ -5,6 +5,7 @@ Local theory operations, with abstract target context.
 *)
 
 type local_theory = Proof.context;
+type generic_theory = Context.generic;
 
 signature LOCAL_THEORY =
 sig
@@ -25,6 +26,7 @@ sig
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val map_contexts: (Context.generic -> Context.generic) -> local_theory -> local_theory
+  val propagate_ml_env: generic_theory -> generic_theory
   val standard_morphism: local_theory -> Proof.context -> morphism
   val target_morphism: local_theory -> morphism
   val global_morphism: local_theory -> morphism
@@ -172,6 +174,10 @@ fun map_contexts f =
   theory (Context.theory_map f) #>
   target (Context.proof_map f) #>
   Context.proof_map f;
+
+fun propagate_ml_env (context as Context.Proof lthy) =
+      Context.Proof (map_contexts (ML_Env.inherit context) lthy)
+  | propagate_ml_env context = context;
 
 
 (* morphisms *)
