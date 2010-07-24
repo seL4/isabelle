@@ -360,6 +360,7 @@ val literals_sml = Literals {
   literal_string = quote o translate_string ML_Syntax.print_char,
   literal_numeral = fn k => "(" ^ string_of_int k ^ " : IntInf.int)",
   literal_positive_numeral = fn k => "(" ^ string_of_int k ^ " : IntInf.int)",
+  literal_alternative_numeral = fn k => "(" ^ string_of_int k ^ " : IntInf.int)",
   literal_naive_numeral = string_of_int,
   literal_list = enum "," "[" "]",
   infix_cons = (7, "::")
@@ -702,6 +703,7 @@ in Literals {
   literal_string = quote o translate_string char_ocaml,
   literal_numeral = numeral_ocaml,
   literal_positive_numeral = numeral_ocaml,
+  literal_alternative_numeral = numeral_ocaml,
   literal_naive_numeral = numeral_ocaml,
   literal_list = enum ";" "[" "]",
   infix_cons = (6, "::")

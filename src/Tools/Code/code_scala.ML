@@ -402,7 +402,7 @@ val literals = let
     else let val k = ord c
     in if k < 32 orelse k > 126 then "\\" ^ radixstring (8, "0", k) else c end
   fun numeral_scala k = if k < 0
-    then if k <= 2147483647 then "- " ^ string_of_int (~ k)
+    then if k > ~ 2147483647 then "- " ^ string_of_int (~ k)
       else quote ("- " ^ string_of_int (~ k))
     else if k <= 2147483647 then string_of_int k
       else quote (string_of_int k)
@@ -411,8 +411,8 @@ in Literals {
   literal_string = quote o translate_string char_scala,
   literal_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
   literal_positive_numeral = fn k => "Nat(" ^ numeral_scala k ^ ")",
-  literal_naive_numeral = fn k => if k >= 0
-    then string_of_int k else "(- " ^ string_of_int (~ k) ^ ")",
+  literal_alternative_numeral = fn k => "Natural(" ^ numeral_scala k ^ ")",
+  literal_naive_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")
 } end;

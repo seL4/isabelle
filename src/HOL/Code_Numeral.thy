@@ -123,7 +123,7 @@ lemma [code nbe]:
   by (rule HOL.eq_refl)
 
 
-subsection {* Indices as datatype of ints *}
+subsection {* Code numerals as datatype of ints *}
 
 instantiation code_numeral :: number
 begin
@@ -293,67 +293,74 @@ hide_const (open) iterate_upto
 
 subsection {* Code generator setup *}
 
-text {* Implementation of indices by bounded integers *}
+text {* Implementation of code numerals by bounded integers *}
 
 code_type code_numeral
   (SML "int")
   (OCaml "Big'_int.big'_int")
   (Haskell "Integer")
-  (Scala "Int")
+  (Scala "BigInt")
 
 code_instance code_numeral :: eq
   (Haskell -)
 
 setup {*
-  fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false Code_Printer.literal_naive_numeral) ["SML", "Scala"]
+  Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
+    false Code_Printer.literal_naive_numeral "SML"
   #> fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false Code_Printer.literal_numeral) ["OCaml", "Haskell"]
+    false Code_Printer.literal_numeral) ["OCaml", "Haskell", "Scala"]
 *}
 
 code_reserved SML Int int
-code_reserved Scala Int
+code_reserved Eval Integer
 
 code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.+/ ((_),/ (_))")
   (OCaml "Big'_int.add'_big'_int")
   (Haskell infixl 6 "+")
   (Scala infixl 7 "+")
+  (Eval infixl 8 "+")
 
 code_const "subtract_code_numeral \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.max/ (_/ -/ _,/ 0 : int)")
   (OCaml "Big'_int.max'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)/ Big'_int.zero'_big'_int")
   (Haskell "max/ (_/ -/ _)/ (0 :: Integer)")
   (Scala "!(_/ -/ _).max(0)")
+  (Eval "Integer.max/ (_/ -/ _)/ 0")
 
 code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.*/ ((_),/ (_))")
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
   (Scala infixl 8 "*")
+  (Eval infixl 8 "*")
 
 code_const div_mod_code_numeral
-  (SML "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
+  (SML "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (Int.div (n, m), Int.mod (n, m)))")
   (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
   (Haskell "divMod")
-  (Scala "!((n: Int) => (m: Int) =>/ if (m == 0)/ (0, n) else/ (n '/ m, n % m))")
+  (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
+  (Eval "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
 
 code_const "eq_class.eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")
   (Scala infixl 5 "==")
+  (Eval "!((_ : int) = _)")
 
 code_const "op \<le> \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.<=/ ((_),/ (_))")
   (OCaml "Big'_int.le'_big'_int")
   (Haskell infix 4 "<=")
   (Scala infixl 4 "<=")
+  (Eval infixl 6 "<=")
 
 code_const "op < \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
   (Scala infixl 4 "<")
+  (Eval infixl 6 "<")
 
 end

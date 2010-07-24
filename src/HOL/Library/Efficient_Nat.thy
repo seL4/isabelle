@@ -50,19 +50,9 @@ lemma times_nat_code [code]:
   "n * m = nat (of_nat n * of_nat m)"
   unfolding of_nat_mult [symmetric] by simp
 
-text {* Specialized @{term "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} 
-  and @{term "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} operations. *}
-
-definition divmod_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
-  [code del]: "divmod_aux = divmod_nat"
-
-lemma [code]:
-  "divmod_nat n m = (if m = 0 then (0, n) else divmod_aux n m)"
-  unfolding divmod_aux_def divmod_nat_div_mod by simp
-
-lemma divmod_aux_code [code]:
-  "divmod_aux n m = (nat (of_nat n div of_nat m), nat (of_nat n mod of_nat m))"
-  unfolding divmod_aux_def divmod_nat_div_mod zdiv_int [symmetric] zmod_int [symmetric] by simp
+lemma divmod_nat_code [code]:
+  "divmod_nat n m = prod_fun nat nat (pdivmod (of_nat n) (of_nat m))"
+  by (simp add: prod_fun_def split_def pdivmod_def nat_div_distrib nat_mod_distrib divmod_nat_div_mod)
 
 lemma eq_nat_code [code]:
   "eq_class.eq n m \<longleftrightarrow> eq_class.eq (of_nat n \<Colon> int) (of_nat m)"
@@ -233,6 +223,7 @@ text {*
 code_type nat
   (SML "IntInf.int")
   (OCaml "Big'_int.big'_int")
+  (Eval "int")
 
 types_code
   nat ("int")
@@ -281,7 +272,9 @@ instance Enum Nat where {
 instance Integral Nat where {
   toInteger (Nat n) = n;
   divMod n m = quotRem n m;
-  quotRem (Nat n) (Nat m) = (Nat k, Nat l) where (k, l) = quotRem n m;
+  quotRem (Nat n) (Nat m)
+    | (m == 0) = (0, Nat n)
+    | otherwise = (Nat k, Nat l) where (k, l) = quotRem n m;
 };
 *}
 
@@ -353,9 +346,7 @@ lemma [code_unfold_post]:
 
 setup {*
   fold (Numeral.add_code @{const_name number_nat_inst.number_of_nat}
-    false Code_Printer.literal_positive_numeral) ["SML", "OCaml", "Haskell"]
-  #> Numeral.add_code @{const_name number_nat_inst.number_of_nat}
-    false Code_Printer.literal_positive_numeral "Scala"
+    false Code_Printer.literal_positive_numeral) ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
 text {*
@@ -400,6 +391,7 @@ fun nat i = if i < 0 then 0 else i;
 code_const nat
   (SML "IntInf.max/ (/0,/ _)")
   (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int")
+  (Eval "Integer.max/ _/ 0")
 
 text {* For Haskell and Scala, things are slightly different again. *}
 
@@ -407,19 +399,21 @@ code_const int and nat
   (Haskell "toInteger" and "fromInteger")
   (Scala "!_.as'_BigInt" and "Nat")
 
-text {* Conversion from and to indices. *}
+text {* Conversion from and to code numerals. *}
 
 code_const Code_Numeral.of_nat
   (SML "IntInf.toInt")
   (OCaml "_")
-  (Haskell "toInteger")
-  (Scala "!_.as'_Int")
+  (Haskell "!(fromInteger/ ./ toInteger)")
+  (Scala "!Natural(_.as'_BigInt)")
+  (Eval "_")
 
 code_const Code_Numeral.nat_of
   (SML "IntInf.fromInt")
   (OCaml "_")
-  (Haskell "fromInteger")
-  (Scala "Nat")
+  (Haskell "!(fromInteger/ ./ toInteger)")
+  (Scala "!Nat(_.as'_BigInt)")
+  (Eval "_")
 
 text {* Using target language arithmetic operations whenever appropriate *}
 
@@ -428,6 +422,7 @@ code_const "op + \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
   (OCaml "Big'_int.add'_big'_int")
   (Haskell infixl 6 "+")
   (Scala infixl 7 "+")
+  (Eval infixl 8 "+")
 
 code_const "op - \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
   (Haskell infixl 6 "-")
@@ -438,34 +433,35 @@ code_const "op * \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
   (Scala infixl 8 "*")
+  (Eval infixl 9 "*")
 
-code_const divmod_aux
+code_const divmod_nat
   (SML "IntInf.divMod/ ((_),/ (_))")
   (OCaml "Big'_int.quomod'_big'_int")
   (Haskell "divMod")
   (Scala infixl 8 "/%")
-
-code_const divmod_nat
-  (Haskell "divMod")
-  (Scala infixl 8 "/%")
+  (Eval "Integer.div'_mod")
 
 code_const "eq_class.eq \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")
   (Scala infixl 5 "==")
+  (Eval infixl 6 "=")
 
 code_const "op \<le> \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (SML "IntInf.<= ((_), (_))")
   (OCaml "Big'_int.le'_big'_int")
   (Haskell infix 4 "<=")
   (Scala infixl 4 "<=")
+  (Eval infixl 6 "<=")
 
 code_const "op < \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (SML "IntInf.< ((_), (_))")
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
   (Scala infixl 4 "<")
+  (Eval infixl 6 "<")
 
 consts_code
   "0::nat"                     ("0")
