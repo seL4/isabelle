@@ -181,7 +181,7 @@ val no_entries = Symtab.make [(no_id, make_entry NONE (SOME no_id))];
 
 fun begin_document (id: document_id) path =
   let
-    val (dir, name) = Thy_Load.split_thy_path path;
+    val (dir, name) = Thy_Header.split_thy_path path;
     val _ = define_document id (make_document dir name no_entries);
   in () end;
 

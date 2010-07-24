@@ -142,7 +142,7 @@ fun inform_file_processed file =
             Thy_Info.touch_child_thys name; Thy_Info.register_thy name)
           handle ERROR msg =>
             (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
-              tell_file_retracted (Thy_Load.thy_path name))
+              tell_file_retracted (Thy_Header.thy_path name))
       else ();
     val _ = Isar.init ();
   in () end;

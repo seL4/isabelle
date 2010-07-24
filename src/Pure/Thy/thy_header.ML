@@ -8,6 +8,9 @@ signature THY_HEADER =
 sig
   val args: Token.T list -> (string * string list * (string * bool) list) * Token.T list
   val read: Position.T -> (string, 'a) Source.source -> string * string list * (string * bool) list
+  val thy_path: string -> Path.T
+  val split_thy_path: Path.T -> Path.T * string
+  val consistent_name: string -> string -> unit
 end;
 
 structure Thy_Header: THY_HEADER =
@@ -62,5 +65,20 @@ fun read pos src =
     (case res of SOME (x, _) => x
     | NONE => error ("Unexpected end of input" ^ Position.str_of pos))
   end;
+
+
+(* file formats *)
+
+val thy_path = Path.ext "thy" o Path.basic;
+
+fun split_thy_path path =
+  (case Path.split_ext path of
+    (path', "thy") => (Path.dir path', Path.implode (Path.base path'))
+  | _ => error ("Bad theory file specification " ^ Path.implode path));
+
+fun consistent_name name name' =
+  if name = name' then ()
+  else error ("Filename " ^ quote (Path.implode (thy_path name)) ^
+    " does not agree with theory name " ^ quote name');
 
 end;

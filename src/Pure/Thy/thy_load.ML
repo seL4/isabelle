@@ -21,10 +21,6 @@ sig
   val init: Path.T -> theory -> theory
   val require: Path.T -> theory -> theory
   val provide: Path.T * (Path.T * File.ident) -> theory -> theory
-  val ml_path: string -> Path.T
-  val thy_path: string -> Path.T
-  val split_thy_path: Path.T -> Path.T * string
-  val consistent_name: string -> string -> unit
   val test_file: Path.T -> Path.T -> (Path.T * File.ident) option
   val check_file: Path.T -> Path.T -> Path.T * File.ident
   val check_thy: Path.T -> string -> Path.T * File.ident
@@ -105,22 +101,6 @@ fun search_path dir path =
 end;
 
 
-(* file formats *)
-
-val ml_path = Path.ext "ML" o Path.basic;
-val thy_path = Path.ext "thy" o Path.basic;
-
-fun split_thy_path path =
-  (case Path.split_ext path of
-    (path', "thy") => (Path.dir path', Path.implode (Path.base path'))
-  | _ => error ("Bad theory file specification " ^ Path.implode path));
-
-fun consistent_name name name' =
-  if name = name' then ()
-  else error ("Filename " ^ quote (Path.implode (thy_path name)) ^
-    " does not agree with theory name " ^ quote name');
-
-
 (* check files *)
 
 local
@@ -152,7 +132,7 @@ fun check_file dir file =
     error ("Could not find file " ^ quote (Path.implode path) ^
       "\nin " ^ commas_quote (map Path.implode prfxs));
 
-fun check_thy dir name = check_file dir (thy_path name);
+fun check_thy dir name = check_file dir (Thy_Header.thy_path name);
 
 end;
 
@@ -165,7 +145,7 @@ fun deps_thy dir name =
     val text = File.read path;
     val (name', imports, uses) =
       Thy_Header.read (Path.position path) (Source.of_string_limited 8000 text);
-    val _ = consistent_name name name';
+    val _ = Thy_Header.consistent_name name name';
     val uses = map (Path.explode o #1) uses;
   in {master = master, text = text, imports = imports, uses = uses} end;
 
