@@ -295,7 +295,7 @@ end;
 datatype trans =
   Init of string * (bool -> theory) * (theory -> unit) | (*theory name, init, exit*)
   Exit |                                         (*formal exit of theory -- without committing*)
-  CommitExit |                                   (*exit and commit final theory*)
+  Commit_Exit |                                  (*exit and commit final theory*)
   Keep of bool -> state -> unit |                (*peek at state*)
   Transaction of (bool -> node -> node) * (state -> unit);  (*node transaction and presentation*)
 
@@ -306,7 +306,7 @@ fun apply_tr int (Init (_, f, exit)) (State (NONE, _)) =
           (Theory.checkpoint (Runtime.controlled_execution f int)), NONE), exit), NONE)
   | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
       State (NONE, prev)
-  | apply_tr _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
+  | apply_tr _ Commit_Exit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
       (Runtime.controlled_execution exit thy; toplevel)
   | apply_tr int (Keep f) state =
       Runtime.controlled_execution (fn x => tap (f int) x) state
@@ -648,7 +648,7 @@ fun run_command thy_name tr st =
 fun commit_exit pos =
   name "end" empty
   |> position pos
-  |> add_trans CommitExit
+  |> add_trans Commit_Exit
   |> imperative (fn () => warning "Expected to find finished theory");
 
 
