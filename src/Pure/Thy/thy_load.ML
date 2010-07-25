@@ -27,7 +27,6 @@ sig
   val deps_thy: Path.T -> string ->
    {master: Path.T * File.ident, text: string, imports: string list, uses: Path.T list}
   val loaded_files: theory -> Path.T list
-  val check_loaded: theory -> unit
   val all_current: theory -> bool
   val provide_file: Path.T -> theory -> theory
   val use_ml: Path.T -> unit
@@ -177,6 +176,8 @@ fun all_current thy =
         NONE => false
       | SOME path_info' => eq_snd (op =) (path_info, path_info'));
   in can check_loaded thy andalso forall current provided end;
+
+val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
 
 
 (* provide files *)
