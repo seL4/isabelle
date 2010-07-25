@@ -31,7 +31,7 @@ sig
   type isar
   val isar: bool -> isar
   val prepare_command: Position.T -> string -> Toplevel.transition
-  val load_thy: string -> Position.T -> string -> unit -> unit
+  val load_thy: string -> Position.T -> string -> (unit -> unit) * theory
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -204,7 +204,7 @@ fun parse pos str =
 fun process_file path thy =
   let
     val trs = parse (Path.position path) (File.read path);
-    val init = Toplevel.init_theory "" (K thy) (K ()) Toplevel.empty;
+    val init = Toplevel.init_theory "" (K thy) Toplevel.empty;
     val result = fold Toplevel.command (init :: trs) Toplevel.toplevel;
   in
     (case (Toplevel.is_theory result, Toplevel.generic_theory_of result) of
@@ -285,14 +285,14 @@ fun load_thy name pos text =
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val results = cond_timeit time "" (fn () => Toplevel.excursion units);
+    val (results, thy) = cond_timeit time "" (fn () => Toplevel.excursion units);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     fun after_load () =
       Thy_Output.present_thy (#1 lexs) Keyword.command_tags is_markup (Lazy.force results) toks
       |> Buffer.content
       |> Present.theory_output name;
-  in after_load end;
+  in (after_load, thy) end;
 
 end;
 

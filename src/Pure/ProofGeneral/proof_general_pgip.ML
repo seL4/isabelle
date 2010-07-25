@@ -224,7 +224,7 @@ fun proper_inform_file_processed path state =
   let val name = thy_name path in
     if Toplevel.is_toplevel state andalso Thy_Info.known_thy name then
      (Thy_Info.touch_child_thys name;
-      Thy_Info.register_thy name handle ERROR msg =>
+      Thy_Info.register_thy name (Toplevel.end_theory Position.none state) handle ERROR msg =>
        (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
         tell_file_retracted true (Path.base path)))
     else raise Toplevel.UNDEF

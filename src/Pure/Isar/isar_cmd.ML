@@ -275,8 +275,7 @@ val skip_proof = local_skip_proof o global_skip_proof;
 
 fun init_theory (name, imports, uses) =
   Toplevel.init_theory name
-    (Thy_Info.begin_theory name imports (map (apfst Path.explode) uses))
-    (Theory.end_theory #> Thy_Info.end_theory);
+    (Thy_Info.begin_theory name imports (map (apfst Path.explode) uses));
 
 val exit = Toplevel.keep (fn state =>
  (Context.set_thread_data (try Toplevel.generic_theory_of state);

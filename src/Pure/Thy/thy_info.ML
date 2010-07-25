@@ -25,8 +25,7 @@ sig
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
-  val end_theory: theory -> unit
-  val register_thy: string -> unit
+  val register_thy: string -> theory -> unit
   val register_theory: theory -> unit
   val finish: unit -> unit
 end;
@@ -131,6 +130,7 @@ fun change_thy name f = CRITICAL (fn () =>
 val lookup_deps = Option.map #1 o lookup_thy;
 val get_deps = #1 o get_thy;
 fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
+fun put_theory name theory = change_thy name (fn (deps, _) => (deps, SOME theory));
 
 val is_finished = is_none o get_deps;
 val master_directory = master_dir' o get_deps;
@@ -255,10 +255,11 @@ fun load_thy upd_time initiators name =
           else (Path.position master_path, text)
       | _ => corrupted ());
     val _ = touch_thy name;
-    val _ = CRITICAL (fn () =>
+    val _ =
       change_deps name (Option.map (fn {master, text, parents, ...} =>
-        make_deps upd_time master text parents)));
-    val after_load = Outer_Syntax.load_thy name pos text;
+        make_deps upd_time master text parents));
+    val (after_load, theory) = Outer_Syntax.load_thy name pos text;
+    val _ = put_theory name theory;
     val _ =
       CRITICAL (fn () =>
        (change_deps name
@@ -415,7 +416,7 @@ val use_thys = use_thys_dir Path.current;
 val use_thy = use_thys o single;
 
 
-(* begin / end theory *)
+(* begin theory *)
 
 fun check_unfinished name =
   if known_thy name andalso is_finished name then
@@ -450,26 +451,22 @@ fun begin_theory name parents uses int =
       fold (fn x => Context.theory_map (Thy_Load.exec_ml x) o Theory.checkpoint) uses_now theory';
   in theory'' end;
 
-fun end_theory theory =
-  let val name = Context.theory_name theory
-  in if known_thy name then change_thy name (fn (deps, _) => (deps, SOME theory)) else () end;
-
 
 (* register existing theories *)
 
-fun register_thy name =
+fun register_thy name theory =
   let
     val _ = priority ("Registering theory " ^ quote name);
-    val thy = get_theory name;
     val _ = map get_theory (get_parents name);
     val _ = check_unfinished name;
     val _ = touch_thy name;
     val master = #master (Thy_Load.deps_thy Path.current name);
-    val upd_time = #2 (Management_Data.get thy);
+    val upd_time = #2 (Management_Data.get theory);
   in
     CRITICAL (fn () =>
      (change_deps name (Option.map (fn {parents, ...} =>
         make_deps upd_time (SOME master) "" parents));
+      put_theory name theory;
       perform Update name))
   end;
 

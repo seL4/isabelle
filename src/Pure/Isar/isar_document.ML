@@ -192,13 +192,10 @@ fun end_document (id: document_id) =
       val end_state =
         the_state (the (#state (#3 (the
           (first_entry (fn (_, {next, ...}) => is_none next) document)))));
-      val _ =  (* FIXME regular execution (??) *)
+      val _ =  (* FIXME regular execution (??), result (??) *)
         Future.fork (fn () =>
           (case Lazy.force end_state of
-            SOME st =>
-             (Toplevel.run_command name (Toplevel.put_id id (Toplevel.commit_exit Position.none)) st;
-              Thy_Info.touch_child_thys name;
-              Thy_Info.register_thy name)
+            SOME st => Toplevel.end_theory (Position.id_only id) st
           | NONE => error ("Failed to finish theory " ^ quote name)));
     in () end);
 

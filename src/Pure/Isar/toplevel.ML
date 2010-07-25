@@ -21,6 +21,7 @@ sig
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
   val enter_proof_body: state -> Proof.state
+  val end_theory: Position.T -> state -> theory
   val print_state_context: state -> unit
   val print_state: bool -> state -> unit
   val pretty_abstract: state -> Pretty.T
@@ -45,7 +46,7 @@ sig
   val interactive: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
-  val init_theory: string -> (bool -> theory) -> (theory -> unit) -> transition -> transition
+  val init_theory: string -> (bool -> theory) -> transition -> transition
   val exit: transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
@@ -87,9 +88,8 @@ sig
   val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val run_command: string -> transition -> state -> state option
-  val commit_exit: Position.T -> transition
   val command: transition -> state -> state
-  val excursion: (transition * transition list) list -> (transition * state) list lazy
+  val excursion: (transition * transition list) list -> (transition * state) list lazy * theory
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -137,8 +137,7 @@ val context_node = cases_node Context.proof_of Proof.context_of;
 
 (* datatype state *)
 
-type node_info = node * (theory -> unit);  (*node with exit operation*)
-datatype state = State of node_info option * node_info option;  (*current, previous*)
+datatype state = State of node option * node option;  (*current, previous*)
 
 val toplevel = State (NONE, NONE);
 
@@ -146,21 +145,21 @@ fun is_toplevel (State (NONE, _)) = true
   | is_toplevel _ = false;
 
 fun level (State (NONE, _)) = 0
-  | level (State (SOME (Theory _, _), _)) = 0
-  | level (State (SOME (Proof (prf, _), _), _)) = Proof.level (Proof_Node.current prf)
-  | level (State (SOME (SkipProof (d, _), _), _)) = d + 1;   (*different notion of proof depth!*)
+  | level (State (SOME (Theory _), _)) = 0
+  | level (State (SOME (Proof (prf, _)), _)) = Proof.level (Proof_Node.current prf)
+  | level (State (SOME (SkipProof (d, _)), _)) = d + 1;   (*different notion of proof depth!*)
 
 fun str_of_state (State (NONE, _)) = "at top level"
-  | str_of_state (State (SOME (Theory (Context.Theory _, _), _), _)) = "in theory mode"
-  | str_of_state (State (SOME (Theory (Context.Proof _, _), _), _)) = "in local theory mode"
-  | str_of_state (State (SOME (Proof _, _), _)) = "in proof mode"
-  | str_of_state (State (SOME (SkipProof _, _), _)) = "in skipped proof mode";
+  | str_of_state (State (SOME (Theory (Context.Theory _, _)), _)) = "in theory mode"
+  | str_of_state (State (SOME (Theory (Context.Proof _, _)), _)) = "in local theory mode"
+  | str_of_state (State (SOME (Proof _), _)) = "in proof mode"
+  | str_of_state (State (SOME (SkipProof _), _)) = "in skipped proof mode";
 
 
 (* current node *)
 
 fun node_of (State (NONE, _)) = raise UNDEF
-  | node_of (State (SOME (node, _), _)) = node;
+  | node_of (State (SOME node, _)) = node;
 
 fun is_theory state = not (is_toplevel state) andalso is_some (theory_node (node_of state));
 fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_of state));
@@ -174,7 +173,7 @@ fun presentation_context_of state =
   | NONE => raise UNDEF);
 
 fun previous_context_of (State (_, NONE)) = NONE
-  | previous_context_of (State (_, SOME (prev, _))) = SOME (context_node prev);
+  | previous_context_of (State (_, SOME prev)) = SOME (context_node prev);
 
 val context_of = node_case Context.proof_of Proof.context_of;
 val generic_theory_of = node_case I (Context.Proof o Proof.context_of);
@@ -187,6 +186,9 @@ fun proof_position_of state =
   | _ => raise UNDEF);
 
 val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_forward;
+
+fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = Theory.end_theory thy
+  | end_theory pos _ = error ("Unfinished theory at end of input" ^ Position.str_of pos);
 
 
 (* print state *)
@@ -264,12 +266,12 @@ fun map_theory f (Theory (gthy, ctxt)) =
 
 in
 
-fun apply_transaction f g (node, exit) =
+fun apply_transaction f g node =
   let
     val _ = is_draft_theory node andalso error "Illegal draft theory in toplevel state";
     val cont_node = reset_presentation node;
     val back_node = map_theory (Theory.checkpoint o Theory.copy) cont_node;
-    fun state_error e nd = (State (SOME (nd, exit), SOME (node, exit)), e);
+    fun state_error e nd = (State (SOME nd, SOME node), e);
 
     val (result, err) =
       cont_node
@@ -293,21 +295,18 @@ end;
 (* primitive transitions *)
 
 datatype trans =
-  Init of string * (bool -> theory) * (theory -> unit) | (*theory name, init, exit*)
-  Exit |                                         (*formal exit of theory -- without committing*)
-  Commit_Exit |                                  (*exit and commit final theory*)
-  Keep of bool -> state -> unit |                (*peek at state*)
+  Init of string * (bool -> theory) |    (*theory name, init*)
+  Exit |                                 (*formal exit of theory*)
+  Keep of bool -> state -> unit |        (*peek at state*)
   Transaction of (bool -> node -> node) * (state -> unit);  (*node transaction and presentation*)
 
 local
 
-fun apply_tr int (Init (_, f, exit)) (State (NONE, _)) =
+fun apply_tr int (Init (_, f)) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory
-          (Theory.checkpoint (Runtime.controlled_execution f int)), NONE), exit), NONE)
-  | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
+          (Theory.checkpoint (Runtime.controlled_execution f int)), NONE)), NONE)
+  | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _)), _)) =
       State (NONE, prev)
-  | apply_tr _ Commit_Exit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
-      (Runtime.controlled_execution exit thy; toplevel)
   | apply_tr int (Keep f) state =
       Runtime.controlled_execution (fn x => tap (f int) x) state
   | apply_tr int (Transaction (f, g)) (State (SOME state, _)) =
@@ -352,7 +351,7 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 
 (* diagnostics *)
 
-fun init_of (Transition {trans = [Init (name, _, _)], ...}) = SOME name
+fun init_of (Transition {trans = [Init (name, _)], ...}) = SOME name
   | init_of _ = NONE;
 
 fun name_of (Transition {name, ...}) = name;
@@ -394,7 +393,7 @@ val print = set_print true;
 
 (* basic transitions *)
 
-fun init_theory name f exit = add_trans (Init (name, f, exit));
+fun init_theory name f = add_trans (Init (name, f));
 val exit = add_trans Exit;
 val keep' = add_trans o Keep;
 
@@ -643,15 +642,6 @@ fun run_command thy_name tr st =
   | Exn.Exn exn => (error_msg tr (exn, at_command tr); status tr Markup.failed; NONE));
 
 
-(* commit final exit *)
-
-fun commit_exit pos =
-  name "end" empty
-  |> position pos
-  |> add_trans Commit_Exit
-  |> imperative (fn () => warning "Expected to find finished theory");
-
-
 (* nested commands *)
 
 fun command tr st =
@@ -693,8 +683,8 @@ fun proof_result immediate (tr, proof_trs) st =
           (fn prf =>
             Future.fork_pri ~1 (fn () =>
               let val (states, result_state) =
-                (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
-                  => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy)), exit), prev))
+                (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
+                  => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
                 |> fold_map command_result body_trs
                 ||> command (end_tr |> set_print false);
               in (states, presentation_context_of result_state) end))
@@ -715,14 +705,9 @@ fun proof_result immediate (tr, proof_trs) st =
 fun excursion input =
   let
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
-
     val immediate = not (Goal.future_enabled ());
     val (results, end_state) = fold_map (proof_result immediate) input toplevel;
-    val _ =
-      (case end_state of
-        State (NONE, SOME (Theory (Context.Theory _, _), _)) =>
-          command (commit_exit end_pos) end_state
-      | _ => error "Unfinished development at end of input");
-  in Lazy.lazy (fn () => maps Lazy.force results) end;
+    val thy = end_theory end_pos end_state;
+  in (Lazy.lazy (fn () => maps Lazy.force results), thy) end;
 
 end;
