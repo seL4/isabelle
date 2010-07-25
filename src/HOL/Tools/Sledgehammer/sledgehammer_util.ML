@@ -9,8 +9,10 @@ sig
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val timestamp : unit -> string
+  val strip_spaces : string -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val scan_integer : string list -> int * string list
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
@@ -30,6 +32,25 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
+
+fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
+
+fun strip_spaces_in_list [] = ""
+  | strip_spaces_in_list [c1] = if Char.isSpace c1 then "" else str c1
+  | strip_spaces_in_list [c1, c2] =
+    strip_spaces_in_list [c1] ^ strip_spaces_in_list [c2]
+  | strip_spaces_in_list (c1 :: c2 :: c3 :: cs) =
+    if Char.isSpace c1 then
+      strip_spaces_in_list (c2 :: c3 :: cs)
+    else if Char.isSpace c2 then
+      if Char.isSpace c3 then
+        strip_spaces_in_list (c1 :: c3 :: cs)
+      else
+        str c1 ^ (if forall is_ident_char [c1, c3] then " " else "") ^
+        strip_spaces_in_list (c3 :: cs)
+    else
+      str c1 ^ strip_spaces_in_list (c2 :: c3 :: cs)
+val strip_spaces = strip_spaces_in_list o String.explode
 
 fun parse_bool_option option name s =
   (case s of
@@ -60,6 +81,9 @@ fun parse_time_option _ "none" = NONE
       else
         SOME (Time.fromMilliseconds msecs)
     end
+
+fun is_head_digit s = Char.isDigit (String.sub (s, 0))
+val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
 
 val subscript = implode o map (prefix "\<^isub>") o explode
 fun nat_subscript n =

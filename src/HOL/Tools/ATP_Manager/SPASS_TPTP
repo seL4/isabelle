@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#
+# Wrapper for SPASS that also outputs the Flotter-generated CNF (needed for
+# Isar proof reconstruction)
+#
+# Author: Jasmin Blanchette, TU Muenchen
+
+options=${@:1:$(($#-1))}
+name=${@:$(($#)):1}
+
+$SPASS_HOME/tptp2dfg $name $name.fof.dfg
+$SPASS_HOME/SPASS -Flotter $name.fof.dfg \
+    | sed 's/description({$/description({*/' \
+    > $name.cnf.dfg
+rm -f $name.fof.dfg
+cat $name.cnf.dfg
+$SPASS_HOME/SPASS $options $name.cnf.dfg
+rm -f $name.cnf.dfg

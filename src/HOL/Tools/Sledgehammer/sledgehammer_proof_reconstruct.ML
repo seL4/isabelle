@@ -33,12 +33,11 @@ open Sledgehammer_TPTP_Format
 
 type minimize_command = string list -> string
 
-fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
-fun is_head_digit s = Char.isDigit (String.sub (s, 0))
-
 val index_in_shape : int -> int list list -> int =
   find_index o exists o curry (op =)
-fun is_axiom_clause_number thm_names num = num <= Vector.length thm_names
+fun is_axiom_clause_number thm_names num =
+  num > 0 andalso num <= Vector.length thm_names andalso
+  Vector.sub (thm_names, num - 1) <> ""
 fun is_conjecture_clause_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
 
@@ -57,23 +56,6 @@ datatype ('a, 'b, 'c, 'd, 'e) raw_step =
 
 (**** PARSING OF TSTP FORMAT ****)
 
-fun strip_spaces_in_list [] = ""
-  | strip_spaces_in_list [c1] = if Char.isSpace c1 then "" else str c1
-  | strip_spaces_in_list [c1, c2] =
-    strip_spaces_in_list [c1] ^ strip_spaces_in_list [c2]
-  | strip_spaces_in_list (c1 :: c2 :: c3 :: cs) =
-    if Char.isSpace c1 then
-      strip_spaces_in_list (c2 :: c3 :: cs)
-    else if Char.isSpace c2 then
-      if Char.isSpace c3 then
-        strip_spaces_in_list (c1 :: c3 :: cs)
-      else
-        str c1 ^ (if forall is_ident_char [c1, c3] then " " else "") ^
-        strip_spaces_in_list (c3 :: cs)
-    else
-      str c1 ^ strip_spaces_in_list (c2 :: c3 :: cs)
-val strip_spaces = strip_spaces_in_list o String.explode
-
 (* Syntax trees, either term list or formulae *)
 datatype node = IntLeaf of int | StrNode of string * node list
 
@@ -84,9 +66,6 @@ val slist_of = List.foldl scons (str_leaf "nil")
 
 (*Strings enclosed in single quotes, e.g. filenames*)
 val parse_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
-
-(*Integer constants, typically proof line numbers*)
-val parse_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
 
 val parse_dollar_name =
   Scan.repeat ($$ "$") -- Symbol.scan_id >> (fn (ss, s) => implode ss ^ s)
@@ -102,7 +81,7 @@ fun repair_name _ "$true" = "c_True"
    forever at compile time. *)
 fun parse_term pool x =
      (parse_quoted >> str_leaf
-   || parse_integer >> IntLeaf
+   || scan_integer >> IntLeaf
    || (parse_dollar_name >> repair_name pool)
       -- Scan.optional ($$ "(" |-- parse_terms pool --| $$ ")") [] >> StrNode
    || $$ "(" |-- parse_term pool --| $$ ")"
@@ -149,11 +128,11 @@ fun parse_definition pool =
 fun finish_tstp_definition_line (num, (u, us)) = Definition (num, u, us)
 fun finish_tstp_inference_line ((num, us), deps) = Inference (num, us, deps)
 fun parse_tstp_line pool =
-     ((Scan.this_string "fof" -- $$ "(") |-- parse_integer --| $$ ","
+     ((Scan.this_string "fof" -- $$ "(") |-- scan_integer --| $$ ","
        --| Scan.this_string "definition" --| $$ "," -- parse_definition pool
        --| parse_tstp_annotations --| $$ ")" --| $$ "."
       >> finish_tstp_definition_line)
-  || ((Scan.this_string "cnf" -- $$ "(") |-- parse_integer --| $$ ","
+  || ((Scan.this_string "cnf" -- $$ "(") |-- scan_integer --| $$ ","
        --| Symbol.scan_id --| $$ "," -- parse_clause pool
        -- parse_tstp_annotations --| $$ ")" --| $$ "."
       >> finish_tstp_inference_line)
@@ -162,7 +141,7 @@ fun parse_tstp_line pool =
 
 (* SPASS returns clause references of the form "x.y". We ignore "y", whose role
    is not clear anyway. *)
-val parse_dot_name = parse_integer --| $$ "." --| parse_integer
+val parse_dot_name = scan_integer --| $$ "." --| scan_integer
 
 val parse_spass_annotations =
   Scan.optional ($$ ":" |-- Scan.repeat (parse_dot_name
@@ -185,7 +164,7 @@ fun parse_horn_clause pool =
    <cnf_formulas> || <cnf_formulas> -> <cnf_formulas>. *)
 fun finish_spass_line ((num, deps), us) = Inference (num, us, deps)
 fun parse_spass_line pool =
-  parse_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
+  scan_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
   -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
   >> finish_spass_line
 
@@ -529,14 +508,14 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
 (** EXTRACTING LEMMAS **)
 
 (* A list consisting of the first number in each line is returned.
-   TSTP: Interesting lines have the form "cnf(108, axiom, ...)", where the
+   TSTP: Interesting lines have the form "fof(108, axiom, ...)", where the
    number (108) is extracted.
    SPASS: Lines have the form "108[0:Inp] ...", where the first number (108) is
    extracted. *)
-fun extract_clause_numbers_in_atp_proof atp_proof =
+fun extract_formula_numbers_in_atp_proof atp_proof =
   let
-    val tokens_of = String.tokens (not o is_ident_char)
-    fun extract_num ("cnf" :: num :: "axiom" :: _) = Int.fromString num
+    val tokens_of = String.tokens (not o Char.isAlphaNum)
+    fun extract_num ("fof" :: num :: "axiom" :: _) = Int.fromString num
       | extract_num (num :: "0" :: "Inp" :: _) = Int.fromString num
       | extract_num _ = NONE
   in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
@@ -579,7 +558,7 @@ fun metis_proof_text (full_types, minimize_command, atp_proof, thm_names, goal,
                       i) =
   let
     val raw_lemmas =
-      atp_proof |> extract_clause_numbers_in_atp_proof
+      atp_proof |> extract_formula_numbers_in_atp_proof
                 |> filter (is_axiom_clause_number thm_names)
                 |> map (fn i => Vector.sub (thm_names, i - 1))
     val (chained_lemmas, other_lemmas) =

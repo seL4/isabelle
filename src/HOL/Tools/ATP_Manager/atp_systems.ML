@@ -239,6 +239,43 @@ fun prepare_clauses full_types goal_cls axcls extra_cls thy =
        class_rel_clauses, arity_clauses))
   end
 
+fun extract_clause_sequence output =
+  let
+    val tokens_of = String.tokens (not o Char.isAlphaNum)
+    fun extract_num ("clause" :: (ss as _ :: _)) =
+    Int.fromString (List.last ss)
+      | extract_num _ = NONE
+  in output |> split_lines |> map_filter (extract_num o tokens_of) end
+
+val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
+
+val parse_clause_formula_pair =
+  $$ "(" |-- scan_integer --| $$ "," -- Symbol.scan_id --| $$ ")"
+  --| Scan.option ($$ ",")
+val parse_clause_formula_relation =
+  Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
+  |-- Scan.repeat parse_clause_formula_pair
+val extract_clause_formula_relation =
+  Substring.full
+  #> Substring.position set_ClauseFormulaRelationN
+  #> snd #> Substring.string #> strip_spaces #> explode
+  #> parse_clause_formula_relation #> fst
+
+fun repair_theorem_names output thm_names =
+  if String.isSubstring set_ClauseFormulaRelationN output then
+    let
+      val seq = extract_clause_sequence output
+      val name_map = extract_clause_formula_relation output
+    in
+      seq |> map (the o AList.lookup (op =) name_map)
+          |> map (fn s => case try (unprefix axiom_prefix) s of
+                            SOME s' => undo_ascii_of s'
+                          | NONE => "")
+          |> Vector.fromList
+    end
+  else
+    thm_names
+
 
 (* generic TPTP-based provers *)
 
@@ -298,15 +335,7 @@ fun generic_tptp_prover
         (if Config.get ctxt measure_runtime then
            "TIMEFORMAT='%3U'; { time " ^ core ^ " ; }"
          else
-           "exec " ^ core) ^ " 2>&1" ^
-        (if overlord then
-           " | sed 's/,/, /g' \
-           \| sed 's/\\([^!=<]\\)\\([=|]\\)\\([^=>]\\)/\\1 \\2 \\3/g' \
-           \| sed 's/  / /g' | sed 's/| |/||/g' \
-           \| sed 's/ = = =/===/g' \
-           \| sed 's/= = /== /g'"
-         else
-           "")
+           "exec " ^ core) ^ " 2>&1"
       end
     fun split_time s =
       let
@@ -320,7 +349,9 @@ fun generic_tptp_prover
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
     fun run_on probfile =
-      if File.exists command then
+      if home = "" then
+        error ("The environment variable " ^ quote home_var ^ " is not set.")
+      else if File.exists command then
         let
           fun do_run complete =
             let
@@ -350,8 +381,6 @@ fun generic_tptp_prover
                           (output, msecs0 + msecs, proof, outcome))
                  | result => result)
         in ((pool, conjecture_shape), result) end
-      else if home = "" then
-        error ("The environment variable " ^ quote home_var ^ " is not set.")
       else
         error ("Bad executable: " ^ Path.implode command ^ ".");
 
@@ -367,6 +396,7 @@ fun generic_tptp_prover
 
     val ((pool, conjecture_shape), (output, msecs, proof, outcome)) =
       with_path cleanup export run_on (prob_pathname subgoal)
+    val internal_thm_names = repair_theorem_names output internal_thm_names
 
     val (message, relevant_thm_names) =
       case outcome of
@@ -417,11 +447,11 @@ val e = tptp_prover "e" e_config
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
-  {home_var = "SPASS_HOME",
-   executable = "SPASS",
+  {home_var = "ISABELLE_ATP_MANAGER",
+   executable = "SPASS_TPTP",
    (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
-     ("-TPTP -Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
+     ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^
       string_of_int (to_generous_secs timeout div 2))
      |> not complete ? prefix "-SOS=1 ",
@@ -432,8 +462,7 @@ val spass_config : prover_config =
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
-      (OldSpass, "unrecognized option `-TPTP'"),
-      (OldSpass, "Unrecognized option TPTP")],
+      (OldSpass, "tptp2dfg")],
    max_axiom_clauses = 40,
    prefers_theory_relevant = true}
 val spass = tptp_prover "spass" spass_config
