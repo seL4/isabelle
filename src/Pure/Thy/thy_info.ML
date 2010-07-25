@@ -18,15 +18,13 @@ sig
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
   val touch_thy: string -> unit
-  val touch_child_thys: string -> unit
   val thy_ord: theory * theory -> order
   val remove_thy: string -> unit
   val kill_thy: string -> unit
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
-  val register_thy: string -> theory -> unit
-  val register_theory: theory -> unit
+  val register_thy: theory -> unit
   val finish: unit -> unit
 end;
 
@@ -187,7 +185,6 @@ fun touch_thys names =
   List.app outdate_thy (thy_graph Graph.all_succs (map_filter unfinished names));
 
 fun touch_thy name = touch_thys [name];
-fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
 
 end;
 
@@ -454,45 +451,28 @@ fun begin_theory name parents uses int =
 
 (* register existing theories *)
 
-fun register_thy name theory =
-  let
-    val _ = priority ("Registering theory " ^ quote name);
-    val _ = map get_theory (get_parents name);
-    val _ = check_unfinished name;
-    val _ = touch_thy name;
-    val master = #master (Thy_Load.deps_thy Path.current name);
-    val upd_time = #2 (Management_Data.get theory);
-  in
-    CRITICAL (fn () =>
-     (change_deps name (Option.map (fn {parents, ...} =>
-        make_deps upd_time (SOME master) "" parents));
-      put_theory name theory;
-      perform Update name))
-  end;
-
-fun register_theory theory =
+fun register_thy theory =
   let
     val name = Context.theory_name theory;
-    val parents = Theory.parents_of theory;
-    val parent_names = map Context.theory_name parents;
+    val _ = priority ("Registering theory " ^ quote name);
+    val parent_names = map Context.theory_name (Theory.parents_of theory);
+    val _ = map get_theory parent_names;
 
-    fun err txt bads =
-      error (loader_msg txt bads ^ "\ncannot register theory " ^ quote name);
-
-    val nonfinished = filter_out is_finished parent_names;
-    fun get_variant (x, y_name) =
-      if Theory.eq_thy (x, get_theory y_name) then NONE
-      else SOME y_name;
-    val variants = map_filter get_variant (parents ~~ parent_names);
-
-    fun register G =
-      (Graph.new_node (name, (NONE, SOME theory)) G
-        handle Graph.DUP _ => err "duplicate theory entry" [])
-      |> add_deps name parent_names;
+    val master = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
+    val update_time = #2 (Management_Data.get theory);
+    val parents =
+      (case lookup_deps name of
+        SOME (SOME {parents, ...}) => parents
+      | _ => parent_names);
+    val deps = make_deps update_time (SOME master) "" parents;
   in
-    if not (null nonfinished) then err "non-finished parent theories" nonfinished
-    else if not (null variants) then err "different versions of parent theories" variants
-    else CRITICAL (fn () => (change_thys register; perform Update name))
+    CRITICAL (fn () =>
+     (if known_thy name then
+        (List.app remove_thy (thy_graph Graph.imm_succs name);
+          change_thys (Graph.del_nodes [name]))
+      else ();
+      change_thys (new_deps name parents (SOME deps, SOME theory));
+      perform Update name))
   end;
 
 

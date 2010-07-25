@@ -138,8 +138,7 @@ fun inform_file_processed file =
     val _ = name = "" andalso error ("Bad file name: " ^ quote file);
     val _ =
       if Thy_Info.known_thy name then
-       (Thy_Info.register_thy name (Toplevel.end_theory Position.none (Isar.state ()));
-        Thy_Info.touch_child_thys name)
+        Thy_Info.register_thy (Toplevel.end_theory Position.none (Isar.state ()))
           handle ERROR msg =>
             (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
               tell_file_retracted (Thy_Header.thy_path name))

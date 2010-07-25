@@ -4,14 +4,16 @@
 Pure theory and ML toplevel setup.
 *)
 
-(* the Pure theories *)
+(* the Pure theory *)
 
 Context.>> (Context.map_theory
  (Outer_Syntax.process_file (Path.explode "Pure.thy") #>
   Theory.end_theory));
+
 structure Pure = struct val thy = ML_Context.the_global_context () end;
+
 Context.set_thread_data NONE;
-Thy_Info.register_theory Pure.thy;
+Thy_Info.register_thy Pure.thy;
 
 
 (* ML toplevel pretty printing *)
