@@ -43,7 +43,7 @@ sig
      output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
-     conjecture_shape: int list list,
+     conjecture_shape: int list,
      filtered_clauses: ((string * int) * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
@@ -112,7 +112,7 @@ type prover_result =
    output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
-   conjecture_shape: int list list,
+   conjecture_shape: int list,
    filtered_clauses: ((string * int) * thm) list}
 
 type prover =

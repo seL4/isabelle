@@ -14,11 +14,11 @@ sig
     bool * minimize_command * string * string vector * thm * int
     -> string * string list
   val isar_proof_text:
-    string Symtab.table * bool * int * Proof.context * int list list
+    string Symtab.table * bool * int * Proof.context * int list
     -> bool * minimize_command * string * string vector * thm * int
     -> string * string list
   val proof_text:
-    bool -> string Symtab.table * bool * int * Proof.context * int list list
+    bool -> string Symtab.table * bool * int * Proof.context * int list
     -> bool * minimize_command * string * string vector * thm * int
     -> string * string list
 end;
@@ -36,8 +36,7 @@ type minimize_command = string list -> string
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
-val index_in_shape : int -> int list list -> int =
-  find_index o exists o curry (op =)
+val index_in_shape : int -> int list -> int = find_index o curry (op =)
 fun is_axiom_clause_number thm_names num =
   num > 0 andalso num <= Vector.length thm_names andalso
   Vector.sub (thm_names, num - 1) <> ""
@@ -708,25 +707,19 @@ fun redirect_proof conjecture_shape hyp_ts concl_t proof =
        direct proof, introducing case splits when an inference depends on
        several facts that depend on the negated conjecture. *)
     fun find_hyp num = nth hyp_ts (index_in_shape num conjecture_shape)
-    val concl_ls = map (pair raw_prefix) (List.last conjecture_shape)
-    val canonicalize_labels =
-      map (fn l => if member (op =) concl_ls l then hd concl_ls else l)
-      #> distinct (op =)
+    val concl_l = (raw_prefix, List.last conjecture_shape)
     fun first_pass ([], contra) = ([], contra)
       | first_pass ((step as Fix _) :: proof, contra) =
         first_pass (proof, contra) |>> cons step
       | first_pass ((step as Let _) :: proof, contra) =
         first_pass (proof, contra) |>> cons step
       | first_pass ((step as Assume (l as (_, num), _)) :: proof, contra) =
-        if member (op =) concl_ls l then
-          first_pass (proof, contra ||> l = hd concl_ls ? cons step)
+        if l = concl_l then
+          first_pass (proof, contra ||> l = concl_l ? cons step)
         else
           first_pass (proof, contra) |>> cons (Assume (l, find_hyp num))
       | first_pass (Have (qs, l, t, ByMetis (ls, ss)) :: proof, contra) =
-        let
-          val ls = canonicalize_labels ls
-          val step = Have (qs, l, t, ByMetis (ls, ss))
-        in
+        let val step = Have (qs, l, t, ByMetis (ls, ss)) in
           if exists (member (op =) (fst contra)) ls then
             first_pass (proof, contra |>> cons l ||> cons step)
           else
@@ -734,7 +727,7 @@ fun redirect_proof conjecture_shape hyp_ts concl_t proof =
         end
       | first_pass _ = raise Fail "malformed proof"
     val (proof_top, (contra_ls, contra_proof)) =
-      first_pass (proof, (concl_ls, []))
+      first_pass (proof, ([concl_l], []))
     val backpatch_label = the_default ([], []) oo AList.lookup (op =) o fst
     fun backpatch_labels patches ls =
       fold merge_fact_sets (map (backpatch_label patches) ls) ([], [])
@@ -769,7 +762,7 @@ fun redirect_proof conjecture_shape hyp_ts concl_t proof =
                val proofs =
                  map_filter
                      (fn l =>
-                         if member (op =) concl_ls l then
+                         if l = concl_l then
                            NONE
                          else
                            let

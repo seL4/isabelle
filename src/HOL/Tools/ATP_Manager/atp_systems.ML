@@ -287,8 +287,7 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
                                               thm_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
     let
-      (* FIXME: hd of head once clausification is left to the ATP *)
-      val j0 = hd (List.concat conjecture_shape)
+      val j0 = hd conjecture_shape
       val seq = extract_clause_sequence output
       val name_map = extract_clause_formula_relation output
       fun renumber_conjecture j =
@@ -296,7 +295,7 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
         |> the_single
         |> (fn s => find_index (curry (op =) s) seq + 1)
     in
-      (conjecture_shape |> map (map renumber_conjecture),
+      (conjecture_shape |> map renumber_conjecture,
        seq |> map (the o AList.lookup (op =) name_map)
            |> map (fn s => case try (unprefix axiom_prefix) s of
                              SOME s' => undo_ascii_of s'
@@ -404,7 +403,6 @@ fun generic_tptp_prover
                             explicit_apply probfile clauses
           val conjecture_shape =
             conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
-            |> map single (* ### FIXME: get rid of "map single" *)
           val result =
             do_run false
             |> (fn (_, msecs0, _, SOME _) =>
