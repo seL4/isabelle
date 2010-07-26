@@ -33,6 +33,9 @@ open Sledgehammer_TPTP_Format
 
 type minimize_command = string list -> string
 
+fun mk_anot phi = AConn (ANot, [phi])
+fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
+
 val index_in_shape : int -> int list list -> int =
   find_index o exists o curry (op =)
 fun is_axiom_clause_number thm_names num =
@@ -50,24 +53,31 @@ fun smart_lambda v t =
        | _ => "", fastype_of v, abstract_over (v, t))
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ smart_lambda v t
 
+fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
+    Const (@{const_name Ex}, T) $ Abs (s, T', negate_term t')
+  | negate_term (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
+    Const (@{const_name All}, T) $ Abs (s, T', negate_term t')
+  | negate_term (@{const "op -->"} $ t1 $ t2) =
+    @{const "op &"} $ t1 $ negate_term t2
+  | negate_term (@{const "op &"} $ t1 $ t2) =
+    @{const "op |"} $ negate_term t1 $ negate_term t2
+  | negate_term (@{const "op |"} $ t1 $ t2) =
+    @{const "op &"} $ negate_term t1 $ negate_term t2
+  | negate_term (@{const Not} $ t) = t
+  | negate_term t = @{const Not} $ t
+
 datatype ('a, 'b, 'c, 'd, 'e) raw_step =
   Definition of 'a * 'b * 'c |
   Inference of 'a * 'd * 'e list
 
 (**** PARSING OF TSTP FORMAT ****)
 
-(* Syntax trees, either term list or formulae *)
-datatype node = IntLeaf of int | StrNode of string * node list
-
-fun str_leaf s = StrNode (s, [])
-
-fun scons (x, y) = StrNode ("cons", [x, y])
-val slist_of = List.foldl scons (str_leaf "nil")
+datatype int_or_string = Str of string | Int of int
 
 (*Strings enclosed in single quotes, e.g. filenames*)
-val parse_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
+val scan_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
 
-val parse_dollar_name =
+val scan_dollar_name =
   Scan.repeat ($$ "$") -- Symbol.scan_id >> (fn (ss, s) => implode ss ^ s)
 
 (* needed for SPASS's output format *)
@@ -79,63 +89,72 @@ fun repair_name _ "$true" = "c_True"
 (* Generalized first-order terms, which include file names, numbers, etc. *)
 (* The "x" argument is not strictly necessary, but without it Poly/ML loops
    forever at compile time. *)
+fun parse_generalized_term x =
+  (scan_quoted >> (fn s => ATerm (Str s, []))
+   || scan_dollar_name
+      -- Scan.optional ($$ "(" |-- parse_generalized_terms --| $$ ")") []
+      >> (fn (s, gs) => ATerm (Str s, gs))
+   || scan_integer >> (fn k => ATerm (Int k, []))
+   || $$ "(" |-- parse_generalized_term --| $$ ")"
+   || $$ "[" |-- Scan.optional parse_generalized_terms [] --| $$ "]"
+      >> curry ATerm (Str "list")) x
+and parse_generalized_terms x =
+  (parse_generalized_term ::: Scan.repeat ($$ "," |-- parse_generalized_term)) x
 fun parse_term pool x =
-     (parse_quoted >> str_leaf
-   || scan_integer >> IntLeaf
-   || (parse_dollar_name >> repair_name pool)
-      -- Scan.optional ($$ "(" |-- parse_terms pool --| $$ ")") [] >> StrNode
-   || $$ "(" |-- parse_term pool --| $$ ")"
-   || $$ "[" |-- Scan.optional (parse_terms pool) [] --| $$ "]" >> slist_of) x
+  ((scan_dollar_name >> repair_name pool)
+    -- Scan.optional ($$ "(" |-- parse_terms pool --| $$ ")") [] >> ATerm) x
 and parse_terms pool x =
   (parse_term pool ::: Scan.repeat ($$ "," |-- parse_term pool)) x
 
-fun negate_node u = StrNode ("c_Not", [u])
-fun equate_nodes u1 u2 = StrNode ("c_equal", [u1, u2])
-
-(* Apply equal or not-equal to a term. *)
-fun repair_predicate_term (u, NONE) = u
-  | repair_predicate_term (u1, SOME (NONE, u2)) = equate_nodes u1 u2
-  | repair_predicate_term (u1, SOME (SOME _, u2)) =
-    negate_node (equate_nodes u1 u2)
 fun parse_predicate_term pool =
   parse_term pool -- Scan.option (Scan.option ($$ "!") --| $$ "="
                                   -- parse_term pool)
-  >> repair_predicate_term
-fun parse_literal pool x =
-  ($$ "~" |-- parse_literal pool >> negate_node || parse_predicate_term pool) x
-fun parse_literals pool =
-  parse_literal pool ::: Scan.repeat ($$ "|" |-- parse_literal pool)
-fun parse_parenthesized_literals pool =
-  $$ "(" |-- parse_literals pool --| $$ ")" || parse_literals pool
-fun parse_clause pool =
-  parse_parenthesized_literals pool
-    ::: Scan.repeat ($$ "|" |-- parse_parenthesized_literals pool)
-  >> List.concat
+  >> (fn (u, NONE) => APred u
+       | (u1, SOME (NONE, u2)) => APred (ATerm ("c_equal", [u1, u2]))
+       | (u1, SOME (SOME _, u2)) =>
+         mk_anot (APred (ATerm ("c_equal", [u1, u2]))))
 
-fun ints_of_node (IntLeaf n) = cons n
-  | ints_of_node (StrNode (_, us)) = fold ints_of_node us
+fun fo_term_head (ATerm (s, _)) = s
+
+(* TPTP formulas are fully parenthesized, so we don't need to worry about
+   operator precedence. *)
+fun parse_formula pool x =
+  (($$ "(" |-- parse_formula pool --| $$ ")"
+    || ($$ "!" >> K AForall || $$ "?" >> K AExists)
+       --| $$ "[" -- parse_terms pool --| $$ "]" --| $$ ":"
+       -- parse_formula pool
+       >> (fn ((q, ts), phi) => AQuant (q, map fo_term_head ts, phi))
+    || $$ "~" |-- parse_formula pool >> mk_anot
+    || parse_predicate_term pool)
+   -- Scan.option ((Scan.this_string "=>" >> K AImplies
+                    || Scan.this_string "<=>" >> K AIff
+                    || Scan.this_string "<~>" >> K ANotIff
+                    || Scan.this_string "<=" >> K AIf
+                    || $$ "|" >> K AOr || $$ "&" >> K AAnd)
+                   -- parse_formula pool)
+   >> (fn (phi1, NONE) => phi1
+        | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
+
+fun ints_of_generalized_term (ATerm (label, gs)) =
+  fold ints_of_generalized_term gs #> (case label of Int k => cons k | _ => I)
 val parse_tstp_annotations =
-  Scan.optional ($$ "," |-- parse_term Symtab.empty
-                   --| Scan.option ($$ "," |-- parse_terms Symtab.empty)
-                 >> (fn source => ints_of_node source [])) []
+  Scan.optional ($$ "," |-- parse_generalized_term
+                   --| Scan.option ($$ "," |-- parse_generalized_terms)
+                 >> (fn g => ints_of_generalized_term g [])) []
 
-fun parse_definition pool =
-  $$ "(" |-- parse_literal pool --| Scan.this_string "<=>"
-  -- parse_clause pool --| $$ ")"
-
-(* Syntax: cnf(<num>, <formula_role>, <cnf_formula> <annotations>).
+(* Syntax: (fof|cnf)\(<num>, <formula_role>, <cnf_formula> <annotations>\).
    The <num> could be an identifier, but we assume integers. *)
-fun finish_tstp_definition_line (num, (u, us)) = Definition (num, u, us)
-fun finish_tstp_inference_line ((num, us), deps) = Inference (num, us, deps)
-fun parse_tstp_line pool =
-     ((Scan.this_string "fof" -- $$ "(") |-- scan_integer --| $$ ","
-       --| Scan.this_string "definition" --| $$ "," -- parse_definition pool
-       --| parse_tstp_annotations --| $$ ")" --| $$ "."
-      >> finish_tstp_definition_line)
-  || ((Scan.this_string "cnf" -- $$ "(") |-- scan_integer --| $$ ","
-       --| Symbol.scan_id --| $$ "," -- parse_clause pool
-       -- parse_tstp_annotations --| $$ ")" --| $$ "."
-      >> finish_tstp_inference_line)
+ fun parse_tstp_line pool =
+   ((Scan.this_string "fof" || Scan.this_string "cnf") -- $$ "(")
+     |-- scan_integer --| $$ "," -- Symbol.scan_id --| $$ ","
+     -- parse_formula pool -- parse_tstp_annotations --| $$ ")" --| $$ "."
+    >> (fn (((num, role), phi), deps) =>
+           case role of
+             "definition" =>
+             (case phi of
+                AConn (AIff, [phi1, phi2]) => Definition (num, phi1, phi2)
+              | _ => raise Fail "malformed definition")
+           | _ => Inference (num, phi, deps))
 
 (**** PARSING OF SPASS OUTPUT ****)
 
@@ -152,21 +171,25 @@ val parse_spass_annotations =
 fun parse_decorated_predicate_term pool =
   parse_predicate_term pool --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")
 
+fun mk_horn ([], []) = APred (ATerm ("c_False", []))
+  | mk_horn ([], pos_lits) = foldr1 (mk_aconn AOr) pos_lits
+  | mk_horn (neg_lits, []) = mk_anot (foldr1 (mk_aconn AAnd) neg_lits)
+  | mk_horn (neg_lits, pos_lits) =
+    mk_aconn AImplies (foldr1 (mk_aconn AAnd) neg_lits,
+                       foldr1 (mk_aconn AOr) pos_lits)
+
 fun parse_horn_clause pool =
   Scan.repeat (parse_decorated_predicate_term pool) --| $$ "|" --| $$ "|"
     -- Scan.repeat (parse_decorated_predicate_term pool) --| $$ "-" --| $$ ">"
     -- Scan.repeat (parse_decorated_predicate_term pool)
-  >> (fn (([], []), []) => [str_leaf "c_False"]
-       | ((clauses1, clauses2), clauses3) =>
-         map negate_node (clauses1 @ clauses2) @ clauses3)
+  >> (mk_horn o apfst (op @))
 
 (* Syntax: <num>[0:<inference><annotations>]
    <cnf_formulas> || <cnf_formulas> -> <cnf_formulas>. *)
-fun finish_spass_line ((num, deps), us) = Inference (num, us, deps)
 fun parse_spass_line pool =
   scan_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
   -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
-  >> finish_spass_line
+  >> (fn ((num, deps), u) => Inference (num, u, deps))
 
 fun parse_line pool = parse_tstp_line pool || parse_spass_line pool
 fun parse_lines pool = Scan.repeat1 (parse_line pool)
@@ -178,30 +201,31 @@ fun parse_proof pool =
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
-exception NODE of node list
+exception FO_TERM of string fo_term list
+exception FORMULA of string formula list
+exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
-  constrained by information from type literals, or by type inference. *)
-fun type_from_node _ (u as IntLeaf _) = raise NODE [u]
-  | type_from_node tfrees (u as StrNode (a, us)) =
-    let val Ts = map (type_from_node tfrees) us in
-      case strip_prefix type_const_prefix a of
-        SOME b => Type (invert_const b, Ts)
+   constrained by information from type literals, or by type inference. *)
+fun type_from_fo_term tfrees (u as ATerm (a, us)) =
+  let val Ts = map (type_from_fo_term tfrees) us in
+    case strip_prefix_and_undo_ascii type_const_prefix a of
+      SOME b => Type (invert_const b, Ts)
+    | NONE =>
+      if not (null us) then
+        raise FO_TERM [u]  (* only "tconst"s have type arguments *)
+      else case strip_prefix_and_undo_ascii tfree_prefix a of
+        SOME b =>
+        let val s = "'" ^ b in
+          TFree (s, AList.lookup (op =) tfrees s |> the_default HOLogic.typeS)
+        end
       | NONE =>
-        if not (null us) then
-          raise NODE [u]  (* only "tconst"s have type arguments *)
-        else case strip_prefix tfree_prefix a of
-          SOME b =>
-          let val s = "'" ^ b in
-            TFree (s, AList.lookup (op =) tfrees s |> the_default HOLogic.typeS)
-          end
+        case strip_prefix_and_undo_ascii tvar_prefix a of
+          SOME b => TVar (("'" ^ b, 0), HOLogic.typeS)
         | NONE =>
-          case strip_prefix tvar_prefix a of
-            SOME b => TVar (("'" ^ b, 0), HOLogic.typeS)
-          | NONE =>
-            (* Variable from the ATP, say "X1" *)
-            Type_Infer.param 0 (a, HOLogic.typeS)
-    end
+          (* Variable from the ATP, say "X1" *)
+          Type_Infer.param 0 (a, HOLogic.typeS)
+  end
 
 fun fix_atp_variable_name s =
   let
@@ -222,21 +246,19 @@ fun fix_atp_variable_name s =
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred.*)
-fun term_from_node thy full_types tfrees =
+fun term_from_fo_term thy full_types tfrees opt_T =
   let
     fun aux opt_T extra_us u =
       case u of
-        IntLeaf _ => raise NODE [u]
-      | StrNode ("hBOOL", [u1]) => aux (SOME @{typ bool}) [] u1
-      | StrNode ("hAPP", [u1, u2]) => aux opt_T (u2 :: extra_us) u1
-      | StrNode ("c_Not", [u1]) => @{const Not} $ aux (SOME @{typ bool}) [] u1
-      | StrNode (a, us) =>
+        ATerm ("hBOOL", [u1]) => aux (SOME @{typ bool}) [] u1
+      | ATerm ("hAPP", [u1, u2]) => aux opt_T (u2 :: extra_us) u1
+      | ATerm (a, us) =>
         if a = type_wrapper_name then
           case us of
             [typ_u, term_u] =>
-            aux (SOME (type_from_node tfrees typ_u)) extra_us term_u
-          | _ => raise NODE us
-        else case strip_prefix const_prefix a of
+            aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u
+          | _ => raise FO_TERM us
+        else case strip_prefix_and_undo_ascii const_prefix a of
           SOME "equal" =>
           list_comb (Const (@{const_name "op ="}, HOLogic.typeT),
                      map (aux NONE []) us)
@@ -264,35 +286,34 @@ fun term_from_node thy full_types tfrees =
                             map fastype_of term_ts ---> HOLogic.typeT
                           else
                             Sign.const_instance thy (c,
-                                map (type_from_node tfrees) type_us))
+                                map (type_from_fo_term tfrees) type_us))
           in list_comb (t, term_ts @ extra_ts) end
         | NONE => (* a free or schematic variable *)
           let
             val ts = map (aux NONE []) (us @ extra_us)
             val T = map fastype_of ts ---> HOLogic.typeT
             val t =
-              case strip_prefix fixed_var_prefix a of
+              case strip_prefix_and_undo_ascii fixed_var_prefix a of
                 SOME b => Free (b, T)
               | NONE =>
-                case strip_prefix schematic_var_prefix a of
+                case strip_prefix_and_undo_ascii schematic_var_prefix a of
                   SOME b => Var ((b, 0), T)
                 | NONE =>
                   (* Variable from the ATP, say "X1" *)
                   Var ((fix_atp_variable_name a, 0), T)
           in list_comb (t, ts) end
-  in aux end
+  in aux opt_T [] end
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
-fun type_constraint_from_node pos tfrees (StrNode ("c_Not", [u])) =
-    type_constraint_from_node (not pos) tfrees u
-  | type_constraint_from_node pos tfrees u = case u of
-        IntLeaf _ => raise NODE [u]
-      | StrNode (a, us) =>
-            (case (strip_prefix class_prefix a,
-                   map (type_from_node tfrees) us) of
-                 (SOME b, [T]) => (pos, b, T)
-               | _ => raise NODE [u])
+fun type_constraint_from_formula pos tfrees (AConn (ANot, [u])) =
+    type_constraint_from_formula (not pos) tfrees u
+  | type_constraint_from_formula pos tfrees (phi as APred (ATerm (a, us))) =
+    (case (strip_prefix_and_undo_ascii class_prefix a,
+           map (type_from_fo_term tfrees) us) of
+       (SOME b, [T]) => (pos, b, T)
+     | _ => raise FORMULA [phi])
+  | type_constraint_from_formula _ _ phi = raise FORMULA [phi]
 
 (** Accumulate type constraints in a clause: negative type literals **)
 
@@ -305,63 +326,7 @@ fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
 fun is_positive_literal (@{const Not} $ _) = false
   | is_positive_literal _ = true
 
-fun negate_term thy (Const (@{const_name All}, T) $ Abs (s, T', t')) =
-    Const (@{const_name Ex}, T) $ Abs (s, T', negate_term thy t')
-  | negate_term thy (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
-    Const (@{const_name All}, T) $ Abs (s, T', negate_term thy t')
-  | negate_term thy (@{const "op -->"} $ t1 $ t2) =
-    @{const "op &"} $ t1 $ negate_term thy t2
-  | negate_term thy (@{const "op &"} $ t1 $ t2) =
-    @{const "op |"} $ negate_term thy t1 $ negate_term thy t2
-  | negate_term thy (@{const "op |"} $ t1 $ t2) =
-    @{const "op &"} $ negate_term thy t1 $ negate_term thy t2
-  | negate_term _ (@{const Not} $ t) = t
-  | negate_term _ t = @{const Not} $ t
-
-fun clause_for_literals _ [] = HOLogic.false_const
-  | clause_for_literals _ [lit] = lit
-  | clause_for_literals thy lits =
-    case List.partition is_positive_literal lits of
-      (pos_lits as _ :: _, neg_lits as _ :: _) =>
-      @{const "op -->"}
-          $ foldr1 HOLogic.mk_conj (map (negate_term thy) neg_lits)
-          $ foldr1 HOLogic.mk_disj pos_lits
-    | _ => foldr1 HOLogic.mk_disj lits
-
-(* Final treatment of the list of "real" literals from a clause.
-   No "real" literals means only type information. *)
-fun finish_clause _ [] = HOLogic.true_const
-  | finish_clause thy lits =
-    lits |> filter_out (curry (op =) HOLogic.false_const) |> rev
-         |> clause_for_literals thy
-
-(*Accumulate sort constraints in vt, with "real" literals in lits.*)
-fun lits_of_nodes thy full_types tfrees =
-  let
-    fun aux (vt, lits) [] = (vt, finish_clause thy lits)
-      | aux (vt, lits) (u :: us) =
-        aux (add_type_constraint
-                 (type_constraint_from_node true tfrees u) vt, lits) us
-        handle NODE _ =>
-               aux (vt, term_from_node thy full_types tfrees (SOME @{typ bool})
-                                       [] u :: lits) us
-  in aux end
-
-(* Update TVars with detected sort constraints. It's not totally clear when
-   this code is necessary. *)
-fun repair_tvar_sorts vt =
-  let
-    fun do_type (Type (a, Ts)) = Type (a, map do_type Ts)
-      | do_type (TVar (xi, s)) = TVar (xi, the_default s (Vartab.lookup vt xi))
-      | do_type (TFree z) = TFree z
-    fun do_term (Const (a, T)) = Const (a, do_type T)
-      | do_term (Free (a, T)) = Free (a, do_type T)
-      | do_term (Var (xi, T)) = Var (xi, do_type T)
-      | do_term (t as Bound _) = t
-      | do_term (Abs (a, T, t)) = Abs (a, do_type T, do_term t)
-      | do_term (t1 $ t2) = do_term t1 $ do_term t2
-  in not (Vartab.is_empty vt) ? do_term end
-
+(* ### FIXME: remove once Skolemization is left to ATPs *)
 fun unskolemize_term t =
   Term.add_consts t []
   |> filter (is_skolem_const_name o fst) |> map Const
@@ -382,14 +347,75 @@ fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
      | NONE => t)
   | uncombine_term t = t
 
-(* Interpret a list of syntax trees as a clause, given by "real" literals and
-   sort constraints. "vt" holds the initial sort constraints, from the
-   conjecture clauses. *)
-fun clause_of_nodes ctxt full_types tfrees us =
+fun disjuncts (AConn (AOr, phis)) = maps disjuncts phis
+  | disjuncts phi = [phi]
+
+(* Update schematic type variables with detected sort constraints. It's not
+   totally clear when this code is necessary. *)
+fun repair_tvar_sorts (tvar_tab, t) =
   let
-    val thy = ProofContext.theory_of ctxt
-    val (vt, t) = lits_of_nodes thy full_types tfrees (Vartab.empty, []) us
-  in repair_tvar_sorts vt t end
+    fun do_type (Type (a, Ts)) = Type (a, map do_type Ts)
+      | do_type (TVar (xi, s)) =
+        TVar (xi, the_default s (Vartab.lookup tvar_tab xi))
+      | do_type (TFree z) = TFree z
+    fun do_term (Const (a, T)) = Const (a, do_type T)
+      | do_term (Free (a, T)) = Free (a, do_type T)
+      | do_term (Var (xi, T)) = Var (xi, do_type T)
+      | do_term (t as Bound _) = t
+      | do_term (Abs (a, T, t)) = Abs (a, do_type T, do_term t)
+      | do_term (t1 $ t2) = do_term t1 $ do_term t2
+  in t |> not (Vartab.is_empty tvar_tab) ? do_term end
+
+fun s_disj (t1, @{const False}) = t1
+  | s_disj p = HOLogic.mk_disj p
+
+fun quantify_over_free quant_s free_s body_t =
+  case Term.add_frees body_t [] |> filter (curry (op =) free_s o fst) of
+    [] => body_t
+  | frees as (_, free_T) :: _ =>
+    Abs (free_s, free_T, fold (curry abstract_over) (map Free frees) body_t)
+
+ (* Interpret a list of syntax trees as a clause, given by "real" literals and
+   sort constraints. Accumulates sort constraints in "tvar_tab", with "real"
+   literals in "lits". *)
+fun prop_from_formula thy full_types tfrees =
+   let
+    val do_sort_constraint =
+      add_type_constraint o type_constraint_from_formula true tfrees
+    fun do_real_literal phi =
+      case phi of
+        AQuant (_, [], phi) => do_real_literal phi
+      | AQuant (q, x :: xs, phi') =>
+        let
+          val body = do_real_literal (AQuant (q, xs, phi'))
+          val quant_s = case q of
+                          AForall => @{const_name All}
+                        | AExists => @{const_name Ex}
+        in quantify_over_free quant_s x body end
+      | AConn (ANot, [phi']) => HOLogic.mk_not (do_real_literal phi')
+      | AConn (c, [phi1, phi2]) =>
+        (phi1, phi2)
+        |> pairself do_real_literal
+        |> (case c of
+              AAnd => HOLogic.mk_conj
+            | AOr => HOLogic.mk_disj
+            | AImplies => HOLogic.mk_imp
+            | AIff => (fn (t1, t2) => HOLogic.eq_const HOLogic.boolT $ t1 $ t2))
+      | APred tm =>
+        term_from_fo_term thy full_types tfrees (SOME @{typ bool}) tm
+      | _ => raise FORMULA [phi]
+    fun do_literals (tvar_tab, t) [] = (tvar_tab, t)
+      | do_literals (tvar_tab, t) (u :: us) =
+        (do_literals (tvar_tab |> do_sort_constraint u, t) us
+         handle FO_TERM _ => raise SAME ()
+              | FORMULA _ => raise SAME ())
+        handle SAME () =>
+               do_literals (tvar_tab, s_disj (do_real_literal u, t)) us
+  in
+    repair_tvar_sorts o do_literals (Vartab.empty, HOLogic.false_const)
+    o disjuncts
+  end
+
 fun check_formula ctxt =
   Type_Infer.constrain @{typ bool}
   #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
@@ -400,13 +426,14 @@ fun check_formula ctxt =
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
   | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
 
-fun decode_line full_types tfrees (Definition (num, u, us)) ctxt =
+fun decode_line full_types tfrees (Definition (num, phi1, phi2)) ctxt =
     let
-      val t1 = clause_of_nodes ctxt full_types tfrees [u]
+      val thy = ProofContext.theory_of ctxt
+      val t1 = prop_from_formula thy full_types tfrees phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = clause_of_nodes ctxt full_types tfrees us
+      val t2 = prop_from_formula thy full_types tfrees phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term |> check_formula ctxt
@@ -415,10 +442,11 @@ fun decode_line full_types tfrees (Definition (num, u, us)) ctxt =
       (Definition (num, t1, t2),
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
-  | decode_line full_types tfrees (Inference (num, us, deps)) ctxt =
+  | decode_line full_types tfrees (Inference (num, u, deps)) ctxt =
     let
-      val t = us |> clause_of_nodes ctxt full_types tfrees
-                 |> unskolemize_term |> uncombine_term |> check_formula ctxt
+      val thy = ProofContext.theory_of ctxt
+      val t = u |> prop_from_formula thy full_types tfrees
+                |> unskolemize_term |> uncombine_term |> check_formula ctxt
     in
       (Inference (num, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
@@ -507,11 +535,10 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
 
 (** EXTRACTING LEMMAS **)
 
-(* A list consisting of the first number in each line is returned.
-   TSTP: Interesting lines have the form "fof(108, axiom, ...)", where the
-   number (108) is extracted.
-   SPASS: Lines have the form "108[0:Inp] ...", where the first number (108) is
-   extracted. *)
+(* A list consisting of the first number in each line is returned. For TSTP,
+   interesting lines have the form "fof(108, axiom, ...)", where the number
+   (108) is extracted. For SPASS, lines have the form "108[0:Inp] ...", where
+   the first number (108) is extracted. *)
 fun extract_formula_numbers_in_atp_proof atp_proof =
   let
     val tokens_of = String.tokens (not o Char.isAlphaNum)
@@ -613,7 +640,7 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
                          atp_proof conjecture_shape thm_names params frees =
   let
     val lines =
-      atp_proof ^ "$" (* the $ sign acts as a sentinel *)
+      atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: pick it up) *)
       |> parse_proof pool
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
@@ -674,7 +701,7 @@ fun case_split_qualifiers proofs =
   | 1 => [Then]
   | _ => [Ultimately]
 
-fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
+fun redirect_proof conjecture_shape hyp_ts concl_t proof =
   let
     (* The first pass outputs those steps that are independent of the negated
        conjecture. The second pass flips the proof by contradiction to obtain a
@@ -733,9 +760,9 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                            (proof, assums,
                             patches |>> cons (contra_l, (l :: co_ls, ss)))
                |>> cons (if member (op =) (fst (snd patches)) l then
-                           Assume (l, negate_term thy t)
+                           Assume (l, negate_term t)
                          else
-                           Have (qs, l, negate_term thy t,
+                           Have (qs, l, negate_term t,
                                  ByMetis (backpatch_label patches l)))
            | (contra_ls as _ :: _, co_ls) =>
              let
@@ -756,7 +783,7 @@ fun redirect_proof thy conjecture_shape hyp_ts concl_t proof =
                            end) contra_ls
                val (assumes, facts) =
                  if member (op =) (fst (snd patches)) l then
-                   ([Assume (l, negate_term thy t)], (l :: co_ls, ss))
+                   ([Assume (l, negate_term t)], (l :: co_ls, ss))
                  else
                    ([], (co_ls, ss))
              in
@@ -938,7 +965,6 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
                     (other_params as (full_types, _, atp_proof, thm_names, goal,
                                       i)) =
   let
-    val thy = ProofContext.theory_of ctxt
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
@@ -948,7 +974,7 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
       case proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
                                 atp_proof conjecture_shape thm_names params
                                 frees
-           |> redirect_proof thy conjecture_shape hyp_ts concl_t
+           |> redirect_proof conjecture_shape hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof
            |> kill_useless_labels_in_proof
