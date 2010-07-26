@@ -16,7 +16,8 @@ sig
     Proof.context -> thm list -> Facts.ref -> string * thm list
   val relevant_facts :
     bool -> real -> real -> bool -> int -> bool -> relevance_override
-    -> Proof.context * (thm list * 'a) -> thm list -> (string * thm) list
+    -> Proof.context * (thm list * 'a) -> term list -> term
+    -> (string * thm) list
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
@@ -148,9 +149,8 @@ fun get_consts_typs thy pos ts =
         do_term t0 #> do_formula pos t1  (* theory constant *)
       | _ => do_term t
   in
-    Symtab.empty
-    |> fold (Symtab.update o rpair []) boring_natural_consts
-    |> fold (do_formula pos) ts
+    Symtab.empty |> fold (Symtab.update o rpair []) boring_natural_consts
+                 |> fold (do_formula pos) ts
   end
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
@@ -343,7 +343,7 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
 
 fun relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
-                     thy axioms goals =
+                     thy axioms goal_ts =
   if relevance_threshold > 1.0 then
     []
   else if relevance_threshold < 0.0 then
@@ -352,7 +352,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
     let
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
                            Symtab.empty
-      val goal_const_tab = get_consts_typs thy (SOME true) goals
+      val goal_const_tab = get_consts_typs thy (SOME true) goal_ts
       val relevance_threshold = 0.9 * relevance_threshold (* FIXME *)
       val _ =
         trace_msg (fn () => "Initial constants: " ^
@@ -563,12 +563,14 @@ fun is_dangerous_term _ @{prop True} = true
 fun relevant_facts full_types relevance_threshold relevance_convergence
                    defs_relevant max_new theory_relevant
                    (relevance_override as {add, del, only})
-                   (ctxt, (chained_ths, _)) goal_cls =
+                   (ctxt, (chained_ths, _)) hyp_ts concl_t =
   let
     val thy = ProofContext.theory_of ctxt
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val has_override = not (null add) orelse not (null del)
-    val is_FO = forall (Meson.is_fol_term thy o prop_of) goal_cls
+(*###
+    val is_FO = forall Meson.is_fol_term thy (concl_t :: hyp_ts)
+*)
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (map (name_thms_pair_from_ref ctxt chained_ths) add @
@@ -581,7 +583,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
-                     thy axioms (map prop_of goal_cls)
+                     thy axioms (concl_t :: hyp_ts)
     |> has_override ? make_unique
     |> sort_wrt fst
   end

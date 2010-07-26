@@ -76,7 +76,7 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
 fun string_for_formula (AQuant (q, xs, phi)) =
-    string_for_quantifier q ^ " [" ^ commas xs ^ "] : " ^
+    string_for_quantifier q ^ "[" ^ commas xs ^ "]: " ^
     string_for_formula phi
   | string_for_formula (AConn (c, [phi])) =
     string_for_connective c ^ " " ^ string_for_formula phi

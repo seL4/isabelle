@@ -115,13 +115,6 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure MalformedOutput = "Error: The ATP output is malformed."
   | string_for_failure UnknownError = "Error: An unknown ATP error occurred."
 
-fun shape_of_clauses _ [] = []
-  | shape_of_clauses j ([] :: clauses) = [] :: shape_of_clauses j clauses
-  | shape_of_clauses j ((_ :: lits) :: clauses) =
-    let val shape = shape_of_clauses (j + 1) (lits :: clauses) in
-      (j :: hd shape) :: tl shape
-    end
-
 
 (* Clause preparation *)
 
@@ -133,24 +126,42 @@ fun make_clause_table xs =
 fun subtract_cls ax_clauses =
   filter_out (Termtab.defined (make_clause_table ax_clauses) o prop_of)
 
-(* FIXME: kill *)
-fun mk_anot phi = AConn (ANot, [phi])
-fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
+fun combformula_for_prop thy =
+  let
+    val do_term = combterm_from_term thy
+    fun do_quant bs q s T t' =
+      do_formula ((s, T) :: bs) t'
+      #>> (fn phi => AQuant (q, [`make_bound_var s], phi))
+    and do_conn bs c t1 t2 =
+      do_formula bs t1 ##>> do_formula bs t2
+      #>> (fn (phi1, phi2) => AConn (c, [phi1, phi2]))
+    and do_formula bs t =
+      case t of
+        @{const Trueprop} $ t1 => do_formula bs t1
+      | @{const Not} $ t1 =>
+        do_formula bs t1 #>> (fn phi => AConn (ANot, [phi]))
+      | Const (@{const_name All}, _) $ Abs (s, T, t') =>
+        do_quant bs AForall s T t'
+      | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
+        do_quant bs AExists s T t'
+      | @{const "op &"} $ t1 $ t2 => do_conn bs AAnd t1 t2
+      | @{const "op |"} $ t1 $ t2 => do_conn bs AOr t1 t2
+      | @{const "op -->"} $ t1 $ t2 => do_conn bs AImplies t1 t2
+      | Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
+        do_conn bs AIff t1 t2
+      | _ => (fn ts => do_term bs (Envir.eta_contract t)
+                       |>> APred ||> union (op =) ts)
+  in do_formula [] end
 
 (* making axiom and conjecture clauses *)
-fun make_clause thy (formula_id, formula_name, kind, th) skolems =
+fun make_clause thy (formula_id, formula_name, kind, t) skolems =
   let
-    val (skolems, t) = th |> prop_of |> conceal_skolem_terms formula_id skolems
-    val (lits, ctypes_sorts) = literals_of_term thy t
-    (* FIXME: avoid "literals_of_term *)
-    val combformula =
-      case lits of
-        [] => APred (CombConst (("c_False", "False"), CombType (("bool", "bool"), []), []))
-      | _ =>
-        let val phis = lits |> map (fn FOLLiteral (pos, tm) => APred tm |> not pos ? mk_anot) in
-          fold (mk_aconn AOr) (tl phis) (hd phis)
-          |> kind = Conjecture ? mk_anot
-        end
+    (* ### FIXME: introduce combinators and perform other transformations
+       previously done by Clausifier.to_nnf *)
+    val (skolems, t) =
+      t |> Object_Logic.atomize_term thy
+        |> conceal_skolem_terms formula_id skolems
+    val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
     (skolems,
      FOLFormula {formula_name = formula_name, formula_id = formula_id,
@@ -160,7 +171,7 @@ fun make_clause thy (formula_id, formula_name, kind, th) skolems =
 
 fun add_axiom_clause thy ((name, k), th) (skolems, clss) =
   let
-    val (skolems, cls) = make_clause thy (k, name, Axiom, th) skolems
+    val (skolems, cls) = make_clause thy (k, name, Axiom, prop_of th) skolems
   in (skolems, (name, cls) :: clss) end
 
 fun make_axiom_clauses thy clauses =
@@ -169,11 +180,11 @@ fun make_axiom_clauses thy clauses =
 fun make_conjecture_clauses thy =
   let
     fun aux _ _ [] = []
-      | aux n skolems (th :: ths) =
+      | aux n skolems (t :: ts) =
         let
           val (skolems, cls) =
-            make_clause thy (n, "conjecture", Conjecture, th) skolems
-        in cls :: aux (n + 1) skolems ths end
+            make_clause thy (n, "conjecture", Conjecture, t) skolems
+        in cls :: aux (n + 1) skolems ts end
   in aux 0 [] end
 
 (** Helper clauses **)
@@ -220,20 +231,24 @@ fun get_helper_clauses thy is_FO full_types conjectures axcls =
       @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
   in map snd (make_axiom_clauses thy cnfs) end
 
+fun negate_prop (@{const Trueprop} $ t) = negate_prop t
+  | negate_prop (@{const Not} $ t) = t
+  | negate_prop t = @{const Not} $ t
+
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
-fun prepare_clauses full_types goal_cls axcls extra_cls thy =
+fun prepare_clauses full_types hyp_ts concl_t axcls extra_cls thy =
   let
-    val is_FO = forall (Meson.is_fol_term thy o prop_of) goal_cls
-    val ccls = subtract_cls extra_cls goal_cls
-    val _ = app (fn th => trace_msg (fn _ => Display.string_of_thm_global thy th)) ccls
-    val ccltms = map prop_of ccls
-    and axtms = map (prop_of o snd) extra_cls
-    val subs = tfree_classes_of_terms ccltms
-    and supers = tvar_classes_of_terms axtms
-    and tycons = type_consts_of_terms thy (ccltms @ axtms)
+    val goal_t = Logic.list_implies (hyp_ts, concl_t)
+    val is_FO = Meson.is_fol_term thy goal_t
+    val _ = trace_msg (fn _ => Syntax.string_of_term_global thy goal_t)
+    val axtms = map (prop_of o snd) extra_cls
+    val subs = tfree_classes_of_terms [goal_t]
+    val supers = tvar_classes_of_terms axtms
+    val tycons = type_consts_of_terms thy (goal_t :: axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val conjectures = make_conjecture_clauses thy ccls
+    val conjectures =
+      make_conjecture_clauses thy (map negate_prop hyp_ts @ [concl_t])
     val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses thy extra_cls)
     val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses thy axcls)
     val helper_clauses =
@@ -307,20 +322,20 @@ fun generic_tptp_prover
     (* get clauses and prepare them for writing *)
     val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt;
-    val goal_clss = #1 (Clausifier.neg_conjecture_clauses ctxt th subgoal)
-    val goal_cls = List.concat goal_clss
+    (* ### FIXME: (1) preprocessing for "if" etc. *)
+    val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
     val the_filtered_clauses =
       case filtered_clauses of
         SOME fcls => fcls
       | NONE => relevant_facts full_types relevance_threshold
                     relevance_convergence defs_relevant max_axiom_clauses
                     (the_default prefers_theory_relevant theory_relevant)
-                    relevance_override goal goal_cls
+                    relevance_override goal hyp_ts concl_t
                 |> Clausifier.cnf_rules_pairs thy true
     val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
-      prepare_clauses full_types goal_cls the_axiom_clauses the_filtered_clauses
-                      thy
+      prepare_clauses full_types hyp_ts concl_t the_axiom_clauses
+                      the_filtered_clauses thy
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -387,7 +402,9 @@ fun generic_tptp_prover
           val (pool, conjecture_offset) =
             write_tptp_file thy readable_names explicit_forall full_types
                             explicit_apply probfile clauses
-          val conjecture_shape = shape_of_clauses (conjecture_offset + 1) goal_clss
+          val conjecture_shape =
+            conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
+            |> map single (* ### FIXME: get rid of "map single" *)
           val result =
             do_run false
             |> (fn (_, msecs0, _, SOME _) =>
@@ -448,8 +465,8 @@ val e_config : prover_config =
      string_of_int (to_generous_secs timeout),
    proof_delims = [tstp_proof_delims],
    known_failures =
-     [(Unprovable, "SZS status: Satisfiable"),
-      (Unprovable, "SZS status Satisfiable"),
+     [(Unprovable, "SZS status: CounterSatisfiable"),
+      (Unprovable, "SZS status CounterSatisfiable"),
       (TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded"),
       (OutOfResources,

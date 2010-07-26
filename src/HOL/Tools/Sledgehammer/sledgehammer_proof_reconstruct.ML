@@ -954,17 +954,12 @@ fun string_for_proof ctxt full_types i n =
         do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
   in do_proof end
 
-fun strip_subgoal goal i =
-  let
-    val (t, frees) = Logic.goal_params (prop_of goal) i
-    val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
-    val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
-  in (rev (map dest_Free frees), hyp_ts, concl_t) end
-
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
                     (other_params as (full_types, _, atp_proof, thm_names, goal,
                                       i)) =
   let
+    (* ### FIXME: avoid duplication with ATP_Systems -- and move strip_subgoal
+       to ATP_Systems *)
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []

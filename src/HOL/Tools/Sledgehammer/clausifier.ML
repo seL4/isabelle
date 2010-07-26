@@ -11,8 +11,6 @@ sig
   val cnf_rules_pairs :
     theory -> bool -> (string * thm) list -> ((string * int) * thm) list
   val neg_clausify: thm -> thm list
-  val neg_conjecture_clauses:
-    Proof.context -> thm -> int -> thm list list * (string * typ) list
 end;
 
 structure Clausifier : CLAUSIFIER =
@@ -222,7 +220,8 @@ fun skolem_theorem_of_def thy cheat rhs0 =
     |> Thm.varifyT_global
   end
 
-(*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
+(* Converts an Isabelle theorem (intro, elim or simp format, even higher-order)
+   into NNF. *)
 fun to_nnf th ctxt0 =
   let val th1 = th |> transform_elim |> zero_var_indexes
       val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
@@ -231,7 +230,7 @@ fun to_nnf th ctxt0 =
                     |> Meson.make_nnf ctxt
   in  (th3, ctxt)  end;
 
-(*Skolemize a named theorem, with Skolem functions as additional premises.*)
+(* Skolemize a named theorem, with Skolem functions as additional premises. *)
 fun skolemize_theorem thy cheat th =
   let
     val ctxt0 = Variable.global_thm_context th
@@ -255,6 +254,7 @@ fun cnf_axiom thy cheat = skolemize_theorem thy cheat o Thm.transfer thy
 (**** Translate a set of theorems into CNF ****)
 
 (*The combination of rev and tail recursion preserves the original order*)
+(* ### FIXME: kill "cheat" *)
 fun cnf_rules_pairs thy cheat =
   let
     fun do_one _ [] = []
@@ -279,14 +279,5 @@ val neg_clausify =
   #> Meson.make_clauses_unsorted
   #> map introduce_combinators
   #> Meson.finish_cnf
-
-fun neg_conjecture_clauses ctxt st0 n =
-  let
-    (* "Option" is thrown if the assumptions contain schematic variables. *)
-    val st = Seq.hd (neg_skolemize_tac ctxt n st0) handle Option.Option => st0
-    val ({params, prems, ...}, _) =
-      Subgoal.focus (Variable.set_body false ctxt) n st
-  in (map neg_clausify prems, map (dest_Free o term_of o #2) params) end
-
 
 end;
