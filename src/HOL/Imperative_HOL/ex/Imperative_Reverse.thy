@@ -5,7 +5,7 @@
 header {* An imperative in-place reversal on arrays *}
 
 theory Imperative_Reverse
-imports Imperative_HOL Subarray
+imports Subarray Imperative_HOL
 begin
 
 fun swap :: "'a\<Colon>heap array \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> unit Heap" where
@@ -110,6 +110,6 @@ lemma rev2_rev:
       subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elims)
   (drule sym[of "List.length (Array.get h a)"], simp)
 
-export_code rev checking SML SML_imp OCaml? OCaml_imp? Haskell? (*Scala?*)
+export_code rev checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala?
 
 end
