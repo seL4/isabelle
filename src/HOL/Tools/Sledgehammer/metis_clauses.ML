@@ -45,7 +45,7 @@ sig
   val invert_const: string -> string
   val ascii_of: string -> string
   val undo_ascii_of: string -> string
-  val strip_prefix: string -> string -> string option
+  val strip_prefix_and_undo_ascii: string -> string -> string option
   val make_schematic_var : string * int -> string
   val make_fixed_var : string -> string
   val make_schematic_type_var : string * int -> string
@@ -163,7 +163,7 @@ val undo_ascii_of = undo_ascii_aux [] o String.explode;
 
 (* If string s has the prefix s1, return the result of deleting it,
    un-ASCII'd. *)
-fun strip_prefix s1 s =
+fun strip_prefix_and_undo_ascii s1 s =
   if String.isPrefix s1 s then
     SOME (undo_ascii_of (String.extract (s, size s1, NONE)))
   else

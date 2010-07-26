@@ -11,7 +11,16 @@ sig
   type arity_clause = Metis_Clauses.arity_clause
   type fol_clause = Metis_Clauses.fol_clause
 
+  datatype 'a fo_term = ATerm of 'a * 'a fo_term list
+  datatype quantifier = AForall | AExists
+  datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
+  datatype 'a formula =
+    AQuant of quantifier * 'a list * 'a formula |
+    AConn of connective * 'a formula list |
+    APred of 'a fo_term
+
   val axiom_prefix : string
+  val conjecture_prefix : string
   val write_tptp_file :
     theory -> bool -> bool -> bool -> Path.T
     -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
@@ -30,7 +39,7 @@ open Sledgehammer_Util
 
 datatype 'a fo_term = ATerm of 'a * 'a fo_term list
 datatype quantifier = AForall | AExists
-datatype connective = ANot | AAnd | AOr | AImplies | AIff
+datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
 datatype 'a formula =
   AQuant of quantifier * 'a list * 'a formula |
   AConn of connective * 'a formula list |
@@ -51,7 +60,9 @@ fun string_for_connective ANot = "~"
   | string_for_connective AAnd = "&"
   | string_for_connective AOr = "|"
   | string_for_connective AImplies = "=>"
+  | string_for_connective AIf = "<="
   | string_for_connective AIff = "<=>"
+  | string_for_connective ANotIff = "<~>"
 fun string_for_formula (AQuant (q, xs, phi)) =
     string_for_quantifier q ^ " [" ^ commas xs ^ "] : " ^
     string_for_formula phi
@@ -141,8 +152,6 @@ val axiom_prefix = "ax_"
 val conjecture_prefix = "conj_"
 val arity_clause_prefix = "clsarity_"
 
-fun hol_ident prefix axiom_name = prefix ^ ascii_of axiom_name
-
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
 fun fo_term_for_combtyp (CombTVar name) = ATerm (name, [])
@@ -180,6 +189,7 @@ fun fo_literal_for_type_literal pos (TyLitVar (class, name)) =
 
 fun formula_for_fo_literal (pos, t) = APred t |> not pos ? mk_anot
 fun formula_for_fo_literals [] = APred (ATerm (("$false", "$false"), []))
+  | formula_for_fo_literals [lit] = formula_for_fo_literal lit
   | formula_for_fo_literals (lit :: lits) =
     AConn (AOr, [formula_for_fo_literal lit, formula_for_fo_literals lits])
 
@@ -191,7 +201,7 @@ fun formula_for_axiom full_types (FOLClause {literals, ctypes_sorts, ...}) =
 
 fun problem_line_for_axiom full_types
         (clause as FOLClause {axiom_name, kind, ...}) =
-  Fof (hol_ident axiom_prefix axiom_name, kind,
+  Fof (axiom_prefix ^ ascii_of axiom_name, kind,
        formula_for_axiom full_types clause)
 
 fun problem_line_for_class_rel_clause
@@ -214,10 +224,10 @@ fun problem_line_for_arity_clause
        |> formula_for_fo_literals)
 
 fun problem_line_for_conjecture full_types
-        (clause as FOLClause {axiom_name, kind, literals, ...}) =
-  Fof (hol_ident conjecture_prefix axiom_name, kind,
-       map (fo_literal_for_literal full_types) literals
-       |> formula_for_fo_literals |> mk_anot)
+        (clause as FOLClause {clause_id, kind, literals, ...}) =
+  Fof (conjecture_prefix ^ Int.toString clause_id,
+       kind, map (fo_literal_for_literal full_types) literals
+             |> formula_for_fo_literals |> mk_anot)
 
 fun atp_free_type_literals_for_conjecture (FOLClause {ctypes_sorts, ...}) =
   map (fo_literal_for_type_literal true) (type_literals_for_types ctypes_sorts)
@@ -269,7 +279,7 @@ fun min_arity_of thy full_types NONE s =
        16383 (* large number *)
      else if full_types then
        0
-     else case strip_prefix const_prefix s of
+     else case strip_prefix_and_undo_ascii const_prefix s of
        SOME s' => num_type_args thy (invert_const s')
      | NONE => 0)
   | min_arity_of _ _ (SOME the_const_tab) s =
@@ -364,7 +374,7 @@ fun write_tptp_file thy readable_names full_types explicit_apply file
                     (conjectures, axiom_clauses, extra_clauses, helper_clauses,
                      class_rel_clauses, arity_clauses) =
   let
-    val explicit_forall = true (* FIXME *)
+    val explicit_forall = true (* ### FIXME *)
     val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
     val class_rel_lines =
       map problem_line_for_class_rel_clause class_rel_clauses
