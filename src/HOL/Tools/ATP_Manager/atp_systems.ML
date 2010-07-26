@@ -100,7 +100,7 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
   | string_for_failure OldSpass =
     (* FIXME: Change the error message below to point to the Isabelle download
-       page once the package is there (around the Isabelle2010 release). *)
+       page once the package is there. *)
     "Warning: Sledgehammer requires a more recent version of SPASS with \
     \support for the TPTP syntax. To install it, download and untar the \
     \package \"http://isabelle.in.tum.de/~blanchet/spass-3.7.tgz\" and add the \
@@ -154,38 +154,30 @@ fun combformula_for_prop thy =
   in do_formula [] end
 
 (* making axiom and conjecture clauses *)
-fun make_clause thy (formula_id, formula_name, kind, t) skolems =
+fun make_clause thy (formula_id, formula_name, kind, t) =
   let
     (* ### FIXME: introduce combinators and perform other transformations
        previously done by Clausifier.to_nnf *)
-    val (skolems, t) =
-      t |> Object_Logic.atomize_term thy
-        |> conceal_skolem_terms formula_id skolems
+    val t = t |> Object_Logic.atomize_term thy
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
-    (skolems,
-     FOLFormula {formula_name = formula_name, formula_id = formula_id,
-                 combformula = combformula, kind = kind,
-                 ctypes_sorts = ctypes_sorts})
+    FOLFormula {formula_name = formula_name, formula_id = formula_id,
+                combformula = combformula, kind = kind,
+                ctypes_sorts = ctypes_sorts}
   end
 
-fun add_axiom_clause thy ((name, k), th) (skolems, clss) =
-  let
-    val (skolems, cls) = make_clause thy (k, name, Axiom, prop_of th) skolems
-  in (skolems, (name, cls) :: clss) end
+fun add_axiom_clause thy ((name, k), th) =
+  cons (name, make_clause thy (k, name, Axiom, prop_of th))
 
-fun make_axiom_clauses thy clauses =
-  ([], []) |> fold_rev (add_axiom_clause thy) clauses |> snd
+fun make_axiom_clauses thy clauses = fold_rev (add_axiom_clause thy) clauses []
 
 fun make_conjecture_clauses thy =
   let
-    fun aux _ _ [] = []
-      | aux n skolems (t :: ts) =
-        let
-          val (skolems, cls) =
-            make_clause thy (n, "conjecture", Conjecture, t) skolems
-        in cls :: aux (n + 1) skolems ts end
-  in aux 0 [] end
+    (* ### FIXME: kill "aux" *)
+    fun aux _ [] = []
+      | aux n (t :: ts) =
+        make_clause thy (n, "conjecture", Conjecture, t) :: aux (n + 1) ts
+  in aux 0 end
 
 (** Helper clauses **)
 
