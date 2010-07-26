@@ -153,12 +153,29 @@ fun combformula_for_prop thy =
                        |>> APred ||> union (op =) ts)
   in do_formula [] end
 
+(* Removes the lambdas from an equation of the form "t = (%x. u)" (cf.
+   "extensionalize_theorem" in "Clausifier"). *)
+fun extensionalize_term t =
+  let
+    fun aux j (Const (@{const_name "op ="}, _) $ t2 $ Abs (s, var_T, t')) =
+        let
+          val T' = fastype_of t'
+          val var_t = Var (("x", j), var_T)
+        in
+          Const (@{const_name "op ="}, T' --> T' --> HOLogic.boolT)
+            $ betapply (t2, var_t) $ subst_bound (var_t, t')
+          |> aux (j + 1)
+        end
+      | aux _ t = t
+  in aux (maxidx_of_term t + 1) t end
+
 (* making axiom and conjecture clauses *)
 fun make_clause thy (formula_id, formula_name, kind, t) =
   let
     (* ### FIXME: introduce combinators and perform other transformations
        previously done by Clausifier.to_nnf *)
     val t = t |> Object_Logic.atomize_term thy
+              |> extensionalize_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
     FOLFormula {formula_name = formula_name, formula_id = formula_id,

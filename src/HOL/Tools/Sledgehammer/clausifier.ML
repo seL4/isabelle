@@ -82,11 +82,13 @@ fun vars_of_thm th =
 
 val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
 
-(* Removes the lambdas from an equation of the form t = (%x. u). *)
-fun extensionalize th =
+(* ### FIXME: removes only one lambda? *)
+(* Removes the lambdas from an equation of the form "t = (%x. u)" (cf.
+   "extensionalize_term" in "ATP_Systems"). *)
+fun extensionalize_theorem th =
   case prop_of th of
     _ $ (Const (@{const_name "op ="}, Type (_, [Type (@{type_name fun}, _), _]))
-         $ _ $ Abs (s, _, _)) => extensionalize (th RS fun_cong_all)
+         $ _ $ Abs (s, _, _)) => extensionalize_theorem (th RS fun_cong_all)
   | _ => th
 
 fun is_quasi_lambda_free (Const (@{const_name skolem_id}, _) $ _) = true
@@ -226,7 +228,7 @@ fun to_nnf th ctxt0 =
   let val th1 = th |> transform_elim |> zero_var_indexes
       val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
       val th3 = th2 |> Conv.fconv_rule Object_Logic.atomize
-                    |> extensionalize
+                    |> extensionalize_theorem
                     |> Meson.make_nnf ctxt
   in  (th3, ctxt)  end;
 
