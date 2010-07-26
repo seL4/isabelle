@@ -211,19 +211,27 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
-fun test_goal quiet report generator_name size iterations default_T no_assms insts i assms state =
+fun test_goal quiet report generator_name size iterations default_Ts no_assms insts i state =
   let
-    val ctxt = Proof.context_of state;
+    val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
     fun strip (Const ("all", _) $ Abs (_, _, t)) = strip t
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val gi' = Logic.list_implies (if no_assms then [] else assms,
-                                  subst_bounds (frees, strip gi))
-    val inst_goals = map (fn T =>
-      Term (monomorphic_term thy insts T gi |> Object_Logic.atomize_term thy)
-        handle WELLSORTED s => Wellsorted_Error s) default_T
+    val some_locale = case (#target o Theory_Target.peek) lthy
+     of "" => NONE
+      | locale => SOME locale;
+    val assms = if no_assms then [] else case some_locale
+     of NONE => Assumption.all_assms_of lthy
+      | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
+    val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
+    val check_goals = case some_locale
+     of NONE => [proto_goal]
+      | SOME locale => map (fn phi => Morphism.term phi proto_goal) (Locale.get_registrations thy locale);
+    val inst_goals = maps (fn check_goal => map (fn T =>
+      Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
+        handle WELLSORTED s => Wellsorted_Error s) default_Ts) check_goals
     val error_msg = cat_lines (map_filter (fn Term t => NONE | Wellsorted_Error s => SOME s) inst_goals)
     val correct_inst_goals =
       case map_filter (fn Term t => SOME t | Wellsorted_Error s => NONE) inst_goals of
@@ -235,7 +243,7 @@ fun test_goal quiet report generator_name size iterations default_T no_assms ins
         case f t of
           (SOME res, report) => (SOME res, rev (report :: reports))
         | (NONE, report) => collect_results f (report :: reports) ts
-  in collect_results (gen_test_term ctxt quiet report generator_name size iterations) [] correct_inst_goals end;
+  in collect_results (gen_test_term lthy quiet report generator_name size iterations) [] correct_inst_goals end;
 
 (* pretty printing *)
 
@@ -281,11 +289,10 @@ fun auto_quickcheck state =
   else
     let
       val ctxt = Proof.context_of state;
-      val assms = map term_of (Assumption.all_assms_of ctxt);
       val Test_Params {size, iterations, default_type, no_assms, ...} =
         (snd o Data.get o Proof.theory_of) state;
       val res =
-        try (test_goal true false NONE size iterations default_type no_assms [] 1 assms) state;
+        try (test_goal true false NONE size iterations default_type no_assms [] 1) state;
     in
       case res of
         NONE => (false, state)
@@ -351,15 +358,14 @@ fun gen_quickcheck args i state =
   let
     val thy = Proof.theory_of state;
     val ctxt = Proof.context_of state;
-    val assms = map term_of (Assumption.all_assms_of ctxt);
     val default_params = (dest_test_params o snd o Data.get) thy;
     val f = fold (parse_test_param_inst ctxt) args;
     val (((size, iterations), ((default_type, no_assms), ((expect, report), quiet))), (generator_name, insts)) =
       f (default_params, (NONE, []));
   in
-    test_goal quiet report generator_name size iterations default_type no_assms insts i assms state
+    test_goal quiet report generator_name size iterations default_type no_assms insts i state
     |> tap (fn (SOME x, _) => if expect = No_Counterexample then
-                 error ("quickcheck expect to find no counterexample but found one") else ()
+                 error ("quickcheck expected to find no counterexample but found one") else ()
              | (NONE, _) => if expect = Counterexample then
                  error ("quickcheck expected to find a counterexample but did not find one") else ())
   end;
