@@ -153,8 +153,10 @@ fun get_theory name =
 fun loaded_files name =
   (case get_deps name of
     NONE => []
-  | SOME {master, ...} => (case master of SOME (thy_path, _) => [thy_path] | NONE => [])) @
-  Thy_Load.loaded_files (get_theory name);
+  | SOME {master, ...} =>
+      (case master of
+        NONE => []
+      | SOME (thy_path, _) => thy_path :: Thy_Load.loaded_files (get_theory name)));
 
 
 
