@@ -55,8 +55,9 @@ datatype ('a, 'b) formula =
 
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
-fun mk_adisjunction [] = APred (ATerm (("$false", "$false"), []))
-  | mk_adisjunction (phi :: phis) = fold (mk_aconn AOr) phis phi
+fun mk_ahorn [] phi = phi
+  | mk_ahorn (phi :: phis) psi =
+    AConn (AImplies, [fold (mk_aconn AAnd) phis phi, psi])
 
 datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
 type 'a problem = (string * 'a problem_line list) list
@@ -178,10 +179,10 @@ fun fo_term_for_combtyp (CombTVar name) = ATerm (name, [])
   | fo_term_for_combtyp (CombType (name, tys)) =
     ATerm (name, map fo_term_for_combtyp tys)
 
-fun fo_literal_for_type_literal pos (TyLitVar (class, name)) =
-    (pos, ATerm (class, [ATerm (name, [])]))
-  | fo_literal_for_type_literal pos (TyLitFree (class, name)) =
-    (pos, ATerm (class, [ATerm (name, [])]))
+fun fo_literal_for_type_literal (TyLitVar (class, name)) =
+    (true, ATerm (class, [ATerm (name, [])]))
+  | fo_literal_for_type_literal (TyLitFree (class, name)) =
+    (true, ATerm (class, [ATerm (name, [])]))
 
 fun formula_for_fo_literal (pos, t) = APred t |> not pos ? mk_anot
 
@@ -215,10 +216,9 @@ fun formula_for_combformula full_types =
   in aux end
 
 fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
-  formula_for_combformula full_types combformula ::
-  map (formula_for_fo_literal o fo_literal_for_type_literal false)
-      (type_literals_for_types ctypes_sorts)
-  |> mk_adisjunction
+  mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
+                (type_literals_for_types ctypes_sorts))
+           (formula_for_combformula full_types combformula)
 
 fun problem_line_for_axiom full_types
         (formula as FOLFormula {formula_name, kind, ...}) =
@@ -241,23 +241,24 @@ fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
 fun problem_line_for_arity_clause
         (ArityClause {axiom_name, conclLit, premLits, ...}) =
   Fof (arity_clause_prefix ^ ascii_of axiom_name, Axiom,
-       conclLit :: premLits
-       |> map (formula_for_fo_literal o fo_literal_for_arity_literal)
-       |> mk_adisjunction)
+       mk_ahorn (map (formula_for_fo_literal o apfst not
+                      o fo_literal_for_arity_literal) premLits)
+                (formula_for_fo_literal
+                     (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
         (FOLFormula {formula_name, kind, combformula, ...}) =
   Fof (conjecture_prefix ^ formula_name, kind,
        formula_for_combformula full_types combformula)
 
-fun atp_free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
-  map (fo_literal_for_type_literal true) (type_literals_for_types ctypes_sorts)
+fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
+  map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
   Fof ("tfree_tcs", Conjecture, formula_for_fo_literal lit)
 fun problem_lines_for_free_types conjectures =
   let
-    val litss = map atp_free_type_literals_for_conjecture conjectures
+    val litss = map free_type_literals_for_conjecture conjectures
     val lits = fold (union (op =)) litss []
   in map problem_line_for_free_type lits end
 
