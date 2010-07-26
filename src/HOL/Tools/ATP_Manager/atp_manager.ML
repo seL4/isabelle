@@ -47,7 +47,6 @@ sig
      filtered_clauses: ((string * int) * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
-  exception TRIVIAL of unit
 
   val kill_atps: unit -> unit
   val running_atps: unit -> unit
@@ -119,9 +118,6 @@ type prover_result =
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result
 
-(* Trivial problem, which resolution cannot handle (empty clause) *)
-exception TRIVIAL of unit
-
 (* named provers *)
 
 structure Data = Theory_Data
@@ -168,8 +164,7 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
                  filtered_clauses = NONE}
             in
               prover params (minimize_command name) timeout problem |> #message
-              handle TRIVIAL () => metis_line full_types i n []
-                   | ERROR message => "Error: " ^ message ^ "\n"
+              handle ERROR message => "Error: " ^ message ^ "\n"
             end)
   end
 

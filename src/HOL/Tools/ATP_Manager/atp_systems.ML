@@ -52,7 +52,8 @@ type prover_config =
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
    max_axiom_clauses: int,
-   prefers_theory_relevant: bool};
+   prefers_theory_relevant: bool,
+   explicit_forall: bool}
 
 
 (* basic template *)
@@ -132,33 +133,35 @@ fun make_clause_table xs =
 fun subtract_cls ax_clauses =
   filter_out (Termtab.defined (make_clause_table ax_clauses) o prop_of)
 
-fun is_false_literal (FOLLiteral (pos, CombConst ((c, _), _, _))) =
-    c = (if pos then "c_False" else "c_True")
-  | is_false_literal _ = false
-fun is_true_literal (FOLLiteral (pol, CombConst ((c, _), _, _))) =
-      (pol andalso c = "c_True") orelse
-      (not pol andalso c = "c_False")
-  | is_true_literal _ = false;
-fun is_tautology (FOLClause {literals,...}) = exists is_true_literal literals
+(* FIXME: kill *)
+fun mk_anot phi = AConn (ANot, [phi])
+fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 
 (* making axiom and conjecture clauses *)
-fun make_clause thy (clause_id, axiom_name, kind, th) skolems =
+fun make_clause thy (formula_id, formula_name, kind, th) skolems =
   let
-    val (skolems, t) = th |> prop_of |> conceal_skolem_terms clause_id skolems
+    val (skolems, t) = th |> prop_of |> conceal_skolem_terms formula_id skolems
     val (lits, ctypes_sorts) = literals_of_term thy t
+    (* FIXME: avoid "literals_of_term *)
+    val combformula =
+      case lits of
+        [] => APred (CombConst (("c_False", "False"), CombType (("bool", "bool"), []), []))
+      | _ =>
+        let val phis = lits |> map (fn FOLLiteral (pos, tm) => APred tm |> not pos ? mk_anot) in
+          fold (mk_aconn AOr) (tl phis) (hd phis)
+          |> kind = Conjecture ? mk_anot
+        end
   in
-    if forall is_false_literal lits then
-      raise TRIVIAL ()
-    else
-      (skolems,
-       FOLClause {clause_id = clause_id, axiom_name = axiom_name, th = th,
-                  kind = kind, literals = lits, ctypes_sorts = ctypes_sorts})
+    (skolems,
+     FOLFormula {formula_name = formula_name, formula_id = formula_id,
+                 combformula = combformula, kind = kind,
+                 ctypes_sorts = ctypes_sorts})
   end
 
 fun add_axiom_clause thy ((name, k), th) (skolems, clss) =
   let
     val (skolems, cls) = make_clause thy (k, name, Axiom, th) skolems
-  in (skolems, clss |> not (is_tautology cls) ? cons (name, cls)) end
+  in (skolems, (name, cls) :: clss) end
 
 fun make_axiom_clauses thy clauses =
   ([], []) |> fold_rev (add_axiom_clause thy) clauses |> snd
@@ -175,12 +178,15 @@ fun make_conjecture_clauses thy =
 
 (** Helper clauses **)
 
-fun count_combterm (CombConst ((c, _), _, _)) =
-    Symtab.map_entry c (Integer.add 1)
+fun count_combterm (CombConst ((s, _), _, _)) =
+    Symtab.map_entry s (Integer.add 1)
   | count_combterm (CombVar _) = I
-  | count_combterm (CombApp (t1, t2)) = count_combterm t1 #> count_combterm t2
-fun count_literal (FOLLiteral (_, t)) = count_combterm t
-fun count_clause (FOLClause {literals, ...}) = fold count_literal literals
+  | count_combterm (CombApp (t1, t2)) = fold count_combterm [t1, t2]
+fun count_combformula (AQuant (_, _, phi)) = count_combformula phi
+  | count_combformula (AConn (_, phis)) = fold count_combformula phis
+  | count_combformula (APred tm) = count_combterm tm
+fun count_fol_formula (FOLFormula {combformula, ...}) =
+  count_combformula combformula
 
 fun cnf_helper_thms thy raw =
   map (`Thm.get_name_hint)
@@ -202,7 +208,8 @@ val init_counters =
 fun get_helper_clauses thy is_FO full_types conjectures axcls =
   let
     val axclauses = map snd (make_axiom_clauses thy axcls)
-    val ct = fold (fold count_clause) [conjectures, axclauses] init_counters
+    val ct = fold (fold count_fol_formula) [conjectures, axclauses]
+                  init_counters
     fun is_needed c = the (Symtab.lookup ct c) > 0
     val cnfs =
       (optional_helpers
@@ -289,7 +296,7 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 fun generic_tptp_prover
         (name, {home_var, executable, arguments, proof_delims, known_failures,
-                max_axiom_clauses, prefers_theory_relevant})
+                max_axiom_clauses, prefers_theory_relevant, explicit_forall})
         ({debug, overlord, full_types, explicit_apply, relevance_threshold,
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
           isar_shrink_factor, ...} : params)
@@ -378,8 +385,8 @@ fun generic_tptp_prover
             in (output, msecs, proof, outcome) end
           val readable_names = debug andalso overlord
           val (pool, conjecture_offset) =
-            write_tptp_file thy readable_names full_types explicit_apply
-                            probfile clauses
+            write_tptp_file thy readable_names explicit_forall full_types
+                            explicit_apply probfile clauses
           val conjecture_shape = shape_of_clauses (conjecture_offset + 1) goal_clss
           val result =
             do_run false
@@ -450,7 +457,8 @@ val e_config : prover_config =
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
    max_axiom_clauses = 100,
-   prefers_theory_relevant = false}
+   prefers_theory_relevant = false,
+   explicit_forall = false}
 val e = tptp_prover "e" e_config
 
 
@@ -474,7 +482,8 @@ val spass_config : prover_config =
       (MalformedInput, "Free Variable"),
       (OldSpass, "tptp2dfg")],
    max_axiom_clauses = 40,
-   prefers_theory_relevant = true}
+   prefers_theory_relevant = true,
+   explicit_forall = true}
 val spass = tptp_prover "spass" spass_config
 
 (* Vampire *)
@@ -495,7 +504,8 @@ val vampire_config : prover_config =
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found")],
    max_axiom_clauses = 60,
-   prefers_theory_relevant = false}
+   prefers_theory_relevant = false,
+   explicit_forall = false}
 val vampire = tptp_prover "vampire" vampire_config
 
 (* Remote prover invocation via SystemOnTPTP *)
@@ -528,7 +538,8 @@ val remote_known_failures =
 
 fun remote_config atp_prefix args
         ({proof_delims, known_failures, max_axiom_clauses,
-          prefers_theory_relevant, ...} : prover_config) : prover_config =
+          prefers_theory_relevant, explicit_forall, ...} : prover_config)
+        : prover_config =
   {home_var = "ISABELLE_ATP_MANAGER",
    executable = "SystemOnTPTP",
    arguments = fn _ => fn timeout =>
@@ -537,7 +548,8 @@ fun remote_config atp_prefix args
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures = remote_known_failures @ known_failures,
    max_axiom_clauses = max_axiom_clauses,
-   prefers_theory_relevant = prefers_theory_relevant}
+   prefers_theory_relevant = prefers_theory_relevant,
+   explicit_forall = explicit_forall}
 
 fun remote_tptp_prover prover atp_prefix args config =
   tptp_prover (remotify (fst prover)) (remote_config atp_prefix args config)

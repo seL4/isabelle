@@ -100,7 +100,7 @@ fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis.Term.Var s, ty)
       wrap_type (Metis.Term.Fn(fn_isa_to_met a, []), ty)
   | hol_term_to_fol_FT (tm as CombApp(tm1,tm2)) =
        wrap_type (Metis.Term.Fn(".", map hol_term_to_fol_FT [tm1,tm2]),
-                  type_of_combterm tm);
+                  combtyp_of tm)
 
 fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
       let val (CombConst((p, _), _, tys), tms) = strip_combterm_comb tm

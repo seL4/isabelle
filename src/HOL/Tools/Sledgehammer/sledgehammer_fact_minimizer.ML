@@ -126,8 +126,7 @@ fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
                \option (e.g., \"timeout = " ^
                string_of_int (10 + msecs div 1000) ^ " s\").")
     | {message, ...} => (NONE, "ATP error: " ^ message))
-    handle TRIVIAL () => (SOME [], metis_line full_types i n [])
-         | ERROR msg => (NONE, "Error: " ^ msg)
+    handle ERROR msg => (NONE, "Error: " ^ msg)
   end
 
 end;

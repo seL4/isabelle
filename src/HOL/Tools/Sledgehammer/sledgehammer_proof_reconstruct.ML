@@ -202,7 +202,7 @@ fun parse_proof pool =
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
 exception FO_TERM of string fo_term list
-exception FORMULA of string formula list
+exception FORMULA of (string, string fo_term) formula list
 exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be

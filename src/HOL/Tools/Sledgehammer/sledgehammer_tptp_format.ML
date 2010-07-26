@@ -7,23 +7,32 @@ TPTP syntax.
 
 signature SLEDGEHAMMER_TPTP_FORMAT =
 sig
+  type name = Metis_Clauses.name
+  type kind = Metis_Clauses.kind
+  type combterm = Metis_Clauses.combterm
   type class_rel_clause = Metis_Clauses.class_rel_clause
   type arity_clause = Metis_Clauses.arity_clause
-  type fol_clause = Metis_Clauses.fol_clause
 
   datatype 'a fo_term = ATerm of 'a * 'a fo_term list
   datatype quantifier = AForall | AExists
   datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
-  datatype 'a formula =
-    AQuant of quantifier * 'a list * 'a formula |
-    AConn of connective * 'a formula list |
-    APred of 'a fo_term
+  datatype ('a, 'b) formula =
+    AQuant of quantifier * 'a list * ('a, 'b) formula |
+    AConn of connective * ('a, 'b) formula list |
+    APred of 'b
+
+  datatype fol_formula =
+    FOLFormula of {formula_name: string,
+                   formula_id: int,
+                   kind: kind,
+                   combformula: (name, combterm) formula,
+                   ctypes_sorts: typ list}
 
   val axiom_prefix : string
   val conjecture_prefix : string
   val write_tptp_file :
     theory -> bool -> bool -> bool -> bool -> Path.T
-    -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
+    -> fol_formula list * fol_formula list * fol_formula list * fol_formula list
        * class_rel_clause list * arity_clause list
     -> string Symtab.table * int
 end;
@@ -40,14 +49,17 @@ open Sledgehammer_Util
 datatype 'a fo_term = ATerm of 'a * 'a fo_term list
 datatype quantifier = AForall | AExists
 datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
-datatype 'a formula =
-  AQuant of quantifier * 'a list * 'a formula |
-  AConn of connective * 'a formula list |
-  APred of 'a fo_term
+datatype ('a, 'b) formula =
+  AQuant of quantifier * 'a list * ('a, 'b) formula |
+  AConn of connective * ('a, 'b) formula list |
+  APred of 'b
 
 fun mk_anot phi = AConn (ANot, [phi])
+fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
+fun mk_adisjunction [] = APred (ATerm (("$false", "$false"), []))
+  | mk_adisjunction (phi :: phis) = fold (mk_aconn AOr) phis phi
 
-datatype 'a problem_line = Fof of string * kind * 'a formula
+datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
 type 'a problem = (string * 'a problem_line list) list
 
 fun string_for_term (ATerm (s, [])) = s
@@ -148,6 +160,13 @@ fun nice_problem problem =
 
 (** Sledgehammer stuff **)
 
+datatype fol_formula =
+  FOLFormula of {formula_name: string,
+                 formula_id: int,
+                 kind: kind,
+                 combformula: (name, combterm) formula,
+                 ctypes_sorts: typ list}
+
 val axiom_prefix = "ax_"
 val conjecture_prefix = "conj_"
 val arity_clause_prefix = "clsarity_"
@@ -159,50 +178,52 @@ fun fo_term_for_combtyp (CombTVar name) = ATerm (name, [])
   | fo_term_for_combtyp (CombType (name, tys)) =
     ATerm (name, map fo_term_for_combtyp tys)
 
-fun fo_term_for_combterm full_types top_level u =
-  let
-    val (head, args) = strip_combterm_comb u
-    val (x, ty_args) =
-      case head of
-        CombConst (name, _, ty_args) =>
-        if fst name = "equal" then
-          (if top_level andalso length args = 2 then name
-           else ("c_fequal", @{const_name fequal}), [])
-        else
-          (name, if full_types then [] else ty_args)
-      | CombVar (name, _) => (name, [])
-      | CombApp _ => raise Fail "impossible \"CombApp\""
-    val t = ATerm (x, map fo_term_for_combtyp ty_args @
-                      map (fo_term_for_combterm full_types false) args)
-  in
-    if full_types then wrap_type (fo_term_for_combtyp (type_of_combterm u)) t
-    else t
-  end
-
-fun fo_literal_for_literal full_types (FOLLiteral (pos, t)) =
-  (pos, fo_term_for_combterm full_types true t)
-
 fun fo_literal_for_type_literal pos (TyLitVar (class, name)) =
     (pos, ATerm (class, [ATerm (name, [])]))
   | fo_literal_for_type_literal pos (TyLitFree (class, name)) =
     (pos, ATerm (class, [ATerm (name, [])]))
 
 fun formula_for_fo_literal (pos, t) = APred t |> not pos ? mk_anot
-fun formula_for_fo_literals [] = APred (ATerm (("$false", "$false"), []))
-  | formula_for_fo_literals [lit] = formula_for_fo_literal lit
-  | formula_for_fo_literals (lit :: lits) =
-    AConn (AOr, [formula_for_fo_literal lit, formula_for_fo_literals lits])
 
-fun formula_for_axiom full_types (FOLClause {literals, ctypes_sorts, ...}) =
-  map (fo_literal_for_literal full_types) literals @
-  map (fo_literal_for_type_literal false)
+fun fo_term_for_combterm full_types =
+  let
+    fun aux top_level u =
+      let
+        val (head, args) = strip_combterm_comb u
+        val (x, ty_args) =
+          case head of
+            CombConst (name, _, ty_args) =>
+            if fst name = "equal" then
+              (if top_level andalso length args = 2 then name
+               else ("c_fequal", @{const_name fequal}), [])
+            else
+              (name, if full_types then [] else ty_args)
+          | CombVar (name, _) => (name, [])
+          | CombApp _ => raise Fail "impossible \"CombApp\""
+        val t = ATerm (x, map fo_term_for_combtyp ty_args @
+                          map (aux false) args)
+    in
+      if full_types then wrap_type (fo_term_for_combtyp (combtyp_of u)) t else t
+    end
+  in aux true end
+
+fun formula_for_combformula full_types =
+  let
+    fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
+      | aux (AConn (c, phis)) = AConn (c, map aux phis)
+      | aux (APred tm) = APred (fo_term_for_combterm full_types tm)
+  in aux end
+
+fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
+  formula_for_combformula full_types combformula ::
+  map (formula_for_fo_literal o fo_literal_for_type_literal false)
       (type_literals_for_types ctypes_sorts)
-  |> formula_for_fo_literals
+  |> mk_adisjunction
 
 fun problem_line_for_axiom full_types
-        (clause as FOLClause {axiom_name, kind, ...}) =
-  Fof (axiom_prefix ^ ascii_of axiom_name, kind,
-       formula_for_axiom full_types clause)
+        (formula as FOLFormula {formula_name, kind, ...}) =
+  Fof (axiom_prefix ^ ascii_of formula_name, kind,
+       formula_for_axiom full_types formula)
 
 fun problem_line_for_class_rel_clause
         (ClassRelClause {axiom_name, subclass, superclass, ...}) =
@@ -220,16 +241,16 @@ fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
 fun problem_line_for_arity_clause
         (ArityClause {axiom_name, conclLit, premLits, ...}) =
   Fof (arity_clause_prefix ^ ascii_of axiom_name, Axiom,
-       map fo_literal_for_arity_literal (conclLit :: premLits)
-       |> formula_for_fo_literals)
+       conclLit :: premLits
+       |> map (formula_for_fo_literal o fo_literal_for_arity_literal)
+       |> mk_adisjunction)
 
 fun problem_line_for_conjecture full_types
-        (clause as FOLClause {clause_id, kind, literals, ...}) =
-  Fof (conjecture_prefix ^ Int.toString clause_id,
-       kind, map (fo_literal_for_literal full_types) literals
-             |> formula_for_fo_literals |> mk_anot)
+        (FOLFormula {formula_id, kind, combformula, ...}) =
+  Fof (conjecture_prefix ^ Int.toString formula_id, kind,
+       formula_for_combformula full_types combformula)
 
-fun atp_free_type_literals_for_conjecture (FOLClause {ctypes_sorts, ...}) =
+fun atp_free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
   map (fo_literal_for_type_literal true) (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
