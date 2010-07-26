@@ -220,8 +220,8 @@ fun introduce_combinators_in_term thy t =
 (* making axiom and conjecture clauses *)
 fun make_clause thy (formula_id, formula_name, kind, t) =
   let
-    (* ### FIXME: introduce combinators and perform other transformations
-       previously done by Clausifier.to_nnf *)
+    (* ### FIXME: perform other transformations previously done by
+       "Clausifier.to_nnf", e.g. "HOL.If" *)
     val t = t |> transform_elim_term
               |> Object_Logic.atomize_term thy
               |> extensionalize_term
@@ -233,8 +233,8 @@ fun make_clause thy (formula_id, formula_name, kind, t) =
                 ctypes_sorts = ctypes_sorts}
   end
 
-fun add_axiom_clause thy ((name, k), th) =
-  cons (name, make_clause thy (k, name, Axiom, prop_of th))
+fun add_axiom_clause thy (name, th) =
+  cons (name, make_clause thy (0, name, Axiom, prop_of th))
 
 fun make_axiom_clauses thy clauses = fold_rev (add_axiom_clause thy) clauses []
 
@@ -254,17 +254,13 @@ fun count_combformula (AQuant (_, _, phi)) = count_combformula phi
 fun count_fol_formula (FOLFormula {combformula, ...}) =
   count_combformula combformula
 
-fun cnf_helper_thms thy raw =
-  map (`Thm.get_name_hint)
-  #> (if raw then map (apfst (rpair 0)) else Clausifier.cnf_rules_pairs thy true)
-
 val optional_helpers =
-  [(["c_COMBI", "c_COMBK"], (false, @{thms COMBI_def COMBK_def})),
-   (["c_COMBB", "c_COMBC"], (false, @{thms COMBB_def COMBC_def})),
-   (["c_COMBS"], (false, @{thms COMBS_def}))]
+  [(["c_COMBI", "c_COMBK"], @{thms COMBI_def COMBK_def}),
+   (["c_COMBB", "c_COMBC"], @{thms COMBB_def COMBC_def}),
+   (["c_COMBS"], @{thms COMBS_def})]
 val optional_typed_helpers =
-  [(["c_True", "c_False"], (true, @{thms True_or_False})),
-   (["c_If"], (true, @{thms if_True if_False True_or_False}))]
+  [(["c_True", "c_False"], @{thms True_or_False}),
+   (["c_If"], @{thms if_True if_False True_or_False})]
 val mandatory_helpers = @{thms fequal_imp_equal equal_imp_fequal}
 
 val init_counters =
@@ -280,14 +276,14 @@ fun get_helper_clauses thy is_FO full_types conjectures axcls =
     val cnfs =
       (optional_helpers
        |> full_types ? append optional_typed_helpers
-       |> maps (fn (ss, (raw, ths)) =>
-                   if exists is_needed ss then cnf_helper_thms thy raw ths
-                   else []))
-      @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
+       |> maps (fn (ss, ths) =>
+                   if exists is_needed ss then map (`Thm.get_name_hint) ths
+                   else [])) @
+      (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
   in map snd (make_axiom_clauses thy cnfs) end
 
-fun negate_term (@{const Not} $ t) = t
-  | negate_term t = @{const Not} $ t
+fun s_not (@{const Not} $ t) = t
+  | s_not t = @{const Not} $ t
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
@@ -300,9 +296,8 @@ fun prepare_clauses full_types hyp_ts concl_t axcls extra_cls thy =
     val subs = tfree_classes_of_terms [goal_t]
     val supers = tvar_classes_of_terms axtms
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
-    (*TFrees in conjecture clauses; TVars in axiom clauses*)
-    val conjectures =
-      make_conjecture_clauses thy (map negate_term hyp_ts @ [concl_t])
+    (* TFrees in conjecture clauses; TVars in axiom clauses *)
+    val conjectures = make_conjecture_clauses thy (map s_not hyp_ts @ [concl_t])
     val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses thy extra_cls)
     val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses thy axcls)
     val helper_clauses =
@@ -384,7 +379,6 @@ fun generic_tptp_prover
                     relevance_convergence defs_relevant max_axiom_clauses
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal hyp_ts concl_t
-                |> Clausifier.cnf_rules_pairs thy true
     val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
       prepare_clauses full_types hyp_ts concl_t the_axiom_clauses

@@ -55,13 +55,12 @@ fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
     val _ = priority ("Testing " ^ string_of_int num_theorems ^
                       " theorem" ^ plural_s num_theorems ^ "...")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
-    val axclauses = Clausifier.cnf_rules_pairs thy true name_thm_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
-      axiom_clauses = SOME axclauses,
-      filtered_clauses = SOME (the_default axclauses filtered_clauses)}
+      axiom_clauses = SOME name_thm_pairs,
+      filtered_clauses = SOME (the_default name_thm_pairs filtered_clauses)}
   in
     prover params (K "") timeout problem
     |> tap (fn result : prover_result =>

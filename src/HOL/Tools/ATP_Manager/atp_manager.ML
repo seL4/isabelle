@@ -29,8 +29,8 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: ((string * int) * thm) list option,
-     filtered_clauses: ((string * int) * thm) list option}
+     axiom_clauses: (string * thm) list option,
+     filtered_clauses: (string * thm) list option}
   datatype failure =
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
     OutOfResources | OldSpass | MalformedInput | MalformedOutput | UnknownError
@@ -44,7 +44,7 @@ sig
      proof: string,
      internal_thm_names: string Vector.vector,
      conjecture_shape: int list,
-     filtered_clauses: ((string * int) * thm) list}
+     filtered_clauses: (string * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
 
@@ -96,8 +96,8 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: ((string * int) * thm) list option,
-   filtered_clauses: ((string * int) * thm) list option}
+   axiom_clauses: (string * thm) list option,
+   filtered_clauses: (string * thm) list option}
 
 datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
@@ -113,7 +113,7 @@ type prover_result =
    proof: string,
    internal_thm_names: string Vector.vector,
    conjecture_shape: int list,
-   filtered_clauses: ((string * int) * thm) list}
+   filtered_clauses: (string * thm) list}
 
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result
