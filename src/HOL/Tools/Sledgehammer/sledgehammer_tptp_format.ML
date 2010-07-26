@@ -22,7 +22,7 @@ sig
   val axiom_prefix : string
   val conjecture_prefix : string
   val write_tptp_file :
-    theory -> bool -> bool -> bool -> Path.T
+    theory -> bool -> bool -> bool -> bool -> Path.T
     -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
        * class_rel_clause list * arity_clause list
     -> string Symtab.table * int
@@ -370,11 +370,10 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
   repair_problem_with_const_table thy explicit_forall full_types
       (const_table_for_problem explicit_apply problem) problem
 
-fun write_tptp_file thy readable_names full_types explicit_apply file
-                    (conjectures, axiom_clauses, extra_clauses, helper_clauses,
-                     class_rel_clauses, arity_clauses) =
+fun write_tptp_file thy readable_names explicit_forall full_types explicit_apply
+                    file (conjectures, axiom_clauses, extra_clauses,
+                          helper_clauses, class_rel_clauses, arity_clauses) =
   let
-    val explicit_forall = true (* ### FIXME *)
     val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
     val class_rel_lines =
       map problem_line_for_class_rel_clause class_rel_clauses
