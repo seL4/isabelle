@@ -77,6 +77,8 @@ fun string_for_connective ANot = "~"
 fun string_for_formula (AQuant (q, xs, phi)) =
     string_for_quantifier q ^ "[" ^ commas xs ^ "]: " ^
     string_for_formula phi
+  | string_for_formula (AConn (ANot, [APred (ATerm ("equal", ts))])) =
+    space_implode " != " (map string_for_term ts)
   | string_for_formula (AConn (c, [phi])) =
     string_for_connective c ^ " " ^ string_for_formula phi
   | string_for_formula (AConn (c, phis)) =

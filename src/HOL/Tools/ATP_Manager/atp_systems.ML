@@ -187,8 +187,9 @@ fun reveal_bounds Ts =
   subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
                     (0 upto length Ts - 1 ~~ Ts))
 
-fun introduce_combinators_in_term thy t =
+fun introduce_combinators_in_term ctxt kind t =
   let
+    val thy = ProofContext.theory_of ctxt
     fun aux Ts t =
       case t of
         @{const Not} $ t1 => @{const Not} $ aux Ts t1
@@ -205,37 +206,44 @@ fun introduce_combinators_in_term thy t =
       | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
                t
              else
-               t |> conceal_bounds Ts
-                 |> Envir.eta_contract
-                 |> cterm_of thy
-                 |> Clausifier.introduce_combinators_in_cterm
-                 |> prop_of |> Logic.dest_equals |> snd
-                 |> reveal_bounds Ts
-               handle THM (msg, _, _) =>
-                      (* A type variable of sort "{}" will make abstraction
-                         fail. *)
-                      t
+               let
+                 val t = t |> conceal_bounds Ts
+                           |> Envir.eta_contract
+                 val ([t], ctxt') = Variable.import_terms true [t] ctxt
+               in
+                 t |> cterm_of thy
+                   |> Clausifier.introduce_combinators_in_cterm
+                   |> singleton (Variable.export ctxt' ctxt)
+                   |> prop_of |> Logic.dest_equals |> snd
+                   |> reveal_bounds Ts
+               end
   in t |> not (Meson.is_fol_term thy t) ? aux [] end
+  handle THM _ =>
+         (* A type variable of sort "{}" will make abstraction fail. *)
+         case kind of
+           Axiom => HOLogic.true_const
+         | Conjecture => HOLogic.false_const
 
 (* making axiom and conjecture clauses *)
-fun make_clause thy (formula_name, kind, t) =
+fun make_clause ctxt (formula_name, kind, t) =
   let
+    val thy = ProofContext.theory_of ctxt
     (* ### FIXME: perform other transformations previously done by
        "Clausifier.to_nnf", e.g. "HOL.If" *)
     val t = t |> transform_elim_term
               |> Object_Logic.atomize_term thy
               |> extensionalize_term
-              |> introduce_combinators_in_term thy
+              |> introduce_combinators_in_term ctxt kind
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
     FOLFormula {formula_name = formula_name, combformula = combformula,
                 kind = kind, ctypes_sorts = ctypes_sorts}
   end
 
-fun make_axiom_clause thy (name, th) =
-  (name, make_clause thy (name, Axiom, prop_of th))
-fun make_conjecture_clauses thy ts =
-  map2 (fn j => fn t => make_clause thy (Int.toString j, Conjecture, t))
+fun make_axiom_clause ctxt (name, th) =
+  (name, make_clause ctxt (name, Axiom, prop_of th))
+fun make_conjecture_clauses ctxt ts =
+  map2 (fn j => fn t => make_clause ctxt (Int.toString j, Conjecture, t))
        (0 upto length ts - 1) ts
 
 (** Helper clauses **)
@@ -263,7 +271,7 @@ val init_counters =
   Symtab.make (maps (maps (map (rpair 0) o fst))
                     [optional_helpers, optional_typed_helpers])
 
-fun get_helper_clauses thy is_FO full_types conjectures axclauses =
+fun get_helper_clauses ctxt is_FO full_types conjectures axclauses =
   let
     val ct = fold (fold count_fol_formula) [conjectures, axclauses]
                   init_counters
@@ -275,31 +283,35 @@ fun get_helper_clauses thy is_FO full_types conjectures axclauses =
                    if exists is_needed ss then map (`Thm.get_name_hint) ths
                    else [])) @
       (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
-  in map (snd o make_axiom_clause thy) cnfs end
+  in map (snd o make_axiom_clause ctxt) cnfs end
 
 fun s_not (@{const Not} $ t) = t
   | s_not t = @{const Not} $ t
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
-fun prepare_clauses full_types hyp_ts concl_t axcls extra_cls thy =
+fun prepare_clauses ctxt full_types hyp_ts concl_t axcls extra_cls =
   let
+    val thy = ProofContext.theory_of ctxt
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
-    val _ = trace_msg (fn _ => Syntax.string_of_term_global thy goal_t)
+    val _ = trace_msg (fn _ => Syntax.string_of_term ctxt goal_t)
     val axtms = map (prop_of o snd) extra_cls
     val subs = tfree_classes_of_terms [goal_t]
     val supers = tvar_classes_of_terms axtms
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
     (* TFrees in conjecture clauses; TVars in axiom clauses *)
-    val conjectures = make_conjecture_clauses thy (map s_not hyp_ts @ [concl_t])
-    val extra_clauses = map (snd o make_axiom_clause thy) extra_cls
+    val conjectures =
+      map (s_not o HOLogic.dest_Trueprop) hyp_ts @
+        [HOLogic.dest_Trueprop concl_t]
+      |> make_conjecture_clauses ctxt
+    val extra_clauses = map (snd o make_axiom_clause ctxt) extra_cls
     val (clnames, axiom_clauses) =
-      ListPair.unzip (map (make_axiom_clause thy) axcls)
+      ListPair.unzip (map (make_axiom_clause ctxt) axcls)
     (* FIXME: Should it read "extra_clauses" or "axiom_clauses" in the
        "get_helper_clauses" call? *)
     val helper_clauses =
-      get_helper_clauses thy is_FO full_types conjectures extra_clauses
+      get_helper_clauses ctxt is_FO full_types conjectures extra_clauses
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
@@ -367,7 +379,7 @@ fun generic_tptp_prover
   let
     (* get clauses and prepare them for writing *)
     val (ctxt, (_, th)) = goal;
-    val thy = ProofContext.theory_of ctxt;
+    val thy = ProofContext.theory_of ctxt
     (* ### FIXME: (1) preprocessing for "if" etc. *)
     val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
     val the_filtered_clauses =
@@ -379,8 +391,8 @@ fun generic_tptp_prover
                     relevance_override goal hyp_ts concl_t
     val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
-      prepare_clauses full_types hyp_ts concl_t the_axiom_clauses
-                      the_filtered_clauses thy
+      prepare_clauses ctxt full_types hyp_ts concl_t the_axiom_clauses
+                      the_filtered_clauses
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"

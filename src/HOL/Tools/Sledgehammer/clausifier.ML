@@ -109,8 +109,11 @@ fun abstract ct =
       val thy = theory_of_cterm ct
       val Abs(x,_,body) = term_of ct
       val Type(@{type_name fun}, [xT,bodyT]) = typ_of (ctyp_of_term ct)
-      val cxT = ctyp_of thy xT and cbodyT = ctyp_of thy bodyT
-      fun makeK() = instantiate' [SOME cxT, SOME cbodyT] [SOME (cterm_of thy body)] @{thm abs_K}
+      val cxT = ctyp_of thy xT
+      val cbodyT = ctyp_of thy bodyT
+      fun makeK () =
+        instantiate' [SOME cxT, SOME cbodyT] [SOME (cterm_of thy body)]
+                     @{thm abs_K}
   in
       case body of
           Const _ => makeK()
