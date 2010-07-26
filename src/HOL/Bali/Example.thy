@@ -70,22 +70,21 @@ datatype tnam'  = HasFoo' | Base' | Ext' | Main'
 datatype vnam'  = arr' | vee' | z' | e'
 datatype label' = lab1'
 
-consts
-
-  tnam' :: "tnam'  \<Rightarrow> tnam"
-  vnam' :: "vnam'  \<Rightarrow> vname"
+axiomatization
+  tnam' :: "tnam'  \<Rightarrow> tnam" and
+  vnam' :: "vnam'  \<Rightarrow> vname" and
   label':: "label' \<Rightarrow> label"
-axioms  (** tnam', vnam' and label are intended to be isomorphic 
+where
+  (** tnam', vnam' and label are intended to be isomorphic 
             to tnam, vname and label **)
 
-  inj_tnam'  [simp]: "(tnam'  x = tnam'  y) = (x = y)"
-  inj_vnam'  [simp]: "(vnam'  x = vnam'  y) = (x = y)"
-  inj_label' [simp]: "(label' x = label' y) = (x = y)"
-  
-  
-  surj_tnam':  "\<exists>m. n = tnam'  m"
-  surj_vnam':  "\<exists>m. n = vnam'  m"
-  surj_label':" \<exists>m. n = label' m"
+  inj_tnam'  [simp]: "\<And>x y. (tnam'  x = tnam'  y) = (x = y)" and
+  inj_vnam'  [simp]: "\<And>x y. (vnam'  x = vnam'  y) = (x = y)" and
+  inj_label' [simp]: "\<And>x y. (label' x = label' y) = (x = y)" and
+    
+  surj_tnam':  "\<And>n. \<exists>m. n = tnam'  m" and
+  surj_vnam':  "\<And>n. \<exists>m. n = vnam'  m" and
+  surj_label':" \<And>n. \<exists>m. n = label' m"
 
 abbreviation
   HasFoo :: qtname where
@@ -149,22 +148,24 @@ defs
   Object_mdecls_def: "Object_mdecls \<equiv> []"
   SXcpt_mdecls_def:  "SXcpt_mdecls  \<equiv> []"
 
-consts
-  
+axiomatization  
   foo    :: mname
 
-definition foo_sig :: sig
- where "foo_sig   \<equiv> \<lparr>name=foo,parTs=[Class Base]\<rparr>"
+definition
+  foo_sig :: sig
+  where "foo_sig = \<lparr>name=foo,parTs=[Class Base]\<rparr>"
   
-definition foo_mhead :: mhead
- where "foo_mhead \<equiv> \<lparr>access=Public,static=False,pars=[z],resT=Class Base\<rparr>"
+definition
+  foo_mhead :: mhead
+  where "foo_mhead = \<lparr>access=Public,static=False,pars=[z],resT=Class Base\<rparr>"
 
-definition Base_foo :: mdecl
- where "Base_foo \<equiv> (foo_sig, \<lparr>access=Public,static=False,pars=[z],resT=Class Base,
+definition
+  Base_foo :: mdecl
+  where "Base_foo = (foo_sig, \<lparr>access=Public,static=False,pars=[z],resT=Class Base,
                         mbody=\<lparr>lcls=[],stmt=Return (!!z)\<rparr>\<rparr>)"
 
 definition Ext_foo :: mdecl
- where "Ext_foo  \<equiv> (foo_sig, 
+  where "Ext_foo = (foo_sig, 
               \<lparr>access=Public,static=False,pars=[z],resT=Class Ext,
                mbody=\<lparr>lcls=[]
                      ,stmt=Expr({Ext,Ext,False}Cast (Class Ext) (!!z)..vee := 
@@ -172,11 +173,13 @@ definition Ext_foo :: mdecl
                                 Return (Lit Null)\<rparr>
               \<rparr>)"
 
-definition arr_viewed_from :: "qtname \<Rightarrow> qtname \<Rightarrow> var" where
-"arr_viewed_from accC C \<equiv> {accC,Base,True}StatRef (ClassT C)..arr"
+definition
+  arr_viewed_from :: "qtname \<Rightarrow> qtname \<Rightarrow> var"
+  where "arr_viewed_from accC C = {accC,Base,True}StatRef (ClassT C)..arr"
 
-definition BaseCl :: "class" where
-"BaseCl \<equiv> \<lparr>access=Public,
+definition
+  BaseCl :: "class" where
+  "BaseCl = \<lparr>access=Public,
            cfields=[(arr, \<lparr>access=Public,static=True ,type=PrimT Boolean.[]\<rparr>),
                     (vee, \<lparr>access=Public,static=False,type=Iface HasFoo    \<rparr>)],
            methods=[Base_foo],
@@ -185,16 +188,18 @@ definition BaseCl :: "class" where
            super=Object,
            superIfs=[HasFoo]\<rparr>"
   
-definition ExtCl  :: "class" where
-"ExtCl  \<equiv> \<lparr>access=Public,
+definition
+  ExtCl  :: "class" where
+  "ExtCl = \<lparr>access=Public,
            cfields=[(vee, \<lparr>access=Public,static=False,type= PrimT Integer\<rparr>)], 
            methods=[Ext_foo],
            init=Skip,
            super=Base,
            superIfs=[]\<rparr>"
 
-definition MainCl :: "class" where
-"MainCl \<equiv> \<lparr>access=Public,
+definition
+  MainCl :: "class" where
+  "MainCl = \<lparr>access=Public,
            cfields=[], 
            methods=[], 
            init=Skip,
@@ -202,14 +207,17 @@ definition MainCl :: "class" where
            superIfs=[]\<rparr>"
 (* The "main" method is modeled seperately (see tprg) *)
 
-definition HasFooInt :: iface
- where "HasFooInt \<equiv> \<lparr>access=Public,imethods=[(foo_sig, foo_mhead)],isuperIfs=[]\<rparr>"
+definition
+  HasFooInt :: iface
+  where "HasFooInt = \<lparr>access=Public,imethods=[(foo_sig, foo_mhead)],isuperIfs=[]\<rparr>"
 
-definition Ifaces ::"idecl list"
- where "Ifaces \<equiv> [(HasFoo,HasFooInt)]"
+definition
+  Ifaces ::"idecl list"
+  where "Ifaces = [(HasFoo,HasFooInt)]"
 
-definition "Classes" ::"cdecl list"
- where "Classes \<equiv> [(Base,BaseCl),(Ext,ExtCl),(Main,MainCl)]@standard_classes"
+definition
+  "Classes" ::"cdecl list"
+  where "Classes = [(Base,BaseCl),(Ext,ExtCl),(Main,MainCl)]@standard_classes"
 
 lemmas table_classes_defs = 
      Classes_def standard_classes_def ObjectC_def SXcptC_def
@@ -264,12 +272,13 @@ abbreviation
   tprg :: prog where
   "tprg == \<lparr>ifaces=Ifaces,classes=Classes\<rparr>"
 
-definition test :: "(ty)list \<Rightarrow> stmt" where
- "test pTs \<equiv> e:==NewC Ext;; 
+definition
+  test :: "(ty)list \<Rightarrow> stmt" where
+  "test pTs = (e:==NewC Ext;; 
            \<spacespace> Try Expr({Main,ClassT Base,IntVir}!!e\<cdot>foo({pTs}[Lit Null]))
            \<spacespace> Catch((SXcpt NullPointer) z)
            (lab1\<bullet> While(Acc 
-                        (Acc (arr_viewed_from Main Ext).[Lit (Intg 2)])) Skip)"
+                        (Acc (arr_viewed_from Main Ext).[Lit (Intg 2)])) Skip))"
 
 
 section "well-structuredness"
@@ -1185,9 +1194,9 @@ ML {* bind_thms ("eval_intros", map
          rewrite_rule [@{thm assign_def}, @{thm Let_def}]) @{thms eval.intros}) *}
 lemmas eval_Is = eval_Init eval_StatRef AbruptIs eval_intros
 
-consts
-  a :: loc
-  b :: loc
+axiomatization
+  a :: loc and
+  b :: loc and
   c :: loc
 
 abbreviation "one == Suc 0"

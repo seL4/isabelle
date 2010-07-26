@@ -49,33 +49,33 @@ can for example ensure that evaluation of an expression will never end up
 with a jump, since no breaks, continues or returns are allowed in an 
 expression. *}
 
-consts jumpNestingOkS :: "jump set \<Rightarrow> stmt \<Rightarrow> bool"
-primrec
-"jumpNestingOkS jmps (Skip)   = True"
-"jumpNestingOkS jmps (Expr e) = True"
-"jumpNestingOkS jmps (j\<bullet> s) = jumpNestingOkS ({j} \<union> jmps) s"
-"jumpNestingOkS jmps (c1;;c2) = (jumpNestingOkS jmps c1 \<and> 
-                                 jumpNestingOkS jmps c2)"
-"jumpNestingOkS jmps (If(e) c1 Else c2) = (jumpNestingOkS jmps c1 \<and>  
-                                           jumpNestingOkS jmps c2)"
-"jumpNestingOkS jmps (l\<bullet> While(e) c) = jumpNestingOkS ({Cont l} \<union> jmps) c"
+primrec jumpNestingOkS :: "jump set \<Rightarrow> stmt \<Rightarrow> bool"
+where
+  "jumpNestingOkS jmps (Skip)   = True"
+| "jumpNestingOkS jmps (Expr e) = True"
+| "jumpNestingOkS jmps (j\<bullet> s) = jumpNestingOkS ({j} \<union> jmps) s"
+| "jumpNestingOkS jmps (c1;;c2) = (jumpNestingOkS jmps c1 \<and> 
+                                   jumpNestingOkS jmps c2)"
+| "jumpNestingOkS jmps (If(e) c1 Else c2) = (jumpNestingOkS jmps c1 \<and>  
+                                             jumpNestingOkS jmps c2)"
+| "jumpNestingOkS jmps (l\<bullet> While(e) c) = jumpNestingOkS ({Cont l} \<union> jmps) c"
 --{* The label of the while loop only handles continue jumps. Breaks are only
      handled by @{term Lab} *}
-"jumpNestingOkS jmps (Jmp j) = (j \<in> jmps)"
-"jumpNestingOkS jmps (Throw e) = True"
-"jumpNestingOkS jmps (Try c1 Catch(C vn) c2) = (jumpNestingOkS jmps c1 \<and> 
-                                                jumpNestingOkS jmps c2)"
-"jumpNestingOkS jmps (c1 Finally c2) = (jumpNestingOkS jmps c1 \<and> 
-                                        jumpNestingOkS jmps c2)"
-"jumpNestingOkS jmps (Init C) = True" 
+| "jumpNestingOkS jmps (Jmp j) = (j \<in> jmps)"
+| "jumpNestingOkS jmps (Throw e) = True"
+| "jumpNestingOkS jmps (Try c1 Catch(C vn) c2) = (jumpNestingOkS jmps c1 \<and> 
+                                                  jumpNestingOkS jmps c2)"
+| "jumpNestingOkS jmps (c1 Finally c2) = (jumpNestingOkS jmps c1 \<and> 
+                                          jumpNestingOkS jmps c2)"
+| "jumpNestingOkS jmps (Init C) = True" 
  --{* wellformedness of the program must enshure that for all initializers 
       jumpNestingOkS {} holds *} 
 --{* Dummy analysis for intermediate smallstep term @{term  FinA} *}
-"jumpNestingOkS jmps (FinA a c) = False"
+| "jumpNestingOkS jmps (FinA a c) = False"
 
 
 definition jumpNestingOk :: "jump set \<Rightarrow> term \<Rightarrow> bool" where
-"jumpNestingOk jmps t \<equiv> (case t of
+"jumpNestingOk jmps t = (case t of
                       In1 se \<Rightarrow> (case se of
                                    Inl e \<Rightarrow> True
                                  | Inr s \<Rightarrow> jumpNestingOkS jmps s)
@@ -116,48 +116,46 @@ section {* Calculation of assigned variables for boolean expressions*}
 
 subsection {* Very restricted calculation fallback calculation *}
 
-consts the_LVar_name:: "var \<Rightarrow> lname"
-primrec 
-"the_LVar_name (LVar n) = n"
+primrec the_LVar_name :: "var \<Rightarrow> lname"
+  where "the_LVar_name (LVar n) = n"
 
-consts assignsE :: "expr      \<Rightarrow> lname set" 
-       assignsV :: "var       \<Rightarrow> lname set"
-       assignsEs:: "expr list \<Rightarrow> lname set"
-text {* *}
-primrec
-"assignsE (NewC c)            = {}" 
-"assignsE (NewA t e)          = assignsE e"
-"assignsE (Cast t e)          = assignsE e"
-"assignsE (e InstOf r)        = assignsE e"
-"assignsE (Lit val)           = {}"
-"assignsE (UnOp unop e)       = assignsE e"
-"assignsE (BinOp binop e1 e2) = (if binop=CondAnd \<or> binop=CondOr
-                                     then (assignsE e1)
-                                     else (assignsE e1) \<union> (assignsE e2))" 
-"assignsE (Super)             = {}"
-"assignsE (Acc v)             = assignsV v"
-"assignsE (v:=e)              = (assignsV v) \<union> (assignsE e) \<union> 
-                                 (if \<exists> n. v=(LVar n) then {the_LVar_name v} 
-                                                     else {})"
-"assignsE (b? e1 : e2) = (assignsE b) \<union> ((assignsE e1) \<inter> (assignsE e2))"
-"assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) 
-                          = (assignsE objRef) \<union> (assignsEs args)"
+primrec assignsE :: "expr \<Rightarrow> lname set" 
+  and assignsV :: "var \<Rightarrow> lname set"
+  and assignsEs:: "expr list \<Rightarrow> lname set"
+where
+  "assignsE (NewC c)            = {}" 
+| "assignsE (NewA t e)          = assignsE e"
+| "assignsE (Cast t e)          = assignsE e"
+| "assignsE (e InstOf r)        = assignsE e"
+| "assignsE (Lit val)           = {}"
+| "assignsE (UnOp unop e)       = assignsE e"
+| "assignsE (BinOp binop e1 e2) = (if binop=CondAnd \<or> binop=CondOr
+                                       then (assignsE e1)
+                                       else (assignsE e1) \<union> (assignsE e2))" 
+| "assignsE (Super)             = {}"
+| "assignsE (Acc v)             = assignsV v"
+| "assignsE (v:=e)              = (assignsV v) \<union> (assignsE e) \<union> 
+                                   (if \<exists> n. v=(LVar n) then {the_LVar_name v} 
+                                                       else {})"
+| "assignsE (b? e1 : e2) = (assignsE b) \<union> ((assignsE e1) \<inter> (assignsE e2))"
+| "assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) 
+                            = (assignsE objRef) \<union> (assignsEs args)"
 -- {* Only dummy analysis for intermediate expressions  
       @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee} *}
-"assignsE (Methd C sig)   = {}" 
-"assignsE (Body  C s)     = {}"   
-"assignsE (InsInitE s e)  = {}"  
-"assignsE (Callee l e)    = {}" 
+| "assignsE (Methd C sig)   = {}" 
+| "assignsE (Body  C s)     = {}"   
+| "assignsE (InsInitE s e)  = {}"  
+| "assignsE (Callee l e)    = {}" 
 
-"assignsV (LVar n)       = {}"
-"assignsV ({accC,statDeclC,stat}objRef..fn) = assignsE objRef"
-"assignsV (e1.[e2])      = assignsE e1 \<union> assignsE e2"
+| "assignsV (LVar n)       = {}"
+| "assignsV ({accC,statDeclC,stat}objRef..fn) = assignsE objRef"
+| "assignsV (e1.[e2])      = assignsE e1 \<union> assignsE e2"
 
-"assignsEs     [] = {}"
-"assignsEs (e#es) = assignsE e \<union> assignsEs es"
+| "assignsEs     [] = {}"
+| "assignsEs (e#es) = assignsE e \<union> assignsEs es"
 
 definition assigns :: "term \<Rightarrow> lname set" where
-"assigns t \<equiv> (case t of
+"assigns t = (case t of
                 In1 se \<Rightarrow> (case se of
                              Inl e \<Rightarrow> assignsE e
                            | Inr s \<Rightarrow> {})
@@ -190,42 +188,42 @@ by (simp add: inj_term_simps)
 
 subsection "Analysis of constant expressions"
 
-consts constVal :: "expr \<Rightarrow> val option"
-primrec 
-"constVal (NewC c)      = None"
-"constVal (NewA t e)    = None"
-"constVal (Cast t e)    = None"
-"constVal (Inst e r)    = None"
-"constVal (Lit val)     = Some val"
-"constVal (UnOp unop e) = (case (constVal e) of
-                             None   \<Rightarrow> None
-                           | Some v \<Rightarrow> Some (eval_unop unop v))" 
-"constVal (BinOp binop e1 e2) = (case (constVal e1) of
-                                   None    \<Rightarrow> None
-                                 | Some v1 \<Rightarrow> (case (constVal e2) of 
-                                                None    \<Rightarrow> None
-                                              | Some v2 \<Rightarrow> Some (eval_binop 
-                                                                 binop v1 v2)))"
-"constVal (Super)         = None"
-"constVal (Acc v)         = None"
-"constVal (Ass v e)       = None"
-"constVal (Cond b e1 e2)  = (case (constVal b) of
+primrec constVal :: "expr \<Rightarrow> val option"
+where
+  "constVal (NewC c)      = None"
+| "constVal (NewA t e)    = None"
+| "constVal (Cast t e)    = None"
+| "constVal (Inst e r)    = None"
+| "constVal (Lit val)     = Some val"
+| "constVal (UnOp unop e) = (case (constVal e) of
                                None   \<Rightarrow> None
-                             | Some bv\<Rightarrow> (case the_Bool bv of
-                                            True \<Rightarrow> (case (constVal e2) of
-                                                       None   \<Rightarrow> None
-                                                     | Some v \<Rightarrow> constVal e1)
-                                          | False\<Rightarrow> (case (constVal e1) of
-                                                       None   \<Rightarrow> None
-                                                     | Some v \<Rightarrow> constVal e2)))"
+                             | Some v \<Rightarrow> Some (eval_unop unop v))" 
+| "constVal (BinOp binop e1 e2) = (case (constVal e1) of
+                                     None    \<Rightarrow> None
+                                   | Some v1 \<Rightarrow> (case (constVal e2) of 
+                                                  None    \<Rightarrow> None
+                                                | Some v2 \<Rightarrow> Some (eval_binop 
+                                                                   binop v1 v2)))"
+| "constVal (Super)         = None"
+| "constVal (Acc v)         = None"
+| "constVal (Ass v e)       = None"
+| "constVal (Cond b e1 e2)  = (case (constVal b) of
+                                 None   \<Rightarrow> None
+                               | Some bv\<Rightarrow> (case the_Bool bv of
+                                              True \<Rightarrow> (case (constVal e2) of
+                                                         None   \<Rightarrow> None
+                                                       | Some v \<Rightarrow> constVal e1)
+                                            | False\<Rightarrow> (case (constVal e1) of
+                                                         None   \<Rightarrow> None
+                                                       | Some v \<Rightarrow> constVal e2)))"
 --{* Note that @{text "constVal (Cond b e1 e2)"} is stricter as it could be.
      It requires that all tree expressions are constant even if we can decide
      which branch to choose, provided the constant value of @{term b} *}
-"constVal (Call accC statT mode objRef mn pTs args) = None"
-"constVal (Methd C sig)   = None" 
-"constVal (Body  C s)     = None"   
-"constVal (InsInitE s e)  = None"  
-"constVal (Callee l e)    = None" 
+| "constVal (Call accC statT mode objRef mn pTs args) = None"
+| "constVal (Methd C sig)   = None" 
+| "constVal (Body  C s)     = None"   
+| "constVal (InsInitE s e)  = None"  
+| "constVal (Callee l e)    = None" 
 
 lemma constVal_Some_induct [consumes 1, case_names Lit UnOp BinOp CondL CondR]: 
   assumes const: "constVal e = Some v" and
@@ -282,55 +280,55 @@ text {* Assigned local variables after evaluating the expression if it evaluates
 to a specific boolean value. If the expression cannot evaluate to a 
 @{term Boolean} value UNIV is returned. If we expect true/false the opposite 
 constant false/true will also lead to UNIV. *}
-consts assigns_if:: "bool \<Rightarrow> expr \<Rightarrow> lname set" 
-primrec
-"assigns_if b (NewC c)            = UNIV" --{*can never evaluate to Boolean*} 
-"assigns_if b (NewA t e)          = UNIV" --{*can never evaluate to Boolean*}
-"assigns_if b (Cast t e)          = assigns_if b e" 
-"assigns_if b (Inst e r)          = assignsE e" --{*Inst has type Boolean but
-                                                     e is a reference type*}
-"assigns_if b (Lit val)           = (if val=Bool b then {} else UNIV)"  
-"assigns_if b (UnOp unop e)       = (case constVal (UnOp unop e) of
-                                         None   \<Rightarrow> (if unop = UNot 
-                                                       then assigns_if (\<not>b) e
-                                                       else UNIV)
-                                       | Some v \<Rightarrow> (if v=Bool b 
-                                                       then {} 
-                                                       else UNIV))"
-"assigns_if b (BinOp binop e1 e2) 
-  = (case constVal (BinOp binop e1 e2) of
-       None \<Rightarrow> (if binop=CondAnd then
-                   (case b of 
-                       True  \<Rightarrow> assigns_if True  e1 \<union> assigns_if True e2
-                    |  False \<Rightarrow> assigns_if False e1 \<inter> 
-                                (assigns_if True e1 \<union> assigns_if False e2))
-                else
-               (if binop=CondOr then
-                   (case b of 
-                       True  \<Rightarrow> assigns_if True e1 \<inter> 
-                                (assigns_if False e1 \<union> assigns_if True e2)
-                    |  False \<Rightarrow> assigns_if False  e1 \<union> assigns_if False e2)
-                else assignsE e1 \<union> assignsE e2))
-     | Some v \<Rightarrow> (if v=Bool b then {} else UNIV))"
+primrec assigns_if :: "bool \<Rightarrow> expr \<Rightarrow> lname set"
+where
+  "assigns_if b (NewC c)            = UNIV" --{*can never evaluate to Boolean*} 
+| "assigns_if b (NewA t e)          = UNIV" --{*can never evaluate to Boolean*}
+| "assigns_if b (Cast t e)          = assigns_if b e" 
+| "assigns_if b (Inst e r)          = assignsE e" --{*Inst has type Boolean but
+                                                       e is a reference type*}
+| "assigns_if b (Lit val)           = (if val=Bool b then {} else UNIV)"  
+| "assigns_if b (UnOp unop e)       = (case constVal (UnOp unop e) of
+                                           None   \<Rightarrow> (if unop = UNot 
+                                                         then assigns_if (\<not>b) e
+                                                         else UNIV)
+                                         | Some v \<Rightarrow> (if v=Bool b 
+                                                         then {} 
+                                                         else UNIV))"
+| "assigns_if b (BinOp binop e1 e2) 
+    = (case constVal (BinOp binop e1 e2) of
+         None \<Rightarrow> (if binop=CondAnd then
+                     (case b of 
+                         True  \<Rightarrow> assigns_if True  e1 \<union> assigns_if True e2
+                      |  False \<Rightarrow> assigns_if False e1 \<inter> 
+                                  (assigns_if True e1 \<union> assigns_if False e2))
+                  else
+                 (if binop=CondOr then
+                     (case b of 
+                         True  \<Rightarrow> assigns_if True e1 \<inter> 
+                                  (assigns_if False e1 \<union> assigns_if True e2)
+                      |  False \<Rightarrow> assigns_if False  e1 \<union> assigns_if False e2)
+                  else assignsE e1 \<union> assignsE e2))
+       | Some v \<Rightarrow> (if v=Bool b then {} else UNIV))"
 
-"assigns_if b (Super)      = UNIV" --{*can never evaluate to Boolean*}
-"assigns_if b (Acc v)      = (assignsV v)"
-"assigns_if b (v := e)     = (assignsE (Ass v e))"
-"assigns_if b (c? e1 : e2) = (assignsE c) \<union>
-                               (case (constVal c) of
-                                  None    \<Rightarrow> (assigns_if b e1) \<inter> 
-                                             (assigns_if b e2)
-                                | Some bv \<Rightarrow> (case the_Bool bv of
-                                                True  \<Rightarrow> assigns_if b e1
-                                              | False \<Rightarrow> assigns_if b e2))"
-"assigns_if b ({accC,statT,mode}objRef\<cdot>mn({pTs}args))  
-          = assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) "
+| "assigns_if b (Super)      = UNIV" --{*can never evaluate to Boolean*}
+| "assigns_if b (Acc v)      = (assignsV v)"
+| "assigns_if b (v := e)     = (assignsE (Ass v e))"
+| "assigns_if b (c? e1 : e2) = (assignsE c) \<union>
+                                 (case (constVal c) of
+                                    None    \<Rightarrow> (assigns_if b e1) \<inter> 
+                                               (assigns_if b e2)
+                                  | Some bv \<Rightarrow> (case the_Bool bv of
+                                                  True  \<Rightarrow> assigns_if b e1
+                                                | False \<Rightarrow> assigns_if b e2))"
+| "assigns_if b ({accC,statT,mode}objRef\<cdot>mn({pTs}args))  
+            = assignsE ({accC,statT,mode}objRef\<cdot>mn({pTs}args)) "
 -- {* Only dummy analysis for intermediate expressions  
       @{term Methd}, @{term Body}, @{term InsInitE} and @{term Callee} *}
-"assigns_if b (Methd C sig)   = {}" 
-"assigns_if b (Body  C s)     = {}"   
-"assigns_if b (InsInitE s e)  = {}"  
-"assigns_if b (Callee l e)    = {}" 
+| "assigns_if b (Methd C sig)   = {}" 
+| "assigns_if b (Body  C s)     = {}"   
+| "assigns_if b (InsInitE s e)  = {}"  
+| "assigns_if b (Callee l e)    = {}" 
 
 lemma assigns_if_const_b_simp:
   assumes boolConst: "constVal e = Some (Bool b)" (is "?Const b e")
@@ -429,14 +427,17 @@ qed
 
 subsection {* Lifting set operations to range of tables (map to a set) *}
 
-definition union_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<union> _" [67,67] 65) where
- "A \<Rightarrow>\<union> B \<equiv> \<lambda> k. A k \<union> B k"
+definition
+  union_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<union> _" [67,67] 65)
+  where "A \<Rightarrow>\<union> B = (\<lambda> k. A k \<union> B k)"
 
-definition intersect_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<inter>  _" [72,72] 71) where
- "A \<Rightarrow>\<inter>  B \<equiv> \<lambda> k. A k \<inter> B k"
+definition
+  intersect_ts :: "('a,'b) tables \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" ("_ \<Rightarrow>\<inter>  _" [72,72] 71)
+  where "A \<Rightarrow>\<inter>  B = (\<lambda>k. A k \<inter> B k)"
 
-definition all_union_ts :: "('a,'b) tables \<Rightarrow> 'b set \<Rightarrow> ('a,'b) tables" (infixl "\<Rightarrow>\<union>\<^sub>\<forall>" 40) where 
- "A \<Rightarrow>\<union>\<^sub>\<forall> B \<equiv> \<lambda> k. A k \<union> B"
+definition
+  all_union_ts :: "('a,'b) tables \<Rightarrow> 'b set \<Rightarrow> ('a,'b) tables" (infixl "\<Rightarrow>\<union>\<^sub>\<forall>" 40)
+  where "(A \<Rightarrow>\<union>\<^sub>\<forall> B) = (\<lambda> k. A k \<union> B)"
   
 subsubsection {* Binary union of tables *}
 
@@ -507,16 +508,19 @@ record assigned =
          brk :: "breakass" --{* Definetly assigned variables for 
                                 abrupt completion with a break *}
 
-definition rmlab :: "'a \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables" where
-"rmlab k A \<equiv> \<lambda> x. if x=k then UNIV else A x"
+definition
+  rmlab :: "'a \<Rightarrow> ('a,'b) tables \<Rightarrow> ('a,'b) tables"
+  where "rmlab k A = (\<lambda>x. if x=k then UNIV else A x)"
  
 (*
-definition setbrk :: "breakass \<Rightarrow> assigned \<Rightarrow> breakass set" where
-"setbrk b A \<equiv> {b} \<union> {a| a. a\<in> brk A \<and> lab a \<noteq> lab b}"
+definition
+  setbrk :: "breakass \<Rightarrow> assigned \<Rightarrow> breakass set" where
+  "setbrk b A = {b} \<union> {a| a. a\<in> brk A \<and> lab a \<noteq> lab b}"
 *)
 
-definition range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" ("\<Rightarrow>\<Inter>_" 80) where 
- "\<Rightarrow>\<Inter>A \<equiv> {x |x. \<forall> k. x \<in> A k}"
+definition
+  range_inter_ts :: "('a,'b) tables \<Rightarrow> 'b set" ("\<Rightarrow>\<Inter>_" 80)
+  where "\<Rightarrow>\<Inter>A = {x |x. \<forall> k. x \<in> A k}"
 
 text {*
 In @{text "E\<turnstile> B \<guillemotright>t\<guillemotright> A"},

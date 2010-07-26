@@ -53,11 +53,13 @@ types
   emhead = "ref_ty \<times> mhead"
 
 --{* Some mnemotic selectors for emhead *}
-definition "declrefT" :: "emhead \<Rightarrow> ref_ty" where
-  "declrefT \<equiv> fst"
+definition
+  "declrefT" :: "emhead \<Rightarrow> ref_ty"
+  where "declrefT = fst"
 
-definition "mhd"     :: "emhead \<Rightarrow> mhead" where
-  "mhd \<equiv> snd"
+definition
+  "mhd" :: "emhead \<Rightarrow> mhead"
+  where "mhd \<equiv> snd"
 
 lemma declrefT_simp[simp]:"declrefT (r,m) = r"
 by (simp add: declrefT_def)
@@ -77,50 +79,51 @@ by (cases m) simp
 lemma mhd_accmodi_simp [simp]: "accmodi (mhd m) = accmodi m"
 by (cases m) simp
 
-consts
-  cmheads        :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> emhead set"
-  Objectmheads   :: "prog \<Rightarrow> qtname           \<Rightarrow> sig \<Rightarrow> emhead set"
-  accObjectmheads:: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> emhead set"
-  mheads         :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> emhead set"
-defs
- cmheads_def:
-"cmheads G S C 
-  \<equiv> \<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) ` Option.set (accmethd G S C sig)"
-  Objectmheads_def:
-"Objectmheads G S  
-  \<equiv> \<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) 
-    ` Option.set (filter_tab (\<lambda>sig m. accmodi m \<noteq> Private) (accmethd G S Object) sig)"
-  accObjectmheads_def:
-"accObjectmheads G S T
-   \<equiv> if G\<turnstile>RefT T accessible_in (pid S)
-        then Objectmheads G S
-        else (\<lambda>sig. {})"
-primrec
-"mheads G S  NullT     = (\<lambda>sig. {})"
-"mheads G S (IfaceT I) = (\<lambda>sig. (\<lambda>(I,h).(IfaceT I,h)) 
-                         ` accimethds G (pid S) I sig \<union> 
-                           accObjectmheads G S (IfaceT I) sig)"
-"mheads G S (ClassT C) = cmheads G S C"
-"mheads G S (ArrayT T) = accObjectmheads G S (ArrayT T)"
+definition
+  cmheads :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> emhead set"
+  where "cmheads G S C = (\<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) ` Option.set (accmethd G S C sig))"
+
+definition
+  Objectmheads :: "prog \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> emhead set" where
+  "Objectmheads G S =
+    (\<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) 
+      ` Option.set (filter_tab (\<lambda>sig m. accmodi m \<noteq> Private) (accmethd G S Object) sig))"
+
+definition
+  accObjectmheads :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> emhead set"
+where
+  "accObjectmheads G S T =
+    (if G\<turnstile>RefT T accessible_in (pid S)
+     then Objectmheads G S
+     else (\<lambda>sig. {}))"
+
+primrec mheads :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> emhead set"
+where
+  "mheads G S  NullT     = (\<lambda>sig. {})"
+| "mheads G S (IfaceT I) = (\<lambda>sig. (\<lambda>(I,h).(IfaceT I,h)) 
+                           ` accimethds G (pid S) I sig \<union> 
+                             accObjectmheads G S (IfaceT I) sig)"
+| "mheads G S (ClassT C) = cmheads G S C"
+| "mheads G S (ArrayT T) = accObjectmheads G S (ArrayT T)"
 
 definition
   --{* applicable methods, cf. 15.11.2.1 *}
-  appl_methds   :: "prog \<Rightarrow> qtname \<Rightarrow>  ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
- "appl_methds G S rt = (\<lambda> sig. 
+  appl_methds :: "prog \<Rightarrow> qtname \<Rightarrow>  ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
+  "appl_methds G S rt = (\<lambda> sig. 
       {(mh,pTs') |mh pTs'. mh \<in> mheads G S rt \<lparr>name=name sig,parTs=pTs'\<rparr> \<and> 
                            G\<turnstile>(parTs sig)[\<preceq>]pTs'})"
 
 definition
   --{* more specific methods, cf. 15.11.2.2 *}
-  more_spec     :: "prog \<Rightarrow> emhead \<times> ty list \<Rightarrow> emhead \<times> ty list \<Rightarrow> bool" where
- "more_spec G = (\<lambda>(mh,pTs). \<lambda>(mh',pTs'). G\<turnstile>pTs[\<preceq>]pTs')"
+  more_spec :: "prog \<Rightarrow> emhead \<times> ty list \<Rightarrow> emhead \<times> ty list \<Rightarrow> bool" where
+  "more_spec G = (\<lambda>(mh,pTs). \<lambda>(mh',pTs'). G\<turnstile>pTs[\<preceq>]pTs')"
 (*more_spec G \<equiv>\<lambda>((d,h),pTs). \<lambda>((d',h'),pTs'). G\<turnstile>RefT d\<preceq>RefT d'\<and>G\<turnstile>pTs[\<preceq>]pTs'*)
 
 definition
   --{* maximally specific methods, cf. 15.11.2.2 *}
-   max_spec     :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
- "max_spec G S rt sig = {m. m \<in>appl_methds G S rt sig \<and>
-                      (\<forall>m'\<in>appl_methds G S rt sig. more_spec G m' m \<longrightarrow> m'=m)}"
+  max_spec :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> (emhead \<times> ty list)\<spacespace> set" where
+  "max_spec G S rt sig = {m. m \<in>appl_methds G S rt sig \<and>
+                          (\<forall>m'\<in>appl_methds G S rt sig. more_spec G m' m \<longrightarrow> m'=m)}"
 
 
 lemma max_spec2appl_meths: 
@@ -138,13 +141,15 @@ apply (auto dest: equalityD2 subsetD max_spec2appl_meths appl_methsD)
 done
 
 
-definition empty_dt :: "dyn_ty" where
- "empty_dt \<equiv> \<lambda>a. None"
+definition
+  empty_dt :: "dyn_ty"
+  where "empty_dt = (\<lambda>a. None)"
 
-definition invmode :: "('a::type)member_scheme \<Rightarrow> expr \<Rightarrow> inv_mode" where
-"invmode m e \<equiv> if is_static m 
+definition
+  invmode :: "('a::type)member_scheme \<Rightarrow> expr \<Rightarrow> inv_mode" where
+  "invmode m e = (if is_static m 
                   then Static 
-                  else if e=Super then SuperM else IntVir"
+                  else if e=Super then SuperM else IntVir)"
 
 lemma invmode_nonstatic [simp]: 
   "invmode \<lparr>access=a,static=False,\<dots>=x\<rparr> (Acc (LVar e)) = IntVir"
@@ -171,71 +176,71 @@ done
 
 section "Typing for unary operations"
 
-consts unop_type :: "unop \<Rightarrow> prim_ty"
-primrec 
-"unop_type UPlus   = Integer"
-"unop_type UMinus  = Integer"
-"unop_type UBitNot = Integer"
-"unop_type UNot    = Boolean"    
+primrec unop_type :: "unop \<Rightarrow> prim_ty"
+where
+  "unop_type UPlus   = Integer"
+| "unop_type UMinus  = Integer"
+| "unop_type UBitNot = Integer"
+| "unop_type UNot    = Boolean"    
 
-consts wt_unop :: "unop \<Rightarrow> ty \<Rightarrow> bool"
-primrec
-"wt_unop UPlus   t = (t = PrimT Integer)"
-"wt_unop UMinus  t = (t = PrimT Integer)"
-"wt_unop UBitNot t = (t = PrimT Integer)"
-"wt_unop UNot    t = (t = PrimT Boolean)"
+primrec wt_unop :: "unop \<Rightarrow> ty \<Rightarrow> bool"
+where
+  "wt_unop UPlus   t = (t = PrimT Integer)"
+| "wt_unop UMinus  t = (t = PrimT Integer)"
+| "wt_unop UBitNot t = (t = PrimT Integer)"
+| "wt_unop UNot    t = (t = PrimT Boolean)"
 
 section "Typing for binary operations"
 
-consts binop_type :: "binop \<Rightarrow> prim_ty"
-primrec
-"binop_type Mul      = Integer"     
-"binop_type Div      = Integer"
-"binop_type Mod      = Integer"
-"binop_type Plus     = Integer"
-"binop_type Minus    = Integer"
-"binop_type LShift   = Integer"
-"binop_type RShift   = Integer"
-"binop_type RShiftU  = Integer"
-"binop_type Less     = Boolean"
-"binop_type Le       = Boolean"
-"binop_type Greater  = Boolean"
-"binop_type Ge       = Boolean"
-"binop_type Eq       = Boolean"
-"binop_type Neq      = Boolean"
-"binop_type BitAnd   = Integer"
-"binop_type And      = Boolean"
-"binop_type BitXor   = Integer"
-"binop_type Xor      = Boolean"
-"binop_type BitOr    = Integer"
-"binop_type Or       = Boolean"
-"binop_type CondAnd  = Boolean"
-"binop_type CondOr   = Boolean"
+primrec binop_type :: "binop \<Rightarrow> prim_ty"
+where
+  "binop_type Mul      = Integer"     
+| "binop_type Div      = Integer"
+| "binop_type Mod      = Integer"
+| "binop_type Plus     = Integer"
+| "binop_type Minus    = Integer"
+| "binop_type LShift   = Integer"
+| "binop_type RShift   = Integer"
+| "binop_type RShiftU  = Integer"
+| "binop_type Less     = Boolean"
+| "binop_type Le       = Boolean"
+| "binop_type Greater  = Boolean"
+| "binop_type Ge       = Boolean"
+| "binop_type Eq       = Boolean"
+| "binop_type Neq      = Boolean"
+| "binop_type BitAnd   = Integer"
+| "binop_type And      = Boolean"
+| "binop_type BitXor   = Integer"
+| "binop_type Xor      = Boolean"
+| "binop_type BitOr    = Integer"
+| "binop_type Or       = Boolean"
+| "binop_type CondAnd  = Boolean"
+| "binop_type CondOr   = Boolean"
 
-consts wt_binop :: "prog \<Rightarrow> binop \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"
-primrec
-"wt_binop G Mul     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Div     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Mod     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Plus    t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Minus   t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G LShift  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G RShift  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G RShiftU t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Less    t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Le      t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Greater t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Ge      t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Eq      t1 t2 = (G\<turnstile>t1\<preceq>t2 \<or> G\<turnstile>t2\<preceq>t1)" 
-"wt_binop G Neq     t1 t2 = (G\<turnstile>t1\<preceq>t2 \<or> G\<turnstile>t2\<preceq>t1)"
-"wt_binop G BitAnd  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G And     t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
-"wt_binop G BitXor  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Xor     t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
-"wt_binop G BitOr   t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
-"wt_binop G Or      t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
-"wt_binop G CondAnd t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
-"wt_binop G CondOr  t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+primrec wt_binop :: "prog \<Rightarrow> binop \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> bool"
+where
+  "wt_binop G Mul     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Div     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Mod     t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Plus    t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Minus   t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G LShift  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G RShift  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G RShiftU t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Less    t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Le      t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Greater t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Ge      t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Eq      t1 t2 = (G\<turnstile>t1\<preceq>t2 \<or> G\<turnstile>t2\<preceq>t1)" 
+| "wt_binop G Neq     t1 t2 = (G\<turnstile>t1\<preceq>t2 \<or> G\<turnstile>t2\<preceq>t1)"
+| "wt_binop G BitAnd  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G And     t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+| "wt_binop G BitXor  t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Xor     t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+| "wt_binop G BitOr   t1 t2 = ((t1 = PrimT Integer) \<and> (t2 = PrimT Integer))"
+| "wt_binop G Or      t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+| "wt_binop G CondAnd t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
+| "wt_binop G CondOr  t1 t2 = ((t1 = PrimT Boolean) \<and> (t2 = PrimT Boolean))"
 
 section "Typing for terms"
 
@@ -244,9 +249,8 @@ translations
   (type) "tys" <= (type) "ty + ty list"
 
 
-inductive
-  wt :: "env \<Rightarrow> dyn_ty \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>_"  [51,51,51,51] 50)
-  and wt_stmt :: "env \<Rightarrow> dyn_ty \<Rightarrow>  stmt       \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>\<surd>"  [51,51,51   ] 50)
+inductive wt :: "env \<Rightarrow> dyn_ty \<Rightarrow> [term,tys] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>_"  [51,51,51,51] 50)
+  and wt_stmt :: "env \<Rightarrow> dyn_ty \<Rightarrow>  stmt       \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>\<surd>"  [51,51,51] 50)
   and ty_expr :: "env \<Rightarrow> dyn_ty \<Rightarrow> [expr ,ty ] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>-_" [51,51,51,51] 50)
   and ty_var :: "env \<Rightarrow> dyn_ty \<Rightarrow> [var  ,ty ] \<Rightarrow> bool" ("_,_\<Turnstile>_\<Colon>=_" [51,51,51,51] 50)
   and ty_exprs :: "env \<Rightarrow> dyn_ty \<Rightarrow> [expr list, ty   list] \<Rightarrow> bool"

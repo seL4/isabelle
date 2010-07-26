@@ -9,12 +9,13 @@ PRELIMINARY!!!!!!!!
 
 theory Trans imports Evaln begin
 
-definition groundVar :: "var \<Rightarrow> bool" where
-"groundVar v \<longleftrightarrow> (case v of
-                   LVar ln \<Rightarrow> True
-                 | {accC,statDeclC,stat}e..fn \<Rightarrow> \<exists> a. e=Lit a
-                 | e1.[e2] \<Rightarrow> \<exists> a i. e1= Lit a \<and> e2 = Lit i
-                 | InsInitV c v \<Rightarrow> False)"
+definition
+  groundVar :: "var \<Rightarrow> bool" where
+  "groundVar v \<longleftrightarrow> (case v of
+                     LVar ln \<Rightarrow> True
+                   | {accC,statDeclC,stat}e..fn \<Rightarrow> \<exists> a. e=Lit a
+                   | e1.[e2] \<Rightarrow> \<exists> a i. e1= Lit a \<and> e2 = Lit i
+                   | InsInitV c v \<Rightarrow> False)"
 
 lemma groundVar_cases [consumes 1, case_names LVar FVar AVar]:
   assumes ground: "groundVar v" and
@@ -34,14 +35,15 @@ proof -
     done
 qed
 
-definition groundExprs :: "expr list \<Rightarrow> bool" where
-  "groundExprs es \<longleftrightarrow> (\<forall>e \<in> set es. \<exists>v. e = Lit v)"
+definition
+  groundExprs :: "expr list \<Rightarrow> bool"
+  where "groundExprs es \<longleftrightarrow> (\<forall>e \<in> set es. \<exists>v. e = Lit v)"
   
-primrec the_val:: "expr \<Rightarrow> val" where
-  "the_val (Lit v) = v"
+primrec the_val:: "expr \<Rightarrow> val"
+  where "the_val (Lit v) = v"
 
 primrec the_var:: "prog \<Rightarrow> state \<Rightarrow> var \<Rightarrow> (vvar \<times> state)" where
-  "the_var G s (LVar ln)                    =(lvar ln (store s),s)"
+  "the_var G s (LVar ln) = (lvar ln (store s),s)"
 | the_var_FVar_def: "the_var G s ({accC,statDeclC,stat}a..fn) =fvar statDeclC stat fn (the_val a) s"
 | the_var_AVar_def: "the_var G s(a.[i])                       =avar G (the_val i) (the_val a) s"
 

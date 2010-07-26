@@ -68,14 +68,14 @@ instantiation tname :: has_tname
 begin
 
 definition
-  tname_tname_def: "tname (t::tname) \<equiv> t"
+  tname_tname_def: "tname (t::tname) = t"
 
 instance ..
 
 end
 
 definition
-  qtname_qtname_def: "qtname (q::'a qtname_ext_type) \<equiv> q"
+  qtname_qtname_def: "qtname (q::'a qtname_ext_type) = q"
 
 translations
   (type) "qtname" <= (type) "\<lparr>pid::pname,tid::tname\<rparr>"
@@ -84,16 +84,17 @@ translations
 
 axiomatization java_lang::pname --{* package java.lang *}
 
-consts 
+definition
   Object :: qtname
-  SXcpt  :: "xname \<Rightarrow> qtname"
-defs
-  Object_def: "Object  \<equiv> \<lparr>pid = java_lang, tid = Object'\<rparr>"
-  SXcpt_def:  "SXcpt   \<equiv> \<lambda>x.  \<lparr>pid = java_lang, tid = SXcpt' x\<rparr>"
+  where "Object = \<lparr>pid = java_lang, tid = Object'\<rparr>"
+
+definition SXcpt :: "xname \<Rightarrow> qtname"
+  where "SXcpt = (\<lambda>x.  \<lparr>pid = java_lang, tid = SXcpt' x\<rparr>)"
 
 lemma Object_neq_SXcpt [simp]: "Object \<noteq> SXcpt xn"
 by (simp add: Object_def SXcpt_def)
 
 lemma SXcpt_inject [simp]: "(SXcpt xn = SXcpt xm) = (xn = xm)"
 by (simp add: SXcpt_def)
+
 end

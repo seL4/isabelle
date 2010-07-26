@@ -96,8 +96,8 @@ done
 
 section "value conformance"
 
-definition conf :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>_"   [71,71,71,71] 70) where
-           "G,s\<turnstile>v\<Colon>\<preceq>T \<equiv> \<exists>T'\<in>typeof (\<lambda>a. Option.map obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T"
+definition conf :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>_"   [71,71,71,71] 70)
+  where "G,s\<turnstile>v\<Colon>\<preceq>T = (\<exists>T'\<in>typeof (\<lambda>a. Option.map obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T)"
 
 lemma conf_cong [simp]: "G,set_locals l s\<turnstile>v\<Colon>\<preceq>T = G,s\<turnstile>v\<Colon>\<preceq>T"
 by (auto simp: conf_def)
@@ -177,8 +177,9 @@ done
 
 section "value list conformance"
 
-definition lconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" ("_,_\<turnstile>_[\<Colon>\<preceq>]_" [71,71,71,71] 70) where
-           "G,s\<turnstile>vs[\<Colon>\<preceq>]Ts \<equiv> \<forall>n. \<forall>T\<in>Ts n: \<exists>v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T"
+definition
+  lconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" ("_,_\<turnstile>_[\<Colon>\<preceq>]_" [71,71,71,71] 70)
+  where "G,s\<turnstile>vs[\<Colon>\<preceq>]Ts = (\<forall>n. \<forall>T\<in>Ts n: \<exists>v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T)"
 
 lemma lconfD: "\<lbrakk>G,s\<turnstile>vs[\<Colon>\<preceq>]Ts; Ts n = Some T\<rbrakk> \<Longrightarrow> G,s\<turnstile>(the (vs n))\<Colon>\<preceq>T"
 by (force simp: lconf_def)
@@ -260,8 +261,9 @@ text {* Only if the value is defined it has to conform to its type.
 *}
 
   
-definition wlconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" ("_,_\<turnstile>_[\<sim>\<Colon>\<preceq>]_" [71,71,71,71] 70) where
-           "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts \<equiv> \<forall>n. \<forall>T\<in>Ts n: \<forall> v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T"
+definition
+  wlconf :: "prog \<Rightarrow> st \<Rightarrow> ('a, val) table \<Rightarrow> ('a, ty) table \<Rightarrow> bool" ("_,_\<turnstile>_[\<sim>\<Colon>\<preceq>]_" [71,71,71,71] 70)
+  where "G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts = (\<forall>n. \<forall>T\<in>Ts n: \<forall> v\<in>vs n: G,s\<turnstile>v\<Colon>\<preceq>T)"
 
 lemma wlconfD: "\<lbrakk>G,s\<turnstile>vs[\<sim>\<Colon>\<preceq>]Ts; Ts n = Some T; vs n = Some v\<rbrakk> \<Longrightarrow> G,s\<turnstile>v\<Colon>\<preceq>T"
 by (auto simp: wlconf_def)
@@ -338,11 +340,12 @@ by (force simp add: lconf_def wlconf_def)
 
 section "object conformance"
 
-definition oconf :: "prog \<Rightarrow> st \<Rightarrow> obj \<Rightarrow> oref \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>\<surd>_"  [71,71,71,71] 70) where
-           "G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r \<equiv> G,s\<turnstile>values obj[\<Colon>\<preceq>]var_tys G (tag obj) r \<and> 
+definition
+  oconf :: "prog \<Rightarrow> st \<Rightarrow> obj \<Rightarrow> oref \<Rightarrow> bool" ("_,_\<turnstile>_\<Colon>\<preceq>\<surd>_"  [71,71,71,71] 70) where
+  "(G,s\<turnstile>obj\<Colon>\<preceq>\<surd>r) = (G,s\<turnstile>values obj[\<Colon>\<preceq>]var_tys G (tag obj) r \<and> 
                            (case r of 
                               Heap a \<Rightarrow> is_type G (obj_ty obj) 
-                            | Stat C \<Rightarrow> True)"
+                            | Stat C \<Rightarrow> True))"
 
 
 lemma oconf_is_type: "G,s\<turnstile>obj\<Colon>\<preceq>\<surd>Heap a \<Longrightarrow> is_type G (obj_ty obj)"
@@ -373,12 +376,14 @@ done
 
 section "state conformance"
 
-definition conforms :: "state \<Rightarrow> env' \<Rightarrow> bool"   ("_\<Colon>\<preceq>_"   [71,71]      70)  where
-   "xs\<Colon>\<preceq>E \<equiv> let (G, L) = E; s = snd xs; l = locals s in
-    (\<forall>r. \<forall>obj\<in>globs s r:           G,s\<turnstile>obj   \<Colon>\<preceq>\<surd>r) \<and>
-                \<spacespace>                   G,s\<turnstile>l    [\<sim>\<Colon>\<preceq>]L\<spacespace> \<and>
-    (\<forall>a. fst xs=Some(Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)) \<and>
-         (fst xs=Some(Jump Ret) \<longrightarrow> l Result \<noteq> None)"
+definition
+  conforms :: "state \<Rightarrow> env' \<Rightarrow> bool"  ("_\<Colon>\<preceq>_" [71,71] 70)  where
+   "xs\<Colon>\<preceq>E =
+      (let (G, L) = E; s = snd xs; l = locals s in
+        (\<forall>r. \<forall>obj\<in>globs s r:           G,s\<turnstile>obj   \<Colon>\<preceq>\<surd>r) \<and>
+                    \<spacespace>                   G,s\<turnstile>l    [\<sim>\<Colon>\<preceq>]L\<spacespace> \<and>
+        (\<forall>a. fst xs=Some(Xcpt (Loc a)) \<longrightarrow> G,s\<turnstile>Addr a\<Colon>\<preceq> Class (SXcpt Throwable)) \<and>
+             (fst xs=Some(Jump Ret) \<longrightarrow> l Result \<noteq> None))"
 
 section "conforms"
 

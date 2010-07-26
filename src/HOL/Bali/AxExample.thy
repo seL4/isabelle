@@ -8,10 +8,11 @@ theory AxExample
 imports AxSem Example
 begin
 
-definition arr_inv :: "st \<Rightarrow> bool" where
- "arr_inv \<equiv> \<lambda>s. \<exists>obj a T el. globs s (Stat Base) = Some obj \<and>
+definition
+  arr_inv :: "st \<Rightarrow> bool" where
+ "arr_inv = (\<lambda>s. \<exists>obj a T el. globs s (Stat Base) = Some obj \<and>
                               values obj (Inl (arr, Base)) = Some (Addr a) \<and>
-                              heap s a = Some \<lparr>tag=Arr T 2,values=el\<rparr>"
+                              heap s a = Some \<lparr>tag=Arr T 2,values=el\<rparr>)"
 
 lemma arr_inv_new_obj: 
 "\<And>a. \<lbrakk>arr_inv s; new_Addr (heap s)=Some a\<rbrakk> \<Longrightarrow> arr_inv (gupd(Inl a\<mapsto>x) s)"

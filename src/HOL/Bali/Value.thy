@@ -17,29 +17,34 @@ datatype val
         | Addr loc      --{* addresses, i.e. locations of objects *}
 
 
-consts   the_Bool   :: "val \<Rightarrow> bool"  
-primrec "the_Bool (Bool b) = b"
-consts   the_Intg   :: "val \<Rightarrow> int"
-primrec "the_Intg (Intg i) = i"
-consts   the_Addr   :: "val \<Rightarrow> loc"
-primrec "the_Addr (Addr a) = a"
+primrec the_Bool :: "val \<Rightarrow> bool"
+  where "the_Bool (Bool b) = b"
+
+primrec the_Intg :: "val \<Rightarrow> int"
+  where "the_Intg (Intg i) = i"
+
+primrec the_Addr :: "val \<Rightarrow> loc"
+  where "the_Addr (Addr a) = a"
 
 types   dyn_ty      = "loc \<Rightarrow> ty option"
-consts
-  typeof        :: "dyn_ty \<Rightarrow> val \<Rightarrow> ty option"
-  defpval       :: "prim_ty \<Rightarrow> val"  --{* default value for primitive types *}
-  default_val   :: "     ty \<Rightarrow> val"  --{* default value for all types *}
 
-primrec "typeof dt  Unit    = Some (PrimT Void)"
-        "typeof dt (Bool b) = Some (PrimT Boolean)"
-        "typeof dt (Intg i) = Some (PrimT Integer)"
-        "typeof dt  Null    = Some NT"
-        "typeof dt (Addr a) = dt a"
+primrec typeof :: "dyn_ty \<Rightarrow> val \<Rightarrow> ty option"
+where
+  "typeof dt  Unit = Some (PrimT Void)"
+| "typeof dt (Bool b) = Some (PrimT Boolean)"
+| "typeof dt (Intg i) = Some (PrimT Integer)"
+| "typeof dt  Null = Some NT"
+| "typeof dt (Addr a) = dt a"
 
-primrec "defpval Void    = Unit"
-        "defpval Boolean = Bool False"
-        "defpval Integer = Intg 0"
-primrec "default_val (PrimT pt) = defpval pt"
-        "default_val (RefT  r ) = Null"
+primrec defpval :: "prim_ty \<Rightarrow> val"  --{* default value for primitive types *}
+where
+  "defpval Void = Unit"
+| "defpval Boolean = Bool False"
+| "defpval Integer = Intg 0"
+
+primrec default_val :: "ty \<Rightarrow> val"  --{* default value for all types *}
+where
+  "default_val (PrimT pt) = defpval pt"
+| "default_val (RefT  r ) = Null"
 
 end

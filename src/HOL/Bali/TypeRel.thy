@@ -25,14 +25,17 @@ design issues:
 \end{itemize}
 *}
 
-consts
-
 (*subint1, in Decl.thy*)                     (* direct subinterface       *)
 (*subint , by translation*)                  (* subinterface (+ identity) *)
 (*subcls1, in Decl.thy*)                     (* direct subclass           *)
 (*subcls , by translation*)                  (*        subclass           *)
 (*subclseq, by translation*)                 (* subclass + identity       *)
-  implmt1   :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct implementation *}
+
+definition
+  implmt1 :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct implementation *}
+  --{* direct implementation, cf. 8.1.3 *}
+  where "implmt1 G = {(C,I). C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))}"
+
 
 abbreviation
   subint1_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<:I1_" [71,71,71] 70)
@@ -325,15 +328,10 @@ qed
 
 section "implementation relation"
 
-defs
-  --{* direct implementation, cf. 8.1.3 *}
-implmt1_def:"implmt1 G\<equiv>{(C,I). C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))}"
-
 lemma implmt1D: "G\<turnstile>C\<leadsto>1I \<Longrightarrow> C\<noteq>Object \<and> (\<exists>c\<in>class G C: I\<in>set (superIfs c))"
 apply (unfold implmt1_def)
 apply auto
 done
-
 
 inductive --{* implementation, cf. 8.1.4 *}
   implmt :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" ("_\<turnstile>_\<leadsto>_" [71,71,71] 70)
@@ -568,8 +566,9 @@ apply (frule widen_Class)
 apply (fast dest: widen_Class_Class widen_Class_Iface)
 done
 
-definition widens :: "prog \<Rightarrow> [ty list, ty list] \<Rightarrow> bool" ("_\<turnstile>_[\<preceq>]_" [71,71,71] 70) where
- "G\<turnstile>Ts[\<preceq>]Ts' \<equiv> list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') Ts Ts'"
+definition
+  widens :: "prog \<Rightarrow> [ty list, ty list] \<Rightarrow> bool" ("_\<turnstile>_[\<preceq>]_" [71,71,71] 70)
+  where "G\<turnstile>Ts[\<preceq>]Ts' = list_all2 (\<lambda>T T'. G\<turnstile>T\<preceq>T') Ts Ts'"
 
 lemma widens_Nil [simp]: "G\<turnstile>[][\<preceq>][]"
 apply (unfold widens_def)

@@ -141,7 +141,7 @@ abbreviation (input)
   where "\<lfloor>es\<rfloor>\<^sub>l == In3 es"
 
 definition undefined3 :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> vals" where
- "undefined3 \<equiv> sum3_case (In1 \<circ> sum_case (\<lambda>x. undefined) (\<lambda>x. Unit))
+ "undefined3 = sum3_case (In1 \<circ> sum_case (\<lambda>x. undefined) (\<lambda>x. Unit))
                      (\<lambda>x. In2 undefined) (\<lambda>x. In3 undefined)"
 
 lemma [simp]: "undefined3 (In1l x) = In1 undefined"
@@ -159,8 +159,9 @@ by (simp add: undefined3_def)
 
 section "exception throwing and catching"
 
-definition throw :: "val \<Rightarrow> abopt \<Rightarrow> abopt" where
- "throw a' x \<equiv> abrupt_if True (Some (Xcpt (Loc (the_Addr a')))) (np a' x)"
+definition
+  throw :: "val \<Rightarrow> abopt \<Rightarrow> abopt" where
+  "throw a' x = abrupt_if True (Some (Xcpt (Loc (the_Addr a')))) (np a' x)"
 
 lemma throw_def2: 
  "throw a' x = abrupt_if True (Some (Xcpt (Loc (the_Addr a')))) (np a' x)"
@@ -168,8 +169,9 @@ apply (unfold throw_def)
 apply (simp (no_asm))
 done
 
-definition fits :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60) where
- "G,s\<turnstile>a' fits T  \<equiv> (\<exists>rt. T=RefT rt) \<longrightarrow> a'=Null \<or> G\<turnstile>obj_ty(lookup_obj s a')\<preceq>T"
+definition
+  fits :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool" ("_,_\<turnstile>_ fits _"[61,61,61,61]60)
+  where "G,s\<turnstile>a' fits T = ((\<exists>rt. T=RefT rt) \<longrightarrow> a'=Null \<or> G\<turnstile>obj_ty(lookup_obj s a')\<preceq>T)"
 
 lemma fits_Null [simp]: "G,s\<turnstile>Null fits T"
 by (simp add: fits_def)
@@ -192,9 +194,10 @@ apply  simp_all
 apply iprover
 done
 
-definition catch :: "prog \<Rightarrow> state \<Rightarrow> qtname \<Rightarrow> bool" ("_,_\<turnstile>catch _"[61,61,61]60) where
- "G,s\<turnstile>catch C\<equiv>\<exists>xc. abrupt s=Some (Xcpt xc) \<and> 
-                    G,store s\<turnstile>Addr (the_Loc xc) fits Class C"
+definition
+  catch :: "prog \<Rightarrow> state \<Rightarrow> qtname \<Rightarrow> bool" ("_,_\<turnstile>catch _"[61,61,61]60) where
+  "G,s\<turnstile>catch C = (\<exists>xc. abrupt s=Some (Xcpt xc) \<and> 
+                        G,store s\<turnstile>Addr (the_Loc xc) fits Class C)"
 
 lemma catch_Norm [simp]: "\<not>G,Norm s\<turnstile>catch tn"
 apply (unfold catch_def)
@@ -217,9 +220,9 @@ apply (unfold catch_def)
 apply (simp (no_asm))
 done
 
-definition new_xcpt_var :: "vname \<Rightarrow> state \<Rightarrow> state" where
- "new_xcpt_var vn \<equiv> 
-     \<lambda>(x,s). Norm (lupd(VName vn\<mapsto>Addr (the_Loc (the_Xcpt (the x)))) s)"
+definition
+  new_xcpt_var :: "vname \<Rightarrow> state \<Rightarrow> state" where
+  "new_xcpt_var vn = (\<lambda>(x,s). Norm (lupd(VName vn\<mapsto>Addr (the_Loc (the_Xcpt (the x)))) s))"
 
 lemma new_xcpt_var_def2 [simp]: 
  "new_xcpt_var vn (x,s) = 
@@ -232,9 +235,10 @@ done
 
 section "misc"
 
-definition assign :: "('a \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> 'a \<Rightarrow> state \<Rightarrow> state" where
- "assign f v \<equiv> \<lambda>(x,s). let (x',s') = (if x = None then f v else id) (x,s)
-                   in  (x',if x' = None then s' else s)"
+definition
+  assign :: "('a \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> 'a \<Rightarrow> state \<Rightarrow> state" where
+ "assign f v = (\<lambda>(x,s). let (x',s') = (if x = None then f v else id) (x,s)
+                        in  (x',if x' = None then s' else s))"
 
 (*
 lemma assign_Norm_Norm [simp]: 
@@ -293,26 +297,29 @@ apply auto
 done
 *)
 
-definition init_comp_ty :: "ty \<Rightarrow> stmt" where
- "init_comp_ty T \<equiv> if (\<exists>C. T = Class C) then Init (the_Class T) else Skip"
+definition
+  init_comp_ty :: "ty \<Rightarrow> stmt"
+  where "init_comp_ty T = (if (\<exists>C. T = Class C) then Init (the_Class T) else Skip)"
 
 lemma init_comp_ty_PrimT [simp]: "init_comp_ty (PrimT pt) = Skip"
 apply (unfold init_comp_ty_def)
 apply (simp (no_asm))
 done
 
-definition invocation_class :: "inv_mode \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ref_ty \<Rightarrow> qtname" where
- "invocation_class m s a' statT 
-    \<equiv> (case m of
-         Static \<Rightarrow> if (\<exists> statC. statT = ClassT statC) 
-                      then the_Class (RefT statT) 
-                      else Object
-       | SuperM \<Rightarrow> the_Class (RefT statT)
-       | IntVir \<Rightarrow> obj_class (lookup_obj s a'))"
+definition
+  invocation_class :: "inv_mode \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ref_ty \<Rightarrow> qtname" where
+ "invocation_class m s a' statT =
+    (case m of
+       Static \<Rightarrow> if (\<exists> statC. statT = ClassT statC) 
+                    then the_Class (RefT statT) 
+                    else Object
+     | SuperM \<Rightarrow> the_Class (RefT statT)
+     | IntVir \<Rightarrow> obj_class (lookup_obj s a'))"
 
-definition invocation_declclass::"prog \<Rightarrow> inv_mode \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> qtname" where
-"invocation_declclass G m s a' statT sig 
-   \<equiv> declclass (the (dynlookup G statT 
+definition
+  invocation_declclass :: "prog \<Rightarrow> inv_mode \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ref_ty \<Rightarrow> sig \<Rightarrow> qtname" where
+  "invocation_declclass G m s a' statT sig =
+    declclass (the (dynlookup G statT
                                 (invocation_class m s a' statT)
                                 sig))" 
   
@@ -330,10 +337,11 @@ lemma invocation_class_Static [simp]:
                                             else Object)"
 by (simp add: invocation_class_def)
 
-definition init_lvars :: "prog \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> inv_mode \<Rightarrow> val \<Rightarrow> val list \<Rightarrow>
-                   state \<Rightarrow> state" where
- "init_lvars G C sig mode a' pvs 
-   \<equiv> \<lambda> (x,s). 
+definition
+  init_lvars :: "prog \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> inv_mode \<Rightarrow> val \<Rightarrow> val list \<Rightarrow> state \<Rightarrow> state"
+where
+  "init_lvars G C sig mode a' pvs =
+    (\<lambda>(x,s). 
       let m = mthd (the (methd G C sig));
           l = \<lambda> k. 
               (case k of
@@ -343,7 +351,7 @@ definition init_lvars :: "prog \<Rightarrow> qtname \<Rightarrow> sig \<Rightarr
                        | Res    \<Rightarrow> None)
                | This 
                    \<Rightarrow> (if mode=Static then None else Some a'))
-      in set_lvars l (if mode = Static then x else np a' x,s)"
+      in set_lvars l (if mode = Static then x else np a' x,s))"
 
 
 
@@ -364,9 +372,11 @@ apply (unfold init_lvars_def)
 apply (simp (no_asm) add: Let_def)
 done
 
-definition body :: "prog \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> expr" where
- "body G C sig \<equiv> let m = the (methd G C sig) 
-                 in Body (declclass m) (stmt (mbody (mthd m)))"
+definition
+  body :: "prog \<Rightarrow> qtname \<Rightarrow> sig \<Rightarrow> expr" where
+ "body G C sig =
+    (let m = the (methd G C sig) 
+     in Body (declclass m) (stmt (mbody (mthd m))))"
 
 lemma body_def2: --{* better suited for simplification *} 
 "body G C sig = Body  (declclass (the (methd G C sig))) 
@@ -377,28 +387,30 @@ done
 
 section "variables"
 
-definition lvar :: "lname \<Rightarrow> st \<Rightarrow> vvar" where
- "lvar vn s \<equiv> (the (locals s vn), \<lambda>v. supd (lupd(vn\<mapsto>v)))"
+definition
+  lvar :: "lname \<Rightarrow> st \<Rightarrow> vvar"
+  where "lvar vn s = (the (locals s vn), \<lambda>v. supd (lupd(vn\<mapsto>v)))"
 
-definition fvar :: "qtname \<Rightarrow> bool \<Rightarrow> vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> vvar \<times> state" where
- "fvar C stat fn a' s 
-    \<equiv> let (oref,xf) = if stat then (Stat C,id)
-                              else (Heap (the_Addr a'),np a');
+definition
+  fvar :: "qtname \<Rightarrow> bool \<Rightarrow> vname \<Rightarrow> val \<Rightarrow> state \<Rightarrow> vvar \<times> state" where
+ "fvar C stat fn a' s =
+   (let (oref,xf) = if stat then (Stat C,id)
+                            else (Heap (the_Addr a'),np a');
                   n = Inl (fn,C); 
                   f = (\<lambda>v. supd (upd_gobj oref n v)) 
-      in ((the (values (the (globs (store s) oref)) n),f),abupd xf s)"
+    in ((the (values (the (globs (store s) oref)) n),f),abupd xf s))"
 
-definition avar :: "prog \<Rightarrow> val \<Rightarrow> val \<Rightarrow> state \<Rightarrow> vvar \<times> state" where
- "avar G i' a' s 
-    \<equiv> let   oref = Heap (the_Addr a'); 
-               i = the_Intg i'; 
-               n = Inr i;
-        (T,k,cs) = the_Arr (globs (store s) oref); 
-               f = (\<lambda>v (x,s). (raise_if (\<not>G,s\<turnstile>v fits T) 
+definition
+  avar :: "prog \<Rightarrow> val \<Rightarrow> val \<Rightarrow> state \<Rightarrow> vvar \<times> state" where
+  "avar G i' a' s =
+    (let   oref = Heap (the_Addr a'); 
+              i = the_Intg i'; 
+              n = Inr i;
+       (T,k,cs) = the_Arr (globs (store s) oref); 
+              f = (\<lambda>v (x,s). (raise_if (\<not>G,s\<turnstile>v fits T) 
                                            ArrStore x
                               ,upd_gobj oref n v s)) 
-      in ((the (cs n),f)
-         ,abupd (raise_if (\<not>i in_bounds k) IndOutBound \<circ> np a') s)"
+     in ((the (cs n),f),abupd (raise_if (\<not>i in_bounds k) IndOutBound \<circ> np a') s))"
 
 lemma fvar_def2: --{* better suited for simplification *} 
 "fvar C stat fn a' s =  
@@ -431,27 +443,29 @@ apply (unfold avar_def)
 apply (simp (no_asm) add: Let_def split_beta)
 done
 
-definition check_field_access :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> vname \<Rightarrow> bool \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" where
-"check_field_access G accC statDeclC fn stat a' s
- \<equiv> let oref = if stat then Stat statDeclC
-                      else Heap (the_Addr a');
-       dynC = case oref of
+definition
+  check_field_access :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> vname \<Rightarrow> bool \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" where
+  "check_field_access G accC statDeclC fn stat a' s =
+    (let oref = if stat then Stat statDeclC
+                else Heap (the_Addr a');
+         dynC = case oref of
                    Heap a \<Rightarrow> obj_class (the (globs (store s) oref))
                  | Stat C \<Rightarrow> C;
-       f    = (the (table_of (DeclConcepts.fields G dynC) (fn,statDeclC)))
-   in abupd 
+         f    = (the (table_of (DeclConcepts.fields G dynC) (fn,statDeclC)))
+     in abupd 
         (error_if (\<not> G\<turnstile>Field fn (statDeclC,f) in dynC dyn_accessible_from accC)
                   AccessViolation)
-        s"
+        s)"
 
-definition check_method_access :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> inv_mode \<Rightarrow>  sig \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" where
-"check_method_access G accC statT mode sig  a' s
- \<equiv> let invC = invocation_class mode (store s) a' statT;
+definition
+  check_method_access :: "prog \<Rightarrow> qtname \<Rightarrow> ref_ty \<Rightarrow> inv_mode \<Rightarrow>  sig \<Rightarrow> val \<Rightarrow> state \<Rightarrow> state" where
+  "check_method_access G accC statT mode sig  a' s =
+    (let invC = invocation_class mode (store s) a' statT;
        dynM = the (dynlookup G statT invC sig)
-   in abupd 
+     in abupd 
         (error_if (\<not> G\<turnstile>Methd sig dynM in invC dyn_accessible_from accC)
                   AccessViolation)
-        s"
+        s)"
        
 section "evaluation judgments"
 

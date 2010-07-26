@@ -180,31 +180,34 @@ hide_const In0 In1
 
 notation sum_case  (infixr "'(+')"80)
 
-consts    the_Inl  :: "'a + 'b \<Rightarrow> 'a"
-          the_Inr  :: "'a + 'b \<Rightarrow> 'b"
-primrec  "the_Inl (Inl a) = a"
-primrec  "the_Inr (Inr b) = b"
+primrec the_Inl  :: "'a + 'b \<Rightarrow> 'a"
+  where "the_Inl (Inl a) = a"
+
+primrec the_Inr  :: "'a + 'b \<Rightarrow> 'b"
+  where "the_Inr (Inr b) = b"
 
 datatype ('a, 'b, 'c) sum3 = In1 'a | In2 'b | In3 'c
 
-consts    the_In1  :: "('a, 'b, 'c) sum3 \<Rightarrow> 'a"
-          the_In2  :: "('a, 'b, 'c) sum3 \<Rightarrow> 'b"
-          the_In3  :: "('a, 'b, 'c) sum3 \<Rightarrow> 'c"
-primrec  "the_In1 (In1 a) = a"
-primrec  "the_In2 (In2 b) = b"
-primrec  "the_In3 (In3 c) = c"
+primrec the_In1  :: "('a, 'b, 'c) sum3 \<Rightarrow> 'a"
+  where "the_In1 (In1 a) = a"
+
+primrec the_In2  :: "('a, 'b, 'c) sum3 \<Rightarrow> 'b"
+  where "the_In2 (In2 b) = b"
+
+primrec the_In3  :: "('a, 'b, 'c) sum3 \<Rightarrow> 'c"
+  where "the_In3 (In3 c) = c"
 
 abbreviation In1l   :: "'al \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
-      where "In1l e == In1 (Inl e)"
+  where "In1l e == In1 (Inl e)"
 
 abbreviation In1r   :: "'ar \<Rightarrow> ('al + 'ar, 'b, 'c) sum3"
-      where "In1r c == In1 (Inr c)"
+  where "In1r c == In1 (Inr c)"
 
 abbreviation the_In1l :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'al"
-      where "the_In1l == the_Inl \<circ> the_In1"
+  where "the_In1l == the_Inl \<circ> the_In1"
 
 abbreviation the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
-      where "the_In1r == the_Inr \<circ> the_In1"
+  where "the_In1r == the_Inr \<circ> the_In1"
 
 ML {*
 fun sum3_instantiate ctxt thm = map (fn s =>
@@ -232,8 +235,9 @@ section "Special map update"
 
 text{* Deemed too special for theory Map. *}
 
-definition chg_map :: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)" where
- "chg_map f a m == case m a of None => m | Some b => m(a|->f b)"
+definition
+  chg_map :: "('b => 'b) => 'a => ('a ~=> 'b) => ('a ~=> 'b)"
+  where "chg_map f a m = (case m a of None => m | Some b => m(a|->f b))"
 
 lemma chg_map_new[simp]: "m a = None   ==> chg_map f a m = m"
 by (unfold chg_map_def, auto)
@@ -247,8 +251,9 @@ by (auto simp: chg_map_def split add: option.split)
 
 section "unique association lists"
 
-definition unique :: "('a \<times> 'b) list \<Rightarrow> bool" where
- "unique \<equiv> distinct \<circ> map fst"
+definition
+  unique :: "('a \<times> 'b) list \<Rightarrow> bool"
+  where "unique = distinct \<circ> map fst"
 
 lemma uniqueD [rule_format (no_asm)]: 
 "unique l--> (!x y. (x,y):set l --> (!x' y'. (x',y'):set l --> x=x'-->  y=y'))"
@@ -296,11 +301,11 @@ done
 
 section "list patterns"
 
-consts
-  lsplit         :: "[['a, 'a list] => 'b, 'a list] => 'b"
-defs
-  lsplit_def:    "lsplit == %f l. f (hd l) (tl l)"
-(*  list patterns -- extends pre-defined type "pttrn" used in abstractions *)
+definition
+  lsplit :: "[['a, 'a list] => 'b, 'a list] => 'b" where
+  "lsplit = (\<lambda>f l. f (hd l) (tl l))"
+
+text {* list patterns -- extends pre-defined type "pttrn" used in abstractions *}
 syntax
   "_lpttrn"    :: "[pttrn,pttrn] => pttrn"     ("_#/_" [901,900] 900)
 translations

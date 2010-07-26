@@ -54,15 +54,15 @@ definition cond_override :: "('b \<Rightarrow>'b \<Rightarrow> bool) \<Rightarro
 
 --{* when merging tables old and new, only override an entry of table old when  
    the condition cond holds *}
-"cond_override cond old new \<equiv>
- \<lambda> k.
+"cond_override cond old new =
+ (\<lambda>k.
   (case new k of
      None         \<Rightarrow> old k                       
    | Some new_val \<Rightarrow> (case old k of
                         None         \<Rightarrow> Some new_val          
                       | Some old_val \<Rightarrow> (if cond new_val old_val
                                          then Some new_val     
-                                         else Some old_val)))"
+                                         else Some old_val))))"
 
 lemma cond_override_empty1[simp]: "cond_override c empty t = t"
 by (simp add: cond_override_def expand_fun_eq)
@@ -95,10 +95,11 @@ by (rule finite_UnI)
 
 section {* Filter on Tables *}
 
-definition filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table" where
-"filter_tab c t \<equiv> \<lambda> k. (case t k of 
+definition
+  filter_tab :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a, 'b) table \<Rightarrow> ('a, 'b) table" where
+  "filter_tab c t = (\<lambda>k. (case t k of 
                            None   \<Rightarrow> None
-                         | Some x \<Rightarrow> if c k x then Some x else None)"
+                         | Some x \<Rightarrow> if c k x then Some x else None))"
 
 lemma filter_tab_empty[simp]: "filter_tab c empty = empty"
 by (simp add: filter_tab_def empty_def)
@@ -279,27 +280,31 @@ apply (auto del: map_of_SomeD intro!: map_of_SomeD)
 done
 
 
-consts
-  Un_tables      :: "('a, 'b) tables set \<Rightarrow> ('a, 'b) tables"
-  overrides_t    :: "('a, 'b) tables     \<Rightarrow> ('a, 'b) tables \<Rightarrow>
-                     ('a, 'b) tables"             (infixl "\<oplus>\<oplus>" 100)
-  hidings_entails:: "('a, 'b) tables \<Rightarrow> ('a, 'c) tables \<Rightarrow> 
-                     ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"   ("_ hidings _ entails _" 20)
+definition
+  Un_tables :: "('a, 'b) tables set \<Rightarrow> ('a, 'b) tables"
+  where "Un_tables ts\<spacespace>\<spacespace>= (\<lambda>k. \<Union>t\<in>ts. t k)"
+
+definition
+  overrides_t :: "('a, 'b) tables \<Rightarrow> ('a, 'b) tables \<Rightarrow> ('a, 'b) tables"  (infixl "\<oplus>\<oplus>" 100)
+  where "s \<oplus>\<oplus> t = (\<lambda>k. if t k = {} then s k else t k)"
+
+definition
+  hidings_entails :: "('a, 'b) tables \<Rightarrow> ('a, 'c) tables \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"
+    ("_ hidings _ entails _" 20)
+  where "(t hidings s entails R) = (\<forall>k. \<forall>x\<in>t k. \<forall>y\<in>s k. R x y)"
+
+definition
   --{* variant for unique table: *}
-  hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  \<Rightarrow> 
-                     ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"   ("_ hiding _ entails _"  20)
+  hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"
+    ("_ hiding _ entails _"  20)
+  where "(t hiding  s entails R) = (\<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: R x y)"
+
+definition
   --{* variant for a unique table and conditional overriding: *}
   cond_hiding_entails :: "('a, 'b) table  \<Rightarrow> ('a, 'c) table  
                           \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> ('b \<Rightarrow> 'c \<Rightarrow> bool) \<Rightarrow> bool"  
                           ("_ hiding _ under _ entails _"  20)
-
-defs
-  Un_tables_def:       "Un_tables ts\<spacespace>\<spacespace>\<equiv> \<lambda>k. \<Union>t\<in>ts. t k"
-  overrides_t_def:     "s \<oplus>\<oplus> t        \<equiv> \<lambda>k. if t k = {} then s k else t k"
-  hidings_entails_def: "t hidings s entails R \<equiv> \<forall>k. \<forall>x\<in>t k. \<forall>y\<in>s k. R x y"
-  hiding_entails_def:  "t hiding  s entails R \<equiv> \<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: R x y"
-  cond_hiding_entails_def: "t hiding  s under C entails R
-                            \<equiv> \<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: C x y \<longrightarrow> R x y"
+  where "(t hiding  s under C entails R) = (\<forall>k. \<forall>x\<in>t k: \<forall>y\<in>s k: C x y \<longrightarrow> R x y)"
 
 section "Untables"
 
@@ -383,12 +388,10 @@ declare empty_hidings_entails [intro!] hidings_empty_entails [intro!]
 
 
 (*###TO Map?*)
-consts
-  atleast_free :: "('a ~=> 'b) => nat => bool"
-primrec
- "atleast_free m 0       = True"
- atleast_free_Suc: 
- "atleast_free m (Suc n) = (? a. m a = None & (!b. atleast_free (m(a|->b)) n))"
+primrec atleast_free :: "('a ~=> 'b) => nat => bool"
+where
+  "atleast_free m 0 = True"
+| atleast_free_Suc: "atleast_free m (Suc n) = (\<exists>a. m a = None & (!b. atleast_free (m(a|->b)) n))"
 
 lemma atleast_free_weaken [rule_format (no_asm)]: 
   "!m. atleast_free m (Suc n) \<longrightarrow> atleast_free m n"
