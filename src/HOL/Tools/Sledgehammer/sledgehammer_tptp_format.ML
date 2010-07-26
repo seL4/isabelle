@@ -23,7 +23,6 @@ sig
 
   datatype fol_formula =
     FOLFormula of {formula_name: string,
-                   formula_id: int,
                    kind: kind,
                    combformula: (name, combterm) formula,
                    ctypes_sorts: typ list}
@@ -162,7 +161,6 @@ fun nice_problem problem =
 
 datatype fol_formula =
   FOLFormula of {formula_name: string,
-                 formula_id: int,
                  kind: kind,
                  combformula: (name, combterm) formula,
                  ctypes_sorts: typ list}
@@ -246,8 +244,8 @@ fun problem_line_for_arity_clause
        |> mk_adisjunction)
 
 fun problem_line_for_conjecture full_types
-        (FOLFormula {formula_id, kind, combformula, ...}) =
-  Fof (conjecture_prefix ^ Int.toString formula_id, kind,
+        (FOLFormula {formula_name, kind, combformula, ...}) =
+  Fof (conjecture_prefix ^ formula_name, kind,
        formula_for_combformula full_types combformula)
 
 fun atp_free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =

@@ -218,7 +218,7 @@ fun introduce_combinators_in_term thy t =
   in t |> not (Meson.is_fol_term thy t) ? aux [] end
 
 (* making axiom and conjecture clauses *)
-fun make_clause thy (formula_id, formula_name, kind, t) =
+fun make_clause thy (formula_name, kind, t) =
   let
     (* ### FIXME: perform other transformations previously done by
        "Clausifier.to_nnf", e.g. "HOL.If" *)
@@ -228,15 +228,14 @@ fun make_clause thy (formula_id, formula_name, kind, t) =
               |> introduce_combinators_in_term thy
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
-    FOLFormula {formula_name = formula_name, formula_id = formula_id,
-                combformula = combformula, kind = kind,
-                ctypes_sorts = ctypes_sorts}
+    FOLFormula {formula_name = formula_name, combformula = combformula,
+                kind = kind, ctypes_sorts = ctypes_sorts}
   end
 
 fun make_axiom_clause thy (name, th) =
-  (name, make_clause thy (0, name, Axiom, prop_of th))
+  (name, make_clause thy (name, Axiom, prop_of th))
 fun make_conjecture_clauses thy ts =
-  map2 (fn j => fn t => make_clause thy (j, "conjecture", Conjecture, t))
+  map2 (fn j => fn t => make_clause thy (Int.toString j, Conjecture, t))
        (0 upto length ts - 1) ts
 
 (** Helper clauses **)
