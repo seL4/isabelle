@@ -522,9 +522,9 @@ end;
 fun gen_inductive_cases prep_att prep_prop args lthy =
   let
     val thy = ProofContext.theory_of lthy;
-    val facts = args |> map (fn ((a, atts), props) =>
+    val facts = args |> Par_List.map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
-        map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
+        Par_List.map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
   in lthy |> Local_Theory.notes facts |>> map snd end;
 
 val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
