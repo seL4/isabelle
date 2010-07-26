@@ -43,15 +43,6 @@ fun is_axiom_clause_number thm_names num =
 fun is_conjecture_clause_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
 
-fun smart_lambda v t =
-  Abs (case v of
-         Const (s, _) =>
-         List.last (space_explode skolem_infix (Long_Name.base_name s))
-       | Var ((s, _), _) => s
-       | Free (s, _) => s
-       | _ => "", fastype_of v, abstract_over (v, t))
-fun forall_of v t = HOLogic.all_const (fastype_of v) $ smart_lambda v t
-
 fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     Const (@{const_name Ex}, T) $ Abs (s, T', negate_term t')
   | negate_term (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
@@ -281,11 +272,8 @@ fun term_from_fo_term thy full_types tfrees opt_T =
                             else
                               raise Fail ("no type information for " ^ quote c)
                         else
-                          if String.isPrefix skolem_theory_name c then
-                            map fastype_of term_ts ---> HOLogic.typeT
-                          else
-                            Sign.const_instance thy (c,
-                                map (type_from_fo_term tfrees) type_us))
+                          Sign.const_instance thy (c,
+                              map (type_from_fo_term tfrees) type_us))
           in list_comb (t, term_ts @ extra_ts) end
         | NONE => (* a free or schematic variable *)
           let
@@ -324,12 +312,6 @@ fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
 
 fun is_positive_literal (@{const Not} $ _) = false
   | is_positive_literal _ = true
-
-(* ### FIXME: remove once Skolemization is left to ATPs *)
-fun unskolemize_term t =
-  Term.add_consts t []
-  |> filter (is_skolem_const_name o fst) |> map Const
-  |> rpair t |-> fold forall_of
 
 val combinator_table =
   [(@{const_name COMBI}, @{thm COMBI_def_raw}),
@@ -445,7 +427,7 @@ fun decode_line full_types tfrees (Definition (num, phi1, phi2)) ctxt =
     let
       val thy = ProofContext.theory_of ctxt
       val t = u |> prop_from_formula thy full_types tfrees
-                |> unskolemize_term |> uncombine_term |> check_formula ctxt
+                |> uncombine_term |> check_formula ctxt
     in
       (Inference (num, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
@@ -626,6 +608,7 @@ fun add_fact_from_dep thm_names num =
   else
     apfst (insert (op =) (raw_prefix, num))
 
+fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
 fun forall_vars t = fold_rev forall_of (map Var (Term.add_vars t [])) t
 
 fun step_for_line _ _ (Definition (_, t1, t2)) = Let (t1, t2)
