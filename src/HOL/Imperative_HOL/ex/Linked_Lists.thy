@@ -1014,6 +1014,6 @@ ML {* @{code test_1} () *}
 ML {* @{code test_2} () *}
 ML {* @{code test_3} () *}
 
-export_code test_1 test_2 test_3 checking SML SML_imp OCaml? OCaml_imp? Haskell? (*Scala?*)
+export_code test_1 test_2 test_3 checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala?
 
 end

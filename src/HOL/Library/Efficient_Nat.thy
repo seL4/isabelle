@@ -307,7 +307,7 @@ class Nat private(private val value: BigInt) {
   def as_BigInt: BigInt = this.value
   def as_Int: Int = if (this.value >= Int.MinValue && this.value <= Int.MaxValue)
       this.value.intValue
-    else this.value.intValue
+    else error("Int value out of range: " + this.value.toString)
 
   def +(that: Nat): Nat = new Nat(this.value + that.value)
   def -(that: Nat): Nat = Nat(this.value - that.value)

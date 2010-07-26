@@ -299,8 +299,7 @@ text {* Scala *}
 code_type ref (Scala "!Ref[_]")
 code_const Ref (Scala "!error(\"bare Ref\")")
 code_const ref (Scala "('_: Unit)/ =>/ Ref((_))")
-code_const Ref.lookup (Scala "('_: Unit)/ =>/ lookup((_))")
-code_const Ref.update (Scala "('_: Unit)/ =>/ update((_), (_))")
+code_const Ref.lookup (Scala "('_: Unit)/ =>/ Ref.lookup((_))")
+code_const Ref.update (Scala "('_: Unit)/ =>/ Ref.update((_), (_))")
 
 end
-
