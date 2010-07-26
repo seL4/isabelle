@@ -141,9 +141,9 @@ fun merge_target strict target (Target { serial = serial1, description = descrip
       name_syntax_table = name_syntax_table2, module_alias = module_alias2 }) =
   if serial1 = serial2 orelse not strict then
     make_target ((serial1, description),
-      ((merge (op =) (reserved1, reserved2), Symtab.merge (K true) (includes1, includes2)),
+      ((merge (op =) (reserved1, reserved2), Symtab.join (K snd) (includes1, includes2)),
         (merge_name_syntax_table (name_syntax_table1, name_syntax_table2),
-          Symtab.join (K fst) (module_alias1, module_alias2))
+          Symtab.join (K snd) (module_alias1, module_alias2))
     ))
   else
     error ("Incompatible targets: " ^ quote target);
