@@ -137,8 +137,7 @@ fun combformula_for_prop thy =
       #>> (fn (phi1, phi2) => AConn (c, [phi1, phi2]))
     and do_formula bs t =
       case t of
-        @{const Trueprop} $ t1 => do_formula bs t1
-      | @{const Not} $ t1 =>
+        @{const Not} $ t1 =>
         do_formula bs t1 #>> (fn phi => AConn (ANot, [phi]))
       | Const (@{const_name All}, _) $ Abs (s, T, t') =>
         do_quant bs AForall s T t'
@@ -153,15 +152,25 @@ fun combformula_for_prop thy =
                        |>> APred ||> union (op =) ts)
   in do_formula [] end
 
-(* Removes the lambdas from an equation of the form "t = (%x. u)" (cf.
-   "extensionalize_theorem" in "Clausifier"). *)
+(* Converts an elim-rule into an equivalent theorem that does not have the
+   predicate variable. Leaves other theorems unchanged. We simply instantiate
+   the conclusion variable to False. (Cf. "transform_elim_term" in
+   "ATP_Systems".) *)
+(* FIXME: test! *)
+fun transform_elim_term t =
+  case Logic.strip_imp_concl t of
+    @{const Trueprop} $ Var (z, @{typ bool}) =>
+    subst_Vars [(z, @{const True})] t
+  | Var (z, @{typ prop}) => subst_Vars [(z, @{prop True})] t
+  | _ => t
+
+(* Removes the lambdas from an equation of the form "t = (%x. u)".
+   (Cf. "extensionalize_theorem" in "Clausifier".) *)
 fun extensionalize_term t =
   let
-    fun aux j (Const (@{const_name "op ="}, _) $ t2 $ Abs (s, var_T, t')) =
-        let
-          val T' = fastype_of t'
-          val var_t = Var (("x", j), var_T)
-        in
+    fun aux j (Const (@{const_name "op ="}, Type (_, [Type (_, [_, T']), _]))
+               $ t2 $ Abs (s, var_T, t')) =
+        let val var_t = Var (("x", j), var_T) in
           Const (@{const_name "op ="}, T' --> T' --> HOLogic.boolT)
             $ betapply (t2, var_t) $ subst_bound (var_t, t')
           |> aux (j + 1)
@@ -169,13 +178,54 @@ fun extensionalize_term t =
       | aux _ t = t
   in aux (maxidx_of_term t + 1) t end
 
+(* FIXME: Guarantee freshness *)
+fun concealed_bound_name j = "Sledgehammer" ^ Int.toString j
+fun conceal_bounds Ts t =
+  subst_bounds (map (Free o apfst concealed_bound_name)
+                    (length Ts - 1 downto 0 ~~ rev Ts), t)
+fun reveal_bounds Ts =
+  subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
+                    (0 upto length Ts - 1 ~~ Ts))
+
+fun introduce_combinators_in_term thy t =
+  let
+    fun aux Ts t =
+      case t of
+        @{const Not} $ t1 => @{const Not} $ aux Ts t1
+      | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
+        t0 $ Abs (s, T, aux (T :: Ts) t')
+      | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
+        t0 $ Abs (s, T, aux (T :: Ts) t')
+      | (t0 as @{const "op &"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+      | (t0 as @{const "op |"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+      | (t0 as @{const "op -->"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+      | (t0 as Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])))
+          $ t1 $ t2 =>
+        t0 $ aux Ts t1 $ aux Ts t2
+      | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
+               t
+             else
+               t |> conceal_bounds Ts
+                 |> Envir.eta_contract
+                 |> cterm_of thy
+                 |> Clausifier.introduce_combinators_in_cterm
+                 |> prop_of |> Logic.dest_equals |> snd
+                 |> reveal_bounds Ts
+               handle THM (msg, _, _) =>
+                      (* A type variable of sort "{}" will make abstraction
+                         fail. *)
+                      t
+  in t |> not (Meson.is_fol_term thy t) ? aux [] end
+
 (* making axiom and conjecture clauses *)
 fun make_clause thy (formula_id, formula_name, kind, t) =
   let
     (* ### FIXME: introduce combinators and perform other transformations
        previously done by Clausifier.to_nnf *)
-    val t = t |> Object_Logic.atomize_term thy
+    val t = t |> transform_elim_term
+              |> Object_Logic.atomize_term thy
               |> extensionalize_term
+              |> introduce_combinators_in_term thy
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
     FOLFormula {formula_name = formula_name, formula_id = formula_id,
@@ -236,9 +286,8 @@ fun get_helper_clauses thy is_FO full_types conjectures axcls =
       @ (if is_FO then [] else cnf_helper_thms thy false mandatory_helpers)
   in map snd (make_axiom_clauses thy cnfs) end
 
-fun negate_prop (@{const Trueprop} $ t) = negate_prop t
-  | negate_prop (@{const Not} $ t) = t
-  | negate_prop t = @{const Not} $ t
+fun negate_term (@{const Not} $ t) = t
+  | negate_term t = @{const Not} $ t
 
 (* prepare for passing to writer,
    create additional clauses based on the information from extra_cls *)
@@ -253,7 +302,7 @@ fun prepare_clauses full_types hyp_ts concl_t axcls extra_cls thy =
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
     val conjectures =
-      make_conjecture_clauses thy (map negate_prop hyp_ts @ [concl_t])
+      make_conjecture_clauses thy (map negate_term hyp_ts @ [concl_t])
     val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses thy extra_cls)
     val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses thy axcls)
     val helper_clauses =
