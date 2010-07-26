@@ -70,6 +70,7 @@ sig
     morphism -> theory -> theory
   val amend_registration: string * morphism -> morphism * bool ->
     morphism -> theory -> theory
+  val get_registrations: theory -> string -> morphism list
   val add_dependency: string -> string * morphism -> morphism -> theory -> theory
 
   (* Diagnostic *)
@@ -409,16 +410,18 @@ fun collect_mixins thy (name, morph) =
   |> (fn x => merge (eq_snd op =) (x, get_mixins thy (name, morph)))
   |> compose_mixins;
 
-fun get_registrations thy select = Registrations.get thy
+fun gen_get_registrations thy select = Registrations.get thy
   |>> Idtab.dest |>> select
   (* with inherited mixins *)
   |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
     (name, base $> (collect_mixins thy (name, base $> export)) $> export)) regs);
 
-fun these_registrations thy name =
-  get_registrations thy (filter (curry (op =) name o fst o fst));
+fun registrations_for_locale thy name =
+  gen_get_registrations thy (filter (curry (op =) name o fst o fst));
 
-fun all_registrations thy = get_registrations thy I;
+val get_registrations = map snd oo registrations_for_locale;
+
+fun all_registrations thy = gen_get_registrations thy I;
 
 fun activate_notes' activ_elem transfer thy export (name, morph) input =
   let
@@ -508,7 +511,7 @@ fun add_thmss loc kind args ctxt =
               val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
                 Attrib.map_facts (Attrib.attribute_i thy)
             in PureThy.note_thmss kind args'' #> snd end)
-        (these_registrations thy loc) thy))
+        (registrations_for_locale thy loc) thy))
   in ctxt'' end;
 
 
@@ -591,7 +594,7 @@ fun print_locale thy show_facts raw_name =
   end;
 
 fun print_registrations thy raw_name =
-  (case these_registrations thy (intern thy raw_name) of
+  (case registrations_for_locale thy (intern thy raw_name) of
       [] => Pretty.str ("no interpretations")
     | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
   |> Pretty.writeln;
@@ -604,7 +607,7 @@ fun locale_deps thy =
         val params = params_of thy name;
         val axioms = (these o Option.map (Logic.strip_imp_prems o Thm.prop_of) o fst o intros_of thy) name;
         val registrations = map (instance_of thy name o snd)
-          (these_registrations thy name);
+          (registrations_for_locale thy name);
       in 
         Graph.new_node (name, { params = params, axioms = axioms, registrations = registrations })
       end;
