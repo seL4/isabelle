@@ -304,30 +304,23 @@ val _ = hide_names "hide_fact" Isar_Cmd.hide_fact "facts";
 
 (* use ML text *)
 
-fun propagate_env (context as Context.Proof lthy) =
-      Context.Proof (Local_Theory.map_contexts (ML_Env.inherit context) lthy)
-  | propagate_env context = context;
-
-fun propagate_env_prf prf = Proof.map_contexts
-  (Context.proof_map (ML_Env.inherit (Context.Proof (Proof.context_of prf)))) prf;
-
 val _ =
   Outer_Syntax.command "use" "ML text from file" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.path >>
-      (fn path => Toplevel.generic_theory (Thy_Info.exec_file path #> propagate_env)));
+    (Parse.path >> (fn path => Toplevel.generic_theory (Thy_Load.exec_ml path)));
 
 val _ =
   Outer_Syntax.command "ML" "ML text within theory or local theory"
     (Keyword.tag_ml Keyword.thy_decl)
     (Parse.ML_source >> (fn (txt, pos) =>
       Toplevel.generic_theory
-        (ML_Context.exec (fn () => ML_Context.eval_text true pos txt) #> propagate_env)));
+        (ML_Context.exec (fn () => ML_Context.eval_text true pos txt) #>
+          Local_Theory.propagate_ml_env)));
 
 val _ =
   Outer_Syntax.command "ML_prf" "ML text within proof" (Keyword.tag_proof Keyword.prf_decl)
     (Parse.ML_source >> (fn (txt, pos) =>
       Toplevel.proof (Proof.map_context (Context.proof_map
-        (ML_Context.exec (fn () => ML_Context.eval_text true pos txt))) #> propagate_env_prf)));
+        (ML_Context.exec (fn () => ML_Context.eval_text true pos txt))) #> Proof.propagate_ml_env)));
 
 val _ =
   Outer_Syntax.command "ML_val" "diagnostic ML text" (Keyword.tag_ml Keyword.diag)

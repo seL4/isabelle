@@ -184,10 +184,8 @@ use "ML/ml_context.ML";
 
 (*theory sources*)
 use "Thy/thy_header.ML";
-use "Thy/thy_load.ML";
 use "Thy/html.ML";
 use "Thy/latex.ML";
-use "Thy/present.ML";
 
 (*basic proof engine*)
 use "Isar/proof_display.ML";
@@ -227,10 +225,12 @@ use "Isar/typedecl.ML";
 use "Isar/constdefs.ML";
 
 (*toplevel transactions*)
+use "Thy/thy_load.ML";
 use "Isar/proof_node.ML";
 use "Isar/toplevel.ML";
 
 (*theory syntax*)
+use "Thy/present.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
 use "Thy/thy_syntax.ML";

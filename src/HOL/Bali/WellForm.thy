@@ -31,8 +31,9 @@ section "well-formed field declarations"
 text  {* well-formed field declaration (common part for classes and interfaces),
         cf. 8.3 and (9.3) *}
 
-definition wf_fdecl :: "prog \<Rightarrow> pname \<Rightarrow> fdecl \<Rightarrow> bool" where
- "wf_fdecl G P \<equiv> \<lambda>(fn,f). is_acc_type G P (type f)"
+definition
+  wf_fdecl :: "prog \<Rightarrow> pname \<Rightarrow> fdecl \<Rightarrow> bool"
+  where "wf_fdecl G P = (\<lambda>(fn,f). is_acc_type G P (type f))"
 
 lemma wf_fdecl_def2: "\<And>fd. wf_fdecl G P fd = is_acc_type G P (type (snd fd))"
 apply (unfold wf_fdecl_def)
@@ -54,11 +55,12 @@ A method head is wellformed if:
 \item the parameter names are unique
 \end{itemize} 
 *}
-definition wf_mhead :: "prog \<Rightarrow> pname \<Rightarrow> sig \<Rightarrow> mhead \<Rightarrow> bool" where
- "wf_mhead G P \<equiv> \<lambda> sig mh. length (parTs sig) = length (pars mh) \<and>
+definition
+  wf_mhead :: "prog \<Rightarrow> pname \<Rightarrow> sig \<Rightarrow> mhead \<Rightarrow> bool" where
+  "wf_mhead G P = (\<lambda> sig mh. length (parTs sig) = length (pars mh) \<and>
                             \<spacespace> ( \<forall>T\<in>set (parTs sig). is_acc_type G P T) \<and> 
                             is_acc_type G P (resTy mh) \<and>
-                            \<spacespace> distinct (pars mh)"
+                            \<spacespace> distinct (pars mh))"
 
 
 text {*
@@ -76,23 +78,25 @@ A method declaration is wellformed if:
 \end{itemize}
 *}
 
-definition callee_lcl :: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarrow> lenv" where
-"callee_lcl C sig m 
- \<equiv> \<lambda> k. (case k of
+definition
+  callee_lcl :: "qtname \<Rightarrow> sig \<Rightarrow> methd \<Rightarrow> lenv" where
+  "callee_lcl C sig m =
+    (\<lambda>k. (case k of
             EName e 
             \<Rightarrow> (case e of 
                   VNam v 
                   \<Rightarrow>(table_of (lcls (mbody m))((pars m)[\<mapsto>](parTs sig))) v
                 | Res \<Rightarrow> Some (resTy m))
-          | This \<Rightarrow> if is_static m then None else Some (Class C))"
+          | This \<Rightarrow> if is_static m then None else Some (Class C)))"
 
-definition parameters :: "methd \<Rightarrow> lname set" where
-"parameters m \<equiv>  set (map (EName \<circ> VNam) (pars m)) 
-                  \<union> (if (static m) then {} else {This})"
+definition
+  parameters :: "methd \<Rightarrow> lname set" where
+  "parameters m = set (map (EName \<circ> VNam) (pars m)) \<union> (if (static m) then {} else {This})"
 
-definition wf_mdecl :: "prog \<Rightarrow> qtname \<Rightarrow> mdecl \<Rightarrow> bool" where
- "wf_mdecl G C \<equiv> 
-      \<lambda>(sig,m).
+definition
+  wf_mdecl :: "prog \<Rightarrow> qtname \<Rightarrow> mdecl \<Rightarrow> bool" where
+  "wf_mdecl G C =
+      (\<lambda>(sig,m).
           wf_mhead G (pid C) sig (mhead m) \<and> 
           unique (lcls (mbody m)) \<and> 
           (\<forall>(vn,T)\<in>set (lcls (mbody m)). is_acc_type G (pid C) T) \<and> 
@@ -102,7 +106,7 @@ definition wf_mdecl :: "prog \<Rightarrow> qtname \<Rightarrow> mdecl \<Rightarr
           \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr>\<turnstile>(stmt (mbody m))\<Colon>\<surd> \<and>
           (\<exists> A. \<lparr>prg=G,cls=C,lcl=callee_lcl C sig m\<rparr> 
                 \<turnstile> parameters m \<guillemotright>\<langle>stmt (mbody m)\<rangle>\<guillemotright> A 
-               \<and> Result \<in> nrm A)"
+               \<and> Result \<in> nrm A))"
 
 lemma callee_lcl_VNam_simp [simp]:
 "callee_lcl C sig m (EName (VNam v)) 
@@ -216,9 +220,10 @@ A interface declaration is wellformed if:
       superinterfaces widens to each of the corresponding result types
 \end{itemize}
 *}
-definition wf_idecl :: "prog  \<Rightarrow> idecl \<Rightarrow> bool" where
- "wf_idecl G \<equiv> 
-    \<lambda>(I,i). 
+definition
+  wf_idecl :: "prog  \<Rightarrow> idecl \<Rightarrow> bool" where
+ "wf_idecl G =
+    (\<lambda>(I,i). 
         ws_idecl G I (isuperIfs i) \<and> 
         \<not>is_class G I \<and>
         (\<forall>(sig,mh)\<in>set (imethods i). wf_mhead G (pid I) sig mh \<and> 
@@ -233,7 +238,7 @@ definition wf_idecl :: "prog  \<Rightarrow> idecl \<Rightarrow> bool" where
                              is_static new = is_static old)) \<and> 
         (Option.set \<circ> table_of (imethods i) 
                hidings Un_tables((\<lambda>J.(imethds G J))`set (isuperIfs i))
-               entails (\<lambda>new old. G\<turnstile>resTy new\<preceq>resTy old))"
+               entails (\<lambda>new old. G\<turnstile>resTy new\<preceq>resTy old)))"
 
 lemma wf_idecl_mhead: "\<lbrakk>wf_idecl G (I,i); (sig,mh)\<in>set (imethods i)\<rbrakk> \<Longrightarrow>  
   wf_mhead G (pid I) sig mh \<and> \<not>is_static mh \<and> accmodi mh = Public"
@@ -317,8 +322,9 @@ A class declaration is wellformed if:
 \end{itemize}
 *}
 (* to Table *)
-definition entails :: "('a,'b) table \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool" ("_ entails _" 20) where
-"t entails P \<equiv> \<forall>k. \<forall> x \<in> t k: P x"
+definition
+  entails :: "('a,'b) table \<Rightarrow> ('b \<Rightarrow> bool) \<Rightarrow> bool" ("_ entails _" 20)
+  where "(t entails P) = (\<forall>k. \<forall> x \<in> t k: P x)"
 
 lemma entailsD:
  "\<lbrakk>t entails P; t k = Some x\<rbrakk> \<Longrightarrow> P x"
@@ -327,9 +333,10 @@ by (simp add: entails_def)
 lemma empty_entails[simp]: "empty entails P"
 by (simp add: entails_def)
 
-definition wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool" where
-"wf_cdecl G \<equiv> 
-   \<lambda>(C,c).
+definition
+  wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool" where
+  "wf_cdecl G =
+     (\<lambda>(C,c).
       \<not>is_iface G C \<and>
       (\<forall>I\<in>set (superIfs c). is_acc_iface G (pid C) I \<and>
         (\<forall>s. \<forall> im \<in> imethds G I s.
@@ -352,7 +359,7 @@ definition wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool" where
                        (G,sig\<turnstile>new hides old 
                          \<longrightarrow> (accmodi old \<le> accmodi new \<and>
                               is_static old)))) 
-            ))"
+            )))"
 
 (*
 definition wf_cdecl :: "prog \<Rightarrow> cdecl \<Rightarrow> bool" where
@@ -511,13 +518,14 @@ A program declaration is wellformed if:
 \item all defined classes are wellformed
 \end{itemize}
 *}
-definition wf_prog :: "prog \<Rightarrow> bool" where
- "wf_prog G \<equiv> let is = ifaces G; cs = classes G in
+definition
+  wf_prog :: "prog \<Rightarrow> bool" where
+ "wf_prog G = (let is = ifaces G; cs = classes G in
                  ObjectC \<in> set cs \<and> 
                 (\<forall> m\<in>set Object_mdecls. accmodi m \<noteq> Package) \<and>
                 (\<forall>xn. SXcptC xn \<in> set cs) \<and>
                 (\<forall>i\<in>set is. wf_idecl G i) \<and> unique is \<and>
-                (\<forall>c\<in>set cs. wf_cdecl G c) \<and> unique cs"
+                (\<forall>c\<in>set cs. wf_cdecl G c) \<and> unique cs)"
 
 lemma wf_prog_idecl: "\<lbrakk>iface G I = Some i; wf_prog G\<rbrakk> \<Longrightarrow> wf_idecl G (I,i)"
 apply (unfold wf_prog_def Let_def)
@@ -2095,16 +2103,16 @@ non private fields. Then we would get the following column:
  Class    dynC 
  Array    Object
 *}
-consts valid_lookup_cls:: "prog \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> bool \<Rightarrow> bool"
+primrec valid_lookup_cls:: "prog \<Rightarrow> ref_ty \<Rightarrow> qtname \<Rightarrow> bool \<Rightarrow> bool"
                         ("_,_ \<turnstile> _ valid'_lookup'_cls'_for _" [61,61,61,61] 60)
-primrec
-"G,NullT    \<turnstile> dynC valid_lookup_cls_for static_membr = False"
-"G,IfaceT I \<turnstile> dynC valid_lookup_cls_for static_membr 
-              = (if static_membr 
-                    then dynC=Object 
-                    else G\<turnstile>Class dynC\<preceq> Iface I)"
-"G,ClassT C \<turnstile> dynC valid_lookup_cls_for static_membr = G\<turnstile>Class dynC\<preceq> Class C"
-"G,ArrayT T \<turnstile> dynC valid_lookup_cls_for static_membr = (dynC=Object)"
+where
+  "G,NullT    \<turnstile> dynC valid_lookup_cls_for static_membr = False"
+| "G,IfaceT I \<turnstile> dynC valid_lookup_cls_for static_membr 
+                = (if static_membr 
+                      then dynC=Object 
+                      else G\<turnstile>Class dynC\<preceq> Iface I)"
+| "G,ClassT C \<turnstile> dynC valid_lookup_cls_for static_membr = G\<turnstile>Class dynC\<preceq> Class C"
+| "G,ArrayT T \<turnstile> dynC valid_lookup_cls_for static_membr = (dynC=Object)"
 
 lemma valid_lookup_cls_is_class:
   assumes dynC: "G,statT \<turnstile> dynC valid_lookup_cls_for static_membr" and

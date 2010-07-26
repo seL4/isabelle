@@ -93,23 +93,27 @@ by (cases s) (simp add: throw_def)
 
 section "result conformance"
 
-definition assign_conforms :: "st \<Rightarrow> (val \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> ty \<Rightarrow> env' \<Rightarrow> bool" ("_\<le>|_\<preceq>_\<Colon>\<preceq>_" [71,71,71,71] 70) where
-"s\<le>|f\<preceq>T\<Colon>\<preceq>E \<equiv>
- (\<forall>s' w. Norm s'\<Colon>\<preceq>E \<longrightarrow> fst E,s'\<turnstile>w\<Colon>\<preceq>T \<longrightarrow> s\<le>|s' \<longrightarrow> assign f w (Norm s')\<Colon>\<preceq>E) \<and>
- (\<forall>s' w. error_free s' \<longrightarrow> (error_free (assign f w s')))"      
+definition
+  assign_conforms :: "st \<Rightarrow> (val \<Rightarrow> state \<Rightarrow> state) \<Rightarrow> ty \<Rightarrow> env' \<Rightarrow> bool" ("_\<le>|_\<preceq>_\<Colon>\<preceq>_" [71,71,71,71] 70)
+where
+  "s\<le>|f\<preceq>T\<Colon>\<preceq>E =
+   ((\<forall>s' w. Norm s'\<Colon>\<preceq>E \<longrightarrow> fst E,s'\<turnstile>w\<Colon>\<preceq>T \<longrightarrow> s\<le>|s' \<longrightarrow> assign f w (Norm s')\<Colon>\<preceq>E) \<and>
+    (\<forall>s' w. error_free s' \<longrightarrow> (error_free (assign f w s'))))"
 
 
-definition rconf :: "prog \<Rightarrow> lenv \<Rightarrow> st \<Rightarrow> term \<Rightarrow> vals \<Rightarrow> tys \<Rightarrow> bool" ("_,_,_\<turnstile>_\<succ>_\<Colon>\<preceq>_" [71,71,71,71,71,71] 70) where
-  "G,L,s\<turnstile>t\<succ>v\<Colon>\<preceq>T 
-    \<equiv> case T of
-        Inl T  \<Rightarrow> if (\<exists> var. t=In2 var)
-                  then (\<forall> n. (the_In2 t) = LVar n 
-                         \<longrightarrow> (fst (the_In2 v) = the (locals s n)) \<and>
-                             (locals s n \<noteq> None \<longrightarrow> G,s\<turnstile>fst (the_In2 v)\<Colon>\<preceq>T)) \<and>
-                      (\<not> (\<exists> n. the_In2 t=LVar n) \<longrightarrow> (G,s\<turnstile>fst (the_In2 v)\<Colon>\<preceq>T))\<and>
-                      (s\<le>|snd (the_In2 v)\<preceq>T\<Colon>\<preceq>(G,L))
-                  else G,s\<turnstile>the_In1 v\<Colon>\<preceq>T
-      | Inr Ts \<Rightarrow> list_all2 (conf G s) (the_In3 v) Ts"
+definition
+  rconf :: "prog \<Rightarrow> lenv \<Rightarrow> st \<Rightarrow> term \<Rightarrow> vals \<Rightarrow> tys \<Rightarrow> bool" ("_,_,_\<turnstile>_\<succ>_\<Colon>\<preceq>_" [71,71,71,71,71,71] 70)
+where
+  "G,L,s\<turnstile>t\<succ>v\<Colon>\<preceq>T =
+    (case T of
+      Inl T  \<Rightarrow> if (\<exists> var. t=In2 var)
+                then (\<forall> n. (the_In2 t) = LVar n 
+                       \<longrightarrow> (fst (the_In2 v) = the (locals s n)) \<and>
+                           (locals s n \<noteq> None \<longrightarrow> G,s\<turnstile>fst (the_In2 v)\<Colon>\<preceq>T)) \<and>
+                    (\<not> (\<exists> n. the_In2 t=LVar n) \<longrightarrow> (G,s\<turnstile>fst (the_In2 v)\<Colon>\<preceq>T))\<and>
+                    (s\<le>|snd (the_In2 v)\<preceq>T\<Colon>\<preceq>(G,L))
+                else G,s\<turnstile>the_In1 v\<Colon>\<preceq>T
+    | Inr Ts \<Rightarrow> list_all2 (conf G s) (the_In3 v) Ts)"
 
 text {*
  With @{term rconf} we describe the conformance of the result value of a term.
@@ -324,9 +328,11 @@ declare fun_upd_same [simp]
 
 declare fun_upd_apply [simp del]
 
-definition DynT_prop :: "[prog,inv_mode,qtname,ref_ty] \<Rightarrow> bool" ("_\<turnstile>_\<rightarrow>_\<preceq>_"[71,71,71,71]70) where
-  "G\<turnstile>mode\<rightarrow>D\<preceq>t \<equiv> mode = IntVir \<longrightarrow> is_class G D \<and> 
-                     (if (\<exists>T. t=ArrayT T) then D=Object else G\<turnstile>Class D\<preceq>RefT t)"
+definition
+  DynT_prop :: "[prog,inv_mode,qtname,ref_ty] \<Rightarrow> bool" ("_\<turnstile>_\<rightarrow>_\<preceq>_"[71,71,71,71]70)
+where
+  "G\<turnstile>mode\<rightarrow>D\<preceq>t = (mode = IntVir \<longrightarrow> is_class G D \<and> 
+                     (if (\<exists>T. t=ArrayT T) then D=Object else G\<turnstile>Class D\<preceq>RefT t))"
 
 lemma DynT_propI: 
  "\<lbrakk>(x,s)\<Colon>\<preceq>(G, L); G,s\<turnstile>a'\<Colon>\<preceq>RefT statT; wf_prog G; mode = IntVir \<longrightarrow> a' \<noteq> Null\<rbrakk> 

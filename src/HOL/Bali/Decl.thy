@@ -206,8 +206,9 @@ translations
   (type) "mdecl" <= (type) "sig \<times> methd"
 
 
-definition mhead :: "methd \<Rightarrow> mhead" where
-  "mhead m \<equiv> \<lparr>access=access m, static=static m, pars=pars m, resT=resT m\<rparr>"
+definition
+  mhead :: "methd \<Rightarrow> mhead"
+  where "mhead m = \<lparr>access=access m, static=static m, pars=pars m, resT=resT m\<rparr>"
 
 lemma access_mhead [simp]:"access (mhead m) = access m"
 by (simp add: mhead_def)
@@ -237,7 +238,7 @@ begin
 
 definition
 memberdecl_memberid_def:
-  "memberid m \<equiv> (case m of
+  "memberid m = (case m of
                     fdecl (vn,f)  \<Rightarrow> fid vn
                   | mdecl (sig,m) \<Rightarrow> mid sig)"
 
@@ -262,7 +263,7 @@ begin
 
 definition
 pair_memberid_def:
-  "memberid p \<equiv> memberid (snd p)"
+  "memberid p = memberid (snd p)"
 
 instance ..
 
@@ -274,8 +275,9 @@ by (simp add: pair_memberid_def)
 lemma memberid_pair_simp1: "memberid p  = memberid (snd p)"
 by (simp add: pair_memberid_def)
 
-definition is_field :: "qtname \<times> memberdecl \<Rightarrow> bool" where
-"is_field m \<equiv> \<exists> declC f. m=(declC,fdecl f)"
+definition
+  is_field :: "qtname \<times> memberdecl \<Rightarrow> bool"
+  where "is_field m = (\<exists> declC f. m=(declC,fdecl f))"
   
 lemma is_fieldD: "is_field m \<Longrightarrow> \<exists> declC f. m=(declC,fdecl f)"
 by (simp add: is_field_def)
@@ -283,8 +285,9 @@ by (simp add: is_field_def)
 lemma is_fieldI: "is_field (C,fdecl f)"
 by (simp add: is_field_def)
 
-definition is_method :: "qtname \<times> memberdecl \<Rightarrow> bool" where
-"is_method membr \<equiv> \<exists> declC m. membr=(declC,mdecl m)"
+definition
+  is_method :: "qtname \<times> memberdecl \<Rightarrow> bool"
+  where "is_method membr = (\<exists>declC m. membr=(declC,mdecl m))"
   
 lemma is_methodD: "is_method membr \<Longrightarrow> \<exists> declC m. membr=(declC,mdecl m)"
 by (simp add: is_method_def)
@@ -314,8 +317,9 @@ translations
                       isuperIfs::qtname list,\<dots>::'a\<rparr>"
   (type) "idecl" <= (type) "qtname \<times> iface"
 
-definition ibody :: "iface \<Rightarrow> ibody" where
-  "ibody i \<equiv> \<lparr>access=access i,imethods=imethods i\<rparr>"
+definition
+  ibody :: "iface \<Rightarrow> ibody"
+  where "ibody i = \<lparr>access=access i,imethods=imethods i\<rparr>"
 
 lemma access_ibody [simp]: "(access (ibody i)) = access i"
 by (simp add: ibody_def)
@@ -349,8 +353,9 @@ translations
                       super::qtname,superIfs::qtname list,\<dots>::'a\<rparr>"
   (type) "cdecl" <= (type) "qtname \<times> class"
 
-definition cbody :: "class \<Rightarrow> cbody" where
-  "cbody c \<equiv> \<lparr>access=access c, cfields=cfields c,methods=methods c,init=init c\<rparr>"
+definition
+  cbody :: "class \<Rightarrow> cbody"
+  where "cbody c = \<lparr>access=access c, cfields=cfields c,methods=methods c,init=init c\<rparr>"
 
 lemma access_cbody [simp]:"access (cbody c) = access c"
 by (simp add: cbody_def)
@@ -368,18 +373,17 @@ by (simp add: cbody_def)
 section "standard classes"
 
 consts
-
   Object_mdecls  ::  "mdecl list" --{* methods of Object *}
   SXcpt_mdecls   ::  "mdecl list" --{* methods of SXcpts *}
-  ObjectC ::         "cdecl"      --{* declaration  of root      class   *}
-  SXcptC  ::"xname \<Rightarrow> cdecl"      --{* declarations of throwable classes *}
 
-defs 
-
-
-ObjectC_def:"ObjectC  \<equiv> (Object,\<lparr>access=Public,cfields=[],methods=Object_mdecls,
+definition
+  ObjectC ::         "cdecl"      --{* declaration  of root      class   *} where
+  "ObjectC = (Object,\<lparr>access=Public,cfields=[],methods=Object_mdecls,
                                   init=Skip,super=undefined,superIfs=[]\<rparr>)"
-SXcptC_def:"SXcptC xn\<equiv> (SXcpt xn,\<lparr>access=Public,cfields=[],methods=SXcpt_mdecls,
+
+definition
+  SXcptC  ::"xname \<Rightarrow> cdecl"      --{* declarations of throwable classes *} where
+  "SXcptC xn = (SXcpt xn,\<lparr>access=Public,cfields=[],methods=SXcpt_mdecls,
                                    init=Skip,
                                    super=if xn = Throwable then Object 
                                                            else SXcpt Throwable,
@@ -391,8 +395,9 @@ by (simp add: ObjectC_def SXcptC_def Object_def SXcpt_def)
 lemma SXcptC_inject [simp]: "(SXcptC xn = SXcptC xm) = (xn = xm)"
 by (simp add: SXcptC_def)
 
-definition standard_classes :: "cdecl list" where
-         "standard_classes \<equiv> [ObjectC, SXcptC Throwable,
+definition
+  standard_classes :: "cdecl list" where
+  "standard_classes = [ObjectC, SXcptC Throwable,
                 SXcptC NullPointer, SXcptC OutOfMemory, SXcptC ClassCast,
                 SXcptC NegArrSize , SXcptC IndOutBound, SXcptC ArrStore]"
 
@@ -426,16 +431,15 @@ abbreviation
 
 section "is type"
 
-consts
-  is_type :: "prog \<Rightarrow>     ty \<Rightarrow> bool"
-  isrtype :: "prog \<Rightarrow> ref_ty \<Rightarrow> bool"
-
-primrec "is_type G (PrimT pt)  = True"
-        "is_type G (RefT  rt)  = isrtype G rt"
-        "isrtype G (NullT    ) = True"
-        "isrtype G (IfaceT tn) = is_iface G tn"
-        "isrtype G (ClassT tn) = is_class G tn"
-        "isrtype G (ArrayT T ) = is_type  G T"
+primrec is_type :: "prog \<Rightarrow> ty \<Rightarrow> bool"
+  and isrtype :: "prog \<Rightarrow> ref_ty \<Rightarrow> bool"
+where
+  "is_type G (PrimT pt)  = True"
+| "is_type G (RefT  rt)  = isrtype G rt"
+| "isrtype G (NullT) = True"
+| "isrtype G (IfaceT tn) = is_iface G tn"
+| "isrtype G (ClassT tn) = is_class G tn"
+| "isrtype G (ArrayT T ) = is_type  G T"
 
 lemma type_is_iface: "is_type G (Iface I) \<Longrightarrow> is_iface G I"
 by auto
@@ -446,13 +450,13 @@ by auto
 
 section "subinterface and subclass relation, in anticipation of TypeRel.thy"
 
-consts 
+definition
   subint1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subinterface *}
-  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subclass     *}
+  where "subint1 G = {(I,J). \<exists>i\<in>iface G I: J\<in>set (isuperIfs i)}"
 
-defs
-  subint1_def: "subint1 G \<equiv> {(I,J). \<exists>i\<in>iface G I: J\<in>set (isuperIfs i)}"
-  subcls1_def: "subcls1 G \<equiv> {(C,D). C\<noteq>Object \<and> (\<exists>c\<in>class G C: super c = D)}"
+definition
+  subcls1  :: "prog \<Rightarrow> (qtname \<times> qtname) set" --{* direct subclass *}
+  where "subcls1 G = {(C,D). C\<noteq>Object \<and> (\<exists>c\<in>class G C: super c = D)}"
 
 abbreviation
   subcls1_syntax :: "prog => [qtname, qtname] => bool" ("_|-_<:C1_" [71,71,71] 70)
@@ -517,15 +521,18 @@ done
 
 section "well-structured programs"
 
-definition ws_idecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname list \<Rightarrow> bool" where
- "ws_idecl G I si \<equiv> \<forall>J\<in>set si.  is_iface G J   \<and> (J,I)\<notin>(subint1 G)^+"
+definition
+  ws_idecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname list \<Rightarrow> bool"
+  where "ws_idecl G I si = (\<forall>J\<in>set si.  is_iface G J   \<and> (J,I)\<notin>(subint1 G)^+)"
   
-definition ws_cdecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool" where
- "ws_cdecl G C sc \<equiv> C\<noteq>Object \<longrightarrow> is_class G sc \<and> (sc,C)\<notin>(subcls1 G)^+"
+definition
+  ws_cdecl :: "prog \<Rightarrow> qtname \<Rightarrow> qtname \<Rightarrow> bool"
+  where "ws_cdecl G C sc = (C\<noteq>Object \<longrightarrow> is_class G sc \<and> (sc,C)\<notin>(subcls1 G)^+)"
   
-definition ws_prog  :: "prog \<Rightarrow> bool" where
- "ws_prog G \<equiv> (\<forall>(I,i)\<in>set (ifaces  G). ws_idecl G I (isuperIfs i)) \<and> 
-              (\<forall>(C,c)\<in>set (classes G). ws_cdecl G C (super c))"
+definition
+  ws_prog  :: "prog \<Rightarrow> bool" where
+  "ws_prog G = ((\<forall>(I,i)\<in>set (ifaces  G). ws_idecl G I (isuperIfs i)) \<and> 
+                 (\<forall>(C,c)\<in>set (classes G). ws_cdecl G C (super c)))"
 
 
 lemma ws_progI: 
@@ -810,10 +817,10 @@ apply (subst class_rec.simps)
 apply simp
 done
 
-definition imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
+definition
+  imethds :: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) tables" where
   --{* methods of an interface, with overriding and inheritance, cf. 9.2 *}
-"imethds G I 
-  \<equiv> iface_rec G I  
+  "imethds G I = iface_rec G I
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
                         (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
         

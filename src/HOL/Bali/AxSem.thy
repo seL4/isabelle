@@ -62,8 +62,9 @@ types 'a assn = "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 translations
   (type) "'a assn" <= (type) "vals \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 
-definition assn_imp :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> bool" (infixr "\<Rightarrow>" 25) where
- "P \<Rightarrow> Q \<equiv> \<forall>Y s Z. P Y s Z \<longrightarrow> Q Y s Z"
+definition
+  assn_imp :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> bool" (infixr "\<Rightarrow>" 25)
+  where "(P \<Rightarrow> Q) = (\<forall>Y s Z. P Y s Z \<longrightarrow> Q Y s Z)"
   
 lemma assn_imp_def2 [iff]: "(P \<Rightarrow> Q) = (\<forall>Y s Z. P Y s Z \<longrightarrow> Q Y s Z)"
 apply (unfold assn_imp_def)
@@ -75,8 +76,9 @@ section "assertion transformers"
 
 subsection "peek-and"
 
-definition peek_and :: "'a assn \<Rightarrow> (state \<Rightarrow>  bool) \<Rightarrow> 'a assn" (infixl "\<and>." 13) where
- "P \<and>. p \<equiv> \<lambda>Y s Z. P Y s Z \<and> p s"
+definition
+  peek_and :: "'a assn \<Rightarrow> (state \<Rightarrow>  bool) \<Rightarrow> 'a assn" (infixl "\<and>." 13)
+  where "(P \<and>. p) = (\<lambda>Y s Z. P Y s Z \<and> p s)"
 
 lemma peek_and_def2 [simp]: "peek_and P p Y s = (\<lambda>Z. (P Y s Z \<and> p s))"
 apply (unfold peek_and_def)
@@ -114,8 +116,9 @@ done
 
 subsection "assn-supd"
 
-definition assn_supd :: "'a assn \<Rightarrow> (state \<Rightarrow> state) \<Rightarrow> 'a assn" (infixl ";." 13) where
- "P ;. f \<equiv> \<lambda>Y s' Z. \<exists>s. P Y s Z \<and> s' = f s"
+definition
+  assn_supd :: "'a assn \<Rightarrow> (state \<Rightarrow> state) \<Rightarrow> 'a assn" (infixl ";." 13)
+  where "(P ;. f) = (\<lambda>Y s' Z. \<exists>s. P Y s Z \<and> s' = f s)"
 
 lemma assn_supd_def2 [simp]: "assn_supd P f Y s' Z = (\<exists>s. P Y s Z \<and> s' = f s)"
 apply (unfold assn_supd_def)
@@ -124,8 +127,9 @@ done
 
 subsection "supd-assn"
 
-definition supd_assn :: "(state \<Rightarrow> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr ".;" 13) where
- "f .; P \<equiv> \<lambda>Y s. P Y (f s)"
+definition
+  supd_assn :: "(state \<Rightarrow> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr ".;" 13)
+  where "(f .; P) = (\<lambda>Y s. P Y (f s))"
 
 
 lemma supd_assn_def2 [simp]: "(f .; P) Y s = P Y (f s)"
@@ -143,8 +147,9 @@ done
 
 subsection "subst-res"
 
-definition subst_res :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" ("_\<leftarrow>_"  [60,61] 60) where
- "P\<leftarrow>w \<equiv> \<lambda>Y. P w"
+definition
+  subst_res :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" ("_\<leftarrow>_"  [60,61] 60)
+  where "P\<leftarrow>w = (\<lambda>Y. P w)"
 
 lemma subst_res_def2 [simp]: "(P\<leftarrow>w) Y = P w"
 apply (unfold subst_res_def)
@@ -178,8 +183,9 @@ by simp
 
 subsection "subst-Bool"
 
-definition subst_Bool :: "'a assn \<Rightarrow> bool \<Rightarrow> 'a assn" ("_\<leftarrow>=_" [60,61] 60) where
- "P\<leftarrow>=b \<equiv> \<lambda>Y s Z. \<exists>v. P (Val v) s Z \<and> (normal s \<longrightarrow> the_Bool v=b)"
+definition
+  subst_Bool :: "'a assn \<Rightarrow> bool \<Rightarrow> 'a assn" ("_\<leftarrow>=_" [60,61] 60)
+  where "P\<leftarrow>=b = (\<lambda>Y s Z. \<exists>v. P (Val v) s Z \<and> (normal s \<longrightarrow> the_Bool v=b))"
 
 lemma subst_Bool_def2 [simp]: 
 "(P\<leftarrow>=b) Y s Z = (\<exists>v. P (Val v) s Z \<and> (normal s \<longrightarrow> the_Bool v=b))"
@@ -193,8 +199,9 @@ done
 
 subsection "peek-res"
 
-definition peek_res :: "(res \<Rightarrow> 'a assn) \<Rightarrow> 'a assn" where
- "peek_res Pf \<equiv> \<lambda>Y. Pf Y Y"
+definition
+  peek_res :: "(res \<Rightarrow> 'a assn) \<Rightarrow> 'a assn"
+  where "peek_res Pf = (\<lambda>Y. Pf Y Y)"
 
 syntax
   "_peek_res" :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            ("\<lambda>_:. _" [0,3] 3)
@@ -221,8 +228,9 @@ done
 
 subsection "ign-res"
 
-definition ign_res :: "        'a assn \<Rightarrow> 'a assn" ("_\<down>" [1000] 1000) where
-  "P\<down>        \<equiv> \<lambda>Y s Z. \<exists>Y. P Y s Z"
+definition
+  ign_res :: "'a assn \<Rightarrow> 'a assn" ("_\<down>" [1000] 1000)
+  where "P\<down> = (\<lambda>Y s Z. \<exists>Y. P Y s Z)"
 
 lemma ign_res_def2 [simp]: "P\<down> Y s Z = (\<exists>Y. P Y s Z)"
 apply (unfold ign_res_def)
@@ -252,8 +260,9 @@ done
 
 subsection "peek-st"
 
-definition peek_st :: "(st \<Rightarrow> 'a assn) \<Rightarrow> 'a assn" where
- "peek_st P \<equiv> \<lambda>Y s. P (store s) Y s"
+definition
+  peek_st :: "(st \<Rightarrow> 'a assn) \<Rightarrow> 'a assn"
+  where "peek_st P = (\<lambda>Y s. P (store s) Y s)"
 
 syntax
   "_peek_st"   :: "pttrn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"            ("\<lambda>_.. _" [0,3] 3)
@@ -296,8 +305,9 @@ done
 
 subsection "ign-res-eq"
 
-definition ign_res_eq :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" ("_\<down>=_"  [60,61] 60) where
- "P\<down>=w       \<equiv> \<lambda>Y:. P\<down> \<and>. (\<lambda>s. Y=w)"
+definition
+  ign_res_eq :: "'a assn \<Rightarrow> res \<Rightarrow> 'a assn" ("_\<down>=_"  [60,61] 60)
+  where "P\<down>=w \<equiv> (\<lambda>Y:. P\<down> \<and>. (\<lambda>s. Y=w))"
 
 lemma ign_res_eq_def2 [simp]: "(P\<down>=w) Y s Z = ((\<exists>Y. P Y s Z) \<and> Y=w)"
 apply (unfold ign_res_eq_def)
@@ -326,8 +336,9 @@ done
 
 subsection "RefVar"
 
-definition RefVar :: "(state \<Rightarrow> vvar \<times> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr "..;" 13) where
- "vf ..; P \<equiv> \<lambda>Y s. let (v,s') = vf s in P (Var v) s'"
+definition
+  RefVar :: "(state \<Rightarrow> vvar \<times> state) \<Rightarrow> 'a assn \<Rightarrow> 'a assn" (infixr "..;" 13)
+  where "(vf ..; P) = (\<lambda>Y s. let (v,s') = vf s in P (Var v) s')"
  
 lemma RefVar_def2 [simp]: "(vf ..; P) Y s =  
   P (Var (fst (vf s))) (snd (vf s))"
@@ -337,12 +348,13 @@ done
 
 subsection "allocation"
 
-definition Alloc :: "prog \<Rightarrow> obj_tag \<Rightarrow> 'a assn \<Rightarrow> 'a assn" where
- "Alloc G otag P \<equiv> \<lambda>Y s Z.
-                   \<forall>s' a. G\<turnstile>s \<midarrow>halloc otag\<succ>a\<rightarrow> s'\<longrightarrow> P (Val (Addr a)) s' Z"
+definition
+  Alloc :: "prog \<Rightarrow> obj_tag \<Rightarrow> 'a assn \<Rightarrow> 'a assn"
+  where "Alloc G otag P = (\<lambda>Y s Z. \<forall>s' a. G\<turnstile>s \<midarrow>halloc otag\<succ>a\<rightarrow> s'\<longrightarrow> P (Val (Addr a)) s' Z)"
 
-definition SXAlloc     :: "prog \<Rightarrow> 'a assn \<Rightarrow> 'a assn" where
- "SXAlloc G P \<equiv> \<lambda>Y s Z. \<forall>s'. G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s' \<longrightarrow> P Y s' Z"
+definition
+  SXAlloc :: "prog \<Rightarrow> 'a assn \<Rightarrow> 'a assn"
+  where "SXAlloc G P = (\<lambda>Y s Z. \<forall>s'. G\<turnstile>s \<midarrow>sxalloc\<rightarrow> s' \<longrightarrow> P Y s' Z)"
 
 
 lemma Alloc_def2 [simp]: "Alloc G otag P Y s Z =  
@@ -359,11 +371,12 @@ done
 
 section "validity"
 
-definition type_ok :: "prog \<Rightarrow> term \<Rightarrow> state \<Rightarrow> bool" where
- "type_ok G t s \<equiv> 
-    \<exists>L T C A. (normal s \<longrightarrow> \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T \<and> 
-                            \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A )
-              \<and> s\<Colon>\<preceq>(G,L)"
+definition
+  type_ok :: "prog \<Rightarrow> term \<Rightarrow> state \<Rightarrow> bool" where
+  "type_ok G t s =
+    (\<exists>L T C A. (normal s \<longrightarrow> \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T \<and> 
+                             \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A )
+               \<and> s\<Colon>\<preceq>(G,L))"
 
 datatype    'a triple = triple "('a assn)" "term" "('a assn)" (** should be
 something like triple = \<forall>'a. triple ('a assn) term ('a assn)   **)
@@ -407,34 +420,35 @@ done
 
 definition mtriples :: "('c \<Rightarrow> 'sig \<Rightarrow> 'a assn) \<Rightarrow> ('c \<Rightarrow> 'sig \<Rightarrow> expr) \<Rightarrow> 
                 ('c \<Rightarrow> 'sig \<Rightarrow> 'a assn) \<Rightarrow> ('c \<times>  'sig) set \<Rightarrow> 'a triples" ("{{(1_)}/ _-\<succ>/ {(1_)} | _}"[3,65,3,65]75) where
- "{{P} tf-\<succ> {Q} | ms} \<equiv> (\<lambda>(C,sig). {Normal(P C sig)} tf C sig-\<succ> {Q C sig})`ms"
+ "{{P} tf-\<succ> {Q} | ms} = (\<lambda>(C,sig). {Normal(P C sig)} tf C sig-\<succ> {Q C sig})`ms"
   
-consts
-
- triple_valid :: "prog \<Rightarrow> nat \<Rightarrow>        'a triple  \<Rightarrow> bool"
-                                                (   "_\<Turnstile>_:_" [61,0, 58] 57)
-    ax_valids :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"
-                                                ("_,_|\<Turnstile>_"   [61,58,58] 57)
-
-abbreviation
- triples_valid:: "prog \<Rightarrow> nat \<Rightarrow>         'a triples \<Rightarrow> bool"
-                                                (  "_||=_:_" [61,0, 58] 57)
- where "G||=n:ts == Ball ts (triple_valid G n)"
+definition
+  triple_valid :: "prog \<Rightarrow> nat \<Rightarrow> 'a triple  \<Rightarrow> bool"  ("_\<Turnstile>_:_" [61,0, 58] 57)
+  where
+    "G\<Turnstile>n:t =
+      (case t of {P} t\<succ> {Q} \<Rightarrow>
+        \<forall>Y s Z. P Y s Z \<longrightarrow> type_ok G t s \<longrightarrow>
+        (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s') \<longrightarrow> Q Y' s' Z))"
 
 abbreviation
- ax_valid :: "prog \<Rightarrow>  'b triples \<Rightarrow> 'a triple  \<Rightarrow> bool"
-                                                ( "_,_|=_"   [61,58,58] 57)
- where "G,A |=t == G,A|\<Turnstile>{t}"
+  triples_valid:: "prog \<Rightarrow> nat \<Rightarrow> 'a triples \<Rightarrow> bool"  (  "_||=_:_" [61,0, 58] 57)
+  where "G||=n:ts == Ball ts (triple_valid G n)"
 
 notation (xsymbols)
-  triples_valid  ("_|\<Turnstile>_:_" [61,0, 58] 57) and
+  triples_valid  ("_|\<Turnstile>_:_" [61,0, 58] 57)
+
+
+definition
+  ax_valids :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triples \<Rightarrow> bool"  ("_,_|\<Turnstile>_" [61,58,58] 57)
+  where "(G,A|\<Turnstile>ts) = (\<forall>n. G|\<Turnstile>n:A \<longrightarrow> G|\<Turnstile>n:ts)"
+
+abbreviation
+  ax_valid :: "prog \<Rightarrow> 'b triples \<Rightarrow> 'a triple \<Rightarrow> bool"  ( "_,_|=_"   [61,58,58] 57)
+  where "G,A |=t == G,A|\<Turnstile>{t}"
+
+notation (xsymbols)
   ax_valid  ("_,_\<Turnstile>_" [61,58,58] 57)
 
-defs  triple_valid_def:  "G\<Turnstile>n:t  \<equiv> case t of {P} t\<succ> {Q} \<Rightarrow>
-                          \<forall>Y s Z. P Y s Z \<longrightarrow> type_ok G t s \<longrightarrow>
-                          (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s') \<longrightarrow> Q Y' s' Z)"
-
-defs  ax_valids_def:"G,A|\<Turnstile>ts  \<equiv>  \<forall>n. G|\<Turnstile>n:A \<longrightarrow> G|\<Turnstile>n:ts"
 
 lemma triple_valid_def2: "G\<Turnstile>n:{P} t\<succ> {Q} =  
  (\<forall>Y s Z. P Y s Z 
@@ -625,8 +639,9 @@ semantics.
 axioms 
 *)
 
-definition adapt_pre :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> 'a assn \<Rightarrow> 'a assn" where
-"adapt_pre P Q Q'\<equiv>\<lambda>Y s Z. \<forall>Y' s'. \<exists>Z'. P Y s Z' \<and> (Q Y' s' Z' \<longrightarrow> Q' Y' s' Z)"
+definition
+  adapt_pre :: "'a assn \<Rightarrow> 'a assn \<Rightarrow> 'a assn \<Rightarrow> 'a assn"
+  where "adapt_pre P Q Q' = (\<lambda>Y s Z. \<forall>Y' s'. \<exists>Z'. P Y s Z' \<and> (Q Y' s' Z' \<longrightarrow> Q' Y' s' Z))"
 
 
 section "rules derived by induction"

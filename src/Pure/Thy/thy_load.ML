@@ -17,20 +17,64 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
-  val ml_path: string -> Path.T
-  val thy_path: string -> Path.T
-  val split_thy_path: Path.T -> Path.T * string
-  val consistent_name: string -> string -> unit
+  val master_directory: theory -> Path.T
+  val init: Path.T -> theory -> theory
+  val require: Path.T -> theory -> theory
+  val provide: Path.T * (Path.T * File.ident) -> theory -> theory
   val test_file: Path.T -> Path.T -> (Path.T * File.ident) option
   val check_file: Path.T -> Path.T -> Path.T * File.ident
   val check_thy: Path.T -> string -> Path.T * File.ident
   val deps_thy: Path.T -> string ->
    {master: Path.T * File.ident, text: string, imports: string list, uses: Path.T list}
-  val load_ml: Path.T -> Path.T -> Path.T * File.ident
+  val loaded_files: theory -> Path.T list
+  val all_current: theory -> bool
+  val provide_file: Path.T -> theory -> theory
+  val use_ml: Path.T -> unit
+  val exec_ml: Path.T -> generic_theory -> generic_theory
 end;
 
 structure Thy_Load: THY_LOAD =
 struct
+
+(* manage source files *)
+
+type files =
+ {master_dir: Path.T,                                 (*master directory of theory source*)
+  required: Path.T list,                              (*source path*)
+  provided: (Path.T * (Path.T * File.ident)) list};   (*source path, physical path, identifier*)
+
+fun make_files (master_dir, required, provided): files =
+ {master_dir = master_dir, required = required, provided = provided};
+
+structure Files = Theory_Data
+(
+  type T = files;
+  val empty = make_files (Path.current, [], []);
+  fun extend _ = empty;
+  fun merge _ = empty;
+);
+
+fun map_files f =
+  Files.map (fn {master_dir, required, provided} =>
+    make_files (f (master_dir, required, provided)));
+
+
+val master_directory = #master_dir o Files.get;
+
+fun init master_dir = map_files (fn _ => (master_dir, [], []));
+
+fun require src_path =
+  map_files (fn (master_dir, required, provided) =>
+    if member (op =) required src_path then
+      error ("Duplicate source file dependency: " ^ Path.implode src_path)
+    else (master_dir, src_path :: required, provided));
+
+fun provide (src_path, path_info) =
+  map_files (fn (master_dir, required, provided) =>
+    if AList.defined (op =) provided src_path then
+      error ("Duplicate resolution of source file dependency: " ^ Path.implode src_path)
+    else (master_dir, required, (src_path, path_info) :: provided));
+
 
 (* maintain load path *)
 
@@ -54,22 +98,6 @@ fun search_path dir path =
   distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
 
 end;
-
-
-(* file formats *)
-
-val ml_path = Path.ext "ML" o Path.basic;
-val thy_path = Path.ext "thy" o Path.basic;
-
-fun split_thy_path path =
-  (case Path.split_ext path of
-    (path', "thy") => (Path.dir path', Path.implode (Path.base path'))
-  | _ => error ("Bad theory file specification " ^ Path.implode path));
-
-fun consistent_name name name' =
-  if name = name' then ()
-  else error ("Filename " ^ quote (Path.implode (thy_path name)) ^
-    " does not agree with theory name " ^ quote name');
 
 
 (* check files *)
@@ -103,7 +131,7 @@ fun check_file dir file =
     error ("Could not find file " ^ quote (Path.implode path) ^
       "\nin " ^ commas_quote (map Path.implode prfxs));
 
-fun check_thy dir name = check_file dir (thy_path name);
+fun check_thy dir name = check_file dir (Thy_Header.thy_path name);
 
 end;
 
@@ -116,18 +144,63 @@ fun deps_thy dir name =
     val text = File.read path;
     val (name', imports, uses) =
       Thy_Header.read (Path.position path) (Source.of_string_limited 8000 text);
-    val _ = consistent_name name name';
+    val _ = Thy_Header.consistent_name name name';
     val uses = map (Path.explode o #1) uses;
   in {master = master, text = text, imports = imports, uses = uses} end;
 
 
-(* ML files *)
 
-fun load_ml dir raw_path =
+(* loaded files *)
+
+val loaded_files = map (#1 o #2) o #provided o Files.get;
+
+fun check_loaded thy =
   let
-    val (path, id) = check_file dir raw_path;
-    val _ = ML_Context.eval_file path;
-  in (path, id) end;
+    val {required, provided, ...} = Files.get thy;
+    val provided_paths = map #1 provided;
+    val _ =
+      (case subtract (op =) provided_paths required of
+        [] => NONE
+      | bad => error ("Pending source file dependencies: " ^ commas (map Path.implode (rev bad))));
+    val _ =
+      (case subtract (op =) required provided_paths of
+        [] => NONE
+      | bad => error ("Undeclared source file dependencies: " ^ commas (map Path.implode (rev bad))));
+  in () end;
+
+fun all_current thy =
+  let
+    val {master_dir, provided, ...} = Files.get thy;
+    fun current (src_path, path_info) =
+      (case test_file master_dir src_path of
+        NONE => false
+      | SOME path_info' => eq_snd (op =) (path_info, path_info'));
+  in can check_loaded thy andalso forall current provided end;
+
+val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
+
+
+(* provide files *)
+
+fun provide_file src_path thy =
+  provide (src_path, check_file (master_directory thy) src_path) thy;
+
+fun use_ml src_path =
+  if is_none (Context.thread_data ()) then
+    ML_Context.eval_file (#1 (check_file Path.current src_path))
+  else
+    let
+      val thy = ML_Context.the_global_context ();
+      val (path, info) = check_file (master_directory thy) src_path;
+
+      val _ = ML_Context.eval_file path;
+      val _ = Context.>> Local_Theory.propagate_ml_env;
+
+      val provide = provide (src_path, (path, info));
+      val _ = Context.>> (Context.mapping provide (Local_Theory.theory provide));
+    in () end
+
+fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 end;
 

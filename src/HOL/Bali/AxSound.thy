@@ -9,18 +9,15 @@ theory AxSound imports AxSem begin
 
 section "validity"
 
-consts
-
- triple_valid2:: "prog \<Rightarrow> nat \<Rightarrow>        'a triple  \<Rightarrow> bool"
-                                                (   "_\<Turnstile>_\<Colon>_"[61,0, 58] 57)
-    ax_valids2:: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool"
-                                                ("_,_|\<Turnstile>\<Colon>_" [61,58,58] 57)
-
-defs  triple_valid2_def: "G\<Turnstile>n\<Colon>t \<equiv> case t of {P} t\<succ> {Q} \<Rightarrow>
- \<forall>Y s Z. P Y s Z \<longrightarrow> (\<forall>L. s\<Colon>\<preceq>(G,L) 
- \<longrightarrow> (\<forall>T C A. (normal s \<longrightarrow> (\<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T \<and> 
-                            \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A)) \<longrightarrow>
- (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s') \<longrightarrow> Q Y' s' Z \<and> s'\<Colon>\<preceq>(G,L))))"
+definition
+  triple_valid2 :: "prog \<Rightarrow> nat \<Rightarrow> 'a triple \<Rightarrow> bool"  ("_\<Turnstile>_\<Colon>_"[61,0, 58] 57)
+  where
+    "G\<Turnstile>n\<Colon>t =
+      (case t of {P} t\<succ> {Q} \<Rightarrow>
+        \<forall>Y s Z. P Y s Z \<longrightarrow> (\<forall>L. s\<Colon>\<preceq>(G,L)
+          \<longrightarrow> (\<forall>T C A. (normal s \<longrightarrow> (\<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>t\<Colon>T \<and>
+            \<lparr>prg=G,cls=C,lcl=L\<rparr>\<turnstile>dom (locals (store s))\<guillemotright>t\<guillemotright>A)) \<longrightarrow>
+             (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s') \<longrightarrow> Q Y' s' Z \<and> s'\<Colon>\<preceq>(G,L)))))"
 
 text {* This definition differs from the ordinary  @{text triple_valid_def} 
 manly in the conclusion: We also ensures conformance of the result state. So
@@ -29,8 +26,10 @@ induction. This definition is only introduced for the soundness
 proof of the axiomatic semantics, in the end we will conclude to 
 the ordinary definition.
 *}
- 
-defs  ax_valids2_def:    "G,A|\<Turnstile>\<Colon>ts \<equiv>  \<forall>n. (\<forall>t\<in>A. G\<Turnstile>n\<Colon>t) \<longrightarrow> (\<forall>t\<in>ts. G\<Turnstile>n\<Colon>t)"
+
+definition
+  ax_valids2 :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool"  ("_,_|\<Turnstile>\<Colon>_" [61,58,58] 57)
+  where "G,A|\<Turnstile>\<Colon>ts = (\<forall>n. (\<forall>t\<in>A. G\<Turnstile>n\<Colon>t) \<longrightarrow> (\<forall>t\<in>ts. G\<Turnstile>n\<Colon>t))"
 
 lemma triple_valid2_def2: "G\<Turnstile>n\<Colon>{P} t\<succ> {Q} =  
  (\<forall>Y s Z. P Y s Z \<longrightarrow> (\<forall>Y' s'. G\<turnstile>s \<midarrow>t\<succ>\<midarrow>n\<rightarrow> (Y',s')\<longrightarrow>  

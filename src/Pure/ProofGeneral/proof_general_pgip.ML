@@ -218,15 +218,14 @@ end;
 val thy_name = Path.implode o #1 o Path.split_ext o Path.base;
 
 val inform_file_retracted = Thy_Info.if_known_thy Thy_Info.remove_thy o thy_name;
-val inform_file_processed = Thy_Info.if_known_thy Thy_Info.touch_child_thys o thy_name;
 
-fun proper_inform_file_processed path state =
+fun inform_file_processed path state =
   let val name = thy_name path in
     if Toplevel.is_toplevel state andalso Thy_Info.known_thy name then
-     (Thy_Info.touch_child_thys name;
-      Thy_Info.register_thy name handle ERROR msg =>
-       (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
-        tell_file_retracted true (Path.base path)))
+      Thy_Info.register_thy (Toplevel.end_theory Position.none state)
+        handle ERROR msg =>
+          (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
+            tell_file_retracted true (Path.base path))
     else raise Toplevel.UNDEF
   end;
 
@@ -819,7 +818,7 @@ fun openfile (Openfile vs) =
 
 fun closefile _ =
     case !currently_open_file of
-        SOME f => (proper_inform_file_processed f (Isar.state());
+        SOME f => (inform_file_processed f (Isar.state ());
                    priority ("Finished working in file: " ^ PgipTypes.string_of_pgipurl f);
                    currently_open_file := NONE)
       | NONE => raise PGIP ("<closefile> when no file is open!")

@@ -258,8 +258,9 @@ abbreviation
   StatRef :: "ref_ty \<Rightarrow> expr"
   where "StatRef rt == Cast (RefT rt) (Lit Null)"
   
-definition is_stmt :: "term \<Rightarrow> bool" where
- "is_stmt t \<equiv> \<exists>c. t=In1r c"
+definition
+  is_stmt :: "term \<Rightarrow> bool"
+  where "is_stmt t = (\<exists>c. t=In1r c)"
 
 ML {* bind_thms ("is_stmt_rews", sum3_instantiate @{context} @{thm is_stmt_def}) *}
 
@@ -307,7 +308,7 @@ instantiation stmt :: inj_term
 begin
 
 definition
-  stmt_inj_term_def: "\<langle>c::stmt\<rangle> \<equiv> In1r c"
+  stmt_inj_term_def: "\<langle>c::stmt\<rangle> = In1r c"
 
 instance ..
 
@@ -323,7 +324,7 @@ instantiation expr :: inj_term
 begin
 
 definition
-  expr_inj_term_def: "\<langle>e::expr\<rangle> \<equiv> In1l e"
+  expr_inj_term_def: "\<langle>e::expr\<rangle> = In1l e"
 
 instance ..
 
@@ -339,7 +340,7 @@ instantiation var :: inj_term
 begin
 
 definition
-  var_inj_term_def: "\<langle>v::var\<rangle> \<equiv> In2 v"
+  var_inj_term_def: "\<langle>v::var\<rangle> = In2 v"
 
 instance ..
 
@@ -368,7 +369,7 @@ instantiation list :: (expr_of) inj_term
 begin
 
 definition
-  "\<langle>es::'a list\<rangle> \<equiv> In3 (map expr_of es)"
+  "\<langle>es::'a list\<rangle> = In3 (map expr_of es)"
 
 instance ..
 
@@ -425,46 +426,47 @@ lemma term_cases: "
   done
 
 section {* Evaluation of unary operations *}
-consts eval_unop :: "unop \<Rightarrow> val \<Rightarrow> val"
-primrec
-"eval_unop UPlus   v = Intg (the_Intg v)"
-"eval_unop UMinus  v = Intg (- (the_Intg v))"
-"eval_unop UBitNot v = Intg 42"                -- "FIXME: Not yet implemented"
-"eval_unop UNot    v = Bool (\<not> the_Bool v)"
+primrec eval_unop :: "unop \<Rightarrow> val \<Rightarrow> val"
+where
+  "eval_unop UPlus v = Intg (the_Intg v)"
+| "eval_unop UMinus v = Intg (- (the_Intg v))"
+| "eval_unop UBitNot v = Intg 42"                -- "FIXME: Not yet implemented"
+| "eval_unop UNot v = Bool (\<not> the_Bool v)"
 
 section {* Evaluation of binary operations *}
-consts eval_binop :: "binop \<Rightarrow> val \<Rightarrow> val \<Rightarrow> val"
-primrec
-"eval_binop Mul     v1 v2 = Intg ((the_Intg v1) * (the_Intg v2))" 
-"eval_binop Div     v1 v2 = Intg ((the_Intg v1) div (the_Intg v2))"
-"eval_binop Mod     v1 v2 = Intg ((the_Intg v1) mod (the_Intg v2))"
-"eval_binop Plus    v1 v2 = Intg ((the_Intg v1) + (the_Intg v2))"
-"eval_binop Minus   v1 v2 = Intg ((the_Intg v1) - (the_Intg v2))"
+primrec eval_binop :: "binop \<Rightarrow> val \<Rightarrow> val \<Rightarrow> val"
+where
+  "eval_binop Mul     v1 v2 = Intg ((the_Intg v1) * (the_Intg v2))" 
+| "eval_binop Div     v1 v2 = Intg ((the_Intg v1) div (the_Intg v2))"
+| "eval_binop Mod     v1 v2 = Intg ((the_Intg v1) mod (the_Intg v2))"
+| "eval_binop Plus    v1 v2 = Intg ((the_Intg v1) + (the_Intg v2))"
+| "eval_binop Minus   v1 v2 = Intg ((the_Intg v1) - (the_Intg v2))"
 
 -- "Be aware of the explicit coercion of the shift distance to nat"
-"eval_binop LShift  v1 v2 = Intg ((the_Intg v1) *   (2^(nat (the_Intg v2))))"
-"eval_binop RShift  v1 v2 = Intg ((the_Intg v1) div (2^(nat (the_Intg v2))))"
-"eval_binop RShiftU v1 v2 = Intg 42" --"FIXME: Not yet implemented"
+| "eval_binop LShift  v1 v2 = Intg ((the_Intg v1) *   (2^(nat (the_Intg v2))))"
+| "eval_binop RShift  v1 v2 = Intg ((the_Intg v1) div (2^(nat (the_Intg v2))))"
+| "eval_binop RShiftU v1 v2 = Intg 42" --"FIXME: Not yet implemented"
 
-"eval_binop Less    v1 v2 = Bool ((the_Intg v1) < (the_Intg v2))" 
-"eval_binop Le      v1 v2 = Bool ((the_Intg v1) \<le> (the_Intg v2))"
-"eval_binop Greater v1 v2 = Bool ((the_Intg v2) < (the_Intg v1))"
-"eval_binop Ge      v1 v2 = Bool ((the_Intg v2) \<le> (the_Intg v1))"
+| "eval_binop Less    v1 v2 = Bool ((the_Intg v1) < (the_Intg v2))" 
+| "eval_binop Le      v1 v2 = Bool ((the_Intg v1) \<le> (the_Intg v2))"
+| "eval_binop Greater v1 v2 = Bool ((the_Intg v2) < (the_Intg v1))"
+| "eval_binop Ge      v1 v2 = Bool ((the_Intg v2) \<le> (the_Intg v1))"
 
-"eval_binop Eq      v1 v2 = Bool (v1=v2)"
-"eval_binop Neq     v1 v2 = Bool (v1\<noteq>v2)"
-"eval_binop BitAnd  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
-"eval_binop And     v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
-"eval_binop BitXor  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
-"eval_binop Xor     v1 v2 = Bool ((the_Bool v1) \<noteq> (the_Bool v2))"
-"eval_binop BitOr   v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
-"eval_binop Or      v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
-"eval_binop CondAnd v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
-"eval_binop CondOr  v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
+| "eval_binop Eq      v1 v2 = Bool (v1=v2)"
+| "eval_binop Neq     v1 v2 = Bool (v1\<noteq>v2)"
+| "eval_binop BitAnd  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+| "eval_binop And     v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
+| "eval_binop BitXor  v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+| "eval_binop Xor     v1 v2 = Bool ((the_Bool v1) \<noteq> (the_Bool v2))"
+| "eval_binop BitOr   v1 v2 = Intg 42" -- "FIXME: Not yet implemented"
+| "eval_binop Or      v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
+| "eval_binop CondAnd v1 v2 = Bool ((the_Bool v1) \<and> (the_Bool v2))"
+| "eval_binop CondOr  v1 v2 = Bool ((the_Bool v1) \<or> (the_Bool v2))"
 
-definition need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool" where
-"need_second_arg binop v1 \<equiv> \<not> ((binop=CondAnd \<and>  \<not> the_Bool v1) \<or>
-                               (binop=CondOr  \<and> the_Bool v1))"
+definition
+  need_second_arg :: "binop \<Rightarrow> val \<Rightarrow> bool" where
+  "need_second_arg binop v1 = (\<not> ((binop=CondAnd \<and>  \<not> the_Bool v1) \<or>
+                                 (binop=CondOr  \<and> the_Bool v1)))"
 text {* @{term CondAnd} and @{term CondOr} only evalulate the second argument
  if the value isn't already determined by the first argument*}
 

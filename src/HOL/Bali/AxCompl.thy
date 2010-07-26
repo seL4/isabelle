@@ -20,8 +20,9 @@ design issues:
            
 section "set of not yet initialzed classes"
 
-definition nyinitcls :: "prog \<Rightarrow> state \<Rightarrow> qtname set" where
- "nyinitcls G s \<equiv> {C. is_class G C \<and> \<not> initd C s}"
+definition
+  nyinitcls :: "prog \<Rightarrow> state \<Rightarrow> qtname set"
+  where "nyinitcls G s = {C. is_class G C \<and> \<not> initd C s}"
 
 lemma nyinitcls_subset_class: "nyinitcls G s \<subseteq> {C. is_class G C}"
 apply (unfold nyinitcls_def)
@@ -113,8 +114,9 @@ done
 
 section "init-le"
 
-definition init_le :: "prog \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool" ("_\<turnstile>init\<le>_"  [51,51] 50) where
- "G\<turnstile>init\<le>n \<equiv> \<lambda>s. card (nyinitcls G s) \<le> n"
+definition
+  init_le :: "prog \<Rightarrow> nat \<Rightarrow> state \<Rightarrow> bool" ("_\<turnstile>init\<le>_"  [51,51] 50)
+  where "G\<turnstile>init\<le>n = (\<lambda>s. card (nyinitcls G s) \<le> n)"
   
 lemma init_le_def2 [simp]: "(G\<turnstile>init\<le>n) s = (card (nyinitcls G s)\<le>n)"
 apply (unfold init_le_def)
@@ -132,27 +134,22 @@ done
 
 section "Most General Triples and Formulas"
 
-definition remember_init_state :: "state assn" ("\<doteq>") where
-  "\<doteq> \<equiv> \<lambda>Y s Z. s = Z"
+definition
+  remember_init_state :: "state assn" ("\<doteq>")
+  where "\<doteq> \<equiv> \<lambda>Y s Z. s = Z"
 
 lemma remember_init_state_def2 [simp]: "\<doteq> Y = op ="
 apply (unfold remember_init_state_def)
 apply (simp (no_asm))
 done
 
-consts
-  
+definition
   MGF ::"[state assn, term, prog] \<Rightarrow> state triple"   ("{_} _\<succ> {_\<rightarrow>}"[3,65,3]62)
-  MGFn::"[nat       , term, prog] \<Rightarrow> state triple" ("{=:_} _\<succ> {_\<rightarrow>}"[3,65,3]62)
+  where "{P} t\<succ> {G\<rightarrow>} = {P} t\<succ> {\<lambda>Y s' s. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y,s')}"
 
-defs
-  
-
-  MGF_def:
-  "{P} t\<succ> {G\<rightarrow>} \<equiv> {P} t\<succ> {\<lambda>Y s' s. G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (Y,s')}"
-
-  MGFn_def:
-  "{=:n} t\<succ> {G\<rightarrow>} \<equiv> {\<doteq> \<and>. G\<turnstile>init\<le>n} t\<succ> {G\<rightarrow>}"
+definition
+  MGFn :: "[nat, term, prog] \<Rightarrow> state triple" ("{=:_} _\<succ> {_\<rightarrow>}"[3,65,3]62)
+  where "{=:n} t\<succ> {G\<rightarrow>} = {\<doteq> \<and>. G\<turnstile>init\<le>n} t\<succ> {G\<rightarrow>}"
 
 (* unused *)
 lemma MGF_valid: "wf_prog G \<Longrightarrow> G,{}\<Turnstile>{\<doteq>} t\<succ> {G\<rightarrow>}"
@@ -574,9 +571,9 @@ currently inside the evaluation of the loop. To define such an invariant, we
 unroll the loop in iterated evaluations of the expression and evaluations of
 the loop body. *}
 
-definition unroll :: "prog \<Rightarrow> label \<Rightarrow> expr \<Rightarrow> stmt \<Rightarrow> (state \<times>  state) set" where
-
- "unroll G l e c \<equiv> {(s,t). \<exists> v s1 s2.
+definition
+  unroll :: "prog \<Rightarrow> label \<Rightarrow> expr \<Rightarrow> stmt \<Rightarrow> (state \<times>  state) set" where
+  "unroll G l e c = {(s,t). \<exists> v s1 s2.
                              G\<turnstile>s \<midarrow>e-\<succ>v\<rightarrow> s1 \<and> the_Bool v \<and> normal s1 \<and>
                              G\<turnstile>s1 \<midarrow>c\<rightarrow> s2 \<and> t=(abupd (absorb (Cont l)) s2)}"
 
