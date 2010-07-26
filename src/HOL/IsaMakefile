@@ -398,20 +398,19 @@ HOL-Library: HOL $(OUT)/HOL-Library
 $(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
   $(SRC)/HOL/Tools/float_arith.ML $(SRC)/Tools/float.ML			\
   Library/Abstract_Rat.thy $(SRC)/Tools/Adhoc_Overloading.thy		\
-  Library/AssocList.thy							\
-  Library/BigO.thy Library/Binomial.thy Library/Bit.thy			\
-  Library/Boolean_Algebra.thy Library/Cardinality.thy			\
+  Library/AssocList.thy	Library/BigO.thy Library/Binomial.thy		\
+  Library/Bit.thy Library/Boolean_Algebra.thy Library/Cardinality.thy	\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
-  Library/Code_Integer.thy Library/ContNotDenum.thy			\
-  Library/Continuity.thy Library/Convex.thy Library/Countable.thy	\
-  Library/Diagonalize.thy Library/Dlist.thy Library/Efficient_Nat.thy	\
-  Library/Enum.thy Library/Eval_Witness.thy Library/Executable_Set.thy	\
-  Library/Float.thy Library/Formal_Power_Series.thy			\
-  Library/Fraction_Field.thy Library/FrechetDeriv.thy Library/Fset.thy	\
-  Library/FuncSet.thy Library/Fundamental_Theorem_Algebra.thy		\
-  Library/Glbs.thy Library/Indicator_Function.thy			\
-  Library/Infinite_Set.thy Library/Inner_Product.thy			\
-  Library/Kleene_Algebra.thy						\
+  Library/Code_Integer.thy Library/Code_Natural.thy			\
+  Library/ContNotDenum.thy Library/Continuity.thy Library/Convex.thy	\
+  Library/Countable.thy	Library/Diagonalize.thy Library/Dlist.thy	\
+  Library/Efficient_Nat.thy Library/Enum.thy Library/Eval_Witness.thy	\
+  Library/Executable_Set.thy Library/Float.thy				\
+  Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
+  Library/FrechetDeriv.thy Library/Fset.thy Library/FuncSet.thy		\
+  Library/Fundamental_Theorem_Algebra.thy Library/Glbs.thy		\
+  Library/Indicator_Function.thy Library/Infinite_Set.thy		\
+  Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
   Library/LaTeXsugar.thy Library/Lattice_Algebras.thy			\
   Library/Lattice_Syntax.thy Library/Library.thy			\
   Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
