@@ -14,6 +14,6 @@ definition "everything = (Array.new, Array.of_list, Array.make, Array.len, Array
   Array.upd, Array.map_entry, Array.swap, Array.freeze,
   ref, Ref.lookup, Ref.update, Ref.change)"
 
-export_code everything checking SML SML_imp OCaml? OCaml_imp? Haskell? (*Scala?*)
+export_code everything checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala?
 
 end
