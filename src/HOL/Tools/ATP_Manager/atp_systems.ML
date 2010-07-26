@@ -233,11 +233,8 @@ fun make_clause thy (formula_id, formula_name, kind, t) =
                 ctypes_sorts = ctypes_sorts}
   end
 
-fun add_axiom_clause thy (name, th) =
-  cons (name, make_clause thy (0, name, Axiom, prop_of th))
-
-fun make_axiom_clauses thy clauses = fold_rev (add_axiom_clause thy) clauses []
-
+fun make_axiom_clause thy (name, th) =
+  (name, make_clause thy (0, name, Axiom, prop_of th))
 fun make_conjecture_clauses thy ts =
   map2 (fn j => fn t => make_clause thy (j, "conjecture", Conjecture, t))
        (0 upto length ts - 1) ts
@@ -267,9 +264,8 @@ val init_counters =
   Symtab.make (maps (maps (map (rpair 0) o fst))
                     [optional_helpers, optional_typed_helpers])
 
-fun get_helper_clauses thy is_FO full_types conjectures axcls =
+fun get_helper_clauses thy is_FO full_types conjectures axclauses =
   let
-    val axclauses = map snd (make_axiom_clauses thy axcls)
     val ct = fold (fold count_fol_formula) [conjectures, axclauses]
                   init_counters
     fun is_needed c = the (Symtab.lookup ct c) > 0
@@ -280,7 +276,7 @@ fun get_helper_clauses thy is_FO full_types conjectures axcls =
                    if exists is_needed ss then map (`Thm.get_name_hint) ths
                    else [])) @
       (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
-  in map snd (make_axiom_clauses thy cnfs) end
+  in map (snd o make_axiom_clause thy) cnfs end
 
 fun s_not (@{const Not} $ t) = t
   | s_not t = @{const Not} $ t
@@ -298,10 +294,13 @@ fun prepare_clauses full_types hyp_ts concl_t axcls extra_cls thy =
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
     (* TFrees in conjecture clauses; TVars in axiom clauses *)
     val conjectures = make_conjecture_clauses thy (map s_not hyp_ts @ [concl_t])
-    val (_, extra_clauses) = ListPair.unzip (make_axiom_clauses thy extra_cls)
-    val (clnames, axiom_clauses) = ListPair.unzip (make_axiom_clauses thy axcls)
+    val extra_clauses = map (snd o make_axiom_clause thy) extra_cls
+    val (clnames, axiom_clauses) =
+      ListPair.unzip (map (make_axiom_clause thy) axcls)
+    (* FIXME: Should it read "extra_clauses" or "axiom_clauses" in the
+       "get_helper_clauses" call? *)
     val helper_clauses =
-      get_helper_clauses thy is_FO full_types conjectures extra_cls
+      get_helper_clauses thy is_FO full_types conjectures extra_clauses
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
