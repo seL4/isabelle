@@ -261,20 +261,28 @@ val extract_clause_formula_relation =
   #> snd #> Substring.string #> strip_spaces #> explode
   #> parse_clause_formula_relation #> fst
 
-fun repair_theorem_names output thm_names =
+fun repair_conjecture_shape_and_theorem_names output conjecture_shape
+                                              thm_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
     let
+      (* FIXME: hd of head once clausification is left to the ATP *)
+      val j0 = hd (List.concat conjecture_shape)
       val seq = extract_clause_sequence output
       val name_map = extract_clause_formula_relation output
+      fun renumber_conjecture j =
+        AList.find (op =) name_map (conjecture_prefix ^ Int.toString (j - j0))
+        |> the_single
+        |> (fn s => find_index (curry (op =) s) seq + 1)
     in
-      seq |> map (the o AList.lookup (op =) name_map)
-          |> map (fn s => case try (unprefix axiom_prefix) s of
-                            SOME s' => undo_ascii_of s'
-                          | NONE => "")
-          |> Vector.fromList
+      (conjecture_shape |> map (map renumber_conjecture),
+       seq |> map (the o AList.lookup (op =) name_map)
+           |> map (fn s => case try (unprefix axiom_prefix) s of
+                             SOME s' => undo_ascii_of s'
+                           | NONE => "")
+           |> Vector.fromList)
     end
   else
-    thm_names
+    (conjecture_shape, thm_names)
 
 
 (* generic TPTP-based provers *)
@@ -396,7 +404,9 @@ fun generic_tptp_prover
 
     val ((pool, conjecture_shape), (output, msecs, proof, outcome)) =
       with_path cleanup export run_on (prob_pathname subgoal)
-    val internal_thm_names = repair_theorem_names output internal_thm_names
+    val (conjecture_shape, internal_thm_names) =
+      repair_conjecture_shape_and_theorem_names output conjecture_shape
+                                                internal_thm_names
 
     val (message, relevant_thm_names) =
       case outcome of
