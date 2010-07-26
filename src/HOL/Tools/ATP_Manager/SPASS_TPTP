@@ -14,5 +14,6 @@ $SPASS_HOME/SPASS -Flotter $name.fof.dfg \
     > $name.cnf.dfg
 rm -f $name.fof.dfg
 cat $name.cnf.dfg
-$SPASS_HOME/SPASS $options $name.cnf.dfg
+$SPASS_HOME/SPASS $options $name.cnf.dfg \
+    | sed 's/\(Formulae used in the proof :\).*/\1 N\/A/'
 rm -f $name.cnf.dfg
