@@ -171,13 +171,9 @@ fun add_axiom_clause thy ((name, k), th) =
 
 fun make_axiom_clauses thy clauses = fold_rev (add_axiom_clause thy) clauses []
 
-fun make_conjecture_clauses thy =
-  let
-    (* ### FIXME: kill "aux" *)
-    fun aux _ [] = []
-      | aux n (t :: ts) =
-        make_clause thy (n, "conjecture", Conjecture, t) :: aux (n + 1) ts
-  in aux 0 end
+fun make_conjecture_clauses thy ts =
+  map2 (fn j => fn t => make_clause thy (j, "conjecture", Conjecture, t))
+       (0 upto length ts - 1) ts
 
 (** Helper clauses **)
 
