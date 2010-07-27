@@ -28,7 +28,10 @@ val _ = List.app Keyword.keyword
 
 val _ =
   Outer_Syntax.command "theory" "begin theory" (Keyword.tag_theory Keyword.thy_begin)
-    (Thy_Header.args >> (Toplevel.print oo Isar_Cmd.init_theory));
+    (Thy_Header.args >> (fn (name, imports, uses) =>
+      Toplevel.print o
+        Toplevel.init_theory name
+          (fn () => Thy_Info.toplevel_begin_theory name imports (map (apfst Path.explode) uses))));
 
 val _ =
   Outer_Syntax.command "end" "end (local) theory" (Keyword.tag_theory Keyword.thy_end)
@@ -992,11 +995,14 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "quit" "quit Isabelle" Keyword.control
-    (Parse.opt_unit >> (Toplevel.no_timing oo K Isar_Cmd.quit));
+    (Parse.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative quit)));
 
 val _ =
   Outer_Syntax.improper_command "exit" "exit Isar loop" Keyword.control
-    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.exit));
+    (Scan.succeed
+      (Toplevel.no_timing o Toplevel.keep (fn state =>
+        (Context.set_thread_data (try Toplevel.generic_theory_of state);
+          raise Toplevel.TERMINATE))));
 
 end;
 

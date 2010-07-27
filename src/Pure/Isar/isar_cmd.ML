@@ -34,10 +34,6 @@ sig
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
-  val init_theory: string * string list * (string * bool) list ->
-    Toplevel.transition -> Toplevel.transition
-  val exit: Toplevel.transition -> Toplevel.transition
-  val quit: Toplevel.transition -> Toplevel.transition
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
@@ -269,19 +265,6 @@ val default_proof = local_default_proof o global_default_proof;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val done_proof = local_done_proof o global_done_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
-
-
-(* init and exit *)
-
-fun init_theory (name, imports, uses) =
-  Toplevel.init_theory name
-    (Thy_Info.begin_theory name imports (map (apfst Path.explode) uses));
-
-val exit = Toplevel.keep (fn state =>
- (Context.set_thread_data (try Toplevel.generic_theory_of state);
-  raise Toplevel.TERMINATE));
-
-val quit = Toplevel.imperative quit;
 
 
 (* print state *)

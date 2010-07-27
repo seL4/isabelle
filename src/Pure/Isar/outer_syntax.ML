@@ -31,7 +31,7 @@ sig
   type isar
   val isar: bool -> isar
   val prepare_command: Position.T -> string -> Toplevel.transition
-  val load_thy: string -> Position.T -> string -> (unit -> unit) * theory
+  val load_thy: string -> (unit -> theory) -> Position.T -> string -> (unit -> unit) * theory
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -249,9 +249,9 @@ fun prepare_span commands span =
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
-fun prepare_unit commands (cmd, proof, proper_proof) =
+fun prepare_unit commands init (cmd, proof, proper_proof) =
   let
-    val (tr, proper_cmd) = prepare_span commands cmd;
+    val (tr, proper_cmd) = prepare_span commands cmd |>> Toplevel.modify_init init;
     val proof_trs = map (prepare_span commands) proof |> filter #2 |> map #1;
   in
     if proper_cmd andalso proper_proof then [(tr, proof_trs)]
@@ -268,7 +268,7 @@ fun prepare_command pos str =
 
 (* load_thy *)
 
-fun load_thy name pos text =
+fun load_thy name init pos text =
   let
     val (lexs, commands) = get_syntax ();
     val time = ! Output.timing;
@@ -279,7 +279,7 @@ fun load_thy name pos text =
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
     val _ = List.app Thy_Syntax.report_span spans;
     val units = Source.exhaust (Thy_Syntax.unit_source (Source.of_list spans))
-      |> Par_List.map (prepare_unit commands) |> flat;
+      |> Par_List.map (prepare_unit commands init) |> flat;
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);

@@ -17,8 +17,9 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
+  val set_master_path: Path.T -> unit
+  val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
-  val init: Path.T -> theory -> theory
   val require: Path.T -> theory -> theory
   val provide: Path.T * (Path.T * File.ident) -> theory -> theory
   val test_file: Path.T -> Path.T -> (Path.T * File.ident) option
@@ -31,6 +32,7 @@ sig
   val provide_file: Path.T -> theory -> theory
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
+  val begin_theory: Path.T -> string -> theory list -> (Path.T * bool) list -> theory
 end;
 
 structure Thy_Load: THY_LOAD =
@@ -61,7 +63,7 @@ fun map_files f =
 
 val master_directory = #master_dir o Files.get;
 
-fun init master_dir = map_files (fn _ => (master_dir, [], []));
+fun master dir = map_files (fn _ => (dir, [], []));
 
 fun require src_path =
   map_files (fn (master_dir, required, provided) =>
@@ -76,9 +78,12 @@ fun provide (src_path, path_info) =
     else (master_dir, required, (src_path, path_info) :: provided));
 
 
-(* maintain load path *)
+(* maintain default paths *)
 
-local val load_path = Unsynchronized.ref [Path.current] in
+local
+  val load_path = Unsynchronized.ref [Path.current];
+  val master_path = Unsynchronized.ref Path.current;
+in
 
 fun show_path () = map Path.implode (! load_path);
 
@@ -96,6 +101,9 @@ fun reset_path () = CRITICAL (fn () => load_path := [Path.current]);
 
 fun search_path dir path =
   distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
+
+fun set_master_path path = master_path := path;
+fun get_master_path () = ! master_path;
 
 end;
 
@@ -201,6 +209,16 @@ fun use_ml src_path =
     in () end
 
 fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
+
+
+(* begin theory *)
+
+fun begin_theory dir name parents uses =
+  Theory.begin_theory name parents
+  |> master dir
+  |> fold (require o fst) uses
+  |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
+  |> Theory.checkpoint;
 
 end;
 

@@ -217,11 +217,11 @@ end;
 
 val thy_name = Path.implode o #1 o Path.split_ext o Path.base;
 
-val inform_file_retracted = Thy_Info.if_known_thy Thy_Info.remove_thy o thy_name;
+val inform_file_retracted = Thy_Info.kill_thy o thy_name;
 
 fun inform_file_processed path state =
   let val name = thy_name path in
-    if Toplevel.is_toplevel state andalso Thy_Info.known_thy name then
+    if Toplevel.is_toplevel state then
       Thy_Info.register_thy (Toplevel.end_theory Position.none state)
         handle ERROR msg =>
           (warning (cat_lines [msg, "Failed to register theory: " ^ quote name]);
@@ -804,8 +804,7 @@ fun openfile (Openfile vs) =
       val filepath = PgipTypes.path_of_pgipurl url
       val filedir = Path.dir filepath
       val thy_name = Path.implode o #1 o Path.split_ext o Path.base
-      val openfile_retract = Output.no_warnings_CRITICAL
-        (Thy_Info.if_known_thy Thy_Info.remove_thy) o thy_name;
+      val openfile_retract = Output.no_warnings_CRITICAL Thy_Info.kill_thy o thy_name;
   in
       case !currently_open_file of
           SOME f => raise PGIP ("<openfile> when a file is already open!\nCurrently open file: " ^
