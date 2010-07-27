@@ -29,6 +29,7 @@ sig
 
   val axiom_prefix : string
   val conjecture_prefix : string
+  val is_variable : string -> bool
   val write_tptp_file :
     theory -> bool -> bool -> bool -> bool -> Path.T
     -> fol_formula list * fol_formula list * fol_formula list * fol_formula list

@@ -33,7 +33,27 @@ open Sledgehammer_TPTP_Format
 
 type minimize_command = string list -> string
 
-fun mk_anot phi = AConn (ANot, [phi])
+(* Simple simplifications to ensure that sort annotations don't leave a trail of
+   spurious "True"s. *)
+fun s_not @{const False} = @{const True}
+  | s_not @{const True} = @{const False}
+  | s_not (@{const Not} $ t) = t
+  | s_not t = @{const Not} $ t
+fun s_conj (@{const True}, t2) = t2
+  | s_conj (t1, @{const True}) = t1
+  | s_conj p = HOLogic.mk_conj p
+fun s_disj (@{const False}, t2) = t2
+  | s_disj (t1, @{const False}) = t1
+  | s_disj p = HOLogic.mk_disj p
+fun s_imp (@{const True}, t2) = t2
+  | s_imp (t1, @{const False}) = s_not t1
+  | s_imp p = HOLogic.mk_imp p
+fun s_iff (@{const True}, t2) = t2
+  | s_iff (t1, @{const True}) = t1
+  | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
+
+fun mk_anot (AConn (ANot, [phi])) = phi
+  | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
 val index_in_shape : int -> int list -> int = find_index o curry (op =)
@@ -220,6 +240,20 @@ fun type_from_fo_term tfrees (u as ATerm (a, us)) =
           Type_Infer.param 0 (a, HOLogic.typeS)
   end
 
+(* Type class literal applied to a type. Returns triple of polarity, class,
+   type. *)
+fun type_constraint_from_term pos tfrees (u as ATerm (a, us)) =
+  case (strip_prefix_and_undo_ascii class_prefix a,
+        map (type_from_fo_term tfrees) us) of
+    (SOME b, [T]) => (pos, b, T)
+  | _ => raise FO_TERM [u]
+
+(** Accumulate type constraints in a clause: negative type literals **)
+fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
+fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
+  | add_type_constraint (false, cl, TVar (ix, _)) = add_var (ix, cl)
+  | add_type_constraint _ = I
+
 fun fix_atp_variable_name s =
   let
     fun subscript_name s n = s ^ nat_subscript n
@@ -238,8 +272,8 @@ fun fix_atp_variable_name s =
   end
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
-   should allow them to be inferred.*)
-fun term_from_fo_term thy full_types tfrees opt_T =
+   should allow them to be inferred. *)
+fun raw_term_from_pred thy full_types tfrees =
   let
     fun aux opt_T extra_us u =
       case u of
@@ -289,32 +323,17 @@ fun term_from_fo_term thy full_types tfrees opt_T =
                 case strip_prefix_and_undo_ascii schematic_var_prefix a of
                   SOME b => Var ((b, 0), T)
                 | NONE =>
-                  (* Variable from the ATP, say "X1" *)
-                  Var ((fix_atp_variable_name a, 0), T)
+                  if is_variable a then Var ((fix_atp_variable_name a, 0), T)
+                  else raise Fail ("Unexpected constant: " ^ quote a)
           in list_comb (t, ts) end
-  in aux opt_T [] end
+  in aux (SOME HOLogic.boolT) [] end
 
-(* Type class literal applied to a type. Returns triple of polarity, class,
-   type. *)
-fun type_constraint_from_formula pos tfrees (AConn (ANot, [u])) =
-    type_constraint_from_formula (not pos) tfrees u
-  | type_constraint_from_formula pos tfrees (phi as APred (ATerm (a, us))) =
-    (case (strip_prefix_and_undo_ascii class_prefix a,
-           map (type_from_fo_term tfrees) us) of
-       (SOME b, [T]) => (pos, b, T)
-     | _ => raise FORMULA [phi])
-  | type_constraint_from_formula _ _ phi = raise FORMULA [phi]
-
-(** Accumulate type constraints in a clause: negative type literals **)
-
-fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
-
-fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
-  | add_type_constraint (false, cl, TVar (ix, _)) = add_var (ix, cl)
-  | add_type_constraint _ = I
-
-fun is_positive_literal (@{const Not} $ _) = false
-  | is_positive_literal _ = true
+fun term_from_pred thy full_types tfrees pos (u as ATerm (s, _)) =
+  if String.isPrefix class_prefix s then
+    add_type_constraint (type_constraint_from_term pos tfrees u)
+    #> pair @{const True}
+  else
+    pair (raw_term_from_pred thy full_types tfrees u)
 
 val combinator_table =
   [(@{const_name COMBI}, @{thm COMBI_def_raw}),
@@ -331,12 +350,9 @@ fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
      | NONE => t)
   | uncombine_term t = t
 
-fun disjuncts (AConn (AOr, phis)) = maps disjuncts phis
-  | disjuncts phi = [phi]
-
 (* Update schematic type variables with detected sort constraints. It's not
    totally clear when this code is necessary. *)
-fun repair_tvar_sorts (tvar_tab, t) =
+fun repair_tvar_sorts (t, tvar_tab) =
   let
     fun do_type (Type (a, Ts)) = Type (a, map do_type Ts)
       | do_type (TVar (xi, s)) =
@@ -350,58 +366,39 @@ fun repair_tvar_sorts (tvar_tab, t) =
       | do_term (t1 $ t2) = do_term t1 $ do_term t2
   in t |> not (Vartab.is_empty tvar_tab) ? do_term end
 
-fun s_disj (t1, @{const False}) = t1
-  | s_disj p = HOLogic.mk_disj p
-
 fun quantify_over_free quant_s free_s body_t =
   case Term.add_frees body_t [] |> filter (curry (op =) free_s o fst) of
     [] => body_t
   | frees as (_, free_T) :: _ =>
     Abs (free_s, free_T, fold (curry abstract_over) (map Free frees) body_t)
 
- (* Interpret a list of syntax trees as a clause, given by "real" literals and
-   sort constraints. Accumulates sort constraints in "tvar_tab", with "real"
-   literals in "lits". *)
-fun prop_from_formula thy full_types tfrees =
-   let
-    val do_sort_constraint =
-      add_type_constraint o type_constraint_from_formula true tfrees
-    fun do_real_literal phi =
+(* Interpret a list of syntax trees as a clause, extracting sort constraints
+   as they appear in the formula. *)
+fun prop_from_formula thy full_types tfrees phi =
+  let
+    fun do_formula pos phi =
       case phi of
-        AQuant (_, [], phi) => do_real_literal phi
+        AQuant (_, [], phi) => do_formula pos phi
       | AQuant (q, x :: xs, phi') =>
-        let
-          val body = do_real_literal (AQuant (q, xs, phi'))
-          val quant_s = case q of
-                          AForall => @{const_name All}
-                        | AExists => @{const_name Ex}
-        in quantify_over_free quant_s x body end
-      | AConn (ANot, [phi']) => HOLogic.mk_not (do_real_literal phi')
+        do_formula pos (AQuant (q, xs, phi'))
+        #>> quantify_over_free (case q of
+                                  AForall => @{const_name All}
+                                | AExists => @{const_name Ex}) x
+      | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
-        (phi1, phi2)
-        |> pairself do_real_literal
-        |> (case c of
-              AAnd => HOLogic.mk_conj
-            | AOr => HOLogic.mk_disj
-            | AImplies => HOLogic.mk_imp
-            | AIff => (fn (t1, t2) => HOLogic.eq_const HOLogic.boolT $ t1 $ t2))
-      | APred tm =>
-        term_from_fo_term thy full_types tfrees (SOME @{typ bool}) tm
+        do_formula (pos |> c = AImplies ? not) phi1
+        ##>> do_formula pos phi2
+        #>> (case c of
+               AAnd => s_conj
+             | AOr => s_disj
+             | AImplies => s_imp
+             | AIff => s_iff)
+      | APred tm => term_from_pred thy full_types tfrees pos tm
       | _ => raise FORMULA [phi]
-    fun do_literals (tvar_tab, t) [] = (tvar_tab, t)
-      | do_literals (tvar_tab, t) (u :: us) =
-        (do_literals (tvar_tab |> do_sort_constraint u, t) us
-         handle FO_TERM _ => raise SAME ()
-              | FORMULA _ => raise SAME ())
-        handle SAME () =>
-               do_literals (tvar_tab, s_disj (do_real_literal u, t)) us
-  in
-    repair_tvar_sorts o do_literals (Vartab.empty, HOLogic.false_const)
-    o disjuncts
-  end
+  in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
 fun check_formula ctxt =
-  Type_Infer.constrain @{typ bool}
+  Type_Infer.constrain HOLogic.boolT
   #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
 
 
@@ -937,8 +934,6 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
                     (other_params as (full_types, _, atp_proof, thm_names, goal,
                                       i)) =
   let
-    (* ### FIXME: avoid duplication with ATP_Systems -- and move strip_subgoal
-       to ATP_Systems *)
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
