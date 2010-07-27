@@ -708,9 +708,9 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 (* generic TPTP-based provers *)
 
 fun prover_fun name
-        {home_var, executable, arguments, proof_delims, known_failures,
-         max_new_relevant_facts_per_iter, prefers_theory_relevant,
-         explicit_forall}
+        {executable, required_executables, arguments, proof_delims,
+         known_failures, max_new_relevant_facts_per_iter,
+         prefers_theory_relevant, explicit_forall}
         ({debug, overlord, full_types, explicit_apply, relevance_threshold,
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
           isar_shrink_factor, ...} : params)
@@ -753,8 +753,7 @@ fun prover_fun name
         else error ("No such directory: " ^ the_dest_dir ^ ".")
       end;
 
-    val home = getenv home_var
-    val command = Path.explode (home ^ "/" ^ executable)
+    val command = Path.explode (getenv (fst executable) ^ "/" ^ snd executable)
     (* write out problem file and call prover *)
     fun command_line complete probfile =
       let
@@ -778,41 +777,44 @@ fun prover_fun name
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
     fun run_on probfile =
-      if home = "" then
+      case filter (curry (op =) "" o getenv o fst)
+                  (executable :: required_executables) of
+        (home_var, _) :: _ =>
         error ("The environment variable " ^ quote home_var ^ " is not set.")
-      else if File.exists command then
-        let
-          fun do_run complete =
-            let
-              val command = command_line complete probfile
-              val ((output, msecs), res_code) =
-                bash_output command
-                |>> (if overlord then
-                       prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
-                     else
-                       I)
-                |>> (if Config.get ctxt measure_runtime then split_time
-                     else rpair 0)
-              val (proof, outcome) =
-                extract_proof_and_outcome complete res_code proof_delims
-                                          known_failures output
-            in (output, msecs, proof, outcome) end
-          val readable_names = debug andalso overlord
-          val (pool, conjecture_offset) =
-            write_tptp_file thy readable_names explicit_forall full_types
-                            explicit_apply probfile clauses
-          val conjecture_shape =
-            conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
-          val result =
-            do_run false
-            |> (fn (_, msecs0, _, SOME _) =>
-                   do_run true
-                   |> (fn (output, msecs, proof, outcome) =>
-                          (output, msecs0 + msecs, proof, outcome))
-                 | result => result)
-        in ((pool, conjecture_shape), result) end
-      else
-        error ("Bad executable: " ^ Path.implode command ^ ".");
+      | [] =>
+        if File.exists command then
+          let
+            fun do_run complete =
+              let
+                val command = command_line complete probfile
+                val ((output, msecs), res_code) =
+                  bash_output command
+                  |>> (if overlord then
+                         prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
+                       else
+                         I)
+                  |>> (if Config.get ctxt measure_runtime then split_time
+                       else rpair 0)
+                val (proof, outcome) =
+                  extract_proof_and_outcome complete res_code proof_delims
+                                            known_failures output
+              in (output, msecs, proof, outcome) end
+            val readable_names = debug andalso overlord
+            val (pool, conjecture_offset) =
+              write_tptp_file thy readable_names explicit_forall full_types
+                              explicit_apply probfile clauses
+            val conjecture_shape =
+              conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
+            val result =
+              do_run false
+              |> (fn (_, msecs0, _, SOME _) =>
+                     do_run true
+                     |> (fn (output, msecs, proof, outcome) =>
+                            (output, msecs0 + msecs, proof, outcome))
+                   | result => result)
+          in ((pool, conjecture_shape), result) end
+        else
+          error ("Bad executable: " ^ Path.implode command ^ ".")
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)

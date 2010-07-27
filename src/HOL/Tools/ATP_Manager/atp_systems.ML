@@ -12,8 +12,8 @@ sig
     OutOfResources | OldSpass | MalformedInput | MalformedOutput | UnknownError
 
   type prover_config =
-    {home_var: string,
-     executable: string,
+    {executable: string * string,
+     required_executables: (string * string) list,
      arguments: bool -> Time.time -> string,
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
@@ -39,8 +39,8 @@ datatype failure =
   OldSpass | MalformedInput | MalformedOutput | UnknownError
 
 type prover_config =
-  {home_var: string,
-   executable: string,
+  {executable: string * string,
+   required_executables: (string * string) list,
    arguments: bool -> Time.time -> string,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
@@ -84,8 +84,8 @@ val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
 val e_config : prover_config =
-  {home_var = "E_HOME",
-   executable = "eproof",
+  {executable = ("E_HOME", "eproof"),
+   required_executables = [],
    arguments = fn _ => fn timeout =>
      "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^
      string_of_int (to_generous_secs timeout),
@@ -108,8 +108,8 @@ val e = ("e", e_config)
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
-  {home_var = "ISABELLE_ATP_MANAGER",
-   executable = "SPASS_TPTP",
+  {executable = ("ISABELLE_ATP_MANAGER", "SPASS_TPTP"),
+   required_executables = [("SPASS_HOME", "SPASS")],
    (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
@@ -132,8 +132,8 @@ val spass = ("spass", spass_config)
 (* Vampire *)
 
 val vampire_config : prover_config =
-  {home_var = "VAMPIRE_HOME",
-   executable = "vampire",
+  {executable = ("VAMPIRE_HOME", "vampire"),
+   required_executables = [],
    arguments = fn _ => fn timeout =>
      "--output_syntax tptp --mode casc -t " ^
      string_of_int (to_generous_secs timeout),
@@ -183,8 +183,8 @@ fun remote_config atp_prefix args
         ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
           prefers_theory_relevant, explicit_forall, ...} : prover_config)
         : prover_config =
-  {home_var = "ISABELLE_ATP_MANAGER",
-   executable = "SystemOnTPTP",
+  {executable = ("ISABELLE_ATP_MANAGER", "SystemOnTPTP"),
+   required_executables = [],
    arguments = fn _ => fn timeout =>
      args ^ " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
      the_system atp_prefix,
@@ -203,8 +203,10 @@ val remote_e = remote_prover e "EP---" "" e_config
 val remote_spass = remote_prover spass "SPASS---" "-x" spass_config
 val remote_vampire = remote_prover vampire "Vampire---9" "" vampire_config
 
-fun maybe_remote (name, _) ({home_var, ...} : prover_config) =
-  name |> getenv home_var = "" ? remote_name
+fun maybe_remote (name, _)
+                 ({executable, required_executables, ...} : prover_config) =
+  name |> exists (curry (op =) "" o getenv o fst)
+                 (executable :: required_executables) ? remote_name
 
 fun default_atps_param_value () =
   space_implode " " [maybe_remote e e_config, maybe_remote spass spass_config,
