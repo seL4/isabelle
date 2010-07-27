@@ -270,6 +270,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Tools/Metis/metis.ML \
   Tools/ATP_Manager/async_manager.ML \
   Tools/ATP_Manager/atp_manager.ML \
+  Tools/ATP_Manager/atp_problem.ML \
   Tools/ATP_Manager/atp_systems.ML \
   Tools/choice_specification.ML \
   Tools/int_arith.ML \
@@ -323,7 +324,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_fact_minimizer.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
-  Tools/Sledgehammer/sledgehammer_tptp_format.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
   Tools/SMT/cvc3_solver.ML \
   Tools/SMT/smtlib_interface.ML \

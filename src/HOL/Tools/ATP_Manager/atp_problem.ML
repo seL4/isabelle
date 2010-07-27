@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_tptp_format.ML
+(*  Title:      HOL/Tools/ATP_Manager/atp_problem.ML
     Author:     Jia Meng, NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
 TPTP syntax.
 *)
 
-signature SLEDGEHAMMER_TPTP_FORMAT =
+signature ATP_PROBLEM =
 sig
   type kind = Metis_Clauses.kind
 
@@ -20,6 +20,7 @@ sig
   datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
   type 'a problem = (string * 'a problem_line list) list
 
+  val timestamp : unit -> string
   val is_tptp_variable : string -> bool
   val strings_for_tptp_problem :
     (string * string problem_line list) list -> string list
@@ -29,7 +30,7 @@ sig
        * (string Symtab.table * string Symtab.table) option
 end;
 
-structure Sledgehammer_TPTP_Format : SLEDGEHAMMER_TPTP_FORMAT =
+structure ATP_Problem : ATP_PROBLEM =
 struct
 
 open Sledgehammer_Util
@@ -49,6 +50,8 @@ datatype ('a, 'b) formula =
 datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
 type 'a problem = (string * 'a problem_line list) list
 
+val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
+
 fun string_for_term (ATerm (s, [])) = s
   | string_for_term (ATerm (s, ts)) =
     if s = "equal" then space_implode " = " (map string_for_term ts)
@@ -63,7 +66,7 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
 fun string_for_formula (AQuant (q, xs, phi)) =
-    string_for_quantifier q ^ "[" ^ commas xs ^ "]: " ^
+    string_for_quantifier q ^ "[" ^ commas xs ^ "] : " ^
     string_for_formula phi
   | string_for_formula (AConn (ANot, [APred (ATerm ("equal", ts))])) =
     space_implode " != " (map string_for_term ts)

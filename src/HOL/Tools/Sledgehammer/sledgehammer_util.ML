@@ -8,7 +8,6 @@ signature SLEDGEHAMMER_UTIL =
 sig
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
-  val timestamp : unit -> string
   val strip_spaces : string -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
@@ -31,8 +30,6 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2] = [s1, conj, s2]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
-
-val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 

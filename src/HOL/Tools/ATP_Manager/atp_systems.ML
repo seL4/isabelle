@@ -22,7 +22,7 @@ struct
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
-open Sledgehammer_TPTP_Format
+open ATP_Problem
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 

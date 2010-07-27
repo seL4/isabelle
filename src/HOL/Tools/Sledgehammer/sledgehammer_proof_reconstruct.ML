@@ -29,7 +29,7 @@ struct
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
-open Sledgehammer_TPTP_Format
+open ATP_Problem
 
 type minimize_command = string list -> string
 

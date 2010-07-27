@@ -17,7 +17,7 @@ uses
   ("Tools/Sledgehammer/metis_tactics.ML")
   ("Tools/Sledgehammer/sledgehammer_util.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
-  ("Tools/Sledgehammer/sledgehammer_tptp_format.ML")
+  ("Tools/ATP_Manager/atp_problem.ML")
   ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
   ("Tools/ATP_Manager/async_manager.ML")
   ("Tools/ATP_Manager/atp_manager.ML")
@@ -94,7 +94,7 @@ use "Tools/Sledgehammer/metis_tactics.ML"
 
 use "Tools/Sledgehammer/sledgehammer_util.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
-use "Tools/Sledgehammer/sledgehammer_tptp_format.ML"
+use "Tools/ATP_Manager/atp_problem.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/ATP_Manager/async_manager.ML"
 use "Tools/ATP_Manager/atp_manager.ML"
