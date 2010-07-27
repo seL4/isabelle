@@ -947,18 +947,18 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o Isar_Cmd.pwd));
 
 val _ =
-  Outer_Syntax.improper_command "use_thy" "use theory file" Keyword.diag
+  Outer_Syntax.improper_command "use_thy" "use theory file" Keyword.control
     (Parse.name >> (fn name =>
       Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.use_thy name)));
 
 val _ =
-  Outer_Syntax.improper_command "remove_thy" "remove theory from loader database" Keyword.diag
+  Outer_Syntax.improper_command "remove_thy" "remove theory from loader database" Keyword.control
     (Parse.name >> (fn name =>
       Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.remove_thy name)));
 
 val _ =
   Outer_Syntax.improper_command "kill_thy" "kill theory -- try to remove from loader database"
-    Keyword.diag (Parse.name >> (fn name =>
+    Keyword.control (Parse.name >> (fn name =>
       Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.kill_thy name)));
 
 val _ =
@@ -977,11 +977,11 @@ val _ =
     (opt_modes -- opt_limits >> (Toplevel.no_timing oo Isar_Cmd.pr));
 
 val _ =
-  Outer_Syntax.improper_command "disable_pr" "disable printing of toplevel state" Keyword.diag
+  Outer_Syntax.improper_command "disable_pr" "disable printing of toplevel state" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Isar_Cmd.disable_pr));
 
 val _ =
-  Outer_Syntax.improper_command "enable_pr" "enable printing of toplevel state" Keyword.diag
+  Outer_Syntax.improper_command "enable_pr" "enable printing of toplevel state" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Isar_Cmd.enable_pr));
 
 val _ =

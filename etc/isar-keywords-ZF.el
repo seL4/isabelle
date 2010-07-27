@@ -269,13 +269,18 @@
     "ProofGeneral\\.restart"
     "ProofGeneral\\.undo"
     "cannot_undo"
+    "disable_pr"
+    "enable_pr"
     "exit"
     "init_toplevel"
     "kill"
+    "kill_thy"
     "linear_undo"
     "quit"
+    "remove_thy"
     "undo"
-    "undos_proof"))
+    "undos_proof"
+    "use_thy"))
 
 (defconst isar-keywords-diag
   '("ML_command"
@@ -284,15 +289,12 @@
     "cd"
     "class_deps"
     "commit"
-    "disable_pr"
     "display_drafts"
-    "enable_pr"
     "find_consts"
     "find_theorems"
     "full_prf"
     "header"
     "help"
-    "kill_thy"
     "pr"
     "pretty_setmargin"
     "prf"
@@ -324,14 +326,12 @@
     "print_trans_rules"
     "prop"
     "pwd"
-    "remove_thy"
     "term"
     "thm"
     "thm_deps"
     "thy_deps"
     "typ"
     "unused_thms"
-    "use_thy"
     "welcome"))
 
 (defconst isar-keywords-theory-begin
