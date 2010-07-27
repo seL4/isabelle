@@ -283,7 +283,7 @@ fun get_atp thy args =
     fun default_atp_name () =
       hd (#atps (Sledgehammer_Isar.default_params thy []))
       handle Empty => error "No ATP available."
-    fun get_prover name = (name, ATP_Manager.get_prover thy name)
+    fun get_prover name = (name, Sledgehammer.get_prover_fun thy name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
@@ -301,11 +301,11 @@ fun run_sh prover hard_timeout timeout dir st =
   let
     val {context = ctxt, facts, goal} = Proof.goal st
     val thy = ProofContext.theory_of ctxt
-    val change_dir = (fn SOME d => Config.put ATP_Systems.dest_dir d | _ => I)
+    val change_dir = (fn SOME d => Config.put Sledgehammer.dest_dir d | _ => I)
     val ctxt' =
       ctxt
       |> change_dir dir
-      |> Config.put ATP_Systems.measure_runtime true
+      |> Config.put Sledgehammer.measure_runtime true
     val params = Sledgehammer_Isar.default_params thy []
     val problem =
       {subgoal = 1, goal = (ctxt', (facts, goal)),
@@ -316,7 +316,7 @@ fun run_sh prover hard_timeout timeout dir st =
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     val ({outcome, message, used_thm_names,
-          atp_run_time_in_msecs = time_atp, ...}: ATP_Manager.prover_result,
+          atp_run_time_in_msecs = time_atp, ...} : Sledgehammer.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
                       (prover params (K "") (Time.fromSeconds timeout))) problem
   in
