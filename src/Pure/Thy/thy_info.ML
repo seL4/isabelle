@@ -200,7 +200,7 @@ val thy_ord = int_ord o pairself Update_Time.get;
 (* remove theory *)
 
 fun remove_thy name =
-  if is_finished name then error (loader_msg "cannot change finished theory" [name])
+  if is_finished name then error (loader_msg "attempt to change finished theory" [name])
   else
     let
       val succs = thy_graph Graph.all_succs [name];
@@ -376,7 +376,7 @@ and require_thy initiators dir str tasks =
 end;
 
 
-(* use_thy etc. *)
+(* use_thy *)
 
 fun use_thys_dir dir arg =
   schedule_tasks (snd (require_thys [] dir arg Graph.empty));
@@ -385,7 +385,7 @@ val use_thys = use_thys_dir Path.current;
 val use_thy = use_thys o single;
 
 
-(* begin theory *)
+(* toplevel begin theory -- without maintaining database *)
 
 fun toplevel_begin_theory name imports uses =
   let
