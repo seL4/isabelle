@@ -24,7 +24,7 @@ open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open ATP_Problem
 open Sledgehammer_Proof_Reconstruct
-open ATP_Manager
+open Sledgehammer
 
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()

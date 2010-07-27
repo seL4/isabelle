@@ -1,12 +1,12 @@
-(*  Title:      HOL/Tools/ATP_Manager/atp_manager.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
 
-Central manager component for ATP threads.
+Sledgehammer's heart.
 *)
 
-signature ATP_MANAGER =
+signature SLEDGEHAMMER =
 sig
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
@@ -59,7 +59,7 @@ sig
     -> Proof.state -> string -> unit
 end;
 
-structure ATP_Manager : ATP_MANAGER =
+structure Sledgehammer : SLEDGEHAMMER =
 struct
 
 open Metis_Clauses

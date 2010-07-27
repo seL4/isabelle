@@ -6,7 +6,7 @@ Adds "sledgehammer" and related commands to Isabelle/Isar's outer syntax.
 
 signature SLEDGEHAMMER_ISAR =
 sig
-  type params = ATP_Manager.params
+  type params = Sledgehammer.params
 
   val atps: string Unsynchronized.ref
   val timeout: int Unsynchronized.ref
@@ -19,7 +19,7 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
-open ATP_Manager
+open Sledgehammer
 open ATP_Systems
 open Sledgehammer_Fact_Minimizer
 

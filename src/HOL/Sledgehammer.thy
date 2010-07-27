@@ -97,7 +97,7 @@ use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/ATP_Manager/atp_problem.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/ATP_Manager/async_manager.ML"
-use "Tools/ATP_Manager/atp_manager.ML"
+use "Tools/Sledgehammer/sledgehammer.ML"
 use "Tools/ATP_Manager/atp_systems.ML"
 setup ATP_Systems.setup
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"

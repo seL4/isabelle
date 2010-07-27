@@ -269,7 +269,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Tools/Metis/metis.ML \
   Tools/ATP_Manager/async_manager.ML \
-  Tools/ATP_Manager/atp_manager.ML \
   Tools/ATP_Manager/atp_problem.ML \
   Tools/ATP_Manager/atp_systems.ML \
   Tools/choice_specification.ML \
@@ -320,6 +319,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/meson_tactic.ML \
   Tools/Sledgehammer/metis_clauses.ML \
   Tools/Sledgehammer/metis_tactics.ML \
+  Tools/Sledgehammer/sledgehammer.ML \
   Tools/Sledgehammer/sledgehammer_fact_filter.ML \
   Tools/Sledgehammer/sledgehammer_fact_minimizer.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \

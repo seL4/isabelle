@@ -7,8 +7,8 @@ Minimization of theorem list for Metis using automatic theorem provers.
 
 signature SLEDGEHAMMER_FACT_MINIMIZER =
 sig
-  type params = ATP_Manager.params
-  type prover_result = ATP_Manager.prover_result
+  type params = Sledgehammer.params
+  type prover_result = Sledgehammer.prover_result
 
   val minimize_theorems :
     params -> int -> int -> Proof.state -> (string * thm list) list
@@ -21,7 +21,7 @@ struct
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Proof_Reconstruct
-open ATP_Manager
+open Sledgehammer
 
 (* wrapper for calling external prover *)
 
