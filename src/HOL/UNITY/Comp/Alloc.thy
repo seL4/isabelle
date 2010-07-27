@@ -331,7 +331,7 @@ end
 (*** bijectivity of sysOfAlloc [MUST BE AUTOMATED] ***)
 ML {*
 fun record_auto_tac (cs, ss) =
-  auto_tac (cs addIs [ext] addSWrapper record_split_wrapper,
+  auto_tac (cs addIs [ext] addSWrapper Record.split_wrapper,
     ss addsimps [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
       @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
       @{thm o_apply}, @{thm Let_def}])

@@ -125,7 +125,7 @@ fun MaxSimpTac var_names tac = FIRST'[rtac subset_refl, set2pred_tac var_names T
 
 fun BasicSimpTac var_names tac =
   simp_tac
-    (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}] addsimprocs [record_simproc])
+    (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}] addsimprocs [Record.simproc])
   THEN_MAYBE' MaxSimpTac var_names tac;
 
 
