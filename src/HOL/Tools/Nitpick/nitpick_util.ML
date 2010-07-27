@@ -49,7 +49,6 @@ sig
   val plural_s : int -> string
   val plural_s_for_list : 'a list -> string
   val serial_commas : string -> string list -> string list
-  val timestamp : unit -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val flip_polarity : polarity -> polarity
@@ -223,7 +222,6 @@ fun plural_s_for_list xs = plural_s (length xs)
 
 val serial_commas = Sledgehammer_Util.serial_commas
 
-val timestamp = Sledgehammer_Util.timestamp
 val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 
