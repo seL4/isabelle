@@ -57,16 +57,8 @@ fun cycle_msg names = loader_msg ("cyclic dependency of " ^ show_path names) [];
 fun add_deps name parents G = Graph.add_deps_acyclic (name, parents) G
   handle Graph.CYCLES namess => error (cat_lines (map cycle_msg namess));
 
-fun new_node name parents entry =
+fun new_entry name parents entry =
   Graph.new_node (name, entry) #> add_deps name parents;
-
-fun upd_deps name entry G =
-  fold (fn parent => Graph.del_edge (parent, name)) (Graph.imm_preds G name) G
-  |> Graph.map_node name (K entry);
-
-fun new_deps name parents entry G =
-  (if can (Graph.get_node G) name then upd_deps name entry G else Graph.new_node (name, entry) G)
-  |> add_deps name parents;
 
 
 (* thy database *)
@@ -113,15 +105,11 @@ fun get_thy name =
     SOME thy => thy
   | NONE => error (loader_msg "nothing known about theory" [name]));
 
-fun change_thy name f = CRITICAL (fn () =>
-  (get_thy name; change_thys (Graph.map_node name f)));
-
 
 (* access deps *)
 
 val lookup_deps = Option.map #1 o lookup_thy;
 val get_deps = #1 o get_thy;
-fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 
 val is_finished = is_none o get_deps;
 val master_directory = master_dir o get_deps;
@@ -275,7 +263,7 @@ fun load_thy initiators (deps: deps) text dir name parent_thys =
     fun after_load' () =
      (after_load ();
       CRITICAL (fn () =>
-        (change_thys (new_node name parent_names (SOME deps, SOME theory));
+        (change_thys (new_entry name parent_names (SOME deps, SOME theory));
           perform Update name)));
 
   in (theory, after_load') end;
@@ -335,7 +323,7 @@ and require_thy initiators dir str tasks =
               | SOME (dep as {master = (thy_path, _), ...}) =>
                   let val text = (case opt_text of SOME text => text | NONE => File.read thy_path)
                   in Task (parent_names, load_thy initiators dep text dir' name) end);
-        in (all_current, new_node name parent_names task tasks') end)
+        in (all_current, new_entry name parent_names task tasks') end)
   end;
 
 end;
@@ -366,25 +354,17 @@ fun toplevel_begin_theory name imports uses =
 fun register_thy theory =
   let
     val name = Context.theory_name theory;
-    (* FIXME kill_thy name (??) *)
+    val _ = kill_thy name;
     val _ = priority ("Registering theory " ^ quote name);
-    val parent_names = map Context.theory_name (Theory.parents_of theory);
-    val _ = map get_theory parent_names;
 
     val master = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
     val update_time = Update_Time.get theory;
-    val parents =
-      (case lookup_deps name of
-        SOME (SOME {parents, ...}) => parents
-      | _ => parent_names);
+    val parents = map Context.theory_name (Theory.parents_of theory);
     val deps = make_deps update_time master parents;
   in
     CRITICAL (fn () =>
-     (if known_thy name then
-        (List.app remove_thy (thy_graph Graph.imm_succs name);
-          change_thys (Graph.del_nodes [name]))
-      else ();
-      change_thys (new_deps name parents (SOME deps, SOME theory));
+     (map get_theory parents;
+      change_thys (new_entry name parents (SOME deps, SOME theory));
       perform Update name))
   end;
 
