@@ -390,16 +390,13 @@ The theory database maintains a collection of theories, together
   within the theory context.  The system keeps track of incoming {\ML}
   sources and associates them with the current theory.
 
-  The basic internal actions of the theory database are \isa{update}, \isa{outdate}, and \isa{remove}:
+  The basic internal actions of the theory database are \isa{update} and \isa{remove}:
 
   \begin{itemize}
 
   \item \isa{update\ A} introduces a link of \isa{A} with a
   \isa{theory} value of the same name; it asserts that the theory
   sources are now consistent with that value;
-
-  \item \isa{outdate\ A} invalidates the link of a theory database
-  entry to its sources, but retains the present theory value;
 
   \item \isa{remove\ A} deletes entry \isa{A} from the theory
   database.
@@ -410,8 +407,8 @@ The theory database maintains a collection of theories, together
   entry as expected, in order to preserve global consistency of the
   state of all loaded theories with the sources of the external store.
   This implies certain causalities between actions: \isa{update}
-  or \isa{outdate} of an entry will \isa{outdate} all
-  descendants; \isa{remove} will \isa{remove} all descendants.
+  or \isa{remove} of an entry will \isa{remove} all
+  descendants.
 
   \medskip There are separate user-level interfaces to operate on the
   theory database directly or indirectly.  The primitive actions then
@@ -420,7 +417,7 @@ The theory database maintains a collection of theories, together
   sub-graph of the collective imports \isa{B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n}
   is up-to-date, too.  Earlier theories are reloaded as required, with
   \isa{update} actions proceeding in topological order according to
-  theory dependencies.  There may be also a wave of implied \isa{outdate} actions for derived theory nodes until a stable situation
+  theory dependencies.  There may be also a wave of implied \isa{remove} actions for derived theory nodes until a stable situation
   is achieved eventually.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -436,12 +433,9 @@ The theory database maintains a collection of theories, together
   \indexdef{}{ML}{use\_thy}\verb|use_thy: string -> unit| \\
   \indexdef{}{ML}{use\_thys}\verb|use_thys: string list -> unit| \\
   \indexdef{}{ML}{Thy\_Info.get\_theory}\verb|Thy_Info.get_theory: string -> theory| \\
-  \indexdef{}{ML}{Thy\_Info.touch\_thy}\verb|Thy_Info.touch_thy: string -> unit| \\
   \indexdef{}{ML}{Thy\_Info.remove\_thy}\verb|Thy_Info.remove_thy: string -> unit| \\[1ex]
-  \indexdef{}{ML}{Thy\_Info.begin\_theory}\verb|Thy_Info.begin_theory|\verb|: ... -> bool -> theory| \\
-  \indexdef{}{ML}{Thy\_Info.end\_theory}\verb|Thy_Info.end_theory: theory -> unit| \\
-  \indexdef{}{ML}{Thy\_Info.register\_theory}\verb|Thy_Info.register_theory: theory -> unit| \\[1ex]
-  \verb|datatype action = Update |\verb,|,\verb| Outdate |\verb,|,\verb| Remove| \\
+  \indexdef{}{ML}{Thy\_Info.register\_thy}\verb|Thy_Info.register_thy: theory -> unit| \\[1ex]
+  \verb|datatype action = Update |\verb,|,\verb| Remove| \\
   \indexdef{}{ML}{Thy\_Info.add\_hook}\verb|Thy_Info.add_hook: (Thy_Info.action -> string -> unit) -> unit| \\
   \end{mldecls}
 
@@ -462,22 +456,13 @@ The theory database maintains a collection of theories, together
   presently associated with name \isa{A}.  Note that the result
   might be outdated.
 
-  \item \verb|Thy_Info.touch_thy|~\isa{A} performs and \isa{outdate} action
-  on theory \isa{A} and all descendants.
-
   \item \verb|Thy_Info.remove_thy|~\isa{A} deletes theory \isa{A} and all
   descendants from the theory database.
 
-  \item \verb|Thy_Info.begin_theory| is the basic operation behind a
-  \isa{{\isasymTHEORY}} header declaration.  This {\ML} function is
-  normally not invoked directly.
-
-  \item \verb|Thy_Info.end_theory| concludes the loading of a theory
-  proper and stores the result in the theory database.
-
-  \item \verb|Thy_Info.register_theory|~\isa{text\ thy} registers an
-  existing theory value with the theory loader database.  There is no
-  management of associated sources.
+  \item \verb|Thy_Info.register_thy|~\isa{text\ thy} registers an
+  existing theory value with the theory loader database and updates
+  source version information according to the current file-system
+  state.
 
   \item \verb|Thy_Info.add_hook|~\isa{f} registers function \isa{f} as a hook for theory database actions.  The function will be
   invoked with the action and theory name being involved; thus derived

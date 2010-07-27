@@ -322,16 +322,13 @@ text {*
   sources and associates them with the current theory.
 
   The basic internal actions of the theory database are @{text
-  "update"}, @{text "outdate"}, and @{text "remove"}:
+  "update"} and @{text "remove"}:
 
   \begin{itemize}
 
   \item @{text "update A"} introduces a link of @{text "A"} with a
   @{text "theory"} value of the same name; it asserts that the theory
   sources are now consistent with that value;
-
-  \item @{text "outdate A"} invalidates the link of a theory database
-  entry to its sources, but retains the present theory value;
 
   \item @{text "remove A"} deletes entry @{text "A"} from the theory
   database.
@@ -342,8 +339,8 @@ text {*
   entry as expected, in order to preserve global consistency of the
   state of all loaded theories with the sources of the external store.
   This implies certain causalities between actions: @{text "update"}
-  or @{text "outdate"} of an entry will @{text "outdate"} all
-  descendants; @{text "remove"} will @{text "remove"} all descendants.
+  or @{text "remove"} of an entry will @{text "remove"} all
+  descendants.
 
   \medskip There are separate user-level interfaces to operate on the
   theory database directly or indirectly.  The primitive actions then
@@ -354,7 +351,7 @@ text {*
   is up-to-date, too.  Earlier theories are reloaded as required, with
   @{text update} actions proceeding in topological order according to
   theory dependencies.  There may be also a wave of implied @{text
-  outdate} actions for derived theory nodes until a stable situation
+  remove} actions for derived theory nodes until a stable situation
   is achieved eventually.
 *}
 
@@ -363,12 +360,9 @@ text %mlref {*
   @{index_ML use_thy: "string -> unit"} \\
   @{index_ML use_thys: "string list -> unit"} \\
   @{index_ML Thy_Info.get_theory: "string -> theory"} \\
-  @{index_ML Thy_Info.touch_thy: "string -> unit"} \\
   @{index_ML Thy_Info.remove_thy: "string -> unit"} \\[1ex]
-  @{index_ML Thy_Info.begin_theory}@{verbatim ": ... -> bool -> theory"} \\
-  @{index_ML Thy_Info.end_theory: "theory -> unit"} \\
-  @{index_ML Thy_Info.register_theory: "theory -> unit"} \\[1ex]
-  @{verbatim "datatype action = Update | Outdate | Remove"} \\
+  @{index_ML Thy_Info.register_thy: "theory -> unit"} \\[1ex]
+  @{verbatim "datatype action = Update | Remove"} \\
   @{index_ML Thy_Info.add_hook: "(Thy_Info.action -> string -> unit) -> unit"} \\
   \end{mldecls}
 
@@ -390,22 +384,13 @@ text %mlref {*
   presently associated with name @{text A}.  Note that the result
   might be outdated.
 
-  \item @{ML Thy_Info.touch_thy}~@{text A} performs and @{text outdate} action
-  on theory @{text A} and all descendants.
-
   \item @{ML Thy_Info.remove_thy}~@{text A} deletes theory @{text A} and all
   descendants from the theory database.
 
-  \item @{ML Thy_Info.begin_theory} is the basic operation behind a
-  @{text \<THEORY>} header declaration.  This {\ML} function is
-  normally not invoked directly.
-
-  \item @{ML Thy_Info.end_theory} concludes the loading of a theory
-  proper and stores the result in the theory database.
-
-  \item @{ML Thy_Info.register_theory}~@{text "text thy"} registers an
-  existing theory value with the theory loader database.  There is no
-  management of associated sources.
+  \item @{ML Thy_Info.register_thy}~@{text "text thy"} registers an
+  existing theory value with the theory loader database and updates
+  source version information according to the current file-system
+  state.
 
   \item @{ML "Thy_Info.add_hook"}~@{text f} registers function @{text
   f} as a hook for theory database actions.  The function will be

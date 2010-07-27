@@ -74,7 +74,7 @@ val markup_table =
   ("executable", ("isatt", no_check, true)),
   ("tool", ("isatt", K check_tool, true)),
   ("file", ("isatt", K (File.exists o Path.explode), true)),
-  ("theory", ("", K Thy_Info.known_thy, true))
+  ("theory", ("", K (can Thy_Info.get_theory), true))
   ];
 
 in

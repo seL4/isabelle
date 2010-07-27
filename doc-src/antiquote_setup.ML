@@ -181,7 +181,7 @@ val _ = entity_antiqs no_check "" "inference";
 val _ = entity_antiqs no_check "isatt" "executable";
 val _ = entity_antiqs (K check_tool) "isatt" "tool";
 val _ = entity_antiqs (K (File.exists o Path.explode)) "isatt" "file";
-val _ = entity_antiqs (K Thy_Info.known_thy) "" "theory";
+val _ = entity_antiqs (K (can Thy_Info.get_theory)) "" "theory";
 
 end;
 
