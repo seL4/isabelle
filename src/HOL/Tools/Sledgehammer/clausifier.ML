@@ -7,12 +7,11 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature CLAUSIFIER =
 sig
+  val introduce_combinators_in_cterm : cterm -> thm
   val cnf_axiom: theory -> bool -> thm -> thm list
   val cnf_rules_pairs :
     theory -> bool -> (string * thm) list -> ((string * int) * thm) list
   val neg_clausify: thm -> thm list
-  val neg_conjecture_clauses:
-    Proof.context -> thm -> int -> thm list list * (string * typ) list
 end;
 
 structure Clausifier : CLAUSIFIER =
@@ -23,16 +22,17 @@ struct
 val cfalse = cterm_of @{theory HOL} HOLogic.false_const;
 val ctp_false = cterm_of @{theory HOL} (HOLogic.mk_Trueprop HOLogic.false_const);
 
-(*Converts an elim-rule into an equivalent theorem that does not have the
-  predicate variable.  Leaves other theorems unchanged.  We simply instantiate the
-  conclusion variable to False.*)
-fun transform_elim th =
+(* Converts an elim-rule into an equivalent theorem that does not have the
+   predicate variable. Leaves other theorems unchanged. We simply instantiate
+   the conclusion variable to False. (Cf. "transform_elim_term" in
+   "ATP_Systems".) *)
+fun transform_elim_theorem th =
   case concl_of th of    (*conclusion variable*)
        @{const Trueprop} $ (v as Var (_, @{typ bool})) =>
            Thm.instantiate ([], [(cterm_of @{theory HOL} v, cfalse)]) th
     | v as Var(_, @{typ prop}) =>
            Thm.instantiate ([], [(cterm_of @{theory HOL} v, ctp_false)]) th
-    | _ => th;
+    | _ => th
 
 (*To enforce single-threading*)
 exception Clausify_failure of theory;
@@ -84,11 +84,13 @@ fun vars_of_thm th =
 
 val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
 
-(* Removes the lambdas from an equation of the form t = (%x. u). *)
-fun extensionalize th =
+(* ### FIXME: removes only one lambda? *)
+(* Removes the lambdas from an equation of the form "t = (%x. u)".
+   (Cf. "extensionalize_term" in "ATP_Systems".) *)
+fun extensionalize_theorem th =
   case prop_of th of
     _ $ (Const (@{const_name "op ="}, Type (_, [Type (@{type_name fun}, _), _]))
-         $ _ $ Abs (s, _, _)) => extensionalize (th RS fun_cong_all)
+         $ _ $ Abs (s, _, _)) => extensionalize_theorem (th RS fun_cong_all)
   | _ => th
 
 fun is_quasi_lambda_free (Const (@{const_name skolem_id}, _) $ _) = true
@@ -107,8 +109,11 @@ fun abstract ct =
       val thy = theory_of_cterm ct
       val Abs(x,_,body) = term_of ct
       val Type(@{type_name fun}, [xT,bodyT]) = typ_of (ctyp_of_term ct)
-      val cxT = ctyp_of thy xT and cbodyT = ctyp_of thy bodyT
-      fun makeK() = instantiate' [SOME cxT, SOME cbodyT] [SOME (cterm_of thy body)] @{thm abs_K}
+      val cxT = ctyp_of thy xT
+      val cbodyT = ctyp_of thy bodyT
+      fun makeK () =
+        instantiate' [SOME cxT, SOME cbodyT] [SOME (cterm_of thy body)]
+                     @{thm abs_K}
   in
       case body of
           Const _ => makeK()
@@ -145,7 +150,7 @@ fun abstract ct =
   end;
 
 (* Traverse a theorem, remplacing lambda-abstractions with combinators. *)
-fun do_introduce_combinators ct =
+fun introduce_combinators_in_cterm ct =
   if is_quasi_lambda_free (term_of ct) then
     Thm.reflexive ct
   else case term_of ct of
@@ -153,23 +158,23 @@ fun do_introduce_combinators ct =
     let
       val (cv, cta) = Thm.dest_abs NONE ct
       val (v, _) = dest_Free (term_of cv)
-      val u_th = do_introduce_combinators cta
+      val u_th = introduce_combinators_in_cterm cta
       val cu = Thm.rhs_of u_th
       val comb_eq = abstract (Thm.cabs cv cu)
     in Thm.transitive (Thm.abstract_rule v cv u_th) comb_eq end
   | _ $ _ =>
     let val (ct1, ct2) = Thm.dest_comb ct in
-        Thm.combination (do_introduce_combinators ct1)
-                        (do_introduce_combinators ct2)
+        Thm.combination (introduce_combinators_in_cterm ct1)
+                        (introduce_combinators_in_cterm ct2)
     end
 
-fun introduce_combinators th =
+fun introduce_combinators_in_theorem th =
   if is_quasi_lambda_free (prop_of th) then
     th
   else
     let
       val th = Drule.eta_contraction_rule th
-      val eqth = do_introduce_combinators (cprop_of th)
+      val eqth = introduce_combinators_in_cterm (cprop_of th)
     in Thm.equal_elim eqth th end
     handle THM (msg, _, _) =>
            (warning ("Error in the combinator translation of " ^
@@ -222,16 +227,17 @@ fun skolem_theorem_of_def thy cheat rhs0 =
     |> Thm.varifyT_global
   end
 
-(*Converts an Isabelle theorem (intro, elim or simp format, even higher-order) into NNF.*)
+(* Converts an Isabelle theorem (intro, elim or simp format, even higher-order)
+   into NNF. *)
 fun to_nnf th ctxt0 =
-  let val th1 = th |> transform_elim |> zero_var_indexes
+  let val th1 = th |> transform_elim_theorem |> zero_var_indexes
       val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
       val th3 = th2 |> Conv.fconv_rule Object_Logic.atomize
-                    |> extensionalize
+                    |> extensionalize_theorem
                     |> Meson.make_nnf ctxt
   in  (th3, ctxt)  end;
 
-(*Skolemize a named theorem, with Skolem functions as additional premises.*)
+(* Skolemize a named theorem, with Skolem functions as additional premises. *)
 fun skolemize_theorem thy cheat th =
   let
     val ctxt0 = Variable.global_thm_context th
@@ -240,7 +246,7 @@ fun skolemize_theorem thy cheat th =
                       (assume_skolem_funs nnfth)
     val (cnfs, ctxt) = Meson.make_cnf sko_ths nnfth ctxt
   in
-    cnfs |> map introduce_combinators
+    cnfs |> map introduce_combinators_in_theorem
          |> Variable.export ctxt ctxt0
          |> Meson.finish_cnf
          |> map Thm.close_derivation
@@ -255,6 +261,7 @@ fun cnf_axiom thy cheat = skolemize_theorem thy cheat o Thm.transfer thy
 (**** Translate a set of theorems into CNF ****)
 
 (*The combination of rev and tail recursion preserves the original order*)
+(* ### FIXME: kill "cheat" *)
 fun cnf_rules_pairs thy cheat =
   let
     fun do_one _ [] = []
@@ -277,16 +284,7 @@ fun neg_skolemize_tac ctxt =
 val neg_clausify =
   single
   #> Meson.make_clauses_unsorted
-  #> map introduce_combinators
+  #> map introduce_combinators_in_theorem
   #> Meson.finish_cnf
-
-fun neg_conjecture_clauses ctxt st0 n =
-  let
-    (* "Option" is thrown if the assumptions contain schematic variables. *)
-    val st = Seq.hd (neg_skolemize_tac ctxt n st0) handle Option.Option => st0
-    val ({params, prems, ...}, _) =
-      Subgoal.focus (Variable.set_body false ctxt) n st
-  in (map neg_clausify prems, map (dest_Free o term_of o #2) params) end
-
 
 end;

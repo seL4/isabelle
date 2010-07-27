@@ -29,8 +29,8 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: ((string * int) * thm) list option,
-     filtered_clauses: ((string * int) * thm) list option}
+     axiom_clauses: (string * thm) list option,
+     filtered_clauses: (string * thm) list option}
   datatype failure =
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
     OutOfResources | OldSpass | MalformedInput | MalformedOutput | UnknownError
@@ -43,11 +43,10 @@ sig
      output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
-     conjecture_shape: int list list,
-     filtered_clauses: ((string * int) * thm) list}
+     conjecture_shape: int list,
+     filtered_clauses: (string * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
-  exception TRIVIAL of unit
 
   val kill_atps: unit -> unit
   val running_atps: unit -> unit
@@ -97,8 +96,8 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: ((string * int) * thm) list option,
-   filtered_clauses: ((string * int) * thm) list option}
+   axiom_clauses: (string * thm) list option,
+   filtered_clauses: (string * thm) list option}
 
 datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
@@ -113,14 +112,11 @@ type prover_result =
    output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
-   conjecture_shape: int list list,
-   filtered_clauses: ((string * int) * thm) list}
+   conjecture_shape: int list,
+   filtered_clauses: (string * thm) list}
 
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result
-
-(* Trivial problem, which resolution cannot handle (empty clause) *)
-exception TRIVIAL of unit
 
 (* named provers *)
 
@@ -168,8 +164,7 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
                  filtered_clauses = NONE}
             in
               prover params (minimize_command name) timeout problem |> #message
-              handle TRIVIAL () => metis_line full_types i n []
-                   | ERROR message => "Error: " ^ message ^ "\n"
+              handle ERROR message => "Error: " ^ message ^ "\n"
             end)
   end
 

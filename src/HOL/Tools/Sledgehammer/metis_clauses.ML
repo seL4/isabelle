@@ -34,6 +34,7 @@ sig
                   literals: fol_literal list, ctypes_sorts: typ list}
 
   val type_wrapper_name : string
+  val bound_var_prefix : string
   val schematic_var_prefix: string
   val fixed_var_prefix: string
   val tvar_prefix: string
@@ -45,7 +46,8 @@ sig
   val invert_const: string -> string
   val ascii_of: string -> string
   val undo_ascii_of: string -> string
-  val strip_prefix: string -> string -> string option
+  val strip_prefix_and_undo_ascii: string -> string -> string option
+  val make_bound_var : string -> string
   val make_schematic_var : string * int -> string
   val make_fixed_var : string -> string
   val make_schematic_type_var : string * int -> string
@@ -61,8 +63,10 @@ sig
   val type_literals_for_types : typ list -> type_literal list
   val make_class_rel_clauses: theory -> class list -> class list -> class_rel_clause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arity_clause list
-  val type_of_combterm : combterm -> combtyp
+  val combtyp_of : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
+  val combterm_from_term :
+    theory -> (string * typ) list -> term -> combterm * typ list
   val literals_of_term : theory -> term -> fol_literal list * typ list
   val conceal_skolem_terms :
     int -> (string * term) list -> term -> (string * term) list * term
@@ -77,8 +81,9 @@ struct
 
 val type_wrapper_name = "ti"
 
-val schematic_var_prefix = "V_";
-val fixed_var_prefix = "v_";
+val bound_var_prefix = "B_"
+val schematic_var_prefix = "V_"
+val fixed_var_prefix = "v_"
 
 val tvar_prefix = "T_";
 val tfree_prefix = "t_";
@@ -163,7 +168,7 @@ val undo_ascii_of = undo_ascii_aux [] o String.explode;
 
 (* If string s has the prefix s1, return the result of deleting it,
    un-ASCII'd. *)
-fun strip_prefix s1 s =
+fun strip_prefix_and_undo_ascii s1 s =
   if String.isPrefix s1 s then
     SOME (undo_ascii_of (String.extract (s, size s1, NONE)))
   else
@@ -177,8 +182,9 @@ fun trim_type_var s =
 fun ascii_of_indexname (v,0) = ascii_of v
   | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ Int.toString i;
 
-fun make_schematic_var v = schematic_var_prefix ^ (ascii_of_indexname v);
-fun make_fixed_var x = fixed_var_prefix ^ (ascii_of x);
+fun make_bound_var x = bound_var_prefix ^ ascii_of x
+fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
+fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
 
 fun make_schematic_type_var (x,i) =
       tvar_prefix ^ (ascii_of_indexname (trim_type_var x,i));
@@ -373,9 +379,9 @@ datatype fol_clause =
 fun result_type (CombType (_, [_, tp2])) = tp2
   | result_type _ = raise Fail "non-function type"
 
-fun type_of_combterm (CombConst (_, tp, _)) = tp
-  | type_of_combterm (CombVar (_, tp)) = tp
-  | type_of_combterm (CombApp (t1, _)) = result_type (type_of_combterm t1)
+fun combtyp_of (CombConst (_, tp, _)) = tp
+  | combtyp_of (CombVar (_, tp)) = tp
+  | combtyp_of (CombApp (t1, _)) = result_type (combtyp_of t1)
 
 (*gets the head of a combinator application, along with the list of arguments*)
 fun strip_combterm_comb u =
@@ -402,8 +408,13 @@ fun simp_type_of (Type (a, Ts)) =
   | simp_type_of (TVar (x, _)) =
     CombTVar (make_schematic_type_var x, string_of_indexname x)
 
-(* convert a Term.term (with combinators) into a combterm, also accummulate sort info *)
-fun combterm_of thy (Const (c, T)) =
+(* Converts a term (with combinators) into a combterm. Also accummulates sort
+   infomation. *)
+fun combterm_from_term thy bs (P $ Q) =
+      let val (P', tsP) = combterm_from_term thy bs P
+          val (Q', tsQ) = combterm_from_term thy bs Q
+      in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
+  | combterm_from_term thy _ (Const (c, T)) =
       let
         val (tp, ts) = type_of T
         val tvar_list =
@@ -414,22 +425,25 @@ fun combterm_of thy (Const (c, T)) =
           |> map simp_type_of
         val c' = CombConst (`make_fixed_const c, tp, tvar_list)
       in  (c',ts)  end
-  | combterm_of _ (Free(v, T)) =
+  | combterm_from_term _ _ (Free (v, T)) =
       let val (tp,ts) = type_of T
           val v' = CombConst (`make_fixed_var v, tp, [])
       in  (v',ts)  end
-  | combterm_of _ (Var(v, T)) =
+  | combterm_from_term _ _ (Var (v, T)) =
       let val (tp,ts) = type_of T
           val v' = CombVar ((make_schematic_var v, string_of_indexname v), tp)
       in  (v',ts)  end
-  | combterm_of thy (P $ Q) =
-      let val (P', tsP) = combterm_of thy P
-          val (Q', tsQ) = combterm_of thy Q
-      in  (CombApp (P', Q'), union (op =) tsP tsQ)  end
-  | combterm_of _ (Abs _) = raise Fail "HOL clause: Abs"
+  | combterm_from_term _ bs (Bound j) =
+      let
+        val (s, T) = nth bs j
+        val (tp, ts) = type_of T
+        val v' = CombConst (`make_bound_var s, tp, [])
+      in (v', ts) end
+  | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
-  | predicate_of thy (t, pos) = (combterm_of thy (Envir.eta_contract t), pos)
+  | predicate_of thy (t, pos) =
+    (combterm_from_term thy [] (Envir.eta_contract t), pos)
 
 fun literals_of_term1 args thy (@{const Trueprop} $ P) =
     literals_of_term1 args thy P

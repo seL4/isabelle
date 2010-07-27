@@ -7,14 +7,31 @@ TPTP syntax.
 
 signature SLEDGEHAMMER_TPTP_FORMAT =
 sig
+  type name = Metis_Clauses.name
+  type kind = Metis_Clauses.kind
+  type combterm = Metis_Clauses.combterm
   type class_rel_clause = Metis_Clauses.class_rel_clause
   type arity_clause = Metis_Clauses.arity_clause
-  type fol_clause = Metis_Clauses.fol_clause
+
+  datatype 'a fo_term = ATerm of 'a * 'a fo_term list
+  datatype quantifier = AForall | AExists
+  datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
+  datatype ('a, 'b) formula =
+    AQuant of quantifier * 'a list * ('a, 'b) formula |
+    AConn of connective * ('a, 'b) formula list |
+    APred of 'b
+
+  datatype fol_formula =
+    FOLFormula of {formula_name: string,
+                   kind: kind,
+                   combformula: (name, combterm) formula,
+                   ctypes_sorts: typ list}
 
   val axiom_prefix : string
+  val conjecture_prefix : string
   val write_tptp_file :
-    theory -> bool -> bool -> bool -> Path.T
-    -> fol_clause list * fol_clause list * fol_clause list * fol_clause list
+    theory -> bool -> bool -> bool -> bool -> Path.T
+    -> fol_formula list * fol_formula list * fol_formula list * fol_formula list
        * class_rel_clause list * arity_clause list
     -> string Symtab.table * int
 end;
@@ -30,15 +47,19 @@ open Sledgehammer_Util
 
 datatype 'a fo_term = ATerm of 'a * 'a fo_term list
 datatype quantifier = AForall | AExists
-datatype connective = ANot | AAnd | AOr | AImplies | AIff
-datatype 'a formula =
-  AQuant of quantifier * 'a list * 'a formula |
-  AConn of connective * 'a formula list |
-  APred of 'a fo_term
+datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
+datatype ('a, 'b) formula =
+  AQuant of quantifier * 'a list * ('a, 'b) formula |
+  AConn of connective * ('a, 'b) formula list |
+  APred of 'b
 
 fun mk_anot phi = AConn (ANot, [phi])
+fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
+fun mk_ahorn [] phi = phi
+  | mk_ahorn (phi :: phis) psi =
+    AConn (AImplies, [fold (mk_aconn AAnd) phis phi, psi])
 
-datatype 'a problem_line = Fof of string * kind * 'a formula
+datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
 type 'a problem = (string * 'a problem_line list) list
 
 fun string_for_term (ATerm (s, [])) = s
@@ -51,10 +72,14 @@ fun string_for_connective ANot = "~"
   | string_for_connective AAnd = "&"
   | string_for_connective AOr = "|"
   | string_for_connective AImplies = "=>"
+  | string_for_connective AIf = "<="
   | string_for_connective AIff = "<=>"
+  | string_for_connective ANotIff = "<~>"
 fun string_for_formula (AQuant (q, xs, phi)) =
-    string_for_quantifier q ^ " [" ^ commas xs ^ "] : " ^
+    string_for_quantifier q ^ "[" ^ commas xs ^ "]: " ^
     string_for_formula phi
+  | string_for_formula (AConn (ANot, [APred (ATerm ("equal", ts))])) =
+    space_implode " != " (map string_for_term ts)
   | string_for_formula (AConn (c, [phi])) =
     string_for_connective c ^ " " ^ string_for_formula phi
   | string_for_formula (AConn (c, phis)) =
@@ -137,11 +162,16 @@ fun nice_problem problem =
 
 (** Sledgehammer stuff **)
 
+datatype fol_formula =
+  FOLFormula of {formula_name: string,
+                 kind: kind,
+                 combformula: (name, combterm) formula,
+                 ctypes_sorts: typ list}
+
 val axiom_prefix = "ax_"
 val conjecture_prefix = "conj_"
 val arity_clause_prefix = "clsarity_"
-
-fun hol_ident prefix axiom_name = prefix ^ ascii_of axiom_name
+val tfrees_name = "tfrees"
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
@@ -150,49 +180,51 @@ fun fo_term_for_combtyp (CombTVar name) = ATerm (name, [])
   | fo_term_for_combtyp (CombType (name, tys)) =
     ATerm (name, map fo_term_for_combtyp tys)
 
-fun fo_term_for_combterm full_types top_level u =
-  let
-    val (head, args) = strip_combterm_comb u
-    val (x, ty_args) =
-      case head of
-        CombConst (name, _, ty_args) =>
-        if fst name = "equal" then
-          (if top_level andalso length args = 2 then name
-           else ("c_fequal", @{const_name fequal}), [])
-        else
-          (name, if full_types then [] else ty_args)
-      | CombVar (name, _) => (name, [])
-      | CombApp _ => raise Fail "impossible \"CombApp\""
-    val t = ATerm (x, map fo_term_for_combtyp ty_args @
-                      map (fo_term_for_combterm full_types false) args)
-  in
-    if full_types then wrap_type (fo_term_for_combtyp (type_of_combterm u)) t
-    else t
-  end
-
-fun fo_literal_for_literal full_types (FOLLiteral (pos, t)) =
-  (pos, fo_term_for_combterm full_types true t)
-
-fun fo_literal_for_type_literal pos (TyLitVar (class, name)) =
-    (pos, ATerm (class, [ATerm (name, [])]))
-  | fo_literal_for_type_literal pos (TyLitFree (class, name)) =
-    (pos, ATerm (class, [ATerm (name, [])]))
+fun fo_literal_for_type_literal (TyLitVar (class, name)) =
+    (true, ATerm (class, [ATerm (name, [])]))
+  | fo_literal_for_type_literal (TyLitFree (class, name)) =
+    (true, ATerm (class, [ATerm (name, [])]))
 
 fun formula_for_fo_literal (pos, t) = APred t |> not pos ? mk_anot
-fun formula_for_fo_literals [] = APred (ATerm (("$false", "$false"), []))
-  | formula_for_fo_literals (lit :: lits) =
-    AConn (AOr, [formula_for_fo_literal lit, formula_for_fo_literals lits])
 
-fun formula_for_axiom full_types (FOLClause {literals, ctypes_sorts, ...}) =
-  map (fo_literal_for_literal full_types) literals @
-  map (fo_literal_for_type_literal false)
-      (type_literals_for_types ctypes_sorts)
-  |> formula_for_fo_literals
+fun fo_term_for_combterm full_types =
+  let
+    fun aux top_level u =
+      let
+        val (head, args) = strip_combterm_comb u
+        val (x, ty_args) =
+          case head of
+            CombConst (name, _, ty_args) =>
+            if fst name = "equal" then
+              (if top_level andalso length args = 2 then name
+               else ("c_fequal", @{const_name fequal}), [])
+            else
+              (name, if full_types then [] else ty_args)
+          | CombVar (name, _) => (name, [])
+          | CombApp _ => raise Fail "impossible \"CombApp\""
+        val t = ATerm (x, map fo_term_for_combtyp ty_args @
+                          map (aux false) args)
+    in
+      if full_types then wrap_type (fo_term_for_combtyp (combtyp_of u)) t else t
+    end
+  in aux true end
+
+fun formula_for_combformula full_types =
+  let
+    fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
+      | aux (AConn (c, phis)) = AConn (c, map aux phis)
+      | aux (APred tm) = APred (fo_term_for_combterm full_types tm)
+  in aux end
+
+fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
+  mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
+                (type_literals_for_types ctypes_sorts))
+           (formula_for_combformula full_types combformula)
 
 fun problem_line_for_axiom full_types
-        (clause as FOLClause {axiom_name, kind, ...}) =
-  Fof (hol_ident axiom_prefix axiom_name, kind,
-       formula_for_axiom full_types clause)
+        (formula as FOLFormula {formula_name, kind, ...}) =
+  Fof (axiom_prefix ^ ascii_of formula_name, kind,
+       formula_for_axiom full_types formula)
 
 fun problem_line_for_class_rel_clause
         (ClassRelClause {axiom_name, subclass, superclass, ...}) =
@@ -210,23 +242,24 @@ fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
 fun problem_line_for_arity_clause
         (ArityClause {axiom_name, conclLit, premLits, ...}) =
   Fof (arity_clause_prefix ^ ascii_of axiom_name, Axiom,
-       map fo_literal_for_arity_literal (conclLit :: premLits)
-       |> formula_for_fo_literals)
+       mk_ahorn (map (formula_for_fo_literal o apfst not
+                      o fo_literal_for_arity_literal) premLits)
+                (formula_for_fo_literal
+                     (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
-        (clause as FOLClause {axiom_name, kind, literals, ...}) =
-  Fof (hol_ident conjecture_prefix axiom_name, kind,
-       map (fo_literal_for_literal full_types) literals
-       |> formula_for_fo_literals |> mk_anot)
+        (FOLFormula {formula_name, kind, combformula, ...}) =
+  Fof (conjecture_prefix ^ formula_name, kind,
+       formula_for_combformula full_types combformula)
 
-fun atp_free_type_literals_for_conjecture (FOLClause {ctypes_sorts, ...}) =
-  map (fo_literal_for_type_literal true) (type_literals_for_types ctypes_sorts)
+fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
+  map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
-  Fof ("tfree_tcs", Conjecture, formula_for_fo_literal lit)
+  Fof (tfrees_name, Conjecture, mk_anot (formula_for_fo_literal lit))
 fun problem_lines_for_free_types conjectures =
   let
-    val litss = map atp_free_type_literals_for_conjecture conjectures
+    val litss = map free_type_literals_for_conjecture conjectures
     val lits = fold (union (op =)) litss []
   in map problem_line_for_free_type lits end
 
@@ -269,7 +302,7 @@ fun min_arity_of thy full_types NONE s =
        16383 (* large number *)
      else if full_types then
        0
-     else case strip_prefix const_prefix s of
+     else case strip_prefix_and_undo_ascii const_prefix s of
        SOME s' => num_type_args thy (invert_const s')
      | NONE => 0)
   | min_arity_of _ _ (SOME the_const_tab) s =
@@ -360,11 +393,10 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
   repair_problem_with_const_table thy explicit_forall full_types
       (const_table_for_problem explicit_apply problem) problem
 
-fun write_tptp_file thy readable_names full_types explicit_apply file
-                    (conjectures, axiom_clauses, extra_clauses, helper_clauses,
-                     class_rel_clauses, arity_clauses) =
+fun write_tptp_file thy readable_names explicit_forall full_types explicit_apply
+                    file (conjectures, axiom_clauses, extra_clauses,
+                          helper_clauses, class_rel_clauses, arity_clauses) =
   let
-    val explicit_forall = true (* FIXME *)
     val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
     val class_rel_lines =
       map problem_line_for_class_rel_clause class_rel_clauses
@@ -373,6 +405,8 @@ fun write_tptp_file thy readable_names full_types explicit_apply file
     val conjecture_lines =
       map (problem_line_for_conjecture full_types) conjectures
     val tfree_lines = problem_lines_for_free_types conjectures
+    (* Reordering these might or might not confuse the proof reconstruction
+       code or the SPASS Flotter hack. *)
     val problem =
       [("Relevant facts", axiom_lines),
        ("Class relationships", class_rel_lines),

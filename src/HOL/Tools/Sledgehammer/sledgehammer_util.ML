@@ -18,6 +18,7 @@ sig
   val maybe_quote : string -> string
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
+  val strip_subgoal : thm -> int -> (string * typ) list * term list * term
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -126,5 +127,11 @@ fun specialize_type thy (s, T) t =
     | NONE => raise Type.TYPE_MATCH
   end
 
+fun strip_subgoal goal i =
+  let
+    val (t, frees) = Logic.goal_params (prop_of goal) i
+    val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
+    val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
+  in (rev (map dest_Free frees), hyp_ts, concl_t) end
 
 end;
