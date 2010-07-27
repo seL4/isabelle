@@ -387,7 +387,8 @@ fun repair_formula thy explicit_forall full_types const_tab =
 fun repair_problem_line thy explicit_forall full_types const_tab
                         (Fof (ident, kind, phi)) =
   Fof (ident, kind, repair_formula thy explicit_forall full_types const_tab phi)
-val repair_problem_with_const_table = map o apsnd o map oooo repair_problem_line
+fun repair_problem_with_const_table thy =
+  map o apsnd o map ooo repair_problem_line thy
 
 fun repair_problem thy explicit_forall full_types explicit_apply problem =
   repair_problem_with_const_table thy explicit_forall full_types
