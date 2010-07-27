@@ -20,8 +20,8 @@ uses
   ("Tools/ATP_Manager/atp_problem.ML")
   ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
   ("Tools/ATP_Manager/async_manager.ML")
-  ("Tools/ATP_Manager/atp_manager.ML")
   ("Tools/ATP_Manager/atp_systems.ML")
+  ("Tools/Sledgehammer/sledgehammer.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
 begin
@@ -97,9 +97,10 @@ use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
 use "Tools/ATP_Manager/atp_problem.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
 use "Tools/ATP_Manager/async_manager.ML"
-use "Tools/Sledgehammer/sledgehammer.ML"
 use "Tools/ATP_Manager/atp_systems.ML"
 setup ATP_Systems.setup
+use "Tools/Sledgehammer/sledgehammer.ML"
+setup Sledgehammer.setup
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
 use "Tools/Sledgehammer/sledgehammer_isar.ML"
 setup Metis_Tactics.setup

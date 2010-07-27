@@ -81,7 +81,7 @@ fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
   let
     val thy = Proof.theory_of state
     val prover = case atps of
-                   [atp_name] => get_prover thy atp_name
+                   [atp_name] => get_prover_fun thy atp_name
                  | _ => error "Expected a single ATP."
     val msecs = Time.toMilliseconds minimize_timeout
     val _ =
