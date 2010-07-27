@@ -51,7 +51,7 @@ type prover_config =
    arguments: bool -> Time.time -> string,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
-   max_axiom_clauses: int,
+   max_new_relevant_facts_per_iter: int,
    prefers_theory_relevant: bool,
    explicit_forall: bool}
 
@@ -345,6 +345,9 @@ val extract_clause_formula_relation =
 fun repair_conjecture_shape_and_theorem_names output conjecture_shape
                                               thm_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
+    (* This is a hack required for keeping track of axioms after they have been
+       clausified by SPASS's Flotter tool. The "SPASS_TPTP" script is also part
+       of this hack. *)
     let
       val j0 = hd conjecture_shape
       val seq = extract_clause_sequence output
@@ -369,7 +372,8 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 fun generic_tptp_prover
         (name, {home_var, executable, arguments, proof_delims, known_failures,
-                max_axiom_clauses, prefers_theory_relevant, explicit_forall})
+                max_new_relevant_facts_per_iter, prefers_theory_relevant,
+                explicit_forall})
         ({debug, overlord, full_types, explicit_apply, relevance_threshold,
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
           isar_shrink_factor, ...} : params)
@@ -386,7 +390,8 @@ fun generic_tptp_prover
       case filtered_clauses of
         SOME fcls => fcls
       | NONE => relevant_facts full_types relevance_threshold
-                    relevance_convergence defs_relevant max_axiom_clauses
+                    relevance_convergence defs_relevant
+                    max_new_relevant_facts_per_iter
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal hyp_ts concl_t
     val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
@@ -529,7 +534,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   max_axiom_clauses = 100,
+   max_new_relevant_facts_per_iter = 80 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
 val e = tptp_prover "e" e_config
@@ -554,7 +559,7 @@ val spass_config : prover_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (OldSpass, "tptp2dfg")],
-   max_axiom_clauses = 40,
+   max_new_relevant_facts_per_iter = 26 (* FIXME *),
    prefers_theory_relevant = true,
    explicit_forall = true}
 val spass = tptp_prover "spass" spass_config
@@ -576,7 +581,7 @@ val vampire_config : prover_config =
       (IncompleteUnprovable, "CANNOT PROVE"),
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found")],
-   max_axiom_clauses = 60,
+   max_new_relevant_facts_per_iter = 40 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
 val vampire = tptp_prover "vampire" vampire_config
@@ -610,7 +615,7 @@ val remote_known_failures =
    (MalformedOutput, "Remote script could not extract proof")]
 
 fun remote_config atp_prefix args
-        ({proof_delims, known_failures, max_axiom_clauses,
+        ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
           prefers_theory_relevant, explicit_forall, ...} : prover_config)
         : prover_config =
   {home_var = "ISABELLE_ATP_MANAGER",
@@ -620,7 +625,7 @@ fun remote_config atp_prefix args
      the_system atp_prefix,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures = remote_known_failures @ known_failures,
-   max_axiom_clauses = max_axiom_clauses,
+   max_new_relevant_facts_per_iter = max_new_relevant_facts_per_iter,
    prefers_theory_relevant = prefers_theory_relevant,
    explicit_forall = explicit_forall}
 
