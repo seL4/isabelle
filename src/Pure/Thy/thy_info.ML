@@ -82,9 +82,7 @@ fun make_deps update_time master parents : deps =
 
 fun init_deps master parents = SOME (make_deps (serial ()) master parents);
 
-fun master_dir (path, _) = Path.dir path;
-
-fun master_dir' (d: deps option) = the_default Path.current (Option.map (Path.dir o #1 o #master) d);
+fun master_dir (d: deps option) = the_default Path.current (Option.map (Path.dir o #1 o #master) d);
 
 fun base_name s = Path.implode (Path.base (Path.explode s));
 
@@ -127,7 +125,7 @@ val get_deps = #1 o get_thy;
 fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
 
 val is_finished = is_none o get_deps;
-val master_directory = master_dir' o get_deps;
+val master_directory = master_dir o get_deps;
 
 fun get_parents name =
   thy_graph Graph.imm_preds name handle Graph.UNDEF _ =>
@@ -259,14 +257,14 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
           in Symtab.update (name, future') tab end
       | Finished thy => Symtab.update (name, Future.value (thy, I)) tab));
 
-    val exns = tasks |> maps (fn name =>
-      let
-        val (thy, after_load) = Future.join (the (Symtab.lookup futures name));
-        val _ = PureThy.join_proofs thy;
-        val _ = after_load ();
-      in [] end handle exn => [exn]) |> rev;
-
-    val _ = Exn.release_all (map Exn.Exn exns);
+    val _ =
+      tasks |> maps (fn name =>
+        let
+          val (thy, after_load) = Future.join (the (Symtab.lookup futures name));
+          val _ = PureThy.join_proofs thy;
+          val _ = after_load ();
+        in [] end handle exn => [Exn.Exn exn])
+      |> rev |> Exn.release_all;
   in () end) ();
 
 in
@@ -314,15 +312,15 @@ fun load_thy initiators (deps: deps) text dir name parent_thys =
 
 fun check_deps dir name =
   (case lookup_deps name of
-    SOME NONE => (true, NONE, get_parents name)
+    SOME NONE => (true, NONE, get_parents name, NONE)
   | NONE =>
-      let val {master, imports = parents, ...} = Thy_Load.deps_thy dir name
-      in (false, init_deps master parents, parents) end
+      let val {master, text, imports = parents, ...} = Thy_Load.deps_thy dir name
+      in (false, init_deps master parents, parents, SOME text) end
   | SOME (SOME {update_time, master, parents}) =>
       let val master' = Thy_Load.check_thy dir name in
         if #2 master <> #2 master' then
-          let val {imports = parents', ...} = Thy_Load.deps_thy dir name;
-          in (false, init_deps master' parents', parents') end
+          let val {text = text', imports = parents', ...} = Thy_Load.deps_thy dir name;
+          in (false, init_deps master' parents', parents', SOME text') end
         else
           let
             val current =
@@ -331,7 +329,7 @@ fun check_deps dir name =
               | SOME theory => update_time >= 0 andalso Thy_Load.all_current theory);
             val update_time' = if current then update_time else serial ();
             val deps' = SOME (make_deps update_time' master' parents);
-          in (current, deps', parents) end
+          in (current, deps', parents, NONE) end
       end);
 
 in
@@ -349,14 +347,14 @@ and require_thy initiators dir str tasks =
       SOME task => (task_finished task, tasks)
     | NONE =>
         let
-          val (current, deps, parents) = check_deps dir' name
+          val (current, deps, parents, opt_text) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
                 required_by "\n" initiators);
           val parent_names = map base_name parents;
 
           val (parents_current, tasks') =
-            require_thys (name :: initiators) (Path.append dir (master_dir' deps)) parents tasks;
+            require_thys (name :: initiators) (Path.append dir (master_dir deps)) parents tasks;
 
           val all_current = current andalso parents_current;
 
@@ -366,10 +364,11 @@ and require_thy initiators dir str tasks =
           val task =
             if all_current then Finished (get_theory name)
             else
-              let
-                val SOME {master = (thy_path, _), ...} = deps;
-                val text = File.read thy_path;
-              in Task (parent_names, load_thy initiators (the deps) text dir' name) end;
+              (case deps of
+                NONE => raise Fail "Malformed deps"
+              | SOME (dep as {master = (thy_path, _), ...}) =>
+                  let val text = (case opt_text of SOME text => text | NONE => File.read thy_path)
+                  in Task (parent_names, load_thy initiators dep text dir' name) end);
         in (all_current, new_node name parent_names task tasks') end)
   end;
 
