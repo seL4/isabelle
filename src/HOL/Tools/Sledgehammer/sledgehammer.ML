@@ -62,11 +62,11 @@ end;
 structure Sledgehammer : SLEDGEHAMMER =
 struct
 
+open ATP_Problem
+open ATP_Systems
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
-open ATP_Problem
-open ATP_Systems
 open Sledgehammer_Proof_Reconstruct
 
 

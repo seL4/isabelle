@@ -17,10 +17,10 @@ end;
 structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
+open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open Sledgehammer
-open ATP_Systems
 open Sledgehammer_Fact_Minimizer
 
 (** Sledgehammer commands **)

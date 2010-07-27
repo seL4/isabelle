@@ -8,8 +8,8 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 signature CLAUSIFIER =
 sig
   val introduce_combinators_in_cterm : cterm -> thm
+  val introduce_combinators_in_theorem : thm -> thm
   val cnf_axiom: theory -> thm -> thm list
-  val neg_clausify: thm -> thm list
 end;
 
 structure Clausifier : CLAUSIFIER =
@@ -250,17 +250,5 @@ fun skolemize_theorem thy th =
 (* Convert Isabelle theorems into axiom clauses. *)
 (* FIXME: is transfer necessary? *)
 fun cnf_axiom thy = skolemize_theorem thy o Thm.transfer thy
-
-
-(*** Converting a subgoal into negated conjecture clauses. ***)
-
-fun neg_skolemize_tac ctxt =
-  EVERY' [rtac ccontr, Object_Logic.atomize_prems_tac, Meson.skolemize_tac ctxt]
-
-val neg_clausify =
-  single
-  #> Meson.make_clauses_unsorted
-  #> map introduce_combinators_in_theorem
-  #> Meson.finish_cnf
 
 end;

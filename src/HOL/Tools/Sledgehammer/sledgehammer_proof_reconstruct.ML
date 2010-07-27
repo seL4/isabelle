@@ -27,10 +27,10 @@ end;
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
 struct
 
+open ATP_Problem
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
-open ATP_Problem
 
 type minimize_command = string list -> string
 

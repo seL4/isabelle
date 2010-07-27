@@ -15,10 +15,10 @@ sig
   datatype arLit =
     TConsLit of name * name * name list |
     TVarLit of name * name
-  datatype arity_clause = ArityClause of
-   {axiom_name: string, conclLit: arLit, premLits: arLit list}
-  datatype class_rel_clause = ClassRelClause of
-   {axiom_name: string, subclass: name, superclass: name}
+  datatype arity_clause =
+    ArityClause of {axiom_name: string, conclLit: arLit, premLits: arLit list}
+  datatype class_rel_clause =
+    ClassRelClause of {axiom_name: string, subclass: name, superclass: name}
   datatype combtyp =
     CombTVar of name |
     CombTFree of name |
