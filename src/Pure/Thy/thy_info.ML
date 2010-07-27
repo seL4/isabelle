@@ -64,19 +64,13 @@ fun new_entry name parents entry =
 (* thy database *)
 
 type deps =
- {update_time: int,               (*symbolic time of update; negative value means outdated*)
-  master: (Path.T * File.ident),  (*master dependencies for thy file*)
+ {master: (Path.T * File.ident),  (*master dependencies for thy file*)
   parents: string list};          (*source specification of parents (partially qualified)*)
 
-fun make_deps update_time master parents : deps =
-  {update_time = update_time, master = master, parents = parents};
-
-fun init_deps master parents = SOME (make_deps (serial ()) master parents);
+fun make_deps master parents : deps = {master = master, parents = parents};
 
 fun master_dir (d: deps option) = the_default Path.current (Option.map (Path.dir o #1 o #master) d);
-
 fun base_name s = Path.implode (Path.base (Path.explode s));
-
 
 local
   val database = Unsynchronized.ref (Graph.empty: (deps option * theory option) Graph.T);
@@ -244,12 +238,12 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy initiators (deps: deps) text dir name parent_thys =
+fun load_thy initiators update_time (deps: deps) text dir name parent_thys =
   let
     val _ = kill_thy name;
     val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
 
-    val {update_time, master = (thy_path, _), ...} = deps;
+    val {master = (thy_path, _), ...} = deps;
     val pos = Path.position thy_path;
     val uses = map (apfst Path.explode) (#3 (Thy_Header.read pos text));
     fun init () =
@@ -273,20 +267,19 @@ fun check_deps dir name =
     SOME NONE => (true, NONE, get_parents name, NONE)
   | NONE =>
       let val {master, text, imports = parents, ...} = Thy_Load.deps_thy dir name
-      in (false, init_deps master parents, parents, SOME text) end
-  | SOME (SOME {update_time, master, parents}) =>
+      in (false, SOME (make_deps master parents), parents, SOME text) end
+  | SOME (SOME {master, parents}) =>
       let val master' = Thy_Load.check_thy dir name in
         if #2 master <> #2 master' then
           let val {text = text', imports = parents', ...} = Thy_Load.deps_thy dir name;
-          in (false, init_deps master' parents', parents', SOME text') end
+          in (false, SOME (make_deps master' parents'), parents', SOME text') end
         else
           let
             val current =
               (case lookup_theory name of
                 NONE => false
-              | SOME theory => update_time >= 0 andalso Thy_Load.all_current theory);
-            val update_time' = if current then update_time else serial ();
-            val deps' = SOME (make_deps update_time' master' parents);
+              | SOME theory => Thy_Load.all_current theory);
+            val deps' = SOME (make_deps master' parents);
           in (current, deps', parents, NONE) end
       end);
 
@@ -321,8 +314,10 @@ and require_thy initiators dir str tasks =
               (case deps of
                 NONE => raise Fail "Malformed deps"
               | SOME (dep as {master = (thy_path, _), ...}) =>
-                  let val text = (case opt_text of SOME text => text | NONE => File.read thy_path)
-                  in Task (parent_names, load_thy initiators dep text dir' name) end);
+                  let
+                    val text = (case opt_text of SOME text => text | NONE => File.read thy_path);
+                    val update_time = serial ();
+                  in Task (parent_names, load_thy initiators update_time dep text dir' name) end);
         in (all_current, new_entry name parent_names task tasks') end)
   end;
 
@@ -358,9 +353,8 @@ fun register_thy theory =
     val _ = priority ("Registering theory " ^ quote name);
 
     val master = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
-    val update_time = Update_Time.get theory;
     val parents = map Context.theory_name (Theory.parents_of theory);
-    val deps = make_deps update_time master parents;
+    val deps = make_deps master parents;
   in
     CRITICAL (fn () =>
      (map get_theory parents;
