@@ -7,9 +7,13 @@
 Extensible records with structural subtyping.
 *)
 
-signature BASIC_RECORD =
+signature RECORD =
 sig
-  type record_info =
+  val print_type_abbr: bool Unsynchronized.ref
+  val print_type_as_fields: bool Unsynchronized.ref
+  val timing: bool Unsynchronized.ref
+
+  type info =
    {args: (string * sort) list,
     parent: (typ list * string) option,
     fields: (string * typ) list,
@@ -19,30 +23,11 @@ sig
     fold_congs: thm list, unfold_congs: thm list, splits: thm list, defs: thm list,
     surjective: thm, equality: thm, induct_scheme: thm, induct: thm, cases_scheme: thm,
     cases: thm, simps: thm list, iffs: thm list}
-  val get_record: theory -> string -> record_info option
-  val the_record: theory -> string -> record_info
-  val record_simproc: simproc
-  val record_eq_simproc: simproc
-  val record_upd_simproc: simproc
-  val record_split_simproc: (term -> int) -> simproc
-  val record_ex_sel_eq_simproc: simproc
-  val record_split_tac: int -> tactic
-  val record_split_simp_tac: thm list -> (term -> int) -> int -> tactic
-  val record_split_name: string
-  val record_split_wrapper: string * wrapper
-  val print_record_type_abbr: bool Unsynchronized.ref
-  val print_record_type_as_fields: bool Unsynchronized.ref
-end;
+  val get_info: theory -> string -> info option
+  val the_info: theory -> string -> info
+  val add_record: bool -> (string * sort) list * binding -> (typ list * string) option ->
+    (binding * typ * mixfix) list -> theory -> theory
 
-signature RECORD =
-sig
-  include BASIC_RECORD
-  val timing: bool Unsynchronized.ref
-  val updateN: string
-  val ext_typeN: string
-  val extN: string
-  val makeN: string
-  val moreN: string
   val last_extT: typ -> (string * typ list) option
   val dest_recTs: typ -> (string * typ list) list
   val get_extT_fields: theory -> typ -> (string * typ) list * (string * typ)
@@ -51,13 +36,20 @@ sig
   val get_extension: theory -> string -> (string * typ list) option
   val get_extinjects: theory -> thm list
   val get_simpset: theory -> simpset
-  val print_records: theory -> unit
+  val simproc: simproc
+  val eq_simproc: simproc
+  val upd_simproc: simproc
+  val split_simproc: (term -> int) -> simproc
+  val ex_sel_eq_simproc: simproc
+  val split_tac: int -> tactic
+  val split_simp_tac: thm list -> (term -> int) -> int -> tactic
+  val split_wrapper: string * wrapper
+
+  val updateN: string
+  val ext_typeN: string
+  val extN: string
   val read_typ: Proof.context -> string -> (string * sort) list -> typ * (string * sort) list
   val cert_typ: Proof.context -> typ -> (string * sort) list -> typ * (string * sort) list
-  val add_record: bool -> (string * sort) list * binding -> (typ list * string) option ->
-    (binding * typ * mixfix) list -> theory -> theory
-  val add_record_cmd: bool -> (string * string option) list * binding -> string option ->
-    (binding * string * mixfix) list -> theory -> theory
   val setup: theory -> theory
 end;
 
@@ -339,9 +331,9 @@ fun rec_id i T =
 
 (** record info **)
 
-(* type record_info and parent_info *)
+(* type info and parent_info *)
 
-type record_info =
+type info =
  {args: (string * sort) list,
   parent: (typ list * string) option,
   fields: (string * typ) list,
@@ -372,11 +364,11 @@ type record_info =
   simps: thm list,
   iffs: thm list};
 
-fun make_record_info args parent fields extension
+fun make_info args parent fields extension
     ext_induct ext_inject ext_surjective ext_split ext_def
     select_convs update_convs select_defs update_defs fold_congs unfold_congs splits defs
     surjective equality induct_scheme induct cases_scheme cases
-    simps iffs : record_info =
+    simps iffs : info =
  {args = args, parent = parent, fields = fields, extension = extension,
   ext_induct = ext_induct, ext_inject = ext_inject, ext_surjective = ext_surjective,
   ext_split = ext_split, ext_def = ext_def, select_convs = select_convs,
@@ -399,8 +391,8 @@ fun make_parent_info name fields extension ext_def induct_scheme : parent_info =
 
 (* theory data *)
 
-type record_data =
- {records: record_info Symtab.table,
+type data =
+ {records: info Symtab.table,
   sel_upd:
    {selectors: (int * bool) Symtab.table,
     updates: string Symtab.table,
@@ -415,17 +407,17 @@ type record_data =
   extfields: (string * typ) list Symtab.table,  (*maps extension to its fields*)
   fieldext: (string * typ list) Symtab.table};  (*maps field to its extension*)
 
-fun make_record_data
+fun make_data
     records sel_upd equalities extinjects extsplit splits extfields fieldext =
  {records = records, sel_upd = sel_upd,
   equalities = equalities, extinjects=extinjects, extsplit = extsplit, splits = splits,
-  extfields = extfields, fieldext = fieldext }: record_data;
+  extfields = extfields, fieldext = fieldext }: data;
 
 structure Records_Data = Theory_Data
 (
-  type T = record_data;
+  type T = data;
   val empty =
-    make_record_data Symtab.empty
+    make_data Symtab.empty
       {selectors = Symtab.empty, updates = Symtab.empty,
           simpset = HOL_basic_ss, defset = HOL_basic_ss,
           foldcong = HOL_basic_ss, unfoldcong = HOL_basic_ss}
@@ -454,7 +446,7 @@ structure Records_Data = Theory_Data
      splits = splits2,
      extfields = extfields2,
      fieldext = fieldext2}) =
-    make_record_data
+    make_data
       (Symtab.merge (K true) (recs1, recs2))
       {selectors = Symtab.merge (K true) (sels1, sels2),
         updates = Symtab.merge (K true) (upds1, upds2),
@@ -472,32 +464,13 @@ structure Records_Data = Theory_Data
       (Symtab.merge (K true) (fieldext1, fieldext2));
 );
 
-fun print_records thy =
-  let
-    val {records = recs, ...} = Records_Data.get thy;
-    val prt_typ = Syntax.pretty_typ_global thy;
-
-    fun pretty_parent NONE = []
-      | pretty_parent (SOME (Ts, name)) =
-          [Pretty.block [prt_typ (Type (name, Ts)), Pretty.str " +"]];
-
-    fun pretty_field (c, T) = Pretty.block
-      [Pretty.str (Sign.extern_const thy c), Pretty.str " ::",
-        Pretty.brk 1, Pretty.quote (prt_typ T)];
-
-    fun pretty_record (name, {args, parent, fields, ...}: record_info) =
-      Pretty.block (Pretty.fbreaks (Pretty.block
-        [prt_typ (Type (name, map TFree args)), Pretty.str " = "] ::
-        pretty_parent parent @ map pretty_field fields));
-  in map pretty_record (Symtab.dest recs) |> Pretty.chunks |> Pretty.writeln end;
-
 
 (* access 'records' *)
 
-val get_record = Symtab.lookup o #records o Records_Data.get;
+val get_info = Symtab.lookup o #records o Records_Data.get;
 
-fun the_record thy name =
-  (case get_record thy name of
+fun the_info thy name =
+  (case get_info thy name of
     SOME info => info
   | NONE => error ("Unknown record type " ^ quote name));
 
@@ -505,7 +478,7 @@ fun put_record name info thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
-    val data = make_record_data (Symtab.update (name, info) records)
+    val data = make_data (Symtab.update (name, info) records)
       sel_upd equalities extinjects extsplit splits extfields fieldext;
   in Records_Data.put data thy end;
 
@@ -538,7 +511,7 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
 
     val {records, sel_upd = {selectors, updates, simpset, defset, foldcong, unfoldcong},
       equalities, extinjects, extsplit, splits, extfields, fieldext} = Records_Data.get thy;
-    val data = make_record_data records
+    val data = make_data records
       {selectors = fold Symtab.update_new sels selectors,
         updates = fold Symtab.update_new upds updates,
         simpset = Simplifier.addsimps (simpset, simps),
@@ -551,11 +524,11 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
 
 (* access 'equalities' *)
 
-fun add_record_equalities name thm thy =
+fun add_equalities name thm thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
-    val data = make_record_data records sel_upd
+    val data = make_data records sel_upd
       (Symtab.update_new (name, thm) equalities) extinjects extsplit splits extfields fieldext;
   in Records_Data.put data thy end;
 
@@ -569,7 +542,7 @@ fun add_extinjects thm thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
     val data =
-      make_record_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects)
+      make_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects)
         extsplit splits extfields fieldext;
   in Records_Data.put data thy end;
 
@@ -583,19 +556,19 @@ fun add_extsplit name thm thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
     val data =
-      make_record_data records sel_upd equalities extinjects
+      make_data records sel_upd equalities extinjects
         (Symtab.update_new (name, thm) extsplit) splits extfields fieldext;
   in Records_Data.put data thy end;
 
 
 (* access 'splits' *)
 
-fun add_record_splits name thmP thy =
+fun add_splits name thmP thy =
   let
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
     val data =
-      make_record_data records sel_upd equalities extinjects extsplit
+      make_data records sel_upd equalities extinjects extsplit
         (Symtab.update_new (name, thmP) splits) extfields fieldext;
   in Records_Data.put data thy end;
 
@@ -615,7 +588,7 @@ fun add_extfields name fields thy =
     val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
       Records_Data.get thy;
     val data =
-      make_record_data records sel_upd equalities extinjects extsplit splits
+      make_data records sel_upd equalities extinjects extsplit splits
         (Symtab.update_new (name, fields) extfields) fieldext;
   in Records_Data.put data thy end;
 
@@ -655,7 +628,7 @@ fun add_fieldext extname_types fields thy =
     val fieldext' =
       fold (fn field => Symtab.update_new (field, extname_types)) fields fieldext;
     val data =
-      make_record_data records sel_upd equalities extinjects
+      make_data records sel_upd equalities extinjects
         extsplit splits extfields fieldext';
   in Records_Data.put data thy end;
 
@@ -670,7 +643,7 @@ fun add_parents _ NONE parents = parents
         fun err msg = error (msg ^ " parent record " ^ quote name);
 
         val {args, parent, fields, extension, induct_scheme, ext_def, ...} =
-          (case get_record thy name of SOME info => info | NONE => err "Unknown");
+          (case get_info thy name of SOME info => info | NONE => err "Unknown");
         val _ = if length types <> length args then err "Bad number of arguments for" else ();
 
         fun bad_inst ((x, S), T) =
@@ -837,8 +810,8 @@ end;
 
 (* print translations *)
 
-val print_record_type_abbr = Unsynchronized.ref true;
-val print_record_type_as_fields = Unsynchronized.ref true;
+val print_type_abbr = Unsynchronized.ref true;
+val print_type_as_fields = Unsynchronized.ref true;
 
 
 local
@@ -886,7 +859,7 @@ fun record_type_tr' ctxt t =
     val _ = null fields andalso raise Match;
     val u = foldr1 field_types_tr' (map (field_type_tr' o apsnd term_of_type) fields);
   in
-    if not (! print_record_type_as_fields) orelse null fields then raise Match
+    if not (! print_type_as_fields) orelse null fields then raise Match
     else if moreT = HOLogic.unitT then Syntax.const @{syntax_const "_record_type"} $ u
     else Syntax.const @{syntax_const "_record_type_scheme"} $ u $ term_of_type moreT
   end;
@@ -906,7 +879,7 @@ fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
 
     fun match rT T = Type.raw_match (varifyT rT, T) Vartab.empty;
   in
-    if ! print_record_type_abbr then
+    if ! print_type_abbr then
       (case last_extT T of
         SOME (name, _) =>
           if name = last_ext then
@@ -1175,7 +1148,7 @@ fun K_skeleton n (T as Type (_, [_, kT])) (b as Bound i) (Abs (x, xT, t)) =
 
 in
 
-(* record_simproc *)
+(* simproc *)
 
 (*
   Simplify selections of an record update:
@@ -1191,7 +1164,7 @@ in
   - If X is a more-selector we have to make sure that S is not in the updated
     subrecord.
 *)
-val record_simproc =
+val simproc =
   Simplifier.simproc @{theory HOL} "record_simp" ["x"]
     (fn thy => fn _ => fn t =>
       (case t of
@@ -1255,7 +1228,7 @@ fun get_upd_acc_cong_thm upd acc thy simpset =
   end;
 
 
-(* record_upd_simproc *)
+(* upd_simproc *)
 
 (*Simplify multiple updates:
     (1) "N_update y (M_update g (N_update x (M_update f r))) =
@@ -1265,7 +1238,7 @@ fun get_upd_acc_cong_thm upd acc thy simpset =
   In both cases "more" updates complicate matters: for this reason
   we omit considering further updates if doing so would introduce
   both a more update and an update to a field within it.*)
-val record_upd_simproc =
+val upd_simproc =
   Simplifier.simproc @{theory HOL} "record_upd_simp" ["x"]
     (fn thy => fn _ => fn t =>
       let
@@ -1363,7 +1336,7 @@ val record_upd_simproc =
       in
         if simp then
           SOME
-            (prove_unfold_defs thy noops' [record_simproc]
+            (prove_unfold_defs thy noops' [simproc]
               (list_all (vars, Logic.mk_equals (lhs, rhs))))
         else NONE
       end);
@@ -1371,7 +1344,7 @@ val record_upd_simproc =
 end;
 
 
-(* record_eq_simproc *)
+(* eq_simproc *)
 
 (*Look up the most specific record-equality.
 
@@ -1379,13 +1352,13 @@ end;
  Testing equality of records boils down to the test of equality of all components.
  Therefore the complexity is: #components * complexity for single component.
  Especially if a record has a lot of components it may be better to split up
- the record first and do simplification on that (record_split_simp_tac).
+ the record first and do simplification on that (split_simp_tac).
  e.g. r(|lots of updates|) = x
 
-             record_eq_simproc          record_split_simp_tac
+             eq_simproc          split_simp_tac
  Complexity: #components * #updates     #updates
 *)
-val record_eq_simproc =
+val eq_simproc =
   Simplifier.simproc @{theory HOL} "record_eq_simp" ["r = s"]
     (fn thy => fn _ => fn t =>
       (case t of Const (@{const_name "op ="}, Type (_, [T, _])) $ _ $ _ =>
@@ -1398,14 +1371,14 @@ val record_eq_simproc =
       | _ => NONE));
 
 
-(* record_split_simproc *)
+(* split_simproc *)
 
 (*Split quantified occurrences of records, for which P holds.  P can peek on the
   subterm starting at the quantified occurrence of the record (including the quantifier):
     P t = 0: do not split
     P t = ~1: completely split
     P t > 0: split up to given bound of record extensions.*)
-fun record_split_simproc P =
+fun split_simproc P =
   Simplifier.simproc @{theory HOL} "record_split_simp" ["x"]
     (fn thy => fn _ => fn t =>
       (case t of
@@ -1427,20 +1400,20 @@ fun record_split_simproc P =
                             @{const_name all} => all_thm
                           | @{const_name All} => All_thm RS eq_reflection
                           | @{const_name Ex} => Ex_thm RS eq_reflection
-                          | _ => error "record_split_simproc"))
+                          | _ => error "split_simproc"))
                   else NONE
                 end)
           else NONE
       | _ => NONE));
 
-val record_ex_sel_eq_simproc =
-  Simplifier.simproc @{theory HOL} "record_ex_sel_eq_simproc" ["Ex t"]
+val ex_sel_eq_simproc =
+  Simplifier.simproc @{theory HOL} "ex_sel_eq_simproc" ["Ex t"]
     (fn thy => fn ss => fn t =>
       let
         fun prove prop =
           prove_global true thy [] prop
             (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset thy)
-                addsimps @{thms simp_thms} addsimprocs [record_split_simproc (K ~1)]) 1);
+                addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1);
 
         fun mkeq (lr, Teq, (sel, Tsel), x) i =
           if is_selector thy sel then
@@ -1474,7 +1447,7 @@ val record_ex_sel_eq_simproc =
       end);
 
 
-(* record_split_simp_tac *)
+(* split_simp_tac *)
 
 (*Split (and simplify) all records in the goal for which P holds.
   For quantified occurrences of a record
@@ -1483,7 +1456,7 @@ val record_ex_sel_eq_simproc =
   P t = 0: do not split
   P t = ~1: completely split
   P t > 0: split up to given bound of record extensions.*)
-fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
+fun split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
   let
     val thy = Thm.theory_of_cterm cgoal;
 
@@ -1525,7 +1498,7 @@ fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
               else NONE
             end));
 
-    val simprocs = if has_rec goal then [record_split_simproc P] else [];
+    val simprocs = if has_rec goal then [split_simproc P] else [];
     val thms' = K_comp_convs @ thms;
   in
     EVERY split_frees_tacs THEN
@@ -1533,10 +1506,10 @@ fun record_split_simp_tac thms P = CSUBGOAL (fn (cgoal, i) =>
   end);
 
 
-(* record_split_tac *)
+(* split_tac *)
 
 (*Split all records in the goal, which are quantified by !! or ALL.*)
-val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
+val split_tac = CSUBGOAL (fn (cgoal, i) =>
   let
     val goal = term_of cgoal;
 
@@ -1550,15 +1523,15 @@ val record_split_tac = CSUBGOAL (fn (cgoal, i) =>
       | is_all _ = 0;
   in
     if has_rec goal then
-      Simplifier.full_simp_tac (HOL_basic_ss addsimprocs [record_split_simproc is_all]) i
+      Simplifier.full_simp_tac (HOL_basic_ss addsimprocs [split_simproc is_all]) i
     else no_tac
   end);
 
 
 (* wrapper *)
 
-val record_split_name = "record_split_tac";
-val record_split_wrapper = (record_split_name, fn tac => record_split_tac ORELSE' tac);
+val split_name = "record_split_tac";
+val split_wrapper = (split_name, fn tac => split_tac ORELSE' tac);
 
 
 
@@ -1842,9 +1815,9 @@ fun meta_to_obj_all thm =
   in Thm.implies_elim thm' thm end;
 
 
-(* record_definition *)
+(* definition *)
 
-fun record_definition (alphas, binding) parent (parents: parent_info list) raw_fields thy =
+fun definition (alphas, binding) parent (parents: parent_info list) raw_fields thy =
   let
     val prefix = Binding.name_of binding;
     val name = Sign.full_name thy binding;
@@ -2342,7 +2315,7 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
            ((Binding.name "iffs", iffs), [iff_add])];
 
     val info =
-      make_record_info alphas parent fields extension
+      make_info alphas parent fields extension
         ext_induct ext_inject ext_surjective ext_split ext_def
         sel_convs' upd_convs' sel_defs' upd_defs' fold_congs' unfold_congs' splits' derived_defs'
         surjective' equality' induct_scheme' induct' cases_scheme' cases' simps' iffs';
@@ -2351,10 +2324,10 @@ fun record_definition (alphas, binding) parent (parents: parent_info list) raw_f
       thms_thy'
       |> put_record name info
       |> put_sel_upd names full_moreN depth sel_upd_simps sel_upd_defs (fold_congs', unfold_congs')
-      |> add_record_equalities extension_id equality'
+      |> add_equalities extension_id equality'
       |> add_extinjects ext_inject
       |> add_extsplit extension_name ext_split
-      |> add_record_splits extension_id (split_meta', split_object', split_ex', induct_scheme')
+      |> add_splits extension_id (split_meta', split_object', split_ex', induct_scheme')
       |> add_extfields extension_name (fields @ [(full_moreN, moreT)])
       |> add_fieldext (extension_name, snd extension) (names @ [full_moreN])
       |> Sign.restore_naming thy;
@@ -2408,7 +2381,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
 
     val name = Sign.full_name thy binding;
     val err_dup_record =
-      if is_none (get_record thy name) then []
+      if is_none (get_info thy name) then []
       else ["Duplicate definition of record " ^ quote name];
 
     val spec_frees = fold Term.add_tfreesT (parent_args @ map #2 bfields) [];
@@ -2433,7 +2406,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
       err_dup_record @ err_extra_frees @ err_no_fields @ err_dup_fields @ err_bad_fields;
     val _ = if null errs then () else error (cat_lines errs);
   in
-    thy |> record_definition (params, binding) parent parents bfields
+    thy |> definition (params, binding) parent parents bfields
   end
   handle ERROR msg => cat_error msg ("Failed to define record " ^ quote (Binding.str_of binding));
 
@@ -2456,7 +2429,7 @@ val setup =
   Sign.add_trfuns ([], parse_translation, [], []) #>
   Sign.add_advanced_trfuns ([], advanced_parse_translation, [], []) #>
   Simplifier.map_simpset (fn ss =>
-    ss addsimprocs [record_simproc, record_upd_simproc, record_eq_simproc]);
+    ss addsimprocs [simproc, upd_simproc, eq_simproc]);
 
 
 (* outer syntax *)
@@ -2469,6 +2442,3 @@ val _ =
     >> (fn (x, (y, z)) => Toplevel.theory (add_record_cmd false x y z)));
 
 end;
-
-structure Basic_Record: BASIC_RECORD = Record;
-open Basic_Record;

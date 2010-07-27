@@ -272,7 +272,7 @@ val ex_lookup_eq_simproc =
          val ss' = (Simplifier.context ctxt ex_lookup_ss);
          fun prove prop =
            Goal.prove_global thy [] [] prop 
-             (fn _ => record_split_simp_tac [] (K ~1) 1 THEN
+             (fn _ => Record.split_simp_tac [] (K ~1) 1 THEN
                       simp_tac ss' 1);
 
          fun mkeq (swap,Teq,lT,lo,d,n,x,s) i =
