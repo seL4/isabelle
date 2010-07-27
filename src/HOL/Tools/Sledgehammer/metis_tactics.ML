@@ -599,7 +599,7 @@ fun used_axioms axioms (th, Metis.Proof.Axiom _) = SOME (lookth axioms th)
 (* ------------------------------------------------------------------------- *)
 
 fun cnf_helper_theorem thy raw th =
-  if raw then th else the_single (Clausifier.cnf_axiom thy false th)
+  if raw then th else the_single (Clausifier.cnf_axiom thy th)
 
 fun type_ext thy tms =
   let val subs = tfree_classes_of_terms tms
@@ -715,7 +715,7 @@ fun common_thm ths1 ths2 = exists (member Thm.eq_thm ths1) (map Meson.make_meta_
 fun FOL_SOLVE mode ctxt cls ths0 =
   let val thy = ProofContext.theory_of ctxt
       val th_cls_pairs =
-        map (fn th => (Thm.get_name_hint th, Clausifier.cnf_axiom thy false th)) ths0
+        map (fn th => (Thm.get_name_hint th, Clausifier.cnf_axiom thy th)) ths0
       val ths = maps #2 th_cls_pairs
       val _ = trace_msg (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) cls

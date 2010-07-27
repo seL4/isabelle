@@ -8,9 +8,7 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 signature CLAUSIFIER =
 sig
   val introduce_combinators_in_cterm : cterm -> thm
-  val cnf_axiom: theory -> bool -> thm -> thm list
-  val cnf_rules_pairs :
-    theory -> bool -> (string * thm) list -> ((string * int) * thm) list
+  val cnf_axiom: theory -> thm -> thm list
   val neg_clausify: thm -> thm list
 end;
 
@@ -198,7 +196,7 @@ val skolem_id_def_raw = @{thms skolem_id_def_raw}
 (* Given the definition of a Skolem function, return a theorem to replace
    an existential formula by a use of that function.
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
-fun skolem_theorem_of_def thy cheat rhs0 =
+fun skolem_theorem_of_def thy rhs0 =
   let
     val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.cterm_of thy
     val rhs' = rhs |> Thm.dest_comb |> snd
@@ -214,12 +212,8 @@ fun skolem_theorem_of_def thy cheat rhs0 =
       Drule.list_comb (rhs, frees)
       |> Drule.beta_conv cabs |> Thm.capply cTrueprop
     fun tacf [prem] =
-      if cheat then
-        Skip_Proof.cheat_tac thy
-      else
-        rewrite_goals_tac skolem_id_def_raw
-        THEN rtac ((prem |> rewrite_rule skolem_id_def_raw)
-                   RS @{thm someI_ex}) 1
+      rewrite_goals_tac skolem_id_def_raw
+      THEN rtac ((prem |> rewrite_rule skolem_id_def_raw) RS @{thm someI_ex}) 1
   in
     Goal.prove_internal [ex_tm] conc tacf
     |> forall_intr_list frees
@@ -238,11 +232,11 @@ fun to_nnf th ctxt0 =
   in  (th3, ctxt)  end;
 
 (* Skolemize a named theorem, with Skolem functions as additional premises. *)
-fun skolemize_theorem thy cheat th =
+fun skolemize_theorem thy th =
   let
     val ctxt0 = Variable.global_thm_context th
     val (nnfth, ctxt) = to_nnf th ctxt0
-    val sko_ths = map (skolem_theorem_of_def thy cheat)
+    val sko_ths = map (skolem_theorem_of_def thy)
                       (assume_skolem_funs nnfth)
     val (cnfs, ctxt) = Meson.make_cnf sko_ths nnfth ctxt
   in
@@ -255,25 +249,7 @@ fun skolemize_theorem thy cheat th =
 
 (* Convert Isabelle theorems into axiom clauses. *)
 (* FIXME: is transfer necessary? *)
-fun cnf_axiom thy cheat = skolemize_theorem thy cheat o Thm.transfer thy
-
-
-(**** Translate a set of theorems into CNF ****)
-
-(*The combination of rev and tail recursion preserves the original order*)
-(* ### FIXME: kill "cheat" *)
-fun cnf_rules_pairs thy cheat =
-  let
-    fun do_one _ [] = []
-      | do_one ((name, k), th) (cls :: clss) =
-        ((name, k), cls) :: do_one ((name, k + 1), th) clss
-    fun do_all pairs [] = pairs
-      | do_all pairs ((name, th) :: ths) =
-        let
-          val new_pairs = do_one ((name, 0), th) (cnf_axiom thy cheat th)
-                          handle THM _ => []
-        in do_all (new_pairs @ pairs) ths end
-  in do_all [] o rev end
+fun cnf_axiom thy = skolemize_theorem thy o Thm.transfer thy
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
