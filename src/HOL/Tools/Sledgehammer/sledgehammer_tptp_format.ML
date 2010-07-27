@@ -171,6 +171,7 @@ datatype fol_formula =
 val axiom_prefix = "ax_"
 val conjecture_prefix = "conj_"
 val arity_clause_prefix = "clsarity_"
+val tfrees_name = "tfrees"
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
@@ -255,7 +256,7 @@ fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
-  Fof ("tfree_tcs", Conjecture, formula_for_fo_literal lit)
+  Fof (tfrees_name, Conjecture, mk_anot (formula_for_fo_literal lit))
 fun problem_lines_for_free_types conjectures =
   let
     val litss = map free_type_literals_for_conjecture conjectures
@@ -404,6 +405,8 @@ fun write_tptp_file thy readable_names explicit_forall full_types explicit_apply
     val conjecture_lines =
       map (problem_line_for_conjecture full_types) conjectures
     val tfree_lines = problem_lines_for_free_types conjectures
+    (* Reordering these might or might not confuse the proof reconstruction
+       code or the SPASS Flotter hack. *)
     val problem =
       [("Relevant facts", axiom_lines),
        ("Class relationships", class_rel_lines),
