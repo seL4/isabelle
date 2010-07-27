@@ -73,7 +73,7 @@ val scan_dollar_name =
 (* needed for SPASS's output format *)
 fun repair_name _ "$true" = "c_True"
   | repair_name _ "$false" = "c_False"
-  | repair_name _ "$$e" = "c_equal" (* seen in Vampire 11 proofs *)
+  | repair_name _ "$$e" = "c_equal" (* seen in Vampire proofs *)
   | repair_name _ "equal" = "c_equal" (* probably not needed *)
   | repair_name pool s = Symtab.lookup pool s |> the_default s
 (* Generalized first-order terms, which include file names, numbers, etc. *)
@@ -142,7 +142,10 @@ val parse_tstp_annotations =
            case role of
              "definition" =>
              (case phi of
-                AConn (AIff, [phi1, phi2]) => Definition (num, phi1, phi2)
+                AConn (AIff, [phi1 as APred _, phi2]) =>
+                Definition (num, phi1, phi2)
+              | APred (ATerm ("$$e", _)) =>
+                Inference (num, phi, deps) (* Vampire's equality proxy axiom *)
               | _ => raise Fail "malformed definition")
            | _ => Inference (num, phi, deps))
 
