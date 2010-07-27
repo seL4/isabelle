@@ -32,8 +32,6 @@ end;
 structure ATP_Problem : ATP_PROBLEM =
 struct
 
-open Sledgehammer_Util
-
 (** ATP problem **)
 
 datatype 'a fo_term = ATerm of 'a * 'a fo_term list

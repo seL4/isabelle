@@ -10,17 +10,17 @@ header {* Sledgehammer: Isabelle--ATP Linkup *}
 theory Sledgehammer
 imports Plain Hilbert_Choice
 uses
-  "~~/src/Tools/Metis/metis.ML"
+  ("Tools/ATP_Manager/async_manager.ML")
+  ("Tools/ATP_Manager/atp_problem.ML")
+  ("Tools/ATP_Manager/atp_systems.ML")
+  ("~~/src/Tools/Metis/metis.ML")
   ("Tools/Sledgehammer/clausifier.ML")
   ("Tools/Sledgehammer/meson_tactic.ML")
   ("Tools/Sledgehammer/metis_clauses.ML")
   ("Tools/Sledgehammer/metis_tactics.ML")
   ("Tools/Sledgehammer/sledgehammer_util.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_filter.ML")
-  ("Tools/ATP_Manager/atp_problem.ML")
   ("Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML")
-  ("Tools/ATP_Manager/async_manager.ML")
-  ("Tools/ATP_Manager/atp_systems.ML")
   ("Tools/Sledgehammer/sledgehammer.ML")
   ("Tools/Sledgehammer/sledgehammer_fact_minimizer.ML")
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
@@ -85,6 +85,12 @@ apply (rule ext)
 apply (simp add: COMBC_def) 
 done
 
+use "Tools/ATP_Manager/async_manager.ML"
+use "Tools/ATP_Manager/atp_problem.ML"
+use "Tools/ATP_Manager/atp_systems.ML"
+setup ATP_Systems.setup
+
+use "~~/src/Tools/Metis/metis.ML"
 use "Tools/Sledgehammer/clausifier.ML"
 use "Tools/Sledgehammer/meson_tactic.ML"
 setup Meson_Tactic.setup
@@ -94,11 +100,7 @@ use "Tools/Sledgehammer/metis_tactics.ML"
 
 use "Tools/Sledgehammer/sledgehammer_util.ML"
 use "Tools/Sledgehammer/sledgehammer_fact_filter.ML"
-use "Tools/ATP_Manager/atp_problem.ML"
 use "Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML"
-use "Tools/ATP_Manager/async_manager.ML"
-use "Tools/ATP_Manager/atp_systems.ML"
-setup ATP_Systems.setup
 use "Tools/Sledgehammer/sledgehammer.ML"
 setup Sledgehammer.setup
 use "Tools/Sledgehammer/sledgehammer_fact_minimizer.ML"
