@@ -323,8 +323,10 @@ fun raw_term_from_pred thy full_types tfrees =
                 case strip_prefix_and_undo_ascii schematic_var_prefix a of
                   SOME b => Var ((b, 0), T)
                 | NONE =>
-                  if is_variable a then Var ((fix_atp_variable_name a, 0), T)
-                  else raise Fail ("Unexpected constant: " ^ quote a)
+                  if is_tptp_variable a then
+                    Var ((fix_atp_variable_name a, 0), T)
+                  else
+                    raise Fail ("Unexpected constant: " ^ quote a)
           in list_comb (t, ts) end
   in aux (SOME HOLogic.boolT) [] end
 
