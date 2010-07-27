@@ -116,7 +116,7 @@ local
 fun trace_action action name =
   if action = Thy_Info.Update then
     List.app tell_file_loaded (Thy_Info.loaded_files name)
-  else if action = Thy_Info.Outdate orelse action = Thy_Info.Remove then
+  else if action = Thy_Info.Remove then
     List.app tell_file_retracted (Thy_Info.loaded_files name)
   else ();
 

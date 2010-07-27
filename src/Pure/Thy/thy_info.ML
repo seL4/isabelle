@@ -7,7 +7,7 @@ file dependencies.
 
 signature THY_INFO =
 sig
-  datatype action = Update | Outdate | Remove
+  datatype action = Update | Remove
   val add_hook: (action -> string -> unit) -> unit
   val get_names: unit -> string list
   val lookup_theory: string -> theory option
@@ -15,7 +15,6 @@ sig
   val is_finished: string -> bool
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
-  val touch_thy: string -> unit
   val thy_ord: theory * theory -> order
   val remove_thy: string -> unit
   val kill_thy: string -> unit
@@ -31,7 +30,7 @@ struct
 
 (** theory loader actions and hooks **)
 
-datatype action = Update | Outdate | Remove;
+datatype action = Update | Remove;
 
 local
   val hooks = Unsynchronized.ref ([]: (action -> string -> unit) list);
@@ -152,35 +151,6 @@ fun loaded_files name =
 
 
 (** thy operations **)
-
-(* maintain update_time *)
-
-local
-
-fun is_outdated name =
-  (case lookup_deps name of
-    SOME (SOME {update_time, ...}) => update_time < 0
-  | _ => false);
-
-fun unfinished name =
-  if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
-  else SOME name;
-
-in
-
-fun outdate_thy name =
-  if is_finished name orelse is_outdated name then ()
-  else CRITICAL (fn () =>
-   (change_deps name (Option.map (fn {master, parents, ...} =>
-    make_deps ~1 master parents)); perform Outdate name));
-
-fun touch_thys names =
-  List.app outdate_thy (thy_graph Graph.all_succs (map_filter unfinished names));
-
-fun touch_thy name = touch_thys [name];
-
-end;
-
 
 (* abstract update time *)
 
@@ -351,16 +321,12 @@ and require_thy initiators dir str tasks =
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
                 required_by "\n" initiators);
-          val parent_names = map base_name parents;
 
+          val parent_names = map base_name parents;
           val (parents_current, tasks') =
             require_thys (name :: initiators) (Path.append dir (master_dir deps)) parents tasks;
 
           val all_current = current andalso parents_current;
-
-          (* FIXME ?? *)
-          val _ = if not all_current andalso known_thy name then outdate_thy name else ();
-
           val task =
             if all_current then Finished (get_theory name)
             else

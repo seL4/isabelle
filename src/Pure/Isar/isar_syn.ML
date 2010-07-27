@@ -952,11 +952,6 @@ val _ =
       Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.use_thy name)));
 
 val _ =
-  Outer_Syntax.improper_command "touch_thy" "outdate theory, including descendants" Keyword.diag
-    (Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.touch_thy name)));
-
-val _ =
   Outer_Syntax.improper_command "remove_thy" "remove theory from loader database" Keyword.diag
     (Parse.name >> (fn name =>
       Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.remove_thy name)));
