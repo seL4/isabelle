@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/Sledgehammer/metis_clauses.ML
-    Author:     Jia Meng, Cambridge University Computer Laboratory
+    Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
 Storing/printing FOL clauses and arity clauses.  Typed equality is

@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/Sledgehammer/clausifier.ML
-    Author:     Jia Meng, Cambridge University Computer Laboratory
+    Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.

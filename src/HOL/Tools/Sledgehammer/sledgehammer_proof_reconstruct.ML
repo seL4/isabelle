@@ -1,5 +1,6 @@
 (*  Title:      HOL/Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML
-    Author:     Lawrence C Paulson and Claire Quigley, Cambridge University Computer Laboratory
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
+    Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
 Transfer of proofs from external provers.

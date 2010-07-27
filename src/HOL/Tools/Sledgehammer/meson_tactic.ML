@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/Sledgehammer/meson_tactic.ML
-    Author:     Jia Meng, Cambridge University Computer Laboratory
+    Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
 MESON general tactic and proof method.

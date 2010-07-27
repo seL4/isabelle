@@ -1,5 +1,5 @@
 (*  Title:      HOL/Sledgehammer.thy
-    Author:     Lawrence C Paulson
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jia Meng, NICTA
     Author:     Fabian Immler, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen

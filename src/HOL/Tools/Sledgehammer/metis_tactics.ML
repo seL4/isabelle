@@ -1,5 +1,7 @@
 (*  Title:      HOL/Tools/Sledgehammer/metis_tactics.ML
-    Author:     Kong W. Susanto and Lawrence C. Paulson, CU Computer Laboratory
+    Author:     Kong W. Susanto, Cambridge University Computer Laboratory
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
+    Author:     Jasmin Blanchette, TU Muenchen
     Copyright   Cambridge University 2007
 
 HOL setup for the Metis prover.
