@@ -6,20 +6,21 @@
 
 THIS=$(cd "$(dirname "$0")"; pwd -P)
 
-PLATFORMS="at-poly at-poly-test at64-poly cygwin-poly mac-poly-M4 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp at-sml-dev"
+PLATFORMS="at-poly at-poly-test afp at64-poly cygwin-poly mac-poly-M4 mac-poly64-M4 mac-poly-M8 mac-poly64-M8 at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para at-sml-dev"
 
 ISABELLE_SESSIONS="\
   HOL-Plain \
   HOL-Main \
   HOL \
   HOL-Proofs \
+  HOL-Library \
   HOL-Algebra \
   HOL-Auth \
   HOL-Bali \
   HOL-Decision_Procs \
   HOL-Hoare \
   HOL-Hoare_Parallel \
-  HOL-Library \
+  HOL-Imperative_HOL \
   HOL-Metis_Examples \
   HOL-MicroJava \
   HOL-Multivariate_Analysis \
@@ -27,11 +28,13 @@ ISABELLE_SESSIONS="\
   HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
+  HOL-Predicate_Compile_Examples \
   HOL-Proofs-Extraction \
   HOL-Proofs-Lambda \
   HOL-SET_Protocol \
   HOL-UNITY \
   HOL-Word \
+  HOL-Word-SMT_Examples \
   HOL-ex \
   HOLCF \
   IOA \
@@ -40,17 +43,23 @@ ISABELLE_SESSIONS="\
   ZF-UNITY"
 
 AFP_SESSIONS="\
+  Coinductive \
   CoreC++ \
-  Jinja-Slicing \
+  Group-Ring-Module \
+  Group-Ring-Module-Valuation \
   HOL-BytecodeLogicJmlTypes \
+  HOL-Collections \
   HOL-DiskPaxos \
+  HOL-FeatherweightJava \
   HOL-Fermat3_4 \
   HOL-Flyspeck-Tame \
-  HOL-Group-Ring-Module \
-  HOL-Jinja \
-  HOL-JinjaThreads \
+  HOL-Free-Groups \
+  HOL-GraphMarkingIBP \
   HOL-JiveDataStoreModel \
+  HOL-Locally-Nameless-Sigma \
+  HOL-Ordinals_and_Cardinals \
   HOL-POPLmark-deBruijn \
+  HOL-Presburger-Automata \
   HOL-Program-Conflict-Analysis \
   HOL-RSAPSS \
   HOL-Recursion-Theory-I \
@@ -59,10 +68,17 @@ AFP_SESSIONS="\
   HOL-SenSocialChoice \
   HOL-SumSquares \
   HOL-Topology \
-  HOL-Valuation \
+  HOL-Tree-Automata \
+  HOL-Word-JinjaThreads \
+  HOLCF-WorkerWrapper \
+  HRB-Slicing \
+  Jinja \
+  Jinja-Slicing \
   LinearQuantifierElim \
   Simpl \
-  Simpl-BDD"
+  Simpl-BDD \
+  Slicing \
+  Slicing-InformationFlowSlicing"
 
 for PLATFORM in $PLATFORMS
 do
