@@ -71,11 +71,11 @@ fun require src_path =
       error ("Duplicate source file dependency: " ^ Path.implode src_path)
     else (master_dir, src_path :: required, provided));
 
-fun provide (src_path, path_info) =
+fun provide (src_path, path_id) =
   map_files (fn (master_dir, required, provided) =>
     if AList.defined (op =) provided src_path then
       error ("Duplicate resolution of source file dependency: " ^ Path.implode src_path)
-    else (master_dir, required, (src_path, path_info) :: provided));
+    else (master_dir, required, (src_path, path_id) :: provided));
 
 
 (* maintain default paths *)
@@ -148,10 +148,9 @@ end;
 
 fun deps_thy dir name =
   let
-    val master as (path, _) = check_thy dir name;
-    val text = File.read path;
-    val (name', imports, uses) =
-      Thy_Header.read (Path.position path) (Source.of_string_limited 8000 text);
+    val master as (thy_path, _) = check_thy dir name;
+    val text = File.read thy_path;
+    val (name', imports, uses) = Thy_Header.read (Path.position thy_path) text;
     val _ = Thy_Header.consistent_name name name';
     val uses = map (Path.explode o #1) uses;
   in {master = master, text = text, imports = imports, uses = uses} end;
@@ -179,10 +178,10 @@ fun check_loaded thy =
 fun all_current thy =
   let
     val {master_dir, provided, ...} = Files.get thy;
-    fun current (src_path, path_info) =
+    fun current (src_path, (_, id)) =
       (case test_file master_dir src_path of
         NONE => false
-      | SOME path_info' => eq_snd (op =) (path_info, path_info'));
+      | SOME (_, id') => id = id');
   in can check_loaded thy andalso forall current provided end;
 
 val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
@@ -199,14 +198,14 @@ fun use_ml src_path =
   else
     let
       val thy = ML_Context.the_global_context ();
-      val (path, info) = check_file (master_directory thy) src_path;
+      val (path, id) = check_file (master_directory thy) src_path;
 
       val _ = ML_Context.eval_file path;
       val _ = Context.>> Local_Theory.propagate_ml_env;
 
-      val provide = provide (src_path, (path, info));
+      val provide = provide (src_path, (path, id));
       val _ = Context.>> (Context.mapping provide (Local_Theory.theory provide));
-    in () end
+    in () end;
 
 fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 

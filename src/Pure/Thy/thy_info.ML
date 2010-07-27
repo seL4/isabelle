@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/thy_info.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Main part of theory loader database, including handling of theory and
+Global theory info database, with auto-loading according to theory and
 file dependencies.
 *)
 
@@ -295,8 +295,7 @@ fun load_thy initiators (deps: deps) text dir name parent_thys =
 
     val {update_time, master = (thy_path, _), ...} = deps;
     val pos = Path.position thy_path;
-    val uses =
-      map (apfst Path.explode) (#3 (Thy_Header.read pos (Source.of_string_limited 8000 text)));
+    val uses = map (apfst Path.explode) (#3 (Thy_Header.read pos text));
     fun init () =
       Thy_Load.begin_theory dir name parent_thys uses
       |> Present.begin_theory update_time dir uses
