@@ -9,7 +9,6 @@ treated differently.
 signature METIS_CLAUSES =
 sig
   type name = string * string
-  datatype kind = Axiom | Conjecture
   datatype type_literal =
     TyLitVar of name * name |
     TyLitFree of name * name
@@ -29,9 +28,6 @@ sig
     CombVar of name * combtyp |
     CombApp of combterm * combterm
   datatype fol_literal = FOLLiteral of bool * combterm
-  datatype fol_clause =
-    FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
-                  literals: fol_literal list, ctypes_sorts: typ list}
 
   val type_wrapper_name : string
   val bound_var_prefix : string
@@ -228,8 +224,6 @@ fun num_type_args thy s =
 
 type name = string * string
 
-datatype kind = Axiom | Conjecture
-
 (**** Isabelle FOL clauses ****)
 
 (* The first component is the type class; the second is a TVar or TFree. *)
@@ -366,10 +360,6 @@ datatype combterm =
   CombApp of combterm * combterm
 
 datatype fol_literal = FOLLiteral of bool * combterm
-
-datatype fol_clause =
-  FOLClause of {clause_id: int, axiom_name: string, th: thm, kind: kind,
-                literals: fol_literal list, ctypes_sorts: typ list}
 
 (*********************************************************************)
 (* convert a clause with type Term.term to a clause with type clause *)

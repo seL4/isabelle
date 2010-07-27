@@ -7,8 +7,6 @@ TPTP syntax.
 
 signature ATP_PROBLEM =
 sig
-  type kind = Metis_Clauses.kind
-
   datatype 'a fo_term = ATerm of 'a * 'a fo_term list
   datatype quantifier = AForall | AExists
   datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
@@ -17,6 +15,7 @@ sig
     AConn of connective * ('a, 'b) formula list |
     APred of 'b
 
+  datatype kind = Axiom | Conjecture
   datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
   type 'a problem = (string * 'a problem_line list) list
 
@@ -35,8 +34,6 @@ struct
 
 open Sledgehammer_Util
 
-type kind = Metis_Clauses.kind
-
 (** ATP problem **)
 
 datatype 'a fo_term = ATerm of 'a * 'a fo_term list
@@ -47,6 +44,7 @@ datatype ('a, 'b) formula =
   AConn of connective * ('a, 'b) formula list |
   APred of 'b
 
+datatype kind = Axiom | Conjecture
 datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
 type 'a problem = (string * 'a problem_line list) list
 
