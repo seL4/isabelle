@@ -23,18 +23,6 @@ open Sledgehammer_Util
 open Sledgehammer_Proof_Reconstruct
 open ATP_Manager
 
-(* Linear minimization algorithm *)
-
-fun linear_minimize test s =
-  let
-    fun aux [] p = p
-      | aux (x :: xs) (needed, result) =
-        case test (xs @ needed) of
-          SOME result => aux xs (needed, result)
-        | NONE => aux xs (x :: needed, result)
-  in aux s end
-
-
 (* wrapper for calling external prover *)
 
 fun string_for_failure Unprovable = "Unprovable."
@@ -52,8 +40,15 @@ fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
   let
     val thy = Proof.theory_of state
     val num_theorems = length name_thms_pairs
-    val _ = priority ("Testing " ^ string_of_int num_theorems ^
-                      " theorem" ^ plural_s num_theorems ^ "...")
+    val _ =
+      priority ("Testing " ^ string_of_int num_theorems ^
+                " theorem" ^ plural_s num_theorems ^
+                (if num_theorems > 0 then
+                   ": " ^ space_implode " "
+                              (name_thms_pairs
+                               |> map fst |> sort_distinct string_ord)
+                 else
+                   "") ^ "...")
     val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
@@ -69,6 +64,17 @@ fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
 
 (* minimalization of thms *)
 
+fun filter_used_facts used = filter (member (op =) used o fst)
+
+fun sublinear_minimize _ [] p = p
+  | sublinear_minimize test (x :: xs) (seen, result) =
+    case test (xs @ seen) of
+      result as {outcome = NONE, proof, used_thm_names, ...}
+      : prover_result =>
+      sublinear_minimize test (filter_used_facts used_thm_names xs)
+                         (filter_used_facts used_thm_names seen, result)
+    | _ => sublinear_minimize test xs (x :: seen, result)
+
 fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
                                   isar_proof, isar_shrink_factor, ...})
                       i n state name_thms_pairs =
@@ -81,50 +87,39 @@ fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
     val _ =
       priority ("Sledgehammer minimizer: ATP " ^ quote (the_single atps) ^
                 " with a time limit of " ^ string_of_int msecs ^ " ms.")
-    val test_thms_fun =
+    val test_facts =
       sledgehammer_test_theorems params prover minimize_timeout i state
-    fun test_thms filtered thms =
-      case test_thms_fun filtered thms of
-        (result as {outcome = NONE, ...}) => SOME result
-      | _ => NONE
-
     val {context = ctxt, goal, ...} = Proof.goal state;
   in
     (* try prove first to check result and get used theorems *)
-    (case test_thms_fun NONE name_thms_pairs of
-      result as {outcome = NONE, pool, internal_thm_names, conjecture_shape,
-                 filtered_clauses, ...} =>
-        let
-          val used = internal_thm_names |> Vector.foldr (op ::) []
-                                        |> sort_distinct string_ord
-          val to_use =
-            if length used < length name_thms_pairs then
-              filter (fn (name1, _) => exists (curry (op =) name1) used)
-                     name_thms_pairs
-            else name_thms_pairs
-          val (min_thms, {proof, internal_thm_names, ...}) =
-            linear_minimize (test_thms (SOME filtered_clauses)) to_use
-                            ([], result)
-          val m = length min_thms
-          val _ = priority (cat_lines
-            ["Minimized: " ^ string_of_int m ^ " theorem" ^ plural_s m] ^ ".")
-        in
-          (SOME min_thms,
-           proof_text isar_proof
-               (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-               (full_types, K "", proof, internal_thm_names, goal, i) |> fst)
-        end
-    | {outcome = SOME TimedOut, ...} =>
-        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
-               \option (e.g., \"timeout = " ^
-               string_of_int (10 + msecs div 1000) ^ " s\").")
-    | {outcome = SOME UnknownError, ...} =>
-        (* Failure sometimes mean timeout, unfortunately. *)
-        (NONE, "Failure: No proof was found with the current time limit. You \
-               \can increase the time limit using the \"timeout\" \
-               \option (e.g., \"timeout = " ^
-               string_of_int (10 + msecs div 1000) ^ " s\").")
-    | {message, ...} => (NONE, "ATP error: " ^ message))
+    (case test_facts NONE name_thms_pairs of
+       result as {outcome = NONE, pool, proof, used_thm_names,
+                  conjecture_shape, filtered_clauses, ...} =>
+       let
+         val (min_thms, {proof, internal_thm_names, ...}) =
+           sublinear_minimize (test_facts (SOME filtered_clauses))
+                              (filter_used_facts used_thm_names name_thms_pairs)
+                              ([], result)
+         val m = length min_thms
+         val _ = priority (cat_lines
+           ["Minimized: " ^ string_of_int m ^ " theorem" ^ plural_s m] ^ ".")
+       in
+         (SOME min_thms,
+          proof_text isar_proof
+              (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
+              (full_types, K "", proof, internal_thm_names, goal, i) |> fst)
+       end
+     | {outcome = SOME TimedOut, ...} =>
+       (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
+              \option (e.g., \"timeout = " ^
+              string_of_int (10 + msecs div 1000) ^ " s\").")
+     | {outcome = SOME UnknownError, ...} =>
+       (* Failure sometimes mean timeout, unfortunately. *)
+       (NONE, "Failure: No proof was found with the current time limit. You \
+              \can increase the time limit using the \"timeout\" \
+              \option (e.g., \"timeout = " ^
+              string_of_int (10 + msecs div 1000) ^ " s\").")
+     | {message, ...} => (NONE, "ATP error: " ^ message))
     handle ERROR msg => (NONE, "Error: " ^ msg)
   end
 

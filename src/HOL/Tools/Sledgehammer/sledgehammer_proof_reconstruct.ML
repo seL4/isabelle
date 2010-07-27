@@ -562,17 +562,18 @@ fun minimize_line _ [] = ""
 
 val unprefix_chained = perhaps (try (unprefix chained_prefix))
 
+fun used_facts thm_names =
+  extract_formula_numbers_in_atp_proof
+  #> filter (is_axiom_clause_number thm_names)
+  #> map (fn i => Vector.sub (thm_names, i - 1))
+  #> List.partition (String.isPrefix chained_prefix)
+  #>> map (unprefix chained_prefix)
+  #> pairself (sort_distinct string_ord)
+
 fun metis_proof_text (full_types, minimize_command, atp_proof, thm_names, goal,
                       i) =
   let
-    val raw_lemmas =
-      atp_proof |> extract_formula_numbers_in_atp_proof
-                |> filter (is_axiom_clause_number thm_names)
-                |> map (fn i => Vector.sub (thm_names, i - 1))
-    val (chained_lemmas, other_lemmas) =
-      raw_lemmas |> List.partition (String.isPrefix chained_prefix)
-                 |>> map (unprefix chained_prefix)
-                 |> pairself (sort_distinct string_ord)
+    val (chained_lemmas, other_lemmas) = used_facts thm_names atp_proof
     val lemmas = other_lemmas @ chained_lemmas
     val n = Logic.count_prems (prop_of goal)
   in

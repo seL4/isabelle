@@ -493,7 +493,7 @@ fun generic_tptp_prover
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 internal_thm_names
 
-    val (message, relevant_thm_names) =
+    val (message, used_thm_names) =
       case outcome of
         NONE =>
         proof_text isar_proof
@@ -503,7 +503,7 @@ fun generic_tptp_prover
       | SOME failure => (string_for_failure failure ^ "\n", [])
   in
     {outcome = outcome, message = message, pool = pool,
-     relevant_thm_names = relevant_thm_names, atp_run_time_in_msecs = msecs,
+     used_thm_names = used_thm_names, atp_run_time_in_msecs = msecs,
      output = output, proof = proof, internal_thm_names = internal_thm_names,
      conjecture_shape = conjecture_shape,
      filtered_clauses = the_filtered_clauses}
