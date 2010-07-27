@@ -7,7 +7,6 @@ Setup for supported ATPs.
 
 signature ATP_SYSTEMS =
 sig
-  val trace : bool Unsynchronized.ref
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
   val measure_runtime : bool Config.T
@@ -25,9 +24,6 @@ open Sledgehammer_Fact_Filter
 open ATP_Problem
 open Sledgehammer_Proof_Reconstruct
 open Sledgehammer
-
-val trace = Unsynchronized.ref false
-fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 (** generic ATP **)
 
@@ -308,7 +304,6 @@ fun prepare_clauses ctxt full_types hyp_ts concl_t axcls extra_cls =
     val thy = ProofContext.theory_of ctxt
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
-    val _ = trace_msg (fn _ => Syntax.string_of_term ctxt goal_t)
     val axtms = map (prop_of o snd) extra_cls
     val subs = tfree_classes_of_terms [goal_t]
     val supers = tvar_classes_of_terms axtms
