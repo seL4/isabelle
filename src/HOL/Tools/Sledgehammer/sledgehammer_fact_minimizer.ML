@@ -8,11 +8,8 @@ Minimization of theorem list for Metis using automatic theorem provers.
 signature SLEDGEHAMMER_FACT_MINIMIZER =
 sig
   type params = Sledgehammer.params
-  type prover_result = Sledgehammer.prover_result
 
-  val minimize_theorems :
-    params -> int -> int -> Proof.state -> (string * thm list) list
-    -> (string * thm list) list option * string
+  val run_minimizer : params -> int -> Facts.ref list -> Proof.state -> unit
 end;
 
 structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
@@ -20,6 +17,7 @@ struct
 
 open Metis_Clauses
 open Sledgehammer_Util
+open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
 open Sledgehammer
 
@@ -38,7 +36,6 @@ fun string_for_outcome NONE = "Success."
 fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
                                filtered_clauses name_thms_pairs =
   let
-    val thy = Proof.theory_of state
     val num_theorems = length name_thms_pairs
     val _ =
       priority ("Testing " ^ string_of_int num_theorems ^
@@ -121,6 +118,19 @@ fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
               string_of_int (10 + msecs div 1000) ^ " s\").")
      | {message, ...} => (NONE, "ATP error: " ^ message))
     handle ERROR msg => (NONE, "Error: " ^ msg)
+  end
+
+fun run_minimizer params i refs state =
+  let
+    val ctxt = Proof.context_of state
+    val chained_ths = #facts (Proof.goal state)
+    val name_thms_pairs = map (name_thms_pair_from_ref ctxt chained_ths) refs
+  in
+    case subgoal_count state of
+      0 => priority "No subgoal!"
+    | n =>
+      (kill_atps ();
+       priority (#2 (minimize_theorems params i n state name_thms_pairs)))
   end
 
 end;

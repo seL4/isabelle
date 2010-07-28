@@ -19,7 +19,6 @@ struct
 
 open ATP_Systems
 open Sledgehammer_Util
-open Sledgehammer_Fact_Filter
 open Sledgehammer
 open Sledgehammer_Fact_Minimizer
 
@@ -190,21 +189,6 @@ fun default_params thy = get_params thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-fun minimize override_params i refs state =
-  let
-    val thy = Proof.theory_of state
-    val ctxt = Proof.context_of state
-    val chained_ths = #facts (Proof.goal state)
-    val name_thms_pairs = map (name_thms_pair_from_ref ctxt chained_ths) refs
-  in
-    case subgoal_count state of
-      0 => priority "No subgoal!"
-    | n =>
-      (kill_atps ();
-       priority (#2 (minimize_theorems (get_params thy override_params) i n
-                                       state name_thms_pairs)))
-  end
-
 val sledgehammerN = "sledgehammer"
 val sledgehammer_paramsN = "sledgehammer_params"
 
@@ -242,8 +226,9 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
                          (minimize_command override_params i) state
       end
     else if subcommand = minimizeN then
-      minimize (map (apfst minimizize_raw_param_name) override_params)
-               (the_default 1 opt_i) (#add relevance_override) state
+      run_minimizer (get_params thy (map (apfst minimizize_raw_param_name)
+                                override_params))
+                    (the_default 1 opt_i) (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_atpsN then
