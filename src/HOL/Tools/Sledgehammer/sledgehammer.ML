@@ -41,7 +41,7 @@ sig
      output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
-     conjecture_shape: int list,
+     conjecture_shape: int list list,
      filtered_clauses: (string * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
@@ -112,7 +112,7 @@ type prover_result =
    output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
-   conjecture_shape: int list,
+   conjecture_shape: int list list,
    filtered_clauses: (string * thm) list}
 
 type prover =
@@ -681,15 +681,14 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
        clausified by SPASS's Flotter tool. The "SPASS_TPTP" script is also part
        of this hack. *)
     let
-      val j0 = hd conjecture_shape
+      val j0 = hd (hd conjecture_shape)
       val seq = extract_clause_sequence output
       val name_map = extract_clause_formula_relation output
       fun renumber_conjecture j =
         AList.find (op =) name_map (conjecture_prefix ^ Int.toString (j - j0))
-        |> the_single
-        |> (fn s => find_index (curry (op =) s) seq + 1)
+        |> map (fn s => find_index (curry (op =) s) seq + 1)
     in
-      (conjecture_shape |> map renumber_conjecture,
+      (conjecture_shape |> map (maps renumber_conjecture),
        seq |> map (the o AList.lookup (op =) name_map)
            |> map (fn s => case try (unprefix axiom_prefix) s of
                              SOME s' => undo_ascii_of s'
@@ -800,6 +799,7 @@ fun prover_fun name
                               explicit_apply probfile clauses
             val conjecture_shape =
               conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
+              |> map single
             val result =
               do_run false
               |> (fn (_, msecs0, _, SOME _) =>
