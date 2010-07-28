@@ -65,10 +65,9 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
   | string_for_failure OldSpass =
     "Warning: Isabelle requires a more recent version of SPASS with \
-    \support for the TPTP syntax. To install it, download and untar the \
-    \package \"http://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/contrib/\
-    \spass-3.7.tar.gz\" and add the \"spass-3.7\" directory's absolute path \
-    \to " ^
+    \support for the TPTP syntax. To install it, download and extract the \
+    \package \"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and \
+    \add the \"spass-3.7\" directory's absolute path to " ^
     quote (Path.implode (Path.expand (Path.appends
                (Path.variable "ISABELLE_HOME_USER" ::
                 map Path.basic ["etc", "components"])))) ^
