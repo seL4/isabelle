@@ -417,7 +417,9 @@ fun prop_from_formula thy full_types tfrees phi =
                AAnd => s_conj
              | AOr => s_disj
              | AImplies => s_imp
-             | AIff => s_iff)
+             | AIf => s_imp o swap
+             | AIff => s_iff
+             | ANotIff => s_not o s_iff)
       | AAtom tm => term_from_pred thy full_types tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
@@ -719,7 +721,10 @@ fun redirect_proof conjecture_shape hyp_ts concl_t proof =
        conjecture. The second pass flips the proof by contradiction to obtain a
        direct proof, introducing case splits when an inference depends on
        several facts that depend on the negated conjecture. *)
-    fun find_hyp num = nth hyp_ts (index_in_shape num conjecture_shape)
+    fun find_hyp num =
+      nth hyp_ts (index_in_shape num conjecture_shape)
+      handle Subscript =>
+             raise Fail ("Cannot find hypothesis " ^ Int.toString num)
     val concl_l = (raw_prefix, List.last conjecture_shape)
     fun first_pass ([], contra) = ([], contra)
       | first_pass ((step as Fix _) :: proof, contra) =
