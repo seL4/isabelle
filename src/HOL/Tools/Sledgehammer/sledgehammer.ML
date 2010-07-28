@@ -53,9 +53,9 @@ sig
   val running_atps: unit -> unit
   val messages: int option -> unit
   val get_prover_fun : theory -> string -> prover
-  val start_prover_thread :
-    params -> int -> int -> relevance_override -> (string -> minimize_command)
-    -> Proof.state -> string -> unit
+  val run_sledgehammer :
+    params -> int -> relevance_override -> (string -> minimize_command)
+    -> Proof.state -> unit
   val setup : theory -> theory
 end;
 
@@ -845,7 +845,6 @@ fun prover_fun name
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
-(* start prover thread *)
 fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
                         relevance_override minimize_command proof_state name =
   let
@@ -870,6 +869,19 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
               handle ERROR message => "Error: " ^ message ^ "\n"
             end)
   end
+
+fun run_sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
+  | run_sledgehammer (params as {atps, ...}) i relevance_override
+                     minimize_command state =
+    case subgoal_count state of
+      0 => priority "No subgoal!"
+    | n =>
+      let
+        val _ = kill_atps ()
+        val _ = priority "Sledgehammering..."
+        val _ = app (start_prover_thread params i n relevance_override
+                                         minimize_command state) atps
+      in () end
 
 val setup =
   dest_dir_setup
