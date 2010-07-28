@@ -81,9 +81,10 @@ datatype ('a, 'b, 'c, 'd, 'e) raw_step =
   Definition of 'a * 'b * 'c |
   Inference of 'a * 'd * 'e list
 
-(**** PARSING OF TSTP FORMAT ****)
+fun raw_step_number (Definition (num, _, _)) = num
+  | raw_step_number (Inference (num, _, _)) = num
 
-datatype int_or_string = Str of string | Int of int
+(**** PARSING OF TSTP FORMAT ****)
 
 (*Strings enclosed in single quotes, e.g. filenames*)
 val scan_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
@@ -91,36 +92,51 @@ val scan_quoted = $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode;
 val scan_dollar_name =
   Scan.repeat ($$ "$") -- Symbol.scan_id >> (fn (ss, s) => implode ss ^ s)
 
-(* needed for SPASS's output format *)
 fun repair_name _ "$true" = "c_True"
   | repair_name _ "$false" = "c_False"
   | repair_name _ "$$e" = "c_equal" (* seen in Vampire proofs *)
-  | repair_name _ "equal" = "c_equal" (* probably not needed *)
-  | repair_name pool s = Symtab.lookup pool s |> the_default s
+  | repair_name _ "equal" = "c_equal" (* needed by SPASS? *)
+  | repair_name pool s =
+    case Symtab.lookup pool s of
+      SOME s' => s'
+    | NONE =>
+      if String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s then
+        "c_equal" (* seen in Vampire proofs *)
+      else
+        s
 (* Generalized first-order terms, which include file names, numbers, etc. *)
-(* The "x" argument is not strictly necessary, but without it Poly/ML loops
-   forever at compile time. *)
-fun parse_generalized_term x =
-  (scan_quoted >> (fn s => ATerm (Str s, []))
-   || scan_dollar_name
-      -- Scan.optional ($$ "(" |-- parse_generalized_terms --| $$ ")") []
-      >> (fn (s, gs) => ATerm (Str s, gs))
-   || scan_integer >> (fn k => ATerm (Int k, []))
-   || $$ "(" |-- parse_generalized_term --| $$ ")"
-   || $$ "[" |-- Scan.optional parse_generalized_terms [] --| $$ "]"
-      >> curry ATerm (Str "list")) x
-and parse_generalized_terms x =
-  (parse_generalized_term ::: Scan.repeat ($$ "," |-- parse_generalized_term)) x
+val parse_potential_integer =
+  (scan_dollar_name || scan_quoted) >> K NONE
+  || scan_integer >> SOME
+fun parse_annotation x =
+  ((parse_potential_integer ::: Scan.repeat ($$ " " |-- parse_potential_integer)
+    >> map_filter I) -- Scan.optional parse_annotations []
+     >> uncurry (union (op =))
+   || $$ "(" |-- parse_annotations --| $$ ")"
+   || $$ "[" |-- parse_annotations --| $$ "]") x
+and parse_annotations x =
+  (parse_annotation ::: Scan.repeat ($$ "," |-- parse_annotation)
+   >> (fn numss => fold (union (op =)) numss [])) x
+
+(* Vampire proof lines sometimes contain needless information such as "(0:3)",
+   which can be hard to disambiguate from function application in an LL(1)
+   parser. As a workaround, we extend the TPTP term syntax with such detritus
+   and ignore it. *)
+val parse_vampire_detritus = scan_integer |-- $$ ":" --| scan_integer >> K []
+
 fun parse_term pool x =
   ((scan_dollar_name >> repair_name pool)
-    -- Scan.optional ($$ "(" |-- parse_terms pool --| $$ ")") [] >> ATerm) x
+    -- Scan.optional ($$ "(" |-- (parse_vampire_detritus || parse_terms pool)
+                      --| $$ ")") []
+    --| Scan.optional ($$ "(" |-- parse_vampire_detritus --| $$ ")") []
+   >> ATerm) x
 and parse_terms pool x =
   (parse_term pool ::: Scan.repeat ($$ "," |-- parse_term pool)) x
 
 fun parse_atom pool =
   parse_term pool -- Scan.option (Scan.option ($$ "!") --| $$ "="
                                   -- parse_term pool)
-  >> (fn (u, NONE) => AAtom u
+  >> (fn (u1, NONE) => AAtom u1
        | (u1, SOME (NONE, u2)) => AAtom (ATerm ("c_equal", [u1, u2]))
        | (u1, SOME (SOME _, u2)) =>
          mk_anot (AAtom (ATerm ("c_equal", [u1, u2]))))
@@ -146,19 +162,16 @@ fun parse_formula pool x =
    >> (fn (phi1, NONE) => phi1
         | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
 
-fun ints_of_generalized_term (ATerm (label, gs)) =
-  fold ints_of_generalized_term gs #> (case label of Int k => cons k | _ => I)
-val parse_tstp_annotations =
-  Scan.optional ($$ "," |-- parse_generalized_term
-                   --| Scan.option ($$ "," |-- parse_generalized_terms)
-                 >> (fn g => ints_of_generalized_term g [])) []
+val parse_tstp_extra_arguments =
+  Scan.optional ($$ "," |-- parse_annotation
+                 --| Scan.option ($$ "," |-- parse_annotations)) []
 
-(* Syntax: (fof|cnf)\(<num>, <formula_role>, <formula> <annotations>\).
+(* Syntax: (fof|cnf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
  fun parse_tstp_line pool =
    ((Scan.this_string "fof" || Scan.this_string "cnf") -- $$ "(")
      |-- scan_integer --| $$ "," -- Symbol.scan_id --| $$ ","
-     -- parse_formula pool -- parse_tstp_annotations --| $$ ")" --| $$ "."
+     -- parse_formula pool -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
     >> (fn (((num, role), phi), deps) =>
            case role of
              "definition" =>
@@ -169,6 +182,13 @@ val parse_tstp_annotations =
                 Inference (num, phi, deps) (* Vampire's equality proxy axiom *)
               | _ => raise Fail "malformed definition")
            | _ => Inference (num, phi, deps))
+
+(**** PARSING OF VAMPIRE OUTPUT ****)
+
+(* Syntax: <num>. <formula> <annotation> *)
+fun parse_vampire_line pool =
+  scan_integer --| $$ "." -- parse_formula pool -- parse_annotation
+  >> (fn ((num, phi), deps) => Inference (num, phi, deps))
 
 (**** PARSING OF SPASS OUTPUT ****)
 
@@ -202,10 +222,11 @@ fun parse_horn_clause pool =
    <atoms> || <atoms> -> <atoms>. *)
 fun parse_spass_line pool =
   scan_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
-  -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
+    -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
   >> (fn ((num, deps), u) => Inference (num, u, deps))
 
-fun parse_line pool = parse_tstp_line pool || parse_spass_line pool
+fun parse_line pool =
+  parse_tstp_line pool || parse_vampire_line pool || parse_spass_line pool
 fun parse_lines pool = Scan.repeat1 (parse_line pool)
 fun parse_proof pool =
   fst o Scan.finite Symbol.stopper
@@ -438,8 +459,8 @@ fun decode_line full_types tfrees (Definition (num, phi1, phi2)) ctxt =
 fun decode_lines ctxt full_types tfrees lines =
   fst (fold_map (decode_line full_types tfrees) lines ctxt)
 
-fun aint_actual_inference _ (Definition _) = true
-  | aint_actual_inference t (Inference (_, t', _)) = not (t aconv t')
+fun is_same_inference _ (Definition _) = false
+  | is_same_inference t (Inference (_, t', _)) = t aconv t'
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
@@ -461,7 +482,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
       if is_only_type_information t then
         map (replace_deps_in_line (num, [])) lines
       (* Is there a repetition? If so, replace later line by earlier one. *)
-      else case take_prefix (aint_actual_inference t) lines of
+      else case take_prefix (not o is_same_inference t) lines of
         (_, []) => lines (*no repetition of proof line*)
       | (pre, Inference (num', _, _) :: post) =>
         pre @ map (replace_deps_in_line (num', [num])) post
@@ -474,9 +495,9 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
     if is_only_type_information t then
       Inference (num, t, deps) :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
-    else case take_prefix (aint_actual_inference t) lines of
+    else case take_prefix (not o is_same_inference t) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
-         types?? *)
+         types? *)
        (_, []) => Inference (num, t, deps) :: lines
      | (pre, Inference (num', t', _) :: post) =>
        Inference (num, t', deps) ::
@@ -629,8 +650,9 @@ fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
                          atp_proof conjecture_shape thm_names params frees =
   let
     val lines =
-      atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: pick it up) *)
+      atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof pool
+      |> sort (int_ord o pairself raw_step_number)
       |> decode_lines ctxt full_types tfrees
       |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
