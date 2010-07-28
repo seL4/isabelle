@@ -10,6 +10,10 @@ signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
   type minimize_command = string list -> string
 
+  val axiom_prefix : string
+  val conjecture_prefix : string
+  val arity_clause_prefix : string
+  val tfrees_name : string
   val metis_line: bool -> int -> int -> string list -> string
   val metis_proof_text:
     bool * minimize_command * string * string vector * thm * int
@@ -33,6 +37,11 @@ open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 
 type minimize_command = string list -> string
+
+val axiom_prefix = "ax_"
+val conjecture_prefix = "conj_"
+val arity_clause_prefix = "clsarity_"
+val tfrees_name = "tfrees"
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
@@ -548,15 +557,28 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
    (108) is extracted. For SPASS, lines have the form "108[0:Inp] ...", where
    the first number (108) is extracted. For Vampire, we look for
    "108. ... [input]". *)
-fun extract_formula_numbers_in_atp_proof atp_proof =
+fun used_facts_in_atp_proof thm_names atp_proof =
   let
-    val tokens_of = String.tokens (not o Char.isAlphaNum)
-    fun extract_num ("fof" :: num :: "axiom" :: _) = Int.fromString num
-      | extract_num (num :: "0" :: "Inp" :: _) = Int.fromString num
-      | extract_num (num :: rest) =
-        (case List.last rest of "input" => Int.fromString num | _ => NONE)
-      | extract_num _ = NONE
-  in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
+    fun axiom_name num =
+      let val j = Int.fromString num |> the_default ~1 in
+        if is_axiom_clause_number thm_names j then
+          SOME (Vector.sub (thm_names, j - 1))
+        else
+          NONE
+      end
+    val tokens_of =
+      String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
+    val thm_name_list = Vector.foldr (op ::) [] thm_names
+    fun do_line ("fof" :: num :: "axiom" :: (rest as _ :: _)) =
+        (case strip_prefix_and_undo_ascii axiom_prefix (List.last rest) of
+           SOME name =>
+           if member (op =) rest "file" then SOME name else axiom_name num
+         | NONE => axiom_name num)
+      | do_line (num :: "0" :: "Inp" :: _) = axiom_name num
+      | do_line (num :: rest) =
+        (case List.last rest of "input" => axiom_name num | _ => NONE)
+      | do_line _ = NONE
+  in atp_proof |> split_lines |> map_filter (do_line o tokens_of) end
 
 val indent_size = 2
 val no_label = ("", ~1)
@@ -593,9 +615,7 @@ fun minimize_line _ [] = ""
 val unprefix_chained = perhaps (try (unprefix chained_prefix))
 
 fun used_facts thm_names =
-  extract_formula_numbers_in_atp_proof
-  #> filter (is_axiom_clause_number thm_names)
-  #> map (fn i => Vector.sub (thm_names, i - 1))
+  used_facts_in_atp_proof thm_names
   #> List.partition (String.isPrefix chained_prefix)
   #>> map (unprefix chained_prefix)
   #> pairself (sort_distinct string_ord)

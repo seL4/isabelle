@@ -401,11 +401,6 @@ fun prepare_clauses ctxt full_types hyp_ts concl_t axcls extra_cls =
        class_rel_clauses, arity_clauses))
   end
 
-val axiom_prefix = "ax_"
-val conjecture_prefix = "conj_"
-val arity_clause_prefix = "clsarity_"
-val tfrees_name = "tfrees"
-
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
 fun fo_term_for_combtyp (CombTVar name) = ATerm (name, [])
