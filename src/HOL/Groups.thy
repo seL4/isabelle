@@ -6,7 +6,7 @@ header {* Groups, also combined with orderings *}
 
 theory Groups
 imports Orderings
-uses ("~~/src/HOL/Tools/abel_cancel.ML")
+uses ("Tools/abel_cancel.ML")
 begin
 
 subsection {* Fact collections *}
@@ -802,7 +802,7 @@ lemma diff_eq_diff_less_eq:
 
 end
 
-use "~~/src/HOL/Tools/abel_cancel.ML"
+use "Tools/abel_cancel.ML"
 
 simproc_setup abel_cancel_sum
   ("a + b::'a::ab_group_add" | "a - b::'a::ab_group_add") =

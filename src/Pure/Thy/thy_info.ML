@@ -1,29 +1,26 @@
 (*  Title:      Pure/Thy/thy_info.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Main part of theory loader database, including handling of theory and
+Global theory info database, with auto-loading according to theory and
 file dependencies.
 *)
 
 signature THY_INFO =
 sig
-  datatype action = Update | Outdate | Remove
+  datatype action = Update | Remove
   val add_hook: (action -> string -> unit) -> unit
   val get_names: unit -> string list
-  val known_thy: string -> bool
-  val if_known_thy: (string -> unit) -> string -> unit
   val lookup_theory: string -> theory option
   val get_theory: string -> theory
   val is_finished: string -> bool
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
-  val touch_thy: string -> unit
   val thy_ord: theory * theory -> order
   val remove_thy: string -> unit
   val kill_thy: string -> unit
   val use_thys: string list -> unit
   val use_thy: string -> unit
-  val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
+  val toplevel_begin_theory: string -> string list -> (Path.T * bool) list -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
 end;
@@ -33,7 +30,7 @@ struct
 
 (** theory loader actions and hooks **)
 
-datatype action = Update | Outdate | Remove;
+datatype action = Update | Remove;
 
 local
   val hooks = Unsynchronized.ref ([]: (action -> string -> unit) list);
@@ -60,36 +57,20 @@ fun cycle_msg names = loader_msg ("cyclic dependency of " ^ show_path names) [];
 fun add_deps name parents G = Graph.add_deps_acyclic (name, parents) G
   handle Graph.CYCLES namess => error (cat_lines (map cycle_msg namess));
 
-fun upd_deps name entry G =
-  fold (fn parent => Graph.del_edge (parent, name)) (Graph.imm_preds G name) G
-  |> Graph.map_node name (K entry);
-
-fun new_deps name parents entry G =
-  (if can (Graph.get_node G) name then upd_deps name entry G else Graph.new_node (name, entry) G)
-  |> add_deps name parents;
+fun new_entry name parents entry =
+  Graph.new_node (name, entry) #> add_deps name parents;
 
 
 (* thy database *)
 
 type deps =
- {update_time: int,                      (*symbolic time of update; negative value means outdated*)
-  master: (Path.T * File.ident) option,  (*master dependencies for thy file*)
-  text: string,                          (*source text for thy*)
-  parents: string list};                 (*source specification of parents (partially qualified)*)
+ {master: (Path.T * File.ident),  (*master dependencies for thy file*)
+  parents: string list};          (*source specification of parents (partially qualified)*)
 
-fun make_deps update_time master text parents : deps =
-  {update_time = update_time, master = master, text = text, parents = parents};
+fun make_deps master parents : deps = {master = master, parents = parents};
 
-fun init_deps master text parents = SOME (make_deps ~1 master text parents);
-
-fun master_dir NONE = Path.current
-  | master_dir (SOME (path, _)) = Path.dir path;
-
-fun master_dir' (d: deps option) = the_default Path.current (Option.map (master_dir o #master) d);
-fun master_dir'' d = the_default Path.current (Option.map master_dir' d);
-
+fun master_dir (d: deps option) = the_default Path.current (Option.map (Path.dir o #1 o #master) d);
 fun base_name s = Path.implode (Path.base (Path.explode s));
-
 
 local
   val database = Unsynchronized.ref (Graph.empty: (deps option * theory option) Graph.T);
@@ -112,26 +93,20 @@ fun lookup_thy name =
   SOME (thy_graph Graph.get_node name) handle Graph.UNDEF _ => NONE;
 
 val known_thy = is_some o lookup_thy;
-fun if_known_thy f name = if known_thy name then f name else ();
 
 fun get_thy name =
   (case lookup_thy name of
     SOME thy => thy
   | NONE => error (loader_msg "nothing known about theory" [name]));
 
-fun change_thy name f = CRITICAL (fn () =>
-  (get_thy name; change_thys (Graph.map_node name f)));
-
 
 (* access deps *)
 
 val lookup_deps = Option.map #1 o lookup_thy;
 val get_deps = #1 o get_thy;
-fun change_deps name f = change_thy name (fn (deps, x) => (f deps, x));
-fun put_theory name theory = change_thy name (fn (deps, _) => (deps, SOME theory));
 
 val is_finished = is_none o get_deps;
-val master_directory = master_dir' o get_deps;
+val master_directory = master_dir o get_deps;
 
 fun get_parents name =
   thy_graph Graph.imm_preds name handle Graph.UNDEF _ =>
@@ -153,173 +128,96 @@ fun get_theory name =
 fun loaded_files name =
   (case get_deps name of
     NONE => []
-  | SOME {master, ...} =>
-      (case master of
-        NONE => []
-      | SOME (thy_path, _) => thy_path :: Thy_Load.loaded_files (get_theory name)));
+  | SOME {master = (thy_path, _), ...} => thy_path :: Thy_Load.loaded_files (get_theory name));
 
 
 
 (** thy operations **)
 
-(* maintain update_time *)
+(* abstract update time *)
 
-local
-
-fun is_outdated name =
-  (case lookup_deps name of
-    SOME (SOME {update_time, ...}) => update_time < 0
-  | _ => false);
-
-fun unfinished name =
-  if is_finished name then (warning (loader_msg "tried to touch finished theory" [name]); NONE)
-  else SOME name;
-
-in
-
-fun outdate_thy name =
-  if is_finished name orelse is_outdated name then ()
-  else CRITICAL (fn () =>
-   (change_deps name (Option.map (fn {master, text, parents, ...} =>
-    make_deps ~1 master text parents)); perform Outdate name));
-
-fun touch_thys names =
-  List.app outdate_thy (thy_graph Graph.all_succs (map_filter unfinished names));
-
-fun touch_thy name = touch_thys [name];
-
-end;
-
-
-(* management data *)
-
-structure Management_Data = Theory_Data
+structure Update_Time = Theory_Data
 (
-  type T =
-    Task_Queue.group option *   (*worker thread group*)
-    int;                        (*abstract update time*)
-  val empty = (NONE, 0);
+  type T = int;
+  val empty = 0;
   fun extend _ = empty;
   fun merge _ = empty;
 );
 
-val thy_ord = int_ord o pairself (#2 o Management_Data.get);
-
-
-(* pending proofs *)
-
-fun join_thy name =
-  (case lookup_theory name of
-    NONE => ()
-  | SOME thy => PureThy.join_proofs thy);
-
-fun cancel_thy name =
-  (case lookup_theory name of
-    NONE => ()
-  | SOME thy =>
-      (case #1 (Management_Data.get thy) of
-        NONE => ()
-      | SOME group => Future.cancel_group group));
+val thy_ord = int_ord o pairself Update_Time.get;
 
 
 (* remove theory *)
 
 fun remove_thy name =
-  if is_finished name then error (loader_msg "cannot remove finished theory" [name])
+  if is_finished name then error (loader_msg "attempt to change finished theory" [name])
   else
     let
       val succs = thy_graph Graph.all_succs [name];
-      val _ = List.app cancel_thy succs;
       val _ = priority (loader_msg "removing" succs);
       val _ = CRITICAL (fn () =>
         (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)));
     in () end;
 
-val kill_thy = if_known_thy remove_thy;
-
-
-(* load_thy *)
-
-fun required_by _ [] = ""
-  | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
-
-fun load_thy upd_time initiators name =
-  let
-    val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
-    fun corrupted () = error (loader_msg "corrupted dependency information" [name]);
-    val (pos, text) =
-      (case get_deps name of
-        SOME {master = SOME (master_path, _), text, ...} =>
-          if text = "" then corrupted ()
-          else (Path.position master_path, text)
-      | _ => corrupted ());
-    val _ = touch_thy name;
-    val _ =
-      change_deps name (Option.map (fn {master, text, parents, ...} =>
-        make_deps upd_time master text parents));
-    val (after_load, theory) = Outer_Syntax.load_thy name pos text;
-    val _ = put_theory name theory;
-    val _ =
-      CRITICAL (fn () =>
-       (change_deps name
-          (Option.map (fn {update_time, master, parents, ...} =>
-            make_deps update_time master "" parents));
-        perform Update name));
-  in after_load end;
+fun kill_thy name =
+  if known_thy name then remove_thy name
+  else ();
 
 
 (* scheduling loader tasks *)
 
-datatype task = Task of (unit -> unit -> unit) | Finished | Running;
-fun task_finished Finished = true | task_finished _ = false;
+datatype task =
+  Task of string list * (theory list -> (theory * (unit -> unit))) |
+  Finished of theory;
+
+fun task_finished (Task _) = false
+  | task_finished (Finished _) = true;
 
 local
 
+fun schedule_seq task_graph =
+  ((Graph.topological_order task_graph, Symtab.empty) |-> fold (fn name => fn tab =>
+    (case Graph.get_node task_graph name of
+      Task (parents, body) =>
+        let
+          val (thy, after_load) = body (map (the o Symtab.lookup tab) parents);
+          val _ = after_load ();
+        in Symtab.update (name, thy) tab end
+    | Finished thy => Symtab.update (name, thy) tab))) |> ignore;
+
 fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
   let
-    val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
-      (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
-
+    val tasks = Graph.topological_order task_graph;
     val par_proofs = ! parallel_proofs >= 1;
 
-    fun fork (name, body) tab =
-      let
-        val deps = Graph.imm_preds task_graph name
-          |> map_filter (fn parent =>
-            (case Symtab.lookup tab parent of SOME future => SOME (parent, future) | NONE => NONE));
-        fun failed (parent, future) = if can Future.join future then NONE else SOME parent;
+    val futures = (tasks, Symtab.empty) |-> fold (fn name => fn tab =>
+      (case Graph.get_node task_graph name of
+        Task (parents, body) =>
+          let
+            val get = the o Symtab.lookup tab;
+            val deps = map (`get) (Graph.imm_preds task_graph name);
+            fun failed (future, parent) = if can Future.join future then NONE else SOME parent;
 
-        val future = Future.fork_deps (map #2 deps) (fn () =>
-          (case map_filter failed deps of
-            [] => body ()
-          | bad => error (loader_msg
-              ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
-        val future' =
-          if par_proofs then future
-          else Future.map (fn after_load => (after_load (); fn () => ())) future;
-      in Symtab.update (name, future') tab end;
+            val future = Future.fork_deps (map #1 deps) (fn () =>
+              (case map_filter failed deps of
+                [] => body (map (#1 o Future.join o get) parents)
+              | bad => error (loader_msg
+                  ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
+            val future' =
+              if par_proofs then future
+              else Future.map (fn (thy, after_load) => (after_load (); (thy, I))) future;
+          in Symtab.update (name, future') tab end
+      | Finished thy => Symtab.update (name, Future.value (thy, I)) tab));
 
-    val futures = fold fork tasks Symtab.empty;
-
-    val failed = tasks |> maps (fn (name, _) =>
-      let
-        val after_load = Future.join (the (Symtab.lookup futures name));
-        val _ = join_thy name;
-        val _ = after_load ();
-      in [] end handle exn => [(name, exn)]) |> rev;
-
-    val _ = List.app (kill_thy o #1) failed;
-    val _ = Exn.release_all (map (Exn.Exn o #2) failed);
+    val _ =
+      tasks |> maps (fn name =>
+        let
+          val (thy, after_load) = Future.join (the (Symtab.lookup futures name));
+          val _ = PureThy.join_proofs thy;
+          val _ = after_load ();
+        in [] end handle exn => [Exn.Exn exn])
+      |> rev |> Exn.release_all;
   in () end) ();
-
-fun schedule_seq tasks =
-  Graph.topological_order tasks
-  |> List.app (fn name =>
-    (case Graph.get_node tasks name of
-      Task body =>
-        let val after_load = body ()
-        in after_load () handle exn => (kill_thy name; reraise exn) end
-    | _ => ()));
 
 in
 
@@ -337,33 +235,53 @@ end;
 
 local
 
+fun required_by _ [] = ""
+  | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
+
+fun load_thy initiators update_time (deps: deps) text dir name parent_thys =
+  let
+    val _ = kill_thy name;
+    val _ = priority ("Loading theory " ^ quote name ^ required_by " " initiators);
+
+    val {master = (thy_path, _), ...} = deps;
+    val pos = Path.position thy_path;
+    val uses = map (apfst Path.explode) (#3 (Thy_Header.read pos text));
+    fun init () =
+      Thy_Load.begin_theory dir name parent_thys uses
+      |> Present.begin_theory update_time dir uses
+      |> Update_Time.put update_time;
+
+    val (after_load, theory) = Outer_Syntax.load_thy name init pos text;
+
+    val parent_names = map Context.theory_name parent_thys;
+    fun after_load' () =
+     (after_load ();
+      CRITICAL (fn () =>
+        (change_thys (new_entry name parent_names (SOME deps, SOME theory));
+          perform Update name)));
+
+  in (theory, after_load') end;
+
 fun check_deps dir name =
   (case lookup_deps name of
-    SOME NONE => (true, NONE, get_parents name)
+    SOME NONE => (true, NONE, get_parents name, NONE)
   | NONE =>
       let val {master, text, imports = parents, ...} = Thy_Load.deps_thy dir name
-      in (false, init_deps (SOME master) text parents, parents) end
-  | SOME (SOME {update_time, master, text, parents}) =>
-      let
-        val (thy_path, thy_id) = Thy_Load.check_thy dir name;
-        val master' = SOME (thy_path, thy_id);
-      in
-        if Option.map #2 master <> SOME thy_id then
+      in (false, SOME (make_deps master parents), parents, SOME text) end
+  | SOME (SOME {master, parents}) =>
+      let val master' = Thy_Load.check_thy dir name in
+        if #2 master <> #2 master' then
           let val {text = text', imports = parents', ...} = Thy_Load.deps_thy dir name;
-          in (false, init_deps master' text' parents', parents') end
+          in (false, SOME (make_deps master' parents'), parents', SOME text') end
         else
           let
             val current =
               (case lookup_theory name of
                 NONE => false
-              | SOME theory => update_time >= 0 andalso Thy_Load.all_current theory);
-            val update_time' = if current then update_time else ~1;
-            val deps' = SOME (make_deps update_time' master' text parents);
-          in (current, deps', parents) end
+              | SOME theory => Thy_Load.all_current theory);
+            val deps' = SOME (make_deps master' parents);
+          in (current, deps', parents, NONE) end
       end);
-
-fun read_text (SOME {update_time, master = master as SOME (path, _), text = _, parents}) =
-  SOME (make_deps update_time master (File.read path) parents);
 
 in
 
@@ -380,33 +298,33 @@ and require_thy initiators dir str tasks =
       SOME task => (task_finished task, tasks)
     | NONE =>
         let
-          val (current, deps, parents) = check_deps dir' name
+          val (current, deps, parents, opt_text) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
                 required_by "\n" initiators);
-          val parent_names = map base_name parents;
 
-          val (parents_current, tasks_graph') =
-            require_thys (name :: initiators) (Path.append dir (master_dir' deps)) parents tasks;
+          val parent_names = map base_name parents;
+          val (parents_current, tasks') =
+            require_thys (name :: initiators) (Path.append dir (master_dir deps)) parents tasks;
 
           val all_current = current andalso parents_current;
-          val _ = if not all_current andalso known_thy name then outdate_thy name else ();
-          val entry =
-            if all_current then (deps, SOME (get_theory name))
-            else (read_text deps, NONE);
-          val _ = change_thys (new_deps name parent_names entry);
-
-          val upd_time = serial ();
-          val tasks_graph'' = tasks_graph' |> new_deps name parent_names
-           (if all_current then Finished
-            else Task (fn () => load_thy upd_time initiators name));
-        in (all_current, tasks_graph'') end)
+          val task =
+            if all_current then Finished (get_theory name)
+            else
+              (case deps of
+                NONE => raise Fail "Malformed deps"
+              | SOME (dep as {master = (thy_path, _), ...}) =>
+                  let
+                    val text = (case opt_text of SOME text => text | NONE => File.read thy_path);
+                    val update_time = serial ();
+                  in Task (parent_names, load_thy initiators update_time dep text dir' name) end);
+        in (all_current, new_entry name parent_names task tasks') end)
   end;
 
 end;
 
 
-(* use_thy etc. *)
+(* use_thy *)
 
 fun use_thys_dir dir arg =
   schedule_tasks (snd (require_thys [] dir arg Graph.empty));
@@ -415,65 +333,32 @@ val use_thys = use_thys_dir Path.current;
 val use_thy = use_thys o single;
 
 
-(* begin theory *)
+(* toplevel begin theory -- without maintaining database *)
 
-fun check_unfinished name =
-  if known_thy name andalso is_finished name then
-    error (loader_msg "cannot update finished theory" [name])
-  else ();
-
-fun begin_theory name parents uses int =
+fun toplevel_begin_theory name imports uses =
   let
-    val parent_names = map base_name parents;
-    val dir = master_dir'' (lookup_deps name);
-    val _ = check_unfinished name;
-    val _ = if int then use_thys_dir dir parents else ();
-
-    val theory =
-      Theory.begin_theory name (map get_theory parent_names)
-      |> Thy_Load.init dir
-      |> fold (Thy_Load.require o fst) uses;
-
-    val deps =
-      if known_thy name then get_deps name
-      else init_deps NONE "" parents;
-    val _ = change_thys (new_deps name parent_names (deps, NONE));
-
-    val update_time = (case deps of NONE => 0 | SOME {update_time, ...} => update_time);
-    val update_time = if update_time > 0 then update_time else serial ();
-    val theory' = theory
-      |> Management_Data.put (Future.worker_group (), update_time)
-      |> Present.begin_theory update_time dir uses;
-
-    val uses_now = map_filter (fn (x, true) => SOME x | _ => NONE) uses;
-    val theory'' =
-      fold (fn x => Context.theory_map (Thy_Load.exec_ml x) o Theory.checkpoint) uses_now theory';
-  in theory'' end;
+    val dir = Thy_Load.get_master_path ();
+    val _ = kill_thy name;
+    val _ = use_thys_dir dir imports;
+    val parents = map (get_theory o base_name) imports;
+  in Thy_Load.begin_theory dir name parents uses end;
 
 
-(* register existing theories *)
+(* register theory *)
 
 fun register_thy theory =
   let
     val name = Context.theory_name theory;
+    val _ = kill_thy name;
     val _ = priority ("Registering theory " ^ quote name);
-    val parent_names = map Context.theory_name (Theory.parents_of theory);
-    val _ = map get_theory parent_names;
 
     val master = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
-    val update_time = #2 (Management_Data.get theory);
-    val parents =
-      (case lookup_deps name of
-        SOME (SOME {parents, ...}) => parents
-      | _ => parent_names);
-    val deps = make_deps update_time (SOME master) "" parents;
+    val parents = map Context.theory_name (Theory.parents_of theory);
+    val deps = make_deps master parents;
   in
     CRITICAL (fn () =>
-     (if known_thy name then
-        (List.app remove_thy (thy_graph Graph.imm_succs name);
-          change_thys (Graph.del_nodes [name]))
-      else ();
-      change_thys (new_deps name parents (SOME deps, SOME theory));
+     (map get_theory parents;
+      change_thys (new_entry name parents (SOME deps, SOME theory));
       perform Update name))
   end;
 

@@ -7,11 +7,11 @@ header {* Definition of Quotient Types *}
 theory Quotient
 imports Plain Sledgehammer
 uses
-  ("~~/src/HOL/Tools/Quotient/quotient_info.ML")
-  ("~~/src/HOL/Tools/Quotient/quotient_typ.ML")
-  ("~~/src/HOL/Tools/Quotient/quotient_def.ML")
-  ("~~/src/HOL/Tools/Quotient/quotient_term.ML")
-  ("~~/src/HOL/Tools/Quotient/quotient_tacs.ML")
+  ("Tools/Quotient/quotient_info.ML")
+  ("Tools/Quotient/quotient_typ.ML")
+  ("Tools/Quotient/quotient_def.ML")
+  ("Tools/Quotient/quotient_term.ML")
+  ("Tools/Quotient/quotient_tacs.ML")
 begin
 
 
@@ -708,7 +708,7 @@ subsection {* ML setup *}
 
 text {* Auxiliary data for the quotient package *}
 
-use "~~/src/HOL/Tools/Quotient/quotient_info.ML"
+use "Tools/Quotient/quotient_info.ML"
 
 declare [[map "fun" = (fun_map, fun_rel)]]
 
@@ -728,15 +728,15 @@ lemmas [id_simps] =
   eq_comp_r
 
 text {* Translation functions for the lifting process. *}
-use "~~/src/HOL/Tools/Quotient/quotient_term.ML"
+use "Tools/Quotient/quotient_term.ML"
 
 
 text {* Definitions of the quotient types. *}
-use "~~/src/HOL/Tools/Quotient/quotient_typ.ML"
+use "Tools/Quotient/quotient_typ.ML"
 
 
 text {* Definitions for quotient constants. *}
-use "~~/src/HOL/Tools/Quotient/quotient_def.ML"
+use "Tools/Quotient/quotient_def.ML"
 
 
 text {*
@@ -759,7 +759,7 @@ lemma QT_imp: "Quot_True a \<equiv> Quot_True b"
 
 
 text {* Tactics for proving the lifted theorems *}
-use "~~/src/HOL/Tools/Quotient/quotient_tacs.ML"
+use "Tools/Quotient/quotient_tacs.ML"
 
 subsection {* Methods / Interface *}
 

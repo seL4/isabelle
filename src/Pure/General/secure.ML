@@ -57,7 +57,7 @@ val use_global = raw_use_text ML_Parse.global_context (0, "") false;
 fun commit () = use_global "commit();";   (*commit is dynamically bound!*)
 
 fun Isar_setup () = use_global "open Unsynchronized;";
-fun PG_setup () = use_global "structure ThyLoad = Thy_Load;";
+fun PG_setup () = use_global "structure ThyLoad = ProofGeneral.ThyLoad;";
 
 
 (* shell commands *)

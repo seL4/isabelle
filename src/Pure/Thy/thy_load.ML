@@ -17,8 +17,9 @@ end;
 signature THY_LOAD =
 sig
   include BASIC_THY_LOAD
+  val set_master_path: Path.T -> unit
+  val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
-  val init: Path.T -> theory -> theory
   val require: Path.T -> theory -> theory
   val provide: Path.T * (Path.T * File.ident) -> theory -> theory
   val test_file: Path.T -> Path.T -> (Path.T * File.ident) option
@@ -31,6 +32,7 @@ sig
   val provide_file: Path.T -> theory -> theory
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
+  val begin_theory: Path.T -> string -> theory list -> (Path.T * bool) list -> theory
 end;
 
 structure Thy_Load: THY_LOAD =
@@ -61,7 +63,7 @@ fun map_files f =
 
 val master_directory = #master_dir o Files.get;
 
-fun init master_dir = map_files (fn _ => (master_dir, [], []));
+fun master dir = map_files (fn _ => (dir, [], []));
 
 fun require src_path =
   map_files (fn (master_dir, required, provided) =>
@@ -69,16 +71,19 @@ fun require src_path =
       error ("Duplicate source file dependency: " ^ Path.implode src_path)
     else (master_dir, src_path :: required, provided));
 
-fun provide (src_path, path_info) =
+fun provide (src_path, path_id) =
   map_files (fn (master_dir, required, provided) =>
     if AList.defined (op =) provided src_path then
       error ("Duplicate resolution of source file dependency: " ^ Path.implode src_path)
-    else (master_dir, required, (src_path, path_info) :: provided));
+    else (master_dir, required, (src_path, path_id) :: provided));
 
 
-(* maintain load path *)
+(* maintain default paths *)
 
-local val load_path = Unsynchronized.ref [Path.current] in
+local
+  val load_path = Unsynchronized.ref [Path.current];
+  val master_path = Unsynchronized.ref Path.current;
+in
 
 fun show_path () = map Path.implode (! load_path);
 
@@ -96,6 +101,9 @@ fun reset_path () = CRITICAL (fn () => load_path := [Path.current]);
 
 fun search_path dir path =
   distinct (op =) (dir :: (if Path.is_basic path then (! load_path) else [Path.current]));
+
+fun set_master_path path = master_path := path;
+fun get_master_path () = ! master_path;
 
 end;
 
@@ -140,10 +148,9 @@ end;
 
 fun deps_thy dir name =
   let
-    val master as (path, _) = check_thy dir name;
-    val text = File.read path;
-    val (name', imports, uses) =
-      Thy_Header.read (Path.position path) (Source.of_string_limited 8000 text);
+    val master as (thy_path, _) = check_thy dir name;
+    val text = File.read thy_path;
+    val (name', imports, uses) = Thy_Header.read (Path.position thy_path) text;
     val _ = Thy_Header.consistent_name name name';
     val uses = map (Path.explode o #1) uses;
   in {master = master, text = text, imports = imports, uses = uses} end;
@@ -171,10 +178,10 @@ fun check_loaded thy =
 fun all_current thy =
   let
     val {master_dir, provided, ...} = Files.get thy;
-    fun current (src_path, path_info) =
+    fun current (src_path, (_, id)) =
       (case test_file master_dir src_path of
         NONE => false
-      | SOME path_info' => eq_snd (op =) (path_info, path_info'));
+      | SOME (_, id') => id = id');
   in can check_loaded thy andalso forall current provided end;
 
 val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
@@ -191,16 +198,26 @@ fun use_ml src_path =
   else
     let
       val thy = ML_Context.the_global_context ();
-      val (path, info) = check_file (master_directory thy) src_path;
+      val (path, id) = check_file (master_directory thy) src_path;
 
       val _ = ML_Context.eval_file path;
       val _ = Context.>> Local_Theory.propagate_ml_env;
 
-      val provide = provide (src_path, (path, info));
+      val provide = provide (src_path, (path, id));
       val _ = Context.>> (Context.mapping provide (Local_Theory.theory provide));
-    in () end
+    in () end;
 
 fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
+
+
+(* begin theory *)
+
+fun begin_theory dir name parents uses =
+  Theory.begin_theory name parents
+  |> master dir
+  |> fold (require o fst) uses
+  |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
+  |> Theory.checkpoint;
 
 end;
 

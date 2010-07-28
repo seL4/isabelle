@@ -8,9 +8,10 @@ See also http://proofgeneral.inf.ed.ac.uk
 signature PROOF_GENERAL =
 sig
   val test_markupN: string
+  val sendback: string -> Pretty.T list -> unit
   val init: bool -> unit
   val init_outer_syntax: unit -> unit
-  val sendback: string -> Pretty.T list -> unit
+  structure ThyLoad: sig val add_path: string -> unit end
 end;
 
 structure ProofGeneral: PROOF_GENERAL =
@@ -115,7 +116,7 @@ local
 fun trace_action action name =
   if action = Thy_Info.Update then
     List.app tell_file_loaded (Thy_Info.loaded_files name)
-  else if action = Thy_Info.Outdate orelse action = Thy_Info.Remove then
+  else if action = Thy_Info.Remove then
     List.app tell_file_retracted (Thy_Info.loaded_files name)
   else ();
 
@@ -130,19 +131,17 @@ end;
 (*liberal low-level version*)
 val thy_name = perhaps (try (unsuffix ".thy")) o List.last o space_explode "/";
 
-val inform_file_retracted = Thy_Info.if_known_thy Thy_Info.remove_thy o thy_name;
+val inform_file_retracted = Thy_Info.kill_thy o thy_name;
 
 fun inform_file_processed file =
   let
     val name = thy_name file;
     val _ = name = "" andalso error ("Bad file name: " ^ quote file);
     val _ =
-      if Thy_Info.known_thy name then
-        Thy_Info.register_thy (Toplevel.end_theory Position.none (Isar.state ()))
-          handle ERROR msg =>
-            (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
-              tell_file_retracted (Thy_Header.thy_path name))
-      else ();
+      Thy_Info.register_thy (Toplevel.end_theory Position.none (Isar.state ()))
+        handle ERROR msg =>
+          (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
+            tell_file_retracted (Thy_Header.thy_path name))
     val _ = Isar.init ();
   in () end;
 
@@ -246,5 +245,13 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
        Unsynchronized.change print_mode (update (op =) proof_generalN);
        Secure.PG_setup ();
        Isar.toplevel_loop {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
+
+
+(* fake old ThyLoad -- with new semantics *)
+
+structure ThyLoad =
+struct
+  val add_path = Thy_Load.set_master_path o Path.explode;
+end;
 
 end;
