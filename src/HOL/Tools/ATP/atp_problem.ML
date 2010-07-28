@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ATP_Manager/atp_problem.ML
+(*  Title:      HOL/Tools/ATP/atp_problem.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 
