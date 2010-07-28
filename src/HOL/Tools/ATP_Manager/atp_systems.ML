@@ -108,7 +108,7 @@ val e = ("e", e_config)
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
-  {executable = ("ISABELLE_ATP_MANAGER", "SPASS_TPTP"),
+  {executable = ("ISABELLE_ATP_MANAGER", "scripts/spass"),
    required_executables = [("SPASS_HOME", "SPASS")],
    (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
@@ -157,7 +157,7 @@ val vampire = ("vampire", vampire_config)
 val systems = Synchronized.var "atp_systems" ([]: string list)
 
 fun get_systems () =
-  case bash_output "\"$ISABELLE_ATP_MANAGER/SystemOnTPTP\" -w" of
+  case bash_output "\"$ISABELLE_ATP_MANAGER/scripts/remote_atp\" -w" of
     (answer, 0) => split_lines answer
   | (answer, _) =>
     error ("Failed to get available systems at SystemOnTPTP:\n" ^
@@ -180,14 +180,14 @@ val remote_known_failures =
    (TimedOut, "says Timeout"),
    (MalformedOutput, "Remote script could not extract proof")]
 
-fun remote_config atp_prefix args
+fun remote_config atp_prefix
         ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
           prefers_theory_relevant, explicit_forall, ...} : prover_config)
         : prover_config =
-  {executable = ("ISABELLE_ATP_MANAGER", "SystemOnTPTP"),
+  {executable = ("ISABELLE_ATP_MANAGER", "scripts/remote_atp"),
    required_executables = [],
    arguments = fn _ => fn timeout =>
-     args ^ " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
+     " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
      the_system atp_prefix,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures = remote_known_failures @ known_failures,
@@ -197,23 +197,23 @@ fun remote_config atp_prefix args
 
 val remote_name = prefix "remote_"
 
-fun remote_prover prover atp_prefix args config =
-  (remote_name (fst prover), remote_config atp_prefix args config)
+fun remote_prover (name, config) atp_prefix =
+  (remote_name name, remote_config atp_prefix config)
 
-val remote_e = remote_prover e "EP---" "" e_config
-val remote_spass = remote_prover spass "SPASS---" "-x" spass_config
-val remote_vampire = remote_prover vampire "Vampire---9" "" vampire_config
+val remote_e = remote_prover e "EP---"
+val remote_vampire = remote_prover vampire "Vampire---9"
 
-fun maybe_remote (name, _)
-                 ({executable, required_executables, ...} : prover_config) =
-  name |> exists (curry (op =) "" o getenv o fst)
-                 (executable :: required_executables) ? remote_name
+fun is_installed ({executable, required_executables, ...} : prover_config) =
+  forall (curry (op <>) "" o getenv o fst) (executable :: required_executables)
+fun maybe_remote (name, config) =
+  name |> not (is_installed config) ? remote_name
 
 fun default_atps_param_value () =
-  space_implode " " [maybe_remote e e_config, maybe_remote spass spass_config,
-                     remote_name (fst vampire)]
+  space_implode " " ([maybe_remote e] @
+                     (if is_installed (snd spass) then [fst spass] else []) @
+                     [remote_name (fst vampire)])
 
-val provers = [e, spass, vampire, remote_e, remote_spass, remote_vampire]
+val provers = [e, spass, vampire, remote_e, remote_vampire]
 val setup = fold add_prover provers
 
 end;

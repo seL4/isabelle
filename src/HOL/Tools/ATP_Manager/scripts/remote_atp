@@ -28,7 +28,7 @@ getopts("hwxs:t:c:",\%Options);
 
 #----Usage
 sub usage() {
-  print("Usage: remote [<options>] <File name>\n");
+  print("Usage: remote_atp [<options>] <File name>\n");
   print("    <options> are ...\n");
   print("    -h            - print this help\n");
   print("    -w            - list available ATP systems\n");
