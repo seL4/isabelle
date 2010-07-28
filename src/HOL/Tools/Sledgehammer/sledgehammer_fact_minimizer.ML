@@ -9,6 +9,9 @@ signature SLEDGEHAMMER_FACT_MINIMIZER =
 sig
   type params = Sledgehammer.params
 
+  val minimize_theorems :
+    params -> int -> int -> Proof.state -> (string * thm list) list
+    -> (string * thm list) list option * string
   val run_minimizer : params -> int -> Facts.ref list -> Proof.state -> unit
 end;
 
