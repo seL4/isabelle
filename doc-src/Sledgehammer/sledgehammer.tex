@@ -121,28 +121,33 @@ Vampire are supported. All of these are available remotely via SystemOnTPTP
 \cite{sutcliffe-2000}, but if you want better performance you will need to
 install at least E and SPASS locally.
 
-There are three main ways to install E and SPASS:
+There are three main ways to install ATPs on your machine:
 
 \begin{enum}
 \item[$\bullet$] If you installed an official Isabelle package with everything
 inside, it should already include properly setup executables for E and SPASS,
-ready to use.
+ready to use.%
+\footnote{Vampire's license prevents us from doing the same for this otherwise
+wonderful tool.}
 
-\item[$\bullet$] Otherwise, you can download the Isabelle-aware E and SPASS
+\item[$\bullet$] Alternatively, you can download the Isabelle-aware E and SPASS
 binary packages from Isabelle's download page. Extract the archives, then add a
 line to your \texttt{\char`\~/.isabelle/etc/components} file with the absolute path to
-E or SPASS. For example, if \texttt{\char`\~/.isabelle/etc/components} does not exist
+E or SPASS. For example, if the \texttt{components} does not exist
 yet and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create
-the file \texttt{\char`\~/.isabelle/etc/components} with the single line
+the \texttt{components} file with the single line
 
 \prew
 \texttt{/usr/local/spass-3.7}
 \postw
 
-\item[$\bullet$] If you prefer to build E or SPASS yourself, feel free to do so
-and set the environment variable \texttt{E\_HOME} or \texttt{SPASS\_HOME} to the
-directory that contains the \texttt{eproof} or \texttt{SPASS} executable,
-respectively.
+in it.
+
+\item[$\bullet$] If you prefer to build E or SPASS yourself, or obtained a
+Vampire executable from somewhere (e.g., \url{http://www.vprover.org/}),
+set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
+\texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
+\texttt{SPASS}, or \texttt{vampire} executable.
 \end{enum}
 
 To check whether E and SPASS are installed, follow the example in
@@ -176,29 +181,29 @@ Either way, Sledgehammer produces the following output after a few seconds:
 Sledgehammer: ATP ``\textit{e}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
-To minimize the number of lemmas, try this command: \\
+To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{e}] (\textit{hd.simps}). \\[3\smallskipamount]
 %
 Sledgehammer: ATP ``\textit{spass}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis insert\_Nil last\_ConsL}). \\
-To minimize the number of lemmas, try this command: \\
+To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{spass}] (\textit{insert\_Nil last\_ConsL}). \\[3\smallskipamount]
 %
 Sledgehammer: ATP ``\textit{remote\_vampire}'' for subgoal 1: \\
 $([a] = [b]) = (a = b)$ \\
 Try this command: \textbf{by} (\textit{metis One\_nat\_def\_raw empty\_replicate} \\
 \phantom{Try this command: \textbf{by} (\textit{metis~}}\textit{insert\_Nil last\_ConsL replicate\_Suc}). \\
-To minimize the number of lemmas, try this command: \\
+To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{atp} = \textit{remote\_vampire}] \\
 \phantom{\textbf{sledgehammer}~}(\textit{One\_nat\_def\_raw empty\_replicate insert\_Nil} \\
 \phantom{\textbf{sledgehammer}~(}\textit{last\_ConsL replicate\_Suc}).
 \postw
 
 Sledgehammer ran E, SPASS, and the remote version of Vampire in parallel. If E
-and SPASS are not installed (\S\ref{installation}), you will see references to
-their remote American cousins \textit{remote\_e} and \textit{remote\_spass}
-instead of \textit{e} and \textit{spass}.
+is not installed (\S\ref{installation}), you will see references to
+its remote American cousin \textit{remote\_e} instead of
+\textit{e}; and if SPASS is not installed, it will not appear in the output.
 
 Based on each ATP proof, Sledgehammer gives a one-liner proof that uses the
 \textit{metis} method. You can click them and insert them into the theory text.
@@ -376,9 +381,6 @@ that contains the \texttt{vampire} executable.
 
 \item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E executes
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
-
-\item[$\bullet$] \textbf{\textit{remote\_spass}:} The remote version of SPASS
-executes on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire executes on Geoff Sutcliffe's Miami servers. Version 9 is used.
