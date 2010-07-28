@@ -110,12 +110,13 @@ val parse_potential_integer =
   || scan_integer >> SOME
 fun parse_annotation x =
   ((parse_potential_integer ::: Scan.repeat ($$ " " |-- parse_potential_integer)
-    >> map_filter I) -- Scan.optional parse_annotations []
+    >> map_filter I) -- Scan.optional parse_annotation []
      >> uncurry (union (op =))
    || $$ "(" |-- parse_annotations --| $$ ")"
    || $$ "[" |-- parse_annotations --| $$ "]") x
 and parse_annotations x =
-  (parse_annotation ::: Scan.repeat ($$ "," |-- parse_annotation)
+  (Scan.optional (parse_annotation
+                  ::: Scan.repeat ($$ "," |-- parse_annotation)) []
    >> (fn numss => fold (union (op =)) numss [])) x
 
 (* Vampire proof lines sometimes contain needless information such as "(0:3)",
@@ -178,7 +179,7 @@ val parse_tstp_extra_arguments =
              (case phi of
                 AConn (AIff, [phi1 as AAtom _, phi2]) =>
                 Definition (num, phi1, phi2)
-              | AAtom (ATerm ("$$e", _)) =>
+              | AAtom (ATerm ("c_equal", _)) =>
                 Inference (num, phi, deps) (* Vampire's equality proxy axiom *)
               | _ => raise Fail "malformed definition")
            | _ => Inference (num, phi, deps))
@@ -584,7 +585,7 @@ fun minimize_line _ [] = ""
     case minimize_command facts of
       "" => ""
     | command =>
-      "To minimize the number of lemmas, try this command: " ^
+      "To minimize the number of lemmas, try this: " ^
       Markup.markup Markup.sendback command ^ ".\n"
 
 val unprefix_chained = perhaps (try (unprefix chained_prefix))
@@ -978,7 +979,7 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
            |> kill_useless_labels_in_proof
            |> relabel_proof
            |> string_for_proof ctxt full_types i n of
-        "" => ""
+        "" => "No structured proof available.\n"
       | proof => "\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
       if debug then
