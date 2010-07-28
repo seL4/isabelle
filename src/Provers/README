@@ -13,10 +13,8 @@ certain form are derivable.
   typedsimp.ML          basic simplifier for explicitly typed logics
 
 directory Arith:
-  abel_cancel.ML	cancel complementary terms in sums of Abelian groups
   assoc_fold.ML		fold numerals in nested products
   cancel_numerals.ML	cancel common coefficients in balanced expressions
-  cancel_factor.ML	cancel common constant factor
   cancel_sums.ML	cancel common summands
   combine_numerals.ML	combine coefficients in expressions
   fast_lin_arith.ML	generic linear arithmetic package

@@ -211,7 +211,7 @@ val ratrelmax = foldr1 ratrelmax2;
 fun ratexact up (r, exact) =
   if exact then r else
   let
-    val (p, q) = Rat.quotient_of_rat r;
+    val (_, q) = Rat.quotient_of_rat r;
     val nth = Rat.inv (Rat.rat_of_int q);
   in Rat.add r (if up then nth else Rat.neg nth) end;
 
@@ -306,7 +306,7 @@ fun multiply_ineq n (i as Lineq(k,ty,l,just)) =
 (* Add together (in)equations.                                               *)
 (* ------------------------------------------------------------------------- *)
 
-fun add_ineq (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
+fun add_ineq (Lineq (k1,ty1,l1,just1)) (Lineq (k2,ty2,l2,just2)) =
   let val l = map2 Integer.add l1 l2
   in Lineq(k1+k2,find_add_type(ty1,ty2),l,Added(just1,just2)) end;
 
@@ -335,7 +335,7 @@ fun elim_var v (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
 
 fun is_trivial (Lineq(_,_,l,_)) = forall (fn i => i=0) l;
 
-fun is_contradictory (ans as Lineq(k,ty,l,_)) =
+fun is_contradictory (Lineq(k,ty,_,_)) =
   case ty  of Eq => k <> 0 | Le => k > 0 | Lt => k >= 0;
 
 fun calc_blowup l =
@@ -550,7 +550,7 @@ let val (rn,rd) = Rat.quotient_of_rat r and (sn,sd) = Rat.quotient_of_rat s
         in (t,i * (m div j)) end
 in (m,(map mult rlhs, rn*(m div rd), rel, map mult rrhs, sn*(m div sd), d)) end
 
-fun mklineq n atoms =
+fun mklineq atoms =
   fn (item, k) =>
   let val (m, (lhs,i,rel,rhs,j,discrete)) = integ item
       val lhsa = map (coeff lhs) atoms
@@ -705,7 +705,7 @@ fun refutes ctxt params show_ex :
           let
             val atoms = atoms_of (map fst initems)
             val n = length atoms
-            val mkleq = mklineq n atoms
+            val mkleq = mklineq atoms
             val ixs = 0 upto (n - 1)
             val iatoms = atoms ~~ ixs
             val natlineqs = map_filter (mknat Ts ixs) iatoms
