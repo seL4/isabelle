@@ -106,7 +106,7 @@ if(!$Response->is_success) {
   exit(-1);
 } elsif (exists($Options{'x'}) &&
   $Response->content =~
-    /%\s*Result\s*:\s*Unsatisfiable.*\n%\s*Output\s*:\s*(CNF)?Refutation.*\n%/ &&
+    /%\s*Result\s*:\s*(Unsatisfiable|Theorem).*\n%\s*Output\s*:\s*(CNF)?Refutation.*\n%/ &&
   $Response->content !~ /ERROR: Could not form TPTP format derivation/ )
 {
   # converted output: extract proof
