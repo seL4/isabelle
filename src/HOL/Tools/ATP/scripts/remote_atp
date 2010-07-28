@@ -101,7 +101,7 @@ if(!$Response->is_success) {
   print $Response->content;
   exit (0);
 } elsif ($Response->content =~ /WARNING: (\S*) does not exist/) {
-  print "Specified System $1 does not exist\n";
+  print "Specified system $1 does not exist\n";
   exit(-1);
 } else {
   print $Response->content;
