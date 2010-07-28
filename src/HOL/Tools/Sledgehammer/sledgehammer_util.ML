@@ -17,6 +17,7 @@ sig
   val maybe_quote : string -> string
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
+  val subgoal_count : Proof.state -> int
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
 end;
  
@@ -123,6 +124,8 @@ fun specialize_type thy (s, T) t =
       SOME subst => monomorphic_term subst t
     | NONE => raise Type.TYPE_MATCH
   end
+
+val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
 
 fun strip_subgoal goal i =
   let

@@ -41,7 +41,7 @@ sig
      output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
-     conjecture_shape: int list,
+     conjecture_shape: int list list,
      filtered_clauses: (string * thm) list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
@@ -53,9 +53,9 @@ sig
   val running_atps: unit -> unit
   val messages: int option -> unit
   val get_prover_fun : theory -> string -> prover
-  val start_prover_thread :
-    params -> int -> int -> relevance_override -> (string -> minimize_command)
-    -> Proof.state -> string -> unit
+  val run_sledgehammer :
+    params -> int -> relevance_override -> (string -> minimize_command)
+    -> Proof.state -> unit
   val setup : theory -> theory
 end;
 
@@ -112,7 +112,7 @@ type prover_result =
    output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
-   conjecture_shape: int list,
+   conjecture_shape: int list list,
    filtered_clauses: (string * thm) list}
 
 type prover =
@@ -231,7 +231,7 @@ fun combformula_for_prop thy =
       | Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
         do_conn bs AIff t1 t2
       | _ => (fn ts => do_term bs (Envir.eta_contract t)
-                       |>> APred ||> union (op =) ts)
+                       |>> AAtom ||> union (op =) ts)
   in do_formula [] end
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
@@ -336,7 +336,7 @@ fun count_combterm (CombConst ((s, _), _, _)) =
   | count_combterm (CombApp (t1, t2)) = fold count_combterm [t1, t2]
 fun count_combformula (AQuant (_, _, phi)) = count_combformula phi
   | count_combformula (AConn (_, phis)) = fold count_combformula phis
-  | count_combformula (APred tm) = count_combterm tm
+  | count_combformula (AAtom tm) = count_combterm tm
 fun count_fol_formula (FOLFormula {combformula, ...}) =
   count_combformula combformula
 
@@ -401,11 +401,6 @@ fun prepare_clauses ctxt full_types hyp_ts concl_t axcls extra_cls =
        class_rel_clauses, arity_clauses))
   end
 
-val axiom_prefix = "ax_"
-val conjecture_prefix = "conj_"
-val arity_clause_prefix = "clsarity_"
-val tfrees_name = "tfrees"
-
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
 
 fun fo_term_for_combtyp (CombTVar name) = ATerm (name, [])
@@ -418,7 +413,7 @@ fun fo_literal_for_type_literal (TyLitVar (class, name)) =
   | fo_literal_for_type_literal (TyLitFree (class, name)) =
     (true, ATerm (class, [ATerm (name, [])]))
 
-fun formula_for_fo_literal (pos, t) = APred t |> not pos ? mk_anot
+fun formula_for_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
 fun fo_term_for_combterm full_types =
   let
@@ -446,7 +441,7 @@ fun formula_for_combformula full_types =
   let
     fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
       | aux (AConn (c, phis)) = AConn (c, map aux phis)
-      | aux (APred tm) = APred (fo_term_for_combterm full_types tm)
+      | aux (AAtom tm) = AAtom (fo_term_for_combterm full_types tm)
   in aux end
 
 fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
@@ -463,8 +458,8 @@ fun problem_line_for_class_rel_clause
         (ClassRelClause {axiom_name, subclass, superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
     Fof (ascii_of axiom_name, Axiom,
-         AConn (AImplies, [APred (ATerm (subclass, [ty_arg])),
-                           APred (ATerm (superclass, [ty_arg]))]))
+         AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
+                           AAtom (ATerm (superclass, [ty_arg]))]))
   end
 
 fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
@@ -515,7 +510,7 @@ fun consider_term top_level (ATerm ((s, _), ts)) =
   #> fold (consider_term (top_level andalso s = type_wrapper_name)) ts
 fun consider_formula (AQuant (_, _, phi)) = consider_formula phi
   | consider_formula (AConn (_, phis)) = fold consider_formula phis
-  | consider_formula (APred tm) = consider_term true tm
+  | consider_formula (AAtom tm) = consider_term true tm
 
 fun consider_problem_line (Fof (_, _, phi)) = consider_formula phi
 fun consider_problem problem = fold (fold consider_problem_line o snd) problem
@@ -601,7 +596,7 @@ fun close_universally phi =
     fun formula_vars bounds (AQuant (q, xs, phi)) =
         formula_vars (xs @ bounds) phi
       | formula_vars bounds (AConn (_, phis)) = fold (formula_vars bounds) phis
-      | formula_vars bounds (APred tm) = term_vars bounds tm
+      | formula_vars bounds (AAtom tm) = term_vars bounds tm
   in
     case formula_vars [] phi [] of [] => phi | xs => AQuant (AForall, xs, phi)
   end
@@ -610,8 +605,8 @@ fun repair_formula thy explicit_forall full_types const_tab =
   let
     fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
       | aux (AConn (c, phis)) = AConn (c, map aux phis)
-      | aux (APred tm) =
-        APred (tm |> repair_applications_in_term thy full_types const_tab
+      | aux (AAtom tm) =
+        AAtom (tm |> repair_applications_in_term thy full_types const_tab
                   |> repair_predicates_in_term const_tab)
   in aux #> explicit_forall ? close_universally end
 
@@ -686,15 +681,14 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
        clausified by SPASS's Flotter tool. The "SPASS_TPTP" script is also part
        of this hack. *)
     let
-      val j0 = hd conjecture_shape
+      val j0 = hd (hd conjecture_shape)
       val seq = extract_clause_sequence output
       val name_map = extract_clause_formula_relation output
       fun renumber_conjecture j =
         AList.find (op =) name_map (conjecture_prefix ^ Int.toString (j - j0))
-        |> the_single
-        |> (fn s => find_index (curry (op =) s) seq + 1)
+        |> map (fn s => find_index (curry (op =) s) seq + 1)
     in
-      (conjecture_shape |> map renumber_conjecture,
+      (conjecture_shape |> map (maps renumber_conjecture),
        seq |> map (the o AList.lookup (op =) name_map)
            |> map (fn s => case try (unprefix axiom_prefix) s of
                              SOME s' => undo_ascii_of s'
@@ -708,9 +702,9 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 (* generic TPTP-based provers *)
 
 fun prover_fun name
-        {home_var, executable, arguments, proof_delims, known_failures,
-         max_new_relevant_facts_per_iter, prefers_theory_relevant,
-         explicit_forall}
+        {executable, required_executables, arguments, proof_delims,
+         known_failures, max_new_relevant_facts_per_iter,
+         prefers_theory_relevant, explicit_forall}
         ({debug, overlord, full_types, explicit_apply, relevance_threshold,
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
           isar_shrink_factor, ...} : params)
@@ -753,8 +747,7 @@ fun prover_fun name
         else error ("No such directory: " ^ the_dest_dir ^ ".")
       end;
 
-    val home = getenv home_var
-    val command = Path.explode (home ^ "/" ^ executable)
+    val command = Path.explode (getenv (fst executable) ^ "/" ^ snd executable)
     (* write out problem file and call prover *)
     fun command_line complete probfile =
       let
@@ -778,41 +771,45 @@ fun prover_fun name
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
     fun run_on probfile =
-      if home = "" then
+      case filter (curry (op =) "" o getenv o fst)
+                  (executable :: required_executables) of
+        (home_var, _) :: _ =>
         error ("The environment variable " ^ quote home_var ^ " is not set.")
-      else if File.exists command then
-        let
-          fun do_run complete =
-            let
-              val command = command_line complete probfile
-              val ((output, msecs), res_code) =
-                bash_output command
-                |>> (if overlord then
-                       prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
-                     else
-                       I)
-                |>> (if Config.get ctxt measure_runtime then split_time
-                     else rpair 0)
-              val (proof, outcome) =
-                extract_proof_and_outcome complete res_code proof_delims
-                                          known_failures output
-            in (output, msecs, proof, outcome) end
-          val readable_names = debug andalso overlord
-          val (pool, conjecture_offset) =
-            write_tptp_file thy readable_names explicit_forall full_types
-                            explicit_apply probfile clauses
-          val conjecture_shape =
-            conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
-          val result =
-            do_run false
-            |> (fn (_, msecs0, _, SOME _) =>
-                   do_run true
-                   |> (fn (output, msecs, proof, outcome) =>
-                          (output, msecs0 + msecs, proof, outcome))
-                 | result => result)
-        in ((pool, conjecture_shape), result) end
-      else
-        error ("Bad executable: " ^ Path.implode command ^ ".");
+      | [] =>
+        if File.exists command then
+          let
+            fun do_run complete =
+              let
+                val command = command_line complete probfile
+                val ((output, msecs), res_code) =
+                  bash_output command
+                  |>> (if overlord then
+                         prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
+                       else
+                         I)
+                  |>> (if Config.get ctxt measure_runtime then split_time
+                       else rpair 0)
+                val (proof, outcome) =
+                  extract_proof_and_outcome complete res_code proof_delims
+                                            known_failures output
+              in (output, msecs, proof, outcome) end
+            val readable_names = debug andalso overlord
+            val (pool, conjecture_offset) =
+              write_tptp_file thy readable_names explicit_forall full_types
+                              explicit_apply probfile clauses
+            val conjecture_shape =
+              conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
+              |> map single
+            val result =
+              do_run false
+              |> (fn (_, msecs0, _, SOME _) =>
+                     do_run true
+                     |> (fn (output, msecs, proof, outcome) =>
+                            (output, msecs0 + msecs, proof, outcome))
+                   | result => result)
+          in ((pool, conjecture_shape), result) end
+        else
+          error ("Bad executable: " ^ Path.implode command ^ ".")
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
@@ -848,7 +845,6 @@ fun prover_fun name
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
-(* start prover thread *)
 fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
                         relevance_override minimize_command proof_state name =
   let
@@ -873,6 +869,19 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
               handle ERROR message => "Error: " ^ message ^ "\n"
             end)
   end
+
+fun run_sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
+  | run_sledgehammer (params as {atps, ...}) i relevance_override
+                     minimize_command state =
+    case subgoal_count state of
+      0 => priority "No subgoal!"
+    | n =>
+      let
+        val _ = kill_atps ()
+        val _ = priority "Sledgehammering..."
+        val _ = app (start_prover_thread params i n relevance_override
+                                         minimize_command state) atps
+      in () end
 
 val setup =
   dest_dir_setup
