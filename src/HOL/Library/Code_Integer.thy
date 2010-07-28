@@ -19,6 +19,7 @@ code_type int
   (OCaml "Big'_int.big'_int")
   (Haskell "Integer")
   (Scala "BigInt")
+  (Eval "int")
 
 code_instance int :: eq
   (Haskell -)
