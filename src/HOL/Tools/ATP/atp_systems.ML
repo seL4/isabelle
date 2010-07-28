@@ -108,7 +108,7 @@ val e = ("e", e_config)
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
-  {executable = ("ISABELLE_ATP_MANAGER", "scripts/spass"),
+  {executable = ("ISABELLE_ATP", "scripts/spass"),
    required_executables = [("SPASS_HOME", "SPASS")],
    (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
@@ -157,7 +157,7 @@ val vampire = ("vampire", vampire_config)
 val systems = Synchronized.var "atp_systems" ([]: string list)
 
 fun get_systems () =
-  case bash_output "\"$ISABELLE_ATP_MANAGER/scripts/remote_atp\" -w" of
+  case bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w" of
     (answer, 0) => split_lines answer
   | (answer, _) =>
     error ("Failed to get available systems at SystemOnTPTP:\n" ^
@@ -184,7 +184,7 @@ fun remote_config atp_prefix
         ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
           prefers_theory_relevant, explicit_forall, ...} : prover_config)
         : prover_config =
-  {executable = ("ISABELLE_ATP_MANAGER", "scripts/remote_atp"),
+  {executable = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_executables = [],
    arguments = fn _ => fn timeout =>
      " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
