@@ -55,10 +55,11 @@ lemma num_of_nat_inverse: "0 < n \<Longrightarrow> nat_of_num (num_of_nat n) = n
   by (induct n) (simp_all add: nat_of_num_inc)
 
 lemma num_eq_iff: "x = y \<longleftrightarrow> nat_of_num x = nat_of_num y"
-  apply safe
-  apply (drule arg_cong [where f=num_of_nat])
-  apply (simp add: nat_of_num_inverse)
-  done
+proof
+  assume "nat_of_num x = nat_of_num y"
+  then have "num_of_nat (nat_of_num x) = num_of_nat (nat_of_num y)" by simp
+  then show "x = y" by (simp add: nat_of_num_inverse)
+qed simp
 
 lemma num_induct [case_names One inc]:
   fixes P :: "num \<Rightarrow> bool"
@@ -81,12 +82,12 @@ proof -
 qed
 
 text {*
-  From now on, there are two possible models for @{typ num}:
-  as positive naturals (rule @{text "num_induct"})
-  and as digit representation (rules @{text "num.induct"}, @{text "num.cases"}).
+  From now on, there are two possible models for @{typ num}: as
+  positive naturals (rule @{text "num_induct"}) and as digit
+  representation (rules @{text "num.induct"}, @{text "num.cases"}).
 
-  It is not entirely clear in which context it is better to use
-  the one or the other, or whether the construction should be reversed.
+  It is not entirely clear in which context it is better to use the
+  one or the other, or whether the construction should be reversed.
 *}
 
 
@@ -154,18 +155,6 @@ lemma Dig_times [numeral, simp, code]:
   by (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult
                     left_distrib right_distrib)
 
-lemma Dig_eq:
-  "One = One \<longleftrightarrow> True"
-  "One = Dig0 n \<longleftrightarrow> False"
-  "One = Dig1 n \<longleftrightarrow> False"
-  "Dig0 m = One \<longleftrightarrow> False"
-  "Dig1 m = One \<longleftrightarrow> False"
-  "Dig0 m = Dig0 n \<longleftrightarrow> m = n"
-  "Dig0 m = Dig1 n \<longleftrightarrow> False"
-  "Dig1 m = Dig0 n \<longleftrightarrow> False"
-  "Dig1 m = Dig1 n \<longleftrightarrow> m = n"
-  by simp_all
-
 lemma less_eq_num_code [numeral, simp, code]:
   "One \<le> n \<longleftrightarrow> True"
   "Dig0 m \<le> One \<longleftrightarrow> False"
@@ -207,8 +196,8 @@ text {* A double-and-decrement function *}
 
 primrec DigM :: "num \<Rightarrow> num" where
   "DigM One = One"
-  | "DigM (Dig0 n) = Dig1 (DigM n)"
-  | "DigM (Dig1 n) = Dig1 (Dig0 n)"
+| "DigM (Dig0 n) = Dig1 (DigM n)"
+| "DigM (Dig1 n) = Dig1 (Dig0 n)"
 
 lemma DigM_plus_one: "DigM n + One = Dig0 n"
   by (induct n) simp_all
@@ -217,7 +206,7 @@ lemma add_One_commute: "One + n = n + One"
   by (induct n) simp_all
 
 lemma one_plus_DigM: "One + DigM n = Dig0 n"
-  unfolding add_One_commute DigM_plus_one ..
+  by (simp add: add_One_commute DigM_plus_one)
 
 text {* Squaring and exponentiation *}
 
@@ -226,8 +215,7 @@ primrec square :: "num \<Rightarrow> num" where
 | "square (Dig0 n) = Dig0 (Dig0 (square n))"
 | "square (Dig1 n) = Dig1 (Dig0 (square n + n))"
 
-primrec pow :: "num \<Rightarrow> num \<Rightarrow> num"
-where
+primrec pow :: "num \<Rightarrow> num \<Rightarrow> num" where
   "pow x One = x"
 | "pow x (Dig0 y) = square (pow x y)"
 | "pow x (Dig1 y) = x * square (pow x y)"
@@ -245,30 +233,21 @@ begin
 
 primrec of_num :: "num \<Rightarrow> 'a" where
   of_num_One [numeral]: "of_num One = 1"
-  | "of_num (Dig0 n) = of_num n + of_num n"
-  | "of_num (Dig1 n) = of_num n + of_num n + 1"
+| "of_num (Dig0 n) = of_num n + of_num n"
+| "of_num (Dig1 n) = of_num n + of_num n + 1"
 
-lemma of_num_inc: "of_num (inc x) = of_num x + 1"
-  by (induct x) (simp_all add: add_ac)
+lemma of_num_inc: "of_num (inc n) = of_num n + 1"
+  by (induct n) (simp_all add: add_ac)
 
 lemma of_num_add: "of_num (m + n) = of_num m + of_num n"
-  apply (induct n rule: num_induct)
-  apply (simp_all add: add_One add_inc of_num_inc add_ac)
-  done
+  by (induct n rule: num_induct) (simp_all add: add_One add_inc of_num_inc add_ac)
 
 lemma of_num_mult: "of_num (m * n) = of_num m * of_num n"
-  apply (induct n rule: num_induct)
-  apply (simp add: mult_One)
-  apply (simp add: mult_inc of_num_add of_num_inc right_distrib)
-  done
+  by (induct n rule: num_induct) (simp_all add: mult_One mult_inc of_num_add of_num_inc right_distrib)
 
 declare of_num.simps [simp del]
 
 end
-
-text {*
-  ML stuff and syntax.
-*}
 
 ML {*
 fun mk_num k =
@@ -285,13 +264,13 @@ fun dest_num @{term One} = 1
   | dest_num (@{term Dig1} $ n) = 2 * dest_num n + 1
   | dest_num t = raise TERM ("dest_num", [t]);
 
-(*FIXME these have to gain proper context via morphisms phi*)
-
-fun mk_numeral T k = Const (@{const_name of_num}, @{typ num} --> T)
+fun mk_numeral phi T k = Morphism.term phi (Const (@{const_name of_num}, @{typ num} --> T))
   $ mk_num k
 
-fun dest_numeral (Const (@{const_name of_num}, Type ("fun", [@{typ num}, T])) $ t) =
-  (T, dest_num t)
+fun dest_numeral phi (u $ t) =
+  if Term.aconv_untyped (u, Morphism.term phi (Const (@{const_name of_num}, dummyT)))
+  then (range_type (fastype_of u), dest_num t)
+  else raise TERM ("dest_numeral", [u, t]);
 *}
 
 syntax
@@ -335,11 +314,8 @@ let
 in [(@{const_syntax of_num}, num_tr')] end
 *}
 
-subsection {* Class-specific numeral rules *}
 
-text {*
-  @{const of_num} is a morphism.
-*}
+subsection {* Class-specific numeral rules *}
 
 subsubsection {* Class @{text semiring_numeral} *}
 
@@ -349,11 +325,10 @@ begin
 abbreviation "Num1 \<equiv> of_num One"
 
 text {*
-  Alas, there is still the duplication of @{term 1},
-  thought the duplicated @{term 0} has disappeared.
-  We could get rid of it by replacing the constructor
-  @{term 1} in @{typ num} by two constructors
-  @{text two} and @{text three}, resulting in a further
+  Alas, there is still the duplication of @{term 1}, although the
+  duplicated @{term 0} has disappeared.  We could get rid of it by
+  replacing the constructor @{term 1} in @{typ num} by two
+  constructors @{text two} and @{text three}, resulting in a further
   blow-up.  But it could be worth the effort.
 *}
 
@@ -367,7 +342,7 @@ lemma of_num_one_plus [numeral]:
 
 lemma of_num_plus [numeral]:
   "of_num m + of_num n = of_num (m + n)"
-  unfolding of_num_add ..
+  by (simp only: of_num_add)
 
 lemma of_num_times_one [numeral]:
   "of_num n * 1 = of_num n"
@@ -383,9 +358,8 @@ lemma of_num_times [numeral]:
 
 end
 
-subsubsection {*
-  Structures with a zero: class @{text semiring_1}
-*}
+
+subsubsection {* Structures with a zero: class @{text semiring_1} *}
 
 context semiring_1
 begin
@@ -422,9 +396,8 @@ proof
   then show "nat_of_num n = of_num n" by simp
 qed
 
-subsubsection {*
-  Equality: class @{text semiring_char_0}
-*}
+
+subsubsection {* Equality: class @{text semiring_char_0} *}
 
 context semiring_char_0
 begin
@@ -441,17 +414,22 @@ lemma one_eq_of_num_iff [numeral]: "1 = of_num n \<longleftrightarrow> One = n"
 
 end
 
-subsubsection {*
-  Comparisons: class @{text linordered_semidom}
-*}
 
-text {*  Could be perhaps more general than here. *}
+subsubsection {* Comparisons: class @{text linordered_semidom} *}
+
+text {*
+  Perhaps the underlying structure could even 
+  be more general than @{text linordered_semidom}.
+*}
 
 context linordered_semidom
 begin
 
 lemma of_num_pos [numeral]: "0 < of_num n"
   by (induct n) (simp_all add: of_num.simps add_pos_pos)
+
+lemma of_num_not_zero [numeral]: "of_num n \<noteq> 0"
+  using of_num_pos [of n] by simp
 
 lemma of_num_less_eq_iff [numeral]: "of_num m \<le> of_num n \<longleftrightarrow> m \<le> n"
 proof -
@@ -499,6 +477,9 @@ proof -
   also have "0 < of_num n" by (simp add: of_num_pos)
   finally show ?thesis .
 qed
+
+lemma minus_of_num_not_equal_of_num: "- of_num m \<noteq> of_num n"
+  using minus_of_num_less_of_num_iff [of m n] by simp
 
 lemma minus_of_num_less_one_iff: "- of_num n < 1"
   using minus_of_num_less_of_num_iff [of n One] by (simp add: of_num_One)
@@ -557,6 +538,7 @@ lemmas le_signed_numeral_special [numeral] =
 
 lemmas less_signed_numeral_special [numeral] =
   minus_of_num_less_of_num_iff
+  minus_of_num_not_equal_of_num
   minus_of_num_less_one_iff
   minus_one_less_of_num_iff
   minus_one_less_one_iff
@@ -567,9 +549,7 @@ lemmas less_signed_numeral_special [numeral] =
 
 end
 
-subsubsection {*
-  Structures with subtraction: class @{text semiring_1_minus}
-*}
+subsubsection {* Structures with subtraction: class @{text semiring_1_minus} *}
 
 class semiring_minus = semiring + minus + zero +
   assumes minus_inverts_plus1: "a + b = c \<Longrightarrow> c - b = a"
@@ -612,8 +592,9 @@ simproc_setup numeral_minus ("of_num m - of_num n") = {*
     fun attach_num ct = (dest_num (Thm.term_of ct), ct);
     fun cdifference t = (pairself (attach_num o cdest_of_num) o cdest_minus) t;
     val simplify = MetaSimplifier.rewrite false (map mk_meta_eq @{thms Dig_plus_eval});
-    fun cert ck cl cj = @{thm eqTrueE} OF [@{thm meta_eq_to_obj_eq} OF [simplify (Drule.list_comb (@{cterm "op = :: num \<Rightarrow> _"},
-      [Drule.list_comb (@{cterm "op + :: num \<Rightarrow> _"}, [ck, cl]), cj]))]];
+    fun cert ck cl cj = @{thm eqTrueE} OF [@{thm meta_eq_to_obj_eq}
+      OF [simplify (Drule.list_comb (@{cterm "op = :: num \<Rightarrow> _"},
+        [Drule.list_comb (@{cterm "op + :: num \<Rightarrow> _"}, [ck, cl]), cj]))]];
   in fn phi => fn _ => fn ct => case try cdifference ct
    of NONE => (NONE)
     | SOME ((k, ck), (l, cl)) => SOME (let val j = k - l in if j = 0
@@ -651,15 +632,14 @@ lemma Dig_one_minus_of_num [numeral]:
 
 end
 
-subsubsection {*
-  Structures with negation: class @{text ring_1}
-*}
+
+subsubsection {* Structures with negation: class @{text ring_1} *}
 
 context ring_1
 begin
 
-subclass semiring_1_minus
-  proof qed (simp_all add: algebra_simps)
+subclass semiring_1_minus proof
+qed (simp_all add: algebra_simps)
 
 lemma Dig_zero_minus_of_num [numeral]:
   "0 - of_num n = - of_num n"
@@ -696,9 +676,8 @@ declare of_int_1 [numeral]
 
 end
 
-subsubsection {*
-  Structures with exponentiation
-*}
+
+subsubsection {* Structures with exponentiation *}
 
 lemma of_num_square: "of_num (square x) = of_num x * of_num x"
 by (induct x)
@@ -729,11 +708,10 @@ lemma power_minus_Dig1 [numeral]:
 declare power_one [numeral]
 
 
-subsubsection {*
-  Greetings to @{typ nat}.
-*}
+subsubsection {* Greetings to @{typ nat}. *}
 
-instance nat :: semiring_1_minus proof qed simp_all
+instance nat :: semiring_1_minus proof
+qed simp_all
 
 lemma Suc_of_num [numeral]: "Suc (of_num n) = of_num (n + One)"
   unfolding of_num_plus_one [symmetric] by simp
@@ -748,141 +726,9 @@ lemma nat_number:
 declare diff_0_eq_0 [numeral]
 
 
-subsection {* Code generator setup for @{typ int} *}
+subsection {* Proof tools setup *}
 
-definition Pls :: "num \<Rightarrow> int" where
-  [simp, code_post]: "Pls n = of_num n"
-
-definition Mns :: "num \<Rightarrow> int" where
-  [simp, code_post]: "Mns n = - of_num n"
-
-code_datatype "0::int" Pls Mns
-
-lemmas [code_unfold] = Pls_def [symmetric] Mns_def [symmetric]
-
-definition sub :: "num \<Rightarrow> num \<Rightarrow> int" where
-  [simp]: "sub m n = (of_num m - of_num n)"
-
-definition dup :: "int \<Rightarrow> int" where
-  "dup k = 2 * k"
-
-lemma Dig_sub [code]:
-  "sub One One = 0"
-  "sub (Dig0 m) One = of_num (DigM m)"
-  "sub (Dig1 m) One = of_num (Dig0 m)"
-  "sub One (Dig0 n) = - of_num (DigM n)"
-  "sub One (Dig1 n) = - of_num (Dig0 n)"
-  "sub (Dig0 m) (Dig0 n) = dup (sub m n)"
-  "sub (Dig1 m) (Dig1 n) = dup (sub m n)"
-  "sub (Dig1 m) (Dig0 n) = dup (sub m n) + 1"
-  "sub (Dig0 m) (Dig1 n) = dup (sub m n) - 1"
-  apply (simp_all add: dup_def algebra_simps)
-  apply (simp_all add: of_num_plus one_plus_DigM)[4]
-  apply (simp_all add: of_num.simps)
-  done
-
-lemma dup_code [code]:
-  "dup 0 = 0"
-  "dup (Pls n) = Pls (Dig0 n)"
-  "dup (Mns n) = Mns (Dig0 n)"
-  by (simp_all add: dup_def of_num.simps)
-  
-lemma [code, code del]:
-  "(1 :: int) = 1"
-  "(op + :: int \<Rightarrow> int \<Rightarrow> int) = op +"
-  "(uminus :: int \<Rightarrow> int) = uminus"
-  "(op - :: int \<Rightarrow> int \<Rightarrow> int) = op -"
-  "(op * :: int \<Rightarrow> int \<Rightarrow> int) = op *"
-  "(eq_class.eq :: int \<Rightarrow> int \<Rightarrow> bool) = eq_class.eq"
-  "(op \<le> :: int \<Rightarrow> int \<Rightarrow> bool) = op \<le>"
-  "(op < :: int \<Rightarrow> int \<Rightarrow> bool) = op <"
-  by rule+
-
-lemma one_int_code [code]:
-  "1 = Pls One"
-  by (simp add: of_num_One)
-
-lemma plus_int_code [code]:
-  "k + 0 = (k::int)"
-  "0 + l = (l::int)"
-  "Pls m + Pls n = Pls (m + n)"
-  "Pls m - Pls n = sub m n"
-  "Mns m + Mns n = Mns (m + n)"
-  "Mns m - Mns n = sub n m"
-  by (simp_all add: of_num_add)
-
-lemma uminus_int_code [code]:
-  "uminus 0 = (0::int)"
-  "uminus (Pls m) = Mns m"
-  "uminus (Mns m) = Pls m"
-  by simp_all
-
-lemma minus_int_code [code]:
-  "k - 0 = (k::int)"
-  "0 - l = uminus (l::int)"
-  "Pls m - Pls n = sub m n"
-  "Pls m - Mns n = Pls (m + n)"
-  "Mns m - Pls n = Mns (m + n)"
-  "Mns m - Mns n = sub n m"
-  by (simp_all add: of_num_add)
-
-lemma times_int_code [code]:
-  "k * 0 = (0::int)"
-  "0 * l = (0::int)"
-  "Pls m * Pls n = Pls (m * n)"
-  "Pls m * Mns n = Mns (m * n)"
-  "Mns m * Pls n = Mns (m * n)"
-  "Mns m * Mns n = Pls (m * n)"
-  by (simp_all add: of_num_mult)
-
-lemma eq_int_code [code]:
-  "eq_class.eq 0 (0::int) \<longleftrightarrow> True"
-  "eq_class.eq 0 (Pls l) \<longleftrightarrow> False"
-  "eq_class.eq 0 (Mns l) \<longleftrightarrow> False"
-  "eq_class.eq (Pls k) 0 \<longleftrightarrow> False"
-  "eq_class.eq (Pls k) (Pls l) \<longleftrightarrow> eq_class.eq k l"
-  "eq_class.eq (Pls k) (Mns l) \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) 0 \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) (Pls l) \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) (Mns l) \<longleftrightarrow> eq_class.eq k l"
-  using of_num_pos [of l, where ?'a = int] of_num_pos [of k, where ?'a = int]
-  by (simp_all add: of_num_eq_iff eq)
-
-lemma less_eq_int_code [code]:
-  "0 \<le> (0::int) \<longleftrightarrow> True"
-  "0 \<le> Pls l \<longleftrightarrow> True"
-  "0 \<le> Mns l \<longleftrightarrow> False"
-  "Pls k \<le> 0 \<longleftrightarrow> False"
-  "Pls k \<le> Pls l \<longleftrightarrow> k \<le> l"
-  "Pls k \<le> Mns l \<longleftrightarrow> False"
-  "Mns k \<le> 0 \<longleftrightarrow> True"
-  "Mns k \<le> Pls l \<longleftrightarrow> True"
-  "Mns k \<le> Mns l \<longleftrightarrow> l \<le> k"
-  using of_num_pos [of l, where ?'a = int] of_num_pos [of k, where ?'a = int]
-  by (simp_all add: of_num_less_eq_iff)
-
-lemma less_int_code [code]:
-  "0 < (0::int) \<longleftrightarrow> False"
-  "0 < Pls l \<longleftrightarrow> True"
-  "0 < Mns l \<longleftrightarrow> False"
-  "Pls k < 0 \<longleftrightarrow> False"
-  "Pls k < Pls l \<longleftrightarrow> k < l"
-  "Pls k < Mns l \<longleftrightarrow> False"
-  "Mns k < 0 \<longleftrightarrow> True"
-  "Mns k < Pls l \<longleftrightarrow> True"
-  "Mns k < Mns l \<longleftrightarrow> l < k"
-  using of_num_pos [of l, where ?'a = int] of_num_pos [of k, where ?'a = int]
-  by (simp_all add: of_num_less_iff)
-
-lemma [code_unfold del]: "(0::int) \<equiv> Numeral0" by simp
-lemma [code_unfold del]: "(1::int) \<equiv> Numeral1" by simp
-declare zero_is_num_zero [code_unfold del]
-declare one_is_num_one [code_unfold del]
-
-hide_const (open) sub dup
-
-
-subsection {* Numeral equations as default simplification rules *}
+subsubsection {* Numeral equations as default simplification rules *}
 
 declare (in semiring_numeral) of_num_One [simp]
 declare (in semiring_numeral) of_num_plus_one [simp]
@@ -897,6 +743,7 @@ declare (in semiring_char_0) of_num_eq_one_iff [simp]
 declare (in semiring_char_0) one_eq_of_num_iff [simp]
 
 declare (in linordered_semidom) of_num_pos [simp]
+declare (in linordered_semidom) of_num_not_zero [simp]
 declare (in linordered_semidom) of_num_less_eq_iff [simp]
 declare (in linordered_semidom) of_num_less_eq_one_iff [simp]
 declare (in linordered_semidom) one_less_eq_of_num_iff [simp]
@@ -923,8 +770,6 @@ declare power_minus_Dig1 [simp]
 
 declare Suc_of_num [simp]
 
-
-subsection {* Simplification Procedures *}
 
 subsubsection {* Reorientation of equalities *}
 
@@ -985,12 +830,282 @@ simproc_setup semiring_assoc_fold' ("(a::'a::semiring_numeral) * b") =
     Semiring_Times_Assoc.proc ss (Thm.term_of ct) *}
 
 
+subsection {* Code generator setup for @{typ int} *}
+
+text {* Reversing standard setup *}
+
+lemma [code_unfold del]: "(0::int) \<equiv> Numeral0" by simp
+lemma [code_unfold del]: "(1::int) \<equiv> Numeral1" by simp
+declare zero_is_num_zero [code_unfold del]
+declare one_is_num_one [code_unfold del]
+  
+lemma [code, code del]:
+  "(1 :: int) = 1"
+  "(op + :: int \<Rightarrow> int \<Rightarrow> int) = op +"
+  "(uminus :: int \<Rightarrow> int) = uminus"
+  "(op - :: int \<Rightarrow> int \<Rightarrow> int) = op -"
+  "(op * :: int \<Rightarrow> int \<Rightarrow> int) = op *"
+  "(eq_class.eq :: int \<Rightarrow> int \<Rightarrow> bool) = eq_class.eq"
+  "(op \<le> :: int \<Rightarrow> int \<Rightarrow> bool) = op \<le>"
+  "(op < :: int \<Rightarrow> int \<Rightarrow> bool) = op <"
+  by rule+
+
+text {* Constructors *}
+
+definition Pls :: "num \<Rightarrow> int" where
+  [simp, code_post]: "Pls n = of_num n"
+
+definition Mns :: "num \<Rightarrow> int" where
+  [simp, code_post]: "Mns n = - of_num n"
+
+code_datatype "0::int" Pls Mns
+
+lemmas [code_unfold] = Pls_def [symmetric] Mns_def [symmetric]
+
+text {* Auxiliary operations *}
+
+definition dup :: "int \<Rightarrow> int" where
+  [simp]: "dup k = k + k"
+
+lemma Dig_dup [code]:
+  "dup 0 = 0"
+  "dup (Pls n) = Pls (Dig0 n)"
+  "dup (Mns n) = Mns (Dig0 n)"
+  by (simp_all add: of_num.simps)
+
+definition sub :: "num \<Rightarrow> num \<Rightarrow> int" where
+  [simp]: "sub m n = (of_num m - of_num n)"
+
+lemma Dig_sub [code]:
+  "sub One One = 0"
+  "sub (Dig0 m) One = of_num (DigM m)"
+  "sub (Dig1 m) One = of_num (Dig0 m)"
+  "sub One (Dig0 n) = - of_num (DigM n)"
+  "sub One (Dig1 n) = - of_num (Dig0 n)"
+  "sub (Dig0 m) (Dig0 n) = dup (sub m n)"
+  "sub (Dig1 m) (Dig1 n) = dup (sub m n)"
+  "sub (Dig1 m) (Dig0 n) = dup (sub m n) + 1"
+  "sub (Dig0 m) (Dig1 n) = dup (sub m n) - 1"
+  by (simp_all add: algebra_simps num_eq_iff nat_of_num_add)
+
+text {* Implementations *}
+
+lemma one_int_code [code]:
+  "1 = Pls One"
+  by (simp add: of_num_One)
+
+lemma plus_int_code [code]:
+  "k + 0 = (k::int)"
+  "0 + l = (l::int)"
+  "Pls m + Pls n = Pls (m + n)"
+  "Pls m + Mns n = sub m n"
+  "Mns m + Pls n = sub n m"
+  "Mns m + Mns n = Mns (m + n)"
+  by simp_all
+
+lemma uminus_int_code [code]:
+  "uminus 0 = (0::int)"
+  "uminus (Pls m) = Mns m"
+  "uminus (Mns m) = Pls m"
+  by simp_all
+
+lemma minus_int_code [code]:
+  "k - 0 = (k::int)"
+  "0 - l = uminus (l::int)"
+  "Pls m - Pls n = sub m n"
+  "Pls m - Mns n = Pls (m + n)"
+  "Mns m - Pls n = Mns (m + n)"
+  "Mns m - Mns n = sub n m"
+  by simp_all
+
+lemma times_int_code [code]:
+  "k * 0 = (0::int)"
+  "0 * l = (0::int)"
+  "Pls m * Pls n = Pls (m * n)"
+  "Pls m * Mns n = Mns (m * n)"
+  "Mns m * Pls n = Mns (m * n)"
+  "Mns m * Mns n = Pls (m * n)"
+  by simp_all
+
+lemma eq_int_code [code]:
+  "eq_class.eq 0 (0::int) \<longleftrightarrow> True"
+  "eq_class.eq 0 (Pls l) \<longleftrightarrow> False"
+  "eq_class.eq 0 (Mns l) \<longleftrightarrow> False"
+  "eq_class.eq (Pls k) 0 \<longleftrightarrow> False"
+  "eq_class.eq (Pls k) (Pls l) \<longleftrightarrow> eq_class.eq k l"
+  "eq_class.eq (Pls k) (Mns l) \<longleftrightarrow> False"
+  "eq_class.eq (Mns k) 0 \<longleftrightarrow> False"
+  "eq_class.eq (Mns k) (Pls l) \<longleftrightarrow> False"
+  "eq_class.eq (Mns k) (Mns l) \<longleftrightarrow> eq_class.eq k l"
+  by (auto simp add: eq dest: sym)
+
+lemma less_eq_int_code [code]:
+  "0 \<le> (0::int) \<longleftrightarrow> True"
+  "0 \<le> Pls l \<longleftrightarrow> True"
+  "0 \<le> Mns l \<longleftrightarrow> False"
+  "Pls k \<le> 0 \<longleftrightarrow> False"
+  "Pls k \<le> Pls l \<longleftrightarrow> k \<le> l"
+  "Pls k \<le> Mns l \<longleftrightarrow> False"
+  "Mns k \<le> 0 \<longleftrightarrow> True"
+  "Mns k \<le> Pls l \<longleftrightarrow> True"
+  "Mns k \<le> Mns l \<longleftrightarrow> l \<le> k"
+  by simp_all
+
+lemma less_int_code [code]:
+  "0 < (0::int) \<longleftrightarrow> False"
+  "0 < Pls l \<longleftrightarrow> True"
+  "0 < Mns l \<longleftrightarrow> False"
+  "Pls k < 0 \<longleftrightarrow> False"
+  "Pls k < Pls l \<longleftrightarrow> k < l"
+  "Pls k < Mns l \<longleftrightarrow> False"
+  "Mns k < 0 \<longleftrightarrow> True"
+  "Mns k < Pls l \<longleftrightarrow> True"
+  "Mns k < Mns l \<longleftrightarrow> l < k"
+  by simp_all
+
+hide_const (open) sub dup
+
+text {* Pretty literals *}
+
+ML {*
+local open Code_Thingol in
+
+fun add_code print target =
+  let
+    fun dest_num one' dig0' dig1' thm =
+      let
+        fun dest_dig (IConst (c, _)) = if c = dig0' then 0
+              else if c = dig1' then 1
+              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal dig"
+          | dest_dig _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal digit";
+        fun dest_num (IConst (c, _)) = if c = one' then 1
+              else Code_Printer.eqn_error thm "Illegal numeral expression: illegal leading digit"
+          | dest_num (t1 `$ t2) = 2 * dest_num t2 + dest_dig t1
+          | dest_num _ = Code_Printer.eqn_error thm "Illegal numeral expression: illegal term";
+      in dest_num end;
+    fun pretty sgn literals [one', dig0', dig1'] _ thm _ _ [(t, _)] =
+      (Code_Printer.str o print literals o sgn o dest_num one' dig0' dig1' thm) t
+    fun add_syntax (c, sgn) = Code_Target.add_syntax_const target c
+      (SOME (Code_Printer.complex_const_syntax
+        (1, ([@{const_name One}, @{const_name Dig0}, @{const_name Dig1}],
+          pretty sgn))));
+  in
+    add_syntax (@{const_name Pls}, I)
+    #> add_syntax (@{const_name Mns}, (fn k => ~ k))
+  end;
+
+end
+*}
+
+hide_const (open) One Dig0 Dig1
+
+
 subsection {* Toy examples *}
 
-definition "bar \<longleftrightarrow> #4 * #2 + #7 = (#8 :: nat) \<and> #4 * #2 + #7 \<ge> (#8 :: int) - #3"
+definition "foo \<longleftrightarrow> #4 * #2 + #7 = (#8 :: nat)"
+definition "bar \<longleftrightarrow> #4 * #2 + #7 \<ge> (#8 :: int) - #3"
 
-code_thms bar
+code_thms foo bar
+export_code foo bar checking SML OCaml? Haskell? Scala?
 
-export_code bar checking SML OCaml? Haskell?
+text {* This is an ad-hoc @{text Code_Integer} setup. *}
+
+setup {*
+  fold (add_code Code_Printer.literal_numeral)
+    [Code_ML.target_SML, Code_ML.target_OCaml, Code_Haskell.target, Code_Scala.target]
+*}
+
+code_type int
+  (SML "IntInf.int")
+  (OCaml "Big'_int.big'_int")
+  (Haskell "Integer")
+  (Scala "BigInt")
+  (Eval "int")
+
+code_const "0::int"
+  (SML "0/ :/ IntInf.int")
+  (OCaml "Big'_int.zero")
+  (Haskell "0")
+  (Scala "BigInt(0)")
+  (Eval "0/ :/ int")
+
+code_const Int.pred
+  (SML "IntInf.- ((_), 1)")
+  (OCaml "Big'_int.pred'_big'_int")
+  (Haskell "!(_/ -/ 1)")
+  (Scala "!(_/ -/ 1)")
+  (Eval "!(_/ -/ 1)")
+
+code_const Int.succ
+  (SML "IntInf.+ ((_), 1)")
+  (OCaml "Big'_int.succ'_big'_int")
+  (Haskell "!(_/ +/ 1)")
+  (Scala "!(_/ +/ 1)")
+  (Eval "!(_/ +/ 1)")
+
+code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.+ ((_), (_))")
+  (OCaml "Big'_int.add'_big'_int")
+  (Haskell infixl 6 "+")
+  (Scala infixl 7 "+")
+  (Eval infixl 8 "+")
+
+code_const "uminus \<Colon> int \<Rightarrow> int"
+  (SML "IntInf.~")
+  (OCaml "Big'_int.minus'_big'_int")
+  (Haskell "negate")
+  (Scala "!(- _)")
+  (Eval "~/ _")
+
+code_const "op - \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.- ((_), (_))")
+  (OCaml "Big'_int.sub'_big'_int")
+  (Haskell infixl 6 "-")
+  (Scala infixl 7 "-")
+  (Eval infixl 8 "-")
+
+code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
+  (SML "IntInf.* ((_), (_))")
+  (OCaml "Big'_int.mult'_big'_int")
+  (Haskell infixl 7 "*")
+  (Scala infixl 8 "*")
+  (Eval infixl 9 "*")
+
+code_const pdivmod
+  (SML "IntInf.divMod/ (IntInf.abs _,/ IntInf.abs _)")
+  (OCaml "Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int _)/ (Big'_int.abs'_big'_int _)")
+  (Haskell "divMod/ (abs _)/ (abs _)")
+  (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
+  (Eval "Integer.div'_mod/ (abs _)/ (abs _)")
+
+code_const "eq_class.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "!((_ : IntInf.int) = _)")
+  (OCaml "Big'_int.eq'_big'_int")
+  (Haskell infixl 4 "==")
+  (Scala infixl 5 "==")
+  (Eval infixl 6 "=")
+
+code_const "op \<le> \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "IntInf.<= ((_), (_))")
+  (OCaml "Big'_int.le'_big'_int")
+  (Haskell infix 4 "<=")
+  (Scala infixl 4 "<=")
+  (Eval infixl 6 "<=")
+
+code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+  (SML "IntInf.< ((_), (_))")
+  (OCaml "Big'_int.lt'_big'_int")
+  (Haskell infix 4 "<")
+  (Scala infixl 4 "<")
+  (Eval infixl 6 "<")
+
+code_const Code_Numeral.int_of
+  (SML "IntInf.fromInt")
+  (OCaml "_")
+  (Haskell "toInteger")
+  (Scala "!_.as'_BigInt")
+  (Eval "_")
+
+export_code foo bar checking SML OCaml? Haskell? Scala?
 
 end
