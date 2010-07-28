@@ -522,12 +522,15 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
 (* A list consisting of the first number in each line is returned. For TSTP,
    interesting lines have the form "fof(108, axiom, ...)", where the number
    (108) is extracted. For SPASS, lines have the form "108[0:Inp] ...", where
-   the first number (108) is extracted. *)
+   the first number (108) is extracted. For Vampire, we look for
+   "108. ... [input]". *)
 fun extract_formula_numbers_in_atp_proof atp_proof =
   let
     val tokens_of = String.tokens (not o Char.isAlphaNum)
     fun extract_num ("fof" :: num :: "axiom" :: _) = Int.fromString num
       | extract_num (num :: "0" :: "Inp" :: _) = Int.fromString num
+      | extract_num (num :: rest) =
+        (case List.last rest of "input" => Int.fromString num | _ => NONE)
       | extract_num _ = NONE
   in atp_proof |> split_lines |> map_filter (extract_num o tokens_of) end
 

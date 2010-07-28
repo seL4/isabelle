@@ -135,12 +135,13 @@ val vampire_config : prover_config =
   {executable = ("VAMPIRE_HOME", "vampire"),
    required_executables = [],
    arguments = fn _ => fn timeout =>
-     "--output_syntax tptp --mode casc -t " ^
-     string_of_int (to_generous_secs timeout),
+     "--mode casc -t " ^ string_of_int (to_generous_secs timeout) ^
+     " --input_file ",
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
-      ("% SZS output start Refutation", "% SZS output end Refutation")],
+      ("% SZS output start Refutation", "% SZS output end Refutation"),
+      ("% SZS output start Proof", "% SZS output end Proof")],
    known_failures =
      [(Unprovable, "UNPROVABLE"),
       (IncompleteUnprovable, "CANNOT PROVE"),
