@@ -13,7 +13,7 @@ sig
   datatype ('a, 'b) formula =
     AQuant of quantifier * 'a list * ('a, 'b) formula |
     AConn of connective * ('a, 'b) formula list |
-    APred of 'b
+    AAtom of 'b
 
   datatype kind = Axiom | Conjecture
   datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
@@ -40,7 +40,7 @@ datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
 datatype ('a, 'b) formula =
   AQuant of quantifier * 'a list * ('a, 'b) formula |
   AConn of connective * ('a, 'b) formula list |
-  APred of 'b
+  AAtom of 'b
 
 datatype kind = Axiom | Conjecture
 datatype 'a problem_line = Fof of string * kind * ('a, 'a fo_term) formula
@@ -64,14 +64,14 @@ fun string_for_connective ANot = "~"
 fun string_for_formula (AQuant (q, xs, phi)) =
     string_for_quantifier q ^ "[" ^ commas xs ^ "] : " ^
     string_for_formula phi
-  | string_for_formula (AConn (ANot, [APred (ATerm ("equal", ts))])) =
+  | string_for_formula (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
     space_implode " != " (map string_for_term ts)
   | string_for_formula (AConn (c, [phi])) =
     string_for_connective c ^ " " ^ string_for_formula phi
   | string_for_formula (AConn (c, phis)) =
     "(" ^ space_implode (" " ^ string_for_connective c ^ " ")
                         (map string_for_formula phis) ^ ")"
-  | string_for_formula (APred tm) = string_for_term tm
+  | string_for_formula (AAtom tm) = string_for_term tm
 
 fun string_for_problem_line (Fof (ident, kind, phi)) =
   "fof(" ^ ident ^ ", " ^
@@ -140,7 +140,7 @@ fun nice_formula (AQuant (q, xs, phi)) =
     #>> (fn (xs, phi) => AQuant (q, xs, phi))
   | nice_formula (AConn (c, phis)) =
     pool_map nice_formula phis #>> curry AConn c
-  | nice_formula (APred tm) = nice_term tm #>> APred
+  | nice_formula (AAtom tm) = nice_term tm #>> AAtom
 fun nice_problem_line (Fof (ident, kind, phi)) =
   nice_formula phi #>> (fn phi => Fof (ident, kind, phi))
 fun nice_problem problem =

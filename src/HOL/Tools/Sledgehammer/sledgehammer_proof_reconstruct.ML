@@ -117,13 +117,13 @@ fun parse_term pool x =
 and parse_terms pool x =
   (parse_term pool ::: Scan.repeat ($$ "," |-- parse_term pool)) x
 
-fun parse_predicate_term pool =
+fun parse_atom pool =
   parse_term pool -- Scan.option (Scan.option ($$ "!") --| $$ "="
                                   -- parse_term pool)
-  >> (fn (u, NONE) => APred u
-       | (u1, SOME (NONE, u2)) => APred (ATerm ("c_equal", [u1, u2]))
+  >> (fn (u, NONE) => AAtom u
+       | (u1, SOME (NONE, u2)) => AAtom (ATerm ("c_equal", [u1, u2]))
        | (u1, SOME (SOME _, u2)) =>
-         mk_anot (APred (ATerm ("c_equal", [u1, u2]))))
+         mk_anot (AAtom (ATerm ("c_equal", [u1, u2]))))
 
 fun fo_term_head (ATerm (s, _)) = s
 
@@ -136,7 +136,7 @@ fun parse_formula pool x =
        -- parse_formula pool
        >> (fn ((q, ts), phi) => AQuant (q, map fo_term_head ts, phi))
     || $$ "~" |-- parse_formula pool >> mk_anot
-    || parse_predicate_term pool)
+    || parse_atom pool)
    -- Scan.option ((Scan.this_string "=>" >> K AImplies
                     || Scan.this_string "<=>" >> K AIff
                     || Scan.this_string "<~>" >> K ANotIff
@@ -153,7 +153,7 @@ val parse_tstp_annotations =
                    --| Scan.option ($$ "," |-- parse_generalized_terms)
                  >> (fn g => ints_of_generalized_term g [])) []
 
-(* Syntax: (fof|cnf)\(<num>, <formula_role>, <cnf_formula> <annotations>\).
+(* Syntax: (fof|cnf)\(<num>, <formula_role>, <formula> <annotations>\).
    The <num> could be an identifier, but we assume integers. *)
  fun parse_tstp_line pool =
    ((Scan.this_string "fof" || Scan.this_string "cnf") -- $$ "(")
@@ -163,9 +163,9 @@ val parse_tstp_annotations =
            case role of
              "definition" =>
              (case phi of
-                AConn (AIff, [phi1 as APred _, phi2]) =>
+                AConn (AIff, [phi1 as AAtom _, phi2]) =>
                 Definition (num, phi1, phi2)
-              | APred (ATerm ("$$e", _)) =>
+              | AAtom (ATerm ("$$e", _)) =>
                 Inference (num, phi, deps) (* Vampire's equality proxy axiom *)
               | _ => raise Fail "malformed definition")
            | _ => Inference (num, phi, deps))
@@ -182,10 +182,10 @@ val parse_spass_annotations =
 
 (* It is not clear why some literals are followed by sequences of stars and/or
    pluses. We ignore them. *)
-fun parse_decorated_predicate_term pool =
-  parse_predicate_term pool --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")
+fun parse_decorated_atom pool =
+  parse_atom pool --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")
 
-fun mk_horn ([], []) = APred (ATerm ("c_False", []))
+fun mk_horn ([], []) = AAtom (ATerm ("c_False", []))
   | mk_horn ([], pos_lits) = foldr1 (mk_aconn AOr) pos_lits
   | mk_horn (neg_lits, []) = mk_anot (foldr1 (mk_aconn AAnd) neg_lits)
   | mk_horn (neg_lits, pos_lits) =
@@ -193,13 +193,13 @@ fun mk_horn ([], []) = APred (ATerm ("c_False", []))
                        foldr1 (mk_aconn AOr) pos_lits)
 
 fun parse_horn_clause pool =
-  Scan.repeat (parse_decorated_predicate_term pool) --| $$ "|" --| $$ "|"
-    -- Scan.repeat (parse_decorated_predicate_term pool) --| $$ "-" --| $$ ">"
-    -- Scan.repeat (parse_decorated_predicate_term pool)
+  Scan.repeat (parse_decorated_atom pool) --| $$ "|" --| $$ "|"
+    -- Scan.repeat (parse_decorated_atom pool) --| $$ "-" --| $$ ">"
+    -- Scan.repeat (parse_decorated_atom pool)
   >> (mk_horn o apfst (op @))
 
 (* Syntax: <num>[0:<inference><annotations>]
-   <cnf_formulas> || <cnf_formulas> -> <cnf_formulas>. *)
+   <atoms> || <atoms> -> <atoms>. *)
 fun parse_spass_line pool =
   scan_integer --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
   -- parse_spass_annotations --| $$ "]" -- parse_horn_clause pool --| $$ "."
@@ -396,7 +396,7 @@ fun prop_from_formula thy full_types tfrees phi =
              | AOr => s_disj
              | AImplies => s_imp
              | AIff => s_iff)
-      | APred tm => term_from_pred thy full_types tfrees pos tm
+      | AAtom tm => term_from_pred thy full_types tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
