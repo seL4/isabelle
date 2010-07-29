@@ -444,7 +444,8 @@ fun all_name_thms_pairs ctxt chained_ths =
       (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
         if Facts.is_concealed facts name orelse
            (respect_no_atp andalso is_package_def name) orelse
-           member (op =) multi_base_blacklist (Long_Name.base_name name) then
+           member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
+           String.isSuffix "_def_raw" (* FIXME: crude hack *) name then
           I
         else
           let
