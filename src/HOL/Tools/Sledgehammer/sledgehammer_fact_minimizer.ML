@@ -34,7 +34,10 @@ fun n_theorems name_thms_pairs =
   let val n = length name_thms_pairs in
     string_of_int n ^ " theorem" ^ plural_s n ^
     (if n > 0 then
-       ": " ^ space_implode " " (sort_distinct string_ord name_thms_pairs)
+       ": " ^ space_implode " "
+                  (name_thms_pairs
+                   |> map (perhaps (try (unprefix chained_prefix)))
+                   |> sort_distinct string_ord)
      else
        "")
   end
@@ -65,7 +68,8 @@ fun sledgehammer_test_theorems (params : params) (prover : prover) timeout
 
 (* minimalization of thms *)
 
-fun filter_used_facts used = filter (member (op =) used o fst)
+fun filter_used_facts used =
+  filter (member (op =) used o perhaps (try (unprefix chained_prefix)) o fst)
 
 fun sublinear_minimize _ [] p = p
   | sublinear_minimize test (x :: xs) (seen, result) =
