@@ -13,7 +13,7 @@ sig
 
   val generate : Proof.context -> string list -> logic_program
   val write_program : logic_program -> string
-  val run : logic_program -> string -> string list -> term list
+  val run : logic_program -> string -> string list -> int option -> term list
 
 end;
 
@@ -87,7 +87,6 @@ fun generate ctxt const =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
     val gr = Predicate_Compile_Core.intros_graph_of ctxt
     val scc = strong_conn_of gr const
-    val _ = tracing (commas (flat scc))
   in
     maps (translate_intros ctxt gr) (flat scc)
   end
@@ -143,9 +142,18 @@ fun write_program p =
 fun query_first rel vnames =
   "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
   "writef('" ^ implode (map (fn v => v ^ " = %w\\n") vnames) ^"', [" ^ space_implode ", " vnames ^ "]).\n"
-
+  
+fun query_firstn n rel vnames =
+  "eval :- findnsols(" ^ string_of_int n ^ ", (" ^ space_implode ", " vnames ^ "), " ^
+    rel ^ "(" ^ space_implode ", " vnames ^ "), Sols), writelist(Sols).\n" ^
+    "writelist([]).\n" ^
+    "writelist([(" ^ space_implode ", " vnames ^ ")|T]) :- " ^
+    "writef('" ^ implode (map (fn v => v ^ " = %w\\n") vnames) ^
+    "', [" ^ space_implode ", " vnames ^ "]), writelist(T).\n"
+  
 val prelude =
   "#!/usr/bin/swipl -q -t main -f\n\n" ^
+  ":- use_module(library('dialect/ciao/aggregates')).\n" ^
   ":- style_check(-singleton).\n\n" ^
   "main :- catch(eval, E, (print_message(error, E), fail)), halt.\n" ^
   "main :- halt(1).\n"
@@ -175,17 +183,17 @@ val is_var_ident =
 val scan_term =
   scan_ident >> (fn s => 
     if is_var_ident s then (Var (string_of s, dummyT))
-    else if is_atom_ident s then Cons (string_of s)
+    else if is_atom_ident s then
+    else   Cons (string_of s)
     else raise Fail "unexpected")
     
 val parse_term = fst o Scan.finite Symbol.stopper
-            (Scan.error (!! (fn _ => raise Fail "parsing prolog output failed"))
-                            scan_term)
+    (Scan.error (!! (fn _ => raise Fail "parsing prolog output failed")) scan_term)
   o explode
   
 fun parse_solution sol =
   let
-    fun dest_eq s = (tracing s; tracing(commas (space_explode "=" s)); case space_explode "=" s of
+    fun dest_eq s = case space_explode "=" s of
         (l :: r :: []) => parse_term (unprefix " " r)
       | _ => raise Fail "unexpected equation in prolog output")
   in
@@ -194,15 +202,15 @@ fun parse_solution sol =
   
 (* calling external interpreter and getting results *)
 
-fun run p query_rel vnames =
+fun run p query_rel vnames nsols =
   let
     val cmd = Path.named_root
-    val prog = prelude ^ query_first query_rel vnames ^ write_program p
+    val query = case nsols of NONE => query_first | SOME n => query_firstn n 
+    val prog = prelude ^ query query_rel vnames ^ write_program p
     val prolog_file = File.tmp_path (Path.basic "prolog_file")
     val _ = File.write prolog_file prog
-    val (solution, _) = bash_output ("/usr/bin/swipl -f " ^ File.shell_path prolog_file)
+    val (solution, _) = bash_output ("/usr/local/bin/swipl -f " ^ File.shell_path prolog_file)
     val ts = parse_solution solution
-    val _ = tracing (commas (map string_of_prol_term ts)) 
   in
     ts
   end
@@ -230,7 +238,7 @@ fun values ctxt soln t_compr =
       case try (map (fst o dest_Free)) all_args of
         SOME vs => vs
       | NONE => error ("Not only free variables in " ^ commas (map (Syntax.string_of_term ctxt) all_args))
-    val ts = run (generate ctxt [name]) (translate_const name) (map first_upper vnames)
+    val ts = run (generate ctxt [name]) (translate_const name) (map first_upper vnames) soln
   in
     HOLogic.mk_tuple (map mk_term ts)
   end
@@ -254,7 +262,7 @@ val opt_print_modes =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
 
 val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensions" Keyword.diag
-  (opt_print_modes -- Scan.optional Parse.nat ~1 -- Parse.term
+  (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term
    >> (fn ((print_modes, soln), t) => Toplevel.keep
         (values_cmd print_modes soln t)));
 
