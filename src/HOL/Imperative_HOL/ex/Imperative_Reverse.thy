@@ -110,6 +110,8 @@ lemma rev2_rev:
       subarray_def sublist'_all rev.simps[where j=0] elim!: crel_elims)
   (drule sym[of "List.length (Array.get h a)"], simp)
 
-export_code rev checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala?
+definition "example = (Array.of_list [1::nat, 2, 3, 4, 5, 6, 7, 8, 9, 10] \<guillemotright>= (\<lambda>a. rev a 0 9))"
+
+export_code example checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala? Scala_imp?
 
 end
