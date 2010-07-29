@@ -6,20 +6,28 @@ Prototype of an code generator for logic programming languages (a.k.a. Prolog)
 
 signature CODE_PROLOG =
 sig
-  datatype term = Var of string * typ | Cons of string | AppF of string * term list;
-  datatype prem = Conj of prem list | NotRel of string * term list | Rel of string * term list | Eq of term * term | NotEq of term * term;
-  type clause = ((string * term list) * prem);
+  datatype prol_term = Var of string * typ | Cons of string | AppF of string * prol_term list;
+  datatype prem = Conj of prem list | NotRel of string * prol_term list
+    | Rel of string * prol_term list | Eq of prol_term * prol_term | NotEq of prol_term * prol_term;
+  type clause = ((string * prol_term list) * prem);
   type logic_program = clause list;
-
-  val generate : Proof.context -> string list -> logic_program
+  type constant_table = (string * string) list
+  
+  val generate : Proof.context -> string list -> (logic_program * constant_table)
   val write_program : logic_program -> string
-  val run : logic_program -> string -> string list -> int option -> term list
+  val run : logic_program -> string -> string list -> int option -> prol_term list list
 
+  val trace : bool Unsynchronized.ref
 end;
 
 structure Code_Prolog : CODE_PROLOG =
 struct
 
+(* diagnostic tracing *)
+
+val trace = Unsynchronized.ref false
+
+fun tracing s = if !trace then Output.tracing s else () 
 (* general string functions *)
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
@@ -27,59 +35,88 @@ val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 (* internal program representation *)
 
-datatype term = Var of string * typ | Cons of string | AppF of string * term list;
+datatype prol_term = Var of string * typ | Cons of string | AppF of string * prol_term list;
 
 fun string_of_prol_term (Var (s, T)) = "Var " ^ s
   | string_of_prol_term (Cons s) = "Cons " ^ s
   | string_of_prol_term (AppF (f, args)) = f ^ "(" ^ commas (map string_of_prol_term args) ^ ")" 
 
-datatype prem = Conj of prem list | NotRel of string * term list | Rel of string * term list | Eq of term * term | NotEq of term * term;
+datatype prem = Conj of prem list | NotRel of string * prol_term list
+    | Rel of string * prol_term list | Eq of prol_term * prol_term | NotEq of prol_term * prol_term;
 
 fun dest_Rel (Rel (c, ts)) = (c, ts)
  
-type clause = ((string * term list) * prem);
+type clause = ((string * prol_term list) * prem);
 
 type logic_program = clause list;
 
 (* translation from introduction rules to internal representation *)
 
-(* assuming no clashing *)
-fun translate_const c = Long_Name.base_name c
+(** constant table **)
 
-fun translate_term ctxt t =
+type constant_table = (string * string) list
+
+(* assuming no clashing *)
+fun mk_constant_table consts =
+  AList.make (first_lower o Long_Name.base_name) consts
+
+fun declare_consts consts constant_table =
+  fold (fn c => AList.update (op =) (c, first_lower (Long_Name.base_name c))) consts constant_table
+  
+fun translate_const constant_table c =
+  case AList.lookup (op =) constant_table c of
+    SOME c' => c'
+  | NONE => error ("No such constant: " ^ c)
+
+fun inv_lookup _ [] _ = NONE
+  | inv_lookup eq ((key, value)::xs) value' =
+      if eq (value', value) then SOME key
+      else inv_lookup eq xs value';
+
+fun restore_const constant_table c =
+  case inv_lookup (op =) constant_table c of
+    SOME c' => c'
+  | NONE => error ("No constant corresponding to "  ^ c)
+  
+(** translation of terms, literals, premises, and clauses **)
+
+fun translate_term ctxt constant_table t =
   case strip_comb t of
     (Free (v, T), []) => Var (v, T) 
-  | (Const (c, _), []) => Cons (translate_const c)
-  | (Const (c, _), args) => AppF (translate_const c, map (translate_term ctxt) args)
+  | (Const (c, _), []) => Cons (translate_const constant_table c)
+  | (Const (c, _), args) =>
+    AppF (translate_const constant_table c, map (translate_term ctxt constant_table) args)
   | _ => error ("illegal term for translation: " ^ Syntax.string_of_term ctxt t)
 
-
-fun translate_literal ctxt t =
+fun translate_literal ctxt constant_table t =
   case strip_comb t of
-    (Const (@{const_name "op ="}, _), [l, r]) => Eq (pairself (translate_term ctxt) (l, r))
-  | (Const (c, _), args) => Rel (translate_const c, map (translate_term ctxt) args)
+    (Const (@{const_name "op ="}, _), [l, r]) =>
+      Eq (pairself (translate_term ctxt constant_table) (l, r))
+  | (Const (c, _), args) =>
+      Rel (translate_const constant_table c, map (translate_term ctxt constant_table) args)
   | _ => error ("illegal literal for translation: " ^ Syntax.string_of_term ctxt t)
 
 fun NegRel_of (Rel lit) = NotRel lit
   | NegRel_of (Eq eq) = NotEq eq
   
-fun translate_prem ctxt t =  
+fun translate_prem ctxt constant_table t =  
     case try HOLogic.dest_not t of
-      SOME t => NegRel_of (translate_literal ctxt t)
-    | NONE => translate_literal ctxt t
+      SOME t => NegRel_of (translate_literal ctxt constant_table t)
+    | NONE => translate_literal ctxt constant_table t
 
-fun translate_intros ctxt gr const =
+fun translate_intros ctxt gr const constant_table =
   let
     val intros = Graph.get_node gr const
     val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
+    val constant_table' = declare_consts (fold Term.add_const_names intros' []) constant_table
     fun translate_intro intro =
       let
         val head = HOLogic.dest_Trueprop (Logic.strip_imp_concl intro)
         val prems = map HOLogic.dest_Trueprop (Logic.strip_imp_prems intro) 
-        val prems' = Conj (map (translate_prem ctxt') prems)
-        val clause = (dest_Rel (translate_literal ctxt' head), prems')
+        val prems' = Conj (map (translate_prem ctxt' constant_table') prems)
+        val clause = (dest_Rel (translate_literal ctxt' constant_table' head), prems')
       in clause end
-  in map translate_intro intros' end
+  in (map translate_intro intros', constant_table') end
 
 fun generate ctxt const =
   let 
@@ -87,8 +124,9 @@ fun generate ctxt const =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
     val gr = Predicate_Compile_Core.intros_graph_of ctxt
     val scc = strong_conn_of gr const
+    val constant_table = mk_constant_table (flat scc)
   in
-    maps (translate_intros ctxt gr) (flat scc)
+    apfst flat (fold_map (translate_intros ctxt gr) (flat scc) constant_table)
   end
 
 (* transform logic program *)
@@ -121,8 +159,8 @@ fun ensure_groundness_before_negation p =
 (* code printer *)
 
 fun write_term (Var (v, _)) = first_upper v
-  | write_term (Cons c) = first_lower c
-  | write_term (AppF (f, args)) = first_lower f ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
+  | write_term (Cons c) = c
+  | write_term (AppF (f, args)) = f ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
 
 fun write_rel (pred, args) =
   pred ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
@@ -143,15 +181,15 @@ fun write_program p =
 
 fun query_first rel vnames =
   "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
-  "writef('" ^ implode (map (fn v => v ^ " = %w\\n") vnames) ^"', [" ^ space_implode ", " vnames ^ "]).\n"
+  "writef('" ^ implode (map (fn v => v ^ " = %w; ") vnames) ^"\\n', [" ^ space_implode ", " vnames ^ "]).\n"
   
 fun query_firstn n rel vnames =
   "eval :- findnsols(" ^ string_of_int n ^ ", (" ^ space_implode ", " vnames ^ "), " ^
     rel ^ "(" ^ space_implode ", " vnames ^ "), Sols), writelist(Sols).\n" ^
     "writelist([]).\n" ^
     "writelist([(" ^ space_implode ", " vnames ^ ")|T]) :- " ^
-    "writef('" ^ implode (map (fn v => v ^ " = %w\\n") vnames) ^
-    "', [" ^ space_implode ", " vnames ^ "]), writelist(T).\n"
+    "writef('" ^ space_implode ";" (map (fn v => v ^ " = %w") vnames) ^
+    "\\n', [" ^ space_implode ", " vnames ^ "]), writelist(T).\n"
   
 val prelude =
   "#!/usr/bin/swipl -q -t main -f\n\n" ^
@@ -181,47 +219,27 @@ val is_atom_ident = forall Symbol.is_ascii_lower
 
 val is_var_ident =
   forall (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
-(*
-fun repeat_sep sep scan =
-  let
-    fun rep ys xs =
-       (case (SOME (scan xs) handle FAIL _ => NONE) of
-        NONE => (rev ys, xs)
-      | SOME (y, xs') =>
-          case (SOME (scan sep) handle FAIL _ => NONE) of
-          NONE => (rev (y :: ys), xs')
-        | SOME (_, xs'') => rep (y :: ys) xs'')
-  in rep [] end;
-
-fun repeat_sep1 sep scan = (scan --| sep) ::: repeat_sep sep scan;
-*) 
 
 fun scan_terms xs = (((scan_term --| $$ ",") ::: scan_terms)
   || (scan_term >> single)) xs
 and scan_term xs =
   ((scan_var >> (fn s => Var (string_of s, dummyT)))
   || ((scan_atom -- ($$ "(" |-- scan_terms --| $$ ")"))
-    >> (fn (f, ts) => AppF (string_of f, rev ts)))
+    >> (fn (f, ts) => AppF (string_of f, ts)))
   || (scan_atom >> (Cons o string_of))) xs
-(*  
-val scan_term =
-  scan_ident >> (fn s => 
-    if is_var_ident s then (Var (string_of s, dummyT))
-    else if is_atom_ident s then
-    else Cons (string_of s)
-    else raise Fail "unexpected")
-*)    
+
 val parse_term = fst o Scan.finite Symbol.stopper
     (Scan.error (!! (fn _ => raise Fail "parsing prolog output failed")) scan_term)
   o explode
   
-fun parse_solution sol =
+fun parse_solutions sol =
   let
     fun dest_eq s = case space_explode "=" s of
         (l :: r :: []) => parse_term (unprefix " " r)
       | _ => raise Fail "unexpected equation in prolog output"
+    fun parse_solution s = map dest_eq (space_explode ";" s)
   in
-    map dest_eq (fst (split_last (space_explode "\n" sol)))
+    map parse_solution (fst (split_last (space_explode "\n" sol)))
   end 
   
 (* calling external interpreter and getting results *)
@@ -231,20 +249,33 @@ fun run p query_rel vnames nsols =
     val cmd = Path.named_root
     val query = case nsols of NONE => query_first | SOME n => query_firstn n 
     val prog = prelude ^ query query_rel vnames ^ write_program p
+    val _ = tracing ("Generated prolog program:\n" ^ prog)
     val prolog_file = File.tmp_path (Path.basic "prolog_file")
     val _ = File.write prolog_file prog
     val (solution, _) = bash_output ("/usr/local/bin/swipl -f " ^ File.shell_path prolog_file)
-    val ts = parse_solution solution
+    val _ = tracing ("Prolog returned solution(s):\n" ^ solution)
+    val tss = parse_solutions solution
   in
-    ts
+    tss
   end
 
 (* values command *)
 
-fun mk_term (Var (s, T)) = Free (s, T)
-  | mk_term (Cons s) = Const (s, dummyT)
-  | mk_term (AppF (f, args)) = list_comb (Const (f, dummyT), map mk_term args)
-  
+fun restore_term ctxt constant_table (Var (s, _), T) = Free (s, T)
+  | restore_term ctxt constant_table (Cons s, T) = Const (restore_const constant_table s, T)
+  | restore_term ctxt constant_table (AppF (f, args), T) =
+    let
+      val thy = ProofContext.theory_of ctxt
+      val c = restore_const constant_table f
+      val cT = Sign.the_const_type thy c
+      val (argsT, resT) = strip_type cT
+      val subst = Sign.typ_match thy (resT, T) Vartab.empty
+      val argsT' = map (Envir.subst_type subst) argsT
+    in
+      list_comb (Const (c, Envir.subst_type subst cT),
+        map (restore_term ctxt constant_table) (args ~~ argsT'))
+    end
+
 fun values ctxt soln t_compr =
   let
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
@@ -262,9 +293,21 @@ fun values ctxt soln t_compr =
       case try (map (fst o dest_Free)) all_args of
         SOME vs => vs
       | NONE => error ("Not only free variables in " ^ commas (map (Syntax.string_of_term ctxt) all_args))
-    val ts = run (generate ctxt [name]) (translate_const name) (map first_upper vnames) soln
+    val _ = tracing "Generating prolog program..."
+    val (p, constant_table) = generate ctxt [name]
+    val _ = tracing "Running prolog program..."
+    val tss = run p (translate_const constant_table name) (map first_upper vnames) soln
+    val _ = tracing "Restoring terms..."
+    fun mk_set_comprehension t =
+      let
+        val frees = Term.add_frees t []
+        val uu as (uuN, uuT) = singleton (Variable.variant_frees ctxt [t]) ("uu", fastype_of t)
+      in HOLogic.mk_Collect (uuN, uuT, fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))
+        frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), @{term "True"}))) end
+    val set_comprs = map (fn ts =>
+      mk_set_comprehension (HOLogic.mk_tuple (map (restore_term ctxt constant_table) (ts ~~ Ts)))) tss
   in
-    HOLogic.mk_tuple (map mk_term ts)
+    foldl1 (HOLogic.mk_binop @{const_name sup}) (set_comprs @ [Free ("...", fastype_of t_compr)])
   end
 
 fun values_cmd print_modes soln raw_t state =
