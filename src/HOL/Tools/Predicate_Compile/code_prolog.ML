@@ -1,0 +1,162 @@
+(*  Title:      HOL/Tools/Predicate_Compile/code_prolog.ML
+    Author:     Lukas Bulwahn, TU Muenchen
+
+Prototype of an code generator for logic programming languages (a.k.a. Prolog)
+*)
+
+signature CODE_PROLOG =
+sig
+  datatype term = Var of string * typ | Cons of string | AppF of string * term list;
+  datatype prem = Conj of prem list | NotRel of string * term list | Rel of string * term list | Eq of term * term | NotEq of term * term;
+  type clause = ((string * term list) * prem);
+  type logic_program = clause list;
+
+  val generate : Proof.context -> string list -> logic_program
+  val write_program : logic_program -> string
+  val run : logic_program -> string -> string list -> unit
+
+end;
+
+structure Code_Prolog : CODE_PROLOG =
+struct
+
+(* general string functions *)
+
+val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
+val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
+
+(* internal program representation *)
+
+datatype term = Var of string * typ | Cons of string | AppF of string * term list;
+
+datatype prem = Conj of prem list | NotRel of string * term list | Rel of string * term list | Eq of term * term | NotEq of term * term;
+
+fun dest_Rel (Rel (c, ts)) = (c, ts)
+ 
+type clause = ((string * term list) * prem);
+
+type logic_program = clause list;
+
+(* translation from introduction rules to internal representation *)
+
+(* assuming no clashing *)
+fun translate_const c = Long_Name.base_name c
+
+fun translate_term ctxt t =
+  case strip_comb t of
+    (Free (v, T), []) => Var (v, T) 
+  | (Const (c, _), []) => Cons (translate_const c)
+  | (Const (c, _), args) => AppF (translate_const c, map (translate_term ctxt) args)
+  | _ => error ("illegal term for translation: " ^ Syntax.string_of_term ctxt t)
+
+
+fun translate_literal ctxt t =
+  case strip_comb t of
+    (Const (@{const_name "op ="}, _), [l, r]) => Eq (pairself (translate_term ctxt) (l, r))
+  | (Const (c, _), args) => Rel (translate_const c, map (translate_term ctxt) args)
+  | _ => error ("illegal literal for translation: " ^ Syntax.string_of_term ctxt t)
+
+fun NegRel_of (Rel lit) = NotRel lit
+  | NegRel_of (Eq eq) = NotEq eq
+  
+fun translate_prem ctxt t =  
+    case try HOLogic.dest_not t of
+      SOME t => NegRel_of (translate_literal ctxt t)
+    | NONE => translate_literal ctxt t
+
+fun translate_intros ctxt gr const =
+  let
+    val intros = Graph.get_node gr const
+    val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
+    fun translate_intro intro =
+      let
+        val head = HOLogic.dest_Trueprop (Logic.strip_imp_concl intro)
+        val prems = map HOLogic.dest_Trueprop (Logic.strip_imp_prems intro) 
+        val prems' = Conj (map (translate_prem ctxt') prems)
+        val clause = (dest_Rel (translate_literal ctxt' head), prems')
+      in clause end
+  in map translate_intro intros' end
+
+fun generate ctxt const =
+  let 
+     fun strong_conn_of gr keys =
+      Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
+    val gr = Predicate_Compile_Core.intros_graph_of ctxt
+    val scc = strong_conn_of gr const
+    val _ = tracing (commas (flat scc))
+  in
+    maps (translate_intros ctxt gr) (flat scc)
+  end
+
+(* transform logic program *)
+
+(** ensure groundness of terms before negation **)
+
+fun add_vars (Var x) vs = insert (op =) x vs
+  | add_vars (Cons c) vs = vs
+  | add_vars (AppF (f, args)) vs = fold add_vars args vs
+
+fun string_of_typ (Type (s, Ts)) = Long_Name.base_name s
+
+fun mk_groundness_prems ts =
+  let
+    val vars = fold add_vars ts []
+    fun mk_ground (v, T) =
+      Rel ("ground_" ^ string_of_typ T, [Var (v, T)])
+  in
+    map mk_ground vars
+  end
+
+fun ensure_groundness_prem (NotRel (c, ts)) = Conj (mk_groundness_prems ts @ [NotRel (c, ts)]) 
+  | ensure_groundness_prem (NotEq (l, r)) = Conj (mk_groundness_prems [l, r] @ [NotEq (l, r)])
+  | ensure_groundness_prem (Conj ps) = Conj (map ensure_groundness_prem ps)
+  | ensure_groundness_prem p = p
+
+fun ensure_groundness_before_negation p =
+  map (apsnd ensure_groundness_prem) p
+
+(* code printer *)
+
+fun write_term (Var (v, _)) = first_upper v
+  | write_term (Cons c) = first_lower c
+  | write_term (AppF (f, args)) = first_lower f ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
+
+fun write_rel (pred, args) =
+  pred ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
+
+fun write_prem (Conj prems) = space_implode ", " (map write_prem prems)
+  | write_prem (Rel p) = write_rel p  
+  | write_prem (NotRel p) = "not(" ^ write_rel p ^ ")"
+  | write_prem (Eq (l, r)) = write_term l ^ " = " ^ write_term r
+  | write_prem (NotEq (l, r)) = write_term l ^ " \\= " ^ write_term r
+
+fun write_clause (head, prem) =
+  write_rel head ^ (if prem = Conj [] then "." else " :- " ^ write_prem prem ^ ".")
+
+fun write_program p =
+  cat_lines (map write_clause p) 
+
+fun query_first rel vnames =
+  "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
+  "writef('" ^ implode (map (fn v => v ^ " = %w\\n") vnames) ^"', [" ^ space_implode ", " vnames ^ "]).\n"
+
+val prelude =
+  "#!/usr/bin/swipl -q -t main -f\n\n" ^
+  ":- style_check(-singleton).\n\n" ^
+  "main :- catch(eval, E, (print_message(error, E), fail)), halt.\n" ^
+  "main :- halt(1).\n"
+  
+(* calling external interpreter and getting results *)
+
+fun run p query_rel vnames =
+  let
+    val cmd = Path.named_root
+    val prog = prelude ^ query_first query_rel vnames ^ write_program p
+    val prolog_file = File.tmp_path (Path.basic "prolog_file")
+    val _ = File.write prolog_file prog
+    val (solution, _) = bash_output ("/usr/bin/swipl -f " ^ File.shell_path prolog_file)
+  in
+    tracing ("Prolog returns result:\n" ^ solution)
+  end
+
+end;
