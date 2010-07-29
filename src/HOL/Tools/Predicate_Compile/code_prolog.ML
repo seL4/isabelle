@@ -181,7 +181,8 @@ fun write_program p =
 
 fun query_first rel vnames =
   "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
-  "writef('" ^ implode (map (fn v => v ^ " = %w; ") vnames) ^"\\n', [" ^ space_implode ", " vnames ^ "]).\n"
+  "writef('" ^ space_implode ";" (map (fn v => v ^ " = %w") vnames) ^
+  "\\n', [" ^ space_implode ", " vnames ^ "]).\n"
   
 fun query_firstn n rel vnames =
   "eval :- findnsols(" ^ string_of_int n ^ ", (" ^ space_implode ", " vnames ^ "), " ^
