@@ -35,7 +35,6 @@ struct
 
 fun cons1 x (xs, y, z) = (x :: xs, y, z);
 fun cons2 y (x, ys, z) = (x, y :: ys, z);
-fun cons12 x y (xs, ys, z) = (x :: xs, y :: ys, z);
 
 (*symmetric difference of multisets -- assumed to be sorted wrt. Term_Ord.term_ord*)
 fun cancel ts [] vs = (ts, [], vs)
