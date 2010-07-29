@@ -30,7 +30,7 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: (string * thm) list option}
+     axioms: (string * thm) list option}
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -98,7 +98,7 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: (string * thm) list option}
+   axioms: (string * thm) list option}
 
 type prover_result =
   {outcome: failure option,
@@ -355,16 +355,14 @@ fun prepare_clauses ctxt full_types hyp_ts concl_t axcls =
       map (s_not o HOLogic.dest_Trueprop) hyp_ts @
         [HOLogic.dest_Trueprop concl_t]
       |> make_conjecture_clauses ctxt
-    val (clnames, axiom_clauses) =
-      ListPair.unzip (map (make_axiom_clause ctxt) axcls)
+    val (clnames, axioms) = ListPair.unzip (map (make_axiom_clause ctxt) axcls)
     val helper_clauses =
-      get_helper_clauses ctxt is_FO full_types conjectures axiom_clauses
+      get_helper_clauses ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
-      (conjectures, axiom_clauses, helper_clauses, class_rel_clauses,
-       arity_clauses))
+      (conjectures, axioms, helper_clauses, class_rel_clauses, arity_clauses))
   end
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
@@ -587,10 +585,10 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
       (const_table_for_problem explicit_apply problem) problem
 
 fun write_tptp_file thy readable_names explicit_forall full_types explicit_apply
-                    file (conjectures, axiom_clauses, helper_clauses,
+                    file (conjectures, axioms, helper_clauses,
                           class_rel_clauses, arity_clauses) =
   let
-    val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
+    val axiom_lines = map (problem_line_for_axiom full_types) axioms
     val class_rel_lines =
       map problem_line_for_class_rel_clause class_rel_clauses
     val arity_lines = map problem_line_for_arity_clause arity_clauses
@@ -675,15 +673,15 @@ fun prover_fun name
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
           isar_shrink_factor, ...} : params)
         minimize_command timeout
-        ({subgoal, goal, relevance_override, axiom_clauses} : problem) =
+        ({subgoal, goal, relevance_override, axioms} : problem) =
   let
     (* get clauses and prepare them for writing *)
     val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt
     (* ### FIXME: (1) preprocessing for "if" etc. *)
     val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
-    val the_axiom_clauses =
-      case axiom_clauses of
+    val the_axioms =
+      case axioms of
         SOME axioms => axioms
       | NONE => relevant_facts full_types relevance_threshold
                     relevance_convergence defs_relevant
@@ -691,7 +689,7 @@ fun prover_fun name
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal hyp_ts concl_t
     val (internal_thm_names, clauses) =
-      prepare_clauses ctxt full_types hyp_ts concl_t the_axiom_clauses
+      prepare_clauses ctxt full_types hyp_ts concl_t the_axioms
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -824,7 +822,7 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
             let
               val problem =
                 {subgoal = i, goal = (ctxt, (facts, goal)),
-                 relevance_override = relevance_override, axiom_clauses = NONE}
+                 relevance_override = relevance_override, axioms = NONE}
             in
               prover params (minimize_command name) timeout problem |> #message
               handle ERROR message => "Error: " ^ message ^ "\n"

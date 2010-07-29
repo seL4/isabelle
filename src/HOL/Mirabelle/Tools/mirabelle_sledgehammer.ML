@@ -309,8 +309,7 @@ fun run_sh prover hard_timeout timeout dir st =
     val params = Sledgehammer_Isar.default_params thy []
     val problem =
       {subgoal = 1, goal = (ctxt', (facts, goal)),
-       relevance_override = {add = [], del = [], only = false},
-       axiom_clauses = NONE, filtered_clauses = NONE}
+       relevance_override = {add = [], del = [], only = false}, axioms = NONE}
     val time_limit =
       (case hard_timeout of
         NONE => I

@@ -38,22 +38,22 @@ fun string_for_outcome NONE = "Success."
 fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
                                name_thms_pairs =
   let
-    val num_theorems = length name_thms_pairs
+    val num_axioms = length name_thms_pairs
     val _ =
-      priority ("Testing " ^ string_of_int num_theorems ^
-                " theorem" ^ plural_s num_theorems ^
-                (if num_theorems > 0 then
+      priority ("Testing " ^ string_of_int num_axioms ^
+                " theorem" ^ plural_s num_axioms ^
+                (if num_axioms > 0 then
                    ": " ^ space_implode " "
                               (name_thms_pairs
                                |> map fst |> sort_distinct string_ord)
                  else
                    "") ^ "...")
-    val name_thm_pairs = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
+    val axioms = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
-      axiom_clauses = SOME name_thm_pairs}
+      axioms = SOME axioms}
   in
     prover params (K "") timeout problem
     |> tap (fn result : prover_result =>
