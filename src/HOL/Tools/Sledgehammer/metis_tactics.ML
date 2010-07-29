@@ -86,11 +86,11 @@ fun hol_term_to_fol_FO tm =
             val args   = map hol_term_to_fol_FO tms
         in Metis.Term.Fn (c, tyargs @ args) end
     | (CombVar ((v, _), _), []) => Metis.Term.Var v
-    | _ => raise Fail "hol_term_to_fol_FO";
+    | _ => raise METIS ("hol_term_to_fol_FO", "non first-order combterm")
 
-fun hol_term_to_fol_HO (CombVar ((s, _), _)) = Metis.Term.Var s
-  | hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
+fun hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
       Metis.Term.Fn (fn_isa_to_met a, map metis_term_from_combtyp tylist)
+  | hol_term_to_fol_HO (CombVar ((s, _), _)) = Metis.Term.Var s
   | hol_term_to_fol_HO (CombApp (tm1, tm2)) =
        Metis.Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
 
@@ -662,7 +662,7 @@ val helpers =
    ("c_False", (true, @{thms True_or_False})),
    ("c_If", (true, @{thms if_True if_False True_or_False}))]
 
-fun is_quasi_fol_clause thy =
+fun is_quasi_fol_clause thy th =
   Meson.is_fol_term thy o snd o conceal_skolem_terms ~1 [] o prop_of
 
 (* Function to generate metis clauses, including comb and type clauses *)
@@ -797,10 +797,8 @@ fun generic_metis_tac mode ctxt ths i st0 =
          if mode = HO then
            (warning ("Metis: Falling back on \"metisFT\".");
             generic_metis_tac FT ctxt ths i st0)
-         else if msg = "" then
-           Seq.empty
          else
-           raise error ("Metis (" ^ loc ^ "): " ^ msg)
+           Seq.empty
 
 val metis_tac = generic_metis_tac HO
 val metisF_tac = generic_metis_tac FO
