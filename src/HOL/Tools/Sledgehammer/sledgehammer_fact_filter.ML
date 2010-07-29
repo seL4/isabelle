@@ -340,7 +340,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
                            Symtab.empty
       val goal_const_tab = get_consts_typs thy (SOME true) goal_ts
-      val relevance_threshold = 0.9 * relevance_threshold (* FIXME *)
+      val relevance_threshold = 0.8 * relevance_threshold (* FIXME *)
       val _ =
         trace_msg (fn () => "Initial constants: " ^
                             commas (goal_const_tab

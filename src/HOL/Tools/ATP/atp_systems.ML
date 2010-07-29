@@ -139,7 +139,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   max_new_relevant_facts_per_iter = 80 (* FIXME *),
+   max_new_relevant_facts_per_iter = 90 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
 val e = ("e", e_config)
@@ -165,7 +165,7 @@ val spass_config : prover_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (OldSpass, "tptp2dfg")],
-   max_new_relevant_facts_per_iter = 26 (* FIXME *),
+   max_new_relevant_facts_per_iter = 35 (* FIXME *),
    prefers_theory_relevant = true,
    explicit_forall = true}
 val spass = ("spass", spass_config)
@@ -188,7 +188,7 @@ val vampire_config : prover_config =
       (IncompleteUnprovable, "CANNOT PROVE"),
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found")],
-   max_new_relevant_facts_per_iter = 40 (* FIXME *),
+   max_new_relevant_facts_per_iter = 50 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
 val vampire = ("vampire", vampire_config)
