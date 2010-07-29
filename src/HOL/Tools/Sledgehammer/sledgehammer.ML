@@ -236,8 +236,8 @@ fun presimplify_term thy =
   #> Meson.presimplify
   #> prop_of
 
-(* FIXME: Guarantee freshness *)
-fun concealed_bound_name j = "Sledgehammer" ^ Int.toString j
+(* Freshness almost guaranteed! *)
+fun concealed_bound_name j = das_Tool ^ Int.toString j
 fun conceal_bounds Ts t =
   subst_bounds (map (Free o apfst concealed_bound_name)
                     (length Ts - 1 downto 0 ~~ rev Ts), t)
@@ -282,6 +282,17 @@ fun introduce_combinators_in_term ctxt kind t =
            Axiom => HOLogic.true_const
          | Conjecture => HOLogic.false_const
 
+(* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
+   same in Sledgehammer to prevent the discovery of unreplable proofs. *)
+fun freeze_term t =
+  let
+    fun aux (t $ u) = aux t $ aux u
+      | aux (Abs (s, T, t)) = Abs (s, T, aux t)
+      | aux (Var ((s, i), T)) =
+        Free (das_Tool ^ "_" ^ s ^ "_" ^ string_of_int i, T)
+      | aux t = t
+  in t |> exists_subterm is_Var t ? aux end
+
 (* making axiom and conjecture formulas *)
 fun make_formula ctxt presimp (formula_name, kind, t) =
   let
@@ -293,6 +304,7 @@ fun make_formula ctxt presimp (formula_name, kind, t) =
               |> presimp ? presimplify_term thy
               |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
+              |> kind = Conjecture ? freeze_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
     FOLFormula {formula_name = formula_name, combformula = combformula,
