@@ -12,14 +12,6 @@ where
 
 code_pred append .
 
-ML {*
-  tracing (Code_Prolog.write_program (Code_Prolog.generate @{context} [@{const_name append}]))
-*}
-
-ML {*
-  Code_Prolog.run (Code_Prolog.generate @{context} [@{const_name append}]) "append" ["X", "Y", "Z"]
-*}
-
-values "{(x, y, z). append x y z}"
+values 3 "{((x::'b list), y, z). append x y z}"
 
 end
