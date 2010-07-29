@@ -231,6 +231,13 @@ fun extensionalize_term t =
       | aux _ t = t
   in aux (maxidx_of_term t + 1) t end
 
+fun presimplify_term thy =
+  HOLogic.mk_Trueprop
+  #> Skip_Proof.make_thm thy
+  #> Meson.presimplify
+  #> prop_of
+  #> HOLogic.dest_Trueprop
+
 (* FIXME: Guarantee freshness *)
 fun concealed_bound_name j = "Sledgehammer" ^ Int.toString j
 fun conceal_bounds Ts t =
@@ -278,14 +285,13 @@ fun introduce_combinators_in_term ctxt kind t =
          | Conjecture => HOLogic.false_const
 
 (* making axiom and conjecture formulas *)
-fun make_formula ctxt (formula_name, kind, t) =
+fun make_formula ctxt presimp (formula_name, kind, t) =
   let
     val thy = ProofContext.theory_of ctxt
-    (* ### FIXME: perform other transformations previously done by
-       "Clausifier.to_nnf", e.g. "HOL.If" *)
     val t = t |> transform_elim_term
               |> Object_Logic.atomize_term thy
               |> extensionalize_term
+              |> presimp ? presimplify_term thy
               |> introduce_combinators_in_term ctxt kind
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
@@ -293,10 +299,10 @@ fun make_formula ctxt (formula_name, kind, t) =
                 kind = kind, ctypes_sorts = ctypes_sorts}
   end
 
-fun make_axiom ctxt (name, th) =
-  (name, make_formula ctxt (name, Axiom, prop_of th))
+fun make_axiom ctxt presimp (name, th) =
+  (name, make_formula ctxt presimp (name, Axiom, prop_of th))
 fun make_conjectures ctxt ts =
-  map2 (fn j => fn t => make_formula ctxt (Int.toString j, Conjecture, t))
+  map2 (fn j => fn t => make_formula ctxt true (Int.toString j, Conjecture, t))
        (0 upto length ts - 1) ts
 
 (** Helper facts **)
@@ -335,7 +341,7 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
                  if exists is_needed ss then map (`Thm.get_name_hint) ths
                  else [])) @
     (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
-    |> map (snd o make_axiom ctxt)
+    |> map (snd o make_axiom ctxt false)
   end
 
 fun meta_not t = @{const "==>"} $ t $ @{prop False}
@@ -351,7 +357,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axcls =
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
     (* TFrees in the conjecture; TVars in the axioms *)
     val conjectures = map meta_not hyp_ts @ [concl_t] |> make_conjectures ctxt
-    val (clnames, axioms) = ListPair.unzip (map (make_axiom ctxt) axcls)
+    val (clnames, axioms) = ListPair.unzip (map (make_axiom ctxt true) axcls)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'

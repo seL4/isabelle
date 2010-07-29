@@ -14,6 +14,7 @@ sig
   val too_many_clauses: Proof.context option -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
+  val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
   val skolemize: Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
@@ -529,9 +530,12 @@ val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
     addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
 
+val presimplify =
+  rewrite_rule (map safe_mk_meta_eq nnf_simps)
+  #> simplify nnf_ss
+
 fun make_nnf ctxt th = case prems_of th of
-    [] => th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
-             |> simplify nnf_ss
+    [] => th |> presimplify
              |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
