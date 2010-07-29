@@ -263,22 +263,32 @@ hide_const (open) present get set alloc noteq lookup update change
 
 subsection {* Code generator setup *}
 
+text {* Intermediate operation avoids invariance problem in @{text Scala} (similiar to value restriction) *}
+
+definition ref' where
+  [code del]: "ref' = ref"
+
+lemma [code]:
+  "ref x = ref' x"
+  by (simp add: ref'_def)
+
+
 text {* SML *}
 
 code_type ref (SML "_/ Unsynchronized.ref")
 code_const Ref (SML "raise/ (Fail/ \"bare Ref\")")
-code_const ref (SML "(fn/ ()/ =>/ Unsynchronized.ref/ _)")
+code_const ref' (SML "(fn/ ()/ =>/ Unsynchronized.ref/ _)")
 code_const Ref.lookup (SML "(fn/ ()/ =>/ !/ _)")
 code_const Ref.update (SML "(fn/ ()/ =>/ _/ :=/ _)")
 
-code_reserved SML ref
+code_reserved SML Unsynchronized
 
 
 text {* OCaml *}
 
 code_type ref (OCaml "_/ ref")
 code_const Ref (OCaml "failwith/ \"bare Ref\"")
-code_const ref (OCaml "(fun/ ()/ ->/ ref/ _)")
+code_const ref' (OCaml "(fun/ ()/ ->/ ref/ _)")
 code_const Ref.lookup (OCaml "(fun/ ()/ ->/ !/ _)")
 code_const Ref.update (OCaml "(fun/ ()/ ->/ _/ :=/ _)")
 
@@ -289,7 +299,7 @@ text {* Haskell *}
 
 code_type ref (Haskell "Heap.STRef/ Heap.RealWorld/ _")
 code_const Ref (Haskell "error/ \"bare Ref\"")
-code_const ref (Haskell "Heap.newSTRef")
+code_const ref' (Haskell "Heap.newSTRef")
 code_const Ref.lookup (Haskell "Heap.readSTRef")
 code_const Ref.update (Haskell "Heap.writeSTRef")
 
@@ -298,7 +308,7 @@ text {* Scala *}
 
 code_type ref (Scala "!Ref[_]")
 code_const Ref (Scala "!error(\"bare Ref\")")
-code_const ref (Scala "('_: Unit)/ =>/ Ref((_))")
+code_const ref' (Scala "('_: Unit)/ =>/ Ref((_))")
 code_const Ref.lookup (Scala "('_: Unit)/ =>/ Ref.lookup((_))")
 code_const Ref.update (Scala "('_: Unit)/ =>/ Ref.update((_), (_))")
 
