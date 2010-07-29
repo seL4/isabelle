@@ -2,6 +2,7 @@
 #
 # Wrapper for custom remote provers on SystemOnTPTP
 # Author: Fabian Immler, TU Muenchen
+# Author: Jasmin Blanchette, TU Muenchen
 #
 
 use warnings;
@@ -28,14 +29,14 @@ getopts("hws:t:c:",\%Options);
 
 #----Usage
 sub usage() {
-  print("Usage: remote_atp [<options>] <File name>\n");
-  print("    <options> are ...\n");
-  print("    -h            - print this help\n");
-  print("    -w            - list available ATP systems\n");
-  print("    -s<system>    - specified system to use\n");
-  print("    -t<timelimit> - CPU time limit for system\n");
-  print("    -c<command>   - custom command for system\n");
-  print("    <File name>   - TPTP problem file\n");
+  print("Usage: remote_atp [<options>] <file_name>\n");
+  print("Options:\n");
+  print("    -h              print this help\n");
+  print("    -w              list available ATPs\n");
+  print("    -s<system>      ATP to use\n");
+  print("    -t<time_limit>  CPU time limit for ATP\n");
+  print("    -c<command>     custom ATP invocation command\n");
+  print("    <file_name>     TPTP problem file\n");
   exit(0);
 }
 if (exists($Options{'h'})) {
@@ -95,13 +96,15 @@ my $Response = $Agent->request($Request);
 
 #catch errors / failure
 if(!$Response->is_success) {
-  print "HTTP-Error: " . $Response->message . "\n";
+  my $message = $Response->message;
+  $message =~ s/ \(Bad hostname ['"][^'"]*['"]\)//;
+  print $message . "\n";
   exit(-1);
 } elsif (exists($Options{'w'})) {
   print $Response->content;
   exit (0);
 } elsif ($Response->content =~ /WARNING: (\S*) does not exist/) {
-  print "Specified System $1 does not exist\n";
+  print "The ATP \"$1\" is not available at SystemOnTPTP\n";
   exit(-1);
 } else {
   print $Response->content;

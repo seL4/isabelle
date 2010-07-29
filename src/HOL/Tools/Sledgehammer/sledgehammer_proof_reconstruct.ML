@@ -66,8 +66,7 @@ fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
-val index_in_shape : int -> int list list -> int =
-  find_index o exists o curry (op =)
+fun index_in_shape x = find_index (exists (curry (op =) x))
 fun is_axiom_clause_number thm_names num =
   num > 0 andalso num <= Vector.length thm_names andalso
   Vector.sub (thm_names, num - 1) <> ""
@@ -133,7 +132,8 @@ and parse_annotations x =
    which can be hard to disambiguate from function application in an LL(1)
    parser. As a workaround, we extend the TPTP term syntax with such detritus
    and ignore it. *)
-val parse_vampire_detritus = scan_integer |-- $$ ":" --| scan_integer >> K []
+fun parse_vampire_detritus x =
+  (scan_integer |-- $$ ":" --| scan_integer >> K []) x
 
 fun parse_term pool x =
   ((scan_dollar_name >> repair_name pool)

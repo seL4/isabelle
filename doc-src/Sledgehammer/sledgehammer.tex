@@ -147,7 +147,12 @@ in it.
 Vampire executable from somewhere (e.g., \url{http://www.vprover.org/}),
 set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
-\texttt{SPASS}, or \texttt{vampire} executable.
+\texttt{SPASS}, or \texttt{vampire} executable. Sledgehammer has been tested
+with E 1.0 and 1.2, SPASS 3.5 and 3.7, and Vampire 1.0%
+\footnote{Following the rewrite of Vampire, the counter for version numbers was
+reset to 0; hence the new Vampire 1.0 is more recent than Vampire 11.5.}%
+. Since the ATPs' output formats are neither documented nor stable, other
+versions of the ATPs might or might not work well with Sledgehammer.
 \end{enum}
 
 To check whether E and SPASS are installed, follow the example in

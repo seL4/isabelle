@@ -148,41 +148,16 @@ fun extract_proof delims output =
 
 fun extract_proof_and_outcome complete res_code proof_delims known_failures
                               output =
-  case map_filter (fn (failure, pattern) =>
-                      if String.isSubstring pattern output then SOME failure
-                      else NONE) known_failures of
-    [] => (case extract_proof proof_delims output of
-             "" => ("", SOME UnknownError)
+  case known_failure_in_output output known_failures of
+    NONE => (case extract_proof proof_delims output of
+             "" => ("", SOME MalformedOutput)
            | proof => if res_code = 0 then (proof, NONE)
                       else ("", SOME UnknownError))
-  | (failure :: _) =>
+  | SOME failure =>
     ("", SOME (if failure = IncompleteUnprovable andalso complete then
                  Unprovable
                else
                  failure))
-
-fun string_for_failure Unprovable = "The ATP problem is unprovable."
-  | string_for_failure IncompleteUnprovable =
-    "The ATP cannot prove the problem."
-  | string_for_failure CantConnect = "Can't connect to remote ATP."
-  | string_for_failure TimedOut = "Timed out."
-  | string_for_failure OutOfResources = "The ATP ran out of resources."
-  | string_for_failure OldSpass =
-    (* FIXME: Change the error message below to point to the Isabelle download
-       page once the package is there. *)
-    "Warning: Sledgehammer requires a more recent version of SPASS with \
-    \support for the TPTP syntax. To install it, download and untar the \
-    \package \"http://isabelle.in.tum.de/~blanchet/spass-3.7.tgz\" and add the \
-    \\"spass-3.7\" directory's full path to \"" ^
-    Path.implode (Path.expand (Path.appends
-        (Path.variable "ISABELLE_HOME_USER" ::
-         map Path.basic ["etc", "components"]))) ^
-    "\" on a line of its own."
-  | string_for_failure MalformedInput =
-    "Internal Sledgehammer error: The ATP problem is malformed. Please report \
-    \this to the Isabelle developers."
-  | string_for_failure MalformedOutput = "Error: The ATP output is malformed."
-  | string_for_failure UnknownError = "Error: An unknown ATP error occurred."
 
 
 (* Clause preparation *)

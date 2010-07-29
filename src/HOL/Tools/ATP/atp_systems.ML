@@ -9,7 +9,8 @@ signature ATP_SYSTEMS =
 sig
   datatype failure =
     Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
-    OutOfResources | OldSpass | MalformedInput | MalformedOutput | UnknownError
+    OutOfResources | OldSpass | NoPerl | NoLibwwwPerl | MalformedInput |
+    MalformedOutput | UnknownError
 
   type prover_config =
     {executable: string * string,
@@ -21,6 +22,9 @@ sig
      prefers_theory_relevant: bool,
      explicit_forall: bool}
 
+  val string_for_failure : failure -> string
+  val known_failure_in_output :
+    string -> (failure * string) list -> failure option
   val add_prover: string * prover_config -> theory -> theory
   val get_prover: theory -> string -> prover_config
   val available_atps: theory -> unit
@@ -35,8 +39,9 @@ struct
 (* prover configuration *)
 
 datatype failure =
-  Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
-  OldSpass | MalformedInput | MalformedOutput | UnknownError
+    Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
+    OutOfResources | OldSpass | NoPerl | NoLibwwwPerl | MalformedInput |
+    MalformedOutput | UnknownError
 
 type prover_config =
   {executable: string * string,
@@ -48,6 +53,41 @@ type prover_config =
    prefers_theory_relevant: bool,
    explicit_forall: bool}
 
+val missing_message_tail =
+  " appears to be missing. You will need to install it if you want to run \
+  \ATPs remotely."
+
+fun string_for_failure Unprovable = "The ATP problem is unprovable."
+  | string_for_failure IncompleteUnprovable =
+    "The ATP cannot prove the problem."
+  | string_for_failure CantConnect = "Can't connect to remote ATP."
+  | string_for_failure TimedOut = "Timed out."
+  | string_for_failure OutOfResources = "The ATP ran out of resources."
+  | string_for_failure OldSpass =
+    "Warning: Isabelle requires a more recent version of SPASS with \
+    \support for the TPTP syntax. To install it, download and extract the \
+    \package \"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and \
+    \add the \"spass-3.7\" directory's absolute path to " ^
+    quote (Path.implode (Path.expand (Path.appends
+               (Path.variable "ISABELLE_HOME_USER" ::
+                map Path.basic ["etc", "components"])))) ^
+    " on a line of its own."
+  | string_for_failure NoPerl = "Perl" ^ missing_message_tail
+  | string_for_failure NoLibwwwPerl =
+    "The Perl module \"libwww-perl\"" ^ missing_message_tail
+  | string_for_failure MalformedInput =
+    "Internal Isabelle error: The ATP problem is malformed. Please report \
+    \this to the Isabelle developers."
+  | string_for_failure MalformedOutput = "Error: The ATP output is malformed."
+  | string_for_failure UnknownError = "Error: An unknown ATP error occurred."
+
+fun known_failure_in_output output =
+  find_first (fn (_, pattern) => String.isSubstring pattern output)
+  #> Option.map fst
+
+val known_perl_failures =
+  [(NoPerl, "env: perl"),
+   (NoLibwwwPerl, "Can't locate HTTP")]
 
 (* named provers *)
 
@@ -118,6 +158,7 @@ val spass_config : prover_config =
      |> not complete ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
+     known_perl_failures @
      [(IncompleteUnprovable, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
@@ -154,14 +195,15 @@ val vampire = ("vampire", vampire_config)
 
 (* Remote prover invocation via SystemOnTPTP *)
 
-val systems = Synchronized.var "atp_systems" ([]: string list)
+val systems = Synchronized.var "atp_systems" ([] : string list)
 
 fun get_systems () =
-  case bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w" of
+  case bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
     (answer, 0) => split_lines answer
   | (answer, _) =>
-    error ("Failed to get available systems at SystemOnTPTP:\n" ^
-           perhaps (try (unsuffix "\n")) answer)
+    error (case known_failure_in_output answer known_perl_failures of
+             SOME failure => string_for_failure failure
+           | NONE => perhaps (try (unsuffix "\n")) answer ^ ".")
 
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
@@ -175,11 +217,6 @@ fun the_system prefix =
     NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP.")
   | SOME sys => sys);
 
-val remote_known_failures =
-  [(CantConnect, "HTTP-Error"),
-   (TimedOut, "says Timeout"),
-   (MalformedOutput, "Remote script could not extract proof")]
-
 fun remote_config atp_prefix
         ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
           prefers_theory_relevant, explicit_forall, ...} : prover_config)
@@ -190,7 +227,10 @@ fun remote_config atp_prefix
      " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
      the_system atp_prefix,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
-   known_failures = remote_known_failures @ known_failures,
+   known_failures =
+     known_failures @ known_perl_failures @
+     [(CantConnect, "HTTP-Error"),
+      (TimedOut, "says Timeout")],
    max_new_relevant_facts_per_iter = max_new_relevant_facts_per_iter,
    prefers_theory_relevant = prefers_theory_relevant,
    explicit_forall = explicit_forall}
