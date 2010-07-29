@@ -79,24 +79,24 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
         val arg_typs' = if is_pat orelse
           (is_none (syntax_const c) andalso is_singleton_constr c) then [] else arg_typs;
         val (l, print') = case syntax_const c
-         of NONE => (args_num c, fn ts => applify "(" ")"
+         of NONE => (args_num c, fn fxy => fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
                   NOBR ((str o deresolve) c) arg_typs') ts)
-          | SOME (Plain_const_syntax (k, s)) => (k, fn ts => applify "(" ")"
+          | SOME (Plain_const_syntax (k, s)) => (k, fn fxy => fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
                   NOBR (str s) arg_typs') ts)
           | SOME (Complex_const_syntax (k, print)) =>
-              (k, fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
+              (k, fn fxy => fn ts => print (print_term tyvars is_pat some_thm) some_thm vars fxy
                 (ts ~~ take k function_typs))
-      in if k = l then print' ts
+      in if k = l then print' fxy ts
       else if k < l then
         print_term tyvars is_pat some_thm vars fxy (Code_Thingol.eta_expand l app)
       else let
         val (ts1, ts23) = chop l ts;
       in
-        Pretty.block (print' ts1 :: map (fn t => Pretty.block
+        Pretty.block (print' BR ts1 :: map (fn t => Pretty.block
           [str ".apply(", print_term tyvars is_pat some_thm vars NOBR t, str ")"]) ts23)
       end end
     and print_bind tyvars some_thm fxy p =
@@ -104,17 +104,19 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
     and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
-            fun print_match ((pat, ty), t) vars =
-              vars
-              |> print_bind tyvars some_thm BR pat
-              |>> (fn p => concat [str "val", constraint p (print_typ tyvars NOBR ty),
-                  str "=", print_term tyvars false some_thm vars NOBR t])
-            val (all_ps, vars') = fold_map print_match binds vars;
-            val (ps, p) = split_last all_ps;
-          in brackify_block fxy
-            (str "{")
-            (ps @ Pretty.block [p, str ";"] @@ print_term tyvars false some_thm vars' NOBR body)
-            (str "}")
+            fun print_match ((IVar NONE, _), t) vars =
+                  ((true, print_term tyvars false some_thm vars NOBR t), vars)
+              | print_match ((pat, ty), t) vars =
+                  vars
+                  |> print_bind tyvars some_thm BR pat
+                  |>> (fn p => (false, concat [str "val", constraint p (print_typ tyvars NOBR ty),
+                      str "=", print_term tyvars false some_thm vars NOBR t]))
+            val (seps_ps, vars') = fold_map print_match binds vars;
+            val all_seps_ps = seps_ps @ [(true, print_term tyvars false some_thm vars' NOBR body)];
+            fun insert_seps [(_, p)] = [p]
+              | insert_seps ((_, p) :: (seps_ps as (sep, _) :: _)) =
+                  (if sep then Pretty.block [p, str ";"] else p) :: insert_seps seps_ps
+          in brackify_block fxy (str "{") (insert_seps all_seps_ps) (str "}")
           end
       | print_case tyvars some_thm vars fxy (((t, ty), clauses as _ :: _), _) =
           let
