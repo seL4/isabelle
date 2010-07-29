@@ -764,12 +764,11 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                     (_,ith)::_ =>
                         (trace_msg (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
                          [ith])
-                  | _ => (trace_msg (fn () => "Metis: No result");
-                          raise METIS ("FOL_SOLVE", ""))
+                  | _ => (trace_msg (fn () => "Metis: No result"); [])
             end
         | Metis.Resolution.Satisfiable _ =>
             (trace_msg (fn () => "Metis: No first-order proof with the lemmas supplied");
-             raise METIS ("FOL_SOLVE", ""))
+             [])
   end;
 
 val type_has_top_sort =
