@@ -338,8 +338,7 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
     |> map (snd o make_axiom ctxt)
   end
 
-fun s_not (@{const Not} $ t) = t
-  | s_not t = @{const Not} $ t
+fun meta_not t = @{const "==>"} $ t $ @{prop False}
 
 fun prepare_formulas ctxt full_types hyp_ts concl_t axcls =
   let
@@ -351,10 +350,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axcls =
     val supers = tvar_classes_of_terms axtms
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
     (* TFrees in the conjecture; TVars in the axioms *)
-    val conjectures =
-      map (s_not o HOLogic.dest_Trueprop) hyp_ts @
-      [HOLogic.dest_Trueprop concl_t]
-      |> make_conjectures ctxt
+    val conjectures = map meta_not hyp_ts @ [concl_t] |> make_conjectures ctxt
     val (clnames, axioms) = ListPair.unzip (map (make_axiom ctxt) axcls)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
