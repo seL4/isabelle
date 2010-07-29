@@ -672,9 +672,9 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 (* generic TPTP-based provers *)
 
 fun prover_fun name
-        {executable, required_executables, arguments, proof_delims,
-         known_failures, max_new_relevant_facts_per_iter,
-         prefers_theory_relevant, explicit_forall}
+        {exec, required_execs, arguments, proof_delims, known_failures,
+         max_new_relevant_facts_per_iter, prefers_theory_relevant,
+         explicit_forall}
         ({debug, overlord, full_types, explicit_apply, relevance_threshold,
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
           isar_shrink_factor, ...} : params)
@@ -713,7 +713,7 @@ fun prover_fun name
         else error ("No such directory: " ^ the_dest_dir ^ ".")
       end;
 
-    val command = Path.explode (getenv (fst executable) ^ "/" ^ snd executable)
+    val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
     (* write out problem file and call prover *)
     fun command_line complete probfile =
       let
@@ -737,8 +737,7 @@ fun prover_fun name
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
     fun run_on probfile =
-      case filter (curry (op =) "" o getenv o fst)
-                  (executable :: required_executables) of
+      case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
         (home_var, _) :: _ =>
         error ("The environment variable " ^ quote home_var ^ " is not set.")
       | [] =>

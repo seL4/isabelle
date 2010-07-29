@@ -13,8 +13,8 @@ sig
     MalformedOutput | UnknownError
 
   type prover_config =
-    {executable: string * string,
-     required_executables: (string * string) list,
+    {exec: string * string,
+     required_execs: (string * string) list,
      arguments: bool -> Time.time -> string,
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
@@ -44,8 +44,8 @@ datatype failure =
     MalformedOutput | UnknownError
 
 type prover_config =
-  {executable: string * string,
-   required_executables: (string * string) list,
+  {exec: string * string,
+   required_execs: (string * string) list,
    arguments: bool -> Time.time -> string,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
@@ -124,8 +124,8 @@ val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
 val e_config : prover_config =
-  {executable = ("E_HOME", "eproof"),
-   required_executables = [],
+  {exec = ("E_HOME", "eproof"),
+   required_execs = [],
    arguments = fn _ => fn timeout =>
      "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^
      string_of_int (to_generous_secs timeout),
@@ -148,8 +148,8 @@ val e = ("e", e_config)
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
-  {executable = ("ISABELLE_ATP", "scripts/spass"),
-   required_executables = [("SPASS_HOME", "SPASS")],
+  {exec = ("ISABELLE_ATP", "scripts/spass"),
+   required_execs = [("SPASS_HOME", "SPASS")],
    (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
@@ -173,8 +173,8 @@ val spass = ("spass", spass_config)
 (* Vampire *)
 
 val vampire_config : prover_config =
-  {executable = ("VAMPIRE_HOME", "vampire"),
-   required_executables = [],
+  {exec = ("VAMPIRE_HOME", "vampire"),
+   required_execs = [],
    arguments = fn _ => fn timeout =>
      "--mode casc -t " ^ string_of_int (to_generous_secs timeout) ^
      " --input_file ",
@@ -186,6 +186,7 @@ val vampire_config : prover_config =
    known_failures =
      [(Unprovable, "UNPROVABLE"),
       (IncompleteUnprovable, "CANNOT PROVE"),
+      (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found")],
    max_new_relevant_facts_per_iter = 50 (* FIXME *),
@@ -221,8 +222,8 @@ fun remote_config atp_prefix
         ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
           prefers_theory_relevant, explicit_forall, ...} : prover_config)
         : prover_config =
-  {executable = ("ISABELLE_ATP", "scripts/remote_atp"),
-   required_executables = [],
+  {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
+   required_execs = [],
    arguments = fn _ => fn timeout =>
      " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
      the_system atp_prefix,
@@ -243,8 +244,8 @@ fun remote_prover (name, config) atp_prefix =
 val remote_e = remote_prover e "EP---"
 val remote_vampire = remote_prover vampire "Vampire---9"
 
-fun is_installed ({executable, required_executables, ...} : prover_config) =
-  forall (curry (op <>) "" o getenv o fst) (executable :: required_executables)
+fun is_installed ({exec, required_execs, ...} : prover_config) =
+  forall (curry (op <>) "" o getenv o fst) (exec :: required_execs)
 fun maybe_remote (name, config) =
   name |> not (is_installed config) ? remote_name
 

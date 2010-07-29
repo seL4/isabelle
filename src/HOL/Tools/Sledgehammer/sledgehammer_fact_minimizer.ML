@@ -18,6 +18,7 @@ end;
 structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
 struct
 
+open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
@@ -26,38 +27,40 @@ open Sledgehammer
 (* wrapper for calling external prover *)
 
 fun string_for_failure Unprovable = "Unprovable."
-  | string_for_failure IncompleteUnprovable = "Failed."
   | string_for_failure TimedOut = "Timed out."
-  | string_for_failure OutOfResources = "Failed."
-  | string_for_failure OldSpass = "Error."
-  | string_for_failure MalformedOutput = "Error."
-  | string_for_failure UnknownError = "Failed."
-fun string_for_outcome NONE = "Success."
-  | string_for_outcome (SOME failure) = string_for_failure failure
+  | string_for_failure _ = "Unknown error."
 
-fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
-                               name_thms_pairs =
+fun n_theorems name_thms_pairs =
+  let val n = length name_thms_pairs in
+    string_of_int n ^ " theorem" ^ plural_s n ^
+    (if n > 0 then
+       ": " ^ space_implode " " (sort_distinct string_ord name_thms_pairs)
+     else
+       "")
+  end
+
+fun sledgehammer_test_theorems (params : params) (prover : prover) timeout
+                               subgoal state name_thms_pairs =
   let
-    val num_axioms = length name_thms_pairs
     val _ =
-      priority ("Testing " ^ string_of_int num_axioms ^
-                " theorem" ^ plural_s num_axioms ^
-                (if num_axioms > 0 then
-                   ": " ^ space_implode " "
-                              (name_thms_pairs
-                               |> map fst |> sort_distinct string_ord)
-                 else
-                   "") ^ "...")
+      priority ("Testing " ^ n_theorems (map fst name_thms_pairs) ^ "...")
     val axioms = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
       axioms = SOME axioms}
+    val result as {outcome, used_thm_names, ...} =
+      prover params (K "") timeout problem
   in
-    prover params (K "") timeout problem
-    |> tap (fn result : prover_result =>
-         priority (string_for_outcome (#outcome result)))
+    priority (case outcome of
+                NONE =>
+                if length used_thm_names = length name_thms_pairs then
+                  "Found proof."
+                else
+                  "Found proof with " ^ n_theorems used_thm_names ^ "."
+              | SOME failure => string_for_failure failure);
+    result
   end
 
 (* minimalization of thms *)
@@ -73,29 +76,40 @@ fun sublinear_minimize _ [] p = p
                          (filter_used_facts used_thm_names seen, result)
     | _ => sublinear_minimize test xs (x :: seen, result)
 
-fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
-                                  isar_proof, isar_shrink_factor, ...})
-                      i n state name_thms_pairs =
+(* Give the ATP some slack. The ATP gets further slack because the Sledgehammer
+   preprocessing time is included in the estimate below but isn't part of the
+   timeout. *)
+val fudge_msecs = 250
+
+fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
+  | minimize_theorems
+        (params as {debug, verbose, overlord, atps as atp :: _, full_types,
+                    explicit_apply, relevance_threshold, relevance_convergence,
+                    theory_relevant, defs_relevant, isar_proof,
+                    isar_shrink_factor, minimize_timeout, ...})
+        i n state name_thms_pairs =
   let
     val thy = Proof.theory_of state
-    val prover = case atps of
-                   [atp_name] => get_prover_fun thy atp_name
-                 | _ => error "Expected a single ATP."
+    val prover = get_prover_fun thy atp
     val msecs = Time.toMilliseconds minimize_timeout
     val _ =
-      priority ("Sledgehammer minimizer: ATP " ^ quote (the_single atps) ^
+      priority ("Sledgehammer minimizer: ATP " ^ quote atp ^
                 " with a time limit of " ^ string_of_int msecs ^ " ms.")
-    val test_facts =
-      sledgehammer_test_theorems params prover minimize_timeout i state
-    val {context = ctxt, goal, ...} = Proof.goal state;
+    fun test_facts timeout =
+      sledgehammer_test_theorems params prover timeout i state
+    val {context = ctxt, goal, ...} = Proof.goal state
+    val timer = Timer.startRealTimer ()
   in
-    (* FIXME: merge both "test_facts" calls *)
-    (case test_facts name_thms_pairs of
+    (case test_facts minimize_timeout name_thms_pairs of
        result as {outcome = NONE, pool, used_thm_names,
                   conjecture_shape, ...} =>
        let
+         val time = Timer.checkRealTimer timer
+         val new_timeout =
+           Int.min (msecs, Time.toMilliseconds time + fudge_msecs)
+           |> Time.fromMilliseconds
          val (min_thms, {proof, internal_thm_names, ...}) =
-           sublinear_minimize test_facts
+           sublinear_minimize (test_facts new_timeout)
                (filter_used_facts used_thm_names name_thms_pairs) ([], result)
          val m = length min_thms
          val _ = priority (cat_lines
