@@ -60,7 +60,7 @@ val missing_message_tail =
 fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure IncompleteUnprovable =
     "The ATP cannot prove the problem."
-  | string_for_failure CantConnect = "Can't connect to remote ATP."
+  | string_for_failure CantConnect = "Can't connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
   | string_for_failure OldSpass =
@@ -86,7 +86,8 @@ fun known_failure_in_output output =
   #> Option.map fst
 
 val known_perl_failures =
-  [(NoPerl, "env: perl"),
+  [(CantConnect, "HTTP error"),
+   (NoPerl, "env: perl"),
    (NoLibwwwPerl, "Can't locate HTTP")]
 
 (* named provers *)
@@ -154,7 +155,7 @@ val spass_config : prover_config =
    arguments = fn complete => fn timeout =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^
-      string_of_int (to_generous_secs timeout div 2))
+      string_of_int ((to_generous_secs timeout + 1) div 2))
      |> not complete ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
@@ -230,8 +231,7 @@ fun remote_config atp_prefix
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
      known_failures @ known_perl_failures @
-     [(CantConnect, "HTTP-Error"),
-      (TimedOut, "says Timeout")],
+     [(TimedOut, "says Timeout")],
    max_new_relevant_facts_per_iter = max_new_relevant_facts_per_iter,
    prefers_theory_relevant = prefers_theory_relevant,
    explicit_forall = explicit_forall}

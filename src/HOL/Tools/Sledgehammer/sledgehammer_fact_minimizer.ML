@@ -115,9 +115,13 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          val (min_thms, {proof, internal_thm_names, ...}) =
            sublinear_minimize (test_facts new_timeout)
                (filter_used_facts used_thm_names name_thms_pairs) ([], result)
-         val m = length min_thms
+         val n = length min_thms
          val _ = priority (cat_lines
-           ["Minimized: " ^ string_of_int m ^ " theorem" ^ plural_s m] ^ ".")
+           ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^
+            (case filter (String.isPrefix chained_prefix o fst) min_thms of
+               [] => ""
+             | chained => " (including " ^ Int.toString (length chained) ^
+                          " chained)") ^ ".")
        in
          (SOME min_thms,
           proof_text isar_proof

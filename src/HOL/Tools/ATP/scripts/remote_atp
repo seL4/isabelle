@@ -98,7 +98,7 @@ my $Response = $Agent->request($Request);
 if(!$Response->is_success) {
   my $message = $Response->message;
   $message =~ s/ \(Bad hostname ['"][^'"]*['"]\)//;
-  print $message . "\n";
+  print "HTTP error: " . $message . "\n";
   exit(-1);
 } elsif (exists($Options{'w'})) {
   print $Response->content;
