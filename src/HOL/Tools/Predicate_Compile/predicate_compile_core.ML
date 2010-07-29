@@ -27,6 +27,7 @@ sig
   val all_modes_of : compilation -> Proof.context -> (string * mode list) list
   val all_random_modes_of : Proof.context -> (string * mode list) list
   val intros_of : Proof.context -> string -> thm list
+  val intros_graph_of : Proof.context -> thm list Graph.T
   val add_intro : thm -> theory -> theory
   val set_elim : thm -> theory -> theory
   val register_alternative_function : string -> mode -> string -> theory -> theory
@@ -294,6 +295,9 @@ val predfun_intro_of = #intro ooo the_predfun_data
 val predfun_elim_of = #elim ooo the_predfun_data
 
 val predfun_neg_intro_of = #neg_intro ooo the_predfun_data
+
+val intros_graph_of =
+  Graph.map_nodes (#intros o rep_pred_data) o PredData.get o ProofContext.theory_of
 
 (* diagnostic display functions *)
 
