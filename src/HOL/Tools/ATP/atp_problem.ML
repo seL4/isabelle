@@ -49,9 +49,10 @@ type 'a problem = (string * 'a problem_line list) list
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
 fun string_for_term (ATerm (s, [])) = s
+  | string_for_term (ATerm ("equal", ts)) =
+    space_implode " = " (map string_for_term ts)
   | string_for_term (ATerm (s, ts)) =
-    if s = "equal" then space_implode " = " (map string_for_term ts)
-    else s ^ "(" ^ commas (map string_for_term ts) ^ ")"
+    s ^ "(" ^ commas (map string_for_term ts) ^ ")"
 fun string_for_quantifier AForall = "!"
   | string_for_quantifier AExists = "?"
 fun string_for_connective ANot = "~"

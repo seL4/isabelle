@@ -382,16 +382,14 @@ fun fo_term_for_combterm full_types =
         val (x, ty_args) =
           case head of
             CombConst (name as (s, s'), _, ty_args) =>
-            if top_level then
-              if s = "equal" then
-                (if length args = 2 then name
-                 else ("c_fequal", @{const_name fequal}), [])
-              else if s = "c_False" then
-                (("$false", s'), [])
-              else if s = "c_True" then
-                (("$true", s'), [])
-              else
-                (name, if full_types then [] else ty_args)
+            if s = "equal" then
+              (if top_level andalso length args = 2 then name
+               else ("c_fequal", @{const_name fequal}), [])
+            else if top_level then
+              case s of
+                "c_False" => (("$false", s'), [])
+              | "c_True" => (("$true", s'), [])
+              | _ => (name, if full_types then [] else ty_args)
             else
               (name, if full_types then [] else ty_args)
           | CombVar (name, _) => (name, [])
