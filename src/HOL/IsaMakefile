@@ -1320,7 +1320,8 @@ HOL-Predicate_Compile_Examples: HOL $(LOG)/HOL-Predicate_Compile_Examples.gz
 $(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL			\
   Predicate_Compile_Examples/ROOT.ML					\
   Predicate_Compile_Examples/Predicate_Compile_Examples.thy		\
-  Predicate_Compile_Examples/Predicate_Compile_Quickcheck_Examples.thy
+  Predicate_Compile_Examples/Predicate_Compile_Quickcheck_Examples.thy  \
+  Predicate_Compile_Examples/Code_Prolog_Examples.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Predicate_Compile_Examples
 
 
