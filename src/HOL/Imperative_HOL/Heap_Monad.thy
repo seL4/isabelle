@@ -521,11 +521,10 @@ fun imp_program naming =
     val is_bind = is_const @{const_name bind};
     val is_return = is_const @{const_name return};
     val dummy_name = "";
-    val dummy_type = ITyVar dummy_name;
     val dummy_case_term = IVar NONE;
     (*assumption: dummy values are not relevant for serialization*)
-    val unitt = case lookup_const naming @{const_name Unity}
-     of SOME unit' => IConst (unit', (([], []), []))
+    val (unitt, unitT) = case lookup_const naming @{const_name Unity}
+     of SOME unit' => (IConst (unit', (([], []), [])), the (lookup_tyco naming @{type_name unit}) `%% [])
       | NONE => error ("Must include " ^ @{const_name Unity} ^ " in generated constants.");
     fun dest_abs ((v, ty) `|=> t, _) = ((v, ty), t)
       | dest_abs (t, ty) =
@@ -546,7 +545,7 @@ fun imp_program naming =
               then tr_bind' [(x1, ty1), (x2, ty2)]
               else force t
           | _ => force t;
-    fun imp_monad_bind'' ts = (SOME dummy_name, dummy_type) `|=> ICase (((IVar (SOME dummy_name), dummy_type),
+    fun imp_monad_bind'' ts = (SOME dummy_name, unitT) `|=> ICase (((IVar (SOME dummy_name), unitT),
       [(unitt, tr_bind' ts)]), dummy_case_term)
     and imp_monad_bind' (const as (c, (_, tys))) ts = if is_bind c then case (ts, tys)
        of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
