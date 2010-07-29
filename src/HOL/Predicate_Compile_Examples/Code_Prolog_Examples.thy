@@ -20,4 +20,6 @@ ML {*
   Code_Prolog.run (Code_Prolog.generate @{context} [@{const_name append}]) "append" ["X", "Y", "Z"]
 *}
 
+values "{(x, y, z). append x y z}"
+
 end
