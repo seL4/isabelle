@@ -69,7 +69,12 @@ open Sledgehammer_Proof_Reconstruct
 
 (** The Sledgehammer **)
 
+(* Identifier to distinguish Sledgehammer from other tools using
+   "Async_Manager". *)
 val das_Tool = "Sledgehammer"
+
+(* Freshness almost guaranteed! *)
+val sledgehammer_weak_prefix = "Sledgehammer:"
 
 fun kill_atps () = Async_Manager.kill_threads das_Tool "ATPs"
 fun running_atps () = Async_Manager.running_threads das_Tool "ATPs"
@@ -234,11 +239,10 @@ fun presimplify_term thy =
   #> Meson.presimplify
   #> prop_of
 
-(* Freshness almost guaranteed! *)
-fun concealed_bound_name j = das_Tool ^ Int.toString j
+fun concealed_bound_name j = sledgehammer_weak_prefix ^ Int.toString j
 fun conceal_bounds Ts t =
   subst_bounds (map (Free o apfst concealed_bound_name)
-                    (length Ts - 1 downto 0 ~~ rev Ts), t)
+                    (0 upto length Ts - 1 ~~ Ts), t)
 fun reveal_bounds Ts =
   subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
                     (0 upto length Ts - 1 ~~ Ts))
@@ -287,7 +291,7 @@ fun freeze_term t =
     fun aux (t $ u) = aux t $ aux u
       | aux (Abs (s, T, t)) = Abs (s, T, aux t)
       | aux (Var ((s, i), T)) =
-        Free (das_Tool ^ "_" ^ s ^ "_" ^ string_of_int i, T)
+        Free (sledgehammer_weak_prefix ^ s ^ "_" ^ string_of_int i, T)
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
