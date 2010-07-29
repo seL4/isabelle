@@ -88,8 +88,8 @@ val negated_alias_params =
    ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "full_types", "explicit_apply",
-   "isar_proof", "isar_shrink_factor", "minimize_timeout"]
+  ["debug", "verbose", "overlord", "full_types", "isar_proof",
+   "isar_shrink_factor", "minimize_timeout"]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 

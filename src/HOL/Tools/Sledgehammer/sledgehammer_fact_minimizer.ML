@@ -42,11 +42,23 @@ fun n_theorems name_thms_pairs =
        "")
   end
 
-fun sledgehammer_test_theorems (params : params) (prover : prover) timeout
-                               subgoal state name_thms_pairs =
+fun test_theorems ({debug, verbose, overlord, atps, full_types,
+                    relevance_threshold, relevance_convergence, theory_relevant,
+                    defs_relevant, isar_proof, isar_shrink_factor,
+                    ...} : params)
+                  (prover : prover) explicit_apply timeout subgoal state
+                  name_thms_pairs =
   let
     val _ =
       priority ("Testing " ^ n_theorems (map fst name_thms_pairs) ^ "...")
+    val params =
+      {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
+       full_types = full_types, explicit_apply = explicit_apply,
+       relevance_threshold = relevance_threshold,
+       relevance_convergence = relevance_convergence,
+       theory_relevant = theory_relevant, defs_relevant = defs_relevant,
+       isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+       timeout = timeout, minimize_timeout = timeout}
     val axioms = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
@@ -54,7 +66,7 @@ fun sledgehammer_test_theorems (params : params) (prover : prover) timeout
       relevance_override = {add = [], del = [], only = false},
       axioms = SOME axioms}
     val result as {outcome, used_thm_names, ...} =
-      prover params (K "") timeout problem
+      prover params (K "") problem
   in
     priority (case outcome of
                 NONE =>
@@ -88,9 +100,9 @@ val fudge_msecs = 250
 fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
   | minimize_theorems
         (params as {debug, verbose, overlord, atps as atp :: _, full_types,
-                    explicit_apply, relevance_threshold, relevance_convergence,
-                    theory_relevant, defs_relevant, isar_proof,
-                    isar_shrink_factor, minimize_timeout, ...})
+                    relevance_threshold, relevance_convergence, theory_relevant,
+                    defs_relevant, isar_proof, isar_shrink_factor,
+                    minimize_timeout, ...})
         i n state name_thms_pairs =
   let
     val thy = Proof.theory_of state
@@ -99,12 +111,16 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
     val _ =
       priority ("Sledgehammer minimizer: ATP " ^ quote atp ^
                 " with a time limit of " ^ string_of_int msecs ^ " ms.")
-    fun test_facts timeout =
-      sledgehammer_test_theorems params prover timeout i state
     val {context = ctxt, goal, ...} = Proof.goal state
+    val (_, hyp_ts, concl_t) = strip_subgoal goal i
+    val explicit_apply =
+      not (forall (Meson.is_fol_term thy)
+                  (concl_t :: hyp_ts @ maps (map prop_of o snd) name_thms_pairs))
+    fun do_test timeout =
+      test_theorems params prover explicit_apply timeout i state
     val timer = Timer.startRealTimer ()
   in
-    (case test_facts minimize_timeout name_thms_pairs of
+    (case do_test minimize_timeout name_thms_pairs of
        result as {outcome = NONE, pool, used_thm_names,
                   conjecture_shape, ...} =>
        let
@@ -113,7 +129,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
            Int.min (msecs, Time.toMilliseconds time + fudge_msecs)
            |> Time.fromMilliseconds
          val (min_thms, {proof, internal_thm_names, ...}) =
-           sublinear_minimize (test_facts new_timeout)
+           sublinear_minimize (do_test new_timeout)
                (filter_used_facts used_thm_names name_thms_pairs) ([], result)
          val n = length min_thms
          val _ = priority (cat_lines

@@ -662,7 +662,7 @@ val helpers =
    ("c_False", (true, @{thms True_or_False})),
    ("c_If", (true, @{thms if_True if_False True_or_False}))]
 
-fun is_quasi_fol_clause thy th =
+fun is_quasi_fol_clause thy =
   Meson.is_fol_term thy o snd o conceal_skolem_terms ~1 [] o prop_of
 
 (* Function to generate metis clauses, including comb and type clauses *)

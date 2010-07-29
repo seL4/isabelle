@@ -41,8 +41,7 @@ sig
      proof: string,
      internal_thm_names: string Vector.vector,
      conjecture_shape: int list list}
-  type prover =
-    params -> minimize_command -> Time.time -> problem -> prover_result
+  type prover = params -> minimize_command -> problem -> prover_result
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
@@ -111,8 +110,7 @@ type prover_result =
    internal_thm_names: string Vector.vector,
    conjecture_shape: int list list}
 
-type prover =
-  params -> minimize_command -> Time.time -> problem -> prover_result
+type prover = params -> minimize_command -> problem -> prover_result
 
 (* configuration attributes *)
 
@@ -689,8 +687,8 @@ fun prover_fun name
          explicit_forall}
         ({debug, overlord, full_types, explicit_apply, relevance_threshold,
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
-          isar_shrink_factor, ...} : params)
-        minimize_command timeout
+          isar_shrink_factor, timeout, ...} : params)
+        minimize_command
         ({subgoal, goal, relevance_override, axioms} : problem) =
   let
     val (ctxt, (_, th)) = goal;
@@ -840,7 +838,7 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
                 {subgoal = i, goal = (ctxt, (facts, goal)),
                  relevance_override = relevance_override, axioms = NONE}
             in
-              prover params (minimize_command name) timeout problem |> #message
+              prover params (minimize_command name) problem |> #message
               handle ERROR message => "Error: " ^ message ^ "\n"
             end)
   end
