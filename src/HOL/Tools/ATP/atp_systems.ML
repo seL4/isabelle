@@ -64,10 +64,10 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
   | string_for_failure OldSpass =
-    "Warning: Isabelle requires a more recent version of SPASS with \
-    \support for the TPTP syntax. To install it, download and extract the \
-    \package \"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and \
-    \add the \"spass-3.7\" directory's absolute path to " ^
+    "Isabelle requires a more recent version of SPASS with support for the \
+    \TPTP syntax. To install it, download and extract the package \
+    \\"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and add the \
+    \\"spass-3.7\" directory's absolute path to " ^
     quote (Path.implode (Path.expand (Path.appends
                (Path.variable "ISABELLE_HOME_USER" ::
                 map Path.basic ["etc", "components"])))) ^
@@ -76,10 +76,10 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail
   | string_for_failure MalformedInput =
-    "Internal Isabelle error: The ATP problem is malformed. Please report \
-    \this to the Isabelle developers."
-  | string_for_failure MalformedOutput = "Error: The ATP output is malformed."
-  | string_for_failure UnknownError = "Error: An unknown ATP error occurred."
+    "The ATP problem is malformed. Please report this to the Isabelle \
+    \developers."
+  | string_for_failure MalformedOutput = "The ATP output is malformed."
+  | string_for_failure UnknownError = "An unknown ATP error occurred."
 
 fun known_failure_in_output output =
   find_first (fn (_, pattern) => String.isSubstring pattern output)
