@@ -159,13 +159,25 @@ val scan_var =
   Scan.repeat (Scan.one
     (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s))
 
+val scan_ident =
+  Scan.repeat (Scan.one
+    (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s))
+
 fun dest_Char (Symbol.Char s) = s
 
 val string_of = concat o map (dest_Char o Symbol.decode)
 
-val scan_term =
-  scan_atom >> (Cons o string_of) || scan_var >> (Var o rpair dummyT o string_of)
+val is_atom_ident = forall Symbol.is_ascii_lower
 
+val is_var_ident =
+  forall (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
+
+val scan_term =
+  scan_ident >> (fn s => 
+    if is_var_ident s then (Var (string_of s, dummyT))
+    else if is_atom_ident s then Cons (string_of s)
+    else raise Fail "unexpected")
+    
 val parse_term = fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ => raise Fail "parsing prolog output failed"))
                             scan_term)
