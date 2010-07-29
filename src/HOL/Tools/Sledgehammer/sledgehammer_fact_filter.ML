@@ -88,18 +88,8 @@ fun add_const_type_to_table (c, ctyps) =
                      (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
 
 val fresh_prefix = "Sledgehammer.Fresh."
-
 val flip = Option.map not
-
 val boring_natural_consts = [@{const_name If}]
-(* Including equality in this list might be expected to stop rules like
-   subset_antisym from being chosen, but for some reason filtering works better
-   with them listed. The logical signs All, Ex, &, and --> are omitted for CNF
-   because any remaining occurrences must be within comprehensions. *)
-val boring_cnf_consts =
-  [@{const_name Trueprop}, @{const_name "==>"}, @{const_name all},
-   @{const_name "=="}, @{const_name "op |"}, @{const_name Not},
-   @{const_name "op ="}]
 
 fun get_consts_typs thy pos ts =
   let
@@ -213,11 +203,8 @@ fun const_frequency const_tab (c, cts) =
              (the (Symtab.lookup const_tab c)
               handle Option.Option => raise Fail ("Const: " ^ c)) 0
 
-(*A surprising number of theorems contain only a few significant constants.
-  These include all induction rules, and other general theorems. Filtering
-  theorems in clause form reveals these complexities in the form of Skolem
-  functions. If we were instead to filter theorems in their natural form,
-  some other method of measuring theorem complexity would become necessary.*)
+(* A surprising number of theorems contain only a few significant constants.
+   These include all induction rules, and other general theorems. *)
 
 (* "log" seems best in practice. A constant function of one ignores the constant
    frequencies. *)
@@ -228,8 +215,8 @@ val ct_weight = log_weight2 o real oo const_frequency
 
 (*Relevant constants are weighted according to frequency,
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
-  which are rare, would harm a clause's chances of being picked.*)
-fun clause_weight const_tab gctyps consts_typs =
+  which are rare, would harm a formula's chances of being picked.*)
+fun formula_weight const_tab gctyps consts_typs =
     let val rel = filter (uni_mem gctyps) consts_typs
         val rel_weight = fold (curry Real.+ o ct_weight const_tab) rel 0.0
     in
@@ -270,13 +257,13 @@ fun defines thy thm gctypes =
         | _ => false
     end;
 
-type annotated_cnf_thm = (string * thm) * (string * const_typ list) list
+type annotated_thm = (string * thm) * (string * const_typ list) list
 
 (*For a reverse sort, putting the largest values first.*)
 fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
 
-(*Limit the number of new clauses, to prevent runaway acceptance.*)
-fun take_best max_new (newpairs : (annotated_cnf_thm * real) list) =
+(* Limit the number of new facts, to prevent runaway acceptance. *)
+fun take_best max_new (newpairs : (annotated_thm * real) list) =
   let val nnew = length newpairs
   in
     if nnew <= max_new then (map #1 newpairs, [])
@@ -294,8 +281,8 @@ fun take_best max_new (newpairs : (annotated_cnf_thm * real) list) =
       end
   end;
 
-fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
-                     ({add, del, ...} : relevance_override) const_tab =
+fun relevant_facts ctxt relevance_convergence defs_relevant max_new
+                   ({add, del, ...} : relevance_override) const_tab =
   let
     val thy = ProofContext.theory_of ctxt
     val add_thms = maps (ProofContext.get_fact ctxt) add
@@ -323,7 +310,7 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
               val weight =
                 if member Thm.eq_thm add_thms th then 1.0
                 else if member Thm.eq_thm del_thms th then 0.0
-                else clause_weight const_tab rel_const_tab consts_typs
+                else formula_weight const_tab rel_const_tab consts_typs
             in
               if weight >= threshold orelse
                  (defs_relevant andalso defines thy th rel_const_tab) then
@@ -335,7 +322,7 @@ fun relevant_clauses ctxt relevance_convergence defs_relevant max_new
                 relevant (newrels, ax :: rejects) axs
             end
         in
-          trace_msg (fn () => "relevant_clauses, current threshold: " ^
+          trace_msg (fn () => "relevant_facts, current threshold: " ^
                               Real.toString threshold);
           relevant ([], [])
         end
@@ -361,11 +348,11 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                                     |> filter (curry (op <>) [] o snd)
                                     |> map fst))
       val relevant =
-        relevant_clauses ctxt relevance_convergence defs_relevant max_new
-                         relevance_override const_tab relevance_threshold
-                         goal_const_tab
-                         (map (pair_consts_typs_axiom theory_relevant thy)
-                              axioms)
+        relevant_facts ctxt relevance_convergence defs_relevant max_new
+                       relevance_override const_tab relevance_threshold
+                       goal_const_tab
+                       (map (pair_consts_typs_axiom theory_relevant thy)
+                            axioms)
     in
       trace_msg (fn () => "Total relevant: " ^ Int.toString (length relevant));
       relevant
@@ -387,11 +374,9 @@ fun is_package_def a =
      String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
   end;
 
-fun make_clause_table xs =
+fun make_fact_table xs =
   fold (Termtab.update o `(prop_of o snd)) xs Termtab.empty
-
-fun make_unique xs =
-  Termtab.fold (cons o snd) (make_clause_table xs) []
+fun make_unique xs = Termtab.fold (cons o snd) (make_fact_table xs) []
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
@@ -427,8 +412,7 @@ fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
   | apply_depth _ = 0
 
 fun is_formula_too_complex t =
-  apply_depth t > max_apply_depth orelse Meson.too_many_clauses NONE t orelse
-  formula_has_too_many_lambdas [] t
+  apply_depth t > max_apply_depth orelse formula_has_too_many_lambdas [] t
 
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
@@ -512,12 +496,13 @@ fun checked_name_thm_pairs respect_no_atp ctxt =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-(**** Predicates to detect unwanted clauses (prolific or likely to cause
+(**** Predicates to detect unwanted facts (prolific or likely to cause
       unsoundness) ****)
 
 (** Too general means, positive equality literal with a variable X as one operand,
   when X does not occur properly in the other operand. This rules out clearly
-  inconsistent clauses such as V=a|V=b, though it by no means guarantees soundness. **)
+  inconsistent facts such as V = a | V = b, though it by no means guarantees
+  soundness. **)
 
 fun var_occurs_in_term ix =
   let
@@ -532,6 +517,7 @@ fun is_record_type T = not (null (Record.dest_recTs T))
 (*Unwanted equalities include
   (1) those between a variable that does not properly occur in the second operand,
   (2) those between a variable and a record, since these seem to be prolific "cases" thms
+  (* FIXME: still a problem? *)
 *)
 fun too_general_eqterms (Var (ix,T), t) =
     not (var_occurs_in_term ix t) orelse is_record_type T
@@ -544,14 +530,14 @@ fun too_general_equality (Const (@{const_name "op ="}, _) $ x $ y) =
 fun has_typed_var tycons = exists_subterm
   (fn Var (_, Type (a, _)) => member (op =) tycons a | _ => false);
 
-(* Clauses are forbidden to contain variables of these types. The typical reason
+(* Facts are forbidden to contain variables of these types. The typical reason
    is that they lead to unsoundness. Note that "unit" satisfies numerous
-   equations like "?x = ()". The resulting clause will have no type constraint,
+   equations like "?x = ()". The resulting clauses will have no type constraint,
    yielding false proofs. Even "bool" leads to many unsound proofs, though only
    for higher-order problems. *)
 val dangerous_types = [@{type_name unit}, @{type_name bool}];
 
-(* Clauses containing variables of type "unit" or "bool" or of the form
+(* Facts containing variables of type "unit" or "bool" or of the form
    "?x = A | ?x = B | ?x = C" are likely to lead to unsound proofs if types are
    omitted. *)
 fun is_dangerous_term _ @{prop True} = true

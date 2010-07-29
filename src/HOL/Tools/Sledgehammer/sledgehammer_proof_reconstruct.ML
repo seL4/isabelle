@@ -67,10 +67,10 @@ fun mk_anot (AConn (ANot, [phi])) = phi
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
 fun index_in_shape x = find_index (exists (curry (op =) x))
-fun is_axiom_clause_number thm_names num =
+fun is_axiom_number thm_names num =
   num > 0 andalso num <= Vector.length thm_names andalso
   Vector.sub (thm_names, num - 1) <> ""
-fun is_conjecture_clause_number conjecture_shape num =
+fun is_conjecture_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
 
 fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
@@ -281,7 +281,7 @@ fun type_constraint_from_term pos tfrees (u as ATerm (a, us)) =
     (SOME b, [T]) => (pos, b, T)
   | _ => raise FO_TERM [u]
 
-(** Accumulate type constraints in a clause: negative type literals **)
+(** Accumulate type constraints in a formula: negative type literals **)
 fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
 fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint (false, cl, TVar (ix, _)) = add_var (ix, cl)
@@ -407,8 +407,8 @@ fun quantify_over_free quant_s free_s body_t =
   | frees as (_, free_T) :: _ =>
     Abs (free_s, free_T, fold (curry abstract_over) (map Free frees) body_t)
 
-(* Interpret a list of syntax trees as a clause, extracting sort constraints
-   as they appear in the formula. *)
+(* Interpret an ATP formula as a HOL term, extracting sort constraints as they
+   appear in the formula. *)
 fun prop_from_formula thy full_types tfrees phi =
   let
     fun do_formula pos phi =
@@ -484,13 +484,13 @@ fun replace_deps_in_line _ (line as Definition _) = line
   | replace_deps_in_line p (Inference (num, t, deps)) =
     Inference (num, t, fold (union (op =) o replace_one_dep p) deps [])
 
-(*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
-  only in type information.*)
+(* Discard axioms; consolidate adjacent lines that prove the same formula, since
+   they differ only in type information.*)
 fun add_line _ _ (line as Definition _) lines = line :: lines
   | add_line conjecture_shape thm_names (Inference (num, t, [])) lines =
-    (* No dependencies: axiom, conjecture clause, or internal axioms or
-       definitions (Vampire). *)
-    if is_axiom_clause_number thm_names num then
+    (* No dependencies: axiom, conjecture, or (for Vampire) internal axioms or
+       definitions. *)
+    if is_axiom_number thm_names num then
       (* Axioms are not proof lines. *)
       if is_only_type_information t then
         map (replace_deps_in_line (num, [])) lines
@@ -499,7 +499,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
         (_, []) => lines (*no repetition of proof line*)
       | (pre, Inference (num', _, _) :: post) =>
         pre @ map (replace_deps_in_line (num', [num])) post
-    else if is_conjecture_clause_number conjecture_shape num then
+    else if is_conjecture_number conjecture_shape num then
       Inference (num, t, []) :: lines
     else
       map (replace_deps_in_line (num, [])) lines
@@ -539,8 +539,8 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
   | add_desired_line isar_shrink_factor conjecture_shape thm_names frees
                      (Inference (num, t, deps)) (j, lines) =
     (j + 1,
-     if is_axiom_clause_number thm_names num orelse
-        is_conjecture_clause_number conjecture_shape num orelse
+     if is_axiom_number thm_names num orelse
+        is_conjecture_number conjecture_shape num orelse
         (not (is_only_type_information t) andalso
          null (Term.add_tvars t []) andalso
          not (exists_subterm (is_bad_free frees) t) andalso
@@ -562,10 +562,8 @@ fun used_facts_in_atp_proof thm_names atp_proof =
   let
     fun axiom_name num =
       let val j = Int.fromString num |> the_default ~1 in
-        if is_axiom_clause_number thm_names j then
-          SOME (Vector.sub (thm_names, j - 1))
-        else
-          NONE
+        if is_axiom_number thm_names j then SOME (Vector.sub (thm_names, j - 1))
+        else NONE
       end
     val tokens_of =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
@@ -655,7 +653,7 @@ fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
 fun add_fact_from_dep thm_names num =
-  if is_axiom_clause_number thm_names num then
+  if is_axiom_number thm_names num then
     apsnd (insert (op =) (Vector.sub (thm_names, num - 1)))
   else
     apfst (insert (op =) (raw_prefix, num))
