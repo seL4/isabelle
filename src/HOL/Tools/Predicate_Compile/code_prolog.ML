@@ -139,6 +139,8 @@ fun write_clause (head, prem) =
 fun write_program p =
   cat_lines (map write_clause p) 
 
+(** query templates **)
+
 fun query_first rel vnames =
   "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
   "writef('" ^ implode (map (fn v => v ^ " = %w\\n") vnames) ^"', [" ^ space_implode ", " vnames ^ "]).\n"
@@ -161,11 +163,11 @@ val prelude =
 (* parsing prolog solution *)
 
 val scan_atom =
-  Scan.repeat (Scan.one (fn s => Symbol.is_ascii_lower s orelse Symbol.is_ascii_quasi s))
+  Scan.many1 (fn s => Symbol.is_ascii_lower s orelse Symbol.is_ascii_quasi s)
 
 val scan_var =
-  Scan.repeat (Scan.one
-    (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s))
+  Scan.many1
+    (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
 
 val scan_ident =
   Scan.repeat (Scan.one
@@ -179,14 +181,36 @@ val is_atom_ident = forall Symbol.is_ascii_lower
 
 val is_var_ident =
   forall (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
+(*
+fun repeat_sep sep scan =
+  let
+    fun rep ys xs =
+       (case (SOME (scan xs) handle FAIL _ => NONE) of
+        NONE => (rev ys, xs)
+      | SOME (y, xs') =>
+          case (SOME (scan sep) handle FAIL _ => NONE) of
+          NONE => (rev (y :: ys), xs')
+        | SOME (_, xs'') => rep (y :: ys) xs'')
+  in rep [] end;
 
+fun repeat_sep1 sep scan = (scan --| sep) ::: repeat_sep sep scan;
+*) 
+
+fun scan_terms xs = (((scan_term --| $$ ",") ::: scan_terms)
+  || (scan_term >> single)) xs
+and scan_term xs =
+  ((scan_var >> (fn s => Var (string_of s, dummyT)))
+  || ((scan_atom -- ($$ "(" |-- scan_terms --| $$ ")"))
+    >> (fn (f, ts) => AppF (string_of f, rev ts)))
+  || (scan_atom >> (Cons o string_of))) xs
+(*  
 val scan_term =
   scan_ident >> (fn s => 
     if is_var_ident s then (Var (string_of s, dummyT))
     else if is_atom_ident s then
-    else   Cons (string_of s)
+    else Cons (string_of s)
     else raise Fail "unexpected")
-    
+*)    
 val parse_term = fst o Scan.finite Symbol.stopper
     (Scan.error (!! (fn _ => raise Fail "parsing prolog output failed")) scan_term)
   o explode
@@ -195,7 +219,7 @@ fun parse_solution sol =
   let
     fun dest_eq s = case space_explode "=" s of
         (l :: r :: []) => parse_term (unprefix " " r)
-      | _ => raise Fail "unexpected equation in prolog output")
+      | _ => raise Fail "unexpected equation in prolog output"
   in
     map dest_eq (fst (split_last (space_explode "\n" sol)))
   end 
