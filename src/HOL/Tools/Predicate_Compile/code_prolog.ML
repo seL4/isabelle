@@ -6,7 +6,7 @@ Prototype of an code generator for logic programming languages (a.k.a. Prolog)
 
 signature CODE_PROLOG =
 sig
-  datatype prol_term = Var of string * typ | Cons of string | AppF of string * prol_term list;
+  datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list;
   datatype prem = Conj of prem list | NotRel of string * prol_term list
     | Rel of string * prol_term list | Eq of prol_term * prol_term | NotEq of prol_term * prol_term;
   type clause = ((string * prol_term list) * prem);
@@ -35,9 +35,9 @@ val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 (* internal program representation *)
 
-datatype prol_term = Var of string * typ | Cons of string | AppF of string * prol_term list;
+datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list;
 
-fun string_of_prol_term (Var (s, T)) = "Var " ^ s
+fun string_of_prol_term (Var s) = "Var " ^ s
   | string_of_prol_term (Cons s) = "Cons " ^ s
   | string_of_prol_term (AppF (f, args)) = f ^ "(" ^ commas (map string_of_prol_term args) ^ ")" 
 
@@ -82,7 +82,7 @@ fun restore_const constant_table c =
 
 fun translate_term ctxt constant_table t =
   case strip_comb t of
-    (Free (v, T), []) => Var (v, T) 
+    (Free (v, T), []) => Var v 
   | (Const (c, _), []) => Cons (translate_const constant_table c)
   | (Const (c, _), args) =>
     AppF (translate_const constant_table c, map (translate_term ctxt constant_table) args)
@@ -142,8 +142,8 @@ fun string_of_typ (Type (s, Ts)) = Long_Name.base_name s
 fun mk_groundness_prems ts =
   let
     val vars = fold add_vars ts []
-    fun mk_ground (v, T) =
-      Rel ("ground_" ^ string_of_typ T, [Var (v, T)])
+    fun mk_ground v =
+      Rel ("ground", [Var v])
   in
     map mk_ground vars
   end
@@ -158,7 +158,7 @@ fun ensure_groundness_before_negation p =
 
 (* code printer *)
 
-fun write_term (Var (v, _)) = first_upper v
+fun write_term (Var v) = first_upper v
   | write_term (Cons c) = c
   | write_term (AppF (f, args)) = f ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
 
@@ -223,7 +223,7 @@ val is_var_ident =
 fun scan_terms xs = (((scan_term --| $$ ",") ::: scan_terms)
   || (scan_term >> single)) xs
 and scan_term xs =
-  ((scan_var >> (fn s => Var (string_of s, dummyT)))
+  ((scan_var >> (Var o string_of))
   || ((scan_atom -- ($$ "(" |-- scan_terms --| $$ ")"))
     >> (fn (f, ts) => AppF (string_of f, ts)))
   || (scan_atom >> (Cons o string_of))) xs
@@ -261,7 +261,7 @@ fun run p query_rel vnames nsols =
 
 (* values command *)
 
-fun restore_term ctxt constant_table (Var (s, _), T) = Free (s, T)
+fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
   | restore_term ctxt constant_table (Cons s, T) = Const (restore_const constant_table s, T)
   | restore_term ctxt constant_table (AppF (f, args), T) =
     let
