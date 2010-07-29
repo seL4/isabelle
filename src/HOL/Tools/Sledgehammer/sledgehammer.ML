@@ -30,8 +30,7 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: (string * thm) list option,
-     filtered_clauses: (string * thm) list option}
+     axiom_clauses: (string * thm) list option}
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -41,8 +40,7 @@ sig
      output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
-     conjecture_shape: int list list,
-     filtered_clauses: (string * thm) list}
+     conjecture_shape: int list list}
   type prover =
     params -> minimize_command -> Time.time -> problem -> prover_result
 
@@ -100,8 +98,7 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: (string * thm) list option,
-   filtered_clauses: (string * thm) list option}
+   axiom_clauses: (string * thm) list option}
 
 type prover_result =
   {outcome: failure option,
@@ -112,8 +109,7 @@ type prover_result =
    output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
-   conjecture_shape: int list list,
-   filtered_clauses: (string * thm) list}
+   conjecture_shape: int list list}
 
 type prover =
   params -> minimize_command -> Time.time -> problem -> prover_result
@@ -345,14 +341,12 @@ fun get_helper_clauses ctxt is_FO full_types conjectures axclauses =
 fun s_not (@{const Not} $ t) = t
   | s_not t = @{const Not} $ t
 
-(* prepare for passing to writer,
-   create additional clauses based on the information from extra_cls *)
-fun prepare_clauses ctxt full_types hyp_ts concl_t axcls extra_cls =
+fun prepare_clauses ctxt full_types hyp_ts concl_t axcls =
   let
     val thy = ProofContext.theory_of ctxt
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
-    val axtms = map (prop_of o snd) extra_cls
+    val axtms = map (prop_of o snd) axcls
     val subs = tfree_classes_of_terms [goal_t]
     val supers = tvar_classes_of_terms axtms
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
@@ -361,19 +355,16 @@ fun prepare_clauses ctxt full_types hyp_ts concl_t axcls extra_cls =
       map (s_not o HOLogic.dest_Trueprop) hyp_ts @
         [HOLogic.dest_Trueprop concl_t]
       |> make_conjecture_clauses ctxt
-    val extra_clauses = map (snd o make_axiom_clause ctxt) extra_cls
     val (clnames, axiom_clauses) =
       ListPair.unzip (map (make_axiom_clause ctxt) axcls)
-    (* FIXME: Should it read "extra_clauses" or "axiom_clauses" in the
-       "get_helper_clauses" call? *)
     val helper_clauses =
-      get_helper_clauses ctxt is_FO full_types conjectures extra_clauses
+      get_helper_clauses ctxt is_FO full_types conjectures axiom_clauses
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
-      (conjectures, axiom_clauses, extra_clauses, helper_clauses,
-       class_rel_clauses, arity_clauses))
+      (conjectures, axiom_clauses, helper_clauses, class_rel_clauses,
+       arity_clauses))
   end
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
@@ -596,8 +587,8 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
       (const_table_for_problem explicit_apply problem) problem
 
 fun write_tptp_file thy readable_names explicit_forall full_types explicit_apply
-                    file (conjectures, axiom_clauses, extra_clauses,
-                          helper_clauses, class_rel_clauses, arity_clauses) =
+                    file (conjectures, axiom_clauses, helper_clauses,
+                          class_rel_clauses, arity_clauses) =
   let
     val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
     val class_rel_lines =
@@ -684,26 +675,23 @@ fun prover_fun name
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
           isar_shrink_factor, ...} : params)
         minimize_command timeout
-        ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
-         : problem) =
+        ({subgoal, goal, relevance_override, axiom_clauses} : problem) =
   let
     (* get clauses and prepare them for writing *)
     val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt
     (* ### FIXME: (1) preprocessing for "if" etc. *)
     val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
-    val the_filtered_clauses =
-      case filtered_clauses of
-        SOME fcls => fcls
+    val the_axiom_clauses =
+      case axiom_clauses of
+        SOME axioms => axioms
       | NONE => relevant_facts full_types relevance_threshold
                     relevance_convergence defs_relevant
                     max_new_relevant_facts_per_iter
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal hyp_ts concl_t
-    val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
     val (internal_thm_names, clauses) =
       prepare_clauses ctxt full_types hyp_ts concl_t the_axiom_clauses
-                      the_filtered_clauses
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -814,8 +802,7 @@ fun prover_fun name
     {outcome = outcome, message = message, pool = pool,
      used_thm_names = used_thm_names, atp_run_time_in_msecs = msecs,
      output = output, proof = proof, internal_thm_names = internal_thm_names,
-     conjecture_shape = conjecture_shape,
-     filtered_clauses = the_filtered_clauses}
+     conjecture_shape = conjecture_shape}
   end
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
@@ -837,8 +824,7 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
             let
               val problem =
                 {subgoal = i, goal = (ctxt, (facts, goal)),
-                 relevance_override = relevance_override, axiom_clauses = NONE,
-                 filtered_clauses = NONE}
+                 relevance_override = relevance_override, axiom_clauses = NONE}
             in
               prover params (minimize_command name) timeout problem |> #message
               handle ERROR message => "Error: " ^ message ^ "\n"

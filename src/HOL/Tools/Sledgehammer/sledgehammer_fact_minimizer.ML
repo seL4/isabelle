@@ -18,7 +18,6 @@ end;
 structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
 struct
 
-open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
@@ -37,7 +36,7 @@ fun string_for_outcome NONE = "Success."
   | string_for_outcome (SOME failure) = string_for_failure failure
 
 fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
-                               filtered_clauses name_thms_pairs =
+                               name_thms_pairs =
   let
     val num_theorems = length name_thms_pairs
     val _ =
@@ -54,8 +53,7 @@ fun sledgehammer_test_theorems (params : params) prover timeout subgoal state
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
-      axiom_clauses = SOME name_thm_pairs,
-      filtered_clauses = SOME (the_default name_thm_pairs filtered_clauses)}
+      axiom_clauses = SOME name_thm_pairs}
   in
     prover params (K "") timeout problem
     |> tap (fn result : prover_result =>
@@ -91,15 +89,14 @@ fun minimize_theorems (params as {debug, atps, full_types, minimize_timeout,
       sledgehammer_test_theorems params prover minimize_timeout i state
     val {context = ctxt, goal, ...} = Proof.goal state;
   in
-    (* try prove first to check result and get used theorems *)
-    (case test_facts NONE name_thms_pairs of
-       result as {outcome = NONE, pool, proof, used_thm_names,
-                  conjecture_shape, filtered_clauses, ...} =>
+    (* FIXME: merge both "test_facts" calls *)
+    (case test_facts name_thms_pairs of
+       result as {outcome = NONE, pool, used_thm_names,
+                  conjecture_shape, ...} =>
        let
          val (min_thms, {proof, internal_thm_names, ...}) =
-           sublinear_minimize (test_facts (SOME filtered_clauses))
-                              (filter_used_facts used_thm_names name_thms_pairs)
-                              ([], result)
+           sublinear_minimize test_facts
+               (filter_used_facts used_thm_names name_thms_pairs) ([], result)
          val m = length min_thms
          val _ = priority (cat_lines
            ["Minimized: " ^ string_of_int m ^ " theorem" ^ plural_s m] ^ ".")
