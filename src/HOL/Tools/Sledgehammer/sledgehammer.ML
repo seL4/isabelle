@@ -232,11 +232,9 @@ fun extensionalize_term t =
   in aux (maxidx_of_term t + 1) t end
 
 fun presimplify_term thy =
-  HOLogic.mk_Trueprop
-  #> Skip_Proof.make_thm thy
+  Skip_Proof.make_thm thy
   #> Meson.presimplify
   #> prop_of
-  #> HOLogic.dest_Trueprop
 
 (* FIXME: Guarantee freshness *)
 fun concealed_bound_name j = "Sledgehammer" ^ Int.toString j
@@ -290,8 +288,10 @@ fun make_formula ctxt presimp (formula_name, kind, t) =
     val thy = ProofContext.theory_of ctxt
     val t = t |> transform_elim_term
               |> Object_Logic.atomize_term thy
+    val t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
               |> extensionalize_term
               |> presimp ? presimplify_term thy
+              |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in

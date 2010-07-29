@@ -89,7 +89,8 @@ fun add_const_type_to_table (c, ctyps) =
 
 val fresh_prefix = "Sledgehammer.Fresh."
 val flip = Option.map not
-val boring_natural_consts = [@{const_name If}]
+(* These are typically simplified away by "Meson.presimplify". *)
+val boring_consts = [@{const_name If}, @{const_name Let}]
 
 fun get_consts_typs thy pos ts =
   let
@@ -139,7 +140,7 @@ fun get_consts_typs thy pos ts =
         do_term t0 #> do_formula pos t1  (* theory constant *)
       | _ => do_term t
   in
-    Symtab.empty |> fold (Symtab.update o rpair []) boring_natural_consts
+    Symtab.empty |> fold (Symtab.update o rpair []) boring_consts
                  |> fold (do_formula pos) ts
   end
 
