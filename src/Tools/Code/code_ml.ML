@@ -987,7 +987,8 @@ val setup =
       )))
   #> fold (Code_Target.add_reserved target_SML) ML_Syntax.reserved_names
   #> fold (Code_Target.add_reserved target_SML)
-      ["o" (*dictionary projections use it already*), "Fail", "div", "mod" (*standard infixes*), "IntInf"]
+      ["ref" (*rebinding is illegal*), "o" (*dictionary projections use it already*),
+        "Fail", "div", "mod" (*standard infixes*), "IntInf"]
   #> fold (Code_Target.add_reserved target_OCaml) [
       "and", "as", "assert", "begin", "class",
       "constraint", "do", "done", "downto", "else", "end", "exception",
