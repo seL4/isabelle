@@ -218,11 +218,11 @@ val ct_weight = log_weight2 o real oo const_frequency
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
   which are rare, would harm a formula's chances of being picked.*)
 fun formula_weight const_tab gctyps consts_typs =
-    let val rel = filter (uni_mem gctyps) consts_typs
-        val rel_weight = fold (curry Real.+ o ct_weight const_tab) rel 0.0
-    in
-        rel_weight / (rel_weight + real (length consts_typs - length rel))
-    end;
+  let
+    val rel = filter (uni_mem gctyps) consts_typs
+    val rel_weight = fold (curry Real.+ o ct_weight const_tab) rel 0.0
+    val res = rel_weight / (rel_weight + real (length consts_typs - length rel))
+  in if Real.isFinite res then res else 0.0 end
 
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
 fun add_expand_pairs (x,ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys;
@@ -312,6 +312,7 @@ fun relevant_facts ctxt relevance_convergence defs_relevant max_new
                 if member Thm.eq_thm add_thms th then 1.0
                 else if member Thm.eq_thm del_thms th then 0.0
                 else formula_weight const_tab rel_const_tab consts_typs
+val _ = (if Real.isFinite weight then () else error ("*** " ^ Real.toString weight)) (*###*)
             in
               if weight >= threshold orelse
                  (defs_relevant andalso defines thy th rel_const_tab) then
