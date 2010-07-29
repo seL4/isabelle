@@ -162,7 +162,7 @@ fun extract_proof_and_outcome complete res_code proof_delims known_failures
 (* Clause preparation *)
 
 datatype fol_formula =
-  FOLFormula of {formula_name: string,
+  FOLFormula of {name: string,
                  kind: kind,
                  combformula: (name, combterm) formula,
                  ctypes_sorts: typ list}
@@ -296,7 +296,7 @@ fun freeze_term t =
   in t |> exists_subterm is_Var t ? aux end
 
 (* making axiom and conjecture formulas *)
-fun make_formula ctxt presimp (formula_name, kind, t) =
+fun make_formula ctxt presimp (name, kind, t) =
   let
     val thy = ProofContext.theory_of ctxt
     val t = t |> transform_elim_term
@@ -309,8 +309,8 @@ fun make_formula ctxt presimp (formula_name, kind, t) =
               |> kind = Conjecture ? freeze_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
-    FOLFormula {formula_name = formula_name, combformula = combformula,
-                kind = kind, ctypes_sorts = ctypes_sorts}
+    FOLFormula {name = name, combformula = combformula, kind = kind,
+                ctypes_sorts = ctypes_sorts}
   end
 
 fun make_axiom ctxt presimp (name, th) =
@@ -433,15 +433,14 @@ fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
                 (type_literals_for_types ctypes_sorts))
            (formula_for_combformula full_types combformula)
 
-fun problem_line_for_axiom full_types
-        (formula as FOLFormula {formula_name, kind, ...}) =
-  Fof (axiom_prefix ^ ascii_of formula_name, kind,
-       formula_for_axiom full_types formula)
+fun problem_line_for_fact prefix full_types
+                          (formula as FOLFormula {name, kind, ...}) =
+  Fof (prefix ^ ascii_of name, kind, formula_for_axiom full_types formula)
 
-fun problem_line_for_class_rel_clause
-        (ClassRelClause {axiom_name, subclass, superclass, ...}) =
+fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
+                                                       superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
-    Fof (ascii_of axiom_name, Axiom,
+    Fof (class_rel_clause_prefix ^ ascii_of name, Axiom,
          AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                            AAtom (ATerm (superclass, [ty_arg]))]))
   end
@@ -451,17 +450,17 @@ fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_for_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun problem_line_for_arity_clause
-        (ArityClause {axiom_name, conclLit, premLits, ...}) =
-  Fof (arity_clause_prefix ^ ascii_of axiom_name, Axiom,
+fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
+                                                ...}) =
+  Fof (arity_clause_prefix ^ ascii_of name, Axiom,
        mk_ahorn (map (formula_for_fo_literal o apfst not
                       o fo_literal_for_arity_literal) premLits)
                 (formula_for_fo_literal
                      (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
-        (FOLFormula {formula_name, kind, combformula, ...}) =
-  Fof (conjecture_prefix ^ formula_name, kind,
+                                (FOLFormula {name, kind, combformula, ...}) =
+  Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula full_types combformula)
 
 fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
@@ -608,14 +607,15 @@ fun write_tptp_file thy readable_names explicit_forall full_types explicit_apply
                     file (conjectures, axioms, helper_facts, class_rel_clauses,
                           arity_clauses) =
   let
-    val axiom_lines = map (problem_line_for_axiom full_types) axioms
-    val class_rel_lines =
-      map problem_line_for_class_rel_clause class_rel_clauses
-    val arity_lines = map problem_line_for_arity_clause arity_clauses
-    val helper_lines = map (problem_line_for_axiom full_types) helper_facts
+    val axiom_lines = map (problem_line_for_fact axiom_prefix full_types) axioms
+    val helper_lines =
+      map (problem_line_for_fact helper_prefix full_types) helper_facts
     val conjecture_lines =
       map (problem_line_for_conjecture full_types) conjectures
     val tfree_lines = problem_lines_for_free_types conjectures
+    val class_rel_lines =
+      map problem_line_for_class_rel_clause class_rel_clauses
+    val arity_lines = map problem_line_for_arity_clause arity_clauses
     (* Reordering these might or might not confuse the proof reconstruction
        code or the SPASS Flotter hack. *)
     val problem =
@@ -647,7 +647,8 @@ fun extract_clause_sequence output =
 val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
 
 val parse_clause_formula_pair =
-  $$ "(" |-- scan_integer --| $$ "," -- Symbol.scan_id --| $$ ")"
+  $$ "(" |-- scan_integer --| $$ "," -- Symbol.scan_id
+  --| Scan.repeat ($$ "," |-- Symbol.scan_id) --| $$ ")"
   --| Scan.option ($$ ",")
 val parse_clause_formula_relation =
   Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
@@ -673,8 +674,8 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
         |> map (fn s => find_index (curry (op =) s) seq + 1)
     in
       (conjecture_shape |> map (maps renumber_conjecture),
-       seq |> map (the o AList.lookup (op =) name_map)
-           |> map (fn s => case try (unprefix axiom_prefix) s of
+       seq |> map (fn j => case j |> AList.lookup (op =) name_map |> the
+                                  |> try (unprefix axiom_prefix) of
                              SOME s' => undo_ascii_of s'
                            | NONE => "")
            |> Vector.fromList)

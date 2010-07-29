@@ -12,6 +12,8 @@ sig
 
   val axiom_prefix : string
   val conjecture_prefix : string
+  val helper_prefix : string
+  val class_rel_clause_prefix : string
   val arity_clause_prefix : string
   val tfrees_name : string
   val metis_line: bool -> int -> int -> string list -> string
@@ -40,7 +42,9 @@ type minimize_command = string list -> string
 
 val axiom_prefix = "ax_"
 val conjecture_prefix = "conj_"
-val arity_clause_prefix = "clsarity_"
+val helper_prefix = "help_"
+val class_rel_clause_prefix = "clrel_";
+val arity_clause_prefix = "arity_"
 val tfrees_name = "tfrees"
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
@@ -500,7 +504,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
       | (pre, Inference (num', _, _) :: post) =>
         pre @ map (replace_deps_in_line (num', [num])) post
     else if is_conjecture_number conjecture_shape num then
-      Inference (num, t, []) :: lines
+      Inference (num, negate_term t, []) :: lines
     else
       map (replace_deps_in_line (num, [])) lines
   | add_line _ _ (Inference (num, t, deps)) lines =
