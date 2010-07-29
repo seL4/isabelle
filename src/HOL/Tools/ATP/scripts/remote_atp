@@ -96,13 +96,15 @@ my $Response = $Agent->request($Request);
 
 #catch errors / failure
 if(!$Response->is_success) {
-  print "HTTP-Error: " . $Response->message . "\n";
+  my $message = $Response->message;
+  $message =~ s/ \(Bad hostname ['"][^'"]*['"]\)//;
+  print $message . "\n";
   exit(-1);
 } elsif (exists($Options{'w'})) {
   print $Response->content;
   exit (0);
 } elsif ($Response->content =~ /WARNING: (\S*) does not exist/) {
-  print "Specified system $1 does not exist\n";
+  print "The ATP \"$1\" is not available at SystemOnTPTP\n";
   exit(-1);
 } else {
   print $Response->content;

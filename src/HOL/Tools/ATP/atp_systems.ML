@@ -87,7 +87,7 @@ fun known_failure_in_output output =
 
 val known_perl_failures =
   [(NoPerl, "env: perl"),
-   (NoLibwwwPerl, "HTTP")]
+   (NoLibwwwPerl, "Can't locate HTTP")]
 
 (* named provers *)
 
@@ -201,10 +201,9 @@ fun get_systems () =
   case bash_output "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
     (answer, 0) => split_lines answer
   | (answer, _) =>
-    error ("Failed to get available systems at SystemOnTPTP:\n" ^
-           (case known_failure_in_output answer known_perl_failures of
-              SOME failure => string_for_failure failure
-            | NONE => perhaps (try (unsuffix "\n")) answer))
+    error (case known_failure_in_output answer known_perl_failures of
+             SOME failure => string_for_failure failure
+           | NONE => perhaps (try (unsuffix "\n")) answer ^ ".")
 
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
