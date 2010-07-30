@@ -2354,13 +2354,22 @@ The supported solvers are listed below:
 
 \begin{enum}
 
-\item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
-written in \cpp{}. To use MiniSat, set the environment variable
-\texttt{MINISAT\_HOME} to the directory that contains the \texttt{minisat}
+\item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
+the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
+\texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
 executable.%
 \footnote{Important note for Cygwin users: The path must be specified using
 native Windows syntax. Make sure to escape backslashes properly.%
 \label{cygwin-paths}}
+The \cpp{} sources and executables for Crypto\-Mini\-Sat are available at
+\url{http://planete.inrialpes.fr/~soos/}\allowbreak\url{CryptoMiniSat2/index.php}.
+Nitpick has been tested with version 2.51.
+
+\item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
+written in \cpp{}. To use MiniSat, set the environment variable
+\texttt{MINISAT\_HOME} to the directory that contains the \texttt{minisat}
+executable.%
+\footref{cygwin-paths}
 The \cpp{} sources and executables for MiniSat are available at
 \url{http://minisat.se/MiniSat.html}. Nitpick has been tested with versions 1.14
 and 2.0 beta (2007-07-21).

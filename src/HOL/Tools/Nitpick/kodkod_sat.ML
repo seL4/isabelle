@@ -30,7 +30,9 @@ val berkmin_exec = getenv "BERKMIN_EXE"
 
 (* (string * sat_solver_info) list *)
 val static_list =
-  [("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
+  [("CryptoMiniSat", External (ToStdout, "CRYPTOMINISAT_HOME", "cryptominisat",
+                               [])),
+   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
                            "UNSAT")),
    ("PicoSAT", External (ToStdout, "PICOSAT_HOME", "picosat", [])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
