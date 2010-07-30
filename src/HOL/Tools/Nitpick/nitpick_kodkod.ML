@@ -778,7 +778,8 @@ fun sel_axioms_for_constr hol_ctxt binarize bits j0 kk rel_table
         val max_axiom =
           if honors_explicit_max then
             KK.True
-          else if is_twos_complement_representable bits (epsilon - delta) then
+          else if bits = 0 orelse
+               is_twos_complement_representable bits (epsilon - delta) then
             KK.LE (KK.Cardinality dom_r, KK.Num explicit_max)
           else
             raise TOO_SMALL ("Nitpick_Kodkod.sel_axioms_for_constr",
