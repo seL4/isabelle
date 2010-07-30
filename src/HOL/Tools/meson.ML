@@ -14,6 +14,7 @@ sig
   val too_many_clauses: Proof.context option -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
+  val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
   val skolemize: Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
@@ -389,10 +390,13 @@ fun fewerlits(th1,th2) = nliterals(prop_of th1) < nliterals(prop_of th2);
 
 fun sort_clauses ths = sort (make_ord fewerlits) ths;
 
-(*True if the given type contains bool anywhere*)
-fun has_bool (Type("bool",_)) = true
-  | has_bool (Type(_, Ts)) = exists has_bool Ts
-  | has_bool _ = false;
+fun has_bool @{typ bool} = true
+  | has_bool (Type (_, Ts)) = exists has_bool Ts
+  | has_bool _ = false
+
+fun has_fun (Type (@{type_name fun}, _)) = true
+  | has_fun (Type (_, Ts)) = exists has_fun Ts
+  | has_fun _ = false
 
 (*Is the string the name of a connective? Really only | and Not can remain,
   since this code expects to be called on a clause form.*)
@@ -404,7 +408,7 @@ val is_conn = member (op =)
   of any argument contains bool.*)
 val has_bool_arg_const =
     exists_Const
-      (fn (c,T) => not(is_conn c) andalso exists (has_bool) (binder_types T));
+      (fn (c,T) => not(is_conn c) andalso exists has_bool (binder_types T));
 
 (*A higher-order instance of a first-order constant? Example is the definition of
   one, 1, at a function type in theory SetsAndFunctions.*)
@@ -417,8 +421,9 @@ fun higher_inst_const thy (c,T) =
   Also rejects functions whose arguments are Booleans or other functions.*)
 fun is_fol_term thy t =
     Term.is_first_order ["all","All","Ex"] t andalso
-    not (exists_subterm (fn Var (_, T) => has_bool T | _ => false) t  orelse
-         has_bool_arg_const t  orelse
+    not (exists_subterm (fn Var (_, T) => has_bool T orelse has_fun T
+                           | _ => false) t orelse
+         has_bool_arg_const t orelse
          exists_Const (higher_inst_const thy) t orelse
          has_meta_conn t);
 
@@ -529,9 +534,12 @@ val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
     addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
 
+val presimplify =
+  rewrite_rule (map safe_mk_meta_eq nnf_simps)
+  #> simplify nnf_ss
+
 fun make_nnf ctxt th = case prems_of th of
-    [] => th |> rewrite_rule (map safe_mk_meta_eq nnf_simps)
-             |> simplify nnf_ss
+    [] => th |> presimplify
              |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 

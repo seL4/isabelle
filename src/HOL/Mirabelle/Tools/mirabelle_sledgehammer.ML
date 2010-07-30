@@ -306,11 +306,11 @@ fun run_sh prover hard_timeout timeout dir st =
       ctxt
       |> change_dir dir
       |> Config.put Sledgehammer.measure_runtime true
-    val params = Sledgehammer_Isar.default_params thy []
+    val params = Sledgehammer_Isar.default_params thy
+      [("timeout", Int.toString timeout ^ " s")]
     val problem =
       {subgoal = 1, goal = (ctxt', (facts, goal)),
-       relevance_override = {add = [], del = [], only = false},
-       axiom_clauses = NONE, filtered_clauses = NONE}
+       relevance_override = {add = [], del = [], only = false}, axioms = NONE}
     val time_limit =
       (case hard_timeout of
         NONE => I
@@ -318,7 +318,7 @@ fun run_sh prover hard_timeout timeout dir st =
     val ({outcome, message, used_thm_names,
           atp_run_time_in_msecs = time_atp, ...} : Sledgehammer.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time
-                      (prover params (K "") (Time.fromSeconds timeout))) problem
+                      (prover params (K ""))) problem
   in
     case outcome of
       NONE => (message, SH_OK (time_isa, time_atp, used_thm_names))
@@ -381,7 +381,6 @@ val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
 fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
   let
     open Metis_Clauses
-    open Sledgehammer_Isar
     val thy = Proof.theory_of st
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_atp thy args
@@ -389,8 +388,8 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o explode)
       |> the_default 5
-    val params = default_params thy
-      [("atps", prover_name), ("minimize_timeout", Int.toString timeout)]
+    val params = Sledgehammer_Isar.default_params thy
+      [("atps", prover_name), ("minimize_timeout", Int.toString timeout ^ " s")]
     val minimize =
       Sledgehammer_Fact_Minimizer.minimize_theorems params 1 (subgoal_count st)
     val _ = log separator

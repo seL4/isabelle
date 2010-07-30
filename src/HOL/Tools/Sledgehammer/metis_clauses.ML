@@ -16,9 +16,9 @@ sig
     TConsLit of name * name * name list |
     TVarLit of name * name
   datatype arity_clause =
-    ArityClause of {axiom_name: string, conclLit: arLit, premLits: arLit list}
+    ArityClause of {name: string, conclLit: arLit, premLits: arLit list}
   datatype class_rel_clause =
-    ClassRelClause of {axiom_name: string, subclass: name, superclass: name}
+    ClassRelClause of {name: string, subclass: name, superclass: name}
   datatype combtyp =
     CombTVar of name |
     CombTFree of name |
@@ -83,8 +83,6 @@ val fixed_var_prefix = "v_"
 
 val tvar_prefix = "T_";
 val tfree_prefix = "t_";
-
-val class_rel_clause_prefix = "clsrel_";
 
 val const_prefix = "c_";
 val type_const_prefix = "tc_";
@@ -259,7 +257,7 @@ datatype arLit =
   TVarLit of name * name
 
 datatype arity_clause =
-  ArityClause of {axiom_name: string, conclLit: arLit, premLits: arLit list}
+  ArityClause of {name: string, conclLit: arLit, premLits: arLit list}
 
 
 fun gen_TVars 0 = []
@@ -271,12 +269,12 @@ fun pack_sort(_,[])  = []
     (`make_type_class cls, (tvar, tvar)) :: pack_sort (tvar, srt)
 
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
-fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
+fun make_axiom_arity_clause (tcons, name, (cls,args)) =
   let
     val tvars = gen_TVars (length args)
     val tvars_srts = ListPair.zip (tvars, args)
   in
-    ArityClause {axiom_name = axiom_name, 
+    ArityClause {name = name, 
                  conclLit = TConsLit (`make_type_class cls,
                                       `make_fixed_type_const tcons,
                                       tvars ~~ tvars),
@@ -287,7 +285,7 @@ fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
 (**** Isabelle class relations ****)
 
 datatype class_rel_clause =
-  ClassRelClause of {axiom_name: string, subclass: name, superclass: name}
+  ClassRelClause of {name: string, subclass: name, superclass: name}
 
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs _ [] _ = []
@@ -299,10 +297,9 @@ fun class_pairs _ [] _ = []
       in fold add_supers subs [] end
 
 fun make_class_rel_clause (sub,super) =
-  ClassRelClause {axiom_name = class_rel_clause_prefix ^ ascii_of sub ^ "_" ^
-                               ascii_of super,
+  ClassRelClause {name = sub ^ "_" ^ super,
                   subclass = `make_type_class sub,
-                  superclass = `make_type_class super};
+                  superclass = `make_type_class super}
 
 fun make_class_rel_clauses thy subs supers =
   map make_class_rel_clause (class_pairs thy subs supers);

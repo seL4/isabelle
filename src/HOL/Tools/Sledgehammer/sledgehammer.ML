@@ -30,8 +30,7 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axiom_clauses: (string * thm) list option,
-     filtered_clauses: (string * thm) list option}
+     axioms: (string * thm) list option}
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -41,10 +40,8 @@ sig
      output: string,
      proof: string,
      internal_thm_names: string Vector.vector,
-     conjecture_shape: int list list,
-     filtered_clauses: (string * thm) list}
-  type prover =
-    params -> minimize_command -> Time.time -> problem -> prover_result
+     conjecture_shape: int list list}
+  type prover = params -> minimize_command -> problem -> prover_result
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
@@ -72,7 +69,12 @@ open Sledgehammer_Proof_Reconstruct
 
 (** The Sledgehammer **)
 
+(* Identifier to distinguish Sledgehammer from other tools using
+   "Async_Manager". *)
 val das_Tool = "Sledgehammer"
+
+(* Freshness almost guaranteed! *)
+val sledgehammer_weak_prefix = "Sledgehammer:"
 
 fun kill_atps () = Async_Manager.kill_threads das_Tool "ATPs"
 fun running_atps () = Async_Manager.running_threads das_Tool "ATPs"
@@ -100,8 +102,7 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axiom_clauses: (string * thm) list option,
-   filtered_clauses: (string * thm) list option}
+   axioms: (string * thm) list option}
 
 type prover_result =
   {outcome: failure option,
@@ -112,11 +113,9 @@ type prover_result =
    output: string,
    proof: string,
    internal_thm_names: string Vector.vector,
-   conjecture_shape: int list list,
-   filtered_clauses: (string * thm) list}
+   conjecture_shape: int list list}
 
-type prover =
-  params -> minimize_command -> Time.time -> problem -> prover_result
+type prover = params -> minimize_command -> problem -> prover_result
 
 (* configuration attributes *)
 
@@ -163,7 +162,7 @@ fun extract_proof_and_outcome complete res_code proof_delims known_failures
 (* Clause preparation *)
 
 datatype fol_formula =
-  FOLFormula of {formula_name: string,
+  FOLFormula of {name: string,
                  kind: kind,
                  combformula: (name, combterm) formula,
                  ctypes_sorts: typ list}
@@ -175,12 +174,12 @@ fun mk_ahorn [] phi = phi
     AConn (AImplies, [fold (mk_aconn AAnd) phis phi, psi])
 
 (* ### FIXME: reintroduce
-fun make_clause_table xs =
+fun make_formula_table xs =
   fold (Termtab.update o `(prop_of o snd)) xs Termtab.empty
-(* Remove existing axiom clauses from the conjecture clauses, as this can
+(* Remove existing axioms from the conjecture, as this can
    dramatically boost an ATP's performance (for some reason). *)
-fun subtract_cls ax_clauses =
-  filter_out (Termtab.defined (make_clause_table ax_clauses) o prop_of)
+fun subtract_cls axioms =
+  filter_out (Termtab.defined (make_formula_table axioms) o prop_of)
 *)
 
 fun combformula_for_prop thy =
@@ -235,11 +234,15 @@ fun extensionalize_term t =
       | aux _ t = t
   in aux (maxidx_of_term t + 1) t end
 
-(* FIXME: Guarantee freshness *)
-fun concealed_bound_name j = "Sledgehammer" ^ Int.toString j
+fun presimplify_term thy =
+  Skip_Proof.make_thm thy
+  #> Meson.presimplify
+  #> prop_of
+
+fun concealed_bound_name j = sledgehammer_weak_prefix ^ Int.toString j
 fun conceal_bounds Ts t =
   subst_bounds (map (Free o apfst concealed_bound_name)
-                    (length Ts - 1 downto 0 ~~ rev Ts), t)
+                    (0 upto length Ts - 1 ~~ Ts), t)
 fun reveal_bounds Ts =
   subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
                     (0 upto length Ts - 1 ~~ Ts))
@@ -281,29 +284,42 @@ fun introduce_combinators_in_term ctxt kind t =
            Axiom => HOLogic.true_const
          | Conjecture => HOLogic.false_const
 
-(* making axiom and conjecture clauses *)
-fun make_clause ctxt (formula_name, kind, t) =
+(* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
+   same in Sledgehammer to prevent the discovery of unreplable proofs. *)
+fun freeze_term t =
+  let
+    fun aux (t $ u) = aux t $ aux u
+      | aux (Abs (s, T, t)) = Abs (s, T, aux t)
+      | aux (Var ((s, i), T)) =
+        Free (sledgehammer_weak_prefix ^ s ^ "_" ^ string_of_int i, T)
+      | aux t = t
+  in t |> exists_subterm is_Var t ? aux end
+
+(* making axiom and conjecture formulas *)
+fun make_formula ctxt presimp (name, kind, t) =
   let
     val thy = ProofContext.theory_of ctxt
-    (* ### FIXME: perform other transformations previously done by
-       "Clausifier.to_nnf", e.g. "HOL.If" *)
     val t = t |> transform_elim_term
               |> Object_Logic.atomize_term thy
+    val t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
               |> extensionalize_term
+              |> presimp ? presimplify_term thy
+              |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
+              |> kind = Conjecture ? freeze_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
-    FOLFormula {formula_name = formula_name, combformula = combformula,
-                kind = kind, ctypes_sorts = ctypes_sorts}
+    FOLFormula {name = name, combformula = combformula, kind = kind,
+                ctypes_sorts = ctypes_sorts}
   end
 
-fun make_axiom_clause ctxt (name, th) =
-  (name, make_clause ctxt (name, Axiom, prop_of th))
-fun make_conjecture_clauses ctxt ts =
-  map2 (fn j => fn t => make_clause ctxt (Int.toString j, Conjecture, t))
+fun make_axiom ctxt presimp (name, th) =
+  (name, make_formula ctxt presimp (name, Axiom, prop_of th))
+fun make_conjectures ctxt ts =
+  map2 (fn j => fn t => make_formula ctxt true (Int.toString j, Conjecture, t))
        (0 upto length ts - 1) ts
 
-(** Helper clauses **)
+(** Helper facts **)
 
 fun count_combterm (CombConst ((s, _), _, _)) =
     Symtab.map_entry s (Integer.add 1)
@@ -328,52 +344,40 @@ val init_counters =
   Symtab.make (maps (maps (map (rpair 0) o fst))
                     [optional_helpers, optional_typed_helpers])
 
-fun get_helper_clauses ctxt is_FO full_types conjectures axclauses =
+fun get_helper_facts ctxt is_FO full_types conjectures axioms =
   let
-    val ct = fold (fold count_fol_formula) [conjectures, axclauses]
-                  init_counters
+    val ct = fold (fold count_fol_formula) [conjectures, axioms] init_counters
     fun is_needed c = the (Symtab.lookup ct c) > 0
-    val cnfs =
-      (optional_helpers
-       |> full_types ? append optional_typed_helpers
-       |> maps (fn (ss, ths) =>
-                   if exists is_needed ss then map (`Thm.get_name_hint) ths
-                   else [])) @
-      (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
-  in map (snd o make_axiom_clause ctxt) cnfs end
+  in
+    (optional_helpers
+     |> full_types ? append optional_typed_helpers
+     |> maps (fn (ss, ths) =>
+                 if exists is_needed ss then map (`Thm.get_name_hint) ths
+                 else [])) @
+    (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
+    |> map (snd o make_axiom ctxt false)
+  end
 
-fun s_not (@{const Not} $ t) = t
-  | s_not t = @{const Not} $ t
+fun meta_not t = @{const "==>"} $ t $ @{prop False}
 
-(* prepare for passing to writer,
-   create additional clauses based on the information from extra_cls *)
-fun prepare_clauses ctxt full_types hyp_ts concl_t axcls extra_cls =
+fun prepare_formulas ctxt full_types hyp_ts concl_t axcls =
   let
     val thy = ProofContext.theory_of ctxt
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
-    val axtms = map (prop_of o snd) extra_cls
+    val axtms = map (prop_of o snd) axcls
     val subs = tfree_classes_of_terms [goal_t]
     val supers = tvar_classes_of_terms axtms
     val tycons = type_consts_of_terms thy (goal_t :: axtms)
-    (* TFrees in conjecture clauses; TVars in axiom clauses *)
-    val conjectures =
-      map (s_not o HOLogic.dest_Trueprop) hyp_ts @
-        [HOLogic.dest_Trueprop concl_t]
-      |> make_conjecture_clauses ctxt
-    val extra_clauses = map (snd o make_axiom_clause ctxt) extra_cls
-    val (clnames, axiom_clauses) =
-      ListPair.unzip (map (make_axiom_clause ctxt) axcls)
-    (* FIXME: Should it read "extra_clauses" or "axiom_clauses" in the
-       "get_helper_clauses" call? *)
-    val helper_clauses =
-      get_helper_clauses ctxt is_FO full_types conjectures extra_clauses
+    (* TFrees in the conjecture; TVars in the axioms *)
+    val conjectures = map meta_not hyp_ts @ [concl_t] |> make_conjectures ctxt
+    val (clnames, axioms) = ListPair.unzip (map (make_axiom ctxt true) axcls)
+    val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
     (Vector.fromList clnames,
-      (conjectures, axiom_clauses, extra_clauses, helper_clauses,
-       class_rel_clauses, arity_clauses))
+      (conjectures, axioms, helper_facts, class_rel_clauses, arity_clauses))
   end
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
@@ -397,10 +401,15 @@ fun fo_term_for_combterm full_types =
         val (head, args) = strip_combterm_comb u
         val (x, ty_args) =
           case head of
-            CombConst (name, _, ty_args) =>
-            if fst name = "equal" then
+            CombConst (name as (s, s'), _, ty_args) =>
+            if s = "equal" then
               (if top_level andalso length args = 2 then name
                else ("c_fequal", @{const_name fequal}), [])
+            else if top_level then
+              case s of
+                "c_False" => (("$false", s'), [])
+              | "c_True" => (("$true", s'), [])
+              | _ => (name, if full_types then [] else ty_args)
             else
               (name, if full_types then [] else ty_args)
           | CombVar (name, _) => (name, [])
@@ -424,15 +433,14 @@ fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
                 (type_literals_for_types ctypes_sorts))
            (formula_for_combformula full_types combformula)
 
-fun problem_line_for_axiom full_types
-        (formula as FOLFormula {formula_name, kind, ...}) =
-  Fof (axiom_prefix ^ ascii_of formula_name, kind,
-       formula_for_axiom full_types formula)
+fun problem_line_for_fact prefix full_types
+                          (formula as FOLFormula {name, kind, ...}) =
+  Fof (prefix ^ ascii_of name, kind, formula_for_axiom full_types formula)
 
-fun problem_line_for_class_rel_clause
-        (ClassRelClause {axiom_name, subclass, superclass, ...}) =
+fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
+                                                       superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
-    Fof (ascii_of axiom_name, Axiom,
+    Fof (class_rel_clause_prefix ^ ascii_of name, Axiom,
          AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                            AAtom (ATerm (superclass, [ty_arg]))]))
   end
@@ -442,17 +450,17 @@ fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_for_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun problem_line_for_arity_clause
-        (ArityClause {axiom_name, conclLit, premLits, ...}) =
-  Fof (arity_clause_prefix ^ ascii_of axiom_name, Axiom,
+fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
+                                                ...}) =
+  Fof (arity_clause_prefix ^ ascii_of name, Axiom,
        mk_ahorn (map (formula_for_fo_literal o apfst not
                       o fo_literal_for_arity_literal) premLits)
                 (formula_for_fo_literal
                      (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
-        (FOLFormula {formula_name, kind, combformula, ...}) =
-  Fof (conjecture_prefix ^ formula_name, kind,
+                                (FOLFormula {name, kind, combformula, ...}) =
+  Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula full_types combformula)
 
 fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
@@ -596,17 +604,18 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
       (const_table_for_problem explicit_apply problem) problem
 
 fun write_tptp_file thy readable_names explicit_forall full_types explicit_apply
-                    file (conjectures, axiom_clauses, extra_clauses,
-                          helper_clauses, class_rel_clauses, arity_clauses) =
+                    file (conjectures, axioms, helper_facts, class_rel_clauses,
+                          arity_clauses) =
   let
-    val axiom_lines = map (problem_line_for_axiom full_types) axiom_clauses
-    val class_rel_lines =
-      map problem_line_for_class_rel_clause class_rel_clauses
-    val arity_lines = map problem_line_for_arity_clause arity_clauses
-    val helper_lines = map (problem_line_for_axiom full_types) helper_clauses
+    val axiom_lines = map (problem_line_for_fact axiom_prefix full_types) axioms
+    val helper_lines =
+      map (problem_line_for_fact helper_prefix full_types) helper_facts
     val conjecture_lines =
       map (problem_line_for_conjecture full_types) conjectures
     val tfree_lines = problem_lines_for_free_types conjectures
+    val class_rel_lines =
+      map problem_line_for_class_rel_clause class_rel_clauses
+    val arity_lines = map problem_line_for_arity_clause arity_clauses
     (* Reordering these might or might not confuse the proof reconstruction
        code or the SPASS Flotter hack. *)
     val problem =
@@ -638,7 +647,8 @@ fun extract_clause_sequence output =
 val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
 
 val parse_clause_formula_pair =
-  $$ "(" |-- scan_integer --| $$ "," -- Symbol.scan_id --| $$ ")"
+  $$ "(" |-- scan_integer --| $$ "," -- Symbol.scan_id
+  --| Scan.repeat ($$ "," |-- Symbol.scan_id) --| $$ ")"
   --| Scan.option ($$ ",")
 val parse_clause_formula_relation =
   Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
@@ -664,8 +674,8 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
         |> map (fn s => find_index (curry (op =) s) seq + 1)
     in
       (conjecture_shape |> map (maps renumber_conjecture),
-       seq |> map (the o AList.lookup (op =) name_map)
-           |> map (fn s => case try (unprefix axiom_prefix) s of
+       seq |> map (fn j => case j |> AList.lookup (op =) name_map |> the
+                                  |> try (unprefix axiom_prefix) of
                              SOME s' => undo_ascii_of s'
                            | NONE => "")
            |> Vector.fromList)
@@ -677,33 +687,29 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 (* generic TPTP-based provers *)
 
 fun prover_fun name
-        {executable, required_executables, arguments, proof_delims,
-         known_failures, max_new_relevant_facts_per_iter,
-         prefers_theory_relevant, explicit_forall}
+        {exec, required_execs, arguments, proof_delims, known_failures,
+         max_new_relevant_facts_per_iter, prefers_theory_relevant,
+         explicit_forall}
         ({debug, overlord, full_types, explicit_apply, relevance_threshold,
           relevance_convergence, theory_relevant, defs_relevant, isar_proof,
-          isar_shrink_factor, ...} : params)
-        minimize_command timeout
-        ({subgoal, goal, relevance_override, axiom_clauses, filtered_clauses}
-         : problem) =
+          isar_shrink_factor, timeout, ...} : params)
+        minimize_command
+        ({subgoal, goal, relevance_override, axioms} : problem) =
   let
-    (* get clauses and prepare them for writing *)
     val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt
     (* ### FIXME: (1) preprocessing for "if" etc. *)
     val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
-    val the_filtered_clauses =
-      case filtered_clauses of
-        SOME fcls => fcls
+    val the_axioms =
+      case axioms of
+        SOME axioms => axioms
       | NONE => relevant_facts full_types relevance_threshold
                     relevance_convergence defs_relevant
                     max_new_relevant_facts_per_iter
                     (the_default prefers_theory_relevant theory_relevant)
                     relevance_override goal hyp_ts concl_t
-    val the_axiom_clauses = axiom_clauses |> the_default the_filtered_clauses
-    val (internal_thm_names, clauses) =
-      prepare_clauses ctxt full_types hyp_ts concl_t the_axiom_clauses
-                      the_filtered_clauses
+    val (internal_thm_names, formulas) =
+      prepare_formulas ctxt full_types hyp_ts concl_t the_axioms
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -722,7 +728,7 @@ fun prover_fun name
         else error ("No such directory: " ^ the_dest_dir ^ ".")
       end;
 
-    val command = Path.explode (getenv (fst executable) ^ "/" ^ snd executable)
+    val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
     (* write out problem file and call prover *)
     fun command_line complete probfile =
       let
@@ -746,8 +752,7 @@ fun prover_fun name
         val as_time = the_default 0 o Scan.read Symbol.stopper time o explode;
       in (output, as_time t) end;
     fun run_on probfile =
-      case filter (curry (op =) "" o getenv o fst)
-                  (executable :: required_executables) of
+      case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
         (home_var, _) :: _ =>
         error ("The environment variable " ^ quote home_var ^ " is not set.")
       | [] =>
@@ -771,7 +776,7 @@ fun prover_fun name
             val readable_names = debug andalso overlord
             val (pool, conjecture_offset) =
               write_tptp_file thy readable_names explicit_forall full_types
-                              explicit_apply probfile clauses
+                              explicit_apply probfile formulas
             val conjecture_shape =
               conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
               |> map single
@@ -814,8 +819,7 @@ fun prover_fun name
     {outcome = outcome, message = message, pool = pool,
      used_thm_names = used_thm_names, atp_run_time_in_msecs = msecs,
      output = output, proof = proof, internal_thm_names = internal_thm_names,
-     conjecture_shape = conjecture_shape,
-     filtered_clauses = the_filtered_clauses}
+     conjecture_shape = conjecture_shape}
   end
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
@@ -837,10 +841,9 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
             let
               val problem =
                 {subgoal = i, goal = (ctxt, (facts, goal)),
-                 relevance_override = relevance_override, axiom_clauses = NONE,
-                 filtered_clauses = NONE}
+                 relevance_override = relevance_override, axioms = NONE}
             in
-              prover params (minimize_command name) timeout problem |> #message
+              prover params (minimize_command name) problem |> #message
               handle ERROR message => "Error: " ^ message ^ "\n"
             end)
   end
