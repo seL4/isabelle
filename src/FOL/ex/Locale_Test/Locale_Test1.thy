@@ -729,8 +729,7 @@ proof
       show "logic_o.lor_o(pand, pnot, x, y) <-> por(x, y)"
         by (unfold logic_o.lor_o_def [OF logic_o]) (rule por_def [symmetric])
     qed
-    print_interps logic_o  (* FIXME *)
-    thm loc.lor_o_def por_eq
+    print_interps logic_o
     have "!!x y. por(x, y) <-> pnot(pand(pnot(x), pnot(y)))" by (rule loc.lor_o_def)
   }
 qed

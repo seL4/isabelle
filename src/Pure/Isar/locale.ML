@@ -77,7 +77,7 @@ sig
   val all_locales: theory -> string list
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> xstring -> unit
-  val print_registrations: theory -> string -> unit
+  val print_registrations: Proof.context -> string -> unit
   val locale_deps: theory ->
     { params: ((string * typ) * mixfix) list, axioms: term list, registrations: term list list } Graph.T
       * term list list Symtab.table Symtab.table
@@ -600,11 +600,15 @@ fun print_locale thy show_facts raw_name =
     |> Pretty.writeln
   end;
 
-fun print_registrations thy raw_name =
-  (case registrations_of_locale (Context.Theory thy) (intern thy raw_name) of
-      [] => Pretty.str ("no interpretations")
-    | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
-  |> Pretty.writeln;
+fun print_registrations ctxt raw_name =
+  let
+    val thy = ProofContext.theory_of ctxt;
+  in
+    (case registrations_of_locale  (Context.Proof ctxt) (* FIXME *) (intern thy raw_name) of
+        [] => Pretty.str ("no interpretations")
+      | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
+    |> Pretty.writeln
+  end;
 
 fun locale_deps thy =
   let
