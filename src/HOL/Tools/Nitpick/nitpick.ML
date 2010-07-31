@@ -904,9 +904,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                     "")); if skipped > 0 then "unknown" else "none")
           else
             (print_m (fn () =>
-                 "Nitpick could not find a" ^
-                 (if max_genuine = 1 then " better " ^ das_wort_model ^ "."
-                  else "ny better " ^ das_wort_model ^ "s.")); "potential")
+                 excipit ("could not find a" ^
+                          (if max_genuine = 1 then
+                             " better " ^ das_wort_model ^ "."
+                           else
+                             "ny better " ^ das_wort_model ^ "s.") ^
+                          " It checked"));
+             "potential")
         else if found_really_genuine then
           "genuine"
         else
