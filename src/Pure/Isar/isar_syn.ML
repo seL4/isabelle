@@ -444,8 +444,10 @@ val _ =
   Outer_Syntax.command "interpret"
     "prove interpretation of locale expression in proof context"
     (Keyword.tag_proof Keyword.prf_goal)
-    (Parse.!!! (Parse_Spec.locale_expression true)
-      >> (fn expr => Toplevel.print o Toplevel.proof' (Expression.interpret_cmd expr)));
+    (Parse.!!! (Parse_Spec.locale_expression true) --
+      Scan.optional (Parse.where_ |-- Parse.and_list1 (Parse_Spec.opt_thm_name ":" -- Parse.prop)) []
+      >> (fn (expr, equations) => Toplevel.print o
+          Toplevel.proof' (Expression.interpret_cmd expr equations)));
 
 
 (* classes *)
