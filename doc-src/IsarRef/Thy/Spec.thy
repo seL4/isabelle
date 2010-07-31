@@ -407,7 +407,7 @@ text {*
 
   \item @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
   constraint @{text \<tau>} on the local parameter @{text x}.  This
-  element is deprecated.  The type constaint should be introduced in
+  element is deprecated.  The type constraint should be introduced in
   the for clause or the relevant @{element "fixes"} element.
 
   \item @{element "assumes"}~@{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"}
@@ -501,7 +501,7 @@ text {*
     ;
     'interpretation' localeepxr equations?
     ;
-    'interpret' localeexpr
+    'interpret' localeexpr equations?
     ;
     'print\_interps' nameref
     ;
@@ -560,14 +560,16 @@ text {*
   interpretations dynamically participate in any facts added to
   locales.
 
-  \item @{command "interpret"}~@{text "expr"}
-  interprets @{text expr} in the proof context and is otherwise
-  similar to interpretation in theories.
+  \item @{command "interpret"}~@{text "expr \<WHERE> eqns"} interprets
+  @{text expr} in the proof context and is otherwise similar to
+  interpretation in theories.  Note that rewrite rules given to
+  @{command "interpret"} should be explicitly universally quantified.
 
   \item @{command "print_interps"}~@{text "locale"} lists all
-  interpretations of @{text "locale"} in the current theory, including
-  those due to a combination of an @{command "interpretation"} and
-  one or several @{command "sublocale"} declarations.
+  interpretations of @{text "locale"} in the current theory or proof
+  context, including those due to a combination of a @{command
+  "interpretation"} or @{command "interpret"} and one or several
+  @{command "sublocale"} declarations.
 
   \end{description}
 
@@ -581,7 +583,7 @@ text {*
   \end{warn}
 
   \begin{warn}
-    An interpretation in a theory may subsume previous
+    An interpretation in a theory or proof context may subsume previous
     interpretations.  This happens if the same specification fragment
     is interpreted twice and the instantiation of the second
     interpretation is more general than the interpretation of the
