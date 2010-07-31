@@ -361,7 +361,7 @@ fun scope_descriptor_from_combination (hol_ctxt as {thy, ...}) binarize blocks
   end
   handle Option.Option => NONE
 
-fun offset_table_for_card_assigns assigns dtypes =
+fun offset_table_for_card_assigns dtypes assigns =
   let
     fun aux next _ [] = Typtab.update_new (dummyT, next)
       | aux next reusable ((T, k) :: assigns) =
@@ -376,7 +376,7 @@ fun offset_table_for_card_assigns assigns dtypes =
             SOME j0 => Typtab.update_new (T, j0) #> aux next reusable assigns
           | NONE => Typtab.update_new (T, next)
                     #> aux (next + k) ((k, next) :: reusable) assigns
-  in aux 0 [] assigns Typtab.empty end
+  in Typtab.empty |> aux 0 [] assigns end
 
 fun domain_card max card_assigns =
   Integer.prod o map (bounded_card_of_type max max card_assigns) o binder_types
@@ -473,7 +473,7 @@ fun scope_from_descriptor (hol_ctxt as {ctxt, stds, ...}) binarize deep_dataTs
   in
     {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
      datatypes = datatypes, bits = bits, bisim_depth = bisim_depth,
-     ofs = offset_table_for_card_assigns card_assigns datatypes}
+     ofs = offset_table_for_card_assigns datatypes card_assigns}
   end
 
 fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []

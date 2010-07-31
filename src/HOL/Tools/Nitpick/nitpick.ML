@@ -35,6 +35,8 @@ sig
      star_linear_preds: bool,
      fast_descrs: bool,
      peephole_optim: bool,
+     datatype_sym_break: int,
+     kodkod_sym_break: int,
      timeout: Time.time option,
      tac_timeout: Time.time option,
      max_threads: int,
@@ -106,6 +108,8 @@ type params =
    star_linear_preds: bool,
    fast_descrs: bool,
    peephole_optim: bool,
+   datatype_sym_break: int,
+   kodkod_sym_break: int,
    timeout: Time.time option,
    tac_timeout: Time.time option,
    max_threads: int,
@@ -191,9 +195,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
          verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
          destroy_constrs, specialize, star_linear_preds, fast_descrs,
-         peephole_optim, tac_timeout, max_threads, show_datatypes, show_consts,
-         evals, formats, atomss, max_potential, max_genuine, check_potential,
-         check_genuine, batch_size, ...} = params
+         peephole_optim, datatype_sym_break, kodkod_sym_break, tac_timeout,
+         max_threads, show_datatypes, show_consts, evals, formats, atomss,
+         max_potential, max_genuine, check_potential, check_genuine, batch_size,
+         ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
       if auto then
@@ -493,7 +498,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             0
         val settings = [("solver", commas_quote kodkod_sat_solver),
                         ("bit_width", string_of_int bit_width),
-                        ("symmetry_breaking", "20"),
+                        ("symmetry_breaking", string_of_int kodkod_sym_break),
                         ("sharing", "3"),
                         ("flatten", "false"),
                         ("delay", signed_string_of_int delay)]
@@ -508,7 +513,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val univ_card = Int.max (univ_card nat_card int_card main_j0
                                      (plain_bounds @ sel_bounds) formula,
                                  main_j0 |> bits > 0 ? Integer.add (bits + 1))
-        val built_in_bounds = bounds_for_built_in_rels_in_formula debug
+        val built_in_bounds = bounds_for_built_in_rels_in_formula debug ofs
                                   univ_card nat_card int_card main_j0 formula
         val bounds = built_in_bounds @ plain_bounds @ sel_bounds
                      |> not debug ? merge_bounds

@@ -56,6 +56,8 @@ val default_default_params =
    ("star_linear_preds", "true"),
    ("fast_descrs", "true"),
    ("peephole_optim", "true"),
+   ("datatype_sym_break", "20"),
+   ("kodkod_sym_break", "20"),
    ("timeout", "30 s"),
    ("tac_timeout", "500 ms"),
    ("max_threads", "0"),
@@ -245,6 +247,8 @@ fun extract_params ctxt auto default_params override_params =
     val star_linear_preds = lookup_bool "star_linear_preds"
     val fast_descrs = lookup_bool "fast_descrs"
     val peephole_optim = lookup_bool "peephole_optim"
+    val datatype_sym_break = lookup_int "datatype_sym_break"
+    val kodkod_sym_break = lookup_int "kodkod_sym_break"
     val timeout = if auto then NONE else lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
     val max_threads = Int.max (0, lookup_int "max_threads")
@@ -273,7 +277,8 @@ fun extract_params ctxt auto default_params override_params =
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
      star_linear_preds = star_linear_preds, fast_descrs = fast_descrs,
-     peephole_optim = peephole_optim, timeout = timeout,
+     peephole_optim = peephole_optim, datatype_sym_break = datatype_sym_break,
+     kodkod_sym_break = kodkod_sym_break, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,
      show_datatypes = show_datatypes, show_consts = show_consts,
      formats = formats, atomss = atomss, evals = evals,

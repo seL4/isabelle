@@ -26,7 +26,8 @@ sig
   val sequential_int_bounds : int -> Kodkod.int_bound list
   val pow_of_two_int_bounds : int -> int -> Kodkod.int_bound list
   val bounds_for_built_in_rels_in_formula :
-    bool -> int -> int -> int -> int -> Kodkod.formula -> Kodkod.bound list
+    bool -> int Typtab.table -> int -> int -> int -> int -> Kodkod.formula
+    -> Kodkod.bound list
   val bound_for_plain_rel : Proof.context -> bool -> nut -> Kodkod.bound
   val bound_for_sel_rel :
     Proof.context -> bool -> dtype_spec list -> nut -> Kodkod.bound
@@ -201,13 +202,24 @@ fun isa_norm_frac (m, n) =
   else if m = 0 orelse n = 0 then (0, 1)
   else let val p = isa_zgcd (m, n) in (isa_div (m, p), isa_div (n, p)) end
 
-fun tabulate_built_in_rel debug univ_card nat_card int_card j0 (x as (n, _)) =
+fun tabulate_suc debug ofs univ_card main_j0 =
+  let
+    val j0s = Typtab.fold (insert (op =) o snd) ofs [main_j0] |> sort int_ord
+    val ks = map (op -) (tl (j0s @ [univ_card]) ~~ j0s)
+  in
+    map2 (fn j0 => fn k =>
+             tabulate_func1 debug univ_card (k - 1, j0) (Integer.add 1))
+         j0s ks
+    |> List.concat
+  end
+
+fun tabulate_built_in_rel debug ofs univ_card nat_card int_card j0
+                          (x as (n, _)) =
   (check_arity univ_card n;
    if x = not3_rel then
      ("not3", tabulate_func1 debug univ_card (2, j0) (curry (op -) 1))
    else if x = suc_rel then
-     ("suc", tabulate_func1 debug univ_card (univ_card - j0 - 1, j0)
-                            (Integer.add 1))
+     ("suc", tabulate_suc debug ofs univ_card j0)
    else if x = nat_add_rel then
      ("nat_add", tabulate_nat_op2 debug univ_card (nat_card, j0) (op +))
    else if x = int_add_rel then
@@ -241,14 +253,15 @@ fun tabulate_built_in_rel debug univ_card nat_card int_card j0 (x as (n, _)) =
    else
      raise ARG ("Nitpick_Kodkod.tabulate_built_in_rel", "unknown relation"))
 
-fun bound_for_built_in_rel debug univ_card nat_card int_card j0 x =
+fun bound_for_built_in_rel debug ofs univ_card nat_card int_card j0 x =
   let
-    val (nick, ts) = tabulate_built_in_rel debug univ_card nat_card int_card
+    val (nick, ts) = tabulate_built_in_rel debug ofs univ_card nat_card int_card
                                            j0 x
   in ([(x, nick)], [KK.TupleSet ts]) end
 
-fun bounds_for_built_in_rels_in_formula debug univ_card nat_card int_card j0 =
-  map (bound_for_built_in_rel debug univ_card nat_card int_card j0)
+fun bounds_for_built_in_rels_in_formula debug ofs univ_card nat_card int_card
+                                        j0 =
+  map (bound_for_built_in_rel debug ofs univ_card nat_card int_card j0)
   o built_in_rels_in_formula
 
 fun bound_comment ctxt debug nick T R =
