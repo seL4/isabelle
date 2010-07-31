@@ -70,7 +70,7 @@ sig
     morphism -> Context.generic -> Context.generic
   val amend_registration: string * morphism -> morphism * bool ->
     morphism -> Context.generic -> Context.generic
-  val registrations_of_locale: Context.generic -> string -> (string * morphism) list
+  val registrations_of: Context.generic -> string -> (string * morphism) list
   val add_dependency: string -> string * morphism -> morphism -> theory -> theory
 
   (* Diagnostic *)
@@ -421,7 +421,7 @@ fun get_registrations context select = Registrations.get context
   |-> (fn regs => fn _ => map (fn ((name, _), ((base, export) ,_)) =>
     (name, base $> (collect_mixins context (name, base $> export)) $> export)) regs);
 
-fun registrations_of_locale context name =
+fun registrations_of context name =
   get_registrations context (filter (curry (op =) name o fst o fst));
 
 fun all_registrations context = get_registrations context I;
@@ -518,7 +518,7 @@ fun add_thmss loc kind args ctxt =
               val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
                 Attrib.map_facts (Attrib.attribute_i thy)
             in PureThy.note_thmss kind args'' #> snd end)
-        (registrations_of_locale (Context.Theory thy) loc) thy))
+        (registrations_of (Context.Theory thy) loc) thy))
   in ctxt'' end;
 
 
@@ -604,7 +604,7 @@ fun print_registrations ctxt raw_name =
   let
     val thy = ProofContext.theory_of ctxt;
   in
-    (case registrations_of_locale  (Context.Proof ctxt) (* FIXME *) (intern thy raw_name) of
+    (case registrations_of  (Context.Proof ctxt) (* FIXME *) (intern thy raw_name) of
         [] => Pretty.str ("no interpretations")
       | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
     |> Pretty.writeln
@@ -618,7 +618,7 @@ fun locale_deps thy =
         val params = params_of thy name;
         val axioms = (these o Option.map (Logic.strip_imp_prems o Thm.prop_of) o fst o intros_of thy) name;
         val registrations = map (instance_of thy name o snd)
-          (registrations_of_locale (Context.Theory thy) name);
+          (registrations_of (Context.Theory thy) name);
       in 
         Graph.new_node (name, { params = params, axioms = axioms, registrations = registrations })
       end;
