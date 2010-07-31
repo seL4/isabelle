@@ -2354,22 +2354,13 @@ The supported solvers are listed below:
 
 \begin{enum}
 
-\item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
-the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
-\texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
-executable.%
-\footnote{Important note for Cygwin users: The path must be specified using
-native Windows syntax. Make sure to escape backslashes properly.%
-\label{cygwin-paths}}
-The \cpp{} sources and executables for Crypto\-Mini\-Sat are available at
-\url{http://planete.inrialpes.fr/~soos/}\allowbreak\url{CryptoMiniSat2/index.php}.
-Nitpick has been tested with version 2.51.
-
 \item[$\bullet$] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
 written in \cpp{}. To use MiniSat, set the environment variable
 \texttt{MINISAT\_HOME} to the directory that contains the \texttt{minisat}
 executable.%
-\footref{cygwin-paths}
+\footnote{Important note for Cygwin users: The path must be specified using
+native Windows syntax. Make sure to escape backslashes properly.%
+\label{cygwin-paths}}
 The \cpp{} sources and executables for MiniSat are available at
 \url{http://minisat.se/MiniSat.html}. Nitpick has been tested with versions 1.14
 and 2.0 beta (2007-07-21).
@@ -2379,6 +2370,15 @@ version of MiniSat is bundled with Kodkodi and is precompiled for the major
 platforms. It is also available from \texttt{native\-solver.\allowbreak tgz},
 which you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
 version of MiniSat, the JNI version can be used incrementally.
+
+\item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
+the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
+\texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
+executable.%
+\footref{cygwin-paths}
+The \cpp{} sources and executables for Crypto\-Mini\-Sat are available at
+\url{http://planete.inrialpes.fr/~soos/}\allowbreak\url{CryptoMiniSat2/index.php}.
+Nitpick has been tested with version 2.51.
 
 \item[$\bullet$] \textbf{\textit{PicoSAT}:} PicoSAT is an efficient solver
 written in C. You can install a standard version of
@@ -2442,11 +2442,9 @@ Kodkod.
 optimized for small problems. It can also be used incrementally.
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{sat\_solver} is set to
-\textit{smart}, Nitpick selects the first solver among MiniSat,
-PicoSAT, zChaff, RSat, BerkMin, BerkMin\_Alloy, Jerusat, MiniSat\_JNI, and zChaff\_JNI
-that is recognized by Isabelle. If none is found, it falls back on SAT4J, which
-should always be available. If \textit{verbose} (\S\ref{output-format}) is
-enabled, Nitpick displays which SAT solver was chosen.
+\textit{smart}, Nitpick selects the first solver among the above that is
+recognized by Isabelle. If \textit{verbose} (\S\ref{output-format}) is enabled,
+Nitpick displays which SAT solver was chosen.
 \end{enum}
 \fussy
 
