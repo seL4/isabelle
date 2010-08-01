@@ -721,7 +721,7 @@ fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, binarize, ...})
 fun choose_rep_for_sels_for_constr scope (x as (_, T)) =
   fold_rev (choose_rep_for_nth_sel_for_constr scope x)
            (~1 upto num_sels_for_constr_type T - 1)
-fun choose_rep_for_sels_of_datatype _ ({deep = false, ...} : dtype_spec) = I
+fun choose_rep_for_sels_of_datatype _ ({deep = false, ...} : datatype_spec) = I
   | choose_rep_for_sels_of_datatype scope {constrs, ...} =
     fold_rev (choose_rep_for_sels_for_constr scope o #const) constrs
 fun choose_reps_for_all_sels (scope as {datatypes, ...}) =

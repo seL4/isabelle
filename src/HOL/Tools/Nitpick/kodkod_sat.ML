@@ -26,16 +26,21 @@ datatype sat_solver_info =
   External of sink * string * string * string list |
   ExternalV2 of sink * string * string * string list * string * string * string
 
+(* for compatibility with "SatSolver" *)
 val berkmin_exec = getenv "BERKMIN_EXE"
 
 (* (string * sat_solver_info) list *)
 val static_list =
   [("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
                            "UNSAT")),
+   ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
+   ("CryptoMiniSat", External (ToStdout, "CRYPTOMINISAT_HOME", "cryptominisat",
+                               [])),
    ("PicoSAT", External (ToStdout, "PICOSAT_HOME", "picosat", [])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
                           "Instance Unsatisfiable")),
+   ("zChaff_JNI", Internal (JNI, Batch, ["zChaff"])),
    ("RSat", ExternalV2 (ToStdout, "RSAT_HOME", "rsat", ["-s"],
                         "s SATISFIABLE", "v ", "s UNSATISFIABLE")),
    ("BerkMin", ExternalV2 (ToStdout, "BERKMIN_HOME",
@@ -44,8 +49,6 @@ val static_list =
                            "solution =", "UNSATISFIABLE          !!")),
    ("BerkMin_Alloy", External (ToStdout, "BERKMINALLOY_HOME", "berkmin", [])),
    ("Jerusat", External (ToStdout, "JERUSAT_HOME", "Jerusat1.3", [])),
-   ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
-   ("zChaff_JNI", Internal (JNI, Batch, ["zChaff"])),
    ("SAT4J", Internal (Java, Incremental, ["DefaultSAT4J"])),
    ("SAT4J_Light", Internal (Java, Incremental, ["LightSAT4J"]))]
 

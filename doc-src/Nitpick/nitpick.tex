@@ -818,7 +818,7 @@ Trying 1 scope: \\
 \hbox{}\qquad \textit{card nat}~= 50. \\[2\smallskipamount]
 Nitpick found a potential counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment \\[2\smallskipamount]
-Nitpick could not find a better counterexample. \\[2\smallskipamount]
+Nitpick could not find a better counterexample. It checked 1 of 1 scope. \\[2\smallskipamount]
 Total time: 2274 ms.
 \postw
 
@@ -2371,6 +2371,15 @@ platforms. It is also available from \texttt{native\-solver.\allowbreak tgz},
 which you will find on Kodkod's web site \cite{kodkod-2009}. Unlike the standard
 version of MiniSat, the JNI version can be used incrementally.
 
+\item[$\bullet$] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
+the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
+\texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
+executable.%
+\footref{cygwin-paths}
+The \cpp{} sources and executables for Crypto\-Mini\-Sat are available at
+\url{http://planete.inrialpes.fr/~soos/}\allowbreak\url{CryptoMiniSat2/index.php}.
+Nitpick has been tested with version 2.51.
+
 \item[$\bullet$] \textbf{\textit{PicoSAT}:} PicoSAT is an efficient solver
 written in C. You can install a standard version of
 PicoSAT and set the environment variable \texttt{PICOSAT\_HOME} to the directory
@@ -2433,11 +2442,9 @@ Kodkod.
 optimized for small problems. It can also be used incrementally.
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{sat\_solver} is set to
-\textit{smart}, Nitpick selects the first solver among MiniSat,
-PicoSAT, zChaff, RSat, BerkMin, BerkMin\_Alloy, Jerusat, MiniSat\_JNI, and zChaff\_JNI
-that is recognized by Isabelle. If none is found, it falls back on SAT4J, which
-should always be available. If \textit{verbose} (\S\ref{output-format}) is
-enabled, Nitpick displays which SAT solver was chosen.
+\textit{smart}, Nitpick selects the first solver among the above that is
+recognized by Isabelle. If \textit{verbose} (\S\ref{output-format}) is enabled,
+Nitpick displays which SAT solver was chosen.
 \end{enum}
 \fussy
 
@@ -2492,6 +2499,18 @@ Specifies whether Nitpick should simplify the generated Kodkod formulas using a
 peephole optimizer. These optimizations can make a significant difference.
 Unless you are tracking down a bug in Nitpick or distrust the peephole
 optimizer, you should leave this option enabled.
+
+\opdefault{datatype\_sym\_break}{int}{5}
+Specifies an upper bound on the number of datatypes for which Nitpick generates
+symmetry breaking predicates. Symmetry breaking can speed up the SAT solver
+considerably, especially for unsatisfiable problems, but too much of it can slow
+it down.
+
+\opdefault{kodkod\_sym\_break}{int}{15}
+Specifies an upper bound on the number of relations for which Kodkod generates
+symmetry breaking predicates. Symmetry breaking can speed up the SAT solver
+considerably, especially for unsatisfiable problems, but too much of it can slow
+it down.
 
 \opdefault{max\_threads}{int}{0}
 Specifies the maximum number of threads to use in Kodkod. If this option is set

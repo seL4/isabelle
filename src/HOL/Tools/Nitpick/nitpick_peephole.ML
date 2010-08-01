@@ -23,6 +23,7 @@ sig
   val initial_pool : name_pool
   val not3_rel : n_ary_index
   val suc_rel : n_ary_index
+  val suc_rels_base : int
   val unsigned_bit_word_sel_rel : n_ary_index
   val signed_bit_word_sel_rel : n_ary_index
   val nat_add_rel : n_ary_index
@@ -46,6 +47,8 @@ sig
   val int_for_atom : int * int -> int -> int
   val atom_for_int : int * int -> int -> int
   val is_twos_complement_representable : int -> int -> bool
+  val suc_rel_for_atom_seq : (int * int) * bool -> n_ary_index
+  val atom_seq_for_suc_rel : n_ary_index -> (int * int) * bool
   val inline_rel_expr : rel_expr -> bool
   val empty_n_ary_rel : int -> rel_expr
   val num_seq : int -> int -> int_expr list
@@ -99,30 +102,27 @@ type name_pool =
    formula_reg: int,
    rel_reg: int}
 
-(* If you add new built-in relations, make sure to increment the counters here
-   as well to avoid name clashes (which fortunately would be detected by
-   Kodkodi). *)
-val initial_pool =
-  {rels = [(2, 10), (3, 20), (4, 10)], vars = [], formula_reg = 10,
-   rel_reg = 10}
+(* FIXME: needed? *)
+val initial_pool = {rels = [], vars = [], formula_reg = 10, rel_reg = 10}
 
-val not3_rel = (2, 0)
-val suc_rel = (2, 1)
-val unsigned_bit_word_sel_rel = (2, 2)
-val signed_bit_word_sel_rel = (2, 3)
-val nat_add_rel = (3, 0)
-val int_add_rel = (3, 1)
-val nat_subtract_rel = (3, 2)
-val int_subtract_rel = (3, 3)
-val nat_multiply_rel = (3, 4)
-val int_multiply_rel = (3, 5)
-val nat_divide_rel = (3, 6)
-val int_divide_rel = (3, 7)
-val nat_less_rel = (3, 8)
-val int_less_rel = (3, 9)
-val gcd_rel = (3, 10)
-val lcm_rel = (3, 11)
-val norm_frac_rel = (4, 0)
+val not3_rel = (2, ~1)
+val unsigned_bit_word_sel_rel = (2, ~2)
+val signed_bit_word_sel_rel = (2, ~3)
+val suc_rel = (2, ~4)
+val suc_rels_base = ~5 (* must be the last of the binary series *)
+val nat_add_rel = (3, ~1)
+val int_add_rel = (3, ~2)
+val nat_subtract_rel = (3, ~3)
+val int_subtract_rel = (3, ~4)
+val nat_multiply_rel = (3, ~5)
+val int_multiply_rel = (3, ~6)
+val nat_divide_rel = (3, ~7)
+val int_divide_rel = (3, ~8)
+val nat_less_rel = (3, ~9)
+val int_less_rel = (3, ~10)
+val gcd_rel = (3, ~11)
+val lcm_rel = (3, ~12)
+val norm_frac_rel = (4, ~1)
 
 fun atom_for_bool j0 = Atom o Integer.add j0 o int_from_bool
 fun formula_for_bool b = if b then True else False
@@ -138,6 +138,23 @@ fun atom_for_int (k, j0) n =
   else n + j0
 fun is_twos_complement_representable bits n =
   let val max = reasonable_power 2 bits in n >= ~ max andalso n < max end
+
+val max_squeeze_card = 49
+
+fun squeeze (m, n) =
+  if n > max_squeeze_card then
+    raise TOO_LARGE ("Nitpick_Peephole.squeeze",
+                     "too large cardinality (" ^ string_of_int n ^ ")")
+  else
+    (max_squeeze_card + 1) * m + n
+fun unsqueeze p = (p div (max_squeeze_card + 1), p mod (max_squeeze_card + 1))
+
+fun boolify (j, b) = 2 * j + (if b then 0 else 1)
+fun unboolify j = (j div 2, j mod 2 = 0)
+
+fun suc_rel_for_atom_seq (x, tabulate) =
+  (2, suc_rels_base - boolify (squeeze x, tabulate))
+fun atom_seq_for_suc_rel (_, j) = unboolify (~ j + suc_rels_base) |>> unsqueeze
 
 fun is_none_product (Product (r1, r2)) =
     is_none_product r1 orelse is_none_product r2
@@ -245,16 +262,18 @@ fun kodkod_constrs optim nat_card int_card main_j0 =
     fun to_nat j = j - main_j0
     val to_int = int_for_atom (int_card, main_j0)
 
+    val exists_empty_decl = exists (fn DeclOne (_, None) => true | _ => false)
+
     fun s_all _ True = True
       | s_all _ False = False
       | s_all [] f = f
-      | s_all ds (All (ds', f)) = All (ds @ ds', f)
-      | s_all ds f = All (ds, f)
+      | s_all ds (All (ds', f)) = s_all (ds @ ds') f
+      | s_all ds f = if exists_empty_decl ds then True else All (ds, f)
     fun s_exist _ True = True
       | s_exist _ False = False
       | s_exist [] f = f
-      | s_exist ds (Exist (ds', f)) = Exist (ds @ ds', f)
-      | s_exist ds f = Exist (ds, f)
+      | s_exist ds (Exist (ds', f)) = s_exist (ds @ ds') f
+      | s_exist ds f = if exists_empty_decl ds then False else Exist (ds, f)
 
     fun s_formula_let _ True = True
       | s_formula_let _ False = False
