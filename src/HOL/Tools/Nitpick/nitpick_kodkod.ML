@@ -259,8 +259,10 @@ fun bound_for_built_in_rel debug ofs univ_card nat_card int_card main_j0
 fun axiom_for_built_in_rel (x as (n, j)) =
   if n = 2 andalso j <= suc_rels_base then
     let val (y as (k, j0), tabulate) = atom_seq_for_suc_rel x in
-      if tabulate orelse k < 2 then
+      if tabulate then
         NONE
+      else if k < 2 then
+        SOME (KK.No (KK.Rel x))
       else
         SOME (KK.TotalOrdering (x, KK.AtomSeq y, KK.Atom j0, KK.Atom (j0 + 1)))
     end
