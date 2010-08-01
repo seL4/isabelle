@@ -40,6 +40,9 @@ sig
     term list list -> term list -> Proof.context -> Proof.state
   val witness_local_proof: (witness list list -> Proof.state -> Proof.state) ->
     string -> term list list -> Proof.context -> bool -> Proof.state -> Proof.state
+  val witness_local_proof_eqs: (witness list list -> thm list -> Proof.state -> Proof.state) ->
+    string -> term list list -> term list -> Proof.context -> bool -> Proof.state ->
+    Proof.state
   val morph_witness: morphism -> witness -> witness
   val conclude_witness: witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
@@ -57,6 +60,8 @@ sig
     (Attrib.binding * (thm list * Attrib.src list) list) list
   val eq_morphism: theory -> thm list -> morphism option
   val transfer_morphism: theory -> morphism
+  val generic_note_thmss: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    Context.generic -> (string * thm list) list * Context.generic
   val init: context_i -> Context.generic -> Context.generic
   val activate_i: context_i -> Proof.context -> context_i * Proof.context
   val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
@@ -280,6 +285,10 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
   in proof after_qed' propss #> refine_witness #> Seq.hd end;
 
+fun proof_local cmd goal_ctxt int after_qed' propss =
+    Proof.map_context (K goal_ctxt)
+    #> Proof.local_goal (Proof_Display.print_results int) (K I) ProofContext.bind_propp_i
+      cmd NONE after_qed' (map (pair Thm.empty_binding) propss);
 in
 
 fun witness_proof after_qed wit_propss =
@@ -289,12 +298,11 @@ fun witness_proof after_qed wit_propss =
 val witness_proof_eqs = gen_witness_proof (Proof.theorem NONE);
 
 fun witness_local_proof after_qed cmd wit_propss goal_ctxt int =
-  gen_witness_proof (fn after_qed' => fn propss =>
-    Proof.map_context (K goal_ctxt)
-    #> Proof.local_goal (Proof_Display.print_results int) (K I) ProofContext.bind_propp_i
-      cmd NONE after_qed' (map (pair Thm.empty_binding) propss))
+  gen_witness_proof (proof_local cmd goal_ctxt int)
     (fn wits => fn _ => after_qed wits) wit_propss [];
 
+fun witness_local_proof_eqs after_qed cmd wit_propss eq_props goal_ctxt int =
+  gen_witness_proof (proof_local cmd goal_ctxt int) after_qed wit_propss eq_props;
 end;
 
 
@@ -467,6 +475,15 @@ fun transfer_morphism thy =
 
 (* init *)
 
+fun generic_note_thmss kind facts context =
+  let
+    val facts' = Attrib.map_facts (Attrib.attribute_i (Context.theory_of context)) facts;
+  in
+    context |> Context.mapping_result
+      (PureThy.note_thmss kind facts')
+      (ProofContext.note_thmss kind facts')
+  end;
+
 fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
   | init (Constrains _) = I
   | init (Assumes asms) = Context.map_proof (fn ctxt =>
@@ -486,13 +503,7 @@ fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
           |> fold Variable.auto_fixes (map #1 asms)
           |> ProofContext.add_assms_i Local_Defs.def_export (map #2 asms);
       in ctxt' end)
-  | init (Notes (kind, facts)) = (fn context =>
-      let
-        val facts' = Attrib.map_facts (Attrib.attribute_i (Context.theory_of context)) facts;
-        val context' = context |> Context.mapping
-          (PureThy.note_thmss kind facts' #> #2)
-          (ProofContext.note_thmss kind facts' #> #2);
-      in context' end);
+  | init (Notes (kind, facts)) = generic_note_thmss kind facts #> #2;
 
 
 (* activate *)

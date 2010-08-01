@@ -365,7 +365,7 @@ fun print_locale (verbose, name) = Toplevel.unknown_theory o
 
 fun print_registrations name = Toplevel.unknown_context o
   Toplevel.keep (fn state =>
-    Locale.print_registrations (Toplevel.theory_of state) name);
+    Locale.print_registrations (Toplevel.context_of state) name);
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);

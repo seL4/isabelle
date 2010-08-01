@@ -431,7 +431,7 @@ A \emph{locale expression} denotes a structured context composed of
 
   \item \hyperlink{element.constrains}{\mbox{\isa{\isakeyword{constrains}}}}~\isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}{\isachardoublequote}} introduces a type
   constraint \isa{{\isasymtau}} on the local parameter \isa{x}.  This
-  element is deprecated.  The type constaint should be introduced in
+  element is deprecated.  The type constraint should be introduced in
   the for clause or the relevant \hyperlink{element.fixes}{\mbox{\isa{\isakeyword{fixes}}}} element.
 
   \item \hyperlink{element.assumes}{\mbox{\isa{\isakeyword{assumes}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n{\isachardoublequote}}
@@ -523,7 +523,7 @@ Locale expressions may be instantiated, and the instantiated facts
     ;
     'interpretation' localeepxr equations?
     ;
-    'interpret' localeexpr
+    'interpret' localeexpr equations?
     ;
     'print\_interps' nameref
     ;
@@ -582,14 +582,15 @@ Locale expressions may be instantiated, and the instantiated facts
   interpretations dynamically participate in any facts added to
   locales.
 
-  \item \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}~\isa{{\isachardoublequote}expr{\isachardoublequote}}
-  interprets \isa{expr} in the proof context and is otherwise
-  similar to interpretation in theories.
+  \item \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}~\isa{{\isachardoublequote}expr\ {\isasymWHERE}\ eqns{\isachardoublequote}} interprets
+  \isa{expr} in the proof context and is otherwise similar to
+  interpretation in theories.  Note that rewrite rules given to
+  \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}} should be explicitly universally quantified.
 
   \item \hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isacharunderscore}interps}}}}~\isa{{\isachardoublequote}locale{\isachardoublequote}} lists all
-  interpretations of \isa{{\isachardoublequote}locale{\isachardoublequote}} in the current theory, including
-  those due to a combination of an \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}} and
-  one or several \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}} declarations.
+  interpretations of \isa{{\isachardoublequote}locale{\isachardoublequote}} in the current theory or proof
+  context, including those due to a combination of a \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}} or \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}} and one or several
+  \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}} declarations.
 
   \end{description}
 
@@ -603,7 +604,7 @@ Locale expressions may be instantiated, and the instantiated facts
   \end{warn}
 
   \begin{warn}
-    An interpretation in a theory may subsume previous
+    An interpretation in a theory or proof context may subsume previous
     interpretations.  This happens if the same specification fragment
     is interpreted twice and the instantiation of the second
     interpretation is more general than the interpretation of the

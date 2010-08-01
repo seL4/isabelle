@@ -714,4 +714,24 @@ proof
   thm local_free.lone [where ?zero = 0]
 qed
 
+lemma True
+proof
+  {
+    fix pand and pnot and por
+    assume passoc: "!!x y z. pand(pand(x, y), z) <-> pand(x, pand(y, z))"
+      and pnotnot: "!!x. pnot(pnot(x)) <-> x"
+      and por_def: "!!x y. por(x, y) <-> pnot(pand(pnot(x), pnot(y)))"
+    interpret loc: logic_o pand pnot
+      where por_eq: "!!x y. logic_o.lor_o(pand, pnot, x, y) <-> por(x, y)"  (* FIXME *)
+    proof -
+      show logic_o: "PROP logic_o(pand, pnot)" using passoc pnotnot by unfold_locales
+      fix x y
+      show "logic_o.lor_o(pand, pnot, x, y) <-> por(x, y)"
+        by (unfold logic_o.lor_o_def [OF logic_o]) (rule por_def [symmetric])
+    qed
+    print_interps logic_o
+    have "!!x y. por(x, y) <-> pnot(pand(pnot(x), pnot(y)))" by (rule loc.lor_o_def)
+  }
+qed
+
 end

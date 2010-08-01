@@ -228,7 +228,7 @@ fun test_goal quiet report generator_name size iterations default_Ts no_assms in
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
     val check_goals = case some_locale
      of NONE => [proto_goal]
-      | SOME locale => map (fn phi => Morphism.term phi proto_goal) (Locale.get_registrations thy locale);
+      | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal) (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
     val inst_goals = maps (fn check_goal => map (fn T =>
       Term ((Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal)
         handle WELLSORTED s => Wellsorted_Error s) default_Ts) check_goals
