@@ -507,19 +507,22 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
         val sel_bounds = map (bound_for_sel_rel ctxt debug datatypes) sel_rels
         val dtype_axioms =
-          declarative_axioms_for_datatypes hol_ctxt binarize bits ofs kk
-                                           rel_table datatypes
+          declarative_axioms_for_datatypes hol_ctxt binarize datatype_sym_break
+                                           bits ofs kk rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = Int.max (univ_card nat_card int_card main_j0
                                      (plain_bounds @ sel_bounds) formula,
                                  main_j0 |> bits > 0 ? Integer.add (bits + 1))
-        val built_in_bounds = bounds_for_built_in_rels_in_formula debug ofs
-                                  univ_card nat_card int_card main_j0 formula
+        val (built_in_bounds, built_in_axioms) =
+          bounds_and_axioms_for_built_in_rels_in_formulas debug ofs
+              univ_card nat_card int_card main_j0
+              (formula :: declarative_axioms)
         val bounds = built_in_bounds @ plain_bounds @ sel_bounds
                      |> not debug ? merge_bounds
+        val axioms = built_in_axioms @ declarative_axioms
         val highest_arity =
           fold Integer.max (map (fst o fst) (maps fst bounds)) 0
-        val formula = fold_rev s_and declarative_axioms formula
+        val formula = fold_rev s_and axioms formula
         val _ = if bits = 0 then () else check_bits bits formula
         val _ = if formula = KK.False then ()
                 else check_arity univ_card highest_arity

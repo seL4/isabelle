@@ -18,11 +18,12 @@ sig
      explicit_max: int,
      total: bool}
 
-  type dtype_spec =
+  type datatype_spec =
     {typ: typ,
      card: int,
      co: bool,
      standard: bool,
+     self_rec: bool,
      complete: bool * bool,
      concrete: bool * bool,
      deep: bool,
@@ -34,20 +35,21 @@ sig
      card_assigns: (typ * int) list,
      bits: int,
      bisim_depth: int,
-     datatypes: dtype_spec list,
+     datatypes: datatype_spec list,
      ofs: int Typtab.table}
 
-  val datatype_spec : dtype_spec list -> typ -> dtype_spec option
-  val constr_spec : dtype_spec list -> styp -> constr_spec
-  val is_complete_type : dtype_spec list -> bool -> typ -> bool
-  val is_concrete_type : dtype_spec list -> bool -> typ -> bool
-  val is_exact_type : dtype_spec list -> bool -> typ -> bool
+  val datatype_spec : datatype_spec list -> typ -> datatype_spec option
+  val constr_spec : datatype_spec list -> styp -> constr_spec
+  val is_complete_type : datatype_spec list -> bool -> typ -> bool
+  val is_concrete_type : datatype_spec list -> bool -> typ -> bool
+  val is_exact_type : datatype_spec list -> bool -> typ -> bool
   val offset_of_type : int Typtab.table -> typ -> int
   val spec_of_type : scope -> typ -> int * int
   val pretties_for_scope : scope -> bool -> Pretty.T list
   val multiline_string_for_scope : scope -> string
   val scopes_equivalent : scope * scope -> bool
   val scope_less_eq : scope -> scope -> bool
+  val is_self_recursive_constr_type : typ -> bool
   val all_scopes :
     hol_context -> bool -> (typ option * int list) list
     -> (styp option * int list) list -> (styp option * int list) list
@@ -69,11 +71,12 @@ type constr_spec =
    explicit_max: int,
    total: bool}
 
-type dtype_spec =
+type datatype_spec =
   {typ: typ,
    card: int,
    co: bool,
    standard: bool,
+   self_rec: bool,
    complete: bool * bool,
    concrete: bool * bool,
    deep: bool,
@@ -85,7 +88,7 @@ type scope =
    card_assigns: (typ * int) list,
    bits: int,
    bisim_depth: int,
-   datatypes: dtype_spec list,
+   datatypes: datatype_spec list,
    ofs: int Typtab.table}
 
 datatype row_kind = Card of typ | Max of styp
@@ -93,11 +96,11 @@ datatype row_kind = Card of typ | Max of styp
 type row = row_kind * int list
 type block = row list
 
-fun datatype_spec (dtypes : dtype_spec list) T =
+fun datatype_spec (dtypes : datatype_spec list) T =
   List.find (curry (op =) T o #typ) dtypes
 
 fun constr_spec [] x = raise TERM ("Nitpick_Scope.constr_spec", [Const x])
-  | constr_spec ({constrs, ...} :: dtypes : dtype_spec list) (x as (s, T)) =
+  | constr_spec ({constrs, ...} :: dtypes : datatype_spec list) (x as (s, T)) =
     case List.find (curry (op =) (s, body_type T) o (apsnd body_type o #const))
                    constrs of
       SOME c => c
@@ -438,6 +441,7 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
     val self_recs = map (is_self_recursive_constr_type o snd) xs
     val (num_self_recs, num_non_self_recs) =
       List.partition I self_recs |> pairself length
+    val self_rec = num_self_recs > 0
     fun is_complete facto =
       has_exact_card hol_ctxt facto finitizable_dataTs card_assigns T
     fun is_concrete facto =
@@ -454,8 +458,8 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
                                 num_non_self_recs)
                (sort (bool_ord o swap o pairself fst) (self_recs ~~ xs)) []
   in
-    {typ = T, card = card, co = co, standard = standard, complete = complete,
-     concrete = concrete, deep = deep, constrs = constrs}
+    {typ = T, card = card, co = co, standard = standard, self_rec = self_rec,
+     complete = complete, concrete = concrete, deep = deep, constrs = constrs}
   end
 
 fun scope_from_descriptor (hol_ctxt as {ctxt, stds, ...}) binarize deep_dataTs

@@ -47,7 +47,7 @@ sig
     Acyclic of n_ary_index |
     Function of n_ary_index * rel_expr * rel_expr |
     Functional of n_ary_index * rel_expr * rel_expr |
-    TotalOrdering of n_ary_index * n_ary_index * n_ary_index * n_ary_index |
+    TotalOrdering of n_ary_index * rel_expr * rel_expr * rel_expr |
     Subset of rel_expr * rel_expr |
     RelEq of rel_expr * rel_expr |
     IntEq of int_expr * int_expr |
@@ -216,7 +216,7 @@ datatype formula =
   Acyclic of n_ary_index |
   Function of n_ary_index * rel_expr * rel_expr |
   Functional of n_ary_index * rel_expr * rel_expr |
-  TotalOrdering of n_ary_index * n_ary_index * n_ary_index * n_ary_index |
+  TotalOrdering of n_ary_index * rel_expr * rel_expr * rel_expr |
   Subset of rel_expr * rel_expr |
   RelEq of rel_expr * rel_expr |
   IntEq of int_expr * int_expr |
@@ -316,7 +316,15 @@ type 'a fold_expr_funcs =
    rel_expr_func: rel_expr -> 'a -> 'a,
    int_expr_func: int_expr -> 'a -> 'a}
 
-(** Auxiliary functions on ML representation of Kodkod problems **)
+fun is_new_kodkodi_version () =
+  case getenv "KODKODI_VERSION" of
+    "" => false
+  | s => dict_ord int_ord (s |> space_explode "."
+                             |> map (the o Int.fromString),
+                           [1, 2, 13]) = GREATER
+         handle Option.Option => false
+
+(** Auxiliary functions on Kodkod problems **)
 
 fun fold_formula (F : 'a fold_expr_funcs) formula =
   case formula of
@@ -335,9 +343,9 @@ fun fold_formula (F : 'a fold_expr_funcs) formula =
     fold_rel_expr F (Rel x) #> fold_rel_expr F r1 #> fold_rel_expr F r2
   | Functional (x, r1, r2) =>
     fold_rel_expr F (Rel x) #> fold_rel_expr F r1 #> fold_rel_expr F r2
-  | TotalOrdering (x1, x2, x3, x4) =>
-    fold_rel_expr F (Rel x1) #> fold_rel_expr F (Rel x2)
-    #> fold_rel_expr F (Rel x3) #> fold_rel_expr F (Rel x4)
+  | TotalOrdering (x, r1, r2, r3) =>
+    fold_rel_expr F (Rel x) #> fold_rel_expr F r1 #> fold_rel_expr F r2
+    #> fold_rel_expr F r3
   | Subset (r1, r2) => fold_rel_expr F r1 #> fold_rel_expr F r2
   | RelEq (r1, r2) => fold_rel_expr F r1 #> fold_rel_expr F r2
   | IntEq (i1, i2) => fold_int_expr F i1 #> fold_int_expr F i2
@@ -518,7 +526,10 @@ fun rel_reg_name j = "$e" ^ base_name j
 fun int_reg_name j = "$i" ^ base_name j
 
 fun tuple_name x = n_ary_name x "A" "P" "T"
-fun rel_name x = n_ary_name x "s" "r" "m"
+fun rel_name new_kodkodi (n, j) =
+  n_ary_name (n, if new_kodkodi then j
+                 else if j >= 0 then 2 * j
+                 else 2 * ~j - 1) "s" "r" "m"
 fun var_name x = n_ary_name x "S" "R" "M"
 fun tuple_reg_name x = n_ary_name x "$A" "$P" "$T"
 fun tuple_set_reg_name x = n_ary_name x "$a" "$p" "$t"
@@ -530,7 +541,8 @@ fun inline_comment "" = ""
 fun block_comment "" = ""
   | block_comment comment = prefix_lines "// " comment ^ "\n"
 
-fun commented_rel_name (x, s) = rel_name x ^ inline_comment s
+fun commented_rel_name new_kodkodi (x, s) =
+  rel_name new_kodkodi x ^ inline_comment s
 
 fun string_for_tuple (Tuple js) = "[" ^ commas (map atom_name js) ^ "]"
   | string_for_tuple (TupleIndex x) = tuple_name x
@@ -581,8 +593,8 @@ fun string_for_tuple_assign (AssignTuple (x, t)) =
   | string_for_tuple_assign (AssignTupleSet (x, ts)) =
     tuple_set_reg_name x ^ " := " ^ string_for_tuple_set ts ^ "\n"
 
-fun string_for_bound (zs, tss) =
-  "bounds " ^ commas (map commented_rel_name zs) ^ ": " ^
+fun string_for_bound new_kodkodi (zs, tss) =
+  "bounds " ^ commas (map (commented_rel_name new_kodkodi) zs) ^ ": " ^
   (if length tss = 1 then "" else "[") ^ commas (map string_for_tuple_set tss) ^
   (if length tss = 1 then "" else "]") ^ "\n"
 
@@ -685,6 +697,8 @@ and precedence_i (Sum _) = prec_All
 
 fun write_problem_file out problems =
   let
+    val new_kodkodi = is_new_kodkodi_version ()
+    val rel_name = rel_name new_kodkodi
     fun out_outmost_f (And (f1, f2)) =
         (out_outmost_f f1; out "\n   && "; out_outmost_f f2)
       | out_outmost_f f = out_f f prec_And
@@ -715,9 +729,9 @@ fun write_problem_file out problems =
          | Functional (x, r1, r2) =>
            (out ("FUNCTION(" ^ rel_name x ^ ", "); out_r r1 0; out " -> lone ";
             out_r r2 0; out ")")
-         | TotalOrdering (x1, x2, x3, x4) =>
-           out ("TOTAL_ORDERING(" ^ rel_name x1 ^ ", " ^ rel_name x2 ^ ", "
-                ^ rel_name x3 ^ ", " ^ rel_name x4 ^ ")")
+         | TotalOrdering (x, r1, r2, r3) =>
+           (out ("TOTAL_ORDERING(" ^ rel_name x ^ ", "); out_r r1 0; out ", ";
+            out_r r2 0; out ", "; out_r r3 0; out ")")
          | Subset (r1, r2) => (out_r r1 prec; out " in "; out_r r2 prec)
          | RelEq (r1, r2) => (out_r r1 prec; out " = "; out_r r2 prec)
          | IntEq (i1, i2) => (out_i i1 prec; out " = "; out_i i2 prec)
@@ -837,7 +851,7 @@ fun write_problem_file out problems =
                             settings) ^
               "univ: " ^ atom_seq_name (univ_card, 0) ^ "\n" ^
               implode (map string_for_tuple_assign tuple_assigns) ^
-              implode (map string_for_bound bounds) ^
+              implode (map (string_for_bound new_kodkodi) bounds) ^
               (if int_bounds = [] then
                  ""
                else
@@ -871,22 +885,29 @@ fun scan_non_empty_list scan = scan ::: Scan.repeat ($$ "," |-- scan)
 fun scan_list scan = scan_non_empty_list scan || Scan.succeed []
 val scan_nat = Scan.repeat1 (Scan.one Symbol.is_ascii_digit)
                >> (the o Int.fromString o space_implode "")
-val scan_rel_name = $$ "s" |-- scan_nat >> pair 1
-                    || $$ "r" |-- scan_nat >> pair 2
-                    || ($$ "m" |-- scan_nat --| $$ "_") -- scan_nat
+fun scan_rel_name new_kodkodi =
+  ($$ "s" |-- scan_nat >> pair 1
+   || $$ "r" |-- scan_nat >> pair 2
+   || ($$ "m" |-- scan_nat --| $$ "_") -- scan_nat) -- Scan.option ($$ "'")
+  >> (fn ((n, j), SOME _) => (n, ~j - 1)
+       | ((n, j), NONE) => (n, if new_kodkodi then j
+                               else if j mod 2 = 0 then j div 2
+                               else ~(j - 1) div 2))
 val scan_atom = $$ "A" |-- scan_nat
 val scan_tuple = $$ "[" |-- scan_list scan_atom --| $$ "]"
 val scan_tuple_set = $$ "[" |-- scan_list scan_tuple --| $$ "]"
-val scan_assignment = (scan_rel_name --| $$ "=") -- scan_tuple_set
-val scan_instance = Scan.this_string "relations:" |--
-                    $$ "{" |-- scan_list scan_assignment --| $$ "}"
+fun scan_assignment new_kodkodi =
+  (scan_rel_name new_kodkodi --| $$ "=") -- scan_tuple_set
+fun scan_instance new_kodkodi =
+  Scan.this_string "relations:"
+  |-- $$ "{" |-- scan_list (scan_assignment new_kodkodi) --| $$ "}"
 
-val parse_instance =
+fun parse_instance new_kodkodi =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ =>
                                 raise SYNTAX ("Kodkod.parse_instance",
                                               "ill-formed Kodkodi output"))
-                            scan_instance))
+                            (scan_instance new_kodkodi)))
   o strip_blanks o explode
 
 val problem_marker = "*** PROBLEM "
@@ -897,15 +918,15 @@ fun read_section_body marker =
   Substring.string o fst o Substring.position "\n\n"
   o Substring.triml (size marker)
 
-fun read_next_instance s =
+fun read_next_instance new_kodkodi s =
   let val s = Substring.position instance_marker s |> snd in
     if Substring.isEmpty s then
       raise SYNTAX ("Kodkod.read_next_instance", "expected \"INSTANCE\" marker")
     else
-      read_section_body instance_marker s |> parse_instance
+      read_section_body instance_marker s |> parse_instance new_kodkodi
   end
 
-fun read_next_outcomes j (s, ps, js) =
+fun read_next_outcomes new_kodkodi j (s, ps, js) =
   let val (s1, s2) = Substring.position outcome_marker s in
     if Substring.isEmpty s2 orelse
        not (Substring.isEmpty (Substring.position problem_marker s1
@@ -917,16 +938,17 @@ fun read_next_outcomes j (s, ps, js) =
         val s = Substring.triml (size outcome_marker) s2
       in
         if String.isSuffix "UNSATISFIABLE" outcome then
-          read_next_outcomes j (s, ps, j :: js)
+          read_next_outcomes new_kodkodi j (s, ps, j :: js)
         else if String.isSuffix "SATISFIABLE" outcome then
-          read_next_outcomes j (s, (j, read_next_instance s2) :: ps, js)
+          read_next_outcomes new_kodkodi j
+                           (s, (j, read_next_instance new_kodkodi s2) :: ps, js)
         else
           raise SYNTAX ("Kodkod.read_next_outcomes",
                         "unknown outcome " ^ quote outcome)
       end
   end
 
-fun read_next_problems (s, ps, js) =
+fun read_next_problems new_kodkodi (s, ps, js) =
   let val s = Substring.position problem_marker s |> snd in
     if Substring.isEmpty s then
       (ps, js)
@@ -936,14 +958,18 @@ fun read_next_problems (s, ps, js) =
         val j_plus_1 = s |> Substring.takel (not_equal #" ") |> Substring.string
                          |> Int.fromString |> the
         val j = j_plus_1 - 1
-      in read_next_problems (read_next_outcomes j (s, ps, js)) end
+      in
+        read_next_problems new_kodkodi
+                           (read_next_outcomes new_kodkodi j (s, ps, js))
+      end
   end
   handle Option.Option => raise SYNTAX ("Kodkod.read_next_problems",
                                         "expected number after \"PROBLEM\"")
 
-fun read_output_file path =
-  (false, read_next_problems (Substring.full (File.read path), [], [])
-          |>> rev ||> rev)
+fun read_output_file new_kodkodi path =
+  (false,
+   read_next_problems new_kodkodi (Substring.full (File.read path), [], [])
+   |>> rev ||> rev)
   handle IO.Io _ => (true, ([], [])) | OS.SysErr _ => (true, ([], []))
 
 (** Main Kodkod entry point **)
@@ -973,6 +999,7 @@ fun milliseconds_until_deadline deadline =
 fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                                problems =
   let
+    val new_kodkodi = is_new_kodkodi_version ()
     val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
                              [(j, nth problems j)]
@@ -1026,7 +1053,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                       " > " ^ File.shell_path out_path ^
                       " 2> " ^ File.shell_path err_path)
               val (io_error, (ps, nontriv_js)) =
-                read_output_file out_path
+                read_output_file new_kodkodi out_path
                 ||> apfst (map (apfst reindex)) ||> apsnd (map reindex)
               val js = triv_js @ nontriv_js
               val first_error =
@@ -1063,7 +1090,8 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
         handle Exn.Interrupt =>
                let
                  val nontriv_js =
-                   read_output_file out_path |> snd |> snd |> map reindex
+                   read_output_file new_kodkodi out_path
+                   |> snd |> snd |> map reindex
                in
                  (remove_temporary_files ();
                   Interrupted (SOME (triv_js @ nontriv_js)))

@@ -902,8 +902,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
     val all_values =
       all_values_of_type pool wacky_names scope atomss sel_names rel_table
                          bounds
-    fun is_codatatype_wellformed (cos : dtype_spec list)
-                                 ({typ, card, ...} : dtype_spec) =
+    fun is_codatatype_wellformed (cos : datatype_spec list)
+                                 ({typ, card, ...} : datatype_spec) =
       let
         val ts = all_values card typ
         val max_depth = Integer.sum (map #card cos)
@@ -935,7 +935,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
             [setmp_show_all_types (Syntax.pretty_term ctxt) t1,
              Pretty.str oper, Syntax.pretty_term ctxt t2])
       end
-    fun pretty_for_datatype ({typ, card, complete, ...} : dtype_spec) =
+    fun pretty_for_datatype ({typ, card, complete, ...} : datatype_spec) =
       Pretty.block (Pretty.breaks
           (Syntax.pretty_typ ctxt (uniterize_unarize_unbox_etc_type typ) ::
            (case typ of
@@ -950,8 +950,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                   else [Pretty.str (unrep ())]))]))
     fun integer_datatype T =
       [{typ = T, card = card_of_type card_assigns T, co = false,
-        standard = true, complete = (false, false), concrete = (true, true),
-        deep = true, constrs = []}]
+        standard = true, self_rec = true, complete = (false, false),
+        concrete = (true, true), deep = true, constrs = []}]
       handle TYPE ("Nitpick_HOL.card_of_type", _, _) => []
     val (codatatypes, datatypes) =
       datatypes |> filter #deep |> List.partition #co
