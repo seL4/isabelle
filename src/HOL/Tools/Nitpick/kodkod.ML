@@ -320,9 +320,8 @@ fun is_new_kodkodi_version () =
   case getenv "KODKODI_VERSION" of
     "" => false
   | s => dict_ord int_ord (s |> space_explode "."
-                             |> map (the o Int.fromString),
+                             |> map (the_default 0 o Int.fromString),
                            [1, 2, 13]) = GREATER
-         handle Option.Option => false
 
 (** Auxiliary functions on Kodkod problems **)
 
@@ -892,7 +891,7 @@ fun scan_rel_name new_kodkodi =
   >> (fn ((n, j), SOME _) => (n, ~j - 1)
        | ((n, j), NONE) => (n, if new_kodkodi then j
                                else if j mod 2 = 0 then j div 2
-                               else ~(j - 1) div 2))
+                               else ~(j + 1) div 2))
 val scan_atom = $$ "A" |-- scan_nat
 val scan_tuple = $$ "[" |-- scan_list scan_atom --| $$ "]"
 val scan_tuple_set = $$ "[" |-- scan_list scan_tuple --| $$ "]"
