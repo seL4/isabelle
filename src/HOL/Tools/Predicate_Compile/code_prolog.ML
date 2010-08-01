@@ -6,7 +6,8 @@ Prototype of an code generator for logic programming languages (a.k.a. Prolog)
 
 signature CODE_PROLOG =
 sig
-  datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list;
+  datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
+    | Number of int;
   datatype prem = Conj of prem list | NotRel of string * prol_term list
     | Rel of string * prol_term list | Eq of prol_term * prol_term | NotEq of prol_term * prol_term;
   type clause = ((string * prol_term list) * prem);
@@ -35,11 +36,13 @@ val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 (* internal program representation *)
 
-datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list;
+datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
+  | Number of int;
 
 fun string_of_prol_term (Var s) = "Var " ^ s
   | string_of_prol_term (Cons s) = "Cons " ^ s
   | string_of_prol_term (AppF (f, args)) = f ^ "(" ^ commas (map string_of_prol_term args) ^ ")" 
+  | string_of_prol_term (Number n) = "Number " ^ string_of_int n
 
 datatype prem = Conj of prem list | NotRel of string * prol_term list
     | Rel of string * prol_term list | Eq of prol_term * prol_term | NotEq of prol_term * prol_term;
@@ -81,12 +84,15 @@ fun restore_const constant_table c =
 (** translation of terms, literals, premises, and clauses **)
 
 fun translate_term ctxt constant_table t =
-  case strip_comb t of
-    (Free (v, T), []) => Var v 
-  | (Const (c, _), []) => Cons (translate_const constant_table c)
-  | (Const (c, _), args) =>
-    AppF (translate_const constant_table c, map (translate_term ctxt constant_table) args)
-  | _ => error ("illegal term for translation: " ^ Syntax.string_of_term ctxt t)
+  case try HOLogic.dest_number t of
+    SOME (@{typ "int"}, n) => Number n
+  | NONE =>
+      (case strip_comb t of
+        (Free (v, T), []) => Var v 
+      | (Const (c, _), []) => Cons (translate_const constant_table c)
+      | (Const (c, _), args) =>
+        AppF (translate_const constant_table c, map (translate_term ctxt constant_table) args)
+      | _ => error ("illegal term for translation: " ^ Syntax.string_of_term ctxt t))
 
 fun translate_literal ctxt constant_table t =
   case strip_comb t of
@@ -161,6 +167,7 @@ fun ensure_groundness_before_negation p =
 fun write_term (Var v) = first_upper v
   | write_term (Cons c) = c
   | write_term (AppF (f, args)) = f ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
+  | write_term (Number n) = string_of_int n
 
 fun write_rel (pred, args) =
   pred ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
