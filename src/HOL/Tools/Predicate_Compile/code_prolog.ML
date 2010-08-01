@@ -259,6 +259,8 @@ val prelude =
   "main :- halt(1).\n"
 
 (* parsing prolog solution *)
+val scan_number =
+  Scan.many1 Symbol.is_ascii_digit
 
 val scan_atom =
   Scan.many1 (fn s => Symbol.is_ascii_lower s orelse Symbol.is_ascii_quasi s)
@@ -280,10 +282,13 @@ val is_atom_ident = forall Symbol.is_ascii_lower
 val is_var_ident =
   forall (fn s => Symbol.is_ascii_upper s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
 
+fun int_of_symbol_list xs = fold (fn x => fn s => s * 10 + (ord x - ord "0")) xs 0
+
 fun scan_terms xs = (((scan_term --| $$ ",") ::: scan_terms)
   || (scan_term >> single)) xs
 and scan_term xs =
-  ((scan_var >> (Var o string_of))
+  ((scan_number >> (Number o int_of_symbol_list))
+  || (scan_var >> (Var o string_of))
   || ((scan_atom -- ($$ "(" |-- scan_terms --| $$ ")"))
     >> (fn (f, ts) => AppF (string_of f, ts)))
   || (scan_atom >> (Cons o string_of))) xs
@@ -322,6 +327,8 @@ fun run p query_rel vnames nsols =
 (* values command *)
 
 fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
+  | restore_term ctxt constant_table (Number n, @{typ "int"}) = HOLogic.mk_number @{typ "int"} n
+  | restore_term ctxt constant_table (Number n, _) = raise (Fail "unexpected type for number") 
   | restore_term ctxt constant_table (Cons s, T) = Const (restore_const constant_table s, T)
   | restore_term ctxt constant_table (AppF (f, args), T) =
     let
@@ -358,16 +365,31 @@ fun values ctxt soln t_compr =
     val _ = tracing "Running prolog program..."
     val tss = run p (translate_const constant_table name) (map first_upper vnames) soln
     val _ = tracing "Restoring terms..."
-    fun mk_set_comprehension t =
-      let
-        val frees = Term.add_frees t []
-        val uu as (uuN, uuT) = singleton (Variable.variant_frees ctxt [t]) ("uu", fastype_of t)
-      in HOLogic.mk_Collect (uuN, uuT, fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))
-        frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), @{term "True"}))) end
-    val set_comprs = map (fn ts =>
-      mk_set_comprehension (HOLogic.mk_tuple (map (restore_term ctxt constant_table) (ts ~~ Ts)))) tss
+    val empty = Const("Orderings.bot_class.bot", fastype_of t_compr)
+    fun mk_insert x S =
+      Const (@{const_name "Set.insert"}, fastype_of x --> fastype_of S --> fastype_of S) $ x $ S 
+    fun mk_set_compr in_insert [] xs =
+       rev ((Free ("...", fastype_of t_compr)) ::
+        (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs))
+      | mk_set_compr in_insert (t :: ts) xs =
+        let
+          val frees = Term.add_frees t []
+        in
+          if null frees then
+            mk_set_compr (t :: in_insert) ts xs
+          else
+            let
+              val uu as (uuN, uuT) = singleton (Variable.variant_frees ctxt [t]) ("uu", fastype_of t)
+              val set_compr =
+                HOLogic.mk_Collect (uuN, uuT, fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))
+                  frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), @{term "True"})))
+            in
+              set_compr :: (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs)  
+            end
+        end
   in
-    foldl1 (HOLogic.mk_binop @{const_name sup}) (set_comprs @ [Free ("...", fastype_of t_compr)])
+      foldl1 (HOLogic.mk_binop @{const_name sup}) (mk_set_compr []
+        (map (fn ts => HOLogic.mk_tuple (map (restore_term ctxt constant_table) (ts ~~ Ts))) tss) [])
   end
 
 fun values_cmd print_modes soln raw_t state =
@@ -377,6 +399,7 @@ fun values_cmd print_modes soln raw_t state =
     val t' = values ctxt soln t
     val ty' = Term.type_of t'
     val ctxt' = Variable.auto_fixes t' ctxt
+    val _ = tracing "Printing terms..."
     val p = Print_Mode.with_modes print_modes (fn () =>
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
