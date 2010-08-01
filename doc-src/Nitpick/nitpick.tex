@@ -2500,6 +2500,18 @@ peephole optimizer. These optimizations can make a significant difference.
 Unless you are tracking down a bug in Nitpick or distrust the peephole
 optimizer, you should leave this option enabled.
 
+\opdefault{datatype\_sym\_break}{int}{5}
+Specifies an upper bound on the number of datatypes for which Nitpick generates
+symmetry breaking predicates. Symmetry breaking can speed up the SAT solver
+considerably, especially for unsatisfiable problems, but too much of it can slow
+it down.
+
+\opdefault{kodkod\_sym\_break}{int}{15}
+Specifies an upper bound on the number of relations for which Kodkod generates
+symmetry breaking predicates. Symmetry breaking can speed up the SAT solver
+considerably, especially for unsatisfiable problems, but too much of it can slow
+it down.
+
 \opdefault{max\_threads}{int}{0}
 Specifies the maximum number of threads to use in Kodkod. If this option is set
 to 0, Kodkod will compute an appropriate value based on the number of processor
