@@ -38,6 +38,7 @@ sig
      datatypes: datatype_spec list,
      ofs: int Typtab.table}
 
+  val is_asymmetric_nondatatype : typ -> bool
   val datatype_spec : datatype_spec list -> typ -> datatype_spec option
   val constr_spec : datatype_spec list -> styp -> constr_spec
   val is_complete_type : datatype_spec list -> bool -> typ -> bool
@@ -95,6 +96,9 @@ datatype row_kind = Card of typ | Max of styp
 
 type row = row_kind * int list
 type block = row list
+
+val is_asymmetric_nondatatype =
+  is_iterator_type orf is_integer_type orf is_bit_type
 
 fun datatype_spec (dtypes : datatype_spec list) T =
   List.find (curry (op =) T o #typ) dtypes
@@ -368,8 +372,7 @@ fun offset_table_for_card_assigns dtypes assigns =
   let
     fun aux next _ [] = Typtab.update_new (dummyT, next)
       | aux next reusable ((T, k) :: assigns) =
-        if k = 1 orelse is_iterator_type T orelse is_integer_type T
-           orelse is_bit_type T then
+        if k = 1 orelse is_asymmetric_nondatatype T then
           aux next reusable assigns
         else if length (these (Option.map #constrs (datatype_spec dtypes T)))
                 > 1 then

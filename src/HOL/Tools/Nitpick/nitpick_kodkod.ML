@@ -786,6 +786,7 @@ fun datatype_ord (({card = card1, self_rec = self_rec1, constrs = constr1, ...},
    break cycles; otherwise, we may end up with two incompatible symmetry
    breaking orders, leading to spurious models. *)
 fun should_tabulate_suc_for_type dtypes T =
+  is_asymmetric_nondatatype T orelse
   case datatype_spec dtypes T of
     SOME {self_rec, ...} => self_rec
   | NONE => false
@@ -908,7 +909,10 @@ fun sym_break_axioms_for_datatypes hol_ctxt binarize datatype_sym_break kk
                                         dtypes)
          (dtypes |> filter is_datatype_good_and_old
                  |> filter (fn {constrs = [_], ...} => false
-                             | {card, ...} => card >= min_sym_break_card)
+                             | {card, constrs, ...} =>
+                               card >= min_sym_break_card andalso
+                               forall (forall (not o is_higher_order_type)
+                                       o binder_types o snd o #const) constrs)
                  |> (fn dtypes' =>
                         dtypes'
                         |> length dtypes' > datatype_sym_break
