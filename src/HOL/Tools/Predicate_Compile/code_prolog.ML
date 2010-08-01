@@ -6,10 +6,14 @@ Prototype of an code generator for logic programming languages (a.k.a. Prolog)
 
 signature CODE_PROLOG =
 sig
+  datatype arith_op = Plus | Minus
   datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
-    | Number of int;
-  datatype prem = Conj of prem list | NotRel of string * prol_term list
-    | Rel of string * prol_term list | Eq of prol_term * prol_term | NotEq of prol_term * prol_term;
+    | Number of int | ArithOp of arith_op * prol_term list;
+  datatype prem = Conj of prem list
+    | Rel of string * prol_term list | NotRel of string * prol_term list
+    | Eq of prol_term * prol_term | NotEq of prol_term * prol_term
+    | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term;
+      
   type clause = ((string * prol_term list) * prem);
   type logic_program = clause list;
   type constant_table = (string * string) list
@@ -36,17 +40,29 @@ val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 (* internal program representation *)
 
+datatype arith_op = Plus | Minus
+
 datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
-  | Number of int;
+  | Number of int | ArithOp of arith_op * prol_term list;
+
+fun is_Var (Var _) = true
+  | is_Var _ = false
+
+fun is_arith_term (Var _) = true
+  | is_arith_term (Number _) = true
+  | is_arith_term (ArithOp (_, operands)) = forall is_arith_term operands
+  | is_arith_term _ = false
 
 fun string_of_prol_term (Var s) = "Var " ^ s
   | string_of_prol_term (Cons s) = "Cons " ^ s
   | string_of_prol_term (AppF (f, args)) = f ^ "(" ^ commas (map string_of_prol_term args) ^ ")" 
   | string_of_prol_term (Number n) = "Number " ^ string_of_int n
 
-datatype prem = Conj of prem list | NotRel of string * prol_term list
-    | Rel of string * prol_term list | Eq of prol_term * prol_term | NotEq of prol_term * prol_term;
-
+datatype prem = Conj of prem list
+  | Rel of string * prol_term list | NotRel of string * prol_term list
+  | Eq of prol_term * prol_term | NotEq of prol_term * prol_term
+  | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term;
+    
 fun dest_Rel (Rel (c, ts)) = (c, ts)
  
 type clause = ((string * prol_term list) * prem);
@@ -83,6 +99,10 @@ fun restore_const constant_table c =
   
 (** translation of terms, literals, premises, and clauses **)
 
+fun translate_arith_const @{const_name "Groups.plus_class.plus"} = SOME Plus
+  | translate_arith_const @{const_name "Groups.minus_class.minus"} = SOME Minus
+  | translate_arith_const _ = NONE
+
 fun translate_term ctxt constant_table t =
   case try HOLogic.dest_number t of
     SOME (@{typ "int"}, n) => Number n
@@ -91,20 +111,29 @@ fun translate_term ctxt constant_table t =
         (Free (v, T), []) => Var v 
       | (Const (c, _), []) => Cons (translate_const constant_table c)
       | (Const (c, _), args) =>
-        AppF (translate_const constant_table c, map (translate_term ctxt constant_table) args)
+        (case translate_arith_const c of
+          SOME aop => ArithOp (aop, map (translate_term ctxt constant_table) args)
+        | NONE =>                                                             
+            AppF (translate_const constant_table c, map (translate_term ctxt constant_table) args))
       | _ => error ("illegal term for translation: " ^ Syntax.string_of_term ctxt t))
 
 fun translate_literal ctxt constant_table t =
   case strip_comb t of
     (Const (@{const_name "op ="}, _), [l, r]) =>
-      Eq (pairself (translate_term ctxt constant_table) (l, r))
+      let
+        val l' = translate_term ctxt constant_table l
+        val r' = translate_term ctxt constant_table r
+      in
+        (if is_Var l' andalso is_arith_term r' then ArithEq else Eq) (l', r')
+      end
   | (Const (c, _), args) =>
       Rel (translate_const constant_table c, map (translate_term ctxt constant_table) args)
   | _ => error ("illegal literal for translation: " ^ Syntax.string_of_term ctxt t)
 
 fun NegRel_of (Rel lit) = NotRel lit
   | NegRel_of (Eq eq) = NotEq eq
-  
+  | NegRel_of (ArithEq eq) = NotArithEq eq
+
 fun translate_prem ctxt constant_table t =  
     case try HOLogic.dest_not t of
       SOME t => NegRel_of (translate_literal ctxt constant_table t)
@@ -164,9 +193,13 @@ fun ensure_groundness_before_negation p =
 
 (* code printer *)
 
+fun write_arith_op Plus = "+"
+  | write_arith_op Minus = "-"
+
 fun write_term (Var v) = first_upper v
   | write_term (Cons c) = c
-  | write_term (AppF (f, args)) = f ^ "(" ^ space_implode ", " (map write_term args) ^ ")" 
+  | write_term (AppF (f, args)) = f ^ "(" ^ space_implode ", " (map write_term args) ^ ")"
+  | write_term (ArithOp (oper, [a1, a2])) = write_term a1 ^ " " ^ write_arith_op oper ^ " " ^ write_term a2
   | write_term (Number n) = string_of_int n
 
 fun write_rel (pred, args) =
@@ -177,6 +210,8 @@ fun write_prem (Conj prems) = space_implode ", " (map write_prem prems)
   | write_prem (NotRel p) = "not(" ^ write_rel p ^ ")"
   | write_prem (Eq (l, r)) = write_term l ^ " = " ^ write_term r
   | write_prem (NotEq (l, r)) = write_term l ^ " \\= " ^ write_term r
+  | write_prem (ArithEq (l, r)) = write_term l ^ " is " ^ write_term r
+  | write_prem (NotArithEq (l, r)) = write_term l ^ " =\\= " ^ write_term r
 
 fun write_clause (head, prem) =
   write_rel head ^ (if prem = Conj [] then "." else " :- " ^ write_prem prem ^ ".")
