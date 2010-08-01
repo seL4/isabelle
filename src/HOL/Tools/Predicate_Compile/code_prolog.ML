@@ -139,9 +139,26 @@ fun translate_prem ctxt constant_table t =
       SOME t => NegRel_of (translate_literal ctxt constant_table t)
     | NONE => translate_literal ctxt constant_table t
 
+    
+fun imp_prems_conv cv ct =
+  case Thm.term_of ct of
+    Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
+  | _ => Conv.all_conv ct
+
+fun Trueprop_conv cv ct =
+  case Thm.term_of ct of
+    Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
+  | _ => raise Fail "Trueprop_conv"
+
+fun preprocess_intro thy rule =
+  Conv.fconv_rule
+    (imp_prems_conv
+      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv @{thm Predicate.eq_is_eq}))))
+    (Thm.transfer thy rule)
+
 fun translate_intros ctxt gr const constant_table =
   let
-    val intros = Graph.get_node gr const
+    val intros = map (preprocess_intro (ProofContext.theory_of ctxt)) (Graph.get_node gr const)
     val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
     val constant_table' = declare_consts (fold Term.add_const_names intros' []) constant_table
     fun translate_intro intro =
