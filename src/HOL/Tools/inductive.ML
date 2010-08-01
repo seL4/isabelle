@@ -548,15 +548,18 @@ val ind_cases_setup =
 
 fun mk_simp_eq ctxt prop =
   let
-    val (c, args) = strip_comb (HOLogic.dest_Trueprop prop)
     val ctxt' = Variable.auto_fixes prop ctxt
-    val cname = fst (dest_Const c)
+    val cname = fst (dest_Const (fst (strip_comb (HOLogic.dest_Trueprop prop))))
     val info = the_inductive ctxt cname
     val eq = nth (#eqs (snd info)) (find_index (fn c => c = cname) (#names (fst info)))
-    val (_, args') = strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of eq))))
+    val lhs_eq = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of eq)))
+    val subst = Pattern.match (ProofContext.theory_of ctxt) (lhs_eq, HOLogic.dest_Trueprop prop)
+      (Vartab.empty, Vartab.empty)
     val certify = cterm_of (ProofContext.theory_of ctxt)
-  in
-    cterm_instantiate (map (pairself certify) (args' ~~ args)) eq
+    val inst = map (fn v => (certify (Var v), certify (Envir.subst_term subst (Var v))))
+      (Term.add_vars lhs_eq [])
+   in
+    cterm_instantiate inst eq
     |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv
       (Simplifier.full_rewrite (simpset_of ctxt))))
     |> singleton (Variable.export ctxt' ctxt)
