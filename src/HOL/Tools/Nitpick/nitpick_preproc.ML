@@ -728,6 +728,10 @@ val special_max_depth = 20
 
 val bound_var_prefix = "b"
 
+fun special_fun_aconv ((x1, js1, ts1), (x2, js2, ts2)) =
+  x1 = x2 andalso js1 = js2 andalso length ts1 = length ts2 andalso
+  forall (op aconv) (ts1 ~~ ts2)
+
 fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
                                             special_funs, ...}) depth t =
   if not specialize orelse depth > special_max_depth then
@@ -769,7 +773,7 @@ fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
                              (map var_for_bound_no (index_seq 0 (length Ts))))
                       fixed_args
               in
-                case AList.lookup (op =) (!special_funs)
+                case AList.lookup special_fun_aconv (!special_funs)
                                   (x, fixed_js, fixed_args_in_axiom) of
                   SOME x' => list_comb (Const x', extra_args)
                 | NONE =>
@@ -819,11 +823,10 @@ fun special_congruence_axiom T (js1, ts1, x1) (js2, ts2, x2) =
                         apsnd (pairself (cons v))
                       end) (max_j downto 0) ([], ([], []))
   in
-    Logic.list_implies (eqs |> filter_out (op =) |> distinct (op =)
+    Logic.list_implies (eqs |> filter_out (op aconv) |> distinct (op =)
                             |> map Logic.mk_equals,
                         Logic.mk_equals (list_comb (Const x1, bounds1 @ args1),
                                          list_comb (Const x2, bounds2 @ args2)))
-    |> close_form (* TODO: needed? *)
   end
 
 fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
@@ -836,8 +839,8 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
       |> map (fn (x, zs) => (x, zs |> member (op =) xs x ? cons ([], [], x)))
     fun generality (js, _, _) = ~(length js)
     fun is_more_specific (j1, t1, x1) (j2, t2, x2) =
-      x1 <> x2 andalso OrdList.subset (prod_ord int_ord Term_Ord.term_ord)
-                                      (j2 ~~ t2, j1 ~~ t1)
+      x1 <> x2 andalso length j2 < length j1 andalso
+      OrdList.subset (prod_ord int_ord Term_Ord.term_ord) (j2 ~~ t2, j1 ~~ t1)
     fun do_pass_1 _ [] [_] [_] = I
       | do_pass_1 T skipped _ [] = do_pass_2 T skipped
       | do_pass_1 T skipped all (z :: zs) =
