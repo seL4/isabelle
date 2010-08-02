@@ -436,13 +436,11 @@ fun kk_n_fold_join
   case arity_of_rep R1 of
     1 => kk_join r1 r2
   | arity1 =>
-    let
-      val unpacked_rs1 =
-        if inline_rel_expr r1 then unpack_vect_in_chunks kk 1 arity1 r1
-        else unpack_products r1
-    in
+    let val unpacked_rs1 = unpack_products r1 in
       if one andalso length unpacked_rs1 = arity1 then
         fold kk_join unpacked_rs1 r2
+      else if one andalso inline_rel_expr r1 then
+        fold kk_join (unpack_vect_in_chunks kk 1 arity1 r1) r2
       else
         kk_project_seq
             (kk_intersect (kk_product r1 (full_rel_for_rep res_R)) r2)
