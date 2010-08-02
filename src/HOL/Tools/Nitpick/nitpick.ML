@@ -180,7 +180,7 @@ val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort)
 fun plazy f = Pretty.blk (0, pstrs (f ()))
 
 fun pick_them_nits_in_term deadline state (params : params) auto i n step
-                           subst orig_assm_ts orig_t =
+                           subst assm_ts orig_t =
   let
     val timer = Timer.startRealTimer ()
     val thy = Proof.theory_of state
@@ -223,7 +223,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       if passed_deadline deadline then raise TimeLimit.TimeOut
       else raise Interrupt
 
-    val orig_assm_ts = if assms orelse auto then orig_assm_ts else []
+    val assm_ts = if assms orelse auto then assm_ts else []
     val _ =
       if step = 0 then
         print_m (fn () => "Nitpicking formula...")
@@ -233,13 +233,18 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 (if i <> 1 orelse n <> 1 then
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
                  else
-                   "goal")) [Logic.list_implies (orig_assm_ts, orig_t)]))
+                   "goal")) [Logic.list_implies (assm_ts, orig_t)]))
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
-    val assms_t = Logic.mk_conjunction_list (neg_t :: orig_assm_ts)
-    val (assms_t, evals) =
-      assms_t :: evals |> merge_type_vars ? merge_type_vars_in_terms
-                       |> pairf hd tl
+    val tfree_table =
+      if merge_type_vars then
+        merged_type_var_table_for_terms (neg_t :: assm_ts @ evals)
+      else
+        []
+    val neg_t = merge_type_vars_in_term merge_type_vars tfree_table neg_t
+    val assm_ts = map (merge_type_vars_in_term merge_type_vars tfree_table)
+                      assm_ts
+    val evals = map (merge_type_vars_in_term merge_type_vars tfree_table) evals
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
@@ -269,11 +274,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
-    val frees = Term.add_frees assms_t []
-    val _ = null (Term.add_tvars assms_t []) orelse
+    val frees = fold Term.add_frees (neg_t :: assm_ts) []
+    val _ = null (fold Term.add_tvars (neg_t :: assm_ts) []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
-         binarize) = preprocess_term hol_ctxt finitizes monos assms_t
+         binarize) = preprocess_formulas hol_ctxt finitizes monos assm_ts neg_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -589,6 +594,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val genuine_means_genuine =
           got_all_user_axioms andalso none_true wfs andalso
           sound_finitizes andalso codatatypes_ok
+        fun assms_prop () = Logic.mk_conjunction_list (neg_t :: assm_ts)
       in
         (pprint (Pretty.chunks
              [Pretty.blk (0,
@@ -604,7 +610,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          if genuine then
            (if check_genuine andalso standard then
               case prove_hol_model scope tac_timeout free_names sel_names
-                                   rel_table bounds assms_t of
+                                   rel_table bounds (assms_prop ()) of
                 SOME true =>
                 print ("Confirmation by \"auto\": The above " ^
                        das_wort_model ^ " is really genuine.")
@@ -665,7 +671,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
               if check_potential then
                 let
                   val status = prove_hol_model scope tac_timeout free_names
-                                              sel_names rel_table bounds assms_t
+                                               sel_names rel_table bounds
+                                               (assms_prop ())
                 in
                   (case status of
                      SOME true => print ("Confirmation by \"auto\": The \
@@ -953,7 +960,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              error "Nitpick was interrupted."
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
-                      step subst orig_assm_ts orig_t =
+                      step subst assm_ts orig_t =
   let val warning_m = if auto then K () else warning in
     if getenv "KODKODI" = "" then
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
@@ -967,7 +974,7 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
         val outcome as (outcome_code, _) =
           time_limit (if debug then NONE else timeout)
               (pick_them_nits_in_term deadline state params auto i n step subst
-                                      orig_assm_ts) orig_t
+                                      assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
                  (warning ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | TOO_SMALL (_, details) =>

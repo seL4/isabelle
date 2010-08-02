@@ -210,7 +210,8 @@ sig
   val unrolled_inductive_pred_const : hol_context -> bool -> styp -> term
   val equational_fun_axioms : hol_context -> styp -> term list
   val is_equational_fun_surely_complete : hol_context -> styp -> bool
-  val merge_type_vars_in_terms : term list -> term list
+  val merged_type_var_table_for_terms : term list -> (sort * string) list
+  val merge_type_vars_in_term : bool -> (sort * string) list -> term -> term
   val ground_types_in_type : hol_context -> bool -> typ -> typ list
   val ground_types_in_terms : hol_context -> bool -> term list -> typ list
 end;
@@ -2172,7 +2173,7 @@ fun is_equational_fun_surely_complete hol_ctxt x =
 
 (** Type preprocessing **)
 
-fun merge_type_vars_in_terms ts =
+fun merged_type_var_table_for_terms ts =
   let
     fun add_type (TFree (s, S)) table =
         (case AList.lookup (op =) table S of
@@ -2181,10 +2182,13 @@ fun merge_type_vars_in_terms ts =
            else table
          | NONE => (S, s) :: table)
       | add_type _ table = table
-    val table = fold (fold_types (fold_atyps add_type)) ts []
-    fun coalesce (TFree (_, S)) = TFree (AList.lookup (op =) table S |> the, S)
-      | coalesce T = T
-  in map (map_types (map_atyps coalesce)) ts end
+  in fold (fold_types (fold_atyps add_type)) ts [] end
+
+fun merge_type_vars_in_term merge_type_vars table =
+  merge_type_vars
+  ? map_types (map_atyps
+        (fn TFree (_, S) => TFree (AList.lookup (op =) table S |> the, S)
+          | T => T))
 
 fun add_ground_types hol_ctxt binarize =
   let

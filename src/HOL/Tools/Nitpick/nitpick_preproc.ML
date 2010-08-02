@@ -8,9 +8,9 @@ Nitpick's HOL preprocessor.
 signature NITPICK_PREPROC =
 sig
   type hol_context = Nitpick_HOL.hol_context
-  val preprocess_term :
+  val preprocess_formulas :
     hol_context -> (typ option * bool option) list
-    -> (typ option * bool option) list -> term
+    -> (typ option * bool option) list -> term list -> term
     -> term list * term list * bool * bool * bool
 end;
 
@@ -854,6 +854,26 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
 
 (** Axiom selection **)
 
+fun defined_free_by_assumption t =
+  let
+    fun do_equals t1 t2 =
+      if exists_subterm (curry (op aconv) t1) t2 then NONE else SOME t1
+  in
+    case t of
+      Const (@{const_name "=="}, _) $ (t1 as Free _) $ t2 => do_equals t1 t2
+    | @{const Trueprop} $ (Const (@{const_name "=="}, _)
+                           $ (t1 as Free _) $ t2) =>
+      do_equals t1 t2
+    | _ => NONE
+  end
+
+fun assumption_exclusively_defines_free assm_ts t =
+  case defined_free_by_assumption t of
+    SOME t1 =>
+    length (filter ((fn SOME t1' => t1 aconv t1' | NONE => false)
+                     o defined_free_by_assumption) assm_ts) = 1
+  | NONE => false
+
 fun all_table_entries table = Symtab.fold (append o snd) table []
 fun extra_table table s = Symtab.make [(s, all_table_entries table)]
 
@@ -868,13 +888,13 @@ val axioms_max_depth = 255
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
                       fast_descrs, evals, def_table, nondef_table,
-                      choice_spec_table, user_nondefs, ...}) t =
+                      choice_spec_table, user_nondefs, ...}) assm_ts neg_t =
   let
     type accumulator = styp list * (term list * term list)
     fun add_axiom get app depth t (accum as (xs, axs)) =
       let
         val t = t |> unfold_defs_in_term hol_ctxt
-                  |> skolemize_term_and_more hol_ctxt ~1
+                  |> skolemize_term_and_more hol_ctxt ~1 (*### why ~1? *)
       in
         if is_trivial_equation t then
           accum
@@ -1008,15 +1028,21 @@ fun axioms_for_term
       List.partition (null o Term.hidden_polymorphism) user_nondefs
     val eval_axioms = map2 eval_axiom_for_term (index_seq 0 (length evals))
                            evals
+    val (def_assm_ts, nondef_assm_ts) =
+      List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
     val (xs, (defs, nondefs)) =
-      ([], ([], [])) |> add_axioms_for_term 1 t 
-                     |> fold_rev (add_def_axiom 1) eval_axioms
-                     |> user_axioms = SOME true
-                        ? fold (add_nondef_axiom 1) mono_user_nondefs
+      ([], ([], []))
+      |> add_axioms_for_term 1 neg_t
+      |> fold_rev (add_def_axiom 1) def_assm_ts
+      |> fold_rev (add_nondef_axiom 1) nondef_assm_ts
+      |> fold_rev (add_def_axiom 1) eval_axioms
+      |> user_axioms = SOME true ? fold (add_nondef_axiom 1) mono_user_nondefs
     val defs = defs @ special_congruence_axioms hol_ctxt xs
     val got_all_mono_user_axioms =
       (user_axioms = SOME true orelse null mono_user_nondefs)
-  in (t :: nondefs, defs, got_all_mono_user_axioms, null poly_user_nondefs) end
+  in
+    (neg_t :: nondefs, defs, got_all_mono_user_axioms, null poly_user_nondefs)
+  end
 
 (** Simplification of constructor/selector terms **)
 
@@ -1235,15 +1261,16 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
 
 val max_skolem_depth = 3
 
-fun preprocess_term (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs,
-                                  boxes, ...}) finitizes monos t =
+fun preprocess_formulas
+        (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs, boxes,
+                      ...}) finitizes monos assm_ts neg_t =
   let
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
-      t |> unfold_defs_in_term hol_ctxt
-        |> close_form
-        |> skolemize_term_and_more hol_ctxt max_skolem_depth
-        |> specialize_consts_in_term hol_ctxt 0
-        |> axioms_for_term hol_ctxt
+      neg_t |> unfold_defs_in_term hol_ctxt
+            |> close_form
+            |> skolemize_term_and_more hol_ctxt max_skolem_depth
+            |> specialize_consts_in_term hol_ctxt 0
+            |> axioms_for_term hol_ctxt assm_ts
     val binarize =
       is_standard_datatype thy stds nat_T andalso
       case binary_ints of
