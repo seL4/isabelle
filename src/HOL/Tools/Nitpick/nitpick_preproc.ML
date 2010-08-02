@@ -583,11 +583,9 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
           handle SAME () =>
                  Const (quant_s, quant_T)
                  $ Abs (abs_s, abs_T,
-                        if is_higher_order_type abs_T then
-                          t
-                        else
-                          aux (abs_s :: ss) (abs_T :: Ts) (0 :: incrs js)
-                              skolemizable polar t)
+                        aux (abs_s :: ss) (abs_T :: Ts) (0 :: incrs js)
+                            (skolemizable andalso
+                             not (is_higher_order_type abs_T)) polar t)
       in
         case t of
           Const (s0 as @{const_name all}, T0) $ Abs (s1, T1, t1) =>
@@ -642,8 +640,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
           else
             Const x
         | t1 $ t2 =>
-          s_betapply Ts (aux ss Ts [] false polar t1,
-                         aux ss Ts [] skolemizable Neut t2)
+          s_betapply Ts (aux ss Ts js false polar t1,
+                         aux ss Ts js false Neut t2)
         | Abs (s, T, t1) =>
           Abs (s, T, aux ss Ts (incrs js) skolemizable polar t1)
         | _ => t
