@@ -1842,7 +1842,6 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, thy, stds, ...}) T =
     val xs = datatype_constrs hol_ctxt T
     val set_T = T --> bool_T
     val iter_T = @{typ bisim_iterator}
-    val bisim_const = Const (@{const_name bisim}, iter_T --> T --> T --> bool_T)
     val bisim_max = @{const bisim_iterator_max}
     val n_var = Var (("n", 0), iter_T)
     val n_var_minus_1 =
@@ -1851,8 +1850,10 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, thy, stds, ...}) T =
                           $ (suc_const iter_T $ Bound 0) $ n_var)
     val x_var = Var (("x", 0), T)
     val y_var = Var (("y", 0), T)
+    fun bisim_const T =
+      Const (@{const_name bisim}, iter_T --> T --> T --> bool_T)
     fun nth_sub_bisim x n nth_T =
-      (if is_codatatype thy nth_T then bisim_const $ n_var_minus_1
+      (if is_codatatype thy nth_T then bisim_const nth_T $ n_var_minus_1
        else HOLogic.eq_const nth_T)
       $ select_nth_constr_arg ctxt stds x x_var n nth_T
       $ select_nth_constr_arg ctxt stds x y_var n nth_T
@@ -1865,12 +1866,12 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, thy, stds, ...}) T =
           |> foldr1 s_conj
       in List.foldr absdummy core_t arg_Ts end
   in
-    [HOLogic.eq_const bool_T $ (bisim_const $ n_var $ x_var $ y_var)
+    [HOLogic.eq_const bool_T $ (bisim_const T $ n_var $ x_var $ y_var)
      $ (@{term "op |"} $ (HOLogic.eq_const iter_T $ n_var $ zero_const iter_T)
         $ (s_betapply []
                       (optimized_case_def hol_ctxt T bool_T (map case_func xs),
                        x_var))),
-     HOLogic.eq_const set_T $ (bisim_const $ bisim_max $ x_var)
+     HOLogic.eq_const set_T $ (bisim_const T $ bisim_max $ x_var)
      $ (Const (@{const_name insert}, T --> set_T --> set_T)
         $ x_var $ Const (@{const_name bot_class.bot}, set_T))]
     |> map HOLogic.mk_Trueprop
