@@ -387,7 +387,7 @@ fun offset_table_for_card_assigns dtypes assigns =
 fun domain_card max card_assigns =
   Integer.prod o map (bounded_card_of_type max max card_assigns) o binder_types
 
-fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
+fun add_constr_spec (card_assigns, max_assigns) acyclic card sum_dom_cards
                     num_self_recs num_non_self_recs (self_rec, x as (_, T))
                     constrs =
   let
@@ -398,7 +398,7 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
         let val delta = next_delta () in
           {delta = delta, epsilon = delta, exclusive = true, total = false}
         end
-      else if not co andalso num_self_recs > 0 then
+      else if num_self_recs > 0 then
         (if num_self_recs = 1 andalso num_non_self_recs = 1 then
            if self_rec then
              case constrs of
@@ -407,7 +407,7 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
              | _ => raise SAME ()
            else
              if domain_card 2 card_assigns T = 1 then
-               {delta = 0, epsilon = 1, exclusive = true, total = true}
+               {delta = 0, epsilon = 1, exclusive = acyclic, total = acyclic}
              else
                raise SAME ()
          else
@@ -457,8 +457,8 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
     fun sum_dom_cards max =
       map (domain_card max card_assigns o snd) xs |> Integer.sum
     val constrs =
-      fold_rev (add_constr_spec desc co card sum_dom_cards num_self_recs
-                                num_non_self_recs)
+      fold_rev (add_constr_spec desc (not co andalso standard) card
+                                sum_dom_cards num_self_recs num_non_self_recs)
                (sort (bool_ord o swap o pairself fst) (self_recs ~~ xs)) []
   in
     {typ = T, card = card, co = co, standard = standard, self_rec = self_rec,
