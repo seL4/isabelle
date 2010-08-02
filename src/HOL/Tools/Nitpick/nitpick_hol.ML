@@ -2088,6 +2088,10 @@ fun starred_linear_pred_const (hol_ctxt as {simp_table, ...}) (s, T) def =
     |> unfold_defs_in_term hol_ctxt
   end
 
+fun is_good_starred_linear_pred_type (Type (@{type_name fun}, Ts)) =
+    forall (not o (is_fun_type orf is_pair_type)) Ts
+  | is_good_starred_linear_pred_type _ = false
+
 fun unrolled_inductive_pred_const (hol_ctxt as {thy, star_linear_preds,
                                                 def_table, simp_table, ...})
                                   gfp (x as (s, T)) =
@@ -2099,8 +2103,9 @@ fun unrolled_inductive_pred_const (hol_ctxt as {thy, star_linear_preds,
   in
     if is_equational_fun hol_ctxt x' then
       unrolled_const (* already done *)
-    else if not gfp andalso is_linear_inductive_pred_def def andalso
-         star_linear_preds then
+    else if not gfp andalso star_linear_preds andalso
+         is_linear_inductive_pred_def def andalso
+         is_good_starred_linear_pred_type T then
       starred_linear_pred_const hol_ctxt x def
     else
       let
