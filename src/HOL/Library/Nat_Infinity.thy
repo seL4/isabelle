@@ -125,7 +125,7 @@ subsection {* Addition *}
 instantiation inat :: comm_monoid_add
 begin
 
-definition
+definition [nitpick_simp]:
   "m + n = (case m of \<infinity> \<Rightarrow> \<infinity> | Fin m \<Rightarrow> (case n of \<infinity> \<Rightarrow> \<infinity> | Fin n \<Rightarrow> Fin (m + n)))"
 
 lemma plus_inat_simps [simp, code]:
@@ -176,8 +176,7 @@ subsection {* Multiplication *}
 instantiation inat :: comm_semiring_1
 begin
 
-definition
-  times_inat_def:
+definition times_inat_def [nitpick_simp]:
   "m * n = (case m of \<infinity> \<Rightarrow> if n = 0 then 0 else \<infinity> | Fin m \<Rightarrow>
     (case n of \<infinity> \<Rightarrow> if m = 0 then 0 else \<infinity> | Fin n \<Rightarrow> Fin (m * n)))"
 
@@ -237,11 +236,11 @@ subsection {* Ordering *}
 instantiation inat :: linordered_ab_semigroup_add
 begin
 
-definition
+definition [nitpick_simp]:
   "m \<le> n = (case n of Fin n1 \<Rightarrow> (case m of Fin m1 \<Rightarrow> m1 \<le> n1 | \<infinity> \<Rightarrow> False)
     | \<infinity> \<Rightarrow> True)"
 
-definition
+definition [nitpick_simp]:
   "m < n = (case m of Fin m1 \<Rightarrow> (case n of Fin n1 \<Rightarrow> m1 < n1 | \<infinity> \<Rightarrow> True)
     | \<infinity> \<Rightarrow> False)"
 
