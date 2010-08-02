@@ -1866,11 +1866,11 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, thy, stds, ...}) T =
           |> foldr1 s_conj
       in List.foldr absdummy core_t arg_Ts end
   in
-    [HOLogic.eq_const bool_T $ (bisim_const T $ n_var $ x_var $ y_var)
-     $ (@{term "op |"} $ (HOLogic.eq_const iter_T $ n_var $ zero_const iter_T)
-        $ (s_betapply []
-                      (optimized_case_def hol_ctxt T bool_T (map case_func xs),
-                       x_var))),
+    [HOLogic.mk_imp
+       (HOLogic.mk_disj (HOLogic.eq_const iter_T $ n_var $ zero_const iter_T,
+            s_betapply [] (optimized_case_def hol_ctxt T bool_T
+                                              (map case_func xs), x_var)),
+        bisim_const T $ n_var $ x_var $ y_var),
      HOLogic.eq_const set_T $ (bisim_const T $ bisim_max $ x_var)
      $ (Const (@{const_name insert}, T --> set_T --> set_T)
         $ x_var $ Const (@{const_name bot_class.bot}, set_T))]
