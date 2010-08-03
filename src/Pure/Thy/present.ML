@@ -462,7 +462,7 @@ fun begin_theory update_time dir files thy =
 
     val files_html = files |> map (fn (raw_path, loadit) =>
       let
-        val path = #1 (Thy_Load.check_file dir raw_path);
+        val path = #1 (Thy_Load.check_file [dir] raw_path);
         val base = Path.base path;
         val base_html = html_ext base;
         val _ = add_file (Path.append html_prefix base_html,

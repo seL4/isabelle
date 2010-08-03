@@ -80,9 +80,9 @@ fun location_of_position pos =
                NONE => (NONE, NONE)
              | SOME fname =>
                let val path = Path.explode fname in
-                 case Thy_Load.test_file Path.current path of
-                   SOME _ => (SOME (PgipTypes.pgipurl_of_path path), NONE)
-                 | NONE => (NONE, SOME fname)
+                 if can (Thy_Load.check_file [Path.current]) path
+                 then (SOME (PgipTypes.pgipurl_of_path path), NONE)
+                 else (NONE, SOME fname)
                end);
     in
         { descr=descr, url=url, line=line, column=column, char=NONE, length=NONE }

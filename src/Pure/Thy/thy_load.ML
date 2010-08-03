@@ -22,8 +22,7 @@ sig
   val master_directory: theory -> Path.T
   val require: Path.T -> theory -> theory
   val provide: Path.T * (Path.T * File.ident) -> theory -> theory
-  val test_file: Path.T -> Path.T -> (Path.T * File.ident) option
-  val check_file: Path.T -> Path.T -> Path.T * File.ident
+  val check_file: Path.T list -> Path.T -> Path.T * File.ident
   val check_thy: Path.T -> string -> Path.T * File.ident
   val deps_thy: Path.T -> string ->
    {master: Path.T * File.ident, text: string, imports: string list, uses: Path.T list}
@@ -110,45 +109,37 @@ end;
 
 (* check files *)
 
-local
-
-exception NOT_FOUND of Path.T list * Path.T;
-
-fun try_file dir src_path =
+fun get_file dirs src_path =
   let
-    val prfxs = search_path dir src_path;
     val path = Path.expand src_path;
     val _ = Path.is_current path andalso error "Bad file specification";
-    val result =
-      prfxs |> get_first (fn prfx =>
-        let val full_path = File.full_path (Path.append prfx path)
-        in Option.map (pair full_path) (File.ident full_path) end);
   in
-    (case result of
-      SOME res => res
-    | NONE => raise NOT_FOUND (prfxs, path))
+    dirs |> get_first (fn dir =>
+      let val full_path = File.full_path (Path.append dir path) in
+        (case File.ident full_path of
+          NONE => NONE
+        | SOME id => SOME (full_path, id))
+      end)
   end;
 
-in
+fun check_file dirs file =
+  (case get_file dirs file of
+    SOME path_id => path_id
+  | NONE => error ("Could not find file " ^ quote (Path.implode file) ^
+      "\nin " ^ commas_quote (map Path.implode dirs)));
 
-fun test_file dir file =
-  SOME (try_file dir file) handle NOT_FOUND _ => NONE;
-
-fun check_file dir file =
-  try_file dir file handle NOT_FOUND (prfxs, path) =>
-    error ("Could not find file " ^ quote (Path.implode path) ^
-      "\nin " ^ commas_quote (map Path.implode prfxs));
-
-fun check_thy dir name = check_file dir (Thy_Header.thy_path name);
-
-end;
+fun check_thy master_dir name =
+  let
+    val thy_file = Thy_Header.thy_path name;
+    val dirs = search_path master_dir thy_file;
+  in check_file dirs thy_file end;
 
 
 (* theory deps *)
 
-fun deps_thy dir name =
+fun deps_thy master_dir name =
   let
-    val master as (thy_path, _) = check_thy dir name;
+    val master as (thy_path, _) = check_thy master_dir name;
     val text = File.read thy_path;
     val (name', imports, uses) = Thy_Header.read (Path.position thy_path) text;
     val _ = Thy_Header.consistent_name name name';
@@ -179,7 +170,7 @@ fun all_current thy =
   let
     val {master_dir, provided, ...} = Files.get thy;
     fun current (src_path, (_, id)) =
-      (case test_file master_dir src_path of
+      (case get_file [master_dir] src_path of
         NONE => false
       | SOME (_, id') => id = id');
   in can check_loaded thy andalso forall current provided end;
@@ -190,15 +181,15 @@ val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded t
 (* provide files *)
 
 fun provide_file src_path thy =
-  provide (src_path, check_file (master_directory thy) src_path) thy;
+  provide (src_path, check_file [master_directory thy] src_path) thy;
 
 fun use_ml src_path =
   if is_none (Context.thread_data ()) then
-    ML_Context.eval_file (#1 (check_file Path.current src_path))
+    ML_Context.eval_file (#1 (check_file [Path.current] src_path))
   else
     let
       val thy = ML_Context.the_global_context ();
-      val (path, id) = check_file (master_directory thy) src_path;
+      val (path, id) = check_file [master_directory thy] src_path;
 
       val _ = ML_Context.eval_file path;
       val _ = Context.>> Local_Theory.propagate_ml_env;
