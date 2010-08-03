@@ -272,27 +272,20 @@ fun blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns iters_assigns
   in mono_block :: nonmono_blocks end
 
 val sync_threshold = 5
+val linearity = 5
 
-fun all_combinations_ordered_smartly ks =
+val all_combinations_ordered_smartly =
   let
-    fun cost_with_monos [] = 0
-      | cost_with_monos (k :: ks) =
+    fun cost [] = 0
+      | cost [k] = k
+      | cost (k :: ks) =
         if k < sync_threshold andalso forall (curry (op =) k) ks then
           k - sync_threshold
         else
-          k * (k + 1) div 2 + Integer.sum ks
-    fun cost_without_monos [] = 0
-      | cost_without_monos [k] = k
-      | cost_without_monos (_ :: k :: ks) =
-        if k < sync_threshold andalso forall (curry (op =) k) ks then
-          k - sync_threshold
-        else
-          Integer.sum (k :: ks)
+          Integer.product (map (fn k => (k + linearity) * (k + linearity))
+                               (k :: ks))
   in
-    ks |> all_combinations
-       |> map (`(if fst (hd ks) > 1 then cost_with_monos
-                 else cost_without_monos))
-       |> sort (int_ord o pairself fst) |> map snd
+    all_combinations #> map cost #> sort (int_ord o pairself fst) #> map snd
   end
 
 fun is_self_recursive_constr_type T =
