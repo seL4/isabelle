@@ -1,34 +1,36 @@
-(*  Title:      Subst/Subst.thy
-    ID:         $Id$
+(*  Title:      HOL/Subst/Subst.thy
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 *)
 
-header{*Substitutions on uterms*}
+header {* Substitutions on uterms *}
 
 theory Subst
 imports AList UTerm
 begin
 
-consts
+primrec
   subst :: "'a uterm => ('a * 'a uterm) list => 'a uterm"  (infixl "<|" 55)
+where
+  subst_Var: "(Var v <| s) = assoc v (Var v) s"
+| subst_Const: "(Const c <| s) = Const c"
+| subst_Comb: "(Comb M N <| s) = Comb (M <| s) (N <| s)"
+
 notation (xsymbols)
   subst  (infixl "\<lhd>" 55)
-primrec
-  subst_Var:      "(Var v \<lhd> s) = assoc v (Var v) s"
-  subst_Const:  "(Const c \<lhd> s) = Const c"
-  subst_Comb:  "(Comb M N \<lhd> s) = Comb (M \<lhd> s) (N \<lhd> s)"
 
 definition
-  subst_eq :: "[('a*('a uterm)) list,('a*('a uterm)) list] => bool"  (infixr "=$=" 52) where
-  "r =$= s \<longleftrightarrow> (\<forall>t. t \<lhd> r = t \<lhd> s)"
+  subst_eq :: "[('a*('a uterm)) list,('a*('a uterm)) list] => bool"  (infixr "=$=" 52)
+  where "r =$= s \<longleftrightarrow> (\<forall>t. t \<lhd> r = t \<lhd> s)"
+
 notation (xsymbols)
   subst_eq  (infixr "\<doteq>" 52)
 
 definition
-  comp :: "[('a*('a uterm)) list, ('a*('a uterm)) list] => ('a*('a uterm)) list"
-    (infixl "<>" 56) where
-  "al <> bl = alist_rec al bl (%x y xs g. (x,y \<lhd> bl)#g)"
+  comp :: "('a * 'a uterm) list \<Rightarrow> ('a * 'a uterm) list \<Rightarrow> ('a* 'a uterm) list"
+    (infixl "<>" 56)
+  where "al <> bl = alist_rec al bl (%x y xs g. (x,y \<lhd> bl) # g)"
+
 notation (xsymbols)
   comp  (infixl "\<lozenge>" 56)
 
@@ -42,7 +44,7 @@ definition
 
 
 
-subsection{*Basic Laws*}
+subsection {* Basic Laws *}
 
 lemma subst_Nil [simp]: "t \<lhd> [] = t"
   by (induct t) auto
@@ -54,9 +56,8 @@ lemma Var_not_occs: "~ (Var(v) \<prec> t) \<Longrightarrow> t \<lhd> (v,t \<lhd>
   apply (case_tac "t = Var v")
    prefer 2
    apply (erule rev_mp)+
-   apply (rule_tac P =
-         "%x. x \<noteq> Var v --> ~(Var v \<prec> x) --> x \<lhd> (v,t\<lhd>s) #s = x\<lhd>s" 
-       in uterm.induct)
+   apply (rule_tac P = "%x. x \<noteq> Var v \<longrightarrow> ~(Var v \<prec> x) \<longrightarrow> x \<lhd> (v,t\<lhd>s) #s = x\<lhd>s" 
+     in uterm.induct)
      apply auto
   done
 

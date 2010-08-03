@@ -1,10 +1,9 @@
-(*  ID:         $Id$
+(*  Title:      HOL/Subst/Unify.thy
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
-
 *)
 
-header{*Unification Algorithm*}
+header {* Unification Algorithm *}
 
 theory Unify
 imports Unifier
@@ -27,7 +26,7 @@ L C Paulson, Verifying the Unification Algorithm in LCF. SCP 5 (1985), 143-170
 *}
 
 definition
-   unifyRel :: "(('a uterm * 'a uterm) * ('a uterm * 'a uterm)) set" where
+  unifyRel :: "(('a uterm * 'a uterm) * ('a uterm * 'a uterm)) set" where
   "unifyRel = inv_image (finite_psubset <*lex*> measure uterm_size)
       (%(M,N). (vars_of M Un vars_of N, M))"
    --{*Termination relation for the Unify function:
