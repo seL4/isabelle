@@ -937,7 +937,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       end
     fun pretty_for_datatype ({typ, card, complete, ...} : datatype_spec) =
       Pretty.block (Pretty.breaks
-          (Syntax.pretty_typ ctxt (uniterize_unarize_unbox_etc_type typ) ::
+          (pretty_for_type ctxt typ ::
            (case typ of
               Type (@{type_name fin_fun}, _) => [Pretty.str "[finite]"]
             | Type (@{type_name fun_box}, _) => [Pretty.str "[boxed]"]
