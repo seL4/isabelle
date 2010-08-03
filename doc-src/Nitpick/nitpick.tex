@@ -2602,7 +2602,6 @@ the form
 \nopagebreak
 This attribute specifies the (free-form) specification of a constant defined
 using the \hbox{(\textbf{ax\_})}\allowbreak\textbf{specification} command.
-
 \end{enum}
 
 When faced with a constant, Nitpick proceeds as follows:
@@ -2658,6 +2657,22 @@ Nitpick then expands all occurrences of $\mathit{odd}~n$ to $n~\textrm{mod}~2
 
 \prew
 \textbf{lemma} $\mathit{odd\_simp}'$ [\textit{nitpick\_simp}]:\kern.4em ``$\textit{odd}~n = (n~\textrm{mod}~2 = 1)$''
+\postw
+
+Moreover, because of its internal three-valued logic, Nitpick tends to lose a
+lot of precision in the presence of partially specified constants. For example,
+
+\prew
+\textbf{lemma} $\mathit{list\_of\_LCons}$ [\textit{nitpick\_simp}]: \\
+``$\textit{list\_of}~(\textit{LCons~x~xs}) = {}$ \\
+\phantom{``}$(\textrm{if}~\textit{lfinite~xs}~\textrm{then}~x \mathbin{\#} \textit{list\_of~xs}~\textrm{else}~\textit{undefined})$''
+\postw
+
+is superior to
+
+\prew
+\textbf{lemma} $\mathit{list\_of\_LCons}$ [\textit{nitpick\_psimp}]: \\
+``$\textit{lfinite~xs} \,\Longrightarrow\, \textit{list\_of}~(\textit{LCons~x~xs}) = x \mathbin{\#} \textit{list\_of~xs\/}$''
 \postw
 
 Such tweaks should be done with great care, because Nitpick will assume that the
