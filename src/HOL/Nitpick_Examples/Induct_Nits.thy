@@ -11,7 +11,8 @@ theory Induct_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
+nitpick_params [card = 1\<midarrow>6,  bits = 1,2,3,4,6,8,
+                sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
 
 inductive p1 :: "nat \<Rightarrow> bool" where
 "p1 0" |

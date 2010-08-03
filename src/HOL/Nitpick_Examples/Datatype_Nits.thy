@@ -11,8 +11,8 @@ theory Datatype_Nits
 imports Main
 begin
 
-nitpick_params [max_potential = 0, sat_solver = MiniSat_JNI, max_threads = 1,
-                timeout = 60 s]
+nitpick_params [card = 1\<midarrow>8, max_potential = 0,
+                sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
 
 primrec rot where
 "rot Nibble0 = Nibble1" | "rot Nibble1 = Nibble2" | "rot Nibble2 = Nibble3" |
