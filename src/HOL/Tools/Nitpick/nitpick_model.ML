@@ -32,8 +32,8 @@ sig
   val dest_plain_fun : term -> bool * (term list * term list)
   val reconstruct_hol_model :
     params -> scope -> (term option * int list) list
-    -> (typ option * string list) list -> styp list -> nut list -> nut list
-    -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
+    -> (typ option * string list) list -> styp list -> styp list -> nut list
+    -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
     -> Pretty.T * bool
   val prove_hol_model :
     scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
@@ -861,8 +861,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache},
          binarize, card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
-        formats atomss all_frees free_names sel_names nonsel_names rel_table
-        bounds =
+        formats atomss real_frees pseudo_frees free_names sel_names nonsel_names
+        rel_table bounds =
   let
     val pool = Unsynchronized.ref []
     val (wacky_names as (_, base_step_names), ctxt) =
@@ -977,6 +977,14 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                (sort_wrt (original_name o nickname_of) names)
       else
         []
+    fun free_name_for_term keep_all (x as (s, T)) =
+      case filter (curry (op =) x
+                   o pairf nickname_of (uniterize_unarize_unbox_etc_type
+                                        o type_of)) free_names of
+        [name] => SOME name
+      | [] => if keep_all then SOME (FreeName (s, T, Any)) else NONE
+      | _ => raise TERM ("Nitpick_Model.reconstruct_hol_model.\
+                         \free_name_for_term", [Const x])
     val (skolem_names, nonskolem_nonsel_names) =
       List.partition is_skolem_name nonsel_names
     val (eval_names, noneval_nonskolem_nonsel_names) =
@@ -985,17 +993,9 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       ||> filter_out (member (op =) [@{const_name bisim},
                                      @{const_name bisim_iterator_max}]
                       o nickname_of)
-    val free_names =
-      map (fn x as (s, T) =>
-              case filter (curry (op =) x
-                       o pairf nickname_of
-                               (uniterize_unarize_unbox_etc_type o type_of))
-                       free_names of
-                [name] => name
-              | [] => FreeName (s, T, Any)
-              | _ => raise TERM ("Nitpick_Model.reconstruct_hol_model",
-                                 [Const x])) all_frees
-    val chunks = block_of_names true "Free variable" free_names @
+      ||> append (map_filter (free_name_for_term false) pseudo_frees)
+    val real_free_names = map_filter (free_name_for_term true) real_frees
+    val chunks = block_of_names true "Free variable" real_free_names @
                  block_of_names true "Skolem constant" skolem_names @
                  block_of_names true "Evaluated term" eval_names @
                  block_of_datatypes @ block_of_codatatypes @

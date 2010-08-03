@@ -827,14 +827,15 @@ fun special_congruence_axiom T (js1, ts1, x1) (js2, ts2, x2) =
                                          list_comb (Const x2, bounds2 @ args2)))
   end
 
-fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
+fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) ts =
   let
     val groups =
       !special_funs
       |> map (fn ((x, js, ts), x') => (x, (js, ts, x')))
       |> AList.group (op =)
       |> filter_out (is_equational_fun_surely_complete hol_ctxt o fst)
-      |> map (fn (x, zs) => (x, zs |> member (op =) xs x ? cons ([], [], x)))
+      |> map (fn (x, zs) =>
+                 (x, zs |> member (op =) ts (Const x) ? cons ([], [], x)))
     fun generality (js, _, _) = ~(length js)
     fun is_more_specific (j1, t1, x1) (j2, t2, x2) =
       x1 <> x2 andalso length j2 < length j1 andalso
@@ -856,21 +857,20 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
 
 fun defined_free_by_assumption t =
   let
-    fun do_equals t1 t2 =
-      if exists_subterm (curry (op aconv) t1) t2 then NONE else SOME t1
+    fun do_equals x def =
+      if exists_subterm (curry (op aconv) (Free x)) def then NONE else SOME x
   in
     case t of
-      Const (@{const_name "=="}, _) $ (t1 as Free _) $ t2 => do_equals t1 t2
-    | @{const Trueprop} $ (Const (@{const_name "=="}, _)
-                           $ (t1 as Free _) $ t2) =>
-      do_equals t1 t2
+      Const (@{const_name "=="}, _) $ Free x $ def => do_equals x def
+    | @{const Trueprop} $ (Const (@{const_name "=="}, _) $ Free x $ def) =>
+      do_equals x def
     | _ => NONE
   end
 
 fun assumption_exclusively_defines_free assm_ts t =
   case defined_free_by_assumption t of
-    SOME t1 =>
-    length (filter ((fn SOME t1' => t1 aconv t1' | NONE => false)
+    SOME x =>
+    length (filter ((fn SOME x' => x = x' | NONE => false)
                      o defined_free_by_assumption) assm_ts) = 1
   | NONE => false
 
@@ -890,8 +890,11 @@ fun axioms_for_term
                       fast_descrs, evals, def_table, nondef_table,
                       choice_spec_table, user_nondefs, ...}) assm_ts neg_t =
   let
+    val (def_assm_ts, nondef_assm_ts) =
+      List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
+    val def_assm_table = map (`(the o defined_free_by_assumption)) def_assm_ts
     type accumulator = styp list * (term list * term list)
-    fun add_axiom get app depth t (accum as (xs, axs)) =
+    fun add_axiom get app depth t (accum as (seen, axs)) =
       let
         val t = t |> unfold_defs_in_term hol_ctxt
                   |> skolemize_term_and_more hol_ctxt ~1 (*### why ~1? *)
@@ -901,7 +904,7 @@ fun axioms_for_term
         else
           let val t' = t |> specialize_consts_in_term hol_ctxt depth in
             if exists (member (op aconv) (get axs)) [t, t'] then accum
-            else add_axioms_for_term (depth + 1) t' (xs, app (cons t') axs)
+            else add_axioms_for_term (depth + 1) t' (seen, app (cons t') axs)
           end
       end
     and add_def_axiom depth = add_axiom fst apfst depth
@@ -912,15 +915,15 @@ fun axioms_for_term
     and add_eq_axiom depth t =
       (if is_constr_pattern_formula ctxt t then add_def_axiom
        else add_nondef_axiom) depth t
-    and add_axioms_for_term depth t (accum as (xs, axs)) =
+    and add_axioms_for_term depth t (accum as (seen, axs)) =
       case t of
         t1 $ t2 => accum |> fold (add_axioms_for_term depth) [t1, t2]
       | Const (x as (s, T)) =>
-        (if member (op =) xs x orelse
+        (if member (op aconv) seen t orelse
             is_built_in_const thy stds fast_descrs x then
            accum
          else
-           let val accum = (x :: xs, axs) in
+           let val accum = (t :: seen, axs) in
              if depth > axioms_max_depth then
                raise TOO_LARGE ("Nitpick_Preproc.axioms_for_term.\
                                 \add_axioms_for_term",
@@ -983,7 +986,13 @@ fun axioms_for_term
                                (nondef_props_for_const thy false nondef_table x)
            end)
         |> add_axioms_for_type depth T
-      | Free (_, T) => add_axioms_for_type depth T accum
+      | Free (x as (_, T)) =>
+        (if member (op aconv) seen t then
+           accum
+         else case AList.lookup (op =) def_assm_table x of
+           SOME t => add_def_axiom depth t accum
+         | NONE => accum)
+        |> add_axioms_for_type depth T
       | Var (_, T) => add_axioms_for_type depth T accum
       | Bound _ => accum
       | Abs (_, T, t) => accum |> add_axioms_for_term depth t
@@ -1028,16 +1037,13 @@ fun axioms_for_term
       List.partition (null o Term.hidden_polymorphism) user_nondefs
     val eval_axioms = map2 eval_axiom_for_term (index_seq 0 (length evals))
                            evals
-    val (def_assm_ts, nondef_assm_ts) =
-      List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
-    val (xs, (defs, nondefs)) =
+    val (seen, (defs, nondefs)) =
       ([], ([], []))
       |> add_axioms_for_term 1 neg_t
-      |> fold_rev (add_def_axiom 1) def_assm_ts
       |> fold_rev (add_nondef_axiom 1) nondef_assm_ts
       |> fold_rev (add_def_axiom 1) eval_axioms
       |> user_axioms = SOME true ? fold (add_nondef_axiom 1) mono_user_nondefs
-    val defs = defs @ special_congruence_axioms hol_ctxt xs
+    val defs = defs @ special_congruence_axioms hol_ctxt seen
     val got_all_mono_user_axioms =
       (user_axioms = SOME true orelse null mono_user_nondefs)
   in

@@ -274,7 +274,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
-    val frees = fold Term.add_frees (neg_t :: assm_ts) []
+    val pseudo_frees = fold Term.add_frees assm_ts []
+    val real_frees = subtract (op =) pseudo_frees (Term.add_frees neg_t [])
     val _ = null (fold Term.add_tvars (neg_t :: assm_ts) []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
@@ -451,7 +452,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                          (Typtab.dest ofs)
 *)
         val all_exact = forall (is_exact_type datatypes true) all_Ts
-        val repify_consts = choose_reps_for_consts scope all_exact
         val main_j0 = offset_of_type ofs bool_T
         val (nat_card, nat_j0) = spec_of_type scope nat_T
         val (int_card, int_j0) = spec_of_type scope int_T
@@ -460,9 +460,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                            "bad offsets")
         val kk = kodkod_constrs peephole_optim nat_card int_card main_j0
         val (free_names, rep_table) =
-          choose_reps_for_free_vars scope free_names NameTable.empty
+          choose_reps_for_free_vars scope pseudo_frees free_names
+                                    NameTable.empty
         val (sel_names, rep_table) = choose_reps_for_all_sels scope rep_table
-        val (nonsel_names, rep_table) = repify_consts nonsel_names rep_table
+        val (nonsel_names, rep_table) =
+          choose_reps_for_consts scope all_exact nonsel_names rep_table
         val min_highest_arity =
           NameTable.fold (Integer.max o arity_of_rep o snd) rep_table 1
         val min_univ_card =
@@ -589,8 +591,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val (reconstructed_model, codatatypes_ok) =
           reconstruct_hol_model {show_datatypes = show_datatypes,
                                  show_consts = show_consts}
-              scope formats atomss frees free_names sel_names nonsel_names
-              rel_table bounds
+              scope formats atomss real_frees pseudo_frees free_names sel_names
+              nonsel_names rel_table bounds
         val genuine_means_genuine =
           got_all_user_axioms andalso none_true wfs andalso
           sound_finitizes andalso codatatypes_ok

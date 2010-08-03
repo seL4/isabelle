@@ -7,6 +7,7 @@ Nitpick underlying terms (nuts).
 
 signature NITPICK_NUT =
 sig
+  type styp = Nitpick_Util.styp
   type hol_context = Nitpick_HOL.hol_context
   type scope = Nitpick_Scope.scope
   type name_pool = Nitpick_Peephole.name_pool
@@ -104,7 +105,8 @@ sig
   val nut_from_term : hol_context -> op2 -> term -> nut
   val is_fully_representable_set : nut -> bool
   val choose_reps_for_free_vars :
-    scope -> nut list -> rep NameTable.table -> nut list * rep NameTable.table
+    scope -> styp list -> nut list -> rep NameTable.table
+    -> nut list * rep NameTable.table
   val choose_reps_for_consts :
     scope -> bool -> nut list -> rep NameTable.table
     -> nut list * rep NameTable.table
@@ -671,9 +673,12 @@ fun rep_for_abs_fun scope T =
     Func (R1, (card_of_rep R1 <> card_of_rep R2 ? Opt) R2)
   end
 
-fun choose_rep_for_free_var scope v (vs, table) =
+fun choose_rep_for_free_var scope pseudo_frees v (vs, table) =
   let
-    val R = best_non_opt_set_rep_for_type scope (type_of v)
+    val R = (if exists (curry (op =) (nickname_of v) o fst) pseudo_frees then
+               best_opt_set_rep_for_type
+             else
+               best_non_opt_set_rep_for_type) scope (type_of v)
     val v = modify_name_rep v R
   in (v :: vs, NameTable.update (v, R) table) end
 fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) all_exact v
@@ -701,8 +706,8 @@ fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) all_exact v
     val v = modify_name_rep v R
   in (v :: vs, NameTable.update (v, R) table) end
 
-fun choose_reps_for_free_vars scope vs table =
-  fold (choose_rep_for_free_var scope) vs ([], table)
+fun choose_reps_for_free_vars scope pseudo_frees vs table =
+  fold (choose_rep_for_free_var scope pseudo_frees) vs ([], table)
 fun choose_reps_for_consts scope all_exact vs table =
   fold (choose_rep_for_const scope all_exact) vs ([], table)
 
