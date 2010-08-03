@@ -15,7 +15,6 @@ sig
   val is_finished: string -> bool
   val master_directory: string -> Path.T
   val loaded_files: string -> Path.T list
-  val thy_ord: theory * theory -> order
   val remove_thy: string -> unit
   val kill_thy: string -> unit
   val use_thys: string list -> unit
@@ -143,8 +142,6 @@ structure Update_Time = Theory_Data
   fun extend _ = empty;
   fun merge _ = empty;
 );
-
-val thy_ord = int_ord o pairself Update_Time.get;
 
 
 (* remove theory *)
