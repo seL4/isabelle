@@ -141,7 +141,7 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
   (card_of_type card_assigns T
    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
-fun quintuple_for_scope quote
+fun quintuple_for_scope code_type code_term code_string
         ({hol_ctxt = {ctxt, stds, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
   let
@@ -154,26 +154,26 @@ fun quintuple_for_scope quote
       card_assigns
       |> List.partition ((is_integer_type orf is_datatype ctxt stds) o fst)
     val cards =
-      map (fn (T, k) => quote (string_for_type ctxt T) ^ " = " ^
-                        string_of_int k)
+      map (fn (T, k) =>
+              [code_type ctxt T, code_string (" = " ^ string_of_int k)])
     fun maxes () =
       maps (map_filter
                 (fn {const, explicit_max, ...} =>
                     if explicit_max < 0 then
                       NONE
                     else
-                      SOME (Syntax.string_of_term ctxt (Const const) ^ " = " ^
-                            string_of_int explicit_max))
+                      SOME [code_term ctxt (Const const),
+                            code_string (" = " ^ string_of_int explicit_max)])
                  o #constrs) datatypes
     fun iters () =
       map (fn (T, k) =>
-              quote (Syntax.string_of_term ctxt
-                         (Const (const_for_iterator_type T))) ^ " = " ^
-              string_of_int (k - 1)) iter_assigns
+              [code_term ctxt (Const (const_for_iterator_type T)),
+               code_string (" = " ^ string_of_int (k - 1))]) iter_assigns
     fun miscs () =
-      (if bits = 0 then [] else ["bits = " ^ string_of_int bits]) @
+      (if bits = 0 then []
+       else [code_string ("bits = " ^ string_of_int bits)]) @
       (if bisim_depth < 0 andalso forall (not o #co) datatypes then []
-       else ["bisim_depth = " ^ signed_string_of_int bisim_depth])
+       else [code_string ("bisim_depth = " ^ signed_string_of_int bisim_depth)])
   in
     setmp_show_all_types
         (fn () => (cards primary_card_assigns, cards secondary_card_assigns,
@@ -182,31 +182,33 @@ fun quintuple_for_scope quote
 
 fun pretties_for_scope scope verbose =
   let
-    val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
-      quintuple_for_scope maybe_quote scope
-    val ss = map (prefix "card ") primary_cards @
-             (if verbose then
-                map (prefix "card ") secondary_cards @
-                map (prefix "max ") maxes @
-                map (prefix "iter ") iters @
-                bisim_depths
-              else
-                [])
+    fun standard_blocks s = map (Pretty.block o cons (Pretty.str (s ^ " ")))
+    val (primary_cards, secondary_cards, maxes, iters, miscs) =
+      quintuple_for_scope (pretty_maybe_quote oo pretty_for_type)
+                          (pretty_maybe_quote oo Syntax.pretty_term)
+                          Pretty.str scope
   in
-    if null ss then []
-    else serial_commas "and" ss |> map Pretty.str |> Pretty.breaks
+    standard_blocks "card" primary_cards @
+    (if verbose then
+       standard_blocks "card" secondary_cards @
+       standard_blocks "max" maxes @
+       standard_blocks "iter" iters @
+       miscs
+     else
+       [])
+    |> pretty_serial_commas "and"
   end
 
 fun multiline_string_for_scope scope =
   let
-    val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
-      quintuple_for_scope I scope
+    val (primary_cards, secondary_cards, maxes, iters, miscs) =
+      quintuple_for_scope Syntax.string_of_typ Syntax.string_of_term I scope
     val cards = primary_cards @ secondary_cards
   in
-    case (if null cards then [] else ["card: " ^ commas cards]) @
-         (if null maxes then [] else ["max: " ^ commas maxes]) @
-         (if null iters then [] else ["iter: " ^ commas iters]) @
-         bisim_depths of
+    case (if null cards then [] else ["card: " ^ commas (map implode cards)]) @
+         (if null maxes then [] else ["max: " ^ commas (map implode maxes)]) @
+         (if null iters then [] else ["iter: " ^ commas (map implode iters)]) @
+         miscs of
       [] => "empty"
     | lines => space_implode "\n" lines
   end

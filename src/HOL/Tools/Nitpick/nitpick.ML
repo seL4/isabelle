@@ -321,14 +321,16 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
     fun monotonicity_message Ts extra =
-      let val ss = map (quote o string_for_type ctxt) Ts in
-        "The type" ^ plural_s_for_list ss ^ " " ^
-        space_implode " " (serial_commas "and" ss) ^ " " ^
-        (if none_true monos then
-           "passed the monotonicity test"
-         else
-           (if length ss = 1 then "is" else "are") ^ " considered monotonic") ^
-        ". " ^ extra
+      let val pretties = map (pretty_maybe_quote o pretty_for_type ctxt) Ts in
+        Pretty.blk (0,
+          pstrs ("The type" ^ plural_s_for_list pretties ^ " ") @
+          pretty_serial_commas "and" pretties @
+          pstrs (" " ^
+          (if none_true monos then
+             "passed the monotonicity test"
+           else
+             (if length pretties = 1 then "is" else "are") ^ " considered monotonic") ^
+          ". " ^ extra))
       end
     fun is_type_fundamentally_monotonic T =
       (is_datatype ctxt stds T andalso not (is_quot_type thy T) andalso
@@ -373,8 +375,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         case filter_out is_type_fundamentally_monotonic mono_Ts of
           [] => ()
         | interesting_mono_Ts =>
-          print_v (K (monotonicity_message interesting_mono_Ts
-                         "Nitpick might be able to skip some scopes."))
+          pprint_v (K (monotonicity_message interesting_mono_Ts
+                          "Nitpick might be able to skip some scopes."))
       else
         ()
     val (deep_dataTs, shallow_dataTs) =
@@ -385,8 +387,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                      |> filter is_shallow_datatype_finitizable
     val _ =
       if verbose andalso not (null finitizable_dataTs) then
-        print_v (K (monotonicity_message finitizable_dataTs
-                        "Nitpick can use a more precise finite encoding."))
+        pprint_v (K (monotonicity_message finitizable_dataTs
+                         "Nitpick can use a more precise finite encoding."))
       else
         ()
     (* This detection code is an ugly hack. Fortunately, it is used only to
@@ -660,7 +662,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                         options
                 in
                   print ("Try again with " ^
-                         space_implode " " (serial_commas "and" ss) ^
+                         implode (serial_commas "and" ss) ^
                          " to confirm that the " ^ das_wort_model ^
                          " is genuine.")
                 end

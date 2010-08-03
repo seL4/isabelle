@@ -76,6 +76,7 @@ sig
   val unarize_unbox_etc_type : typ -> typ
   val uniterize_unarize_unbox_etc_type : typ -> typ
   val string_for_type : Proof.context -> typ -> string
+  val pretty_for_type : Proof.context -> typ -> Pretty.T
   val prefix_name : string -> string -> string
   val shortest_name : string -> string
   val short_name : string -> string
@@ -467,6 +468,7 @@ fun uniterize_type (Type (s, Ts as _ :: _)) = Type (s, map uniterize_type Ts)
 val uniterize_unarize_unbox_etc_type = uniterize_type o unarize_unbox_etc_type
 
 fun string_for_type ctxt = Syntax.string_of_typ ctxt o unarize_unbox_etc_type
+fun pretty_for_type ctxt = Syntax.pretty_typ ctxt o unarize_unbox_etc_type
 
 val prefix_name = Long_Name.qualify o Long_Name.base_name
 fun shortest_name s = List.last (space_explode "." s) handle List.Empty => ""
