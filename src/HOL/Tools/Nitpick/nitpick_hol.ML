@@ -1727,10 +1727,11 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
 (** Axiom extraction/generation **)
 
 fun equationalize t =
-  case Logic.strip_imp_concl t of
-    @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ _ $ _) => t
-  | @{const Trueprop} $ t' =>
-    @{const Trueprop} $ HOLogic.mk_eq (t', @{const True})
+  case Logic.strip_horn t of
+    (_, @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ _ $ _)) => t
+  | (prems, @{const Trueprop} $ t') =>
+    Logic.list_implies (prems,
+                        @{const Trueprop} $ HOLogic.mk_eq (t', @{const True}))
   | _ => t
 
 fun pair_for_prop t =
