@@ -2690,8 +2690,8 @@ off to declare long-winded definitions as \textit{nitpick\_simp}. For example:
 \prew
 \textbf{definition}~\textit{optimum} \textbf{where} [\textit{nitpick\_simp}]: \\
 ``$\textit{optimum}~t =
-     (\forall u.\; \textit{consistent~u} \longrightarrow \textit{alphabet~t} = \textit{alphabet~u}$ \\
-\phantom{``$\textit{optimum}~t = (\forall u.\;$}${\longrightarrow}\; \textit{freq}~t = \textit{freq}~u \longrightarrow
+     (\forall u.\; \textit{consistent~u} \mathrel{\land} \textit{alphabet~t} = \textit{alphabet~u}$ \\
+\phantom{``$\textit{optimum}~t = (\forall u.\;$}${\mathrel{\land}}\; \textit{freq}~t = \textit{freq}~u \longrightarrow
          \textit{cost~t} \le \textit{cost~u})$''
 \postw
 
