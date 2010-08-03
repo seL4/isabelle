@@ -14,6 +14,10 @@ used here as well.  Recall that Symbol.explode in ML provides a
 consistent view on symbols, while raw explode (or String.explode)
 merely give a byte-oriented representation.
 
+* Theory loading: only the master source file is looked-up in the
+implicit load path, all other files are addressed relatively to its
+directory.  Minor INCOMPATIBILITY, subtle change in semantics.
+
 * Special treatment of ML file names has been discontinued.
 Historically, optional extensions .ML or .sml were added on demand --
 at the cost of clarity of file dependencies.  Recall that Isabelle/ML
