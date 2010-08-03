@@ -1374,7 +1374,8 @@ fun is_mutually_inductive_pred_def thy table t =
     case t |> strip_abs_body |> strip_comb of
       (Const x, ts as (_ :: _)) =>
       (case def_of_const thy table x of
-         SOME t' => fixpoint_kind_of_rhs t' <> NoFp andalso forall is_good_arg ts
+         SOME t' => fixpoint_kind_of_rhs t' <> NoFp andalso
+                    forall is_good_arg ts
        | NONE => false)
     | _ => false
   end

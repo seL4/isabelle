@@ -493,8 +493,8 @@ fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []
   | repair_cards_assigns_wrt_boxing_etc thy Ts ((NONE, ks) :: cards_assigns) =
     (NONE, ks) :: repair_cards_assigns_wrt_boxing_etc thy Ts cards_assigns
 
-val max_scopes = 4096
-val distinct_threshold = 512
+val max_scopes = 5000
+val distinct_threshold = 1000
 
 fun all_scopes (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
                iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
