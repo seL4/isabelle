@@ -262,7 +262,7 @@ Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
 \hbox{}\qquad\qquad $x = a_3$ \\[2\smallskipamount]
-Total time: 580 ms.
+Total time: 768 ms.
 \postw
 
 Nitpick found a counterexample in which $'a$ has cardinality 3. (For
@@ -818,8 +818,8 @@ Trying 1 scope: \\
 \hbox{}\qquad \textit{card nat}~= 50. \\[2\smallskipamount]
 Nitpick found a potential counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment \\[2\smallskipamount]
-Nitpick could not find a better counterexample. It checked 1 of 1 scope. \\[2\smallskipamount]
-Total time: 2274 ms.
+Nitpick could not find a better counterexample. It checked 0 of 1 scope. \\[2\smallskipamount]
+Total time: 1439 ms.
 \postw
 
 No genuine counterexample is possible because Nitpick cannot rule out the
@@ -872,7 +872,7 @@ Nitpick found a counterexample for \textit{card nat}~= 10 and \textit{iter} $\te
 & 2 := \{0, 2, 4, 6, 8, 1^\Q, 3^\Q, 5^\Q, 7^\Q, 9^\Q\}, \\[-2pt]
 & 1 := \{0, 2, 4, 1^\Q, 3^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\}, \\[-2pt]
 & 0 := \{0, 2, 1^\Q, 3^\Q, 4^\Q, 5^\Q, 6^\Q, 7^\Q, 8^\Q, 9^\Q\})\end{aligned}$ \\[2\smallskipamount]
-Total time: 1140 ms.
+Total time: 2420 ms.
 \postw
 
 Nitpick's output is very instructive. First, it tells us that the predicate is
@@ -1034,7 +1034,7 @@ depth}~= 1:
 \hbox{}\qquad\qquad $\textit{b} = a_2$ \\
 \hbox{}\qquad\qquad $\textit{xs} = \textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega$ \\
 \hbox{}\qquad\qquad $\textit{ys} = \textit{LCons}~a_2~(\textsl{THE}~\omega.\; \omega = \textit{LCons}~a_1~\omega)$ \\[2\smallskipamount]
-Total time: 726 ms.
+Total time: 1027 ms.
 \postw
 
 The lazy list $\textit{xs}$ is simply $[a_1, a_1, a_1, \ldots]$, whereas
@@ -1182,7 +1182,7 @@ and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm}$''~= 6: \\[2\smallskip
   4 := \textit{Var}~0,\>
   5 := \textit{Var}~0)\end{aligned}$ \\
 \hbox{}\qquad\qquad $t = \textit{Lam}~(\textit{Lam}~(\textit{Var}~1))$ \\[2\smallskipamount]
-Total time: $4679$ ms.
+Total time: $3560$ ms.
 \postw
 
 Using \textit{eval}, we find out that $\textit{subst}~\sigma~t =
@@ -1200,7 +1200,7 @@ considered, a hopeless undertaking:
 
 \prew
 \textbf{nitpick} [\textit{dont\_box}] \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 4 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 3 of 10 scopes.}
 \postw
 
 {\looseness=-1
@@ -1658,7 +1658,7 @@ $B$ as well:
 ``$w \in A \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] + 1$'' \\
 ``$w \in B \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] + 1$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-\slshape Nitpick ran out of time after checking 7 of 10 scopes.
+\slshape Nitpick found no counterexample.
 \postw
 
 \subsection{AA Trees}
@@ -1767,7 +1767,7 @@ of elements stored in the tree:
 ``$\textit{dataset}~(\textit{skew}~t) = \textit{dataset}~t$'' \\
 ``$\textit{dataset}~(\textit{split}~t) = \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 7 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 9 of 10 scopes.}
 \postw
 
 Furthermore, applying \textit{skew} or \textit{split} to a well-formed tree
@@ -1829,7 +1829,7 @@ Reintroducing the code seems to solve the problem:
 \prew
 \textbf{theorem}~\textit{wf\_insort\/}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 7 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 8 of 10 scopes.}
 \postw
 
 Insertion should transform the set of elements represented by the tree in the
@@ -1839,7 +1839,7 @@ obvious way:
 \textbf{theorem} \textit{dataset\_insort\/}:\kern.4em
 ``$\textit{dataset}~(\textit{insort}~t~x) = \{x\} \cup \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 6 of 10 scopes.}
+{\slshape Nitpick ran out of time after checking 7 of 10 scopes.}
 \postw
 
 We could continue like this and sketch a complete theory of AA trees. Once the
