@@ -2649,30 +2649,30 @@ the introduction rules. To override this, we can specify an alternative
 definition as follows:
 
 \prew
-\textbf{lemma} $\mathit{odd\_def}'$ [\textit{nitpick\_def}]:\kern.4em ``$\textit{odd}~n \,\equiv\, n~\textrm{mod}~2 = 1$''
+\textbf{lemma} $\mathit{odd\_alt_def}$ [\textit{nitpick\_def}]:\kern.4em ``$\textit{odd}~n \,\equiv\, n~\textrm{mod}~2 = 1$''
 \postw
 
 Nitpick then expands all occurrences of $\mathit{odd}~n$ to $n~\textrm{mod}~2
 = 1$. Alternatively, we can specify an equational specification of the constant:
 
 \prew
-\textbf{lemma} $\mathit{odd\_simp}'$ [\textit{nitpick\_simp}]:\kern.4em ``$\textit{odd}~n = (n~\textrm{mod}~2 = 1)$''
+\textbf{lemma} $\mathit{odd\_simp}$ [\textit{nitpick\_simp}]:\kern.4em ``$\textit{odd}~n = (n~\textrm{mod}~2 = 1)$''
 \postw
 
 Moreover, because of its internal three-valued logic, Nitpick tends to lose a
 lot of precision in the presence of partially specified constants. For example,
 
 \prew
-\textbf{lemma} $\mathit{list\_of\_LCons}$ [\textit{nitpick\_simp}]: \\
-``$\textit{list\_of}~(\textit{LCons~x~xs}) = {}$ \\
-\phantom{``}$(\textrm{if}~\textit{lfinite~xs}~\textrm{then}~x \mathbin{\#} \textit{list\_of~xs}~\textrm{else}~\textit{undefined})$''
+\textbf{lemma} \textit{odd\_simp} [\textit{nitpick\_simp}]: \\
+``$\textit{odd~x} = \lnot\, \textit{even}~x$''
 \postw
 
 is superior to
 
 \prew
-\textbf{lemma} $\mathit{list\_of\_LCons}$ [\textit{nitpick\_psimp}]: \\
-``$\textit{lfinite~xs} \,\Longrightarrow\, \textit{list\_of}~(\textit{LCons~x~xs}) = x \mathbin{\#} \textit{list\_of~xs\/}$''
+\textbf{lemma} \textit{odd\_psimps} [\textit{nitpick\_simp}]: \\
+``$\textit{even~x} \,\Longrightarrow\, \textit{odd~x} = \textit{False\/}$'' \\
+``$\lnot\, \textit{even~x} \,\Longrightarrow\, \textit{odd~x} = \textit{True\/}$''
 \postw
 
 Such tweaks should be done with great care, because Nitpick will assume that the
