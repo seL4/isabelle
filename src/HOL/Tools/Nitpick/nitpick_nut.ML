@@ -746,8 +746,7 @@ fun is_constructive u =
   (not (is_fun_type (type_of u)) andalso not (is_opt_rep (rep_of u))) orelse
   case u of
     Cst (Num _, _, _) => true
-  | Cst (cst, T, _) =>
-    cst = Suc orelse (body_type T = nat_T andalso cst = Add)
+  | Cst (cst, T, _) => body_type T = nat_T andalso (cst = Suc orelse cst = Add)
   | Op2 (Apply, _, _, u1, u2) => forall is_constructive [u1, u2]
   | Op3 (If, _, _, u1, u2, u3) =>
     not (is_opt_rep (rep_of u1)) andalso forall is_constructive [u2, u3]

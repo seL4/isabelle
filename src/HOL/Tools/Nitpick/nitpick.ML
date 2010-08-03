@@ -294,9 +294,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                    "\" could not be proved well-founded. Nitpick might need to \
                    \unroll it.")))
     val _ = if verbose then List.app print_wf (!wf_cache) else ()
+    val das_wort_formula = if falsify then "Negated conjecture" else "Formula"
     val _ =
       pprint_d (fn () => Pretty.chunks
-          (pretties_for_formulas ctxt "Preprocessed formula" [hd nondef_ts] @
+          (pretties_for_formulas ctxt das_wort_formula [hd nondef_ts] @
            pretties_for_formulas ctxt "Relevant definitional axiom" def_ts @
            pretties_for_formulas ctxt "Relevant nondefinitional axiom"
                                  (tl nondef_ts)))
