@@ -466,12 +466,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val (sel_names, rep_table) = choose_reps_for_all_sels scope rep_table
         val (nonsel_names, rep_table) =
           choose_reps_for_consts scope all_exact nonsel_names rep_table
-        val min_highest_arity =
-          NameTable.fold (Integer.max o arity_of_rep o snd) rep_table 1
+        val (guiltiest_party, min_highest_arity) =
+          NameTable.fold (fn (name, R) => fn (s, n) =>
+                             let val n' = arity_of_rep R in
+                               if n' > n then (nickname_of name, n') else (s, n)
+                             end) rep_table ("", 1)
         val min_univ_card =
           NameTable.fold (Integer.max o min_univ_card_of_rep o snd) rep_table
                          (univ_card nat_card int_card main_j0 [] KK.True)
-        val _ = check_arity min_univ_card min_highest_arity
+        val _ = check_arity guiltiest_party min_univ_card min_highest_arity
 
         val def_us = map (choose_reps_in_nut scope unsound rep_table true)
                          def_us
@@ -533,7 +536,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val formula = fold_rev s_and axioms formula
         val _ = if bits = 0 then () else check_bits bits formula
         val _ = if formula = KK.False then ()
-                else check_arity univ_card highest_arity
+                else check_arity "" univ_card highest_arity
       in
         SOME ({comment = comment, settings = settings, univ_card = univ_card,
                tuple_assigns = [], bounds = bounds,

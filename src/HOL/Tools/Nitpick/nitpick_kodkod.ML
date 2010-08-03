@@ -17,7 +17,7 @@ sig
   val univ_card :
     int -> int -> int -> Kodkod.bound list -> Kodkod.formula -> int
   val check_bits : int -> Kodkod.formula -> unit
-  val check_arity : int -> int -> unit
+  val check_arity : string -> int -> int -> unit
   val kk_tuple : bool -> int -> int list -> Kodkod.tuple
   val tuple_set_from_atom_schema : (int * int) list -> Kodkod.tuple_set
   val sequential_int_bounds : int -> Kodkod.int_bound list
@@ -93,11 +93,17 @@ fun check_bits bits formula =
                   int_expr_func = int_expr_func}
   in KK.fold_formula expr_F formula () end
 
-fun check_arity univ_card n =
+fun check_arity guilty_party univ_card n =
   if n > KK.max_arity univ_card then
     raise TOO_LARGE ("Nitpick_Kodkod.check_arity",
-                     "arity " ^ string_of_int n ^ " too large for universe of \
-                     \cardinality " ^ string_of_int univ_card)
+                     "arity " ^ string_of_int n ^
+                     (if guilty_party = "" then
+                        ""
+                      else
+                        " of Kodkod relation associated with " ^
+                        quote guilty_party) ^
+                     " too large for universe of cardinality " ^
+                     string_of_int univ_card)
   else
     ()
 
@@ -200,7 +206,7 @@ fun isa_norm_frac (m, n) =
 
 fun tabulate_built_in_rel debug ofs univ_card nat_card int_card j0
                           (x as (n, _)) =
-  (check_arity univ_card n;
+  (check_arity "" univ_card n;
    if x = not3_rel then
      ("not3", tabulate_func1 debug univ_card (2, j0) (curry (op -) 1))
    else if x = suc_rel then
