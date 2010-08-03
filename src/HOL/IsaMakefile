@@ -395,16 +395,16 @@ $(OUT)/HOL: ROOT.ML $(HOL_DEPENDENCIES)
 
 HOL-Library: HOL $(OUT)/HOL-Library
 
-$(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
+$(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   $(SRC)/HOL/Tools/float_arith.ML $(SRC)/Tools/float.ML			\
   Library/Abstract_Rat.thy $(SRC)/Tools/Adhoc_Overloading.thy		\
-  Library/AssocList.thy	Library/BigO.thy Library/Binomial.thy		\
+  Library/AssocList.thy Library/BigO.thy Library/Binomial.thy		\
   Library/Bit.thy Library/Boolean_Algebra.thy Library/Cardinality.thy	\
   Library/Char_nat.thy Library/Code_Char.thy Library/Code_Char_chr.thy	\
-  Library/Code_Integer.thy Library/Code_Natural.thy 			\
+  Library/Code_Integer.thy Library/Code_Natural.thy			\
   Library/Code_Prolog.thy Tools/Predicate_Compile/code_prolog.ML	\
   Library/ContNotDenum.thy Library/Continuity.thy Library/Convex.thy	\
-  Library/Countable.thy	Library/Diagonalize.thy Library/Dlist.thy	\
+  Library/Countable.thy Library/Diagonalize.thy Library/Dlist.thy	\
   Library/Efficient_Nat.thy Library/Enum.thy Library/Eval_Witness.thy	\
   Library/Executable_Set.thy Library/Float.thy				\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
@@ -417,15 +417,14 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
   Library/List_Prefix.thy Library/List_lexord.thy Library/Mapping.thy	\
   Library/Monad_Syntax.thy Library/More_List.thy Library/More_Set.thy	\
   Library/Multiset.thy Library/Nat_Bijection.thy			\
-  Library/Nat_Infinity.thy						\
-  Library/Nested_Environment.thy Library/Numeral_Type.thy		\
-  Library/OptionalSugar.thy Library/Order_Relation.thy			\
-  Library/Permutation.thy Library/Permutations.thy			\
-  Library/Poly_Deriv.thy Library/Polynomial.thy				\
-  Library/Predicate_Compile_Quickcheck.thy Library/Preorder.thy		\
-  Library/Product_Vector.thy Library/Product_ord.thy			\
-  Library/Product_plus.thy Library/Quickcheck_Types.thy 		\
-  Library/Quicksort.thy 						\
+  Library/Nat_Infinity.thy Library/Nested_Environment.thy		\
+  Library/Numeral_Type.thy Library/OptionalSugar.thy			\
+  Library/Order_Relation.thy Library/Permutation.thy			\
+  Library/Permutations.thy Library/Poly_Deriv.thy			\
+  Library/Polynomial.thy Library/Predicate_Compile_Quickcheck.thy	\
+  Library/Preorder.thy Library/Product_Vector.thy			\
+  Library/Product_ord.thy Library/Product_plus.thy			\
+  Library/Quickcheck_Types.thy Library/Quicksort.thy			\
   Library/Quotient_List.thy Library/Quotient_Option.thy			\
   Library/Quotient_Product.thy Library/Quotient_Sum.thy			\
   Library/Quotient_Syntax.thy Library/Quotient_Type.thy			\
@@ -440,7 +439,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/HOL_Library_ROOT.ML		\
   $(SRC)/Tools/adhoc_overloading.ML Library/positivstellensatz.ML	\
   Library/reflection.ML Library/reify_data.ML				\
   Library/document/root.bib Library/document/root.tex
-	@cd Library; $(ISABELLE_TOOL) usedir -b -f HOL_Library_ROOT.ML $(OUT)/HOL HOL-Library
+	@cd Library; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOL-Library
 
 
 ## HOL-Hahn_Banach
