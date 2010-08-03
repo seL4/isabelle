@@ -116,7 +116,7 @@ fun get_parents name =
 
 fun lookup_theory name =
   (case lookup_thy name of
-    SOME (_, SOME thy) => SOME thy
+    SOME (_, SOME theory) => SOME theory
   | _ => NONE);
 
 fun get_theory name =
@@ -135,19 +135,19 @@ fun loaded_files name =
 
 (* remove theory *)
 
-fun remove_thy name =
+fun remove_thy name = CRITICAL (fn () =>
   if is_finished name then error (loader_msg "attempt to change finished theory" [name])
   else
     let
       val succs = thy_graph Graph.all_succs [name];
       val _ = priority (loader_msg "removing" succs);
-      val _ = CRITICAL (fn () =>
-        (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)));
-    in () end;
+      val _ = List.app (perform Remove) succs;
+      val _ = change_thys (Graph.del_nodes succs);
+    in () end);
 
-fun kill_thy name =
+fun kill_thy name = CRITICAL (fn () =>
   if known_thy name then remove_thy name
-  else ();
+  else ());
 
 
 (* scheduling loader tasks *)
@@ -335,15 +335,14 @@ fun toplevel_begin_theory name imports uses =
 fun register_thy theory =
   let
     val name = Context.theory_name theory;
-    val _ = kill_thy name;
-    val _ = priority ("Registering theory " ^ quote name);
-
     val master = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
     val parents = map Context.theory_name (Theory.parents_of theory);
     val deps = make_deps master parents;
   in
     CRITICAL (fn () =>
-     (map get_theory parents;
+     (kill_thy name;
+      priority ("Registering theory " ^ quote name);
+      map get_theory parents;
       change_thys (new_entry name parents (SOME deps, SOME theory));
       perform Update name))
   end;
