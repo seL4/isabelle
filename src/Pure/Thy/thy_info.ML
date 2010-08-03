@@ -133,17 +133,6 @@ fun loaded_files name =
 
 (** thy operations **)
 
-(* abstract update time *)
-
-structure Update_Time = Theory_Data
-(
-  type T = int;
-  val empty = 0;
-  fun extend _ = empty;
-  fun merge _ = empty;
-);
-
-
 (* remove theory *)
 
 fun remove_thy name =
@@ -246,8 +235,7 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
     val uses = map (apfst Path.explode) (#3 (Thy_Header.read pos text));
     fun init () =
       Thy_Load.begin_theory dir name parent_thys uses
-      |> Present.begin_theory update_time dir uses
-      |> Update_Time.put update_time;
+      |> Present.begin_theory update_time dir uses;
 
     val (after_load, theory) = Outer_Syntax.load_thy name init pos text;
 
