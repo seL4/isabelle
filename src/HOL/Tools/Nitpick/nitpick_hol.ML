@@ -1726,25 +1726,40 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
 
 (** Axiom extraction/generation **)
 
+fun equationalize t =
+  case Logic.strip_imp_concl t of
+    @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ _ $ _) => t
+  | @{const Trueprop} $ t' =>
+    @{const Trueprop} $ HOLogic.mk_eq (t', @{const True})
+  | _ => t
+
 fun pair_for_prop t =
   case term_under_def t of
     Const (s, _) => (s, t)
   | t' => raise TERM ("Nitpick_HOL.pair_for_prop", [t, t'])
+
 fun def_table_for get ctxt subst =
   ctxt |> get |> map (pair_for_prop o subst_atomic subst)
        |> AList.group (op =) |> Symtab.make
-fun paired_with_consts t = map (rpair t) (Term.add_const_names t [])
+
 fun const_def_table ctxt subst ts =
   def_table_for (map prop_of o Nitpick_Defs.get) ctxt subst
   |> fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
           (map pair_for_prop ts)
+
+fun paired_with_consts t = map (rpair t) (Term.add_const_names t [])
 fun const_nondef_table ts =
   fold (append o paired_with_consts) ts [] |> AList.group (op =) |> Symtab.make
-val const_simp_table = def_table_for (map prop_of o Nitpick_Simps.get)
-val const_psimp_table = def_table_for (map prop_of o Nitpick_Psimps.get)
+
+val const_simp_table =
+  def_table_for (map (equationalize o prop_of) o Nitpick_Simps.get)
+val const_psimp_table =
+  def_table_for (map (equationalize o prop_of) o Nitpick_Psimps.get)
+
 fun const_choice_spec_table ctxt subst =
   map (subst_atomic subst o prop_of) (Nitpick_Choice_Specs.get ctxt)
   |> const_nondef_table
+
 fun inductive_intro_table ctxt subst def_table =
   let val thy = ProofContext.theory_of ctxt in
     def_table_for
@@ -1754,6 +1769,7 @@ fun inductive_intro_table ctxt subst def_table =
                                   cat = Spec_Rules.Co_Inductive)
          o Spec_Rules.get) ctxt subst
   end
+
 fun ground_theorem_table thy =
   fold ((fn @{const Trueprop} $ t1 =>
             is_ground_term t1 ? Inttab.map_default (hash_term t1, []) (cons t1)

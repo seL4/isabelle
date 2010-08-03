@@ -2585,7 +2585,7 @@ constant. For functions defined using the \textbf{primrec}, \textbf{function},
 and \textbf{nominal\_\allowbreak primrec} packages, this corresponds to the
 \textit{simps} rules. The equations must be of the form
 
-\qquad $c~t_1~\ldots\ t_n \,=\, u.$
+\qquad $c~t_1~\ldots\ t_n \;\bigl[{=}\; u\bigr].$
 
 \flushitem{\textit{nitpick\_psimp}}
 
@@ -2595,7 +2595,7 @@ of a constant. For functions defined using the \textbf{function} package, this
 corresponds to the \textit{psimps} rules. The conditional equations must be of
 the form
 
-\qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \,=\, u$.
+\qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \;\bigl[{=}\; u\bigr]$.
 
 \flushitem{\textit{nitpick\_choice\_spec}}
 
