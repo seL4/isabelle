@@ -5,8 +5,8 @@
 header{* A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008 *}
 
 theory Parametric_Ferrante_Rackoff
-imports Reflected_Multivariate_Polynomial 
-  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+imports Reflected_Multivariate_Polynomial
+  Dense_Linear_Order
   Efficient_Nat
 begin
 

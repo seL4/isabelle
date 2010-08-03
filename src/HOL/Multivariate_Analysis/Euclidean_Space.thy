@@ -7,9 +7,10 @@ header {* (Real) Vectors in Euclidean space, and elementary linear algebra.*}
 theory Euclidean_Space
 imports
   Complex_Main "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
-  Infinite_Set
-  Inner_Product L2_Norm Convex
-uses "positivstellensatz.ML" ("normarith.ML")
+  Infinite_Set Inner_Product L2_Norm Convex
+uses
+  "~~/src/HOL/Library/positivstellensatz.ML"  (* FIXME duplicate use!? *)
+  ("normarith.ML")
 begin
 
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"

@@ -7,9 +7,9 @@ header {* A decision method for universal multivariate real arithmetic with addi
   multiplication and ordering using semidefinite programming *}
 
 theory Sum_Of_Squares
-imports Complex_Main (* "~~/src/HOL/Decision_Procs/Dense_Linear_Order" *)
+imports Complex_Main
 uses
-  "positivstellensatz.ML"  (* duplicate use!? -- cf. Euclidian_Space.thy *)
+  "positivstellensatz.ML"
   "Sum_Of_Squares/sum_of_squares.ML"
   "Sum_Of_Squares/positivstellensatz_tools.ML"
   "Sum_Of_Squares/sos_wrapper.ML"
