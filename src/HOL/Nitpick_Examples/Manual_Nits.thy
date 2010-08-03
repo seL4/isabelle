@@ -158,7 +158,7 @@ nitpick [card nat = 50, unary_ints, verbose, expect = potential]
 oops
 
 lemma "\<exists>n \<le> 49. even n \<and> even (Suc n)"
-nitpick [card nat = 50, unary_ints, verbose, expect = genuine]
+nitpick [card nat = 50, unary_ints, expect = genuine]
 oops
 
 inductive even' where
@@ -192,8 +192,9 @@ oops
 subsection {* 3.9. Coinductive Datatypes *}
 
 (* Lazy lists are defined in Andreas Lochbihler's "Coinductive" AFP entry. Since
-we cannot rely on its presence, we expediently provide our own axiomatization.
-The examples also work unchanged with Lochbihler's "Coinductive_List" theory. *)
+   we cannot rely on its presence, we expediently provide our own
+   axiomatization. The examples also work unchanged with Lochbihler's
+   "Coinductive_List" theory. *)
 
 typedef 'a llist = "UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set" by auto
 
@@ -225,7 +226,7 @@ oops
 
 lemma "\<lbrakk>xs = LCons a xs; ys = LCons a ys\<rbrakk> \<Longrightarrow> xs = ys"
 nitpick [bisim_depth = -1, show_datatypes, expect = quasi_genuine]
-nitpick [expect = none]
+nitpick [card = 1\<midarrow>5, expect = none]
 sorry
 
 subsection {* 3.10. Boxing *}
@@ -268,7 +269,6 @@ subsection {* 3.11. Scope Monotonicity *}
 
 lemma "length xs = length ys \<Longrightarrow> rev (zip xs ys) = zip xs (rev ys)"
 nitpick [verbose, expect = genuine]
-nitpick [card = 8, verbose, expect = genuine]
 oops
 
 lemma "\<exists>g. \<forall>x\<Colon>'b. g (f x) = x \<Longrightarrow> \<forall>y\<Colon>'a. \<exists>x. y = f x"
@@ -284,19 +284,19 @@ inductive_set reach where
 "n \<in> reach \<Longrightarrow> n + 2 \<in> reach"
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n"
-nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
+(* nitpick *)
 apply (induct set: reach)
   apply auto
- nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
+ nitpick [card = 1\<midarrow>4, bits = 1\<midarrow>4, expect = none]
  apply (thin_tac "n \<in> reach")
  nitpick [expect = genuine]
 oops
 
 lemma "n \<in> reach \<Longrightarrow> 2 dvd n \<and> n \<noteq> 0"
-nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
+(* nitpick *)
 apply (induct set: reach)
   apply auto
- nitpick [card = 1\<midarrow>5, bits = 1\<midarrow>5, expect = none]
+ nitpick [card = 1\<midarrow>4, bits = 1\<midarrow>4, expect = none]
  apply (thin_tac "n \<in> reach")
  nitpick [expect = genuine]
 oops
@@ -335,7 +335,7 @@ proof (induct t)
   case Leaf thus ?case by simp
 next
   case (Branch t u) thus ?case
-  nitpick [non_std, card = 1\<midarrow>5, expect = none]
+  nitpick [non_std, card = 1\<midarrow>4, expect = none]
   by auto
 qed
 
