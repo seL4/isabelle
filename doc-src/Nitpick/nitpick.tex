@@ -767,7 +767,7 @@ similar approach:
 Inductively defined predicates (and sets) are particularly problematic for
 counterexample generators. They can make Quickcheck~\cite{berghofer-nipkow-2004}
 loop forever and Refute~\cite{weber-2008} run out of resources. The crux of
-the problem is that they are defined using a least fixed point construction.
+the problem is that they are defined using a least fixed-point construction.
 
 Nitpick's philosophy is that not all inductive predicates are equal. Consider
 the \textit{even} predicate below:
@@ -797,7 +797,7 @@ $\textit{even}~0\,\Longrightarrow\, \textit{even}~2\,\Longrightarrow\, \cdots
 \postw
 
 Wellfoundedness is desirable because it enables Nitpick to use a very efficient
-fixed point computation.%
+fixed-point computation.%
 \footnote{If an inductive predicate is
 well-founded, then it has exactly one fixed point, which is simultaneously the
 least and the greatest fixed point. In these circumstances, the computation of
@@ -2056,7 +2056,7 @@ options.
 \item[$\bullet$] \textbf{\textit{smart}:} Try to prove that the inductive
 predicate is well-founded using Isabelle's \textit{lexicographic\_order} and
 \textit{size\_change} tactics. If this succeeds (or the predicate occurs with an
-appropriate polarity in the formula to falsify), use an efficient fixed point
+appropriate polarity in the formula to falsify), use an efficient fixed-point
 equation as specification of the predicate; otherwise, unroll the predicates
 according to the \textit{iter}~\qty{const} and \textit{iter} options.
 \end{enum}
@@ -2622,17 +2622,20 @@ uses these theorems as the specification of the constant.
 \item[4.] Otherwise, it looks up the definition of the constant:
 
 \begin{enum}
-\item[1.] If the \textit{nitpick\_def} set associated with the constant
-is not empty, it uses the latest rule added to the set as the definition of the
-constant; otherwise it uses the actual definition axiom.
+\item[1.] If the \textit{nitpick\_def} set associated with the constant is not
+empty, it uses the latest rule added to the set as the definition of the
+constant; otherwise it uses the actual definition axiom. In addition, the
+constant is \textsl{unfolded} wherever it appears (as opposed to defined
+equationally).
 \item[2.] If the definition is of the form
 
 \qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{lfp}~(\lambda f.\; t)$,
 
-then Nitpick assumes that the definition was made using an inductive package and
-based on the introduction rules marked with \textit{nitpick\_\allowbreak
-\allowbreak intros} tries to determine whether the definition is
-well-founded.
+then Nitpick assumes that the definition was made using an inductive package
+based on the introduction rules registered in Isabelle's internal
+\textit{Spec\_Rules} table. It uses the introduction rules to ascertain whether
+the definition is well-founded and the definition to generate a fixed-point
+equation or an unrolled equation.
 \end{enum}
 \end{enum}
 
@@ -2649,7 +2652,7 @@ the introduction rules. To override this, we can specify an alternative
 definition as follows:
 
 \prew
-\textbf{lemma} $\mathit{odd\_alt_def}$ [\textit{nitpick\_def}]:\kern.4em ``$\textit{odd}~n \,\equiv\, n~\textrm{mod}~2 = 1$''
+\textbf{lemma} $\mathit{odd\_alt\_def}$ [\textit{nitpick\_def}]:\kern.4em ``$\textit{odd}~n \,\equiv\, n~\textrm{mod}~2 = 1$''
 \postw
 
 Nitpick then expands all occurrences of $\mathit{odd}~n$ to $n~\textrm{mod}~2
@@ -2659,12 +2662,18 @@ Nitpick then expands all occurrences of $\mathit{odd}~n$ to $n~\textrm{mod}~2
 \textbf{lemma} $\mathit{odd\_simp}$ [\textit{nitpick\_simp}]:\kern.4em ``$\textit{odd}~n = (n~\textrm{mod}~2 = 1)$''
 \postw
 
-Moreover, because of its internal three-valued logic, Nitpick tends to lose a
+Such tweaks should be done with great care, because Nitpick will assume that the
+constant is completely defined by its equational specification. For example, if
+you make ``$\textit{odd}~(2 * k + 1)$'' a \textit{nitpick\_simp} rule and neglect to provide rules to handle the $2 * k$ case, Nitpick will define
+$\textit{odd}~n$ arbitrarily for even values of $n$. The \textit{debug}
+(\S\ref{output-format}) option is extremely useful to understand what is going
+on when experimenting with \textit{nitpick\_} attributes.
+
+Because of its internal three-valued logic, Nitpick tends to lose a
 lot of precision in the presence of partially specified constants. For example,
 
 \prew
-\textbf{lemma} \textit{odd\_simp} [\textit{nitpick\_simp}]: \\
-``$\textit{odd~x} = \lnot\, \textit{even}~x$''
+\textbf{lemma} \textit{odd\_simp} [\textit{nitpick\_simp}]:\kern.4em ``$\textit{odd~x} = \lnot\, \textit{even}~x$''
 \postw
 
 is superior to
@@ -2675,12 +2684,16 @@ is superior to
 ``$\lnot\, \textit{even~x} \,\Longrightarrow\, \textit{odd~x} = \textit{True\/}$''
 \postw
 
-Such tweaks should be done with great care, because Nitpick will assume that the
-constant is completely defined by its equational specification. For example, if
-you make ``$\textit{odd}~(2 * k + 1)$'' a \textit{nitpick\_simp} rule and neglect to provide rules to handle the $2 * k$ case, Nitpick will define
-$\textit{odd}~n$ arbitrarily for even values of $n$. The \textit{debug}
-(\S\ref{output-format}) option is extremely useful to understand what is going
-on when experimenting with \textit{nitpick\_} attributes.
+Because Nitpick unfolds definitions but not simplification rules, it often pays
+off to declare long-winded definitions as \textit{nitpick\_simp}. For example:
+
+\prew
+\textbf{definition}~\textit{optimum} \textbf{where} [\textit{nitpick\_simp}]: \\
+``$\textit{optimum}~t =
+     (\forall u.\; \textit{consistent~u} \longrightarrow \textit{alphabet~t} = \textit{alphabet~u}$ \\
+\phantom{``$\textit{optimum}~t = (\forall u.\;$}${\longrightarrow}\; \textit{freq}~t = \textit{freq}~u \longrightarrow
+         \textit{cost~t} \le \textit{cost~u})$''
+\postw
 
 \section{Standard ML Interface}
 \label{standard-ml-interface}
