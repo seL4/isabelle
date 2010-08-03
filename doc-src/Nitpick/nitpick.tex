@@ -2648,7 +2648,7 @@ As an illustration, consider the inductive definition
 \postw
 
 By default, Nitpick uses the \textit{lfp}-based definition in conjunction with
-the introduction rules. To override this, we can specify an alternative
+the introduction rules. To override this, you can specify an alternative
 definition as follows:
 
 \prew
@@ -2656,7 +2656,7 @@ definition as follows:
 \postw
 
 Nitpick then expands all occurrences of $\mathit{odd}~n$ to $n~\textrm{mod}~2
-= 1$. Alternatively, we can specify an equational specification of the constant:
+= 1$. Alternatively, you can specify an equational specification of the constant:
 
 \prew
 \textbf{lemma} $\mathit{odd\_simp}$ [\textit{nitpick\_simp}]:\kern.4em ``$\textit{odd}~n = (n~\textrm{mod}~2 = 1)$''
@@ -2690,10 +2690,22 @@ off to declare long-winded definitions as \textit{nitpick\_simp}. For example:
 \prew
 \textbf{definition}~\textit{optimum} \textbf{where} [\textit{nitpick\_simp}]: \\
 ``$\textit{optimum}~t =
-     (\forall u.\; \textit{consistent~u} \mathrel{\land} \textit{alphabet~t} = \textit{alphabet~u}$ \\
+     (\forall u.\; \textit{consistent}~u \mathrel{\land} \textit{alphabet}~t = \textit{alphabet}~u$ \\
 \phantom{``$\textit{optimum}~t = (\forall u.\;$}${\mathrel{\land}}\; \textit{freq}~t = \textit{freq}~u \longrightarrow
-         \textit{cost~t} \le \textit{cost~u})$''
+         \textit{cost}~t \le \textit{cost}~u)$''
 \postw
+
+In some rare occasions, you might want to provide an inductive or coinductive
+view on top of an existing constant $c$. The easiest way to achieve this is to
+define a new constant $c'$ (co)inductively. Then prove that $c$ equals $c'$
+and let Nitpick know about it:
+
+\prew
+\textbf{lemma} \textit{c\_alt\_def} [\textit{nitpick\_def}]:\kern.4em ``$c \equiv c'$\kern2pt ''
+\postw
+
+This ensures that Nitpick will substitute $c'$ for $c$ and use the (co)inductive
+definition.
 
 \section{Standard ML Interface}
 \label{standard-ml-interface}
