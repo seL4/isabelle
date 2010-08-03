@@ -282,10 +282,10 @@ val all_combinations_ordered_smartly =
         if k < sync_threshold andalso forall (curry (op =) k) ks then
           k - sync_threshold
         else
-          Integer.product (map (fn k => (k + linearity) * (k + linearity))
-                               (k :: ks))
+          k :: ks |> map (fn k => (k + linearity) * (k + linearity))
+                  |> Integer.sum
   in
-    all_combinations #> map cost #> sort (int_ord o pairself fst) #> map snd
+    all_combinations #> map (`cost) #> sort (int_ord o pairself fst) #> map snd
   end
 
 fun is_self_recursive_constr_type T =
