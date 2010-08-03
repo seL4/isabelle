@@ -247,17 +247,17 @@ substituted for {SOME}.
 
 The free variable $x$ and the bound variable $y$ have type $'a$. For formulas
 containing type variables, Nitpick enumerates the possible domains for each type
-variable, up to a given cardinality (8 by default), looking for a finite
+variable, up to a given cardinality (10 by default), looking for a finite
 countermodel:
 
 \prew
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
 \slshape
-Trying 8 scopes: \nopagebreak \\
+Trying 10 scopes: \nopagebreak \\
 \hbox{}\qquad \textit{card}~$'a$~= 1; \\
 \hbox{}\qquad \textit{card}~$'a$~= 2; \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
-\hbox{}\qquad \textit{card}~$'a$~= 8. \\[2\smallskipamount]
+\hbox{}\qquad \textit{card}~$'a$~= 10. \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card} $'a$~= 3: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
 \hbox{}\qquad\qquad $P = \{a_2,\, a_3\}$ \\
@@ -370,7 +370,7 @@ can be entered as \texttt{-} (hyphen) or
 \slshape Nitpick found no counterexample.
 \postw
 
-Let's see if Sledgehammer \cite{sledgehammer-2009} can find a proof:
+Let's see if Sledgehammer can find a proof:
 
 \prew
 \textbf{sledgehammer} \\[2\smallskipamount]
@@ -552,7 +552,7 @@ there is usually no need to systematically enumerate domain sizes. If Nitpick
 cannot find a genuine counterexample for \textit{card~nat}~= $k$, it is very
 unlikely that one could be found for smaller domains. (The $P~(\textit{op}~{+})$
 example above is an exception to this principle.) Nitpick nonetheless enumerates
-all cardinalities from 1 to 8 for \textit{nat}, mainly because smaller
+all cardinalities from 1 to 10 for \textit{nat}, mainly because smaller
 cardinalities are fast to handle and give rise to simpler counterexamples. This
 is explained in more detail in \S\ref{scope-monotonicity}.
 
@@ -892,7 +892,7 @@ marks~(`\lower.2ex\hbox{$^\Q$}'). These are the elements for which the
 predicate evaluates to $\unk$. Thus, $\textit{even}'$ evaluates to either
 \textit{True} or $\unk$, never \textit{False}.
 
-When unrolling a predicate, Nitpick tries 0, 1, 2, 4, 8, 12, 16, and 24
+When unrolling a predicate, Nitpick tries 0, 1, 2, 4, 8, 12, 16, 20, 24, and 28
 iterations. However, these numbers are bounded by the cardinality of the
 predicate's domain. With \textit{card~nat}~= 10, no more than 9 iterations are
 ever needed to compute the value of a \textit{nat} predicate. You can specify
@@ -1019,12 +1019,12 @@ The next example is more interesting:
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
 \slshape The type ``\kern1pt$'a$'' passed the monotonicity test. Nitpick might be able to skip
 some scopes. \\[2\smallskipamount]
-Trying 8 scopes: \\
+Trying 10 scopes: \\
 \hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 1,
 and \textit{bisim\_depth}~= 0. \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
-\hbox{}\qquad \textit{card} $'a$~= 8, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 8,
-and \textit{bisim\_depth}~= 7. \\[2\smallskipamount]
+\hbox{}\qquad \textit{card} $'a$~= 10, \textit{card} ``\kern1pt$'a~\textit{list\/}$''~= 10,
+and \textit{bisim\_depth}~= 9. \\[2\smallskipamount]
 Nitpick found a counterexample for {\itshape card}~$'a$ = 2,
 \textit{card}~``\kern1pt$'a~\textit{list\/}$''~= 2, and \textit{bisim\_\allowbreak
 depth}~= 1:
@@ -1166,11 +1166,11 @@ terms unchanged. Alas, even this simple property does not hold:
 \textbf{lemma}~``$\lnot\,\textit{loose}~t~0 \,\Longrightarrow\, \textit{subst}~\sigma~t = t$'' \\
 \textbf{nitpick} [\textit{verbose}] \\[2\smallskipamount]
 \slshape
-Trying 8 scopes: \nopagebreak \\
+Trying 10 scopes: \nopagebreak \\
 \hbox{}\qquad \textit{card~nat}~= 1, \textit{card tm}~= 1, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 1; \\
 \hbox{}\qquad \textit{card~nat}~= 2, \textit{card tm}~= 2, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 2; \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
-\hbox{}\qquad \textit{card~nat}~= 8, \textit{card tm}~= 8, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 8. \\[2\smallskipamount]
+\hbox{}\qquad \textit{card~nat}~= 10, \textit{card tm}~= 10, and \textit{card} ``$\textit{nat} \Rightarrow \textit{tm}$'' = 10. \\[2\smallskipamount]
 Nitpick found a counterexample for \textit{card~nat}~= 6, \textit{card~tm}~= 6,
 and \textit{card}~``$\textit{nat} \Rightarrow \textit{tm}$''~= 6: \\[2\smallskipamount]
 \hbox{}\qquad Free variables: \nopagebreak \\
@@ -1193,14 +1193,14 @@ The bug is in \textit{subst\/}: The $\textit{lift}~(\sigma~m)~1$ call should be
 replaced with $\textit{lift}~(\sigma~m)~0$.
 
 An interesting aspect of Nitpick's verbose output is that it assigned inceasing
-cardinalities from 1 to 8 to the type $\textit{nat} \Rightarrow \textit{tm}$.
+cardinalities from 1 to 10 to the type $\textit{nat} \Rightarrow \textit{tm}$.
 For the formula of interest, knowing 6 values of that type was enough to find
 the counterexample. Without boxing, $46\,656$ ($= 6^6$) values must be
 considered, a hopeless undertaking:
 
 \prew
 \textbf{nitpick} [\textit{dont\_box}] \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 4 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 4 of 10 scopes.}
 \postw
 
 {\looseness=-1
@@ -1221,7 +1221,7 @@ and \textit{max}) controls which scopes are actually tested. In general, to
 exhaust all models below a certain cardinality bound, the number of scopes that
 Nitpick must consider increases exponentially with the number of type variables
 (and \textbf{typedecl}'d types) occurring in the formula. Given the default
-cardinality specification of 1--8, no fewer than $8^4 = 4096$ scopes must be
+cardinality specification of 1--10, no fewer than $10^4 = 10\,000$ scopes must be
 considered for a formula involving $'a$, $'b$, $'c$, and $'d$.
 
 Fortunately, many formulas exhibit a property called \textsl{scope
@@ -1235,8 +1235,8 @@ Consider the formula
 \postw
 
 where \textit{xs} is of type $'a~\textit{list}$ and \textit{ys} is of type
-$'b~\textit{list}$. A priori, Nitpick would need to consider 512 scopes to
-exhaust the specification \textit{card}~= 1--8. However, our intuition tells us
+$'b~\textit{list}$. A priori, Nitpick would need to consider $1\,000$ scopes to
+exhaust the specification \textit{card}~= 1--10. However, our intuition tells us
 that any counterexample found with a small scope would still be a counterexample
 in a larger scope---by simply ignoring the fresh $'a$ and $'b$ values provided
 by the larger scope. Nitpick comes to the same conclusion after a careful
@@ -1248,7 +1248,7 @@ inspection of the formula and the relevant definitions:
 The types ``\kern1pt$'a$'' and ``\kern1pt$'b$'' passed the monotonicity test.
 Nitpick might be able to skip some scopes.
  \\[2\smallskipamount]
-Trying 8 scopes: \\
+Trying 10 scopes: \\
 \hbox{}\qquad \textit{card} $'a$~= 1, \textit{card} $'b$~= 1,
 \textit{card} \textit{nat}~= 1, \textit{card} ``$('a \times {'}b)$
 \textit{list\/}''~= 1, \\
@@ -1260,11 +1260,11 @@ Trying 8 scopes: \\
 \hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 2, and
 \textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 2. \\
 \hbox{}\qquad $\qquad\vdots$ \\[.5\smallskipamount]
-\hbox{}\qquad \textit{card} $'a$~= 8, \textit{card} $'b$~= 8,
-\textit{card} \textit{nat}~= 8, \textit{card} ``$('a \times {'}b)$
-\textit{list\/}''~= 8, \\
-\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 8, and
-\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 8.
+\hbox{}\qquad \textit{card} $'a$~= 10, \textit{card} $'b$~= 10,
+\textit{card} \textit{nat}~= 10, \textit{card} ``$('a \times {'}b)$
+\textit{list\/}''~= 10, \\
+\hbox{}\qquad\quad \textit{card} ``\kern1pt$'a$ \textit{list\/}''~= 10, and
+\textit{card} ``\kern1pt$'b$ \textit{list\/}''~= 10.
 \\[2\smallskipamount]
 Nitpick found a counterexample for
 \textit{card} $'a$~= 5, \textit{card} $'b$~= 5,
@@ -1281,7 +1281,7 @@ Total time: 1636 ms.
 In theory, it should be sufficient to test a single scope:
 
 \prew
-\textbf{nitpick}~[\textit{card}~= 8]
+\textbf{nitpick}~[\textit{card}~= 10]
 \postw
 
 However, this is often less efficient in practice and may lead to overly complex
@@ -1312,9 +1312,9 @@ As insinuated in \S\ref{natural-numbers-and-integers} and
 \S\ref{inductive-datatypes}, \textit{nat}, \textit{int}, and inductive datatypes
 are normally monotonic and treated as such. The same is true for record types,
 \textit{rat}, \textit{real}, and some \textbf{typedef}'d types. Thus, given the
-cardinality specification 1--8, a formula involving \textit{nat}, \textit{int},
+cardinality specification 1--10, a formula involving \textit{nat}, \textit{int},
 \textit{int~list}, \textit{rat}, and \textit{rat~list} will lead Nitpick to
-consider only 8~scopes instead of $32\,768$.
+consider only 10~scopes instead of $10\,000$.
 
 \subsection{Inductive Properties}
 \label{inductive-properties}
@@ -1658,7 +1658,7 @@ $B$ as well:
 ``$w \in A \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] + 1$'' \\
 ``$w \in B \longleftrightarrow \textit{length}~[x \mathbin{\leftarrow} w.\; x = b] = \textit{length}~[x \mathbin{\leftarrow} w.\; x = a] + 1$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-\slshape Nitpick ran out of time after checking 7 of 8 scopes.
+\slshape Nitpick ran out of time after checking 7 of 10 scopes.
 \postw
 
 \subsection{AA Trees}
@@ -1767,7 +1767,7 @@ of elements stored in the tree:
 ``$\textit{dataset}~(\textit{skew}~t) = \textit{dataset}~t$'' \\
 ``$\textit{dataset}~(\textit{split}~t) = \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 7 of 10 scopes.}
 \postw
 
 Furthermore, applying \textit{skew} or \textit{split} to a well-formed tree
@@ -1829,7 +1829,7 @@ Reintroducing the code seems to solve the problem:
 \prew
 \textbf{theorem}~\textit{wf\_insort\/}:\kern.4em ``$\textit{wf}~t\,\Longrightarrow\, \textit{wf}~(\textit{insort}~t~x)$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 7 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 7 of 10 scopes.}
 \postw
 
 Insertion should transform the set of elements represented by the tree in the
@@ -1839,7 +1839,7 @@ obvious way:
 \textbf{theorem} \textit{dataset\_insort\/}:\kern.4em
 ``$\textit{dataset}~(\textit{insort}~t~x) = \{x\} \cup \textit{dataset}~t$'' \\
 \textbf{nitpick} \\[2\smallskipamount]
-{\slshape Nitpick ran out of time after checking 6 of 8 scopes.}
+{\slshape Nitpick ran out of time after checking 6 of 10 scopes.}
 \postw
 
 We could continue like this and sketch a complete theory of AA trees. Once the
@@ -1984,7 +1984,7 @@ sense to specify cardinalities as a range of the form \textit{$1$--$n$}.
 {\small See also \textit{box} (\S\ref{scope-of-search}) and \textit{mono}
 (\S\ref{scope-of-search}).}
 
-\opdefault{card}{int\_seq}{$\mathbf{1}$--$\mathbf{8}$}
+\opdefault{card}{int\_seq}{$\mathbf{1}$--$\mathbf{10}$}
 Specifies the default sequence of cardinalities to use. This can be overridden
 on a per-type basis using the \textit{card}~\qty{type} option described above.
 
@@ -2032,7 +2032,7 @@ problems that refer to the types \textit{rat} or \textit{real} or the constants
 {\small See also \textit{bits} (\S\ref{scope-of-search}) and
 \textit{show\_datatypes} (\S\ref{output-format}).}
 
-\opdefault{bits}{int\_seq}{$\mathbf{1},\mathbf{2},\mathbf{3},\mathbf{4},\mathbf{6},\mathbf{8},\mathbf{10},\mathbf{12}$}
+\opdefault{bits}{int\_seq}{$\mathbf{1},\mathbf{2},\mathbf{3},\mathbf{4},\mathbf{6},\mathbf{8},\mathbf{10},\mathbf{12},\mathbf{14},\mathbf{16}$}
 Specifies the number of bits to use to represent natural numbers and integers in
 binary, excluding the sign bit. The minimum is 1 and the maximum is 31.
 
@@ -2082,12 +2082,12 @@ domain.
 {\small See also \textit{wf} (\S\ref{scope-of-search}) and
 \textit{star\_linear\_preds} (\S\ref{optimizations}).}
 
-\opdefault{iter}{int\_seq}{$\mathbf{1{,}2{,}4{,}8{,}12{,}16{,}24{,}32}$}
+\opdefault{iter}{int\_seq}{$\mathbf{0{,}1{,}2{,}4{,}8{,}12{,}16{,}20{,}24{,}28}$}
 Specifies the sequence of iteration counts to use when unrolling (co)in\-duc\-tive
 predicates. This can be overridden on a per-predicate basis using the
 \textit{iter} \qty{const} option above.
 
-\opdefault{bisim\_depth}{int\_seq}{$\mathbf{7}$}
+\opdefault{bisim\_depth}{int\_seq}{$\mathbf{9}$}
 Specifies the sequence of iteration counts to use when unrolling the
 bisimilarity predicate generated by Nitpick for coinductive datatypes. A value
 of $-1$ means that no predicate is generated, in which case Nitpick performs an
@@ -2454,7 +2454,7 @@ when invoking Kodkodi. Each problem corresponds to one scope. Lumping problems
 together ensures that Kodkodi is launched less often, but it makes the verbose
 output less readable and is sometimes detrimental to performance. If
 \textit{batch\_size} is set to \textit{smart}, the actual value used is 1 if
-\textit{debug} (\S\ref{output-format}) is set and 64 otherwise.
+\textit{debug} (\S\ref{output-format}) is set and 50 otherwise.
 
 \optrue{destroy\_constrs}{dont\_destroy\_constrs}
 Specifies whether formulas involving (co)in\-duc\-tive datatype constructors should
@@ -2629,13 +2629,17 @@ constant is \textsl{unfolded} wherever it appears (as opposed to defined
 equationally).
 \item[2.] If the definition is of the form
 
-\qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{lfp}~(\lambda f.\; t)$,
+\qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{lfp}~(\lambda f.\; t)$
 
-then Nitpick assumes that the definition was made using an inductive package
-based on the introduction rules registered in Isabelle's internal
-\textit{Spec\_Rules} table. It uses the introduction rules to ascertain whether
-the definition is well-founded and the definition to generate a fixed-point
-equation or an unrolled equation.
+or
+
+\qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{gfp}~(\lambda f.\; t)$
+
+Nitpick assumes that the definition was made using a (co)inductive package
+based on the user-specified introduction rules registered in Isabelle's internal
+\textit{Spec\_Rules} table. The tool uses the introduction rules to ascertain
+whether the definition is well-founded and the definition to generate a
+fixed-point equation or an unrolled equation.
 \end{enum}
 \end{enum}
 
