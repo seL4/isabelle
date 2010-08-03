@@ -9,6 +9,7 @@ signature NITPICK_MONO =
 sig
   type hol_context = Nitpick_HOL.hol_context
 
+  val trace : bool Unsynchronized.ref
   val formulas_monotonic :
     hol_context -> bool -> typ -> term list * term list -> bool
   val finitize_funs :
@@ -54,9 +55,8 @@ exception UNSOLVABLE of unit
 exception MTYPE of string * mtyp list * typ list
 exception MTERM of string * mterm list
 
-val debug_mono = false
-
-fun print_g f = () |> debug_mono ? tracing o f
+val trace = Unsynchronized.ref false
+fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 val string_for_var = signed_string_of_int
 fun string_for_vars sep [] = "0\<^bsub>" ^ sep ^ "\<^esub>"
@@ -402,10 +402,10 @@ fun do_mtype_comp _ _ _ _ NONE = NONE
                  [M1, M2], [])
 
 fun add_mtype_comp cmp M1 M2 ((lits, comps, sexps) : constraint_set) =
-    (print_g (fn () => "*** Add " ^ string_for_mtype M1 ^ " " ^
-                       string_for_comp_op cmp ^ " " ^ string_for_mtype M2);
+    (trace_msg (fn () => "*** Add " ^ string_for_mtype M1 ^ " " ^
+                         string_for_comp_op cmp ^ " " ^ string_for_mtype M2);
      case do_mtype_comp cmp [] M1 M2 (SOME (lits, comps)) of
-       NONE => (print_g (K "**** Unsolvable"); raise UNSOLVABLE ())
+       NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
      | SOME (lits, comps) => (lits, comps, sexps))
 
 val add_mtypes_equal = add_mtype_comp Eq
@@ -447,11 +447,11 @@ fun do_notin_mtype_fv _ _ _ NONE = NONE
     raise MTYPE ("Nitpick_Mono.do_notin_mtype_fv", [M], [])
 
 fun add_notin_mtype_fv sn M ((lits, comps, sexps) : constraint_set) =
-    (print_g (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
-                       (case sn of Minus => "concrete" | Plus => "complete") ^
-                       ".");
+    (trace_msg (fn () => "*** Add " ^ string_for_mtype M ^ " is " ^
+                         (case sn of Minus => "concrete" | Plus => "complete") ^
+                         ".");
      case do_notin_mtype_fv sn [] M (SOME (lits, sexps)) of
-       NONE => (print_g (K "**** Unsolvable"); raise UNSOLVABLE ())
+       NONE => (trace_msg (K "**** Unsolvable"); raise UNSOLVABLE ())
      | SOME (lits, sexps) => (lits, comps, sexps))
 
 val add_mtype_is_concrete = add_notin_mtype_fv Minus
@@ -493,16 +493,16 @@ fun string_for_comp (a1, a2, cmp, xs) =
   subscript_string_for_vars " \<and> " xs ^ " " ^ string_for_sign_atom a2
 
 fun print_problem lits comps sexps =
-  print_g (fn () => "*** Problem:\n" ^
-                    cat_lines (map string_for_literal lits @
-                               map string_for_comp comps @
-                               map string_for_sign_expr sexps))
+  trace_msg (fn () => "*** Problem:\n" ^
+                      cat_lines (map string_for_literal lits @
+                                 map string_for_comp comps @
+                                 map string_for_sign_expr sexps))
 
 fun print_solution lits =
   let val (pos, neg) = List.partition (curry (op =) Plus o snd) lits in
-    print_g (fn () => "*** Solution:\n" ^
-                      "+: " ^ commas (map (string_for_var o fst) pos) ^ "\n" ^
-                      "-: " ^ commas (map (string_for_var o fst) neg))
+    trace_msg (fn () => "*** Solution:\n" ^
+                        "+: " ^ commas (map (string_for_var o fst) pos) ^ "\n" ^
+                        "-: " ^ commas (map (string_for_var o fst) neg))
   end
 
 fun solve max_var (lits, comps, sexps) =
@@ -628,8 +628,8 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
       end
     and do_term t (accum as (gamma as {bound_Ts, bound_Ms, frees, consts},
                              cset)) =
-        (print_g (fn () => "  \<Gamma> \<turnstile> " ^
-                           Syntax.string_of_term ctxt t ^ " : _?");
+        (trace_msg (fn () => "  \<Gamma> \<turnstile> " ^
+                             Syntax.string_of_term ctxt t ^ " : _?");
          case t of
            Const (x as (s, T)) =>
            (case AList.lookup (op =) consts x of
@@ -652,9 +652,9 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                 end
               | @{const_name "op ="} => do_equals T accum
               | @{const_name The} =>
-                (print_g (K "*** The"); raise UNSOLVABLE ())
+                (trace_msg (K "*** The"); raise UNSOLVABLE ())
               | @{const_name Eps} =>
-                (print_g (K "*** Eps"); raise UNSOLVABLE ())
+                (trace_msg (K "*** Eps"); raise UNSOLVABLE ())
               | @{const_name If} =>
                 do_robust_set_operation (range_type T) accum
                 |>> curry3 MFun bool_M (S Minus)
@@ -742,7 +742,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                 (M, ({bound_Ts = bound_Ts, bound_Ms = bound_Ms,
                       frees = (x, M) :: frees, consts = consts}, cset))
               end) |>> curry MRaw t
-         | Var _ => (print_g (K "*** Var"); raise UNSOLVABLE ())
+         | Var _ => (trace_msg (K "*** Var"); raise UNSOLVABLE ())
          | Bound j => (MRaw (t, nth bound_Ms j), accum)
          | Abs (s, T, t') =>
            (case fin_fun_body T (fastype_of1 (T :: bound_Ts, t')) t' of
@@ -793,8 +793,8 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                val M2 = mtype_of_mterm m2
              in (MApp (m1, m2), accum ||> add_is_sub_mtype M2 M11) end
            end)
-        |> tap (fn (m, _) => print_g (fn () => "  \<Gamma> \<turnstile> " ^
-                                               string_for_mterm ctxt m))
+        |> tap (fn (m, _) => trace_msg (fn () => "  \<Gamma> \<turnstile> " ^
+                                                 string_for_mterm ctxt m))
   in do_term end
 
 fun force_minus_funs 0 _ = I
@@ -848,9 +848,9 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
               Plus => do_term t accum
             | Minus => consider_general_equals mdata false x t1 t2 accum
         in
-          (print_g (fn () => "  \<Gamma> \<turnstile> " ^
-                           Syntax.string_of_term ctxt t ^ " : o\<^sup>" ^
-                           string_for_sign sn ^ "?");
+          (trace_msg (fn () => "  \<Gamma> \<turnstile> " ^
+                               Syntax.string_of_term ctxt t ^ " : o\<^sup>" ^
+                               string_for_sign sn ^ "?");
            case t of
              Const (x as (@{const_name all}, _)) $ Abs (s1, T1, t1) =>
              do_quantifier x s1 T1 t1
@@ -898,9 +898,9 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
            | _ => do_term t accum)
         end
         |> tap (fn (m, _) =>
-                   print_g (fn () => "\<Gamma> \<turnstile> " ^
-                                     string_for_mterm ctxt m ^ " : o\<^sup>" ^
-                                     string_for_sign sn))
+                   trace_msg (fn () => "\<Gamma> \<turnstile> " ^
+                                       string_for_mterm ctxt m ^ " : o\<^sup>" ^
+                                       string_for_sign sn))
   in do_formula end
 
 (* The harmless axiom optimization below is somewhat too aggressive in the face
@@ -983,7 +983,7 @@ fun string_for_mtype_of_term ctxt lits t M =
   Syntax.string_of_term ctxt t ^ " : " ^ string_for_mtype (resolve_mtype lits M)
 
 fun print_mtype_context ctxt lits ({frees, consts, ...} : mtype_context) =
-  print_g (fn () =>
+  trace_msg (fn () =>
       map (fn (x, M) => string_for_mtype_of_term ctxt lits (Free x) M) frees @
       map (fn (x, M) => string_for_mtype_of_term ctxt lits (Const x) M) consts
       |> cat_lines)
@@ -994,9 +994,9 @@ fun amass f t (ms, accum) =
 fun infer which no_harmless (hol_ctxt as {ctxt, ...}) binarize alpha_T
           (nondef_ts, def_ts) =
   let
-    val _ = print_g (fn () => "****** " ^ which ^ " analysis: " ^
-                              string_for_mtype MAlpha ^ " is " ^
-                              Syntax.string_of_typ ctxt alpha_T)
+    val _ = trace_msg (fn () => "****** " ^ which ^ " analysis: " ^
+                                string_for_mtype MAlpha ^ " is " ^
+                                Syntax.string_of_typ ctxt alpha_T)
     val mdata as {max_fresh, constr_mcache, ...} =
       initial_mdata hol_ctxt binarize no_harmless alpha_T
     val accum = (initial_gamma, ([], [], []))
