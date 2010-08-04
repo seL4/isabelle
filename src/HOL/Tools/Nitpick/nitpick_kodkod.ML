@@ -797,10 +797,9 @@ fun has_nil_like_constr dtypes T =
 fun sym_break_axioms_for_constr_pair hol_ctxt binarize
        (kk as {kk_all, kk_or, kk_iff, kk_implies, kk_and, kk_some, kk_subset,
                kk_intersect, kk_join, kk_project, ...}) rel_table nfas dtypes
-       (constr1 as {const = const1 as (_, T1), delta = delta1,
-                    epsilon = epsilon1, ...},
-        constr2 as {const = const2 as (_, T2), delta = delta2,
-                    epsilon = epsilon2, ...}) =
+       (({const = const1 as (_, T1), delta = delta1, epsilon = epsilon1, ...},
+         {const = const2 as (_, T2), delta = delta2, epsilon = epsilon2, ...})
+        : constr_spec * constr_spec) =
   let
     val dataT = body_type T1
     val nfa = nfas |> find_first (exists (curry (op =) dataT o fst)) |> these
