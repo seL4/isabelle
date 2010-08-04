@@ -238,8 +238,9 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
     fun after_load' () =
      (after_load ();
       NAMED_CRITICAL "Thy_Info" (fn () =>
-        (change_thys (new_entry name parent_names (SOME deps, SOME theory));
-          perform Update name)));
+       (map get_theory parent_names;
+        change_thys (new_entry name parent_names (SOME deps, SOME theory));
+        perform Update name)));
 
   in (theory, after_load') end;
 
