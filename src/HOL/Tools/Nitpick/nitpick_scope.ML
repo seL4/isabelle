@@ -394,11 +394,12 @@ fun add_constr_spec (card_assigns, max_assigns) acyclic card sum_dom_cards
           {delta = delta, epsilon = delta, exclusive = true, total = false}
         end
       else if num_self_recs > 0 then
-        (if num_self_recs = 1 andalso num_non_self_recs = 1 then
+        (if num_non_self_recs = 1 then
            if self_rec then
-             case constrs of
-               [{delta = 0, epsilon = 1, exclusive = true, ...}] =>
-               {delta = 1, epsilon = card, exclusive = true, total = false}
+             case List.last constrs of
+               {delta = 0, epsilon = 1, exclusive = true, ...} =>
+               {delta = 1, epsilon = card, exclusive = (num_self_recs = 1),
+                total = false}
              | _ => raise SAME ()
            else
              if domain_card 2 card_assigns T = 1 then

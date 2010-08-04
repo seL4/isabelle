@@ -788,11 +788,13 @@ fun lex_order_rel_expr (kk as {kk_implies, kk_and, kk_subset, kk_join, ...})
        these easily. *)
   | _ :: sel_quadruples' => lex_order_rel_expr kk dtypes sel_quadruples'
 
-fun has_nil_like_constr dtypes T =
-  case #constrs (the (datatype_spec dtypes T))
-       |> filter_out (is_self_recursive_constr_type o snd o #const) of
-    [{const = (_, T'), ...}] => T = T'
-  | _ => false
+fun is_nil_like_constr_type dtypes T =
+  case datatype_spec dtypes T of
+    SOME {constrs, ...} =>
+    (case filter_out (is_self_recursive_constr_type o snd o #const) constrs of
+       [{const = (_, T'), ...}] => T = T'
+     | _ => false)
+  | NONE => false
 
 fun sym_break_axioms_for_constr_pair hol_ctxt binarize
        (kk as {kk_all, kk_or, kk_iff, kk_implies, kk_and, kk_some, kk_subset,
@@ -834,6 +836,7 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
                          (same_constr andalso x = hd sel_xs) orelse
                          (T = dataT andalso
                           (no_direct orelse not (member (op =) sel_xs x)))))
+                                       (* FIXME: why the last disjunct above? *)
         fun subterms_r no_direct sel_xs j =
           loop_path_rel_expr kk (map (filter_out_sels no_direct sel_xs) nfa)
                            (filter_out (curry (op =) dataT) (map fst nfa)) dataT
@@ -845,8 +848,7 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
                  (if delta2 >= epsilon1 then KK.True
                   else gt kk z (KK.Var (1, 1)) (KK.Var (1, 0)))
                  (kk_or
-                      (if has_nil_like_constr dtypes dataT andalso
-                          T1 = dataT then
+                      (if is_nil_like_constr_type dtypes T1 then
                          KK.True
                        else
                          kk_some (kk_intersect (subterms_r false sel_xs2 1)
