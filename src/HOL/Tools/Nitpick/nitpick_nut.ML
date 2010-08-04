@@ -14,7 +14,6 @@ sig
   type rep = Nitpick_Rep.rep
 
   datatype cst =
-    Unity |
     False |
     True |
     Iden |
@@ -132,7 +131,6 @@ open Nitpick_Rep
 structure KK = Kodkod
 
 datatype cst =
-  Unity |
   False |
   True |
   Iden |
@@ -202,8 +200,7 @@ datatype nut =
 
 exception NUT of string * nut list
 
-fun string_for_cst Unity = "Unity"
-  | string_for_cst False = "False"
+fun string_for_cst False = "False"
   | string_for_cst True = "True"
   | string_for_cst Iden = "Iden"
   | string_for_cst (Num j) = "Num " ^ signed_string_of_int j
@@ -429,7 +426,7 @@ fun mk_snd (_, Const (@{const_name Pair}, T) $ _ $ t2) =
     let val res_T = snd (HOLogic.dest_prodT T) in
       (res_T, Const (@{const_name snd}, T --> res_T) $ t)
     end
-fun factorize (z as (Type (@{type_name Product_Type.prod}, _), _)) =
+fun factorize (z as (Type (@{type_name prod}, _), _)) =
     maps factorize [mk_fst z, mk_snd z]
   | factorize z = [z]
 
@@ -534,7 +531,6 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
                sub t1, sub_abs s T' t2)
         | (t0 as Const (@{const_name Let}, _), [t1, t2]) =>
           sub (t0 $ t1 $ eta_expand Ts t2 1)
-        | (@{const Unity}, []) => Cst (Unity, @{typ unit}, Any)
         | (Const (@{const_name Pair}, T), [t1, t2]) =>
           Tuple (nth_range_type 2 T, Any, map sub [t1, t2])
         | (Const (@{const_name fst}, T), [t1]) =>
@@ -754,8 +750,6 @@ fun is_constructive u =
   | Construct (_, _, _, us) => forall is_constructive us
   | _ => false
 
-fun optimize_unit u =
-  if rep_of u = Unit then Cst (Unity, type_of u, Unit) else u
 fun unknown_boolean T R =
   Cst (case R of Formula Pos => False | Formula Neg => True | _ => Unknown,
        T, R)
@@ -768,7 +762,6 @@ fun s_op1 oper T R u1 =
     else
       raise SAME ())
    handle SAME () => Op1 (oper, T, R, u1))
-  |> optimize_unit
 fun s_op2 oper T R u1 u2 =
   ((case oper of
       All => if is_subnut_of u1 u2 then Op2 (All, T, R, u1, u2) else u2
@@ -810,7 +803,6 @@ fun s_op2 oper T R u1 u2 =
         raise SAME ()
     | _ => raise SAME ())
    handle SAME () => Op2 (oper, T, R, u1, u2))
-  |> optimize_unit
 fun s_op3 oper T R u1 u2 u3 =
   ((case oper of
       Let =>
@@ -820,13 +812,11 @@ fun s_op3 oper T R u1 u2 u3 =
         raise SAME ()
     | _ => raise SAME ())
    handle SAME () => Op3 (oper, T, R, u1, u2, u3))
-  |> optimize_unit
 fun s_tuple T R us =
-  (if exists (is_Cst Unrep) us then Cst (Unrep, T, R) else Tuple (T, R, us))
-  |> optimize_unit
+  if exists (is_Cst Unrep) us then Cst (Unrep, T, R) else Tuple (T, R, us)
 
 fun untuple f (Tuple (_, _, us)) = maps (untuple f) us
-  | untuple f u = if rep_of u = Unit then [] else [f u]
+  | untuple f u = [f u]
 
 fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
                        unsound table def =
@@ -855,17 +845,14 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
             Cst (if is_twos_complement_representable bits j then Num j
                  else Unrep, T, best_opt_set_rep_for_type scope T)
           else
-            (case spec_of_type scope T of
-               (1, j0) => if j = 0 then Cst (Unity, T, Unit)
-                          else Cst (Unrep, T, Opt (Atom (1, j0)))
-             | (k, j0) =>
-               let
-                 val ok = (if T = int_T then atom_for_int (k, j0) j <> ~1
-                           else j < k)
-               in
-                 if ok then Cst (Num j, T, Atom (k, j0))
-                 else Cst (Unrep, T, Opt (Atom (k, j0)))
-               end)
+             let
+               val (k, j0) = spec_of_type scope T
+               val ok = (if T = int_T then atom_for_int (k, j0) j <> ~1
+                         else j < k)
+             in
+               if ok then Cst (Num j, T, Atom (k, j0))
+               else Cst (Unrep, T, Opt (Atom (k, j0)))
+             end
         | Cst (Suc, T as Type (@{type_name fun}, [T1, _]), _) =>
           let val R = Atom (spec_of_type scope T1) in
             Cst (Suc, T, Func (R, Opt R))
@@ -1035,8 +1022,7 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
           in s_op2 Apply T ran_R u1 u2 end
         | Op2 (Lambda, T, _, u1, u2) =>
           (case best_set_rep_for_type scope T of
-             Unit => Cst (Unity, T, Unit)
-           | R as Func (R1, _) =>
+             R as Func (R1, _) =>
              let
                val table' = NameTable.update (u1, R1) table
                val u1' = aux table' false Neut u1
@@ -1149,8 +1135,8 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
           let
             val Rs = map (best_one_rep_for_type scope o type_of) us
             val us = map sub us
-            val R = if forall (curry (op =) Unit) Rs then Unit else Struct Rs
-            val R' = (exists (is_opt_rep o rep_of) us ? opt_rep ofs T) R
+            val R' = Struct Rs
+                     |> exists (is_opt_rep o rep_of) us ? opt_rep ofs T
           in s_tuple T R' us end
         | Construct (us', T, _, us) =>
           let
@@ -1170,7 +1156,6 @@ fun choose_reps_in_nut (scope as {card_assigns, bits, datatypes, ofs, ...})
               s_op1 Cast (type_of u) (Formula polar) u
           end
       end
-      |> optimize_unit
   in aux table def Pos end
 
 fun fresh_n_ary_index n [] ys = (0, (n, 1) :: ys)
@@ -1203,7 +1188,7 @@ fun rename_plain_var v (ws, pool, table) =
     val w = constr (j, type_of v, rep_of v)
   in (w :: ws, pool, NameTable.update (v, w) table) end
 
-fun shape_tuple (T as Type (@{type_name Product_Type.prod}, [T1, T2])) (R as Struct [R1, R2])
+fun shape_tuple (T as Type (@{type_name prod}, [T1, T2])) (R as Struct [R1, R2])
                 us =
     let val arity1 = arity_of_rep R1 in
       Tuple (T, R, [shape_tuple T1 R1 (List.take (us, arity1)),
@@ -1213,7 +1198,6 @@ fun shape_tuple (T as Type (@{type_name Product_Type.prod}, [T1, T2])) (R as Str
     Tuple (T, R, map (shape_tuple T2 R') (batch_list (length us div k) us))
   | shape_tuple T _ [u] =
     if type_of u = T then u else raise NUT ("Nitpick_Nut.shape_tuple", [u])
-  | shape_tuple T Unit [] = Cst (Unity, T, Unit)
   | shape_tuple _ _ us = raise NUT ("Nitpick_Nut.shape_tuple", us)
 
 fun rename_n_ary_var rename_free v (ws, pool, table) =
@@ -1259,7 +1243,6 @@ fun rename_n_ary_var rename_free v (ws, pool, table) =
 
 fun rename_free_vars vs pool table =
   let
-    val vs = filter (not_equal Unit o rep_of) vs
     val (vs, pool, table) = fold (rename_n_ary_var true) vs ([], pool, table)
   in (rev vs, pool, table) end
 
@@ -1280,7 +1263,7 @@ fun rename_vars_in_nut pool table u =
       Op2 (oper, T, R, rename_vars_in_nut pool table u1,
            rename_vars_in_nut pool table u2)
   | Op3 (Let, T, R, u1, u2, u3) =>
-    if rep_of u2 = Unit orelse inline_nut u2 then
+    if inline_nut u2 then
       let
         val u2 = rename_vars_in_nut pool table u2
         val table = NameTable.update (u1, u2) table

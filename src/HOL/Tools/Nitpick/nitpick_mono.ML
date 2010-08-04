@@ -254,7 +254,7 @@ and fresh_mtype_for_type (mdata as {hol_ctxt as {ctxt, ...}, binarize, alpha_T,
       else case T of
         Type (@{type_name fun}, [T1, T2]) =>
         MFun (fresh_mfun_for_fun_type mdata false T1 T2)
-      | Type (@{type_name Product_Type.prod}, [T1, T2]) => MPair (pairself do_type (T1, T2))
+      | Type (@{type_name prod}, [T1, T2]) => MPair (pairself do_type (T1, T2))
       | Type (z as (s, _)) =>
         if could_exist_alpha_sub_mtype ctxt alpha_T T then
           case AList.lookup (op =) (!datatype_mcache) z of
@@ -1043,8 +1043,8 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
           | (MFun (M1, a, M2), Type (@{type_name fun}, Ts)) =>
             Type (if should_finitize T a then @{type_name fin_fun}
                   else @{type_name fun}, map2 type_from_mtype Ts [M1, M2])
-          | (MPair (M1, M2), Type (@{type_name Product_Type.prod}, Ts)) =>
-            Type (@{type_name Product_Type.prod}, map2 type_from_mtype Ts [M1, M2])
+          | (MPair (M1, M2), Type (@{type_name prod}, Ts)) =>
+            Type (@{type_name prod}, map2 type_from_mtype Ts [M1, M2])
           | (MType _, _) => T
           | _ => raise MTYPE ("Nitpick_Mono.finitize_funs.type_from_mtype",
                               [M], [T])

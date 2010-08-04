@@ -132,8 +132,8 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
   let
     fun box_relational_operator_type (Type (@{type_name fun}, Ts)) =
         Type (@{type_name fun}, map box_relational_operator_type Ts)
-      | box_relational_operator_type (Type (@{type_name Product_Type.prod}, Ts)) =
-        Type (@{type_name Product_Type.prod}, map (box_type hol_ctxt InPair) Ts)
+      | box_relational_operator_type (Type (@{type_name prod}, Ts)) =
+        Type (@{type_name prod}, map (box_type hol_ctxt InPair) Ts)
       | box_relational_operator_type T = T
     fun add_boxed_types_for_var (z as (_, T)) (T', t') =
       case t' of
@@ -1000,10 +1000,9 @@ fun axioms_for_term
     and add_axioms_for_type depth T =
       case T of
         Type (@{type_name fun}, Ts) => fold (add_axioms_for_type depth) Ts
-      | Type (@{type_name Product_Type.prod}, Ts) => fold (add_axioms_for_type depth) Ts
+      | Type (@{type_name prod}, Ts) => fold (add_axioms_for_type depth) Ts
       | @{typ prop} => I
       | @{typ bool} => I
-      | @{typ unit} => I
       | TFree (_, S) => add_axioms_for_sort depth T S
       | TVar (_, S) => add_axioms_for_sort depth T S
       | Type (z as (_, Ts)) =>
