@@ -174,8 +174,6 @@ fun schedule_seq task_graph =
 fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
   let
     val tasks = Graph.topological_order task_graph;
-    val par_proofs = ! parallel_proofs >= 1;
-
     val futures = (tasks, Symtab.empty) |-> fold (fn name => fn tab =>
       (case Graph.get_node task_graph name of
         Task (parents, body) =>
@@ -189,12 +187,8 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
                 [] => body (map (#1 o Future.join o get) parents)
               | bad => error (loader_msg
                   ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
-            val future' =
-              if par_proofs then future
-              else Future.map (fn (thy, after_load) => (after_load (); (thy, I))) future;
-          in Symtab.update (name, future') tab end
+          in Symtab.update (name, future) tab end
       | Finished thy => Symtab.update (name, Future.value (thy, I)) tab));
-
     val _ =
       tasks |> maps (fn name =>
         let
