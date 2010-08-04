@@ -53,9 +53,9 @@ structure NfaGraph = Typ_Graph
 
 fun pull x xs = x :: filter_out (curry (op =) x) xs
 
-fun is_datatype_good_and_old ({co = false, standard = true, deep = true, ...}
-                              : datatype_spec) = true
-  | is_datatype_good_and_old _ = false
+fun is_datatype_acyclic ({co = false, standard = true, deep = true, ...}
+                         : datatype_spec) = true
+  | is_datatype_acyclic _ = false
 
 fun flip_nums n = index_seq 1 n @ [0] |> map KK.Num
 
@@ -315,7 +315,7 @@ fun bound_for_sel_rel ctxt debug dtypes
            else
              [KK.TupleSet [],
               if T1 = T2 andalso epsilon > delta andalso
-                 is_datatype_good_and_old (the (datatype_spec dtypes T1)) then
+                 is_datatype_acyclic (the (datatype_spec dtypes T1)) then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [KK.Tuple [j + j0]],
@@ -897,7 +897,7 @@ fun sym_break_axioms_for_datatypes hol_ctxt binarize datatype_sym_break kk
   else
     maps (sym_break_axioms_for_datatype hol_ctxt binarize kk rel_table nfas
                                         dtypes)
-         (dtypes |> filter is_datatype_good_and_old
+         (dtypes |> filter is_datatype_acyclic
                  |> filter (fn {constrs = [_], ...} => false
                              | {card, constrs, ...} =>
                                card >= min_sym_break_card andalso
