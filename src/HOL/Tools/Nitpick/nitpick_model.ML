@@ -32,8 +32,8 @@ sig
   val dest_plain_fun : term -> bool * (term list * term list)
   val reconstruct_hol_model :
     params -> scope -> (term option * int list) list
-    -> (typ option * string list) list -> styp list -> nut list -> nut list
-    -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
+    -> (typ option * string list) list -> styp list -> styp list -> nut list
+    -> nut list -> nut list -> nut NameTable.table -> Kodkod.raw_bound list
     -> Pretty.T * bool
   val prove_hol_model :
     scope -> Time.time option -> nut list -> nut list -> nut NameTable.table
@@ -170,7 +170,7 @@ fun unarize_unbox_etc_term (Const (@{const_name FinFun}, _) $ t1) =
                 Type (@{type_name fun}, [T1, Type (@{type_name fun}, [T2, _])]))
          $ t1 $ t2) =
     let val Ts = map uniterize_unarize_unbox_etc_type [T1, T2] in
-      Const (@{const_name Pair}, Ts ---> Type (@{type_name Product_Type.prod}, Ts))
+      Const (@{const_name Pair}, Ts ---> Type (@{type_name prod}, Ts))
       $ unarize_unbox_etc_term t1 $ unarize_unbox_etc_term t2
     end
   | unarize_unbox_etc_term (Const (s, T)) =
@@ -185,27 +185,27 @@ fun unarize_unbox_etc_term (Const (@{const_name FinFun}, _) $ t1) =
   | unarize_unbox_etc_term (Abs (s, T, t')) =
     Abs (s, uniterize_unarize_unbox_etc_type T, unarize_unbox_etc_term t')
 
-fun factor_out_types (T1 as Type (@{type_name Product_Type.prod}, [T11, T12]))
-                     (T2 as Type (@{type_name Product_Type.prod}, [T21, T22])) =
+fun factor_out_types (T1 as Type (@{type_name prod}, [T11, T12]))
+                     (T2 as Type (@{type_name prod}, [T21, T22])) =
     let val (n1, n2) = pairself num_factors_in_type (T11, T21) in
       if n1 = n2 then
         let
           val ((T11', opt_T12'), (T21', opt_T22')) = factor_out_types T12 T22
         in
-          ((Type (@{type_name Product_Type.prod}, [T11, T11']), opt_T12'),
-           (Type (@{type_name Product_Type.prod}, [T21, T21']), opt_T22'))
+          ((Type (@{type_name prod}, [T11, T11']), opt_T12'),
+           (Type (@{type_name prod}, [T21, T21']), opt_T22'))
         end
       else if n1 < n2 then
         case factor_out_types T1 T21 of
           (p1, (T21', NONE)) => (p1, (T21', SOME T22))
         | (p1, (T21', SOME T22')) =>
-          (p1, (T21', SOME (Type (@{type_name Product_Type.prod}, [T22', T22]))))
+          (p1, (T21', SOME (Type (@{type_name prod}, [T22', T22]))))
       else
         swap (factor_out_types T2 T1)
     end
-  | factor_out_types (Type (@{type_name Product_Type.prod}, [T11, T12])) T2 =
+  | factor_out_types (Type (@{type_name prod}, [T11, T12])) T2 =
     ((T11, SOME T12), (T2, NONE))
-  | factor_out_types T1 (Type (@{type_name Product_Type.prod}, [T21, T22])) =
+  | factor_out_types T1 (Type (@{type_name prod}, [T21, T22])) =
     ((T1, NONE), (T21, SOME T22))
   | factor_out_types T1 T2 = ((T1, NONE), (T2, NONE))
 
@@ -239,7 +239,7 @@ fun break_in_two T T1 T2 t =
     val (ps1, ps2) = pairself HOLogic.flat_tupleT_paths (T1, T2)
     val (ts1, ts2) = t |> HOLogic.strip_ptuple ps |> chop cut
   in (HOLogic.mk_ptuple ps1 T1 ts1, HOLogic.mk_ptuple ps2 T2 ts2) end
-fun pair_up (Type (@{type_name Product_Type.prod}, [T1', T2']))
+fun pair_up (Type (@{type_name prod}, [T1', T2']))
             (t1 as Const (@{const_name Pair},
                           Type (@{type_name fun},
                                 [_, Type (@{type_name fun}, [_, T1])]))
@@ -287,8 +287,8 @@ fun typecast_fun (Type (@{type_name fun}, [T1', T2'])) T1 T2 t =
       and do_term (Type (@{type_name fun}, [T1', T2']))
                   (Type (@{type_name fun}, [T1, T2])) t =
           do_fun T1' T2' T1 T2 t
-        | do_term (T' as Type (@{type_name Product_Type.prod}, Ts' as [T1', T2']))
-                  (Type (@{type_name Product_Type.prod}, [T1, T2]))
+        | do_term (T' as Type (@{type_name prod}, Ts' as [T1', T2']))
+                  (Type (@{type_name prod}, [T1, T2]))
                   (Const (@{const_name Pair}, _) $ t1 $ t2) =
           Const (@{const_name Pair}, Ts' ---> T')
           $ do_term T1' T1 t1 $ do_term T2' T2 t2
@@ -303,7 +303,7 @@ fun truth_const_sort_key @{const True} = "0"
   | truth_const_sort_key @{const False} = "2"
   | truth_const_sort_key _ = "1"
 
-fun mk_tuple (Type (@{type_name Product_Type.prod}, [T1, T2])) ts =
+fun mk_tuple (Type (@{type_name prod}, [T1, T2])) ts =
     HOLogic.mk_prod (mk_tuple T1 ts,
         mk_tuple T2 (List.drop (ts, length (HOLogic.flatten_tupleT T1))))
   | mk_tuple _ (t :: _) = t
@@ -463,7 +463,7 @@ and reconstruct_term maybe_opt unfold pool
                             signed_string_of_int j ^ " for " ^
                             string_for_rep (Vect (k1, Atom (k2, 0))))
         end
-      | term_for_atom seen (Type (@{type_name Product_Type.prod}, [T1, T2])) _ j k =
+      | term_for_atom seen (Type (@{type_name prod}, [T1, T2])) _ j k =
         let
           val k1 = card_of_type card_assigns T1
           val k2 = k div k1
@@ -476,7 +476,6 @@ and reconstruct_term maybe_opt unfold pool
         HOLogic.mk_Trueprop (term_for_atom seen bool_T bool_T j k)
       | term_for_atom _ @{typ bool} _ j _ =
         if j = 0 then @{const False} else @{const True}
-      | term_for_atom _ @{typ unit} _ _ _ = @{const Unity}
       | term_for_atom seen T _ j k =
         if T = nat_T andalso is_standard_datatype thy stds nat_T then
           HOLogic.mk_number nat_T j
@@ -588,11 +587,10 @@ and reconstruct_term maybe_opt unfold pool
                (map (fn j => term_for_atom seen T1 T1 j k) (index_seq 0 k))
                (map (term_for_rep true seen T2 T2 R o single)
                     (batch_list (arity_of_rep R) js))
-    and term_for_rep _ seen T T' Unit [[]] = term_for_atom seen T T' 0 1
-      | term_for_rep _ seen T T' (R as Atom (k, j0)) [[j]] =
+    and term_for_rep _ seen T T' (R as Atom (k, j0)) [[j]] =
         if j >= j0 andalso j < j0 + k then term_for_atom seen T T' (j - j0) k
         else raise REP ("Nitpick_Model.reconstruct_term.term_for_rep", [R])
-      | term_for_rep _ seen (Type (@{type_name Product_Type.prod}, [T1, T2])) _
+      | term_for_rep _ seen (Type (@{type_name prod}, [T1, T2])) _
                      (Struct [R1, R2]) [js] =
         let
           val arity1 = arity_of_rep R1
@@ -861,8 +859,8 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache},
          binarize, card_assigns, bits, bisim_depth, datatypes, ofs} : scope)
-        formats atomss all_frees free_names sel_names nonsel_names rel_table
-        bounds =
+        formats atomss real_frees pseudo_frees free_names sel_names nonsel_names
+        rel_table bounds =
   let
     val pool = Unsynchronized.ref []
     val (wacky_names as (_, base_step_names), ctxt) =
@@ -937,7 +935,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       end
     fun pretty_for_datatype ({typ, card, complete, ...} : datatype_spec) =
       Pretty.block (Pretty.breaks
-          (Syntax.pretty_typ ctxt (uniterize_unarize_unbox_etc_type typ) ::
+          (pretty_for_type ctxt typ ::
            (case typ of
               Type (@{type_name fin_fun}, _) => [Pretty.str "[finite]"]
             | Type (@{type_name fun_box}, _) => [Pretty.str "[boxed]"]
@@ -977,6 +975,14 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
                (sort_wrt (original_name o nickname_of) names)
       else
         []
+    fun free_name_for_term keep_all (x as (s, T)) =
+      case filter (curry (op =) x
+                   o pairf nickname_of (uniterize_unarize_unbox_etc_type
+                                        o type_of)) free_names of
+        [name] => SOME name
+      | [] => if keep_all then SOME (FreeName (s, T, Any)) else NONE
+      | _ => raise TERM ("Nitpick_Model.reconstruct_hol_model.\
+                         \free_name_for_term", [Const x])
     val (skolem_names, nonskolem_nonsel_names) =
       List.partition is_skolem_name nonsel_names
     val (eval_names, noneval_nonskolem_nonsel_names) =
@@ -985,17 +991,9 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       ||> filter_out (member (op =) [@{const_name bisim},
                                      @{const_name bisim_iterator_max}]
                       o nickname_of)
-    val free_names =
-      map (fn x as (s, T) =>
-              case filter (curry (op =) x
-                       o pairf nickname_of
-                               (uniterize_unarize_unbox_etc_type o type_of))
-                       free_names of
-                [name] => name
-              | [] => FreeName (s, T, Any)
-              | _ => raise TERM ("Nitpick_Model.reconstruct_hol_model",
-                                 [Const x])) all_frees
-    val chunks = block_of_names true "Free variable" free_names @
+      ||> append (map_filter (free_name_for_term false) pseudo_frees)
+    val real_free_names = map_filter (free_name_for_term true) real_frees
+    val chunks = block_of_names true "Free variable" real_free_names @
                  block_of_names true "Skolem constant" skolem_names @
                  block_of_names true "Evaluated term" eval_names @
                  block_of_datatypes @ block_of_codatatypes @

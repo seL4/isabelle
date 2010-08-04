@@ -34,10 +34,10 @@ val _ =
 type raw_param = string * string list
 
 val default_default_params =
-  [("card", "1\<midarrow>8"),
-   ("iter", "0,1,2,4,8,12,16,24"),
-   ("bits", "1,2,3,4,6,8,10,12"),
-   ("bisim_depth", "7"),
+  [("card", "1\<midarrow>10"),
+   ("iter", "0,1,2,4,8,12,16,20,24,28"),
+   ("bits", "1,2,3,4,6,8,10,12,14,16"),
+   ("bisim_depth", "9"),
    ("box", "smart"),
    ("finitize", "smart"),
    ("mono", "smart"),
@@ -265,7 +265,7 @@ fun extract_params ctxt auto default_params override_params =
     val batch_size =
       case lookup_int_option "batch_size" of
         SOME n => Int.max (1, n)
-      | NONE => if debug then 1 else 64
+      | NONE => if debug then 1 else 50
     val expect = lookup_string "expect"
   in
     {cards_assigns = cards_assigns, maxes_assigns = maxes_assigns,

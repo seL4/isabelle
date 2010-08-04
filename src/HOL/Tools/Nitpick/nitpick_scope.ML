@@ -114,7 +114,7 @@ fun is_complete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_concrete_type dtypes facto T1 andalso is_complete_type dtypes facto T2
   | is_complete_type dtypes facto (Type (@{type_name fin_fun}, [T1, T2])) =
     is_exact_type dtypes facto T1 andalso is_complete_type dtypes facto T2
-  | is_complete_type dtypes facto (Type (@{type_name Product_Type.prod}, Ts)) =
+  | is_complete_type dtypes facto (Type (@{type_name prod}, Ts)) =
     forall (is_complete_type dtypes facto) Ts
   | is_complete_type dtypes facto T =
     not (is_integer_like_type T) andalso not (is_bit_type T) andalso
@@ -124,7 +124,7 @@ and is_concrete_type dtypes facto (Type (@{type_name fun}, [T1, T2])) =
     is_complete_type dtypes facto T1 andalso is_concrete_type dtypes facto T2
   | is_concrete_type dtypes facto (Type (@{type_name fin_fun}, [_, T2])) =
     is_concrete_type dtypes facto T2
-  | is_concrete_type dtypes facto (Type (@{type_name Product_Type.prod}, Ts)) =
+  | is_concrete_type dtypes facto (Type (@{type_name prod}, Ts)) =
     forall (is_concrete_type dtypes facto) Ts
   | is_concrete_type dtypes facto T =
     fun_from_pair (#concrete (the (datatype_spec dtypes T))) facto
@@ -141,7 +141,7 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
   (card_of_type card_assigns T
    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
-fun quintuple_for_scope quote
+fun quintuple_for_scope code_type code_term code_string
         ({hol_ctxt = {ctxt, stds, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
   let
@@ -154,26 +154,26 @@ fun quintuple_for_scope quote
       card_assigns
       |> List.partition ((is_integer_type orf is_datatype ctxt stds) o fst)
     val cards =
-      map (fn (T, k) => quote (string_for_type ctxt T) ^ " = " ^
-                        string_of_int k)
+      map (fn (T, k) =>
+              [code_type ctxt T, code_string (" = " ^ string_of_int k)])
     fun maxes () =
       maps (map_filter
                 (fn {const, explicit_max, ...} =>
                     if explicit_max < 0 then
                       NONE
                     else
-                      SOME (Syntax.string_of_term ctxt (Const const) ^ " = " ^
-                            string_of_int explicit_max))
+                      SOME [code_term ctxt (Const const),
+                            code_string (" = " ^ string_of_int explicit_max)])
                  o #constrs) datatypes
     fun iters () =
       map (fn (T, k) =>
-              quote (Syntax.string_of_term ctxt
-                         (Const (const_for_iterator_type T))) ^ " = " ^
-              string_of_int (k - 1)) iter_assigns
+              [code_term ctxt (Const (const_for_iterator_type T)),
+               code_string (" = " ^ string_of_int (k - 1))]) iter_assigns
     fun miscs () =
-      (if bits = 0 then [] else ["bits = " ^ string_of_int bits]) @
+      (if bits = 0 then []
+       else [code_string ("bits = " ^ string_of_int bits)]) @
       (if bisim_depth < 0 andalso forall (not o #co) datatypes then []
-       else ["bisim_depth = " ^ signed_string_of_int bisim_depth])
+       else [code_string ("bisim_depth = " ^ signed_string_of_int bisim_depth)])
   in
     setmp_show_all_types
         (fn () => (cards primary_card_assigns, cards secondary_card_assigns,
@@ -182,31 +182,33 @@ fun quintuple_for_scope quote
 
 fun pretties_for_scope scope verbose =
   let
-    val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
-      quintuple_for_scope maybe_quote scope
-    val ss = map (prefix "card ") primary_cards @
-             (if verbose then
-                map (prefix "card ") secondary_cards @
-                map (prefix "max ") maxes @
-                map (prefix "iter ") iters @
-                bisim_depths
-              else
-                [])
+    fun standard_blocks s = map (Pretty.block o cons (Pretty.str (s ^ " ")))
+    val (primary_cards, secondary_cards, maxes, iters, miscs) =
+      quintuple_for_scope (pretty_maybe_quote oo pretty_for_type)
+                          (pretty_maybe_quote oo Syntax.pretty_term)
+                          Pretty.str scope
   in
-    if null ss then []
-    else serial_commas "and" ss |> map Pretty.str |> Pretty.breaks
+    standard_blocks "card" primary_cards @
+    (if verbose then
+       standard_blocks "card" secondary_cards @
+       standard_blocks "max" maxes @
+       standard_blocks "iter" iters @
+       miscs
+     else
+       [])
+    |> pretty_serial_commas "and"
   end
 
 fun multiline_string_for_scope scope =
   let
-    val (primary_cards, secondary_cards, maxes, iters, bisim_depths) =
-      quintuple_for_scope I scope
+    val (primary_cards, secondary_cards, maxes, iters, miscs) =
+      quintuple_for_scope Syntax.string_of_typ Syntax.string_of_term I scope
     val cards = primary_cards @ secondary_cards
   in
-    case (if null cards then [] else ["card: " ^ commas cards]) @
-         (if null maxes then [] else ["max: " ^ commas maxes]) @
-         (if null iters then [] else ["iter: " ^ commas iters]) @
-         bisim_depths of
+    case (if null cards then [] else ["card: " ^ commas (map implode cards)]) @
+         (if null maxes then [] else ["max: " ^ commas (map implode maxes)]) @
+         (if null iters then [] else ["iter: " ^ commas (map implode iters)]) @
+         miscs of
       [] => "empty"
     | lines => space_implode "\n" lines
   end
@@ -272,27 +274,20 @@ fun blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns iters_assigns
   in mono_block :: nonmono_blocks end
 
 val sync_threshold = 5
+val linearity = 5
 
-fun all_combinations_ordered_smartly ks =
+val all_combinations_ordered_smartly =
   let
-    fun cost_with_monos [] = 0
-      | cost_with_monos (k :: ks) =
+    fun cost [] = 0
+      | cost [k] = k
+      | cost (k :: ks) =
         if k < sync_threshold andalso forall (curry (op =) k) ks then
           k - sync_threshold
         else
-          k * (k + 1) div 2 + Integer.sum ks
-    fun cost_without_monos [] = 0
-      | cost_without_monos [k] = k
-      | cost_without_monos (_ :: k :: ks) =
-        if k < sync_threshold andalso forall (curry (op =) k) ks then
-          k - sync_threshold
-        else
-          Integer.sum (k :: ks)
+          k :: ks |> map (fn k => (k + linearity) * (k + linearity))
+                  |> Integer.sum
   in
-    ks |> all_combinations
-       |> map (`(if fst (hd ks) > 1 then cost_with_monos
-                 else cost_without_monos))
-       |> sort (int_ord o pairself fst) |> map snd
+    all_combinations #> map (`cost) #> sort (int_ord o pairself fst) #> map snd
   end
 
 fun is_self_recursive_constr_type T =
@@ -387,7 +382,7 @@ fun offset_table_for_card_assigns dtypes assigns =
 fun domain_card max card_assigns =
   Integer.prod o map (bounded_card_of_type max max card_assigns) o binder_types
 
-fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
+fun add_constr_spec (card_assigns, max_assigns) acyclic card sum_dom_cards
                     num_self_recs num_non_self_recs (self_rec, x as (_, T))
                     constrs =
   let
@@ -398,7 +393,7 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
         let val delta = next_delta () in
           {delta = delta, epsilon = delta, exclusive = true, total = false}
         end
-      else if not co andalso num_self_recs > 0 then
+      else if num_self_recs > 0 then
         (if num_self_recs = 1 andalso num_non_self_recs = 1 then
            if self_rec then
              case constrs of
@@ -407,7 +402,7 @@ fun add_constr_spec (card_assigns, max_assigns) co card sum_dom_cards
              | _ => raise SAME ()
            else
              if domain_card 2 card_assigns T = 1 then
-               {delta = 0, epsilon = 1, exclusive = true, total = true}
+               {delta = 0, epsilon = 1, exclusive = acyclic, total = acyclic}
              else
                raise SAME ()
          else
@@ -457,8 +452,8 @@ fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
     fun sum_dom_cards max =
       map (domain_card max card_assigns o snd) xs |> Integer.sum
     val constrs =
-      fold_rev (add_constr_spec desc co card sum_dom_cards num_self_recs
-                                num_non_self_recs)
+      fold_rev (add_constr_spec desc (not co andalso standard) card
+                                sum_dom_cards num_self_recs num_non_self_recs)
                (sort (bool_ord o swap o pairself fst) (self_recs ~~ xs)) []
   in
     {typ = T, card = card, co = co, standard = standard, self_rec = self_rec,
@@ -493,8 +488,8 @@ fun repair_cards_assigns_wrt_boxing_etc _ _ [] = []
   | repair_cards_assigns_wrt_boxing_etc thy Ts ((NONE, ks) :: cards_assigns) =
     (NONE, ks) :: repair_cards_assigns_wrt_boxing_etc thy Ts cards_assigns
 
-val max_scopes = 4096
-val distinct_threshold = 512
+val max_scopes = 5000
+val distinct_threshold = 1000
 
 fun all_scopes (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
                iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs

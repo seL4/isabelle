@@ -52,7 +52,7 @@ exit_room:
 theorem safe: "s \<in> reach \<Longrightarrow> safe s r \<Longrightarrow> g \<in> isin s r \<Longrightarrow> owns s r = Some g"
 nitpick [card room = 1, card guest = 2, card "guest option" = 3,
          card key = 4, card state = 6, expect = genuine]
-nitpick [card room = 1, card guest = 2, expect = genuine]
+(* nitpick [card room = 1, card guest = 2, expect = genuine] *)
 oops
 
 end

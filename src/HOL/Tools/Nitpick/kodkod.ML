@@ -1106,8 +1106,9 @@ val cached_outcome =
 
 fun solve_any_problem overlord deadline max_threads max_solutions problems =
   let
-    fun do_solve () = uncached_solve_any_problem overlord deadline max_threads
-                                                 max_solutions problems
+    fun do_solve () =
+      uncached_solve_any_problem overlord deadline max_threads max_solutions
+                                 problems
   in
     if overlord then
       do_solve ()

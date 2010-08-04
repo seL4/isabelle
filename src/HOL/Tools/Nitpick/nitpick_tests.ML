@@ -23,10 +23,8 @@ val settings = [("solver", "\"DefaultSAT4J\"")]
 
 fun cast_to_rep R u = Op1 (Cast, type_of u, R, u)
 
-val unit_T = @{typ unit}
 val dummy_T = @{typ 'a}
 
-val unity = Cst (Unity, unit_T, Unit)
 val atom1_v1 = FreeName ("atom1_v1", dummy_T, Atom (1, 0))
 val atom2_v1 = FreeName ("atom2_v1", dummy_T, Atom (2, 0))
 val atom6_v1 = FreeName ("atom6_v1", dummy_T, Atom (6, 0))
@@ -36,19 +34,14 @@ val atom36_v1 = FreeName ("atom36_v1", dummy_T, Atom (36, 0))
 val atom81_v1 = FreeName ("atom81_v1", dummy_T, Atom (81, 0))
 val struct_atom1_atom1_v1 =
   FreeName ("struct_atom1_atom1_v1", dummy_T, Struct [Atom (1, 0), Atom (1, 0)])
-val struct_atom1_unit_v1 =
-  FreeName ("struct_atom1_atom1_v1", dummy_T, Struct [Atom (1, 0), Unit])
-val struct_unit_atom1_v1 =
-  FreeName ("struct_atom1_atom1_v1", dummy_T, Struct [Unit, Atom (1, 0)])
 
 (*
-              Formula    Unit   Atom    Struct    Vect    Func
-    Formula      X       N/A     X        X       N/A     N/A
-    Unit        N/A      N/A    N/A      N/A      N/A     N/A
-    Atom         X       N/A     X        X        X       X
-    Struct      N/A      N/A     X        X       N/A     N/A
-    Vect        N/A      N/A     X       N/A       X       X
-    Func        N/A      N/A     X       N/A       X       X
+              Formula    Atom    Struct    Vect    Func
+    Formula      X       X        X       N/A     N/A
+    Atom         X       X        X        X       X
+    Struct      N/A      X        X       N/A     N/A
+    Vect        N/A      X       N/A       X       X
+    Func        N/A      X       N/A       X       X
 *)
 
 val tests =
@@ -77,22 +70,6 @@ val tests =
                                    Struct [Atom (2, 0), Atom (3, 0)]])
                           atom24_v1),
          atom24_v1)),
-   ("rep_conversion_struct_struct_4",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Struct [Atom (24, 0), Unit])
-             (cast_to_rep (Struct [Atom (24, 0), Atom (1, 0)]) atom24_v1),
-         atom24_v1)),
-   ("rep_conversion_struct_struct_5",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Struct [Atom (24, 0), Atom (1, 0)])
-             (cast_to_rep (Struct [Atom (24, 0), Unit]) atom24_v1),
-         atom24_v1)),
-   ("rep_conversion_struct_struct_6",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Struct [Atom (1, 0), Atom (1, 0)])
-             (cast_to_rep (Struct [Atom (1, 0), Unit])
-                 (cast_to_rep (Struct [Unit, Atom (1, 0)]) atom1_v1)),
-         atom1_v1)),
    ("rep_conversion_vect_vect_1",
     Op2 (Eq, bool_T, Formula Neut,
          cast_to_rep (Atom (16, 0))
@@ -133,50 +110,10 @@ val tests =
                                 Struct [Atom (2, 0), Atom (3, 0)]))
                        atom36_v1)),
          atom36_v1)),
-   ("rep_conversion_func_func_3",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (36, 0))
-             (cast_to_rep (Func (Unit, Struct [Atom (6, 0), Atom (6, 0)]))
-                  (cast_to_rep (Func (Atom (1, 0), Atom (36, 0))) atom36_v1)),
-         atom36_v1)),
-   ("rep_conversion_func_func_4",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (36, 0))
-             (cast_to_rep (Func (Atom (1, 0), Atom (36, 0)))
-                  (cast_to_rep (Func (Unit, Struct [Atom (6, 0), Atom (6, 0)]))
-                       atom36_v1)),
-         atom36_v1)),
-   ("rep_conversion_func_func_5",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (36, 0))
-             (cast_to_rep (Func (Unit, Vect (2, Atom (6, 0))))
-                  (cast_to_rep (Func (Atom (1, 0), Atom (36, 0))) atom36_v1)),
-         atom36_v1)),
-   ("rep_conversion_func_func_6",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (36, 0))
-             (cast_to_rep (Func (Atom (1, 0), Atom (36, 0)))
-                  (cast_to_rep (Func (Unit, Vect (2, Atom (6, 0))))
-                       atom36_v1)),
-         atom36_v1)),
-   ("rep_conversion_func_func_7",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (2, 0))
-             (cast_to_rep (Func (Unit, Atom (2, 0)))
-                  (cast_to_rep (Func (Atom (1, 0), Formula Neut)) atom2_v1)),
-         atom2_v1)),
-   ("rep_conversion_func_func_8",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (2, 0))
-             (cast_to_rep (Func (Atom (1, 0), Formula Neut))
-                  (cast_to_rep (Func (Unit, Atom (2, 0))) atom2_v1)),
-         atom2_v1)),
    ("rep_conversion_atom_formula_atom",
     Op2 (Eq, bool_T, Formula Neut,
          cast_to_rep (Atom (2, 0)) (cast_to_rep (Formula Neut) atom2_v1),
          atom2_v1)),
-   ("rep_conversion_unit_atom",
-    Op2 (Eq, bool_T, Formula Neut, cast_to_rep (Atom (1, 0)) unity, unity)),
    ("rep_conversion_atom_struct_atom1",
     Op2 (Eq, bool_T, Formula Neut,
          cast_to_rep (Atom (6, 0))
@@ -188,17 +125,6 @@ val tests =
              (cast_to_rep (Struct [Struct [Atom (3, 0), Atom (4, 0)],
                                    Atom (2, 0)]) atom24_v1),
          atom24_v1)),
-   ("rep_conversion_atom_struct_atom_3",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (6, 0))
-                     (cast_to_rep (Struct [Atom (6, 0), Unit]) atom6_v1),
-         atom6_v1)),
-   ("rep_conversion_atom_struct_atom_4",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (6, 0))
-             (cast_to_rep (Struct [Struct [Atom (3, 0), Unit], Atom (2, 0)]) 
-             atom6_v1),
-         atom6_v1)),
    ("rep_conversion_atom_vect_func_atom_1",
     Op2 (Eq, bool_T, Formula Neut,
          cast_to_rep (Atom (16, 0))
@@ -217,18 +143,6 @@ val tests =
              (cast_to_rep (Vect (4, Atom (2, 0)))
                   (cast_to_rep (Func (Atom (4, 0), Formula Neut)) atom16_v1)),
          atom16_v1)),
-   ("rep_conversion_atom_vect_func_atom_4",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (16, 0))
-             (cast_to_rep (Vect (1, Atom (16, 0)))
-                  (cast_to_rep (Func (Unit, Atom (16, 0))) atom16_v1)),
-         atom16_v1)),
-   ("rep_conversion_atom_vect_func_atom_5",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (16, 0))
-             (cast_to_rep (Vect (1, Atom (16, 0)))
-                  (cast_to_rep (Func (Unit, Atom (16, 0))) atom16_v1)),
-         atom16_v1)),
    ("rep_conversion_atom_func_vect_atom_1",
     Op2 (Eq, bool_T, Formula Neut,
          cast_to_rep (Atom (16, 0))
@@ -246,12 +160,6 @@ val tests =
          cast_to_rep (Atom (16, 0))
              (cast_to_rep (Func (Atom (4, 0), Formula Neut))
                   (cast_to_rep (Vect (4, Atom (2, 0))) atom16_v1)),
-         atom16_v1)),
-   ("rep_conversion_atom_func_vect_atom_4",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Atom (16, 0))
-             (cast_to_rep (Func (Unit, Atom (16, 0)))
-                  (cast_to_rep (Vect (1, Atom (16, 0))) atom16_v1)),
          atom16_v1)),
    ("rep_conversion_atom_func_vect_atom_5",
     Op2 (Eq, bool_T, Formula Neut,
@@ -274,23 +182,7 @@ val tests =
    ("rep_conversion_struct_atom1_1",
     Op2 (Eq, bool_T, Formula Neut,
          cast_to_rep (Struct [Atom (1, 0), Atom (1, 0)]) atom1_v1,
-                      struct_atom1_atom1_v1)),
-   ("rep_conversion_struct_atom1_2",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Struct [Atom (1, 0), Unit]) atom1_v1,
-                      struct_atom1_unit_v1)),
-   ("rep_conversion_struct_atom1_3",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Struct [Unit, Atom (1, 0)]) atom1_v1,
-                      struct_unit_atom1_v1))
-(*
-   ("rep_conversion_struct_formula_struct_1",
-    Op2 (Eq, bool_T, Formula Neut,
-         cast_to_rep (Struct [Atom (2, 0), Unit])
-             (cast_to_rep (Formula Neut) struct_atom_2_unit_v1),
-         struct_atom_2_unit_v1))
-*)
-  ]
+                      struct_atom1_atom1_v1))]
 
 fun problem_for_nut ctxt (name, u) =
   let
@@ -318,9 +210,15 @@ fun problem_for_nut ctxt (name, u) =
   end
 
 fun run_all_tests () =
-  case Kodkod.solve_any_problem false NONE 0 1
-                                (map (problem_for_nut @{context}) tests) of
-    Kodkod.Normal ([], _, _) => ()
-  | _ => error "Tests failed."
+  let
+    val {overlord, ...} = Nitpick_Isar.default_params @{theory} []
+    val max_threads = 1
+    val max_solutions = 1
+  in
+    case Kodkod.solve_any_problem overlord NONE max_threads max_solutions
+                                  (map (problem_for_nut @{context}) tests) of
+      Kodkod.Normal ([], _, _) => ()
+    | _ => error "Tests failed."
+  end
 
 end;

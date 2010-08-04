@@ -11,7 +11,8 @@ theory Induct_Nits
 imports Main
 begin
 
-nitpick_params [sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60 s]
+nitpick_params [card = 1\<midarrow>8, unary_ints, sat_solver = MiniSat_JNI,
+                max_threads = 1, timeout = 60 s]
 
 inductive p1 :: "nat \<Rightarrow> bool" where
 "p1 0" |
@@ -114,58 +115,42 @@ coinductive q3 and q4 where
 
 lemma "p3 = q3"
 nitpick [expect = none]
-nitpick [dont_star_linear_preds, expect = none]
-nitpick [non_wf, expect = potential]
-nitpick [non_wf, dont_box, expect = none]
-nitpick [non_wf, dont_star_linear_preds, expect = none]
+nitpick [non_wf, expect = none]
 sorry
 
 lemma "p4 = q4"
 nitpick [expect = none]
-nitpick [dont_star_linear_preds, expect = none]
-nitpick [non_wf, expect = potential]
-nitpick [non_wf, dont_box, expect = none]
-nitpick [non_wf, dont_star_linear_preds, expect = none]
+nitpick [non_wf, expect = none]
 sorry
 
 lemma "p3 = UNIV - p4"
 nitpick [expect = none]
-nitpick [dont_star_linear_preds, expect = none]
-nitpick [non_wf, expect = potential]
-nitpick [non_wf, dont_box, expect = none]
-nitpick [non_wf, dont_star_linear_preds, expect = none]
+nitpick [non_wf, expect = none]
 sorry
 
 lemma "q3 = UNIV - q4"
 nitpick [expect = none]
-nitpick [dont_star_linear_preds, expect = none]
 nitpick [non_wf, expect = none]
-nitpick [non_wf, dont_box, expect = none]
-nitpick [non_wf, dont_star_linear_preds, expect = none]
 sorry
 
 lemma "p3 \<inter> q4 \<noteq> {}"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
-nitpick [non_wf, dont_star_linear_preds, expect = potential]
 sorry
 
 lemma "q3 \<inter> p4 \<noteq> {}"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
-nitpick [non_wf, dont_star_linear_preds, expect = potential]
 sorry
 
 lemma "p3 \<union> q4 \<noteq> UNIV"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
-nitpick [non_wf, dont_star_linear_preds, expect = potential]
 sorry
 
 lemma "q3 \<union> p4 \<noteq> UNIV"
 nitpick [expect = potential]
 nitpick [non_wf, expect = potential]
-nitpick [non_wf, dont_star_linear_preds, expect = potential]
 sorry
 
 end

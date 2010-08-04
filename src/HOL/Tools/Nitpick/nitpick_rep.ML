@@ -13,7 +13,6 @@ sig
   datatype rep =
     Any |
     Formula of polarity |
-    Unit |
     Atom of int * int |
     Struct of rep list |
     Vect of int * rep |
@@ -68,7 +67,6 @@ open Nitpick_Scope
 datatype rep =
   Any |
   Formula of polarity |
-  Unit |
   Atom of int * int |
   Struct of rep list |
   Vect of int * rep |
@@ -88,7 +86,6 @@ fun atomic_string_for_rep rep =
   end
 and string_for_rep Any = "X"
   | string_for_rep (Formula polar) = "F" ^ string_for_polarity polar
-  | string_for_rep Unit = "U"
   | string_for_rep (Atom (k, j0)) =
     "A" ^ string_of_int k ^ (if j0 = 0 then "" else "@" ^ string_of_int j0)
   | string_for_rep (Struct rs) = "[" ^ commas (map string_for_rep rs) ^ "]"
@@ -108,7 +105,6 @@ fun is_opt_rep (Func (_, R2)) = is_opt_rep R2
 
 fun card_of_rep Any = raise REP ("Nitpick_Rep.card_of_rep", [Any])
   | card_of_rep (Formula _) = 2
-  | card_of_rep Unit = 1
   | card_of_rep (Atom (k, _)) = k
   | card_of_rep (Struct rs) = Integer.prod (map card_of_rep rs)
   | card_of_rep (Vect (k, R)) = reasonable_power (card_of_rep R) k
@@ -117,7 +113,6 @@ fun card_of_rep Any = raise REP ("Nitpick_Rep.card_of_rep", [Any])
   | card_of_rep (Opt R) = card_of_rep R
 fun arity_of_rep Any = raise REP ("Nitpick_Rep.arity_of_rep", [Any])
   | arity_of_rep (Formula _) = 0
-  | arity_of_rep Unit = 0
   | arity_of_rep (Atom _) = 1
   | arity_of_rep (Struct Rs) = Integer.sum (map arity_of_rep Rs)
   | arity_of_rep (Vect (k, R)) = k * arity_of_rep R
@@ -126,7 +121,6 @@ fun arity_of_rep Any = raise REP ("Nitpick_Rep.arity_of_rep", [Any])
 fun min_univ_card_of_rep Any =
     raise REP ("Nitpick_Rep.min_univ_card_of_rep", [Any])
   | min_univ_card_of_rep (Formula _) = 0
-  | min_univ_card_of_rep Unit = 0
   | min_univ_card_of_rep (Atom (k, j0)) = k + j0 + 1
   | min_univ_card_of_rep (Struct Rs) =
     fold Integer.max (map min_univ_card_of_rep Rs) 0
@@ -135,8 +129,7 @@ fun min_univ_card_of_rep Any =
     Int.max (min_univ_card_of_rep R1, min_univ_card_of_rep R2)
   | min_univ_card_of_rep (Opt R) = min_univ_card_of_rep R
 
-fun is_one_rep Unit = true
-  | is_one_rep (Atom _) = true
+fun is_one_rep (Atom _) = true
   | is_one_rep (Struct _) = true
   | is_one_rep (Vect _) = true
   | is_one_rep _ = false
@@ -145,8 +138,7 @@ fun is_lone_rep (Opt R) = is_one_rep R
 
 fun dest_Func (Func z) = z
   | dest_Func R = raise REP ("Nitpick_Rep.dest_Func", [R])
-fun lazy_range_rep _ _ _ Unit = Unit
-  | lazy_range_rep _ _ _ (Vect (_, R)) = R
+fun lazy_range_rep _ _ _ (Vect (_, R)) = R
   | lazy_range_rep _ _ _ (Func (_, R2)) = R2
   | lazy_range_rep ofs T ran_card (Opt R) =
     Opt (lazy_range_rep ofs T ran_card R)
@@ -201,8 +193,6 @@ fun min_rep (Opt R1) (Opt R2) = Opt (min_rep R1 R2)
     Formula (min_polarity polar1 polar2)
   | min_rep (Formula polar) _ = Formula polar
   | min_rep _ (Formula polar) = Formula polar
-  | min_rep Unit _ = Unit
-  | min_rep _ Unit = Unit
   | min_rep (Atom x) _ = Atom x
   | min_rep _ (Atom x) = Atom x
   | min_rep (Struct Rs1) (Struct Rs2) = Struct (min_reps Rs1 Rs2)
@@ -231,8 +221,7 @@ and min_reps [] _ = []
 
 fun card_of_domain_from_rep ran_card R =
   case R of
-    Unit => 1
-  | Atom (k, _) => exact_log ran_card k
+    Atom (k, _) => exact_log ran_card k
   | Vect (k, _) => k
   | Func (R1, _) => card_of_rep R1
   | Opt R => card_of_domain_from_rep ran_card R
@@ -246,24 +235,12 @@ fun rep_to_binary_rel_rep ofs T R =
 
 fun best_one_rep_for_type (scope as {card_assigns, ...} : scope)
                           (Type (@{type_name fun}, [T1, T2])) =
-    (case best_one_rep_for_type scope T2 of
-       Unit => Unit
-     | R2 => Vect (card_of_type card_assigns T1, R2))
-  | best_one_rep_for_type scope (Type (@{type_name Product_Type.prod}, [T1, T2])) =
-    (case (best_one_rep_for_type scope T1, best_one_rep_for_type scope T2) of
-       (Unit, Unit) => Unit
-     | (R1, R2) => Struct [R1, R2])
+    Vect (card_of_type card_assigns T1, (best_one_rep_for_type scope T2))
+  | best_one_rep_for_type scope (Type (@{type_name prod}, Ts)) =
+    Struct (map (best_one_rep_for_type scope) Ts)
   | best_one_rep_for_type {card_assigns, datatypes, ofs, ...} T =
-    (case card_of_type card_assigns T of
-       1 => if is_some (datatype_spec datatypes T) orelse
-               is_iterator_type T then
-              Atom (1, offset_of_type ofs T)
-            else
-              Unit
-     | k => Atom (k, offset_of_type ofs T))
+    Atom (card_of_type card_assigns T, offset_of_type ofs T)
 
-(* Datatypes are never represented by Unit, because it would confuse
-   "nfa_transitions_for_ctor". *)
 fun best_opt_set_rep_for_type scope (Type (@{type_name fun}, [T1, T2])) =
     Func (best_one_rep_for_type scope T1, best_opt_set_rep_for_type scope T2)
   | best_opt_set_rep_for_type (scope as {ofs, ...}) T =
@@ -272,10 +249,7 @@ fun best_non_opt_set_rep_for_type (scope as {ofs, ...})
                                   (Type (@{type_name fun}, [T1, T2])) =
     (case (best_one_rep_for_type scope T1,
            best_non_opt_set_rep_for_type scope T2) of
-       (_, Unit) => Unit
-     | (Unit, Atom (2, _)) =>
-       Func (Atom (1, offset_of_type ofs T1), Formula Neut)
-     | (R1, Atom (2, _)) => Func (R1, Formula Neut)
+       (R1, Atom (2, _)) => Func (R1, Formula Neut)
      | z => Func z)
   | best_non_opt_set_rep_for_type scope T = best_one_rep_for_type scope T
 fun best_set_rep_for_type (scope as {datatypes, ...}) T =
@@ -290,7 +264,6 @@ fun best_non_opt_symmetric_reps_for_fun_type (scope as {ofs, ...})
 
 fun atom_schema_of_rep Any = raise REP ("Nitpick_Rep.atom_schema_of_rep", [Any])
   | atom_schema_of_rep (Formula _) = []
-  | atom_schema_of_rep Unit = []
   | atom_schema_of_rep (Atom x) = [x]
   | atom_schema_of_rep (Struct Rs) = atom_schema_of_reps Rs
   | atom_schema_of_rep (Vect (k, R)) = replicate_list k (atom_schema_of_rep R)
@@ -300,9 +273,8 @@ fun atom_schema_of_rep Any = raise REP ("Nitpick_Rep.atom_schema_of_rep", [Any])
 and atom_schema_of_reps Rs = maps atom_schema_of_rep Rs
 
 fun type_schema_of_rep _ (Formula _) = []
-  | type_schema_of_rep _ Unit = []
   | type_schema_of_rep T (Atom _) = [T]
-  | type_schema_of_rep (Type (@{type_name Product_Type.prod}, [T1, T2])) (Struct [R1, R2]) =
+  | type_schema_of_rep (Type (@{type_name prod}, [T1, T2])) (Struct [R1, R2]) =
     type_schema_of_reps [T1, T2] [R1, R2]
   | type_schema_of_rep (Type (@{type_name fun}, [_, T2])) (Vect (k, R)) =
     replicate_list k (type_schema_of_rep T2 R)

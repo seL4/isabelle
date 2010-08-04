@@ -8,9 +8,9 @@ Nitpick's HOL preprocessor.
 signature NITPICK_PREPROC =
 sig
   type hol_context = Nitpick_HOL.hol_context
-  val preprocess_term :
+  val preprocess_formulas :
     hol_context -> (typ option * bool option) list
-    -> (typ option * bool option) list -> term
+    -> (typ option * bool option) list -> term list -> term
     -> term list * term list * bool * bool * bool
 end;
 
@@ -132,8 +132,8 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
   let
     fun box_relational_operator_type (Type (@{type_name fun}, Ts)) =
         Type (@{type_name fun}, map box_relational_operator_type Ts)
-      | box_relational_operator_type (Type (@{type_name Product_Type.prod}, Ts)) =
-        Type (@{type_name Product_Type.prod}, map (box_type hol_ctxt InPair) Ts)
+      | box_relational_operator_type (Type (@{type_name prod}, Ts)) =
+        Type (@{type_name prod}, map (box_type hol_ctxt InPair) Ts)
       | box_relational_operator_type T = T
     fun add_boxed_types_for_var (z as (_, T)) (T', t') =
       case t' of
@@ -583,11 +583,9 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
           handle SAME () =>
                  Const (quant_s, quant_T)
                  $ Abs (abs_s, abs_T,
-                        if is_higher_order_type abs_T then
-                          t
-                        else
-                          aux (abs_s :: ss) (abs_T :: Ts) (0 :: incrs js)
-                              skolemizable polar t)
+                        aux (abs_s :: ss) (abs_T :: Ts) (0 :: incrs js)
+                            (skolemizable andalso
+                             not (is_higher_order_type abs_T)) polar t)
       in
         case t of
           Const (s0 as @{const_name all}, T0) $ Abs (s1, T1, t1) =>
@@ -642,8 +640,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
           else
             Const x
         | t1 $ t2 =>
-          s_betapply Ts (aux ss Ts [] false polar t1,
-                         aux ss Ts [] skolemizable Neut t2)
+          s_betapply Ts (aux ss Ts js false polar t1,
+                         aux ss Ts js false Neut t2)
         | Abs (s, T, t1) =>
           Abs (s, T, aux ss Ts (incrs js) skolemizable polar t1)
         | _ => t
@@ -728,6 +726,10 @@ val special_max_depth = 20
 
 val bound_var_prefix = "b"
 
+fun special_fun_aconv ((x1, js1, ts1), (x2, js2, ts2)) =
+  x1 = x2 andalso js1 = js2 andalso length ts1 = length ts2 andalso
+  forall (op aconv) (ts1 ~~ ts2)
+
 fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
                                             special_funs, ...}) depth t =
   if not specialize orelse depth > special_max_depth then
@@ -769,7 +771,7 @@ fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
                              (map var_for_bound_no (index_seq 0 (length Ts))))
                       fixed_args
               in
-                case AList.lookup (op =) (!special_funs)
+                case AList.lookup special_fun_aconv (!special_funs)
                                   (x, fixed_js, fixed_args_in_axiom) of
                   SOME x' => list_comb (Const x', extra_args)
                 | NONE =>
@@ -819,25 +821,25 @@ fun special_congruence_axiom T (js1, ts1, x1) (js2, ts2, x2) =
                         apsnd (pairself (cons v))
                       end) (max_j downto 0) ([], ([], []))
   in
-    Logic.list_implies (eqs |> filter_out (op =) |> distinct (op =)
+    Logic.list_implies (eqs |> filter_out (op aconv) |> distinct (op =)
                             |> map Logic.mk_equals,
                         Logic.mk_equals (list_comb (Const x1, bounds1 @ args1),
                                          list_comb (Const x2, bounds2 @ args2)))
-    |> close_form (* TODO: needed? *)
   end
 
-fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
+fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) ts =
   let
     val groups =
       !special_funs
       |> map (fn ((x, js, ts), x') => (x, (js, ts, x')))
       |> AList.group (op =)
       |> filter_out (is_equational_fun_surely_complete hol_ctxt o fst)
-      |> map (fn (x, zs) => (x, zs |> member (op =) xs x ? cons ([], [], x)))
+      |> map (fn (x, zs) =>
+                 (x, zs |> member (op =) ts (Const x) ? cons ([], [], x)))
     fun generality (js, _, _) = ~(length js)
     fun is_more_specific (j1, t1, x1) (j2, t2, x2) =
-      x1 <> x2 andalso OrdList.subset (prod_ord int_ord Term_Ord.term_ord)
-                                      (j2 ~~ t2, j1 ~~ t1)
+      x1 <> x2 andalso length j2 < length j1 andalso
+      OrdList.subset (prod_ord int_ord Term_Ord.term_ord) (j2 ~~ t2, j1 ~~ t1)
     fun do_pass_1 _ [] [_] [_] = I
       | do_pass_1 T skipped _ [] = do_pass_2 T skipped
       | do_pass_1 T skipped all (z :: zs) =
@@ -853,6 +855,25 @@ fun special_congruence_axioms (hol_ctxt as {special_funs, ...}) xs =
 
 (** Axiom selection **)
 
+fun defined_free_by_assumption t =
+  let
+    fun do_equals x def =
+      if exists_subterm (curry (op aconv) (Free x)) def then NONE else SOME x
+  in
+    case t of
+      Const (@{const_name "=="}, _) $ Free x $ def => do_equals x def
+    | @{const Trueprop} $ (Const (@{const_name "=="}, _) $ Free x $ def) =>
+      do_equals x def
+    | _ => NONE
+  end
+
+fun assumption_exclusively_defines_free assm_ts t =
+  case defined_free_by_assumption t of
+    SOME x =>
+    length (filter ((fn SOME x' => x = x' | NONE => false)
+                     o defined_free_by_assumption) assm_ts) = 1
+  | NONE => false
+
 fun all_table_entries table = Symtab.fold (append o snd) table []
 fun extra_table table s = Symtab.make [(s, all_table_entries table)]
 
@@ -867,20 +888,23 @@ val axioms_max_depth = 255
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
                       fast_descrs, evals, def_table, nondef_table,
-                      choice_spec_table, user_nondefs, ...}) t =
+                      choice_spec_table, user_nondefs, ...}) assm_ts neg_t =
   let
+    val (def_assm_ts, nondef_assm_ts) =
+      List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
+    val def_assm_table = map (`(the o defined_free_by_assumption)) def_assm_ts
     type accumulator = styp list * (term list * term list)
-    fun add_axiom get app depth t (accum as (xs, axs)) =
+    fun add_axiom get app depth t (accum as (seen, axs)) =
       let
         val t = t |> unfold_defs_in_term hol_ctxt
-                  |> skolemize_term_and_more hol_ctxt ~1
+                  |> skolemize_term_and_more hol_ctxt ~1 (*### why ~1? *)
       in
         if is_trivial_equation t then
           accum
         else
           let val t' = t |> specialize_consts_in_term hol_ctxt depth in
             if exists (member (op aconv) (get axs)) [t, t'] then accum
-            else add_axioms_for_term (depth + 1) t' (xs, app (cons t') axs)
+            else add_axioms_for_term (depth + 1) t' (seen, app (cons t') axs)
           end
       end
     and add_def_axiom depth = add_axiom fst apfst depth
@@ -891,15 +915,15 @@ fun axioms_for_term
     and add_eq_axiom depth t =
       (if is_constr_pattern_formula ctxt t then add_def_axiom
        else add_nondef_axiom) depth t
-    and add_axioms_for_term depth t (accum as (xs, axs)) =
+    and add_axioms_for_term depth t (accum as (seen, axs)) =
       case t of
         t1 $ t2 => accum |> fold (add_axioms_for_term depth) [t1, t2]
       | Const (x as (s, T)) =>
-        (if member (op =) xs x orelse
+        (if member (op aconv) seen t orelse
             is_built_in_const thy stds fast_descrs x then
            accum
          else
-           let val accum = (x :: xs, axs) in
+           let val accum = (t :: seen, axs) in
              if depth > axioms_max_depth then
                raise TOO_LARGE ("Nitpick_Preproc.axioms_for_term.\
                                 \add_axioms_for_term",
@@ -962,7 +986,13 @@ fun axioms_for_term
                                (nondef_props_for_const thy false nondef_table x)
            end)
         |> add_axioms_for_type depth T
-      | Free (_, T) => add_axioms_for_type depth T accum
+      | Free (x as (_, T)) =>
+        (if member (op aconv) seen t then
+           accum
+         else case AList.lookup (op =) def_assm_table x of
+           SOME t => add_def_axiom depth t accum
+         | NONE => accum)
+        |> add_axioms_for_type depth T
       | Var (_, T) => add_axioms_for_type depth T accum
       | Bound _ => accum
       | Abs (_, T, t) => accum |> add_axioms_for_term depth t
@@ -970,10 +1000,9 @@ fun axioms_for_term
     and add_axioms_for_type depth T =
       case T of
         Type (@{type_name fun}, Ts) => fold (add_axioms_for_type depth) Ts
-      | Type (@{type_name Product_Type.prod}, Ts) => fold (add_axioms_for_type depth) Ts
+      | Type (@{type_name prod}, Ts) => fold (add_axioms_for_type depth) Ts
       | @{typ prop} => I
       | @{typ bool} => I
-      | @{typ unit} => I
       | TFree (_, S) => add_axioms_for_sort depth T S
       | TVar (_, S) => add_axioms_for_sort depth T S
       | Type (z as (_, Ts)) =>
@@ -1007,15 +1036,18 @@ fun axioms_for_term
       List.partition (null o Term.hidden_polymorphism) user_nondefs
     val eval_axioms = map2 eval_axiom_for_term (index_seq 0 (length evals))
                            evals
-    val (xs, (defs, nondefs)) =
-      ([], ([], [])) |> add_axioms_for_term 1 t 
-                     |> fold_rev (add_def_axiom 1) eval_axioms
-                     |> user_axioms = SOME true
-                        ? fold (add_nondef_axiom 1) mono_user_nondefs
-    val defs = defs @ special_congruence_axioms hol_ctxt xs
+    val (seen, (defs, nondefs)) =
+      ([], ([], []))
+      |> add_axioms_for_term 1 neg_t
+      |> fold_rev (add_nondef_axiom 1) nondef_assm_ts
+      |> fold_rev (add_def_axiom 1) eval_axioms
+      |> user_axioms = SOME true ? fold (add_nondef_axiom 1) mono_user_nondefs
+    val defs = defs @ special_congruence_axioms hol_ctxt seen
     val got_all_mono_user_axioms =
       (user_axioms = SOME true orelse null mono_user_nondefs)
-  in (t :: nondefs, defs, got_all_mono_user_axioms, null poly_user_nondefs) end
+  in
+    (neg_t :: nondefs, defs, got_all_mono_user_axioms, null poly_user_nondefs)
+  end
 
 (** Simplification of constructor/selector terms **)
 
@@ -1234,15 +1266,16 @@ fun finitize_all_types_of_funs (hol_ctxt as {thy, ...}) binarize finitizes monos
 
 val max_skolem_depth = 3
 
-fun preprocess_term (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs,
-                                  boxes, ...}) finitizes monos t =
+fun preprocess_formulas
+        (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs, boxes,
+                      ...}) finitizes monos assm_ts neg_t =
   let
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
-      t |> unfold_defs_in_term hol_ctxt
-        |> close_form
-        |> skolemize_term_and_more hol_ctxt max_skolem_depth
-        |> specialize_consts_in_term hol_ctxt 0
-        |> axioms_for_term hol_ctxt
+      neg_t |> unfold_defs_in_term hol_ctxt
+            |> close_form
+            |> skolemize_term_and_more hol_ctxt max_skolem_depth
+            |> specialize_consts_in_term hol_ctxt 0
+            |> axioms_for_term hol_ctxt assm_ts
     val binarize =
       is_standard_datatype thy stds nat_T andalso
       case binary_ints of

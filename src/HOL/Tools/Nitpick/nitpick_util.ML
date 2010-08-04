@@ -49,6 +49,7 @@ sig
   val plural_s : int -> string
   val plural_s_for_list : 'a list -> string
   val serial_commas : string -> string list -> string list
+  val pretty_serial_commas : string -> Pretty.T list -> Pretty.T list
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val flip_polarity : polarity -> polarity
@@ -72,7 +73,7 @@ sig
   val indent_size : int
   val pstrs : string -> Pretty.T list
   val unyxml : string -> string
-  val maybe_quote : string -> string
+  val pretty_maybe_quote : Pretty.T -> Pretty.T
   val hashw : word * word -> word
   val hashw_string : string * word -> word
 end;
@@ -222,6 +223,16 @@ fun plural_s_for_list xs = plural_s (length xs)
 
 val serial_commas = Sledgehammer_Util.serial_commas
 
+fun pretty_serial_commas _ [] = []
+  | pretty_serial_commas _ [p] = [p]
+  | pretty_serial_commas conj [p1, p2] =
+    [p1, Pretty.brk 1, Pretty.str conj, Pretty.brk 1, p2]
+  | pretty_serial_commas conj [p1, p2, p3] =
+    [p1, Pretty.str ",", Pretty.brk 1, p2, Pretty.str ",", Pretty.brk 1,
+     Pretty.str conj, Pretty.brk 1, p3]
+  | pretty_serial_commas conj (p :: ps) =
+    p :: Pretty.str "," :: Pretty.brk 1 :: pretty_serial_commas conj ps
+
 val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 
@@ -262,14 +273,19 @@ fun DETERM_TIMEOUT delay tac st =
 
 fun setmp_show_all_types f =
   setmp_CRITICAL show_all_types
-                 (! show_types orelse ! show_sorts orelse ! show_all_types) f
+                 (!show_types orelse !show_sorts orelse !show_all_types) f
 
 val indent_size = 2
 
 val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 
 val unyxml = Sledgehammer_Util.unyxml
+
 val maybe_quote = Sledgehammer_Util.maybe_quote
+fun pretty_maybe_quote pretty =
+  let val s = Pretty.str_of pretty in
+    if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
+  end
 
 (* This hash function is recommended in Compilers: Principles, Techniques, and
    Tools, by Aho, Sethi, and Ullman. The "hashpjw" function, which they
