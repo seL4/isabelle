@@ -747,11 +747,11 @@ fun all_ge ({kk_join, kk_reflexive_closure, ...} : kodkod_constrs) z r =
 fun gt ({kk_subset, kk_join, kk_closure, ...} : kodkod_constrs) z r1 r2 =
   kk_subset r1 (kk_join r2 (kk_closure (KK.Rel (suc_rel_for_atom_seq z))))
 
-fun constr_ord (({const = (s1, _), delta = delta1, epsilon = epsilon1, ...},
-                 {const = (s2, _), delta = delta2, epsilon = epsilon2, ...})
-                : constr_spec * constr_spec) =
-  prod_ord int_ord (prod_ord int_ord string_ord)
-           ((delta1, (epsilon2, s1)), (delta2, (epsilon2, s2)))
+fun constr_quadruple ({const = (s, T), delta, epsilon, ...} : constr_spec) =
+  (delta, (epsilon, (num_binder_types T, s)))
+val constr_ord =
+  prod_ord int_ord (prod_ord int_ord (prod_ord int_ord string_ord))
+  o pairself constr_quadruple
 
 fun datatype_ord (({card = card1, self_rec = self_rec1, constrs = constr1, ...},
                    {card = card2, self_rec = self_rec2, constrs = constr2, ...})
@@ -799,21 +799,21 @@ fun is_nil_like_constr_type dtypes T =
 fun sym_break_axioms_for_constr_pair hol_ctxt binarize
        (kk as {kk_all, kk_or, kk_iff, kk_implies, kk_and, kk_some, kk_subset,
                kk_intersect, kk_join, kk_project, ...}) rel_table nfas dtypes
-       (({const = const1 as (_, T1), delta = delta1, epsilon = epsilon1, ...},
+       (constr_ord,
+        ({const = const1 as (_, T1), delta = delta1, epsilon = epsilon1, ...},
          {const = const2 as (_, T2), delta = delta2, epsilon = epsilon2, ...})
         : constr_spec * constr_spec) =
   let
     val dataT = body_type T1
     val nfa = nfas |> find_first (exists (curry (op =) dataT o fst)) |> these
     val rec_Ts = nfa |> map fst
-    val same_constr = (const1 = const2)
     fun rec_and_nonrec_sels (x as (_, T)) =
       index_seq 0 (num_sels_for_constr_type T)
       |> map (binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize x)
       |> List.partition (member (op =) rec_Ts o range_type o snd)
     val sel_xs1 = rec_and_nonrec_sels const1 |> op @
   in
-    if same_constr andalso null sel_xs1 then
+    if constr_ord = EQUAL andalso null sel_xs1 then
       []
     else
       let
@@ -833,7 +833,7 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
         fun filter_out_sels no_direct sel_xs =
           apsnd (filter_out
                      (fn ((x, _), T) =>
-                         (same_constr andalso x = hd sel_xs) orelse
+                         (constr_ord = EQUAL andalso x = hd sel_xs) orelse
                          (T = dataT andalso
                           (no_direct orelse not (member (op =) sel_xs x)))))
                                        (* FIXME: why the last disjunct above? *)
@@ -844,8 +844,9 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
       in
         [kk_all [KK.DeclOne ((1, 0), discr_rel_expr rel_table const1),
                  KK.DeclOne ((1, 1), discr_rel_expr rel_table const2)]
-             ((if same_constr then kk_implies else kk_iff)
+             (kk_implies
                  (if delta2 >= epsilon1 then KK.True
+                  else if delta1 >= epsilon2 - 1 then KK.False
                   else gt kk z (KK.Var (1, 1)) (KK.Var (1, 0)))
                  (kk_or
                       (if is_nil_like_constr_type dtypes T1 then
@@ -853,7 +854,8 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
                        else
                          kk_some (kk_intersect (subterms_r false sel_xs2 1)
                                                (all_ge kk z (KK.Var (1, 0)))))
-                      (if same_constr then
+                      (case constr_ord of
+                         EQUAL =>
                          kk_and
                              (lex_order_rel_expr kk dtypes (sel_quadruples2 ()))
                              (if length rec_sel_xs2 > 1 then
@@ -862,20 +864,26 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
                                        (gt kk z (KK.Var (1, 1)) (KK.Var (1, 2)))
                               else
                                 KK.True)
-                       else
+                       | LESS =>
                          kk_all [KK.DeclOne ((1, 2),
                                  subterms_r false sel_xs1 0)]
-                                (gt kk z (KK.Var (1, 1)) (KK.Var (1, 2))))))]
+                                (gt kk z (KK.Var (1, 1)) (KK.Var (1, 2)))
+                       | GREATER => KK.False)))]
       end
   end
 
 fun sym_break_axioms_for_datatype hol_ctxt binarize kk rel_table nfas dtypes
                                   ({constrs, ...} : datatype_spec) =
-    let val constrs = sort constr_ord constrs in
-      maps (sym_break_axioms_for_constr_pair hol_ctxt binarize kk rel_table nfas
-                                             dtypes)
-           ((constrs ~~ constrs) @ all_distinct_unordered_pairs_of constrs)
-    end
+  let
+    val constrs = sort constr_ord constrs
+    val constr_pairs = all_distinct_unordered_pairs_of constrs
+  in
+    map (pair EQUAL) (constrs ~~ constrs) @
+    map (pair LESS) constr_pairs @
+    map (pair GREATER) (map swap constr_pairs)
+    |> maps (sym_break_axioms_for_constr_pair hol_ctxt binarize kk rel_table
+                                              nfas dtypes)
+  end
 
 val min_sym_break_card = 7
 
