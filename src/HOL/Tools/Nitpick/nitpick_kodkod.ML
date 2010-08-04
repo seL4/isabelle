@@ -839,7 +839,6 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
                          (constr_ord = EQUAL andalso x = hd sel_xs) orelse
                          (T = dataT andalso
                           (no_direct orelse not (member (op =) sel_xs x)))))
-                                       (* FIXME: why the last disjunct above? *)
         fun subterms_r no_direct sel_xs j =
           loop_path_rel_expr kk (map (filter_out_sels no_direct sel_xs) nfa)
                            (filter_out (curry (op =) dataT) (map fst nfa)) dataT
@@ -861,12 +860,9 @@ fun sym_break_axioms_for_constr_pair hol_ctxt binarize
                          EQUAL =>
                          kk_and
                              (lex_order_rel_expr kk dtypes (sel_quadruples2 ()))
-                             (if length rec_sel_xs2 > 1 then
-                                kk_all [KK.DeclOne ((1, 2),
-                                                    subterms_r true sel_xs1 0)]
-                                       (gt kk z (KK.Var (1, 1)) (KK.Var (1, 2)))
-                              else
-                                KK.True)
+                             (kk_all [KK.DeclOne ((1, 2),
+                                                  subterms_r true sel_xs1 0)]
+                                     (gt kk z (KK.Var (1, 1)) (KK.Var (1, 2))))
                        | LESS =>
                          kk_all [KK.DeclOne ((1, 2),
                                  subterms_r false sel_xs1 0)]
