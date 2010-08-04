@@ -17,6 +17,7 @@ sig
   val loaded_files: string -> Path.T list
   val remove_thy: string -> unit
   val kill_thy: string -> unit
+  val use_thys_wrt: Path.T -> string list -> unit
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val toplevel_begin_theory: string -> string list -> (Path.T * bool) list -> theory
@@ -306,10 +307,10 @@ end;
 
 (* use_thy *)
 
-fun use_thys_dir dir arg =
+fun use_thys_wrt dir arg =
   schedule_tasks (snd (require_thys [] dir arg Graph.empty));
 
-val use_thys = use_thys_dir Path.current;
+val use_thys = use_thys_wrt Path.current;
 val use_thy = use_thys o single;
 
 
@@ -319,7 +320,7 @@ fun toplevel_begin_theory name imports uses =
   let
     val dir = Thy_Load.get_master_path ();
     val _ = kill_thy name;
-    val _ = use_thys_dir dir imports;
+    val _ = use_thys_wrt dir imports;
     val parents = map (get_theory o base_name) imports;
   in Thy_Load.begin_theory dir name parents uses end;
 
