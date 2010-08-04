@@ -739,8 +739,11 @@ fun acyclicity_axiom_for_datatype (kk as {kk_no, kk_intersect, ...}) nfa
   kk_no (kk_intersect
              (loop_path_rel_expr kk nfa (pull start_T (map fst nfa)) start_T)
              KK.Iden)
-fun acyclicity_axioms_for_datatypes kk nfas =
-  maps (fn nfa => map (acyclicity_axiom_for_datatype kk nfa o fst) nfa) nfas
+(* Cycle breaking in the bounds takes care of singly recursive datatypes, hence
+   the first equation. *)
+fun acyclicity_axioms_for_datatypes kk [_] = []
+  | acyclicity_axioms_for_datatypes kk nfas =
+    maps (fn nfa => map (acyclicity_axiom_for_datatype kk nfa o fst) nfa) nfas
 
 fun all_ge ({kk_join, kk_reflexive_closure, ...} : kodkod_constrs) z r =
   kk_join r (kk_reflexive_closure (KK.Rel (suc_rel_for_atom_seq z)))
