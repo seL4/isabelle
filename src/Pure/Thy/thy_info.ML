@@ -34,7 +34,7 @@ datatype action = Update | Remove;
 local
   val hooks = Unsynchronized.ref ([]: (action -> string -> unit) list);
 in
-  fun add_hook f = CRITICAL (fn () => Unsynchronized.change hooks (cons f));
+  fun add_hook f = NAMED_CRITICAL "Thy_Info" (fn () => Unsynchronized.change hooks (cons f));
   fun perform action name = List.app (fn f => (try (fn () => f action name) (); ())) (! hooks);
 end;
 
@@ -75,7 +75,7 @@ local
   val database = Unsynchronized.ref (Graph.empty: (deps option * theory option) Graph.T);
 in
   fun get_thys () = ! database;
-  fun change_thys f = CRITICAL (fn () => Unsynchronized.change database f);
+  fun change_thys f = NAMED_CRITICAL "Thy_Info" (fn () => Unsynchronized.change database f);
 end;
 
 
@@ -124,10 +124,10 @@ fun get_theory name =
     SOME theory => theory
   | _ => error (loader_msg "undefined theory entry for" [name]));
 
-fun loaded_files name =
+fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
   (case get_deps name of
     NONE => []
-  | SOME {master = (thy_path, _), ...} => thy_path :: Thy_Load.loaded_files (get_theory name));
+  | SOME {master = (thy_path, _), ...} => thy_path :: Thy_Load.loaded_files (get_theory name)));
 
 
 
@@ -135,7 +135,7 @@ fun loaded_files name =
 
 (* remove theory *)
 
-fun remove_thy name = CRITICAL (fn () =>
+fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   if is_finished name then error (loader_msg "attempt to change finished theory" [name])
   else
     let
@@ -145,7 +145,7 @@ fun remove_thy name = CRITICAL (fn () =>
       val _ = change_thys (Graph.del_nodes succs);
     in () end);
 
-fun kill_thy name = CRITICAL (fn () =>
+fun kill_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   if known_thy name then remove_thy name
   else ());
 
@@ -236,7 +236,7 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
     val parent_names = map Context.theory_name parent_thys;
     fun after_load' () =
      (after_load ();
-      CRITICAL (fn () =>
+      NAMED_CRITICAL "Thy_Info" (fn () =>
         (change_thys (new_entry name parent_names (SOME deps, SOME theory));
           perform Update name)));
 
@@ -333,7 +333,7 @@ fun register_thy theory =
     val parents = map Context.theory_name (Theory.parents_of theory);
     val deps = make_deps master parents;
   in
-    CRITICAL (fn () =>
+    NAMED_CRITICAL "Thy_Info" (fn () =>
      (kill_thy name;
       priority ("Registering theory " ^ quote name);
       map get_theory parents;
