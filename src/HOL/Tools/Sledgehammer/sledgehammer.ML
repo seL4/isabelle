@@ -220,20 +220,6 @@ fun transform_elim_term t =
   | Var (z, @{typ prop}) => subst_Vars [(z, @{prop True})] t
   | _ => t
 
-(* Removes the lambdas from an equation of the form "t = (%x. u)".
-   (Cf. "extensionalize_theorem" in "Clausifier".) *)
-fun extensionalize_term t =
-  let
-    fun aux j (Const (@{const_name "op ="}, Type (_, [Type (_, [_, T']), _]))
-               $ t2 $ Abs (s, var_T, t')) =
-        let val var_t = Var (("x", j), var_T) in
-          Const (@{const_name "op ="}, T' --> T' --> HOLogic.boolT)
-            $ betapply (t2, var_t) $ subst_bound (var_t, t')
-          |> aux (j + 1)
-        end
-      | aux _ t = t
-  in aux (maxidx_of_term t + 1) t end
-
 fun presimplify_term thy =
   Skip_Proof.make_thm thy
   #> Meson.presimplify
