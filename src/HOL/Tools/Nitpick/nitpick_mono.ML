@@ -881,7 +881,9 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
            | Const (@{const_name Let}, _) $ t1 $ t2 =>
              do_formula sn (betapply (t2, t1)) accum
            | (t0 as Const (s0, _)) $ t1 $ t2 =>
-             if s0 = @{const_name "==>"} orelse s0 = @{const_name "op &"} orelse
+             if s0 = @{const_name "==>"} orelse
+                s0 = @{const_name Pure.conjunction} orelse
+                s0 = @{const_name "op &"} orelse
                 s0 = @{const_name "op |"} orelse
                 s0 = @{const_name "op -->"} then
                let
