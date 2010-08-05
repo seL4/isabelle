@@ -1729,8 +1729,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                        ts)
                     end
                   else
-                    raise TERM ("Nitpick_HOL.unfold_defs_in_term.do_const",
-                                [Const x])
+                    (Const x, ts)
                 end
               else if is_equational_fun_but_no_plain_def hol_ctxt x orelse
                       is_choice_spec_fun hol_ctxt x then
