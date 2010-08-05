@@ -2581,9 +2581,9 @@ $t$.
 
 \nopagebreak
 This attribute specifies the equations that constitute the specification of a
-constant. For functions defined using the \textbf{primrec}, \textbf{function},
-and \textbf{nominal\_\allowbreak primrec} packages, this corresponds to the
-\textit{simps} rules. The equations must be of the form
+constant. The \textbf{primrec}, \textbf{function}, and
+\textbf{nominal\_\allowbreak primrec} packages automatically attach this
+attribute to their \textit{simps} rules. The equations must be of the form
 
 \qquad $c~t_1~\ldots\ t_n \;\bigl[{=}\; u\bigr]$
 
@@ -2595,9 +2595,9 @@ or
 
 \nopagebreak
 This attribute specifies the equations that constitute the partial specification
-of a constant. For functions defined using the \textbf{function} package, this
-corresponds to the \textit{psimps} rules. The conditional equations must be of
-the form
+of a constant. The \textbf{function} package automatically attaches this
+attribute to its \textit{psimps} rules. The conditional equations must be of the
+form
 
 \qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \;\bigl[{=}\; u\bigr]$
 
@@ -2627,15 +2627,13 @@ constant.
 \textit{nitpick\_choice\_spec} set associated with the constant is not empty, it
 uses these theorems as the specification of the constant.
 
-\item[4.] Otherwise, it looks up the definition of the constant:
+\item[4.] Otherwise, it looks up the definition of the constant. If the
+\textit{nitpick\_def} set associated with the constant is not empty, it uses the
+latest rule added to the set as the definition of the constant; otherwise it
+uses the actual definition axiom.
 
 \begin{enum}
-\item[1.] If the \textit{nitpick\_def} set associated with the constant is not
-empty, it uses the latest rule added to the set as the definition of the
-constant; otherwise it uses the actual definition axiom. In addition, the
-constant is \textsl{unfolded} wherever it appears (as opposed to defined
-equationally).
-\item[2.] If the definition is of the form
+\item[1.] If the definition is of the form
 
 \qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{lfp}~(\lambda f.\; t)$
 
@@ -2648,6 +2646,10 @@ based on the user-specified introduction rules registered in Isabelle's internal
 \textit{Spec\_Rules} table. The tool uses the introduction rules to ascertain
 whether the definition is well-founded and the definition to generate a
 fixed-point equation or an unrolled equation.
+
+\item[2.] If the definition is compact enough, the constant is \textsl{unfolded}
+wherever it appears; otherwise, it is defined equationally, as with
+the \textit{nitpick\_simp} attribute.
 \end{enum}
 \end{enum}
 
@@ -2696,8 +2698,9 @@ is superior to
 ``$\lnot\, \textit{even~x} \,\Longrightarrow\, \textit{odd~x} = \textit{True\/}$''
 \postw
 
-Because Nitpick unfolds definitions but not simplification rules, it often pays
-off to declare long-winded definitions as \textit{nitpick\_simp}. For example:
+Because Nitpick sometimes unfolds definitions but never simplification rules,
+you can ensure that a constant is defined explicitly using the
+\textit{nitpick\_simp}. For example:
 
 \prew
 \textbf{definition}~\textit{optimum} \textbf{where} [\textit{nitpick\_simp}]: \\
