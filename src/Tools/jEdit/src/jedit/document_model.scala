@@ -54,6 +54,7 @@ object Document_Model
   }
 }
 
+
 class Document_Model(val session: Session, val buffer: Buffer)
 {
   /* visible line end */
@@ -77,7 +78,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
   @volatile private var history = Change.init // owned by Swing thread
 
   def current_change(): Change = history
-  def recent_document(): Document = current_change().ancestors.find(_.is_assigned).get.join_document
+  def snapshot(): Change.Snapshot = current_change().snapshot(thy_name)
 
 
   /* transforming offsets */

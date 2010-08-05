@@ -24,10 +24,11 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 object Document_View
 {
-  def choose_color(document: Document, command: Command): Color =
+  def choose_color(snapshot: Change.Snapshot, command: Command): Color =
   {
-    val state = document.current_state(command)
-    if (state.forks > 0) new Color(255, 228, 225)
+    val state = snapshot.document.current_state(command)
+    if (snapshot.is_outdated) new Color(240, 240, 240)
+    else if (state.forks > 0) new Color(255, 228, 225)
     else if (state.forks < 0) Color.red
     else
       state.status match {
@@ -105,9 +106,9 @@ class Document_View(val model: Document_Model, text_area: TextArea)
         case Command_Set(changed) =>
           Swing_Thread.now {
             // FIXME cover doc states as well!!?
-            val document = model.recent_document()
-            if (changed.exists(document.commands(model.thy_name).contains))
-              full_repaint(document, changed)
+            val snapshot = model.snapshot()
+            if (changed.exists(snapshot.node.commands.contains))
+              full_repaint(snapshot, changed)
           }
 
         case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
@@ -115,14 +116,16 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     }
   }
 
-  def full_repaint(document: Document, changed: Set[Command])
+  def full_repaint(snapshot: Change.Snapshot, changed: Set[Command])
   {
     Swing_Thread.assert()
 
+    val document = snapshot.document
+    val doc = snapshot.node
     val buffer = model.buffer
     var visible_change = false
 
-    for ((command, start) <- document.command_starts(model.thy_name)) {
+    for ((command, start) <- doc.command_starts) {
       if (changed(command)) {
         val stop = start + command.length
         val line1 = buffer.getLineOfOffset(model.to_current(document, start))
@@ -148,18 +151,19 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       start: Array[Int], end: Array[Int], y0: Int, line_height: Int)
     {
       Swing_Thread.now {
-        val document = model.recent_document()
+        val snapshot = model.snapshot()
+        val document = snapshot.document
+        val doc = snapshot.node
         def from_current(pos: Int) = model.from_current(document, pos)
         def to_current(pos: Int) = model.to_current(document, pos)
 
         val command_range: Iterable[(Command, Int)] =
         {
-          val range = document.command_range(model.thy_name, from_current(start(0)))
+          val range = doc.command_range(from_current(start(0)))
           if (range.hasNext) {
             val (cmd0, start0) = range.next
             new Iterable[(Command, Int)] {
-              def iterator =
-                Document.command_starts(document.commands(model.thy_name).iterator(cmd0), start0)
+              def iterator = Document.command_starts(doc.commands.iterator(cmd0), start0)
             }
           }
           else Iterable.empty
@@ -183,7 +187,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 val p = text_area.offsetToXY(line_start max to_current(command_start))
                 val q = text_area.offsetToXY(line_end min to_current(command_start + command.length))
                 assert(p.y == q.y)
-                gfx.setColor(Document_View.choose_color(document, command))
+                gfx.setColor(Document_View.choose_color(snapshot, command))
                 gfx.fillRect(p.x, y, q.x - p.x, line_height)
               }
             }
@@ -196,9 +200,11 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
     override def getToolTipText(x: Int, y: Int): String =
     {
-      val document = model.recent_document()
+      val snapshot = model.snapshot()
+      val document = snapshot.document
+      val doc = snapshot.node
       val offset = model.from_current(document, text_area.xyToOffset(x, y))
-      document.command_at(model.thy_name, offset) match {
+      doc.command_at(offset) match {
         case Some((command, command_start)) =>
           document.current_state(command).type_at(offset - command_start) match {
             case Some(text) => Isabelle.tooltip(text)
@@ -213,7 +219,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   /* caret handling */
 
   def selected_command(): Option[Command] =
-    model.recent_document().proper_command_at(model.thy_name, text_area.getCaretPosition)
+    model.snapshot().node.proper_command_at(text_area.getCaretPosition)
 
   private val caret_listener = new CaretListener {
     private val delay = Swing_Thread.delay_last(session.input_delay) {
@@ -263,16 +269,16 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     {
       super.paintComponent(gfx)
       val buffer = model.buffer
-      val document = model.recent_document()
-      def to_current(pos: Int) = model.to_current(document, pos)
+      val snapshot = model.snapshot()
+      def to_current(pos: Int) = model.to_current(snapshot.document, pos)
       val saved_color = gfx.getColor  // FIXME needed!?
       try {
-        for ((command, start) <- document.command_starts(model.thy_name) if !command.is_ignored) {
+        for ((command, start) <- snapshot.node.command_starts if !command.is_ignored) {
           val line1 = buffer.getLineOfOffset(to_current(start))
           val line2 = buffer.getLineOfOffset(to_current(start + command.length)) + 1
           val y = line_to_y(line1)
           val height = HEIGHT * (line2 - line1)
-          gfx.setColor(Document_View.choose_color(document, command))
+          gfx.setColor(Document_View.choose_color(snapshot, command))
           gfx.fillRect(0, y, getWidth - 1, height)
         }
       }

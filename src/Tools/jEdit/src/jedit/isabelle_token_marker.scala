@@ -151,7 +151,9 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     val start = model.buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
 
-    val document = model.recent_document()
+    val snapshot = model.snapshot()
+    val document = snapshot.document
+    val doc = snapshot.node
     def to: Int => Int = model.to_current(document, _)
     def from: Int => Int = model.from_current(document, _)
 
@@ -166,7 +168,7 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
 
     var next_x = start
     for {
-      (command, command_start) <- document.command_range(model.thy_name, from(start), from(stop))
+      (command, command_start) <- doc.command_range(from(start), from(stop))
       markup <- document.current_state(command).highlight.flatten
       val abs_start = to(command_start + markup.start)
       val abs_stop = to(command_start + markup.stop)

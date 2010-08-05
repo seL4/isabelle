@@ -42,9 +42,11 @@ class Isabelle_Hyperlinks extends HyperlinkSource
   {
     Document_Model(buffer) match {
       case Some(model) =>
-        val document = model.recent_document()
+        val snapshot = model.snapshot()
+        val document = snapshot.document
+        val doc = snapshot.node
         val offset = model.from_current(document, original_offset)
-        document.command_at(model.thy_name, offset) match {
+        doc.command_at(offset) match {
           case Some((command, command_start)) =>
             document.current_state(command).ref_at(offset - command_start) match {
               case Some(ref) =>
@@ -57,7 +59,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                   case Command.RefInfo(_, _, Some(id), Some(offset)) =>
                     Isabelle.session.lookup_entity(id) match {
                       case Some(ref_cmd: Command) =>
-                        document.command_start(model.thy_name, ref_cmd) match {
+                        doc.command_start(ref_cmd) match {
                           case Some(ref_cmd_start) =>
                             new Internal_Hyperlink(begin, end, line,
                               model.to_current(document, ref_cmd_start + offset - 1))

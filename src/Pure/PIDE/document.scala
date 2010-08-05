@@ -23,15 +23,6 @@ object Document
   val NO_ID = ""
 
 
-  /* nodes */
-
-  object Node { type Text_Edit = (String, List[isabelle.Text_Edit]) }  // FIXME None: remove
-
-  type Edit[C] =
-   (String,  // node name
-    Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
-
-
   /* command start positions */
 
   def command_starts(commands: Iterator[Command], offset: Int = 0): Iterator[(Command, Int)] =
@@ -45,21 +36,65 @@ object Document
   }
 
 
+  /* named document nodes */
+
+  object Node
+  {
+    val empty: Node = new Node(Linear_Set())
+  }
+
+  class Node(val commands: Linear_Set[Command])
+  {
+    /* command ranges */
+
+    def command_starts: Iterator[(Command, Int)] =
+      Document.command_starts(commands.iterator)
+
+    def command_start(cmd: Command): Option[Int] =
+      command_starts.find(_._1 == cmd).map(_._2)
+
+    def command_range(i: Int): Iterator[(Command, Int)] =
+      command_starts dropWhile { case (cmd, start) => start + cmd.length <= i }
+
+    def command_range(i: Int, j: Int): Iterator[(Command, Int)] =
+      command_range(i) takeWhile { case (_, start) => start < j }
+
+    def command_at(i: Int): Option[(Command, Int)] =
+    {
+      val range = command_range(i)
+      if (range.hasNext) Some(range.next) else None
+    }
+
+    def proper_command_at(i: Int): Option[Command] =
+      command_at(i) match {
+        case Some((command, _)) =>
+          commands.reverse_iterator(command).find(cmd => !cmd.is_ignored)
+        case None => None
+      }
+  }
+
+
   /* initial document */
 
   val init: Document =
   {
-    val doc = new Document(NO_ID, Map().withDefaultValue(Linear_Set()), Map())
+    val doc = new Document(NO_ID, Map().withDefaultValue(Node.empty), Map())
     doc.assign_states(Nil)
     doc
   }
 
 
 
-  /** document edits **/
+  /** editing **/
+
+  type Node_Text_Edit = (String, List[Text_Edit])  // FIXME None: remove
+
+  type Edit[C] =
+   (String,  // node name
+    Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
 
   def text_edits(session: Session, old_doc: Document, new_id: Version_ID,
-      edits: List[Node.Text_Edit]): (List[Edit[Command]], Document) =
+      edits: List[Node_Text_Edit]): (List[Edit[Command]], Document) =
   {
     require(old_doc.assignment.is_finished)
 
@@ -145,7 +180,7 @@ object Document
       var former_states = old_doc.assignment.join
 
       for ((name, text_edits) <- edits) {
-        val commands0 = nodes(name)
+        val commands0 = nodes(name).commands
         val commands1 = edit_text(text_edits, commands0)
         val commands2 = parse_spans(commands1)
 
@@ -157,7 +192,7 @@ object Document
           inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
         doc_edits += (name -> Some(cmd_edits))
-        nodes += (name -> commands2)
+        nodes += (name -> new Node(commands2))
         former_states --= removed_commands
       }
       (doc_edits.toList, new Document(new_id, nodes, former_states))
@@ -168,39 +203,9 @@ object Document
 
 class Document(
     val id: Document.Version_ID,
-    val nodes: Map[String, Linear_Set[Command]],
+    val nodes: Map[String, Document.Node],
     former_states: Map[Command, Command])  // FIXME !?
 {
-  /* command ranges */
-
-  def commands(name: String): Linear_Set[Command] = nodes.get(name) getOrElse Linear_Set()
-
-  def command_starts(name: String): Iterator[(Command, Int)] =
-    Document.command_starts(commands(name).iterator)
-
-  def command_start(name: String, cmd: Command): Option[Int] =
-    command_starts(name).find(_._1 == cmd).map(_._2)
-
-  def command_range(name: String, i: Int): Iterator[(Command, Int)] =
-    command_starts(name) dropWhile { case (cmd, start) => start + cmd.length <= i }
-
-  def command_range(name: String, i: Int, j: Int): Iterator[(Command, Int)] =
-    command_range(name, i) takeWhile { case (_, start) => start < j }
-
-  def command_at(name: String, i: Int): Option[(Command, Int)] =
-  {
-    val range = command_range(name, i)
-    if (range.hasNext) Some(range.next) else None
-  }
-
-  def proper_command_at(name: String, i: Int): Option[Command] =
-    command_at(name, i) match {
-      case Some((command, _)) =>
-        commands(name).reverse_iterator(command).find(cmd => !cmd.is_ignored)
-      case None => None
-    }
-
-
   /* command state assignment */
 
   val assignment = Future.promise[Map[Command, Command]]
