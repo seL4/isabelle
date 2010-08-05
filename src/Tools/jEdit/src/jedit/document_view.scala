@@ -87,7 +87,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   def extend_styles()
   {
     Swing_Thread.assert()
-    styles = Isabelle_Token_Marker.extend_styles(text_area.getPainter.getStyles)
+    styles = Document_Model.Token_Markup.extend_styles(text_area.getPainter.getStyles)
   }
   extend_styles()
 
