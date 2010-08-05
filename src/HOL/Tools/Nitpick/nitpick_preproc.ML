@@ -614,7 +614,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
         | (t0 as Const (@{const_name Let}, _)) $ t1 $ t2 =>
           t0 $ t1 $ aux ss Ts js skolemizable polar t2
         | Const (x as (s, T)) =>
-          if is_inductive_pred hol_ctxt x andalso
+          if is_real_inductive_pred hol_ctxt x andalso
+             not (is_real_equational_fun hol_ctxt x) andalso
              not (is_well_founded_inductive_pred hol_ctxt x) then
             let
               val gfp = (fixpoint_kind_of_const thy def_table x = Gfp)

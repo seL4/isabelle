@@ -197,13 +197,14 @@ sig
   val fixpoint_kind_of_rhs : term -> fixpoint_kind
   val fixpoint_kind_of_const :
     theory -> const_table -> string * typ -> fixpoint_kind
-  val is_inductive_pred : hol_context -> styp -> bool
+  val is_real_inductive_pred : hol_context -> styp -> bool
   val is_constr_pattern_lhs : Proof.context -> term -> bool
   val is_constr_pattern_formula : Proof.context -> term -> bool
   val nondef_props_for_const :
     theory -> bool -> const_table -> styp -> term list
   val is_choice_spec_fun : hol_context -> styp -> bool
   val is_choice_spec_axiom : theory -> const_table -> term -> bool
+  val is_real_equational_fun : hol_context -> styp -> bool
   val is_equational_fun_but_no_plain_def : hol_context -> styp -> bool
   val codatatype_bisim_axioms : hol_context -> typ -> term list
   val is_well_founded_inductive_pred : hol_context -> styp -> bool
@@ -1401,13 +1402,9 @@ fun is_real_inductive_pred ({thy, stds, fast_descrs, def_table, intro_table,
                              ...} : hol_context) x =
   fixpoint_kind_of_const thy def_table x <> NoFp andalso
   not (null (def_props_for_const thy stds fast_descrs intro_table x))
-fun is_real_equational_fun ({thy, stds, fast_descrs, simp_table, psimp_table,
-                             ...} : hol_context) x =
-  exists (fn table => not (null (def_props_for_const thy stds fast_descrs table
-                                                     x)))
-         [!simp_table, psimp_table]
-fun is_inductive_pred hol_ctxt =
-  is_real_inductive_pred hol_ctxt andf (not o is_real_equational_fun hol_ctxt)
+fun is_inductive_pred hol_ctxt (x as (s, _)) =
+  is_real_inductive_pred hol_ctxt x orelse String.isPrefix ubfp_prefix s orelse
+  String.isPrefix lbfp_prefix s
 
 fun lhs_of_equation t =
   case t of
@@ -1489,9 +1486,13 @@ fun is_choice_spec_axiom thy choice_spec_table t =
                     exists (curry (op aconv) t o axiom_for_choice_spec thy) ts)
                 choice_spec_table
 
+fun is_real_equational_fun ({thy, stds, fast_descrs, simp_table, psimp_table,
+                             ...} : hol_context) x =
+  exists (fn table => not (null (def_props_for_const thy stds fast_descrs table
+                                                     x)))
+         [!simp_table, psimp_table]
 fun is_equational_fun_but_no_plain_def hol_ctxt =
-  (is_real_equational_fun hol_ctxt orf is_real_inductive_pred hol_ctxt orf
-   (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
+  is_real_equational_fun hol_ctxt orf is_inductive_pred hol_ctxt
 
 (** Constant unfolding **)
 
