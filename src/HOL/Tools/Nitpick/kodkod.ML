@@ -880,10 +880,9 @@ fun strip_blanks [] = []
       strip_blanks (s1 :: s2 :: ss)
   | strip_blanks (s :: ss) = s :: strip_blanks ss
 
-fun scan_non_empty_list scan = scan ::: Scan.repeat ($$ "," |-- scan)
-fun scan_list scan = scan_non_empty_list scan || Scan.succeed []
-val scan_nat = Scan.repeat1 (Scan.one Symbol.is_ascii_digit)
-               >> (the o Int.fromString o space_implode "")
+val scan_nat =
+  Scan.repeat1 (Scan.one Symbol.is_ascii_digit)
+  >> (the o Int.fromString o space_implode "")
 fun scan_rel_name new_kodkodi =
   ($$ "s" |-- scan_nat >> pair 1
    || $$ "r" |-- scan_nat >> pair 2
@@ -893,20 +892,22 @@ fun scan_rel_name new_kodkodi =
                                else if j mod 2 = 0 then j div 2
                                else ~(j + 1) div 2))
 val scan_atom = $$ "A" |-- scan_nat
-val scan_tuple = $$ "[" |-- scan_list scan_atom --| $$ "]"
-val scan_tuple_set = $$ "[" |-- scan_list scan_tuple --| $$ "]"
-fun scan_assignment new_kodkodi =
-  (scan_rel_name new_kodkodi --| $$ "=") -- scan_tuple_set
-fun scan_instance new_kodkodi =
-  Scan.this_string "relations:"
-  |-- $$ "{" |-- scan_list (scan_assignment new_kodkodi) --| $$ "}"
-
+fun parse_non_empty_list scan = scan ::: Scan.repeat ($$ "," |-- scan)
+fun parse_list scan = parse_non_empty_list scan || Scan.succeed []
+val parse_tuple = $$ "[" |-- parse_list scan_atom --| $$ "]"
+val parse_tuple_set = $$ "[" |-- parse_list parse_tuple --| $$ "]"
+fun parse_assignment new_kodkodi =
+  (scan_rel_name new_kodkodi --| $$ "=") -- parse_tuple_set
 fun parse_instance new_kodkodi =
+  Scan.this_string "relations:"
+  |-- $$ "{" |-- parse_list (parse_assignment new_kodkodi) --| $$ "}"
+
+fun extract_instance new_kodkodi =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ =>
-                                raise SYNTAX ("Kodkod.parse_instance",
+                                raise SYNTAX ("Kodkod.extract_instance",
                                               "ill-formed Kodkodi output"))
-                            (scan_instance new_kodkodi)))
+                            (parse_instance new_kodkodi)))
   o strip_blanks o explode
 
 val problem_marker = "*** PROBLEM "
@@ -922,7 +923,7 @@ fun read_next_instance new_kodkodi s =
     if Substring.isEmpty s then
       raise SYNTAX ("Kodkod.read_next_instance", "expected \"INSTANCE\" marker")
     else
-      read_section_body instance_marker s |> parse_instance new_kodkodi
+      read_section_body instance_marker s |> extract_instance new_kodkodi
   end
 
 fun read_next_outcomes new_kodkodi j (s, ps, js) =
