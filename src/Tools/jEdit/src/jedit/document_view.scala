@@ -106,7 +106,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
           Swing_Thread.now {
             // FIXME cover doc states as well!!?
             val document = model.recent_document()
-            if (changed.exists(document.commands.contains))
+            if (changed.exists(document.commands(model.thy_name).contains))
               full_repaint(document, changed)
           }
 
@@ -122,7 +122,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     val buffer = model.buffer
     var visible_change = false
 
-    for ((command, start) <- document.command_starts) {
+    for ((command, start) <- document.command_starts(model.thy_name)) {
       if (changed(command)) {
         val stop = start + command.length
         val line1 = buffer.getLineOfOffset(model.to_current(document, start))
@@ -154,11 +154,12 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
         val command_range: Iterable[(Command, Int)] =
         {
-          val range = document.command_range(from_current(start(0)))
+          val range = document.command_range(model.thy_name, from_current(start(0)))
           if (range.hasNext) {
             val (cmd0, start0) = range.next
             new Iterable[(Command, Int)] {
-              def iterator = Document.command_starts(document.commands.iterator(cmd0), start0)
+              def iterator =
+                Document.command_starts(document.commands(model.thy_name).iterator(cmd0), start0)
             }
           }
           else Iterable.empty
@@ -197,7 +198,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     {
       val document = model.recent_document()
       val offset = model.from_current(document, text_area.xyToOffset(x, y))
-      document.command_at(offset) match {
+      document.command_at(model.thy_name, offset) match {
         case Some((command, command_start)) =>
           document.current_state(command).type_at(offset - command_start) match {
             case Some(text) => Isabelle.tooltip(text)
@@ -212,7 +213,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   /* caret handling */
 
   def selected_command(): Option[Command] =
-    model.recent_document().proper_command_at(text_area.getCaretPosition)
+    model.recent_document().proper_command_at(model.thy_name, text_area.getCaretPosition)
 
   private val caret_listener = new CaretListener {
     private val delay = Swing_Thread.delay_last(session.input_delay) {
@@ -266,7 +267,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       def to_current(pos: Int) = model.to_current(document, pos)
       val saved_color = gfx.getColor  // FIXME needed!?
       try {
-        for ((command, start) <- document.command_starts if !command.is_ignored) {
+        for ((command, start) <- document.command_starts(model.thy_name) if !command.is_ignored) {
           val line1 = buffer.getLineOfOffset(to_current(start))
           val line2 = buffer.getLineOfOffset(to_current(start + command.length)) + 1
           val y = line_to_y(line1)

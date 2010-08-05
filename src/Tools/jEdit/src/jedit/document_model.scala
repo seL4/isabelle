@@ -71,10 +71,10 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   /* history */
 
-  private val document_0 = session.begin_document(buffer.getName)
+  // FIXME proper error handling
+  val thy_name = Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath))._2
 
-  @volatile private var history =  // owned by Swing thread
-    new Change(document_0.id, None, Nil, Future.value(Nil, document_0))
+  @volatile private var history = Change.init // owned by Swing thread
 
   def current_change(): Change = history
   def recent_document(): Document = current_change().ancestors.find(_.is_assigned).get.join_document
@@ -86,7 +86,8 @@ class Document_Model(val session: Session, val buffer: Buffer)
   {
     Swing_Thread.assert()
     (edits_buffer.toList /:
-      current_change.ancestors.takeWhile(_.id != doc.id))((edits, change) => change.edits ::: edits)
+      current_change.ancestors.takeWhile(_.id != doc.id))((edits, change) =>
+        (for ((name, eds) <- change.edits if name == thy_name) yield eds).flatten ::: edits)
   }
 
   def from_current(doc: Document, offset: Int): Int =
@@ -102,7 +103,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
 
   private val edits_delay = Swing_Thread.delay_last(session.input_delay) {
     if (!edits_buffer.isEmpty) {
-      val new_change = current_change().edit(session, edits_buffer.toList)
+      val new_change = current_change().edit(session, List((thy_name, edits_buffer.toList)))
       edits_buffer.clear
       history = new_change
       new_change.result.map(_ => session.input(new_change))

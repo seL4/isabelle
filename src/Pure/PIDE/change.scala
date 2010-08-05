@@ -8,11 +8,16 @@ Changes of plain text.
 package isabelle
 
 
+object Change
+{
+  val init = new Change(Document.NO_ID, None, Nil, Future.value(Nil, Document.init))
+}
+
 class Change(
-  val id: Isar_Document.Document_ID,
+  val id: Document.Version_ID,
   val parent: Option[Change],
-  val edits: List[Text_Edit],
-  val result: Future[(List[Document.Edit], Document)])
+  val edits: List[Document.Node.Text_Edit],
+  val result: Future[(List[Document.Edit[Command]], Document)])
 {
   def ancestors: Iterator[Change] = new Iterator[Change]
   {
@@ -28,10 +33,10 @@ class Change(
   def join_document: Document = result.join._2
   def is_assigned: Boolean = result.is_finished && join_document.assignment.is_finished
 
-  def edit(session: Session, edits: List[Text_Edit]): Change =
+  def edit(session: Session, edits: List[Document.Node.Text_Edit]): Change =
   {
     val new_id = session.create_id()
-    val result: Future[(List[Document.Edit], Document)] =
+    val result: Future[(List[Document.Edit[Command]], Document)] =
       Future.fork {
         val old_doc = join_document
         old_doc.await_assignment
