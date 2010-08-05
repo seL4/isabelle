@@ -68,14 +68,14 @@ fun read pos str =
   end;
 
 
-(* file formats *)
+(* file name *)
 
 val thy_path = Path.ext "thy" o Path.basic;
 
 fun split_thy_path path =
   (case Path.split_ext path of
     (path', "thy") => (Path.dir path', Path.implode (Path.base path'))
-  | _ => error ("Bad theory file specification " ^ Path.implode path));
+  | _ => error ("Bad theory file specification: " ^ Path.implode path));
 
 fun consistent_name name name' =
   if name = name' then ()

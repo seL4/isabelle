@@ -9,6 +9,7 @@ package isabelle
 
 import scala.collection.mutable
 import scala.util.parsing.input.{Reader, CharSequenceReader}
+import scala.util.matching.Regex
 
 import java.io.File
 
@@ -24,6 +25,19 @@ object Thy_Header
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
   final case class Header(val name: String, val imports: List[String], val uses: List[String])
+
+
+  /* file name */
+
+  val Thy_Path1 = new Regex("([^/]*)\\.thy")
+  val Thy_Path2 = new Regex("(.*/)([^/]*)\\.thy")
+
+  def split_thy_path(path: String): (String, String) =
+    path match {
+      case Thy_Path1(name) => ("", name)
+      case Thy_Path2(dir, name) => (dir, name)
+      case _ => error("Bad theory file specification: " + path)
+    }
 }
 
 
