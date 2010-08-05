@@ -104,10 +104,10 @@ fun the_node (document: document) name =
 fun edit_node (id, SOME id2) = insert_after id id2
   | edit_node (id, NONE) = delete_after id;
 
-fun edit_nodes (name, NONE) = Graph.del_node name
-  | edit_nodes (name, SOME edits) =
+fun edit_nodes (name, SOME edits) =
       Graph.default_node (name, empty_node) #>
-      Graph.map_node name (fold edit_node edits);
+      Graph.map_node name (fold edit_node edits)
+  | edit_nodes (name, NONE) = Graph.del_node name;
 
 
 
@@ -241,7 +241,7 @@ fun report_updates updates =
 in
 
 fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) edits =
-  NAMED_CRITICAL "Isar" (fn () => exception_trace (fn () =>
+  NAMED_CRITICAL "Isar" (fn () =>
     let
       val old_document = the_document old_id;
       val new_document = fold edit_nodes edits old_document;
@@ -264,7 +264,7 @@ fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) ed
       val _ = define_document new_id new_document';
       val _ = report_updates (flat updatess);
       val _ = execute new_document';
-    in () end));
+    in () end);
 
 end;
 
