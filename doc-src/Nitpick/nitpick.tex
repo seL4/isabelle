@@ -2585,7 +2585,11 @@ constant. For functions defined using the \textbf{primrec}, \textbf{function},
 and \textbf{nominal\_\allowbreak primrec} packages, this corresponds to the
 \textit{simps} rules. The equations must be of the form
 
-\qquad $c~t_1~\ldots\ t_n \;\bigl[{=}\; u\bigr].$
+\qquad $c~t_1~\ldots\ t_n \;\bigl[{=}\; u\bigr]$
+
+or
+
+\qquad $c~t_1~\ldots\ t_n \,\equiv\, u.$
 
 \flushitem{\textit{nitpick\_psimp}}
 
@@ -2595,7 +2599,11 @@ of a constant. For functions defined using the \textbf{function} package, this
 corresponds to the \textit{psimps} rules. The conditional equations must be of
 the form
 
-\qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \;\bigl[{=}\; u\bigr]$.
+\qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \;\bigl[{=}\; u\bigr]$
+
+or
+
+\qquad $\lbrakk P_1;\> \ldots;\> P_m\rbrakk \,\Longrightarrow\, c\ t_1\ \ldots\ t_n \,\equiv\, u$.
 
 \flushitem{\textit{nitpick\_choice\_spec}}
 
@@ -2633,7 +2641,7 @@ equationally).
 
 or
 
-\qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{gfp}~(\lambda f.\; t)$
+\qquad $c~{?}x_1~\ldots~{?}x_m \,\equiv\, \lambda y_1~\ldots~y_n.\; \textit{gfp}~(\lambda f.\; t).$
 
 Nitpick assumes that the definition was made using a (co)inductive package
 based on the user-specified introduction rules registered in Isabelle's internal

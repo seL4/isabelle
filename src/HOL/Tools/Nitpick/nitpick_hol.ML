@@ -1727,7 +1727,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
 
 (** Axiom extraction/generation **)
 
-fun equationalize t =
+fun equationalize ctxt tag t =
   let val (prems, concl) = Logic.strip_horn t in
     Logic.list_implies (prems,
         case concl of
@@ -1735,8 +1735,15 @@ fun equationalize t =
           extensionalize_term concl
         | @{const Trueprop} $ t' =>
           @{const Trueprop} $ HOLogic.mk_eq (t', @{const True})
-        | _ => extensionalize_term concl)
+        | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
+          extensionalize_term (Const (@{const_name "op ="}, T --> T --> bool_T)
+                               $ t1 $ t2)
+        | _ => (warning ("Ignoring " ^ quote tag ^ " for non-equation" ^
+                         quote (Syntax.string_of_term ctxt t) ^ ".");
+                raise SAME ()))
+    |> SOME
   end
+  handle SAME () => NONE
 
 fun pair_for_prop t =
   case term_under_def t of
@@ -1756,10 +1763,12 @@ fun paired_with_consts t = map (rpair t) (Term.add_const_names t [])
 fun const_nondef_table ts =
   fold (append o paired_with_consts) ts [] |> AList.group (op =) |> Symtab.make
 
-val const_simp_table =
-  def_table_for (map (equationalize o prop_of) o Nitpick_Simps.get)
-val const_psimp_table =
-  def_table_for (map (equationalize o prop_of) o Nitpick_Psimps.get)
+fun const_simp_table ctxt =
+  def_table_for (map_filter (equationalize ctxt "nitpick_simp" o prop_of)
+                 o Nitpick_Simps.get) ctxt
+fun const_psimp_table ctxt =
+  def_table_for (map_filter (equationalize ctxt "nitpick_psimp" o prop_of)
+                 o Nitpick_Psimps.get) ctxt
 
 fun const_choice_spec_table ctxt subst =
   map (subst_atomic subst o prop_of) (Nitpick_Choice_Specs.get ctxt)
