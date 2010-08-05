@@ -451,7 +451,7 @@ fun prep_declaration prep activate raw_import init_body raw_elems context =
     (* Declare parameters and imported facts *)
     val context' = context |>
       fix_params fixed |>
-      fold (Context.proof_map o Locale.activate_facts) deps;
+      fold Locale.activate_declarations deps;
     val (elems', _) = context' |>
       ProofContext.set_stmt true |>
       fold_map activate elems;

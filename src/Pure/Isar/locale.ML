@@ -53,7 +53,7 @@ sig
 
   (* Activation *)
   val activate_declarations: string * morphism -> Proof.context -> Proof.context
-  val activate_facts: string * morphism -> Context.generic -> Context.generic
+  val activate_facts: morphism -> string * morphism -> Context.generic -> Context.generic
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
@@ -89,7 +89,7 @@ struct
 datatype ctxt = datatype Element.ctxt;
 
 
-(*** Theory data ***)
+(*** Locales ***)
 
 datatype locale = Loc of {
   (** static part **)
@@ -155,7 +155,7 @@ fun change_locale name =
   Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
 
 
-(*** Primitive operations ***)
+(** Primitive operations **)
 
 fun params_of thy = snd o #parameters o the_locale thy;
 
@@ -197,9 +197,7 @@ fun pretty_reg thy (name, morph) =
   end;
 
 
-(*** Activate context elements of locale ***)
-
-(** Identifiers: activated locales in theory or proof context **)
+(*** Identifiers: activated locales in theory or proof context ***)
 
 (* subsumption *)
 fun ident_le thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
@@ -285,67 +283,7 @@ fun roundup thy activate_dep export (name, morph) (marked, input) =
 end;
 
 
-(* Declarations, facts and entire locale content *)
-
-fun activate_syntax_decls (name, morph) context =
-  let
-    val thy = Context.theory_of context;
-    val {syntax_decls, ...} = the_locale thy name;
-  in
-    context
-    |> fold_rev (fn (decl, _) => decl morph) syntax_decls
-  end;
-
-fun activate_notes activ_elem transfer thy (name, morph) input =
-  let
-    val {notes, ...} = the_locale thy name;
-    fun activate ((kind, facts), _) input =
-      let
-        val facts' = facts |> Element.facts_map (Element.morph_ctxt (transfer input $> morph))
-      in activ_elem (Notes (kind, facts')) input end;
-  in
-    fold_rev activate notes input
-  end;
-
-fun activate_all name thy activ_elem transfer (marked, input) =
-  let
-    val {parameters = (_, params), spec = (asm, defs), ...} = the_locale thy name;
-    val input' = input |>
-      (not (null params) ?
-        activ_elem (Fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params))) |>
-      (* FIXME type parameters *)
-      (case asm of SOME A => activ_elem (Assumes [(Attrib.empty_binding, [(A, [])])]) | _ => I) |>
-      (if not (null defs)
-        then activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs))
-        else I);
-    val activate = activate_notes activ_elem transfer thy;
-  in
-    roundup thy activate Morphism.identity (name, Morphism.identity) (marked, input')
-  end;
-
-
-(** Public activation functions **)
-
-fun activate_declarations dep = Context.proof_map (fn context =>
-  let
-    val thy = Context.theory_of context;
-  in
-    roundup thy activate_syntax_decls Morphism.identity dep (get_idents context, context)
-    |-> put_idents
-  end);
-
-fun activate_facts dep context =
-  let
-    val thy = Context.theory_of context;
-    val activate = activate_notes Element.init (Element.transfer_morphism o Context.theory_of) thy;
-  in roundup thy activate Morphism.identity dep (get_idents context, context) |-> put_idents end;
-
-fun init name thy =
-  activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
-    ([], Context.Proof (ProofContext.init_global thy)) |-> put_idents |> Context.proof_of;
-
-
-(*** Registrations: interpretations in theories ***)
+(*** Registrations: interpretations in theories or proof contexts ***)
 
 structure Idtab = Table(type key = string * term list val ord = ident_ord);
 
@@ -426,27 +364,73 @@ fun registrations_of context name =
 
 fun all_registrations context = get_registrations context I;
 
-fun activate_notes' activ_elem transfer context export (name, morph) input =
+
+(*** Activate context elements of locale ***)
+
+(* Declarations, facts and entire locale content *)
+
+fun activate_syntax_decls (name, morph) context =
+  let
+    val thy = Context.theory_of context;
+    val {syntax_decls, ...} = the_locale thy name;
+  in
+    context
+    |> fold_rev (fn (decl, _) => decl morph) syntax_decls
+  end;
+
+fun activate_notes activ_elem transfer context export' (name, morph) input =
   let
     val thy = Context.theory_of context;
     val {notes, ...} = the_locale thy name;
     fun activate ((kind, facts), _) input =
       let
-        val mixin = collect_mixins context (name, morph $> export);
-        val facts' = facts |> Element.facts_map (Element.morph_ctxt (transfer input $> morph $> mixin $> export))
+        val mixin = case export' of NONE => Morphism.identity
+         | SOME export => collect_mixins context (name, morph $> export) $> export;
+        val facts' = facts |> Element.facts_map (Element.morph_ctxt (transfer input $> morph $> mixin))
       in activ_elem (Notes (kind, facts')) input end;
   in
     fold_rev activate notes input
   end;
 
-fun activate_facts' export dep context =
+fun activate_all name thy activ_elem transfer (marked, input) =
+  let
+    val {parameters = (_, params), spec = (asm, defs), ...} = the_locale thy name;
+    val input' = input |>
+      (not (null params) ?
+        activ_elem (Fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params))) |>
+      (* FIXME type parameters *)
+      (case asm of SOME A => activ_elem (Assumes [(Attrib.empty_binding, [(A, [])])]) | _ => I) |>
+      (if not (null defs)
+        then activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs))
+        else I);
+    val activate = activate_notes activ_elem transfer (Context.Theory thy) NONE;
+  in
+    roundup thy activate Morphism.identity (name, Morphism.identity) (marked, input')
+  end;
+
+
+(** Public activation functions **)
+
+fun activate_declarations dep = Context.proof_map (fn context =>
   let
     val thy = Context.theory_of context;
-    val activate = activate_notes' Element.init (Element.transfer_morphism o Context.theory_of) context export;
+  in
+    roundup thy activate_syntax_decls Morphism.identity dep (get_idents context, context)
+    |-> put_idents
+  end);
+
+fun activate_facts export dep context =
+  let
+    val thy = Context.theory_of context;
+    val activate = activate_notes Element.init (Element.transfer_morphism o Context.theory_of) context (SOME export);
   in roundup thy activate export dep (get_idents context, context) |-> put_idents end;
 
+fun init name thy =
+  activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
+    ([], Context.Proof (ProofContext.init_global thy)) |-> put_idents |> Context.proof_of;
 
-(* Add and extend registrations *)
+
+(*** Add and extend registrations ***)
 
 fun amend_registration (name, morph) mixin export context =
   let
@@ -484,7 +468,7 @@ fun add_registration (name, base_morph) mixin export context =
       |> (case mixin of NONE => I
            | SOME mixin => amend_registration (name, morph) mixin export)
       (* activate import hierarchy as far as not already active *)
-      |> activate_facts' export (name, morph)
+      |> activate_facts export (name, morph)
   end;
 
 
