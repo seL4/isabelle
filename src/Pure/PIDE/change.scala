@@ -65,17 +65,20 @@ class Change(
   def snapshot(name: String, extra_edits: List[Text_Edit]): Change.Snapshot =
   {
     val latest = this
-    val stable = latest.ancestors.find(_.is_assigned).get
-    val changes =
-      (extra_edits /: latest.ancestors.takeWhile(_ != stable))((edits, change) =>
+    val stable = latest.ancestors.find(_.is_assigned)
+    require(stable.isDefined)
+
+    val edits =
+      (extra_edits /: latest.ancestors.takeWhile(_ != stable.get))((edits, change) =>
           (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+    lazy val reverse_edits = edits.reverse
 
     new Change.Snapshot {
-      val document = stable.join_document
+      val document = stable.get.join_document
       val node = document.nodes(name)
-      val is_outdated = !(extra_edits.isEmpty && latest == stable)
-      def convert(offset: Int): Int = (offset /: changes)((i, change) => change.convert(i))
-      def revert(offset: Int): Int = (offset /: changes.reverse)((i, change) => change.revert(i))  // FIXME fold_rev (!?)
+      val is_outdated = !(extra_edits.isEmpty && latest == stable.get)
+      def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
+      def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
     }
   }
 }
