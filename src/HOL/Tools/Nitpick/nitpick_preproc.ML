@@ -730,8 +730,9 @@ fun special_fun_aconv ((x1, js1, ts1), (x2, js2, ts2)) =
   x1 = x2 andalso js1 = js2 andalso length ts1 = length ts2 andalso
   forall (op aconv) (ts1 ~~ ts2)
 
-fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
-                                            special_funs, ...}) depth t =
+fun specialize_consts_in_term
+        (hol_ctxt as {ctxt, thy, stds, specialize, fast_descrs, def_table,
+                      simp_table, special_funs, ...}) depth t =
   if not specialize orelse depth > special_max_depth then
     t
   else
@@ -741,7 +742,12 @@ fun specialize_consts_in_term (hol_ctxt as {specialize, simp_table,
       fun aux args Ts (Const (x as (s, T))) =
           ((if not (member (op =) blacklist x) andalso not (null args) andalso
                not (String.isPrefix special_prefix s) andalso
-               is_equational_fun hol_ctxt x then
+               not (is_built_in_const thy stds fast_descrs x) andalso
+               (is_equational_fun_but_no_plain_def hol_ctxt x orelse
+                (is_some (def_of_const thy def_table x) andalso
+                 not (is_of_class_const thy x) andalso
+                 not (is_constr ctxt stds x) andalso
+                 not (is_choice_spec_fun hol_ctxt x))) then
               let
                 val eligible_args = filter (is_eligible_arg Ts o snd)
                                            (index_seq 0 (length args) ~~ args)

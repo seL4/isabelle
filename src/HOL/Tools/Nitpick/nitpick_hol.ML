@@ -205,7 +205,6 @@ sig
   val is_choice_spec_fun : hol_context -> styp -> bool
   val is_choice_spec_axiom : theory -> const_table -> term -> bool
   val is_equational_fun_but_no_plain_def : hol_context -> styp -> bool
-  val is_equational_fun : hol_context -> styp -> bool
   val codatatype_bisim_axioms : hol_context -> typ -> term list
   val is_well_founded_inductive_pred : hol_context -> styp -> bool
   val unrolled_inductive_pred_const : hol_context -> bool -> styp -> term
@@ -1493,10 +1492,6 @@ fun is_choice_spec_axiom thy choice_spec_table t =
 fun is_equational_fun_but_no_plain_def hol_ctxt =
   (is_real_equational_fun hol_ctxt orf is_real_inductive_pred hol_ctxt orf
    (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
-fun is_equational_fun (hol_ctxt as {ctxt, thy, def_table, ...}) (x as (s, _)) =
-  is_equational_fun_but_no_plain_def hol_ctxt x orelse
-  (not (is_choice_spec_fun hol_ctxt x) andalso
-   is_some (def_of_const thy def_table x))
 
 (** Constant unfolding **)
 
