@@ -74,8 +74,8 @@ class Change(
       val document = stable.join_document
       val node = document.nodes(name)
       val is_outdated = !(extra_edits.isEmpty && latest == stable)
-      def convert(offset: Int): Int = (offset /: changes)((i, change) => change after i)
-      def revert(offset: Int): Int = (offset /: changes.reverse)((i, change) => change before i)  // FIXME fold_rev (!?)
+      def convert(offset: Int): Int = (offset /: changes)((i, change) => change.convert(i))
+      def revert(offset: Int): Int = (offset /: changes.reverse)((i, change) => change.revert(i))  // FIXME fold_rev (!?)
     }
   }
 }
