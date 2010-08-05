@@ -2860,6 +2860,10 @@ Such theorems are considered bad style because they rely on the internal
 representation of functions synthesized by Isabelle, which is an implementation
 detail.
 
+\item[$\bullet$] Similarly, Nitpick might find spurious counterexamples for
+theorems that rely on the use of the indefinite description operator internally
+by \textbf{specification} and \textbf{quot\_type}.
+
 \item[$\bullet$] Axioms that restrict the possible values of the
 \textit{undefined} constant are in general ignored.
 

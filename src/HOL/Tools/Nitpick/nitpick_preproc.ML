@@ -961,7 +961,7 @@ fun axioms_for_term
                     (nondef_props_for_const thy true choice_spec_table x) accum
              else if is_abs_fun ctxt x then
                if is_quot_type thy (range_type T) then
-                 raise NOT_SUPPORTED "\"Abs_\" function of quotient type"
+                 accum
                else
                  accum |> fold (add_nondef_axiom depth)
                                (nondef_props_for_const thy false nondef_table x)
@@ -972,7 +972,7 @@ fun axioms_for_term
                                                     (extra_table def_table s) x)
              else if is_rep_fun ctxt x then
                if is_quot_type thy (domain_type T) then
-                 raise NOT_SUPPORTED "\"Rep_\" function of quotient type"
+                 accum
                else
                  accum |> fold (add_nondef_axiom depth)
                                (nondef_props_for_const thy false nondef_table x)

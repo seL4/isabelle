@@ -1637,6 +1637,9 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
               select_nth_constr_arg ctxt stds x (Bound 0) n res_T), [])
       | select_nth_constr_arg_with_args depth Ts x (t :: ts) n res_T =
         (select_nth_constr_arg ctxt stds x (do_term depth Ts t) n res_T, ts)
+    and quot_rep_of depth Ts abs_T rep_T ts =
+      select_nth_constr_arg_with_args depth Ts
+          (@{const_name Quot}, rep_T --> abs_T) ts 0 rep_T
     and do_const depth Ts t (x as (s, T)) ts =
       case AList.lookup (op =) ersatz_table s of
         SOME s' =>
@@ -1681,11 +1684,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                                          rep_T --> rep_T) $ Bound 0)), ts)
                 end
               else if is_quot_rep_fun ctxt x then
-                let
-                  val abs_T = domain_type T
-                  val rep_T = range_type T
-                  val x' = (@{const_name Quot}, rep_T --> abs_T)
-                in select_nth_constr_arg_with_args depth Ts x' ts 0 rep_T end
+                quot_rep_of depth Ts (domain_type T) (range_type T) ts
               else if is_record_get thy x then
                 case length ts of
                   0 => (do_term depth Ts (eta_expand Ts t 1), [])
@@ -1698,13 +1697,40 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                             (do_term depth Ts (hd ts))
                             (do_term depth Ts (nth ts 1)), [])
                 | n => (do_term depth Ts (eta_expand Ts t (2 - n)), [])
+              else if is_abs_fun ctxt x andalso
+                      is_quot_type thy (range_type T) then
+                let
+                  val abs_T = range_type T
+                  val rep_T = domain_type (domain_type T)
+                  val eps_fun = Const (@{const_name Eps},
+                                       (rep_T --> bool_T) --> rep_T)
+                  val normal_fun = 
+                    Const (quot_normal_name_for_type ctxt abs_T,
+                           rep_T --> rep_T)
+                  val abs_fun = Const (@{const_name Quot}, rep_T --> abs_T)
+                in
+                  (Abs (Name.uu, rep_T --> bool_T,
+                        abs_fun $ (normal_fun $ (eps_fun $ Bound 0)))
+                   |> do_term (depth + 1) Ts, ts)
+                end
               else if is_rep_fun ctxt x then
                 let val x' = mate_of_rep_fun ctxt x in
                   if is_constr ctxt stds x' then
                     select_nth_constr_arg_with_args depth Ts x' ts 0
                                                     (range_type T)
+                  else if is_quot_type thy (domain_type T) then
+                    let
+                      val abs_T = domain_type T
+                      val rep_T = domain_type (range_type T)
+                      val (rep_fun, _) = quot_rep_of depth Ts abs_T rep_T []
+                      val equiv_rel = equiv_relation_for_quot_type thy abs_T
+                    in
+                      (Abs (Name.uu, abs_T, equiv_rel $ (rep_fun $ Bound 0)),
+                       ts)
+                    end
                   else
-                    (Const x, ts)
+                    raise TERM ("Nitpick_HOL.unfold_defs_in_term.do_const",
+                                [Const x])
                 end
               else if is_equational_fun_but_no_plain_def hol_ctxt x orelse
                       is_choice_spec_fun hol_ctxt x then
@@ -1866,12 +1892,13 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
     val y_var = Var (("y", 0), rep_T)
     val x = (@{const_name Quot}, rep_T --> abs_T)
     val sel_a_t = select_nth_constr_arg ctxt stds x a_var 0 rep_T
-    val normal_t = Const (quot_normal_name_for_type ctxt abs_T, rep_T --> rep_T)
-    val normal_x = normal_t $ x_var
-    val normal_y = normal_t $ y_var
+    val normal_fun =
+      Const (quot_normal_name_for_type ctxt abs_T, rep_T --> rep_T)
+    val normal_x = normal_fun $ x_var
+    val normal_y = normal_fun $ y_var
     val is_unknown_t = Const (@{const_name is_unknown}, rep_T --> bool_T)
   in
-    [Logic.mk_equals (normal_t $ sel_a_t, sel_a_t),
+    [Logic.mk_equals (normal_fun $ sel_a_t, sel_a_t),
      Logic.list_implies
          ([@{const Not} $ (is_unknown_t $ normal_x),
            @{const Not} $ (is_unknown_t $ normal_y),

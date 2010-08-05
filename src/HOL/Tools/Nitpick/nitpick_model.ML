@@ -779,7 +779,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
          (Const (step_name, T --> T) $ Const (unprefix step_prefix s, T),
           format_type default_format default_format T)
        else if String.isPrefix quot_normal_prefix s then
-         let val t = Const (nitpick_prefix ^ "normalize quotient type", T) in
+         let val t = Const (nitpick_prefix ^ "quotient normal form", T) in
            (t, format_term_type thy def_table formats t)
          end
        else if String.isPrefix skolem_prefix s then
