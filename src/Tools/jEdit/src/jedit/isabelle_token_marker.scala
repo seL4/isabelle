@@ -165,10 +165,10 @@ class Isabelle_Token_Marker(model: Document_Model) extends TokenMarker
     var next_x = start
     for {
       (command, command_start) <-
-        snapshot.node.command_range(snapshot.from_current(start), snapshot.from_current(stop))
+        snapshot.node.command_range(snapshot.revert(start), snapshot.revert(stop))
       markup <- snapshot.document.current_state(command).highlight.flatten
-      val abs_start = snapshot.to_current(command_start + markup.start)
-      val abs_stop = snapshot.to_current(command_start + markup.stop)
+      val abs_start = snapshot.convert(command_start + markup.start)
+      val abs_stop = snapshot.convert(command_start + markup.stop)
       if (abs_stop > start)
       if (abs_start < stop)
       val token_start = (abs_start - start) max 0
