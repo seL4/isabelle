@@ -120,16 +120,14 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   {
     Swing_Thread.assert()
 
-    val document = snapshot.document
-    val doc = snapshot.node
     val buffer = model.buffer
     var visible_change = false
 
-    for ((command, start) <- doc.command_starts) {
+    for ((command, start) <- snapshot.node.command_starts) {
       if (changed(command)) {
         val stop = start + command.length
-        val line1 = buffer.getLineOfOffset(model.to_current(document, start))
-        val line2 = buffer.getLineOfOffset(model.to_current(document, stop))
+        val line1 = buffer.getLineOfOffset(snapshot.to_current(start))
+        val line2 = buffer.getLineOfOffset(snapshot.to_current(stop))
         if (line2 >= text_area.getFirstLine &&
             line1 <= text_area.getFirstLine + text_area.getVisibleLines)
           visible_change = true
@@ -152,18 +150,14 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     {
       Swing_Thread.now {
         val snapshot = model.snapshot()
-        val document = snapshot.document
-        val doc = snapshot.node
-        def from_current(pos: Int) = model.from_current(document, pos)
-        def to_current(pos: Int) = model.to_current(document, pos)
 
         val command_range: Iterable[(Command, Int)] =
         {
-          val range = doc.command_range(from_current(start(0)))
+          val range = snapshot.node.command_range(snapshot.from_current(start(0)))
           if (range.hasNext) {
             val (cmd0, start0) = range.next
             new Iterable[(Command, Int)] {
-              def iterator = Document.command_starts(doc.commands.iterator(cmd0), start0)
+              def iterator = Document.command_starts(snapshot.node.commands.iterator(cmd0), start0)
             }
           }
           else Iterable.empty
@@ -177,15 +171,17 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               val line_start = start(i)
               val line_end = model.visible_line_end(line_start, end(i))
 
-              val a = from_current(line_start)
-              val b = from_current(line_end)
+              val a = snapshot.from_current(line_start)
+              val b = snapshot.from_current(line_end)
               val cmds = command_range.iterator.
                 dropWhile { case (cmd, c) => c + cmd.length <= a } .
                 takeWhile { case (_, c) => c < b }
 
               for ((command, command_start) <- cmds if !command.is_ignored) {
-                val p = text_area.offsetToXY(line_start max to_current(command_start))
-                val q = text_area.offsetToXY(line_end min to_current(command_start + command.length))
+                val p = text_area.offsetToXY(
+                  line_start max snapshot.to_current(command_start))
+                val q = text_area.offsetToXY(
+                  line_end min snapshot.to_current(command_start + command.length))
                 assert(p.y == q.y)
                 gfx.setColor(Document_View.choose_color(snapshot, command))
                 gfx.fillRect(p.x, y, q.x - p.x, line_height)
@@ -201,12 +197,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     override def getToolTipText(x: Int, y: Int): String =
     {
       val snapshot = model.snapshot()
-      val document = snapshot.document
-      val doc = snapshot.node
-      val offset = model.from_current(document, text_area.xyToOffset(x, y))
-      doc.command_at(offset) match {
+      val offset = snapshot.from_current(text_area.xyToOffset(x, y))
+      snapshot.node.command_at(offset) match {
         case Some((command, command_start)) =>
-          document.current_state(command).type_at(offset - command_start) match {
+          snapshot.document.current_state(command).type_at(offset - command_start) match {
             case Some(text) => Isabelle.tooltip(text)
             case None => null
           }
@@ -270,12 +264,11 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       super.paintComponent(gfx)
       val buffer = model.buffer
       val snapshot = model.snapshot()
-      def to_current(pos: Int) = model.to_current(snapshot.document, pos)
       val saved_color = gfx.getColor  // FIXME needed!?
       try {
         for ((command, start) <- snapshot.node.command_starts if !command.is_ignored) {
-          val line1 = buffer.getLineOfOffset(to_current(start))
-          val line2 = buffer.getLineOfOffset(to_current(start + command.length)) + 1
+          val line1 = buffer.getLineOfOffset(snapshot.to_current(start))
+          val line2 = buffer.getLineOfOffset(snapshot.to_current(start + command.length)) + 1
           val y = line_to_y(line1)
           val height = HEIGHT * (line2 - line1)
           gfx.setColor(Document_View.choose_color(snapshot, command))

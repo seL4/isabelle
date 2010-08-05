@@ -70,41 +70,26 @@ class Document_Model(val session: Session, val buffer: Buffer)
   }
 
 
-  /* history */
+  /* global state -- owned by Swing thread */
+
+  @volatile private var history = Change.init // owned by Swing thread
+  private val edits_buffer = new mutable.ListBuffer[Text_Edit]   // owned by Swing thread
+
+
+  /* snapshot */
 
   // FIXME proper error handling
   val thy_name = Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath))._2
 
-  @volatile private var history = Change.init // owned by Swing thread
-
-  def current_change(): Change = history
-  def snapshot(): Change.Snapshot = current_change().snapshot(thy_name)
-
-
-  /* transforming offsets */
-
-  private def changes_from(doc: Document): List[Text_Edit] =
-  {
-    Swing_Thread.assert()
-    (edits_buffer.toList /:
-      current_change.ancestors.takeWhile(_.id != doc.id))((edits, change) =>
-        (for ((name, eds) <- change.edits if name == thy_name) yield eds).flatten ::: edits)
-  }
-
-  def from_current(doc: Document, offset: Int): Int =
-    (offset /: changes_from(doc).reverse) ((i, change) => change before i)
-
-  def to_current(doc: Document, offset: Int): Int =
-    (offset /: changes_from(doc)) ((i, change) => change after i)
+  def snapshot(): Change.Snapshot =
+    Swing_Thread.now { history.snapshot(thy_name, edits_buffer.toList) }
 
 
   /* text edits */
 
-  private val edits_buffer = new mutable.ListBuffer[Text_Edit]   // owned by Swing thread
-
   private val edits_delay = Swing_Thread.delay_last(session.input_delay) {
     if (!edits_buffer.isEmpty) {
-      val new_change = current_change().edit(session, List((thy_name, edits_buffer.toList)))
+      val new_change = history.edit(session, List((thy_name, edits_buffer.toList)))
       edits_buffer.clear
       history = new_change
       new_change.result.map(_ => session.input(new_change))

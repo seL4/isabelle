@@ -14,11 +14,11 @@ object Change
 
   abstract class Snapshot
   {
-    val latest_version: Change
-    val stable_version: Change
     val document: Document
     val node: Document.Node
-    def is_outdated: Boolean = stable_version != latest_version
+    val is_outdated: Boolean
+    def from_current(offset: Int): Int
+    def to_current(offset: Int): Int
   }
 }
 
@@ -62,14 +62,22 @@ class Change(
 
   /* snapshot */
 
-  def snapshot(name: String): Change.Snapshot =
+  def snapshot(name: String, extra_edits: List[Text_Edit]): Change.Snapshot =
   {
     val latest = this
+    val stable = latest.ancestors.find(_.is_assigned).get
+    val changes =
+      (extra_edits /: latest.ancestors.takeWhile(_ != stable))((edits, change) =>
+          (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+
     new Change.Snapshot {
-      val latest_version = latest
-      val stable_version: Change = latest.ancestors.find(_.is_assigned).get
-      val document: Document = stable_version.join_document
-      val node: Document.Node = document.nodes(name)
+      val document = stable.join_document
+      val node = document.nodes(name)
+      val is_outdated = !(extra_edits.isEmpty && latest == stable)
+      def from_current(offset: Int): Int =
+        (offset /: changes.reverse)((i, change) => change before i)  // FIXME fold_rev (!?)
+      def to_current(offset: Int): Int =
+        (offset /: changes)((i, change) => change after i)
     }
   }
 }

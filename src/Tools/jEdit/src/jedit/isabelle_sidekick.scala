@@ -128,11 +128,9 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
     import Isabelle_Sidekick.int_to_pos
 
     val root = data.root
-    val snapshot = model.snapshot()
-    val document = snapshot.document
-    val doc = snapshot.node  // FIXME cover all nodes (!??)
-    for ((command, command_start) <- doc.command_range(0) if !stopped) {
-      root.add(document.current_state(command).markup_root.swing_tree((node: Markup_Node) =>
+    val snapshot = model.snapshot()  // FIXME cover all nodes (!??)
+    for ((command, command_start) <- snapshot.node.command_range(0) if !stopped) {
+      root.add(snapshot.document.current_state(command).markup_root.swing_tree((node: Markup_Node) =>
           {
             val content = command.source(node.start, node.stop).replace('\n', ' ')
             val id = command.id
