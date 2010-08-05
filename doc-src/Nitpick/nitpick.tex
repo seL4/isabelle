@@ -2494,6 +2494,14 @@ finite.
 
 {\small See also \textit{debug} (\S\ref{output-format}).}
 
+\opnodefault{whack}{term\_list}
+Specifies a list of atomic terms (usually constants, but also free and schematic
+variables) that should be taken as being $\unk$ (unknown). This can be useful to
+reduce the size of the Kodkod problem if you can guess in advance that a
+constant might not be needed to find a countermodel.
+
+{\small See also \textit{debug} (\S\ref{output-format}).}
+
 \optrue{peephole\_optim}{no\_peephole\_optim}
 Specifies whether Nitpick should simplify the generated Kodkod formulas using a
 peephole optimizer. These optimizations can make a significant difference.

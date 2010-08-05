@@ -28,6 +28,7 @@ sig
      overlord: bool,
      user_axioms: bool option,
      assms: bool,
+     whacks: term list,
      merge_type_vars: bool,
      binary_ints: bool option,
      destroy_constrs: bool,
@@ -101,6 +102,7 @@ type params =
    overlord: bool,
    user_axioms: bool option,
    assms: bool,
+   whacks: term list,
    merge_type_vars: bool,
    binary_ints: bool option,
    destroy_constrs: bool,
@@ -193,12 +195,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 *)
     val {cards_assigns, maxes_assigns, iters_assigns, bitss, bisim_depths,
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
-         verbose, overlord, user_axioms, assms, merge_type_vars, binary_ints,
-         destroy_constrs, specialize, star_linear_preds, fast_descrs,
-         peephole_optim, datatype_sym_break, kodkod_sym_break, tac_timeout,
-         max_threads, show_datatypes, show_consts, evals, formats, atomss,
-         max_potential, max_genuine, check_potential, check_genuine, batch_size,
-         ...} = params
+         verbose, overlord, user_axioms, assms, whacks, merge_type_vars,
+         binary_ints, destroy_constrs, specialize, star_linear_preds,
+         fast_descrs, peephole_optim, datatype_sym_break, kodkod_sym_break,
+         tac_timeout, max_threads, show_datatypes, show_consts, evals, formats,
+         atomss, max_potential, max_genuine, check_potential, check_genuine,
+         batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
       if auto then
@@ -263,15 +265,16 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val (hol_ctxt as {wf_cache, ...}) =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
        stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
-       binary_ints = binary_ints, destroy_constrs = destroy_constrs,
-       specialize = specialize, star_linear_preds = star_linear_preds,
-       fast_descrs = fast_descrs, tac_timeout = tac_timeout, evals = evals,
-       case_names = case_names, def_table = def_table,
-       nondef_table = nondef_table, user_nondefs = user_nondefs,
-       simp_table = simp_table, psimp_table = psimp_table,
-       choice_spec_table = choice_spec_table, intro_table = intro_table,
-       ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
-       skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
+       whacks = whacks, binary_ints = binary_ints,
+       destroy_constrs = destroy_constrs, specialize = specialize,
+       star_linear_preds = star_linear_preds, fast_descrs = fast_descrs,
+       tac_timeout = tac_timeout, evals = evals, case_names = case_names,
+       def_table = def_table, nondef_table = nondef_table,
+       user_nondefs = user_nondefs, simp_table = simp_table,
+       psimp_table = psimp_table, choice_spec_table = choice_spec_table,
+       intro_table = intro_table, ground_thm_table = ground_thm_table,
+       ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
+       special_funs = Unsynchronized.ref [],
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
     val pseudo_frees = fold Term.add_frees assm_ts []

@@ -22,6 +22,7 @@ sig
      wfs: (styp option * bool option) list,
      user_axioms: bool option,
      debug: bool,
+     whacks: term list,
      binary_ints: bool option,
      destroy_constrs: bool,
      specialize: bool,
@@ -236,6 +237,7 @@ type hol_context =
    wfs: (styp option * bool option) list,
    user_axioms: bool option,
    debug: bool,
+   whacks: term list,
    binary_ints: bool option,
    destroy_constrs: bool,
    specialize: bool,
@@ -1578,9 +1580,9 @@ val unfold_max_depth = 255
 val def_inline_threshold_for_booleans = 50
 val def_inline_threshold_for_non_booleans = 20
 
-fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
-                                      def_table, ground_thm_table, ersatz_table,
-                                      ...}) =
+fun unfold_defs_in_term
+        (hol_ctxt as {thy, ctxt, stds, whacks, fast_descrs, case_names,
+                      def_table, ground_thm_table, ersatz_table, ...}) =
   let
     fun do_term depth Ts t =
       case t of
@@ -1628,10 +1630,12 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
         (case strip_comb t of
            (Const x, ts) => do_const depth Ts t x ts
          | _ => s_betapply [] (do_term depth Ts t1, do_term depth Ts t2))
-      | Free _ => t
-      | Var _ => t
       | Bound _ => t
       | Abs (s, T, body) => Abs (s, T, do_term depth (T :: Ts) body)
+      | _ => if member (term_match thy) whacks t then
+               Const (@{const_name unknown}, fastype_of1 (Ts, t))
+             else
+               t
     and select_nth_constr_arg_with_args _ _ (x as (_, T)) [] n res_T =
         (Abs (Name.uu, body_type T,
               select_nth_constr_arg ctxt stds x (Bound 0) n res_T), [])
@@ -1641,7 +1645,9 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
       select_nth_constr_arg_with_args depth Ts
           (@{const_name Quot}, rep_T --> abs_T) ts 0 rep_T
     and do_const depth Ts t (x as (s, T)) ts =
-      case AList.lookup (op =) ersatz_table s of
+      if member (term_match thy) whacks (Const x) then
+        Const (@{const_name unknown}, fastype_of1 (Ts, t))
+      else case AList.lookup (op =) ersatz_table s of
         SOME s' =>
         do_const (depth + 1) Ts (list_comb (Const (s', T), ts)) (s', T) ts
       | NONE =>
