@@ -20,9 +20,9 @@ val def_table = Nitpick_HOL.const_def_table @{context} subst defs
 val hol_ctxt : Nitpick_HOL.hol_context =
   {thy = @{theory}, ctxt = @{context}, max_bisim_depth = ~1, boxes = [],
    stds = [(NONE, true)], wfs = [], user_axioms = NONE, debug = false,
-   binary_ints = SOME false, destroy_constrs = false, specialize = false,
-   star_linear_preds = false, fast_descrs = false, tac_timeout = NONE,
-   evals = [], case_names = [], def_table = def_table,
+   whacks = [], binary_ints = SOME false, destroy_constrs = false,
+   specialize = false, star_linear_preds = false, fast_descrs = false,
+   tac_timeout = NONE, evals = [], case_names = [], def_table = def_table,
    nondef_table = Symtab.empty, user_nondefs = [],
    simp_table = Unsynchronized.ref Symtab.empty, psimp_table = Symtab.empty,
    choice_spec_table = Symtab.empty, intro_table = Symtab.empty,
