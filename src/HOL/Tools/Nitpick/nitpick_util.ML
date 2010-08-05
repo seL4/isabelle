@@ -64,7 +64,6 @@ sig
     -> typ
   val is_of_class_const : theory -> string * typ -> bool
   val get_class_def : theory -> string -> (string * term) option
-  val extensionalize_term : term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> string * typ -> term -> term
   val nat_subscript : int -> string
@@ -251,7 +250,6 @@ val is_real_constr = Refute.is_IDT_constructor
 val typ_of_dtyp = Refute.typ_of_dtyp
 val is_of_class_const = Refute.is_const_of_class
 val get_class_def = Refute.get_classdef
-val extensionalize_term = Sledgehammer_Util.extensionalize_term
 val monomorphic_term = Sledgehammer_Util.monomorphic_term
 val specialize_type = Sledgehammer_Util.specialize_type
 

@@ -733,13 +733,13 @@ fun special_fun_aconv ((x1, js1, ts1), (x2, js2, ts2)) =
 
 fun specialize_consts_in_term
         (hol_ctxt as {ctxt, thy, stds, specialize, fast_descrs, def_table,
-                      simp_table, special_funs, ...}) depth t =
+                      simp_table, special_funs, ...}) def depth t =
   if not specialize orelse depth > special_max_depth then
     t
   else
     let
-      val blacklist = if depth = 0 then []
-                      else case term_under_def t of Const x => [x] | _ => []
+      val blacklist =
+        if def then case term_under_def t of Const x => [x] | _ => [] else []
       fun aux args Ts (Const (x as (s, T))) =
           ((if not (member (op =) blacklist x) andalso not (null args) andalso
                not (String.isPrefix special_prefix s) andalso
@@ -901,21 +901,21 @@ fun axioms_for_term
       List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
     val def_assm_table = map (`(the o defined_free_by_assumption)) def_assm_ts
     type accumulator = styp list * (term list * term list)
-    fun add_axiom get app depth t (accum as (seen, axs)) =
+    fun add_axiom get app def depth t (accum as (seen, axs)) =
       let
         val t = t |> unfold_defs_in_term hol_ctxt
-                  |> skolemize_term_and_more hol_ctxt ~1 (*### why ~1? *)
+                  |> skolemize_term_and_more hol_ctxt ~1 (* FIXME: why ~1? *)
       in
         if is_trivial_equation t then
           accum
         else
-          let val t' = t |> specialize_consts_in_term hol_ctxt depth in
+          let val t' = t |> specialize_consts_in_term hol_ctxt def depth in
             if exists (member (op aconv) (get axs)) [t, t'] then accum
             else add_axioms_for_term (depth + 1) t' (seen, app (cons t') axs)
           end
       end
-    and add_def_axiom depth = add_axiom fst apfst depth
-    and add_nondef_axiom depth = add_axiom snd apsnd depth
+    and add_def_axiom depth = add_axiom fst apfst true depth
+    and add_nondef_axiom depth = add_axiom snd apsnd false depth
     and add_maybe_def_axiom depth t =
       (if head_of t <> @{const "==>"} then add_def_axiom
        else add_nondef_axiom) depth t
@@ -1285,7 +1285,7 @@ fun preprocess_formulas
       neg_t |> unfold_defs_in_term hol_ctxt
             |> close_form
             |> skolemize_term_and_more hol_ctxt max_skolem_depth
-            |> specialize_consts_in_term hol_ctxt 0
+            |> specialize_consts_in_term hol_ctxt false 0
             |> axioms_for_term hol_ctxt assm_ts
     val binarize =
       is_standard_datatype thy stds nat_T andalso

@@ -1573,8 +1573,10 @@ fun optimized_record_update (hol_ctxt as {thy, ctxt, stds, ...}) s rec_T fun_t
 (* Prevents divergence in case of cyclic or infinite definition dependencies. *)
 val unfold_max_depth = 255
 
-(* Inline definitions or define as an equational constant? *)
-val def_inline_threshold = 20
+(* Inline definitions or define as an equational constant? Booleans tend to
+   benefit more from inlining, due to the polarity analysis. *)
+val def_inline_threshold_for_booleans = 50
+val def_inline_threshold_for_non_booleans = 20
 
 fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                                       def_table, ground_thm_table, ersatz_table,
@@ -1641,6 +1643,11 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
         do_const (depth + 1) Ts (list_comb (Const (s', T), ts)) (s', T) ts
       | NONE =>
         let
+          fun def_inline_threshold () =
+            if is_boolean_type (nth_range_type (length ts) T) then
+              def_inline_threshold_for_booleans
+            else
+              def_inline_threshold_for_non_booleans
           val (const, ts) =
             if is_built_in_const thy stds fast_descrs x then
               (Const x, ts)
@@ -1711,7 +1718,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                                    quote s)
                 else if s = @{const_name wfrec'} then
                   (do_term (depth + 1) Ts (s_betapplys Ts (def, ts)), [])
-                else if size_of_term def > def_inline_threshold then
+                else if size_of_term def > def_inline_threshold () then
                   (Const x, ts)
                 else
                   (do_term (depth + 1) Ts def, ts)
@@ -1724,17 +1731,28 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
 
 (** Axiom extraction/generation **)
 
+fun extensional_equal j (Type (@{type_name fun}, [dom_T, ran_T])) t1 t2 =
+    let val var_t = Var (("x", j), dom_T) in
+      extensional_equal (j + 1) ran_T (betapply (t1, var_t))
+                        (betapply (t2, var_t))
+    end
+  | extensional_equal _ T t1 t2 =
+    Const (@{const_name "op ="}, T --> T --> bool_T) $ t1 $ t2
+
 fun equationalize_term ctxt tag t =
-  let val (prems, concl) = Logic.strip_horn t in
+  let
+    val j = maxidx_of_term t + 1
+    val (prems, concl) = Logic.strip_horn t
+  in
     Logic.list_implies (prems,
         case concl of
-          @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ _ $ _) =>
-          extensionalize_term concl
+          @{const Trueprop} $ (Const (@{const_name "op ="}, Type (_, [T, _]))
+                               $ t1 $ t2) =>
+          @{const Trueprop} $ extensional_equal j T t1 t2
         | @{const Trueprop} $ t' =>
           @{const Trueprop} $ HOLogic.mk_eq (t', @{const True})
         | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
-          extensionalize_term (Const (@{const_name "op ="}, T --> T --> bool_T)
-                               $ t1 $ t2)
+          @{const Trueprop} $ extensional_equal j T t1 t2
         | _ => (warning ("Ignoring " ^ quote tag ^ " for non-equation" ^
                          quote (Syntax.string_of_term ctxt t) ^ ".");
                 raise SAME ()))
