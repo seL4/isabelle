@@ -141,7 +141,6 @@ sig
   val sel_no_from_name : string -> int
   val close_form : term -> term
   val eta_expand : typ list -> term -> int -> term
-  val extensionalize : term -> term
   val distinctness_formula : typ -> term list -> term
   val register_frac_type : string -> (string * string) list -> theory -> theory
   val unregister_frac_type : string -> theory -> theory
@@ -199,13 +198,14 @@ sig
   val fixpoint_kind_of_const :
     theory -> const_table -> string * typ -> fixpoint_kind
   val is_inductive_pred : hol_context -> styp -> bool
-  val is_equational_fun : hol_context -> styp -> bool
   val is_constr_pattern_lhs : Proof.context -> term -> bool
   val is_constr_pattern_formula : Proof.context -> term -> bool
   val nondef_props_for_const :
     theory -> bool -> const_table -> styp -> term list
   val is_choice_spec_fun : hol_context -> styp -> bool
   val is_choice_spec_axiom : theory -> const_table -> term -> bool
+  val is_equational_fun_but_no_plain_def : hol_context -> styp -> bool
+  val is_equational_fun : hol_context -> styp -> bool
   val codatatype_bisim_axioms : hol_context -> typ -> term list
   val is_well_founded_inductive_pred : hol_context -> styp -> bool
   val unrolled_inductive_pred_const : hol_context -> bool -> styp -> term
@@ -879,15 +879,6 @@ fun eta_expand _ t 0 = t
              (List.take (binder_types (fastype_of1 (Ts, t)), n))
              (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
 
-fun extensionalize t =
-  case t of
-    (t0 as @{const Trueprop}) $ t1 => t0 $ extensionalize t1
-  | Const (@{const_name "op ="}, _) $ t1 $ Abs (s, T, t2) =>
-    let val v = Var ((s, maxidx_of_term t + 1), T) in
-      extensionalize (HOLogic.mk_eq (t1 $ v, subst_bound (v, t2)))
-    end
-  | _ => t
-
 fun distinctness_formula T =
   all_distinct_unordered_pairs_of
   #> map (fn (t1, t2) => @{const Not} $ (HOLogic.eq_const T $ t1 $ t2))
@@ -1418,9 +1409,6 @@ fun is_real_equational_fun ({thy, stds, fast_descrs, simp_table, psimp_table,
          [!simp_table, psimp_table]
 fun is_inductive_pred hol_ctxt =
   is_real_inductive_pred hol_ctxt andf (not o is_real_equational_fun hol_ctxt)
-fun is_equational_fun hol_ctxt =
-  (is_real_equational_fun hol_ctxt orf is_real_inductive_pred hol_ctxt orf
-   (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
 
 fun lhs_of_equation t =
   case t of
@@ -1502,6 +1490,14 @@ fun is_choice_spec_axiom thy choice_spec_table t =
                     exists (curry (op aconv) t o axiom_for_choice_spec thy) ts)
                 choice_spec_table
 
+fun is_equational_fun_but_no_plain_def hol_ctxt =
+  (is_real_equational_fun hol_ctxt orf is_real_inductive_pred hol_ctxt orf
+   (String.isPrefix ubfp_prefix orf String.isPrefix lbfp_prefix) o fst)
+fun is_equational_fun (hol_ctxt as {ctxt, thy, def_table, ...}) (x as (s, _)) =
+  is_equational_fun_but_no_plain_def hol_ctxt x orelse
+  (not (is_choice_spec_fun hol_ctxt x) andalso
+   is_some (def_of_const thy def_table x))
+
 (** Constant unfolding **)
 
 fun constr_case_body ctxt stds (func_t, (x as (_, T))) =
@@ -1580,6 +1576,9 @@ fun optimized_record_update (hol_ctxt as {thy, ctxt, stds, ...}) s rec_T fun_t
 
 (* Prevents divergence in case of cyclic or infinite definition dependencies. *)
 val unfold_max_depth = 255
+
+(* Inline definitions or define as an equational constant? *)
+val def_inline_threshold = 20
 
 fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                                       def_table, ground_thm_table, ersatz_table,
@@ -1704,7 +1703,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                   else
                     (Const x, ts)
                 end
-              else if is_equational_fun hol_ctxt x orelse
+              else if is_equational_fun_but_no_plain_def hol_ctxt x orelse
                       is_choice_spec_fun hol_ctxt x then
                 (Const x, ts)
               else case def_of_const thy def_table x of
@@ -1716,6 +1715,8 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
                                    quote s)
                 else if s = @{const_name wfrec'} then
                   (do_term (depth + 1) Ts (s_betapplys Ts (def, ts)), [])
+                else if size_of_term def > def_inline_threshold then
+                  (Const x, ts)
                 else
                   (do_term (depth + 1) Ts def, ts)
               | NONE => (Const x, ts)
@@ -1727,7 +1728,7 @@ fun unfold_defs_in_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, case_names,
 
 (** Axiom extraction/generation **)
 
-fun equationalize ctxt tag t =
+fun equationalize_term ctxt tag t =
   let val (prems, concl) = Logic.strip_horn t in
     Logic.list_implies (prems,
         case concl of
@@ -1764,10 +1765,10 @@ fun const_nondef_table ts =
   fold (append o paired_with_consts) ts [] |> AList.group (op =) |> Symtab.make
 
 fun const_simp_table ctxt =
-  def_table_for (map_filter (equationalize ctxt "nitpick_simp" o prop_of)
+  def_table_for (map_filter (equationalize_term ctxt "nitpick_simp" o prop_of)
                  o Nitpick_Simps.get) ctxt
 fun const_psimp_table ctxt =
-  def_table_for (map_filter (equationalize ctxt "nitpick_psimp" o prop_of)
+  def_table_for (map_filter (equationalize_term ctxt "nitpick_psimp" o prop_of)
                  o Nitpick_Psimps.get) ctxt
 
 fun const_choice_spec_table ctxt subst =
@@ -2132,7 +2133,7 @@ fun unrolled_inductive_pred_const (hol_ctxt as {thy, star_linear_preds,
     val unrolled_const = Const x' $ zero_const iter_T
     val def = the (def_of_const thy def_table x)
   in
-    if is_equational_fun hol_ctxt x' then
+    if is_equational_fun_but_no_plain_def hol_ctxt x' then
       unrolled_const (* already done *)
     else if not gfp andalso star_linear_preds andalso
          is_linear_inductive_pred_def def andalso
@@ -2187,16 +2188,21 @@ fun inductive_pred_axiom hol_ctxt (x as (s, T)) =
   else
     raw_inductive_pred_axiom hol_ctxt x
 
-fun raw_equational_fun_axioms (hol_ctxt as {thy, stds, fast_descrs, simp_table,
-                                            psimp_table, ...}) x =
+fun equational_fun_axioms (hol_ctxt as {ctxt, thy, stds, fast_descrs, def_table,
+                                        simp_table, psimp_table, ...}) x =
   case def_props_for_const thy stds fast_descrs (!simp_table) x of
     [] => (case def_props_for_const thy stds fast_descrs psimp_table x of
-             [] => [inductive_pred_axiom hol_ctxt x]
+             [] => (if is_inductive_pred hol_ctxt x then
+                      [inductive_pred_axiom hol_ctxt x]
+                    else case def_of_const thy def_table x of
+                      SOME def =>
+                      @{const Trueprop} $ HOLogic.mk_eq (Const x, def)
+                      |> equationalize_term ctxt "" |> the |> single
+                    | NONE => [])
            | psimps => psimps)
   | simps => simps
-val equational_fun_axioms = map extensionalize oo raw_equational_fun_axioms
 fun is_equational_fun_surely_complete hol_ctxt x =
-  case raw_equational_fun_axioms hol_ctxt x of
+  case equational_fun_axioms hol_ctxt x of
     [@{const Trueprop} $ (Const (@{const_name "op ="}, _) $ t1 $ _)] =>
     strip_comb t1 |> snd |> forall is_Var
   | _ => false

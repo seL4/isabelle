@@ -946,7 +946,7 @@ fun axioms_for_term
              else if is_descr (original_name s) then
                fold (add_nondef_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
-             else if is_equational_fun hol_ctxt x then
+             else if is_equational_fun_but_no_plain_def hol_ctxt x then
                fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
              else if is_choice_spec_fun hol_ctxt x then
@@ -980,7 +980,11 @@ fun axioms_for_term
                                (inverse_axioms_for_rep_fun ctxt x)
              else if s = @{const_name TYPE} then
                accum
-             else
+             else case def_of_const thy def_table x of
+               SOME def =>
+               fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
+                    accum
+             | NONE =>
                accum |> user_axioms <> SOME false
                         ? fold (add_nondef_axiom depth)
                                (nondef_props_for_const thy false nondef_table x)
