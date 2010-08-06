@@ -2864,16 +2864,19 @@ for which the function is not defined. For example:
 \textbf{by}~(\textit{auto simp}:~\textit{prec\_def})
 \postw
 
-Such theorems are considered bad style because they rely on the internal
-representation of functions synthesized by Isabelle, which is an implementation
+Such theorems are generally considered bad style because they rely on the
+internal representation of functions synthesized by Isabelle, an implementation
 detail.
 
 \item[$\bullet$] Similarly, Nitpick might find spurious counterexamples for
 theorems that rely on the use of the indefinite description operator internally
 by \textbf{specification} and \textbf{quot\_type}.
 
-\item[$\bullet$] Axioms that restrict the possible values of the
-\textit{undefined} constant are in general ignored.
+\item[$\bullet$] Axioms or definitions that restrict the possible values of the
+\textit{undefined} constant or other partially specified built-in Isabelle
+constants (e.g., \textit{Abs\_} and \textit{Rep\_} constants) are in general
+ignored. Again, such nonconservative extensions are generally considered bad
+style.
 
 \item[$\bullet$] Nitpick maintains a global cache of wellfoundedness conditions,
 which can become invalid if you change the definition of an inductive predicate
