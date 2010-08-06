@@ -1237,11 +1237,13 @@ Consider the formula
 
 where \textit{xs} is of type $'a~\textit{list}$ and \textit{ys} is of type
 $'b~\textit{list}$. A priori, Nitpick would need to consider $1\,000$ scopes to
-exhaust the specification \textit{card}~= 1--10. However, our intuition tells us
-that any counterexample found with a small scope would still be a counterexample
-in a larger scope---by simply ignoring the fresh $'a$ and $'b$ values provided
-by the larger scope. Nitpick comes to the same conclusion after a careful
-inspection of the formula and the relevant definitions:
+exhaust the specification \textit{card}~= 1--10 (10 cardinalies for $'a$
+$\times$ 10 cardinalities for $'b$ $\times$ 10 cardinalities for the datatypes).
+However, our intuition tells us that any counterexample found with a small scope
+would still be a counterexample in a larger scope---by simply ignoring the fresh
+$'a$ and $'b$ values provided by the larger scope. Nitpick comes to the same
+conclusion after a careful inspection of the formula and the relevant
+definitions:
 
 \prew
 \textbf{nitpick}~[\textit{verbose}] \\[2\smallskipamount]
@@ -1312,10 +1314,11 @@ monotonicity checks can be disabled by passing \textit{non\_mono}
 As insinuated in \S\ref{natural-numbers-and-integers} and
 \S\ref{inductive-datatypes}, \textit{nat}, \textit{int}, and inductive datatypes
 are normally monotonic and treated as such. The same is true for record types,
-\textit{rat}, \textit{real}, and some \textbf{typedef}'d types. Thus, given the
+\textit{rat}, and \textit{real}. Thus, given the
 cardinality specification 1--10, a formula involving \textit{nat}, \textit{int},
 \textit{int~list}, \textit{rat}, and \textit{rat~list} will lead Nitpick to
-consider only 10~scopes instead of $10\,000$.
+consider only 10~scopes instead of $10\,000$. On the other hand,
+\textbf{typedef}s and quotient types are generally nonmonotonic.
 
 \subsection{Inductive Properties}
 \label{inductive-properties}
@@ -2788,7 +2791,7 @@ datatypes consists of the following pair of functions defined in the
 
 \prew
 $\textbf{val}\,~\textit{register\_codatatype\_global\/} : {}$ \\
-$\hbox{}\quad\textit{typ} \rightarrow \textit{string} \rightarrow \textit{styp~list} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
+$\hbox{}\quad\textit{typ} \rightarrow \textit{string} \rightarrow (\textit{string} \times \textit{typ})\;\textit{list} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
 $\textbf{val}\,~\textit{unregister\_codatatype\_global\/} :\,
 \textit{typ} \rightarrow \textit{theory} \rightarrow \textit{theory}$
 \postw
@@ -2799,9 +2802,9 @@ to your theory file:
 
 \prew
 $\textbf{setup}~\,\{{*}$ \\
-$\hbox{}\qquad\textit{Nitpick\_HOL.register\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
-$\hbox{}\qquad\qquad @\{\antiq{const\_name}~ \textit{llist\_case}\}$ \\
-$\hbox{}\qquad\qquad (\textit{map}~\textit{dest\_Const}~[@\{\antiq{term}~\textit{LNil}\},\, @\{\antiq{term}~\textit{LCons}\}])$ \\
+$\hbox{}\quad\textit{Nitpick\_HOL.register\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
+$\hbox{}\qquad\quad @\{\antiq{const\_name}~ \textit{llist\_case}\}$ \\
+$\hbox{}\qquad\quad (\textit{map}~\textit{dest\_Const}~[@\{\antiq{term}~\textit{LNil}\},\, @\{\antiq{term}~\textit{LCons}\}])$ \\
 ${*}\}$
 \postw
 
@@ -2815,7 +2818,7 @@ your theory file and try to check a few conjectures about lazy lists:
 
 \prew
 $\textbf{setup}~\,\{{*}$ \\
-$\hbox{}\qquad\textit{Nitpick\_HOL.unregister\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
+$\hbox{}\quad\textit{Nitpick\_HOL.unregister\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
 ${*}\}$
 \postw
 
