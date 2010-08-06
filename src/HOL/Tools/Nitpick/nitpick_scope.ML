@@ -244,25 +244,27 @@ val max_bits = 31 (* Kodkod limit *)
 
 fun block_for_type (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
                    iters_assigns bitss bisim_depths T =
-  if T = @{typ unsigned_bit} then
+  case T of
+    @{typ unsigned_bit} =>
     [(Card T, map (Integer.min max_bits o Integer.max 1) bitss)]
-  else if T = @{typ signed_bit} then
+  | @{typ signed_bit} =>
     [(Card T, map (Integer.add 1 o Integer.min max_bits o Integer.max 1) bitss)]
-  else if T = @{typ "unsigned_bit word"} then
+  | @{typ "unsigned_bit word"} =>
     [(Card T, lookup_type_ints_assign thy cards_assigns nat_T)]
-  else if T = @{typ "signed_bit word"} then
+  | @{typ "signed_bit word"} =>
     [(Card T, lookup_type_ints_assign thy cards_assigns int_T)]
-  else if T = @{typ bisim_iterator} then
+  | @{typ bisim_iterator} =>
     [(Card T, map (Integer.add 1 o Integer.max 0) bisim_depths)]
-  else if is_fp_iterator_type T then
-    [(Card T, map (Integer.add 1 o Integer.max 0)
-                  (lookup_const_ints_assign thy iters_assigns
-                                            (const_for_iterator_type T)))]
-  else
-    (Card T, lookup_type_ints_assign thy cards_assigns T) ::
-    (case binarized_and_boxed_datatype_constrs hol_ctxt binarize T of
-       [_] => []
-     | constrs => map_filter (row_for_constr thy maxes_assigns) constrs)
+  | _ =>
+    if is_fp_iterator_type T then
+      [(Card T, map (Integer.add 1 o Integer.max 0)
+                    (lookup_const_ints_assign thy iters_assigns
+                                              (const_for_iterator_type T)))]
+    else
+      (Card T, lookup_type_ints_assign thy cards_assigns T) ::
+      (case binarized_and_boxed_datatype_constrs hol_ctxt binarize T of
+         [_] => []
+       | constrs => map_filter (row_for_constr thy maxes_assigns) constrs)
 
 fun blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns iters_assigns
                      bitss bisim_depths mono_Ts nonmono_Ts =
@@ -331,10 +333,10 @@ fun repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) =
         handle SAME () => aux seen ((T, k - 1) :: rest)
   in aux [] (rev card_assigns) end
 
-fun repair_iterator_assign thy assigns (T as Type (_, Ts), k) =
+fun repair_iterator_assign ctxt assigns (T as Type (_, Ts), k) =
     (T, if T = @{typ bisim_iterator} then
           let
-            val co_cards = map snd (filter (is_codatatype thy o fst) assigns)
+            val co_cards = map snd (filter (is_codatatype ctxt o fst) assigns)
           in Int.min (k, Integer.sum co_cards) end
         else if is_fp_iterator_type T then
           case Ts of
@@ -350,7 +352,7 @@ fun add_row_to_scope_descriptor (kind, ks) (card_assigns, max_assigns) =
   | Max x => (card_assigns, (x, the_single ks) :: max_assigns)
 fun scope_descriptor_from_block block =
   fold_rev add_row_to_scope_descriptor block ([], [])
-fun scope_descriptor_from_combination (hol_ctxt as {thy, ...}) binarize blocks
+fun scope_descriptor_from_combination (hol_ctxt as {ctxt, ...}) binarize blocks
                                       columns =
   let
     val (card_assigns, max_assigns) =
@@ -358,7 +360,7 @@ fun scope_descriptor_from_combination (hol_ctxt as {thy, ...}) binarize blocks
     val card_assigns =
       repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) |> the
   in
-    SOME (map (repair_iterator_assign thy card_assigns) card_assigns,
+    SOME (map (repair_iterator_assign ctxt card_assigns) card_assigns,
           max_assigns)
   end
   handle Option.Option => NONE
@@ -430,11 +432,12 @@ fun has_exact_card hol_ctxt facto finitizable_dataTs card_assigns T =
                card_assigns T
   end
 
-fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, stds, ...}) binarize
-        deep_dataTs finitizable_dataTs (desc as (card_assigns, _)) (T, card) =
+fun datatype_spec_from_scope_descriptor (hol_ctxt as {thy, ctxt, stds, ...})
+        binarize deep_dataTs finitizable_dataTs (desc as (card_assigns, _))
+        (T, card) =
   let
     val deep = member (op =) deep_dataTs T
-    val co = is_codatatype thy T
+    val co = is_codatatype ctxt T
     val standard = is_standard_datatype thy stds T
     val xs = binarized_and_boxed_datatype_constrs hol_ctxt binarize T
     val self_recs = map (is_self_recursive_constr_type o snd) xs
@@ -496,11 +499,11 @@ fun all_scopes (hol_ctxt as {thy, ...}) binarize cards_assigns maxes_assigns
                iters_assigns bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
                finitizable_dataTs =
   let
-    val cards_assigns = repair_cards_assigns_wrt_boxing_etc thy mono_Ts
-                                                            cards_assigns
-    val blocks = blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns
-                                  iters_assigns bitss bisim_depths mono_Ts
-                                  nonmono_Ts
+    val cards_assigns =
+      repair_cards_assigns_wrt_boxing_etc thy mono_Ts cards_assigns
+    val blocks =
+      blocks_for_types hol_ctxt binarize cards_assigns maxes_assigns
+                       iters_assigns bitss bisim_depths mono_Ts nonmono_Ts
     val ranks = map rank_of_block blocks
     val all = all_combinations_ordered_smartly (map (rpair 0) ranks)
     val head = take max_scopes all

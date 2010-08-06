@@ -66,6 +66,7 @@ sig
   val get_class_def : theory -> string -> (string * term) option
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> string * typ -> term -> term
+  val varify_type : Proof.context -> typ -> typ
   val nat_subscript : int -> string
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
@@ -252,6 +253,10 @@ val is_of_class_const = Refute.is_const_of_class
 val get_class_def = Refute.get_classdef
 val monomorphic_term = Sledgehammer_Util.monomorphic_term
 val specialize_type = Sledgehammer_Util.specialize_type
+
+fun varify_type ctxt T =
+  Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
+  |> snd |> the_single |> dest_Const |> snd
 
 val i_subscript = implode o map (prefix "\<^isub>") o explode
 fun be_subscript s = "\<^bsub>" ^ s ^ "\<^esub>"

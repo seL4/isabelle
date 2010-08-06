@@ -962,7 +962,7 @@ fun axioms_for_term
              else if is_abs_fun ctxt x then
                accum |> fold (add_nondef_axiom depth)
                              (nondef_props_for_const thy false nondef_table x)
-                     |> (is_funky_typedef thy (range_type T) orelse
+                     |> (is_funky_typedef ctxt (range_type T) orelse
                          range_type T = nat_T)
                         ? fold (add_maybe_def_axiom depth)
                                (nondef_props_for_const thy true
@@ -970,7 +970,7 @@ fun axioms_for_term
              else if is_rep_fun ctxt x then
                accum |> fold (add_nondef_axiom depth)
                              (nondef_props_for_const thy false nondef_table x)
-                     |> (is_funky_typedef thy (range_type T) orelse
+                     |> (is_funky_typedef ctxt (range_type T) orelse
                          range_type T = nat_T)
                         ? fold (add_maybe_def_axiom depth)
                                (nondef_props_for_const thy true
@@ -1014,10 +1014,10 @@ fun axioms_for_term
         fold (add_axioms_for_type depth) Ts
         #> (if is_pure_typedef ctxt T then
               fold (add_maybe_def_axiom depth) (optimized_typedef_axioms ctxt z)
-            else if is_quot_type thy T then
+            else if is_quot_type ctxt T then
               fold (add_def_axiom depth)
                    (optimized_quot_type_axioms ctxt stds z)
-            else if max_bisim_depth >= 0 andalso is_codatatype thy T then
+            else if max_bisim_depth >= 0 andalso is_codatatype ctxt T then
               fold (add_maybe_def_axiom depth)
                    (codatatype_bisim_axioms hol_ctxt T)
             else

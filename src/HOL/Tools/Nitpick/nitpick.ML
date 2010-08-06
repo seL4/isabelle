@@ -127,6 +127,16 @@ type params =
    batch_size: int,
    expect: string}
 
+(* TODO: eliminate these historical aliases *)
+val register_frac_type = Nitpick_HOL.register_frac_type_global
+val unregister_frac_type = Nitpick_HOL.unregister_frac_type_global
+val register_codatatype = Nitpick_HOL.register_codatatype_global
+val unregister_codatatype = Nitpick_HOL.unregister_codatatype_global
+val register_term_postprocessor =
+  Nitpick_Model.register_term_postprocessor_global
+val unregister_term_postprocessor =
+  Nitpick_Model.unregister_term_postprocessor_global
+
 type problem_extension =
   {free_names: nut list,
    sel_names: nut list,
@@ -251,7 +261,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
-    val case_names = case_const_names thy stds
+    val case_names = case_const_names ctxt stds
     val (defs, built_in_nondefs, user_nondefs) = all_axioms_of ctxt subst
     val def_table = const_def_table ctxt subst defs
     val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
@@ -262,7 +272,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       user_nondefs |> filter_out (is_choice_spec_axiom thy choice_spec_table)
     val intro_table = inductive_intro_table ctxt subst def_table
     val ground_thm_table = ground_theorem_table thy
-    val ersatz_table = ersatz_table thy
+    val ersatz_table = ersatz_table ctxt
     val (hol_ctxt as {wf_cache, ...}) =
       {thy = thy, ctxt = ctxt, max_bisim_depth = max_bisim_depth, boxes = boxes,
        stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
@@ -337,9 +347,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           ". " ^ extra))
       end
     fun is_type_fundamentally_monotonic T =
-      (is_datatype ctxt stds T andalso not (is_quot_type thy T) andalso
+      (is_datatype ctxt stds T andalso not (is_quot_type ctxt T) andalso
        (not (is_pure_typedef ctxt T) orelse is_univ_typedef ctxt T)) orelse
-      is_number_type thy T orelse is_bit_type T
+      is_number_type ctxt T orelse is_bit_type T
     fun is_type_actually_monotonic T =
       formulas_monotonic hol_ctxt binarize T (nondef_ts, def_ts)
     fun is_type_kind_of_monotonic T =

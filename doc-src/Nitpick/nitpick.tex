@@ -721,8 +721,9 @@ $\textbf{ML}~\,\{{*} \\
 {*}\}\end{aligned}$ \\[2\smallskipamount]
 $\textbf{setup}~\,\{{*} \\
 \!\begin{aligned}[t]
-& \textit{Nitpick.register\_term\_postprocessor}~\!\begin{aligned}[t]
-  & @\{\textrm{typ}~\textit{my\_int}\}~\textit{my\_int\_postproc}\end{aligned} \\[-2pt]
+& \textit{Nitpick\_Model.register\_term\_postprocessor\_global\/}~\!\begin{aligned}[t]
+  & @\{\textrm{typ}~\textit{my\_int}\} \\[-2pt]
+  & \textit{my\_int\_postproc}\end{aligned} \\[-2pt]
 {*}\}\end{aligned}$
 \postw
 
@@ -2783,12 +2784,12 @@ If you have defined a custom coinductive datatype, you can tell Nitpick about
 it, so that it can use an efficient Kodkod axiomatization similar to the one it
 uses for lazy lists. The interface for registering and unregistering coinductive
 datatypes consists of the following pair of functions defined in the
-\textit{Nitpick} structure:
+\textit{Nitpick\_HOL} structure:
 
 \prew
-$\textbf{val}\,~\textit{register\_codatatype} :\,
-\textit{typ} \rightarrow \textit{string} \rightarrow \textit{styp~list} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
-$\textbf{val}\,~\textit{unregister\_codatatype} :\,
+$\textbf{val}\,~\textit{register\_codatatype\_global\/} : {}$ \\
+$\hbox{}\quad\textit{typ} \rightarrow \textit{string} \rightarrow \textit{styp~list} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
+$\textbf{val}\,~\textit{unregister\_codatatype\_global\/} :\,
 \textit{typ} \rightarrow \textit{theory} \rightarrow \textit{theory}$
 \postw
 
@@ -2797,14 +2798,15 @@ not been, you could have told Nitpick about it by adding the following line
 to your theory file:
 
 \prew
-$\textbf{setup}~\,\{{*}\,~\!\begin{aligned}[t]
-& \textit{Nitpick.register\_codatatype} \\[-2pt]
-& \qquad @\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}~@\{\antiq{const\_name}~ \textit{llist\_case}\} \\[-2pt] %% TYPESETTING
-& \qquad (\textit{map}~\textit{dest\_Const}~[@\{\antiq{term}~\textit{LNil}\},\, @\{\antiq{term}~\textit{LCons}\}])\,\ {*}\}\end{aligned}$
+$\textbf{setup}~\,\{{*}$ \\
+$\hbox{}\qquad\textit{Nitpick\_HOL.register\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
+$\hbox{}\qquad\qquad @\{\antiq{const\_name}~ \textit{llist\_case}\}$ \\
+$\hbox{}\qquad\qquad (\textit{map}~\textit{dest\_Const}~[@\{\antiq{term}~\textit{LNil}\},\, @\{\antiq{term}~\textit{LCons}\}])$ \\
+${*}\}$
 \postw
 
-The \textit{register\_codatatype} function takes a coinductive type, its case
-function, and the list of its constructors. The case function must take its
+The \textit{register\_codatatype\_global\/} function takes a coinductive type, its
+case function, and the list of its constructors. The case function must take its
 arguments in the order that the constructors are listed. If no case function
 with the correct signature is available, simply pass the empty string.
 
@@ -2812,8 +2814,9 @@ On the other hand, if your goal is to cripple Nitpick, add the following line to
 your theory file and try to check a few conjectures about lazy lists:
 
 \prew
-$\textbf{setup}~\,\{{*}\,~\textit{Nitpick.unregister\_codatatype}~@\{\antiq{typ}~``
-\kern1pt'a~\textit{list\/}\textrm{''}\}\ \,{*}\}$
+$\textbf{setup}~\,\{{*}$ \\
+$\hbox{}\qquad\textit{Nitpick\_HOL.unregister\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
+${*}\}$
 \postw
 
 Inductive datatypes can be registered as coinductive datatypes, given
@@ -2827,14 +2830,14 @@ are needed.
 It is possible to change the output of any term that Nitpick considers a
 datatype by registering a term postprocessor. The interface for registering and
 unregistering postprocessors consists of the following pair of functions defined
-in the \textit{Nitpick} structure:
+in the \textit{Nitpick\_Model} structure:
 
 \prew
 $\textbf{type}\,~\textit{term\_postprocessor}\,~{=} {}$ \\
 $\hbox{}\quad\textit{Proof.context} \rightarrow \textit{string} \rightarrow (\textit{typ} \rightarrow \textit{term~list\/}) \rightarrow \textit{typ} \rightarrow \textit{term} \rightarrow \textit{term}$ \\
-$\textbf{val}\,~\textit{register\_term\_postprocessors} : {}$ \\
+$\textbf{val}\,~\textit{register\_term\_postprocessor\_global\/} : {}$ \\
 $\hbox{}\quad\textit{typ} \rightarrow \textit{term\_postprocessor} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
-$\textbf{val}\,~\textit{unregister\_term\_postprocessors} :\,
+$\textbf{val}\,~\textit{unregister\_term\_postprocessor\_global\/} :\,
 \textit{typ} \rightarrow \textit{theory} \rightarrow \textit{theory}$
 \postw
 
@@ -2887,8 +2890,9 @@ run Nitpick with the \textit{tac\_timeout} option set to a new value (e.g.,
 \item[$\bullet$] Nitpick produces spurious counterexamples when invoked after a
 \textbf{guess} command in a structured proof.
 
-\item[$\bullet$] The \textit{nitpick\_} attributes and the
-\textit{Nitpick.register\_} functions can cause havoc if used improperly.
+\item[$\bullet$] The \textit{nitpick\_xxx} attributes and the
+\textit{Nitpick\_xxx.register\_yyy} functions can cause havoc if used
+improperly.
 
 \item[$\bullet$] Although this has never been observed, arbitrary theorem
 morphisms could possibly confuse Nitpick, resulting in spurious counterexamples.

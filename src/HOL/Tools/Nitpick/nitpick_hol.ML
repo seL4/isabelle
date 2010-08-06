@@ -102,7 +102,7 @@ sig
   val is_word_type : typ -> bool
   val is_integer_like_type : typ -> bool
   val is_record_type : typ -> bool
-  val is_number_type : theory -> typ -> bool
+  val is_number_type : Proof.context -> typ -> bool
   val const_for_iterator_type : typ -> styp
   val strip_n_binders : int -> typ -> typ list * typ
   val nth_range_type : int -> typ -> typ
@@ -113,8 +113,8 @@ sig
   val dest_n_tuple : int -> term -> term list
   val is_real_datatype : theory -> string -> bool
   val is_standard_datatype : theory -> (typ option * bool) list -> typ -> bool
-  val is_codatatype : theory -> typ -> bool
-  val is_quot_type : theory -> typ -> bool
+  val is_codatatype : Proof.context -> typ -> bool
+  val is_quot_type : Proof.context -> typ -> bool
   val is_pure_typedef : Proof.context -> typ -> bool
   val is_univ_typedef : Proof.context -> typ -> bool
   val is_datatype : Proof.context -> (typ option * bool) list -> typ -> bool
@@ -143,10 +143,18 @@ sig
   val close_form : term -> term
   val eta_expand : typ list -> term -> int -> term
   val distinctness_formula : typ -> term list -> term
-  val register_frac_type : string -> (string * string) list -> theory -> theory
-  val unregister_frac_type : string -> theory -> theory
-  val register_codatatype : typ -> string -> styp list -> theory -> theory
-  val unregister_codatatype : typ -> theory -> theory
+  val register_frac_type :
+    string -> (string * string) list -> Proof.context -> Proof.context
+  val register_frac_type_global :
+    string -> (string * string) list -> theory -> theory
+  val unregister_frac_type : string -> Proof.context -> Proof.context
+  val unregister_frac_type_global : string -> theory -> theory
+  val register_codatatype :
+    typ -> string -> styp list -> Proof.context -> Proof.context
+  val register_codatatype_global :
+    typ -> string -> styp list -> theory -> theory
+  val unregister_codatatype : typ -> Proof.context -> Proof.context
+  val unregister_codatatype_global : typ -> theory -> theory
   val datatype_constrs : hol_context -> typ -> styp list
   val binarized_and_boxed_datatype_constrs :
     hol_context -> bool -> typ -> styp list
@@ -167,7 +175,7 @@ sig
   val is_finite_type : hol_context -> typ -> bool
   val is_small_finite_type : hol_context -> typ -> bool
   val special_bounds : term list -> (indexname * typ) list
-  val is_funky_typedef : theory -> typ -> bool
+  val is_funky_typedef : Proof.context -> typ -> bool
   val all_axioms_of :
     Proof.context -> (term * term) list -> term list * term list * term list
   val arity_of_built_in_const :
@@ -176,7 +184,7 @@ sig
     theory -> (typ option * bool) list -> bool -> styp -> bool
   val term_under_def : term -> term
   val case_const_names :
-    theory -> (typ option * bool) list -> (string * int) list
+    Proof.context -> (typ option * bool) list -> (string * int) list
   val unfold_defs_in_term : hol_context -> term -> term
   val const_def_table :
     Proof.context -> (term * term) list -> term list -> const_table
@@ -188,7 +196,7 @@ sig
   val inductive_intro_table :
     Proof.context -> (term * term) list -> const_table -> const_table
   val ground_theorem_table : theory -> term list Inttab.table
-  val ersatz_table : theory -> (string * string) list
+  val ersatz_table : Proof.context -> (string * string) list
   val add_simps : const_table Unsynchronized.ref -> string -> term list -> unit
   val inverse_axioms_for_rep_fun : Proof.context -> styp -> term list
   val optimized_typedef_axioms : Proof.context -> string * typ list -> term list
@@ -267,7 +275,7 @@ datatype fixpoint_kind = Lfp | Gfp | NoFp
 datatype boxability =
   InConstr | InSel | InExpr | InPair | InFunLHS | InFunRHS1 | InFunRHS2
 
-structure Data = Theory_Data(
+structure Data = Generic_Data(
   type T = {frac_types: (string * (string * string) list) list,
             codatatypes: (string * (string * styp list)) list}
   val empty = {frac_types = [], codatatypes = []}
@@ -531,10 +539,11 @@ fun is_word_type (Type (@{type_name word}, _)) = true
   | is_word_type _ = false
 val is_integer_like_type = is_iterator_type orf is_integer_type orf is_word_type
 val is_record_type = not o null o Record.dest_recTs
-fun is_frac_type thy (Type (s, [])) =
-    not (null (these (AList.lookup (op =) (#frac_types (Data.get thy)) s)))
+fun is_frac_type ctxt (Type (s, [])) =
+    s |> AList.lookup (op =) (#frac_types (Data.get (Context.Proof ctxt)))
+      |> these |> null |> not
   | is_frac_type _ _ = false
-fun is_number_type thy = is_integer_like_type orf is_frac_type thy
+fun is_number_type ctxt = is_integer_like_type orf is_frac_type ctxt
 
 fun iterator_type_for_const gfp (s, T) =
   Type ((if gfp then gfp_iterator_prefix else lfp_iterator_prefix) ^ s,
@@ -575,24 +584,22 @@ type typedef_info =
    Abs_inverse: thm option, Rep_inverse: thm option}
 
 fun typedef_info ctxt s =
-  let val thy = ProofContext.theory_of ctxt in
-    if is_frac_type thy (Type (s, [])) then
-      SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
-            Abs_name = @{const_name Abs_Frac}, Rep_name = @{const_name Rep_Frac},
-            set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Frac"}
-                            |> Logic.varify_global,
-            set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
-    else case Typedef.get_info ctxt s of
-      (* When several entries are returned, it shouldn't matter much which one
-         we take (according to Florian Haftmann). *)
-      ({abs_type, rep_type, Abs_name, Rep_name, ...},
-       {set_def, Rep, Abs_inverse, Rep_inverse, ...}) :: _ =>
-      SOME {abs_type = abs_type, rep_type = rep_type, Abs_name = Abs_name,
-            Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
-            set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
-            Rep_inverse = SOME Rep_inverse}
-    | _ => NONE
-  end
+  if is_frac_type ctxt (Type (s, [])) then
+    SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
+          Abs_name = @{const_name Abs_Frac}, Rep_name = @{const_name Rep_Frac},
+          set_def = NONE, prop_of_Rep = @{prop "Rep_Frac x \<in> Frac"}
+                          |> Logic.varify_global,
+          set_name = @{const_name Frac}, Abs_inverse = NONE, Rep_inverse = NONE}
+  else case Typedef.get_info ctxt s of
+    (* When several entries are returned, it shouldn't matter much which one
+       we take (according to Florian Haftmann). *)
+    ({abs_type, rep_type, Abs_name, Rep_name, ...},
+     {set_def, Rep, Abs_inverse, Rep_inverse, ...}) :: _ =>
+    SOME {abs_type = abs_type, rep_type = rep_type, Abs_name = Abs_name,
+          Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
+          set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
+          Rep_inverse = SOME Rep_inverse}
+  | _ => NONE
 
 val is_typedef = is_some oo typedef_info
 val is_real_datatype = is_some oo Datatype.get_info
@@ -605,28 +612,39 @@ fun is_basic_datatype thy stds s =
                  "Code_Numeral.code_numeral"] s orelse
   (s = @{type_name nat} andalso is_standard_datatype thy stds nat_T)
 
+(* TODO: use "Term_Subst.instantiateT" instead? *)
 fun instantiate_type thy T1 T1' T2 =
   Same.commit (Envir.subst_type_same
                    (Sign.typ_match thy (T1, T1') Vartab.empty)) T2
   handle Type.TYPE_MATCH =>
          raise TYPE ("Nitpick_HOL.instantiate_type", [T1, T1'], [])
-fun varify_and_instantiate_type thy T1 T1' T2 =
-  instantiate_type thy (Logic.varifyT_global T1) T1' (Logic.varifyT_global T2)
+fun varify_and_instantiate_type ctxt T1 T1' T2 =
+  let val thy = ProofContext.theory_of ctxt in
+    instantiate_type thy (varify_type ctxt T1) T1' (varify_type ctxt T2)
+  end
 
-fun repair_constr_type thy body_T' T =
-  varify_and_instantiate_type thy (body_type T) body_T' T
+fun repair_constr_type ctxt body_T' T =
+  varify_and_instantiate_type ctxt (body_type T) body_T' T
 
-fun register_frac_type frac_s ersaetze thy =
+fun register_frac_type_generic frac_s ersaetze generic =
   let
-    val {frac_types, codatatypes} = Data.get thy
+    val {frac_types, codatatypes} = Data.get generic
     val frac_types = AList.update (op =) (frac_s, ersaetze) frac_types
-  in Data.put {frac_types = frac_types, codatatypes = codatatypes} thy end
-fun unregister_frac_type frac_s = register_frac_type frac_s []
+  in Data.put {frac_types = frac_types, codatatypes = codatatypes} generic end
+val register_frac_type = Context.proof_map oo register_frac_type_generic
+val register_frac_type_global = Context.theory_map oo register_frac_type_generic
 
-fun register_codatatype co_T case_name constr_xs thy =
+fun unregister_frac_type_generic frac_s = register_frac_type_generic frac_s []
+val unregister_frac_type = Context.proof_map o unregister_frac_type_generic
+val unregister_frac_type_global =
+  Context.theory_map o unregister_frac_type_generic
+
+fun register_codatatype_generic co_T case_name constr_xs generic =
   let
-    val {frac_types, codatatypes} = Data.get thy
-    val constr_xs = map (apsnd (repair_constr_type thy co_T)) constr_xs
+    val ctxt = Context.proof_of generic
+    val thy = Context.theory_of generic
+    val {frac_types, codatatypes} = Data.get generic
+    val constr_xs = map (apsnd (repair_constr_type ctxt co_T)) constr_xs
     val (co_s, co_Ts) = dest_Type co_T
     val _ =
       if forall is_TFree co_Ts andalso not (has_duplicates (op =) co_Ts) andalso
@@ -634,26 +652,35 @@ fun register_codatatype co_T case_name constr_xs thy =
          not (is_basic_datatype thy [(NONE, true)] co_s) then
         ()
       else
-        raise TYPE ("Nitpick_HOL.register_codatatype", [co_T], [])
+        raise TYPE ("Nitpick_HOL.register_codatatype_generic", [co_T], [])
     val codatatypes = AList.update (op =) (co_s, (case_name, constr_xs))
                                    codatatypes
-  in Data.put {frac_types = frac_types, codatatypes = codatatypes} thy end
-fun unregister_codatatype co_T = register_codatatype co_T "" []
+  in Data.put {frac_types = frac_types, codatatypes = codatatypes} generic end
+val register_codatatype = Context.proof_map ooo register_codatatype_generic
+val register_codatatype_global =
+  Context.theory_map ooo register_codatatype_generic
 
-fun is_codatatype thy (Type (s, _)) =
-    not (null (AList.lookup (op =) (#codatatypes (Data.get thy)) s
-               |> Option.map snd |> these))
+fun unregister_codatatype_generic co_T = register_codatatype_generic co_T "" []
+val unregister_codatatype = Context.proof_map o unregister_codatatype_generic
+val unregister_codatatype_global =
+  Context.theory_map o unregister_codatatype_generic
+
+fun is_codatatype ctxt (Type (s, _)) =
+    s |> AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
+      |> Option.map snd |> these |> null |> not
   | is_codatatype _ _ = false
 fun is_real_quot_type thy (Type (s, _)) =
     is_some (Quotient_Info.quotdata_lookup_raw thy s)
   | is_real_quot_type _ _ = false
-fun is_quot_type thy T =
-  is_real_quot_type thy T andalso not (is_codatatype thy T)
+fun is_quot_type ctxt T =
+  let val thy = ProofContext.theory_of ctxt in
+    is_real_quot_type thy T andalso not (is_codatatype ctxt T)
+  end
 fun is_pure_typedef ctxt (T as Type (s, _)) =
     let val thy = ProofContext.theory_of ctxt in
       is_typedef ctxt s andalso
       not (is_real_datatype thy s orelse is_real_quot_type thy T orelse
-           is_codatatype thy T orelse is_record_type T orelse
+           is_codatatype ctxt T orelse is_record_type T orelse
            is_integer_like_type T)
     end
   | is_pure_typedef _ _ = false
@@ -682,8 +709,9 @@ fun is_univ_typedef ctxt (Type (s, _)) =
   | is_univ_typedef _ _ = false
 fun is_datatype ctxt stds (T as Type (s, _)) =
     let val thy = ProofContext.theory_of ctxt in
-      (is_typedef ctxt s orelse is_codatatype thy T orelse T = @{typ ind} orelse
-       is_real_quot_type thy T) andalso not (is_basic_datatype thy stds s)
+      (is_typedef ctxt s orelse is_codatatype ctxt T orelse
+       T = @{typ ind} orelse is_real_quot_type thy T) andalso
+      not (is_basic_datatype thy stds s)
     end
   | is_datatype _ _ _ = false
 
@@ -722,17 +750,13 @@ fun is_rep_fun ctxt (s, Type (@{type_name fun}, [Type (s', _), _])) =
   | is_rep_fun _ _ = false
 fun is_quot_abs_fun ctxt (x as (_, Type (@{type_name fun},
                                          [_, abs_T as Type (s', _)]))) =
-    let val thy = ProofContext.theory_of ctxt in
-      (try (Quotient_Term.absrep_const_chk Quotient_Term.AbsF ctxt) s'
-       = SOME (Const x)) andalso not (is_codatatype thy abs_T)
-    end
+    try (Quotient_Term.absrep_const_chk Quotient_Term.AbsF ctxt) s'
+    = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
   | is_quot_abs_fun _ _ = false
 fun is_quot_rep_fun ctxt (x as (_, Type (@{type_name fun},
                                          [abs_T as Type (s', _), _]))) =
-    let val thy = ProofContext.theory_of ctxt in
-      (try (Quotient_Term.absrep_const_chk Quotient_Term.RepF ctxt) s'
-       = SOME (Const x)) andalso not (is_codatatype thy abs_T)
-    end
+    try (Quotient_Term.absrep_const_chk Quotient_Term.RepF ctxt) s'
+    = SOME (Const x) andalso not (is_codatatype ctxt abs_T)
   | is_quot_rep_fun _ _ = false
 
 fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
@@ -747,22 +771,27 @@ fun rep_type_for_quot_type thy (T as Type (s, _)) =
   end
 fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
     let
-      val {qtyp, equiv_rel, ...} = Quotient_Info.quotdata_lookup thy s
+      val {qtyp, equiv_rel, equiv_thm, ...} =
+        Quotient_Info.quotdata_lookup thy s
+      val partial =
+        case prop_of equiv_thm of
+          @{const Trueprop} $ (Const (@{const_name equivp}, _) $ _) => false
+        | @{const Trueprop} $ (Const (@{const_name part_equivp}, _) $ _) => true
+        | _ => raise NOT_SUPPORTED "Ill-formed quotient type equivalence \
+                                   \relation theorem"
       val Ts' = qtyp |> dest_Type |> snd
-    in subst_atomic_types (Ts' ~~ Ts) equiv_rel end
+    in (subst_atomic_types (Ts' ~~ Ts) equiv_rel, partial) end
   | equiv_relation_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.equiv_relation_for_quot_type", [T], [])
 
-fun is_coconstr thy (s, T) =
-  let
-    val {codatatypes, ...} = Data.get thy
-    val co_T = body_type T
-    val co_s = dest_Type co_T |> fst
-  in
-    exists (fn (s', T') => s = s' andalso repair_constr_type thy co_T T' = T)
-           (AList.lookup (op =) codatatypes co_s |> Option.map snd |> these)
-  end
-  handle TYPE ("dest_Type", _, _) => false
+fun is_coconstr ctxt (s, T) =
+  case body_type T of
+    co_T as Type (co_s, _) =>
+    let val {codatatypes, ...} = Data.get (Context.Proof ctxt) in
+      exists (fn (s', T') => s = s' andalso repair_constr_type ctxt co_T T' = T)
+             (AList.lookup (op =) codatatypes co_s |> Option.map snd |> these)
+    end
+  | _ => false
 fun is_constr_like ctxt (s, T) =
   member (op =) [@{const_name FinFun}, @{const_name FunBox},
                  @{const_name PairBox}, @{const_name Quot},
@@ -773,13 +802,11 @@ fun is_constr_like ctxt (s, T) =
   in
     is_real_constr thy x orelse is_record_constr x orelse
     (is_abs_fun ctxt x andalso is_pure_typedef ctxt (range_type T)) orelse
-    is_coconstr thy x
+    is_coconstr ctxt x
   end
 fun is_stale_constr ctxt (x as (_, T)) =
-  let val thy = ProofContext.theory_of ctxt in
-    is_codatatype thy (body_type T) andalso is_constr_like ctxt x andalso
-    not (is_coconstr thy x)
-  end
+  is_codatatype ctxt (body_type T) andalso is_constr_like ctxt x andalso
+  not (is_coconstr ctxt x)
 fun is_constr ctxt stds (x as (_, T)) =
   let val thy = ProofContext.theory_of ctxt in
     is_constr_like ctxt x andalso
@@ -899,8 +926,9 @@ fun suc_const T = Const (@{const_name Suc}, T --> T)
 
 fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
                               (T as Type (s, Ts)) =
-    (case AList.lookup (op =) (#codatatypes (Data.get thy)) s of
-       SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type thy T)) xs'
+    (case AList.lookup (op =) (#codatatypes (Data.get (Context.Proof ctxt)))
+                       s of
+       SOME (_, xs' as (_ :: _)) => map (apsnd (repair_constr_type ctxt T)) xs'
      | _ =>
        if is_datatype ctxt stds T then
          case Datatype.get_info thy s of
@@ -924,7 +952,7 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
            else case typedef_info ctxt s of
              SOME {abs_type, rep_type, Abs_name, ...} =>
              [(Abs_name,
-               varify_and_instantiate_type thy abs_type T rep_type --> T)]
+               varify_and_instantiate_type ctxt abs_type T rep_type --> T)]
            | NONE =>
              if T = @{typ ind} then
                [dest_Const @{const Zero_Rep}, dest_Const @{const Suc_Rep}]
@@ -1197,11 +1225,11 @@ fun special_bounds ts =
   fold Term.add_vars ts [] |> sort (Term_Ord.fast_indexname_ord o pairself fst)
 
 (* FIXME: detect "rep_datatype"? *)
-fun is_funky_typedef_name thy s =
+fun is_funky_typedef_name ctxt s =
   member (op =) [@{type_name unit}, @{type_name prod},
                  @{type_name Sum_Type.sum}, @{type_name int}] s orelse
-  is_frac_type thy (Type (s, []))
-fun is_funky_typedef thy (Type (s, _)) = is_funky_typedef_name thy s
+  is_frac_type ctxt (Type (s, []))
+fun is_funky_typedef ctxt (Type (s, _)) = is_funky_typedef_name ctxt s
   | is_funky_typedef _ _ = false
 fun is_arity_type_axiom (Const (@{const_name HOL.type_class}, _)
                          $ Const (@{const_name TYPE}, _)) = true
@@ -1212,9 +1240,7 @@ fun is_typedef_axiom ctxt boring (@{const "==>"} $ _ $ t2) =
         (@{const Trueprop} $ (Const (@{const_name Typedef.type_definition}, _)
          $ Const (_, Type (@{type_name fun}, [Type (s, _), _]))
          $ Const _ $ _)) =
-    let val thy = ProofContext.theory_of ctxt in
-      boring <> is_funky_typedef_name thy s andalso is_typedef ctxt s
-    end
+    boring <> is_funky_typedef_name ctxt s andalso is_typedef ctxt s
   | is_typedef_axiom _ _ _ = false
 val is_class_axiom =
   Logic.strip_horn #> swap #> op :: #> forall (can Logic.dest_of_class)
@@ -1391,15 +1417,17 @@ fun unfold_mutually_inductive_preds thy table =
                  | NONE => t)
                | t => t)
 
-fun case_const_names thy stds =
-  Symtab.fold (fn (dtype_s, {index, descr, case_name, ...}) =>
-                  if is_basic_datatype thy stds dtype_s then
-                    I
-                  else
-                    cons (case_name, AList.lookup (op =) descr index
-                                     |> the |> #3 |> length))
-              (Datatype.get_all thy) [] @
-  map (apsnd length o snd) (#codatatypes (Data.get thy))
+fun case_const_names ctxt stds =
+  let val thy = ProofContext.theory_of ctxt in
+    Symtab.fold (fn (dtype_s, {index, descr, case_name, ...}) =>
+                    if is_basic_datatype thy stds dtype_s then
+                      I
+                    else
+                      cons (case_name, AList.lookup (op =) descr index
+                                       |> the |> #3 |> length))
+                (Datatype.get_all thy) [] @
+    map (apsnd length o snd) (#codatatypes (Data.get (Context.Proof ctxt)))
+  end
 
 fun fixpoint_kind_of_const thy table x =
   if is_built_in_const thy [(NONE, false)] false x then
@@ -1596,7 +1624,7 @@ fun unfold_defs_in_term
       case t of
         (t0 as Const (@{const_name Int.number_class.number_of},
                       Type (@{type_name fun}, [_, ran_T]))) $ t1 =>
-        ((if is_number_type thy ran_T then
+        ((if is_number_type ctxt ran_T then
             let
               val j = t1 |> HOLogic.dest_numeral
                          |> ran_T = nat_T ? Integer.max 0
@@ -1712,7 +1740,7 @@ fun unfold_defs_in_term
                             (do_term depth Ts (nth ts 1)), [])
                 | n => (do_term depth Ts (eta_expand Ts t (2 - n)), [])
               else if is_abs_fun ctxt x andalso
-                      is_quot_type thy (range_type T) then
+                      is_quot_type ctxt (range_type T) then
                 let
                   val abs_T = range_type T
                   val rep_T = domain_type (domain_type T)
@@ -1732,12 +1760,13 @@ fun unfold_defs_in_term
                   if is_constr ctxt stds x' then
                     select_nth_constr_arg_with_args depth Ts x' ts 0
                                                     (range_type T)
-                  else if is_quot_type thy (domain_type T) then
+                  else if is_quot_type ctxt (domain_type T) then
                     let
                       val abs_T = domain_type T
                       val rep_T = domain_type (range_type T)
                       val (rep_fun, _) = quot_rep_of depth Ts abs_T rep_T []
-                      val equiv_rel = equiv_relation_for_quot_type thy abs_T
+                      val (equiv_rel, _) =
+                        equiv_relation_for_quot_type thy abs_T
                     in
                       (Abs (Name.uu, abs_T, equiv_rel $ (rep_fun $ Bound 0)),
                        ts)
@@ -1852,8 +1881,9 @@ val basic_ersatz_table =
    (@{const_name wf_wfrec}, @{const_name wf_wfrec'}),
    (@{const_name wfrec}, @{const_name wfrec'})]
 
-fun ersatz_table thy =
-  fold (append o snd) (#frac_types (Data.get thy)) basic_ersatz_table
+fun ersatz_table ctxt =
+ basic_ersatz_table
+ |> fold (append o snd) (#frac_types (Data.get (Context.Proof ctxt)))
 
 fun add_simps simp_table s eqs =
   Unsynchronized.change simp_table
@@ -1879,7 +1909,7 @@ fun optimized_typedef_axioms ctxt (abs_z as (abs_s, _)) =
     else case typedef_info ctxt abs_s of
       SOME {abs_type, rep_type, Rep_name, prop_of_Rep, set_name, ...} =>
       let
-        val rep_T = varify_and_instantiate_type thy abs_type abs_T rep_type
+        val rep_T = varify_and_instantiate_type ctxt abs_type abs_T rep_type
         val rep_t = Const (Rep_name, abs_T --> rep_T)
         val set_t = Const (set_name, rep_T --> bool_T)
         val set_t' =
@@ -1899,7 +1929,7 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
     val thy = ProofContext.theory_of ctxt
     val abs_T = Type abs_z
     val rep_T = rep_type_for_quot_type thy abs_T
-    val equiv_rel = equiv_relation_for_quot_type thy abs_T
+    val (equiv_rel, partial) = equiv_relation_for_quot_type thy abs_T
     val a_var = Var (("a", 0), abs_T)
     val x_var = Var (("x", 0), rep_T)
     val y_var = Var (("y", 0), rep_T)
@@ -1921,9 +1951,10 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
          ([HOLogic.mk_Trueprop (@{const Not} $ (is_unknown_t $ normal_x)),
            HOLogic.mk_Trueprop (@{const Not} $ HOLogic.mk_eq (normal_x, x_var))],
           HOLogic.mk_Trueprop (equiv_rel $ x_var $ normal_x))]
+    |> partial ? cons (HOLogic.mk_Trueprop (equiv_rel $ sel_a_t $ sel_a_t))
   end
 
-fun codatatype_bisim_axioms (hol_ctxt as {ctxt, thy, stds, ...}) T =
+fun codatatype_bisim_axioms (hol_ctxt as {thy, ctxt, stds, ...}) T =
   let
     val xs = datatype_constrs hol_ctxt T
     val set_T = T --> bool_T
@@ -1939,7 +1970,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, thy, stds, ...}) T =
     fun bisim_const T =
       Const (@{const_name bisim}, iter_T --> T --> T --> bool_T)
     fun nth_sub_bisim x n nth_T =
-      (if is_codatatype thy nth_T then bisim_const nth_T $ n_var_minus_1
+      (if is_codatatype ctxt nth_T then bisim_const nth_T $ n_var_minus_1
        else HOLogic.eq_const nth_T)
       $ select_nth_constr_arg ctxt stds x x_var n nth_T
       $ select_nth_constr_arg ctxt stds x y_var n nth_T
@@ -2242,7 +2273,7 @@ fun inductive_pred_axiom hol_ctxt (x as (s, T)) =
   else
     raw_inductive_pred_axiom hol_ctxt x
 
-fun equational_fun_axioms (hol_ctxt as {ctxt, thy, stds, fast_descrs, def_table,
+fun equational_fun_axioms (hol_ctxt as {thy, ctxt, stds, fast_descrs, def_table,
                                         simp_table, psimp_table, ...}) x =
   case def_props_for_const thy stds fast_descrs (!simp_table) x of
     [] => (case def_props_for_const thy stds fast_descrs psimp_table x of
