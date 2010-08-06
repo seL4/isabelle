@@ -26,7 +26,6 @@ sig
   val fork: (unit -> 'a) -> 'a future
   val future_enabled: unit -> bool
   val local_future_enabled: unit -> bool
-  val local_future_enforced: unit -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
@@ -112,7 +111,6 @@ fun future_enabled () =
   Multithreading.enabled () andalso Future.is_worker () andalso ! parallel_proofs >= 1;
 
 fun local_future_enabled () = future_enabled () andalso ! parallel_proofs >= 2;
-fun local_future_enforced () = future_enabled () andalso ! parallel_proofs >= 3;
 
 
 (* future_result *)
