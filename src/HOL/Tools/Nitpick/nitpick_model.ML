@@ -25,8 +25,11 @@ sig
   val unknown : string
   val unrep : unit -> string
   val register_term_postprocessor :
+    typ -> term_postprocessor -> Proof.context -> Proof.context
+  val register_term_postprocessor_global :
     typ -> term_postprocessor -> theory -> theory
-  val unregister_term_postprocessor : typ -> theory -> theory
+  val unregister_term_postprocessor : typ -> Proof.context -> Proof.context
+  val unregister_term_postprocessor_global : typ -> theory -> theory
   val tuple_list_for_name :
     nut NameTable.table -> Kodkod.raw_bound list -> nut -> int list list
   val dest_plain_fun : term -> bool * (term list * term list)
@@ -59,7 +62,7 @@ type params =
 type term_postprocessor =
   Proof.context -> string -> (typ -> term list) -> typ -> term -> term
 
-structure Data = Theory_Data(
+structure Data = Generic_Data(
   type T = (typ * term_postprocessor) list
   val empty = []
   val extend = I
@@ -155,8 +158,17 @@ fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
               | ord => ord)
            | _ => Term_Ord.fast_term_ord tp
 
-fun register_term_postprocessor T p = Data.map (cons (T, p))
-fun unregister_term_postprocessor T = Data.map (AList.delete (op =) T)
+fun register_term_postprocessor_generic T p = Data.map (cons (T, p))
+val register_term_postprocessor =
+  Context.proof_map oo register_term_postprocessor_generic
+val register_term_postprocessor_global =
+  Context.theory_map oo register_term_postprocessor_generic
+
+fun unregister_term_postprocessor_generic T = Data.map (AList.delete (op =) T)
+val unregister_term_postprocessor =
+  Context.proof_map o unregister_term_postprocessor_generic
+val unregister_term_postprocessor_global =
+  Context.theory_map o unregister_term_postprocessor_generic
 
 fun tuple_list_for_name rel_table bounds name =
   the (AList.lookup (op =) bounds (the_rel rel_table name)) handle NUT _ => [[]]
@@ -309,8 +321,10 @@ fun mk_tuple (Type (@{type_name prod}, [T1, T2])) ts =
   | mk_tuple _ (t :: _) = t
   | mk_tuple T [] = raise TYPE ("Nitpick_Model.mk_tuple", [T], [])
 
-fun varified_type_match thy (candid_T, pat_T) =
-  strict_type_match thy (candid_T, Logic.varifyT_global pat_T)
+fun varified_type_match ctxt (candid_T, pat_T) =
+  let val thy = ProofContext.theory_of ctxt in
+    strict_type_match thy (candid_T, varify_type ctxt pat_T)
+  end
 
 fun all_values_of_type pool wacky_names (scope as {card_assigns, ...} : scope)
                        atomss sel_names rel_table bounds card T =
@@ -351,11 +365,12 @@ and reconstruct_term maybe_opt unfold pool
                          bounds 0
     fun postprocess_term (Type (@{type_name fun}, _)) = I
       | postprocess_term T =
-        if null (Data.get thy) then
-          I
-        else case AList.lookup (varified_type_match thy) (Data.get thy) T of
-          SOME postproc => postproc ctxt maybe_name all_values T
-        | NONE => I
+        case Data.get (Context.Proof ctxt) of
+          [] => I
+        | postprocs =>
+          case AList.lookup (varified_type_match ctxt) postprocs T of
+            SOME postproc => postproc ctxt maybe_name all_values T
+          | NONE => I
     fun postprocess_subterms Ts (t1 $ t2) =
         let val t = postprocess_subterms Ts t1 $ postprocess_subterms Ts t2 in
           postprocess_term (fastype_of1 (Ts, t)) t
