@@ -240,13 +240,14 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 else orig_t
     val tfree_table =
       if merge_type_vars then
-        merged_type_var_table_for_terms (neg_t :: assm_ts @ evals)
+        merged_type_var_table_for_terms thy (neg_t :: assm_ts @ evals)
       else
         []
-    val neg_t = merge_type_vars_in_term merge_type_vars tfree_table neg_t
-    val assm_ts = map (merge_type_vars_in_term merge_type_vars tfree_table)
+    val neg_t = merge_type_vars_in_term thy merge_type_vars tfree_table neg_t
+    val assm_ts = map (merge_type_vars_in_term thy merge_type_vars tfree_table)
                       assm_ts
-    val evals = map (merge_type_vars_in_term merge_type_vars tfree_table) evals
+    val evals = map (merge_type_vars_in_term thy merge_type_vars tfree_table)
+                    evals
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
