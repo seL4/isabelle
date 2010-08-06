@@ -1,41 +1,39 @@
-(*  Author:     Thomas Marthedal Rasmussen
+(*  Title:      HOL/Old_Number_Theory/Factorization.thy
+    Author:     Thomas Marthedal Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
 header {* Fundamental Theorem of Arithmetic (unique factorization into primes) *}
 
 theory Factorization
-imports Main "~~/src/HOL/Old_Number_Theory/Primes" Permutation
+imports Primes Permutation
 begin
 
 
 subsection {* Definitions *}
 
-definition
-  primel :: "nat list => bool" where
-  "primel xs = (\<forall>p \<in> set xs. prime p)"
+definition primel :: "nat list => bool"
+  where "primel xs = (\<forall>p \<in> set xs. prime p)"
 
-consts
-  nondec :: "nat list => bool "
-  prod :: "nat list => nat"
-  oinsert :: "nat => nat list => nat list"
-  sort :: "nat list => nat list"
-
-primrec
+primrec nondec :: "nat list => bool"
+where
   "nondec [] = True"
-  "nondec (x # xs) = (case xs of [] => True | y # ys => x \<le> y \<and> nondec xs)"
+| "nondec (x # xs) = (case xs of [] => True | y # ys => x \<le> y \<and> nondec xs)"
 
-primrec
+primrec prod :: "nat list => nat"
+where
   "prod [] = Suc 0"
-  "prod (x # xs) = x * prod xs"
+| "prod (x # xs) = x * prod xs"
 
-primrec
+primrec oinsert :: "nat => nat list => nat list"
+where
   "oinsert x [] = [x]"
-  "oinsert x (y # ys) = (if x \<le> y then x # y # ys else y # oinsert x ys)"
+| "oinsert x (y # ys) = (if x \<le> y then x # y # ys else y # oinsert x ys)"
 
-primrec
+primrec sort :: "nat list => nat list"
+where
   "sort [] = []"
-  "sort (x # xs) = oinsert x (sort xs)"
+| "sort (x # xs) = oinsert x (sort xs)"
 
 
 subsection {* Arithmetic *}

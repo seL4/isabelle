@@ -9,13 +9,6 @@ package isabelle
 
 object Isar_Document
 {
-  /* unique identifiers */
-
-  type State_ID = String
-  type Command_ID = String
-  type Document_ID = String
-
-
   /* reports */
 
   object Assign {
@@ -27,7 +20,7 @@ object Isar_Document
   }
 
   object Edit {
-    def unapply(msg: XML.Tree): Option[(Command_ID, State_ID)] =
+    def unapply(msg: XML.Tree): Option[(Document.Command_ID, Document.State_ID)] =
       msg match {
         case XML.Elem(Markup.EDIT, List((Markup.ID, cmd_id), (Markup.STATE, state_id)), Nil) =>
           Some(cmd_id, state_id)
@@ -44,7 +37,7 @@ trait Isar_Document extends Isabelle_Process
 
   /* commands */
 
-  def define_command(id: Command_ID, text: String) {
+  def define_command(id: Document.Command_ID, text: String) {
     output_sync("Isar.define_command " + Isabelle_Syntax.encode_string(id) + " " +
       Isabelle_Syntax.encode_string(text))
   }
@@ -52,26 +45,31 @@ trait Isar_Document extends Isabelle_Process
 
   /* documents */
 
-  def begin_document(id: Document_ID, path: String) {
-    output_sync("Isar.begin_document " + Isabelle_Syntax.encode_string(id) + " " +
-      Isabelle_Syntax.encode_string(path))
-  }
-
-  def end_document(id: Document_ID) {
-    output_sync("Isar.end_document " + Isabelle_Syntax.encode_string(id))
-  }
-
-  def edit_document(old_id: Document_ID, new_id: Document_ID,
-      edits: List[(Command_ID, Option[Command_ID])])
+  def edit_document(old_id: Document.Version_ID, new_id: Document.Version_ID,
+      edits: List[Document.Edit[Document.Command_ID]])
   {
-    def append_edit(edit: (Command_ID, Option[Command_ID]), result: StringBuilder)
+    def append_edit(
+        edit: (Option[Document.Command_ID], Option[Document.Command_ID]), result: StringBuilder)
     {
-      edit match {
-        case (id, None) => Isabelle_Syntax.append_string(id, result)
-        case (id, Some(id2)) =>
-          Isabelle_Syntax.append_string(id, result)
+      Isabelle_Syntax.append_string(edit._1 getOrElse Document.NO_ID, result)
+      edit._2 match {
+        case None =>
+        case Some(id2) =>
           result.append(" ")
           Isabelle_Syntax.append_string(id2, result)
+      }
+    }
+
+    def append_node_edit(
+        edit: (String, Option[List[(Option[Document.Command_ID], Option[Document.Command_ID])]]),
+        result: StringBuilder)
+    {
+      Isabelle_Syntax.append_string(edit._1, result)
+      edit._2 match {
+        case None =>
+        case Some(eds) =>
+          result.append(" ")
+          Isabelle_Syntax.append_list(append_edit, eds, result)
       }
     }
 
@@ -81,7 +79,7 @@ trait Isar_Document extends Isabelle_Process
     buf.append(" ")
     Isabelle_Syntax.append_string(new_id, buf)
     buf.append(" ")
-    Isabelle_Syntax.append_list(append_edit, edits, buf)
+    Isabelle_Syntax.append_list(append_node_edit, edits, buf)
     output_sync(buf.toString)
   }
 }

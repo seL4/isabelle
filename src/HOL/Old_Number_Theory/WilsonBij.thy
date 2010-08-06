@@ -1,10 +1,13 @@
-(*  Author:     Thomas M. Rasmussen
+(*  Title:      HOL/Old_Number_Theory/WilsonBij.thy
+    Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
 header {* Wilson's Theorem using a more abstract approach *}
 
-theory WilsonBij imports BijectionRel IntFact begin
+theory WilsonBij
+imports BijectionRel IntFact
+begin
 
 text {*
   Wilson's Theorem using a more ``abstract'' approach based on
@@ -15,12 +18,10 @@ text {*
 
 subsection {* Definitions and lemmas *}
 
-definition
-  reciR :: "int => int => int => bool" where
-  "reciR p = (\<lambda>a b. zcong (a * b) 1 p \<and> 1 < a \<and> a < p - 1 \<and> 1 < b \<and> b < p - 1)"
+definition reciR :: "int => int => int => bool"
+  where "reciR p = (\<lambda>a b. zcong (a * b) 1 p \<and> 1 < a \<and> a < p - 1 \<and> 1 < b \<and> b < p - 1)"
 
-definition
-  inv :: "int => int => int" where
+definition inv :: "int => int => int" where
   "inv p a =
     (if zprime p \<and> 0 < a \<and> a < p then
       (SOME x. 0 \<le> x \<and> x < p \<and> zcong (a * x) 1 p)

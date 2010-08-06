@@ -1,11 +1,11 @@
-(*  Title:      HOL/Library/Pocklington.thy
+(*  Title:      HOL/Old_Number_Theory/Pocklington.thy
     Author:     Amine Chaieb
 *)
 
 header {* Pocklington's Theorem for Primes *}
 
 theory Pocklington
-imports Main Primes
+imports Primes
 begin
 
 definition modeq:: "nat => nat => nat => bool"    ("(1[_ = _] '(mod _'))")

@@ -1,19 +1,17 @@
 (*  Title:      Pure/Isar/isar_document.ML
     Author:     Makarius
 
-Interactive Isar documents.
+Interactive Isar documents, which are structured as follows:
+
+  - history: tree of documents (i.e. changes without merge)
+  - document: graph of nodes (cf. theory files)
+  - node: linear set of commands, potentially with proof structure
 *)
 
 structure Isar_Document: sig end =
 struct
 
 (* unique identifiers *)
-
-type state_id = string;
-type command_id = string;
-type document_id = string;
-
-val no_id = "";
 
 local
   val id_count = Synchronized.var "id" 0;
@@ -32,78 +30,84 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ quote id);
 
 (** documents **)
 
+datatype entry = Entry of {next: Document.command_id option, state: Document.state_id option};
+type node = entry Symtab.table; (*unique command entries indexed by command_id, start with no_id*)
+type document = node Graph.T;   (*development graph via static imports*)
+
+
 (* command entries *)
 
-datatype entry = Entry of {next: command_id option, state: state_id option};
 fun make_entry next state = Entry {next = next, state = state};
 
-fun the_entry entries (id: command_id) =
-  (case Symtab.lookup entries id of
-    NONE => err_undef "document entry" id
+fun the_entry (node: node) (id: Document.command_id) =
+  (case Symtab.lookup node id of
+    NONE => err_undef "command entry" id
   | SOME (Entry entry) => entry);
 
-fun put_entry (id: command_id, entry: entry) = Symtab.update (id, entry);
+fun put_entry (id: Document.command_id, entry: entry) = Symtab.update (id, entry);
 
-fun put_entry_state (id: command_id) state entries =
-  let val {next, ...} = the_entry entries id
-  in put_entry (id, make_entry next state) entries end;
+fun put_entry_state (id: Document.command_id) state (node: node) =
+  let val {next, ...} = the_entry node id
+  in put_entry (id, make_entry next state) node end;
 
 fun reset_entry_state id = put_entry_state id NONE;
 fun set_entry_state (id, state_id) = put_entry_state id (SOME state_id);
 
 
-(* document *)
-
-datatype document = Document of
- {dir: Path.T,                   (*master directory*)
-  name: string,                  (*theory name*)
-  entries: entry Symtab.table};  (*unique command entries indexed by command_id, start with no_id*)
-
-fun make_document dir name entries =
-  Document {dir = dir, name = name, entries = entries};
-
-fun map_entries f (Document {dir, name, entries}) =
-  make_document dir name (f entries);
-
-
 (* iterate entries *)
 
-fun fold_entries id0 f (Document {entries, ...}) =
+fun fold_entries id0 f (node: node) =
   let
     fun apply NONE x = x
       | apply (SOME id) x =
-          let val entry = the_entry entries id
+          let val entry = the_entry node id
           in apply (#next entry) (f (id, entry) x) end;
-  in if Symtab.defined entries id0 then apply (SOME id0) else I end;
+  in if Symtab.defined node id0 then apply (SOME id0) else I end;
 
-fun first_entry P (Document {entries, ...}) =
+fun first_entry P (node: node) =
   let
     fun first _ NONE = NONE
       | first prev (SOME id) =
-          let val entry = the_entry entries id
+          let val entry = the_entry node id
           in if P (id, entry) then SOME (prev, id, entry) else first (SOME id) (#next entry) end;
-  in first NONE (SOME no_id) end;
+  in first NONE (SOME Document.no_id) end;
 
 
 (* modify entries *)
 
-fun insert_after (id: command_id) (id2: command_id) = map_entries (fn entries =>
-  let val {next, state} = the_entry entries id in
-    entries
+fun insert_after (id: Document.command_id) (id2: Document.command_id) (node: node) =
+  let val {next, state} = the_entry node id in
+    node
     |> put_entry (id, make_entry (SOME id2) state)
     |> put_entry (id2, make_entry next NONE)
-  end);
+  end;
 
-fun delete_after (id: command_id) = map_entries (fn entries =>
-  let val {next, state} = the_entry entries id in
+fun delete_after (id: Document.command_id) (node: node) =
+  let val {next, state} = the_entry node id in
     (case next of
       NONE => error ("No next entry to delete: " ^ quote id)
     | SOME id2 =>
-        entries |>
-          (case #next (the_entry entries id2) of
+        node |>
+          (case #next (the_entry node id2) of
             NONE => put_entry (id, make_entry NONE state)
           | SOME id3 => put_entry (id, make_entry (SOME id3) state) #> reset_entry_state id3))
-  end);
+  end;
+
+
+(* node operations *)
+
+val empty_node: node = Symtab.make [(Document.no_id, make_entry NONE (SOME Document.no_id))];
+
+fun the_node (document: document) name =
+  Graph.get_node document name handle Graph.UNDEF _ => empty_node;
+
+fun edit_node (id, SOME id2) = insert_after id id2
+  | edit_node (id, NONE) = delete_after id;
+
+fun edit_nodes (name, SOME edits) =
+      Graph.default_node (name, empty_node) #>
+      Graph.map_node name (fold edit_node edits)
+  | edit_nodes (name, NONE) = Graph.del_node name;
 
 
 
@@ -113,16 +117,17 @@ fun delete_after (id: command_id) = map_entries (fn entries =>
 
 local
 
-val global_states = Unsynchronized.ref (Symtab.make [(no_id, Lazy.value (SOME Toplevel.toplevel))]);
+val global_states =
+  Unsynchronized.ref (Symtab.make [(Document.no_id, Lazy.value (SOME Toplevel.toplevel))]);
 
 in
 
-fun define_state (id: state_id) state =
+fun define_state (id: Document.state_id) state =
   NAMED_CRITICAL "Isar" (fn () =>
     Unsynchronized.change global_states (Symtab.update_new (id, state))
       handle Symtab.DUP dup => err_dup "state" dup);
 
-fun the_state (id: state_id) =
+fun the_state (id: Document.state_id) =
   (case Symtab.lookup (! global_states) id of
     NONE => err_undef "state" id
   | SOME state => state);
@@ -134,16 +139,16 @@ end;
 
 local
 
-val global_commands = Unsynchronized.ref (Symtab.make [(no_id, Toplevel.empty)]);
+val global_commands = Unsynchronized.ref (Symtab.make [(Document.no_id, Toplevel.empty)]);
 
 in
 
-fun define_command (id: command_id) tr =
+fun define_command (id: Document.command_id) tr =
   NAMED_CRITICAL "Isar" (fn () =>
     Unsynchronized.change global_commands (Symtab.update_new (id, Toplevel.put_id id tr))
       handle Symtab.DUP dup => err_dup "command" dup);
 
-fun the_command (id: command_id) =
+fun the_command (id: Document.command_id) =
   (case Symtab.lookup (! global_commands) id of
     NONE => err_undef "command" id
   | SOME tr => tr);
@@ -151,20 +156,20 @@ fun the_command (id: command_id) =
 end;
 
 
-(* documents *)
+(* document versions *)
 
 local
 
-val global_documents = Unsynchronized.ref (Symtab.empty: document Symtab.table);
+val global_documents = Unsynchronized.ref (Symtab.make [(Document.no_id, Graph.empty: document)]);
 
 in
 
-fun define_document (id: document_id) document =
+fun define_document (id: Document.version_id) document =
   NAMED_CRITICAL "Isar" (fn () =>
     Unsynchronized.change global_documents (Symtab.update_new (id, document))
       handle Symtab.DUP dup => err_dup "document" dup);
 
-fun the_document (id: document_id) =
+fun the_document (id: Document.version_id) =
   (case Symtab.lookup (! global_documents) id of
     NONE => err_undef "document" id
   | SOME document => document);
@@ -175,41 +180,47 @@ end;
 
 (** main operations **)
 
-(* begin/end document *)
-
-val no_entries = Symtab.make [(no_id, make_entry NONE (SOME no_id))];
-
-fun begin_document (id: document_id) path =
-  let
-    val (dir, name) = Thy_Header.split_thy_path path;
-    val _ = define_document id (make_document dir name no_entries);
-  in () end;
-
-fun end_document (id: document_id) =
-  NAMED_CRITICAL "Isar" (fn () =>
-    let
-      val document as Document {name, ...} = the_document id;
-      val end_state =
-        the_state (the (#state (#3 (the
-          (first_entry (fn (_, {next, ...}) => is_none next) document)))));
-      val _ =  (* FIXME regular execution (??), result (??) *)
-        Future.fork (fn () =>
-          (case Lazy.force end_state of
-            SOME st => Toplevel.end_theory (Position.id_only id) st
-          | NONE => error ("Failed to finish theory " ^ quote name)));
-    in () end);
-
-
-(* document editing *)
+(* execution *)
 
 local
 
-fun is_changed entries' (id, {next = _, state}) =
-  (case try (the_entry entries') id of
+val execution: unit future list Unsynchronized.ref = Unsynchronized.ref [];
+
+fun force_state NONE = ()
+  | force_state (SOME state_id) = ignore (Lazy.force (the_state state_id));
+
+in
+
+fun execute document =
+  NAMED_CRITICAL "Isar" (fn () =>
+    let
+      val old_execution = ! execution;
+      val _ = List.app Future.cancel old_execution;
+      fun await_cancellation () = uninterruptible (K Future.join_results) old_execution;
+      (* FIXME proper node deps *)
+      val new_execution = Graph.keys document |> map (fn name =>
+        Future.fork_pri 1 (fn () =>
+          let
+            val _ = await_cancellation ();
+            val exec =
+              fold_entries Document.no_id (fn (_, {state, ...}) => fn () => force_state state)
+                (the_node document name);
+          in exec () end));
+    in execution := new_execution end);
+
+end;
+
+
+(* editing *)
+
+local
+
+fun is_changed node' (id, {next = _, state}) =
+  (case try (the_entry node') id of
     NONE => true
   | SOME {next = _, state = state'} => state' <> state);
 
-fun new_state name (id: command_id) (state_id, updates) =
+fun new_state name (id: Document.command_id) (state_id, updates) =
   let
     val state = the_state state_id;
     val state_id' = create_id ();
@@ -227,44 +238,31 @@ fun report_updates updates =
   |> Markup.markup Markup.assign
   |> Output.status;
 
-
-fun force_state NONE = ()
-  | force_state (SOME state_id) = ignore (Lazy.force (the_state state_id));
-
-val execution = Unsynchronized.ref (Future.value ());
-
-fun execute document =
-  NAMED_CRITICAL "Isar" (fn () =>
-    let
-      val old_execution = ! execution;
-      val _ = Future.cancel old_execution;
-      val new_execution = Future.fork_pri 1 (fn () =>
-       (uninterruptible (K Future.join_result) old_execution;
-        fold_entries no_id (fn (_, {state, ...}) => fn () => force_state state) document ()));
-    in execution := new_execution end);
-
 in
 
-fun edit_document (old_id: document_id) (new_id: document_id) edits =
+fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) edits =
   NAMED_CRITICAL "Isar" (fn () =>
     let
-      val old_document as Document {name, entries = old_entries, ...} = the_document old_id;
-      val new_document as Document {entries = new_entries, ...} = old_document
-        |> fold (fn (id, SOME id2) => insert_after id id2 | (id, NONE) => delete_after id) edits;
+      val old_document = the_document old_id;
+      val new_document = fold edit_nodes edits old_document;
 
-      val (updates, new_document') =
-        (case first_entry (is_changed old_entries) new_document of
-          NONE => ([], new_document)
+      fun update_node name node =
+        (case first_entry (is_changed (the_node old_document name)) node of
+          NONE => ([], node)
         | SOME (prev, id, _) =>
             let
-              val prev_state_id = the (#state (the_entry new_entries (the prev)));
-              val (_, updates) =
-                fold_entries id (new_state name o #1) new_document (prev_state_id, []);
-              val new_document' = new_document |> map_entries (fold set_entry_state updates);
-            in (rev updates, new_document') end);
+              val prev_state_id = the (#state (the_entry node (the prev)));
+              val (_, updates) = fold_entries id (new_state name o #1) node (prev_state_id, []);
+              val node' = fold set_entry_state updates node;
+            in (rev updates, node') end);
+
+      (* FIXME proper node deps *)
+      val (updatess, new_document') =
+        (Graph.keys new_document, new_document)
+          |-> fold_map (fn name => Graph.map_node_yield name (update_node name));
 
       val _ = define_document new_id new_document';
-      val _ = report_updates updates;
+      val _ = report_updates (flat updatess);
       val _ = execute new_document';
     in () end);
 
@@ -282,21 +280,13 @@ val _ =
         define_command id (Outer_Syntax.prepare_command (Position.id id) text))));
 
 val _ =
-  Outer_Syntax.internal_command "Isar.begin_document"
-    (Parse.string -- Parse.string >> (fn (id, path) =>
-      Toplevel.imperative (fn () => begin_document id (Path.explode path))));
-
-val _ =
-  Outer_Syntax.internal_command "Isar.end_document"
-    (Parse.string >> (fn id => Toplevel.imperative (fn () => end_document id)));
-
-val _ =
   Outer_Syntax.internal_command "Isar.edit_document"
     (Parse.string -- Parse.string --
-        Parse_Value.list (Parse.string -- (Parse.string >> SOME) || Parse.string >> rpair NONE)
-      >> (fn ((id, new_id), edits) =>
-        Toplevel.position (Position.id_only new_id) o
-        Toplevel.imperative (fn () => edit_document id new_id edits)));
+      Parse_Value.list
+        (Parse.string -- Scan.option (Parse_Value.list (Parse.string -- Scan.option Parse.string)))
+      >> (fn ((old_id, new_id), edits) =>
+          Toplevel.position (Position.id_only new_id) o
+          Toplevel.imperative (fn () => edit_document old_id new_id edits)));
 
 end;
 

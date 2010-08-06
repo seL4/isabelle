@@ -1,10 +1,13 @@
-(*  Author:     Thomas M. Rasmussen
+(*  Title:      HOL/Old_Number_Theory/IntFact.thy
+    Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
 header {* Factorial on integers *}
 
-theory IntFact imports IntPrimes begin
+theory IntFact
+imports IntPrimes
+begin
 
 text {*
   Factorial on integers and recursively defined set including all
@@ -14,15 +17,11 @@ text {*
   \bigskip
 *}
 
-fun
-  zfact :: "int => int"
-where
-  "zfact n = (if n \<le> 0 then 1 else n * zfact (n - 1))"
+fun zfact :: "int => int"
+  where "zfact n = (if n \<le> 0 then 1 else n * zfact (n - 1))"
 
-fun
-  d22set :: "int => int set"
-where
-  "d22set a = (if 1 < a then insert a (d22set (a - 1)) else {})"
+fun d22set :: "int => int set"
+  where "d22set a = (if 1 < a then insert a (d22set (a - 1)) else {})"
 
 
 text {*

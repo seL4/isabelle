@@ -1,19 +1,18 @@
-(*  Title:      HOL/Quadratic_Reciprocity/Euler.thy
-    ID:         $Id$
+(*  Title:      HOL/Old_Number_Theory/Euler.thy
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
 header {* Euler's criterion *}
 
-theory Euler imports Residues EvenOdd begin
+theory Euler
+imports Residues EvenOdd
+begin
 
-definition
-  MultInvPair :: "int => int => int => int set" where
-  "MultInvPair a p j = {StandardRes p j, StandardRes p (a * (MultInv p j))}"
+definition MultInvPair :: "int => int => int => int set"
+  where "MultInvPair a p j = {StandardRes p j, StandardRes p (a * (MultInv p j))}"
 
-definition
-  SetS        :: "int => int => int set set" where
-  "SetS        a p   =  (MultInvPair a p ` SRStar p)"
+definition SetS :: "int => int => int set set"
+  where "SetS a p = MultInvPair a p ` SRStar p"
 
 
 subsection {* Property for MultInvPair *}

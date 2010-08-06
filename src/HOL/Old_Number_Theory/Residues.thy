@@ -1,41 +1,36 @@
-(*  Title:      HOL/Quadratic_Reciprocity/Residues.thy
-    ID:         $Id$
+(*  Title:      HOL/Old_Number_Theory/Residues.thy
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
 header {* Residue Sets *}
 
-theory Residues imports Int2 begin
+theory Residues
+imports Int2
+begin
 
 text {*
   \medskip Define the residue of a set, the standard residue,
   quadratic residues, and prove some basic properties. *}
 
-definition
-  ResSet      :: "int => int set => bool" where
-  "ResSet m X = (\<forall>y1 y2. (y1 \<in> X & y2 \<in> X & [y1 = y2] (mod m) --> y1 = y2))"
+definition ResSet :: "int => int set => bool"
+  where "ResSet m X = (\<forall>y1 y2. (y1 \<in> X & y2 \<in> X & [y1 = y2] (mod m) --> y1 = y2))"
 
-definition
-  StandardRes :: "int => int => int" where
-  "StandardRes m x = x mod m"
+definition StandardRes :: "int => int => int"
+  where "StandardRes m x = x mod m"
 
-definition
-  QuadRes     :: "int => int => bool" where
-  "QuadRes m x = (\<exists>y. ([(y ^ 2) = x] (mod m)))"
+definition QuadRes :: "int => int => bool"
+  where "QuadRes m x = (\<exists>y. ([(y ^ 2) = x] (mod m)))"
 
-definition
-  Legendre    :: "int => int => int" where
+definition Legendre :: "int => int => int" where
   "Legendre a p = (if ([a = 0] (mod p)) then 0
                      else if (QuadRes p a) then 1
                      else -1)"
 
-definition
-  SR          :: "int => int set" where
-  "SR p = {x. (0 \<le> x) & (x < p)}"
+definition SR :: "int => int set"
+  where "SR p = {x. (0 \<le> x) & (x < p)}"
 
-definition
-  SRStar      :: "int => int set" where
-  "SRStar p = {x. (0 < x) & (x < p)}"
+definition SRStar :: "int => int set"
+  where "SRStar p = {x. (0 < x) & (x < p)}"
 
 
 subsection {* Some useful properties of StandardRes *}

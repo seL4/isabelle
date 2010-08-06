@@ -38,17 +38,17 @@ lemma is_gcd_commute: "is_gcd m n k = is_gcd n m k"
 
 subsection {* GCD on nat by Euclid's algorithm *}
 
-fun
-  gcd  :: "nat => nat => nat"
-where
-  "gcd m n = (if n = 0 then m else gcd n (m mod n))"
+fun gcd :: "nat => nat => nat"
+  where "gcd m n = (if n = 0 then m else gcd n (m mod n))"
+
 lemma gcd_induct [case_names "0" rec]:
   fixes m n :: nat
   assumes "\<And>m. P m 0"
     and "\<And>m n. 0 < n \<Longrightarrow> P n (m mod n) \<Longrightarrow> P m n"
   shows "P m n"
 proof (induct m n rule: gcd.induct)
-  case (1 m n) with assms show ?case by (cases "n = 0") simp_all
+  case (1 m n)
+  with assms show ?case by (cases "n = 0") simp_all
 qed
 
 lemma gcd_0 [simp, algebra]: "gcd m 0 = m"
@@ -751,22 +751,22 @@ by (case_tac "d<0", simp_all)
 
 lemma lcm_pos: 
   assumes mpos: "m > 0"
-  and npos: "n>0"
+    and npos: "n>0"
   shows "lcm m n > 0"
-proof(rule ccontr, simp add: lcm_def gcd_zero)
-assume h:"m*n div gcd m n = 0"
-from mpos npos have "gcd m n \<noteq> 0" using gcd_zero by simp
-hence gcdp: "gcd m n > 0" by simp
-with h
-have "m*n < gcd m n"
-  by (cases "m * n < gcd m n") (auto simp add: div_if[OF gcdp, where m="m*n"])
-moreover 
-have "gcd m n dvd m" by simp
- with mpos dvd_imp_le have t1:"gcd m n \<le> m" by simp
- with npos have t1:"gcd m n *n \<le> m*n" by simp
- have "gcd m n \<le> gcd m n*n" using npos by simp
- with t1 have "gcd m n \<le> m*n" by arith
-ultimately show "False" by simp
+proof (rule ccontr, simp add: lcm_def gcd_zero)
+  assume h:"m*n div gcd m n = 0"
+  from mpos npos have "gcd m n \<noteq> 0" using gcd_zero by simp
+  hence gcdp: "gcd m n > 0" by simp
+  with h
+  have "m*n < gcd m n"
+    by (cases "m * n < gcd m n") (auto simp add: div_if[OF gcdp, where m="m*n"])
+  moreover 
+  have "gcd m n dvd m" by simp
+  with mpos dvd_imp_le have t1:"gcd m n \<le> m" by simp
+  with npos have t1:"gcd m n *n \<le> m*n" by simp
+  have "gcd m n \<le> gcd m n*n" using npos by simp
+  with t1 have "gcd m n \<le> m*n" by arith
+  ultimately show "False" by simp
 qed
 
 lemma zlcm_pos: 

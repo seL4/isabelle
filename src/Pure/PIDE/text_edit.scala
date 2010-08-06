@@ -21,8 +21,8 @@ class Text_Edit(val is_insert: Boolean, val start: Int, val text: String)
     else if (is_insert == do_insert) offset + text.length
     else (offset - text.length) max start
 
-  def after(offset: Int): Int = transform(true, offset)
-  def before(offset: Int): Int = transform(false, offset)
+  def convert(offset: Int): Int = transform(true, offset)
+  def revert(offset: Int): Int = transform(false, offset)
 
 
   /* edit strings */

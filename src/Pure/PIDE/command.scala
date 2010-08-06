@@ -35,7 +35,7 @@ object Command
 }
 
 class Command(
-    val id: Isar_Document.Command_ID,
+    val id: Document.Command_ID,
     val span: Thy_Syntax.Span,
     val static_parent: Option[Command] = None)
   extends Session.Entity
@@ -91,7 +91,7 @@ class Command(
     accumulator ! Consume(message, forward)
   }
 
-  def assign_state(state_id: Isar_Document.State_ID): Command =
+  def assign_state(state_id: Document.State_ID): Command =
   {
     val cmd = new Command(state_id, span, Some(this))
     accumulator !? Assign

@@ -1,10 +1,13 @@
-(*  Author:     Thomas M. Rasmussen
+(*  Title:      HOL/Old_Number_Theory/WilsonRuss.thy
+    Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
 header {* Wilson's Theorem according to Russinoff *}
 
-theory WilsonRuss imports EulerFermat begin
+theory WilsonRuss
+imports EulerFermat
+begin
 
 text {*
   Wilson's Theorem following quite closely Russinoff's approach
@@ -13,13 +16,10 @@ text {*
 
 subsection {* Definitions and lemmas *}
 
-definition
-  inv :: "int => int => int" where
-  "inv p a = (a^(nat (p - 2))) mod p"
+definition inv :: "int => int => int"
+  where "inv p a = (a^(nat (p - 2))) mod p"
 
-fun
-  wset :: "int \<Rightarrow> int => int set"
-where
+fun wset :: "int \<Rightarrow> int => int set" where
   "wset a p =
     (if 1 < a then
       let ws = wset (a - 1) p
@@ -29,7 +29,7 @@ where
 text {* \medskip @{term [source] inv} *}
 
 lemma inv_is_inv_aux: "1 < m ==> Suc (nat (m - 2)) = nat (m - 1)"
-by (subst int_int_eq [symmetric], auto)
+  by (subst int_int_eq [symmetric]) auto
 
 lemma inv_is_inv:
     "zprime p \<Longrightarrow> 0 < a \<Longrightarrow> a < p ==> [a * inv p a = 1] (mod p)"

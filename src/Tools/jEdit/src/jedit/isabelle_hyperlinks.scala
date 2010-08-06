@@ -42,25 +42,25 @@ class Isabelle_Hyperlinks extends HyperlinkSource
   {
     Document_Model(buffer) match {
       case Some(model) =>
-        val document = model.recent_document()
-        val offset = model.from_current(document, original_offset)
-        document.command_at(offset) match {
+        val snapshot = model.snapshot()
+        val offset = snapshot.revert(original_offset)
+        snapshot.node.command_at(offset) match {
           case Some((command, command_start)) =>
-            document.current_state(command).ref_at(offset - command_start) match {
+            snapshot.document.current_state(command).ref_at(offset - command_start) match {
               case Some(ref) =>
-                val begin = model.to_current(document, command_start + ref.start)
+                val begin = snapshot.convert(command_start + ref.start)
                 val line = buffer.getLineOfOffset(begin)
-                val end = model.to_current(document, command_start + ref.stop)
+                val end = snapshot.convert(command_start + ref.stop)
                 ref.info match {
                   case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
                     new External_Hyperlink(begin, end, line, ref_file, ref_line)
                   case Command.RefInfo(_, _, Some(id), Some(offset)) =>
                     Isabelle.session.lookup_entity(id) match {
                       case Some(ref_cmd: Command) =>
-                        document.command_start(ref_cmd) match {
+                        snapshot.node.command_start(ref_cmd) match {
                           case Some(ref_cmd_start) =>
                             new Internal_Hyperlink(begin, end, line,
-                              model.to_current(document, ref_cmd_start + offset - 1))
+                              snapshot.convert(ref_cmd_start + offset - 1))
                           case None => null // FIXME external ref
                         }
                       case _ => null

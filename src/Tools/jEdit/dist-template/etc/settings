@@ -1,3 +1,5 @@
+# -*- shell-script -*- :mode=shellscript:
+
 JEDIT_HOME="$COMPONENT"
 JEDIT_SETTINGS="$ISABELLE_HOME_USER/jedit"
 

@@ -76,7 +76,6 @@ class Session(system: Isabelle_System)
 
   private case class Start(timeout: Int, args: List[String])
   private case object Stop
-  private case class Begin_Document(path: String)
 
   private lazy val session_actor = actor {
 
@@ -84,8 +83,9 @@ class Session(system: Isabelle_System)
 
     def register(entity: Session.Entity) { entities += (entity.id -> entity) }
 
-    var documents = Map[Isar_Document.Document_ID, Document]()
+    var documents = Map[Document.Version_ID, Document]()
     def register_document(doc: Document) { documents += (doc.id -> doc) }
+    register_document(Document.init)
 
 
     /* document changes */
@@ -94,22 +94,31 @@ class Session(system: Isabelle_System)
     {
       require(change.parent.isDefined)
 
-      val (changes, doc) = change.result.join
-      val id_changes = changes map {
-        case (c1, c2) =>
-          (c1.map(_.id).getOrElse(""),
-           c2 match {
-              case None => None
-              case Some(command) =>
-                if (!lookup_command(command.id).isDefined) {
-                  register(command)
-                  prover.define_command(command.id, system.symbols.encode(command.source))
-                }
-                Some(command.id)
-            })
-      }
+      val (node_edits, doc) = change.result.join
+      val id_edits =
+        node_edits map {
+          case (name, None) => (name, None)
+          case (name, Some(cmd_edits)) =>
+            val chs =
+              cmd_edits map {
+                case (c1, c2) =>
+                  val id1 = c1.map(_.id)
+                  val id2 =
+                    c2 match {
+                      case None => None
+                      case Some(command) =>
+                        if (!lookup_command(command.id).isDefined) {
+                          register(command)
+                          prover.define_command(command.id, system.symbols.encode(command.source))
+                        }
+                        Some(command.id)
+                    }
+                  (id1, id2)
+              }
+            (name -> Some(chs))
+        }
       register_document(doc)
-      prover.edit_document(change.parent.get.id, doc.id, id_changes)
+      prover.edit_document(change.parent.get.id, doc.id, id_edits)
     }
 
 
@@ -229,13 +238,6 @@ class Session(system: Isabelle_System)
             prover = null
           }
 
-        case Begin_Document(path: String) if prover != null =>
-          val id = create_id()
-          val doc = Document.empty(id)
-          register_document(doc)
-          prover.begin_document(id, path)
-          reply(doc)
-
         case change: Change if prover != null =>
           handle_change(change)
 
@@ -304,7 +306,4 @@ class Session(system: Isabelle_System)
 
   def stop() { session_actor ! Stop }
   def input(change: Change) { session_actor ! change }
-
-  def begin_document(path: String): Document =
-    (session_actor !? Begin_Document(path)).asInstanceOf[Document]
 }

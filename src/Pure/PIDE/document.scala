@@ -1,17 +1,28 @@
 /*  Title:      Pure/PIDE/document.scala
     Author:     Makarius
 
-Document as editable list of commands.
+Document as collection of named nodes, each consisting of an editable
+list of commands.
 */
 
 package isabelle
 
 
+import scala.collection.mutable
 import scala.annotation.tailrec
 
 
 object Document
 {
+  /* unique identifiers */
+
+  type State_ID = String
+  type Command_ID = String
+  type Version_ID = String
+
+  val NO_ID = ""
+
+
   /* command start positions */
 
   def command_starts(commands: Iterator[Command], offset: Int = 0): Iterator[(Command, Int)] =
@@ -25,23 +36,65 @@ object Document
   }
 
 
-  /* empty document */
+  /* named document nodes */
 
-  def empty(id: Isar_Document.Document_ID): Document =
+  object Node
   {
-    val doc = new Document(id, Linear_Set(), Map())
+    val empty: Node = new Node(Linear_Set())
+  }
+
+  class Node(val commands: Linear_Set[Command])
+  {
+    /* command ranges */
+
+    def command_starts: Iterator[(Command, Int)] =
+      Document.command_starts(commands.iterator)
+
+    def command_start(cmd: Command): Option[Int] =
+      command_starts.find(_._1 == cmd).map(_._2)
+
+    def command_range(i: Int): Iterator[(Command, Int)] =
+      command_starts dropWhile { case (cmd, start) => start + cmd.length <= i }
+
+    def command_range(i: Int, j: Int): Iterator[(Command, Int)] =
+      command_range(i) takeWhile { case (_, start) => start < j }
+
+    def command_at(i: Int): Option[(Command, Int)] =
+    {
+      val range = command_range(i)
+      if (range.hasNext) Some(range.next) else None
+    }
+
+    def proper_command_at(i: Int): Option[Command] =
+      command_at(i) match {
+        case Some((command, _)) =>
+          commands.reverse_iterator(command).find(cmd => !cmd.is_ignored)
+        case None => None
+      }
+  }
+
+
+  /* initial document */
+
+  val init: Document =
+  {
+    val doc = new Document(NO_ID, Map().withDefaultValue(Node.empty), Map())
     doc.assign_states(Nil)
     doc
   }
 
 
 
-  /** document edits **/
+  /** editing **/
 
-  type Edit = (Option[Command], Option[Command])
+  type Node_Text_Edit = (String, List[Text_Edit])  // FIXME None: remove
 
-  def text_edits(session: Session, old_doc: Document, new_id: Isar_Document.Document_ID,
-    edits: List[Text_Edit]): (List[Edit], Document) =
+  type Edit[C] =
+   (String,  // node name
+    Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
+
+  def text_edits(session: Session, old_doc: Document, new_id: Version_ID,
+      edits: List[Node_Text_Edit]): (List[Edit[Command]], Document) =
   {
     require(old_doc.assignment.is_finished)
 
@@ -56,7 +109,8 @@ object Document
 
     /* phase 1: edit individual command source */
 
-    def edit_text(eds: List[Text_Edit], commands: Linear_Set[Command]): Linear_Set[Command] =
+    @tailrec def edit_text(eds: List[Text_Edit],
+        commands: Linear_Set[Command]): Linear_Set[Command] =
     {
       eds match {
         case e :: es =>
@@ -120,55 +174,38 @@ object Document
 
     /* phase 3: resulting document edits */
 
-    val commands0 = old_doc.commands
-    val commands1 = edit_text(edits, commands0)
-    val commands2 = parse_spans(commands1)
+    {
+      val doc_edits = new mutable.ListBuffer[Edit[Command]]
+      var nodes = old_doc.nodes
+      var former_states = old_doc.assignment.join
 
-    val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
-    val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
+      for ((name, text_edits) <- edits) {
+        val commands0 = nodes(name).commands
+        val commands1 = edit_text(text_edits, commands0)
+        val commands2 = parse_spans(commands1)
 
-    val doc_edits =
-      removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
-      inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
+        val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
+        val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
 
-    val former_states = old_doc.assignment.join -- removed_commands
+        val cmd_edits =
+          removed_commands.reverse.map(cmd => (commands0.prev(cmd), None)) :::
+          inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
-    (doc_edits, new Document(new_id, commands2, former_states))
+        doc_edits += (name -> Some(cmd_edits))
+        nodes += (name -> new Node(commands2))
+        former_states --= removed_commands
+      }
+      (doc_edits.toList, new Document(new_id, nodes, former_states))
+    }
   }
 }
 
 
 class Document(
-    val id: Isar_Document.Document_ID,
-    val commands: Linear_Set[Command],
-    former_states: Map[Command, Command])
+    val id: Document.Version_ID,
+    val nodes: Map[String, Document.Node],
+    former_states: Map[Command, Command])  // FIXME !?
 {
-  /* command ranges */
-
-  def command_starts: Iterator[(Command, Int)] = Document.command_starts(commands.iterator)
-
-  def command_start(cmd: Command): Option[Int] =
-    command_starts.find(_._1 == cmd).map(_._2)
-
-  def command_range(i: Int): Iterator[(Command, Int)] =
-    command_starts dropWhile { case (cmd, start) => start + cmd.length <= i }
-
-  def command_range(i: Int, j: Int): Iterator[(Command, Int)] =
-    command_range(i) takeWhile { case (_, start) => start < j }
-
-  def command_at(i: Int): Option[(Command, Int)] =
-  {
-    val range = command_range(i)
-    if (range.hasNext) Some(range.next) else None
-  }
-
-  def proper_command_at(i: Int): Option[Command] =
-    command_at(i) match {
-      case Some((command, _)) => commands.reverse_iterator(command).find(cmd => !cmd.is_ignored)
-      case None => None
-    }
-
-
   /* command state assignment */
 
   val assignment = Future.promise[Map[Command, Command]]

@@ -1,4 +1,4 @@
-(*  ID:         $Id$
+(*  Title:      HOL/Old_Number_Theory/Fib.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 *)
@@ -19,8 +19,8 @@ text {*
 
 fun fib :: "nat \<Rightarrow> nat"
 where
-         "fib 0 = 0"
-|        "fib (Suc 0) = 1"
+  "fib 0 = 0"
+| "fib (Suc 0) = 1"
 | fib_2: "fib (Suc (Suc n)) = fib n + fib (Suc n)"
 
 text {*
