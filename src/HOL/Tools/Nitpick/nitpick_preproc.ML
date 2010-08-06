@@ -960,31 +960,25 @@ fun axioms_for_term
                fold (add_nondef_axiom depth)
                     (nondef_props_for_const thy true choice_spec_table x) accum
              else if is_abs_fun ctxt x then
-               if is_quot_type thy (range_type T) then
-                 accum
-               else
-                 accum |> fold (add_nondef_axiom depth)
-                               (nondef_props_for_const thy false nondef_table x)
-                       |> (is_funky_typedef thy (range_type T) orelse
-                           range_type T = nat_T)
-                          ? fold (add_maybe_def_axiom depth)
-                                 (nondef_props_for_const thy true
+               accum |> fold (add_nondef_axiom depth)
+                             (nondef_props_for_const thy false nondef_table x)
+                     |> (is_funky_typedef thy (range_type T) orelse
+                         range_type T = nat_T)
+                        ? fold (add_maybe_def_axiom depth)
+                               (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
              else if is_rep_fun ctxt x then
-               if is_quot_type thy (domain_type T) then
-                 accum
-               else
-                 accum |> fold (add_nondef_axiom depth)
-                               (nondef_props_for_const thy false nondef_table x)
-                       |> (is_funky_typedef thy (range_type T) orelse
-                           range_type T = nat_T)
-                          ? fold (add_maybe_def_axiom depth)
-                                 (nondef_props_for_const thy true
+               accum |> fold (add_nondef_axiom depth)
+                             (nondef_props_for_const thy false nondef_table x)
+                     |> (is_funky_typedef thy (range_type T) orelse
+                         range_type T = nat_T)
+                        ? fold (add_maybe_def_axiom depth)
+                               (nondef_props_for_const thy true
                                                     (extra_table def_table s) x)
-                       |> add_axioms_for_term depth
-                                              (Const (mate_of_rep_fun ctxt x))
-                       |> fold (add_def_axiom depth)
-                               (inverse_axioms_for_rep_fun ctxt x)
+                     |> add_axioms_for_term depth
+                                            (Const (mate_of_rep_fun ctxt x))
+                     |> fold (add_def_axiom depth)
+                             (inverse_axioms_for_rep_fun ctxt x)
              else if s = @{const_name TYPE} then
                accum
              else case def_of_const thy def_table x of

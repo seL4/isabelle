@@ -240,13 +240,14 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                 else orig_t
     val tfree_table =
       if merge_type_vars then
-        merged_type_var_table_for_terms (neg_t :: assm_ts @ evals)
+        merged_type_var_table_for_terms thy (neg_t :: assm_ts @ evals)
       else
         []
-    val neg_t = merge_type_vars_in_term merge_type_vars tfree_table neg_t
-    val assm_ts = map (merge_type_vars_in_term merge_type_vars tfree_table)
+    val neg_t = merge_type_vars_in_term thy merge_type_vars tfree_table neg_t
+    val assm_ts = map (merge_type_vars_in_term thy merge_type_vars tfree_table)
                       assm_ts
-    val evals = map (merge_type_vars_in_term merge_type_vars tfree_table) evals
+    val evals = map (merge_type_vars_in_term thy merge_type_vars tfree_table)
+                    evals
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
@@ -364,14 +365,25 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       exists (curry (op =) T o domain_type o type_of) sel_names
     val all_Ts = ground_types_in_terms hol_ctxt binarize (nondef_ts @ def_ts)
                  |> sort Term_Ord.typ_ord
-    val _ = if verbose andalso binary_ints = SOME true andalso
-               exists (member (op =) [nat_T, int_T]) all_Ts then
-              print_v (K "The option \"binary_ints\" will be ignored because \
-                         \of the presence of rationals, reals, \"Suc\", \
-                         \\"gcd\", or \"lcm\" in the problem or because of the \
-                         \\"non_std\" option.")
-            else
-              ()
+    val _ =
+      if verbose andalso binary_ints = SOME true andalso
+         exists (member (op =) [nat_T, int_T]) all_Ts then
+        print_v (K "The option \"binary_ints\" will be ignored because of the \
+                   \presence of rationals, reals, \"Suc\", \"gcd\", or \"lcm\" \
+                   \in the problem or because of the \"non_std\" option.")
+      else
+        ()
+    val _ =
+      if not auto andalso
+         exists (fn Type (@{type_name Datatype.node}, _) => true | _ => false)
+                all_Ts then
+        print_m (K ("Warning: The problem involves directly or indirectly the \
+                    \internal type " ^ quote @{type_name Datatype.node} ^
+                    ". This type is very Nitpick-unfriendly, and its presence \
+                    \usually indicates either a failure in abstraction or a \
+                    \bug in Nitpick."))
+      else
+        ()
     val (mono_Ts, nonmono_Ts) = List.partition is_type_monotonic all_Ts
     val _ =
       if verbose andalso not unique_scope then

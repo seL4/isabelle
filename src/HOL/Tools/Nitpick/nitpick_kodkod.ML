@@ -902,7 +902,7 @@ fun sym_break_axioms_for_datatypes hol_ctxt binarize datatype_sym_break kk
                  |> (fn dtypes' =>
                         dtypes'
                         |> length dtypes' > datatype_sym_break
-                           ? (sort (rev_order o datatype_ord)
+                           ? (sort (datatype_ord o swap)
                               #> take datatype_sym_break)))
 
 fun sel_axiom_for_sel hol_ctxt binarize j0
