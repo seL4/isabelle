@@ -1,10 +1,13 @@
-(*  Author:     Thomas M. Rasmussen
+(*  Title:      HOL/Old_Number_Theory/BijectionRel.thy
+    Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
 header {* Bijections between sets *}
 
-theory BijectionRel imports Main begin
+theory BijectionRel
+imports Main
+begin
 
 text {*
   Inductive definitions of bijections between two different sets and

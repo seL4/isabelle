@@ -1,6 +1,5 @@
-(*  Title:      HOL/Quadratic_Reciprocity/Gauss.thy
-    ID:         $Id$
-    Authors:    Jeremy Avigad, David Gray, and Adam Kramer)
+(*  Title:      HOL/Old_Number_Theory/Gauss.thy
+    Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
 header {* Gauss' Lemma *}
@@ -19,29 +18,12 @@ locale GAUSS =
   assumes a_nonzero:    "0 < a"
 begin
 
-definition
-  A :: "int set" where
-  "A = {(x::int). 0 < x & x \<le> ((p - 1) div 2)}"
-
-definition
-  B :: "int set" where
-  "B = (%x. x * a) ` A"
-
-definition
-  C :: "int set" where
-  "C = StandardRes p ` B"
-
-definition
-  D :: "int set" where
-  "D = C \<inter> {x. x \<le> ((p - 1) div 2)}"
-
-definition
-  E :: "int set" where
-  "E = C \<inter> {x. ((p - 1) div 2) < x}"
-
-definition
-  F :: "int set" where
-  "F = (%x. (p - x)) ` E"
+definition "A = {(x::int). 0 < x & x \<le> ((p - 1) div 2)}"
+definition "B = (%x. x * a) ` A"
+definition "C = StandardRes p ` B"
+definition "D = C \<inter> {x. x \<le> ((p - 1) div 2)}"
+definition "E = C \<inter> {x. ((p - 1) div 2) < x}"
+definition "F = (%x. (p - x)) ` E"
 
 
 subsection {* Basic properties of p *}

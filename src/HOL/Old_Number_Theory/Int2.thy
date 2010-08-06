@@ -1,5 +1,4 @@
-(*  Title:      HOL/Quadratic_Reciprocity/Gauss.thy
-    ID:         $Id$
+(*  Title:      HOL/Old_Number_Theory/Int2.thy
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
@@ -9,9 +8,8 @@ theory Int2
 imports Finite2 WilsonRuss
 begin
 
-definition
-  MultInv :: "int => int => int" where
-  "MultInv p x = x ^ nat (p - 2)"
+definition MultInv :: "int => int => int"
+  where "MultInv p x = x ^ nat (p - 2)"
 
 
 subsection {* Useful lemmas about dvd and powers *}

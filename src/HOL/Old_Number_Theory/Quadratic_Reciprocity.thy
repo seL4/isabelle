@@ -1,4 +1,5 @@
-(*  Authors:    Jeremy Avigad, David Gray, and Adam Kramer
+(*  Title:      HOL/Old_Number_Theory/Quadratic_Reciprocity.thy
+    Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
 header {* The law of Quadratic reciprocity *}
@@ -165,33 +166,26 @@ locale QRTEMP =
   assumes p_neq_q:      "p \<noteq> q"
 begin
 
-definition
-  P_set :: "int set" where
-  "P_set = {x. 0 < x & x \<le> ((p - 1) div 2) }"
+definition P_set :: "int set"
+  where "P_set = {x. 0 < x & x \<le> ((p - 1) div 2) }"
 
-definition
-  Q_set :: "int set" where
-  "Q_set = {x. 0 < x & x \<le> ((q - 1) div 2) }"
+definition Q_set :: "int set"
+  where "Q_set = {x. 0 < x & x \<le> ((q - 1) div 2) }"
   
-definition
-  S :: "(int * int) set" where
-  "S = P_set <*> Q_set"
+definition S :: "(int * int) set"
+  where "S = P_set <*> Q_set"
 
-definition
-  S1 :: "(int * int) set" where
-  "S1 = { (x, y). (x, y):S & ((p * y) < (q * x)) }"
+definition S1 :: "(int * int) set"
+  where "S1 = { (x, y). (x, y):S & ((p * y) < (q * x)) }"
 
-definition
-  S2 :: "(int * int) set" where
-  "S2 = { (x, y). (x, y):S & ((q * x) < (p * y)) }"
+definition S2 :: "(int * int) set"
+  where "S2 = { (x, y). (x, y):S & ((q * x) < (p * y)) }"
 
-definition
-  f1 :: "int => (int * int) set" where
-  "f1 j = { (j1, y). (j1, y):S & j1 = j & (y \<le> (q * j) div p) }"
+definition f1 :: "int => (int * int) set"
+  where "f1 j = { (j1, y). (j1, y):S & j1 = j & (y \<le> (q * j) div p) }"
 
-definition
-  f2 :: "int => (int * int) set" where
-  "f2 j = { (x, j1). (x, j1):S & j1 = j & (x \<le> (p * j) div q) }"
+definition f2 :: "int => (int * int) set"
+  where "f2 j = { (x, j1). (x, j1):S & j1 = j & (x \<le> (p * j) div q) }"
 
 lemma p_fact: "0 < (p - 1) div 2"
 proof -

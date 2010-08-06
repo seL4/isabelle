@@ -1,4 +1,5 @@
-(*  Author:     Thomas M. Rasmussen
+(*  Title:      HOL/Old_Number_Theory/Chinese.thy
+    Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
@@ -19,17 +20,15 @@ text {*
 
 subsection {* Definitions *}
 
-consts
-  funprod :: "(nat => int) => nat => nat => int"
-  funsum :: "(nat => int) => nat => nat => int"
-
-primrec
+primrec funprod :: "(nat => int) => nat => nat => int"
+where
   "funprod f i 0 = f i"
-  "funprod f i (Suc n) = f (Suc (i + n)) * funprod f i n"
+| "funprod f i (Suc n) = f (Suc (i + n)) * funprod f i n"
 
-primrec
+primrec funsum :: "(nat => int) => nat => nat => int"
+where
   "funsum f i 0 = f i"
-  "funsum f i (Suc n) = f (Suc (i + n)) + funsum f i n"
+| "funsum f i (Suc n) = f (Suc (i + n)) + funsum f i n"
 
 definition
   m_cond :: "nat => (nat => int) => bool" where

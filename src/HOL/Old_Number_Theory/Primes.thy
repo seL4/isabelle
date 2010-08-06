@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Primes.thy
+(*  Title:      HOL/Old_Number_Theory/Primes.thy
     Author:     Amine Chaieb, Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
@@ -9,13 +9,11 @@ theory Primes
 imports Complex_Main Legacy_GCD
 begin
 
-definition
-  coprime :: "nat => nat => bool" where
-  "coprime m n \<longleftrightarrow> gcd m n = 1"
+definition coprime :: "nat => nat => bool"
+  where "coprime m n \<longleftrightarrow> gcd m n = 1"
 
-definition
-  prime :: "nat \<Rightarrow> bool" where
-  "prime p \<longleftrightarrow> (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
+definition prime :: "nat \<Rightarrow> bool"
+  where "prime p \<longleftrightarrow> (1 < p \<and> (\<forall>m. m dvd p --> m = 1 \<or> m = p))"
 
 
 lemma two_is_prime: "prime 2"

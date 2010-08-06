@@ -1,12 +1,11 @@
-(*  Title:      HOL/Quadratic_Reciprocity/Finite2.thy
-    ID:         $Id$
+(*  Title:      HOL/Old_Number_Theory/Finite2.thy
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 
 header {*Finite Sets and Finite Sums*}
 
 theory Finite2
-imports Main IntFact Infinite_Set
+imports IntFact Infinite_Set
 begin
 
 text{*

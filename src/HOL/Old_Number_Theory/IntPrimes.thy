@@ -1,11 +1,12 @@
-(*  Author:     Thomas M. Rasmussen
+(*  Title:      HOL/Old_Number_Theory/IntPrimes.thy
+    Author:     Thomas M. Rasmussen
     Copyright   2000  University of Cambridge
 *)
 
 header {* Divisibility and prime numbers (on integers) *}
 
 theory IntPrimes
-imports Main Primes
+imports Primes
 begin
 
 text {*
@@ -19,8 +20,7 @@ text {*
 
 subsection {* Definitions *}
 
-fun
-  xzgcda :: "int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int => (int * int * int)"
+fun xzgcda :: "int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int \<Rightarrow> int => (int * int * int)"
 where
   "xzgcda m n r' r s' s t' t =
         (if r \<le> 0 then (r', s', t')
@@ -28,17 +28,15 @@ where
                       s (s' - (r' div r) * s) 
                       t (t' - (r' div r) * t))"
 
-definition
-  zprime :: "int \<Rightarrow> bool" where
-  "zprime p = (1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p))"
+definition zprime :: "int \<Rightarrow> bool"
+  where "zprime p = (1 < p \<and> (\<forall>m. 0 <= m & m dvd p --> m = 1 \<or> m = p))"
 
-definition
-  xzgcd :: "int => int => int * int * int" where
-  "xzgcd m n = xzgcda m n m n 1 0 0 1"
+definition xzgcd :: "int => int => int * int * int"
+  where "xzgcd m n = xzgcda m n m n 1 0 0 1"
 
-definition
-  zcong :: "int => int => int => bool"  ("(1[_ = _] '(mod _'))") where
-  "[a = b] (mod m) = (m dvd (a - b))"
+definition zcong :: "int => int => int => bool"  ("(1[_ = _] '(mod _'))")
+  where "[a = b] (mod m) = (m dvd (a - b))"
+
 
 subsection {* Euclid's Algorithm and GCD *}
 
