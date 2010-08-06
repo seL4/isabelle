@@ -1796,7 +1796,7 @@ fun real_of_int i = (i, 1);
 *}
 
 setup {*
-  Nitpick.register_frac_type @{type_name real}
+  Nitpick_HOL.register_frac_type_global @{type_name real}
    [(@{const_name zero_real_inst.zero_real}, @{const_name Nitpick.zero_frac}),
     (@{const_name one_real_inst.one_real}, @{const_name Nitpick.one_frac}),
     (@{const_name plus_real_inst.plus_real}, @{const_name Nitpick.plus_frac}),

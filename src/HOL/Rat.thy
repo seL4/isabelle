@@ -1174,7 +1174,7 @@ fun rat_of_int i = (i, 1);
 *}
 
 setup {*
-  Nitpick.register_frac_type @{type_name rat}
+  Nitpick_HOL.register_frac_type_global @{type_name rat}
    [(@{const_name zero_rat_inst.zero_rat}, @{const_name Nitpick.zero_frac}),
     (@{const_name one_rat_inst.one_rat}, @{const_name Nitpick.one_frac}),
     (@{const_name plus_rat_inst.plus_rat}, @{const_name Nitpick.plus_frac}),

@@ -652,7 +652,7 @@ fun register_codatatype_generic co_T case_name constr_xs generic =
          not (is_basic_datatype thy [(NONE, true)] co_s) then
         ()
       else
-        raise TYPE ("Nitpick_HOL.register_codatatype", [co_T], [])
+        raise TYPE ("Nitpick_HOL.register_codatatype_generic", [co_T], [])
     val codatatypes = AList.update (op =) (co_s, (case_name, constr_xs))
                                    codatatypes
   in Data.put {frac_types = frac_types, codatatypes = codatatypes} generic end
