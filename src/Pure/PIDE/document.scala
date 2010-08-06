@@ -102,9 +102,9 @@ object Document
     /* unparsed dummy commands */
 
     def unparsed(source: String) =
-      new Command(null, List(Token(Token.Kind.UNPARSED, source)))
+      new Command(NO_ID, List(Token(Token.Kind.UNPARSED, source)))
 
-    def is_unparsed(command: Command) = command.id == null
+    def is_unparsed(command: Command) = command.id == NO_ID
 
 
     /* phase 1: edit individual command source */
@@ -182,7 +182,7 @@ object Document
       for ((name, text_edits) <- edits) {
         val commands0 = nodes(name).commands
         val commands1 = edit_text(text_edits, commands0)
-        val commands2 = parse_spans(commands1)
+        val commands2 = parse_spans(commands1)   // FIXME somewhat slow
 
         val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
         val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList
