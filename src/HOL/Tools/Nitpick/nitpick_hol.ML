@@ -771,9 +771,16 @@ fun rep_type_for_quot_type thy (T as Type (s, _)) =
   end
 fun equiv_relation_for_quot_type thy (Type (s, Ts)) =
     let
-      val {qtyp, equiv_rel, ...} = Quotient_Info.quotdata_lookup thy s
+      val {qtyp, equiv_rel, equiv_thm, ...} =
+        Quotient_Info.quotdata_lookup thy s
+      val partial =
+        case prop_of equiv_thm of
+          @{const Trueprop} $ (Const (@{const_name equivp}, _) $ _) => false
+        | @{const Trueprop} $ (Const (@{const_name part_equivp}, _) $ _) => true
+        | _ => raise NOT_SUPPORTED "Ill-formed quotient type equivalence \
+                                   \relation theorem"
       val Ts' = qtyp |> dest_Type |> snd
-    in subst_atomic_types (Ts' ~~ Ts) equiv_rel end
+    in (subst_atomic_types (Ts' ~~ Ts) equiv_rel, partial) end
   | equiv_relation_for_quot_type _ T =
     raise TYPE ("Nitpick_HOL.equiv_relation_for_quot_type", [T], [])
 
@@ -1758,7 +1765,8 @@ fun unfold_defs_in_term
                       val abs_T = domain_type T
                       val rep_T = domain_type (range_type T)
                       val (rep_fun, _) = quot_rep_of depth Ts abs_T rep_T []
-                      val equiv_rel = equiv_relation_for_quot_type thy abs_T
+                      val (equiv_rel, _) =
+                        equiv_relation_for_quot_type thy abs_T
                     in
                       (Abs (Name.uu, abs_T, equiv_rel $ (rep_fun $ Bound 0)),
                        ts)
@@ -1921,7 +1929,7 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
     val thy = ProofContext.theory_of ctxt
     val abs_T = Type abs_z
     val rep_T = rep_type_for_quot_type thy abs_T
-    val equiv_rel = equiv_relation_for_quot_type thy abs_T
+    val (equiv_rel, partial) = equiv_relation_for_quot_type thy abs_T
     val a_var = Var (("a", 0), abs_T)
     val x_var = Var (("x", 0), rep_T)
     val y_var = Var (("y", 0), rep_T)
@@ -1943,6 +1951,7 @@ fun optimized_quot_type_axioms ctxt stds abs_z =
          ([HOLogic.mk_Trueprop (@{const Not} $ (is_unknown_t $ normal_x)),
            HOLogic.mk_Trueprop (@{const Not} $ HOLogic.mk_eq (normal_x, x_var))],
           HOLogic.mk_Trueprop (equiv_rel $ x_var $ normal_x))]
+    |> partial ? cons (HOLogic.mk_Trueprop (equiv_rel $ sel_a_t $ sel_a_t))
   end
 
 fun codatatype_bisim_axioms (hol_ctxt as {thy, ctxt, stds, ...}) T =
