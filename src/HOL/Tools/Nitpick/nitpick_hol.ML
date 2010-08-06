@@ -113,8 +113,8 @@ sig
   val dest_n_tuple : int -> term -> term list
   val is_real_datatype : theory -> string -> bool
   val is_standard_datatype : theory -> (typ option * bool) list -> typ -> bool
-  val is_quot_type : theory -> typ -> bool
   val is_codatatype : theory -> typ -> bool
+  val is_quot_type : theory -> typ -> bool
   val is_pure_typedef : Proof.context -> typ -> bool
   val is_univ_typedef : Proof.context -> typ -> bool
   val is_datatype : Proof.context -> (typ option * bool) list -> typ -> bool
@@ -640,17 +640,19 @@ fun register_codatatype co_T case_name constr_xs thy =
   in Data.put {frac_types = frac_types, codatatypes = codatatypes} thy end
 fun unregister_codatatype co_T = register_codatatype co_T "" []
 
-fun is_quot_type thy (Type (s, _)) =
-    is_some (Quotient_Info.quotdata_lookup_raw thy s)
-  | is_quot_type _ _ = false
 fun is_codatatype thy (Type (s, _)) =
     not (null (AList.lookup (op =) (#codatatypes (Data.get thy)) s
                |> Option.map snd |> these))
   | is_codatatype _ _ = false
+fun is_real_quot_type thy (Type (s, _)) =
+    is_some (Quotient_Info.quotdata_lookup_raw thy s)
+  | is_real_quot_type _ _ = false
+fun is_quot_type thy T =
+  is_real_quot_type thy T andalso not (is_codatatype thy T)
 fun is_pure_typedef ctxt (T as Type (s, _)) =
     let val thy = ProofContext.theory_of ctxt in
       is_typedef ctxt s andalso
-      not (is_real_datatype thy s orelse is_quot_type thy T orelse
+      not (is_real_datatype thy s orelse is_real_quot_type thy T orelse
            is_codatatype thy T orelse is_record_type T orelse
            is_integer_like_type T)
     end
@@ -681,7 +683,7 @@ fun is_univ_typedef ctxt (Type (s, _)) =
 fun is_datatype ctxt stds (T as Type (s, _)) =
     let val thy = ProofContext.theory_of ctxt in
       (is_typedef ctxt s orelse is_codatatype thy T orelse T = @{typ ind} orelse
-       is_quot_type thy T) andalso not (is_basic_datatype thy stds s)
+       is_real_quot_type thy T) andalso not (is_basic_datatype thy stds s)
     end
   | is_datatype _ _ _ = false
 
@@ -718,15 +720,19 @@ fun is_rep_fun ctxt (s, Type (@{type_name fun}, [Type (s', _), _])) =
        SOME {Rep_name, ...} => s = Rep_name
      | NONE => false)
   | is_rep_fun _ _ = false
-fun is_quot_abs_fun ctxt
-                    (x as (_, Type (@{type_name fun}, [_, Type (s', _)]))) =
-    (try (Quotient_Term.absrep_const_chk Quotient_Term.AbsF ctxt) s'
-     = SOME (Const x))
+fun is_quot_abs_fun ctxt (x as (_, Type (@{type_name fun},
+                                         [_, abs_T as Type (s', _)]))) =
+    let val thy = ProofContext.theory_of ctxt in
+      (try (Quotient_Term.absrep_const_chk Quotient_Term.AbsF ctxt) s'
+       = SOME (Const x)) andalso not (is_codatatype thy abs_T)
+    end
   | is_quot_abs_fun _ _ = false
-fun is_quot_rep_fun ctxt
-                    (x as (_, Type (@{type_name fun}, [Type (s', _), _]))) =
-    (try (Quotient_Term.absrep_const_chk Quotient_Term.RepF ctxt) s'
-     = SOME (Const x))
+fun is_quot_rep_fun ctxt (x as (_, Type (@{type_name fun},
+                                         [abs_T as Type (s', _), _]))) =
+    let val thy = ProofContext.theory_of ctxt in
+      (try (Quotient_Term.absrep_const_chk Quotient_Term.RepF ctxt) s'
+       = SOME (Const x)) andalso not (is_codatatype thy abs_T)
+    end
   | is_quot_rep_fun _ _ = false
 
 fun mate_of_rep_fun ctxt (x as (_, Type (@{type_name fun},
@@ -913,7 +919,7 @@ fun uncached_datatype_constrs ({thy, ctxt, stds, ...} : hol_context)
                val T' = (Record.get_extT_fields thy T
                         |> apsnd single |> uncurry append |> map snd) ---> T
              in [(s', T')] end
-           else if is_quot_type thy T then
+           else if is_real_quot_type thy T then
              [(@{const_name Quot}, rep_type_for_quot_type thy T --> T)]
            else case typedef_info ctxt s of
              SOME {abs_type, rep_type, Abs_name, ...} =>
