@@ -117,7 +117,7 @@ object YXML
   /* failsafe parsing */
 
   private def markup_failsafe(source: CharSequence) =
-    XML.Elem (Markup(Markup.MALFORMED, Nil),
+    XML.elem (Markup.MALFORMED,
       List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
 
   def parse_body_failsafe(source: CharSequence): List[XML.Tree] =

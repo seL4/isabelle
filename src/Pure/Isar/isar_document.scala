@@ -14,7 +14,7 @@ object Isar_Document
   object Assign {
     def unapply(msg: XML.Tree): Option[List[XML.Tree]] =
       msg match {
-        case XML.Elem(Markup(Markup.ASSIGN, Nil), edits) => Some(edits)
+        case XML.Elem(Markup.Assign, edits) => Some(edits)
         case _ => None
       }
   }

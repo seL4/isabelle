@@ -159,7 +159,7 @@ object XML
   /* document object model (W3C DOM) */
 
   def get_data(node: org.w3c.dom.Node): Option[XML.Tree] =
-    node.getUserData(Markup.DATA) match {
+    node.getUserData(Markup.Data.name) match {
       case tree: XML.Tree => Some(tree)
       case _ => None
     }
@@ -167,12 +167,12 @@ object XML
   def document_node(doc: org.w3c.dom.Document, tree: Tree): org.w3c.dom.Node =
   {
     def DOM(tr: Tree): org.w3c.dom.Node = tr match {
-      case Elem(Markup(Markup.DATA, Nil), List(data, t)) =>
+      case Elem(Markup.Data, List(data, t)) =>
         val node = DOM(t)
-        node.setUserData(Markup.DATA, data, null)
+        node.setUserData(Markup.Data.name, data, null)
         node
       case Elem(Markup(name, atts), ts) =>
-        if (name == Markup.DATA)
+        if (name == Markup.Data.name)
           error("Malformed data element: " + tr.toString)
         val node = doc.createElement(name)
         for ((name, value) <- atts) node.setAttribute(name, value)

@@ -183,7 +183,7 @@ object Markup
 
   /* interactive documents */
 
-  val ASSIGN = "assign"
+  val Assign = Markup("assign", Nil)
   val EDIT = "edit"
 
 
@@ -207,12 +207,12 @@ object Markup
   val SIGNAL = "signal"
   val EXIT = "exit"
 
-  val READY = "ready"
+  val Ready = Markup("ready", Nil)
 
 
   /* system data */
 
-  val DATA = "data"
+  val Data = Markup("data", Nil)
 }
 
 sealed case class Markup(name: String, properties: List[(String, String)])

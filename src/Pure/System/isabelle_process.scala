@@ -53,7 +53,7 @@ object Isabelle_Process
     def is_control = Kind.is_control(kind)
     def is_system = Kind.is_system(kind)
     def is_status = kind == Markup.STATUS
-    def is_ready = is_status && body == List(XML.Elem(Markup(Markup.READY, Nil), Nil))
+    def is_ready = is_status && body == List(XML.Elem(Markup.Ready, Nil))
 
     override def toString: String =
     {
