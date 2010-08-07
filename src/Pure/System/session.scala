@@ -138,7 +138,7 @@ class Session(system: Isabelle_System)
     {
       raw_results.event(result)
 
-      val target_id: Option[Session.Entity_ID] = Position.get_id(result.message.attributes)
+      val target_id: Option[Session.Entity_ID] = Position.get_id(result.properties)
       val target: Option[Session.Entity] =
         target_id match {
           case None => None

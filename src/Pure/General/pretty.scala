@@ -17,11 +17,11 @@ object Pretty
   object Block
   {
     def apply(indent: Int, body: List[XML.Tree]): XML.Tree =
-      XML.Elem(Markup.BLOCK, List((Markup.INDENT, indent.toString)), body)
+      XML.Elem(Markup(Markup.BLOCK, List((Markup.INDENT, indent.toString))), body)
 
     def unapply(tree: XML.Tree): Option[(Int, List[XML.Tree])] =
       tree match {
-        case XML.Elem(Markup.BLOCK, List((Markup.INDENT, indent)), body) =>
+        case XML.Elem(Markup(Markup.BLOCK, List((Markup.INDENT, indent))), body) =>
           Markup.parse_int(indent) match {
             case Some(i) => Some((i, body))
             case None => None
@@ -33,12 +33,12 @@ object Pretty
   object Break
   {
     def apply(width: Int): XML.Tree =
-      XML.Elem(Markup.BREAK, List((Markup.WIDTH, width.toString)),
+      XML.Elem(Markup(Markup.BREAK, List((Markup.WIDTH, width.toString))),
         List(XML.Text(Symbol.spaces(width))))
 
     def unapply(tree: XML.Tree): Option[Int] =
       tree match {
-        case XML.Elem(Markup.BREAK, List((Markup.WIDTH, width)), _) => Markup.parse_int(width)
+        case XML.Elem(Markup(Markup.BREAK, List((Markup.WIDTH, width))), _) => Markup.parse_int(width)
         case _ => None
       }
   }
@@ -50,7 +50,7 @@ object Pretty
 
   private def standard_format(tree: XML.Tree): List[XML.Tree] =
     tree match {
-      case XML.Elem(name, atts, body) => List(XML.Elem(name, atts, body.flatMap(standard_format)))
+      case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(standard_format)))
       case XML.Text(text) =>
         Library.separate(FBreak,
           Library.chunks(text).toList.map((s: CharSequence) => XML.Text(s.toString)))
@@ -82,7 +82,7 @@ object Pretty
 
     def content_length(tree: XML.Tree): Double =
       tree match {
-        case XML.Elem(_, _, body) => (0.0 /: body)(_ + content_length(_))
+        case XML.Elem(_, body) => (0.0 /: body)(_ + content_length(_))
         case XML.Text(s) => metric(s)
       }
 
@@ -122,10 +122,10 @@ object Pretty
           else format(ts, blockin, after, text.newline.blanks(blockin.toInt))
         case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin.toInt))
 
-        case XML.Elem(name, atts, body) :: ts =>
+        case XML.Elem(markup, body) :: ts =>
           val btext = format(body, blockin, breakdist(ts, after), text.copy(tx = Nil))
           val ts1 = if (text.nl < btext.nl) forcenext(ts) else ts
-          val btext1 = btext.copy(tx = XML.Elem(name, atts, btext.content) :: text.tx)
+          val btext1 = btext.copy(tx = XML.Elem(markup, btext.content) :: text.tx)
           format(ts1, blockin, after, btext1)
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s, metric(s)))
       }
@@ -146,7 +146,7 @@ object Pretty
         case Block(_, body) => body.flatMap(fmt)
         case Break(wd) => List(XML.Text(Symbol.spaces(wd)))
         case FBreak => List(XML.Text(Symbol.space))
-        case XML.Elem(name, atts, body) => List(XML.Elem(name, atts, body.flatMap(fmt)))
+        case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(fmt)))
         case XML.Text(_) => List(tree)
       }
     input.flatMap(standard_format).flatMap(fmt)

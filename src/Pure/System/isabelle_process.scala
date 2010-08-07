@@ -45,26 +45,26 @@ object Isabelle_Process
 
   class Result(val message: XML.Elem)
   {
-    def kind = message.name
+    def kind = message.markup.name
+    def properties = message.markup.properties
     def body = message.body
 
     def is_raw = Kind.is_raw(kind)
     def is_control = Kind.is_control(kind)
     def is_system = Kind.is_system(kind)
     def is_status = kind == Markup.STATUS
-    def is_ready = is_status && body == List(XML.Elem(Markup.READY, Nil, Nil))
+    def is_ready = is_status && body == List(XML.Elem(Markup(Markup.READY, Nil), Nil))
 
     override def toString: String =
     {
       val res =
         if (is_status) message.body.map(_.toString).mkString
         else Pretty.string_of(message.body)
-      val props = message.attributes
-      if (props.isEmpty)
+      if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"
       else
         kind.toString + " " +
-          (for ((x, y) <- props) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
+          (for ((x, y) <- properties) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
     }
 
     def cache(c: XML.Cache): Result = new Result(c.cache_tree(message).asInstanceOf[XML.Elem])
@@ -98,7 +98,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
     if (kind == Markup.INIT) {
       for ((Markup.PID, p) <- props) pid = p
     }
-    receiver ! new Result(XML.Elem(kind, props, body))
+    receiver ! new Result(XML.Elem(Markup(kind, props), body))
   }
 
   private def put_result(kind: String, text: String)
@@ -300,7 +300,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
             val header = read_chunk()
             val body = read_chunk()
             header match {
-              case List(XML.Elem(name, props, Nil))
+              case List(XML.Elem(Markup(name, props), Nil))
                   if name.size == 1 && Kind.markup.isDefinedAt(name(0)) =>
                 put_result(Kind.markup(name(0)), props, body)
               case _ => throw new Protocol_Error("bad header: " + header.toString)

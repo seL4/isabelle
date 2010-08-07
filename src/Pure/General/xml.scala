@@ -24,11 +24,11 @@ object XML
       s.toString
     }
   }
-  case class Elem(name: String, attributes: Attributes, body: List[Tree]) extends Tree
+  case class Elem(markup: Markup, body: List[Tree]) extends Tree
   case class Text(content: String) extends Tree
 
-  def elem(name: String, body: List[Tree]) = Elem(name, Nil, body)
-  def elem(name: String) = Elem(name, Nil, Nil)
+  def elem(name: String, body: List[Tree]) = Elem(Markup(name, Nil), body)
+  def elem(name: String) = Elem(Markup(name, Nil), Nil)
 
 
   /* string representation */
@@ -56,9 +56,9 @@ object XML
 
   private def append_tree(tree: Tree, s: StringBuilder) {
     tree match {
-      case Elem(name, atts, Nil) =>
+      case Elem(Markup(name, atts), Nil) =>
         s ++= "<"; append_elem(name, atts, s); s ++= "/>"
-      case Elem(name, atts, ts) =>
+      case Elem(Markup(name, atts), ts) =>
         s ++= "<"; append_elem(name, atts, s); s ++= ">"
         for (t <- ts) append_tree(t, s)
         s ++= "</"; s ++= name; s ++= ">"
@@ -72,7 +72,7 @@ object XML
   private type State = Option[(String, List[Tree])]
 
   private def get_next(tree: Tree): State = tree match {
-    case Elem(_, _, body) => get_nexts(body)
+    case Elem(_, body) => get_nexts(body)
     case Text(content) => Some(content, Nil)
   }
   private def get_nexts(trees: List[Tree]): State = trees match {
@@ -127,14 +127,23 @@ object XML
           case Some(y) => y
           case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
         }
+    def cache_markup(x: Markup): Markup =
+      lookup(x) match {
+        case Some(y) => y
+        case None =>
+          x match {
+            case Markup(name, props) =>
+              store(Markup(cache_string(name), cache_props(props)))
+          }
+      }
     def cache_tree(x: XML.Tree): XML.Tree =
       lookup(x) match {
         case Some(y) => y
         case None =>
           x match {
-            case XML.Elem(name, props, body) =>
-              store(XML.Elem(cache_string(name), cache_props(props), cache_trees(body)))
-            case XML.Text(text) => XML.Text(cache_string(text))
+            case XML.Elem(markup, body) =>
+              store(XML.Elem(cache_markup(markup), cache_trees(body)))
+            case XML.Text(text) => store(XML.Text(cache_string(text)))
           }
       }
     def cache_trees(x: List[XML.Tree]): List[XML.Tree] =
@@ -158,11 +167,11 @@ object XML
   def document_node(doc: org.w3c.dom.Document, tree: Tree): org.w3c.dom.Node =
   {
     def DOM(tr: Tree): org.w3c.dom.Node = tr match {
-      case Elem(Markup.DATA, Nil, List(data, t)) =>
+      case Elem(Markup(Markup.DATA, Nil), List(data, t)) =>
         val node = DOM(t)
         node.setUserData(Markup.DATA, data, null)
         node
-      case Elem(name, atts, ts) =>
+      case Elem(Markup(name, atts), ts) =>
         if (name == Markup.DATA)
           error("Malformed data element: " + tr.toString)
         val node = doc.createElement(name)

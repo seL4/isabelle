@@ -42,7 +42,7 @@ object HTML
   // document markup
 
   def span(cls: String, body: List[XML.Tree]): XML.Elem =
-    XML.Elem(SPAN, List((CLASS, cls)), body)
+    XML.Elem(Markup(SPAN, List((CLASS, cls))), body)
 
   def hidden(txt: String): XML.Elem =
     span(Markup.HIDDEN, List(XML.Text(txt)))
@@ -52,7 +52,7 @@ object HTML
 
   def spans(tree: XML.Tree): List[XML.Tree] =
     tree match {
-      case XML.Elem(name, _, ts) =>
+      case XML.Elem(Markup(name, _), ts) =>
         List(XML.elem(Markup.DATA, List(tree, span(name, ts.flatMap(spans)))))
       case XML.Text(txt) =>
         val ts = new ListBuffer[XML.Tree]

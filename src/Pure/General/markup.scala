@@ -214,3 +214,5 @@ object Markup
 
   val DATA = "data"
 }
+
+sealed case class Markup(name: String, properties: List[(String, String)])
