@@ -181,7 +181,7 @@ fun is_newline (Token (_, (Space, x), _)) = String.isSuffix "\n" x
 (* token content *)
 
 fun source_of (Token ((source, (pos, _)), _, _)) =
-  YXML.string_of (XML.Elem ((Markup.tokenN, Position.properties_of pos), [XML.Text source]));
+  YXML.string_of (XML.Elem (Markup.token (Position.properties_of pos), [XML.Text source]));
 
 fun source_position_of (Token ((source, (pos, _)), _, _)) = (source, pos);
 

@@ -458,13 +458,15 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
 (* read token -- with optional YXML encoding of position *)
 
 fun read_token str =
-  let val (text, pos) =
-    (case YXML.parse str handle Fail msg => error msg of
-    (* FIXME avoid literal strings *)
-      XML.Elem (("token", props), [XML.Text text]) => (text, Position.of_properties props)
-    | XML.Elem (("token", props), []) => ("", Position.of_properties props)
-    | XML.Text text => (text, Position.none)
-    | _ => (str, Position.none))
+  let
+    val tree = YXML.parse str handle Fail msg => error msg;
+    val text = Buffer.empty |> XML.add_content tree |> Buffer.content;
+    val pos =
+      (case tree of
+        XML.Elem ((name, props), _) =>
+          if name = Markup.tokenN then Position.of_properties props
+          else Position.none
+      | XML.Text _ => Position.none);
   in (Symbol_Pos.explode (text, pos), pos) end;
 
 
