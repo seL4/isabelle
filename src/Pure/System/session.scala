@@ -1,5 +1,6 @@
 /*  Title:      Pure/System/session.scala
     Author:     Makarius
+    Options:    :folding=explicit:collapseFolds=1:
 
 Isabelle session, potentially with running prover.
 */
@@ -74,7 +75,7 @@ class Session(system: Isabelle_System)
       case _ => None
     }
 
-  private case class Start(timeout: Int, args: List[String])
+  private case class Started(timeout: Int, args: List[String])
   private case object Stop
 
   private lazy val session_actor = actor {
@@ -91,6 +92,7 @@ class Session(system: Isabelle_System)
     /* document changes */
 
     def handle_change(change: Change)
+    //{{{
     {
       require(change.parent.isDefined)
 
@@ -120,6 +122,7 @@ class Session(system: Isabelle_System)
       register_document(doc)
       prover.edit_document(change.parent.get.id, doc.id, id_edits)
     }
+    //}}}
 
 
     /* prover results */
@@ -130,6 +133,7 @@ class Session(system: Isabelle_System)
     }
 
     def handle_result(result: Isabelle_Process.Result)
+    //{{{
     {
       raw_results.event(result)
 
@@ -175,6 +179,7 @@ class Session(system: Isabelle_System)
       else if (!result.is_system)   // FIXME syslog (!?)
         bad_result(result)
     }
+    //}}}
 
 
     /* prover startup */
@@ -222,7 +227,7 @@ class Session(system: Isabelle_System)
 
     loop {
       react {
-        case Start(timeout, args) =>
+        case Started(timeout, args) =>
           if (prover == null) {
             prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
             val origin = sender
@@ -256,7 +261,9 @@ class Session(system: Isabelle_System)
 
   /** buffered command changes -- delay_first discipline **/
 
-  private lazy val command_change_buffer = actor {
+  private lazy val command_change_buffer = actor
+  //{{{
+  {
     import scala.compat.Platform.currentTime
 
     var changed: Set[Command] = Set()
@@ -292,6 +299,7 @@ class Session(system: Isabelle_System)
       }
     }
   }
+  //}}}
 
   def indicate_command_change(command: Command)
   {
@@ -301,9 +309,10 @@ class Session(system: Isabelle_System)
 
   /* main methods */
 
-  def start(timeout: Int, args: List[String]): Option[String] =
-    (session_actor !? Start(timeout, args)).asInstanceOf[Option[String]]
+  def started(timeout: Int, args: List[String]): Option[String] =
+    (session_actor !? Started(timeout, args)).asInstanceOf[Option[String]]
 
   def stop() { session_actor ! Stop }
+
   def input(change: Change) { session_actor ! change }
 }
