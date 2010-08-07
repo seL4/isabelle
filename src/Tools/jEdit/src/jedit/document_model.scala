@@ -195,14 +195,30 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
   }
 
 
-  /* text edits */
+  /* pending text edits */
 
-  private val edits_buffer = new mutable.ListBuffer[Text_Edit]   // owned by Swing thread
+  object pending_edits  // owned by Swing thread
+  {
+    private val pending = new mutable.ListBuffer[Text_Edit]
+    def snapshot(): List[Text_Edit] = pending.toList
 
-  private val edits_delay = Swing_Thread.delay_last(session.input_delay) {
-    if (!edits_buffer.isEmpty) {
-      session.edit_document(List((thy_name, edits_buffer.toList)))
-      edits_buffer.clear
+    private val delay_flush = Swing_Thread.delay_last(session.input_delay) {
+      if (!pending.isEmpty) session.edit_document(List((thy_name, flush())))
+    }
+
+    def flush(): List[Text_Edit] =
+    {
+      Swing_Thread.require()
+      val edits = snapshot()
+      pending.clear
+      edits
+    }
+
+    def +=(edit: Text_Edit)
+    {
+      Swing_Thread.require()
+      pending += edit
+      delay_flush()
     }
   }
 
@@ -211,7 +227,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   def snapshot(): Change.Snapshot = {
     Swing_Thread.require()
-    session.current_change().snapshot(thy_name, edits_buffer.toList)
+    session.current_change().snapshot(thy_name, pending_edits.snapshot())
   }
 
 
@@ -222,15 +238,13 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
-      edits_buffer += new Text_Edit(true, offset, buffer.getText(offset, length))
-      edits_delay()
+      pending_edits += new Text_Edit(true, offset, buffer.getText(offset, length))
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
       start_line: Int, start: Int, num_lines: Int, removed_length: Int)
     {
-      edits_buffer += new Text_Edit(false, start, buffer.getText(start, removed_length))
-      edits_delay()
+      pending_edits += new Text_Edit(false, start, buffer.getText(start, removed_length))
     }
   }
 
@@ -305,9 +319,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     buffer.setTokenMarker(token_marker)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
-
-    edits_buffer += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
-    edits_delay()
+    pending_edits += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
   }
 
   def refresh()
