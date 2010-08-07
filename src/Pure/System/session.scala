@@ -9,6 +9,7 @@ package isabelle
 
 
 import scala.actors.TIMEOUT
+import scala.actors.Actor
 import scala.actors.Actor._
 
 
@@ -259,7 +260,7 @@ class Session(system: Isabelle_System)
 
 
 
-  /** buffered command changes -- delay_first discipline **/
+  /** buffered command changes (delay_first discipline) **/
 
   private lazy val command_change_buffer = actor
   //{{{
@@ -307,36 +308,49 @@ class Session(system: Isabelle_System)
   }
 
 
-  /* main methods */
+
+  /** editor history **/
+
+  private case class Edit_Document(edits: List[Document.Node_Text_Edit])
+
+  private val editor_history = new Actor
+  {
+    @volatile private var history = Change.init
+    def current_change(): Change = history
+
+    def act
+    {
+      loop {
+        react {
+          case Edit_Document(edits) =>
+            val old_change = history
+            val new_id = create_id()
+            val result: isabelle.Future[(List[Document.Edit[Command]], Document)] =
+              isabelle.Future.fork {
+                val old_doc = old_change.join_document
+                old_doc.await_assignment
+                Document.text_edits(Session.this, old_doc, new_id, edits)
+              }
+            val new_change = new Change(new_id, Some(old_change), edits, result)
+            history = new_change
+            new_change.result.map(_ => session_actor ! new_change)
+
+          case bad => System.err.println("editor_model: ignoring bad message " + bad)
+        }
+      }
+    }
+  }
+  editor_history.start
+
+
+
+  /** main methods **/
 
   def started(timeout: Int, args: List[String]): Option[String] =
     (session_actor !? Started(timeout, args)).asInstanceOf[Option[String]]
 
   def stop() { session_actor ! Stop }
 
-  def input(change: Change) { session_actor ! change }
-
-
-
-  /** editor model **/  // FIXME subclass Editor_Session (!?)
-
-  @volatile private var history = Change.init // owned by Swing thread (!??)
-  def current_change(): Change = history
-
-  def edit_document(edits: List[Document.Node_Text_Edit])
-  {
-    Swing_Thread.now {
-      val old_change = current_change()
-      val new_id = create_id()
-      val result: Future[(List[Document.Edit[Command]], Document)] =
-        Future.fork {
-          val old_doc = old_change.join_document
-          old_doc.await_assignment
-          Document.text_edits(this, old_doc, new_id, edits)
-        }
-      val new_change = new Change(new_id, Some(old_change), edits, result)
-      history = new_change
-      new_change.result.map(_ => input(new_change))
-    }
-  }
+  def current_change(): Change = editor_history.current_change()
+  def edit_document(edits: List[Document.Node_Text_Edit]) { editor_history ! Edit_Document(edits) }
 }
