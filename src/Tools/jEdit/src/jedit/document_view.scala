@@ -24,7 +24,7 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 object Document_View
 {
-  def choose_color(snapshot: Change.Snapshot, command: Command): Color =
+  def choose_color(snapshot: Document.Snapshot, command: Command): Color =
   {
     val state = snapshot.document.current_state(command)
     if (snapshot.is_outdated) new Color(240, 240, 240)
@@ -116,7 +116,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     }
   }
 
-  def full_repaint(snapshot: Change.Snapshot, changed: Set[Command])
+  def full_repaint(snapshot: Document.Snapshot, changed: Set[Command])
   {
     Swing_Thread.require()
 
@@ -158,7 +158,8 @@ class Document_View(val model: Document_Model, text_area: TextArea)
         if (range.hasNext) {
           val (cmd0, start0) = range.next
           new Iterable[(Command, Int)] {
-            def iterator = Document.command_starts(snapshot.node.commands.iterator(cmd0), start0)
+            def iterator =
+              Document.Node.command_starts(snapshot.node.commands.iterator(cmd0), start0)
           }
         }
         else Iterable.empty

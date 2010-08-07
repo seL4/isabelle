@@ -225,7 +225,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   /* snapshot */
 
-  def snapshot(): Change.Snapshot = {
+  def snapshot(): Document.Snapshot = {
     Swing_Thread.require()
     session.current_change().snapshot(thy_name, pending_edits.snapshot())
   }

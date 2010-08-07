@@ -92,7 +92,7 @@ class Session(system: Isabelle_System)
 
     /* document changes */
 
-    def handle_change(change: Change)
+    def handle_change(change: Document.Change)
     //{{{
     {
       require(change.parent.isDefined)
@@ -244,7 +244,7 @@ class Session(system: Isabelle_System)
             prover = null
           }
 
-        case change: Change if prover != null =>
+        case change: Document.Change if prover != null =>
           handle_change(change)
 
         case result: Isabelle_Process.Result =>
@@ -315,8 +315,8 @@ class Session(system: Isabelle_System)
 
   private val editor_history = new Actor
   {
-    @volatile private var history = Change.init
-    def current_change(): Change = history
+    @volatile private var history = Document.Change.init
+    def current_change(): Document.Change = history
 
     def act
     {
@@ -331,7 +331,7 @@ class Session(system: Isabelle_System)
                 old_doc.await_assignment
                 Document.text_edits(Session.this, old_doc, new_id, edits)
               }
-            val new_change = new Change(new_id, Some(old_change), edits, result)
+            val new_change = new Document.Change(new_id, Some(old_change), edits, result)
             history = new_change
             new_change.result.map(_ => session_actor ! new_change)
 
@@ -351,6 +351,6 @@ class Session(system: Isabelle_System)
 
   def stop() { session_actor ! Stop }
 
-  def current_change(): Change = editor_history.current_change()
+  def current_change(): Document.Change = editor_history.current_change()
   def edit_document(edits: List[Document.Node_Text_Edit]) { editor_history ! Edit_Document(edits) }
 }

@@ -37,7 +37,6 @@ declare -a SOURCES=(
   Isar/outer_syntax.scala
   Isar/parse.scala
   Isar/token.scala
-  PIDE/change.scala
   PIDE/command.scala
   PIDE/document.scala
   PIDE/event_bus.scala
