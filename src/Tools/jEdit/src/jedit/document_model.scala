@@ -262,6 +262,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       val start = buffer.getLineStartOffset(line)
       val stop = start + line_segment.count
 
+      // FIXME proper synchronization / thread context (!??)
       val snapshot = Swing_Thread.now { Document_Model.this.snapshot() }
 
       /* FIXME
