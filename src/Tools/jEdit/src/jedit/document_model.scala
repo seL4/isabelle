@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Document model connected to jEdit buffer.
+Document model connected to jEdit buffer -- single node in theory graph.
 */
 
 package isabelle.jedit
@@ -149,10 +149,10 @@ object Document_Model
 
   private val key = "isabelle.document_model"
 
-  def init(session: Session, buffer: Buffer): Document_Model =
+  def init(session: Session, buffer: Buffer, thy_name: String): Document_Model =
   {
     Swing_Thread.assert()
-    val model = new Document_Model(session, buffer)
+    val model = new Document_Model(session, buffer, thy_name)
     buffer.setProperty(key, model)
     model.activate()
     model
@@ -180,7 +180,7 @@ object Document_Model
 }
 
 
-class Document_Model(val session: Session, val buffer: Buffer)
+class Document_Model(val session: Session, val buffer: Buffer, val thy_name: String)
 {
   /* visible line end */
 
@@ -195,33 +195,22 @@ class Document_Model(val session: Session, val buffer: Buffer)
   }
 
 
-  /* global state -- owned by Swing thread */
+  /* text edits */
 
-  @volatile private var history = Change.init // owned by Swing thread
   private val edits_buffer = new mutable.ListBuffer[Text_Edit]   // owned by Swing thread
+
+  private val edits_delay = Swing_Thread.delay_last(session.input_delay) {
+    if (!edits_buffer.isEmpty) {
+      session.edit_document(List((thy_name, edits_buffer.toList)))
+      edits_buffer.clear
+    }
+  }
 
 
   /* snapshot */
 
-  // FIXME proper error handling
-  val thy_name = Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath))._2
-
-  def current_change(): Change = history
-
   def snapshot(): Change.Snapshot =
-    Swing_Thread.now { history.snapshot(thy_name, edits_buffer.toList) }
-
-
-  /* text edits */
-
-  private val edits_delay = Swing_Thread.delay_last(session.input_delay) {
-    if (!edits_buffer.isEmpty) {
-      val new_change = history.edit(session, List((thy_name, edits_buffer.toList)))
-      edits_buffer.clear
-      history = new_change
-      new_change.result.map(_ => session.input(new_change))
-    }
-  }
+    Swing_Thread.now { session.current_change().snapshot(thy_name, edits_buffer.toList) }
 
 
   /* buffer listener */

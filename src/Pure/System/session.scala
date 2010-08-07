@@ -315,4 +315,28 @@ class Session(system: Isabelle_System)
   def stop() { session_actor ! Stop }
 
   def input(change: Change) { session_actor ! change }
+
+
+
+  /** editor model **/  // FIXME subclass Editor_Session (!?)
+
+  @volatile private var history = Change.init // owned by Swing thread (!??)
+  def current_change(): Change = history
+
+  def edit_document(edits: List[Document.Node_Text_Edit])
+  {
+    Swing_Thread.now {
+      val old_change = current_change()
+      val new_id = create_id()
+      val result: Future[(List[Document.Edit[Command]], Document)] =
+        Future.fork {
+          val old_doc = old_change.join_document
+          old_doc.await_assignment
+          Document.text_edits(this, old_doc, new_id, edits)
+        }
+      val new_change = new Change(new_id, Some(old_change), edits, result)
+      history = new_change
+      new_change.result.map(_ => input(new_change))
+    }
+  }
 }

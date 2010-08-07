@@ -44,18 +44,6 @@ class Change(
 
   /* editing and state assignment */
 
-  def edit(session: Session, edits: List[Document.Node_Text_Edit]): Change =
-  {
-    val new_id = session.create_id()
-    val result: Future[(List[Document.Edit[Command]], Document)] =
-      Future.fork {
-        val old_doc = join_document
-        old_doc.await_assignment
-        Document.text_edits(session, old_doc, new_id, edits)
-      }
-    new Change(new_id, Some(this), edits, result)
-  }
-
   def join_document: Document = result.join._2
   def is_assigned: Boolean = result.is_finished && join_document.assignment.is_finished
 

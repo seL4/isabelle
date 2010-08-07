@@ -162,7 +162,10 @@ object Isabelle
   def activate_buffer(view: View, buffer: Buffer)
   {
     if (prover_started(view)) {
-      val model = Document_Model.init(session, buffer)
+      // FIXME proper error handling
+      val (_, thy_name) = Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath))
+
+      val model = Document_Model.init(session, buffer, thy_name)
       for (text_area <- jedit_text_areas(buffer))
         Document_View.init(model, text_area)
     }
