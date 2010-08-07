@@ -46,7 +46,7 @@ object Document_View
 
   def init(model: Document_Model, text_area: TextArea): Document_View =
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     val doc_view = new Document_View(model, text_area)
     text_area.putClientProperty(key, doc_view)
     doc_view.activate()
@@ -55,7 +55,7 @@ object Document_View
 
   def apply(text_area: TextArea): Option[Document_View] =
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     text_area.getClientProperty(key) match {
       case doc_view: Document_View => Some(doc_view)
       case _ => None
@@ -64,7 +64,7 @@ object Document_View
 
   def exit(text_area: TextArea)
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     apply(text_area) match {
       case None => error("No document view for text area: " + text_area)
       case Some(doc_view) =>
@@ -86,14 +86,14 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   def extend_styles()
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     styles = Document_Model.Token_Markup.extend_styles(text_area.getPainter.getStyles)
   }
   extend_styles()
 
   def set_styles()
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     text_area.getPainter.setStyles(styles)
   }
 
@@ -118,7 +118,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   def full_repaint(snapshot: Change.Snapshot, changed: Set[Command])
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
 
     val buffer = model.buffer
     var visible_change = false
@@ -148,54 +148,56 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y0: Int, line_height: Int)
     {
-      Swing_Thread.now {
-        val snapshot = model.snapshot()
+      Swing_Thread.assert()
 
-        val command_range: Iterable[(Command, Int)] =
-        {
-          val range = snapshot.node.command_range(snapshot.revert(start(0)))
-          if (range.hasNext) {
-            val (cmd0, start0) = range.next
-            new Iterable[(Command, Int)] {
-              def iterator = Document.command_starts(snapshot.node.commands.iterator(cmd0), start0)
-            }
-          }
-          else Iterable.empty
-        }
+      val snapshot = model.snapshot()
 
-        val saved_color = gfx.getColor
-        try {
-          var y = y0
-          for (i <- 0 until physical_lines.length) {
-            if (physical_lines(i) != -1) {
-              val line_start = start(i)
-              val line_end = model.visible_line_end(line_start, end(i))
-
-              val a = snapshot.revert(line_start)
-              val b = snapshot.revert(line_end)
-              val cmds = command_range.iterator.
-                dropWhile { case (cmd, c) => c + cmd.length <= a } .
-                takeWhile { case (_, c) => c < b }
-
-              for ((command, command_start) <- cmds if !command.is_ignored) {
-                val p =
-                  text_area.offsetToXY(line_start max snapshot.convert(command_start))
-                val q =
-                  text_area.offsetToXY(line_end min snapshot.convert(command_start + command.length))
-                assert(p.y == q.y)
-                gfx.setColor(Document_View.choose_color(snapshot, command))
-                gfx.fillRect(p.x, y, q.x - p.x, line_height)
-              }
-            }
-            y += line_height
+      val command_range: Iterable[(Command, Int)] =
+      {
+        val range = snapshot.node.command_range(snapshot.revert(start(0)))
+        if (range.hasNext) {
+          val (cmd0, start0) = range.next
+          new Iterable[(Command, Int)] {
+            def iterator = Document.command_starts(snapshot.node.commands.iterator(cmd0), start0)
           }
         }
-        finally { gfx.setColor(saved_color) }
+        else Iterable.empty
       }
+
+      val saved_color = gfx.getColor
+      try {
+        var y = y0
+        for (i <- 0 until physical_lines.length) {
+          if (physical_lines(i) != -1) {
+            val line_start = start(i)
+            val line_end = model.visible_line_end(line_start, end(i))
+
+            val a = snapshot.revert(line_start)
+            val b = snapshot.revert(line_end)
+            val cmds = command_range.iterator.
+              dropWhile { case (cmd, c) => c + cmd.length <= a } .
+              takeWhile { case (_, c) => c < b }
+
+            for ((command, command_start) <- cmds if !command.is_ignored) {
+              val p =
+                text_area.offsetToXY(line_start max snapshot.convert(command_start))
+              val q =
+                text_area.offsetToXY(line_end min snapshot.convert(command_start + command.length))
+              assert(p.y == q.y)
+              gfx.setColor(Document_View.choose_color(snapshot, command))
+              gfx.fillRect(p.x, y, q.x - p.x, line_height)
+            }
+          }
+          y += line_height
+        }
+      }
+      finally { gfx.setColor(saved_color) }
     }
 
     override def getToolTipText(x: Int, y: Int): String =
     {
+      Swing_Thread.assert()
+
       val snapshot = model.snapshot()
       val offset = snapshot.revert(text_area.xyToOffset(x, y))
       snapshot.node.command_at(offset) match {
@@ -213,7 +215,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   /* caret handling */
 
   def selected_command(): Option[Command] =
+  {
+    Swing_Thread.require()
     model.snapshot().node.proper_command_at(text_area.getCaretPosition)
+  }
 
   private val caret_listener = new CaretListener {
     private val delay = Swing_Thread.delay_last(session.input_delay) {

@@ -151,7 +151,7 @@ object Document_Model
 
   def init(session: Session, buffer: Buffer, thy_name: String): Document_Model =
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     val model = new Document_Model(session, buffer, thy_name)
     buffer.setProperty(key, model)
     model.activate()
@@ -160,7 +160,7 @@ object Document_Model
 
   def apply(buffer: Buffer): Option[Document_Model] =
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     buffer.getProperty(key) match {
       case model: Document_Model => Some(model)
       case _ => None
@@ -169,7 +169,7 @@ object Document_Model
 
   def exit(buffer: Buffer)
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     apply(buffer) match {
       case None => error("No document model for buffer: " + buffer)
       case Some(model) =>
@@ -209,8 +209,10 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   /* snapshot */
 
-  def snapshot(): Change.Snapshot =
-    Swing_Thread.now { session.current_change().snapshot(thy_name, edits_buffer.toList) }
+  def snapshot(): Change.Snapshot = {
+    Swing_Thread.require()
+    session.current_change().snapshot(thy_name, edits_buffer.toList)
+  }
 
 
   /* buffer listener */
@@ -246,7 +248,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       val start = buffer.getLineStartOffset(line)
       val stop = start + line_segment.count
 
-      val snapshot = Document_Model.this.snapshot()
+      val snapshot = Swing_Thread.now { Document_Model.this.snapshot() }
 
       /* FIXME
       for (text_area <- Isabelle.jedit_text_areas(buffer)

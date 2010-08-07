@@ -22,7 +22,7 @@ import org.gjt.sp.jedit.View
 
 class Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.assert()
+  Swing_Thread.require()
 
   val html_panel =
     new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
