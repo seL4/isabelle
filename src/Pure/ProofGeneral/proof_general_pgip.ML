@@ -105,7 +105,7 @@ val token_markups =
 
 in
 
-fun pgml_terms (XML.Elem (name, atts, body)) =
+fun pgml_terms (XML.Elem ((name, atts), body)) =
       if member (op =) token_markups name then
         let val content = pgml_syms (Buffer.content (fold XML.add_content body Buffer.empty))
         in [Pgml.Atoms {kind = SOME name, content = content}] end
@@ -132,7 +132,7 @@ fun message_content default_area s =
     val body = YXML.parse_body s;
     val area =
       (case body of
-        [XML.Elem (name, _, _)] =>
+        [XML.Elem ((name, _), _)] =>
           if name = Markup.stateN then PgipTypes.Display else default_area
       | _ => default_area);
   in Pgml.pgml_to_xml (pgml area (maps pgml_terms body)) end;
@@ -283,8 +283,8 @@ val spaces_quote = space_implode " " o map quote;
 
 fun thm_deps_message (thms, deps) =
   let
-    val valuethms = XML.Elem ("value", [("name", "thms")], [XML.Text thms]);
-    val valuedeps = XML.Elem ("value", [("name", "deps")], [XML.Text deps]);
+    val valuethms = XML.Elem (("value", [("name", "thms")]), [XML.Text thms]);
+    val valuedeps = XML.Elem (("value", [("name", "deps")]), [XML.Text deps]);
   in
     issue_pgip (Metainforesponse
       {attrs = [("infotype", "isabelle_theorem_dependencies")],
@@ -312,7 +312,7 @@ fun lexicalstructure_keywords () =
     let val keywords = Keyword.dest_keywords ()
         val commands = Keyword.dest_commands ()
         fun keyword_elt kind keyword =
-            XML.Elem("keyword", [("word", keyword), ("category", kind)], [])
+            XML.Elem (("keyword", [("word", keyword), ("category", kind)]), [])
         in
             (* Also, note we don't call init_outer_syntax here to add interface commands,
             but they should never appear in scripts anyway so it shouldn't matter *)
@@ -647,8 +647,7 @@ fun showid (Showid vs) =
 
         fun idvalue strings =
             issue_pgip (Idvalue { thyname=thyname, objtype=objtype, name=name,
-                                  text=[XML.Elem("pgml",[],
-                                                 maps YXML.parse_body strings)] })
+                                  text=[XML.Elem (("pgml", []), maps YXML.parse_body strings)] })
 
         fun strings_of_thm (thy, name) =
           map (Display.string_of_thm_global thy) (PureThy.get_thms thy name)
@@ -927,7 +926,7 @@ fun process_pgip_tree xml =
     (pgip_refid := NONE;
      pgip_refseq := NONE;
      (case xml of
-          XML.Elem ("pgip", attrs, pgips) =>
+          XML.Elem (("pgip", attrs), pgips) =>
           (let
                val class = PgipTypes.get_attr "class" attrs
                val dest  = PgipTypes.get_attr_opt "destid" attrs

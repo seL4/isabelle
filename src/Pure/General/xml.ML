@@ -1,14 +1,14 @@
 (*  Title:      Pure/General/xml.ML
     Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
 
-Basic support for XML.
+Simple XML tree values.
 *)
 
 signature XML =
 sig
   type attributes = Properties.T
   datatype tree =
-      Elem of string * attributes * tree list
+      Elem of Markup.T * tree list
     | Text of string
   val add_content: tree -> Buffer.T -> Buffer.T
   val header: string
@@ -32,10 +32,10 @@ struct
 type attributes = Properties.T;
 
 datatype tree =
-    Elem of string * attributes * tree list
+    Elem of Markup.T * tree list
   | Text of string;
 
-fun add_content (Elem (_, _, ts)) = fold add_content ts
+fun add_content (Elem (_, ts)) = fold add_content ts
   | add_content (Text s) = Buffer.add s;
 
 
@@ -84,9 +84,9 @@ fun output_markup (markup as (name, atts)) =
 
 fun buffer_of tree =
   let
-    fun traverse (Elem (name, atts, [])) =
+    fun traverse (Elem ((name, atts), [])) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add "/>"
-      | traverse (Elem (name, atts, ts)) =
+      | traverse (Elem ((name, atts), ts)) =
           Buffer.add "<" #> Buffer.add (elem name atts) #> Buffer.add ">" #>
           fold traverse ts #>
           Buffer.add "</" #> Buffer.add name #> Buffer.add ">"
@@ -170,8 +170,7 @@ and parse_element xs =
         (Scan.this_string "/>" >> ignored
          || $$ ">" |-- parse_content --|
             !! (err ("Expected </" ^ s ^ ">"))
-              (Scan.this_string ("</" ^ s) --| blanks --| $$ ">"))) >>
-    (fn ((s, atts), ts) => Elem (s, atts, ts))) xs;
+              (Scan.this_string ("</" ^ s) --| blanks --| $$ ">"))) >> Elem) xs;
 
 val parse_document =
   (Scan.repeat parse_misc -- Scan.option parse_doctype -- Scan.repeat parse_misc)

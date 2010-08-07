@@ -168,11 +168,9 @@ fun idtable_to_xml {context, objtype, ids} =
     let 
         val objtype_attrs = attrs_of_objtype objtype
         val context_attrs = opt_attr "context" context
-        val ids_content = map (fn x => XML.Elem("identifier",[],[XML.Text x])) ids
+        val ids_content = map (fn x => XML.Elem(("identifier", []), [XML.Text x])) ids
     in 
-        XML.Elem ("idtable",
-                  objtype_attrs @ context_attrs,
-                  ids_content)
+        XML.Elem (("idtable", objtype_attrs @ context_attrs), ids_content)
     end
 
 
@@ -282,7 +280,7 @@ fun pgipdtype_to_xml (desco,ty) =
                           Pgipchoice ds => map destpgipdtype ds
                         | _ => []
     in 
-        XML.Elem (elt, (desc_attr @ attrs), (map pgipdtype_to_xml typargs))
+        XML.Elem ((elt, desc_attr @ attrs), map pgipdtype_to_xml typargs)
     end
 
 val pgiptype_to_xml = pgipdtype_to_xml o pair NONE
@@ -424,10 +422,10 @@ type preference = { name: string,
                     pgiptype: pgiptype }
 
 fun haspref ({ name, descr, default, pgiptype}:preference) = 
-    XML.Elem ("haspref",
+    XML.Elem (("haspref",
               attr "name" name @
               opt_attr "descr" descr @
-              opt_attr "default" default,
+              opt_attr "default" default),
               [pgiptype_to_xml pgiptype])
 
 end
