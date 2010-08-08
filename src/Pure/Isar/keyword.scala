@@ -50,7 +50,7 @@ object Keyword
   val improper = Set(THY_SCRIPT, PRF_SCRIPT)
 
 
-  /* reports */
+  /* protocol messages */
 
   object Keyword_Decl {
     def unapply(msg: XML.Tree): Option[String] =

@@ -9,7 +9,7 @@ package isabelle
 
 object Isar_Document
 {
-  /* reports */
+  /* protocol messages */
 
   object Assign {
     def unapply(msg: XML.Tree): Option[List[XML.Tree]] =

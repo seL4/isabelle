@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Accumulating results from prover.
+Accumulated results from prover.
 */
 
 package isabelle
@@ -84,6 +84,12 @@ class State(
             case XML.Elem(Markup(Markup.FAILED, _), _) => state.set_status(Command.Status.FAILED)
             case XML.Elem(Markup(Markup.FORKED, _), _) => state.add_forks(1)
             case XML.Elem(Markup(Markup.JOINED, _), _) => state.add_forks(-1)
+            case _ => System.err.println("Ignored status message: " + elem); state
+          })
+
+      case XML.Elem(Markup(Markup.REPORT, _), elems) =>
+        (this /: elems)((state, elem) =>
+          elem match {
             case XML.Elem(Markup(kind, atts), body) if Position.get_id(atts) == Some(command.id) =>
               atts match {
                 case Position.Range(begin, end) =>
@@ -112,9 +118,7 @@ class State(
                   }
                 case _ => state
               }
-            case _ =>
-              System.err.println("Ignored status report: " + elem)
-              state
+            case _ => System.err.println("Ignored report message: " + elem); state
           })
       case _ => add_result(message)
     }

@@ -196,6 +196,7 @@ object Markup
 
   val INIT = "init"
   val STATUS = "status"
+  val REPORT = "report"
   val WRITELN = "writeln"
   val TRACING = "tracing"
   val WARNING = "warning"

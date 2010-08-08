@@ -44,8 +44,8 @@ sig
   val dest_commands: unit -> string list
   val command_keyword: string -> T option
   val command_tags: string -> string list
-  val keyword_status_reportN: string
-  val report: unit -> unit
+  val keyword_statusN: string
+  val status: unit -> unit
   val keyword: string -> unit
   val command: string -> T -> unit
   val is_diag: string -> bool
@@ -146,27 +146,27 @@ fun command_keyword name = Symtab.lookup (get_commands ()) name;
 fun command_tags name = these (Option.map tags_of (command_keyword name));
 
 
-(* reports *)
+(* status *)
 
-val keyword_status_reportN = "keyword_status_report";
+val keyword_statusN = "keyword_status";
 
-fun report_message s =
-  (if print_mode_active keyword_status_reportN then Output.status else writeln) s;
+fun status_message s =
+  (if print_mode_active keyword_statusN then Output.status else writeln) s;
 
-fun report_keyword name =
-  report_message (Markup.markup (Markup.keyword_decl name)
+fun keyword_status name =
+  status_message (Markup.markup (Markup.keyword_decl name)
     ("Outer syntax keyword: " ^ quote name));
 
-fun report_command (name, kind) =
-  report_message (Markup.markup (Markup.command_decl name (kind_of kind))
+fun command_status (name, kind) =
+  status_message (Markup.markup (Markup.command_decl name (kind_of kind))
     ("Outer syntax command: " ^ quote name ^ " (" ^ kind_of kind ^ ")"));
 
-fun report () =
+fun status () =
   let val (keywords, commands) = CRITICAL (fn () =>
     (dest_keywords (), sort_wrt #1 (Symtab.dest (get_commands ()))))
   in
-    List.app report_keyword keywords;
-    List.app report_command commands
+    List.app keyword_status keywords;
+    List.app command_status commands
   end;
 
 
@@ -174,12 +174,12 @@ fun report () =
 
 fun keyword name =
  (change_lexicons (apfst (Scan.extend_lexicon (Symbol.explode name)));
-  report_keyword name);
+  keyword_status name);
 
 fun command name kind =
  (change_lexicons (apsnd (Scan.extend_lexicon (Symbol.explode name)));
   change_commands (Symtab.update (name, kind));
-  report_command (name, kind));
+  command_status (name, kind));
 
 
 (* command categories *)

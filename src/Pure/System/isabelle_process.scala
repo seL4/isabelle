@@ -24,11 +24,12 @@ object Isabelle_Process
     val markup = Map(
       ('A' : Int) -> Markup.INIT,
       ('B' : Int) -> Markup.STATUS,
-      ('C' : Int) -> Markup.WRITELN,
-      ('D' : Int) -> Markup.TRACING,
-      ('E' : Int) -> Markup.WARNING,
-      ('F' : Int) -> Markup.ERROR,
-      ('G' : Int) -> Markup.DEBUG)
+      ('C' : Int) -> Markup.REPORT,
+      ('D' : Int) -> Markup.WRITELN,
+      ('E' : Int) -> Markup.TRACING,
+      ('F' : Int) -> Markup.WARNING,
+      ('G' : Int) -> Markup.ERROR,
+      ('H' : Int) -> Markup.DEBUG)
     def is_raw(kind: String) =
       kind == Markup.STDOUT
     def is_control(kind: String) =
@@ -53,12 +54,13 @@ object Isabelle_Process
     def is_control = Kind.is_control(kind)
     def is_system = Kind.is_system(kind)
     def is_status = kind == Markup.STATUS
+    def is_report = kind == Markup.REPORT
     def is_ready = is_status && body == List(XML.Elem(Markup.Ready, Nil))
 
     override def toString: String =
     {
       val res =
-        if (is_status) message.body.map(_.toString).mkString
+        if (is_status || is_report) message.body.map(_.toString).mkString
         else Pretty.string_of(message.body)
       if (properties.isEmpty)
         kind.toString + " [[" + res + "]]"

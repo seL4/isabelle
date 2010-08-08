@@ -103,7 +103,7 @@ val norm_result =
 
 (* parallel proofs *)
 
-fun fork e = Future.fork_pri ~1 (fn () => Future.report e);
+fun fork e = Future.fork_pri ~1 (fn () => Future.status e);
 
 val parallel_proofs = Unsynchronized.ref 1;
 

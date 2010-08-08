@@ -233,7 +233,7 @@ fun new_state name (id: Document.command_id) (state_id, updates) =
     val _ = define_state state_id' state';
   in (state_id', (id, state_id') :: updates) end;
 
-fun report_updates updates =
+fun updates_status updates =
   implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
   |> Markup.markup Markup.assign
   |> Output.status;
@@ -262,7 +262,7 @@ fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) ed
           |-> fold_map (fn name => Graph.map_node_yield name (update_node name));
 
       val _ = define_document new_id new_document';
-      val _ = report_updates (flat updatess);
+      val _ = updates_status (flat updatess);
       val _ = execute new_document';
     in () end);
 

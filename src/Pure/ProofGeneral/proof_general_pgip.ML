@@ -161,6 +161,7 @@ fun log_msg s = errormsg Message Log s;
 fun setup_messages () =
  (Output.writeln_fn := (fn s => normalmsg Message s);
   Output.status_fn := (fn _ => ());
+  Output.report_fn := (fn _ => ());
   Output.priority_fn := (fn s => normalmsg Status s);
   Output.tracing_fn := (fn s => normalmsg Tracing s);
   Output.warning_fn := (fn s => errormsg Message Warning s);
