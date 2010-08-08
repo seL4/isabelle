@@ -482,7 +482,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val toks = Lexicon.tokenize lexicon xids syms;
-    val _ = List.app Lexicon.report_token toks;
+    val _ = List.app (Lexicon.report_token ctxt) toks;
 
     val root' = if root <> "prop" andalso is_logtype root then Syn_Ext.logic else root;
     val pts = Parser.parse gram root' (filter Lexicon.is_proper toks);

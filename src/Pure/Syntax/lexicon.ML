@@ -65,7 +65,7 @@ sig
   val tvarT: typ
   val terminals: string list
   val is_terminal: string -> bool
-  val report_token: token -> unit
+  val report_token: Proof.context -> token -> unit
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
@@ -185,8 +185,8 @@ val token_kind_markup =
   | Comment     => Markup.inner_comment
   | EOF         => Markup.none;
 
-fun report_token (Token (kind, _, (pos, _))) =
-  Position.report (token_kind_markup kind) pos;
+fun report_token ctxt (Token (kind, _, (pos, _))) =
+  Context_Position.report ctxt (token_kind_markup kind) pos;
 
 
 (* matching_tokens *)
