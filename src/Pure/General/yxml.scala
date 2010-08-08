@@ -55,7 +55,7 @@ object YXML
     val s = source.toString
     val i = s.indexOf('=')
     if (i <= 0) err_attribute()
-    (s.substring(0, i).intern, s.substring(i + 1))
+    (s.substring(0, i), s.substring(i + 1))
   }
 
 
@@ -95,7 +95,7 @@ object YXML
       else {
         Library.chunks(chunk, Y).toList match {
           case ch :: name :: atts if ch.length == 0 =>
-            push(name.toString.intern, atts.map(parse_attrib))
+            push(name.toString, atts.map(parse_attrib))
           case txts => for (txt <- txts) add(XML.Text(txt.toString))
         }
       }
