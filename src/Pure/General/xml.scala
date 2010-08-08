@@ -118,7 +118,7 @@ object XML
     def cache_string(x: String): String =
       lookup(x) match {
         case Some(y) => y
-        case None => store(x)
+        case None => store(new String(x.toCharArray))  // trim string value
       }
     def cache_props(x: List[(String, String)]): List[(String, String)] =
       if (x.isEmpty) x
