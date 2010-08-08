@@ -80,7 +80,7 @@ sig
     (string * string) trrule list -> syntax -> syntax
   val update_trrules_i: ast trrule list -> syntax -> syntax
   val remove_trrules_i: ast trrule list -> syntax -> syntax
-  val parse_token: Markup.T -> string -> Symbol_Pos.T list * Position.T
+  val parse_token: Proof.context -> Markup.T -> string -> Symbol_Pos.T list * Position.T
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -694,10 +694,10 @@ val remove_trrules_i = remove_syntax mode_default o Syn_Ext.syn_ext_rules o cert
 
 (* (un)parsing *)
 
-fun parse_token markup str =
+fun parse_token ctxt markup str =
   let
     val (syms, pos) = read_token str;
-    val _ = Position.report markup pos;
+    val _ = Context_Position.report ctxt markup pos;
   in (syms, pos) end;
 
 local

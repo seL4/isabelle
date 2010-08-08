@@ -738,14 +738,14 @@ local
 
 fun parse_sort ctxt text =
   let
-    val (syms, pos) = Syntax.parse_token Markup.sort text;
+    val (syms, pos) = Syntax.parse_token ctxt Markup.sort text;
     val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
       handle ERROR msg => cat_error msg ("Failed to parse sort" ^ Position.str_of pos)
   in Type.minimize_sort (tsig_of ctxt) S end;
 
 fun parse_typ ctxt text =
   let
-    val (syms, pos) = Syntax.parse_token Markup.typ text;
+    val (syms, pos) = Syntax.parse_token ctxt Markup.typ text;
     val T = Syntax.standard_parse_typ ctxt (syn_of ctxt) (get_sort ctxt) (syms, pos)
       handle ERROR msg => cat_error msg ("Failed to parse type" ^ Position.str_of pos);
   in T end;
@@ -756,7 +756,7 @@ fun parse_term T ctxt text =
 
     val (T', _) = Type_Infer.paramify_dummies T 0;
     val (markup, kind) = if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
-    val (syms, pos) = Syntax.parse_token markup text;
+    val (syms, pos) = Syntax.parse_token ctxt markup text;
 
     fun check t = (Syntax.check_term ctxt (Type_Infer.constrain T' t); NONE)
       handle ERROR msg => SOME msg;
