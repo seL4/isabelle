@@ -158,6 +158,26 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
+fun theory_notes kind global_facts local_facts lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
+  in
+    lthy
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
+  end;
+
+fun locale_notes locale kind global_facts local_facts lthy = 
+  let
+    val global_facts' = Attrib.map_facts (K I) global_facts;
+    val local_facts' = Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
+  in
+    lthy
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
+  end
+
 fun notes (Target {target, is_locale, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -166,14 +186,11 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
           (Local_Theory.full_name lthy (fst a))) bs))
       |> PureThy.map_facts (import_export_proof lthy);
     val local_facts = PureThy.map_facts #1 facts';
-    val global_facts = PureThy.map_facts #2 facts'
-      |> Attrib.map_facts (if is_locale then K I else Attrib.attribute_i thy);
+    val global_facts = PureThy.map_facts #2 facts';
   in
     lthy
-    |> Local_Theory.theory (PureThy.note_thmss kind global_facts #> snd)
-    |> not is_locale ? Local_Theory.target (ProofContext.note_thmss kind global_facts #> snd)
-    |> is_locale ? Local_Theory.target (Locale.add_thmss target kind
-         (Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts))
+    |> (if is_locale then locale_notes target kind global_facts local_facts
+        else theory_notes kind global_facts local_facts)
     |> ProofContext.note_thmss kind (Attrib.map_facts (Attrib.attribute_i thy) local_facts)
   end;
 
