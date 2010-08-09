@@ -63,8 +63,10 @@ fun auto_flush stream =
 fun rendezvous f fifo =
   let
     val path = File.platform_path (Path.explode fifo);
-    val result = f fifo;  (*block until peer is ready*)
-    val _ = OS.FileSys.remove path;  (*ready; prevent future access -- potential race condition*)
+    val result = f fifo;  (*should block until peer is ready*)
+    val _ =
+      if String.isSuffix "cygwin" ml_platform then ()  (*Cygwin 1.7: no proper blocking on open*)
+      else OS.FileSys.remove path;  (*prevent future access*)
   in result end;
 
 in
