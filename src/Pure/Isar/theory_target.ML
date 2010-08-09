@@ -307,7 +307,6 @@ fun define (ta as Target {target, is_locale, is_class, ...}) ((b, mx), ((name, a
     val tfreesT = Term.add_tfreesT T (fold (Term.add_tfreesT o #2) xs []);
     val extra_tfrees = rev (subtract (op =) tfreesT (Term.add_tfrees rhs []));
 
-    (*const*)
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
     val term_params =
       rev (Variable.fixes_of (Local_Theory.target_of lthy))
@@ -318,8 +317,9 @@ fun define (ta as Target {target, is_locale, is_class, ...}) ((b, mx), ((name, a
     val params = type_params @ term_params;
 
     val U = map Term.fastype_of params ---> T;
-    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
 
+    (*foundation*)
+    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
     val (const, lthy2) = lthy |>
       (case Class_Target.instantiation_param lthy b of
         SOME c' =>
@@ -342,7 +342,6 @@ fun define (ta as Target {target, is_locale, is_class, ...}) ((b, mx), ((name, a
     val (_, lhs') = Logic.dest_equals (Thm.prop_of local_def);
     val Const (head, _) = Term.head_of lhs';
 
-    (*def*)
     val (global_def, lthy4) = lthy3
       |> Local_Theory.theory_result
         (case Overloading.operation lthy b of
@@ -351,6 +350,8 @@ fun define (ta as Target {target, is_locale, is_class, ...}) ((b, mx), ((name, a
             if is_some (Class_Target.instantiation_param lthy b)
             then AxClass.define_overloaded name' (head, rhs')
             else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')) #>> snd);
+
+    (*local definition*)
     val def = Local_Defs.trans_terms lthy4
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
