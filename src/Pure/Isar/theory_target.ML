@@ -217,12 +217,13 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     val same_shape = Term.aconv_untyped (rhs, rhs');
     (* FIXME workaround based on educated guess *)
     val prefix' = Binding.prefix_of b';
-    val class_global =
-      Binding.eq_name (b, b') andalso
-      not (null prefix') andalso
-      fst (snd (split_last prefix')) = Class_Target.class_prefix target;
+    val is_canonical_class = is_class andalso
+      (Binding.eq_name (b, b')
+        andalso not (null prefix')
+        andalso List.last prefix' = (Class_Target.class_prefix target, false) (*guesses class constants*)
+      orelse same_shape (*guesses class abbrevs*));
   in
-    not (is_class andalso (same_shape orelse class_global)) ?
+    not is_canonical_class ?
       (Context.mapping_result
         (Sign.add_abbrev Print_Mode.internal arg)
         (ProofContext.add_abbrev Print_Mode.internal arg)
