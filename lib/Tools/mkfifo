@@ -28,6 +28,8 @@ function fail()
 
 [ "$#" != 0 ] && usage
 
+#FIXME potential race condition wrt. future processes with same pid
 FIFO="/tmp/isabelle-fifo$$"
-mkfifo -m 600 "$FIFO" || fail "Failed to create named pipe $FIFO"
+
+mkfifo -m 600 "$FIFO" || fail "Failed to create fifo: $FIFO"
 echo "$FIFO"

@@ -29,7 +29,7 @@ sig
   val parse: Position.T -> string -> Toplevel.transition list
   val process_file: Path.T -> theory -> theory
   type isar
-  val isar: bool -> isar
+  val isar: TextIO.instream -> bool -> isar
   val prepare_command: Position.T -> string -> Toplevel.transition
   val load_thy: string -> (unit -> theory) -> Position.T -> string -> (unit -> unit) * theory
 end;
@@ -222,8 +222,8 @@ type isar =
   Source.source) Source.source) Source.source) Source.source)
   Source.source) Source.source) Source.source) Source.source;
 
-fun isar term : isar =
-  Source.tty
+fun isar in_stream term : isar =
+  Source.tty in_stream
   |> Symbol.source {do_recover = true}
   |> Token.source {do_recover = SOME true} Keyword.get_lexicons Position.none
   |> toplevel_source term (SOME true) get_command;

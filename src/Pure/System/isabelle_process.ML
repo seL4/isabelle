@@ -11,7 +11,7 @@ General format of process output:
 signature ISABELLE_PROCESS =
 sig
   val isabelle_processN: string
-  val init: string -> unit
+  val init: string -> string -> unit
 end;
 
 structure Isabelle_Process: ISABELLE_PROCESS =
@@ -60,13 +60,19 @@ fun auto_flush stream =
       (OS.Process.sleep (Time.fromMilliseconds 50); try TextIO.flushOut stream; loop ());
   in loop end;
 
+fun rendezvous f fifo =
+  let
+    val path = File.platform_path (Path.explode fifo);
+    val result = f fifo;  (*block until peer is ready*)
+    val _ = OS.FileSys.remove path;  (*ready; prevent future access -- potential race condition*)
+  in result end;
+
 in
 
-fun setup_channels out =
+fun setup_channels in_fifo out_fifo =
   let
-    val path = File.platform_path (Path.explode out);
-    val out_stream = TextIO.openOut path;  (*fifo blocks until reader is ready*)
-    val _ = OS.FileSys.remove path;  (*prevent alien access, indicate writer is ready*)
+    val in_stream = rendezvous TextIO.openIn in_fifo;
+    val out_stream = rendezvous TextIO.openOut out_fifo;
     val _ = Simple_Thread.fork false (auto_flush out_stream);
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdOut);
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdErr);
@@ -80,7 +86,7 @@ fun setup_channels out =
     Output.debug_fn    := standard_message out_stream "H";
     Output.priority_fn := ! Output.writeln_fn;
     Output.prompt_fn   := ignore;
-    out_stream
+    (in_stream, out_stream)
   end;
 
 end;
@@ -88,13 +94,15 @@ end;
 
 (* init *)
 
-fun init out =
- (Unsynchronized.change print_mode
-    (fold (update op =) [isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
-  setup_channels out |> init_message;
-  quick_and_dirty := true;  (* FIXME !? *)
-  Keyword.status ();
-  Output.status (Markup.markup Markup.ready "");
-  Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
+fun init in_fifo out_fifo =
+  let
+    val _ = Unsynchronized.change print_mode
+      (fold (update op =) [isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
+    val (in_stream, out_stream) = setup_channels in_fifo out_fifo;
+    val _ = init_message out_stream;
+    val _ = quick_and_dirty := true;  (* FIXME !? *)
+    val _ = Keyword.status ();
+    val _ = Output.status (Markup.markup Markup.ready "");
+  in Isar.toplevel_loop in_stream {init = true, welcome = false, sync = true, secure = true} end;
 
 end;

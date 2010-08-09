@@ -178,11 +178,14 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   }
 
 
-  /* stdin */
+  /* commands */
 
-  private class Stdin_Thread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
-    override def run() = {
-      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, Standard_System.charset))
+  private class Command_Thread(fifo: String) extends Thread("isabelle: commands")
+  {
+    override def run()
+    {
+      val stream = system.fifo_output_stream(fifo)
+      val writer = new BufferedWriter(new OutputStreamWriter(stream, Standard_System.charset))
       var finished = false
       while (!finished) {
         try {
@@ -200,19 +203,21 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
           //}}}
         }
         catch {
-          case e: IOException => put_result(Markup.SYSTEM, "Stdin thread: " + e.getMessage)
+          case e: IOException => put_result(Markup.SYSTEM, "Command thread: " + e.getMessage)
         }
       }
-      put_result(Markup.SYSTEM, "Stdin thread terminated")
+      put_result(Markup.SYSTEM, "Command thread terminated")
     }
   }
 
 
-  /* stdout */
+  /* raw stdout */
 
-  private class Stdout_Thread(in_stream: InputStream) extends Thread("isabelle: stdout") {
-    override def run() = {
-      val reader = new BufferedReader(new InputStreamReader(in_stream, Standard_System.charset))
+  private class Stdout_Thread(stream: InputStream) extends Thread("isabelle: stdout")
+  {
+    override def run() =
+    {
+      val reader = new BufferedReader(new InputStreamReader(stream, Standard_System.charset))
       var result = new StringBuilder(100)
 
       var finished = false
@@ -253,7 +258,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
     private class Protocol_Error(msg: String) extends Exception(msg)
     override def run()
     {
-      val stream = system.fifo_stream(fifo)
+      val stream = system.fifo_input_stream(fifo)
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
@@ -329,43 +334,44 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   /** main **/
 
   {
-    /* messages */
+    /* private communication channels */
 
-    val message_fifo = system.mk_fifo()
-    def rm_fifo() = system.rm_fifo(message_fifo)
+    val in_fifo = system.mk_fifo()
+    val out_fifo = system.mk_fifo()
+    def rm_fifos() = { system.rm_fifo(in_fifo); system.rm_fifo(out_fifo) }
 
-    val message_thread = new Message_Thread(message_fifo)
+    val command_thread = new Command_Thread(in_fifo)
+    val message_thread = new Message_Thread(out_fifo)
+
+    command_thread.start
     message_thread.start
 
 
     /* exec process */
 
     try {
-      val cmdline = List(system.getenv_strict("ISABELLE_PROCESS"), "-W", message_fifo) ++ args
+      val cmdline =
+        List(system.getenv_strict("ISABELLE_PROCESS"), "-W", in_fifo + ":" + out_fifo) ++ args
       proc = system.execute(true, cmdline: _*)
     }
     catch {
       case e: IOException =>
-        rm_fifo()
+        rm_fifos()
         error("Failed to execute Isabelle process: " + e.getMessage)
     }
-
-
-    /* stdin/stdout */
-
-    new Stdin_Thread(proc.getOutputStream).start
     new Stdout_Thread(proc.getInputStream).start
 
 
     /* exit */
 
     new Thread("isabelle: exit") {
-      override def run() = {
+      override def run()
+      {
         val rc = proc.waitFor()
         Thread.sleep(300)  // FIXME property!?
         put_result(Markup.SYSTEM, "Exit thread terminated")
         put_result(Markup.EXIT, rc.toString)
-        rm_fifo()
+        rm_fifos()
       }
     }.start
   }
