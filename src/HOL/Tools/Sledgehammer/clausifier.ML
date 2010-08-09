@@ -55,7 +55,7 @@ fun assume_skolem_funs th =
         let
           val args = OldTerm.term_frees body
           val Ts = map type_of args
-          val cT = Ts ---> T (* FIXME: use "skolem_type_and_args" *)
+          val cT = Ts ---> T
           (* Forms a lambda-abstraction over the formal parameters *)
           val rhs =
             list_abs_free (map dest_Free args,
@@ -78,11 +78,10 @@ fun assume_skolem_funs th =
 
 (*Returns the vars of a theorem*)
 fun vars_of_thm th =
-  map (Thm.cterm_of (theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th []);
+  map (cterm_of (theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th []);
 
 val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
 
-(* ### FIXME: removes only one lambda? *)
 (* Removes the lambdas from an equation of the form "t = (%x. u)".
    (Cf. "extensionalize_term" in "ATP_Systems".) *)
 fun extensionalize_theorem th =
@@ -101,7 +100,7 @@ val [f_B,g_B] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_B
 val [g_C,f_C] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_C}));
 val [f_S,g_S] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_S}));
 
-(*FIXME: requires more use of cterm constructors*)
+(* FIXME: Requires more use of cterm constructors. *)
 fun abstract ct =
   let
       val thy = theory_of_cterm ct
@@ -182,7 +181,7 @@ fun introduce_combinators_in_theorem th =
             TrueI)
 
 (*cterms are used throughout for efficiency*)
-val cTrueprop = Thm.cterm_of @{theory HOL} HOLogic.Trueprop;
+val cTrueprop = cterm_of @{theory HOL} HOLogic.Trueprop;
 
 (*Given an abstraction over n variables, replace the bound variables by free
   ones. Return the body, along with the list of free variables.*)
@@ -198,7 +197,7 @@ val skolem_id_def_raw = @{thms skolem_id_def_raw}
    Example: "EX x. x : A & x ~: B ==> sko A B : A & sko A B ~: B"  [.] *)
 fun skolem_theorem_of_def thy rhs0 =
   let
-    val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> Thm.cterm_of thy
+    val rhs = rhs0 |> Type.legacy_freeze_thaw |> #1 |> cterm_of thy
     val rhs' = rhs |> Thm.dest_comb |> snd
     val (ch, frees) = c_variant_abs_multi (rhs', [])
     val (hilbert, cabs) = ch |> Thm.dest_comb |>> term_of
@@ -206,7 +205,7 @@ fun skolem_theorem_of_def thy rhs0 =
       case hilbert of
         Const (@{const_name Eps}, Type (@{type_name fun}, [_, T])) => T
       | _ => raise TERM ("skolem_theorem_of_def: expected \"Eps\"", [hilbert])
-    val cex = Thm.cterm_of thy (HOLogic.exists_const T)
+    val cex = cterm_of thy (HOLogic.exists_const T)
     val ex_tm = Thm.capply cTrueprop (Thm.capply cex cabs)
     val conc =
       Drule.list_comb (rhs, frees)
@@ -231,8 +230,8 @@ fun to_nnf th ctxt0 =
                     |> Meson.make_nnf ctxt
   in  (th3, ctxt)  end;
 
-(* Skolemize a named theorem, with Skolem functions as additional premises. *)
-fun skolemize_theorem thy th =
+(* Convert a theorem to CNF, with Skolem functions as additional premises. *)
+fun cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
     val (nnfth, ctxt) = to_nnf th ctxt0
@@ -246,9 +245,5 @@ fun skolemize_theorem thy th =
          |> map Thm.close_derivation
   end
   handle THM _ => []
-
-(* Convert Isabelle theorems into axiom clauses. *)
-(* FIXME: is transfer necessary? *)
-fun cnf_axiom thy = skolemize_theorem thy o Thm.transfer thy
 
 end;

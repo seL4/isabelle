@@ -574,23 +574,21 @@ fun step ctxt mode skolems thpairs p =
 
 fun real_literal (_, (c, _)) = not (String.isPrefix class_prefix c);
 
-(* FIXME: use "fold" instead *)
-fun translate _ _ _ thpairs [] = thpairs
-  | translate ctxt mode skolems thpairs ((fol_th, inf) :: infpairs) =
-      let val _ = trace_msg (fn () => "=============================================")
-          val _ = trace_msg (fn () => "METIS THM: " ^ Metis.Thm.toString fol_th)
-          val _ = trace_msg (fn () => "INFERENCE: " ^ Metis.Proof.inferenceToString inf)
-          val th = Meson.flexflex_first_order (step ctxt mode skolems
-                                                    thpairs (fol_th, inf))
-          val _ = trace_msg (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
-          val _ = trace_msg (fn () => "=============================================")
-          val n_metis_lits =
-            length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
-      in
-          if nprems_of th = n_metis_lits then ()
-          else raise METIS ("translate", "Proof reconstruction has gone wrong.");
-          translate ctxt mode skolems ((fol_th, th) :: thpairs) infpairs
-      end;
+fun translate_one ctxt mode skolems (fol_th, inf) thpairs =
+  let
+    val _ = trace_msg (fn () => "=============================================")
+    val _ = trace_msg (fn () => "METIS THM: " ^ Metis.Thm.toString fol_th)
+    val _ = trace_msg (fn () => "INFERENCE: " ^ Metis.Proof.inferenceToString inf)
+    val th = Meson.flexflex_first_order (step ctxt mode skolems
+                                              thpairs (fol_th, inf))
+    val _ = trace_msg (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
+    val _ = trace_msg (fn () => "=============================================")
+    val n_metis_lits =
+      length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
+    val _ =
+      if nprems_of th = n_metis_lits then ()
+      else raise METIS ("translate", "Proof reconstruction has gone wrong.")
+  in (fol_th, th) :: thpairs end
 
 (*Determining which axiom clauses are actually used*)
 fun used_axioms axioms (th, Metis.Proof.Axiom _) = SOME (lookth axioms th)
@@ -744,7 +742,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                 val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                              (*add constraints arising from converting goal to clause form*)
                 val proof = Metis.Proof.proof mth
-                val result = translate ctxt' mode skolems axioms proof
+                val result = fold (translate_one ctxt' mode skolems) proof axioms
                 and used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg (fn () => Display.string_of_thm ctxt th)) used

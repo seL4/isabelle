@@ -391,7 +391,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val params = Sledgehammer_Isar.default_params thy
       [("atps", prover_name), ("minimize_timeout", Int.toString timeout ^ " s")]
     val minimize =
-      Sledgehammer_Fact_Minimizer.minimize_theorems params 1 (subgoal_count st)
+      Sledgehammer_Fact_Minimize.minimize_theorems params 1 (subgoal_count st)
     val _ = log separator
   in
     case minimize st (these (!named_thms)) of

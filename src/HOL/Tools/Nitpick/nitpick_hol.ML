@@ -144,16 +144,19 @@ sig
   val eta_expand : typ list -> term -> int -> term
   val distinctness_formula : typ -> term list -> term
   val register_frac_type :
-    string -> (string * string) list -> Proof.context -> Proof.context
+    string -> (string * string) list -> morphism -> Context.generic
+    -> Context.generic
   val register_frac_type_global :
     string -> (string * string) list -> theory -> theory
-  val unregister_frac_type : string -> Proof.context -> Proof.context
+  val unregister_frac_type :
+    string -> morphism -> Context.generic -> Context.generic
   val unregister_frac_type_global : string -> theory -> theory
   val register_codatatype :
-    typ -> string -> styp list -> Proof.context -> Proof.context
+    typ -> string -> styp list -> morphism -> Context.generic -> Context.generic
   val register_codatatype_global :
     typ -> string -> styp list -> theory -> theory
-  val unregister_codatatype : typ -> Proof.context -> Proof.context
+  val unregister_codatatype :
+    typ -> morphism -> Context.generic -> Context.generic
   val unregister_codatatype_global : typ -> theory -> theory
   val datatype_constrs : hol_context -> typ -> styp list
   val binarized_and_boxed_datatype_constrs :
@@ -631,11 +634,15 @@ fun register_frac_type_generic frac_s ersaetze generic =
     val {frac_types, codatatypes} = Data.get generic
     val frac_types = AList.update (op =) (frac_s, ersaetze) frac_types
   in Data.put {frac_types = frac_types, codatatypes = codatatypes} generic end
-val register_frac_type = Context.proof_map oo register_frac_type_generic
+(* TODO: Consider morphism. *)
+fun register_frac_type frac_s ersaetze (_ : morphism) =
+  register_frac_type_generic frac_s ersaetze
 val register_frac_type_global = Context.theory_map oo register_frac_type_generic
 
 fun unregister_frac_type_generic frac_s = register_frac_type_generic frac_s []
-val unregister_frac_type = Context.proof_map o unregister_frac_type_generic
+(* TODO: Consider morphism. *)
+fun unregister_frac_type frac_s (_ : morphism) =
+  unregister_frac_type_generic frac_s
 val unregister_frac_type_global =
   Context.theory_map o unregister_frac_type_generic
 
@@ -656,12 +663,16 @@ fun register_codatatype_generic co_T case_name constr_xs generic =
     val codatatypes = AList.update (op =) (co_s, (case_name, constr_xs))
                                    codatatypes
   in Data.put {frac_types = frac_types, codatatypes = codatatypes} generic end
-val register_codatatype = Context.proof_map ooo register_codatatype_generic
+(* TODO: Consider morphism. *)
+fun register_codatatype co_T case_name constr_xs (_ : morphism) =
+  register_codatatype_generic co_T case_name constr_xs
 val register_codatatype_global =
   Context.theory_map ooo register_codatatype_generic
 
 fun unregister_codatatype_generic co_T = register_codatatype_generic co_T "" []
-val unregister_codatatype = Context.proof_map o unregister_codatatype_generic
+(* TODO: Consider morphism. *)
+fun unregister_codatatype co_T (_ : morphism) =
+  unregister_codatatype_generic co_T
 val unregister_codatatype_global =
   Context.theory_map o unregister_codatatype_generic
 

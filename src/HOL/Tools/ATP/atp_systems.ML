@@ -140,7 +140,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   max_new_relevant_facts_per_iter = 90 (* FIXME *),
+   max_new_relevant_facts_per_iter = 60 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
 val e = ("e", e_config)

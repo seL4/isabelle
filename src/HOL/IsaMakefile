@@ -321,9 +321,10 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/metis_tactics.ML \
   Tools/Sledgehammer/sledgehammer.ML \
   Tools/Sledgehammer/sledgehammer_fact_filter.ML \
-  Tools/Sledgehammer/sledgehammer_fact_minimizer.ML \
+  Tools/Sledgehammer/sledgehammer_fact_minimize.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \
   Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML \
+  Tools/Sledgehammer/sledgehammer_translate.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
   Tools/SMT/cvc3_solver.ML \
   Tools/SMT/smtlib_interface.ML \
