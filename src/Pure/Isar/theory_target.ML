@@ -298,6 +298,7 @@ fun define (ta as Target {target, is_locale, is_class, ...}) ((b, mx), ((name, a
 
     val name' = Thm.def_binding_optional b name;
 
+    (*term and type parameters*)
     val crhs = Thm.cterm_of thy rhs;
     val (defs, rhs') = Local_Defs.export_cterm lthy thy_ctxt crhs ||> Thm.term_of;
     val rhs_conv = MetaSimplifier.rewrite true defs crhs;
@@ -333,25 +334,22 @@ fun define (ta as Target {target, is_locale, is_class, ...}) ((b, mx), ((name, a
               else Local_Theory.theory_result (Overloading.declare (c', U))
                 ##> Overloading.confirm b
           | NONE => Local_Theory.theory_result (Sign.declare_const ((b, U), mx3))));
-    val t = Term.list_comb (const, params);
-
-    val ((lhs, local_def), lthy3) = lthy2
-      |> is_locale ? syntax_declaration ta false (locale_const ta Syntax.mode_default ((b, mx2), t))
-      |> is_class ? class_target ta (Class_Target.declare target ((b, mx1), (type_params, t)))
-      |> Local_Defs.add_def ((b, NoSyn), t);
-    val (_, lhs') = Logic.dest_equals (Thm.prop_of local_def);
-    val Const (head, _) = Term.head_of lhs';
-
-    val (global_def, lthy4) = lthy3
+    val Const (head, _) = const;
+    val lhs' = list_comb (const, params);
+    val (global_def, lthy3) = lthy2
       |> Local_Theory.theory_result
         (case Overloading.operation lthy b of
           SOME (_, checked) => Overloading.define checked name' (head, rhs')
         | NONE =>
             if is_some (Class_Target.instantiation_param lthy b)
             then AxClass.define_overloaded name' (head, rhs')
-            else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')) #>> snd);
+            else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')) #>> snd)
+      ||> is_locale ? syntax_declaration ta false (locale_const ta Syntax.mode_default ((b, mx2), lhs'))
+      ||> is_class ? class_target ta (Class_Target.declare target ((b, mx1), (type_params, lhs')));
 
     (*local definition*)
+    val ((lhs, local_def), lthy4) = lthy3
+      |> Local_Defs.add_def ((b, NoSyn), lhs');
     val def = Local_Defs.trans_terms lthy4
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
