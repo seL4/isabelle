@@ -57,7 +57,7 @@ fun auto_flush stream =
   let
     val _ = TextIO.StreamIO.setBufferMode (TextIO.getOutstream stream, IO.BLOCK_BUF);
     fun loop () =
-      (OS.Process.sleep (Time.fromMilliseconds 50); try TextIO.flushOut stream; loop ());
+      (OS.Process.sleep (Time.fromMilliseconds 20); try TextIO.flushOut stream; loop ());
   in loop end;
 
 fun rendezvous f fifo =
