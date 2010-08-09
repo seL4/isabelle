@@ -358,7 +358,7 @@ fun define (ta as Target {target, is_locale, is_class, ...}) ((b, mx), ((name, a
 
     (*note*)
     val ([(res_name, [res])], lthy5) = lthy4
-      |> notes ta "" [((name', atts), [([def], [])])];
+      |> Local_Theory.notes_kind "" [((name', atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy5) end;
 
 end;
