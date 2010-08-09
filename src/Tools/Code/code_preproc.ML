@@ -387,7 +387,7 @@ fun add_cert thy vardeps (c, (proto_lhs, proto_cert)) (rhss, eqngr) =
   else let
     val lhs = map_index (fn (k, (v, _)) =>
       (v, snd (Vargraph.get_node vardeps (Fun c, k)))) proto_lhs;
-    val cert = Code.constrain_cert thy (map snd lhs) proto_cert;
+    val cert = Code.constrain_cert thy (map (Sign.minimize_sort thy o snd) lhs) proto_cert;
     val (vs, rhss') = Code.typargs_deps_of_cert thy cert;
     val eqngr' = Graph.new_node (c, (vs, cert)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;

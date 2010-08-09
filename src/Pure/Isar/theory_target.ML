@@ -158,6 +158,26 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
+fun theory_notes kind global_facts local_facts lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
+  in
+    lthy
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
+  end;
+
+fun locale_notes locale kind global_facts local_facts lthy = 
+  let
+    val global_facts' = Attrib.map_facts (K I) global_facts;
+    val local_facts' = Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
+  in
+    lthy
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
+  end
+
 fun notes (Target {target, is_locale, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -165,18 +185,13 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
       |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi
           (Local_Theory.full_name lthy (fst a))) bs))
       |> PureThy.map_facts (import_export_proof lthy);
-    val local_facts = PureThy.map_facts #1 facts'
-      |> Attrib.map_facts (Attrib.attribute_i thy);
-    val target_facts = PureThy.map_facts #1 facts'
-      |> is_locale ? Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy));
-    val global_facts = PureThy.map_facts #2 facts'
-      |> Attrib.map_facts (if is_locale then K I else Attrib.attribute_i thy);
+    val local_facts = PureThy.map_facts #1 facts';
+    val global_facts = PureThy.map_facts #2 facts';
   in
     lthy
-    |> Local_Theory.theory (PureThy.note_thmss kind global_facts #> snd)
-    |> not is_locale ? Local_Theory.target (ProofContext.note_thmss kind global_facts #> snd)
-    |> is_locale ? Local_Theory.target (Locale.add_thmss target kind target_facts)
-    |> ProofContext.note_thmss kind local_facts
+    |> (if is_locale then locale_notes target kind global_facts local_facts
+        else theory_notes kind global_facts local_facts)
+    |> ProofContext.note_thmss kind (Attrib.map_facts (Attrib.attribute_i thy) local_facts)
   end;
 
 
@@ -217,12 +232,13 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     val same_shape = Term.aconv_untyped (rhs, rhs');
     (* FIXME workaround based on educated guess *)
     val prefix' = Binding.prefix_of b';
-    val class_global =
-      Binding.eq_name (b, b') andalso
-      not (null prefix') andalso
-      fst (snd (split_last prefix')) = Class_Target.class_prefix target;
+    val is_canonical_class = is_class andalso
+      (Binding.eq_name (b, b')
+        andalso not (null prefix')
+        andalso List.last prefix' = (Class_Target.class_prefix target, false) (*guesses class constants*)
+      orelse same_shape (*guesses class abbrevs*));
   in
-    not (is_class andalso (same_shape orelse class_global)) ?
+    not is_canonical_class ?
       (Context.mapping_result
         (Sign.add_abbrev Print_Mode.internal arg)
         (ProofContext.add_abbrev Print_Mode.internal arg)
