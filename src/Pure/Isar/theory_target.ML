@@ -158,7 +158,7 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
-fun theory_notes kind global_facts local_facts lthy =
+fun theory_notes kind global_facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
@@ -190,7 +190,7 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
   in
     lthy
     |> (if is_locale then locale_notes target kind global_facts local_facts
-        else theory_notes kind global_facts local_facts)
+        else theory_notes kind global_facts)
     |> ProofContext.note_thmss kind (Attrib.map_facts (Attrib.attribute_i thy) local_facts)
   end;
 
@@ -251,6 +251,13 @@ end;
 
 (* abbrev *)
 
+fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
+  (Sign.add_abbrev (#1 prmode) (b, t) #-> (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
+
+fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
+  (Sign.add_abbrev Print_Mode.internal (b, t)) #-> (fn (lhs, _) =>
+    syntax_declaration ta false (locale_const ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs))));
+
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
     val thy_ctxt = ProofContext.init_global (ProofContext.theory_of lthy);
@@ -268,17 +275,9 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
       singleton (Variable.export_terms (Variable.declare_term u target_ctxt) thy_ctxt) u;
   in
     lthy |>
-     (if is_locale then
-        Local_Theory.theory_result (Sign.add_abbrev Print_Mode.internal (b, global_rhs))
-        #-> (fn (lhs, _) =>
-          let val lhs' = Term.list_comb (Logic.unvarify_global lhs, xs) in
-            syntax_declaration ta false (locale_const ta prmode ((b, mx2), lhs')) #>
-            is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
-          end)
-      else
-        Local_Theory.theory
-          (Sign.add_abbrev (#1 prmode) (b, global_rhs) #-> (fn (lhs, _) =>
-           Sign.notation true prmode [(lhs, mx3)])))
+     (if is_locale then locale_abbrev ta prmode ((b, mx2), global_rhs) xs #>
+        is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
+      else theory_abbrev prmode ((b, mx3), global_rhs))
     |> ProofContext.add_abbrev Print_Mode.internal (b, t) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), t)
   end;
