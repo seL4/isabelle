@@ -212,12 +212,11 @@ fun combformula_for_prop thy =
    predicate variable. Leaves other theorems unchanged. We simply instantiate
    the conclusion variable to False. (Cf. "transform_elim_term" in
    "ATP_Systems".) *)
-(* FIXME: test! *)
 fun transform_elim_term t =
   case Logic.strip_imp_concl t of
     @{const Trueprop} $ Var (z, @{typ bool}) =>
-    subst_Vars [(z, @{const True})] t
-  | Var (z, @{typ prop}) => subst_Vars [(z, @{prop True})] t
+    subst_Vars [(z, @{const False})] t
+  | Var (z, @{typ prop}) => subst_Vars [(z, @{prop False})] t
   | _ => t
 
 fun presimplify_term thy =
@@ -684,7 +683,6 @@ fun prover_fun name
   let
     val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt
-    (* ### FIXME: (1) preprocessing for "if" etc. *)
     val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
     val the_axioms =
       case axioms of
