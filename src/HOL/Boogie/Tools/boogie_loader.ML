@@ -341,7 +341,7 @@ fun finite scan path =
   in
     (case Scan.error (Scan.finite (stopper i) scan) ts of
       (x, []) => x
-    | (_, ts) => error (scan_err "unparsed input" ts))
+    | (_, ts') => error (scan_err "unparsed input" ts'))
   end
 
 fun read_int' s = (case read_int (explode s) of (i, []) => SOME i | _ => NONE)
@@ -499,6 +499,11 @@ fun expr offset tds fds =
         mk_nary (curry HOLogic.mk_conj) @{term True} ||
       scan_line "or" num :|-- scan_count exp >>
         mk_nary (curry HOLogic.mk_disj) @{term False} ||
+      scan_line' "ite" |-- exp -- exp -- exp >> (fn ((c, t1), t2) =>
+        let val T = Term.fastype_of t1
+        in
+          Const (@{const_name If}, [@{typ bool}, T, T] ---> T) $ c $ t1 $ t2
+        end) ||
       binexp "implies" (binop @{term "op -->"}) ||
       scan_line "distinct" num :|-- scan_count exp >>
         (fn [] => @{term True}

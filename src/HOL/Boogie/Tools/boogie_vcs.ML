@@ -30,6 +30,7 @@ sig
 
   val rewrite_vcs: (theory -> term -> term) -> (theory -> thm -> thm) ->
     theory -> theory
+  val add_assertion_filter: (term -> bool) -> theory -> theory
 end
 
 structure Boogie_VCs: BOOGIE_VCS =
@@ -270,7 +271,33 @@ structure VCs = Theory_Data
     | merge _ = err_unfinished ()
 )
 
-fun prep thy = vc_of_term #> (fn vc => (vc, (prop_of_vc vc, thm_of thy vc)))
+fun serial_ord ((i, _), (j, _)) = int_ord (i, j)
+
+structure Filters = Theory_Data
+(
+  type T = (serial * (term -> bool)) OrdList.T
+  val empty = []
+  val extend = I
+  fun merge (fs1, fs2) = fold (OrdList.insert serial_ord) fs2 fs1
+)
+
+fun add_assertion_filter f =
+  Filters.map (OrdList.insert serial_ord (serial (), f))
+
+fun filter_assertions thy =
+  let
+    fun filt_assert [] a = assert a
+      | filt_assert ((_, f) :: fs) (a as (_, t)) =
+          if f t then filt_assert fs a else I
+
+    fun filt fs vc =
+      the_default True (prune (fn a => SOME o filt_assert fs a o filt fs) vc)
+  in filt (Filters.get thy) end
+
+fun prep thy =
+  vc_of_term #>
+  filter_assertions thy #>
+  (fn vc => (vc, (prop_of_vc vc, thm_of thy vc)))
 
 fun set vcs thy = VCs.map (fn
     NONE => SOME (Symtab.make (map (apsnd (prep thy)) vcs), K I)
