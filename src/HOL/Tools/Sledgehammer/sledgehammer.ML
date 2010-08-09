@@ -173,15 +173,6 @@ fun mk_ahorn [] phi = phi
   | mk_ahorn (phi :: phis) psi =
     AConn (AImplies, [fold (mk_aconn AAnd) phis phi, psi])
 
-(* ### FIXME: reintroduce
-fun make_formula_table xs =
-  fold (Termtab.update o `(prop_of o snd)) xs Termtab.empty
-(* Remove existing axioms from the conjecture, as this can
-   dramatically boost an ATP's performance (for some reason). *)
-fun subtract_cls axioms =
-  filter_out (Termtab.defined (make_formula_table axioms) o prop_of)
-*)
-
 fun combformula_for_prop thy =
   let
     val do_term = combterm_from_term thy
@@ -345,24 +336,35 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
 
 fun meta_not t = @{const "==>"} $ t $ @{prop False}
 
-fun prepare_formulas ctxt full_types hyp_ts concl_t axcls =
+fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
+    (* Remove existing axioms from the conjecture, as this can dramatically
+       boost an ATP's performance (for some reason). *)
+    val axiom_ts = map (prop_of o snd) axioms
+    val hyp_ts =
+      if null hyp_ts then
+        []
+      else
+        let
+          val axiom_table = fold (Termtab.update o rpair ()) axiom_ts
+                                 Termtab.empty
+        in hyp_ts |> filter_out (Termtab.defined axiom_table) end
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
-    val axtms = map (prop_of o snd) axcls
     val subs = tfree_classes_of_terms [goal_t]
-    val supers = tvar_classes_of_terms axtms
-    val tycons = type_consts_of_terms thy (goal_t :: axtms)
+    val supers = tvar_classes_of_terms axiom_ts
+    val tycons = type_consts_of_terms thy (goal_t :: axiom_ts)
     (* TFrees in the conjecture; TVars in the axioms *)
     val conjectures = map meta_not hyp_ts @ [concl_t] |> make_conjectures ctxt
-    val (clnames, axioms) = ListPair.unzip (map (make_axiom ctxt true) axcls)
+    val (axiom_names, axioms) =
+      ListPair.unzip (map (make_axiom ctxt true) axioms)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
-    (Vector.fromList clnames,
-      (conjectures, axioms, helper_facts, class_rel_clauses, arity_clauses))
+    (Vector.fromList axiom_names,
+     (conjectures, axioms, helper_facts, class_rel_clauses, arity_clauses))
   end
 
 fun wrap_type ty t = ATerm ((type_wrapper_name, type_wrapper_name), [ty, t])
