@@ -719,9 +719,9 @@ $\textbf{ML}~\,\{{*} \\
 & \phantom{fun\,~\textit{HOLogic.mk\_number}~T~(}{-}~\textit{snd}~(\textit{HOLogic.dest\_number~t2\/})) \\[-2pt]
 & \phantom{fun}\!{\mid}\,~\textit{my\_int\_postproc}~\_~\_~\_~\_~t = t \\[-2pt]
 {*}\}\end{aligned}$ \\[2\smallskipamount]
-$\textbf{setup}~\,\{{*} \\
+$\textbf{declaration}~\,\{{*} \\
 \!\begin{aligned}[t]
-& \textit{Nitpick\_Model.register\_term\_postprocessor\_global\/}~\!\begin{aligned}[t]
+& \textit{Nitpick\_Model.register\_term\_postprocessor}~\!\begin{aligned}[t]
   & @\{\textrm{typ}~\textit{my\_int}\} \\[-2pt]
   & \textit{my\_int\_postproc}\end{aligned} \\[-2pt]
 {*}\}\end{aligned}$
@@ -2790,10 +2790,11 @@ datatypes consists of the following pair of functions defined in the
 \textit{Nitpick\_HOL} structure:
 
 \prew
-$\textbf{val}\,~\textit{register\_codatatype\_global\/} : {}$ \\
-$\hbox{}\quad\textit{typ} \rightarrow \textit{string} \rightarrow (\textit{string} \times \textit{typ})\;\textit{list} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
-$\textbf{val}\,~\textit{unregister\_codatatype\_global\/} :\,
-\textit{typ} \rightarrow \textit{theory} \rightarrow \textit{theory}$
+$\textbf{val}\,~\textit{register\_codatatype\/} : {}$ \\
+$\hbox{}\quad\textit{morphism} \rightarrow \textit{typ} \rightarrow \textit{string} \rightarrow (\textit{string} \times \textit{typ})\;\textit{list} \rightarrow \textit{Context.generic} {}$ \\
+$\hbox{}\quad{\rightarrow}\; \textit{Context.generic}$ \\
+$\textbf{val}\,~\textit{unregister\_codatatype\/} : {}$ \\
+$\hbox{}\quad\textit{morphism} \rightarrow \textit{typ} \rightarrow \textit{Context.generic} \rightarrow \textit{Context.generic} {}$
 \postw
 
 The type $'a~\textit{llist}$ of lazy lists is already registered; had it
@@ -2801,24 +2802,25 @@ not been, you could have told Nitpick about it by adding the following line
 to your theory file:
 
 \prew
-$\textbf{setup}~\,\{{*}$ \\
-$\hbox{}\quad\textit{Nitpick\_HOL.register\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
+$\textbf{declaration}~\,\{{*}$ \\
+$\hbox{}\quad\textit{Nitpick\_HOL.register\_codatatype}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
 $\hbox{}\qquad\quad @\{\antiq{const\_name}~ \textit{llist\_case}\}$ \\
 $\hbox{}\qquad\quad (\textit{map}~\textit{dest\_Const}~[@\{\antiq{term}~\textit{LNil}\},\, @\{\antiq{term}~\textit{LCons}\}])$ \\
 ${*}\}$
 \postw
 
-The \textit{register\_codatatype\_global\/} function takes a coinductive type, its
-case function, and the list of its constructors. The case function must take its
-arguments in the order that the constructors are listed. If no case function
-with the correct signature is available, simply pass the empty string.
+The \textit{register\_codatatype} function takes a coinductive datatype, its
+case function, and the list of its constructors (in addition to the current
+morphism and generic proof context). The case function must take its arguments
+in the order that the constructors are listed. If no case function with the
+correct signature is available, simply pass the empty string.
 
 On the other hand, if your goal is to cripple Nitpick, add the following line to
 your theory file and try to check a few conjectures about lazy lists:
 
 \prew
-$\textbf{setup}~\,\{{*}$ \\
-$\hbox{}\quad\textit{Nitpick\_HOL.unregister\_codatatype\_global\/}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
+$\textbf{declaration}~\,\{{*}$ \\
+$\hbox{}\quad\textit{Nitpick\_HOL.unregister\_codatatype}~@\{\antiq{typ}~``\kern1pt'a~\textit{llist\/}\textrm{''}\}$ \\
 ${*}\}$
 \postw
 
@@ -2838,10 +2840,11 @@ in the \textit{Nitpick\_Model} structure:
 \prew
 $\textbf{type}\,~\textit{term\_postprocessor}\,~{=} {}$ \\
 $\hbox{}\quad\textit{Proof.context} \rightarrow \textit{string} \rightarrow (\textit{typ} \rightarrow \textit{term~list\/}) \rightarrow \textit{typ} \rightarrow \textit{term} \rightarrow \textit{term}$ \\
-$\textbf{val}\,~\textit{register\_term\_postprocessor\_global\/} : {}$ \\
-$\hbox{}\quad\textit{typ} \rightarrow \textit{term\_postprocessor} \rightarrow \textit{theory} \rightarrow \textit{theory}$ \\
-$\textbf{val}\,~\textit{unregister\_term\_postprocessor\_global\/} :\,
-\textit{typ} \rightarrow \textit{theory} \rightarrow \textit{theory}$
+$\textbf{val}\,~\textit{register\_term\_postprocessor} : {}$ \\
+$\hbox{}\quad\textit{typ} \rightarrow \textit{term\_postprocessor} \rightarrow \textit{morphism} \rightarrow \textit{Context.generic}$ \\
+$\hbox{}\quad{\rightarrow}\; \textit{Context.generic}$ \\
+$\textbf{val}\,~\textit{unregister\_term\_postprocessor} : {}$ \\
+$\hbox{}\quad\textit{typ} \rightarrow \textit{morphism} \rightarrow \textit{Context.generic} \rightarrow \textit{Context.generic}$
 \postw
 
 \S\ref{typedefs-quotient-types-records-rationals-and-reals} and

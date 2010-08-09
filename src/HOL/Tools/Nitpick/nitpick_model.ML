@@ -25,10 +25,11 @@ sig
   val unknown : string
   val unrep : unit -> string
   val register_term_postprocessor :
-    typ -> term_postprocessor -> Proof.context -> Proof.context
+    typ -> term_postprocessor -> morphism -> Context.generic -> Context.generic
   val register_term_postprocessor_global :
     typ -> term_postprocessor -> theory -> theory
-  val unregister_term_postprocessor : typ -> Proof.context -> Proof.context
+  val unregister_term_postprocessor :
+    typ -> morphism -> Context.generic -> Context.generic
   val unregister_term_postprocessor_global : typ -> theory -> theory
   val tuple_list_for_name :
     nut NameTable.table -> Kodkod.raw_bound list -> nut -> int list list
@@ -158,15 +159,18 @@ fun nice_term_ord (Abs (_, _, t1), Abs (_, _, t2)) = nice_term_ord (t1, t2)
               | ord => ord)
            | _ => Term_Ord.fast_term_ord tp
 
-fun register_term_postprocessor_generic T p = Data.map (cons (T, p))
-val register_term_postprocessor =
-  Context.proof_map oo register_term_postprocessor_generic
+fun register_term_postprocessor_generic T postproc =
+  Data.map (cons (T, postproc))
+(* TODO: Consider morphism. *)
+fun register_term_postprocessor T postproc (_ : morphism) =
+  register_term_postprocessor_generic T postproc
 val register_term_postprocessor_global =
   Context.theory_map oo register_term_postprocessor_generic
 
 fun unregister_term_postprocessor_generic T = Data.map (AList.delete (op =) T)
-val unregister_term_postprocessor =
-  Context.proof_map o unregister_term_postprocessor_generic
+(* TODO: Consider morphism. *)
+fun unregister_term_postprocessor T (_ : morphism) =
+  unregister_term_postprocessor_generic T
 val unregister_term_postprocessor_global =
   Context.theory_map o unregister_term_postprocessor_generic
 

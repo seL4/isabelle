@@ -128,9 +128,8 @@ fun my_int_postproc _ _ _ T (Const _ $ (Const _ $ t1 $ t2)) =
   | my_int_postproc _ _ _ _ t = t
 *}
 
-setup {*
-Nitpick_Model.register_term_postprocessor_global @{typ my_int}
-                                                 my_int_postproc
+declare {*
+Nitpick_Model.register_term_postprocessor @{typ my_int} my_int_postproc
 *}
 
 lemma "add x y = add x x"
@@ -213,8 +212,8 @@ lemma iterates_def [nitpick_simp]:
 "iterates f a = LCons a (iterates f (f a))"
 sorry
 
-setup {*
-Nitpick_HOL.register_codatatype_global @{typ "'a llist"} ""
+declare {*
+Nitpick_HOL.register_codatatype @{typ "'a llist"} ""
     (map dest_Const [@{term LNil}, @{term LCons}])
 *}
 
