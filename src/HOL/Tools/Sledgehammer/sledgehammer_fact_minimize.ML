@@ -18,7 +18,6 @@ end;
 structure Sledgehammer_Fact_Minimize : SLEDGEHAMMER_FACT_MINIMIZE =
 struct
 
-open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
