@@ -74,7 +74,7 @@ val iso_tuple_intros = Tactic.build_net @{thms isomorphic_tuple.intros};
 
 val tuple_iso_tuple = (@{const_name Record.tuple_iso_tuple}, @{thm tuple_iso_tuple});
 
-fun named_cterm_instantiate values thm =
+fun named_cterm_instantiate values thm =  (* FIXME eliminate *)
   let
     fun match name ((name', _), _) = name = name';
     fun getvar name =
