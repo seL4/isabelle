@@ -312,7 +312,6 @@ fun relevant_facts ctxt relevance_convergence defs_relevant max_new
                 if member Thm.eq_thm add_thms th then 1.0
                 else if member Thm.eq_thm del_thms th then 0.0
                 else formula_weight const_tab rel_const_tab consts_typs
-val _ = (if Real.isFinite weight then () else error ("*** " ^ Real.toString weight)) (*###*)
             in
               if weight >= threshold orelse
                  (defs_relevant andalso defines thy th rel_const_tab) then
@@ -557,7 +556,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     val thy = ProofContext.theory_of ctxt
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val has_override = not (null add) orelse not (null del)
-(*###
+(* FIXME:
     val is_FO = forall Meson.is_fol_term thy (concl_t :: hyp_ts)
 *)
     val axioms =
@@ -567,7 +566,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
       |> not has_override ? make_unique
       |> filter (fn (_, th) =>
                     member Thm.eq_thm add_thms th orelse
-                    ((* ### FIXME: keep? (not is_FO orelse is_quasi_fol_theorem thy th) andalso*)
+                    ((* FIXME: keep? (not is_FO orelse is_quasi_fol_theorem thy th) andalso*)
                      not (is_dangerous_term full_types (prop_of th))))
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
