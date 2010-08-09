@@ -1723,8 +1723,8 @@ fun multiset_postproc _ maybe_name all_values (T as Type (_, [elem_T]))
   | multiset_postproc _ _ _ _ t = t
 *}
 
-setup {*
-Nitpick_Model.register_term_postprocessor_global @{typ "'a multiset"}
+declaration {*
+Nitpick_Model.register_term_postprocessor @{typ "'a multiset"}
     multiset_postproc
 *}
 
