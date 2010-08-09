@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Accumulating results from prover.
+Accumulated results from prover.
 */
 
 package isabelle
@@ -76,15 +76,21 @@ class State(
 
   def accumulate(message: XML.Tree): State =
     message match {
-      case XML.Elem(Markup.STATUS, _, elems) =>
+      case XML.Elem(Markup(Markup.STATUS, _), elems) =>
         (this /: elems)((state, elem) =>
           elem match {
-            case XML.Elem(Markup.UNPROCESSED, _, _) => state.set_status(Command.Status.UNPROCESSED)
-            case XML.Elem(Markup.FINISHED, _, _) => state.set_status(Command.Status.FINISHED)
-            case XML.Elem(Markup.FAILED, _, _) => state.set_status(Command.Status.FAILED)
-            case XML.Elem(Markup.FORKED, _, _) => state.add_forks(1)
-            case XML.Elem(Markup.JOINED, _, _) => state.add_forks(-1)
-            case XML.Elem(kind, atts, body) if Position.get_id(atts) == Some(command.id) =>
+            case XML.Elem(Markup(Markup.UNPROCESSED, _), _) => state.set_status(Command.Status.UNPROCESSED)
+            case XML.Elem(Markup(Markup.FINISHED, _), _) => state.set_status(Command.Status.FINISHED)
+            case XML.Elem(Markup(Markup.FAILED, _), _) => state.set_status(Command.Status.FAILED)
+            case XML.Elem(Markup(Markup.FORKED, _), _) => state.add_forks(1)
+            case XML.Elem(Markup(Markup.JOINED, _), _) => state.add_forks(-1)
+            case _ => System.err.println("Ignored status message: " + elem); state
+          })
+
+      case XML.Elem(Markup(Markup.REPORT, _), elems) =>
+        (this /: elems)((state, elem) =>
+          elem match {
+            case XML.Elem(Markup(kind, atts), body) if Position.get_id(atts) == Some(command.id) =>
               atts match {
                 case Position.Range(begin, end) =>
                   if (kind == Markup.ML_TYPING) {
@@ -94,7 +100,7 @@ class State(
                   }
                   else if (kind == Markup.ML_REF) {
                     body match {
-                      case List(XML.Elem(Markup.ML_DEF, atts, _)) =>
+                      case List(XML.Elem(Markup(Markup.ML_DEF, atts), _)) =>
                         state.add_markup(command.markup_node(
                           begin - 1, end - 1,
                           Command.RefInfo(
@@ -112,9 +118,7 @@ class State(
                   }
                 case _ => state
               }
-            case _ =>
-              System.err.println("Ignored status report: " + elem)
-              state
+            case _ => System.err.println("Ignored report message: " + elem); state
           })
       case _ => add_result(message)
     }

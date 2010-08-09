@@ -55,7 +55,7 @@ object YXML
     val s = source.toString
     val i = s.indexOf('=')
     if (i <= 0) err_attribute()
-    (s.substring(0, i).intern, s.substring(i + 1))
+    (s.substring(0, i), s.substring(i + 1))
   }
 
 
@@ -64,7 +64,7 @@ object YXML
     /* stack operations */
 
     def buffer(): ListBuffer[XML.Tree] = new ListBuffer[XML.Tree]
-    var stack: List[((String, XML.Attributes), ListBuffer[XML.Tree])] = List((("", Nil), buffer()))
+    var stack: List[(Markup, ListBuffer[XML.Tree])] = List((Markup("", Nil), buffer()))
 
     def add(x: XML.Tree)
     {
@@ -74,15 +74,16 @@ object YXML
     def push(name: String, atts: XML.Attributes)
     {
       if (name == "") err_element()
-      else stack = ((name, atts), buffer()) :: stack
+      else stack = (Markup(name, atts), buffer()) :: stack
     }
 
     def pop()
     {
       (stack: @unchecked) match {
-        case ((("", _), _) :: _) => err_unbalanced("")
-        case (((name, atts), body) :: pending) =>
-          stack = pending; add(XML.Elem(name, atts, body.toList))
+        case ((Markup("", _), _) :: _) => err_unbalanced("")
+        case ((markup, body) :: pending) =>
+          stack = pending
+          add(XML.Elem(markup, body.toList))
       }
     }
 
@@ -94,14 +95,14 @@ object YXML
       else {
         Library.chunks(chunk, Y).toList match {
           case ch :: name :: atts if ch.length == 0 =>
-            push(name.toString.intern, atts.map(parse_attrib))
+            push(name.toString, atts.map(parse_attrib))
           case txts => for (txt <- txts) add(XML.Text(txt.toString))
         }
       }
     }
     stack match {
-      case List((("", _), body)) => body.toList
-      case ((name, _), _) :: _ => err_unbalanced(name)
+      case List((Markup("", _), body)) => body.toList
+      case (Markup(name, _), _) :: _ => err_unbalanced(name)
     }
   }
 
@@ -116,7 +117,7 @@ object YXML
   /* failsafe parsing */
 
   private def markup_failsafe(source: CharSequence) =
-    XML.Elem (Markup.MALFORMED, Nil,
+    XML.elem (Markup.MALFORMED,
       List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
 
   def parse_body_failsafe(source: CharSequence): List[XML.Tree] =

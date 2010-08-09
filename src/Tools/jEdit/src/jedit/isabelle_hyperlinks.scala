@@ -40,6 +40,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
 {
   def getHyperlink(buffer: Buffer, original_offset: Int): Hyperlink =
   {
+    Swing_Thread.assert()
     Document_Model(buffer) match {
       case Some(model) =>
         val snapshot = model.snapshot()

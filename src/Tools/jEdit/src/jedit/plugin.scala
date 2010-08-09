@@ -1,6 +1,4 @@
 /*  Title:      Tools/jEdit/src/jedit/plugin.scala
-    Author:     Johannes Hölzl, TU Munich
-    Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
 Main Isabelle/jEdit plugin setup.
@@ -30,11 +28,6 @@ object Isabelle
 
   var system: Isabelle_System = null
   var session: Session = null
-
-
-  /* name */
-
-  val NAME = "Isabelle"
 
 
   /* properties */
@@ -110,7 +103,7 @@ object Isabelle
   }
 
 
-  /* main jEdit components */  // FIXME ownership!?
+  /* main jEdit components */
 
   def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
 
@@ -149,12 +142,12 @@ object Isabelle
     }
 
 
-  /* manage prover */
+  /* manage prover */  // FIXME async!?
 
   private def prover_started(view: View): Boolean =
   {
     val timeout = Int_Property("startup-timeout") max 1000
-    session.start(timeout, Isabelle.isabelle_args()) match {
+    session.started(timeout, Isabelle.isabelle_args()) match {
       case Some(err) =>
         val text = new JTextArea(err); text.setEditable(false)
         Library.error_dialog(view, null, "Failed to start Isabelle process", text)
@@ -169,7 +162,10 @@ object Isabelle
   def activate_buffer(view: View, buffer: Buffer)
   {
     if (prover_started(view)) {
-      val model = Document_Model.init(session, buffer)
+      // FIXME proper error handling
+      val (_, thy_name) = Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath))
+
+      val model = Document_Model.init(session, buffer, thy_name)
       for (text_area <- jedit_text_areas(buffer))
         Document_View.init(model, text_area)
     }

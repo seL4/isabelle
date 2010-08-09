@@ -39,9 +39,11 @@ sig
   val debug_fn: (output -> unit) Unsynchronized.ref
   val prompt_fn: (output -> unit) Unsynchronized.ref
   val status_fn: (output -> unit) Unsynchronized.ref
+  val report_fn: (output -> unit) Unsynchronized.ref
   val error_msg: string -> unit
   val prompt: string -> unit
   val status: string -> unit
+  val report: string -> unit
   val debugging: bool Unsynchronized.ref
   val no_warnings_CRITICAL: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
@@ -98,6 +100,7 @@ val error_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "*** 
 val debug_fn = Unsynchronized.ref (std_output o suffix "\n" o prefix_lines "::: ");
 val prompt_fn = Unsynchronized.ref std_output;
 val status_fn = Unsynchronized.ref (fn _: string => ());
+val report_fn = Unsynchronized.ref (fn _: string => ());
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
@@ -106,6 +109,7 @@ fun warning s = ! warning_fn (output s);
 fun error_msg s = ! error_fn (output s);
 fun prompt s = ! prompt_fn (output s);
 fun status s = ! status_fn (output s);
+fun report s = ! report_fn (output s);
 
 fun legacy_feature s = warning ("Legacy feature! " ^ s);
 

@@ -109,25 +109,25 @@ struct
 
     (* NOTE: we assume strings are already XML escaped here, for convenience in Isabelle;
        would be better not to *)  (* FIXME !??? *)
-    fun atom_to_xml (Sym {name, content}) = XML.Elem ("sym", attr "name" name, [XML.Text content])
+    fun atom_to_xml (Sym {name, content}) = XML.Elem (("sym", attr "name" name), [XML.Text content])
       | atom_to_xml (Str content) = XML.Text content;
 
     fun pgmlterm_to_xml (Atoms {kind, content}) =
-        XML.Elem("atom", opt_attr "kind" kind, map atom_to_xml content)
+        XML.Elem(("atom", opt_attr "kind" kind), map atom_to_xml content)
 
       | pgmlterm_to_xml (Box {orient, indent, content}) =
-        XML.Elem("box",
+        XML.Elem(("box",
                  opt_attr_map pgmlorient_to_string "orient" orient @
-                 opt_attr_map int_to_pgstring "indent" indent,
+                 opt_attr_map int_to_pgstring "indent" indent),
                  map pgmlterm_to_xml content)
 
       | pgmlterm_to_xml (Break {mandatory, indent}) =
-        XML.Elem("break",
+        XML.Elem(("break",
                  opt_attr_map bool_to_pgstring "mandatory" mandatory @
-                 opt_attr_map int_to_pgstring "indent" indent, [])
+                 opt_attr_map int_to_pgstring "indent" indent), [])
 
       | pgmlterm_to_xml (Subterm {kind, param, place, name, decoration, action, pos, xref, content}) =
-        XML.Elem("subterm",
+        XML.Elem(("subterm",
                  opt_attr "kind" kind @
                  opt_attr "param" param @
                  opt_attr_map pgmlplace_to_string "place" place @
@@ -135,13 +135,13 @@ struct
                  opt_attr_map pgmldec_to_string "decoration" decoration @
                  opt_attr_map pgmlaction_to_string "action" action @
                  opt_attr "pos" pos @
-                 opt_attr_map string_of_pgipurl "xref" xref,
+                 opt_attr_map string_of_pgipurl "xref" xref),
                  map pgmlterm_to_xml content)
 
       | pgmlterm_to_xml (Alt {kind, content}) =
-        XML.Elem("alt", opt_attr "kind" kind, map pgmlterm_to_xml content)
+        XML.Elem(("alt", opt_attr "kind" kind), map pgmlterm_to_xml content)
 
-      | pgmlterm_to_xml (Embed xmls) = XML.Elem("embed", [], xmls)
+      | pgmlterm_to_xml (Embed xmls) = XML.Elem(("embed", []), xmls)
 
       | pgmlterm_to_xml (Raw xml) = xml
 
@@ -152,9 +152,9 @@ struct
                        content: pgmlterm list }
 
     fun pgml_to_xml (Pgml {version,systemid,area,content}) =
-        XML.Elem("pgml",
+        XML.Elem(("pgml",
                  opt_attr "version" version @
                  opt_attr "systemid" systemid @
-                 the_default [] (Option.map PgipTypes.attrs_of_displayarea area),
+                 the_default [] (Option.map PgipTypes.attrs_of_displayarea area)),
                  map pgmlterm_to_xml content)
 end

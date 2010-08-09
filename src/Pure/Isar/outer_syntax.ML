@@ -277,7 +277,7 @@ fun load_thy name init pos text =
 
     val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_string text));
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
-    val _ = List.app Thy_Syntax.report_span spans;
+    val _ = List.app Thy_Syntax.report_span spans;  (* FIXME ?? *)
     val units = Source.exhaust (Thy_Syntax.unit_source (Source.of_list spans))
       |> Par_List.map (prepare_unit commands init) |> flat;
 

@@ -127,7 +127,7 @@ fun default_properties default props =
 
 fun report_text markup (pos as Pos (count, _)) txt =
   if invalid_count count then ()
-  else Output.status (Markup.markup (Markup.properties (properties_of pos) markup) txt);
+  else Output.report (Markup.markup (Markup.properties (properties_of pos) markup) txt);
 
 fun report markup pos = report_text markup pos "";
 

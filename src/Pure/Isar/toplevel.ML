@@ -571,7 +571,7 @@ fun async_state (tr as Transition {print, ...}) st =
   if print then
     ignore
       (Future.fork (fn () =>
-          setmp_thread_position tr (fn () => Future.report (fn () => print_state false st)) ()))
+          setmp_thread_position tr (fn () => Future.status (fn () => print_state false st)) ()))
   else ();
 
 fun error_msg tr exn_info =

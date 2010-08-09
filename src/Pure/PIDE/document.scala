@@ -14,33 +14,31 @@ import scala.annotation.tailrec
 
 object Document
 {
-  /* unique identifiers */
+  /* formal identifiers */
 
-  type State_ID = String
-  type Command_ID = String
   type Version_ID = String
+  type Command_ID = String
+  type State_ID = String
 
   val NO_ID = ""
 
 
-  /* command start positions */
 
-  def command_starts(commands: Iterator[Command], offset: Int = 0): Iterator[(Command, Int)] =
-  {
-    var i = offset
-    for (command <- commands) yield {
-      val start = i
-      i += command.length
-      (command, start)
-    }
-  }
-
-
-  /* named document nodes */
+  /** named document nodes **/
 
   object Node
   {
     val empty: Node = new Node(Linear_Set())
+
+    def command_starts(commands: Iterator[Command], offset: Int = 0): Iterator[(Command, Int)] =
+    {
+      var i = offset
+      for (command <- commands) yield {
+        val start = i
+        i += command.length
+        (command, start)
+      }
+    }
   }
 
   class Node(val commands: Linear_Set[Command])
@@ -48,7 +46,7 @@ object Document
     /* command ranges */
 
     def command_starts: Iterator[(Command, Int)] =
-      Document.command_starts(commands.iterator)
+      Node.command_starts(commands.iterator)
 
     def command_start(cmd: Command): Option[Int] =
       command_starts.find(_._1 == cmd).map(_._2)
@@ -85,13 +83,72 @@ object Document
 
 
 
-  /** editing **/
+  /** changes of plain text, eventually resulting in document edits **/
 
   type Node_Text_Edit = (String, List[Text_Edit])  // FIXME None: remove
 
   type Edit[C] =
    (String,  // node name
     Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
+
+  abstract class Snapshot
+  {
+    val document: Document
+    val node: Document.Node
+    val is_outdated: Boolean
+    def convert(offset: Int): Int
+    def revert(offset: Int): Int
+  }
+
+  object Change
+  {
+    val init = new Change(NO_ID, None, Nil, Future.value(Nil, Document.init))
+  }
+
+  class Change(
+    val id: Version_ID,
+    val parent: Option[Change],
+    val edits: List[Node_Text_Edit],
+    val result: Future[(List[Edit[Command]], Document)])
+  {
+    def ancestors: Iterator[Change] = new Iterator[Change]
+    {
+      private var state: Option[Change] = Some(Change.this)
+      def hasNext = state.isDefined
+      def next =
+        state match {
+          case Some(change) => state = change.parent; change
+          case None => throw new NoSuchElementException("next on empty iterator")
+        }
+    }
+
+    def join_document: Document = result.join._2
+    def is_assigned: Boolean = result.is_finished && join_document.assignment.is_finished
+
+    def snapshot(name: String, pending_edits: List[Text_Edit]): Snapshot =
+    {
+      val latest = Change.this
+      val stable = latest.ancestors.find(_.is_assigned)
+      require(stable.isDefined)
+
+      val edits =
+        (pending_edits /: latest.ancestors.takeWhile(_ != stable.get))((edits, change) =>
+            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+      lazy val reverse_edits = edits.reverse
+
+      new Snapshot {
+        val document = stable.get.join_document
+        val node = document.nodes(name)
+        val is_outdated = !(pending_edits.isEmpty && latest == stable.get)
+        def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+      }
+    }
+  }
+
+
+
+  /** editing **/
 
   def text_edits(session: Session, old_doc: Document, new_id: Version_ID,
       edits: List[Node_Text_Edit]): (List[Edit[Command]], Document) =
@@ -102,9 +159,9 @@ object Document
     /* unparsed dummy commands */
 
     def unparsed(source: String) =
-      new Command(null, List(Token(Token.Kind.UNPARSED, source)))
+      new Command(NO_ID, List(Token(Token.Kind.UNPARSED, source)))
 
-    def is_unparsed(command: Command) = command.id == null
+    def is_unparsed(command: Command) = command.id == NO_ID
 
 
     /* phase 1: edit individual command source */
@@ -114,7 +171,7 @@ object Document
     {
       eds match {
         case e :: es =>
-          command_starts(commands.iterator).find {
+          Node.command_starts(commands.iterator).find {
             case (cmd, cmd_start) =>
               e.can_edit(cmd.source, cmd_start) ||
                 e.is_insert && e.start == cmd_start + cmd.length
@@ -182,7 +239,7 @@ object Document
       for ((name, text_edits) <- edits) {
         val commands0 = nodes(name).commands
         val commands1 = edit_text(text_edits, commands0)
-        val commands2 = parse_spans(commands1)
+        val commands2 = parse_spans(commands1)   // FIXME somewhat slow
 
         val removed_commands = commands0.iterator.filter(!commands2.contains(_)).toList
         val inserted_commands = commands2.iterator.filter(!commands0.contains(_)).toList

@@ -33,7 +33,7 @@ local
 
 fun render_trees ts = fold render_tree ts
 and render_tree (XML.Text s) = Buffer.add s
-  | render_tree (XML.Elem (name, props, ts)) =
+  | render_tree (XML.Elem ((name, props), ts)) =
       let
         val (bg1, en1) =
           if name <> Markup.promptN andalso print_mode_active test_markupN
@@ -78,6 +78,7 @@ fun message bg en prfx text =
 fun setup_messages () =
  (Output.writeln_fn := message "" "" "";
   Output.status_fn := (fn _ => ());
+  Output.report_fn := (fn _ => ());
   Output.priority_fn := message (special "I") (special "J") "";
   Output.tracing_fn := message (special "I" ^ special "V") (special "J") "";
   Output.debug_fn := message (special "K") (special "L") "+++ ";

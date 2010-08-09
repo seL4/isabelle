@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Document model connected to jEdit buffer.
+Document model connected to jEdit buffer -- single node in theory graph.
 */
 
 package isabelle.jedit
@@ -149,10 +149,10 @@ object Document_Model
 
   private val key = "isabelle.document_model"
 
-  def init(session: Session, buffer: Buffer): Document_Model =
+  def init(session: Session, buffer: Buffer, thy_name: String): Document_Model =
   {
-    Swing_Thread.assert()
-    val model = new Document_Model(session, buffer)
+    Swing_Thread.require()
+    val model = new Document_Model(session, buffer, thy_name)
     buffer.setProperty(key, model)
     model.activate()
     model
@@ -160,7 +160,7 @@ object Document_Model
 
   def apply(buffer: Buffer): Option[Document_Model] =
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     buffer.getProperty(key) match {
       case model: Document_Model => Some(model)
       case _ => None
@@ -169,7 +169,7 @@ object Document_Model
 
   def exit(buffer: Buffer)
   {
-    Swing_Thread.assert()
+    Swing_Thread.require()
     apply(buffer) match {
       case None => error("No document model for buffer: " + buffer)
       case Some(model) =>
@@ -180,7 +180,7 @@ object Document_Model
 }
 
 
-class Document_Model(val session: Session, val buffer: Buffer)
+class Document_Model(val session: Session, val buffer: Buffer, val thy_name: String)
 {
   /* visible line end */
 
@@ -195,32 +195,39 @@ class Document_Model(val session: Session, val buffer: Buffer)
   }
 
 
-  /* global state -- owned by Swing thread */
+  /* pending text edits */
 
-  @volatile private var history = Change.init // owned by Swing thread
-  private val edits_buffer = new mutable.ListBuffer[Text_Edit]   // owned by Swing thread
+  object pending_edits  // owned by Swing thread
+  {
+    private val pending = new mutable.ListBuffer[Text_Edit]
+    def snapshot(): List[Text_Edit] = pending.toList
+
+    private val delay_flush = Swing_Thread.delay_last(session.input_delay) {
+      if (!pending.isEmpty) session.edit_document(List((thy_name, flush())))
+    }
+
+    def flush(): List[Text_Edit] =
+    {
+      Swing_Thread.require()
+      val edits = snapshot()
+      pending.clear
+      edits
+    }
+
+    def +=(edit: Text_Edit)
+    {
+      Swing_Thread.require()
+      pending += edit
+      delay_flush()
+    }
+  }
 
 
   /* snapshot */
 
-  // FIXME proper error handling
-  val thy_name = Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath))._2
-
-  def current_change(): Change = history
-
-  def snapshot(): Change.Snapshot =
-    Swing_Thread.now { history.snapshot(thy_name, edits_buffer.toList) }
-
-
-  /* text edits */
-
-  private val edits_delay = Swing_Thread.delay_last(session.input_delay) {
-    if (!edits_buffer.isEmpty) {
-      val new_change = history.edit(session, List((thy_name, edits_buffer.toList)))
-      edits_buffer.clear
-      history = new_change
-      new_change.result.map(_ => session.input(new_change))
-    }
+  def snapshot(): Document.Snapshot = {
+    Swing_Thread.require()
+    session.current_change().snapshot(thy_name, pending_edits.snapshot())
   }
 
 
@@ -231,15 +238,13 @@ class Document_Model(val session: Session, val buffer: Buffer)
     override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
-      edits_buffer += new Text_Edit(true, offset, buffer.getText(offset, length))
-      edits_delay()
+      pending_edits += new Text_Edit(true, offset, buffer.getText(offset, length))
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
       start_line: Int, start: Int, num_lines: Int, removed_length: Int)
     {
-      edits_buffer += new Text_Edit(false, start, buffer.getText(start, removed_length))
-      edits_delay()
+      pending_edits += new Text_Edit(false, start, buffer.getText(start, removed_length))
     }
   }
 
@@ -257,7 +262,8 @@ class Document_Model(val session: Session, val buffer: Buffer)
       val start = buffer.getLineStartOffset(line)
       val stop = start + line_segment.count
 
-      val snapshot = Document_Model.this.snapshot()
+      // FIXME proper synchronization / thread context (!??)
+      val snapshot = Swing_Thread.now { Document_Model.this.snapshot() }
 
       /* FIXME
       for (text_area <- Isabelle.jedit_text_areas(buffer)
@@ -314,9 +320,7 @@ class Document_Model(val session: Session, val buffer: Buffer)
     buffer.setTokenMarker(token_marker)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
-
-    edits_buffer += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
-    edits_delay()
+    pending_edits += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
   }
 
   def refresh()

@@ -61,7 +61,7 @@ sig
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
   val shutdown: unit -> unit
-  val report: (unit -> 'a) -> 'a
+  val status: (unit -> 'a) -> 'a
 end;
 
 structure Future: FUTURE =
@@ -532,9 +532,9 @@ fun shutdown () =
   else ();
 
 
-(* report markup *)
+(* status markup *)
 
-fun report e =
+fun status e =
   let
     val _ = Output.status (Markup.markup Markup.forked "");
     val x = e ();  (*sic -- report "joined" only for success*)

@@ -9,12 +9,12 @@ package isabelle
 
 object Isar_Document
 {
-  /* reports */
+  /* protocol messages */
 
   object Assign {
     def unapply(msg: XML.Tree): Option[List[XML.Tree]] =
       msg match {
-        case XML.Elem(Markup.ASSIGN, Nil, edits) => Some(edits)
+        case XML.Elem(Markup.Assign, edits) => Some(edits)
         case _ => None
       }
   }
@@ -22,7 +22,7 @@ object Isar_Document
   object Edit {
     def unapply(msg: XML.Tree): Option[(Document.Command_ID, Document.State_ID)] =
       msg match {
-        case XML.Elem(Markup.EDIT, List((Markup.ID, cmd_id), (Markup.STATE, state_id)), Nil) =>
+        case XML.Elem(Markup(Markup.EDIT, List((Markup.ID, cmd_id), (Markup.STATE, state_id))), Nil) =>
           Some(cmd_id, state_id)
         case _ => None
       }

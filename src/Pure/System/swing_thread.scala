@@ -46,8 +46,9 @@ object Swing_Thread
 
   private def delayed_action(first: Boolean)(time_span: Int)(action: => Unit): () => Unit =
   {
-    val listener =
-      new ActionListener { override def actionPerformed(e: ActionEvent) { action } }
+    val listener = new ActionListener {
+      override def actionPerformed(e: ActionEvent) { Swing_Thread.assert(); action }
+    }
     val timer = new Timer(time_span, listener)
     timer.setRepeats(false)
 
