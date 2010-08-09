@@ -195,6 +195,33 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
   end;
 
 
+(* consts in locales *)
+
+fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) phi =
+  let
+    val b' = Morphism.binding phi b;
+    val rhs' = Morphism.term phi rhs;
+    val arg = (b', Term.close_schematic_term rhs');
+    val same_shape = Term.aconv_untyped (rhs, rhs');
+    (* FIXME workaround based on educated guess *)
+    val prefix' = Binding.prefix_of b';
+    val is_canonical_class = is_class andalso
+      (Binding.eq_name (b, b')
+        andalso not (null prefix')
+        andalso List.last prefix' = (Class_Target.class_prefix target, false)
+      orelse same_shape);
+  in
+    not is_canonical_class ?
+      (Context.mapping_result
+        (Sign.add_abbrev Print_Mode.internal arg)
+        (ProofContext.add_abbrev Print_Mode.internal arg)
+      #-> (fn (lhs' as Const (d, _), _) =>
+          same_shape ?
+            (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
+             Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
+  end;
+
+
 (* mixfix notation *)
 
 local
@@ -220,33 +247,6 @@ fun prep_mixfix ctxt ta (b, extra_tfrees) mx =
   in fork_mixfix ta mx' end;
 
 end;
-
-
-(* consts *)
-
-fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx), rhs) phi =
-  let
-    val b' = Morphism.binding phi b;
-    val rhs' = Morphism.term phi rhs;
-    val arg = (b', Term.close_schematic_term rhs');
-    val same_shape = Term.aconv_untyped (rhs, rhs');
-    (* FIXME workaround based on educated guess *)
-    val prefix' = Binding.prefix_of b';
-    val is_canonical_class = is_class andalso
-      (Binding.eq_name (b, b')
-        andalso not (null prefix')
-        andalso List.last prefix' = (Class_Target.class_prefix target, false)
-      orelse same_shape);
-  in
-    not is_canonical_class ?
-      (Context.mapping_result
-        (Sign.add_abbrev Print_Mode.internal arg)
-        (ProofContext.add_abbrev Print_Mode.internal arg)
-      #-> (fn (lhs' as Const (d, _), _) =>
-          same_shape ?
-            (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
-             Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
-  end;
 
 
 (* abbrev *)
