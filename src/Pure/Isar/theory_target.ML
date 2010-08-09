@@ -235,8 +235,8 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     val is_canonical_class = is_class andalso
       (Binding.eq_name (b, b')
         andalso not (null prefix')
-        andalso List.last prefix' = (Class_Target.class_prefix target, false) (*guesses class constants*)
-      orelse same_shape (*guesses class abbrevs*));
+        andalso List.last prefix' = (Class_Target.class_prefix target, false)
+      orelse same_shape);
   in
     not is_canonical_class ?
       (Context.mapping_result
