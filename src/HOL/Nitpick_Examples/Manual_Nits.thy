@@ -128,7 +128,7 @@ fun my_int_postproc _ _ _ T (Const _ $ (Const _ $ t1 $ t2)) =
   | my_int_postproc _ _ _ _ t = t
 *}
 
-declare {*
+declaration {*
 Nitpick_Model.register_term_postprocessor @{typ my_int} my_int_postproc
 *}
 
@@ -212,7 +212,7 @@ lemma iterates_def [nitpick_simp]:
 "iterates f a = LCons a (iterates f (f a))"
 sorry
 
-declare {*
+declaration {*
 Nitpick_HOL.register_codatatype @{typ "'a llist"} ""
     (map dest_Const [@{term LNil}, @{term LCons}])
 *}
