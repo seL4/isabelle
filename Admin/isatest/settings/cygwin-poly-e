@@ -24,4 +24,6 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_USEDIR_OPTIONS="-M 1 -i false -d false"
 
-init_component "$HOME/contrib_devel/kodkodi"
+# Disable while Jasmin is on vacation
+unset KODKODI
+#init_component "$HOME/contrib_devel/kodkodi"
