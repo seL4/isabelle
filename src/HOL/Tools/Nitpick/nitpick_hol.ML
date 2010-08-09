@@ -149,6 +149,8 @@ sig
     string -> (string * string) list -> theory -> theory
   val unregister_frac_type : string -> Proof.context -> Proof.context
   val unregister_frac_type_global : string -> theory -> theory
+  val register_codatatype_generic :
+    typ -> string -> styp list -> Context.generic -> Context.generic
   val register_codatatype :
     typ -> string -> styp list -> Proof.context -> Proof.context
   val register_codatatype_global :

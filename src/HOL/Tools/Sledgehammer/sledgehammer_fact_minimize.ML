@@ -1,21 +1,21 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_minimizer.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_minimize.ML
     Author:     Philipp Meyer, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Minimization of theorem list for Metis using automatic theorem provers.
 *)
 
-signature SLEDGEHAMMER_FACT_MINIMIZER =
+signature SLEDGEHAMMER_FACT_MINIMIZE =
 sig
   type params = Sledgehammer.params
 
   val minimize_theorems :
     params -> int -> int -> Proof.state -> (string * thm list) list
     -> (string * thm list) list option * string
-  val run_minimizer : params -> int -> Facts.ref list -> Proof.state -> unit
+  val run_minimize : params -> int -> Facts.ref list -> Proof.state -> unit
 end;
 
-structure Sledgehammer_Fact_Minimizer : SLEDGEHAMMER_FACT_MINIMIZER =
+structure Sledgehammer_Fact_Minimize : SLEDGEHAMMER_FACT_MINIMIZE =
 struct
 
 open ATP_Systems
@@ -109,7 +109,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
     val prover = get_prover_fun thy atp
     val msecs = Time.toMilliseconds minimize_timeout
     val _ =
-      priority ("Sledgehammer minimizer: ATP " ^ quote atp ^
+      priority ("Sledgehammer minimize: ATP " ^ quote atp ^
                 " with a time limit of " ^ string_of_int msecs ^ " ms.")
     val {context = ctxt, goal, ...} = Proof.goal state
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
@@ -128,7 +128,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          val new_timeout =
            Int.min (msecs, Time.toMilliseconds time + fudge_msecs)
            |> Time.fromMilliseconds
-         val (min_thms, {proof, internal_thm_names, ...}) =
+         val (min_thms, {proof, axiom_names, ...}) =
            sublinear_minimize (do_test new_timeout)
                (filter_used_facts used_thm_names name_thms_pairs) ([], result)
          val n = length min_thms
@@ -142,7 +142,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          (SOME min_thms,
           proof_text isar_proof
               (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-              (full_types, K "", proof, internal_thm_names, goal, i) |> fst)
+              (full_types, K "", proof, axiom_names, goal, i) |> fst)
        end
      | {outcome = SOME TimedOut, ...} =>
        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
@@ -158,7 +158,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
     handle ERROR msg => (NONE, "Error: " ^ msg)
   end
 
-fun run_minimizer params i refs state =
+fun run_minimize params i refs state =
   let
     val ctxt = Proof.context_of state
     val chained_ths = #facts (Proof.goal state)

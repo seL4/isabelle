@@ -100,7 +100,7 @@ val [f_B,g_B] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_B
 val [g_C,f_C] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_C}));
 val [f_S,g_S] = map (cterm_of @{theory}) (OldTerm.term_vars (prop_of @{thm abs_S}));
 
-(*FIXME: requires more use of cterm constructors*)
+(* FIXME: Requires more use of cterm constructors. *)
 fun abstract ct =
   let
       val thy = theory_of_cterm ct

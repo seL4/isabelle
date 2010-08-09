@@ -10,12 +10,6 @@ signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
   type minimize_command = string list -> string
 
-  val axiom_prefix : string
-  val conjecture_prefix : string
-  val helper_prefix : string
-  val class_rel_clause_prefix : string
-  val arity_clause_prefix : string
-  val tfrees_name : string
   val metis_line: bool -> int -> int -> string list -> string
   val metis_proof_text:
     bool * minimize_command * string * string vector * thm * int
@@ -37,15 +31,9 @@ open ATP_Problem
 open Metis_Clauses
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
+open Sledgehammer_Translate
 
 type minimize_command = string list -> string
-
-val axiom_prefix = "ax_"
-val conjecture_prefix = "conj_"
-val helper_prefix = "help_"
-val class_rel_clause_prefix = "clrel_";
-val arity_clause_prefix = "arity_"
-val tfrees_name = "tfrees"
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
@@ -71,9 +59,9 @@ fun mk_anot (AConn (ANot, [phi])) = phi
 fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 
 fun index_in_shape x = find_index (exists (curry (op =) x))
-fun is_axiom_number thm_names num =
-  num > 0 andalso num <= Vector.length thm_names andalso
-  Vector.sub (thm_names, num - 1) <> ""
+fun is_axiom_number axiom_names num =
+  num > 0 andalso num <= Vector.length axiom_names andalso
+  Vector.sub (axiom_names, num - 1) <> ""
 fun is_conjecture_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
 
@@ -491,10 +479,10 @@ fun replace_deps_in_line _ (line as Definition _) = line
 (* Discard axioms; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
 fun add_line _ _ (line as Definition _) lines = line :: lines
-  | add_line conjecture_shape thm_names (Inference (num, t, [])) lines =
+  | add_line conjecture_shape axiom_names (Inference (num, t, [])) lines =
     (* No dependencies: axiom, conjecture, or (for Vampire) internal axioms or
        definitions. *)
-    if is_axiom_number thm_names num then
+    if is_axiom_number axiom_names num then
       (* Axioms are not proof lines. *)
       if is_only_type_information t then
         map (replace_deps_in_line (num, [])) lines
@@ -540,10 +528,10 @@ fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
 
 fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
     (j, line :: map (replace_deps_in_line (num, [])) lines)
-  | add_desired_line isar_shrink_factor conjecture_shape thm_names frees
+  | add_desired_line isar_shrink_factor conjecture_shape axiom_names frees
                      (Inference (num, t, deps)) (j, lines) =
     (j + 1,
-     if is_axiom_number thm_names num orelse
+     if is_axiom_number axiom_names num orelse
         is_conjecture_number conjecture_shape num orelse
         (not (is_only_type_information t) andalso
          null (Term.add_tvars t []) andalso
@@ -562,16 +550,18 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
    (108) is extracted. For SPASS, lines have the form "108[0:Inp] ...", where
    the first number (108) is extracted. For Vampire, we look for
    "108. ... [input]". *)
-fun used_facts_in_atp_proof thm_names atp_proof =
+fun used_facts_in_atp_proof axiom_names atp_proof =
   let
     fun axiom_name num =
       let val j = Int.fromString num |> the_default ~1 in
-        if is_axiom_number thm_names j then SOME (Vector.sub (thm_names, j - 1))
-        else NONE
+        if is_axiom_number axiom_names j then
+          SOME (Vector.sub (axiom_names, j - 1))
+        else
+          NONE
       end
     val tokens_of =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
-    val thm_name_list = Vector.foldr (op ::) [] thm_names
+    val thm_name_list = Vector.foldr (op ::) [] axiom_names
     fun do_line ("fof" :: num :: "axiom" :: (rest as _ :: _)) =
         (case strip_prefix_and_undo_ascii axiom_prefix (List.last rest) of
            SOME name =>
@@ -617,16 +607,16 @@ fun minimize_line _ [] = ""
 
 val unprefix_chained = perhaps (try (unprefix chained_prefix))
 
-fun used_facts thm_names =
-  used_facts_in_atp_proof thm_names
+fun used_facts axiom_names =
+  used_facts_in_atp_proof axiom_names
   #> List.partition (String.isPrefix chained_prefix)
   #>> map (unprefix chained_prefix)
   #> pairself (sort_distinct string_ord)
 
-fun metis_proof_text (full_types, minimize_command, atp_proof, thm_names, goal,
-                      i) =
+fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
+                      goal, i) =
   let
-    val (chained_lemmas, other_lemmas) = used_facts thm_names atp_proof
+    val (chained_lemmas, other_lemmas) = used_facts axiom_names atp_proof
     val lemmas = other_lemmas @ chained_lemmas
     val n = Logic.count_prems (prop_of goal)
   in
@@ -656,9 +646,9 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
-fun add_fact_from_dep thm_names num =
-  if is_axiom_number thm_names num then
-    apsnd (insert (op =) (Vector.sub (thm_names, num - 1)))
+fun add_fact_from_dep axiom_names num =
+  if is_axiom_number axiom_names num then
+    apsnd (insert (op =) (Vector.sub (axiom_names, num - 1)))
   else
     apfst (insert (op =) (raw_prefix, num))
 
@@ -667,27 +657,27 @@ fun forall_vars t = fold_rev forall_of (map Var (Term.add_vars t [])) t
 
 fun step_for_line _ _ (Definition (_, t1, t2)) = Let (t1, t2)
   | step_for_line _ _ (Inference (num, t, [])) = Assume ((raw_prefix, num), t)
-  | step_for_line thm_names j (Inference (num, t, deps)) =
+  | step_for_line axiom_names j (Inference (num, t, deps)) =
     Have (if j = 1 then [Show] else [], (raw_prefix, num),
           forall_vars t,
-          ByMetis (fold (add_fact_from_dep thm_names) deps ([], [])))
+          ByMetis (fold (add_fact_from_dep axiom_names) deps ([], [])))
 
 fun proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
-                         atp_proof conjecture_shape thm_names params frees =
+                         atp_proof conjecture_shape axiom_names params frees =
   let
     val lines =
       atp_proof ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
       |> parse_proof pool
       |> sort (int_ord o pairself raw_step_number)
       |> decode_lines ctxt full_types tfrees
-      |> rpair [] |-> fold_rev (add_line conjecture_shape thm_names)
+      |> rpair [] |-> fold_rev (add_line conjecture_shape axiom_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, []) |-> fold_rev (add_desired_line isar_shrink_factor
-                                               conjecture_shape thm_names frees)
+                                             conjecture_shape axiom_names frees)
       |> snd
   in
     (if null params then [] else [Fix params]) @
-    map2 (step_for_line thm_names) (length lines downto 1) lines
+    map2 (step_for_line axiom_names) (length lines downto 1) lines
   end
 
 (* When redirecting proofs, we keep information about the labels seen so far in
@@ -995,8 +985,8 @@ fun string_for_proof ctxt full_types i n =
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-                    (other_params as (full_types, _, atp_proof, thm_names, goal,
-                                      i)) =
+                    (other_params as (full_types, _, atp_proof, axiom_names,
+                                      goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
@@ -1005,7 +995,7 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
     val (one_line_proof, lemma_names) = metis_proof_text other_params
     fun isar_proof_for () =
       case proof_from_atp_proof pool ctxt full_types tfrees isar_shrink_factor
-                                atp_proof conjecture_shape thm_names params
+                                atp_proof conjecture_shape axiom_names params
                                 frees
            |> redirect_proof conjecture_shape hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof

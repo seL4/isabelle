@@ -20,7 +20,7 @@ struct
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer
-open Sledgehammer_Fact_Minimizer
+open Sledgehammer_Fact_Minimize
 
 (** Sledgehammer commands **)
 
@@ -226,9 +226,9 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
                          (minimize_command override_params i) state
       end
     else if subcommand = minimizeN then
-      run_minimizer (get_params thy (map (apfst minimizize_raw_param_name)
-                                override_params))
-                    (the_default 1 opt_i) (#add relevance_override) state
+      run_minimize (get_params thy (map (apfst minimizize_raw_param_name)
+                               override_params))
+                   (the_default 1 opt_i) (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_atpsN then
