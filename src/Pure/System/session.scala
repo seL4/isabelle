@@ -1,5 +1,6 @@
 /*  Title:      Pure/System/session.scala
     Author:     Makarius
+    Options:    :folding=explicit:collapseFolds=1:
 
 Isabelle session, potentially with running prover.
 */
@@ -8,6 +9,7 @@ package isabelle
 
 
 import scala.actors.TIMEOUT
+import scala.actors.Actor
 import scala.actors.Actor._
 
 
@@ -74,7 +76,7 @@ class Session(system: Isabelle_System)
       case _ => None
     }
 
-  private case class Start(timeout: Int, args: List[String])
+  private case class Started(timeout: Int, args: List[String])
   private case object Stop
 
   private lazy val session_actor = actor {
@@ -90,7 +92,8 @@ class Session(system: Isabelle_System)
 
     /* document changes */
 
-    def handle_change(change: Change)
+    def handle_change(change: Document.Change)
+    //{{{
     {
       require(change.parent.isDefined)
 
@@ -120,6 +123,7 @@ class Session(system: Isabelle_System)
       register_document(doc)
       prover.edit_document(change.parent.get.id, doc.id, id_edits)
     }
+    //}}}
 
 
     /* prover results */
@@ -130,10 +134,11 @@ class Session(system: Isabelle_System)
     }
 
     def handle_result(result: Isabelle_Process.Result)
+    //{{{
     {
       raw_results.event(result)
 
-      val target_id: Option[Session.Entity_ID] = Position.get_id(result.message.attributes)
+      val target_id: Option[Session.Entity_ID] = Position.get_id(result.properties)
       val target: Option[Session.Entity] =
         target_id match {
           case None => None
@@ -175,6 +180,7 @@ class Session(system: Isabelle_System)
       else if (!result.is_system)   // FIXME syslog (!?)
         bad_result(result)
     }
+    //}}}
 
 
     /* prover startup */
@@ -222,7 +228,7 @@ class Session(system: Isabelle_System)
 
     loop {
       react {
-        case Start(timeout, args) =>
+        case Started(timeout, args) =>
           if (prover == null) {
             prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
             val origin = sender
@@ -238,7 +244,7 @@ class Session(system: Isabelle_System)
             prover = null
           }
 
-        case change: Change if prover != null =>
+        case change: Document.Change if prover != null =>
           handle_change(change)
 
         case result: Isabelle_Process.Result =>
@@ -254,9 +260,11 @@ class Session(system: Isabelle_System)
 
 
 
-  /** buffered command changes -- delay_first discipline **/
+  /** buffered command changes (delay_first discipline) **/
 
-  private lazy val command_change_buffer = actor {
+  private lazy val command_change_buffer = actor
+  //{{{
+  {
     import scala.compat.Platform.currentTime
 
     var changed: Set[Command] = Set()
@@ -292,6 +300,7 @@ class Session(system: Isabelle_System)
       }
     }
   }
+  //}}}
 
   def indicate_command_change(command: Command)
   {
@@ -299,11 +308,49 @@ class Session(system: Isabelle_System)
   }
 
 
-  /* main methods */
 
-  def start(timeout: Int, args: List[String]): Option[String] =
-    (session_actor !? Start(timeout, args)).asInstanceOf[Option[String]]
+  /** editor history **/
+
+  private case class Edit_Document(edits: List[Document.Node_Text_Edit])
+
+  private val editor_history = new Actor
+  {
+    @volatile private var history = Document.Change.init
+    def current_change(): Document.Change = history
+
+    def act
+    {
+      loop {
+        react {
+          case Edit_Document(edits) =>
+            val old_change = history
+            val new_id = create_id()
+            val result: isabelle.Future[(List[Document.Edit[Command]], Document)] =
+              isabelle.Future.fork {
+                val old_doc = old_change.join_document
+                old_doc.await_assignment
+                Document.text_edits(Session.this, old_doc, new_id, edits)
+              }
+            val new_change = new Document.Change(new_id, Some(old_change), edits, result)
+            history = new_change
+            new_change.result.map(_ => session_actor ! new_change)
+
+          case bad => System.err.println("editor_model: ignoring bad message " + bad)
+        }
+      }
+    }
+  }
+  editor_history.start
+
+
+
+  /** main methods **/
+
+  def started(timeout: Int, args: List[String]): Option[String] =
+    (session_actor !? Started(timeout, args)).asInstanceOf[Option[String]]
 
   def stop() { session_actor ! Stop }
-  def input(change: Change) { session_actor ! change }
+
+  def current_change(): Document.Change = editor_history.current_change()
+  def edit_document(edits: List[Document.Node_Text_Edit]) { editor_history ! Edit_Document(edits) }
 }

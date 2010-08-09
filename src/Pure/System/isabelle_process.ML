@@ -34,7 +34,7 @@ fun chunk s = string_of_int (size s) ^ "\n" ^ s;
 fun message _ _ _ "" = ()
   | message out_stream ch props body =
       let
-        val header = YXML.string_of (XML.Elem (ch, map (pairself YXML.binary_text) props, []));
+        val header = YXML.string_of (XML.Elem ((ch, map (pairself YXML.binary_text) props), []));
         val msg = Symbol.STX ^ chunk header ^ chunk body;
       in TextIO.output (out_stream, msg) (*atomic output*) end;
 
@@ -72,11 +72,12 @@ fun setup_channels out =
     val _ = Simple_Thread.fork false (auto_flush TextIO.stdErr);
   in
     Output.status_fn   := standard_message out_stream "B";
-    Output.writeln_fn  := standard_message out_stream "C";
-    Output.tracing_fn  := standard_message out_stream "D";
-    Output.warning_fn  := standard_message out_stream "E";
-    Output.error_fn    := standard_message out_stream "F";
-    Output.debug_fn    := standard_message out_stream "G";
+    Output.report_fn   := standard_message out_stream "C";
+    Output.writeln_fn  := standard_message out_stream "D";
+    Output.tracing_fn  := standard_message out_stream "E";
+    Output.warning_fn  := standard_message out_stream "F";
+    Output.error_fn    := standard_message out_stream "G";
+    Output.debug_fn    := standard_message out_stream "H";
     Output.priority_fn := ! Output.writeln_fn;
     Output.prompt_fn   := ignore;
     out_stream
@@ -89,10 +90,10 @@ end;
 
 fun init out =
  (Unsynchronized.change print_mode
-    (fold (update op =) [isabelle_processN, Keyword.keyword_status_reportN, Pretty.symbolicN]);
+    (fold (update op =) [isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
   setup_channels out |> init_message;
   quick_and_dirty := true;  (* FIXME !? *)
-  Keyword.report ();
+  Keyword.status ();
   Output.status (Markup.markup Markup.ready "");
   Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 

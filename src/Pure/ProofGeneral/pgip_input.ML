@@ -62,7 +62,7 @@ sig
     (* unofficial escape command for debugging *)
     | Quitpgip       of { }
 
-    val input: string * XML.attributes * XML.tree list -> pgipinput option  (* raises PGIP *)
+    val input: Markup.T * XML.tree list -> pgipinput option  (* raises PGIP *)
 end
 
 structure PgipInput : PGIPINPUT = 
@@ -161,7 +161,7 @@ in
    Raise PGIP exception for invalid data.
    Return NONE for unknown/unhandled commands. 
 *)
-fun input (elem, attrs, data) =
+fun input ((elem, attrs), data) =
 SOME 
  (case elem of 
      "askpgip"        => Askpgip { }

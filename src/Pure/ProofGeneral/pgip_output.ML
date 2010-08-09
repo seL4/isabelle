@@ -117,9 +117,7 @@ fun normalresponse (Normalresponse vs) =
     let 
         val content = #content vs
     in
-        XML.Elem ("normalresponse", 
-                  [],
-                  content)
+        XML.Elem (("normalresponse", []), content)
     end
 
 fun errorresponse (Errorresponse vs) =
@@ -128,9 +126,9 @@ fun errorresponse (Errorresponse vs) =
         val location = #location vs
         val content = #content vs
     in
-        XML.Elem ("errorresponse",
+        XML.Elem (("errorresponse",
                  attrs_of_fatality fatality @
-                 these (Option.map attrs_of_location location),
+                 these (Option.map attrs_of_location location)),
                  content)
     end
 
@@ -139,9 +137,9 @@ fun informfileloaded (Informfileloaded vs) =
         val url = #url vs
         val completed = #completed vs
     in
-        XML.Elem ("informfileloaded", 
+        XML.Elem (("informfileloaded", 
                   attrs_of_pgipurl url @ 
-                  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+                  (attr "completed" (PgipTypes.bool_to_pgstring completed))),
                   [])
     end
 
@@ -150,9 +148,9 @@ fun informfileoutdated (Informfileoutdated vs) =
         val url = #url vs
         val completed = #completed vs
     in
-        XML.Elem ("informfileoutdated", 
+        XML.Elem (("informfileoutdated", 
                   attrs_of_pgipurl url @ 
-                  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+                  (attr "completed" (PgipTypes.bool_to_pgstring completed))),
                   [])
     end
 
@@ -161,9 +159,9 @@ fun informfileretracted (Informfileretracted vs) =
         val url = #url vs
         val completed = #completed vs
     in
-        XML.Elem ("informfileretracted", 
+        XML.Elem (("informfileretracted", 
                   attrs_of_pgipurl url @ 
-                  (attr "completed" (PgipTypes.bool_to_pgstring completed)),
+                  (attr "completed" (PgipTypes.bool_to_pgstring completed))),
                   [])
     end
 
@@ -172,14 +170,14 @@ fun metainforesponse (Metainforesponse vs) =
         val attrs = #attrs vs
         val content = #content vs
     in
-        XML.Elem ("metainforesponse", attrs, content)
+        XML.Elem (("metainforesponse", attrs), content)
     end
 
 fun lexicalstructure (Lexicalstructure vs) =
     let
         val content = #content vs
     in
-        XML.Elem ("lexicalstructure", [], content)
+        XML.Elem (("lexicalstructure", []), content)
     end
 
 fun proverinfo (Proverinfo vs) =
@@ -191,13 +189,13 @@ fun proverinfo (Proverinfo vs) =
         val url = #url vs
         val filenameextns = #filenameextns vs
     in 
-        XML.Elem ("proverinfo",
+        XML.Elem (("proverinfo",
                  [("name", name),
                   ("version", version),
                   ("instance", instance), 
                   ("descr", descr),
                   ("url", Url.implode url),
-                  ("filenameextns", filenameextns)],
+                  ("filenameextns", filenameextns)]),
                  [])
     end
 
@@ -205,7 +203,7 @@ fun setids (Setids vs) =
     let
         val idtables = #idtables vs
     in
-        XML.Elem ("setids",[],map idtable_to_xml idtables)
+        XML.Elem (("setids", []), map idtable_to_xml idtables)
     end
 
 fun setrefs (Setrefs vs) =
@@ -216,13 +214,13 @@ fun setrefs (Setrefs vs) =
         val name = #name vs
         val idtables = #idtables vs
         val fileurls = #fileurls vs
-        fun fileurl_to_xml url = XML.Elem ("fileurl", attrs_of_pgipurl url, [])
+        fun fileurl_to_xml url = XML.Elem (("fileurl", attrs_of_pgipurl url), [])
     in
-        XML.Elem ("setrefs",
+        XML.Elem (("setrefs",
                   (the_default [] (Option.map attrs_of_pgipurl url)) @ 
                   (the_default [] (Option.map attrs_of_objtype objtype)) @
                   (opt_attr "thyname" thyname) @
-                  (opt_attr "name" name),
+                  (opt_attr "name" name)),
                   (map idtable_to_xml idtables) @ 
                   (map fileurl_to_xml fileurls))
     end
@@ -231,14 +229,14 @@ fun addids (Addids vs) =
     let
         val idtables = #idtables vs
     in
-        XML.Elem ("addids",[],map idtable_to_xml idtables)
+        XML.Elem (("addids", []), map idtable_to_xml idtables)
     end
 
 fun delids (Delids vs) =
     let
         val idtables = #idtables vs
     in
-        XML.Elem ("delids",[],map idtable_to_xml idtables)
+        XML.Elem (("delids", []), map idtable_to_xml idtables)
     end
 
 fun hasprefs (Hasprefs vs) =
@@ -246,7 +244,7 @@ fun hasprefs (Hasprefs vs) =
       val prefcategory = #prefcategory vs
       val prefs = #prefs vs
   in 
-      XML.Elem("hasprefs",opt_attr "prefcategory" prefcategory, map haspref prefs)
+      XML.Elem (("hasprefs", opt_attr "prefcategory" prefcategory), map haspref prefs)
   end
 
 fun prefval (Prefval vs) =
@@ -254,7 +252,7 @@ fun prefval (Prefval vs) =
         val name = #name vs
         val value = #value vs
     in
-        XML.Elem("prefval", attr "name" name, [XML.Text value])
+        XML.Elem (("prefval", attr "name" name), [XML.Text value])
     end 
 
 fun idvalue (Idvalue vs) =
@@ -264,10 +262,10 @@ fun idvalue (Idvalue vs) =
         val name = #name vs
         val text = #text vs
     in
-        XML.Elem("idvalue", 
+        XML.Elem (("idvalue", 
                  objtype_attrs @
                  (opt_attr "thyname" thyname) @
-                 (attr "name" name),
+                 attr "name" name),
                  text)
     end
 
@@ -278,7 +276,7 @@ fun informguise (Informguise vs) =
       val theorem = #theorem vs
       val proofpos = #proofpos vs
 
-      fun elto nm attrfn xo = case xo of NONE=>[] | SOME x=>[XML.Elem(nm,attrfn x,[])]
+      fun elto nm attrfn xo = case xo of NONE => [] | SOME x => [XML.Elem ((nm, attrfn x), [])]
 
       val guisefile = elto "guisefile" attrs_of_pgipurl file
       val guisetheory = elto "guisetheory" (single o (pair "thyname")) theory
@@ -286,7 +284,7 @@ fun informguise (Informguise vs) =
                             (fn thm=>(attr "thmname" thm) @
                                      (opt_attr "proofpos" (Option.map Int.toString proofpos))) theorem
   in 
-      XML.Elem("informguise", [], guisefile @ guisetheory @ guiseproof)
+      XML.Elem (("informguise", []), guisefile @ guisetheory @ guiseproof)
   end
 
 fun parseresult (Parseresult vs) =
@@ -296,7 +294,7 @@ fun parseresult (Parseresult vs) =
         val errs = #errs vs
         val xmldoc = PgipMarkup.output_doc doc
     in 
-        XML.Elem("parseresult", attrs, errs @ xmldoc)
+        XML.Elem (("parseresult", attrs), errs @ xmldoc)
     end
 
 fun acceptedpgipelems (Usespgip vs) = 
@@ -305,11 +303,10 @@ fun acceptedpgipelems (Usespgip vs) =
         fun async_attrs b = if b then attr "async" "true" else []
         fun attrs_attrs attrs = if attrs=[] then [] else attr "attributes" (space_implode "," attrs)
         fun singlepgipelem (e,async,attrs) = 
-            XML.Elem("pgipelem", ((async_attrs async) @ (attrs_attrs attrs)),[XML.Text e])
+            XML.Elem (("pgipelem", async_attrs async @ attrs_attrs attrs), [XML.Text e])
                                                       
     in
-        XML.Elem ("acceptedpgipelems", [],
-                 map singlepgipelem pgipelems)
+        XML.Elem (("acceptedpgipelems", []), map singlepgipelem pgipelems)
     end
 
 fun usespgip (Usespgip vs) =
@@ -317,14 +314,14 @@ fun usespgip (Usespgip vs) =
         val version = #version vs
         val acceptedelems = acceptedpgipelems (Usespgip vs)
     in 
-        XML.Elem("usespgip", attr "version" version, [acceptedelems])
+        XML.Elem (("usespgip", attr "version" version), [acceptedelems])
     end
 
 fun usespgml (Usespgml vs) =
     let
         val version = #version vs
     in 
-        XML.Elem("usespgml", attr "version" version, [])
+        XML.Elem (("usespgml", attr "version" version), [])
     end
 
 fun pgip (Pgip vs) =
@@ -338,18 +335,18 @@ fun pgip (Pgip vs) =
         val refseq = #refseq vs
         val content = #content vs
     in
-        XML.Elem("pgip",
+        XML.Elem(("pgip",
                  opt_attr "tag" tag @
                  attr "id" id @
                  opt_attr "destid" destid @
                  attr "class" class @
                  opt_attr "refid" refid @
                  opt_attr_map string_of_int "refseq" refseq @
-                 attr "seq" (string_of_int seq),
+                 attr "seq" (string_of_int seq)),
                  content)
     end
 
-fun ready (Ready _) = XML.Elem("ready",[],[])
+fun ready (Ready _) = XML.Elem (("ready", []), [])
 
 
 fun output pgipoutput = case pgipoutput of

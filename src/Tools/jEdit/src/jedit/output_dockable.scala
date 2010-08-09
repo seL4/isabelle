@@ -22,7 +22,7 @@ import org.gjt.sp.jedit.View
 
 class Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  Swing_Thread.assert()
+  Swing_Thread.require()
 
   val html_panel =
     new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
@@ -68,8 +68,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
               val snapshot = doc_view.model.snapshot()
               val filtered_results =
                 snapshot.document.current_state(cmd).results filter {
-                  case XML.Elem(Markup.TRACING, _, _) => show_tracing
-                  case XML.Elem(Markup.DEBUG, _, _) => show_debug
+                  case XML.Elem(Markup(Markup.TRACING, _), _) => show_tracing
+                  case XML.Elem(Markup(Markup.DEBUG, _), _) => show_debug
                   case _ => true
                 }
               html_panel.render(filtered_results)

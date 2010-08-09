@@ -64,7 +64,7 @@ fun string_of t =
     fun attrib (a, x) =
       Buffer.add Y #>
       Buffer.add a #> Buffer.add "=" #> Buffer.add x;
-    fun tree (XML.Elem (name, atts, ts)) =
+    fun tree (XML.Elem ((name, atts), ts)) =
           Buffer.add XY #> Buffer.add name #> fold attrib atts #> Buffer.add X #>
           fold tree ts #>
           Buffer.add XYX
@@ -104,7 +104,7 @@ fun push "" _ _ = err_element ()
   | push name atts pending = ((name, atts), []) :: pending;
 
 fun pop ((("", _), _) :: _) = err_unbalanced ""
-  | pop (((name, atts), body) :: pending) = add (XML.Elem (name, atts, rev body)) pending;
+  | pop ((markup, body) :: pending) = add (XML.Elem (markup, rev body)) pending;
 
 
 (* parsing *)

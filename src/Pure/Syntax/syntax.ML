@@ -80,7 +80,7 @@ sig
     (string * string) trrule list -> syntax -> syntax
   val update_trrules_i: ast trrule list -> syntax -> syntax
   val remove_trrules_i: ast trrule list -> syntax -> syntax
-  val parse_token: Markup.T -> string -> Symbol_Pos.T list * Position.T
+  val parse_token: Proof.context -> Markup.T -> string -> Symbol_Pos.T list * Position.T
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -458,12 +458,15 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
 (* read token -- with optional YXML encoding of position *)
 
 fun read_token str =
-  let val (text, pos) =
-    (case YXML.parse str handle Fail msg => error msg of
-      XML.Elem ("token", props, [XML.Text text]) => (text, Position.of_properties props)
-    | XML.Elem ("token", props, []) => ("", Position.of_properties props)
-    | XML.Text text => (text, Position.none)
-    | _ => (str, Position.none))
+  let
+    val tree = YXML.parse str handle Fail msg => error msg;
+    val text = Buffer.empty |> XML.add_content tree |> Buffer.content;
+    val pos =
+      (case tree of
+        XML.Elem ((name, props), _) =>
+          if name = Markup.tokenN then Position.of_properties props
+          else Position.none
+      | XML.Text _ => Position.none);
   in (Symbol_Pos.explode (text, pos), pos) end;
 
 
@@ -479,7 +482,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val toks = Lexicon.tokenize lexicon xids syms;
-    val _ = List.app Lexicon.report_token toks;
+    val _ = List.app (Lexicon.report_token ctxt) toks;
 
     val root' = if root <> "prop" andalso is_logtype root then Syn_Ext.logic else root;
     val pts = Parser.parse gram root' (filter Lexicon.is_proper toks);
@@ -691,10 +694,10 @@ val remove_trrules_i = remove_syntax mode_default o Syn_Ext.syn_ext_rules o cert
 
 (* (un)parsing *)
 
-fun parse_token markup str =
+fun parse_token ctxt markup str =
   let
     val (syms, pos) = read_token str;
-    val _ = Position.report markup pos;
+    val _ = Context_Position.report ctxt markup pos;
   in (syms, pos) end;
 
 local

@@ -9,7 +9,7 @@ sig
   type T = string * Properties.T
   val none: T
   val is_none: T -> bool
-  val properties: (string * string) list -> T -> T
+  val properties: Properties.T -> T -> T
   val nameN: string
   val name: string -> T -> T
   val bindingN: string val binding: string -> T
@@ -93,7 +93,7 @@ sig
   val commentN: string val comment: T
   val controlN: string val control: T
   val malformedN: string val malformed: T
-  val tokenN: string val token: T
+  val tokenN: string val token: Properties.T -> T
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
   val malformed_spanN: string val malformed_span: T
@@ -284,7 +284,8 @@ val (commentN, comment) = markup_elem "comment";
 val (controlN, control) = markup_elem "control";
 val (malformedN, malformed) = markup_elem "malformed";
 
-val (tokenN, token) = markup_elem "token";
+val tokenN = "token";
+fun token props = (tokenN, props);
 
 val (command_spanN, command_span) = markup_string "command_span" nameN;
 val (ignored_spanN, ignored_span) = markup_elem "ignored_span";

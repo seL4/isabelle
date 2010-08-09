@@ -89,8 +89,9 @@ object Library
     (parent: Component, title: String, message: Any*)
   {
     Swing_Thread.now {
+      val java_message = message map { case x: scala.swing.Component => x.peer case x => x }
       JOptionPane.showMessageDialog(parent,
-        message.toArray.asInstanceOf[Array[AnyRef]],
+        java_message.toArray.asInstanceOf[Array[AnyRef]],
         if (title == null) default_title else title, kind)
     }
   }

@@ -7,30 +7,29 @@ Superficial theory syntax: command spans.
 package isabelle
 
 
+import scala.collection.mutable
+
+
 object Thy_Syntax
 {
-  private val parser = new Parse.Parser
-  {
-    override def filter_proper = false
-
-    val command_span: Parser[Span] =
-    {
-      val whitespace = token("white space", _.is_ignored)
-      val command = token("command keyword", _.is_command)
-      val body = not(rep(whitespace) ~ (command | eof)) ~> not_eof
-      command ~ rep(body) ^^ { case x ~ ys => x :: ys } | rep1(whitespace) | rep1(body)
-    }
-  }
-
   type Span = List[Token]
 
   def parse_spans(toks: List[Token]): List[Span] =
   {
-    import parser._
+    val result = new mutable.ListBuffer[Span]
+    val span = new mutable.ListBuffer[Token]
+    val whitespace = new mutable.ListBuffer[Token]
 
-    parse(rep(command_span), Token.reader(toks)) match {
-      case Success(spans, rest) if rest.atEnd => spans
-      case bad => error(bad.toString)
+    def flush(buffer: mutable.ListBuffer[Token])
+    {
+      if (!buffer.isEmpty) { result += buffer.toList; buffer.clear }
     }
+    for (tok <- toks) {
+      if (tok.is_command) { flush(span); flush(whitespace); span += tok }
+      else if (tok.is_ignored) whitespace += tok
+      else { span ++= whitespace; whitespace.clear; span += tok }
+    }
+    flush(span); flush(whitespace)
+    result.toList
   }
 }
