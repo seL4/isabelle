@@ -291,9 +291,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   {
     // block until peer is ready
     val stream =
-      if (Platform.is_windows) {
-        // Cygwin fifo as Windows/Java input stream
-        val proc = execute(false, "cat", fifo)
+      if (Platform.is_windows) { // Cygwin fifo as Windows/Java input stream
+        val proc = execute(false, expand_path("$ISABELLE_HOME/lib/scripts/raw_dump"), fifo, "-")
         proc.getOutputStream.close
         proc.getErrorStream.close
         proc.getInputStream
@@ -306,14 +305,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   {
     // block until peer is ready
     val stream =
-      if (Platform.is_windows) {
-        // Cygwin fifo as Windows/Java output stream (beware of buffering)
-        // FIXME FIXME FIXME
-        val script =
-          "open(FIFO, \">" + fifo + "\") || die $!; my $buffer; " +
-          "while ((sysread STDIN, $buffer, 65536), length $buffer > 0)" +
-          " { syswrite FIFO, $buffer; }; close FIFO;"
-        val proc = execute(false, "perl", "-e", script)
+      if (Platform.is_windows) { // Cygwin fifo as Windows/Java output stream
+        val proc = execute(false, expand_path("$ISABELLE_HOME/lib/scripts/raw_dump"), "-", fifo)
         proc.getInputStream.close
         proc.getErrorStream.close
         val out = proc.getOutputStream
@@ -324,7 +317,6 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
           override def write(b: Array[Byte], off: Int, len: Int) { out.write(b, off, len) }
           override def write(b: Int) { out.write(b) }
         }
-        proc.getOutputStream
       }
       else new FileOutputStream(fifo)
     new BufferedOutputStream(stream)
