@@ -82,7 +82,6 @@ fun vars_of_thm th =
 
 val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
 
-(* ### FIXME: removes only one lambda? *)
 (* Removes the lambdas from an equation of the form "t = (%x. u)".
    (Cf. "extensionalize_term" in "ATP_Systems".) *)
 fun extensionalize_theorem th =
@@ -231,8 +230,8 @@ fun to_nnf th ctxt0 =
                     |> Meson.make_nnf ctxt
   in  (th3, ctxt)  end;
 
-(* Skolemize a named theorem, with Skolem functions as additional premises. *)
-fun skolemize_theorem thy th =
+(* Convert a theorem to CNF, with Skolem functions as additional premises. *)
+fun cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
     val (nnfth, ctxt) = to_nnf th ctxt0
@@ -246,9 +245,5 @@ fun skolemize_theorem thy th =
          |> map Thm.close_derivation
   end
   handle THM _ => []
-
-(* Convert Isabelle theorems into axiom clauses. *)
-(* FIXME: is transfer necessary? *)
-fun cnf_axiom thy = skolemize_theorem thy o Thm.transfer thy
 
 end;
