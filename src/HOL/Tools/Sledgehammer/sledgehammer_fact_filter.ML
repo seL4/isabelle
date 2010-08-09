@@ -50,8 +50,13 @@ fun name_thms_pair_from_ref ctxt chained_ths xref =
 (* Relevance Filtering                                         *)
 (***************************************************************)
 
-fun strip_Trueprop (@{const Trueprop} $ t) = t
-  | strip_Trueprop t = t;
+fun strip_Trueprop_and_all (@{const Trueprop} $ t) =
+    strip_Trueprop_and_all t
+  | strip_Trueprop_and_all (Const (@{const_name all}, _) $ Abs (_, _, t)) =
+    strip_Trueprop_and_all t
+  | strip_Trueprop_and_all (Const (@{const_name All}, _) $ Abs (_, _, t)) =
+    strip_Trueprop_and_all t
+  | strip_Trueprop_and_all t = t
 
 (*** constants with types ***)
 
@@ -501,33 +506,23 @@ fun checked_name_thm_pairs respect_no_atp ctxt =
 (**** Predicates to detect unwanted facts (prolific or likely to cause
       unsoundness) ****)
 
-(** Too general means, positive equality literal with a variable X as one operand,
-  when X does not occur properly in the other operand. This rules out clearly
-  inconsistent facts such as V = a | V = b, though it by no means guarantees
-  soundness. **)
-
-fun var_occurs_in_term ix =
-  let
-    fun aux (Var (jx, _)) = (ix = jx)
-      | aux (t1 $ t2) = aux t1 orelse aux t2
-      | aux (Abs (_, _, t)) = aux t
-      | aux _ = false
-  in aux end
+(* Too general means, positive equality literal with a variable X as one
+   operand, when X does not occur properly in the other operand. This rules out
+   clearly inconsistent facts such as X = a | X = b, though it by no means
+   guarantees soundness. *)
 
 fun is_record_type T = not (null (Record.dest_recTs T))
 
-(*Unwanted equalities include
-  (1) those between a variable that does not properly occur in the second operand,
-  (2) those between a variable and a record, since these seem to be prolific "cases" thms
-  (* FIXME: still a problem? *)
-*)
-fun too_general_eqterms (Var (ix,T), t) =
-    not (var_occurs_in_term ix t) orelse is_record_type T
-  | too_general_eqterms _ = false;
+(* Unwanted equalities are those between a (bound or schematic) variable that
+   does not properly occur in the second operand. *)
+fun too_general_eqterms (Var z) t =
+    not (exists_subterm (fn Var z' => z = z' | _ => false) t)
+  | too_general_eqterms (Bound j) t = not (loose_bvar1 (t, j))
+  | too_general_eqterms _ _ = false
 
-fun too_general_equality (Const (@{const_name "op ="}, _) $ x $ y) =
-      too_general_eqterms (x,y) orelse too_general_eqterms(y,x)
-  | too_general_equality _ = false;
+fun too_general_equality (Const (@{const_name "op ="}, _) $ t1 $ t2) =
+    too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
+  | too_general_equality _ = false
 
 fun has_typed_var tycons = exists_subterm
   (fn Var (_, Type (a, _)) => member (op =) tycons a | _ => false);
@@ -540,13 +535,13 @@ fun has_typed_var tycons = exists_subterm
 val dangerous_types = [@{type_name unit}, @{type_name bool}];
 
 (* Facts containing variables of type "unit" or "bool" or of the form
-   "?x = A | ?x = B | ?x = C" are likely to lead to unsound proofs if types are
+   "!x. x = A | x = B | x = C" are likely to lead to unsound proofs if types are
    omitted. *)
 fun is_dangerous_term _ @{prop True} = true
   | is_dangerous_term full_types t =
     not full_types andalso
     (has_typed_var dangerous_types t orelse
-     forall too_general_equality (HOLogic.disjuncts (strip_Trueprop t)))
+     forall too_general_equality (HOLogic.disjuncts (strip_Trueprop_and_all t)))
 
 fun relevant_facts full_types relevance_threshold relevance_convergence
                    defs_relevant max_new theory_relevant
