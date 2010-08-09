@@ -535,8 +535,8 @@ fun has_typed_var tycons = exists_subterm
 val dangerous_types = [@{type_name unit}, @{type_name bool}];
 
 (* Facts containing variables of type "unit" or "bool" or of the form
-   "!x. x = A | x = B | x = C" are likely to lead to unsound proofs if types are
-   omitted. *)
+   "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
+   are omitted. *)
 fun is_dangerous_term _ @{prop True} = true
   | is_dangerous_term full_types t =
     not full_types andalso

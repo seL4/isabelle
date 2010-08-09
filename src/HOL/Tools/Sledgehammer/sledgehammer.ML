@@ -363,6 +363,8 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
             in
               prover params (minimize_command name) problem |> #message
               handle ERROR message => "Error: " ^ message ^ "\n"
+                   | exn => "Internal error: \n" ^ ML_Compiler.exn_message exn ^
+                            "\n"
             end)
   end
 
