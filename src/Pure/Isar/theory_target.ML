@@ -107,19 +107,55 @@ fun class_target (Target {target, ...}) f =
   Local_Theory.target (Class_Target.refresh_syntax target);
 
 
-(* mixfix notation *)
-
-fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
-  if not is_locale then (NoSyn, NoSyn, mx)
-  else if not is_class then (NoSyn, mx, NoSyn)
-  else (mx, NoSyn, NoSyn);
-
-
 (* define *)
 
 local
 
 fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
+
+fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  let
+    val (const, lthy2) = lthy |> Local_Theory.theory_result
+      (Sign.declare_const ((b, U), mx));
+    val lhs = list_comb (const, type_params @ term_params);
+    val ((_, def), lthy3) = lthy2 |> Local_Theory.theory_result
+      (Thm.add_def false false (b_def, Logic.mk_equals (lhs, rhs)));
+  in ((lhs, def), lthy3) end;
+
+fun locale_foundation ta (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
+  theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+  #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, mx), lhs)
+    #> pair (lhs, def))
+
+fun class_foundation (ta as Target {target, ...})
+    (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
+  theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+  #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, NoSyn), lhs)
+    #> class_target ta (Class_Target.declare target ((b, mx), (type_params, lhs)))
+    #> pair (lhs, def))
+
+fun instantiation_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  case Class_Target.instantiation_param lthy b
+   of SOME c => if mx <> NoSyn then syntax_error c
+        else lthy |> Local_Theory.theory_result (AxClass.declare_overloaded (c, U)
+            ##>> AxClass.define_overloaded b_def (c, rhs))
+          ||> Class_Target.confirm_declaration b
+    | NONE => lthy |>
+        theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+
+fun overloading_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  case Overloading.operation lthy b
+   of SOME (c, checked) => if mx <> NoSyn then syntax_error c
+        else lthy |> Local_Theory.theory_result (Overloading.declare (c, U)
+            ##>> Overloading.define checked b_def (c, rhs))
+          ||> Class_Target.confirm_declaration b
+    | NONE => lthy |>
+        theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+
+fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
+  if not is_locale then (NoSyn, NoSyn, mx)
+  else if not is_class then (NoSyn, mx, NoSyn)
+  else (mx, NoSyn, NoSyn);
 
 fun foundation (ta as Target {target, is_locale, is_class, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
@@ -203,15 +239,12 @@ fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
     prmode (b, mx) (global_rhs, t') xs lthy =
-  let
-    val (mx1, mx2, mx3) = fork_mixfix ta mx;
-  in if is_locale
+  if is_locale
     then lthy
-      |> locale_abbrev ta prmode ((b, mx2), global_rhs) xs
-      |> is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
+      |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
+      |> is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx), t'))
     else lthy
-      |> theory_abbrev prmode ((b, mx3), global_rhs)
-  end;
+      |> theory_abbrev prmode ((b, mx), global_rhs);
 
 fun abbrev ta = Generic_Target.abbrev (target_abbrev ta);
 
