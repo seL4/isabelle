@@ -185,6 +185,7 @@ isabelle-raw-output.dock-position=bottom
 isabelle.activate.shortcut=CS+ENTER
 line-end.shortcut=END
 line-home.shortcut=HOME
+lookAndFeel=com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel
 mode.isabelle.sidekick.showStatusWindow.label=true
 print.font=IsabelleText
 sidekick-tree.dock-position=right
