@@ -19,7 +19,7 @@ sig
   val output_markup: Markup.T -> string * string
   val element: string -> XML.attributes -> string list -> string
   val string_of: XML.tree -> string
-  val parse_body: string -> XML.tree list
+  val parse_body: string -> XML.body
   val parse: string -> XML.tree
 end;
 

@@ -50,6 +50,7 @@ use "General/url.ML";
 use "General/buffer.ML";
 use "General/file.ML";
 use "General/xml.ML";
+use "General/xml_data.ML";
 use "General/yxml.ML";
 
 use "General/sha1.ML";
