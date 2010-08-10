@@ -30,9 +30,6 @@ sig
   val standard_morphism: local_theory -> Proof.context -> morphism
   val target_morphism: local_theory -> morphism
   val global_morphism: local_theory -> morphism
-  val pretty: local_theory -> Pretty.T list
-  val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
-    (term * term) * local_theory
   val define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val note: Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
@@ -40,8 +37,11 @@ sig
     local_theory -> (string * thm list) list * local_theory
   val notes_kind: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory
+  val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
+    (term * term) * local_theory
   val declaration: bool -> declaration -> local_theory -> local_theory
   val syntax_declaration: bool -> declaration -> local_theory -> local_theory
+  val pretty: local_theory -> Pretty.T list
   val set_defsort: sort -> local_theory -> local_theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
@@ -65,16 +65,16 @@ struct
 (* type lthy *)
 
 type operations =
- {pretty: local_theory -> Pretty.T list,
-  abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
-    (term * term) * local_theory,
-  define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+ {define: (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     local_theory -> (string * thm list) list * local_theory,
+  abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
+    (term * term) * local_theory,
   declaration: bool -> declaration -> local_theory -> local_theory,
   syntax_declaration: bool -> declaration -> local_theory -> local_theory,
+  pretty: local_theory -> Pretty.T list,
   reinit: local_theory -> local_theory,
   exit: local_theory -> Proof.context};
 

@@ -45,36 +45,6 @@ structure Data = Proof_Data
 val peek = (fn Target args => args) o Data.get;
 
 
-(* pretty *)
-
-fun pretty_thy ctxt target is_class =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val target_name =
-      [Pretty.command (if is_class then "class" else "locale"),
-        Pretty.str (" " ^ Locale.extern thy target)];
-    val fixes =
-      map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
-    val assumes =
-      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])])) (Assumption.all_assms_of ctxt);
-    val elems =
-      (if null fixes then [] else [Element.Fixes fixes]) @
-      (if null assumes then [] else [Element.Assumes assumes]);
-  in
-    if target = "" then []
-    else if null elems then [Pretty.block target_name]
-    else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
-      map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
-  end;
-
-fun pretty (Target {target, is_class, instantiation, overloading, ...}) ctxt =
-  Pretty.block [Pretty.command "theory", Pretty.brk 1,
-      Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
-    (if not (null overloading) then [Overloading.pretty ctxt]
-     else if not (null (#1 instantiation)) then [Class_Target.pretty_instantiation ctxt]
-     else pretty_thy ctxt target is_class);
-
-
 (* generic declarations *)
 
 fun theory_declaration decl lthy =
@@ -100,33 +70,6 @@ fun locale_declaration locale { syntax, pervasive } decl lthy =
 fun target_declaration (Target {target, ...}) { syntax, pervasive } =
   if target = "" then theory_declaration
   else locale_declaration target { syntax = syntax, pervasive = pervasive };
-
-
-(* notes *)
-
-fun theory_notes kind global_facts lthy =
-  let
-    val thy = ProofContext.theory_of lthy;
-    val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
-  in
-    lthy
-    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
-    |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
-  end;
-
-fun locale_notes locale kind global_facts local_facts lthy = 
-  let
-    val global_facts' = Attrib.map_facts (K I) global_facts;
-    val local_facts' = Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
-  in
-    lthy
-    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
-    |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
-  end
-
-fun notes (Target {target, is_locale, ...}) =
-  Generic_Target.notes (if is_locale then locale_notes target
-    else fn kind => fn global_facts => fn _ => theory_notes kind global_facts);
 
 
 (* consts in locales *)
@@ -190,30 +133,6 @@ fun prep_mixfix ctxt ta (b, extra_tfrees) mx =
 end;
 
 
-(* abbrev *)
-
-fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
-  (Sign.add_abbrev (#1 prmode) (b, t) #-> (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
-
-fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
-  (Sign.add_abbrev Print_Mode.internal (b, t)) #-> (fn (lhs, _) =>
-    locale_const_declaration ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
-
-fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
-    prmode (b, mx) (global_rhs, t') (extra_tfrees, xs) lthy =
-  let
-    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
-  in if is_locale
-    then lthy
-      |> locale_abbrev ta prmode ((b, mx2), global_rhs) xs
-      |> is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
-    else lthy
-      |> theory_abbrev prmode ((b, mx3), global_rhs)
-  end;
-
-fun abbrev ta = Generic_Target.abbrev (target_abbrev ta);
-
-
 (* define *)
 
 local
@@ -260,6 +179,87 @@ fun define ta = Generic_Target.define (foundation ta);
 end;
 
 
+(* notes *)
+
+fun theory_notes kind global_facts lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
+  in
+    lthy
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
+  end;
+
+fun locale_notes locale kind global_facts local_facts lthy = 
+  let
+    val global_facts' = Attrib.map_facts (K I) global_facts;
+    val local_facts' = Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
+  in
+    lthy
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
+  end
+
+fun notes (Target {target, is_locale, ...}) =
+  Generic_Target.notes (if is_locale then locale_notes target
+    else fn kind => fn global_facts => fn _ => theory_notes kind global_facts);
+
+
+(* abbrev *)
+
+fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
+  (Sign.add_abbrev (#1 prmode) (b, t) #-> (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
+
+fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
+  (Sign.add_abbrev Print_Mode.internal (b, t)) #-> (fn (lhs, _) =>
+    locale_const_declaration ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+
+fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
+    prmode (b, mx) (global_rhs, t') (extra_tfrees, xs) lthy =
+  let
+    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
+  in if is_locale
+    then lthy
+      |> locale_abbrev ta prmode ((b, mx2), global_rhs) xs
+      |> is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx1), t'))
+    else lthy
+      |> theory_abbrev prmode ((b, mx3), global_rhs)
+  end;
+
+fun abbrev ta = Generic_Target.abbrev (target_abbrev ta);
+
+
+(* pretty *)
+
+fun pretty_thy ctxt target is_class =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val target_name =
+      [Pretty.command (if is_class then "class" else "locale"),
+        Pretty.str (" " ^ Locale.extern thy target)];
+    val fixes =
+      map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
+    val assumes =
+      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])])) (Assumption.all_assms_of ctxt);
+    val elems =
+      (if null fixes then [] else [Element.Fixes fixes]) @
+      (if null assumes then [] else [Element.Assumes assumes]);
+  in
+    if target = "" then []
+    else if null elems then [Pretty.block target_name]
+    else [Pretty.block (Pretty.fbreaks (Pretty.block (target_name @ [Pretty.str " ="]) ::
+      map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
+  end;
+
+fun pretty (Target {target, is_class, instantiation, overloading, ...}) ctxt =
+  Pretty.block [Pretty.command "theory", Pretty.brk 1,
+      Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
+    (if not (null overloading) then [Overloading.pretty ctxt]
+     else if not (null (#1 instantiation)) then [Class_Target.pretty_instantiation ctxt]
+     else pretty_thy ctxt target is_class);
+
+
 (* init various targets *)
 
 local
@@ -276,12 +276,12 @@ fun init_target (ta as Target {target, instantiation, overloading, ...}) thy =
   |> init_data ta
   |> Data.put ta
   |> Local_Theory.init NONE (Long_Name.base_name target)
-     {pretty = pretty ta,
-      abbrev = abbrev ta,
-      define = define ta,
+     {define = define ta,
       notes = notes ta,
+      abbrev = abbrev ta,
       declaration = fn pervasive => target_declaration ta { syntax = false, pervasive = pervasive },
       syntax_declaration = fn pervasive => target_declaration ta { syntax = true, pervasive = pervasive },
+      pretty = pretty ta,
       reinit = init_target ta o ProofContext.theory_of,
       exit = Local_Theory.target_of o
         (if not (null (#1 instantiation)) then Class_Target.conclude_instantiation
