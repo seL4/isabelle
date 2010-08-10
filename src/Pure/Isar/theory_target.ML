@@ -141,7 +141,7 @@ local
 fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
 
 fun foundation (ta as Target {target, is_locale, is_class, ...})
-    (((b, U), mx), rhs') name' params (extra_tfrees, type_params) lthy =
+    (((b, U), mx), (b_def, rhs')) params (extra_tfrees, type_params) lthy =
   let
     val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
     val (const, lthy2) = lthy |>
@@ -164,11 +164,11 @@ fun foundation (ta as Target {target, is_locale, is_class, ...})
     |> pair lhs'
     ||>> Local_Theory.theory_result
       (case Overloading.operation lthy b of
-        SOME (_, checked) => Overloading.define checked name' (head, rhs')
+        SOME (_, checked) => Overloading.define checked b_def (head, rhs')
       | NONE =>
           if is_some (Class_Target.instantiation_param lthy b)
-          then AxClass.define_overloaded name' (head, rhs')
-          else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')) #>> snd)
+          then AxClass.define_overloaded b_def (head, rhs')
+          else Thm.add_def false false (b_def, Logic.mk_equals (lhs', rhs')) #>> snd)
     ||> is_locale ? locale_const_declaration ta Syntax.mode_default ((b, mx2), lhs')
     ||> is_class ? class_target ta
           (Class_Target.declare target ((b, mx1), (type_params, lhs')))

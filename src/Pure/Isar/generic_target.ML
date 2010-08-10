@@ -7,7 +7,7 @@ Common target infrastructure.
 
 signature GENERIC_TARGET =
 sig
-  val define: (((binding * typ) * mixfix) * term -> binding -> term list
+  val define: (((binding * typ) * mixfix) * (binding * term) -> term list
     -> (string * sort) list * term list -> local_theory -> (term * thm) * local_theory)
     -> (binding * mixfix) * (Attrib.binding * term) -> local_theory
     -> (term * (string * thm)) * local_theory
@@ -28,12 +28,12 @@ struct
 
 (* define *)
 
-fun define foundation ((b, mx), ((name, atts), rhs)) lthy =
+fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init_global thy;
 
-    val name' = Thm.def_binding_optional b name;
+    val b_def = Thm.def_binding_optional b proto_b_def;
 
     (*term and type parameters*)
     val crhs = Thm.cterm_of thy rhs;
@@ -58,7 +58,7 @@ fun define foundation ((b, mx), ((name, atts), rhs)) lthy =
 
     (*foundation*)
     val ((lhs', global_def), lthy3) = foundation
-      (((b, U), mx), rhs') name' params (extra_tfrees, type_params) lthy;
+      (((b, U), mx), (b_def, rhs')) params (extra_tfrees, type_params) lthy;
 
     (*local definition*)
     val ((lhs, local_def), lthy4) = lthy3
@@ -70,7 +70,7 @@ fun define foundation ((b, mx), ((name, atts), rhs)) lthy =
 
     (*note*)
     val ([(res_name, [res])], lthy5) = lthy4
-      |> Local_Theory.notes_kind "" [((name', atts), [([def], [])])];
+      |> Local_Theory.notes_kind "" [((b_def, atts), [([def], [])])];
   in ((lhs, (res_name, res)), lthy5) end;
 
 
