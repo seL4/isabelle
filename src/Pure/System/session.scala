@@ -334,6 +334,7 @@ class Session(system: Isabelle_System)
             val new_change = new Document.Change(new_id, Some(old_change), edits, result)
             history = new_change
             new_change.result.map(_ => session_actor ! new_change)
+            reply(())
 
           case bad => System.err.println("editor_model: ignoring bad message " + bad)
         }
@@ -352,5 +353,6 @@ class Session(system: Isabelle_System)
   def stop() { session_actor ! Stop }
 
   def current_change(): Document.Change = editor_history.current_change()
-  def edit_document(edits: List[Document.Node_Text_Edit]) { editor_history ! Edit_Document(edits) }
+
+  def edit_document(edits: List[Document.Node_Text_Edit]) { editor_history !? Edit_Document(edits) }
 }
