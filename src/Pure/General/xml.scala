@@ -47,14 +47,16 @@ object XML
     }
   }
 
-  private def append_elem(name: String, atts: Attributes, s: StringBuilder) {
+  private def append_elem(name: String, atts: Attributes, s: StringBuilder)
+  {
     s ++= name
     for ((a, x) <- atts) {
       s ++= " "; s ++= a; s ++= "=\""; append_text(x, s); s ++= "\""
     }
   }
 
-  private def append_tree(tree: Tree, s: StringBuilder) {
+  private def append_tree(tree: Tree, s: StringBuilder)
+  {
     tree match {
       case Elem(Markup(name, atts), Nil) =>
         s ++= "<"; append_elem(name, atts, s); s ++= "/>"
