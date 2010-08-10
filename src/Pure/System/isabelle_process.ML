@@ -34,7 +34,7 @@ fun chunk s = string_of_int (size s) ^ "\n" ^ s;
 fun message _ _ _ "" = ()
   | message out_stream ch props body =
       let
-        val header = YXML.string_of (XML.Elem ((ch, map (pairself YXML.binary_text) props), []));
+        val header = YXML.string_of (XML.Elem ((ch, map (pairself YXML.escape_controls) props), []));
         val msg = Symbol.STX ^ chunk header ^ chunk body;
       in TextIO.output (out_stream, msg) (*atomic output*) end;
 

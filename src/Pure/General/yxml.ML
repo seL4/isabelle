@@ -15,7 +15,7 @@ Markup <elem att="val" ...>...body...</elem> is encoded as:
 
 signature YXML =
 sig
-  val binary_text: string -> string
+  val escape_controls: string -> string
   val output_markup: Markup.T -> string * string
   val element: string -> XML.attributes -> string list -> string
   val string_of: XML.tree -> string
@@ -28,14 +28,14 @@ struct
 
 (** string representation **)
 
-(* binary_text -- idempotent recoding *)
+(* idempotent recoding of certain low ASCII control characters *)
 
 fun pseudo_utf8 c =
   if Symbol.is_ascii_control c
   then chr 192 ^ chr (128 + ord c)
   else c;
 
-fun binary_text str =
+fun escape_controls str =
   if exists_string Symbol.is_ascii_control str
   then translate_string pseudo_utf8 str
   else str;
