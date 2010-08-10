@@ -105,6 +105,10 @@ fun init in_fifo out_fifo =
     val _ = quick_and_dirty := true;  (* FIXME !? *)
     val _ = Keyword.status ();
     val _ = Output.status (Markup.markup Markup.ready "");
-  in Isar.toplevel_loop in_stream {init = true, welcome = false, sync = true, secure = true} end;
+    val _ =
+      Simple_Thread.fork false (fn () =>
+        (Isar.toplevel_loop in_stream {init = true, welcome = false, sync = true, secure = true};
+          quit ()));
+  in () end;
 
 end;

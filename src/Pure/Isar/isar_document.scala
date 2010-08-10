@@ -38,7 +38,7 @@ trait Isar_Document extends Isabelle_Process
   /* commands */
 
   def define_command(id: Document.Command_ID, text: String) {
-    output_sync("Isar.define_command " + Isabelle_Syntax.encode_string(id) + " " +
+    input("Isar.define_command " + Isabelle_Syntax.encode_string(id) + " " +
       Isabelle_Syntax.encode_string(text))
   }
 
@@ -80,6 +80,6 @@ trait Isar_Document extends Isabelle_Process
     Isabelle_Syntax.append_string(new_id, buf)
     buf.append(" ")
     Isabelle_Syntax.append_list(append_node_edit, edits, buf)
-    output_sync(buf.toString)
+    input(buf.toString)
   }
 }
