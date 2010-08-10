@@ -77,38 +77,29 @@ fun pretty (Target {target, is_class, instantiation, overloading, ...}) ctxt =
 
 (* generic declarations *)
 
-local
-
-fun direct_decl decl =
-  let val decl0 = Morphism.form decl in
-    Local_Theory.theory (Context.theory_map decl0) #>
-    Local_Theory.target (Context.proof_map decl0)
-  end;
-
-fun target_decl add (Target {target, ...}) pervasive decl lthy =
+fun theory_declaration decl lthy =
   let
-    val global_decl = Morphism.transform (Local_Theory.global_morphism lthy) decl;
-    val target_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
+    val global_decl = Morphism.form
+      (Morphism.transform (Local_Theory.global_morphism lthy) decl);
   in
-    if target = "" then
-      lthy
-      |> direct_decl global_decl
-    else
-      lthy
-      |> pervasive ? direct_decl global_decl
-      |> Local_Theory.target (add target target_decl)
+    lthy
+    |> Local_Theory.theory (Context.theory_map global_decl)
+    |> Local_Theory.target (Context.proof_map global_decl)
   end;
 
-in
+fun locale_declaration locale { syntax, pervasive } decl lthy =
+  let
+    val add = if syntax then Locale.add_syntax_declaration else Locale.add_declaration;
+    val locale_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
+  in
+    lthy
+    |> pervasive ? theory_declaration decl
+    |> Local_Theory.target (add locale locale_decl)
+  end;
 
-val declaration = target_decl Locale.add_declaration;
-val syntax_declaration = target_decl Locale.add_syntax_declaration;
-
-end;
-
-fun class_target (Target {target, ...}) f =
-  Local_Theory.raw_theory f #>
-  Local_Theory.target (Class_Target.refresh_syntax target);
+fun target_declaration (Target {target, ...}) { syntax, pervasive } =
+  if target = "" then theory_declaration
+  else locale_declaration target { syntax = syntax, pervasive = pervasive };
 
 
 (* notes *)
@@ -221,6 +212,13 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;
 
+fun locale_const_declaration (ta as Target {target, ...}) prmode arg =
+  locale_declaration target { syntax = true, pervasive = false } (locale_const ta prmode arg);
+
+fun class_target (Target {target, ...}) f =
+  Local_Theory.raw_theory f #>
+  Local_Theory.target (Class_Target.refresh_syntax target);
+
 
 (* mixfix notation *)
 
@@ -256,7 +254,7 @@ fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
 
 fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
   (Sign.add_abbrev Print_Mode.internal (b, t)) #-> (fn (lhs, _) =>
-    syntax_declaration ta false (locale_const ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs))));
+    locale_const_declaration ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
@@ -318,7 +316,7 @@ fun foundation (ta as Target {target, is_locale, is_class, ...})
           if is_some (Class_Target.instantiation_param lthy b)
           then AxClass.define_overloaded name' (head, rhs')
           else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')) #>> snd)
-    ||> is_locale ? syntax_declaration ta false (locale_const ta Syntax.mode_default ((b, mx2), lhs'))
+    ||> is_locale ? locale_const_declaration ta Syntax.mode_default ((b, mx2), lhs')
     ||> is_class ? class_target ta (Class_Target.declare target ((b, mx1), (type_params, lhs')))
   end;
 
@@ -392,8 +390,8 @@ fun init_target (ta as Target {target, instantiation, overloading, ...}) thy =
       abbrev = abbrev ta,
       define = define ta,
       notes = notes ta,
-      declaration = declaration ta,
-      syntax_declaration = syntax_declaration ta,
+      declaration = fn pervasive => target_declaration ta { syntax = false, pervasive = pervasive },
+      syntax_declaration = fn pervasive => target_declaration ta { syntax = true, pervasive = pervasive },
       reinit = init_target ta o ProofContext.theory_of,
       exit = Local_Theory.target_of o
         (if not (null (#1 instantiation)) then Class_Target.conclude_instantiation
