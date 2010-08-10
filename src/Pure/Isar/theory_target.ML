@@ -122,7 +122,7 @@ local
 fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
 
 fun foundation (ta as Target {target, is_locale, is_class, ...})
-    (((b, U), mx), (b_def, rhs')) params type_params lthy =
+    (((b, U), mx), (b_def, rhs')) (type_params, term_params) lthy =
   let
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
     val (const, lthy2) = lthy |>
@@ -139,7 +139,7 @@ fun foundation (ta as Target {target, is_locale, is_class, ...})
                 ##> Overloading.confirm b
           | NONE => Local_Theory.theory_result (Sign.declare_const ((b, U), mx3))));
     val Const (head, _) = const;
-    val lhs' = list_comb (const, params);
+    val lhs' = list_comb (const, type_params @ term_params);
   in
     lthy2
     |> pair lhs'

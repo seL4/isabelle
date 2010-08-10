@@ -7,8 +7,8 @@ Common target infrastructure.
 
 signature GENERIC_TARGET =
 sig
-  val define: (((binding * typ) * mixfix) * (binding * term) -> term list
-    -> term list -> local_theory -> (term * thm) * local_theory)
+  val define: (((binding * typ) * mixfix) * (binding * term)
+    -> term list * term list -> local_theory -> (term * thm) * local_theory)
     -> (binding * mixfix) * (Attrib.binding * term) -> local_theory
     -> (term * (string * thm)) * local_theory
   val notes: (string
@@ -72,7 +72,7 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
 
     (*foundation*)
     val ((lhs', global_def), lthy3) = foundation
-      (((b, U), mx'), (b_def, rhs')) params type_params lthy;
+      (((b, U), mx'), (b_def, rhs')) (type_params, term_params) lthy;
 
     (*local definition*)
     val ((lhs, local_def), lthy4) = lthy3
