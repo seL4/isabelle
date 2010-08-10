@@ -53,7 +53,7 @@ sig
 
   (* Activation *)
   val activate_declarations: string * morphism -> Proof.context -> Proof.context
-  val activate_facts: morphism -> string * morphism -> Context.generic -> Context.generic
+  val activate_facts: morphism option -> string * morphism -> Context.generic -> Context.generic
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
@@ -422,8 +422,12 @@ fun activate_declarations dep = Context.proof_map (fn context =>
 fun activate_facts export dep context =
   let
     val thy = Context.theory_of context;
-    val activate = activate_notes Element.init (Element.transfer_morphism o Context.theory_of) context (SOME export);
-  in roundup thy activate export dep (get_idents context, context) |-> put_idents end;
+    val activate = activate_notes Element.init (Element.transfer_morphism o Context.theory_of) context export;
+  in
+    roundup thy activate (case export of NONE => Morphism.identity | SOME export => export)
+      dep (get_idents context, context)
+    |-> put_idents
+  end;
 
 fun init name thy =
   activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
@@ -468,7 +472,7 @@ fun add_registration (name, base_morph) mixin export context =
       |> (case mixin of NONE => I
            | SOME mixin => amend_registration (name, morph) mixin export)
       (* activate import hierarchy as far as not already active *)
-      |> activate_facts export (name, morph)
+      |> activate_facts (SOME export) (name, morph)
   end;
 
 
