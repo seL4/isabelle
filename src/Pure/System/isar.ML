@@ -127,7 +127,7 @@ fun raw_loop secure src =
         handle crash =>
           (CRITICAL (fn () => Unsynchronized.change crashes (cons crash));
             warning "Recovering from Isar toplevel crash -- see also Isar.crashes");
-          raw_loop secure src)
+        raw_loop secure src)
   end;
 
 in
