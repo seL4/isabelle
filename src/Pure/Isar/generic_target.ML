@@ -8,7 +8,7 @@ Common target infrastructure.
 signature GENERIC_TARGET =
 sig
   val define: (((binding * typ) * mixfix) * (binding * term) -> term list
-    -> (string * sort) list * term list -> local_theory -> (term * thm) * local_theory)
+    -> term list -> local_theory -> (term * thm) * local_theory)
     -> (binding * mixfix) * (Attrib.binding * term) -> local_theory
     -> (term * (string * thm)) * local_theory
   val notes: (string
@@ -18,13 +18,26 @@ sig
     -> string -> (Attrib.binding * (thm list * Args.src list) list) list
     -> local_theory -> (string * thm list) list * local_theory
   val abbrev: (string * bool -> binding * mixfix -> term * term
-    -> (string * sort) list * term list -> local_theory -> local_theory)
+    -> term list -> local_theory -> local_theory)
     -> string * bool -> (binding * mixfix) * term -> local_theory
     -> (term * term) * local_theory
 end;
 
 structure Generic_Target: GENERIC_TARGET =
 struct
+
+(* mixfix syntax *)
+
+fun check_mixfix ctxt (b, extra_tfrees) mx =
+  if null extra_tfrees then mx
+  else
+    (warning
+      ("Additional type variable(s) in specification of " ^ Binding.str_of b ^ ": " ^
+        commas (map (Syntax.string_of_typ ctxt o TFree) (sort_wrt #1 extra_tfrees)) ^
+        (if mx = NoSyn then ""
+         else "\nDropping mixfix syntax " ^ Pretty.string_of (Syntax.pretty_mixfix mx)));
+      NoSyn);
+
 
 (* define *)
 
@@ -44,6 +57,7 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
     val T = Term.fastype_of rhs;
     val tfreesT = Term.add_tfreesT T (fold (Term.add_tfreesT o #2) xs []);
     val extra_tfrees = rev (subtract (op =) tfreesT (Term.add_tfrees rhs []));
+    val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
     val term_params =
@@ -58,7 +72,7 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
 
     (*foundation*)
     val ((lhs', global_def), lthy3) = foundation
-      (((b, U), mx), (b_def, rhs')) params (extra_tfrees, type_params) lthy;
+      (((b, U), mx'), (b_def, rhs')) params type_params lthy;
 
     (*local definition*)
     val ((lhs, local_def), lthy4) = lthy3
@@ -151,12 +165,13 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
 
     val extra_tfrees =
       subtract (op =) (Term.add_tfreesT (Term.fastype_of u) []) (Term.add_tfrees u []);
+    val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val global_rhs =
       singleton (Variable.export_terms (Variable.declare_term u target_ctxt) thy_ctxt) u;
   in
     lthy
-    |> target_abbrev prmode (b, mx) (global_rhs, t') (extra_tfrees, xs)
+    |> target_abbrev prmode (b, mx') (global_rhs, t') xs
     |> ProofContext.add_abbrev Print_Mode.internal (b, t) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), t)
   end;

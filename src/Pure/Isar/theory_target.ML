@@ -109,29 +109,10 @@ fun class_target (Target {target, ...}) f =
 
 (* mixfix notation *)
 
-local
-
 fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   if not is_locale then (NoSyn, NoSyn, mx)
   else if not is_class then (NoSyn, mx, NoSyn)
   else (mx, NoSyn, NoSyn);
-
-in
-
-fun prep_mixfix ctxt ta (b, extra_tfrees) mx =
-  let
-    val mx' =
-      if null extra_tfrees then mx
-      else
-        (warning
-          ("Additional type variable(s) in specification of " ^ Binding.str_of b ^ ": " ^
-            commas (map (Syntax.string_of_typ ctxt o TFree) (sort_wrt #1 extra_tfrees)) ^
-            (if mx = NoSyn then ""
-             else "\nDropping mixfix syntax " ^ Pretty.string_of (Syntax.pretty_mixfix mx)));
-          NoSyn);
-  in fork_mixfix ta mx' end;
-
-end;
 
 
 (* define *)
@@ -141,9 +122,9 @@ local
 fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
 
 fun foundation (ta as Target {target, is_locale, is_class, ...})
-    (((b, U), mx), (b_def, rhs')) params (extra_tfrees, type_params) lthy =
+    (((b, U), mx), (b_def, rhs')) params type_params lthy =
   let
-    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
+    val (mx1, mx2, mx3) = fork_mixfix ta mx;
     val (const, lthy2) = lthy |>
       (case Class_Target.instantiation_param lthy b of
         SOME c' =>
@@ -221,9 +202,9 @@ fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
       ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
-    prmode (b, mx) (global_rhs, t') (extra_tfrees, xs) lthy =
+    prmode (b, mx) (global_rhs, t') xs lthy =
   let
-    val (mx1, mx2, mx3) = prep_mixfix lthy ta (b, extra_tfrees) mx;
+    val (mx1, mx2, mx3) = fork_mixfix ta mx;
   in if is_locale
     then lthy
       |> locale_abbrev ta prmode ((b, mx2), global_rhs) xs
