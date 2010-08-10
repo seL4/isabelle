@@ -59,7 +59,7 @@ object YXML
   }
 
 
-  def parse_body(source: CharSequence): List[XML.Tree] =
+  def parse_body(source: CharSequence): XML.Body =
   {
     /* stack operations */
 
@@ -120,7 +120,7 @@ object YXML
     XML.elem (Markup.MALFORMED,
       List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
 
-  def parse_body_failsafe(source: CharSequence): List[XML.Tree] =
+  def parse_body_failsafe(source: CharSequence): XML.Body =
   {
     try { parse_body(source) }
     catch { case _: RuntimeException => List(markup_failsafe(source)) }

@@ -53,6 +53,7 @@ fun dest_bool_atom "0" = false
   | dest_bool_atom "1" = true
   | dest_bool_atom s = raise XML_ATOM s;
 
+
 fun make_unit_atom () = "";
 
 fun dest_unit_atom "" = ()

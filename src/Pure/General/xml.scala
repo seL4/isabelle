@@ -30,6 +30,8 @@ object XML
   def elem(name: String, body: List[Tree]) = Elem(Markup(name, Nil), body)
   def elem(name: String) = Elem(Markup(name, Nil), Nil)
 
+  type Body = List[Tree]
+
 
   /* string representation */
 
