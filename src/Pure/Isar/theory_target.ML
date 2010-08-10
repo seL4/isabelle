@@ -109,8 +109,6 @@ fun class_target (Target {target, ...}) f =
 
 (* define *)
 
-local
-
 fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
@@ -148,7 +146,7 @@ fun overloading_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_param
    of SOME (c, checked) => if mx <> NoSyn then syntax_error c
         else lthy |> Local_Theory.theory_result (Overloading.declare (c, U)
             ##>> Overloading.define checked b_def (c, rhs))
-          ||> Class_Target.confirm_declaration b
+          ||> Overloading.confirm b
     | NONE => lthy |>
         theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
 
@@ -191,12 +189,6 @@ fun foundation (ta as Target {target, is_locale, is_class, ...})
           (Class_Target.declare target ((b, mx1), (type_params, lhs)))
   end;
 
-in
-
-fun define ta = Generic_Target.define (foundation ta);
-
-end;
-
 
 (* notes *)
 
@@ -221,9 +213,9 @@ fun locale_notes locale kind global_facts local_facts lthy =
     |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
   end
 
-fun notes (Target {target, is_locale, ...}) =
-  Generic_Target.notes (if is_locale then locale_notes target
-    else fn kind => fn global_facts => fn _ => theory_notes kind global_facts);
+fun target_notes (ta as Target {target, is_locale, ...}) =
+  if is_locale then locale_notes target
+    else fn kind => fn global_facts => fn _ => theory_notes kind global_facts;
 
 
 (* abbrev *)
@@ -245,8 +237,6 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
       |> is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx), t'))
     else lthy
       |> theory_abbrev prmode ((b, mx), global_rhs);
-
-fun abbrev ta = Generic_Target.abbrev (target_abbrev ta);
 
 
 (* pretty *)
@@ -295,9 +285,9 @@ fun init_target (ta as Target {target, instantiation, overloading, ...}) thy =
   |> init_data ta
   |> Data.put ta
   |> Local_Theory.init NONE (Long_Name.base_name target)
-     {define = define ta,
-      notes = notes ta,
-      abbrev = abbrev ta,
+     {define = Generic_Target.define (foundation ta),
+      notes = Generic_Target.notes (target_notes ta),
+      abbrev = Generic_Target.abbrev (target_abbrev ta),
       declaration = fn pervasive => target_declaration ta
         { syntax = false, pervasive = pervasive },
       syntax_declaration = fn pervasive => target_declaration ta
@@ -320,7 +310,22 @@ fun gen_overloading prep_const raw_ops thy =
     val ctxt = ProofContext.init_global thy;
     val ops = raw_ops |> map (fn (name, const, checked) =>
       (name, Term.dest_Const (prep_const ctxt const), checked));
-  in thy |> init_target (make_target "" false false ([], [], []) ops) end;
+  in
+    thy
+    |> Overloading.init ops
+    |> Local_Theory.init NONE ""
+       {define = Generic_Target.define overloading_foundation,
+        notes = Generic_Target.notes
+          (fn kind => fn global_facts => fn _ => theory_notes kind global_facts),
+        abbrev = Generic_Target.abbrev
+          (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
+            theory_abbrev prmode ((b, mx), t)),
+        declaration = fn pervasive => theory_declaration,
+        syntax_declaration = fn pervasive => theory_declaration,
+        pretty = single o Overloading.pretty,
+        reinit = gen_overloading prep_const raw_ops o ProofContext.theory_of,
+        exit = Local_Theory.target_of o Overloading.conclude}
+  end;
 
 in
 
@@ -329,7 +334,21 @@ fun init target thy = init_target (named_target thy target) thy;
 fun context_cmd "-" thy = init NONE thy
   | context_cmd target thy = init (SOME (Locale.intern thy target)) thy;
 
-fun instantiation arities = init_target (make_target "" false false arities []);
+fun instantiation arities thy =
+  thy
+  |> Class_Target.init_instantiation arities
+  |> Local_Theory.init NONE ""
+     {define = Generic_Target.define instantiation_foundation,
+      notes = Generic_Target.notes
+        (fn kind => fn global_facts => fn _ => theory_notes kind global_facts),
+      abbrev = Generic_Target.abbrev
+        (fn prmode => fn (b, mx) => fn (t, _) => fn _ => theory_abbrev prmode ((b, mx), t)),
+      declaration = fn pervasive => theory_declaration,
+      syntax_declaration = fn pervasive => theory_declaration,
+      pretty = single o Class_Target.pretty_instantiation,
+      reinit = instantiation arities o ProofContext.theory_of,
+      exit = Local_Theory.target_of o Class_Target.conclude_instantiation};
+
 fun instantiation_cmd arities thy =
   instantiation (Class_Target.read_multi_arity thy arities) thy;
 
