@@ -94,7 +94,8 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
         (ProofContext.add_abbrev Print_Mode.internal arg)
       #-> (fn (lhs' as Const (d, _), _) =>
           same_shape ?
-            (Context.mapping (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
+            (Context.mapping
+              (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;
 
@@ -169,7 +170,8 @@ fun foundation (ta as Target {target, is_locale, is_class, ...})
           then AxClass.define_overloaded name' (head, rhs')
           else Thm.add_def false false (name', Logic.mk_equals (lhs', rhs')) #>> snd)
     ||> is_locale ? locale_const_declaration ta Syntax.mode_default ((b, mx2), lhs')
-    ||> is_class ? class_target ta (Class_Target.declare target ((b, mx1), (type_params, lhs')))
+    ||> is_class ? class_target ta
+          (Class_Target.declare target ((b, mx1), (type_params, lhs')))
   end;
 
 in
@@ -194,7 +196,8 @@ fun theory_notes kind global_facts lthy =
 fun locale_notes locale kind global_facts local_facts lthy = 
   let
     val global_facts' = Attrib.map_facts (K I) global_facts;
-    val local_facts' = Element.facts_map (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
+    val local_facts' = Element.facts_map
+      (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
   in
     lthy
     |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
@@ -209,11 +212,13 @@ fun notes (Target {target, is_locale, ...}) =
 (* abbrev *)
 
 fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
-  (Sign.add_abbrev (#1 prmode) (b, t) #-> (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
+  (Sign.add_abbrev (#1 prmode) (b, t) #->
+    (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
 
 fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
-  (Sign.add_abbrev Print_Mode.internal (b, t)) #-> (fn (lhs, _) =>
-    locale_const_declaration ta prmode ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+  (Sign.add_abbrev Print_Mode.internal (b, t)) #->
+    (fn (lhs, _) => locale_const_declaration ta prmode
+      ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
     prmode (b, mx) (global_rhs, t') (extra_tfrees, xs) lthy =
@@ -238,10 +243,10 @@ fun pretty_thy ctxt target is_class =
     val target_name =
       [Pretty.command (if is_class then "class" else "locale"),
         Pretty.str (" " ^ Locale.extern thy target)];
-    val fixes =
-      map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
-    val assumes =
-      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])])) (Assumption.all_assms_of ctxt);
+    val fixes = map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
+      (#1 (ProofContext.inferred_fixes ctxt));
+    val assumes = map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
+      (Assumption.all_assms_of ctxt);
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
@@ -279,8 +284,10 @@ fun init_target (ta as Target {target, instantiation, overloading, ...}) thy =
      {define = define ta,
       notes = notes ta,
       abbrev = abbrev ta,
-      declaration = fn pervasive => target_declaration ta { syntax = false, pervasive = pervasive },
-      syntax_declaration = fn pervasive => target_declaration ta { syntax = true, pervasive = pervasive },
+      declaration = fn pervasive => target_declaration ta
+        { syntax = false, pervasive = pervasive },
+      syntax_declaration = fn pervasive => target_declaration ta
+        { syntax = true, pervasive = pervasive },
       pretty = pretty ta,
       reinit = init_target ta o ProofContext.theory_of,
       exit = Local_Theory.target_of o
@@ -309,7 +316,8 @@ fun context_cmd "-" thy = init NONE thy
   | context_cmd target thy = init (SOME (Locale.intern thy target)) thy;
 
 fun instantiation arities = init_target (make_target "" false false arities []);
-fun instantiation_cmd arities thy = instantiation (Class_Target.read_multi_arity thy arities) thy;
+fun instantiation_cmd arities thy =
+  instantiation (Class_Target.read_multi_arity thy arities) thy;
 
 val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
 val overloading_cmd = gen_overloading Syntax.read_term;

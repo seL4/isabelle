@@ -17,9 +17,10 @@ sig
     -> local_theory -> local_theory)
     -> string -> (Attrib.binding * (thm list * Args.src list) list) list
     -> local_theory -> (string * thm list) list * local_theory
-  val abbrev: (string * bool -> binding * mixfix -> term * term -> (string * sort) list * term list
-    -> local_theory -> local_theory)
-    -> string * bool -> (binding * mixfix) * term -> local_theory -> (term * term) * local_theory
+  val abbrev: (string * bool -> binding * mixfix -> term * term
+    -> (string * sort) list * term list -> local_theory -> local_theory)
+    -> string * bool -> (binding * mixfix) * term -> local_theory
+    -> (term * term) * local_theory
 end;
 
 structure Generic_Target: GENERIC_TARGET =
@@ -85,7 +86,8 @@ fun import_export_proof ctxt (name, raw_th) =
     (*export assumes/defines*)
     val th = Goal.norm_result raw_th;
     val (defs, th') = Local_Defs.export ctxt thy_ctxt th;
-    val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume) (Assumption.all_assms_of ctxt);
+    val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume)
+      (Assumption.all_assms_of ctxt);
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
 
     (*export fixes*)
