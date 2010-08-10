@@ -11,6 +11,9 @@ General format of process output:
 signature ISABELLE_PROCESS =
 sig
   val isabelle_processN: string
+  val add_command: string -> (string list -> unit) -> unit
+  val command: string -> string list -> unit
+  val crashes: exn list Unsynchronized.ref
   val init: string -> string -> unit
 end;
 
@@ -23,6 +26,28 @@ val isabelle_processN = "isabelle_process";
 
 val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
 val _ = Markup.add_mode isabelle_processN YXML.output_markup;
+
+
+(* commands *)
+
+local
+
+val global_commands = Unsynchronized.ref (Symtab.empty: (string list -> unit) Symtab.table);
+
+in
+
+fun add_command name cmd = CRITICAL (fn () =>
+  Unsynchronized.change global_commands (fn cmds =>
+   (if not (Symtab.defined cmds name) then ()
+    else warning ("Redefining Isabelle process command " ^ quote name);
+    Symtab.update (name, cmd) cmds)));
+
+fun command name args =
+  (case Symtab.lookup (! global_commands) name of
+    NONE => error ("Undefined Isabelle process command " ^ quote name)
+  | SOME cmd => cmd args);
+
+end;
 
 
 (* message markup *)
@@ -94,6 +119,53 @@ fun setup_channels in_fifo out_fifo =
 end;
 
 
+(* protocol loop *)
+
+val crashes = Unsynchronized.ref ([]: exn list);
+
+local
+
+fun recover crash =
+  (CRITICAL (fn () => Unsynchronized.change crashes (cons crash));
+    warning "Recovering from Isabelle process crash -- see also Isabelle_Process.crashes");
+
+fun read_chunk stream len =
+  let
+    val n =
+      (case Int.fromString len of
+        SOME n => n
+      | NONE => error ("Isabelle process: malformed chunk header " ^ quote len));
+    val chunk = TextIO.inputN (stream, n);
+    val m = size chunk;
+  in
+    if m = n then chunk
+    else error ("Isabelle process: bad chunk (" ^ string_of_int m ^ " vs. " ^ string_of_int n ^ ")")
+  end;
+
+fun read_command stream =
+  (case TextIO.inputLine stream of
+    NONE => raise Runtime.TERMINATE
+  | SOME line => map (read_chunk stream) (space_explode "," line));
+
+fun run_command name args =
+  Runtime.debugging (command name) args
+    handle exn =>
+      error ("Isabelle process command failure: " ^ name ^ "\n" ^ ML_Compiler.exn_message exn);
+
+in
+
+fun loop stream =
+  let val continue =
+    (case read_command stream of
+      [] => (Output.error_msg "Isabelle process: no input"; true)
+    | name :: args => (run_command name args; true))
+    handle Runtime.TERMINATE => false
+      | exn => (Output.error_msg (ML_Compiler.exn_message exn) handle crash => recover crash; true);
+  in if continue then loop stream else () end;
+
+end;
+
+
 (* init *)
 
 fun init in_fifo out_fifo =
@@ -105,10 +177,8 @@ fun init in_fifo out_fifo =
     val _ = quick_and_dirty := true;  (* FIXME !? *)
     val _ = Keyword.status ();
     val _ = Output.status (Markup.markup Markup.ready "");
-    val _ =
-      Simple_Thread.fork false (fn () =>
-        (Isar.toplevel_loop in_stream {init = true, welcome = false, sync = true, secure = true};
-          quit ()));
+    val _ = Context.set_thread_data NONE;
+    val _ = Simple_Thread.fork false (fn () => (loop in_stream; quit ()));
   in () end;
 
 end;
