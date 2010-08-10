@@ -62,10 +62,10 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/cache.ML			\
   General/yxml.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML		\
   Isar/calculation.ML Isar/class.ML Isar/class_target.ML Isar/code.ML	\
   Isar/constdefs.ML Isar/context_rules.ML Isar/element.ML		\
-  Isar/expression.ML Isar/isar_cmd.ML Isar/isar_document.ML		\
-  Isar/isar_syn.ML Isar/keyword.ML Isar/local_defs.ML			\
-  Isar/local_syntax.ML Isar/local_theory.ML Isar/locale.ML		\
-  Isar/method.ML Isar/object_logic.ML Isar/obtain.ML			\
+  Isar/expression.ML Isar/generic_target.ML Isar/isar_cmd.ML		\
+  Isar/isar_document.ML	Isar/isar_syn.ML Isar/keyword.ML		\
+  Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML		\
+  Isar/locale.ML Isar/method.ML Isar/object_logic.ML Isar/obtain.ML	\
   Isar/outer_syntax.ML Isar/overloading.ML Isar/parse.ML		\
   Isar/parse_spec.ML Isar/parse_value.ML Isar/proof.ML			\
   Isar/proof_context.ML Isar/proof_display.ML Isar/proof_node.ML	\
