@@ -6,11 +6,12 @@ Basic library.
 
 package isabelle
 
-import java.lang.System
+
+import java.lang.{System, Thread}
 import java.awt.Component
 import javax.swing.JOptionPane
 
-
+import scala.actors.Actor
 import scala.swing.ComboBox
 import scala.swing.event.SelectionChanged
 
@@ -137,5 +138,16 @@ object Library
       (if (message == null || message.isEmpty) "" else message + ": ") +
         ((stop - start).toDouble / 1000000) + "ms elapsed time")
     Exn.release(result)
+  }
+
+
+  /* thread as actor */
+
+  def thread_actor(name: String)(body: => Unit): Actor =
+  {
+    val actor = Future.promise[Actor]
+    val thread = new Thread(name) { override def run() = { actor.fulfill(Actor.self); body } }
+    thread.start
+    actor.join
   }
 }
