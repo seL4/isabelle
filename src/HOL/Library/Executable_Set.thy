@@ -268,4 +268,55 @@ lemma Union_union [code]:
 hide_const (open) is_empty empty remove
   set_eq subset_eq subset inter union subtract Inf Sup Inter Union
 
+
+subsection {* Operations on relations *}
+
+text {* Initially contributed by Tjark Weber. *}
+
+lemma bounded_Collect_code [code_unfold]:
+  "{x\<in>S. P x} = project P S"
+  by (auto simp add: project_def)
+
+lemma Id_on_code [code]:
+  "Id_on (Set xs) = Set [(x,x). x \<leftarrow> xs]"
+  by (auto simp add: Id_on_def)
+
+lemma Domain_fst [code]:
+  "Domain r = fst ` r"
+  by (auto simp add: image_def Bex_def)
+
+lemma Range_snd [code]:
+  "Range r = snd ` r"
+  by (auto simp add: image_def Bex_def)
+
+lemma irrefl_code [code]:
+  "irrefl r \<longleftrightarrow> (\<forall>(x, y)\<in>r. x \<noteq> y)"
+  by (auto simp add: irrefl_def)
+
+lemma trans_def [code]:
+  "trans r \<longleftrightarrow> (\<forall>(x, y1)\<in>r. \<forall>(y2, z)\<in>r. y1 = y2 \<longrightarrow> (x, z)\<in>r)"
+  by (auto simp add: trans_def)
+
+definition "exTimes A B = Sigma A (%_. B)"
+
+lemma [code_unfold]:
+  "Sigma A (%_. B) = exTimes A B"
+  by (simp add: exTimes_def)
+
+lemma exTimes_code [code]:
+  "exTimes (Set xs) (Set ys) = Set [(x,y). x \<leftarrow> xs, y \<leftarrow> ys]"
+  by (auto simp add: exTimes_def)
+
+lemma rel_comp_code [code]:
+  "(Set xys) O (Set yzs) = Set (remdups [(fst xy, snd yz). xy \<leftarrow> xys, yz \<leftarrow> yzs, snd xy = fst yz])"
+ by (auto simp add: Bex_def)
+
+lemma acyclic_code [code]:
+  "acyclic r = irrefl (r^+)"
+  by (simp add: acyclic_def irrefl_def)
+
+lemma wf_code [code]:
+  "wf (Set xs) = acyclic (Set xs)"
+  by (simp add: wf_iff_acyclic_if_finite)
+
 end
