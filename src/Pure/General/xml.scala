@@ -17,13 +17,7 @@ object XML
 
   type Attributes = List[(String, String)]
 
-  sealed abstract class Tree {
-    override def toString = {
-      val s = new StringBuilder
-      append_tree(this, s)
-      s.toString
-    }
-  }
+  sealed abstract class Tree { override def toString = string_of_tree(this) }
   case class Elem(markup: Markup, body: List[Tree]) extends Tree
   case class Text(content: String) extends Tree
 
@@ -35,40 +29,40 @@ object XML
 
   /* string representation */
 
-  private def append_text(text: String, s: StringBuilder) {
-    if (text == null) s ++= text
-    else {
-      for (c <- text.iterator) c match {
-        case '<' => s ++= "&lt;"
-        case '>' => s ++= "&gt;"
-        case '&' => s ++= "&amp;"
-        case '"' => s ++= "&quot;"
-        case '\'' => s ++= "&apos;"
-        case _ => s += c
+  def string_of_body(body: Body): String =
+  {
+    val s = new StringBuilder
+
+    def text(txt: String) {
+      if (txt == null) s ++= txt
+      else {
+        for (c <- txt.iterator) c match {
+          case '<' => s ++= "&lt;"
+          case '>' => s ++= "&gt;"
+          case '&' => s ++= "&amp;"
+          case '"' => s ++= "&quot;"
+          case '\'' => s ++= "&apos;"
+          case _ => s += c
+        }
       }
     }
+    def attrib(p: (String, String)) { s ++= " "; s ++= p._1; s ++= "=\""; text(p._2); s ++= "\"" }
+    def elem(markup: Markup) { s ++= markup.name; markup.properties.foreach(attrib) }
+    def tree(t: Tree): Unit =
+      t match {
+        case Elem(markup, Nil) =>
+          s ++= "<"; elem(markup); s ++= "/>"
+        case Elem(markup, ts) =>
+          s ++= "<"; elem(markup); s ++= ">"
+          ts.foreach(tree)
+          s ++= "</"; s ++= markup.name; s ++= ">"
+        case Text(txt) => text(txt)
+      }
+    body.foreach(tree)
+    s.toString
   }
 
-  private def append_elem(name: String, atts: Attributes, s: StringBuilder)
-  {
-    s ++= name
-    for ((a, x) <- atts) {
-      s ++= " "; s ++= a; s ++= "=\""; append_text(x, s); s ++= "\""
-    }
-  }
-
-  private def append_tree(tree: Tree, s: StringBuilder)
-  {
-    tree match {
-      case Elem(Markup(name, atts), Nil) =>
-        s ++= "<"; append_elem(name, atts, s); s ++= "/>"
-      case Elem(Markup(name, atts), ts) =>
-        s ++= "<"; append_elem(name, atts, s); s ++= ">"
-        for (t <- ts) append_tree(t, s)
-        s ++= "</"; s ++= name; s ++= ">"
-      case Text(text) => append_text(text, s)
-    }
-  }
+  def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
 
   /* iterate over content */
