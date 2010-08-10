@@ -342,15 +342,6 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
     command_input ! Input(" \\<^sync>\n; " + text + " \\<^sync>;\n")
   }
 
-  def command(text: String) = input("Isabelle.command " + Isabelle_Syntax.encode_string(text))
-
-  def command(props: List[(String, String)], text: String) =
-    input("Isabelle.command " + Isabelle_Syntax.encode_properties(props) + " " +
-      Isabelle_Syntax.encode_string(text))
-
-  def ML_val(text: String) = input("ML_val " + Isabelle_Syntax.encode_string(text))
-  def ML_command(text: String) = input("ML_command " + Isabelle_Syntax.encode_string(text))
-
   def close() = synchronized {    // FIXME avoid synchronized
     command_input ! Close
     closing = true
