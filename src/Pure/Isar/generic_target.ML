@@ -71,21 +71,21 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
     val U = map Term.fastype_of params ---> T;
 
     (*foundation*)
-    val ((lhs', global_def), lthy3) = foundation
+    val ((lhs', global_def), lthy2) = foundation
       (((b, U), mx'), (b_def, rhs')) (type_params, term_params) lthy;
 
     (*local definition*)
-    val ((lhs, local_def), lthy4) = lthy3
+    val ((lhs, local_def), lthy3) = lthy2
       |> Local_Defs.add_def ((b, NoSyn), lhs');
-    val def = Local_Defs.trans_terms lthy4
+    val def = Local_Defs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,
        (*rhs' == rhs*)          Thm.symmetric rhs_conv];
 
     (*note*)
-    val ([(res_name, [res])], lthy5) = lthy4
+    val ([(res_name, [res])], lthy4) = lthy3
       |> Local_Theory.notes_kind "" [((b_def, atts), [([def], [])])];
-  in ((lhs, (res_name, res)), lthy5) end;
+  in ((lhs, (res_name, res)), lthy4) end;
 
 
 (* notes *)
