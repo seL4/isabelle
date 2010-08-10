@@ -38,14 +38,14 @@ object XML_Data
 
   /* structural nodes */
 
-  class XML_Body extends Exception  // FIXME exception argument!?
+  class XML_Body(body: XML.Body) extends Exception
 
   private def make_node(ts: XML.Body): XML.Tree = XML.Elem(Markup(":", Nil), ts)
 
   private def dest_node(t: XML.Tree): XML.Body =
     t match {
       case XML.Elem(Markup(":", Nil), ts) => ts
-      case _ => throw new XML_Body
+      case _ => throw new XML_Body(List(t))
     }
 
 
@@ -57,16 +57,17 @@ object XML_Data
   def dest_properties(ts: XML.Body): List[(String, String)] =
     ts match {
       case List(XML.Elem(Markup(":", props), Nil)) => props
-      case _ => throw new XML_Body
+      case _ => throw new XML_Body(ts)
     }
 
 
-  def make_string(s: String): XML.Body = List(XML.Text(s))
+  def make_string(s: String): XML.Body = if (s.isEmpty) Nil else List(XML.Text(s))
 
   def dest_string(ts: XML.Body): String =
     ts match {
+      case Nil => ""
       case List(XML.Text(s)) => s
-      case _ => throw new XML_Body
+      case _ => throw new XML_Body(ts)
     }
 
 
@@ -86,7 +87,7 @@ object XML_Data
   def dest_pair[A, B](dest1: XML.Body => A)(dest2: XML.Body => B)(ts: XML.Body): (A, B) =
     ts match {
       case List(t1, t2) => (dest1(dest_node(t1)), dest2(dest_node(t2)))
-      case _ => throw new XML_Body
+      case _ => throw new XML_Body(ts)
     }
 
 
@@ -98,7 +99,7 @@ object XML_Data
       (ts: XML.Body): (A, B, C) =
     ts match {
       case List(t1, t2, t3) => (dest1(dest_node(t1)), dest2(dest_node(t2)), dest3(dest_node(t3)))
-      case _ => throw new XML_Body
+      case _ => throw new XML_Body(ts)
     }
 
 
@@ -119,6 +120,6 @@ object XML_Data
     dest_list(dest)(ts) match {
       case Nil => None
       case List(x) => Some(x)
-      case _ => throw new XML_Body
+      case _ => throw new XML_Body(ts)
     }
 }

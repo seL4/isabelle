@@ -78,9 +78,11 @@ fun dest_properties [XML.Elem ((":", props), [])] = props
   | dest_properties ts = raise XML_BODY ts;
 
 
-fun make_string s = [XML.Text s];
+fun make_string "" = []
+  | make_string s = [XML.Text s];
 
-fun dest_string [XML.Text s] = s
+fun dest_string [] = ""
+  | dest_string [XML.Text s] = s
   | dest_string ts = raise XML_BODY ts;
 
 
