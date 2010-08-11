@@ -611,13 +611,12 @@ definition %quote example :: int where
 text {*
   \noindent This maps to Haskell as follows:
 *}
-
+(*<*)code_include %invisible Haskell "Natural" -(*>*)
 text %quote {*@{code_stmts example (Haskell)}*}
 
 text {*
   \noindent The code in SML has explicit dictionary passing:
 *}
-
 text %quote {*@{code_stmts example (SML)}*}
 
 subsection {* Inspecting the type class universe *}
