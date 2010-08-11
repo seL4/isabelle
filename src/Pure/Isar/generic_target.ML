@@ -21,10 +21,20 @@ sig
     -> term list -> local_theory -> local_theory)
     -> string * bool -> (binding * mixfix) * term -> local_theory
     -> (term * term) * local_theory
+
+  val theory_declaration: declaration -> local_theory -> local_theory
+  val theory_foundation: ((binding * typ) * mixfix) * (binding * term)
+    -> term list * term list -> local_theory -> (term * thm) * local_theory
+  val theory_notes: string -> (Attrib.binding * (thm list * Args.src list) list) list
+    -> local_theory -> local_theory
+  val theory_abbrev: Syntax.mode -> (binding * mixfix) * term
+    -> local_theory -> local_theory
 end;
 
 structure Generic_Target: GENERIC_TARGET =
 struct
+
+(** lifting primitive to target operations **)
 
 (* mixfix syntax *)
 
@@ -175,5 +185,41 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
     |> ProofContext.add_abbrev Print_Mode.internal (b, t) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), t)
   end;
+
+
+(** primitive theory operations **)
+
+fun theory_declaration decl lthy =
+  let
+    val global_decl = Morphism.form
+      (Morphism.transform (Local_Theory.global_morphism lthy) decl);
+  in
+    lthy
+    |> Local_Theory.theory (Context.theory_map global_decl)
+    |> Local_Theory.target (Context.proof_map global_decl)
+  end;
+
+fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  let
+    val (const, lthy2) = lthy |> Local_Theory.theory_result
+      (Sign.declare_const ((b, U), mx));
+    val lhs = list_comb (const, type_params @ term_params);
+    val ((_, def), lthy3) = lthy2 |> Local_Theory.theory_result
+      (Thm.add_def false false (b_def, Logic.mk_equals (lhs, rhs)));
+  in ((lhs, def), lthy3) end;
+
+fun theory_notes kind global_facts lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
+  in
+    lthy
+    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
+  end;
+
+fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
+  (Sign.add_abbrev (#1 prmode) (b, t) #->
+    (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
 
 end;
