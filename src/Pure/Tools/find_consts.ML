@@ -60,8 +60,7 @@ fun pretty_const ctxt (nm, ty) =
     val ty' = Logic.unvarifyT_global ty;
   in
     Pretty.block
-     [Pretty.quote (Pretty.str nm), Pretty.fbrk,
-      Pretty.str "::", Pretty.brk 1,
+     [Pretty.str nm, Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Syntax.pretty_typ ctxt ty')]
   end;
 
