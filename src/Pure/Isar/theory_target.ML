@@ -12,8 +12,6 @@ sig
   val context_cmd: xstring -> theory -> local_theory
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
   val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
-  val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
-  val overloading_cmd: (string * string * bool) list -> theory -> local_theory
 end;
 
 structure Theory_Target: THEORY_TARGET =
@@ -111,15 +109,6 @@ fun instantiation_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_par
         else lthy |> Local_Theory.theory_result (AxClass.declare_overloaded (c, U)
             ##>> AxClass.define_overloaded b_def (c, rhs))
           ||> Class_Target.confirm_declaration b
-    | NONE => lthy |>
-        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
-
-fun overloading_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
-  case Overloading.operation lthy b
-   of SOME (c, checked) => if mx <> NoSyn then syntax_error c
-        else lthy |> Local_Theory.theory_result (Overloading.declare (c, U)
-            ##>> Overloading.define checked b_def (c, rhs))
-          ||> Overloading.confirm b
     | NONE => lthy |>
         Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
 
@@ -257,28 +246,6 @@ fun named_target _ NONE = global_target
       then make_target target true (Class_Target.is_class thy target)
       else error ("No such locale: " ^ quote target);
 
-fun gen_overloading prep_const raw_ops thy =
-  let
-    val ctxt = ProofContext.init_global thy;
-    val ops = raw_ops |> map (fn (name, const, checked) =>
-      (name, Term.dest_Const (prep_const ctxt const), checked));
-  in
-    thy
-    |> Overloading.init ops
-    |> Local_Theory.init NONE ""
-       {define = Generic_Target.define overloading_foundation,
-        notes = Generic_Target.notes
-          (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
-        abbrev = Generic_Target.abbrev
-          (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
-            Generic_Target.theory_abbrev prmode ((b, mx), t)),
-        declaration = K Generic_Target.theory_declaration,
-        syntax_declaration = K Generic_Target.theory_declaration,
-        pretty = single o Overloading.pretty,
-        reinit = gen_overloading prep_const raw_ops o ProofContext.theory_of,
-        exit = Local_Theory.target_of o Overloading.conclude}
-  end;
-
 in
 
 fun init target thy = init_target (named_target thy target) thy;
@@ -303,9 +270,6 @@ fun instantiation arities thy =
 
 fun instantiation_cmd arities thy =
   instantiation (Class_Target.read_multi_arity thy arities) thy;
-
-val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
-val overloading_cmd = gen_overloading Syntax.read_term;
 
 end;
 
