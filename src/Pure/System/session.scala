@@ -23,7 +23,7 @@ object Session
 
   /* managed entities */
 
-  type Entity_ID = String
+  type Entity_ID = Long
 
   trait Entity
   {
@@ -58,8 +58,12 @@ class Session(system: Isabelle_System)
 
   /* unique ids */
 
-  private var id_count: BigInt = 0
-  def create_id(): Session.Entity_ID = synchronized { id_count += 1; "j" + id_count }
+  private var id_count: Long = 0
+  def create_id(): Session.Entity_ID = synchronized {
+    require(id_count > java.lang.Long.MIN_VALUE)
+    id_count -= 1
+    id_count
+  }
 
 
 

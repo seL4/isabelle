@@ -23,7 +23,10 @@ object Isar_Document
     def unapply(msg: XML.Tree): Option[(Document.Command_ID, Document.State_ID)] =
       msg match {
         case XML.Elem(Markup(Markup.EDIT, List((Markup.ID, cmd_id), (Markup.STATE, state_id))), Nil) =>
-          Some(cmd_id, state_id)
+          (Markup.parse_long(cmd_id), Markup.parse_long(state_id)) match {
+            case (Some(i), Some(j)) => Some((i, j))
+            case _ => None
+          }
         case _ => None
       }
   }
@@ -38,7 +41,7 @@ trait Isar_Document extends Isabelle_Process
   /* commands */
 
   def define_command(id: Document.Command_ID, text: String): Unit =
-    input("Isar_Document.define_command", id, text)
+    input("Isar_Document.define_command", Document.print_id(id), text)
 
 
   /* documents */
@@ -47,13 +50,15 @@ trait Isar_Document extends Isabelle_Process
       edits: List[Document.Edit[Document.Command_ID]])
   {
     def make_id1(id1: Option[Document.Command_ID]): XML.Body =
-      XML_Data.make_string(id1 getOrElse Document.NO_ID)
+      XML_Data.make_long(id1 getOrElse Document.NO_ID)
+
     val arg =
       XML_Data.make_list(
         XML_Data.make_pair(XML_Data.make_string)(
           XML_Data.make_option(XML_Data.make_list(
-              XML_Data.make_pair(make_id1)(XML_Data.make_option(XML_Data.make_string))))))(edits)
+              XML_Data.make_pair(make_id1)(XML_Data.make_option(XML_Data.make_long))))))(edits)
 
-    input("Isar_Document.edit_document", old_id, new_id, YXML.string_of_body(arg))
+    input("Isar_Document.edit_document",
+      Document.print_id(old_id), Document.print_id(new_id), YXML.string_of_body(arg))
   }
 }

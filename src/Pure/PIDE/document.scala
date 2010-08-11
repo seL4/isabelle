@@ -16,11 +16,14 @@ object Document
 {
   /* formal identifiers */
 
-  type Version_ID = String
-  type Command_ID = String
-  type State_ID = String
+  type Version_ID = Long
+  type Command_ID = Long
+  type State_ID = Long
 
-  val NO_ID = ""
+  val NO_ID = 0L
+
+  def parse_id(s: String): Long = java.lang.Long.parseLong(s)
+  def print_id(id: Long): String = id.toString
 
 
 

@@ -20,18 +20,17 @@ in
     Synchronized.change_result id_count
       (fn i =>
         let val i' = i + 1
-        in ("i" ^ string_of_int i', i') end);
+        in (i', i') end);
 end;
 
-fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ quote id);
-fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ quote id);
-
+fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document.print_id id);
+fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document.print_id id);
 
 
 (** documents **)
 
 datatype entry = Entry of {next: Document.command_id option, state: Document.state_id option};
-type node = entry Symtab.table; (*unique command entries indexed by command_id, start with no_id*)
+type node = entry Inttab.table; (*unique command entries indexed by command_id, start with no_id*)
 type document = node Graph.T;   (*development graph via static imports*)
 
 
@@ -40,11 +39,11 @@ type document = node Graph.T;   (*development graph via static imports*)
 fun make_entry next state = Entry {next = next, state = state};
 
 fun the_entry (node: node) (id: Document.command_id) =
-  (case Symtab.lookup node id of
+  (case Inttab.lookup node id of
     NONE => err_undef "command entry" id
   | SOME (Entry entry) => entry);
 
-fun put_entry (id: Document.command_id, entry: entry) = Symtab.update (id, entry);
+fun put_entry (id: Document.command_id, entry: entry) = Inttab.update (id, entry);
 
 fun put_entry_state (id: Document.command_id) state (node: node) =
   let val {next, ...} = the_entry node id
@@ -62,7 +61,7 @@ fun fold_entries id0 f (node: node) =
       | apply (SOME id) x =
           let val entry = the_entry node id
           in apply (#next entry) (f (id, entry) x) end;
-  in if Symtab.defined node id0 then apply (SOME id0) else I end;
+  in if Inttab.defined node id0 then apply (SOME id0) else I end;
 
 fun first_entry P (node: node) =
   let
@@ -85,7 +84,7 @@ fun insert_after (id: Document.command_id) (id2: Document.command_id) (node: nod
 fun delete_after (id: Document.command_id) (node: node) =
   let val {next, state} = the_entry node id in
     (case next of
-      NONE => error ("No next entry to delete: " ^ quote id)
+      NONE => error ("No next entry to delete: " ^ Document.print_id id)
     | SOME id2 =>
         node |>
           (case #next (the_entry node id2) of
@@ -96,7 +95,7 @@ fun delete_after (id: Document.command_id) (node: node) =
 
 (* node operations *)
 
-val empty_node: node = Symtab.make [(Document.no_id, make_entry NONE (SOME Document.no_id))];
+val empty_node: node = Inttab.make [(Document.no_id, make_entry NONE (SOME Document.no_id))];
 
 fun the_node (document: document) name =
   Graph.get_node document name handle Graph.UNDEF _ => empty_node;
@@ -118,17 +117,17 @@ fun edit_nodes (name, SOME edits) =
 local
 
 val global_states =
-  Unsynchronized.ref (Symtab.make [(Document.no_id, Lazy.value (SOME Toplevel.toplevel))]);
+  Unsynchronized.ref (Inttab.make [(Document.no_id, Lazy.value (SOME Toplevel.toplevel))]);
 
 in
 
 fun define_state (id: Document.state_id) state =
   NAMED_CRITICAL "Isar" (fn () =>
-    Unsynchronized.change global_states (Symtab.update_new (id, state))
-      handle Symtab.DUP dup => err_dup "state" dup);
+    Unsynchronized.change global_states (Inttab.update_new (id, state))
+      handle Inttab.DUP dup => err_dup "state" dup);
 
 fun the_state (id: Document.state_id) =
-  (case Symtab.lookup (! global_states) id of
+  (case Inttab.lookup (! global_states) id of
     NONE => err_undef "state" id
   | SOME state => state);
 
@@ -139,23 +138,24 @@ end;
 
 local
 
-val global_commands = Unsynchronized.ref (Symtab.make [(Document.no_id, Toplevel.empty)]);
+val global_commands = Unsynchronized.ref (Inttab.make [(Document.no_id, Toplevel.empty)]);
 
 in
 
 fun define_command (id: Document.command_id) text =
   let
+    val id_string = Document.print_id id;
     val tr =
-      Position.setmp_thread_data (Position.id_only id) (fn () =>
-        Outer_Syntax.prepare_command (Position.id id) text) ();
+      Position.setmp_thread_data (Position.id_only id_string) (fn () =>
+        Outer_Syntax.prepare_command (Position.id id_string) text) ();
   in
     NAMED_CRITICAL "Isar" (fn () =>
-      Unsynchronized.change global_commands (Symtab.update_new (id, Toplevel.put_id id tr))
-        handle Symtab.DUP dup => err_dup "command" dup)
+      Unsynchronized.change global_commands (Inttab.update_new (id, Toplevel.put_id id_string tr))
+        handle Inttab.DUP dup => err_dup "command" dup)
   end;
 
 fun the_command (id: Document.command_id) =
-  (case Symtab.lookup (! global_commands) id of
+  (case Inttab.lookup (! global_commands) id of
     NONE => err_undef "command" id
   | SOME tr => tr);
 
@@ -166,17 +166,17 @@ end;
 
 local
 
-val global_documents = Unsynchronized.ref (Symtab.make [(Document.no_id, Graph.empty: document)]);
+val global_documents = Unsynchronized.ref (Inttab.make [(Document.no_id, Graph.empty: document)]);
 
 in
 
 fun define_document (id: Document.version_id) document =
   NAMED_CRITICAL "Isar" (fn () =>
-    Unsynchronized.change global_documents (Symtab.update_new (id, document))
-      handle Symtab.DUP dup => err_dup "document" dup);
+    Unsynchronized.change global_documents (Inttab.update_new (id, document))
+      handle Inttab.DUP dup => err_dup "document" dup);
 
 fun the_document (id: Document.version_id) =
-  (case Symtab.lookup (! global_documents) id of
+  (case Inttab.lookup (! global_documents) id of
     NONE => err_undef "document" id
   | SOME document => document);
 
@@ -230,7 +230,7 @@ fun new_state name (id: Document.command_id) (state_id, updates) =
   let
     val state = the_state state_id;
     val state_id' = create_id ();
-    val tr = Toplevel.put_id state_id' (the_command id);
+    val tr = Toplevel.put_id (Document.print_id state_id') (the_command id);
     val state' =
       Lazy.lazy (fn () =>
         (case Lazy.force state of
@@ -240,14 +240,15 @@ fun new_state name (id: Document.command_id) (state_id, updates) =
   in (state_id', (id, state_id') :: updates) end;
 
 fun updates_status updates =
-  implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
+  implode (map (fn (id, state_id) =>
+    Markup.markup (Markup.edit (Document.print_id id) (Document.print_id state_id)) "") updates)
   |> Markup.markup Markup.assign
   |> Output.status;
 
 in
 
 fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) edits =
-  Position.setmp_thread_data (Position.id_only new_id) (fn () =>
+  Position.setmp_thread_data (Position.id_only (Document.print_id new_id)) (fn () =>
     NAMED_CRITICAL "Isar" (fn () =>
       let
         val old_document = the_document old_id;
@@ -281,16 +282,16 @@ end;
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.define_command"
-    (fn [id, text] => define_command id text);
+    (fn [id, text] => define_command (Document.parse_id id) text);
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.edit_document"
     (fn [old_id, new_id, edits] =>
-      edit_document old_id new_id
+      edit_document (Document.parse_id old_id) (Document.parse_id new_id)
         (XML_Data.dest_list (XML_Data.dest_pair XML_Data.dest_string
             (XML_Data.dest_option (XML_Data.dest_list
-                (XML_Data.dest_pair XML_Data.dest_string
-                  (XML_Data.dest_option XML_Data.dest_string))))) (YXML.parse_body edits)));
+                (XML_Data.dest_pair XML_Data.dest_int
+                  (XML_Data.dest_option XML_Data.dest_int))))) (YXML.parse_body edits)));
 
 end;
 

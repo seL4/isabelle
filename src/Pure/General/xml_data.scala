@@ -15,6 +15,13 @@ object XML_Data
   class XML_Atom(s: String) extends Exception(s)
 
 
+  private def make_long_atom(i: Long): String = i.toString
+
+  private def dest_long_atom(s: String): Long =
+    try { java.lang.Long.parseLong(s) }
+    catch { case e: NumberFormatException => throw new XML_Atom(s) }
+
+
   private def make_int_atom(i: Int): String = i.toString
 
   private def dest_int_atom(s: String): Int =
@@ -70,6 +77,9 @@ object XML_Data
       case _ => throw new XML_Body(ts)
     }
 
+
+  def make_long(i: Long): XML.Body = make_string(make_long_atom(i))
+  def dest_long(ts: XML.Body): Long = dest_long_atom(dest_string(ts))
 
   def make_int(i: Int): XML.Body = make_string(make_int_atom(i))
   def dest_int(ts: XML.Body): Int = dest_int_atom(dest_string(ts))

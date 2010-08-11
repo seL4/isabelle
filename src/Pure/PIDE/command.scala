@@ -31,7 +31,7 @@ object Command
   }
   case class TypeInfo(ty: String)
   case class RefInfo(file: Option[String], line: Option[Int],
-    command_id: Option[String], offset: Option[Int])
+    command_id: Option[Document.Command_ID], offset: Option[Int])  // FIXME Command_ID vs. State_ID !?
 }
 
 class Command(
