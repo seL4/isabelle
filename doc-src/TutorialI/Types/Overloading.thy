@@ -55,10 +55,10 @@ end
 text {* \noindent From now on, terms like @{term "Suc (m \<oplus> 2)"} are
 legal. *}
 
-instantiation "*" :: (plus, plus) plus
+instantiation prod :: (plus, plus) plus
 begin
 
-text {* \noindent Here we instantiate the product type @{type "*"} to
+text {* \noindent Here we instantiate the product type @{type prod} to
 class @{class [source] plus}, given that its type arguments are of
 class @{class [source] plus}: *}
 

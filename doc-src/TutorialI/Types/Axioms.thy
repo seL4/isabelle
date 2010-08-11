@@ -59,7 +59,7 @@ end
 text {* \noindent Again, the interesting things enter the stage with
 parametric types: *}
 
-instantiation * :: (semigroup, semigroup) semigroup
+instantiation prod :: (semigroup, semigroup) semigroup
 begin
 
 instance proof
@@ -112,7 +112,7 @@ specification of class operations and a non-trivial instance proof.
 This covers products as well:
 *}
 
-instantiation * :: (monoidl, monoidl) monoidl
+instantiation prod :: (monoidl, monoidl) monoidl
 begin
 
 definition
