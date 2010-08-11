@@ -433,23 +433,22 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
     val tally_msg =
       (case foundo of
-        NONE => "displaying " ^ string_of_int returned ^ " theorems"
+        NONE => "displaying " ^ string_of_int returned ^ " theorem(s)"
       | SOME found =>
-          "found " ^ string_of_int found ^ " theorems" ^
+          "found " ^ string_of_int found ^ " theorem(s)" ^
             (if returned < found
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
 
     val end_msg = " in " ^ Time.toString (#cpu (end_timing start)) ^ " secs";
   in
-    Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria)
-        :: Pretty.str "" ::
-     (if null thms then [Pretty.str ("nothing found" ^ end_msg)]
-      else
-        [Pretty.str (tally_msg ^ end_msg ^ ":"), Pretty.str ""] @
+    Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) ::
+    Pretty.str "" ::
+    (if null thms then [Pretty.str ("nothing found" ^ end_msg)]
+     else
+      [Pretty.str (tally_msg ^ end_msg ^ ":"), Pretty.str ""] @
         map (pretty_thm ctxt) thms)
-    |> Pretty.chunks |> Pretty.writeln
-  end;
+  end |> Pretty.chunks |> Pretty.writeln;
 
 
 

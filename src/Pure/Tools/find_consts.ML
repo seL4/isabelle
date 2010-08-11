@@ -28,24 +28,13 @@ datatype criterion =
 (* matching types/consts *)
 
 fun matches_subtype thy typat =
-  let
-    val p = can (fn ty => Sign.typ_match thy (typat, ty) Vartab.empty);
+  Term.exists_subtype (fn ty => Sign.typ_instance thy (ty, typat));
 
-    fun fs [] = false
-      | fs (t :: ts) = f t orelse fs ts
-
-    and f (t as Type (_, ars)) = p t orelse fs ars
-      | f t = p t;
-  in f end;
-
-fun check_const p (nm, (ty, _)) =
-  if p (nm, ty)
-  then SOME (Term.size_of_typ ty)
-  else NONE;
+fun check_const pred (nm, (ty, _)) =
+  if pred (nm, ty) then SOME (Term.size_of_typ ty) else NONE;
 
 fun opt_not f (c as (_, (ty, _))) =
-  if is_some (f c)
-  then NONE else SOME (Term.size_of_typ ty);
+  if is_some (f c) then NONE else SOME (Term.size_of_typ ty);
 
 fun filter_const _ NONE = NONE
   | filter_const f (SOME (c, r)) =
@@ -128,18 +117,15 @@ fun find_consts ctxt raw_criteria =
 
     val end_msg = " in " ^ Time.toString (#cpu (end_timing start)) ^ " secs";
   in
-    Pretty.big_list "searched for:" (map pretty_criterion raw_criteria)
-      :: Pretty.str ""
-      :: (Pretty.str o implode)
-           (if null matches
-            then ["nothing found", end_msg]
-            else ["found ", (string_of_int o length) matches,
-                  " constants", end_msg, ":"])
-      :: Pretty.str ""
-      :: map (pretty_const ctxt) matches
-    |> Pretty.chunks
-    |> Pretty.writeln
-  end;
+    Pretty.big_list "searched for:" (map pretty_criterion raw_criteria) ::
+    Pretty.str "" ::
+    Pretty.str
+     (if null matches
+      then "nothing found" ^ end_msg
+      else "found " ^ string_of_int (length matches) ^ " constant(s)" ^ end_msg ^ ":") ::
+    Pretty.str "" ::
+    map (pretty_const ctxt) matches
+  end |> Pretty.chunks |> Pretty.writeln;
 
 
 (* command syntax *)
