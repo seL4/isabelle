@@ -67,7 +67,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
             case Some(cmd) if !restriction.isDefined || restriction.get.contains(cmd) =>
               val snapshot = doc_view.model.snapshot()
               val filtered_results =
-                snapshot.document.current_state(cmd).results filter {
+                snapshot.state(cmd).results filter {
                   case XML.Elem(Markup(Markup.TRACING, _), _) => show_tracing
                   case XML.Elem(Markup(Markup.DEBUG, _), _) => show_debug
                   case _ => true

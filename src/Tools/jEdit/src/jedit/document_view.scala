@@ -26,7 +26,7 @@ object Document_View
 {
   def choose_color(snapshot: Document.Snapshot, command: Command): Color =
   {
-    val state = snapshot.document.current_state(command)
+    val state = snapshot.state(command)
     if (snapshot.is_outdated) new Color(240, 240, 240)
     else if (state.forks > 0) new Color(255, 228, 225)
     else if (state.forks < 0) Color.red
@@ -203,7 +203,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val offset = snapshot.revert(text_area.xyToOffset(x, y))
       snapshot.node.command_at(offset) match {
         case Some((command, command_start)) =>
-          snapshot.document.current_state(command).type_at(offset - command_start) match {
+          snapshot.state(command).type_at(offset - command_start) match {
             case Some(text) => Isabelle.tooltip(text)
             case None => null
           }

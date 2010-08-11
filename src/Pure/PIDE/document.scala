@@ -101,6 +101,7 @@ object Document
     val is_outdated: Boolean
     def convert(offset: Int): Int
     def revert(offset: Int): Int
+    def state(command: Command): State
   }
 
   object Change
@@ -145,6 +146,7 @@ object Document
         val is_outdated = !(pending_edits.isEmpty && latest == stable.get)
         def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+        def state(command: Command): State = document.current_state(command)
       }
     }
   }

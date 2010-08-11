@@ -47,7 +47,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
         val offset = snapshot.revert(original_offset)
         snapshot.node.command_at(offset) match {
           case Some((command, command_start)) =>
-            snapshot.document.current_state(command).ref_at(offset - command_start) match {
+            snapshot.state(command).ref_at(offset - command_start) match {
               case Some(ref) =>
                 val begin = snapshot.convert(command_start + ref.start)
                 val line = buffer.getLineOfOffset(begin)
