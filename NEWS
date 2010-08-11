@@ -35,6 +35,10 @@ in addition to interpretations in theories.
 
 *** HOL ***
 
+* Theory Library/Monad_Syntax provides do-syntax for monad types.  Syntax
+in Library/State_Monad has been changed to avoid ambiguities.
+INCOMPATIBILITY.
+
 * code generator: export_code without explicit file declaration prints
 to standard output.  INCOMPATIBILITY.
 
