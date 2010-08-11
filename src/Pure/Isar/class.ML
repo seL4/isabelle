@@ -7,7 +7,7 @@ Type classes derived from primitive axclasses and locales -- interfaces.
 signature CLASS =
 sig
   include CLASS_TARGET
-    (*FIXME the split into class_target.ML, Named_Target.ML and
+    (*FIXME the split into class_target.ML, named_target.ML and
       class.ML is artificial*)
 
   val class: binding -> class list -> Element.context_i list
