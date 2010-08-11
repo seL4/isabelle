@@ -830,10 +830,10 @@ fun test_term ctxt report t =
           str "case Seq.pull (testf p) of", Pretty.brk 1,
           str "SOME ", mk_tuple [mk_tuple (map (str o fst) args'), str "_"],
           str " =>", Pretty.brk 1, str "SOME ",
-          Pretty.block (str "[" ::
-            Pretty.commas (map (fn (s, T) => Pretty.block
-              [mk_term_of gr "Generated" false T, Pretty.brk 1, str s]) args') @
-            [str "]"]), Pretty.brk 1,
+          Pretty.enum "," "[" "]"
+            (map (fn (s, T) => Pretty.block
+              [mk_term_of gr "Generated" false T, Pretty.brk 1, str s]) args'),
+          Pretty.brk 1,
           str "| NONE => NONE);"]) ^
       "\n\nend;\n";
     val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none s;

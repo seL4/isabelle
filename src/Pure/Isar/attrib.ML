@@ -94,8 +94,7 @@ val extern = Name_Space.extern o #1 o Attributes.get o ProofContext.theory_of;
 
 fun pretty_attribs _ [] = []
   | pretty_attribs ctxt srcs =
-      [Pretty.enclose "[" "]"
-        (Pretty.commas (map (Args.pretty_src ctxt o Args.map_name (extern ctxt)) srcs))];
+      [Pretty.enum "," "[" "]" (map (Args.pretty_src ctxt o Args.map_name (extern ctxt)) srcs)];
 
 
 (* get attributes *)
