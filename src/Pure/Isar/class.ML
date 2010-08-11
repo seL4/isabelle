@@ -19,7 +19,7 @@ sig
   val subclass_cmd: xstring -> local_theory -> Proof.state
 end;
 
-structure Class : CLASS =
+structure Class: CLASS =
 struct
 
 open Class_Target;
@@ -55,7 +55,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     (* witness for canonical interpretation *)
     val prop = try the_single props;
     val wit = Option.map (fn prop => let
-        val sup_axioms = map_filter (fst o rules thy) sups;
+        val sup_axioms = map_filter (fst o Class_Target.rules thy) sups;
         val loc_intro_tac = case Locale.intros_of thy class
           of (_, NONE) => all_tac
            | (_, SOME intro) => ALLGOALS (Tactic.rtac intro);
@@ -66,9 +66,9 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     (* canonical interpretation *)
     val base_morph = inst_morph
-      $> Morphism.binding_morphism (Binding.prefix false (class_prefix class))
+      $> Morphism.binding_morphism (Binding.prefix false (Class_Target.class_prefix class))
       $> Element.satisfy_morphism (the_list wit);
-    val eq_morph = Element.eq_morphism thy (these_defs thy sups);
+    val eq_morph = Element.eq_morphism thy (Class_Target.these_defs thy sups);
 
     (* assm_intro *)
     fun prove_assm_intro thm =
@@ -88,7 +88,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val of_class_prop = case prop of NONE => of_class_prop_concl
       | SOME prop => Logic.mk_implies (Morphism.term const_morph
           ((map_types o map_atyps) (K aT) prop), of_class_prop_concl);
-    val sup_of_classes = map (snd o rules thy) sups;
+    val sup_of_classes = map (snd o Class_Target.rules thy) sups;
     val loc_axiom_intros = map Drule.export_without_context_open (Locale.axioms_of thy class);
     val axclass_intro = #intro (AxClass.get_info thy class);
     val base_sort_trivs = Thm.of_sort (Thm.ctyp_of thy aT, base_sort);
@@ -110,10 +110,10 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     val algebra = Sign.classes_of thy;
     val inter_sort = curry (Sorts.inter_sort algebra);
     val proto_base_sort = if null sups then Sign.defaultS thy
-      else fold inter_sort (map (base_sort thy) sups) [];
+      else fold inter_sort (map (Class_Target.base_sort thy) sups) [];
     val base_constraints = (map o apsnd)
       (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
-        (these_operations thy sups);
+        (Class_Target.these_operations thy sups);
     val reject_bcd_etc = (map o map_atyps) (fn T as TFree (v, sort) =>
           if v = Name.aT then T
           else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
@@ -141,7 +141,7 @@ fun prep_class_elems prep_decl thy sups raw_elems =
 
     (* preprocessing elements, retrieving base sort from type-checked elements *)
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
-      #> redeclare_operations thy sups
+      #> Class_Target.redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
       #> add_typ_check ~10 "singleton_fixate" singleton_fixate;
     val raw_supexpr = (map (fn sup => (sup, (("", false),
@@ -181,10 +181,10 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy));
     val sups = map (prep_class thy) raw_supclasses
       |> Sign.minimize_sort thy;
-    val _ = case filter_out (is_class thy) sups
+    val _ = case filter_out (Class_Target.is_class thy) sups
      of [] => ()
       | no_classes => error ("No (proper) classes: " ^ commas (map quote no_classes));
-    val raw_supparams = (map o apsnd) (snd o snd) (these_params thy sups);
+    val raw_supparams = (map o apsnd) (snd o snd) (Class_Target.these_params thy sups);
     val raw_supparam_names = map fst raw_supparams;
     val _ = if has_duplicates (op =) raw_supparam_names
       then error ("Duplicate parameter(s) in superclasses: "
@@ -197,7 +197,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = begin sups base_sort (ProofContext.init_global thy);
+    val class_ctxt = Class_Target.begin sups base_sort (ProofContext.init_global thy);
     val ((_, _, syntax_elems), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs = if null vs
@@ -229,7 +229,7 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
   let
     (*FIXME simplify*)
     val supconsts = supparam_names
-      |> AList.make (snd o the o AList.lookup (op =) (these_params thy sups))
+      |> AList.make (snd o the o AList.lookup (op =) (Class_Target.these_params thy sups))
       |> (map o apsnd o apsnd o map_atyps o K o TFree) (Name.aT, [class]);
     val all_params = Locale.params_of thy class;
     val raw_params = (snd o chop (length supparam_names)) all_params;
@@ -249,7 +249,7 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
       end;
   in
     thy
-    |> Sign.add_path (class_prefix class)
+    |> Sign.add_path (Class_Target.class_prefix class)
     |> fold_map add_const raw_params
     ||> Sign.restore_naming thy
     |-> (fn params => pair (supconsts @ (map o apfst) fst params, params))
@@ -295,7 +295,7 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
     #-> (fn (base_morph, eq_morph, export_morph, axiom, assm_intro, of_class) =>
        Context.theory_map (Locale.add_registration (class, base_morph)
          (Option.map (rpair true) eq_morph) export_morph)
-    #> register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
+    #> Class_Target.register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
     |> Named_Target.init (SOME class)
     |> pair class
   end;
@@ -327,7 +327,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val some_prop = try the_single props;
     val some_dep_morph = try the_single (map snd deps);
     fun after_qed some_wit =
-      ProofContext.theory (register_subclass (sub, sup)
+      ProofContext.theory (Class_Target.register_subclass (sub, sup)
         some_dep_morph some_wit export)
       #> ProofContext.theory_of #> Named_Target.init (SOME sub);
   in do_proof after_qed some_prop goal_ctxt end;
