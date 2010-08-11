@@ -203,7 +203,7 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
     val below_eqn = Logic.mk_equals (below_const newT,
       Abs ("x", newT, Abs ("y", newT, below_const oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))));
     val lthy3 = thy2
-      |> Theory_Target.instantiation ([full_tname], lhs_tfrees, @{sort po});
+      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort po});
     val ((_, (_, below_ldef)), lthy4) = lthy3
       |> Specification.definition (NONE,
           ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_eqn));

@@ -112,7 +112,7 @@ fun gen_add_repdef
 
     (*instantiate class rep*)
     val lthy = thy
-      |> Theory_Target.instantiation ([full_tname], lhs_tfrees, @{sort rep});
+      |> Class.instantiation ([full_tname], lhs_tfrees, @{sort rep});
     val ((_, (_, emb_ldef)), lthy) =
         Specification.definition (NONE, (emb_bind, emb_eqn)) lthy;
     val ((_, (_, prj_ldef)), lthy) =

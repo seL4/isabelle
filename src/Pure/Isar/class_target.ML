@@ -47,6 +47,8 @@ sig
   val read_multi_arity: theory -> xstring list * xstring list * xstring
     -> string list * (string * sort) list * sort
   val type_name: string -> string
+  val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
+  val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
 
   (*subclasses*)
   val register_subclass: class * class -> morphism option -> Element.witness option
@@ -579,6 +581,35 @@ fun pretty_instantiation lthy =
     (Pretty.block o Pretty.fbreaks)
       (Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params)
   end;
+
+fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
+
+fun instantiation_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  case instantiation_param lthy b
+   of SOME c => if mx <> NoSyn then syntax_error c
+        else lthy |> Local_Theory.theory_result (AxClass.declare_overloaded (c, U)
+            ##>> AxClass.define_overloaded b_def (c, rhs))
+          ||> confirm_declaration b
+    | NONE => lthy |>
+        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+
+fun instantiation arities thy =
+  thy
+  |> init_instantiation arities
+  |> Local_Theory.init NONE ""
+     {define = Generic_Target.define instantiation_foundation,
+      notes = Generic_Target.notes
+        (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
+      abbrev = Generic_Target.abbrev
+        (fn prmode => fn (b, mx) => fn (t, _) => fn _ => Generic_Target.theory_abbrev prmode ((b, mx), t)),
+      declaration = K Generic_Target.theory_declaration,
+      syntax_declaration = K Generic_Target.theory_declaration,
+      pretty = single o pretty_instantiation,
+      reinit = instantiation arities o ProofContext.theory_of,
+      exit = Local_Theory.target_of o conclude_instantiation};
+
+fun instantiation_cmd arities thy =
+  instantiation (read_multi_arity thy arities) thy;
 
 
 (* simplified instantiation interface with no class parameter *)

@@ -472,7 +472,7 @@ val _ =
   Outer_Syntax.command "instantiation" "instantiate and prove type arity" Keyword.thy_decl
    (Parse.multi_arity --| Parse.begin
      >> (fn arities => Toplevel.print o
-         Toplevel.begin_local_theory true (Theory_Target.instantiation_cmd arities)));
+         Toplevel.begin_local_theory true (Class.instantiation_cmd arities)));
 
 val _ =
   Outer_Syntax.command "instance" "prove type arity or subclass relation" Keyword.thy_goal
