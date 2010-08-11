@@ -20,8 +20,7 @@ lemma iszero4: "iszero (Int.Bit1 x) = False" apply (subst Int.Bit1_def) apply (s
 lemmas bitiszero = iszero1 iszero2 iszero3 iszero4
 
 (* lezero for bit strings *)
-definition
-  "lezero x == (x \<le> 0)"
+definition "lezero x \<longleftrightarrow> x \<le> 0"
 lemma lezero1: "lezero Int.Pls = True" unfolding Int.Pls_def lezero_def by auto
 lemma lezero2: "lezero Int.Min = True" unfolding Int.Min_def lezero_def by auto
 lemma lezero3: "lezero (Int.Bit0 x) = lezero x" unfolding Int.Bit0_def lezero_def by auto
@@ -60,8 +59,7 @@ lemmas bitmul = mult_Pls mult_Min mult_Pls_right mult_Min_right multb0x multxb0 
 
 lemmas bitarith = bitnorm bitiszero bitneg bitlezero biteq bitless bitle bitsucc bitpred bituminus bitadd bitmul 
 
-definition
-  "nat_norm_number_of (x::nat) == x"
+definition "nat_norm_number_of (x::nat) = x"
 
 lemma nat_norm_number_of: "nat_norm_number_of (number_of w) = (if lezero w then 0 else number_of w)"
   apply (simp add: nat_norm_number_of_def)
@@ -104,8 +102,7 @@ lemma natle: "(((number_of x)::nat) \<le> (number_of y)) = (y < x \<longrightarr
   by (auto simp add: number_of_is_id lezero_def nat_number_of_def)
 
 fun natfac :: "nat \<Rightarrow> nat"
-where
-   "natfac n = (if n = 0 then 1 else n * (natfac (n - 1)))"
+  where "natfac n = (if n = 0 then 1 else n * (natfac (n - 1)))"
 
 lemmas compute_natarith = bitarith natnorm natsuc natadd natsub natmul nateq natless natle natfac.simps
 
