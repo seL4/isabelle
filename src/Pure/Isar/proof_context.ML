@@ -1123,7 +1123,7 @@ in
 val type_notation = gen_notation (K type_syntax);
 val notation = gen_notation const_syntax;
 
-fun target_type_notation add  mode args phi =
+fun target_type_notation add mode args phi =
   let
     val args' = args |> map_filter (fn (T, mx) =>
       let
