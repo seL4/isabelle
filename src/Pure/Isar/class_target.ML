@@ -7,31 +7,17 @@ Type classes derived from primitive axclasses and locales -- mechanisms.
 signature CLASS_TARGET =
 sig
   (*classes*)
-  val register: class -> class list -> ((string * typ) * (string * typ)) list
-    -> sort -> morphism -> morphism -> thm option -> thm option -> thm
-    -> theory -> theory
-
   val is_class: theory -> class -> bool
-  val base_sort: theory -> class -> sort
-  val rules: theory -> class -> thm option * thm
   val these_params: theory -> sort -> (string * (class * (string * typ))) list
-  val these_defs: theory -> sort -> thm list
-  val these_operations: theory -> sort
-    -> (string * (class * (typ * term))) list
   val print_classes: theory -> unit
 
-  val begin: class list -> sort -> Proof.context -> Proof.context
   val init: class -> theory -> Proof.context
   val declare: class -> (binding * mixfix) * (term list * term) -> theory -> theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> theory -> theory
   val class_prefix: string -> string
   val refresh_syntax: class -> Proof.context -> Proof.context
-  val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
 
   (*instances*)
-  val init_instantiation: string list * (string * sort) list * sort
-    -> theory -> Proof.context
-  val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
   val instantiation_instance: (local_theory -> local_theory)
     -> local_theory -> Proof.state
   val prove_instantiation_instance: (Proof.context -> tactic)
@@ -40,19 +26,14 @@ sig
     -> local_theory -> theory
   val prove_instantiation_exit_result: (morphism -> 'a -> 'b)
     -> (Proof.context -> 'b -> tactic) -> 'a -> local_theory -> 'b * theory
-  val conclude_instantiation: local_theory -> local_theory
-  val instantiation_param: local_theory -> binding -> string option
-  val confirm_declaration: binding -> local_theory -> local_theory
-  val pretty_instantiation: local_theory -> Pretty.T
   val read_multi_arity: theory -> xstring list * xstring list * xstring
     -> string list * (string * sort) list * sort
   val type_name: string -> string
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
   val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
+  val instance_arity_cmd: xstring list * xstring list * xstring -> theory -> Proof.state
 
   (*subclasses*)
-  val register_subclass: class * class -> morphism option -> Element.witness option
-    -> morphism -> theory -> theory
   val classrel: class * class -> theory -> Proof.state
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
 
@@ -61,7 +42,24 @@ sig
   val default_intro_tac: Proof.context -> thm list -> tactic
 end;
 
-structure Class_Target : CLASS_TARGET =
+signature PRIVATE_CLASS_TARGET =
+sig
+  include CLASS_TARGET
+  val register: class -> class list -> ((string * typ) * (string * typ)) list
+    -> sort -> morphism -> morphism -> thm option -> thm option -> thm
+    -> theory -> theory
+  val register_subclass: class * class -> morphism option -> Element.witness option
+    -> morphism -> theory -> theory
+  val base_sort: theory -> class -> sort
+  val rules: theory -> class -> thm option * thm
+  val these_defs: theory -> sort -> thm list
+  val these_operations: theory -> sort
+    -> (string * (class * (typ * term))) list
+  val begin: class list -> sort -> Proof.context -> Proof.context
+  val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
+end;
+
+structure Class_Target: PRIVATE_CLASS_TARGET =
 struct
 
 (** class data **)

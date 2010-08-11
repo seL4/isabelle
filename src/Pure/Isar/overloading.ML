@@ -6,14 +6,6 @@ Overloaded definitions without any discipline.
 
 signature OVERLOADING =
 sig
-  val init: (string * (string * typ) * bool) list -> theory -> Proof.context
-  val conclude: local_theory -> local_theory
-  val declare: string * typ -> theory -> term * theory
-  val confirm: binding -> local_theory -> local_theory
-  val define: bool -> binding -> string * term -> theory -> thm * theory
-  val operation: Proof.context -> binding -> (string * bool) option
-  val pretty: Proof.context -> Pretty.T
-
   type improvable_syntax
   val add_improvable_syntax: Proof.context -> Proof.context
   val map_improvable_syntax: (improvable_syntax -> improvable_syntax)
