@@ -10,9 +10,7 @@ sig
   val peek: local_theory ->
    {target: string,
     is_locale: bool,
-    is_class: bool,
-    instantiation: string list * (string * sort) list * sort,
-    overloading: (string * (string * typ) * bool) list}
+    is_class: bool}
   val init: string option -> theory -> local_theory
   val context_cmd: xstring -> theory -> local_theory
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
@@ -26,15 +24,12 @@ struct
 
 (* context data *)
 
-datatype target = Target of {target: string, is_locale: bool,
-  is_class: bool, instantiation: string list * (string * sort) list * sort,
-  overloading: (string * (string * typ) * bool) list};
+datatype target = Target of {target: string, is_locale: bool, is_class: bool};
 
-fun make_target target is_locale is_class instantiation overloading =
-  Target {target = target, is_locale = is_locale,
-    is_class = is_class, instantiation = instantiation, overloading = overloading};
+fun make_target target is_locale is_class =
+  Target {target = target, is_locale = is_locale, is_class = is_class};
 
-val global_target = make_target "" false false ([], [], []) [];
+val global_target = make_target "" false false;
 
 structure Data = Proof_Data
 (
@@ -261,26 +256,22 @@ fun pretty_thy ctxt target is_class =
       map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))]
   end;
 
-fun pretty (Target {target, is_class, instantiation, overloading, ...}) ctxt =
+fun pretty (Target {target, is_class, ...}) ctxt =
   Pretty.block [Pretty.command "theory", Pretty.brk 1,
       Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
-    (if not (null overloading) then [Overloading.pretty ctxt]
-     else if not (null (#1 instantiation)) then [Class_Target.pretty_instantiation ctxt]
-     else pretty_thy ctxt target is_class);
+    pretty_thy ctxt target is_class;
 
 
 (* init various targets *)
 
 local
 
-fun init_data (Target {target, is_locale, is_class, instantiation, overloading}) =
-  if not (null (#1 instantiation)) then Class_Target.init_instantiation instantiation
-  else if not (null overloading) then Overloading.init overloading
-  else if not is_locale then ProofContext.init_global
+fun init_data (Target {target, is_locale, is_class}) =
+  if not is_locale then ProofContext.init_global
   else if not is_class then Locale.init target
   else Class_Target.init target;
 
-fun init_target (ta as Target {target, instantiation, overloading, ...}) thy =
+fun init_target (ta as Target {target, ...}) thy =
   thy
   |> init_data ta
   |> Data.put ta
@@ -294,15 +285,12 @@ fun init_target (ta as Target {target, instantiation, overloading, ...}) thy =
         { syntax = true, pervasive = pervasive },
       pretty = pretty ta,
       reinit = init_target ta o ProofContext.theory_of,
-      exit = Local_Theory.target_of o
-        (if not (null (#1 instantiation)) then Class_Target.conclude_instantiation
-         else if not (null overloading) then Overloading.conclude
-         else I)};
+      exit = Local_Theory.target_of};
 
 fun named_target _ NONE = global_target
   | named_target thy (SOME target) =
       if Locale.defined thy target
-      then make_target target true (Class_Target.is_class thy target) ([], [], []) []
+      then make_target target true (Class_Target.is_class thy target)
       else error ("No such locale: " ^ quote target);
 
 fun gen_overloading prep_const raw_ops thy =
