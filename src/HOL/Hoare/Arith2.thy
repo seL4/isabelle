@@ -9,17 +9,16 @@ theory Arith2
 imports Main
 begin
 
-definition "cd" :: "[nat, nat, nat] => bool" where
-  "cd x m n  == x dvd m & x dvd n"
+definition "cd" :: "[nat, nat, nat] => bool"
+  where "cd x m n \<longleftrightarrow> x dvd m & x dvd n"
 
-definition gcd     :: "[nat, nat] => nat" where
-  "gcd m n     == @x.(cd x m n) & (!y.(cd y m n) --> y<=x)"
+definition gcd :: "[nat, nat] => nat"
+  where "gcd m n = (SOME x. cd x m n & (!y.(cd y m n) --> y<=x))"
 
-consts fac     :: "nat => nat"
-
-primrec
+primrec fac :: "nat => nat"
+where
   "fac 0 = Suc 0"
-  "fac(Suc n) = (Suc n)*fac(n)"
+| "fac (Suc n) = Suc n * fac n"
 
 
 subsubsection {* cd *}

@@ -216,18 +216,19 @@ subsection "Merging two lists"
 
 text"This is still a bit rough, especially the proof."
 
-definition cor :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
-"cor P Q == if P then True else Q"
+definition cor :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+  where "cor P Q \<longleftrightarrow> (if P then True else Q)"
 
-definition cand :: "bool \<Rightarrow> bool \<Rightarrow> bool" where
-"cand P Q == if P then Q else False"
+definition cand :: "bool \<Rightarrow> bool \<Rightarrow> bool"
+  where "cand P Q \<longleftrightarrow> (if P then Q else False)"
 
-fun merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list" where
-"merge(x#xs,y#ys,f) = (if f x y then x # merge(xs,y#ys,f)
-                                else y # merge(x#xs,ys,f))" |
-"merge(x#xs,[],f) = x # merge(xs,[],f)" |
-"merge([],y#ys,f) = y # merge([],ys,f)" |
-"merge([],[],f) = []"
+fun merge :: "'a list * 'a list * ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a list"
+where
+  "merge(x#xs,y#ys,f) = (if f x y then x # merge(xs,y#ys,f)
+                                  else y # merge(x#xs,ys,f))"
+| "merge(x#xs,[],f) = x # merge(xs,[],f)"
+| "merge([],y#ys,f) = y # merge([],ys,f)"
+| "merge([],[],f) = []"
 
 text{* Simplifies the proof a little: *}
 
@@ -336,8 +337,9 @@ Now we try a functional version of the abstraction relation @{term
 Path}. Since the result is not that convincing, we do not prove any of
 the lemmas.*}
 
-consts ispath:: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool"
-       path:: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> 'a list"
+axiomatization
+  ispath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> bool" and
+  path :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a ref \<Rightarrow> 'a list"
 
 text"First some basic lemmas:"
 
@@ -479,8 +481,8 @@ done
 
 subsection "Storage allocation"
 
-definition new :: "'a set \<Rightarrow> 'a" where
-"new A == SOME a. a \<notin> A"
+definition new :: "'a set \<Rightarrow> 'a"
+  where "new A = (SOME a. a \<notin> A)"
 
 
 lemma new_notin:

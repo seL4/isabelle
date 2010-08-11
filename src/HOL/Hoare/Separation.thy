@@ -16,20 +16,20 @@ theory Separation imports Hoare_Logic_Abort SepLogHeap begin
 
 text{* The semantic definition of a few connectives: *}
 
-definition ortho :: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix "\<bottom>" 55) where
-"h1 \<bottom> h2 == dom h1 \<inter> dom h2 = {}"
+definition ortho :: "heap \<Rightarrow> heap \<Rightarrow> bool" (infix "\<bottom>" 55)
+  where "h1 \<bottom> h2 \<longleftrightarrow> dom h1 \<inter> dom h2 = {}"
 
-definition is_empty :: "heap \<Rightarrow> bool" where
-"is_empty h == h = empty"
+definition is_empty :: "heap \<Rightarrow> bool"
+  where "is_empty h \<longleftrightarrow> h = empty"
 
-definition singl:: "heap \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
-"singl h x y == dom h = {x} & h x = Some y"
+definition singl:: "heap \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool"
+  where "singl h x y \<longleftrightarrow> dom h = {x} & h x = Some y"
 
-definition star:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)" where
-"star P Q == \<lambda>h. \<exists>h1 h2. h = h1++h2 \<and> h1 \<bottom> h2 \<and> P h1 \<and> Q h2"
+definition star:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)"
+  where "star P Q = (\<lambda>h. \<exists>h1 h2. h = h1++h2 \<and> h1 \<bottom> h2 \<and> P h1 \<and> Q h2)"
 
-definition wand:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)" where
-"wand P Q == \<lambda>h. \<forall>h'. h' \<bottom> h \<and> P h' \<longrightarrow> Q(h++h')"
+definition wand:: "(heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool) \<Rightarrow> (heap \<Rightarrow> bool)"
+  where "wand P Q = (\<lambda>h. \<forall>h'. h' \<bottom> h \<and> P h' \<longrightarrow> Q(h++h'))"
 
 text{*This is what assertions look like without any syntactic sugar: *}
 

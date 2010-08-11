@@ -41,8 +41,8 @@ inductive_cases [elim!]:
   "Sem (Basic f) s s'" "Sem (c1;c2) s s'"
   "Sem (IF b THEN c1 ELSE c2 FI) s s'"
 
-definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool" where
-  "Valid p c q == !s s'. Sem c s s' --> s : p --> s' : q"
+definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Rightarrow> bool"
+  where "Valid p c q \<longleftrightarrow> (!s s'. Sem c s s' --> s : p --> s' : q)"
 
 
 

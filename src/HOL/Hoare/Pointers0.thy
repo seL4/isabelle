@@ -44,11 +44,10 @@ section "The heap"
 
 subsection "Paths in the heap"
 
-consts
- Path :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
-primrec
-"Path h x [] y = (x = y)"
-"Path h x (a#as) y = (x \<noteq> Null \<and> x = a \<and> Path h (h a) as y)"
+primrec Path :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> 'a \<Rightarrow> bool"
+where
+  "Path h x [] y = (x = y)"
+| "Path h x (a#as) y = (x \<noteq> Null \<and> x = a \<and> Path h (h a) as y)"
 
 lemma [iff]: "Path h Null xs y = (xs = [] \<and> y = Null)"
 apply(case_tac xs)
@@ -73,8 +72,8 @@ subsection "Lists on the heap"
 
 subsubsection "Relational abstraction"
 
-definition List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool" where
-"List h x as == Path h x as Null"
+definition List :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list \<Rightarrow> bool"
+  where "List h x as = Path h x as Null"
 
 lemma [simp]: "List h x [] = (x = Null)"
 by(simp add:List_def)
@@ -121,11 +120,11 @@ done
 
 subsection "Functional abstraction"
 
-definition islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool" where
-"islist h p == \<exists>as. List h p as"
+definition islist :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> bool"
+  where "islist h p \<longleftrightarrow> (\<exists>as. List h p as)"
 
-definition list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list" where
-"list h p == SOME as. List h p as"
+definition list :: "('a::ref \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a list"
+  where "list h p = (SOME as. List h p as)"
 
 lemma List_conv_islist_list: "List h p as = (islist h p \<and> as = list h p)"
 apply(simp add:islist_def list_def)
@@ -404,8 +403,8 @@ done
 
 subsection "Storage allocation"
 
-definition new :: "'a set \<Rightarrow> 'a::ref" where
-"new A == SOME a. a \<notin> A & a \<noteq> Null"
+definition new :: "'a set \<Rightarrow> 'a::ref"
+  where "new A = (SOME a. a \<notin> A & a \<noteq> Null)"
 
 
 lemma new_notin:

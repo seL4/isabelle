@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/SchorrWaite.thy
-    ID:         $Id$
     Author:     Farhad Mehta
     Copyright   2003 TUM
 
@@ -146,14 +145,15 @@ apply(induct_tac stack)
  apply(simp add:fun_upd_apply S_def)+
 done
 
-consts
+primrec
   --"Recursive definition of what is means for a the graph/stack structure to be reconstructible"
   stkOk :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> ('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow>'a list \<Rightarrow>  bool"
-primrec
-stkOk_nil:  "stkOk c l r iL iR t [] = True"
-stkOk_cons: "stkOk c l r iL iR t (p#stk) = (stkOk c l r iL iR (Ref p) (stk) \<and> 
-                                  iL p = (if c p then l p else t) \<and>
-                                  iR p = (if c p then t else r p))"
+where
+  stkOk_nil:  "stkOk c l r iL iR t [] = True"
+| stkOk_cons:
+    "stkOk c l r iL iR t (p#stk) = (stkOk c l r iL iR (Ref p) (stk) \<and> 
+      iL p = (if c p then l p else t) \<and>
+      iR p = (if c p then t else r p))"
 
 text {* Rewrite rules for stkOk *}
 

@@ -57,8 +57,8 @@ by simp
 
 subsection "Non-repeating paths"
 
-definition distPath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool" where
-  "distPath h x as y   \<equiv>   Path h x as y  \<and>  distinct as"
+definition distPath :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> 'a ref \<Rightarrow> bool"
+  where "distPath h x as y \<longleftrightarrow> Path h x as y \<and> distinct as"
 
 text{* The term @{term"distPath h x as y"} expresses the fact that a
 non-repeating path @{term as} connects location @{term x} to location
@@ -82,8 +82,8 @@ subsection "Lists on the heap"
 
 subsubsection "Relational abstraction"
 
-definition List :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> bool" where
-"List h x as == Path h x as Null"
+definition List :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list \<Rightarrow> bool"
+  where "List h x as = Path h x as Null"
 
 lemma [simp]: "List h x [] = (x = Null)"
 by(simp add:List_def)
@@ -133,11 +133,11 @@ done
 
 subsection "Functional abstraction"
 
-definition islist :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> bool" where
-"islist h p == \<exists>as. List h p as"
+definition islist :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> bool"
+  where "islist h p \<longleftrightarrow> (\<exists>as. List h p as)"
 
-definition list :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list" where
-"list h p == SOME as. List h p as"
+definition list :: "('a \<Rightarrow> 'a ref) \<Rightarrow> 'a ref \<Rightarrow> 'a list"
+  where "list h p = (SOME as. List h p as)"
 
 lemma List_conv_islist_list: "List h p as = (islist h p \<and> as = list h p)"
 apply(simp add:islist_def list_def)

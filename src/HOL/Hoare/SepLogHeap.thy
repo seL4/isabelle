@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hoare/Heap.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 
@@ -18,11 +17,10 @@ free. Address @{text "0"} serves as the null reference. *}
 
 subsection "Paths in the heap"
 
-consts
- Path :: "heap \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> nat \<Rightarrow> bool"
-primrec
-"Path h x [] y = (x = y)"
-"Path h x (a#as) y = (x\<noteq>0 \<and> a=x \<and> (\<exists>b. h x = Some b \<and> Path h b as y))"
+primrec Path :: "heap \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> nat \<Rightarrow> bool"
+where
+  "Path h x [] y = (x = y)"
+| "Path h x (a#as) y = (x\<noteq>0 \<and> a=x \<and> (\<exists>b. h x = Some b \<and> Path h b as y))"
 
 lemma [iff]: "Path h 0 xs y = (xs = [] \<and> y = 0)"
 by (cases xs) simp_all
@@ -41,8 +39,8 @@ by (induct as) simp_all
 
 subsection "Lists on the heap"
 
-definition List :: "heap \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> bool" where
-"List h x as == Path h x as 0"
+definition List :: "heap \<Rightarrow> nat \<Rightarrow> nat list \<Rightarrow> bool"
+  where "List h x as = Path h x as 0"
 
 lemma [simp]: "List h x [] = (x = 0)"
 by (simp add: List_def)
