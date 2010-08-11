@@ -39,28 +39,18 @@ val peek = (fn Target args => args) o Data.get;
 
 (* generic declarations *)
 
-fun theory_declaration decl lthy =
-  let
-    val global_decl = Morphism.form
-      (Morphism.transform (Local_Theory.global_morphism lthy) decl);
-  in
-    lthy
-    |> Local_Theory.theory (Context.theory_map global_decl)
-    |> Local_Theory.target (Context.proof_map global_decl)
-  end;
-
 fun locale_declaration locale { syntax, pervasive } decl lthy =
   let
     val add = if syntax then Locale.add_syntax_declaration else Locale.add_declaration;
     val locale_decl = Morphism.transform (Local_Theory.target_morphism lthy) decl;
   in
     lthy
-    |> pervasive ? theory_declaration decl
+    |> pervasive ? Generic_Target.theory_declaration decl
     |> Local_Theory.target (add locale locale_decl)
   end;
 
 fun target_declaration (Target {target, ...}) { syntax, pervasive } =
-  if target = "" then theory_declaration
+  if target = "" then Generic_Target.theory_declaration
   else locale_declaration target { syntax = syntax, pervasive = pervasive };
 
 
@@ -103,23 +93,14 @@ fun class_target (Target {target, ...}) f =
 
 fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
 
-fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
-  let
-    val (const, lthy2) = lthy |> Local_Theory.theory_result
-      (Sign.declare_const ((b, U), mx));
-    val lhs = list_comb (const, type_params @ term_params);
-    val ((_, def), lthy3) = lthy2 |> Local_Theory.theory_result
-      (Thm.add_def false false (b_def, Logic.mk_equals (lhs, rhs)));
-  in ((lhs, def), lthy3) end;
-
 fun locale_foundation ta (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
-  theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+  Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, mx), lhs)
     #> pair (lhs, def))
 
 fun class_foundation (ta as Target {target, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
-  theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
+  Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, NoSyn), lhs)
     #> class_target ta (Class_Target.declare target ((b, mx), (type_params, lhs)))
     #> pair (lhs, def))
@@ -131,7 +112,7 @@ fun instantiation_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_par
             ##>> AxClass.define_overloaded b_def (c, rhs))
           ||> Class_Target.confirm_declaration b
     | NONE => lthy |>
-        theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
 
 fun overloading_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   case Overloading.operation lthy b
@@ -140,7 +121,7 @@ fun overloading_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_param
             ##>> Overloading.define checked b_def (c, rhs))
           ||> Overloading.confirm b
     | NONE => lthy |>
-        theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
 
 fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   if not is_locale then (NoSyn, NoSyn, mx)
@@ -184,16 +165,6 @@ fun foundation (ta as Target {target, is_locale, is_class, ...})
 
 (* notes *)
 
-fun theory_notes kind global_facts lthy =
-  let
-    val thy = ProofContext.theory_of lthy;
-    val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
-  in
-    lthy
-    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
-    |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
-  end;
-
 fun locale_notes locale kind global_facts local_facts lthy = 
   let
     val global_facts' = Attrib.map_facts (K I) global_facts;
@@ -207,14 +178,10 @@ fun locale_notes locale kind global_facts local_facts lthy =
 
 fun target_notes (ta as Target {target, is_locale, ...}) =
   if is_locale then locale_notes target
-    else fn kind => fn global_facts => fn _ => theory_notes kind global_facts;
+    else fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts;
 
 
 (* abbrev *)
-
-fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
-  (Sign.add_abbrev (#1 prmode) (b, t) #->
-    (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
 
 fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
   (Sign.add_abbrev Print_Mode.internal (b, t)) #->
@@ -228,7 +195,7 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
       |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
       |> is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx), t'))
     else lthy
-      |> theory_abbrev prmode ((b, mx), global_rhs);
+      |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
 
 
 (* pretty *)
@@ -301,12 +268,12 @@ fun gen_overloading prep_const raw_ops thy =
     |> Local_Theory.init NONE ""
        {define = Generic_Target.define overloading_foundation,
         notes = Generic_Target.notes
-          (fn kind => fn global_facts => fn _ => theory_notes kind global_facts),
+          (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
         abbrev = Generic_Target.abbrev
           (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
-            theory_abbrev prmode ((b, mx), t)),
-        declaration = fn pervasive => theory_declaration,
-        syntax_declaration = fn pervasive => theory_declaration,
+            Generic_Target.theory_abbrev prmode ((b, mx), t)),
+        declaration = K Generic_Target.theory_declaration,
+        syntax_declaration = K Generic_Target.theory_declaration,
         pretty = single o Overloading.pretty,
         reinit = gen_overloading prep_const raw_ops o ProofContext.theory_of,
         exit = Local_Theory.target_of o Overloading.conclude}
@@ -325,11 +292,11 @@ fun instantiation arities thy =
   |> Local_Theory.init NONE ""
      {define = Generic_Target.define instantiation_foundation,
       notes = Generic_Target.notes
-        (fn kind => fn global_facts => fn _ => theory_notes kind global_facts),
+        (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
       abbrev = Generic_Target.abbrev
-        (fn prmode => fn (b, mx) => fn (t, _) => fn _ => theory_abbrev prmode ((b, mx), t)),
-      declaration = fn pervasive => theory_declaration,
-      syntax_declaration = fn pervasive => theory_declaration,
+        (fn prmode => fn (b, mx) => fn (t, _) => fn _ => Generic_Target.theory_abbrev prmode ((b, mx), t)),
+      declaration = K Generic_Target.theory_declaration,
+      syntax_declaration = K Generic_Target.theory_declaration,
       pretty = single o Class_Target.pretty_instantiation,
       reinit = instantiation arities o ProofContext.theory_of,
       exit = Local_Theory.target_of o Class_Target.conclude_instantiation};
