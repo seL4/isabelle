@@ -1000,7 +1000,8 @@ in
 
   val xmlP = XML.parse_comments |-- XML.parse_element >> single
 
-  val tty_src = Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE Source.tty)
+  val tty_src =
+    Source.set_prompt "" (Source.source Symbol.stopper xmlP NONE (Source.tty TextIO.stdIn))
 
   fun pgip_toplevel x = loop true x
 end

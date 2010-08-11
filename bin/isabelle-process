@@ -29,8 +29,8 @@ function usage()
   echo "    -I           startup Isar interaction mode"
   echo "    -P           startup Proof General interaction mode"
   echo "    -S           secure mode -- disallow critical operations"
+  echo "    -W IN:OUT    startup process wrapper, with input/output fifos"
   echo "    -X           startup PGIP interaction mode"
-  echo "    -W OUTPUT    startup process wrapper, with messages going to OUTPUT stream"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -f           pass 'Session.finish();' to the ML session"
   echo "    -m MODE      add print mode for output"
@@ -61,7 +61,7 @@ function fail()
 ISAR=false
 PROOFGENERAL=""
 SECURE=""
-WRAPPER_OUTPUT=""
+WRAPPER_FIFOS=""
 PGIP=""
 MLTEXT=""
 MODES=""
@@ -82,7 +82,7 @@ do
       SECURE=true
       ;;
     W)
-      WRAPPER_OUTPUT="$OPTARG"
+      WRAPPER_FIFOS="$OPTARG"
       ;;
     X)
       PGIP=true
@@ -212,9 +212,13 @@ ML_SYSTEM_BASE=$(echo "$ML_SYSTEM" | cut -f1 -d-)
 [ -n "$SECURE" ] && MLTEXT="$MLTEXT Secure.set_secure ();"
 
 NICE="nice"
-if [ -n "$WRAPPER_OUTPUT" ]; then
-  [ "$WRAPPER_OUTPUT" = "-" -o -p "$WRAPPER_OUTPUT" ] || fail "Bad named pipe: $WRAPPER_OUTPUT"
-  MLTEXT="$MLTEXT; Isabelle_Process.init \"$WRAPPER_OUTPUT\";"
+
+if [ -n "$WRAPPER_FIFOS" ]; then
+  splitarray ":" "$WRAPPER_FIFOS"; FIFOS=("${SPLITARRAY[@]}")
+  [ "${#FIFOS[@]}" -eq 2 ] || fail "Expected IN:OUT fifo specification"
+  [ -p "${FIFOS[0]}" ] || fail "Bad input fifo: ${FIFOS[0]}"
+  [ -p "${FIFOS[1]}" ] || fail "Bad output fifo: ${FIFOS[1]}"
+  MLTEXT="$MLTEXT; Isabelle_Process.init \"${FIFOS[0]}\" \"${FIFOS[1]}\";"
 elif [ -n "$PGIP" ]; then
   MLTEXT="$MLTEXT; ProofGeneralPgip.init_pgip $ISAR;"
 elif [ -n "$PROOFGENERAL" ]; then

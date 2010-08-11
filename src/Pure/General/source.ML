@@ -19,7 +19,7 @@ sig
   val exhausted: ('a, 'b) source -> ('a, 'a list) source
   val of_string: string -> (string, string list) source
   val of_string_limited: int -> string -> (string, substring) source
-  val tty: (string, unit) source
+  val tty: TextIO.instream -> (string, unit) source
   val source': 'a -> 'b Scan.stopper -> ('a * 'b list -> 'c list * ('a * 'b list)) ->
     (bool * (string -> 'a * 'b list -> 'c list * ('a * 'b list))) option ->
     ('b, 'e) source -> ('c, 'a * ('b, 'e) source) source
@@ -129,11 +129,11 @@ fun slurp_input instream =
       | SOME _ => TextIO.input instream :: slurp ());
   in maps explode (slurp ()) end;
 
-val tty = make_source [] () default_prompt (fn prompt => fn () =>
-  let val input = slurp_input TextIO.stdIn in
+fun tty in_stream = make_source [] () default_prompt (fn prompt => fn () =>
+  let val input = slurp_input in_stream in
     if exists (fn c => c = "\n") input then (input, ())
     else
-      (case (Output.prompt prompt; TextIO.inputLine TextIO.stdIn) of
+      (case (Output.prompt prompt; TextIO.inputLine in_stream) of
         SOME line => (input @ explode line, ())
       | NONE => (input, ()))
   end);

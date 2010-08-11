@@ -19,8 +19,12 @@ import scala.collection.mutable
 
 object Standard_System
 {
+  /* UTF-8 charset */
+
   val charset = "UTF-8"
   def codec(): Codec = Codec(charset)
+
+  def string_bytes(s: String): Array[Byte] = s.getBytes(charset)
 
 
   /* permissive UTF-8 decoding */

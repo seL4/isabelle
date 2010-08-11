@@ -62,10 +62,8 @@ lemma compute_Some_None_eq: "(Some x = None) = False" by auto
 lemma compute_None_None_eq: "(None = None) = True" by auto
 lemma compute_Some_Some_eq: "(Some x = Some y) = (x = y)" by auto
 
-definition
-   option_case_compute :: "'b option \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
-where
-   "option_case_compute opt a f = option_case a f opt"
+definition option_case_compute :: "'b option \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where "option_case_compute opt a f = option_case a f opt"
 
 lemma option_case_compute: "option_case = (\<lambda> a f opt. option_case_compute opt a f)"
   by (simp add: option_case_compute_def)
@@ -96,10 +94,8 @@ lemmas compute_list_length = length_nil length_cons
 
 (*** compute_list_case ***)
 
-definition
-  list_case_compute :: "'b list \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'b list \<Rightarrow> 'a) \<Rightarrow> 'a"
-where
-  "list_case_compute l a f = list_case a f l"
+definition list_case_compute :: "'b list \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'b list \<Rightarrow> 'a) \<Rightarrow> 'a"
+  where "list_case_compute l a f = list_case a f l"
 
 lemma list_case_compute: "list_case = (\<lambda> (a::'a) f (l::'b list). list_case_compute l a f)"
   apply (rule ext)+

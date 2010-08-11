@@ -8,9 +8,8 @@ package isabelle
 
 import java.util.regex.Pattern
 import java.util.Locale
-import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream,
-  BufferedInputStream, FileInputStream, BufferedReader, InputStreamReader,
-  File, IOException}
+import java.io.{BufferedInputStream, FileInputStream, BufferedOutputStream, FileOutputStream,
+  OutputStream, File, IOException}
 import java.awt.{GraphicsEnvironment, Font}
 import java.awt.font.TextAttribute
 
@@ -288,18 +287,39 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
     if (rc != 0) error(result)
   }
 
-  def fifo_stream(fifo: String): BufferedInputStream =
+  def fifo_input_stream(fifo: String): BufferedInputStream =
   {
-    // blocks until writer is ready
+    // block until peer is ready
     val stream =
-      if (Platform.is_windows) {
-        val proc = execute(false, "cat", fifo)
+      if (Platform.is_windows) { // Cygwin fifo as Windows/Java input stream
+        val proc = execute(false, expand_path("$ISABELLE_HOME/lib/scripts/raw_dump"), fifo, "-")
         proc.getOutputStream.close
         proc.getErrorStream.close
         proc.getInputStream
       }
       else new FileInputStream(fifo)
     new BufferedInputStream(stream)
+  }
+
+  def fifo_output_stream(fifo: String): BufferedOutputStream =
+  {
+    // block until peer is ready
+    val stream =
+      if (Platform.is_windows) { // Cygwin fifo as Windows/Java output stream
+        val proc = execute(false, expand_path("$ISABELLE_HOME/lib/scripts/raw_dump"), "-", fifo)
+        proc.getInputStream.close
+        proc.getErrorStream.close
+        val out = proc.getOutputStream
+        new OutputStream {
+          override def close() { out.close(); proc.waitFor() }
+          override def flush() { out.flush() }
+          override def write(b: Array[Byte]) { out.write(b) }
+          override def write(b: Array[Byte], off: Int, len: Int) { out.write(b, off, len) }
+          override def write(b: Int) { out.write(b) }
+        }
+      }
+      else new FileOutputStream(fifo)
+    new BufferedOutputStream(stream)
   }
 
 

@@ -143,10 +143,16 @@ val global_commands = Unsynchronized.ref (Symtab.make [(Document.no_id, Toplevel
 
 in
 
-fun define_command (id: Document.command_id) tr =
-  NAMED_CRITICAL "Isar" (fn () =>
-    Unsynchronized.change global_commands (Symtab.update_new (id, Toplevel.put_id id tr))
-      handle Symtab.DUP dup => err_dup "command" dup);
+fun define_command (id: Document.command_id) text =
+  let
+    val tr =
+      Position.setmp_thread_data (Position.id_only id) (fn () =>
+        Outer_Syntax.prepare_command (Position.id id) text) ();
+  in
+    NAMED_CRITICAL "Isar" (fn () =>
+      Unsynchronized.change global_commands (Symtab.update_new (id, Toplevel.put_id id tr))
+        handle Symtab.DUP dup => err_dup "command" dup)
+  end;
 
 fun the_command (id: Document.command_id) =
   (case Symtab.lookup (! global_commands) id of
@@ -178,7 +184,7 @@ end;
 
 
 
-(** main operations **)
+(** document editing **)
 
 (* execution *)
 
@@ -241,52 +247,50 @@ fun updates_status updates =
 in
 
 fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) edits =
-  NAMED_CRITICAL "Isar" (fn () =>
-    let
-      val old_document = the_document old_id;
-      val new_document = fold edit_nodes edits old_document;
+  Position.setmp_thread_data (Position.id_only new_id) (fn () =>
+    NAMED_CRITICAL "Isar" (fn () =>
+      let
+        val old_document = the_document old_id;
+        val new_document = fold edit_nodes edits old_document;
 
-      fun update_node name node =
-        (case first_entry (is_changed (the_node old_document name)) node of
-          NONE => ([], node)
-        | SOME (prev, id, _) =>
-            let
-              val prev_state_id = the (#state (the_entry node (the prev)));
-              val (_, updates) = fold_entries id (new_state name o #1) node (prev_state_id, []);
-              val node' = fold set_entry_state updates node;
-            in (rev updates, node') end);
+        fun update_node name node =
+          (case first_entry (is_changed (the_node old_document name)) node of
+            NONE => ([], node)
+          | SOME (prev, id, _) =>
+              let
+                val prev_state_id = the (#state (the_entry node (the prev)));
+                val (_, updates) = fold_entries id (new_state name o #1) node (prev_state_id, []);
+                val node' = fold set_entry_state updates node;
+              in (rev updates, node') end);
 
-      (* FIXME proper node deps *)
-      val (updatess, new_document') =
-        (Graph.keys new_document, new_document)
-          |-> fold_map (fn name => Graph.map_node_yield name (update_node name));
+        (* FIXME proper node deps *)
+        val (updatess, new_document') =
+          (Graph.keys new_document, new_document)
+            |-> fold_map (fn name => Graph.map_node_yield name (update_node name));
 
-      val _ = define_document new_id new_document';
-      val _ = updates_status (flat updatess);
-      val _ = execute new_document';
-    in () end);
+        val _ = define_document new_id new_document';
+        val _ = updates_status (flat updatess);
+        val _ = execute new_document';
+      in () end)) ();
 
 end;
 
 
 
-(** concrete syntax **)
+(** Isabelle process commands **)
 
 val _ =
-  Outer_Syntax.internal_command "Isar.define_command"
-    (Parse.string -- Parse.string >> (fn (id, text) =>
-      Toplevel.position (Position.id_only id) o
-      Toplevel.imperative (fn () =>
-        define_command id (Outer_Syntax.prepare_command (Position.id id) text))));
+  Isabelle_Process.add_command "Isar_Document.define_command"
+    (fn [id, text] => define_command id text);
 
 val _ =
-  Outer_Syntax.internal_command "Isar.edit_document"
-    (Parse.string -- Parse.string --
-      Parse_Value.list
-        (Parse.string -- Scan.option (Parse_Value.list (Parse.string -- Scan.option Parse.string)))
-      >> (fn ((old_id, new_id), edits) =>
-          Toplevel.position (Position.id_only new_id) o
-          Toplevel.imperative (fn () => edit_document old_id new_id edits)));
+  Isabelle_Process.add_command "Isar_Document.edit_document"
+    (fn [old_id, new_id, edits] =>
+      edit_document old_id new_id
+        (XML_Data.dest_list (XML_Data.dest_pair XML_Data.dest_string
+            (XML_Data.dest_option (XML_Data.dest_list
+                (XML_Data.dest_pair XML_Data.dest_string
+                  (XML_Data.dest_option XML_Data.dest_string))))) (YXML.parse_body edits)));
 
 end;
 

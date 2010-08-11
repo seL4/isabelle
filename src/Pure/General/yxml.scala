@@ -20,6 +20,27 @@ object YXML
   private val Y_string = Y.toString
 
 
+  /* string representation */  // FIXME byte array version with pseudo-utf-8 (!?)
+
+  def string_of_body(body: XML.Body): String =
+  {
+    val s = new StringBuilder
+    def attrib(p: (String, String)) { s += Y; s ++= p._1; s += '='; s ++= p._2 }
+    def tree(t: XML.Tree): Unit =
+      t match {
+        case XML.Elem(Markup(name, atts), ts) =>
+          s += X; s += Y; s++= name; atts.foreach(attrib); s += X
+          ts.foreach(tree)
+          s += X; s += Y; s += X
+        case XML.Text(text) => s ++= text
+      }
+    body.foreach(tree)
+    s.toString
+  }
+
+  def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
+
+
   /* decoding pseudo UTF-8 */
 
   private class Decode_Chars(decode: String => String,
@@ -59,7 +80,7 @@ object YXML
   }
 
 
-  def parse_body(source: CharSequence): List[XML.Tree] =
+  def parse_body(source: CharSequence): XML.Body =
   {
     /* stack operations */
 
@@ -120,7 +141,7 @@ object YXML
     XML.elem (Markup.MALFORMED,
       List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
 
-  def parse_body_failsafe(source: CharSequence): List[XML.Tree] =
+  def parse_body_failsafe(source: CharSequence): XML.Body =
   {
     try { parse_body(source) }
     catch { case _: RuntimeException => List(markup_failsafe(source)) }

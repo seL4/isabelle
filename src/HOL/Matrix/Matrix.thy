@@ -367,15 +367,15 @@ definition zero_l_neutral :: "('a::zero \<Rightarrow> 'b \<Rightarrow> 'b) \<Rig
 definition zero_closed :: "(('a::zero) \<Rightarrow> ('b::zero) \<Rightarrow> ('c::zero)) \<Rightarrow> bool" where
   "zero_closed f == (!x. f x 0 = 0) & (!y. f 0 y = 0)"
 
-consts foldseq :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a"
-primrec
+primrec foldseq :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a"
+where
   "foldseq f s 0 = s 0"
-  "foldseq f s (Suc n) = f (s 0) (foldseq f (% k. s(Suc k)) n)"
+| "foldseq f s (Suc n) = f (s 0) (foldseq f (% k. s(Suc k)) n)"
 
-consts foldseq_transposed ::  "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a"
-primrec
+primrec foldseq_transposed ::  "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a"
+where
   "foldseq_transposed f s 0 = s 0"
-  "foldseq_transposed f s (Suc n) = f (foldseq_transposed f s n) (s (Suc n))"
+| "foldseq_transposed f s (Suc n) = f (foldseq_transposed f s n) (s (Suc n))"
 
 lemma foldseq_assoc : "associative f \<Longrightarrow> foldseq f = foldseq_transposed f"
 proof -

@@ -9,13 +9,11 @@ imports Complex_Main Lattice_Algebras
 uses "~~/src/Tools/float.ML" ("~~/src/HOL/Tools/float_arith.ML")
 begin
 
-definition
-  pow2 :: "int \<Rightarrow> real" where
-  "pow2 a = (if (0 <= a) then (2^(nat a)) else (inverse (2^(nat (-a)))))"
+definition pow2 :: "int \<Rightarrow> real"
+  where "pow2 a = (if (0 <= a) then (2^(nat a)) else (inverse (2^(nat (-a)))))"
 
-definition
-  float :: "int * int \<Rightarrow> real" where
-  "float x = real (fst x) * pow2 (snd x)"
+definition float :: "int * int \<Rightarrow> real"
+  where "float x = real (fst x) * pow2 (snd x)"
 
 lemma pow2_0[simp]: "pow2 0 = 1"
 by (simp add: pow2_def)
@@ -99,13 +97,11 @@ qed
 lemma "float (a, e) + float (b, e) = float (a + b, e)"
 by (simp add: float_def algebra_simps)
 
-definition
-  int_of_real :: "real \<Rightarrow> int" where
-  "int_of_real x = (SOME y. real y = x)"
+definition int_of_real :: "real \<Rightarrow> int"
+  where "int_of_real x = (SOME y. real y = x)"
 
-definition
-  real_is_int :: "real \<Rightarrow> bool" where
-  "real_is_int x = (EX (u::int). x = real u)"
+definition real_is_int :: "real \<Rightarrow> bool"
+  where "real_is_int x = (EX (u::int). x = real u)"
 
 lemma real_is_int_def2: "real_is_int x = (x = real (int_of_real x))"
 by (auto simp add: real_is_int_def int_of_real_def)
@@ -345,15 +341,11 @@ lemma float_mult_l0: "float (0, e) * x = float (0, 0)"
 lemma float_mult_r0: "x * float (0, e) = float (0, 0)"
   by (simp add: float_def)
 
-definition 
-  lbound :: "real \<Rightarrow> real"
-where
-  "lbound x = min 0 x"
+definition lbound :: "real \<Rightarrow> real"
+  where "lbound x = min 0 x"
 
-definition
-  ubound :: "real \<Rightarrow> real"
-where
-  "ubound x = max 0 x"
+definition ubound :: "real \<Rightarrow> real"
+  where "ubound x = max 0 x"
 
 lemma lbound: "lbound x \<le> x"   
   by (simp add: lbound_def)

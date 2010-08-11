@@ -203,6 +203,7 @@ object Markup
   val ERROR = "error"
   val DEBUG = "debug"
   val SYSTEM = "system"
+  val INPUT = "input"
   val STDIN = "stdin"
   val STDOUT = "stdout"
   val SIGNAL = "signal"

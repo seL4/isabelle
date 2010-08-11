@@ -18,7 +18,8 @@ sig
   val kill: unit -> unit
   val kill_proof: unit -> unit
   val crashes: exn list Unsynchronized.ref
-  val toplevel_loop: {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
+  val toplevel_loop: TextIO.instream ->
+    {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
   val main: unit -> unit
 end;
@@ -126,25 +127,27 @@ fun raw_loop secure src =
         handle crash =>
           (CRITICAL (fn () => Unsynchronized.change crashes (cons crash));
             warning "Recovering from Isar toplevel crash -- see also Isar.crashes");
-          raw_loop secure src)
+        raw_loop secure src)
   end;
 
 in
 
-fun toplevel_loop {init = do_init, welcome, sync, secure} =
+fun toplevel_loop in_stream {init = do_init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
   Secure.Isar_setup ();
   if do_init then init () else ();
   if welcome then writeln (Session.welcome ()) else ();
-  uninterruptible (fn _ => fn () => raw_loop secure (Outer_Syntax.isar sync)) ());
+  uninterruptible (fn _ => fn () => raw_loop secure (Outer_Syntax.isar in_stream sync)) ());
 
 end;
 
 fun loop () =
-  toplevel_loop {init = false, welcome = false, sync = false, secure = Secure.is_secure ()};
+  toplevel_loop TextIO.stdIn
+    {init = false, welcome = false, sync = false, secure = Secure.is_secure ()};
 
 fun main () =
-  toplevel_loop {init = true, welcome = true, sync = false, secure = Secure.is_secure ()};
+  toplevel_loop TextIO.stdIn
+    {init = true, welcome = true, sync = false, secure = Secure.is_secure ()};
 
 
 

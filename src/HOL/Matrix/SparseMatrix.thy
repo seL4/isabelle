@@ -10,11 +10,11 @@ types
   'a spvec = "(nat * 'a) list"
   'a spmat = "('a spvec) spvec"
 
-definition sparse_row_vector :: "('a::ab_group_add) spvec \<Rightarrow> 'a matrix" where
-  sparse_row_vector_def: "sparse_row_vector arr = foldl (% m x. m + (singleton_matrix 0 (fst x) (snd x))) 0 arr"
+definition sparse_row_vector :: "('a::ab_group_add) spvec \<Rightarrow> 'a matrix"
+  where "sparse_row_vector arr = foldl (% m x. m + (singleton_matrix 0 (fst x) (snd x))) 0 arr"
 
-definition sparse_row_matrix :: "('a::ab_group_add) spmat \<Rightarrow> 'a matrix" where
-  sparse_row_matrix_def: "sparse_row_matrix arr = foldl (% m r. m + (move_matrix (sparse_row_vector (snd r)) (int (fst r)) 0)) 0 arr"
+definition sparse_row_matrix :: "('a::ab_group_add) spmat \<Rightarrow> 'a matrix"
+  where "sparse_row_matrix arr = foldl (% m r. m + (move_matrix (sparse_row_vector (snd r)) (int (fst r)) 0)) 0 arr"
 
 code_datatype sparse_row_vector sparse_row_matrix
 
@@ -57,13 +57,15 @@ lemma sparse_row_matrix_append: "sparse_row_matrix (arr@brr) = (sparse_row_matri
   apply (auto simp add: sparse_row_matrix_cons)
   done
 
-primrec sorted_spvec :: "'a spvec \<Rightarrow> bool" where
+primrec sorted_spvec :: "'a spvec \<Rightarrow> bool"
+where
   "sorted_spvec [] = True"
-  | sorted_spvec_step: "sorted_spvec (a#as) = (case as of [] \<Rightarrow> True | b#bs \<Rightarrow> ((fst a < fst b) & (sorted_spvec as)))" 
+| sorted_spvec_step: "sorted_spvec (a#as) = (case as of [] \<Rightarrow> True | b#bs \<Rightarrow> ((fst a < fst b) & (sorted_spvec as)))" 
 
-primrec sorted_spmat :: "'a spmat \<Rightarrow> bool" where
+primrec sorted_spmat :: "'a spmat \<Rightarrow> bool"
+where
   "sorted_spmat [] = True"
-  | "sorted_spmat (a#as) = ((sorted_spvec (snd a)) & (sorted_spmat as))"
+| "sorted_spmat (a#as) = ((sorted_spvec (snd a)) & (sorted_spmat as))"
 
 declare sorted_spvec.simps [simp del]
 
@@ -99,13 +101,15 @@ lemma sorted_sparse_row_matrix_zero[rule_format]: "m <= n \<Longrightarrow> sort
   apply (simp add: sparse_row_matrix_cons neg_def)
   done
 
-primrec minus_spvec :: "('a::ab_group_add) spvec \<Rightarrow> 'a spvec" where
+primrec minus_spvec :: "('a::ab_group_add) spvec \<Rightarrow> 'a spvec"
+where
   "minus_spvec [] = []"
-  | "minus_spvec (a#as) = (fst a, -(snd a))#(minus_spvec as)"
+| "minus_spvec (a#as) = (fst a, -(snd a))#(minus_spvec as)"
 
-primrec abs_spvec ::  "('a::lattice_ab_group_add_abs) spvec \<Rightarrow> 'a spvec" where
+primrec abs_spvec :: "('a::lattice_ab_group_add_abs) spvec \<Rightarrow> 'a spvec"
+where
   "abs_spvec [] = []"
-  | "abs_spvec (a#as) = (fst a, abs (snd a))#(abs_spvec as)"
+| "abs_spvec (a#as) = (fst a, abs (snd a))#(abs_spvec as)"
 
 lemma sparse_row_vector_minus: 
   "sparse_row_vector (minus_spvec v) = - (sparse_row_vector v)"
@@ -150,8 +154,7 @@ lemma sorted_spvec_abs_spvec:
   apply (simp add: sorted_spvec.simps split:list.split_asm)
   done
   
-definition
-  "smult_spvec y = map (% a. (fst a, y * snd a))"  
+definition "smult_spvec y = map (% a. (fst a, y * snd a))"  
 
 lemma smult_spvec_empty[simp]: "smult_spvec y [] = []"
   by (simp add: smult_spvec_def)
@@ -159,10 +162,11 @@ lemma smult_spvec_empty[simp]: "smult_spvec y [] = []"
 lemma smult_spvec_cons: "smult_spvec y (a#arr) = (fst a, y * (snd a)) # (smult_spvec y arr)"
   by (simp add: smult_spvec_def)
 
-fun addmult_spvec :: "('a::ring) \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec" where
-  "addmult_spvec y arr [] = arr" |
-  "addmult_spvec y [] brr = smult_spvec y brr" |
-  "addmult_spvec y ((i,a)#arr) ((j,b)#brr) = (
+fun addmult_spvec :: "('a::ring) \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec"
+where
+  "addmult_spvec y arr [] = arr"
+| "addmult_spvec y [] brr = smult_spvec y brr"
+| "addmult_spvec y ((i,a)#arr) ((j,b)#brr) = (
     if i < j then ((i,a)#(addmult_spvec y arr ((j,b)#brr))) 
     else (if (j < i) then ((j, y * b)#(addmult_spvec y ((i,a)#arr) brr))
     else ((i, a + y*b)#(addmult_spvec y arr brr))))"
@@ -235,11 +239,12 @@ lemma sorted_addmult_spvec: "sorted_spvec a \<Longrightarrow> sorted_spvec b \<L
   apply (simp_all add: sorted_spvec_addmult_spvec_helper3)
   done
 
-fun mult_spvec_spmat :: "('a::lattice_ring) spvec \<Rightarrow> 'a spvec \<Rightarrow> 'a spmat  \<Rightarrow> 'a spvec" where
+fun mult_spvec_spmat :: "('a::lattice_ring) spvec \<Rightarrow> 'a spvec \<Rightarrow> 'a spmat  \<Rightarrow> 'a spvec"
+where
 (* recdef mult_spvec_spmat "measure (% (c, arr, brr). (length arr) + (length brr))" *)
-  "mult_spvec_spmat c [] brr = c" |
-  "mult_spvec_spmat c arr [] = c" |
-  "mult_spvec_spmat c ((i,a)#arr) ((j,b)#brr) = (
+  "mult_spvec_spmat c [] brr = c"
+| "mult_spvec_spmat c arr [] = c"
+| "mult_spvec_spmat c ((i,a)#arr) ((j,b)#brr) = (
      if (i < j) then mult_spvec_spmat c arr ((j,b)#brr)
      else if (j < i) then mult_spvec_spmat c ((i,a)#arr) brr 
      else mult_spvec_spmat (addmult_spvec a c b) arr brr)"
@@ -342,12 +347,10 @@ lemma sorted_mult_spvec_spmat[rule_format]:
   apply (simp_all add: sorted_addmult_spvec)
   done
 
-consts 
-  mult_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat"
-
-primrec 
+primrec mult_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat"
+where
   "mult_spmat [] A = []"
-  "mult_spmat (a#as) A = (fst a, mult_spvec_spmat [] (snd a) A)#(mult_spmat as A)"
+| "mult_spmat (a#as) A = (fst a, mult_spvec_spmat [] (snd a) A)#(mult_spmat as A)"
 
 lemma sparse_row_mult_spmat: 
   "sorted_spmat A \<Longrightarrow> sorted_spvec B \<Longrightarrow>
@@ -372,12 +375,13 @@ lemma sorted_spmat_mult_spmat:
   done
 
 
-fun add_spvec :: "('a::lattice_ab_group_add) spvec \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec" where
+fun add_spvec :: "('a::lattice_ab_group_add) spvec \<Rightarrow> 'a spvec \<Rightarrow> 'a spvec"
+where
 (* "measure (% (a, b). length a + (length b))" *)
-  "add_spvec arr [] = arr" |
-  "add_spvec [] brr = brr" |
-  "add_spvec ((i,a)#arr) ((j,b)#brr) = (
-  if i < j then (i,a)#(add_spvec arr ((j,b)#brr)) 
+  "add_spvec arr [] = arr"
+| "add_spvec [] brr = brr"
+| "add_spvec ((i,a)#arr) ((j,b)#brr) = (
+     if i < j then (i,a)#(add_spvec arr ((j,b)#brr)) 
      else if (j < i) then (j,b) # add_spvec ((i,a)#arr) brr
      else (i, a+b) # add_spvec arr brr)"
 
@@ -389,17 +393,18 @@ lemma sparse_row_vector_add: "sparse_row_vector (add_spvec a b) = (sparse_row_ve
   apply (simp_all add: singleton_matrix_add)
   done
 
-fun add_spmat :: "('a::lattice_ab_group_add) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat" where
+fun add_spmat :: "('a::lattice_ab_group_add) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat"
+where
 (* "measure (% (A,B). (length A)+(length B))" *)
-  "add_spmat [] bs = bs" |
-  "add_spmat as [] = as" |
-  "add_spmat ((i,a)#as) ((j,b)#bs) = (
-  if i < j then 
-    (i,a) # add_spmat as ((j,b)#bs)
-  else if j < i then
-    (j,b) # add_spmat ((i,a)#as) bs
-  else
-    (i, add_spvec a b) # add_spmat as bs)"
+  "add_spmat [] bs = bs"
+| "add_spmat as [] = as"
+| "add_spmat ((i,a)#as) ((j,b)#bs) = (
+    if i < j then 
+      (i,a) # add_spmat as ((j,b)#bs)
+    else if j < i then
+      (j,b) # add_spmat ((i,a)#as) bs
+    else
+      (i, add_spvec a b) # add_spmat as bs)"
 
 lemma add_spmat_Nil2[simp]: "add_spmat as [] = as"
 by(cases as) auto
@@ -532,28 +537,31 @@ lemma sorted_spmat_add_spmat[rule_format]: "sorted_spmat A \<Longrightarrow> sor
   apply (simp_all add: sorted_spvec_add_spvec)
   done
 
-fun le_spvec :: "('a::lattice_ab_group_add) spvec \<Rightarrow> 'a spvec \<Rightarrow> bool" where
+fun le_spvec :: "('a::lattice_ab_group_add) spvec \<Rightarrow> 'a spvec \<Rightarrow> bool"
+where
 (* "measure (% (a,b). (length a) + (length b))" *)
-  "le_spvec [] [] = True" |
-  "le_spvec ((_,a)#as) [] = (a <= 0 & le_spvec as [])" |
-  "le_spvec [] ((_,b)#bs) = (0 <= b & le_spvec [] bs)" |
-  "le_spvec ((i,a)#as) ((j,b)#bs) = (
-  if (i < j) then a <= 0 & le_spvec as ((j,b)#bs)
-  else if (j < i) then 0 <= b & le_spvec ((i,a)#as) bs
-  else a <= b & le_spvec as bs)"
+  "le_spvec [] [] = True"
+| "le_spvec ((_,a)#as) [] = (a <= 0 & le_spvec as [])"
+| "le_spvec [] ((_,b)#bs) = (0 <= b & le_spvec [] bs)"
+| "le_spvec ((i,a)#as) ((j,b)#bs) = (
+    if (i < j) then a <= 0 & le_spvec as ((j,b)#bs)
+    else if (j < i) then 0 <= b & le_spvec ((i,a)#as) bs
+    else a <= b & le_spvec as bs)"
 
-fun le_spmat :: "('a::lattice_ab_group_add) spmat \<Rightarrow> 'a spmat \<Rightarrow> bool" where
+fun le_spmat :: "('a::lattice_ab_group_add) spmat \<Rightarrow> 'a spmat \<Rightarrow> bool"
+where
 (* "measure (% (a,b). (length a) + (length b))" *)
-  "le_spmat [] [] = True" |
-  "le_spmat ((i,a)#as) [] = (le_spvec a [] & le_spmat as [])" |
-  "le_spmat [] ((j,b)#bs) = (le_spvec [] b & le_spmat [] bs)" |
-  "le_spmat ((i,a)#as) ((j,b)#bs) = (
-  if i < j then (le_spvec a [] & le_spmat as ((j,b)#bs))
-  else if j < i then (le_spvec [] b & le_spmat ((i,a)#as) bs)
-  else (le_spvec a b & le_spmat as bs))"
+  "le_spmat [] [] = True"
+| "le_spmat ((i,a)#as) [] = (le_spvec a [] & le_spmat as [])"
+| "le_spmat [] ((j,b)#bs) = (le_spvec [] b & le_spmat [] bs)"
+| "le_spmat ((i,a)#as) ((j,b)#bs) = (
+    if i < j then (le_spvec a [] & le_spmat as ((j,b)#bs))
+    else if j < i then (le_spvec [] b & le_spmat ((i,a)#as) bs)
+    else (le_spvec a b & le_spmat as bs))"
 
 definition disj_matrices :: "('a::zero) matrix \<Rightarrow> 'a matrix \<Rightarrow> bool" where
-  "disj_matrices A B == (! j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (! j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
+  "disj_matrices A B \<longleftrightarrow>
+    (! j i. (Rep_matrix A j i \<noteq> 0) \<longrightarrow> (Rep_matrix B j i = 0)) & (! j i. (Rep_matrix B j i \<noteq> 0) \<longrightarrow> (Rep_matrix A j i = 0))"  
 
 declare [[simp_depth_limit = 6]]
 
@@ -730,13 +738,15 @@ lemma le_spmat_iff_sparse_row_le[rule_format]: "(sorted_spvec A) \<longrightarro
 
 declare [[simp_depth_limit = 999]]
 
-primrec abs_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat" where
-  "abs_spmat [] = []" |
-  "abs_spmat (a#as) = (fst a, abs_spvec (snd a))#(abs_spmat as)"
+primrec abs_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat"
+where
+  "abs_spmat [] = []"
+| "abs_spmat (a#as) = (fst a, abs_spvec (snd a))#(abs_spmat as)"
 
-primrec minus_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat" where
-  "minus_spmat [] = []" |
-  "minus_spmat (a#as) = (fst a, minus_spvec (snd a))#(minus_spmat as)"
+primrec minus_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat"
+where
+  "minus_spmat [] = []"
+| "minus_spmat (a#as) = (fst a, minus_spvec (snd a))#(minus_spmat as)"
 
 lemma sparse_row_matrix_minus:
   "sparse_row_matrix (minus_spmat A) = - (sparse_row_matrix A)"
@@ -801,8 +811,8 @@ lemma sorted_spmat_abs_spmat: "sorted_spmat A \<Longrightarrow> sorted_spmat (ab
   apply (simp_all add: sorted_spvec_abs_spvec)
   done
 
-definition diff_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat" where
-  "diff_spmat A B == add_spmat A (minus_spmat B)"
+definition diff_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat"
+  where "diff_spmat A B = add_spmat A (minus_spmat B)"
 
 lemma sorted_spmat_diff_spmat: "sorted_spmat A \<Longrightarrow> sorted_spmat B \<Longrightarrow> sorted_spmat (diff_spmat A B)"
   by (simp add: diff_spmat_def sorted_spmat_minus_spmat sorted_spmat_add_spmat)
@@ -813,8 +823,8 @@ lemma sorted_spvec_diff_spmat: "sorted_spvec A \<Longrightarrow> sorted_spvec B 
 lemma sparse_row_diff_spmat: "sparse_row_matrix (diff_spmat A B ) = (sparse_row_matrix A) - (sparse_row_matrix B)"
   by (simp add: diff_spmat_def sparse_row_add_spmat sparse_row_matrix_minus)
 
-definition sorted_sparse_matrix :: "'a spmat \<Rightarrow> bool" where
-  "sorted_sparse_matrix A == (sorted_spvec A) & (sorted_spmat A)"
+definition sorted_sparse_matrix :: "'a spmat \<Rightarrow> bool"
+  where "sorted_sparse_matrix A \<longleftrightarrow> sorted_spvec A & sorted_spmat A"
 
 lemma sorted_sparse_matrix_imp_spvec: "sorted_sparse_matrix A \<Longrightarrow> sorted_spvec A"
   by (simp add: sorted_sparse_matrix_def)
@@ -841,29 +851,25 @@ lemmas boolarith = bool1 bool2 bool3 bool4 bool5 bool6 bool7 bool8 bool9 bool10
 
 lemma if_case_eq: "(if b then x else y) = (case b of True => x | False => y)" by simp
 
-consts
-  pprt_spvec :: "('a::{lattice_ab_group_add}) spvec \<Rightarrow> 'a spvec"
-  nprt_spvec :: "('a::{lattice_ab_group_add}) spvec \<Rightarrow> 'a spvec"
-  pprt_spmat :: "('a::{lattice_ab_group_add}) spmat \<Rightarrow> 'a spmat"
-  nprt_spmat :: "('a::{lattice_ab_group_add}) spmat \<Rightarrow> 'a spmat"
-
-primrec
+primrec pprt_spvec :: "('a::{lattice_ab_group_add}) spvec \<Rightarrow> 'a spvec"
+where
   "pprt_spvec [] = []"
-  "pprt_spvec (a#as) = (fst a, pprt (snd a)) # (pprt_spvec as)"
+| "pprt_spvec (a#as) = (fst a, pprt (snd a)) # (pprt_spvec as)"
 
-primrec
+primrec nprt_spvec :: "('a::{lattice_ab_group_add}) spvec \<Rightarrow> 'a spvec"
+where
   "nprt_spvec [] = []"
-  "nprt_spvec (a#as) = (fst a, nprt (snd a)) # (nprt_spvec as)"
+| "nprt_spvec (a#as) = (fst a, nprt (snd a)) # (nprt_spvec as)"
 
-primrec 
+primrec pprt_spmat :: "('a::{lattice_ab_group_add}) spmat \<Rightarrow> 'a spmat"
+where
   "pprt_spmat [] = []"
-  "pprt_spmat (a#as) = (fst a, pprt_spvec (snd a))#(pprt_spmat as)"
-  (*case (pprt_spvec (snd a)) of [] \<Rightarrow> (pprt_spmat as) | y#ys \<Rightarrow> (fst a, y#ys)#(pprt_spmat as))"*)
+| "pprt_spmat (a#as) = (fst a, pprt_spvec (snd a))#(pprt_spmat as)"
 
-primrec 
+primrec nprt_spmat :: "('a::{lattice_ab_group_add}) spmat \<Rightarrow> 'a spmat"
+where
   "nprt_spmat [] = []"
-  "nprt_spmat (a#as) = (fst a, nprt_spvec (snd a))#(nprt_spmat as)"
-  (*case (nprt_spvec (snd a)) of [] \<Rightarrow> (nprt_spmat as) | y#ys \<Rightarrow> (fst a, y#ys)#(nprt_spmat as))"*)
+| "nprt_spmat (a#as) = (fst a, nprt_spvec (snd a))#(nprt_spmat as)"
 
 
 lemma pprt_add: "disj_matrices A (B::(_::lattice_ring) matrix) \<Longrightarrow> pprt (A+B) = pprt A + pprt B"
@@ -1012,7 +1018,7 @@ lemma sorted_spmat_nprt_spmat: "sorted_spmat m \<Longrightarrow> sorted_spmat (n
   done
 
 definition mult_est_spmat :: "('a::lattice_ring) spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat \<Rightarrow> 'a spmat" where
-  "mult_est_spmat r1 r2 s1 s2 == 
+  "mult_est_spmat r1 r2 s1 s2 =
   add_spmat (mult_spmat (pprt_spmat s2) (pprt_spmat r2)) (add_spmat (mult_spmat (pprt_spmat s1) (nprt_spmat r2)) 
   (add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1)) (mult_spmat (nprt_spmat s1) (nprt_spmat r1))))"  
 

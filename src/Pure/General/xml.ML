@@ -10,6 +10,7 @@ sig
   datatype tree =
       Elem of Markup.T * tree list
     | Text of string
+  type body = tree list
   val add_content: tree -> Buffer.T -> Buffer.T
   val header: string
   val text: string -> string
@@ -34,6 +35,8 @@ type attributes = Properties.T;
 datatype tree =
     Elem of Markup.T * tree list
   | Text of string;
+
+type body = tree list;
 
 fun add_content (Elem (_, ts)) = fold add_content ts
   | add_content (Text s) = Buffer.add s;

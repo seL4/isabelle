@@ -50,6 +50,7 @@ use "General/url.ML";
 use "General/buffer.ML";
 use "General/file.ML";
 use "General/xml.ML";
+use "General/xml_data.ML";
 use "General/yxml.ML";
 
 use "General/sha1.ML";
@@ -230,7 +231,7 @@ use "Thy/thy_load.ML";
 use "Isar/proof_node.ML";
 use "Isar/toplevel.ML";
 
-(*theory syntax*)
+(*theory documents*)
 use "Thy/present.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
@@ -239,7 +240,6 @@ use "PIDE/document.ML";
 use "old_goals.ML";
 use "Isar/outer_syntax.ML";
 use "Thy/thy_info.ML";
-use "Isar/isar_document.ML";
 
 (*theory and proof operations*)
 use "Isar/rule_insts.ML";
@@ -257,6 +257,7 @@ use "Proof/extraction.ML";
 use "System/session.ML";
 use "System/isar.ML";
 use "System/isabelle_process.ML";
+use "Isar/isar_document.ML";
 
 
 (* miscellaneous tools and packages for Pure Isabelle *)
