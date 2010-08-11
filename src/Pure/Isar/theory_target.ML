@@ -7,10 +7,7 @@ Common theory/locale/class/instantiation/overloading targets.
 
 signature THEORY_TARGET =
 sig
-  val peek: local_theory ->
-   {target: string,
-    is_locale: bool,
-    is_class: bool}
+  val peek: local_theory -> {target: string, is_locale: bool, is_class: bool}
   val init: string option -> theory -> local_theory
   val context_cmd: xstring -> theory -> local_theory
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
