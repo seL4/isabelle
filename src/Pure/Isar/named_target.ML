@@ -22,7 +22,13 @@ datatype target = Target of {target: string, is_locale: bool, is_class: bool};
 fun make_target target is_locale is_class =
   Target {target = target, is_locale = is_locale, is_class = is_class};
 
-val global_target = make_target "" false false;
+val global_target = Target {target = "", is_locale = false, is_class = false};
+
+fun named_target _ NONE = global_target
+  | named_target thy (SOME locale) =
+      if Locale.defined thy locale
+      then Target {target = locale, is_locale = true, is_class = Class_Target.is_class thy locale}
+      else error ("No such locale: " ^ quote locale);
 
 structure Data = Proof_Data
 (
@@ -168,18 +174,18 @@ fun pretty (Target {target, is_class, ...}) ctxt =
     pretty_thy ctxt target is_class;
 
 
-(* init various targets *)
+(* init *)
 
 local
 
-fun init_data (Target {target, is_locale, is_class}) =
+fun init_context (Target {target, is_locale, is_class}) =
   if not is_locale then ProofContext.init_global
   else if not is_class then Locale.init target
   else Class_Target.init target;
 
 fun init_target (ta as Target {target, ...}) thy =
   thy
-  |> init_data ta
+  |> init_context ta
   |> Data.put ta
   |> Local_Theory.init NONE (Long_Name.base_name target)
      {define = Generic_Target.define (target_foundation ta),
@@ -192,12 +198,6 @@ fun init_target (ta as Target {target, ...}) thy =
       pretty = pretty ta,
       reinit = init_target ta o ProofContext.theory_of,
       exit = Local_Theory.target_of};
-
-fun named_target _ NONE = global_target
-  | named_target thy (SOME target) =
-      if Locale.defined thy target
-      then make_target target true (Class_Target.is_class thy target)
-      else error ("No such locale: " ^ quote target);
 
 in
 
