@@ -462,11 +462,11 @@ val _ =
    (Parse.binding -- Scan.optional (Parse.$$$ "=" |-- class_val) ([], []) -- Parse.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-          (Class.class_cmd name supclasses elems #> snd)));
+          (Class_Declaration.class_cmd name supclasses elems #> snd)));
 
 val _ =
   Outer_Syntax.local_theory_to_proof "subclass" "prove a subclass relation" Keyword.thy_goal
-    (Parse.xname >> Class.subclass_cmd);
+    (Parse.xname >> Class_Declaration.subclass_cmd);
 
 val _ =
   Outer_Syntax.command "instantiation" "instantiate and prove type arity" Keyword.thy_decl

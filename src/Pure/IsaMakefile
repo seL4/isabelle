@@ -111,7 +111,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/auto_bind.ML					\
   Isar/calculation.ML					\
   Isar/class.ML						\
-  Isar/class_target.ML					\
+  Isar/class_declaration.ML				\
   Isar/code.ML						\
   Isar/constdefs.ML					\
   Isar/context_rules.ML					\
