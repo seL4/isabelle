@@ -99,46 +99,10 @@ fun class_foundation (ta as Target {target, ...})
     #> class_target ta (Class_Target.declare target ((b, mx), (type_params, lhs)))
     #> pair (lhs, def))
 
-fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
-
-fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
-  if not is_locale then (NoSyn, NoSyn, mx)
-  else if not is_class then (NoSyn, mx, NoSyn)
-  else (mx, NoSyn, NoSyn);
-
-fun foundation (ta as Target {target, is_locale, is_class, ...})
-    (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
-  let
-    val (mx1, mx2, mx3) = fork_mixfix ta mx;
-    val (const, lthy2) = lthy |>
-      (case Class_Target.instantiation_param lthy b of
-        SOME c =>
-          if mx3 <> NoSyn then syntax_error c
-          else Local_Theory.theory_result (AxClass.declare_overloaded (c, U))
-            ##> Class_Target.confirm_declaration b
-      | NONE =>
-          (case Overloading.operation lthy b of
-            SOME (c, _) =>
-              if mx3 <> NoSyn then syntax_error c
-              else Local_Theory.theory_result (Overloading.declare (c, U))
-                ##> Overloading.confirm b
-          | NONE => Local_Theory.theory_result (Sign.declare_const ((b, U), mx3))));
-    val Const (head, _) = const;
-    val lhs = list_comb (const, type_params @ term_params);
-  in
-    lthy2
-    |> pair lhs
-    ||>> Local_Theory.theory_result
-      (case Overloading.operation lthy b of
-        SOME (_, checked) => Overloading.define checked b_def (head, rhs)
-      | NONE =>
-          if is_some (Class_Target.instantiation_param lthy b)
-          then AxClass.define_overloaded b_def (head, rhs)
-          else Thm.add_def false false (b_def, Logic.mk_equals (lhs, rhs)) #>> snd)
-    ||> is_locale ? locale_const_declaration ta Syntax.mode_default ((b, mx2), lhs)
-    ||> is_class ? class_target ta
-          (Class_Target.declare target ((b, mx1), (type_params, lhs)))
-  end;
+fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
+  if is_class then class_foundation ta
+  else if is_locale then locale_foundation ta
+  else Generic_Target.theory_foundation;
 
 
 (* notes *)
@@ -218,7 +182,7 @@ fun init_target (ta as Target {target, ...}) thy =
   |> init_data ta
   |> Data.put ta
   |> Local_Theory.init NONE (Long_Name.base_name target)
-     {define = Generic_Target.define (foundation ta),
+     {define = Generic_Target.define (target_foundation ta),
       notes = Generic_Target.notes (target_notes ta),
       abbrev = Generic_Target.abbrev (target_abbrev ta),
       declaration = fn pervasive => target_declaration ta
