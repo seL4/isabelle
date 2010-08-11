@@ -144,19 +144,22 @@ fun find_consts ctxt raw_criteria =
 
 (* command syntax *)
 
-fun find_consts_cmd spec =
-  Toplevel.unknown_theory o Toplevel.keep (fn state =>
-    find_consts (Proof.context_of (Toplevel.enter_proof_body state)) spec);
+local
 
 val criterion =
   Parse.reserved "strict" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Strict ||
   Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Name ||
   Parse.xname >> Loose;
 
+in
+
 val _ =
   Outer_Syntax.improper_command "find_consts" "search constants by type pattern" Keyword.diag
     (Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion)
-      >> (Toplevel.no_timing oo find_consts_cmd));
+      >> (fn spec => Toplevel.no_timing o
+        Toplevel.keep (fn state => find_consts (Toplevel.context_of state) spec)));
+
+end;
 
 end;
 

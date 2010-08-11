@@ -455,14 +455,6 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
 (** command syntax **)
 
-fun find_theorems_cmd ((opt_lim, rem_dups), spec) =
-  Toplevel.unknown_theory o Toplevel.keep (fn state =>
-    let
-      val proof_state = Toplevel.enter_proof_body state;
-      val ctxt = Proof.context_of proof_state;
-      val opt_goal = try Proof.simple_goal proof_state |> Option.map #goal;
-    in print_theorems ctxt opt_goal opt_lim rem_dups spec end);
-
 local
 
 val criterion =
@@ -486,7 +478,13 @@ val _ =
   Outer_Syntax.improper_command "find_theorems" "print theorems meeting specified criteria"
     Keyword.diag
     (options -- Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion))
-      >> (Toplevel.no_timing oo find_theorems_cmd));
+      >> (fn ((opt_lim, rem_dups), spec) =>
+        Toplevel.no_timing o
+        Toplevel.keep (fn state =>
+          let
+            val ctxt = Toplevel.context_of state;
+            val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
+          in print_theorems ctxt opt_goal opt_lim rem_dups spec end)));
 
 end;
 
