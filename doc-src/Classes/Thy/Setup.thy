@@ -1,8 +1,8 @@
 theory Setup
 imports Main Code_Integer
 uses
-  "../../antiquote_setup"
-  "../../more_antiquote"
+  "../../antiquote_setup.ML"
+  "../../more_antiquote.ML"
 begin
 
 setup {* Code_Target.set_default_code_width 74 *}
