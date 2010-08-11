@@ -406,7 +406,7 @@ fun define_overloaded b (c, t) thy =
   in
     thy
     |> Thm.add_def false false (b', prop)
-    |>> (fn (_, thm) =>  Drule.transitive_thm OF [eq, thm])
+    |>> (fn (_, thm) => Drule.transitive_thm OF [eq, thm])
   end;
 
 
