@@ -441,6 +441,19 @@ fun synchronize_inst_syntax ctxt =
             (((primary_constraints, []), (((improve, subst), false), unchecks)), false))
   end;
 
+fun resort_terms pp algebra consts constraints ts =
+  let
+    fun matchings (Const (c_ty as (c, _))) = (case constraints c
+         of NONE => I
+          | SOME sorts => fold2 (curry (Sorts.meet_sort algebra))
+              (Consts.typargs consts c_ty) sorts)
+      | matchings _ = I
+    val tvartab = (fold o fold_aterms) matchings ts Vartab.empty
+      handle Sorts.CLASS_ERROR e => error (Sorts.class_error pp e);
+    val inst = map_type_tvar
+      (fn (vi, sort) => TVar (vi, the_default sort (Vartab.lookup tvartab vi)));
+  in if Vartab.is_empty tvartab then NONE else SOME ((map o map_types) inst ts) end;
+
 
 (* target *)
 
@@ -461,20 +474,39 @@ val sanitize_name = (*necessary as long as "dirty" type identifiers are permitte
 
 val type_name = sanitize_name o Long_Name.base_name;
 
-fun resort_terms pp algebra consts constraints ts =
-  let
-    fun matchings (Const (c_ty as (c, _))) = (case constraints c
-         of NONE => I
-          | SOME sorts => fold2 (curry (Sorts.meet_sort algebra))
-              (Consts.typargs consts c_ty) sorts)
-      | matchings _ = I
-    val tvartab = (fold o fold_aterms) matchings ts Vartab.empty
-      handle Sorts.CLASS_ERROR e => error (Sorts.class_error pp e);
-    val inst = map_type_tvar
-      (fn (vi, sort) => TVar (vi, the_default sort (Vartab.lookup tvartab vi)));
-  in if Vartab.is_empty tvartab then NONE else SOME ((map o map_types) inst ts) end;
+fun define_overloaded (c, U) v (b_def, rhs) = Local_Theory.theory_result
+    (AxClass.declare_overloaded (c, U) ##>> AxClass.define_overloaded b_def (c, rhs))
+  ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
+  ##> Local_Theory.target synchronize_inst_syntax;
 
-fun init_instantiation (tycos, vs, sort) thy =
+fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  case instantiation_param lthy b
+   of SOME c => if mx <> NoSyn then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
+        else lthy |> define_overloaded (c, U) (Binding.name_of b) (b_def, rhs)
+    | NONE => lthy |>
+        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+
+fun pretty lthy =
+  let
+    val { arities = (tycos, vs, sort), params } = the_instantiation lthy;
+    val thy = ProofContext.theory_of lthy;
+    fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
+    fun pr_param ((c, _), (v, ty)) =
+      (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
+        (Pretty.str o Sign.extern_const thy) c, Pretty.str "::", Syntax.pretty_typ_global thy ty];
+  in Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params end;
+
+fun conclude lthy =
+  let
+    val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
+    val thy = ProofContext.theory_of lthy;
+    val _ = map (fn tyco => if Sign.of_sort thy
+        (Type (tyco, map TFree vs), sort)
+      then () else error ("Missing instance proof for type " ^ quote (Sign.extern_type thy tyco)))
+        tycos;
+  in lthy end;
+
+fun instantiation (tycos, vs, sort) thy =
   let
     val _ = if null tycos then error "At least one arity must be given" else ();
     val class_params = these_params thy (filter (can (AxClass.get_info thy)) sort);
@@ -512,11 +544,20 @@ fun init_instantiation (tycos, vs, sort) thy =
     |> Overloading.add_improvable_syntax
     |> Context.proof_map (Syntax.add_term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax
+    |> Local_Theory.init NONE ""
+       {define = Generic_Target.define foundation,
+        notes = Generic_Target.notes
+          (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
+        abbrev = Generic_Target.abbrev
+          (fn prmode => fn (b, mx) => fn (t, _) => fn _ => Generic_Target.theory_abbrev prmode ((b, mx), t)),
+        declaration = K Generic_Target.theory_declaration,
+        syntax_declaration = K Generic_Target.theory_declaration,
+        pretty = pretty,
+        exit = Local_Theory.target_of o conclude}
   end;
 
-fun confirm_declaration b = (map_instantiation o apsnd)
-  (filter_out (fn (_, (c', _)) => c' = Binding.name_of b))
-  #> Local_Theory.target synchronize_inst_syntax
+fun instantiation_cmd arities thy =
+  instantiation (read_multi_arity thy arities) thy;
 
 fun gen_instantiation_instance do_proof after_qed lthy =
   let
@@ -550,57 +591,6 @@ fun prove_instantiation_exit_result f tac x lthy =
     |> prove_instantiation_exit (fn ctxt => tac ctxt y)
     |> pair y
   end;
-
-fun conclude_instantiation lthy =
-  let
-    val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
-    val thy = ProofContext.theory_of lthy;
-    val _ = map (fn tyco => if Sign.of_sort thy
-        (Type (tyco, map TFree vs), sort)
-      then () else error ("Missing instance proof for type " ^ quote (Sign.extern_type thy tyco)))
-        tycos;
-  in lthy end;
-
-fun pretty_instantiation lthy =
-  let
-    val { arities = (tycos, vs, sort), params } = the_instantiation lthy;
-    val thy = ProofContext.theory_of lthy;
-    fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
-    fun pr_param ((c, _), (v, ty)) =
-      (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
-        (Pretty.str o Sign.extern_const thy) c, Pretty.str "::", Syntax.pretty_typ_global thy ty];
-  in
-    (Pretty.block o Pretty.fbreaks)
-      (Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params)
-  end;
-
-fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
-
-fun instantiation_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
-  case instantiation_param lthy b
-   of SOME c => if mx <> NoSyn then syntax_error c
-        else lthy |> Local_Theory.theory_result (AxClass.declare_overloaded (c, U)
-            ##>> AxClass.define_overloaded b_def (c, rhs))
-          ||> confirm_declaration b
-    | NONE => lthy |>
-        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
-
-fun instantiation arities thy =
-  thy
-  |> init_instantiation arities
-  |> Local_Theory.init NONE ""
-     {define = Generic_Target.define instantiation_foundation,
-      notes = Generic_Target.notes
-        (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
-      abbrev = Generic_Target.abbrev
-        (fn prmode => fn (b, mx) => fn (t, _) => fn _ => Generic_Target.theory_abbrev prmode ((b, mx), t)),
-      declaration = K Generic_Target.theory_declaration,
-      syntax_declaration = K Generic_Target.theory_declaration,
-      pretty = single o pretty_instantiation,
-      exit = Local_Theory.target_of o conclude_instantiation};
-
-fun instantiation_cmd arities thy =
-  instantiation (read_multi_arity thy arities) thy;
 
 
 (* simplified instantiation interface with no class parameter *)
