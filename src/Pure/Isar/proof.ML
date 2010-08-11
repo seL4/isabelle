@@ -60,7 +60,6 @@ sig
   val def_cmd: (Attrib.binding * ((binding * mixfix) * (string * string list))) list -> state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
-  val get_thmss_cmd: state -> (Facts.ref * Attrib.src list) list -> thm list
   val note_thmss: (Thm.binding * (thm list * attribute list) list) list -> state -> state
   val note_thmss_cmd: (Attrib.binding * (Facts.ref * Attrib.src list) list) list -> state -> state
   val from_thmss: ((thm list * attribute list) list) list -> state -> state
@@ -678,8 +677,6 @@ val with_thmss = gen_thmss the_facts chain #2 (K I) (K I) o no_binding;
 val with_thmss_cmd = gen_thmss the_facts chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
 
 val local_results = gen_thmss (K []) I I (K I) (K I) o map (apsnd Thm.simple_fact);
-
-fun get_thmss_cmd state srcs = the_facts (note_thmss_cmd [((Binding.empty, []), srcs)] state);
 
 end;
 

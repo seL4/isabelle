@@ -433,35 +433,26 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
     val tally_msg =
       (case foundo of
-        NONE => "displaying " ^ string_of_int returned ^ " theorems"
+        NONE => "displaying " ^ string_of_int returned ^ " theorem(s)"
       | SOME found =>
-          "found " ^ string_of_int found ^ " theorems" ^
+          "found " ^ string_of_int found ^ " theorem(s)" ^
             (if returned < found
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
 
     val end_msg = " in " ^ Time.toString (#cpu (end_timing start)) ^ " secs";
   in
-    Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria)
-        :: Pretty.str "" ::
-     (if null thms then [Pretty.str ("nothing found" ^ end_msg)]
-      else
-        [Pretty.str (tally_msg ^ end_msg ^ ":"), Pretty.str ""] @
+    Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) ::
+    Pretty.str "" ::
+    (if null thms then [Pretty.str ("nothing found" ^ end_msg)]
+     else
+      [Pretty.str (tally_msg ^ end_msg ^ ":"), Pretty.str ""] @
         map (pretty_thm ctxt) thms)
-    |> Pretty.chunks |> Pretty.writeln
-  end;
+  end |> Pretty.chunks |> Pretty.writeln;
 
 
 
 (** command syntax **)
-
-fun find_theorems_cmd ((opt_lim, rem_dups), spec) =
-  Toplevel.unknown_theory o Toplevel.keep (fn state =>
-    let
-      val proof_state = Toplevel.enter_proof_body state;
-      val ctxt = Proof.context_of proof_state;
-      val opt_goal = try Proof.simple_goal proof_state |> Option.map #goal;
-    in print_theorems ctxt opt_goal opt_lim rem_dups spec end);
 
 local
 
@@ -486,7 +477,13 @@ val _ =
   Outer_Syntax.improper_command "find_theorems" "print theorems meeting specified criteria"
     Keyword.diag
     (options -- Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion))
-      >> (Toplevel.no_timing oo find_theorems_cmd));
+      >> (fn ((opt_lim, rem_dups), spec) =>
+        Toplevel.no_timing o
+        Toplevel.keep (fn state =>
+          let
+            val ctxt = Toplevel.context_of state;
+            val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
+          in print_theorems ctxt opt_goal opt_lim rem_dups spec end)));
 
 end;
 

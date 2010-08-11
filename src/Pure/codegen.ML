@@ -889,9 +889,8 @@ fun test_term ctxt report t =
               mk_app false (str "testf") (map (str o fst) args),
               Pretty.brk 1, str "then NONE",
               Pretty.brk 1, str "else ",
-              Pretty.block [str "SOME ", Pretty.block (str "[" ::
-                Pretty.commas (map (fn (s, _) => str (s ^ "_t ()")) args) @
-                  [str "]"])]]),
+              Pretty.block [str "SOME ",
+                Pretty.enum "," "[" "]" (map (fn (s, _) => str (s ^ "_t ()")) args)]]),
           str ");"]) ^
       "\n\nend;\n";
     val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none s;

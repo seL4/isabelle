@@ -416,7 +416,7 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   Thm_Deps.thm_deps (Toplevel.theory_of state)
-    (Proof.get_thmss_cmd (Toplevel.enter_proof_body state) args));
+    (Attrib.eval_thms (Toplevel.context_of state) args));
 
 
 (* find unused theorems *)
@@ -450,20 +450,20 @@ val print_cases = Toplevel.unknown_context o
 
 local
 
-fun string_of_stmts state args =
-  Proof.get_thmss_cmd state args
-  |> map (Element.pretty_statement (Proof.context_of state) Thm.theoremK)
+fun string_of_stmts ctxt args =
+  Attrib.eval_thms ctxt args
+  |> map (Element.pretty_statement ctxt Thm.theoremK)
   |> Pretty.chunks2 |> Pretty.string_of;
 
-fun string_of_thms state args =
-  Pretty.string_of (Display.pretty_thms (Proof.context_of state) (Proof.get_thmss_cmd state args));
+fun string_of_thms ctxt args =
+  Pretty.string_of (Display.pretty_thms ctxt (Attrib.eval_thms ctxt args));
 
 fun string_of_prfs full state arg =
   Pretty.string_of
     (case arg of
       NONE =>
         let
-          val {context = ctxt, goal = thm} = Proof.simple_goal state;
+          val {context = ctxt, goal = thm} = Proof.simple_goal (Toplevel.proof_of state);
           val thy = ProofContext.theory_of ctxt;
           val prf = Thm.proof_of thm;
           val prop = Thm.full_prop_of thm;
@@ -472,20 +472,19 @@ fun string_of_prfs full state arg =
           Proof_Syntax.pretty_proof ctxt
             (if full then Reconstruct.reconstruct_proof thy prop prf' else prf')
         end
-    | SOME args => Pretty.chunks
-        (map (Proof_Syntax.pretty_proof_of (Proof.context_of state) full)
-          (Proof.get_thmss_cmd state args)));
+    | SOME srcs =>
+        let val ctxt = Toplevel.context_of state
+        in map (Proof_Syntax.pretty_proof_of ctxt full) (Attrib.eval_thms ctxt srcs) end
+        |> Pretty.chunks);
 
-fun string_of_prop state s =
+fun string_of_prop ctxt s =
   let
-    val ctxt = Proof.context_of state;
     val prop = Syntax.read_prop ctxt s;
     val ctxt' = Variable.auto_fixes prop ctxt;
   in Pretty.string_of (Pretty.quote (Syntax.pretty_term ctxt' prop)) end;
 
-fun string_of_term state s =
+fun string_of_term ctxt s =
   let
-    val ctxt = Proof.context_of state;
     val t = Syntax.read_term ctxt s;
     val T = Term.type_of t;
     val ctxt' = Variable.auto_fixes t ctxt;
@@ -495,24 +494,21 @@ fun string_of_term state s =
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' T)])
   end;
 
-fun string_of_type state s =
-  let
-    val ctxt = Proof.context_of state;
-    val T = Syntax.read_typ ctxt s;
+fun string_of_type ctxt s =
+  let val T = Syntax.read_typ ctxt s
   in Pretty.string_of (Pretty.quote (Syntax.pretty_typ ctxt T)) end;
 
 fun print_item string_of (modes, arg) = Toplevel.keep (fn state =>
-  Print_Mode.with_modes modes (fn () =>
-    writeln (string_of (Toplevel.enter_proof_body state) arg)) ());
+  Print_Mode.with_modes modes (fn () => writeln (string_of state arg)) ());
 
 in
 
-val print_stmts = print_item string_of_stmts;
-val print_thms = print_item string_of_thms;
+val print_stmts = print_item (string_of_stmts o Toplevel.context_of);
+val print_thms = print_item (string_of_thms o Toplevel.context_of);
 val print_prfs = print_item o string_of_prfs;
-val print_prop = print_item string_of_prop;
-val print_term = print_item string_of_term;
-val print_type = print_item string_of_type;
+val print_prop = print_item (string_of_prop o Toplevel.context_of);
+val print_term = print_item (string_of_term o Toplevel.context_of);
+val print_type = print_item (string_of_type o Toplevel.context_of);
 
 end;
 

@@ -37,8 +37,10 @@ structure Data = Generic_Data
     ((Item_Net.merge (trans1, trans2), Thm.merge_thms (sym1, sym2)), NONE);
 );
 
+val get_rules = #1 o Data.get o Context.Proof;
+
 fun print_rules ctxt =
-  let val ((trans, sym), _) = Data.get (Context.Proof ctxt) in
+  let val (trans, sym) = get_rules ctxt in
     [Pretty.big_list "transitivity rules:"
         (map (Display.pretty_thm ctxt) (Item_Net.content trans)),
       Pretty.big_list "symmetry rules:" (map (Display.pretty_thm ctxt) sym)]
@@ -122,21 +124,21 @@ fun maintain_calculation int final calc state =
 
 (* also and finally *)
 
-val get_rules = #1 o Data.get o Context.Proof o Proof.context_of;
-
 fun calculate prep_rules final raw_rules int state =
   let
+    val ctxt = Proof.context_of state;
+
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
     val eq_prop = op aconv o pairself (Envir.beta_eta_contract o strip_assums_concl);
     fun projection ths th = exists (curry eq_prop th) ths;
 
-    val opt_rules = Option.map (prep_rules state) raw_rules;
+    val opt_rules = Option.map (prep_rules ctxt) raw_rules;
     fun combine ths =
       (case opt_rules of SOME rules => rules
       | NONE =>
           (case ths of
-            [] => Item_Net.content (#1 (get_rules state))
-          | th :: _ => Item_Net.retrieve (#1 (get_rules state)) (strip_assums_concl th)))
+            [] => Item_Net.content (#1 (get_rules ctxt))
+          | th :: _ => Item_Net.retrieve (#1 (get_rules ctxt)) (strip_assums_concl th)))
       |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
       |> Seq.filter (not o projection ths);
 
@@ -154,9 +156,9 @@ fun calculate prep_rules final raw_rules int state =
   end;
 
 val also = calculate (K I) false;
-val also_cmd = calculate Proof.get_thmss_cmd false;
+val also_cmd = calculate Attrib.eval_thms false;
 val finally = calculate (K I) true;
-val finally_cmd = calculate Proof.get_thmss_cmd true;
+val finally_cmd = calculate Attrib.eval_thms true;
 
 
 (* moreover and ultimately *)

@@ -20,7 +20,6 @@ sig
   val theory_of: state -> theory
   val proof_of: state -> Proof.state
   val proof_position_of: state -> int
-  val enter_proof_body: state -> Proof.state
   val end_theory: Position.T -> state -> theory
   val print_state_context: state -> unit
   val print_state: bool -> state -> unit
@@ -185,8 +184,6 @@ fun proof_position_of state =
   (case node_of state of
     Proof (prf, _) => Proof_Node.position prf
   | _ => raise UNDEF);
-
-val enter_proof_body = node_case (Proof.init o Context.proof_of) Proof.enter_forward;
 
 fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = Theory.end_theory thy
   | end_theory pos _ = error ("Unfinished theory at end of input" ^ Position.str_of pos);
