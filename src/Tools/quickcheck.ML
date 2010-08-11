@@ -219,7 +219,7 @@ fun test_goal quiet report generator_name size iterations default_Ts no_assms in
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val some_locale = case (#target o Theory_Target.peek) lthy
+    val some_locale = case (#target o Named_Target.peek) lthy
      of "" => NONE
       | locale => SOME locale;
     val assms = if no_assms then [] else case some_locale

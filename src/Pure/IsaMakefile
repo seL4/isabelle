@@ -127,6 +127,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/local_theory.ML					\
   Isar/locale.ML					\
   Isar/method.ML					\
+  Isar/named_target.ML					\
   Isar/object_logic.ML					\
   Isar/obtain.ML					\
   Isar/outer_syntax.ML					\
@@ -144,7 +145,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/skip_proof.ML					\
   Isar/spec_rules.ML					\
   Isar/specification.ML					\
-  Isar/theory_target.ML					\
   Isar/token.ML						\
   Isar/toplevel.ML					\
   Isar/typedecl.ML					\

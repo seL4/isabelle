@@ -2,17 +2,17 @@
     Author:     Makarius
     Author:     Florian Haftmann, TU Muenchen
 
-Common theory/locale/class/instantiation/overloading targets.
+Targets for theory, locale and class.
 *)
 
-signature THEORY_TARGET =
+signature NAMED_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool}
   val init: string option -> theory -> local_theory
   val context_cmd: xstring -> theory -> local_theory
 end;
 
-structure Theory_Target: THEORY_TARGET =
+structure Named_Target: NAMED_TARGET =
 struct
 
 (* context data *)
