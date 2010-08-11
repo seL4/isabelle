@@ -1,4 +1,5 @@
-(*  Title:      Pure/ML-Systems/install_pp_polyml.ML
+(*  Title:      Pure/ML/install_pp_polyml.ML
+    Author:     Makarius
 
 Extra toplevel pretty-printing for Poly/ML.
 *)

@@ -40,9 +40,9 @@ toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 
 if ml_system = "polyml-5.3.0"
-then use "ML-Systems/install_pp_polyml-5.3.ML"
+then use "ML/install_pp_polyml-5.3.ML"
 else if String.isPrefix "polyml" ml_system
-then use "ML-Systems/install_pp_polyml.ML"
+then use "ML/install_pp_polyml.ML"
 else ();
 
 if ml_system = "polyml-5.0" orelse ml_system = "polyml-5.1" then
