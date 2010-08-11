@@ -19,6 +19,9 @@ sig
   val map_improvable_syntax: (improvable_syntax -> improvable_syntax)
     -> Proof.context -> Proof.context
   val set_primary_constraints: Proof.context -> Proof.context
+
+  val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
+  val overloading_cmd: (string * string * bool) list -> theory -> local_theory
 end;
 
 structure Overloading: OVERLOADING =
@@ -193,5 +196,41 @@ fun pretty lthy =
     (Pretty.block o Pretty.fbreaks)
       (Pretty.str "overloading" :: map pr_operation overloading)
   end;
+
+fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
+
+fun overloading_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  case operation lthy b
+   of SOME (c, checked) => if mx <> NoSyn then syntax_error c
+        else lthy |> Local_Theory.theory_result (declare (c, U)
+            ##>> define checked b_def (c, rhs))
+          ||> confirm b
+    | NONE => lthy |>
+        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+
+fun gen_overloading prep_const raw_ops thy =
+  let
+    val ctxt = ProofContext.init_global thy;
+    val ops = raw_ops |> map (fn (name, const, checked) =>
+      (name, Term.dest_Const (prep_const ctxt const), checked));
+  in
+    thy
+    |> init ops
+    |> Local_Theory.init NONE ""
+       {define = Generic_Target.define overloading_foundation,
+        notes = Generic_Target.notes
+          (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
+        abbrev = Generic_Target.abbrev
+          (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
+            Generic_Target.theory_abbrev prmode ((b, mx), t)),
+        declaration = K Generic_Target.theory_declaration,
+        syntax_declaration = K Generic_Target.theory_declaration,
+        pretty = single o pretty,
+        reinit = gen_overloading prep_const raw_ops o ProofContext.theory_of,
+        exit = Local_Theory.target_of o conclude}
+  end;
+
+val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
+val overloading_cmd = gen_overloading Syntax.read_term;
 
 end;

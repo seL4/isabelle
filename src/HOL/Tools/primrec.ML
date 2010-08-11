@@ -299,7 +299,7 @@ fun add_primrec_global fixes specs thy =
 
 fun add_primrec_overloaded ops fixes specs thy =
   let
-    val lthy = Theory_Target.overloading ops thy;
+    val lthy = Overloading.overloading ops thy;
     val ((ts, simps), lthy') = add_primrec fixes specs lthy;
     val simps' = ProofContext.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;
