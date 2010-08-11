@@ -316,7 +316,7 @@ fun rep_abs_rsp_tac ctxt =
    The deterministic part:
     - remove lambdas from both sides
     - prove Ball/Bex/Babs equalities using ball_rsp, bex_rsp, babs_rsp
-    - prove Ball/Bex relations unfolding fun_rel_id
+    - prove Ball/Bex relations using fun_relI
     - reflexivity of equality
     - prove equality of relations using equals_rsp
     - use user-supplied RSP theorems
@@ -335,7 +335,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
 (case (bare_concl goal) of
     (* (R1 ===> R2) (%x...) (%x...) ----> [|R1 x y|] ==> R2 (...x) (...y) *)
   (Const (@{const_name fun_rel}, _) $ _ $ _) $ (Abs _) $ (Abs _)
-      => rtac @{thm fun_rel_id} THEN' quot_true_tac ctxt unlam
+      => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
     (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
 | (Const (@{const_name "op ="},_) $
@@ -347,7 +347,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
 | (Const (@{const_name fun_rel}, _) $ _ $ _) $
     (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
     (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-      => rtac @{thm fun_rel_id} THEN' quot_true_tac ctxt unlam
+      => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
     (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
 | Const (@{const_name "op ="},_) $
@@ -359,7 +359,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
 | (Const (@{const_name fun_rel}, _) $ _ $ _) $
     (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
     (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-      => rtac @{thm fun_rel_id} THEN' quot_true_tac ctxt unlam
+      => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
 | (Const (@{const_name fun_rel}, _) $ _ $ _) $
     (Const(@{const_name Bex1_rel},_) $ _) $ (Const(@{const_name Bex1_rel},_) $ _)

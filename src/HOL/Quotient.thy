@@ -136,16 +136,6 @@ lemma fun_rel_eq:
   shows "((op =) ===> (op =)) = (op =)"
   by (simp add: expand_fun_eq)
 
-lemma fun_rel_id:
-  assumes a: "\<And>x y. R1 x y \<Longrightarrow> R2 (f x) (g y)"
-  shows "(R1 ===> R2) f g"
-  using a by simp
-
-lemma fun_rel_id_asm:
-  assumes a: "\<And>x y. R1 x y \<Longrightarrow> (A \<longrightarrow> R2 (f x) (g y))"
-  shows "A \<longrightarrow> (R1 ===> R2) f g"
-  using a by auto
-
 
 subsection {* Quotient Predicate *}
 
@@ -597,7 +587,7 @@ subsection {* Various respects and preserve lemmas *}
 lemma quot_rel_rsp:
   assumes a: "Quotient R Abs Rep"
   shows "(R ===> R ===> op =) R R"
-  apply(rule fun_rel_id)+
+  apply(rule fun_relI)+
   apply(rule equals_rsp[OF a])
   apply(assumption)+
   done
