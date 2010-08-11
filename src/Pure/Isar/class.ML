@@ -597,7 +597,6 @@ fun instantiation arities thy =
       declaration = K Generic_Target.theory_declaration,
       syntax_declaration = K Generic_Target.theory_declaration,
       pretty = single o pretty_instantiation,
-      reinit = instantiation arities o ProofContext.theory_of,
       exit = Local_Theory.target_of o conclude_instantiation};
 
 fun instantiation_cmd arities thy =

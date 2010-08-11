@@ -196,7 +196,6 @@ fun init_target (ta as Target {target, ...}) thy =
       syntax_declaration = fn pervasive => target_declaration ta
         { syntax = true, pervasive = pervasive },
       pretty = pretty ta,
-      reinit = init_target ta o ProofContext.theory_of,
       exit = Local_Theory.target_of};
 
 in

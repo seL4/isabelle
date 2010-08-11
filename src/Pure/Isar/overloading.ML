@@ -218,7 +218,6 @@ fun gen_overloading prep_const raw_ops thy =
         declaration = K Generic_Target.theory_declaration,
         syntax_declaration = K Generic_Target.theory_declaration,
         pretty = single o pretty,
-        reinit = gen_overloading prep_const raw_ops o ProofContext.theory_of,
         exit = Local_Theory.target_of o conclude}
   end;
 
