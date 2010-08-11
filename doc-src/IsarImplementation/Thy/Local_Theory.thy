@@ -97,7 +97,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type local_theory: Proof.context} \\
-  @{index_ML Theory_Target.init: "string option -> theory -> local_theory"} \\[1ex]
+  @{index_ML Named_Target.init: "string option -> theory -> local_theory"} \\[1ex]
   @{index_ML Local_Theory.define: "(binding * mixfix) * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory"} \\
   @{index_ML Local_Theory.note: "Attrib.binding * thm list ->
@@ -114,7 +114,7 @@ text %mlref {*
   with operations on expecting a regular @{text "ctxt:"}~@{ML_type
   Proof.context}.
 
-  \item @{ML Theory_Target.init}~@{text "NONE thy"} initializes a
+  \item @{ML Named_Target.init}~@{text "NONE thy"} initializes a
   trivial local theory from the given background theory.
   Alternatively, @{text "SOME name"} may be given to initialize a
   @{command locale} or @{command class} context (a fully-qualified
