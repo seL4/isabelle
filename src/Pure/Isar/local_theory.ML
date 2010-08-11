@@ -50,7 +50,6 @@ sig
   val const_alias: binding -> string -> local_theory -> local_theory
   val init: serial option -> string -> operations -> Proof.context -> local_theory
   val restore: local_theory -> local_theory
-  val reinit: local_theory -> local_theory
   val exit: local_theory -> Proof.context
   val exit_global: local_theory -> theory
   val exit_result: (morphism -> 'a -> 'b) -> 'a * local_theory -> 'b * Proof.context
@@ -75,7 +74,6 @@ type operations =
   declaration: bool -> declaration -> local_theory -> local_theory,
   syntax_declaration: bool -> declaration -> local_theory -> local_theory,
   pretty: local_theory -> Pretty.T list,
-  reinit: local_theory -> local_theory,
   exit: local_theory -> Proof.context};
 
 datatype lthy = LThy of
@@ -259,8 +257,6 @@ fun init group theory_prefix operations target =
 fun restore lthy =
   let val {naming, theory_prefix, operations, target} = get_lthy lthy
   in init (Name_Space.get_group naming) theory_prefix operations target end;
-
-val reinit = checkpoint o operation #reinit;
 
 
 (* exit *)

@@ -6,14 +6,6 @@ Overloaded definitions without any discipline.
 
 signature OVERLOADING =
 sig
-  val init: (string * (string * typ) * bool) list -> theory -> Proof.context
-  val conclude: local_theory -> local_theory
-  val declare: string * typ -> theory -> term * theory
-  val confirm: binding -> local_theory -> local_theory
-  val define: bool -> binding -> string * term -> theory -> thm * theory
-  val operation: Proof.context -> binding -> (string * bool) option
-  val pretty: Proof.context -> Pretty.T
-
   type improvable_syntax
   val add_improvable_syntax: Proof.context -> Proof.context
   val map_improvable_syntax: (improvable_syntax -> improvable_syntax)
@@ -121,27 +113,22 @@ val add_improvable_syntax =
 
 (** overloading target **)
 
-(* bookkeeping *)
-
-structure OverloadingData = Proof_Data
+structure Data = Proof_Data
 (
   type T = ((string * typ) * (string * bool)) list;
   fun init _ = [];
 );
 
-val get_overloading = OverloadingData.get o Local_Theory.target_of;
-val map_overloading = Local_Theory.target o OverloadingData.map;
+val get_overloading = Data.get o Local_Theory.target_of;
+val map_overloading = Local_Theory.target o Data.map;
 
 fun operation lthy b = get_overloading lthy
   |> get_first (fn ((c, _), (v, checked)) =>
-      if Binding.name_of b = v then SOME (c, checked) else NONE);
-
-
-(* target *)
+      if Binding.name_of b = v then SOME (c, (v, checked)) else NONE);
 
 fun synchronize_syntax ctxt =
   let
-    val overloading = OverloadingData.get ctxt;
+    val overloading = Data.get ctxt;
     fun subst (c, ty) = case AList.lookup (op =) overloading (c, ty)
      of SOME (v, _) => SOME (ty, Free (v, ty))
       | NONE => NONE;
@@ -152,38 +139,20 @@ fun synchronize_syntax ctxt =
     |> map_improvable_syntax (K ((([], []), (((K NONE, subst), false), unchecks)), false))
   end
 
-fun init raw_overloading thy =
-  let
-    val _ = if null raw_overloading then error "At least one parameter must be given" else ();
-    val overloading = map (fn (v, c_ty, checked) => (c_ty, (v, checked))) raw_overloading;
-  in
-    thy
-    |> Theory.checkpoint
-    |> ProofContext.init_global
-    |> OverloadingData.put overloading
-    |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
-    |> add_improvable_syntax
-    |> synchronize_syntax
-  end;
+fun define_overloaded (c, U) (v, checked) (b_def, rhs) =
+  Local_Theory.theory_result
+    (Thm.add_def (not checked) true (b_def, Logic.mk_equals (Const (c, Term.fastype_of rhs), rhs)))
+  ##> map_overloading (filter_out (fn (_, (v', _)) => v' = v))
+  ##> Local_Theory.target synchronize_syntax
+  #-> (fn (_, def) => pair (Const (c, U), def))
 
-fun declare c_ty = pair (Const c_ty);
-
-fun define checked b (c, t) =
-  Thm.add_def (not checked) true (b, Logic.mk_equals (Const (c, Term.fastype_of t), t))
-  #>> snd;
-
-fun confirm b = map_overloading (filter_out (fn (_, (c', _)) => c' = Binding.name_of b))
-  #> Local_Theory.target synchronize_syntax
-
-fun conclude lthy =
-  let
-    val overloading = get_overloading lthy;
-    val _ = if null overloading then () else
-      error ("Missing definition(s) for parameter(s) " ^ commas (map (quote
-        o Syntax.string_of_term lthy o Const o fst) overloading));
-  in
-    lthy
-  end;
+fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
+  case operation lthy b
+   of SOME (c, (v, checked)) => if mx <> NoSyn
+       then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
+        else lthy |> define_overloaded (c, U) (v, checked) (b_def, rhs)
+    | NONE => lthy |>
+        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
 
 fun pretty lthy =
   let
@@ -192,32 +161,32 @@ fun pretty lthy =
     fun pr_operation ((c, ty), (v, _)) =
       (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
         Pretty.str (Sign.extern_const thy c), Pretty.str "::", Syntax.pretty_typ lthy ty];
-  in
-    (Pretty.block o Pretty.fbreaks)
-      (Pretty.str "overloading" :: map pr_operation overloading)
-  end;
+  in Pretty.str "overloading" :: map pr_operation overloading end;
 
-fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
+fun conclude lthy =
+  let
+    val overloading = get_overloading lthy;
+    val _ = if null overloading then () else
+      error ("Missing definition(s) for parameter(s) " ^ commas (map (quote
+        o Syntax.string_of_term lthy o Const o fst) overloading));
+  in lthy end;
 
-fun overloading_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
-  case operation lthy b
-   of SOME (c, checked) => if mx <> NoSyn then syntax_error c
-        else lthy |> Local_Theory.theory_result (declare (c, U)
-            ##>> define checked b_def (c, rhs))
-          ||> confirm b
-    | NONE => lthy |>
-        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
-
-fun gen_overloading prep_const raw_ops thy =
+fun gen_overloading prep_const raw_overloading thy =
   let
     val ctxt = ProofContext.init_global thy;
-    val ops = raw_ops |> map (fn (name, const, checked) =>
-      (name, Term.dest_Const (prep_const ctxt const), checked));
+    val _ = if null raw_overloading then error "At least one parameter must be given" else ();
+    val overloading = raw_overloading |> map (fn (v, const, checked) =>
+      (Term.dest_Const (prep_const ctxt const), (v, checked)));
   in
     thy
-    |> init ops
+    |> Theory.checkpoint
+    |> ProofContext.init_global
+    |> Data.put overloading
+    |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
+    |> add_improvable_syntax
+    |> synchronize_syntax
     |> Local_Theory.init NONE ""
-       {define = Generic_Target.define overloading_foundation,
+       {define = Generic_Target.define foundation,
         notes = Generic_Target.notes
           (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
         abbrev = Generic_Target.abbrev
@@ -225,8 +194,7 @@ fun gen_overloading prep_const raw_ops thy =
             Generic_Target.theory_abbrev prmode ((b, mx), t)),
         declaration = K Generic_Target.theory_declaration,
         syntax_declaration = K Generic_Target.theory_declaration,
-        pretty = single o pretty,
-        reinit = gen_overloading prep_const raw_ops o ProofContext.theory_of,
+        pretty = pretty,
         exit = Local_Theory.target_of o conclude}
   end;
 

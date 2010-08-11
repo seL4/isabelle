@@ -111,8 +111,10 @@ fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
 
 fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
   | loc_finish NONE (Context.Proof _) = Context.Proof o Local_Theory.restore
-  | loc_finish (SOME _) (Context.Proof lthy) = fn lthy' =>
-      Context.Proof (Local_Theory.reinit (Local_Theory.raw_theory (K (loc_exit lthy')) lthy));
+  | loc_finish (SOME _) (Context.Proof lthy) = fn lthy' => let
+        val target_name = #target (Named_Target.peek lthy);
+        val target = if target_name = "" then NONE else SOME target_name;
+      in Context.Proof (Named_Target.init target (loc_exit lthy')) end;
 
 
 (* datatype node *)

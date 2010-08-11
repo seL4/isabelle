@@ -209,10 +209,10 @@ use "Isar/locale.ML";
 use "Isar/generic_target.ML";
 use "Isar/overloading.ML";
 use "axclass.ML";
-use "Isar/class_target.ML";
+use "Isar/class.ML";
 use "Isar/named_target.ML";
 use "Isar/expression.ML";
-use "Isar/class.ML";
+use "Isar/class_declaration.ML";
 
 use "simplifier.ML";
 

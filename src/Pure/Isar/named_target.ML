@@ -22,7 +22,13 @@ datatype target = Target of {target: string, is_locale: bool, is_class: bool};
 fun make_target target is_locale is_class =
   Target {target = target, is_locale = is_locale, is_class = is_class};
 
-val global_target = make_target "" false false;
+val global_target = Target {target = "", is_locale = false, is_class = false};
+
+fun named_target _ NONE = global_target
+  | named_target thy (SOME locale) =
+      if Locale.defined thy locale
+      then Target {target = locale, is_locale = true, is_class = Class.is_class thy locale}
+      else error ("No such locale: " ^ quote locale);
 
 structure Data = Proof_Data
 (
@@ -63,7 +69,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     val is_canonical_class = is_class andalso
       (Binding.eq_name (b, b')
         andalso not (null prefix')
-        andalso List.last prefix' = (Class_Target.class_prefix target, false)
+        andalso List.last prefix' = (Class.class_prefix target, false)
       orelse same_shape);
   in
     not is_canonical_class ?
@@ -82,7 +88,7 @@ fun locale_const_declaration (ta as Target {target, ...}) prmode arg =
 
 fun class_target (Target {target, ...}) f =
   Local_Theory.raw_theory f #>
-  Local_Theory.target (Class_Target.refresh_syntax target);
+  Local_Theory.target (Class.refresh_syntax target);
 
 
 (* define *)
@@ -96,7 +102,7 @@ fun class_foundation (ta as Target {target, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, NoSyn), lhs)
-    #> class_target ta (Class_Target.declare target ((b, mx), (type_params, lhs)))
+    #> class_target ta (Class.declare target ((b, mx), (type_params, lhs)))
     #> pair (lhs, def))
 
 fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
@@ -135,7 +141,7 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
   if is_locale
     then lthy
       |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
-      |> is_class ? class_target ta (Class_Target.abbrev target prmode ((b, mx), t'))
+      |> is_class ? class_target ta (Class.abbrev target prmode ((b, mx), t'))
     else lthy
       |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
 
@@ -168,18 +174,18 @@ fun pretty (Target {target, is_class, ...}) ctxt =
     pretty_thy ctxt target is_class;
 
 
-(* init various targets *)
+(* init *)
 
 local
 
-fun init_data (Target {target, is_locale, is_class}) =
+fun init_context (Target {target, is_locale, is_class}) =
   if not is_locale then ProofContext.init_global
   else if not is_class then Locale.init target
-  else Class_Target.init target;
+  else Class.init target;
 
 fun init_target (ta as Target {target, ...}) thy =
   thy
-  |> init_data ta
+  |> init_context ta
   |> Data.put ta
   |> Local_Theory.init NONE (Long_Name.base_name target)
      {define = Generic_Target.define (target_foundation ta),
@@ -190,14 +196,7 @@ fun init_target (ta as Target {target, ...}) thy =
       syntax_declaration = fn pervasive => target_declaration ta
         { syntax = true, pervasive = pervasive },
       pretty = pretty ta,
-      reinit = init_target ta o ProofContext.theory_of,
       exit = Local_Theory.target_of};
-
-fun named_target _ NONE = global_target
-  | named_target thy (SOME target) =
-      if Locale.defined thy target
-      then make_target target true (Class_Target.is_class thy target)
-      else error ("No such locale: " ^ quote target);
 
 in
 
