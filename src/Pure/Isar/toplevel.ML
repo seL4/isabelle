@@ -193,7 +193,7 @@ fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = Theory.
 
 (* print state *)
 
-val pretty_context = Local_Theory.pretty o Context.cases (Named_Target.init NONE) I;
+val pretty_context = Local_Theory.pretty o Context.cases (Named_Target.theory_init) I;
 
 fun print_state_context state =
   (case try node_of state of

@@ -268,7 +268,7 @@ fun add_typedef def opt_name typ set opt_morphs tac lthy =
   in typedef_result inhabited lthy' end;
 
 fun add_typedef_global def opt_name typ set opt_morphs tac =
-  Named_Target.init NONE
+  Named_Target.theory_init
   #> add_typedef def opt_name typ set opt_morphs tac
   #> Local_Theory.exit_result_global (apsnd o transform_info);
 

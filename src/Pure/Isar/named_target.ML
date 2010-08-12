@@ -9,6 +9,7 @@ signature NAMED_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool}
   val init: string option -> theory -> local_theory
+  val theory_init: theory -> local_theory
   val context_cmd: xstring -> theory -> local_theory
 end;
 
@@ -201,6 +202,8 @@ fun init_target (ta as Target {target, ...}) thy =
 in
 
 fun init target thy = init_target (named_target thy target) thy;
+
+val theory_init = init_target global_target;
 
 fun context_cmd "-" thy = init NONE thy
   | context_cmd target thy = init (SOME (Locale.intern thy target)) thy;
