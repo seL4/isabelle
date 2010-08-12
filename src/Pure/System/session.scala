@@ -125,7 +125,7 @@ class Session(system: Isabelle_System)
             (name -> Some(chs))
         }
       register_document(doc)
-      prover.edit_document(change.parent.get.id, doc.id, id_edits)
+      prover.edit_document(change.parent.get.join_document.id, doc.id, id_edits)
     }
     //}}}
 
@@ -328,14 +328,13 @@ class Session(system: Isabelle_System)
         react {
           case Edit_Document(edits) =>
             val old_change = history
-            val new_id = create_id()
             val result: isabelle.Future[(List[Document.Edit[Command]], Document)] =
               isabelle.Future.fork {
                 val old_doc = old_change.join_document
                 old_doc.await_assignment
-                Document.text_edits(Session.this, old_doc, new_id, edits)
+                Document.text_edits(Session.this, old_doc, edits)
               }
-            val new_change = new Document.Change(new_id, Some(old_change), edits, result)
+            val new_change = new Document.Change(Some(old_change), edits, result)
             history = new_change
             new_change.result.map(_ => session_actor ! new_change)
             reply(())

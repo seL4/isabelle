@@ -107,11 +107,10 @@ object Document
 
   object Change
   {
-    val init = new Change(NO_ID, None, Nil, Future.value(Nil, Document.init))
+    val init = new Change(None, Nil, Future.value(Nil, Document.init))
   }
 
   class Change(
-    val id: Version_ID,
     val parent: Option[Change],
     val edits: List[Node_Text_Edit],
     val result: Future[(List[Edit[Command]], Document)])
@@ -156,8 +155,8 @@ object Document
 
   /** editing **/
 
-  def text_edits(session: Session, old_doc: Document, new_id: Version_ID,
-      edits: List[Node_Text_Edit]): (List[Edit[Command]], Document) =
+  def text_edits(session: Session, old_doc: Document, edits: List[Node_Text_Edit])
+      : (List[Edit[Command]], Document) =
   {
     require(old_doc.assignment.is_finished)
 
@@ -258,7 +257,7 @@ object Document
         nodes += (name -> new Node(commands2))
         former_assignment --= removed_commands
       }
-      (doc_edits.toList, new Document(new_id, nodes, former_assignment))
+      (doc_edits.toList, new Document(session.create_id(), nodes, former_assignment))
     }
   }
 }
