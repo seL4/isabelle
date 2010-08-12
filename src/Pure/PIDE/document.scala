@@ -130,14 +130,6 @@ object Document
     require(old_doc.assignment.is_finished)
 
 
-    /* unparsed dummy commands */
-
-    def unparsed(source: String) =
-      new Command(NO_ID, List(Token(Token.Kind.UNPARSED, source)))
-
-    def is_unparsed(command: Command) = command.id == NO_ID
-
-
     /* phase 1: edit individual command source */
 
     @tailrec def edit_text(eds: List[Text_Edit],
@@ -152,15 +144,15 @@ object Document
           } match {
             case Some((cmd, cmd_start)) if e.can_edit(cmd.source, cmd_start) =>
               val (rest, text) = e.edit(cmd.source, cmd_start)
-              val new_commands = commands.insert_after(Some(cmd), unparsed(text)) - cmd
+              val new_commands = commands.insert_after(Some(cmd), Command.unparsed(text)) - cmd
               edit_text(rest.toList ::: es, new_commands)
 
             case Some((cmd, cmd_start)) =>
-              edit_text(es, commands.insert_after(Some(cmd), unparsed(e.text)))
+              edit_text(es, commands.insert_after(Some(cmd), Command.unparsed(e.text)))
 
             case None =>
               require(e.is_insert && e.start == 0)
-              edit_text(es, commands.insert_after(None, unparsed(e.text)))
+              edit_text(es, commands.insert_after(None, Command.unparsed(e.text)))
           }
         case Nil => commands
       }
@@ -171,7 +163,7 @@ object Document
 
     @tailrec def parse_spans(commands: Linear_Set[Command]): Linear_Set[Command] =
     {
-      commands.iterator.find(is_unparsed) match {
+      commands.iterator.find(_.is_unparsed) match {
         case Some(first_unparsed) =>
           val first =
             commands.reverse_iterator(first_unparsed).find(_.is_command) getOrElse commands.head

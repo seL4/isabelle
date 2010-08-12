@@ -141,6 +141,12 @@ object Command
         case _ => add_result(message)
       }
   }
+
+
+  /* unparsed dummy commands */
+
+  def unparsed(source: String) =
+    new Command(Document.NO_ID, List(Token(Token.Kind.UNPARSED, source)))
 }
 
 
@@ -155,6 +161,8 @@ class Command(
   def is_command: Boolean = !span.isEmpty && span.head.is_command
   def is_ignored: Boolean = span.forall(_.is_ignored)
   def is_malformed: Boolean = !is_command && !is_ignored
+
+  def is_unparsed = id == Document.NO_ID
 
   def name: String = if (is_command) span.head.content else ""
   override def toString =
