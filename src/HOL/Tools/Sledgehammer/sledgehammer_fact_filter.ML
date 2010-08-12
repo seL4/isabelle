@@ -511,8 +511,6 @@ fun checked_name_thm_pairs respect_no_atp ctxt =
    clearly inconsistent facts such as X = a | X = b, though it by no means
    guarantees soundness. *)
 
-fun is_record_type T = not (null (Record.dest_recTs T))
-
 (* Unwanted equalities are those between a (bound or schematic) variable that
    does not properly occur in the second operand. *)
 fun too_general_eqterms (Var z) t =
