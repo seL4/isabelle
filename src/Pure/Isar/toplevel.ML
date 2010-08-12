@@ -107,14 +107,11 @@ val loc_exit = Local_Theory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) = loc_init (the_default "-" loc) thy
   | loc_begin NONE (Context.Proof lthy) = lthy
-  | loc_begin (SOME loc) (Context.Proof lthy) = loc_init loc (loc_exit lthy);
+  | loc_begin (SOME loc) (Context.Proof lthy) = (loc_init loc o loc_exit) lthy;
 
 fun loc_finish _ (Context.Theory _) = Context.Theory o loc_exit
   | loc_finish NONE (Context.Proof _) = Context.Proof o Local_Theory.restore
-  | loc_finish (SOME _) (Context.Proof lthy) = fn lthy' => let
-        val target_name = #target (Named_Target.peek lthy);
-        val target = if target_name = "" then NONE else SOME target_name;
-      in Context.Proof (Named_Target.init target (loc_exit lthy')) end;
+  | loc_finish (SOME _) (Context.Proof lthy) = Context.Proof o Named_Target.reinit lthy;
 
 
 (* datatype node *)
@@ -193,7 +190,7 @@ fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = Theory.
 
 (* print state *)
 
-val pretty_context = Local_Theory.pretty o Context.cases (Named_Target.init NONE) I;
+val pretty_context = Local_Theory.pretty o Context.cases (Named_Target.theory_init) I;
 
 fun print_state_context state =
   (case try node_of state of

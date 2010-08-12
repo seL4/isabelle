@@ -7,9 +7,11 @@ Targets for theory, locale and class.
 
 signature NAMED_TARGET =
 sig
-  val peek: local_theory -> {target: string, is_locale: bool, is_class: bool}
-  val init: string option -> theory -> local_theory
+  val init: string -> theory -> local_theory
+  val theory_init: theory -> local_theory
+  val reinit: local_theory -> local_theory -> local_theory
   val context_cmd: xstring -> theory -> local_theory
+  val peek: local_theory -> {target: string, is_locale: bool, is_class: bool} option
 end;
 
 structure Named_Target: NAMED_TARGET =
@@ -24,19 +26,19 @@ fun make_target target is_locale is_class =
 
 val global_target = Target {target = "", is_locale = false, is_class = false};
 
-fun named_target _ NONE = global_target
-  | named_target thy (SOME locale) =
+fun named_target _ "" = global_target
+  | named_target thy locale =
       if Locale.defined thy locale
       then Target {target = locale, is_locale = true, is_class = Class.is_class thy locale}
       else error ("No such locale: " ^ quote locale);
 
 structure Data = Proof_Data
 (
-  type T = target;
-  fun init _ = global_target;
+  type T = target option;
+  fun init _ = NONE;
 );
 
-val peek = (fn Target args => args) o Data.get;
+val peek = Option.map (fn Target args => args) o Data.get;
 
 
 (* generic declarations *)
@@ -102,7 +104,7 @@ fun class_foundation (ta as Target {target, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, NoSyn), lhs)
-    #> class_target ta (Class.declare target ((b, mx), (type_params, lhs)))
+    #> class_target ta (Class.const target ((b, mx), (type_params, lhs)))
     #> pair (lhs, def))
 
 fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
@@ -186,7 +188,7 @@ fun init_context (Target {target, is_locale, is_class}) =
 fun init_target (ta as Target {target, ...}) thy =
   thy
   |> init_context ta
-  |> Data.put ta
+  |> Data.put (SOME ta)
   |> Local_Theory.init NONE (Long_Name.base_name target)
      {define = Generic_Target.define (target_foundation ta),
       notes = Generic_Target.notes (target_notes ta),
@@ -202,8 +204,14 @@ in
 
 fun init target thy = init_target (named_target thy target) thy;
 
-fun context_cmd "-" thy = init NONE thy
-  | context_cmd target thy = init (SOME (Locale.intern thy target)) thy;
+fun reinit lthy = case peek lthy
+ of SOME {target, ...} => init target o Local_Theory.exit_global
+  | NONE => error "Not in a named target";
+
+val theory_init = init_target global_target;
+
+fun context_cmd "-" thy = init "" thy
+  | context_cmd target thy = init (Locale.intern thy target) thy;
 
 end;
 

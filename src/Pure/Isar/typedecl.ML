@@ -75,7 +75,7 @@ fun typedecl (b, raw_args, mx) lthy =
   end;
 
 fun typedecl_global decl =
-  Named_Target.init NONE
+  Named_Target.theory_init
   #> typedecl decl
   #> Local_Theory.exit_result_global Morphism.typ;
 
@@ -115,7 +115,7 @@ val abbrev_cmd = gen_abbrev read_abbrev;
 end;
 
 fun abbrev_global decl rhs =
-  Named_Target.init NONE
+  Named_Target.theory_init
   #> abbrev decl rhs
   #> Local_Theory.exit_result_global (K I);
 

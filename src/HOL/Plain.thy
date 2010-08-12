@@ -1,7 +1,7 @@
 header {* Plain HOL *}
 
 theory Plain
-imports Datatype Record FunDef Extraction
+imports Datatype FunDef Extraction
 begin
 
 text {*

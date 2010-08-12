@@ -185,7 +185,7 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
 
     (*facts*)
     val (facts, facts_lthy) = axioms_thy
-      |> Named_Target.init NONE
+      |> Named_Target.theory_init
       |> Spec_Rules.add Spec_Rules.Unknown (consts, maps (maps #1 o #2) axioms)
       |> Local_Theory.notes axioms;
 

@@ -292,7 +292,7 @@ end;
 
 fun add_primrec_global fixes specs thy =
   let
-    val lthy = Named_Target.init NONE thy;
+    val lthy = Named_Target.theory_init thy;
     val ((ts, simps), lthy') = add_primrec fixes specs lthy;
     val simps' = ProofContext.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;

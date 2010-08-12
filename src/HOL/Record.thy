@@ -9,8 +9,8 @@
 header {* Extensible records with structural subtyping *}
 
 theory Record
-imports Datatype
-uses ("Tools/record.ML")
+imports Plain Quickcheck
+uses ("Tools/typecopy.ML") ("Tools/record.ML") ("Tools/quickcheck_record.ML")
 begin
 
 subsection {* Introduction *}
@@ -123,67 +123,67 @@ definition
 definition
   iso_tuple_update_accessor_cong_assist ::
     "(('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
-  "iso_tuple_update_accessor_cong_assist upd acc \<longleftrightarrow>
-     (\<forall>f v. upd (\<lambda>x. f (acc v)) v = upd f v) \<and> (\<forall>v. upd id v = v)"
+  "iso_tuple_update_accessor_cong_assist upd ac \<longleftrightarrow>
+     (\<forall>f v. upd (\<lambda>x. f (ac v)) v = upd f v) \<and> (\<forall>v. upd id v = v)"
 
 definition
   iso_tuple_update_accessor_eq_assist ::
     "(('b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a)) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool" where
-  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<longleftrightarrow>
-     upd f v = v' \<and> acc v = x \<and> iso_tuple_update_accessor_cong_assist upd acc"
+  "iso_tuple_update_accessor_eq_assist upd ac v f v' x \<longleftrightarrow>
+     upd f v = v' \<and> ac v = x \<and> iso_tuple_update_accessor_cong_assist upd ac"
 
 lemma update_accessor_congruence_foldE:
-  assumes uac: "iso_tuple_update_accessor_cong_assist upd acc"
-    and r: "r = r'" and v: "acc r' = v'"
+  assumes uac: "iso_tuple_update_accessor_cong_assist upd ac"
+    and r: "r = r'" and v: "ac r' = v'"
     and f: "\<And>v. v' = v \<Longrightarrow> f v = f' v"
   shows "upd f r = upd f' r'"
   using uac r v [symmetric]
-  apply (subgoal_tac "upd (\<lambda>x. f (acc r')) r' = upd (\<lambda>x. f' (acc r')) r'")
+  apply (subgoal_tac "upd (\<lambda>x. f (ac r')) r' = upd (\<lambda>x. f' (ac r')) r'")
    apply (simp add: iso_tuple_update_accessor_cong_assist_def)
   apply (simp add: f)
   done
 
 lemma update_accessor_congruence_unfoldE:
-  "iso_tuple_update_accessor_cong_assist upd acc \<Longrightarrow>
-    r = r' \<Longrightarrow> acc r' = v' \<Longrightarrow> (\<And>v. v = v' \<Longrightarrow> f v = f' v) \<Longrightarrow>
+  "iso_tuple_update_accessor_cong_assist upd ac \<Longrightarrow>
+    r = r' \<Longrightarrow> ac r' = v' \<Longrightarrow> (\<And>v. v = v' \<Longrightarrow> f v = f' v) \<Longrightarrow>
     upd f r = upd f' r'"
   apply (erule(2) update_accessor_congruence_foldE)
   apply simp
   done
 
 lemma iso_tuple_update_accessor_cong_assist_id:
-  "iso_tuple_update_accessor_cong_assist upd acc \<Longrightarrow> upd id = id"
+  "iso_tuple_update_accessor_cong_assist upd ac \<Longrightarrow> upd id = id"
   by rule (simp add: iso_tuple_update_accessor_cong_assist_def)
 
 lemma update_accessor_noopE:
-  assumes uac: "iso_tuple_update_accessor_cong_assist upd acc"
-    and acc: "f (acc x) = acc x"
+  assumes uac: "iso_tuple_update_accessor_cong_assist upd ac"
+    and ac: "f (ac x) = ac x"
   shows "upd f x = x"
   using uac
-  by (simp add: acc iso_tuple_update_accessor_cong_assist_id [OF uac, unfolded id_def]
+  by (simp add: ac iso_tuple_update_accessor_cong_assist_id [OF uac, unfolded id_def]
     cong: update_accessor_congruence_unfoldE [OF uac])
 
 lemma update_accessor_noop_compE:
-  assumes uac: "iso_tuple_update_accessor_cong_assist upd acc"
-    and acc: "f (acc x) = acc x"
+  assumes uac: "iso_tuple_update_accessor_cong_assist upd ac"
+    and ac: "f (ac x) = ac x"
   shows "upd (g \<circ> f) x = upd g x"
-  by (simp add: acc cong: update_accessor_congruence_unfoldE[OF uac])
+  by (simp add: ac cong: update_accessor_congruence_unfoldE[OF uac])
 
 lemma update_accessor_cong_assist_idI:
   "iso_tuple_update_accessor_cong_assist id id"
   by (simp add: iso_tuple_update_accessor_cong_assist_def)
 
 lemma update_accessor_cong_assist_triv:
-  "iso_tuple_update_accessor_cong_assist upd acc \<Longrightarrow>
-    iso_tuple_update_accessor_cong_assist upd acc"
+  "iso_tuple_update_accessor_cong_assist upd ac \<Longrightarrow>
+    iso_tuple_update_accessor_cong_assist upd ac"
   by assumption
 
 lemma update_accessor_accessor_eqE:
-  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> acc v = x"
+  "iso_tuple_update_accessor_eq_assist upd ac v f v' x \<Longrightarrow> ac v = x"
   by (simp add: iso_tuple_update_accessor_eq_assist_def)
 
 lemma update_accessor_updator_eqE:
-  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow> upd f v = v'"
+  "iso_tuple_update_accessor_eq_assist upd ac v f v' x \<Longrightarrow> upd f v = v'"
   by (simp add: iso_tuple_update_accessor_eq_assist_def)
 
 lemma iso_tuple_update_accessor_eq_assist_idI:
@@ -191,13 +191,13 @@ lemma iso_tuple_update_accessor_eq_assist_idI:
   by (simp add: iso_tuple_update_accessor_eq_assist_def update_accessor_cong_assist_idI)
 
 lemma iso_tuple_update_accessor_eq_assist_triv:
-  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow>
-    iso_tuple_update_accessor_eq_assist upd acc v f v' x"
+  "iso_tuple_update_accessor_eq_assist upd ac v f v' x \<Longrightarrow>
+    iso_tuple_update_accessor_eq_assist upd ac v f v' x"
   by assumption
 
 lemma iso_tuple_update_accessor_cong_from_eq:
-  "iso_tuple_update_accessor_eq_assist upd acc v f v' x \<Longrightarrow>
-    iso_tuple_update_accessor_cong_assist upd acc"
+  "iso_tuple_update_accessor_eq_assist upd ac v f v' x \<Longrightarrow>
+    iso_tuple_update_accessor_cong_assist upd ac"
   by (simp add: iso_tuple_update_accessor_eq_assist_def)
 
 lemma iso_tuple_surjective_proof_assistI:
@@ -452,8 +452,9 @@ syntax (xsymbols)
 
 subsection {* Record package *}
 
-use "Tools/record.ML"
-setup Record.setup
+use "Tools/typecopy.ML" setup Typecopy.setup
+use "Tools/record.ML" setup Record.setup
+use "Tools/quickcheck_record.ML" setup Quickcheck_Record.setup
 
 hide_const (open) Tuple_Isomorphism repr abst iso_tuple_fst iso_tuple_snd
   iso_tuple_fst_update iso_tuple_snd_update iso_tuple_cons
