@@ -290,7 +290,7 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
        Context.theory_map (Locale.add_registration (class, base_morph)
          (Option.map (rpair true) eq_morph) export_morph)
     #> Class.register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
-    |> Named_Target.init (SOME class)
+    |> Named_Target.init class
     |> pair class
   end;
 
@@ -323,7 +323,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     fun after_qed some_wit =
       ProofContext.theory (Class.register_subclass (sub, sup)
         some_dep_morph some_wit export)
-      #> ProofContext.theory_of #> Named_Target.init (SOME sub);
+      #> ProofContext.theory_of #> Named_Target.init sub;
   in do_proof after_qed some_prop goal_ctxt end;
 
 fun user_proof after_qed some_prop =

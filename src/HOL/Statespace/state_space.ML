@@ -466,7 +466,7 @@ fun statespace_definition state_type args name parents parent_comps components t
                 (suffix valuetypesN full_name,(("",false),Expression.Named  []))],[]) fixestate
      |> ProofContext.theory_of 
      |> fold interprete_parent parents
-     |> add_declaration (SOME full_name) (declare_declinfo components')
+     |> add_declaration full_name (declare_declinfo components')
   end;
 
 

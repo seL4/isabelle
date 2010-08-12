@@ -8,7 +8,7 @@ Targets for theory, locale and class.
 signature NAMED_TARGET =
 sig
   val peek: local_theory -> {target: string, is_locale: bool, is_class: bool}
-  val init: string option -> theory -> local_theory
+  val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
   val context_cmd: xstring -> theory -> local_theory
 end;
@@ -25,8 +25,8 @@ fun make_target target is_locale is_class =
 
 val global_target = Target {target = "", is_locale = false, is_class = false};
 
-fun named_target _ NONE = global_target
-  | named_target thy (SOME locale) =
+fun named_target _ "" = global_target
+  | named_target thy locale =
       if Locale.defined thy locale
       then Target {target = locale, is_locale = true, is_class = Class.is_class thy locale}
       else error ("No such locale: " ^ quote locale);
@@ -205,8 +205,8 @@ fun init target thy = init_target (named_target thy target) thy;
 
 val theory_init = init_target global_target;
 
-fun context_cmd "-" thy = init NONE thy
-  | context_cmd target thy = init (SOME (Locale.intern thy target)) thy;
+fun context_cmd "-" thy = init "" thy
+  | context_cmd target thy = init (Locale.intern thy target) thy;
 
 end;
 
