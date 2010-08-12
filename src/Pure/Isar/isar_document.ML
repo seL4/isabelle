@@ -29,14 +29,14 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document.print_id id
 
 (** documents **)
 
-datatype entry = Entry of {next: Document.command_id option, state: Document.state_id option};
+datatype entry = Entry of {next: Document.command_id option, exec: Document.exec_id option};
 type node = entry Inttab.table; (*unique command entries indexed by command_id, start with no_id*)
 type document = node Graph.T;   (*development graph via static imports*)
 
 
 (* command entries *)
 
-fun make_entry next state = Entry {next = next, state = state};
+fun make_entry next exec = Entry {next = next, exec = exec};
 
 fun the_entry (node: node) (id: Document.command_id) =
   (case Inttab.lookup node id of
@@ -45,12 +45,12 @@ fun the_entry (node: node) (id: Document.command_id) =
 
 fun put_entry (id: Document.command_id, entry: entry) = Inttab.update (id, entry);
 
-fun put_entry_state (id: Document.command_id) state (node: node) =
+fun put_entry_exec (id: Document.command_id) exec (node: node) =
   let val {next, ...} = the_entry node id
-  in put_entry (id, make_entry next state) node end;
+  in put_entry (id, make_entry next exec) node end;
 
-fun reset_entry_state id = put_entry_state id NONE;
-fun set_entry_state (id, state_id) = put_entry_state id (SOME state_id);
+fun reset_entry_exec id = put_entry_exec id NONE;
+fun set_entry_exec (id, exec_id) = put_entry_exec id (SOME exec_id);
 
 
 (* iterate entries *)
@@ -75,21 +75,21 @@ fun first_entry P (node: node) =
 (* modify entries *)
 
 fun insert_after (id: Document.command_id) (id2: Document.command_id) (node: node) =
-  let val {next, state} = the_entry node id in
+  let val {next, exec} = the_entry node id in
     node
-    |> put_entry (id, make_entry (SOME id2) state)
+    |> put_entry (id, make_entry (SOME id2) exec)
     |> put_entry (id2, make_entry next NONE)
   end;
 
 fun delete_after (id: Document.command_id) (node: node) =
-  let val {next, state} = the_entry node id in
+  let val {next, exec} = the_entry node id in
     (case next of
       NONE => error ("No next entry to delete: " ^ Document.print_id id)
     | SOME id2 =>
         node |>
           (case #next (the_entry node id2) of
-            NONE => put_entry (id, make_entry NONE state)
-          | SOME id3 => put_entry (id, make_entry (SOME id3) state) #> reset_entry_state id3))
+            NONE => put_entry (id, make_entry NONE exec)
+          | SOME id3 => put_entry (id, make_entry (SOME id3) exec) #> reset_entry_exec id3))
   end;
 
 
@@ -112,24 +112,24 @@ fun edit_nodes (name, SOME edits) =
 
 (** global configuration **)
 
-(* states *)
+(* command executions *)
 
 local
 
-val global_states =
+val global_execs =
   Unsynchronized.ref (Inttab.make [(Document.no_id, Lazy.value (SOME Toplevel.toplevel))]);
 
 in
 
-fun define_state (id: Document.state_id) state =
+fun define_exec (id: Document.exec_id) exec =
   NAMED_CRITICAL "Isar" (fn () =>
-    Unsynchronized.change global_states (Inttab.update_new (id, state))
-      handle Inttab.DUP dup => err_dup "state" dup);
+    Unsynchronized.change global_execs (Inttab.update_new (id, exec))
+      handle Inttab.DUP dup => err_dup "exec" dup);
 
-fun the_state (id: Document.state_id) =
-  (case Inttab.lookup (! global_states) id of
-    NONE => err_undef "state" id
-  | SOME state => state);
+fun the_exec (id: Document.exec_id) =
+  (case Inttab.lookup (! global_execs) id of
+    NONE => err_undef "exec" id
+  | SOME exec => exec);
 
 end;
 
@@ -192,8 +192,8 @@ local
 
 val execution: unit future list Unsynchronized.ref = Unsynchronized.ref [];
 
-fun force_state NONE = ()
-  | force_state (SOME state_id) = ignore (Lazy.force (the_state state_id));
+fun force_exec NONE = ()
+  | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec exec_id));
 
 in
 
@@ -209,7 +209,7 @@ fun execute document =
           let
             val _ = await_cancellation ();
             val exec =
-              fold_entries Document.no_id (fn (_, {state, ...}) => fn () => force_state state)
+              fold_entries Document.no_id (fn (_, {exec, ...}) => fn () => force_exec exec)
                 (the_node document name);
           in exec () end));
     in execution := new_execution end);
@@ -221,27 +221,27 @@ end;
 
 local
 
-fun is_changed node' (id, {next = _, state}) =
+fun is_changed node' (id, {next = _, exec}) =
   (case try (the_entry node') id of
     NONE => true
-  | SOME {next = _, state = state'} => state' <> state);
+  | SOME {next = _, exec = exec'} => exec' <> exec);
 
-fun new_state name (id: Document.command_id) (state_id, updates) =
+fun new_exec name (id: Document.command_id) (exec_id, updates) =
   let
-    val state = the_state state_id;
-    val state_id' = create_id ();
-    val tr = Toplevel.put_id (Document.print_id state_id') (the_command id);
-    val state' =
+    val exec = the_exec exec_id;
+    val exec_id' = create_id ();
+    val tr = Toplevel.put_id (Document.print_id exec_id') (the_command id);
+    val exec' =
       Lazy.lazy (fn () =>
-        (case Lazy.force state of
+        (case Lazy.force exec of
           NONE => NONE
         | SOME st => Toplevel.run_command name tr st));
-    val _ = define_state state_id' state';
-  in (state_id', (id, state_id') :: updates) end;
+    val _ = define_exec exec_id' exec';
+  in (exec_id', (id, exec_id') :: updates) end;
 
 fun updates_status updates =
-  implode (map (fn (id, state_id) =>
-    Markup.markup (Markup.edit (Document.print_id id) (Document.print_id state_id)) "") updates)
+  implode (map (fn (id, exec_id) =>
+    Markup.markup (Markup.edit (Document.print_id id) (Document.print_id exec_id)) "") updates)
   |> Markup.markup Markup.assign
   |> Output.status;
 
@@ -259,9 +259,9 @@ fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) ed
             NONE => ([], node)
           | SOME (prev, id, _) =>
               let
-                val prev_state_id = the (#state (the_entry node (the prev)));
-                val (_, updates) = fold_entries id (new_state name o #1) node (prev_state_id, []);
-                val node' = fold set_entry_state updates node;
+                val prev_exec_id = the (#exec (the_entry node (the prev)));
+                val (_, updates) = fold_entries id (new_exec name o #1) node (prev_exec_id, []);
+                val node' = fold set_entry_exec updates node;
               in (rev updates, node') end);
 
         (* FIXME proper node deps *)

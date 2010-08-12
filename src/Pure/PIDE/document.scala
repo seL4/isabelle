@@ -16,14 +16,15 @@ object Document
 {
   /* formal identifiers */
 
-  type Version_ID = Long
-  type Command_ID = Long
-  type State_ID = Long
+  type ID = Long
+  type Exec_ID = ID
+  type Command_ID = ID
+  type Version_ID = ID
 
-  val NO_ID = 0L
+  val NO_ID: ID = 0
 
-  def parse_id(s: String): Long = java.lang.Long.parseLong(s)
-  def print_id(id: Long): String = id.toString
+  def parse_id(s: String): ID = java.lang.Long.parseLong(s)
+  def print_id(id: ID): String = id.toString
 
 
 
@@ -80,7 +81,7 @@ object Document
   val init: Document =
   {
     val doc = new Document(NO_ID, Map().withDefaultValue(Node.empty), Map())
-    doc.assign_states(Nil)
+    doc.assign_execs(Nil)
     doc
   }
 
@@ -239,7 +240,7 @@ object Document
     {
       val doc_edits = new mutable.ListBuffer[Edit[Command]]
       var nodes = old_doc.nodes
-      var former_states = old_doc.assignment.join
+      var former_assignment = old_doc.assignment.join
 
       for ((name, text_edits) <- edits) {
         val commands0 = nodes(name).commands
@@ -255,9 +256,9 @@ object Document
 
         doc_edits += (name -> Some(cmd_edits))
         nodes += (name -> new Node(commands2))
-        former_states --= removed_commands
+        former_assignment --= removed_commands
       }
-      (doc_edits.toList, new Document(new_id, nodes, former_states))
+      (doc_edits.toList, new Document(new_id, nodes, former_assignment))
     }
   }
 }
@@ -266,19 +267,19 @@ object Document
 class Document(
     val id: Document.Version_ID,
     val nodes: Map[String, Document.Node],
-    former_states: Map[Command, Command])  // FIXME !?
+    former_assignment: Map[Command, Command])  // FIXME !?
 {
   /* command state assignment */
 
   val assignment = Future.promise[Map[Command, Command]]
   def await_assignment { assignment.join }
 
-  @volatile private var tmp_states = former_states
+  @volatile private var tmp_assignment = former_assignment
 
-  def assign_states(new_states: List[(Command, Command)])
+  def assign_execs(execs: List[(Command, Command)])
   {
-    assignment.fulfill(tmp_states ++ new_states)
-    tmp_states = Map()
+    assignment.fulfill(tmp_assignment ++ execs)
+    tmp_assignment = Map()
   }
 
   def current_state(cmd: Command): Command.State =

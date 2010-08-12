@@ -27,7 +27,7 @@ object Command
   }
   case class TypeInfo(ty: String)
   case class RefInfo(file: Option[String], line: Option[Int],
-    command_id: Option[Document.Command_ID], offset: Option[Int])  // FIXME Command_ID vs. State_ID !?
+    command_id: Option[Document.Command_ID], offset: Option[Int])  // FIXME Command_ID vs. Exec_ID !?
 
 
 
@@ -201,9 +201,9 @@ class Command(
     accumulator ! Consume(message, forward)
   }
 
-  def assign_state(state_id: Document.State_ID): Command =
+  def assign_exec(exec_id: Document.Exec_ID): Command =
   {
-    val cmd = new Command(state_id, span, Some(this))
+    val cmd = new Command(exec_id, span, Some(this))
     accumulator !? Assign
     cmd.state = current_state
     cmd

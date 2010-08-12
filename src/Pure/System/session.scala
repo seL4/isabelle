@@ -25,11 +25,9 @@ object Session
 
   /* managed entities */
 
-  type Entity_ID = Long
-
   trait Entity
   {
-    val id: Entity_ID
+    val id: Document.ID
     def consume(message: XML.Tree, forward: Command => Unit): Unit
   }
 }
@@ -60,8 +58,8 @@ class Session(system: Isabelle_System)
 
   /* unique ids */
 
-  private var id_count: Long = 0
-  def create_id(): Session.Entity_ID = synchronized {
+  private var id_count: Document.ID = 0
+  def create_id(): Document.ID = synchronized {
     require(id_count > java.lang.Long.MIN_VALUE)
     id_count -= 1
     id_count
@@ -74,9 +72,9 @@ class Session(system: Isabelle_System)
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax: Outer_Syntax = syntax
 
-  @volatile private var entities = Map[Session.Entity_ID, Session.Entity]()
-  def lookup_entity(id: Session.Entity_ID): Option[Session.Entity] = entities.get(id)
-  def lookup_command(id: Session.Entity_ID): Option[Command] =
+  @volatile private var entities = Map[Document.ID, Session.Entity]()
+  def lookup_entity(id: Document.ID): Option[Session.Entity] = entities.get(id)
+  def lookup_command(id: Document.ID): Option[Command] =
     lookup_entity(id) match {
       case Some(cmd: Command) => Some(cmd)
       case _ => None
@@ -144,7 +142,7 @@ class Session(system: Isabelle_System)
     {
       raw_results.event(result)
 
-      val target_id: Option[Session.Entity_ID] = Position.get_id(result.properties)
+      val target_id: Option[Document.ID] = Position.get_id(result.properties)
       val target: Option[Session.Entity] =
         target_id match {
           case None => None
@@ -155,20 +153,20 @@ class Session(system: Isabelle_System)
         // global status message
         result.body match {
 
-          // document state assignment
+          // execution assignment
           case List(Isar_Document.Assign(edits)) if target_id.isDefined =>
             documents.get(target_id.get) match {
               case Some(doc) =>
-                val states =
+                val execs =
                   for {
-                    Isar_Document.Edit(cmd_id, state_id) <- edits
+                    Isar_Document.Edit(cmd_id, exec_id) <- edits
                     cmd <- lookup_command(cmd_id)
                   } yield {
-                    val st = cmd.assign_state(state_id)
+                    val st = cmd.assign_exec(exec_id)  // FIXME session state
                     register(st)
                     (cmd, st)
                   }
-                doc.assign_states(states)
+                doc.assign_execs(execs)  // FIXME session state
               case None => bad_result(result)
             }
 

@@ -20,7 +20,7 @@ object Isar_Document
   }
 
   object Edit {
-    def unapply(msg: XML.Tree): Option[(Document.Command_ID, Document.State_ID)] =
+    def unapply(msg: XML.Tree): Option[(Document.Command_ID, Document.Exec_ID)] =
       msg match {
         case XML.Elem(Markup(Markup.EDIT, List((Markup.ID, cmd_id), (Markup.STATE, state_id))), Nil) =>
           (Markup.parse_long(cmd_id), Markup.parse_long(state_id)) match {
