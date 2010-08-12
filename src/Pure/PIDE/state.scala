@@ -100,14 +100,14 @@ class State(
                   }
                   else if (kind == Markup.ML_REF) {
                     body match {
-                      case List(XML.Elem(Markup(Markup.ML_DEF, atts), _)) =>
+                      case List(XML.Elem(Markup(Markup.ML_DEF, props), _)) =>
                         state.add_markup(command.markup_node(
                           begin - 1, end - 1,
                           Command.RefInfo(
-                            Position.get_file(atts),
-                            Position.get_line(atts),
-                            Position.get_id(atts),
-                            Position.get_offset(atts))))
+                            Position.get_file(props),
+                            Position.get_line(props),
+                            Position.get_id(props),
+                            Position.get_offset(props))))
                       case _ => state
                     }
                   }
