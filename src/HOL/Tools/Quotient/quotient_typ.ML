@@ -101,7 +101,6 @@ in
     rtac rep_inj]) 1
 end
 
-
 (* proves the quot_type theorem for the new type *)
 fun typedef_quot_type_thm (rel, abs, rep, equiv_thm, typedef_info) lthy =
 let
@@ -113,25 +112,6 @@ in
   Goal.prove lthy [] [] goal
     (K (typedef_quot_type_tac equiv_thm typedef_info))
 end
-
-(* proves the quotient theorem for the new type *)
-fun typedef_quotient_thm (rel, abs, rep, abs_def, rep_def, quot_type_thm) lthy =
-let
-  val quotient_const = Const (@{const_name "Quotient"}, dummyT)
-  val goal =
-    HOLogic.mk_Trueprop (quotient_const $ rel $ abs $ rep)
-    |> Syntax.check_term lthy
-
-  val typedef_quotient_thm_tac =
-    EVERY1 [
-      K (rewrite_goals_tac [abs_def, rep_def]),
-      rtac @{thm quot_type.Quotient},
-      rtac quot_type_thm]
-in
-  Goal.prove lthy [] [] goal
-    (K typedef_quotient_thm_tac)
-end
-
 
 (* main function for constructing a quotient type *)
 fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lthy =
@@ -160,15 +140,17 @@ let
   val abs_name = Binding.prefix_name "abs_" qty_name
   val rep_name = Binding.prefix_name "rep_" qty_name
 
-  val ((abs, abs_def), lthy2) = define (abs_name, NoSyn, abs_trm) lthy1
-  val ((rep, rep_def), lthy3) = define (rep_name, NoSyn, rep_trm) lthy2
+  val ((_, abs_def), lthy2) = define (abs_name, NoSyn, abs_trm) lthy1
+  val ((_, rep_def), lthy3) = define (rep_name, NoSyn, rep_trm) lthy2
 
   (* quot_type theorem *)
   val quot_thm = typedef_quot_type_thm (rel, Abs_const, Rep_const, part_equiv, typedef_info) lthy3
 
   (* quotient theorem *)
-  val quotient_thm = typedef_quotient_thm (rel, abs, rep, abs_def, rep_def, quot_thm) lthy3
   val quotient_thm_name = Binding.prefix_name "Quotient_" qty_name
+  val quotient_thm = 
+    (quot_thm RS @{thm quot_type.Quotient})
+    |> fold_rule [abs_def, rep_def]
 
   (* name equivalence theorem *)
   val equiv_thm_name = Binding.suffix_name "_equivp" qty_name
