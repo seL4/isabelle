@@ -30,14 +30,15 @@ object Command
     command_id: Option[Document.Command_ID], offset: Option[Int])  // FIXME Command_ID vs. State_ID !?
 
 
+
   /** accumulated results from prover **/
 
-  class State(
+  case class State(
     val command: Command,
     val status: Command.Status.Value,
     val forks: Int,
     val reverse_results: List[XML.Tree],
-    val markup_root: Markup_Text)
+    val markup: Markup_Text)
   {
     def this(command: Command) =
       this(command, Command.Status.UNPROCESSED, 0, Nil, command.empty_markup)
@@ -45,33 +46,25 @@ object Command
 
     /* content */
 
-    private def set_status(st: Command.Status.Value): State =
-      new State(command, st, forks, reverse_results, markup_root)
-
-    private def add_forks(i: Int): State =
-      new State(command, status, forks + i, reverse_results, markup_root)
-
-    private def add_result(res: XML.Tree): State =
-      new State(command, status, forks, res :: reverse_results, markup_root)
-
-    private def add_markup(node: Markup_Tree): State =
-      new State(command, status, forks, reverse_results, markup_root + node)
-
     lazy val results = reverse_results.reverse
+
+    def add_result(result: XML.Tree): State = copy(reverse_results = result :: reverse_results)
+
+    def add_markup(node: Markup_Tree): State = copy(markup = markup + node)
 
 
     /* markup */
 
     lazy val highlight: Markup_Text =
     {
-      markup_root.filter(_.info match {
+      markup.filter(_.info match {
         case Command.HighlightInfo(_, _) => true
         case _ => false
       })
     }
 
     private lazy val types: List[Markup_Node] =
-      markup_root.filter(_.info match {
+      markup.filter(_.info match {
         case Command.TypeInfo(_) => true
         case _ => false }).flatten
 
@@ -88,7 +81,7 @@ object Command
     }
 
     private lazy val refs: List[Markup_Node] =
-      markup_root.filter(_.info match {
+      markup.filter(_.info match {
         case Command.RefInfo(_, _, _, _) => true
         case _ => false }).flatten
 
@@ -103,11 +96,11 @@ object Command
         case XML.Elem(Markup(Markup.STATUS, _), elems) =>
           (this /: elems)((state, elem) =>
             elem match {
-              case XML.Elem(Markup(Markup.UNPROCESSED, _), _) => state.set_status(Command.Status.UNPROCESSED)
-              case XML.Elem(Markup(Markup.FINISHED, _), _) => state.set_status(Command.Status.FINISHED)
-              case XML.Elem(Markup(Markup.FAILED, _), _) => state.set_status(Command.Status.FAILED)
-              case XML.Elem(Markup(Markup.FORKED, _), _) => state.add_forks(1)
-              case XML.Elem(Markup(Markup.JOINED, _), _) => state.add_forks(-1)
+              case XML.Elem(Markup(Markup.UNPROCESSED, _), _) => state.copy(status = Command.Status.UNPROCESSED)
+              case XML.Elem(Markup(Markup.FINISHED, _), _) => state.copy(status = Command.Status.FINISHED)
+              case XML.Elem(Markup(Markup.FAILED, _), _) => state.copy(status = Command.Status.FAILED)
+              case XML.Elem(Markup(Markup.FORKED, _), _) => state.copy(forks = state.forks + 1)
+              case XML.Elem(Markup(Markup.JOINED, _), _) => state.copy(forks = state.forks - 1)
               case _ => System.err.println("Ignored status message: " + elem); state
             })
 
@@ -125,13 +118,14 @@ object Command
                     else if (kind == Markup.ML_REF) {
                       body match {
                         case List(XML.Elem(Markup(Markup.ML_DEF, props), _)) =>
-                          state.add_markup(command.markup_node(
-                            begin - 1, end - 1,
-                            Command.RefInfo(
-                              Position.get_file(props),
-                              Position.get_line(props),
-                              Position.get_id(props),
-                              Position.get_offset(props))))
+                          state.add_markup(
+                            command.markup_node(
+                              begin - 1, end - 1,
+                              Command.RefInfo(
+                                Position.get_file(props),
+                                Position.get_line(props),
+                                Position.get_id(props),
+                                Position.get_offset(props))))
                         case _ => state
                       }
                     }
