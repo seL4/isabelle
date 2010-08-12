@@ -8,7 +8,6 @@ theory Typedef
 imports Set
 uses
   ("Tools/typedef.ML")
-  ("Tools/typecopy.ML")
   ("Tools/typedef_codegen.ML")
 begin
 
@@ -116,7 +115,6 @@ qed
 end
 
 use "Tools/typedef.ML" setup Typedef.setup
-use "Tools/typecopy.ML" setup Typecopy.setup
 use "Tools/typedef_codegen.ML" setup TypedefCodegen.setup
 
 end

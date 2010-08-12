@@ -10,7 +10,6 @@ sig
   val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
-  val ensure_random_typecopy: string -> theory -> theory
   val random_aux_specification: string -> string -> term list -> local_theory -> local_theory
   val mk_random_aux_eqs: theory -> Datatype.descr -> (string * sort) list
     -> string list -> string list * string list -> typ list * typ list
@@ -65,53 +64,10 @@ fun random_fun T1 T2 eq term_of random random_split seed =
   in ((random_fun', term_fun'), seed''') end;
 
 
-(** type copies **)
-
-fun mk_random_typecopy tyco vs constr T' thy =
-  let
-    val mk_const = curry (Sign.mk_const thy);
-    val Ts = map TFree vs;  
-    val T = Type (tyco, Ts);
-    val Tm = termifyT T;
-    val Tm' = termifyT T';
-    val v = "x";
-    val t_v = Free (v, Tm');
-    val t_constr = Const (constr, T' --> T);
-    val lhs = HOLogic.mk_random T size;
-    val rhs = HOLogic.mk_ST [((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, Tm'))]
-      (HOLogic.mk_return Tm @{typ Random.seed}
-      (mk_const "Code_Evaluation.valapp" [T', T]
-        $ HOLogic.mk_prod (t_constr, Abs ("u", @{typ unit}, HOLogic.reflect_term t_constr)) $ t_v))
-      @{typ Random.seed} (SOME Tm, @{typ Random.seed});
-    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
-  in   
-    thy
-    |> Class.instantiation ([tyco], vs, @{sort random})
-    |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
-    |> snd
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end;
-
-fun ensure_random_typecopy tyco thy =
-  let
-    val SOME { vs = raw_vs, constr, typ = raw_T, ... } =
-      Typecopy.get_info thy tyco;
-    val constrain = curry (Sorts.inter_sort (Sign.classes_of thy));
-    val T = map_atyps (fn TFree (v, sort) =>
-      TFree (v, constrain sort @{sort random})) raw_T;
-    val vs' = Term.add_tfreesT T [];
-    val vs = map (fn (v, sort) =>
-      (v, the_default (constrain sort @{sort typerep}) (AList.lookup (op =) vs' v))) raw_vs;
-    val can_inst = Sign.of_sort thy (T, @{sort random});
-  in if can_inst then mk_random_typecopy tyco vs constr T thy else thy end;
-
-
 (** datatypes **)
 
 (* definitional scheme for random instances on datatypes *)
 
-(*FIXME avoid this low-level proving*)
 local
 
 fun dest_ctyp_nth k cT = nth (Thm.dest_ctyp cT) k;
@@ -450,8 +406,8 @@ fun compile_generator_expr thy report t =
 
 (** setup **)
 
-val setup = Typecopy.interpretation ensure_random_typecopy
-  #> Datatype.interpretation ensure_random_datatype
+val setup =
+  Datatype.interpretation ensure_random_datatype
   #> Code_Target.extend_target (target, (Code_Eval.target, K I))
   #> Quickcheck.add_generator ("code", compile_generator_expr o ProofContext.theory_of);
 
