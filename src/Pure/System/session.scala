@@ -99,9 +99,11 @@ class Session(system: Isabelle_System)
     def handle_change(change: Document.Change)
     //{{{
     {
-      require(change.parent.isDefined)
+      require(change.is_finished)
 
+      val old_id = change.prev.join.id
       val (node_edits, doc) = change.result.join
+
       val id_edits =
         node_edits map {
           case (name, None) => (name, None)
@@ -125,7 +127,7 @@ class Session(system: Isabelle_System)
             (name -> Some(chs))
         }
       register_document(doc)
-      prover.edit_document(change.parent.get.join_document.id, doc.id, id_edits)
+      prover.edit_document(old_id, doc.id, id_edits)
     }
     //}}}
 
@@ -319,23 +321,25 @@ class Session(system: Isabelle_System)
 
   private val editor_history = new Actor
   {
-    @volatile private var history = Document.Change.init
+    @volatile private var history = List(Document.Change.init)
 
     def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
     {
-      val latest = history
-      val stable = latest.ancestors.find(_.is_assigned)
-      require(stable.isDefined)
+      val history_snapshot = history
+
+      require(history_snapshot.exists(_.is_assigned))
+      val latest = history_snapshot.head
+      val stable = history_snapshot.find(_.is_assigned).get
 
       val edits =
-        (pending_edits /: latest.ancestors.takeWhile(_ != stable.get))((edits, change) =>
+        (pending_edits /: history_snapshot.takeWhile(_ != stable))((edits, change) =>
             (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
       lazy val reverse_edits = edits.reverse
 
       new Document.Snapshot {
-        val document = stable.get.join_document
+        val document = stable.document.join
         val node = document.nodes(name)
-        val is_outdated = !(pending_edits.isEmpty && latest == stable.get)
+        val is_outdated = !(pending_edits.isEmpty && latest == stable)
         def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
         def state(command: Command): Command.State = document.current_state(command)
@@ -347,16 +351,19 @@ class Session(system: Isabelle_System)
       loop {
         react {
           case Edit_Document(edits) =>
-            val old_change = history
+            val history_snapshot = history
+            require(!history_snapshot.isEmpty)
+
+            val prev = history_snapshot.head.document
             val result: isabelle.Future[(List[Document.Edit[Command]], Document)] =
               isabelle.Future.fork {
-                val old_doc = old_change.join_document
+                val old_doc = prev.join
                 old_doc.await_assignment
                 Document.text_edits(Session.this, old_doc, edits)
               }
-            val new_change = new Document.Change(Some(old_change), edits, result)
-            history = new_change
-            new_change.result.map(_ => session_actor ! new_change)
+            val new_change = new Document.Change(prev, edits, result)
+            history ::= new_change
+            new_change.document.map(_ => session_actor ! new_change)
             reply(())
 
           case bad => System.err.println("editor_model: ignoring bad message " + bad)

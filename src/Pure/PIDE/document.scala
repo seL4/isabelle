@@ -107,27 +107,17 @@ object Document
 
   object Change
   {
-    val init = new Change(None, Nil, Future.value(Nil, Document.init))
+    val init = new Change(Future.value(Document.init), Nil, Future.value(Nil, Document.init))
   }
 
   class Change(
-    val parent: Option[Change],
+    val prev: Future[Document],
     val edits: List[Node_Text_Edit],
     val result: Future[(List[Edit[Command]], Document)])
   {
-    def ancestors: Iterator[Change] = new Iterator[Change]
-    {
-      private var state: Option[Change] = Some(Change.this)
-      def hasNext = state.isDefined
-      def next =
-        state match {
-          case Some(change) => state = change.parent; change
-          case None => throw new NoSuchElementException("next on empty iterator")
-        }
-    }
-
-    def join_document: Document = result.join._2
-    def is_assigned: Boolean = result.is_finished && join_document.assignment.is_finished
+    val document: Future[Document] = result.map(_._2)
+    def is_finished: Boolean = prev.is_finished && document.is_finished
+    def is_assigned: Boolean = is_finished && document.join.assignment.is_finished
   }
 
 
