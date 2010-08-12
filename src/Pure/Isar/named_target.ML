@@ -7,10 +7,11 @@ Targets for theory, locale and class.
 
 signature NAMED_TARGET =
 sig
-  val peek: local_theory -> {target: string, is_locale: bool, is_class: bool}
   val init: string -> theory -> local_theory
   val theory_init: theory -> local_theory
+  val reinit: local_theory -> local_theory -> local_theory
   val context_cmd: xstring -> theory -> local_theory
+  val peek: local_theory -> {target: string, is_locale: bool, is_class: bool} option
 end;
 
 structure Named_Target: NAMED_TARGET =
@@ -33,11 +34,11 @@ fun named_target _ "" = global_target
 
 structure Data = Proof_Data
 (
-  type T = target;
-  fun init _ = global_target;
+  type T = target option;
+  fun init _ = NONE;
 );
 
-val peek = (fn Target args => args) o Data.get;
+val peek = Option.map (fn Target args => args) o Data.get;
 
 
 (* generic declarations *)
@@ -187,7 +188,7 @@ fun init_context (Target {target, is_locale, is_class}) =
 fun init_target (ta as Target {target, ...}) thy =
   thy
   |> init_context ta
-  |> Data.put ta
+  |> Data.put (SOME ta)
   |> Local_Theory.init NONE (Long_Name.base_name target)
      {define = Generic_Target.define (target_foundation ta),
       notes = Generic_Target.notes (target_notes ta),
@@ -202,6 +203,10 @@ fun init_target (ta as Target {target, ...}) thy =
 in
 
 fun init target thy = init_target (named_target thy target) thy;
+
+fun reinit lthy = case peek lthy
+ of SOME {target, ...} => init target o Local_Theory.exit_global
+  | NONE => error "Not in a named target";
 
 val theory_init = init_target global_target;
 
