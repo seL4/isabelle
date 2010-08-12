@@ -536,18 +536,18 @@ fun imp_program naming =
     fun force (t as IConst (c, _) `$ t') = if is_return c
           then t' else t `$ unitt
       | force t = t `$ unitt;
-    fun tr_bind' [(t1, _), (t2, ty2)] =
+    fun tr_bind'' [(t1, _), (t2, ty2)] =
       let
         val ((v, ty), t) = dest_abs (t2, ty2);
-      in ICase (((force t1, ty), [(IVar v, tr_bind'' t)]), dummy_case_term) end
-    and tr_bind'' t = case unfold_app t
+      in ICase (((force t1, ty), [(IVar v, tr_bind' t)]), dummy_case_term) end
+    and tr_bind' t = case unfold_app t
          of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if is_bind c
-              then tr_bind' [(x1, ty1), (x2, ty2)]
+              then tr_bind'' [(x1, ty1), (x2, ty2)]
               else force t
           | _ => force t;
     fun imp_monad_bind'' ts = (SOME dummy_name, unitT) `|=> ICase (((IVar (SOME dummy_name), unitT),
-      [(unitt, tr_bind' ts)]), dummy_case_term)
-    and imp_monad_bind' (const as (c, (_, tys))) ts = if is_bind c then case (ts, tys)
+      [(unitt, tr_bind'' ts)]), dummy_case_term)
+    fun imp_monad_bind' (const as (c, (_, tys))) ts = if is_bind c then case (ts, tys)
        of ([t1, t2], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)]
         | ([t1, t2, t3], ty1 :: ty2 :: _) => imp_monad_bind'' [(t1, ty1), (t2, ty2)] `$ t3
         | (ts, _) => imp_monad_bind (eta_expand 2 (const, ts))
