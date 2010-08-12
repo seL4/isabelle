@@ -19,6 +19,8 @@ object Session
 
   case object Global_Settings
   case object Perspective
+  case class Commands_Changed(set: Set[Command])
+
 
 
   /* managed entities */
@@ -52,7 +54,7 @@ class Session(system: Isabelle_System)
   val global_settings = new Event_Bus[Session.Global_Settings.type]
   val raw_results = new Event_Bus[Isabelle_Process.Result]
   val raw_output = new Event_Bus[Isabelle_Process.Result]
-  val commands_changed = new Event_Bus[Command_Set]
+  val commands_changed = new Event_Bus[Session.Commands_Changed]
   val perspective = new Event_Bus[Session.Perspective.type]
 
 
@@ -282,7 +284,7 @@ class Session(system: Isabelle_System)
 
     def flush()
     {
-      if (!changed.isEmpty) commands_changed.event(Command_Set(changed))
+      if (!changed.isEmpty) commands_changed.event(Session.Commands_Changed(changed))
       changed = Set()
       flush_time = None
     }

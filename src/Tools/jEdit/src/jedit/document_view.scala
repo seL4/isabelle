@@ -103,7 +103,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   private val commands_changed_actor = actor {
     loop {
       react {
-        case Command_Set(changed) =>
+        case Session.Commands_Changed(changed) =>
           Swing_Thread.now {
             // FIXME cover doc states as well!!?
             val snapshot = model.snapshot()

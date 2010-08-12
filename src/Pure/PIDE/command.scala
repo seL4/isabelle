@@ -13,9 +13,6 @@ import scala.actors.Actor, Actor._
 import scala.collection.mutable
 
 
-case class Command_Set(set: Set[Command])
-
-
 object Command
 {
   object Status extends Enumeration
