@@ -311,8 +311,8 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val thy = ProofContext.theory_of lthy;
     val proto_sup = prep_class thy raw_sup;
     val proto_sub = case Named_Target.peek lthy
-     of {is_class = false, ...} => error "Not in a class context"
-      | {target, ...} => target;
+     of SOME {target, is_class = true, ...} => target
+      | _ => error "Not in a class target";
     val (sub, sup) = AxClass.cert_classrel thy (proto_sub, proto_sup);
 
     val expr = ([(sup, (("", false), Expression.Positional []))], []);
