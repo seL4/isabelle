@@ -128,27 +128,6 @@ object Document
 
     def join_document: Document = result.join._2
     def is_assigned: Boolean = result.is_finished && join_document.assignment.is_finished
-
-    def snapshot(name: String, pending_edits: List[Text_Edit]): Snapshot =
-    {
-      val latest = Change.this
-      val stable = latest.ancestors.find(_.is_assigned)
-      require(stable.isDefined)
-
-      val edits =
-        (pending_edits /: latest.ancestors.takeWhile(_ != stable.get))((edits, change) =>
-            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
-      lazy val reverse_edits = edits.reverse
-
-      new Snapshot {
-        val document = stable.get.join_document
-        val node = document.nodes(name)
-        val is_outdated = !(pending_edits.isEmpty && latest == stable.get)
-        def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-        def state(command: Command): Command.State = document.current_state(command)
-      }
-    }
   }
 
 

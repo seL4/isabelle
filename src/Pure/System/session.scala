@@ -320,7 +320,27 @@ class Session(system: Isabelle_System)
   private val editor_history = new Actor
   {
     @volatile private var history = Document.Change.init
-    def current_change(): Document.Change = history
+
+    def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
+    {
+      val latest = history
+      val stable = latest.ancestors.find(_.is_assigned)
+      require(stable.isDefined)
+
+      val edits =
+        (pending_edits /: latest.ancestors.takeWhile(_ != stable.get))((edits, change) =>
+            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+      lazy val reverse_edits = edits.reverse
+
+      new Document.Snapshot {
+        val document = stable.get.join_document
+        val node = document.nodes(name)
+        val is_outdated = !(pending_edits.isEmpty && latest == stable.get)
+        def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+        def state(command: Command): Command.State = document.current_state(command)
+      }
+    }
 
     def act
     {
@@ -356,7 +376,7 @@ class Session(system: Isabelle_System)
   def stop() { session_actor ! Stop }
 
   def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
-    editor_history.current_change().snapshot(name, pending_edits)
+    editor_history.snapshot(name, pending_edits)
 
   def edit_document(edits: List[Document.Node_Text_Edit]) { editor_history !? Edit_Document(edits) }
 }
