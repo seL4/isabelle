@@ -356,7 +356,8 @@ class Session(system: Isabelle_System)
 
   def stop() { session_actor ! Stop }
 
-  def current_change(): Document.Change = editor_history.current_change()
+  def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
+    editor_history.current_change().snapshot(name, pending_edits)
 
   def edit_document(edits: List[Document.Node_Text_Edit]) { editor_history !? Edit_Document(edits) }
 }
