@@ -541,10 +541,10 @@ fun imp_program naming =
         val ((v, ty), t) = dest_abs (t2, ty2);
       in ICase (((force t1, ty), [(IVar v, tr_bind' t)]), dummy_case_term) end
     and tr_bind' t = case unfold_app t
-         of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if is_bind c
-              then tr_bind'' [(x1, ty1), (x2, ty2)]
-              else force t
-          | _ => force t;
+     of (IConst (c, (_, ty1 :: ty2 :: _)), [x1, x2]) => if is_bind c
+          then tr_bind'' [(x1, ty1), (x2, ty2)]
+          else force t
+      | _ => force t;
     fun imp_monad_bind'' ts = (SOME dummy_name, unitT) `|=> ICase (((IVar (SOME dummy_name), unitT),
       [(unitt, tr_bind'' ts)]), dummy_case_term)
     fun imp_monad_bind' (const as (c, (_, tys))) ts = if is_bind c then case (ts, tys)
