@@ -17,7 +17,7 @@ sig
   val print_classes: theory -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
-  val declare: class -> (binding * mixfix) * (term list * term) -> theory -> theory
+  val const: class -> (binding * mixfix) * (term list * term) -> theory -> theory
   val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> theory -> theory
   val refresh_syntax: class -> Proof.context -> Proof.context
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
@@ -312,7 +312,7 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
-fun declare class ((c, mx), (type_params, dict)) thy =
+fun const class ((c, mx), (type_params, dict)) thy =
   let
     val morph = morphism thy class;
     val b = Morphism.binding morph c;

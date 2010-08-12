@@ -104,7 +104,7 @@ fun class_foundation (ta as Target {target, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, NoSyn), lhs)
-    #> class_target ta (Class.declare target ((b, mx), (type_params, lhs)))
+    #> class_target ta (Class.const target ((b, mx), (type_params, lhs)))
     #> pair (lhs, def))
 
 fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
