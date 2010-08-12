@@ -101,7 +101,7 @@ object Document
     val is_outdated: Boolean
     def convert(offset: Int): Int
     def revert(offset: Int): Int
-    def state(command: Command): State
+    def state(command: Command): Command.State
   }
 
   object Change
@@ -146,7 +146,7 @@ object Document
         val is_outdated = !(pending_edits.isEmpty && latest == stable.get)
         def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-        def state(command: Command): State = document.current_state(command)
+        def state(command: Command): Command.State = document.current_state(command)
       }
     }
   }
@@ -281,12 +281,12 @@ class Document(
     tmp_states = Map()
   }
 
-  def current_state(cmd: Command): State =
+  def current_state(cmd: Command): Command.State =
   {
     require(assignment.is_finished)
     (assignment.join).get(cmd) match {
       case Some(cmd_state) => cmd_state.current_state
-      case None => new State(cmd, Command.Status.UNDEFINED, 0, Nil, cmd.empty_markup)
+      case None => new Command.State(cmd, Command.Status.UNDEFINED, 0, Nil, cmd.empty_markup)
     }
   }
 }
