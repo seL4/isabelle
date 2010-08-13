@@ -12,9 +12,12 @@ object Isar_Document
   /* protocol messages */
 
   object Assign {
-    def unapply(msg: XML.Tree): Option[List[XML.Tree]] =
+    def unapply(msg: XML.Tree): Option[List[(Document.Command_ID, Document.Exec_ID)]] =
       msg match {
-        case XML.Elem(Markup.Assign, edits) => Some(edits)
+        case XML.Elem(Markup.Assign, edits) =>
+          val id_edits = edits.map(Edit.unapply)
+          if (id_edits.forall(_.isDefined)) Some(id_edits.map(_.get))
+          else None
         case _ => None
       }
   }

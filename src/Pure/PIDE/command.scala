@@ -40,10 +40,6 @@ object Command
     val reverse_results: List[XML.Tree],
     val markup: Markup_Text)
   {
-    def this(command: Command) =
-      this(command, Command.Status.UNPROCESSED, 0, Nil, command.empty_markup)
-
-
     /* content */
 
     lazy val results = reverse_results.reverse
@@ -154,7 +150,6 @@ class Command(
     val id: Document.Command_ID,
     val span: Thy_Syntax.Span,
     val static_parent: Option[Command] = None)  // FIXME !?
-  extends Session.Entity
 {
   /* classification */
 
@@ -178,49 +173,7 @@ class Command(
   lazy val symbol_index = new Symbol.Index(source)
 
 
-  /* accumulated messages */
-
-  @volatile protected var state = new Command.State(this)
-  def current_state: Command.State = state
-
-  private case class Consume(message: XML.Tree, forward: Command => Unit)
-  private case object Assign
-
-  private val accumulator = actor {
-    var assigned = false
-    loop {
-      react {
-        case Consume(message, forward) if !assigned =>
-          val old_state = state
-          state = old_state.accumulate(message)
-          if (!(state eq old_state)) forward(static_parent getOrElse this)
-
-        case Assign =>
-          assigned = true  // single assignment
-          reply(())
-
-        case bad => System.err.println("Command accumulator: ignoring bad message " + bad)
-      }
-    }
-  }
-
-  def consume(message: XML.Tree, forward: Command => Unit)
-  {
-    accumulator ! Consume(message, forward)
-  }
-
-  def assign_exec(exec_id: Document.Exec_ID): Command =
-  {
-    val cmd = new Command(exec_id, span, Some(this))
-    accumulator !? Assign
-    cmd.state = current_state
-    cmd
-  }
-
-
   /* markup */
-
-  lazy val empty_markup = new Markup_Text(Nil, source)
 
   def markup_node(begin: Int, end: Int, info: Any): Markup_Tree =
   {
@@ -228,4 +181,10 @@ class Command(
     val stop = symbol_index.decode(end)
     new Markup_Tree(new Markup_Node(start, stop, info), Nil)
   }
+
+
+  /* accumulated results */
+
+  def empty_state: Command.State =
+    Command.State(this, Command.Status.UNPROCESSED, 0, Nil, new Markup_Text(Nil, source))
 }

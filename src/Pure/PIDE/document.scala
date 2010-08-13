@@ -78,12 +78,7 @@ object Document
 
   /* initial document */
 
-  val init: Document =
-  {
-    val doc = new Document(NO_ID, Map().withDefaultValue(Node.empty), Map())
-    doc.assign_execs(Nil)
-    doc
-  }
+  val init: Document = new Document(NO_ID, Map().withDefaultValue(Node.empty))
 
 
 
@@ -102,6 +97,7 @@ object Document
     val is_outdated: Boolean
     def convert(offset: Int): Int
     def revert(offset: Int): Int
+    def lookup_command(id: Command_ID): Option[Command]
     def state(command: Command): Command.State
   }
 
@@ -117,7 +113,6 @@ object Document
   {
     val document: Future[Document] = result.map(_._2)
     def is_finished: Boolean = prev.is_finished && document.is_finished
-    def is_assigned: Boolean = is_finished && document.join.assignment.is_finished
   }
 
 
@@ -127,9 +122,6 @@ object Document
   def text_edits(session: Session, old_doc: Document, edits: List[Node_Text_Edit])
       : (List[Edit[Command]], Document) =
   {
-    require(old_doc.assignment.is_finished)
-
-
     /* phase 1: edit individual command source */
 
     @tailrec def edit_text(eds: List[Text_Edit],
@@ -200,7 +192,6 @@ object Document
     {
       val doc_edits = new mutable.ListBuffer[Edit[Command]]
       var nodes = old_doc.nodes
-      var former_assignment = old_doc.assignment.join
 
       for ((name, text_edits) <- edits) {
         val commands0 = nodes(name).commands
@@ -216,9 +207,107 @@ object Document
 
         doc_edits += (name -> Some(cmd_edits))
         nodes += (name -> new Node(commands2))
-        former_assignment --= removed_commands
       }
-      (doc_edits.toList, new Document(session.create_id(), nodes, former_assignment))
+      (doc_edits.toList, new Document(session.create_id(), nodes))
+    }
+  }
+
+
+
+  /** global state -- accumulated prover results **/
+
+  class Failed_State(state: State) extends Exception
+
+  object State
+  {
+    val init = State().define_document(Document.init, Map()).assign(Document.init.id, Nil)
+
+    class Assignment(former_assignment: Map[Command, Exec_ID])
+    {
+      @volatile private var tmp_assignment = former_assignment
+      private val promise = Future.promise[Map[Command, Exec_ID]]
+      def is_finished: Boolean = promise.is_finished
+      def join: Map[Command, Exec_ID] = promise.join
+      def assign(command_execs: List[(Command, Exec_ID)])
+      {
+        promise.fulfill(tmp_assignment ++ command_execs)
+        tmp_assignment = Map()
+      }
+    }
+  }
+
+  case class State(
+    val commands: Map[Command_ID, Command.State] = Map(),
+    val documents: Map[Version_ID, Document] = Map(),
+    val execs: Map[Exec_ID, (Command.State, Set[Document])] = Map(),
+    val assignments: Map[Document, State.Assignment] = Map(),
+    val disposed: Set[ID] = Set())  // FIXME unused!?
+  {
+    private def fail[A]: A = throw new Failed_State(this)
+
+    def define_command(command: Command): State =
+    {
+      val id = command.id
+      if (commands.isDefinedAt(id) || disposed(id)) fail
+      copy(commands = commands + (id -> command.empty_state))
+    }
+
+    def define_document(document: Document, former_assignment: Map[Command, Exec_ID]): State =
+    {
+      val id = document.id
+      if (documents.isDefinedAt(id) || disposed(id)) fail
+      copy(documents = documents + (id -> document),
+        assignments = assignments + (document -> new State.Assignment(former_assignment)))
+    }
+
+    def lookup_command(id: Command_ID): Option[Command] = commands.get(id).map(_.command)
+    def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)
+    def the_document(id: Version_ID): Document = documents.getOrElse(id, fail)
+    def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)._1
+    def the_assignment(document: Document): State.Assignment = assignments.getOrElse(document, fail)
+
+    def accumulate(id: ID, message: XML.Tree): (Command.State, State) =
+      execs.get(id) match {
+        case Some((st, docs)) =>
+          val new_st = st.accumulate(message)
+          (new_st, copy(execs = execs + (id -> (new_st, docs))))
+        case None =>
+          commands.get(id) match {
+            case Some(st) =>
+              val new_st = st.accumulate(message)
+              (new_st, copy(commands = commands + (id -> new_st)))
+            case None => fail
+          }
+      }
+
+    def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): State =
+    {
+      val doc = the_document(id)
+      val docs = Set(doc)  // FIXME unused (!?)
+
+      var new_execs = execs
+      val assigned_execs =
+        for ((cmd_id, exec_id) <- edits) yield {
+          val st = the_command(cmd_id)
+          if (new_execs.isDefinedAt(exec_id) || disposed(exec_id)) fail
+          new_execs += (exec_id -> (st, docs))
+          (st.command, exec_id)
+        }
+      the_assignment(doc).assign(assigned_execs)  // FIXME explicit value instead of promise (!?)
+      copy(execs = new_execs)
+    }
+
+    def is_assigned(document: Document): Boolean =
+      assignments.get(document) match {
+        case Some(assgn) => assgn.is_finished
+        case None => false
+      }
+
+    def command_state(document: Document, command: Command): Command.State =
+    {
+      val assgn = the_assignment(document)
+      require(assgn.is_finished)
+      the_exec_state(assgn.join.getOrElse(command, fail))
     }
   }
 }
@@ -226,28 +315,5 @@ object Document
 
 class Document(
     val id: Document.Version_ID,
-    val nodes: Map[String, Document.Node],
-    former_assignment: Map[Command, Command])  // FIXME !?
-{
-  /* command state assignment */
+    val nodes: Map[String, Document.Node])
 
-  val assignment = Future.promise[Map[Command, Command]]
-  def await_assignment { assignment.join }
-
-  @volatile private var tmp_assignment = former_assignment
-
-  def assign_execs(execs: List[(Command, Command)])
-  {
-    assignment.fulfill(tmp_assignment ++ execs)
-    tmp_assignment = Map()
-  }
-
-  def current_state(cmd: Command): Command.State =
-  {
-    require(assignment.is_finished)
-    (assignment.join).get(cmd) match {
-      case Some(cmd_state) => cmd_state.current_state
-      case None => new Command.State(cmd, Command.Status.UNDEFINED, 0, Nil, cmd.empty_markup)
-    }
-  }
-}

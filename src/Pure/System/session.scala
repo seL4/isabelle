@@ -20,16 +20,6 @@ object Session
   case object Global_Settings
   case object Perspective
   case class Commands_Changed(set: Set[Command])
-
-
-
-  /* managed entities */
-
-  trait Entity
-  {
-    val id: Document.ID
-    def consume(message: XML.Tree, forward: Command => Unit): Unit
-  }
 }
 
 
@@ -72,13 +62,9 @@ class Session(system: Isabelle_System)
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax: Outer_Syntax = syntax
 
-  @volatile private var entities = Map[Document.ID, Session.Entity]()
-  def lookup_entity(id: Document.ID): Option[Session.Entity] = entities.get(id)
-  def lookup_command(id: Document.ID): Option[Command] =
-    lookup_entity(id) match {
-      case Some(cmd: Command) => Some(cmd)
-      case _ => None
-    }
+  @volatile private var global_state = Document.State.init
+  private def change_state(f: Document.State => Document.State) { global_state = f(global_state) }
+  def current_state(): Document.State = global_state
 
   private case class Started(timeout: Int, args: List[String])
   private case object Stop
@@ -86,12 +72,6 @@ class Session(system: Isabelle_System)
   private lazy val session_actor = actor {
 
     var prover: Isabelle_Process with Isar_Document = null
-
-    def register(entity: Session.Entity) { entities += (entity.id -> entity) }
-
-    var documents = Map[Document.Version_ID, Document]()
-    def register_document(doc: Document) { documents += (doc.id -> doc) }
-    register_document(Document.init)
 
 
     /* document changes */
@@ -101,14 +81,21 @@ class Session(system: Isabelle_System)
     {
       require(change.is_finished)
 
-      val old_id = change.prev.join.id
+      val old_doc = change.prev.join
       val (node_edits, doc) = change.result.join
+
+      var former_assignment = current_state().the_assignment(old_doc).join
+      for {
+        (name, Some(cmd_edits)) <- node_edits
+        (prev, None) <- cmd_edits
+        removed <- old_doc.nodes(name).commands.get_after(prev)
+      } former_assignment -= removed
 
       val id_edits =
         node_edits map {
           case (name, None) => (name, None)
           case (name, Some(cmd_edits)) =>
-            val chs =
+            val ids =
               cmd_edits map {
                 case (c1, c2) =>
                   val id1 = c1.map(_.id)
@@ -116,18 +103,18 @@ class Session(system: Isabelle_System)
                     c2 match {
                       case None => None
                       case Some(command) =>
-                        if (!lookup_command(command.id).isDefined) {
-                          register(command)
+                        if (current_state().lookup_command(command.id).isEmpty) {
+                          change_state(_.define_command(command))
                           prover.define_command(command.id, system.symbols.encode(command.source))
                         }
                         Some(command.id)
                     }
                   (id1, id2)
               }
-            (name -> Some(chs))
+            (name -> Some(ids))
         }
-      register_document(doc)
-      prover.edit_document(old_id, doc.id, id_edits)
+      change_state(_.define_document(doc, former_assignment))
+      prover.edit_document(old_doc.id, doc.id, id_edits)
     }
     //}}}
 
@@ -144,47 +131,38 @@ class Session(system: Isabelle_System)
     {
       raw_results.event(result)
 
-      val target_id: Option[Document.ID] = Position.get_id(result.properties)
-      val target: Option[Session.Entity] =
-        target_id match {
-          case None => None
-          case Some(id) => lookup_entity(id)
-        }
-      if (target.isDefined) target.get.consume(result.message, indicate_command_change)
-      else if (result.is_status) {
-        // global status message
-        result.body match {
-
-          // execution assignment
-          case List(Isar_Document.Assign(edits)) if target_id.isDefined =>
-            documents.get(target_id.get) match {
-              case Some(doc) =>
-                val execs =
-                  for {
-                    Isar_Document.Edit(cmd_id, exec_id) <- edits
-                    cmd <- lookup_command(cmd_id)
-                  } yield {
-                    val st = cmd.assign_exec(exec_id)  // FIXME session state
-                    register(st)
-                    (cmd, st)
-                  }
-                doc.assign_execs(execs)  // FIXME session state
-              case None => bad_result(result)
+      Position.get_id(result.properties) match {
+        case Some(target_id) =>
+          try {
+            val (st, state) = global_state.accumulate(target_id, result.message)
+            global_state = state
+            indicate_command_change(st.command)  // FIXME forward Command.State (!?)
+          }
+          catch {
+            case _: Document.Failed_State =>
+              if (result.is_status) {
+                result.body match {
+                  case List(Isar_Document.Assign(edits)) =>
+                    try { change_state(_.assign(target_id, edits)) }
+                    catch { case _: Document.Failed_State => bad_result(result) }
+                  case _ => bad_result(result)
+                }
+              }
+              else bad_result(result)
+          }
+        case None =>
+          if (result.is_status) {
+            result.body match {
+              // keyword declarations   // FIXME always global!?
+              case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
+              case List(Keyword.Keyword_Decl(name)) => syntax += name
+              case _ => if (!result.is_ready) bad_result(result)
             }
-
-          // keyword declarations
-          case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
-          case List(Keyword.Keyword_Decl(name)) => syntax += name
-
-          case _ => if (!result.is_ready) bad_result(result)
+          }
+          else if (result.kind == Markup.EXIT) prover = null
+          else if (result.is_raw) raw_output.event(result)
+          else if (!result.is_system) bad_result(result)  // FIXME syslog for system messages (!?)
         }
-      }
-      else if (result.kind == Markup.EXIT)
-        prover = null
-      else if (result.is_raw)
-        raw_output.event(result)
-      else if (!result.is_system)   // FIXME syslog (!?)
-        bad_result(result)
     }
     //}}}
 
@@ -325,11 +303,14 @@ class Session(system: Isabelle_System)
 
     def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
     {
+      val state_snapshot = current_state()
       val history_snapshot = history
 
-      require(history_snapshot.exists(_.is_assigned))
+      val found_stable = history_snapshot.find(change =>
+        change.is_finished && state_snapshot.is_assigned(change.document.join))
+      require(found_stable.isDefined)
+      val stable = found_stable.get
       val latest = history_snapshot.head
-      val stable = history_snapshot.find(_.is_assigned).get
 
       val edits =
         (pending_edits /: history_snapshot.takeWhile(_ != stable))((edits, change) =>
@@ -342,7 +323,10 @@ class Session(system: Isabelle_System)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
         def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-        def state(command: Command): Command.State = document.current_state(command)
+        def lookup_command(id: Document.Command_ID): Option[Command] =
+          state_snapshot.lookup_command(id)
+        def state(command: Command): Command.State =
+          state_snapshot.command_state(document, command)
       }
     }
 
@@ -358,7 +342,7 @@ class Session(system: Isabelle_System)
             val result: isabelle.Future[(List[Document.Edit[Command]], Document)] =
               isabelle.Future.fork {
                 val old_doc = prev.join
-                old_doc.await_assignment
+                val former_assignment = current_state().the_assignment(old_doc).join  // FIXME async!?
                 Document.text_edits(Session.this, old_doc, edits)
               }
             val new_change = new Document.Change(prev, edits, result)
