@@ -14,6 +14,10 @@ text {* The type class of representable types *}
 
 class heap = typerep + countable
 
+instance unit :: heap ..
+
+instance bool :: heap ..
+
 instance nat :: heap ..
 
 instance prod :: (heap, heap) heap ..
