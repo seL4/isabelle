@@ -1,6 +1,6 @@
 %
 \begin{isabellebody}%
-\def\isabellecontext{Program}%
+\def\isabellecontext{Foundations}%
 %
 \isadelimtheory
 %
@@ -8,7 +8,7 @@
 %
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
-\ Program\isanewline
+\ Foundations\isanewline
 \isakeyword{imports}\ Introduction\isanewline
 \isakeyword{begin}%
 \endisatagtheory
@@ -18,7 +18,7 @@
 %
 \endisadelimtheory
 %
-\isamarkupsection{Turning Theories into Programs \label{sec:program}%
+\isamarkupsection{Code generation foundations \label{sec:program}%
 }
 \isamarkuptrue%
 %
@@ -276,6 +276,10 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}\\
 \hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
 \hspace*{0pt}\\
+\hspace*{0pt}plus{\char95}nat ::~Nat -> Nat -> Nat;\\
+\hspace*{0pt}plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n);\\
+\hspace*{0pt}plus{\char95}nat Zero{\char95}nat n = n;\\
+\hspace*{0pt}\\
 \hspace*{0pt}class Semigroup a where {\char123}\\
 \hspace*{0pt} ~mult ::~a -> a -> a;\\
 \hspace*{0pt}{\char125};\\
@@ -287,10 +291,6 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}pow ::~forall a.~(Monoid a) => Nat -> a -> a;\\
 \hspace*{0pt}pow Zero{\char95}nat a = neutral;\\
 \hspace*{0pt}pow (Suc n) a = mult a (pow n a);\\
-\hspace*{0pt}\\
-\hspace*{0pt}plus{\char95}nat ::~Nat -> Nat -> Nat;\\
-\hspace*{0pt}plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n);\\
-\hspace*{0pt}plus{\char95}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
 \hspace*{0pt}mult{\char95}nat ::~Nat -> Nat -> Nat;\\
 \hspace*{0pt}mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat;\\
@@ -339,13 +339,13 @@ Concerning type classes and code generation, let us examine an example
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
 \hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
+\hspace*{0pt} ~val plus{\char95}nat :~nat -> nat -> nat\\
 \hspace*{0pt} ~type 'a semigroup\\
 \hspace*{0pt} ~val mult :~'a semigroup -> 'a -> 'a -> 'a\\
 \hspace*{0pt} ~type 'a monoid\\
 \hspace*{0pt} ~val semigroup{\char95}monoid :~'a monoid -> 'a semigroup\\
 \hspace*{0pt} ~val neutral :~'a monoid -> 'a\\
 \hspace*{0pt} ~val pow :~'a monoid -> nat -> 'a -> 'a\\
-\hspace*{0pt} ~val plus{\char95}nat :~nat -> nat -> nat\\
 \hspace*{0pt} ~val mult{\char95}nat :~nat -> nat -> nat\\
 \hspace*{0pt} ~val neutral{\char95}nat :~nat\\
 \hspace*{0pt} ~val semigroup{\char95}nat :~nat semigroup\\
@@ -354,6 +354,9 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
 \hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
+\hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
 \hspace*{0pt}val mult = {\char35}mult :~'a semigroup -> 'a -> 'a -> 'a;\\
@@ -364,9 +367,6 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow A{\char95}~Zero{\char95}nat a = neutral A{\char95}\\
 \hspace*{0pt} ~| pow A{\char95}~(Suc n) a = mult (semigroup{\char95}monoid A{\char95}) a (pow A{\char95}~n a);\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
-\hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat\\
 \hspace*{0pt} ~| mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
