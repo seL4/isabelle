@@ -1217,7 +1217,7 @@ val simproc =
 
 fun get_upd_acc_cong_thm upd acc thy simpset =
   let
-    val insts = [("upd", cterm_of thy upd), ("acc", cterm_of thy acc)];
+    val insts = [("upd", cterm_of thy upd), ("ac", cterm_of thy acc)];
     val prop = Thm.concl_of (named_cterm_instantiate insts updacc_cong_triv);
   in
     Goal.prove (ProofContext.init_global thy) [] [] prop
