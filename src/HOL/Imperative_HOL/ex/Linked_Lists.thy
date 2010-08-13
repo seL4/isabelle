@@ -648,8 +648,9 @@ next
   from refs_def Node have refs_of'_ps: "refs_of' h ps refs"
     by (auto simp add: refs_of'_def'[symmetric])
   from validHeap refs_def have all_ref_present: "\<forall>r\<in>set refs. Ref.present h r" by simp
-  from init refs_of'_ps Node this have heap_eq: "\<forall>refs. refs_of' h ps refs \<longrightarrow> (\<forall>ref\<in>set refs. Ref.present h ref \<and> Ref.present h2 ref \<and> Ref.get h ref = Ref.get h2 ref)"
-    by (fastsimp elim!: crel_ref dest: refs_of'_is_fun)
+  from init refs_of'_ps this
+    have heap_eq: "\<forall>refs. refs_of' h ps refs \<longrightarrow> (\<forall>ref\<in>set refs. Ref.present h ref \<and> Ref.present h2 ref \<and> Ref.get h ref = Ref.get h2 ref)"
+    by (auto elim!: crel_ref [where ?'a="'a node", where ?'b="'a node", where ?'c="'a node"] dest: refs_of'_is_fun)
   from refs_of'_invariant[OF refs_of'_ps this] have "refs_of' h2 ps refs" .
   with init have refs_of_p: "refs_of' h2 p (p#refs)"
     by (auto elim!: crel_refE simp add: refs_of'_def')
