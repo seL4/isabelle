@@ -6,7 +6,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Power Option
+imports Option Power
 begin
 
 subsection {* Predicate for finite sets *}
