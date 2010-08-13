@@ -2,7 +2,17 @@ theory Introduction
 imports Setup
 begin
 
-section {* Introduction and Overview *}
+section {* Introduction *}
+
+subsection {* Code generation fundamental: shallow embedding *}
+
+subsection {* A quick start with the @{text "Isabelle/HOL"} toolbox *}
+
+subsection {* Type classes *}
+
+subsection {* How to continue from here *}
+
+subsection {* If something goes utterly wrong *}
 
 text {*
   This tutorial introduces a generic code generator for the

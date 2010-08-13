@@ -2,7 +2,7 @@ theory Inductive_Predicate
 imports Setup
 begin
 
-subsection {* Inductive Predicates *}
+section {* Inductive Predicates *}
 (*<*)
 hide_const append
 
