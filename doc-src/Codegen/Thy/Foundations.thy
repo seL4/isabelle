@@ -1,8 +1,8 @@
-theory Program
+theory Foundations
 imports Introduction
 begin
 
-section {* Turning Theories into Programs \label{sec:program} *}
+section {* Code generation foundations \label{sec:program} *}
 
 subsection {* The @{text "Isabelle/HOL"} default setup *}
 

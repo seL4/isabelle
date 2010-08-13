@@ -2,7 +2,17 @@ theory Introduction
 imports Setup
 begin
 
-section {* Introduction and Overview *}
+section {* Introduction *}
+
+subsection {* Code generation fundamental: shallow embedding *}
+
+subsection {* A quick start with the @{text "Isabelle/HOL"} toolbox *}
+
+subsection {* Type classes *}
+
+subsection {* How to continue from here *}
+
+subsection {* If something goes utterly wrong *}
 
 text {*
   This tutorial introduces a generic code generator for the
@@ -109,6 +119,29 @@ text %quote {*@{code_stmts empty enqueue dequeue (Haskell)}*}
 text {*
   \noindent This demonstrates the basic usage of the @{command export_code} command;
   for more details see \secref{sec:further}.
+*}
+
+subsection {* If something utterly fails *}
+
+text {*
+  Under certain circumstances, the code generator fails to produce
+  code entirely.  
+
+  \begin{description}
+
+    \ditem{generate only one module}
+
+    \ditem{check with a different target language}
+
+    \ditem{inspect code equations}
+
+    \ditem{inspect preprocessor setup}
+
+    \ditem{generate exceptions}
+
+    \ditem{remove offending code equations}
+
+  \end{description}
 *}
 
 subsection {* Code generator architecture \label{sec:concept} *}
