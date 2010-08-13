@@ -111,6 +111,29 @@ text {*
   for more details see \secref{sec:further}.
 *}
 
+subsection {* If something utterly fails *}
+
+text {*
+  Under certain circumstances, the code generator fails to produce
+  code entirely.  
+
+  \begin{description}
+
+    \ditem{generate only one module}
+
+    \ditem{check with a different target language}
+
+    \ditem{inspect code equations}
+
+    \ditem{inspect preprocessor setup}
+
+    \ditem{generate exceptions}
+
+    \ditem{remove offending code equations}
+
+  \end{description}
+*}
+
 subsection {* Code generator architecture \label{sec:concept} *}
 
 text {*
