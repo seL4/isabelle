@@ -373,8 +373,11 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   def input_raw(text: String): Unit = standard_input ! Input_Text(text)
 
+  def input_bytes(name: String, args: Array[Byte]*): Unit =
+    command_input ! Input_Chunks(Standard_System.string_bytes(name) :: args.toList)
+
   def input(name: String, args: String*): Unit =
-    command_input ! Input_Chunks((name :: args.toList).map(Standard_System.string_bytes))
+    input_bytes(name, args.map(Standard_System.string_bytes): _*)
 
   def close(): Unit = command_input ! Close
 }
