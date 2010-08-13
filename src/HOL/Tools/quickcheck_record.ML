@@ -7,6 +7,7 @@ Quickcheck generators for records.
 signature QUICKCHECK_RECORD =
 sig
   val ensure_random_typecopy: string -> theory -> theory
+  val setup: theory -> theory
 end;
 
 structure Quickcheck_Record : QUICKCHECK_RECORD =
