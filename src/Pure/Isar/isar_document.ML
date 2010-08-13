@@ -239,40 +239,40 @@ fun new_exec name (id: Document.command_id) (exec_id, updates) =
     val _ = define_exec exec_id' exec';
   in (exec_id', (id, exec_id') :: updates) end;
 
-fun updates_status updates =
+fun updates_status new_id updates =
   implode (map (fn (id, exec_id) =>
-    Markup.markup (Markup.edit (Document.print_id id) (Document.print_id exec_id)) "") updates)
+      Markup.markup (Markup.edit (Document.print_id id) (Document.print_id exec_id)) "") updates)
   |> Markup.markup Markup.assign
-  |> Output.status;
+  |> Position.setmp_thread_data (Position.id_only (Document.print_id new_id)) Output.status;
+  (*FIXME avoid setmp -- direct message argument*)
 
 in
 
 fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) edits =
-  Position.setmp_thread_data (Position.id_only (Document.print_id new_id)) (fn () =>
-    NAMED_CRITICAL "Isar" (fn () =>
-      let
-        val old_document = the_document old_id;
-        val new_document = fold edit_nodes edits old_document;
+  NAMED_CRITICAL "Isar" (fn () =>
+    let
+      val old_document = the_document old_id;
+      val new_document = fold edit_nodes edits old_document;
 
-        fun update_node name node =
-          (case first_entry (is_changed (the_node old_document name)) node of
-            NONE => ([], node)
-          | SOME (prev, id, _) =>
-              let
-                val prev_exec_id = the (#exec (the_entry node (the prev)));
-                val (_, updates) = fold_entries id (new_exec name o #1) node (prev_exec_id, []);
-                val node' = fold set_entry_exec updates node;
-              in (rev updates, node') end);
+      fun update_node name node =
+        (case first_entry (is_changed (the_node old_document name)) node of
+          NONE => ([], node)
+        | SOME (prev, id, _) =>
+            let
+              val prev_exec_id = the (#exec (the_entry node (the prev)));
+              val (_, updates) = fold_entries id (new_exec name o #1) node (prev_exec_id, []);
+              val node' = fold set_entry_exec updates node;
+            in (rev updates, node') end);
 
-        (* FIXME proper node deps *)
-        val (updatess, new_document') =
-          (Graph.keys new_document, new_document)
-            |-> fold_map (fn name => Graph.map_node_yield name (update_node name));
+      (* FIXME proper node deps *)
+      val (updatess, new_document') =
+        (Graph.keys new_document, new_document)
+          |-> fold_map (fn name => Graph.map_node_yield name (update_node name));
 
-        val _ = define_document new_id new_document';
-        val _ = updates_status (flat updatess);
-        val _ = execute new_document';
-      in () end)) ();
+      val _ = define_document new_id new_document';
+      val _ = updates_status new_id (flat updatess);
+      val _ = execute new_document';
+    in () end);
 
 end;
 
