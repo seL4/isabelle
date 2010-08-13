@@ -274,6 +274,11 @@ lemma execute_bind [execute_simps]:
   "execute f h = None \<Longrightarrow> execute (f \<guillemotright>= g) h = None"
   by (simp_all add: bind_def)
 
+lemma execute_bind_case:
+  "execute (f \<guillemotright>= g) h = (case (execute f h) of
+    Some (x, h') \<Rightarrow> execute (g x) h' | None \<Rightarrow> None)"
+  by (simp add: bind_def)
+
 lemma execute_bind_success:
   "success f h \<Longrightarrow> execute (f \<guillemotright>= g) h = execute (g (fst (the (execute f h)))) (snd (the (execute f h)))"
   by (cases f h rule: Heap_cases) (auto elim!: successE simp add: bind_def)
