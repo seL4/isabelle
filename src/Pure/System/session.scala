@@ -153,7 +153,6 @@ class Session(system: Isabelle_System)
         case None =>
           if (result.is_status) {
             result.body match {
-              // keyword declarations   // FIXME always global!?
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
               case _ => if (!result.is_ready) bad_result(result)
