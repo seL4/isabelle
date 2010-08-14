@@ -16,14 +16,17 @@ object Document
   /* formal identifiers */
 
   type ID = Long
+
+  object ID {
+    def apply(id: ID): String = Markup.Long.apply(id)
+    def unapply(s: String): Option[ID] = Markup.Long.unapply(s)
+  }
+
   type Version_ID = ID
   type Command_ID = ID
   type Exec_ID = ID
 
   val NO_ID: ID = 0
-
-  def parse_id(s: String): ID = java.lang.Long.parseLong(s)
-  def print_id(id: ID): String = id.toString
 
 
 

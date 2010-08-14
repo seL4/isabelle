@@ -29,12 +29,8 @@ type exec_id = id;
 
 val no_id = 0;
 
-fun parse_id s =
-  (case Int.fromString s of
-    SOME i => i
-  | NONE => raise Fail ("Bad id: " ^ quote s));
-
-val print_id = signed_string_of_int;
+val parse_id = Markup.parse_int;
+val print_id = Markup.print_int;
 
 
 (* edits *)

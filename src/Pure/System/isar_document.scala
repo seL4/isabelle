@@ -12,11 +12,12 @@ object Isar_Document
   /* protocol messages */
 
   object Assign {
-    def unapply(msg: XML.Tree): Option[List[(Document.Command_ID, Document.Exec_ID)]] =
+    def unapply(msg: XML.Tree)
+        : Option[(Document.Version_ID, List[(Document.Command_ID, Document.Exec_ID)])] =
       msg match {
-        case XML.Elem(Markup.Assign, edits) =>
+        case XML.Elem(Markup(Markup.ASSIGN, List((Markup.VERSION, Document.ID(id)))), edits) =>
           val id_edits = edits.map(Edit.unapply)
-          if (id_edits.forall(_.isDefined)) Some(id_edits.map(_.get))
+          if (id_edits.forall(_.isDefined)) Some((id, id_edits.map(_.get)))
           else None
         case _ => None
       }
@@ -25,11 +26,9 @@ object Isar_Document
   object Edit {
     def unapply(msg: XML.Tree): Option[(Document.Command_ID, Document.Exec_ID)] =
       msg match {
-        case XML.Elem(Markup(Markup.EDIT, List((Markup.ID, cmd_id), (Markup.STATE, state_id))), Nil) =>
-          (Markup.parse_long(cmd_id), Markup.parse_long(state_id)) match {
-            case (Some(i), Some(j)) => Some((i, j))
-            case _ => None
-          }
+        case XML.Elem(
+          Markup(Markup.EDIT,
+            List((Markup.ID, Document.ID(i)), (Markup.EXEC, Document.ID(j)))), Nil) => Some((i, j))
         case _ => None
       }
   }
@@ -44,7 +43,7 @@ trait Isar_Document extends Isabelle_Process
   /* commands */
 
   def define_command(id: Document.Command_ID, text: String): Unit =
-    input("Isar_Document.define_command", Document.print_id(id), text)
+    input("Isar_Document.define_command", Document.ID(id), text)
 
 
   /* documents */
@@ -62,6 +61,6 @@ trait Isar_Document extends Isabelle_Process
               XML_Data.make_pair(make_id1)(XML_Data.make_option(XML_Data.make_long))))))(edits)
 
     input("Isar_Document.edit_document",
-      Document.print_id(old_id), Document.print_id(new_id), YXML.string_of_body(arg))
+      Document.ID(old_id), Document.ID(new_id), YXML.string_of_body(arg))
   }
 }

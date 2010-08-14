@@ -9,34 +9,41 @@ package isabelle
 
 object Markup
 {
+  /* integers */
+
+  object Int {
+    def apply(i: scala.Int): String = i.toString
+    def unapply(s: String): Option[scala.Int] =
+      try { Some(Integer.parseInt(s)) }
+      catch { case _: NumberFormatException => None }
+  }
+
+  object Long {
+    def apply(i: scala.Long): String = i.toString
+    def unapply(s: String): Option[scala.Long] =
+      try { Some(java.lang.Long.parseLong(s)) }
+      catch { case _: NumberFormatException => None }
+  }
+
+
   /* property values */
 
   def get_string(name: String, props: List[(String, String)]): Option[String] =
     props.find(p => p._1 == name).map(_._2)
 
-
-  def parse_long(s: String): Option[Long] =
-    try { Some(java.lang.Long.parseLong(s)) }
-    catch { case _: NumberFormatException => None }
-
-  def get_long(name: String, props: List[(String, String)]): Option[Long] =
+  def get_long(name: String, props: List[(String, String)]): Option[scala.Long] =
   {
     get_string(name, props) match {
       case None => None
-      case Some(value) => parse_long(value)
+      case Some(Long(i)) => Some(i)
     }
   }
 
-
-  def parse_int(s: String): Option[Int] =
-    try { Some(Integer.parseInt(s)) }
-    catch { case _: NumberFormatException => None }
-
-  def get_int(name: String, props: List[(String, String)]): Option[Int] =
+  def get_int(name: String, props: List[(String, String)]): Option[scala.Int] =
   {
     get_string(name, props) match {
       case None => None
-      case Some(value) => parse_int(value)
+      case Some(Int(i)) => Some(i)
     }
   }
 
@@ -197,7 +204,9 @@ object Markup
 
   /* interactive documents */
 
-  val Assign = Markup("assign", Nil)
+  val VERSION = "version"
+  val EXEC = "exec"
+  val ASSIGN = "assign"
   val EDIT = "edit"
 
 

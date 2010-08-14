@@ -240,11 +240,9 @@ fun new_exec name (id: Document.command_id) (exec_id, updates) =
   in (exec_id', (id, exec_id') :: updates) end;
 
 fun updates_status new_id updates =
-  implode (map (fn (id, exec_id) =>
-      Markup.markup (Markup.edit (Document.print_id id) (Document.print_id exec_id)) "") updates)
-  |> Markup.markup Markup.assign
-  |> Position.setmp_thread_data (Position.id_only (Document.print_id new_id)) Output.status;
-  (*FIXME avoid setmp -- direct message argument*)
+  implode (map (fn (id, exec_id) => Markup.markup (Markup.edit id exec_id) "") updates)
+  |> Markup.markup (Markup.assign new_id)
+  |> Output.status;
 
 in
 

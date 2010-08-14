@@ -132,27 +132,19 @@ class Session(system: Isabelle_System)
       raw_results.event(result)
 
       Position.get_id(result.properties) match {
-        case Some(target_id) =>
+        case Some(state_id) =>
           try {
-            val (st, state) = global_state.accumulate(target_id, result.message)
+            val (st, state) = global_state.accumulate(state_id, result.message)
             global_state = state
-            indicate_command_change(st.command)  // FIXME forward Command.State (!?)
+            indicate_command_change(st.command)
           }
-          catch {
-            case _: Document.State.Fail =>
-              if (result.is_status) {
-                result.body match {
-                  case List(Isar_Document.Assign(edits)) =>
-                    try { change_state(_.assign(target_id, edits)) }
-                    catch { case _: Document.State.Fail => bad_result(result) }
-                  case _ => bad_result(result)
-                }
-              }
-              else bad_result(result)
-          }
+          catch { case _: Document.State.Fail => bad_result(result) }
         case None =>
           if (result.is_status) {
             result.body match {
+              case List(Isar_Document.Assign(doc_id, edits)) =>
+                try { change_state(_.assign(doc_id, edits)) }
+                catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
               case _ => if (!result.is_ready) bad_result(result)

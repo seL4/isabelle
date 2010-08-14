@@ -6,6 +6,8 @@ Common markup elements.
 
 signature MARKUP =
 sig
+  val parse_int: string -> int
+  val print_int: int -> string
   type T = string * Properties.T
   val none: T
   val is_none: T -> bool
@@ -109,8 +111,10 @@ sig
   val failedN: string val failed: T
   val finishedN: string val finished: T
   val disposedN: string val disposed: T
-  val assignN: string val assign: T
-  val editN: string val edit: string -> string -> T
+  val versionN: string
+  val execN: string
+  val assignN: string val assign: int -> T
+  val editN: string val edit: int -> int -> T
   val pidN: string
   val promptN: string val prompt: T
   val readyN: string val ready: T
@@ -127,6 +131,16 @@ struct
 
 (** markup elements **)
 
+(* integers *)
+
+fun parse_int s =
+  (case Int.fromString s of
+    SOME i => i
+  | NONE => raise Fail ("Bad integer: " ^ quote s));
+
+val print_int = signed_string_of_int;
+
+
 (* basic markup *)
 
 type T = string * Properties.T;
@@ -142,7 +156,7 @@ fun properties more_props ((elem, props): T) =
 
 fun markup_elem elem = (elem, (elem, []): T);
 fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
-fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
+fun markup_int elem prop = (elem, fn i => (elem, [(prop, print_int i)]): T);
 
 
 (* name *)
@@ -315,10 +329,12 @@ val (disposedN, disposed) = markup_elem "disposed";
 
 (* interactive documents *)
 
-val (assignN, assign) = markup_elem "assign";
+val versionN = "version";
+val execN = "exec";
+val (assignN, assign) = markup_int "assign" versionN;
 
 val editN = "edit";
-fun edit id state_id : T = (editN, [(idN, id), (stateN, state_id)]);
+fun edit cmd_id exec_id : T = (editN, [(idN, print_int cmd_id), (execN, print_int exec_id)]);
 
 
 (* messages *)
