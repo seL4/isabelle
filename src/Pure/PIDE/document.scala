@@ -17,9 +17,9 @@ object Document
   /* formal identifiers */
 
   type ID = Long
-  type Exec_ID = ID
-  type Command_ID = ID
   type Version_ID = ID
+  type Command_ID = ID
+  type Exec_ID = ID
 
   val NO_ID: ID = 0
 
@@ -187,7 +187,7 @@ object Document
     }
 
 
-    /* phase 3: resulting document edits */
+    /* resulting document edits */
 
     {
       val doc_edits = new mutable.ListBuffer[Edit[Command]]
@@ -216,10 +216,10 @@ object Document
 
   /** global state -- accumulated prover results **/
 
-  class Failed_State(state: State) extends Exception
-
   object State
   {
+    class Fail(state: State) extends Exception
+
     val init = State().define_document(Document.init, Map()).assign(Document.init.id, Nil)
 
     class Assignment(former_assignment: Map[Command, Exec_ID])
@@ -237,20 +237,13 @@ object Document
   }
 
   case class State(
-    val commands: Map[Command_ID, Command.State] = Map(),
     val documents: Map[Version_ID, Document] = Map(),
+    val commands: Map[Command_ID, Command.State] = Map(),
     val execs: Map[Exec_ID, (Command.State, Set[Document])] = Map(),
     val assignments: Map[Document, State.Assignment] = Map(),
     val disposed: Set[ID] = Set())  // FIXME unused!?
   {
-    private def fail[A]: A = throw new Failed_State(this)
-
-    def define_command(command: Command): State =
-    {
-      val id = command.id
-      if (commands.isDefinedAt(id) || disposed(id)) fail
-      copy(commands = commands + (id -> command.empty_state))
-    }
+    private def fail[A]: A = throw new State.Fail(this)
 
     def define_document(document: Document, former_assignment: Map[Command, Exec_ID]): State =
     {
@@ -260,9 +253,17 @@ object Document
         assignments = assignments + (document -> new State.Assignment(former_assignment)))
     }
 
+    def define_command(command: Command): State =
+    {
+      val id = command.id
+      if (commands.isDefinedAt(id) || disposed(id)) fail
+      copy(commands = commands + (id -> command.empty_state))
+    }
+
     def lookup_command(id: Command_ID): Option[Command] = commands.get(id).map(_.command)
-    def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)
+
     def the_document(id: Version_ID): Document = documents.getOrElse(id, fail)
+    def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)
     def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)._1
     def the_assignment(document: Document): State.Assignment = assignments.getOrElse(document, fail)
 

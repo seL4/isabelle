@@ -8,9 +8,9 @@ list of commands.
 signature DOCUMENT =
 sig
   type id = int
-  type exec_id = id
-  type command_id = id
   type version_id = id
+  type command_id = id
+  type exec_id = id
   val no_id: id
   val parse_id: string -> id
   val print_id: id -> string
@@ -23,9 +23,9 @@ struct
 (* unique identifiers *)
 
 type id = int;
-type exec_id = id;
-type command_id = id;
 type version_id = id;
+type command_id = id;
+type exec_id = id;
 
 val no_id = 0;
 

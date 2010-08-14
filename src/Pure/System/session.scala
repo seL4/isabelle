@@ -139,12 +139,12 @@ class Session(system: Isabelle_System)
             indicate_command_change(st.command)  // FIXME forward Command.State (!?)
           }
           catch {
-            case _: Document.Failed_State =>
+            case _: Document.State.Fail =>
               if (result.is_status) {
                 result.body match {
                   case List(Isar_Document.Assign(edits)) =>
                     try { change_state(_.assign(target_id, edits)) }
-                    catch { case _: Document.Failed_State => bad_result(result) }
+                    catch { case _: Document.State.Fail => bad_result(result) }
                   case _ => bad_result(result)
                 }
               }

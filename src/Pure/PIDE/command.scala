@@ -148,8 +148,7 @@ object Command
 
 class Command(
     val id: Document.Command_ID,
-    val span: Thy_Syntax.Span,
-    val static_parent: Option[Command] = None)  // FIXME !?
+    val span: List[Token])
 {
   /* classification */
 

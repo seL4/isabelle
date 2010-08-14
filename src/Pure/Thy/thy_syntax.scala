@@ -12,11 +12,9 @@ import scala.collection.mutable
 
 object Thy_Syntax
 {
-  type Span = List[Token]
-
-  def parse_spans(toks: List[Token]): List[Span] =
+  def parse_spans(toks: List[Token]): List[List[Token]] =
   {
-    val result = new mutable.ListBuffer[Span]
+    val result = new mutable.ListBuffer[List[Token]]
     val span = new mutable.ListBuffer[Token]
     val whitespace = new mutable.ListBuffer[Token]
 
