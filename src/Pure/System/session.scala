@@ -317,7 +317,8 @@ class Session(system: Isabelle_System)
         def lookup_command(id: Document.Command_ID): Option[Command] =
           state_snapshot.lookup_command(id)
         def state(command: Command): Command.State =
-          state_snapshot.command_state(document, command)
+          try { state_snapshot.command_state(document, command) }
+          catch { case _: State.Fail => command.empty_state }
       }
     }
 

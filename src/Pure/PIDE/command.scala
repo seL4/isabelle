@@ -184,6 +184,6 @@ class Command(
 
   /* accumulated results */
 
-  def empty_state: Command.State =
+  val empty_state: Command.State =
     Command.State(this, Command.Status.UNPROCESSED, 0, Nil, new Markup_Text(Nil, source))
 }
