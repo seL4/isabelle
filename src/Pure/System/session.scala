@@ -343,7 +343,7 @@ class Session(system: Isabelle_System)
               isabelle.Future.fork {
                 val old_doc = prev.join
                 val former_assignment = current_state().the_assignment(old_doc).join  // FIXME async!?
-                Document.text_edits(Session.this, old_doc, edits)
+                Thy_Syntax.text_edits(Session.this, old_doc, edits)
               }
             val new_change = new Document.Change(prev, edits, result)
             history ::= new_change
