@@ -67,7 +67,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
             case Some(cmd) if !restriction.isDefined || restriction.get.contains(cmd) =>
               val snapshot = doc_view.model.snapshot()
               val filtered_results =
-                snapshot.document.current_state(cmd).results filter {
+                snapshot.state(cmd).results filter {
                   case XML.Elem(Markup(Markup.TRACING, _), _) => show_tracing
                   case XML.Elem(Markup(Markup.DEBUG, _), _) => show_debug
                   case _ => true
@@ -87,7 +87,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
     loop {
       react {
         case Session.Global_Settings => handle_resize()
-        case Command_Set(changed) => handle_update(Some(changed))
+        case Session.Commands_Changed(changed) => handle_update(Some(changed))
         case Session.Perspective => if (follow_caret && handle_perspective()) handle_update()
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
       }

@@ -27,7 +27,6 @@ object Token
     val VERBATIM = Value("verbatim text")
     val SPACE = Value("white space")
     val COMMENT = Value("comment text")
-    val BAD_INPUT = Value("bad input")
     val UNPARSED = Value("unparsed input")
   }
 
@@ -79,7 +78,6 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
   def is_space: Boolean = kind == Token.Kind.SPACE
   def is_comment: Boolean = kind == Token.Kind.COMMENT
   def is_ignored: Boolean = is_space || is_comment
-  def is_unparsed: Boolean = kind == Token.Kind.UNPARSED
 
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Lexicon.empty.quoted_content("\"", source)

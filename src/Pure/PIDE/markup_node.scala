@@ -2,7 +2,7 @@
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 
-Document markup nodes, with connection to Swing tree model.
+Text markup nodes.
 */
 
 package isabelle
@@ -78,8 +78,7 @@ case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
 
 case class Markup_Text(val markup: List[Markup_Tree], val content: String)
 {
-  private lazy val root =
-    new Markup_Tree(new Markup_Node(0, content.length, None), markup)
+  private val root = new Markup_Tree(new Markup_Node(0, content.length, None), markup)  // FIXME !?
 
   def + (new_tree: Markup_Tree): Markup_Text =
     new Markup_Text((root + new_tree).branches, content)

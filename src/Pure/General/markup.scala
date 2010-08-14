@@ -14,6 +14,20 @@ object Markup
   def get_string(name: String, props: List[(String, String)]): Option[String] =
     props.find(p => p._1 == name).map(_._2)
 
+
+  def parse_long(s: String): Option[Long] =
+    try { Some(java.lang.Long.parseLong(s)) }
+    catch { case _: NumberFormatException => None }
+
+  def get_long(name: String, props: List[(String, String)]): Option[Long] =
+  {
+    get_string(name, props) match {
+      case None => None
+      case Some(value) => parse_long(value)
+    }
+  }
+
+
   def parse_int(s: String): Option[Int] =
     try { Some(Integer.parseInt(s)) }
     catch { case _: NumberFormatException => None }
