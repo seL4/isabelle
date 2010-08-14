@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/isar_document.ML
+(*  Title:      Pure/System/isar_document.ML
     Author:     Makarius
 
 Interactive Isar documents, which are structured as follows:

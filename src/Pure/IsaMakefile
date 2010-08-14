@@ -119,7 +119,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/expression.ML					\
   Isar/generic_target.ML				\
   Isar/isar_cmd.ML					\
-  Isar/isar_document.ML					\
   Isar/isar_syn.ML					\
   Isar/keyword.ML					\
   Isar/local_defs.ML					\
@@ -191,6 +190,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/type_ext.ML					\
   System/isabelle_process.ML				\
   System/isar.ML					\
+  System/isar_document.ML				\
   System/session.ML					\
   Thy/html.ML						\
   Thy/latex.ML						\

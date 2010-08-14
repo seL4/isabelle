@@ -1,4 +1,4 @@
-/*  Title:      Pure/Isar/isar_document.scala
+/*  Title:      Pure/System/isar_document.scala
     Author:     Makarius
 
 Interactive Isar documents.
