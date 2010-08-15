@@ -28,14 +28,13 @@ object Document_View
   {
     val state = snapshot.state(command)
     if (snapshot.is_outdated) new Color(240, 240, 240)
-    else if (state.forks > 0) new Color(255, 228, 225)
-    else if (state.forks < 0) Color.red
     else
-      state.status match {
-        case Command.Status.UNPROCESSED => new Color(255, 228, 225)
-        case Command.Status.FINISHED => new Color(234, 248, 255)
-        case Command.Status.FAILED => new Color(255, 193, 193)
-        case Command.Status.UNDEFINED => Color.red
+      Toplevel.command_status(state.status) match {
+        case Toplevel.Forked(i) if i > 0 => new Color(255, 228, 225)
+        case Toplevel.Finished => new Color(234, 248, 255)
+        case Toplevel.Failed => new Color(255, 193, 193)
+        case Toplevel.Unprocessed => new Color(255, 228, 225)
+        case _ => Color.red
       }
   }
 

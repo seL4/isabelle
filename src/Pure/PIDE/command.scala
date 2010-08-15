@@ -14,14 +14,6 @@ import scala.collection.mutable
 
 object Command
 {
-  object Status extends Enumeration
-  {
-    val UNPROCESSED = Value("UNPROCESSED")
-    val FINISHED = Value("FINISHED")
-    val FAILED = Value("FAILED")
-    val UNDEFINED = Value("UNDEFINED")
-  }
-
   case class HighlightInfo(kind: String, sub_kind: Option[String]) {
     override def toString = kind
   }
@@ -35,8 +27,7 @@ object Command
 
   case class State(
     val command: Command,
-    val status: Command.Status.Value,
-    val forks: Int,
+    val status: List[Markup],
     val reverse_results: List[XML.Tree],
     val markup: Markup_Text)
   {
@@ -90,15 +81,7 @@ object Command
     def accumulate(message: XML.Tree): Command.State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), elems) =>
-          (this /: elems)((state, elem) =>
-            elem match {
-              case XML.Elem(Markup(Markup.UNPROCESSED, _), _) => state.copy(status = Command.Status.UNPROCESSED)
-              case XML.Elem(Markup(Markup.FINISHED, _), _) => state.copy(status = Command.Status.FINISHED)
-              case XML.Elem(Markup(Markup.FAILED, _), _) => state.copy(status = Command.Status.FAILED)
-              case XML.Elem(Markup(Markup.FORKED, _), _) => state.copy(forks = state.forks + 1)
-              case XML.Elem(Markup(Markup.JOINED, _), _) => state.copy(forks = state.forks - 1)
-              case _ => System.err.println("Ignored status message: " + elem); state
-            })
+          copy(status = (for (XML.Elem(markup, _) <- elems) yield markup) ::: status)
 
         case XML.Elem(Markup(Markup.REPORT, _), elems) =>
           (this /: elems)((state, elem) =>
@@ -184,6 +167,5 @@ class Command(
 
   /* accumulated results */
 
-  val empty_state: Command.State =
-    Command.State(this, Command.Status.UNPROCESSED, 0, Nil, new Markup_Text(Nil, source))
+  val empty_state: Command.State = Command.State(this, Nil, Nil, new Markup_Text(Nil, source))
 }
