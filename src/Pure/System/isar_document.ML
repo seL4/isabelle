@@ -7,26 +7,12 @@ Protocol commands for interactive Isar documents.
 structure Isar_Document: sig end =
 struct
 
-(* global document state *)
-
-local val global_state = Unsynchronized.ref Document.init_state in
-
-fun change_state f =
-  NAMED_CRITICAL "Isar_Document" (fn () => Unsynchronized.change global_state f);
-
-fun current_state () = ! global_state;
-
-end;
-
-
-(* define command *)
+val global_state = Synchronized.var "Isar_Document" Document.init_state;
+val change_state = Synchronized.change global_state;
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.define_command"
     (fn [id, text] => change_state (Document.define_command (Document.parse_id id) text));
-
-
-(* edit document version *)
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.edit_version"
