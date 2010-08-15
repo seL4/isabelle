@@ -290,56 +290,26 @@ class Session(system: Isabelle_System)
 
   private val editor_history = new Actor
   {
-    @volatile private var history = List(Document.Change.init)
+    @volatile private var history = Document.History.init
 
     def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
-    {
-      val state_snapshot = current_state()
-      val history_snapshot = history
-
-      val found_stable = history_snapshot.find(change =>
-        change.is_finished && state_snapshot.is_assigned(change.current.join))
-      require(found_stable.isDefined)
-      val stable = found_stable.get
-      val latest = history_snapshot.head
-
-      val edits =
-        (pending_edits /: history_snapshot.takeWhile(_ != stable))((edits, change) =>
-            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
-      lazy val reverse_edits = edits.reverse
-
-      new Document.Snapshot {
-        val version = stable.current.join
-        val node = version.nodes(name)
-        val is_outdated = !(pending_edits.isEmpty && latest == stable)
-        def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-        def lookup_command(id: Document.Command_ID): Option[Command] =
-          state_snapshot.lookup_command(id)
-        def state(command: Command): Command.State =
-          try { state_snapshot.command_state(version, command) }
-          catch { case _: Document.State.Fail => command.empty_state }
-      }
-    }
+      history.snapshot(name, pending_edits, current_state())
 
     def act
     {
       loop {
         react {
           case Edit_Version(edits) =>
-            val history_snapshot = history
-            require(!history_snapshot.isEmpty)
-
-            val prev = history_snapshot.head.current
+            val prev = history.tip.current
             val result =
               isabelle.Future.fork {
                 val previous = prev.join
                 val former_assignment = current_state().the_assignment(previous).join  // FIXME async!?
                 Thy_Syntax.text_edits(Session.this, previous, edits)
               }
-            val new_change = new Document.Change(prev, edits, result)
-            history ::= new_change
-            new_change.current.map(_ => session_actor ! new_change)
+            val change = new Document.Change(prev, edits, result)
+            history += change
+            change.current.map(_ => session_actor ! change)
             reply(())
 
           case bad => System.err.println("editor_model: ignoring bad message " + bad)

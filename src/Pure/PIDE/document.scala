@@ -30,12 +30,21 @@ object Document
 
 
 
-  /** named document nodes **/
+  /** document structure **/
+
+  /* named nodes -- development graph */
+
+  type Node_Text_Edit = (String, List[Text_Edit])  // FIXME None: remove
+
+  type Edit[C] =
+   (String,  // node name
+    Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
 
   object Node
   {
     val empty: Node = new Node(Linear_Set())
 
+    // FIXME not scalable
     def command_starts(commands: Iterator[Command], offset: Int = 0): Iterator[(Command, Int)] =
     {
       var i = offset
@@ -49,8 +58,6 @@ object Document
 
   class Node(val commands: Linear_Set[Command])
   {
-    /* command ranges */
-
     def command_starts: Iterator[(Command, Int)] =
       Node.command_starts(commands.iterator)
 
@@ -78,7 +85,10 @@ object Document
   }
 
 
-  /* document versions */
+
+  /** versioning **/
+
+  /* particular document versions */
 
   object Version
   {
@@ -88,25 +98,7 @@ object Document
   class Version(val id: Version_ID, val nodes: Map[String, Node])
 
 
-
-  /** changes of plain text, eventually resulting in document edits **/
-
-  type Node_Text_Edit = (String, List[Text_Edit])  // FIXME None: remove
-
-  type Edit[C] =
-   (String,  // node name
-    Option[List[(Option[C], Option[C])]])  // None: remove, Some: insert/remove commands
-
-  abstract class Snapshot
-  {
-    val version: Version
-    val node: Node
-    val is_outdated: Boolean
-    def convert(offset: Int): Int
-    def revert(offset: Int): Int
-    def lookup_command(id: Command_ID): Option[Command]
-    def state(command: Command): Command.State
-  }
+  /* changes of plain text, eventually resulting in document edits */
 
   object Change
   {
@@ -120,6 +112,61 @@ object Document
   {
     val current: Future[Version] = result.map(_._2)
     def is_finished: Boolean = previous.is_finished && current.is_finished
+  }
+
+
+  /* history navigation and persistent snapshots */
+
+  abstract class Snapshot
+  {
+    val version: Version
+    val node: Node
+    val is_outdated: Boolean
+    def convert(offset: Int): Int
+    def revert(offset: Int): Int
+    def lookup_command(id: Command_ID): Option[Command]
+    def state(command: Command): Command.State
+  }
+
+  object History
+  {
+    val init = new History(List(Change.init))
+  }
+
+  // FIXME pruning, purging of state
+  class History(undo_list: List[Change])
+  {
+    require(!undo_list.isEmpty)
+
+    def tip: Change = undo_list.head
+    def +(ch: Change): History = new History(ch :: undo_list)
+
+    def snapshot(name: String, pending_edits: List[Text_Edit], state_snapshot: State): Snapshot =
+    {
+      val found_stable = undo_list.find(change =>
+        change.is_finished && state_snapshot.is_assigned(change.current.join))
+      require(found_stable.isDefined)
+      val stable = found_stable.get
+      val latest = undo_list.head
+
+      val edits =
+        (pending_edits /: undo_list.takeWhile(_ != stable))((edits, change) =>
+            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+      lazy val reverse_edits = edits.reverse
+
+      new Snapshot
+      {
+        val version = stable.current.join
+        val node = version.nodes(name)
+        val is_outdated = !(pending_edits.isEmpty && latest == stable)
+        def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+        def lookup_command(id: Command_ID): Option[Command] = state_snapshot.lookup_command(id)
+        def state(command: Command): Command.State =
+          try { state_snapshot.command_state(version, command) }
+          catch { case _: State.Fail => command.empty_state }
+      }
+    }
   }
 
 
