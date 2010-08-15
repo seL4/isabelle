@@ -41,7 +41,7 @@ declare -a SOURCES=(
   PIDE/document.scala
   PIDE/event_bus.scala
   PIDE/markup_node.scala
-  PIDE/text_edit.scala
+  PIDE/text.scala
   System/cygwin.scala
   System/download.scala
   System/gui_setup.scala

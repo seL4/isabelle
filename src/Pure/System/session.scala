@@ -292,7 +292,7 @@ class Session(system: Isabelle_System)
   {
     @volatile private var history = Document.History.init
 
-    def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
+    def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
       history.snapshot(name, pending_edits, current_state())
 
     def act
@@ -328,7 +328,7 @@ class Session(system: Isabelle_System)
 
   def stop() { session_actor ! Stop }
 
-  def snapshot(name: String, pending_edits: List[Text_Edit]): Document.Snapshot =
+  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
     editor_history.snapshot(name, pending_edits)
 
   def edit_version(edits: List[Document.Node_Text_Edit]) { editor_history !? Edit_Version(edits) }

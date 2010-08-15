@@ -43,7 +43,7 @@ object Thy_Syntax
   {
     /* phase 1: edit individual command source */
 
-    @tailrec def edit_text(eds: List[Text_Edit], commands: Linear_Set[Command])
+    @tailrec def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command])
         : Linear_Set[Command] =
     {
       eds match {

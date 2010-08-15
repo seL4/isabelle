@@ -34,7 +34,7 @@ object Document
 
   /* named nodes -- development graph */
 
-  type Node_Text_Edit = (String, List[Text_Edit])  // FIXME None: remove
+  type Node_Text_Edit = (String, List[Text.Edit])  // FIXME None: remove
 
   type Edit[C] =
    (String,  // node name
@@ -141,7 +141,7 @@ object Document
     def tip: Change = undo_list.head
     def +(ch: Change): History = new History(ch :: undo_list)
 
-    def snapshot(name: String, pending_edits: List[Text_Edit], state_snapshot: State): Snapshot =
+    def snapshot(name: String, pending_edits: List[Text.Edit], state_snapshot: State): Snapshot =
     {
       val found_stable = undo_list.find(change =>
         change.is_finished && state_snapshot.is_assigned(change.current.join))
