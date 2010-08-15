@@ -40,7 +40,7 @@ class Session(system: Isabelle_System)
   /* pervasive event buses */
 
   val global_settings = new Event_Bus[Session.Global_Settings.type]
-  val raw_results = new Event_Bus[Isabelle_Process.Result]
+  val raw_protocol = new Event_Bus[Isabelle_Process.Result]
   val raw_output = new Event_Bus[Isabelle_Process.Result]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val perspective = new Event_Bus[Session.Perspective.type]
@@ -129,7 +129,7 @@ class Session(system: Isabelle_System)
     def handle_result(result: Isabelle_Process.Result)
     //{{{
     {
-      raw_results.event(result)
+      raw_protocol.event(result)
 
       Position.get_id(result.properties) match {
         case Some(state_id) =>
