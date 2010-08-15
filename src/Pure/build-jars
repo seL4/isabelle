@@ -39,11 +39,11 @@ declare -a SOURCES=(
   Isar/token.scala
   PIDE/command.scala
   PIDE/document.scala
-  PIDE/event_bus.scala
   PIDE/markup_node.scala
   PIDE/text.scala
   System/cygwin.scala
   System/download.scala
+  System/event_bus.scala
   System/gui_setup.scala
   System/isabelle_process.scala
   System/isabelle_syntax.scala
