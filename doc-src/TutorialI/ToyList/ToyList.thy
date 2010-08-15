@@ -124,7 +124,8 @@ variables in them, executing functions symbolically: *}
 
 value "rev (a # b # c # [])"
 
-text{*
+text{*\noindent yields @{term"c # b # a # []"}.
+
 \section{An Introductory Proof}
 \label{sec:intro-proof}
 
