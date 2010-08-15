@@ -105,6 +105,8 @@ dropped, unless the identifier happens to be a keyword, for example
 When Isabelle prints a syntax error message, it refers to the HOL syntax as
 the \textbf{inner syntax} and the enclosing theory language as the \textbf{outer syntax}.
 
+Comments\index{comment} must be in enclosed in \texttt{(* }and\texttt{ *)}.
+
 \section{Evaluation}
 \index{evaluation}
 
@@ -120,17 +122,7 @@ text{* \noindent yields the correct result @{term"False # True # []"}.
 But we can go beyond mere functional programming and evaluate terms with
 variables in them, executing functions symbolically: *}
 
-normal_form "rev (a # b # c # [])"
-
-text{*\noindent yields @{term"c # b # a # []"}.
-Command \commdx{normal\protect\_form} works for arbitrary terms
-but can be slower than command \commdx{value},
-which is restricted to variable-free terms and executable functions.
-To appreciate the subtleties of evaluating terms with variables,
-try this one:
-*}
-
-normal_form "rev (a # b # c # xs)"
+value "rev (a # b # c # [])"
 
 text{*
 \section{An Introductory Proof}
