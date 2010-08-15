@@ -12,7 +12,7 @@ sig
   type command_id = id
   type exec_id = id
   val no_id: id
-  val create_id: unit -> id
+  val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
   type edit = string * ((command_id * command_id option) list) option
@@ -38,7 +38,7 @@ val no_id = 0;
 local
   val id_count = Synchronized.var "id" 0;
 in
-  fun create_id () =
+  fun new_id () =
     Synchronized.change_result id_count
       (fn i =>
         let val i' = i + 1
@@ -243,7 +243,7 @@ fun is_changed node' (id, {next = _, exec}) =
 fun new_exec name (id: command_id) (exec_id, updates, state) =
   let
     val exec = the_exec state exec_id;
-    val exec_id' = create_id ();
+    val exec_id' = new_id ();
     val tr = Toplevel.put_id (print_id exec_id') (the_command state id);
     val exec' =
       Lazy.lazy (fn () =>

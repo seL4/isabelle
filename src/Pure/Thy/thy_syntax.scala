@@ -96,7 +96,7 @@ object Thy_Syntax
               (Some(last), spans1.take(spans1.length - 1))
             else (commands.next(last), spans1)
 
-          val inserted = spans2.map(span => new Command(session.create_id(), span))
+          val inserted = spans2.map(span => new Command(session.new_id(), span))
           val new_commands =
             commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
           recover_spans(new_commands)
@@ -127,7 +127,7 @@ object Thy_Syntax
         doc_edits += (name -> Some(cmd_edits))
         nodes += (name -> new Document.Node(commands2))
       }
-      (doc_edits.toList, new Document.Version(session.create_id(), nodes))
+      (doc_edits.toList, new Document.Version(session.new_id(), nodes))
     }
   }
 }

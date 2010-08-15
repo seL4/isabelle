@@ -49,7 +49,7 @@ class Session(system: Isabelle_System)
   /* unique ids */
 
   private var id_count: Document.ID = 0
-  def create_id(): Document.ID = synchronized {
+  def new_id(): Document.ID = synchronized {
     require(id_count > java.lang.Long.MIN_VALUE)
     id_count -= 1
     id_count
