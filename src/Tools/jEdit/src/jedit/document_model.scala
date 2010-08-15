@@ -203,7 +203,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     def snapshot(): List[Text_Edit] = pending.toList
 
     private val delay_flush = Swing_Thread.delay_last(session.input_delay) {
-      if (!pending.isEmpty) session.edit_document(List((thy_name, flush())))
+      if (!pending.isEmpty) session.edit_version(List((thy_name, flush())))
     }
 
     def flush(): List[Text_Edit] =
@@ -225,7 +225,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   /* snapshot */
 
-  def snapshot(): Document.Snapshot = {
+  def snapshot(): Document.Snapshot =
+  {
     Swing_Thread.require()
     session.snapshot(thy_name, pending_edits.snapshot())
   }

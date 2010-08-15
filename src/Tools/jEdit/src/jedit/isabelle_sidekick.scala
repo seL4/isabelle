@@ -95,9 +95,9 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
     import Isabelle_Sidekick.int_to_pos
 
     val root = data.root
-    val doc = Swing_Thread.now { model.snapshot().node }  // FIXME cover all nodes (!??)
+    val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for {
-      (command, command_start) <- doc.command_range(0)
+      (command, command_start) <- snapshot.node.command_range(0)
       if command.is_command && !stopped
     }
     {
@@ -113,8 +113,7 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
           override def getStart: Position = command_start
           override def setEnd(end: Position) = ()
           override def getEnd: Position = command_start + command.length
-          override def toString = name
-        })
+          override def toString = name})
       root.add(node)
     }
   }

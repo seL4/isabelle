@@ -46,9 +46,9 @@ trait Isar_Document extends Isabelle_Process
     input("Isar_Document.define_command", Document.ID(id), text)
 
 
-  /* documents */
+  /* document versions */
 
-  def edit_document(old_id: Document.Version_ID, new_id: Document.Version_ID,
+  def edit_version(old_id: Document.Version_ID, new_id: Document.Version_ID,
       edits: List[Document.Edit[Document.Command_ID]])
   {
     def make_id1(id1: Option[Document.Command_ID]): XML.Body =
@@ -60,7 +60,7 @@ trait Isar_Document extends Isabelle_Process
           XML_Data.make_option(XML_Data.make_list(
               XML_Data.make_pair(make_id1)(XML_Data.make_option(XML_Data.make_long))))))(edits)
 
-    input("Isar_Document.edit_document",
+    input("Isar_Document.edit_version",
       Document.ID(old_id), Document.ID(new_id), YXML.string_of_body(arg))
   }
 }

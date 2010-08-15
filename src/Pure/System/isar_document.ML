@@ -27,11 +27,11 @@ fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ Document.print_id id);
 fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ Document.print_id id);
 
 
-(** documents **)
+(** document versions **)
 
 datatype entry = Entry of {next: Document.command_id option, exec: Document.exec_id option};
 type node = entry Inttab.table; (*unique command entries indexed by command_id, start with no_id*)
-type document = node Graph.T;   (*development graph via static imports*)
+type version = node Graph.T;   (*development graph via static imports*)
 
 
 (* command entries *)
@@ -97,8 +97,8 @@ fun delete_after (id: Document.command_id) (node: node) =
 
 val empty_node: node = Inttab.make [(Document.no_id, make_entry NONE (SOME Document.no_id))];
 
-fun the_node (document: document) name =
-  Graph.get_node document name handle Graph.UNDEF _ => empty_node;
+fun the_node (version: version) name =
+  Graph.get_node version name handle Graph.UNDEF _ => empty_node;
 
 fun edit_node (id, SOME id2) = insert_after id id2
   | edit_node (id, NONE) = delete_after id;
@@ -166,19 +166,19 @@ end;
 
 local
 
-val global_documents = Unsynchronized.ref (Inttab.make [(Document.no_id, Graph.empty: document)]);
+val global_versions = Unsynchronized.ref (Inttab.make [(Document.no_id, Graph.empty: version)]);
 
 in
 
-fun define_document (id: Document.version_id) document =
+fun define_version (id: Document.version_id) version =
   NAMED_CRITICAL "Isar" (fn () =>
-    Unsynchronized.change global_documents (Inttab.update_new (id, document))
-      handle Inttab.DUP dup => err_dup "document" dup);
+    Unsynchronized.change global_versions (Inttab.update_new (id, version))
+      handle Inttab.DUP dup => err_dup "version" dup);
 
-fun the_document (id: Document.version_id) =
-  (case Inttab.lookup (! global_documents) id of
-    NONE => err_undef "document" id
-  | SOME document => document);
+fun the_version (id: Document.version_id) =
+  (case Inttab.lookup (! global_versions) id of
+    NONE => err_undef "version" id
+  | SOME version => version);
 
 end;
 
@@ -197,20 +197,20 @@ fun force_exec NONE = ()
 
 in
 
-fun execute document =
+fun execute version =
   NAMED_CRITICAL "Isar" (fn () =>
     let
       val old_execution = ! execution;
       val _ = List.app Future.cancel old_execution;
       fun await_cancellation () = uninterruptible (K Future.join_results) old_execution;
       (* FIXME proper node deps *)
-      val new_execution = Graph.keys document |> map (fn name =>
+      val new_execution = Graph.keys version |> map (fn name =>
         Future.fork_pri 1 (fn () =>
           let
             val _ = await_cancellation ();
             val exec =
               fold_entries Document.no_id (fn (_, {exec, ...}) => fn () => force_exec exec)
-                (the_node document name);
+                (the_node version name);
           in exec () end));
     in execution := new_execution end);
 
@@ -249,11 +249,11 @@ in
 fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) edits =
   NAMED_CRITICAL "Isar" (fn () =>
     let
-      val old_document = the_document old_id;
-      val new_document = fold edit_nodes edits old_document;
+      val old_version = the_version old_id;
+      val new_version = fold edit_nodes edits old_version;
 
       fun update_node name node =
-        (case first_entry (is_changed (the_node old_document name)) node of
+        (case first_entry (is_changed (the_node old_version name)) node of
           NONE => ([], node)
         | SOME (prev, id, _) =>
             let
@@ -263,13 +263,13 @@ fun edit_document (old_id: Document.version_id) (new_id: Document.version_id) ed
             in (rev updates, node') end);
 
       (* FIXME proper node deps *)
-      val (updatess, new_document') =
-        (Graph.keys new_document, new_document)
+      val (updatess, new_version') =
+        (Graph.keys new_version, new_version)
           |-> fold_map (fn name => Graph.map_node_yield name (update_node name));
 
-      val _ = define_document new_id new_document';
+      val _ = define_version new_id new_version';
       val _ = updates_status new_id (flat updatess);
-      val _ = execute new_document';
+      val _ = execute new_version';
     in () end);
 
 end;
@@ -283,7 +283,7 @@ val _ =
     (fn [id, text] => define_command (Document.parse_id id) text);
 
 val _ =
-  Isabelle_Process.add_command "Isar_Document.edit_document"
+  Isabelle_Process.add_command "Isar_Document.edit_version"
     (fn [old_id, new_id, edits] =>
       edit_document (Document.parse_id old_id) (Document.parse_id new_id)
         (XML_Data.dest_list (XML_Data.dest_pair XML_Data.dest_string

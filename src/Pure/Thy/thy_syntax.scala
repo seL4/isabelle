@@ -38,8 +38,8 @@ object Thy_Syntax
 
   /** text edits **/
 
-  def text_edits(session: Session, old_doc: Document, edits: List[Document.Node_Text_Edit])
-      : (List[Document.Edit[Command]], Document) =
+  def text_edits(session: Session, previous: Document.Version,
+      edits: List[Document.Node_Text_Edit]): (List[Document.Edit[Command]], Document.Version) =
   {
     /* phase 1: edit individual command source */
 
@@ -110,7 +110,7 @@ object Thy_Syntax
 
     {
       val doc_edits = new mutable.ListBuffer[Document.Edit[Command]]
-      var nodes = old_doc.nodes
+      var nodes = previous.nodes
 
       for ((name, text_edits) <- edits) {
         val commands0 = nodes(name).commands
@@ -127,7 +127,7 @@ object Thy_Syntax
         doc_edits += (name -> Some(cmd_edits))
         nodes += (name -> new Document.Node(commands2))
       }
-      (doc_edits.toList, new Document(session.create_id(), nodes))
+      (doc_edits.toList, new Document.Version(session.create_id(), nodes))
     }
   }
 }

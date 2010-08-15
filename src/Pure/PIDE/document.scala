@@ -78,9 +78,14 @@ object Document
   }
 
 
-  /* initial document */
+  /* document versions */
 
-  val init: Document = new Document(NO_ID, Map().withDefaultValue(Node.empty))
+  object Version
+  {
+    val init: Version = new Version(NO_ID, Map().withDefaultValue(Node.empty))
+  }
+
+  class Version(val id: Version_ID, val nodes: Map[String, Node])
 
 
 
@@ -94,8 +99,8 @@ object Document
 
   abstract class Snapshot
   {
-    val document: Document
-    val node: Document.Node
+    val version: Version
+    val node: Node
     val is_outdated: Boolean
     def convert(offset: Int): Int
     def revert(offset: Int): Int
@@ -105,16 +110,16 @@ object Document
 
   object Change
   {
-    val init = new Change(Future.value(Document.init), Nil, Future.value(Nil, Document.init))
+    val init = new Change(Future.value(Version.init), Nil, Future.value(Nil, Version.init))
   }
 
   class Change(
-    val prev: Future[Document],
+    val previous: Future[Version],
     val edits: List[Node_Text_Edit],
-    val result: Future[(List[Edit[Command]], Document)])
+    val result: Future[(List[Edit[Command]], Version)])
   {
-    val document: Future[Document] = result.map(_._2)
-    def is_finished: Boolean = prev.is_finished && document.is_finished
+    val current: Future[Version] = result.map(_._2)
+    def is_finished: Boolean = previous.is_finished && current.is_finished
   }
 
 
@@ -125,7 +130,7 @@ object Document
   {
     class Fail(state: State) extends Exception
 
-    val init = State().define_document(Document.init, Map()).assign(Document.init.id, Nil)
+    val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)
 
     class Assignment(former_assignment: Map[Command, Exec_ID])
     {
@@ -142,20 +147,20 @@ object Document
   }
 
   case class State(
-    val documents: Map[Version_ID, Document] = Map(),
+    val versions: Map[Version_ID, Version] = Map(),
     val commands: Map[Command_ID, Command.State] = Map(),
-    val execs: Map[Exec_ID, (Command.State, Set[Document])] = Map(),
-    val assignments: Map[Document, State.Assignment] = Map(),
+    val execs: Map[Exec_ID, (Command.State, Set[Version])] = Map(),
+    val assignments: Map[Version, State.Assignment] = Map(),
     val disposed: Set[ID] = Set())  // FIXME unused!?
   {
     private def fail[A]: A = throw new State.Fail(this)
 
-    def define_document(document: Document, former_assignment: Map[Command, Exec_ID]): State =
+    def define_version(version: Version, former_assignment: Map[Command, Exec_ID]): State =
     {
-      val id = document.id
-      if (documents.isDefinedAt(id) || disposed(id)) fail
-      copy(documents = documents + (id -> document),
-        assignments = assignments + (document -> new State.Assignment(former_assignment)))
+      val id = version.id
+      if (versions.isDefinedAt(id) || disposed(id)) fail
+      copy(versions = versions + (id -> version),
+        assignments = assignments + (version -> new State.Assignment(former_assignment)))
     }
 
     def define_command(command: Command): State =
@@ -167,16 +172,16 @@ object Document
 
     def lookup_command(id: Command_ID): Option[Command] = commands.get(id).map(_.command)
 
-    def the_document(id: Version_ID): Document = documents.getOrElse(id, fail)
+    def the_version(id: Version_ID): Version = versions.getOrElse(id, fail)
     def the_command(id: Command_ID): Command.State = commands.getOrElse(id, fail)
     def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)._1
-    def the_assignment(document: Document): State.Assignment = assignments.getOrElse(document, fail)
+    def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version, fail)
 
     def accumulate(id: ID, message: XML.Tree): (Command.State, State) =
       execs.get(id) match {
-        case Some((st, docs)) =>
+        case Some((st, occs)) =>
           val new_st = st.accumulate(message)
-          (new_st, copy(execs = execs + (id -> (new_st, docs))))
+          (new_st, copy(execs = execs + (id -> (new_st, occs))))
         case None =>
           commands.get(id) match {
             case Some(st) =>
@@ -188,38 +193,33 @@ object Document
 
     def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): State =
     {
-      val doc = the_document(id)
-      val docs = Set(doc)  // FIXME unused (!?)
+      val version = the_version(id)
+      val occs = Set(version)  // FIXME unused (!?)
 
       var new_execs = execs
       val assigned_execs =
         for ((cmd_id, exec_id) <- edits) yield {
           val st = the_command(cmd_id)
           if (new_execs.isDefinedAt(exec_id) || disposed(exec_id)) fail
-          new_execs += (exec_id -> (st, docs))
+          new_execs += (exec_id -> (st, occs))
           (st.command, exec_id)
         }
-      the_assignment(doc).assign(assigned_execs)  // FIXME explicit value instead of promise (!?)
+      the_assignment(version).assign(assigned_execs)  // FIXME explicit value instead of promise (!?)
       copy(execs = new_execs)
     }
 
-    def is_assigned(document: Document): Boolean =
-      assignments.get(document) match {
+    def is_assigned(version: Version): Boolean =
+      assignments.get(version) match {
         case Some(assgn) => assgn.is_finished
         case None => false
       }
 
-    def command_state(document: Document, command: Command): Command.State =
+    def command_state(version: Version, command: Command): Command.State =
     {
-      val assgn = the_assignment(document)
+      val assgn = the_assignment(version)
       require(assgn.is_finished)
       the_exec_state(assgn.join.getOrElse(command, fail))
     }
   }
 }
-
-
-class Document(
-    val id: Document.Version_ID,
-    val nodes: Map[String, Document.Node])
 
