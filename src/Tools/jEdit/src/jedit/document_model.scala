@@ -186,7 +186,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   // simplify slightly odd result of TextArea.getLineEndOffset
   // NB: jEdit already normalizes \r\n and \r to \n
-  def visible_line_end(start: Int, end: Int): Int =
+  def visible_line_end(start: Text.Offset, end: Text.Offset): Text.Offset =
   {
     val end1 = end - 1
     if (start <= end1 && end1 < buffer.getLength &&
@@ -243,9 +243,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
-      start_line: Int, start: Int, num_lines: Int, removed_length: Int)
+      start_line: Int, offset: Int, num_lines: Int, removed_length: Int)
     {
-      pending_edits += Text.Edit.remove(start, buffer.getText(start, removed_length))
+      pending_edits += Text.Edit.remove(offset, buffer.getText(offset, removed_length))
     }
   }
 
@@ -272,7 +272,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         Document_View(text_area).get.set_styles()
       */
 
-      def handle_token(style: Byte, offset: Int, length: Int) =
+      def handle_token(style: Byte, offset: Text.Offset, length: Int) =
         handler.handleToken(line_segment, style, offset, length, context)
 
       var next_x = start
@@ -280,8 +280,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         (command, command_start) <-
           snapshot.node.command_range(snapshot.revert(start), snapshot.revert(stop))
         markup <- snapshot.state(command).highlight.flatten
-        val abs_start = snapshot.convert(command_start + markup.start)
-        val abs_stop = snapshot.convert(command_start + markup.stop)
+        val abs_start = snapshot.convert(command_start + markup.range.start)
+        val abs_stop = snapshot.convert(command_start + markup.range.stop)
         if (abs_stop > start)
         if (abs_start < stop)
         val token_start = (abs_start - start) max 0

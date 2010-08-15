@@ -152,12 +152,12 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
       val snapshot = model.snapshot()
 
-      val command_range: Iterable[(Command, Int)] =
+      val command_range: Iterable[(Command, Text.Offset)] =
       {
         val range = snapshot.node.command_range(snapshot.revert(start(0)))
         if (range.hasNext) {
           val (cmd0, start0) = range.next
-          new Iterable[(Command, Int)] {
+          new Iterable[(Command, Text.Offset)] {
             def iterator =
               Document.Node.command_starts(snapshot.node.commands.iterator(cmd0), start0)
           }

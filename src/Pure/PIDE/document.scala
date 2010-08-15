@@ -45,7 +45,8 @@ object Document
     val empty: Node = new Node(Linear_Set())
 
     // FIXME not scalable
-    def command_starts(commands: Iterator[Command], offset: Int = 0): Iterator[(Command, Int)] =
+    def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
+      : Iterator[(Command, Text.Offset)] =
     {
       var i = offset
       for (command <- commands) yield {
@@ -58,25 +59,25 @@ object Document
 
   class Node(val commands: Linear_Set[Command])
   {
-    def command_starts: Iterator[(Command, Int)] =
+    def command_starts: Iterator[(Command, Text.Offset)] =
       Node.command_starts(commands.iterator)
 
-    def command_start(cmd: Command): Option[Int] =
+    def command_start(cmd: Command): Option[Text.Offset] =
       command_starts.find(_._1 == cmd).map(_._2)
 
-    def command_range(i: Int): Iterator[(Command, Int)] =
+    def command_range(i: Text.Offset): Iterator[(Command, Text.Offset)] =
       command_starts dropWhile { case (cmd, start) => start + cmd.length <= i }
 
-    def command_range(i: Int, j: Int): Iterator[(Command, Int)] =
+    def command_range(i: Text.Offset, j: Text.Offset): Iterator[(Command, Text.Offset)] =
       command_range(i) takeWhile { case (_, start) => start < j }
 
-    def command_at(i: Int): Option[(Command, Int)] =
+    def command_at(i: Text.Offset): Option[(Command, Text.Offset)] =
     {
       val range = command_range(i)
       if (range.hasNext) Some(range.next) else None
     }
 
-    def proper_command_at(i: Int): Option[Command] =
+    def proper_command_at(i: Text.Offset): Option[Command] =
       command_at(i) match {
         case Some((command, _)) =>
           commands.reverse_iterator(command).find(cmd => !cmd.is_ignored)
@@ -122,8 +123,8 @@ object Document
     val version: Version
     val node: Node
     val is_outdated: Boolean
-    def convert(offset: Int): Int
-    def revert(offset: Int): Int
+    def convert(i: Text.Offset): Text.Offset
+    def revert(i: Text.Offset): Text.Offset
     def lookup_command(id: Command_ID): Option[Command]
     def state(command: Command): Command.State
   }
@@ -159,8 +160,10 @@ object Document
         val version = stable.current.join
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
-        def convert(offset: Int): Int = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Int): Int = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+
+        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+
         def lookup_command(id: Command_ID): Option[Command] = state_snapshot.lookup_command(id)
         def state(command: Command): Command.State =
           try { state_snapshot.command_state(version, command) }

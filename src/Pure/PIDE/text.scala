@@ -10,15 +10,22 @@ package isabelle
 
 object Text
 {
-  /* edits */
+  /* offset and range */
+
+  type Offset = Int
+
+  sealed case class Range(val start: Offset, val stop: Offset)
+
+
+  /* editing */
 
   object Edit
   {
-    def insert(start: Int, text: String): Edit = new Edit(true, start, text)
-    def remove(start: Int, text: String): Edit = new Edit(false, start, text)
+    def insert(start: Offset, text: String): Edit = new Edit(true, start, text)
+    def remove(start: Offset, text: String): Edit = new Edit(false, start, text)
   }
 
-  class Edit(val is_insert: Boolean, val start: Int, val text: String)
+  class Edit(val is_insert: Boolean, val start: Offset, val text: String)
   {
     override def toString =
       (if (is_insert) "Insert(" else "Remove(") + (start, text).toString + ")"
@@ -26,22 +33,22 @@ object Text
 
     /* transform offsets */
 
-    private def transform(do_insert: Boolean, offset: Int): Int =
-      if (offset < start) offset
-      else if (is_insert == do_insert) offset + text.length
-      else (offset - text.length) max start
+    private def transform(do_insert: Boolean, i: Offset): Offset =
+      if (i < start) i
+      else if (is_insert == do_insert) i + text.length
+      else (i - text.length) max start
 
-    def convert(offset: Int): Int = transform(true, offset)
-    def revert(offset: Int): Int = transform(false, offset)
+    def convert(i: Offset): Offset = transform(true, i)
+    def revert(i: Offset): Offset = transform(false, i)
 
 
     /* edit strings */
 
-    private def insert(index: Int, string: String): String =
-      string.substring(0, index) + text + string.substring(index)
+    private def insert(i: Offset, string: String): String =
+      string.substring(0, i) + text + string.substring(i)
 
-    private def remove(index: Int, count: Int, string: String): String =
-      string.substring(0, index) + string.substring(index + count)
+    private def remove(i: Offset, count: Int, string: String): String =
+      string.substring(0, i) + string.substring(i + count)
 
     def can_edit(string: String, shift: Int): Boolean =
       shift <= start && start < shift + string.length
@@ -50,12 +57,12 @@ object Text
       if (!can_edit(string, shift)) (Some(this), string)
       else if (is_insert) (None, insert(start - shift, string))
       else {
-        val index = start - shift
-        val count = text.length min (string.length - index)
+        val i = start - shift
+        val count = text.length min (string.length - i)
         val rest =
           if (count == text.length) None
           else Some(Edit.remove(start, text.substring(count)))
-        (rest, remove(index, count, string))
+        (rest, remove(i, count, string))
       }
   }
 }

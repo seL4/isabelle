@@ -64,12 +64,12 @@ object Command
         case Command.TypeInfo(_) => true
         case _ => false }).flatten
 
-    def type_at(pos: Int): Option[String] =
+    def type_at(pos: Text.Offset): Option[String] =
     {
-      types.find(t => t.start <= pos && pos < t.stop) match {
+      types.find(t => t.range.start <= pos && pos < t.range.stop) match {
         case Some(t) =>
           t.info match {
-            case Command.TypeInfo(ty) => Some(command.source(t.start, t.stop) + " : " + ty)
+            case Command.TypeInfo(ty) => Some(command.source(t.range) + " : " + ty)
             case _ => None
           }
         case None => None
@@ -81,8 +81,8 @@ object Command
         case Command.RefInfo(_, _, _, _) => true
         case _ => false }).flatten
 
-    def ref_at(pos: Int): Option[Markup_Node] =
-      refs.find(t => t.start <= pos && pos < t.stop)
+    def ref_at(pos: Text.Offset): Option[Markup_Node] =
+      refs.find(t => t.range.start <= pos && pos < t.range.stop)
 
 
     /* message dispatch */
@@ -166,7 +166,7 @@ class Command(
   /* source text */
 
   val source: String = span.map(_.source).mkString
-  def source(i: Int, j: Int): String = source.substring(i, j)
+  def source(range: Text.Range): String = source.substring(range.start, range.stop)
   def length: Int = source.length
 
   lazy val symbol_index = new Symbol.Index(source)
@@ -178,7 +178,7 @@ class Command(
   {
     val start = symbol_index.decode(begin)
     val stop = symbol_index.decode(end)
-    new Markup_Tree(new Markup_Node(start, stop, info), Nil)
+    new Markup_Tree(new Markup_Node(Text.Range(start, stop), info), Nil)
   }
 
 

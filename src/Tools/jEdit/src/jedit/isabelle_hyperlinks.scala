@@ -49,9 +49,9 @@ class Isabelle_Hyperlinks extends HyperlinkSource
           case Some((command, command_start)) =>
             snapshot.state(command).ref_at(offset - command_start) match {
               case Some(ref) =>
-                val begin = snapshot.convert(command_start + ref.start)
+                val begin = snapshot.convert(command_start + ref.range.start)
                 val line = buffer.getLineOfOffset(begin)
-                val end = snapshot.convert(command_start + ref.stop)
+                val end = snapshot.convert(command_start + ref.range.stop)
                 ref.info match {
                   case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
                     new External_Hyperlink(begin, end, line, ref_file, ref_line)
