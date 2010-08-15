@@ -159,10 +159,10 @@ end;
 (** global state -- document structure and execution process **)
 
 abstype state = State of
- {versions: version Inttab.table,                   (*version_id -> document content*)
-  commands: Toplevel.transition Inttab.table,       (*command_id -> transition function*)
-  execs: Toplevel.state option lazy Inttab.table,   (*exec_id -> execution process*)
-  execution: unit future list}                      (*global execution process*)
+ {versions: version Inttab.table,                     (*version_id -> document content*)
+  commands: Toplevel.transition future Inttab.table,  (*command_id -> transition (future parsing)*)
+  execs: Toplevel.state option lazy Inttab.table,     (*exec_id -> execution process*)
+  execution: unit future list}                        (*global execution process*)
 with
 
 fun make_state (versions, commands, execs, execution) =
@@ -173,7 +173,7 @@ fun map_state f (State {versions, commands, execs, execution}) =
 
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
-    Inttab.make [(no_id, Toplevel.empty)],
+    Inttab.make [(no_id, Future.value Toplevel.empty)],
     Inttab.make [(no_id, Lazy.value (SOME Toplevel.toplevel))],
     []);
 
@@ -198,11 +198,11 @@ fun define_command (id: command_id) text =
   map_state (fn (versions, commands, execs, execution) =>
     let
       val id_string = print_id id;
-      val tr =
+      val tr = Future.fork_pri 2 (fn () =>
         Position.setmp_thread_data (Position.id_only id_string)
-          (fn () => Outer_Syntax.prepare_command (Position.id id_string) text) ();
+          (fn () => Outer_Syntax.prepare_command (Position.id id_string) text) ());
       val commands' =
-        Inttab.update_new (id, Toplevel.put_id id_string tr) commands
+        Inttab.update_new (id, tr) commands
           handle Inttab.DUP dup => err_dup "command" dup;
     in (versions, commands', execs, execution) end);
 
@@ -210,6 +210,9 @@ fun the_command (State {commands, ...}) (id: command_id) =
   (case Inttab.lookup commands id of
     NONE => err_undef "command" id
   | SOME tr => tr);
+
+fun join_commands (State {commands, ...}) =
+  Inttab.fold (fn (_, tr) => fn () => ignore (Future.join_result tr)) commands ();
 
 
 (* command executions *)
@@ -244,12 +247,14 @@ fun new_exec name (id: command_id) (exec_id, updates, state) =
   let
     val exec = the_exec state exec_id;
     val exec_id' = new_id ();
-    val tr = Toplevel.put_id (print_id exec_id') (the_command state id);
+    val tr = the_command state id;
     val exec' =
       Lazy.lazy (fn () =>
         (case Lazy.force exec of
           NONE => NONE
-        | SOME st => Toplevel.run_command name tr st));
+        | SOME st =>
+            let val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join tr)
+            in Toplevel.run_command name exec_tr st end));
     val state' = define_exec exec_id' exec' state;
   in (exec_id', (id, exec_id') :: updates, state') end;
 
@@ -277,6 +282,8 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
     val (rev_updates, new_version', state') =
       fold update_node (node_names_of new_version) ([], new_version, state);
     val state'' = define_version new_id new_version' state';
+
+    val _ = join_commands state'';  (* FIXME async!? *)
   in (rev rev_updates, state'') end;
 
 end;
