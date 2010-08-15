@@ -280,8 +280,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         (command, command_start) <-
           snapshot.node.command_range(snapshot.revert(start), snapshot.revert(stop))
         markup <- snapshot.state(command).highlight.flatten
-        val abs_start = snapshot.convert(command_start + markup.range.start)
-        val abs_stop = snapshot.convert(command_start + markup.range.stop)
+        val Text.Range(abs_start, abs_stop) = snapshot.convert(markup.range + command_start)
         if (abs_stop > start)
         if (abs_start < stop)
         val token_start = (abs_start - start) max 0

@@ -66,7 +66,7 @@ object Command
 
     def type_at(pos: Text.Offset): Option[String] =
     {
-      types.find(t => t.range.start <= pos && pos < t.range.stop) match {
+      types.find(_.range.contains(pos)) match {
         case Some(t) =>
           t.info match {
             case Command.TypeInfo(ty) => Some(command.source(t.range) + " : " + ty)
@@ -82,7 +82,7 @@ object Command
         case _ => false }).flatten
 
     def ref_at(pos: Text.Offset): Option[Markup_Node] =
-      refs.find(t => t.range.start <= pos && pos < t.range.stop)
+      refs.find(_.range.contains(pos))
 
 
     /* message dispatch */

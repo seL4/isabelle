@@ -15,6 +15,11 @@ object Text
   type Offset = Int
 
   sealed case class Range(val start: Offset, val stop: Offset)
+  {
+    def contains(i: Offset): Boolean = start <= i && i < stop
+    def map(f: Offset => Offset): Range = Range(f(start), f(stop))
+    def +(i: Offset): Range = map(_ + i)
+  }
 
 
   /* editing */

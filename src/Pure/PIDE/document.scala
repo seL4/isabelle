@@ -123,10 +123,12 @@ object Document
     val version: Version
     val node: Node
     val is_outdated: Boolean
-    def convert(i: Text.Offset): Text.Offset
-    def revert(i: Text.Offset): Text.Offset
     def lookup_command(id: Command_ID): Option[Command]
     def state(command: Command): Command.State
+    def convert(i: Text.Offset): Text.Offset
+    def convert(range: Text.Range): Text.Range = range.map(convert(_))
+    def revert(i: Text.Offset): Text.Offset
+    def revert(range: Text.Range): Text.Range = range.map(revert(_))
   }
 
   object History
@@ -160,14 +162,13 @@ object Document
         val version = stable.current.join
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
-
-        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-
         def lookup_command(id: Command_ID): Option[Command] = state_snapshot.lookup_command(id)
         def state(command: Command): Command.State =
           try { state_snapshot.command_state(version, command) }
           catch { case _: State.Fail => command.empty_state }
+
+        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
       }
     }
   }
