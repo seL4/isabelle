@@ -2,7 +2,7 @@
     Author:     Makarius
 
 Document as collection of named nodes, each consisting of an editable
-list of commands.
+list of commands, associated with asynchronous execution process.
 */
 
 package isabelle
@@ -124,7 +124,7 @@ object Document
 
 
 
-  /** global state -- accumulated prover results **/
+  /** global state -- document structure and execution process **/
 
   object State
   {

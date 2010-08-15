@@ -236,9 +236,9 @@ use "Thy/present.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
 use "Thy/thy_syntax.ML";
-use "PIDE/document.ML";
 use "old_goals.ML";
 use "Isar/outer_syntax.ML";
+use "PIDE/document.ML";
 use "Thy/thy_info.ML";
 
 (*theory and proof operations*)

@@ -1,7 +1,7 @@
 /*  Title:      Pure/System/isar_document.scala
     Author:     Makarius
 
-Interactive Isar documents.
+Protocol commands for interactive Isar documents.
 */
 
 package isabelle
