@@ -206,27 +206,37 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 (* generic TPTP-based provers *)
 
-fun prover_fun name
+fun prover_fun atp_name
         {exec, required_execs, arguments, proof_delims, known_failures,
          max_new_relevant_facts_per_iter, prefers_theory_relevant,
          explicit_forall}
-        ({debug, overlord, full_types, explicit_apply, relevance_threshold,
-          relevance_convergence, theory_relevant, defs_relevant, isar_proof,
-          isar_shrink_factor, timeout, ...} : params)
+        ({debug, verbose, overlord, full_types, explicit_apply,
+          relevance_threshold, relevance_convergence, theory_relevant,
+          defs_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
         minimize_command
         ({subgoal, goal, relevance_override, axioms} : problem) =
   let
     val (ctxt, (_, th)) = goal;
     val thy = ProofContext.theory_of ctxt
     val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
+
+    fun print s = (priority s; if debug then tracing s else ())
+    fun print_v f = () |> verbose ? print o f
+    fun print_d f = () |> debug ? print o f
+
     val the_axioms =
       case axioms of
         SOME axioms => axioms
-      | NONE => relevant_facts full_types relevance_threshold
-                    relevance_convergence defs_relevant
-                    max_new_relevant_facts_per_iter
-                    (the_default prefers_theory_relevant theory_relevant)
-                    relevance_override goal hyp_ts concl_t
+      | NONE =>
+        (print_d (fn () => "Selecting relevant facts for " ^ quote atp_name ^
+                           ".");
+         relevant_facts full_types relevance_threshold relevance_convergence
+                        defs_relevant max_new_relevant_facts_per_iter
+                        (the_default prefers_theory_relevant theory_relevant)
+                        relevance_override goal hyp_ts concl_t
+         |> tap ((fn n => print_v (fn () =>
+                      "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^
+                      " for " ^ quote atp_name ^ ".")) o length))
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -235,7 +245,7 @@ fun prover_fun name
     fun prob_pathname nr =
       let
         val probfile =
-          Path.basic ((if overlord then "prob_" ^ name
+          Path.basic ((if overlord then "prob_" ^ atp_name
                        else the_problem_prefix ^ serial_string ())
                       ^ "_" ^ string_of_int nr)
       in
@@ -290,6 +300,8 @@ fun prover_fun name
                   extract_proof_and_outcome complete res_code proof_delims
                                             known_failures output
               in (output, msecs, proof, outcome) end
+            val _ = print_d (fn () => "Preparing problem for " ^
+                                      quote atp_name ^ "...")
             val readable_names = debug andalso overlord
             val (problem, pool, conjecture_offset, axiom_names) =
               prepare_problem ctxt readable_names explicit_forall full_types
@@ -298,6 +310,7 @@ fun prover_fun name
             val conjecture_shape =
               conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
               |> map single
+            val _ = print_d (fn () => "Running " ^ quote atp_name ^ "...")
             val result =
               do_run false
               |> (fn (_, msecs0, _, SOME _) =>
@@ -343,15 +356,16 @@ fun prover_fun name
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
 fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
-                        relevance_override minimize_command proof_state name =
+                        relevance_override minimize_command proof_state
+                        atp_name =
   let
     val thy = Proof.theory_of proof_state
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
-    val prover = get_prover_fun thy name
+    val prover = get_prover_fun thy atp_name
     val {context = ctxt, facts, goal} = Proof.goal proof_state;
     val desc =
-      "ATP " ^ quote name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
+      "ATP " ^ quote atp_name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
       Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
   in
     Async_Manager.launch das_Tool verbose birth_time death_time desc
@@ -361,7 +375,7 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
                 {subgoal = i, goal = (ctxt, (facts, goal)),
                  relevance_override = relevance_override, axioms = NONE}
             in
-              prover params (minimize_command name) problem |> #message
+              prover params (minimize_command atp_name) problem |> #message
               handle ERROR message => "Error: " ^ message ^ "\n"
                    | exn => "Internal error: \n" ^ ML_Compiler.exn_message exn ^
                             "\n"
