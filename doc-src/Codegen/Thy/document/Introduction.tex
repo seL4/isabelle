@@ -22,83 +22,44 @@
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{Code generation fundamental: shallow embedding%
-}
-\isamarkuptrue%
-%
-\isamarkupsubsection{A quick start with the \isa{Isabelle{\isacharslash}HOL} toolbox%
-}
-\isamarkuptrue%
-%
-\isamarkupsubsection{Type classes%
-}
-\isamarkuptrue%
-%
-\isamarkupsubsection{How to continue from here%
-}
-\isamarkuptrue%
-%
-\isamarkupsubsection{If something goes utterly wrong%
-}
-\isamarkuptrue%
-%
 \begin{isamarkuptext}%
-This tutorial introduces a generic code generator for the
-  \isa{Isabelle} system.
-  The
-  \qn{target language} for which code is
-  generated is not fixed, but may be one of several
-  functional programming languages (currently, the implementation
-  supports \isa{SML} \cite{SML}, \isa{OCaml} \cite{OCaml} and \isa{Haskell}
-  \cite{haskell-revised-report}).
+This tutorial introduces the code generator facilities of \isa{Isabelle{\isacharslash}HOL}.  It allows to turn (a certain class of) HOL
+  specifications into corresponding executable code in the programming
+  languages \isa{SML} \cite{SML}, \isa{OCaml} \cite{OCaml} and
+  \isa{Haskell} \cite{haskell-revised-report}.
 
-  Conceptually the code generator framework is part
-  of Isabelle's \hyperlink{theory.Pure}{\mbox{\isa{Pure}}} meta logic framework; the logic
-  \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \cite{isa-tutorial}, which is an extension of \hyperlink{theory.Pure}{\mbox{\isa{Pure}}},
-  already comes with a reasonable framework setup and thus provides
-  a good basis for creating code-generation-driven
-  applications.  So, we assume some familiarity and experience
-  with the ingredients of the \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} distribution theories.
-
-  The code generator aims to be usable with no further ado
-  in most cases, while allowing for detailed customisation.
-  This can be seen in the structure of this tutorial: after a short
-  conceptual introduction with an example (\secref{sec:intro}),
-  we discuss the generic customisation facilities (\secref{sec:program}).
-  A further section (\secref{sec:adaptation}) is dedicated to the matter of
-  \qn{adaptation} to specific target language environments.  After some
-  further issues (\secref{sec:further}) we conclude with an overview
-  of some ML programming interfaces (\secref{sec:ml}).
-
-  \begin{warn}
-    Ultimately, the code generator which this tutorial deals with
-    is supposed to replace the existing code generator
-    by Stefan Berghofer \cite{Berghofer-Nipkow:2002}.
-    So, for the moment, there are two distinct code generators
-    in Isabelle.  In case of ambiguity, we will refer to the framework
-    described here as \isa{generic\ code\ generator}, to the
-    other as \isa{SML\ code\ generator}.
-    Also note that while the framework itself is
-    object-logic independent, only \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} provides a reasonable
-    framework setup.    
-  \end{warn}%
+  To profit from this tutorial, some familiarity and experience with
+  \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \cite{isa-tutorial} and its basic theories is assumed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Code generation via shallow embedding \label{sec:intro}%
+\isamarkupsubsection{Code generation principle: shallow embedding \label{sec:principle}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The key concept for understanding \isa{Isabelle}'s code generation is
-  \emph{shallow embedding}, i.e.~logical entities like constants, types and
-  classes are identified with corresponding concepts in the target language.
+The key concept for understanding Isabelle's code generation is
+  \emph{shallow embedding}: logical entities like constants, types and
+  classes are identified with corresponding entities in the target
+  language.  In particular, the carrier of a generated program's
+  semantics are \emph{equational theorems} from the logic.  If we view
+  a generated program as an implementation of a higher-order rewrite
+  system, then every rewrite step performed by the program can be
+  simulated in the logic, which guarantees partial correctness
+  \cite{Haftmann-Nipkow:2010:code}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{A quick start with the Isabelle/HOL toolbox \label{sec:queue_example}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In a HOL theory, the \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatype}}}} and \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}/\hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}}/\hyperlink{command.fun}{\mbox{\isa{\isacommand{fun}}}} declarations form the
+  core of a functional programming language.  By default equational
+  theorems stemming from those are used for generated code, therefore
+  \qt{naive} code generation can proceed without further ado.
 
-  Inside \hyperlink{theory.HOL}{\mbox{\isa{HOL}}}, the \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatype}}}} and
-  \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}/\hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}}/\hyperlink{command.fun}{\mbox{\isa{\isacommand{fun}}}} declarations form
-  the core of a functional programming language.  The default code generator setup
-   transforms those into functional programs immediately.
-  This means that \qt{naive} code generation can proceed without further ado.
   For example, here a simple \qt{implementation} of amortised queues:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -124,13 +85,26 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \ \ \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}None{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ {\isacharparenleft}case\ rev\ xs\ of\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\ \ \ \ \ \ {\isacharparenleft}case\ rev\ xs\ of\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\ %
 \endisatagquote
 {\isafoldquote}%
 %
 \isadelimquote
 %
 \endisadelimquote
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isataginvisible
+%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
 %
 \begin{isamarkuptext}%
 \noindent Then we can generate code e.g.~for \isa{SML} as follows:%
@@ -207,15 +181,14 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent The \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command takes a space-separated list of
-  constants for which code shall be generated;  anything else needed for those
-  is added implicitly.  Then follows a target language identifier
-  (\isa{SML}, \isa{OCaml} or \isa{Haskell}) and a freely chosen module name.
-  A file name denotes the destination to store the generated code.  Note that
-  the semantics of the destination depends on the target language:  for
-  \isa{SML} and \isa{OCaml} it denotes a \emph{file}, for \isa{Haskell}
-  it denotes a \emph{directory} where a file named as the module name
-  (with extension \isa{{\isachardot}hs}) is written:%
+\noindent The \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command takes a space-separated
+  list of constants for which code shall be generated; anything else
+  needed for those is added implicitly.  Then follows a target
+  language identifier and a freely chosen module name.  A file name
+  denotes the destination to store the generated code.  Note that the
+  semantics of the destination depends on the target language: for
+  \isa{SML} and \isa{OCaml} it denotes a \emph{file}, for \isa{Haskell} it denotes a \emph{directory} where a file named as the
+  module name (with extension \isa{{\isachardot}hs}) is written:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -235,7 +208,7 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent This is the corresponding code in \isa{Haskell}:%
+\noindent This is the corresponding code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -278,97 +251,319 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent This demonstrates the basic usage of the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command;
-  for more details see \secref{sec:further}.%
+\noindent For more details about \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} see
+  \secref{sec:further}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{If something utterly fails%
+\isamarkupsubsection{Type classes%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Under certain circumstances, the code generator fails to produce
-  code entirely.  
-
-  \begin{description}
-
-    \ditem{generate only one module}
-
-    \ditem{check with a different target language}
-
-    \ditem{inspect code equations}
-
-    \ditem{inspect preprocessor setup}
-
-    \ditem{generate exceptions}
-
-    \ditem{remove offending code equations}
-
-  \end{description}%
+Code can also be generated from type classes in a Haskell-like
+  manner.  For illustration here an example from abstract algebra:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Code generator architecture \label{sec:concept}%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{class}\isamarkupfalse%
+\ semigroup\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ mult\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymotimes}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isasymotimes}\ z\ {\isacharequal}\ x\ {\isasymotimes}\ {\isacharparenleft}y\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{class}\isamarkupfalse%
+\ monoid\ {\isacharequal}\ semigroup\ {\isacharplus}\isanewline
+\ \ \isakeyword{fixes}\ neutral\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymone}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{instantiation}\isamarkupfalse%
+\ nat\ {\isacharcolon}{\isacharcolon}\ monoid\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\ mult{\isacharunderscore}nat\ \isakeyword{where}\isanewline
+\ \ \ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymotimes}\ n\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}Suc\ m\ {\isasymotimes}\ n\ {\isacharequal}\ n\ {\isacharplus}\ m\ {\isasymotimes}\ n{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ neutral{\isacharunderscore}nat\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharcolon}\isanewline
+\ \ \isakeyword{fixes}\ n\ m\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isacharplus}\ m{\isacharparenright}\ {\isasymotimes}\ q\ {\isacharequal}\ n\ {\isasymotimes}\ q\ {\isacharplus}\ m\ {\isasymotimes}\ q{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ n{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
+\isanewline
+\isacommand{instance}\isamarkupfalse%
+\ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ m\ n\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isasymotimes}\ q\ {\isacharequal}\ m\ {\isasymotimes}\ {\isacharparenleft}n\ {\isasymotimes}\ q{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ m{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharparenright}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}m\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}induct\ m{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent We define the natural operation of the natural numbers
+  on monoids:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{primrec}\isamarkupfalse%
+\ {\isacharparenleft}\isakeyword{in}\ monoid{\isacharparenright}\ pow\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ {\isachardoublequoteopen}pow\ {\isadigit{0}}\ a\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}pow\ {\isacharparenleft}Suc\ n{\isacharparenright}\ a\ {\isacharequal}\ a\ {\isasymotimes}\ pow\ n\ a{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This we use to define the discrete exponentiation
+  function:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{definition}\isamarkupfalse%
+\ bexp\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}bexp\ n\ {\isacharequal}\ pow\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent The corresponding code in Haskell uses that language's
+  native classes:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}module Example where {\char123}\\
+\hspace*{0pt}\\
+\hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}plus{\char95}nat ::~Nat -> Nat -> Nat;\\
+\hspace*{0pt}plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n);\\
+\hspace*{0pt}plus{\char95}nat Zero{\char95}nat n = n;\\
+\hspace*{0pt}\\
+\hspace*{0pt}class Semigroup a where {\char123}\\
+\hspace*{0pt} ~mult ::~a -> a -> a;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}class (Semigroup a) => Monoid a where {\char123}\\
+\hspace*{0pt} ~neutral ::~a;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}pow ::~forall a.~(Monoid a) => Nat -> a -> a;\\
+\hspace*{0pt}pow Zero{\char95}nat a = neutral;\\
+\hspace*{0pt}pow (Suc n) a = mult a (pow n a);\\
+\hspace*{0pt}\\
+\hspace*{0pt}mult{\char95}nat ::~Nat -> Nat -> Nat;\\
+\hspace*{0pt}mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat;\\
+\hspace*{0pt}mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
+\hspace*{0pt}\\
+\hspace*{0pt}neutral{\char95}nat ::~Nat;\\
+\hspace*{0pt}neutral{\char95}nat = Suc Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Semigroup Nat where {\char123}\\
+\hspace*{0pt} ~mult = mult{\char95}nat;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Monoid Nat where {\char123}\\
+\hspace*{0pt} ~neutral = neutral{\char95}nat;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}bexp ::~Nat -> Nat;\\
+\hspace*{0pt}bexp n = pow n (Suc (Suc Zero{\char95}nat));\\
+\hspace*{0pt}\\
+\hspace*{0pt}{\char125}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This is a convenient place to show how explicit dictionary
+  construction manifests in generated code -- the same example in
+  \isa{SML}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}structure Example :~sig\\
+\hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
+\hspace*{0pt} ~val plus{\char95}nat :~nat -> nat -> nat\\
+\hspace*{0pt} ~type 'a semigroup\\
+\hspace*{0pt} ~val mult :~'a semigroup -> 'a -> 'a -> 'a\\
+\hspace*{0pt} ~type 'a monoid\\
+\hspace*{0pt} ~val semigroup{\char95}monoid :~'a monoid -> 'a semigroup\\
+\hspace*{0pt} ~val neutral :~'a monoid -> 'a\\
+\hspace*{0pt} ~val pow :~'a monoid -> nat -> 'a -> 'a\\
+\hspace*{0pt} ~val mult{\char95}nat :~nat -> nat -> nat\\
+\hspace*{0pt} ~val neutral{\char95}nat :~nat\\
+\hspace*{0pt} ~val semigroup{\char95}nat :~nat semigroup\\
+\hspace*{0pt} ~val monoid{\char95}nat :~nat monoid\\
+\hspace*{0pt} ~val bexp :~nat -> nat\\
+\hspace*{0pt}end = struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
+\hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
+\hspace*{0pt}val mult = {\char35}mult :~'a semigroup -> 'a -> 'a -> 'a;\\
+\hspace*{0pt}\\
+\hspace*{0pt}type 'a monoid = {\char123}semigroup{\char95}monoid :~'a semigroup,~neutral :~'a{\char125};\\
+\hspace*{0pt}val semigroup{\char95}monoid = {\char35}semigroup{\char95}monoid :~'a monoid -> 'a semigroup;\\
+\hspace*{0pt}val neutral = {\char35}neutral :~'a monoid -> 'a;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun pow A{\char95}~Zero{\char95}nat a = neutral A{\char95}\\
+\hspace*{0pt} ~| pow A{\char95}~(Suc n) a = mult (semigroup{\char95}monoid A{\char95}) a (pow A{\char95}~n a);\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat\\
+\hspace*{0pt} ~| mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
+\hspace*{0pt}\\
+\hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val semigroup{\char95}nat = {\char123}mult = mult{\char95}nat{\char125}~:~nat semigroup;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val monoid{\char95}nat = {\char123}semigroup{\char95}monoid = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}\\
+\hspace*{0pt} ~:~nat monoid;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun bexp n = pow monoid{\char95}nat n (Suc (Suc Zero{\char95}nat));\\
+\hspace*{0pt}\\
+\hspace*{0pt}end;~(*struct Example*)%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Note the parameters with trailing underscore (\verb|A_|), which are the dictionary parameters.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{How to continue from here%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-What you have seen so far should be already enough in a lot of cases.  If you
-  are content with this, you can quit reading here.  Anyway, in order to customise
-  and adapt the code generator, it is necessary to gain some understanding
-  how it works.
+What you have seen so far should be already enough in a lot of
+  cases.  If you are content with this, you can quit reading here.
 
-  \begin{figure}[h]
-    \includegraphics{architecture}
-    \caption{Code generator architecture}
-    \label{fig:arch}
-  \end{figure}
-
-  The code generator employs a notion of executability
-  for three foundational executable ingredients known
-  from functional programming:
-  \emph{code equations}, \emph{datatypes}, and
-  \emph{type classes}.  A code equation as a first approximation
-  is a theorem of the form \isa{f\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n\ {\isasymequiv}\ t}
-  (an equation headed by a constant \isa{f} with arguments
-  \isa{t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n} and right hand side \isa{t}).
-  Code generation aims to turn code equations
-  into a functional program.  This is achieved by three major
-  components which operate sequentially, i.e. the result of one is
-  the input
-  of the next in the chain,  see figure \ref{fig:arch}:
+  Anyway, to understand situations where problems occur or to increase
+  the scope of code generation beyond default, it is necessary to gain
+  some understanding how the code generator actually works:
 
   \begin{itemize}
 
-    \item The starting point is a collection of raw code equations in a
-      theory. It is not relevant where they
-      stem from, but typically they were either produced by specification
-      tools or proved explicitly by the user.
-      
-    \item These raw code equations can be subjected to theorem transformations.  This
-      \qn{preprocessor} can apply the full
-      expressiveness of ML-based theorem transformations to code
-      generation.  The result of preprocessing is a
-      structured collection of code equations.
+    \item The foundations of the code generator are described in
+      \secref{sec:foundations}.
 
-    \item These code equations are \qn{translated} to a program in an
-      abstract intermediate language.  Think of it as a kind
-      of \qt{Mini-Haskell} with four \qn{statements}: \isa{data}
-      (for datatypes), \isa{fun} (stemming from code equations),
-      also \isa{class} and \isa{inst} (for type classes).
+    \item In particular \secref{sec:utterly_wrong} gives hints how to
+      debug situations where code generation does not succeed as
+      expected.
 
-    \item Finally, the abstract program is \qn{serialised} into concrete
-      source code of a target language.
-      This step only produces concrete syntax but does not change the
-      program in essence; all conceptual transformations occur in the
-      translation step.
+    \item The scope and quality of generated code can be increased
+      dramatically by applying refinement techniques, which are
+      introduced in \secref{sec:refinement}.
+
+    \item Inductive predicates can be turned executable using an
+      extension of the code generator \secref{sec:inductive}.
+
+    \item You may want to skim over the more technical sections
+      \secref{sec:adaptation} and \secref{sec:further}.
+
+    \item For exhaustive syntax diagrams etc. you should visit the
+      Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}.
 
   \end{itemize}
 
-  \noindent From these steps, only the two last are carried out outside the logic;  by
-  keeping this layer as thin as possible, the amount of code to trust is
-  kept to a minimum.%
+  \bigskip
+
+  \begin{center}\fbox{\fbox{\begin{minipage}{8cm}
+
+    \begin{center}\textit{Happy proving, happy hacking!}\end{center}
+
+  \end{minipage}}}\end{center}
+
+  \begin{warn}
+    There is also a more ancient code generator in Isabelle by Stefan
+    Berghofer \cite{Berghofer-Nipkow:2002}.  Although its
+    functionality is covered by the code generator presented here, it
+    will sometimes show up as an artifact.  In case of ambiguity, we
+    will refer to the framework described here as \isa{generic\ code\ generator}, to the other as \isa{SML\ code\ generator}.
+  \end{warn}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

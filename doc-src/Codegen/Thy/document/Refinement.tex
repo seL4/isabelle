@@ -22,6 +22,227 @@
 }
 \isamarkuptrue%
 %
+\isamarkupsubsection{Datatypes \label{sec:datatypes}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Conceptually, any datatype is spanned by a set of
+  \emph{constructors} of type \isa{{\isasymtau}\ {\isacharequal}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymkappa}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymdots}\ {\isasymalpha}\isactrlisub n} where \isa{{\isacharbraceleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub n{\isacharbraceright}} is exactly the set of \emph{all} type variables in
+  \isa{{\isasymtau}}.  The HOL datatype package by default registers any new
+  datatype in the table of datatypes, which may be inspected using the
+  \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command.
+
+  In some cases, it is appropriate to alter or extend this table.  As
+  an example, we will develop an alternative representation of the
+  queue example given in \secref{sec:queue_example}.  The amortised
+  representation is convenient for generating code but exposes its
+  \qt{implementation} details, which may be cumbersome when proving
+  theorems about it.  Therefore, here is a simple, straightforward
+  representation of queues:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{datatype}\isamarkupfalse%
+\ {\isacharprime}a\ queue\ {\isacharequal}\ Queue\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ empty\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}empty\ {\isacharequal}\ Queue\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\ enqueue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}enqueue\ x\ {\isacharparenleft}Queue\ xs{\isacharparenright}\ {\isacharequal}\ Queue\ {\isacharparenleft}xs\ {\isacharat}\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{fun}\isamarkupfalse%
+\ dequeue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ option\ {\isasymtimes}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}None{\isacharcomma}\ Queue\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Some\ x{\isacharcomma}\ Queue\ xs{\isacharparenright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This we can use directly for proving;  for executing,
+  we provide an alternative characterisation:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{definition}\isamarkupfalse%
+\ AQueue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}AQueue\ xs\ ys\ {\isacharequal}\ Queue\ {\isacharparenleft}ys\ {\isacharat}\ rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
+\ AQueue%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Here we define a \qt{constructor} \isa{AQueue} which
+  is defined in terms of \isa{Queue} and interprets its arguments
+  according to what the \emph{content} of an amortised queue is supposed
+  to be.  Equipped with this, we are able to prove the following equations
+  for our primitive queue operations which \qt{implement} the simple
+  queues in an amortised fashion:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ empty{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}empty\ {\isacharequal}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{unfolding}\isamarkupfalse%
+\ AQueue{\isacharunderscore}def\ empty{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ enqueue{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}enqueue\ x\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ ys{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{unfolding}\isamarkupfalse%
+\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ dequeue{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{unfolding}\isamarkupfalse%
+\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ simp{\isacharunderscore}all%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent For completeness, we provide a substitute for the
+  \isa{case} combinator on queues:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ queue{\isacharunderscore}case{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}queue{\isacharunderscore}case\ f\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ f\ {\isacharparenleft}ys\ {\isacharat}\ rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{unfolding}\isamarkupfalse%
+\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ simp%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent The resulting code looks as expected:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}structure Example :~sig\\
+\hspace*{0pt} ~val foldl :~('a -> 'b -> 'a) -> 'a -> 'b list -> 'a\\
+\hspace*{0pt} ~val rev :~'a list -> 'a list\\
+\hspace*{0pt} ~val null :~'a list -> bool\\
+\hspace*{0pt} ~datatype 'a queue = AQueue of 'a list * 'a list\\
+\hspace*{0pt} ~val empty :~'a queue\\
+\hspace*{0pt} ~val dequeue :~'a queue -> 'a option * 'a queue\\
+\hspace*{0pt} ~val enqueue :~'a -> 'a queue -> 'a queue\\
+\hspace*{0pt}end = struct\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun foldl f a [] = a\\
+\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun null [] = true\\
+\hspace*{0pt} ~| null (x ::~xs) = false;\\
+\hspace*{0pt}\\
+\hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
+\hspace*{0pt}\\
+\hspace*{0pt}val empty :~'a queue = AQueue ([],~[]);\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun dequeue (AQueue (xs,~y ::~ys)) = (SOME y,~AQueue (xs,~ys))\\
+\hspace*{0pt} ~| dequeue (AQueue (xs,~[])) =\\
+\hspace*{0pt} ~~~(if null xs then (NONE,~AQueue ([],~[]))\\
+\hspace*{0pt} ~~~~~else dequeue (AQueue ([],~rev xs)));\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun enqueue x (AQueue (xs,~ys)) = AQueue (x ::~xs,~ys);\\
+\hspace*{0pt}\\
+\hspace*{0pt}end;~(*struct Example*)%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent From this example, it can be glimpsed that using own
+  constructor sets is a little delicate since it changes the set of
+  valid patterns for values of that type.  Without going into much
+  detail, here some practical hints:
+
+  \begin{itemize}
+
+    \item When changing the constructor set for datatypes, take care
+      to provide alternative equations for the \isa{case} combinator.
+
+    \item Values in the target language need not to be normalised --
+      different values in the target language may represent the same
+      value in the logic.
+
+    \item Usually, a good methodology to deal with the subtleties of
+      pattern matching is to see the type as an abstract type: provide
+      a set of operations which operate on the concrete representation
+      of the type, and derive further operations by combinations of
+      these primitive ones, without relying on a particular
+      representation.
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isadelimtheory
 %
 \endisadelimtheory

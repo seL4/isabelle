@@ -18,382 +18,68 @@
 %
 \endisadelimtheory
 %
-\isamarkupsection{Code generation foundations \label{sec:program}%
+\isamarkupsection{Code generation foundations \label{sec:foundations}%
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{The \isa{Isabelle{\isacharslash}HOL} default setup%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-We have already seen how by default equations stemming from
-  \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}, \hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}} and \hyperlink{command.fun}{\mbox{\isa{\isacommand{fun}}}}
-  statements are used for code generation.  This default behaviour
-  can be changed, e.g.\ by providing different code equations.
-  The customisations shown in this section are \emph{safe}
-  as regards correctness: all programs that can be generated are partially
-  correct.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Selecting code equations%
+\isamarkupsubsection{Code generator architecture \label{sec:architecture}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Coming back to our introductory example, we
-  could provide an alternative code equations for \isa{dequeue}
-  explicitly:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
-\ \ \ \ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}cases\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\ {\isacharparenleft}cases\ {\isachardoublequoteopen}rev\ xs{\isachardoublequoteclose}{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent The annotation \isa{{\isacharbrackleft}code{\isacharbrackright}} is an \isa{Isar}
-  \isa{attribute} which states that the given theorems should be
-  considered as code equations for a \isa{fun} statement --
-  the corresponding constant is determined syntactically.  The resulting code:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-%
-\begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
-\hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
-\hspace*{0pt}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~(if null xs then (Nothing,~AQueue [] [])\\
-\hspace*{0pt} ~~~else dequeue (AQueue [] (reverse xs)));%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent You may note that the equality test \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} has been
-  replaced by the predicate \isa{null\ xs}.  This is due to the default
-  setup in the \qn{preprocessor} to be discussed further below (\secref{sec:preproc}).
+The code generator is actually a framework consisting of different
+  components which can be customised individually.
 
-  Changing the default constructor set of datatypes is also
-  possible.  See \secref{sec:datatypes} for an example.
+  Conceptually all components operate on Isabelle's logic framework
+  \hyperlink{theory.Pure}{\mbox{\isa{Pure}}}.  Practically, the object logic \hyperlink{theory.HOL}{\mbox{\isa{HOL}}}
+  provides the necessary facilities to make use of the code generator,
+  mainly since it is an extension of \hyperlink{theory.Pure}{\mbox{\isa{Pure}}}.
 
-  As told in \secref{sec:concept}, code generation is based
-  on a structured collection of code theorems.
-  This collection
-  may be inspected using the \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} command:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{code{\isacharunderscore}thms}\isamarkupfalse%
-\ dequeue%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent prints a table with \emph{all} code equations
-  for \isa{dequeue}, including
-  \emph{all} code equations those equations depend
-  on recursively.
-  
-  Similarly, the \hyperlink{command.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}} command shows a graph
-  visualising dependencies between code equations.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{\isa{class} and \isa{instantiation}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Concerning type classes and code generation, let us examine an example
-  from abstract algebra:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{class}\isamarkupfalse%
-\ semigroup\ {\isacharequal}\isanewline
-\ \ \isakeyword{fixes}\ mult\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymotimes}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isasymotimes}\ z\ {\isacharequal}\ x\ {\isasymotimes}\ {\isacharparenleft}y\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{class}\isamarkupfalse%
-\ monoid\ {\isacharequal}\ semigroup\ {\isacharplus}\isanewline
-\ \ \isakeyword{fixes}\ neutral\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isacharparenleft}{\isachardoublequoteopen}{\isasymone}{\isachardoublequoteclose}{\isacharparenright}\isanewline
-\ \ \isakeyword{assumes}\ neutl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isakeyword{and}\ neutr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{instantiation}\isamarkupfalse%
-\ nat\ {\isacharcolon}{\isacharcolon}\ monoid\isanewline
-\isakeyword{begin}\isanewline
-\isanewline
-\isacommand{primrec}\isamarkupfalse%
-\ mult{\isacharunderscore}nat\ \isakeyword{where}\isanewline
-\ \ \ \ {\isachardoublequoteopen}{\isadigit{0}}\ {\isasymotimes}\ n\ {\isacharequal}\ {\isacharparenleft}{\isadigit{0}}{\isasymColon}nat{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}Suc\ m\ {\isasymotimes}\ n\ {\isacharequal}\ n\ {\isacharplus}\ m\ {\isasymotimes}\ n{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{definition}\isamarkupfalse%
-\ neutral{\isacharunderscore}nat\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}{\isasymone}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharcolon}\isanewline
-\ \ \isakeyword{fixes}\ n\ m\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
-\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}n\ {\isacharplus}\ m{\isacharparenright}\ {\isasymotimes}\ q\ {\isacharequal}\ n\ {\isasymotimes}\ q\ {\isacharplus}\ m\ {\isasymotimes}\ q{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ n{\isacharparenright}\ simp{\isacharunderscore}all\isanewline
-\isanewline
-\isacommand{instance}\isamarkupfalse%
-\ \isacommand{proof}\isamarkupfalse%
-\isanewline
-\ \ \isacommand{fix}\isamarkupfalse%
-\ m\ n\ q\ {\isacharcolon}{\isacharcolon}\ nat\isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}m\ {\isasymotimes}\ n\ {\isasymotimes}\ q\ {\isacharequal}\ m\ {\isasymotimes}\ {\isacharparenleft}n\ {\isasymotimes}\ q{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ m{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ add{\isacharunderscore}mult{\isacharunderscore}distrib{\isacharparenright}\isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isasymone}\ {\isasymotimes}\ n\ {\isacharequal}\ n{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}\isanewline
-\ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}m\ {\isasymotimes}\ {\isasymone}\ {\isacharequal}\ m{\isachardoublequoteclose}\isanewline
-\ \ \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}induct\ m{\isacharparenright}\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ neutral{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}\isanewline
-\isacommand{qed}\isamarkupfalse%
-\isanewline
-\isanewline
-\isacommand{end}\isamarkupfalse%
-%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent We define the natural operation of the natural numbers
-  on monoids:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{primrec}\isamarkupfalse%
-\ {\isacharparenleft}\isakeyword{in}\ monoid{\isacharparenright}\ pow\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ {\isachardoublequoteopen}pow\ {\isadigit{0}}\ a\ {\isacharequal}\ {\isasymone}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}pow\ {\isacharparenleft}Suc\ n{\isacharparenright}\ a\ {\isacharequal}\ a\ {\isasymotimes}\ pow\ n\ a{\isachardoublequoteclose}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent This we use to define the discrete exponentiation function:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{definition}\isamarkupfalse%
-\ bexp\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}bexp\ n\ {\isacharequal}\ pow\ n\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent The corresponding code in Haskell uses that language's native classes:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-%
-\begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}module Example where {\char123}\\
-\hspace*{0pt}\\
-\hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}plus{\char95}nat ::~Nat -> Nat -> Nat;\\
-\hspace*{0pt}plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n);\\
-\hspace*{0pt}plus{\char95}nat Zero{\char95}nat n = n;\\
-\hspace*{0pt}\\
-\hspace*{0pt}class Semigroup a where {\char123}\\
-\hspace*{0pt} ~mult ::~a -> a -> a;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}class (Semigroup a) => Monoid a where {\char123}\\
-\hspace*{0pt} ~neutral ::~a;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}pow ::~forall a.~(Monoid a) => Nat -> a -> a;\\
-\hspace*{0pt}pow Zero{\char95}nat a = neutral;\\
-\hspace*{0pt}pow (Suc n) a = mult a (pow n a);\\
-\hspace*{0pt}\\
-\hspace*{0pt}mult{\char95}nat ::~Nat -> Nat -> Nat;\\
-\hspace*{0pt}mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat;\\
-\hspace*{0pt}mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
-\hspace*{0pt}\\
-\hspace*{0pt}neutral{\char95}nat ::~Nat;\\
-\hspace*{0pt}neutral{\char95}nat = Suc Zero{\char95}nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Semigroup Nat where {\char123}\\
-\hspace*{0pt} ~mult = mult{\char95}nat;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Monoid Nat where {\char123}\\
-\hspace*{0pt} ~neutral = neutral{\char95}nat;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}bexp ::~Nat -> Nat;\\
-\hspace*{0pt}bexp n = pow n (Suc (Suc Zero{\char95}nat));\\
-\hspace*{0pt}\\
-\hspace*{0pt}{\char125}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent This is a convenient place to show how explicit dictionary construction
-  manifests in generated code (here, the same example in \isa{SML})
-  \cite{Haftmann-Nipkow:2010:code}:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-%
-\begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt} ~datatype nat = Zero{\char95}nat | Suc of nat\\
-\hspace*{0pt} ~val plus{\char95}nat :~nat -> nat -> nat\\
-\hspace*{0pt} ~type 'a semigroup\\
-\hspace*{0pt} ~val mult :~'a semigroup -> 'a -> 'a -> 'a\\
-\hspace*{0pt} ~type 'a monoid\\
-\hspace*{0pt} ~val semigroup{\char95}monoid :~'a monoid -> 'a semigroup\\
-\hspace*{0pt} ~val neutral :~'a monoid -> 'a\\
-\hspace*{0pt} ~val pow :~'a monoid -> nat -> 'a -> 'a\\
-\hspace*{0pt} ~val mult{\char95}nat :~nat -> nat -> nat\\
-\hspace*{0pt} ~val neutral{\char95}nat :~nat\\
-\hspace*{0pt} ~val semigroup{\char95}nat :~nat semigroup\\
-\hspace*{0pt} ~val monoid{\char95}nat :~nat monoid\\
-\hspace*{0pt} ~val bexp :~nat -> nat\\
-\hspace*{0pt}end = struct\\
-\hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
-\hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
-\hspace*{0pt}val mult = {\char35}mult :~'a semigroup -> 'a -> 'a -> 'a;\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a monoid = {\char123}semigroup{\char95}monoid :~'a semigroup,~neutral :~'a{\char125};\\
-\hspace*{0pt}val semigroup{\char95}monoid = {\char35}semigroup{\char95}monoid :~'a monoid -> 'a semigroup;\\
-\hspace*{0pt}val neutral = {\char35}neutral :~'a monoid -> 'a;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun pow A{\char95}~Zero{\char95}nat a = neutral A{\char95}\\
-\hspace*{0pt} ~| pow A{\char95}~(Suc n) a = mult (semigroup{\char95}monoid A{\char95}) a (pow A{\char95}~n a);\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat\\
-\hspace*{0pt} ~| mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
-\hspace*{0pt}\\
-\hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat;\\
-\hspace*{0pt}\\
-\hspace*{0pt}val semigroup{\char95}nat = {\char123}mult = mult{\char95}nat{\char125}~:~nat semigroup;\\
-\hspace*{0pt}\\
-\hspace*{0pt}val monoid{\char95}nat = {\char123}semigroup{\char95}monoid = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}\\
-\hspace*{0pt} ~:~nat monoid;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun bexp n = pow monoid{\char95}nat n (Suc (Suc Zero{\char95}nat));\\
-\hspace*{0pt}\\
-\hspace*{0pt}end;~(*struct Example*)%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent Note the parameters with trailing underscore (\verb|A_|),
-    which are the dictionary parameters.%
+  The constellation of the different components is visualized in the
+  following picture.
+
+  \begin{figure}[h]
+    \includegraphics{architecture}
+    \caption{Code generator architecture}
+    \label{fig:arch}
+  \end{figure}
+
+  \noindent Central to code generation is the notion of \emph{code
+  equations}.  A code equation as a first approximation is a theorem
+  of the form \isa{f\ t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n\ {\isasymequiv}\ t} (an equation headed by a
+  constant \isa{f} with arguments \isa{t\isactrlisub {\isadigit{1}}\ t\isactrlisub {\isadigit{2}}\ {\isasymdots}\ t\isactrlisub n} and right
+  hand side \isa{t}).
+
+  \begin{itemize}
+
+    \item Starting point of code generation is a collection of (raw)
+      code equations in a theory. It is not relevant where they stem
+      from, but typically they were either produced by specification
+      tools or proved explicitly by the user.
+      
+    \item These raw code equations can be subjected to theorem
+      transformations.  This \qn{preprocessor} (see
+      \secref{sec:preproc}) can apply the full expressiveness of
+      ML-based theorem transformations to code generation.  The result
+      of preprocessing is a structured collection of code equations.
+
+    \item These code equations are \qn{translated} to a program in an
+      abstract intermediate language.  Think of it as a kind of
+      \qt{Mini-Haskell} with four \qn{statements}: \isa{data} (for
+      datatypes), \isa{fun} (stemming from code equations), also
+      \isa{class} and \isa{inst} (for type classes).
+
+    \item Finally, the abstract program is \qn{serialised} into
+      concrete source code of a target language.  This step only
+      produces concrete syntax but does not change the program in
+      essence; all conceptual transformations occur in the translation
+      step.
+
+  \end{itemize}
+
+  \noindent From these steps, only the last two are carried out
+  outside the logic; by keeping this layer as thin as possible, the
+  amount of code to trust is kept to a minimum.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -402,18 +88,18 @@ Concerning type classes and code generation, let us examine an example
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Before selected function theorems are turned into abstract
-  code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}.  In essence, the preprocessor
-  consists of two components: a \emph{simpset} and \emph{function transformers}.
+Before selected function theorems are turned into abstract code, a
+  chain of definitional transformation steps is carried out:
+  \emph{preprocessing}.  The preprocessor consists of two
+  components: a \emph{simpset} and \emph{function transformers}.
 
-  The \emph{simpset} can apply the full generality of the
-  Isabelle simplifier.  Due to the interpretation of theorems as code
+  The \emph{simpset} can apply the full generality of the Isabelle
+  simplifier.  Due to the interpretation of theorems as code
   equations, rewrites are applied to the right hand side and the
   arguments of the left hand side of an equation, but never to the
   constant heading the left hand side.  An important special case are
-  \emph{unfold theorems},  which may be declared and removed using
-  the \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} or \emph{\hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} del}
+  \emph{unfold theorems}, which may be declared and removed using the
+  \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} or \emph{\hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} del}
   attribute, respectively.
 
   Some common applications:%
@@ -444,27 +130,6 @@ Before selected function theorems are turned into abstract
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\item eliminating superfluous constants:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{lemma}\isamarkupfalse%
-\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}fact\ One{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
 \item replacing executable but inconvenient constructs:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -485,25 +150,43 @@ Before selected function theorems are turned into abstract
 %
 \endisadelimquote
 %
+\begin{isamarkuptext}%
+\item eliminating disturbing expressions:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code{\isacharunderscore}unfold{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}fact\ One{\isacharunderscore}nat{\isacharunderscore}def{\isacharparenright}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \end{itemize}
 %
 \begin{isamarkuptext}%
-\noindent \emph{Function transformers} provide a very general interface,
-  transforming a list of function theorems to another
-  list of function theorems, provided that neither the heading
-  constant nor its type change.  The \isa{{\isadigit{0}}} / \isa{Suc}
-  pattern elimination implemented in
-  theory \isa{Efficient{\isacharunderscore}Nat} (see \secref{eff_nat}) uses this
-  interface.
+\noindent \emph{Function transformers} provide a very general
+  interface, transforming a list of function theorems to another list
+  of function theorems, provided that neither the heading constant nor
+  its type change.  The \isa{{\isadigit{0}}} / \isa{Suc} pattern
+  elimination implemented in theory \hyperlink{theory.Efficient-Nat}{\mbox{\isa{Efficient{\isacharunderscore}Nat}}} (see
+  \secref{eff_nat}) uses this interface.
 
-  \noindent The current setup of the preprocessor may be inspected using
-  the \hyperlink{command.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}} command.
-  \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} provides a convenient
-  mechanism to inspect the impact of a preprocessor setup
-  on code equations.
+  \noindent The current setup of the preprocessor may be inspected
+  using the \hyperlink{command.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}} command.  \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}
+  (see \secref{sec:equations}) provides a convenient mechanism to
+  inspect the impact of a preprocessor setup on code equations.
 
   \begin{warn}
-
     Attribute \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} also applies to the
     preprocessor of the ancient \isa{SML\ code\ generator}; in case
     this is not what you intend, use \hyperlink{attribute.code-inline}{\mbox{\isa{code{\isacharunderscore}inline}}} instead.
@@ -511,85 +194,18 @@ Before selected function theorems are turned into abstract
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Datatypes \label{sec:datatypes}%
+\isamarkupsubsection{Understanding code equations \label{sec:equations}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Conceptually, any datatype is spanned by a set of
-  \emph{constructors} of type \isa{{\isasymtau}\ {\isacharequal}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymkappa}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymdots}\ {\isasymalpha}\isactrlisub n} where \isa{{\isacharbraceleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub n{\isacharbraceright}} is exactly the set of \emph{all} type variables in
-  \isa{{\isasymtau}}.  The HOL datatype package by default registers any new
-  datatype in the table of datatypes, which may be inspected using the
-  \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command.
+As told in \secref{sec:principle}, the notion of code equations is
+  vital to code generation.  Indeed most problems which occur in
+  practice can be resolved by an inspection of the underlying code
+  equations.
 
-  In some cases, it is appropriate to alter or extend this table.  As
-  an example, we will develop an alternative representation of the
-  queue example given in \secref{sec:intro}.  The amortised
-  representation is convenient for generating code but exposes its
-  \qt{implementation} details, which may be cumbersome when proving
-  theorems about it.  Therefore, here is a simple, straightforward
-  representation of queues:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{datatype}\isamarkupfalse%
-\ {\isacharprime}a\ queue\ {\isacharequal}\ Queue\ {\isachardoublequoteopen}{\isacharprime}a\ list{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{definition}\isamarkupfalse%
-\ empty\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}empty\ {\isacharequal}\ Queue\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{primrec}\isamarkupfalse%
-\ enqueue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}enqueue\ x\ {\isacharparenleft}Queue\ xs{\isacharparenright}\ {\isacharequal}\ Queue\ {\isacharparenleft}xs\ {\isacharat}\ {\isacharbrackleft}x{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{fun}\isamarkupfalse%
-\ dequeue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ queue\ {\isasymRightarrow}\ {\isacharprime}a\ option\ {\isasymtimes}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}None{\isacharcomma}\ Queue\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}Queue\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Some\ x{\isacharcomma}\ Queue\ xs{\isacharparenright}{\isachardoublequoteclose}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent This we can use directly for proving;  for executing,
-  we provide an alternative characterisation:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{definition}\isamarkupfalse%
-\ AQueue\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ queue{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
-\ \ {\isachardoublequoteopen}AQueue\ xs\ ys\ {\isacharequal}\ Queue\ {\isacharparenleft}ys\ {\isacharat}\ rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{code{\isacharunderscore}datatype}\isamarkupfalse%
-\ AQueue%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent Here we define a \qt{constructor} \isa{AQueue} which
-  is defined in terms of \isa{Queue} and interprets its arguments
-  according to what the \emph{content} of an amortised queue is supposed
-  to be.  Equipped with this, we are able to prove the following equations
-  for our primitive queue operations which \qt{implement} the simple
-  queues in an amortised fashion:%
+  It is possible to exchange the default code equations for constants
+  by explicitly proving alternative ones:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -599,28 +215,14 @@ Conceptually, any datatype is spanned by a set of
 %
 \isatagquote
 \isacommand{lemma}\isamarkupfalse%
-\ empty{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}empty\ {\isacharequal}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isacharunderscore}def\ empty{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ enqueue{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}enqueue\ x\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ AQueue\ {\isacharparenleft}x\ {\isacharhash}\ xs{\isacharparenright}\ ys{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ simp\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ dequeue{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
 \ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
-\ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ simp{\isacharunderscore}all%
+\ \ \ \ \ {\isacharparenleft}if\ xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ then\ {\isacharparenleft}None{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ else\ dequeue\ {\isacharparenleft}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharparenleft}rev\ xs{\isacharparenright}{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ {\isacharparenleft}Some\ y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}cases\ xs{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}\ {\isacharparenleft}cases\ {\isachardoublequoteopen}rev\ xs{\isachardoublequoteclose}{\isacharcomma}\ simp{\isacharunderscore}all{\isacharparenright}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -629,31 +231,10 @@ Conceptually, any datatype is spanned by a set of
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent For completeness, we provide a substitute for the
-  \isa{case} combinator on queues:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{lemma}\isamarkupfalse%
-\ queue{\isacharunderscore}case{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}queue{\isacharunderscore}case\ f\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ f\ {\isacharparenleft}ys\ {\isacharat}\ rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
-\ simp%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent The resulting code looks as expected:%
+\noindent The annotation \isa{{\isacharbrackleft}code{\isacharbrackright}} is an \isa{attribute}
+  which states that the given theorems should be considered as code
+  equations for a \isa{fun} statement -- the corresponding constant
+  is determined syntactically.  The resulting code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -666,36 +247,11 @@ Conceptually, any datatype is spanned by a set of
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt} ~val foldl :~('a -> 'b -> 'a) -> 'a -> 'b list -> 'a\\
-\hspace*{0pt} ~val rev :~'a list -> 'a list\\
-\hspace*{0pt} ~val null :~'a list -> bool\\
-\hspace*{0pt} ~datatype 'a queue = AQueue of 'a list * 'a list\\
-\hspace*{0pt} ~val empty :~'a queue\\
-\hspace*{0pt} ~val dequeue :~'a queue -> 'a option * 'a queue\\
-\hspace*{0pt} ~val enqueue :~'a -> 'a queue -> 'a queue\\
-\hspace*{0pt}end = struct\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun foldl f a [] = a\\
-\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun null [] = true\\
-\hspace*{0pt} ~| null (x ::~xs) = false;\\
-\hspace*{0pt}\\
-\hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
-\hspace*{0pt}\\
-\hspace*{0pt}val empty :~'a queue = AQueue ([],~[]);\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun dequeue (AQueue (xs,~y ::~ys)) = (SOME y,~AQueue (xs,~ys))\\
-\hspace*{0pt} ~| dequeue (AQueue (xs,~[])) =\\
-\hspace*{0pt} ~~~(if null xs then (NONE,~AQueue ([],~[]))\\
-\hspace*{0pt} ~~~~~else dequeue (AQueue ([],~rev xs)));\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun enqueue x (AQueue (xs,~ys)) = AQueue (x ::~xs,~ys);\\
-\hspace*{0pt}\\
-\hspace*{0pt}end;~(*struct Example*)%
+\hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
+\hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
+\hspace*{0pt}dequeue (AQueue xs []) =\\
+\hspace*{0pt} ~(if null xs then (Nothing,~AQueue [] [])\\
+\hspace*{0pt} ~~~else dequeue (AQueue [] (reverse xs)));%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -707,28 +263,44 @@ Conceptually, any datatype is spanned by a set of
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent From this example, it can be glimpsed that using own
-  constructor sets is a little delicate since it changes the set of
-  valid patterns for values of that type.  Without going into much
-  detail, here some practical hints:
+\noindent You may note that the equality test \isa{xs\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}} has
+  been replaced by the predicate \isa{List{\isachardot}null\ xs}.  This is due
+  to the default setup of the \qn{preprocessor}.
 
-  \begin{itemize}
+  This possibility to select arbitrary code equations is the key
+  technique for program and datatype refinement (see
+  \secref{sec:refinement}.
 
-    \item When changing the constructor set for datatypes, take care
-      to provide alternative equations for the \isa{case} combinator.
+  Due to the preprocessor, there is the distinction of raw code
+  equations (before preprocessing) and code equations (after
+  preprocessing).
 
-    \item Values in the target language need not to be normalised --
-      different values in the target language may represent the same
-      value in the logic.
+  The first can be listed (among other data) using the \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command (later on in \secref{sec:refinement}
+  it will be shown how these code equations can be changed).
 
-    \item Usually, a good methodology to deal with the subtleties of
-      pattern matching is to see the type as an abstract type: provide
-      a set of operations which operate on the concrete representation
-      of the type, and derive further operations by combinations of
-      these primitive ones, without relying on a particular
-      representation.
-
-  \end{itemize}%
+  The code equations after preprocessing are already are blueprint of
+  the generated program and can be inspected using the \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} command:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{code{\isacharunderscore}thms}\isamarkupfalse%
+\ dequeue%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This prints a table with the code equations for \isa{dequeue}, including \emph{all} code equations those equations depend
+  on recursively.  These dependencies themselves can be visualized using
+  the \hyperlink{command.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}} command.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -737,8 +309,8 @@ Conceptually, any datatype is spanned by a set of
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Surely you have already noticed how equality is treated
-  by the code generator:%
+Implementation of equality deserves some attention.  Here an example
+  function involving polymorphic equality:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -750,11 +322,11 @@ Surely you have already noticed how equality is treated
 \isacommand{primrec}\isamarkupfalse%
 \ collect{\isacharunderscore}duplicates\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ xs{\isachardoublequoteclose}\isanewline
-\ \ {\isacharbar}\ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharparenleft}z{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ z\ {\isasymin}\ set\ xs\isanewline
-\ \ \ \ \ \ then\ if\ z\ {\isasymin}\ set\ ys\isanewline
-\ \ \ \ \ \ \ \ then\ collect{\isacharunderscore}duplicates\ xs\ ys\ zs\isanewline
-\ \ \ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ xs\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs\isanewline
-\ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ {\isacharparenleft}z{\isacharhash}xs{\isacharparenright}\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs{\isacharparenright}{\isachardoublequoteclose}%
+{\isacharbar}\ {\isachardoublequoteopen}collect{\isacharunderscore}duplicates\ xs\ ys\ {\isacharparenleft}z{\isacharhash}zs{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}if\ z\ {\isasymin}\ set\ xs\isanewline
+\ \ \ \ then\ if\ z\ {\isasymin}\ set\ ys\isanewline
+\ \ \ \ \ \ then\ collect{\isacharunderscore}duplicates\ xs\ ys\ zs\isanewline
+\ \ \ \ \ \ else\ collect{\isacharunderscore}duplicates\ xs\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs\isanewline
+\ \ \ \ else\ collect{\isacharunderscore}duplicates\ {\isacharparenleft}z{\isacharhash}xs{\isacharparenright}\ {\isacharparenleft}z{\isacharhash}ys{\isacharparenright}\ zs{\isacharparenright}{\isachardoublequoteclose}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -764,8 +336,8 @@ Surely you have already noticed how equality is treated
 %
 \begin{isamarkuptext}%
 \noindent During preprocessing, the membership test is rewritten,
-  resulting in \isa{List{\isachardot}member}, which itself
-  performs an explicit equality check.%
+  resulting in \isa{List{\isachardot}member}, which itself performs an explicit
+  equality check, as can be seen in the corresponding \isa{SML} code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -815,14 +387,12 @@ Surely you have already noticed how equality is treated
 %
 \begin{isamarkuptext}%
 \noindent Obviously, polymorphic equality is implemented the Haskell
-  way using a type class.  How is this achieved?  HOL introduces
-  an explicit class \isa{eq} with a corresponding operation
-  \isa{eq{\isacharunderscore}class{\isachardot}eq} such that \isa{eq{\isacharunderscore}class{\isachardot}eq\ {\isacharequal}\ op\ {\isacharequal}}.
-  The preprocessing framework does the rest by propagating the
-  \isa{eq} constraints through all dependent code equations.
-  For datatypes, instances of \isa{eq} are implicitly derived
-  when possible.  For other types, you may instantiate \isa{eq}
-  manually like any other type class.%
+  way using a type class.  How is this achieved?  HOL introduces an
+  explicit class \isa{eq} with a corresponding operation \isa{eq{\isacharunderscore}class{\isachardot}eq} such that \isa{eq{\isacharunderscore}class{\isachardot}eq\ {\isacharequal}\ op\ {\isacharequal}}.  The preprocessing
+  framework does the rest by propagating the \isa{eq} constraints
+  through all dependent code equations.  For datatypes, instances of
+  \isa{eq} are implicitly derived when possible.  For other types,
+  you may instantiate \isa{eq} manually like any other type class.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -852,7 +422,7 @@ Partiality usually enters the game by partial patterns, as
 \ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue\ {\isacharparenleft}AQueue\ xs\ {\isacharbrackleft}{\isacharbrackright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ {\isacharparenleft}case\ rev\ xs\ of\ y\ {\isacharhash}\ ys\ {\isasymRightarrow}\ {\isacharparenleft}y{\isacharcomma}\ AQueue\ {\isacharbrackleft}{\isacharbrackright}\ ys{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ strict{\isacharunderscore}dequeue{\isacharunderscore}def\ dequeue{\isacharunderscore}AQueue\ split{\isacharcolon}\ list{\isachardot}splits{\isacharparenright}%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ strict{\isacharunderscore}dequeue{\isacharunderscore}def{\isacharparenright}\ {\isacharparenleft}cases\ xs{\isacharcomma}\ simp{\isacharunderscore}all\ split{\isacharcolon}\ list{\isachardot}split{\isacharparenright}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -916,7 +486,7 @@ Partiality usually enters the game by partial patterns, as
 \ \ {\isachardoublequoteopen}strict{\isacharunderscore}dequeue{\isacharprime}\ {\isacharparenleft}AQueue\ xs\ {\isacharparenleft}y\ {\isacharhash}\ ys{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
 \ \ \ \ \ {\isacharparenleft}y{\isacharcomma}\ AQueue\ xs\ ys{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ strict{\isacharunderscore}dequeue{\isacharprime}{\isacharunderscore}def\ dequeue{\isacharunderscore}AQueue\ split{\isacharcolon}\ list{\isachardot}splits{\isacharparenright}%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ strict{\isacharunderscore}dequeue{\isacharprime}{\isacharunderscore}def\ split{\isacharcolon}\ list{\isachardot}splits{\isacharparenright}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -985,10 +555,36 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent This feature however is rarely needed in practice.
-  Note also that the \isa{HOL} default setup already declares
-  \isa{undefined} as \hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}, which is most
-  likely to be used in such situations.%
+\noindent This feature however is rarely needed in practice.  Note
+  also that the HOL default setup already declares \isa{undefined}
+  as \hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}, which is most likely to be used in such
+  situations.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{If something goes utterly wrong \label{sec:utterly_wrong}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Under certain circumstances, the code generator fails to produce
+  code entirely.  
+
+  \begin{description}
+
+    \ditem{generate only one module}
+
+    \ditem{check with a different target language}
+
+    \ditem{inspect code equations}
+
+    \ditem{inspect preprocessor setup}
+
+    \ditem{generate exceptions}
+
+    \ditem{remove offending code equations}
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
