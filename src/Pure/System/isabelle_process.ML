@@ -1,11 +1,8 @@
 (*  Title:      Pure/System/isabelle_process.ML
     Author:     Makarius
 
-Isabelle process wrapper.
-
-General format of process output:
-  (1) message = "\002"  header chunk  body chunk
-  (2) chunk = size (ASCII digits)  \n  content (YXML)
+Isabelle process wrapper, based on private fifos for maximum
+robustness and performance.
 *)
 
 signature ISABELLE_PROCESS =
@@ -57,11 +54,11 @@ local
 fun chunk s = string_of_int (size s) ^ "\n" ^ s;
 
 fun message _ _ _ "" = ()
-  | message out_stream ch props body =
+  | message out_stream ch raw_props body =
       let
-        val header = YXML.string_of (XML.Elem ((ch, map (pairself YXML.escape_controls) props), []));
-        val msg = Symbol.STX ^ chunk header ^ chunk body;
-      in TextIO.output (out_stream, msg) (*atomic output*) end;
+        val robust_props = map (pairself YXML.escape_controls) raw_props;
+        val header = YXML.string_of (XML.Elem ((ch, robust_props), []));
+      in TextIO.output (out_stream, chunk header ^ chunk body) (*atomic output!*) end;
 
 in
 

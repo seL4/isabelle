@@ -288,26 +288,14 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
       do {
         try {
-          //{{{
-          c = stream.read
-          var non_sync = 0
-          while (c >= 0 && c != 2) {
-            non_sync += 1
-            c = stream.read
+          val header = read_chunk()
+          val body = read_chunk()
+          header match {
+            case List(XML.Elem(Markup(name, props), Nil))
+                if name.size == 1 && Kind.markup.isDefinedAt(name(0)) =>
+              put_result(Kind.markup(name(0)), props, body)
+            case _ => throw new Protocol_Error("bad header: " + header.toString)
           }
-          if (non_sync > 0)
-            throw new Protocol_Error("lost synchronization -- skipping " + non_sync + " bytes")
-          if (c == 2) {
-            val header = read_chunk()
-            val body = read_chunk()
-            header match {
-              case List(XML.Elem(Markup(name, props), Nil))
-                  if name.size == 1 && Kind.markup.isDefinedAt(name(0)) =>
-                put_result(Kind.markup(name(0)), props, body)
-              case _ => throw new Protocol_Error("bad header: " + header.toString)
-            }
-          }
-          //}}}
         }
         catch {
           case e: IOException =>
