@@ -396,7 +396,7 @@ Implementation of equality deserves some attention.  Here an example
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Explicit partiality%
+\isamarkupsubsection{Explicit partiality \label{sec:partiality}%
 }
 \isamarkuptrue%
 %
@@ -568,21 +568,40 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 %
 \begin{isamarkuptext}%
 Under certain circumstances, the code generator fails to produce
-  code entirely.  
+  code entirely.  To debug these, the following hints may prove
+  helpful:
 
   \begin{description}
 
-    \ditem{generate only one module}
+    \ditem{\emph{Check with a different target language}.}  Sometimes
+      the situation gets more clear if you switch to another target
+      language; the code generated there might give some hints what
+      prevents the code generator to produce code for the desired
+      language.
 
-    \ditem{check with a different target language}
+    \ditem{\emph{Inspect code equations}.}  Code equations are the central
+      carrier of code generation.  Most problems occuring while generation
+      code can be traced to single equations which are printed as part of
+      the error message.  A closer inspection of those may offer the key
+      for solving issues (cf.~\secref{sec:equations}).
 
-    \ditem{inspect code equations}
+    \ditem{\emph{Inspect preprocessor setup}.}  The preprocessor might
+      transform code equations unexpectedly; to understand an
+      inspection of its setup is necessary (cf.~\secref{sec:preproc}).
 
-    \ditem{inspect preprocessor setup}
+    \ditem{\emph{Generate exceptions}.}  If the code generator
+      complains about missing code equations, in can be helpful to
+      implement the offending constants as exceptions
+      (cf.~\secref{sec:partiality}); this allows at least for a formal
+      generation of code, whose inspection may then give clues what is
+      wrong.
 
-    \ditem{generate exceptions}
-
-    \ditem{remove offending code equations}
+    \ditem{\emph{Remove offending code equations}.}  If code
+      generation is prevented by just a single equation, this can be
+      removed (cf.~\secref{sec:equations}) to allow formal code
+      generation, whose result in turn can be used to trace the
+      problem.  The most prominent case here are mismatches in type
+      class signatures (\qt{wellsortedness error}).
 
   \end{description}%
 \end{isamarkuptext}%
