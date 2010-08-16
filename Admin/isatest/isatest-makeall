@@ -176,7 +176,7 @@ for SETTINGS in $@; do
         echo >> $ERRORLOG
 
         FAIL="$FAIL$SHORT "
-        (cd $ERRORDIR; cp -a $TESTLOG .)
+        (cd $ERRORDIR; cp $TESTLOG .)
     fi
 
     rm -f $RUNNING/$SHORT.running
