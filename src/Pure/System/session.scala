@@ -199,8 +199,6 @@ class Session(system: Isabelle_System)
 
     /* main loop */
 
-    val xml_cache = new XML.Cache(131071)
-
     loop {
       react {
         case Started(timeout, args) =>
@@ -223,7 +221,7 @@ class Session(system: Isabelle_System)
           handle_change(change)
 
         case result: Isabelle_Process.Result =>
-          handle_result(result.cache(xml_cache))
+          handle_result(result)
 
         case TIMEOUT =>  // FIXME clarify!
 

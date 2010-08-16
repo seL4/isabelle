@@ -10,6 +10,8 @@ import java.util.WeakHashMap
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
 
+import scala.actors.Actor._
+
 
 object XML
 {
@@ -91,66 +93,91 @@ object XML
   }
 
 
-  /* cache for partial sharing -- NOT THREAD SAFE */
+  /* pipe-lined cache for partial sharing */
 
   class Cache(initial_size: Int)
   {
-    private val table = new WeakHashMap[Any, WeakReference[Any]](initial_size)
-
-    private def lookup[A](x: A): Option[A] =
+    private val cache_actor = actor
     {
-      val ref = table.get(x)
-      if (ref == null) None
-      else {
-        val y = ref.asInstanceOf[WeakReference[A]].get
-        if (y == null) None
-        else Some(y)
-      }
-    }
-    private def store[A](x: A): A =
-    {
-      table.put(x, new WeakReference[Any](x))
-      x
-    }
+      val table = new WeakHashMap[Any, WeakReference[Any]](initial_size)
 
-    def cache_string(x: String): String =
-      lookup(x) match {
-        case Some(y) => y
-        case None => store(new String(x.toCharArray))  // trim string value
+      def lookup[A](x: A): Option[A] =
+      {
+        val ref = table.get(x)
+        if (ref == null) None
+        else {
+          val y = ref.asInstanceOf[WeakReference[A]].get
+          if (y == null) None
+          else Some(y)
+        }
       }
-    def cache_props(x: List[(String, String)]): List[(String, String)] =
-      if (x.isEmpty) x
-      else
+      def store[A](x: A): A =
+      {
+        table.put(x, new WeakReference[Any](x))
+        x
+      }
+
+      def cache_string(x: String): String =
         lookup(x) match {
           case Some(y) => y
-          case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
+          case None => store(new String(x.toCharArray))  // trim string value
         }
-    def cache_markup(x: Markup): Markup =
-      lookup(x) match {
-        case Some(y) => y
-        case None =>
-          x match {
-            case Markup(name, props) =>
-              store(Markup(cache_string(name), cache_props(props)))
+      def cache_props(x: List[(String, String)]): List[(String, String)] =
+        if (x.isEmpty) x
+        else
+          lookup(x) match {
+            case Some(y) => y
+            case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
           }
-      }
-    def cache_tree(x: XML.Tree): XML.Tree =
-      lookup(x) match {
-        case Some(y) => y
-        case None =>
-          x match {
-            case XML.Elem(markup, body) =>
-              store(XML.Elem(cache_markup(markup), cache_trees(body)))
-            case XML.Text(text) => store(XML.Text(cache_string(text)))
-          }
-      }
-    def cache_trees(x: List[XML.Tree]): List[XML.Tree] =
-      if (x.isEmpty) x
-      else
+      def cache_markup(x: Markup): Markup =
         lookup(x) match {
           case Some(y) => y
-          case None => x.map(cache_tree(_))
+          case None =>
+            x match {
+              case Markup(name, props) =>
+                store(Markup(cache_string(name), cache_props(props)))
+            }
         }
+      def cache_tree(x: XML.Tree): XML.Tree =
+        lookup(x) match {
+          case Some(y) => y
+          case None =>
+            x match {
+              case XML.Elem(markup, body) =>
+                store(XML.Elem(cache_markup(markup), cache_body(body)))
+              case XML.Text(text) => store(XML.Text(cache_string(text)))
+            }
+        }
+      def cache_body(x: XML.Body): XML.Body =
+        if (x.isEmpty) x
+        else
+          lookup(x) match {
+            case Some(y) => y
+            case None => x.map(cache_tree(_))
+          }
+
+      // main loop
+      loop {
+        react {
+          case Cache_String(x, f) => f(cache_string(x))
+          case Cache_Markup(x, f) => f(cache_markup(x))
+          case Cache_Tree(x, f) => f(cache_tree(x))
+          case Cache_Body(x, f) => f(cache_body(x))
+          case bad => System.err.println("XML.cache_actor: ignoring bad input " + bad)
+        }
+      }
+    }
+
+    private case class Cache_String(x: String, f: String => Unit)
+    private case class Cache_Markup(x: Markup, f: Markup => Unit)
+    private case class Cache_Tree(x: XML.Tree, f: XML.Tree => Unit)
+    private case class Cache_Body(x: XML.Body, f: XML.Body => Unit)
+
+    // main methods
+    def cache_string(x: String)(f: String => Unit) { cache_actor ! Cache_String(x, f) }
+    def cache_markup(x: Markup)(f: Markup => Unit) { cache_actor ! Cache_Markup(x, f) }
+    def cache_tree(x: XML.Tree)(f: XML.Tree => Unit) { cache_actor ! Cache_Tree(x, f) }
+    def cache_body(x: XML.Body)(f: XML.Body => Unit) { cache_actor ! Cache_Body(x, f) }
   }
 
 

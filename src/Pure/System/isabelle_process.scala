@@ -69,8 +69,6 @@ object Isabelle_Process
         kind.toString + " " +
           (for ((x, y) <- properties) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
     }
-
-    def cache(c: XML.Cache): Result = new Result(c.cache_tree(message).asInstanceOf[XML.Elem])
   }
 }
 
@@ -95,12 +93,15 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* results */
 
+  private val xml_cache = new XML.Cache(131071)
+
   private def put_result(kind: String, props: List[(String, String)], body: List[XML.Tree])
   {
-    if (kind == Markup.INIT) {
-      for ((Markup.PID, p) <- props) pid = Some(p)
-    }
-    receiver ! new Result(XML.Elem(Markup(kind, props), body))
+    if (pid.isEmpty && kind == Markup.INIT)
+      pid = props.find(_._1 == Markup.PID).map(_._1)
+
+    xml_cache.cache_tree(XML.Elem(Markup(kind, props), body))((message: XML.Tree) =>
+      receiver ! new Result(message.asInstanceOf[XML.Elem]))
   }
 
   private def put_result(kind: String, text: String)
