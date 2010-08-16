@@ -4,71 +4,42 @@ begin
 
 section {* Introduction *}
 
-subsection {* Code generation fundamental: shallow embedding *}
-
-subsection {* A quick start with the @{text "Isabelle/HOL"} toolbox *}
-
-subsection {* Type classes *}
-
-subsection {* How to continue from here *}
-
-subsection {* If something goes utterly wrong *}
-
 text {*
-  This tutorial introduces a generic code generator for the
-  @{text Isabelle} system.
-  The
-  \qn{target language} for which code is
-  generated is not fixed, but may be one of several
-  functional programming languages (currently, the implementation
-  supports @{text SML} \cite{SML}, @{text OCaml} \cite{OCaml} and @{text Haskell}
-  \cite{haskell-revised-report}).
+  This tutorial introduces the code generator facilities of @{text
+  "Isabelle/HOL"}.  It allows to turn (a certain class of) HOL
+  specifications into corresponding executable code in the programming
+  languages @{text SML} \cite{SML}, @{text OCaml} \cite{OCaml} and
+  @{text Haskell} \cite{haskell-revised-report}.
 
-  Conceptually the code generator framework is part
-  of Isabelle's @{theory Pure} meta logic framework; the logic
-  @{theory HOL} \cite{isa-tutorial}, which is an extension of @{theory Pure},
-  already comes with a reasonable framework setup and thus provides
-  a good basis for creating code-generation-driven
-  applications.  So, we assume some familiarity and experience
-  with the ingredients of the @{theory HOL} distribution theories.
-
-  The code generator aims to be usable with no further ado
-  in most cases, while allowing for detailed customisation.
-  This can be seen in the structure of this tutorial: after a short
-  conceptual introduction with an example (\secref{sec:intro}),
-  we discuss the generic customisation facilities (\secref{sec:program}).
-  A further section (\secref{sec:adaptation}) is dedicated to the matter of
-  \qn{adaptation} to specific target language environments.  After some
-  further issues (\secref{sec:further}) we conclude with an overview
-  of some ML programming interfaces (\secref{sec:ml}).
-
-  \begin{warn}
-    Ultimately, the code generator which this tutorial deals with
-    is supposed to replace the existing code generator
-    by Stefan Berghofer \cite{Berghofer-Nipkow:2002}.
-    So, for the moment, there are two distinct code generators
-    in Isabelle.  In case of ambiguity, we will refer to the framework
-    described here as @{text "generic code generator"}, to the
-    other as @{text "SML code generator"}.
-    Also note that while the framework itself is
-    object-logic independent, only @{theory HOL} provides a reasonable
-    framework setup.    
-  \end{warn}
-
+  To profit from this tutorial, some familiarity and experience with
+  @{theory HOL} \cite{isa-tutorial} and its basic theories is assumed.
 *}
 
-subsection {* Code generation via shallow embedding \label{sec:intro} *}
+
+subsection {* Code generation principle: shallow embedding \label{sec:principle} *}
 
 text {*
-  The key concept for understanding @{text Isabelle}'s code generation is
-  \emph{shallow embedding}, i.e.~logical entities like constants, types and
-  classes are identified with corresponding concepts in the target language.
+  The key concept for understanding Isabelle's code generation is
+  \emph{shallow embedding}: logical entities like constants, types and
+  classes are identified with corresponding entities in the target
+  language.  In particular, the carrier of a generated program's
+  semantics are \emph{equational theorems} from the logic.  If we view
+  a generated program as an implementation of a higher-order rewrite
+  system, then every rewrite step performed by the program can be
+  simulated in the logic, which guarantees partial correctness
+  \cite{Haftmann-Nipkow:2010:code}.
+*}
 
-  Inside @{theory HOL}, the @{command datatype} and
-  @{command definition}/@{command primrec}/@{command fun} declarations form
-  the core of a functional programming language.  The default code generator setup
-   transforms those into functional programs immediately.
-  This means that \qt{naive} code generation can proceed without further ado.
+
+subsection {* A quick start with the Isabelle/HOL toolbox \label{sec:queue_example} *}
+
+text {*
+  In a HOL theory, the @{command datatype} and @{command
+  definition}/@{command primrec}/@{command fun} declarations form the
+  core of a functional programming language.  By default equational
+  theorems stemming from those are used for generated code, therefore
+  \qt{naive} code generation can proceed without further ado.
+
   For example, here a simple \qt{implementation} of amortised queues:
 *}
 
@@ -84,7 +55,11 @@ fun %quote dequeue :: "'a queue \<Rightarrow> 'a option \<times> 'a queue" where
     "dequeue (AQueue [] []) = (None, AQueue [] [])"
   | "dequeue (AQueue xs (y # ys)) = (Some y, AQueue xs ys)"
   | "dequeue (AQueue xs []) =
-      (case rev xs of y # ys \<Rightarrow> (Some y, AQueue [] ys))"
+      (case rev xs of y # ys \<Rightarrow> (Some y, AQueue [] ys))" (*<*)
+
+lemma %invisible dequeue_nonempty_Nil [simp]:
+  "xs \<noteq> [] \<Longrightarrow> dequeue (AQueue xs []) = (case rev xs of y # ys \<Rightarrow> (Some y, AQueue [] ys))"
+  by (cases xs) (simp_all split: list.splits) (*>*)
 
 text {* \noindent Then we can generate code e.g.~for @{text SML} as follows: *}
 
@@ -96,112 +71,163 @@ text {* \noindent resulting in the following code: *}
 text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
 
 text {*
-  \noindent The @{command export_code} command takes a space-separated list of
-  constants for which code shall be generated;  anything else needed for those
-  is added implicitly.  Then follows a target language identifier
-  (@{text SML}, @{text OCaml} or @{text Haskell}) and a freely chosen module name.
-  A file name denotes the destination to store the generated code.  Note that
-  the semantics of the destination depends on the target language:  for
-  @{text SML} and @{text OCaml} it denotes a \emph{file}, for @{text Haskell}
-  it denotes a \emph{directory} where a file named as the module name
-  (with extension @{text ".hs"}) is written:
+  \noindent The @{command export_code} command takes a space-separated
+  list of constants for which code shall be generated; anything else
+  needed for those is added implicitly.  Then follows a target
+  language identifier and a freely chosen module name.  A file name
+  denotes the destination to store the generated code.  Note that the
+  semantics of the destination depends on the target language: for
+  @{text SML} and @{text OCaml} it denotes a \emph{file}, for @{text
+  Haskell} it denotes a \emph{directory} where a file named as the
+  module name (with extension @{text ".hs"}) is written:
 *}
 
 export_code %quote empty dequeue enqueue in Haskell
   module_name Example file "examples/"
 
 text {*
-  \noindent This is the corresponding code in @{text Haskell}:
+  \noindent This is the corresponding code:
 *}
 
 text %quote {*@{code_stmts empty enqueue dequeue (Haskell)}*}
 
 text {*
-  \noindent This demonstrates the basic usage of the @{command export_code} command;
-  for more details see \secref{sec:further}.
+  \noindent For more details about @{command export_code} see
+  \secref{sec:further}.
 *}
 
-subsection {* If something utterly fails *}
+
+subsection {* Type classes *}
 
 text {*
-  Under certain circumstances, the code generator fails to produce
-  code entirely.  
-
-  \begin{description}
-
-    \ditem{generate only one module}
-
-    \ditem{check with a different target language}
-
-    \ditem{inspect code equations}
-
-    \ditem{inspect preprocessor setup}
-
-    \ditem{generate exceptions}
-
-    \ditem{remove offending code equations}
-
-  \end{description}
+  Code can also be generated from type classes in a Haskell-like
+  manner.  For illustration here an example from abstract algebra:
 *}
 
-subsection {* Code generator architecture \label{sec:concept} *}
+class %quote semigroup =
+  fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<otimes>" 70)
+  assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
+
+class %quote monoid = semigroup +
+  fixes neutral :: 'a ("\<one>")
+  assumes neutl: "\<one> \<otimes> x = x"
+    and neutr: "x \<otimes> \<one> = x"
+
+instantiation %quote nat :: monoid
+begin
+
+primrec %quote mult_nat where
+    "0 \<otimes> n = (0\<Colon>nat)"
+  | "Suc m \<otimes> n = n + m \<otimes> n"
+
+definition %quote neutral_nat where
+  "\<one> = Suc 0"
+
+lemma %quote add_mult_distrib:
+  fixes n m q :: nat
+  shows "(n + m) \<otimes> q = n \<otimes> q + m \<otimes> q"
+  by (induct n) simp_all
+
+instance %quote proof
+  fix m n q :: nat
+  show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
+    by (induct m) (simp_all add: add_mult_distrib)
+  show "\<one> \<otimes> n = n"
+    by (simp add: neutral_nat_def)
+  show "m \<otimes> \<one> = m"
+    by (induct m) (simp_all add: neutral_nat_def)
+qed
+
+end %quote
 
 text {*
-  What you have seen so far should be already enough in a lot of cases.  If you
-  are content with this, you can quit reading here.  Anyway, in order to customise
-  and adapt the code generator, it is necessary to gain some understanding
-  how it works.
+  \noindent We define the natural operation of the natural numbers
+  on monoids:
+*}
 
-  \begin{figure}[h]
-    \includegraphics{architecture}
-    \caption{Code generator architecture}
-    \label{fig:arch}
-  \end{figure}
+primrec %quote (in monoid) pow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
+    "pow 0 a = \<one>"
+  | "pow (Suc n) a = a \<otimes> pow n a"
 
-  The code generator employs a notion of executability
-  for three foundational executable ingredients known
-  from functional programming:
-  \emph{code equations}, \emph{datatypes}, and
-  \emph{type classes}.  A code equation as a first approximation
-  is a theorem of the form @{text "f t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n \<equiv> t"}
-  (an equation headed by a constant @{text f} with arguments
-  @{text "t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n"} and right hand side @{text t}).
-  Code generation aims to turn code equations
-  into a functional program.  This is achieved by three major
-  components which operate sequentially, i.e. the result of one is
-  the input
-  of the next in the chain,  see figure \ref{fig:arch}:
+text {*
+  \noindent This we use to define the discrete exponentiation
+  function:
+*}
+
+definition %quote bexp :: "nat \<Rightarrow> nat" where
+  "bexp n = pow n (Suc (Suc 0))"
+
+text {*
+  \noindent The corresponding code in Haskell uses that language's
+  native classes:
+*}
+
+text %quote {*@{code_stmts bexp (Haskell)}*}
+
+text {*
+  \noindent This is a convenient place to show how explicit dictionary
+  construction manifests in generated code -- the same example in
+  @{text SML}:
+*}
+
+text %quote {*@{code_stmts bexp (SML)}*}
+
+text {*
+  \noindent Note the parameters with trailing underscore (@{verbatim
+  "A_"}), which are the dictionary parameters.
+*}
+
+
+subsection {* How to continue from here *}
+
+text {*
+  What you have seen so far should be already enough in a lot of
+  cases.  If you are content with this, you can quit reading here.
+
+  Anyway, to understand situations where problems occur or to increase
+  the scope of code generation beyond default, it is necessary to gain
+  some understanding how the code generator actually works:
 
   \begin{itemize}
 
-    \item The starting point is a collection of raw code equations in a
-      theory. It is not relevant where they
-      stem from, but typically they were either produced by specification
-      tools or proved explicitly by the user.
-      
-    \item These raw code equations can be subjected to theorem transformations.  This
-      \qn{preprocessor} can apply the full
-      expressiveness of ML-based theorem transformations to code
-      generation.  The result of preprocessing is a
-      structured collection of code equations.
+    \item The foundations of the code generator are described in
+      \secref{sec:foundations}.
 
-    \item These code equations are \qn{translated} to a program in an
-      abstract intermediate language.  Think of it as a kind
-      of \qt{Mini-Haskell} with four \qn{statements}: @{text data}
-      (for datatypes), @{text fun} (stemming from code equations),
-      also @{text class} and @{text inst} (for type classes).
+    \item In particular \secref{sec:utterly_wrong} gives hints how to
+      debug situations where code generation does not succeed as
+      expected.
 
-    \item Finally, the abstract program is \qn{serialised} into concrete
-      source code of a target language.
-      This step only produces concrete syntax but does not change the
-      program in essence; all conceptual transformations occur in the
-      translation step.
+    \item The scope and quality of generated code can be increased
+      dramatically by applying refinement techniques, which are
+      introduced in \secref{sec:refinement}.
+
+    \item Inductive predicates can be turned executable using an
+      extension of the code generator \secref{sec:inductive}.
+
+    \item You may want to skim over the more technical sections
+      \secref{sec:adaptation} and \secref{sec:further}.
+
+    \item For exhaustive syntax diagrams etc. you should visit the
+      Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}.
 
   \end{itemize}
 
-  \noindent From these steps, only the two last are carried out outside the logic;  by
-  keeping this layer as thin as possible, the amount of code to trust is
-  kept to a minimum.
+  \bigskip
+
+  \begin{center}\fbox{\fbox{\begin{minipage}{8cm}
+
+    \begin{center}\textit{Happy proving, happy hacking!}\end{center}
+
+  \end{minipage}}}\end{center}
+
+  \begin{warn}
+    There is also a more ancient code generator in Isabelle by Stefan
+    Berghofer \cite{Berghofer-Nipkow:2002}.  Although its
+    functionality is covered by the code generator presented here, it
+    will sometimes show up as an artifact.  In case of ambiguity, we
+    will refer to the framework described here as @{text "generic code
+    generator"}, to the other as @{text "SML code generator"}.
+  \end{warn}
 *}
 
 end

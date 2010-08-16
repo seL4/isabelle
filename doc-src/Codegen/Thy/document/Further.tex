@@ -22,14 +22,50 @@
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{Further reading%
+\isamarkupsubsection{Modules namespace%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-To dive deeper into the issue of code generation, you should visit
-  the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}, which
-  contains exhaustive syntax diagrams.%
+When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command it is possible to leave
+  out the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} part;  then code is distributed over
+  different modules, where the module name space roughly is induced
+  by the Isabelle theory name space.
+
+  Then sometimes the awkward situation occurs that dependencies between
+  definitions introduce cyclic dependencies between modules, which in the
+  \isa{Haskell} world leaves you to the mercy of the \isa{Haskell} implementation
+  you are using,  while for \isa{SML}/\isa{OCaml} code generation is not possible.
+
+  A solution is to declare module names explicitly.
+  Let use assume the three cyclically dependent
+  modules are named \emph{A}, \emph{B} and \emph{C}.
+  Then, by stating%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{code{\isacharunderscore}modulename}\isamarkupfalse%
+\ SML\isanewline
+\ \ A\ ABC\isanewline
+\ \ B\ ABC\isanewline
+\ \ C\ ABC%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent
+  we explicitly map all those modules on \emph{ABC},
+  resulting in an ad-hoc merge of this three modules
+  at serialisation time.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -197,50 +233,16 @@ After an interpretation of this locale (say, \hyperlink{command.interpretation}{
 %
 \endisadelimquote
 %
-\isamarkupsubsection{Modules%
+\isamarkupsubsection{Imperative data structures%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-When invoking the \hyperlink{command.export-code}{\mbox{\isa{\isacommand{export{\isacharunderscore}code}}}} command it is possible to leave
-  out the \hyperlink{keyword.module-name}{\mbox{\isa{\isakeyword{module{\isacharunderscore}name}}}} part;  then code is distributed over
-  different modules, where the module name space roughly is induced
-  by the \isa{Isabelle} theory name space.
-
-  Then sometimes the awkward situation occurs that dependencies between
-  definitions introduce cyclic dependencies between modules, which in the
-  \isa{Haskell} world leaves you to the mercy of the \isa{Haskell} implementation
-  you are using,  while for \isa{SML}/\isa{OCaml} code generation is not possible.
-
-  A solution is to declare module names explicitly.
-  Let use assume the three cyclically dependent
-  modules are named \emph{A}, \emph{B} and \emph{C}.
-  Then, by stating%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{code{\isacharunderscore}modulename}\isamarkupfalse%
-\ SML\isanewline
-\ \ A\ ABC\isanewline
-\ \ B\ ABC\isanewline
-\ \ C\ ABC%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent
-  we explicitly map all those modules on \emph{ABC},
-  resulting in an ad-hoc merge of this three modules
-  at serialisation time.%
+If you consider imperative data structures as inevitable for a
+  specific application, you should consider \emph{Imperative
+  Functional Programming with Isabelle/HOL}
+  \cite{bulwahn-et-al:2008:imperative}; the framework described there
+  is available in session \hyperlink{theory.Imperative-HOL}{\mbox{\isa{Imperative{\isacharunderscore}HOL}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -301,7 +303,16 @@ Code generation may also be used to \emph{evaluate} expressions
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Code antiquotation%
+\isamarkupsubsection{Building evaluators%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Code antiquotation%
 }
 \isamarkuptrue%
 %
@@ -373,19 +384,6 @@ code\ Or%
 
   For a less simplistic example, theory \hyperlink{theory.Ferrack}{\mbox{\isa{Ferrack}}} is
   a good reference.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Imperative data structures%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-If you consider imperative data structures as inevitable for a specific
-  application, you should consider
-  \emph{Imperative Functional Programming with Isabelle/HOL}
-  \cite{bulwahn-et-al:2008:imperative};
-  the framework described there is available in theory \hyperlink{theory.Imperative-HOL}{\mbox{\isa{Imperative{\isacharunderscore}HOL}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -552,13 +550,6 @@ Implementing code generator applications on top
   \item \isa{change{\isacharunderscore}yield} update with side result.
 
   \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\bigskip
-
-  \emph{Happy proving, happy hacking!}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

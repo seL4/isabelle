@@ -4,12 +4,34 @@ begin
 
 section {* Further issues \label{sec:further} *}
 
-subsection {* Further reading *}
+subsection {* Modules namespace *}
 
 text {*
-  To dive deeper into the issue of code generation, you should visit
-  the Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}, which
-  contains exhaustive syntax diagrams.
+  When invoking the @{command export_code} command it is possible to leave
+  out the @{keyword "module_name"} part;  then code is distributed over
+  different modules, where the module name space roughly is induced
+  by the Isabelle theory name space.
+
+  Then sometimes the awkward situation occurs that dependencies between
+  definitions introduce cyclic dependencies between modules, which in the
+  @{text Haskell} world leaves you to the mercy of the @{text Haskell} implementation
+  you are using,  while for @{text SML}/@{text OCaml} code generation is not possible.
+
+  A solution is to declare module names explicitly.
+  Let use assume the three cyclically dependent
+  modules are named \emph{A}, \emph{B} and \emph{C}.
+  Then, by stating
+*}
+
+code_modulename %quote SML
+  A ABC
+  B ABC
+  C ABC
+
+text {*\noindent
+  we explicitly map all those modules on \emph{ABC},
+  resulting in an ad-hoc merge of this three modules
+  at serialisation time.
 *}
 
 subsection {* Locales and interpretation *}
@@ -93,35 +115,16 @@ text {*
 text %quote {*@{code_stmts funpows (consts) Nat.funpow funpows (Haskell)}*}
 
 
-subsection {* Modules *}
+subsection {* Imperative data structures *}
 
 text {*
-  When invoking the @{command export_code} command it is possible to leave
-  out the @{keyword "module_name"} part;  then code is distributed over
-  different modules, where the module name space roughly is induced
-  by the @{text Isabelle} theory name space.
-
-  Then sometimes the awkward situation occurs that dependencies between
-  definitions introduce cyclic dependencies between modules, which in the
-  @{text Haskell} world leaves you to the mercy of the @{text Haskell} implementation
-  you are using,  while for @{text SML}/@{text OCaml} code generation is not possible.
-
-  A solution is to declare module names explicitly.
-  Let use assume the three cyclically dependent
-  modules are named \emph{A}, \emph{B} and \emph{C}.
-  Then, by stating
+  If you consider imperative data structures as inevitable for a
+  specific application, you should consider \emph{Imperative
+  Functional Programming with Isabelle/HOL}
+  \cite{bulwahn-et-al:2008:imperative}; the framework described there
+  is available in session @{theory Imperative_HOL}.
 *}
 
-code_modulename %quote SML
-  A ABC
-  B ABC
-  C ABC
-
-text {*\noindent
-  we explicitly map all those modules on \emph{ABC},
-  resulting in an ad-hoc merge of this three modules
-  at serialisation time.
-*}
 
 subsection {* Evaluation oracle *}
 
@@ -150,7 +153,14 @@ text {*
   why you should not use adaptation (see \secref{sec:adaptation}) frivolously.
 *}
 
-subsection {* Code antiquotation *}
+
+subsection {* Building evaluators *}
+
+text {*
+  FIXME
+*}
+
+subsubsection {* Code antiquotation *}
 
 text {*
   In scenarios involving techniques like reflection it is quite common
@@ -179,16 +189,6 @@ text {*
 
   For a less simplistic example, theory @{theory Ferrack} is
   a good reference.
-*}
-
-subsection {* Imperative data structures *}
-
-text {*
-  If you consider imperative data structures as inevitable for a specific
-  application, you should consider
-  \emph{Imperative Functional Programming with Isabelle/HOL}
-  \cite{bulwahn-et-al:2008:imperative};
-  the framework described there is available in theory @{theory Imperative_HOL}.
 *}
 
 
@@ -319,12 +319,6 @@ text {*
   \item @{text change_yield} update with side result.
 
   \end{description}
-*}
-
-text {*
-  \bigskip
-
-  \emph{Happy proving, happy hacking!}
 *}
 
 end

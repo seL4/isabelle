@@ -2,164 +2,83 @@ theory Foundations
 imports Introduction
 begin
 
-section {* Code generation foundations \label{sec:program} *}
+section {* Code generation foundations \label{sec:foundations} *}
 
-subsection {* The @{text "Isabelle/HOL"} default setup *}
-
-text {*
-  We have already seen how by default equations stemming from
-  @{command definition}, @{command primrec} and @{command fun}
-  statements are used for code generation.  This default behaviour
-  can be changed, e.g.\ by providing different code equations.
-  The customisations shown in this section are \emph{safe}
-  as regards correctness: all programs that can be generated are partially
-  correct.
-*}
-
-subsection {* Selecting code equations *}
+subsection {* Code generator architecture \label{sec:architecture} *}
 
 text {*
-  Coming back to our introductory example, we
-  could provide an alternative code equations for @{const dequeue}
-  explicitly:
+
+  The code generator is actually a framework consisting of different
+  components which can be customised individually.
+
+  Conceptually all components operate on Isabelle's logic framework
+  @{theory Pure}.  Practically, the object logic @{theory HOL}
+  provides the necessary facilities to make use of the code generator,
+  mainly since it is an extension of @{theory Pure}.
+
+  The constellation of the different components is visualized in the
+  following picture.
+
+  \begin{figure}[h]
+    \includegraphics{architecture}
+    \caption{Code generator architecture}
+    \label{fig:arch}
+  \end{figure}
+
+  \noindent Central to code generation is the notion of \emph{code
+  equations}.  A code equation as a first approximation is a theorem
+  of the form @{text "f t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n \<equiv> t"} (an equation headed by a
+  constant @{text f} with arguments @{text "t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n"} and right
+  hand side @{text t}).
+
+  \begin{itemize}
+
+    \item Starting point of code generation is a collection of (raw)
+      code equations in a theory. It is not relevant where they stem
+      from, but typically they were either produced by specification
+      tools or proved explicitly by the user.
+      
+    \item These raw code equations can be subjected to theorem
+      transformations.  This \qn{preprocessor} (see
+      \secref{sec:preproc}) can apply the full expressiveness of
+      ML-based theorem transformations to code generation.  The result
+      of preprocessing is a structured collection of code equations.
+
+    \item These code equations are \qn{translated} to a program in an
+      abstract intermediate language.  Think of it as a kind of
+      \qt{Mini-Haskell} with four \qn{statements}: @{text data} (for
+      datatypes), @{text fun} (stemming from code equations), also
+      @{text class} and @{text inst} (for type classes).
+
+    \item Finally, the abstract program is \qn{serialised} into
+      concrete source code of a target language.  This step only
+      produces concrete syntax but does not change the program in
+      essence; all conceptual transformations occur in the translation
+      step.
+
+  \end{itemize}
+
+  \noindent From these steps, only the last two are carried out
+  outside the logic; by keeping this layer as thin as possible, the
+  amount of code to trust is kept to a minimum.
 *}
 
-lemma %quote [code]:
-  "dequeue (AQueue xs []) =
-     (if xs = [] then (None, AQueue [] [])
-       else dequeue (AQueue [] (rev xs)))"
-  "dequeue (AQueue xs (y # ys)) =
-     (Some y, AQueue xs ys)"
-  by (cases xs, simp_all) (cases "rev xs", simp_all)
-
-text {*
-  \noindent The annotation @{text "[code]"} is an @{text Isar}
-  @{text attribute} which states that the given theorems should be
-  considered as code equations for a @{text fun} statement --
-  the corresponding constant is determined syntactically.  The resulting code:
-*}
-
-text %quote {*@{code_stmts dequeue (consts) dequeue (Haskell)}*}
-
-text {*
-  \noindent You may note that the equality test @{term "xs = []"} has been
-  replaced by the predicate @{term "null xs"}.  This is due to the default
-  setup in the \qn{preprocessor} to be discussed further below (\secref{sec:preproc}).
-
-  Changing the default constructor set of datatypes is also
-  possible.  See \secref{sec:datatypes} for an example.
-
-  As told in \secref{sec:concept}, code generation is based
-  on a structured collection of code theorems.
-  This collection
-  may be inspected using the @{command code_thms} command:
-*}
-
-code_thms %quote dequeue
-
-text {*
-  \noindent prints a table with \emph{all} code equations
-  for @{const dequeue}, including
-  \emph{all} code equations those equations depend
-  on recursively.
-  
-  Similarly, the @{command code_deps} command shows a graph
-  visualising dependencies between code equations.
-*}
-
-subsection {* @{text class} and @{text instantiation} *}
-
-text {*
-  Concerning type classes and code generation, let us examine an example
-  from abstract algebra:
-*}
-
-class %quote semigroup =
-  fixes mult :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<otimes>" 70)
-  assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
-
-class %quote monoid = semigroup +
-  fixes neutral :: 'a ("\<one>")
-  assumes neutl: "\<one> \<otimes> x = x"
-    and neutr: "x \<otimes> \<one> = x"
-
-instantiation %quote nat :: monoid
-begin
-
-primrec %quote mult_nat where
-    "0 \<otimes> n = (0\<Colon>nat)"
-  | "Suc m \<otimes> n = n + m \<otimes> n"
-
-definition %quote neutral_nat where
-  "\<one> = Suc 0"
-
-lemma %quote add_mult_distrib:
-  fixes n m q :: nat
-  shows "(n + m) \<otimes> q = n \<otimes> q + m \<otimes> q"
-  by (induct n) simp_all
-
-instance %quote proof
-  fix m n q :: nat
-  show "m \<otimes> n \<otimes> q = m \<otimes> (n \<otimes> q)"
-    by (induct m) (simp_all add: add_mult_distrib)
-  show "\<one> \<otimes> n = n"
-    by (simp add: neutral_nat_def)
-  show "m \<otimes> \<one> = m"
-    by (induct m) (simp_all add: neutral_nat_def)
-qed
-
-end %quote
-
-text {*
-  \noindent We define the natural operation of the natural numbers
-  on monoids:
-*}
-
-primrec %quote (in monoid) pow :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
-    "pow 0 a = \<one>"
-  | "pow (Suc n) a = a \<otimes> pow n a"
-
-text {*
-  \noindent This we use to define the discrete exponentiation function:
-*}
-
-definition %quote bexp :: "nat \<Rightarrow> nat" where
-  "bexp n = pow n (Suc (Suc 0))"
-
-text {*
-  \noindent The corresponding code in Haskell uses that language's native classes:
-*}
-
-text %quote {*@{code_stmts bexp (Haskell)}*}
-
-text {*
-  \noindent This is a convenient place to show how explicit dictionary construction
-  manifests in generated code (here, the same example in @{text SML})
-  \cite{Haftmann-Nipkow:2010:code}:
-*}
-
-text %quote {*@{code_stmts bexp (SML)}*}
-
-text {*
-  \noindent Note the parameters with trailing underscore (@{verbatim "A_"}),
-    which are the dictionary parameters.
-*}
 
 subsection {* The preprocessor \label{sec:preproc} *}
 
 text {*
-  Before selected function theorems are turned into abstract
-  code, a chain of definitional transformation steps is carried
-  out: \emph{preprocessing}.  In essence, the preprocessor
-  consists of two components: a \emph{simpset} and \emph{function transformers}.
+  Before selected function theorems are turned into abstract code, a
+  chain of definitional transformation steps is carried out:
+  \emph{preprocessing}.  The preprocessor consists of two
+  components: a \emph{simpset} and \emph{function transformers}.
 
-  The \emph{simpset} can apply the full generality of the
-  Isabelle simplifier.  Due to the interpretation of theorems as code
+  The \emph{simpset} can apply the full generality of the Isabelle
+  simplifier.  Due to the interpretation of theorems as code
   equations, rewrites are applied to the right hand side and the
   arguments of the left hand side of an equation, but never to the
   constant heading the left hand side.  An important special case are
-  \emph{unfold theorems},  which may be declared and removed using
-  the @{attribute code_unfold} or \emph{@{attribute code_unfold} del}
+  \emph{unfold theorems}, which may be declared and removed using the
+  @{attribute code_unfold} or \emph{@{attribute code_unfold} del}
   attribute, respectively.
 
   Some common applications:
@@ -177,189 +96,141 @@ lemma %quote [code_unfold]:
   "x \<in> set xs \<longleftrightarrow> List.member xs x" by (fact in_set_member)
 
 text {*
-     \item eliminating superfluous constants:
-*}
-
-lemma %quote [code_unfold]:
-  "1 = Suc 0" by (fact One_nat_def)
-
-text {*
      \item replacing executable but inconvenient constructs:
 *}
 
 lemma %quote [code_unfold]:
   "xs = [] \<longleftrightarrow> List.null xs" by (fact eq_Nil_null)
 
+text {*
+     \item eliminating disturbing expressions:
+*}
+
+lemma %quote [code_unfold]:
+  "1 = Suc 0" by (fact One_nat_def)
+
 text_raw {*
   \end{itemize}
 *}
 
 text {*
-  \noindent \emph{Function transformers} provide a very general interface,
-  transforming a list of function theorems to another
-  list of function theorems, provided that neither the heading
-  constant nor its type change.  The @{term "0\<Colon>nat"} / @{const Suc}
-  pattern elimination implemented in
-  theory @{text Efficient_Nat} (see \secref{eff_nat}) uses this
-  interface.
+  \noindent \emph{Function transformers} provide a very general
+  interface, transforming a list of function theorems to another list
+  of function theorems, provided that neither the heading constant nor
+  its type change.  The @{term "0\<Colon>nat"} / @{const Suc} pattern
+  elimination implemented in theory @{theory Efficient_Nat} (see
+  \secref{eff_nat}) uses this interface.
 
-  \noindent The current setup of the preprocessor may be inspected using
-  the @{command print_codeproc} command.
-  @{command code_thms} provides a convenient
-  mechanism to inspect the impact of a preprocessor setup
-  on code equations.
+  \noindent The current setup of the preprocessor may be inspected
+  using the @{command print_codeproc} command.  @{command code_thms}
+  (see \secref{sec:equations}) provides a convenient mechanism to
+  inspect the impact of a preprocessor setup on code equations.
 
   \begin{warn}
-
     Attribute @{attribute code_unfold} also applies to the
     preprocessor of the ancient @{text "SML code generator"}; in case
     this is not what you intend, use @{attribute code_inline} instead.
   \end{warn}
 *}
 
-subsection {* Datatypes \label{sec:datatypes} *}
+
+subsection {* Understanding code equations \label{sec:equations} *}
 
 text {*
-  Conceptually, any datatype is spanned by a set of
-  \emph{constructors} of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"} where @{text
-  "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is exactly the set of \emph{all} type variables in
-  @{text "\<tau>"}.  The HOL datatype package by default registers any new
-  datatype in the table of datatypes, which may be inspected using the
-  @{command print_codesetup} command.
+  As told in \secref{sec:principle}, the notion of code equations is
+  vital to code generation.  Indeed most problems which occur in
+  practice can be resolved by an inspection of the underlying code
+  equations.
 
-  In some cases, it is appropriate to alter or extend this table.  As
-  an example, we will develop an alternative representation of the
-  queue example given in \secref{sec:intro}.  The amortised
-  representation is convenient for generating code but exposes its
-  \qt{implementation} details, which may be cumbersome when proving
-  theorems about it.  Therefore, here is a simple, straightforward
-  representation of queues:
+  It is possible to exchange the default code equations for constants
+  by explicitly proving alternative ones:
 *}
 
-datatype %quote 'a queue = Queue "'a list"
-
-definition %quote empty :: "'a queue" where
-  "empty = Queue []"
-
-primrec %quote enqueue :: "'a \<Rightarrow> 'a queue \<Rightarrow> 'a queue" where
-  "enqueue x (Queue xs) = Queue (xs @ [x])"
-
-fun %quote dequeue :: "'a queue \<Rightarrow> 'a option \<times> 'a queue" where
-    "dequeue (Queue []) = (None, Queue [])"
-  | "dequeue (Queue (x # xs)) = (Some x, Queue xs)"
-
-text {*
-  \noindent This we can use directly for proving;  for executing,
-  we provide an alternative characterisation:
-*}
-
-definition %quote AQueue :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a queue" where
-  "AQueue xs ys = Queue (ys @ rev xs)"
-
-code_datatype %quote AQueue
-
-text {*
-  \noindent Here we define a \qt{constructor} @{const "AQueue"} which
-  is defined in terms of @{text "Queue"} and interprets its arguments
-  according to what the \emph{content} of an amortised queue is supposed
-  to be.  Equipped with this, we are able to prove the following equations
-  for our primitive queue operations which \qt{implement} the simple
-  queues in an amortised fashion:
-*}
-
-lemma %quote empty_AQueue [code]:
-  "empty = AQueue [] []"
-  unfolding AQueue_def empty_def by simp
-
-lemma %quote enqueue_AQueue [code]:
-  "enqueue x (AQueue xs ys) = AQueue (x # xs) ys"
-  unfolding AQueue_def by simp
-
-lemma %quote dequeue_AQueue [code]:
+lemma %quote [code]:
   "dequeue (AQueue xs []) =
-    (if xs = [] then (None, AQueue [] [])
-    else dequeue (AQueue [] (rev xs)))"
-  "dequeue (AQueue xs (y # ys)) = (Some y, AQueue xs ys)"
-  unfolding AQueue_def by simp_all
+     (if xs = [] then (None, AQueue [] [])
+       else dequeue (AQueue [] (rev xs)))"
+  "dequeue (AQueue xs (y # ys)) =
+     (Some y, AQueue xs ys)"
+  by (cases xs, simp_all) (cases "rev xs", simp_all)
 
 text {*
-  \noindent For completeness, we provide a substitute for the
-  @{text case} combinator on queues:
+  \noindent The annotation @{text "[code]"} is an @{text attribute}
+  which states that the given theorems should be considered as code
+  equations for a @{text fun} statement -- the corresponding constant
+  is determined syntactically.  The resulting code:
 *}
 
-lemma %quote queue_case_AQueue [code]:
-  "queue_case f (AQueue xs ys) = f (ys @ rev xs)"
-  unfolding AQueue_def by simp
+text %quote {*@{code_stmts dequeue (consts) dequeue (Haskell)}*}
 
 text {*
-  \noindent The resulting code looks as expected:
+  \noindent You may note that the equality test @{term "xs = []"} has
+  been replaced by the predicate @{term "List.null xs"}.  This is due
+  to the default setup of the \qn{preprocessor}.
+
+  This possibility to select arbitrary code equations is the key
+  technique for program and datatype refinement (see
+  \secref{sec:refinement}.
+
+  Due to the preprocessor, there is the distinction of raw code
+  equations (before preprocessing) and code equations (after
+  preprocessing).
+
+  The first can be listed (among other data) using the @{command
+  print_codesetup} command (later on in \secref{sec:refinement}
+  it will be shown how these code equations can be changed).
+
+  The code equations after preprocessing are already are blueprint of
+  the generated program and can be inspected using the @{command
+  code_thms} command:
 *}
 
-text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
+code_thms %quote dequeue
 
 text {*
-  \noindent From this example, it can be glimpsed that using own
-  constructor sets is a little delicate since it changes the set of
-  valid patterns for values of that type.  Without going into much
-  detail, here some practical hints:
-
-  \begin{itemize}
-
-    \item When changing the constructor set for datatypes, take care
-      to provide alternative equations for the @{text case} combinator.
-
-    \item Values in the target language need not to be normalised --
-      different values in the target language may represent the same
-      value in the logic.
-
-    \item Usually, a good methodology to deal with the subtleties of
-      pattern matching is to see the type as an abstract type: provide
-      a set of operations which operate on the concrete representation
-      of the type, and derive further operations by combinations of
-      these primitive ones, without relying on a particular
-      representation.
-
-  \end{itemize}
+  \noindent This prints a table with the code equations for @{const
+  dequeue}, including \emph{all} code equations those equations depend
+  on recursively.  These dependencies themselves can be visualized using
+  the @{command code_deps} command.
 *}
 
 
 subsection {* Equality *}
 
 text {*
-  Surely you have already noticed how equality is treated
-  by the code generator:
+  Implementation of equality deserves some attention.  Here an example
+  function involving polymorphic equality:
 *}
 
 primrec %quote collect_duplicates :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
   "collect_duplicates xs ys [] = xs"
-  | "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
-      then if z \<in> set ys
-        then collect_duplicates xs ys zs
-        else collect_duplicates xs (z#ys) zs
-      else collect_duplicates (z#xs) (z#ys) zs)"
+| "collect_duplicates xs ys (z#zs) = (if z \<in> set xs
+    then if z \<in> set ys
+      then collect_duplicates xs ys zs
+      else collect_duplicates xs (z#ys) zs
+    else collect_duplicates (z#xs) (z#ys) zs)"
 
 text {*
   \noindent During preprocessing, the membership test is rewritten,
-  resulting in @{const List.member}, which itself
-  performs an explicit equality check.
+  resulting in @{const List.member}, which itself performs an explicit
+  equality check, as can be seen in the corresponding @{text SML} code:
 *}
 
 text %quote {*@{code_stmts collect_duplicates (SML)}*}
 
 text {*
   \noindent Obviously, polymorphic equality is implemented the Haskell
-  way using a type class.  How is this achieved?  HOL introduces
-  an explicit class @{class eq} with a corresponding operation
-  @{const eq_class.eq} such that @{thm eq [no_vars]}.
-  The preprocessing framework does the rest by propagating the
-  @{class eq} constraints through all dependent code equations.
-  For datatypes, instances of @{class eq} are implicitly derived
-  when possible.  For other types, you may instantiate @{text eq}
-  manually like any other type class.
+  way using a type class.  How is this achieved?  HOL introduces an
+  explicit class @{class eq} with a corresponding operation @{const
+  eq_class.eq} such that @{thm eq [no_vars]}.  The preprocessing
+  framework does the rest by propagating the @{class eq} constraints
+  through all dependent code equations.  For datatypes, instances of
+  @{class eq} are implicitly derived when possible.  For other types,
+  you may instantiate @{text eq} manually like any other type class.
 *}
 
 
-subsection {* Explicit partiality *}
+subsection {* Explicit partiality \label{sec:partiality} *}
 
 text {*
   Partiality usually enters the game by partial patterns, as
@@ -374,7 +245,7 @@ lemma %quote strict_dequeue_AQueue [code]:
   "strict_dequeue (AQueue xs (y # ys)) = (y, AQueue xs ys)"
   "strict_dequeue (AQueue xs []) =
     (case rev xs of y # ys \<Rightarrow> (y, AQueue [] ys))"
-  by (simp_all add: strict_dequeue_def dequeue_AQueue split: list.splits)
+  by (simp_all add: strict_dequeue_def) (cases xs, simp_all split: list.split)
 
 text {*
   \noindent In the corresponding code, there is no equation
@@ -398,7 +269,7 @@ lemma %quote strict_dequeue'_AQueue [code]:
      else strict_dequeue' (AQueue [] (rev xs)))"
   "strict_dequeue' (AQueue xs (y # ys)) =
      (y, AQueue xs ys)"
-  by (simp_all add: strict_dequeue'_def dequeue_AQueue split: list.splits)
+  by (simp_all add: strict_dequeue'_def split: list.splits)
 
 text {*
   Observe that on the right hand side of the definition of @{const
@@ -423,10 +294,53 @@ text {*
 text %quote {*@{code_stmts strict_dequeue' (consts) empty_queue strict_dequeue' (Haskell)}*}
 
 text {*
-  \noindent This feature however is rarely needed in practice.
-  Note also that the @{text HOL} default setup already declares
-  @{const undefined} as @{command "code_abort"}, which is most
-  likely to be used in such situations.
+  \noindent This feature however is rarely needed in practice.  Note
+  also that the HOL default setup already declares @{const undefined}
+  as @{command "code_abort"}, which is most likely to be used in such
+  situations.
+*}
+
+
+subsection {* If something goes utterly wrong \label{sec:utterly_wrong} *}
+
+text {*
+  Under certain circumstances, the code generator fails to produce
+  code entirely.  To debug these, the following hints may prove
+  helpful:
+
+  \begin{description}
+
+    \ditem{\emph{Check with a different target language}.}  Sometimes
+      the situation gets more clear if you switch to another target
+      language; the code generated there might give some hints what
+      prevents the code generator to produce code for the desired
+      language.
+
+    \ditem{\emph{Inspect code equations}.}  Code equations are the central
+      carrier of code generation.  Most problems occuring while generation
+      code can be traced to single equations which are printed as part of
+      the error message.  A closer inspection of those may offer the key
+      for solving issues (cf.~\secref{sec:equations}).
+
+    \ditem{\emph{Inspect preprocessor setup}.}  The preprocessor might
+      transform code equations unexpectedly; to understand an
+      inspection of its setup is necessary (cf.~\secref{sec:preproc}).
+
+    \ditem{\emph{Generate exceptions}.}  If the code generator
+      complains about missing code equations, in can be helpful to
+      implement the offending constants as exceptions
+      (cf.~\secref{sec:partiality}); this allows at least for a formal
+      generation of code, whose inspection may then give clues what is
+      wrong.
+
+    \ditem{\emph{Remove offending code equations}.}  If code
+      generation is prevented by just a single equation, this can be
+      removed (cf.~\secref{sec:equations}) to allow formal code
+      generation, whose result in turn can be used to trace the
+      problem.  The most prominent case here are mismatches in type
+      class signatures (\qt{wellsortedness error}).
+
+  \end{description}
 *}
 
 end
