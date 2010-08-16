@@ -130,8 +130,8 @@ fun prep_class_elems prep_decl thy sups raw_elems =
             | _ => error "Multiple type variables in class specification.";
       in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
     fun add_typ_check level name f = Context.proof_map
-      (Syntax.add_typ_check level name (fn xs => fn ctxt =>
-        let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
+      (Syntax.add_typ_check level name (fn Ts => fn ctxt =>
+        let val Ts' = f Ts in if eq_list (op =) (Ts, Ts') then NONE else SOME (Ts', ctxt) end));
 
     (* preprocessing elements, retrieving base sort from type-checked elements *)
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
@@ -140,16 +140,21 @@ fun prep_class_elems prep_decl thy sups raw_elems =
       #> add_typ_check ~10 "singleton_fixate" singleton_fixate;
     val raw_supexpr = (map (fn sup => (sup, (("", false),
       Expression.Positional []))) sups, []);
-    val ((raw_supparams, _, inferred_elems), _) = ProofContext.init_global thy
+    val ((raw_supparams, _, raw_inferred_elems), _) = ProofContext.init_global thy
       |> prep_decl raw_supexpr init_class_body raw_elems;
+    fun filter_element (Element.Fixes []) = NONE
+      | filter_element (e as Element.Fixes _) = SOME e
+      | filter_element (Element.Constrains []) = NONE
+      | filter_element (e as Element.Constrains _) = SOME e
+      | filter_element (Element.Assumes []) = NONE
+      | filter_element (e as Element.Assumes _) = SOME e
+      | filter_element (Element.Defines _) = error ("\"defines\" element not allowed in class specification.")
+      | filter_element (Element.Notes _) = error ("\"notes\" element not allowed in class specification.");
+    val inferred_elems = map_filter filter_element raw_inferred_elems;
     fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs
       | fold_element_types f (Element.Constrains cnstrs) = fold (f o snd) cnstrs
       | fold_element_types f (Element.Assumes assms) = fold (fold (fn (t, ts) =>
           fold_types f t #> (fold o fold_types) f ts) o snd) assms
-      | fold_element_types f (Element.Defines _) =
-          error ("\"defines\" element not allowed in class specification.")
-      | fold_element_types f (Element.Notes _) =
-          error ("\"notes\" element not allowed in class specification.");
     val base_sort = if null inferred_elems then proto_base_sort else
       case (fold o fold_element_types) Term.add_tfreesT inferred_elems []
        of [] => error "No type variable in class specification"
