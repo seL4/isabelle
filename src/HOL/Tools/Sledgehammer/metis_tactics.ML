@@ -789,7 +789,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
       Meson.MESON (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
-     handle ERROR msg => raise METIS ("generic_metis_tac", msg)
+      handle ERROR msg => raise METIS ("generic_metis_tac", msg)
   end
   handle METIS (loc, msg) =>
          if mode = HO then

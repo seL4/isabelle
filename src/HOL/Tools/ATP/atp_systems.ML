@@ -221,8 +221,7 @@ fun the_system prefix =
 
 fun remote_config atp_prefix
         ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
-          prefers_theory_relevant, explicit_forall, ...} : prover_config)
-        : prover_config =
+          prefers_theory_relevant, ...} : prover_config) : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
@@ -234,7 +233,7 @@ fun remote_config atp_prefix
      [(TimedOut, "says Timeout")],
    max_new_relevant_facts_per_iter = max_new_relevant_facts_per_iter,
    prefers_theory_relevant = prefers_theory_relevant,
-   explicit_forall = explicit_forall}
+   explicit_forall = true}
 
 val remote_name = prefix "remote_"
 
