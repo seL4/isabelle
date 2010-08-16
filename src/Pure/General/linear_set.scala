@@ -48,6 +48,12 @@ class Linear_Set[A]
   def next(elem: A): Option[A] = rep.nexts.get(elem)
   def prev(elem: A): Option[A] = rep.prevs.get(elem)
 
+  def get_after(hook: Option[A]): Option[A] =
+    hook match {
+      case None => rep.start
+      case Some(elem) => next(elem)
+    }
+
   def insert_after(hook: Option[A], elem: A): Linear_Set[A] =
     if (contains(elem)) throw new Linear_Set.Duplicate(elem.toString)
     else

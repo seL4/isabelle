@@ -7,10 +7,13 @@ list of commands.
 
 signature DOCUMENT =
 sig
-  type state_id = string
-  type command_id = string
-  type version_id = string
-  val no_id: string
+  type id = int
+  type version_id = id
+  type command_id = id
+  type exec_id = id
+  val no_id: id
+  val parse_id: string -> id
+  val print_id: id -> string
   type edit = string * ((command_id * command_id option) list) option
 end;
 
@@ -19,11 +22,15 @@ struct
 
 (* unique identifiers *)
 
-type state_id = string;
-type command_id = string;
-type version_id = string;
+type id = int;
+type version_id = id;
+type command_id = id;
+type exec_id = id;
 
-val no_id = "";
+val no_id = 0;
+
+val parse_id = Markup.parse_int;
+val print_id = Markup.print_int;
 
 
 (* edits *)

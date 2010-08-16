@@ -285,8 +285,8 @@ object Scan
 
       val junk = many1(sym => !(symbols.is_blank(sym)))
       val bad_delimiter =
-        ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token.Kind.BAD_INPUT, x + y) }
-      val bad = junk ^^ (x => Token(Token.Kind.BAD_INPUT, x))
+        ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token.Kind.UNPARSED, x + y) }
+      val bad = junk ^^ (x => Token(Token.Kind.UNPARSED, x))
 
 
       /* tokens */

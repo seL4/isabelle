@@ -18,7 +18,7 @@ object Position
   def get_end_column(pos: T): Option[Int] = Markup.get_int(Markup.END_COLUMN, pos)
   def get_end_offset(pos: T): Option[Int] = Markup.get_int(Markup.END_OFFSET, pos)
   def get_file(pos: T): Option[String] = Markup.get_string(Markup.FILE, pos)
-  def get_id(pos: T): Option[String] = Markup.get_string(Markup.ID, pos)
+  def get_id(pos: T): Option[Long] = Markup.get_long(Markup.ID, pos)
 
   def get_range(pos: T): Option[(Int, Int)] =
     (get_offset(pos), get_end_offset(pos)) match {
@@ -27,6 +27,6 @@ object Position
       case (None, _) => None
     }
 
-  object Id { def unapply(pos: T): Option[String] = get_id(pos) }
+  object Id { def unapply(pos: T): Option[Long] = get_id(pos) }
   object Range { def unapply(pos: T): Option[(Int, Int)] = get_range(pos) }
 }

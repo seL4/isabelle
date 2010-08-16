@@ -33,7 +33,6 @@ declare -a SOURCES=(
   General/xml.scala
   General/xml_data.scala
   General/yxml.scala
-  Isar/isar_document.scala
   Isar/keyword.scala
   Isar/outer_syntax.scala
   Isar/parse.scala
@@ -42,7 +41,6 @@ declare -a SOURCES=(
   PIDE/document.scala
   PIDE/event_bus.scala
   PIDE/markup_node.scala
-  PIDE/state.scala
   PIDE/text_edit.scala
   System/cygwin.scala
   System/download.scala
@@ -50,6 +48,7 @@ declare -a SOURCES=(
   System/isabelle_process.scala
   System/isabelle_syntax.scala
   System/isabelle_system.scala
+  System/isar_document.scala
   System/platform.scala
   System/session.scala
   System/session_manager.scala

@@ -255,9 +255,9 @@ use "Proof/extraction.ML";
 (* Isabelle/Isar system *)
 
 use "System/session.ML";
-use "System/isar.ML";
 use "System/isabelle_process.ML";
-use "Isar/isar_document.ML";
+use "System/isar_document.ML";
+use "System/isar.ML";
 
 
 (* miscellaneous tools and packages for Pure Isabelle *)

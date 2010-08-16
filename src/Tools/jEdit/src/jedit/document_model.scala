@@ -227,7 +227,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   def snapshot(): Document.Snapshot = {
     Swing_Thread.require()
-    session.current_change().snapshot(thy_name, pending_edits.snapshot())
+    session.snapshot(thy_name, pending_edits.snapshot())
   }
 
 
@@ -278,7 +278,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       for {
         (command, command_start) <-
           snapshot.node.command_range(snapshot.revert(start), snapshot.revert(stop))
-        markup <- snapshot.document.current_state(command).highlight.flatten
+        markup <- snapshot.state(command).highlight.flatten
         val abs_start = snapshot.convert(command_start + markup.start)
         val abs_stop = snapshot.convert(command_start + markup.stop)
         if (abs_stop > start)

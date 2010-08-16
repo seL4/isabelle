@@ -47,7 +47,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
         val offset = snapshot.revert(original_offset)
         snapshot.node.command_at(offset) match {
           case Some((command, command_start)) =>
-            snapshot.document.current_state(command).ref_at(offset - command_start) match {
+            snapshot.state(command).ref_at(offset - command_start) match {
               case Some(ref) =>
                 val begin = snapshot.convert(command_start + ref.start)
                 val line = buffer.getLineOfOffset(begin)
@@ -56,8 +56,8 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                   case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
                     new External_Hyperlink(begin, end, line, ref_file, ref_line)
                   case Command.RefInfo(_, _, Some(id), Some(offset)) =>
-                    Isabelle.session.lookup_entity(id) match {
-                      case Some(ref_cmd: Command) =>
+                    snapshot.lookup_command(id) match {  // FIXME Command_ID vs. Exec_ID (!??)
+                      case Some(ref_cmd) =>
                         snapshot.node.command_start(ref_cmd) match {
                           case Some(ref_cmd_start) =>
                             new Internal_Hyperlink(begin, end, line,
