@@ -12,17 +12,17 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 
 
-case class Markup_Node(val start: Int, val stop: Int, val info: Any)
+case class Markup_Node(val range: Text.Range, val info: Any)
 {
   def fits_into(that: Markup_Node): Boolean =
-    that.start <= this.start && this.stop <= that.stop
+    that.range.start <= this.range.start && this.range.stop <= that.range.stop
 }
 
 
 case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
 {
   private def add(branch: Markup_Tree) =   // FIXME avoid sort
-    copy(branches = (branch :: branches).sortWith((a, b) => a.node.start < b.node.start))
+    copy(branches = (branch :: branches).sortWith((a, b) => a.node.range.start < b.node.range.start))
 
   private def remove(bs: List[Markup_Tree]) =
     copy(branches = branches.filterNot(bs.contains(_)))
@@ -55,21 +55,21 @@ case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
 
   def flatten: List[Markup_Node] =
   {
-    var next_x = node.start
+    var next_x = node.range.start
     if (branches.isEmpty) List(this.node)
     else {
       val filled_gaps =
         for {
           child <- branches
           markups =
-            if (next_x < child.node.start)
-              new Markup_Node(next_x, child.node.start, node.info) :: child.flatten
+            if (next_x < child.node.range.start)
+              new Markup_Node(Text.Range(next_x, child.node.range.start), node.info) :: child.flatten
             else child.flatten
-          update = (next_x = child.node.stop)
+          update = (next_x = child.node.range.stop)
           markup <- markups
         } yield markup
-      if (next_x < node.stop)
-        filled_gaps ::: List(new Markup_Node(next_x, node.stop, node.info))
+      if (next_x < node.range.stop)
+        filled_gaps ::: List(new Markup_Node(Text.Range(next_x, node.range.stop), node.info))
       else filled_gaps
     }
   }
@@ -78,7 +78,7 @@ case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
 
 case class Markup_Text(val markup: List[Markup_Tree], val content: String)
 {
-  private val root = new Markup_Tree(new Markup_Node(0, content.length, None), markup)  // FIXME !?
+  private val root = new Markup_Tree(new Markup_Node(Text.Range(0, content.length), None), markup)  // FIXME !?
 
   def + (new_tree: Markup_Tree): Markup_Text =
     new Markup_Text((root + new_tree).branches, content)

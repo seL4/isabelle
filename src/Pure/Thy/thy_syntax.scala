@@ -38,12 +38,12 @@ object Thy_Syntax
 
   /** text edits **/
 
-  def text_edits(session: Session, old_doc: Document, edits: List[Document.Node_Text_Edit])
-      : (List[Document.Edit[Command]], Document) =
+  def text_edits(session: Session, previous: Document.Version,
+      edits: List[Document.Node_Text_Edit]): (List[Document.Edit[Command]], Document.Version) =
   {
     /* phase 1: edit individual command source */
 
-    @tailrec def edit_text(eds: List[Text_Edit], commands: Linear_Set[Command])
+    @tailrec def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command])
         : Linear_Set[Command] =
     {
       eds match {
@@ -96,7 +96,7 @@ object Thy_Syntax
               (Some(last), spans1.take(spans1.length - 1))
             else (commands.next(last), spans1)
 
-          val inserted = spans2.map(span => new Command(session.create_id(), span))
+          val inserted = spans2.map(span => new Command(session.new_id(), span))
           val new_commands =
             commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
           recover_spans(new_commands)
@@ -110,7 +110,7 @@ object Thy_Syntax
 
     {
       val doc_edits = new mutable.ListBuffer[Document.Edit[Command]]
-      var nodes = old_doc.nodes
+      var nodes = previous.nodes
 
       for ((name, text_edits) <- edits) {
         val commands0 = nodes(name).commands
@@ -127,7 +127,7 @@ object Thy_Syntax
         doc_edits += (name -> Some(cmd_edits))
         nodes += (name -> new Document.Node(commands2))
       }
-      (doc_edits.toList, new Document(session.create_id(), nodes))
+      (doc_edits.toList, new Document.Version(session.new_id(), nodes))
     }
   }
 }

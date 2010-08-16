@@ -186,7 +186,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   // simplify slightly odd result of TextArea.getLineEndOffset
   // NB: jEdit already normalizes \r\n and \r to \n
-  def visible_line_end(start: Int, end: Int): Int =
+  def visible_line_end(start: Text.Offset, end: Text.Offset): Text.Offset =
   {
     val end1 = end - 1
     if (start <= end1 && end1 < buffer.getLength &&
@@ -199,14 +199,14 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   object pending_edits  // owned by Swing thread
   {
-    private val pending = new mutable.ListBuffer[Text_Edit]
-    def snapshot(): List[Text_Edit] = pending.toList
+    private val pending = new mutable.ListBuffer[Text.Edit]
+    def snapshot(): List[Text.Edit] = pending.toList
 
     private val delay_flush = Swing_Thread.delay_last(session.input_delay) {
-      if (!pending.isEmpty) session.edit_document(List((thy_name, flush())))
+      if (!pending.isEmpty) session.edit_version(List((thy_name, flush())))
     }
 
-    def flush(): List[Text_Edit] =
+    def flush(): List[Text.Edit] =
     {
       Swing_Thread.require()
       val edits = snapshot()
@@ -214,7 +214,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       edits
     }
 
-    def +=(edit: Text_Edit)
+    def +=(edit: Text.Edit)
     {
       Swing_Thread.require()
       pending += edit
@@ -225,7 +225,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   /* snapshot */
 
-  def snapshot(): Document.Snapshot = {
+  def snapshot(): Document.Snapshot =
+  {
     Swing_Thread.require()
     session.snapshot(thy_name, pending_edits.snapshot())
   }
@@ -238,13 +239,13 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     override def contentInserted(buffer: JEditBuffer,
       start_line: Int, offset: Int, num_lines: Int, length: Int)
     {
-      pending_edits += new Text_Edit(true, offset, buffer.getText(offset, length))
+      pending_edits += Text.Edit.insert(offset, buffer.getText(offset, length))
     }
 
     override def preContentRemoved(buffer: JEditBuffer,
-      start_line: Int, start: Int, num_lines: Int, removed_length: Int)
+      start_line: Int, offset: Int, num_lines: Int, removed_length: Int)
     {
-      pending_edits += new Text_Edit(false, start, buffer.getText(start, removed_length))
+      pending_edits += Text.Edit.remove(offset, buffer.getText(offset, removed_length))
     }
   }
 
@@ -271,7 +272,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         Document_View(text_area).get.set_styles()
       */
 
-      def handle_token(style: Byte, offset: Int, length: Int) =
+      def handle_token(style: Byte, offset: Text.Offset, length: Int) =
         handler.handleToken(line_segment, style, offset, length, context)
 
       var next_x = start
@@ -279,8 +280,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         (command, command_start) <-
           snapshot.node.command_range(snapshot.revert(start), snapshot.revert(stop))
         markup <- snapshot.state(command).highlight.flatten
-        val abs_start = snapshot.convert(command_start + markup.start)
-        val abs_stop = snapshot.convert(command_start + markup.stop)
+        val Text.Range(abs_start, abs_stop) = snapshot.convert(markup.range + command_start)
         if (abs_stop > start)
         if (abs_start < stop)
         val token_start = (abs_start - start) max 0
@@ -320,7 +320,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     buffer.setTokenMarker(token_marker)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
-    pending_edits += new Text_Edit(true, 0, buffer.getText(0, buffer.getLength))
+    pending_edits += Text.Edit.insert(0, buffer.getText(0, buffer.getLength))
   }
 
   def refresh()

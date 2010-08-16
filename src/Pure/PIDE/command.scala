@@ -14,14 +14,6 @@ import scala.collection.mutable
 
 object Command
 {
-  object Status extends Enumeration
-  {
-    val UNPROCESSED = Value("UNPROCESSED")
-    val FINISHED = Value("FINISHED")
-    val FAILED = Value("FAILED")
-    val UNDEFINED = Value("UNDEFINED")
-  }
-
   case class HighlightInfo(kind: String, sub_kind: Option[String]) {
     override def toString = kind
   }
@@ -35,8 +27,7 @@ object Command
 
   case class State(
     val command: Command,
-    val status: Command.Status.Value,
-    val forks: Int,
+    val status: List[Markup],
     val reverse_results: List[XML.Tree],
     val markup: Markup_Text)
   {
@@ -64,12 +55,12 @@ object Command
         case Command.TypeInfo(_) => true
         case _ => false }).flatten
 
-    def type_at(pos: Int): Option[String] =
+    def type_at(pos: Text.Offset): Option[String] =
     {
-      types.find(t => t.start <= pos && pos < t.stop) match {
+      types.find(_.range.contains(pos)) match {
         case Some(t) =>
           t.info match {
-            case Command.TypeInfo(ty) => Some(command.source(t.start, t.stop) + " : " + ty)
+            case Command.TypeInfo(ty) => Some(command.source(t.range) + " : " + ty)
             case _ => None
           }
         case None => None
@@ -81,8 +72,8 @@ object Command
         case Command.RefInfo(_, _, _, _) => true
         case _ => false }).flatten
 
-    def ref_at(pos: Int): Option[Markup_Node] =
-      refs.find(t => t.start <= pos && pos < t.stop)
+    def ref_at(pos: Text.Offset): Option[Markup_Node] =
+      refs.find(_.range.contains(pos))
 
 
     /* message dispatch */
@@ -90,15 +81,7 @@ object Command
     def accumulate(message: XML.Tree): Command.State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), elems) =>
-          (this /: elems)((state, elem) =>
-            elem match {
-              case XML.Elem(Markup(Markup.UNPROCESSED, _), _) => state.copy(status = Command.Status.UNPROCESSED)
-              case XML.Elem(Markup(Markup.FINISHED, _), _) => state.copy(status = Command.Status.FINISHED)
-              case XML.Elem(Markup(Markup.FAILED, _), _) => state.copy(status = Command.Status.FAILED)
-              case XML.Elem(Markup(Markup.FORKED, _), _) => state.copy(forks = state.forks + 1)
-              case XML.Elem(Markup(Markup.JOINED, _), _) => state.copy(forks = state.forks - 1)
-              case _ => System.err.println("Ignored status message: " + elem); state
-            })
+          copy(status = (for (XML.Elem(markup, _) <- elems) yield markup) ::: status)
 
         case XML.Elem(Markup(Markup.REPORT, _), elems) =>
           (this /: elems)((state, elem) =>
@@ -166,7 +149,7 @@ class Command(
   /* source text */
 
   val source: String = span.map(_.source).mkString
-  def source(i: Int, j: Int): String = source.substring(i, j)
+  def source(range: Text.Range): String = source.substring(range.start, range.stop)
   def length: Int = source.length
 
   lazy val symbol_index = new Symbol.Index(source)
@@ -178,12 +161,11 @@ class Command(
   {
     val start = symbol_index.decode(begin)
     val stop = symbol_index.decode(end)
-    new Markup_Tree(new Markup_Node(start, stop, info), Nil)
+    new Markup_Tree(new Markup_Node(Text.Range(start, stop), info), Nil)
   }
 
 
   /* accumulated results */
 
-  val empty_state: Command.State =
-    Command.State(this, Command.Status.UNPROCESSED, 0, Nil, new Markup_Text(Nil, source))
+  val empty_state: Command.State = Command.State(this, Nil, Nil, new Markup_Text(Nil, source))
 }

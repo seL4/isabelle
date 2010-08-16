@@ -21,7 +21,7 @@ sig
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
   val present_span: span -> output
   val report_span: span -> unit
-  val unit_source: (span, 'a) Source.source ->
+  val atom_source: (span, 'a) Source.source ->
     (span * span list * bool, (span, 'a) Source.source) Source.source
 end;
 
@@ -160,7 +160,7 @@ end;
 
 
 
-(** units: commands with proof **)
+(** specification atoms: commands with optional proof **)
 
 (* scanning spans *)
 
@@ -174,7 +174,7 @@ val not_eof = not o is_eof;
 val stopper = Scan.stopper (K eof) is_eof;
 
 
-(* unit_source *)
+(* atom_source *)
 
 local
 
@@ -188,13 +188,13 @@ val proof = Scan.pass 1 (Scan.repeat (Scan.depend (fn d =>
     (if d = 0 then Scan.fail else command_with Keyword.is_qed >> pair (d - 1)) ||
     Scan.unless (command_with Keyword.is_theory) (Scan.one not_eof) >> pair d)) -- Scan.state);
 
-val unit =
+val atom =
   command_with Keyword.is_theory_goal -- proof >> (fn (a, (bs, d)) => (a, bs, d >= 0)) ||
   Scan.one not_eof >> (fn a => (a, [], true));
 
 in
 
-fun unit_source src = Source.source stopper (Scan.bulk unit) NONE src;
+fun atom_source src = Source.source stopper (Scan.bulk atom) NONE src;
 
 end;
 
