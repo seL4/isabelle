@@ -102,41 +102,41 @@ fun reveal_bounds Ts =
                     (0 upto length Ts - 1 ~~ Ts))
 
 fun introduce_combinators_in_term ctxt kind t =
-  let
-    val thy = ProofContext.theory_of ctxt
-    fun aux Ts t =
-      case t of
-        @{const Not} $ t1 => @{const Not} $ aux Ts t1
-      | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
-        t0 $ Abs (s, T, aux (T :: Ts) t')
-      | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
-        t0 $ Abs (s, T, aux (T :: Ts) t')
-      | (t0 as @{const "op &"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-      | (t0 as @{const "op |"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-      | (t0 as @{const "op -->"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-      | (t0 as Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])))
-          $ t1 $ t2 =>
-        t0 $ aux Ts t1 $ aux Ts t2
-      | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
-               t
-             else
-               let
-                 val t = t |> conceal_bounds Ts
-                           |> Envir.eta_contract
-                 val ([t], ctxt') = Variable.import_terms true [t] ctxt
-               in
-                 t |> cterm_of thy
-                   |> Clausifier.introduce_combinators_in_cterm
-                   |> singleton (Variable.export ctxt' ctxt)
-                   |> prop_of |> Logic.dest_equals |> snd
-                   |> reveal_bounds Ts
-               end
-  in t |> not (Meson.is_fol_term thy t) ? aux [] end
-  handle THM _ =>
-         (* A type variable of sort "{}" will make abstraction fail. *)
-         case kind of
-           Axiom => HOLogic.true_const
-         | Conjecture => HOLogic.false_const
+  let val thy = ProofContext.theory_of ctxt in
+    if Meson.is_fol_term thy t then
+      t
+    else
+      let
+        fun aux Ts t =
+          case t of
+            @{const Not} $ t1 => @{const Not} $ aux Ts t1
+          | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
+            t0 $ Abs (s, T, aux (T :: Ts) t')
+          | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
+            t0 $ Abs (s, T, aux (T :: Ts) t')
+          | (t0 as @{const "op &"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const "op |"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const "op -->"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])))
+              $ t1 $ t2 =>
+            t0 $ aux Ts t1 $ aux Ts t2
+          | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
+                   t
+                 else
+                   t |> conceal_bounds Ts
+                     |> Envir.eta_contract
+                     |> cterm_of thy
+                     |> Clausifier.introduce_combinators_in_cterm
+                     |> prop_of |> Logic.dest_equals |> snd
+                     |> reveal_bounds Ts
+        val ([t], ctxt') = Variable.import_terms true [t] ctxt
+      in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
+      handle THM _ =>
+             (* A type variable of sort "{}" will make abstraction fail. *)
+             case kind of
+               Axiom => HOLogic.true_const
+             | Conjecture => HOLogic.false_const
+  end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
    same in Sledgehammer to prevent the discovery of unreplable proofs. *)
