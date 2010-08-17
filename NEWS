@@ -35,6 +35,10 @@ in addition to interpretations in theories.
 
 *** HOL ***
 
+* Code generation for records: more idiomatic representation of record types.
+Warning: records are not covered by ancient SML code generation any longer.
+INCOMPATIBILITY.
+
 * Session Imperative_HOL: revamped, corrected dozens of inadequacies.
 INCOMPATIBILITY.
 
