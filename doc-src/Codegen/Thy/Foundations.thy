@@ -7,7 +7,6 @@ section {* Code generation foundations \label{sec:foundations} *}
 subsection {* Code generator architecture \label{sec:architecture} *}
 
 text {*
-
   The code generator is actually a framework consisting of different
   components which can be customised individually.
 
