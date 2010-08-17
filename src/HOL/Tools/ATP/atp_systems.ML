@@ -8,7 +8,9 @@ Setup for supported ATPs.
 signature ATP_SYSTEMS =
 sig
   datatype failure =
-    Unprovable | IncompleteUnprovable | MalformedOutput | UnknownError
+    Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
+    OldSpass | OldVampire | NoPerl | NoLibwwwPerl | MalformedInput |
+    MalformedOutput | UnknownError
 
   type prover_config =
     {exec: string * string,
