@@ -129,18 +129,22 @@ fun prep_class_elems prep_decl thy sups raw_elems =
                   ^ Syntax.string_of_sort_global thy a_sort ^ ".")
             | _ => error "Multiple type variables in class specification.";
       in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
+    val after_infer_fixate = (map o map_atyps)
+      (fn T as TFree _ => T | T as TVar (vi, sort) =>
+        if Type_Infer.is_param vi then Type_Infer.param 0 (Name.aT, sort) else T);
     fun add_typ_check level name f = Context.proof_map
       (Syntax.add_typ_check level name (fn Ts => fn ctxt =>
         let val Ts' = f Ts in if eq_list (op =) (Ts, Ts') then NONE else SOME (Ts', ctxt) end));
 
     (* preprocessing elements, retrieving base sort from type-checked elements *)
+    val raw_supexpr = (map (fn sup => (sup, (("", false),
+      Expression.Positional []))) sups, []);
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
       #> add_typ_check ~10 "singleton_fixate" singleton_fixate;
-    val raw_supexpr = (map (fn sup => (sup, (("", false),
-      Expression.Positional []))) sups, []);
     val ((raw_supparams, _, raw_inferred_elems), _) = ProofContext.init_global thy
+      |> add_typ_check 5 "after_infer_fixate" after_infer_fixate
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun filter_element (Element.Fixes []) = NONE
       | filter_element (e as Element.Fixes _) = SOME e
