@@ -213,7 +213,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
   Tools/split_rule.ML \
-  Tools/typedef_codegen.ML \
   Tools/typedef.ML \
   Transitive_Closure.thy \
   Typedef.thy \

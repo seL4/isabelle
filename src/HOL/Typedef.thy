@@ -6,9 +6,7 @@ header {* HOL type definitions *}
 
 theory Typedef
 imports Set
-uses
-  ("Tools/typedef.ML")
-  ("Tools/typedef_codegen.ML")
+uses ("Tools/typedef.ML")
 begin
 
 ML {*
@@ -115,6 +113,5 @@ qed
 end
 
 use "Tools/typedef.ML" setup Typedef.setup
-use "Tools/typedef_codegen.ML" setup TypedefCodegen.setup
 
 end
