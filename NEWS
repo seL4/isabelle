@@ -35,11 +35,17 @@ in addition to interpretations in theories.
 
 *** HOL ***
 
+* Session Imperative_HOL: revamped, corrected dozens of inadequacies.
+INCOMPATIBILITY.
+
+* Quickcheck in locales considers interpretations of that locale for
+counter example search.
+
 * Theory Library/Monad_Syntax provides do-syntax for monad types.  Syntax
 in Library/State_Monad has been changed to avoid ambiguities.
 INCOMPATIBILITY.
 
-* code generator: export_code without explicit file declaration prints
+* Code generator: export_code without explicit file declaration prints
 to standard output.  INCOMPATIBILITY.
 
 * Abolished symbol type names:  "prod" and "sum" replace "*" and "+"
@@ -121,8 +127,8 @@ spaces the real and complex numbers are instantiated to be euclidean_spaces.
 INCOMPATIBILITY.
 
 * Inductive package: offers new command "inductive_simps" to automatically
-  derive instantiated and simplified equations for inductive predicates,
-  similar to inductive_cases.
+derive instantiated and simplified equations for inductive predicates,
+similar to inductive_cases.
 
 
 *** ML ***
