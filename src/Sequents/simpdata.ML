@@ -13,16 +13,16 @@ Borrows from the DC simplifier of Soren Heilmann.
 (*Make atomic rewrite rules*)
 fun atomize r =
  case concl_of r of
-   Const("Trueprop",_) $ Abs(_,_,a) $ Abs(_,_,c) =>
+   Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
      (case (forms_of_seq a, forms_of_seq c) of
         ([], [p]) =>
           (case p of
-               Const("imp",_)$_$_ => atomize(r RS @{thm mp_R})
-             | Const("conj",_)$_$_   => atomize(r RS @{thm conjunct1}) @
+               Const(@{const_name imp},_)$_$_ => atomize(r RS @{thm mp_R})
+             | Const(@{const_name conj},_)$_$_   => atomize(r RS @{thm conjunct1}) @
                    atomize(r RS @{thm conjunct2})
-             | Const("All",_)$_      => atomize(r RS @{thm spec})
-             | Const("True",_)       => []    (*True is DELETED*)
-             | Const("False",_)      => []    (*should False do something?*)
+             | Const(@{const_name All},_)$_      => atomize(r RS @{thm spec})
+             | Const(@{const_name True},_)       => []    (*True is DELETED*)
+             | Const(@{const_name False},_)      => []    (*should False do something?*)
              | _                     => [r])
       | _ => [])  (*ignore theorem unless it has precisely one conclusion*)
  | _ => [r];
@@ -30,13 +30,13 @@ fun atomize r =
 (*Make meta-equalities.*)
 fun mk_meta_eq th = case concl_of th of
     Const("==",_)$_$_           => th
-  | Const("Trueprop",_) $ Abs(_,_,a) $ Abs(_,_,c) =>
+  | Const(@{const_name Trueprop},_) $ Abs(_,_,a) $ Abs(_,_,c) =>
         (case (forms_of_seq a, forms_of_seq c) of
              ([], [p]) =>
                  (case p of
-                      (Const("equal",_)$_$_)   => th RS @{thm eq_reflection}
-                    | (Const("iff",_)$_$_) => th RS @{thm iff_reflection}
-                    | (Const("Not",_)$_)      => th RS @{thm iff_reflection_F}
+                      (Const(@{const_name equal},_)$_$_)   => th RS @{thm eq_reflection}
+                    | (Const(@{const_name iff},_)$_$_) => th RS @{thm iff_reflection}
+                    | (Const(@{const_name Not},_)$_)      => th RS @{thm iff_reflection_F}
                     | _                       => th RS @{thm iff_reflection_T})
            | _ => error ("addsimps: unable to use theorem\n" ^
                          Display.string_of_thm_without_context th));

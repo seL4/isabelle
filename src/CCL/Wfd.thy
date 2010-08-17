@@ -423,13 +423,13 @@ val type_rls =
   @{thms canTs} @ @{thms icanTs} @ @{thms applyT2} @ @{thms ncanTs} @ @{thms incanTs} @
   @{thms precTs} @ @{thms letrecTs} @ @{thms letT} @ @{thms Subtype_canTs};
 
-fun bvars (Const("all",_) $ Abs(s,_,t)) l = bvars t (s::l)
+fun bvars (Const(@{const_name all},_) $ Abs(s,_,t)) l = bvars t (s::l)
   | bvars _ l = l
 
-fun get_bno l n (Const("all",_) $ Abs(s,_,t)) = get_bno (s::l) n t
-  | get_bno l n (Const("Trueprop",_) $ t) = get_bno l n t
-  | get_bno l n (Const("Ball",_) $ _ $ Abs(s,_,t)) = get_bno (s::l) (n+1) t
-  | get_bno l n (Const("mem",_) $ t $ _) = get_bno l n t
+fun get_bno l n (Const(@{const_name all},_) $ Abs(s,_,t)) = get_bno (s::l) n t
+  | get_bno l n (Const(@{const_name Trueprop},_) $ t) = get_bno l n t
+  | get_bno l n (Const(@{const_name Ball},_) $ _ $ Abs(s,_,t)) = get_bno (s::l) (n+1) t
+  | get_bno l n (Const(@{const_name mem},_) $ t $ _) = get_bno l n t
   | get_bno l n (t $ s) = get_bno l n t
   | get_bno l n (Bound m) = (m-length(l),n)
 
@@ -450,7 +450,7 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
 
 fun is_rigid_prog t =
      case (Logic.strip_assums_concl t) of
-        (Const("Trueprop",_) $ (Const("mem",_) $ a $ _)) => null (Term.add_vars a [])
+        (Const(@{const_name Trueprop},_) $ (Const(@{const_name mem},_) $ a $ _)) => null (Term.add_vars a [])
        | _ => false
 in
 

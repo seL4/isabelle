@@ -55,7 +55,7 @@ fun print_pack (Pack(safes,unsafes)) =
     ["Unsafe rules:"] @ map Display.string_of_thm_without_context unsafes));
 
 (*Returns the list of all formulas in the sequent*)
-fun forms_of_seq (Const("SeqO'",_) $ P $ u) = P :: forms_of_seq u
+fun forms_of_seq (Const(@{const_name "SeqO'"},_) $ P $ u) = P :: forms_of_seq u
   | forms_of_seq (H $ u) = forms_of_seq u
   | forms_of_seq _ = [];
 
