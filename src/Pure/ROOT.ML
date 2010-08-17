@@ -42,6 +42,7 @@ use "General/same.ML";
 use "General/ord_list.ML";
 use "General/balanced_tree.ML";
 use "General/graph.ML";
+use "General/linear_set.ML";
 use "General/long_name.ML";
 use "General/binding.ML";
 use "General/name_space.ML";

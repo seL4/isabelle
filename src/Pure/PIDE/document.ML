@@ -15,7 +15,7 @@ sig
   val new_id: unit -> id
   val parse_id: string -> id
   val print_id: id -> string
-  type edit = string * ((command_id * command_id option) list) option
+  type edit = string * ((command_id option * command_id option) list) option
   type state
   val init_state: state
   val define_command: command_id -> string -> state -> state
@@ -55,82 +55,43 @@ fun err_undef kind id = error ("Undefined " ^ kind ^ ": " ^ print_id id);
 
 (** document structure **)
 
-abstype entry = Entry of {next: command_id option, exec: exec_id option}
-  and node = Node of entry Inttab.table  (*unique entries indexed by command_id, start with no_id*)
+structure Entries = Linear_Set(type key = command_id val ord = int_ord);
+
+abstype node = Node of exec_id option Entries.T  (*command entries with excecutions*)
   and version = Version of node Graph.T  (*development graph wrt. static imports*)
 with
 
+val empty_node = Node Entries.empty;
+val empty_version = Version Graph.empty;
 
-(* command entries *)
-
-fun make_entry next exec = Entry {next = next, exec = exec};
-
-fun the_entry (Node entries) (id: command_id) =
-  (case Inttab.lookup entries id of
-    NONE => err_undef "command entry" id
-  | SOME (Entry entry) => entry);
-
-fun put_entry (id: command_id, entry: entry) (Node entries) =
-  Node (Inttab.update (id, entry) entries);
-
-fun put_entry_exec (id: command_id) exec node =
-  let val {next, ...} = the_entry node id
-  in put_entry (id, make_entry next exec) node end;
-
-fun reset_entry_exec id = put_entry_exec id NONE;
-fun set_entry_exec (id, exec_id) = put_entry_exec id (SOME exec_id);
+fun fold_entries start f (Node entries) = Entries.fold start f entries;
+fun first_entry start P (Node entries) = Entries.get_first start P entries;
 
 
-(* iterate entries *)
-
-fun fold_entries id0 f (node as Node entries) =
-  let
-    fun apply NONE x = x
-      | apply (SOME id) x =
-          let val entry = the_entry node id
-          in apply (#next entry) (f (id, entry) x) end;
-  in if Inttab.defined entries id0 then apply (SOME id0) else I end;
-
-fun first_entry P node =
-  let
-    fun first _ NONE = NONE
-      | first prev (SOME id) =
-          let val entry = the_entry node id
-          in if P (id, entry) then SOME (prev, id, entry) else first (SOME id) (#next entry) end;
-  in first NONE (SOME no_id) end;
-
-
-(* modify entries *)
-
-fun insert_after (id: command_id) (id2: command_id) node =
-  let val {next, exec} = the_entry node id in
-    node
-    |> put_entry (id, make_entry (SOME id2) exec)
-    |> put_entry (id2, make_entry next NONE)
-  end;
-
-fun delete_after (id: command_id) node =
-  let val {next, exec} = the_entry node id in
-    (case next of
-      NONE => error ("No next entry to delete: " ^ print_id id)
-    | SOME id2 =>
-        node |>
-          (case #next (the_entry node id2) of
-            NONE => put_entry (id, make_entry NONE exec)
-          | SOME id3 => put_entry (id, make_entry (SOME id3) exec) #> reset_entry_exec id3))
-  end;
-
-
-(* node edits *)
+(* node edits and associated executions *)
 
 type edit =
-  string *  (*node name*)
-  ((command_id * command_id option) list) option;  (*NONE: remove, SOME: insert/remove commands*)
+  string *
+  (*NONE: remove node, SOME: insert/remove commands*)
+  ((command_id option * command_id option) list) option;
 
-val empty_node = Node (Inttab.make [(no_id, make_entry NONE (SOME no_id))]);
+fun the_entry (Node entries) id =
+  (case Entries.lookup entries id of
+    NONE => err_undef "command entry" id
+  | SOME entry => entry);
 
-fun edit_node (id, SOME id2) = insert_after id id2
-  | edit_node (id, NONE) = delete_after id;
+fun update_entry (id, exec_id) (Node entries) =
+  Node (Entries.update (id, SOME exec_id) entries);
+
+fun reset_after id entries =
+  (case Entries.get_after entries id of
+    NONE => entries
+  | SOME next => Entries.update (next, NONE) entries);
+
+fun edit_node (hook, SOME id2) (Node entries) =
+      Node (Entries.insert_after hook (id2, NONE) entries)
+  | edit_node (hook, NONE) (Node entries) =
+      Node (entries |> Entries.delete_after hook |> reset_after hook);
 
 
 (* version operations *)
@@ -138,19 +99,18 @@ fun edit_node (id, SOME id2) = insert_after id id2
 fun nodes_of (Version nodes) = nodes;
 val node_names_of = Graph.keys o nodes_of;
 
+fun get_node version name = Graph.get_node (nodes_of version) name
+  handle Graph.UNDEF _ => empty_node;
+
 fun edit_nodes (name, SOME edits) (Version nodes) =
       Version (nodes
         |> Graph.default_node (name, empty_node)
         |> Graph.map_node name (fold edit_node edits))
-  | edit_nodes (name, NONE) (Version nodes) = Version (Graph.del_node name nodes);
-
-val empty_version = Version Graph.empty;
-
-fun the_node version name =
-  Graph.get_node (nodes_of version) name handle Graph.UNDEF _ => empty_node;
+  | edit_nodes (name, NONE) (Version nodes) =
+      Version (Graph.del_node name nodes);
 
 fun put_node name node (Version nodes) =
-  Version (Graph.map_node name (K node) nodes);  (* FIXME Graph.UNDEF !? *)
+  Version (Graph.map_node name (K node) nodes);
 
 end;
 
@@ -238,22 +198,22 @@ end;
 
 local
 
-fun is_changed node' (id, {next = _, exec}) =
+fun is_changed node' ((_, id), exec) =
   (case try (the_entry node') id of
     NONE => true
-  | SOME {next = _, exec = exec'} => exec' <> exec);
+  | SOME exec' => exec' <> exec);
 
 fun new_exec name (id: command_id) (exec_id, updates, state) =
   let
     val exec = the_exec state exec_id;
     val exec_id' = new_id ();
-    val tr = the_command state id;
+    val future_tr = the_command state id;
     val exec' =
       Lazy.lazy (fn () =>
         (case Lazy.force exec of
           NONE => NONE
         | SOME st =>
-            let val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join tr)
+            let val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join future_tr)
             in Toplevel.run_command name exec_tr st end));
     val state' = define_exec exec_id' exec' state;
   in (exec_id', (id, exec_id') :: updates, state') end;
@@ -266,15 +226,18 @@ fun edit (old_id: version_id) (new_id: version_id) edits state =
     val new_version = fold edit_nodes edits old_version;
 
     fun update_node name (rev_updates, version, st) =
-      let val node = the_node version name in
-        (case first_entry (is_changed (the_node old_version name)) node of
+      let val node = get_node version name in
+        (case first_entry NONE (is_changed (get_node old_version name)) node of
           NONE => (rev_updates, version, st)
-        | SOME (prev, id, _) =>
+        | SOME ((prev, id), _) =>
             let
-              val prev_exec = the (#exec (the_entry node (the prev)));
+              val prev_exec =
+                (case prev of
+                  NONE => no_id
+                | SOME prev_id => the_default no_id (the_entry node prev_id));
               val (_, rev_upds, st') =
-                fold_entries id (new_exec name o #1) node (prev_exec, [], st);
-              val node' = fold set_entry_exec rev_upds node;
+                fold_entries (SOME id) (new_exec name o #2 o #1) node (prev_exec, [], st);
+              val node' = fold update_entry rev_upds node;
             in (rev_upds @ rev_updates, put_node name node' version, st') end)
       end;
 
@@ -306,8 +269,8 @@ fun execute version_id state =
         node_names_of version |> map (fn name =>
           Future.fork_pri 1 (fn () =>
             (await_cancellation ();
-              fold_entries no_id (fn (_, {exec, ...}) => fn () => force_exec exec)
-                (the_node version name) ())));
+              fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
+                (get_node version name) ())));
     in (versions, commands, execs, execution') end);
 
 end;

@@ -21,10 +21,14 @@ val _ =
         val old_id = Document.parse_id old_id_string;
         val new_id = Document.parse_id new_id_string;
         val edits =
-          XML_Data.dest_list (XML_Data.dest_pair XML_Data.dest_string
-            (XML_Data.dest_option (XML_Data.dest_list
-                (XML_Data.dest_pair XML_Data.dest_int
-                  (XML_Data.dest_option XML_Data.dest_int))))) (YXML.parse_body edits_yxml);
+          XML_Data.dest_list
+            (XML_Data.dest_pair
+              XML_Data.dest_string
+              (XML_Data.dest_option
+                (XML_Data.dest_list
+                  (XML_Data.dest_pair
+                    (XML_Data.dest_option XML_Data.dest_int)
+                    (XML_Data.dest_option XML_Data.dest_int))))) (YXML.parse_body edits_yxml);
 
       val (updates, state') = Document.edit old_id new_id edits state;
       val _ =
