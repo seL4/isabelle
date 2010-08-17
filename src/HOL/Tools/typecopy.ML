@@ -11,9 +11,7 @@ sig
   val typecopy: binding * (string * sort) list -> typ -> binding -> binding
     -> theory -> (string * info) * theory
   val get_info: theory -> string -> info option
-  val interpretation: (string -> theory -> theory) -> theory -> theory
   val add_default_code: string -> theory -> theory
-  val setup: theory -> theory
 end;
 
 structure Typecopy: TYPECOPY =
@@ -41,53 +39,6 @@ structure Typecopy_Data = Theory_Data
 );
 
 val get_info = Symtab.lookup o Typecopy_Data.get;
-
-
-(* interpretation of type copies *)
-
-structure Typecopy_Interpretation = Interpretation(type T = string val eq = op =);
-val interpretation = Typecopy_Interpretation.interpretation;
-
-
-(* introducing typecopies *)
-
-fun add_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
-    { Abs_inject, Rep_inject, Abs_inverse, Rep_inverse, ... }) : Typedef.info) thy =
-  let
-    val exists_thm =
-      UNIV_I
-      |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global rep_type))] [];
-    val constr_inject = Abs_inject OF [exists_thm, exists_thm];
-    val proj_constr = Abs_inverse OF [exists_thm];
-    val info = {
-      vs = vs,
-      typ = rep_type,
-      constr = Abs_name,
-      proj = Rep_name,
-      constr_inject = constr_inject,
-      proj_inject = Rep_inject,
-      constr_proj = Rep_inverse,
-      proj_constr = proj_constr
-    };
-  in
-    thy
-    |> (Typecopy_Data.map o Symtab.update_new) (tyco, info)
-    |> Typecopy_Interpretation.data tyco
-    |> pair (tyco, info)
-  end
-
-fun typecopy (raw_tyco, raw_vs) raw_ty constr proj thy =
-  let
-    val ty = Sign.certify_typ thy raw_ty;
-    val ctxt = ProofContext.init_global thy |> Variable.declare_typ ty;
-    val vs = map (ProofContext.check_tfree ctxt) raw_vs;
-    val tac = Tactic.rtac UNIV_witness 1;
-  in
-    thy
-    |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, vs, NoSyn)
-      (HOLogic.mk_UNIV ty) (SOME (proj, constr)) tac
-    |-> (fn (tyco, info) => add_info tyco vs info)
-  end;
 
 
 (* default code setup *)
@@ -127,8 +78,46 @@ fun add_default_code tyco thy =
     |> (fn thy => Code.add_nbe_eqn (mk_eq_refl thy) thy)
   end;
 
-val setup =
-  Typecopy_Interpretation.init
-  #> interpretation add_default_code
+
+(* introducing typecopies *)
+
+fun add_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
+    { Abs_inject, Rep_inject, Abs_inverse, Rep_inverse, ... }) : Typedef.info) thy =
+  let
+    val exists_thm =
+      UNIV_I
+      |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global rep_type))] [];
+    val constr_inject = Abs_inject OF [exists_thm, exists_thm];
+    val proj_constr = Abs_inverse OF [exists_thm];
+    val info = {
+      vs = vs,
+      typ = rep_type,
+      constr = Abs_name,
+      proj = Rep_name,
+      constr_inject = constr_inject,
+      proj_inject = Rep_inject,
+      constr_proj = Rep_inverse,
+      proj_constr = proj_constr
+    };
+  in
+    thy
+    |> (Typecopy_Data.map o Symtab.update_new) (tyco, info)
+    |> add_default_code tyco
+    |> Quickcheck_Record.ensure_random_typecopy tyco vs Abs_name rep_type
+    |> pair (tyco, info)
+  end
+
+fun typecopy (raw_tyco, raw_vs) raw_ty constr proj thy =
+  let
+    val ty = Sign.certify_typ thy raw_ty;
+    val ctxt = ProofContext.init_global thy |> Variable.declare_typ ty;
+    val vs = map (ProofContext.check_tfree ctxt) raw_vs;
+    val tac = Tactic.rtac UNIV_witness 1;
+  in
+    thy
+    |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, vs, NoSyn)
+      (HOLogic.mk_UNIV ty) (SOME (proj, constr)) tac
+    |-> (fn (tyco, info) => add_info tyco vs info)
+  end;
 
 end;

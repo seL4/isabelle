@@ -6,8 +6,8 @@ Quickcheck generators for records.
 
 signature QUICKCHECK_RECORD =
 sig
-  val ensure_random_typecopy: string -> theory -> theory
-  val setup: theory -> theory
+  val ensure_random_typecopy: string -> (string * sort) list -> string
+    -> typ -> theory -> theory
 end;
 
 structure Quickcheck_Record : QUICKCHECK_RECORD =
@@ -42,10 +42,8 @@ fun mk_random_typecopy tyco vs constr T' thy =
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
 
-fun ensure_random_typecopy tyco thy =
+fun ensure_random_typecopy tyco raw_vs constr raw_T thy =
   let
-    val SOME { vs = raw_vs, constr, typ = raw_T, ... } =
-      Typecopy.get_info thy tyco;
     val constrain = curry (Sorts.inter_sort (Sign.classes_of thy));
     val T = map_atyps (fn TFree (v, sort) =>
       TFree (v, constrain sort @{sort random})) raw_T;
@@ -54,7 +52,5 @@ fun ensure_random_typecopy tyco thy =
       (v, the_default (constrain sort @{sort typerep}) (AList.lookup (op =) vs' v))) raw_vs;
     val can_inst = Sign.of_sort thy (T, @{sort random});
   in if can_inst then mk_random_typecopy tyco vs constr T thy else thy end;
-
-val setup = Typecopy.interpretation ensure_random_typecopy;
 
 end;
