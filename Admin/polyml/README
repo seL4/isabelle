@@ -1,27 +1,15 @@
+Poly/ML for Isabelle
+====================
 
-This distribution of Poly/ML 5.3 is based on the original
-polyml.5.3.tar.gz from http://www.polyml.org with some minimal changes:
+This distribution of Poly/ML 5.4 has been compiled from the original
+sources using the included build script.  For example:
 
-diff polyml.5.3/libpolyml/processes.cpp-orig polyml.5.3/libpolyml/processes.cpp
-995,996c995,996
-<     // we set this to 100ms so that we're not waiting too long.
-<     if (maxMillisecs > 100) maxMillisecs = 100;
----
->     // we set this to 10ms so that we're not waiting too long.
->     if (maxMillisecs > 10) maxMillisecs = 10;
+  ./build polyml.5.4 x86-linux --with-gmp
 
-
-Then it is compiled as follows:
-
-  cd polyml.5.3
-  ./configure --prefix="$HOME/tmp/polyml"
-  make
-  make install
-
-
-Now $HOME/tmp/polyml/bin/* and $HOME/tmp/polyml/lib/* are moved to the
-platform-specific target directory (e.g. polyml-5.3.0/x86-linux).
+The resulting executables and shared libraries are moved to
+x86-linux/.  This directory layout accomodates the standard ML_HOME
+settings for Isabelle.
 
 
 	Makarius
-	26-May-2010
+	17-Aug-2010
