@@ -141,7 +141,8 @@ In a HOL theory, the \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatyp
 \isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt} ~val foldl :~('a -> 'b -> 'a) -> 'a -> 'b list -> 'a\\
+\hspace*{0pt} ~val id :~'a -> 'a\\
+\hspace*{0pt} ~val fold :~('a -> 'b -> 'b) -> 'a list -> 'b -> 'b\\
 \hspace*{0pt} ~val rev :~'a list -> 'a list\\
 \hspace*{0pt} ~datatype 'a queue = AQueue of 'a list * 'a list\\
 \hspace*{0pt} ~val empty :~'a queue\\
@@ -149,10 +150,12 @@ In a HOL theory, the \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatyp
 \hspace*{0pt} ~val enqueue :~'a -> 'a queue -> 'a queue\\
 \hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun foldl f a [] = a\\
-\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
+\hspace*{0pt}fun id x = (fn xa => xa) x;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
+\hspace*{0pt}fun fold f [] = id\\
+\hspace*{0pt} ~| fold f (x ::~xs) = fold f xs o f x;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun rev xs = fold (fn a => fn b => a ::~b) xs [];\\
 \hspace*{0pt}\\
 \hspace*{0pt}datatype 'a queue = AQueue of 'a list * 'a list;\\
 \hspace*{0pt}\\

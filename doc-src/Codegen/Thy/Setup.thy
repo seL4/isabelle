@@ -1,5 +1,5 @@
 theory Setup
-imports Complex_Main
+imports Complex_Main More_List
 uses
   "../../antiquote_setup.ML"
   "../../more_antiquote.ML"
