@@ -93,55 +93,29 @@ structure Iso_Tuple_Thms = Theory_Data
   fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
 
-fun add_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
+fun get_typedef_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
     { Abs_inject, Rep_inject, Abs_inverse, Rep_inverse, ... }) : Typedef.info) thy =
   let
     val exists_thm =
       UNIV_I
       |> Drule.instantiate' [SOME (ctyp_of thy (Logic.varifyT_global rep_type))] [];
-    val constr_inject = Abs_inject OF [exists_thm, exists_thm];
     val proj_constr = Abs_inverse OF [exists_thm];
-    val info = {
-      vs = vs,
-      typ = rep_type,
-      constr = Abs_name,
-      proj = Rep_name,
-      constr_inject = constr_inject,
-      proj_inject = Rep_inject,
-      constr_proj = Rep_inverse,
-      proj_constr = proj_constr
-    };
+    val absT = Type (tyco, map TFree vs);
   in
     thy
-    (*|> Quickcheck_Record.ensure_random_typecopy tyco vs Abs_name rep_type*)
-    |> pair (tyco, info)
+    |> pair (tyco, ((Rep_inject, proj_constr), Const (Abs_name, rep_type --> absT), absT))
   end
 
-fun typecopy (raw_tyco, raw_vs) raw_ty thy =
+fun do_typedef raw_tyco repT raw_vs thy =
   let
-    val ty = Sign.certify_typ thy raw_ty;
-    val ctxt = ProofContext.init_global thy |> Variable.declare_typ ty;
+    val ctxt = ProofContext.init_global thy |> Variable.declare_typ repT;
     val vs = map (ProofContext.check_tfree ctxt) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
   in
     thy
     |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, vs, NoSyn)
-        (HOLogic.mk_UNIV ty) NONE tac
-    |-> (fn (tyco, info) => add_info tyco vs info)
-  end;
-
-fun do_typedef b repT alphas thy =
-  let
-    fun get_info thy tyco { vs, constr, typ = repT, proj_inject, proj_constr, ... } =
-      let
-        val absT = Type (tyco, map TFree vs);
-      in
-        ((proj_inject, proj_constr), Const (constr, repT --> absT), absT)
-      end;
-  in
-    thy
-    |> typecopy (b, alphas) repT
-    |-> (fn (tyco, info) => `(fn thy => get_info thy tyco info))
+        (HOLogic.mk_UNIV repT) NONE tac
+    |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;
 
 fun mk_cons_tuple (left, right) =
@@ -161,7 +135,7 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
   let
     val repT = HOLogic.mk_prodT (leftT, rightT);
 
-    val (((rep_inject, abs_inverse), absC, absT), typ_thy) =
+    val ((_, ((rep_inject, abs_inverse), absC, absT)), typ_thy) =
       thy
       |> do_typedef b repT alphas
       ||> Sign.add_path (Binding.name_of b); (*FIXME proper prefixing instead*)
@@ -1877,6 +1851,8 @@ fun add_code ext_tyco vs extT ext simps inject thy =
          (fn _ => fn eq_def => tac eq_def) eq_def)
     |-> (fn eq_def => fn thy => thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
     |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
+    (*FIXME add constructor for SML code generator*)
+    (*|> Quickcheck_Record.ensure_random_typecopy tyco vs Abs_name rep_type*)
   end;
 
 
