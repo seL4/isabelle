@@ -63,12 +63,12 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
 fun string_for_formula (AQuant (q, xs, phi)) =
-    string_for_quantifier q ^ "[" ^ commas xs ^ "] : " ^
-    string_for_formula phi
+    "(" ^ string_for_quantifier q ^ "[" ^ commas xs ^ "] : " ^
+    string_for_formula phi ^ ")"
   | string_for_formula (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
     space_implode " != " (map string_for_term ts)
   | string_for_formula (AConn (c, [phi])) =
-    string_for_connective c ^ " " ^ string_for_formula phi
+    "(" ^ string_for_connective c ^ " " ^ string_for_formula phi ^ ")"
   | string_for_formula (AConn (c, phis)) =
     "(" ^ space_implode (" " ^ string_for_connective c ^ " ")
                         (map string_for_formula phis) ^ ")"
