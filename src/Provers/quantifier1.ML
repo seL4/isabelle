@@ -113,8 +113,13 @@ fun extract_quant extract q =
   in exqu [] end;
 
 fun prove_conv tac thy tu =
-  Goal.prove (ProofContext.init_global thy) [] [] (Logic.mk_equals tu)
-    (K (rtac iff_reflection 1 THEN tac));
+  let val ctxt = ProofContext.init_global thy;
+      val eq_tu = Logic.mk_equals tu;
+      val ([fixed_goal], ctxt') = Variable.import_terms true [eq_tu] ctxt;
+      val thm = Goal.prove ctxt' [] [] fixed_goal
+            (K (rtac iff_reflection 1 THEN tac));
+      val [gen_thm] = Variable.export ctxt' ctxt [thm];
+  in gen_thm end;
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 
 
