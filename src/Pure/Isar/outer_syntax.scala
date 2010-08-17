@@ -16,6 +16,8 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
   protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
   lazy val completion: Completion = new Completion + symbols  // FIXME !?
 
+  def keyword_kind(name: String): Option[String] = keywords.get(name)
+
   def + (name: String, kind: String): Outer_Syntax =
   {
     val new_keywords = keywords + (name -> kind)

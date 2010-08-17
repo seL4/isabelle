@@ -73,10 +73,8 @@ fun token_markup tok =
     let
       val kind = Token.kind_of tok;
       val props =
-        if kind = Token.Command then
-          (case Keyword.command_keyword (Token.content_of tok) of
-            SOME k => Markup.properties [(Markup.kindN, Keyword.kind_of k)]
-          | NONE => I)
+        if kind = Token.Command
+        then Markup.properties [(Markup.nameN, Token.content_of tok)]
         else I;
     in props (token_kind_markup kind) end;
 
