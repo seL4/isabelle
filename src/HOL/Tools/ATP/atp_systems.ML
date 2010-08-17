@@ -144,7 +144,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   max_new_relevant_facts_per_iter = 60 (* FIXME *),
+   max_new_relevant_facts_per_iter = 50 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
 
@@ -198,7 +198,7 @@ val vampire_config : prover_config =
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found"),
       (OldVampire, "not a valid option")],
-   max_new_relevant_facts_per_iter = 50 (* FIXME *),
+   max_new_relevant_facts_per_iter = 45 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
 
