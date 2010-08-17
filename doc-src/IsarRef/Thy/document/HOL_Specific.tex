@@ -1034,7 +1034,7 @@ Isabelle/Pure provides two generic frameworks to support code
     target: 'OCaml' | 'SML' | 'Haskell'
     ;
 
-    'code' ( 'del' ) ?
+    'code' ( 'del' | 'abstype' | 'abstract' ) ?
     ;
 
     'code\_abort' ( const + )
@@ -1117,9 +1117,11 @@ Isabelle/Pure provides two generic frameworks to support code
   declaration.
 
   \item \hyperlink{attribute.HOL.code}{\mbox{\isa{code}}} explicitly selects (or with option
-  ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' deselects) a code equation for code
-  generation.  Usually packages introducing code equations provide
-  a reasonable default setup for selection.
+  ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' deselects) a code equation for code generation.
+  Usually packages introducing code equations provide a reasonable
+  default setup for selection.  Variants \isa{{\isachardoublequote}code\ abstype{\isachardoublequote}} and
+  \isa{{\isachardoublequote}code\ abstract{\isachardoublequote}} declare abstract datatype certificates or
+  code equations on abstract datatype representations respectively.
 
   \item \hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}} declares constants which are not
   required to have a definition by means of code equations; if
