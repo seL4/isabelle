@@ -25,8 +25,9 @@ object Linear_Set extends ImmutableSetFactory[Linear_Set]
   implicit def canBuildFrom[A]: CanBuildFrom[Coll, A, Linear_Set[A]] = setCanBuildFrom[A]
   override def empty[A] = new Linear_Set[A]
 
-  class Duplicate(s: String) extends Exception(s)
-  class Undefined(s: String) extends Exception(s)
+  class Duplicate[A](x: A) extends Exception
+  class Undefined[A](x: A) extends Exception
+  class Next_Undefined[A](x: Option[A]) extends Exception
 }
 
 
@@ -43,19 +44,22 @@ class Linear_Set[A]
   protected val rep = Linear_Set.empty_rep[A]
 
 
-  /* auxiliary operations */
+  /* relative addressing */
 
+  // FIXME check definedness??
   def next(elem: A): Option[A] = rep.nexts.get(elem)
   def prev(elem: A): Option[A] = rep.prevs.get(elem)
 
   def get_after(hook: Option[A]): Option[A] =
     hook match {
       case None => rep.start
-      case Some(elem) => next(elem)
+      case Some(elem) =>
+        if (!contains(elem)) throw new Linear_Set.Undefined(elem)
+        next(elem)
     }
 
   def insert_after(hook: Option[A], elem: A): Linear_Set[A] =
-    if (contains(elem)) throw new Linear_Set.Duplicate(elem.toString)
+    if (contains(elem)) throw new Linear_Set.Duplicate(elem)
     else
       hook match {
         case None =>
@@ -66,7 +70,7 @@ class Linear_Set[A]
                 rep.nexts + (elem -> elem1), rep.prevs + (elem1 -> elem))
           }
         case Some(elem1) =>
-          if (!contains(elem1)) throw new Linear_Set.Undefined(elem1.toString)
+          if (!contains(elem1)) throw new Linear_Set.Undefined(elem1)
           else
             rep.nexts.get(elem1) match {
               case None =>
@@ -83,7 +87,7 @@ class Linear_Set[A]
     hook match {
       case None =>
         rep.start match {
-          case None => throw new Linear_Set.Undefined("")
+          case None => throw new Linear_Set.Next_Undefined[A](None)
           case Some(elem1) =>
             rep.nexts.get(elem1) match {
               case None => empty
@@ -92,10 +96,10 @@ class Linear_Set[A]
             }
         }
       case Some(elem1) =>
-        if (!contains(elem1)) throw new Linear_Set.Undefined(elem1.toString)
+        if (!contains(elem1)) throw new Linear_Set.Undefined(elem1)
         else
           rep.nexts.get(elem1) match {
-            case None => throw new Linear_Set.Undefined("")
+            case None => throw new Linear_Set.Next_Undefined(Some(elem1))
             case Some(elem2) =>
               rep.nexts.get(elem2) match {
                 case None =>
@@ -153,15 +157,15 @@ class Linear_Set[A]
 
   def iterator(elem: A): Iterator[A] =
     if (contains(elem)) make_iterator(Some(elem), rep.nexts)
-    else throw new Linear_Set.Undefined(elem.toString)
+    else throw new Linear_Set.Undefined(elem)
 
   def reverse_iterator(elem: A): Iterator[A] =
     if (contains(elem)) make_iterator(Some(elem), rep.prevs)
-    else throw new Linear_Set.Undefined(elem.toString)
+    else throw new Linear_Set.Undefined(elem)
 
   def + (elem: A): Linear_Set[A] = insert_after(rep.end, elem)
 
   def - (elem: A): Linear_Set[A] =
-    if (!contains(elem)) throw new Linear_Set.Undefined(elem.toString)
+    if (!contains(elem)) throw new Linear_Set.Undefined(elem)
     else delete_after(prev(elem))
 }
