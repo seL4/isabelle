@@ -93,39 +93,6 @@ structure Iso_Tuple_Thms = Theory_Data
   fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
 
-fun add_default_code tyco { vs, typ = ty_rep, constr = c, proj, proj_constr, proj_inject, ... } thy =
-  let
-    val constr = (c, Logic.unvarifyT_global (Sign.the_const_type thy c));
-    val ty = Type (tyco, map TFree vs);
-    val proj = Const (proj, ty --> ty_rep);
-    val (t_x, t_y) = (Free ("x", ty), Free ("y", ty));
-    val eq_lhs = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
-      $ t_x $ t_y;
-    val eq_rhs = HOLogic.mk_eq (proj $ t_x, proj $ t_y);
-    val eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq) (eq_lhs, eq_rhs);
-    fun tac eq_thm = Class.intro_classes_tac []
-      THEN (Simplifier.rewrite_goals_tac
-        (map Simpdata.mk_eq [eq_thm, @{thm eq}, proj_inject]))
-          THEN ALLGOALS (rtac @{thm refl});
-    fun mk_eq_refl thy = @{thm HOL.eq_refl}
-      |> Thm.instantiate
-         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT_global ty)], [])
-      |> AxClass.unoverload thy;
-  in
-    thy
-    |> Code.add_datatype [constr]
-    |> Code.add_eqn proj_constr
-    |> Class.instantiation ([tyco], vs, [HOLogic.class_eq])
-    |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition
-         (NONE, (Attrib.empty_binding, eq)))
-    |-> (fn (_, (_, eq_thm)) =>
-       Class.prove_instantiation_exit_result Morphism.thm
-         (fn _ => fn eq_thm => tac eq_thm) eq_thm)
-    |-> (fn eq_thm => Code.add_eqn eq_thm)
-    |> (fn thy => Code.add_nbe_eqn (mk_eq_refl thy) thy)
-  end;
-
 fun add_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
     { Abs_inject, Rep_inject, Abs_inverse, Rep_inverse, ... }) : Typedef.info) thy =
   let
@@ -146,8 +113,7 @@ fun add_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
     };
   in
     thy
-    |> add_default_code tyco info
-    |> Quickcheck_Record.ensure_random_typecopy tyco vs Abs_name rep_type
+    (*|> Quickcheck_Record.ensure_random_typecopy tyco vs Abs_name rep_type*)
     |> pair (tyco, info)
   end
 
@@ -223,7 +189,6 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
       cdef_thy
       |> Iso_Tuple_Thms.map (Symtab.insert Thm.eq_thm_prop (isom_name, iso_tuple))
       |> Sign.restore_naming thy
-      |> Code.add_default_eqn isom_def;
   in
     ((isom, cons $ isom), thm_thy)
   end;
@@ -1682,7 +1647,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val ext_binding = Binding.name (suffix extN base_name);
     val ext_name = suffix extN name;
-    val extT = Type (suffix ext_typeN name, map TFree alphas_zeta);
+    val ext_tyco = suffix ext_typeN name
+    val extT = Type (ext_tyco, map TFree alphas_zeta);
     val ext_type = fields_moreTs ---> extT;
 
 
@@ -1836,10 +1802,9 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
            [("ext_induct", induct),
             ("ext_inject", inject),
             ("ext_surjective", surject),
-            ("ext_split", split_meta)])
-      ||> Code.add_default_eqn ext_def;
+            ("ext_split", split_meta)]);
 
-  in ((extT, induct', inject', surjective', split_meta', ext_def), thm_thy) end;
+  in (((ext_name, ext_type), (ext_tyco, alphas_zeta), extT, induct', inject', surjective', split_meta', ext_def), thm_thy) end;
 
 fun chunks [] [] = []
   | chunks [] xs = [xs]
@@ -1881,6 +1846,38 @@ fun meta_to_obj_all thm =
     val ct = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.list_all (params, concl)));
     val thm' = Seq.hd (REPEAT (rtac allI 1) (Thm.trivial ct));
   in Thm.implies_elim thm' thm end;
+
+
+(* code generation *)
+
+fun add_code ext_tyco vs extT ext simps inject thy =
+  let
+    val eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+      (Const (@{const_name eq_class.eq}, extT --> extT --> HOLogic.boolT),
+       Const (@{const_name "op ="}, extT --> extT --> HOLogic.boolT));
+    fun tac eq_def = Class.intro_classes_tac []
+      THEN (Simplifier.rewrite_goals_tac [Simpdata.mk_eq eq_def])
+      THEN ALLGOALS (rtac @{thm refl});
+    fun mk_eq thy eq_def = Simplifier.rewrite_rule
+      [(AxClass.unoverload thy o Thm.symmetric o Simpdata.mk_eq) eq_def] inject;
+    fun mk_eq_refl thy = @{thm HOL.eq_refl}
+      |> Thm.instantiate
+         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT_global extT)], [])
+      |> AxClass.unoverload thy;
+  in
+    thy
+    |> Code.add_datatype [ext]
+    |> fold Code.add_default_eqn simps
+    |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_eq])
+    |> `(fn lthy => Syntax.check_term lthy eq)
+    |-> (fn eq => Specification.definition
+         (NONE, (Attrib.empty_binding, eq)))
+    |-> (fn (_, (_, eq_def)) =>
+       Class.prove_instantiation_exit_result Morphism.thm
+         (fn _ => fn eq_def => tac eq_def) eq_def)
+    |-> (fn eq_def => fn thy => thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
+    |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
+  end;
 
 
 (* definition *)
@@ -1938,7 +1935,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val extension_name = full binding;
 
-    val ((extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), ext_thy) =
+    val ((ext, (ext_tyco, vs), extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), ext_thy) =
       thy
       |> Sign.qualified_path false binding
       |> extension_definition extension_name fields alphas_ext zeta moreT more vars;
@@ -2110,12 +2107,6 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
         upd_specs
       ||>> (PureThy.add_defs false o map (Thm.no_attributes o apfst (Binding.conceal o Binding.name)))
         [make_spec, fields_spec, extend_spec, truncate_spec]
-      |->
-        (fn defs as ((sel_defs, upd_defs), derived_defs) =>
-          fold Code.add_default_eqn sel_defs
-          #> fold Code.add_default_eqn upd_defs
-          #> fold Code.add_default_eqn derived_defs
-          #> pair defs)
       ||> Theory.checkpoint
     val (((sel_defs, upd_defs), derived_defs), defs_thy) =
       timeit_msg "record trfuns/tyabbrs/selectors/updates/make/fields/extend/truncate defs:"
@@ -2398,6 +2389,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       |> add_splits extension_id (split_meta', split_object', split_ex', induct_scheme')
       |> add_extfields extension_name (fields @ [(full_moreN, moreT)])
       |> add_fieldext (extension_name, snd extension) (names @ [full_moreN])
+      |> add_code ext_tyco vs extT ext simps' ext_inject
       |> Sign.restore_naming thy;
 
   in final_thy end;
