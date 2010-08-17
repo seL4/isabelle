@@ -4,8 +4,6 @@ theory Set
 imports FOL
 begin
 
-global
-
 typedecl 'a set
 arities set :: ("term") "term"
 
@@ -45,8 +43,6 @@ translations
   "UN x:A. B"   == "CONST UNION(A, %x. B)"
   "ALL x:A. P"  == "CONST Ball(A, %x. P)"
   "EX x:A. P"   == "CONST Bex(A, %x. P)"
-
-local
 
 axioms
   mem_Collect_iff:       "(a : {x. P(x)}) <-> P(a)"

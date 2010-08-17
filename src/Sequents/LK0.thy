@@ -12,8 +12,6 @@ theory LK0
 imports Sequents
 begin
 
-global
-
 classes "term"
 default_sort "term"
 
@@ -60,8 +58,6 @@ notation (HTML output)
   All  (binder "\<forall>" 10) and
   Ex  (binder "\<exists>" 10) and
   not_equal  (infixl "\<noteq>" 50)
-
-local
 
 axioms
 

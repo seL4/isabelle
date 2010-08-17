@@ -14,8 +14,6 @@ setup PureThy.old_appl_syntax_setup
 
 declare [[unify_trace_bound = 20, unify_search_bound = 40]]
 
-global
-
 typedecl o
 
 (* Sequences *)
