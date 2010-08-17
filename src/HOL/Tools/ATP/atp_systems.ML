@@ -8,9 +8,7 @@ Setup for supported ATPs.
 signature ATP_SYSTEMS =
 sig
   datatype failure =
-    Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
-    OutOfResources | OldSpass | NoPerl | NoLibwwwPerl | MalformedInput |
-    MalformedOutput | UnknownError
+    Unprovable | IncompleteUnprovable | MalformedOutput | UnknownError
 
   type prover_config =
     {exec: string * string,
@@ -39,9 +37,9 @@ struct
 (* prover configuration *)
 
 datatype failure =
-    Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
-    OutOfResources | OldSpass | NoPerl | NoLibwwwPerl | MalformedInput |
-    MalformedOutput | UnknownError
+  Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
+  OldSpass | OldVampire | NoPerl | NoLibwwwPerl | MalformedInput |
+  MalformedOutput | UnknownError
 
 type prover_config =
   {exec: string * string,
@@ -72,6 +70,10 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
                (Path.variable "ISABELLE_HOME_USER" ::
                 map Path.basic ["etc", "components"])))) ^
     " on a line of its own."
+  | string_for_failure OldVampire =
+    "Isabelle requires a more recent version of Vampire. To install it, follow \
+    \the instructions from the Sledgehammer manual (\"isabelle doc\
+    \ sledgehammer\")."
   | string_for_failure NoPerl = "Perl" ^ missing_message_tail
   | string_for_failure NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail
@@ -143,6 +145,7 @@ val e_config : prover_config =
    max_new_relevant_facts_per_iter = 60 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
+
 val e = ("e", e_config)
 
 
@@ -169,7 +172,9 @@ val spass_config : prover_config =
    max_new_relevant_facts_per_iter = 35 (* FIXME *),
    prefers_theory_relevant = true,
    explicit_forall = true}
+
 val spass = ("spass", spass_config)
+
 
 (* Vampire *)
 
@@ -189,11 +194,14 @@ val vampire_config : prover_config =
       (IncompleteUnprovable, "CANNOT PROVE"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
-      (OutOfResources, "Refutation not found")],
+      (OutOfResources, "Refutation not found"),
+      (OldVampire, "input_file")],
    max_new_relevant_facts_per_iter = 50 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
+
 val vampire = ("vampire", vampire_config)
+
 
 (* Remote prover invocation via SystemOnTPTP *)
 
@@ -236,12 +244,14 @@ fun remote_config atp_prefix
    explicit_forall = true}
 
 val remote_name = prefix "remote_"
-
 fun remote_prover (name, config) atp_prefix =
   (remote_name name, remote_config atp_prefix config)
 
 val remote_e = remote_prover e "EP---"
 val remote_vampire = remote_prover vampire "Vampire---9"
+
+
+(* Setup *)
 
 fun is_installed ({exec, required_execs, ...} : prover_config) =
   forall (curry (op <>) "" o getenv o fst) (exec :: required_execs)

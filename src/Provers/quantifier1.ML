@@ -17,7 +17,7 @@ Simplification procedures for turning
      And analogously for t=x, but the eqn is not turned around!
 
      NB Simproc is only triggered by "!x. P(x) & P'(x) --> Q(x)";
-        "!x. x=t --> P(x)" is covered by the congreunce rule for -->;
+        "!x. x=t --> P(x)" is covered by the congruence rule for -->;
         "!x. t=x --> P(x)" must be taken care of by an ordinary rewrite rule.
         As must be "? x. t=x & P(x)".
         
@@ -26,7 +26,7 @@ Simplification procedures for turning
 Gries etc call this the "1 point rules"
 
 The above also works for !x1..xn. and ?x1..xn by moving the defined
-qunatifier inside first, but not for nested bounded quantifiers.
+quantifier inside first, but not for nested bounded quantifiers.
 
 For set comprehensions the basic permutations
       ... & x = t & ...  ->  x = t & (... & ...)
