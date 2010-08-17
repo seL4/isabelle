@@ -13,12 +13,8 @@ function usage()
   echo
   echo "Usage: $PRG SOURCE TARGET [OPTIONS]"
   echo
-  echo "  Build Poly/ML in SOURCE directory for given platform in TARGET"
-  echo "  which is identified as follows:"
-  echo
-  echo "    x86-linux    x86_64-linux"
-  echo "    x86-darwin   x86_64-darwin"
-  echo "    x86-cygwin"
+  echo "  Build Poly/ML in SOURCE directory for given platform in TARGET,"
+  echo "  using the usual Isabelle platform identifiers."
   echo
   echo "  Additional options for ./configure may be given, e.g. --with-gmp"
   echo
@@ -63,6 +59,9 @@ case "$TARGET" in
       CXXFLAGS='-arch x86_64 -O3' CCASFLAGS='-arch x86_64')
     ;;
   x86-cygwin)
+    OPTIONS=()
+    ;;
+  ppc-darwin | sparc-solaris | x86-solaris | x86-bsd)
     OPTIONS=()
     ;;
   *)
