@@ -183,7 +183,7 @@ val vampire_config : prover_config =
    required_execs = [],
    arguments = fn _ => fn timeout =>
      "--mode casc -t " ^ string_of_int (to_generous_secs timeout) ^
-     " --input_file ",
+     " --input_file",
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
@@ -195,7 +195,7 @@ val vampire_config : prover_config =
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found"),
-      (OldVampire, "input_file")],
+      (OldVampire, "not a valid option")],
    max_new_relevant_facts_per_iter = 50 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}
