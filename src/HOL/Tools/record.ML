@@ -151,7 +151,7 @@ fun add_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
     |> pair (tyco, info)
   end
 
-fun typecopy (raw_tyco, raw_vs) raw_ty constr proj thy =
+fun typecopy (raw_tyco, raw_vs) raw_ty thy =
   let
     val ty = Sign.certify_typ thy raw_ty;
     val ctxt = ProofContext.init_global thy |> Variable.declare_typ ty;
@@ -160,13 +160,12 @@ fun typecopy (raw_tyco, raw_vs) raw_ty constr proj thy =
   in
     thy
     |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, vs, NoSyn)
-      (HOLogic.mk_UNIV ty) (SOME (proj, constr)) tac
+        (HOLogic.mk_UNIV ty) NONE tac
     |-> (fn (tyco, info) => add_info tyco vs info)
   end;
 
 fun do_typedef b repT alphas thy =
   let
-    val (b_constr, b_proj) = (Binding.prefix_name "make_" b, Binding.prefix_name "dest_" b);
     fun get_info thy tyco { vs, constr, typ = repT, proj_inject, proj_constr, ... } =
       let
         val absT = Type (tyco, map TFree vs);
@@ -175,7 +174,7 @@ fun do_typedef b repT alphas thy =
       end;
   in
     thy
-    |> typecopy (b, alphas) repT b_constr b_proj
+    |> typecopy (b, alphas) repT
     |-> (fn (tyco, info) => `(fn thy => get_info thy tyco info))
   end;
 
