@@ -4,6 +4,72 @@ begin
 
 section {* Program and datatype refinement \label{sec:refinement} *}
 
+text {*
+  Code generation by shallow embedding (cf.~\secref{sec:principle})
+  allows to choose code equations and datatype constructors freely,
+  given that some very basic syntactic properties are met; this
+  flexibility opens up mechanisms for refinement which allow to extend
+  the scope and quality of generated code dramatically.
+*}
+
+
+subsection {* Program refinement *}
+
+text {*
+  Program refinement works by choosing appropriate code equations
+  explicitly (cf.~\label{sec:equations}); as example, we use Fibonacci
+  numbers:
+*}
+
+fun %quote fib :: "nat \<Rightarrow> nat" where
+    "fib 0 = 0"
+  | "fib (Suc 0) = Suc 0"
+  | "fib (Suc (Suc n)) = fib n + fib (Suc n)"
+
+text {*
+  \noindent The runtime of the corresponding code grows exponential due
+  to two recursive calls:
+*}
+
+text %quote {*@{code_stmts fib (consts) fib (Haskell)}*}
+
+text {*
+  \noindent A more efficient implementation would use dynamic
+  programming, e.g.~sharing of common intermediate results between
+  recursive calls.  This idea is expressed by an auxiliary operation
+  which computes a Fibonacci number and its successor simultaneously:
+*}
+
+definition %quote fib_step :: "nat \<Rightarrow> nat \<times> nat" where
+  "fib_step n = (fib (Suc n), fib n)"
+
+text {*
+  \noindent This operation can be implemented by recursion using
+  dynamic programming:
+*}
+
+lemma %quote [code]:
+  "fib_step 0 = (Suc 0, 0)"
+  "fib_step (Suc n) = (let (m, q) = fib_step n in (m + q, m))"
+  by (simp_all add: fib_step_def)
+
+text {*
+  \noindent What remains is to implement @{const fib} by @{const
+  fib_step} as follows:
+*}
+
+lemma %quote [code]:
+  "fib 0 = 0"
+  "fib (Suc n) = fst (fib_step n)"
+  by (simp_all add: fib_step_def)
+
+text {*
+  \noindent The resulting code shows only linear growth of runtime:
+*}
+
+text %quote {*@{code_stmts fib (consts) fib fib_step (Haskell)}*}
+
+
 subsection {* Datatypes \label{sec:datatypes} *}
 
 text {*

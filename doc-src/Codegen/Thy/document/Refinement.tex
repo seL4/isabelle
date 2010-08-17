@@ -22,6 +22,175 @@
 }
 \isamarkuptrue%
 %
+\begin{isamarkuptext}%
+Code generation by shallow embedding (cf.~\secref{sec:principle})
+  allows to choose code equations and datatype constructors freely,
+  given that some very basic syntactic properties are met; this
+  flexibility opens up mechanisms for refinement which allow to extend
+  the scope and quality of generated code dramatically.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Program refinement%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Program refinement works by choosing appropriate code equations
+  explicitly (cf.~\label{sec:equations}); as example, we use Fibonacci
+  numbers:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{fun}\isamarkupfalse%
+\ fib\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ \ \ {\isachardoublequoteopen}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharparenright}\ {\isacharequal}\ Suc\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ {\isacharbar}\ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ fib\ n\ {\isacharplus}\ fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent The runtime of the corresponding code grows exponential due
+  to two recursive calls:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}fib ::~Nat -> Nat;\\
+\hspace*{0pt}fib Zero{\char95}nat = Zero{\char95}nat;\\
+\hspace*{0pt}fib (Suc Zero{\char95}nat) = Suc Zero{\char95}nat;\\
+\hspace*{0pt}fib (Suc (Suc n)) = plus{\char95}nat (fib n) (fib (Suc n));%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent A more efficient implementation would use dynamic
+  programming, e.g.~sharing of common intermediate results between
+  recursive calls.  This idea is expressed by an auxiliary operation
+  which computes a Fibonacci number and its successor simultaneously:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{definition}\isamarkupfalse%
+\ fib{\isacharunderscore}step\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}nat\ {\isasymRightarrow}\ nat\ {\isasymtimes}\ nat{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}fib{\isacharunderscore}step\ n\ {\isacharequal}\ {\isacharparenleft}fib\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharcomma}\ fib\ n{\isacharparenright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This operation can be implemented by recursion using
+  dynamic programming:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}fib{\isacharunderscore}step\ {\isadigit{0}}\ {\isacharequal}\ {\isacharparenleft}Suc\ {\isadigit{0}}{\isacharcomma}\ {\isadigit{0}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}fib{\isacharunderscore}step\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}let\ {\isacharparenleft}m{\isacharcomma}\ q{\isacharparenright}\ {\isacharequal}\ fib{\isacharunderscore}step\ n\ in\ {\isacharparenleft}m\ {\isacharplus}\ q{\isacharcomma}\ m{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ fib{\isacharunderscore}step{\isacharunderscore}def{\isacharparenright}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent What remains is to implement \isa{fib} by \isa{fib{\isacharunderscore}step} as follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}fib\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequoteclose}\isanewline
+\ \ {\isachardoublequoteopen}fib\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ fst\ {\isacharparenleft}fib{\isacharunderscore}step\ n{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ fib{\isacharunderscore}step{\isacharunderscore}def{\isacharparenright}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent The resulting code shows only linear growth of runtime:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}fib{\char95}step ::~Nat -> (Nat,~Nat);\\
+\hspace*{0pt}fib{\char95}step (Suc n) = let {\char123}\\
+\hspace*{0pt} ~~~~~~~~~~~~~~~~~~~~(m,~q) = fib{\char95}step n;\\
+\hspace*{0pt} ~~~~~~~~~~~~~~~~~~{\char125}~in (plus{\char95}nat m q,~m);\\
+\hspace*{0pt}fib{\char95}step Zero{\char95}nat = (Suc Zero{\char95}nat,~Zero{\char95}nat);\\
+\hspace*{0pt}\\
+\hspace*{0pt}fib ::~Nat -> Nat;\\
+\hspace*{0pt}fib (Suc n) = fst (fib{\char95}step n);\\
+\hspace*{0pt}fib Zero{\char95}nat = Zero{\char95}nat;%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \isamarkupsubsection{Datatypes \label{sec:datatypes}%
 }
 \isamarkuptrue%
