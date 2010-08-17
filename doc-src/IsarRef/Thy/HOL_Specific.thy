@@ -1018,7 +1018,7 @@ text {*
     target: 'OCaml' | 'SML' | 'Haskell'
     ;
 
-    'code' ( 'del' ) ?
+    'code' ( 'del' | 'abstype' | 'abstract' ) ?
     ;
 
     'code\_abort' ( const + )
@@ -1104,9 +1104,11 @@ text {*
   declaration.
 
   \item @{attribute (HOL) code} explicitly selects (or with option
-  ``@{text "del"}'' deselects) a code equation for code
-  generation.  Usually packages introducing code equations provide
-  a reasonable default setup for selection.
+  ``@{text "del"}'' deselects) a code equation for code generation.
+  Usually packages introducing code equations provide a reasonable
+  default setup for selection.  Variants @{text "code abstype"} and
+  @{text "code abstract"} declare abstract datatype certificates or
+  code equations on abstract datatype representations respectively.
 
   \item @{command (HOL) "code_abort"} declares constants which are not
   required to have a definition by means of code equations; if
