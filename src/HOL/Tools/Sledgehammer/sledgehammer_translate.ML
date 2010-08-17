@@ -267,16 +267,18 @@ fun fo_term_for_combterm full_types =
         val (x, ty_args) =
           case head of
             CombConst (name as (s, s'), _, ty_args) =>
-            if s = "equal" then
-              (if top_level andalso length args = 2 then name
-               else ("c_fequal", @{const_name fequal}), [])
-            else if top_level then
-              case s of
-                "c_False" => (("$false", s'), [])
-              | "c_True" => (("$true", s'), [])
-              | _ => (name, if full_types then [] else ty_args)
-            else
-              (name, if full_types then [] else ty_args)
+            let val ty_args = if full_types then [] else ty_args in
+              if s = "equal" then
+                if top_level andalso length args = 2 then (name, [])
+                else (("c_fequal", @{const_name fequal}), ty_args)
+              else if top_level then
+                case s of
+                  "c_False" => (("$false", s'), [])
+                | "c_True" => (("$true", s'), [])
+                | _ => (name, ty_args)
+              else
+                (name, ty_args)
+            end
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
         val t = ATerm (x, map fo_term_for_combtyp ty_args @
