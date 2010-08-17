@@ -85,8 +85,7 @@ fun filter_used_facts used =
 fun sublinear_minimize _ [] p = p
   | sublinear_minimize test (x :: xs) (seen, result) =
     case test (xs @ seen) of
-      result as {outcome = NONE, proof, used_thm_names, ...}
-      : prover_result =>
+      result as {outcome = NONE, proof, used_thm_names, ...} : prover_result =>
       sublinear_minimize test (filter_used_facts used_thm_names xs)
                          (filter_used_facts used_thm_names seen, result)
     | _ => sublinear_minimize test xs (x :: seen, result)

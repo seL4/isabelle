@@ -279,10 +279,10 @@ fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint (false, cl, TVar (ix, _)) = add_var (ix, cl)
   | add_type_constraint _ = I
 
-fun fix_atp_variable_name s =
+fun fix_atp_variable_name f s =
   let
     fun subscript_name s n = s ^ nat_subscript n
-    val s = String.map Char.toLower s
+    val s = String.map f s
   in
     case space_explode "_" s of
       [_] => (case take_suffix Char.isDigit (String.explode s) of
@@ -349,9 +349,10 @@ fun raw_term_from_pred thy full_types tfrees =
                   SOME b => Var ((b, 0), T)
                 | NONE =>
                   if is_tptp_variable a then
-                    Var ((fix_atp_variable_name a, 0), T)
+                    Var ((fix_atp_variable_name Char.toLower a, 0), T)
                   else
-                    raise Fail ("Unexpected constant: " ^ quote a)
+                    (* Skolem constants? *)
+                    Var ((fix_atp_variable_name Char.toUpper a, 0), T)
           in list_comb (t, ts) end
   in aux (SOME HOLogic.boolT) [] end
 
