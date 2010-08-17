@@ -279,10 +279,10 @@ fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint (false, cl, TVar (ix, _)) = add_var (ix, cl)
   | add_type_constraint _ = I
 
-fun fix_atp_variable_name s =
+fun repair_atp_variable_name f s =
   let
     fun subscript_name s n = s ^ nat_subscript n
-    val s = String.map Char.toLower s
+    val s = String.map f s
   in
     case space_explode "_" s of
       [_] => (case take_suffix Char.isDigit (String.explode s) of
@@ -349,9 +349,10 @@ fun raw_term_from_pred thy full_types tfrees =
                   SOME b => Var ((b, 0), T)
                 | NONE =>
                   if is_tptp_variable a then
-                    Var ((fix_atp_variable_name a, 0), T)
+                    Var ((repair_atp_variable_name Char.toLower a, 0), T)
                   else
-                    raise Fail ("Unexpected constant: " ^ quote a)
+                    (* Skolem constants? *)
+                    Var ((repair_atp_variable_name Char.toUpper a, 0), T)
           in list_comb (t, ts) end
   in aux (SOME HOLogic.boolT) [] end
 
@@ -410,7 +411,8 @@ fun prop_from_formula thy full_types tfrees phi =
         do_formula pos (AQuant (q, xs, phi'))
         #>> quantify_over_free (case q of
                                   AForall => @{const_name All}
-                                | AExists => @{const_name Ex}) x
+                                | AExists => @{const_name Ex})
+                               (repair_atp_variable_name Char.toLower x)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1
@@ -834,6 +836,7 @@ fun redirect_proof conjecture_shape hyp_ts concl_t proof =
       second_pass [Show] (contra_proof, [], ([], ([], []))) |> fst
   in proof_top @ proof_bottom end
 
+(* FIXME: Still needed? Probably not. *)
 val kill_duplicate_assumptions_in_proof =
   let
     fun relabel_facts subst =
