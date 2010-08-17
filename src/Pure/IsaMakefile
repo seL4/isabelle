@@ -21,7 +21,6 @@ LOG = $(OUT)/log
 
 BOOTSTRAP_FILES = 					\
   ML-Systems/bash.ML 					\
-  ML-Systems/compiler_polyml-5.0.ML			\
   ML-Systems/compiler_polyml-5.2.ML			\
   ML-Systems/compiler_polyml-5.3.ML			\
   ML-Systems/ml_name_space.ML				\
@@ -29,8 +28,6 @@ BOOTSTRAP_FILES = 					\
   ML-Systems/multithreading.ML				\
   ML-Systems/multithreading_polyml.ML			\
   ML-Systems/overloading_smlnj.ML			\
-  ML-Systems/polyml-5.0.ML				\
-  ML-Systems/polyml-5.1.ML				\
   ML-Systems/polyml-5.2.1.ML				\
   ML-Systems/polyml-5.2.ML				\
   ML-Systems/polyml.ML					\

@@ -139,6 +139,11 @@ theory loader state as before.  Potential INCOMPATIBILITY, subtle
 change in semantics.
 
 
+*** System ***
+
+* Discontinued support for Poly/ML 5.0 and 5.1 versions.
+
+
 
 New in Isabelle2009-2 (June 2010)
 ---------------------------------

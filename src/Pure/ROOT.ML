@@ -179,9 +179,9 @@ use "Isar/args.ML";
 use "ML/ml_syntax.ML";
 use "ML/ml_env.ML";
 use "Isar/runtime.ML";
-if ml_system = "polyml-5.3.0"
-then use "ML/ml_compiler_polyml-5.3.ML"
-else use "ML/ml_compiler.ML";
+if member (op =) ["polyml-5.2", "polyml-5.2.1", "smlnj-110"] ml_system
+then use "ML/ml_compiler.ML"
+else use "ML/ml_compiler_polyml-5.3.ML";
 use "ML/ml_context.ML";
 
 (*theory sources*)
