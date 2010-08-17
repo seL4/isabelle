@@ -343,7 +343,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/transfer.ML \
-  Tools/typecopy.ML \
   Tools/TFL/casesplit.ML \
   Tools/TFL/dcterm.ML \
   Tools/TFL/post.ML \
