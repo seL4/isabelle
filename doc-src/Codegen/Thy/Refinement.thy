@@ -70,23 +70,17 @@ text {*
 text %quote {*@{code_stmts fib (consts) fib fib_step (Haskell)}*}
 
 
-subsection {* Datatypes \label{sec:datatypes} *}
+subsection {* Datatype refinement *}
 
 text {*
-  Conceptually, any datatype is spanned by a set of
-  \emph{constructors} of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"} where @{text
-  "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is exactly the set of \emph{all} type variables in
-  @{text "\<tau>"}.  The HOL datatype package by default registers any new
-  datatype in the table of datatypes, which may be inspected using the
-  @{command print_codesetup} command.
-
-  In some cases, it is appropriate to alter or extend this table.  As
-  an example, we will develop an alternative representation of the
-  queue example given in \secref{sec:queue_example}.  The amortised
-  representation is convenient for generating code but exposes its
-  \qt{implementation} details, which may be cumbersome when proving
-  theorems about it.  Therefore, here is a simple, straightforward
-  representation of queues:
+  Selecting specific code equations \emph{and} datatype constructors
+  leads to datatype refinement.  As an example, we will develop an
+  alternative representation of the queue example given in
+  \secref{sec:queue_example}.  The amortised representation is
+  convenient for generating code but exposes its \qt{implementation}
+  details, which may be cumbersome when proving theorems about it.
+  Therefore, here is a simple, straightforward representation of
+  queues:
 *}
 
 datatype %quote 'a queue = Queue "'a list"
@@ -115,7 +109,18 @@ text {*
   \noindent Here we define a \qt{constructor} @{const "AQueue"} which
   is defined in terms of @{text "Queue"} and interprets its arguments
   according to what the \emph{content} of an amortised queue is supposed
-  to be.  Equipped with this, we are able to prove the following equations
+  to be.
+
+  The prerequisite for datatype constructors is only syntactical: a
+  constructor must be of type @{text "\<tau> = \<dots> \<Rightarrow> \<kappa> \<alpha>\<^isub>1 \<dots> \<alpha>\<^isub>n"} where @{text
+  "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is exactly the set of \emph{all} type variables in
+  @{text "\<tau>"}; then @{text "\<kappa>"} is its corresponding datatype.  The
+  HOL datatype package by default registers any new datatype with its
+  constructors, but this may be changed using @{command
+  code_datatype}; the currently chosen constructors can be inspected
+  using the @{command print_codesetup} command.
+
+  Equipped with this, we are able to prove the following equations
   for our primitive queue operations which \qt{implement} the simple
   queues in an amortised fashion:
 *}
@@ -151,28 +156,21 @@ text {*
 text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
 
 text {*
-  \noindent From this example, it can be glimpsed that using own
-  constructor sets is a little delicate since it changes the set of
-  valid patterns for values of that type.  Without going into much
-  detail, here some practical hints:
+  The same techniques can also be applied to types which are not
+  specified as datatypes, e.g.~type @{typ int} is originally specified
+  as quotient type by means of @{command typedef}, but for code
+  generation constants allowing construction of binary numeral values
+  are used as constructors for @{typ int}.
 
-  \begin{itemize}
+  This approach however fails if the representation of a type demands
+  invariants; this issue is discussed in the next section.
+*}
 
-    \item When changing the constructor set for datatypes, take care
-      to provide alternative equations for the @{text case} combinator.
 
-    \item Values in the target language need not to be normalised --
-      different values in the target language may represent the same
-      value in the logic.
+subsection {* Datatype refinement involving invariants *}
 
-    \item Usually, a good methodology to deal with the subtleties of
-      pattern matching is to see the type as an abstract type: provide
-      a set of operations which operate on the concrete representation
-      of the type, and derive further operations by combinations of
-      these primitive ones, without relying on a particular
-      representation.
-
-  \end{itemize}
+text {*
+  FIXME
 *}
 
 end

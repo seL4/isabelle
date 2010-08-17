@@ -191,24 +191,19 @@ Program refinement works by choosing appropriate code equations
 %
 \endisadelimquote
 %
-\isamarkupsubsection{Datatypes \label{sec:datatypes}%
+\isamarkupsubsection{Datatype refinement%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Conceptually, any datatype is spanned by a set of
-  \emph{constructors} of type \isa{{\isasymtau}\ {\isacharequal}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymkappa}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymdots}\ {\isasymalpha}\isactrlisub n} where \isa{{\isacharbraceleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub n{\isacharbraceright}} is exactly the set of \emph{all} type variables in
-  \isa{{\isasymtau}}.  The HOL datatype package by default registers any new
-  datatype in the table of datatypes, which may be inspected using the
-  \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command.
-
-  In some cases, it is appropriate to alter or extend this table.  As
-  an example, we will develop an alternative representation of the
-  queue example given in \secref{sec:queue_example}.  The amortised
-  representation is convenient for generating code but exposes its
-  \qt{implementation} details, which may be cumbersome when proving
-  theorems about it.  Therefore, here is a simple, straightforward
-  representation of queues:%
+Selecting specific code equations \emph{and} datatype constructors
+  leads to datatype refinement.  As an example, we will develop an
+  alternative representation of the queue example given in
+  \secref{sec:queue_example}.  The amortised representation is
+  convenient for generating code but exposes its \qt{implementation}
+  details, which may be cumbersome when proving theorems about it.
+  Therefore, here is a simple, straightforward representation of
+  queues:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -267,7 +262,16 @@ Conceptually, any datatype is spanned by a set of
 \noindent Here we define a \qt{constructor} \isa{AQueue} which
   is defined in terms of \isa{Queue} and interprets its arguments
   according to what the \emph{content} of an amortised queue is supposed
-  to be.  Equipped with this, we are able to prove the following equations
+  to be.
+
+  The prerequisite for datatype constructors is only syntactical: a
+  constructor must be of type \isa{{\isasymtau}\ {\isacharequal}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymkappa}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymdots}\ {\isasymalpha}\isactrlisub n} where \isa{{\isacharbraceleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub n{\isacharbraceright}} is exactly the set of \emph{all} type variables in
+  \isa{{\isasymtau}}; then \isa{{\isasymkappa}} is its corresponding datatype.  The
+  HOL datatype package by default registers any new datatype with its
+  constructors, but this may be changed using \hyperlink{command.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}; the currently chosen constructors can be inspected
+  using the \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command.
+
+  Equipped with this, we are able to prove the following equations
   for our primitive queue operations which \qt{implement} the simple
   queues in an amortised fashion:%
 \end{isamarkuptext}%
@@ -347,7 +351,8 @@ Conceptually, any datatype is spanned by a set of
 \isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt} ~val foldl :~('a -> 'b -> 'a) -> 'a -> 'b list -> 'a\\
+\hspace*{0pt} ~val id :~'a -> 'a\\
+\hspace*{0pt} ~val fold :~('a -> 'b -> 'b) -> 'a list -> 'b -> 'b\\
 \hspace*{0pt} ~val rev :~'a list -> 'a list\\
 \hspace*{0pt} ~val null :~'a list -> bool\\
 \hspace*{0pt} ~datatype 'a queue = AQueue of 'a list * 'a list\\
@@ -356,10 +361,12 @@ Conceptually, any datatype is spanned by a set of
 \hspace*{0pt} ~val enqueue :~'a -> 'a queue -> 'a queue\\
 \hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun foldl f a [] = a\\
-\hspace*{0pt} ~| foldl f a (x ::~xs) = foldl f (f a x) xs;\\
+\hspace*{0pt}fun id x = (fn xa => xa) x;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun rev xs = foldl (fn xsa => fn x => x ::~xsa) [] xs;\\
+\hspace*{0pt}fun fold f [] = id\\
+\hspace*{0pt} ~| fold f (x ::~xs) = fold f xs o f x;\\
+\hspace*{0pt}\\
+\hspace*{0pt}fun rev xs = fold (fn a => fn b => a ::~b) xs [];\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun null [] = true\\
 \hspace*{0pt} ~| null (x ::~xs) = false;\\
@@ -387,28 +394,23 @@ Conceptually, any datatype is spanned by a set of
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent From this example, it can be glimpsed that using own
-  constructor sets is a little delicate since it changes the set of
-  valid patterns for values of that type.  Without going into much
-  detail, here some practical hints:
+The same techniques can also be applied to types which are not
+  specified as datatypes, e.g.~type \isa{int} is originally specified
+  as quotient type by means of \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}}, but for code
+  generation constants allowing construction of binary numeral values
+  are used as constructors for \isa{int}.
 
-  \begin{itemize}
-
-    \item When changing the constructor set for datatypes, take care
-      to provide alternative equations for the \isa{case} combinator.
-
-    \item Values in the target language need not to be normalised --
-      different values in the target language may represent the same
-      value in the logic.
-
-    \item Usually, a good methodology to deal with the subtleties of
-      pattern matching is to see the type as an abstract type: provide
-      a set of operations which operate on the concrete representation
-      of the type, and derive further operations by combinations of
-      these primitive ones, without relying on a particular
-      representation.
-
-  \end{itemize}%
+  This approach however fails if the representation of a type demands
+  invariants; this issue is discussed in the next section.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Datatype refinement involving invariants%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
