@@ -107,10 +107,10 @@ fun edit_nodes (name, SOME edits) (Version nodes) =
         |> Graph.default_node (name, empty_node)
         |> Graph.map_node name (fold edit_node edits))
   | edit_nodes (name, NONE) (Version nodes) =
-      Version (Graph.del_node name nodes);  (* FIXME Graph.UNDEF !? *)
+      Version (Graph.del_node name nodes);
 
 fun put_node name node (Version nodes) =
-  Version (Graph.map_node name (K node) nodes);  (* FIXME Graph.UNDEF !? *)
+  Version (Graph.map_node name (K node) nodes);
 
 end;
 
@@ -133,8 +133,8 @@ fun map_state f (State {versions, commands, execs, execution}) =
 
 val init_state =
   make_state (Inttab.make [(no_id, empty_version)],
-    Inttab.make [(no_id, Future.value Toplevel.empty)],          (* FIXME no_id !?? *)
-    Inttab.make [(no_id, Lazy.value (SOME Toplevel.toplevel))],  (* FIXME no_id !?? *)
+    Inttab.make [(no_id, Future.value Toplevel.empty)],
+    Inttab.make [(no_id, Lazy.value (SOME Toplevel.toplevel))],
     []);
 
 
@@ -207,13 +207,13 @@ fun new_exec name (id: command_id) (exec_id, updates, state) =
   let
     val exec = the_exec state exec_id;
     val exec_id' = new_id ();
-    val tr = the_command state id;
+    val future_tr = the_command state id;
     val exec' =
       Lazy.lazy (fn () =>
         (case Lazy.force exec of
           NONE => NONE
         | SOME st =>
-            let val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join tr)
+            let val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join future_tr)
             in Toplevel.run_command name exec_tr st end));
     val state' = define_exec exec_id' exec' state;
   in (exec_id', (id, exec_id') :: updates, state') end;
