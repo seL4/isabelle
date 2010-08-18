@@ -99,48 +99,58 @@ val boring_consts = [@{const_name If}, @{const_name Let}]
 
 fun get_consts_typs thy pos ts =
   let
-    (* Free variables are included, as well as constants, to handle locales.
-       "skolem_id" is included to increase the complexity of theorems containing
-       Skolem functions. In non-CNF form, "Ex" is included but each occurrence
-       is considered fresh, to simulate the effect of Skolemization. *)
+    (* We include free variables, as well as constants, to handle locales. For
+       each quantifiers that must necessarily be skolemized by the ATP, we
+       introduce a fresh constant to simulate the effect of Skolemization. *)
     fun do_term t =
       case t of
         Const x => add_const_type_to_table (const_with_typ thy x)
       | Free x => add_const_type_to_table (const_with_typ thy x)
-      | (t as Const (@{const_name skolem_id}, _)) $ _ => do_term t
       | t1 $ t2 => do_term t1 #> do_term t2
       | Abs (_, _, t) =>
         (* Abstractions lead to combinators, so we add a penalty for them. *)
         add_const_type_to_table (gensym fresh_prefix, [])
         #> do_term t
       | _ => I
-    fun do_quantifier sweet_pos pos body_t =
+    fun do_quantifier will_surely_be_skolemized body_t =
       do_formula pos body_t
-      #> (if pos = SOME sweet_pos then I
-          else add_const_type_to_table (gensym fresh_prefix, []))
-    and do_equality T t1 t2 =
-      fold (if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE
-            else do_term) [t1, t2]
+      #> (if will_surely_be_skolemized then
+            add_const_type_to_table (gensym fresh_prefix, [])
+          else
+            I)
+    and do_term_or_formula T =
+     if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE else do_term
     and do_formula pos t =
       case t of
         Const (@{const_name all}, _) $ Abs (_, _, body_t) =>
-        do_quantifier false pos body_t
+        do_quantifier (pos = SOME false) body_t
       | @{const "==>"} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
-        do_equality T t1 t2
+        fold (do_term_or_formula T) [t1, t2]
       | @{const Trueprop} $ t1 => do_formula pos t1
       | @{const Not} $ t1 => do_formula (flip pos) t1
       | Const (@{const_name All}, _) $ Abs (_, _, body_t) =>
-        do_quantifier false pos body_t
+        do_quantifier (pos = SOME false) body_t
       | Const (@{const_name Ex}, _) $ Abs (_, _, body_t) =>
-        do_quantifier true pos body_t
+        do_quantifier (pos = SOME true) body_t
       | @{const "op &"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
       | @{const "op |"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
       | @{const "op -->"} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "op ="}, Type (_, [T, _])) $ t1 $ t2 =>
-        do_equality T t1 t2
+        fold (do_term_or_formula T) [t1, t2]
+      | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
+        $ t1 $ t2 $ t3 =>
+        do_formula NONE t1 #> fold (do_term_or_formula T) [t2, t3]
+      | Const (@{const_name Ex1}, _) $ Abs (_, _, body_t) =>
+        do_quantifier (is_some pos) body_t
+      | Const (@{const_name Ball}, _) $ t1 $ Abs (_, _, body_t) =>
+        do_quantifier (pos = SOME false)
+                      (HOLogic.mk_imp (incr_boundvars 1 t1 $ Bound 0, body_t))
+      | Const (@{const_name Bex}, _) $ t1 $ Abs (_, _, body_t) =>
+        do_quantifier (pos = SOME true)
+                      (HOLogic.mk_conj (incr_boundvars 1 t1 $ Bound 0, body_t))
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term t0 #> do_formula pos t1  (* theory constant *)
       | _ => do_term t
@@ -194,7 +204,6 @@ fun count_axiom_consts theory_relevant thy (_, th) =
       end
     fun do_term (Const x) = do_const x
       | do_term (Free x) = do_const x
-      | do_term (Const (x as (@{const_name skolem_id}, _)) $ _) = do_const x
       | do_term (t $ u) = do_term t #> do_term u
       | do_term (Abs (_, _, t)) = do_term t
       | do_term _ = I
@@ -233,7 +242,7 @@ fun formula_weight const_tab gctyps consts_typs =
 fun add_expand_pairs (x,ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys;
 
 fun consts_typs_of_term thy t =
-  Symtab.fold add_expand_pairs (get_consts_typs thy (SOME false) [t]) []
+  Symtab.fold add_expand_pairs (get_consts_typs thy (SOME true) [t]) []
 
 fun pair_consts_typs_axiom theory_relevant thy axiom =
   (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
@@ -270,20 +279,20 @@ fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
 
 (* Limit the number of new facts, to prevent runaway acceptance. *)
 fun take_best max_new (newpairs : (annotated_thm * real) list) =
-  let val nnew = length newpairs
-  in
-    if nnew <= max_new then (map #1 newpairs, [])
+  let val nnew = length newpairs in
+    if nnew <= max_new then
+      (map #1 newpairs, [])
     else
-      let val cls = sort compare_pairs newpairs
-          val accepted = List.take (cls, max_new)
+      let
+        val newpairs = sort compare_pairs newpairs
+        val accepted = List.take (newpairs, max_new)
       in
         trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^
-                       ", exceeds the limit of " ^ Int.toString (max_new)));
+                       ", exceeds the limit of " ^ Int.toString max_new));
         trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         trace_msg (fn () => "Actually passed: " ^
           space_implode ", " (map (fst o fst o fst) accepted));
-
-        (map #1 accepted, map #1 (List.drop (cls, max_new)))
+        (map #1 accepted, map #1 (List.drop (newpairs, max_new)))
       end
   end;
 
@@ -311,7 +320,7 @@ fun relevant_facts ctxt relevance_convergence defs_relevant max_new
                   (more_rejects @ rejects)
             end
           | relevant (newrels, rejects)
-                     ((ax as (clsthm as (name, th), consts_typs)) :: axs) =
+                     ((ax as ((name, th), consts_typs)) :: axs) =
             let
               val weight =
                 if member Thm.eq_thm add_thms th then 1.0
@@ -336,16 +345,17 @@ fun relevant_facts ctxt relevance_convergence defs_relevant max_new
 
 fun relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
-                     thy axioms goal_ts =
+                     axioms goal_ts =
   if relevance_threshold > 1.0 then
     []
   else if relevance_threshold < 0.0 then
     axioms
   else
     let
+      val thy = ProofContext.theory_of ctxt
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
                            Symtab.empty
-      val goal_const_tab = get_consts_typs thy (SOME true) goal_ts
+      val goal_const_tab = get_consts_typs thy (SOME false) goal_ts
       val relevance_threshold = 0.8 * relevance_threshold (* FIXME *)
       val _ =
         trace_msg (fn () => "Initial constants: " ^
@@ -546,7 +556,6 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
                    (relevance_override as {add, del, only})
                    (ctxt, (chained_ths, _)) hyp_ts concl_t =
   let
-    val thy = ProofContext.theory_of ctxt
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val has_override = not (null add) orelse not (null del)
 (* FIXME:
@@ -564,7 +573,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
-                     thy axioms (concl_t :: hyp_ts)
+                     axioms (concl_t :: hyp_ts)
     |> has_override ? make_unique
     |> sort_wrt fst
   end
