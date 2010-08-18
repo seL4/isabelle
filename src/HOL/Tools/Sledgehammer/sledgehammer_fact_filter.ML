@@ -561,13 +561,14 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (map (name_thms_pair_from_ref ctxt chained_ths) add @
            (if only then [] else all_name_thms_pairs ctxt chained_ths))
+      |> make_unique
       |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
                                not (is_dangerous_term full_types (prop_of th)))
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
                      axioms (concl_t :: hyp_ts)
-    |> make_unique |> sort_wrt fst
+    |> sort_wrt fst
   end
 
 end;
