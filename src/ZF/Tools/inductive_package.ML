@@ -102,7 +102,7 @@ let
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
-  fun dest_tprop (Const("Trueprop",_) $ P) = P
+  fun dest_tprop (Const(@{const_name Trueprop},_) $ P) = P
     | dest_tprop Q = error ("Ill-formed premise of introduction rule: " ^
                             Syntax.string_of_term ctxt Q);
 

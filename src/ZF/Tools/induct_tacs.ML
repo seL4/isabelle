@@ -118,7 +118,7 @@ val induct_tac = exhaust_induct_tac false;
 fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
   let
     (*analyze the LHS of a case equation to get a constructor*)
-    fun const_of (Const("op =", _) $ (_ $ c) $ _) = c
+    fun const_of (Const(@{const_name "op ="}, _) $ (_ $ c) $ _) = c
       | const_of eqn = error ("Ill-formed case equation: " ^
                               Syntax.string_of_term_global thy eqn);
 

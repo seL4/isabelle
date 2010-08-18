@@ -131,6 +131,16 @@ derive instantiated and simplified equations for inductive predicates,
 similar to inductive_cases.
 
 
+*** FOL ***
+
+* All constant names are now qualified.  INCOMPATIBILITY.
+
+
+*** ZF ***
+
+* All constant names are now qualified.  INCOMPATIBILITY.
+
+
 *** ML ***
 
 * ML antiquotations @{theory} and @{theory_ref} refer to named

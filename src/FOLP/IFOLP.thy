@@ -12,8 +12,6 @@ begin
 
 setup PureThy.old_appl_syntax_setup
 
-global
-
 classes "term"
 default_sort "term"
 
@@ -62,8 +60,6 @@ consts
  idpeel         :: "[p,'a=>p]=>p"
  nrm            :: p
  NRM            :: p
-
-local
 
 syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
 
