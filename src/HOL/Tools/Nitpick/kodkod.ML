@@ -156,6 +156,7 @@ sig
 
   datatype outcome =
     JavaNotInstalled |
+    JavaTooOld |
     KodkodiNotInstalled |
     Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
@@ -303,6 +304,7 @@ type raw_bound = n_ary_index * int list list
 
 datatype outcome =
   JavaNotInstalled |
+  JavaTooOld |
   KodkodiNotInstalled |
   Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
@@ -1063,19 +1065,20 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                 |> perhaps (try (unsuffix "."))
                 |> perhaps (try (unprefix "Solve error: "))
                 |> perhaps (try (unprefix "Error: "))
+              fun has_error s =
+                first_error |> Substring.full |> Substring.position s |> snd
+                            |> Substring.isEmpty |> not
             in
               if null ps then
                 if code = 2 then
                   TimedOut js
                 else if code = 0 then
                   Normal ([], js, first_error)
-                else if first_error |> Substring.full
-                        |> Substring.position "exec: java" |> snd
-                        |> Substring.isEmpty |> not then
+                else if has_error "exec: java" then
                   JavaNotInstalled
-                else if first_error |> Substring.full
-                        |> Substring.position "NoClassDefFoundError" |> snd
-                        |> Substring.isEmpty |> not then
+                else if has_error "UnsupportedClassVersionError" then
+                  JavaTooOld
+                else if has_error "NoClassDefFoundError" then
                   KodkodiNotInstalled
                 else if first_error <> "" then
                   Error (first_error, js)

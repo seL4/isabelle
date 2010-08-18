@@ -55,8 +55,10 @@ fun combformula_for_prop thy =
   let
     val do_term = combterm_from_term thy
     fun do_quant bs q s T t' =
-      do_formula ((s, T) :: bs) t'
-      #>> (fn phi => AQuant (q, [`make_bound_var s], phi))
+      let val s = Name.variant (map fst bs) s in
+        do_formula ((s, T) :: bs) t'
+        #>> (fn phi => AQuant (q, [`make_bound_var s], phi))
+      end
     and do_conn bs c t1 t2 =
       do_formula bs t1 ##>> do_formula bs t2
       #>> (fn (phi1, phi2) => AConn (c, [phi1, phi2]))

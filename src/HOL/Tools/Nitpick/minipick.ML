@@ -315,6 +315,7 @@ fun solve_any_kodkod_problem thy problems =
   in
     case solve_any_problem overlord NONE max_threads max_solutions problems of
       JavaNotInstalled => "unknown"
+    | JavaTooOld => "unknown"
     | KodkodiNotInstalled => "unknown"
     | Normal ([], _, _) => "none"
     | Normal _ => "genuine"

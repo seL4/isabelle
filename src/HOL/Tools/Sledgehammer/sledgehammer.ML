@@ -167,8 +167,8 @@ fun extract_clause_sequence output =
 val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
 
 val parse_clause_formula_pair =
-  $$ "(" |-- scan_integer --| $$ "," -- Symbol.scan_id
-  --| Scan.repeat ($$ "," |-- Symbol.scan_id) --| $$ ")"
+  $$ "(" |-- scan_integer --| $$ ","
+  -- (Symbol.scan_id ::: Scan.repeat ($$ "," |-- Symbol.scan_id)) --| $$ ")"
   --| Scan.option ($$ ",")
 val parse_clause_formula_relation =
   Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
@@ -183,21 +183,21 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
                                               thm_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
     (* This is a hack required for keeping track of axioms after they have been
-       clausified by SPASS's Flotter tool. The "SPASS_TPTP" script is also part
-       of this hack. *)
+       clausified by SPASS's Flotter tool. The "ATP/scripts/spass" script is also
+       part of this hack. *)
     let
       val j0 = hd (hd conjecture_shape)
       val seq = extract_clause_sequence output
       val name_map = extract_clause_formula_relation output
       fun renumber_conjecture j =
-        AList.find (op =) name_map (conjecture_prefix ^ Int.toString (j - j0))
+        conjecture_prefix ^ Int.toString (j - j0)
+        |> AList.find (fn (s, ss) => member (op =) ss s) name_map
         |> map (fn s => find_index (curry (op =) s) seq + 1)
     in
       (conjecture_shape |> map (maps renumber_conjecture),
-       seq |> map (fn j => case j |> AList.lookup (op =) name_map |> the
-                                  |> try (unprefix axiom_prefix) of
-                             SOME s' => undo_ascii_of s'
-                           | NONE => "")
+       seq |> map (AList.lookup (op =) name_map #> these
+                   #> map_filter (try (unprefix axiom_prefix))
+                   #> map undo_ascii_of #> space_implode " ")
            |> Vector.fromList)
     end
   else
