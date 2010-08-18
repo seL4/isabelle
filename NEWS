@@ -77,6 +77,8 @@ generation.
     nat ~> Nat.nat
 
   constants
+    Let ~> HOL.Let
+    If ~> HOL.If
     Ball ~> Set.Ball
     Bex ~> Set.Bex
     Suc ~> Nat.Suc
@@ -90,7 +92,7 @@ generation.
 INCOMPATIBILITY.
 
 * Removed simplifier congruence rule of "prod_case", as has for long
-been the case with "split".
+been the case with "split".  INCOMPATIBILITY.
 
 * Datatype package: theorems generated for executable equality
 (class eq) carry proper names and are treated as default code
@@ -99,8 +101,8 @@ equations.
 * List.thy: use various operations from the Haskell prelude when
 generating Haskell code.
 
-* code_simp.ML: simplification with rules determined by
-code generator.
+* code_simp.ML and method code_simp: simplification with rules determined
+by code generator.
 
 * code generator: do not print function definitions for case
 combinators any longer.
