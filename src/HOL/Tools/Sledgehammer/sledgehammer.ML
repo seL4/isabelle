@@ -20,6 +20,7 @@ sig
      explicit_apply: bool,
      relevance_threshold: real,
      relevance_convergence: real,
+     max_relevant_per_iter: int option,
      theory_relevant: bool option,
      defs_relevant: bool,
      isar_proof: bool,
@@ -89,6 +90,7 @@ type params =
    explicit_apply: bool,
    relevance_threshold: real,
    relevance_convergence: real,
+   max_relevant_per_iter: int option,
    theory_relevant: bool option,
    defs_relevant: bool,
    isar_proof: bool,
@@ -208,10 +210,11 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 fun prover_fun atp_name
         {exec, required_execs, arguments, proof_delims, known_failures,
-         max_new_relevant_facts_per_iter, prefers_theory_relevant,
+         default_max_relevant_per_iter, default_theory_relevant,
          explicit_forall}
         ({debug, verbose, overlord, full_types, explicit_apply,
-          relevance_threshold, relevance_convergence, theory_relevant,
+          relevance_threshold, relevance_convergence,
+          max_relevant_per_iter, theory_relevant,
           defs_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
         minimize_command
         ({subgoal, goal, relevance_override, axioms} : problem) =
@@ -231,8 +234,10 @@ fun prover_fun atp_name
         (print_d (fn () => "Selecting relevant facts for " ^ quote atp_name ^
                            ".");
          relevant_facts full_types relevance_threshold relevance_convergence
-                        defs_relevant max_new_relevant_facts_per_iter
-                        (the_default prefers_theory_relevant theory_relevant)
+                        defs_relevant
+                        (the_default default_max_relevant_per_iter
+                                     max_relevant_per_iter)
+                        (the_default default_theory_relevant theory_relevant)
                         relevance_override goal hyp_ts concl_t
          |> tap ((fn n => print_v (fn () =>
                       "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^

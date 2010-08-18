@@ -420,8 +420,8 @@ fun boolify t = ATerm (`I "hBOOL", [t])
    type instantiations). If false, the constant always receives all of its
    arguments and is used as a predicate. *)
 fun is_predicate NONE s =
-    s = "equal" orelse String.isPrefix type_const_prefix s orelse
-    String.isPrefix class_prefix s
+    s = "equal" orelse s = "$false" orelse s = "$true" orelse
+    String.isPrefix type_const_prefix s orelse String.isPrefix class_prefix s
   | is_predicate (SOME the_const_tab) s =
     case Symtab.lookup the_const_tab s of
       SOME {min_arity, max_arity, sub_level} =>

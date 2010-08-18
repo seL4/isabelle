@@ -18,8 +18,8 @@ sig
      arguments: bool -> Time.time -> string,
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
-     max_new_relevant_facts_per_iter: int,
-     prefers_theory_relevant: bool,
+     default_max_relevant_per_iter: int,
+     default_theory_relevant: bool,
      explicit_forall: bool}
 
   val string_for_failure : failure -> string
@@ -49,8 +49,8 @@ type prover_config =
    arguments: bool -> Time.time -> string,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
-   max_new_relevant_facts_per_iter: int,
-   prefers_theory_relevant: bool,
+   default_max_relevant_per_iter: int,
+   default_theory_relevant: bool,
    explicit_forall: bool}
 
 val missing_message_tail =
@@ -144,8 +144,8 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   max_new_relevant_facts_per_iter = 50 (* FIXME *),
-   prefers_theory_relevant = false,
+   default_max_relevant_per_iter = 50 (* FIXME *),
+   default_theory_relevant = false,
    explicit_forall = false}
 
 val e = ("e", e_config)
@@ -171,8 +171,8 @@ val spass_config : prover_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg")],
-   max_new_relevant_facts_per_iter = 35 (* FIXME *),
-   prefers_theory_relevant = true,
+   default_max_relevant_per_iter = 35 (* FIXME *),
+   default_theory_relevant = true,
    explicit_forall = true}
 
 val spass = ("spass", spass_config)
@@ -198,8 +198,8 @@ val vampire_config : prover_config =
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found"),
       (VampireTooOld, "not a valid option")],
-   max_new_relevant_facts_per_iter = 45 (* FIXME *),
-   prefers_theory_relevant = false,
+   default_max_relevant_per_iter = 45 (* FIXME *),
+   default_theory_relevant = false,
    explicit_forall = false}
 
 val vampire = ("vampire", vampire_config)
@@ -220,9 +220,10 @@ fun get_systems () =
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
-fun get_system prefix = Synchronized.change_result systems (fn systems =>
-  (if null systems then get_systems () else systems)
-  |> `(find_first (String.isPrefix prefix)));
+fun get_system prefix =
+  Synchronized.change_result systems
+      (fn systems => (if null systems then get_systems () else systems)
+                     |> `(find_first (String.isPrefix prefix)))
 
 fun the_system prefix =
   (case get_system prefix of
@@ -230,8 +231,8 @@ fun the_system prefix =
   | SOME sys => sys);
 
 fun remote_config atp_prefix
-        ({proof_delims, known_failures, max_new_relevant_facts_per_iter,
-          prefers_theory_relevant, ...} : prover_config) : prover_config =
+        ({proof_delims, known_failures, default_max_relevant_per_iter,
+          default_theory_relevant, ...} : prover_config) : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
@@ -241,8 +242,8 @@ fun remote_config atp_prefix
    known_failures =
      known_failures @ known_perl_failures @
      [(TimedOut, "says Timeout")],
-   max_new_relevant_facts_per_iter = max_new_relevant_facts_per_iter,
-   prefers_theory_relevant = prefers_theory_relevant,
+   default_max_relevant_per_iter = default_max_relevant_per_iter,
+   default_theory_relevant = default_theory_relevant,
    explicit_forall = true}
 
 val remote_name = prefix "remote_"

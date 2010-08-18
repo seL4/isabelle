@@ -43,9 +43,9 @@ fun n_theorems name_thms_pairs =
   end
 
 fun test_theorems ({debug, verbose, overlord, atps, full_types,
-                    relevance_threshold, relevance_convergence, theory_relevant,
-                    defs_relevant, isar_proof, isar_shrink_factor,
-                    ...} : params)
+                    relevance_threshold, relevance_convergence,
+                    defs_relevant, isar_proof, isar_shrink_factor, ...}
+                   : params)
                   (prover : prover) explicit_apply timeout subgoal state
                   name_thms_pairs =
   let
@@ -56,9 +56,10 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types,
        full_types = full_types, explicit_apply = explicit_apply,
        relevance_threshold = relevance_threshold,
        relevance_convergence = relevance_convergence,
-       theory_relevant = theory_relevant, defs_relevant = defs_relevant,
-       isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-       timeout = timeout, minimize_timeout = timeout}
+       max_relevant_per_iter = NONE, theory_relevant = NONE,
+       defs_relevant = defs_relevant, isar_proof = isar_proof,
+       isar_shrink_factor = isar_shrink_factor, timeout = timeout,
+       minimize_timeout = timeout}
     val axioms = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
@@ -98,10 +99,8 @@ val fudge_msecs = 250
 
 fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
   | minimize_theorems
-        (params as {debug, verbose, overlord, atps as atp :: _, full_types,
-                    relevance_threshold, relevance_convergence, theory_relevant,
-                    defs_relevant, isar_proof, isar_shrink_factor,
-                    minimize_timeout, ...})
+        (params as {debug, atps = atp :: _, full_types, isar_proof,
+                    isar_shrink_factor, minimize_timeout, ...})
         i n state name_thms_pairs =
   let
     val thy = Proof.theory_of state

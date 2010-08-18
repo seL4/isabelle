@@ -69,6 +69,7 @@ val default_default_params =
    ("explicit_apply", "false"),
    ("relevance_threshold", "50"),
    ("relevance_convergence", "320"),
+   ("max_relevant_per_iter", "smart"),
    ("theory_relevant", "smart"),
    ("defs_relevant", "false"),
    ("isar_proof", "false"),
@@ -158,6 +159,10 @@ fun extract_params default_params override_params =
                     SOME n => n
                   | NONE => error ("Parameter " ^ quote name ^
                                    " must be assigned an integer value.")
+    fun lookup_int_option name =
+      case lookup name of
+        SOME "smart" => NONE
+      | _ => SOME (lookup_int name)
     val debug = lookup_bool "debug"
     val verbose = debug orelse lookup_bool "verbose"
     val overlord = lookup_bool "overlord"
@@ -168,6 +173,7 @@ fun extract_params default_params override_params =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
     val relevance_convergence =
       0.01 * Real.fromInt (lookup_int "relevance_convergence")
+    val max_relevant_per_iter = lookup_int_option "max_relevant_per_iter"
     val theory_relevant = lookup_bool_option "theory_relevant"
     val defs_relevant = lookup_bool "defs_relevant"
     val isar_proof = lookup_bool "isar_proof"
@@ -179,6 +185,7 @@ fun extract_params default_params override_params =
      full_types = full_types, explicit_apply = explicit_apply,
      relevance_threshold = relevance_threshold,
      relevance_convergence = relevance_convergence,
+     max_relevant_per_iter = max_relevant_per_iter,
      theory_relevant = theory_relevant, defs_relevant = defs_relevant,
      isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
      timeout = timeout, minimize_timeout = minimize_timeout}
