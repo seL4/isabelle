@@ -145,7 +145,7 @@ A technical issue comes to surface when generating code from
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-After an interpretation of this locale (say, \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}} \isa{fun{\isacharunderscore}power{\isacharcolon}} \isa{{\isachardoublequote}power\ {\isacharparenleft}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequote}}), one would expect to have a constant \isa{fun{\isacharunderscore}power{\isachardot}powers\ {\isacharcolon}{\isacharcolon}\ nat\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} for which code
+After an interpretation of this locale (say, \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} \isa{fun{\isacharunderscore}power{\isacharcolon}} \isa{{\isachardoublequote}power\ {\isacharparenleft}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequote}}), one would expect to have a constant \isa{fun{\isacharunderscore}power{\isachardot}powers\ {\isacharcolon}{\isacharcolon}\ nat\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} for which code
   can be generated.  But this not the case: internally, the term
   \isa{fun{\isacharunderscore}power{\isachardot}powers} is an abbreviation for the foundational
   term \isa{{\isachardoublequote}power{\isachardot}powers\ {\isacharparenleft}{\isasymlambda}n\ {\isacharparenleft}f\ {\isacharcolon}{\isacharcolon}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardot}\ f\ {\isacharcircum}{\isacharcircum}\ n{\isacharparenright}{\isachardoublequote}}
@@ -253,7 +253,7 @@ If you consider imperative data structures as inevitable for a
 \begin{isamarkuptext}%
 Code generation may also be used to \emph{evaluate} expressions
   (using \isa{SML} as target language of course).
-  For instance, the \hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}} reduces an expression to a
+  For instance, the \indexdef{}{command}{value}\hypertarget{command.value}{\hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}}} reduces an expression to a
   normal form with respect to the underlying code equations:%
 \end{isamarkuptext}%
 \isamarkuptrue%

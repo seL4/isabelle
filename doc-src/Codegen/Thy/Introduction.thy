@@ -34,11 +34,12 @@ text {*
 subsection {* A quick start with the Isabelle/HOL toolbox \label{sec:queue_example} *}
 
 text {*
-  In a HOL theory, the @{command datatype} and @{command
-  definition}/@{command primrec}/@{command fun} declarations form the
-  core of a functional programming language.  By default equational
-  theorems stemming from those are used for generated code, therefore
-  \qt{naive} code generation can proceed without further ado.
+  In a HOL theory, the @{command_def datatype} and @{command_def
+  definition}/@{command_def primrec}/@{command_def fun} declarations
+  form the core of a functional programming language.  By default
+  equational theorems stemming from those are used for generated code,
+  therefore \qt{naive} code generation can proceed without further
+  ado.
 
   For example, here a simple \qt{implementation} of amortised queues:
 *}
@@ -71,12 +72,12 @@ text {* \noindent resulting in the following code: *}
 text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
 
 text {*
-  \noindent The @{command export_code} command takes a space-separated
-  list of constants for which code shall be generated; anything else
-  needed for those is added implicitly.  Then follows a target
-  language identifier and a freely chosen module name.  A file name
-  denotes the destination to store the generated code.  Note that the
-  semantics of the destination depends on the target language: for
+  \noindent The @{command_def export_code} command takes a
+  space-separated list of constants for which code shall be generated;
+  anything else needed for those is added implicitly.  Then follows a
+  target language identifier and a freely chosen module name.  A file
+  name denotes the destination to store the generated code.  Note that
+  the semantics of the destination depends on the target language: for
   @{text SML} and @{text OCaml} it denotes a \emph{file}, for @{text
   Haskell} it denotes a \emph{directory} where a file named as the
   module name (with extension @{text ".hs"}) is written:

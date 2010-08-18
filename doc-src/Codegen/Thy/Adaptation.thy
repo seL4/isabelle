@@ -194,12 +194,12 @@ code_const %quotett True and False and "op \<and>"
   (SML "true" and "false" and "_ andalso _")
 
 text {*
-  \noindent The @{command code_type} command takes a type constructor
+  \noindent The @{command_def code_type} command takes a type constructor
   as arguments together with a list of custom serialisations.  Each
   custom serialisation starts with a target language identifier
   followed by an expression, which during code serialisation is
   inserted whenever the type constructor would occur.  For constants,
-  @{command code_const} implements the corresponding mechanism.  Each
+  @{command_def code_const} implements the corresponding mechanism.  Each
   ``@{verbatim "_"}'' in a serialisation expression is treated as a
   placeholder for the type constructor's (the constant's) arguments.
 *}
@@ -226,7 +226,7 @@ text {*
   avoided to be used for new declarations.  Initially, this table
   typically contains the keywords of the target language.  It can be
   extended manually, thus avoiding accidental overwrites, using the
-  @{command "code_reserved"} command:
+  @{command_def "code_reserved"} command:
 *}
 
 code_reserved %quote "\<SML>" bool true false andalso
@@ -274,7 +274,7 @@ text {*
   For convenience, the default @{text HOL} setup for @{text Haskell}
   maps the @{class eq} class to its counterpart in @{text Haskell},
   giving custom serialisations for the class @{class eq} (by command
-  @{command code_class}) and its operation @{const HOL.eq}
+  @{command_def code_class}) and its operation @{const HOL.eq}
 *}
 
 code_class %quotett eq
@@ -318,7 +318,7 @@ subsection {* Enhancing the target language context \label{sec:include} *}
 
 text {*
   In rare cases it is necessary to \emph{enrich} the context of a
-  target language; this is accomplished using the @{command
+  target language; this is accomplished using the @{command_def
   "code_include"} command:
 *}
 

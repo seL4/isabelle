@@ -182,9 +182,9 @@ Before selected function theorems are turned into abstract code, a
   \secref{eff_nat}) uses this interface.
 
   \noindent The current setup of the preprocessor may be inspected
-  using the \hyperlink{command.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}} command.  \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}
-  (see \secref{sec:equations}) provides a convenient mechanism to
-  inspect the impact of a preprocessor setup on code equations.
+  using the \indexdef{}{command}{print\_codeproc}\hypertarget{command.print-codeproc}{\hyperlink{command.print-codeproc}{\mbox{\isa{\isacommand{print{\isacharunderscore}codeproc}}}}} command.  \indexdef{}{command}{code\_thms}\hypertarget{command.code-thms}{\hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}}} (see \secref{sec:equations}) provides a convenient
+  mechanism to inspect the impact of a preprocessor setup on code
+  equations.
 
   \begin{warn}
     Attribute \hyperlink{attribute.code-unfold}{\mbox{\isa{code{\isacharunderscore}unfold}}} also applies to the
@@ -275,8 +275,7 @@ As told in \secref{sec:principle}, the notion of code equations is
   equations (before preprocessing) and code equations (after
   preprocessing).
 
-  The first can be listed (among other data) using the \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command (later on in \secref{sec:refinement}
-  it will be shown how these code equations can be changed).
+  The first can be listed (among other data) using the \indexdef{}{command}{print\_codesetup}\hypertarget{command.print-codesetup}{\hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}}} command.
 
   The code equations after preprocessing are already are blueprint of
   the generated program and can be inspected using the \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} command:%
@@ -300,7 +299,7 @@ As told in \secref{sec:principle}, the notion of code equations is
 \begin{isamarkuptext}%
 \noindent This prints a table with the code equations for \isa{dequeue}, including \emph{all} code equations those equations depend
   on recursively.  These dependencies themselves can be visualized using
-  the \hyperlink{command.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}} command.%
+  the \indexdef{}{command}{code\_deps}\hypertarget{command.code-deps}{\hyperlink{command.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}}} command.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -503,7 +502,7 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
   of as function definitions which always fail,
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
-  explicitly, use \hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}:%
+  explicitly, use \indexdef{}{command}{code\_abort}\hypertarget{command.code-abort}{\hyperlink{command.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

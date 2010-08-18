@@ -75,7 +75,7 @@ lemma %quote powers_rev:
 end %quote
 
 text {*
-  After an interpretation of this locale (say, @{command
+  After an interpretation of this locale (say, @{command_def
   interpretation} @{text "fun_power:"} @{term [source] "power (\<lambda>n (f ::
   'a \<Rightarrow> 'a). f ^^ n)"}), one would expect to have a constant @{text
   "fun_power.powers :: nat list \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"} for which code
@@ -131,7 +131,7 @@ subsection {* Evaluation oracle *}
 text {*
   Code generation may also be used to \emph{evaluate} expressions
   (using @{text SML} as target language of course).
-  For instance, the @{command value} reduces an expression to a
+  For instance, the @{command_def value} reduces an expression to a
   normal form with respect to the underlying code equations:
 *}
 

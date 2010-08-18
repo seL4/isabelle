@@ -121,9 +121,10 @@ text {*
   \secref{eff_nat}) uses this interface.
 
   \noindent The current setup of the preprocessor may be inspected
-  using the @{command print_codeproc} command.  @{command code_thms}
-  (see \secref{sec:equations}) provides a convenient mechanism to
-  inspect the impact of a preprocessor setup on code equations.
+  using the @{command_def print_codeproc} command.  @{command_def
+  code_thms} (see \secref{sec:equations}) provides a convenient
+  mechanism to inspect the impact of a preprocessor setup on code
+  equations.
 
   \begin{warn}
     Attribute @{attribute code_unfold} also applies to the
@@ -175,9 +176,8 @@ text {*
   equations (before preprocessing) and code equations (after
   preprocessing).
 
-  The first can be listed (among other data) using the @{command
-  print_codesetup} command (later on in \secref{sec:refinement}
-  it will be shown how these code equations can be changed).
+  The first can be listed (among other data) using the @{command_def
+  print_codesetup} command.
 
   The code equations after preprocessing are already are blueprint of
   the generated program and can be inspected using the @{command
@@ -190,7 +190,7 @@ text {*
   \noindent This prints a table with the code equations for @{const
   dequeue}, including \emph{all} code equations those equations depend
   on recursively.  These dependencies themselves can be visualized using
-  the @{command code_deps} command.
+  the @{command_def code_deps} command.
 *}
 
 
@@ -280,7 +280,7 @@ text {*
   of as function definitions which always fail,
   since there is never a successful pattern match on the left hand
   side.  In order to categorise a constant into that category
-  explicitly, use @{command "code_abort"}:
+  explicitly, use @{command_def "code_abort"}:
 *}
 
 code_abort %quote empty_queue
