@@ -343,6 +343,7 @@ The descriptions below refer to the following syntactic quantities:
 \item[$\bullet$] \qtybf{bool\/}: \textit{true} or \textit{false}.
 \item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or \textit{smart}.
 \item[$\bullet$] \qtybf{int\/}: An integer.
+\item[$\bullet$] \qtybf{int\_or\_smart\/}: An integer or \textit{smart}.
 \item[$\bullet$] \qtybf{time}: An integer followed by $\textit{min}$ (minutes), $s$ (seconds), or \textit{ms}
 (milliseconds), or the keyword \textit{none} ($\infty$ years).
 \end{enum}
@@ -433,7 +434,12 @@ prevent the discovery of type-incorrect proofs, but it also tends to slow down
 the ATPs significantly. For historical reasons, the default value of this option
 can be overridden using the option ``Sledgehammer: ATPs'' from the ``Isabelle''
 menu in Proof General.
+\end{enum}
 
+\subsection{Relevance Filter}
+\label{relevance-filter}
+
+\begin{enum}
 \opdefault{relevance\_threshold}{int}{50}
 Specifies the threshold above which facts are considered relevant by the
 relevance filter. The option ranges from 0 to 100, where 0 means that all
@@ -443,6 +449,12 @@ theorems are relevant.
 Specifies the convergence quotient, multiplied by 100, used by the relevance
 filter. This quotient is used by the relevance filter to scale down the
 relevance of facts at each iteration of the filter.
+
+\opdefault{max\_relevant\_per\_iter}{int\_or\_smart}{\textit{smart}}
+Specifies the maximum number of facts that may be added during one iteration of
+the relevance filter. If the option is set to \textit{smart}, it is set to a
+value that was empirically found to be appropriate for the ATP. A typical value
+would be 50.
 
 \opsmartx{theory\_relevant}{theory\_irrelevant}
 Specifies whether the theory from which a fact comes should be taken into
@@ -495,10 +507,6 @@ Specifies the maximum amount of time that the ATPs should spend looking for a
 proof. For historical reasons, the default value of this option can be
 overridden using the option ``Sledgehammer: Time Limit'' from the ``Isabelle''
 menu in Proof General.
-
-\opdefault{minimize\_timeout}{time}{$\mathbf{5}$\,s}
-Specifies the maximum amount of time that the ATPs should spend looking for a
-proof for \textbf{sledgehammer}~\textit{minimize}.
 \end{enum}
 
 \let\em=\sl
