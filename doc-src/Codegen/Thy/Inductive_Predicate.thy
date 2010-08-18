@@ -16,7 +16,7 @@ lemma %invisible append: "append xs ys zs = (xs @ ys = zs)"
 section {* Inductive Predicates \label{sec:inductive} *}
 
 text {*
-  The @{text predicate_compiler} is an extension of the code generator
+  The @{text "predicate compiler"} is an extension of the code generator
   which turns inductive specifications into equational ones, from
   which in turn executable code can be generated.  The mechanisms of
   this compiler are described in detail in
