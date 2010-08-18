@@ -126,85 +126,20 @@ text {*
 *}
 
 
-subsection {* Evaluation oracle *}
-
-text {*
-  Code generation may also be used to \emph{evaluate} expressions
-  (using @{text SML} as target language of course).
-  For instance, the @{command_def value} reduces an expression to a
-  normal form with respect to the underlying code equations:
-*}
-
-value %quote "42 / (12 :: rat)"
-
-text {*
-  \noindent will display @{term "7 / (2 :: rat)"}.
-
-  The @{method eval} method tries to reduce a goal by code generation to @{term True}
-  and solves it in that case, but fails otherwise:
-*}
-
-lemma %quote "42 / (12 :: rat) = 7 / 2"
-  by %quote eval
-
-text {*
-  \noindent The soundness of the @{method eval} method depends crucially 
-  on the correctness of the code generator;  this is one of the reasons
-  why you should not use adaptation (see \secref{sec:adaptation}) frivolously.
-*}
-
-
-subsection {* Building evaluators *}
-
-text {*
-  FIXME
-*}
-
-subsubsection {* Code antiquotation *}
-
-text {*
-  In scenarios involving techniques like reflection it is quite common
-  that code generated from a theory forms the basis for implementing
-  a proof procedure in @{text SML}.  To facilitate interfacing of generated code
-  with system code, the code generator provides a @{text code} antiquotation:
-*}
-
-datatype %quote form = T | F | And form form | Or form form (*<*)
-
-(*>*) ML %quotett {*
-  fun eval_form @{code T} = true
-    | eval_form @{code F} = false
-    | eval_form (@{code And} (p, q)) =
-        eval_form p andalso eval_form q
-    | eval_form (@{code Or} (p, q)) =
-        eval_form p orelse eval_form q;
-*}
-
-text {*
-  \noindent @{text code} takes as argument the name of a constant;  after the
-  whole @{text SML} is read, the necessary code is generated transparently
-  and the corresponding constant names are inserted.  This technique also
-  allows to use pattern matching on constructors stemming from compiled
-  @{text "datatypes"}.
-
-  For a less simplistic example, theory @{theory Ferrack} is
-  a good reference.
-*}
-
-
 subsection {* ML system interfaces \label{sec:ml} *}
 
 text {*
-  Since the code generator framework not only aims to provide
-  a nice Isar interface but also to form a base for
-  code-generation-based applications, here a short
-  description of the most important ML interfaces.
+  Since the code generator framework not only aims to provide a nice
+  Isar interface but also to form a base for code-generation-based
+  applications, here a short description of the most fundamental ML
+  interfaces.
 *}
 
 subsubsection {* Managing executable content *}
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML Code.read_const: "theory -> string -> string"} \\
   @{index_ML Code.add_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code.del_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_pre: "(simpset -> simpset) -> theory -> theory"} \\
@@ -220,6 +155,9 @@ text %mlref {*
   \end{mldecls}
 
   \begin{description}
+
+  \item @{ML Code.read_const}~@{text thy}~@{text s}
+     reads a constant as a concrete term expression @{text s}.
 
   \item @{ML Code.add_eqn}~@{text "thm"}~@{text "thy"} adds function
      theorem @{text "thm"} to executable content.
@@ -253,21 +191,6 @@ text %mlref {*
   \end{description}
 *}
 
-subsubsection {* Auxiliary *}
-
-text %mlref {*
-  \begin{mldecls}
-  @{index_ML Code.read_const: "theory -> string -> string"}
-  \end{mldecls}
-
-  \begin{description}
-
-  \item @{ML Code.read_const}~@{text thy}~@{text s}
-     reads a constant as a concrete term expression @{text s}.
-
-  \end{description}
-
-*}
 
 subsubsection {* Data depending on the theory's executable content *}
 

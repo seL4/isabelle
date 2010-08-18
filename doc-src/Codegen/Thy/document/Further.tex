@@ -246,156 +246,15 @@ If you consider imperative data structures as inevitable for a
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Evaluation oracle%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Code generation may also be used to \emph{evaluate} expressions
-  (using \isa{SML} as target language of course).
-  For instance, the \indexdef{}{command}{value}\hypertarget{command.value}{\hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}}} reduces an expression to a
-  normal form with respect to the underlying code equations:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{value}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{4}}{\isadigit{2}}\ {\isacharslash}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ rat{\isacharparenright}{\isachardoublequoteclose}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent will display \isa{{\isadigit{7}}\ {\isacharslash}\ {\isadigit{2}}}.
-
-  The \hyperlink{method.eval}{\mbox{\isa{eval}}} method tries to reduce a goal by code generation to \isa{True}
-  and solves it in that case, but fails otherwise:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{lemma}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isadigit{4}}{\isadigit{2}}\ {\isacharslash}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ rat{\isacharparenright}\ {\isacharequal}\ {\isadigit{7}}\ {\isacharslash}\ {\isadigit{2}}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{by}\isamarkupfalse%
-\ eval%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent The soundness of the \hyperlink{method.eval}{\mbox{\isa{eval}}} method depends crucially 
-  on the correctness of the code generator;  this is one of the reasons
-  why you should not use adaptation (see \secref{sec:adaptation}) frivolously.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Building evaluators%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-FIXME%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Code antiquotation%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-In scenarios involving techniques like reflection it is quite common
-  that code generated from a theory forms the basis for implementing
-  a proof procedure in \isa{SML}.  To facilitate interfacing of generated code
-  with system code, the code generator provides a \isa{code} antiquotation:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{datatype}\isamarkupfalse%
-\ form\ {\isacharequal}\ T\ {\isacharbar}\ F\ {\isacharbar}\ And\ form\ form\ {\isacharbar}\ Or\ form\ form\ %
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isadelimquotett
-\ %
-\endisadelimquotett
-%
-\isatagquotett
-\isacommand{ML}\isamarkupfalse%
-\ {\isacharverbatimopen}\isanewline
-\ \ fun\ eval{\isacharunderscore}form\ %
-\isaantiq
-code\ T%
-\endisaantiq
-\ {\isacharequal}\ true\isanewline
-\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ %
-\isaantiq
-code\ F%
-\endisaantiq
-\ {\isacharequal}\ false\isanewline
-\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ {\isacharparenleft}%
-\isaantiq
-code\ And%
-\endisaantiq
-\ {\isacharparenleft}p{\isacharcomma}\ q{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ \ \ eval{\isacharunderscore}form\ p\ andalso\ eval{\isacharunderscore}form\ q\isanewline
-\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ {\isacharparenleft}%
-\isaantiq
-code\ Or%
-\endisaantiq
-\ {\isacharparenleft}p{\isacharcomma}\ q{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ \ \ eval{\isacharunderscore}form\ p\ orelse\ eval{\isacharunderscore}form\ q{\isacharsemicolon}\isanewline
-{\isacharverbatimclose}%
-\endisatagquotett
-{\isafoldquotett}%
-%
-\isadelimquotett
-%
-\endisadelimquotett
-%
-\begin{isamarkuptext}%
-\noindent \isa{code} takes as argument the name of a constant;  after the
-  whole \isa{SML} is read, the necessary code is generated transparently
-  and the corresponding constant names are inserted.  This technique also
-  allows to use pattern matching on constructors stemming from compiled
-  \isa{datatypes}.
-
-  For a less simplistic example, theory \hyperlink{theory.Ferrack}{\mbox{\isa{Ferrack}}} is
-  a good reference.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsubsection{ML system interfaces \label{sec:ml}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Since the code generator framework not only aims to provide
-  a nice Isar interface but also to form a base for
-  code-generation-based applications, here a short
-  description of the most important ML interfaces.%
+Since the code generator framework not only aims to provide a nice
+  Isar interface but also to form a base for code-generation-based
+  applications, here a short description of the most fundamental ML
+  interfaces.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -411,6 +270,7 @@ Since the code generator framework not only aims to provide
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
+  \indexdef{}{ML}{Code.read\_const}\verb|Code.read_const: theory -> string -> string| \\
   \indexdef{}{ML}{Code.add\_eqn}\verb|Code.add_eqn: thm -> theory -> theory| \\
   \indexdef{}{ML}{Code.del\_eqn}\verb|Code.del_eqn: thm -> theory -> theory| \\
   \indexdef{}{ML}{Code\_Preproc.map\_pre}\verb|Code_Preproc.map_pre: (simpset -> simpset) -> theory -> theory| \\
@@ -426,6 +286,9 @@ Since the code generator framework not only aims to provide
   \end{mldecls}
 
   \begin{description}
+
+  \item \verb|Code.read_const|~\isa{thy}~\isa{s}
+     reads a constant as a concrete term expression \isa{s}.
 
   \item \verb|Code.add_eqn|~\isa{thm}~\isa{thy} adds function
      theorem \isa{thm} to executable content.
@@ -455,37 +318,6 @@ Since the code generator framework not only aims to provide
      returns type constructor corresponding to
      constructor \isa{const}; returns \isa{NONE}
      if \isa{const} is no constructor.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagmlref
-{\isafoldmlref}%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isamarkupsubsubsection{Auxiliary%
-}
-\isamarkuptrue%
-%
-\isadelimmlref
-%
-\endisadelimmlref
-%
-\isatagmlref
-%
-\begin{isamarkuptext}%
-\begin{mldecls}
-  \indexdef{}{ML}{Code.read\_const}\verb|Code.read_const: theory -> string -> string|
-  \end{mldecls}
-
-  \begin{description}
-
-  \item \verb|Code.read_const|~\isa{thy}~\isa{s}
-     reads a constant as a concrete term expression \isa{s}.
 
   \end{description}%
 \end{isamarkuptext}%
