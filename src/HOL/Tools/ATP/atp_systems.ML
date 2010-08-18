@@ -8,9 +8,9 @@ Setup for supported ATPs.
 signature ATP_SYSTEMS =
 sig
   datatype failure =
-    Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
-    OldSpass | OldVampire | NoPerl | NoLibwwwPerl | MalformedInput |
-    MalformedOutput | UnknownError
+    Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
+    OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
+    MalformedInput | MalformedOutput | UnknownError
 
   type prover_config =
     {exec: string * string,
@@ -40,7 +40,7 @@ struct
 
 datatype failure =
   Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
-  OldSpass | OldVampire | NoPerl | NoLibwwwPerl | MalformedInput |
+  SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | MalformedInput |
   MalformedOutput | UnknownError
 
 type prover_config =
@@ -63,7 +63,7 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
   | string_for_failure CantConnect = "Can't connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The ATP ran out of resources."
-  | string_for_failure OldSpass =
+  | string_for_failure SpassTooOld =
     "Isabelle requires a more recent version of SPASS with support for the \
     \TPTP syntax. To install it, download and extract the package \
     \\"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and add the \
@@ -72,7 +72,7 @@ fun string_for_failure Unprovable = "The ATP problem is unprovable."
                (Path.variable "ISABELLE_HOME_USER" ::
                 map Path.basic ["etc", "components"])))) ^
     " on a line of its own."
-  | string_for_failure OldVampire =
+  | string_for_failure VampireTooOld =
     "Isabelle requires a more recent version of Vampire. To install it, follow \
     \the instructions from the Sledgehammer manual (\"isabelle doc\
     \ sledgehammer\")."
@@ -170,7 +170,7 @@ val spass_config : prover_config =
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
-      (OldSpass, "tptp2dfg")],
+      (SpassTooOld, "tptp2dfg")],
    max_new_relevant_facts_per_iter = 35 (* FIXME *),
    prefers_theory_relevant = true,
    explicit_forall = true}
@@ -197,7 +197,7 @@ val vampire_config : prover_config =
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (OutOfResources, "Refutation not found"),
-      (OldVampire, "not a valid option")],
+      (VampireTooOld, "not a valid option")],
    max_new_relevant_facts_per_iter = 45 (* FIXME *),
    prefers_theory_relevant = false,
    explicit_forall = false}

@@ -740,6 +740,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             KK.JavaNotInstalled =>
             (print_m install_java_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
+          | KK.JavaTooOld =>
+            (print_m install_java_message;
+             (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiNotInstalled =>
             (print_m install_kodkodi_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
