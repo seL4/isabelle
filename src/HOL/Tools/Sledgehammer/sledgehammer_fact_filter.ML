@@ -119,7 +119,8 @@ fun get_consts_typs thy pos ts =
           else
             I)
     and do_term_or_formula T =
-     if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE else do_term
+      if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE
+      else do_term
     and do_formula pos t =
       case t of
         Const (@{const_name all}, _) $ Abs (_, _, body_t) =>
@@ -532,15 +533,17 @@ fun too_general_equality (Const (@{const_name "op ="}, _) $ t1 $ t2) =
     too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
   | too_general_equality _ = false
 
-fun has_typed_var tycons = exists_subterm
-  (fn Var (_, Type (a, _)) => member (op =) tycons a | _ => false);
+fun has_bound_or_var_of_type tycons =
+  exists_subterm (fn Var (_, Type (s, _)) => member (op =) tycons s
+                   | Abs (_, Type (s, _), _) => member (op =) tycons s
+                   | _ => false)
 
 (* Facts are forbidden to contain variables of these types. The typical reason
    is that they lead to unsoundness. Note that "unit" satisfies numerous
    equations like "?x = ()". The resulting clauses will have no type constraint,
    yielding false proofs. Even "bool" leads to many unsound proofs, though only
    for higher-order problems. *)
-val dangerous_types = [@{type_name unit}, @{type_name bool}];
+val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
 
 (* Facts containing variables of type "unit" or "bool" or of the form
    "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
@@ -548,7 +551,7 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}];
 fun is_dangerous_term _ @{prop True} = true
   | is_dangerous_term full_types t =
     not full_types andalso
-    (has_typed_var dangerous_types t orelse
+    (has_bound_or_var_of_type dangerous_types t orelse
      forall too_general_equality (HOLogic.disjuncts (strip_Trueprop_and_all t)))
 
 fun relevant_facts full_types relevance_threshold relevance_convergence
