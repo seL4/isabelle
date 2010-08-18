@@ -410,7 +410,227 @@ The same techniques can also be applied to types which are not
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME%
+Datatype representation involving invariants require a dedicated
+  setup for the type and its primitive operations.  As a running
+  example, we implement a type \isa{{\isacharprime}a\ dlist} of list consisting
+  of distinct elements.
+
+  The first step is to decide on which representation the abstract
+  type (in our example \isa{{\isacharprime}a\ dlist}) should be implemented.
+  Here we choose \isa{{\isacharprime}a\ list}.  Then a conversion from the concrete
+  type to the abstract type must be specified, here:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isa{Dlist\ {\isasymColon}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ dlist}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Next follows the specification of a suitable \emph{projection},
+  i.e.~a conversion from abstract to concrete type:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isa{list{\isacharunderscore}of{\isacharunderscore}dlist\ {\isasymColon}\ {\isacharprime}a\ dlist\ {\isasymRightarrow}\ {\isacharprime}a\ list}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This projection must be specified such that the following
+  \emph{abstract datatype certificate} can be proven:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ abstype{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}Dlist\ {\isacharparenleft}list{\isacharunderscore}of{\isacharunderscore}dlist\ dxs{\isacharparenright}\ {\isacharequal}\ dxs{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}fact\ Dlist{\isacharunderscore}list{\isacharunderscore}of{\isacharunderscore}dlist{\isacharparenright}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Note that so far the invariant on representations
+  (\isa{distinct\ {\isasymColon}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ bool}) has never been mentioned explicitly:
+  the invariant is only referred to implicitly: all values in
+  set \isa{{\isacharbraceleft}xs{\isachardot}\ list{\isacharunderscore}of{\isacharunderscore}dlist\ {\isacharparenleft}Dlist\ xs{\isacharparenright}\ {\isacharequal}\ xs{\isacharbraceright}} are invariant,
+  and in our example this is exactly \isa{{\isacharbraceleft}xs{\isachardot}\ distinct\ xs{\isacharbraceright}}.
+  
+  The primitive operations on \isa{{\isacharprime}a\ dlist} are specified
+  indirectly using the projection \isa{list{\isacharunderscore}of{\isacharunderscore}dlist}.  For
+  the empty \isa{dlist}, \isa{Dlist{\isachardot}empty}, we finally want
+  the code equation%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isa{Dlist{\isachardot}empty\ {\isacharequal}\ Dlist\ {\isacharbrackleft}{\isacharbrackright}}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This we have to prove indirectly as follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ abstract{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}list{\isacharunderscore}of{\isacharunderscore}dlist\ Dlist{\isachardot}empty\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}fact\ list{\isacharunderscore}of{\isacharunderscore}dlist{\isacharunderscore}empty{\isacharparenright}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This equation logically encodes both the desired code
+  equation and that the expression \isa{Dlist} is applied to obeys
+  the implicit invariant.  Equations for insertion and removal are
+  similar:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ abstract{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}list{\isacharunderscore}of{\isacharunderscore}dlist\ {\isacharparenleft}Dlist{\isachardot}insert\ x\ dxs{\isacharparenright}\ {\isacharequal}\ List{\isachardot}insert\ x\ {\isacharparenleft}list{\isacharunderscore}of{\isacharunderscore}dlist\ dxs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}fact\ list{\isacharunderscore}of{\isacharunderscore}dlist{\isacharunderscore}insert{\isacharparenright}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isacharbrackleft}code\ abstract{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}list{\isacharunderscore}of{\isacharunderscore}dlist\ {\isacharparenleft}Dlist{\isachardot}remove\ x\ dxs{\isacharparenright}\ {\isacharequal}\ remove{\isadigit{1}}\ x\ {\isacharparenleft}list{\isacharunderscore}of{\isacharunderscore}dlist\ dxs{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}fact\ list{\isacharunderscore}of{\isacharunderscore}dlist{\isacharunderscore}remove{\isacharparenright}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Then the corresponding code is as follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}module Example where {\char123}\\
+\hspace*{0pt}\\
+\hspace*{0pt}newtype Dlist a = Dlist [a];\\
+\hspace*{0pt}\\
+\hspace*{0pt}empty ::~forall a.~Dlist a;\\
+\hspace*{0pt}empty = Dlist [];\\
+\hspace*{0pt}\\
+\hspace*{0pt}member ::~forall a.~(Eq a) => [a] -> a -> Bool;\\
+\hspace*{0pt}member [] y = False;\\
+\hspace*{0pt}member (x :~xs) y = x == y || member xs y;\\
+\hspace*{0pt}\\
+\hspace*{0pt}inserta ::~forall a.~(Eq a) => a -> [a] -> [a];\\
+\hspace*{0pt}inserta x xs = (if member xs x then xs else x :~xs);\\
+\hspace*{0pt}\\
+\hspace*{0pt}list{\char95}of{\char95}dlist ::~forall a.~Dlist a -> [a];\\
+\hspace*{0pt}list{\char95}of{\char95}dlist (Dlist x) = x;\\
+\hspace*{0pt}\\
+\hspace*{0pt}insert ::~forall a.~(Eq a) => a -> Dlist a -> Dlist a;\\
+\hspace*{0pt}insert x dxs = Dlist (inserta x (list{\char95}of{\char95}dlist dxs));\\
+\hspace*{0pt}\\
+\hspace*{0pt}remove1 ::~forall a.~(Eq a) => a -> [a] -> [a];\\
+\hspace*{0pt}remove1 x [] = [];\\
+\hspace*{0pt}remove1 x (y :~xs) = (if x == y then xs else y :~remove1 x xs);\\
+\hspace*{0pt}\\
+\hspace*{0pt}remove ::~forall a.~(Eq a) => a -> Dlist a -> Dlist a;\\
+\hspace*{0pt}remove x dxs = Dlist (remove1 x (list{\char95}of{\char95}dlist dxs));\\
+\hspace*{0pt}\\
+\hspace*{0pt}{\char125}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+Typical data structures implemented by representations involving
+  invariants are available in the library, e.g.~theories \hyperlink{theory.Fset}{\mbox{\isa{Fset}}} and \hyperlink{theory.Mapping}{\mbox{\isa{Mapping}}} specify sets (type \isa{{\isacharprime}a\ fset}) and
+  key-value-mappings (type \isa{{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}b{\isacharparenright}\ mapping}) respectively;
+  these can be implemented by distinct lists as presented here as
+  example (theory \hyperlink{theory.Dlist}{\mbox{\isa{Dlist}}}) and red-black-trees respectively
+  (theory \hyperlink{theory.RBT}{\mbox{\isa{RBT}}}).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
