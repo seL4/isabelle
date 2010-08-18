@@ -1824,6 +1824,40 @@ fun meta_to_obj_all thm =
 
 (* code generation *)
 
+fun instantiate_random_record tyco vs extN Ts thy =
+  let
+    val size = @{term "i::code_numeral"};
+    fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
+    val T = Type (tyco, map TFree vs);
+    val Tm = termifyT T;
+    val params = Name.names Name.context "x" Ts;
+    val lhs = HOLogic.mk_random T size;
+    val tc = HOLogic.mk_return Tm @{typ Random.seed}
+      (HOLogic.mk_valtermify_app extN params T);
+    val rhs = HOLogic.mk_ST
+      (map (fn (v, T') => ((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, termifyT T'))) params)
+        tc @{typ Random.seed} (SOME Tm, @{typ Random.seed});
+    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+  in 
+    thy
+    |> Class.instantiation ([tyco], vs, @{sort random})
+    |> `(fn lthy => Syntax.check_term lthy eq)
+    |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
+    |> snd
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end;
+
+fun ensure_random_record ext_tyco vs extN Ts thy =
+  let
+    val algebra = Sign.classes_of thy;
+    val has_inst = can (Sorts.mg_domain algebra ext_tyco) @{sort random};
+  in if has_inst then thy
+    else case Quickcheck_Generators.perhaps_constrain thy (map (rpair @{sort random}) Ts) vs
+     of SOME constrain => instantiate_random_record ext_tyco (map constrain vs) extN
+          ((map o map_atyps) (fn TFree v => TFree (constrain v)) Ts) thy
+      | NONE => thy
+  end;
+
 fun add_code ext_tyco vs extT ext simps inject thy =
   let
     val eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
@@ -1851,8 +1885,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
          (fn _ => fn eq_def => tac eq_def) eq_def)
     |-> (fn eq_def => fn thy => thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
     |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
-    (*FIXME add constructor for SML code generator*)
-    (*|> Quickcheck_Record.ensure_random_typecopy tyco vs Abs_name rep_type*)
+    |> ensure_random_record ext_tyco vs (fst ext) ((fst o strip_type o snd) ext)
   end;
 
 
