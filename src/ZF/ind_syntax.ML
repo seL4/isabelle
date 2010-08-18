@@ -18,7 +18,7 @@ fun traceIt msg thy t =
 
 (** Abstract syntax definitions for ZF **)
 
-val iT = Type("i",[]);
+val iT = Type(@{type_name i}, []);
 
 (*Creates All(%v.v:A --> P(v)) rather than Ball(A,P) *)
 fun mk_all_imp (A,P) =

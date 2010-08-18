@@ -12,8 +12,6 @@ begin
 
 ML {* Unsynchronized.reset eta_contract *}
 
-global
-
 typedecl i
 arities  i :: "term"
 
@@ -208,8 +206,6 @@ defs  (* Bounded Quantifiers *)
 
   subset_def:    "A <= B == \<forall>x\<in>A. x\<in>B"
 
-
-local
 
 axioms
 

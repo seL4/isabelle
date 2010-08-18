@@ -9,8 +9,6 @@ theory Sum imports Bool equalities begin
 
 text{*And the "Part" primitive for simultaneous recursive type definitions*}
 
-global
-
 definition sum :: "[i,i]=>i" (infixr "+" 65) where
      "A+B == {0}*A Un {1}*B"
 
@@ -26,8 +24,6 @@ definition "case" :: "[i=>i, i=>i, i]=>i" where
   (*operator for selecting out the various summands*)
 definition Part :: "[i,i=>i] => i" where
      "Part(A,h) == {x: A. EX z. x = h(z)}"
-
-local
 
 subsection{*Rules for the @{term Part} Primitive*}
 

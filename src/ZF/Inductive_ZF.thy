@@ -31,8 +31,8 @@ lemma def_trans: "f == g ==> g(a) = b ==> f(a) = b"
 lemma refl_thin: "!!P. a = a ==> P ==> P" .
 
 use "ind_syntax.ML"
-use "Tools/cartprod.ML"
 use "Tools/ind_cases.ML"
+use "Tools/cartprod.ML"
 use "Tools/inductive_package.ML"
 use "Tools/induct_tacs.ML"
 use "Tools/primrec_package.ML"
