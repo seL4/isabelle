@@ -213,7 +213,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
   Tools/split_rule.ML \
-  Tools/typedef_codegen.ML \
   Tools/typedef.ML \
   Transitive_Closure.thy \
   Typedef.thy \
@@ -303,7 +302,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Predicate_Compile/predicate_compile_specialisation.ML \
   Tools/Predicate_Compile/predicate_compile_pred.ML \
   Tools/quickcheck_generators.ML \
-  Tools/quickcheck_record.ML \
   Tools/Qelim/cooper.ML \
   Tools/Qelim/cooper_procedure.ML \
   Tools/Qelim/qelim.ML \
@@ -343,7 +341,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/transfer.ML \
-  Tools/typecopy.ML \
   Tools/TFL/casesplit.ML \
   Tools/TFL/dcterm.ML \
   Tools/TFL/post.ML \

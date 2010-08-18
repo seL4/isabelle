@@ -174,9 +174,9 @@ record point =
   Xcoord :: int
   Ycoord :: int
 
-lemma "make_point_ext_type (dest_point_ext_type a) = a"
+lemma "Abs_point_ext (Rep_point_ext a) = a"
 nitpick [expect = none]
-by (rule dest_point_ext_type_inverse)
+by (fact Rep_point_ext_inverse)
 
 lemma "Fract a b = of_int a / of_int b"
 nitpick [card = 1, expect = none]

@@ -35,6 +35,18 @@ in addition to interpretations in theories.
 
 *** HOL ***
 
+* Records: logical foundation type for records do not carry a '_type' suffix
+any longer.  INCOMPATIBILITY.
+
+* Code generation for records: more idiomatic representation of record types.
+Warning: records are not covered by ancient SML code generation any longer.
+INCOMPATIBILITY.  In cases of need, a suitable rep_datatype declaration
+helps to succeed then:
+
+  record 'a foo = ...
+  ...
+  rep_datatype foo_ext ...
+
 * Session Imperative_HOL: revamped, corrected dozens of inadequacies.
 INCOMPATIBILITY.
 

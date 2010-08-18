@@ -512,12 +512,13 @@ lemma widen_NT2: "G\<turnstile>S\<preceq>NT \<Longrightarrow> S = NT"
 apply (ind_cases "G\<turnstile>S\<preceq>NT")
 by auto
 
-lemma widen_Object:"\<lbrakk>isrtype G T;ws_prog G\<rbrakk> \<Longrightarrow> G\<turnstile>RefT T \<preceq> Class Object"
-apply (case_tac T)
-apply (auto)
-apply (subgoal_tac "G\<turnstile>qtname_ext_type\<preceq>\<^sub>C Object")
-apply (auto intro: subcls_ObjectI)
-done
+lemma widen_Object:
+  assumes "isrtype G T" and "ws_prog G"
+  shows "G\<turnstile>RefT T \<preceq> Class Object"
+proof (cases T)
+  case (ClassT C) with assms have "G\<turnstile>C\<preceq>\<^sub>C Object" by (auto intro: subcls_ObjectI)
+  with ClassT show ?thesis by auto
+qed simp_all
 
 lemma widen_trans_lemma [rule_format (no_asm)]: 
   "\<lbrakk>G\<turnstile>S\<preceq>U; \<forall>C. is_class G C \<longrightarrow> G\<turnstile>C\<preceq>\<^sub>C Object\<rbrakk> \<Longrightarrow> \<forall>T. G\<turnstile>U\<preceq>T \<longrightarrow> G\<turnstile>S\<preceq>T"

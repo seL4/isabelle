@@ -10,10 +10,8 @@ sig
   val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
-  val random_aux_specification: string -> string -> term list -> local_theory -> local_theory
-  val mk_random_aux_eqs: theory -> Datatype.descr -> (string * sort) list
-    -> string list -> string list * string list -> typ list * typ list
-    -> term list * (term * term) list
+  val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
+    -> (string * sort -> string * sort) option
   val ensure_random_datatype: Datatype.config -> string list -> theory -> theory
   val compile_generator_expr:
     theory -> bool -> term -> int -> term list option * (bool list * bool)
@@ -219,11 +217,11 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
         val is_rec = exists is_some ks;
         val k = fold (fn NONE => I | SOME k => Integer.max k) ks 0;
         val vs = Name.names Name.context "x" (map snd simple_tTs);
-        val vs' = (map o apsnd) termifyT vs;
         val tc = HOLogic.mk_return T @{typ Random.seed}
           (HOLogic.mk_valtermify_app c vs simpleT);
-        val t = HOLogic.mk_ST (map (fn (t, _) => (t, @{typ Random.seed})) tTs ~~ map SOME vs')
-          tc @{typ Random.seed} (SOME T, @{typ Random.seed});
+        val t = HOLogic.mk_ST
+          (map2 (fn (t, _) => fn (v, T') => ((t, @{typ Random.seed}), SOME ((v, termifyT T')))) tTs vs)
+            tc @{typ Random.seed} (SOME T, @{typ Random.seed});
         val tk = if is_rec
           then if k = 0 then size
             else @{term "Quickcheck.beyond :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
@@ -245,7 +243,7 @@ fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
     val auxs_rhss = map mk_select gen_exprss;
   in (random_auxs, auxs_lhss ~~ auxs_rhss) end;
 
-fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
+fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating quickcheck generators ...";
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
@@ -272,11 +270,11 @@ fun mk_random_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy
 
 fun perhaps_constrain thy insts raw_vs =
   let
-    fun meet_random (T, sort) = Sorts.meet_sort (Sign.classes_of thy) 
+    fun meet (T, sort) = Sorts.meet_sort (Sign.classes_of thy) 
       (Logic.varifyT_global T, sort);
     val vtab = Vartab.empty
       |> fold (fn (v, sort) => Vartab.update ((v, 0), sort)) raw_vs
-      |> fold meet_random insts;
+      |> fold meet insts;
   in SOME (fn (v, _) => (v, (the o Vartab.lookup vtab) (v, 0)))
   end handle Sorts.CLASS_ERROR _ => NONE;
 
@@ -297,7 +295,7 @@ fun ensure_random_datatype config raw_tycos thy =
       can (Sorts.mg_domain algebra tyco) @{sort random}) tycos;
   in if has_inst then thy
     else case perhaps_constrain thy (random_insts @ term_of_insts) typerep_vs
-     of SOME constrain => mk_random_datatype config descr
+     of SOME constrain => instantiate_random_datatype config descr
           (map constrain typerep_vs) tycos prfx (names, auxnames)
             ((pairself o map o map_atyps) (fn TFree v => TFree (constrain v)) raw_TUs) thy
       | NONE => thy
@@ -385,22 +383,19 @@ fun mk_reporting_generator_expr thy prop Ts =
 fun compile_generator_expr thy report t =
   let
     val Ts = (map snd o fst o strip_abs) t;
-  in
-    if report then
-      let
-        val t' = mk_reporting_generator_expr thy t Ts;
-        val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_report_ref", eval_report_ref)
-          (fn proc => fn g => fn s => g s #>> ((apfst o Option.map o map) proc)) thy t' [];
-      in
-        compile #> Random_Engine.run
-      end
-    else
-      let
-        val t' = mk_generator_expr thy t Ts;
-        val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_ref", eval_ref)
-          (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
-        val dummy_report = ([], false)
-      in fn s => ((compile #> Random_Engine.run) s, dummy_report) end
+  in if report then
+    let
+      val t' = mk_reporting_generator_expr thy t Ts;
+      val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_report_ref", eval_report_ref)
+        (fn proc => fn g => fn s => g s #>> (apfst o Option.map o map) proc) thy t' [];
+    in compile #> Random_Engine.run end
+  else
+    let
+      val t' = mk_generator_expr thy t Ts;
+      val compile = Code_Eval.eval (SOME target) ("Quickcheck_Generators.eval_ref", eval_ref)
+        (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
+      val dummy_report = ([], false)
+    in compile #> Random_Engine.run #> rpair dummy_report end
   end;
 
 

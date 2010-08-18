@@ -75,7 +75,7 @@ instance ..
 end
 
 definition
-  qtname_qtname_def: "qtname (q::'a qtname_ext_type) = q"
+  qtname_qtname_def: "qtname (q::'a qtname_scheme) = q"
 
 translations
   (type) "qtname" <= (type) "\<lparr>pid::pname,tid::tname\<rparr>"

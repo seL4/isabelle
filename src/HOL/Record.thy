@@ -10,7 +10,7 @@ header {* Extensible records with structural subtyping *}
 
 theory Record
 imports Plain Quickcheck
-uses ("Tools/typecopy.ML") ("Tools/record.ML") ("Tools/quickcheck_record.ML")
+uses ("Tools/record.ML")
 begin
 
 subsection {* Introduction *}
@@ -452,9 +452,7 @@ syntax (xsymbols)
 
 subsection {* Record package *}
 
-use "Tools/typecopy.ML" setup Typecopy.setup
 use "Tools/record.ML" setup Record.setup
-use "Tools/quickcheck_record.ML" setup Quickcheck_Record.setup
 
 hide_const (open) Tuple_Isomorphism repr abst iso_tuple_fst iso_tuple_snd
   iso_tuple_fst_update iso_tuple_snd_update iso_tuple_cons
