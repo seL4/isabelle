@@ -63,7 +63,6 @@ consts
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)
   Ex1           :: "('a => bool) => bool"           (binder "EX! " 10)
-  Let           :: "['a, 'a => 'b] => 'b"
 
   "op ="        :: "['a, 'a] => bool"               (infixl "=" 50)
   "op &"        :: "[bool, bool] => bool"           (infixr "&" 35)
@@ -71,9 +70,6 @@ consts
   "op -->"      :: "[bool, bool] => bool"           (infixr "-->" 25)
 
 local
-
-consts
-  If            :: "[bool, 'a, 'a] => 'a"           ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10)
 
 
 subsubsection {* Additional concrete syntax *}
@@ -127,8 +123,6 @@ syntax
 
 translations
   "THE x. P"              == "CONST The (%x. P)"
-  "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
-  "let x = a in e"        == "CONST Let a (%x. e)"
 
 print_translation {*
   [(@{const_syntax The}, fn [Abs abs] =>
@@ -185,14 +179,20 @@ axioms
   iff:          "(P-->Q) --> (Q-->P) --> (P=Q)"
   True_or_False:  "(P=True) | (P=False)"
 
-defs
-  Let_def [code]: "Let s f == f(s)"
-  if_def:         "If P x y == THE z::'a. (P=True --> z=x) & (P=False --> z=y)"
-
 finalconsts
   "op ="
   "op -->"
   The
+
+definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10) where
+  "If P x y \<equiv> (THE z::'a. (P=True --> z=x) & (P=False --> z=y))"
+
+definition Let :: "'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b" where
+  "Let s f \<equiv> f s"
+
+translations
+  "_Let (_binds b bs) e"  == "_Let b (_Let bs e)"
+  "let x = a in e"        == "CONST Let a (%x. e)"
 
 axiomatization
   undefined :: 'a
@@ -1084,16 +1084,16 @@ lemma disj_cong:
 text {* \medskip if-then-else rules *}
 
 lemma if_True [code]: "(if True then x else y) = x"
-  by (unfold if_def) blast
+  by (unfold If_def) blast
 
 lemma if_False [code]: "(if False then x else y) = y"
-  by (unfold if_def) blast
+  by (unfold If_def) blast
 
 lemma if_P: "P ==> (if P then x else y) = x"
-  by (unfold if_def) blast
+  by (unfold If_def) blast
 
 lemma if_not_P: "~P ==> (if P then x else y) = y"
-  by (unfold if_def) blast
+  by (unfold If_def) blast
 
 lemma split_if: "P (if Q then x else y) = ((Q --> P(x)) & (~Q --> P(y)))"
   apply (rule case_split [of Q])
@@ -1365,7 +1365,7 @@ lemma if_cong:
       and "c \<Longrightarrow> x = u"
       and "\<not> c \<Longrightarrow> y = v"
   shows "(if b then x else y) = (if c then u else v)"
-  unfolding if_def using assms by simp
+  using assms by simp
 
 text {* Prevents simplification of x and y:
   faster and allows the execution of functional programs. *}
@@ -1389,13 +1389,6 @@ lemma eq_cong2:
 lemma if_distrib:
   "f (if c then x else y) = (if c then f x else f y)"
   by simp
-
-text {* This lemma restricts the effect of the rewrite rule u=v to the left-hand
-  side of an equality.  Used in @{text "{Integ,Real}/simproc.ML"} *}
-lemma restrict_to_left:
-  assumes "x = y"
-  shows "(x = z) = (y = z)"
-  using assms by simp
 
 
 subsubsection {* Generic cases and induction *}
