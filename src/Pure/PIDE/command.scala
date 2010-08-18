@@ -92,14 +92,14 @@ object Command
                     if (kind == Markup.ML_TYPING) {
                       val info = Pretty.string_of(body, margin = 40)
                       state.add_markup(
-                        command.markup_node(begin - 1, end - 1, Command.TypeInfo(info)))
+                        command.markup_node(begin, end, Command.TypeInfo(info)))
                     }
                     else if (kind == Markup.ML_REF) {
                       body match {
                         case List(XML.Elem(Markup(Markup.ML_DEF, props), _)) =>
                           state.add_markup(
                             command.markup_node(
-                              begin - 1, end - 1,
+                              begin, end,
                               Command.RefInfo(
                                 Position.get_file(props),
                                 Position.get_line(props),
@@ -110,7 +110,7 @@ object Command
                     }
                     else {
                       state.add_markup(
-                        command.markup_node(begin - 1, end - 1,
+                        command.markup_node(begin, end,
                           Command.HighlightInfo(kind, Markup.get_string(Markup.KIND, atts))))
                     }
                   case _ => state
@@ -159,8 +159,8 @@ class Command(
 
   def markup_node(begin: Int, end: Int, info: Any): Markup_Tree =
   {
-    val start = symbol_index.decode(begin)
-    val stop = symbol_index.decode(end)
+    val start = symbol_index.decode(begin - 1)
+    val stop = symbol_index.decode(end - 1)
     new Markup_Tree(new Markup_Node(Text.Range(start, stop), info), Nil)
   }
 
