@@ -15,8 +15,8 @@ proof
 qed
 
 lemma dlist_ext:
-  assumes "list_of_dlist xs = list_of_dlist ys"
-  shows "xs = ys"
+  assumes "list_of_dlist dxs = list_of_dlist dys"
+  shows "dxs = dys"
   using assms by (simp add: list_of_dlist_inject)
 
 
@@ -105,6 +105,19 @@ definition dlist_of_list [simp]:
 lemma [code abstract]:
   "list_of_dlist (dlist_of_list xs) = remdups xs"
   by simp
+
+
+text {* Equality *}
+
+instantiation dlist :: (eq) eq
+begin
+
+definition "HOL.eq dxs dys \<longleftrightarrow> HOL.eq (list_of_dlist dxs) (list_of_dlist dys)"
+
+instance proof
+qed (simp add: eq_dlist_def eq list_of_dlist_inject)
+
+end
 
 
 section {* Induction principle and case distinction *}
@@ -282,6 +295,7 @@ lemma Supremum_code [code]:
   by (simp only: Set_def Supremum_sup foldr_def sup.commute)
 
 end
+
 
 hide_const (open) member fold foldr empty insert remove map filter null member length fold
 
