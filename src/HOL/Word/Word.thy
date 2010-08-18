@@ -4034,6 +4034,11 @@ lemma length_rotater [simp]:
   "length (rotater n xs) = length xs"
   by (simp add : rotater_rev)
 
+lemma restrict_to_left:
+  assumes "x = y"
+  shows "(x = z) = (y = z)"
+  using assms by simp
+
 lemmas rrs0 = rotate_eqs [THEN restrict_to_left, 
   simplified rotate_gal [symmetric] rotate_gal' [symmetric], standard]
 lemmas rrs1 = rrs0 [THEN refl [THEN rev_iffD1]]
