@@ -18,6 +18,7 @@ end;
 structure Sledgehammer_Fact_Minimize : SLEDGEHAMMER_FACT_MINIMIZE =
 struct
 
+open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact_Filter
 open Sledgehammer_Proof_Reconstruct
@@ -113,7 +114,8 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
     val explicit_apply =
       not (forall (Meson.is_fol_term thy)
-                  (concl_t :: hyp_ts @ maps (map prop_of o snd) name_thms_pairs))
+                  (concl_t :: hyp_ts @
+                   maps (map prop_of o snd) name_thms_pairs))
     fun do_test timeout =
       test_theorems params prover explicit_apply timeout i state
     val timer = Timer.startRealTimer ()
