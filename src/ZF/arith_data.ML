@@ -24,12 +24,12 @@ struct
 
 val iT = Ind_Syntax.iT;
 
-val zero = Const("0", iT);
-val succ = Const("succ", iT --> iT);
+val zero = Const(@{const_name 0}, iT);
+val succ = Const(@{const_name succ}, iT --> iT);
 fun mk_succ t = succ $ t;
 val one = mk_succ zero;
 
-val mk_plus = FOLogic.mk_binop "Arith.add";
+val mk_plus = FOLogic.mk_binop @{const_name Arith.add};
 
 (*Thus mk_sum[t] yields t+#0; longer sums don't have a trailing zero*)
 fun mk_sum []        = zero
@@ -40,13 +40,13 @@ fun mk_sum []        = zero
 fun long_mk_sum []        = zero
   | long_mk_sum (t :: ts) = mk_plus (t, mk_sum ts);
 
-val dest_plus = FOLogic.dest_bin "Arith.add" iT;
+val dest_plus = FOLogic.dest_bin @{const_name Arith.add} iT;
 
 (* dest_sum *)
 
-fun dest_sum (Const("0",_)) = []
-  | dest_sum (Const("succ",_) $ t) = one :: dest_sum t
-  | dest_sum (Const("Arith.add",_) $ t $ u) = dest_sum t @ dest_sum u
+fun dest_sum (Const(@{const_name 0},_)) = []
+  | dest_sum (Const(@{const_name succ},_) $ t) = one :: dest_sum t
+  | dest_sum (Const(@{const_name Arith.add},_) $ t $ u) = dest_sum t @ dest_sum u
   | dest_sum tm = [tm];
 
 (*Apply the given rewrite (if present) just once*)
@@ -83,14 +83,14 @@ fun prep_simproc thy (name, pats, proc) =
 (*** Use CancelNumerals simproc without binary numerals,
      just for cancellation ***)
 
-val mk_times = FOLogic.mk_binop "Arith.mult";
+val mk_times = FOLogic.mk_binop @{const_name Arith.mult};
 
 fun mk_prod [] = one
   | mk_prod [t] = t
   | mk_prod (t :: ts) = if t = one then mk_prod ts
                         else mk_times (t, mk_prod ts);
 
-val dest_times = FOLogic.dest_bin "Arith.mult" iT;
+val dest_times = FOLogic.dest_bin @{const_name Arith.mult} iT;
 
 fun dest_prod t =
       let val (t,u) = dest_times t
@@ -174,8 +174,8 @@ structure LessCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natless_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binrel "Ordinal.lt"
-  val dest_bal = FOLogic.dest_bin "Ordinal.lt" iT
+  val mk_bal   = FOLogic.mk_binrel @{const_name Ordinal.lt}
+  val dest_bal = FOLogic.dest_bin @{const_name Ordinal.lt} iT
   val bal_add1 = @{thm less_add_iff} RS @{thm iff_trans}
   val bal_add2 = @{thm less_add_iff} RS @{thm iff_trans}
   fun trans_tac _ = gen_trans_tac @{thm iff_trans}
@@ -187,8 +187,8 @@ structure DiffCancelNumeralsData =
   struct
   open CancelNumeralsCommon
   val prove_conv = prove_conv "natdiff_cancel_numerals"
-  val mk_bal   = FOLogic.mk_binop "Arith.diff"
-  val dest_bal = FOLogic.dest_bin "Arith.diff" iT
+  val mk_bal   = FOLogic.mk_binop @{const_name Arith.diff}
+  val dest_bal = FOLogic.dest_bin @{const_name Arith.diff} iT
   val bal_add1 = @{thm diff_add_eq} RS @{thm trans}
   val bal_add2 = @{thm diff_add_eq} RS @{thm trans}
   fun trans_tac _ = gen_trans_tac @{thm trans}
