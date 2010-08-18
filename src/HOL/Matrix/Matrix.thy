@@ -528,12 +528,12 @@ proof -
       show "f (s 0) (foldseq f (\<lambda>k. if k < m then s (Suc k) else foldseq f (\<lambda>k. s (Suc (k + m))) (na - m)) m) =
         foldseq f (\<lambda>k. if k < m then s k else foldseq f (\<lambda>k. s (k + m)) (Suc na - m)) m"
         apply (simp add: subd)
-        apply (case_tac "m=0")
+        apply (cases "m = 0")
         apply (simp)
         apply (drule sube)
         apply (auto)
         apply (rule a)
-        by (simp add: subc if_def)
+        by (simp add: subc cong del: if_cong)
     qed
   then show ?thesis using assms by simp
 qed
