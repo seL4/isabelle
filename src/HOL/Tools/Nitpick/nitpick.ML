@@ -158,7 +158,7 @@ fun pretties_for_formulas _ _ [] = []
                (length ts downto 1) ts))]
 
 fun install_java_message () =
-  "Nitpick requires a Java 1.5 virtual machine called \"java\"."
+  "Nitpick requires a Java 1.6 virtual machine called \"java\"."
 fun install_kodkodi_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
   \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
@@ -738,6 +738,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           case KK.solve_any_problem overlord deadline max_threads max_solutions
                                     (map fst problems) of
             KK.JavaNotInstalled =>
+            (print_m install_java_message;
+             (found_really_genuine, max_potential, max_genuine, donno + 1))
+          | KK.JavaTooOld =>
             (print_m install_java_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiNotInstalled =>
