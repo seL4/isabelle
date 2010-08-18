@@ -209,8 +209,9 @@ text %mlref {*
   @{index_ML Code.del_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_pre: "(simpset -> simpset) -> theory -> theory"} \\
   @{index_ML Code_Preproc.map_post: "(simpset -> simpset) -> theory -> theory"} \\
-  @{index_ML Code_Preproc.add_functrans: "string * (theory -> (thm * bool) list -> (thm * bool) list option)
-    -> theory -> theory"} \\
+  @{index_ML Code_Preproc.add_functrans: "
+    string * (theory -> (thm * bool) list -> (thm * bool) list option)
+      -> theory -> theory"} \\
   @{index_ML Code_Preproc.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
   @{index_ML Code.get_type: "theory -> string
