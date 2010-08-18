@@ -158,7 +158,7 @@ fun pretties_for_formulas _ _ [] = []
                (length ts downto 1) ts))]
 
 fun install_java_message () =
-  "Nitpick requires a Java 1.6 virtual machine called \"java\"."
+  "Nitpick requires a Java 1.5 virtual machine called \"java\"."
 fun install_kodkodi_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
   \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
