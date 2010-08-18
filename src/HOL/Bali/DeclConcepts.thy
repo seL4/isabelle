@@ -98,7 +98,7 @@ end
 lemma acc_modi_accmodi_simp[simp]: "accmodi (a::acc_modi) = a"
 by (simp add: acc_modi_accmodi_def)
 
-instantiation decl_ext_type:: (type) has_accmodi
+instantiation decl_ext :: (type) has_accmodi
 begin
 
 definition
@@ -150,7 +150,7 @@ out of various HOL types *}
 class has_declclass =
   fixes declclass:: "'a \<Rightarrow> qtname"
 
-instantiation qtname_ext_type :: (type) has_declclass
+instantiation qtname_ext :: (type) has_declclass
 begin
 
 definition
@@ -162,7 +162,7 @@ end
 
 lemma qtname_declclass_def:
   "declclass q \<equiv> (q::qtname)"
-  by (induct q) (simp add: declclass_qtname_ext_type_def)
+  by (induct q) (simp add: declclass_qtname_ext_def)
 
 lemma qtname_declclass_simp[simp]: "declclass (q::qtname) = q"
 by (simp add: qtname_declclass_def)
@@ -186,14 +186,14 @@ out of various HOL types *}
 class has_static =
   fixes is_static :: "'a \<Rightarrow> bool"
 
-instantiation decl_ext_type :: (has_static) has_static
+instantiation decl_ext :: (has_static) has_static
 begin
 
 instance ..
 
 end
 
-instantiation member_ext_type :: (type) has_static
+instantiation member_ext :: (type) has_static
 begin
 
 instance ..
@@ -457,21 +457,21 @@ out of various HOL types *}
 class has_resTy =
   fixes resTy:: "'a \<Rightarrow> ty"
 
-instantiation decl_ext_type :: (has_resTy) has_resTy
+instantiation decl_ext :: (has_resTy) has_resTy
 begin
 
 instance ..
 
 end
 
-instantiation member_ext_type :: (has_resTy) has_resTy
+instantiation member_ext :: (has_resTy) has_resTy
 begin
 
 instance ..
 
 end
 
-instantiation mhead_ext_type :: (type) has_resTy
+instantiation mhead_ext :: (type) has_resTy
 begin
 
 instance ..
@@ -487,7 +487,7 @@ by (simp add: mhead_ext_type_resTy_def)
 lemma resTy_mhead [simp]:"resTy (mhead m) = resTy m"
 by (simp add: mhead_def mhead_resTy_simp)
 
-instantiation prod :: ("type","has_resTy") has_resTy
+instantiation prod :: (type, has_resTy) has_resTy
 begin
 
 definition
