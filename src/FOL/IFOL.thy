@@ -28,8 +28,6 @@ subsection {* Syntax and axiomatic basis *}
 
 setup PureThy.old_appl_syntax_setup
 
-global
-
 classes "term"
 default_sort "term"
 
@@ -86,8 +84,6 @@ notation (HTML output)
   All       (binder "\<forall>" 10) and
   Ex        (binder "\<exists>" 10) and
   Ex1       (binder "\<exists>!" 10)
-
-local
 
 finalconsts
   False All Ex
