@@ -116,7 +116,7 @@ text {*
   "{\<alpha>\<^isub>1, \<dots>, \<alpha>\<^isub>n}"} is exactly the set of \emph{all} type variables in
   @{text "\<tau>"}; then @{text "\<kappa>"} is its corresponding datatype.  The
   HOL datatype package by default registers any new datatype with its
-  constructors, but this may be changed using @{command
+  constructors, but this may be changed using @{command_def
   code_datatype}; the currently chosen constructors can be inspected
   using the @{command print_codesetup} command.
 
@@ -158,7 +158,7 @@ text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
 text {*
   The same techniques can also be applied to types which are not
   specified as datatypes, e.g.~type @{typ int} is originally specified
-  as quotient type by means of @{command typedef}, but for code
+  as quotient type by means of @{command_def typedef}, but for code
   generation constants allowing construction of binary numeral values
   are used as constructors for @{typ int}.
 

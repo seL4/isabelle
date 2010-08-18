@@ -268,7 +268,7 @@ Selecting specific code equations \emph{and} datatype constructors
   constructor must be of type \isa{{\isasymtau}\ {\isacharequal}\ {\isasymdots}\ {\isasymRightarrow}\ {\isasymkappa}\ {\isasymalpha}\isactrlisub {\isadigit{1}}\ {\isasymdots}\ {\isasymalpha}\isactrlisub n} where \isa{{\isacharbraceleft}{\isasymalpha}\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ {\isasymalpha}\isactrlisub n{\isacharbraceright}} is exactly the set of \emph{all} type variables in
   \isa{{\isasymtau}}; then \isa{{\isasymkappa}} is its corresponding datatype.  The
   HOL datatype package by default registers any new datatype with its
-  constructors, but this may be changed using \hyperlink{command.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}; the currently chosen constructors can be inspected
+  constructors, but this may be changed using \indexdef{}{command}{code\_datatype}\hypertarget{command.code-datatype}{\hyperlink{command.code-datatype}{\mbox{\isa{\isacommand{code{\isacharunderscore}datatype}}}}}; the currently chosen constructors can be inspected
   using the \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command.
 
   Equipped with this, we are able to prove the following equations
@@ -396,7 +396,7 @@ Selecting specific code equations \emph{and} datatype constructors
 \begin{isamarkuptext}%
 The same techniques can also be applied to types which are not
   specified as datatypes, e.g.~type \isa{int} is originally specified
-  as quotient type by means of \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}}, but for code
+  as quotient type by means of \indexdef{}{command}{typedef}\hypertarget{command.typedef}{\hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}}}, but for code
   generation constants allowing construction of binary numeral values
   are used as constructors for \isa{int}.
 
