@@ -185,7 +185,7 @@ val vampire_config : prover_config =
    required_execs = [],
    arguments = fn _ => fn timeout =>
      "--mode casc -t " ^ string_of_int (to_generous_secs timeout) ^
-     " --input_file",
+     " --thanks Andrei --input_file",
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
