@@ -79,7 +79,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
       case Some((word, cs)) =>
         val ds =
           (if (Isabelle_Encoding.is_active(buffer))
-            cs.map(Isabelle.system.symbols.decode(_)).sort(_ < _)
+            cs.map(Isabelle.system.symbols.decode(_)).sortWith(_ < _)
            else cs).filter(_ != word)
         if (ds.isEmpty) null
         else new SideKickCompletion(pane.getView, word, ds.toArray.asInstanceOf[Array[Object]]) { }
@@ -129,7 +129,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
     val root = data.root
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for ((command, command_start) <- snapshot.node.command_range(0) if !stopped) {
-      root.add(snapshot.state(command).markup.swing_tree((node: Markup_Node) =>
+      snapshot.state(command).markup_root.swing_tree(root)((node: Markup_Tree.Node) =>
           {
             val content = command.source(node.range).replace('\n', ' ')
             val id = command.id
@@ -146,7 +146,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
               override def getEnd: Position = command_start + node.range.stop
               override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
             })
-          }))
+          })
     }
   }
 }

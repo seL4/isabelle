@@ -106,8 +106,9 @@ object Symbol
       }
       buf.toArray
     }
-    def decode(sym: Int): Int =
+    def decode(sym1: Int): Int =
     {
+      val sym = sym1 - 1
       val end = index.length
       def bisect(a: Int, b: Int): Int =
       {
@@ -123,6 +124,7 @@ object Symbol
       if (i < 0) sym
       else index(i).chr + sym - index(i).sym
     }
+    def decode(range: Text.Range): Text.Range = range.map(decode(_))
   }
 
 

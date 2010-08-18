@@ -41,7 +41,7 @@ declare -a SOURCES=(
   Isar/token.scala
   PIDE/command.scala
   PIDE/document.scala
-  PIDE/markup_node.scala
+  PIDE/markup_tree.scala
   PIDE/text.scala
   System/cygwin.scala
   System/download.scala
