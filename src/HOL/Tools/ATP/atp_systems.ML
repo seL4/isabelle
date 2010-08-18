@@ -196,7 +196,6 @@ val vampire_config : prover_config =
       (IncompleteUnprovable, "CANNOT PROVE"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
-      (OutOfResources, "Refutation not found"),
       (VampireTooOld, "not a valid option")],
    default_max_relevant_per_iter = 45 (* FIXME *),
    default_theory_relevant = false,
