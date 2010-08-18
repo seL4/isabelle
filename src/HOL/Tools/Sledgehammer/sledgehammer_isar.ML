@@ -73,8 +73,7 @@ val default_default_params =
    ("theory_relevant", "smart"),
    ("defs_relevant", "false"),
    ("isar_proof", "false"),
-   ("isar_shrink_factor", "1"),
-   ("minimize_timeout", "5 s")]
+   ("isar_shrink_factor", "1")]
 
 val alias_params =
   [("atp", "atps")]
@@ -90,7 +89,7 @@ val negated_alias_params =
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "full_types", "isar_proof",
-   "isar_shrink_factor", "minimize_timeout"]
+   "isar_shrink_factor", "timeout"]
 
 val property_dependent_params = ["atps", "full_types", "timeout"]
 
@@ -179,7 +178,6 @@ fun extract_params default_params override_params =
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
-    val minimize_timeout = lookup_time "minimize_timeout"
   in
     {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
      full_types = full_types, explicit_apply = explicit_apply,
@@ -188,7 +186,7 @@ fun extract_params default_params override_params =
      max_relevant_per_iter = max_relevant_per_iter,
      theory_relevant = theory_relevant, defs_relevant = defs_relevant,
      isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-     timeout = timeout, minimize_timeout = minimize_timeout}
+     timeout = timeout}
   end
 
 fun get_params thy = extract_params (default_raw_params thy)
@@ -206,9 +204,6 @@ val available_atpsN = "available_atps"
 val running_atpsN = "running_atps"
 val kill_atpsN = "kill_atps"
 val refresh_tptpN = "refresh_tptp"
-
-fun minimizize_raw_param_name "timeout" = "minimize_timeout"
-  | minimizize_raw_param_name name = name
 
 val is_raw_param_relevant_for_minimize =
   member (op =) params_for_minimize o fst o unalias_raw_param
@@ -233,9 +228,8 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
                          (minimize_command override_params i) state
       end
     else if subcommand = minimizeN then
-      run_minimize (get_params thy (map (apfst minimizize_raw_param_name)
-                               override_params))
-                   (the_default 1 opt_i) (#add relevance_override) state
+      run_minimize (get_params thy override_params) (the_default 1 opt_i)
+                   (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = available_atpsN then

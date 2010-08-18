@@ -25,8 +25,7 @@ sig
      defs_relevant: bool,
      isar_proof: bool,
      isar_shrink_factor: int,
-     timeout: Time.time,
-     minimize_timeout: Time.time}
+     timeout: Time.time}
   type problem =
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
@@ -95,8 +94,7 @@ type params =
    defs_relevant: bool,
    isar_proof: bool,
    isar_shrink_factor: int,
-   timeout: Time.time,
-   minimize_timeout: Time.time}
+   timeout: Time.time}
 
 type problem =
   {subgoal: int,
