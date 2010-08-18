@@ -548,8 +548,7 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
 (* Facts containing variables of type "unit" or "bool" or of the form
    "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
    are omitted. *)
-fun is_dangerous_term _ @{prop True} = true
-  | is_dangerous_term full_types t =
+fun is_dangerous_term full_types t =
     not full_types andalso
     (has_bound_or_var_of_type dangerous_types t orelse
      forall too_general_equality (HOLogic.disjuncts (strip_Trueprop_and_all t)))
@@ -561,18 +560,13 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
   let
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val has_override = not (null add) orelse not (null del)
-(* FIXME:
-    val is_FO = forall Meson.is_fol_term thy (concl_t :: hyp_ts)
-*)
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (map (name_thms_pair_from_ref ctxt chained_ths) add @
            (if only then [] else all_name_thms_pairs ctxt chained_ths))
       |> not has_override ? make_unique
-      |> filter (fn (_, th) =>
-                    member Thm.eq_thm add_thms th orelse
-                    ((* FIXME: keep? (not is_FO orelse is_quasi_fol_theorem thy th) andalso*)
-                     not (is_dangerous_term full_types (prop_of th))))
+      |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
+                               not (is_dangerous_term full_types (prop_of th)))
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
