@@ -181,9 +181,9 @@ val token_kind_markup =
   | FloatSy     => Markup.numeral
   | XNumSy      => Markup.numeral
   | StrSy       => Markup.inner_string
-  | Space       => Markup.none
+  | Space       => Markup.empty
   | Comment     => Markup.inner_comment
-  | EOF         => Markup.none;
+  | EOF         => Markup.empty;
 
 fun report_token ctxt (Token (kind, _, (pos, _))) =
   Context_Position.report ctxt (token_kind_markup kind) pos;

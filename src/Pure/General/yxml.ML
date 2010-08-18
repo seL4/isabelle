@@ -52,7 +52,7 @@ val XYX = XY ^ X;
 (* output *)
 
 fun output_markup (markup as (name, atts)) =
-  if Markup.is_none markup then Markup.no_output
+  if Markup.is_empty markup then Markup.no_output
   else (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
 
 fun element name atts body =

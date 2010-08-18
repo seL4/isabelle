@@ -132,7 +132,7 @@ fun block_markup m (indent, es) =
 
 fun markup_block m arg = block_markup (Markup.output m) arg;
 
-val blk = markup_block Markup.none;
+val blk = markup_block Markup.empty;
 fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 
@@ -142,7 +142,7 @@ fun keyword name = mark Markup.keyword (str name);
 fun command name = mark Markup.command (str name);
 
 fun markup_chunks m prts = markup m (fbreaks prts);
-val chunks = markup_chunks Markup.none;
+val chunks = markup_chunks Markup.empty;
 fun chunks2 prts = blk (0, flat (Library.separate [fbrk, fbrk] (map single prts)));
 
 fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];

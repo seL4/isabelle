@@ -100,10 +100,10 @@ val token_kind_markup =
   | Real      => Markup.ML_numeral
   | Char      => Markup.ML_char
   | String    => Markup.ML_string
-  | Space     => Markup.none
+  | Space     => Markup.empty
   | Comment   => Markup.ML_comment
   | Error _   => Markup.ML_malformed
-  | EOF       => Markup.none;
+  | EOF       => Markup.empty;
 
 fun token_markup kind x =
   if kind = Keyword andalso exists_string (not o Symbol.is_ascii_letter) x
