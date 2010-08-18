@@ -307,7 +307,7 @@ end %quote (*<*)
 text {*
   \noindent The code generator would produce an additional instance,
   which of course is rejected by the @{text Haskell} compiler.  To
-  suppress this additional instance, use @{text "code_instance"}:
+  suppress this additional instance, use @{command_def "code_instance"}:
 *}
 
 code_instance %quotett bar :: eq
