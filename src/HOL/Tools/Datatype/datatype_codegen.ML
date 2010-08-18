@@ -16,9 +16,9 @@ struct
 
 (* liberal addition of code data for datatypes *)
 
-fun mk_constr_consts thy vs dtco cos =
+fun mk_constr_consts thy vs tyco cos =
   let
-    val cs = map (fn (c, tys) => (c, tys ---> Type (dtco, map TFree vs))) cos;
+    val cs = map (fn (c, tys) => (c, tys ---> Type (tyco, map TFree vs))) cos;
     val cs' = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) cs;
   in if is_some (try (Code.constrset_of_consts thy) cs')
     then SOME cs
@@ -62,12 +62,12 @@ fun mk_case_cert thy tyco =
 
 (* equality *)
 
-fun mk_eq_eqns thy dtco =
+fun mk_eq_eqns thy tyco =
   let
-    val (vs, cos) = Datatype_Data.the_spec thy dtco;
+    val (vs, cos) = Datatype_Data.the_spec thy tyco;
     val { descr, index, inject = inject_thms, distinct = distinct_thms, ... } =
-      Datatype_Data.the_info thy dtco;
-    val ty = Type (dtco, map TFree vs);
+      Datatype_Data.the_info thy tyco;
+    val ty = Type (tyco, map TFree vs);
     fun mk_eq (t1, t2) = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
       $ t1 $ t2;
     fun true_eq t12 = HOLogic.mk_eq (mk_eq t12, HOLogic.true_const);
@@ -88,11 +88,11 @@ fun mk_eq_eqns thy dtco =
       |> Simpdata.mk_eq;
   in (map prove (triv_injects @ injects @ distincts), prove refl) end;
 
-fun add_equality vs dtcos thy =
+fun add_equality vs tycos thy =
   let
-    fun add_def dtco lthy =
+    fun add_def tyco lthy =
       let
-        val ty = Type (dtco, map TFree vs);
+        val ty = Type (tyco, map TFree vs);
         fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
           $ Free ("x", ty) $ Free ("y", ty);
         val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -105,35 +105,37 @@ fun add_equality vs dtcos thy =
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
-    fun prefix dtco = Binding.qualify true (Long_Name.base_name dtco) o Binding.qualify true "eq" o Binding.name;
-    fun add_eq_thms dtco =
+    fun prefix tyco = Binding.qualify true (Long_Name.base_name tyco) o Binding.qualify true "eq" o Binding.name;
+    fun add_eq_thms tyco =
       Theory.checkpoint
-      #> `(fn thy => mk_eq_eqns thy dtco)
+      #> `(fn thy => mk_eq_eqns thy tyco)
       #-> (fn (thms, thm) => PureThy.note_thmss Thm.lemmaK
-          [((prefix dtco "refl", [Code.add_nbe_default_eqn_attribute]), [([thm], [])]),
-            ((prefix dtco "simps", [Code.add_default_eqn_attribute]), [(rev thms, [])])])
+          [((prefix tyco "refl", [Code.add_nbe_default_eqn_attribute]), [([thm], [])]),
+            ((prefix tyco "simps", [Code.add_default_eqn_attribute]), [(rev thms, [])])])
       #> snd
   in
     thy
-    |> Class.instantiation (dtcos, vs, [HOLogic.class_eq])
-    |> fold_map add_def dtcos
+    |> Class.instantiation (tycos, vs, [HOLogic.class_eq])
+    |> fold_map add_def tycos
     |-> (fn def_thms => Class.prove_instantiation_exit_result (map o Morphism.thm)
          (fn _ => fn def_thms => tac def_thms) def_thms)
     |-> (fn def_thms => fold Code.del_eqn def_thms)
-    |> fold add_eq_thms dtcos
+    |> fold add_eq_thms tycos
   end;
 
 
 (* register a datatype etc. *)
 
-fun add_all_code config dtcos thy =
+fun add_all_code config tycos thy =
   let
-    val (vs :: _, coss) = (split_list o map (Datatype_Data.the_spec thy)) dtcos;
-    val any_css = map2 (mk_constr_consts thy vs) dtcos coss;
+    val (vs :: _, coss) = (split_list o map (Datatype_Data.the_spec thy)) tycos;
+    val any_css = map2 (mk_constr_consts thy vs) tycos coss;
     val css = if exists is_none any_css then []
       else map_filter I any_css;
-    val case_rewrites = maps (#case_rewrites o Datatype_Data.the_info thy) dtcos;
-    val certs = map (mk_case_cert thy) dtcos;
+    val case_rewrites = maps (#case_rewrites o Datatype_Data.the_info thy) tycos;
+    val certs = map (mk_case_cert thy) tycos;
+    val tycos_eq = filter_out
+      (fn tyco => can (Sorts.mg_domain (Sign.classes_of thy) tyco) [HOLogic.class_eq]) tycos;
   in
     if null css then thy
     else thy
@@ -141,7 +143,7 @@ fun add_all_code config dtcos thy =
       |> fold Code.add_datatype css
       |> fold_rev Code.add_default_eqn case_rewrites
       |> fold Code.add_case certs
-      |> add_equality vs dtcos
+      |> not (null tycos_eq) ? add_equality vs tycos_eq
    end;
 
 
