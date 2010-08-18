@@ -13,11 +13,6 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 
 case class Markup_Node(val range: Text.Range, val info: Any)
-{
-  def fits_into(that: Markup_Node): Boolean =
-    that.range.start <= this.range.start && this.range.stop <= that.range.stop
-}
-
 
 case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
 {
@@ -30,11 +25,11 @@ case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
   def + (new_tree: Markup_Tree): Markup_Tree =
   {
     val new_node = new_tree.node
-    if (new_node fits_into node) {
+    if (node.range contains new_node.range) {
       var inserted = false
       val new_branches =
         branches.map(branch =>
-          if ((new_node fits_into branch.node) && !inserted) {
+          if ((branch.node.range contains new_node.range) && !inserted) {
             inserted = true
             branch + new_tree
           }
@@ -42,7 +37,7 @@ case class Markup_Tree(val node: Markup_Node, val branches: List[Markup_Tree])
       if (!inserted) {
         // new_tree did not fit into children of this
         // -> insert between this and its branches
-        val fitting = branches filter(_.node fits_into new_node)
+        val fitting = branches filter(new_node.range contains _.node.range)
         (this remove fitting) add ((new_tree /: fitting)(_ + _))
       }
       else copy(branches = new_branches)
@@ -94,7 +89,7 @@ case class Markup_Text(val markup: List[Markup_Tree], val content: String)
     new Markup_Text(markup.flatMap(filt(_)), content)
   }
 
-  def flatten: List[Markup_Node] = markup.flatten(_.flatten)
+  def flatten: List[Markup_Node] = markup.flatMap(_.flatten)
 
   def swing_tree(swing_node: Markup_Node => DefaultMutableTreeNode): DefaultMutableTreeNode =
   {
