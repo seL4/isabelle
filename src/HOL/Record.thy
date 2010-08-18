@@ -10,7 +10,7 @@ header {* Extensible records with structural subtyping *}
 
 theory Record
 imports Plain Quickcheck
-uses ("Tools/quickcheck_record.ML") ("Tools/record.ML")
+uses ("Tools/record.ML")
 begin
 
 subsection {* Introduction *}
@@ -452,7 +452,6 @@ syntax (xsymbols)
 
 subsection {* Record package *}
 
-use "Tools/quickcheck_record.ML"
 use "Tools/record.ML" setup Record.setup
 
 hide_const (open) Tuple_Isomorphism repr abst iso_tuple_fst iso_tuple_snd

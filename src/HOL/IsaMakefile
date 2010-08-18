@@ -302,7 +302,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Predicate_Compile/predicate_compile_specialisation.ML \
   Tools/Predicate_Compile/predicate_compile_pred.ML \
   Tools/quickcheck_generators.ML \
-  Tools/quickcheck_record.ML \
   Tools/Qelim/cooper.ML \
   Tools/Qelim/cooper_procedure.ML \
   Tools/Qelim/qelim.ML \
