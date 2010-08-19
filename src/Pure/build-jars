@@ -41,6 +41,7 @@ declare -a SOURCES=(
   Isar/token.scala
   PIDE/command.scala
   PIDE/document.scala
+  PIDE/isar_document.scala
   PIDE/markup_tree.scala
   PIDE/text.scala
   System/cygwin.scala
@@ -50,7 +51,6 @@ declare -a SOURCES=(
   System/isabelle_process.scala
   System/isabelle_syntax.scala
   System/isabelle_system.scala
-  System/isar_document.scala
   System/platform.scala
   System/session.scala
   System/session_manager.scala

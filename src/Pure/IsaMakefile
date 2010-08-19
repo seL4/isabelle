@@ -157,6 +157,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   ML/ml_syntax.ML					\
   ML/ml_thms.ML						\
   PIDE/document.ML					\
+  PIDE/isar_document.ML					\
   Proof/extraction.ML					\
   Proof/proof_rewrite_rules.ML				\
   Proof/proof_syntax.ML					\
@@ -188,7 +189,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/type_ext.ML					\
   System/isabelle_process.ML				\
   System/isar.ML					\
-  System/isar_document.ML				\
   System/session.ML					\
   Thy/html.ML						\
   Thy/latex.ML						\

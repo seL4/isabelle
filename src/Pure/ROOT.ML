@@ -257,7 +257,7 @@ use "Proof/extraction.ML";
 
 use "System/session.ML";
 use "System/isabelle_process.ML";
-use "System/isar_document.ML";
+use "PIDE/isar_document.ML";
 use "System/isar.ML";
 
 
