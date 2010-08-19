@@ -32,12 +32,20 @@ object Text
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = map(_ + i)
     def contains(i: Offset): Boolean = start <= i && i < stop
-    def contains(that: Range): Boolean = start <= that.start && that.stop <= stop
-    def overlaps(that: Range): Boolean = this.contains(that.start) || that.contains(this.start)
+    def contains(that: Range): Boolean =
+      this == that || this.contains(that.start) && that.stop <= this.stop
+    def overlaps(that: Range): Boolean =
+      this == that || this.contains(that.start) || that.contains(this.start)
     def compare(that: Range): Int =
       if (overlaps(that)) 0
       else if (this.start < that.start) -1
       else 1
+
+    def start_range: Range = Range(start, start)
+    def stop_range: Range = Range(stop, stop)
+
+    def intersect(that: Range): Range =
+      Range(this.start max that.start, this.stop min that.stop)
   }
 
 
