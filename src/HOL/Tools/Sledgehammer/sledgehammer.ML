@@ -348,7 +348,7 @@ fun prover_fun atp_name
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
             (full_types, minimize_command, proof, axiom_names, th, subgoal)
-      | SOME failure => (string_for_failure failure ^ "\n", [])
+      | SOME failure => (string_for_failure failure, [])
   in
     {outcome = outcome, message = message, pool = pool,
      used_thm_names = used_thm_names, atp_run_time_in_msecs = msecs,

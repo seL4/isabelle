@@ -10,7 +10,6 @@ signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
   type minimize_command = string list -> string
 
-  val metis_line: bool -> int -> int -> string list -> string
   val metis_proof_text:
     bool * minimize_command * string * string vector * thm * int
     -> string * string list
@@ -598,14 +597,14 @@ fun metis_command full_types i n (ls, ss) =
   metis_using ls ^ metis_apply i n ^ metis_call full_types ss
 fun metis_line full_types i n ss =
   "Try this command: " ^
-  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ ".\n"
+  Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
 fun minimize_line _ [] = ""
   | minimize_line minimize_command facts =
     case minimize_command facts of
       "" => ""
     | command =>
-      "To minimize the number of lemmas, try this: " ^
-      Markup.markup Markup.sendback command ^ ".\n"
+      "\nTo minimize the number of lemmas, try this: " ^
+      Markup.markup Markup.sendback command ^ "."
 
 val unprefix_chained = perhaps (try (unprefix chained_prefix))
 
