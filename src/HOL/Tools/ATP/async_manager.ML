@@ -72,8 +72,8 @@ fun unregister verbose message thread =
           val message' =
             desc ^ "\n" ^ message ^
             (if verbose then
-               "Total time: " ^ Int.toString (Time.toMilliseconds
-                                          (Time.- (now, birth_time))) ^ " ms.\n"
+               "\nTotal time: " ^ Int.toString (Time.toMilliseconds
+                                            (Time.- (now, birth_time))) ^ " ms."
              else
                "")
           val messages' = (tool, message') :: messages;

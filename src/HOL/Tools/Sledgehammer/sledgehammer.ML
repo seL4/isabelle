@@ -334,14 +334,12 @@ fun prover_fun atp_name
         ()
       else
         File.write (Path.explode (Path.implode probfile ^ "_proof")) output
-
     val ((pool, conjecture_shape, axiom_names),
          (output, msecs, proof, outcome)) =
       with_path cleanup export run_on (prob_pathname subgoal)
     val (conjecture_shape, axiom_names) =
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 axiom_names
-
     val (message, used_thm_names) =
       case outcome of
         NONE =>
