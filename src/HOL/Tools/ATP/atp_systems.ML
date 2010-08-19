@@ -261,7 +261,9 @@ fun remotify_prover (name, config) system_prefix =
 
 val remote_e = remotify_prover e "EP---"
 val remote_vampire = remotify_prover vampire "Vampire---9"
-val remote_sine_e = remote_prover "sine_e" "SInE---" [] [] 150 (* FIXME *) false
+val remote_sine_e =
+  remote_prover "sine_e" "SInE---" []
+                [(Unprovable, "says Unknown")] 150 (* FIXME *) false
 val remote_snark =
   remote_prover "snark" "SNARK---" [("refutation.", "end_refutation.")] []
                 50 (* FIXME *) false
@@ -276,7 +278,11 @@ fun maybe_remote (name, config) =
 fun default_atps_param_value () =
   space_implode " " ([maybe_remote e] @
                      (if is_installed (snd spass) then [fst spass] else []) @
-                     [remotify_name (fst vampire), fst remote_sine_e])
+                     [if forall (is_installed o snd) [e, spass] then
+                        remotify_name (fst vampire)
+                      else
+                        maybe_remote vampire,
+                      fst remote_sine_e])
 
 val provers = [e, spass, vampire, remote_e, remote_vampire, remote_sine_e,
                remote_snark]
