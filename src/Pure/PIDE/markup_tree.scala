@@ -18,6 +18,9 @@ import scala.annotation.tailrec
 object Markup_Tree
 {
   case class Node(val range: Text.Range, val info: Any)
+  {
+    def contains(that: Node): Boolean = this.range contains that.range
+  }
 
 
   /* branches sorted by quasi-order -- overlapping intervals appear as equivalent */
@@ -33,7 +36,6 @@ object Markup_Tree
       })
     def update(branches: T, entries: Entry*): T =
       branches ++ entries.map(e => (e._1 -> e))
-    def make(entries: List[Entry]): T = update(empty, entries:_*)
   }
 
   val empty = new Markup_Tree(Branches.empty)
@@ -46,31 +48,28 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
 
   def + (new_node: Node): Markup_Tree =
   {
-    // FIXME tune overlapping == branches && rest.isEmpty
-    val (overlapping, rest) =
-    {
-      val overlapping = new mutable.ListBuffer[Branches.Entry]
-      var rest = branches
-      while (rest.isDefinedAt(new_node)) {
-        overlapping += rest(new_node)
-        rest -= new_node
-      }
-      (overlapping.toList, rest)
-    }
-    overlapping match {
-      case Nil =>
+    branches.get(new_node) match {
+      case None =>
         new Markup_Tree(Branches.update(branches, new_node -> empty))
-
-      case List((node, subtree))
-        if node.range != new_node.range && (node.range contains new_node.range) =>
-        new Markup_Tree(Branches.update(branches, node -> (subtree + new_node)))
-
-      case _ if overlapping.forall(e => new_node.range contains e._1.range) =>
-        val new_tree = new Markup_Tree(Branches.make(overlapping))
-        new Markup_Tree(Branches.update(rest, new_node -> new_tree))
-
-      case _ => // FIXME split markup!?
-        System.err.println("Ignored overlapping markup: " + new_node); this
+      case Some((node, subtree)) =>
+        if (node.range != new_node.range && node.contains(new_node))
+          new Markup_Tree(Branches.update(branches, node -> (subtree + new_node)))
+        else if (new_node.contains(branches.head._1) && new_node.contains(branches.last._1))
+          new Markup_Tree(Branches.update(Branches.empty, (new_node -> this)))
+        else {
+          var overlapping = Branches.empty
+          var rest = branches
+          while (rest.isDefinedAt(new_node)) {
+            overlapping = Branches.update(overlapping, rest(new_node))
+            rest -= new_node
+          }
+          if (overlapping.forall(e => new_node.contains(e._1)))
+            new Markup_Tree(Branches.update(rest, new_node -> new Markup_Tree(overlapping)))
+          else { // FIXME split markup!?
+            System.err.println("Ignored overlapping markup: " + new_node)
+            this
+          }
+        }
     }
   }
 
