@@ -230,13 +230,13 @@ fun disjuncts_aux (Const ("op |", _) $ t $ t') disjs = disjuncts_aux t (disjunct
 
 fun disjuncts t = disjuncts_aux t [];
 
-fun dest_imp (Const("op -->",_) $ A $ B) = (A, B)
+fun dest_imp (Const ("op -->", _) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
 fun dest_not (Const ("Not", _) $ t) = t
   | dest_not t = raise TERM ("dest_not", [t]);
 
-fun eq_const T = Const ("op =", [T, T] ---> boolT);
+fun eq_const T = Const ("op =", T --> T --> boolT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
 fun dest_eq (Const ("op =", _) $ lhs $ rhs) = (lhs, rhs)
