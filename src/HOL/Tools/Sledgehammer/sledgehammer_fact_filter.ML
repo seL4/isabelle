@@ -50,14 +50,6 @@ fun name_thms_pair_from_ref ctxt chained_ths xref =
 (* Relevance Filtering                                         *)
 (***************************************************************)
 
-fun strip_Trueprop_and_all (@{const Trueprop} $ t) =
-    strip_Trueprop_and_all t
-  | strip_Trueprop_and_all (Const (@{const_name all}, _) $ Abs (_, _, t)) =
-    strip_Trueprop_and_all t
-  | strip_Trueprop_and_all (Const (@{const_name All}, _) $ Abs (_, _, t)) =
-    strip_Trueprop_and_all t
-  | strip_Trueprop_and_all t = t
-
 (*** constants with types ***)
 
 (*An abstraction of Isabelle types*)
@@ -527,9 +519,31 @@ fun too_general_eqterms (Var z) t =
   | too_general_eqterms (Bound j) t = not (loose_bvar1 (t, j))
   | too_general_eqterms _ _ = false
 
-fun too_general_equality (Const (@{const_name "op ="}, _) $ t1 $ t2) =
-    too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
-  | too_general_equality _ = false
+val is_exhaustive_finite =
+  let
+    fun do_equals t1 t2 =
+      too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
+    fun do_formula pos t =
+      case (pos, t) of
+        (_, @{const Trueprop} $ t) => do_formula pos t
+      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (_, @{const "==>"} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso do_formula pos t2
+      | (_, @{const "op -->"} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso do_formula pos t2
+      | (_, @{const Not} $ t1) => do_formula (not pos) t1
+      | (true, @{const "op |"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (false, @{const "op &"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
+      | _ => false
+  in do_formula true end
+
 
 fun has_bound_or_var_of_type tycons =
   exists_subterm (fn Var (_, Type (s, _)) => member (op =) tycons s
@@ -549,7 +563,7 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
 fun is_dangerous_term full_types t =
     not full_types andalso
     (has_bound_or_var_of_type dangerous_types t orelse
-     forall too_general_equality (HOLogic.disjuncts (strip_Trueprop_and_all t)))
+     is_exhaustive_finite t)
 
 fun relevant_facts full_types relevance_threshold relevance_convergence
                    defs_relevant max_new theory_relevant
