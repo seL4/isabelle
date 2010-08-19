@@ -38,7 +38,7 @@ object Text
     def start_range: Range = Range(start, start)
     def stop_range: Range = Range(stop, stop)
 
-    def intersect(that: Range): Range =
+    def restrict(that: Range): Range =
       Range(this.start max that.start, this.stop min that.stop)
   }
 

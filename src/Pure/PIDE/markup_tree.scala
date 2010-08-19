@@ -17,10 +17,10 @@ import scala.annotation.tailrec
 
 object Markup_Tree
 {
-  case class Node(val range: Text.Range, val info: Any)
+  case class Node[A](val range: Text.Range, val info: A)
   {
-    def contains(that: Node): Boolean = this.range contains that.range
-    def restrict(r: Text.Range): Node = Node(range.intersect(r), info)
+    def contains[B](that: Node[B]): Boolean = this.range contains that.range
+    def restrict(r: Text.Range): Node[A] = Node(range.restrict(r), info)
   }
 
 
@@ -28,12 +28,12 @@ object Markup_Tree
 
   object Branches
   {
-    type Entry = (Node, Markup_Tree)
-    type T = SortedMap[Node, Entry]
+    type Entry = (Node[Any], Markup_Tree)
+    type T = SortedMap[Node[Any], Entry]
 
-    val empty = SortedMap.empty[Node, Entry](new scala.math.Ordering[Node]
+    val empty = SortedMap.empty[Node[Any], Entry](new scala.math.Ordering[Node[Any]]
       {
-        def compare(x: Node, y: Node): Int = x.range compare y.range
+        def compare(x: Node[Any], y: Node[Any]): Int = x.range compare y.range
       })
 
     def update(branches: T, entry: Entry): T = branches + (entry._1 -> entry)
@@ -56,7 +56,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
       case list => list.mkString("Tree(", ",", ")")
     }
 
-  def + (new_node: Node): Markup_Tree =
+  def + (new_node: Node[Any]): Markup_Tree =
   {
     branches.get(new_node) match {
       case None =>
@@ -82,9 +82,9 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
 
   // FIXME depth-first with result markup stack
   // FIXME projection to given range
-  def flatten(parent: Node): List[Node] =
+  def flatten(parent: Node[Any]): List[Node[Any]] =
   {
-    val result = new mutable.ListBuffer[Node]
+    val result = new mutable.ListBuffer[Node[Any]]
     var offset = parent.range.start
     for ((_, (node, subtree)) <- branches.iterator) {
       if (offset < node.range.start)
@@ -97,7 +97,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     result.toList
   }
 
-  def filter(pred: Node => Boolean): Markup_Tree =
+  def filter(pred: Node[Any] => Boolean): Markup_Tree =
   {
     val bs = branches.toList.flatMap(entry => {
       val (_, (node, subtree)) = entry
@@ -107,24 +107,26 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     new Markup_Tree(Branches.empty ++ bs)
   }
 
-  def select[A](range: Text.Range)(sel: PartialFunction[Node, A]): Stream[Node] =
+  def select[A](range: Text.Range)(sel: PartialFunction[Any, A]): Stream[Node[List[A]]] =
   {
-    def stream(parent: Node, bs: Branches.T): Stream[Node] =
+    def stream(parent: Node[List[A]], bs: Branches.T): Stream[Node[List[A]]] =
     {
       val substream =
         (for ((_, (node, subtree)) <- Branches.overlapping(parent.range, bs).toStream) yield {
-          if (sel.isDefinedAt(node))
-            stream(node.restrict(parent.range), subtree.branches)
+          if (sel.isDefinedAt(node.info)) {
+            val current = Node(node.range.restrict(parent.range), List(sel(node.info)))
+            stream(current, subtree.branches)
+          }
           else stream(parent, subtree.branches)
         }).flatten
 
-      def padding(last: Text.Offset, s: Stream[Node]): Stream[Node] =
+      def padding(last: Text.Offset, s: Stream[Node[List[A]]]): Stream[Node[List[A]]] =
         s match {
           case (node @ Node(Text.Range(start, stop), _)) #:: rest =>
             if (last < start)
               parent.restrict(Text.Range(last, start)) #:: node #:: padding(stop, rest)
             else node #:: padding(stop, rest)
-          case Stream.Empty =>  // FIXME
+          case Stream.Empty =>
             if (last < parent.range.stop)
               Stream(parent.restrict(Text.Range(last, parent.range.stop)))
             else Stream.Empty
@@ -134,7 +136,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     stream(Node(range, Nil), branches)
   }
 
-  def swing_tree(parent: DefaultMutableTreeNode)(swing_node: Node => DefaultMutableTreeNode)
+  def swing_tree(parent: DefaultMutableTreeNode)(swing_node: Node[Any] => DefaultMutableTreeNode)
   {
     for ((_, (node, subtree)) <- branches) {
       val current = swing_node(node)

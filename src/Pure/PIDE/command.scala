@@ -37,16 +37,16 @@ object Command
 
     def add_result(result: XML.Tree): State = copy(reverse_results = result :: reverse_results)
 
-    def add_markup(node: Markup_Tree.Node): State = copy(markup = markup + node)
+    def add_markup(node: Markup_Tree.Node[Any]): State = copy(markup = markup + node)
 
-    def markup_root_node: Markup_Tree.Node =
+    def markup_root_node: Markup_Tree.Node[Any] =
       new Markup_Tree.Node(command.range, XML.Elem(Markup(Markup.STATUS, Nil), status))
     def markup_root: Markup_Tree = markup + markup_root_node
 
 
     /* markup */
 
-    lazy val highlight: List[Markup_Tree.Node] =
+    lazy val highlight: List[Markup_Tree.Node[Any]] =
     {
       markup.filter(_.info match {
         case Command.HighlightInfo(_, _) => true
@@ -54,7 +54,7 @@ object Command
       }).flatten(markup_root_node)
     }
 
-    private lazy val types: List[Markup_Tree.Node] =
+    private lazy val types: List[Markup_Tree.Node[Any]] =
       markup.filter(_.info match {
         case Command.TypeInfo(_) => true
         case _ => false }).flatten(markup_root_node)
@@ -71,12 +71,12 @@ object Command
       }
     }
 
-    private lazy val refs: List[Markup_Tree.Node] =
+    private lazy val refs: List[Markup_Tree.Node[Any]] =
       markup.filter(_.info match {
         case Command.RefInfo(_, _, _, _) => true
         case _ => false }).flatten(markup_root_node)
 
-    def ref_at(pos: Text.Offset): Option[Markup_Tree.Node] =
+    def ref_at(pos: Text.Offset): Option[Markup_Tree.Node[Any]] =
       refs.find(_.range.contains(pos))
 
 
@@ -159,7 +159,7 @@ class Command(
 
   /* markup */
 
-  def decode_range(range: Text.Range, info: Any): Markup_Tree.Node =
+  def decode_range(range: Text.Range, info: Any): Markup_Tree.Node[Any] =
     new Markup_Tree.Node(symbol_index.decode(range), info)
 
 
