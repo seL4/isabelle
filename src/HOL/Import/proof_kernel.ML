@@ -388,7 +388,6 @@ end
 
 val type_of = Term.type_of
 
-val boolT = Type("bool",[])
 val propT = Type("prop",[])
 
 fun mk_defeq name rhs thy =
@@ -1007,7 +1006,7 @@ val disj2_thm = thm "disjI2"
 local
     val th = thm "not_def"
     val thy = theory_of_thm th
-    val pp = Thm.reflexive (cterm_of thy (Const(@{const_name "Trueprop"},boolT-->propT)))
+    val pp = Thm.reflexive (cterm_of thy (Const(@{const_name "Trueprop"},HOLogic.boolT-->propT)))
 in
 val not_elim_thm = Thm.combination pp th
 end
@@ -1773,7 +1772,7 @@ fun CCONTR tm hth thy =
         val (info',tm') = disamb_term_from info tm
         val th = norm_hyps th
         val ct = cterm_of thy tm'
-        val th1 = rearrange thy (HOLogic.mk_Trueprop (Const(@{const_name "Not"},boolT-->boolT) $ tm')) th
+        val th1 = rearrange thy (HOLogic.mk_Trueprop (Const(@{const_name "Not"},HOLogic.boolT-->HOLogic.boolT) $ tm')) th
         val ccontr_thm' = Drule.instantiate' [] [SOME ct] ccontr_thm
         val res1 = uniq_compose ((nprems_of th1) - 1) th1 1 ccontr_thm'
         val res = HOLThm(rens_of info',res1)

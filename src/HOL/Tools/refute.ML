@@ -658,7 +658,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
       | Const (@{const_name Finite_Set.card}, _) => t
       | Const (@{const_name Finite_Set.finite}, _) => t
       | Const (@{const_name Orderings.less}, Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, Type ("bool", [])])])) => t
+        Type ("fun", [@{typ nat}, @{typ bool}])])) => t
       | Const (@{const_name Groups.plus}, Type ("fun", [@{typ nat},
         Type ("fun", [@{typ nat}, @{typ nat}])])) => t
       | Const (@{const_name Groups.minus}, Type ("fun", [@{typ nat},
@@ -835,7 +835,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
       | Const (@{const_name Finite_Set.finite}, T) =>
         collect_type_axioms T axs
       | Const (@{const_name Orderings.less}, T as Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, Type ("bool", [])])])) =>
+        Type ("fun", [@{typ nat}, @{typ bool}])])) =>
           collect_type_axioms T axs
       | Const (@{const_name Groups.plus}, T as Type ("fun", [@{typ nat},
         Type ("fun", [@{typ nat}, @{typ nat}])])) =>
@@ -2653,7 +2653,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
   fun Finite_Set_card_interpreter thy model args t =
     case t of
       Const (@{const_name Finite_Set.card},
-        Type ("fun", [Type ("fun", [T, Type ("bool", [])]),
+        Type ("fun", [Type ("fun", [T, @{typ bool}]),
                       @{typ nat}])) =>
       let
         (* interpretation -> int *)
@@ -2685,7 +2685,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
               Leaf (replicate size_of_nat False)
           end
         val set_constants =
-          make_constants thy model (Type ("fun", [T, Type ("bool", [])]))
+          make_constants thy model (Type ("fun", [T, HOLogic.boolT]))
       in
         SOME (Node (map card set_constants), model, args)
       end
@@ -2702,17 +2702,17 @@ val specialize_type = Sledgehammer_Util.specialize_type
   fun Finite_Set_finite_interpreter thy model args t =
     case t of
       Const (@{const_name Finite_Set.finite},
-        Type ("fun", [Type ("fun", [T, Type ("bool", [])]),
-                      Type ("bool", [])])) $ _ =>
+        Type ("fun", [Type ("fun", [T, @{typ bool}]),
+                      @{typ bool}])) $ _ =>
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
         SOME (TT, model, args)
     | Const (@{const_name Finite_Set.finite},
-        Type ("fun", [Type ("fun", [T, Type ("bool", [])]),
-                      Type ("bool", [])])) =>
+        Type ("fun", [Type ("fun", [T, @{typ bool}]),
+                      @{typ bool}])) =>
       let
         val size_of_set =
-          size_of_type thy model (Type ("fun", [T, Type ("bool", [])]))
+          size_of_type thy model (Type ("fun", [T, HOLogic.boolT]))
       in
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
@@ -2731,7 +2731,7 @@ val specialize_type = Sledgehammer_Util.specialize_type
   fun Nat_less_interpreter thy model args t =
     case t of
       Const (@{const_name Orderings.less}, Type ("fun", [@{typ nat},
-        Type ("fun", [@{typ nat}, Type ("bool", [])])])) =>
+        Type ("fun", [@{typ nat}, @{typ bool}])])) =>
       let
         val size_of_nat = size_of_type thy model (@{typ nat})
         (* the 'n'-th nat is not less than the first 'n' nats, while it *)
@@ -2940,20 +2940,20 @@ val specialize_type = Sledgehammer_Util.specialize_type
   fun lfp_interpreter thy model args t =
     case t of
       Const (@{const_name lfp}, Type ("fun", [Type ("fun",
-        [Type ("fun", [T, Type ("bool", [])]),
-         Type ("fun", [_, Type ("bool", [])])]),
-         Type ("fun", [_, Type ("bool", [])])])) =>
+        [Type ("fun", [T, @{typ bool}]),
+         Type ("fun", [_, @{typ bool}])]),
+         Type ("fun", [_, @{typ bool}])])) =>
       let
         val size_elem = size_of_type thy model T
         (* the universe (i.e. the set that contains every element) *)
         val i_univ = Node (replicate size_elem TT)
         (* all sets with elements from type 'T' *)
         val i_sets =
-          make_constants thy model (Type ("fun", [T, Type ("bool", [])]))
+          make_constants thy model (Type ("fun", [T, HOLogic.boolT]))
         (* all functions that map sets to sets *)
         val i_funs = make_constants thy model (Type ("fun",
-          [Type ("fun", [T, Type ("bool", [])]),
-           Type ("fun", [T, Type ("bool", [])])]))
+          [Type ("fun", [T, @{typ bool}]),
+           Type ("fun", [T, @{typ bool}])]))
         (* "lfp(f) == Inter({u. f(u) <= u})" *)
         (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
@@ -2995,20 +2995,20 @@ val specialize_type = Sledgehammer_Util.specialize_type
   fun gfp_interpreter thy model args t =
     case t of
       Const (@{const_name gfp}, Type ("fun", [Type ("fun",
-        [Type ("fun", [T, Type ("bool", [])]),
-         Type ("fun", [_, Type ("bool", [])])]),
-         Type ("fun", [_, Type ("bool", [])])])) =>
+        [Type ("fun", [T, @{typ bool}]),
+         Type ("fun", [_, @{typ bool}])]),
+         Type ("fun", [_, @{typ bool}])])) =>
       let
         val size_elem = size_of_type thy model T
         (* the universe (i.e. the set that contains every element) *)
         val i_univ = Node (replicate size_elem TT)
         (* all sets with elements from type 'T' *)
         val i_sets =
-          make_constants thy model (Type ("fun", [T, Type ("bool", [])]))
+          make_constants thy model (Type ("fun", [T, HOLogic.boolT]))
         (* all functions that map sets to sets *)
         val i_funs = make_constants thy model (Type ("fun",
-          [Type ("fun", [T, Type ("bool", [])]),
-           Type ("fun", [T, Type ("bool", [])])]))
+          [Type ("fun", [T, HOLogic.boolT]),
+           Type ("fun", [T, HOLogic.boolT])]))
         (* "gfp(f) == Union({u. u <= f(u)})" *)
         (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =

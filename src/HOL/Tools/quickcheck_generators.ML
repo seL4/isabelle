@@ -351,11 +351,11 @@ fun mk_reporting_generator_expr thy prop Ts =
       @{term "Pair :: term list option * (bool list * bool) => Random.seed => (term list option * (bool list * bool)) * Random.seed"};
     fun mk_assms_report i =
       HOLogic.mk_prod (@{term "None :: term list option"},
-        HOLogic.mk_prod (HOLogic.mk_list @{typ "bool"}
-          (replicate i @{term "True"} @ replicate (length assms - i) @{term "False"}),
-        @{term "False"}))
+        HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT
+          (replicate i @{term True} @ replicate (length assms - i) @{term False}),
+        @{term False}))
     fun mk_concl_report b =
-      HOLogic.mk_prod (HOLogic.mk_list @{typ "bool"} (replicate (length assms) @{term "True"}),
+      HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT (replicate (length assms) @{term True}),
         if b then @{term True} else @{term False})
     val If =
       @{term "If :: bool => term list option * (bool list * bool) => term list option * (bool list * bool) => term list option * (bool list * bool)"}

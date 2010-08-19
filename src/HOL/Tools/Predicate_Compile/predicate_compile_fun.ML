@@ -52,7 +52,7 @@ fun add_function_predicate_translation (f, p) =
 fun transform_ho_typ (T as Type ("fun", _)) =
   let
     val (Ts, T') = strip_type T
-  in if T' = @{typ "bool"} then T else (Ts @ [T']) ---> HOLogic.boolT end
+  in if T' = HOLogic.boolT then T else (Ts @ [T']) ---> HOLogic.boolT end
 | transform_ho_typ t = t
 
 fun transform_ho_arg arg = 
