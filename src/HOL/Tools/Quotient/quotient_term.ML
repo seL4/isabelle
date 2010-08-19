@@ -490,16 +490,16 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else mk_bex1_rel $ resrel $ subtrm
        end
 
-  | (Const (@{const_name "Ex1"}, ty) $ t, Const (@{const_name "Ex1"}, ty') $ t') =>
+  | (Const (@{const_name Ex1}, ty) $ t, Const (@{const_name Ex1}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
        in
-         if ty = ty' then Const (@{const_name "Ex1"}, ty) $ subtrm
+         if ty = ty' then Const (@{const_name Ex1}, ty) $ subtrm
          else mk_bex1_rel $ (equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
        end
 
   | (Const (@{const_name "Ball"}, ty) $ (Const (@{const_name "Respects"}, _) $ resrel) $ t,
-     Const (@{const_name "All"}, ty') $ t') =>
+     Const (@{const_name All}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
          val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
@@ -510,7 +510,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
        end
 
   | (Const (@{const_name "Bex"}, ty) $ (Const (@{const_name "Respects"}, _) $ resrel) $ t,
-     Const (@{const_name "Ex"}, ty') $ t') =>
+     Const (@{const_name Ex}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
          val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
@@ -520,7 +520,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else mk_bex $ (mk_resp $ resrel) $ subtrm
        end
 
-  | (Const (@{const_name "Bex1_rel"}, ty) $ resrel $ t, Const (@{const_name "Ex1"}, ty') $ t') =>
+  | (Const (@{const_name "Bex1_rel"}, ty) $ resrel $ t, Const (@{const_name Ex1}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
          val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
@@ -638,10 +638,10 @@ end
    as the type of subterms needs to be calculated   *)
 fun inj_repabs_trm ctxt (rtrm, qtrm) =
  case (rtrm, qtrm) of
-    (Const (@{const_name "Ball"}, T) $ r $ t, Const (@{const_name "All"}, _) $ t') =>
+    (Const (@{const_name "Ball"}, T) $ r $ t, Const (@{const_name All}, _) $ t') =>
        Const (@{const_name "Ball"}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
 
-  | (Const (@{const_name "Bex"}, T) $ r $ t, Const (@{const_name "Ex"}, _) $ t') =>
+  | (Const (@{const_name "Bex"}, T) $ r $ t, Const (@{const_name Ex}, _) $ t') =>
        Const (@{const_name "Bex"}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
 
   | (Const (@{const_name "Babs"}, T) $ r $ t, t' as (Abs _)) =>

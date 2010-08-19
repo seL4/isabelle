@@ -622,9 +622,9 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
       Proc.Iff (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (Const (@{const_name Not}, _) $ t') =
       Proc.Not (fm_of_term ps vs t')
-  | fm_of_term ps vs (Const (@{const_name "Ex"}, _) $ Abs abs) =
+  | fm_of_term ps vs (Const (@{const_name Ex}, _) $ Abs abs) =
       Proc.E (uncurry (fm_of_term ps) (descend vs abs))
-  | fm_of_term ps vs (Const (@{const_name "All"}, _) $ Abs abs) =
+  | fm_of_term ps vs (Const (@{const_name All}, _) $ Abs abs) =
       Proc.A (uncurry (fm_of_term ps) (descend vs abs))
   | fm_of_term ps vs (@{term "op = :: int => _"} $ t1 $ t2) =
       Proc.Eq (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
@@ -694,7 +694,7 @@ fun strip_objimp ct =
 
 fun strip_objall ct = 
  case term_of ct of 
-  Const (@{const_name "All"}, _) $ Abs (xn,xT,p) => 
+  Const (@{const_name All}, _) $ Abs (xn,xT,p) => 
    let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
    in apfst (cons (a,v)) (strip_objall t')
    end

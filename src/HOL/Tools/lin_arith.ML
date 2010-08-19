@@ -46,12 +46,12 @@ fun mk_Eq thm = thm RS @{thm Eq_FalseI} handle THM _ => thm RS @{thm Eq_TrueI};
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
 fun atomize thm = case Thm.prop_of thm of
-    Const (@{const_name "Trueprop"}, _) $ (Const (@{const_name "op &"}, _) $ _ $ _) =>
+    Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op &"}, _) $ _ $ _) =>
     atomize (thm RS conjunct1) @ atomize (thm RS conjunct2)
   | _ => [thm];
 
-fun neg_prop ((TP as Const(@{const_name "Trueprop"}, _)) $ (Const (@{const_name Not}, _) $ t)) = TP $ t
-  | neg_prop ((TP as Const(@{const_name "Trueprop"}, _)) $ t) = TP $ (HOLogic.Not $t)
+fun neg_prop ((TP as Const(@{const_name Trueprop}, _)) $ (Const (@{const_name Not}, _) $ t)) = TP $ t
+  | neg_prop ((TP as Const(@{const_name Trueprop}, _)) $ t) = TP $ (HOLogic.Not $t)
   | neg_prop t = raise TERM ("neg_prop", [t]);
 
 fun is_False thm =
@@ -258,10 +258,10 @@ fun negate (SOME (x, i, rel, y, j, d)) = SOME (x, i, "~" ^ rel, y, j, d)
   | negate NONE                        = NONE;
 
 fun decomp_negation data
-  ((Const (@{const_name "Trueprop"}, _)) $ (Const (rel, T) $ lhs $ rhs)) : decomp option =
+  ((Const (@{const_name Trueprop}, _)) $ (Const (rel, T) $ lhs $ rhs)) : decomp option =
       decomp_typecheck data (T, (rel, lhs, rhs))
-  | decomp_negation data ((Const (@{const_name "Trueprop"}, _)) $
-  (Const (@{const_name "Not"}, _) $ (Const (rel, T) $ lhs $ rhs))) =
+  | decomp_negation data ((Const (@{const_name Trueprop}, _)) $
+  (Const (@{const_name Not}, _) $ (Const (rel, T) $ lhs $ rhs))) =
       negate (decomp_typecheck data (T, (rel, lhs, rhs)))
   | decomp_negation data _ =
       NONE;
@@ -273,7 +273,7 @@ fun decomp ctxt : term -> decomp option =
   in decomp_negation (thy, discrete, inj_consts) end;
 
 fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
-  | domain_is_nat (_ $ (Const (@{const_name "Not"}, _) $ (Const (_, T) $ _ $ _))) = nT T
+  | domain_is_nat (_ $ (Const (@{const_name Not}, _) $ (Const (_, T) $ _ $ _))) = nT T
   | domain_is_nat _                                                 = false;
 
 
@@ -659,7 +659,7 @@ end;
 
 fun negated_term_occurs_positively (terms : term list) : bool =
   List.exists
-    (fn (Trueprop $ (Const (@{const_name "Not"}, _) $ t)) =>
+    (fn (Trueprop $ (Const (@{const_name Not}, _) $ t)) =>
       member Pattern.aeconv terms (Trueprop $ t)
       | _ => false)
     terms;

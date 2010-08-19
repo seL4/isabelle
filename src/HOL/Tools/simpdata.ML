@@ -45,7 +45,7 @@ fun mk_eq th = case concl_of th
   (*expects Trueprop if not == *)
   of Const (@{const_name "=="},_) $ _ $ _ => th
    | _ $ (Const (@{const_name "op ="}, _) $ _ $ _) => mk_meta_eq th
-   | _ $ (Const (@{const_name "Not"}, _) $ _) => th RS @{thm Eq_FalseI}
+   | _ $ (Const (@{const_name Not}, _) $ _) => th RS @{thm Eq_FalseI}
    | _ => th RS @{thm Eq_TrueI}
 
 fun mk_eq_True (_: simpset) r =

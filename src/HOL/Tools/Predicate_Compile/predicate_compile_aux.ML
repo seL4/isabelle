@@ -411,7 +411,7 @@ fun conjuncts_aux (Const (@{const_name "op &"}, _) $ t $ t') conjs = conjuncts_a
 fun conjuncts t = conjuncts_aux t [];
 
 fun is_equationlike_term (Const ("==", _) $ _ $ _) = true
-  | is_equationlike_term (Const (@{const_name "Trueprop"}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _)) = true
+  | is_equationlike_term (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _)) = true
   | is_equationlike_term _ = false
   
 val is_equationlike = is_equationlike_term o prop_of 
@@ -479,7 +479,7 @@ val is_constr = Code.is_constr o ProofContext.theory_of;
 
 fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
 
-fun strip_ex (Const (@{const_name "Ex"}, _) $ Abs (x, T, t)) =
+fun strip_ex (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
   let
     val (xTs, t') = strip_ex t
   in

@@ -60,14 +60,14 @@ val string_of_thm = Print_Mode.setmp [] Display.string_of_thm_without_context;
 
 fun mk_meta_eq th =
     (case concl_of th of
-         Const(@{const_name "Trueprop"},_) $ (Const(@{const_name "op ="},_) $ _ $ _) => th RS eq_reflection
+         Const(@{const_name Trueprop},_) $ (Const(@{const_name "op ="},_) $ _ $ _) => th RS eq_reflection
        | Const("==",_) $ _ $ _ => th
        | _ => raise THM("Not an equality",0,[th]))
     handle _ => raise THM("Couldn't make meta equality",0,[th])  (* FIXME avoid handle _ *)
 
 fun mk_obj_eq th =
     (case concl_of th of
-         Const(@{const_name "Trueprop"},_) $ (Const(@{const_name "op ="},_) $ _ $ _) => th
+         Const(@{const_name Trueprop},_) $ (Const(@{const_name "op ="},_) $ _ $ _) => th
        | Const("==",_) $ _ $ _ => th RS meta_eq_to_obj_eq
        | _ => raise THM("Not an equality",0,[th]))
     handle _ => raise THM("Couldn't make object equality",0,[th])  (* FIXME avoid handle _ *)

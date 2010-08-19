@@ -93,16 +93,16 @@ val weakening_thm        = @{lemma "[| P; Q |] ==> Q" by auto};
 
 val cnftac_eq_imp        = @{lemma "[| P = Q; P |] ==> Q" by auto};
 
-fun is_atom (Const (@{const_name "False"}, _))                                           = false
-  | is_atom (Const (@{const_name "True"}, _))                                            = false
+fun is_atom (Const (@{const_name False}, _))                                           = false
+  | is_atom (Const (@{const_name True}, _))                                            = false
   | is_atom (Const (@{const_name "op &"}, _) $ _ $ _)                                    = false
   | is_atom (Const (@{const_name "op |"}, _) $ _ $ _)                                    = false
   | is_atom (Const (@{const_name "op -->"}, _) $ _ $ _)                                  = false
   | is_atom (Const (@{const_name "op ="}, Type ("fun", @{typ bool} :: _)) $ _ $ _)       = false
-  | is_atom (Const (@{const_name "Not"}, _) $ _)                                         = false
+  | is_atom (Const (@{const_name Not}, _) $ _)                                         = false
   | is_atom _                                                              = true;
 
-fun is_literal (Const (@{const_name "Not"}, _) $ x) = is_atom x
+fun is_literal (Const (@{const_name Not}, _) $ x) = is_atom x
   | is_literal x                      = is_atom x;
 
 fun is_clause (Const (@{const_name "op |"}, _) $ x $ y) = is_clause x andalso is_clause y
@@ -118,7 +118,7 @@ fun is_clause (Const (@{const_name "op |"}, _) $ x $ y) = is_clause x andalso is
 fun clause_is_trivial c =
 	let
 		(* Term.term -> Term.term *)
-		fun dual (Const (@{const_name "Not"}, _) $ x) = x
+		fun dual (Const (@{const_name Not}, _) $ x) = x
 		  | dual x                      = HOLogic.Not $ x
 		(* Term.term list -> bool *)
 		fun has_duals []      = false
@@ -214,32 +214,32 @@ fun make_nnf_thm thy (Const (@{const_name "op &"}, _) $ x $ y) =
 	in
 		make_nnf_iff OF [thm1, thm2, thm3, thm4]
 	end
-  | make_nnf_thm thy (Const (@{const_name "Not"}, _) $ Const (@{const_name "False"}, _)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ Const (@{const_name False}, _)) =
 	make_nnf_not_false
-  | make_nnf_thm thy (Const (@{const_name "Not"}, _) $ Const (@{const_name "True"}, _)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ Const (@{const_name True}, _)) =
 	make_nnf_not_true
-  | make_nnf_thm thy (Const (@{const_name "Not"}, _) $ (Const (@{const_name "op &"}, _) $ x $ y)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name "op &"}, _) $ x $ y)) =
 	let
 		val thm1 = make_nnf_thm thy (HOLogic.Not $ x)
 		val thm2 = make_nnf_thm thy (HOLogic.Not $ y)
 	in
 		make_nnf_not_conj OF [thm1, thm2]
 	end
-  | make_nnf_thm thy (Const (@{const_name "Not"}, _) $ (Const (@{const_name "op |"}, _) $ x $ y)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name "op |"}, _) $ x $ y)) =
 	let
 		val thm1 = make_nnf_thm thy (HOLogic.Not $ x)
 		val thm2 = make_nnf_thm thy (HOLogic.Not $ y)
 	in
 		make_nnf_not_disj OF [thm1, thm2]
 	end
-  | make_nnf_thm thy (Const (@{const_name "Not"}, _) $ (Const (@{const_name "op -->"}, _) $ x $ y)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name "op -->"}, _) $ x $ y)) =
 	let
 		val thm1 = make_nnf_thm thy x
 		val thm2 = make_nnf_thm thy (HOLogic.Not $ y)
 	in
 		make_nnf_not_imp OF [thm1, thm2]
 	end
-  | make_nnf_thm thy (Const (@{const_name "Not"}, _) $ (Const (@{const_name "op ="}, Type ("fun", @{typ bool} :: _)) $ x $ y)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name "op ="}, Type ("fun", @{typ bool} :: _)) $ x $ y)) =
 	let
 		val thm1 = make_nnf_thm thy x
 		val thm2 = make_nnf_thm thy (HOLogic.Not $ x)
@@ -248,7 +248,7 @@ fun make_nnf_thm thy (Const (@{const_name "op &"}, _) $ x $ y) =
 	in
 		make_nnf_not_iff OF [thm1, thm2, thm3, thm4]
 	end
-  | make_nnf_thm thy (Const (@{const_name "Not"}, _) $ (Const (@{const_name "Not"}, _) $ x)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name Not}, _) $ x)) =
 	let
 		val thm1 = make_nnf_thm thy x
 	in
@@ -430,7 +430,7 @@ let
 				in
 					make_cnf_disj_conj_r OF [thm1, thm2]  (* (x' | (y1 & y2)) = ((x' | y1)' & (x' | y2)') *)
 				end
-			  | make_cnfx_disj_thm (Const (@{const_name "Ex"}, _) $ x') y' =
+			  | make_cnfx_disj_thm (Const (@{const_name Ex}, _) $ x') y' =
 				let
 					val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_l   (* ((Ex x') | y') = (Ex (x' | y')) *)
 					val var  = new_free ()
@@ -441,7 +441,7 @@ let
 				in
 					iff_trans OF [thm1, thm5]  (* ((Ex x') | y') = (Ex v. body') *)
 				end
-			  | make_cnfx_disj_thm x' (Const (@{const_name "Ex"}, _) $ y') =
+			  | make_cnfx_disj_thm x' (Const (@{const_name Ex}, _) $ y') =
 				let
 					val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_r   (* (x' | (Ex y')) = (Ex (x' | y')) *)
 					val var  = new_free ()

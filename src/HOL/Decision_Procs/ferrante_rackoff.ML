@@ -77,7 +77,7 @@ let
  fun main vs p =
   let
    val ((xn,ce),(x,fm)) = (case term_of p of
-                   Const(@{const_name "Ex"},_)$Abs(xn,xT,_) =>
+                   Const(@{const_name Ex},_)$Abs(xn,xT,_) =>
                         Thm.dest_comb p ||> Thm.dest_abs (SOME xn) |>> pair xn
                  | _ => raise CTERM ("main QE only treats existential quantifiers!", [p]))
    val cT = ctyp_of_term x
@@ -178,16 +178,16 @@ val grab_atom_bop =
      Const (@{const_name "op ="}, T) $ _ $ _ =>
        if domain_type T = HOLogic.boolT then find_args bounds tm
        else Thm.dest_fun2 tm
-   | Const (@{const_name "Not"}, _) $ _ => h bounds (Thm.dest_arg tm)
-   | Const (@{const_name "All"}, _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const (@{const_name "Ex"}, _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const (@{const_name Not}, _) $ _ => h bounds (Thm.dest_arg tm)
+   | Const (@{const_name All}, _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const (@{const_name Ex}, _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const (@{const_name "op &"}, _) $ _ $ _ => find_args bounds tm
    | Const (@{const_name "op |"}, _) $ _ $ _ => find_args bounds tm
    | Const (@{const_name "op -->"}, _) $ _ $ _ => find_args bounds tm
    | Const ("==>", _) $ _ $ _ => find_args bounds tm
    | Const ("==", _) $ _ $ _ => find_args bounds tm
    | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const (@{const_name "Trueprop"}, _) $ _ => h bounds (Thm.dest_arg tm)
+   | Const (@{const_name Trueprop}, _) $ _ => h bounds (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
   and find_args bounds tm =
            (h bounds (Thm.dest_arg tm) handle CTERM _ => Thm.dest_arg1 tm)

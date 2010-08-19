@@ -82,7 +82,7 @@ fun split_conj f names (Const (@{const_name "op &"}, _) $ p $ q) _ = (case head_
   | split_conj _ _ _ _ = NONE;
 
 fun strip_all [] t = t
-  | strip_all (_ :: xs) (Const (@{const_name "All"}, _) $ Abs (s, T, t)) = strip_all xs t;
+  | strip_all (_ :: xs) (Const (@{const_name All}, _) $ Abs (s, T, t)) = strip_all xs t;
 
 (*********************************************************************)
 (* maps  R ... & (ALL pi_1 ... pi_n z. P z (pi_1 o ... o pi_n o t))  *)

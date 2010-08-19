@@ -92,9 +92,9 @@ struct
              Const(@{const_name "op &"}, _)   => apply c (map tag ts)
            | Const(@{const_name "op |"}, _)   => apply c (map tag ts)
            | Const(@{const_name "op -->"}, _) => apply c (map tag ts)
-           | Const(@{const_name "Not"}, _)    => apply c (map tag ts)
-           | Const(@{const_name "True"}, _)   => (c, false)
-           | Const(@{const_name "False"}, _)  => (c, false)
+           | Const(@{const_name Not}, _)    => apply c (map tag ts)
+           | Const(@{const_name True}, _)   => (c, false)
+           | Const(@{const_name False}, _)  => (c, false)
            | Const(@{const_name "op ="}, Type ("fun", [T,_])) =>
                  if T = HOLogic.boolT then
                      (*biconditional: with int/nat comparisons below?*)
@@ -189,10 +189,10 @@ struct
             Buildin("OR", [fm pos p, fm pos q])
       | fm pos (Const(@{const_name "op -->"}, _) $ p $ q) =
             Buildin("=>", [fm (not pos) p, fm pos q])
-      | fm pos (Const(@{const_name "Not"}, _) $ p) =
+      | fm pos (Const(@{const_name Not}, _) $ p) =
             Buildin("NOT", [fm (not pos) p])
-      | fm pos (Const(@{const_name "True"}, _)) = TrueExpr
-      | fm pos (Const(@{const_name "False"}, _)) = FalseExpr
+      | fm pos (Const(@{const_name True}, _)) = TrueExpr
+      | fm pos (Const(@{const_name False}, _)) = FalseExpr
       | fm pos (Const("SVC_Oracle.iff_keep", _) $ p $ q) =
              (*polarity doesn't matter*)
             Buildin("=", [fm pos p, fm pos q])
@@ -225,7 +225,7 @@ struct
             else fail t
       | fm pos t = var(t,[]);
       (*entry point, and translation of a meta-formula*)
-      fun mt pos ((c as Const(@{const_name "Trueprop"}, _)) $ p) = fm pos (iff_tag p)
+      fun mt pos ((c as Const(@{const_name Trueprop}, _)) $ p) = fm pos (iff_tag p)
         | mt pos ((c as Const("==>", _)) $ p $ q) =
             Buildin("=>", [mt (not pos) p, mt pos q])
         | mt pos t = fm pos (iff_tag t)  (*it might be a formula*)

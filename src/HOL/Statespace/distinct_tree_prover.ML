@@ -343,7 +343,7 @@ fun neq_x_y ctxt x y name =
   end handle Option => NONE)
 
 fun distinctTree_tac names ctxt 
-      (Const (@{const_name "Trueprop"},_) $ (Const (@{const_name "Not"}, _) $ (Const (@{const_name "op ="}, _) $ x $ y)), i) =
+      (Const (@{const_name Trueprop},_) $ (Const (@{const_name Not}, _) $ (Const (@{const_name "op ="}, _) $ x $ y)), i) =
   (case get_fst_success (neq_x_y ctxt x y) names of
      SOME neq => rtac neq i
    | NONE => no_tac)

@@ -91,7 +91,7 @@ fun linr_tac ctxt q =
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)
     val (th, tac) = case prop_of pre_thm of
-        Const ("==>", _) $ (Const (@{const_name "Trueprop"}, _) $ t1) $ _ =>
+        Const ("==>", _) $ (Const (@{const_name Trueprop}, _) $ t1) $ _ =>
     let val pth = linr_oracle (ctxt, Pattern.eta_long [] t1)
     in 
           (trace_msg ("calling procedure with term:\n" ^

@@ -392,7 +392,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
     (* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
     val ihyp = Term.all domT $ Abs ("z", domT,
       Logic.mk_implies (HOLogic.mk_Trueprop (R $ Bound 0 $ x),
-        HOLogic.mk_Trueprop (Const (@{const_name "Ex1"}, (ranT --> boolT) --> boolT) $
+        HOLogic.mk_Trueprop (Const (@{const_name Ex1}, (ranT --> boolT) --> boolT) $
           Abs ("y", ranT, G $ Bound 1 $ Bound 0))))
       |> cterm_of thy
 

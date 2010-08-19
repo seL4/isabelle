@@ -30,7 +30,7 @@ val simp_rule = Conv.fconv_rule (Conv.arg_conv (Simplifier.rewrite (HOL_basic_ss
 
 fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep = 
  case term_of ep of 
-  Const(@{const_name "Ex"},_)$_ => 
+  Const(@{const_name Ex},_)$_ => 
    let 
      val p = Thm.dest_arg ep
      val ths = simplify (HOL_basic_ss addsimps gather) (instantiate' [] [SOME p] stupid)
@@ -122,7 +122,7 @@ fun is_eqx x eq = case term_of eq of
 local 
 fun proc ct = 
  case term_of ct of
-  Const(@{const_name "Ex"},_)$Abs (xn,_,_) => 
+  Const(@{const_name Ex},_)$Abs (xn,_,_) => 
    let 
     val e = Thm.dest_fun ct
     val (x,p) = Thm.dest_abs (SOME xn) (Thm.dest_arg ct)
@@ -179,16 +179,16 @@ val grab_atom_bop =
      Const (@{const_name "op ="}, T) $ _ $ _ =>
        if domain_type T = HOLogic.boolT then find_args bounds tm
        else Thm.dest_fun2 tm
-   | Const (@{const_name "Not"}, _) $ _ => h bounds (Thm.dest_arg tm)
-   | Const (@{const_name "All"}, _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const (@{const_name Not}, _) $ _ => h bounds (Thm.dest_arg tm)
+   | Const (@{const_name All}, _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const (@{const_name "Ex"}, _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const (@{const_name Ex}, _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const (@{const_name "op &"}, _) $ _ $ _ => find_args bounds tm
    | Const (@{const_name "op |"}, _) $ _ $ _ => find_args bounds tm
    | Const (@{const_name "op -->"}, _) $ _ $ _ => find_args bounds tm
    | Const ("==>", _) $ _ $ _ => find_args bounds tm
    | Const ("==", _) $ _ $ _ => find_args bounds tm
-   | Const (@{const_name "Trueprop"}, _) $ _ => h bounds (Thm.dest_arg tm)
+   | Const (@{const_name Trueprop}, _) $ _ => h bounds (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
   and find_args bounds tm =
     (h bounds (Thm.dest_arg tm) handle CTERM _ => h bounds (Thm.dest_arg1 tm))

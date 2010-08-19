@@ -43,9 +43,9 @@ val conj2_False = thm "conj2_False";
 val conj_True = thm "conj_True";
 val conj_cong = thm "conj_cong";
 
-fun isFalse (Const (@{const_name "False"},_)) = true
+fun isFalse (Const (@{const_name False},_)) = true
   | isFalse _ = false;
-fun isTrue (Const (@{const_name "True"},_)) = true
+fun isTrue (Const (@{const_name True},_)) = true
   | isTrue _ = false;
 
 in
@@ -305,10 +305,10 @@ val ex_lookup_eq_simproc =
 
        in
          (case t of
-           (Const (@{const_name "Ex"},Tex)$Abs(s,T,t)) =>
+           (Const (@{const_name Ex},Tex)$Abs(s,T,t)) =>
              (let val (eq,eT,nT,swap) = mkeq (dest_sel_eq t) 0;
                   val prop = list_all ([("n",nT),("x",eT)],
-                              Logic.mk_equals (Const (@{const_name "Ex"},Tex)$Abs(s,T,eq),
+                              Logic.mk_equals (Const (@{const_name Ex},Tex)$Abs(s,T,eq),
                                                HOLogic.true_const));
                   val thm = Drule.export_without_context (prove prop);
                   val thm' = if swap then swap_ex_eq OF [thm] else thm
@@ -367,7 +367,7 @@ val statefun_simp_attr = Thm.declaration_attribute (fn thm => fn ctxt =>
      val (lookup_ss,ex_lookup_ss,simprocs_active) = StateFunData.get ctxt;
      val (lookup_ss', ex_lookup_ss') = 
            (case (concl_of thm) of
-            (_$((Const (@{const_name "Ex"},_)$_))) => (lookup_ss, ex_lookup_ss addsimps [thm])
+            (_$((Const (@{const_name Ex},_)$_))) => (lookup_ss, ex_lookup_ss addsimps [thm])
             | _ => (lookup_ss addsimps [thm], ex_lookup_ss))
      fun activate_simprocs ctxt =
           if simprocs_active then ctxt

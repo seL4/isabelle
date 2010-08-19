@@ -183,7 +183,7 @@ fun perm_of_pair (x, y) =
   end;
 
 fun mk_not_sym ths = maps (fn th => case prop_of th of
-    _ $ (Const (@{const_name "Not"}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _)) => [th, th RS not_sym]
+    _ $ (Const (@{const_name Not}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _)) => [th, th RS not_sym]
   | _ => [th]) ths;
 
 fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);
@@ -1372,7 +1372,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                             SUBGOAL (fn (t, i) => case Logic.strip_assums_concl t of
                                 _ $ (Const ("Nominal.fresh", _) $ _ $ _) =>
                                   simp_tac ind_ss1' i
-                              | _ $ (Const (@{const_name "Not"}, _) $ _) =>
+                              | _ $ (Const (@{const_name Not}, _) $ _) =>
                                   resolve_tac freshs2' i
                               | _ => asm_simp_tac (HOL_basic_ss addsimps
                                   pt2_atoms addsimprocs [perm_simproc]) i)) 1])
@@ -1671,7 +1671,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val rec_unique_frees' =
       Datatype_Prop.indexify_names (replicate (length recTs) "y") ~~ rec_result_Ts;
     val rec_unique_concls = map (fn ((x, U), R) =>
-        Const (@{const_name "Ex1"}, (U --> HOLogic.boolT) --> HOLogic.boolT) $
+        Const (@{const_name Ex1}, (U --> HOLogic.boolT) --> HOLogic.boolT) $
           Abs ("y", U, R $ Free x $ Bound 0))
       (rec_unique_frees ~~ rec_result_Ts ~~ rec_sets);
 
@@ -1777,7 +1777,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                       | _ => false) prems';
                     val fresh_prems = filter (fn th => case prop_of th of
                         _ $ (Const ("Nominal.fresh", _) $ _ $ _) => true
-                      | _ $ (Const (@{const_name "Not"}, _) $ _) => true
+                      | _ $ (Const (@{const_name Not}, _) $ _) => true
                       | _ => false) prems';
                     val Ts = map fastype_of boundsl;
 
@@ -1879,7 +1879,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                       end) rec_prems2;
 
                     val ihs = filter (fn th => case prop_of th of
-                      _ $ (Const (@{const_name "All"}, _) $ _) => true | _ => false) prems';
+                      _ $ (Const (@{const_name All}, _) $ _) => true | _ => false) prems';
 
                     (** pi1 o rs = pi2 o vs , rs = pi1^-1 o pi2 o vs **)
                     val _ = warning "step 7: pi1 o rs = pi2 o vs , rs = pi1^-1 o pi2 o vs";
@@ -2022,7 +2022,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
-           Const (@{const_name "The"}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
+           Const (@{const_name The}, (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts));
 

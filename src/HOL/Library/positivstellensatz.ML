@@ -498,7 +498,7 @@ let
  val strip_exists =
   let fun h (acc, t) =
    case (term_of t) of
-    Const(@{const_name "Ex"},_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+    Const(@{const_name Ex},_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
   | _ => (acc,t)
   in fn t => h ([],t)
   end
@@ -515,7 +515,7 @@ let
  fun mk_ex v t = Thm.capply (ext (ctyp_of_term v)) (Thm.cabs v t)
 
  fun choose v th th' = case concl_of th of 
-   @{term Trueprop} $ (Const(@{const_name "Ex"},_)$_) => 
+   @{term Trueprop} $ (Const(@{const_name Ex},_)$_) => 
     let
      val p = (funpow 2 Thm.dest_arg o cprop_of) th
      val T = (hd o Thm.dest_ctyp o ctyp_of_term) p
@@ -533,7 +533,7 @@ let
  val strip_forall =
   let fun h (acc, t) =
    case (term_of t) of
-    Const(@{const_name "All"},_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
+    Const(@{const_name All},_)$Abs(x,T,p) => h (Thm.dest_abs NONE (Thm.dest_arg t) |>> (fn v => v::acc))
   | _ => (acc,t)
   in fn t => h ([],t)
   end

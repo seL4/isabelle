@@ -405,7 +405,7 @@ fun mk_binop ct x y = capply (capply ct x) y
 val mk_comb = capply;
 fun is_neg t =
     case term_of t of
-      (Const(@{const_name "Not"},_)$p) => true
+      (Const(@{const_name Not},_)$p) => true
     | _  => false;
 fun is_eq t =
  case term_of t of
@@ -430,14 +430,14 @@ val list_dest_binop = fn b =>
 val strip_exists =
  let fun h (acc, t) =
       case (term_of t) of
-       Const(@{const_name "Ex"},_)$Abs(x,T,p) => h (dest_abs NONE (dest_arg t) |>> (fn v => v::acc))
+       Const(@{const_name Ex},_)$Abs(x,T,p) => h (dest_abs NONE (dest_arg t) |>> (fn v => v::acc))
      | _ => (acc,t)
  in fn t => h ([],t)
  end;
 
 fun is_forall t =
  case term_of t of
-  (Const(@{const_name "All"},_)$Abs(_,_,_)) => true
+  (Const(@{const_name All},_)$Abs(_,_,_)) => true
 | _ => false;
 
 val mk_object_eq = fn th => th COMP meta_eq_to_obj_eq;
@@ -522,7 +522,7 @@ fun conj_ac_rule eq =
  fun mk_ex v t = Thm.capply (ext (ctyp_of_term v)) (Thm.cabs v t)
 
 fun choose v th th' = case concl_of th of 
-  @{term Trueprop} $ (Const(@{const_name "Ex"},_)$_) => 
+  @{term Trueprop} $ (Const(@{const_name Ex},_)$_) => 
    let
     val p = (funpow 2 Thm.dest_arg o cprop_of) th
     val T = (hd o Thm.dest_ctyp o ctyp_of_term) p
@@ -926,9 +926,9 @@ fun find_term bounds tm =
     Const (@{const_name "op ="}, T) $ _ $ _ =>
       if domain_type T = HOLogic.boolT then find_args bounds tm
       else dest_arg tm
-  | Const (@{const_name "Not"}, _) $ _ => find_term bounds (dest_arg tm)
-  | Const (@{const_name "All"}, _) $ _ => find_body bounds (dest_arg tm)
-  | Const (@{const_name "Ex"}, _) $ _ => find_body bounds (dest_arg tm)
+  | Const (@{const_name Not}, _) $ _ => find_term bounds (dest_arg tm)
+  | Const (@{const_name All}, _) $ _ => find_body bounds (dest_arg tm)
+  | Const (@{const_name Ex}, _) $ _ => find_body bounds (dest_arg tm)
   | Const (@{const_name "op &"}, _) $ _ $ _ => find_args bounds tm
   | Const (@{const_name "op |"}, _) $ _ $ _ => find_args bounds tm
   | Const (@{const_name "op -->"}, _) $ _ $ _ => find_args bounds tm

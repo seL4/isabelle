@@ -3015,9 +3015,9 @@ fun term_of_tm T m m' t =
 
 fun fm_of_term m m' fm = 
  case fm of
-    Const(@{const_name "True"},_) => @{code T}
-  | Const(@{const_name "False"},_) => @{code F}
-  | Const(@{const_name "Not"},_)$p => @{code NOT} (fm_of_term m m' p)
+    Const(@{const_name True},_) => @{code T}
+  | Const(@{const_name False},_) => @{code F}
+  | Const(@{const_name Not},_)$p => @{code NOT} (fm_of_term m m' p)
   | Const(@{const_name "op &"},_)$p$q => @{code And} (fm_of_term m m' p, fm_of_term m m' q)
   | Const(@{const_name "op |"},_)$p$q => @{code Or} (fm_of_term m m' p, fm_of_term m m' q)
   | Const(@{const_name "op -->"},_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
@@ -3028,13 +3028,13 @@ fun fm_of_term m m' fm =
         @{code Lt} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const(@{const_name Orderings.less_eq},_)$p$q => 
         @{code Le} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name "Ex"},_)$Abs(xn,xT,p) => 
+  | Const(@{const_name Ex},_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)
          val x = Free(xn',xT)
          fun incr i = i + 1
          val m0 = (x,0):: (map (apsnd incr) m)
       in @{code E} (fm_of_term m0 m' p') end
-  | Const(@{const_name "All"},_)$Abs(xn,xT,p) => 
+  | Const(@{const_name All},_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)
          val x = Free(xn',xT)
          fun incr i = i + 1
@@ -3045,8 +3045,8 @@ fun fm_of_term m m' fm =
 
 fun term_of_fm T m m' t = 
   case t of
-    @{code T} => Const(@{const_name "True"},bT)
-  | @{code F} => Const(@{const_name "False"},bT)
+    @{code T} => Const(@{const_name True},bT)
+  | @{code F} => Const(@{const_name False},bT)
   | @{code NOT} p => nott $ (term_of_fm T m m' p)
   | @{code And} (p,q) => conjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
   | @{code Or} (p,q) => disjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)

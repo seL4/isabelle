@@ -5845,9 +5845,9 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "Not"} $ t') =
       @{code NOT} (fm_of_term vs t')
-  | fm_of_term vs (Const (@{const_name "Ex"}, _) $ Abs (xn, xT, p)) =
+  | fm_of_term vs (Const (@{const_name Ex}, _) $ Abs (xn, xT, p)) =
       @{code E} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
-  | fm_of_term vs (Const (@{const_name "All"}, _) $ Abs (xn, xT, p)) =
+  | fm_of_term vs (Const (@{const_name All}, _) $ Abs (xn, xT, p)) =
       @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
   | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 

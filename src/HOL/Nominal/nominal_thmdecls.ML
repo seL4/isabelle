@@ -135,7 +135,7 @@ fun eqvt_add_del_aux flag orig_thm context =
     val thy = Context.theory_of context
     val thms_to_be_added = (case (prop_of orig_thm) of
         (* case: eqvt-lemma is of the implicational form *)
-        (Const("==>", _) $ (Const (@{const_name "Trueprop"},_) $ hyp) $ (Const (@{const_name "Trueprop"},_) $ concl)) =>
+        (Const("==>", _) $ (Const (@{const_name Trueprop},_) $ hyp) $ (Const (@{const_name Trueprop},_) $ concl)) =>
           let
             val (pi,typi) = get_pi concl thy
           in
@@ -147,7 +147,7 @@ fun eqvt_add_del_aux flag orig_thm context =
              else raise EQVT_FORM "Type Implication"
           end
        (* case: eqvt-lemma is of the equational form *)
-      | (Const (@{const_name "Trueprop"}, _) $ (Const (@{const_name "op ="}, _) $
+      | (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $
             (Const (@{const_name "perm"},typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
            (if (apply_pi lhs (pi,typi)) = rhs
                then [orig_thm]

@@ -86,9 +86,9 @@ fun instantiated_case_rewrites thy Tcon =
    map instantiate rew_ths
  end
 
-fun is_compound ((Const (@{const_name "Not"}, _)) $ t) =
+fun is_compound ((Const (@{const_name Not}, _)) $ t) =
     error "is_compound: Negation should not occur; preprocessing is defect"
-  | is_compound ((Const (@{const_name "Ex"}, _)) $ _) = true
+  | is_compound ((Const (@{const_name Ex}, _)) $ _) = true
   | is_compound ((Const (@{const_name "op |"}, _)) $ _ $ _) = true
   | is_compound ((Const (@{const_name "op &"}, _)) $ _ $ _) =
     error "is_compound: Conjunction should not occur; preprocessing is defect"
