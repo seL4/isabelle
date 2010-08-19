@@ -1,0 +1,251 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Evaluation}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Evaluation\isanewline
+\isakeyword{imports}\ Setup\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupsection{Evaluation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Introduction%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Evaluation techniques%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+simplifier%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+nbe%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+eval target: SML standalone vs. Isabelle/SML, example, soundness%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Dynamic evaluation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+value (three variants)%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+methods (three variants)%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+corresponding ML interfaces%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Static evaluation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+code_simp, nbe (tbd), Eval (tbd, in simple fashion)%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+hand-written: code antiquotation%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Hybrid techniques%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+code reflect runtime%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+code reflect external%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME here the old sections follow%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Evaluation oracle%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Code generation may also be used to \emph{evaluate} expressions
+  (using \isa{SML} as target language of course).
+  For instance, the \indexdef{}{command}{value}\hypertarget{command.value}{\hyperlink{command.value}{\mbox{\isa{\isacommand{value}}}}} reduces an expression to a
+  normal form with respect to the underlying code equations:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{value}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{4}}{\isadigit{2}}\ {\isacharslash}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ rat{\isacharparenright}{\isachardoublequoteclose}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent will display \isa{{\isadigit{7}}\ {\isacharslash}\ {\isadigit{2}}}.
+
+  The \hyperlink{method.eval}{\mbox{\isa{eval}}} method tries to reduce a goal by code generation to \isa{True}
+  and solves it in that case, but fails otherwise:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{4}}{\isadigit{2}}\ {\isacharslash}\ {\isacharparenleft}{\isadigit{1}}{\isadigit{2}}\ {\isacharcolon}{\isacharcolon}\ rat{\isacharparenright}\ {\isacharequal}\ {\isadigit{7}}\ {\isacharslash}\ {\isadigit{2}}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ eval%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent The soundness of the \hyperlink{method.eval}{\mbox{\isa{eval}}} method depends crucially 
+  on the correctness of the code generator;  this is one of the reasons
+  why you should not use adaptation (see \secref{sec:adaptation}) frivolously.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Code antiquotation%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In scenarios involving techniques like reflection it is quite common
+  that code generated from a theory forms the basis for implementing
+  a proof procedure in \isa{SML}.  To facilitate interfacing of generated code
+  with system code, the code generator provides a \isa{code} antiquotation:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{datatype}\isamarkupfalse%
+\ form\ {\isacharequal}\ T\ {\isacharbar}\ F\ {\isacharbar}\ And\ form\ form\ {\isacharbar}\ Or\ form\ form\ %
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isadelimquotett
+\ %
+\endisadelimquotett
+%
+\isatagquotett
+\isacommand{ML}\isamarkupfalse%
+\ {\isacharverbatimopen}\isanewline
+\ \ fun\ eval{\isacharunderscore}form\ %
+\isaantiq
+code\ T%
+\endisaantiq
+\ {\isacharequal}\ true\isanewline
+\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ %
+\isaantiq
+code\ F%
+\endisaantiq
+\ {\isacharequal}\ false\isanewline
+\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ {\isacharparenleft}%
+\isaantiq
+code\ And%
+\endisaantiq
+\ {\isacharparenleft}p{\isacharcomma}\ q{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ \ \ \ eval{\isacharunderscore}form\ p\ andalso\ eval{\isacharunderscore}form\ q\isanewline
+\ \ \ \ {\isacharbar}\ eval{\isacharunderscore}form\ {\isacharparenleft}%
+\isaantiq
+code\ Or%
+\endisaantiq
+\ {\isacharparenleft}p{\isacharcomma}\ q{\isacharparenright}{\isacharparenright}\ {\isacharequal}\isanewline
+\ \ \ \ \ \ \ \ eval{\isacharunderscore}form\ p\ orelse\ eval{\isacharunderscore}form\ q{\isacharsemicolon}\isanewline
+{\isacharverbatimclose}%
+\endisatagquotett
+{\isafoldquotett}%
+%
+\isadelimquotett
+%
+\endisadelimquotett
+%
+\begin{isamarkuptext}%
+\noindent \isa{code} takes as argument the name of a constant;  after the
+  whole \isa{SML} is read, the necessary code is generated transparently
+  and the corresponding constant names are inserted.  This technique also
+  allows to use pattern matching on constructors stemming from compiled
+  \isa{datatypes}.
+
+  For a less simplistic example, theory \hyperlink{theory.Ferrack}{\mbox{\isa{Ferrack}}} is
+  a good reference.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
