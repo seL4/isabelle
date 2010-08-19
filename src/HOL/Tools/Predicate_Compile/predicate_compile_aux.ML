@@ -429,10 +429,7 @@ fun is_intro_term constname t =
   
 fun is_intro constname t = is_intro_term constname (prop_of t)
 
-fun is_pred thy constname =
-  let
-    val T = (Sign.the_const_type thy constname)
-  in body_type T = @{typ "bool"} end;
+fun is_pred thy constname = (body_type (Sign.the_const_type thy constname) = HOLogic.boolT);
 
 fun is_predT (T as Type("fun", [_, _])) = (snd (strip_type T) = @{typ bool})
   | is_predT _ = false
