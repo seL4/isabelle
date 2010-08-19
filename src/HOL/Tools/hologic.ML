@@ -657,7 +657,9 @@ fun mk_ST clauses t U (someT, V) =
             $ t $ t', U)
   in fold_rev mk_clause clauses (t, U) |> fst end;
 
-val code_numeralT = Type ("Code_Numeral.code_numeral", []);
+
+(* random seeds *)
+
 val random_seedT = mk_prodT (code_numeralT, code_numeralT);
 
 fun mk_random T t = Const ("Quickcheck.random_class.random", code_numeralT
