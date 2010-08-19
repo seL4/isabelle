@@ -20,6 +20,7 @@ object Markup_Tree
   case class Node(val range: Text.Range, val info: Any)
   {
     def contains(that: Node): Boolean = this.range contains that.range
+    def intersect(r: Text.Range): Node = Node(range.intersect(r), info)
   }
 
 
@@ -98,6 +99,37 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
       else subtree.filter(pred).branches.toList
     })
     new Markup_Tree(Branches.empty ++ bs)
+  }
+
+  def select[A](range: Text.Range)(sel: PartialFunction[Node, A]): Stream[Node] =
+  {
+    def stream(parent: Node, bs: Branches.T): Stream[Node] =
+    {
+      val start = Node(parent.range.start_range, Nil)
+      val stop = Node(parent.range.stop_range, Nil)
+      val substream =
+        (for ((_, (node, subtree)) <- bs.range(start, stop).toStream) yield {
+          if (sel.isDefinedAt(node))
+            stream(node.intersect(parent.range), subtree.branches)
+          else stream(parent, subtree.branches)
+        }).flatten
+
+      def padding(last: Text.Offset, s: Stream[Node]): Stream[Node] =
+        s match {
+          case node #:: rest =>
+            if (last < node.range.start)
+              parent.intersect(Text.Range(last, node.range.start)) #::
+                node #:: padding(node.range.stop, rest)
+            else node #:: padding(node.range.stop, rest)
+          case Stream.Empty =>  // FIXME
+            if (last < parent.range.stop)
+            Stream(parent.intersect(Text.Range(last, parent.range.stop)))
+            else Stream.Empty
+        }
+      padding(parent.range.start, substream)
+    }
+    // FIXME handle disjoint range!?
+    stream(Node(range, Nil), branches)
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)(swing_node: Node => DefaultMutableTreeNode)
