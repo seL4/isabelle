@@ -385,24 +385,31 @@ Andrei Voronkov and his colleagues \cite{riazanov-voronkov-2002}. To use
 Vampire, set the environment variable \texttt{VAMPIRE\_HOME} to the directory
 that contains the \texttt{vampire} executable.
 
-\item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E executes
+\item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
-Vampire executes on Geoff Sutcliffe's Miami servers. Version 9 is used.
+Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
 
+\item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
+developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
+SInE runs on Geoff Sutcliffe's Miami servers.
+
+\item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a prover
+developed by Stickel et al.\ \cite{snark}. The remote version of
+SNARK runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
-By default, Sledgehammer will run E, SPASS, and Vampire in parallel. For E and
-SPASS, it will use any locally installed version if available, falling back
-on the remote versions if necessary. For historical reasons, the default value
-of this option can be overridden using the option ``Sledgehammer: ATPs'' from
-the ``Isabelle'' menu in Proof General.
+By default, Sledgehammer will run E, SPASS, Vampire, and SInE-E in parallel.
+For at most two of E, SPASS, and Vampire, it will use any locally installed
+version if available. For historical reasons, the default value of this option
+can be overridden using the option ``Sledgehammer: ATPs'' from the ``Isabelle''
+menu in Proof General.
 
 It is a good idea to run several ATPs in parallel, although it could slow down
-your machine. Tobias Nipkow observed that running E, SPASS, and Vampire together
-for 5 seconds yields the same success rate as running the most effective of
-these (Vampire) for 120 seconds \cite{boehme-nipkow-2010}.
+your machine. Running E, SPASS, and Vampire together for 5 seconds yields about
+the same success rate as running the most effective of these (Vampire) for 120
+seconds \cite{boehme-nipkow-2010}.
 
 \opnodefault{atp}{string}
 Alias for \textit{atps}.
