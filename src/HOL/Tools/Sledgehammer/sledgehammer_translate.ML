@@ -153,18 +153,18 @@ fun freeze_term t =
 
 (* "Object_Logic.atomize_term" isn't as powerful as it could be; for example,
     it leaves metaequalities over "prop"s alone. *)
-fun atomize_term t =
-  (case t of
-     @{const Trueprop} $ t1 => t1
-   | Const (@{const_name all}, _) $ Abs (s, T, t') =>
-     HOLogic.all_const T $ Abs (s, T, atomize_term t')
-   | @{const "==>"} $ t1 $ t2 => HOLogic.mk_imp (pairself atomize_term (t1, t2))
-   | Const (@{const_name "=="}, Type (_, [@{typ prop}, _])) $ t1 $ t2 =>
-     HOLogic.eq_const HOLogic.boolT $ atomize_term t1 $ atomize_term t2
-   | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
-     HOLogic.eq_const T $ t1 $ t2
-   | _ => raise Fail "atomize_term")
-  handle Fail "atomize_term" => t
+val atomize_term =
+  let
+    fun aux (@{const Trueprop} $ t1) = t1
+      | aux (Const (@{const_name all}, _) $ Abs (s, T, t')) =
+        HOLogic.all_const T $ Abs (s, T, aux t')
+      | aux (@{const "==>"} $ t1 $ t2) = HOLogic.mk_imp (pairself aux (t1, t2))
+      | aux (Const (@{const_name "=="}, Type (_, [@{typ prop}, _])) $ t1 $ t2) =
+        HOLogic.eq_const HOLogic.boolT $ aux t1 $ aux t2
+      | aux (Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2) =
+        HOLogic.eq_const T $ t1 $ t2
+      | aux _ = raise Fail "aux"
+  in perhaps (try aux) end
 
 (* making axiom and conjecture formulas *)
 fun make_formula ctxt presimp (name, kind, t) =
