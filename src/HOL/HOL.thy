@@ -55,19 +55,19 @@ judgment
   Trueprop      :: "bool => prop"                   ("(_)" 5)
 
 consts
-  Not           :: "bool => bool"                   ("~ _" [40] 40)
   True          :: bool
   False         :: bool
+  Not           :: "bool => bool"                   ("~ _" [40] 40)
+  "op &"        :: "[bool, bool] => bool"           (infixr "&" 35)
+  "op |"        :: "[bool, bool] => bool"           (infixr "|" 30)
+  "op -->"      :: "[bool, bool] => bool"           (infixr "-->" 25)
+
+  "op ="        :: "['a, 'a] => bool"               (infixl "=" 50)
 
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)
   Ex1           :: "('a => bool) => bool"           (binder "EX! " 10)
-
-  "op ="        :: "['a, 'a] => bool"               (infixl "=" 50)
-  "op &"        :: "[bool, bool] => bool"           (infixr "&" 35)
-  "op |"        :: "[bool, bool] => bool"           (infixr "|" 30)
-  "op -->"      :: "[bool, bool] => bool"           (infixr "-->" 25)
 
 local
 
