@@ -229,14 +229,13 @@ fun the_system prefix =
     NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP.")
   | SOME sys => sys);
 
-fun remote_config atp_prefix
-        ({proof_delims, known_failures, default_max_relevant_per_iter,
-          default_theory_relevant, ...} : prover_config) : prover_config =
+fun remote_config system_prefix proof_delims known_failures
+                  default_max_relevant_per_iter default_theory_relevant =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
      " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
-     the_system atp_prefix,
+     the_system system_prefix,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
      known_failures @ known_perl_failures @
@@ -245,27 +244,42 @@ fun remote_config atp_prefix
    default_theory_relevant = default_theory_relevant,
    explicit_forall = true}
 
-val remote_name = prefix "remote_"
-fun remote_prover (name, config) atp_prefix =
-  (remote_name name, remote_config atp_prefix config)
+fun remotify_config system_prefix
+        ({proof_delims, known_failures, default_max_relevant_per_iter,
+          default_theory_relevant, ...} : prover_config) : prover_config =
+  remote_config system_prefix proof_delims known_failures
+                default_max_relevant_per_iter default_theory_relevant
 
-val remote_e = remote_prover e "EP---"
-val remote_vampire = remote_prover vampire "Vampire---9"
+val remotify_name = prefix "remote_"
+fun remote_prover name system_prefix proof_delims known_failures
+                  default_max_relevant_per_iter default_theory_relevant =
+  (remotify_name name,
+   remote_config system_prefix proof_delims known_failures
+                 default_max_relevant_per_iter default_theory_relevant)
+fun remotify_prover (name, config) system_prefix =
+  (remotify_name name, remotify_config system_prefix config)
 
+val remote_e = remotify_prover e "EP---"
+val remote_vampire = remotify_prover vampire "Vampire---9"
+val remote_sine_e = remote_prover "sine_e" "SInE---" [] [] 150 (* FIXME *) false
+val remote_snark =
+  remote_prover "snark" "SNARK---" [("refutation.", "end_refutation.")] []
+                50 (* FIXME *) false
 
 (* Setup *)
 
 fun is_installed ({exec, required_execs, ...} : prover_config) =
   forall (curry (op <>) "" o getenv o fst) (exec :: required_execs)
 fun maybe_remote (name, config) =
-  name |> not (is_installed config) ? remote_name
+  name |> not (is_installed config) ? remotify_name
 
 fun default_atps_param_value () =
   space_implode " " ([maybe_remote e] @
                      (if is_installed (snd spass) then [fst spass] else []) @
-                     [remote_name (fst vampire)])
+                     [remotify_name (fst vampire), fst remote_sine_e])
 
-val provers = [e, spass, vampire, remote_e, remote_vampire]
+val provers = [e, spass, vampire, remote_e, remote_vampire, remote_sine_e,
+               remote_snark]
 val setup = fold add_prover provers
 
 end;
