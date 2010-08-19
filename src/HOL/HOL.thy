@@ -47,8 +47,6 @@ arities
   "fun" :: (type, type) type
   itself :: (type) type
 
-global
-
 typedecl bool
 
 judgment
@@ -58,18 +56,19 @@ consts
   True          :: bool
   False         :: bool
   Not           :: "bool => bool"                   ("~ _" [40] 40)
+
+global consts
   "op &"        :: "[bool, bool] => bool"           (infixr "&" 35)
   "op |"        :: "[bool, bool] => bool"           (infixr "|" 30)
   "op -->"      :: "[bool, bool] => bool"           (infixr "-->" 25)
 
   "op ="        :: "['a, 'a] => bool"               (infixl "=" 50)
 
+local consts
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)
   Ex1           :: "('a => bool) => bool"           (binder "EX! " 10)
-
-local
 
 
 subsubsection {* Additional concrete syntax *}
@@ -1575,7 +1574,7 @@ structure Coherent = Coherent
   val atomize_conjL = @{thm atomize_conjL}
   val atomize_disjL = @{thm atomize_disjL}
   val operator_names =
-    [@{const_name "op |"}, @{const_name "op &"}, @{const_name "Ex"}]
+    [@{const_name "op |"}, @{const_name "op &"}, @{const_name Ex}]
 );
 *}
 

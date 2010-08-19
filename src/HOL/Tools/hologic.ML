@@ -143,15 +143,15 @@ val typeT = Type_Infer.anyT typeS;
 
 (* bool and set *)
 
-val boolN = "bool";
+val boolN = "HOL.bool";
 val boolT = Type (boolN, []);
 
-val true_const =  Const ("True", boolT);
-val false_const = Const ("False", boolT);
+val true_const =  Const ("HOL.True", boolT);
+val false_const = Const ("HOL.False", boolT);
 
 fun mk_setT T = T --> boolT;
 
-fun dest_setT (Type ("fun", [T, Type ("bool", [])])) = T
+fun dest_setT (Type ("fun", [T, Type ("HOL.bool", [])])) = T
   | dest_setT T = raise TYPE ("dest_setT: set type expected", [T], []);
 
 fun mk_set T ts =
@@ -181,11 +181,11 @@ fun dest_mem (Const ("Set.member", _) $ x $ A) = (x, A)
 
 (* logic *)
 
-val Trueprop = Const ("Trueprop", boolT --> propT);
+val Trueprop = Const ("HOL.Trueprop", boolT --> propT);
 
 fun mk_Trueprop P = Trueprop $ P;
 
-fun dest_Trueprop (Const ("Trueprop", _) $ P) = P
+fun dest_Trueprop (Const ("HOL.Trueprop", _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
 
 fun conj_intr thP thQ =
@@ -233,7 +233,7 @@ fun disjuncts t = disjuncts_aux t [];
 fun dest_imp (Const ("op -->", _) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
-fun dest_not (Const ("Not", _) $ t) = t
+fun dest_not (Const ("HOL.Not", _) $ t) = t
   | dest_not t = raise TERM ("dest_not", [t]);
 
 fun eq_const T = Const ("op =", T --> T --> boolT);
@@ -242,11 +242,11 @@ fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 fun dest_eq (Const ("op =", _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
-fun all_const T = Const ("All", [T --> boolT] ---> boolT);
+fun all_const T = Const ("HOL.All", [T --> boolT] ---> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T, P);
 fun list_all (xs, t) = fold_rev (fn (x, T) => fn P => all_const T $ Abs (x, T, P)) xs t;
 
-fun exists_const T = Const ("Ex", [T --> boolT] ---> boolT);
+fun exists_const T = Const ("HOL.Ex", [T --> boolT] ---> boolT);
 fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
 
 fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T);
