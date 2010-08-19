@@ -20,7 +20,7 @@ object Markup_Tree
   case class Node(val range: Text.Range, val info: Any)
   {
     def contains(that: Node): Boolean = this.range contains that.range
-    def intersect(r: Text.Range): Node = Node(range.intersect(r), info)
+    def restrict(r: Text.Range): Node = Node(range.intersect(r), info)
   }
 
 
@@ -35,8 +35,11 @@ object Markup_Tree
       {
         def compare(x: Node, y: Node): Int = x.range compare y.range
       })
-    def update(branches: T, entries: Entry*): T =
-      branches ++ entries.map(e => (e._1 -> e))
+
+    def update(branches: T, entry: Entry): T = branches + (entry._1 -> entry)
+
+    def overlapping(range: Text.Range, branches: T): T =
+      branches.range(Node(range.start_range, Nil), Node(range.stop_range, Nil))
   }
 
   val empty = new Markup_Tree(Branches.empty)
@@ -58,14 +61,11 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
         else if (new_node.contains(branches.head._1) && new_node.contains(branches.last._1))
           new Markup_Tree(Branches.update(Branches.empty, (new_node -> this)))
         else {
-          var overlapping = Branches.empty
-          var rest = branches
-          while (rest.isDefinedAt(new_node)) {
-            overlapping = Branches.update(overlapping, rest(new_node))
-            rest -= new_node
+          val body = Branches.overlapping(new_node.range, branches)
+          if (body.forall(e => new_node.contains(e._1))) {
+            val rest = (branches /: body) { case (bs, (e, _)) => bs - e }
+            new Markup_Tree(Branches.update(rest, new_node -> new Markup_Tree(body)))
           }
-          if (overlapping.forall(e => new_node.contains(e._1)))
-            new Markup_Tree(Branches.update(rest, new_node -> new Markup_Tree(overlapping)))
           else { // FIXME split markup!?
             System.err.println("Ignored overlapping markup: " + new_node)
             this
@@ -105,30 +105,26 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
   {
     def stream(parent: Node, bs: Branches.T): Stream[Node] =
     {
-      val start = Node(parent.range.start_range, Nil)
-      val stop = Node(parent.range.stop_range, Nil)
       val substream =
-        (for ((_, (node, subtree)) <- bs.range(start, stop).toStream) yield {
+        (for ((_, (node, subtree)) <- Branches.overlapping(parent.range, bs).toStream) yield {
           if (sel.isDefinedAt(node))
-            stream(node.intersect(parent.range), subtree.branches)
+            stream(node.restrict(parent.range), subtree.branches)
           else stream(parent, subtree.branches)
         }).flatten
 
       def padding(last: Text.Offset, s: Stream[Node]): Stream[Node] =
         s match {
-          case node #:: rest =>
-            if (last < node.range.start)
-              parent.intersect(Text.Range(last, node.range.start)) #::
-                node #:: padding(node.range.stop, rest)
-            else node #:: padding(node.range.stop, rest)
+          case (node @ Node(Text.Range(start, stop), _)) #:: rest =>
+            if (last < start)
+              parent.restrict(Text.Range(last, start)) #:: node #:: padding(stop, rest)
+            else node #:: padding(stop, rest)
           case Stream.Empty =>  // FIXME
             if (last < parent.range.stop)
-            Stream(parent.intersect(Text.Range(last, parent.range.stop)))
+              Stream(parent.restrict(Text.Range(last, parent.range.stop)))
             else Stream.Empty
         }
       padding(parent.range.start, substream)
     }
-    // FIXME handle disjoint range!?
     stream(Node(range, Nil), branches)
   }
 

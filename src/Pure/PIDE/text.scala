@@ -17,14 +17,6 @@ object Text
 
   /* range: interval with total quasi-ordering */
 
-  object Range
-  {
-    object Ordering extends scala.math.Ordering[Range]
-    {
-      override def compare(r1: Range, r2: Range): Int = r1 compare r2
-    }
-  }
-
   sealed case class Range(val start: Offset, val stop: Offset)
   {
     require(start <= stop)
