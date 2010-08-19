@@ -50,6 +50,12 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
 {
   import Markup_Tree._
 
+  override def toString =
+    branches.toList.map(_._2) match {
+      case Nil => "Empty"
+      case list => list.mkString("Tree(", ",", ")")
+    }
+
   def + (new_node: Node): Markup_Tree =
   {
     branches.get(new_node) match {

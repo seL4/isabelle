@@ -21,6 +21,8 @@ object Text
   {
     require(start <= stop)
 
+    override def toString = "[" + start.toString + ":" + stop.toString + "]"
+
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = map(_ + i)
     def contains(i: Offset): Boolean = start <= i && i < stop
