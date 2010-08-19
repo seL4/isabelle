@@ -483,7 +483,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val (case_rewrites,context_congs) = extraction_thms thy
      val tych = Thry.typecheck thy
      val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
-     val Const(@{const_name "All"},_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
+     val Const(@{const_name All},_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
      val R = Free (Name.variant (List.foldr OldTerm.add_term_names [] eqns) Rname,
                    Rtype)
      val WFREC_THM = R.ISPECL [tych R, tych g] WFREC_THM0

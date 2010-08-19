@@ -5,7 +5,7 @@
 header {* TFL: recursive function definitions *}
 
 theory Recdef
-imports FunDef Plain
+imports Plain Hilbert_Choice
 uses
   ("Tools/TFL/casesplit.ML")
   ("Tools/TFL/utils.ML")

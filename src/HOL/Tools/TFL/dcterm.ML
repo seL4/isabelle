@@ -24,18 +24,15 @@ sig
   val dest_exists: cterm -> cterm * cterm
   val dest_forall: cterm -> cterm * cterm
   val dest_imp: cterm -> cterm * cterm
-  val dest_let: cterm -> cterm * cterm
   val dest_neg: cterm -> cterm
   val dest_pair: cterm -> cterm * cterm
   val dest_var: cterm -> {Name:string, Ty:typ}
   val is_conj: cterm -> bool
-  val is_cons: cterm -> bool
   val is_disj: cterm -> bool
   val is_eq: cterm -> bool
   val is_exists: cterm -> bool
   val is_forall: cterm -> bool
   val is_imp: cterm -> bool
-  val is_let: cterm -> bool
   val is_neg: cterm -> bool
   val is_pair: cterm -> bool
   val list_mk_disj: cterm list -> cterm
@@ -78,15 +75,15 @@ val mk_hol_const = Thm.cterm_of @{theory HOL} o Const;
 
 fun mk_exists (r as (Bvar, Body)) =
   let val ty = #T(rep_cterm Bvar)
-      val c = mk_hol_const("Ex", (ty --> HOLogic.boolT) --> HOLogic.boolT)
+      val c = mk_hol_const(@{const_name Ex}, (ty --> HOLogic.boolT) --> HOLogic.boolT)
   in capply c (uncurry cabs r) end;
 
 
-local val c = mk_hol_const("op &", HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+local val c = mk_hol_const(@{const_name "op &"}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_conj(conj1,conj2) = capply (capply c conj1) conj2
 end;
 
-local val c = mk_hol_const("op |", HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+local val c = mk_hol_const(@{const_name "op |"}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_disj(disj1,disj2) = capply (capply c disj1) disj2
 end;
 
@@ -128,17 +125,15 @@ fun dest_binder expected tm =
   handle U.ERR _ => raise ERR "dest_binder" ("Not a(n) " ^ quote expected);
 
 
-val dest_neg    = dest_monop "not"
-val dest_pair   = dest_binop @{const_name Pair};
-val dest_eq     = dest_binop "op ="
-val dest_imp    = dest_binop "op -->"
-val dest_conj   = dest_binop "op &"
-val dest_disj   = dest_binop "op |"
-val dest_cons   = dest_binop "Cons"
-val dest_let    = Library.swap o dest_binop "Let";
-val dest_select = dest_binder "Hilbert_Choice.Eps"
-val dest_exists = dest_binder "Ex"
-val dest_forall = dest_binder "All"
+val dest_neg    = dest_monop @{const_name Not}
+val dest_pair   = dest_binop @{const_name Pair}
+val dest_eq     = dest_binop @{const_name "op ="}
+val dest_imp    = dest_binop @{const_name "op -->"}
+val dest_conj   = dest_binop @{const_name "op &"}
+val dest_disj   = dest_binop @{const_name "op |"}
+val dest_select = dest_binder @{const_name Eps}
+val dest_exists = dest_binder @{const_name Ex}
+val dest_forall = dest_binder @{const_name All}
 
 (* Query routines *)
 
@@ -151,8 +146,6 @@ val is_neg    = can dest_neg
 val is_conj   = can dest_conj
 val is_disj   = can dest_disj
 val is_pair   = can dest_pair
-val is_let    = can dest_let
-val is_cons   = can dest_cons
 
 
 (*---------------------------------------------------------------------------
@@ -197,7 +190,7 @@ fun mk_prop ctm =
   handle TYPE (msg, _, _) => raise ERR "mk_prop" msg
     | TERM (msg, _) => raise ERR "mk_prop" msg;
 
-fun drop_prop ctm = dest_monop "Trueprop" ctm handle U.ERR _ => ctm;
+fun drop_prop ctm = dest_monop @{const_name Trueprop} ctm handle U.ERR _ => ctm;
 
 
 end;

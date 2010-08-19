@@ -165,19 +165,19 @@ fun mk_imp{ant,conseq} =
 
 fun mk_select (r as {Bvar,Body}) =
   let val ty = type_of Bvar
-      val c = Const("Hilbert_Choice.Eps",(ty --> HOLogic.boolT) --> ty)
+      val c = Const(@{const_name Eps},(ty --> HOLogic.boolT) --> ty)
   in list_comb(c,[mk_abs r])
   end;
 
 fun mk_forall (r as {Bvar,Body}) =
   let val ty = type_of Bvar
-      val c = Const(@{const_name "All"},(ty --> HOLogic.boolT) --> HOLogic.boolT)
+      val c = Const(@{const_name All},(ty --> HOLogic.boolT) --> HOLogic.boolT)
   in list_comb(c,[mk_abs r])
   end;
 
 fun mk_exists (r as {Bvar,Body}) =
   let val ty = type_of Bvar
-      val c = Const(@{const_name "Ex"},(ty --> HOLogic.boolT) --> HOLogic.boolT)
+      val c = Const(@{const_name Ex},(ty --> HOLogic.boolT) --> HOLogic.boolT)
   in list_comb(c,[mk_abs r])
   end;
 
@@ -250,13 +250,13 @@ fun dest_eq(Const(@{const_name "op ="},_) $ M $ N) = {lhs=M, rhs=N}
 fun dest_imp(Const(@{const_name "op -->"},_) $ M $ N) = {ant=M, conseq=N}
   | dest_imp _ = raise USYN_ERR "dest_imp" "not an implication";
 
-fun dest_forall(Const(@{const_name "All"},_) $ (a as Abs _)) = fst (dest_abs [] a)
+fun dest_forall(Const(@{const_name All},_) $ (a as Abs _)) = fst (dest_abs [] a)
   | dest_forall _ = raise USYN_ERR "dest_forall" "not a forall";
 
-fun dest_exists(Const(@{const_name "Ex"},_) $ (a as Abs _)) = fst (dest_abs [] a)
+fun dest_exists(Const(@{const_name Ex},_) $ (a as Abs _)) = fst (dest_abs [] a)
   | dest_exists _ = raise USYN_ERR "dest_exists" "not an existential";
 
-fun dest_neg(Const("not",_) $ M) = M
+fun dest_neg(Const(@{const_name Not},_) $ M) = M
   | dest_neg _ = raise USYN_ERR "dest_neg" "not a negation";
 
 fun dest_conj(Const(@{const_name "op &"},_) $ M $ N) = {conj1=M, conj2=N}
@@ -402,6 +402,6 @@ fun is_WFR (Const(@{const_name Wellfounded.wf},_)$_) = true
   | is_WFR _                 = false;
 
 fun ARB ty = mk_select{Bvar=Free("v",ty),
-                       Body=Const(@{const_name "True"},HOLogic.boolT)};
+                       Body=Const(@{const_name True},HOLogic.boolT)};
 
 end;
