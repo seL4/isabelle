@@ -12,11 +12,11 @@ def_maps
   "ARB" > "ARB_def"
 
 const_maps
-  "~" > "Not"
+  "~" > "HOL.Not"
   "bool_case" > "Datatype.bool.bool_case"
   "\\/" > "op |"
   "TYPE_DEFINITION" > "HOL4Setup.TYPE_DEFINITION"
-  "T" > "True"
+  "T" > "HOL.True"
   "RES_SELECT" > "HOL4Base.bool.RES_SELECT"
   "RES_FORALL" > "HOL4Base.bool.RES_FORALL"
   "RES_EXISTS_UNIQUE" > "HOL4Base.bool.RES_EXISTS_UNIQUE"
@@ -25,13 +25,13 @@ const_maps
   "ONE_ONE" > "HOL4Setup.ONE_ONE"
   "LET" > "HOL4Compat.LET"
   "IN" > "HOL4Base.bool.IN"
-  "F" > "False"
+  "F" > "HOL.False"
   "COND" > "HOL.If"
   "ARB" > "HOL4Base.bool.ARB"
-  "?!" > "Ex1"
-  "?" > "Ex"
+  "?!" > "HOL.Ex1"
+  "?" > "HOL.Ex"
   "/\\" > "op &"
-  "!" > "All"
+  "!" > "HOL.All"
 
 thm_maps
   "bool_case_thm" > "HOL4Base.bool.bool_case_thm"

@@ -18,13 +18,13 @@ type_maps
   "finite_sum" > "HOLLight.hollight.finite_sum"
   "finite_image" > "HOLLight.hollight.finite_image"
   "cart" > "HOLLight.hollight.cart"
-  "bool" > "bool"
+  "bool" > "HOL.bool"
   "N_3" > "HOLLight.hollight.N_3"
   "N_2" > "HOLLight.hollight.N_2"
   "N_1" > "Product_Type.unit"
 
 const_maps
-  "~" > "Not"
+  "~" > "HOL.Not"
   "two_2" > "HOLLight.hollight.two_2"
   "two_1" > "HOLLight.hollight.two_1"
   "treal_of_num" > "HOLLight.hollight.treal_of_num"
@@ -229,8 +229,8 @@ const_maps
   "ALL2" > "HOLLight.hollight.ALL2"
   "ABS_prod" > "Abs_Prod"
   "@" > "Hilbert_Choice.Eps"
-  "?!" > "Ex1"
-  "?" > "Ex"
+  "?!" > "HOL.Ex1"
+  "?" > "HOL.Ex"
   ">=" > "HOLLight.hollight.>="
   ">" > "HOLLight.hollight.>"
   "==>" > "op -->"
@@ -243,7 +243,7 @@ const_maps
   "+" > "Groups.plus" :: "nat => nat => nat"
   "*" > "Groups.times" :: "nat => nat => nat"
   "$" > "HOLLight.hollight.$"
-  "!" > "All"
+  "!" > "HOL.All"
 
 const_renames
   "ALL" > "ALL_list"

@@ -86,9 +86,18 @@ generation.
 * Some previously unqualified names have been qualified:
 
   types
+    bool ~> HOL.bool
     nat ~> Nat.nat
 
   constants
+    Trueprop ~> HOL.Trueprop
+    True ~> HOL.True
+    False ~> HOL.False
+    Not ~> HOL.Not
+    The ~> HOL.The
+    All ~> HOL.All
+    Ex ~> HOL.Ex
+    Ex1 ~> HOL.Ex1
     Let ~> HOL.Let
     If ~> HOL.If
     Ball ~> Set.Ball
