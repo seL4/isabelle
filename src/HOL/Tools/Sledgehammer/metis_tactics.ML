@@ -308,7 +308,7 @@ fun hol_term_from_metis_FT ctxt fol_tm =
                   SOME w =>  mk_var(w, dummyT)
                 | NONE   => mk_var(v, dummyT))
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn ("=",[]), _])) =
-            Const ("op =", HOLogic.typeT)
+            Const (@{const_name "op ="}, HOLogic.typeT)
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (x,[]), ty])) =
            (case strip_prefix_and_undo_ascii const_prefix x of
                 SOME c => Const (invert_const c, dummyT)

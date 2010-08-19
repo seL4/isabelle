@@ -391,20 +391,20 @@ struct
 				next_idx_is_valid := true;
 				Unsynchronized.inc next_idx
 			)
-		fun aux (Const ("True", _))         table =
+		fun aux (Const (@{const_name "True"}, _))         table =
 			(True, table)
-		  | aux (Const ("False", _))        table =
+		  | aux (Const (@{const_name "False"}, _))        table =
 			(False, table)
-		  | aux (Const ("Not", _) $ x)      table =
+		  | aux (Const (@{const_name "Not"}, _) $ x)      table =
 			apfst Not (aux x table)
-		  | aux (Const ("op |", _) $ x $ y) table =
+		  | aux (Const (@{const_name "op |"}, _) $ x $ y) table =
 			let
 				val (fm1, table1) = aux x table
 				val (fm2, table2) = aux y table1
 			in
 				(Or (fm1, fm2), table2)
 			end
-		  | aux (Const ("op &", _) $ x $ y) table =
+		  | aux (Const (@{const_name "op &"}, _) $ x $ y) table =
 			let
 				val (fm1, table1) = aux x table
 				val (fm2, table2) = aux y table1

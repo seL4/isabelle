@@ -43,9 +43,9 @@ val conj2_False = thm "conj2_False";
 val conj_True = thm "conj_True";
 val conj_cong = thm "conj_cong";
 
-fun isFalse (Const ("False",_)) = true
+fun isFalse (Const (@{const_name "False"},_)) = true
   | isFalse _ = false;
-fun isTrue (Const ("True",_)) = true
+fun isTrue (Const (@{const_name "True"},_)) = true
   | isTrue _ = false;
 
 in
@@ -53,7 +53,7 @@ in
 val lazy_conj_simproc =
   Simplifier.simproc @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn thy => fn ss => fn t =>
-      (case t of (Const ("op &",_)$P$Q) => 
+      (case t of (Const (@{const_name "op &"},_)$P$Q) => 
          let
             val P_P' = Simplifier.rewrite ss (cterm_of thy P);
             val P' = P_P' |> prop_of |> Logic.dest_equals |> #2 
@@ -285,7 +285,7 @@ val ex_lookup_eq_simproc =
                             then Bound 2
                             else raise TERM ("",[n]);
                    val sel' = lo $ d $ n' $ s;
-                  in (Const ("op =",Teq)$sel'$x',hd (binder_types Teq),nT,swap) end;
+                  in (Const (@{const_name "op ="},Teq)$sel'$x',hd (binder_types Teq),nT,swap) end;
 
          fun dest_state (s as Bound 0) = s
            | dest_state (s as (Const (sel,sT)$Bound 0)) =
@@ -295,20 +295,20 @@ val ex_lookup_eq_simproc =
            | dest_state s = 
                     raise TERM ("StateFun.ex_lookup_eq_simproc: not a record slector",[s]);
   
-         fun dest_sel_eq (Const ("op =",Teq)$
+         fun dest_sel_eq (Const (@{const_name "op ="},Teq)$
                            ((lo as (Const ("StateFun.lookup",lT)))$d$n$s)$X) =
                            (false,Teq,lT,lo,d,n,X,dest_state s)
-           | dest_sel_eq (Const ("op =",Teq)$X$
+           | dest_sel_eq (Const (@{const_name "op ="},Teq)$X$
                             ((lo as (Const ("StateFun.lookup",lT)))$d$n$s)) =
                            (true,Teq,lT,lo,d,n,X,dest_state s)
            | dest_sel_eq _ = raise TERM ("",[]);
 
        in
          (case t of
-           (Const ("Ex",Tex)$Abs(s,T,t)) =>
+           (Const (@{const_name "Ex"},Tex)$Abs(s,T,t)) =>
              (let val (eq,eT,nT,swap) = mkeq (dest_sel_eq t) 0;
                   val prop = list_all ([("n",nT),("x",eT)],
-                              Logic.mk_equals (Const ("Ex",Tex)$Abs(s,T,eq),
+                              Logic.mk_equals (Const (@{const_name "Ex"},Tex)$Abs(s,T,eq),
                                                HOLogic.true_const));
                   val thm = Drule.export_without_context (prove prop);
                   val thm' = if swap then swap_ex_eq OF [thm] else thm
@@ -367,7 +367,7 @@ val statefun_simp_attr = Thm.declaration_attribute (fn thm => fn ctxt =>
      val (lookup_ss,ex_lookup_ss,simprocs_active) = StateFunData.get ctxt;
      val (lookup_ss', ex_lookup_ss') = 
            (case (concl_of thm) of
-            (_$((Const ("Ex",_)$_))) => (lookup_ss, ex_lookup_ss addsimps [thm])
+            (_$((Const (@{const_name "Ex"},_)$_))) => (lookup_ss, ex_lookup_ss addsimps [thm])
             | _ => (lookup_ss addsimps [thm], ex_lookup_ss))
      fun activate_simprocs ctxt =
           if simprocs_active then ctxt

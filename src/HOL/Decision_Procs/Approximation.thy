@@ -3301,11 +3301,11 @@ in Thm.cterm_of thy (Logic.mk_equals (t, normalize t)) end
 ML {*
   fun reorder_bounds_tac prems i =
     let
-      fun variable_of_bound (Const ("Trueprop", _) $
+      fun variable_of_bound (Const (@{const_name "Trueprop"}, _) $
                              (Const (@{const_name Set.member}, _) $
                               Free (name, _) $ _)) = name
-        | variable_of_bound (Const ("Trueprop", _) $
-                             (Const ("op =", _) $
+        | variable_of_bound (Const (@{const_name "Trueprop"}, _) $
+                             (Const (@{const_name "op ="}, _) $
                               Free (name, _) $ _)) = name
         | variable_of_bound t = raise TERM ("variable_of_bound", [t])
 

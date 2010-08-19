@@ -67,7 +67,7 @@ fun id_thm th =
 val P_imp_P_eq_True = @{thm eqTrueI} RS eq_reflection;
 fun mk_meta_eq r = case concl_of r of
      Const("==",_)$_$_ => r
-  |   _ $(Const("op =",_)$_$_) => r RS eq_reflection
+  |   _ $(Const(@{const_name "op ="},_)$_$_) => r RS eq_reflection
   |   _ => r RS P_imp_P_eq_True
 
 (*Is this the best way to invoke the simplifier??*)

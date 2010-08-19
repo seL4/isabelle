@@ -121,8 +121,8 @@ fun atomize ctxt thm =
       val r_inst = read_instantiate ctxt;
       fun at thm =
           case concl_of thm of
-            _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
-          | _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
+            _$(Const(@{const_name "op &"},_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
+          | _$(Const(@{const_name "All"} ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
           | _                             => [thm];
     in map zero_var_indexes (at thm) end;
 

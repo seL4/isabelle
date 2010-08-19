@@ -24,7 +24,7 @@ local
     fun mk_definitional [] arg = arg
       | mk_definitional ((thname,cname,covld)::cos) (thy,thm) =
         case HOLogic.dest_Trueprop (concl_of thm) of
-            Const("Ex",_) $ P =>
+            Const(@{const_name "Ex"},_) $ P =>
             let
                 val ctype = domain_type (type_of P)
                 val cname_full = Sign.intern_const thy cname
@@ -51,7 +51,7 @@ local
                 end
               | process ((thname,cname,covld)::cos) (thy,tm) =
                 case tm of
-                    Const("Ex",_) $ P =>
+                    Const(@{const_name "Ex"},_) $ P =>
                     let
                         val ctype = domain_type (type_of P)
                         val cname_full = Sign.intern_const thy cname

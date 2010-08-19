@@ -147,7 +147,7 @@ fun imp_prems_conv cv ct =
 
 fun Trueprop_conv cv ct =
   case Thm.term_of ct of
-    Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
+    Const (@{const_name "Trueprop"}, _) $ _ => Conv.arg_conv cv ct  
   | _ => raise Fail "Trueprop_conv"
 
 fun preprocess_intro thy rule =

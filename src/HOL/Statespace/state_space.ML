@@ -222,8 +222,8 @@ fun neq_x_y ctxt x y =
   end handle Option => NONE)
 
 fun distinctTree_tac ctxt
-      (Const ("Trueprop",_) $
-        (Const ("Not", _) $ (Const ("op =", _) $ (x as Free _)$ (y as Free _))), i) =
+      (Const (@{const_name "Trueprop"},_) $
+        (Const (@{const_name "Not"}, _) $ (Const (@{const_name "op ="}, _) $ (x as Free _)$ (y as Free _))), i) =
   (case (neq_x_y ctxt x y) of
      SOME neq => rtac neq i
    | NONE => no_tac)
@@ -236,7 +236,7 @@ val distinctNameSolver = mk_solver' "distinctNameSolver"
 
 val distinct_simproc =
   Simplifier.simproc @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
-    (fn thy => fn ss => (fn (Const ("op =",_)$(x as Free _)$(y as Free _)) =>
+    (fn thy => fn ss => (fn (Const (@{const_name "op ="},_)$(x as Free _)$(y as Free _)) =>
         (case try Simplifier.the_context ss of
           SOME ctxt => Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])
                        (neq_x_y ctxt x y)

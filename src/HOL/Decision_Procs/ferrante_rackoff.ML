@@ -33,12 +33,12 @@ fun ferrack_conv
              {isolate_conv = icv, whatis = wi, simpset = simpset}):entry) =
 let
  fun uset (vars as (x::vs)) p = case term_of p of
-   Const("op &", _)$ _ $ _ =>
+   Const(@{const_name "op &"}, _)$ _ $ _ =>
      let
        val ((b,l),r) = Thm.dest_comb p |>> Thm.dest_comb
        val (lS,lth) = uset vars l  val (rS, rth) = uset vars r
      in (lS@rS, Drule.binop_cong_rule b lth rth) end
- |  Const("op |", _)$ _ $ _ =>
+ |  Const(@{const_name "op |"}, _)$ _ $ _ =>
      let
        val ((b,l),r) = Thm.dest_comb p |>> Thm.dest_comb
        val (lS,lth) = uset vars l  val (rS, rth) = uset vars r
@@ -77,7 +77,7 @@ let
  fun main vs p =
   let
    val ((xn,ce),(x,fm)) = (case term_of p of
-                   Const("Ex",_)$Abs(xn,xT,_) =>
+                   Const(@{const_name "Ex"},_)$Abs(xn,xT,_) =>
                         Thm.dest_comb p ||> Thm.dest_abs (SOME xn) |>> pair xn
                  | _ => raise CTERM ("main QE only treats existential quantifiers!", [p]))
    val cT = ctyp_of_term x
@@ -122,12 +122,12 @@ let
 
    fun decomp_mpinf fm =
      case term_of fm of
-       Const("op &",_)$_$_ =>
+       Const(@{const_name "op &"},_)$_$_ =>
         let val (p,q) = Thm.dest_binop fm
         in ([p,q], myfwd (minf_conj,pinf_conj, nmi_conj, npi_conj,ld_conj)
                          (Thm.cabs x p) (Thm.cabs x q))
         end
-     | Const("op |",_)$_$_ =>
+     | Const(@{const_name "op |"},_)$_$_ =>
         let val (p,q) = Thm.dest_binop fm
         in ([p,q],myfwd (minf_disj, pinf_disj, nmi_disj, npi_disj,ld_disj)
                          (Thm.cabs x p) (Thm.cabs x q))
@@ -175,19 +175,19 @@ val grab_atom_bop =
  let
   fun h bounds tm =
    (case term_of tm of
-     Const ("op =", T) $ _ $ _ =>
+     Const (@{const_name "op ="}, T) $ _ $ _ =>
        if domain_type T = HOLogic.boolT then find_args bounds tm
        else Thm.dest_fun2 tm
-   | Const ("Not", _) $ _ => h bounds (Thm.dest_arg tm)
-   | Const ("All", _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const ("Ex", _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const ("op &", _) $ _ $ _ => find_args bounds tm
-   | Const ("op |", _) $ _ $ _ => find_args bounds tm
-   | Const ("op -->", _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name "Not"}, _) $ _ => h bounds (Thm.dest_arg tm)
+   | Const (@{const_name "All"}, _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const (@{const_name "Ex"}, _) $ _ => find_body bounds (Thm.dest_arg tm)
+   | Const (@{const_name "op &"}, _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name "op |"}, _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name "op -->"}, _) $ _ $ _ => find_args bounds tm
    | Const ("==>", _) $ _ $ _ => find_args bounds tm
    | Const ("==", _) $ _ $ _ => find_args bounds tm
    | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const ("Trueprop", _) $ _ => h bounds (Thm.dest_arg tm)
+   | Const (@{const_name "Trueprop"}, _) $ _ => h bounds (Thm.dest_arg tm)
    | _ => Thm.dest_fun2 tm)
   and find_args bounds tm =
            (h bounds (Thm.dest_arg tm) handle CTERM _ => Thm.dest_arg1 tm)

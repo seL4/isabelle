@@ -149,21 +149,21 @@ fun forward_res ctxt nf st =
 (*Are any of the logical connectives in "bs" present in the term?*)
 fun has_conns bs =
   let fun has (Const(a,_)) = false
-        | has (Const("Trueprop",_) $ p) = has p
-        | has (Const("Not",_) $ p) = has p
-        | has (Const("op |",_) $ p $ q) = member (op =) bs "op |" orelse has p orelse has q
-        | has (Const("op &",_) $ p $ q) = member (op =) bs "op &" orelse has p orelse has q
-        | has (Const("All",_) $ Abs(_,_,p)) = member (op =) bs "All" orelse has p
-        | has (Const("Ex",_) $ Abs(_,_,p)) = member (op =) bs "Ex" orelse has p
+        | has (Const(@{const_name "Trueprop"},_) $ p) = has p
+        | has (Const(@{const_name "Not"},_) $ p) = has p
+        | has (Const(@{const_name "op |"},_) $ p $ q) = member (op =) bs "op |" orelse has p orelse has q
+        | has (Const(@{const_name "op &"},_) $ p $ q) = member (op =) bs "op &" orelse has p orelse has q
+        | has (Const(@{const_name "All"},_) $ Abs(_,_,p)) = member (op =) bs "All" orelse has p
+        | has (Const(@{const_name "Ex"},_) $ Abs(_,_,p)) = member (op =) bs "Ex" orelse has p
         | has _ = false
   in  has  end;
 
 
 (**** Clause handling ****)
 
-fun literals (Const("Trueprop",_) $ P) = literals P
-  | literals (Const("op |",_) $ P $ Q) = literals P @ literals Q
-  | literals (Const("Not",_) $ P) = [(false,P)]
+fun literals (Const(@{const_name "Trueprop"},_) $ P) = literals P
+  | literals (Const(@{const_name "op |"},_) $ P $ Q) = literals P @ literals Q
+  | literals (Const(@{const_name "Not"},_) $ P) = [(false,P)]
   | literals P = [(true,P)];
 
 (*number of literals in a term*)
@@ -172,16 +172,16 @@ val nliterals = length o literals;
 
 (*** Tautology Checking ***)
 
-fun signed_lits_aux (Const ("op |", _) $ P $ Q) (poslits, neglits) =
+fun signed_lits_aux (Const (@{const_name "op |"}, _) $ P $ Q) (poslits, neglits) =
       signed_lits_aux Q (signed_lits_aux P (poslits, neglits))
-  | signed_lits_aux (Const("Not",_) $ P) (poslits, neglits) = (poslits, P::neglits)
+  | signed_lits_aux (Const(@{const_name "Not"},_) $ P) (poslits, neglits) = (poslits, P::neglits)
   | signed_lits_aux P (poslits, neglits) = (P::poslits, neglits);
 
 fun signed_lits th = signed_lits_aux (HOLogic.dest_Trueprop (concl_of th)) ([],[]);
 
 (*Literals like X=X are tautologous*)
-fun taut_poslit (Const("op =",_) $ t $ u) = t aconv u
-  | taut_poslit (Const("True",_)) = true
+fun taut_poslit (Const(@{const_name "op ="},_) $ t $ u) = t aconv u
+  | taut_poslit (Const(@{const_name "True"},_)) = true
   | taut_poslit _ = false;
 
 fun is_taut th =
@@ -208,18 +208,18 @@ fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))
 fun refl_clause_aux 0 th = th
   | refl_clause_aux n th =
        case HOLogic.dest_Trueprop (concl_of th) of
-          (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _) =>
+          (Const (@{const_name "op |"}, _) $ (Const (@{const_name "op |"}, _) $ _ $ _) $ _) =>
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
-        | (Const ("op |", _) $ (Const("Not",_) $ (Const("op =",_) $ t $ u)) $ _) =>
+        | (Const (@{const_name "op |"}, _) $ (Const(@{const_name "Not"},_) $ (Const(@{const_name "op ="},_) $ t $ u)) $ _) =>
             if eliminable(t,u)
             then refl_clause_aux (n-1) (th RS not_refl_disj_D)  (*Var inequation: delete*)
             else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
-        | (Const ("op |", _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
+        | (Const (@{const_name "op |"}, _) $ _ $ _) => refl_clause_aux n (th RS disj_comm)
         | _ => (*not a disjunction*) th;
 
-fun notequal_lits_count (Const ("op |", _) $ P $ Q) =
+fun notequal_lits_count (Const (@{const_name "op |"}, _) $ P $ Q) =
       notequal_lits_count P + notequal_lits_count Q
-  | notequal_lits_count (Const("Not",_) $ (Const("op =",_) $ _ $ _)) = 1
+  | notequal_lits_count (Const(@{const_name "Not"},_) $ (Const(@{const_name "op ="},_) $ _ $ _)) = 1
   | notequal_lits_count _ = 0;
 
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
@@ -266,26 +266,26 @@ fun too_many_clauses ctxto t =
   fun prod x y = if x < max_cl andalso y < max_cl then x*y else max_cl;
   
   (*Estimate the number of clauses in order to detect infeasible theorems*)
-  fun signed_nclauses b (Const("Trueprop",_) $ t) = signed_nclauses b t
-    | signed_nclauses b (Const("Not",_) $ t) = signed_nclauses (not b) t
-    | signed_nclauses b (Const("op &",_) $ t $ u) =
+  fun signed_nclauses b (Const(@{const_name "Trueprop"},_) $ t) = signed_nclauses b t
+    | signed_nclauses b (Const(@{const_name "Not"},_) $ t) = signed_nclauses (not b) t
+    | signed_nclauses b (Const(@{const_name "op &"},_) $ t $ u) =
         if b then sum (signed_nclauses b t) (signed_nclauses b u)
              else prod (signed_nclauses b t) (signed_nclauses b u)
-    | signed_nclauses b (Const("op |",_) $ t $ u) =
+    | signed_nclauses b (Const(@{const_name "op |"},_) $ t $ u) =
         if b then prod (signed_nclauses b t) (signed_nclauses b u)
              else sum (signed_nclauses b t) (signed_nclauses b u)
-    | signed_nclauses b (Const("op -->",_) $ t $ u) =
+    | signed_nclauses b (Const(@{const_name "op -->"},_) $ t $ u) =
         if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
              else sum (signed_nclauses (not b) t) (signed_nclauses b u)
-    | signed_nclauses b (Const("op =", Type ("fun", [T, _])) $ t $ u) =
+    | signed_nclauses b (Const(@{const_name "op ="}, Type ("fun", [T, _])) $ t $ u) =
         if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
             if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
                           (prod (signed_nclauses (not b) u) (signed_nclauses b t))
                  else sum (prod (signed_nclauses b t) (signed_nclauses b u))
                           (prod (signed_nclauses (not b) t) (signed_nclauses (not b) u))
         else 1
-    | signed_nclauses b (Const("Ex", _) $ Abs (_,_,t)) = signed_nclauses b t
-    | signed_nclauses b (Const("All",_) $ Abs (_,_,t)) = signed_nclauses b t
+    | signed_nclauses b (Const(@{const_name "Ex"}, _) $ Abs (_,_,t)) = signed_nclauses b t
+    | signed_nclauses b (Const(@{const_name "All"},_) $ Abs (_,_,t)) = signed_nclauses b t
     | signed_nclauses _ _ = 1; (* literal *)
  in 
   signed_nclauses true t >= max_cl
@@ -296,7 +296,7 @@ fun too_many_clauses ctxto t =
 local  
   val spec_var = Thm.dest_arg (Thm.dest_arg (#2 (Thm.dest_implies (Thm.cprop_of spec))));
   val spec_varT = #T (Thm.rep_cterm spec_var);
-  fun name_of (Const ("All", _) $ Abs(x,_,_)) = x | name_of _ = Name.uu;
+  fun name_of (Const (@{const_name "All"}, _) $ Abs(x,_,_)) = x | name_of _ = Name.uu;
 in  
   fun freeze_spec th ctxt =
     let
@@ -334,15 +334,15 @@ fun cnf skolem_ths ctxt (th, ths) =
         else if not (has_conns ["All","Ex","op &"] (prop_of th))
         then nodups ctxt th :: ths (*no work to do, terminate*)
         else case head_of (HOLogic.dest_Trueprop (concl_of th)) of
-            Const ("op &", _) => (*conjunction*)
+            Const (@{const_name "op &"}, _) => (*conjunction*)
                 cnf_aux (th RS conjunct1, cnf_aux (th RS conjunct2, ths))
-          | Const ("All", _) => (*universal quantifier*)
+          | Const (@{const_name "All"}, _) => (*universal quantifier*)
                 let val (th',ctxt') = freeze_spec th (!ctxtr)
                 in  ctxtr := ctxt'; cnf_aux (th', ths) end
-          | Const ("Ex", _) =>
+          | Const (@{const_name "Ex"}, _) =>
               (*existential quantifier: Insert Skolem functions*)
               cnf_aux (apply_skolem_theorem (th, skolem_ths), ths)
-          | Const ("op |", _) =>
+          | Const (@{const_name "op |"}, _) =>
               (*Disjunction of P, Q: Create new goal of proving ?P | ?Q and solve it using
                 all combinations of converting P, Q to CNF.*)
               let val tac =
@@ -365,8 +365,8 @@ fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);
 
 (**** Generation of contrapositives ****)
 
-fun is_left (Const ("Trueprop", _) $
-               (Const ("op |", _) $ (Const ("op |", _) $ _ $ _) $ _)) = true
+fun is_left (Const (@{const_name "Trueprop"}, _) $
+               (Const (@{const_name "op |"}, _) $ (Const (@{const_name "op |"}, _) $ _ $ _) $ _)) = true
   | is_left _ = false;
 
 (*Associate disjuctions to right -- make leftmost disjunct a LITERAL*)
@@ -429,8 +429,8 @@ fun is_fol_term thy t =
 
 fun rigid t = not (is_Var (head_of t));
 
-fun ok4horn (Const ("Trueprop",_) $ (Const ("op |", _) $ t $ _)) = rigid t
-  | ok4horn (Const ("Trueprop",_) $ t) = rigid t
+fun ok4horn (Const (@{const_name "Trueprop"},_) $ (Const (@{const_name "op |"}, _) $ t $ _)) = rigid t
+  | ok4horn (Const (@{const_name "Trueprop"},_) $ t) = rigid t
   | ok4horn _ = false;
 
 (*Create a meta-level Horn clause*)
@@ -464,7 +464,7 @@ val neg_clauses = filter is_negative;
 
 (***** MESON PROOF PROCEDURE *****)
 
-fun rhyps (Const("==>",_) $ (Const("Trueprop",_) $ A) $ phi,
+fun rhyps (Const("==>",_) $ (Const(@{const_name "Trueprop"},_) $ A) $ phi,
            As) = rhyps(phi, A::As)
   | rhyps (_, As) = As;
 
@@ -509,8 +509,8 @@ fun size_of_subgoals st = fold_rev addconcl (prems_of st) 0;
 val nnf_rls = [imp_to_disjD, iff_to_disjD, not_conjD, not_disjD,
                not_impD, not_iffD, not_allD, not_exD, not_notD];
 
-fun ok4nnf (Const ("Trueprop",_) $ (Const ("Not", _) $ t)) = rigid t
-  | ok4nnf (Const ("Trueprop",_) $ t) = rigid t
+fun ok4nnf (Const (@{const_name "Trueprop"},_) $ (Const (@{const_name "Not"}, _) $ t)) = rigid t
+  | ok4nnf (Const (@{const_name "Trueprop"},_) $ t) = rigid t
   | ok4nnf _ = false;
 
 fun make_nnf1 ctxt th =

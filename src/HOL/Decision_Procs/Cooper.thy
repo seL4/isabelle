@@ -1960,12 +1960,12 @@ fun fm_of_term ps vs @{term True} = @{code T}
       @{code Imp} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (@{term "Not"} $ t') =
       @{code NOT} (fm_of_term ps vs t')
-  | fm_of_term ps vs (Const ("Ex", _) $ Abs (xn, xT, p)) =
+  | fm_of_term ps vs (Const (@{const_name "Ex"}, _) $ Abs (xn, xT, p)) =
       let
         val (xn', p') = variant_abs (xn, xT, p);
         val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
       in @{code E} (fm_of_term ps vs' p) end
-  | fm_of_term ps vs (Const ("All", _) $ Abs (xn, xT, p)) =
+  | fm_of_term ps vs (Const (@{const_name "All"}, _) $ Abs (xn, xT, p)) =
       let
         val (xn', p') = variant_abs (xn, xT, p);
         val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;

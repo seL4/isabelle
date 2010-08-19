@@ -2960,7 +2960,7 @@ val impt = @{term "op -->"};
 val ifft = @{term "op = :: bool => _"}
 fun llt rT = Const(@{const_name Orderings.less},rrT rT);
 fun lle rT = Const(@{const_name Orderings.less},rrT rT);
-fun eqt rT = Const("op =",rrT rT);
+fun eqt rT = Const(@{const_name "op ="},rrT rT);
 fun rz rT = Const(@{const_name Groups.zero},rT);
 
 fun dest_nat t = case t of
@@ -3015,26 +3015,26 @@ fun term_of_tm T m m' t =
 
 fun fm_of_term m m' fm = 
  case fm of
-    Const("True",_) => @{code T}
-  | Const("False",_) => @{code F}
-  | Const("Not",_)$p => @{code NOT} (fm_of_term m m' p)
-  | Const("op &",_)$p$q => @{code And} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const("op |",_)$p$q => @{code Or} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const("op -->",_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const("op =",ty)$p$q => 
+    Const(@{const_name "True"},_) => @{code T}
+  | Const(@{const_name "False"},_) => @{code F}
+  | Const(@{const_name "Not"},_)$p => @{code NOT} (fm_of_term m m' p)
+  | Const(@{const_name "op &"},_)$p$q => @{code And} (fm_of_term m m' p, fm_of_term m m' q)
+  | Const(@{const_name "op |"},_)$p$q => @{code Or} (fm_of_term m m' p, fm_of_term m m' q)
+  | Const(@{const_name "op -->"},_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
+  | Const(@{const_name "op ="},ty)$p$q => 
        if domain_type ty = bT then @{code Iff} (fm_of_term m m' p, fm_of_term m m' q)
        else @{code Eq} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const(@{const_name Orderings.less},_)$p$q => 
         @{code Lt} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const(@{const_name Orderings.less_eq},_)$p$q => 
         @{code Le} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const("Ex",_)$Abs(xn,xT,p) => 
+  | Const(@{const_name "Ex"},_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)
          val x = Free(xn',xT)
          fun incr i = i + 1
          val m0 = (x,0):: (map (apsnd incr) m)
       in @{code E} (fm_of_term m0 m' p') end
-  | Const("All",_)$Abs(xn,xT,p) => 
+  | Const(@{const_name "All"},_)$Abs(xn,xT,p) => 
      let val (xn', p') =  variant_abs (xn,xT,p)
          val x = Free(xn',xT)
          fun incr i = i + 1
@@ -3045,8 +3045,8 @@ fun fm_of_term m m' fm =
 
 fun term_of_fm T m m' t = 
   case t of
-    @{code T} => Const("True",bT)
-  | @{code F} => Const("False",bT)
+    @{code T} => Const(@{const_name "True"},bT)
+  | @{code F} => Const(@{const_name "False"},bT)
   | @{code NOT} p => nott $ (term_of_fm T m m' p)
   | @{code And} (p,q) => conjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
   | @{code Or} (p,q) => disjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)

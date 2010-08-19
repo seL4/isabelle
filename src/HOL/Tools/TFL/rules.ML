@@ -453,14 +453,14 @@ fun Forall v M = S.mk_forall{Bvar=v, Body=M};
 (* Fragile: it's a cong if it is not "R y x ==> cut f R x y = f y" *)
 fun is_cong thm =
   case (Thm.prop_of thm)
-     of (Const("==>",_)$(Const("Trueprop",_)$ _) $
+     of (Const("==>",_)$(Const(@{const_name "Trueprop"},_)$ _) $
          (Const("==",_) $ (Const (@{const_name Recdef.cut},_) $ f $ R $ a $ x) $ _)) => false
       | _ => true;
 
 
 fun dest_equal(Const ("==",_) $
-               (Const ("Trueprop",_) $ lhs)
-               $ (Const ("Trueprop",_) $ rhs)) = {lhs=lhs, rhs=rhs}
+               (Const (@{const_name "Trueprop"},_) $ lhs)
+               $ (Const (@{const_name "Trueprop"},_) $ rhs)) = {lhs=lhs, rhs=rhs}
   | dest_equal(Const ("==",_) $ lhs $ rhs)  = {lhs=lhs, rhs=rhs}
   | dest_equal tm = S.dest_eq tm;
 
@@ -759,7 +759,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val cntxt = rev(Simplifier.prems_of_ss ss)
               val dummy = print_thms "cntxt:" cntxt
               val thy = Thm.theory_of_thm thm
-              val Const("==>",_) $ (Const("Trueprop",_) $ A) $ _ = Thm.prop_of thm
+              val Const("==>",_) $ (Const(@{const_name "Trueprop"},_) $ A) $ _ = Thm.prop_of thm
               fun genl tm = let val vlist = subtract (op aconv) globals
                                            (OldTerm.add_term_frees(tm,[]))
                             in fold_rev Forall vlist tm

@@ -217,7 +217,7 @@ let
 	(* Thm.cterm -> int option *)
 	fun index_of_literal chyp = (
 		case (HOLogic.dest_Trueprop o Thm.term_of) chyp of
-		  (Const ("Not", _) $ atom) =>
+		  (Const (@{const_name "Not"}, _) $ atom) =>
 			SOME (~ (the (Termtab.lookup atom_table atom)))
 		| atom =>
 			SOME (the (Termtab.lookup atom_table atom))

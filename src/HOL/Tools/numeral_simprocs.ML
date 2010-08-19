@@ -676,7 +676,7 @@ local
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "divide_le_eq"}
       in SOME (mk_meta_eq th) end
-  | Const("op =",_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
+  | Const(@{const_name "op ="},_)$(Const(@{const_name Rings.divide},_)$_$_)$_ =>
       let
         val ((a,b),c) = Thm.dest_binop ct |>> Thm.dest_binop
         val _ = map is_number [a,b,c]
@@ -697,7 +697,7 @@ local
         val T = ctyp_of_term c
         val th = instantiate' [SOME T] (map SOME [a,b,c]) @{thm "le_divide_eq"}
       in SOME (mk_meta_eq th) end
-  | Const("op =",_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
+  | Const(@{const_name "op ="},_)$_$(Const(@{const_name Rings.divide},_)$_$_) =>
     let
       val (a,(b,c)) = Thm.dest_binop ct ||> Thm.dest_binop
         val _ = map is_number [a,b,c]

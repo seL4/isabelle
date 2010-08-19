@@ -63,7 +63,7 @@ let
     else error ("Type " ^ quote (Syntax.string_of_typ_global thy T) ^ " not allowed for ML witnesses")
 
   fun dest_exs  0 t = t
-    | dest_exs n (Const ("Ex", _) $ Abs (v,T,b)) = 
+    | dest_exs n (Const (@{const_name "Ex"}, _) $ Abs (v,T,b)) = 
       Abs (v, check_type T, dest_exs (n - 1) b)
     | dest_exs _ _ = sys_error "dest_exs";
   val t = dest_exs (length ws) (HOLogic.dest_Trueprop goal);

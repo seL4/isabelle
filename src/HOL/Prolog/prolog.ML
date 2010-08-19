@@ -10,17 +10,17 @@ struct
 exception not_HOHH;
 
 fun isD t = case t of
-    Const("Trueprop",_)$t     => isD t
-  | Const("op &"  ,_)$l$r     => isD l andalso isD r
-  | Const("op -->",_)$l$r     => isG l andalso isD r
+    Const(@{const_name "Trueprop"},_)$t     => isD t
+  | Const(@{const_name "op &"}  ,_)$l$r     => isD l andalso isD r
+  | Const(@{const_name "op -->"},_)$l$r     => isG l andalso isD r
   | Const(   "==>",_)$l$r     => isG l andalso isD r
-  | Const("All",_)$Abs(s,_,t) => isD t
+  | Const(@{const_name "All"},_)$Abs(s,_,t) => isD t
   | Const("all",_)$Abs(s,_,t) => isD t
-  | Const("op |",_)$_$_       => false
-  | Const("Ex" ,_)$_          => false
+  | Const(@{const_name "op |"},_)$_$_       => false
+  | Const(@{const_name "Ex"} ,_)$_          => false
   | Const("not",_)$_          => false
-  | Const("True",_)           => false
-  | Const("False",_)          => false
+  | Const(@{const_name "True"},_)           => false
+  | Const(@{const_name "False"},_)          => false
   | l $ r                     => isD l
   | Const _ (* rigid atom *)  => true
   | Bound _ (* rigid atom *)  => true
@@ -29,17 +29,17 @@ fun isD t = case t of
             anything else *)  => false
 and
     isG t = case t of
-    Const("Trueprop",_)$t     => isG t
-  | Const("op &"  ,_)$l$r     => isG l andalso isG r
-  | Const("op |"  ,_)$l$r     => isG l andalso isG r
-  | Const("op -->",_)$l$r     => isD l andalso isG r
+    Const(@{const_name "Trueprop"},_)$t     => isG t
+  | Const(@{const_name "op &"}  ,_)$l$r     => isG l andalso isG r
+  | Const(@{const_name "op |"}  ,_)$l$r     => isG l andalso isG r
+  | Const(@{const_name "op -->"},_)$l$r     => isD l andalso isG r
   | Const(   "==>",_)$l$r     => isD l andalso isG r
-  | Const("All",_)$Abs(_,_,t) => isG t
+  | Const(@{const_name "All"},_)$Abs(_,_,t) => isG t
   | Const("all",_)$Abs(_,_,t) => isG t
-  | Const("Ex" ,_)$Abs(_,_,t) => isG t
-  | Const("True",_)           => true
+  | Const(@{const_name "Ex"} ,_)$Abs(_,_,t) => isG t
+  | Const(@{const_name "True"},_)           => true
   | Const("not",_)$_          => false
-  | Const("False",_)          => false
+  | Const(@{const_name "False"},_)          => false
   | _ (* atom *)              => true;
 
 val check_HOHH_tac1 = PRIMITIVE (fn thm =>
@@ -51,10 +51,10 @@ fun check_HOHH thm  = (if isD (concl_of thm) andalso forall isG (prems_of thm)
 
 fun atomizeD ctxt thm = let
     fun at  thm = case concl_of thm of
-      _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS
+      _$(Const(@{const_name "All"} ,_)$Abs(s,_,_))=> at(thm RS
         (read_instantiate ctxt [(("x", 0), "?" ^ (if s="P" then "PP" else s))] spec))
-    | _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
-    | _$(Const("op -->",_)$_$_)     => at(thm RS mp)
+    | _$(Const(@{const_name "op &"},_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
+    | _$(Const(@{const_name "op -->"},_)$_$_)     => at(thm RS mp)
     | _                             => [thm]
 in map zero_var_indexes (at thm) end;
 
@@ -71,15 +71,15 @@ val atomize_ss =
                                   resolve_tac (maps atomizeD prems) 1);
   -- is nice, but cannot instantiate unknowns in the assumptions *)
 fun hyp_resolve_tac i st = let
-        fun ap (Const("All",_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
-        |   ap (Const("op -->",_)$_$t)    =(case ap t of (k,_,t) => (k,true ,t))
+        fun ap (Const(@{const_name "All"},_)$Abs(_,_,t))=(case ap t of (k,a,t) => (k+1,a  ,t))
+        |   ap (Const(@{const_name "op -->"},_)$_$t)    =(case ap t of (k,_,t) => (k,true ,t))
         |   ap t                          =                         (0,false,t);
 (*
         fun rep_goal (Const ("all",_)$Abs (_,_,t)) = rep_goal t
         |   rep_goal (Const ("==>",_)$s$t)         =
                         (case rep_goal t of (l,t) => (s::l,t))
         |   rep_goal t                             = ([]  ,t);
-        val (prems, Const("Trueprop", _)$concl) = rep_goal
+        val (prems, Const(@{const_name "Trueprop"}, _)$concl) = rep_goal
                                                 (#3(dest_state (st,i)));
 *)
         val subgoal = #3(Thm.dest_state (st,i));

@@ -524,7 +524,7 @@ fun mk_casesrule ctxt pred introrules =
 
 fun dest_conjunct_prem th =
   case HOLogic.dest_Trueprop (prop_of th) of
-    (Const ("op &", _) $ t $ t') =>
+    (Const (@{const_name "op &"}, _) $ t $ t') =>
       dest_conjunct_prem (th RS @{thm conjunct1})
         @ dest_conjunct_prem (th RS @{thm conjunct2})
     | _ => [th]
@@ -576,7 +576,7 @@ fun imp_prems_conv cv ct =
 
 fun Trueprop_conv cv ct =
   case Thm.term_of ct of
-    Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
+    Const (@{const_name "Trueprop"}, _) $ _ => Conv.arg_conv cv ct  
   | _ => raise Fail "Trueprop_conv"
 
 fun preprocess_intro thy rule =
@@ -587,7 +587,7 @@ fun preprocess_intro thy rule =
 
 fun preprocess_elim ctxt elimrule =
   let
-    fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
+    fun replace_eqs (Const (@{const_name "Trueprop"}, _) $ (Const (@{const_name "op ="}, T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
      | replace_eqs t = t
     val thy = ProofContext.theory_of ctxt

@@ -519,9 +519,9 @@ fun generic_whatis phi =
   val [lt, le] = map (Morphism.term phi) [@{term "op \<sqsubset>"}, @{term "op \<sqsubseteq>"}]
   fun h x t =
    case term_of t of
-     Const("op =", _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
+     Const(@{const_name "op ="}, _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
                             else Ferrante_Rackoff_Data.Nox
-   | @{term "Not"}$(Const("op =", _)$y$z) => if term_of x aconv y then Ferrante_Rackoff_Data.NEq
+   | @{term "Not"}$(Const(@{const_name "op ="}, _)$y$z) => if term_of x aconv y then Ferrante_Rackoff_Data.NEq
                             else Ferrante_Rackoff_Data.Nox
    | b$y$z => if Term.could_unify (b, lt) then
                  if term_of x aconv y then Ferrante_Rackoff_Data.Lt
@@ -771,7 +771,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
       in rth end
     | _ => Thm.reflexive ct)
 
-|  Const("op =",_)$_$Const(@{const_name Groups.zero},_) =>
+|  Const(@{const_name "op ="},_)$_$Const(@{const_name Groups.zero},_) =>
    (case whatis x (Thm.dest_arg1 ct) of
     ("c*x+t",[c,t]) =>
        let
@@ -835,7 +835,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
 
-| Const("op =",_)$a$b =>
+| Const(@{const_name "op ="},_)$a$b =>
    let val (ca,cb) = Thm.dest_binop ct
        val T = ctyp_of_term ca
        val th = instantiate' [SOME T] [SOME ca, SOME cb] eq_iff_diff_eq_0
@@ -844,7 +844,7 @@ fun field_isolate_conv phi ctxt vs ct = case term_of ct of
               (Semiring_Normalizer.semiring_normalize_ord_conv @{context} (earlier vs)))) th
        val rth = Thm.transitive nth (xnormalize_conv ctxt vs (Thm.rhs_of nth))
    in rth end
-| @{term "Not"} $(Const("op =",_)$a$b) => Conv.arg_conv (field_isolate_conv phi ctxt vs) ct
+| @{term "Not"} $(Const(@{const_name "op ="},_)$a$b) => Conv.arg_conv (field_isolate_conv phi ctxt vs) ct
 | _ => Thm.reflexive ct
 end;
 
@@ -852,9 +852,9 @@ fun classfield_whatis phi =
  let
   fun h x t =
    case term_of t of
-     Const("op =", _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
+     Const(@{const_name "op ="}, _)$y$z => if term_of x aconv y then Ferrante_Rackoff_Data.Eq
                             else Ferrante_Rackoff_Data.Nox
-   | @{term "Not"}$(Const("op =", _)$y$z) => if term_of x aconv y then Ferrante_Rackoff_Data.NEq
+   | @{term "Not"}$(Const(@{const_name "op ="}, _)$y$z) => if term_of x aconv y then Ferrante_Rackoff_Data.NEq
                             else Ferrante_Rackoff_Data.Nox
    | Const(@{const_name Orderings.less},_)$y$z =>
        if term_of x aconv y then Ferrante_Rackoff_Data.Lt

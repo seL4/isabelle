@@ -1007,7 +1007,7 @@ val disj2_thm = thm "disjI2"
 local
     val th = thm "not_def"
     val thy = theory_of_thm th
-    val pp = Thm.reflexive (cterm_of thy (Const("Trueprop",boolT-->propT)))
+    val pp = Thm.reflexive (cterm_of thy (Const(@{const_name "Trueprop"},boolT-->propT)))
 in
 val not_elim_thm = Thm.combination pp th
 end
@@ -1053,9 +1053,9 @@ fun mk_GEN v th sg =
         val c = prop_of th3
         val vname = fst(dest_Free v)
         val (cold,cnew) = case c of
-                              tpc $ (Const("All",allT) $ Abs(oldname,ty,body)) =>
+                              tpc $ (Const(@{const_name "All"},allT) $ Abs(oldname,ty,body)) =>
                               (Abs(oldname,dummyT,Bound 0),Abs(vname,dummyT,Bound 0))
-                            | tpc $ (Const("All",allT) $ rest) => (tpc,tpc)
+                            | tpc $ (Const(@{const_name "All"},allT) $ rest) => (tpc,tpc)
                             | _ => raise ERR "mk_GEN" "Unknown conclusion"
         val th4 = Thm.rename_boundvars cold cnew th3
         val res = implies_intr_hyps th4
@@ -1476,10 +1476,10 @@ fun EQ_MP hth1 hth2 thy =
 fun mk_COMB th1 th2 thy =
     let
         val (f,g) = case concl_of th1 of
-                        _ $ (Const("op =",_) $ f $ g) => (f,g)
+                        _ $ (Const(@{const_name "op ="},_) $ f $ g) => (f,g)
                       | _ => raise ERR "mk_COMB" "First theorem not an equality"
         val (x,y) = case concl_of th2 of
-                        _ $ (Const("op =",_) $ x $ y) => (x,y)
+                        _ $ (Const(@{const_name "op ="},_) $ x $ y) => (x,y)
                       | _ => raise ERR "mk_COMB" "Second theorem not an equality"
         val fty = type_of f
         val (fd,fr) = dom_rng fty
@@ -1521,7 +1521,7 @@ fun DISJ_CASES hth hth1 hth2 thy =
         val th1 = norm_hyps th1
         val th2 = norm_hyps th2
         val (l,r) = case concl_of th of
-                        _ $ (Const("op |",_) $ l $ r) => (l,r)
+                        _ $ (Const(@{const_name "op |"},_) $ l $ r) => (l,r)
                       | _ => raise ERR "DISJ_CASES" "Conclusion not a disjunction"
         val th1' = rearrange thy (HOLogic.mk_Trueprop l) th1
         val th2' = rearrange thy (HOLogic.mk_Trueprop r) th2
@@ -1654,7 +1654,7 @@ fun EXISTS ex wit hth thy =
         val cwit = cterm_of thy wit'
         val cty = ctyp_of_term cwit
         val a = case ex' of
-                    (Const("Ex",_) $ a) => a
+                    (Const(@{const_name "Ex"},_) $ a) => a
                   | _ => raise ERR "EXISTS" "Argument not existential"
         val ca = cterm_of thy a
         val exists_thm' = beta_eta_thm (Drule.instantiate' [SOME cty] [SOME ca,SOME cwit] exists_thm)
@@ -1687,7 +1687,7 @@ fun CHOOSE v hth1 hth2 thy =
         val c = HOLogic.dest_Trueprop (concl_of th2)
         val cc = cterm_of thy c
         val a = case concl_of th1 of
-                    _ $ (Const("Ex",_) $ a) => a
+                    _ $ (Const(@{const_name "Ex"},_) $ a) => a
                   | _ => raise ERR "CHOOSE" "Conclusion not existential"
         val ca = cterm_of (theory_of_thm th1) a
         val choose_thm' = beta_eta_thm (Drule.instantiate' [SOME cvty] [SOME ca,SOME cc] choose_thm)
@@ -1773,7 +1773,7 @@ fun CCONTR tm hth thy =
         val (info',tm') = disamb_term_from info tm
         val th = norm_hyps th
         val ct = cterm_of thy tm'
-        val th1 = rearrange thy (HOLogic.mk_Trueprop (Const("Not",boolT-->boolT) $ tm')) th
+        val th1 = rearrange thy (HOLogic.mk_Trueprop (Const(@{const_name "Not"},boolT-->boolT) $ tm')) th
         val ccontr_thm' = Drule.instantiate' [] [SOME ct] ccontr_thm
         val res1 = uniq_compose ((nprems_of th1) - 1) th1 1 ccontr_thm'
         val res = HOLThm(rens_of info',res1)
@@ -1788,7 +1788,7 @@ fun mk_ABS v th thy =
         val cv = cterm_of thy v
         val th1 = implies_elim_all (beta_eta_thm th)
         val (f,g) = case concl_of th1 of
-                        _ $ (Const("op =",_) $ f $ g) => (Term.lambda v f,Term.lambda v g)
+                        _ $ (Const(@{const_name "op ="},_) $ f $ g) => (Term.lambda v f,Term.lambda v g)
                       | _ => raise ERR "mk_ABS" "Bad conclusion"
         val (fd,fr) = dom_rng (type_of f)
         val abs_thm' = Drule.instantiate' [SOME (ctyp_of thy fd), SOME (ctyp_of thy fr)] [SOME (cterm_of thy f), SOME (cterm_of thy g)] abs_thm
@@ -1860,7 +1860,7 @@ fun NOT_INTRO (hth as HOLThm(rens,th)) thy =
         val _ = if_debug pth hth
         val th1 = implies_elim_all (beta_eta_thm th)
         val a = case concl_of th1 of
-                    _ $ (Const("op -->",_) $ a $ Const("False",_)) => a
+                    _ $ (Const(@{const_name "op -->"},_) $ a $ Const(@{const_name "False"},_)) => a
                   | _ => raise ERR "NOT_INTRO" "Conclusion of bad form"
         val ca = cterm_of thy a
         val th2 = Thm.equal_elim (Drule.instantiate' [] [SOME ca] not_intro_thm) th1
@@ -1877,7 +1877,7 @@ fun NOT_ELIM (hth as HOLThm(rens,th)) thy =
         val _ = if_debug pth hth
         val th1 = implies_elim_all (beta_eta_thm th)
         val a = case concl_of th1 of
-                    _ $ (Const("Not",_) $ a) => a
+                    _ $ (Const(@{const_name "Not"},_) $ a) => a
                   | _ => raise ERR "NOT_ELIM" "Conclusion of bad form"
         val ca = cterm_of thy a
         val th2 = Thm.equal_elim (Drule.instantiate' [] [SOME ca] not_elim_thm) th1
@@ -1996,7 +1996,7 @@ fun new_specification thyname thmname names hth thy =
                                        ("x",dT,body $ Bound 0)
                                    end
                                    handle TYPE _ => raise ERR "new_specification" "not an abstraction type"
-                               fun dest_exists (Const("Ex",_) $ abody) =
+                               fun dest_exists (Const(@{const_name "Ex"},_) $ abody) =
                                    dest_eta_abs abody
                                  | dest_exists tm =
                                    raise ERR "new_specification" "Bad existential formula"
@@ -2082,7 +2082,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val (HOLThm(rens,td_th)) = norm_hthm thy hth
             val th2 = beta_eta_thm (td_th RS ex_imp_nonempty)
             val c = case concl_of th2 of
-                        _ $ (Const("Ex",_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
+                        _ $ (Const(@{const_name "Ex"},_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
                       | _ => raise ERR "new_type_definition" "Bad type definition theorem"
             val tfrees = OldTerm.term_tfrees c
             val tnames = map fst tfrees
@@ -2108,7 +2108,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val rew = rewrite_hol4_term (concl_of td_th) thy4
             val th  = Thm.equal_elim rew (Thm.transfer thy4 td_th)
             val c   = case HOLogic.dest_Trueprop (prop_of th) of
-                          Const("Ex",exT) $ P =>
+                          Const(@{const_name "Ex"},exT) $ P =>
                           let
                               val PT = domain_type exT
                           in
@@ -2157,7 +2157,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
                                     SOME (cterm_of thy t)] light_nonempty
             val th2 = beta_eta_thm (td_th RS (beta_eta_thm light_nonempty'))
             val c = case concl_of th2 of
-                        _ $ (Const("Ex",_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
+                        _ $ (Const(@{const_name "Ex"},_) $ Abs(_,_,Const(@{const_name Set.member},_) $ _ $ c)) => c
                       | _ => raise ERR "type_introduction" "Bad type definition theorem"
             val tfrees = OldTerm.term_tfrees c
             val tnames = sort_strings (map fst tfrees)

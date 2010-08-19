@@ -120,10 +120,10 @@ datatype fm = And of cterm*cterm| Or of cterm*cterm| Eq of cterm | NEq of cterm
 
 fun whatis x ct =
 ( case (term_of ct) of
-  Const("op &",_)$_$_ => And (Thm.dest_binop ct)
-| Const ("op |",_)$_$_ => Or (Thm.dest_binop ct)
-| Const ("op =",_)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
-| Const (@{const_name Not},_) $ (Const ("op =",_)$y$_) =>
+  Const(@{const_name "op &"},_)$_$_ => And (Thm.dest_binop ct)
+| Const (@{const_name "op |"},_)$_$_ => Or (Thm.dest_binop ct)
+| Const (@{const_name "op ="},_)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
+| Const (@{const_name Not},_) $ (Const (@{const_name "op ="},_)$y$_) =>
   if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
 | Const (@{const_name Orderings.less}, _) $ y$ z =>
    if term_of x aconv y then Lt (Thm.dest_arg ct)
@@ -274,7 +274,7 @@ fun lin (vs as x::_) (Const (@{const_name Not}, _) $ (Const (@{const_name Orderi
   | lin vs (Const (@{const_name Not},T)$t) = Const (@{const_name Not},T)$ (lin vs t)
   | lin (vs as x::_) (Const(@{const_name Rings.dvd},_)$d$t) =
     HOLogic.mk_binrel @{const_name Rings.dvd} (numeral1 abs d, lint vs t)
-  | lin (vs as x::_) ((b as Const("op =",_))$s$t) =
+  | lin (vs as x::_) ((b as Const(@{const_name "op ="},_))$s$t) =
      (case lint vs (subC$t$s) of
       (t as a$(m$c$y)$r) =>
         if x <> y then b$zero$t
@@ -353,8 +353,8 @@ fun unify ctxt q =
     then (ins (dest_number c) acc, dacc) else (acc,dacc)
   | Const(@{const_name Rings.dvd},_)$_$(Const(@{const_name Groups.plus},_)$(Const(@{const_name Groups.times},_)$c$y)$_) =>
     if x aconv y then (acc,ins (dest_number c) dacc) else (acc,dacc)
-  | Const("op &",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
-  | Const("op |",_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
+  | Const(@{const_name "op &"},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
+  | Const(@{const_name "op |"},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
   | Const (@{const_name Not},_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
@@ -382,8 +382,8 @@ fun unify ctxt q =
     end
   fun unit_conv t =
    case (term_of t) of
-   Const("op &",_)$_$_ => Conv.binop_conv unit_conv t
-  | Const("op |",_)$_$_ => Conv.binop_conv unit_conv t
+   Const(@{const_name "op &"},_)$_$_ => Conv.binop_conv unit_conv t
+  | Const(@{const_name "op |"},_)$_$_ => Conv.binop_conv unit_conv t
   | Const (@{const_name Not},_)$_ => Conv.arg_conv unit_conv t
   | Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
     if x=y andalso member (op =)
@@ -612,19 +612,19 @@ fun num_of_term vs (Free vT) = Proc.Bound (find_index (fn vT' => vT' = vT) vs)
 
 fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
   | fm_of_term ps vs (Const (@{const_name False}, _)) = Proc.F
-  | fm_of_term ps vs (Const ("op &", _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (@{const_name "op &"}, _) $ t1 $ t2) =
       Proc.And (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (Const ("op |", _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (@{const_name "op |"}, _) $ t1 $ t2) =
       Proc.Or (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (Const ("op -->", _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (@{const_name "op -->"}, _) $ t1 $ t2) =
       Proc.Imp (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (@{term "op = :: bool => _ "} $ t1 $ t2) =
       Proc.Iff (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (Const (@{const_name Not}, _) $ t') =
       Proc.Not (fm_of_term ps vs t')
-  | fm_of_term ps vs (Const ("Ex", _) $ Abs abs) =
+  | fm_of_term ps vs (Const (@{const_name "Ex"}, _) $ Abs abs) =
       Proc.E (uncurry (fm_of_term ps) (descend vs abs))
-  | fm_of_term ps vs (Const ("All", _) $ Abs abs) =
+  | fm_of_term ps vs (Const (@{const_name "All"}, _) $ Abs abs) =
       Proc.A (uncurry (fm_of_term ps) (descend vs abs))
   | fm_of_term ps vs (@{term "op = :: int => _"} $ t1 $ t2) =
       Proc.Eq (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
@@ -687,14 +687,14 @@ val comp_ss = HOL_ss addsimps @{thms semiring_norm};
 
 fun strip_objimp ct =
   (case Thm.term_of ct of
-    Const ("op -->", _) $ _ $ _ =>
+    Const (@{const_name "op -->"}, _) $ _ $ _ =>
       let val (A, B) = Thm.dest_binop ct
       in A :: strip_objimp B end
   | _ => [ct]);
 
 fun strip_objall ct = 
  case term_of ct of 
-  Const ("All", _) $ Abs (xn,xT,p) => 
+  Const (@{const_name "All"}, _) $ Abs (xn,xT,p) => 
    let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
    in apfst (cons (a,v)) (strip_objall t')
    end
