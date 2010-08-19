@@ -1,6 +1,6 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
 
-Compatibility wrapper for Poly/ML 5.3.0.
+Compatibility wrapper for Poly/ML 5.3 and 5.4.
 *)
 
 use "ML-Systems/unsynchronized.ML";

@@ -18,8 +18,9 @@ Thy_Info.register_thy Pure.thy;
 
 (* ML toplevel pretty printing *)
 
-if String.isPrefix "smlnj" ml_system then ()
-else toplevel_pp ["String", "string"] "ML_Syntax.pretty_string";
+if String.isPrefix "polyml" ml_system
+then toplevel_pp ["String", "string"] "ML_Syntax.pretty_string"
+else ();
 
 toplevel_pp ["Pretty", "T"] "(fn _: Pretty.T => Pretty.str \"<pretty>\")";
 toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
@@ -39,15 +40,10 @@ toplevel_pp ["File", "ident"] "Pretty.str o quote o File.rep_ident";
 toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>\")";
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 
-if ml_system = "polyml-5.3.0"
-then use "ML/install_pp_polyml-5.3.ML"
-else if String.isPrefix "polyml" ml_system
+if ml_system = "polyml-5.2" orelse ml_system = "polyml-5.2.1"
 then use "ML/install_pp_polyml.ML"
-else ();
-
-if ml_system = "polyml-5.0" orelse ml_system = "polyml-5.1" then
-  Secure.use_text ML_Parse.global_context (0, "") false
-    "PolyML.Compiler.maxInlineSize := 20"
+else if String.isPrefix "polyml" ml_system
+then use "ML/install_pp_polyml-5.3.ML"
 else ();
 
 

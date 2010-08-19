@@ -27,9 +27,9 @@ object Command
 
   case class State(
     val command: Command,
-    val status: List[Markup],
+    val status: List[XML.Tree],
     val reverse_results: List[XML.Tree],
-    val markup: Markup_Text)
+    val markup: Markup_Tree)
   {
     /* content */
 
@@ -37,23 +37,27 @@ object Command
 
     def add_result(result: XML.Tree): State = copy(reverse_results = result :: reverse_results)
 
-    def add_markup(node: Markup_Tree): State = copy(markup = markup + node)
+    def add_markup(node: Markup_Tree.Node): State = copy(markup = markup + node)
+
+    def markup_root_node: Markup_Tree.Node =
+      new Markup_Tree.Node(command.range, XML.Elem(Markup(Markup.STATUS, Nil), status))
+    def markup_root: Markup_Tree = markup + markup_root_node
 
 
     /* markup */
 
-    lazy val highlight: Markup_Text =
+    lazy val highlight: List[Markup_Tree.Node] =
     {
       markup.filter(_.info match {
         case Command.HighlightInfo(_, _) => true
         case _ => false
-      })
+      }).flatten(markup_root_node)
     }
 
-    private lazy val types: List[Markup_Node] =
+    private lazy val types: List[Markup_Tree.Node] =
       markup.filter(_.info match {
         case Command.TypeInfo(_) => true
-        case _ => false }).flatten
+        case _ => false }).flatten(markup_root_node)
 
     def type_at(pos: Text.Offset): Option[String] =
     {
@@ -67,12 +71,12 @@ object Command
       }
     }
 
-    private lazy val refs: List[Markup_Node] =
+    private lazy val refs: List[Markup_Tree.Node] =
       markup.filter(_.info match {
         case Command.RefInfo(_, _, _, _) => true
-        case _ => false }).flatten
+        case _ => false }).flatten(markup_root_node)
 
-    def ref_at(pos: Text.Offset): Option[Markup_Node] =
+    def ref_at(pos: Text.Offset): Option[Markup_Tree.Node] =
       refs.find(_.range.contains(pos))
 
 
@@ -80,26 +84,23 @@ object Command
 
     def accumulate(message: XML.Tree): Command.State =
       message match {
-        case XML.Elem(Markup(Markup.STATUS, _), elems) =>
-          copy(status = (for (XML.Elem(markup, _) <- elems) yield markup) ::: status)
+        case XML.Elem(Markup(Markup.STATUS, _), body) => copy(status = body ::: status)
 
         case XML.Elem(Markup(Markup.REPORT, _), elems) =>
           (this /: elems)((state, elem) =>
             elem match {
               case XML.Elem(Markup(kind, atts), body) if Position.get_id(atts) == Some(command.id) =>
                 atts match {
-                  case Position.Range(begin, end) =>
+                  case Position.Range(range) =>
                     if (kind == Markup.ML_TYPING) {
                       val info = Pretty.string_of(body, margin = 40)
-                      state.add_markup(
-                        command.markup_node(begin - 1, end - 1, Command.TypeInfo(info)))
+                      state.add_markup(command.decode_range(range, Command.TypeInfo(info)))
                     }
                     else if (kind == Markup.ML_REF) {
                       body match {
                         case List(XML.Elem(Markup(Markup.ML_DEF, props), _)) =>
                           state.add_markup(
-                            command.markup_node(
-                              begin - 1, end - 1,
+                            command.decode_range(range,
                               Command.RefInfo(
                                 Position.get_file(props),
                                 Position.get_line(props),
@@ -110,7 +111,7 @@ object Command
                     }
                     else {
                       state.add_markup(
-                        command.markup_node(begin - 1, end - 1,
+                        command.decode_range(range,
                           Command.HighlightInfo(kind, Markup.get_string(Markup.KIND, atts))))
                     }
                   case _ => state
@@ -151,21 +152,18 @@ class Command(
   val source: String = span.map(_.source).mkString
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
   def length: Int = source.length
+  val range: Text.Range = Text.Range(0, length)
 
   lazy val symbol_index = new Symbol.Index(source)
 
 
   /* markup */
 
-  def markup_node(begin: Int, end: Int, info: Any): Markup_Tree =
-  {
-    val start = symbol_index.decode(begin)
-    val stop = symbol_index.decode(end)
-    new Markup_Tree(new Markup_Node(Text.Range(start, stop), info), Nil)
-  }
+  def decode_range(range: Text.Range, info: Any): Markup_Tree.Node =
+    new Markup_Tree.Node(symbol_index.decode(range), info)
 
 
   /* accumulated results */
 
-  val empty_state: Command.State = Command.State(this, Nil, Nil, new Markup_Text(Nil, source))
+  val empty_state: Command.State = Command.State(this, Nil, Nil, Markup_Tree.empty)
 }

@@ -123,7 +123,7 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML type}{local\_theory}\verb|type local_theory = Proof.context| \\
-  \indexdef{}{ML}{Named\_Target.init}\verb|Named_Target.init: string option -> theory -> local_theory| \\[1ex]
+  \indexdef{}{ML}{Named\_Target.init}\verb|Named_Target.init: string -> theory -> local_theory| \\[1ex]
   \indexdef{}{ML}{Local\_Theory.define}\verb|Local_Theory.define: (binding * mixfix) * (Attrib.binding * term) ->|\isasep\isanewline%
 \verb|    local_theory -> (term * (string * thm)) * local_theory| \\
   \indexdef{}{ML}{Local\_Theory.note}\verb|Local_Theory.note: Attrib.binding * thm list ->|\isasep\isanewline%
@@ -139,13 +139,13 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
   any value \isa{lthy{\isacharcolon}}~\verb|local_theory| can be also used
   with operations on expecting a regular \isa{ctxt{\isacharcolon}}~\verb|Proof.context|.
 
-  \item \verb|Named_Target.init|~\isa{NONE\ thy} initializes a
-  trivial local theory from the given background theory.
-  Alternatively, \isa{SOME\ name} may be given to initialize a
-  \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} or \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} context (a fully-qualified
-  internal name is expected here).  This is useful for experimentation
-  --- normally the Isar toplevel already takes care to initialize the
-  local theory context.
+  \item \verb|Named_Target.init|~\isa{name\ thy} initializes a local
+  theory derived from the given background theory.  An empty name
+  refers to a \emph{global theory} context, and a non-empty name
+  refers to a \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} or \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} context (a
+  fully-qualified internal name is expected here).  This is useful for
+  experimentation --- normally the Isar toplevel already takes care to
+  initialize the local theory context.
 
   \item \verb|Local_Theory.define|~\isa{{\isacharparenleft}{\isacharparenleft}b{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}a{\isacharcomma}\ rhs{\isacharparenright}{\isacharparenright}\ lthy} defines a local entity according to the specification that is
   given relatively to the current \isa{lthy} context.  In

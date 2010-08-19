@@ -97,7 +97,7 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type local_theory: Proof.context} \\
-  @{index_ML Named_Target.init: "string option -> theory -> local_theory"} \\[1ex]
+  @{index_ML Named_Target.init: "string -> theory -> local_theory"} \\[1ex]
   @{index_ML Local_Theory.define: "(binding * mixfix) * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory"} \\
   @{index_ML Local_Theory.note: "Attrib.binding * thm list ->
@@ -114,13 +114,13 @@ text %mlref {*
   with operations on expecting a regular @{text "ctxt:"}~@{ML_type
   Proof.context}.
 
-  \item @{ML Named_Target.init}~@{text "NONE thy"} initializes a
-  trivial local theory from the given background theory.
-  Alternatively, @{text "SOME name"} may be given to initialize a
-  @{command locale} or @{command class} context (a fully-qualified
-  internal name is expected here).  This is useful for experimentation
-  --- normally the Isar toplevel already takes care to initialize the
-  local theory context.
+  \item @{ML Named_Target.init}~@{text "name thy"} initializes a local
+  theory derived from the given background theory.  An empty name
+  refers to a \emph{global theory} context, and a non-empty name
+  refers to a @{command locale} or @{command class} context (a
+  fully-qualified internal name is expected here).  This is useful for
+  experimentation --- normally the Isar toplevel already takes care to
+  initialize the local theory context.
 
   \item @{ML Local_Theory.define}~@{text "((b, mx), (a, rhs))
   lthy"} defines a local entity according to the specification that is

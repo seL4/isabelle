@@ -9,8 +9,8 @@ sig
   val parse_int: string -> int
   val print_int: int -> string
   type T = string * Properties.T
-  val none: T
-  val is_none: T -> bool
+  val empty: T
+  val is_empty: T -> bool
   val properties: Properties.T -> T -> T
   val nameN: string
   val name: string -> T -> T
@@ -142,10 +142,10 @@ val print_int = signed_string_of_int;
 
 type T = string * Properties.T;
 
-val none = ("", []);
+val empty = ("", []);
 
-fun is_none ("", _) = true
-  | is_none _ = false;
+fun is_empty ("", _) = true
+  | is_empty _ = false;
 
 
 fun properties more_props ((elem, props): T) =
@@ -356,7 +356,7 @@ in
     the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
 end;
 
-fun output m = if is_none m then no_output else #output (get_mode ()) m;
+fun output m = if is_empty m then no_output else #output (get_mode ()) m;
 
 val enclose = output #-> Library.enclose;
 

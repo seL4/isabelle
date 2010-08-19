@@ -48,6 +48,11 @@ object Markup
   }
 
 
+  /* empty */
+
+  val Empty = Markup("", Nil)
+
+
   /* name */
 
   val NAME = "name"

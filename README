@@ -13,7 +13,7 @@ System requirements
    Windows with Cygwin, Mac OS) and depends on the following main
    add-on tools:
 
-     * The Poly/ML compiler and runtime system (version 5.x).
+     * The Poly/ML compiler and runtime system (version 5.2.1 or later).
      * The GNU bash shell (version 3.x or 2.x).
      * Perl (version 5.x).
      * GNU Emacs (version 22) -- for the Proof General interface.

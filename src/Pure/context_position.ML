@@ -9,6 +9,7 @@ sig
   val is_visible: Proof.context -> bool
   val set_visible: bool -> Proof.context -> Proof.context
   val restore_visible: Proof.context -> Proof.context -> Proof.context
+  val report_text: Proof.context -> Markup.T -> Position.T -> string -> unit
   val report: Proof.context -> Markup.T -> Position.T -> unit
 end;
 
@@ -25,7 +26,9 @@ val is_visible = Data.get;
 val set_visible = Data.put;
 val restore_visible = set_visible o is_visible;
 
-fun report ctxt markup pos =
-  if is_visible ctxt then Position.report markup pos else ();
+fun report_text ctxt markup pos txt =
+  if is_visible ctxt then Position.report_text markup pos txt else ();
+
+fun report ctxt markup pos = report_text ctxt markup pos "";
 
 end;

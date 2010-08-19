@@ -10,15 +10,42 @@ package isabelle
 
 object Text
 {
-  /* offset and range */
+  /* offset */
 
   type Offset = Int
 
+
+  /* range: interval with total quasi-ordering */
+
+  object Range
+  {
+    object Ordering extends scala.math.Ordering[Range]
+    {
+      override def compare(r1: Range, r2: Range): Int = r1 compare r2
+    }
+  }
+
   sealed case class Range(val start: Offset, val stop: Offset)
   {
-    def contains(i: Offset): Boolean = start <= i && i < stop
+    require(start <= stop)
+
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = map(_ + i)
+    def contains(i: Offset): Boolean = start <= i && i < stop
+    def contains(that: Range): Boolean =
+      this == that || this.contains(that.start) && that.stop <= this.stop
+    def overlaps(that: Range): Boolean =
+      this == that || this.contains(that.start) || that.contains(this.start)
+    def compare(that: Range): Int =
+      if (overlaps(that)) 0
+      else if (this.start < that.start) -1
+      else 1
+
+    def start_range: Range = Range(start, start)
+    def stop_range: Range = Range(stop, stop)
+
+    def intersect(that: Range): Range =
+      Range(this.start max that.start, this.stop min that.stop)
   }
 
 

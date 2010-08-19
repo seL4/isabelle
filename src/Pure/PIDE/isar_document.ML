@@ -1,4 +1,4 @@
-(*  Title:      Pure/System/isar_document.ML
+(*  Title:      Pure/PIDE/isar_document.ML
     Author:     Makarius
 
 Protocol commands for interactive Isar documents.

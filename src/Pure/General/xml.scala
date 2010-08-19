@@ -67,30 +67,15 @@ object XML
   def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
 
-  /* iterate over content */
+  /* text content */
 
-  private type State = Option[(String, List[Tree])]
-
-  private def get_next(tree: Tree): State = tree match {
-    case Elem(_, body) => get_nexts(body)
-    case Text(content) => Some(content, Nil)
-  }
-  private def get_nexts(trees: List[Tree]): State = trees match {
-    case Nil => None
-    case t :: ts => get_next(t) match {
-      case None => get_nexts(ts)
-      case Some((s, r)) => Some((s, r ++ ts))
+  def content_stream(tree: Tree): Stream[String] =
+    tree match {
+      case Elem(_, body) => body.toStream.flatten(content_stream(_))
+      case Text(content) => Stream(content)
     }
-  }
 
-  def content(tree: Tree) = new Iterator[String] {
-    private var state = get_next(tree)
-    def hasNext() = state.isDefined
-    def next() = state match {
-      case Some((s, rest)) => { state = get_nexts(rest); s }
-      case None => throw new NoSuchElementException("next on empty iterator")
-    }
-  }
+  def content(tree: Tree): Iterator[String] = content_stream(tree).iterator
 
 
   /* pipe-lined cache for partial sharing */

@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/isar_document.scala
+/*  Title:      Pure/PIDE/isar_document.scala
     Author:     Makarius
 
 Protocol commands for interactive Isar documents.

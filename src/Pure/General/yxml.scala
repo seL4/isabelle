@@ -85,7 +85,7 @@ object YXML
     /* stack operations */
 
     def buffer(): ListBuffer[XML.Tree] = new ListBuffer[XML.Tree]
-    var stack: List[(Markup, ListBuffer[XML.Tree])] = List((Markup("", Nil), buffer()))
+    var stack: List[(Markup, ListBuffer[XML.Tree])] = List((Markup.Empty, buffer()))
 
     def add(x: XML.Tree)
     {
@@ -101,7 +101,7 @@ object YXML
     def pop()
     {
       (stack: @unchecked) match {
-        case ((Markup("", _), _) :: _) => err_unbalanced("")
+        case ((Markup.Empty, _) :: _) => err_unbalanced("")
         case ((markup, body) :: pending) =>
           stack = pending
           add(XML.Elem(markup, body.toList))
@@ -122,7 +122,7 @@ object YXML
       }
     }
     stack match {
-      case List((Markup("", _), body)) => body.toList
+      case List((Markup.Empty, body)) => body.toList
       case (Markup(name, _), _) :: _ => err_unbalanced(name)
     }
   }

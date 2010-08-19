@@ -8,8 +8,6 @@
   '("\\."
     "\\.\\."
     "Isabelle\\.command"
-    "Isar\\.define_command"
-    "Isar\\.edit_document"
     "ML"
     "ML_command"
     "ML_prf"
@@ -320,8 +318,6 @@
 
 (defconst isar-keywords-control
   '("Isabelle\\.command"
-    "Isar\\.define_command"
-    "Isar\\.edit_document"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
     "ProofGeneral\\.kill_proof"

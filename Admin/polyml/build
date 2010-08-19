@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+#
+# Multi-platform build script for Poly/ML
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+PRG="$(basename "$0")"
+
+
+# diagnostics
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG SOURCE TARGET [OPTIONS]"
+  echo
+  echo "  Build Poly/ML in SOURCE directory for given platform in TARGET,"
+  echo "  using the usual Isabelle platform identifiers."
+  echo
+  echo "  Additional options for ./configure may be given, e.g. --with-gmp"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+# command line args
+
+[ "$#" -eq 0 ] && usage
+SOURCE="$1"; shift
+
+[ "$#" -eq 0 ] && usage
+TARGET="$1"; shift
+
+USER_OPTIONS=("$@")
+
+
+# main
+
+[ -d "$SOURCE" ] || fail "Bad source directory: \"$SOURCE\""
+
+case "$TARGET" in
+  x86-linux)
+    OPTIONS=()
+    ;;
+  x86_64-linux)
+    OPTIONS=()
+    ;;
+  x86-darwin)
+    OPTIONS=(--build=i686-darwin CFLAGS='-arch i686 -O3'
+      CXXFLAGS='-arch i686 -O3' CCASFLAGS='-arch i686 -O3')
+    ;;
+  x86_64-darwin)
+    OPTIONS=(--build=x86_64-darwin CFLAGS='-arch x86_64 -O3'
+      CXXFLAGS='-arch x86_64 -O3' CCASFLAGS='-arch x86_64')
+    ;;
+  x86-cygwin)
+    OPTIONS=()
+    ;;
+  ppc-darwin | sparc-solaris | x86-solaris | x86-bsd)
+    OPTIONS=()
+    ;;
+  *)
+    fail "Bad platform identifier: \"$TARGET\""
+    ;;
+esac
+
+(
+  cd "$SOURCE"
+  make distclean
+
+  { ./configure --prefix="$PWD/$TARGET" "${OPTIONS[@]}" "${USER_OPTIONS[@]}" && \
+    make compiler && \
+    make install; } || fail "Build failed"
+)
+
+mkdir -p "$TARGET"
+mv "$SOURCE/$TARGET/bin/"* "$TARGET/"
+mv "$SOURCE/$TARGET/lib/"* "$TARGET/"
+rmdir "$SOURCE/$TARGET/bin" "$SOURCE/$TARGET/lib"
+rm -rf "$SOURCE/$TARGET/share"
