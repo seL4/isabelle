@@ -151,12 +151,27 @@ fun freeze_term t =
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
+(* "Object_Logic.atomize_term" isn't as powerful as it could be; for example,
+    it leaves metaequalities over "prop"s alone. *)
+fun atomize_term t =
+  (case t of
+     @{const Trueprop} $ t1 => t1
+   | Const (@{const_name all}, _) $ Abs (s, T, t') =>
+     HOLogic.all_const T $ Abs (s, T, atomize_term t')
+   | @{const "==>"} $ t1 $ t2 => HOLogic.mk_imp (pairself atomize_term (t1, t2))
+   | Const (@{const_name "=="}, Type (_, [@{typ prop}, _])) $ t1 $ t2 =>
+     HOLogic.eq_const HOLogic.boolT $ atomize_term t1 $ atomize_term t2
+   | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
+     HOLogic.eq_const T $ t1 $ t2
+   | _ => raise Fail "atomize_term")
+  handle Fail "atomize_term" => t
+
 (* making axiom and conjecture formulas *)
 fun make_formula ctxt presimp (name, kind, t) =
   let
     val thy = ProofContext.theory_of ctxt
     val t = t |> transform_elim_term
-              |> Object_Logic.atomize_term thy
+              |> atomize_term
     val t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
               |> extensionalize_term
               |> presimp ? presimplify_term thy
