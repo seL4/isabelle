@@ -546,6 +546,17 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
 
 (** EXTRACTING LEMMAS **)
 
+(* Like "split_line", but ignores "\n" that follow a comma (as in SNARK's
+   output). *)
+val split_proof_lines =
+  let
+    fun aux [] [] = []
+      | aux line [] = [implode (rev line)]
+      | aux line ("," :: "\n" :: rest) = aux ("," :: line) rest
+      | aux line ("\n" :: rest) = aux line [] @ aux [] rest
+      | aux line (s :: rest) = aux (s :: line) rest
+  in aux [] o explode end
+
 (* A list consisting of the first number in each line is returned. For TSTP,
    interesting lines have the form "fof(108, axiom, ...)", where the number
    (108) is extracted. For SPASS, lines have the form "108[0:Inp] ...", where
@@ -563,16 +574,19 @@ fun used_facts_in_atp_proof axiom_names atp_proof =
     val tokens_of =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
     val thm_name_list = Vector.foldr (op ::) [] axiom_names
-    fun do_line ("fof" :: num :: "axiom" :: (rest as _ :: _)) =
-        (case strip_prefix_and_undo_ascii axiom_prefix (List.last rest) of
-           SOME name =>
-           if member (op =) rest "file" then SOME name else axiom_name num
-         | NONE => axiom_name num)
+    fun do_line (tag :: num :: "axiom" :: (rest as _ :: _)) =
+        if tag = "cnf" orelse tag = "fof" then
+          (case strip_prefix_and_undo_ascii axiom_prefix (List.last rest) of
+             SOME name =>
+             if member (op =) rest "file" then SOME name else axiom_name num
+           | NONE => axiom_name num)
+        else
+          NONE
       | do_line (num :: "0" :: "Inp" :: _) = axiom_name num
       | do_line (num :: rest) =
         (case List.last rest of "input" => axiom_name num | _ => NONE)
       | do_line _ = NONE
-  in atp_proof |> split_lines |> map_filter (do_line o tokens_of) end
+  in atp_proof |> split_proof_lines |> map_filter (do_line o tokens_of) end
 
 val indent_size = 2
 val no_label = ("", ~1)
@@ -983,7 +997,7 @@ fun string_for_proof ctxt full_types i n =
         (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
         do_indent 0 ^ "proof -\n" ^
         do_steps "" "" 1 proof ^
-        do_indent 0 ^ (if n <> 1 then "next" else "qed") ^ "\n"
+        do_indent 0 ^ (if n <> 1 then "next" else "qed")
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
@@ -1005,14 +1019,14 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
            |> kill_useless_labels_in_proof
            |> relabel_proof
            |> string_for_proof ctxt full_types i n of
-        "" => "No structured proof available.\n"
-      | proof => "\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
+        "" => "\nNo structured proof available."
+      | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
       if debug then
         isar_proof_for ()
       else
         try isar_proof_for ()
-        |> the_default "Warning: The Isar proof construction failed.\n"
+        |> the_default "\nWarning: The Isar proof construction failed."
   in (one_line_proof ^ isar_proof, lemma_names) end
 
 fun proof_text isar_proof isar_params other_params =
