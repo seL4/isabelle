@@ -209,7 +209,7 @@ val optional_helpers =
 val optional_typed_helpers =
   [(["c_True", "c_False"], @{thms True_or_False}),
    (["c_If"], @{thms if_True if_False True_or_False})]
-val mandatory_helpers = @{thms fequal_imp_equal equal_imp_fequal}
+val mandatory_helpers = @{thms fequal_def}
 
 val init_counters =
   Symtab.make (maps (maps (map (rpair 0) o fst))

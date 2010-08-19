@@ -82,9 +82,9 @@ fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs)
 
 (*Pairs a constant with the list of its type instantiations (using const_typ)*)
 fun const_with_typ thy (c,typ) =
-    let val tvars = Sign.const_typargs thy (c,typ)
-    in (c, map const_typ_of tvars) end
-    handle TYPE _ => (c,[]);   (*Variable (locale constant): monomorphic*)
+  let val tvars = Sign.const_typargs thy (c,typ) in
+    (c, map const_typ_of tvars) end
+  handle TYPE _ => (c, [])   (*Variable (locale constant): monomorphic*)
 
 (*Add a const/type pair to the table, but a [] entry means a standard connective,
   which we ignore.*)
@@ -95,7 +95,8 @@ fun add_const_type_to_table (c, ctyps) =
 val fresh_prefix = "Sledgehammer.Fresh."
 val flip = Option.map not
 (* These are typically simplified away by "Meson.presimplify". *)
-val boring_consts = [@{const_name If}, @{const_name Let}]
+val boring_consts =
+  [@{const_name If}, @{const_name Let} (* TODO: , @{const_name Set.member}, @{const_name Collect} *)]
 
 fun get_consts_typs thy pos ts =
   let
@@ -104,9 +105,8 @@ fun get_consts_typs thy pos ts =
        introduce a fresh constant to simulate the effect of Skolemization. *)
     fun do_term t =
       case t of
-        Const (@{const_name Let}, _) => I
-      | Const x => add_const_type_to_table (const_with_typ thy x)
-      | Free x => add_const_type_to_table (const_with_typ thy x)
+        Const x => add_const_type_to_table (const_with_typ thy x)
+      | Free (s, _) => add_const_type_to_table (s, [])
       | t1 $ t2 => do_term t1 #> do_term t2
       | Abs (_, _, t) =>
         (* Abstractions lead to combinators, so we add a penalty for them. *)
@@ -198,7 +198,7 @@ structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_o
 fun count_axiom_consts theory_relevant thy (_, th) =
   let
     fun do_const (a, T) =
-      let val (c, cts) = const_with_typ thy (a,T) in
+      let val (c, cts) = const_with_typ thy (a, T) in
         (* Two-dimensional table update. Constant maps to types maps to
            count. *)
         CTtab.map_default (cts, 0) (Integer.add 1)

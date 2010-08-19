@@ -527,7 +527,8 @@ fun make_nnf1 ctxt th =
   which are needed to avoid the various one-point theorems from generating junk clauses.*)
 val nnf_simps =
   @{thms simp_implies_def Ex1_def Ball_def Bex_def if_True if_False if_cancel
-         if_eq_cancel cases_simp}
+         if_eq_cancel cases_simp (* TODO: mem_def_raw Collect_def_raw *)}
+(* TODO:  @ [@{lemma "{} = (%x. False)" by (rule ext) auto}] *)
 val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 
 val nnf_ss =
@@ -539,8 +540,7 @@ val presimplify =
   #> simplify nnf_ss
 
 fun make_nnf ctxt th = case prems_of th of
-    [] => th |> presimplify
-             |> make_nnf1 ctxt
+    [] => th |> presimplify |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for

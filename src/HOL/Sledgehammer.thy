@@ -31,28 +31,31 @@ definition skolem_id :: "'a \<Rightarrow> 'a" where
 [no_atp]: "skolem_id = (\<lambda>x. x)"
 
 definition COMBI :: "'a \<Rightarrow> 'a" where
-[no_atp]: "COMBI P \<equiv> P"
+[no_atp]: "COMBI P = P"
 
 definition COMBK :: "'a \<Rightarrow> 'b \<Rightarrow> 'a" where
-[no_atp]: "COMBK P Q \<equiv> P"
+[no_atp]: "COMBK P Q = P"
 
 definition COMBB :: "('b => 'c) \<Rightarrow> ('a => 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where [no_atp]:
-"COMBB P Q R \<equiv> P (Q R)"
+"COMBB P Q R = P (Q R)"
 
 definition COMBC :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'c" where
-[no_atp]: "COMBC P Q R \<equiv> P R Q"
+[no_atp]: "COMBC P Q R = P R Q"
 
 definition COMBS :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'c" where
-[no_atp]: "COMBS P Q R \<equiv> P R (Q R)"
+[no_atp]: "COMBS P Q R = P R (Q R)"
 
 definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where [no_atp]:
-"fequal X Y \<equiv> (X = Y)"
+"fequal X Y \<longleftrightarrow> (X = Y)"
 
-lemma fequal_imp_equal [no_atp]: "fequal X Y \<Longrightarrow> X = Y"
-  by (simp add: fequal_def)
+lemma fequal_imp_equal [no_atp]: "\<not> fequal X Y \<or> X = Y"
+by (simp add: fequal_def)
 
-lemma equal_imp_fequal [no_atp]: "X = Y \<Longrightarrow> fequal X Y"
-  by (simp add: fequal_def)
+lemma equal_imp_fequal [no_atp]: "\<not> X = Y \<or> fequal X Y"
+by (simp add: fequal_def)
+
+lemma equal_imp_equal [no_atp]: "X = Y ==> X = Y"
+by auto
 
 text{*Theorems for translation to combinators*}
 
