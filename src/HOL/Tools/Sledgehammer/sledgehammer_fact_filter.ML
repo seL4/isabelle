@@ -532,6 +532,8 @@ val is_exhaustive_finite =
       | (false, @{const "op &"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
       | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, @{const False}) => true
+      | (false, @{const True}) => true
       | _ => false
   in do_formula true end
 
