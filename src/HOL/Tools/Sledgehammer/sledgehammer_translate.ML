@@ -103,6 +103,25 @@ fun reveal_bounds Ts =
   subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
                     (0 upto length Ts - 1 ~~ Ts))
 
+(* Removes the lambdas from an equation of the form "t = (%x. u)".
+   (Cf. "extensionalize_theorem" in "Clausifier".) *)
+fun extensionalize_term t =
+  let
+    fun aux j (@{const Trueprop} $ t') = @{const Trueprop} $ aux j t'
+      | aux j (t as Const (s, Type (_, [Type (_, [_, T']),
+                                        Type (_, [_, res_T])]))
+                    $ t2 $ Abs (var_s, var_T, t')) =
+        if s = @{const_name "op ="} orelse s = @{const_name "=="} then
+          let val var_t = Var ((var_s, j), var_T) in
+            Const (s, T' --> T' --> res_T)
+              $ betapply (t2, var_t) $ subst_bound (var_t, t')
+            |> aux (j + 1)
+          end
+        else
+          t
+      | aux _ t = t
+  in aux (maxidx_of_term t + 1) t end
+
 fun introduce_combinators_in_term ctxt kind t =
   let val thy = ProofContext.theory_of ctxt in
     if Meson.is_fol_term thy t then
@@ -170,7 +189,8 @@ val atomize_term =
 fun make_formula ctxt presimp (name, kind, t) =
   let
     val thy = ProofContext.theory_of ctxt
-    val t = t |> transform_elim_term
+    val t = t |> Envir.beta_eta_contract
+              |> transform_elim_term
               |> atomize_term
     val t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
               |> extensionalize_term

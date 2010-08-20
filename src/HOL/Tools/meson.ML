@@ -520,15 +520,14 @@ fun make_nnf1 ctxt th =
         forward_res ctxt (make_nnf1 ctxt)
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM ("tryres", _, _) => th
-  else th;
+  else th
 
 (*The simplification removes defined quantifiers and occurrences of True and False.
   nnf_ss also includes the one-point simprocs,
   which are needed to avoid the various one-point theorems from generating junk clauses.*)
 val nnf_simps =
   @{thms simp_implies_def Ex1_def Ball_def Bex_def if_True if_False if_cancel
-         if_eq_cancel cases_simp (* TODO: mem_def_raw Collect_def_raw *)}
-(* TODO:  @ [@{lemma "{} = (%x. False)" by (rule ext) auto}] *)
+         if_eq_cancel cases_simp}
 val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 
 val nnf_ss =
