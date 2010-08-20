@@ -88,10 +88,6 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
 fun locale_const_declaration (ta as Target {target, ...}) prmode arg =
   locale_declaration target { syntax = true, pervasive = false } (locale_const ta prmode arg);
 
-fun class_target (Target {target, ...}) f =
-  Local_Theory.raw_theory f #>
-  Local_Theory.target (Class.refresh_syntax target);
-
 
 (* define *)
 
@@ -104,7 +100,7 @@ fun class_foundation (ta as Target {target, ...})
     (((b, U), mx), (b_def, rhs)) (type_params, term_params) =
   Generic_Target.theory_foundation (((b, U), NoSyn), (b_def, rhs)) (type_params, term_params)
   #-> (fn (lhs, def) => locale_const_declaration ta Syntax.mode_default ((b, NoSyn), lhs)
-    #> class_target ta (Class.const target ((b, mx), (type_params, lhs)))
+    #> Class.const target ((b, mx), (type_params, lhs))
     #> pair (lhs, def))
 
 fun target_foundation (ta as Target {target, is_locale, is_class, ...}) =
@@ -143,7 +139,7 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
   if is_locale
     then lthy
       |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
-      |> is_class ? class_target ta (Class.abbrev target prmode ((b, mx), t'))
+      |> is_class ? Class.abbrev target prmode ((b, mx), t')
     else lthy
       |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
 

@@ -35,6 +35,10 @@ in addition to interpretations in theories.
 
 *** HOL ***
 
+* Theory SetsAndFunctions has been split into Function_Algebras and Set_Algebras;
+canonical names for instance definitions for functions; various improvements.
+INCOMPATIBILITY.
+
 * Records: logical foundation type for records do not carry a '_type' suffix
 any longer.  INCOMPATIBILITY.
 

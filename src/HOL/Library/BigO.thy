@@ -5,7 +5,7 @@
 header {* Big O notation *}
 
 theory BigO
-imports Complex_Main SetsAndFunctions
+imports Complex_Main Function_Algebras Set_Algebras
 begin
 
 text {*

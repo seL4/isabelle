@@ -411,7 +411,7 @@ val has_bool_arg_const =
       (fn (c,T) => not(is_conn c) andalso exists has_bool (binder_types T));
 
 (*A higher-order instance of a first-order constant? Example is the definition of
-  one, 1, at a function type in theory SetsAndFunctions.*)
+  one, 1, at a function type in theory Function_Algebras.*)
 fun higher_inst_const thy (c,T) =
   case binder_types T of
       [] => false (*not a function type, OK*)

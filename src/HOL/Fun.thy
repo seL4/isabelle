@@ -162,6 +162,13 @@ by (simp add: inj_on_def)
 lemma inj_on_eq_iff: "inj_on f A ==> x:A ==> y:A ==> (f(x) = f(y)) = (x=y)"
 by (force simp add: inj_on_def)
 
+lemma inj_comp:
+  "inj f \<Longrightarrow> inj g \<Longrightarrow> inj (f \<circ> g)"
+  by (simp add: inj_on_def)
+
+lemma inj_fun: "inj f \<Longrightarrow> inj (\<lambda>x y. f x)"
+  by (simp add: inj_on_def expand_fun_eq)
+
 lemma inj_eq: "inj f ==> (f(x) = f(y)) = (x=y)"
 by (simp add: inj_on_eq_iff)
 

@@ -346,15 +346,15 @@ lemma of_nat_index:
 lemma one_index[simp]:
   "(1 :: 'a::one ^'n)$i = 1" by vector
 
-instance cart :: (semiring_char_0,finite) semiring_char_0
-proof (intro_classes)
-  fix m n ::nat
-  show "(of_nat m :: 'a^'b) = of_nat n \<longleftrightarrow> m = n"
-    by (simp add: Cart_eq of_nat_index)
+instance cart :: (semiring_char_0, finite) semiring_char_0
+proof
+  fix m n :: nat
+  show "inj (of_nat :: nat \<Rightarrow> 'a ^ 'b)"
+    by (auto intro!: injI simp add: Cart_eq of_nat_index)
 qed
 
-instance cart :: (comm_ring_1,finite) comm_ring_1 by intro_classes
-instance cart :: (ring_char_0,finite) ring_char_0 by intro_classes
+instance cart :: (comm_ring_1,finite) comm_ring_1 ..
+instance cart :: (ring_char_0,finite) ring_char_0 ..
 
 instance cart :: (real_vector,finite) real_vector ..
 

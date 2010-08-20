@@ -7,7 +7,7 @@ Testing the metis method.
 header {* Big O notation *}
 
 theory BigO
-imports "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Main SetsAndFunctions 
+imports "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Main Function_Algebras Set_Algebras
 begin
 
 subsection {* Definitions *}
