@@ -65,11 +65,11 @@ object Document
     def command_start(cmd: Command): Option[Text.Offset] =
       command_starts.find(_._1 == cmd).map(_._2)
 
-    def command_range(i: Text.Offset): Iterator[(Command, Text.Offset)] =
+    def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
       command_starts dropWhile { case (cmd, start) => start + cmd.length <= i }
 
-    def command_range(i: Text.Offset, j: Text.Offset): Iterator[(Command, Text.Offset)] =
-      command_range(i) takeWhile { case (_, start) => start < j }
+    def command_range(range: Text.Range): Iterator[(Command, Text.Offset)] =
+      command_range(range.start) takeWhile { case (_, start) => start < range.stop }
 
     def command_at(i: Text.Offset): Option[(Command, Text.Offset)] =
     {

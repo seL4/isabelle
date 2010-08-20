@@ -278,7 +278,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       var next_x = start
       for {
         (command, command_start) <-
-          snapshot.node.command_range(snapshot.revert(start), snapshot.revert(stop))
+          snapshot.node.command_range(snapshot.revert(Text.Range(start, stop)))
         markup <- snapshot.state(command).highlight
         val Text.Range(abs_start, abs_stop) = snapshot.convert(markup.range + command_start)
         if (abs_stop > start)

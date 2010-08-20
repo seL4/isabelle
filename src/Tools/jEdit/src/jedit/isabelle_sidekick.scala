@@ -72,7 +72,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
     val start = buffer.getLineStartOffset(line)
     val text = buffer.getSegment(start, caret - start)
 
-    val completion = Isabelle.session.current_syntax.completion
+    val completion = Isabelle.session.current_syntax().completion
 
     completion.complete(text) match {
       case None => null
@@ -97,7 +97,7 @@ class Isabelle_Sidekick_Default extends Isabelle_Sidekick("isabelle")
     val root = data.root
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for {
-      (command, command_start) <- snapshot.node.command_range(0)
+      (command, command_start) <- snapshot.node.command_range()
       if command.is_command && !stopped
     }
     {
@@ -128,7 +128,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
 
     val root = data.root
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
-    for ((command, command_start) <- snapshot.node.command_range(0) if !stopped) {
+    for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
       snapshot.state(command).markup_root.swing_tree(root)((node: Markup_Tree.Node[Any]) =>
           {
             val content = command.source(node.range).replace('\n', ' ')
