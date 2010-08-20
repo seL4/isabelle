@@ -516,7 +516,7 @@ val is_exhaustive_finite =
       too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
     fun do_formula pos t =
       case (pos, t) of
-        (_, @{const Trueprop} $ t) => do_formula pos t
+        (_, @{const Trueprop} $ t1) => do_formula pos t1
       | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
         do_formula pos t'
       | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
@@ -532,8 +532,8 @@ val is_exhaustive_finite =
       | (false, @{const "op &"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
       | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
-      | (true, @{const False}) => true
-      | (false, @{const True}) => true
+      | (_, @{const False}) => true
+      | (_, @{const True}) => true
       | _ => false
   in do_formula true end
 
