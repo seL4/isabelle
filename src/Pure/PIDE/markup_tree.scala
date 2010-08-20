@@ -24,7 +24,7 @@ object Markup_Tree
   }
 
 
-  /* branches sorted by quasi-order -- overlapping intervals appear as equivalent */
+  /* branches sorted by quasi-order -- overlapping ranges appear as equivalent */
 
   object Branches
   {
@@ -39,7 +39,15 @@ object Markup_Tree
     def update(branches: T, entry: Entry): T = branches + (entry._1 -> entry)
 
     def overlapping(range: Text.Range, branches: T): T =
-      branches.range(Node(range.start_range, Nil), Node(range.stop_range, Nil))
+    {
+      val start = Node[Any](range.start_range, Nil)
+      val stop = Node[Any](range.stop_range, Nil)
+      branches.get(stop) match {
+        case Some(end) if range overlaps end._1.range =>
+          update(branches.range(start, stop), end)
+        case _ => branches.range(start, stop)
+      }
+    }
   }
 
   val empty = new Markup_Tree(Branches.empty)
@@ -131,7 +139,8 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
               Stream(parent.restrict(Text.Range(last, parent.range.stop)))
             else Stream.Empty
         }
-      padding(parent.range.start, substream)
+      if (substream.isEmpty) Stream(parent)
+      else padding(parent.range.start, substream)
     }
     stream(Node(range, Nil), branches)
   }
