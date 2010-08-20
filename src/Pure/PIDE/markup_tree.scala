@@ -115,20 +115,20 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     new Markup_Tree(Branches.empty ++ bs)
   }
 
-  def select[A](range: Text.Range)(sel: PartialFunction[Any, A]): Stream[Node[List[A]]] =
+  def select[A](root: Node[A])(sel: PartialFunction[Any, A]): Stream[Node[A]] =
   {
-    def stream(parent: Node[List[A]], bs: Branches.T): Stream[Node[List[A]]] =
+    def stream(parent: Node[A], bs: Branches.T): Stream[Node[A]] =
     {
       val substream =
         (for ((_, (node, subtree)) <- Branches.overlapping(parent.range, bs).toStream) yield {
           if (sel.isDefinedAt(node.info)) {
-            val current = Node(node.range.restrict(parent.range), List(sel(node.info)))
+            val current = Node(node.range.restrict(parent.range), sel(node.info))
             stream(current, subtree.branches)
           }
-          else stream(parent, subtree.branches)
+          else stream(parent.restrict(node.range), subtree.branches)
         }).flatten
 
-      def padding(last: Text.Offset, s: Stream[Node[List[A]]]): Stream[Node[List[A]]] =
+      def padding(last: Text.Offset, s: Stream[Node[A]]): Stream[Node[A]] =
         s match {
           case (node @ Node(Text.Range(start, stop), _)) #:: rest =>
             if (last < start)
@@ -142,7 +142,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
       if (substream.isEmpty) Stream(parent)
       else padding(parent.range.start, substream)
     }
-    stream(Node(range, Nil), branches)
+    stream(root, branches)
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)(swing_node: Node[Any] => DefaultMutableTreeNode)
