@@ -12,8 +12,6 @@ sig
 
   val trace : bool Unsynchronized.ref
   val chained_prefix : string
-  val name_thms_pair_from_ref :
-    Proof.context -> thm list -> Facts.ref -> string * thm list
   val relevant_facts :
     bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
@@ -36,14 +34,6 @@ type relevance_override =
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 (* Used to label theorems chained into the goal. *)
 val chained_prefix = sledgehammer_prefix ^ "chained_"
-
-fun name_thms_pair_from_ref ctxt chained_ths xref =
-  let
-    val ths = ProofContext.get_fact ctxt xref
-    val name = Facts.string_of_ref xref
-               |> forall (member Thm.eq_thm chained_ths) ths
-                  ? prefix chained_prefix
-  in (name, ths) end
 
 
 (***************************************************************)
@@ -439,7 +429,7 @@ fun is_theorem_bad_for_atps thm =
     exists_sledgehammer_const t orelse is_strange_thm thm
   end
 
-fun all_name_thms_pairs ctxt chained_ths =
+fun all_name_thms_pairs ctxt add_thms chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
@@ -448,10 +438,11 @@ fun all_name_thms_pairs ctxt chained_ths =
 
     fun valid_facts facts =
       (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
-        if Facts.is_concealed facts name orelse
-           (respect_no_atp andalso is_package_def name) orelse
-           member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
-           String.isSuffix "_def_raw" (* FIXME: crude hack *) name then
+        if (Facts.is_concealed facts name orelse
+            (respect_no_atp andalso is_package_def name) orelse
+            member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
+            String.isSuffix "_def_raw" (* FIXME: crude hack *) name) andalso
+          forall (not o member Thm.eq_thm add_thms) ths0 then
           I
         else
           let
@@ -561,9 +552,8 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
    "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
    are omitted. *)
 fun is_dangerous_term full_types t =
-    not full_types andalso
-    (has_bound_or_var_of_type dangerous_types t orelse
-     is_exhaustive_finite t)
+  not full_types andalso
+  (has_bound_or_var_of_type dangerous_types t orelse is_exhaustive_finite t)
 
 fun relevant_facts full_types relevance_threshold relevance_convergence
                    defs_relevant max_new theory_relevant
@@ -573,8 +563,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
-          (map (name_thms_pair_from_ref ctxt chained_ths) add @
-           (if only then [] else all_name_thms_pairs ctxt chained_ths))
+          (if only then [] else all_name_thms_pairs ctxt add_thms chained_ths)
       |> make_unique
       |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
                                not (is_dangerous_term full_types (prop_of th)))

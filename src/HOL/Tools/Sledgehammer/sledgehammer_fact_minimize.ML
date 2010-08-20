@@ -154,6 +154,14 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
     handle ERROR msg => (NONE, "Error: " ^ msg)
   end
 
+fun name_thms_pair_from_ref ctxt chained_ths xref =
+  let
+    val ths = ProofContext.get_fact ctxt xref
+    val name = Facts.string_of_ref xref
+               |> forall (member Thm.eq_thm chained_ths) ths
+                  ? prefix chained_prefix
+  in (name, ths) end
+
 fun run_minimize params i refs state =
   let
     val ctxt = Proof.context_of state
