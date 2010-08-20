@@ -15,25 +15,21 @@ object Text
   type Offset = Int
 
 
-  /* range: interval with total quasi-ordering */
+  /* range -- with total quasi-ordering */
 
   sealed case class Range(val start: Offset, val stop: Offset)
   {
+    // denotation: {start} Un {i. start < i & i < stop}
     require(start <= stop)
 
     override def toString = "[" + start.toString + ":" + stop.toString + "]"
 
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = map(_ + i)
-    def contains(i: Offset): Boolean = start <= i && i < stop
-    def contains(that: Range): Boolean =
-      this == that || this.contains(that.start) && that.stop <= this.stop
-    def overlaps(that: Range): Boolean =
-      this == that || this.contains(that.start) || that.contains(this.start)
-    def compare(that: Range): Int =
-      if (overlaps(that)) 0
-      else if (this.start < that.start) -1
-      else 1
+    def contains(i: Offset): Boolean = start == i || start < i && i < stop
+    def contains(that: Range): Boolean = this.contains(that.start) && that.stop <= this.stop
+    def overlaps(that: Range): Boolean = this.contains(that.start) || that.contains(this.start)
+    def compare(that: Range): Int = if (overlaps(that)) 0 else this.start compare that.start
 
     def start_range: Range = Range(start, start)
     def stop_range: Range = Range(stop, stop)

@@ -22,9 +22,9 @@ object Position
 
   def get_range(pos: T): Option[Text.Range] =
     (get_offset(pos), get_end_offset(pos)) match {
-      case (Some(start), Some(stop)) => Some(Text.Range(start, stop))
-      case (Some(start), None) => Some(Text.Range(start, start + 1))
-      case (None, _) => None
+      case (Some(start), Some(stop)) if start <= stop => Some(Text.Range(start, stop))
+      case (Some(start), None) => Some(Text.Range(start, start))
+      case (_, _) => None
     }
 
   object Id { def unapply(pos: T): Option[Long] = get_id(pos) }
