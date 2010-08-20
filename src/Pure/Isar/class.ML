@@ -17,9 +17,8 @@ sig
   val print_classes: theory -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
-  val const: class -> (binding * mixfix) * (term list * term) -> theory -> theory
-  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> theory -> theory
-  val refresh_syntax: class -> Proof.context -> Proof.context
+  val const: class -> (binding * mixfix) * (term list * term) -> local_theory -> local_theory
+  val abbrev: class -> Syntax.mode -> (binding * mixfix) * term -> local_theory -> local_theory
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
   val class_prefix: string -> string
   val register: class -> class list -> ((string * typ) * (string * typ)) list
@@ -286,12 +285,6 @@ fun synchronize_class_syntax sort base_sort ctxt =
     |> Overloading.set_primary_constraints
   end;
 
-fun refresh_syntax class ctxt =
-  let
-    val thy = ProofContext.theory_of ctxt;
-    val base_sort = base_sort thy class;
-  in synchronize_class_syntax [class] base_sort ctxt end;
-
 fun redeclare_operations thy sort =
   fold (redeclare_const thy o fst) (these_operations thy sort);
 
@@ -312,7 +305,15 @@ fun init class thy =
 
 val class_prefix = Logic.const_of_class o Long_Name.base_name;
 
-fun const class ((c, mx), (type_params, dict)) thy =
+fun target_extension f class lthy =
+  lthy
+  |> Local_Theory.raw_theory f
+  |> Local_Theory.target (synchronize_class_syntax [class]
+      (base_sort (ProofContext.theory_of lthy) class));
+
+local
+
+fun target_const class ((c, mx), (type_params, dict)) thy =
   let
     val morph = morphism thy class;
     val b = Morphism.binding morph c;
@@ -334,7 +335,7 @@ fun const class ((c, mx), (type_params, dict)) thy =
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
-fun abbrev class prmode ((c, mx), rhs) thy =
+fun target_abbrev class prmode ((c, mx), rhs) thy =
   let
     val morph = morphism thy class;
     val unchecks = these_unchecks thy [class];
@@ -351,6 +352,13 @@ fun abbrev class prmode ((c, mx), rhs) thy =
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> not (#1 prmode = Print_Mode.input) ? register_operation class (c', (rhs', NONE))
   end;
+
+in
+
+fun const class arg = target_extension (target_const class arg) class;
+fun abbrev class prmode arg = target_extension (target_abbrev class prmode arg) class;
+
+end;
 
 
 (* simple subclasses *)
