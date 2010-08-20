@@ -143,9 +143,8 @@ fun introduce_combinators_in_term ctxt kind t =
       in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
       handle THM _ =>
              (* A type variable of sort "{}" will make abstraction fail. *)
-             case kind of
-               Axiom => HOLogic.true_const
-             | Conjecture => HOLogic.false_const
+             if kind = Conjecture then HOLogic.false_const
+             else HOLogic.true_const
   end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
@@ -175,7 +174,7 @@ val atomize_term =
   in perhaps (try aux) end
 
 (* making axiom and conjecture formulas *)
-fun make_formula ctxt presimp (name, kind, t) =
+fun make_formula ctxt presimp name kind t =
   let
     val thy = ProofContext.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -185,7 +184,7 @@ fun make_formula ctxt presimp (name, kind, t) =
               |> presimp ? presimplify_term thy
               |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
-              |> kind = Conjecture ? freeze_term
+              |> kind <> Axiom ? freeze_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
     FOLFormula {name = name, combformula = combformula, kind = kind,
@@ -193,10 +192,13 @@ fun make_formula ctxt presimp (name, kind, t) =
   end
 
 fun make_axiom ctxt presimp (name, th) =
-  (name, make_formula ctxt presimp (name, Axiom, prop_of th))
-fun make_conjectures ctxt ts =
-  map2 (fn j => fn t => make_formula ctxt true (Int.toString j, Conjecture, t))
-       (0 upto length ts - 1) ts
+  (name, make_formula ctxt presimp name Axiom (prop_of th))
+fun make_conjecture ctxt ts =
+  let val last = length ts - 1 in
+    map2 (fn j => make_formula ctxt true (Int.toString j)
+                               (if j = last then Conjecture else Hypothesis))
+         (0 upto last) ts
+  end
 
 (** Helper facts **)
 
@@ -237,8 +239,6 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
     |> map (snd o make_axiom ctxt false)
   end
 
-fun meta_not t = @{const "==>"} $ t $ @{prop False}
-
 fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
@@ -259,7 +259,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
     val supers = tvar_classes_of_terms axiom_ts
     val tycons = type_consts_of_terms thy (goal_t :: axiom_ts)
     (* TFrees in the conjecture; TVars in the axioms *)
-    val conjectures = map meta_not hyp_ts @ [concl_t] |> make_conjectures ctxt
+    val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
     val (axiom_names, axioms) =
       ListPair.unzip (map (make_axiom ctxt true) axioms)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
@@ -359,7 +359,7 @@ fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
-  Fof (tfrees_name, Conjecture, mk_anot (formula_for_fo_literal lit))
+  Fof (tfrees_name, Hypothesis, formula_for_fo_literal lit)
 fun problem_lines_for_free_types conjectures =
   let
     val litss = map free_type_literals_for_conjecture conjectures
