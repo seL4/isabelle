@@ -79,10 +79,7 @@ fun combformula_for_prop thy =
                        |>> AAtom ||> union (op =) ts)
   in do_formula [] end
 
-fun presimplify_term thy =
-  Skip_Proof.make_thm thy
-  #> Meson.presimplify
-  #> prop_of
+val presimplify_term = prop_of o Meson.presimplify oo Skip_Proof.make_thm
 
 fun concealed_bound_name j = sledgehammer_weak_prefix ^ Int.toString j
 fun conceal_bounds Ts t =
@@ -192,7 +189,10 @@ fun make_formula ctxt presimp name kind t =
   end
 
 fun make_axiom ctxt presimp (name, th) =
-  (name, make_formula ctxt presimp name Axiom (prop_of th))
+  case make_formula ctxt presimp name Axiom (prop_of th) of
+    FOLFormula {combformula = AAtom (CombConst (("c_True", _), _, _)), ...} =>
+    NONE
+  | formula => SOME (name, formula)
 fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
     map2 (fn j => make_formula ctxt true (Int.toString j)
@@ -236,7 +236,7 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
                  if exists is_needed ss then map (`Thm.get_name_hint) ths
                  else [])) @
     (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
-    |> map (snd o make_axiom ctxt false)
+    |> map_filter (Option.map snd o make_axiom ctxt false)
   end
 
 fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
@@ -261,7 +261,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
     (* TFrees in the conjecture; TVars in the axioms *)
     val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
     val (axiom_names, axioms) =
-      ListPair.unzip (map (make_axiom ctxt true) axioms)
+      ListPair.unzip (map_filter (make_axiom ctxt true) axioms)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
