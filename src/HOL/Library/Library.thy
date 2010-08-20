@@ -22,6 +22,7 @@ imports
   FrechetDeriv
   Fset
   FuncSet
+  Function_Algebras
   Fundamental_Theorem_Algebra
   Indicator_Function
   Infinite_Set
@@ -54,6 +55,7 @@ imports
   Ramsey
   Reflection
   RBT
+  Set_Algebras
   SML_Quickcheck
   State_Monad
   Sum_Of_Squares

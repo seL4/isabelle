@@ -408,6 +408,7 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Executable_Set.thy Library/Float.thy				\
   Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
   Library/FrechetDeriv.thy Library/Fset.thy Library/FuncSet.thy		\
+  Library/Function_Algebras.thy						\
   Library/Fundamental_Theorem_Algebra.thy Library/Glbs.thy		\
   Library/Indicator_Function.thy Library/Infinite_Set.thy		\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
@@ -428,8 +429,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Quotient_Product.thy Library/Quotient_Sum.thy			\
   Library/Quotient_Syntax.thy Library/Quotient_Type.thy			\
   Library/RBT.thy Library/RBT_Impl.thy Library/README.html		\
-  Library/State_Monad.thy Library/Ramsey.thy Library/Reflection.thy	\
-  Library/SML_Quickcheck.thy Library/SetsAndFunctions.thy		\
+  Library/Set_Algebras.thy Library/State_Monad.thy Library/Ramsey.thy	\
+  Library/Reflection.thy Library/SML_Quickcheck.thy 			\
   Library/Sublist_Order.thy Library/Sum_Of_Squares.thy			\
   Library/Sum_Of_Squares/sos_wrapper.ML					\
   Library/Sum_Of_Squares/sum_of_squares.ML				\
