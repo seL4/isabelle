@@ -23,7 +23,7 @@ object Position
   def get_range(pos: T): Option[Text.Range] =
     (get_offset(pos), get_end_offset(pos)) match {
       case (Some(start), Some(stop)) if start <= stop => Some(Text.Range(start, stop))
-      case (Some(start), None) => Some(Text.Range(start, start))
+      case (Some(start), None) => Some(Text.Range(start))
       case (_, _) => None
     }
 

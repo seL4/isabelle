@@ -17,6 +17,11 @@ object Text
 
   /* range -- with total quasi-ordering */
 
+  object Range
+  {
+    def apply(start: Offset): Range = Range(start, start)
+  }
+
   sealed case class Range(val start: Offset, val stop: Offset)
   {
     // denotation: {start} Un {i. start < i & i < stop}
@@ -30,9 +35,6 @@ object Text
     def contains(that: Range): Boolean = this.contains(that.start) && that.stop <= this.stop
     def overlaps(that: Range): Boolean = this.contains(that.start) || that.contains(this.start)
     def compare(that: Range): Int = if (overlaps(that)) 0 else this.start compare that.start
-
-    def start_range: Range = Range(start, start)
-    def stop_range: Range = Range(stop, stop)
 
     def restrict(that: Range): Range =
       Range(this.start max that.start, this.stop min that.stop)

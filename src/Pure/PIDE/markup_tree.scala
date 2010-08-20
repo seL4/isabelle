@@ -40,8 +40,8 @@ object Markup_Tree
 
     def overlapping(range: Text.Range, branches: T): T =
     {
-      val start = Node[Any](range.start_range, Nil)
-      val stop = Node[Any](range.stop_range, Nil)
+      val start = Node[Any](Text.Range(range.start), Nil)
+      val stop = Node[Any](Text.Range(range.stop), Nil)
       branches.get(stop) match {
         case Some(end) if range overlaps end._1.range =>
           update(branches.range(start, stop), end)
