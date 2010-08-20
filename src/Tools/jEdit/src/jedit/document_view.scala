@@ -29,11 +29,11 @@ object Document_View
     val state = snapshot.state(command)
     if (snapshot.is_outdated) new Color(240, 240, 240)
     else
-      Toplevel.command_status(state.status) match {
-        case Toplevel.Forked(i) if i > 0 => new Color(255, 228, 225)
-        case Toplevel.Finished => new Color(234, 248, 255)
-        case Toplevel.Failed => new Color(255, 193, 193)
-        case Toplevel.Unprocessed => new Color(255, 228, 225)
+      Isar_Document.command_status(state.status) match {
+        case Isar_Document.Forked(i) if i > 0 => new Color(255, 228, 225)
+        case Isar_Document.Finished => new Color(234, 248, 255)
+        case Isar_Document.Failed => new Color(255, 193, 193)
+        case Isar_Document.Unprocessed => new Color(255, 228, 225)
         case _ => Color.red
       }
   }

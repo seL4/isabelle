@@ -1,7 +1,7 @@
 (*  Title:      Pure/PIDE/isar_document.ML
     Author:     Makarius
 
-Protocol commands for interactive Isar documents.
+Protocol message formats for interactive Isar documents.
 *)
 
 structure Isar_Document: sig end =
