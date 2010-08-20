@@ -1227,21 +1227,27 @@ proof -
   finally show ?thesis .
 qed
 
+lemma comp_funpow:
+  fixes f :: "'a \<Rightarrow> 'a"
+  shows "comp f ^^ n = comp (f ^^ n)"
+  by (induct n) simp_all
 
-subsection {* Embedding of the Naturals into any
-  @{text semiring_1}: @{term of_nat} *}
+
+subsection {* Embedding of the Naturals into any @{text semiring_1}: @{term of_nat} *}
 
 context semiring_1
 begin
 
-primrec
-  of_nat :: "nat \<Rightarrow> 'a"
-where
-  of_nat_0:     "of_nat 0 = 0"
-  | of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
+definition of_nat :: "nat \<Rightarrow> 'a" where
+  "of_nat n = (plus 1 ^^ n) 0"
+
+lemma of_nat_simps [simp]:
+  shows of_nat_0: "of_nat 0 = 0"
+    and of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
+  by (simp_all add: of_nat_def)
 
 lemma of_nat_1 [simp]: "of_nat 1 = 1"
-  unfolding One_nat_def by simp
+  by (simp add: of_nat_def)
 
 lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
   by (induct m) (simp_all add: add_ac)
@@ -1274,19 +1280,19 @@ text{*Class for unital semirings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
 
 class semiring_char_0 = semiring_1 +
-  assumes of_nat_eq_iff [simp]: "of_nat m = of_nat n \<longleftrightarrow> m = n"
+  assumes inj_of_nat: "inj of_nat"
 begin
+
+lemma of_nat_eq_iff [simp]: "of_nat m = of_nat n \<longleftrightarrow> m = n"
+  by (auto intro: inj_of_nat injD)
 
 text{*Special cases where either operand is zero*}
 
 lemma of_nat_0_eq_iff [simp, no_atp]: "0 = of_nat n \<longleftrightarrow> 0 = n"
-  by (rule of_nat_eq_iff [of 0 n, unfolded of_nat_0])
+  by (fact of_nat_eq_iff [of 0 n, unfolded of_nat_0])
 
 lemma of_nat_eq_0_iff [simp, no_atp]: "of_nat m = 0 \<longleftrightarrow> m = 0"
-  by (rule of_nat_eq_iff [of m 0, unfolded of_nat_0])
-
-lemma inj_of_nat: "inj of_nat"
-  by (simp add: inj_on_def)
+  by (fact of_nat_eq_iff [of m 0, unfolded of_nat_0])
 
 end
 
@@ -1315,8 +1321,8 @@ lemma of_nat_le_iff [simp]: "of_nat m \<le> of_nat n \<longleftrightarrow> m \<l
 
 text{*Every @{text linordered_semidom} has characteristic zero.*}
 
-subclass semiring_char_0
-  proof qed (simp add: eq_iff order_eq_iff)
+subclass semiring_char_0 proof
+qed (auto intro!: injI simp add: eq_iff)
 
 text{*Special cases where either operand is zero*}
 

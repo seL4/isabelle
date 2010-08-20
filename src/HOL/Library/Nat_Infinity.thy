@@ -227,8 +227,10 @@ lemma of_nat_eq_Fin: "of_nat n = Fin n"
   apply (simp add: plus_1_iSuc iSuc_Fin)
   done
 
-instance inat :: semiring_char_0
-  by default (simp add: of_nat_eq_Fin)
+instance inat :: semiring_char_0 proof
+  have "inj Fin" by (rule injI) simp
+  then show "inj (\<lambda>n. of_nat n :: inat)" by (simp add: of_nat_eq_Fin)
+qed
 
 
 subsection {* Ordering *}

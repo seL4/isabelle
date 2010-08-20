@@ -270,6 +270,10 @@ by (induct n) simp_all
 lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
 by (simp add: of_real_def)
 
+lemma inj_of_real:
+  "inj of_real"
+  by (auto intro: injI)
+
 lemmas of_real_eq_0_iff [simp] = of_real_eq_iff [of _ 0, simplified]
 
 lemma of_real_eq_id [simp]: "of_real = (id :: real \<Rightarrow> real)"
@@ -291,13 +295,11 @@ lemma of_real_number_of_eq:
 by (simp add: number_of_eq)
 
 text{*Every real algebra has characteristic zero*}
+
 instance real_algebra_1 < ring_char_0
 proof
-  fix m n :: nat
-  have "(of_real (of_nat m) = (of_real (of_nat n)::'a)) = (m = n)"
-    by (simp only: of_real_eq_iff of_nat_eq_iff)
-  thus "(of_nat m = (of_nat n::'a)) = (m = n)"
-    by (simp only: of_real_of_nat_eq)
+  from inj_of_real inj_of_nat have "inj (of_real \<circ> of_nat)" by (rule inj_comp)
+  then show "inj (of_nat :: nat \<Rightarrow> 'a)" by (simp add: comp_def)
 qed
 
 instance real_field < field_char_0 ..

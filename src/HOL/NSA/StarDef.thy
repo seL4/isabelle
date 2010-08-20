@@ -1000,8 +1000,11 @@ by (simp add: star_of_int_def)
 lemma star_of_of_int [simp]: "star_of (of_int z) = of_int z"
 by transfer (rule refl)
 
-instance star :: (semiring_char_0) semiring_char_0
-by intro_classes (simp only: star_of_nat_def star_of_eq of_nat_eq_iff)
+instance star :: (semiring_char_0) semiring_char_0 proof
+  have "inj (star_of :: 'a \<Rightarrow> 'a star)" by (rule injI) simp
+  then have "inj (star_of \<circ> of_nat :: nat \<Rightarrow> 'a star)" using inj_of_nat by (rule inj_comp)
+  then show "inj (of_nat :: nat \<Rightarrow> 'a star)" by (simp add: comp_def)
+qed
 
 instance star :: (ring_char_0) ring_char_0 ..
 
