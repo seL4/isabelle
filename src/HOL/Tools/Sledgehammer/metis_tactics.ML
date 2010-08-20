@@ -66,7 +66,7 @@ fun get_index lit =
 (* HOL to FOL  (Isabelle to Metis)                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun fn_isa_to_met_sublevel "equal" = "c_fequal"
+fun fn_isa_to_met_sublevel "equal" = "=" (* FIXME: "c_fequal" *)
   | fn_isa_to_met_sublevel x = x
 fun fn_isa_to_met_toplevel "equal" = "="
   | fn_isa_to_met_toplevel x = x
