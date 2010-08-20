@@ -12,6 +12,8 @@ sig
 
   val trace : bool Unsynchronized.ref
   val chained_prefix : string
+  val name_thms_pair_from_ref :
+    Proof.context -> thm list -> Facts.ref -> string * thm list
   val relevant_facts :
     bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
@@ -34,6 +36,14 @@ type relevance_override =
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 (* Used to label theorems chained into the goal. *)
 val chained_prefix = sledgehammer_prefix ^ "chained_"
+
+fun name_thms_pair_from_ref ctxt chained_ths xref =
+  let
+    val ths = ProofContext.get_fact ctxt xref
+    val name = Facts.string_of_ref xref
+               |> forall (member Thm.eq_thm chained_ths) ths
+                  ? prefix chained_prefix
+  in (name, ths) end
 
 
 (***************************************************************)
@@ -565,7 +575,8 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
-          (if only then [] else all_name_thms_pairs ctxt add_thms chained_ths)
+          (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
+           else all_name_thms_pairs ctxt add_thms chained_ths)
       |> make_unique
       |> map (apsnd Clausifier.transform_elim_theorem)
       |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
