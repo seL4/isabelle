@@ -66,8 +66,10 @@ fun get_index lit =
 (* HOL to FOL  (Isabelle to Metis)                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun fn_isa_to_met "equal" = "="
-  | fn_isa_to_met x       = x;
+fun fn_isa_to_met_sublevel "equal" = "=" (* FIXME: "c_fequal" *)
+  | fn_isa_to_met_sublevel x = x
+fun fn_isa_to_met_toplevel "equal" = "="
+  | fn_isa_to_met_toplevel x = x
 
 fun metis_lit b c args = (b, (c, args));
 
@@ -89,7 +91,7 @@ fun hol_term_to_fol_FO tm =
     | _ => raise METIS ("hol_term_to_fol_FO", "non first-order combterm")
 
 fun hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
-      Metis.Term.Fn (fn_isa_to_met a, map metis_term_from_combtyp tylist)
+      Metis.Term.Fn (fn_isa_to_met_sublevel a, map metis_term_from_combtyp tylist)
   | hol_term_to_fol_HO (CombVar ((s, _), _)) = Metis.Term.Var s
   | hol_term_to_fol_HO (CombApp (tm1, tm2)) =
        Metis.Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
@@ -99,7 +101,7 @@ fun wrap_type (tm, ty) = Metis.Term.Fn("ti", [tm, metis_term_from_combtyp ty]);
 
 fun hol_term_to_fol_FT (CombVar ((s, _), ty)) = wrap_type (Metis.Term.Var s, ty)
   | hol_term_to_fol_FT (CombConst((a, _), ty, _)) =
-      wrap_type (Metis.Term.Fn(fn_isa_to_met a, []), ty)
+      wrap_type (Metis.Term.Fn(fn_isa_to_met_sublevel a, []), ty)
   | hol_term_to_fol_FT (tm as CombApp(tm1,tm2)) =
        wrap_type (Metis.Term.Fn(".", map hol_term_to_fol_FT [tm1,tm2]),
                   combtyp_of tm)
@@ -108,7 +110,7 @@ fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
       let val (CombConst((p, _), _, tys), tms) = strip_combterm_comb tm
           val tylits = if p = "equal" then [] else map metis_term_from_combtyp tys
           val lits = map hol_term_to_fol_FO tms
-      in metis_lit pos (fn_isa_to_met p) (tylits @ lits) end
+      in metis_lit pos (fn_isa_to_met_toplevel p) (tylits @ lits) end
   | hol_literal_to_fol HO (FOLLiteral (pos, tm)) =
      (case strip_combterm_comb tm of
           (CombConst(("equal", _), _, _), tms) =>
@@ -224,13 +226,16 @@ fun strip_happ args (Metis.Term.Fn(".",[t,u])) = strip_happ (u::args) t
 
 fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS)
 
+fun smart_invert_const "fequal" = @{const_name "op ="}
+  | smart_invert_const s = invert_const s
+
 fun hol_type_from_metis_term _ (Metis.Term.Var v) =
      (case strip_prefix_and_undo_ascii tvar_prefix v of
           SOME w => make_tvar w
         | NONE   => make_tvar v)
   | hol_type_from_metis_term ctxt (Metis.Term.Fn(x, tys)) =
      (case strip_prefix_and_undo_ascii type_const_prefix x of
-          SOME tc => Term.Type (invert_const tc,
+          SOME tc => Term.Type (smart_invert_const tc,
                                 map (hol_type_from_metis_term ctxt) tys)
         | NONE    =>
       case strip_prefix_and_undo_ascii tfree_prefix x of
@@ -265,7 +270,7 @@ fun hol_term_from_metis_PT ctxt fol_tm =
         | applic_to_tt (a,ts) =
             case strip_prefix_and_undo_ascii const_prefix a of
                 SOME b =>
-                  let val c = invert_const b
+                  let val c = smart_invert_const b
                       val ntypes = num_type_args thy c
                       val nterms = length ts - ntypes
                       val tts = map tm_to_tt ts
@@ -283,7 +288,7 @@ fun hol_term_from_metis_PT ctxt fol_tm =
               | NONE => (*Not a constant. Is it a type constructor?*)
             case strip_prefix_and_undo_ascii type_const_prefix a of
                 SOME b =>
-                  Type (Term.Type (invert_const b, types_of (map tm_to_tt ts)))
+                  Type (Term.Type (smart_invert_const b, types_of (map tm_to_tt ts)))
               | NONE => (*Maybe a TFree. Should then check that ts=[].*)
             case strip_prefix_and_undo_ascii tfree_prefix a of
                 SOME b => Type (mk_tfree ctxt b)
@@ -311,7 +316,7 @@ fun hol_term_from_metis_FT ctxt fol_tm =
             Const (@{const_name "op ="}, HOLogic.typeT)
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (x,[]), ty])) =
            (case strip_prefix_and_undo_ascii const_prefix x of
-                SOME c => Const (invert_const c, dummyT)
+                SOME c => Const (smart_invert_const c, dummyT)
               | NONE => (*Not a constant. Is it a fixed variable??*)
             case strip_prefix_and_undo_ascii fixed_var_prefix x of
                 SOME v => Free (v, hol_type_from_metis_term ctxt ty)
@@ -325,7 +330,7 @@ fun hol_term_from_metis_FT ctxt fol_tm =
             list_comb(Const (@{const_name "op ="}, HOLogic.typeT), map cvt [tm1,tm2])
         | cvt (t as Metis.Term.Fn (x, [])) =
            (case strip_prefix_and_undo_ascii const_prefix x of
-                SOME c => Const (invert_const c, dummyT)
+                SOME c => Const (smart_invert_const c, dummyT)
               | NONE => (*Not a constant. Is it a fixed variable??*)
             case strip_prefix_and_undo_ascii fixed_var_prefix x of
                 SOME v => Free (v, dummyT)
@@ -598,9 +603,6 @@ fun used_axioms axioms (th, Metis.Proof.Axiom _) = SOME (lookth axioms th)
 (* Translation of HO Clauses                                                 *)
 (* ------------------------------------------------------------------------- *)
 
-fun cnf_helper_theorem thy raw th =
-  if raw then th else the_single (Clausifier.cnf_axiom thy th)
-
 fun type_ext thy tms =
   let val subs = tfree_classes_of_terms tms
       val supers = tvar_classes_of_terms tms
@@ -650,15 +652,16 @@ fun string_of_mode FO = "FO"
   | string_of_mode FT = "FT"
 
 val helpers =
-  [("c_COMBI", (false, @{thms COMBI_def})),
-   ("c_COMBK", (false, @{thms COMBK_def})),
-   ("c_COMBB", (false, @{thms COMBB_def})),
-   ("c_COMBC", (false, @{thms COMBC_def})),
-   ("c_COMBS", (false, @{thms COMBS_def})),
-   ("c_fequal", (false, @{thms fequal_imp_equal equal_imp_fequal})),
-   ("c_True", (true, @{thms True_or_False})),
-   ("c_False", (true, @{thms True_or_False})),
-   ("c_If", (true, @{thms if_True if_False True_or_False}))]
+  [("c_COMBI", (false, map (`I) @{thms COMBI_def})),
+   ("c_COMBK", (false, map (`I) @{thms COMBK_def})),
+   ("c_COMBB", (false, map (`I) @{thms COMBB_def})),
+   ("c_COMBC", (false, map (`I) @{thms COMBC_def})),
+   ("c_COMBS", (false, map (`I) @{thms COMBS_def})),
+   ("c_fequal", (false, map (rpair @{thm equal_imp_equal})
+                            @{thms fequal_imp_equal equal_imp_fequal})),
+   ("c_True", (true, map (`I) @{thms True_or_False})),
+   ("c_False", (true, map (`I) @{thms True_or_False})),
+   ("c_If", (true, map (`I) @{thms if_True if_False True_or_False}))]
 
 fun is_quasi_fol_clause thy =
   Meson.is_fol_term thy o snd o conceal_skolem_terms ~1 [] o prop_of
@@ -673,18 +676,20 @@ fun build_map mode0 ctxt cls ths =
         | set_mode FT = FT
       val mode = set_mode mode0
       (*transform isabelle clause to metis clause *)
-      fun add_thm is_conjecture ith {axioms, tfrees, skolems} : logic_map =
+      fun add_thm is_conjecture (metis_ith, isa_ith) {axioms, tfrees, skolems}
+                  : logic_map =
         let
           val (mth, tfree_lits, skolems) =
-            hol_thm_to_fol is_conjecture ctxt mode (length axioms) skolems ith
+            hol_thm_to_fol is_conjecture ctxt mode (length axioms) skolems
+                           metis_ith
         in
-           {axioms = (mth, Meson.make_meta_clause ith) :: axioms,
+           {axioms = (mth, Meson.make_meta_clause isa_ith) :: axioms,
             tfrees = union (op =) tfree_lits tfrees, skolems = skolems}
         end;
       val lmap = {axioms = [], tfrees = init_tfrees ctxt, skolems = []}
-                 |> fold (add_thm true) cls
+                 |> fold (add_thm true o `I) cls
                  |> add_tfrees
-                 |> fold (add_thm false) ths
+                 |> fold (add_thm false o `I) ths
       val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
       fun is_used c =
         exists (Metis.LiteralSet.exists (const_in_metis c o #2)) clause_lists
@@ -695,11 +700,12 @@ fun build_map mode0 ctxt cls ths =
           let
             val helper_ths =
               helpers |> filter (is_used o fst)
-                      |> maps (fn (_, (raw, thms)) =>
-                                  if mode = FT orelse not raw then
-                                    map (cnf_helper_theorem @{theory} raw) thms
+                      |> maps (fn (c, (needs_full_types, thms)) =>
+                                  if not (is_used c) orelse
+                                     needs_full_types andalso mode <> FT then
+                                    []
                                   else
-                                    [])
+                                    thms)
           in lmap |> fold (add_thm false) helper_ths end
   in (mode, add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap) end
 

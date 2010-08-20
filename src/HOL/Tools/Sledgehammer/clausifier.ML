@@ -7,6 +7,7 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature CLAUSIFIER =
 sig
+  val transform_elim_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val cnf_axiom: theory -> thm -> thm list
@@ -83,7 +84,7 @@ fun vars_of_thm th =
 val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
 
 (* Removes the lambdas from an equation of the form "t = (%x. u)".
-   (Cf. "extensionalize_term" in "ATP_Systems".) *)
+   (Cf. "extensionalize_term" in "Sledgehammer_Translate".) *)
 fun extensionalize_theorem th =
   case prop_of th of
     _ $ (Const (@{const_name "op ="}, Type (_, [Type (@{type_name fun}, _), _]))
@@ -223,12 +224,13 @@ fun skolem_theorem_of_def thy rhs0 =
 (* Converts an Isabelle theorem (intro, elim or simp format, even higher-order)
    into NNF. *)
 fun to_nnf th ctxt0 =
-  let val th1 = th |> transform_elim_theorem |> zero_var_indexes
-      val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
-      val th3 = th2 |> Conv.fconv_rule Object_Logic.atomize
-                    |> extensionalize_theorem
-                    |> Meson.make_nnf ctxt
-  in  (th3, ctxt)  end;
+  let
+    val th1 = th |> transform_elim_theorem |> zero_var_indexes
+    val ((_, [th2]), ctxt) = Variable.import true [th1] ctxt0
+    val th3 = th2 |> Conv.fconv_rule Object_Logic.atomize
+                  |> extensionalize_theorem
+                  |> Meson.make_nnf ctxt
+  in (th3, ctxt) end
 
 (* Convert a theorem to CNF, with Skolem functions as additional premises. *)
 fun cnf_axiom thy th =

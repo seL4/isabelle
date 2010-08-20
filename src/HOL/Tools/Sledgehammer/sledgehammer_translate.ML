@@ -79,17 +79,6 @@ fun combformula_for_prop thy =
                        |>> AAtom ||> union (op =) ts)
   in do_formula [] end
 
-(* Converts an elim-rule into an equivalent theorem that does not have the
-   predicate variable. Leaves other theorems unchanged. We simply instantiate
-   the conclusion variable to False. (Cf. "transform_elim_term" in
-   "ATP_Systems".) *)
-fun transform_elim_term t =
-  case Logic.strip_imp_concl t of
-    @{const Trueprop} $ Var (z, @{typ bool}) =>
-    subst_Vars [(z, @{const False})] t
-  | Var (z, @{typ prop}) => subst_Vars [(z, @{prop False})] t
-  | _ => t
-
 fun presimplify_term thy =
   Skip_Proof.make_thm thy
   #> Meson.presimplify
@@ -102,6 +91,25 @@ fun conceal_bounds Ts t =
 fun reveal_bounds Ts =
   subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
                     (0 upto length Ts - 1 ~~ Ts))
+
+(* Removes the lambdas from an equation of the form "t = (%x. u)".
+   (Cf. "extensionalize_theorem" in "Clausifier".) *)
+fun extensionalize_term t =
+  let
+    fun aux j (@{const Trueprop} $ t') = @{const Trueprop} $ aux j t'
+      | aux j (t as Const (s, Type (_, [Type (_, [_, T']),
+                                        Type (_, [_, res_T])]))
+                    $ t2 $ Abs (var_s, var_T, t')) =
+        if s = @{const_name "op ="} orelse s = @{const_name "=="} then
+          let val var_t = Var ((var_s, j), var_T) in
+            Const (s, T' --> T' --> res_T)
+              $ betapply (t2, var_t) $ subst_bound (var_t, t')
+            |> aux (j + 1)
+          end
+        else
+          t
+      | aux _ t = t
+  in aux (maxidx_of_term t + 1) t end
 
 fun introduce_combinators_in_term ctxt kind t =
   let val thy = ProofContext.theory_of ctxt in
@@ -135,9 +143,8 @@ fun introduce_combinators_in_term ctxt kind t =
       in t |> aux [] |> singleton (Variable.export_terms ctxt' ctxt) end
       handle THM _ =>
              (* A type variable of sort "{}" will make abstraction fail. *)
-             case kind of
-               Axiom => HOLogic.true_const
-             | Conjecture => HOLogic.false_const
+             if kind = Conjecture then HOLogic.false_const
+             else HOLogic.true_const
   end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
@@ -151,18 +158,33 @@ fun freeze_term t =
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
+(* "Object_Logic.atomize_term" isn't as powerful as it could be; for example,
+    it leaves metaequalities over "prop"s alone. *)
+val atomize_term =
+  let
+    fun aux (@{const Trueprop} $ t1) = t1
+      | aux (Const (@{const_name all}, _) $ Abs (s, T, t')) =
+        HOLogic.all_const T $ Abs (s, T, aux t')
+      | aux (@{const "==>"} $ t1 $ t2) = HOLogic.mk_imp (pairself aux (t1, t2))
+      | aux (Const (@{const_name "=="}, Type (_, [@{typ prop}, _])) $ t1 $ t2) =
+        HOLogic.eq_const HOLogic.boolT $ aux t1 $ aux t2
+      | aux (Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2) =
+        HOLogic.eq_const T $ t1 $ t2
+      | aux _ = raise Fail "aux"
+  in perhaps (try aux) end
+
 (* making axiom and conjecture formulas *)
-fun make_formula ctxt presimp (name, kind, t) =
+fun make_formula ctxt presimp name kind t =
   let
     val thy = ProofContext.theory_of ctxt
-    val t = t |> transform_elim_term
-              |> Object_Logic.atomize_term thy
+    val t = t |> Envir.beta_eta_contract
+              |> atomize_term
     val t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
               |> extensionalize_term
               |> presimp ? presimplify_term thy
               |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
-              |> kind = Conjecture ? freeze_term
+              |> kind <> Axiom ? freeze_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
     FOLFormula {name = name, combformula = combformula, kind = kind,
@@ -170,10 +192,13 @@ fun make_formula ctxt presimp (name, kind, t) =
   end
 
 fun make_axiom ctxt presimp (name, th) =
-  (name, make_formula ctxt presimp (name, Axiom, prop_of th))
-fun make_conjectures ctxt ts =
-  map2 (fn j => fn t => make_formula ctxt true (Int.toString j, Conjecture, t))
-       (0 upto length ts - 1) ts
+  (name, make_formula ctxt presimp name Axiom (prop_of th))
+fun make_conjecture ctxt ts =
+  let val last = length ts - 1 in
+    map2 (fn j => make_formula ctxt true (Int.toString j)
+                               (if j = last then Conjecture else Hypothesis))
+         (0 upto last) ts
+  end
 
 (** Helper facts **)
 
@@ -194,7 +219,7 @@ val optional_helpers =
 val optional_typed_helpers =
   [(["c_True", "c_False"], @{thms True_or_False}),
    (["c_If"], @{thms if_True if_False True_or_False})]
-val mandatory_helpers = @{thms fequal_imp_equal equal_imp_fequal}
+val mandatory_helpers = @{thms fequal_def}
 
 val init_counters =
   Symtab.make (maps (maps (map (rpair 0) o fst))
@@ -213,8 +238,6 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
     (if is_FO then [] else map (`Thm.get_name_hint) mandatory_helpers)
     |> map (snd o make_axiom ctxt false)
   end
-
-fun meta_not t = @{const "==>"} $ t $ @{prop False}
 
 fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
   let
@@ -236,7 +259,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
     val supers = tvar_classes_of_terms axiom_ts
     val tycons = type_consts_of_terms thy (goal_t :: axiom_ts)
     (* TFrees in the conjecture; TVars in the axioms *)
-    val conjectures = map meta_not hyp_ts @ [concl_t] |> make_conjectures ctxt
+    val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
     val (axiom_names, axioms) =
       ListPair.unzip (map (make_axiom ctxt true) axioms)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
@@ -336,7 +359,7 @@ fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
-  Fof (tfrees_name, Conjecture, mk_anot (formula_for_fo_literal lit))
+  Fof (tfrees_name, Hypothesis, formula_for_fo_literal lit)
 fun problem_lines_for_free_types conjectures =
   let
     val litss = map free_type_literals_for_conjecture conjectures
@@ -420,8 +443,8 @@ fun boolify t = ATerm (`I "hBOOL", [t])
    type instantiations). If false, the constant always receives all of its
    arguments and is used as a predicate. *)
 fun is_predicate NONE s =
-    s = "equal" orelse String.isPrefix type_const_prefix s orelse
-    String.isPrefix class_prefix s
+    s = "equal" orelse s = "$false" orelse s = "$true" orelse
+    String.isPrefix type_const_prefix s orelse String.isPrefix class_prefix s
   | is_predicate (SOME the_const_tab) s =
     case Symtab.lookup the_const_tab s of
       SOME {min_arity, max_arity, sub_level} =>

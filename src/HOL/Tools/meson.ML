@@ -520,7 +520,7 @@ fun make_nnf1 ctxt th =
         forward_res ctxt (make_nnf1 ctxt)
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM ("tryres", _, _) => th
-  else th;
+  else th
 
 (*The simplification removes defined quantifiers and occurrences of True and False.
   nnf_ss also includes the one-point simprocs,
@@ -539,8 +539,7 @@ val presimplify =
   #> simplify nnf_ss
 
 fun make_nnf ctxt th = case prems_of th of
-    [] => th |> presimplify
-             |> make_nnf1 ctxt
+    [] => th |> presimplify |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
