@@ -442,18 +442,18 @@ fun all_name_thms_pairs ctxt add_thms chained_ths =
             (respect_no_atp andalso is_package_def name) orelse
             member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
             String.isSuffix "_def_raw" (* FIXME: crude hack *) name) andalso
-          forall (not o member Thm.eq_thm add_thms) ths0 then
+           forall (not o member Thm.eq_thm add_thms) ths0 then
           I
         else
           let
             fun check_thms a =
               (case try (ProofContext.get_thms ctxt) a of
                 NONE => false
-              | SOME ths1 => Thm.eq_thms (ths0, ths1));
-
+              | SOME ths1 => Thm.eq_thms (ths0, ths1))
             val name1 = Facts.extern facts name;
             val name2 = Name_Space.extern full_space name;
-            val ths = filter_out is_theorem_bad_for_atps ths0
+            val ths = filter (fn th => not (is_theorem_bad_for_atps th) orelse
+                                       member Thm.eq_thm add_thms th) ths0
           in
             case find_first check_thms [name1, name2, name] of
               NONE => I
@@ -565,6 +565,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (if only then [] else all_name_thms_pairs ctxt add_thms chained_ths)
       |> make_unique
+      |> map (apsnd Clausifier.transform_elim_theorem)
       |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
                                not (is_dangerous_term full_types (prop_of th)))
   in

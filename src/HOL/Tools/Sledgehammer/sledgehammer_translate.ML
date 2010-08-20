@@ -79,17 +79,6 @@ fun combformula_for_prop thy =
                        |>> AAtom ||> union (op =) ts)
   in do_formula [] end
 
-(* Converts an elim-rule into an equivalent theorem that does not have the
-   predicate variable. Leaves other theorems unchanged. We simply instantiate
-   the conclusion variable to False. (Cf. "transform_elim_term" in
-   "ATP_Systems".) *)
-fun transform_elim_term t =
-  case Logic.strip_imp_concl t of
-    @{const Trueprop} $ Var (z, @{typ bool}) =>
-    subst_Vars [(z, @{const False})] t
-  | Var (z, @{typ prop}) => subst_Vars [(z, @{prop False})] t
-  | _ => t
-
 fun presimplify_term thy =
   Skip_Proof.make_thm thy
   #> Meson.presimplify
@@ -190,7 +179,6 @@ fun make_formula ctxt presimp (name, kind, t) =
   let
     val thy = ProofContext.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
-              |> transform_elim_term
               |> atomize_term
     val t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
               |> extensionalize_term
