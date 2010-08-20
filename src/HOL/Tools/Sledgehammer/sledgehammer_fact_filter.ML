@@ -43,7 +43,7 @@ fun name_thms_pair_from_ref ctxt chained_ths xref =
     val name = Facts.string_of_ref xref
                |> forall (member Thm.eq_thm chained_ths) ths
                   ? prefix chained_prefix
-  in (name, ths) end
+  in (name, ths |> map Clausifier.transform_elim_theorem) end
 
 
 (***************************************************************)
@@ -433,78 +433,6 @@ fun is_strange_thm th =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
-fun is_theorem_bad_for_atps thm =
-  let val t = prop_of thm in
-    is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
-    exists_sledgehammer_const t orelse is_strange_thm thm
-  end
-
-fun all_name_thms_pairs ctxt add_thms chained_ths =
-  let
-    val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
-    val local_facts = ProofContext.facts_of ctxt;
-    val full_space =
-      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
-
-    fun valid_facts facts =
-      (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
-        if (Facts.is_concealed facts name orelse
-            (respect_no_atp andalso is_package_def name) orelse
-            member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
-            String.isSuffix "_def_raw" (* FIXME: crude hack *) name) andalso
-           forall (not o member Thm.eq_thm add_thms) ths0 then
-          I
-        else
-          let
-            fun check_thms a =
-              (case try (ProofContext.get_thms ctxt) a of
-                NONE => false
-              | SOME ths1 => Thm.eq_thms (ths0, ths1))
-            val name1 = Facts.extern facts name;
-            val name2 = Name_Space.extern full_space name;
-            val ths = filter (fn th => not (is_theorem_bad_for_atps th) orelse
-                                       member Thm.eq_thm add_thms th) ths0
-          in
-            case find_first check_thms [name1, name2, name] of
-              NONE => I
-            | SOME name' =>
-              cons (name' |> forall (member Thm.eq_thm chained_ths) ths
-                             ? prefix chained_prefix, ths)
-          end)
-  in valid_facts global_facts @ valid_facts local_facts end;
-
-fun multi_name a th (n, pairs) =
-  (n + 1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs);
-
-fun add_names (_, []) pairs = pairs
-  | add_names (a, [th]) pairs = (a, th) :: pairs
-  | add_names (a, ths) pairs = #2 (fold (multi_name a) ths (1, pairs))
-
-fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
-
-(* The single-name theorems go after the multiple-name ones, so that single
-   names are preferred when both are available. *)
-fun name_thm_pairs ctxt respect_no_atp name_thms_pairs =
-  let
-    val (mults, singles) = List.partition is_multi name_thms_pairs
-    val ps = [] |> fold add_names singles |> fold add_names mults
-  in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
-
-fun is_named ("", th) =
-    (warning ("No name for theorem " ^
-              Display.string_of_thm_without_context th); false)
-  | is_named _ = true
-fun checked_name_thm_pairs respect_no_atp ctxt =
-  name_thm_pairs ctxt respect_no_atp
-  #> tap (fn ps => trace_msg
-                        (fn () => ("Considering " ^ Int.toString (length ps) ^
-                                   " theorems")))
-  #> filter is_named
-
-(***************************************************************)
-(* ATP invocation methods setup                                *)
-(***************************************************************)
-
 (**** Predicates to detect unwanted facts (prolific or likely to cause
       unsoundness) ****)
 
@@ -547,7 +475,6 @@ val is_exhaustive_finite =
       | _ => false
   in do_formula true end
 
-
 fun has_bound_or_var_of_type tycons =
   exists_subterm (fn Var (_, Type (s, _)) => member (op =) tycons s
                    | Abs (_, Type (s, _), _) => member (op =) tycons s
@@ -567,6 +494,81 @@ fun is_dangerous_term full_types t =
   not full_types andalso
   (has_bound_or_var_of_type dangerous_types t orelse is_exhaustive_finite t)
 
+fun is_theorem_bad_for_atps full_types thm =
+  let val t = prop_of thm in
+    is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
+    is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
+    is_strange_thm thm
+  end
+
+fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
+  let
+    val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
+    val local_facts = ProofContext.facts_of ctxt;
+    val full_space =
+      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
+
+    fun valid_facts facts =
+      (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
+        if (Facts.is_concealed facts name orelse
+            (respect_no_atp andalso is_package_def name) orelse
+            member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
+            String.isSuffix "_def_raw" (* FIXME: crude hack *) name) andalso
+           forall (not o member Thm.eq_thm add_thms) ths0 then
+          I
+        else
+          let
+            fun check_thms a =
+              (case try (ProofContext.get_thms ctxt) a of
+                NONE => false
+              | SOME ths1 => Thm.eq_thms (ths0, ths1))
+            val name1 = Facts.extern facts name;
+            val name2 = Name_Space.extern full_space name;
+            val ths =
+             ths0 |> map Clausifier.transform_elim_theorem
+                  |> filter ((not o is_theorem_bad_for_atps full_types) orf
+                             member Thm.eq_thm add_thms)
+          in
+            case find_first check_thms [name1, name2, name] of
+              NONE => I
+            | SOME name' =>
+              cons (name' |> forall (member Thm.eq_thm chained_ths) ths
+                             ? prefix chained_prefix, ths)
+          end)
+  in valid_facts global_facts @ valid_facts local_facts end;
+
+fun multi_name a th (n, pairs) =
+  (n + 1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs);
+
+fun add_names (_, []) pairs = pairs
+  | add_names (a, [th]) pairs = (a, th) :: pairs
+  | add_names (a, ths) pairs = #2 (fold (multi_name a) ths (1, pairs))
+
+fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
+
+(* The single-name theorems go after the multiple-name ones, so that single
+   names are preferred when both are available. *)
+fun name_thm_pairs ctxt respect_no_atp name_thms_pairs =
+  let
+    val (mults, singles) = List.partition is_multi name_thms_pairs
+    val ps = [] |> fold add_names singles |> fold add_names mults
+  in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
+
+fun is_named ("", th) =
+    (warning ("No name for theorem " ^
+              Display.string_of_thm_without_context th); false)
+  | is_named _ = true
+fun checked_name_thm_pairs respect_no_atp ctxt =
+  name_thm_pairs ctxt respect_no_atp
+  #> tap (fn ps => trace_msg
+                        (fn () => ("Considering " ^ Int.toString (length ps) ^
+                                   " theorems")))
+  #> filter is_named
+
+(***************************************************************)
+(* ATP invocation methods setup                                *)
+(***************************************************************)
+
 fun relevant_facts full_types relevance_threshold relevance_convergence
                    defs_relevant max_new theory_relevant
                    (relevance_override as {add, del, only})
@@ -576,11 +578,8 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
-           else all_name_thms_pairs ctxt add_thms chained_ths)
+           else all_name_thms_pairs ctxt full_types add_thms chained_ths)
       |> make_unique
-      |> map (apsnd Clausifier.transform_elim_theorem)
-      |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
-                               not (is_dangerous_term full_types (prop_of th)))
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
