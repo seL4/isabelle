@@ -15,7 +15,6 @@ sig
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
-  val extensionalize_term : term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val subgoal_count : Proof.state -> int
@@ -100,25 +99,6 @@ fun maybe_quote y =
            not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
            Keyword.is_keyword s) ? quote
   end
-
-(* Removes the lambdas from an equation of the form "t = (%x. u)".
-   (Cf. "extensionalize_theorem" in "Clausifier".) *)
-fun extensionalize_term t =
-  let
-    fun aux j (@{const Trueprop} $ t') = @{const Trueprop} $ aux j t'
-      | aux j (t as Const (s, Type (_, [Type (_, [_, T']),
-                                        Type (_, [_, res_T])]))
-                    $ t2 $ Abs (var_s, var_T, t')) =
-        if s = @{const_name "op ="} orelse s = @{const_name "=="} then
-          let val var_t = Var ((var_s, j), var_T) in
-            Const (s, T' --> T' --> res_T)
-              $ betapply (t2, var_t) $ subst_bound (var_t, t')
-            |> aux (j + 1)
-          end
-        else
-          t
-      | aux _ t = t
-  in aux (maxidx_of_term t + 1) t end
 
 fun monomorphic_term subst t =
   map_types (map_type_tvar (fn v =>

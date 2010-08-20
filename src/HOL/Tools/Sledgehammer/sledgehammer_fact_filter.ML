@@ -12,8 +12,6 @@ sig
 
   val trace : bool Unsynchronized.ref
   val chained_prefix : string
-  val name_thms_pair_from_ref :
-    Proof.context -> thm list -> Facts.ref -> string * thm list
   val relevant_facts :
     bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
@@ -37,26 +35,10 @@ val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 (* Used to label theorems chained into the goal. *)
 val chained_prefix = sledgehammer_prefix ^ "chained_"
 
-fun name_thms_pair_from_ref ctxt chained_ths xref =
-  let
-    val ths = ProofContext.get_fact ctxt xref
-    val name = Facts.string_of_ref xref
-               |> forall (member Thm.eq_thm chained_ths) ths
-                  ? prefix chained_prefix
-  in (name, ths) end
-
 
 (***************************************************************)
 (* Relevance Filtering                                         *)
 (***************************************************************)
-
-fun strip_Trueprop_and_all (@{const Trueprop} $ t) =
-    strip_Trueprop_and_all t
-  | strip_Trueprop_and_all (Const (@{const_name all}, _) $ Abs (_, _, t)) =
-    strip_Trueprop_and_all t
-  | strip_Trueprop_and_all (Const (@{const_name All}, _) $ Abs (_, _, t)) =
-    strip_Trueprop_and_all t
-  | strip_Trueprop_and_all t = t
 
 (*** constants with types ***)
 
@@ -82,9 +64,9 @@ fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs)
 
 (*Pairs a constant with the list of its type instantiations (using const_typ)*)
 fun const_with_typ thy (c,typ) =
-    let val tvars = Sign.const_typargs thy (c,typ)
-    in (c, map const_typ_of tvars) end
-    handle TYPE _ => (c,[]);   (*Variable (locale constant): monomorphic*)
+  let val tvars = Sign.const_typargs thy (c,typ) in
+    (c, map const_typ_of tvars) end
+  handle TYPE _ => (c, [])   (*Variable (locale constant): monomorphic*)
 
 (*Add a const/type pair to the table, but a [] entry means a standard connective,
   which we ignore.*)
@@ -95,52 +77,64 @@ fun add_const_type_to_table (c, ctyps) =
 val fresh_prefix = "Sledgehammer.Fresh."
 val flip = Option.map not
 (* These are typically simplified away by "Meson.presimplify". *)
-val boring_consts = [@{const_name If}, @{const_name Let}]
+val boring_consts =
+  [@{const_name If}, @{const_name Let} (* TODO: , @{const_name Set.member}, @{const_name Collect} *)]
 
 fun get_consts_typs thy pos ts =
   let
-    (* Free variables are included, as well as constants, to handle locales.
-       "skolem_id" is included to increase the complexity of theorems containing
-       Skolem functions. In non-CNF form, "Ex" is included but each occurrence
-       is considered fresh, to simulate the effect of Skolemization. *)
+    (* We include free variables, as well as constants, to handle locales. For
+       each quantifiers that must necessarily be skolemized by the ATP, we
+       introduce a fresh constant to simulate the effect of Skolemization. *)
     fun do_term t =
       case t of
         Const x => add_const_type_to_table (const_with_typ thy x)
-      | Free x => add_const_type_to_table (const_with_typ thy x)
-      | (t as Const (@{const_name skolem_id}, _)) $ _ => do_term t
+      | Free (s, _) => add_const_type_to_table (s, [])
       | t1 $ t2 => do_term t1 #> do_term t2
       | Abs (_, _, t) =>
         (* Abstractions lead to combinators, so we add a penalty for them. *)
         add_const_type_to_table (gensym fresh_prefix, [])
         #> do_term t
       | _ => I
-    fun do_quantifier sweet_pos pos body_t =
+    fun do_quantifier will_surely_be_skolemized body_t =
       do_formula pos body_t
-      #> (if pos = SOME sweet_pos then I
-          else add_const_type_to_table (gensym fresh_prefix, []))
-    and do_equality T t1 t2 =
-      fold (if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE
-            else do_term) [t1, t2]
+      #> (if will_surely_be_skolemized then
+            add_const_type_to_table (gensym fresh_prefix, [])
+          else
+            I)
+    and do_term_or_formula T =
+      if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE
+      else do_term
     and do_formula pos t =
       case t of
         Const (@{const_name all}, _) $ Abs (_, _, body_t) =>
-        do_quantifier false pos body_t
+        do_quantifier (pos = SOME false) body_t
       | @{const "==>"} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
-        do_equality T t1 t2
+        fold (do_term_or_formula T) [t1, t2]
       | @{const Trueprop} $ t1 => do_formula pos t1
       | @{const Not} $ t1 => do_formula (flip pos) t1
       | Const (@{const_name All}, _) $ Abs (_, _, body_t) =>
-        do_quantifier false pos body_t
+        do_quantifier (pos = SOME false) body_t
       | Const (@{const_name Ex}, _) $ Abs (_, _, body_t) =>
-        do_quantifier true pos body_t
+        do_quantifier (pos = SOME true) body_t
       | @{const "op &"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
       | @{const "op |"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
       | @{const "op -->"} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "op ="}, Type (_, [T, _])) $ t1 $ t2 =>
-        do_equality T t1 t2
+        fold (do_term_or_formula T) [t1, t2]
+      | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
+        $ t1 $ t2 $ t3 =>
+        do_formula NONE t1 #> fold (do_term_or_formula T) [t2, t3]
+      | Const (@{const_name Ex1}, _) $ Abs (_, _, body_t) =>
+        do_quantifier (is_some pos) body_t
+      | Const (@{const_name Ball}, _) $ t1 $ Abs (_, _, body_t) =>
+        do_quantifier (pos = SOME false)
+                      (HOLogic.mk_imp (incr_boundvars 1 t1 $ Bound 0, body_t))
+      | Const (@{const_name Bex}, _) $ t1 $ Abs (_, _, body_t) =>
+        do_quantifier (pos = SOME true)
+                      (HOLogic.mk_conj (incr_boundvars 1 t1 $ Bound 0, body_t))
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term t0 #> do_formula pos t1  (* theory constant *)
       | _ => do_term t
@@ -186,7 +180,7 @@ structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_o
 fun count_axiom_consts theory_relevant thy (_, th) =
   let
     fun do_const (a, T) =
-      let val (c, cts) = const_with_typ thy (a,T) in
+      let val (c, cts) = const_with_typ thy (a, T) in
         (* Two-dimensional table update. Constant maps to types maps to
            count. *)
         CTtab.map_default (cts, 0) (Integer.add 1)
@@ -194,7 +188,6 @@ fun count_axiom_consts theory_relevant thy (_, th) =
       end
     fun do_term (Const x) = do_const x
       | do_term (Free x) = do_const x
-      | do_term (Const (x as (@{const_name skolem_id}, _)) $ _) = do_const x
       | do_term (t $ u) = do_term t #> do_term u
       | do_term (Abs (_, _, t)) = do_term t
       | do_term _ = I
@@ -233,7 +226,7 @@ fun formula_weight const_tab gctyps consts_typs =
 fun add_expand_pairs (x,ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys;
 
 fun consts_typs_of_term thy t =
-  Symtab.fold add_expand_pairs (get_consts_typs thy (SOME false) [t]) []
+  Symtab.fold add_expand_pairs (get_consts_typs thy (SOME true) [t]) []
 
 fun pair_consts_typs_axiom theory_relevant thy axiom =
   (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
@@ -270,82 +263,36 @@ fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
 
 (* Limit the number of new facts, to prevent runaway acceptance. *)
 fun take_best max_new (newpairs : (annotated_thm * real) list) =
-  let val nnew = length newpairs
-  in
-    if nnew <= max_new then (map #1 newpairs, [])
+  let val nnew = length newpairs in
+    if nnew <= max_new then
+      (map #1 newpairs, [])
     else
-      let val cls = sort compare_pairs newpairs
-          val accepted = List.take (cls, max_new)
+      let
+        val newpairs = sort compare_pairs newpairs
+        val accepted = List.take (newpairs, max_new)
       in
         trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^
-                       ", exceeds the limit of " ^ Int.toString (max_new)));
+                       ", exceeds the limit of " ^ Int.toString max_new));
         trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         trace_msg (fn () => "Actually passed: " ^
           space_implode ", " (map (fst o fst o fst) accepted));
-
-        (map #1 accepted, map #1 (List.drop (cls, max_new)))
+        (map #1 accepted, map #1 (List.drop (newpairs, max_new)))
       end
   end;
 
-fun relevant_facts ctxt relevance_convergence defs_relevant max_new
-                   ({add, del, ...} : relevance_override) const_tab =
-  let
-    val thy = ProofContext.theory_of ctxt
-    val add_thms = maps (ProofContext.get_fact ctxt) add
-    val del_thms = maps (ProofContext.get_fact ctxt) del
-    fun iter threshold rel_const_tab =
-      let
-        fun relevant ([], _) [] = []  (* Nothing added this iteration *)
-          | relevant (newpairs, rejects) [] =
-            let
-              val (newrels, more_rejects) = take_best max_new newpairs
-              val new_consts = maps #2 newrels
-              val rel_const_tab =
-                rel_const_tab |> fold add_const_type_to_table new_consts
-              val threshold =
-                threshold + (1.0 - threshold) / relevance_convergence
-            in
-              trace_msg (fn () => "relevant this iteration: " ^
-                                  Int.toString (length newrels));
-              map #1 newrels @ iter threshold rel_const_tab
-                  (more_rejects @ rejects)
-            end
-          | relevant (newrels, rejects)
-                     ((ax as (clsthm as (name, th), consts_typs)) :: axs) =
-            let
-              val weight =
-                if member Thm.eq_thm add_thms th then 1.0
-                else if member Thm.eq_thm del_thms th then 0.0
-                else formula_weight const_tab rel_const_tab consts_typs
-            in
-              if weight >= threshold orelse
-                 (defs_relevant andalso defines thy th rel_const_tab) then
-                (trace_msg (fn () =>
-                     name ^ " passes: " ^ Real.toString weight
-                     (* ^ " consts: " ^ commas (map fst consts_typs) *));
-                 relevant ((ax, weight) :: newrels, rejects) axs)
-              else
-                relevant (newrels, ax :: rejects) axs
-            end
-        in
-          trace_msg (fn () => "relevant_facts, current threshold: " ^
-                              Real.toString threshold);
-          relevant ([], [])
-        end
-  in iter end
-
 fun relevance_filter ctxt relevance_threshold relevance_convergence
-                     defs_relevant max_new theory_relevant relevance_override
-                     thy axioms goal_ts =
+                     defs_relevant max_new theory_relevant
+                     ({add, del, ...} : relevance_override) axioms goal_ts =
   if relevance_threshold > 1.0 then
     []
   else if relevance_threshold < 0.0 then
     axioms
   else
     let
+      val thy = ProofContext.theory_of ctxt
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
                            Symtab.empty
-      val goal_const_tab = get_consts_typs thy (SOME true) goal_ts
+      val goal_const_tab = get_consts_typs thy (SOME false) goal_ts
       val relevance_threshold = 0.8 * relevance_threshold (* FIXME *)
       val _ =
         trace_msg (fn () => "Initial constants: " ^
@@ -353,12 +300,56 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                                     |> Symtab.dest
                                     |> filter (curry (op <>) [] o snd)
                                     |> map fst))
-      val relevant =
-        relevant_facts ctxt relevance_convergence defs_relevant max_new
-                       relevance_override const_tab relevance_threshold
-                       goal_const_tab
-                       (map (pair_consts_typs_axiom theory_relevant thy)
-                            axioms)
+      val add_thms = maps (ProofContext.get_fact ctxt) add
+      val del_thms = maps (ProofContext.get_fact ctxt) del
+      fun iter threshold rel_const_tab =
+        let
+          fun relevant ([], rejects) [] =
+              (* Nothing was added this iteration: Add "add:" facts. *)
+              if null add_thms then
+                []
+              else
+                map_filter (fn (p as (name, th), _) =>
+                               if member Thm.eq_thm add_thms th then SOME p
+                               else NONE) rejects
+            | relevant (newpairs, rejects) [] =
+              let
+                val (newrels, more_rejects) = take_best max_new newpairs
+                val new_consts = maps #2 newrels
+                val rel_const_tab =
+                  rel_const_tab |> fold add_const_type_to_table new_consts
+                val threshold =
+                  threshold + (1.0 - threshold) / relevance_convergence
+              in
+                trace_msg (fn () => "relevant this iteration: " ^
+                                    Int.toString (length newrels));
+                map #1 newrels @ iter threshold rel_const_tab
+                    (more_rejects @ rejects)
+              end
+            | relevant (newrels, rejects)
+                       ((ax as ((name, th), consts_typs)) :: axs) =
+              let
+                val weight =
+                  if member Thm.eq_thm del_thms th then 0.0
+                  else formula_weight const_tab rel_const_tab consts_typs
+              in
+                if weight >= threshold orelse
+                   (defs_relevant andalso defines thy th rel_const_tab) then
+                  (trace_msg (fn () =>
+                       name ^ " passes: " ^ Real.toString weight
+                       (* ^ " consts: " ^ commas (map fst consts_typs) *));
+                   relevant ((ax, weight) :: newrels, rejects) axs)
+                else
+                  relevant (newrels, ax :: rejects) axs
+              end
+          in
+            trace_msg (fn () => "relevant_facts, current threshold: " ^
+                                Real.toString threshold);
+            relevant ([], [])
+          end
+      val relevant = iter relevance_threshold goal_const_tab
+                          (map (pair_consts_typs_axiom theory_relevant thy)
+                               axioms)
     in
       trace_msg (fn () => "Total relevant: " ^ Int.toString (length relevant));
       relevant
@@ -438,7 +429,7 @@ fun is_theorem_bad_for_atps thm =
     exists_sledgehammer_const t orelse is_strange_thm thm
   end
 
-fun all_name_thms_pairs ctxt chained_ths =
+fun all_name_thms_pairs ctxt add_thms chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
@@ -447,21 +438,22 @@ fun all_name_thms_pairs ctxt chained_ths =
 
     fun valid_facts facts =
       (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
-        if Facts.is_concealed facts name orelse
-           (respect_no_atp andalso is_package_def name) orelse
-           member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
-           String.isSuffix "_def_raw" (* FIXME: crude hack *) name then
+        if (Facts.is_concealed facts name orelse
+            (respect_no_atp andalso is_package_def name) orelse
+            member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
+            String.isSuffix "_def_raw" (* FIXME: crude hack *) name) andalso
+           forall (not o member Thm.eq_thm add_thms) ths0 then
           I
         else
           let
             fun check_thms a =
               (case try (ProofContext.get_thms ctxt) a of
                 NONE => false
-              | SOME ths1 => Thm.eq_thms (ths0, ths1));
-
+              | SOME ths1 => Thm.eq_thms (ths0, ths1))
             val name1 = Facts.extern facts name;
             val name2 = Name_Space.extern full_space name;
-            val ths = filter_out is_theorem_bad_for_atps ths0
+            val ths = filter (fn th => not (is_theorem_bad_for_atps th) orelse
+                                       member Thm.eq_thm add_thms th) ths0
           in
             case find_first check_thms [name1, name2, name] of
               NONE => I
@@ -518,54 +510,70 @@ fun too_general_eqterms (Var z) t =
   | too_general_eqterms (Bound j) t = not (loose_bvar1 (t, j))
   | too_general_eqterms _ _ = false
 
-fun too_general_equality (Const (@{const_name "op ="}, _) $ t1 $ t2) =
-    too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
-  | too_general_equality _ = false
+val is_exhaustive_finite =
+  let
+    fun do_equals t1 t2 =
+      too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
+    fun do_formula pos t =
+      case (pos, t) of
+        (_, @{const Trueprop} $ t) => do_formula pos t
+      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (_, @{const "==>"} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso do_formula pos t2
+      | (_, @{const "op -->"} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso do_formula pos t2
+      | (_, @{const Not} $ t1) => do_formula (not pos) t1
+      | (true, @{const "op |"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (false, @{const "op &"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, @{const False}) => true
+      | (false, @{const True}) => true
+      | _ => false
+  in do_formula true end
 
-fun has_typed_var tycons = exists_subterm
-  (fn Var (_, Type (a, _)) => member (op =) tycons a | _ => false);
+
+fun has_bound_or_var_of_type tycons =
+  exists_subterm (fn Var (_, Type (s, _)) => member (op =) tycons s
+                   | Abs (_, Type (s, _), _) => member (op =) tycons s
+                   | _ => false)
 
 (* Facts are forbidden to contain variables of these types. The typical reason
    is that they lead to unsoundness. Note that "unit" satisfies numerous
    equations like "?x = ()". The resulting clauses will have no type constraint,
    yielding false proofs. Even "bool" leads to many unsound proofs, though only
    for higher-order problems. *)
-val dangerous_types = [@{type_name unit}, @{type_name bool}];
+val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
 
 (* Facts containing variables of type "unit" or "bool" or of the form
    "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
    are omitted. *)
-fun is_dangerous_term _ @{prop True} = true
-  | is_dangerous_term full_types t =
-    not full_types andalso
-    (has_typed_var dangerous_types t orelse
-     forall too_general_equality (HOLogic.disjuncts (strip_Trueprop_and_all t)))
+fun is_dangerous_term full_types t =
+  not full_types andalso
+  (has_bound_or_var_of_type dangerous_types t orelse is_exhaustive_finite t)
 
 fun relevant_facts full_types relevance_threshold relevance_convergence
                    defs_relevant max_new theory_relevant
                    (relevance_override as {add, del, only})
                    (ctxt, (chained_ths, _)) hyp_ts concl_t =
   let
-    val thy = ProofContext.theory_of ctxt
     val add_thms = maps (ProofContext.get_fact ctxt) add
-    val has_override = not (null add) orelse not (null del)
-(* FIXME:
-    val is_FO = forall Meson.is_fol_term thy (concl_t :: hyp_ts)
-*)
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
-          (map (name_thms_pair_from_ref ctxt chained_ths) add @
-           (if only then [] else all_name_thms_pairs ctxt chained_ths))
-      |> not has_override ? make_unique
-      |> filter (fn (_, th) =>
-                    member Thm.eq_thm add_thms th orelse
-                    ((* FIXME: keep? (not is_FO orelse is_quasi_fol_theorem thy th) andalso*)
-                     not (is_dangerous_term full_types (prop_of th))))
+          (if only then [] else all_name_thms_pairs ctxt add_thms chained_ths)
+      |> make_unique
+      |> map (apsnd Clausifier.transform_elim_theorem)
+      |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
+                               not (is_dangerous_term full_types (prop_of th)))
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
-                     thy axioms (concl_t :: hyp_ts)
-    |> has_override ? make_unique
+                     axioms (concl_t :: hyp_ts)
     |> sort_wrt fst
   end
 
