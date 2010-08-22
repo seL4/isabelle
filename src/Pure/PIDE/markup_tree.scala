@@ -22,19 +22,19 @@ object Markup_Tree
   object Branches
   {
     type Entry = (Text.Info[Any], Markup_Tree)
-    type T = SortedMap[Text.Info[Any], Entry]
+    type T = SortedMap[Text.Range, Entry]
 
-    val empty = SortedMap.empty[Text.Info[Any], Entry](new scala.math.Ordering[Text.Info[Any]]
+    val empty = SortedMap.empty[Text.Range, Entry](new scala.math.Ordering[Text.Range]
       {
-        def compare(x: Text.Info[Any], y: Text.Info[Any]): Int = x.range compare y.range
+        def compare(r1: Text.Range, r2: Text.Range): Int = r1 compare r2
       })
 
-    def update(branches: T, entry: Entry): T = branches + (entry._1 -> entry)
+    def update(branches: T, entry: Entry): T = branches + (entry._1.range -> entry)
 
     def overlapping(range: Text.Range, branches: T): T =
     {
-      val start = Text.Info[Any](Text.Range(range.start), Nil)
-      val stop = Text.Info[Any](Text.Range(range.stop), Nil)
+      val start = Text.Range(range.start)
+      val stop = Text.Range(range.stop)
       branches.get(stop) match {
         case Some(end) if range overlaps end._1.range =>
           update(branches.range(start, stop), end)
@@ -59,17 +59,19 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
 
   def + (new_info: Text.Info[Any]): Markup_Tree =
   {
-    branches.get(new_info) match {
+    val new_range = new_info.range
+    branches.get(new_range) match {
       case None =>
         new Markup_Tree(Branches.update(branches, new_info -> empty))
       case Some((info, subtree)) =>
-        if (info.range != new_info.range && info.contains(new_info))
+        val range = info.range
+        if (range != new_range && range.contains(new_range))
           new Markup_Tree(Branches.update(branches, info -> (subtree + new_info)))
-        else if (new_info.contains(branches.head._1) && new_info.contains(branches.last._1))
+        else if (new_range.contains(branches.head._1) && new_range.contains(branches.last._1))
           new Markup_Tree(Branches.update(Branches.empty, (new_info -> this)))
         else {
-          val body = Branches.overlapping(new_info.range, branches)
-          if (body.forall(e => new_info.contains(e._1))) {
+          val body = Branches.overlapping(new_range, branches)
+          if (body.forall(e => new_range.contains(e._1))) {
             val rest = (branches /: body) { case (bs, (e, _)) => bs - e }
             new Markup_Tree(Branches.update(rest, new_info -> new Markup_Tree(body)))
           }
@@ -81,17 +83,19 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  def select[A](root: Text.Info[A])(sel: PartialFunction[Text.Info[Any], A]): Stream[Text.Info[A]] =
+  def select[A](root: Text.Info[A])
+    (result: PartialFunction[Text.Info[Any], A]): Stream[Text.Info[A]] =
   {
     def stream(parent: Text.Info[A], bs: Branches.T): Stream[Text.Info[A]] =
     {
+      val range = parent.range
       val substream =
-        (for ((_, (info, subtree)) <- Branches.overlapping(parent.range, bs).toStream) yield {
-          if (sel.isDefinedAt(info)) {
-            val current = Text.Info(info.range.restrict(parent.range), sel(info))
+        (for ((info_range, (info, subtree)) <- Branches.overlapping(range, bs).toStream) yield {
+          if (result.isDefinedAt(info)) {
+            val current = Text.Info(info_range.restrict(range), result(info))
             stream(current, subtree.branches)
           }
-          else stream(parent.restrict(info.range), subtree.branches)
+          else stream(parent.restrict(info_range), subtree.branches)
         }).flatten
 
       def padding(last: Text.Offset, s: Stream[Text.Info[A]]): Stream[Text.Info[A]] =
@@ -102,12 +106,12 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
               parent.restrict(Text.Range(last, start)) #:: info #:: padding(stop, rest)
             else info #:: padding(stop, rest)
           case Stream.Empty =>
-            if (last < parent.range.stop)
-              Stream(parent.restrict(Text.Range(last, parent.range.stop)))
+            if (last < range.stop)
+              Stream(parent.restrict(Text.Range(last, range.stop)))
             else Stream.Empty
         }
       if (substream.isEmpty) Stream(parent)
-      else padding(parent.range.start, substream)
+      else padding(range.start, substream)
     }
     stream(root, branches)
   }
