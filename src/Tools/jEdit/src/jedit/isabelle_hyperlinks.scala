@@ -49,10 +49,8 @@ class Isabelle_Hyperlinks extends HyperlinkSource
           case Some((command, command_start)) =>
             val root = Text.Info[Hyperlink]((Text.Range(offset) - command_start), null)
             (snapshot.state(command).markup.select(root) {
-              case Text.Info(_, XML.Elem(Markup(Markup.ML_REF, _),
+              case Text.Info(info_range, XML.Elem(Markup(Markup.ML_REF, _),
                   List(XML.Elem(Markup(Markup.ML_DEF, props), _)))) =>
-//{{{
-                val info_range = root.range // FIXME proper range
                 val Text.Range(begin, end) = snapshot.convert(info_range + command_start)
                 val line = buffer.getLineOfOffset(begin)
 
@@ -67,7 +65,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                             snapshot.node.command_start(ref_cmd) match {
                               case Some(ref_cmd_start) =>
                                 new Internal_Hyperlink(begin, end, line,
-                                  snapshot.convert(ref_cmd_start + ref_offset - 1)) // FIXME Command.decode_range
+                                  snapshot.convert(ref_cmd_start + ref_cmd.decode(ref_offset)))
                               case None => null
                             }
                           case None => null
@@ -75,7 +73,6 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                       case _ => null
                     }
                 }
-//}}}
             }).head.info
           case None => null
         }
