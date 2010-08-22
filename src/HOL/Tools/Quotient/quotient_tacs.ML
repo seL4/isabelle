@@ -18,7 +18,7 @@ sig
   val lift_procedure_tac: Proof.context -> thm -> int -> tactic
   val lift_tac: Proof.context -> thm list -> int -> tactic
 
-  val lifted: Proof.context -> typ list -> thm -> thm
+  val lifted: Proof.context -> typ list -> thm list -> thm -> thm
   val lifted_attrib: attribute
 end;
 
@@ -647,7 +647,7 @@ in
 end
 
 
-(** lifting as tactic **)
+(** lifting as a tactic **)
 
 (* the tactic leaves three subgoals to be proved *)
 fun lift_procedure_tac ctxt rthm =
@@ -661,39 +661,47 @@ fun lift_procedure_tac ctxt rthm =
       (rtac rule THEN' rtac rthm') i
     end)
 
+
+fun lift_single_tac ctxt rthm = 
+  lift_procedure_tac ctxt rthm
+  THEN' RANGE
+    [ regularize_tac ctxt,
+      all_injection_tac ctxt,
+      clean_tac ctxt ]
+
 fun lift_tac ctxt rthms =
-let
-  fun mk_tac rthm =
-    lift_procedure_tac ctxt rthm
-    THEN' RANGE
-      [ regularize_tac ctxt,
-        all_injection_tac ctxt,
-        clean_tac ctxt ]
-in
-  Goal.conjunction_tac THEN' RANGE (map mk_tac rthms)
-end
+  Goal.conjunction_tac 
+  THEN' RANGE (map (lift_single_tac ctxt) rthms)
 
 
-(** lifting as an attribute **)
-
-fun lifted ctxt qtys thm =
+(* automated lifting with pre-simplification of the theorems;
+   for internal usage *)
+fun lifted ctxt qtys simps rthm =
 let
   (* When the theorem is atomized, eta redexes are contracted,
      so we do it both in the original theorem *)
-  val thm' = Drule.eta_contraction_rule thm
-  val ((_, [thm'']), ctxt') = Variable.import false [thm'] ctxt
-  val goal = derive_qtrm ctxt qtys (prop_of thm'')
+  val rthm' =
+    rthm 
+    |> asm_full_simplify (HOL_basic_ss addsimps simps)
+    |> Drule.eta_contraction_rule 
+  val ((_, [rthm'']), ctxt') = Variable.import false [rthm'] ctxt
+  val goal = derive_qtrm ctxt qtys (prop_of rthm'')
 in
-  Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm'] 1))
+  Goal.prove ctxt' [] [] goal 
+    (K ((asm_full_simp_tac (HOL_basic_ss addsimps simps)
+         THEN' lift_single_tac ctxt' rthm') 1))
   |> singleton (ProofContext.export ctxt' ctxt)
-end;
+end
+
+
+(* lifting as an attribute *)
 
 val lifted_attrib = Thm.rule_attribute (fn context => 
   let
     val ctxt = Context.proof_of context
     val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
   in
-    lifted ctxt qtys
+    lifted ctxt qtys []
   end)
 
 end; (* structure *)
