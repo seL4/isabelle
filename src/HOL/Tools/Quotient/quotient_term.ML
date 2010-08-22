@@ -26,10 +26,10 @@ sig
   val inj_repabs_trm: Proof.context -> term * term -> term
   val inj_repabs_trm_chk: Proof.context -> term * term -> term
 
-  val derive_qtyp: typ list -> typ -> Proof.context -> typ
-  val derive_qtrm: typ list -> term -> Proof.context -> term
-  val derive_rtyp: typ list -> typ -> Proof.context -> typ
-  val derive_rtrm: typ list -> term -> Proof.context -> term
+  val derive_qtyp: Proof.context -> typ list -> typ -> typ
+  val derive_qtrm: Proof.context -> typ list -> term -> term
+  val derive_rtyp: Proof.context -> typ list -> typ -> typ
+  val derive_rtrm: Proof.context -> typ list -> term -> term
 end;
 
 structure Quotient_Term: QUOTIENT_TERM =
@@ -498,7 +498,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else mk_bex1_rel $ (equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
        end
 
-  | (Const (@{const_name "Ball"}, ty) $ (Const (@{const_name "Respects"}, _) $ resrel) $ t,
+  | (Const (@{const_name Ball}, ty) $ (Const (@{const_name Respects}, _) $ resrel) $ t,
      Const (@{const_name All}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
@@ -509,7 +509,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else mk_ball $ (mk_resp $ resrel) $ subtrm
        end
 
-  | (Const (@{const_name "Bex"}, ty) $ (Const (@{const_name "Respects"}, _) $ resrel) $ t,
+  | (Const (@{const_name Bex}, ty) $ (Const (@{const_name Respects}, _) $ resrel) $ t,
      Const (@{const_name Ex}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
@@ -520,7 +520,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else mk_bex $ (mk_resp $ resrel) $ subtrm
        end
 
-  | (Const (@{const_name "Bex1_rel"}, ty) $ resrel $ t, Const (@{const_name Ex1}, ty') $ t') =>
+  | (Const (@{const_name Bex1_rel}, ty) $ resrel $ t, Const (@{const_name Ex1}, ty') $ t') =>
        let
          val subtrm = apply_subt (regularize_trm ctxt) (t, t')
          val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
@@ -638,18 +638,18 @@ end
    as the type of subterms needs to be calculated   *)
 fun inj_repabs_trm ctxt (rtrm, qtrm) =
  case (rtrm, qtrm) of
-    (Const (@{const_name "Ball"}, T) $ r $ t, Const (@{const_name All}, _) $ t') =>
-       Const (@{const_name "Ball"}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
+    (Const (@{const_name Ball}, T) $ r $ t, Const (@{const_name All}, _) $ t') =>
+       Const (@{const_name Ball}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
 
-  | (Const (@{const_name "Bex"}, T) $ r $ t, Const (@{const_name Ex}, _) $ t') =>
-       Const (@{const_name "Bex"}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
+  | (Const (@{const_name Bex}, T) $ r $ t, Const (@{const_name Ex}, _) $ t') =>
+       Const (@{const_name Bex}, T) $ r $ (inj_repabs_trm ctxt (t, t'))
 
-  | (Const (@{const_name "Babs"}, T) $ r $ t, t' as (Abs _)) =>
+  | (Const (@{const_name Babs}, T) $ r $ t, t' as (Abs _)) =>
       let
         val rty = fastype_of rtrm
         val qty = fastype_of qtrm
       in
-        mk_repabs ctxt (rty, qty) (Const (@{const_name "Babs"}, T) $ r $ (inj_repabs_trm ctxt (t, t')))
+        mk_repabs ctxt (rty, qty) (Const (@{const_name Babs}, T) $ r $ (inj_repabs_trm ctxt (t, t')))
       end
 
   | (Abs (x, T, t), Abs (x', T', t')) =>
@@ -767,19 +767,19 @@ end
 (* derives a qtyp and qtrm out of a rtyp and rtrm,
    respectively 
 *)
-fun derive_qtyp qtys rty ctxt =
+fun derive_qtyp ctxt qtys rty =
   subst_typ ctxt (mk_ty_subst qtys false ctxt) rty
 
-fun derive_qtrm qtys rtrm ctxt =
+fun derive_qtrm ctxt qtys rtrm =
   subst_trm ctxt (mk_ty_subst qtys false ctxt) (mk_trm_subst qtys false ctxt) rtrm
 
 (* derives a rtyp and rtrm out of a qtyp and qtrm,
    respectively 
 *)
-fun derive_rtyp qtys qty ctxt =
+fun derive_rtyp ctxt qtys qty =
   subst_typ ctxt (mk_ty_subst qtys true ctxt) qty
 
-fun derive_rtrm qtys qtrm ctxt =
+fun derive_rtrm ctxt qtys qtrm =
   subst_trm ctxt (mk_ty_subst qtys true ctxt) (mk_trm_subst qtys true ctxt) qtrm
 
 

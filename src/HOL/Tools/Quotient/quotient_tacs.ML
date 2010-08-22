@@ -18,7 +18,7 @@ sig
   val lift_procedure_tac: Proof.context -> thm -> int -> tactic
   val lift_tac: Proof.context -> thm list -> int -> tactic
 
-  val lifted: typ list -> Proof.context -> thm -> thm
+  val lifted: Proof.context -> typ list -> thm -> thm
   val lifted_attrib: attribute
 end;
 
@@ -627,7 +627,7 @@ fun descend_procedure_tac ctxt =
   THEN' SUBGOAL (fn (goal, i) =>
         let
           val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
-          val rtrm = derive_rtrm qtys goal ctxt
+          val rtrm = derive_rtrm ctxt qtys goal
           val rule = procedure_inst ctxt rtrm  goal
         in
           rtac rule i
@@ -674,15 +674,15 @@ in
 end
 
 
-(** lifting as attribute **)
+(** lifting as an attribute **)
 
-fun lifted qtys ctxt thm =
+fun lifted ctxt qtys thm =
 let
   (* When the theorem is atomized, eta redexes are contracted,
      so we do it both in the original theorem *)
   val thm' = Drule.eta_contraction_rule thm
   val ((_, [thm'']), ctxt') = Variable.import false [thm'] ctxt
-  val goal = derive_qtrm qtys (prop_of thm'') ctxt'
+  val goal = derive_qtrm ctxt qtys (prop_of thm'')
 in
   Goal.prove ctxt' [] [] goal (K (lift_tac ctxt' [thm'] 1))
   |> singleton (ProofContext.export ctxt' ctxt)
@@ -693,7 +693,7 @@ val lifted_attrib = Thm.rule_attribute (fn context =>
     val ctxt = Context.proof_of context
     val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
   in
-    lifted qtys ctxt
+    lifted ctxt qtys
   end)
 
 end; (* structure *)
