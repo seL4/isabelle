@@ -778,9 +778,19 @@ fun FOL_SOLVE mode ctxt cls ths0 =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
+(* Extensionalize "th", because that makes sense and that's what Sledgehammer
+   does, but also keep an unextensionalized version of "th" for backward
+   compatibility. *)
+fun also_extensionalize_theorem th =
+  let val th' = Clausifier.extensionalize_theorem th in
+    if Thm.eq_thm (th, th') then [th]
+    else th :: Meson.make_clauses_unsorted [th']
+  end
+
 val neg_clausify =
   single
   #> Meson.make_clauses_unsorted
+  #> maps also_extensionalize_theorem
   #> map Clausifier.introduce_combinators_in_theorem
   #> Meson.finish_cnf
 
@@ -808,9 +818,24 @@ val metis_tac = generic_metis_tac HO
 val metisF_tac = generic_metis_tac FO
 val metisFT_tac = generic_metis_tac FT
 
+(* Whenever "X" has schematic type variables, we treat "using X by metis" as
+   "by (metis X)", to prevent "Subgoal.FOCUS" from freezing the type variables.
+   We don't do it for nonschematic facts "X" because this breaks a few proofs
+   (in the rare and subtle case where a proof relied on extensionality not being
+   applied) and brings no benefits. *)
+val has_tvar =
+  exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 fun method name mode =
   Method.setup name (Attrib.thms >> (fn ths => fn ctxt =>
-    SIMPLE_METHOD' (CHANGED_PROP o generic_metis_tac mode ctxt ths)))
+    METHOD (fn facts =>
+               let
+                 val (schem_facts, nonschem_facts) =
+                   List.partition has_tvar facts
+               in
+                 HEADGOAL (Method.insert_tac nonschem_facts THEN'
+                           CHANGED_PROP
+                           o generic_metis_tac mode ctxt (schem_facts @ ths))
+               end)))
 
 val setup =
   type_lits_setup
