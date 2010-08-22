@@ -14,9 +14,6 @@ import scala.collection.mutable
 
 object Command
 {
-  case class HighlightInfo(kind: String, sub_kind: Option[String]) {
-    override def toString = kind
-  }
   case class TypeInfo(ty: String)
   case class RefInfo(file: Option[String], line: Option[Int],
     command_id: Option[Document.Command_ID], offset: Option[Int])  // FIXME Command_ID vs. Exec_ID !?
@@ -45,14 +42,6 @@ object Command
 
 
     /* markup */
-
-    lazy val highlight: List[Markup_Tree.Node[Any]] =
-    {
-      markup.filter(_.info match {
-        case Command.HighlightInfo(_, _) => true
-        case _ => false
-      }).flatten(markup_root_node)
-    }
 
     private lazy val types: List[Markup_Tree.Node[Any]] =
       markup.filter(_.info match {
@@ -85,38 +74,16 @@ object Command
     def accumulate(message: XML.Tree): Command.State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), body) => copy(status = body ::: status)
-
-        case XML.Elem(Markup(Markup.REPORT, _), elems) =>
-          (this /: elems)((state, elem) =>
-            elem match {
-              case XML.Elem(Markup(kind, atts), body) if Position.get_id(atts) == Some(command.id) =>
-                atts match {
-                  case Position.Range(range) =>
-                    if (kind == Markup.ML_TYPING) {
-                      val info = Pretty.string_of(body, margin = 40)
-                      state.add_markup(command.decode_range(range, Command.TypeInfo(info)))
-                    }
-                    else if (kind == Markup.ML_REF) {
-                      body match {
-                        case List(XML.Elem(Markup(Markup.ML_DEF, props), _)) =>
-                          state.add_markup(
-                            command.decode_range(range,
-                              Command.RefInfo(
-                                Position.get_file(props),
-                                Position.get_line(props),
-                                Position.get_id(props),
-                                Position.get_offset(props))))
-                        case _ => state
-                      }
-                    }
-                    else {
-                      state.add_markup(
-                        command.decode_range(range,
-                          Command.HighlightInfo(kind, Markup.get_string(Markup.KIND, atts))))
-                    }
-                  case _ => state
-                }
-              case _ => System.err.println("Ignored report message: " + elem); state
+        case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
+          (this /: msgs)((state, msg) =>
+            msg match {
+              case XML.Elem(Markup(name, atts), args)
+              if Position.get_id(atts) == Some(command.id) && Position.get_range(atts).isDefined =>
+                val range = command.decode_range(Position.get_range(atts).get)
+                val props = atts.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
+                val node = Markup_Tree.Node[Any](range, XML.Elem(Markup(name, props), args))
+                add_markup(node)
+              case _ => System.err.println("Ignored report message: " + msg); state
             })
         case _ => add_result(message)
       }
@@ -152,15 +119,11 @@ class Command(
   val source: String = span.map(_.source).mkString
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
   def length: Int = source.length
+
   val range: Text.Range = Text.Range(0, length)
 
   lazy val symbol_index = new Symbol.Index(source)
-
-
-  /* markup */
-
-  def decode_range(range: Text.Range, info: Any): Markup_Tree.Node[Any] =
-    new Markup_Tree.Node(symbol_index.decode(range), info)
+  def decode_range(r: Text.Range): Text.Range = symbol_index.decode(r)
 
 
   /* accumulated results */
