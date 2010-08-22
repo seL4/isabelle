@@ -47,15 +47,13 @@ class Isabelle_Hyperlinks extends HyperlinkSource
         val offset = snapshot.revert(buffer_offset)
         snapshot.node.command_at(offset) match {
           case Some((command, command_start)) =>
-            val root_node =
-              Markup_Tree.Node[Hyperlink]((Text.Range(offset) - command_start), null)
-
-            (snapshot.state(command).markup.select(root_node) {
-              case XML.Elem(Markup(Markup.ML_REF, _),
-                  List(XML.Elem(Markup(Markup.ML_DEF, props), _))) =>
+            val root = Text.Info[Hyperlink]((Text.Range(offset) - command_start), null)
+            (snapshot.state(command).markup.select(root) {
+              case Text.Info(_, XML.Elem(Markup(Markup.ML_REF, _),
+                  List(XML.Elem(Markup(Markup.ML_DEF, props), _)))) =>
 //{{{
-                val node_range = root_node.range // FIXME proper range
-                val Text.Range(begin, end) = snapshot.convert(node_range + command_start)
+                val info_range = root.range // FIXME proper range
+                val Text.Range(begin, end) = snapshot.convert(info_range + command_start)
                 val line = buffer.getLineOfOffset(begin)
 
                 (Position.get_file(props), Position.get_line(props)) match {

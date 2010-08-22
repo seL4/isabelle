@@ -279,13 +279,13 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         handler.handleToken(line_segment, style, offset, length, context)
 
       val syntax = session.current_syntax()
-      val token_markup: PartialFunction[Any, Byte] =
+      val token_markup: PartialFunction[Text.Info[Any], Byte] =
       {
-        case XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _)
+        case Text.Info(_, XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _))
         if syntax.keyword_kind(name).isDefined =>
           Document_Model.Token_Markup.command_style(syntax.keyword_kind(name).get)
 
-        case XML.Elem(Markup(name, _), _)
+        case Text.Info(_, XML.Elem(Markup(name, _), _))
         if Document_Model.Token_Markup.token_style(name) != Token.NULL =>
           Document_Model.Token_Markup.token_style(name)
       }
@@ -293,10 +293,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       var next_x = start
       for {
         (command, command_start) <- snapshot.node.command_range(former_range)
-        val root_node =
-          Markup_Tree.Node((former_range - command_start).restrict(command.range), Token.NULL)
-        node <- snapshot.state(command).markup.select(root_node)(token_markup)
-        val Text.Range(abs_start, abs_stop) = snapshot.convert(node.range + command_start)
+        val root = Text.Info((former_range - command_start).restrict(command.range), Token.NULL)
+        info <- snapshot.state(command).markup.select(root)(token_markup)
+        val Text.Range(abs_start, abs_stop) = snapshot.convert(info.range + command_start)
         if abs_stop > start && abs_start < stop  // FIXME abs_range overlaps range (redundant!?)
       }
       {
@@ -307,7 +306,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
           ((abs_stop - stop) max 0)
         if (start + token_start > next_x)  // FIXME ??
           handle_token(Token.COMMENT1, next_x - start, start + token_start - next_x)
-        handle_token(node.info, token_start, token_length)
+        handle_token(info.info, token_start, token_length)
         next_x = start + token_start + token_length
       }
       if (next_x < stop)  // FIXME ??

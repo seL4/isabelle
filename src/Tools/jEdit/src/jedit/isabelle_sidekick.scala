@@ -129,21 +129,21 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
     val root = data.root
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
-      snapshot.state(command).markup_root.swing_tree(root)((node: Markup_Tree.Node[Any]) =>
+      snapshot.state(command).markup_root.swing_tree(root)((info: Text.Info[Any]) =>
           {
-            val content = command.source(node.range).replace('\n', ' ')
+            val content = command.source(info.range).replace('\n', ' ')
             val id = command.id
 
             new DefaultMutableTreeNode(new IAsset {
               override def getIcon: Icon = null
               override def getShortString: String = content
-              override def getLongString: String = node.info.toString
+              override def getLongString: String = info.info.toString
               override def getName: String = Markup.Long(id)
               override def setName(name: String) = ()
               override def setStart(start: Position) = ()
-              override def getStart: Position = command_start + node.range.start
+              override def getStart: Position = command_start + info.range.start
               override def setEnd(end: Position) = ()
-              override def getEnd: Position = command_start + node.range.stop
+              override def getEnd: Position = command_start + info.range.stop
               override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
             })
           })

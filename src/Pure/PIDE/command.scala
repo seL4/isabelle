@@ -28,11 +28,11 @@ object Command
 
     def add_result(result: XML.Tree): State = copy(reverse_results = result :: reverse_results)
 
-    def add_markup(node: Markup_Tree.Node[Any]): State = copy(markup = markup + node)
+    def add_markup(info: Text.Info[Any]): State = copy(markup = markup + info)
 
-    def markup_root_node: Markup_Tree.Node[Any] =
-      new Markup_Tree.Node(command.range, XML.Elem(Markup(Markup.STATUS, Nil), status))
-    def markup_root: Markup_Tree = markup + markup_root_node
+    def markup_root_info: Text.Info[Any] =
+      new Text.Info(command.range, XML.Elem(Markup(Markup.STATUS, Nil), status))
+    def markup_root: Markup_Tree = markup + markup_root_info
 
 
     /* message dispatch */
@@ -47,8 +47,8 @@ object Command
               if Position.get_id(atts) == Some(command.id) && Position.get_range(atts).isDefined =>
                 val range = command.decode_range(Position.get_range(atts).get)
                 val props = atts.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
-                val node = Markup_Tree.Node[Any](range, XML.Elem(Markup(name, props), args))
-                add_markup(node)
+                val info = Text.Info[Any](range, XML.Elem(Markup(name, props), args))
+                add_markup(info)
               case _ => System.err.println("Ignored report message: " + msg); state
             })
         case _ => add_result(message)

@@ -42,6 +42,15 @@ object Text
   }
 
 
+  /* information associated with text range */
+
+  case class Info[A](val range: Text.Range, val info: A)
+  {
+    def contains[B](that: Info[B]): Boolean = this.range contains that.range
+    def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
+  }
+
+
   /* editing */
 
   object Edit
