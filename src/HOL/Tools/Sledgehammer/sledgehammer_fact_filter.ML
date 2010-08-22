@@ -43,7 +43,7 @@ fun name_thms_pair_from_ref ctxt chained_ths xref =
     val name = Facts.string_of_ref xref
                |> forall (member Thm.eq_thm chained_ths) ths
                   ? prefix chained_prefix
-  in (name, ths) end
+  in (name, ths |> map Clausifier.transform_elim_theorem) end
 
 
 (***************************************************************)
@@ -433,13 +433,73 @@ fun is_strange_thm th =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
-fun is_theorem_bad_for_atps thm =
+(**** Predicates to detect unwanted facts (prolific or likely to cause
+      unsoundness) ****)
+
+(* Too general means, positive equality literal with a variable X as one
+   operand, when X does not occur properly in the other operand. This rules out
+   clearly inconsistent facts such as X = a | X = b, though it by no means
+   guarantees soundness. *)
+
+(* Unwanted equalities are those between a (bound or schematic) variable that
+   does not properly occur in the second operand. *)
+val is_exhaustive_finite =
+  let
+    fun is_bad_equal (Var z) t =
+        not (exists_subterm (fn Var z' => z = z' | _ => false) t)
+      | is_bad_equal (Bound j) t = not (loose_bvar1 (t, j))
+      | is_bad_equal _ _ = false
+    fun do_equals t1 t2 = is_bad_equal t1 t2 orelse is_bad_equal t2 t1
+    fun do_formula pos t =
+      case (pos, t) of
+        (_, @{const Trueprop} $ t1) => do_formula pos t1
+      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) =>
+        do_formula pos t'
+      | (_, @{const "==>"} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso
+        (t2 = @{prop False} orelse do_formula pos t2)
+      | (_, @{const "op -->"} $ t1 $ t2) =>
+        do_formula (not pos) t1 andalso
+        (t2 = @{const False} orelse do_formula pos t2)
+      | (_, @{const Not} $ t1) => do_formula (not pos) t1
+      | (true, @{const "op |"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (false, @{const "op &"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
+      | _ => false
+  in do_formula true end
+
+fun has_bound_or_var_of_type tycons =
+  exists_subterm (fn Var (_, Type (s, _)) => member (op =) tycons s
+                   | Abs (_, Type (s, _), _) => member (op =) tycons s
+                   | _ => false)
+
+(* Facts are forbidden to contain variables of these types. The typical reason
+   is that they lead to unsoundness. Note that "unit" satisfies numerous
+   equations like "?x = ()". The resulting clauses will have no type constraint,
+   yielding false proofs. Even "bool" leads to many unsound proofs, though only
+   for higher-order problems. *)
+val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
+
+(* Facts containing variables of type "unit" or "bool" or of the form
+   "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
+   are omitted. *)
+fun is_dangerous_term full_types t =
+  not full_types andalso
+  (has_bound_or_var_of_type dangerous_types t orelse is_exhaustive_finite t)
+
+fun is_theorem_bad_for_atps full_types thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
-    exists_sledgehammer_const t orelse is_strange_thm thm
+    is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
+    is_strange_thm thm
   end
 
-fun all_name_thms_pairs ctxt add_thms chained_ths =
+fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt;
@@ -462,8 +522,10 @@ fun all_name_thms_pairs ctxt add_thms chained_ths =
               | SOME ths1 => Thm.eq_thms (ths0, ths1))
             val name1 = Facts.extern facts name;
             val name2 = Name_Space.extern full_space name;
-            val ths = filter (fn th => not (is_theorem_bad_for_atps th) orelse
-                                       member Thm.eq_thm add_thms th) ths0
+            val ths =
+             ths0 |> map Clausifier.transform_elim_theorem
+                  |> filter ((not o is_theorem_bad_for_atps full_types) orf
+                             member Thm.eq_thm add_thms)
           in
             case find_first check_thms [name1, name2, name] of
               NONE => I
@@ -505,68 +567,6 @@ fun checked_name_thm_pairs respect_no_atp ctxt =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-(**** Predicates to detect unwanted facts (prolific or likely to cause
-      unsoundness) ****)
-
-(* Too general means, positive equality literal with a variable X as one
-   operand, when X does not occur properly in the other operand. This rules out
-   clearly inconsistent facts such as X = a | X = b, though it by no means
-   guarantees soundness. *)
-
-(* Unwanted equalities are those between a (bound or schematic) variable that
-   does not properly occur in the second operand. *)
-fun too_general_eqterms (Var z) t =
-    not (exists_subterm (fn Var z' => z = z' | _ => false) t)
-  | too_general_eqterms (Bound j) t = not (loose_bvar1 (t, j))
-  | too_general_eqterms _ _ = false
-
-val is_exhaustive_finite =
-  let
-    fun do_equals t1 t2 =
-      too_general_eqterms t1 t2 orelse too_general_eqterms t2 t1
-    fun do_formula pos t =
-      case (pos, t) of
-        (_, @{const Trueprop} $ t1) => do_formula pos t1
-      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (_, @{const "==>"} $ t1 $ t2) =>
-        do_formula (not pos) t1 andalso do_formula pos t2
-      | (_, @{const "op -->"} $ t1 $ t2) =>
-        do_formula (not pos) t1 andalso do_formula pos t2
-      | (_, @{const Not} $ t1) => do_formula (not pos) t1
-      | (true, @{const "op |"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
-      | (false, @{const "op &"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
-      | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
-      | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
-      | (_, @{const False}) => true
-      | (_, @{const True}) => true
-      | _ => false
-  in do_formula true end
-
-
-fun has_bound_or_var_of_type tycons =
-  exists_subterm (fn Var (_, Type (s, _)) => member (op =) tycons s
-                   | Abs (_, Type (s, _), _) => member (op =) tycons s
-                   | _ => false)
-
-(* Facts are forbidden to contain variables of these types. The typical reason
-   is that they lead to unsoundness. Note that "unit" satisfies numerous
-   equations like "?x = ()". The resulting clauses will have no type constraint,
-   yielding false proofs. Even "bool" leads to many unsound proofs, though only
-   for higher-order problems. *)
-val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
-
-(* Facts containing variables of type "unit" or "bool" or of the form
-   "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
-   are omitted. *)
-fun is_dangerous_term full_types t =
-  not full_types andalso
-  (has_bound_or_var_of_type dangerous_types t orelse is_exhaustive_finite t)
-
 fun relevant_facts full_types relevance_threshold relevance_convergence
                    defs_relevant max_new theory_relevant
                    (relevance_override as {add, del, only})
@@ -576,11 +576,8 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     val axioms =
       checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
           (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
-           else all_name_thms_pairs ctxt add_thms chained_ths)
+           else all_name_thms_pairs ctxt full_types add_thms chained_ths)
       |> make_unique
-      |> map (apsnd Clausifier.transform_elim_theorem)
-      |> filter (fn (_, th) => member Thm.eq_thm add_thms th orelse
-                               not (is_dangerous_term full_types (prop_of th)))
   in
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override

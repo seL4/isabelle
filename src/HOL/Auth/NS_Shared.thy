@@ -5,7 +5,7 @@
 
 header{*Needham-Schroeder Shared-Key Protocol and the Issues Property*}
 
-theory NS_Shared imports Sledgehammer2d(*###*) Public begin
+theory NS_Shared imports Public begin
 
 text{*
 From page 247 of
@@ -311,8 +311,6 @@ lemma A_trusts_NS4_lemma [rule_format]:
       Crypt K (Nonce NB) \<in> parts (spies evs) \<longrightarrow>
       Says B A (Crypt K (Nonce NB)) \<in> set evs"
 apply (erule ns_shared.induct, force, drule_tac [4] NS3_msg_in_parts_spies)
-sledgehammer [atp = e, overlord] (Crypt_synth Fake_parts_insert_in_Un List.set.simps(2) Un_commute agent.simps(4) analz_insertI event.simps(1) insertE insert_iff knows_Spy_Says mem_def not_parts_not_analz parts_analz parts_synth sup1E)
-apply (metis Crypt_synth Fake_parts_insert_in_Un List.set.simps(2) Un_commute agent.simps(4) analz_insertI event.simps(1) insertE insert_iff knows_Spy_Says mem_def not_parts_not_analz parts_analz parts_synth sup1E)
 apply (analz_mono_contra, simp_all, blast)
 txt{*NS2: contradiction from the assumptions @{term "Key K \<notin> used evs2"} and
     @{term "Crypt K (Nonce NB) \<in> parts (spies evs2)"} *} 
