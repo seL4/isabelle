@@ -116,7 +116,7 @@ class HTML_Panel(
   /* internal messages */
 
   private case class Resize(font_family: String, font_size: Int)
-  private case class Render(body: List[XML.Tree])
+  private case class Render(body: XML.Body)
   private case object Refresh
 
   private val main_actor = actor {
@@ -127,7 +127,7 @@ class HTML_Panel(
     var current_font_family = ""
     var current_font_size: Int = 0
     var current_margin: Int = 0
-    var current_body: List[XML.Tree] = Nil
+    var current_body: XML.Body = Nil
 
     def resize(font_family: String, font_size: Int)
     {
@@ -152,7 +152,7 @@ class HTML_Panel(
 
     def refresh() { render(current_body) }
 
-    def render(body: List[XML.Tree])
+    def render(body: XML.Body)
     {
       current_body = body
       val html_body =
@@ -190,5 +190,5 @@ class HTML_Panel(
 
   def resize(font_family: String, font_size: Int) { main_actor ! Resize(font_family, font_size) }
   def refresh() { main_actor ! Refresh }
-  def render(body: List[XML.Tree]) { main_actor ! Render(body) }
+  def render(body: XML.Body) { main_actor ! Render(body) }
 }

@@ -14,12 +14,14 @@ object Pretty
 {
   /* markup trees with physical blocks and breaks */
 
+  def block(body: XML.Body): XML.Tree = Block(2, body)
+
   object Block
   {
-    def apply(i: Int, body: List[XML.Tree]): XML.Tree =
+    def apply(i: Int, body: XML.Body): XML.Tree =
       XML.Elem(Markup(Markup.BLOCK, List((Markup.INDENT, Markup.Int(i)))), body)
 
-    def unapply(tree: XML.Tree): Option[(Int, List[XML.Tree])] =
+    def unapply(tree: XML.Tree): Option[(Int, XML.Body)] =
       tree match {
         case XML.Elem(
           Markup(Markup.BLOCK, List((Markup.INDENT, Markup.Int(i)))), body) => Some((i, body))
@@ -45,7 +47,7 @@ object Pretty
 
   /* formatted output */
 
-  private def standard_format(tree: XML.Tree): List[XML.Tree] =
+  private def standard_format(tree: XML.Tree): XML.Body =
     tree match {
       case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(standard_format)))
       case XML.Text(text) =>
@@ -53,12 +55,12 @@ object Pretty
           Library.chunks(text).toList.map((s: CharSequence) => XML.Text(s.toString)))
     }
 
-  case class Text(tx: List[XML.Tree] = Nil, val pos: Double = 0.0, val nl: Int = 0)
+  case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
   {
     def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
     def string(s: String, len: Double): Text = copy(tx = XML.Text(s) :: tx, pos = pos + len)
     def blanks(wd: Int): Text = string(Symbol.spaces(wd), wd.toDouble)
-    def content: List[XML.Tree] = tx.reverse
+    def content: XML.Body = tx.reverse
   }
 
   private val margin_default = 76
@@ -71,8 +73,8 @@ object Pretty
       ((s: String) => if (s == "\n") 1.0 else metrics.stringWidth(s) / unit)
     }
 
-  def formatted(input: List[XML.Tree], margin: Int = margin_default,
-    metric: String => Double = metric_default): List[XML.Tree] =
+  def formatted(input: XML.Body, margin: Int = margin_default,
+    metric: String => Double = metric_default): XML.Body =
   {
     val breakgain = margin / 20
     val emergencypos = margin / 2
@@ -83,7 +85,7 @@ object Pretty
         case XML.Text(s) => metric(s)
       }
 
-    def breakdist(trees: List[XML.Tree], after: Double): Double =
+    def breakdist(trees: XML.Body, after: Double): Double =
       trees match {
         case Break(_) :: _ => 0.0
         case FBreak :: _ => 0.0
@@ -91,7 +93,7 @@ object Pretty
         case Nil => after
       }
 
-    def forcenext(trees: List[XML.Tree]): List[XML.Tree] =
+    def forcenext(trees: XML.Body): XML.Body =
       trees match {
         case Nil => Nil
         case FBreak :: _ => trees
@@ -99,7 +101,7 @@ object Pretty
         case t :: ts => t :: forcenext(ts)
       }
 
-    def format(trees: List[XML.Tree], blockin: Double, after: Double, text: Text): Text =
+    def format(trees: XML.Body, blockin: Double, after: Double, text: Text): Text =
       trees match {
         case Nil => text
 
@@ -129,16 +131,16 @@ object Pretty
     format(input.flatMap(standard_format), 0.0, 0.0, Text()).content
   }
 
-  def string_of(input: List[XML.Tree], margin: Int = margin_default,
+  def string_of(input: XML.Body, margin: Int = margin_default,
       metric: String => Double = metric_default): String =
     formatted(input, margin, metric).iterator.flatMap(XML.content).mkString
 
 
   /* unformatted output */
 
-  def unformatted(input: List[XML.Tree]): List[XML.Tree] =
+  def unformatted(input: XML.Body): XML.Body =
   {
-    def fmt(tree: XML.Tree): List[XML.Tree] =
+    def fmt(tree: XML.Tree): XML.Body =
       tree match {
         case Block(_, body) => body.flatMap(fmt)
         case Break(wd) => List(XML.Text(Symbol.spaces(wd)))
@@ -149,6 +151,6 @@ object Pretty
     input.flatMap(standard_format).flatMap(fmt)
   }
 
-  def str_of(input: List[XML.Tree]): String =
+  def str_of(input: XML.Body): String =
     unformatted(input).iterator.flatMap(XML.content).mkString
 }

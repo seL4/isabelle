@@ -41,7 +41,7 @@ object HTML
 
   // document markup
 
-  def span(cls: String, body: List[XML.Tree]): XML.Elem =
+  def span(cls: String, body: XML.Body): XML.Elem =
     XML.Elem(Markup(SPAN, List((CLASS, cls))), body)
 
   def hidden(txt: String): XML.Elem =
@@ -50,9 +50,9 @@ object HTML
   def sub(txt: String): XML.Elem = XML.elem("sub", List(XML.Text(txt)))
   def sup(txt: String): XML.Elem = XML.elem("sup", List(XML.Text(txt)))
 
-  def spans(input: XML.Tree, original_data: Boolean = false): List[XML.Tree] =
+  def spans(input: XML.Tree, original_data: Boolean = false): XML.Body =
   {
-    def html_spans(tree: XML.Tree): List[XML.Tree] =
+    def html_spans(tree: XML.Tree): XML.Body =
       tree match {
         case XML.Elem(Markup(name, _), ts) =>
           if (original_data)

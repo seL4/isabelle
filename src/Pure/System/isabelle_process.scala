@@ -95,7 +95,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   private val xml_cache = new XML.Cache(131071)
 
-  private def put_result(kind: String, props: List[(String, String)], body: List[XML.Tree])
+  private def put_result(kind: String, props: List[(String, String)], body: XML.Body)
   {
     if (pid.isEmpty && kind == Markup.INIT)
       pid = props.find(_._1 == Markup.PID).map(_._1)
@@ -257,7 +257,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
-      def read_chunk(): List[XML.Tree] =
+      def read_chunk(): XML.Body =
       {
         //{{{
         // chunk size
