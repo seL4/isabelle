@@ -18,7 +18,7 @@ object Command
 
   case class State(
     val command: Command,
-    val status: List[XML.Tree],
+    val status: List[Markup],
     val reverse_results: List[XML.Tree],
     val markup: Markup_Tree)
   {
@@ -31,7 +31,8 @@ object Command
     def add_markup(info: Text.Info[Any]): State = copy(markup = markup + info)
 
     def markup_root_info: Text.Info[Any] =
-      new Text.Info(command.range, XML.Elem(Markup(Markup.STATUS, Nil), status))
+      new Text.Info(command.range,
+        XML.Elem(Markup(Markup.STATUS, Nil), status.map(XML.Elem(_, Nil))))
     def markup_root: Markup_Tree = markup + markup_root_info
 
 
@@ -39,7 +40,9 @@ object Command
 
     def accumulate(message: XML.Tree): Command.State =
       message match {
-        case XML.Elem(Markup(Markup.STATUS, _), body) => copy(status = body ::: status)
+        case XML.Elem(Markup(Markup.STATUS, _), body) =>  // FIXME explicit checks!?
+          copy(status = (for (XML.Elem(markup, _) <- body) yield markup) ::: status)
+
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
