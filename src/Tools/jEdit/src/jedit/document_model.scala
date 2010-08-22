@@ -293,8 +293,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       var next_x = start
       for {
         (command, command_start) <- snapshot.node.command_range(former_range)
-        val root = Text.Info((former_range - command_start).restrict(command.range), Token.NULL)
-        info <- snapshot.state(command).markup.select(root)(token_markup)
+        info <- snapshot.state(command).markup.
+          select((former_range - command_start).restrict(command.range))(token_markup)(Token.NULL)
         val Text.Range(abs_start, abs_stop) = snapshot.convert(info.range + command_start)
         if abs_stop > start && abs_start < stop  // FIXME abs_range overlaps range (redundant!?)
       }

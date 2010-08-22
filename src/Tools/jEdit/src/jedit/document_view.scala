@@ -202,13 +202,12 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val offset = snapshot.revert(text_area.xyToOffset(x, y))
       snapshot.node.command_at(offset) match {
         case Some((command, command_start)) =>
-          val root = Text.Info[String]((Text.Range(offset) - command_start), null)
-          (snapshot.state(command).markup.select(root) {
+          (snapshot.state(command).markup.select(Text.Range(offset) - command_start) {
             case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
               val typing =
                 Pretty.block(XML.Text(command.source(range) + " : ") :: Pretty.Break(1) :: body)
               Isabelle.tooltip(Pretty.string_of(List(typing), margin = 40))
-          }).head.info
+          } { null }).head.info
         case None => null
       }
     }

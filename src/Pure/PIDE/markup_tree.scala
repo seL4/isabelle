@@ -83,8 +83,8 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  def select[A](root: Text.Info[A])
-    (result: PartialFunction[Text.Info[Any], A]): Stream[Text.Info[A]] =
+  def select[A](root_range: Text.Range)
+    (result: PartialFunction[Text.Info[Any], A])(default: A): Stream[Text.Info[A]] =
   {
     def stream(parent: Text.Info[A], bs: Branches.T): Stream[Text.Info[A]] =
     {
@@ -113,7 +113,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
       if (substream.isEmpty) Stream(parent)
       else padding(range.start, substream)
     }
-    stream(root, branches)
+    stream(Text.Info(root_range, default), branches)
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)

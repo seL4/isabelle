@@ -47,8 +47,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
         val offset = snapshot.revert(buffer_offset)
         snapshot.node.command_at(offset) match {
           case Some((command, command_start)) =>
-            val root = Text.Info[Hyperlink]((Text.Range(offset) - command_start), null)
-            (snapshot.state(command).markup.select(root) {
+            (snapshot.state(command).markup.select(Text.Range(offset) - command_start) {
               case Text.Info(info_range, XML.Elem(Markup(Markup.ML_REF, _),
                   List(XML.Elem(Markup(Markup.ML_DEF, props), _)))) =>
                 val Text.Range(begin, end) = snapshot.convert(info_range + command_start)
@@ -73,7 +72,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                       case _ => null
                     }
                 }
-            }).head.info
+            } { null }).head.info
           case None => null
         }
       case None => null
