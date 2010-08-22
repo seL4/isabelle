@@ -149,7 +149,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   default_max_relevant_per_iter = 50 (* FIXME *),
+   default_max_relevant_per_iter = 50 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
@@ -162,7 +162,6 @@ val e = ("e", e_config)
 val spass_config : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS")],
-   (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout))
@@ -177,7 +176,7 @@ val spass_config : prover_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg")],
-   default_max_relevant_per_iter = 35 (* FIXME *),
+   default_max_relevant_per_iter = 32 (* FUDGE *),
    default_theory_relevant = true,
    explicit_forall = true,
    use_conjecture_for_hypotheses = true}
@@ -205,7 +204,7 @@ val vampire_config : prover_config =
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (VampireTooOld, "not a valid option")],
-   default_max_relevant_per_iter = 45 (* FIXME *),
+   default_max_relevant_per_iter = 45 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
@@ -279,10 +278,10 @@ val remote_e = remotify_prover e "EP---"
 val remote_vampire = remotify_prover vampire "Vampire---9"
 val remote_sine_e =
   remote_prover "sine_e" "SInE---" []
-                [(Unprovable, "says Unknown")] 150 (* FIXME *) false true
+                [(Unprovable, "says Unknown")] 150 (* FUDGE *) false true
 val remote_snark =
   remote_prover "snark" "SNARK---" [("refutation.", "end_refutation.")] []
-                50 (* FIXME *) false true
+                50 (* FUDGE *) false true
 
 (* Setup *)
 
