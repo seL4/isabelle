@@ -143,13 +143,13 @@ class Linear_Set[A]
 
   private def make_iterator(start: Option[A], which: Map[A, A]): Iterator[A] = new Iterator[A] {
     private var next_elem = start
-    def hasNext = next_elem.isDefined
-    def next =
+    def hasNext(): Boolean = next_elem.isDefined
+    def next(): A =
       next_elem match {
         case Some(elem) =>
           next_elem = which.get(elem)
           elem
-        case None => throw new NoSuchElementException("next on empty iterator")
+        case None => Iterator.empty.next()
       }
   }
 
