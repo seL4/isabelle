@@ -72,7 +72,8 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
         else {
           val body = Branches.overlapping(new_range, branches)
           if (body.forall(e => new_range.contains(e._1))) {
-            val rest = (branches /: body) { case (bs, (e, _)) => bs - e }
+            val rest = (Branches.empty /: branches)((rest, entry) =>
+              if (body.isDefinedAt(entry._1)) rest else rest + entry)
             new Markup_Tree(Branches.update(rest, new_info -> new Markup_Tree(body)))
           }
           else { // FIXME split markup!?
