@@ -88,33 +88,6 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     }
   }
 
-  // FIXME depth-first with result markup stack
-  // FIXME projection to given range
-  def flatten(parent: Node[Any]): List[Node[Any]] =
-  {
-    val result = new mutable.ListBuffer[Node[Any]]
-    var offset = parent.range.start
-    for ((_, (node, subtree)) <- branches.iterator) {
-      if (offset < node.range.start)
-        result += new Node(Text.Range(offset, node.range.start), parent.info)
-      result ++= subtree.flatten(node)
-      offset = node.range.stop
-    }
-    if (offset < parent.range.stop)
-      result += new Node(Text.Range(offset, parent.range.stop), parent.info)
-    result.toList
-  }
-
-  def filter(pred: Node[Any] => Boolean): Markup_Tree =
-  {
-    val bs = branches.toList.flatMap(entry => {
-      val (_, (node, subtree)) = entry
-      if (pred(node)) List((node, (node, subtree.filter(pred))))
-      else subtree.filter(pred).branches.toList
-    })
-    new Markup_Tree(Branches.empty ++ bs)
-  }
-
   def select[A](root: Node[A])(sel: PartialFunction[Any, A]): Stream[Node[A]] =
   {
     def stream(parent: Node[A], bs: Branches.T): Stream[Node[A]] =
