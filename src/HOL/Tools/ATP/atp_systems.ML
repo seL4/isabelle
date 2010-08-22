@@ -20,7 +20,8 @@ sig
      known_failures: (failure * string) list,
      default_max_relevant_per_iter: int,
      default_theory_relevant: bool,
-     explicit_forall: bool}
+     explicit_forall: bool,
+     use_conjecture_for_hypotheses: bool}
 
   val string_for_failure : failure -> string
   val known_failure_in_output :
@@ -51,7 +52,8 @@ type prover_config =
    known_failures: (failure * string) list,
    default_max_relevant_per_iter: int,
    default_theory_relevant: bool,
-   explicit_forall: bool}
+   explicit_forall: bool,
+   use_conjecture_for_hypotheses: bool}
 
 val missing_message_tail =
   " appears to be missing. You will need to install it if you want to run \
@@ -146,7 +148,8 @@ val e_config : prover_config =
       (OutOfResources, "SZS status ResourceOut")],
    default_max_relevant_per_iter = 50 (* FIXME *),
    default_theory_relevant = false,
-   explicit_forall = false}
+   explicit_forall = false,
+   use_conjecture_for_hypotheses = true}
 
 val e = ("e", e_config)
 
@@ -173,7 +176,8 @@ val spass_config : prover_config =
       (SpassTooOld, "tptp2dfg")],
    default_max_relevant_per_iter = 35 (* FIXME *),
    default_theory_relevant = true,
-   explicit_forall = true}
+   explicit_forall = true,
+   use_conjecture_for_hypotheses = true}
 
 val spass = ("spass", spass_config)
 
@@ -199,7 +203,8 @@ val vampire_config : prover_config =
       (VampireTooOld, "not a valid option")],
    default_max_relevant_per_iter = 45 (* FIXME *),
    default_theory_relevant = false,
-   explicit_forall = false}
+   explicit_forall = false,
+   use_conjecture_for_hypotheses = true}
 
 val vampire = ("vampire", vampire_config)
 
@@ -230,7 +235,8 @@ fun the_system prefix =
   | SOME sys => sys);
 
 fun remote_config system_prefix proof_delims known_failures
-                  default_max_relevant_per_iter default_theory_relevant =
+                  default_max_relevant_per_iter default_theory_relevant
+                  use_conjecture_for_hypotheses =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
@@ -242,20 +248,25 @@ fun remote_config system_prefix proof_delims known_failures
      [(TimedOut, "says Timeout")],
    default_max_relevant_per_iter = default_max_relevant_per_iter,
    default_theory_relevant = default_theory_relevant,
-   explicit_forall = true}
+   explicit_forall = true,
+   use_conjecture_for_hypotheses = use_conjecture_for_hypotheses}
 
 fun remotify_config system_prefix
         ({proof_delims, known_failures, default_max_relevant_per_iter,
-          default_theory_relevant, ...} : prover_config) : prover_config =
+          default_theory_relevant, use_conjecture_for_hypotheses, ...}
+         : prover_config) : prover_config =
   remote_config system_prefix proof_delims known_failures
                 default_max_relevant_per_iter default_theory_relevant
+                use_conjecture_for_hypotheses
 
 val remotify_name = prefix "remote_"
 fun remote_prover name system_prefix proof_delims known_failures
-                  default_max_relevant_per_iter default_theory_relevant =
+                  default_max_relevant_per_iter default_theory_relevant
+                  use_conjecture_for_hypotheses =
   (remotify_name name,
    remote_config system_prefix proof_delims known_failures
-                 default_max_relevant_per_iter default_theory_relevant)
+                 default_max_relevant_per_iter default_theory_relevant
+                 use_conjecture_for_hypotheses)
 fun remotify_prover (name, config) system_prefix =
   (remotify_name name, remotify_config system_prefix config)
 
@@ -263,10 +274,10 @@ val remote_e = remotify_prover e "EP---"
 val remote_vampire = remotify_prover vampire "Vampire---9"
 val remote_sine_e =
   remote_prover "sine_e" "SInE---" []
-                [(Unprovable, "says Unknown")] 150 (* FIXME *) false
+                [(Unprovable, "says Unknown")] 150 (* FIXME *) false true
 val remote_snark =
   remote_prover "snark" "SNARK---" [("refutation.", "end_refutation.")] []
-                50 (* FIXME *) false
+                50 (* FIXME *) false true
 
 (* Setup *)
 

@@ -209,7 +209,7 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 fun prover_fun atp_name
         {exec, required_execs, arguments, proof_delims, known_failures,
          default_max_relevant_per_iter, default_theory_relevant,
-         explicit_forall}
+         explicit_forall, use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
           relevance_threshold, relevance_convergence,
           max_relevant_per_iter, theory_relevant,
@@ -309,7 +309,9 @@ fun prover_fun atp_name
             val (problem, pool, conjecture_offset, axiom_names) =
               prepare_problem ctxt readable_names explicit_forall full_types
                               explicit_apply hyp_ts concl_t the_axioms
-            val _ = File.write_list probfile (strings_for_tptp_problem problem)
+            val ss = strings_for_tptp_problem use_conjecture_for_hypotheses
+                                              problem
+            val _ = File.write_list probfile ss
             val conjecture_shape =
               conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
               |> map single
