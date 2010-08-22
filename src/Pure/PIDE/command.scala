@@ -45,7 +45,7 @@ object Command
             msg match {
               case XML.Elem(Markup(name, atts), args)
               if Position.get_id(atts) == Some(command.id) && Position.get_range(atts).isDefined =>
-                val range = command.decode_range(Position.get_range(atts).get)
+                val range = command.decode(Position.get_range(atts).get)
                 val props = atts.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
                 val info = Text.Info[Any](range, XML.Elem(Markup(name, props), args))
                 add_markup(info)
@@ -89,7 +89,8 @@ class Command(
   val range: Text.Range = Text.Range(0, length)
 
   lazy val symbol_index = new Symbol.Index(source)
-  def decode_range(r: Text.Range): Text.Range = symbol_index.decode(r)
+  def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
+  def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
 
 
   /* accumulated results */
