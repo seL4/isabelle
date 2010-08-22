@@ -14,11 +14,6 @@ import scala.collection.mutable
 
 object Command
 {
-  case class RefInfo(file: Option[String], line: Option[Int],
-    command_id: Option[Document.Command_ID], offset: Option[Int])  // FIXME Command_ID vs. Exec_ID !?
-
-
-
   /** accumulated results from prover **/
 
   case class State(
@@ -38,17 +33,6 @@ object Command
     def markup_root_node: Markup_Tree.Node[Any] =
       new Markup_Tree.Node(command.range, XML.Elem(Markup(Markup.STATUS, Nil), status))
     def markup_root: Markup_Tree = markup + markup_root_node
-
-
-    /* markup */
-
-    private lazy val refs: List[Markup_Tree.Node[Any]] =
-      markup.filter(_.info match {
-        case Command.RefInfo(_, _, _, _) => true
-        case _ => false }).flatten(markup_root_node)
-
-    def ref_at(pos: Text.Offset): Option[Markup_Tree.Node[Any]] =
-      refs.find(_.range.contains(pos))
 
 
     /* message dispatch */

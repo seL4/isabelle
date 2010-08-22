@@ -38,37 +38,47 @@ class External_Hyperlink(start: Int, end: Int, line: Int, ref_file: String, ref_
 
 class Isabelle_Hyperlinks extends HyperlinkSource
 {
-  def getHyperlink(buffer: Buffer, original_offset: Int): Hyperlink =
+  def getHyperlink(buffer: Buffer, buffer_offset: Int): Hyperlink =
   {
     Swing_Thread.assert()
     Document_Model(buffer) match {
       case Some(model) =>
         val snapshot = model.snapshot()
-        val offset = snapshot.revert(original_offset)
+        val offset = snapshot.revert(buffer_offset)
         snapshot.node.command_at(offset) match {
           case Some((command, command_start)) =>
-            snapshot.state(command).ref_at(offset - command_start) match {
-              case Some(ref) =>
-                val Text.Range(begin, end) = snapshot.convert(ref.range + command_start)
+            val root_node =
+              Markup_Tree.Node[Hyperlink]((Text.Range(offset) - command_start), null)
+
+            (snapshot.state(command).markup.select(root_node) {
+              case XML.Elem(Markup(Markup.ML_REF, _),
+                  List(XML.Elem(Markup(Markup.ML_DEF, props), _))) =>
+//{{{
+                val node_range = root_node.range // FIXME proper range
+                val Text.Range(begin, end) = snapshot.convert(node_range + command_start)
                 val line = buffer.getLineOfOffset(begin)
-                ref.info match {
-                  case Command.RefInfo(Some(ref_file), Some(ref_line), _, _) =>
+
+                (Position.get_file(props), Position.get_line(props)) match {
+                  case (Some(ref_file), Some(ref_line)) =>
                     new External_Hyperlink(begin, end, line, ref_file, ref_line)
-                  case Command.RefInfo(_, _, Some(id), Some(offset)) =>
-                    snapshot.lookup_command(id) match {  // FIXME Command_ID vs. Exec_ID (!??)
-                      case Some(ref_cmd) =>
-                        snapshot.node.command_start(ref_cmd) match {
-                          case Some(ref_cmd_start) =>
-                            new Internal_Hyperlink(begin, end, line,
-                              snapshot.convert(ref_cmd_start + offset - 1))
-                          case None => null // FIXME external ref
+                  case _ =>
+                    (Position.get_id(props), Position.get_offset(props)) match {
+                      case (Some(ref_id), Some(ref_offset)) =>
+                        snapshot.lookup_command(ref_id) match {
+                          case Some(ref_cmd) =>
+                            snapshot.node.command_start(ref_cmd) match {
+                              case Some(ref_cmd_start) =>
+                                new Internal_Hyperlink(begin, end, line,
+                                  snapshot.convert(ref_cmd_start + ref_offset - 1)) // FIXME Command.decode_range
+                              case None => null
+                            }
+                          case None => null
                         }
                       case _ => null
                     }
-                  case _ => null
                 }
-              case None => null
-            }
+//}}}
+            }).head.info
           case None => null
         }
       case None => null
