@@ -678,18 +678,19 @@ fun lift_tac ctxt rthms =
    for internal usage *)
 fun lifted ctxt qtys simps rthm =
 let
+  val ss = (mk_minimal_ss ctxt) addsimps simps
+
   (* When the theorem is atomized, eta redexes are contracted,
      so we do it both in the original theorem *)
   val rthm' =
     rthm 
-    |> asm_full_simplify (HOL_basic_ss addsimps simps)
+    |> asm_full_simplify ss
     |> Drule.eta_contraction_rule 
   val ((_, [rthm'']), ctxt') = Variable.import false [rthm'] ctxt
   val goal = derive_qtrm ctxt qtys (prop_of rthm'')
 in
   Goal.prove ctxt' [] [] goal 
-    (K ((asm_full_simp_tac (HOL_basic_ss addsimps simps)
-         THEN' lift_single_tac ctxt' rthm') 1))
+    (K ((asm_full_simp_tac ss THEN' lift_single_tac ctxt' rthm') 1))
   |> singleton (ProofContext.export ctxt' ctxt)
 end
 
