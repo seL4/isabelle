@@ -14,7 +14,6 @@ import scala.collection.mutable
 
 object Command
 {
-  case class TypeInfo(ty: String)
   case class RefInfo(file: Option[String], line: Option[Int],
     command_id: Option[Document.Command_ID], offset: Option[Int])  // FIXME Command_ID vs. Exec_ID !?
 
@@ -42,23 +41,6 @@ object Command
 
 
     /* markup */
-
-    private lazy val types: List[Markup_Tree.Node[Any]] =
-      markup.filter(_.info match {
-        case Command.TypeInfo(_) => true
-        case _ => false }).flatten(markup_root_node)
-
-    def type_at(pos: Text.Offset): Option[String] =
-    {
-      types.find(_.range.contains(pos)) match {
-        case Some(t) =>
-          t.info match {
-            case Command.TypeInfo(ty) => Some(command.source(t.range) + " : " + ty)
-            case _ => None
-          }
-        case None => None
-      }
-    }
 
     private lazy val refs: List[Markup_Tree.Node[Any]] =
       markup.filter(_.info match {

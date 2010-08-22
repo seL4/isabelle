@@ -202,9 +202,17 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val offset = snapshot.revert(text_area.xyToOffset(x, y))
       snapshot.node.command_at(offset) match {
         case Some((command, command_start)) =>
-          snapshot.state(command).type_at(offset - command_start) match {
-            case Some(text) => Isabelle.tooltip(text)
-            case None => null
+          val root_node =
+            Markup_Tree.Node[Option[XML.Body]]((Text.Range(offset) - command_start), None)
+          snapshot.state(command).markup.select(root_node) {
+            case XML.Elem(Markup(Markup.ML_TYPING, _), body) => Some(body)
+          } match {
+            // FIXME use original node range, not restricted version
+            case Markup_Tree.Node(range, Some(body)) #:: _ =>
+              val typing =
+                Pretty.block(XML.Text(command.source(range) + " : ") :: Pretty.Break(1) :: body)
+              Isabelle.tooltip(Pretty.string_of(List(typing), margin = 40))
+            case _ => null
           }
         case None => null
       }
