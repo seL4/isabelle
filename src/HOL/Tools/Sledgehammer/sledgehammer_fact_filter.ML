@@ -386,7 +386,7 @@ fun make_unique xs = Termtab.fold (cons o snd) (make_fact_table xs) []
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
   ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
-   "split_asm", "cases", "ext_cases"]
+   "split_asm", "cases", "ext_cases", "eq"]
 
 val max_lambda_nesting = 3
 
