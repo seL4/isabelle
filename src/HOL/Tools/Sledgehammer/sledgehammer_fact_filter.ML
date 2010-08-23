@@ -231,7 +231,7 @@ fun formula_weight const_tab gctyps consts_typs =
   in if Real.isFinite res then res else 0.0 end
 
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
-fun add_expand_pairs (x,ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys;
+fun add_expand_pairs (x, ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys
 
 fun consts_typs_of_term thy t =
   Symtab.fold add_expand_pairs (get_consts_typs thy (SOME true) [t]) []
@@ -488,9 +488,10 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
    are omitted. *)
 fun is_dangerous_term full_types t =
   not full_types andalso
-  ((has_bound_or_var_of_type dangerous_types t andalso
-    has_bound_or_var_of_type dangerous_types (transform_elim_term t))
-   orelse is_exhaustive_finite t)
+  let val t = transform_elim_term t in
+    has_bound_or_var_of_type dangerous_types t orelse
+    is_exhaustive_finite t
+  end
 
 fun is_theorem_bad_for_atps full_types thm =
   let val t = prop_of thm in
