@@ -92,7 +92,7 @@ lemma top1I [intro!]: "top x"
 lemma top2I [intro!]: "top x y"
   by (simp add: top_fun_eq top_bool_eq)
 
-lemma bot1E [elim!]: "bot x \<Longrightarrow> P"
+lemma bot1E [no_atp, elim!]: "bot x \<Longrightarrow> P"
   by (simp add: bot_fun_eq bot_bool_eq)
 
 lemma bot2E [elim!]: "bot x y \<Longrightarrow> P"
