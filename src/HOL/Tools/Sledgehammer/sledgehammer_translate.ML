@@ -223,13 +223,13 @@ val optional_helpers =
    (["c_COMBB", "c_COMBC"], @{thms COMBB_def COMBC_def}),
    (["c_COMBS"], @{thms COMBS_def})]
 val optional_typed_helpers =
-  [(["c_True", "c_False"], @{thms True_or_False}),
-   (["c_If"], @{thms if_True if_False True_or_False})]
+  [(["c_True", "c_False", "c_If"], @{thms True_or_False}),
+   (["c_If"], @{thms if_True if_False})]
 val mandatory_helpers = @{thms fequal_def}
 
 val init_counters =
-  Symtab.make (maps (maps (map (rpair 0) o fst))
-                    [optional_helpers, optional_typed_helpers])
+  [optional_helpers, optional_typed_helpers] |> maps (maps fst) 
+  |> sort_distinct string_ord |> map (rpair 0) |> Symtab.make
 
 fun get_helper_facts ctxt is_FO full_types conjectures axioms =
   let
@@ -472,7 +472,7 @@ fun close_universally phi =
         (is_tptp_variable s andalso not (member (op =) bounds name))
           ? insert (op =) name
         #> fold (term_vars bounds) tms
-    fun formula_vars bounds (AQuant (q, xs, phi)) =
+    fun formula_vars bounds (AQuant (_, xs, phi)) =
         formula_vars (xs @ bounds) phi
       | formula_vars bounds (AConn (_, phis)) = fold (formula_vars bounds) phis
       | formula_vars bounds (AAtom tm) = term_vars bounds tm

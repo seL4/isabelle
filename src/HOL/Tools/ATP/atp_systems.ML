@@ -208,7 +208,7 @@ val vampire_config : prover_config =
    default_max_relevant_per_iter = 45 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
-   use_conjecture_for_hypotheses = true}
+   use_conjecture_for_hypotheses = false} (*###*)
 
 val vampire = ("vampire", vampire_config)
 
