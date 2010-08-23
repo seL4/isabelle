@@ -16,6 +16,8 @@ sig
   val unyxml : string -> string
   val maybe_quote : string -> string
   val monomorphic_term : Type.tyenv -> term -> term
+  val eta_expand : typ list -> term -> int -> term
+  val transform_elim_term : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val subgoal_count : Proof.state -> int
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
@@ -106,6 +108,25 @@ fun monomorphic_term subst t =
         SOME typ => typ
       | NONE => raise TERM ("monomorphic_term: uninstanitated schematic type \
                             \variable", [t]))) t
+
+fun eta_expand _ t 0 = t
+  | eta_expand Ts (Abs (s, T, t')) n =
+    Abs (s, T, eta_expand (T :: Ts) t' (n - 1))
+  | eta_expand Ts t n =
+    fold_rev (fn T => fn t' => Abs ("x" ^ nat_subscript n, T, t'))
+             (List.take (binder_types (fastype_of1 (Ts, t)), n))
+             (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
+
+(* Converts an elim-rule into an equivalent theorem that does not have the
+   predicate variable. Leaves other theorems unchanged. We simply instantiate
+   the conclusion variable to False. (Cf. "transform_elim_theorem" in
+   "Clausifier".) *)
+fun transform_elim_term t =
+  case Logic.strip_imp_concl t of
+    @{const Trueprop} $ Var (z, @{typ bool}) =>
+    subst_Vars [(z, @{const False})] t
+  | Var (z, @{typ prop}) => subst_Vars [(z, @{prop False})] t
+  | _ => t
 
 fun specialize_type thy (s, T) t =
   let

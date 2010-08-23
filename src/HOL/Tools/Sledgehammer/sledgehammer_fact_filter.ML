@@ -23,6 +23,8 @@ end;
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
 struct
 
+open Sledgehammer_Util
+
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
@@ -43,7 +45,7 @@ fun name_thms_pair_from_ref ctxt chained_ths xref =
     val name = Facts.string_of_ref xref
                |> forall (member Thm.eq_thm chained_ths) ths
                   ? prefix chained_prefix
-  in (name, ths |> map Clausifier.transform_elim_theorem) end
+  in (name, ths) end
 
 
 (***************************************************************)
@@ -420,7 +422,7 @@ fun is_formula_too_complex t =
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
 
-fun is_strange_thm th =
+fun is_strange_theorem th =
   case head_of (concl_of th) of
       Const (a, _) => (a <> @{const_name Trueprop} andalso
                        a <> @{const_name "=="})
@@ -486,13 +488,15 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
    are omitted. *)
 fun is_dangerous_term full_types t =
   not full_types andalso
-  (has_bound_or_var_of_type dangerous_types t orelse is_exhaustive_finite t)
+  ((has_bound_or_var_of_type dangerous_types t andalso
+    has_bound_or_var_of_type dangerous_types (transform_elim_term t))
+   orelse is_exhaustive_finite t)
 
 fun is_theorem_bad_for_atps full_types thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
     is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
-    is_strange_thm thm
+    is_strange_theorem thm
   end
 
 fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
@@ -525,8 +529,7 @@ fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
             val name1 = Facts.extern facts name;
             val name2 = Name_Space.extern full_space name;
             val ths =
-              ths0 |> map Clausifier.transform_elim_theorem
-                   |> filter ((not o is_theorem_bad_for_atps full_types) orf
+              ths0 |> filter ((not o is_theorem_bad_for_atps full_types) orf
                               member Thm.eq_thm add_thms)
             val name' =
               case find_first check_thms [name1, name2, name] of
@@ -538,7 +541,7 @@ fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
                                          (prop_of th) ^ "`")
                     |> space_implode " "
           in
-            cons (name' |> forall (member Thm.eq_thm chained_ths) ths
+            cons (name' |> forall (member Thm.eq_thm chained_ths) ths0
                            ? prefix chained_prefix, ths)
           end)
   in

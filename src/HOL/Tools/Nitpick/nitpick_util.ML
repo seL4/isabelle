@@ -52,6 +52,7 @@ sig
   val pretty_serial_commas : string -> Pretty.T list -> Pretty.T list
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val nat_subscript : int -> string
   val flip_polarity : polarity -> polarity
   val prop_T : typ
   val bool_T : typ
@@ -67,7 +68,7 @@ sig
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> string * typ -> term -> term
   val varify_type : Proof.context -> typ -> typ
-  val nat_subscript : int -> string
+  val eta_expand : typ list -> term -> int -> term
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
   val setmp_show_all_types : ('a -> 'b) -> 'a -> 'b
@@ -237,6 +238,18 @@ fun pretty_serial_commas _ [] = []
 val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
 
+val i_subscript = implode o map (prefix "\<^isub>") o explode
+fun be_subscript s = "\<^bsub>" ^ s ^ "\<^esub>"
+fun nat_subscript n =
+  let val s = signed_string_of_int n in
+    if print_mode_active Symbol.xsymbolsN then
+      (* cheap trick to ensure proper alphanumeric ordering for one- and
+         two-digit numbers *)
+      (if n <= 9 then be_subscript else i_subscript) s
+    else
+      s
+  end
+
 fun flip_polarity Pos = Neg
   | flip_polarity Neg = Pos
   | flip_polarity Neut = Neut
@@ -258,17 +271,7 @@ fun varify_type ctxt T =
   Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
   |> snd |> the_single |> dest_Const |> snd
 
-val i_subscript = implode o map (prefix "\<^isub>") o explode
-fun be_subscript s = "\<^bsub>" ^ s ^ "\<^esub>"
-fun nat_subscript n =
-  let val s = signed_string_of_int n in
-    if print_mode_active Symbol.xsymbolsN then
-      (* cheap trick to ensure proper alphanumeric ordering for one- and
-         two-digit numbers *)
-      (if n <= 9 then be_subscript else i_subscript) s
-    else
-      s
-  end
+val eta_expand = Sledgehammer_Util.eta_expand
 
 fun time_limit NONE = I
   | time_limit (SOME delay) = TimeLimit.timeLimit delay

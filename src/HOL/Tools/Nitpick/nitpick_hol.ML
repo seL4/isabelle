@@ -141,7 +141,6 @@ sig
     hol_context -> bool -> styp -> int -> styp
   val sel_no_from_name : string -> int
   val close_form : term -> term
-  val eta_expand : typ list -> term -> int -> term
   val distinctness_formula : typ -> term list -> term
   val register_frac_type :
     string -> (string * string) list -> morphism -> Context.generic
@@ -918,14 +917,6 @@ val close_form =
         end
       | aux zs t = close_up zs (Term.add_vars t zs) t
   in aux [] end
-
-fun eta_expand _ t 0 = t
-  | eta_expand Ts (Abs (s, T, t')) n =
-    Abs (s, T, eta_expand (T :: Ts) t' (n - 1))
-  | eta_expand Ts t n =
-    fold_rev (curry3 Abs ("x" ^ nat_subscript n))
-             (List.take (binder_types (fastype_of1 (Ts, t)), n))
-             (list_comb (incr_boundvars n t, map Bound (n - 1 downto 0)))
 
 fun distinctness_formula T =
   all_distinct_unordered_pairs_of

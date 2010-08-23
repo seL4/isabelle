@@ -7,7 +7,6 @@ Transformation of axiom rules (elim/intro/etc) into CNF forms.
 
 signature CLAUSIFIER =
 sig
-  val transform_elim_theorem : thm -> thm
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
@@ -25,7 +24,7 @@ val ctp_false = cterm_of @{theory HOL} (HOLogic.mk_Trueprop HOLogic.false_const)
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate
    the conclusion variable to False. (Cf. "transform_elim_term" in
-   "ATP_Systems".) *)
+   "Sledgehammer_Util".) *)
 fun transform_elim_theorem th =
   case concl_of th of    (*conclusion variable*)
        @{const Trueprop} $ (v as Var (_, @{typ bool})) =>
@@ -77,10 +76,6 @@ fun assume_skolem_funs th =
 
 
 (**** REPLACING ABSTRACTIONS BY COMBINATORS ****)
-
-(*Returns the vars of a theorem*)
-fun vars_of_thm th =
-  map (cterm_of (theory_of_thm th) o Var) (Thm.fold_terms Term.add_vars th []);
 
 val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
 

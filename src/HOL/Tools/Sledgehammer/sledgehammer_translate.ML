@@ -119,8 +119,12 @@ fun introduce_combinators_in_term ctxt kind t =
             @{const Not} $ t1 => @{const Not} $ aux Ts t1
           | (t0 as Const (@{const_name All}, _)) $ Abs (s, T, t') =>
             t0 $ Abs (s, T, aux (T :: Ts) t')
+          | (t0 as Const (@{const_name All}, _)) $ t1 =>
+            aux Ts (t0 $ eta_expand Ts t1 1)
           | (t0 as Const (@{const_name Ex}, _)) $ Abs (s, T, t') =>
             t0 $ Abs (s, T, aux (T :: Ts) t')
+          | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
+            aux Ts (t0 $ eta_expand Ts t1 1)
           | (t0 as @{const "op &"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
           | (t0 as @{const "op |"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
           | (t0 as @{const "op -->"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
@@ -175,8 +179,10 @@ fun make_formula ctxt presimp name kind t =
   let
     val thy = ProofContext.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
+              |> transform_elim_term
               |> atomize_term
-    val t = t |> fastype_of t = HOLogic.boolT ? HOLogic.mk_Trueprop
+    val need_trueprop = (fastype_of t = HOLogic.boolT)
+    val t = t |> need_trueprop ? HOLogic.mk_Trueprop
               |> extensionalize_term
               |> presimp ? presimplify_term thy
               |> perhaps (try (HOLogic.dest_Trueprop))
