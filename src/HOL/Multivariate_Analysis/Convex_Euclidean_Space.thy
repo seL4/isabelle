@@ -2507,7 +2507,7 @@ lemma interior_std_simplex:
     fix i assume i:"i<DIM('a)" thus "0 < x $$ i" using as[THEN spec[where x="x - (e / 2) *\<^sub>R basis i"]] and `e>0`
       unfolding dist_norm  by(auto simp add: inner_simps euclidean_component_def dot_basis elim!:allE[where x=i])
   next have **:"dist x (x + (e / 2) *\<^sub>R basis 0) < e" using  `e>0`
-      unfolding dist_norm by(auto intro!: mult_strict_left_mono_comm)
+      unfolding dist_norm by(auto intro!: mult_strict_left_mono)
     have "\<And>i. i<DIM('a) \<Longrightarrow> (x + (e / 2) *\<^sub>R basis 0) $$ i = x$$i + (if i = 0 then e/2 else 0)"
       unfolding euclidean_component_def by(auto simp add:inner_simps dot_basis)
     hence *:"setsum (op $$ (x + (e / 2) *\<^sub>R basis 0)) {..<DIM('a)} = setsum (\<lambda>i. x$$i + (if 0 = i then e/2 else 0)) {..<DIM('a)}"

@@ -628,10 +628,6 @@ qed
 
 end
 
-class mult_mono = times + zero + ord +
-  assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
-  assumes mult_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * c"
-
 text {*
   The theory of partially ordered rings is taken from the books:
   \begin{itemize}
@@ -645,31 +641,29 @@ text {*
   \end{itemize}
 *}
 
-class ordered_semiring = mult_mono + semiring_0 + ordered_ab_semigroup_add 
+class ordered_semiring = semiring + comm_monoid_add + ordered_ab_semigroup_add +
+  assumes mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
+  assumes mult_right_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * c"
 begin
 
 lemma mult_mono:
-  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> c
-     \<Longrightarrow> a * c \<le> b * d"
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * d"
 apply (erule mult_right_mono [THEN order_trans], assumption)
 apply (erule mult_left_mono, assumption)
 done
 
 lemma mult_mono':
-  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c
-     \<Longrightarrow> a * c \<le> b * d"
+  "a \<le> b \<Longrightarrow> c \<le> d \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> c \<Longrightarrow> a * c \<le> b * d"
 apply (rule mult_mono)
 apply (fast intro: order_trans)+
 done
 
 end
 
-class ordered_cancel_semiring = mult_mono + ordered_ab_semigroup_add
-  + semiring + cancel_comm_monoid_add
+class ordered_cancel_semiring = ordered_semiring + cancel_comm_monoid_add
 begin
 
 subclass semiring_0_cancel ..
-subclass ordered_semiring ..
 
 lemma mult_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
 using mult_left_mono [of 0 b a] by simp
@@ -689,7 +683,7 @@ by (auto simp add: mult_nonneg_nonpos mult_nonneg_nonpos2)
 
 end
 
-class linordered_semiring = semiring + comm_monoid_add + linordered_cancel_ab_semigroup_add + mult_mono
+class linordered_semiring = ordered_semiring + linordered_cancel_ab_semigroup_add
 begin
 
 subclass ordered_cancel_semiring ..
@@ -854,41 +848,38 @@ qed
 
 end
 
-class mult_mono1 = times + zero + ord +
-  assumes mult_mono1: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
-
-class ordered_comm_semiring = comm_semiring_0
-  + ordered_ab_semigroup_add + mult_mono1
+class ordered_comm_semiring = comm_semiring_0 + ordered_ab_semigroup_add + 
+  assumes comm_mult_left_mono: "a \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * a \<le> c * b"
 begin
 
 subclass ordered_semiring
 proof
   fix a b c :: 'a
   assume "a \<le> b" "0 \<le> c"
-  thus "c * a \<le> c * b" by (rule mult_mono1)
+  thus "c * a \<le> c * b" by (rule comm_mult_left_mono)
   thus "a * c \<le> b * c" by (simp only: mult_commute)
 qed
 
 end
 
-class ordered_cancel_comm_semiring = comm_semiring_0_cancel
-  + ordered_ab_semigroup_add + mult_mono1
+class ordered_cancel_comm_semiring = ordered_comm_semiring + cancel_comm_monoid_add
 begin
 
+subclass comm_semiring_0_cancel ..
 subclass ordered_comm_semiring ..
 subclass ordered_cancel_semiring ..
 
 end
 
 class linordered_comm_semiring_strict = comm_semiring_0 + linordered_cancel_ab_semigroup_add +
-  assumes mult_strict_left_mono_comm: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
+  assumes comm_mult_strict_left_mono: "a < b \<Longrightarrow> 0 < c \<Longrightarrow> c * a < c * b"
 begin
 
 subclass linordered_semiring_strict
 proof
   fix a b c :: 'a
   assume "a < b" "0 < c"
-  thus "c * a < c * b" by (rule mult_strict_left_mono_comm)
+  thus "c * a < c * b" by (rule comm_mult_strict_left_mono)
   thus "a * c < b * c" by (simp only: mult_commute)
 qed
 

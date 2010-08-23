@@ -107,7 +107,7 @@ lemma onorm_compose:
   apply (subst mult_assoc)
   apply (rule order_trans)
   apply (rule onorm(1)[OF lf])
-  apply (rule mult_mono1)
+  apply (rule mult_left_mono)
   apply (rule onorm(1)[OF lg])
   apply (rule onorm_pos_le[OF lf])
   done

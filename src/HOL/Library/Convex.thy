@@ -244,7 +244,7 @@ lemma convex_cmul[intro]:
   shows "convex_on s (\<lambda>x. c * f x)"
 proof-
   have *:"\<And>u c fx v fy ::real. u * (c * fx) + v * (c * fy) = c * (u * fx + v * fy)" by (simp add: field_simps)
-  show ?thesis using assms(2) and mult_mono1[OF _ assms(1)] unfolding convex_on_def and * by auto
+  show ?thesis using assms(2) and mult_left_mono [OF _ assms(1)] unfolding convex_on_def and * by auto
 qed
 
 lemma convex_lower:
@@ -253,7 +253,7 @@ lemma convex_lower:
 proof-
   let ?m = "max (f x) (f y)"
   have "u * f x + v * f y \<le> u * max (f x) (f y) + v * max (f x) (f y)"
-    using assms(4,5) by(auto simp add: mult_mono1 add_mono)
+    using assms(4,5) by (auto simp add: mult_left_mono add_mono)
   also have "\<dots> = max (f x) (f y)" using assms(6) unfolding distrib[THEN sym] by auto
   finally show ?thesis
     using assms unfolding convex_on_def by fastsimp
@@ -481,8 +481,8 @@ proof safe
   hence xpos: "?x \<in> C" using asm unfolding convex_alt by fastsimp
   have geq: "\<mu> * (f x - f ?x) + (1 - \<mu>) * (f y - f ?x)
             \<ge> \<mu> * f' ?x * (x - ?x) + (1 - \<mu>) * f' ?x * (y - ?x)"
-    using add_mono[OF mult_mono1[OF leq[OF xpos asm(2)] `\<mu> \<ge> 0`]
-      mult_mono1[OF leq[OF xpos asm(3)] `1 - \<mu> \<ge> 0`]] by auto
+    using add_mono[OF mult_left_mono[OF leq[OF xpos asm(2)] `\<mu> \<ge> 0`]
+      mult_left_mono[OF leq[OF xpos asm(3)] `1 - \<mu> \<ge> 0`]] by auto
   hence "\<mu> * f x + (1 - \<mu>) * f y - f ?x \<ge> 0"
     by (auto simp add:field_simps)
   thus "f (\<mu> *\<^sub>R x + (1 - \<mu>) *\<^sub>R y) \<le> \<mu> * f x + (1 - \<mu>) * f y"

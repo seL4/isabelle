@@ -105,12 +105,6 @@ instance "fun" :: (type, "Rings.dvd") "Rings.dvd" ..
 instance "fun" :: (type, mult_zero) mult_zero proof
 qed (simp_all add: zero_fun_def times_fun_def)
 
-instance "fun" :: (type, mult_mono) mult_mono proof
-qed (auto simp add: zero_fun_def times_fun_def le_fun_def intro: mult_left_mono mult_right_mono)
-
-instance "fun" :: (type, mult_mono1) mult_mono1 proof
-qed (auto simp add: zero_fun_def times_fun_def le_fun_def intro: mult_mono1)
-
 instance "fun" :: (type, zero_neq_one) zero_neq_one proof
 qed (simp add: zero_fun_def one_fun_def expand_fun_eq)
 
@@ -186,9 +180,11 @@ instance "fun" :: (type, ordered_comm_monoid_add) ordered_comm_monoid_add ..
 
 instance "fun" :: (type, ordered_ab_group_add) ordered_ab_group_add ..
 
-instance "fun" :: (type, ordered_semiring) ordered_semiring ..
+instance "fun" :: (type, ordered_semiring) ordered_semiring proof
+qed (auto simp add: zero_fun_def times_fun_def le_fun_def intro: mult_left_mono mult_right_mono)
 
-instance "fun" :: (type, ordered_comm_semiring) ordered_comm_semiring ..
+instance "fun" :: (type, ordered_comm_semiring) ordered_comm_semiring proof
+qed (fact mult_left_mono)
 
 instance "fun" :: (type, ordered_cancel_semiring) ordered_cancel_semiring ..
 
