@@ -852,7 +852,7 @@ lemma image_Un: "f`(A Un B) = f`A Un f`B"
 lemma image_iff: "(z : f`A) = (EX x:A. z = f x)"
   by blast
 
-lemma image_subset_iff: "(f`A \<subseteq> B) = (\<forall>x\<in>A. f x \<in> B)"
+lemma image_subset_iff [no_atp]: "(f`A \<subseteq> B) = (\<forall>x\<in>A. f x \<in> B)"
   -- {* This rewrite rule would confuse users if made default. *}
   by blast
 
@@ -1203,7 +1203,7 @@ lemma Int_Un_distrib2: "(B \<union> C) \<inter> A = (B \<inter> A) \<union> (C \
 lemma Int_UNIV [simp,no_atp]: "(A \<inter> B = UNIV) = (A = UNIV & B = UNIV)"
   by (fact inf_eq_top_iff)
 
-lemma Int_subset_iff [simp]: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
+lemma Int_subset_iff [no_atp, simp]: "(C \<subseteq> A \<inter> B) = (C \<subseteq> A & C \<subseteq> B)"
   by (fact le_inf_iff)
 
 lemma Int_Collect: "(x \<in> A \<inter> {x. P x}) = (x \<in> A & P x)"
@@ -1294,7 +1294,7 @@ lemma subset_Un_eq: "(A \<subseteq> B) = (A \<union> B = B)"
 lemma Un_empty [iff]: "(A \<union> B = {}) = (A = {} & B = {})"
   by (fact sup_eq_bot_iff)
 
-lemma Un_subset_iff [simp]: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B \<subseteq> C)"
+lemma Un_subset_iff [no_atp, simp]: "(A \<union> B \<subseteq> C) = (A \<subseteq> C & B \<subseteq> C)"
   by (fact le_sup_iff)
 
 lemma Un_Diff_Int: "(A - B) \<union> (A \<inter> B) = A"
@@ -1490,7 +1490,7 @@ text {* \medskip Miscellany. *}
 lemma set_eq_subset: "(A = B) = (A \<subseteq> B & B \<subseteq> A)"
   by blast
 
-lemma subset_iff: "(A \<subseteq> B) = (\<forall>t. t \<in> A --> t \<in> B)"
+lemma subset_iff [no_atp]: "(A \<subseteq> B) = (\<forall>t. t \<in> A --> t \<in> B)"
   by blast
 
 lemma subset_iff_psubset_eq: "(A \<subseteq> B) = ((A \<subset> B) | (A = B))"
