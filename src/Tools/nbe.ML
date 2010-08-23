@@ -6,7 +6,7 @@ Normalization by evaluation, based on generic code generator.
 
 signature NBE =
 sig
-  val dynamic_eval_conv: cterm -> thm
+  val dynamic_eval_conv: conv
   val dynamic_eval_value: theory -> term -> term
 
   datatype Univ =
