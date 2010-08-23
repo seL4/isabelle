@@ -16,9 +16,10 @@ object Simple_Thread
 {
   /* plain thread */
 
-  def fork(name: String)(body: => Unit): Thread =
+  def fork(name: String, daemon: Boolean = false)(body: => Unit): Thread =
   {
     val thread = new Thread(name) { override def run = body }
+    thread.setDaemon(daemon)
     thread.start
     thread
   }
@@ -26,10 +27,10 @@ object Simple_Thread
 
   /* thread as actor */
 
-  def actor(name: String)(body: => Unit): Actor =
+  def actor(name: String, daemon: Boolean = false)(body: => Unit): Actor =
   {
     val actor = Future.promise[Actor]
-    val thread = fork(name) { actor.fulfill(Actor.self); body }
+    val thread = fork(name, daemon) { actor.fulfill(Actor.self); body }
     actor.join
   }
 }
