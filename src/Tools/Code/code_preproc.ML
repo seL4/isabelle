@@ -25,10 +25,12 @@ sig
   val pretty: theory -> code_graph -> Pretty.T
   val obtain: theory -> string list -> term list -> code_algebra * code_graph
   val dynamic_eval_conv: theory
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
   val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
-  val pre_post_conv: theory -> (cterm -> thm) -> cterm -> thm
+  val static_eval_conv: theory -> string list
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
+  val pre_post_conv: theory -> conv -> conv
 
   val setup: theory -> theory
 end
@@ -421,8 +423,10 @@ structure Wellsorted = Code_Data
 
 (** retrieval and evaluation interfaces **)
 
-fun obtain thy cs ts = apsnd snd
-  (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
+fun obtain thy consts ts = apsnd snd
+  (Wellsorted.change_yield thy (extend_arities_eqngr thy consts ts));
+
+fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
 
 fun dynamic_eval thy cterm_of conclude_evaluation evaluator proto_ct =
   let
@@ -432,12 +436,11 @@ fun dynamic_eval thy cterm_of conclude_evaluation evaluator proto_ct =
       (Thm.term_of ct);
     val thm = preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
-    val t' = Thm.term_of ct';
-    val vs = Term.add_tfrees t' [];
+    val (vs', t') = dest_cterm ct';
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
     val (algebra', eqngr') = obtain thy consts [t'];
-  in conclude_evaluation (evaluator algebra' eqngr' vs t' ct') thm end;
+  in conclude_evaluation (evaluator algebra' eqngr' vs' t' ct') thm end;
 
 fun dynamic_eval_conv thy =
   let
@@ -455,6 +458,15 @@ fun dynamic_eval_value thy postproc evaluator = dynamic_eval thy (Thm.cterm_of t
   (K o postproc (postprocess_term thy)) (K oooo evaluator);
 
 fun pre_post_conv thy conv = (preprocess_conv thy) then_conv conv then_conv (postprocess_conv thy);
+
+fun static_eval_conv thy consts conv =
+  let
+    val (algebra, eqngr) = obtain thy consts [];
+    fun conv' ct =
+      let
+        val (vs, t) = dest_cterm ct;
+      in Conv.tap_thy (fn thy => pre_post_conv thy (conv algebra eqngr vs t)) ct end;
+  in conv' end;
 
 
 (** setup **)
