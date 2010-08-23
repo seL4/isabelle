@@ -66,8 +66,8 @@ and match_types [] [] = true
   | match_types (a1::as1) (a2::as2) = match_type a1 a2 andalso match_types as1 as2;
 
 (*Is there a unifiable constant?*)
-fun uni_mem goal_const_tab (c, c_typ) =
-  exists (match_types c_typ) (these (Symtab.lookup goal_const_tab c))
+fun const_mem const_tab (c, c_typ) =
+  exists (match_types c_typ) (these (Symtab.lookup const_tab c))
 
 (*Maps a "real" type to a const_typ*)
 fun const_typ_of (Type (c,typs)) = CType (c, map const_typ_of typs)
@@ -82,7 +82,7 @@ fun const_with_typ thy (c,typ) =
 
 (*Add a const/type pair to the table, but a [] entry means a standard connective,
   which we ignore.*)
-fun add_const_type_to_table (c, ctyps) =
+fun add_const_to_table (c, ctyps) =
   Symtab.map_default (c, [ctyps])
                      (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
 
@@ -92,22 +92,22 @@ val flip = Option.map not
 val boring_consts =
   [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let}]
 
-fun get_consts_typs thy pos ts =
+fun get_consts thy pos ts =
   let
     (* We include free variables, as well as constants, to handle locales. For
        each quantifiers that must necessarily be skolemized by the ATP, we
        introduce a fresh constant to simulate the effect of Skolemization. *)
     fun do_term t =
       case t of
-        Const x => add_const_type_to_table (const_with_typ thy x)
-      | Free (s, _) => add_const_type_to_table (s, [])
+        Const x => add_const_to_table (const_with_typ thy x)
+      | Free (s, _) => add_const_to_table (s, [])
       | t1 $ t2 => do_term t1 #> do_term t2
       | Abs (_, _, t') => do_term t'
       | _ => I
     fun do_quantifier will_surely_be_skolemized body_t =
       do_formula pos body_t
       #> (if will_surely_be_skolemized then
-            add_const_type_to_table (gensym fresh_prefix, [])
+            add_const_to_table (gensym fresh_prefix, [])
           else
             I)
     and do_term_or_formula T =
@@ -224,10 +224,9 @@ fun irrel_log (x : real) = Math.ln (x + 19.0) / 6.4
 val rel_const_weight = rel_log o real oo const_frequency
 val irrel_const_weight = irrel_log o real oo const_frequency
 
-fun axiom_weight const_tab relevant_consts_typs axiom_consts_typs =
+fun axiom_weight const_tab relevant_consts axiom_consts =
   let
-    val (rel, irrel) =
-      List.partition (uni_mem relevant_consts_typs) axiom_consts_typs
+    val (rel, irrel) = List.partition (const_mem relevant_consts) axiom_consts
     val rel_weight = fold (curry Real.+ o rel_const_weight const_tab) rel 0.0
     val irrel_weight = fold (curry Real.+ o irrel_const_weight const_tab) irrel 0.0
     val res = rel_weight / (rel_weight + irrel_weight)
@@ -237,23 +236,23 @@ fun axiom_weight const_tab relevant_consts_typs axiom_consts_typs =
 (*Relevant constants are weighted according to frequency,
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
   which are rare, would harm a formula's chances of being picked.*)
-fun axiom_weight const_tab relevant_consts_typs axiom_consts_typs =
+fun axiom_weight const_tab relevant_consts axiom_consts =
   let
-    val rel = filter (uni_mem relevant_consts_typs) axiom_consts_typs
+    val rel = filter (const_mem relevant_consts) axiom_consts
     val rel_weight = fold (curry Real.+ o rel_const_weight const_tab) rel 0.0
-    val res = rel_weight / (rel_weight + real (length axiom_consts_typs - length rel))
+    val res = rel_weight / (rel_weight + real (length axiom_consts - length rel))
   in if Real.isFinite res then res else 0.0 end
 *)
 
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
 fun add_expand_pairs (x, ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys
 
-fun consts_typs_of_term thy t =
-  Symtab.fold add_expand_pairs (get_consts_typs thy (SOME true) [t]) []
+fun consts_of_term thy t =
+  Symtab.fold add_expand_pairs (get_consts thy (SOME true) [t]) []
 
-fun pair_consts_typs_axiom theory_relevant thy axiom =
+fun pair_consts_axiom theory_relevant thy axiom =
   (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
-                |> consts_typs_of_term thy)
+                |> consts_of_term thy)
 
 exception CONST_OR_FREE of unit
 
@@ -268,8 +267,8 @@ fun defines thy thm gctypes =
             let val (rator,args) = strip_comb lhs
                 val ct = const_with_typ thy (dest_Const_or_Free rator)
             in
-              forall is_Var args andalso uni_mem gctypes ct andalso
-                subset (op =) (Term.add_vars rhs [], Term.add_vars lhs [])
+              forall is_Var args andalso const_mem gctypes ct andalso
+              subset (op =) (Term.add_vars rhs [], Term.add_vars lhs [])
             end
             handle CONST_OR_FREE () => false
     in
@@ -285,21 +284,21 @@ type annotated_thm = (string * thm) * (string * const_typ list) list
 fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
 
 (* Limit the number of new facts, to prevent runaway acceptance. *)
-fun take_best max_new (newpairs : (annotated_thm * real) list) =
-  let val nnew = length newpairs in
+fun take_best max_new (new_pairs : (annotated_thm * real) list) =
+  let val nnew = length new_pairs in
     if nnew <= max_new then
-      (map #1 newpairs, [])
+      (map #1 new_pairs, [])
     else
       let
-        val newpairs = sort compare_pairs newpairs
-        val accepted = List.take (newpairs, max_new)
+        val new_pairs = sort compare_pairs new_pairs
+        val accepted = List.take (new_pairs, max_new)
       in
         trace_msg (fn () => ("Number of candidates, " ^ Int.toString nnew ^
                        ", exceeds the limit of " ^ Int.toString max_new));
         trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         trace_msg (fn () => "Actually passed: " ^
           space_implode ", " (map (fst o fst o fst) accepted));
-        (map #1 accepted, map #1 (List.drop (newpairs, max_new)))
+        (map #1 accepted, List.drop (new_pairs, max_new))
       end
   end;
 
@@ -318,7 +317,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
       val thy = ProofContext.theory_of ctxt
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
                            Symtab.empty
-      val goal_const_tab = get_consts_typs thy (SOME false) goal_ts
+      val goal_const_tab = get_consts thy (SOME false) goal_ts
       val _ =
         trace_msg (fn () => "Initial constants: " ^
                             commas (goal_const_tab
@@ -333,43 +332,54 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
               (* Nothing was added this iteration. *)
               if j = 0 andalso threshold >= ridiculous_threshold then
                 (* First iteration? Try again. *)
-                iter 0 (threshold / threshold_divisor) rel_const_tab rejects
+                iter 0 (threshold / threshold_divisor) rel_const_tab
+                     (map (apsnd SOME) rejects)
               else
                 (* Add "add:" facts. *)
                 if null add_thms then
                   []
                 else
-                  map_filter (fn (p as (name, th), _) =>
+                  map_filter (fn ((p as (name, th), _), _) =>
                                  if member Thm.eq_thm add_thms th then SOME p
                                  else NONE) rejects
-            | relevant (newpairs, rejects) [] =
+            | relevant (new_pairs, rejects) [] =
               let
-                val (newrels, more_rejects) = take_best max_new newpairs
-                val new_consts = maps #2 newrels
-                val rel_const_tab =
-                  rel_const_tab |> fold add_const_type_to_table new_consts
+                val (new_rels, more_rejects) = take_best max_new new_pairs
+                val new_consts = new_rels |> maps snd
+                val rel_const_tab' =
+                  rel_const_tab |> fold add_const_to_table new_consts
+                fun is_dirty c =
+                  const_mem rel_const_tab' c andalso
+                  not (const_mem rel_const_tab c)
+                val rejects =
+                  more_rejects @ rejects
+                  |> map (fn (ax as (_, consts), old_weight) =>
+                             (ax, if exists is_dirty consts then NONE
+                                  else SOME old_weight))
                 val threshold =
                   threshold + (1.0 - threshold) * relevance_convergence
               in
                 trace_msg (fn () => "relevant this iteration: " ^
-                                    Int.toString (length newrels));
-                map #1 newrels @
-                iter (j + 1) threshold rel_const_tab (more_rejects @ rejects)
+                                    Int.toString (length new_rels));
+                map #1 new_rels @ iter (j + 1) threshold rel_const_tab' rejects
               end
-            | relevant (newrels, rejects)
-                       ((ax as ((name, th), axiom_consts_typs)) :: axs) =
+            | relevant (new_rels, rejects)
+                       (((ax as ((name, th), axiom_consts)), cached_weight)
+                        :: rest) =
               let
                 val weight =
-                  axiom_weight const_tab rel_const_tab axiom_consts_typs
+                  case cached_weight of
+                    SOME w => w
+                  | NONE => axiom_weight const_tab rel_const_tab axiom_consts
               in
                 if weight >= threshold orelse
                    (defs_relevant andalso defines thy th rel_const_tab) then
                   (trace_msg (fn () =>
                        name ^ " passes: " ^ Real.toString weight
-                       ^ " consts: " ^ commas (map fst axiom_consts_typs));
-                   relevant ((ax, weight) :: newrels, rejects) axs)
+                       ^ " consts: " ^ commas (map fst axiom_consts));
+                   relevant ((ax, weight) :: new_rels, rejects) rest)
                 else
-                  relevant (newrels, ax :: rejects) axs
+                  relevant (new_rels, (ax, weight) :: rejects) rest
               end
           in
             trace_msg (fn () => "relevant_facts, current threshold: " ^
@@ -378,7 +388,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
           end
     in
       axioms |> filter_out (member Thm.eq_thm del_thms o snd)
-             |> map (pair_consts_typs_axiom theory_relevant thy)
+             |> map (rpair NONE o pair_consts_axiom theory_relevant thy)
              |> iter 0 relevance_threshold goal_const_tab
              |> tap (fn res => trace_msg (fn () =>
                                 "Total relevant: " ^ Int.toString (length res)))

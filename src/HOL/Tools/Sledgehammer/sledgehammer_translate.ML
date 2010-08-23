@@ -228,7 +228,7 @@ val optional_typed_helpers =
 val mandatory_helpers = @{thms fequal_def}
 
 val init_counters =
-  [optional_helpers, optional_typed_helpers] |> maps (maps fst) 
+  [optional_helpers, optional_typed_helpers] |> maps (maps fst)
   |> sort_distinct string_ord |> map (rpair 0) |> Symtab.make
 
 fun get_helper_facts ctxt is_FO full_types conjectures axioms =
