@@ -229,9 +229,7 @@ fun prover_fun atp_name
       case axioms of
         SOME axioms => axioms
       | NONE =>
-        (print_d (fn () => "Selecting relevant facts for " ^ quote atp_name ^
-                           ".");
-         relevant_facts full_types relevance_threshold relevance_convergence
+        (relevant_facts full_types relevance_threshold relevance_convergence
                         defs_relevant
                         (the_default default_max_relevant_per_iter
                                      max_relevant_per_iter)

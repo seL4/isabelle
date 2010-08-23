@@ -89,7 +89,8 @@ fun add_const_type_to_table (c, ctyps) =
 val fresh_prefix = "Sledgehammer.FRESH."
 val flip = Option.map not
 (* These are typically simplified away by "Meson.presimplify". *)
-val boring_consts = [@{const_name If}, @{const_name Let}]
+val boring_consts =
+  [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let}]
 
 fun get_consts_typs thy pos ts =
   let
@@ -345,7 +346,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                    (defs_relevant andalso defines thy th rel_const_tab) then
                   (trace_msg (fn () =>
                        name ^ " passes: " ^ Real.toString weight
-                       (* ^ " consts: " ^ commas (map fst consts_typs) *));
+                       ^ " consts: " ^ commas (map fst consts_typs));
                    relevant ((ax, weight) :: newrels, rejects) axs)
                 else
                   relevant (newrels, ax :: rejects) axs
@@ -386,7 +387,9 @@ fun make_unique xs = Termtab.fold (cons o snd) (make_fact_table xs) []
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
   ["defs", "select_defs", "update_defs", "induct", "inducts", "split", "splits",
-   "split_asm", "cases", "ext_cases", "eq"]
+   "split_asm", "cases", "ext_cases", "eq.simps", "eq.refl", "nchotomy",
+   "case_cong", "weak_case_cong"]
+  |> map (prefix ".")
 
 val max_lambda_nesting = 3
 
@@ -518,7 +521,7 @@ fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
            forall (not o member Thm.eq_thm add_thms) ths0 andalso
            (Facts.is_concealed facts name orelse
             (respect_no_atp andalso is_package_def name) orelse
-            member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
+            exists (fn s => String.isSuffix s name) multi_base_blacklist orelse
             String.isSuffix "_def_raw" (* FIXME: crude hack *) name) then
           I
         else
