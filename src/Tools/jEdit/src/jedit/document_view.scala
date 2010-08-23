@@ -106,36 +106,32 @@ class Document_View(val model: Document_Model, text_area: TextArea)
           Swing_Thread.now {
             // FIXME cover doc states as well!!?
             val snapshot = model.snapshot()
-            if (changed.exists(snapshot.node.commands.contains))
-              full_repaint(snapshot, changed)
+            val buffer = model.buffer
+            Isabelle.buffer_read_lock(buffer) {
+              if (changed.exists(snapshot.node.commands.contains)) {
+                var visible_change = false
+
+                for ((command, start) <- snapshot.node.command_starts) {
+                  if (changed(command)) {
+                    val stop = start + command.length
+                    val line1 = buffer.getLineOfOffset(snapshot.convert(start))
+                    val line2 = buffer.getLineOfOffset(snapshot.convert(stop))
+                    if (line2 >= text_area.getFirstLine &&
+                        line1 <= text_area.getFirstLine + text_area.getVisibleLines)
+                      visible_change = true
+                    text_area.invalidateLineRange(line1, line2)
+                  }
+                }
+                if (visible_change) model.buffer.propertiesChanged()
+
+                overview.repaint()  // FIXME paint here!?
+              }
+            }
           }
 
         case bad => System.err.println("command_change_actor: ignoring bad message " + bad)
       }
     }
-  }
-
-  def full_repaint(snapshot: Document.Snapshot, changed: Set[Command])
-  {
-    Swing_Thread.require()
-
-    val buffer = model.buffer
-    var visible_change = false
-
-    for ((command, start) <- snapshot.node.command_starts) {
-      if (changed(command)) {
-        val stop = start + command.length
-        val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-        val line2 = buffer.getLineOfOffset(snapshot.convert(stop))
-        if (line2 >= text_area.getFirstLine &&
-            line1 <= text_area.getFirstLine + text_area.getVisibleLines)
-          visible_change = true
-        text_area.invalidateLineRange(line1, line2)
-      }
-    }
-    if (visible_change) model.buffer.propertiesChanged()
-
-    overview.repaint()  // FIXME paint here!?
   }
 
 
@@ -269,20 +265,23 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     override def paintComponent(gfx: Graphics)
     {
       super.paintComponent(gfx)
+      Swing_Thread.assert()
       val buffer = model.buffer
-      val snapshot = model.snapshot()
-      val saved_color = gfx.getColor  // FIXME needed!?
-      try {
-        for ((command, start) <- snapshot.node.command_starts if !command.is_ignored) {
-          val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-          val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
-          val y = line_to_y(line1)
-          val height = HEIGHT * (line2 - line1)
-          gfx.setColor(Document_View.choose_color(snapshot, command))
-          gfx.fillRect(0, y, getWidth - 1, height)
+      Isabelle.buffer_read_lock(buffer) {
+        val snapshot = model.snapshot()
+        val saved_color = gfx.getColor  // FIXME needed!?
+        try {
+          for ((command, start) <- snapshot.node.command_starts if !command.is_ignored) {
+            val line1 = buffer.getLineOfOffset(snapshot.convert(start))
+            val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
+            val y = line_to_y(line1)
+            val height = HEIGHT * (line2 - line1)
+            gfx.setColor(Document_View.choose_color(snapshot, command))
+            gfx.fillRect(0, y, getWidth - 1, height)
+          }
         }
+        finally { gfx.setColor(saved_color) }
       }
-      finally { gfx.setColor(saved_color) }
     }
 
     private def line_to_y(line: Int): Int =

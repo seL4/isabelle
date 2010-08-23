@@ -69,8 +69,8 @@ class Session(system: Isabelle_System)
   private case class Started(timeout: Int, args: List[String])
   private case object Stop
 
-  private lazy val session_actor = actor {
-
+  private val session_actor = Simple_Thread.actor("session_actor", daemon = true)
+  {
     var prover: Isabelle_Process with Isar_Document = null
 
 
@@ -199,8 +199,9 @@ class Session(system: Isabelle_System)
 
     /* main loop */
 
-    loop {
-      react {
+    var finished = false
+    while (!finished) {
+      receive {
         case Started(timeout, args) =>
           if (prover == null) {
             prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
@@ -211,10 +212,11 @@ class Session(system: Isabelle_System)
           }
           else reply(None)
 
-        case Stop =>  // FIXME clarify; synchronous
+        case Stop => // FIXME synchronous!?
           if (prover != null) {
             prover.kill
             prover = null
+            finished = true
           }
 
         case change: Document.Change if prover != null =>
@@ -235,7 +237,7 @@ class Session(system: Isabelle_System)
 
   /** buffered command changes (delay_first discipline) **/
 
-  private lazy val command_change_buffer = actor
+  private val command_change_buffer = actor
   //{{{
   {
     import scala.compat.Platform.currentTime
@@ -286,36 +288,33 @@ class Session(system: Isabelle_System)
 
   private case class Edit_Version(edits: List[Document.Node_Text_Edit])
 
-  private val editor_history = new Actor
+  @volatile private var history = Document.History.init
+
+  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
+    history.snapshot(name, pending_edits, current_state())
+
+  private val editor_history = actor
   {
-    @volatile private var history = Document.History.init
+    loop {
+      react {
+        case Edit_Version(edits) =>
+          val prev = history.tip.current
+          val result =
+            // FIXME potential denial-of-service concerning worker pool (!?!?)
+            isabelle.Future.fork {
+              val previous = prev.join
+              val former_assignment = current_state().the_assignment(previous).join  // FIXME async!?
+              Thy_Syntax.text_edits(Session.this, previous, edits)
+            }
+          val change = new Document.Change(prev, edits, result)
+          history += change
+          change.current.map(_ => session_actor ! change)
+          reply(())
 
-    def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
-      history.snapshot(name, pending_edits, current_state())
-
-    def act
-    {
-      loop {
-        react {
-          case Edit_Version(edits) =>
-            val prev = history.tip.current
-            val result =
-              isabelle.Future.fork {
-                val previous = prev.join
-                val former_assignment = current_state().the_assignment(previous).join  // FIXME async!?
-                Thy_Syntax.text_edits(Session.this, previous, edits)
-              }
-            val change = new Document.Change(prev, edits, result)
-            history += change
-            change.current.map(_ => session_actor ! change)
-            reply(())
-
-          case bad => System.err.println("editor_model: ignoring bad message " + bad)
-        }
+        case bad => System.err.println("editor_model: ignoring bad message " + bad)
       }
     }
   }
-  editor_history.start
 
 
 
@@ -325,9 +324,6 @@ class Session(system: Isabelle_System)
     (session_actor !? Started(timeout, args)).asInstanceOf[Option[String]]
 
   def stop() { session_actor ! Stop }
-
-  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
-    editor_history.snapshot(name, pending_edits)
 
   def edit_version(edits: List[Document.Node_Text_Edit]) { editor_history !? Edit_Version(edits) }
 }

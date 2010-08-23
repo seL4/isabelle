@@ -8,10 +8,6 @@ Prover commands with semantic state.
 package isabelle
 
 
-import scala.actors.Actor, Actor._
-import scala.collection.mutable
-
-
 object Command
 {
   /** accumulated results from prover **/
@@ -40,7 +36,7 @@ object Command
 
     def accumulate(message: XML.Tree): Command.State =
       message match {
-        case XML.Elem(Markup(Markup.STATUS, _), body) =>  // FIXME explicit checks!?
+        case XML.Elem(Markup(Markup.STATUS, _), body) =>  // FIXME explicit body check!?
           copy(status = (for (XML.Elem(markup, _) <- body) yield markup) ::: status)
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>

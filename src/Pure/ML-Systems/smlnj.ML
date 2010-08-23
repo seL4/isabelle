@@ -18,6 +18,8 @@ use "ML-Systems/timing.ML";
 use "ML-Systems/bash.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";
+structure PolyML = struct end;
+use "ML-Systems/pp_dummy.ML";
 use "ML-Systems/use_context.ML";
 
 

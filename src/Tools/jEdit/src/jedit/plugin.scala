@@ -118,6 +118,12 @@ object Isabelle
   def jedit_text_areas(buffer: JEditBuffer): Iterator[JEditTextArea] =
     jedit_text_areas().filter(_.getBuffer == buffer)
 
+  def buffer_read_lock[A](buffer: JEditBuffer)(body: => A): A =
+  {
+    try { buffer.readLock(); body }
+    finally { buffer.readUnlock() }
+  }
+
 
   /* dockable windows */
 
