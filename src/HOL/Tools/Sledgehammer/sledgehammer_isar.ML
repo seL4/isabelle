@@ -67,7 +67,7 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("explicit_apply", "false"),
-   ("relevance_threshold", "50"),
+   ("relevance_threshold", "40"),
    ("relevance_convergence", "320"),
    ("max_relevant_per_iter", "smart"),
    ("theory_relevant", "smart"),

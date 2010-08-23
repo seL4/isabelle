@@ -289,6 +289,9 @@ fun take_best max_new (newpairs : (annotated_thm * real) list) =
       end
   end;
 
+val threshold_divisor = 2.0
+val ridiculous_threshold = 0.1
+
 fun relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
@@ -302,7 +305,6 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
       val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
                            Symtab.empty
       val goal_const_tab = get_consts_typs thy (SOME false) goal_ts
-      val relevance_threshold = 0.8 * relevance_threshold (* FIXME *)
       val _ =
         trace_msg (fn () => "Initial constants: " ^
                             commas (goal_const_tab
@@ -311,16 +313,21 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                                     |> map fst))
       val add_thms = maps (ProofContext.get_fact ctxt) add
       val del_thms = maps (ProofContext.get_fact ctxt) del
-      fun iter threshold rel_const_tab =
+      fun iter j threshold rel_const_tab =
         let
           fun relevant ([], rejects) [] =
-              (* Nothing was added this iteration: Add "add:" facts. *)
-              if null add_thms then
-                []
+              (* Nothing was added this iteration. *)
+              if j = 0 andalso threshold >= ridiculous_threshold then
+                (* First iteration? Try again. *)
+                iter 0 (threshold / threshold_divisor) rel_const_tab rejects
               else
-                map_filter (fn (p as (name, th), _) =>
-                               if member Thm.eq_thm add_thms th then SOME p
-                               else NONE) rejects
+                (* Add "add:" facts. *)
+                if null add_thms then
+                  []
+                else
+                  map_filter (fn (p as (name, th), _) =>
+                                 if member Thm.eq_thm add_thms th then SOME p
+                                 else NONE) rejects
             | relevant (newpairs, rejects) [] =
               let
                 val (newrels, more_rejects) = take_best max_new newpairs
@@ -332,8 +339,8 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
               in
                 trace_msg (fn () => "relevant this iteration: " ^
                                     Int.toString (length newrels));
-                map #1 newrels @ iter threshold rel_const_tab
-                    (more_rejects @ rejects)
+                map #1 newrels @
+                iter (j + 1) threshold rel_const_tab (more_rejects @ rejects)
               end
             | relevant (newrels, rejects)
                        ((ax as ((name, th), consts_typs)) :: axs) =
@@ -356,7 +363,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                                 Real.toString threshold);
             relevant ([], [])
           end
-      val relevant = iter relevance_threshold goal_const_tab
+      val relevant = iter 0 relevance_threshold goal_const_tab
                           (map (pair_consts_typs_axiom theory_relevant thy)
                                axioms)
     in
