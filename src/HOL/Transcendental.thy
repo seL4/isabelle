@@ -2790,7 +2790,7 @@ lemma summable_arctan_series: fixes x :: real and n :: nat
 
 lemma less_one_imp_sqr_less_one: fixes x :: real assumes "\<bar>x\<bar> < 1" shows "x^2 < 1"
 proof -
-  from mult_mono1[OF less_imp_le[OF `\<bar>x\<bar> < 1`] abs_ge_zero[of x]]
+  from mult_left_mono[OF less_imp_le[OF `\<bar>x\<bar> < 1`] abs_ge_zero[of x]]
   have "\<bar> x^2 \<bar> < 1" using `\<bar> x \<bar> < 1` unfolding numeral_2_eq_2 power_Suc2 by auto
   thus ?thesis using zero_le_power2 by auto
 qed 

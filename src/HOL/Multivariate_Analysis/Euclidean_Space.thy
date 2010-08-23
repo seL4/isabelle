@@ -220,7 +220,7 @@ lemma norm_cmul_rule_thm:
   fixes x :: "'a::real_normed_vector"
   shows "b >= norm(x) ==> \<bar>c\<bar> * b >= norm(scaleR c x)"
   unfolding norm_scaleR
-  apply (erule mult_mono1)
+  apply (erule mult_left_mono)
   apply simp
   done
 

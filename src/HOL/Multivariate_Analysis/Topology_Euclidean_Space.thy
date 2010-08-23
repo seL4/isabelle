@@ -5678,7 +5678,7 @@ proof-
     next
       case (Suc m)
       hence "c * dist (z m) (z (Suc m)) \<le> c ^ Suc m * d"
-        using `0 \<le> c` using mult_mono1_class.mult_mono1[of "dist (z m) (z (Suc m))" "c ^ m * d" c] by auto
+        using `0 \<le> c` using mult_left_mono[of "dist (z m) (z (Suc m))" "c ^ m * d" c] by auto
       thus ?case using lipschitz[THEN bspec[where x="z m"], OF z_in_s, THEN bspec[where x="z (Suc m)"], OF z_in_s]
         unfolding fzn and mult_le_cancel_left by auto
     qed

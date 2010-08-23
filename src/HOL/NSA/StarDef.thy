@@ -925,12 +925,12 @@ apply (transfer, erule (1) mult_strict_right_mono)
 done
 
 instance star :: (ordered_comm_semiring) ordered_comm_semiring
-by (intro_classes, transfer, rule mult_mono1_class.mult_mono1)
+by (intro_classes, transfer, rule mult_left_mono)
 
 instance star :: (ordered_cancel_comm_semiring) ordered_cancel_comm_semiring ..
 
 instance star :: (linordered_comm_semiring_strict) linordered_comm_semiring_strict
-by (intro_classes, transfer, rule mult_strict_left_mono_comm)
+by (intro_classes, transfer, rule mult_strict_left_mono)
 
 instance star :: (ordered_ring) ordered_ring ..
 instance star :: (ordered_ring_abs) ordered_ring_abs

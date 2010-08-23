@@ -700,7 +700,7 @@ proof -
     using `a \<in> nnfis f` unfolding nnfis_def by auto
   with `0 \<le> z`show ?thesis unfolding nnfis_def mono_convergent_def incseq_def
     by (auto intro!: exI[of _ "\<lambda>n w. z * u n w"] exI[of _ "\<lambda>n. z * x n"]
-      LIMSEQ_mult LIMSEQ_const psfis_mult mult_mono1)
+      LIMSEQ_mult LIMSEQ_const psfis_mult mult_left_mono)
 qed
 
 lemma nnfis_add:
