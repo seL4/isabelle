@@ -149,7 +149,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   default_max_relevant_per_iter = 50 (* FUDGE *),
+   default_max_relevant_per_iter = 60 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
@@ -203,6 +203,7 @@ val vampire_config : prover_config =
       (IncompleteUnprovable, "CANNOT PROVE"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
+      (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option")],
    default_max_relevant_per_iter = 45 (* FUDGE *),
    default_theory_relevant = false,
