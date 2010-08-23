@@ -207,8 +207,8 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 (* generic TPTP-based provers *)
 
 fun prover_fun atp_name
-        {exec, required_execs, arguments, proof_delims, known_failures,
-         default_max_relevant_per_iter, default_theory_relevant,
+        {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
+         known_failures, default_max_relevant_per_iter, default_theory_relevant,
          explicit_forall, use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
           relevance_threshold, relevance_convergence,
@@ -260,7 +260,7 @@ fun prover_fun atp_name
 
     val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
     (* write out problem file and call prover *)
-    fun command_line complete probfile =
+    fun command_line complete timeout probfile =
       let
         val core = File.shell_path command ^ " " ^ arguments complete timeout ^
                    " " ^ File.shell_path probfile
@@ -288,9 +288,9 @@ fun prover_fun atp_name
       | [] =>
         if File.exists command then
           let
-            fun do_run complete =
+            fun do_run complete timeout =
               let
-                val command = command_line complete probfile
+                val command = command_line complete timeout probfile
                 val ((output, msecs), res_code) =
                   bash_output command
                   |>> (if overlord then
@@ -316,13 +316,20 @@ fun prover_fun atp_name
               conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
               |> map single
             val _ = print_d (fn () => "Running " ^ quote atp_name ^ "...")
+            val timer = Timer.startRealTimer ()
             val result =
-              do_run false
-              |> (fn (_, msecs0, _, SOME _) =>
-                     do_run true
-                     |> (fn (output, msecs, proof, outcome) =>
-                            (output, msecs0 + msecs, proof, outcome))
-                   | result => result)
+              do_run false (if has_incomplete_mode then
+                              Time.fromMilliseconds
+                                         (2 * Time.toMilliseconds timeout div 3)
+                            else
+                              timeout)
+              |> has_incomplete_mode
+                 ? (fn (_, msecs0, _, SOME _) =>
+                       do_run true
+                              (Time.- (timeout, Timer.checkRealTimer timer))
+                       |> (fn (output, msecs, proof, outcome) =>
+                              (output, msecs0 + msecs, proof, outcome))
+                     | result => result)
           in ((pool, conjecture_shape, axiom_names), result) end
         else
           error ("Bad executable: " ^ Path.implode command ^ ".")

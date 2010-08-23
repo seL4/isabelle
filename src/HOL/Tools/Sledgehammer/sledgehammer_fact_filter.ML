@@ -23,6 +23,8 @@ end;
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
 struct
 
+open Sledgehammer_Util
+
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
@@ -43,7 +45,7 @@ fun name_thms_pair_from_ref ctxt chained_ths xref =
     val name = Facts.string_of_ref xref
                |> forall (member Thm.eq_thm chained_ths) ths
                   ? prefix chained_prefix
-  in (name, ths |> map Clausifier.transform_elim_theorem) end
+  in (name, ths) end
 
 
 (***************************************************************)
@@ -84,11 +86,10 @@ fun add_const_type_to_table (c, ctyps) =
   Symtab.map_default (c, [ctyps])
                      (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
 
-val fresh_prefix = "Sledgehammer.Fresh."
+val fresh_prefix = "Sledgehammer.FRESH."
 val flip = Option.map not
 (* These are typically simplified away by "Meson.presimplify". *)
-val boring_consts =
-  [@{const_name If}, @{const_name Let} (* TODO: , @{const_name Set.member}, @{const_name Collect} *)]
+val boring_consts = [@{const_name If}, @{const_name Let}]
 
 fun get_consts_typs thy pos ts =
   let
@@ -100,10 +101,7 @@ fun get_consts_typs thy pos ts =
         Const x => add_const_type_to_table (const_with_typ thy x)
       | Free (s, _) => add_const_type_to_table (s, [])
       | t1 $ t2 => do_term t1 #> do_term t2
-      | Abs (_, _, t) =>
-        (* Abstractions lead to combinators, so we add a penalty for them. *)
-        add_const_type_to_table (gensym fresh_prefix, [])
-        #> do_term t
+      | Abs (_, _, t') => do_term t'
       | _ => I
     fun do_quantifier will_surely_be_skolemized body_t =
       do_formula pos body_t
@@ -424,7 +422,7 @@ fun is_formula_too_complex t =
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
 
-fun is_strange_thm th =
+fun is_strange_theorem th =
   case head_of (concl_of th) of
       Const (a, _) => (a <> @{const_name Trueprop} andalso
                        a <> @{const_name "=="})
@@ -490,29 +488,37 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}];
    are omitted. *)
 fun is_dangerous_term full_types t =
   not full_types andalso
-  (has_bound_or_var_of_type dangerous_types t orelse is_exhaustive_finite t)
+  ((has_bound_or_var_of_type dangerous_types t andalso
+    has_bound_or_var_of_type dangerous_types (transform_elim_term t))
+   orelse is_exhaustive_finite t)
 
 fun is_theorem_bad_for_atps full_types thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
     is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
-    is_strange_thm thm
+    is_strange_theorem thm
   end
 
 fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
-    val local_facts = ProofContext.facts_of ctxt;
+    val local_facts = ProofContext.facts_of ctxt
+    val named_locals = local_facts |> Facts.dest_static []
+    val unnamed_locals =
+      local_facts |> Facts.props
+      |> filter_out (fn th => exists (fn (_, ths) => member Thm.eq_thm ths th)
+                                     named_locals)
+      |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
-
-    fun valid_facts facts =
-      (facts, []) |-> Facts.fold_static (fn (name, ths0) =>
-        if (Facts.is_concealed facts name orelse
+    fun valid_facts facts pairs =
+      (pairs, []) |-> fold (fn (name, ths0) =>
+        if name <> "" andalso
+           forall (not o member Thm.eq_thm add_thms) ths0 andalso
+           (Facts.is_concealed facts name orelse
             (respect_no_atp andalso is_package_def name) orelse
             member (op =) multi_base_blacklist (Long_Name.base_name name) orelse
-            String.isSuffix "_def_raw" (* FIXME: crude hack *) name) andalso
-           forall (not o member Thm.eq_thm add_thms) ths0 then
+            String.isSuffix "_def_raw" (* FIXME: crude hack *) name) then
           I
         else
           let
@@ -523,17 +529,25 @@ fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
             val name1 = Facts.extern facts name;
             val name2 = Name_Space.extern full_space name;
             val ths =
-             ths0 |> map Clausifier.transform_elim_theorem
-                  |> filter ((not o is_theorem_bad_for_atps full_types) orf
-                             member Thm.eq_thm add_thms)
+              ths0 |> filter ((not o is_theorem_bad_for_atps full_types) orf
+                              member Thm.eq_thm add_thms)
+            val name' =
+              case find_first check_thms [name1, name2, name] of
+                SOME name' => name'
+              | NONE =>
+                ths |> map (fn th =>
+                               "`" ^ Print_Mode.setmp [Print_Mode.input]
+                                         (Syntax.string_of_term ctxt)
+                                         (prop_of th) ^ "`")
+                    |> space_implode " "
           in
-            case find_first check_thms [name1, name2, name] of
-              NONE => I
-            | SOME name' =>
-              cons (name' |> forall (member Thm.eq_thm chained_ths) ths
-                             ? prefix chained_prefix, ths)
+            cons (name' |> forall (member Thm.eq_thm chained_ths) ths0
+                           ? prefix chained_prefix, ths)
           end)
-  in valid_facts global_facts @ valid_facts local_facts end;
+  in
+    valid_facts local_facts (unnamed_locals @ named_locals) @
+    valid_facts global_facts (Facts.dest_static [] global_facts)
+  end
 
 fun multi_name a th (n, pairs) =
   (n + 1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs);

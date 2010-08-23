@@ -775,9 +775,6 @@ fun FOL_SOLVE mode ctxt cls ths0 =
              [])
   end;
 
-val type_has_top_sort =
-  exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
-
 (* Extensionalize "th", because that makes sense and that's what Sledgehammer
    does, but also keep an unextensionalized version of "th" for backward
    compatibility. *)
@@ -793,6 +790,9 @@ val neg_clausify =
   #> maps also_extensionalize_theorem
   #> map Clausifier.introduce_combinators_in_theorem
   #> Meson.finish_cnf
+
+val type_has_top_sort =
+  exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
 fun generic_metis_tac mode ctxt ths i st0 =
   let

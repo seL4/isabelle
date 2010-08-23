@@ -16,6 +16,7 @@ sig
     {exec: string * string,
      required_execs: (string * string) list,
      arguments: bool -> Time.time -> string,
+     has_incomplete_mode: bool,
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
      default_max_relevant_per_iter: int,
@@ -48,6 +49,7 @@ type prover_config =
   {exec: string * string,
    required_execs: (string * string) list,
    arguments: bool -> Time.time -> string,
+   has_incomplete_mode: bool,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
    default_max_relevant_per_iter: int,
@@ -136,6 +138,7 @@ val e_config : prover_config =
    arguments = fn _ => fn timeout =>
      "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^
      string_of_int (to_generous_secs timeout),
+   has_incomplete_mode = false,
    proof_delims = [tstp_proof_delims],
    known_failures =
      [(Unprovable, "SZS status: CounterSatisfiable"),
@@ -146,7 +149,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   default_max_relevant_per_iter = 50 (* FIXME *),
+   default_max_relevant_per_iter = 60 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
@@ -159,12 +162,11 @@ val e = ("e", e_config)
 val spass_config : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS")],
-   (* "div 2" accounts for the fact that SPASS is often run twice. *)
    arguments = fn complete => fn timeout =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-      \-VarWeight=3 -TimeLimit=" ^
-      string_of_int ((to_generous_secs timeout + 1) div 2))
+      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout))
      |> not complete ? prefix "-SOS=1 ",
+   has_incomplete_mode = true,
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      known_perl_failures @
@@ -174,7 +176,7 @@ val spass_config : prover_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg")],
-   default_max_relevant_per_iter = 35 (* FIXME *),
+   default_max_relevant_per_iter = 32 (* FUDGE *),
    default_theory_relevant = true,
    explicit_forall = true,
    use_conjecture_for_hypotheses = true}
@@ -190,6 +192,7 @@ val vampire_config : prover_config =
    arguments = fn _ => fn timeout =>
      "--mode casc -t " ^ string_of_int (to_generous_secs timeout) ^
      " --thanks Andrei --input_file",
+   has_incomplete_mode = false,
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
@@ -200,8 +203,9 @@ val vampire_config : prover_config =
       (IncompleteUnprovable, "CANNOT PROVE"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
+      (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option")],
-   default_max_relevant_per_iter = 45 (* FIXME *),
+   default_max_relevant_per_iter = 45 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
@@ -242,6 +246,7 @@ fun remote_config system_prefix proof_delims known_failures
    arguments = fn _ => fn timeout =>
      " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
      the_system system_prefix,
+   has_incomplete_mode = false,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
      known_failures @ known_perl_failures @
@@ -274,10 +279,10 @@ val remote_e = remotify_prover e "EP---"
 val remote_vampire = remotify_prover vampire "Vampire---9"
 val remote_sine_e =
   remote_prover "sine_e" "SInE---" []
-                [(Unprovable, "says Unknown")] 150 (* FIXME *) false true
+                [(Unprovable, "says Unknown")] 150 (* FUDGE *) false true
 val remote_snark =
   remote_prover "snark" "SNARK---" [("refutation.", "end_refutation.")] []
-                50 (* FIXME *) false true
+                50 (* FUDGE *) false true
 
 (* Setup *)
 
