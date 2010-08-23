@@ -257,14 +257,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     override def markTokens(prev: TokenMarker.LineContext,
         handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
     {
+      // FIXME proper synchronization / thread context (!??)
+      val snapshot = Swing_Thread.now { Document_Model.this.snapshot() }
+
       val previous = prev.asInstanceOf[Document_Model.Token_Markup.LineContext]
       val line = if (prev == null) 0 else previous.line + 1
       val context = new Document_Model.Token_Markup.LineContext(line, previous)
+
       val start = buffer.getLineStartOffset(line)
       val stop = start + line_segment.count
-
-      // FIXME proper synchronization / thread context (!??)
-      val snapshot = Swing_Thread.now { Document_Model.this.snapshot() }
+      val range = Text.Range(start, stop)
+      val former_range = snapshot.revert(range)
 
       /* FIXME
       for (text_area <- Isabelle.jedit_text_areas(buffer)
@@ -275,35 +278,38 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       def handle_token(style: Byte, offset: Text.Offset, length: Int) =
         handler.handleToken(line_segment, style, offset, length, context)
 
+      val syntax = session.current_syntax()
+      val token_markup: PartialFunction[Text.Info[Any], Byte] =
+      {
+        case Text.Info(_, XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _))
+        if syntax.keyword_kind(name).isDefined =>
+          Document_Model.Token_Markup.command_style(syntax.keyword_kind(name).get)
+
+        case Text.Info(_, XML.Elem(Markup(name, _), _))
+        if Document_Model.Token_Markup.token_style(name) != Token.NULL =>
+          Document_Model.Token_Markup.token_style(name)
+      }
+
       var next_x = start
       for {
-        (command, command_start) <-
-          snapshot.node.command_range(snapshot.revert(start), snapshot.revert(stop))
-        markup <- snapshot.state(command).highlight
-        val Text.Range(abs_start, abs_stop) = snapshot.convert(markup.range + command_start)
-        if (abs_stop > start)
-        if (abs_start < stop)
+        (command, command_start) <- snapshot.node.command_range(former_range)
+        info <- snapshot.state(command).markup.
+          select((former_range - command_start).restrict(command.range))(token_markup)(Token.NULL)
+        val Text.Range(abs_start, abs_stop) = snapshot.convert(info.range + command_start)
+        if abs_stop > start && abs_start < stop  // FIXME abs_range overlaps range (redundant!?)
+      }
+      {
         val token_start = (abs_start - start) max 0
         val token_length =
           (abs_stop - abs_start) -
           ((start - abs_start) max 0) -
           ((abs_stop - stop) max 0)
-      }
-      {
-        val token_type =
-          markup.info match {
-            case Command.HighlightInfo(Markup.COMMAND, Some(kind)) =>
-              Document_Model.Token_Markup.command_style(kind)
-            case Command.HighlightInfo(kind, _) =>
-              Document_Model.Token_Markup.token_style(kind)
-            case _ => Token.NULL
-          }
-        if (start + token_start > next_x)
+        if (start + token_start > next_x)  // FIXME ??
           handle_token(Token.COMMENT1, next_x - start, start + token_start - next_x)
-        handle_token(token_type, token_start, token_length)
+        handle_token(info.info, token_start, token_length)
         next_x = start + token_start + token_length
       }
-      if (next_x < stop)
+      if (next_x < stop)  // FIXME ??
         handle_token(Token.COMMENT1, next_x - start, stop - next_x)
 
       handle_token(Token.END, line_segment.count, 0)

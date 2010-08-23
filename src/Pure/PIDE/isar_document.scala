@@ -1,7 +1,7 @@
 /*  Title:      Pure/PIDE/isar_document.scala
     Author:     Makarius
 
-Protocol commands for interactive Isar documents.
+Protocol message formats for interactive Isar documents.
 */
 
 package isabelle
@@ -9,7 +9,7 @@ package isabelle
 
 object Isar_Document
 {
-  /* protocol messages */
+  /* document editing */
 
   object Assign {
     def unapply(msg: XML.Tree)
@@ -31,6 +31,28 @@ object Isar_Document
             List((Markup.ID, Document.ID(i)), (Markup.EXEC, Document.ID(j)))), Nil) => Some((i, j))
         case _ => None
       }
+  }
+
+
+  /* toplevel transactions */
+
+  sealed abstract class Status
+  case class Forked(forks: Int) extends Status
+  case object Unprocessed extends Status
+  case object Finished extends Status
+  case object Failed extends Status
+
+  def command_status(markup: List[Markup]): Status =
+  {
+    val forks = (0 /: markup) {
+      case (i, Markup(Markup.FORKED, _)) => i + 1
+      case (i, Markup(Markup.JOINED, _)) => i - 1
+      case (i, _) => i
+    }
+    if (forks != 0) Forked(forks)
+    else if (markup.exists(_.name == Markup.FAILED)) Failed
+    else if (markup.exists(_.name == Markup.FINISHED)) Finished
+    else Unprocessed
   }
 }
 

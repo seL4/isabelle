@@ -79,7 +79,7 @@ object Library
     def next(): CharSequence =
       state match {
         case Some((s, i)) => { state = next_chunk(i); s }
-        case None => throw new NoSuchElementException("next on empty iterator")
+        case None => Iterator.empty.next()
       }
   }
 

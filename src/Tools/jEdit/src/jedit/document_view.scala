@@ -29,11 +29,11 @@ object Document_View
     val state = snapshot.state(command)
     if (snapshot.is_outdated) new Color(240, 240, 240)
     else
-      Toplevel.command_status(state.status) match {
-        case Toplevel.Forked(i) if i > 0 => new Color(255, 228, 225)
-        case Toplevel.Finished => new Color(234, 248, 255)
-        case Toplevel.Failed => new Color(255, 193, 193)
-        case Toplevel.Unprocessed => new Color(255, 228, 225)
+      Isar_Document.command_status(state.status) match {
+        case Isar_Document.Forked(i) if i > 0 => new Color(255, 228, 225)
+        case Isar_Document.Finished => new Color(234, 248, 255)
+        case Isar_Document.Failed => new Color(255, 193, 193)
+        case Isar_Document.Unprocessed => new Color(255, 228, 225)
         case _ => Color.red
       }
   }
@@ -202,10 +202,12 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val offset = snapshot.revert(text_area.xyToOffset(x, y))
       snapshot.node.command_at(offset) match {
         case Some((command, command_start)) =>
-          snapshot.state(command).type_at(offset - command_start) match {
-            case Some(text) => Isabelle.tooltip(text)
-            case None => null
-          }
+          (snapshot.state(command).markup.select(Text.Range(offset) - command_start) {
+            case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
+              val typing =
+                Pretty.block(XML.Text(command.source(range) + " : ") :: Pretty.Break(1) :: body)
+              Isabelle.tooltip(Pretty.string_of(List(typing), margin = 40))
+          } { null }).head.info
         case None => null
       }
     }

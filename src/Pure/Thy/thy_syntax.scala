@@ -84,7 +84,7 @@ object Thy_Syntax
             commands.iterator(first).takeWhile(_ != last).toList ::: List(last)
 
           val sources = range.flatMap(_.span.map(_.source))
-          val spans0 = parse_spans(session.current_syntax.scan(sources.mkString))
+          val spans0 = parse_spans(session.current_syntax().scan(sources.mkString))
 
           val (before_edit, spans1) =
             if (!spans0.isEmpty && first.is_command && first.span == spans0.head)

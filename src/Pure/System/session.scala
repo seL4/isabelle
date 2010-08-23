@@ -60,7 +60,7 @@ class Session(system: Isabelle_System)
   /** main actor **/
 
   @volatile private var syntax = new Outer_Syntax(system.symbols)
-  def current_syntax: Outer_Syntax = syntax
+  def current_syntax(): Outer_Syntax = syntax
 
   @volatile private var global_state = Document.State.init
   private def change_state(f: Document.State => Document.State) { global_state = f(global_state) }

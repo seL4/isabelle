@@ -15,37 +15,38 @@ object Text
   type Offset = Int
 
 
-  /* range: interval with total quasi-ordering */
+  /* range -- with total quasi-ordering */
 
   object Range
   {
-    object Ordering extends scala.math.Ordering[Range]
-    {
-      override def compare(r1: Range, r2: Range): Int = r1 compare r2
-    }
+    def apply(start: Offset): Range = Range(start, start)
   }
 
   sealed case class Range(val start: Offset, val stop: Offset)
   {
+    // denotation: {start} Un {i. start < i & i < stop}
     require(start <= stop)
+
+    override def toString = "[" + start.toString + ":" + stop.toString + "]"
 
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = map(_ + i)
-    def contains(i: Offset): Boolean = start <= i && i < stop
-    def contains(that: Range): Boolean =
-      this == that || this.contains(that.start) && that.stop <= this.stop
-    def overlaps(that: Range): Boolean =
-      this == that || this.contains(that.start) || that.contains(this.start)
-    def compare(that: Range): Int =
-      if (overlaps(that)) 0
-      else if (this.start < that.start) -1
-      else 1
+    def -(i: Offset): Range = map(_ - i)
+    def contains(i: Offset): Boolean = start == i || start < i && i < stop
+    def contains(that: Range): Boolean = this.contains(that.start) && that.stop <= this.stop
+    def overlaps(that: Range): Boolean = this.contains(that.start) || that.contains(this.start)
+    def compare(that: Range): Int = if (overlaps(that)) 0 else this.start compare that.start
 
-    def start_range: Range = Range(start, start)
-    def stop_range: Range = Range(stop, stop)
-
-    def intersect(that: Range): Range =
+    def restrict(that: Range): Range =
       Range(this.start max that.start, this.stop min that.stop)
+  }
+
+
+  /* information associated with text range */
+
+  case class Info[A](val range: Text.Range, val info: A)
+  {
+    def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
   }
 
 
