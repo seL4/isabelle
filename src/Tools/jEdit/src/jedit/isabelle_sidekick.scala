@@ -44,7 +44,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
     stopped = false
 
-    // FIXME lock buffer !??
+    // FIXME lock buffer (!??)
     val data = new SideKickParsedData(buffer.getName)
     val root = data.root
     data.getAsset(root).setEnd(buffer.getLength)
@@ -66,6 +66,7 @@ abstract class Isabelle_Sidekick(name: String) extends SideKickParser(name)
 
   override def complete(pane: EditPane, caret: Int): SideKickCompletion =
   {
+    // FIXME lock buffer (!?)
     val buffer = pane.getBuffer
 
     val line = buffer.getLineOfOffset(caret)
