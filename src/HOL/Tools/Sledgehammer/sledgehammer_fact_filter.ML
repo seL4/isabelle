@@ -345,9 +345,8 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
             | relevant (new_pairs, rejects) [] =
               let
                 val (new_rels, more_rejects) = take_best max_new new_pairs
-                val new_consts = new_rels |> maps snd
                 val rel_const_tab' =
-                  rel_const_tab |> fold add_const_to_table new_consts
+                  rel_const_tab |> fold add_const_to_table (maps snd new_rels)
                 fun is_dirty c =
                   const_mem rel_const_tab' c andalso
                   not (const_mem rel_const_tab c)
