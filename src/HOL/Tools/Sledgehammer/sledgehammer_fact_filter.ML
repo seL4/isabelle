@@ -335,7 +335,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                 val rel_const_tab =
                   rel_const_tab |> fold add_const_type_to_table new_consts
                 val threshold =
-                  threshold + (1.0 - threshold) / relevance_convergence
+                  threshold + (1.0 - threshold) * relevance_convergence
               in
                 trace_msg (fn () => "relevant this iteration: " ^
                                     Int.toString (length newrels));

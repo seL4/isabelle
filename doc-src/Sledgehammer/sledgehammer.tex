@@ -452,9 +452,9 @@ Specifies the threshold above which facts are considered relevant by the
 relevance filter. The option ranges from 0 to 100, where 0 means that all
 theorems are relevant.
 
-\opdefault{relevance\_convergence}{int}{320}
-Specifies the convergence quotient, multiplied by 100, used by the relevance
-filter. This quotient is used by the relevance filter to scale down the
+\opdefault{relevance\_convergence}{int}{31}
+Specifies the convergence factor, expressed as a percentage, used by the
+relevance filter. This factor is used by the relevance filter to scale down the
 relevance of facts at each iteration of the filter.
 
 \opdefault{max\_relevant\_per\_iter}{int\_or\_smart}{\textit{smart}}
