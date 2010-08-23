@@ -477,7 +477,7 @@ fun add_ind_set_def
         eta_contract (member op = cs' orf is_pred pred_arities))) intros;
     val cnames_syn' = map (fn (b, _) => (Binding.suffix_name "p" b, NoSyn)) cnames_syn;
     val monos' = map (to_pred [] (Context.Proof lthy)) monos;
-    val ({preds, intrs, elims, raw_induct, ...}, lthy1) =
+    val ({preds, intrs, elims, raw_induct, eqs, ...}, lthy1) =
       Inductive.add_ind_def
         {quiet_mode = quiet_mode, verbose = verbose, alt_name = Binding.empty,
           coind = coind, no_elim = no_elim, no_ind = no_ind,
@@ -520,14 +520,13 @@ fun add_ind_set_def
     val cnames = map (Local_Theory.full_name lthy3 o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof lthy3) raw_induct;
-    val eqs = [] (* TODO: define equations *)
     val (intrs', elims', eqs', induct, inducts, lthy4) =
       Inductive.declare_rules rec_name coind no_ind cnames (map fst defs)
         (map (to_set [] (Context.Proof lthy3)) intrs) intr_names intr_atts
         (map (fn th => (to_set [] (Context.Proof lthy3) th,
            map fst (fst (Rule_Cases.get th)),
            Rule_Cases.get_constraints th)) elims)
-        eqs raw_induct' lthy3;
+        (map (to_set [] (Context.Proof lthy3)) eqs) raw_induct' lthy3;
   in
     ({intrs = intrs', elims = elims', induct = induct, inducts = inducts,
       raw_induct = raw_induct', preds = map fst defs, eqs = eqs'},
