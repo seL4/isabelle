@@ -1264,7 +1264,8 @@ instantiation "fun" :: (type, top) top
 begin
 
 definition
-  top_fun_eq: "top = (\<lambda>x. top)"
+  top_fun_eq [no_atp]: "top = (\<lambda>x. top)"
+declare top_fun_eq_raw [no_atp]
 
 instance proof
 qed (simp add: top_fun_eq le_fun_def)
