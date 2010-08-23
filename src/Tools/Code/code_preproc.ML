@@ -30,7 +30,6 @@ sig
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
   val static_eval_conv: theory -> string list
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
-  val pre_post_conv: theory -> conv -> conv
 
   val setup: theory -> theory
 end
@@ -457,15 +456,16 @@ fun dynamic_eval_conv thy =
 fun dynamic_eval_value thy postproc evaluator = dynamic_eval thy (Thm.cterm_of thy)
   (K o postproc (postprocess_term thy)) (K oooo evaluator);
 
-fun pre_post_conv thy conv = (preprocess_conv thy) then_conv conv then_conv (postprocess_conv thy);
-
 fun static_eval_conv thy consts conv =
   let
     val (algebra, eqngr) = obtain thy consts [];
     fun conv' ct =
       let
         val (vs, t) = dest_cterm ct;
-      in Conv.tap_thy (fn thy => pre_post_conv thy (conv algebra eqngr vs t)) ct end;
+      in
+        Conv.tap_thy (fn thy => (preprocess_conv thy)
+          then_conv (conv algebra eqngr vs t) then_conv (postprocess_conv thy)) ct
+      end;
   in conv' end;
 
 
