@@ -30,6 +30,7 @@ object Markup_Tree
       })
 
     def update(branches: T, entry: Entry): T = branches + (entry._1.range -> entry)
+    def single(entry: Entry): T = update(empty, entry)
 
     def overlapping(range: Text.Range, branches: T): T =
     {
@@ -65,15 +66,21 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
         new Markup_Tree(Branches.update(branches, new_info -> empty))
       case Some((info, subtree)) =>
         val range = info.range
-        if (range != new_range && range.contains(new_range))
+        if (range == new_range)
+          new Markup_Tree(Branches.update(branches,
+            new_info -> new Markup_Tree(Branches.single((info, subtree)))))
+        else if (range.contains(new_range))
           new Markup_Tree(Branches.update(branches, info -> (subtree + new_info)))
         else if (new_range.contains(branches.head._1) && new_range.contains(branches.last._1))
-          new Markup_Tree(Branches.update(Branches.empty, (new_info -> this)))
+          new Markup_Tree(Branches.single(new_info -> this))
         else {
           val body = Branches.overlapping(new_range, branches)
           if (body.forall(e => new_range.contains(e._1))) {
-            val rest = (Branches.empty /: branches)((rest, entry) =>
-              if (body.isDefinedAt(entry._1)) rest else rest + entry)
+            val rest = // branches -- body, with workarounds for Redblack in Scala 2.8.0
+              if (body.size > 1)
+                (Branches.empty /: branches)((rest, entry) =>
+                  if (body.isDefinedAt(entry._1)) rest else rest + entry)
+              else branches
             new Markup_Tree(Branches.update(rest, new_info -> new Markup_Tree(body)))
           }
           else { // FIXME split markup!?
