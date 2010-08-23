@@ -208,28 +208,42 @@ fun count_axiom_consts theory_relevant thy (_, th) =
 (*The frequency of a constant is the sum of those of all instances of its type.*)
 fun const_frequency const_tab (c, cts) =
   CTtab.fold (fn (cts', m) => match_types cts cts' ? Integer.add m)
-             (the (Symtab.lookup const_tab c)
-              handle Option.Option => raise Fail ("Const: " ^ c)) 0
+             (the (Symtab.lookup const_tab c)) 0
+  handle Option.Option => 0
+
 
 (* A surprising number of theorems contain only a few significant constants.
    These include all induction rules, and other general theorems. *)
 
 (* "log" seems best in practice. A constant function of one ignores the constant
    frequencies. *)
-fun log_weight2 (x:real) = 1.0 + 2.0 / Math.ln (x + 1.0)
+fun rel_log (x : real) = 1.0 + 2.0 / Math.ln (x + 1.0)
+fun irrel_log (x : real) = Math.ln (x + 19.0) / 6.4
 
 (* Computes a constant's weight, as determined by its frequency. *)
-val ct_weight = log_weight2 o real oo const_frequency
+val rel_const_weight = rel_log o real oo const_frequency
+val irrel_const_weight = irrel_log o real oo const_frequency
 
+fun axiom_weight const_tab relevant_consts_typs axiom_consts_typs =
+  let
+    val (rel, irrel) =
+      List.partition (uni_mem relevant_consts_typs) axiom_consts_typs
+    val rel_weight = fold (curry Real.+ o rel_const_weight const_tab) rel 0.0
+    val irrel_weight = fold (curry Real.+ o irrel_const_weight const_tab) irrel 0.0
+    val res = rel_weight / (rel_weight + irrel_weight)
+  in if Real.isFinite res then res else 0.0 end
+
+(* OLD CODE:
 (*Relevant constants are weighted according to frequency,
   but irrelevant constants are simply counted. Otherwise, Skolem functions,
   which are rare, would harm a formula's chances of being picked.*)
-fun formula_weight const_tab gctyps consts_typs =
+fun axiom_weight const_tab relevant_consts_typs axiom_consts_typs =
   let
-    val rel = filter (uni_mem gctyps) consts_typs
-    val rel_weight = fold (curry Real.+ o ct_weight const_tab) rel 0.0
-    val res = rel_weight / (rel_weight + real (length consts_typs - length rel))
+    val rel = filter (uni_mem relevant_consts_typs) axiom_consts_typs
+    val rel_weight = fold (curry Real.+ o rel_const_weight const_tab) rel 0.0
+    val res = rel_weight / (rel_weight + real (length axiom_consts_typs - length rel))
   in if Real.isFinite res then res else 0.0 end
+*)
 
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
 fun add_expand_pairs (x, ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys
@@ -343,17 +357,16 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                 iter (j + 1) threshold rel_const_tab (more_rejects @ rejects)
               end
             | relevant (newrels, rejects)
-                       ((ax as ((name, th), consts_typs)) :: axs) =
+                       ((ax as ((name, th), axiom_consts_typs)) :: axs) =
               let
                 val weight =
-                  if member Thm.eq_thm del_thms th then 0.0
-                  else formula_weight const_tab rel_const_tab consts_typs
+                  axiom_weight const_tab rel_const_tab axiom_consts_typs
               in
                 if weight >= threshold orelse
                    (defs_relevant andalso defines thy th rel_const_tab) then
                   (trace_msg (fn () =>
                        name ^ " passes: " ^ Real.toString weight
-                       ^ " consts: " ^ commas (map fst consts_typs));
+                       ^ " consts: " ^ commas (map fst axiom_consts_typs));
                    relevant ((ax, weight) :: newrels, rejects) axs)
                 else
                   relevant (newrels, ax :: rejects) axs
@@ -363,12 +376,12 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                                 Real.toString threshold);
             relevant ([], [])
           end
-      val relevant = iter 0 relevance_threshold goal_const_tab
-                          (map (pair_consts_typs_axiom theory_relevant thy)
-                               axioms)
     in
-      trace_msg (fn () => "Total relevant: " ^ Int.toString (length relevant));
-      relevant
+      axioms |> filter_out (member Thm.eq_thm del_thms o snd)
+             |> map (pair_consts_typs_axiom theory_relevant thy)
+             |> iter 0 relevance_threshold goal_const_tab
+             |> tap (fn res => trace_msg (fn () =>
+                                "Total relevant: " ^ Int.toString (length res)))
     end
 
 (***************************************************************)
