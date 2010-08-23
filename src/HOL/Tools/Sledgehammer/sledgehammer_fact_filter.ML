@@ -101,7 +101,7 @@ fun get_consts thy pos ts =
       case t of
         Const x => add_const_to_table (const_with_typ thy x)
       | Free (s, _) => add_const_to_table (s, [])
-      | t1 $ t2 => do_term t1 #> do_term t2
+      | t1 $ t2 => fold do_term [t1, t2]
       | Abs (_, _, t') => do_term t'
       | _ => I
     fun do_quantifier will_surely_be_skolemized body_t =
@@ -545,8 +545,8 @@ fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
       |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
-    fun valid_facts facts pairs =
-      (pairs, []) |-> fold (fn (name, ths0) =>
+    fun add_valid_facts xfold facts =
+      xfold (fn (name, ths0) =>
         if name <> "" andalso
            forall (not o member Thm.eq_thm add_thms) ths0 andalso
            (Facts.is_concealed facts name orelse
@@ -579,8 +579,8 @@ fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
                            ? prefix chained_prefix, ths)
           end)
   in
-    valid_facts local_facts (unnamed_locals @ named_locals) @
-    valid_facts global_facts (Facts.dest_static [] global_facts)
+    [] |> add_valid_facts fold local_facts (unnamed_locals @ named_locals)
+       |> add_valid_facts Facts.fold_static global_facts global_facts
   end
 
 fun multi_name a th (n, pairs) =
@@ -600,17 +600,6 @@ fun name_thm_pairs ctxt respect_no_atp name_thms_pairs =
     val ps = [] |> fold add_names singles |> fold add_names mults
   in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
 
-fun is_named ("", th) =
-    (warning ("No name for theorem " ^
-              Display.string_of_thm_without_context th); false)
-  | is_named _ = true
-fun checked_name_thm_pairs respect_no_atp ctxt =
-  name_thm_pairs ctxt respect_no_atp
-  #> tap (fn ps => trace_msg
-                        (fn () => ("Considering " ^ Int.toString (length ps) ^
-                                   " theorems")))
-  #> filter is_named
-
 (***************************************************************)
 (* ATP invocation methods setup                                *)
 (***************************************************************)
@@ -622,11 +611,13 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
   let
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val axioms =
-      checked_name_thm_pairs (respect_no_atp andalso not only) ctxt
-          (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
-           else all_name_thms_pairs ctxt full_types add_thms chained_ths)
+      (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
+       else all_name_thms_pairs ctxt full_types add_thms chained_ths)
+      |> name_thm_pairs ctxt (respect_no_atp andalso not only)
       |> make_unique
   in
+    trace_msg (fn () => "Considering " ^ Int.toString (length axioms) ^
+                        " theorems");
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
                      axioms (concl_t :: hyp_ts)
