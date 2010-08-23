@@ -6,8 +6,8 @@ Normalization by evaluation, based on generic code generator.
 
 signature NBE =
 sig
-  val norm_conv: cterm -> thm
-  val norm: theory -> term -> term
+  val dynamic_eval_conv: cterm -> thm
+  val dynamic_eval_value: theory -> term -> term
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
@@ -574,12 +574,11 @@ fun mk_equals thy lhs raw_rhs =
     val rhs = Thm.cterm_of thy raw_rhs;
   in Thm.mk_binop eq lhs rhs end;
 
-val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
+val (_, raw_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (Binding.name "norm", fn (thy, program, vsp_ty_t, deps, ct) =>
     mk_equals thy ct (normalize thy program vsp_ty_t deps))));
 
-fun norm_oracle thy program vsp_ty_t deps ct =
-  raw_norm_oracle (thy, program, vsp_ty_t, deps, ct);
+fun oracle thy program vsp_ty_t deps ct = raw_oracle (thy, program, vsp_ty_t, deps, ct);
 
 fun no_frees_rew rew t =
   let
@@ -591,12 +590,11 @@ fun no_frees_rew rew t =
     |> (fn t' => Term.betapplys (t', frees))
   end;
 
-val norm_conv = Code_Simp.no_frees_conv (fn ct =>
-  let
-    val thy = Thm.theory_of_cterm ct;
-  in lift_triv_classes_conv thy (Code_Thingol.eval_conv thy (K (norm_oracle thy))) ct end);
+val dynamic_eval_conv = Code_Simp.no_frees_conv (Conv.tap_thy
+  (fn thy => lift_triv_classes_conv thy (Code_Thingol.dynamic_eval_conv thy (K (oracle thy)))));
 
-fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I (K (normalize thy))));
+fun dynamic_eval_value thy = lift_triv_classes_rew thy
+  (no_frees_rew (Code_Thingol.dynamic_eval_value thy I (K (normalize thy))));
 
 
 (* evaluation command *)
@@ -604,7 +602,7 @@ fun norm thy = lift_triv_classes_rew thy (no_frees_rew (Code_Thingol.eval thy I 
 fun norm_print_term ctxt modes t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val t' = norm thy t;
+    val t' = dynamic_eval_value thy t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t ctxt;
     val p = Print_Mode.with_modes modes (fn () =>
@@ -619,7 +617,7 @@ fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
-val setup = Value.add_evaluator ("nbe", norm o ProofContext.theory_of);
+val setup = Value.add_evaluator ("nbe", dynamic_eval_value o ProofContext.theory_of);
 
 val opt_modes =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];

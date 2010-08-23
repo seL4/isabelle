@@ -1998,7 +1998,7 @@ method_setup evaluation = {* Scan.succeed (gen_eval_method Codegen.evaluation_co
   "solve goal by evaluation"
 
 method_setup normalization = {*
-  Scan.succeed (K (SIMPLE_METHOD' (CONVERSION Nbe.norm_conv THEN' (fn k => TRY (rtac TrueI k)))))
+  Scan.succeed (K (SIMPLE_METHOD' (CONVERSION Nbe.dynamic_eval_conv THEN' (fn k => TRY (rtac TrueI k)))))
 *} "solve goal by normalization"
 
 

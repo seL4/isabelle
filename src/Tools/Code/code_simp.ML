@@ -8,11 +8,11 @@ signature CODE_SIMP =
 sig
   val no_frees_conv: conv -> conv
   val map_ss: (simpset -> simpset) -> theory -> theory
-  val current_conv: theory -> conv
-  val current_tac: theory -> int -> tactic
-  val current_value: theory -> term -> term
-  val make_conv: theory -> simpset option -> string list -> conv
-  val make_tac: theory -> simpset option -> string list -> int -> tactic
+  val dynamic_eval_conv: theory -> conv
+  val dynamic_eval_tac: theory -> int -> tactic
+  val dynamic_eval_value: theory -> term -> term
+  val static_eval_conv: theory -> simpset option -> string list -> conv
+  val static_eval_tac: theory -> simpset option -> string list -> int -> tactic
   val setup: theory -> theory
 end;
 
@@ -67,25 +67,25 @@ fun conclude_tac thy some_ss = Simplifier.full_simp_tac (simpset_default thy som
 
 (* evaluation with current code context *)
 
-fun current_conv thy = no_frees_conv (Code_Thingol.eval_conv thy
+fun dynamic_eval_conv thy = no_frees_conv (Code_Thingol.dynamic_eval_conv thy
   (fn naming => fn program => fn t => fn deps => rewrite_modulo thy NONE program));
 
-fun current_tac thy = CONVERSION (current_conv thy) THEN' conclude_tac thy NONE;
+fun dynamic_eval_tac thy = CONVERSION (dynamic_eval_conv thy) THEN' conclude_tac thy NONE;
 
-fun current_value thy = snd o Logic.dest_equals o Thm.prop_of o current_conv thy o Thm.cterm_of thy;
+fun dynamic_eval_value thy = snd o Logic.dest_equals o Thm.prop_of o dynamic_eval_conv thy o Thm.cterm_of thy;
 
 val setup = Method.setup (Binding.name "code_simp")
-  (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo current_tac o ProofContext.theory_of)))
+  (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_eval_tac o ProofContext.theory_of)))
   "simplification with code equations"
-  #> Value.add_evaluator ("simp", current_value o ProofContext.theory_of);
+  #> Value.add_evaluator ("simp", dynamic_eval_value o ProofContext.theory_of);
 
 
 (* evaluation with freezed code context *)
 
-fun make_conv thy some_ss consts = no_frees_conv (Code_Preproc.pre_post_conv thy
+fun static_eval_conv thy some_ss consts = no_frees_conv (Code_Preproc.pre_post_conv thy
   ((rewrite_modulo thy some_ss o snd o snd o Code_Thingol.consts_program thy false) consts));
 
-fun make_tac thy some_ss consts = CONVERSION (make_conv thy some_ss consts)
+fun static_eval_tac thy some_ss consts = CONVERSION (static_eval_conv thy some_ss consts)
   THEN' conclude_tac thy some_ss;
 
 end;
