@@ -67,6 +67,10 @@ lemma PiE [elim]:
   "f : Pi A B ==> (f x : B x ==> Q) ==> (x ~: A ==> Q) ==> Q"
 by(auto simp: Pi_def)
 
+lemma Pi_cong:
+  "(\<And> w. w \<in> A \<Longrightarrow> f w = g w) \<Longrightarrow> f \<in> Pi A B \<longleftrightarrow> g \<in> Pi A B"
+  by (auto simp: Pi_def)
+
 lemma funcset_id [simp]: "(\<lambda>x. x) \<in> A \<rightarrow> A"
   by (auto intro: Pi_I)
 

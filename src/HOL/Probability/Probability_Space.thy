@@ -1,13 +1,52 @@
 theory Probability_Space
-imports Lebesgue
+imports Lebesgue_Integration
 begin
 
+lemma (in measure_space) measure_inter_full_set:
+  assumes "S \<in> sets M" "T \<in> sets M" and not_\<omega>: "\<mu> (T - S) \<noteq> \<omega>"
+  assumes T: "\<mu> T = \<mu> (space M)"
+  shows "\<mu> (S \<inter> T) = \<mu> S"
+proof (rule antisym)
+  show " \<mu> (S \<inter> T) \<le> \<mu> S"
+    using assms by (auto intro!: measure_mono)
+
+  show "\<mu> S \<le> \<mu> (S \<inter> T)"
+  proof (rule ccontr)
+    assume contr: "\<not> ?thesis"
+    have "\<mu> (space M) = \<mu> ((T - S) \<union> (S \<inter> T))"
+      unfolding T[symmetric] by (auto intro!: arg_cong[where f="\<mu>"])
+    also have "\<dots> \<le> \<mu> (T - S) + \<mu> (S \<inter> T)"
+      using assms by (auto intro!: measure_subadditive)
+    also have "\<dots> < \<mu> (T - S) + \<mu> S"
+      by (rule pinfreal_less_add[OF not_\<omega>]) (insert contr, auto)
+    also have "\<dots> = \<mu> (T \<union> S)"
+      using assms by (subst measure_additive) auto
+    also have "\<dots> \<le> \<mu> (space M)"
+      using assms sets_into_space by (auto intro!: measure_mono)
+    finally show False ..
+  qed
+qed
+
+lemma (in finite_measure) finite_measure_inter_full_set:
+  assumes "S \<in> sets M" "T \<in> sets M"
+  assumes T: "\<mu> T = \<mu> (space M)"
+  shows "\<mu> (S \<inter> T) = \<mu> S"
+  using measure_inter_full_set[OF assms(1,2) finite_measure assms(3)] assms
+  by auto
+
 locale prob_space = measure_space +
-  assumes prob_space: "measure M (space M) = 1"
+  assumes measure_space_1: "\<mu> (space M) = 1"
+
+sublocale prob_space < finite_measure
+proof
+  from measure_space_1 show "\<mu> (space M) \<noteq> \<omega>" by simp
+qed
+
+context prob_space
 begin
 
 abbreviation "events \<equiv> sets M"
-abbreviation "prob \<equiv> measure M"
+abbreviation "prob \<equiv> \<lambda>A. real (\<mu> A)"
 abbreviation "prob_preserving \<equiv> measure_preserving"
 abbreviation "random_variable \<equiv> \<lambda> s X. X \<in> measurable M s"
 abbreviation "expectation \<equiv> integral"
@@ -19,75 +58,50 @@ definition
   "indep_families F G \<longleftrightarrow> (\<forall> A \<in> F. \<forall> B \<in> G. indep A B)"
 
 definition
-  "distribution X = (\<lambda>s. prob ((X -` s) \<inter> (space M)))"
+  "distribution X = (\<lambda>s. \<mu> ((X -` s) \<inter> (space M)))"
 
 abbreviation
   "joint_distribution X Y \<equiv> distribution (\<lambda>x. (X x, Y x))"
 
-(*
-definition probably :: "('a \<Rightarrow> bool) \<Rightarrow> bool" (binder "\<forall>\<^sup>*" 10) where
-  "probably P \<longleftrightarrow> { x. P x } \<in> events \<and> prob { x. P x } = 1"
-definition possibly :: "('a \<Rightarrow> bool) \<Rightarrow> bool" (binder "\<exists>\<^sup>*" 10) where
-  "possibly P \<longleftrightarrow> { x. P x } \<in> events \<and> prob { x. P x } \<noteq> 0"
-*)
+lemma prob_space: "prob (space M) = 1"
+  unfolding measure_space_1 by simp
 
-definition
-  "conditional_expectation X M' \<equiv> SOME f. f \<in> measurable M' borel_space \<and>
-    (\<forall> g \<in> sets M'. measure_space.integral M' (\<lambda>x. f x * indicator_fn g x) =
-                    measure_space.integral M' (\<lambda>x. X x * indicator_fn g x))"
+lemma measure_le_1[simp, intro]:
+  assumes "A \<in> events" shows "\<mu> A \<le> 1"
+proof -
+  have "\<mu> A \<le> \<mu> (space M)"
+    using assms sets_into_space by(auto intro!: measure_mono)
+  also note measure_space_1
+  finally show ?thesis .
+qed
 
-definition
-  "conditional_prob E M' \<equiv> conditional_expectation (indicator_fn E) M'"
-
-lemma positive': "positive M prob"
-  unfolding positive_def using positive empty_measure by blast
+lemma measure_finite[simp, intro]:
+  assumes "A \<in> events" shows "\<mu> A \<noteq> \<omega>"
+  using measure_le_1[OF assms] by auto
 
 lemma prob_compl:
-  assumes "s \<in> events"
-  shows "prob (space M - s) = 1 - prob s"
-using assms
-proof -
-  have "prob ((space M - s) \<union> s) = prob (space M - s) + prob s"
-    using assms additive[unfolded additive_def] by blast
-  thus ?thesis by (simp add:Un_absorb2[OF sets_into_space[OF assms]] prob_space)
-qed
+  assumes "A \<in> events"
+  shows "prob (space M - A) = 1 - prob A"
+  using `A \<in> events`[THEN sets_into_space] `A \<in> events` measure_space_1
+  by (subst real_finite_measure_Diff) auto
 
 lemma indep_space:
   assumes "s \<in> events"
   shows "indep (space M) s"
-using assms prob_space
-unfolding indep_def by auto
+  using assms prob_space by (simp add: indep_def)
 
-
-lemma prob_space_increasing:
-  "increasing M prob"
-by (rule additive_increasing[OF positive' additive])
-
-lemma prob_subadditive:
-  assumes "s \<in> events" "t \<in> events"
-  shows "prob (s \<union> t) \<le> prob s + prob t"
-using assms
-proof -
-  have "prob (s \<union> t) = prob ((s - t) \<union> t)" by simp
-  also have "\<dots> = prob (s - t) + prob t"
-    using additive[unfolded additive_def, rule_format, of "s-t" "t"] 
-      assms by blast
-  also have "\<dots> \<le> prob s + prob t"
-    using prob_space_increasing[unfolded increasing_def, rule_format] assms
-    by auto
-  finally show ?thesis by simp
-qed
+lemma prob_space_increasing: "increasing M prob"
+  by (auto intro!: real_measure_mono simp: increasing_def)
 
 lemma prob_zero_union:
   assumes "s \<in> events" "t \<in> events" "prob t = 0"
   shows "prob (s \<union> t) = prob s"
-using assms 
+using assms
 proof -
   have "prob (s \<union> t) \<le> prob s"
-    using prob_subadditive[of s t] assms by auto
+    using real_finite_measure_subadditive[of s t] assms by auto
   moreover have "prob (s \<union> t) \<ge> prob s"
-    using prob_space_increasing[unfolded increasing_def, rule_format] 
-      assms by auto
+    using assms by (blast intro: real_measure_mono)
   ultimately show ?thesis by simp
 qed
 
@@ -95,18 +109,19 @@ lemma prob_eq_compl:
   assumes "s \<in> events" "t \<in> events"
   assumes "prob (space M - s) = prob (space M - t)"
   shows "prob s = prob t"
-using assms prob_compl by auto
+  using assms prob_compl by auto
 
 lemma prob_one_inter:
   assumes events:"s \<in> events" "t \<in> events"
   assumes "prob t = 1"
   shows "prob (s \<inter> t) = prob s"
-using assms
 proof -
-  have "prob ((space M - s) \<union> (space M - t)) = prob (space M - s)" 
-    using prob_compl[of "t"] prob_zero_union assms by auto
-  then show "prob (s \<inter> t) = prob s" 
-    using prob_eq_compl[of "s \<inter> t"] events by (simp only: Diff_Int) auto
+  have "prob ((space M - s) \<union> (space M - t)) = prob (space M - s)"
+    using events assms  prob_compl[of "t"] by (auto intro!: prob_zero_union)
+  also have "(space M - s) \<union> (space M - t) = space M - (s \<inter> t)"
+    by blast
+  finally show "prob (s \<inter> t) = prob s"
+    using events by (auto intro!: prob_eq_compl[of "s \<inter> t" s])
 qed
 
 lemma prob_eq_bigunion_image:
@@ -114,98 +129,24 @@ lemma prob_eq_bigunion_image:
   assumes "disjoint_family f" "disjoint_family g"
   assumes "\<And> n :: nat. prob (f n) = prob (g n)"
   shows "(prob (\<Union> i. f i) = prob (\<Union> i. g i))"
-using assms 
-proof -
-  have a: "(\<lambda> i. prob (f i)) sums (prob (\<Union> i. f i))" 
-    using ca[unfolded countably_additive_def] assms by blast
-  have b: "(\<lambda> i. prob (g i)) sums (prob (\<Union> i. g i))"
-    using ca[unfolded countably_additive_def] assms by blast
-  show ?thesis using sums_unique[OF b] sums_unique[OF a] assms by simp
-qed
-
-lemma prob_countably_subadditive: 
-  assumes "range f \<subseteq> events" 
-  assumes "summable (prob \<circ> f)"
-  shows "prob (\<Union>i. f i) \<le> (\<Sum> i. prob (f i))"
 using assms
 proof -
-  def f' == "\<lambda> i. f i - (\<Union> j \<in> {0 ..< i}. f j)"
-  have "(\<Union> i. f' i) \<subseteq> (\<Union> i. f i)" unfolding f'_def by auto
-  moreover have "(\<Union> i. f' i) \<supseteq> (\<Union> i. f i)"
-  proof (rule subsetI)
-    fix x assume "x \<in> (\<Union> i. f i)"
-    then obtain k where "x \<in> f k" by blast
-    hence k: "k \<in> {m. x \<in> f m}" by simp
-    have "\<exists> l. x \<in> f l \<and> (\<forall> l' < l. x \<notin> f l')"
-      using wfE_min[of "{(x, y). x < y}" "k" "{m. x \<in> f m}", 
-        OF wf_less k] by auto
-    thus "x \<in> (\<Union> i. f' i)" unfolding f'_def by auto
-  qed
-  ultimately have uf'f: "(\<Union> i. f' i) = (\<Union> i. f i)" by (rule equalityI)
-
-  have df': "\<And> i j. i < j \<Longrightarrow> f' i \<inter> f' j = {}"
-    unfolding f'_def by auto
-  have "\<And> i j. i \<noteq> j \<Longrightarrow> f' i \<inter> f' j = {}"
-    apply (drule iffD1[OF nat_neq_iff])
-    using df' by auto
-  hence df: "disjoint_family f'" unfolding disjoint_family_on_def by simp
-
-  have rf': "\<And> i. f' i \<in> events"
-  proof -
-    fix i :: nat
-    have "(\<Union> {f j | j. j \<in> {0 ..< i}}) = (\<Union> j \<in> {0 ..< i}. f j)" by blast
-    hence "(\<Union> {f j | j. j \<in> {0 ..< i}}) \<in> events 
-      \<Longrightarrow> (\<Union> j \<in> {0 ..< i}. f j) \<in> events" by auto
-    thus "f' i \<in> events" 
-      unfolding f'_def 
-      using assms finite_union[of "{f j | j. j \<in> {0 ..< i}}"]
-        Diff[of "f i" "\<Union> j \<in> {0 ..< i}. f j"] by auto
-  qed
-  hence uf': "(\<Union> range f') \<in> events" by auto
-  
-  have "\<And> i. prob (f' i) \<le> prob (f i)"
-    using prob_space_increasing[unfolded increasing_def, rule_format, OF rf']
-      assms rf' unfolding f'_def by blast
-
-  hence absinc: "\<And> i. \<bar> prob (f' i) \<bar> \<le> prob (f i)"
-    using abs_of_nonneg positive'[unfolded positive_def]
-      assms rf' by auto
-
-  have "prob (\<Union> i. f i) = prob (\<Union> i. f' i)" using uf'f by simp
-
-  also have "\<dots> = (\<Sum> i. prob (f' i))"
-    using ca[unfolded countably_additive_def, rule_format]
-    sums_unique rf' uf' df
-    by auto
-  
-  also have "\<dots> \<le> (\<Sum> i. prob (f i))"
-    using summable_le2[of "\<lambda> i. prob (f' i)" "\<lambda> i. prob (f i)", 
-      rule_format, OF absinc]
-      assms[unfolded o_def] by auto
-
-  finally show ?thesis by auto
+  have a: "(\<lambda> i. prob (f i)) sums (prob (\<Union> i. f i))"
+    by (rule real_finite_measure_UNION[OF assms(1,3)])
+  have b: "(\<lambda> i. prob (g i)) sums (prob (\<Union> i. g i))"
+    by (rule real_finite_measure_UNION[OF assms(2,4)])
+  show ?thesis using sums_unique[OF b] sums_unique[OF a] assms by simp
 qed
 
 lemma prob_countably_zero:
   assumes "range c \<subseteq> events"
   assumes "\<And> i. prob (c i) = 0"
-  shows "(prob (\<Union> i :: nat. c i) = 0)"
-  using assms
-proof -
-  have leq0: "0 \<le> prob (\<Union> i. c i)"
-    using assms positive'[unfolded positive_def, rule_format] 
-    by auto
-
-  have "prob (\<Union> i. c i) \<le> (\<Sum> i. prob (c i))"
-    using prob_countably_subadditive[of c, unfolded o_def]
-      assms sums_zero sums_summable by auto
-
-  also have "\<dots> = 0"
-    using assms sums_zero 
-      sums_unique[of "\<lambda> i. prob (c i)" "0"] by auto
-
-  finally show "prob (\<Union> i. c i) = 0"
-    using leq0 by auto
+  shows "prob (\<Union> i :: nat. c i) = 0"
+proof (rule antisym)
+  show "prob (\<Union> i :: nat. c i) \<le> 0"
+    using real_finite_measurable_countably_subadditive[OF assms(1)]
+    by (simp add: assms(2) suminf_zero summable_zero)
+  show "0 \<le> prob (\<Union> i :: nat. c i)" by (rule real_pinfreal_nonneg)
 qed
 
 lemma indep_sym:
@@ -218,191 +159,192 @@ lemma indep_refl:
 using assms unfolding indep_def by auto
 
 lemma prob_equiprobable_finite_unions:
-  assumes "s \<in> events" 
-  assumes "\<And>x. x \<in> s \<Longrightarrow> {x} \<in> events"
-  assumes "finite s"
+  assumes "s \<in> events"
+  assumes s_finite: "finite s" "\<And>x. x \<in> s \<Longrightarrow> {x} \<in> events"
   assumes "\<And> x y. \<lbrakk>x \<in> s; y \<in> s\<rbrakk> \<Longrightarrow> (prob {x} = prob {y})"
-  shows "prob s = of_nat (card s) * prob {SOME x. x \<in> s}"
-using assms
+  shows "prob s = real (card s) * prob {SOME x. x \<in> s}"
 proof (cases "s = {}")
-  case True thus ?thesis by simp
-next
-  case False hence " \<exists> x. x \<in> s" by blast
+  case False hence "\<exists> x. x \<in> s" by blast
   from someI_ex[OF this] assms
   have prob_some: "\<And> x. x \<in> s \<Longrightarrow> prob {x} = prob {SOME y. y \<in> s}" by blast
   have "prob s = (\<Sum> x \<in> s. prob {x})"
-    using assms measure_real_sum_image by blast
+    using real_finite_measure_finite_singelton[OF s_finite] by simp
   also have "\<dots> = (\<Sum> x \<in> s. prob {SOME y. y \<in> s})" using prob_some by auto
-  also have "\<dots> = of_nat (card s) * prob {(SOME x. x \<in> s)}"
-    using setsum_constant assms by auto
+  also have "\<dots> = real (card s) * prob {(SOME x. x \<in> s)}"
+    using setsum_constant assms by (simp add: real_eq_of_nat)
   finally show ?thesis by simp
-qed
+qed simp
 
 lemma prob_real_sum_image_fn:
   assumes "e \<in> events"
   assumes "\<And> x. x \<in> s \<Longrightarrow> e \<inter> f x \<in> events"
   assumes "finite s"
-  assumes "\<And> x y. \<lbrakk>x \<in> s ; y \<in> s ; x \<noteq> y\<rbrakk> \<Longrightarrow> f x \<inter> f y = {}"
-  assumes "space M \<subseteq> (\<Union> i \<in> s. f i)"
+  assumes disjoint: "\<And> x y. \<lbrakk>x \<in> s ; y \<in> s ; x \<noteq> y\<rbrakk> \<Longrightarrow> f x \<inter> f y = {}"
+  assumes upper: "space M \<subseteq> (\<Union> i \<in> s. f i)"
   shows "prob e = (\<Sum> x \<in> s. prob (e \<inter> f x))"
-using assms
 proof -
-  let ?S = "{0 ..< card s}"
-  obtain g where "g ` ?S = s \<and> inj_on g ?S"
-    using ex_bij_betw_nat_finite[unfolded bij_betw_def, of s] assms by auto
-  moreover hence gs: "g ` ?S = s" by simp
-  ultimately have ginj: "inj_on g ?S" by simp
-  let ?f' = "\<lambda> i. e \<inter> f (g i)"
-  have f': "?f' \<in> ?S \<rightarrow> events"
-    using gs assms by blast
-  hence "\<And> i j. \<lbrakk>i \<in> ?S ; j \<in> ?S ; i \<noteq> j\<rbrakk> 
-    \<Longrightarrow> ?f' i \<inter> ?f' j = {}" using assms ginj[unfolded inj_on_def] gs f' by blast
-  hence df': "\<And> i j. \<lbrakk>i < card s ; j < card s ; i \<noteq> j\<rbrakk> 
-    \<Longrightarrow> ?f' i \<inter> ?f' j = {}" by simp
-
-  have "e = e \<inter> space M" using assms sets_into_space by simp
-  also hence "\<dots> = e \<inter> (\<Union> x \<in> s. f x)" using assms by blast
-  also have "\<dots> = (\<Union> x \<in> g ` ?S. e \<inter> f x)" using gs by simp
-  also have "\<dots> = (\<Union> i \<in> ?S. ?f' i)" by simp
-  finally have "prob e = prob (\<Union> i \<in> ?S. ?f' i)" by simp
-  also have "\<dots> = (\<Sum> i \<in> ?S. prob (?f' i))"
-    apply (subst measure_finitely_additive'')
-    using f' df' assms by (auto simp: disjoint_family_on_def)
-  also have "\<dots> = (\<Sum> x \<in> g ` ?S. prob (e \<inter> f x))" 
-    using setsum_reindex[of g "?S" "\<lambda> x. prob (e \<inter> f x)"]
-      ginj by simp
-  also have "\<dots> = (\<Sum> x \<in> s. prob (e \<inter> f x))" using gs by simp
-  finally show ?thesis by simp
+  have e: "e = (\<Union> i \<in> s. e \<inter> f i)"
+    using `e \<in> events` sets_into_space upper by blast
+  hence "prob e = prob (\<Union> i \<in> s. e \<inter> f i)" by simp
+  also have "\<dots> = (\<Sum> x \<in> s. prob (e \<inter> f x))"
+  proof (rule real_finite_measure_finite_Union)
+    show "finite s" by fact
+    show "\<And>i. i \<in> s \<Longrightarrow> e \<inter> f i \<in> events" by fact
+    show "disjoint_family_on (\<lambda>i. e \<inter> f i) s"
+      using disjoint by (auto simp: disjoint_family_on_def)
+  qed
+  finally show ?thesis .
 qed
 
 lemma distribution_prob_space:
-  assumes "random_variable s X"
-  shows "prob_space \<lparr>space = space s, sets = sets s, measure = distribution X\<rparr>"
-using assms
+  fixes S :: "('c, 'd) algebra_scheme"
+  assumes "sigma_algebra S" "random_variable S X"
+  shows "prob_space S (distribution X)"
 proof -
-  let ?N = "\<lparr>space = space s, sets = sets s, measure = distribution X\<rparr>"
-  interpret s: sigma_algebra "s" using assms[unfolded measurable_def] by auto
-  hence sigN: "sigma_algebra ?N" using s.sigma_algebra_extend by auto
+  interpret S: sigma_algebra S by fact
+  show ?thesis
+  proof
+    show "distribution X {} = 0" unfolding distribution_def by simp
+    have "X -` space S \<inter> space M = space M"
+      using `random_variable S X` by (auto simp: measurable_def)
+    then show "distribution X (space S) = 1" using measure_space_1 by (simp add: distribution_def)
 
-  have pos: "\<And> e. e \<in> sets s \<Longrightarrow> distribution X e \<ge> 0"
-    unfolding distribution_def
-    using positive'[unfolded positive_def]
-    assms[unfolded measurable_def] by auto
-
-  have cas: "countably_additive ?N (distribution X)"
-  proof -
-    {
-      fix f :: "nat \<Rightarrow> 'c \<Rightarrow> bool"
-      let ?g = "\<lambda> n. X -` f n \<inter> space M"
-      assume asm: "range f \<subseteq> sets s" "UNION UNIV f \<in> sets s" "disjoint_family f"
-      hence "range ?g \<subseteq> events" 
-        using assms unfolding measurable_def by blast
-      from ca[unfolded countably_additive_def, 
-        rule_format, of ?g, OF this] countable_UN[OF this] asm
-      have "(\<lambda> n. prob (?g n)) sums prob (UNION UNIV ?g)"
-        unfolding disjoint_family_on_def by blast
-      moreover have "(X -` (\<Union> n. f n)) = (\<Union> n. X -` f n)" by blast
-      ultimately have "(\<lambda> n. distribution X (f n)) sums distribution X (UNION UNIV f)"
-        unfolding distribution_def by simp
-    } thus ?thesis unfolding countably_additive_def by simp
+    show "countably_additive S (distribution X)"
+    proof (unfold countably_additive_def, safe)
+      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets S" "disjoint_family A"
+      hence *: "\<And>i. X -` A i \<inter> space M \<in> sets M"
+        using `random_variable S X` by (auto simp: measurable_def)
+      moreover hence "\<And>i. \<mu> (X -` A i \<inter> space M) \<noteq> \<omega>"
+        using finite_measure by auto
+      moreover have "(\<Union>i. X -`  A i \<inter> space M) \<in> sets M"
+        using * by blast
+      moreover hence "\<mu> (\<Union>i. X -` A i \<inter> space M) \<noteq> \<omega>"
+        using finite_measure by auto
+      moreover have **: "disjoint_family (\<lambda>i. X -` A i \<inter> space M)"
+        using `disjoint_family A` by (auto simp: disjoint_family_on_def)
+      ultimately show "(\<Sum>\<^isub>\<infinity> i. distribution X (A i)) = distribution X (\<Union>i. A i)"
+        using measure_countably_additive[OF _ **]
+        by (auto simp: distribution_def Real_real comp_def vimage_UN)
+    qed
   qed
-
-  have ds0: "distribution X {} = 0"
-    unfolding distribution_def by simp
-
-  have "X -` space s \<inter> space M = space M"
-    using assms[unfolded measurable_def] by auto
-  hence ds1: "distribution X (space s) = 1"
-    unfolding measurable_def distribution_def using prob_space by simp
-
-  from ds0 ds1 cas pos sigN
-  show "prob_space ?N"
-    unfolding prob_space_def prob_space_axioms_def
-    measure_space_def measure_space_axioms_def by simp
 qed
 
 lemma distribution_lebesgue_thm1:
   assumes "random_variable s X"
   assumes "A \<in> sets s"
-  shows "distribution X A = expectation (indicator_fn (X -` A \<inter> space M))"
+  shows "real (distribution X A) = expectation (indicator (X -` A \<inter> space M))"
 unfolding distribution_def
 using assms unfolding measurable_def
-using integral_indicator_fn by auto
+using integral_indicator by auto
 
 lemma distribution_lebesgue_thm2:
-  assumes "random_variable s X" "A \<in> sets s"
-  shows "distribution X A = measure_space.integral \<lparr>space = space s, sets = sets s, measure = distribution X\<rparr> (indicator_fn A)"
-  (is "_ = measure_space.integral ?M _")
+  assumes "sigma_algebra S" "random_variable S X" and "A \<in> sets S"
+  shows "distribution X A =
+    measure_space.positive_integral S (distribution X) (indicator A)"
+  (is "_ = measure_space.positive_integral _ ?D _")
 proof -
-  interpret S: prob_space ?M using assms(1) by (rule distribution_prob_space)
+  interpret S: prob_space S "distribution X" using assms(1,2) by (rule distribution_prob_space)
 
   show ?thesis
-    using S.integral_indicator_fn(1)
+    using S.positive_integral_indicator(1)
     using assms unfolding distribution_def by auto
 qed
 
 lemma finite_expectation1:
-  assumes "finite (space M)" "random_variable borel_space X"
+  assumes "finite (X`space M)" and rv: "random_variable borel_space X"
   shows "expectation X = (\<Sum> r \<in> X ` space M. r * prob (X -` {r} \<inter> space M))"
-  using assms integral_finite measurable_def
-  unfolding borel_measurable_def by auto
+proof (rule integral_on_finite(2)[OF assms(2,1)])
+  fix x have "X -` {x} \<inter> space M \<in> sets M"
+    using rv unfolding measurable_def by auto
+  thus "\<mu> (X -` {x} \<inter> space M) \<noteq> \<omega>" using finite_measure by simp
+qed
 
 lemma finite_expectation:
-  assumes "finite (space M) \<and> random_variable borel_space X"
-  shows "expectation X = (\<Sum> r \<in> X ` (space M). r * distribution X {r})"
-using assms unfolding distribution_def using finite_expectation1 by auto
+  assumes "finite (space M)" "random_variable borel_space X"
+  shows "expectation X = (\<Sum> r \<in> X ` (space M). r * real (distribution X {r}))"
+  using assms unfolding distribution_def using finite_expectation1 by auto
+
 lemma prob_x_eq_1_imp_prob_y_eq_0:
   assumes "{x} \<in> events"
-  assumes "(prob {x} = 1)"
+  assumes "prob {x} = 1"
   assumes "{y} \<in> events"
   assumes "y \<noteq> x"
   shows "prob {y} = 0"
   using prob_one_inter[of "{y}" "{x}"] assms by auto
 
+lemma distribution_empty[simp]: "distribution X {} = 0"
+  unfolding distribution_def by simp
+
+lemma distribution_space[simp]: "distribution X (X ` space M) = 1"
+proof -
+  have "X -` X ` space M \<inter> space M = space M" by auto
+  thus ?thesis unfolding distribution_def by (simp add: measure_space_1)
+qed
+
+lemma distribution_one:
+  assumes "random_variable M X" and "A \<in> events"
+  shows "distribution X A \<le> 1"
+proof -
+  have "distribution X A \<le> \<mu> (space M)" unfolding distribution_def
+    using assms[unfolded measurable_def] by (auto intro!: measure_mono)
+  thus ?thesis by (simp add: measure_space_1)
+qed
+
+lemma distribution_finite:
+  assumes "random_variable M X" and "A \<in> events"
+  shows "distribution X A \<noteq> \<omega>"
+  using distribution_one[OF assms] by auto
+
 lemma distribution_x_eq_1_imp_distribution_y_eq_0:
   assumes X: "random_variable \<lparr>space = X ` (space M), sets = Pow (X ` (space M))\<rparr> X"
-  assumes "(distribution X {x} = 1)"
+    (is "random_variable ?S X")
+  assumes "distribution X {x} = 1"
   assumes "y \<noteq> x"
   shows "distribution X {y} = 0"
 proof -
-  let ?S = "\<lparr>space = X ` (space M), sets = Pow (X ` (space M))\<rparr>"
-  let ?M = "\<lparr>space = X ` (space M), sets = Pow (X ` (space M)), measure = distribution X\<rparr>"
-  interpret S: prob_space ?M
-    using distribution_prob_space[OF X] by auto
-  { assume "{x} \<notin> sets ?M"
-    hence "x \<notin> X ` space M" by auto
-    hence "X -` {x} \<inter> space M = {}" by auto
-    hence "distribution X {x} = 0" unfolding distribution_def by auto
-    hence "False" using assms by auto }
-  hence x: "{x} \<in> sets ?M" by auto
-  { assume "{y} \<notin> sets ?M"
-    hence "y \<notin> X ` space M" by auto
-    hence "X -` {y} \<inter> space M = {}" by auto
-    hence "distribution X {y} = 0" unfolding distribution_def by auto }
-  moreover
-  { assume "{y} \<in> sets ?M"
-    hence "distribution X {y} = 0" using assms S.prob_x_eq_1_imp_prob_y_eq_0[OF x] by auto }
-  ultimately show ?thesis by auto
-qed
+  have "sigma_algebra ?S" by (rule sigma_algebra_Pow)
+  from distribution_prob_space[OF this X]
+  interpret S: prob_space ?S "distribution X" by simp
 
+  have x: "{x} \<in> sets ?S"
+  proof (rule ccontr)
+    assume "{x} \<notin> sets ?S"
+    hence "X -` {x} \<inter> space M = {}" by auto
+    thus "False" using assms unfolding distribution_def by auto
+  qed
+
+  have [simp]: "{y} \<inter> {x} = {}" "{x} - {y} = {x}" using `y \<noteq> x` by auto
+
+  show ?thesis
+  proof cases
+    assume "{y} \<in> sets ?S"
+    with `{x} \<in> sets ?S` assms show "distribution X {y} = 0"
+      using S.measure_inter_full_set[of "{y}" "{x}"]
+      by simp
+  next
+    assume "{y} \<notin> sets ?S"
+    hence "X -` {y} \<inter> space M = {}" by auto
+    thus "distribution X {y} = 0" unfolding distribution_def by auto
+  qed
+qed
 
 end
 
 locale finite_prob_space = prob_space + finite_measure_space
 
 lemma finite_prob_space_eq:
-  "finite_prob_space M \<longleftrightarrow> finite_measure_space M \<and> measure M (space M) = 1"
+  "finite_prob_space M \<mu> \<longleftrightarrow> finite_measure_space M \<mu> \<and> \<mu> (space M) = 1"
   unfolding finite_prob_space_def finite_measure_space_def prob_space_def prob_space_axioms_def
   by auto
 
 lemma (in prob_space) not_empty: "space M \<noteq> {}"
   using prob_space empty_measure by auto
 
-lemma (in finite_prob_space) sum_over_space_eq_1: "(\<Sum>x\<in>space M. measure M {x}) = 1"
-  using prob_space sum_over_space by simp
+lemma (in finite_prob_space) sum_over_space_eq_1: "(\<Sum>x\<in>space M. \<mu> {x}) = 1"
+  using measure_space_1 sum_over_space by simp
 
 lemma (in finite_prob_space) positive_distribution: "0 \<le> distribution X x"
-  unfolding distribution_def using positive sets_eq_Pow by simp
+  unfolding distribution_def by simp
 
 lemma (in finite_prob_space) joint_distribution_restriction_fst:
   "joint_distribution X Y A \<le> distribution X (fst ` A)"
@@ -439,24 +381,27 @@ lemma (in finite_prob_space) distribution_order:
 
 lemma (in finite_prob_space) finite_product_measure_space:
   assumes "finite s1" "finite s2"
-  shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2), measure = joint_distribution X Y\<rparr>"
-    (is "finite_measure_space ?M")
+  shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2)\<rparr> (joint_distribution X Y)"
+    (is "finite_measure_space ?M ?D")
 proof (rule finite_Pow_additivity_sufficient)
-  show "positive ?M (measure ?M)"
-    unfolding positive_def using positive'[unfolded positive_def] assms sets_eq_Pow
+  show "positive ?D"
+    unfolding positive_def using assms sets_eq_Pow
     by (simp add: distribution_def)
 
-  show "additive ?M (measure ?M)" unfolding additive_def
+  show "additive ?M ?D" unfolding additive_def
   proof safe
     fix x y
     have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
     have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
     assume "x \<inter> y = {}"
+    hence "(\<lambda>x. (X x, Y x)) -` x \<inter> space M \<inter> ((\<lambda>x. (X x, Y x)) -` y \<inter> space M) = {}"
+      by auto
     from additive[unfolded additive_def, rule_format, OF A B] this
-    show "measure ?M (x \<union> y) = measure ?M x + measure ?M y"
+      finite_measure[OF A] finite_measure[OF B]
+    show "?D (x \<union> y) = ?D x + ?D y"
       apply (simp add: distribution_def)
       apply (subst Int_Un_distrib2)
-      by auto
+      by (auto simp: real_of_pinfreal_add)
   qed
 
   show "finite (space ?M)"
@@ -464,23 +409,25 @@ proof (rule finite_Pow_additivity_sufficient)
 
   show "sets ?M = Pow (space ?M)"
     by simp
+
+  { fix x assume "x \<in> space ?M" thus "?D {x} \<noteq> \<omega>"
+    unfolding distribution_def by (auto intro!: finite_measure simp: sets_eq_Pow) }
 qed
 
 lemma (in finite_prob_space) finite_product_measure_space_of_images:
   shows "finite_measure_space \<lparr> space = X ` space M \<times> Y ` space M,
-                                sets = Pow (X ` space M \<times> Y ` space M),
-                                measure = joint_distribution X Y\<rparr>"
-    (is "finite_measure_space ?M")
+                                sets = Pow (X ` space M \<times> Y ` space M) \<rparr>
+                              (joint_distribution X Y)"
   using finite_space by (auto intro!: finite_product_measure_space)
 
 lemma (in finite_prob_space) finite_measure_space:
-  shows "finite_measure_space \<lparr> space = X ` space M, sets = Pow (X ` space M), measure = distribution X\<rparr>"
-    (is "finite_measure_space ?S")
+  shows "finite_measure_space \<lparr>space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
+    (is "finite_measure_space ?S _")
 proof (rule finite_Pow_additivity_sufficient, simp_all)
   show "finite (X ` space M)" using finite_space by simp
 
-  show "positive ?S (distribution X)" unfolding distribution_def
-    unfolding positive_def using positive'[unfolded positive_def] sets_eq_Pow by auto
+  show "positive (distribution X)"
+    unfolding distribution_def positive_def using sets_eq_Pow by auto
 
   show "additive ?S (distribution X)" unfolding additive_def distribution_def
   proof (simp, safe)
@@ -488,36 +435,32 @@ proof (rule finite_Pow_additivity_sufficient, simp_all)
     have x: "(X -` x) \<inter> space M \<in> sets M"
       and y: "(X -` y) \<inter> space M \<in> sets M" using sets_eq_Pow by auto
     assume "x \<inter> y = {}"
+    hence "X -` x \<inter> space M \<inter> (X -` y \<inter> space M) = {}" by auto
     from additive[unfolded additive_def, rule_format, OF x y] this
-    have "prob (((X -` x) \<union> (X -` y)) \<inter> space M) =
-      prob ((X -` x) \<inter> space M) + prob ((X -` y) \<inter> space M)"
-      apply (subst Int_Un_distrib2)
-      by auto
-    thus "prob ((X -` x \<union> X -` y) \<inter> space M) = prob (X -` x \<inter> space M) + prob (X -` y \<inter> space M)"
+      finite_measure[OF x] finite_measure[OF y]
+    have "\<mu> (((X -` x) \<union> (X -` y)) \<inter> space M) =
+      \<mu> ((X -` x) \<inter> space M) + \<mu> ((X -` y) \<inter> space M)"
+      by (subst Int_Un_distrib2) auto
+    thus "\<mu> ((X -` x \<union> X -` y) \<inter> space M) = \<mu> (X -` x \<inter> space M) + \<mu> (X -` y \<inter> space M)"
       by auto
   qed
+
+  { fix x assume "x \<in> X ` space M" thus "distribution X {x} \<noteq> \<omega>"
+    unfolding distribution_def by (auto intro!: finite_measure simp: sets_eq_Pow) }
 qed
 
 lemma (in finite_prob_space) finite_prob_space_of_images:
-  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M), measure = distribution X\<rparr>"
-  (is "finite_prob_space ?S")
-proof (simp add: finite_prob_space_eq, safe)
-  show "finite_measure_space ?S" by (rule finite_measure_space)
-  have "X -` X ` space M \<inter> space M = space M" by auto
-  thus "distribution X (X`space M) = 1"
-    by (simp add: distribution_def prob_space)
-qed
+  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
+  by (simp add: finite_prob_space_eq finite_measure_space)
 
 lemma (in finite_prob_space) finite_product_prob_space_of_images:
-  "finite_prob_space \<lparr> space = X ` space M \<times> Y ` space M, sets = Pow (X ` space M \<times> Y ` space M), 
-    measure = joint_distribution X Y\<rparr>"
-  (is "finite_prob_space ?S")
-proof (simp add: finite_prob_space_eq, safe)
-  show "finite_measure_space ?S" by (rule finite_product_measure_space_of_images)
-
+  "finite_prob_space \<lparr> space = X ` space M \<times> Y ` space M, sets = Pow (X ` space M \<times> Y ` space M)\<rparr>
+                     (joint_distribution X Y)"
+  (is "finite_prob_space ?S _")
+proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images)
   have "X -` X ` space M \<inter> Y -` Y ` space M \<inter> space M = space M" by auto
   thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
-    by (simp add: distribution_def prob_space vimage_Times comp_def)
+    by (simp add: distribution_def prob_space vimage_Times comp_def measure_space_1)
 qed
 
 end

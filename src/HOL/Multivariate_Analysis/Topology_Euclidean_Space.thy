@@ -5105,6 +5105,60 @@ lemma open_halfspace_component_gt:
   shows "open {x::'a::euclidean_space. x$$i  > a}"
   using open_halfspace_gt[of a "(basis i)::'a"] unfolding euclidean_component_def .
 
+text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
+
+lemma eucl_lessThan_eq_halfspaces:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "{..<a} = (\<Inter>i<DIM('a). {x. x $$ i < a $$ i})"
+ by (auto simp: eucl_less[where 'a='a])
+
+lemma eucl_greaterThan_eq_halfspaces:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "{a<..} = (\<Inter>i<DIM('a). {x. a $$ i < x $$ i})"
+ by (auto simp: eucl_less[where 'a='a])
+
+lemma eucl_atMost_eq_halfspaces:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "{.. a} = (\<Inter>i<DIM('a). {x. x $$ i \<le> a $$ i})"
+ by (auto simp: eucl_le[where 'a='a])
+
+lemma eucl_atLeast_eq_halfspaces:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "{a ..} = (\<Inter>i<DIM('a). {x. a $$ i \<le> x $$ i})"
+ by (auto simp: eucl_le[where 'a='a])
+
+lemma open_eucl_lessThan[simp, intro]:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "open {..< a}"
+  by (auto simp: eucl_lessThan_eq_halfspaces open_halfspace_component_lt)
+
+lemma open_eucl_greaterThan[simp, intro]:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "open {a <..}"
+  by (auto simp: eucl_greaterThan_eq_halfspaces open_halfspace_component_gt)
+
+lemma closed_eucl_atMost[simp, intro]:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "closed {.. a}"
+  unfolding eucl_atMost_eq_halfspaces
+proof (safe intro!: closed_INT)
+  fix i :: nat
+  have "- {x::'a. x $$ i \<le> a $$ i} = {x. a $$ i < x $$ i}" by auto
+  then show "closed {x::'a. x $$ i \<le> a $$ i}"
+    by (simp add: closed_def open_halfspace_component_gt)
+qed
+
+lemma closed_eucl_atLeast[simp, intro]:
+  fixes a :: "'a\<Colon>ordered_euclidean_space"
+  shows "closed {a ..}"
+  unfolding eucl_atLeast_eq_halfspaces
+proof (safe intro!: closed_INT)
+  fix i :: nat
+  have "- {x::'a. a $$ i \<le> x $$ i} = {x. x $$ i < a $$ i}" by auto
+  then show "closed {x::'a. a $$ i \<le> x $$ i}"
+    by (simp add: closed_def open_halfspace_component_lt)
+qed
+
 text{* This gives a simple derivation of limit component bounds.                 *}
 
 lemma Lim_component_le: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"

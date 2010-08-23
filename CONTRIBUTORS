@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* August 2010: Johannes Hoelzl, Armin Heller, and Robert Himmelmann, TUM
+  Rewriting the Probability theory.
+
 * July 2010: Florian Haftmann, TUM
   Reworking and extension of the Isabelle/HOL framework.
 

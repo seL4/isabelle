@@ -254,7 +254,7 @@ begin
 definition dist_vector_def:
   "dist x y = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
 
-lemma dist_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
+lemma dist_nth_le_cart: "dist (x $ i) (y $ i) \<le> dist x y"
 unfolding dist_vector_def
 by (rule member_le_setL2) simp_all
 
@@ -283,7 +283,7 @@ next
       apply (rule_tac x=e in exI, clarify)
       apply (drule spec, erule mp, clarify)
       apply (drule spec, drule spec, erule mp)
-      apply (erule le_less_trans [OF dist_nth_le])
+      apply (erule le_less_trans [OF dist_nth_le_cart])
      apply (subgoal_tac "\<forall>i\<in>UNIV. \<exists>e>0. \<forall>y. dist y (x$i) < e \<longrightarrow> y \<in> A i")
       apply (drule finite_choice [OF finite], clarify)
       apply (rule_tac x="Min (range f)" in exI, simp)
@@ -315,7 +315,7 @@ end
 
 lemma Cauchy_Cart_nth:
   "Cauchy (\<lambda>n. X n) \<Longrightarrow> Cauchy (\<lambda>n. X n $ i)"
-unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le])
+unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le_cart])
 
 lemma Cauchy_vector:
   fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n"

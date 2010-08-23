@@ -1104,6 +1104,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Finite_Cartesian_Product.thy			\
   Multivariate_Analysis/Integration.certs				\
   Multivariate_Analysis/Integration.thy					\
+  Multivariate_Analysis/Gauge_Measure.thy					\
   Multivariate_Analysis/L2_Norm.thy					\
   Multivariate_Analysis/Multivariate_Analysis.thy			\
   Multivariate_Analysis/Operator_Norm.thy				\
@@ -1121,20 +1122,19 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
 
 ## HOL-Probability
 
-HOL-Probability: HOL $(OUT)/HOL-Probability
+HOL-Probability: HOL-Multivariate_Analysis $(OUT)/HOL-Probability
 
-$(OUT)/HOL-Probability: $(OUT)/HOL Probability/ROOT.ML			\
+$(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis Probability/ROOT.ML	\
   Probability/Probability.thy Probability/Sigma_Algebra.thy		\
-  Probability/SeriesPlus.thy Probability/Caratheodory.thy		\
+  Probability/Caratheodory.thy		\
   Probability/Borel.thy Probability/Measure.thy				\
-  Probability/Lebesgue.thy Probability/Product_Measure.thy		\
+  Probability/Lebesgue_Integration.thy Probability/Lebesgue_Measure.thy		\
+  Probability/Positive_Infinite_Real.thy Probability/Product_Measure.thy	\
   Probability/Probability_Space.thy Probability/Information.thy		\
   Probability/ex/Dining_Cryptographers.thy Library/FuncSet.thy		\
-  Library/Convex.thy Library/Product_Vector.thy 			\
-  Library/Product_plus.thy Library/Inner_Product.thy			\
-  Library/Nat_Bijection.thy
-	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Probability
-
+  Probability/Lebesgue_Measure.thy \
+  Library/Nat_Bijection.thy Library/Countable.thy
+	@cd Probability; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Multivariate_Analysis HOL-Probability
 
 ## HOL-Nominal
 
