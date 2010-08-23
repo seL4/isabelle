@@ -348,6 +348,9 @@ inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Right
 
 code_pred (modes: i => i => o => bool as "concat", o => o => i => bool as "slice", o => i => i => bool as prefix,
   i => o => i => bool as suffix, i => i => i => bool) append .
+code_pred (modes: i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool as "concat", o \<Rightarrow> o \<Rightarrow> i \<Rightarrow> bool as "slice", o \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool as prefix,
+  i \<Rightarrow> o \<Rightarrow> i \<Rightarrow> bool as suffix, i \<Rightarrow> i \<Rightarrow> i \<Rightarrow> bool) append .
+
 code_pred [dseq] append .
 code_pred [random_dseq] append .
 
@@ -409,6 +412,10 @@ where
 
 code_pred (expected_modes: i * i * o => bool, o * o * i => bool, o * i * i => bool,
   i * o * i => bool, i * i * i => bool) tupled_append .
+
+code_pred (expected_modes: i \<times> i \<times> o \<Rightarrow> bool, o \<times> o \<times> i \<Rightarrow> bool, o \<times> i \<times> i \<Rightarrow> bool,
+  i \<times> o \<times> i \<Rightarrow> bool, i \<times> i \<times> i \<Rightarrow> bool) tupled_append .
+
 code_pred [random_dseq] tupled_append .
 thm tupled_append.equation
 
