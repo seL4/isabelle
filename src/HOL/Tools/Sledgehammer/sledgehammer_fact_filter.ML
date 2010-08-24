@@ -13,7 +13,8 @@ sig
   val trace : bool Unsynchronized.ref
   val chained_prefix : string
   val name_thms_pair_from_ref :
-    Proof.context -> thm list -> Facts.ref -> string * thm list
+    Proof.context -> unit Symtab.table -> thm list -> Facts.ref
+    -> string * thm list
   val relevant_facts :
     bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
@@ -39,12 +40,13 @@ val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 (* Used to label theorems chained into the goal. *)
 val chained_prefix = sledgehammer_prefix ^ "chained_"
 
-fun name_thms_pair_from_ref ctxt chained_ths xref =
+fun name_thms_pair_from_ref ctxt reserved chained_ths xref =
   let
     val ths = ProofContext.get_fact ctxt xref
     val name = Facts.string_of_ref xref
-               |> forall (member Thm.eq_thm chained_ths) ths
-                  ? prefix chained_prefix
+    val name = name |> Symtab.defined reserved name ? quote
+                    |> forall (member Thm.eq_thm chained_ths) ths
+                       ? prefix chained_prefix
   in (name, ths) end
 
 
@@ -532,7 +534,7 @@ fun is_theorem_bad_for_atps full_types thm =
     is_strange_theorem thm
   end
 
-fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
+fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
   let
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
     val local_facts = ProofContext.facts_of ctxt
@@ -564,18 +566,19 @@ fun all_name_thms_pairs ctxt full_types add_thms chained_ths =
             val ths =
               ths0 |> filter ((not o is_theorem_bad_for_atps full_types) orf
                               member Thm.eq_thm add_thms)
+            fun backquotify th =
+              "`" ^ Print_Mode.setmp [Print_Mode.input]
+                                 (Syntax.string_of_term ctxt) (prop_of th) ^ "`"
             val name' =
               case find_first check_thms [name1, name2, name] of
-                SOME name' => name'
-              | NONE =>
-                ths |> map (fn th =>
-                               "`" ^ Print_Mode.setmp [Print_Mode.input]
-                                         (Syntax.string_of_term ctxt)
-                                         (prop_of th) ^ "`")
-                    |> space_implode " "
+                SOME name' => name' |> Symtab.defined reserved name' ? quote
+              | NONE => ths |> map_filter (try backquotify) |> space_implode " "
           in
-            cons (name' |> forall (member Thm.eq_thm chained_ths) ths0
-                           ? prefix chained_prefix, ths)
+            if name' = "" then
+              I
+            else
+              cons (name' |> forall (member Thm.eq_thm chained_ths) ths0
+                             ? prefix chained_prefix, ths)
           end)
   in
     [] |> add_valid_facts fold local_facts (unnamed_locals @ named_locals)
@@ -609,9 +612,10 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
                    (ctxt, (chained_ths, _)) hyp_ts concl_t =
   let
     val add_thms = maps (ProofContext.get_fact ctxt) add
+    val reserved = reserved_isar_keyword_table ()
     val axioms =
-      (if only then map (name_thms_pair_from_ref ctxt chained_ths) add
-       else all_name_thms_pairs ctxt full_types add_thms chained_ths)
+      (if only then map (name_thms_pair_from_ref ctxt reserved chained_ths) add
+       else all_name_thms_pairs ctxt reserved full_types add_thms chained_ths)
       |> name_thm_pairs ctxt (respect_no_atp andalso not only)
       |> make_unique
   in

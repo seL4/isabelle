@@ -157,8 +157,10 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
 fun run_minimize params i refs state =
   let
     val ctxt = Proof.context_of state
+    val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
-    val name_thms_pairs = map (name_thms_pair_from_ref ctxt chained_ths) refs
+    val name_thms_pairs =
+      map (name_thms_pair_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of
       0 => priority "No subgoal!"

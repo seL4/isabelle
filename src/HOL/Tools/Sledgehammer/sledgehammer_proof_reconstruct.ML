@@ -613,8 +613,8 @@ fun metis_line full_types i n ss =
   "Try this command: " ^
   Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
 fun minimize_line _ [] = ""
-  | minimize_line minimize_command facts =
-    case minimize_command facts of
+  | minimize_line minimize_command ss =
+    case minimize_command ss of
       "" => ""
     | command =>
       "\nTo minimize the number of lemmas, try this: " ^

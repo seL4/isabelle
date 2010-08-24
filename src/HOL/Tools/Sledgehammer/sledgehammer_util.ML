@@ -21,6 +21,7 @@ sig
   val specialize_type : theory -> (string * typ) -> term -> term
   val subgoal_count : Proof.state -> int
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
+  val reserved_isar_keyword_table : unit -> unit Symtab.table
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -154,5 +155,9 @@ fun strip_subgoal goal i =
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
   in (rev (map dest_Free frees), hyp_ts, concl_t) end
+
+fun reserved_isar_keyword_table () =
+  union (op =) (Keyword.dest_keywords ()) (Keyword.dest_commands ())
+  |> map (rpair ()) |> Symtab.make
 
 end;
