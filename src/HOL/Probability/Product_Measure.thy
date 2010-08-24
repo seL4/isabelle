@@ -87,22 +87,6 @@ lemma (in sigma_finite_measure) sigma_finite_prod_measure_space:
   shows "sigma_finite_measure (prod_measure_space M N) (prod_measure M \<mu> N \<nu>)"
   oops
 
-lemma (in finite_measure_space) simple_function_finite:
-  "simple_function f"
-  unfolding simple_function_def sets_eq_Pow using finite_space by auto
-
-lemma (in finite_measure_space) borel_measurable_finite[intro, simp]: "f \<in> borel_measurable M"
-  unfolding measurable_def sets_eq_Pow by auto
-
-lemma (in finite_measure_space) positive_integral_finite_eq_setsum:
-  "positive_integral f = (\<Sum>x \<in> space M. f x * \<mu> {x})"
-proof -
-  have *: "positive_integral f = positive_integral (\<lambda>x. \<Sum>y\<in>space M. f y * indicator {y} x)"
-    by (auto intro!: positive_integral_cong simp add: indicator_def if_distrib setsum_cases[OF finite_space])
-  show ?thesis unfolding * using borel_measurable_finite[of f]
-    by (simp add: positive_integral_setsum positive_integral_cmult_indicator sets_eq_Pow)
-qed
-
 lemma (in finite_measure_space) finite_prod_measure_times:
   assumes "finite_measure_space N \<nu>"
   and "A1 \<in> sets M" "A2 \<in> sets N"

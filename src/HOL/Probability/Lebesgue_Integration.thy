@@ -57,7 +57,7 @@ lemma (in sigma_algebra) simple_function_indicator_representation:
   shows "f x = (\<Sum>y \<in> f ` space M. y * indicator (f -` {y} \<inter> space M) x)"
   (is "?l = ?r")
 proof -
-  have "?r = (\<Sum>y \<in> f ` space M. 
+  have "?r = (\<Sum>y \<in> f ` space M.
     (if y = f x then y * indicator (f -` {y} \<inter> space M) x else 0))"
     by (auto intro!: setsum_cong2)
   also have "... =  f x *  indicator (f -` {f x} \<inter> space M) x"
@@ -220,19 +220,6 @@ proof -
   thus ?thesis
     unfolding indicator_def
     by (simp add: if_distrib setsum_cases[OF `finite P`])
-qed
-
-lemma LeastI2_wellorder:
-  fixes a :: "_ :: wellorder"
-  assumes "P a"
-  and "\<And>a. \<lbrakk> P a; \<forall>b. P b \<longrightarrow> a \<le> b \<rbrakk> \<Longrightarrow> Q a"
-  shows "Q (Least P)"
-proof (rule LeastI2_order)
-  show "P (Least P)" using `P a` by (rule LeastI)
-next
-  fix y assume "P y" thus "Least P \<le> y" by (rule Least_le)
-next
-  fix x assume "P x" "\<forall>y. P y \<longrightarrow> x \<le> y" thus "Q x" by (rule assms(2))
 qed
 
 lemma (in sigma_algebra) borel_measurable_implies_simple_function_sequence:
@@ -399,7 +386,8 @@ proof -
           let ?N = "max n (natfloor r + 1)"
           have "u t < of_nat ?N" "n \<le> ?N"
             using ge_natfloor_plus_one_imp_gt[of r n] preal
-            by (auto simp: max_def real_Suc_natfloor)
+            using real_natfloor_add_one_gt
+            by (auto simp: max_def real_of_nat_Suc)
           from lower[OF this(1)]
           have "r < (real (f t ?N) + 1) / 2 ^ ?N" unfolding less_divide_eq
             using preal by (auto simp add: power_le_zero_eq zero_le_mult_iff real_of_nat_Suc split: split_if_asm)
@@ -875,7 +863,7 @@ proof (rule pinfreal_le_mult_one_interval)
   moreover
   have "a * (SUP i. simple_integral (?uB i)) \<le> ?S"
     unfolding pinfreal_SUP_cmult[symmetric]
-  proof (safe intro!: SUP_mono)
+  proof (safe intro!: SUP_mono bexI)
     fix i
     have "a * simple_integral (?uB i) = simple_integral (\<lambda>x. a * ?uB i x)"
       using B `simple_function u`
@@ -890,7 +878,7 @@ proof (rule pinfreal_le_mult_one_interval)
     qed
     finally show "a * simple_integral (?uB i) \<le> positive_integral (f i)"
       by auto
-  qed
+  qed simp
   ultimately show "a * simple_integral u \<le> ?S" by simp
 qed
 
@@ -1056,16 +1044,17 @@ proof -
     by (auto intro!: borel_measurable_SUP borel_measurable_INF assms)
 
   have "(\<lambda>n. INF m. u (m + n)) \<up> (SUP n. INF m. u (m + n))"
-  proof (unfold isoton_def, safe)
-    fix i show "(INF m. u (m + i)) \<le> (INF m. u (m + Suc i))"
-      by (rule INF_mono[where N=Suc]) simp
-  qed
+  proof (unfold isoton_def, safe intro!: INF_mono bexI)
+    fix i m show "u (Suc m + i) \<le> u (m + Suc i)" by simp
+  qed simp
   from positive_integral_isoton[OF this] assms
   have "positive_integral (SUP n. INF m. u (m + n)) =
     (SUP n. positive_integral (INF m. u (m + n)))"
     unfolding isoton_def by (simp add: borel_measurable_INF)
   also have "\<dots> \<le> (SUP n. INF m. positive_integral (u (m + n)))"
-    by (auto intro!: SUP_mono[where N="\<lambda>x. x"] INFI_bound positive_integral_mono INF_leI simp: INFI_fun_expand)
+    apply (rule SUP_mono)
+    apply (rule_tac x=n in bexI)
+    by (auto intro!: positive_integral_mono INFI_bound INF_leI exI simp: INFI_fun_expand)
   finally show ?thesis .
 qed
 
@@ -1123,10 +1112,10 @@ proof -
   have "?I = (SUP i. positive_integral (\<lambda>x. min (of_nat i) (u x) * indicator N x))"
     unfolding isoton_def using borel `N \<in> sets M` by (simp add: borel_measurable_indicator)
   also have "\<dots> \<le> (SUP i. positive_integral (\<lambda>x. of_nat i * indicator N x))"
-  proof (rule SUP_mono, rule positive_integral_mono)
+  proof (rule SUP_mono, rule bexI, rule positive_integral_mono)
     fix x i show "min (of_nat i) (u x) * indicator N x \<le> of_nat i * indicator N x"
       by (cases "x \<in> N") auto
-  qed
+  qed simp
   also have "\<dots> = 0"
     using `N \<in> null_sets` by (simp add: positive_integral_cmult_indicator)
   finally show ?thesis by simp
@@ -1967,46 +1956,37 @@ lemma finite_measure_spaceI:
   unfolding finite_measure_space_def finite_measure_space_axioms_def
   using assms by simp
 
-lemma (in finite_measure_space) borel_measurable_finite[intro, simp]:
-  fixes f :: "'a \<Rightarrow> real"
-  shows "f \<in> borel_measurable M"
+lemma (in finite_measure_space) borel_measurable_finite[intro, simp]: "f \<in> borel_measurable M"
   unfolding measurable_def sets_eq_Pow by auto
+
+lemma (in finite_measure_space) simple_function_finite: "simple_function f"
+  unfolding simple_function_def sets_eq_Pow using finite_space by auto
+
+lemma (in finite_measure_space) positive_integral_finite_eq_setsum:
+  "positive_integral f = (\<Sum>x \<in> space M. f x * \<mu> {x})"
+proof -
+  have *: "positive_integral f = positive_integral (\<lambda>x. \<Sum>y\<in>space M. f y * indicator {y} x)"
+    by (auto intro!: positive_integral_cong simp add: indicator_def if_distrib setsum_cases[OF finite_space])
+  show ?thesis unfolding * using borel_measurable_finite[of f]
+    by (simp add: positive_integral_setsum positive_integral_cmult_indicator sets_eq_Pow)
+qed
 
 lemma (in finite_measure_space) integral_finite_singleton:
   shows "integrable f"
   and "integral f = (\<Sum>x \<in> space M. f x * real (\<mu> {x}))" (is ?I)
 proof -
-  have 1: "f \<in> borel_measurable M"
-    unfolding measurable_def sets_eq_Pow by auto
+  have [simp]:
+    "positive_integral (\<lambda>x. Real (f x)) = (\<Sum>x \<in> space M. Real (f x) * \<mu> {x})"
+    "positive_integral (\<lambda>x. Real (- f x)) = (\<Sum>x \<in> space M. Real (- f x) * \<mu> {x})"
+    unfolding positive_integral_finite_eq_setsum by auto
 
-  have 2: "finite (f`space M)" using finite_space by simp
+  show "integrable f" using finite_space finite_measure
+    by (simp add: setsum_\<omega> integrable_def sets_eq_Pow)
 
-  have 3: "\<And>x. x \<noteq> 0 \<Longrightarrow> \<mu> (f -` {x} \<inter> space M) \<noteq> \<omega>"
-    using finite_measure[unfolded sets_eq_Pow] by simp
-
-  show "integrable f"
-    by (rule integral_on_finite(1)[OF 1 2 3]) simp
-
-  { fix r let ?x = "f -` {r} \<inter> space M"
-    have "?x \<subseteq> space M" by auto
-    with finite_space sets_eq_Pow finite_single_measure
-    have "real (\<mu> ?x) = (\<Sum>i \<in> ?x. real (\<mu> {i}))"
-      using real_measure_setsum_singleton[of ?x] by auto }
-  note measure_eq_setsum = this
-
-  have "integral f = (\<Sum>r\<in>f`space M. r * real (\<mu> (f -` {r} \<inter> space M)))"
-    by (rule integral_on_finite(2)[OF 1 2 3]) simp
-  also have "\<dots> = (\<Sum>x \<in> space M. f x * real (\<mu> {x}))"
-    unfolding measure_eq_setsum setsum_right_distrib
-    apply (subst setsum_Sigma)
-    apply (simp add: finite_space)
-    apply (simp add: finite_space)
-  proof (rule setsum_reindex_cong[symmetric])
-    fix a assume "a \<in> Sigma (f ` space M) (\<lambda>x. f -` {x} \<inter> space M)"
-    thus "(\<lambda>(x, y). x * real (\<mu> {y})) a = f (snd a) * real (\<mu> {snd a})"
-      by auto
-  qed (auto intro!: image_eqI inj_onI)
-  finally show ?I .
+  show ?I using finite_measure
+    apply (simp add: integral_def sets_eq_Pow real_of_pinfreal_setsum[symmetric]
+      real_of_pinfreal_mult[symmetric] setsum_subtractf[symmetric])
+    by (rule setsum_cong) (simp_all split: split_if)
 qed
 
 end

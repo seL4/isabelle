@@ -6,53 +6,20 @@ theory Positive_Infinite_Real
   imports Complex_Main Nat_Bijection Multivariate_Analysis
 begin
 
-lemma less_Sup_iff:
-  fixes a :: "'x\<Colon>{complete_lattice,linorder}"
-  shows "a < Sup S \<longleftrightarrow> (\<exists> x \<in> S. a < x)"
-  unfolding not_le[symmetric] Sup_le_iff by auto
-
-lemma Inf_less_iff:
-  fixes a :: "'x\<Colon>{complete_lattice,linorder}"
-  shows "Inf S < a \<longleftrightarrow> (\<exists> x \<in> S. x < a)"
-  unfolding not_le[symmetric] le_Inf_iff by auto
-
-lemma SUPR_fun_expand: "(SUP y:A. f y) = (\<lambda>x. SUP y:A. f y x)"
-  unfolding SUPR_def expand_fun_eq Sup_fun_def
-  by (auto intro!: arg_cong[where f=Sup])
-
-lemma real_Suc_natfloor: "r < real (Suc (natfloor r))"
-proof cases
-  assume "0 \<le> r"
-  from floor_correct[of r]
-  have "r < real (\<lfloor>r\<rfloor> + 1)" by auto
-  also have "\<dots> = real (Suc (natfloor r))"
-    using `0 \<le> r` by (auto simp: real_of_nat_Suc natfloor_def)
-  finally show ?thesis .
-next
-  assume "\<not> 0 \<le> r"
-  hence "r < 0" by auto
-  also have "0 < real (Suc (natfloor r))" by auto
-  finally show ?thesis .
+lemma (in complete_lattice) Sup_start:
+  assumes *: "\<And>x. f x \<le> f 0"
+  shows "(SUP n. f n) = f 0"
+proof (rule antisym)
+  show "f 0 \<le> (SUP n. f n)" by (rule le_SUPI) auto
+  show "(SUP n. f n) \<le> f 0" by (rule SUP_leI[OF *])
 qed
 
-lemma (in complete_lattice) Sup_mono:
-  assumes "\<And>a. a \<in> A \<Longrightarrow> \<exists>b\<in>B. a \<le> b"
-  shows "Sup A \<le> Sup B"
-proof (rule Sup_least)
-  fix a assume "a \<in> A"
-  with assms obtain b where "b \<in> B" and "a \<le> b" by auto
-  hence "b \<le> Sup B" by (auto intro: Sup_upper)
-  with `a \<le> b` show "a \<le> Sup B" by auto
-qed
-
-lemma (in complete_lattice) Inf_mono:
-  assumes "\<And>b. b \<in> B \<Longrightarrow> \<exists>a\<in>A. a \<le> b"
-  shows "Inf A \<le> Inf B"
-proof (rule Inf_greatest)
-  fix b assume "b \<in> B"
-  with assms obtain a where "a \<in> A" and "a \<le> b" by auto
-  hence "Inf A \<le> a" by (auto intro: Inf_lower)
-  with `a \<le> b` show "Inf A \<le> b" by auto
+lemma (in complete_lattice) Inf_start:
+  assumes *: "\<And>x. f 0 \<le> f x"
+  shows "(INF n. f n) = f 0"
+proof (rule antisym)
+  show "(INF n. f n) \<le> f 0" by (rule INF_leI) simp
+  show "f 0 \<le> (INF n. f n)" by (rule le_INFI[OF *])
 qed
 
 lemma (in complete_lattice) Sup_mono_offset:
@@ -77,28 +44,6 @@ lemma (in complete_lattice) Sup_mono_offset_Suc:
   apply (rule Sup_mono_offset)
   by (auto intro!: order.lift_Suc_mono_le[of "op \<le>" "op <" f, OF _ *]) default
 
-lemma (in complete_lattice) Inf_start:
-  assumes *: "\<And>x. f 0 \<le> f x"
-  shows "(INF n. f n) = f 0"
-proof (rule antisym)
-  show "(INF n. f n) \<le> f 0" by (rule INF_leI) simp
-  show "f 0 \<le> (INF n. f n)" by (rule le_INFI[OF *])
-qed
-
-lemma (in complete_lattice) isotone_converge:
-  fixes f :: "nat \<Rightarrow> 'a" assumes "\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y "
-  shows "(INF n. SUP m. f (n + m)) = (SUP n. INF m. f (n + m))"
-proof -
-  have "\<And>n. (SUP m. f (n + m)) = (SUP n. f n)"
-    apply (rule Sup_mono_offset)
-    apply (rule assms)
-    by simp_all
-  moreover
-  { fix n have "(INF m. f (n + m)) = f n"
-      using Inf_start[of "\<lambda>m. f (n + m)"] assms by simp }
-  ultimately show ?thesis by simp
-qed
-
 lemma (in complete_lattice) Inf_mono_offset:
   fixes f :: "'b :: {ordered_ab_semigroup_add,monoid_add} \<Rightarrow> 'a"
   assumes *: "\<And>x y. x \<le> y \<Longrightarrow> f y \<le> f x" and "0 \<le> k"
@@ -113,12 +58,18 @@ proof (rule antisym)
     by (auto intro!: Inf_mono exI simp: INFI_def)
 qed
 
-lemma (in complete_lattice) Sup_start:
-  assumes *: "\<And>x. f x \<le> f 0"
-  shows "(SUP n. f n) = f 0"
-proof (rule antisym)
-  show "f 0 \<le> (SUP n. f n)" by (rule le_SUPI) auto
-  show "(SUP n. f n) \<le> f 0" by (rule SUP_leI[OF *])
+lemma (in complete_lattice) isotone_converge:
+  fixes f :: "nat \<Rightarrow> 'a" assumes "\<And>x y. x \<le> y \<Longrightarrow> f x \<le> f y "
+  shows "(INF n. SUP m. f (n + m)) = (SUP n. INF m. f (n + m))"
+proof -
+  have "\<And>n. (SUP m. f (n + m)) = (SUP n. f n)"
+    apply (rule Sup_mono_offset)
+    apply (rule assms)
+    by simp_all
+  moreover
+  { fix n have "(INF m. f (n + m)) = f n"
+      using Inf_start[of "\<lambda>m. f (n + m)"] assms by simp }
+  ultimately show ?thesis by simp
 qed
 
 lemma (in complete_lattice) antitone_converges:
@@ -1657,15 +1608,6 @@ lemma pinfreal_ord_one[simp]:
   "1 \<le> Real p \<longleftrightarrow> 1 \<le> p"
   by (simp_all add: one_pinfreal_def del: Real_1)
 
-lemma SUP_mono:
-  assumes "\<And>n. f n \<le> g (N n)"
-  shows "(SUP n. f n) \<le> (SUP n. g n)"
-proof (safe intro!: SUPR_bound)
-  fix n note assms[of n]
-  also have "g (N n) \<le> (SUP n. g n)" by (auto intro!: le_SUPI)
-  finally show "f n \<le> (SUP n. g n)" .
-qed
-
 lemma isoton_Sup:
   assumes "f \<up> u"
   shows "f i \<le> u"
@@ -2563,20 +2505,6 @@ lemma INFI_bound:
   shows "x \<le> (INF n. f n)"
   using assms by (simp add: INFI_def le_Inf_iff)
 
-lemma INF_mono:
-  assumes "\<And>n. f (N n) \<le> g n"
-  shows "(INF n. f n) \<le> (INF n. g n)"
-proof (safe intro!: INFI_bound)
-  fix n
-  have "(INF n. f n) \<le> f (N n)" by (auto intro!: INF_leI)
-  also note assms[of n]
-  finally show "(INF n. f n) \<le> g n" .
-qed
-
-lemma INFI_fun_expand: "(INF y:A. f y) = (\<lambda>x. INF y:A. f y x)"
-  unfolding INFI_def expand_fun_eq Inf_fun_def
-  by (auto intro!: arg_cong[where f=Inf])
-
 lemma LIMSEQ_imp_lim_INF:
   assumes pos: "\<And>i. 0 \<le> X i" and lim: "X ----> x"
   shows "(SUP n. INF m. Real (X (n + m))) = Real x"
@@ -2596,11 +2524,11 @@ proof -
     proof safe
       fix x y :: nat assume "x \<le> y"
       have "Real (r x) \<le> Real (r y)" unfolding r(1)[symmetric] using pos
-      proof (safe intro!: INF_mono)
+      proof (safe intro!: INF_mono bexI)
         fix m have "x + (m + y - x) = y + m"
           using `x \<le> y` by auto
         thus "Real (X (x + (m + y - x))) \<le> Real (X (y + m))" by simp
-      qed
+      qed simp
       thus "r x \<le> r y" using r by auto
     qed
     show "\<And>n. 0 \<le> r n" by fact
@@ -2645,7 +2573,6 @@ proof -
     qed
   qed
 qed
-
 
 lemma real_of_pinfreal_strict_mono_iff:
   "real a < real b \<longleftrightarrow> (b \<noteq> \<omega> \<and> ((a = \<omega> \<and> 0 < b) \<or> (a < b)))"

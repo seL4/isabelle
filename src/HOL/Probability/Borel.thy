@@ -1238,7 +1238,7 @@ lemma (in sigma_algebra) borel_measurable_SUP[simp, intro]:
 proof safe
   fix a
   have "{x\<in>space M. a < ?sup x} = (\<Union>i\<in>A. {x\<in>space M. a < f i x})"
-    by (auto simp: less_Sup_iff SUPR_def[where 'a=pinfreal] SUPR_fun_expand[where 'b=pinfreal])
+    by (auto simp: less_Sup_iff SUPR_def[where 'a=pinfreal] SUPR_fun_expand[where 'c=pinfreal])
   then show "{x\<in>space M. a < ?sup x} \<in> sets M"
     using assms by auto
 qed
