@@ -22,8 +22,6 @@ struct
 
 open Metis_Clauses
 
-exception METIS of string * string
-
 val trace = Unsynchronized.ref false;
 fun trace_msg msg = if !trace then tracing (msg ()) else ();
 
@@ -88,7 +86,7 @@ fun hol_term_to_fol_FO tm =
             val args   = map hol_term_to_fol_FO tms
         in Metis.Term.Fn (c, tyargs @ args) end
     | (CombVar ((v, _), _), []) => Metis.Term.Var v
-    | _ => raise METIS ("hol_term_to_fol_FO", "non first-order combterm")
+    | _ => raise Fail "non-first-order combterm"
 
 fun hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
       Metis.Term.Fn (fn_isa_to_met_sublevel a, map metis_term_from_combtyp tylist)
@@ -429,8 +427,8 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
             Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
             Syntax.string_of_term ctxt (term_of y)))));
   in cterm_instantiate substs' i_th end
-  handle THM (msg, _, _) => raise METIS ("inst_inf", msg)
-       | ERROR msg => raise METIS ("inst_inf", msg)
+  handle THM (msg, _, _) =>
+         error ("Cannot replay Metis proof in Isabelle:\n" ^ msg)
 
 (* INFERENCE RULE: RESOLVE *)
 
@@ -446,7 +444,6 @@ fun resolve_inc_tyvars(tha,i,thb) =
         [th] => th
       | _ => raise THM ("resolve_inc_tyvars: unique result expected", i, [tha,thb])
   end
-  handle TERM (msg, _) => raise METIS ("resolve_inc_tyvars", msg)
 
 fun resolve_inf ctxt mode skolems thpairs atm th1 th2 =
   let
@@ -501,8 +498,11 @@ fun equality_inf ctxt mode skolems (pos, atm) fp fr =
                 val adjustment = get_ty_arg_size thy tm1
                 val p' = if adjustment > p then p else p-adjustment
                 val tm_p = List.nth(args,p')
-                  handle Subscript => raise METIS ("equality_inf", Int.toString p ^ " adj " ^
-                    Int.toString adjustment  ^ " term " ^  Syntax.string_of_term ctxt tm)
+                  handle Subscript =>
+                         error ("Cannot replay Metis proof in Isabelle:\n" ^
+                                "equality_inf: " ^ Int.toString p ^ " adj " ^
+                                Int.toString adjustment ^ " term " ^
+                                Syntax.string_of_term ctxt tm)
                 val _ = trace_msg (fn () => "path_finder: " ^ Int.toString p ^
                                       "  " ^ Syntax.string_of_term ctxt tm_p)
                 val (r,t) = path_finder_FO tm_p ps
@@ -590,9 +590,8 @@ fun translate_one ctxt mode skolems (fol_th, inf) thpairs =
     val _ = trace_msg (fn () => "=============================================")
     val n_metis_lits =
       length (filter real_literal (Metis.LiteralSet.toList (Metis.Thm.clause fol_th)))
-    val _ =
-      if nprems_of th = n_metis_lits then ()
-      else raise METIS ("translate", "Proof reconstruction has gone wrong.")
+    val _ = if nprems_of th = n_metis_lits then ()
+            else error "Cannot replay Metis proof in Isabelle."
   in (fol_th, th) :: thpairs end
 
 (*Determining which axiom clauses are actually used*)
@@ -805,14 +804,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
       Meson.MESON (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
-      handle ERROR msg => raise METIS ("generic_metis_tac", msg)
   end
-  handle METIS (loc, msg) =>
-         if mode = HO then
-           (warning ("Metis: Falling back on \"metisFT\".");
-            generic_metis_tac FT ctxt ths i st0)
-         else
-           Seq.empty
 
 val metis_tac = generic_metis_tac HO
 val metisF_tac = generic_metis_tac FO
