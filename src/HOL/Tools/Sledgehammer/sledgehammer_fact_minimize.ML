@@ -155,7 +155,8 @@ fun run_minimize params i refs state =
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
     val name_thms_pairs =
-      map (name_thms_pair_from_ref ctxt reserved chained_ths) refs
+      map (apfst (fn f => f ())
+           o name_thms_pair_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of
       0 => priority "No subgoal!"

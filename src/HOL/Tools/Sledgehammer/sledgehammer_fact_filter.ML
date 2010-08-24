@@ -13,7 +13,7 @@ sig
   val trace : bool Unsynchronized.ref
   val name_thms_pair_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
-    -> (string * bool) * thm list
+    -> (unit -> string * bool) * thm list
   val relevant_facts :
     bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
@@ -38,13 +38,13 @@ type relevance_override =
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
 
 fun name_thms_pair_from_ref ctxt reserved chained_ths xref =
-  let
-    val ths = ProofContext.get_fact ctxt xref
-    val name = Facts.string_of_ref xref
-    val name = name |> Symtab.defined reserved name ? quote
-    val chained = forall (member Thm.eq_thm chained_ths) ths
-  in ((name, chained), ths) end
-
+  let val ths = ProofContext.get_fact ctxt xref in
+    (fn () => let
+                val name = Facts.string_of_ref xref
+                val name = name |> Symtab.defined reserved name ? quote
+                val chained = forall (member Thm.eq_thm chained_ths) ths
+              in (name, chained) end, ths)
+  end
 
 (***************************************************************)
 (* Relevance Filtering                                         *)
@@ -278,7 +278,8 @@ fun defines thy thm gctypes =
         | _ => false
     end;
 
-type annotated_thm = ((string * bool) * thm) * (string * const_typ list) list
+type annotated_thm =
+  ((unit -> string * bool) * thm) * (string * const_typ list) list
 
 (*For a reverse sort, putting the largest values first.*)
 fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
@@ -297,7 +298,7 @@ fun take_best max_new (new_pairs : (annotated_thm * real) list) =
                        ", exceeds the limit of " ^ Int.toString max_new));
         trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         trace_msg (fn () => "Actually passed: " ^
-          space_implode ", " (map (fst o fst o fst o fst) accepted));
+          space_implode ", " (map (fst o (fn f => f ()) o fst o fst o fst) accepted));
         (map #1 accepted, List.drop (new_pairs, max_new))
       end
   end;
@@ -339,7 +340,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                 if null add_thms then
                   []
                 else
-                  map_filter (fn ((p as ((name, _), th), _), _) =>
+                  map_filter (fn ((p as (_, th), _), _) =>
                                  if member Thm.eq_thm add_thms th then SOME p
                                  else NONE) rejects
             | relevant (new_pairs, rejects) [] =
@@ -363,8 +364,8 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                 map #1 new_rels @ iter (j + 1) threshold rel_const_tab' rejects
               end
             | relevant (new_rels, rejects)
-                       (((ax as (((name, chained), th), axiom_consts)),
-                         cached_weight) :: rest) =
+                       (((ax as ((name, th), axiom_consts)), cached_weight)
+                        :: rest) =
               let
                 val weight =
                   case cached_weight of
@@ -374,7 +375,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                 if weight >= threshold orelse
                    (defs_relevant andalso defines thy th rel_const_tab) then
                   (trace_msg (fn () =>
-                       name ^ " passes: " ^ Real.toString weight
+                       fst (name ()) ^ " passes: " ^ Real.toString weight
                        ^ " consts: " ^ commas (map fst axiom_consts));
                    relevant ((ax, weight) :: new_rels, rejects) rest)
                 else
@@ -548,57 +549,64 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
     fun add_valid_facts foldx facts =
-      foldx (fn (name, ths0) =>
-        if name <> "" andalso
-           forall (not o member Thm.eq_thm add_thms) ths0 andalso
-           (Facts.is_concealed facts name orelse
-            (respect_no_atp andalso is_package_def name) orelse
-            exists (fn s => String.isSuffix s name) multi_base_blacklist orelse
-            String.isSuffix "_def_raw" (* FIXME: crude hack *) name) then
+      foldx (fn (name0, ths) =>
+        if name0 <> "" andalso
+           forall (not o member Thm.eq_thm add_thms) ths andalso
+           (Facts.is_concealed facts name0 orelse
+            (respect_no_atp andalso is_package_def name0) orelse
+            exists (fn s => String.isSuffix s name0) multi_base_blacklist orelse
+            String.isSuffix "_def_raw" (* FIXME: crude hack *) name0) then
           I
         else
           let
-            fun check_thms a =
-              (case try (ProofContext.get_thms ctxt) a of
-                NONE => false
-              | SOME ths1 => Thm.eq_thms (ths0, ths1))
-            val name1 = Facts.extern facts name;
-            val name2 = Name_Space.extern full_space name;
-            val ths =
-              ths0 |> filter ((not o is_theorem_bad_for_atps full_types) orf
-                              member Thm.eq_thm add_thms)
+            val multi = length ths > 1
             fun backquotify th =
               "`" ^ Print_Mode.setmp [Print_Mode.input]
                                  (Syntax.string_of_term ctxt) (prop_of th) ^ "`"
-            val name' =
-              case find_first check_thms [name1, name2, name] of
-                SOME name' => name' |> Symtab.defined reserved name' ? quote
-              | NONE => ths |> map_filter (try backquotify) |> space_implode " "
+            fun check_thms a =
+              case try (ProofContext.get_thms ctxt) a of
+                NONE => false
+              | SOME ths' => Thm.eq_thms (ths, ths')
           in
-            if name' = "" then I
-            else cons ((name', forall is_chained ths0), ths)
+            pair 1
+            #> fold (fn th => fn (j, rest) =>
+                 (j + 1,
+                  if is_theorem_bad_for_atps full_types th andalso
+                     not (member Thm.eq_thm add_thms th) then
+                    rest
+                  else
+                    (fn () =>
+                        (if name0 = "" then
+                           th |> backquotify
+                         else
+                           let
+                             val name1 = Facts.extern facts name0
+                             val name2 = Name_Space.extern full_space name0
+                           in
+                             case find_first check_thms [name1, name2, name0] of
+                               SOME name =>
+                               let
+                                 val name =
+                                   name |> Symtab.defined reserved name ? quote
+                               in
+                                 if multi then name ^ "(" ^ Int.toString j ^ ")"
+                                 else name
+                               end
+                             | NONE => ""
+                           end, is_chained th), (multi, th)) :: rest)) ths
+            #> snd
           end)
   in
     [] |> add_valid_facts fold local_facts (unnamed_locals @ named_locals)
        |> add_valid_facts Facts.fold_static global_facts global_facts
   end
 
-fun multi_name (name, chained) th (n, pairs) =
-  (n + 1, ((name ^ "(" ^ Int.toString n ^ ")", chained), th) :: pairs)
-fun add_names (_, []) pairs = pairs
-  | add_names (p, [th]) pairs = (p, th) :: pairs
-  | add_names (p, ths) pairs = #2 (fold (multi_name p) ths (1, pairs))
-
-fun is_multi ((name, _), ths) =
-  length ths > 1 orelse String.isSuffix ".axioms" name
-
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
-fun name_thm_pairs ctxt respect_no_atp name_thms_pairs =
-  let
-    val (mults, singles) = List.partition is_multi name_thms_pairs
-    val ps = [] |> fold add_names singles |> fold add_names mults
-  in ps |> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd) end;
+fun name_thm_pairs ctxt respect_no_atp =
+  List.partition (fst o snd) #> op @
+  #> map (apsnd snd)
+  #> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd)
 
 (***************************************************************)
 (* ATP invocation methods setup                                *)
@@ -612,8 +620,11 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val reserved = reserved_isar_keyword_table ()
     val axioms =
-      (if only then map (name_thms_pair_from_ref ctxt reserved chained_ths) add
-       else all_name_thms_pairs ctxt reserved full_types add_thms chained_ths)
+      (if only then
+         maps ((fn (n, ths) => map (pair n o pair false) ths)
+               o name_thms_pair_from_ref ctxt reserved chained_ths) add
+       else
+         all_name_thms_pairs ctxt reserved full_types add_thms chained_ths)
       |> name_thm_pairs ctxt (respect_no_atp andalso not only)
       |> make_unique
   in
@@ -622,6 +633,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
                      axioms (concl_t :: hyp_ts)
+    |> map (apfst (fn f => f ()))
     |> sort_wrt (fst o fst)
   end
 
