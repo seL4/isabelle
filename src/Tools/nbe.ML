@@ -530,12 +530,12 @@ structure Nbe_Functions = Code_Data
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval thy program vs_t deps =
+fun compile_eval thy program =
   let
     val ctxt = ProofContext.init_global thy;
     val (gr, (_, idx_tab)) =
       Nbe_Functions.change thy (ensure_stmts ctxt program);
-  in
+  in fn vs_t => fn deps =>
     vs_t
     |> eval_term ctxt gr deps
     |> term_of_univ thy program idx_tab
@@ -587,7 +587,7 @@ fun no_frees_rew rew t =
     t
     |> fold_rev lambda frees
     |> rew
-    |> (fn t' => Term.betapplys (t', frees))
+    |> curry (Term.betapplys o swap) frees
   end;
 
 val dynamic_eval_conv = Code_Simp.no_frees_conv (Conv.tap_thy
