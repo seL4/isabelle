@@ -195,6 +195,21 @@ val mono_del = Thm.declaration_attribute (map_monos o Thm.del_thm o mk_mono);
 
 
 
+(** equations **)
+
+structure Equation_Data = Generic_Data
+(
+  type T = thm Item_Net.T;
+  val empty = Item_Net.init (op aconv o pairself Thm.prop_of)
+    (single o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of);
+  val extend = I;
+  val merge = Item_Net.merge;
+);
+
+val add_equation = Thm.declaration_attribute (Equation_Data.map o Item_Net.update)
+
+
+
 (** misc utilities **)
 
 fun message quiet_mode s = if quiet_mode then () else writeln s;
@@ -548,16 +563,20 @@ val ind_cases_setup =
 
 fun mk_simp_eq ctxt prop =
   let
+    val thy = ProofContext.theory_of ctxt
     val ctxt' = Variable.auto_fixes prop ctxt
-    val cname = fst (dest_Const (fst (strip_comb (HOLogic.dest_Trueprop prop))))
-    val info = the_inductive ctxt cname
-    val eq = nth (#eqs (snd info)) (find_index (fn c => c = cname) (#names (fst info)))
-    val lhs_eq = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of eq)))
-    val subst = Pattern.match (ProofContext.theory_of ctxt) (lhs_eq, HOLogic.dest_Trueprop prop)
-      (Vartab.empty, Vartab.empty)
-    val certify = cterm_of (ProofContext.theory_of ctxt)
-    val inst = map (fn v => (certify (Var v), certify (Envir.subst_term subst (Var v))))
-      (Term.add_vars lhs_eq [])
+    val lhs_of = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of
+    val substs = Item_Net.retrieve (Equation_Data.get (Context.Proof ctxt)) (HOLogic.dest_Trueprop prop) 
+      |> map_filter
+        (fn eq => SOME (Pattern.match thy (lhs_of eq, HOLogic.dest_Trueprop prop)
+            (Vartab.empty, Vartab.empty), eq)
+          handle Pattern.MATCH => NONE)
+    val (subst, eq) = case substs of
+        [s] => s
+      | _ => error
+        ("equations matching pattern " ^ Syntax.string_of_term ctxt prop ^ " is not unique")
+    val inst = map (fn v => (cterm_of thy (Var v), cterm_of thy (Envir.subst_term subst (Var v))))
+      (Term.add_vars (lhs_of eq) [])
    in
     cterm_instantiate inst eq
     |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv
@@ -833,7 +852,8 @@ fun declare_rules rec_binding coind no_ind cnames
 
     val (eqs', lthy3) = lthy2 |> 
       fold_map (fn (name, eq) => Local_Theory.note
-          ((Binding.qualify true (Long_Name.base_name name) (Binding.name "simps"), []), [eq])
+          ((Binding.qualify true (Long_Name.base_name name) (Binding.name "simps"),
+            [Attrib.internal (K add_equation)]), [eq])
           #> apfst (hd o snd))
         (if null eqs then [] else (cnames ~~ eqs))
     val (inducts, lthy4) =

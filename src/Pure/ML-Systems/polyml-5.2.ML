@@ -27,4 +27,5 @@ fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
 use "ML-Systems/compiler_polyml-5.2.ML";
 use "ML-Systems/pp_polyml.ML";
+use "ML-Systems/pp_dummy.ML";
 

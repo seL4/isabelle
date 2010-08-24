@@ -1,5 +1,5 @@
 theory Multivariate_Analysis
-imports Integration Fashoda
+imports Fashoda Gauge_Measure
 begin
 
 end

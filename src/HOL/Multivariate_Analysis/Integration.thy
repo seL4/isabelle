@@ -5287,10 +5287,10 @@ next assume ?r { presume lem:"\<And>f::'n \<Rightarrow> 'm. f integrable_on UNIV
     qed finally show ?case . qed qed
 
 lemma nonnegative_absolutely_integrable: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'm::ordered_euclidean_space"
-  assumes "\<forall>x\<in>s. \<forall>i. 0 \<le> f(x)$$i" "f integrable_on s"
+  assumes "\<forall>x\<in>s. \<forall>i<DIM('m). 0 \<le> f(x)$$i" "f integrable_on s"
   shows "f absolutely_integrable_on s"
   unfolding absolutely_integrable_abs_eq apply rule defer
-  apply(rule integrable_eq[of _ f]) using assms by auto
+  apply(rule integrable_eq[of _ f]) using assms apply-apply(subst euclidean_eq) by auto
 
 lemma absolutely_integrable_integrable_bound: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 'm::ordered_euclidean_space"
   assumes "\<forall>x\<in>s. norm(f x) \<le> g x" "f integrable_on s" "g integrable_on s"

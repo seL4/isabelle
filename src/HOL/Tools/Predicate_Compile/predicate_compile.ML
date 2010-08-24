@@ -200,10 +200,10 @@ fun parse_mode_basic_expr xs =
   (Args.$$$ "i" >> K Input || Args.$$$ "o" >> K Output ||
     Args.$$$ "bool" >> K Bool || Args.$$$ "(" |-- parse_mode_expr --| Args.$$$ ")") xs
 and parse_mode_tuple_expr xs =
-  (parse_mode_basic_expr --| Args.$$$ "*" -- parse_mode_tuple_expr >> Pair || parse_mode_basic_expr)
+  (parse_mode_basic_expr --| (Args.$$$ "*" || Args.$$$ "\<times>") -- parse_mode_tuple_expr >> Pair || parse_mode_basic_expr)
     xs
 and parse_mode_expr xs =
-  (parse_mode_tuple_expr --| Args.$$$ "=>" -- parse_mode_expr >> Fun || parse_mode_tuple_expr) xs
+  (parse_mode_tuple_expr --| (Args.$$$ "=>" || Args.$$$ "\<Rightarrow>") -- parse_mode_expr >> Fun || parse_mode_tuple_expr) xs
 
 val mode_and_opt_proposal = parse_mode_expr --
   Scan.optional (Args.$$$ "as" |-- Parse.xname >> SOME) NONE
