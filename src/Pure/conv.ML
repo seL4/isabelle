@@ -48,6 +48,7 @@ sig
   val concl_conv: int -> conv -> conv
   val fconv_rule: conv -> thm -> thm
   val gconv_rule: conv -> int -> thm -> thm
+  val tap_thy: (theory -> conv) -> conv
 end;
 
 structure Conv: CONV =
@@ -210,6 +211,9 @@ fun gconv_rule cv i th =
         else Drule.with_subgoal i (fconv_rule (arg1_conv (K eq))) th
       end
   | NONE => raise THM ("gconv_rule", i, [th]));
+
+
+fun tap_thy conv ct = conv (Thm.theory_of_cterm ct) ct;
 
 end;
 

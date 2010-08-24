@@ -24,11 +24,12 @@ sig
   val all: code_graph -> string list
   val pretty: theory -> code_graph -> Pretty.T
   val obtain: theory -> string list -> term list -> code_algebra * code_graph
-  val eval_conv: theory
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
-  val eval: theory -> ((term -> term) -> 'a -> 'a)
+  val dynamic_eval_conv: theory
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
+  val dynamic_eval_value: theory -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
-  val pre_post_conv: theory -> (cterm -> thm) -> cterm -> thm
+  val static_eval_conv: theory -> string list
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> conv) -> conv
 
   val setup: theory -> theory
 end
@@ -74,8 +75,7 @@ fun delete_force msg key xs =
   if AList.defined (op =) xs key then AList.delete (op =) key xs
   else error ("No such " ^ msg ^ ": " ^ quote key);
 
-fun map_data f = Code.purge_data
-  #> (Code_Preproc_Data.map o map_thmproc) f;
+val map_data = Code_Preproc_Data.map o map_thmproc;
 
 val map_pre_post = map_data o apfst;
 val map_pre = map_pre_post o apfst;
@@ -422,10 +422,12 @@ structure Wellsorted = Code_Data
 
 (** retrieval and evaluation interfaces **)
 
-fun obtain thy cs ts = apsnd snd
-  (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
+fun obtain thy consts ts = apsnd snd
+  (Wellsorted.change_yield thy (extend_arities_eqngr thy consts ts));
 
-fun gen_eval thy cterm_of conclude_evaluation evaluator proto_ct =
+fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
+
+fun dynamic_eval thy cterm_of conclude_evaluation evaluator proto_ct =
   let
     val pp = Syntax.pp_global thy;
     val ct = cterm_of proto_ct;
@@ -433,17 +435,13 @@ fun gen_eval thy cterm_of conclude_evaluation evaluator proto_ct =
       (Thm.term_of ct);
     val thm = preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
-    val t' = Thm.term_of ct';
-    val vs = Term.add_tfrees t' [];
+    val (vs', t') = dest_cterm ct';
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
     val (algebra', eqngr') = obtain thy consts [t'];
-  in conclude_evaluation (evaluator algebra' eqngr' vs t' ct') thm end;
+  in conclude_evaluation (evaluator algebra' eqngr' vs' t' ct') thm end;
 
-fun simple_evaluator evaluator algebra eqngr vs t ct =
-  evaluator algebra eqngr vs t;
-
-fun eval_conv thy =
+fun dynamic_eval_conv thy =
   let
     fun conclude_evaluation thm2 thm1 =
       let
@@ -453,12 +451,22 @@ fun eval_conv thy =
           error ("could not construct evaluation proof:\n"
           ^ (cat_lines o map (Display.string_of_thm_global thy)) [thm1, thm2, thm3])
       end;
-  in gen_eval thy I conclude_evaluation end;
+  in dynamic_eval thy I conclude_evaluation end;
 
-fun eval thy postproc evaluator = gen_eval thy (Thm.cterm_of thy)
-  (K o postproc (postprocess_term thy)) (simple_evaluator evaluator);
+fun dynamic_eval_value thy postproc evaluator = dynamic_eval thy (Thm.cterm_of thy)
+  (K o postproc (postprocess_term thy)) (K oooo evaluator);
 
-fun pre_post_conv thy conv = (preprocess_conv thy) then_conv conv then_conv (postprocess_conv thy);
+fun static_eval_conv thy consts conv =
+  let
+    val (algebra, eqngr) = obtain thy consts [];
+    fun conv' ct =
+      let
+        val (vs, t) = dest_cterm ct;
+      in
+        Conv.tap_thy (fn thy => (preprocess_conv thy)
+          then_conv (conv algebra eqngr vs t) then_conv (postprocess_conv thy)) ct
+      end;
+  in conv' end;
 
 
 (** setup **)

@@ -78,7 +78,6 @@ sig
 
   (*infrastructure*)
   val set_code_target_attr: (string -> thm -> theory -> theory) -> theory -> theory
-  val purge_data: theory -> theory
 end;
 
 signature CODE_DATA_ARGS =
@@ -265,8 +264,6 @@ in
 val the_exec = fst o Code_Data.get;
 
 fun map_exec_purge f = Code_Data.map (fn (exec, _) => (f exec, empty_dataref ()));
-
-val purge_data = (Code_Data.map o apsnd) (fn _ => empty_dataref ());
 
 fun change_fun_spec delete c f = (map_exec_purge o map_functions
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, empty_fun_spec), [])))
