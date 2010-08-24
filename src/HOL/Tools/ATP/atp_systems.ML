@@ -125,9 +125,19 @@ fun available_atps thy =
   priority ("Available ATPs: " ^
             commas (sort_strings (Symtab.keys (Data.get thy))) ^ ".")
 
-fun to_generous_secs time = (Time.toMilliseconds time + 999) div 1000
+fun to_secs bonus time = (Time.toMilliseconds time + bonus + 999) div 1000
 
 (* E prover *)
+
+(* Give older versions of E an extra second, because the "eproof" script wrongly
+   subtracted an entire second to account for the overhead of the script
+   itself, which is in fact much lower. *)
+fun e_bonus () =
+  case getenv "E_VERSION" of
+    "" => 1000
+  | version =>
+    if exists (fn s => String.isPrefix s version) ["0.9", "1.0"] then 1000
+    else 0
 
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
@@ -137,8 +147,7 @@ val e_config : prover_config =
    required_execs = [],
    arguments = fn _ => fn timeout =>
      "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent \
-     \--soft-cpu-limit=" ^
-     string_of_int (to_generous_secs timeout),
+     \--cpu-limit=" ^ string_of_int (to_secs (e_bonus ()) timeout),
    has_incomplete_mode = false,
    proof_delims = [tstp_proof_delims],
    known_failures =
@@ -165,7 +174,7 @@ val spass_config : prover_config =
    required_execs = [("SPASS_HOME", "SPASS")],
    arguments = fn complete => fn timeout =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
-      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_generous_secs timeout))
+      \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 0 timeout))
      |> not complete ? prefix "-SOS=1 ",
    has_incomplete_mode = true,
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
@@ -191,7 +200,7 @@ val vampire_config : prover_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
-     "--mode casc -t " ^ string_of_int (to_generous_secs timeout) ^
+     "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
      " --thanks Andrei --input_file",
    has_incomplete_mode = false,
    proof_delims =
@@ -251,7 +260,7 @@ fun remote_config system_name system_versions proof_delims known_failures
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
-     " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
+     " -t " ^ string_of_int (to_secs 0 timeout) ^ " -s " ^
      the_system system_name system_versions,
    has_incomplete_mode = false,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
