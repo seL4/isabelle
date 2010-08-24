@@ -11,14 +11,13 @@ sig
      only: bool}
 
   val trace : bool Unsynchronized.ref
-  val chained_prefix : string
   val name_thms_pair_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
-    -> string * thm list
+    -> (string * bool) * thm list
   val relevant_facts :
     bool -> real -> real -> bool -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
-    -> (string * thm) list
+    -> ((string * bool) * thm) list
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
@@ -37,17 +36,14 @@ type relevance_override =
    only: bool}
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
-(* Used to label theorems chained into the goal. *)
-val chained_prefix = sledgehammer_prefix ^ "chained_"
 
 fun name_thms_pair_from_ref ctxt reserved chained_ths xref =
   let
     val ths = ProofContext.get_fact ctxt xref
     val name = Facts.string_of_ref xref
     val name = name |> Symtab.defined reserved name ? quote
-                    |> forall (member Thm.eq_thm chained_ths) ths
-                       ? prefix chained_prefix
-  in (name, ths) end
+    val chained = forall (member Thm.eq_thm chained_ths) ths
+  in ((name, chained), ths) end
 
 
 (***************************************************************)
@@ -282,7 +278,7 @@ fun defines thy thm gctypes =
         | _ => false
     end;
 
-type annotated_thm = (string * thm) * (string * const_typ list) list
+type annotated_thm = ((string * bool) * thm) * (string * const_typ list) list
 
 (*For a reverse sort, putting the largest values first.*)
 fun compare_pairs ((_, w1), (_, w2)) = Real.compare (w2, w1)
@@ -301,7 +297,7 @@ fun take_best max_new (new_pairs : (annotated_thm * real) list) =
                        ", exceeds the limit of " ^ Int.toString max_new));
         trace_msg (fn () => ("Effective pass mark: " ^ Real.toString (#2 (List.last accepted))));
         trace_msg (fn () => "Actually passed: " ^
-          space_implode ", " (map (fst o fst o fst) accepted));
+          space_implode ", " (map (fst o fst o fst o fst) accepted));
         (map #1 accepted, List.drop (new_pairs, max_new))
       end
   end;
@@ -343,7 +339,7 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                 if null add_thms then
                   []
                 else
-                  map_filter (fn ((p as (name, th), _), _) =>
+                  map_filter (fn ((p as ((name, _), th), _), _) =>
                                  if member Thm.eq_thm add_thms th then SOME p
                                  else NONE) rejects
             | relevant (new_pairs, rejects) [] =
@@ -367,8 +363,8 @@ fun relevance_filter ctxt relevance_threshold relevance_convergence
                 map #1 new_rels @ iter (j + 1) threshold rel_const_tab' rejects
               end
             | relevant (new_rels, rejects)
-                       (((ax as ((name, th), axiom_consts)), cached_weight)
-                        :: rest) =
+                       (((ax as (((name, chained), th), axiom_consts)),
+                         cached_weight) :: rest) =
               let
                 val weight =
                   case cached_weight of
@@ -537,15 +533,15 @@ fun is_theorem_bad_for_atps full_types thm =
 fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
   let
     val is_chained = member Thm.eq_thm chained_ths
-    fun is_bad_unnamed_local th =
-      exists (fn (_, ths) => member Thm.eq_thm ths th) named_locals orelse
-      (exists_subterm is_Var (prop_of th) andalso not (is_chained th))
     val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt)
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     (* Unnamed, not chained formulas with schematic variables are omitted,
        because they are rejected by the backticks (`...`) parser for some
        reason. *)
+    fun is_bad_unnamed_local th =
+      exists (fn (_, ths) => member Thm.eq_thm ths th) named_locals orelse
+      (exists_subterm is_Var (prop_of th) andalso not (is_chained th))
     val unnamed_locals =
       local_facts |> Facts.props |> filter_out is_bad_unnamed_local
                   |> map (pair "" o single)
@@ -579,25 +575,22 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
                 SOME name' => name' |> Symtab.defined reserved name' ? quote
               | NONE => ths |> map_filter (try backquotify) |> space_implode " "
           in
-            if name' = "" then
-              I
-            else
-              cons (name' |> forall is_chained ths0 ? prefix chained_prefix,
-                    ths)
+            if name' = "" then I
+            else cons ((name', forall is_chained ths0), ths)
           end)
   in
     [] |> add_valid_facts fold local_facts (unnamed_locals @ named_locals)
        |> add_valid_facts Facts.fold_static global_facts global_facts
   end
 
-fun multi_name a th (n, pairs) =
-  (n + 1, (a ^ "(" ^ Int.toString n ^ ")", th) :: pairs);
-
+fun multi_name (name, chained) th (n, pairs) =
+  (n + 1, ((name ^ "(" ^ Int.toString n ^ ")", chained), th) :: pairs)
 fun add_names (_, []) pairs = pairs
-  | add_names (a, [th]) pairs = (a, th) :: pairs
-  | add_names (a, ths) pairs = #2 (fold (multi_name a) ths (1, pairs))
+  | add_names (p, [th]) pairs = (p, th) :: pairs
+  | add_names (p, ths) pairs = #2 (fold (multi_name p) ths (1, pairs))
 
-fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;
+fun is_multi ((name, _), ths) =
+  length ths > 1 orelse String.isSuffix ".axioms" name
 
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
@@ -629,7 +622,7 @@ fun relevant_facts full_types relevance_threshold relevance_convergence
     relevance_filter ctxt relevance_threshold relevance_convergence
                      defs_relevant max_new theory_relevant relevance_override
                      axioms (concl_t :: hyp_ts)
-    |> sort_wrt fst
+    |> sort_wrt (fst o fst)
   end
 
 end;
