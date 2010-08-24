@@ -536,18 +536,23 @@ fun is_theorem_bad_for_atps full_types thm =
 
 fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
   let
-    val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt);
+    val is_chained = member Thm.eq_thm chained_ths
+    fun is_bad_unnamed_local th =
+      exists (fn (_, ths) => member Thm.eq_thm ths th) named_locals orelse
+      (exists_subterm is_Var (prop_of th) andalso not (is_chained th))
+    val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt)
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
+    (* Unnamed, not chained formulas with schematic variables are omitted,
+       because they are rejected by the backticks (`...`) parser for some
+       reason. *)
     val unnamed_locals =
-      local_facts |> Facts.props
-      |> filter_out (fn th => exists (fn (_, ths) => member Thm.eq_thm ths th)
-                                     named_locals)
-      |> map (pair "" o single)
+      local_facts |> Facts.props |> filter_out is_bad_unnamed_local
+                  |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
-    fun add_valid_facts xfold facts =
-      xfold (fn (name, ths0) =>
+    fun add_valid_facts foldx facts =
+      foldx (fn (name, ths0) =>
         if name <> "" andalso
            forall (not o member Thm.eq_thm add_thms) ths0 andalso
            (Facts.is_concealed facts name orelse
@@ -577,8 +582,8 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
             if name' = "" then
               I
             else
-              cons (name' |> forall (member Thm.eq_thm chained_ths) ths0
-                             ? prefix chained_prefix, ths)
+              cons (name' |> forall is_chained ths0 ? prefix chained_prefix,
+                    ths)
           end)
   in
     [] |> add_valid_facts fold local_facts (unnamed_locals @ named_locals)
