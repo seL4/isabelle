@@ -10,8 +10,8 @@ sig
   type params = Sledgehammer.params
 
   val minimize_theorems :
-    params -> int -> int -> Proof.state -> (string * thm list) list
-    -> (string * thm list) list option * string
+    params -> int -> int -> Proof.state -> ((string * bool) * thm list) list
+    -> ((string * bool) * thm list) list option * string
   val run_minimize : params -> int -> Facts.ref list -> Proof.state -> unit
 end;
 
@@ -30,14 +30,12 @@ fun string_for_failure Unprovable = "Unprovable."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure _ = "Unknown error."
 
-fun n_theorems name_thms_pairs =
-  let val n = length name_thms_pairs in
+fun n_theorems names =
+  let val n = length names in
     string_of_int n ^ " theorem" ^ plural_s n ^
     (if n > 0 then
-       ": " ^ space_implode " "
-                  (name_thms_pairs
-                   |> map (perhaps (try (unprefix chained_prefix)))
-                   |> sort_distinct string_ord)
+       ": " ^ (names |> map fst
+                     |> sort_distinct string_ord |> space_implode " ")
      else
        "")
   end
@@ -65,8 +63,7 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types,
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
       relevance_override = {add = [], del = [], only = false},
       axioms = SOME axioms}
-    val result as {outcome, used_thm_names, ...} =
-      prover params (K "") problem
+    val result as {outcome, used_thm_names, ...} = prover params (K "") problem
   in
     priority (case outcome of
                 NONE =>
@@ -80,8 +77,7 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types,
 
 (* minimalization of thms *)
 
-fun filter_used_facts used =
-  filter (member (op =) used o perhaps (try (unprefix chained_prefix)) o fst)
+fun filter_used_facts used = filter (member (op =) used o fst)
 
 fun sublinear_minimize _ [] p = p
   | sublinear_minimize test (x :: xs) (seen, result) =
@@ -130,10 +126,9 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          val n = length min_thms
          val _ = priority (cat_lines
            ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^
-            (case filter (String.isPrefix chained_prefix o fst) min_thms of
-               [] => ""
-             | chained => " (including " ^ Int.toString (length chained) ^
-                          " chained)") ^ ".")
+            (case length (filter (snd o fst) min_thms) of
+               0 => ""
+             | n => " (including " ^ Int.toString n ^ " chained)") ^ ".")
        in
          (SOME min_thms,
           proof_text isar_proof
@@ -157,8 +152,11 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
 fun run_minimize params i refs state =
   let
     val ctxt = Proof.context_of state
+    val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
-    val name_thms_pairs = map (name_thms_pair_from_ref ctxt chained_ths) refs
+    val name_thms_pairs =
+      map (apfst (fn f => f ())
+           o name_thms_pair_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of
       0 => priority "No subgoal!"

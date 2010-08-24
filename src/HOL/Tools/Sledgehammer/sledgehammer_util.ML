@@ -6,6 +6,7 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
+  val is_true_for : (string * bool) vector -> string -> bool
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val strip_spaces : string -> string
@@ -21,10 +22,14 @@ sig
   val specialize_type : theory -> (string * typ) -> term -> term
   val subgoal_count : Proof.state -> int
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
+  val reserved_isar_keyword_table : unit -> unit Symtab.table
 end;
  
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
+
+fun is_true_for v s =
+  Vector.foldl (fn ((s', b'), b) => if s' = s then b' else b) false v
 
 fun plural_s n = if n = 1 then "" else "s"
 
@@ -154,5 +159,9 @@ fun strip_subgoal goal i =
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
   in (rev (map dest_Free frees), hyp_ts, concl_t) end
+
+fun reserved_isar_keyword_table () =
+  union (op =) (Keyword.dest_keywords ()) (Keyword.dest_commands ())
+  |> map (rpair ()) |> Symtab.make
 
 end;

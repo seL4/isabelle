@@ -293,7 +293,7 @@ fun get_atp thy args =
 local
 
 datatype sh_result =
-  SH_OK of int * int * string list |
+  SH_OK of int * int * (string * bool) list |
   SH_FAIL of int * int |
   SH_ERROR
 
@@ -354,7 +354,9 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
   in
     case result of
       SH_OK (time_isa, time_atp, names) =>
-        let fun get_thms name = (name, thms_of_name (Proof.context_of st) name)
+        let
+          fun get_thms (name, chained) =
+            ((name, chained), thms_of_name (Proof.context_of st) name)
         in
           change_data id inc_sh_success;
           change_data id (inc_sh_lemmas (length names));
@@ -442,7 +444,8 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
     if can Logic.dest_conjunction goal orelse can Logic.dest_equals goal
     then () else
     let
-      val named_thms = Unsynchronized.ref (NONE : (string * thm list) list option)
+      val named_thms =
+        Unsynchronized.ref (NONE : ((string * bool) * thm list) list option)
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
   

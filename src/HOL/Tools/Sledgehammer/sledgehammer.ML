@@ -30,16 +30,16 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axioms: (string * thm) list option}
+     axioms: ((string * bool) * thm) list option}
   type prover_result =
     {outcome: failure option,
      message: string,
      pool: string Symtab.table,
-     used_thm_names: string list,
+     used_thm_names: (string * bool) list,
      atp_run_time_in_msecs: int,
      output: string,
      proof: string,
-     axiom_names: string Vector.vector,
+     axiom_names: (string * bool) vector,
      conjecture_shape: int list list}
   type prover = params -> minimize_command -> problem -> prover_result
 
@@ -100,17 +100,17 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axioms: (string * thm) list option}
+   axioms: ((string * bool) * thm) list option}
 
 type prover_result =
   {outcome: failure option,
    message: string,
    pool: string Symtab.table,
-   used_thm_names: string list,
+   used_thm_names: (string * bool) list,
    atp_run_time_in_msecs: int,
    output: string,
    proof: string,
-   axiom_names: string Vector.vector,
+   axiom_names: (string * bool) vector,
    conjecture_shape: int list list}
 
 type prover = params -> minimize_command -> problem -> prover_result
@@ -180,11 +180,11 @@ val extract_clause_formula_relation =
   #> parse_clause_formula_relation #> fst
 
 fun repair_conjecture_shape_and_theorem_names output conjecture_shape
-                                              thm_names =
+                                              axiom_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
     (* This is a hack required for keeping track of axioms after they have been
-       clausified by SPASS's Flotter tool. The "ATP/scripts/spass" script is also
-       part of this hack. *)
+       clausified by SPASS's Flotter tool. The "ATP/scripts/spass" script is
+       also part of this hack. *)
     let
       val j0 = hd (hd conjecture_shape)
       val seq = extract_clause_sequence output
@@ -193,15 +193,20 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
         conjecture_prefix ^ Int.toString (j - j0)
         |> AList.find (fn (s, ss) => member (op =) ss s) name_map
         |> map (fn s => find_index (curry (op =) s) seq + 1)
+      fun name_for_number j =
+        let
+          val axioms =
+            j |> AList.lookup (op =) name_map
+              |> these |> map_filter (try (unprefix axiom_prefix))
+              |> map undo_ascii_of
+          val chained = forall (is_true_for axiom_names) axioms
+        in (axioms |> space_implode " ", chained) end
     in
       (conjecture_shape |> map (maps renumber_conjecture),
-       seq |> map (AList.lookup (op =) name_map #> these
-                   #> map_filter (try (unprefix axiom_prefix))
-                   #> map undo_ascii_of #> space_implode " ")
-           |> Vector.fromList)
+       seq |> map name_for_number |> Vector.fromList)
     end
   else
-    (conjecture_shape, thm_names)
+    (conjecture_shape, axiom_names)
 
 
 (* generic TPTP-based provers *)

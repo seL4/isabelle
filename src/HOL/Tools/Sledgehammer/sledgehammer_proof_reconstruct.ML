@@ -11,16 +11,16 @@ sig
   type minimize_command = string list -> string
 
   val metis_proof_text:
-    bool * minimize_command * string * string vector * thm * int
-    -> string * string list
+    bool * minimize_command * string * (string * bool) vector * thm * int
+    -> string * (string * bool) list
   val isar_proof_text:
     string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * string vector * thm * int
-    -> string * string list
+    -> bool * minimize_command * string * (string * bool) vector * thm * int
+    -> string * (string * bool) list
   val proof_text:
     bool -> string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * string vector * thm * int
-    -> string * string list
+    -> bool * minimize_command * string * (string * bool) vector * thm * int
+    -> string * (string * bool) list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -60,7 +60,7 @@ fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 fun index_in_shape x = find_index (exists (curry (op =) x))
 fun is_axiom_number axiom_names num =
   num > 0 andalso num <= Vector.length axiom_names andalso
-  Vector.sub (axiom_names, num - 1) <> ""
+  fst (Vector.sub (axiom_names, num - 1)) <> ""
 fun is_conjecture_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
 
@@ -564,7 +564,7 @@ val split_proof_lines =
    "108. ... [input]". *)
 fun used_facts_in_atp_proof axiom_names atp_proof =
   let
-    fun axiom_name num =
+    fun axiom_name_at_index num =
       let val j = Int.fromString num |> the_default ~1 in
         if is_axiom_number axiom_names j then
           SOME (Vector.sub (axiom_names, j - 1))
@@ -573,18 +573,20 @@ fun used_facts_in_atp_proof axiom_names atp_proof =
       end
     val tokens_of =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
-    val thm_name_list = Vector.foldr (op ::) [] axiom_names
     fun do_line (tag :: num :: "axiom" :: (rest as _ :: _)) =
         if tag = "cnf" orelse tag = "fof" then
           (case strip_prefix_and_undo_ascii axiom_prefix (List.last rest) of
              SOME name =>
-             if member (op =) rest "file" then SOME name else axiom_name num
-           | NONE => axiom_name num)
+             if member (op =) rest "file" then
+               SOME (name, is_true_for axiom_names name)
+             else
+               axiom_name_at_index num
+           | NONE => axiom_name_at_index num)
         else
           NONE
-      | do_line (num :: "0" :: "Inp" :: _) = axiom_name num
+      | do_line (num :: "0" :: "Inp" :: _) = axiom_name_at_index num
       | do_line (num :: rest) =
-        (case List.last rest of "input" => axiom_name num | _ => NONE)
+        (case List.last rest of "input" => axiom_name_at_index num | _ => NONE)
       | do_line _ = NONE
   in atp_proof |> split_proof_lines |> map_filter (do_line o tokens_of) end
 
@@ -613,30 +615,27 @@ fun metis_line full_types i n ss =
   "Try this command: " ^
   Markup.markup Markup.sendback (metis_command full_types i n ([], ss)) ^ "."
 fun minimize_line _ [] = ""
-  | minimize_line minimize_command facts =
-    case minimize_command facts of
+  | minimize_line minimize_command ss =
+    case minimize_command ss of
       "" => ""
     | command =>
       "\nTo minimize the number of lemmas, try this: " ^
       Markup.markup Markup.sendback command ^ "."
 
-val unprefix_chained = perhaps (try (unprefix chained_prefix))
-
 fun used_facts axiom_names =
   used_facts_in_atp_proof axiom_names
-  #> List.partition (String.isPrefix chained_prefix)
-  #>> map (unprefix chained_prefix)
-  #> pairself (sort_distinct string_ord)
+  #> List.partition snd
+  #> pairself (sort_distinct (string_ord) o map fst)
 
 fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
                       goal, i) =
   let
     val (chained_lemmas, other_lemmas) = used_facts axiom_names atp_proof
-    val lemmas = other_lemmas @ chained_lemmas
     val n = Logic.count_prems (prop_of goal)
   in
     (metis_line full_types i n other_lemmas ^
-     minimize_line minimize_command lemmas, lemmas)
+     minimize_line minimize_command (other_lemmas @ chained_lemmas),
+     map (rpair false) other_lemmas @ map (rpair true) chained_lemmas)
   end
 
 (** Isar proof construction and manipulation **)
@@ -663,7 +662,7 @@ fun smart_case_split [] facts = ByMetis facts
 
 fun add_fact_from_dep axiom_names num =
   if is_axiom_number axiom_names num then
-    apsnd (insert (op =) (Vector.sub (axiom_names, num - 1)))
+    apsnd (insert (op =) (fst (Vector.sub (axiom_names, num - 1))))
   else
     apfst (insert (op =) (raw_prefix, num))
 
@@ -964,10 +963,9 @@ fun string_for_proof ctxt full_types i n =
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
     fun do_facts (ls, ss) =
-      let
-        val ls = ls |> sort_distinct (prod_ord string_ord int_ord)
-        val ss = ss |> map unprefix_chained |> sort_distinct string_ord
-      in metis_command full_types 1 1 (ls, ss) end
+      metis_command full_types 1 1
+                    (ls |> sort_distinct (prod_ord string_ord int_ord),
+                     ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =
         do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
       | do_step ind (Let (t1, t2)) =
