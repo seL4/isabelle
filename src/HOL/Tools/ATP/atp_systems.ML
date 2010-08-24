@@ -136,7 +136,8 @@ val e_config : prover_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
-     "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^
+     "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent \
+     \--soft-cpu-limit=" ^
      string_of_int (to_generous_secs timeout),
    has_incomplete_mode = false,
    proof_delims = [tstp_proof_delims],
