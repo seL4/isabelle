@@ -86,6 +86,8 @@ fun add_const_to_table (c, ctyps) =
   Symtab.map_default (c, [ctyps])
                      (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
 
+fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
+
 val fresh_prefix = "Sledgehammer.FRESH."
 val flip = Option.map not
 (* These are typically simplified away by "Meson.presimplify". *)
@@ -111,8 +113,7 @@ fun get_consts thy pos ts =
           else
             I)
     and do_term_or_formula T =
-      if T = @{typ bool} orelse T = @{typ prop} then do_formula NONE
-      else do_term
+      if is_formula_type T then do_formula NONE else do_term
     and do_formula pos t =
       case t of
         Const (@{const_name all}, _) $ Abs (_, _, body_t) =>
@@ -223,6 +224,7 @@ fun irrel_log (x : real) = Math.ln (x + 19.0) / 6.4
 (* Computes a constant's weight, as determined by its frequency. *)
 val rel_const_weight = rel_log o real oo const_frequency
 val irrel_const_weight = irrel_log o real oo const_frequency
+(* fun irrel_const_weight _ _ = 1.0  FIXME: OLD CODE *)
 
 fun axiom_weight const_tab relevant_consts axiom_consts =
   let
@@ -428,8 +430,6 @@ fun term_has_too_many_lambdas max (t1 $ t2) =
     max = 0 orelse term_has_too_many_lambdas (max - 1) t
   | term_has_too_many_lambdas _ _ = false
 
-fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
-
 (* Don't count nested lambdas at the level of formulas, since they are
    quantifiers. *)
 fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
@@ -440,7 +440,7 @@ fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
     else
       term_has_too_many_lambdas max_lambda_nesting t
 
-(* The max apply depth of any "metis" call in "Metis_Examples" (on 31-10-2007)
+(* The max apply depth of any "metis" call in "Metis_Examples" (on 2007-10-31)
    was 11. *)
 val max_apply_depth = 15
 
