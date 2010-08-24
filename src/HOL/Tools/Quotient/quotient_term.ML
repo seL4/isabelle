@@ -225,12 +225,16 @@ fun absrep_fun flag ctxt (rty, qty) =
              val qtyenv = match ctxt absrep_match_err qty_pat qty
              val args_aux = map (double_lookup rtyenv qtyenv) vs
              val args = map (absrep_fun flag ctxt) args_aux
-             val map_fun = mk_mapfun ctxt vs rty_pat
-             val result = list_comb (map_fun, args)
            in
              if forall is_identity args
              then absrep_const flag ctxt s'
-             else mk_fun_compose flag (absrep_const flag ctxt s', result)
+             else 
+               let
+                 val map_fun = mk_mapfun ctxt vs rty_pat
+                 val result = list_comb (map_fun, args)
+               in
+                 mk_fun_compose flag (absrep_const flag ctxt s', result)
+               end
            end
     | (TFree x, TFree x') =>
         if x = x'
@@ -332,14 +336,18 @@ fun equiv_relation ctxt (rty, qty) =
            val qtyenv = match ctxt equiv_match_err qty_pat qty
            val args_aux = map (double_lookup rtyenv qtyenv) vs
            val args = map (equiv_relation ctxt) args_aux
-           val rel_map = mk_relmap ctxt vs rty_pat
-           val result = list_comb (rel_map, args)
            val eqv_rel = get_equiv_rel ctxt s'
            val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> @{typ bool})
          in
            if forall is_eq args
            then eqv_rel'
-           else mk_rel_compose (result, eqv_rel')
+           else 
+             let 
+               val rel_map = mk_relmap ctxt vs rty_pat
+               val result = list_comb (rel_map, args)
+             in
+               mk_rel_compose (result, eqv_rel')
+             end
          end
       | _ => HOLogic.eq_const rty
 
@@ -740,10 +748,14 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
      false: raw -> quotient
 *)
 fun mk_ty_subst qtys direction ctxt =
+let
+  val thy = ProofContext.theory_of ctxt  
+in
   Quotient_Info.quotdata_dest ctxt
    |> map (fn x => (#rtyp x, #qtyp x))
-   |> filter (fn (_, qty) => member (op =) qtys qty)
+   |> filter (fn (_, qty) => member (Sign.typ_instance thy o swap) qtys qty)
    |> map (if direction then swap else I)
+end
 
 fun mk_trm_subst qtys direction ctxt =
 let

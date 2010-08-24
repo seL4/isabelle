@@ -686,8 +686,8 @@ let
     rthm 
     |> asm_full_simplify ss
     |> Drule.eta_contraction_rule 
-  val ((_, [rthm'']), ctxt') = Variable.import false [rthm'] ctxt
-  val goal = derive_qtrm ctxt qtys (prop_of rthm'')
+  val ((_, [rthm'']), ctxt') = Variable.import true [rthm'] ctxt
+  val goal = derive_qtrm ctxt' qtys (prop_of rthm'')
 in
   Goal.prove ctxt' [] [] goal 
     (K ((asm_full_simp_tac ss THEN' lift_single_tac ctxt' rthm') 1))
