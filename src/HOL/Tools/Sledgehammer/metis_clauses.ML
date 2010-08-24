@@ -121,7 +121,7 @@ val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
   Alphanumeric characters are left unchanged.
   The character _ goes to __
   Characters in the range ASCII space to / go to _A to _P, respectively.
-  Other printing characters go to _nnn where nnn is the decimal ASCII code.*)
+  Other characters go to _nnn where nnn is the decimal ASCII code.*)
 val A_minus_space = Char.ord #"A" - Char.ord #" ";
 
 fun stringN_of_int 0 _ = ""
@@ -132,9 +132,7 @@ fun ascii_of_c c =
   else if c = #"_" then "__"
   else if #" " <= c andalso c <= #"/"
        then "_" ^ String.str (Char.chr (Char.ord c + A_minus_space))
-  else if Char.isPrint c
-       then ("_" ^ stringN_of_int 3 (Char.ord c))  (*fixed width, in case more digits follow*)
-  else ""
+  else ("_" ^ stringN_of_int 3 (Char.ord c))  (*fixed width, in case more digits follow*)
 
 val ascii_of = String.translate ascii_of_c;
 

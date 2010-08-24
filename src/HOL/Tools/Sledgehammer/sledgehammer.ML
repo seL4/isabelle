@@ -174,10 +174,9 @@ val parse_clause_formula_relation =
   Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
   |-- Scan.repeat parse_clause_formula_pair
 val extract_clause_formula_relation =
-  Substring.full
-  #> Substring.position set_ClauseFormulaRelationN
-  #> snd #> Substring.string #> strip_spaces #> explode
-  #> parse_clause_formula_relation #> fst
+  Substring.full #> Substring.position set_ClauseFormulaRelationN
+  #> snd #> Substring.string #> strip_spaces_except_between_ident_chars
+  #> explode #> parse_clause_formula_relation #> fst
 
 fun repair_conjecture_shape_and_theorem_names output conjecture_shape
                                               axiom_names =

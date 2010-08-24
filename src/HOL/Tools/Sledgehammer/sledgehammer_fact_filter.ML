@@ -540,14 +540,14 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
     (* Unnamed, not chained formulas with schematic variables are omitted,
        because they are rejected by the backticks (`...`) parser for some
        reason. *)
-    fun is_bad_unnamed_local th =
-      exists (fn (_, ths) => member Thm.eq_thm ths th) named_locals orelse
-      (exists_subterm is_Var (prop_of th) andalso not (is_chained th))
+    fun is_good_unnamed_local th =
+      forall (fn (_, ths) => not (member Thm.eq_thm ths th)) named_locals
+      andalso (not (exists_subterm is_Var (prop_of th)) orelse (is_chained th))
     val unnamed_locals =
-      local_facts |> Facts.props |> filter_out is_bad_unnamed_local
+      local_facts |> Facts.props |> filter is_good_unnamed_local
                   |> map (pair "" o single)
     val full_space =
-      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts);
+      Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_valid_facts foldx facts =
       foldx (fn (name0, ths) =>
         if name0 <> "" andalso
@@ -563,6 +563,8 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
             fun backquotify th =
               "`" ^ Print_Mode.setmp [Print_Mode.input]
                                  (Syntax.string_of_term ctxt) (prop_of th) ^ "`"
+              |> String.translate (fn c => if Char.isPrint c then str c else "")
+              |> simplify_spaces
             fun check_thms a =
               case try (ProofContext.get_thms ctxt) a of
                 NONE => false

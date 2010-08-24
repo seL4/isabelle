@@ -234,7 +234,7 @@ fun parse_proof pool =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
                             (parse_lines pool)))
-  o explode o strip_spaces
+  o explode o strip_spaces_except_between_ident_chars
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
