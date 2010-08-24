@@ -26,10 +26,10 @@ object Command
 
     def add_markup(info: Text.Info[Any]): State = copy(markup = markup + info)
 
-    def markup_root_info: Text.Info[Any] =
+    def root_info: Text.Info[Any] =
       new Text.Info(command.range,
-        XML.Elem(Markup(Markup.STATUS, Nil), status.map(XML.Elem(_, Nil))))
-    def markup_root: Markup_Tree = markup + markup_root_info
+        XML.Elem(Markup(Markup.STATUS, Nil), status.reverse.map(XML.Elem(_, Nil))))
+    def root_markup: Markup_Tree = markup + root_info
 
 
     /* message dispatch */

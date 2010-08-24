@@ -130,7 +130,7 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
     val root = data.root
     val snapshot = Swing_Thread.now { model.snapshot() }  // FIXME cover all nodes (!??)
     for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
-      snapshot.state(command).markup_root.swing_tree(root)((info: Text.Info[Any]) =>
+      snapshot.state(command).root_markup.swing_tree(root)((info: Text.Info[Any]) =>
           {
             val content = command.source(info.range).replace('\n', ' ')
             val id = command.id
