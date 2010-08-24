@@ -64,10 +64,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
         new Markup_Tree(Branches.update(branches, new_info -> empty))
       case Some((info, subtree)) =>
         val range = info.range
-        if (range == new_range)  // FIXME append, not cons (!??)
-          new Markup_Tree(Branches.update(branches,
-            new_info -> new Markup_Tree(Branches.single((info, subtree)))))
-        else if (range.contains(new_range))
+        if (range.contains(new_range))
           new Markup_Tree(Branches.update(branches, info -> (subtree + new_info)))
         else if (new_range.contains(branches.head._1) && new_range.contains(branches.last._1))
           new Markup_Tree(Branches.single(new_info -> this))
