@@ -3,7 +3,7 @@ imports Information
 begin
 
 lemma finite_information_spaceI:
-  "\<lbrakk> finite_measure_space M ; measure M (space M) = 1 ; 1 < b \<rbrakk> \<Longrightarrow> finite_information_space M b"
+  "\<lbrakk> finite_measure_space M \<mu> ; \<mu> (space M) = 1 ; 1 < b \<rbrakk> \<Longrightarrow> finite_information_space M \<mu> b"
   unfolding finite_information_space_def finite_measure_space_def finite_measure_space_axioms_def
     finite_prob_space_def prob_space_def prob_space_axioms_def finite_information_space_axioms_def
   by auto
@@ -13,32 +13,26 @@ locale finite_space =
   assumes finite[simp]: "finite S"
   and not_empty[simp]: "S \<noteq> {}"
 
-definition (in finite_space) "M = \<lparr> space = S, sets = Pow S, measure = (\<lambda>s. real (card s) / real (card S)) \<rparr>"
+definition (in finite_space) "M = \<lparr> space = S, sets = Pow S \<rparr>"
+definition (in finite_space) \<mu>_def[simp]: "\<mu> A = (of_nat (card A) / of_nat (card S) :: pinfreal)"
 
 lemma (in finite_space)
   shows space_M[simp]: "space M = S"
   and sets_M[simp]: "sets M = Pow S"
-  and measure_M[simp]: "measure M s = real (card s) / real (card S)"
   by (simp_all add: M_def)
 
-sublocale finite_space \<subseteq> finite_information_space M 2
+sublocale finite_space \<subseteq> finite_information_space M \<mu> 2
 proof (rule finite_information_spaceI)
   let ?measure = "\<lambda>s::'a set. real (card s) / real (card S)"
 
-  show "finite_measure_space M"
+  show "finite_measure_space M \<mu>"
   proof (rule finite_Pow_additivity_sufficient, simp_all)
-    show "positive M (measure M)"
-      by (simp add: positive_def le_divide_eq)
+    show "positive \<mu>" by (simp add: positive_def)
 
-    show "additive M (measure M)"
-    proof (simp add: additive_def, safe)
-      fix x y assume "x \<subseteq> S" and "y \<subseteq> S" and "x \<inter> y = {}"
-      with this(1,2)[THEN finite_subset]
-      have "card (x \<union> y) = card x + card y"
-        by (simp add: card_Un_disjoint)
-      thus "?measure (x \<union> y) = ?measure x + ?measure y"
-        by (cases "card S = 0") (simp_all add: field_simps)
-    qed
+    show "additive M \<mu>"
+      by (simp add: additive_def inverse_eq_divide field_simps Real_real
+                    divide_le_0_iff zero_le_divide_iff
+                    card_Un_disjoint finite_subset[OF _ finite])
   qed
 qed simp_all
 
@@ -508,7 +502,7 @@ proof -
   let ?dI = "distribution inversion"
 
   { have "\<H>(inversion|payer) =
-        - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. ?dIP {(x, z)} * log 2 (?dIP {(x, z)} / ?dP {z})))"
+        - (\<Sum>x\<in>inversion`dc_crypto. (\<Sum>z\<in>Some ` {0..<n}. real (?dIP {(x, z)}) * log 2 (real (?dIP {(x, z)}) / real (?dP {z}))))"
       unfolding conditional_entropy_eq
       by (simp add: image_payer_dc_crypto setsum_Sigma)
     also have "... =
@@ -522,18 +516,20 @@ proof -
       moreover from x z obtain i where "z = Some i" and "i < n" by auto
       moreover from x have "length x = n" by (auto simp: inversion_def_raw dc_crypto)
       ultimately
-      have "?dIP {(x, z)} = 2 / (real n * 2^n)" using x
-        by (simp add: distribution_def card_dc_crypto card_payer_and_inversion)
+      have "real (?dIP {(x, z)}) = 2 / (real n * 2^n)" using x
+        by (simp add: distribution_def card_dc_crypto card_payer_and_inversion
+                      inverse_eq_divide mult_le_0_iff zero_le_mult_iff power_le_zero_eq)
       moreover
       from z have "payer -` {z} \<inter> dc_crypto = {z} \<times> {xs. length xs = n}"
         by (auto simp: dc_crypto payer_def)
       hence "card (payer -` {z} \<inter> dc_crypto) = 2^n"
         using card_list_length[where A="UNIV::bool set"]
         by (simp add: card_cartesian_product_singleton)
-      hence "?dP {z} = 1 / real n"
-        by (simp add: distribution_def card_dc_crypto)
+      hence "real (?dP {z}) = 1 / real n"
+        by (simp add: distribution_def card_dc_crypto field_simps inverse_eq_divide
+                      mult_le_0_iff zero_le_mult_iff power_le_zero_eq)
       ultimately
-      show "?dIP {(x,z)} * log 2 (?dIP {(x,z)} / ?dP {z}) =
+      show "real (?dIP {(x,z)}) * log 2 (real (?dIP {(x,z)}) / real (?dP {z})) =
        2 / (real n * 2^n) * (1 - real n)"
         by (simp add: field_simps log_divide log_nat_power[of 2])
     qed
@@ -542,7 +538,7 @@ proof -
       by (simp add: card_image_inversion card_image[OF inj_Some] field_simps real_eq_of_nat[symmetric])
     finally have "\<H>(inversion|payer) = real n - 1" . }
   moreover
-  { have "\<H>(inversion) = - (\<Sum>x \<in> inversion`dc_crypto. ?dI {x} * log 2 (?dI {x}))"
+  { have "\<H>(inversion) = - (\<Sum>x \<in> inversion`dc_crypto. real (?dI {x}) * log 2 (real (?dI {x})))"
       unfolding entropy_eq by simp
     also have "... = - (\<Sum>x \<in> inversion`dc_crypto. 2 * (1 - real n) / 2^n)"
       unfolding neg_equal_iff_equal
@@ -551,9 +547,10 @@ proof -
       hence "length x = n" by (auto simp: inversion_def_raw dc_crypto)
       moreover have "inversion -` {x} \<inter> dc_crypto = {dc \<in> dc_crypto. inversion dc = x}" by auto
       ultimately have "?dI {x} = 2 / 2^n" using `0 < n`
-        by (simp add: distribution_def card_inversion[OF x_inv] card_dc_crypto)
-      thus "?dI {x} * log 2 (?dI {x}) = 2 * (1 - real n) / 2^n"
-        by (simp add: log_divide log_nat_power)
+        by (simp add: distribution_def card_inversion[OF x_inv] card_dc_crypto
+                      mult_le_0_iff zero_le_mult_iff power_le_zero_eq)
+      thus "real (?dI {x}) * log 2 (real (?dI {x})) = 2 * (1 - real n) / 2^n"
+        by (simp add: log_divide log_nat_power power_le_zero_eq inverse_eq_divide)
     qed
     also have "... = real n - 1"
       by (simp add: card_image_inversion real_of_nat_def[symmetric] field_simps)

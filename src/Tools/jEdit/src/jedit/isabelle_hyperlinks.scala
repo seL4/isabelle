@@ -40,6 +40,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
 {
   def getHyperlink(buffer: Buffer, buffer_offset: Int): Hyperlink =
   {
+    // FIXME lock buffer (!??)
     Swing_Thread.assert()
     Document_Model(buffer) match {
       case Some(model) =>

@@ -155,7 +155,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   /* raw stdin */
 
   private def stdin_actor(name: String, stream: OutputStream): Actor =
-    Library.thread_actor(name) {
+    Simple_Thread.actor(name) {
       val writer = new BufferedWriter(new OutputStreamWriter(stream, Standard_System.charset))
       var finished = false
       while (!finished) {
@@ -184,7 +184,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   /* raw stdout */
 
   private def stdout_actor(name: String, stream: InputStream): Actor =
-    Library.thread_actor(name) {
+    Simple_Thread.actor(name) {
       val reader = new BufferedReader(new InputStreamReader(stream, Standard_System.charset))
       var result = new StringBuilder(100)
 
@@ -221,7 +221,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   /* command input */
 
   private def input_actor(name: String, raw_stream: OutputStream): Actor =
-    Library.thread_actor(name) {
+    Simple_Thread.actor(name) {
       val stream = new BufferedOutputStream(raw_stream)
       var finished = false
       while (!finished) {
@@ -253,7 +253,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
   private class Protocol_Error(msg: String) extends Exception(msg)
 
   private def message_actor(name: String, stream: InputStream): Actor =
-    Library.thread_actor(name) {
+    Simple_Thread.actor(name) {
       val default_buffer = new Array[Byte](65536)
       var c = -1
 
@@ -344,7 +344,7 @@ class Isabelle_Process(system: Isabelle_System, receiver: Actor, args: String*)
 
   /* exit process */
 
-  Library.thread_actor("process_exit") {
+  Simple_Thread.actor("process_exit") {
     proc match {
       case None =>
       case Some(p) =>

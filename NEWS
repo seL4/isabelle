@@ -155,6 +155,13 @@ spaces the real and complex numbers are instantiated to be euclidean_spaces.
 
 INCOMPATIBILITY.
 
+* Probability: Introduced pinfreal as real numbers with infinity. Use pinfreal
+as value for measures. Introduces Lebesgue Measure based on the integral in
+Multivariate Analysis. Proved Radon Nikodym for arbitrary sigma finite measure
+spaces.
+
+ INCOMPATIBILITY.
+
 * Inductive package: offers new command "inductive_simps" to automatically
 derive instantiated and simplified equations for inductive predicates,
 similar to inductive_cases.
