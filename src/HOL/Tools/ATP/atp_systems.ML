@@ -228,24 +228,30 @@ fun get_systems () =
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
-fun get_system prefix =
+fun find_system name [] systems = find_first (String.isPrefix name) systems
+  | find_system name (version :: versions) systems =
+    case find_first (String.isPrefix (name ^ "---" ^ version)) systems of
+      NONE => find_system name versions systems
+    | res => res
+
+fun get_system name versions =
   Synchronized.change_result systems
       (fn systems => (if null systems then get_systems () else systems)
-                     |> `(find_first (String.isPrefix prefix)))
+                     |> `(find_system name versions))
 
-fun the_system prefix =
-  (case get_system prefix of
-    NONE => error ("System " ^ quote prefix ^ " not available at SystemOnTPTP.")
-  | SOME sys => sys);
+fun the_system name versions =
+  case get_system name versions of
+    NONE => error ("System " ^ quote name ^ " not available at SystemOnTPTP.")
+  | SOME sys => sys
 
-fun remote_config system_prefix proof_delims known_failures
+fun remote_config system_name system_versions proof_delims known_failures
                   default_max_relevant_per_iter default_theory_relevant
                   use_conjecture_for_hypotheses =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
      " -t " ^ string_of_int (to_generous_secs timeout) ^ " -s " ^
-     the_system system_prefix,
+     the_system system_name system_versions,
    has_incomplete_mode = false,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
@@ -256,32 +262,32 @@ fun remote_config system_prefix proof_delims known_failures
    explicit_forall = true,
    use_conjecture_for_hypotheses = use_conjecture_for_hypotheses}
 
-fun remotify_config system_prefix
+fun remotify_config system_name system_versions
         ({proof_delims, known_failures, default_max_relevant_per_iter,
           default_theory_relevant, use_conjecture_for_hypotheses, ...}
          : prover_config) : prover_config =
-  remote_config system_prefix proof_delims known_failures
+  remote_config system_name system_versions proof_delims known_failures
                 default_max_relevant_per_iter default_theory_relevant
                 use_conjecture_for_hypotheses
 
 val remotify_name = prefix "remote_"
-fun remote_prover name system_prefix proof_delims known_failures
+fun remote_prover name system_name system_versions proof_delims known_failures
                   default_max_relevant_per_iter default_theory_relevant
                   use_conjecture_for_hypotheses =
   (remotify_name name,
-   remote_config system_prefix proof_delims known_failures
+   remote_config system_name system_versions proof_delims known_failures
                  default_max_relevant_per_iter default_theory_relevant
                  use_conjecture_for_hypotheses)
-fun remotify_prover (name, config) system_prefix =
-  (remotify_name name, remotify_config system_prefix config)
+fun remotify_prover (name, config) system_name system_versions =
+  (remotify_name name, remotify_config system_name system_versions config)
 
-val remote_e = remotify_prover e "EP---"
-val remote_vampire = remotify_prover vampire "Vampire---9"
+val remote_e = remotify_prover e "EP" ["1.0", "1.1", "1.2"]
+val remote_vampire = remotify_prover vampire "Vampire" ["9.9", "0.6", "1.0"]
 val remote_sine_e =
-  remote_prover "sine_e" "SInE---" []
+  remote_prover "sine_e" "SInE" [] []
                 [(Unprovable, "says Unknown")] 150 (* FUDGE *) false true
 val remote_snark =
-  remote_prover "snark" "SNARK---" [("refutation.", "end_refutation.")] []
+  remote_prover "snark" "SNARK---" [] [("refutation.", "end_refutation.")] []
                 50 (* FUDGE *) false true
 
 (* Setup *)
