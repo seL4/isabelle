@@ -655,7 +655,13 @@ fun lift_procedure_tac ctxt rthm =
   THEN' gen_frees_tac ctxt
   THEN' SUBGOAL (fn (goal, i) =>
     let
-      val rthm' = atomize_thm rthm
+      (* full_atomize_tac contracts eta redexes,
+         so we do it also in the original theorem *)
+      val rthm' = 
+        rthm |> Drule.eta_contraction_rule 
+             |> Thm.forall_intr_frees
+             |> atomize_thm 
+
       val rule = procedure_inst ctxt (prop_of rthm') goal
     in
       (rtac rule THEN' rtac rthm') i
@@ -679,18 +685,13 @@ fun lift_tac ctxt rthms =
 fun lifted ctxt qtys simps rthm =
 let
   val ss = (mk_minimal_ss ctxt) addsimps simps
+  val rthm' = asm_full_simplify ss rthm
 
-  (* When the theorem is atomized, eta redexes are contracted,
-     so we do it both in the original theorem *)
-  val rthm' =
-    rthm 
-    |> asm_full_simplify ss
-    |> Drule.eta_contraction_rule 
   val ((_, [rthm'']), ctxt') = Variable.import true [rthm'] ctxt
   val goal = derive_qtrm ctxt' qtys (prop_of rthm'')
 in
   Goal.prove ctxt' [] [] goal 
-    (K ((asm_full_simp_tac ss THEN' lift_single_tac ctxt' rthm') 1))
+    (K (HEADGOAL (asm_full_simp_tac ss THEN' lift_single_tac ctxt' rthm'')))
   |> singleton (ProofContext.export ctxt' ctxt)
 end
 
