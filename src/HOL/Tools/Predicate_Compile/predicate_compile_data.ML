@@ -275,7 +275,6 @@ fun obtain_specification_graph options thy t =
       else
         let
           val specs = get_specification options thy t
-            (*|> Predicate_Compile_Set.unfold_set_notation*)
           (*val _ = print_specification options thy constname specs*)
           val us = defiants_of specs
         in

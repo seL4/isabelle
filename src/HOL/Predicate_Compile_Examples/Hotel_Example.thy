@@ -84,10 +84,10 @@ by (auto simp add: insert_iff[unfolded mem_def] expand_fun_eq intro!: eq_reflect
 lemma [code_pred_inline]: "(op -) == (%A B x. A x \<and> \<not> B x)"
 by (auto simp add: Diff_iff[unfolded mem_def] expand_fun_eq intro!: eq_reflection)
 
-code_pred [new_random_dseq inductify, skip_proof] hotel .
-
 ML {* Code_Prolog.options := {ensure_groundness = true} *}
 
 values 10 "{s. hotel s}"
+
+
 
 end

@@ -22,7 +22,7 @@ sig
   type logic_program = clause list;
   type constant_table = (string * string) list
     
-  val generate : code_options -> Proof.context -> string list -> (logic_program * constant_table)
+  val generate : code_options -> Proof.context -> string -> (logic_program * constant_table)
   val write_program : logic_program -> string
   val run : logic_program -> string -> string list -> int option -> prol_term list list
 
@@ -190,15 +190,63 @@ fun translate_intros options ctxt gr const constant_table =
       in clause end
   in (map translate_intro intros', constant_table') end
 
+val preprocess_options = Predicate_Compile_Aux.Options {
+  expected_modes = NONE,
+  proposed_modes = NONE,
+  proposed_names = [],
+  show_steps = false,
+  show_intermediate_results = false,
+  show_proof_trace = false,
+  show_modes = false,
+  show_mode_inference = false,
+  show_compilation = false,
+  show_caught_failures = false,
+  skip_proof = true,
+  no_topmost_reordering = false,
+  function_flattening = true,
+  specialise = false,
+  fail_safe_function_flattening = false,
+  no_higher_order_predicate = [],
+  inductify = false,
+  detect_switches = true,
+  compilation = Predicate_Compile_Aux.Pred
+}
+
+fun depending_preds_of (key, intros) =
+  fold Term.add_const_names (map Thm.prop_of intros) []
+
+fun add_edges edges_of key G =
+  let
+    fun extend' key (G, visited) = 
+      case try (Graph.get_node G) key of
+          SOME v =>
+            let
+              val new_edges = filter (fn k => is_some (try (Graph.get_node G) k)) (edges_of (key, v))
+              val (G', visited') = fold extend'
+                (subtract (op =) (key :: visited) new_edges) (G, key :: visited)
+            in
+              (fold (Graph.add_edge o (pair key)) new_edges G', visited')
+            end
+        | NONE => (G, visited)
+  in
+    fst (extend' key (G, []))
+  end
+
 fun generate options ctxt const =
   let 
-     fun strong_conn_of gr keys =
+    val T = Sign.the_const_type (ProofContext.theory_of ctxt) const
+    val t = Const (const, T)
+    val ctxt' = ProofContext.theory (Context.copy_thy) ctxt
+    val thy' = Predicate_Compile.preprocess preprocess_options t (ProofContext.theory_of ctxt')
+    val ctxt'' = ProofContext.init_global thy'
+    fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
-    val gr = Predicate_Compile_Core.intros_graph_of ctxt
-    val scc = strong_conn_of gr const
+    val gr = Predicate_Compile_Core.intros_graph_of ctxt''
+    val gr' = add_edges depending_preds_of const gr
+    val scc = strong_conn_of gr' [const]
     val constant_table = mk_constant_table (flat scc)
   in
-    apfst flat (fold_map (translate_intros options ctxt gr) (flat scc) constant_table)
+    apfst flat (fold_map (translate_intros options ctxt'' gr) (flat scc) constant_table)
   end
   
 (* add implementation for ground predicates *)
@@ -411,7 +459,7 @@ fun values ctxt soln t_compr =
         SOME vs => vs
       | NONE => error ("Not only free variables in " ^ commas (map (Syntax.string_of_term ctxt) all_args))
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate options ctxt [name]
+    val (p, constant_table) = generate options ctxt name
       |> (if #ensure_groundness options then add_ground_predicates ctxt else I)
     val _ = tracing "Running prolog program..."
     val tss = run p (translate_const constant_table name) (map first_upper vnames) soln

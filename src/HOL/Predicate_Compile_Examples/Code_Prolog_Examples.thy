@@ -9,8 +9,6 @@ where
   "append [] ys ys"
 | "append xs ys zs ==> append (x # xs) ys (x # zs)"
 
-code_pred append .
-
 values 3 "{(x, y, z). append x y z}"
 
 
@@ -71,9 +69,7 @@ inductive queen_9
 where
   "queen [1,2,3,4,5,6,7,8,9] ys ==> queen_9 ys"
 
-code_pred queen_9 .
-
-values 150 "{ys. queen_9 ys}"
+values 10 "{ys. queen_9 ys}"
 
 
 section {* Example symbolic derivation *}
@@ -163,11 +159,6 @@ inductive times10
 where
   "d (Mult (Mult (Mult (Mult (Mult (Mult (Mult (Mult (Mult x x) x) x) x) x) x) x) x) x) x e ==> times10 e"
 
-code_pred ops8 .
-code_pred divide10 .
-code_pred log10 .
-code_pred times10 .
-
 values "{e. ops8 e}"
 values "{e. divide10 e}"
 values "{e. log10 e}"
@@ -181,8 +172,6 @@ inductive notB :: "abc => bool"
 where
   "y \<noteq> B \<Longrightarrow> notB y"
 
-code_pred notB .
-
 ML {* Code_Prolog.options := {ensure_groundness = true} *}
 
 values 2 "{y. notB y}"
@@ -190,8 +179,6 @@ values 2 "{y. notB y}"
 inductive notAB :: "abc * abc \<Rightarrow> bool"
 where
   "y \<noteq> A \<Longrightarrow> z \<noteq> B \<Longrightarrow> notAB (y, z)"
-
-code_pred notAB .
 
 values 5 "{y. notAB y}"
 
