@@ -99,6 +99,8 @@ sig
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
   val malformed_spanN: string val malformed_span: T
+  val subgoalsN: string
+  val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
@@ -156,15 +158,12 @@ fun markup_string elem prop = (elem, fn s => (elem, [(prop, s)]): T);
 fun markup_int elem prop = (elem, fn i => (elem, [(prop, print_int i)]): T);
 
 
-(* name *)
+(* misc properties *)
 
 val nameN = "name";
 fun name a = properties [(nameN, a)];
 
 val (bindingN, binding) = markup_string "binding" nameN;
-
-
-(* kind *)
 
 val kindN = "kind";
 
@@ -304,6 +303,9 @@ val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
 
 
 (* toplevel *)
+
+val subgoalsN = "subgoals";
+val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;
 
 val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";

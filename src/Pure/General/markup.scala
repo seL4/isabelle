@@ -53,7 +53,7 @@ object Markup
   val Empty = Markup("", Nil)
 
 
-  /* name */
+  /* misc properties */
 
   val NAME = "name"
   val KIND = "kind"
@@ -187,6 +187,9 @@ object Markup
 
 
   /* toplevel */
+
+  val SUBGOALS = "subgoals"
+  val PROOF_STATE = "proof_state"
 
   val STATE = "state"
   val SUBGOAL = "subgoal"
