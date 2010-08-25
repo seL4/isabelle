@@ -164,26 +164,20 @@ fun theory_const_prop_of theory_relevant th =
 
 (**** Constant / Type Frequencies ****)
 
-(*A two-dimensional symbol table counts frequencies of constants. It's keyed first by
-  constant name and second by its list of type instantiations. For the latter, we need
-  a linear ordering on type const_typ list.*)
+(* A two-dimensional symbol table counts frequencies of constants. It's keyed
+   first by constant name and second by its list of type instantiations. For the
+   latter, we need a linear ordering on "const_typ list". *)
 
-local
+fun const_typ_ord p =
+  case p of
+    (CTVar, CTVar) => EQUAL
+  | (CTVar, CType _) => LESS
+  | (CType _, CTVar) => GREATER
+  | (CType q1, CType q2) =>
+    prod_ord fast_string_ord (dict_ord const_typ_ord) (q1, q2)
 
-fun cons_nr CTVar = 0
-  | cons_nr (CType _) = 1;
-
-in
-
-fun const_typ_ord TU =
-  case TU of
-    (CType (a, Ts), CType (b, Us)) =>
-      (case fast_string_ord(a,b) of EQUAL => dict_ord const_typ_ord (Ts,Us) | ord => ord)
-  | (T, U) => int_ord (cons_nr T, cons_nr U);
-
-end;
-
-structure CTtab = Table(type key = const_typ list val ord = dict_ord const_typ_ord);
+structure CTtab =
+  Table(type key = const_typ list val ord = dict_ord const_typ_ord)
 
 fun count_axiom_consts theory_relevant thy (_, th) =
   let
