@@ -120,9 +120,16 @@ fun translate_arith_const @{const_name "Groups.plus_class.plus"} = SOME Plus
   | translate_arith_const @{const_name "Groups.minus_class.minus"} = SOME Minus
   | translate_arith_const _ = NONE
 
+fun mk_nat_term constant_table n =
+  let
+    val zero = translate_const constant_table @{const_name "Groups.zero_class.zero"}
+    val Suc = translate_const constant_table @{const_name "Suc"}
+  in funpow n (fn t => AppF (Suc, [t])) (Cons zero) end
+
 fun translate_term ctxt constant_table t =
   case try HOLogic.dest_number t of
     SOME (@{typ "int"}, n) => Number n
+  | SOME (@{typ "nat"}, n) => mk_nat_term constant_table n
   | NONE =>
       (case strip_comb t of
         (Free (v, T), []) => Var v 
@@ -183,6 +190,7 @@ fun translate_intros options ctxt gr const constant_table =
     val intros = map (preprocess_intro (ProofContext.theory_of ctxt)) (Graph.get_node gr const)
     val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
     val constant_table' = declare_consts (fold Term.add_const_names intros' []) constant_table
+      |> declare_consts [@{const_name "Groups.zero_class.zero"}, @{const_name "Suc"}]
     fun translate_intro intro =
       let
         val head = HOLogic.dest_Trueprop (Logic.strip_imp_concl intro)

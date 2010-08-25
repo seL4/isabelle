@@ -69,7 +69,7 @@ where
 | "hotel (e # s) = (hotel s & (case e of
   Check_in g r (k,k') \<Rightarrow> k = currk s r \<and> k' \<notin> issued s |
   Enter g r (k,k') \<Rightarrow> (k,k') : cards s g & (roomk s r : {k, k'}) |
-  Exit g r \<Rightarrow> False))"
+  Exit g r \<Rightarrow> g : isin s r))"
 
 lemma issued_nil: "issued [] = {Key0}"
 by (auto simp add: initk_def)
@@ -86,7 +86,7 @@ by (auto simp add: Diff_iff[unfolded mem_def] expand_fun_eq intro!: eq_reflectio
 
 ML {* Code_Prolog.options := {ensure_groundness = true} *}
 
-values 10 "{s. hotel s}"
+values 40 "{s. hotel s}"
 
 
 setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
