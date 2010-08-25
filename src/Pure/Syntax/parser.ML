@@ -56,7 +56,7 @@ datatype gram =
 
 (*productions for which no starting token is
   known yet are associated with this token*)
-val UnknownStart = Lexicon.eof;
+val unknown_start = Lexicon.eof;
 
 (*get all NTs that are connected with a list of NTs*)
 fun connected_with _ ([]: nt_tag list) relatives = relatives
@@ -199,7 +199,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             val tk_prods =
                               these
                                 (AList.lookup (op =) nt_prods
-                                  (SOME (hd l_starts handle Empty => UnknownStart)));
+                                  (SOME (hd l_starts handle Empty => unknown_start)));
 
                             (*add_lambda is true if an existing production of the nt
                               produces lambda due to the new lambda NT l*)
@@ -249,7 +249,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
               val opt_starts =
                (if new_lambda then [NONE]
-                else if null start_tks then [SOME UnknownStart]
+                else if null start_tks then [SOME unknown_start]
                 else []) @ map SOME start_tks;
 
               (*add lhs NT to list of dependent NTs in lookahead*)
@@ -318,11 +318,11 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                       depend on changed_nt could be stored*)
                     val key =
                       (case find_first (not o member (op =) new_tks) (starts_for_nt changed_nt) of
-                        NONE => SOME UnknownStart
+                        NONE => SOME unknown_start
                       | t => t);
 
                     (*copy productions whose lookahead depends on changed_nt;
-                      if key = SOME UnknownToken then tk_prods is used to hold
+                      if key = SOME unknown_start then tk_prods is used to hold
                       the productions not copied*)
                     fun update_prods [] result = result
                       | update_prods ((p as (rhs, _: string, _: nt_tag)) :: ps)
@@ -359,7 +359,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                  end;
                             val result =
                               if update then (tk_prods, copy new_tks nt_prods)
-                              else if key = SOME UnknownStart then (p :: tk_prods, nt_prods)
+                              else if key = SOME unknown_start then (p :: tk_prods, nt_prods)
                               else (tk_prods, nt_prods);
                           in update_prods ps result end;
 
@@ -376,7 +376,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
                             val nt_prods' =
                               nt_prods'
-                              |> (key = SOME UnknownStart) ? AList.update (op =) (key, tk_prods');
+                              |> (key = SOME unknown_start) ? AList.update (op =) (key, tk_prods');
 
                             val added_tks = subtract Lexicon.matching_tokens old_tks new_tks;
                           in
@@ -640,17 +640,17 @@ type state =
   int;              (*index for previous state list*)
 
 
-(*Get all rhss with precedence >= minPrec*)
-fun getRHS minPrec = filter (fn (_, _, prec:int) => prec >= minPrec);
+(*Get all rhss with precedence >= min_prec*)
+fun get_RHS min_prec = filter (fn (_, _, prec:int) => prec >= min_prec);
 
-(*Get all rhss with precedence >= minPrec and < maxPrec*)
-fun getRHS' minPrec maxPrec =
-  filter (fn (_, _, prec:int) => prec >= minPrec andalso prec < maxPrec);
+(*Get all rhss with precedence >= min_prec and < max_prec*)
+fun get_RHS' min_prec max_prec =
+  filter (fn (_, _, prec:int) => prec >= min_prec andalso prec < max_prec);
 
 (*Make states using a list of rhss*)
-fun mkStates i minPrec lhsID rhss =
-  let fun mkState (rhs, id, prodPrec) = (lhsID, prodPrec, [], rhs, id, i);
-  in map mkState rhss end;
+fun mk_states i min_prec lhs_ID rhss =
+  let fun mk_state (rhs, id, prod_prec) = (lhs_ID, prod_prec, [], rhs, id, i);
+  in map mk_state rhss end;
 
 (*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
@@ -682,20 +682,20 @@ fun update_prec (A: nt_tag, prec) used =
       else update (used, hd :: used')
   in update (used, []) end;
 
-fun getS A maxPrec Si =
+fun getS A max_prec Si =
   filter
-    (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= maxPrec
+    (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= max_prec
       | _ => false) Si;
 
-fun getS' A maxPrec minPrec Si =
+fun getS' A max_prec min_prec Si =
   filter
     (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
-          => A = B andalso prec > minPrec andalso prec <= maxPrec
+          => A = B andalso prec > min_prec andalso prec <= max_prec
       | _ => false) Si;
 
-fun getStates Estate i ii A maxPrec =
+fun get_states Estate i ii A max_prec =
   filter
-    (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= maxPrec
+    (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= max_prec
       | _ => false)
     (Array.sub (Estate, ii));
 
@@ -745,29 +745,29 @@ fun PROCESSS warned prods chains Estate i c states =
     fun processS used [] (Si, Sii) = (Si, Sii)
       | processS used (S :: States) (Si, Sii) =
           (case S of
-            (_, _, _, Nonterminal (nt, minPrec) :: _, _, _) =>
+            (_, _, _, Nonterminal (nt, min_prec) :: _, _, _) =>
               let (*predictor operation*)
                 val (used', new_states) =
                   (case AList.lookup (op =) used nt of
-                    SOME (usedPrec, l) => (*nonterminal has been processed*)
-                      if usedPrec <= minPrec then
+                    SOME (used_prec, l) => (*nonterminal has been processed*)
+                      if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
                         (used, movedot_lambda S l)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
                           val tk_prods = all_prods_for nt;
 
-                          val States' = mkStates i minPrec nt
-                                          (getRHS' minPrec usedPrec tk_prods);
-                        in (update_prec (nt, minPrec) used,
+                          val States' = mk_states i min_prec nt
+                                          (get_RHS' min_prec used_prec tk_prods);
+                        in (update_prec (nt, min_prec) used,
                             movedot_lambda S l @ States')
                         end
 
                   | NONE => (*nonterminal is parsed for the first time*)
                       let
                         val tk_prods = all_prods_for nt;
-                        val States' = mkStates i minPrec nt (getRHS minPrec tk_prods);
-                      in ((nt, (minPrec, [])) :: used, States') end);
+                        val States' = mk_states i min_prec nt (get_RHS min_prec tk_prods);
+                      in ((nt, (min_prec, [])) :: used, States') end);
 
                 val dummy =
                   if not (! warned) andalso
@@ -803,7 +803,7 @@ fun PROCESSS warned prods chains Estate i c states =
                           in processS used' (States' @ States) (S :: Si, Sii) end)
                   end
                 else
-                  let val Slist = getStates Estate i j A prec
+                  let val Slist = get_states Estate i j A prec
                   in processS used (map (movedot_nonterm tt) Slist @ States) (S :: Si, Sii) end
               end)
   in processS [] states ([], []) end;
