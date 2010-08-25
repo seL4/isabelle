@@ -1154,7 +1154,7 @@ proof -
       have "\<And>y. P y \<Longrightarrow> x \<le> y"
       proof (rule classical)
         fix y
-        assume "P y" and "\<not> x \<le> y" 
+        assume "P y" and "\<not> x \<le> y"
         with less have "P (LEAST a. P a)" and "(LEAST a. P a) \<le> y"
           by (auto simp add: not_le)
         with assm have "x < (LEAST a. P a)" and "(LEAST a. P a) \<le> y"
@@ -1181,13 +1181,25 @@ lemma LeastI2_ex:
   "\<exists>a. P a \<Longrightarrow> (\<And>x. P x \<Longrightarrow> Q x) \<Longrightarrow> Q (Least P)"
   by (blast intro: LeastI_ex)
 
+lemma LeastI2_wellorder:
+  assumes "P a"
+  and "\<And>a. \<lbrakk> P a; \<forall>b. P b \<longrightarrow> a \<le> b \<rbrakk> \<Longrightarrow> Q a"
+  shows "Q (Least P)"
+proof (rule LeastI2_order)
+  show "P (Least P)" using `P a` by (rule LeastI)
+next
+  fix y assume "P y" thus "Least P \<le> y" by (rule Least_le)
+next
+  fix x assume "P x" "\<forall>y. P y \<longrightarrow> x \<le> y" thus "Q x" by (rule assms(2))
+qed
+
 lemma not_less_Least: "k < (LEAST x. P x) \<Longrightarrow> \<not> P k"
 apply (simp (no_asm_use) add: not_le [symmetric])
 apply (erule contrapos_nn)
 apply (erule Least_le)
 done
 
-end  
+end
 
 
 subsection {* Order on bool *}

@@ -88,6 +88,26 @@ lemma Sup_le_iff: "Sup A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A
 lemma le_Inf_iff: "b \<sqsubseteq> Inf A \<longleftrightarrow> (\<forall>a\<in>A. b \<sqsubseteq> a)"
   by (auto intro: Inf_greatest dest: Inf_lower)
 
+lemma Sup_mono:
+  assumes "\<And>a. a \<in> A \<Longrightarrow> \<exists>b\<in>B. a \<le> b"
+  shows "Sup A \<le> Sup B"
+proof (rule Sup_least)
+  fix a assume "a \<in> A"
+  with assms obtain b where "b \<in> B" and "a \<le> b" by blast
+  from `b \<in> B` have "b \<le> Sup B" by (rule Sup_upper)
+  with `a \<le> b` show "a \<le> Sup B" by auto
+qed
+
+lemma Inf_mono:
+  assumes "\<And>b. b \<in> B \<Longrightarrow> \<exists>a\<in>A. a \<le> b"
+  shows "Inf A \<le> Inf B"
+proof (rule Inf_greatest)
+  fix b assume "b \<in> B"
+  with assms obtain a where "a \<in> A" and "a \<le> b" by blast
+  from `a \<in> A` have "Inf A \<le> a" by (rule Inf_lower)
+  with `a \<le> b` show "Inf A \<le> b" by auto
+qed
+
 definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "SUPR A f = \<Squnion> (f ` A)"
 
@@ -144,8 +164,25 @@ lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
 lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (INF i:A. M) = M"
   by (auto intro: antisym INF_leI le_INFI)
 
+lemma SUP_mono:
+  "(\<And>n. n \<in> A \<Longrightarrow> \<exists>m\<in>B. f n \<le> g m) \<Longrightarrow> (SUP n:A. f n) \<le> (SUP n:B. g n)"
+  by (force intro!: Sup_mono simp: SUPR_def)
+
+lemma INF_mono:
+  "(\<And>m. m \<in> B \<Longrightarrow> \<exists>n\<in>A. f n \<le> g m) \<Longrightarrow> (INF n:A. f n) \<le> (INF n:B. g n)"
+  by (force intro!: Inf_mono simp: INFI_def)
+
 end
 
+lemma less_Sup_iff:
+  fixes a :: "'a\<Colon>{complete_lattice,linorder}"
+  shows "a < Sup S \<longleftrightarrow> (\<exists>x\<in>S. a < x)"
+  unfolding not_le[symmetric] Sup_le_iff by auto
+
+lemma Inf_less_iff:
+  fixes a :: "'a\<Colon>{complete_lattice,linorder}"
+  shows "Inf S < a \<longleftrightarrow> (\<exists>x\<in>S. x < a)"
+  unfolding not_le[symmetric] le_Inf_iff by auto
 
 subsection {* @{typ bool} and @{typ "_ \<Rightarrow> _"} as complete lattice *}
 
@@ -203,6 +240,18 @@ qed (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
   intro: Inf_lower Sup_upper Inf_greatest Sup_least)
 
 end
+
+lemma SUPR_fun_expand:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c\<Colon>{complete_lattice}"
+  shows "(SUP y:A. f y) = (\<lambda>x. SUP y:A. f y x)"
+  by (auto intro!: arg_cong[where f=Sup] ext[where 'a='b]
+           simp: SUPR_def Sup_fun_def)
+
+lemma INFI_fun_expand:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c\<Colon>{complete_lattice}"
+  shows "(INF y:A. f y) x = (INF y:A. f y x)"
+  by (auto intro!: arg_cong[where f=Inf] ext[where 'a='b]
+           simp: INFI_def Inf_fun_def)
 
 lemma Inf_empty_fun:
   "\<Sqinter>{} = (\<lambda>_. \<Sqinter>{})"
