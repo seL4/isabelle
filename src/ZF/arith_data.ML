@@ -77,7 +77,7 @@ fun prove_conv name tacs ctxt prems (t,u) =
   end;
 
 fun prep_simproc thy (name, pats, proc) =
-  Simplifier.simproc thy name pats proc;
+  Simplifier.simproc_global thy name pats proc;
 
 
 (*** Use CancelNumerals simproc without binary numerals,

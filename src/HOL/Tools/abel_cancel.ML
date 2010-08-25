@@ -87,7 +87,7 @@ fun solve (_ $ (Const (@{const_name Groups.plus}, _) $ _ $ _) $ _) =
         NONE
   | solve _ = NONE;
   
-val simproc = Simplifier.simproc @{theory}
+val simproc = Simplifier.simproc_global @{theory}
   "add_ac_proc" ["x + y::'a::ab_semigroup_add"] ((K o K) solve);
 
 val cancel_ss = HOL_basic_ss settermless less_agrp

@@ -127,7 +127,7 @@ val real_rules = @{lemma
   "x + y = y + x"
   by auto}
 
-val real_linarith_proc = Simplifier.simproc @{theory} "fast_real_arith" [
+val real_linarith_proc = Simplifier.simproc_global @{theory} "fast_real_arith" [
   "(m::real) < n", "(m::real) <= n", "(m::real) = n"] (K Lin_Arith.simproc)
 
 

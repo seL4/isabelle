@@ -78,7 +78,7 @@ let
   val Coll_perm_tac = rtac @{thm Collect_cong} 1 THEN rtac @{thm iffI} 1 THEN
     ALLGOALS(EVERY'[REPEAT_DETERM o (etac @{thm conjE}),
                     DEPTH_SOLVE_1 o (ares_tac [@{thm conjI}])])
-  val defColl_regroup = Simplifier.simproc @{theory}
+  val defColl_regroup = Simplifier.simproc_global @{theory}
     "defined Collect" ["{x. P x & Q x}"]
     (Quantifier1.rearrange_Coll Coll_perm_tac)
 in
@@ -323,9 +323,9 @@ let
   val unfold_ball_tac = unfold_tac @{thms "Ball_def"};
   fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
   val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
-  val defBEX_regroup = Simplifier.simproc @{theory}
+  val defBEX_regroup = Simplifier.simproc_global @{theory}
     "defined BEX" ["EX x:A. P x & Q x"] rearrange_bex;
-  val defBALL_regroup = Simplifier.simproc @{theory}
+  val defBALL_regroup = Simplifier.simproc_global @{theory}
     "defined BALL" ["ALL x:A. P x --> Q x"] rearrange_ball;
 in
   Simplifier.map_simpset (fn ss => ss addsimprocs [defBALL_regroup, defBEX_regroup])

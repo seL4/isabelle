@@ -8,7 +8,8 @@ Experimental version that allows to avoid lists of atoms.
 
 signature NOMINAL_INDUCTIVE2 =
 sig
-  val prove_strong_ind: string -> string option -> (string * string list) list -> local_theory -> Proof.state
+  val prove_strong_ind: string -> string option -> (string * string list) list ->
+    local_theory -> Proof.state
 end
 
 structure NominalInductive2 : NOMINAL_INDUCTIVE2 =
@@ -43,7 +44,7 @@ val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
 fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
   [(perm_boolI_pi, pi)] perm_boolI;
 
-fun mk_perm_bool_simproc names = Simplifier.simproc_i
+fun mk_perm_bool_simproc names = Simplifier.simproc_global_i
   (theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn thy => fn ss =>
     fn Const ("Nominal.perm", _) $ _ $ t =>
          if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))

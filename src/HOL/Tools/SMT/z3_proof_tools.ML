@@ -323,11 +323,11 @@ local
     addsimps @{thms array_rules}
     addsimps @{thms z3div_def} addsimps @{thms z3mod_def}
     addsimprocs [
-      Simplifier.simproc @{theory} "fast_int_arith" [
+      Simplifier.simproc_global @{theory} "fast_int_arith" [
         "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
-      Simplifier.simproc @{theory} "antisym_le" ["(x::'a::order) <= y"]
+      Simplifier.simproc_global @{theory} "antisym_le" ["(x::'a::order) <= y"]
         (K prove_antisym_le),
-      Simplifier.simproc @{theory} "antisym_less" ["~ (x::'a::linorder) < y"]
+      Simplifier.simproc_global @{theory} "antisym_less" ["~ (x::'a::linorder) < y"]
         (K prove_antisym_less)]
 
   structure Simpset = Generic_Data

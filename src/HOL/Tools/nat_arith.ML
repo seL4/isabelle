@@ -91,18 +91,18 @@ structure DiffCancelSums = CancelSumsFun
 end);
 
 val nat_cancel_sums_add =
-  [Simplifier.simproc @{theory} "nateq_cancel_sums"
+  [Simplifier.simproc_global @{theory} "nateq_cancel_sums"
      ["(l::nat) + m = n", "(l::nat) = m + n", "Suc m = n", "m = Suc n"]
      (K EqCancelSums.proc),
-   Simplifier.simproc @{theory} "natless_cancel_sums"
+   Simplifier.simproc_global @{theory} "natless_cancel_sums"
      ["(l::nat) + m < n", "(l::nat) < m + n", "Suc m < n", "m < Suc n"]
      (K LessCancelSums.proc),
-   Simplifier.simproc @{theory} "natle_cancel_sums"
+   Simplifier.simproc_global @{theory} "natle_cancel_sums"
      ["(l::nat) + m <= n", "(l::nat) <= m + n", "Suc m <= n", "m <= Suc n"]
      (K LeCancelSums.proc)];
 
 val nat_cancel_sums = nat_cancel_sums_add @
-  [Simplifier.simproc @{theory} "natdiff_cancel_sums"
+  [Simplifier.simproc_global @{theory} "natdiff_cancel_sums"
     ["((l::nat) + m) - n", "(l::nat) - (m + n)", "Suc m - n", "m - Suc n"]
     (K DiffCancelSums.proc)];
 

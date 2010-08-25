@@ -1262,8 +1262,6 @@ Oracles allow Isabelle to take advantage of external reasoners
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{global}\hypertarget{command.global}{\hyperlink{command.global}{\mbox{\isa{\isacommand{global}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
-    \indexdef{}{command}{local}\hypertarget{command.local}{\hyperlink{command.local}{\mbox{\isa{\isacommand{local}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{}{command}{hide\_class}\hypertarget{command.hide-class}{\hyperlink{command.hide-class}{\mbox{\isa{\isacommand{hide{\isacharunderscore}class}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{}{command}{hide\_type}\hypertarget{command.hide-type}{\hyperlink{command.hide-type}{\mbox{\isa{\isacommand{hide{\isacharunderscore}type}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{}{command}{hide\_const}\hypertarget{command.hide-const}{\hyperlink{command.hide-const}{\mbox{\isa{\isacommand{hide{\isacharunderscore}const}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
@@ -1283,14 +1281,6 @@ Oracles allow Isabelle to take advantage of external reasoners
 
   \begin{description}
 
-  \item \hyperlink{command.global}{\mbox{\isa{\isacommand{global}}}} and \hyperlink{command.local}{\mbox{\isa{\isacommand{local}}}} change the current
-  name declaration mode.  Initially, theories start in \hyperlink{command.local}{\mbox{\isa{\isacommand{local}}}} mode, causing all names to be automatically qualified by
-  the theory name.  Changing this to \hyperlink{command.global}{\mbox{\isa{\isacommand{global}}}} causes all
-  names to be declared without the theory prefix, until \hyperlink{command.local}{\mbox{\isa{\isacommand{local}}}} is declared again.
-  
-  Note that global names are prone to get hidden accidently later,
-  when qualified names of the same base name are introduced.
-  
   \item \hyperlink{command.hide-class}{\mbox{\isa{\isacommand{hide{\isacharunderscore}class}}}}~\isa{names} fully removes class
   declarations from a given name space; with the \isa{{\isachardoublequote}{\isacharparenleft}open{\isacharparenright}{\isachardoublequote}}
   option, only the base name is hidden.  Global (unqualified) names

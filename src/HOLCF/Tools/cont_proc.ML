@@ -128,7 +128,7 @@ local
     in Option.map fst (Seq.pull (cont_tac 1 tr)) end
 in
   fun cont_proc thy =
-    Simplifier.simproc thy "cont_proc" ["cont f"] solve_cont;
+    Simplifier.simproc_global thy "cont_proc" ["cont f"] solve_cont;
 end;
 
 fun setup thy = Simplifier.map_simpset (fn ss => ss addsimprocs [cont_proc thy]) thy;

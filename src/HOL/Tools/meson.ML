@@ -107,7 +107,7 @@ fun first_order_resolve thA thB =
   | NONE => raise THM ("first_order_resolve", 0, [thA, thB]))
 
 fun flexflex_first_order th =
-  case (tpairs_of th) of
+  case Thm.tpairs_of th of
       [] => th
     | pairs =>
         let val thy = theory_of_thm th

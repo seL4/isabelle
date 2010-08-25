@@ -127,6 +127,6 @@ fun trans_tac NONE  = all_tac
   | trans_tac (SOME th) = ALLGOALS (rtac (th RS trans));
 
 fun prep_simproc thy (name, pats, proc) =
-  Simplifier.simproc thy name pats proc;
+  Simplifier.simproc_global thy name pats proc;
 
 end;

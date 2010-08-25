@@ -199,7 +199,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       snapshot.node.command_at(offset) match {
         case Some((command, command_start)) =>
           // FIXME Isar_Document.Tooltip extractor
-          (snapshot.state(command).markup.select(Text.Range(offset) - command_start) {
+          (snapshot.state(command).markup.select(Text.Range(offset, offset + 1) - command_start) {
             case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
               val typing =
                 Pretty.block(XML.Text(command.source(range) + " : ") :: Pretty.Break(1) :: body)

@@ -59,41 +59,11 @@ signature BASIC_THM =
   exception THM of string * int * thm list
   val theory_of_thm: thm -> theory
   val prop_of: thm -> term
-  val tpairs_of: thm -> (term * term) list
   val concl_of: thm -> term
   val prems_of: thm -> term list
   val nprems_of: thm -> int
   val cprop_of: thm -> cterm
   val cprem_of: thm -> int -> cterm
-  val transfer: theory -> thm -> thm
-  val weaken: cterm -> thm -> thm
-  val weaken_sorts: sort list -> cterm -> cterm
-  val extra_shyps: thm -> sort list
-
-  (*meta rules*)
-  val assume: cterm -> thm
-  val implies_intr: cterm -> thm -> thm
-  val implies_elim: thm -> thm -> thm
-  val forall_intr: cterm -> thm -> thm
-  val forall_elim: cterm -> thm -> thm
-  val reflexive: cterm -> thm
-  val symmetric: thm -> thm
-  val transitive: thm -> thm -> thm
-  val beta_conversion: bool -> conv
-  val eta_conversion: conv
-  val eta_long_conversion: conv
-  val abstract_rule: string -> cterm -> thm -> thm
-  val combination: thm -> thm -> thm
-  val equal_intr: thm -> thm -> thm
-  val equal_elim: thm -> thm -> thm
-  val flexflex_rule: thm -> thm Seq.seq
-  val generalize: string list * string list -> int -> thm -> thm
-  val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
-  val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
-  val trivial: cterm -> thm
-  val dest_state: thm * int -> (term * term) list * term list * term * term
-  val lift_rule: cterm -> thm -> thm
-  val incr_indexes: int -> thm -> thm
 end;
 
 signature THM =
@@ -119,8 +89,13 @@ sig
   val maxidx_of: thm -> int
   val maxidx_thm: thm -> int -> int
   val hyps_of: thm -> term list
+  val tpairs_of: thm -> (term * term) list
   val no_prems: thm -> bool
   val major_prem_of: thm -> term
+  val transfer: theory -> thm -> thm
+  val weaken: cterm -> thm -> thm
+  val weaken_sorts: sort list -> cterm -> cterm
+  val extra_shyps: thm -> sort list
   val join_proofs: thm list -> unit
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
@@ -134,21 +109,45 @@ sig
   val map_tags: (Properties.T -> Properties.T) -> thm -> thm
   val norm_proof: thm -> thm
   val adjust_maxidx_thm: int -> thm -> thm
-  val varifyT_global: thm -> thm
-  val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
+  (*meta rules*)
+  val assume: cterm -> thm
+  val implies_intr: cterm -> thm -> thm
+  val implies_elim: thm -> thm -> thm
+  val forall_intr: cterm -> thm -> thm
+  val forall_elim: cterm -> thm -> thm
+  val reflexive: cterm -> thm
+  val symmetric: thm -> thm
+  val transitive: thm -> thm -> thm
+  val beta_conversion: bool -> conv
+  val eta_conversion: conv
+  val eta_long_conversion: conv
+  val abstract_rule: string -> cterm -> thm -> thm
+  val combination: thm -> thm -> thm
+  val equal_intr: thm -> thm -> thm
+  val equal_elim: thm -> thm -> thm
+  val flexflex_rule: thm -> thm Seq.seq
+  val generalize: string list * string list -> int -> thm -> thm
+  val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
+  val instantiate_cterm: (ctyp * ctyp) list * (cterm * cterm) list -> cterm -> cterm
+  val trivial: cterm -> thm
   val of_class: ctyp * class -> thm
   val strip_shyps: thm -> thm
   val unconstrainT: thm -> thm
+  val varifyT_global': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
+  val varifyT_global: thm -> thm
   val legacy_freezeT: thm -> thm
+  val dest_state: thm * int -> (term * term) list * term list * term * term
+  val lift_rule: cterm -> thm -> thm
+  val incr_indexes: int -> thm -> thm
   val assumption: int -> thm -> thm Seq.seq
   val eq_assumption: int -> thm -> thm
   val rotate_rule: int -> int -> thm -> thm
   val permute_prems: int -> int -> thm -> thm
   val rename_params_rule: string list * int -> thm -> thm
+  val rename_boundvars: term -> term -> thm -> thm
   val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val rename_boundvars: term -> term -> thm -> thm
   val extern_oracles: theory -> xstring list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;

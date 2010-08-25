@@ -51,7 +51,7 @@ fun isTrue (Const (@{const_name True},_)) = true
 in
 
 val lazy_conj_simproc =
-  Simplifier.simproc @{theory HOL} "lazy_conj_simp" ["P & Q"]
+  Simplifier.simproc_global @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn thy => fn ss => fn t =>
       (case t of (Const (@{const_name "op &"},_)$P$Q) => 
          let
@@ -108,7 +108,7 @@ val init_state_fun_data =
   Context.theory_map (StateFunData.put (lookup_ss,ex_lookup_ss,false));
 
 val lookup_simproc =
-  Simplifier.simproc @{theory} "lookup_simp" ["lookup d n (update d' c m v s)"]
+  Simplifier.simproc_global @{theory} "lookup_simp" ["lookup d n (update d' c m v s)"]
     (fn thy => fn ss => fn t =>
       (case t of (Const ("StateFun.lookup",lT)$destr$n$
                    (s as Const ("StateFun.update",uT)$_$_$_$_$_)) =>
@@ -162,7 +162,7 @@ val ss' = (HOL_ss addsimps
   addcongs @{thms block_conj_cong});
 in
 val update_simproc =
-  Simplifier.simproc @{theory} "update_simp" ["update d c n v s"]
+  Simplifier.simproc_global @{theory} "update_simp" ["update d c n v s"]
     (fn thy => fn ss => fn t =>
       (case t of ((upd as Const ("StateFun.update", uT)) $ d $ c $ n $ v $ s) =>
          let 
@@ -263,7 +263,7 @@ fun is_selector thy T sel =
      end;
 in
 val ex_lookup_eq_simproc =
-  Simplifier.simproc @{theory HOL} "ex_lookup_eq_simproc" ["Ex t"]
+  Simplifier.simproc_global @{theory HOL} "ex_lookup_eq_simproc" ["Ex t"]
     (fn thy => fn ss => fn t =>
        let
          val ctxt = Simplifier.the_context ss |>

@@ -910,7 +910,7 @@ end;
 
 val setup =
   init_arith_data #>
-  Simplifier.map_ss (fn ss => ss addsimprocs [Simplifier.simproc (@{theory}) "fast_nat_arith"
+  Simplifier.map_ss (fn ss => ss addsimprocs [Simplifier.simproc_global (@{theory}) "fast_nat_arith"
     ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] (K simproc)]
     (* Because of fast_nat_arith_simproc, the arithmetic solver is really only
     useful to detect inconsistencies among the premises for subgoals which are

@@ -467,7 +467,7 @@ fun eq_morphism thy thms = if null thms then NONE else SOME (Morphism.morphism
 
 fun transfer_morphism thy =
   let val thy_ref = Theory.check_thy thy
-  in Morphism.thm_morphism (fn th => transfer (Theory.deref thy_ref) th) end;
+  in Morphism.thm_morphism (fn th => Thm.transfer (Theory.deref thy_ref) th) end;
 
 
 
