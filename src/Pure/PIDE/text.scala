@@ -32,6 +32,9 @@ object Text
     def map(f: Offset => Offset): Range = Range(f(start), f(stop))
     def +(i: Offset): Range = map(_ + i)
     def -(i: Offset): Range = map(_ - i)
+
+    def is_singleton: Boolean = start == stop
+
     def contains(i: Offset): Boolean = start == i || start < i && i < stop
     def contains(that: Range): Boolean = this.contains(that.start) && that.stop <= this.stop
     def overlaps(that: Range): Boolean = this.contains(that.start) || that.contains(this.start)
