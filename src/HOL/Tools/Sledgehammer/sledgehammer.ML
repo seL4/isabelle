@@ -18,8 +18,7 @@ sig
      atps: string list,
      full_types: bool,
      explicit_apply: bool,
-     relevance_threshold: real,
-     relevance_decay: real option,
+     relevance_thresholds: real * real,
      max_relevant: int option,
      theory_relevant: bool option,
      isar_proof: bool,
@@ -86,8 +85,7 @@ type params =
    atps: string list,
    full_types: bool,
    explicit_apply: bool,
-   relevance_threshold: real,
-   relevance_decay: real option,
+   relevance_thresholds: real * real,
    max_relevant: int option,
    theory_relevant: bool option,
    isar_proof: bool,
@@ -213,8 +211,8 @@ fun prover_fun atp_name
          known_failures, default_max_relevant, default_theory_relevant,
          explicit_forall, use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
-          relevance_threshold, relevance_decay, max_relevant, theory_relevant,
-          isar_proof, isar_shrink_factor, timeout, ...} : params)
+          relevance_thresholds, max_relevant, theory_relevant, isar_proof,
+          isar_shrink_factor, timeout, ...} : params)
         minimize_command
         ({subgoal, goal, relevance_override, axioms} : problem) =
   let
@@ -230,13 +228,13 @@ fun prover_fun atp_name
       case axioms of
         SOME axioms => axioms
       | NONE =>
-        (relevant_facts full_types relevance_threshold relevance_decay
+        (relevant_facts full_types relevance_thresholds
                         (the_default default_max_relevant max_relevant)
                         (the_default default_theory_relevant theory_relevant)
                         relevance_override goal hyp_ts concl_t
          |> tap ((fn n => print_v (fn () =>
-                      "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^
-                      " for " ^ quote atp_name ^ ".")) o length))
+                          "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^
+                          " for " ^ quote atp_name ^ ".")) o length))
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
