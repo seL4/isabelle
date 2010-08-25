@@ -132,20 +132,26 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw")
     for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
       snapshot.state(command).root_markup.swing_tree(root)((info: Text.Info[Any]) =>
           {
+            val range = info.range + command_start
             val content = command.source(info.range).replace('\n', ' ')
-            val id = command.id
+            val info_text =
+              info.info match {
+                case elem @ XML.Elem(_, _) =>
+                  Pretty.formatted(List(elem), margin = 40).mkString("\n")
+                case x => x.toString
+              }
 
             new DefaultMutableTreeNode(new IAsset {
               override def getIcon: Icon = null
               override def getShortString: String = content
-              override def getLongString: String = info.info.toString
-              override def getName: String = Markup.Long(id)
+              override def getLongString: String = info_text
+              override def getName: String = command.toString
               override def setName(name: String) = ()
               override def setStart(start: Position) = ()
-              override def getStart: Position = command_start + info.range.start
+              override def getStart: Position = range.start
               override def setEnd(end: Position) = ()
-              override def getEnd: Position = command_start + info.range.stop
-              override def toString = id + ": " + content + "[" + getStart + " - " + getEnd + "]"
+              override def getEnd: Position = range.stop
+              override def toString = "\"" + content + "\" " + range.toString
             })
           })
     }
