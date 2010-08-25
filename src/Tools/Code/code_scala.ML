@@ -135,7 +135,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
     fun print_context tyvars vs name = applify "[" "]"
       (fn (v, sort) => (Pretty.block o map str)
         (lookup_tyvar tyvars v :: maps (fn sort => [": ", deresolve sort]) sort))
-          NOBR ((str o deresolve) name) vs;
+          NOBR ((str o deresolve_base) name) vs;
     fun print_defhead tyvars vars name vs params tys ty =
       Pretty.block [str "def ", constraint (applify "(" ")" (fn (param, ty) =>
         constraint ((str o lookup_var vars) param) (print_typ tyvars NOBR ty))
@@ -194,7 +194,8 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
                 str "match", str "{"], str "}")
               (map print_clause eqs)
           end;
-    val print_method = (str o Library.enclose "`" "+`" o deresolve_base);
+    val print_method = str o Library.enclose "`" "`" o space_implode "+"
+      o fst o split_last o Long_Name.explode;
     fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
           print_def name (vs, ty) (filter (snd o snd) raw_eqs)
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
@@ -240,7 +241,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               in
                 concat [str "def", constraint (Pretty.block [applify "(" ")"
                   (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
-                  (print_typ tyvars NOBR ty)) NOBR (add_typarg (deresolve classparam))
+                  (print_typ tyvars NOBR ty)) NOBR (add_typarg (deresolve_base classparam))
                   (auxs ~~ tys), str "(implicit ", str implicit_name, str ": ",
                   add_typarg (deresolve name), str ")"]) (print_typ tyvars NOBR ty), str "=",
                   applify "(" ")" (str o lookup_var vars) NOBR
@@ -281,67 +282,143 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
           end;
   in print_stmt end;
 
+local
+
+(* hierarchical module name space *)
+
+datatype node =
+    Dummy
+  | Stmt of Code_Thingol.stmt
+  | Module of ((Name.context * Name.context) * Name.context) * (string list * (string * node) Graph.T);
+
+in
+
 fun scala_program_of_program labelled_name module_name reserved raw_module_alias program =
   let
-    val the_module_name = the_default "Program" module_name;
-    val module_alias = K (SOME the_module_name);
-    val reserved = Name.make_context reserved;
-    fun prepare_stmt (name, stmt) (nsps, stmts) =
+
+    (* building module name hierarchy *)
+    val module_alias = if is_some module_name then K module_name else raw_module_alias;
+    fun alias_fragments name = case module_alias name
+     of SOME name' => Long_Name.explode name'
+      | NONE => map (fn name => fst (yield_singleton Name.variants name reserved))
+          (Long_Name.explode name);
+    val module_names = Graph.fold (insert (op =) o fst o dest_name o fst) program [];
+    val fragments_tab = fold (fn name => Symtab.update
+      (name, alias_fragments name)) module_names Symtab.empty;
+    val dest_name = Code_Printer.dest_name #>> (the o Symtab.lookup fragments_tab);
+
+    (* building empty module hierarchy *)
+    val empty_module = (((reserved, reserved), reserved), ([], Graph.empty));
+    fun map_module f (Module content) = Module (f content);
+    fun declare_module name_fragement ((nsp_class, nsp_object), nsp_common) =
       let
-        val (_, base) = Code_Printer.dest_name name;
-        val mk_name_stmt = yield_singleton Name.variants;
-        fun add_class ((nsp_class, nsp_object), nsp_common) =
-          let
-            val (base', nsp_class') = mk_name_stmt base nsp_class
-          in (base', ((nsp_class', nsp_object), Name.declare base' nsp_common)) end;
-        fun add_object ((nsp_class, nsp_object), nsp_common) =
-          let
-            val (base', nsp_object') = mk_name_stmt base nsp_object
-          in (base', ((nsp_class, nsp_object'), Name.declare base' nsp_common)) end;
-        fun add_common upper ((nsp_class, nsp_object), nsp_common) =
-          let
-            val (base', nsp_common') =
-              mk_name_stmt (if upper then first_upper base else base) nsp_common
-          in
-            (base',
-              ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
-          end;
-        val add_name = case stmt
-         of Code_Thingol.Fun _ => add_object
-          | Code_Thingol.Datatype _ => add_class
-          | Code_Thingol.Datatypecons _ => add_common true
-          | Code_Thingol.Class _ => add_class
-          | Code_Thingol.Classrel _ => add_object
-          | Code_Thingol.Classparam _ => add_object
-          | Code_Thingol.Classinst _ => add_common false;
-        fun add_stmt base' = case stmt
-         of Code_Thingol.Datatypecons _ => cons (name, (base', NONE))
-          | Code_Thingol.Classrel _ => cons (name, (base', NONE))
-          | Code_Thingol.Classparam _ => cons (name, (base', NONE))
-          | _ => cons (name, (base', SOME stmt));
+        val declare = Name.declare name_fragement;
+      in ((declare nsp_class, declare nsp_object), declare nsp_common) end;
+    fun ensure_module name_fragement (nsps, (implicits, nodes)) =
+      if can (Graph.get_node nodes) name_fragement then (nsps, (implicits, nodes))
+      else
+        (nsps |> declare_module name_fragement, (implicits,
+          nodes |> Graph.new_node (name_fragement, (name_fragement, Module empty_module))));
+    fun allocate_module [] = I
+      | allocate_module (name_fragment :: name_fragments) =
+          ensure_module name_fragment
+          #> (apsnd o apsnd o Graph.map_node name_fragment o apsnd o map_module o allocate_module) name_fragments;
+    val empty_program = Symtab.fold (fn (_, fragments) => allocate_module fragments)
+      fragments_tab empty_module;
+    fun change_module [] = I
+      | change_module (name_fragment :: name_fragments) =
+          apsnd o apsnd o Graph.map_node name_fragment o apsnd o map_module
+            o change_module name_fragments;
+
+    (* statement declaration *)
+    fun namify_class base ((nsp_class, nsp_object), nsp_common) =
+      let
+        val (base', nsp_class') = yield_singleton Name.variants base nsp_class
+      in (base', ((nsp_class', nsp_object), Name.declare base' nsp_common)) end;
+    fun namify_object base ((nsp_class, nsp_object), nsp_common) =
+      let
+        val (base', nsp_object') = yield_singleton Name.variants base nsp_object
+      in (base', ((nsp_class, nsp_object'), Name.declare base' nsp_common)) end;
+    fun namify_common upper base ((nsp_class, nsp_object), nsp_common) =
+      let
+        val (base', nsp_common') =
+          yield_singleton Name.variants (if upper then first_upper base else base) nsp_common
       in
-        nsps
-        |> add_name
-        |-> (fn base' => rpair (add_stmt base' stmts))
+        (base',
+          ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
       end;
-    val stmts = AList.make (Graph.get_node program) (Graph.strong_conn program |> flat)
-      |> filter_out (Code_Thingol.is_case o snd);
-    val (_, sca_program) = fold prepare_stmt stmts (((reserved, reserved), reserved), []);
-    fun deresolver name = (fst o the o AList.lookup (op =) sca_program) name
-      handle Option => error ("Unknown statement name: " ^ labelled_name name);
-  in (deresolver, (the_module_name, sca_program)) end;
+    fun declare_stmt name stmt =
+      let
+        val (name_fragments, base) = dest_name name;
+        val namify = case stmt
+         of Code_Thingol.Fun _ => namify_object
+          | Code_Thingol.Datatype _ => namify_class
+          | Code_Thingol.Datatypecons _ => namify_common true
+          | Code_Thingol.Class _ => namify_class
+          | Code_Thingol.Classrel _ => namify_object
+          | Code_Thingol.Classparam _ => namify_object
+          | Code_Thingol.Classinst _ => namify_common false;
+        val stmt' = case stmt
+         of Code_Thingol.Datatypecons _ => Dummy
+          | Code_Thingol.Classrel _ => Dummy
+          | Code_Thingol.Classparam _ => Dummy
+          | _ => Stmt stmt;
+        fun is_classinst stmt = case stmt
+         of Code_Thingol.Classinst _ => true
+          | _ => false;
+        val implicit_deps = filter (is_classinst o Graph.get_node program)
+          (Graph.imm_succs program name);
+        fun declaration (nsps, (implicits, nodes)) =
+          let
+            val (base', nsps') = namify base nsps;
+            val implicits' = union (op =) implicit_deps implicits;
+            val nodes' = Graph.new_node (name, (base', stmt')) nodes;
+          in (nsps', (implicits', nodes')) end;
+      in change_module name_fragments declaration end;
+
+    (* dependencies *)
+    fun add_dependency name name' =
+      let
+        val (name_fragments, base) = dest_name name;
+        val (name_fragments', base') = dest_name name';
+        val (name_fragments_common, (diff, diff')) =
+          chop_prefix (op =) (name_fragments, name_fragments');
+        val dep = if null diff then (name, name') else (hd diff, hd diff')
+      in (change_module name_fragments_common o apsnd o apsnd) (Graph.add_edge dep) end;
+
+    (* producing program *)
+    val (_, (_, sca_program)) = empty_program
+      |> Graph.fold (fn (name, (stmt, _)) => declare_stmt name stmt) program
+      |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
+
+    (* deresolving *)
+    fun deresolve name =
+      let
+        val (name_fragments, _) = dest_name name;
+        val nodes = fold (fn name_fragement => fn nodes => case Graph.get_node nodes name_fragement
+         of (_, Module (_, (_, nodes))) => nodes) name_fragments sca_program;
+        val (base', _) = Graph.get_node nodes name;
+      in Long_Name.implode (name_fragments @ [base']) end
+        handle Graph.UNDEF _ => error ("Unknown statement name: " ^ labelled_name name);
+
+  in (deresolve, sca_program) end;
 
 fun serialize_scala raw_module_name labelled_name
     raw_reserved includes raw_module_alias
     _ syntax_tyco syntax_const (code_of_pretty, code_writeln)
     program stmt_names destination =
   let
+
+    (* generic nonsense *)
     val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
     val module_name = if null presentation_stmt_names then raw_module_name else SOME "Code";
+
+    (* preprocess program *)
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
-    val (deresolver, (the_module_name, sca_program)) = scala_program_of_program labelled_name
-      module_name reserved raw_module_alias program;
-    val reserved = make_vars reserved;
+    val (deresolve, sca_program) = scala_program_of_program labelled_name
+      module_name (Name.make_context reserved) raw_module_alias program;
+
+    (* print statements *)
     fun lookup_constr tyco constr = case Graph.get_node program tyco
      of Code_Thingol.Datatype (_, (_, constrs)) =>
           the (AList.lookup (op = o apsnd fst) constrs constr);
@@ -359,43 +436,41 @@ fun serialize_scala raw_module_name labelled_name
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
-      reserved args_num is_singleton_constr deresolver;
-    fun print_module name imports content =
-      (name, Pretty.chunks (
-        str ("object " ^ name ^ " {")
-        :: (if null imports then []
-          else str "" :: map (fn name => str ("import " ^ name ^ "._")) imports)
-        @ [str "",
-        content,
-        str "",
-        str "}"]
-      ));
-    fun serialize_module the_module_name sca_program =
-      let
-        val content = Pretty.chunks2 (map_filter
-          (fn (name, (_, SOME stmt)) => SOME (print_stmt (name, stmt))
-            | (_, (_, NONE)) => NONE) sca_program);
-      in print_module the_module_name (map fst includes) content end;
-    fun check_destination destination =
-      (File.check destination; destination);
-    fun write_module destination (modlname, content) =
-      let
-        val filename = case modlname
-         of "" => Path.explode "Main.scala"
-          | _ => (Path.ext "scala" o Path.explode o implode o separate "/"
-                o Long_Name.explode) modlname;
-        val pathname = Path.append destination filename;
-        val _ = File.mkdir_leaf (Path.dir pathname);
-      in File.write pathname (code_of_pretty content) end
+      (make_vars reserved) args_num is_singleton_constr deresolve;
+
+    (* print nodes *)
+    fun print_implicits [] = NONE
+      | print_implicits implicits = (SOME o Pretty.block)
+          (str "import /*implicits*/" :: Pretty.brk 1 :: Pretty.commas (map (str o deresolve) implicits));
+    fun print_module base implicits p = Pretty.chunks2
+      ([str ("object " ^ base ^ " {")] @ the_list (print_implicits implicits)
+        @ [p, str ("} /* object " ^ base ^ " */")]);
+    fun print_node (_, Dummy) = NONE
+      | print_node (name, Stmt stmt) = if not (not (null presentation_stmt_names)
+          andalso member (op =) presentation_stmt_names name)
+          then SOME (print_stmt (name, stmt))
+          else NONE
+      | print_node (name, Module (_, (implicits, nodes))) = if null presentation_stmt_names
+          then case print_nodes nodes
+           of NONE => NONE
+            | SOME p => SOME (print_module (Long_Name.base_name name) implicits p)
+          else print_nodes nodes
+    and print_nodes nodes = let
+        val ps = map_filter (fn name => print_node (name,
+          snd (Graph.get_node nodes name)))
+            ((rev o flat o Graph.strong_conn) nodes);
+      in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
+
+    (* serialization *)
+    val p = Pretty.chunks2 (map (fn (base, p) => print_module base [] p) includes
+      @ the_list (print_nodes sca_program));
   in
     Code_Target.mk_serialization target
-      (fn NONE => K () o map (code_writeln o snd) | SOME file => K () o map
-        (write_module (check_destination file)))
-      (rpair [] o cat_lines o map (code_of_pretty o snd))
-      (map (fn (name, content) => print_module name [] content) includes
-        @| serialize_module the_module_name sca_program)
-      destination
+      (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty)
+      (rpair [] o code_of_pretty) p destination
   end;
+
+end; (*local*)
 
 val literals = let
   fun char_scala c = if c = "'" then "\\'"
@@ -429,10 +504,10 @@ fun isar_serializer module_name =
 val setup =
   Code_Target.add_target
     (target, { serializer = isar_serializer, literals = literals,
-      check = { env_var = "SCALA_HOME", make_destination = I,
+      check = { env_var = "SCALA_HOME", make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
         make_command = fn scala_home => fn p => fn _ =>
           "export JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' && "
-            ^ Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " *.scala" } })
+            ^ Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " " ^ File.shell_path p } })
   #> Code_Target.add_syntax_tyco target "fun"
      (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
         brackify_infix (1, R) fxy (
