@@ -101,7 +101,8 @@ fun string_for_super_pseudoconst (s, [[]]) = s
   | string_for_super_pseudoconst (s, Tss) =
     s ^ "{" ^ commas (map string_for_pseudotypes Tss) ^ "}"
 
-val skolem_prefix = "Sledgehammer."
+val abs_prefix = "Sledgehammer.abs"
+val skolem_prefix = "Sledgehammer.sko"
 
 (* Add a pseudoconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
@@ -129,7 +130,8 @@ fun get_pseudoconsts thy also_skolems pos ts =
         Const x => add_pseudoconst_to_table also_skolems (pseudoconst_for thy x)
       | Free (s, _) => add_pseudoconst_to_table also_skolems (s, [])
       | t1 $ t2 => fold do_term [t1, t2]
-      | Abs (_, _, t') => do_term t'  (* FIXME: add penalty? *)
+      | Abs (_, _, t') =>
+        do_term t' #> add_pseudoconst_to_table true (abs_prefix, [])
       | _ => I
     fun do_quantifier will_surely_be_skolemized body_t =
       do_formula pos body_t
@@ -247,6 +249,7 @@ fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
 val rel_weight = rel_log oo pseudoconst_freq match_pseudotypes
 fun irrel_weight const_tab (c as (s, _)) =
   if String.isPrefix skolem_prefix s then 1.0
+  else if String.isPrefix abs_prefix s then 2.0
   else irrel_log (pseudoconst_freq (match_pseudotypes o swap) const_tab c)
 (* TODO: experiment
 fun irrel_weight _ _ = 1.0
