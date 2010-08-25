@@ -26,6 +26,8 @@ sig
   val write_program : logic_program -> string
   val run : logic_program -> string -> string list -> int option -> prol_term list list
 
+  val quickcheck : Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
+
   val trace : bool Unsynchronized.ref
 end;
 
@@ -517,5 +519,51 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
    >> (fn ((print_modes, soln), t) => Toplevel.keep
         (values_cmd print_modes soln t))); (*FIXME does not preserve the previous functionality*)
 
+(* quickcheck generator *)
+
+(* FIXME: large copy of Predicate_Compile_Quickcheck - refactor out commons *)
+
+fun strip_imp_prems (Const(@{const_name "op -->"}, _) $ A $ B) = A :: strip_imp_prems B
+  | strip_imp_prems _ = [];
+
+fun strip_imp_concl (Const(@{const_name "op -->"}, _) $ A $ B) = strip_imp_concl B
+  | strip_imp_concl A = A : term;
+
+fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
+
+fun quickcheck ctxt report t size =
+  let
+    val ctxt' = ProofContext.theory (Context.copy_thy) ctxt
+    val thy = (ProofContext.theory_of ctxt')
+    val (vs, t') = strip_abs t
+    val vs' = Variable.variant_frees ctxt' [] vs
+    val Ts = map snd vs'
+    val t'' = subst_bounds (map Free (rev vs'), t')
+    val (prems, concl) = strip_horn t''
+    val constname = "quickcheck"
+    val full_constname = Sign.full_bname thy constname
+    val constT = Ts ---> @{typ bool}
+    val thy1 = Sign.add_consts_i [(Binding.name constname, constT, NoSyn)] thy
+    val const = Const (full_constname, constT)
+    val t = Logic.list_implies
+      (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
+       HOLogic.mk_Trueprop (list_comb (Const (full_constname, constT), map Free vs')))
+    val tac = fn _ => Skip_Proof.cheat_tac thy1
+    val intro = Goal.prove (ProofContext.init_global thy1) (map fst vs') [] t tac
+    val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
+    val thy3 = Predicate_Compile.preprocess preprocess_options const thy2
+    val ctxt'' = ProofContext.init_global thy3
+    val _ = tracing "Generating prolog program..."
+    val (p, constant_table) = generate {ensure_groundness = true} ctxt'' full_constname
+      |> add_ground_predicates ctxt''
+    val _ = tracing "Running prolog program..."
+    val [ts] = run p (translate_const constant_table full_constname) (map (first_upper o fst) vs')
+      (SOME 1)
+    val _ = tracing "Restoring terms..."
+    val res = SOME (map (restore_term ctxt'' constant_table) (ts ~~ Ts))
+    val empty_report = ([], false)
+  in
+    (res, empty_report)
+  end; 
 
 end;
