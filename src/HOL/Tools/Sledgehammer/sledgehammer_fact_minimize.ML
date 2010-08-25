@@ -40,22 +40,20 @@ fun n_theorems names =
        "")
   end
 
-fun test_theorems ({debug, verbose, overlord, atps, full_types,
-                    relevance_threshold, relevance_decay, isar_proof,
+fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
                     isar_shrink_factor, ...} : params)
                   (prover : prover) explicit_apply timeout subgoal state
-                  name_thms_pairs =
+                  axioms =
   let
     val _ =
-      priority ("Testing " ^ n_theorems (map fst name_thms_pairs) ^ "...")
+      priority ("Testing " ^ n_theorems (map fst axioms) ^ "...")
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
        full_types = full_types, explicit_apply = explicit_apply,
-       relevance_threshold = relevance_threshold,
-       relevance_decay = relevance_decay, max_relevant_per_iter = NONE,
+       relevance_threshold = 1.1, relevance_decay = NONE, max_relevant = NONE,
        theory_relevant = NONE, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, timeout = timeout}
-    val axioms = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
+    val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
      {subgoal = subgoal, goal = (ctxt, (facts, goal)),
@@ -65,7 +63,7 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types,
   in
     priority (case outcome of
                 NONE =>
-                if length used_thm_names = length name_thms_pairs then
+                if length used_thm_names = length axioms then
                   "Found proof."
                 else
                   "Found proof with " ^ n_theorems used_thm_names ^ "."
@@ -91,10 +89,9 @@ fun sublinear_minimize _ [] p = p
 val fudge_msecs = 1000
 
 fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
-  | minimize_theorems
-        (params as {debug, atps = atp :: _, full_types, isar_proof,
-                    isar_shrink_factor, timeout, ...})
-        i n state name_thms_pairs =
+  | minimize_theorems (params as {debug, atps = atp :: _, full_types,
+                                  isar_proof, isar_shrink_factor, timeout, ...})
+                      i n state axioms =
   let
     val thy = Proof.theory_of state
     val prover = get_prover_fun thy atp
@@ -104,13 +101,12 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
     val (_, hyp_ts, concl_t) = strip_subgoal goal i
     val explicit_apply =
       not (forall (Meson.is_fol_term thy)
-                  (concl_t :: hyp_ts @
-                   maps (map prop_of o snd) name_thms_pairs))
+                  (concl_t :: hyp_ts @ maps (map prop_of o snd) axioms))
     fun do_test timeout =
       test_theorems params prover explicit_apply timeout i state
     val timer = Timer.startRealTimer ()
   in
-    (case do_test timeout name_thms_pairs of
+    (case do_test timeout axioms of
        result as {outcome = NONE, pool, used_thm_names,
                   conjecture_shape, ...} =>
        let
@@ -120,7 +116,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
            |> Time.fromMilliseconds
          val (min_thms, {proof, axiom_names, ...}) =
            sublinear_minimize (do_test new_timeout)
-               (filter_used_facts used_thm_names name_thms_pairs) ([], result)
+               (filter_used_facts used_thm_names axioms) ([], result)
          val n = length min_thms
          val _ = priority (cat_lines
            ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^
@@ -152,15 +148,14 @@ fun run_minimize params i refs state =
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
-    val name_thms_pairs =
-      map (apfst (fn f => f ())
-           o name_thms_pair_from_ref ctxt reserved chained_ths) refs
+    val axioms =
+      maps (map (fn (name, (_, th)) => (name (), [th]))
+            o name_thm_pairs_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of
       0 => priority "No subgoal!"
     | n =>
-      (kill_atps ();
-       priority (#2 (minimize_theorems params i n state name_thms_pairs)))
+      (kill_atps (); priority (#2 (minimize_theorems params i n state axioms)))
   end
 
 end;

@@ -68,8 +68,8 @@ val default_default_params =
    ("overlord", "false"),
    ("explicit_apply", "false"),
    ("relevance_threshold", "40"),
-   ("relevance_decay", "31"),
-   ("max_relevant_per_iter", "smart"),
+   ("relevance_decay", "smart"),
+   ("max_relevant", "smart"),
    ("theory_relevant", "smart"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1")]
@@ -169,8 +169,9 @@ fun extract_params default_params override_params =
     val relevance_threshold =
       0.01 * Real.fromInt (lookup_int "relevance_threshold")
     val relevance_decay =
-      0.01 * Real.fromInt (lookup_int "relevance_decay")
-    val max_relevant_per_iter = lookup_int_option "max_relevant_per_iter"
+      lookup_int_option "relevance_decay"
+      |> Option.map (fn n => 0.01 * Real.fromInt n)
+    val max_relevant = lookup_int_option "max_relevant"
     val theory_relevant = lookup_bool_option "theory_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
@@ -179,8 +180,7 @@ fun extract_params default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
      full_types = full_types, explicit_apply = explicit_apply,
      relevance_threshold = relevance_threshold,
-     relevance_decay = relevance_decay,
-     max_relevant_per_iter = max_relevant_per_iter,
+     relevance_decay = relevance_decay, max_relevant = max_relevant,
      theory_relevant = theory_relevant, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, timeout = timeout}
   end

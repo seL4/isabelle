@@ -19,7 +19,7 @@ sig
      has_incomplete_mode: bool,
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
-     default_max_relevant_per_iter: int,
+     default_max_relevant: int,
      default_theory_relevant: bool,
      explicit_forall: bool,
      use_conjecture_for_hypotheses: bool}
@@ -52,7 +52,7 @@ type prover_config =
    has_incomplete_mode: bool,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
-   default_max_relevant_per_iter: int,
+   default_max_relevant: int,
    default_theory_relevant: bool,
    explicit_forall: bool,
    use_conjecture_for_hypotheses: bool}
@@ -159,7 +159,7 @@ val e_config : prover_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   default_max_relevant_per_iter = 80 (* FUDGE *),
+   default_max_relevant = 500 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
@@ -186,7 +186,7 @@ val spass_config : prover_config =
       (MalformedInput, "Undefined symbol"),
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg")],
-   default_max_relevant_per_iter = 40 (* FUDGE *),
+   default_max_relevant = 350 (* FUDGE *),
    default_theory_relevant = true,
    explicit_forall = true,
    use_conjecture_for_hypotheses = true}
@@ -199,10 +199,11 @@ val spass = ("spass", spass_config)
 val vampire_config : prover_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
-   arguments = fn _ => fn timeout =>
-     "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
-     " --thanks Andrei --input_file",
-   has_incomplete_mode = false,
+   arguments = fn complete => fn timeout =>
+     ("--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
+      " --thanks Andrei --input_file")
+     |> not complete ? prefix "--sos on ",
+   has_incomplete_mode = true,
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
@@ -215,7 +216,7 @@ val vampire_config : prover_config =
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option")],
-   default_max_relevant_per_iter = 45 (* FUDGE *),
+   default_max_relevant = 400 (* FUDGE *),
    default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
@@ -255,7 +256,7 @@ fun the_system name versions =
   | SOME sys => sys
 
 fun remote_config system_name system_versions proof_delims known_failures
-                  default_max_relevant_per_iter default_theory_relevant
+                  default_max_relevant default_theory_relevant
                   use_conjecture_for_hypotheses : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
@@ -267,26 +268,26 @@ fun remote_config system_name system_versions proof_delims known_failures
    known_failures =
      known_failures @ known_perl_failures @
      [(TimedOut, "says Timeout")],
-   default_max_relevant_per_iter = default_max_relevant_per_iter,
+   default_max_relevant = default_max_relevant,
    default_theory_relevant = default_theory_relevant,
    explicit_forall = true,
    use_conjecture_for_hypotheses = use_conjecture_for_hypotheses}
 
 fun remotify_config system_name system_versions
-        ({proof_delims, known_failures, default_max_relevant_per_iter,
+        ({proof_delims, known_failures, default_max_relevant,
           default_theory_relevant, use_conjecture_for_hypotheses, ...}
          : prover_config) : prover_config =
   remote_config system_name system_versions proof_delims known_failures
-                default_max_relevant_per_iter default_theory_relevant
+                default_max_relevant default_theory_relevant
                 use_conjecture_for_hypotheses
 
 val remotify_name = prefix "remote_"
 fun remote_prover name system_name system_versions proof_delims known_failures
-                  default_max_relevant_per_iter default_theory_relevant
+                  default_max_relevant default_theory_relevant
                   use_conjecture_for_hypotheses =
   (remotify_name name,
    remote_config system_name system_versions proof_delims known_failures
-                 default_max_relevant_per_iter default_theory_relevant
+                 default_max_relevant default_theory_relevant
                  use_conjecture_for_hypotheses)
 fun remotify_prover (name, config) system_name system_versions =
   (remotify_name name, remotify_config system_name system_versions config)
@@ -294,11 +295,11 @@ fun remotify_prover (name, config) system_name system_versions =
 val remote_e = remotify_prover e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_prover vampire "Vampire" ["9.9", "0.6", "1.0"]
 val remote_sine_e =
-  remote_prover "sine_e" "SInE" [] []
-                [(Unprovable, "says Unknown")] 150 (* FUDGE *) false true
+  remote_prover "sine_e" "SInE" [] [] [(Unprovable, "says Unknown")]
+                1000 (* FUDGE *) false true
 val remote_snark =
   remote_prover "snark" "SNARK---" [] [("refutation.", "end_refutation.")] []
-                50 (* FUDGE *) false true
+                350 (* FUDGE *) false true
 
 (* Setup *)
 
