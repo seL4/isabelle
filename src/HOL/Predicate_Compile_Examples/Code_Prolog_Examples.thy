@@ -187,4 +187,12 @@ ML {* Code_Prolog.options := {ensure_groundness = true} *}
 
 values 2 "{y. notB y}"
 
+inductive notAB :: "abc * abc \<Rightarrow> bool"
+where
+  "y \<noteq> A \<Longrightarrow> z \<noteq> B \<Longrightarrow> notAB (y, z)"
+
+code_pred notAB .
+
+values 5 "{y. notAB y}"
+
 end
