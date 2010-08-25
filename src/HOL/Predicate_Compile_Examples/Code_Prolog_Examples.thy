@@ -182,4 +182,12 @@ where
 
 values 5 "{y. notAB y}"
 
+section {* Example prolog conform variable names *}
+
+inductive equals :: "abc => abc => bool"
+where
+  "equals y' y'"
+ML {* set Code_Prolog.trace *}
+values 1 "{(y, z). equals y z}"
+
 end

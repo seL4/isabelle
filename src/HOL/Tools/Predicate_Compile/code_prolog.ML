@@ -58,6 +58,18 @@ datatype arith_op = Plus | Minus
 datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
   | Number of int | ArithOp of arith_op * prol_term list;
 
+fun dest_Var (Var v) = v
+
+fun add_vars (Var v) = insert (op =) v
+  | add_vars (ArithOp (_, ts)) = fold add_vars ts
+  | add_vars (AppF (_, ts)) = fold add_vars ts
+  | add_vars _ = I
+
+fun map_vars f (Var v) = Var (f v)
+  | map_vars f (ArithOp (opr, ts)) = ArithOp (opr, map (map_vars f) ts)
+  | map_vars f (AppF (fs, ts)) = AppF (fs, map (map_vars f) ts)
+  | map_vars f t = t
+  
 fun maybe_AppF (c, []) = Cons c
   | maybe_AppF (c, xs) = AppF (c, xs)
 
@@ -79,9 +91,27 @@ datatype prem = Conj of prem list
   | Eq of prol_term * prol_term | NotEq of prol_term * prol_term
   | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term
   | Ground of string * typ;
-  
+
 fun dest_Rel (Rel (c, ts)) = (c, ts)
- 
+
+fun map_term_prem f (Conj prems) = Conj (map (map_term_prem f) prems)
+  | map_term_prem f (Rel (r, ts)) = Rel (r, map f ts)
+  | map_term_prem f (NotRel (r, ts)) = NotRel (r, map f ts)
+  | map_term_prem f (Eq (l, r)) = Eq (f l, f r)
+  | map_term_prem f (NotEq (l, r)) = NotEq (f l, f r)
+  | map_term_prem f (ArithEq (l, r)) = ArithEq (f l, f r)
+  | map_term_prem f (NotArithEq (l, r)) = NotArithEq (f l, f r)
+  | map_term_prem f (Ground (v, T)) = Ground (dest_Var (f (Var v)), T)
+
+fun fold_prem_terms f (Conj prems) = fold (fold_prem_terms f) prems
+  | fold_prem_terms f (Rel (_, ts)) = fold f ts
+  | fold_prem_terms f (NotRel (_, ts)) = fold f ts
+  | fold_prem_terms f (Eq (l, r)) = f l #> f r
+  | fold_prem_terms f (NotEq (l, r)) = f l #> f r
+  | fold_prem_terms f (ArithEq (l, r)) = f l #> f r
+  | fold_prem_terms f (NotArithEq (l, r)) = f l #> f r
+  | fold_prem_terms f (Ground (v, T)) = f (Var v)
+  
 type clause = ((string * prol_term list) * prem);
 
 type logic_program = clause list;
@@ -308,12 +338,42 @@ fun add_ground_predicates ctxt (p, constant_table) =
     ((flat grs) @ p', constant_table')
   end
     
+(* rename variables to prolog-friendly names *)
+
+fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renaming v))
+
+fun rename_vars_prem renaming = map_term_prem (rename_vars_term renaming)
+
+fun dest_Char (Symbol.Char c) = c
+
+fun is_prolog_conform v =
+  forall (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s) (Symbol.explode v)
+
+fun mk_conform avoid v =
+  let 
+    val v' = space_implode "" (map (dest_Char o Symbol.decode)
+      (filter (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s)
+        (Symbol.explode v)))
+    val v' = if v' = "" then "var" else v'
+  in Name.variant avoid (first_upper v') end
+  
+fun mk_renaming v renaming =
+  (v, mk_conform (map snd renaming) v) :: renaming
+
+fun rename_vars_clause ((rel, args), prem) =
+  let
+    val vars = fold_prem_terms add_vars prem (fold add_vars args [])
+    val renaming = fold mk_renaming vars []
+  in ((rel, map (rename_vars_term renaming) args), rename_vars_prem renaming prem) end
+  
+val rename_vars_program = map rename_vars_clause
+  
 (* code printer *)
 
 fun write_arith_op Plus = "+"
   | write_arith_op Minus = "-"
 
-fun write_term (Var v) = first_upper v
+fun write_term (Var v) = v
   | write_term (Cons c) = c
   | write_term (AppF (f, args)) = f ^ "(" ^ space_implode ", " (map write_term args) ^ ")"
   | write_term (ArithOp (oper, [a1, a2])) = write_term a1 ^ " " ^ write_arith_op oper ^ " " ^ write_term a2
@@ -414,8 +474,12 @@ fun parse_solutions sol =
 fun run p query_rel vnames nsols =
   let
     val cmd = Path.named_root
-    val query = case nsols of NONE => query_first | SOME n => query_firstn n 
-    val prog = prelude ^ query query_rel vnames ^ write_program p
+    val query = case nsols of NONE => query_first | SOME n => query_firstn n
+    val p' = rename_vars_program p
+    val _ = tracing "Renaming variable names..."
+    val renaming = fold mk_renaming vnames [] 
+    val vnames' = map (fn v => the (AList.lookup (op =) renaming v)) vnames
+    val prog = prelude ^ query query_rel vnames' ^ write_program p'
     val _ = tracing ("Generated prolog program:\n" ^ prog)
     val prolog_file = File.tmp_path (Path.basic "prolog_file")
     val _ = File.write prolog_file prog
@@ -565,7 +629,7 @@ fun quickcheck ctxt report t size =
     val (p, constant_table) = generate {ensure_groundness = true} ctxt'' full_constname
       |> add_ground_predicates ctxt''
     val _ = tracing "Running prolog program..."
-    val [ts] = run p (translate_const constant_table full_constname) (map (first_upper o fst) vs')
+    val [ts] = run p (translate_const constant_table full_constname) (map fst vs')
       (SOME 1)
     val _ = tracing "Restoring terms..."
     val res = SOME (map (restore_term ctxt'' constant_table) (ts ~~ Ts))
