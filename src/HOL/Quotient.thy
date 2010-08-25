@@ -571,7 +571,8 @@ using a unfolding Quotient_def in_respects
 apply metis
 done
 
-lemma bex1_bexeq_reg: "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1_rel R (\<lambda>x. P x))"
+lemma bex1_bexeq_reg:
+  shows "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1_rel R (\<lambda>x. P x))"
   apply (simp add: Ex1_def Bex1_rel_def in_respects)
   apply clarify
   apply auto
@@ -580,6 +581,23 @@ lemma bex1_bexeq_reg: "(\<exists>!x\<in>Respects R. P x) \<longrightarrow> (Bex1
   apply (simp add: in_respects)
   apply (simp add: in_respects)
   apply auto
+  done
+
+lemma bex1_bexeq_reg_eqv:
+  assumes a: "equivp R"
+  shows "(\<exists>!x. P x) \<longrightarrow> Bex1_rel R P"
+  using equivp_reflp[OF a]
+  apply (intro impI)
+  apply (elim ex1E)
+  apply (rule mp[OF bex1_bexeq_reg])
+  apply (rule_tac a="x" in ex1I)
+  apply (subst in_respects)
+  apply (rule conjI)
+  apply assumption
+  apply assumption
+  apply clarify
+  apply (erule_tac x="xa" in allE)
+  apply simp
   done
 
 subsection {* Various respects and preserve lemmas *}
