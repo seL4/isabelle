@@ -57,14 +57,18 @@ consts
   False         :: bool
   Not           :: "bool => bool"                   ("~ _" [40] 40)
 
-global consts
+setup Sign.root_path
+
+consts
   "op &"        :: "[bool, bool] => bool"           (infixr "&" 35)
   "op |"        :: "[bool, bool] => bool"           (infixr "|" 30)
   "op -->"      :: "[bool, bool] => bool"           (infixr "-->" 25)
 
   "op ="        :: "['a, 'a] => bool"               (infixl "=" 50)
 
-local consts
+setup Sign.local_path
+
+consts
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)

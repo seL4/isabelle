@@ -1220,8 +1220,6 @@ section {* Name spaces *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "global"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def "local"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "hide_class"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "hide_type"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "hide_const"} & : & @{text "theory \<rightarrow> theory"} \\
@@ -1241,16 +1239,6 @@ text {*
 
   \begin{description}
 
-  \item @{command "global"} and @{command "local"} change the current
-  name declaration mode.  Initially, theories start in @{command
-  "local"} mode, causing all names to be automatically qualified by
-  the theory name.  Changing this to @{command "global"} causes all
-  names to be declared without the theory prefix, until @{command
-  "local"} is declared again.
-  
-  Note that global names are prone to get hidden accidently later,
-  when qualified names of the same base name are introduced.
-  
   \item @{command "hide_class"}~@{text names} fully removes class
   declarations from a given name space; with the @{text "(open)"}
   option, only the base name is hidden.  Global (unqualified) names

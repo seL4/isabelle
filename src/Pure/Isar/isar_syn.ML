@@ -286,14 +286,6 @@ val _ =
 
 (* name space entry path *)
 
-val _ =
-  Outer_Syntax.command "global" "disable prefixing of theory name" Keyword.thy_decl
-    (Scan.succeed (Toplevel.theory Sign.root_path));
-
-val _ =
-  Outer_Syntax.command "local" "enable prefixing of theory name" Keyword.thy_decl
-    (Scan.succeed (Toplevel.theory Sign.local_path));
-
 fun hide_names name hide what =
   Outer_Syntax.command name ("hide " ^ what ^ " from name space") Keyword.thy_decl
     ((Parse.opt_keyword "open" >> not) -- Scan.repeat1 Parse.xname >>
