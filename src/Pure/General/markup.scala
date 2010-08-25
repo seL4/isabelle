@@ -94,9 +94,9 @@ object Markup
 
   /* pretty printing */
 
-  val INDENT = "indent"
+  val Indent = new Int_Property("indent")
   val BLOCK = "block"
-  val WIDTH = "width"
+  val Width = new Int_Property("width")
   val BREAK = "break"
 
 
