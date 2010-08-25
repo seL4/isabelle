@@ -1491,13 +1491,13 @@ setup {*
       map (Simplifier.rewrite_rule (map Thm.symmetric
         @{thms induct_rulify_fallback})))
     addsimprocs
-      [Simplifier.simproc @{theory} "swap_induct_false"
+      [Simplifier.simproc_global @{theory} "swap_induct_false"
          ["induct_false ==> PROP P ==> PROP Q"]
          (fn _ => fn _ =>
             (fn _ $ (P as _ $ @{const induct_false}) $ (_ $ Q $ _) =>
                   if P <> Q then SOME Drule.swap_prems_eq else NONE
               | _ => NONE)),
-       Simplifier.simproc @{theory} "induct_equal_conj_curry"
+       Simplifier.simproc_global @{theory} "induct_equal_conj_curry"
          ["induct_conj P Q ==> PROP R"]
          (fn _ => fn _ =>
             (fn _ $ (_ $ P) $ _ =>
@@ -1797,7 +1797,7 @@ declare equals_eq [code]
 
 setup {*
   Code_Preproc.map_pre (fn simpset =>
-    simpset addsimprocs [Simplifier.simproc_i @{theory} "eq" [@{term "op ="}]
+    simpset addsimprocs [Simplifier.simproc_global_i @{theory} "eq" [@{term "op ="}]
       (fn thy => fn _ => fn Const (_, T) => case strip_type T
         of (Type _ :: _, _) => SOME @{thm equals_eq}
          | _ => NONE)])

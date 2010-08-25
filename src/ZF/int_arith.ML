@@ -147,7 +147,7 @@ val int_mult_minus_simps =
     [@{thm zmult_assoc}, @{thm zmult_zminus} RS @{thm sym}, int_minus_mult_eq_1_to_2];
 
 fun prep_simproc thy (name, pats, proc) =
-  Simplifier.simproc thy name pats proc;
+  Simplifier.simproc_global thy name pats proc;
 
 structure CancelNumeralsCommon =
   struct

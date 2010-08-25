@@ -38,9 +38,9 @@ sig
   val context: Proof.context -> simpset -> simpset
   val global_context: theory -> simpset -> simpset
   val with_context: Proof.context -> (simpset -> simpset) -> simpset -> simpset
-  val simproc_i: theory -> string -> term list
+  val simproc_global_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
-  val simproc: theory -> string -> string list
+  val simproc_global: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val rewrite: simpset -> conv
   val asm_rewrite: simpset -> conv

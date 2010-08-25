@@ -163,7 +163,7 @@ let
   val thy = ProofContext.theory_of ctxt
   val ball_pat = @{term "Ball (Respects (R1 ===> R2)) P"}
   val bex_pat  = @{term "Bex (Respects (R1 ===> R2)) P"}
-  val simproc = Simplifier.simproc_i thy "" [ball_pat, bex_pat] (K (ball_bex_range_simproc))
+  val simproc = Simplifier.simproc_global_i thy "" [ball_pat, bex_pat] (K (ball_bex_range_simproc))
   val simpset = (mk_minimal_ss ctxt)
                        addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
                        addsimprocs [simproc]

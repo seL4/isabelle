@@ -349,7 +349,7 @@ declaration {*
       @{thm star_of_number_of}, @{thm star_of_add}, @{thm star_of_minus},
       @{thm star_of_diff}, @{thm star_of_mult}]
   #> Lin_Arith.add_inj_const (@{const_name "StarDef.star_of"}, @{typ "real \<Rightarrow> hypreal"})
-  #> Simplifier.map_ss (fn simpset => simpset addsimprocs [Simplifier.simproc @{theory}
+  #> Simplifier.map_ss (fn simpset => simpset addsimprocs [Simplifier.simproc_global @{theory}
       "fast_hypreal_arith" ["(m::hypreal) < n", "(m::hypreal) <= n", "(m::hypreal) = n"]
       (K Lin_Arith.simproc)]))
 *}

@@ -182,11 +182,11 @@ fun unfold_tac ths =
   in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 val defALL_regroup =
-  Simplifier.simproc @{theory}
+  Simplifier.simproc_global @{theory}
     "defined ALL" ["ALL x. P x"] Quantifier1.rearrange_all;
 
 val defEX_regroup =
-  Simplifier.simproc @{theory}
+  Simplifier.simproc_global @{theory}
     "defined EX" ["EX x. P x"] Quantifier1.rearrange_ex;
 
 

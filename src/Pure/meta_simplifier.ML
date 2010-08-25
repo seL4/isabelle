@@ -107,9 +107,9 @@ sig
   val simp_depth_limit_value: Config.value Config.T
   val simp_depth_limit: int Config.T
   val clear_ss: simpset -> simpset
-  val simproc_i: theory -> string -> term list
+  val simproc_global_i: theory -> string -> term list
     -> (theory -> simpset -> term -> thm option) -> simproc
-  val simproc: theory -> string -> string list
+  val simproc_global: theory -> string -> string list
     -> (theory -> simpset -> term -> thm option) -> simproc
   val inherit_context: simpset -> simpset -> simpset
   val the_context: simpset -> Proof.context
@@ -631,8 +631,8 @@ fun mk_simproc name lhss proc =
     proc (ProofContext.theory_of (the_context ss)) ss (Thm.term_of ct), identifier = []};
 
 (* FIXME avoid global thy and Logic.varify_global *)
-fun simproc_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify_global);
-fun simproc thy name = simproc_i thy name o map (Syntax.read_term_global thy);
+fun simproc_global_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify_global);
+fun simproc_global thy name = simproc_global_i thy name o map (Syntax.read_term_global thy);
 
 
 local

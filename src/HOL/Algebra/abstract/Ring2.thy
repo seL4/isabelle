@@ -285,7 +285,7 @@ ML {*
         else SOME rew
     end;
   in
-    val ring_simproc = Simplifier.simproc @{theory} "ring" lhss (K proc);
+    val ring_simproc = Simplifier.simproc_global @{theory} "ring" lhss (K proc);
   end;
 *}
 

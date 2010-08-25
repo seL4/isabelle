@@ -101,7 +101,7 @@ struct
    handle Match => NONE;
 
 
- val conv = Simplifier.simproc @{theory} "data_free" ["(x::i) = y"] proc;
+ val conv = Simplifier.simproc_global @{theory} "data_free" ["(x::i) = y"] proc;
 
 end;
 

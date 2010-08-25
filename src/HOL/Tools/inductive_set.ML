@@ -32,7 +32,7 @@ struct
 (**** simplify {(x1, ..., xn). (x1, ..., xn) : S} to S ****)
 
 val collect_mem_simproc =
-  Simplifier.simproc @{theory Set} "Collect_mem" ["Collect t"] (fn thy => fn ss =>
+  Simplifier.simproc_global @{theory Set} "Collect_mem" ["Collect t"] (fn thy => fn ss =>
     fn S as Const (@{const_name Collect}, Type ("fun", [_, T])) $ t =>
          let val (u, _, ps) = HOLogic.strip_psplits t
          in case u of
@@ -67,7 +67,7 @@ val collect_mem_simproc =
 val anyt = Free ("t", TFree ("'t", []));
 
 fun strong_ind_simproc tab =
-  Simplifier.simproc_i @{theory HOL} "strong_ind" [anyt] (fn thy => fn ss => fn t =>
+  Simplifier.simproc_global_i @{theory HOL} "strong_ind" [anyt] (fn thy => fn ss => fn t =>
     let
       fun close p t f =
         let val vs = Term.add_vars t []
@@ -320,7 +320,7 @@ fun is_pred tab t =
 fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
-    Simplifier.simproc_i @{theory HOL} "to_pred" [anyt]
+    Simplifier.simproc_global_i @{theory HOL} "to_pred" [anyt]
       (fn thy => K (lookup_rule thy (prop_of #> Logic.dest_equals) rules'))
   end;
 

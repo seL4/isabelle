@@ -79,7 +79,7 @@ val zero_one_idom_simproc =
   proc = sproc, identifier = []}
 
 val fast_int_arith_simproc =
-  Simplifier.simproc @{theory} "fast_int_arith"
+  Simplifier.simproc_global @{theory} "fast_int_arith"
      ["(m::'a::{linordered_idom,number_ring}) < n",
       "(m::'a::{linordered_idom,number_ring}) <= n",
       "(m::'a::{linordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
