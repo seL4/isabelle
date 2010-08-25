@@ -310,7 +310,7 @@ fun rep_abs_rsp_tac ctxt =
 
 
 
-(* Injection means to prove that the regularised theorem implies
+(* Injection means to prove that the regularized theorem implies
    the abs/rep injected one.
 
    The deterministic part:
@@ -541,8 +541,7 @@ in
 end
 
 
-
-(** Tactic for Generalising Free Variables in a Goal **)
+(* Tactic for Generalising Free Variables in a Goal *)
 
 fun inst_spec ctrm =
    Drule.instantiate' [SOME (ctyp_of_term ctrm)] [NONE, SOME ctrm] @{thm spec}
@@ -649,6 +648,7 @@ end
 
 (** lifting as a tactic **)
 
+
 (* the tactic leaves three subgoals to be proved *)
 fun lift_procedure_tac ctxt rthm =
   Object_Logic.full_atomize_tac
@@ -691,7 +691,7 @@ let
   val goal = derive_qtrm ctxt' qtys (prop_of rthm'')
 in
   Goal.prove ctxt' [] [] goal 
-    (K (HEADGOAL (asm_full_simp_tac ss THEN' lift_single_tac ctxt' rthm'')))
+    (K (EVERY1 [asm_full_simp_tac ss, lift_single_tac ctxt' rthm'']))
   |> singleton (ProofContext.export ctxt' ctxt)
 end
 

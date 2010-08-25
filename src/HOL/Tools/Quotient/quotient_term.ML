@@ -68,7 +68,7 @@ fun get_mapfun ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
   val exn = LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
-  val mapfun = #mapfun (maps_lookup thy s) handle Quotient_Info.NotFound => raise exn
+  val mapfun = #mapfun (maps_lookup thy s) handle NotFound => raise exn
 in
   Const (mapfun, dummyT)
 end
@@ -105,7 +105,7 @@ fun get_rty_qty ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
   val exn = LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
-  val qdata = quotdata_lookup thy s handle Quotient_Info.NotFound => raise exn
+  val qdata = quotdata_lookup thy s handle NotFound => raise exn
 in
   (#rtyp qdata, #qtyp qdata)
 end
@@ -277,7 +277,7 @@ fun get_relmap ctxt s =
 let
   val thy = ProofContext.theory_of ctxt
   val exn = LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
-  val relmap = #relmap (maps_lookup thy s) handle Quotient_Info.NotFound => raise exn
+  val relmap = #relmap (maps_lookup thy s) handle NotFound => raise exn
 in
   Const (relmap, dummyT)
 end
@@ -301,7 +301,7 @@ let
   val thy = ProofContext.theory_of ctxt
   val exn = LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
 in
-  #equiv_rel (quotdata_lookup thy s) handle Quotient_Info.NotFound => raise exn
+  #equiv_rel (quotdata_lookup thy s) handle NotFound => raise exn
 end
 
 fun equiv_match_err ctxt ty_pat ty =
@@ -436,7 +436,7 @@ fun matches_typ thy rT qT =
         if length rtys <> length qtys then false else
         forall (fn x => x = true) (map2 (matches_typ thy) rtys qtys)
       else
-        (case Quotient_Info.quotdata_lookup_raw thy qs of
+        (case quotdata_lookup_raw thy qs of
           SOME quotinfo => Sign.typ_instance thy (rT, #rtyp quotinfo)
         | NONE => false)
   | _ => false
@@ -446,7 +446,7 @@ fun matches_typ thy rT qT =
 
    - the result might contain dummyTs
 
-   - for regularisation we do not need any
+   - for regularization we do not need any
      special treatment of bound variables
 *)
 fun regularize_trm ctxt (rtrm, qtrm) =
@@ -550,7 +550,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          val rel' = equiv_relation_chk ctxt (domain_type rel_ty, domain_type ty')
        in
          if rel' aconv rel then rtrm
-         else term_mismatch "regularise (relation mismatch)" ctxt rel rel'
+         else term_mismatch "regularize (relation mismatch)" ctxt rel rel'
        end
 
   | (_, Const _) =>
@@ -563,10 +563,10 @@ fun regularize_trm ctxt (rtrm, qtrm) =
          else
            let
              val rtrm' = #rconst (qconsts_lookup thy qtrm)
-               handle Quotient_Info.NotFound => term_mismatch "regularize(constant notfound)" ctxt rtrm qtrm
+               handle NotFound => term_mismatch "regularize (constant not found)" ctxt rtrm qtrm
            in
              if Pattern.matches thy (rtrm', rtrm)
-             then rtrm else term_mismatch "regularize(constant mismatch)" ctxt rtrm qtrm
+             then rtrm else term_mismatch "regularize (constant mismatch)" ctxt rtrm qtrm
            end
        end
 
@@ -751,7 +751,7 @@ fun mk_ty_subst qtys direction ctxt =
 let
   val thy = ProofContext.theory_of ctxt  
 in
-  Quotient_Info.quotdata_dest ctxt
+  quotdata_dest ctxt
    |> map (fn x => (#rtyp x, #qtyp x))
    |> filter (fn (_, qty) => member (Sign.typ_instance thy o swap) qtys qty)
    |> map (if direction then swap else I)
@@ -763,12 +763,12 @@ let
   fun proper (t1, t2) = subst_typ' (fastype_of t1) = fastype_of t2
 
   val const_substs = 
-    Quotient_Info.qconsts_dest ctxt
+    qconsts_dest ctxt
      |> map (fn x => (#rconst x, #qconst x))
      |> map (if direction then swap else I)
 
   val rel_substs =
-    Quotient_Info.quotdata_dest ctxt
+    quotdata_dest ctxt
      |> map (fn x => (#equiv_rel x, HOLogic.eq_const (#qtyp x)))
      |> map (if direction then swap else I)
 in
