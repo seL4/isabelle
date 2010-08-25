@@ -25,7 +25,7 @@ struct
 
 (** datatype gram **)
 
-type nt_tag = int;              (*production for the NTs are stored in an array
+type nt_tag = int;              (*production for the NTs are stored in a vector
                                   so we can identify NTs by their index*)
 
 datatype symb = Terminal of Lexicon.token
@@ -43,7 +43,7 @@ datatype gram =
            tags: nt_tag Symtab.table,
            chains: (nt_tag * nt_tag list) list,              (*[(to, [from])]*)
            lambdas: nt_tag list,
-           prods: nt_gram Array.array};
+           prods: nt_gram Vector.vector};
                        (*"tags" is used to map NT names (i.e. strings) to tags;
                          chain productions are not stored as normal productions
                          but instead as an entry in "chains";
@@ -410,7 +410,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
         fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
         val nt_prods =
-          Library.foldl (uncurry (union (op =))) ([], map snd (snd (Array.sub (prods, tag)))) @
+          Library.foldl (uncurry (union (op =))) ([], map snd (snd (Vector.sub (prods, tag)))) @
           map prod_of_chain ((these o AList.lookup (op =) chains) tag);
       in map (pretty_prod name) nt_prods end;
 
@@ -421,7 +421,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
 val empty_gram = Gram {nt_count = 0, prod_count = 0,
                        tags = Symtab.empty, chains = [], lambdas = [],
-                       prods = Array.array (0, (([], []), []))};
+                       prods = Vector.fromList [(([], []), [])]};
 
 
 (*Invert list of chain productions*)
@@ -484,7 +484,7 @@ fun extend_gram [] gram = gram
         this has to be done to preserve the old grammar while being able
         to change the array's content*)
       val prods' =
-        let fun get_prod i = if i < nt_count then Array.sub (prods, i)
+        let fun get_prod i = if i < nt_count then Vector.sub (prods, i)
                              else (([], []), []);
         in Array.tabulate (nt_count', get_prod) end;
 
@@ -496,7 +496,7 @@ fun extend_gram [] gram = gram
 
       val chains' = inverse_chains fromto_chains' [];
     in Gram {nt_count = nt_count', prod_count = prod_count', tags = tags',
-             chains = chains', lambdas = lambdas', prods = prods'}
+             chains = chains', lambdas = lambdas', prods = Array.vector prods'}
     end;
 
 fun make_gram xprods = extend_gram xprods empty_gram;
@@ -559,7 +559,7 @@ fun merge_gram (gram_a, gram_b) =
       | process_nt nt result =
         let
           val nt_prods = Library.foldl (uncurry (union (op =)))
-            ([], map snd (snd (Array.sub (prods2, nt))));
+            ([], map snd (snd (Vector.sub (prods2, nt))));
           val lhs_tag = convert_tag nt;
 
           (*convert tags in rhs*)
@@ -580,7 +580,7 @@ fun merge_gram (gram_a, gram_b) =
     val raw_prods = chain_prods @ process_nt (nt_count2-1) [];
 
     val prods1' =
-      let fun get_prod i = if i < nt_count1 then Array.sub (prods1, i)
+      let fun get_prod i = if i < nt_count1 then Vector.sub (prods1, i)
                            else (([], []), []);
       in Array.tabulate (nt_count1', get_prod) end;
 
@@ -592,7 +592,7 @@ fun merge_gram (gram_a, gram_b) =
     val chains' = inverse_chains fromto_chains' [];
   in Gram {nt_count = nt_count1', prod_count = prod_count1',
            tags = tags1', chains = chains', lambdas = lambdas',
-           prods = prods1'}
+           prods = Array.vector prods1'}
   end;
 
 
@@ -703,7 +703,7 @@ fun prods_for prods chains include_none tk nts =
 
       fun get_prods [] result = result
         | get_prods (nt :: nts) result =
-          let val nt_prods = snd (Array.sub (prods, nt));
+          let val nt_prods = snd (Vector.sub (prods, nt));
           in get_prods nts ((token_assoc (nt_prods, tk)) @ result) end;
   in get_prods (connected_with chains nts nts) [] end;
 
@@ -835,7 +835,7 @@ fun parse (Gram {tags, prods, chains, ...}) start toks =
 
 fun guess_infix_lr (Gram gram) c = (*based on educated guess*)
   let
-    fun freeze a = map_range (curry Array.sub a) (Array.length a);
+    fun freeze a = map_range (curry Vector.sub a) (Vector.length a);
     val prods = maps snd (maps snd (freeze (#prods gram)));
     fun guess (SOME ([Nonterminal (_, k),
             Terminal (Lexicon.Token (Lexicon.Literal, s, _)), Nonterminal (_, l)], _, j)) =
