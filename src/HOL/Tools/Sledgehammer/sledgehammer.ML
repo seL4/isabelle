@@ -191,9 +191,8 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
       fun name_for_number j =
         let
           val axioms =
-            j |> AList.lookup (op =) name_map
-              |> these |> map_filter (try (unprefix axiom_prefix))
-              |> map undo_ascii_of
+            j |> AList.lookup (op =) name_map |> these
+              |> map_filter (try (unprefix axiom_prefix)) |> map unascii_of
           val chained = forall (is_true_for axiom_names) axioms
         in (axioms |> space_implode " ", chained) end
     in
@@ -296,8 +295,6 @@ fun prover_fun atp_name
                   extract_proof_and_outcome complete res_code proof_delims
                                             known_failures output
               in (output, msecs, proof, outcome) end
-            val _ = print_d (fn () => "Preparing problem for " ^
-                                      quote atp_name ^ "...")
             val readable_names = debug andalso overlord
             val (problem, pool, conjecture_offset, axiom_names) =
               prepare_problem ctxt readable_names explicit_forall full_types
