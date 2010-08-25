@@ -301,7 +301,9 @@ fun query_firstn n rel vnames =
 val prelude =
   "#!/usr/bin/swipl -q -t main -f\n\n" ^
   ":- use_module(library('dialect/ciao/aggregates')).\n" ^
-  ":- style_check(-singleton).\n\n" ^
+  ":- style_check(-singleton).\n" ^
+  ":- style_check(-discontiguous).\n" ^ 	
+  ":- style_check(-atom).\n\n" ^
   "main :- catch(eval, E, (print_message(error, E), fail)), halt.\n" ^
   "main :- halt(1).\n"
 
@@ -433,7 +435,8 @@ fun values ctxt soln t_compr =
                 HOLogic.mk_Collect (uuN, uuT, fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))
                   frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), @{term "True"})))
             in
-              set_compr :: (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs)  
+              mk_set_compr [] ts
+                (set_compr :: (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs))  
             end
         end
   in
