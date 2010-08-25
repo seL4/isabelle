@@ -244,11 +244,9 @@ fun axiom_weight const_tab relevant_consts axiom_consts =
   in if Real.isFinite res then res else 0.0 end
 *)
 
-(* Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list
-   -> ('a * 'b) list. *)
-fun add_expand_pairs (x, ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys
 fun consts_of_term thy t =
-  Symtab.fold add_expand_pairs (get_consts thy (SOME true) [t]) []
+  Symtab.fold (fn (x, ys) => fold (fn y => cons (x, y)) ys)
+              (get_consts thy (SOME true) [t]) []
 
 fun pair_consts_axiom theory_relevant thy axiom =
   (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
