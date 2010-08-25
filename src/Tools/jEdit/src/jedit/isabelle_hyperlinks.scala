@@ -55,11 +55,11 @@ class Isabelle_Hyperlinks extends HyperlinkSource
                 val Text.Range(begin, end) = snapshot.convert(info_range + command_start)
                 val line = buffer.getLineOfOffset(begin)
 
-                (Position.get_file(props), Position.get_line(props)) match {
+                (Position.File.unapply(props), Position.Line.unapply(props)) match {
                   case (Some(ref_file), Some(ref_line)) =>
                     new External_Hyperlink(begin, end, line, ref_file, ref_line)
                   case _ =>
-                    (Position.get_id(props), Position.get_offset(props)) match {
+                    (Position.Id.unapply(props), Position.Offset.unapply(props)) match {
                       case (Some(ref_id), Some(ref_offset)) =>
                         snapshot.lookup_command(ref_id) match {
                           case Some(ref_cmd) =>
