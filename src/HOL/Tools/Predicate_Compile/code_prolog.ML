@@ -6,19 +6,23 @@ Prototype of an code generator for logic programming languages (a.k.a. Prolog)
 
 signature CODE_PROLOG =
 sig
+  type code_options = {ensure_groundness : bool}
+  val options : code_options ref
+
   datatype arith_op = Plus | Minus
   datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
     | Number of int | ArithOp of arith_op * prol_term list;
   datatype prem = Conj of prem list
     | Rel of string * prol_term list | NotRel of string * prol_term list
     | Eq of prol_term * prol_term | NotEq of prol_term * prol_term
-    | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term;
-      
+    | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term
+    | Ground of string * typ;
+
   type clause = ((string * prol_term list) * prem);
   type logic_program = clause list;
   type constant_table = (string * string) list
-  
-  val generate : Proof.context -> string list -> (logic_program * constant_table)
+    
+  val generate : code_options -> Proof.context -> string list -> (logic_program * constant_table)
   val write_program : logic_program -> string
   val run : logic_program -> string -> string list -> int option -> prol_term list list
 
@@ -33,6 +37,13 @@ struct
 val trace = Unsynchronized.ref false
 
 fun tracing s = if !trace then Output.tracing s else () 
+
+(* code generation options *)
+
+type code_options = {ensure_groundness : bool}
+
+val options = Unsynchronized.ref {ensure_groundness = false};
+
 (* general string functions *)
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
@@ -61,8 +72,9 @@ fun string_of_prol_term (Var s) = "Var " ^ s
 datatype prem = Conj of prem list
   | Rel of string * prol_term list | NotRel of string * prol_term list
   | Eq of prol_term * prol_term | NotEq of prol_term * prol_term
-  | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term;
-    
+  | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term
+  | Ground of string * typ;
+  
 fun dest_Rel (Rel (c, ts)) = (c, ts)
  
 type clause = ((string * prol_term list) * prem);
@@ -96,7 +108,7 @@ fun restore_const constant_table c =
   case inv_lookup (op =) constant_table c of
     SOME c' => c'
   | NONE => error ("No constant corresponding to "  ^ c)
-  
+
 (** translation of terms, literals, premises, and clauses **)
 
 fun translate_arith_const @{const_name "Groups.plus_class.plus"} = SOME Plus
@@ -134,11 +146,16 @@ fun NegRel_of (Rel lit) = NotRel lit
   | NegRel_of (Eq eq) = NotEq eq
   | NegRel_of (ArithEq eq) = NotArithEq eq
 
-fun translate_prem ctxt constant_table t =  
+fun mk_groundness_prems t = map Ground (Term.add_frees t [])
+  
+fun translate_prem options ctxt constant_table t =  
     case try HOLogic.dest_not t of
-      SOME t => NegRel_of (translate_literal ctxt constant_table t)
+      SOME t =>
+        if #ensure_groundness options then
+          Conj (mk_groundness_prems t @ [NegRel_of (translate_literal ctxt constant_table t)])
+        else
+          NegRel_of (translate_literal ctxt constant_table t)
     | NONE => translate_literal ctxt constant_table t
-
     
 fun imp_prems_conv cv ct =
   case Thm.term_of ct of
@@ -156,7 +173,7 @@ fun preprocess_intro thy rule =
       (Trueprop_conv (Conv.try_conv (Conv.rewr_conv @{thm Predicate.eq_is_eq}))))
     (Thm.transfer thy rule)
 
-fun translate_intros ctxt gr const constant_table =
+fun translate_intros options ctxt gr const constant_table =
   let
     val intros = map (preprocess_intro (ProofContext.theory_of ctxt)) (Graph.get_node gr const)
     val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
@@ -164,13 +181,13 @@ fun translate_intros ctxt gr const constant_table =
     fun translate_intro intro =
       let
         val head = HOLogic.dest_Trueprop (Logic.strip_imp_concl intro)
-        val prems = map HOLogic.dest_Trueprop (Logic.strip_imp_prems intro) 
-        val prems' = Conj (map (translate_prem ctxt' constant_table') prems)
+        val prems = map HOLogic.dest_Trueprop (Logic.strip_imp_prems intro)
+        val prems' = Conj (map (translate_prem options ctxt' constant_table') prems)
         val clause = (dest_Rel (translate_literal ctxt' constant_table' head), prems')
       in clause end
   in (map translate_intro intros', constant_table') end
 
-fun generate ctxt const =
+fun generate options ctxt const =
   let 
      fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
@@ -178,36 +195,46 @@ fun generate ctxt const =
     val scc = strong_conn_of gr const
     val constant_table = mk_constant_table (flat scc)
   in
-    apfst flat (fold_map (translate_intros ctxt gr) (flat scc) constant_table)
+    apfst flat (fold_map (translate_intros options ctxt gr) (flat scc) constant_table)
   end
+  
+(* add implementation for ground predicates *)
 
-(* transform logic program *)
+fun add_ground_typ (Conj prems) = fold add_ground_typ prems
+  | add_ground_typ (Ground (_, T)) = insert (op =) T
+  | add_ground_typ _ = I
 
-(** ensure groundness of terms before negation **)
-
-fun add_vars (Var x) vs = insert (op =) x vs
-  | add_vars (Cons c) vs = vs
-  | add_vars (AppF (f, args)) vs = fold add_vars args vs
-
-fun string_of_typ (Type (s, Ts)) = Long_Name.base_name s
-
-fun mk_groundness_prems ts =
+fun mk_ground_impl ctxt (Type (Tcon, [])) constant_table =
   let
-    val vars = fold add_vars ts []
-    fun mk_ground v =
-      Rel ("ground", [Var v])
+    fun mk_impl (constr_name, T) constant_table =
+      if binder_types T = [] then
+        let
+          val constant_table' = declare_consts [constr_name] constant_table
+          val clause = (("is_" ^ first_lower (Long_Name.base_name Tcon),
+            [Cons (translate_const constant_table' constr_name)]), Conj [])
+        in
+          (clause, constant_table')
+        end
+        else raise Fail "constructor with arguments" 
+    val constrs = the (Datatype.get_constrs (ProofContext.theory_of ctxt) Tcon)
+  in fold_map mk_impl constrs constant_table end
+  | mk_ground_impl ctxt (Type (Tcon, _)) constant_table =
+    raise Fail "type constructor with type arguments"
+  
+fun replace_ground (Conj prems) = Conj (map replace_ground prems)
+  | replace_ground (Ground (x, Type (Tcon, []))) =
+    Rel ("is_" ^ first_lower (Long_Name.base_name Tcon), [Var x])  
+  | replace_ground p = p
+  
+fun add_ground_predicates ctxt (p, constant_table) =
+  let
+    val ground_typs = fold (add_ground_typ o snd) p []
+    val (grs, constant_table') = fold_map (mk_ground_impl ctxt) ground_typs constant_table
+    val p' = map (apsnd replace_ground) p
   in
-    map mk_ground vars
+    ((flat grs) @ p', constant_table')
   end
-
-fun ensure_groundness_prem (NotRel (c, ts)) = Conj (mk_groundness_prems ts @ [NotRel (c, ts)]) 
-  | ensure_groundness_prem (NotEq (l, r)) = Conj (mk_groundness_prems [l, r] @ [NotEq (l, r)])
-  | ensure_groundness_prem (Conj ps) = Conj (map ensure_groundness_prem ps)
-  | ensure_groundness_prem p = p
-
-fun ensure_groundness_before_negation p =
-  map (apsnd ensure_groundness_prem) p
-
+    
 (* code printer *)
 
 fun write_arith_op Plus = "+"
@@ -345,6 +372,7 @@ fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
 
 fun values ctxt soln t_compr =
   let
+    val options = !options
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr);
     val (body, Ts, fp) = HOLogic.strip_psplits split;
@@ -361,7 +389,8 @@ fun values ctxt soln t_compr =
         SOME vs => vs
       | NONE => error ("Not only free variables in " ^ commas (map (Syntax.string_of_term ctxt) all_args))
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate ctxt [name]
+    val (p, constant_table) = generate options ctxt [name]
+      |> (if #ensure_groundness options then add_ground_predicates ctxt else I)
     val _ = tracing "Running prolog program..."
     val tss = run p (translate_const constant_table name) (map first_upper vnames) soln
     val _ = tracing "Restoring terms..."

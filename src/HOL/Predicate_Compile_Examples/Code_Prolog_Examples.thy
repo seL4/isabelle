@@ -173,4 +173,18 @@ values "{e. divide10 e}"
 values "{e. log10 e}"
 values "{e. times10 e}"
 
+section {* Example negation *}
+
+datatype abc = A | B | C
+
+inductive notB :: "abc => bool"
+where
+  "y \<noteq> B \<Longrightarrow> notB y"
+
+code_pred notB .
+
+ML {* Code_Prolog.options := {ensure_groundness = true} *}
+
+values 2 "{y. notB y}"
+
 end
