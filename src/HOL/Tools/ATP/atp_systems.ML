@@ -256,7 +256,7 @@ fun the_system name versions =
 
 fun remote_config system_name system_versions proof_delims known_failures
                   default_max_relevant_per_iter default_theory_relevant
-                  use_conjecture_for_hypotheses =
+                  use_conjecture_for_hypotheses : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
