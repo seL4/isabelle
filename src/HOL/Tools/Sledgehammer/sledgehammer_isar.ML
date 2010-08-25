@@ -71,7 +71,6 @@ val default_default_params =
    ("relevance_decay", "31"),
    ("max_relevant_per_iter", "smart"),
    ("theory_relevant", "smart"),
-   ("defs_relevant", "false"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1")]
 
@@ -84,7 +83,6 @@ val negated_alias_params =
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
    ("theory_irrelevant", "theory_relevant"),
-   ("defs_irrelevant", "defs_relevant"),
    ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
@@ -174,7 +172,6 @@ fun extract_params default_params override_params =
       0.01 * Real.fromInt (lookup_int "relevance_decay")
     val max_relevant_per_iter = lookup_int_option "max_relevant_per_iter"
     val theory_relevant = lookup_bool_option "theory_relevant"
-    val defs_relevant = lookup_bool "defs_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
@@ -184,9 +181,8 @@ fun extract_params default_params override_params =
      relevance_threshold = relevance_threshold,
      relevance_decay = relevance_decay,
      max_relevant_per_iter = max_relevant_per_iter,
-     theory_relevant = theory_relevant, defs_relevant = defs_relevant,
-     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-     timeout = timeout}
+     theory_relevant = theory_relevant, isar_proof = isar_proof,
+     isar_shrink_factor = isar_shrink_factor, timeout = timeout}
   end
 
 fun get_params thy = extract_params (default_raw_params thy)

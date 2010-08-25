@@ -22,7 +22,6 @@ sig
      relevance_decay: real,
      max_relevant_per_iter: int option,
      theory_relevant: bool option,
-     defs_relevant: bool,
      isar_proof: bool,
      isar_shrink_factor: int,
      timeout: Time.time}
@@ -91,7 +90,6 @@ type params =
    relevance_decay: real,
    max_relevant_per_iter: int option,
    theory_relevant: bool option,
-   defs_relevant: bool,
    isar_proof: bool,
    isar_shrink_factor: int,
    timeout: Time.time}
@@ -216,8 +214,8 @@ fun prover_fun atp_name
          explicit_forall, use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
           relevance_threshold, relevance_decay,
-          max_relevant_per_iter, theory_relevant,
-          defs_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
+          max_relevant_per_iter, theory_relevant, isar_proof,
+          isar_shrink_factor, timeout, ...} : params)
         minimize_command
         ({subgoal, goal, relevance_override, axioms} : problem) =
   let
@@ -234,7 +232,6 @@ fun prover_fun atp_name
         SOME axioms => axioms
       | NONE =>
         (relevant_facts full_types relevance_threshold relevance_decay
-                        defs_relevant
                         (the_default default_max_relevant_per_iter
                                      max_relevant_per_iter)
                         (the_default default_theory_relevant theory_relevant)

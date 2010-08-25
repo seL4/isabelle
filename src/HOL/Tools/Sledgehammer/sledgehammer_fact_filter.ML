@@ -15,7 +15,7 @@ sig
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
     -> (unit -> string * bool) * thm list
   val relevant_facts :
-    bool -> real -> real -> bool -> int -> bool -> relevance_override
+    bool -> real -> real -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
     -> ((string * bool) * thm) list
 end;
@@ -244,39 +244,15 @@ fun axiom_weight const_tab relevant_consts axiom_consts =
   in if Real.isFinite res then res else 0.0 end
 *)
 
-(*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
+(* Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list
+   -> ('a * 'b) list. *)
 fun add_expand_pairs (x, ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys
-
 fun consts_of_term thy t =
   Symtab.fold add_expand_pairs (get_consts thy (SOME true) [t]) []
 
 fun pair_consts_axiom theory_relevant thy axiom =
   (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
                 |> consts_of_term thy)
-
-exception CONST_OR_FREE of unit
-
-fun dest_Const_or_Free (Const x) = x
-  | dest_Const_or_Free (Free x) = x
-  | dest_Const_or_Free _ = raise CONST_OR_FREE ()
-
-(*Look for definitions of the form f ?x1 ... ?xn = t, but not reversed.*)
-fun defines thy thm gctypes =
-    let val tm = prop_of thm
-        fun defs lhs rhs =
-            let val (rator,args) = strip_comb lhs
-                val ct = const_with_typ thy (dest_Const_or_Free rator)
-            in
-              forall is_Var args andalso const_mem gctypes ct andalso
-              subset (op =) (Term.add_vars rhs [], Term.add_vars lhs [])
-            end
-            handle CONST_OR_FREE () => false
-    in
-        case tm of
-          @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ lhs $ rhs) =>
-            defs lhs rhs
-        | _ => false
-    end;
 
 type annotated_thm =
   ((unit -> string * bool) * thm) * (string * const_typ list) list
@@ -306,7 +282,7 @@ fun take_best max_relevant_per_iter (new_pairs : (annotated_thm * real) list) =
 val threshold_divisor = 2.0
 val ridiculous_threshold = 0.1
 
-fun relevance_filter ctxt relevance_threshold relevance_decay defs_relevant
+fun relevance_filter ctxt relevance_threshold relevance_decay
                      max_relevant_per_iter theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
   let
@@ -366,8 +342,7 @@ fun relevance_filter ctxt relevance_threshold relevance_decay defs_relevant
                   SOME w => w
                 | NONE => axiom_weight const_tab rel_const_tab axiom_consts
             in
-              if weight >= threshold orelse
-                 (defs_relevant andalso defines thy th rel_const_tab) then
+              if weight >= threshold then
                 (trace_msg (fn () =>
                      fst (name ()) ^ " passes: " ^ Real.toString weight
                      ^ " consts: " ^ commas (map fst axiom_consts));
@@ -608,7 +583,7 @@ fun name_thm_pairs ctxt respect_no_atp =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-fun relevant_facts full_types relevance_threshold relevance_decay defs_relevant
+fun relevant_facts full_types relevance_threshold relevance_decay
                    max_relevant_per_iter theory_relevant
                    (relevance_override as {add, del, only})
                    (ctxt, (chained_ths, _)) hyp_ts concl_t =
@@ -631,7 +606,7 @@ fun relevant_facts full_types relevance_threshold relevance_decay defs_relevant
      else if relevance_threshold < 0.0 then
        axioms
      else
-       relevance_filter ctxt relevance_threshold relevance_decay defs_relevant
+       relevance_filter ctxt relevance_threshold relevance_decay
                         max_relevant_per_iter theory_relevant relevance_override
                         axioms (concl_t :: hyp_ts))
     |> map (apfst (fn f => f ()))
