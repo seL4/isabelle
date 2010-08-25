@@ -41,9 +41,8 @@ fun n_theorems names =
   end
 
 fun test_theorems ({debug, verbose, overlord, atps, full_types,
-                    relevance_threshold, relevance_convergence,
-                    defs_relevant, isar_proof, isar_shrink_factor, ...}
-                   : params)
+                    relevance_threshold, relevance_decay, defs_relevant,
+                    isar_proof, isar_shrink_factor, ...} : params)
                   (prover : prover) explicit_apply timeout subgoal state
                   name_thms_pairs =
   let
@@ -53,10 +52,10 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types,
       {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
        full_types = full_types, explicit_apply = explicit_apply,
        relevance_threshold = relevance_threshold,
-       relevance_convergence = relevance_convergence,
-       max_relevant_per_iter = NONE, theory_relevant = NONE,
-       defs_relevant = defs_relevant, isar_proof = isar_proof,
-       isar_shrink_factor = isar_shrink_factor, timeout = timeout}
+       relevance_decay = relevance_decay, max_relevant_per_iter = NONE,
+       theory_relevant = NONE, defs_relevant = defs_relevant,
+       isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+       timeout = timeout}
     val axioms = maps (fn (n, ths) => map (pair n) ths) name_thms_pairs
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =

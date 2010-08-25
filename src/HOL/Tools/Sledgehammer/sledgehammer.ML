@@ -19,7 +19,7 @@ sig
      full_types: bool,
      explicit_apply: bool,
      relevance_threshold: real,
-     relevance_convergence: real,
+     relevance_decay: real,
      max_relevant_per_iter: int option,
      theory_relevant: bool option,
      defs_relevant: bool,
@@ -88,7 +88,7 @@ type params =
    full_types: bool,
    explicit_apply: bool,
    relevance_threshold: real,
-   relevance_convergence: real,
+   relevance_decay: real,
    max_relevant_per_iter: int option,
    theory_relevant: bool option,
    defs_relevant: bool,
@@ -215,7 +215,7 @@ fun prover_fun atp_name
          known_failures, default_max_relevant_per_iter, default_theory_relevant,
          explicit_forall, use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
-          relevance_threshold, relevance_convergence,
+          relevance_threshold, relevance_decay,
           max_relevant_per_iter, theory_relevant,
           defs_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
         minimize_command
@@ -233,7 +233,7 @@ fun prover_fun atp_name
       case axioms of
         SOME axioms => axioms
       | NONE =>
-        (relevant_facts full_types relevance_threshold relevance_convergence
+        (relevant_facts full_types relevance_threshold relevance_decay
                         defs_relevant
                         (the_default default_max_relevant_per_iter
                                      max_relevant_per_iter)
