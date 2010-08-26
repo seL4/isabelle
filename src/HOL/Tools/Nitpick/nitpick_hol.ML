@@ -411,7 +411,7 @@ val built_in_consts =
    (@{const_name "op ="}, 1),
    (@{const_name "op &"}, 2),
    (@{const_name "op |"}, 2),
-   (@{const_name "op -->"}, 2),
+   (@{const_name HOL.implies}, 2),
    (@{const_name If}, 3),
    (@{const_name Let}, 2),
    (@{const_name Pair}, 2),
@@ -1454,7 +1454,7 @@ fun lhs_of_equation t =
   | @{const Trueprop} $ t1 => lhs_of_equation t1
   | Const (@{const_name All}, _) $ Abs (_, _, t1) => lhs_of_equation t1
   | Const (@{const_name "op ="}, _) $ t1 $ _ => SOME t1
-  | @{const "op -->"} $ _ $ t2 => lhs_of_equation t2
+  | @{const HOL.implies} $ _ $ t2 => lhs_of_equation t2
   | _ => NONE
 fun is_constr_pattern _ (Bound _) = true
   | is_constr_pattern _ (Var _) = true

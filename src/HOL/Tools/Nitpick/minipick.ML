@@ -132,7 +132,7 @@ fun kodkod_formula_from_term ctxt card frees =
          Subset (to_R_rep Ts t1, to_R_rep Ts t2)
        | @{const "op &"} $ t1 $ t2 => And (to_F Ts t1, to_F Ts t2)
        | @{const "op |"} $ t1 $ t2 => Or (to_F Ts t1, to_F Ts t2)
-       | @{const "op -->"} $ t1 $ t2 => Implies (to_F Ts t1, to_F Ts t2)
+       | @{const HOL.implies} $ t1 $ t2 => Implies (to_F Ts t1, to_F Ts t2)
        | t1 $ t2 => Subset (to_S_rep Ts t2, to_R_rep Ts t1)
        | Free _ => raise SAME ()
        | Term.Var _ => raise SAME ()
@@ -177,8 +177,8 @@ fun kodkod_formula_from_term ctxt card frees =
        | @{const "op &"} => to_R_rep Ts (eta_expand Ts t 2)
        | @{const "op |"} $ _ => to_R_rep Ts (eta_expand Ts t 1)
        | @{const "op |"} => to_R_rep Ts (eta_expand Ts t 2)
-       | @{const "op -->"} $ _ => to_R_rep Ts (eta_expand Ts t 1)
-       | @{const "op -->"} => to_R_rep Ts (eta_expand Ts t 2)
+       | @{const HOL.implies} $ _ => to_R_rep Ts (eta_expand Ts t 1)
+       | @{const HOL.implies} => to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name bot_class.bot},
                 T as Type (@{type_name fun}, [_, @{typ bool}])) =>
          empty_n_ary_rel (arity_of RRep card T)

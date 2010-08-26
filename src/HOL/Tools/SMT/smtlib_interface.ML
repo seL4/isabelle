@@ -161,7 +161,7 @@ fun conn @{const_name True} = SOME "true"
   | conn @{const_name Not} = SOME "not"
   | conn @{const_name "op &"} = SOME "and"
   | conn @{const_name "op |"} = SOME "or"
-  | conn @{const_name "op -->"} = SOME "implies"
+  | conn @{const_name HOL.implies} = SOME "implies"
   | conn @{const_name "op ="} = SOME "iff"
   | conn @{const_name If} = SOME "if_then_else"
   | conn _ = NONE

@@ -522,7 +522,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
           Op2 (And, bool_T, Any, sub' t1, sub' t2)
         | (Const (@{const_name "op |"}, _), [t1, t2]) =>
           Op2 (Or, bool_T, Any, sub t1, sub t2)
-        | (Const (@{const_name "op -->"}, _), [t1, t2]) =>
+        | (Const (@{const_name HOL.implies}, _), [t1, t2]) =>
           Op2 (Or, bool_T, Any, Op1 (Not, bool_T, Any, sub t1), sub' t2)
         | (Const (@{const_name If}, T), [t1, t2, t3]) =>
           Op3 (If, nth_range_type 3 T, Any, sub t1, sub t2, sub t3)

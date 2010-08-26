@@ -69,7 +69,7 @@ fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     Const (@{const_name Ex}, T) $ Abs (s, T', negate_term t')
   | negate_term (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
     Const (@{const_name All}, T) $ Abs (s, T', negate_term t')
-  | negate_term (@{const "op -->"} $ t1 $ t2) =
+  | negate_term (@{const HOL.implies} $ t1 $ t2) =
     @{const "op &"} $ t1 $ negate_term t2
   | negate_term (@{const "op &"} $ t1 $ t2) =
     @{const "op |"} $ negate_term t1 $ negate_term t2

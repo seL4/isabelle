@@ -1205,7 +1205,7 @@ fun get_hol4_thm thyname thmname thy =
 fun non_trivial_term_consts t = fold_aterms
   (fn Const (c, _) =>
       if c = @{const_name Trueprop} orelse c = @{const_name All}
-        orelse c = @{const_name "op -->"} orelse c = @{const_name "op &"} orelse c = @{const_name "op ="}
+        orelse c = @{const_name HOL.implies} orelse c = @{const_name "op &"} orelse c = @{const_name "op ="}
       then I else insert (op =) c
     | _ => I) t [];
 
@@ -1214,7 +1214,7 @@ fun match_consts t (* th *) =
         fun add_consts (Const (c, _), cs) =
             (case c of
                  @{const_name "op ="} => insert (op =) "==" cs
-               | @{const_name "op -->"} => insert (op =) "==>" cs
+               | @{const_name HOL.implies} => insert (op =) "==>" cs
                | @{const_name All} => cs
                | "all" => cs
                | @{const_name "op &"} => cs
@@ -1860,7 +1860,7 @@ fun NOT_INTRO (hth as HOLThm(rens,th)) thy =
         val _ = if_debug pth hth
         val th1 = implies_elim_all (beta_eta_thm th)
         val a = case concl_of th1 of
-                    _ $ (Const(@{const_name "op -->"},_) $ a $ Const(@{const_name False},_)) => a
+                    _ $ (Const(@{const_name HOL.implies},_) $ a $ Const(@{const_name False},_)) => a
                   | _ => raise ERR "NOT_INTRO" "Conclusion of bad form"
         val ca = cterm_of thy a
         val th2 = Thm.equal_elim (Drule.instantiate' [] [SOME ca] not_intro_thm) th1

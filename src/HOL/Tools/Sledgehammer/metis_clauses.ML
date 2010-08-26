@@ -97,7 +97,7 @@ val const_trans_table =
                (@{const_name "op ="}, "equal"),
                (@{const_name "op &"}, "and"),
                (@{const_name "op |"}, "or"),
-               (@{const_name "op -->"}, "implies"),
+               (@{const_name HOL.implies}, "implies"),
                (@{const_name Set.member}, "member"),
                (@{const_name fequal}, "fequal"),
                (@{const_name COMBI}, "COMBI"),

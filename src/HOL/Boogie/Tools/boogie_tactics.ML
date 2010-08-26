@@ -53,7 +53,7 @@ local
   fun explode_conj (@{term "op &"} $ t $ u) = explode_conj t @ explode_conj u
     | explode_conj t = [t] 
 
-  fun splt (ts, @{term "op -->"} $ t $ u) = splt (ts @ explode_conj t, u)
+  fun splt (ts, @{term HOL.implies} $ t $ u) = splt (ts @ explode_conj t, u)
     | splt (ts, @{term "op &"} $ t $ u) = splt (ts, t) @ splt (ts, u)
     | splt (ts, @{term assert_at} $ _ $ t) = [(ts, t)]
     | splt (_, @{term True}) = []

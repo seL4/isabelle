@@ -504,7 +504,7 @@ fun expr offset tds fds =
         in
           Const (@{const_name If}, [@{typ bool}, T, T] ---> T) $ c $ t1 $ t2
         end) ||
-      binexp "implies" (binop @{term "op -->"}) ||
+      binexp "implies" (binop @{term HOL.implies}) ||
       scan_line "distinct" num :|-- scan_count exp >>
         (fn [] => @{term True}
           | ts as (t :: _) => mk_distinct (Term.fastype_of t) ts) ||

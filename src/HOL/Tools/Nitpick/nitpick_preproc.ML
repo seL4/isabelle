@@ -43,7 +43,7 @@ val may_use_binary_ints =
       | aux def (@{const "==>"} $ t1 $ t2) = aux false t1 andalso aux def t2
       | aux def (Const (@{const_name "op ="}, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
-      | aux def (@{const "op -->"} $ t1 $ t2) = aux false t1 andalso aux def t2
+      | aux def (@{const HOL.implies} $ t1 $ t2) = aux false t1 andalso aux def t2
       | aux def (t1 $ t2) = aux def t1 andalso aux def t2
       | aux def (t as Const (s, _)) =
         (not def orelse t <> @{const Suc}) andalso
@@ -217,8 +217,8 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
       | @{const "op |"} $ t1 $ t2 =>
         @{const "op |"} $ do_term new_Ts old_Ts polar t1
         $ do_term new_Ts old_Ts polar t2
-      | @{const "op -->"} $ t1 $ t2 =>
-        @{const "op -->"} $ do_term new_Ts old_Ts (flip_polarity polar) t1
+      | @{const HOL.implies} $ t1 $ t2 =>
+        @{const HOL.implies} $ do_term new_Ts old_Ts (flip_polarity polar) t1
         $ do_term new_Ts old_Ts polar t2
       | Const (x as (s, T)) =>
         if is_descr s then
@@ -334,7 +334,7 @@ fun pull_out_universal_constrs hol_ctxt def t =
         if def then (t, []) else do_eq_or_imp Ts false def t0 t1 t2 seen
       | (t0 as Const (@{const_name "op ="}, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
-      | (t0 as @{const "op -->"}) $ t1 $ t2 =>
+      | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
         do_eq_or_imp Ts false def t0 t1 t2 seen
       | Abs (s, T, t') =>
         let val (t', seen) = do_term (T :: Ts) def t' [] seen in
@@ -401,7 +401,7 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
         t0 $ aux false t1 $ aux careful t2
       | aux careful ((t0 as Const (@{const_name "op ="}, _)) $ t1 $ t2) =
         aux_eq careful true t0 t1 t2
-      | aux careful ((t0 as @{const "op -->"}) $ t1 $ t2) =
+      | aux careful ((t0 as @{const HOL.implies}) $ t1 $ t2) =
         t0 $ aux false t1 $ aux careful t2
       | aux careful (Abs (s, T, t')) = Abs (s, T, aux careful t')
       | aux careful (t1 $ t2) = aux careful t1 $ aux careful t2
@@ -608,8 +608,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
           s_conj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
         | @{const "op |"} $ t1 $ t2 =>
           s_disj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
-        | @{const "op -->"} $ t1 $ t2 =>
-          @{const "op -->"} $ aux ss Ts js skolemizable (flip_polarity polar) t1
+        | @{const HOL.implies} $ t1 $ t2 =>
+          @{const HOL.implies} $ aux ss Ts js skolemizable (flip_polarity polar) t1
           $ aux ss Ts js skolemizable polar t2
         | (t0 as Const (@{const_name Let}, _)) $ t1 $ t2 =>
           t0 $ t1 $ aux ss Ts js skolemizable polar t2
@@ -1121,7 +1121,7 @@ fun distribute_quantifiers t =
        (t10 as @{const "op |"}) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (t0 $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
-     | (t10 as @{const "op -->"}) $ t11 $ t12 =>
+     | (t10 as @{const HOL.implies}) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (Const (@{const_name All}, T0)
                                      $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))

@@ -28,7 +28,7 @@ val allowed_consts =
    @{term "op * :: int => _"}, @{term "op * :: nat => _"},
    @{term "op div :: int => _"}, @{term "op div :: nat => _"},
    @{term "op mod :: int => _"}, @{term "op mod :: nat => _"},
-   @{term "op &"}, @{term "op |"}, @{term "op -->"}, 
+   @{term "op &"}, @{term "op |"}, @{term HOL.implies}, 
    @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"},
    @{term "op < :: int => _"}, @{term "op < :: nat => _"},
    @{term "op <= :: int => _"}, @{term "op <= :: nat => _"},
@@ -569,7 +569,7 @@ fun conv ctxt p =
 fun add_bools t =
   let
     val ops = [@{term "op = :: int => _"}, @{term "op < :: int => _"}, @{term "op <= :: int => _"},
-      @{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
+      @{term "op &"}, @{term "op |"}, @{term HOL.implies}, @{term "op = :: bool => _"},
       @{term "Not"}, @{term "All :: (int => _) => _"},
       @{term "Ex :: (int => _) => _"}, @{term "True"}, @{term "False"}];
     val is_op = member (op =) ops;
@@ -616,7 +616,7 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
       Proc.And (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (Const (@{const_name "op |"}, _) $ t1 $ t2) =
       Proc.Or (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (Const (@{const_name "op -->"}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (@{const_name HOL.implies}, _) $ t1 $ t2) =
       Proc.Imp (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (@{term "op = :: bool => _ "} $ t1 $ t2) =
       Proc.Iff (fm_of_term ps vs t1, fm_of_term ps vs t2)
@@ -687,7 +687,7 @@ val comp_ss = HOL_ss addsimps @{thms semiring_norm};
 
 fun strip_objimp ct =
   (case Thm.term_of ct of
-    Const (@{const_name "op -->"}, _) $ _ $ _ =>
+    Const (@{const_name HOL.implies}, _) $ _ $ _ =>
       let val (A, B) = Thm.dest_binop ct
       in A :: strip_objimp B end
   | _ => [ct]);
@@ -712,7 +712,7 @@ fun thin_prems_tac P = simp_tac all_maxscope_ss THEN'
      val qs = filter P ps
      val q = if P c then c else @{cterm "False"}
      val ng = fold_rev (fn (a,v) => fn t => Thm.capply a (Thm.cabs v t)) qvs 
-         (fold_rev (fn p => fn q => Thm.capply (Thm.capply @{cterm "op -->"} p) q) qs q)
+         (fold_rev (fn p => fn q => Thm.capply (Thm.capply @{cterm HOL.implies} p) q) qs q)
      val g = Thm.capply (Thm.capply @{cterm "op ==>"} (Thm.capply @{cterm "Trueprop"} ng)) p'
      val ntac = (case qs of [] => q aconvc @{cterm "False"}
                          | _ => false)

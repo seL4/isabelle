@@ -161,7 +161,7 @@ fun get_pseudoconsts thy also_skolems pos ts =
         do_quantifier (pos = SOME true) body_t
       | @{const "op &"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
       | @{const "op |"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
-      | @{const "op -->"} $ t1 $ t2 =>
+      | @{const HOL.implies} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "op ="}, Type (_, [T, _])) $ t1 $ t2 =>
         fold (do_term_or_formula T) [t1, t2]
@@ -541,7 +541,7 @@ val is_exhaustive_finite =
       | (_, @{const "==>"} $ t1 $ t2) =>
         do_formula (not pos) t1 andalso
         (t2 = @{prop False} orelse do_formula pos t2)
-      | (_, @{const "op -->"} $ t1 $ t2) =>
+      | (_, @{const HOL.implies} $ t1 $ t2) =>
         do_formula (not pos) t1 andalso
         (t2 = @{const False} orelse do_formula pos t2)
       | (_, @{const Not} $ t1) => do_formula (not pos) t1

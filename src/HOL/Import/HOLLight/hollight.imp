@@ -233,7 +233,7 @@ const_maps
   "?" > "HOL.Ex"
   ">=" > "HOLLight.hollight.>="
   ">" > "HOLLight.hollight.>"
-  "==>" > "op -->"
+  "==>" > HOL.implies
   "=" > "op ="
   "<=" > "HOLLight.hollight.<="
   "<" > "HOLLight.hollight.<"
