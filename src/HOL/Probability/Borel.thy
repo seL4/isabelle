@@ -81,7 +81,7 @@ lemma (in sigma_algebra) borel_measurable_const[simp, intro]:
   "(\<lambda>x. c) \<in> borel_measurable M"
   by (auto intro!: measurable_const)
 
-lemma (in sigma_algebra) borel_measurable_indicator:
+lemma (in sigma_algebra) borel_measurable_indicator[simp, intro!]:
   assumes A: "A \<in> sets M"
   shows "indicator A \<in> borel_measurable M"
   unfolding indicator_def_raw using A

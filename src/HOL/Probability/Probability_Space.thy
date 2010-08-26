@@ -1,5 +1,5 @@
 theory Probability_Space
-imports Lebesgue_Integration
+imports Lebesgue_Integration Radon_Nikodym
 begin
 
 lemma (in measure_space) measure_inter_full_set:
@@ -462,5 +462,102 @@ proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images)
   thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
     by (simp add: distribution_def prob_space vimage_Times comp_def measure_space_1)
 qed
+
+lemma (in prob_space) prob_space_subalgebra:
+  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "prob_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
+
+lemma (in measure_space) measure_space_subalgebra:
+  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "measure_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
+
+lemma pinfreal_0_less_mult_iff[simp]:
+  fixes x y :: pinfreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
+  by (cases x, cases y) (auto simp: zero_less_mult_iff)
+
+lemma (in sigma_algebra) simple_function_subalgebra:
+  assumes "sigma_algebra.simple_function (M\<lparr>sets:=N\<rparr>) f"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets:=N\<rparr>)"
+  shows "simple_function f"
+  using assms
+  unfolding simple_function_def
+  unfolding sigma_algebra.simple_function_def[OF N_subalgebra(2)]
+  by auto
+
+lemma (in measure_space) simple_integral_subalgebra[simp]:
+  assumes "measure_space (M\<lparr>sets := N\<rparr>) \<mu>"
+  shows "measure_space.simple_integral (M\<lparr>sets := N\<rparr>) \<mu> = simple_integral"
+  unfolding simple_integral_def_raw
+  unfolding measure_space.simple_integral_def_raw[OF assms] by simp
+
+lemma (in sigma_algebra) borel_measurable_subalgebra:
+  assumes "N \<subseteq> sets M" "f \<in> borel_measurable (M\<lparr>sets:=N\<rparr>)"
+  shows "f \<in> borel_measurable M"
+  using assms unfolding measurable_def by auto
+
+lemma (in measure_space) positive_integral_subalgebra[simp]:
+  assumes borel: "f \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets := N\<rparr>)"
+  shows "measure_space.positive_integral (M\<lparr>sets := N\<rparr>) \<mu> f = positive_integral f"
+proof -
+  note msN = measure_space_subalgebra[OF N_subalgebra]
+  then interpret N: measure_space "M\<lparr>sets:=N\<rparr>" \<mu> .
+
+  from N.borel_measurable_implies_simple_function_sequence[OF borel]
+  obtain fs where Nsf: "\<And>i. N.simple_function (fs i)" and "fs \<up> f" by blast
+  then have sf: "\<And>i. simple_function (fs i)"
+    using simple_function_subalgebra[OF _ N_subalgebra] by blast
+
+  from positive_integral_isoton_simple[OF `fs \<up> f` sf] N.positive_integral_isoton_simple[OF `fs \<up> f` Nsf]
+  show ?thesis unfolding simple_integral_subalgebra[OF msN] isoton_def by simp
+qed
+(*
+lemma (in prob_space)
+  fixes X :: "'a \<Rightarrow> pinfreal"
+  assumes borel: "X \<in> borel_measurable M"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "\<exists>Y\<in>borel_measurable (M\<lparr> sets := N \<rparr>). \<forall>C\<in>N.
+      positive_integral (\<lambda>x. Y x * indicator C x) = positive_integral (\<lambda>x. X x * indicator C x)"
+proof -
+  interpret P: prob_space "M\<lparr> sets := N \<rparr>" \<mu>
+    using prob_space_subalgebra[OF N_subalgebra] .
+
+  let "?f A" = "\<lambda>x. X x * indicator A x"
+  let "?Q A" = "positive_integral (?f A)"
+
+  from measure_space_density[OF borel]
+  have Q: "measure_space (M\<lparr> sets := N \<rparr>) ?Q"
+    by (rule measure_space.measure_space_subalgebra[OF _ N_subalgebra])
+  then interpret Q: measure_space "M\<lparr> sets := N \<rparr>" ?Q .
+
+  have "P.absolutely_continuous ?Q"
+    unfolding P.absolutely_continuous_def
+  proof (safe, simp)
+    fix A assume "A \<in> N" "\<mu> A = 0"
+    moreover then have f_borel: "?f A \<in> borel_measurable M"
+      using borel N_subalgebra by (auto intro: borel_measurable_indicator)
+    moreover have "{x\<in>space M. ?f A x \<noteq> 0} = (?f A -` {0<..} \<inter> space M) \<inter> A"
+      by (auto simp: indicator_def)
+    moreover have "\<mu> \<dots> \<le> \<mu> A"
+      using `A \<in> N` N_subalgebra f_borel
+      by (auto intro!: measure_mono Int[of _ A] measurable_sets)
+    ultimately show "?Q A = 0"
+      by (simp add: positive_integral_0_iff)
+  qed
+  from P.Radon_Nikodym[OF Q this]
+  obtain Y where Y: "Y \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
+    "\<And>A. A \<in> sets (M\<lparr>sets:=N\<rparr>) \<Longrightarrow> ?Q A = P.positive_integral (\<lambda>x. Y x * indicator A x)"
+    by blast
+  show ?thesis
+  proof (intro bexI[OF _ Y(1)] ballI)
+    fix A assume "A \<in> N"
+    have "positive_integral (\<lambda>x. Y x * indicator A x) = P.positive_integral (\<lambda>x. Y x * indicator A x)"
+      unfolding P.positive_integral_def positive_integral_def
+      unfolding P.simple_integral_def_raw simple_integral_def_raw
+      apply simp
+    show "positive_integral (\<lambda>x. Y x * indicator A x) = ?Q A"
+  qed
+qed
+*)
 
 end
