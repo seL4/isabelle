@@ -33,7 +33,7 @@ object Text
     def +(i: Offset): Range = map(_ + i)
     def -(i: Offset): Range = map(_ - i)
 
-    def is_singleton: Boolean = start == stop
+    def is_singularity: Boolean = start == stop
 
     def contains(i: Offset): Boolean = start == i || start < i && i < stop
     def contains(that: Range): Boolean = this.contains(that.start) && that.stop <= this.stop
