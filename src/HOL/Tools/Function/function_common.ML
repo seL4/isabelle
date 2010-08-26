@@ -175,7 +175,7 @@ structure TerminationProver = Generic_Data
   type T = Proof.context -> tactic
   val empty = (fn _ => error "Termination prover not configured")
   val extend = I
-  fun merge (a, b) = b  (* FIXME ? *)
+  fun merge (a, _) = a
 )
 
 val set_termination_prover = TerminationProver.put
