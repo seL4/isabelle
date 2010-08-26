@@ -446,8 +446,8 @@ fun serialize_scala raw_module_name labelled_name
       ([str ("object " ^ base ^ " {")] @ the_list (print_implicits implicits)
         @ [p, str ("} /* object " ^ base ^ " */")]);
     fun print_node (_, Dummy) = NONE
-      | print_node (name, Stmt stmt) = if not (not (null presentation_stmt_names)
-          andalso member (op =) presentation_stmt_names name)
+      | print_node (name, Stmt stmt) = if null presentation_stmt_names
+          orelse member (op =) presentation_stmt_names name
           then SOME (print_stmt (name, stmt))
           else NONE
       | print_node (name, Module (_, (implicits, nodes))) = if null presentation_stmt_names
@@ -462,8 +462,9 @@ fun serialize_scala raw_module_name labelled_name
       in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
 
     (* serialization *)
-    val p = Pretty.chunks2 (map (fn (base, p) => print_module base [] p) includes
-      @ the_list (print_nodes sca_program));
+    val p_includes = if null presentation_stmt_names
+      then map (fn (base, p) => print_module base [] p) includes else [];
+    val p = Pretty.chunks2 (p_includes @ the_list (print_nodes sca_program));
   in
     Code_Target.mk_serialization target
       (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty)
