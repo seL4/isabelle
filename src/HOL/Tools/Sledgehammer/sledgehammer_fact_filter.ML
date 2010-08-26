@@ -255,7 +255,9 @@ fun irrel_weight const_tab (c as (s, _)) =
 fun irrel_weight _ _ = 1.0
 *)
 
-fun axiom_weight const_tab relevant_consts axiom_consts =
+val chained_bonus_factor = 2.0
+
+fun axiom_weight chained const_tab relevant_consts axiom_consts =
   case axiom_consts |> List.partition (pseudoconst_mem I relevant_consts)
                     ||> filter_out (pseudoconst_mem swap relevant_consts) of
     ([], []) => 0.0
@@ -263,6 +265,7 @@ fun axiom_weight const_tab relevant_consts axiom_consts =
   | (rel, irrel) =>
     let
       val rel_weight = fold (curry Real.+ o rel_weight const_tab) rel 0.0
+                       |> chained ? curry Real.* chained_bonus_factor
       val irrel_weight = fold (curry Real.+ o irrel_weight const_tab) irrel 0.0
       val res = rel_weight / (rel_weight + irrel_weight)
     in if Real.isFinite res then res else 0.0 end
@@ -395,7 +398,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
               val weight =
                 case cached_weight of
                   SOME w => w
-                | NONE => axiom_weight const_tab rel_const_tab axiom_consts
+                | NONE => axiom_weight (snd (name ())) const_tab rel_const_tab
+                                       axiom_consts
 (* TODO: experiment
 val _ = if String.isPrefix "lift.simps(3" (fst (name ())) then
 tracing ("*** " ^ (fst (name ())) ^ PolyML.makestring (debug_axiom_weight const_tab rel_const_tab axiom_consts))
