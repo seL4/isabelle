@@ -9,9 +9,7 @@ begin
 section {* Alternative representation of @{typ code_numeral} for @{text Haskell} and @{text Scala} *}
 
 code_include Haskell "Natural"
-{*import Data.Array.ST;
-
-newtype Natural = Natural Integer deriving (Eq, Show, Read);
+{*newtype Natural = Natural Integer deriving (Eq, Show, Read);
 
 instance Num Natural where {
   fromInteger k = Natural (if k >= 0 then k else 0);
@@ -54,8 +52,8 @@ instance Integral Natural where {
 
 code_reserved Haskell Natural
 
-code_include Scala "Natural" {*
-import scala.Math
+code_include Scala "Natural"
+{*import scala.Math
 
 object Nat {
 

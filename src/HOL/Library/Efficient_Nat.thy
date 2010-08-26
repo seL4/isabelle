@@ -242,8 +242,8 @@ text {*
   and @{typ int}.
 *}
 
-code_include Haskell "Nat" {*
-newtype Nat = Nat Integer deriving (Eq, Show, Read);
+code_include Haskell "Nat"
+{*newtype Nat = Nat Integer deriving (Eq, Show, Read);
 
 instance Num Nat where {
   fromInteger k = Nat (if k >= 0 then k else 0);
@@ -280,8 +280,8 @@ instance Integral Nat where {
 
 code_reserved Haskell Nat
 
-code_include Scala "Nat" {*
-import scala.Math
+code_include Scala "Nat"
+{*import scala.Math
 
 object Nat {
 
