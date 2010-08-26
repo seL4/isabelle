@@ -49,7 +49,7 @@ class Isabelle_Hyperlinks extends HyperlinkSource
         snapshot.node.command_at(offset) match {
           case Some((command, command_start)) =>
             // FIXME Isar_Document.Hyperlink extractor
-            (snapshot.state(command).markup.select(Text.Range(offset) - command_start) {
+            (snapshot.state(command).markup.select(Text.Range(offset, offset + 1) - command_start) {
               case Text.Info(info_range, XML.Elem(Markup(Markup.ML_REF, _),
                   List(XML.Elem(Markup(Markup.ML_DEF, props), _)))) =>
                 val Text.Range(begin, end) = snapshot.convert(info_range + command_start)

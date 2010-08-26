@@ -32,6 +32,11 @@ files exclusively use the .ML extension.  Minor INCOMPATIBILTY.
 * Diagnostic command 'print_interps' prints interpretations in proofs
 in addition to interpretations in theories.
 
+* Discontinued obsolete 'global' and 'local' commands to manipulate
+the theory name space.  Rare INCOMPATIBILITY.  The ML functions
+Sign.root_path and Sign.local_path may be applied directly where this
+feature is still required for historical reasons.
+
 
 *** HOL ***
 

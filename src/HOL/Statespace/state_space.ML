@@ -235,7 +235,7 @@ val distinctNameSolver = mk_solver' "distinctNameSolver"
                 | NONE => fn i => no_tac)
 
 val distinct_simproc =
-  Simplifier.simproc @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
+  Simplifier.simproc_global @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
     (fn thy => fn ss => (fn (Const (@{const_name "op ="},_)$(x as Free _)$(y as Free _)) =>
         (case try Simplifier.the_context ss of
           SOME ctxt => Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])

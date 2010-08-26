@@ -22,9 +22,9 @@ object Command
 
     lazy val results = reverse_results.reverse
 
-    def add_result(result: XML.Tree): State = copy(reverse_results = result :: reverse_results)
-
+    def add_status(st: Markup): State = copy(status = st :: status)
     def add_markup(info: Text.Info[Any]): State = copy(markup = markup + info)
+    def add_result(result: XML.Tree): State = copy(reverse_results = result :: reverse_results)
 
     def root_info: Text.Info[Any] =
       new Text.Info(command.range,
@@ -36,8 +36,12 @@ object Command
 
     def accumulate(message: XML.Tree): Command.State =
       message match {
-        case XML.Elem(Markup(Markup.STATUS, _), body) =>  // FIXME explicit body check!?
-          copy(status = (for (XML.Elem(markup, _) <- body) yield markup) ::: status)
+        case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
+          (this /: msgs)((state, msg) =>
+            msg match {
+              case XML.Elem(markup, Nil) => state.add_status(markup)
+              case _ => System.err.println("Ignored status message: " + msg); state
+            })
 
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -47,7 +51,7 @@ object Command
                 val range = command.decode(Position.get_range(atts).get)
                 val props = atts.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
                 val info = Text.Info[Any](range, XML.Elem(Markup(name, props), args))
-                add_markup(info)
+                state.add_markup(info)
               case _ => System.err.println("Ignored report message: " + msg); state
             })
         case _ => add_result(message)

@@ -1172,7 +1172,7 @@ in
     subrecord.
 *)
 val simproc =
-  Simplifier.simproc @{theory HOL} "record_simp" ["x"]
+  Simplifier.simproc_global @{theory HOL} "record_simp" ["x"]
     (fn thy => fn _ => fn t =>
       (case t of
         (sel as Const (s, Type (_, [_, rangeS]))) $
@@ -1246,7 +1246,7 @@ fun get_upd_acc_cong_thm upd acc thy simpset =
   we omit considering further updates if doing so would introduce
   both a more update and an update to a field within it.*)
 val upd_simproc =
-  Simplifier.simproc @{theory HOL} "record_upd_simp" ["x"]
+  Simplifier.simproc_global @{theory HOL} "record_upd_simp" ["x"]
     (fn thy => fn _ => fn t =>
       let
         (*We can use more-updators with other updators as long
@@ -1366,7 +1366,7 @@ end;
  Complexity: #components * #updates     #updates
 *)
 val eq_simproc =
-  Simplifier.simproc @{theory HOL} "record_eq_simp" ["r = s"]
+  Simplifier.simproc_global @{theory HOL} "record_eq_simp" ["r = s"]
     (fn thy => fn _ => fn t =>
       (case t of Const (@{const_name "op ="}, Type (_, [T, _])) $ _ $ _ =>
         (case rec_id ~1 T of
@@ -1386,7 +1386,7 @@ val eq_simproc =
     P t = ~1: completely split
     P t > 0: split up to given bound of record extensions.*)
 fun split_simproc P =
-  Simplifier.simproc @{theory HOL} "record_split_simp" ["x"]
+  Simplifier.simproc_global @{theory HOL} "record_split_simp" ["x"]
     (fn thy => fn _ => fn t =>
       (case t of
         Const (quantifier, Type (_, [Type (_, [T, _]), _])) $ _ =>
@@ -1414,7 +1414,7 @@ fun split_simproc P =
       | _ => NONE));
 
 val ex_sel_eq_simproc =
-  Simplifier.simproc @{theory HOL} "ex_sel_eq_simproc" ["Ex t"]
+  Simplifier.simproc_global @{theory HOL} "ex_sel_eq_simproc" ["Ex t"]
     (fn thy => fn ss => fn t =>
       let
         fun prove prop =

@@ -421,29 +421,29 @@ val R  = mk_free "R" (xT-->yT)
 val S  = mk_free "S" xT
 val S'  = mk_free "S'" xT
 in
-fun beta_simproc thy = Simplifier.simproc_i
+fun beta_simproc thy = Simplifier.simproc_global_i
                       thy
                       "Beta-contraction"
                       [Abs("x",xT,Q) $ S]
                       beta_fun
 
-fun equals_simproc thy = Simplifier.simproc_i
+fun equals_simproc thy = Simplifier.simproc_global_i
                       thy
                       "Ordered rewriting of meta equalities"
                       [Const("op ==",xT) $ S $ S']
                       equals_fun
 
-fun quant_simproc thy = Simplifier.simproc_i
+fun quant_simproc thy = Simplifier.simproc_global_i
                            thy
                            "Ordered rewriting of nested quantifiers"
                            [Logic.all x (Logic.all y (P $ x $ y))]
                            quant_rewrite
-fun eta_expand_simproc thy = Simplifier.simproc_i
+fun eta_expand_simproc thy = Simplifier.simproc_global_i
                          thy
                          "Smart eta-expansion by equivalences"
                          [Logic.mk_equals(Q,R)]
                          eta_expand
-fun eta_contract_simproc thy = Simplifier.simproc_i
+fun eta_contract_simproc thy = Simplifier.simproc_global_i
                          thy
                          "Smart handling of eta-contractions"
                          [Logic.all x (Logic.mk_equals (Q $ x, R $ x))]

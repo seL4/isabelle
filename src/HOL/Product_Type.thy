@@ -58,7 +58,7 @@ text {*
 ML {*
   val unit_eq_proc =
     let val unit_meta_eq = mk_meta_eq @{thm unit_eq} in
-      Simplifier.simproc @{theory} "unit_eq" ["x::unit"]
+      Simplifier.simproc_global @{theory} "unit_eq" ["x::unit"]
       (fn _ => fn _ => fn t => if HOLogic.is_unit t then NONE else SOME unit_meta_eq)
     end;
 
@@ -550,8 +550,8 @@ local
         | NONE => NONE)
     | eta_proc _ _ = NONE;
 in
-  val split_beta_proc = Simplifier.simproc @{theory} "split_beta" ["split f z"] (K beta_proc);
-  val split_eta_proc = Simplifier.simproc @{theory} "split_eta" ["split f"] (K eta_proc);
+  val split_beta_proc = Simplifier.simproc_global @{theory} "split_beta" ["split f z"] (K beta_proc);
+  val split_eta_proc = Simplifier.simproc_global @{theory} "split_eta" ["split f"] (K eta_proc);
 end;
 
 Addsimprocs [split_beta_proc, split_eta_proc];

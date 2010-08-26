@@ -277,7 +277,7 @@ fun implies_intr_hyps th =
 (*Squash a theorem's flexflex constraints provided it can be done uniquely.
   This step can lose information.*)
 fun flexflex_unique th =
-  if null (tpairs_of th) then th else
+  if null (Thm.tpairs_of th) then th else
     case distinct Thm.eq_thm (Seq.list_of (Thm.flexflex_rule th)) of
       [th] => th
     | []   => raise THM("flexflex_unique: impossible constraints", 0, [th])

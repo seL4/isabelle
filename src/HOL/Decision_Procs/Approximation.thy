@@ -3212,8 +3212,8 @@ let
 
   fun bad t = error ("Bad term: " ^ Syntax.string_of_term_global thy t);
 
-  fun term_of_bool True = @{term True}
-    | term_of_bool False = @{term False};
+  fun term_of_bool true = @{term True}
+    | term_of_bool false = @{term False};
 
   fun term_of_float (@{code Float} (k, l)) =
     @{term Float} $ HOLogic.mk_number @{typ int} k $ HOLogic.mk_number @{typ int} l;
