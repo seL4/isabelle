@@ -1924,7 +1924,7 @@ code_const True and False and Not and "op &" and "op |" and If
   (Haskell "True" and "False" and "not"
     and infixl 3 "&&" and infixl 2 "||"
     and "!(if (_)/ then (_)/ else (_))")
-  (Scala "true" and "false" and "'!/ _"
+  (Scala "true" and "false" and "'! _"
     and infixl 3 "&&" and infixl 1 "||"
     and "!(if ((_))/ (_)/ else (_))")
 

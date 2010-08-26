@@ -478,6 +478,7 @@ subsubsection {* Scala *}
 
 code_include Scala "Heap"
 {*import collection.mutable.ArraySeq
+
 def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
 
 class Ref[A](x: A) {
