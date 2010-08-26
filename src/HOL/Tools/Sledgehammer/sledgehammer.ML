@@ -38,7 +38,7 @@ sig
      atp_run_time_in_msecs: int,
      output: string,
      proof: string,
-     axiom_names: (string * locality) vector,
+     axiom_names: (string * locality) list vector,
      conjecture_shape: int list list}
   type prover = params -> minimize_command -> problem -> prover_result
 
@@ -107,7 +107,7 @@ type prover_result =
    atp_run_time_in_msecs: int,
    output: string,
    proof: string,
-   axiom_names: (string * locality) vector,
+   axiom_names: (string * locality) list vector,
    conjecture_shape: int list list}
 
 type prover = params -> minimize_command -> problem -> prover_result
@@ -175,6 +175,7 @@ val extract_clause_formula_relation =
   #> snd #> Substring.string #> strip_spaces_except_between_ident_chars
   #> explode #> parse_clause_formula_relation #> fst
 
+(* TODO: move to "Sledgehammer_Proof_Reconstruct.ML" *)
 fun repair_conjecture_shape_and_theorem_names output conjecture_shape
                                               axiom_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
@@ -189,19 +190,17 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
         conjecture_prefix ^ string_of_int (j - j0)
         |> AList.find (fn (s, ss) => member (op =) ss s) name_map
         |> map (fn s => find_index (curry (op =) s) seq + 1)
-      fun name_for_number j =
-        let
-          val axioms =
-            j |> AList.lookup (op =) name_map |> these
-              |> map_filter (try (unprefix axiom_prefix)) |> map unascii_of
-          val loc =
-            case axioms of
-              [axiom] => find_first_in_vector axiom_names axiom General
-            | _ => General
-        in (axioms |> space_implode " ", loc) end
+      fun names_for_number j =
+        j |> AList.lookup (op =) name_map |> these
+          |> map_filter (try (unprefix axiom_prefix)) |> map unascii_of
+          |> map (fn name =>
+                     (name, name |> find_first_in_list_vector axiom_names
+                                 |> the)
+                     handle Option.Option =>
+                            error ("No such fact: " ^ quote name ^ "."))
     in
       (conjecture_shape |> map (maps renumber_conjecture),
-       seq |> map name_for_number |> Vector.fromList)
+       seq |> map names_for_number |> Vector.fromList)
     end
   else
     (conjecture_shape, axiom_names)
@@ -253,7 +252,7 @@ fun prover_fun atp_name
         if the_dest_dir = "" then File.tmp_path probfile
         else if File.exists (Path.explode the_dest_dir)
         then Path.append (Path.explode the_dest_dir) probfile
-        else error ("No such directory: " ^ the_dest_dir ^ ".")
+        else error ("No such directory: " ^ quote the_dest_dir ^ ".")
       end;
 
     val measure_run_time = verbose orelse Config.get ctxt measure_runtime

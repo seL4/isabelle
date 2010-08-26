@@ -586,9 +586,8 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val is_chained = member Thm.eq_thm chained_ths
-    (* Unnamed, not chained formulas with schematic variables are omitted,
-       because they are rejected by the backticks (`...`) parser for some
-       reason. *)
+    (* Unnamed nonchained formulas with schematic variables are omitted, because
+       they are rejected by the backticks (`...`) parser for some reason. *)
     fun is_good_unnamed_local th =
       forall (fn (_, ths) => not (member Thm.eq_thm ths th)) named_locals
       andalso (not (exists_subterm is_Var (prop_of th)) orelse (is_chained th))

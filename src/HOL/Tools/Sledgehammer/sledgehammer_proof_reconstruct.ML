@@ -10,18 +10,16 @@ signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
   type locality = Sledgehammer_Fact_Filter.locality
   type minimize_command = string list -> string
-
-  val metis_proof_text:
-    bool * minimize_command * string * (string * locality) vector * thm * int
-    -> string * (string * locality) list
-  val isar_proof_text:
+  type metis_params =
+    bool * minimize_command * string * (string * locality) list vector * thm
+    * int
+  type isar_params =
     string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * locality) vector * thm * int
-    -> string * (string * locality) list
-  val proof_text:
-    bool -> string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * locality) vector * thm * int
-    -> string * (string * locality) list
+  type text_result = string * (string * locality) list
+
+  val metis_proof_text : metis_params -> text_result
+  val isar_proof_text : isar_params -> metis_params -> text_result
+  val proof_text : bool -> isar_params -> metis_params -> text_result
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -34,6 +32,11 @@ open Sledgehammer_Fact_Filter
 open Sledgehammer_Translate
 
 type minimize_command = string list -> string
+type metis_params =
+  bool * minimize_command * string * (string * locality) list vector * thm * int
+type isar_params =
+  string Symtab.table * bool * int * Proof.context * int list list
+type text_result = string * (string * locality) list
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
@@ -61,7 +64,7 @@ fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 fun index_in_shape x = find_index (exists (curry (op =) x))
 fun is_axiom_number axiom_names num =
   num > 0 andalso num <= Vector.length axiom_names andalso
-  fst (Vector.sub (axiom_names, num - 1)) <> ""
+  not (null (Vector.sub (axiom_names, num - 1)))
 fun is_conjecture_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
 
@@ -565,12 +568,10 @@ val split_proof_lines =
    "108. ... [input]". *)
 fun used_facts_in_atp_proof axiom_names atp_proof =
   let
-    fun axiom_name_at_index num =
+    fun axiom_names_at_index num =
       let val j = Int.fromString num |> the_default ~1 in
-        if is_axiom_number axiom_names j then
-          SOME (Vector.sub (axiom_names, j - 1))
-        else
-          NONE
+        if is_axiom_number axiom_names j then Vector.sub (axiom_names, j - 1)
+        else []
       end
     val tokens_of =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
@@ -579,17 +580,19 @@ fun used_facts_in_atp_proof axiom_names atp_proof =
           (case strip_prefix_and_unascii axiom_prefix (List.last rest) of
              SOME name =>
              if member (op =) rest "file" then
-               SOME (name, find_first_in_vector axiom_names name General)
+               ([(name, name |> find_first_in_list_vector axiom_names |> the)]
+                handle Option.Option =>
+                       error ("No such fact: " ^ quote name ^ "."))
              else
-               axiom_name_at_index num
-           | NONE => axiom_name_at_index num)
+               axiom_names_at_index num
+           | NONE => axiom_names_at_index num)
         else
-          NONE
-      | do_line (num :: "0" :: "Inp" :: _) = axiom_name_at_index num
+          []
+      | do_line (num :: "0" :: "Inp" :: _) = axiom_names_at_index num
       | do_line (num :: rest) =
-        (case List.last rest of "input" => axiom_name_at_index num | _ => NONE)
-      | do_line _ = NONE
-  in atp_proof |> split_proof_lines |> map_filter (do_line o tokens_of) end
+        (case List.last rest of "input" => axiom_names_at_index num | _ => [])
+      | do_line _ = []
+  in atp_proof |> split_proof_lines |> maps (do_line o tokens_of) end
 
 val indent_size = 2
 val no_label = ("", ~1)
@@ -663,7 +666,7 @@ fun smart_case_split [] facts = ByMetis facts
 
 fun add_fact_from_dep axiom_names num =
   if is_axiom_number axiom_names num then
-    apsnd (insert (op =) (fst (Vector.sub (axiom_names, num - 1))))
+    apsnd (union (op =) (map fst (Vector.sub (axiom_names, num - 1))))
   else
     apfst (insert (op =) (raw_prefix, num))
 
