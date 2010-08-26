@@ -28,7 +28,7 @@ sig
     -> 'a -> serialization
   val serialize: theory -> string -> int option -> string option -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
-  val serialize_custom: theory -> string * serializer
+  val serialize_custom: theory -> string * serializer -> string option
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val the_literals: theory -> string -> literals
   val export: serialization -> unit
@@ -348,8 +348,8 @@ fun check thy names_cs naming program target strict args =
     else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
 
-fun serialize_custom thy (target_name, seri) naming program names =
-  mount_serializer thy (SOME seri) target_name NONE NONE [] naming program names (String [])
+fun serialize_custom thy (target_name, seri) module_name naming program names =
+  mount_serializer thy (SOME seri) target_name NONE module_name [] naming program names (String [])
   |> the;
 
 end; (* local *)
