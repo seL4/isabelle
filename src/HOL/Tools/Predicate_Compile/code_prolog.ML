@@ -6,7 +6,7 @@ Prototype of an code generator for logic programming languages (a.k.a. Prolog)
 
 signature CODE_PROLOG =
 sig
-  type code_options = {ensure_groundness : bool}
+  type code_options = {ensure_groundness : bool, limited_types : (typ * int) list}
   val options : code_options ref
 
   datatype arith_op = Plus | Minus
@@ -42,9 +42,9 @@ fun tracing s = if !trace then Output.tracing s else ()
 
 (* code generation options *)
 
-type code_options = {ensure_groundness : bool}
+type code_options = {ensure_groundness : bool, limited_types : (typ * int) list}
 
-val options = Unsynchronized.ref {ensure_groundness = false};
+val options = Unsynchronized.ref {ensure_groundness = false, limited_types = []};
 
 (* general string functions *)
 
@@ -284,7 +284,8 @@ fun generate options ctxt const =
     apfst flat (fold_map (translate_intros options ctxt gr) (flat scc) constant_table)
   end
   
-(* add implementation for ground predicates *)
+(* implementation for fully enumerating predicates and
+  for size-limited predicates for enumerating the values of a datatype upto a specific size *)
 
 fun add_ground_typ (Conj prems) = fold add_ground_typ prems
   | add_ground_typ (Ground (_, T)) = insert (op =) T
@@ -294,34 +295,58 @@ fun mk_relname (Type (Tcon, Targs)) =
   first_lower (Long_Name.base_name Tcon) ^ space_implode "_" (map mk_relname Targs)
   | mk_relname _ = raise Fail "unexpected type"
 
+fun mk_lim_relname T = "lim_" ^  mk_relname T
+
 (* This is copied from "pat_completeness.ML" *)
 fun inst_constrs_of thy (T as Type (name, _)) =
   map (fn (Cn,CT) =>
     Envir.subst_term_types (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
     (the (Datatype.get_constrs thy name))
   | inst_constrs_of thy T = raise TYPE ("inst_constrs_of", [T], [])
+
+fun is_recursive_constr T (Const (constr_name, T')) = member (op =) (binder_types T') T
   
-fun mk_ground_impl ctxt (T as Type (Tcon, Targs)) (seen, constant_table) =
+fun mk_ground_impl ctxt limited_types (T as Type (Tcon, Targs)) (seen, constant_table) =
   if member (op =) seen T then ([], (seen, constant_table))
   else
     let
-      val rel_name = mk_relname T
-      fun mk_impl (Const (constr_name, T)) (seen, constant_table) =
+      val (limited, size) = case AList.lookup (op =) limited_types T of
+        SOME s => (true, s)
+      | NONE => (false, 0)      
+      val rel_name = (if limited then mk_lim_relname else mk_relname) T
+      fun mk_impl (Const (constr_name, cT), recursive) (seen, constant_table) =
         let
           val constant_table' = declare_consts [constr_name] constant_table
+          val Ts = binder_types cT
           val (rec_clauses, (seen', constant_table'')) =
-            fold_map (mk_ground_impl ctxt) (binder_types T) (seen, constant_table')
-          val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto (length (binder_types T)))    
-          fun mk_prem v T = Rel (mk_relname T, [v])
+            fold_map (mk_ground_impl ctxt limited_types) Ts (seen, constant_table')
+          val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto (length Ts))
+          val lim_var =
+            if limited then
+              if recursive then [AppF ("suc", [Var "Lim"])]              
+              else [Var "Lim"]
+            else [] 
+          fun mk_prem v T' =
+            if limited andalso T' = T then Rel (mk_lim_relname T', [Var "Lim", v])
+            else Rel (mk_relname T', [v])
           val clause =
-            ((rel_name, [maybe_AppF (translate_const constant_table'' constr_name, vars)]),
-             Conj (map2 mk_prem vars (binder_types T)))
+            ((rel_name, lim_var @ [maybe_AppF (translate_const constant_table'' constr_name, vars)]),
+             Conj (map2 mk_prem vars Ts))
         in
           (clause :: flat rec_clauses, (seen', constant_table''))
         end
       val constrs = inst_constrs_of (ProofContext.theory_of ctxt) T
-    in apfst flat (fold_map mk_impl constrs (T :: seen, constant_table)) end
- | mk_ground_impl ctxt T (seen, constant_table) =
+      val constrs' = (constrs ~~ map (is_recursive_constr T) constrs)
+        |> (fn cs => filter_out snd cs @ filter snd cs)
+      val (clauses, constant_table') =
+        apfst flat (fold_map mk_impl constrs' (T :: seen, constant_table))
+      val size_term = funpow size (fn t => AppF ("suc", [t])) (Cons "zero")
+    in
+      ((if limited then
+        cons ((mk_relname T, [Var "x"]), Rel (mk_lim_relname T, [size_term, Var "x"]))
+      else I) clauses, constant_table')
+    end
+ | mk_ground_impl ctxt _ T (seen, constant_table) =
    raise Fail ("unexpected type :" ^ Syntax.string_of_typ ctxt T)
 
 fun replace_ground (Conj prems) = Conj (map replace_ground prems)
@@ -329,15 +354,16 @@ fun replace_ground (Conj prems) = Conj (map replace_ground prems)
     Rel (mk_relname T, [Var x])  
   | replace_ground p = p
   
-fun add_ground_predicates ctxt (p, constant_table) =
+fun add_ground_predicates ctxt limited_types (p, constant_table) =
   let
     val ground_typs = fold (add_ground_typ o snd) p []
-    val (grs, (_, constant_table')) = fold_map (mk_ground_impl ctxt) ground_typs ([], constant_table)
+    val (grs, (_, constant_table')) = fold_map (mk_ground_impl ctxt limited_types) ground_typs ([], constant_table)
     val p' = map (apsnd replace_ground) p
   in
     ((flat grs) @ p', constant_table')
   end
-    
+
+  
 (* rename variables to prolog-friendly names *)
 
 fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renaming v))
@@ -535,7 +561,9 @@ fun values ctxt soln t_compr =
     val ctxt'' = ProofContext.init_global thy'
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate options ctxt'' name
-      |> (if #ensure_groundness options then add_ground_predicates ctxt'' else I)
+      |> (if #ensure_groundness options then
+          add_ground_predicates ctxt'' (#limited_types options)
+        else I)
     val _ = tracing "Running prolog program..."
     val tss = run p (translate_const constant_table name) (map first_upper vnames) soln
     val _ = tracing "Restoring terms..."
@@ -626,8 +654,8 @@ fun quickcheck ctxt report t size =
     val thy3 = Predicate_Compile.preprocess preprocess_options const thy2
     val ctxt'' = ProofContext.init_global thy3
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate {ensure_groundness = true} ctxt'' full_constname
-      |> add_ground_predicates ctxt''
+    val (p, constant_table) = generate {ensure_groundness = true, limited_types = []} ctxt'' full_constname
+      |> add_ground_predicates ctxt'' (#limited_types (!options))
     val _ = tracing "Running prolog program..."
     val [ts] = run p (translate_const constant_table full_constname) (map fst vs')
       (SOME 1)
