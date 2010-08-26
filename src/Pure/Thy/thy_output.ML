@@ -11,15 +11,15 @@ sig
   val indent: int Unsynchronized.ref
   val source: bool Unsynchronized.ref
   val break: bool Unsynchronized.ref
-  val add_commands: (string * (Args.src -> Toplevel.state -> string)) list -> unit
-  val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
+  val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
+  val add_option: string -> (string -> Proof.context -> Proof.context) -> unit
   val defined_command: string -> bool
   val defined_option: string -> bool
   val print_antiquotations: unit -> unit
   val boolean: string -> bool
   val integer: string -> int
   val antiquotation: string -> 'a context_parser ->
-    ({state: Toplevel.state, source: Args.src, context: Proof.context} -> 'a -> string) -> unit
+    ({source: Args.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) -> unit
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list Unsynchronized.ref
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
@@ -45,28 +45,40 @@ val source = Unsynchronized.ref false;
 val break = Unsynchronized.ref false;
 
 
+structure Wrappers = Proof_Data
+(
+  type T = ((unit -> string) -> unit -> string) list;
+  fun init _ = [];
+);
+
+fun add_wrapper wrapper = Wrappers.map (cons wrapper);
+
+val wrap = Wrappers.get #> fold (fn wrapper => fn f => wrapper f);
+
+
 
 (** maintain global antiquotations **)
 
 local
 
 val global_commands =
-  Unsynchronized.ref (Symtab.empty: (Args.src -> Toplevel.state -> string) Symtab.table);
+  Unsynchronized.ref
+    (Symtab.empty: (Args.src -> Toplevel.state -> Proof.context -> string) Symtab.table);
 
 val global_options =
-  Unsynchronized.ref (Symtab.empty: (string -> (unit -> string) -> unit -> string) Symtab.table);
+  Unsynchronized.ref (Symtab.empty: (string -> Proof.context -> Proof.context) Symtab.table);
 
-fun add_item kind (name, x) tab =
+fun add_item kind name item tab =
  (if not (Symtab.defined tab name) then ()
   else warning ("Redefined document antiquotation " ^ kind ^ ": " ^ quote name);
-  Symtab.update (name, x) tab);
+  Symtab.update (name, item) tab);
 
 in
 
-fun add_commands xs =
-  CRITICAL (fn () => Unsynchronized.change global_commands (fold (add_item "command") xs));
-fun add_options xs =
-  CRITICAL (fn () => Unsynchronized.change global_options (fold (add_item "option") xs));
+fun add_command name cmd =
+  CRITICAL (fn () => Unsynchronized.change global_commands (add_item "command" name cmd));
+fun add_option name opt =
+  CRITICAL (fn () => Unsynchronized.change global_options (add_item "option" name opt));
 
 fun defined_command name = Symtab.defined (! global_commands) name;
 fun defined_option name = Symtab.defined (! global_options) name;
@@ -77,18 +89,15 @@ fun command src =
       NONE => error ("Unknown document antiquotation: " ^ quote name ^ Position.str_of pos)
     | SOME f =>
        (Position.report (Markup.doc_antiq name) pos;
-        (fn state => f src state handle ERROR msg =>
+        (fn state => fn ctxt => f src state ctxt handle ERROR msg =>
           cat_error msg ("The error(s) above occurred in document antiquotation: " ^
             quote name ^ Position.str_of pos))))
   end;
 
-fun option (name, s) f () =
+fun option (name, s) ctxt =
   (case Symtab.lookup (! global_options) name of
     NONE => error ("Unknown document antiquotation option: " ^ quote name)
-  | SOME opt => opt s f ());
-
-fun options [] f = f
-  | options (opt :: opts) f = option opt (options opts f);
+  | SOME opt => opt s ctxt);
 
 
 fun print_antiquotations () =
@@ -100,10 +109,11 @@ fun print_antiquotations () =
 
 end;
 
-fun antiquotation name scan out = add_commands [(name, fn src => fn state =>
-  let val (x, ctxt) = Args.context_syntax "document antiquotation"
-    scan src (Toplevel.presentation_context_of state)
-  in out {source = src, state = state, context = ctxt} x end)];
+fun antiquotation name scan out =
+  add_command name
+    (fn src => fn state => fn ctxt =>
+      let val (x, ctxt') = Args.context_syntax "document antiquotation" scan src ctxt
+      in out {source = src, state = state, context = ctxt'} x end);
 
 
 
@@ -151,10 +161,13 @@ fun eval_antiquote lex state (txt, pos) =
   let
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
       | expand (Antiquote.Antiq (ss, (pos, _))) =
-          let val (opts, src) = Token.read_antiq lex antiq (ss, pos) in
-            options opts (fn () => command src state) ();  (*preview errors!*)
-            Print_Mode.with_modes (! modes @ Latex.modes)
-              (Output.no_warnings_CRITICAL (options opts (fn () => command src state))) ()
+          let
+            val (opts, src) = Token.read_antiq lex antiq (ss, pos);
+            val opts_ctxt = fold option opts (Toplevel.presentation_context_of state);
+            val cmd = wrap opts_ctxt (fn () => command src state opts_ctxt);
+            val _ = cmd ();  (*preview errors!*)
+          in
+            Print_Mode.with_modes (! modes @ Latex.modes) (Output.no_warnings_CRITICAL cmd) ()
           end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
@@ -417,23 +430,22 @@ end;
 
 (* options *)
 
-val _ = add_options
- [("show_types", setmp_CRITICAL Syntax.show_types o boolean),
-  ("show_sorts", setmp_CRITICAL Syntax.show_sorts o boolean),
-  ("show_structs", setmp_CRITICAL show_structs o boolean),
-  ("show_question_marks", setmp_CRITICAL show_question_marks o boolean),
-  ("long_names", setmp_CRITICAL Name_Space.long_names o boolean),
-  ("short_names", setmp_CRITICAL Name_Space.short_names o boolean),
-  ("unique_names", setmp_CRITICAL Name_Space.unique_names o boolean),
-  ("eta_contract", setmp_CRITICAL Syntax.eta_contract o boolean),
-  ("display", setmp_CRITICAL display o boolean),
-  ("break", setmp_CRITICAL break o boolean),
-  ("quotes", setmp_CRITICAL quotes o boolean),
-  ("mode", fn s => fn f => Print_Mode.with_modes [s] f),
-  ("margin", setmp_CRITICAL Pretty.margin_default o integer),
-  ("indent", setmp_CRITICAL indent o integer),
-  ("source", setmp_CRITICAL source o boolean),
-  ("goals_limit", setmp_CRITICAL goals_limit o integer)];
+val _ = add_option "show_types" (add_wrapper o setmp_CRITICAL Syntax.show_types o boolean);
+val _ = add_option "show_sorts" (add_wrapper o setmp_CRITICAL Syntax.show_sorts o boolean);
+val _ = add_option "show_structs" (add_wrapper o setmp_CRITICAL show_structs o boolean);
+val _ = add_option "show_question_marks" (add_wrapper o setmp_CRITICAL show_question_marks o boolean);
+val _ = add_option "long_names" (add_wrapper o setmp_CRITICAL Name_Space.long_names o boolean);
+val _ = add_option "short_names" (add_wrapper o setmp_CRITICAL Name_Space.short_names o boolean);
+val _ = add_option "unique_names" (add_wrapper o setmp_CRITICAL Name_Space.unique_names o boolean);
+val _ = add_option "eta_contract" (add_wrapper o setmp_CRITICAL Syntax.eta_contract o boolean);
+val _ = add_option "display" (add_wrapper o setmp_CRITICAL display o boolean);
+val _ = add_option "break" (add_wrapper o setmp_CRITICAL break o boolean);
+val _ = add_option "quotes" (add_wrapper o setmp_CRITICAL quotes o boolean);
+val _ = add_option "mode" (add_wrapper o Print_Mode.with_modes o single);
+val _ = add_option "margin" (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer);
+val _ = add_option "indent" (add_wrapper o setmp_CRITICAL indent o integer);
+val _ = add_option "source" (add_wrapper o setmp_CRITICAL source o boolean);
+val _ = add_option "goals_limit" (add_wrapper o setmp_CRITICAL goals_limit o integer);
 
 
 (* basic pretty printing *)
