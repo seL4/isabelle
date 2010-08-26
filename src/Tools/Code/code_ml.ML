@@ -946,8 +946,8 @@ end; (*local*)
 (** for instrumentalization **)
 
 fun evaluation_code_of thy target struct_name =
-  Code_Target.serialize_custom thy (target, fn _ => fn [] =>
-    serialize_ml target print_sml_module print_sml_stmt (SOME struct_name) true);
+  Code_Target.serialize_custom thy (target, fn module_name => fn [] =>
+    serialize_ml target print_sml_module print_sml_stmt module_name true) (SOME struct_name);
 
 
 (** Isar setup **)
