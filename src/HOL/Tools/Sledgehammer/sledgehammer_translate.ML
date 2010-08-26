@@ -18,8 +18,8 @@ sig
   val tfrees_name : string
   val prepare_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
-    -> ((string * bool) * thm) list
-    -> string problem * string Symtab.table * int * (string * bool) vector
+    -> ((string * 'a) * thm) list
+    -> string problem * string Symtab.table * int * (string * 'a) vector
 end;
 
 structure Sledgehammer_Translate : SLEDGEHAMMER_TRANSLATE =
@@ -39,11 +39,11 @@ val tfrees_name = "tfrees"
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
-datatype fol_formula =
-  FOLFormula of {name: string,
-                 kind: kind,
-                 combformula: (name, combterm) formula,
-                 ctypes_sorts: typ list}
+type fol_formula =
+  {name: string,
+   kind: kind,
+   combformula: (name, combterm) formula,
+   ctypes_sorts: typ list}
 
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
@@ -190,15 +190,14 @@ fun make_formula ctxt presimp name kind t =
               |> kind <> Axiom ? freeze_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
-    FOLFormula {name = name, combformula = combformula, kind = kind,
-                ctypes_sorts = ctypes_sorts}
+    {name = name, combformula = combformula, kind = kind,
+     ctypes_sorts = ctypes_sorts}
   end
 
-fun make_axiom ctxt presimp ((name, chained), th) =
+fun make_axiom ctxt presimp ((name, loc), th) =
   case make_formula ctxt presimp name Axiom (prop_of th) of
-    FOLFormula {combformula = AAtom (CombConst (("c_True", _), _, _)), ...} =>
-    NONE
-  | formula => SOME ((name, chained), formula)
+    {combformula = AAtom (CombConst (("c_True", _), _, _)), ...} => NONE
+  | formula => SOME ((name, loc), formula)
 fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
     map2 (fn j => make_formula ctxt true (Int.toString j)
@@ -215,7 +214,7 @@ fun count_combterm (CombConst ((s, _), _, _)) =
 fun count_combformula (AQuant (_, _, phi)) = count_combformula phi
   | count_combformula (AConn (_, phis)) = fold count_combformula phis
   | count_combformula (AAtom tm) = count_combterm tm
-fun count_fol_formula (FOLFormula {combformula, ...}) =
+fun count_fol_formula ({combformula, ...} : fol_formula) =
   count_combformula combformula
 
 val optional_helpers =
@@ -326,13 +325,13 @@ fun formula_for_combformula full_types =
       | aux (AAtom tm) = AAtom (fo_term_for_combterm full_types tm)
   in aux end
 
-fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
+fun formula_for_axiom full_types
+                      ({combformula, ctypes_sorts, ...} : fol_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
                 (type_literals_for_types ctypes_sorts))
            (formula_for_combformula full_types combformula)
 
-fun problem_line_for_fact prefix full_types
-                          (formula as FOLFormula {name, kind, ...}) =
+fun problem_line_for_fact prefix full_types (formula as {name, kind, ...}) =
   Fof (prefix ^ ascii_of name, kind, formula_for_axiom full_types formula)
 
 fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
@@ -357,11 +356,11 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                      (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
-                                (FOLFormula {name, kind, combformula, ...}) =
+                                ({name, kind, combformula, ...} : fol_formula) =
   Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula full_types combformula)
 
-fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
+fun free_type_literals_for_conjecture ({ctypes_sorts, ...} : fol_formula) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
@@ -407,7 +406,7 @@ fun min_arity_of thy full_types NONE s =
        16383 (* large number *)
      else if full_types then
        0
-     else case strip_prefix_and_undo_ascii const_prefix s of
+     else case strip_prefix_and_unascii const_prefix s of
        SOME s' => num_type_args thy (invert_const s')
      | NONE => 0)
   | min_arity_of _ _ (SOME the_const_tab) s =

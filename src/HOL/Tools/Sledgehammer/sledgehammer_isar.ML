@@ -67,11 +67,9 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("explicit_apply", "false"),
-   ("relevance_threshold", "40"),
-   ("relevance_convergence", "31"),
-   ("max_relevant_per_iter", "smart"),
+   ("relevance_thresholds", "45 95"),
+   ("max_relevant", "smart"),
    ("theory_relevant", "smart"),
-   ("defs_relevant", "false"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1")]
 
@@ -84,7 +82,6 @@ val negated_alias_params =
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
    ("theory_irrelevant", "theory_relevant"),
-   ("defs_irrelevant", "defs_relevant"),
    ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
@@ -158,6 +155,14 @@ fun extract_params default_params override_params =
                     SOME n => n
                   | NONE => error ("Parameter " ^ quote name ^
                                    " must be assigned an integer value.")
+    fun lookup_int_pair name =
+      case lookup name of
+        NONE => (0, 0)
+      | SOME s => case s |> space_explode " " |> map Int.fromString of
+                    [SOME n1, SOME n2] => (n1, n2)
+                  | _ => error ("Parameter " ^ quote name ^
+                                "must be assigned a pair of integer values \
+                                \(e.g., \"60 95\")")
     fun lookup_int_option name =
       case lookup name of
         SOME "smart" => NONE
@@ -168,25 +173,20 @@ fun extract_params default_params override_params =
     val atps = lookup_string "atps" |> space_explode " "
     val full_types = lookup_bool "full_types"
     val explicit_apply = lookup_bool "explicit_apply"
-    val relevance_threshold =
-      0.01 * Real.fromInt (lookup_int "relevance_threshold")
-    val relevance_convergence =
-      0.01 * Real.fromInt (lookup_int "relevance_convergence")
-    val max_relevant_per_iter = lookup_int_option "max_relevant_per_iter"
+    val relevance_thresholds =
+      lookup_int_pair "relevance_thresholds"
+      |> pairself (fn n => 0.01 * Real.fromInt n)
+    val max_relevant = lookup_int_option "max_relevant"
     val theory_relevant = lookup_bool_option "theory_relevant"
-    val defs_relevant = lookup_bool "defs_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
   in
     {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
      full_types = full_types, explicit_apply = explicit_apply,
-     relevance_threshold = relevance_threshold,
-     relevance_convergence = relevance_convergence,
-     max_relevant_per_iter = max_relevant_per_iter,
-     theory_relevant = theory_relevant, defs_relevant = defs_relevant,
-     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-     timeout = timeout}
+     relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
+     theory_relevant = theory_relevant, isar_proof = isar_proof,
+     isar_shrink_factor = isar_shrink_factor, timeout = timeout}
   end
 
 fun get_params thy = extract_params (default_raw_params thy)

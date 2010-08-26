@@ -9,6 +9,7 @@ Sledgehammer's heart.
 signature SLEDGEHAMMER =
 sig
   type failure = ATP_Systems.failure
+  type locality = Sledgehammer_Fact_Filter.locality
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
@@ -18,11 +19,9 @@ sig
      atps: string list,
      full_types: bool,
      explicit_apply: bool,
-     relevance_threshold: real,
-     relevance_convergence: real,
-     max_relevant_per_iter: int option,
+     relevance_thresholds: real * real,
+     max_relevant: int option,
      theory_relevant: bool option,
-     defs_relevant: bool,
      isar_proof: bool,
      isar_shrink_factor: int,
      timeout: Time.time}
@@ -30,16 +29,16 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axioms: ((string * bool) * thm) list option}
+     axioms: ((string * locality) * thm) list option}
   type prover_result =
     {outcome: failure option,
      message: string,
      pool: string Symtab.table,
-     used_thm_names: (string * bool) list,
+     used_thm_names: (string * locality) list,
      atp_run_time_in_msecs: int,
      output: string,
      proof: string,
-     axiom_names: (string * bool) vector,
+     axiom_names: (string * locality) vector,
      conjecture_shape: int list list}
   type prover = params -> minimize_command -> problem -> prover_result
 
@@ -87,11 +86,9 @@ type params =
    atps: string list,
    full_types: bool,
    explicit_apply: bool,
-   relevance_threshold: real,
-   relevance_convergence: real,
-   max_relevant_per_iter: int option,
+   relevance_thresholds: real * real,
+   max_relevant: int option,
    theory_relevant: bool option,
-   defs_relevant: bool,
    isar_proof: bool,
    isar_shrink_factor: int,
    timeout: Time.time}
@@ -100,17 +97,17 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axioms: ((string * bool) * thm) list option}
+   axioms: ((string * locality) * thm) list option}
 
 type prover_result =
   {outcome: failure option,
    message: string,
    pool: string Symtab.table,
-   used_thm_names: (string * bool) list,
+   used_thm_names: (string * locality) list,
    atp_run_time_in_msecs: int,
    output: string,
    proof: string,
-   axiom_names: (string * bool) vector,
+   axiom_names: (string * locality) vector,
    conjecture_shape: int list list}
 
 type prover = params -> minimize_command -> problem -> prover_result
@@ -174,10 +171,9 @@ val parse_clause_formula_relation =
   Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
   |-- Scan.repeat parse_clause_formula_pair
 val extract_clause_formula_relation =
-  Substring.full
-  #> Substring.position set_ClauseFormulaRelationN
-  #> snd #> Substring.string #> strip_spaces #> explode
-  #> parse_clause_formula_relation #> fst
+  Substring.full #> Substring.position set_ClauseFormulaRelationN
+  #> snd #> Substring.string #> strip_spaces_except_between_ident_chars
+  #> explode #> parse_clause_formula_relation #> fst
 
 fun repair_conjecture_shape_and_theorem_names output conjecture_shape
                                               axiom_names =
@@ -190,17 +186,19 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
       val seq = extract_clause_sequence output
       val name_map = extract_clause_formula_relation output
       fun renumber_conjecture j =
-        conjecture_prefix ^ Int.toString (j - j0)
+        conjecture_prefix ^ string_of_int (j - j0)
         |> AList.find (fn (s, ss) => member (op =) ss s) name_map
         |> map (fn s => find_index (curry (op =) s) seq + 1)
       fun name_for_number j =
         let
           val axioms =
-            j |> AList.lookup (op =) name_map
-              |> these |> map_filter (try (unprefix axiom_prefix))
-              |> map undo_ascii_of
-          val chained = forall (is_true_for axiom_names) axioms
-        in (axioms |> space_implode " ", chained) end
+            j |> AList.lookup (op =) name_map |> these
+              |> map_filter (try (unprefix axiom_prefix)) |> map unascii_of
+          val loc =
+            case axioms of
+              [axiom] => find_first_in_vector axiom_names axiom General
+            | _ => General
+        in (axioms |> space_implode " ", loc) end
     in
       (conjecture_shape |> map (maps renumber_conjecture),
        seq |> map name_for_number |> Vector.fromList)
@@ -213,12 +211,11 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 fun prover_fun atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
-         known_failures, default_max_relevant_per_iter, default_theory_relevant,
+         known_failures, default_max_relevant, default_theory_relevant,
          explicit_forall, use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
-          relevance_threshold, relevance_convergence,
-          max_relevant_per_iter, theory_relevant,
-          defs_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
+          relevance_thresholds, max_relevant, theory_relevant, isar_proof,
+          isar_shrink_factor, timeout, ...} : params)
         minimize_command
         ({subgoal, goal, relevance_override, axioms} : problem) =
   let
@@ -226,7 +223,7 @@ fun prover_fun atp_name
     val thy = ProofContext.theory_of ctxt
     val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
 
-    fun print s = (priority s; if debug then tracing s else ())
+    val print = priority
     fun print_v f = () |> verbose ? print o f
     fun print_d f = () |> debug ? print o f
 
@@ -234,15 +231,13 @@ fun prover_fun atp_name
       case axioms of
         SOME axioms => axioms
       | NONE =>
-        (relevant_facts full_types relevance_threshold relevance_convergence
-                        defs_relevant
-                        (the_default default_max_relevant_per_iter
-                                     max_relevant_per_iter)
+        (relevant_facts full_types relevance_thresholds
+                        (the_default default_max_relevant max_relevant)
                         (the_default default_theory_relevant theory_relevant)
                         relevance_override goal hyp_ts concl_t
          |> tap ((fn n => print_v (fn () =>
-                      "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^
-                      " for " ^ quote atp_name ^ ".")) o length))
+                          "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^
+                          " for " ^ quote atp_name ^ ".")) o length))
 
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
@@ -261,6 +256,7 @@ fun prover_fun atp_name
         else error ("No such directory: " ^ the_dest_dir ^ ".")
       end;
 
+    val measure_run_time = verbose orelse Config.get ctxt measure_runtime
     val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
     (* write out problem file and call prover *)
     fun command_line complete timeout probfile =
@@ -268,10 +264,8 @@ fun prover_fun atp_name
         val core = File.shell_path command ^ " " ^ arguments complete timeout ^
                    " " ^ File.shell_path probfile
       in
-        (if Config.get ctxt measure_runtime then
-           "TIMEFORMAT='%3U'; { time " ^ core ^ " ; }"
-         else
-           "exec " ^ core) ^ " 2>&1"
+        (if measure_run_time then "TIMEFORMAT='%3U'; { time " ^ core ^ " ; }"
+         else "exec " ^ core) ^ " 2>&1"
       end
     fun split_time s =
       let
@@ -300,14 +294,11 @@ fun prover_fun atp_name
                          prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
                        else
                          I)
-                  |>> (if Config.get ctxt measure_runtime then split_time
-                       else rpair 0)
+                  |>> (if measure_run_time then split_time else rpair 0)
                 val (proof, outcome) =
                   extract_proof_and_outcome complete res_code proof_delims
                                             known_failures output
               in (output, msecs, proof, outcome) end
-            val _ = print_d (fn () => "Preparing problem for " ^
-                                      quote atp_name ^ "...")
             val readable_names = debug andalso overlord
             val (problem, pool, conjecture_offset, axiom_names) =
               prepare_problem ctxt readable_names explicit_forall full_types
@@ -358,6 +349,11 @@ fun prover_fun atp_name
         proof_text isar_proof
             (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
             (full_types, minimize_command, proof, axiom_names, th, subgoal)
+        |>> (fn message =>
+                message ^ (if verbose then
+                             "\nATP CPU time: " ^ string_of_int msecs ^ " ms."
+                           else
+                             ""))
       | SOME failure => (string_for_failure failure, [])
   in
     {outcome = outcome, message = message, pool = pool,

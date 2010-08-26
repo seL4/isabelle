@@ -290,10 +290,12 @@ fun get_atp thy args =
     | NONE => get_prover (default_atp_name ()))
   end
 
+type locality = Sledgehammer_Fact_Filter.locality
+
 local
 
 datatype sh_result =
-  SH_OK of int * int * (string * bool) list |
+  SH_OK of int * int * (string * locality) list |
   SH_FAIL of int * int |
   SH_ERROR
 
@@ -355,8 +357,8 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
     case result of
       SH_OK (time_isa, time_atp, names) =>
         let
-          fun get_thms (name, chained) =
-            ((name, chained), thms_of_name (Proof.context_of st) name)
+          fun get_thms (name, loc) =
+            ((name, loc), thms_of_name (Proof.context_of st) name)
         in
           change_data id inc_sh_success;
           change_data id (inc_sh_lemmas (length names));
@@ -445,7 +447,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
     then () else
     let
       val named_thms =
-        Unsynchronized.ref (NONE : ((string * bool) * thm list) list option)
+        Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
   

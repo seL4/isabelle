@@ -8,19 +8,20 @@ Transfer of proofs from external provers.
 
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
+  type locality = Sledgehammer_Fact_Filter.locality
   type minimize_command = string list -> string
 
   val metis_proof_text:
-    bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
+    bool * minimize_command * string * (string * locality) vector * thm * int
+    -> string * (string * locality) list
   val isar_proof_text:
     string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
+    -> bool * minimize_command * string * (string * locality) vector * thm * int
+    -> string * (string * locality) list
   val proof_text:
     bool -> string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
+    -> bool * minimize_command * string * (string * locality) vector * thm * int
+    -> string * (string * locality) list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -234,7 +235,7 @@ fun parse_proof pool =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
                             (parse_lines pool)))
-  o explode o strip_spaces
+  o explode o strip_spaces_except_between_ident_chars
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -246,18 +247,18 @@ exception SAME of unit
    constrained by information from type literals, or by type inference. *)
 fun type_from_fo_term tfrees (u as ATerm (a, us)) =
   let val Ts = map (type_from_fo_term tfrees) us in
-    case strip_prefix_and_undo_ascii type_const_prefix a of
+    case strip_prefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
         raise FO_TERM [u]  (* only "tconst"s have type arguments *)
-      else case strip_prefix_and_undo_ascii tfree_prefix a of
+      else case strip_prefix_and_unascii tfree_prefix a of
         SOME b =>
         let val s = "'" ^ b in
           TFree (s, AList.lookup (op =) tfrees s |> the_default HOLogic.typeS)
         end
       | NONE =>
-        case strip_prefix_and_undo_ascii tvar_prefix a of
+        case strip_prefix_and_unascii tvar_prefix a of
           SOME b => TVar (("'" ^ b, 0), HOLogic.typeS)
         | NONE =>
           (* Variable from the ATP, say "X1" *)
@@ -267,7 +268,7 @@ fun type_from_fo_term tfrees (u as ATerm (a, us)) =
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
 fun type_constraint_from_term pos tfrees (u as ATerm (a, us)) =
-  case (strip_prefix_and_undo_ascii class_prefix a,
+  case (strip_prefix_and_unascii class_prefix a,
         map (type_from_fo_term tfrees) us) of
     (SOME b, [T]) => (pos, b, T)
   | _ => raise FO_TERM [u]
@@ -309,7 +310,7 @@ fun raw_term_from_pred thy full_types tfrees =
             [typ_u, term_u] =>
             aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u
           | _ => raise FO_TERM us
-        else case strip_prefix_and_undo_ascii const_prefix a of
+        else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>
           list_comb (Const (@{const_name "op ="}, HOLogic.typeT),
                      map (aux NONE []) us)
@@ -341,10 +342,10 @@ fun raw_term_from_pred thy full_types tfrees =
             val ts = map (aux NONE []) (us @ extra_us)
             val T = map fastype_of ts ---> HOLogic.typeT
             val t =
-              case strip_prefix_and_undo_ascii fixed_var_prefix a of
+              case strip_prefix_and_unascii fixed_var_prefix a of
                 SOME b => Free (b, T)
               | NONE =>
-                case strip_prefix_and_undo_ascii schematic_var_prefix a of
+                case strip_prefix_and_unascii schematic_var_prefix a of
                   SOME b => Var ((b, 0), T)
                 | NONE =>
                   if is_tptp_variable a then
@@ -575,10 +576,10 @@ fun used_facts_in_atp_proof axiom_names atp_proof =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
     fun do_line (tag :: num :: "axiom" :: (rest as _ :: _)) =
         if tag = "cnf" orelse tag = "fof" then
-          (case strip_prefix_and_undo_ascii axiom_prefix (List.last rest) of
+          (case strip_prefix_and_unascii axiom_prefix (List.last rest) of
              SOME name =>
              if member (op =) rest "file" then
-               SOME (name, is_true_for axiom_names name)
+               SOME (name, find_first_in_vector axiom_names name General)
              else
                axiom_name_at_index num
            | NONE => axiom_name_at_index num)
@@ -624,8 +625,8 @@ fun minimize_line _ [] = ""
 
 fun used_facts axiom_names =
   used_facts_in_atp_proof axiom_names
-  #> List.partition snd
-  #> pairself (sort_distinct (string_ord) o map fst)
+  #> List.partition (curry (op =) Chained o snd)
+  #> pairself (sort_distinct (string_ord o pairself fst))
 
 fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
                       goal, i) =
@@ -633,9 +634,9 @@ fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
     val (chained_lemmas, other_lemmas) = used_facts axiom_names atp_proof
     val n = Logic.count_prems (prop_of goal)
   in
-    (metis_line full_types i n other_lemmas ^
-     minimize_line minimize_command (other_lemmas @ chained_lemmas),
-     map (rpair false) other_lemmas @ map (rpair true) chained_lemmas)
+    (metis_line full_types i n (map fst other_lemmas) ^
+     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
+     other_lemmas @ chained_lemmas)
   end
 
 (** Isar proof construction and manipulation **)
