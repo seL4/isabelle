@@ -722,9 +722,8 @@ datatype ml_node =
 
 in
 
-fun ml_node_of_program labelled_name module_name reserved raw_module_alias program =
+fun ml_node_of_program labelled_name module_name reserved module_alias program =
   let
-    val module_alias = if is_some module_name then K module_name else raw_module_alias;
     val reserved = Name.make_context reserved;
     val empty_module = ((reserved, reserved), Graph.empty);
     fun map_node [] f = f
@@ -907,15 +906,14 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
 
-fun serialize_ml target print_module print_stmt raw_module_name with_signatures labelled_name
-  reserved includes raw_module_alias _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program stmt_names destination =
+fun serialize_ml target print_module print_stmt module_name with_signatures labelled_name
+  reserved includes module_alias _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program
+  (stmt_names, presentation_stmt_names) =
   let
     val is_cons = Code_Thingol.is_cons program;
-    val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
     val is_presentation = not (null presentation_stmt_names);
-    val module_name = if is_presentation then SOME "Code" else raw_module_name;
     val (deresolver, nodes) = ml_node_of_program labelled_name module_name
-      reserved raw_module_alias program;
+      reserved module_alias program;
     val reserved = make_vars reserved;
     fun print_node prefix (Dummy _) =
           NONE
@@ -939,7 +937,7 @@ fun serialize_ml target print_module print_stmt raw_module_name with_signatures 
   in
     Code_Target.mk_serialization target
       (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty)
-      (rpair stmt_names' o code_of_pretty) p destination
+      (rpair stmt_names' o code_of_pretty) p
   end;
 
 end; (*local*)

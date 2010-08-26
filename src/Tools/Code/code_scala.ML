@@ -293,11 +293,10 @@ datatype node =
 
 in
 
-fun scala_program_of_program labelled_name module_name reserved raw_module_alias program =
+fun scala_program_of_program labelled_name reserved module_alias program =
   let
 
     (* building module name hierarchy *)
-    val module_alias = if is_some module_name then K module_name else raw_module_alias;
     fun alias_fragments name = case module_alias name
      of SOME name' => Long_Name.explode name'
       | NONE => map (fn name => fst (yield_singleton Name.variants name reserved))
@@ -403,20 +402,15 @@ fun scala_program_of_program labelled_name module_name reserved raw_module_alias
 
   in (deresolve, sca_program) end;
 
-fun serialize_scala raw_module_name labelled_name
-    raw_reserved includes raw_module_alias
+fun serialize_scala labelled_name raw_reserved includes module_alias
     _ syntax_tyco syntax_const (code_of_pretty, code_writeln)
-    program stmt_names destination =
+    program (stmt_names, presentation_stmt_names) destination =
   let
-
-    (* generic nonsense *)
-    val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
-    val module_name = if null presentation_stmt_names then raw_module_name else SOME "Code";
 
     (* preprocess program *)
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
     val (deresolve, sca_program) = scala_program_of_program labelled_name
-      module_name (Name.make_context reserved) raw_module_alias program;
+      (Name.make_context reserved) module_alias program;
 
     (* print statements *)
     fun lookup_constr tyco constr = case Graph.get_node program tyco
@@ -498,9 +492,9 @@ in Literals {
 
 (** Isar setup **)
 
-fun isar_serializer module_name =
+fun isar_serializer _ =
   Code_Target.parse_args (Scan.succeed ())
-  #> (fn () => serialize_scala module_name);
+  #> (fn () => serialize_scala);
 
 val setup =
   Code_Target.add_target

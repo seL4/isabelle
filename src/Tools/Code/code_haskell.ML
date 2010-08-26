@@ -261,9 +261,8 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           end;
   in print_stmt end;
 
-fun haskell_program_of_program labelled_name module_name module_prefix reserved raw_module_alias program =
+fun haskell_program_of_program labelled_name module_prefix reserved module_alias program =
   let
-    val module_alias = if is_some module_name then K module_name else raw_module_alias;
     val reserved = Name.make_context reserved;
     val mk_name_module = mk_name_module reserved module_prefix module_alias program;
     fun add_stmt (name, (stmt, deps)) =
@@ -314,15 +313,14 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved 
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
-fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
-    raw_reserved includes raw_module_alias
-    syntax_class syntax_tyco syntax_const (code_of_pretty, code_writeln) program stmt_names destination =
+fun serialize_haskell module_prefix module_name string_classes labelled_name
+    raw_reserved includes module_alias
+    syntax_class syntax_tyco syntax_const (code_of_pretty, code_writeln) program
+    (stmt_names, presentation_stmt_names) destination =
   let
-    val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
-    val module_name = if null presentation_stmt_names then raw_module_name else SOME "Code";
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
-      module_name module_prefix reserved raw_module_alias program;
+      module_prefix reserved module_alias program;
     val contr_classparam_typs = Code_Thingol.contr_classparam_typs program;
     fun deriving_show tyco =
       let
