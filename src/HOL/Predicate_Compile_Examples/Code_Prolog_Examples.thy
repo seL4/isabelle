@@ -172,7 +172,7 @@ inductive notB :: "abc => bool"
 where
   "y \<noteq> B \<Longrightarrow> notB y"
 
-ML {* Code_Prolog.options := {ensure_groundness = true} *}
+ML {* Code_Prolog.options := {ensure_groundness = true, limited_types = []} *}
 
 values 2 "{y. notB y}"
 
@@ -187,7 +187,7 @@ section {* Example prolog conform variable names *}
 inductive equals :: "abc => abc => bool"
 where
   "equals y' y'"
-ML {* set Code_Prolog.trace *}
+
 values 1 "{(y, z). equals y z}"
 
 end
