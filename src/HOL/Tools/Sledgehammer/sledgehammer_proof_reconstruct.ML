@@ -8,19 +8,20 @@ Transfer of proofs from external provers.
 
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
+  type locality = Sledgehammer_Fact_Filter.locality
   type minimize_command = string list -> string
 
   val metis_proof_text:
-    bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
+    bool * minimize_command * string * (string * locality) vector * thm * int
+    -> string * (string * locality) list
   val isar_proof_text:
     string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
+    -> bool * minimize_command * string * (string * locality) vector * thm * int
+    -> string * (string * locality) list
   val proof_text:
     bool -> string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
+    -> bool * minimize_command * string * (string * locality) vector * thm * int
+    -> string * (string * locality) list
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -578,7 +579,7 @@ fun used_facts_in_atp_proof axiom_names atp_proof =
           (case strip_prefix_and_unascii axiom_prefix (List.last rest) of
              SOME name =>
              if member (op =) rest "file" then
-               SOME (name, is_true_for axiom_names name)
+               SOME (name, find_first_in_vector axiom_names name General)
              else
                axiom_name_at_index num
            | NONE => axiom_name_at_index num)
@@ -624,8 +625,8 @@ fun minimize_line _ [] = ""
 
 fun used_facts axiom_names =
   used_facts_in_atp_proof axiom_names
-  #> List.partition snd
-  #> pairself (sort_distinct (string_ord) o map fst)
+  #> List.partition (curry (op =) Chained o snd)
+  #> pairself (sort_distinct (string_ord o pairself fst))
 
 fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
                       goal, i) =
@@ -633,9 +634,9 @@ fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
     val (chained_lemmas, other_lemmas) = used_facts axiom_names atp_proof
     val n = Logic.count_prems (prop_of goal)
   in
-    (metis_line full_types i n other_lemmas ^
-     minimize_line minimize_command (other_lemmas @ chained_lemmas),
-     map (rpair false) other_lemmas @ map (rpair true) chained_lemmas)
+    (metis_line full_types i n (map fst other_lemmas) ^
+     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
+     other_lemmas @ chained_lemmas)
   end
 
 (** Isar proof construction and manipulation **)

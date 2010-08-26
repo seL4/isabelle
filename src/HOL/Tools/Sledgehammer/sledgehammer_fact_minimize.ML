@@ -7,11 +7,12 @@ Minimization of theorem list for Metis using automatic theorem provers.
 
 signature SLEDGEHAMMER_FACT_MINIMIZE =
 sig
+  type locality = Sledgehammer_Fact_Filter.locality
   type params = Sledgehammer.params
 
   val minimize_theorems :
-    params -> int -> int -> Proof.state -> ((string * bool) * thm list) list
-    -> ((string * bool) * thm list) list option * string
+    params -> int -> int -> Proof.state -> ((string * locality) * thm list) list
+    -> ((string * locality) * thm list) list option * string
   val run_minimize : params -> int -> Facts.ref list -> Proof.state -> unit
 end;
 
@@ -120,7 +121,7 @@ fun minimize_theorems {atps = [], ...} _ _ _ _ = error "No ATP is set."
          val n = length min_thms
          val _ = priority (cat_lines
            ["Minimized: " ^ string_of_int n ^ " theorem" ^ plural_s n] ^
-            (case length (filter (snd o fst) min_thms) of
+            (case length (filter (curry (op =) Chained o snd o fst) min_thms) of
                0 => ""
              | n => " (including " ^ Int.toString n ^ " chained)") ^ ".")
        in
@@ -149,7 +150,7 @@ fun run_minimize params i refs state =
     val reserved = reserved_isar_keyword_table ()
     val chained_ths = #facts (Proof.goal state)
     val axioms =
-      maps (map (fn (name, (_, th)) => (name (), [th]))
+      maps (map (apsnd single)
             o name_thm_pairs_from_ref ctxt reserved chained_ths) refs
   in
     case subgoal_count state of

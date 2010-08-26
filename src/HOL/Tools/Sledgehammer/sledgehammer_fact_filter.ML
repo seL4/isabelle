@@ -5,6 +5,8 @@
 
 signature SLEDGEHAMMER_FACT_FILTER =
 sig
+  datatype locality = General | Theory | Local | Chained
+
   type relevance_override =
     {add: Facts.ref list,
      del: Facts.ref list,
@@ -13,11 +15,11 @@ sig
   val trace : bool Unsynchronized.ref
   val name_thm_pairs_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
-    -> ((unit -> string * bool) * (bool * thm)) list
+    -> ((string * locality) * thm) list
   val relevant_facts :
     bool -> real * real -> int -> bool -> relevance_override
     -> Proof.context * (thm list * 'a) -> term list -> term
-    -> ((string * bool) * thm) list
+    -> ((string * locality) * thm) list
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
@@ -29,6 +31,8 @@ val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 val respect_no_atp = true
+
+datatype locality = General | Theory | Local | Chained
 
 type relevance_override =
   {add: Facts.ref list,
@@ -47,11 +51,11 @@ fun name_thm_pairs_from_ref ctxt reserved chained_ths xref =
     val name = Facts.string_of_ref xref
     val multi = length ths > 1
   in
-    fold (fn th => fn (j, rest) =>
-             (j + 1, (fn () => (repair_name reserved multi j name,
-                                member Thm.eq_thm chained_ths th),
-                      (multi, th)) :: rest))
-         ths (1, [])
+    (ths, (1, []))
+    |-> fold (fn th => fn (j, rest) =>
+                 (j + 1, ((repair_name reserved multi j name,
+                          if member Thm.eq_thm chained_ths th then Chained
+                          else General), th) :: rest))
     |> snd
   end
 
@@ -245,19 +249,27 @@ fun irrel_log n = 0.5 + 1.0 / Math.ln (Real.fromInt n + 1.0)
 *)
 fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
 
+(* FUDGE *)
+val skolem_weight = 1.0
+val abs_weight = 2.0
+
 (* Computes a constant's weight, as determined by its frequency. *)
 val rel_weight = rel_log oo pseudoconst_freq match_pseudotypes
 fun irrel_weight const_tab (c as (s, _)) =
-  if String.isPrefix skolem_prefix s then 1.0
-  else if String.isPrefix abs_prefix s then 2.0
+  if String.isPrefix skolem_prefix s then skolem_weight
+  else if String.isPrefix abs_prefix s then abs_weight
   else irrel_log (pseudoconst_freq (match_pseudotypes o swap) const_tab c)
 (* TODO: experiment
 fun irrel_weight _ _ = 1.0
 *)
 
-val chained_bonus_factor = 2.0
+(* FUDGE *)
+fun locality_multiplier General = 1.0
+  | locality_multiplier Theory = 1.1
+  | locality_multiplier Local = 1.3
+  | locality_multiplier Chained = 2.0
 
-fun axiom_weight chained const_tab relevant_consts axiom_consts =
+fun axiom_weight loc const_tab relevant_consts axiom_consts =
   case axiom_consts |> List.partition (pseudoconst_mem I relevant_consts)
                     ||> filter_out (pseudoconst_mem swap relevant_consts) of
     ([], []) => 0.0
@@ -265,7 +277,7 @@ fun axiom_weight chained const_tab relevant_consts axiom_consts =
   | (rel, irrel) =>
     let
       val rel_weight = fold (curry Real.+ o rel_weight const_tab) rel 0.0
-                       |> chained ? curry Real.* chained_bonus_factor
+                       |> curry Real.* (locality_multiplier loc)
       val irrel_weight = fold (curry Real.+ o irrel_weight const_tab) irrel 0.0
       val res = rel_weight / (rel_weight + irrel_weight)
     in if Real.isFinite res then res else 0.0 end
@@ -294,7 +306,7 @@ fun pair_consts_axiom theory_relevant thy axiom =
                 |> pseudoconsts_of_term thy)
 
 type annotated_thm =
-  ((unit -> string * bool) * thm) * (string * pseudotype list) list
+  (((unit -> string) * locality) * thm) * (string * pseudotype list) list
 
 fun take_most_relevant max_max_imperfect max_relevant remaining_max
                        (candidates : (annotated_thm * real) list) =
@@ -315,12 +327,13 @@ fun take_most_relevant max_max_imperfect max_relevant remaining_max
                         Real.toString (#2 (hd accepts)));
     trace_msg (fn () => "Actually passed (" ^ Int.toString (length accepts) ^
         "): " ^ (accepts
-                 |> map (fn (((name, _), _), weight) =>
-                            fst (name ()) ^ " [" ^ Real.toString weight ^ "]")
+                 |> map (fn ((((name, _), _), _), weight) =>
+                            name () ^ " [" ^ Real.toString weight ^ "]")
                  |> commas));
     (accepts, more_rejects @ rejects)
   end
 
+(* FUDGE *)
 val threshold_divisor = 2.0
 val ridiculous_threshold = 0.1
 val max_max_imperfect_fudge_factor = 0.66
@@ -392,17 +405,17 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                       hopeless_rejects hopeful_rejects)
             end
           | relevant candidates rejects hopeless
-                     (((ax as ((name, th), axiom_consts)), cached_weight)
+                     (((ax as (((_, loc), th), axiom_consts)), cached_weight)
                       :: hopeful) =
             let
               val weight =
                 case cached_weight of
                   SOME w => w
-                | NONE => axiom_weight (snd (name ())) const_tab rel_const_tab
-                                       axiom_consts
+                | NONE => axiom_weight loc const_tab rel_const_tab axiom_consts
 (* TODO: experiment
-val _ = if String.isPrefix "lift.simps(3" (fst (name ())) then
-tracing ("*** " ^ (fst (name ())) ^ PolyML.makestring (debug_axiom_weight const_tab rel_const_tab axiom_consts))
+val name = fst (fst (fst ax)) ()
+val _ = if String.isPrefix "lift.simps(3" name then
+tracing ("*** " ^ name ^ PolyML.makestring (debug_axiom_weight const_tab rel_const_tab axiom_consts))
 else
 ()
 *)
@@ -570,10 +583,12 @@ fun is_theorem_bad_for_atps full_types thm =
 
 fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
   let
-    val is_chained = member Thm.eq_thm chained_ths
-    val global_facts = PureThy.facts_of (ProofContext.theory_of ctxt)
+    val thy = ProofContext.theory_of ctxt
+    val thy_prefix = Context.theory_name thy ^ Long_Name.separator
+    val global_facts = PureThy.facts_of thy
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
+    val is_chained = member Thm.eq_thm chained_ths
     (* Unnamed, not chained formulas with schematic variables are omitted,
        because they are rejected by the backticks (`...`) parser for some
        reason. *)
@@ -585,7 +600,7 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
                   |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
-    fun add_valid_facts foldx facts =
+    fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
         if name0 <> "" andalso
            forall (not o member Thm.eq_thm add_thms) ths andalso
@@ -596,6 +611,10 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
           I
         else
           let
+            val base_loc =
+              if not global then Local
+              else if String.isPrefix thy_prefix name0 then Theory
+              else General
             val multi = length ths > 1
             fun backquotify th =
               "`" ^ Print_Mode.setmp [Print_Mode.input]
@@ -614,23 +633,24 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
                      not (member Thm.eq_thm add_thms th) then
                     rest
                   else
-                    (fn () =>
-                        (if name0 = "" then
-                           th |> backquotify
-                         else
-                           let
-                             val name1 = Facts.extern facts name0
-                             val name2 = Name_Space.extern full_space name0
-                           in
-                             case find_first check_thms [name1, name2, name0] of
-                               SOME name => repair_name reserved multi j name
-                             | NONE => ""
-                           end, is_chained th), (multi, th)) :: rest)) ths
+                    (((fn () =>
+                          if name0 = "" then
+                            th |> backquotify
+                          else
+                            let
+                              val name1 = Facts.extern facts name0
+                              val name2 = Name_Space.extern full_space name0
+                            in
+                              case find_first check_thms [name1, name2, name0] of
+                                SOME name => repair_name reserved multi j name
+                              | NONE => ""
+                            end), if is_chained th then Chained else base_loc),
+                      (multi, th)) :: rest)) ths
             #> snd
           end)
   in
-    [] |> add_valid_facts fold local_facts (unnamed_locals @ named_locals)
-       |> add_valid_facts Facts.fold_static global_facts global_facts
+    [] |> add_facts false fold local_facts (unnamed_locals @ named_locals)
+       |> add_facts true Facts.fold_static global_facts global_facts
   end
 
 (* The single-name theorems go after the multiple-name ones, so that single
@@ -653,7 +673,8 @@ fun relevant_facts full_types (threshold0, threshold1) max_relevant
     val reserved = reserved_isar_keyword_table ()
     val axioms =
       (if only then
-         maps (name_thm_pairs_from_ref ctxt reserved chained_ths) add
+         maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
+               o name_thm_pairs_from_ref ctxt reserved chained_ths) add
        else
          all_name_thms_pairs ctxt reserved full_types add_thms chained_ths)
       |> name_thm_pairs ctxt (respect_no_atp andalso not only)
@@ -668,7 +689,7 @@ fun relevant_facts full_types (threshold0, threshold1) max_relevant
      else
        relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                         relevance_override axioms (concl_t :: hyp_ts))
-    |> map (apfst (fn f => f ())) |> sort_wrt (fst o fst)
+    |> map (apfst (apfst (fn f => f ()))) |> sort_wrt (fst o fst)
   end
 
 end;

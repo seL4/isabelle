@@ -9,6 +9,7 @@ Sledgehammer's heart.
 signature SLEDGEHAMMER =
 sig
   type failure = ATP_Systems.failure
+  type locality = Sledgehammer_Fact_Filter.locality
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
@@ -28,16 +29,16 @@ sig
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
      relevance_override: relevance_override,
-     axioms: ((string * bool) * thm) list option}
+     axioms: ((string * locality) * thm) list option}
   type prover_result =
     {outcome: failure option,
      message: string,
      pool: string Symtab.table,
-     used_thm_names: (string * bool) list,
+     used_thm_names: (string * locality) list,
      atp_run_time_in_msecs: int,
      output: string,
      proof: string,
-     axiom_names: (string * bool) vector,
+     axiom_names: (string * locality) vector,
      conjecture_shape: int list list}
   type prover = params -> minimize_command -> problem -> prover_result
 
@@ -96,17 +97,17 @@ type problem =
   {subgoal: int,
    goal: Proof.context * (thm list * thm),
    relevance_override: relevance_override,
-   axioms: ((string * bool) * thm) list option}
+   axioms: ((string * locality) * thm) list option}
 
 type prover_result =
   {outcome: failure option,
    message: string,
    pool: string Symtab.table,
-   used_thm_names: (string * bool) list,
+   used_thm_names: (string * locality) list,
    atp_run_time_in_msecs: int,
    output: string,
    proof: string,
-   axiom_names: (string * bool) vector,
+   axiom_names: (string * locality) vector,
    conjecture_shape: int list list}
 
 type prover = params -> minimize_command -> problem -> prover_result
@@ -193,8 +194,11 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
           val axioms =
             j |> AList.lookup (op =) name_map |> these
               |> map_filter (try (unprefix axiom_prefix)) |> map unascii_of
-          val chained = forall (is_true_for axiom_names) axioms
-        in (axioms |> space_implode " ", chained) end
+          val loc =
+            case axioms of
+              [axiom] => find_first_in_vector axiom_names axiom General
+            | _ => General
+        in (axioms |> space_implode " ", loc) end
     in
       (conjecture_shape |> map (maps renumber_conjecture),
        seq |> map name_for_number |> Vector.fromList)

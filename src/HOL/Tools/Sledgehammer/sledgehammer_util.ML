@@ -6,7 +6,7 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
-  val is_true_for : (string * bool) vector -> string -> bool
+  val find_first_in_vector : (''a * 'b) vector -> ''a -> 'b -> 'b
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
@@ -29,8 +29,9 @@ end;
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
 
-fun is_true_for v s =
-  Vector.foldl (fn ((s', b'), b) => if s' = s then b' else b) false v
+fun find_first_in_vector vec key default =
+  Vector.foldl (fn ((key', value'), value) =>
+                   if key' = key then value' else value) default vec
 
 fun plural_s n = if n = 1 then "" else "s"
 
