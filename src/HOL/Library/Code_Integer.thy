@@ -51,14 +51,14 @@ code_const Int.pred
   (SML "IntInf.- ((_), 1)")
   (OCaml "Big'_int.pred'_big'_int")
   (Haskell "!(_/ -/ 1)")
-  (Scala "!(_/ -/ 1)")
+  (Scala "!(_ -/ 1)")
   (Eval "!(_/ -/ 1)")
 
 code_const Int.succ
   (SML "IntInf.+ ((_), 1)")
   (OCaml "Big'_int.succ'_big'_int")
   (Haskell "!(_/ +/ 1)")
-  (Scala "!(_/ +/ 1)")
+  (Scala "!(_ +/ 1)")
   (Eval "!(_/ +/ 1)")
 
 code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
