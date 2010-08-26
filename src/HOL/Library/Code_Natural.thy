@@ -9,7 +9,9 @@ begin
 section {* Alternative representation of @{typ code_numeral} for @{text Haskell} and @{text Scala} *}
 
 code_include Haskell "Natural"
-{*newtype Natural = Natural Integer deriving (Eq, Show, Read);
+{*import Data.Array.ST;
+
+newtype Natural = Natural Integer deriving (Eq, Show, Read);
 
 instance Num Natural where {
   fromInteger k = Natural (if k >= 0 then k else 0);
