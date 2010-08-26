@@ -186,7 +186,8 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
           ||> Thm.term_of;
 
         val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy |>
-          Local_Theory.theory_result (primitive_typedef typedef_name newT oldT Rep_name Abs_name A);
+          Local_Theory.background_theory_result
+            (primitive_typedef typedef_name newT oldT Rep_name Abs_name A);
 
         val cert = Thm.cterm_of (ProofContext.theory_of axiom_lthy);
         val typedef =
@@ -246,7 +247,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
       in
         lthy2
         |> Local_Theory.declaration true (fn phi => put_info full_tname (transform_info phi info))
-        |> Local_Theory.theory (Typedef_Interpretation.data full_tname)
+        |> Local_Theory.background_theory (Typedef_Interpretation.data full_tname)
         |> pair (full_tname, info)
       end;
 

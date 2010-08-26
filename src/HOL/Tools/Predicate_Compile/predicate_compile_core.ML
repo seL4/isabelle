@@ -3033,12 +3033,13 @@ val setup = PredData.put (Graph.empty) #>
     "adding alternative introduction rules for code generation of inductive predicates"
 
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
+(* FIXME ... this is important to avoid changing the background theory below *)
 fun generic_code_pred prep_const options raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
     val ctxt = ProofContext.init_global thy
-    val lthy' = Local_Theory.theory (PredData.map
+    val lthy' = Local_Theory.background_theory (PredData.map
         (extend (fetch_pred_data ctxt) (depending_preds_of ctxt) const)) lthy
     val thy' = ProofContext.theory_of lthy'
     val ctxt' = ProofContext.init_global thy'
@@ -3063,7 +3064,7 @@ fun generic_code_pred prep_const options raw_const lthy =
         val global_thms = ProofContext.export goal_ctxt
           (ProofContext.init_global (ProofContext.theory_of goal_ctxt)) (map the_single thms)
       in
-        goal_ctxt |> Local_Theory.theory (fold set_elim global_thms #>
+        goal_ctxt |> Local_Theory.background_theory (fold set_elim global_thms #>
           ((case compilation options of
              Pred => add_equations
            | DSeq => add_dseq_equations

@@ -21,8 +21,8 @@ sig
   val target_of: local_theory -> Proof.context
   val raw_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
-  val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
-  val theory: (theory -> theory) -> local_theory -> local_theory
+  val background_theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
+  val background_theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val map_contexts: (Context.generic -> Context.generic) -> local_theory -> local_theory
@@ -144,7 +144,7 @@ fun raw_theory f = #2 o raw_theory_result (f #> pair ());
 
 val checkpoint = raw_theory Theory.checkpoint;
 
-fun theory_result f lthy =
+fun background_theory_result f lthy =
   lthy |> raw_theory_result (fn thy =>
     thy
     |> Sign.map_naming (K (naming_of lthy))
@@ -152,7 +152,7 @@ fun theory_result f lthy =
     ||> Sign.restore_naming thy
     ||> Theory.checkpoint);
 
-fun theory f = #2 o theory_result (f #> pair ());
+fun background_theory f = #2 o background_theory_result (f #> pair ());
 
 fun target_result f lthy =
   let
@@ -169,7 +169,7 @@ fun target_result f lthy =
 fun target f = #2 o target_result (f #> pair ());
 
 fun map_contexts f =
-  theory (Context.theory_map f) #>
+  background_theory (Context.theory_map f) #>
   target (Context.proof_map f) #>
   Context.proof_map f;
 

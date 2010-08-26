@@ -824,8 +824,9 @@ fun gen_interpretation prep_expr parse_prop prep_attr
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
-    fun after_qed witss eqns = (ProofContext.background_theory o Context.theory_map)
-      (note_eqns_register deps witss attrss eqns export export');
+    fun after_qed witss eqns =
+      (ProofContext.background_theory o Context.theory_map)
+        (note_eqns_register deps witss attrss eqns export export');
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
 
