@@ -730,9 +730,7 @@ structure Alt_Compilations_Data = Theory_Data
   type T = (mode * (compilation_funs -> typ -> term)) list Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  val merge = Symtab.merge ((K true)
-    : ((mode * (compilation_funs -> typ -> term)) list *
-      (mode * (compilation_funs -> typ -> term)) list -> bool));
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 fun alternative_compilation_of_global thy pred_name mode =

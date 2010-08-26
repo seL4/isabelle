@@ -56,10 +56,12 @@ exception NotFound
 type maps_info = {mapfun: string, relmap: string}
 
 structure MapsData = Theory_Data
-  (type T = maps_info Symtab.table
-   val empty = Symtab.empty
-   val extend = I
-   fun merge data = Symtab.merge (K true) data)
+(
+  type T = maps_info Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
 
 fun maps_defined thy s =
   Symtab.defined (MapsData.get thy) s
@@ -120,10 +122,12 @@ end
 type quotdata_info = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
 
 structure QuotData = Theory_Data
-  (type T = quotdata_info Symtab.table
-   val empty = Symtab.empty
-   val extend = I
-   fun merge data = Symtab.merge (K true) data)
+(
+  type T = quotdata_info Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
 
 fun transform_quotdata phi {qtyp, rtyp, equiv_rel, equiv_thm} =
   {qtyp = Morphism.typ phi qtyp,
@@ -174,10 +178,12 @@ fun qconsts_info_eq (x : qconsts_info, y : qconsts_info) = #qconst x = #qconst y
    for example given "nat fset" we need to find "'a fset";
    but overloaded constants share the same name *)
 structure QConstsData = Theory_Data
-  (type T = (qconsts_info list) Symtab.table
-   val empty = Symtab.empty
-   val extend = I
-   val merge = Symtab.merge_list qconsts_info_eq)
+(
+  type T = qconsts_info list Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  val merge = Symtab.merge_list qconsts_info_eq
+)
 
 fun transform_qconsts phi {qconst, rconst, def} =
   {qconst = Morphism.term phi qconst,
