@@ -434,9 +434,14 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
       (deresolve, Long_Name.implode o fst o split_last o Long_Name.explode (*FIXME full*));
 
     (* print nodes *)
-    fun print_implicits [] = NONE
-      | print_implicits implicits = (SOME o Pretty.block)
-          (str "import /*implicits*/" :: Pretty.brk 1 :: commas (map (str o deresolve) implicits));
+    fun print_implicit implicit =
+      let
+        val s = deresolve implicit;
+      in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
+    fun print_implicits implicits = case map_filter print_implicit implicits
+     of [] => NONE
+      | ps => (SOME o Pretty.block)
+          (str "import /*implicits*/" :: Pretty.brk 1 :: commas ps);
     fun print_module base implicits p = Pretty.chunks2
       ([str ("object " ^ base ^ " {")] @ the_list (print_implicits implicits)
         @ [p, str ("} /* object " ^ base ^ " */")]);
