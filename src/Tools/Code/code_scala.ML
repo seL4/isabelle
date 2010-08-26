@@ -25,7 +25,7 @@ infixr 5 @|;
 (** Scala serializer **)
 
 fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
-    args_num is_singleton_constr deresolve =
+    args_num is_singleton_constr (deresolve, deresolve_full) =
   let
     val deresolve_base = Long_Name.base_name o deresolve;
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
@@ -195,7 +195,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               (map print_clause eqs)
           end;
     val print_method = str o Library.enclose "`" "`" o space_implode "+"
-      o fst o split_last o Long_Name.explode;
+      o Long_Name.explode o deresolve_full;
     fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
           print_def name (vs, ty) (filter (snd o snd) raw_eqs)
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
@@ -430,7 +430,8 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
-      (make_vars reserved) args_num is_singleton_constr deresolve;
+      (make_vars reserved) args_num is_singleton_constr
+      (deresolve, Long_Name.implode o fst o split_last o Long_Name.explode (*FIXME full*));
 
     (* print nodes *)
     fun print_implicits [] = NONE
