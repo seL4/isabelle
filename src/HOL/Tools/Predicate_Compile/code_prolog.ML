@@ -230,28 +230,6 @@ fun translate_intros options ctxt gr const constant_table =
       in clause end
   in (map translate_intro intros', constant_table') end
 
-val preprocess_options = Predicate_Compile_Aux.Options {
-  expected_modes = NONE,
-  proposed_modes = NONE,
-  proposed_names = [],
-  show_steps = false,
-  show_intermediate_results = false,
-  show_proof_trace = false,
-  show_modes = false,
-  show_mode_inference = false,
-  show_compilation = false,
-  show_caught_failures = false,
-  skip_proof = true,
-  no_topmost_reordering = false,
-  function_flattening = true,
-  specialise = false,
-  fail_safe_function_flattening = false,
-  no_higher_order_predicate = [],
-  inductify = false,
-  detect_switches = true,
-  compilation = Predicate_Compile_Aux.Pred
-}
-
 fun depending_preds_of (key, intros) =
   fold Term.add_const_names (map Thm.prop_of intros) []
 
@@ -422,7 +400,7 @@ fun write_clause (head, prem) =
 fun write_program p =
   cat_lines (map write_clause p) 
 
-(** query templates **)
+(* query templates *)
 
 fun query_first rel vnames =
   "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
@@ -447,6 +425,7 @@ val prelude =
   "main :- halt(1).\n"
 
 (* parsing prolog solution *)
+
 val scan_number =
   Scan.many1 Symbol.is_ascii_digit
 
@@ -516,7 +495,7 @@ fun run p query_rel vnames nsols =
     tss
   end
 
-(* values command *)
+(* restoring types in terms *)
 
 fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
   | restore_term ctxt constant_table (Number n, @{typ "int"}) = HOLogic.mk_number @{typ "int"} n
@@ -534,6 +513,30 @@ fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
       list_comb (Const (c, Envir.subst_type subst cT),
         map (restore_term ctxt constant_table) (args ~~ argsT'))
     end
+
+(* values command *)
+
+val preprocess_options = Predicate_Compile_Aux.Options {
+  expected_modes = NONE,
+  proposed_modes = NONE,
+  proposed_names = [],
+  show_steps = false,
+  show_intermediate_results = false,
+  show_proof_trace = false,
+  show_modes = false,
+  show_mode_inference = false,
+  show_compilation = false,
+  show_caught_failures = false,
+  skip_proof = true,
+  no_topmost_reordering = false,
+  function_flattening = true,
+  specialise = false,
+  fail_safe_function_flattening = false,
+  no_higher_order_predicate = [],
+  inductify = false,
+  detect_switches = true,
+  compilation = Predicate_Compile_Aux.Pred
+}
 
 fun values ctxt soln t_compr =
   let
