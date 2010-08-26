@@ -407,7 +407,7 @@ fun min_arity_of thy full_types NONE s =
        16383 (* large number *)
      else if full_types then
        0
-     else case strip_prefix_and_undo_ascii const_prefix s of
+     else case strip_prefix_and_unascii const_prefix s of
        SOME s' => num_type_args thy (invert_const s')
      | NONE => 0)
   | min_arity_of _ _ (SOME the_const_tab) s =

@@ -38,11 +38,10 @@ sig
   val const_prefix: string
   val type_const_prefix: string
   val class_prefix: string
-  val union_all: ''a list list -> ''a list
   val invert_const: string -> string
   val ascii_of: string -> string
-  val undo_ascii_of: string -> string
-  val strip_prefix_and_undo_ascii: string -> string -> string option
+  val unascii_of: string -> string
+  val strip_prefix_and_unascii: string -> string -> string option
   val make_bound_var : string -> string
   val make_schematic_var : string * int -> string
   val make_fixed_var : string -> string
@@ -121,7 +120,7 @@ val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
   Alphanumeric characters are left unchanged.
   The character _ goes to __
   Characters in the range ASCII space to / go to _A to _P, respectively.
-  Other printing characters go to _nnn where nnn is the decimal ASCII code.*)
+  Other characters go to _nnn where nnn is the decimal ASCII code.*)
 val A_minus_space = Char.ord #"A" - Char.ord #" ";
 
 fun stringN_of_int 0 _ = ""
@@ -132,9 +131,7 @@ fun ascii_of_c c =
   else if c = #"_" then "__"
   else if #" " <= c andalso c <= #"/"
        then "_" ^ String.str (Char.chr (Char.ord c + A_minus_space))
-  else if Char.isPrint c
-       then ("_" ^ stringN_of_int 3 (Char.ord c))  (*fixed width, in case more digits follow*)
-  else ""
+  else ("_" ^ stringN_of_int 3 (Char.ord c))  (*fixed width, in case more digits follow*)
 
 val ascii_of = String.translate ascii_of_c;
 
@@ -142,29 +139,28 @@ val ascii_of = String.translate ascii_of_c;
 
 (*We don't raise error exceptions because this code can run inside the watcher.
   Also, the errors are "impossible" (hah!)*)
-fun undo_ascii_aux rcs [] = String.implode(rev rcs)
-  | undo_ascii_aux rcs [#"_"] = undo_ascii_aux (#"_"::rcs) []  (*ERROR*)
+fun unascii_aux rcs [] = String.implode(rev rcs)
+  | unascii_aux rcs [#"_"] = unascii_aux (#"_"::rcs) []  (*ERROR*)
       (*Three types of _ escapes: __, _A to _P, _nnn*)
-  | undo_ascii_aux rcs (#"_" :: #"_" :: cs) = undo_ascii_aux (#"_"::rcs) cs
-  | undo_ascii_aux rcs (#"_" :: c :: cs) =
+  | unascii_aux rcs (#"_" :: #"_" :: cs) = unascii_aux (#"_"::rcs) cs
+  | unascii_aux rcs (#"_" :: c :: cs) =
       if #"A" <= c andalso c<= #"P"  (*translation of #" " to #"/"*)
-      then undo_ascii_aux (Char.chr(Char.ord c - A_minus_space) :: rcs) cs
+      then unascii_aux (Char.chr(Char.ord c - A_minus_space) :: rcs) cs
       else
         let val digits = List.take (c::cs, 3) handle Subscript => []
         in
             case Int.fromString (String.implode digits) of
-                NONE => undo_ascii_aux (c:: #"_"::rcs) cs  (*ERROR*)
-              | SOME n => undo_ascii_aux (Char.chr n :: rcs) (List.drop (cs, 2))
+                NONE => unascii_aux (c:: #"_"::rcs) cs  (*ERROR*)
+              | SOME n => unascii_aux (Char.chr n :: rcs) (List.drop (cs, 2))
         end
-  | undo_ascii_aux rcs (c::cs) = undo_ascii_aux (c::rcs) cs;
-
-val undo_ascii_of = undo_ascii_aux [] o String.explode;
+  | unascii_aux rcs (c::cs) = unascii_aux (c::rcs) cs
+val unascii_of = unascii_aux [] o String.explode
 
 (* If string s has the prefix s1, return the result of deleting it,
    un-ASCII'd. *)
-fun strip_prefix_and_undo_ascii s1 s =
+fun strip_prefix_and_unascii s1 s =
   if String.isPrefix s1 s then
-    SOME (undo_ascii_of (String.extract (s, size s1, NONE)))
+    SOME (unascii_of (String.extract (s, size s1, NONE)))
   else
     NONE
 
@@ -514,8 +510,8 @@ fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
 (*Type constructors used to instantiate overloaded constants are the only ones needed.*)
 fun add_type_consts_in_term thy =
   let
-    val const_typargs = Sign.const_typargs thy
-    fun aux (Const x) = fold (fold_type_consts set_insert) (const_typargs x)
+    fun aux (Const x) =
+        fold (fold_type_consts set_insert) (Sign.const_typargs thy x)
       | aux (Abs (_, _, u)) = aux u
       | aux (Const (@{const_name skolem_id}, _) $ _) = I
       | aux (t $ u) = aux t #> aux u
