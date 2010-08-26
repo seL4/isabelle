@@ -769,29 +769,11 @@ val pre_tac = LA_Data.pre_tac;
 
 structure Fast_Arith = Fast_Lin_Arith(structure LA_Logic = LA_Logic and LA_Data = LA_Data);
 
-fun map_inj_thms f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
-  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = f inj_thms,
-    lessD = lessD, neqE = neqE, simpset = simpset, number_of = number_of};
-
-fun map_lessD f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
-  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
-    lessD = f lessD, neqE = neqE, simpset = simpset, number_of = number_of};
-
-fun map_simpset f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
-  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
-    lessD = lessD, neqE = neqE, simpset = f simpset, number_of = number_of};
-
-fun map_number_of f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
-  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
-    lessD = lessD, neqE = neqE, simpset = simpset, number_of = f number_of};
-
-fun add_inj_thms thms = Fast_Arith.map_data (map_inj_thms (append thms));
-fun add_lessD thm = Fast_Arith.map_data (map_lessD (fn thms => thms @ [thm]));
-fun add_simps thms = Fast_Arith.map_data (map_simpset (fn simpset => simpset addsimps thms));
-fun add_simprocs procs = Fast_Arith.map_data (map_simpset (fn simpset => simpset addsimprocs procs));
-
-fun set_number_of f = Fast_Arith.map_data (map_number_of (K (serial (), f)))
-
+val add_inj_thms = Fast_Arith.add_inj_thms;
+val add_lessD = Fast_Arith.add_lessD;
+val add_simps = Fast_Arith.add_simps;
+val add_simprocs = Fast_Arith.add_simprocs;
+val set_number_of = Fast_Arith.set_number_of;
 
 fun simple_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
 val lin_arith_tac = Fast_Arith.lin_arith_tac;

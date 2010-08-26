@@ -95,6 +95,11 @@ sig
                      lessD: thm list, neqE: thm list, simpset: Simplifier.simpset,
                      number_of : serial * (theory -> typ -> int -> cterm)})
                 -> Context.generic -> Context.generic
+  val add_inj_thms: thm list -> Context.generic -> Context.generic
+  val add_lessD: thm -> Context.generic -> Context.generic
+  val add_simps: thm list -> Context.generic -> Context.generic
+  val add_simprocs: simproc list -> Context.generic -> Context.generic
+  val set_number_of: (theory -> typ -> int -> cterm) -> Context.generic -> Context.generic
   val trace: bool Unsynchronized.ref
 end;
 
@@ -135,13 +140,35 @@ structure Data = Generic_Data
      lessD = Thm.merge_thms (lessD1, lessD2),
      neqE = Thm.merge_thms (neqE1, neqE2),
      simpset = Simplifier.merge_ss (simpset1, simpset2),
-     (* FIXME depends on accidental load order !?! *)
+     (* FIXME depends on accidental load order !?! *)  (* FIXME *)
      number_of = if s1 > s2 then number_of1 else number_of2};
 );
 
 val map_data = Data.map;
 val get_data = Data.get o Context.Proof;
 
+fun map_inj_thms f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
+  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = f inj_thms,
+    lessD = lessD, neqE = neqE, simpset = simpset, number_of = number_of};
+
+fun map_lessD f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
+  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
+    lessD = f lessD, neqE = neqE, simpset = simpset, number_of = number_of};
+
+fun map_simpset f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
+  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
+    lessD = lessD, neqE = neqE, simpset = f simpset, number_of = number_of};
+
+fun map_number_of f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
+  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
+    lessD = lessD, neqE = neqE, simpset = simpset, number_of = f number_of};
+
+fun add_inj_thms thms = map_data (map_inj_thms (append thms));
+fun add_lessD thm = map_data (map_lessD (fn thms => thms @ [thm]));
+fun add_simps thms = map_data (map_simpset (fn simpset => simpset addsimps thms));
+fun add_simprocs procs = map_data (map_simpset (fn simpset => simpset addsimprocs procs));
+
+fun set_number_of f = map_data (map_number_of (K (serial (), f)));
 
 
 (*** A fast decision procedure ***)
