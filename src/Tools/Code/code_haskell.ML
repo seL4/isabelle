@@ -344,11 +344,9 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
       contr_classparam_typs
       (if string_classes then deriving_show else K false);
     fun print_module name content =
-      (name, Pretty.chunks [
+      (name, Pretty.chunks2 [
         str ("module " ^ name ^ " where {"),
-        str "",
         content,
-        str "",
         str "}"
       ]);
     fun serialize_module1 (module_name', (deps, (stmts, _))) =
