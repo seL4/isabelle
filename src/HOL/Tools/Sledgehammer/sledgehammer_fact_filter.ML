@@ -101,8 +101,7 @@ fun pseudoconst_for thy (c, T) =
 
 fun string_for_pseudoconst (s, []) = s
   | string_for_pseudoconst (s, Ts) = s ^ string_for_pseudotypes Ts
-fun string_for_super_pseudoconst (s, [[]]) = s
-  | string_for_super_pseudoconst (s, Tss) =
+fun string_for_super_pseudoconst (s, Tss) =
     s ^ "{" ^ commas (map string_for_pseudotypes Tss) ^ "}"
 
 val abs_name = "Sledgehammer.abs"
@@ -229,10 +228,9 @@ fun count_axiom_consts theory_relevant thy (_, th) =
 (**** Actual Filtering Code ****)
 
 (*The frequency of a constant is the sum of those of all instances of its type.*)
-fun pseudoconst_freq match const_tab (c, cts) =
-  CTtab.fold (fn (cts', m) => match (cts, cts') ? Integer.add m)
+fun pseudoconst_freq match const_tab (c, Ts) =
+  CTtab.fold (fn (Ts', m) => match (Ts, Ts') ? Integer.add m)
              (the (Symtab.lookup const_tab c)) 0
-  handle Option.Option => 0
 
 
 (* A surprising number of theorems contain only a few significant constants.
@@ -247,15 +245,20 @@ fun irrel_log n = 0.5 + 1.0 / Math.ln (Real.fromInt n + 1.0)
 fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
 
 (* FUDGE *)
-val abs_weight = 2.0
-val skolem_weight = 0.5
+val abs_rel_weight = 0.5
+val abs_irrel_weight = 2.0
+val skolem_rel_weight = 2.0  (* impossible *)
+val skolem_irrel_weight = 0.5
 
 (* Computes a constant's weight, as determined by its frequency. *)
-val rel_weight = rel_log oo pseudoconst_freq match_pseudotypes
-fun irrel_weight const_tab (c as (s, _)) =
+fun generic_weight abs_weight skolem_weight logx f const_tab (c as (s, _)) =
   if s = abs_name then abs_weight
   else if String.isPrefix skolem_prefix s then skolem_weight
-  else irrel_log (pseudoconst_freq (match_pseudotypes o swap) const_tab c)
+  else logx (pseudoconst_freq (match_pseudotypes o f) const_tab c)
+
+val rel_weight = generic_weight abs_rel_weight skolem_rel_weight rel_log I
+val irrel_weight = generic_weight abs_irrel_weight skolem_irrel_weight irrel_log
+                                  swap
 
 (* FUDGE *)
 fun locality_multiplier General = 1.0
@@ -508,11 +511,16 @@ fun is_formula_too_complex t =
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
 
-fun is_strange_theorem th =
+fun is_metastrange_theorem th =
   case head_of (concl_of th) of
       Const (a, _) => (a <> @{const_name Trueprop} andalso
                        a <> @{const_name "=="})
     | _ => false
+
+fun is_that_fact th =
+  String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
+  andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
+                           | _ => false) (prop_of th)
 
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
@@ -583,7 +591,7 @@ fun is_theorem_bad_for_atps full_types thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
     is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
-    is_strange_theorem thm
+    is_metastrange_theorem thm orelse is_that_fact thm
   end
 
 fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
