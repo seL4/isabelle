@@ -489,7 +489,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in concat [
-                (Pretty.block o Pretty.commas)
+                (Pretty.block o commas)
                   (map (print_term is_pseudo_fun some_thm vars NOBR) ts),
                 str "->",
                 print_term is_pseudo_fun some_thm vars NOBR t
@@ -535,7 +535,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                       :: Pretty.brk 1
                       :: str "match"
                       :: Pretty.brk 1
-                      :: (Pretty.block o Pretty.commas) dummy_parms
+                      :: (Pretty.block o commas) dummy_parms
                       :: Pretty.brk 1
                       :: str "with"
                       :: Pretty.brk 1
@@ -813,7 +813,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         ) stmts
       #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Datatype block without data statement: "
-                  ^ (commas o map (labelled_name o fst)) stmts)
+                  ^ (Library.commas o map (labelled_name o fst)) stmts)
              | stmts => ML_Datas stmts)));
     fun add_class stmts =
       fold_map
@@ -828,7 +828,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         ) stmts
       #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Class block without class statement: "
-                  ^ (commas o map (labelled_name o fst)) stmts)
+                  ^ (Library.commas o map (labelled_name o fst)) stmts)
              | [stmt] => ML_Class stmt)));
     fun add_stmts ([stmt as (name, Code_Thingol.Fun _)]) =
           add_fun stmt
@@ -849,7 +849,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
       | add_stmts ((stmts as (_, Code_Thingol.Classinst _)::_)) =
           add_funs stmts
       | add_stmts stmts = error ("Illegal mutual dependencies: " ^
-          (commas o map (labelled_name o fst)) stmts);
+          (Library.commas o map (labelled_name o fst)) stmts);
     fun add_stmts' stmts nsp_nodes =
       let
         val names as (name :: names') = map fst stmts;
@@ -858,9 +858,9 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         val module_name = (the_single o distinct (op =) o map mk_name_module) module_names
           handle Empty =>
             error ("Different namespace prefixes for mutual dependencies:\n"
-              ^ commas (map labelled_name names)
+              ^ Library.commas (map labelled_name names)
               ^ "\n"
-              ^ commas module_names);
+              ^ Library.commas module_names);
         val module_name_path = Long_Name.explode module_name;
         fun add_dep name name' =
           let

@@ -441,7 +441,7 @@ fun serialize_scala raw_module_name labelled_name
     (* print nodes *)
     fun print_implicits [] = NONE
       | print_implicits implicits = (SOME o Pretty.block)
-          (str "import /*implicits*/" :: Pretty.brk 1 :: Pretty.commas (map (str o deresolve) implicits));
+          (str "import /*implicits*/" :: Pretty.brk 1 :: commas (map (str o deresolve) implicits));
     fun print_module base implicits p = Pretty.chunks2
       ([str ("object " ^ base ^ " {")] @ the_list (print_implicits implicits)
         @ [p, str ("} /* object " ^ base ^ " */")]);
