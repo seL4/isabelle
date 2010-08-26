@@ -68,11 +68,11 @@ fun name_thm_pairs_from_ref ctxt reserved chained_ths xref =
 (*An abstraction of Isabelle types*)
 datatype pseudotype = PVar | PType of string * pseudotype list
 
-fun string_for_pseudotype PVar = "?"
+fun string_for_pseudotype PVar = "_"
   | string_for_pseudotype (PType (s, Ts)) =
     (case Ts of
        [] => ""
-     | [T] => string_for_pseudotype T
+     | [T] => string_for_pseudotype T ^ " "
      | Ts => string_for_pseudotypes Ts ^ " ") ^ s
 and string_for_pseudotypes Ts =
   "(" ^ commas (map string_for_pseudotype Ts) ^ ")"
@@ -318,7 +318,7 @@ fun take_most_relevant max_max_imperfect max_relevant remaining_max
     trace_msg (fn () => "Number of candidates: " ^
                         string_of_int (length candidates));
     trace_msg (fn () => "Effective threshold: " ^
-                        Real.toString (#2 (hd accepts)));
+                        Real.toString (#2 (List.last accepts)));
     trace_msg (fn () => "Actually passed (" ^ Int.toString (length accepts) ^
         "): " ^ (accepts
                  |> map (fn ((((name, _), _), _), weight) =>
@@ -597,11 +597,12 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
     (* Unnamed nonchained formulas with schematic variables are omitted, because
        they are rejected by the backticks (`...`) parser for some reason. *)
     fun is_good_unnamed_local th =
+      not (Thm.has_name_hint th) andalso
+      (not (exists_subterm is_Var (prop_of th)) orelse (is_chained th)) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm ths th)) named_locals
-      andalso (not (exists_subterm is_Var (prop_of th)) orelse (is_chained th))
     val unnamed_locals =
-      local_facts |> Facts.props |> filter is_good_unnamed_local
-                  |> map (pair "" o single)
+      union Thm.eq_thm (Facts.props local_facts) chained_ths
+      |> filter is_good_unnamed_local |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
