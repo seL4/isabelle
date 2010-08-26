@@ -824,7 +824,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
-    fun after_qed witss eqns = (ProofContext.theory o Context.theory_map)
+    fun after_qed witss eqns = (ProofContext.background_theory o Context.theory_map)
       (note_eqns_register deps witss attrss eqns export export');
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
@@ -872,7 +872,7 @@ fun gen_sublocale prep_expr intern raw_target expression thy =
     val target = intern thy raw_target;
     val target_ctxt = Named_Target.init target thy;
     val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
-    fun after_qed witss = ProofContext.theory
+    fun after_qed witss = ProofContext.background_theory
       (fold (fn ((dep, morph), wits) => Locale.add_dependency
         target (dep, morph $> Element.satisfy_morphism wits) export) (deps ~~ witss));
   in Element.witness_proof after_qed propss goal_ctxt end;

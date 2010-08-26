@@ -70,7 +70,7 @@ fun maps_lookup thy s =
   | NONE => raise NotFound
 
 fun maps_update_thy k minfo = MapsData.map (Symtab.update (k, minfo))
-fun maps_update k minfo = ProofContext.theory (maps_update_thy k minfo)
+fun maps_update k minfo = ProofContext.background_theory (maps_update_thy k minfo)  (* FIXME *)
 
 fun maps_attribute_aux s minfo = Thm.declaration_attribute
   (fn _ => Context.mapping (maps_update_thy s minfo) (maps_update s minfo))

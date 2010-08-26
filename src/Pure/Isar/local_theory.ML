@@ -261,7 +261,7 @@ fun restore lthy =
 
 (* exit *)
 
-val exit = ProofContext.theory Theory.checkpoint o operation #exit;
+val exit = ProofContext.background_theory Theory.checkpoint o operation #exit;
 val exit_global = ProofContext.theory_of o exit;
 
 fun exit_result f (x, lthy) =

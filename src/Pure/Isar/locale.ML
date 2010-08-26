@@ -497,7 +497,7 @@ fun add_dependency loc (name, morph) export thy =
 fun add_thmss loc kind args ctxt =
   let
     val (Notes args', ctxt') = Element.activate_i (Notes (kind, args)) ctxt;
-    val ctxt'' = ctxt' |> ProofContext.theory (
+    val ctxt'' = ctxt' |> ProofContext.background_theory (
       (change_locale loc o apfst o apsnd) (cons (args', serial ()))
         #>
       (* Registrations *)
@@ -519,7 +519,7 @@ fun add_declaration loc decl =
       [([Drule.dummy_thm], [])])];
 
 fun add_syntax_declaration loc decl =
-  ProofContext.theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
+  ProofContext.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
   #> add_declaration loc decl;
 
 

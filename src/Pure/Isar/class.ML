@@ -368,7 +368,7 @@ local
 fun gen_classrel mk_prop classrel thy =
   let
     fun after_qed results =
-      ProofContext.theory ((fold o fold) AxClass.add_classrel results);
+      ProofContext.background_theory ((fold o fold) AxClass.add_classrel results);
   in
     thy
     |> ProofContext.init_global
@@ -608,7 +608,7 @@ fun instance_arity_cmd raw_arities thy =
     val (tycos, vs, sort) = read_multi_arity thy raw_arities;
     val sorts = map snd vs;
     val arities = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
-    fun after_qed results = ProofContext.theory
+    fun after_qed results = ProofContext.background_theory
       ((fold o fold) AxClass.add_arity results);
   in
     thy
