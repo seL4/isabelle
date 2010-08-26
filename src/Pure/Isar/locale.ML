@@ -483,7 +483,7 @@ fun add_dependency loc (name, morph) export thy =
     val thy' = (change_locale loc o apsnd) (cons ((name, (morph, export)), serial ())) thy;
     val context' = Context.Theory thy';
     val (_, regs) = fold_rev (roundup thy' cons export)
-      (all_registrations context') (get_idents (context'), []);
+      (registrations_of context' loc) (get_idents (context'), []);
   in
     thy'
     |> fold_rev (fn dep => Context.theory_map (add_registration dep NONE export)) regs
