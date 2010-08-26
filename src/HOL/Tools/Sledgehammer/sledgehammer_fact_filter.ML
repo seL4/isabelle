@@ -108,24 +108,24 @@ fun string_for_super_pseudoconst (s, [[]]) = s
 val abs_name = "Sledgehammer.abs"
 val skolem_prefix = "Sledgehammer.sko"
 
-(* Add a pseudoconstant to the table, but a [] entry means a standard
-   connective, which we ignore.*)
-fun add_pseudoconst_to_table also_skolem (c, ctyps) =
-  if also_skolem orelse not (String.isPrefix skolem_prefix c) then
-    Symtab.map_default (c, [ctyps])
-                       (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
-  else
-    I
-
-fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
-
-val flip = Option.map not
 (* These are typically simplified away by "Meson.presimplify". *)
 val boring_consts =
   [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let}]
 
+(* Add a pseudoconstant to the table, but a [] entry means a standard
+   connective, which we ignore.*)
+fun add_pseudoconst_to_table also_skolem (c, Ts) =
+  if member (op =) boring_consts c orelse
+     (not also_skolem andalso String.isPrefix skolem_prefix c) then
+    I
+  else
+    Symtab.map_default (c, [Ts]) (fn Tss => insert (op =) Ts Tss)
+
+fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
+
 fun get_pseudoconsts thy also_skolems pos ts =
   let
+    val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
        each quantifiers that must necessarily be skolemized by the ATP, we
        introduce a fresh constant to simulate the effect of Skolemization. *)
@@ -179,10 +179,7 @@ fun get_pseudoconsts thy also_skolems pos ts =
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term t0 #> do_formula pos t1  (* theory constant *)
       | _ => do_term t
-  in
-    Symtab.empty |> fold (Symtab.update o rpair []) boring_consts
-                 |> fold (do_formula pos) ts
-  end
+  in Symtab.empty |> fold (do_formula pos) ts end
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
@@ -295,12 +292,12 @@ val _ = tracing (PolyML.makestring ("IRREL: ", irrel))
     in if Real.isFinite res then res else 0.0 end
 *)
 
-fun pseudoconsts_of_term thy t =
+fun pseudoconsts_in_axiom thy t =
   Symtab.fold (fn (x, ys) => fold (fn y => cons (x, y)) ys)
               (get_pseudoconsts thy true (SOME true) [t]) []
 fun pair_consts_axiom theory_relevant thy axiom =
   (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
-                |> pseudoconsts_of_term thy)
+                |> pseudoconsts_in_axiom thy)
 
 type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * pseudotype list) list
@@ -330,6 +327,14 @@ fun take_most_relevant max_max_imperfect max_relevant remaining_max
     (accepts, more_rejects @ rejects)
   end
 
+fun if_empty_replace_with_locality thy axioms loc tab =
+  if Symtab.is_empty tab then
+    get_pseudoconsts thy false (SOME false)
+        (map_filter (fn ((_, loc'), th) =>
+                        if loc' = loc then SOME (prop_of th) else NONE) axioms)
+  else
+    tab
+
 (* FUDGE *)
 val threshold_divisor = 2.0
 val ridiculous_threshold = 0.1
@@ -339,8 +344,12 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
   let
     val thy = ProofContext.theory_of ctxt
-    val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
-                         Symtab.empty
+    val const_tab =
+      fold (count_axiom_consts theory_relevant thy) axioms Symtab.empty
+    val goal_const_tab =
+      get_pseudoconsts thy false (SOME false) goal_ts
+      |> fold (if_empty_replace_with_locality thy axioms)
+              [Chained, Local, Theory]
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
     val max_max_imperfect =
@@ -434,8 +443,7 @@ else
   in
     axioms |> filter_out (member Thm.eq_thm del_thms o snd)
            |> map (rpair NONE o pair_consts_axiom theory_relevant thy)
-           |> iter 0 max_relevant threshold0
-                   (get_pseudoconsts thy false (SOME false) goal_ts) []
+           |> iter 0 max_relevant threshold0 goal_const_tab []
            |> tap (fn res => trace_msg (fn () =>
                                 "Total relevant: " ^ Int.toString (length res)))
   end
