@@ -1956,7 +1956,7 @@ fun fm_of_term ps vs @{term True} = @{code T}
       @{code And} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (@{term "op |"} $ t1 $ t2) =
       @{code Or} (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (@{term "op -->"} $ t1 $ t2) =
+  | fm_of_term ps vs (@{term HOL.implies} $ t1 $ t2) =
       @{code Imp} (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (@{term "Not"} $ t') =
       @{code NOT} (fm_of_term ps vs t')
@@ -2016,7 +2016,7 @@ fun term_of_fm ps vs @{code T} = HOLogic.true_const
 
 fun term_bools acc t =
   let
-    val is_op = member (op =) [@{term "op &"}, @{term "op |"}, @{term "op -->"}, @{term "op = :: bool => _"},
+    val is_op = member (op =) [@{term "op &"}, @{term "op |"}, @{term HOL.implies}, @{term "op = :: bool => _"},
       @{term "op = :: int => _"}, @{term "op < :: int => _"},
       @{term "op <= :: int => _"}, @{term "Not"}, @{term "All :: (int => _) => _"},
       @{term "Ex :: (int => _) => _"}, @{term "True"}, @{term "False"}]

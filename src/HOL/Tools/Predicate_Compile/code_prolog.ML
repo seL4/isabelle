@@ -595,10 +595,10 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
 
 (* FIXME: large copy of Predicate_Compile_Quickcheck - refactor out commons *)
 
-fun strip_imp_prems (Const(@{const_name "op -->"}, _) $ A $ B) = A :: strip_imp_prems B
+fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
-fun strip_imp_concl (Const(@{const_name "op -->"}, _) $ A $ B) = strip_imp_concl B
+fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = A : term;
 
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);

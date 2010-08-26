@@ -2956,7 +2956,7 @@ val brT = [bT, bT] ---> bT;
 val nott = @{term "Not"};
 val conjt = @{term "op &"};
 val disjt = @{term "op |"};
-val impt = @{term "op -->"};
+val impt = @{term HOL.implies};
 val ifft = @{term "op = :: bool => _"}
 fun llt rT = Const(@{const_name Orderings.less},rrT rT);
 fun lle rT = Const(@{const_name Orderings.less},rrT rT);
@@ -3020,7 +3020,7 @@ fun fm_of_term m m' fm =
   | Const(@{const_name Not},_)$p => @{code NOT} (fm_of_term m m' p)
   | Const(@{const_name "op &"},_)$p$q => @{code And} (fm_of_term m m' p, fm_of_term m m' q)
   | Const(@{const_name "op |"},_)$p$q => @{code Or} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const(@{const_name "op -->"},_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
+  | Const(@{const_name HOL.implies},_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
   | Const(@{const_name "op ="},ty)$p$q => 
        if domain_type ty = bT then @{code Iff} (fm_of_term m m' p, fm_of_term m m' q)
        else @{code Eq} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))

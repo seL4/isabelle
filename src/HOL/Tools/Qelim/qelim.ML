@@ -26,7 +26,7 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
     Const(s,T)$_$_ => 
        if domain_type T = HOLogic.boolT
           andalso member (op =) [@{const_name "op &"}, @{const_name "op |"},
-            @{const_name "op -->"}, @{const_name "op ="}] s
+            @{const_name HOL.implies}, @{const_name "op ="}] s
        then binop_conv (conv env) p 
        else atcv env p
   | Const(@{const_name Not},_)$_ => arg_conv (conv env) p

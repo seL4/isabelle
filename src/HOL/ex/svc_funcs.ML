@@ -91,7 +91,7 @@ struct
          in  case c of
              Const(@{const_name "op &"}, _)   => apply c (map tag ts)
            | Const(@{const_name "op |"}, _)   => apply c (map tag ts)
-           | Const(@{const_name "op -->"}, _) => apply c (map tag ts)
+           | Const(@{const_name HOL.implies}, _) => apply c (map tag ts)
            | Const(@{const_name Not}, _)    => apply c (map tag ts)
            | Const(@{const_name True}, _)   => (c, false)
            | Const(@{const_name False}, _)  => (c, false)
@@ -187,7 +187,7 @@ struct
             Buildin("AND", [fm pos p, fm pos q])
       | fm pos (Const(@{const_name "op |"}, _) $ p $ q) =
             Buildin("OR", [fm pos p, fm pos q])
-      | fm pos (Const(@{const_name "op -->"}, _) $ p $ q) =
+      | fm pos (Const(@{const_name HOL.implies}, _) $ p $ q) =
             Buildin("=>", [fm (not pos) p, fm pos q])
       | fm pos (Const(@{const_name Not}, _) $ p) =
             Buildin("NOT", [fm (not pos) p])

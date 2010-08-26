@@ -931,7 +931,7 @@ fun find_term bounds tm =
   | Const (@{const_name Ex}, _) $ _ => find_body bounds (dest_arg tm)
   | Const (@{const_name "op &"}, _) $ _ $ _ => find_args bounds tm
   | Const (@{const_name "op |"}, _) $ _ $ _ => find_args bounds tm
-  | Const (@{const_name "op -->"}, _) $ _ $ _ => find_args bounds tm
+  | Const (@{const_name HOL.implies}, _) $ _ $ _ => find_args bounds tm
   | @{term "op ==>"} $_$_ => find_args bounds tm
   | Const("op ==",_)$_$_ => find_args bounds tm
   | @{term Trueprop}$_ => find_term bounds (dest_arg tm)

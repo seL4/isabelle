@@ -210,8 +210,8 @@ fun conj_elims th =
 
 val conj = @{term "op &"}
 and disj = @{term "op |"}
-and imp = @{term "op -->"}
-and Not = @{term "Not"};
+and imp = @{term implies}
+and Not = @{term Not};
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
@@ -230,7 +230,7 @@ fun disjuncts_aux (Const ("op |", _) $ t $ t') disjs = disjuncts_aux t (disjunct
 
 fun disjuncts t = disjuncts_aux t [];
 
-fun dest_imp (Const ("op -->", _) $ A $ B) = (A, B)
+fun dest_imp (Const ("HOL.implies", _) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
 fun dest_not (Const ("HOL.Not", _) $ t) = t

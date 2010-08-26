@@ -640,7 +640,7 @@ print_translation {*
 let
   val All_binder = Syntax.binder_name @{const_syntax All};
   val Ex_binder = Syntax.binder_name @{const_syntax Ex};
-  val impl = @{const_syntax "op -->"};
+  val impl = @{const_syntax HOL.implies};
   val conj = @{const_syntax "op &"};
   val less = @{const_syntax less};
   val less_eq = @{const_syntax less_eq};

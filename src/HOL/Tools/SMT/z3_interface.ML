@@ -170,7 +170,7 @@ val destT2 = hd o tl o Thm.dest_ctyp
 val mk_true = @{cterm "~False"}
 val mk_false = @{cterm False}
 val mk_not = Thm.capply @{cterm Not}
-val mk_implies = Thm.mk_binop @{cterm "op -->"}
+val mk_implies = Thm.mk_binop @{cterm HOL.implies}
 val mk_iff = Thm.mk_binop @{cterm "op = :: bool => _"}
 
 fun mk_nary _ cu [] = cu

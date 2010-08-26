@@ -774,7 +774,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                         (MAbs (s, T, M, S Minus, m'), accum |>> pop_bound)
                       end))
          | (t0 as Const (@{const_name All}, _))
-           $ Abs (s', T', (t10 as @{const "op -->"}) $ (t11 $ Bound 0) $ t12) =>
+           $ Abs (s', T', (t10 as @{const HOL.implies}) $ (t11 $ Bound 0) $ t12) =>
            do_bounded_quantifier t0 s' T' t10 t11 t12 accum
          | (t0 as Const (@{const_name Ex}, _))
            $ Abs (s', T', (t10 as @{const "op &"}) $ (t11 $ Bound 0) $ t12) =>
@@ -885,10 +885,10 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
                 s0 = @{const_name Pure.conjunction} orelse
                 s0 = @{const_name "op &"} orelse
                 s0 = @{const_name "op |"} orelse
-                s0 = @{const_name "op -->"} then
+                s0 = @{const_name HOL.implies} then
                let
                  val impl = (s0 = @{const_name "==>"} orelse
-                             s0 = @{const_name "op -->"})
+                             s0 = @{const_name HOL.implies})
                  val (m1, accum) = do_formula (sn |> impl ? negate) t1 accum
                  val (m2, accum) = do_formula sn t2 accum
                in
@@ -976,7 +976,7 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
           | Const (x as (@{const_name "op ="}, _)) $ t1 $ t2 =>
             consider_general_equals mdata true x t1 t2 accum
           | (t0 as @{const "op &"}) $ t1 $ t2 => do_conjunction t0 t1 t2 accum
-          | (t0 as @{const "op -->"}) $ t1 $ t2 => do_implies t0 t1 t2 accum
+          | (t0 as @{const HOL.implies}) $ t1 $ t2 => do_implies t0 t1 t2 accum
           | _ => raise TERM ("Nitpick_Mono.consider_definitional_axiom.\
                              \do_formula", [t])
     in do_formula t end

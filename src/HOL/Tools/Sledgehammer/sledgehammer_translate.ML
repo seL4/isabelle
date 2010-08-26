@@ -72,7 +72,7 @@ fun combformula_for_prop thy =
         do_quant bs AExists s T t'
       | @{const "op &"} $ t1 $ t2 => do_conn bs AAnd t1 t2
       | @{const "op |"} $ t1 $ t2 => do_conn bs AOr t1 t2
-      | @{const "op -->"} $ t1 $ t2 => do_conn bs AImplies t1 t2
+      | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies t1 t2
       | Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
         do_conn bs AIff t1 t2
       | _ => (fn ts => do_term bs (Envir.eta_contract t)
@@ -127,7 +127,7 @@ fun introduce_combinators_in_term ctxt kind t =
             aux Ts (t0 $ eta_expand Ts t1 1)
           | (t0 as @{const "op &"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
           | (t0 as @{const "op |"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as @{const "op -->"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
           | (t0 as Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])))
               $ t1 $ t2 =>
             t0 $ aux Ts t1 $ aux Ts t2

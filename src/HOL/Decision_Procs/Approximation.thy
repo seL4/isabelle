@@ -3422,7 +3422,7 @@ method_setup approximation = {*
 
 ML {*
   fun calculated_subterms (@{const Trueprop} $ t) = calculated_subterms t
-    | calculated_subterms (@{const "op -->"} $ _ $ t) = calculated_subterms t
+    | calculated_subterms (@{const HOL.implies} $ _ $ t) = calculated_subterms t
     | calculated_subterms (@{term "op <= :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
     | calculated_subterms (@{term "op < :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) = [t1, t2]
     | calculated_subterms (@{term "op : :: real \<Rightarrow> real set \<Rightarrow> bool"} $ t1 $ 

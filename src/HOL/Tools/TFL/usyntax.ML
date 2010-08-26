@@ -159,7 +159,7 @@ fun mk_abs{Bvar as Var((s,_),ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
 
 
 fun mk_imp{ant,conseq} =
-   let val c = Const(@{const_name "op -->"},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+   let val c = Const(@{const_name HOL.implies},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[ant,conseq])
    end;
 
@@ -247,7 +247,7 @@ fun dest_abs used (a as Abs(s, ty, M)) =
 fun dest_eq(Const(@{const_name "op ="},_) $ M $ N) = {lhs=M, rhs=N}
   | dest_eq _ = raise USYN_ERR "dest_eq" "not an equality";
 
-fun dest_imp(Const(@{const_name "op -->"},_) $ M $ N) = {ant=M, conseq=N}
+fun dest_imp(Const(@{const_name HOL.implies},_) $ M $ N) = {ant=M, conseq=N}
   | dest_imp _ = raise USYN_ERR "dest_imp" "not an implication";
 
 fun dest_forall(Const(@{const_name All},_) $ (a as Abs _)) = fst (dest_abs [] a)
