@@ -91,7 +91,7 @@ val global_setup = Simplifier.map_simpset
 fun number_of thy T n =
   if not (Sign.of_sort thy (T, @{sort number}))
   then raise CTERM ("number_of", [])
-  else Numeral.mk_cnumber (Thm.ctyp_of thy T) n
+  else Numeral.mk_cnumber (Thm.ctyp_of thy T) n;
 
 val setup =
   Lin_Arith.add_inj_thms [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]

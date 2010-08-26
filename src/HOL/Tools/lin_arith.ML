@@ -16,8 +16,7 @@ sig
   val add_simprocs: simproc list -> Context.generic -> Context.generic
   val add_inj_const: string * typ -> Context.generic -> Context.generic
   val add_discrete_type: string -> Context.generic -> Context.generic
-  val set_number_of: (theory -> typ -> int -> cterm) -> Context.generic ->
-    Context.generic
+  val set_number_of: (theory -> typ -> int -> cterm) -> Context.generic -> Context.generic
   val setup: Context.generic -> Context.generic
   val global_setup: theory -> theory
   val split_limit: int Config.T

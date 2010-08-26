@@ -88,13 +88,14 @@ sig
   val cut_lin_arith_tac: simpset -> int -> tactic
   val lin_arith_tac: Proof.context -> bool -> int -> tactic
   val lin_arith_simproc: simpset -> term -> thm option
-  val map_data: ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
-                 lessD: thm list, neqE: thm list, simpset: Simplifier.simpset,
-                 number_of : serial * (theory -> typ -> int -> cterm)}
-                 -> {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
-                     lessD: thm list, neqE: thm list, simpset: Simplifier.simpset,
-                     number_of : serial * (theory -> typ -> int -> cterm)})
-                -> Context.generic -> Context.generic
+  val map_data:
+    ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
+      lessD: thm list, neqE: thm list, simpset: Simplifier.simpset,
+      number_of: (theory -> typ -> int -> cterm) option} ->
+     {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
+      lessD: thm list, neqE: thm list, simpset: Simplifier.simpset,
+      number_of: (theory -> typ -> int -> cterm) option}) ->
+      Context.generic -> Context.generic
   val add_inj_thms: thm list -> Context.generic -> Context.generic
   val add_lessD: thm -> Context.generic -> Context.generic
   val add_simps: thm list -> Context.generic -> Context.generic
@@ -110,8 +111,6 @@ struct
 
 (** theory data **)
 
-fun no_number_of _ _ _ = raise CTERM ("number_of", [])
-
 structure Data = Generic_Data
 (
   type T =
@@ -121,27 +120,25 @@ structure Data = Generic_Data
     lessD: thm list,
     neqE: thm list,
     simpset: Simplifier.simpset,
-    number_of : serial * (theory -> typ -> int -> cterm)};
+    number_of: (theory -> typ -> int -> cterm) option};
 
-  val empty = {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
-               lessD = [], neqE = [], simpset = Simplifier.empty_ss,
-               number_of = (serial (), no_number_of) } : T;
+  val empty : T =
+   {add_mono_thms = [], mult_mono_thms = [], inj_thms = [],
+    lessD = [], neqE = [], simpset = Simplifier.empty_ss,
+    number_of = NONE};
   val extend = I;
   fun merge
-    ({add_mono_thms= add_mono_thms1, mult_mono_thms= mult_mono_thms1, inj_thms= inj_thms1,
-      lessD = lessD1, neqE=neqE1, simpset = simpset1,
-      number_of = (number_of1 as (s1, _))},
-     {add_mono_thms= add_mono_thms2, mult_mono_thms= mult_mono_thms2, inj_thms= inj_thms2,
-      lessD = lessD2, neqE=neqE2, simpset = simpset2,
-      number_of = (number_of2 as (s2, _))}) =
+    ({add_mono_thms = add_mono_thms1, mult_mono_thms = mult_mono_thms1, inj_thms = inj_thms1,
+      lessD = lessD1, neqE = neqE1, simpset = simpset1, number_of = number_of1},
+     {add_mono_thms = add_mono_thms2, mult_mono_thms = mult_mono_thms2, inj_thms = inj_thms2,
+      lessD = lessD2, neqE = neqE2, simpset = simpset2, number_of = number_of2}) : T =
     {add_mono_thms = Thm.merge_thms (add_mono_thms1, add_mono_thms2),
      mult_mono_thms = Thm.merge_thms (mult_mono_thms1, mult_mono_thms2),
      inj_thms = Thm.merge_thms (inj_thms1, inj_thms2),
      lessD = Thm.merge_thms (lessD1, lessD2),
      neqE = Thm.merge_thms (neqE1, neqE2),
      simpset = Simplifier.merge_ss (simpset1, simpset2),
-     (* FIXME depends on accidental load order !?! *)  (* FIXME *)
-     number_of = if s1 > s2 then number_of1 else number_of2};
+     number_of = if is_some number_of1 then number_of1 else number_of2};
 );
 
 val map_data = Data.map;
@@ -159,16 +156,21 @@ fun map_simpset f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset
   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
     lessD = lessD, neqE = neqE, simpset = f simpset, number_of = number_of};
 
-fun map_number_of f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
-  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
-    lessD = lessD, neqE = neqE, simpset = simpset, number_of = f number_of};
-
 fun add_inj_thms thms = map_data (map_inj_thms (append thms));
 fun add_lessD thm = map_data (map_lessD (fn thms => thms @ [thm]));
 fun add_simps thms = map_data (map_simpset (fn simpset => simpset addsimps thms));
 fun add_simprocs procs = map_data (map_simpset (fn simpset => simpset addsimprocs procs));
 
-fun set_number_of f = map_data (map_number_of (K (serial (), f)));
+fun set_number_of f =
+  map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, ...} =>
+   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
+    lessD = lessD, neqE = neqE, simpset = simpset, number_of = SOME f});
+
+fun number_of ctxt =
+  (case Data.get (Context.Proof ctxt) of
+    {number_of = SOME f, ...} => f (ProofContext.theory_of ctxt)
+  | _ => fn _ => fn _ => raise CTERM ("number_of", []));
+
 
 
 (*** A fast decision procedure ***)
@@ -473,8 +475,8 @@ fun mkthm ss asms (just: injust) =
   let
     val ctxt = Simplifier.the_context ss;
     val thy = ProofContext.theory_of ctxt;
-    val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset,
-      number_of = (_, num_of), ...} = get_data ctxt;
+    val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} = get_data ctxt;
+    val number_of = number_of ctxt;
     val simpset' = Simplifier.inherit_context ss simpset;
     fun only_concl f thm =
       if Thm.no_prems thm then f (Thm.concl_of thm) else NONE;
@@ -520,7 +522,7 @@ fun mkthm ss asms (just: injust) =
             val T = #T (Thm.rep_cterm cv)
           in
             mth
-            |> Thm.instantiate ([], [(cv, num_of thy T n)])
+            |> Thm.instantiate ([], [(cv, number_of T n)])
             |> rewrite_concl
             |> discharge_prem
             handle CTERM _ => mult_by_add n thm
