@@ -478,8 +478,6 @@ subsubsection {* Scala *}
 
 code_include Scala "Heap"
 {*import collection.mutable.ArraySeq
-import Natural._
-
 def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
 
 class Ref[A](x: A) {
@@ -487,24 +485,33 @@ class Ref[A](x: A) {
 }
 
 object Ref {
-  def apply[A](x: A): Ref[A] = new Ref[A](x)
-  def lookup[A](r: Ref[A]): A = r.value
-  def update[A](r: Ref[A], x: A): Unit = { r.value = x }
+  def apply[A](x: A): Ref[A] =
+    new Ref[A](x)
+  def lookup[A](r: Ref[A]): A =
+    r.value
+  def update[A](r: Ref[A], x: A): Unit =
+    { r.value = x }
 }
 
 object Array {
-  def alloc[A](n: Natural)(x: A): ArraySeq[A] = ArraySeq.fill(n.as_Int)(x)
-  def make[A](n: Natural)(f: Natural => A): ArraySeq[A] = ArraySeq.tabulate(n.as_Int)((k: Int) => f(Natural(k)))
-  def len[A](a: ArraySeq[A]): Natural = Natural(a.length)
-  def nth[A](a: ArraySeq[A], n: Natural): A = a(n.as_Int)
-  def upd[A](a: ArraySeq[A], n: Natural, x: A): Unit = a.update(n.as_Int, x)
-  def freeze[A](a: ArraySeq[A]): List[A] = a.toList
+  def alloc[A](n: Natural.Nat)(x: A): ArraySeq[A] =
+    ArraySeq.fill(n.as_Int)(x)
+  def make[A](n: Natural.Nat)(f: Natural.Nat => A): ArraySeq[A] =
+    ArraySeq.tabulate(n.as_Int)((k: Int) => f(Natural.Nat(k)))
+  def len[A](a: ArraySeq[A]): Natural.Nat =
+    Natural.Nat(a.length)
+  def nth[A](a: ArraySeq[A], n: Natural.Nat): A =
+    a(n.as_Int)
+  def upd[A](a: ArraySeq[A], n: Natural.Nat, x: A): Unit =
+    a.update(n.as_Int, x)
+  def freeze[A](a: ArraySeq[A]): List[A] =
+    a.toList
 }*}
 
 code_reserved Scala bind Ref Array
 
 code_type Heap (Scala "Unit/ =>/ _")
-code_const bind (Scala "bind")
+code_const bind (Scala "Heap.bind")
 code_const return (Scala "('_: Unit)/ =>/ _")
 code_const Heap_Monad.raise' (Scala "!error((_))")
 

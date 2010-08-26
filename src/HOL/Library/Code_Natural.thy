@@ -57,45 +57,45 @@ code_reserved Haskell Natural
 code_include Scala "Natural" {*
 import scala.Math
 
-object Natural {
+object Nat {
 
-  def apply(numeral: BigInt): Natural = new Natural(numeral max 0)
-  def apply(numeral: Int): Natural = Natural(BigInt(numeral))
-  def apply(numeral: String): Natural = Natural(BigInt(numeral))
+  def apply(numeral: BigInt): Nat = new Nat(numeral max 0)
+  def apply(numeral: Int): Nat = Nat(BigInt(numeral))
+  def apply(numeral: String): Nat = Nat(BigInt(numeral))
 
 }
 
-class Natural private(private val value: BigInt) {
+class Nat private(private val value: BigInt) {
 
   override def hashCode(): Int = this.value.hashCode()
 
   override def equals(that: Any): Boolean = that match {
-    case that: Natural => this equals that
+    case that: Nat => this equals that
     case _ => false
   }
 
   override def toString(): String = this.value.toString
 
-  def equals(that: Natural): Boolean = this.value == that.value
+  def equals(that: Nat): Boolean = this.value == that.value
 
   def as_BigInt: BigInt = this.value
   def as_Int: Int = if (this.value >= Int.MinValue && this.value <= Int.MaxValue)
       this.value.intValue
     else error("Int value out of range: " + this.value.toString)
 
-  def +(that: Natural): Natural = new Natural(this.value + that.value)
-  def -(that: Natural): Natural = Natural(this.value - that.value)
-  def *(that: Natural): Natural = new Natural(this.value * that.value)
+  def +(that: Nat): Nat = new Nat(this.value + that.value)
+  def -(that: Nat): Nat = Nat(this.value - that.value)
+  def *(that: Nat): Nat = new Nat(this.value * that.value)
 
-  def /%(that: Natural): (Natural, Natural) = if (that.value == 0) (new Natural(0), this)
+  def /%(that: Nat): (Nat, Nat) = if (that.value == 0) (new Nat(0), this)
     else {
       val (k, l) = this.value /% that.value
-      (new Natural(k), new Natural(l))
+      (new Nat(k), new Nat(l))
     }
 
-  def <=(that: Natural): Boolean = this.value <= that.value
+  def <=(that: Nat): Boolean = this.value <= that.value
 
-  def <(that: Natural): Boolean = this.value < that.value
+  def <(that: Nat): Boolean = this.value < that.value
 
 }
 *}
@@ -104,7 +104,7 @@ code_reserved Scala Natural
 
 code_type code_numeral
   (Haskell "Natural.Natural")
-  (Scala "Natural")
+  (Scala "Natural.Nat")
 
 setup {*
   fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}

@@ -487,8 +487,8 @@ in Literals {
   literal_char = Library.enclose "'" "'" o char_scala,
   literal_string = quote o translate_string char_scala,
   literal_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
-  literal_positive_numeral = fn k => "Nat(" ^ numeral_scala k ^ ")",
-  literal_alternative_numeral = fn k => "Natural(" ^ numeral_scala k ^ ")",
+  literal_positive_numeral = fn k => "Nat.Nat(" ^ numeral_scala k ^ ")",
+  literal_alternative_numeral = fn k => "Natural.Nat(" ^ numeral_scala k ^ ")",
   literal_naive_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")
