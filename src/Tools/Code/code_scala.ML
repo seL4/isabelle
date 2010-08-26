@@ -25,7 +25,7 @@ infixr 5 @|;
 (** Scala serializer **)
 
 fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
-    args_num is_singleton_constr deresolve =
+    args_num is_singleton_constr (deresolve, deresolve_full) =
   let
     val deresolve_base = Long_Name.base_name o deresolve;
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
@@ -195,7 +195,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               (map print_clause eqs)
           end;
     val print_method = str o Library.enclose "`" "`" o space_implode "+"
-      o fst o split_last o Long_Name.explode;
+      o Long_Name.explode o deresolve_full;
     fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
           print_def name (vs, ty) (filter (snd o snd) raw_eqs)
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
@@ -293,11 +293,10 @@ datatype node =
 
 in
 
-fun scala_program_of_program labelled_name module_name reserved raw_module_alias program =
+fun scala_program_of_program labelled_name reserved module_alias program =
   let
 
     (* building module name hierarchy *)
-    val module_alias = if is_some module_name then K module_name else raw_module_alias;
     fun alias_fragments name = case module_alias name
      of SOME name' => Long_Name.explode name'
       | NONE => map (fn name => fst (yield_singleton Name.variants name reserved))
@@ -403,20 +402,15 @@ fun scala_program_of_program labelled_name module_name reserved raw_module_alias
 
   in (deresolve, sca_program) end;
 
-fun serialize_scala raw_module_name labelled_name
-    raw_reserved includes raw_module_alias
+fun serialize_scala labelled_name raw_reserved includes module_alias
     _ syntax_tyco syntax_const (code_of_pretty, code_writeln)
-    program stmt_names destination =
+    program (stmt_names, presentation_stmt_names) destination =
   let
-
-    (* generic nonsense *)
-    val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
-    val module_name = if null presentation_stmt_names then raw_module_name else SOME "Code";
 
     (* preprocess program *)
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
     val (deresolve, sca_program) = scala_program_of_program labelled_name
-      module_name (Name.make_context reserved) raw_module_alias program;
+      (Name.make_context reserved) module_alias program;
 
     (* print statements *)
     fun lookup_constr tyco constr = case Graph.get_node program tyco
@@ -436,12 +430,13 @@ fun serialize_scala raw_module_name labelled_name
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
-      (make_vars reserved) args_num is_singleton_constr deresolve;
+      (make_vars reserved) args_num is_singleton_constr
+      (deresolve, Long_Name.implode o fst o split_last o Long_Name.explode (*FIXME full*));
 
     (* print nodes *)
     fun print_implicits [] = NONE
       | print_implicits implicits = (SOME o Pretty.block)
-          (str "import /*implicits*/" :: Pretty.brk 1 :: Pretty.commas (map (str o deresolve) implicits));
+          (str "import /*implicits*/" :: Pretty.brk 1 :: commas (map (str o deresolve) implicits));
     fun print_module base implicits p = Pretty.chunks2
       ([str ("object " ^ base ^ " {")] @ the_list (print_implicits implicits)
         @ [p, str ("} /* object " ^ base ^ " */")]);
@@ -498,9 +493,9 @@ in Literals {
 
 (** Isar setup **)
 
-fun isar_serializer module_name =
+fun isar_serializer _ =
   Code_Target.parse_args (Scan.succeed ())
-  #> (fn () => serialize_scala module_name);
+  #> (fn () => serialize_scala);
 
 val setup =
   Code_Target.add_target

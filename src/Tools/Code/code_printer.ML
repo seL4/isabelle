@@ -19,6 +19,7 @@ sig
   val concat: Pretty.T list -> Pretty.T
   val brackets: Pretty.T list -> Pretty.T
   val enclose: string -> string -> Pretty.T list -> Pretty.T
+  val commas: Pretty.T list -> Pretty.T list
   val enum: string -> string -> string -> Pretty.T list -> Pretty.T
   val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
   val semicolon: Pretty.T list -> Pretty.T
@@ -112,6 +113,7 @@ fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
 val str = Print_Mode.setmp [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
+val commas = Print_Mode.setmp [] Pretty.commas;
 fun enclose l r = Print_Mode.setmp [] (Pretty.enclose l r);
 val brackets = enclose "(" ")" o Pretty.breaks;
 fun enum sep l r = Print_Mode.setmp [] (Pretty.enum sep l r);
