@@ -2,12 +2,11 @@ theory Product_Measure
 imports Lebesgue_Integration
 begin
 
-definition dynkin
-where "dynkin M =
-      ((\<forall> A \<in> sets M. A \<subseteq> space M) \<and>
-       space M \<in> sets M \<and> (\<forall> a \<in> sets M. \<forall> b \<in> sets M. b - a \<in> sets M) \<and>
-       (\<forall> a. (\<forall> i j :: nat. i \<noteq> j \<longrightarrow> a i \<inter> a j = {}) \<and>
-             (\<forall> i :: nat. a i \<in> sets M) \<longrightarrow> UNION UNIV a \<in> sets M))"
+definition "dynkin M \<longleftrightarrow>
+  space M \<in> sets M \<and>
+  (\<forall> A \<in> sets M. A \<subseteq> space M) \<and>
+  (\<forall> a \<in> sets M. \<forall> b \<in> sets M. b - a \<in> sets M) \<and>
+  (\<forall>A. disjoint_family A \<and> range A \<subseteq> sets M \<longrightarrow> (\<Union>i::nat. A i) \<in> sets M)"
 
 lemma dynkinI:
   assumes "\<And> A. A \<in> sets M \<Longrightarrow> A \<subseteq> space M"
@@ -15,7 +14,7 @@ lemma dynkinI:
   assumes "\<And> a. (\<And> i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {})
           \<Longrightarrow> (\<And> i :: nat. a i \<in> sets M) \<Longrightarrow> UNION UNIV a \<in> sets M"
   shows "dynkin M"
-using assms unfolding dynkin_def by auto
+using assms unfolding dynkin_def sorry
 
 lemma dynkin_subset:
   assumes "dynkin M"
@@ -37,16 +36,16 @@ lemma dynkin_UN:
   assumes "\<And> i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {}"
   assumes "\<forall> i :: nat. a i \<in> sets M"
   shows "UNION UNIV a \<in> sets M"
-using assms unfolding dynkin_def by auto
+using assms unfolding dynkin_def sorry
 
-definition Int_stable
-where "Int_stable M = (\<forall> a \<in> sets M. (\<forall> b \<in> sets M. a \<inter> b \<in> sets M))"
+definition "Int_stable M \<longleftrightarrow> (\<forall> a \<in> sets M. \<forall> b \<in> sets M. a \<inter> b \<in> sets M)"
 
 lemma dynkin_trivial:
   shows "dynkin \<lparr> space = A, sets = Pow A \<rparr>"
 by (rule dynkinI) auto
 
 lemma
+  fixes D :: "'a algebra"
   assumes stab: "Int_stable E"
   and spac: "space E = space D"
   and subsED: "sets E \<subseteq> sets D"
@@ -69,23 +68,9 @@ proof -
   proof (rule dynkinI, safe)
     fix A x assume asm: "A \<in> sets \<delta>E" "x \<in> A"
     { fix d :: "('a, 'b) algebra_scheme" assume "A \<in> sets d" "dynkin d \<and> space d = space E"
-      hence "A \<subseteq> space d"
-        using dynkin_subset by auto }
-    show "x \<in> space \<delta>E" using asm
-      unfolding \<delta>E_def sets_\<delta>E_def using not_empty
-    proof auto
-      fix x A fix d :: "'a algebra"
-      assume asm: "\<forall>x. (\<exists>d :: 'a algebra. x = sets d \<and>
-        dynkin d \<and>
-        space d = space E \<and>
-        sets E \<subseteq> sets d) \<longrightarrow>
-        A \<in> x" "x \<in> A"
-        and asm': "space d = space E" "dynkin d" "sets E \<subseteq> sets d"
-      have "A \<in> sets d"
-        apply (rule impE[OF spec[OF asm(1), of "sets d"]])
-        using exI[of _ d] asm' by auto
-      thus "x \<in> space E" using asm' dynkin_subset[OF asm'(2), of A] asm(2) by auto
-    qed
+      hence "A \<subseteq> space d" using dynkin_subset by auto }
+    show "x \<in> space \<delta>E" using asm unfolding \<delta>E_def sets_\<delta>E_def using not_empty
+      by simp (metis dynkin_subset in_mono mem_def)
   next
     show "space \<delta>E \<in> sets \<delta>E"
       unfolding \<delta>E_def sets_\<delta>E_def
@@ -100,28 +85,14 @@ proof -
       unfolding \<delta>E_def sets_\<delta>E_def apply (auto intro!:dynkin_UN[OF _ asm(1)])
       by blast
   qed
+
   def Dy == "\<lambda> d. {A | A. A \<in> sets_\<delta>E \<and> A \<inter> d \<in> sets_\<delta>E}"
   { fix d assume dasm: "d \<in> sets_\<delta>E"
     have "dynkin \<lparr> space = space E, sets = Dy d \<rparr>"
-    proof (rule dynkinI, auto)
+    proof (rule dynkinI, safe, simp_all)
       fix A x assume "A \<in> Dy d" "x \<in> A"
       thus "x \<in> space E" unfolding Dy_def sets_\<delta>E_def using not_empty
-      proof auto fix x A fix da :: "'a algebra"
-        assume asm: "x \<in> A"
-          "\<forall>x. (\<exists>d :: 'a algebra. x = sets d \<and>
-          dynkin d \<and> space d = space E \<and>
-          sets E \<subseteq> sets d) \<longrightarrow> A \<in> x"
-          "\<forall>x. (\<exists>d. x = sets d \<and>
-          dynkin d \<and> space d = space E \<and>
-          sets E \<subseteq> sets d) \<longrightarrow> A \<inter> d \<in> x"
-          "space da = space E" "dynkin da"
-          "sets E \<subseteq> sets da"
-        have "A \<in> sets da"
-          apply (rule impE[OF spec[OF asm(2)], of "sets da"])
-          apply (rule exI[of _ da])
-          using exI[of _ da] asm(4,5,6) by auto
-        thus "x \<in> space E" using dynkin_subset[OF asm(5)] asm by auto
-      qed
+        by simp (metis dynkin_subset in_mono mem_def)
     next
       show "space E \<in> Dy d"
         unfolding Dy_def \<delta>E_def sets_\<delta>E_def
@@ -189,20 +160,7 @@ proof -
       have "\<lparr> space = space E, sets = Dy e \<rparr> \<in> {d | d. dynkin d \<and> space d = space E \<and> sets E \<subseteq> sets d}"
         using Dy_nkin[OF deasm[unfolded \<delta>E_def, simplified]] E_\<delta>E E_Dy by auto
       hence "sets_\<delta>E \<subseteq> Dy e"
-        unfolding sets_\<delta>E_def
-      proof auto fix x
-        assume asm: "\<forall>xa. (\<exists>d :: 'a algebra. xa = sets d \<and>
-          dynkin d \<and>
-          space d = space E \<and>
-          sets E \<subseteq> sets d) \<longrightarrow>
-          x \<in> xa"
-          "dynkin \<lparr>space = space E, sets = Dy e\<rparr>"
-          "sets E \<subseteq> Dy e"
-        show "x \<in> Dy e"
-          apply (rule impE[OF spec[OF asm(1), of "Dy e"]])
-          apply (rule exI[of _ "\<lparr>space = space E, sets = Dy e\<rparr>"])
-          using asm by auto
-      qed
+        unfolding sets_\<delta>E_def by auto (metis E_Dy simps(1) simps(2) spac)
       hence "sets \<delta>E = Dy e" using subset unfolding \<delta>E_def by auto
       hence "d \<inter> e \<in> sets \<delta>E"
         using dasm easm deasm unfolding Dy_def \<delta>E_def by auto
@@ -211,18 +169,8 @@ proof -
         by (auto simp add:Int_commute) }
     hence "sets E \<subseteq> Dy d" by auto
     hence "sets \<delta>E \<subseteq> Dy d" using Dy_nkin[OF dasm[unfolded \<delta>E_def, simplified]]
-      unfolding \<delta>E_def sets_\<delta>E_def 
-    proof auto
-      fix x
-      assume asm: "sets E \<subseteq> Dy d"
-        "dynkin \<lparr>space = space E, sets = Dy d\<rparr>"
-        "\<forall>xa. (\<exists>d :: 'a algebra. xa = sets d \<and> dynkin d \<and>
-            space d = space E \<and> sets E \<subseteq> sets d) \<longrightarrow> x \<in> xa"
-      show "x \<in> Dy d"
-        apply (rule impE[OF spec[OF asm(3), of "Dy d"]])
-        apply (rule exI[of _ "\<lparr>space = space E, sets = Dy d\<rparr>"])
-        using asm by auto
-    qed
+      unfolding \<delta>E_def sets_\<delta>E_def
+      by auto (metis `sets E <= Dy d` simps(1) simps(2) spac)
     hence *: "sets \<delta>E = Dy d"
       unfolding Dy_def \<delta>E_def by auto
     fix a assume aasm: "a \<in> sets \<delta>E"
@@ -234,22 +182,22 @@ proof -
     using dynkin_diff[OF dyn, of _ "space D", OF _ dynkin_space[OF dyn]]
     using dynkin_diff[OF dyn, of "space D" "space D", OF dynkin_space[OF dyn] dynkin_space[OF dyn]]
     using dynkin_space[OF dyn]
+    sorry
+(*
   proof auto
     fix A :: "nat \<Rightarrow> 'a set" assume Asm: "range A \<subseteq> sets D" "\<And>A. A \<in> sets D \<Longrightarrow> A \<subseteq> space D"
       "\<And>a. a \<in> sets D \<Longrightarrow> space D - a \<in> sets D"
     "{} \<in> sets D" "space D \<in> sets D"
     let "?A i" = "A i - (\<Inter> j \<in> {..< i}. A j)"
     { fix i :: nat assume "i > 0"
-      have "(\<Inter> j \<in> {..< i}. A j) \<in> sets \<delta>E"
-        apply (induct i)
-        apply auto
-    }
-    from dynkin_UN
+      have "(\<Inter> j \<in> {..< i}. A j) \<in> sets \<delta>E" sorry }
+      oops
   qed
+*)
+
+  show ?thesis sorry
 qed
 
-lemma
-(*
 definition prod_sets where
   "prod_sets A B = {z. \<exists>x \<in> A. \<exists>y \<in> B. z = x \<times> y}"
 
@@ -401,5 +349,4 @@ lemma (in finite_measure_space) finite_measure_space_finite_prod_measure_alteran
   unfolding finite_prod_measure_space[OF N, symmetric]
   using finite_measure_space_finite_prod_measure[OF N] .
 
-*)
 end
