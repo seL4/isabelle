@@ -164,7 +164,7 @@ fun add_function_data (data : info as {fs, termination, ...}) =
 structure Termination_Simps = Named_Thms
 (
   val name = "termination_simp"
-  val description = "Simplification rule for termination proofs"
+  val description = "simplification rules for termination proofs"
 )
 
 

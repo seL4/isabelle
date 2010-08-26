@@ -97,7 +97,7 @@ ML {*
 structure Dig_Simps = Named_Thms
 (
   val name = "numeral"
-  val description = "Simplification rules for numerals"
+  val description = "simplification rules for numerals"
 )
 *}
 

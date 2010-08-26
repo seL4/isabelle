@@ -235,39 +235,49 @@ end
 
 (* equivalence relation theorems *)
 structure EquivRules = Named_Thms
-  (val name = "quot_equiv"
-   val description = "Equivalence relation theorems.")
+(
+  val name = "quot_equiv"
+  val description = "equivalence relation theorems"
+)
 
 val equiv_rules_get = EquivRules.get
 val equiv_rules_add = EquivRules.add
 
 (* respectfulness theorems *)
 structure RspRules = Named_Thms
-  (val name = "quot_respect"
-   val description = "Respectfulness theorems.")
+(
+  val name = "quot_respect"
+  val description = "respectfulness theorems"
+)
 
 val rsp_rules_get = RspRules.get
 val rsp_rules_add = RspRules.add
 
 (* preservation theorems *)
 structure PrsRules = Named_Thms
-  (val name = "quot_preserve"
-   val description = "Preservation theorems.")
+(
+  val name = "quot_preserve"
+  val description = "preservation theorems"
+)
 
 val prs_rules_get = PrsRules.get
 val prs_rules_add = PrsRules.add
 
 (* id simplification theorems *)
 structure IdSimps = Named_Thms
-  (val name = "id_simps"
-   val description = "Identity simp rules for maps.")
+(
+  val name = "id_simps"
+  val description = "identity simp rules for maps"
+)
 
 val id_simps_get = IdSimps.get
 
 (* quotient theorems *)
 structure QuotientRules = Named_Thms
-  (val name = "quot_thm"
-   val description = "Quotient theorems.")
+(
+  val name = "quot_thm"
+  val description = "quotient theorems"
+)
 
 val quotient_rules_get = QuotientRules.get
 val quotient_rules_add = QuotientRules.add
