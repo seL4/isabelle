@@ -105,7 +105,7 @@ fun string_for_super_pseudoconst (s, [[]]) = s
   | string_for_super_pseudoconst (s, Tss) =
     s ^ "{" ^ commas (map string_for_pseudotypes Tss) ^ "}"
 
-val abs_prefix = "Sledgehammer.abs"
+val abs_name = "Sledgehammer.abs"
 val skolem_prefix = "Sledgehammer.sko"
 
 (* Add a pseudoconstant to the table, but a [] entry means a standard
@@ -135,7 +135,7 @@ fun get_pseudoconsts thy also_skolems pos ts =
       | Free (s, _) => add_pseudoconst_to_table also_skolems (s, [])
       | t1 $ t2 => fold do_term [t1, t2]
       | Abs (_, _, t') =>
-        do_term t' #> add_pseudoconst_to_table true (abs_prefix, [])
+        do_term t' #> add_pseudoconst_to_table true (abs_name, [])
       | _ => I
     fun do_quantifier will_surely_be_skolemized body_t =
       do_formula pos body_t
@@ -250,18 +250,15 @@ fun irrel_log n = 0.5 + 1.0 / Math.ln (Real.fromInt n + 1.0)
 fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
 
 (* FUDGE *)
-val skolem_weight = 1.0
 val abs_weight = 2.0
+val skolem_weight = 0.5
 
 (* Computes a constant's weight, as determined by its frequency. *)
 val rel_weight = rel_log oo pseudoconst_freq match_pseudotypes
 fun irrel_weight const_tab (c as (s, _)) =
-  if String.isPrefix skolem_prefix s then skolem_weight
-  else if String.isPrefix abs_prefix s then abs_weight
+  if s = abs_name then abs_weight
+  else if String.isPrefix skolem_prefix s then skolem_weight
   else irrel_log (pseudoconst_freq (match_pseudotypes o swap) const_tab c)
-(* TODO: experiment
-fun irrel_weight _ _ = 1.0
-*)
 
 (* FUDGE *)
 fun locality_multiplier General = 1.0
