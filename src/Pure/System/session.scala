@@ -131,15 +131,15 @@ class Session(system: Isabelle_System)
     {
       raw_protocol.event(result)
 
-      Position.get_id(result.properties) match {
-        case Some(state_id) =>
+      result.properties match {
+        case Position.Id(state_id) =>
           try {
             val (st, state) = global_state.accumulate(state_id, result.message)
             global_state = state
             indicate_command_change(st.command)
           }
           catch { case _: Document.State.Fail => bad_result(result) }
-        case None =>
+        case _ =>
           if (result.is_status) {
             result.body match {
               case List(Isar_Document.Assign(id, edits)) =>

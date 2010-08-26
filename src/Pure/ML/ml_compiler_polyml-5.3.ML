@@ -44,13 +44,18 @@ val exn_message = Runtime.exn_message exn_position;
 
 fun report_parse_tree depth space =
   let
+    val report_text =
+      (case Context.thread_data () of
+        SOME (Context.Proof ctxt) => Context_Position.report_text ctxt
+      | _ => Position.report_text);
+
     fun report_decl markup loc decl =
-      Position.report_text Markup.ML_ref (position_of loc)
+      report_text Markup.ML_ref (position_of loc)
         (Markup.markup (Markup.properties (Position.properties_of (position_of decl)) markup) "");
     fun report loc (PolyML.PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-          |> Position.report_text Markup.ML_typing (position_of loc)
+          |> report_text Markup.ML_typing (position_of loc)
       | report loc (PolyML.PTdeclaredAt decl) = report_decl Markup.ML_def loc decl
       | report loc (PolyML.PTopenedAt decl) = report_decl Markup.ML_open loc decl
       | report loc (PolyML.PTstructureAt decl) = report_decl Markup.ML_struct loc decl

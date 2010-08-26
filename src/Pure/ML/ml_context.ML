@@ -166,7 +166,9 @@ val trace = Unsynchronized.ref false;
 fun eval verbose pos ants =
   let
     (*prepare source text*)
-    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ());
+    val ((env, body), env_ctxt) =
+      eval_antiquotes (ants, pos) (Context.thread_data ())
+      ||> Option.map (Context.mapping I (Context_Position.set_visible false));
     val _ =
       if ! trace then tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
       else ();

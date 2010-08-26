@@ -9,7 +9,7 @@ package isabelle
 
 object Markup
 {
-  /* integers */
+  /* plain values */
 
   object Int {
     def apply(i: scala.Int): String = i.toString
@@ -26,25 +26,33 @@ object Markup
   }
 
 
-  /* property values */
+  /* named properties */
 
-  def get_string(name: String, props: List[(String, String)]): Option[String] =
-    props.find(p => p._1 == name).map(_._2)
-
-  def get_long(name: String, props: List[(String, String)]): Option[scala.Long] =
+  class Property(val name: String)
   {
-    get_string(name, props) match {
-      case None => None
-      case Some(Long(i)) => Some(i)
-    }
+    def apply(value: String): List[(String, String)] = List((name, value))
+    def unapply(props: List[(String, String)]): Option[String] =
+      props.find(_._1 == name).map(_._2)
   }
 
-  def get_int(name: String, props: List[(String, String)]): Option[scala.Int] =
+  class Int_Property(name: String)
   {
-    get_string(name, props) match {
-      case None => None
-      case Some(Int(i)) => Some(i)
-    }
+    def apply(value: scala.Int): List[(String, String)] = List((name, Int(value)))
+    def unapply(props: List[(String, String)]): Option[Int] =
+      props.find(_._1 == name) match {
+        case None => None
+        case Some((_, value)) => Int.unapply(value)
+      }
+  }
+
+  class Long_Property(name: String)
+  {
+    def apply(value: scala.Long): List[(String, String)] = List((name, Long(value)))
+    def unapply(props: List[(String, String)]): Option[Long] =
+      props.find(_._1 == name) match {
+        case None => None
+        case Some((_, value)) => Long.unapply(value)
+      }
   }
 
 
@@ -53,7 +61,7 @@ object Markup
   val Empty = Markup("", Nil)
 
 
-  /* name */
+  /* misc properties */
 
   val NAME = "name"
   val KIND = "kind"
@@ -86,9 +94,9 @@ object Markup
 
   /* pretty printing */
 
-  val INDENT = "indent"
+  val Indent = new Int_Property("indent")
   val BLOCK = "block"
-  val WIDTH = "width"
+  val Width = new Int_Property("width")
   val BREAK = "break"
 
 
@@ -187,6 +195,9 @@ object Markup
 
 
   /* toplevel */
+
+  val SUBGOALS = "subgoals"
+  val PROOF_STATE = "proof_state"
 
   val STATE = "state"
   val SUBGOAL = "subgoal"
