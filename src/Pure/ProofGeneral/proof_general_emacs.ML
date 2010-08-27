@@ -10,7 +10,6 @@ sig
   val test_markupN: string
   val sendback: string -> Pretty.T list -> unit
   val init: bool -> unit
-  val init_outer_syntax: unit -> unit
   structure ThyLoad: sig val add_path: string -> unit end
 end;
 
@@ -20,7 +19,6 @@ struct
 
 (* print modes *)
 
-val proof_generalN = "ProofGeneralEmacs";  (*token markup (colouring vars, etc.)*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 val test_markupN = "test_markup";          (*XML markup for everything*)
 
@@ -187,43 +185,34 @@ end;
 
 (* additional outer syntax for Isar *)
 
-fun prP () =
+val _ =
   Outer_Syntax.improper_command "ProofGeneral.pr" "print state (internal)" Keyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
       if Toplevel.is_toplevel state orelse Toplevel.is_theory state then tell_clear_goals ()
       else (Toplevel.quiet := false; Toplevel.print_state true state))));
 
-fun undoP () = (*undo without output -- historical*)
+val _ = (*undo without output -- historical*)
   Outer_Syntax.improper_command "ProofGeneral.undo" "(internal)" Keyword.control
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)));
 
-fun restartP () =
+val _ =
   Outer_Syntax.improper_command "ProofGeneral.restart" "(internal)" Keyword.control
     (Parse.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative restart)));
 
-fun kill_proofP () =
+val _ =
   Outer_Syntax.improper_command "ProofGeneral.kill_proof" "(internal)" Keyword.control
     (Scan.succeed (Toplevel.no_timing o
       Toplevel.imperative (fn () => (Isar.kill_proof (); tell_clear_goals ()))));
 
-fun inform_file_processedP () =
+val _ =
   Outer_Syntax.improper_command "ProofGeneral.inform_file_processed" "(internal)" Keyword.control
     (Parse.name >> (fn file =>
       Toplevel.no_timing o Toplevel.imperative (fn () => inform_file_processed file)));
 
-fun inform_file_retractedP () =
+val _ =
   Outer_Syntax.improper_command "ProofGeneral.inform_file_retracted" "(internal)" Keyword.control
     (Parse.name >> (Toplevel.no_timing oo
       (fn file => Toplevel.imperative (fn () => inform_file_retracted file))));
-
-fun process_pgipP () =
-  Outer_Syntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
-    (Parse.text >> (Toplevel.no_timing oo
-      (fn txt => Toplevel.imperative (fn () => ProofGeneralPgip.process_pgip txt))));
-
-fun init_outer_syntax () = List.app (fn f => f ())
-  [prP, undoP, restartP, kill_proofP, inform_file_processedP,
-    inform_file_retractedP, process_pgipP];
 
 
 (* init *)
@@ -234,17 +223,17 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
   | init true =
       (if ! initialized then ()
        else
-        (init_outer_syntax ();
-         Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
-         Output.add_mode proof_generalN Output.default_output Output.default_escape;
-         Markup.add_mode proof_generalN YXML.output_markup;
+        (Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
+         Output.add_mode ProofGeneralPgip.proof_general_emacsN
+          Output.default_output Output.default_escape;
+         Markup.add_mode ProofGeneralPgip.proof_general_emacsN YXML.output_markup;
          setup_messages ();
-         ProofGeneralPgip.init_pgip_channel (! Output.priority_fn);
+         ProofGeneralPgip.pgip_channel_emacs (! Output.priority_fn);
          setup_thy_loader ();
          setup_present_hook ();
          initialized := true);
        sync_thy_loader ();
-       Unsynchronized.change print_mode (update (op =) proof_generalN);
+       Unsynchronized.change print_mode (update (op =) ProofGeneralPgip.proof_general_emacsN);
        Secure.PG_setup ();
        Isar.toplevel_loop TextIO.stdIn
         {init = true, welcome = true, sync = true, secure = Secure.is_secure ()});
