@@ -27,6 +27,6 @@ end
 
 setup {* Code_Target.set_default_code_width 74 *}
 
-ML_command {* Unsynchronized.reset unique_names *}
+ML_command {* unique_names := false *}
 
 end

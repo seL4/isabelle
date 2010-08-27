@@ -48,7 +48,10 @@ val trace = Unsynchronized.ref false;
 fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
 val max_clauses_default = 60;
-val (max_clauses, setup) = Attrib.config_int "max_clauses" (K max_clauses_default);
+val (max_clauses, setup) = Attrib.config_int "meson_max_clauses" (K max_clauses_default);
+
+(*No known example (on 1-5-2007) needs even thirty*)
+val iter_deepen_limit = 50;
 
 val disj_forward = @{thm disj_forward};
 val disj_forward2 = @{thm disj_forward2};
@@ -640,7 +643,7 @@ fun prolog_step_tac' horns =
     end;
 
 fun iter_deepen_prolog_tac horns =
-    ITER_DEEPEN (has_fewer_prems 1) (prolog_step_tac' horns);
+    ITER_DEEPEN iter_deepen_limit (has_fewer_prems 1) (prolog_step_tac' horns);
 
 fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON make_clauses
   (fn cls =>
@@ -653,7 +656,10 @@ fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON make_clauses
             cat_lines ("meson method called:" ::
               map (Display.string_of_thm ctxt) (cls @ ths) @
               ["clauses:"] @ map (Display.string_of_thm ctxt) horns))
-        in THEN_ITER_DEEPEN (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns) end));
+        in
+          THEN_ITER_DEEPEN iter_deepen_limit
+            (resolve_tac goes 1) (has_fewer_prems 1) (prolog_step_tac' horns)
+        end));
 
 fun meson_tac ctxt ths =
   SELECT_GOAL (TRY (safe_tac (claset_of ctxt)) THEN TRYALL (iter_deepen_meson_tac ctxt ths));

@@ -8,8 +8,8 @@ signature SOS_WRAPPER =
 sig
   datatype prover_result = Success | Failure | Error
   val setup: theory -> theory
-  val destdir: string Unsynchronized.ref
-  val prover_name: string Unsynchronized.ref
+  val dest_dir: string Config.T
+  val prover_name: string Config.T
 end
 
 structure SOS_Wrapper: SOS_WRAPPER =
@@ -22,14 +22,9 @@ fun str_of_result Success = "Success"
   | str_of_result Error = "Error"
 
 
-(*** output control ***)
-
-fun debug s = if ! Sum_Of_Squares.debugging then writeln s else ()
-
-
 (*** calling provers ***)
 
-val destdir = Unsynchronized.ref ""
+val (dest_dir, setup_dest_dir) = Attrib.config_string "sos_dest_dir" (K "")
 
 fun filename dir name =
   let
@@ -43,12 +38,12 @@ fun filename dir name =
     else error ("No such directory: " ^ dir)
   end
 
-fun run_solver name cmd find_failure input =
+fun run_solver ctxt name cmd find_failure input =
   let
     val _ = warning ("Calling solver: " ^ name)
 
     (* create input file *)
-    val dir = ! destdir
+    val dir = Config.get ctxt dest_dir
     val input_file = filename dir "sos_in"
     val _ = File.write input_file input
 
@@ -71,7 +66,10 @@ fun run_solver name cmd find_failure input =
         (File.rm input_file; if File.exists output_file then File.rm output_file else ())
       else ()
 
-    val _ = debug ("Solver output:\n" ^ output)
+    val _ =
+      if Config.get ctxt Sum_Of_Squares.trace
+      then writeln ("Solver output:\n" ^ output)
+      else ()
 
     val _ = warning (str_of_result res ^ ": " ^ res_msg)
   in
@@ -120,13 +118,13 @@ fun prover "remote_csdp" = neos_csdp
   | prover "csdp" = csdp
   | prover name = error ("Unknown prover: " ^ name)
 
-val prover_name = Unsynchronized.ref "remote_csdp"
+val (prover_name, setup_prover_name) = Attrib.config_string "sos_prover_name" (K "remote_csdp")
 
-fun call_solver opt_name =
+fun call_solver ctxt opt_name =
   let
-    val name = the_default (! prover_name) opt_name
+    val name = the_default (Config.get ctxt prover_name) opt_name
     val (cmd, find_failure) = prover name
-  in run_solver name (Path.explode cmd) find_failure end
+  in run_solver ctxt name (Path.explode cmd) find_failure end
 
 
 (* certificate output *)
@@ -143,9 +141,13 @@ val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cer
 fun sos_solver print method = SIMPLE_METHOD' o Sum_Of_Squares.sos_tac print method
 
 val setup =
+  setup_dest_dir #>
+  setup_prover_name #>
   Method.setup @{binding sos}
     (Scan.lift (Scan.option Parse.xname)
-      >> (sos_solver print_cert o Sum_Of_Squares.Prover o call_solver))
+      >> (fn opt_name => fn ctxt =>
+        sos_solver print_cert
+          (Sum_Of_Squares.Prover (call_solver ctxt opt_name)) ctxt))
     "prove universal problems over the reals using sums of squares" #>
   Method.setup @{binding sos_cert}
     (Scan.lift Parse.string

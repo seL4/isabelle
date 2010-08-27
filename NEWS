@@ -39,6 +39,12 @@ Isar declaration attributes to access these.
 Note that the corresponding "..._default" references may be only
 changed globally at the ROOT session setup, but *not* within a theory.
 
+* ML structure Unsynchronized never opened, not even in Isar
+interaction mode as before.  Old Unsynchronized.set etc. have been
+discontinued -- use plain := instead.  This should be *rare* anyway,
+since modern tools always work via official context data, notably
+configuration options.
+
 
 *** Pure ***
 

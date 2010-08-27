@@ -10,7 +10,7 @@ imports FOL
 uses "~~/src/Tools/misc_legacy.ML"
 begin
 
-ML {* Unsynchronized.reset eta_contract *}
+ML {* eta_contract := false *}
 
 typedecl i
 arities  i :: "term"

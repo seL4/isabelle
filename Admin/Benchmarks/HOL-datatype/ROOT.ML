@@ -5,11 +5,11 @@ Some rather large datatype examples (from John Harrison).
 
 val tests = ["Brackin", "Instructions", "SML", "Verilog"];
 
-Unsynchronized.set timing;
+timing := true;
 
-warning "\nset quick_and_dirty\n"; Unsynchronized.set quick_and_dirty;
+warning "\nset quick_and_dirty\n"; quick_and_dirty := true;
 use_thys tests;
 
-warning "\nreset quick_and_dirty\n"; Unsynchronized.reset quick_and_dirty;
+warning "\nreset quick_and_dirty\n"; quick_and_dirty := false;
 List.app Thy_Info.remove_thy tests;
 use_thys tests;

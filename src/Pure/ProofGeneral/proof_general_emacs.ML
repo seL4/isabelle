@@ -232,7 +232,8 @@ val initialized = Unsynchronized.ref false;
 
 fun init false = panic "No Proof General interface support for Isabelle/classic mode."
   | init true =
-      (! initialized orelse
+      (if ! initialized then ()
+       else
         (Output.no_warnings_CRITICAL init_outer_syntax ();
           Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
           Output.add_mode proof_generalN Output.default_output Output.default_escape;
@@ -241,8 +242,8 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
           ProofGeneralPgip.init_pgip_channel (! Output.priority_fn);
           setup_thy_loader ();
           setup_present_hook ();
-          Unsynchronized.set initialized);
-        sync_thy_loader ();
+          initialized := true);
+       sync_thy_loader ();
        Unsynchronized.change print_mode (update (op =) proof_generalN);
        Secure.PG_setup ();
        Isar.toplevel_loop TextIO.stdIn
