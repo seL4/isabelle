@@ -48,7 +48,7 @@ val trace = Unsynchronized.ref false;
 fun trace_msg msg = if ! trace then tracing (msg ()) else ();
 
 val max_clauses_default = 60;
-val (max_clauses, setup) = Attrib.config_int "max_clauses" (K max_clauses_default);
+val (max_clauses, setup) = Attrib.config_int "meson_max_clauses" (K max_clauses_default);
 
 (*No known example (on 1-5-2007) needs even thirty*)
 val iter_deepen_limit = 50;
