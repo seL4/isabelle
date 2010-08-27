@@ -26,14 +26,14 @@
 Type classes were introduced by Wadler and Blott \cite{wadler89how}
   into the Haskell language to allow for a reasonable implementation
   of overloading\footnote{throughout this tutorial, we are referring
-  to classical Haskell 1.0 type classes, not considering
-  later additions in expressiveness}.
-  As a canonical example, a polymorphic equality function
-  \isa{eq\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool} which is overloaded on different
-  types for \isa{{\isasymalpha}}, which is achieved by splitting introduction
-  of the \isa{eq} function from its overloaded definitions by means
-  of \isa{class} and \isa{instance} declarations:
-  \footnote{syntax here is a kind of isabellized Haskell}
+  to classical Haskell 1.0 type classes, not considering later
+  additions in expressiveness}.  As a canonical example, a polymorphic
+  equality function \isa{eq\ {\isasymColon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ bool} which is overloaded on
+  different types for \isa{{\isasymalpha}}, which is achieved by splitting
+  introduction of the \isa{eq} function from its overloaded
+  definitions by means of \isa{class} and \isa{instance}
+  declarations: \footnote{syntax here is a kind of isabellized
+  Haskell}
 
   \begin{quote}
 
@@ -59,14 +59,14 @@ Type classes were introduced by Wadler and Blott \cite{wadler89how}
   these annotations are assertions that a particular polymorphic type
   provides definitions for overloaded functions.
 
-  Indeed, type classes not only allow for simple overloading
-  but form a generic calculus, an instance of order-sorted
-  algebra \cite{nipkow-sorts93,Nipkow-Prehofer:1993,Wenzel:1997:TPHOL}.
+  Indeed, type classes not only allow for simple overloading but form
+  a generic calculus, an instance of order-sorted algebra
+  \cite{nipkow-sorts93,Nipkow-Prehofer:1993,Wenzel:1997:TPHOL}.
 
-  From a software engineering point of view, type classes
-  roughly correspond to interfaces in object-oriented languages like Java;
-  so, it is naturally desirable that type classes do not only
-  provide functions (class parameters) but also state specifications
+  From a software engineering point of view, type classes roughly
+  correspond to interfaces in object-oriented languages like Java; so,
+  it is naturally desirable that type classes do not only provide
+  functions (class parameters) but also state specifications
   implementations must obey.  For example, the \isa{class\ eq}
   above could be given the following specification, demanding that
   \isa{class\ eq} is an equivalence relation obeying reflexivity,
@@ -83,11 +83,10 @@ Type classes were introduced by Wadler and Blott \cite{wadler89how}
 
   \end{quote}
 
-  \noindent From a theoretical point of view, type classes are lightweight
-  modules; Haskell type classes may be emulated by
-  SML functors \cite{classes_modules}. 
-  Isabelle/Isar offers a discipline of type classes which brings
-  all those aspects together:
+  \noindent From a theoretical point of view, type classes are
+  lightweight modules; Haskell type classes may be emulated by SML
+  functors \cite{classes_modules}.  Isabelle/Isar offers a discipline
+  of type classes which brings all those aspects together:
 
   \begin{enumerate}
     \item specifying abstract parameters together with
@@ -99,15 +98,15 @@ Type classes were introduced by Wadler and Blott \cite{wadler89how}
       locales \cite{kammueller-locales}.
   \end{enumerate}
 
-  \noindent Isar type classes also directly support code generation
-  in a Haskell like fashion. Internally, they are mapped to more primitive 
-  Isabelle concepts \cite{Haftmann-Wenzel:2006:classes}.
+  \noindent Isar type classes also directly support code generation in
+  a Haskell like fashion. Internally, they are mapped to more
+  primitive Isabelle concepts \cite{Haftmann-Wenzel:2006:classes}.
 
-  This tutorial demonstrates common elements of structured specifications
-  and abstract reasoning with type classes by the algebraic hierarchy of
-  semigroups, monoids and groups.  Our background theory is that of
-  Isabelle/HOL \cite{isa-tutorial}, for which some
-  familiarity is assumed.%
+  This tutorial demonstrates common elements of structured
+  specifications and abstract reasoning with type classes by the
+  algebraic hierarchy of semigroups, monoids and groups.  Our
+  background theory is that of Isabelle/HOL \cite{isa-tutorial}, for
+  which some familiarity is assumed.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -142,12 +141,9 @@ Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} intro
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent This \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} specification consists of two
-  parts: the \qn{operational} part names the class parameter
-  (\hyperlink{element.fixes}{\mbox{\isa{\isakeyword{fixes}}}}), the \qn{logical} part specifies properties on them
-  (\hyperlink{element.assumes}{\mbox{\isa{\isakeyword{assumes}}}}).  The local \hyperlink{element.fixes}{\mbox{\isa{\isakeyword{fixes}}}} and
-  \hyperlink{element.assumes}{\mbox{\isa{\isakeyword{assumes}}}} are lifted to the theory toplevel,
-  yielding the global
+\noindent This \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} specification consists of two parts:
+  the \qn{operational} part names the class parameter (\hyperlink{element.fixes}{\mbox{\isa{\isakeyword{fixes}}}}), the \qn{logical} part specifies properties on them
+  (\hyperlink{element.assumes}{\mbox{\isa{\isakeyword{assumes}}}}).  The local \hyperlink{element.fixes}{\mbox{\isa{\isakeyword{fixes}}}} and \hyperlink{element.assumes}{\mbox{\isa{\isakeyword{assumes}}}} are lifted to the theory toplevel, yielding the global
   parameter \isa{{\isachardoublequote}mult\ {\isasymColon}\ {\isasymalpha}{\isasymColon}semigroup\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequote}} and the
   global theorem \hyperlink{fact.semigroup.assoc:}{\mbox{\isa{semigroup{\isachardot}assoc{\isacharcolon}}}}~\isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ {\isasymalpha}{\isasymColon}semigroup{\isachardot}\ {\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isasymotimes}\ z\ {\isacharequal}\ x\ {\isasymotimes}\ {\isacharparenleft}y\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequote}}.%
 \end{isamarkuptext}%
@@ -158,10 +154,9 @@ Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} intro
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The concrete type \isa{int} is made a \isa{semigroup}
-  instance by providing a suitable definition for the class parameter
-  \isa{{\isacharparenleft}{\isasymotimes}{\isacharparenright}} and a proof for the specification of \hyperlink{fact.assoc}{\mbox{\isa{assoc}}}.
-  This is accomplished by the \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}} target:%
+The concrete type \isa{int} is made a \isa{semigroup} instance
+  by providing a suitable definition for the class parameter \isa{{\isacharparenleft}{\isasymotimes}{\isacharparenright}} and a proof for the specification of \hyperlink{fact.assoc}{\mbox{\isa{assoc}}}.  This is
+  accomplished by the \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}} target:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -204,22 +199,19 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}} defines class parameters
-  at a particular instance using common specification tools (here,
-  \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}).  The concluding \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}
-  opens a proof that the given parameters actually conform
-  to the class specification.  Note that the first proof step
-  is the \hyperlink{method.default}{\mbox{\isa{default}}} method,
-  which for such instance proofs maps to the \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}} method.
-  This reduces an instance judgement to the relevant primitive
-  proof goals; typically it is the first method applied
-  in an instantiation proof.
+\noindent \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}} defines class parameters at a
+  particular instance using common specification tools (here,
+  \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}).  The concluding \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}} opens a
+  proof that the given parameters actually conform to the class
+  specification.  Note that the first proof step is the \hyperlink{method.default}{\mbox{\isa{default}}} method, which for such instance proofs maps to the \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}} method.  This reduces an instance judgement to the
+  relevant primitive proof goals; typically it is the first method
+  applied in an instantiation proof.
 
-  From now on, the type-checker will consider \isa{int}
-  as a \isa{semigroup} automatically, i.e.\ any general results
-  are immediately available on concrete instances.
+  From now on, the type-checker will consider \isa{int} as a \isa{semigroup} automatically, i.e.\ any general results are immediately
+  available on concrete instances.
 
-  \medskip Another instance of \isa{semigroup} yields the natural numbers:%
+  \medskip Another instance of \isa{semigroup} yields the natural
+  numbers:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -259,12 +251,12 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent Note the occurence of the name \isa{mult{\isacharunderscore}nat}
-  in the primrec declaration;  by default, the local name of
-  a class operation \isa{f} to be instantiated on type constructor
-  \isa{{\isasymkappa}} is mangled as \isa{f{\isacharunderscore}{\isasymkappa}}.  In case of uncertainty,
-  these names may be inspected using the \hyperlink{command.print-context}{\mbox{\isa{\isacommand{print{\isacharunderscore}context}}}} command
-  or the corresponding ProofGeneral button.%
+\noindent Note the occurence of the name \isa{mult{\isacharunderscore}nat} in the
+  primrec declaration; by default, the local name of a class operation
+  \isa{f} to be instantiated on type constructor \isa{{\isasymkappa}} is
+  mangled as \isa{f{\isacharunderscore}{\isasymkappa}}.  In case of uncertainty, these names may be
+  inspected using the \hyperlink{command.print-context}{\mbox{\isa{\isacommand{print{\isacharunderscore}context}}}} command or the
+  corresponding ProofGeneral button.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -273,10 +265,9 @@ The concrete type \isa{int} is made a \isa{semigroup}
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Overloaded definitions given at a class instantiation
-  may include recursion over the syntactic structure of types.
-  As a canonical example, we model product semigroups
-  using our simple algebra:%
+Overloaded definitions given at a class instantiation may include
+  recursion over the syntactic structure of types.  As a canonical
+  example, we model product semigroups using our simple algebra:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -318,11 +309,10 @@ Overloaded definitions given at a class instantiation
 \begin{isamarkuptext}%
 \noindent Associativity of product semigroups is established using
   the definition of \isa{{\isacharparenleft}{\isasymotimes}{\isacharparenright}} on products and the hypothetical
-  associativity of the type components;  these hypotheses
-  are legitimate due to the \isa{semigroup} constraints imposed
-  on the type components by the \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}} proposition.
-  Indeed, this pattern often occurs with parametric types
-  and type classes.%
+  associativity of the type components; these hypotheses are
+  legitimate due to the \isa{semigroup} constraints imposed on the
+  type components by the \hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}} proposition.  Indeed,
+  this pattern often occurs with parametric types and type classes.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -331,10 +321,9 @@ Overloaded definitions given at a class instantiation
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
-  by extending \isa{semigroup}
-  with one additional parameter \isa{neutral} together
-  with its characteristic property:%
+We define a subclass \isa{monoidl} (a semigroup with a left-hand
+  neutral) by extending \isa{semigroup} with one additional
+  parameter \isa{neutral} together with its characteristic property:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -355,10 +344,10 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent Again, we prove some instances, by
-  providing suitable parameter definitions and proofs for the
-  additional specifications.  Observe that instantiations
-  for types with the same arity may be simultaneous:%
+\noindent Again, we prove some instances, by providing suitable
+  parameter definitions and proofs for the additional specifications.
+  Observe that instantiations for types with the same arity may be
+  simultaneous:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -505,8 +494,7 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent To finish our small algebra example, we add a \isa{group} class
-  with a corresponding instance:%
+\noindent To finish our small algebra example, we add a \isa{group} class with a corresponding instance:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -563,9 +551,9 @@ We define a subclass \isa{monoidl} (a semigroup with a left-hand neutral)
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The example above gives an impression how Isar type classes work
-  in practice.  As stated in the introduction, classes also provide
-  a link to Isar's locale system.  Indeed, the logical core of a class
+The example above gives an impression how Isar type classes work in
+  practice.  As stated in the introduction, classes also provide a
+  link to Isar's locale system.  Indeed, the logical core of a class
   is nothing other than a locale:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -780,10 +768,12 @@ Isabelle locales enable reasoning at a general level, while results
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent Here the \qt{\hyperlink{keyword.in}{\mbox{\isa{\isakeyword{in}}}} \isa{group}} target specification
-  indicates that the result is recorded within that context for later
-  use.  This local theorem is also lifted to the global one \hyperlink{fact.group.left-cancel:}{\mbox{\isa{group{\isachardot}left{\isacharunderscore}cancel{\isacharcolon}}}} \isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ {\isasymalpha}{\isasymColon}group{\isachardot}\ x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequote}}.  Since type \isa{int} has been made an instance of
-  \isa{group} before, we may refer to that fact as well: \isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ int{\isachardot}\ x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequote}}.%
+\noindent Here the \qt{\hyperlink{keyword.in}{\mbox{\isa{\isakeyword{in}}}} \isa{group}} target
+  specification indicates that the result is recorded within that
+  context for later use.  This local theorem is also lifted to the
+  global one \hyperlink{fact.group.left-cancel:}{\mbox{\isa{group{\isachardot}left{\isacharunderscore}cancel{\isacharcolon}}}} \isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ {\isasymalpha}{\isasymColon}group{\isachardot}\ x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequote}}.  Since type \isa{int} has been
+  made an instance of \isa{group} before, we may refer to that
+  fact as well: \isa{{\isachardoublequote}{\isasymAnd}x\ y\ z\ {\isasymColon}\ int{\isachardot}\ x\ {\isasymotimes}\ y\ {\isacharequal}\ x\ {\isasymotimes}\ z\ {\isasymlongleftrightarrow}\ y\ {\isacharequal}\ z{\isachardoublequote}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -814,16 +804,14 @@ Isabelle locales are targets which support local definitions:%
 %
 \begin{isamarkuptext}%
 \noindent If the locale \isa{group} is also a class, this local
-  definition is propagated onto a global definition of
-  \isa{{\isachardoublequote}pow{\isacharunderscore}nat\ {\isasymColon}\ nat\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoid\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoid{\isachardoublequote}}
-  with corresponding theorems
+  definition is propagated onto a global definition of \isa{{\isachardoublequote}pow{\isacharunderscore}nat\ {\isasymColon}\ nat\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoid\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}monoid{\isachardoublequote}} with corresponding theorems
 
   \isa{pow{\isacharunderscore}nat\ {\isadigit{0}}\ x\ {\isacharequal}\ {\isasymone}\isasep\isanewline%
 pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\isacharequal}\ x\ {\isasymotimes}\ pow{\isacharunderscore}nat\ n\ x}.
 
-  \noindent As you can see from this example, for local
-  definitions you may use any specification tool
-  which works together with locales, such as Krauss's recursive function package
+  \noindent As you can see from this example, for local definitions
+  you may use any specification tool which works together with
+  locales, such as Krauss's recursive function package
   \cite{krauss2006}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -833,19 +821,17 @@ pow{\isacharunderscore}nat\ {\isacharparenleft}Suc\ n{\isacharparenright}\ x\ {\
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-We introduced Isar classes by analogy to type classes in
-  functional programming;  if we reconsider this in the
-  context of what has been said about type classes and locales,
-  we can drive this analogy further by stating that type
-  classes essentially correspond to functors that have
-  a canonical interpretation as type classes.
-  There is also the possibility of other interpretations.
-  For example, \isa{list}s also form a monoid with
-  \isa{append} and \isa{{\isacharbrackleft}{\isacharbrackright}} as operations, but it
-  seems inappropriate to apply to lists
-  the same operations as for genuinely algebraic types.
-  In such a case, we can simply make a particular interpretation
-  of monoids for lists:%
+We introduced Isar classes by analogy to type classes in functional
+  programming; if we reconsider this in the context of what has been
+  said about type classes and locales, we can drive this analogy
+  further by stating that type classes essentially correspond to
+  functors that have a canonical interpretation as type classes.
+  There is also the possibility of other interpretations.  For
+  example, \isa{list}s also form a monoid with \isa{append} and
+  \isa{{\isacharbrackleft}{\isacharbrackright}} as operations, but it seems inappropriate to apply to
+  lists the same operations as for genuinely algebraic types.  In such
+  a case, we can simply make a particular interpretation of monoids
+  for lists:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -969,12 +955,10 @@ Any \isa{group} is also a \isa{monoid}; this can be made
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-The logical proof is carried out on the locale level.
-  Afterwards it is propagated
-  to the type system, making \isa{group} an instance of
-  \isa{monoid} by adding an additional edge
-  to the graph of subclass relations
-  (\figref{fig:subclass}).
+The logical proof is carried out on the locale level.  Afterwards it
+  is propagated to the type system, making \isa{group} an instance
+  of \isa{monoid} by adding an additional edge to the graph of
+  subclass relations (\figref{fig:subclass}).
 
   \begin{figure}[htbp]
    \begin{center}
@@ -1006,8 +990,7 @@ The logical proof is carried out on the locale level.
    \end{center}
   \end{figure}
 
-  For illustration, a derived definition
-  in \isa{group} using \isa{pow{\isacharunderscore}nat}%
+  For illustration, a derived definition in \isa{group} using \isa{pow{\isacharunderscore}nat}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1029,9 +1012,7 @@ The logical proof is carried out on the locale level.
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent yields the global definition of
-  \isa{{\isachardoublequote}pow{\isacharunderscore}int\ {\isasymColon}\ int\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group{\isachardoublequote}}
-  with the corresponding theorem \isa{pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{0}}\ {\isasymle}\ k\ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isasymdiv}{\isacharparenright}}.%
+\noindent yields the global definition of \isa{{\isachardoublequote}pow{\isacharunderscore}int\ {\isasymColon}\ int\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group\ {\isasymRightarrow}\ {\isasymalpha}{\isasymColon}group{\isachardoublequote}} with the corresponding theorem \isa{pow{\isacharunderscore}int\ k\ x\ {\isacharequal}\ {\isacharparenleft}if\ {\isadigit{0}}\ {\isasymle}\ k\ then\ pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ k{\isacharparenright}\ x\ else\ {\isacharparenleft}pow{\isacharunderscore}nat\ {\isacharparenleft}nat\ {\isacharparenleft}{\isacharminus}\ k{\isacharparenright}{\isacharparenright}\ x{\isacharparenright}{\isasymdiv}{\isacharparenright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1040,9 +1021,9 @@ The logical proof is carried out on the locale level.
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-As a convenience, class context syntax allows references
-  to local class operations and their global counterparts
-  uniformly;  type inference resolves ambiguities.  For example:%
+As a convenience, class context syntax allows references to local
+  class operations and their global counterparts uniformly; type
+  inference resolves ambiguities.  For example:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1082,11 +1063,11 @@ As a convenience, class context syntax allows references
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent Here in example 1, the term refers to the local class operation
-  \isa{mult\ {\isacharbrackleft}{\isasymalpha}{\isacharbrackright}}, whereas in example 2 the type constraint
-  enforces the global class operation \isa{mult\ {\isacharbrackleft}nat{\isacharbrackright}}.
-  In the global context in example 3, the reference is
-  to the polymorphic global class operation \isa{mult\ {\isacharbrackleft}{\isacharquery}{\isasymalpha}\ {\isasymColon}\ semigroup{\isacharbrackright}}.%
+\noindent Here in example 1, the term refers to the local class
+  operation \isa{mult\ {\isacharbrackleft}{\isasymalpha}{\isacharbrackright}}, whereas in example 2 the type
+  constraint enforces the global class operation \isa{mult\ {\isacharbrackleft}nat{\isacharbrackright}}.
+  In the global context in example 3, the reference is to the
+  polymorphic global class operation \isa{mult\ {\isacharbrackleft}{\isacharquery}{\isasymalpha}\ {\isasymColon}\ semigroup{\isacharbrackright}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1099,16 +1080,13 @@ As a convenience, class context syntax allows references
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Turning back to the first motivation for type classes,
-  namely overloading, it is obvious that overloading
-  stemming from \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} statements and
-  \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}
-  targets naturally maps to Haskell type classes.
-  The code generator framework \cite{isabelle-codegen} 
-  takes this into account.  If the target language (e.g.~SML)
-  lacks type classes, then they
-  are implemented by an explicit dictionary construction.
-  As example, let's go back to the power function:%
+Turning back to the first motivation for type classes, namely
+  overloading, it is obvious that overloading stemming from \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} statements and \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}} targets naturally
+  maps to Haskell type classes.  The code generator framework
+  \cite{isabelle-codegen} takes this into account.  If the target
+  language (e.g.~SML) lacks type classes, then they are implemented by
+  an explicit dictionary construction.  As example, let's go back to
+  the power function:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1328,13 +1306,121 @@ Turning back to the first motivation for type classes,
 %
 \endisadelimquote
 %
+\begin{isamarkuptext}%
+\noindent In Scala, implicts are used as dictionaries:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isataginvisible
+%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+%
+\begin{isamarkuptext}%
+\isatypewriter%
+\noindent%
+\hspace*{0pt}object Example {\char123}\\
+\hspace*{0pt}\\
+\hspace*{0pt}import /*implicits*/ Example.semigroup{\char95}int,~Example.monoidl{\char95}int,\\
+\hspace*{0pt} ~Example.monoid{\char95}int,~Example.group{\char95}int\\
+\hspace*{0pt}\\
+\hspace*{0pt}abstract sealed class nat\\
+\hspace*{0pt}final case object Zero{\char95}nat extends nat\\
+\hspace*{0pt}final case class Suc(a:~nat) extends nat\\
+\hspace*{0pt}\\
+\hspace*{0pt}def nat{\char95}aux(i:~BigInt,~n:~nat):~nat =\\
+\hspace*{0pt} ~(if (i <= BigInt(0)) n else nat{\char95}aux(i - BigInt(1),~Suc(n)))\\
+\hspace*{0pt}\\
+\hspace*{0pt}def nat(i:~BigInt):~nat = nat{\char95}aux(i,~Zero{\char95}nat)\\
+\hspace*{0pt}\\
+\hspace*{0pt}trait semigroup[A] {\char123}\\
+\hspace*{0pt} ~val `Example+mult`:~(A,~A) => A\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}def mult[A](a:~A,~b:~A)(implicit A:~semigroup[A]):~A =\\
+\hspace*{0pt} ~A.`Example+mult`(a,~b)\\
+\hspace*{0pt}\\
+\hspace*{0pt}trait monoidl[A] extends semigroup[A] {\char123}\\
+\hspace*{0pt} ~val `Example+neutral`:~A\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}def neutral[A](implicit A:~monoidl[A]):~A = A.`Example+neutral`\\
+\hspace*{0pt}\\
+\hspace*{0pt}trait monoid[A] extends monoidl[A] {\char123}\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}\\
+\hspace*{0pt}trait group[A] extends monoid[A] {\char123}\\
+\hspace*{0pt} ~val `Example+inverse`:~A => A\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}def inverse[A](a:~A)(implicit A:~group[A]):~A = A.`Example+inverse`(a)\\
+\hspace*{0pt}\\
+\hspace*{0pt}def pow{\char95}nat[A:~monoid](xa0:~nat,~x:~A):~A = (xa0,~x) match {\char123}\\
+\hspace*{0pt} ~case (Zero{\char95}nat,~x) => neutral[A]\\
+\hspace*{0pt} ~case (Suc(n),~x) => mult[A](x,~pow{\char95}nat[A](n,~x))\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}\\
+\hspace*{0pt}def pow{\char95}int[A:~group](k:~BigInt,~x:~A):~A =\\
+\hspace*{0pt} ~(if (BigInt(0) <= k) pow{\char95}nat[A](nat(k),~x)\\
+\hspace*{0pt} ~~~else inverse[A](pow{\char95}nat[A](nat((- k)),~x)))\\
+\hspace*{0pt}\\
+\hspace*{0pt}def mult{\char95}int(i:~BigInt,~j:~BigInt):~BigInt = i + j\\
+\hspace*{0pt}\\
+\hspace*{0pt}implicit def semigroup{\char95}int:~semigroup[BigInt] = new semigroup[BigInt] {\char123}\\
+\hspace*{0pt} ~val `Example+mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}\\
+\hspace*{0pt}def neutral{\char95}int:~BigInt = BigInt(0)\\
+\hspace*{0pt}\\
+\hspace*{0pt}implicit def monoidl{\char95}int:~monoidl[BigInt] = new monoidl[BigInt] {\char123}\\
+\hspace*{0pt} ~val `Example+neutral` = neutral{\char95}int\\
+\hspace*{0pt} ~val `Example+mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}\\
+\hspace*{0pt}implicit def monoid{\char95}int:~monoid[BigInt] = new monoid[BigInt] {\char123}\\
+\hspace*{0pt} ~val `Example+neutral` = neutral{\char95}int\\
+\hspace*{0pt} ~val `Example+mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}\\
+\hspace*{0pt}def inverse{\char95}int(i:~BigInt):~BigInt = (- i)\\
+\hspace*{0pt}\\
+\hspace*{0pt}implicit def group{\char95}int:~group[BigInt] = new group[BigInt] {\char123}\\
+\hspace*{0pt} ~val `Example+inverse` = (a:~BigInt) => inverse{\char95}int(a)\\
+\hspace*{0pt} ~val `Example+neutral` = neutral{\char95}int\\
+\hspace*{0pt} ~val `Example+mult` = (a:~BigInt,~b:~BigInt) => mult{\char95}int(a,~b)\\
+\hspace*{0pt}{\char125}\\
+\hspace*{0pt}\\
+\hspace*{0pt}def example:~BigInt = pow{\char95}int[BigInt](BigInt(10),~BigInt(- 2))\\
+\hspace*{0pt}\\
+\hspace*{0pt}{\char125}~/* object Example */%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
 \isamarkupsubsection{Inspecting the type class universe%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-To facilitate orientation in complex subclass structures,
-  two diagnostics commands are provided:
+To facilitate orientation in complex subclass structures, two
+  diagnostics commands are provided:
 
   \begin{description}
 
