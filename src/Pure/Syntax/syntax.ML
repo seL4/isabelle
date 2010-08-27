@@ -485,7 +485,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
     val _ = List.app (Lexicon.report_token ctxt) toks;
 
     val root' = if root <> "prop" andalso is_logtype root then Syn_Ext.logic else root;
-    val pts = Parser.parse gram root' (filter Lexicon.is_proper toks);
+    val pts = Parser.parse ctxt gram root' (filter Lexicon.is_proper toks);
     val len = length pts;
 
     val limit = ! ambiguity_limit;
@@ -495,7 +495,7 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
     if len <= ! ambiguity_level then ()
     else if ! ambiguity_is_error then error (ambiguity_msg pos)
     else
-      (warning (cat_lines
+      (Context_Position.if_visible ctxt warning (cat_lines
         (("Ambiguous input" ^ Position.str_of pos ^
           "\nproduces " ^ string_of_int len ^ " parse trees" ^
           (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
@@ -519,8 +519,8 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty inp =
 (* read terms *)
 
 (*brute-force disambiguation via type-inference*)
-fun disambig _ _ [t] = t
-  | disambig pp check ts =
+fun disambig _ _ _ [t] = t
+  | disambig ctxt pp check ts =
       let
         val level = ! ambiguity_level;
         val limit = ! ambiguity_limit;
@@ -539,7 +539,8 @@ fun disambig _ _ [t] = t
         if null results then cat_error (ambig_msg ()) (cat_lines (map_filter I errs))
         else if len = 1 then
           (if ambiguity > level then
-            warning "Fortunately, only one parse tree is type correct.\n\
+            Context_Position.if_visible ctxt warning
+              "Fortunately, only one parse tree is type correct.\n\
               \You may still want to disambiguate your grammar or your input."
           else (); hd results)
         else cat_error (ambig_msg ()) (cat_lines
@@ -551,7 +552,7 @@ fun disambig _ _ [t] = t
 fun standard_parse_term pp check get_sort map_const map_free ctxt is_logtype syn ty (syms, pos) =
   read ctxt is_logtype syn ty (syms, pos)
   |> map (Type_Ext.decode_term get_sort map_const map_free)
-  |> disambig (Printer.pp_show_brackets pp) check;
+  |> disambig ctxt (Printer.pp_show_brackets pp) check;
 
 
 (* read types *)

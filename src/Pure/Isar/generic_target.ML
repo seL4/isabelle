@@ -41,7 +41,7 @@ struct
 fun check_mixfix ctxt (b, extra_tfrees) mx =
   if null extra_tfrees then mx
   else
-    (warning
+    (Context_Position.if_visible ctxt warning
       ("Additional type variable(s) in specification of " ^ Binding.str_of b ^ ": " ^
         commas (map (Syntax.string_of_typ ctxt o TFree) (sort_wrt #1 extra_tfrees)) ^
         (if mx = NoSyn then ""

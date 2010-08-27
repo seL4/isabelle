@@ -102,9 +102,10 @@ fun read_abbrev b ctxt raw_rhs =
     val ignored = Term.fold_atyps_sorts (fn (_, []) => I | (T, _) => insert (op =) T) rhs [];
     val _ =
       if null ignored then ()
-      else warning ("Ignoring sort constraints in type variables(s): " ^
-        commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
-        "\nin type abbreviation " ^ quote (Binding.str_of b));
+      else Context_Position.if_visible ctxt warning
+        ("Ignoring sort constraints in type variables(s): " ^
+          commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
+          "\nin type abbreviation " ^ quote (Binding.str_of b));
   in rhs end;
 
 in
