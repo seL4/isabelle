@@ -40,6 +40,9 @@ feature is still required for historical reasons.
 
 *** HOL ***
 
+* Scala (2.8 or higher) has been added to the target languages of
+the code generator.
+
 * Dropped type classes mult_mono and mult_mono1.  INCOMPATIBILITY.
 
 * Theory SetsAndFunctions has been split into Function_Algebras and Set_Algebras;

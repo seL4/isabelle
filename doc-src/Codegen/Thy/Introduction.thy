@@ -8,8 +8,9 @@ text {*
   This tutorial introduces the code generator facilities of @{text
   "Isabelle/HOL"}.  It allows to turn (a certain class of) HOL
   specifications into corresponding executable code in the programming
-  languages @{text SML} \cite{SML}, @{text OCaml} \cite{OCaml} and
-  @{text Haskell} \cite{haskell-revised-report}.
+  languages @{text SML} \cite{SML}, @{text OCaml} \cite{OCaml},
+  @{text Haskell} \cite{haskell-revised-report} and @{text Scala}
+  \cite{scala-overview-tech-report}.
 
   To profit from this tutorial, some familiarity and experience with
   @{theory HOL} \cite{isa-tutorial} and its basic theories is assumed.
@@ -78,8 +79,8 @@ text {*
   target language identifier and a freely chosen module name.  A file
   name denotes the destination to store the generated code.  Note that
   the semantics of the destination depends on the target language: for
-  @{text SML} and @{text OCaml} it denotes a \emph{file}, for @{text
-  Haskell} it denotes a \emph{directory} where a file named as the
+  @{text SML}, @{text OCaml} and @{text Scala} it denotes a \emph{file},
+  for @{text Haskell} it denotes a \emph{directory} where a file named as the
   module name (with extension @{text ".hs"}) is written:
 *}
 
