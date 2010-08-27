@@ -31,7 +31,8 @@ open Sledgehammer_Util
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
-val term_patterns = Unsynchronized.ref true
+(* experimental feature *)
+val term_patterns = Unsynchronized.ref false
 
 val respect_no_atp = true
 
@@ -105,7 +106,8 @@ fun pterm thy t =
   | _ => PApp ("?", [])  (* equivalence class of higher-order constructs *)
 (* Pairs a constant with the list of its type instantiations. *)
 and pconst_args thy const (s, T) ts =
-  (if const then map ptype (Sign.const_typargs thy (s, T)) else []) @
+  (if const then map ptype (these (try (Sign.const_typargs thy) (s, T)))
+   else []) @
   (if !term_patterns then map (pterm thy) ts else [])
 and pconst thy const (s, T) ts = (s, pconst_args thy const (s, T) ts)
 
