@@ -79,11 +79,11 @@ fun mk_exists (r as (Bvar, Body)) =
   in capply c (uncurry cabs r) end;
 
 
-local val c = mk_hol_const(@{const_name "op &"}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+local val c = mk_hol_const(@{const_name HOL.conj}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_conj(conj1,conj2) = capply (capply c conj1) conj2
 end;
 
-local val c = mk_hol_const(@{const_name "op |"}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+local val c = mk_hol_const(@{const_name HOL.disj}, HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
 in fun mk_disj(disj1,disj2) = capply (capply c disj1) disj2
 end;
 
@@ -129,8 +129,8 @@ val dest_neg    = dest_monop @{const_name Not}
 val dest_pair   = dest_binop @{const_name Pair}
 val dest_eq     = dest_binop @{const_name "op ="}
 val dest_imp    = dest_binop @{const_name HOL.implies}
-val dest_conj   = dest_binop @{const_name "op &"}
-val dest_disj   = dest_binop @{const_name "op |"}
+val dest_conj   = dest_binop @{const_name HOL.conj}
+val dest_disj   = dest_binop @{const_name HOL.disj}
 val dest_select = dest_binder @{const_name Eps}
 val dest_exists = dest_binder @{const_name Ex}
 val dest_forall = dest_binder @{const_name All}

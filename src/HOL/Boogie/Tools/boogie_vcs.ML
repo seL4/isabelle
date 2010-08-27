@@ -62,9 +62,9 @@ val vc_of_term =
       | vc_of (@{term HOL.implies} $ @{term True} $ u) = vc_of u
       | vc_of (@{term HOL.implies} $ t $ u) =
           vc_of u |> Option.map (assume t)
-      | vc_of (@{term "op &"} $ (@{term assert_at} $ Free (n, _) $ t) $ u) =
+      | vc_of (@{term HOL.conj} $ (@{term assert_at} $ Free (n, _) $ t) $ u) =
           SOME (vc_of u |> the_default True |> assert (n, t))
-      | vc_of (@{term "op &"} $ t $ u) =
+      | vc_of (@{term HOL.conj} $ t $ u) =
           (case (vc_of t, vc_of u) of
             (NONE, r) => r
           | (l, NONE) => l
@@ -74,7 +74,7 @@ val vc_of_term =
 
 val prop_of_vc =
   let
-    fun mk_conj t u = @{term "op &"} $ t $ u
+    fun mk_conj t u = @{term HOL.conj} $ t $ u
 
     fun term_of (Assume (t, v)) = @{term HOL.implies} $ t $ term_of v
       | term_of (Assert ((n, t), v)) =

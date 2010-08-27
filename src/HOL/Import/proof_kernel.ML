@@ -1205,7 +1205,7 @@ fun get_hol4_thm thyname thmname thy =
 fun non_trivial_term_consts t = fold_aterms
   (fn Const (c, _) =>
       if c = @{const_name Trueprop} orelse c = @{const_name All}
-        orelse c = @{const_name HOL.implies} orelse c = @{const_name "op &"} orelse c = @{const_name "op ="}
+        orelse c = @{const_name HOL.implies} orelse c = @{const_name HOL.conj} orelse c = @{const_name "op ="}
       then I else insert (op =) c
     | _ => I) t [];
 
@@ -1217,7 +1217,7 @@ fun match_consts t (* th *) =
                | @{const_name HOL.implies} => insert (op =) "==>" cs
                | @{const_name All} => cs
                | "all" => cs
-               | @{const_name "op &"} => cs
+               | @{const_name HOL.conj} => cs
                | @{const_name Trueprop} => cs
                | _ => insert (op =) c cs)
           | add_consts (t $ u, cs) = add_consts (t, add_consts (u, cs))
@@ -1521,7 +1521,7 @@ fun DISJ_CASES hth hth1 hth2 thy =
         val th1 = norm_hyps th1
         val th2 = norm_hyps th2
         val (l,r) = case concl_of th of
-                        _ $ (Const(@{const_name "op |"},_) $ l $ r) => (l,r)
+                        _ $ (Const(@{const_name HOL.disj},_) $ l $ r) => (l,r)
                       | _ => raise ERR "DISJ_CASES" "Conclusion not a disjunction"
         val th1' = rearrange thy (HOLogic.mk_Trueprop l) th1
         val th2' = rearrange thy (HOLogic.mk_Trueprop r) th2

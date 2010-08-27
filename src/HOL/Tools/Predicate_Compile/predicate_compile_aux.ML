@@ -405,7 +405,7 @@ fun map_indprem f (Prem t) = Prem (f t)
 (* general syntactic functions *)
 
 (*Like dest_conj, but flattens conjunctions however nested*)
-fun conjuncts_aux (Const (@{const_name "op &"}, _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
+fun conjuncts_aux (Const (@{const_name HOL.conj}, _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
   | conjuncts_aux t conjs = t::conjs;
 
 fun conjuncts t = conjuncts_aux t [];

@@ -55,8 +55,8 @@ const_maps
   ONTO    > Fun.surj
   "=" > "op ="
   "==>" > HOL.implies
-  "/\\" > "op &"
-  "\\/" > "op |"
+  "/\\" > HOL.conj
+  "\\/" > HOL.disj
   "!" > All
   "?" > Ex
   "?!" > Ex1

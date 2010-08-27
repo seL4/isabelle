@@ -95,8 +95,8 @@ val const_trans_table =
   Symtab.make [(@{type_name Product_Type.prod}, "prod"),
                (@{type_name Sum_Type.sum}, "sum"),
                (@{const_name "op ="}, "equal"),
-               (@{const_name "op &"}, "and"),
-               (@{const_name "op |"}, "or"),
+               (@{const_name HOL.conj}, "and"),
+               (@{const_name HOL.disj}, "or"),
                (@{const_name HOL.implies}, "implies"),
                (@{const_name Set.member}, "member"),
                (@{const_name fequal}, "fequal"),
@@ -430,7 +430,7 @@ fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
 
 fun literals_of_term1 args thy (@{const Trueprop} $ P) =
     literals_of_term1 args thy P
-  | literals_of_term1 args thy (@{const "op |"} $ P $ Q) =
+  | literals_of_term1 args thy (@{const HOL.disj} $ P $ Q) =
     literals_of_term1 (literals_of_term1 args thy P) thy Q
   | literals_of_term1 (lits, ts) thy P =
     let val ((pred, ts'), pol) = predicate_of thy (P, true) in

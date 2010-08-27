@@ -485,7 +485,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
        end
 
   | (Const (@{const_name Ex1}, ty) $ (Abs (_, _,
-      (Const (@{const_name "op &"}, _) $ (Const (@{const_name Set.member}, _) $ _ $
+      (Const (@{const_name HOL.conj}, _) $ (Const (@{const_name Set.member}, _) $ _ $
         (Const (@{const_name Respects}, _) $ resrel)) $ (t $ _)))),
      Const (@{const_name Ex1}, ty') $ t') =>
        let

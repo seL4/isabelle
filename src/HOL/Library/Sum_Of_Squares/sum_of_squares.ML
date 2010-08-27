@@ -1356,7 +1356,7 @@ end;
 
 val known_sos_constants =
   [@{term "op ==>"}, @{term "Trueprop"},
-   @{term HOL.implies}, @{term "op &"}, @{term "op |"},
+   @{term HOL.implies}, @{term HOL.conj}, @{term HOL.disj},
    @{term "Not"}, @{term "op = :: bool => _"},
    @{term "All :: (real => _) => _"}, @{term "Ex :: (real => _) => _"},
    @{term "op = :: real => _"}, @{term "op < :: real => _"},

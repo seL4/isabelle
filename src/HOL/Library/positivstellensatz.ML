@@ -439,8 +439,8 @@ let
   val is_req = is_binop @{cterm "op =:: real => _"}
   val is_ge = is_binop @{cterm "op <=:: real => _"}
   val is_gt = is_binop @{cterm "op <:: real => _"}
-  val is_conj = is_binop @{cterm "op &"}
-  val is_disj = is_binop @{cterm "op |"}
+  val is_conj = is_binop @{cterm HOL.conj}
+  val is_disj = is_binop @{cterm HOL.disj}
   fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
   fun disj_cases th th1 th2 = 
    let val (p,q) = Thm.dest_binop (concl th)
@@ -484,7 +484,7 @@ let
     val th_p = poly_conv(Thm.dest_arg(Thm.dest_arg1(Thm.rhs_of th)))
     val th_x = Drule.arg_cong_rule @{cterm "uminus :: real => _"} th_p
     val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
-    val th' = Drule.binop_cong_rule @{cterm "op |"} 
+    val th' = Drule.binop_cong_rule @{cterm HOL.disj} 
      (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
      (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
     in Thm.transitive th th' 
@@ -542,12 +542,12 @@ let
   let 
    val nnf_norm_conv' = 
      nnf_conv then_conv 
-     literals_conv [@{term "op &"}, @{term "op |"}] [] 
+     literals_conv [@{term HOL.conj}, @{term HOL.disj}] [] 
      (Conv.cache_conv 
        (first_conv [real_lt_conv, real_le_conv, 
                     real_eq_conv, real_not_lt_conv, 
                     real_not_le_conv, real_not_eq_conv, all_conv]))
-  fun absremover ct = (literals_conv [@{term "op &"}, @{term "op |"}] [] 
+  fun absremover ct = (literals_conv [@{term HOL.conj}, @{term HOL.disj}] [] 
                   (try_conv (absconv1 then_conv binop_conv (arg_conv poly_conv))) then_conv 
         try_conv (absconv2 then_conv nnf_norm_conv' then_conv binop_conv absremover)) ct
   val nct = Thm.capply @{cterm Trueprop} (Thm.capply @{cterm "Not"} ct)

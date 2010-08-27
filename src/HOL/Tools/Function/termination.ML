@@ -148,7 +148,7 @@ fun mk_sum_skel rel =
     val cs = Function_Lib.dest_binop_list @{const_name Lattices.sup} rel
     fun collect_pats (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
       let
-        val (Const (@{const_name "op &"}, _) $ (Const (@{const_name "op ="}, _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ _)
+        val (Const (@{const_name HOL.conj}, _) $ (Const (@{const_name "op ="}, _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ _)
           = Term.strip_qnt_body @{const_name Ex} c
       in cons r o cons l end
   in
@@ -185,7 +185,7 @@ fun dest_call D (Const (@{const_name Collect}, _) $ Abs (_, _, c)) =
     val vs = Term.strip_qnt_vars @{const_name Ex} c
 
     (* FIXME: throw error "dest_call" for malformed terms *)
-    val (Const (@{const_name "op &"}, _) $ (Const (@{const_name "op ="}, _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ Gam)
+    val (Const (@{const_name HOL.conj}, _) $ (Const (@{const_name "op ="}, _) $ _ $ (Const (@{const_name Pair}, _) $ r $ l)) $ Gam)
       = Term.strip_qnt_body @{const_name Ex} c
     val (p, l') = dest_inj sk l
     val (q, r') = dest_inj sk r

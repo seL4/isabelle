@@ -115,7 +115,7 @@ const_maps
   "_10303" > "HOLLight.hollight._10303"
   "_10302" > "HOLLight.hollight._10302"
   "_0" > "0" :: "nat"
-  "\\/" > "op |"
+  "\\/" > HOL.disj
   "ZRECSPACE" > "HOLLight.hollight.ZRECSPACE"
   "ZIP" > "HOLLight.hollight.ZIP"
   "ZCONSTR" > "HOLLight.hollight.ZCONSTR"
@@ -237,7 +237,7 @@ const_maps
   "=" > "op ="
   "<=" > "HOLLight.hollight.<="
   "<" > "HOLLight.hollight.<"
-  "/\\" > "op &"
+  "/\\" > HOL.conj
   "-" > "Groups.minus" :: "nat => nat => nat"
   "," > "Product_Type.Pair"
   "+" > "Groups.plus" :: "nat => nat => nat"

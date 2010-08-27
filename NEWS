@@ -104,6 +104,8 @@ generation.
     Trueprop ~> HOL.Trueprop
     True ~> HOL.True
     False ~> HOL.False
+    op & ~> HOL.conj
+    op | ~> HOL.disj
     op --> ~> HOL.implies
     Not ~> HOL.Not
     The ~> HOL.The

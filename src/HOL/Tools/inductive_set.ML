@@ -74,9 +74,9 @@ fun strong_ind_simproc tab =
         in Drule.instantiate' [] (rev (map (SOME o cterm_of thy o Var) vs))
           (p (fold (Logic.all o Var) vs t) f)
         end;
-      fun mkop @{const_name "op &"} T x =
+      fun mkop @{const_name HOL.conj} T x =
             SOME (Const (@{const_name Lattices.inf}, T --> T --> T), x)
-        | mkop @{const_name "op |"} T x =
+        | mkop @{const_name HOL.disj} T x =
             SOME (Const (@{const_name Lattices.sup}, T --> T --> T), x)
         | mkop _ _ _ = NONE;
       fun mk_collect p T t =

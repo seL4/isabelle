@@ -159,8 +159,8 @@ fun get_pseudoconsts thy also_skolems pos ts =
         do_quantifier (pos = SOME false) body_t
       | Const (@{const_name Ex}, _) $ Abs (_, _, body_t) =>
         do_quantifier (pos = SOME true) body_t
-      | @{const "op &"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
-      | @{const "op |"} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
+      | @{const HOL.conj} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
+      | @{const HOL.disj} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
       | @{const HOL.implies} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "op ="}, Type (_, [T, _])) $ t1 $ t2 =>
@@ -545,8 +545,8 @@ val is_exhaustive_finite =
         do_formula (not pos) t1 andalso
         (t2 = @{const False} orelse do_formula pos t2)
       | (_, @{const Not} $ t1) => do_formula (not pos) t1
-      | (true, @{const "op |"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
-      | (false, @{const "op &"} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (true, @{const HOL.disj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
+      | (false, @{const HOL.conj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
       | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
       | _ => false

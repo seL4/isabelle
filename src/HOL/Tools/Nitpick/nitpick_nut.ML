@@ -518,9 +518,9 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
         | (Const (@{const_name "op ="}, T), [t1]) =>
           Op1 (SingletonSet, range_type T, Any, sub t1)
         | (Const (@{const_name "op ="}, T), [t1, t2]) => sub_equals T t1 t2
-        | (Const (@{const_name "op &"}, _), [t1, t2]) =>
+        | (Const (@{const_name HOL.conj}, _), [t1, t2]) =>
           Op2 (And, bool_T, Any, sub' t1, sub' t2)
-        | (Const (@{const_name "op |"}, _), [t1, t2]) =>
+        | (Const (@{const_name HOL.disj}, _), [t1, t2]) =>
           Op2 (Or, bool_T, Any, sub t1, sub t2)
         | (Const (@{const_name HOL.implies}, _), [t1, t2]) =>
           Op2 (Or, bool_T, Any, Op1 (Not, bool_T, Any, sub t1), sub' t2)
