@@ -38,8 +38,8 @@ sig
   val cases_of: Proof.context -> (string * (Rule_Cases.T * bool)) list
   val transfer_syntax: theory -> Proof.context -> Proof.context
   val transfer: theory -> Proof.context -> Proof.context
-  val theory: (theory -> theory) -> Proof.context -> Proof.context
-  val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
+  val background_theory: (theory -> theory) -> Proof.context -> Proof.context
+  val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val pretty_fact_aux: Proof.context -> bool -> string * thm list -> Pretty.T
@@ -283,9 +283,9 @@ fun transfer_syntax thy ctxt = ctxt |>
 
 fun transfer thy = Context.raw_transfer thy #> transfer_syntax thy;
 
-fun theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
+fun background_theory f ctxt = transfer (f (theory_of ctxt)) ctxt;
 
-fun theory_result f ctxt =
+fun background_theory_result f ctxt =
   let val (res, thy') = f (theory_of ctxt)
   in (res, ctxt |> transfer thy') end;
 

@@ -37,7 +37,8 @@ fun no_frees_conv conv ct =
 
 (* dedicated simpset *)
 
-structure Simpset = Theory_Data (
+structure Simpset = Theory_Data
+(
   type T = simpset;
   val empty = empty_ss;
   fun extend ss = MetaSimplifier.inherit_context empty_ss ss;

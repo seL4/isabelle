@@ -21,8 +21,7 @@ open Predicate_Compile_Aux;
 structure Fun_Pred = Theory_Data
 (
   type T = (term * term) Item_Net.T;
-  val empty = Item_Net.init ((op aconv o pairself fst) : (term * term) * (term * term) -> bool)
-    (single o fst);
+  val empty : T = Item_Net.init (op aconv o pairself fst) (single o fst);
   val extend = I;
   val merge = Item_Net.merge;
 )

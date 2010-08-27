@@ -3,7 +3,7 @@ imports Complex_Main
 begin
 
 ML "Pretty.margin_default := 64"
-ML "Thy_Output.indent := 0"  (*we don't want 5 for listing theorems*)
+declare [[thy_output_indent = 0]]  (*we don't want 5 for listing theorems*)
 
 text{*
 

@@ -195,16 +195,16 @@ fun theory_declaration decl lthy =
       (Morphism.transform (Local_Theory.global_morphism lthy) decl);
   in
     lthy
-    |> Local_Theory.theory (Context.theory_map global_decl)
+    |> Local_Theory.background_theory (Context.theory_map global_decl)
     |> Local_Theory.target (Context.proof_map global_decl)
   end;
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   let
-    val (const, lthy2) = lthy |> Local_Theory.theory_result
+    val (const, lthy2) = lthy |> Local_Theory.background_theory_result
       (Sign.declare_const ((b, U), mx));
     val lhs = list_comb (const, type_params @ term_params);
-    val ((_, def), lthy3) = lthy2 |> Local_Theory.theory_result
+    val ((_, def), lthy3) = lthy2 |> Local_Theory.background_theory_result
       (Thm.add_def false false (b_def, Logic.mk_equals (lhs, rhs)));
   in ((lhs, def), lthy3) end;
 
@@ -214,12 +214,13 @@ fun theory_notes kind global_facts lthy =
     val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
   in
     lthy
-    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.background_theory (PureThy.note_thmss kind global_facts' #> snd)
     |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
   end;
 
-fun theory_abbrev prmode ((b, mx), t) = Local_Theory.theory
-  (Sign.add_abbrev (#1 prmode) (b, t) #->
-    (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
+fun theory_abbrev prmode ((b, mx), t) =
+  Local_Theory.background_theory
+    (Sign.add_abbrev (#1 prmode) (b, t) #->
+      (fn (lhs, _) => Sign.notation true prmode [(lhs, mx)]));
 
 end;

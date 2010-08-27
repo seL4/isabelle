@@ -220,8 +220,8 @@ fun process_spec axiomatic cos alt_props thy =
                     |> process_all (zip3 alt_names rew_imps frees)
             end
 
-      fun after_qed [[thm]] = (ProofContext.theory (fn thy =>
-        #1 (post_process (add_specification axiomatic (zip3 names cnames overloaded) (thy, thm)))));
+      fun after_qed [[thm]] = ProofContext.background_theory (fn thy =>
+        #1 (post_process (add_specification axiomatic (zip3 names cnames overloaded) (thy, thm))));
     in
       thy
       |> ProofContext.init_global

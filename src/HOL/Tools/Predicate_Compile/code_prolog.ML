@@ -596,13 +596,14 @@ fun values ctxt soln t_compr =
     val _ = tracing "Preprocessing specification..."
     val T = Sign.the_const_type (ProofContext.theory_of ctxt) name
     val t = Const (name, T)
-    val ctxt' = ProofContext.theory (Context.copy_thy) ctxt
-    val thy' = Predicate_Compile.preprocess preprocess_options t (ProofContext.theory_of ctxt')
-    val ctxt'' = ProofContext.init_global thy'
+    val thy' =
+      Theory.copy (ProofContext.theory_of ctxt)
+      |> Predicate_Compile.preprocess preprocess_options t
+    val ctxt' = ProofContext.init_global thy'
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate (#ensure_groundness options) ctxt'' name
+    val (p, constant_table) = generate (#ensure_groundness options) ctxt' name
       |> (if #ensure_groundness options then
-          add_ground_predicates ctxt'' (#limited_types options)
+          add_ground_predicates ctxt' (#limited_types options)
         else I)
     val _ = tracing "Running prolog program..."
     val tss = run (#prolog_system options)
@@ -622,7 +623,7 @@ fun values ctxt soln t_compr =
             mk_set_compr (t :: in_insert) ts xs
           else
             let
-              val uu as (uuN, uuT) = singleton (Variable.variant_frees ctxt'' [t]) ("uu", fastype_of t)
+              val uu as (uuN, uuT) = singleton (Variable.variant_frees ctxt' [t]) ("uu", fastype_of t)
               val set_compr =
                 HOLogic.mk_Collect (uuN, uuT, fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))
                   frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), @{term "True"})))
@@ -633,7 +634,7 @@ fun values ctxt soln t_compr =
         end
   in
       foldl1 (HOLogic.mk_binop @{const_name sup}) (mk_set_compr []
-        (map (fn ts => HOLogic.mk_tuple (map (restore_term ctxt'' constant_table) (ts ~~ Ts))) tss) [])
+        (map (fn ts => HOLogic.mk_tuple (map (restore_term ctxt' constant_table) (ts ~~ Ts))) tss) [])
   end
 
 fun values_cmd print_modes soln raw_t state =
@@ -674,10 +675,9 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
 fun quickcheck ctxt report t size =
   let
-    val ctxt' = ProofContext.theory (Context.copy_thy) ctxt
-    val thy = (ProofContext.theory_of ctxt')
+    val thy = Theory.copy (ProofContext.theory_of ctxt)
     val (vs, t') = strip_abs t
-    val vs' = Variable.variant_frees ctxt' [] vs
+    val vs' = Variable.variant_frees ctxt [] vs
     val Ts = map snd vs'
     val t'' = subst_bounds (map Free (rev vs'), t')
     val (prems, concl) = strip_horn t''
@@ -693,15 +693,15 @@ fun quickcheck ctxt report t size =
     val intro = Goal.prove (ProofContext.init_global thy1) (map fst vs') [] t tac
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val thy3 = Predicate_Compile.preprocess preprocess_options const thy2
-    val ctxt'' = ProofContext.init_global thy3
+    val ctxt' = ProofContext.init_global thy3
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate true ctxt'' full_constname
-      |> add_ground_predicates ctxt'' (#limited_types (!options))
+    val (p, constant_table) = generate true ctxt' full_constname
+      |> add_ground_predicates ctxt' (#limited_types (!options))
     val _ = tracing "Running prolog program..."
     val [ts] = run (#prolog_system (!options))
       p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
-    val res = SOME (map (restore_term ctxt'' constant_table) (ts ~~ Ts))
+    val res = SOME (map (restore_term ctxt' constant_table) (ts ~~ Ts))
     val empty_report = ([], false)
   in
     (res, empty_report)

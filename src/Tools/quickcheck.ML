@@ -78,27 +78,32 @@ fun merge_expectation (expect1, expect2) =
 
 datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ list, no_assms: bool,
-  expect : expectation, report: bool, quiet : bool};
+    expect : expectation, report: bool, quiet : bool};
 
 fun dest_test_params (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
   ((size, iterations), ((default_type, no_assms), ((expect, report), quiet)));
+
 fun make_test_params ((size, iterations), ((default_type, no_assms), ((expect, report), quiet))) =
   Test_Params { size = size, iterations = iterations, default_type = default_type,
-                no_assms = no_assms, expect = expect, report = report, quiet = quiet };
+    no_assms = no_assms, expect = expect, report = report, quiet = quiet };
+
 fun map_test_params f (Test_Params { size, iterations, default_type, no_assms, expect, report, quiet }) =
   make_test_params (f ((size, iterations), ((default_type, no_assms), ((expect, report), quiet))));
-fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1,
-                                     no_assms = no_assms1, expect = expect1, report = report1, quiet = quiet1 },
+
+fun merge_test_params
+ (Test_Params { size = size1, iterations = iterations1, default_type = default_type1,
+    no_assms = no_assms1, expect = expect1, report = report1, quiet = quiet1 },
   Test_Params { size = size2, iterations = iterations2, default_type = default_type2,
-                no_assms = no_assms2, expect = expect2, report = report2, quiet = quiet2 }) =
+    no_assms = no_assms2, expect = expect2, report = report2, quiet = quiet2 }) =
   make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     ((merge (op =) (default_type1, default_type2), no_assms1 orelse no_assms2),
     ((merge_expectation (expect1, expect2), report1 orelse report2), quiet1 orelse quiet2)));
 
 structure Data = Theory_Data
 (
-  type T = (string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))) list
-    * test_params;
+  type T =
+    (string * (Proof.context -> bool -> term -> int -> term list option * (bool list * bool))) list
+      * test_params;
   val empty = ([], Test_Params
     { size = 10, iterations = 100, default_type = [], no_assms = false,
       expect = No_Expectation, report = false, quiet = false});

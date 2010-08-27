@@ -34,7 +34,7 @@ fun object_logic_arity name thy =
 fun basic_decl decl (b, n, mx) lthy =
   let val name = Local_Theory.full_name lthy b in
     lthy
-    |> Local_Theory.theory (decl name)
+    |> Local_Theory.background_theory (decl name)
     |> Local_Theory.type_notation true Syntax.mode_default [(Type (name, replicate n dummyT), mx)]
     |> Local_Theory.type_alias b name
     |> pair name

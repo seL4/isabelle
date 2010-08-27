@@ -195,7 +195,7 @@ fun use_ml src_path =
       val _ = Context.>> Local_Theory.propagate_ml_env;
 
       val provide = provide (src_path, (path, id));
-      val _ = Context.>> (Context.mapping provide (Local_Theory.theory provide));
+      val _ = Context.>> (Context.mapping provide (Local_Theory.background_theory provide));
     in () end;
 
 fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);

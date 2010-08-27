@@ -420,7 +420,7 @@ fun make_data
   equalities = equalities, extinjects=extinjects, extsplit = extsplit, splits = splits,
   extfields = extfields, fieldext = fieldext }: data;
 
-structure Records_Data = Theory_Data
+structure Data = Theory_Data
 (
   type T = data;
   val empty =
@@ -474,25 +474,22 @@ structure Records_Data = Theory_Data
 
 (* access 'records' *)
 
-val get_info = Symtab.lookup o #records o Records_Data.get;
+val get_info = Symtab.lookup o #records o Data.get;
 
 fun the_info thy name =
   (case get_info thy name of
     SOME info => info
   | NONE => error ("Unknown record type " ^ quote name));
 
-fun put_record name info thy =
-  let
-    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      Records_Data.get thy;
-    val data = make_data (Symtab.update (name, info) records)
-      sel_upd equalities extinjects extsplit splits extfields fieldext;
-  in Records_Data.put data thy end;
+fun put_record name info =
+  Data.map (fn {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+    make_data (Symtab.update (name, info) records)
+      sel_upd equalities extinjects extsplit splits extfields fieldext);
 
 
 (* access 'sel_upd' *)
 
-val get_sel_upd = #sel_upd o Records_Data.get;
+val get_sel_upd = #sel_upd o Data.get;
 
 val is_selector = Symtab.defined o #selectors o get_sel_upd;
 val get_updates = Symtab.lookup o #updates o get_sel_upd;
@@ -517,7 +514,7 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
     val upds = map (suffix updateN) all ~~ all;
 
     val {records, sel_upd = {selectors, updates, simpset, defset, foldcong, unfoldcong},
-      equalities, extinjects, extsplit, splits, extfields, fieldext} = Records_Data.get thy;
+      equalities, extinjects, extsplit, splits, extfields, fieldext} = Data.get thy;
     val data = make_data records
       {selectors = fold Symtab.update_new sels selectors,
         updates = fold Symtab.update_new upds updates,
@@ -526,80 +523,61 @@ fun put_sel_upd names more depth simps defs (folds, unfolds) thy =
         foldcong = foldcong addcongs folds,
         unfoldcong = unfoldcong addcongs unfolds}
        equalities extinjects extsplit splits extfields fieldext;
-  in Records_Data.put data thy end;
+  in Data.put data thy end;
 
 
 (* access 'equalities' *)
 
-fun add_equalities name thm thy =
-  let
-    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      Records_Data.get thy;
-    val data = make_data records sel_upd
-      (Symtab.update_new (name, thm) equalities) extinjects extsplit splits extfields fieldext;
-  in Records_Data.put data thy end;
+fun add_equalities name thm =
+  Data.map (fn {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+    make_data records sel_upd
+      (Symtab.update_new (name, thm) equalities) extinjects extsplit splits extfields fieldext);
 
-val get_equalities = Symtab.lookup o #equalities o Records_Data.get;
+val get_equalities = Symtab.lookup o #equalities o Data.get;
 
 
 (* access 'extinjects' *)
 
-fun add_extinjects thm thy =
-  let
-    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      Records_Data.get thy;
-    val data =
-      make_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects)
-        extsplit splits extfields fieldext;
-  in Records_Data.put data thy end;
+fun add_extinjects thm =
+  Data.map (fn {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+    make_data records sel_upd equalities (insert Thm.eq_thm_prop thm extinjects)
+      extsplit splits extfields fieldext);
 
-val get_extinjects = rev o #extinjects o Records_Data.get;
+val get_extinjects = rev o #extinjects o Data.get;
 
 
 (* access 'extsplit' *)
 
-fun add_extsplit name thm thy =
-  let
-    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      Records_Data.get thy;
-    val data =
-      make_data records sel_upd equalities extinjects
-        (Symtab.update_new (name, thm) extsplit) splits extfields fieldext;
-  in Records_Data.put data thy end;
+fun add_extsplit name thm =
+  Data.map (fn {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+    make_data records sel_upd equalities extinjects
+      (Symtab.update_new (name, thm) extsplit) splits extfields fieldext);
 
 
 (* access 'splits' *)
 
-fun add_splits name thmP thy =
-  let
-    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      Records_Data.get thy;
-    val data =
-      make_data records sel_upd equalities extinjects extsplit
-        (Symtab.update_new (name, thmP) splits) extfields fieldext;
-  in Records_Data.put data thy end;
+fun add_splits name thmP =
+  Data.map (fn {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+    make_data records sel_upd equalities extinjects extsplit
+      (Symtab.update_new (name, thmP) splits) extfields fieldext);
 
-val get_splits = Symtab.lookup o #splits o Records_Data.get;
+val get_splits = Symtab.lookup o #splits o Data.get;
 
 
 (* parent/extension of named record *)
 
-val get_parent = (Option.join o Option.map #parent) oo (Symtab.lookup o #records o Records_Data.get);
-val get_extension = Option.map #extension oo (Symtab.lookup o #records o Records_Data.get);
+val get_parent = (Option.join o Option.map #parent) oo (Symtab.lookup o #records o Data.get);
+val get_extension = Option.map #extension oo (Symtab.lookup o #records o Data.get);
 
 
 (* access 'extfields' *)
 
-fun add_extfields name fields thy =
-  let
-    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      Records_Data.get thy;
-    val data =
-      make_data records sel_upd equalities extinjects extsplit splits
-        (Symtab.update_new (name, fields) extfields) fieldext;
-  in Records_Data.put data thy end;
+fun add_extfields name fields =
+  Data.map (fn {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+    make_data records sel_upd equalities extinjects extsplit splits
+      (Symtab.update_new (name, fields) extfields) fieldext);
 
-val get_extfields = Symtab.lookup o #extfields o Records_Data.get;
+val get_extfields = Symtab.lookup o #extfields o Data.get;
 
 fun get_extT_fields thy T =
   let
@@ -609,7 +587,7 @@ fun get_extT_fields thy T =
       in Long_Name.implode (rev (nm :: rst)) end;
     val midx = maxidx_of_typs (moreT :: Ts);
     val varifyT = varifyT midx;
-    val {records, extfields, ...} = Records_Data.get thy;
+    val {records, extfields, ...} = Data.get thy;
     val (fields, (more, _)) = split_last (Symtab.lookup_list extfields name);
     val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
 
@@ -628,18 +606,14 @@ fun get_recT_fields thy T =
 
 (* access 'fieldext' *)
 
-fun add_fieldext extname_types fields thy =
-  let
-    val {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =
-      Records_Data.get thy;
-    val fieldext' =
-      fold (fn field => Symtab.update_new (field, extname_types)) fields fieldext;
-    val data =
-      make_data records sel_upd equalities extinjects
-        extsplit splits extfields fieldext';
-  in Records_Data.put data thy end;
+fun add_fieldext extname_types fields =
+  Data.map (fn {records, sel_upd, equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+    let
+      val fieldext' =
+        fold (fn field => Symtab.update_new (field, extname_types)) fields fieldext;
+    in make_data records sel_upd equalities extinjects extsplit splits extfields fieldext' end);
 
-val get_fieldext = Symtab.lookup o #fieldext o Records_Data.get;
+val get_fieldext = Symtab.lookup o #fieldext o Data.get;
 
 
 (* parent records *)
@@ -1179,7 +1153,7 @@ val simproc =
             ((upd as Const (u, Type (_, [_, Type (_, [rT, _])]))) $ k $ r) =>
           if is_selector thy s andalso is_some (get_updates thy u) then
             let
-              val {sel_upd = {updates, ...}, extfields, ...} = Records_Data.get thy;
+              val {sel_upd = {updates, ...}, extfields, ...} = Data.get thy;
 
               fun mk_eq_terms ((upd as Const (u, Type(_, [kT, _]))) $ k $ r) =
                     (case Symtab.lookup updates u of
@@ -1598,15 +1572,17 @@ fun try_param_tac s rule = CSUBGOAL (fn (cgoal, i) =>
         [] => (head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
           (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
       | [x] => (head_of x, false));
-    val rule'' = cterm_instantiate (map (pairself cert)
-      (case rev params of
-        [] =>
-          (case AList.lookup (op =) (Term.add_frees g []) s of
-            NONE => sys_error "try_param_tac: no such variable"
-          | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl), (x, Free (s, T))])
-      | (_, T) :: _ =>
-          [(P, list_abs (params, if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
-            (x, list_abs (params, Bound 0))])) rule';
+    val rule'' =
+      cterm_instantiate
+        (map (pairself cert)
+          (case rev params of
+            [] =>
+              (case AList.lookup (op =) (Term.add_frees g []) s of
+                NONE => sys_error "try_param_tac: no such variable"
+              | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl), (x, Free (s, T))])
+          | (_, T) :: _ =>
+              [(P, list_abs (params, if ca then concl else incr_boundvars 1 (Abs (s, T, concl)))),
+                (x, list_abs (params, Bound 0))])) rule';
   in compose_tac (false, rule'', nprems_of rule) i end);
 
 
@@ -1635,7 +1611,8 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
         val suff = if i = 0 then ext_typeN else inner_typeN ^ string_of_int i;
         val ((_, cons), thy') = thy
           |> Iso_Tuple_Support.add_iso_tuple_type
-            (Binding.suffix_name suff (Binding.name base_name), alphas_zeta) (fastype_of left, fastype_of right);
+            (Binding.suffix_name suff (Binding.name base_name), alphas_zeta)
+              (fastype_of left, fastype_of right);
       in
         (cons $ left $ right, (thy', i + 1))
       end;
@@ -1778,7 +1755,10 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
             ("ext_surjective", surject),
             ("ext_split", split_meta)]);
 
-  in (((ext_name, ext_type), (ext_tyco, alphas_zeta), extT, induct', inject', surjective', split_meta', ext_def), thm_thy) end;
+  in
+    (((ext_name, ext_type), (ext_tyco, alphas_zeta),
+      extT, induct', inject', surjective', split_meta', ext_def), thm_thy)
+  end;
 
 fun chunks [] [] = []
   | chunks [] xs = [xs]
@@ -1795,7 +1775,7 @@ fun subst_last _ [] = error "subst_last: list should not be empty"
 
 (* mk_recordT *)
 
-(*builds up the record type from the current extension tpye extT and a list
+(*build up the record type from the current extension tpye extT and a list
   of parent extensions, starting with the root of the record hierarchy*)
 fun mk_recordT extT =
   fold_rev (fn (parent, Ts) => fn T => Type (parent, subst_last T Ts)) extT;
@@ -1834,8 +1814,10 @@ fun instantiate_random_record tyco vs extN Ts thy =
     val lhs = HOLogic.mk_random T size;
     val tc = HOLogic.mk_return Tm @{typ Random.seed}
       (HOLogic.mk_valtermify_app extN params T);
-    val rhs = HOLogic.mk_ST
-      (map (fn (v, T') => ((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, termifyT T'))) params)
+    val rhs =
+      HOLogic.mk_ST
+        (map (fn (v, T') =>
+          ((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, termifyT T'))) params)
         tc @{typ Random.seed} (SOME Tm, @{typ Random.seed});
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in 
@@ -1860,17 +1842,20 @@ fun ensure_random_record ext_tyco vs extN Ts thy =
 
 fun add_code ext_tyco vs extT ext simps inject thy =
   let
-    val eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
-      (Const (@{const_name eq_class.eq}, extT --> extT --> HOLogic.boolT),
-       Const (@{const_name "op ="}, extT --> extT --> HOLogic.boolT));
-    fun tac eq_def = Class.intro_classes_tac []
+    val eq =
+      (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+        (Const (@{const_name eq_class.eq}, extT --> extT --> HOLogic.boolT),
+         Const (@{const_name "op ="}, extT --> extT --> HOLogic.boolT));
+    fun tac eq_def =
+      Class.intro_classes_tac []
       THEN (Simplifier.rewrite_goals_tac [Simpdata.mk_eq eq_def])
       THEN ALLGOALS (rtac @{thm refl});
     fun mk_eq thy eq_def = Simplifier.rewrite_rule
       [(AxClass.unoverload thy o Thm.symmetric o Simpdata.mk_eq) eq_def] inject;
-    fun mk_eq_refl thy = @{thm HOL.eq_refl}
+    fun mk_eq_refl thy =
+      @{thm HOL.eq_refl}
       |> Thm.instantiate
-         ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT_global extT)], [])
+        ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT_global extT)], [])
       |> AxClass.unoverload thy;
   in
     thy
@@ -1944,7 +1929,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     val extension_name = full binding;
 
-    val ((ext, (ext_tyco, vs), extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), ext_thy) =
+    val ((ext, (ext_tyco, vs),
+        extT, ext_induct, ext_inject, ext_surjective, ext_split, ext_def), ext_thy) =
       thy
       |> Sign.qualified_path false binding
       |> extension_definition extension_name fields alphas_ext zeta moreT more vars;

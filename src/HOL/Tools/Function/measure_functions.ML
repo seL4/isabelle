@@ -20,7 +20,7 @@ structure Measure_Heuristic_Rules = Named_Thms
 (
   val name = "measure_function"
   val description =
-    "Rules that guide the heuristic generation of measure functions"
+    "rules that guide the heuristic generation of measure functions"
 );
 
 fun mk_is_measure t =

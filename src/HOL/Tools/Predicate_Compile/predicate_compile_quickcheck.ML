@@ -185,10 +185,9 @@ fun cpu_time description f =
 
 fun compile_term compilation options ctxt t =
   let
-    val ctxt' = ProofContext.theory (Context.copy_thy) ctxt
-    val thy = (ProofContext.theory_of ctxt') 
+    val thy = Theory.copy (ProofContext.theory_of ctxt)
     val (vs, t') = strip_abs t
-    val vs' = Variable.variant_frees ctxt' [] vs
+    val vs' = Variable.variant_frees ctxt [] vs
     val t'' = subst_bounds (map Free (rev vs'), t')
     val (prems, concl) = strip_horn t''
     val constname = "pred_compile_quickcheck"

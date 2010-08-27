@@ -144,7 +144,7 @@ setup {* Sign.add_path "version1" *}
 definition xor :: "bool \<Rightarrow> bool \<Rightarrow> bool"    (infixl "\<oplus>" 60)
 where "A \<oplus> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 (*<*)
-local
+setup {* Sign.local_path *}
 (*>*)
 
 text {*
@@ -169,7 +169,7 @@ where "A [+]\<ignore> B \<equiv> (A \<and> \<not> B) \<or> (\<not> A \<and> B)"
 
 notation (xsymbols) xor (infixl "\<oplus>\<ignore>" 60)
 (*<*)
-local
+setup {* Sign.local_path *}
 (*>*)
 
 text {*\noindent
