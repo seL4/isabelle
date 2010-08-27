@@ -13,7 +13,6 @@ sig
   val use_text: use_context -> int * string -> bool -> string -> unit
   val use_file: use_context -> bool -> string -> unit
   val toplevel_pp: string list -> string -> unit
-  val Isar_setup: unit -> unit
   val PG_setup: unit -> unit
   val commit: unit -> unit
   val bash_output: string -> string * int
@@ -56,8 +55,8 @@ val use_global = raw_use_text ML_Parse.global_context (0, "") false;
 
 fun commit () = use_global "commit();";   (*commit is dynamically bound!*)
 
-fun Isar_setup () = use_global "open Unsynchronized;";
-fun PG_setup () = use_global "structure ThyLoad = ProofGeneral.ThyLoad;";
+fun PG_setup () =
+  use_global "val change = Unsynchronized.change; structure ThyLoad = ProofGeneral.ThyLoad;";
 
 
 (* shell commands *)
