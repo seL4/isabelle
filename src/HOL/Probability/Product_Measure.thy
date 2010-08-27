@@ -202,10 +202,64 @@ definition prod_sets where
   "prod_sets A B = {z. \<exists>x \<in> A. \<exists>y \<in> B. z = x \<times> y}"
 
 definition
-  "prod_measure M \<mu> N \<nu> = (\<lambda>A. measure_space.positive_integral M \<mu> (\<lambda>s0. \<nu> ((\<lambda>s1. (s0, s1)) -` A)))"
+  "prod_measure_space M1 M2 = sigma (space M1 \<times> space M2) (prod_sets (sets M1) (sets M2))"
+
+lemma
+  fixes M1 :: "'a algebra" and M2 :: "'b algebra"
+  assumes "algebra M1" "algebra M2"
+  shows measureable_fst[intro!, simp]:
+    "fst \<in> measurable (prod_measure_space M1 M2) M1" (is ?fst)
+  and measureable_snd[intro!, simp]:
+    "snd \<in> measurable (prod_measure_space M1 M2) M2" (is ?snd)
+proof -
+  interpret M1: algebra M1 by fact
+  interpret M2: algebra M2 by fact
+
+  { fix X assume "X \<in> sets M1"
+    then have "\<exists>X1\<in>sets M1. \<exists>X2\<in>sets M2. fst -` X \<inter> space M1 \<times> space M2 = X1 \<times> X2"
+      apply - apply (rule bexI[of _ X]) apply (rule bexI[of _ "space M2"])
+      using M1.sets_into_space by force+ }
+  moreover
+  { fix X assume "X \<in> sets M2"
+    then have "\<exists>X1\<in>sets M1. \<exists>X2\<in>sets M2. snd -` X \<inter> space M1 \<times> space M2 = X1 \<times> X2"
+      apply - apply (rule bexI[of _ "space M1"]) apply (rule bexI[of _ X])
+      using M2.sets_into_space by force+ }
+  ultimately show ?fst ?snd
+    by (force intro!: sigma_sets.Basic
+              simp: measurable_def prod_measure_space_def prod_sets_def sets_sigma)+
+qed
+
+lemma (in sigma_algebra) measureable_prod:
+  fixes M1 :: "'a algebra" and M2 :: "'b algebra"
+  assumes "algebra M1" "algebra M2"
+  shows "f \<in> measurable M (prod_measure_space M1 M2) \<longleftrightarrow>
+    (fst \<circ> f) \<in> measurable M M1 \<and> (snd \<circ> f) \<in> measurable M M2"
+using assms proof (safe intro!: measurable_comp[where b="prod_measure_space M1 M2"])
+  interpret M1: algebra M1 by fact
+  interpret M2: algebra M2 by fact
+  assume f: "(fst \<circ> f) \<in> measurable M M1" and s: "(snd \<circ> f) \<in> measurable M M2"
+
+  show "f \<in> measurable M (prod_measure_space M1 M2)" unfolding prod_measure_space_def
+  proof (rule measurable_sigma)
+    show "prod_sets (sets M1) (sets M2) \<subseteq> Pow (space M1 \<times> space M2)"
+      unfolding prod_sets_def using M1.sets_into_space M2.sets_into_space by auto
+    show "f \<in> space M \<rightarrow> space M1 \<times> space M2"
+      using f s by (auto simp: mem_Times_iff measurable_def comp_def)
+    fix A assume "A \<in> prod_sets (sets M1) (sets M2)"
+    then obtain B C where "B \<in> sets M1" "C \<in> sets M2" "A = B \<times> C"
+      unfolding prod_sets_def by auto
+    moreover have "(fst \<circ> f) -` B \<inter> space M \<in> sets M"
+      using f `B \<in> sets M1` unfolding measurable_def by auto
+    moreover have "(snd \<circ> f) -` C \<inter> space M \<in> sets M"
+      using s `C \<in> sets M2` unfolding measurable_def by auto
+    moreover have "f -` A \<inter> space M = ((fst \<circ> f) -` B \<inter> space M) \<inter> ((snd \<circ> f) -` C \<inter> space M)"
+      unfolding `A = B \<times> C` by (auto simp: vimage_Times)
+    ultimately show "f -` A \<inter> space M \<in> sets M" by auto
+  qed
+qed
 
 definition
-  "prod_measure_space M1 M2 = sigma (space M1 \<times> space M2) (prod_sets (sets M1) (sets M2))"
+  "prod_measure M \<mu> N \<nu> = (\<lambda>A. measure_space.positive_integral M \<mu> (\<lambda>s0. \<nu> ((\<lambda>s1. (s0, s1)) -` A)))"
 
 lemma prod_setsI: "x \<in> A \<Longrightarrow> y \<in> B \<Longrightarrow> (x \<times> y) \<in> prod_sets A B"
   by (auto simp add: prod_sets_def)
