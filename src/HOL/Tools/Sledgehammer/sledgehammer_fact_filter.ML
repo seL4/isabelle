@@ -292,7 +292,7 @@ val _ = tracing (PolyML.makestring ("IRREL: ", irrel))
 *)
 
 fun pconsts_in_axiom thy t =
-  Symtab.fold (fn (x, ys) => fold (fn y => cons (x, y)) ys)
+  Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
               (get_pconsts thy true (SOME true) [t]) []
 fun pair_consts_axiom theory_relevant thy axiom =
   (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
