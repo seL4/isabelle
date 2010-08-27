@@ -386,13 +386,13 @@ fun strip_connective conn_t (t as (t0 $ t1 $ t2)) =
     if t0 = conn_t then strip_connective t0 t2 @ strip_connective t0 t1 else [t]
   | strip_connective _ t = [t]
 fun strip_any_connective (t as (t0 $ _ $ _)) =
-    if t0 = @{const "op &"} orelse t0 = @{const "op |"} then
+    if t0 = @{const HOL.conj} orelse t0 = @{const HOL.disj} then
       (strip_connective t0 t, t0)
     else
       ([t], @{const Not})
   | strip_any_connective t = ([t], @{const Not})
-val conjuncts_of = strip_connective @{const "op &"}
-val disjuncts_of = strip_connective @{const "op |"}
+val conjuncts_of = strip_connective @{const HOL.conj}
+val disjuncts_of = strip_connective @{const HOL.disj}
 
 (* When you add constants to these lists, make sure to handle them in
    "Nitpick_Nut.nut_from_term", and perhaps in "Nitpick_Mono.consider_term" as
@@ -409,8 +409,8 @@ val built_in_consts =
    (@{const_name All}, 1),
    (@{const_name Ex}, 1),
    (@{const_name "op ="}, 1),
-   (@{const_name "op &"}, 2),
-   (@{const_name "op |"}, 2),
+   (@{const_name HOL.conj}, 2),
+   (@{const_name HOL.disj}, 2),
    (@{const_name HOL.implies}, 2),
    (@{const_name If}, 3),
    (@{const_name Let}, 2),
@@ -2148,8 +2148,8 @@ val linear_pred_base_and_step_rhss =
           fun repair_rec j (Const (@{const_name Ex}, T1) $ Abs (s2, T2, t2')) =
               Const (@{const_name Ex}, T1)
               $ Abs (s2, T2, repair_rec (j + 1) t2')
-            | repair_rec j (@{const "op &"} $ t1 $ t2) =
-              @{const "op &"} $ repair_rec j t1 $ repair_rec j t2
+            | repair_rec j (@{const HOL.conj} $ t1 $ t2) =
+              @{const HOL.conj} $ repair_rec j t1 $ repair_rec j t2
             | repair_rec j t =
               let val (head, args) = strip_comb t in
                 if head = Bound j then

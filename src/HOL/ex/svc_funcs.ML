@@ -89,8 +89,8 @@ struct
    let fun tag t =
          let val (c,ts) = strip_comb t
          in  case c of
-             Const(@{const_name "op &"}, _)   => apply c (map tag ts)
-           | Const(@{const_name "op |"}, _)   => apply c (map tag ts)
+             Const(@{const_name HOL.conj}, _)   => apply c (map tag ts)
+           | Const(@{const_name HOL.disj}, _)   => apply c (map tag ts)
            | Const(@{const_name HOL.implies}, _) => apply c (map tag ts)
            | Const(@{const_name Not}, _)    => apply c (map tag ts)
            | Const(@{const_name True}, _)   => (c, false)
@@ -183,9 +183,9 @@ struct
       | tm t = Int (lit t)
                handle Match => var (t,[])
     (*translation of a formula*)
-    and fm pos (Const(@{const_name "op &"}, _) $ p $ q) =
+    and fm pos (Const(@{const_name HOL.conj}, _) $ p $ q) =
             Buildin("AND", [fm pos p, fm pos q])
-      | fm pos (Const(@{const_name "op |"}, _) $ p $ q) =
+      | fm pos (Const(@{const_name HOL.disj}, _) $ p $ q) =
             Buildin("OR", [fm pos p, fm pos q])
       | fm pos (Const(@{const_name HOL.implies}, _) $ p $ q) =
             Buildin("=>", [fm (not pos) p, fm pos q])

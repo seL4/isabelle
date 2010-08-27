@@ -50,11 +50,11 @@ val setup_boogie_all = Method.setup @{binding boogie_all} (boogie_method true)
 
 
 local
-  fun explode_conj (@{term "op &"} $ t $ u) = explode_conj t @ explode_conj u
+  fun explode_conj (@{term HOL.conj} $ t $ u) = explode_conj t @ explode_conj u
     | explode_conj t = [t] 
 
   fun splt (ts, @{term HOL.implies} $ t $ u) = splt (ts @ explode_conj t, u)
-    | splt (ts, @{term "op &"} $ t $ u) = splt (ts, t) @ splt (ts, u)
+    | splt (ts, @{term HOL.conj} $ t $ u) = splt (ts, t) @ splt (ts, u)
     | splt (ts, @{term assert_at} $ _ $ t) = [(ts, t)]
     | splt (_, @{term True}) = []
     | splt tp = [tp]

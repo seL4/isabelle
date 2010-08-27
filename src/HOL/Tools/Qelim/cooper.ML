@@ -28,7 +28,7 @@ val allowed_consts =
    @{term "op * :: int => _"}, @{term "op * :: nat => _"},
    @{term "op div :: int => _"}, @{term "op div :: nat => _"},
    @{term "op mod :: int => _"}, @{term "op mod :: nat => _"},
-   @{term "op &"}, @{term "op |"}, @{term HOL.implies}, 
+   @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, 
    @{term "op = :: int => _"}, @{term "op = :: nat => _"}, @{term "op = :: bool => _"},
    @{term "op < :: int => _"}, @{term "op < :: nat => _"},
    @{term "op <= :: int => _"}, @{term "op <= :: nat => _"},
@@ -120,8 +120,8 @@ datatype fm = And of cterm*cterm| Or of cterm*cterm| Eq of cterm | NEq of cterm
 
 fun whatis x ct =
 ( case (term_of ct) of
-  Const(@{const_name "op &"},_)$_$_ => And (Thm.dest_binop ct)
-| Const (@{const_name "op |"},_)$_$_ => Or (Thm.dest_binop ct)
+  Const(@{const_name HOL.conj},_)$_$_ => And (Thm.dest_binop ct)
+| Const (@{const_name HOL.disj},_)$_$_ => Or (Thm.dest_binop ct)
 | Const (@{const_name "op ="},_)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
 | Const (@{const_name Not},_) $ (Const (@{const_name "op ="},_)$y$_) =>
   if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
@@ -353,8 +353,8 @@ fun unify ctxt q =
     then (ins (dest_number c) acc, dacc) else (acc,dacc)
   | Const(@{const_name Rings.dvd},_)$_$(Const(@{const_name Groups.plus},_)$(Const(@{const_name Groups.times},_)$c$y)$_) =>
     if x aconv y then (acc,ins (dest_number c) dacc) else (acc,dacc)
-  | Const(@{const_name "op &"},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
-  | Const(@{const_name "op |"},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
+  | Const(@{const_name HOL.conj},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
+  | Const(@{const_name HOL.disj},_)$_$_ => h (h (acc,dacc) (Thm.dest_arg1 t)) (Thm.dest_arg t)
   | Const (@{const_name Not},_)$_ => h (acc,dacc) (Thm.dest_arg t)
   | _ => (acc, dacc)
   val (cs,ds) = h ([],[]) p
@@ -382,8 +382,8 @@ fun unify ctxt q =
     end
   fun unit_conv t =
    case (term_of t) of
-   Const(@{const_name "op &"},_)$_$_ => Conv.binop_conv unit_conv t
-  | Const(@{const_name "op |"},_)$_$_ => Conv.binop_conv unit_conv t
+   Const(@{const_name HOL.conj},_)$_$_ => Conv.binop_conv unit_conv t
+  | Const(@{const_name HOL.disj},_)$_$_ => Conv.binop_conv unit_conv t
   | Const (@{const_name Not},_)$_ => Conv.arg_conv unit_conv t
   | Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
     if x=y andalso member (op =)
@@ -569,7 +569,7 @@ fun conv ctxt p =
 fun add_bools t =
   let
     val ops = [@{term "op = :: int => _"}, @{term "op < :: int => _"}, @{term "op <= :: int => _"},
-      @{term "op &"}, @{term "op |"}, @{term HOL.implies}, @{term "op = :: bool => _"},
+      @{term HOL.conj}, @{term HOL.disj}, @{term HOL.implies}, @{term "op = :: bool => _"},
       @{term "Not"}, @{term "All :: (int => _) => _"},
       @{term "Ex :: (int => _) => _"}, @{term "True"}, @{term "False"}];
     val is_op = member (op =) ops;
@@ -612,9 +612,9 @@ fun num_of_term vs (Free vT) = Proc.Bound (find_index (fn vT' => vT' = vT) vs)
 
 fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
   | fm_of_term ps vs (Const (@{const_name False}, _)) = Proc.F
-  | fm_of_term ps vs (Const (@{const_name "op &"}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (@{const_name HOL.conj}, _) $ t1 $ t2) =
       Proc.And (fm_of_term ps vs t1, fm_of_term ps vs t2)
-  | fm_of_term ps vs (Const (@{const_name "op |"}, _) $ t1 $ t2) =
+  | fm_of_term ps vs (Const (@{const_name HOL.disj}, _) $ t1 $ t2) =
       Proc.Or (fm_of_term ps vs t1, fm_of_term ps vs t2)
   | fm_of_term ps vs (Const (@{const_name HOL.implies}, _) $ t1 $ t2) =
       Proc.Imp (fm_of_term ps vs t1, fm_of_term ps vs t2)

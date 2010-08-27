@@ -524,7 +524,7 @@ fun mk_casesrule ctxt pred introrules =
 
 fun dest_conjunct_prem th =
   case HOLogic.dest_Trueprop (prop_of th) of
-    (Const (@{const_name "op &"}, _) $ t $ t') =>
+    (Const (@{const_name HOL.conj}, _) $ t $ t') =>
       dest_conjunct_prem (th RS @{thm conjunct1})
         @ dest_conjunct_prem (th RS @{thm conjunct2})
     | _ => [th]

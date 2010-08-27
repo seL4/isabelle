@@ -395,7 +395,7 @@ fun grobner_strong vars pols pol =
 
 fun refute_disj rfn tm =
  case term_of tm of
-  Const(@{const_name "op |"},_)$l$r =>
+  Const(@{const_name HOL.disj},_)$l$r =>
    compose_single(refute_disj rfn (dest_arg tm),2,compose_single(refute_disj rfn (dest_arg1 tm),2,disjE))
   | _ => rfn tm ;
 
@@ -454,7 +454,7 @@ val initial_conv =
 val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
 val cTrp = @{cterm "Trueprop"};
-val cConj = @{cterm "op &"};
+val cConj = @{cterm HOL.conj};
 val (cNot,false_tm) = (@{cterm "Not"}, @{cterm "False"});
 val assume_Trueprop = mk_comb cTrp #> assume;
 val list_mk_conj = list_mk_binop cConj;
@@ -479,22 +479,22 @@ fun sym_conv eq =
   (* FIXME : copied from cqe.ML -- complex QE*)
 fun conjuncts ct =
  case term_of ct of
-  @{term "op &"}$_$_ => (Thm.dest_arg1 ct)::(conjuncts (Thm.dest_arg ct))
+  @{term HOL.conj}$_$_ => (Thm.dest_arg1 ct)::(conjuncts (Thm.dest_arg ct))
 | _ => [ct];
 
 fun fold1 f = foldr1 (uncurry f);
 
-val list_conj = fold1 (fn c => fn c' => Thm.capply (Thm.capply @{cterm "op &"} c) c') ;
+val list_conj = fold1 (fn c => fn c' => Thm.capply (Thm.capply @{cterm HOL.conj} c) c') ;
 
 fun mk_conj_tab th = 
  let fun h acc th = 
    case prop_of th of
-   @{term "Trueprop"}$(@{term "op &"}$p$q) => 
+   @{term "Trueprop"}$(@{term HOL.conj}$p$q) => 
      h (h acc (th RS conjunct2)) (th RS conjunct1)
   | @{term "Trueprop"}$p => (p,th)::acc
 in fold (Termtab.insert Thm.eq_thm) (h [] th) Termtab.empty end;
 
-fun is_conj (@{term "op &"}$_$_) = true
+fun is_conj (@{term HOL.conj}$_$_) = true
   | is_conj _ = false;
 
 fun prove_conj tab cjs = 
@@ -852,14 +852,14 @@ fun poly_eq_conv t =
  fun unwind_polys_conv tm =
  let 
   val (vars,bod) = strip_exists tm
-  val cjs = striplist (dest_binary @{cterm "op &"}) bod
+  val cjs = striplist (dest_binary @{cterm HOL.conj}) bod
   val th1 = (the (get_first (try (isolate_variable vars)) cjs) 
              handle Option => raise CTERM ("unwind_polys_conv",[tm]))
   val eq = Thm.lhs_of th1
-  val bod' = list_mk_binop @{cterm "op &"} (eq::(remove op aconvc eq cjs))
+  val bod' = list_mk_binop @{cterm HOL.conj} (eq::(remove op aconvc eq cjs))
   val th2 = conj_ac_rule (mk_eq bod bod')
   val th3 = transitive th2 
-         (Drule.binop_cong_rule @{cterm "op &"} th1 
+         (Drule.binop_cong_rule @{cterm HOL.conj} th1 
                 (reflexive (Thm.dest_arg (Thm.rhs_of th2))))
   val v = Thm.dest_arg1(Thm.dest_arg1(Thm.rhs_of th3))
   val vars' = (remove op aconvc v vars) @ [v]
@@ -929,8 +929,8 @@ fun find_term bounds tm =
   | Const (@{const_name Not}, _) $ _ => find_term bounds (dest_arg tm)
   | Const (@{const_name All}, _) $ _ => find_body bounds (dest_arg tm)
   | Const (@{const_name Ex}, _) $ _ => find_body bounds (dest_arg tm)
-  | Const (@{const_name "op &"}, _) $ _ $ _ => find_args bounds tm
-  | Const (@{const_name "op |"}, _) $ _ $ _ => find_args bounds tm
+  | Const (@{const_name HOL.conj}, _) $ _ $ _ => find_args bounds tm
+  | Const (@{const_name HOL.disj}, _) $ _ $ _ => find_args bounds tm
   | Const (@{const_name HOL.implies}, _) $ _ $ _ => find_args bounds tm
   | @{term "op ==>"} $_$_ => find_args bounds tm
   | Const("op ==",_)$_$_ => find_args bounds tm

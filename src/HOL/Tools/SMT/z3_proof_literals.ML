@@ -62,14 +62,14 @@ val rewrite_true = @{lemma "True == ~ False" by simp}
 val is_neg = (fn @{term Not} $ _ => true | _ => false)
 fun is_neg' f = (fn @{term Not} $ t => f t | _ => false)
 val is_dneg = is_neg' is_neg
-val is_conj = (fn @{term "op &"} $ _ $ _ => true | _ => false)
-val is_disj = (fn @{term "op |"} $ _ $ _ => true | _ => false)
+val is_conj = (fn @{term HOL.conj} $ _ $ _ => true | _ => false)
+val is_disj = (fn @{term HOL.disj} $ _ $ _ => true | _ => false)
 
 fun dest_disj_term' f = (fn
-    @{term Not} $ (@{term "op |"} $ t $ u) => SOME (f t, f u)
+    @{term Not} $ (@{term HOL.disj} $ t $ u) => SOME (f t, f u)
   | _ => NONE)
 
-val dest_conj_term = (fn @{term "op &"} $ t $ u => SOME (t, u) | _ => NONE)
+val dest_conj_term = (fn @{term HOL.conj} $ t $ u => SOME (t, u) | _ => NONE)
 val dest_disj_term =
   dest_disj_term' (fn @{term Not} $ t => t | t => @{term Not} $ t)
 
@@ -202,11 +202,11 @@ local
     | comp_disj ((true, thm1), (false, thm2)) = comp2 disj3 thm1 thm2
     | comp_disj ((true, thm1), (true, thm2)) = comp2 disj4 thm1 thm2
 
-  fun dest_conj (@{term "op &"} $ t $ u) = ((false, t), (false, u))
+  fun dest_conj (@{term HOL.conj} $ t $ u) = ((false, t), (false, u))
     | dest_conj t = raise TERM ("dest_conj", [t])
 
   val neg = (fn @{term Not} $ t => (true, t) | t => (false, @{term Not} $ t))
-  fun dest_disj (@{term Not} $ (@{term "op |"} $ t $ u)) = (neg t, neg u)
+  fun dest_disj (@{term Not} $ (@{term HOL.disj} $ t $ u)) = (neg t, neg u)
     | dest_disj t = raise TERM ("dest_disj", [t])
 
   val dnegE = T.precompose (single o d2 o d1) @{thm notnotD}

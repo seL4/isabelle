@@ -46,7 +46,7 @@ fun mk_Eq thm = thm RS @{thm Eq_FalseI} handle THM _ => thm RS @{thm Eq_TrueI};
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
 fun atomize thm = case Thm.prop_of thm of
-    Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op &"}, _) $ _ $ _) =>
+    Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.conj}, _) $ _ $ _) =>
     atomize (thm RS conjunct1) @ atomize (thm RS conjunct2)
   | _ => [thm];
 

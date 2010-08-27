@@ -1200,7 +1200,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
           (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs);
     val tnames = Datatype_Prop.make_tnames recTs;
     val zs = Name.variant_list tnames (replicate (length descr'') "z");
-    val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
+    val ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
       (map (fn ((((i, _), T), tname), z) =>
         make_pred fsT i T $ Free (z, fsT) $ Free (tname, T))
         (descr'' ~~ recTs ~~ tnames ~~ zs)));
@@ -1215,7 +1215,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         map (make_ind_prem fsT' (fn T => fn t => fn u => HOLogic.Not $
           HOLogic.mk_mem (t, the (AList.lookup op = fresh_fs T) $ u)) i T)
             (constrs ~~ idxss)) (descr'' ~~ ndescr ~~ recTs);
-    val ind_concl' = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
+    val ind_concl' = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
       (map (fn ((((i, _), T), tname), z) =>
         make_pred fsT' i T $ Free (z, fsT') $ Free (tname, T))
         (descr'' ~~ recTs ~~ tnames ~~ zs)));
@@ -1225,7 +1225,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
       (Datatype_Prop.indexify_names (replicate (length dt_atomTs) "pi") ~~
        map mk_permT dt_atomTs) @ [("z", fsT')];
     val aux_ind_Ts = rev (map snd aux_ind_vars);
-    val aux_ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop "op &")
+    val aux_ind_concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
       (map (fn (((i, _), T), tname) =>
         HOLogic.list_all (aux_ind_vars, make_pred fsT' i T $ Bound 0 $
           fold_rev (mk_perm aux_ind_Ts) (map Bound (length dt_atomTs downto 1))

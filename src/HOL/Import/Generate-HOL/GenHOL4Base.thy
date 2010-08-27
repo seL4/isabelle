@@ -17,8 +17,8 @@ const_maps
   T               > True
   F               > False
   "!"             > All
-  "/\\"           > "op &"
-  "\\/"           > "op |"
+  "/\\"           > HOL.conj
+  "\\/"           > HOL.disj
   "?"             > Ex
   "?!"            > Ex1
   "~"             > Not

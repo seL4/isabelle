@@ -211,11 +211,11 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
       | Const (s0 as @{const_name "op ="}, T0) $ t1 $ t2 =>
         do_equals new_Ts old_Ts s0 T0 t1 t2
-      | @{const "op &"} $ t1 $ t2 =>
-        @{const "op &"} $ do_term new_Ts old_Ts polar t1
+      | @{const HOL.conj} $ t1 $ t2 =>
+        @{const HOL.conj} $ do_term new_Ts old_Ts polar t1
         $ do_term new_Ts old_Ts polar t2
-      | @{const "op |"} $ t1 $ t2 =>
-        @{const "op |"} $ do_term new_Ts old_Ts polar t1
+      | @{const HOL.disj} $ t1 $ t2 =>
+        @{const HOL.disj} $ do_term new_Ts old_Ts polar t1
         $ do_term new_Ts old_Ts polar t2
       | @{const HOL.implies} $ t1 $ t2 =>
         @{const HOL.implies} $ do_term new_Ts old_Ts (flip_polarity polar) t1
@@ -449,7 +449,7 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
 (** Destruction of universal and existential equalities **)
 
 fun curry_assms (@{const "==>"} $ (@{const Trueprop}
-                                   $ (@{const "op &"} $ t1 $ t2)) $ t3) =
+                                   $ (@{const HOL.conj} $ t1 $ t2)) $ t3) =
     curry_assms (Logic.list_implies ([t1, t2] |> map HOLogic.mk_Trueprop, t3))
   | curry_assms (@{const "==>"} $ t1 $ t2) =
     @{const "==>"} $ curry_assms t1 $ curry_assms t2
@@ -604,9 +604,9 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
           do_quantifier s0 T0 s1 T1 t1
         | Const (s0 as @{const_name Ex}, T0) $ Abs (s1, T1, t1) =>
           do_quantifier s0 T0 s1 T1 t1
-        | @{const "op &"} $ t1 $ t2 =>
+        | @{const HOL.conj} $ t1 $ t2 =>
           s_conj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
-        | @{const "op |"} $ t1 $ t2 =>
+        | @{const HOL.disj} $ t1 $ t2 =>
           s_disj (pairself (aux ss Ts js skolemizable polar) (t1, t2))
         | @{const HOL.implies} $ t1 $ t2 =>
           @{const HOL.implies} $ aux ss Ts js skolemizable (flip_polarity polar) t1
@@ -620,8 +620,8 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
             let
               val gfp = (fixpoint_kind_of_const thy def_table x = Gfp)
               val (pref, connective) =
-                if gfp then (lbfp_prefix, @{const "op |"})
-                else (ubfp_prefix, @{const "op &"})
+                if gfp then (lbfp_prefix, @{const HOL.disj})
+                else (ubfp_prefix, @{const HOL.conj})
               fun pos () = unrolled_inductive_pred_const hol_ctxt gfp x
                            |> aux ss Ts js skolemizable polar
               fun neg () = Const (pref ^ s, T)
@@ -1105,7 +1105,7 @@ fun distribute_quantifiers t =
   case t of
     (t0 as Const (@{const_name All}, T0)) $ Abs (s, T1, t1) =>
     (case t1 of
-       (t10 as @{const "op &"}) $ t11 $ t12 =>
+       (t10 as @{const HOL.conj}) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (t0 $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
      | (t10 as @{const Not}) $ t11 =>
@@ -1118,7 +1118,7 @@ fun distribute_quantifiers t =
          t0 $ Abs (s, T1, distribute_quantifiers t1))
   | (t0 as Const (@{const_name Ex}, T0)) $ Abs (s, T1, t1) =>
     (case distribute_quantifiers t1 of
-       (t10 as @{const "op |"}) $ t11 $ t12 =>
+       (t10 as @{const HOL.disj}) $ t11 $ t12 =>
        t10 $ distribute_quantifiers (t0 $ Abs (s, T1, t11))
            $ distribute_quantifiers (t0 $ Abs (s, T1, t12))
      | (t10 as @{const HOL.implies}) $ t11 $ t12 =>

@@ -197,6 +197,7 @@ lemma analz_image_freshK [rule_format]:
 apply (erule yahalom.induct,
        drule_tac [7] YM4_analz_knows_Spy, analz_freshK, spy_analz, blast)
 apply (simp only: Says_Server_not_range analz_image_freshK_simps)
+apply safe
 done
 
 lemma analz_insert_freshK:

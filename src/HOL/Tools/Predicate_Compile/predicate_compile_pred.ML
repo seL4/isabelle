@@ -89,8 +89,8 @@ fun instantiated_case_rewrites thy Tcon =
 fun is_compound ((Const (@{const_name Not}, _)) $ t) =
     error "is_compound: Negation should not occur; preprocessing is defect"
   | is_compound ((Const (@{const_name Ex}, _)) $ _) = true
-  | is_compound ((Const (@{const_name "op |"}, _)) $ _ $ _) = true
-  | is_compound ((Const (@{const_name "op &"}, _)) $ _ $ _) =
+  | is_compound ((Const (@{const_name HOL.disj}, _)) $ _ $ _) = true
+  | is_compound ((Const (@{const_name HOL.conj}, _)) $ _ $ _) =
     error "is_compound: Conjunction should not occur; preprocessing is defect"
   | is_compound _ = false
 
@@ -250,7 +250,7 @@ val rewrite =
 
 fun split_conjs thy t =
   let 
-    fun split_conjunctions (Const (@{const_name "op &"}, _) $ t1 $ t2) =
+    fun split_conjunctions (Const (@{const_name HOL.conj}, _) $ t1 $ t2) =
     (split_conjunctions t1) @ (split_conjunctions t2)
     | split_conjunctions t = [t]
   in

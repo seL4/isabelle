@@ -70,7 +70,7 @@ fun make_injs descr sorts =
           val frees' = map Free ((map ((op ^) o (rpair "'")) tnames) ~~ Ts);
         in cons (HOLogic.mk_Trueprop (HOLogic.mk_eq
           (HOLogic.mk_eq (list_comb (constr_t, frees), list_comb (constr_t, frees')),
-           foldr1 (HOLogic.mk_binop @{const_name "op &"})
+           foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
              (map HOLogic.mk_eq (frees ~~ frees')))))
         end;
   in
@@ -149,7 +149,7 @@ fun make_ind descr sorts =
     val prems = maps (fn ((i, (_, _, constrs)), T) =>
       map (make_ind_prem i T) constrs) (descr' ~~ recTs);
     val tnames = make_tnames recTs;
-    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name "op &"})
+    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
       (map (fn (((i, _), T), tname) => make_pred i T $ Free (tname, T))
         (descr' ~~ recTs ~~ tnames)))
 

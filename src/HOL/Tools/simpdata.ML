@@ -12,7 +12,7 @@ structure Quantifier1 = Quantifier1Fun
   (*abstract syntax*)
   fun dest_eq ((c as Const(@{const_name "op ="},_)) $ s $ t) = SOME (c, s, t)
     | dest_eq _ = NONE;
-  fun dest_conj ((c as Const(@{const_name "op &"},_)) $ s $ t) = SOME (c, s, t)
+  fun dest_conj ((c as Const(@{const_name HOL.conj},_)) $ s $ t) = SOME (c, s, t)
     | dest_conj _ = NONE;
   fun dest_imp ((c as Const(@{const_name HOL.implies},_)) $ s $ t) = SOME (c, s, t)
     | dest_imp _ = NONE;
@@ -160,7 +160,7 @@ val _ = ML_Antiquote.value "clasimpset"
 
 val mksimps_pairs =
  [(@{const_name HOL.implies}, [@{thm mp}]),
-  (@{const_name "op &"}, [@{thm conjunct1}, @{thm conjunct2}]),
+  (@{const_name HOL.conj}, [@{thm conjunct1}, @{thm conjunct2}]),
   (@{const_name All}, [@{thm spec}]),
   (@{const_name True}, []),
   (@{const_name False}, []),

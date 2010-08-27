@@ -5837,9 +5837,9 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code Dvd} (HOLogic.dest_numeral t1, num_of_term vs t2)
   | fm_of_term vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (@{term "op &"} $ t1 $ t2) =
+  | fm_of_term vs (@{term HOL.conj} $ t1 $ t2) =
       @{code And} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (@{term "op |"} $ t1 $ t2) =
+  | fm_of_term vs (@{term HOL.disj} $ t1 $ t2) =
       @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term HOL.implies} $ t1 $ t2) =
       @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)

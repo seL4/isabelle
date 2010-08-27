@@ -4,7 +4,7 @@ uses "mutabelle.ML"
 begin
 
 ML {*
-val comms = [@{const_name "op ="}, @{const_name "op |"}, @{const_name "op &"}];
+val comms = [@{const_name "op ="}, @{const_name HOL.disj}, @{const_name HOL.conj}];
 
 val forbidden =
  [(@{const_name Power.power}, "'a"),

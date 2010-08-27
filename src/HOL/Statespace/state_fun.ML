@@ -53,7 +53,7 @@ in
 val lazy_conj_simproc =
   Simplifier.simproc_global @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn thy => fn ss => fn t =>
-      (case t of (Const (@{const_name "op &"},_)$P$Q) => 
+      (case t of (Const (@{const_name HOL.conj},_)$P$Q) => 
          let
             val P_P' = Simplifier.rewrite ss (cterm_of thy P);
             val P' = P_P' |> prop_of |> Logic.dest_equals |> #2 
