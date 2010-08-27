@@ -175,7 +175,7 @@ val setup =
    "equivariance theorem declaration" #>
   Attrib.setup @{binding eqvt_force} (Attrib.add_del eqvt_force_add eqvt_force_del)
     "equivariance theorem declaration (without checking the form of the lemma)" #>
-  PureThy.add_thms_dynamic (Binding.name "eqvts", Data.get);
+  PureThy.add_thms_dynamic (@{binding eqvts}, Data.get);
 
 
 end;
