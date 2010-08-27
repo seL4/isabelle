@@ -306,10 +306,10 @@ code_const Ref.update (Haskell "Heap.writeSTRef")
 
 text {* Scala *}
 
-code_type ref (Scala "!Ref[_]")
+code_type ref (Scala "!Heap.Ref[_]")
 code_const Ref (Scala "!error(\"bare Ref\")")
-code_const ref' (Scala "('_: Unit)/ =>/ Ref((_))")
-code_const Ref.lookup (Scala "('_: Unit)/ =>/ Ref.lookup((_))")
-code_const Ref.update (Scala "('_: Unit)/ =>/ Ref.update((_), (_))")
+code_const ref' (Scala "('_: Unit)/ =>/ Heap.Ref((_))")
+code_const Ref.lookup (Scala "('_: Unit)/ =>/ Heap.Ref.lookup((_))")
+code_const Ref.update (Scala "('_: Unit)/ =>/ Heap.Ref.update((_), (_))")
 
 end

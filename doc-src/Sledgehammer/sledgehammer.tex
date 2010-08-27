@@ -447,33 +447,29 @@ menu in Proof General.
 \label{relevance-filter}
 
 \begin{enum}
-\opdefault{relevance\_threshold}{int}{40}
-Specifies the threshold above which facts are considered relevant by the
-relevance filter. The option ranges from 0 to 100, where 0 means that all
-theorems are relevant.
+\opdefault{relevance\_thresholds}{int\_pair}{45~95}
+Specifies the thresholds above which facts are considered relevant by the
+relevance filter. The first threshold is used for the first iteration of the
+relevance filter and the second threshold is used for the last iteration (if it
+is reached). The effective threshold is quadratically interpolated for the other
+iterations. Each threshold ranges from 0 to 100, where 0 means that all theorems
+are relevant and 100 only theorems that refer to previously seen constants.
 
-\opdefault{relevance\_convergence}{int}{31}
-Specifies the convergence factor, expressed as a percentage, used by the
-relevance filter. This factor is used by the relevance filter to scale down the
-relevance of facts at each iteration of the filter.
-
-\opdefault{max\_relevant\_per\_iter}{int\_or\_smart}{\textit{smart}}
-Specifies the maximum number of facts that may be added during one iteration of
-the relevance filter. If the option is set to \textit{smart}, it is set to a
-value that was empirically found to be appropriate for the ATP. A typical value
-would be 50.
+\opdefault{max\_relevant}{int\_or\_smart}{\textit{smart}}
+Specifies the maximum number of facts that may be returned by the relevance
+filter. If the option is set to \textit{smart}, it is set to a value that was
+empirically found to be appropriate for the ATP. A typical value would be 300.
 
 \opsmartx{theory\_relevant}{theory\_irrelevant}
 Specifies whether the theory from which a fact comes should be taken into
 consideration by the relevance filter. If the option is set to \textit{smart},
-it is taken to be \textit{true} for SPASS and \textit{false} for E and Vampire,
-because empirical results suggest that these are the best settings.
+it is taken to be \textit{true} for SPASS and \textit{false} for the other ATPs;
+empirical results suggest that these are the best settings.
 
-\opfalse{defs\_relevant}{defs\_irrelevant}
-Specifies whether the definition of constants occurring in the formula to prove
-should be considered particularly relevant. Enabling this option tends to lead
-to larger problems and typically slows down the ATPs.
-
+%\opfalse{defs\_relevant}{defs\_irrelevant}
+%Specifies whether the definition of constants occurring in the formula to prove
+%should be considered particularly relevant. Enabling this option tends to lead
+%to larger problems and typically slows down the ATPs.
 \end{enum}
 
 \subsection{Output Format}

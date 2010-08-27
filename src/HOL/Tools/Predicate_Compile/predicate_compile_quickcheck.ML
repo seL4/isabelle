@@ -168,10 +168,10 @@ fun mk_split_lambda [] t = Abs ("u", HOLogic.unitT, t)
     mk_split_lambda' xs t
   end;
 
-fun strip_imp_prems (Const(@{const_name "op -->"}, _) $ A $ B) = A :: strip_imp_prems B
+fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
-fun strip_imp_concl (Const(@{const_name "op -->"}, _) $ A $ B) = strip_imp_concl B
+fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = A : term;
 
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);

@@ -14,7 +14,7 @@ structure Quantifier1 = Quantifier1Fun
     | dest_eq _ = NONE;
   fun dest_conj ((c as Const(@{const_name "op &"},_)) $ s $ t) = SOME (c, s, t)
     | dest_conj _ = NONE;
-  fun dest_imp ((c as Const(@{const_name "op -->"},_)) $ s $ t) = SOME (c, s, t)
+  fun dest_imp ((c as Const(@{const_name HOL.implies},_)) $ s $ t) = SOME (c, s, t)
     | dest_imp _ = NONE;
   val conj = HOLogic.conj
   val imp  = HOLogic.imp
@@ -159,7 +159,7 @@ val _ = ML_Antiquote.value "clasimpset"
   (Scan.succeed "Clasimp.clasimpset_of (ML_Context.the_local_context ())");
 
 val mksimps_pairs =
- [(@{const_name "op -->"}, [@{thm mp}]),
+ [(@{const_name HOL.implies}, [@{thm mp}]),
   (@{const_name "op &"}, [@{thm conjunct1}, @{thm conjunct2}]),
   (@{const_name All}, [@{thm spec}]),
   (@{const_name True}, []),

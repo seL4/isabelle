@@ -1998,7 +1998,7 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "op &"} $ t1 $ t2) = @{code And} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "op |"} $ t1 $ t2) = @{code Or} (fm_of_term vs t1, fm_of_term vs t2)
-  | fm_of_term vs (@{term "op -->"} $ t1 $ t2) = @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
+  | fm_of_term vs (@{term HOL.implies} $ t1 $ t2) = @{code Imp} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term "Not"} $ t') = @{code NOT} (fm_of_term vs t')
   | fm_of_term vs (Const (@{const_name Ex}, _) $ Abs (xn, xT, p)) =
       @{code E} (fm_of_term (("", dummyT) :: vs) p)

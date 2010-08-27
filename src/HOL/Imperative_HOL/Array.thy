@@ -484,11 +484,11 @@ text {* Scala *}
 
 code_type array (Scala "!collection.mutable.ArraySeq[_]")
 code_const Array (Scala "!error(\"bare Array\")")
-code_const Array.new' (Scala "('_: Unit)/ => / Array.alloc((_))((_))")
-code_const Array.make' (Scala "('_: Unit)/ =>/ Array.make((_))((_))")
-code_const Array.len' (Scala "('_: Unit)/ =>/ Array.len((_))")
-code_const Array.nth' (Scala "('_: Unit)/ =>/ Array.nth((_), (_))")
-code_const Array.upd' (Scala "('_: Unit)/ =>/ Array.upd((_), (_), (_))")
-code_const Array.freeze (Scala "('_: Unit)/ =>/ Array.freeze((_))")
+code_const Array.new' (Scala "('_: Unit)/ => / Heap.Array.alloc((_))((_))")
+code_const Array.make' (Scala "('_: Unit)/ =>/ Heap.Array.make((_))((_))")
+code_const Array.len' (Scala "('_: Unit)/ =>/ Heap.Array.len((_))")
+code_const Array.nth' (Scala "('_: Unit)/ =>/ Heap.Array.nth((_), (_))")
+code_const Array.upd' (Scala "('_: Unit)/ =>/ Heap.Array.upd((_), (_), (_))")
+code_const Array.freeze (Scala "('_: Unit)/ =>/ Heap.Array.freeze((_))")
 
 end

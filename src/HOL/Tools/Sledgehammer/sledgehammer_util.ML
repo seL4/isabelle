@@ -6,10 +6,11 @@ General-purpose functions used by the Sledgehammer modules.
 
 signature SLEDGEHAMMER_UTIL =
 sig
-  val is_true_for : (string * bool) vector -> string -> bool
+  val find_first_in_vector : (''a * 'b) vector -> ''a -> 'b -> 'b
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
-  val strip_spaces : string -> string
+  val simplify_spaces : string -> string
+  val strip_spaces_except_between_ident_chars : string -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
   val scan_integer : string list -> int * string list
@@ -28,8 +29,9 @@ end;
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
 struct
 
-fun is_true_for v s =
-  Vector.foldl (fn ((s', b'), b) => if s' = s then b' else b) false v
+fun find_first_in_vector vec key default =
+  Vector.foldl (fn ((key', value'), value) =>
+                   if key' = key then value' else value) default vec
 
 fun plural_s n = if n = 1 then "" else "s"
 
@@ -39,24 +41,27 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
-fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
-
-fun strip_spaces_in_list [] = ""
-  | strip_spaces_in_list [c1] = if Char.isSpace c1 then "" else str c1
-  | strip_spaces_in_list [c1, c2] =
-    strip_spaces_in_list [c1] ^ strip_spaces_in_list [c2]
-  | strip_spaces_in_list (c1 :: c2 :: c3 :: cs) =
+fun strip_spaces_in_list _ [] = ""
+  | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then "" else str c1
+  | strip_spaces_in_list is_evil [c1, c2] =
+    strip_spaces_in_list is_evil [c1] ^ strip_spaces_in_list is_evil [c2]
+  | strip_spaces_in_list is_evil (c1 :: c2 :: c3 :: cs) =
     if Char.isSpace c1 then
-      strip_spaces_in_list (c2 :: c3 :: cs)
+      strip_spaces_in_list is_evil (c2 :: c3 :: cs)
     else if Char.isSpace c2 then
       if Char.isSpace c3 then
-        strip_spaces_in_list (c1 :: c3 :: cs)
+        strip_spaces_in_list is_evil (c1 :: c3 :: cs)
       else
-        str c1 ^ (if forall is_ident_char [c1, c3] then " " else "") ^
-        strip_spaces_in_list (c3 :: cs)
+        str c1 ^ (if forall is_evil [c1, c3] then " " else "") ^
+        strip_spaces_in_list is_evil (c3 :: cs)
     else
-      str c1 ^ strip_spaces_in_list (c2 :: c3 :: cs)
-val strip_spaces = strip_spaces_in_list o String.explode
+      str c1 ^ strip_spaces_in_list is_evil (c2 :: c3 :: cs)
+fun strip_spaces is_evil = strip_spaces_in_list is_evil o String.explode
+
+val simplify_spaces = strip_spaces (K true)
+
+fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
+val strip_spaces_except_between_ident_chars = strip_spaces is_ident_char
 
 fun parse_bool_option option name s =
   (case s of

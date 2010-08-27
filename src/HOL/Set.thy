@@ -219,7 +219,7 @@ let
   val Type (set_type, _) = @{typ "'a set"};   (* FIXME 'a => bool (!?!) *)
   val All_binder = Syntax.binder_name @{const_syntax All};
   val Ex_binder = Syntax.binder_name @{const_syntax Ex};
-  val impl = @{const_syntax "op -->"};
+  val impl = @{const_syntax HOL.implies};
   val conj = @{const_syntax "op &"};
   val sbset = @{const_syntax subset};
   val sbset_eq = @{const_syntax subset_eq};

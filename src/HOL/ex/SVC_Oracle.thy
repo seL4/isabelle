@@ -90,7 +90,7 @@ fun svc_abstract t =
     (*abstraction of a formula*)
     and fm ((c as Const(@{const_name "op &"}, _)) $ p $ q) = c $ (fm p) $ (fm q)
       | fm ((c as Const(@{const_name "op |"}, _)) $ p $ q) = c $ (fm p) $ (fm q)
-      | fm ((c as Const(@{const_name "op -->"}, _)) $ p $ q) = c $ (fm p) $ (fm q)
+      | fm ((c as Const(@{const_name HOL.implies}, _)) $ p $ q) = c $ (fm p) $ (fm q)
       | fm ((c as Const(@{const_name Not}, _)) $ p) = c $ (fm p)
       | fm ((c as Const(@{const_name True}, _))) = c
       | fm ((c as Const(@{const_name False}, _))) = c

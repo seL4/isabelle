@@ -563,13 +563,6 @@ fun setmp_thread_position (Transition {pos, ...}) f x =
 fun status tr m =
   setmp_thread_position tr (fn () => Output.status (Markup.markup m "")) ();
 
-fun async_state (tr as Transition {print, ...}) st =
-  if print then
-    ignore
-      (Future.fork (fn () =>
-          setmp_thread_position tr (fn () => Future.status (fn () => print_state false st)) ()))
-  else ();
-
 fun error_msg tr exn_info =
   setmp_thread_position tr (fn () =>
     Output.error_msg (ML_Compiler.exn_message (EXCURSION_FAIL exn_info))) ();
@@ -628,6 +621,22 @@ end;
 
 (* managed execution *)
 
+local
+
+fun async_state (tr as Transition {print, ...}) st =
+  if print then
+    ignore
+      (Future.fork (fn () =>
+          setmp_thread_position tr (fn () => Future.status (fn () => print_state false st)) ()))
+  else ();
+
+fun proof_status tr st =
+  (case try proof_of st of
+    SOME prf => status tr (Proof.status_markup prf)
+  | NONE => ());
+
+in
+
 fun run_command thy_name tr st =
   (case
       (case init_of tr of
@@ -637,12 +646,17 @@ fun run_command thy_name tr st =
       let val int = is_some (init_of tr) in
         (case transition int tr st of
           SOME (st', NONE) =>
-            (status tr Markup.finished; if int then () else async_state tr st'; SOME st')
+           (status tr Markup.finished;
+            proof_status tr st';
+            if int then () else async_state tr st';
+            SOME st')
         | SOME (_, SOME (exn as Exn.Interrupt, _)) => reraise exn
         | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
         | NONE => (error_msg tr (TERMINATE, at_command tr); status tr Markup.failed; NONE))
       end
   | Exn.Exn exn => (error_msg tr (exn, at_command tr); status tr Markup.failed; NONE));
+
+end;
 
 
 (* nested commands *)

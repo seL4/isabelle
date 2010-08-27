@@ -489,7 +489,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in concat [
-                (Pretty.block o Pretty.commas)
+                (Pretty.block o commas)
                   (map (print_term is_pseudo_fun some_thm vars NOBR) ts),
                 str "->",
                 print_term is_pseudo_fun some_thm vars NOBR t
@@ -535,7 +535,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                       :: Pretty.brk 1
                       :: str "match"
                       :: Pretty.brk 1
-                      :: (Pretty.block o Pretty.commas) dummy_parms
+                      :: (Pretty.block o commas) dummy_parms
                       :: Pretty.brk 1
                       :: str "with"
                       :: Pretty.brk 1
@@ -722,9 +722,8 @@ datatype ml_node =
 
 in
 
-fun ml_node_of_program labelled_name module_name reserved raw_module_alias program =
+fun ml_node_of_program labelled_name module_name reserved module_alias program =
   let
-    val module_alias = if is_some module_name then K module_name else raw_module_alias;
     val reserved = Name.make_context reserved;
     val empty_module = ((reserved, reserved), Graph.empty);
     fun map_node [] f = f
@@ -813,7 +812,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         ) stmts
       #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Datatype block without data statement: "
-                  ^ (commas o map (labelled_name o fst)) stmts)
+                  ^ (Library.commas o map (labelled_name o fst)) stmts)
              | stmts => ML_Datas stmts)));
     fun add_class stmts =
       fold_map
@@ -828,7 +827,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         ) stmts
       #>> (split_list #> apsnd (map_filter I
         #> (fn [] => error ("Class block without class statement: "
-                  ^ (commas o map (labelled_name o fst)) stmts)
+                  ^ (Library.commas o map (labelled_name o fst)) stmts)
              | [stmt] => ML_Class stmt)));
     fun add_stmts ([stmt as (name, Code_Thingol.Fun _)]) =
           add_fun stmt
@@ -849,7 +848,7 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
       | add_stmts ((stmts as (_, Code_Thingol.Classinst _)::_)) =
           add_funs stmts
       | add_stmts stmts = error ("Illegal mutual dependencies: " ^
-          (commas o map (labelled_name o fst)) stmts);
+          (Library.commas o map (labelled_name o fst)) stmts);
     fun add_stmts' stmts nsp_nodes =
       let
         val names as (name :: names') = map fst stmts;
@@ -858,9 +857,9 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         val module_name = (the_single o distinct (op =) o map mk_name_module) module_names
           handle Empty =>
             error ("Different namespace prefixes for mutual dependencies:\n"
-              ^ commas (map labelled_name names)
+              ^ Library.commas (map labelled_name names)
               ^ "\n"
-              ^ commas module_names);
+              ^ Library.commas module_names);
         val module_name_path = Long_Name.explode module_name;
         fun add_dep name name' =
           let
@@ -907,15 +906,14 @@ fun ml_node_of_program labelled_name module_name reserved raw_module_alias progr
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
 
-fun serialize_ml target print_module print_stmt raw_module_name with_signatures labelled_name
-  reserved includes raw_module_alias _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program stmt_names destination =
+fun serialize_ml target print_module print_stmt module_name with_signatures labelled_name
+  reserved includes module_alias _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program
+  (stmt_names, presentation_stmt_names) =
   let
     val is_cons = Code_Thingol.is_cons program;
-    val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
     val is_presentation = not (null presentation_stmt_names);
-    val module_name = if is_presentation then SOME "Code" else raw_module_name;
     val (deresolver, nodes) = ml_node_of_program labelled_name module_name
-      reserved raw_module_alias program;
+      reserved module_alias program;
     val reserved = make_vars reserved;
     fun print_node prefix (Dummy _) =
           NONE
@@ -939,7 +937,7 @@ fun serialize_ml target print_module print_stmt raw_module_name with_signatures 
   in
     Code_Target.mk_serialization target
       (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty)
-      (rpair stmt_names' o code_of_pretty) p destination
+      (rpair stmt_names' o code_of_pretty) p
   end;
 
 end; (*local*)
@@ -948,8 +946,8 @@ end; (*local*)
 (** for instrumentalization **)
 
 fun evaluation_code_of thy target struct_name =
-  Code_Target.serialize_custom thy (target, fn _ => fn [] =>
-    serialize_ml target print_sml_module print_sml_stmt (SOME struct_name) true);
+  Code_Target.serialize_custom thy (target, fn module_name => fn [] =>
+    serialize_ml target print_sml_module print_sml_stmt module_name true) (SOME struct_name);
 
 
 (** Isar setup **)

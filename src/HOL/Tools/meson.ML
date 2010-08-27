@@ -274,7 +274,7 @@ fun too_many_clauses ctxto t =
     | signed_nclauses b (Const(@{const_name "op |"},_) $ t $ u) =
         if b then prod (signed_nclauses b t) (signed_nclauses b u)
              else sum (signed_nclauses b t) (signed_nclauses b u)
-    | signed_nclauses b (Const(@{const_name "op -->"},_) $ t $ u) =
+    | signed_nclauses b (Const(@{const_name HOL.implies},_) $ t $ u) =
         if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
              else sum (signed_nclauses (not b) t) (signed_nclauses b u)
     | signed_nclauses b (Const(@{const_name "op ="}, Type ("fun", [T, _])) $ t $ u) =
@@ -401,7 +401,7 @@ fun has_fun (Type (@{type_name fun}, _)) = true
   since this code expects to be called on a clause form.*)
 val is_conn = member (op =)
     [@{const_name Trueprop}, @{const_name "op &"}, @{const_name "op |"},
-     @{const_name "op -->"}, @{const_name Not},
+     @{const_name HOL.implies}, @{const_name Not},
      @{const_name All}, @{const_name Ex}, @{const_name Ball}, @{const_name Bex}];
 
 (*True if the term contains a function--not a logical connective--where the type

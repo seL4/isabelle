@@ -28,7 +28,7 @@ sig
     -> 'a -> serialization
   val serialize: theory -> string -> int option -> string option -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
-  val serialize_custom: theory -> string * serializer
+  val serialize_custom: theory -> string * serializer -> string option
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val the_literals: theory -> string -> literals
   val export: serialization -> unit
@@ -111,7 +111,7 @@ type serializer =
   -> (string -> Code_Printer.activated_const_syntax option)
   -> ((Pretty.T -> string) * (Pretty.T -> unit))
   -> Code_Thingol.program
-  -> string list                        (*selected statements*)
+  -> (string list * string list)        (*selected statements*)
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer, literals: Code_Printer.literals,
@@ -254,7 +254,7 @@ fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
   |>> map_filter I;
 
 fun invoke_serializer thy abortable serializer literals reserved abs_includes 
-    module_alias class instance tyco const module width args naming program2 names1 =
+    module_alias class instance tyco const module_name width args naming program2 (names1, presentation_names) =
   let
     val (names_class, class') =
       activate_syntax (Code_Thingol.lookup_class naming) class;
@@ -275,14 +275,14 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
     val _ = if null empty_funs then () else error ("No code equations for "
       ^ commas (map (Sign.extern_const thy) empty_funs));
   in
-    serializer module args (Code_Thingol.labelled_name thy program2) reserved includes
-      (Symtab.lookup module_alias) (Symtab.lookup class')
-      (Symtab.lookup tyco') (Symtab.lookup const')
+    serializer module_name args (Code_Thingol.labelled_name thy program2) reserved includes
+      (if is_some module_name then K module_name else Symtab.lookup module_alias)
+      (Symtab.lookup class') (Symtab.lookup tyco') (Symtab.lookup const')
       (Code_Printer.string_of_pretty width, Code_Printer.writeln_pretty width)
-      program4 names1
+      program4 (names1, presentation_names)
   end;
 
-fun mount_serializer thy alt_serializer target some_width module args naming program names =
+fun mount_serializer thy alt_serializer target some_width raw_module_name args naming program names destination =
   let
     val ((targets, abortable), default_width) = Targets.get thy;
     fun collapse_hierarchy target =
@@ -299,6 +299,9 @@ fun mount_serializer thy alt_serializer target some_width module args naming pro
     val (modify, data) = collapse_hierarchy target;
     val serializer = the_default (case the_description data
      of Fundamental seri => #serializer seri) alt_serializer;
+    val presentation_names = stmt_names_of_destination destination;
+    val module_name = if null presentation_names
+      then raw_module_name else SOME "Code";
     val reserved = the_reserved data;
     fun select_include names_all (name, (content, cs)) =
       if null cs then SOME (name, content)
@@ -308,13 +311,14 @@ fun mount_serializer thy alt_serializer target some_width module args naming pro
       then SOME (name, content) else NONE;
     fun includes names_all = map_filter (select_include names_all)
       ((Symtab.dest o the_includes) data);
-    val module_alias = the_module_alias data;
+    val module_alias = the_module_alias data 
     val { class, instance, tyco, const } = the_name_syntax data;
     val literals = the_literals thy target;
     val width = the_default default_width some_width;
   in
     invoke_serializer thy abortable serializer literals reserved
-      includes module_alias class instance tyco const module width args naming (modify program) names
+      includes module_alias class instance tyco const module_name width args
+        naming (modify program) (names, presentation_names) destination
   end;
 
 in
@@ -344,8 +348,8 @@ fun check thy names_cs naming program target strict args =
     else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
 
-fun serialize_custom thy (target_name, seri) naming program names =
-  mount_serializer thy (SOME seri) target_name NONE NONE [] naming program names (String [])
+fun serialize_custom thy (target_name, seri) module_name naming program names =
+  mount_serializer thy (SOME seri) target_name NONE module_name [] naming program names (String [])
   |> the;
 
 end; (* local *)
