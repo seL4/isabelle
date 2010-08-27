@@ -32,17 +32,18 @@ the HOL level. *}
 subsection {* Distinctness of Nodes *}
 
 
-consts set_of:: "'a tree \<Rightarrow> 'a set"
-primrec 
-"set_of Tip = {}"
-"set_of (Node l x d r) = (if d then {} else {x}) \<union> set_of l \<union> set_of r"
+primrec set_of :: "'a tree \<Rightarrow> 'a set"
+where
+  "set_of Tip = {}"
+| "set_of (Node l x d r) = (if d then {} else {x}) \<union> set_of l \<union> set_of r"
 
-consts all_distinct:: "'a tree \<Rightarrow> bool"
-primrec
-"all_distinct Tip = True"
-"all_distinct (Node l x d r) = ((d \<or> (x \<notin> set_of l \<and> x \<notin> set_of r)) \<and> 
-                               set_of l \<inter> set_of r = {} \<and>
-                               all_distinct l \<and> all_distinct r)"
+primrec all_distinct :: "'a tree \<Rightarrow> bool"
+where
+  "all_distinct Tip = True"
+| "all_distinct (Node l x d r) =
+    ((d \<or> (x \<notin> set_of l \<and> x \<notin> set_of r)) \<and> 
+      set_of l \<inter> set_of r = {} \<and>
+      all_distinct l \<and> all_distinct r)"
 
 text {* Given a binary tree @{term "t"} for which 
 @{const all_distinct} holds, given two different nodes contained in the tree,
@@ -99,19 +100,19 @@ of the order @{term "n * log(m)"} where @{term "n"} is the size of the
 *}
 
 
-consts "delete" :: "'a \<Rightarrow> 'a tree \<Rightarrow> 'a tree option"
-primrec
-"delete x Tip = None"
-"delete x (Node l y d r) = (case delete x l of
-                              Some l' \<Rightarrow>
-                               (case delete x r of 
-                                  Some r' \<Rightarrow> Some (Node l' y (d \<or> (x=y)) r')
-                                | None \<Rightarrow> Some (Node l' y (d \<or> (x=y)) r))
-                             | None \<Rightarrow>
-                                (case (delete x r) of 
-                                   Some r' \<Rightarrow> Some (Node l y (d \<or> (x=y)) r')
-                                 | None \<Rightarrow> if x=y \<and> \<not>d then Some (Node l y True r)
-                                           else None))"
+primrec delete :: "'a \<Rightarrow> 'a tree \<Rightarrow> 'a tree option"
+where
+  "delete x Tip = None"
+| "delete x (Node l y d r) = (case delete x l of
+                                Some l' \<Rightarrow>
+                                 (case delete x r of 
+                                    Some r' \<Rightarrow> Some (Node l' y (d \<or> (x=y)) r')
+                                  | None \<Rightarrow> Some (Node l' y (d \<or> (x=y)) r))
+                               | None \<Rightarrow>
+                                  (case (delete x r) of 
+                                     Some r' \<Rightarrow> Some (Node l y (d \<or> (x=y)) r')
+                                   | None \<Rightarrow> if x=y \<and> \<not>d then Some (Node l y True r)
+                                             else None))"
 
 
 lemma delete_Some_set_of: "\<And>t'. delete x t = Some t' \<Longrightarrow> set_of t' \<subseteq> set_of t"
@@ -293,15 +294,15 @@ next
 qed
 
 
-consts "subtract" :: "'a tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree option"
-primrec
-"subtract Tip t = Some t"
-"subtract (Node l x b r) t = 
-   (case delete x t of
-      Some t' \<Rightarrow> (case subtract l t' of 
-                   Some t'' \<Rightarrow> subtract r t''
-                  | None \<Rightarrow> None)
-    | None \<Rightarrow> None)"
+primrec subtract :: "'a tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree option"
+where
+  "subtract Tip t = Some t"
+| "subtract (Node l x b r) t =
+     (case delete x t of
+        Some t' \<Rightarrow> (case subtract l t' of 
+                     Some t'' \<Rightarrow> subtract r t''
+                    | None \<Rightarrow> None)
+       | None \<Rightarrow> None)"
 
 lemma subtract_Some_set_of_res: 
   "\<And>t\<^isub>2 t. subtract t\<^isub>1 t\<^isub>2 = Some t \<Longrightarrow> set_of t \<subseteq> set_of t\<^isub>2"
