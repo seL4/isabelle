@@ -222,12 +222,14 @@ lemma bulkload_Mapping [code]:
   "Mapping.bulkload vs = Mapping (bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
   by (rule mapping_eqI) (simp add: map_of_map_restrict expand_fun_eq)
 
-lemma [code, code del]:
-  "HOL.eq (x :: (_, _) mapping) y \<longleftrightarrow> x = y" by (fact eq_equals) (*FIXME*)
+lemma equal_Mapping [code]:
+  "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> entries t1 = entries t2"
+  by (simp add: equal Mapping_def entries_lookup)
 
-lemma eq_Mapping [code]:
-  "HOL.eq (Mapping t1) (Mapping t2) \<longleftrightarrow> entries t1 = entries t2"
-  by (simp add: eq Mapping_def entries_lookup)
+lemma [code nbe]:
+  "HOL.equal (x :: (_, _) mapping) x \<longleftrightarrow> True"
+  by (fact equal_refl)
+
 
 hide_const (open) impl_of lookup empty insert delete
   entries keys bulkload map_entry map fold

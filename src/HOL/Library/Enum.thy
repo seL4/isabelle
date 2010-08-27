@@ -35,16 +35,20 @@ end
 
 subsection {* Equality and order on functions *}
 
-instantiation "fun" :: (enum, eq) eq
+instantiation "fun" :: (enum, equal) equal
 begin
 
 definition
-  "eq_class.eq f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
+  "HOL.equal f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
 
 instance proof
-qed (simp_all add: eq_fun_def enum_all expand_fun_eq)
+qed (simp_all add: equal_fun_def enum_all expand_fun_eq)
 
 end
+
+lemma [code nbe]:
+  "HOL.equal (f :: _ \<Rightarrow> _) f \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
@@ -169,7 +173,7 @@ qed
 
 end
 
-lemma enum_fun_code [code]: "enum = (let enum_a = (enum \<Colon> 'a\<Colon>{enum, eq} list)
+lemma enum_fun_code [code]: "enum = (let enum_a = (enum \<Colon> 'a\<Colon>{enum, equal} list)
   in map (\<lambda>ys. the o map_of (zip enum_a ys)) (n_lists (length enum_a) enum))"
   by (simp add: enum_fun_def Let_def)
 

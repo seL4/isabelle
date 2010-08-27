@@ -701,7 +701,44 @@ lemma bulkload_Mapping [code]:
   "Mapping.bulkload vs = Mapping (map (\<lambda>n. (n, vs ! n)) [0..<length vs])"
   by (rule mapping_eqI) (simp add: map_of_map_restrict expand_fun_eq)
 
-lemma [code, code del]:
-  "HOL.eq (x :: (_, _) mapping) y \<longleftrightarrow> x = y" by (fact eq_equals) (*FIXME*)
+lemma map_of_eqI: (*FIXME move to Map.thy*)
+  assumes set_eq: "set (map fst xs) = set (map fst ys)"
+  assumes map_eq: "\<forall>k\<in>set (map fst xs). map_of xs k = map_of ys k"
+  shows "map_of xs = map_of ys"
+proof (rule ext)
+  fix k show "map_of xs k = map_of ys k"
+  proof (cases "map_of xs k")
+    case None then have "k \<notin> set (map fst xs)" by (simp add: map_of_eq_None_iff)
+    with set_eq have "k \<notin> set (map fst ys)" by simp
+    then have "map_of ys k = None" by (simp add: map_of_eq_None_iff)
+    with None show ?thesis by simp
+  next
+    case (Some v) then have "k \<in> set (map fst xs)" by (auto simp add: dom_map_of_conv_image_fst [symmetric])
+    with map_eq show ?thesis by auto
+  qed
+qed
+
+lemma map_of_eq_dom: (*FIXME move to Map.thy*)
+  assumes "map_of xs = map_of ys"
+  shows "fst ` set xs = fst ` set ys"
+proof -
+  from assms have "dom (map_of xs) = dom (map_of ys)" by simp
+  then show ?thesis by (simp add: dom_map_of_conv_image_fst)
+qed
+
+lemma equal_Mapping [code]:
+  "HOL.equal (Mapping xs) (Mapping ys) \<longleftrightarrow>
+    (let ks = map fst xs; ls = map fst ys
+    in (\<forall>l\<in>set ls. l \<in> set ks) \<and> (\<forall>k\<in>set ks. k \<in> set ls \<and> map_of xs k = map_of ys k))"
+proof -
+  have aux: "\<And>a b xs. (a, b) \<in> set xs \<Longrightarrow> a \<in> fst ` set xs" by (auto simp add: image_def intro!: bexI)
+  show ?thesis
+    by (auto intro!: map_of_eqI simp add: Let_def equal Mapping_def)
+      (auto dest!: map_of_eq_dom intro: aux)
+qed
+
+lemma [code nbe]:
+  "HOL.equal (x :: ('a, 'b) mapping) x \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 end

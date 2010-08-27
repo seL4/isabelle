@@ -112,7 +112,7 @@ setup {*
     false Code_Printer.literal_alternative_numeral) ["Haskell", "Scala"]
 *}
 
-code_instance code_numeral :: eq
+code_instance code_numeral :: equal
   (Haskell -)
 
 code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
@@ -131,7 +131,7 @@ code_const div_mod_code_numeral
   (Haskell "divMod")
   (Scala infixl 8 "/%")
 
-code_const "eq_class.eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (Haskell infixl 4 "==")
   (Scala infixl 5 "==")
 

@@ -1844,7 +1844,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
   let
     val eq =
       (HOLogic.mk_Trueprop o HOLogic.mk_eq)
-        (Const (@{const_name eq_class.eq}, extT --> extT --> HOLogic.boolT),
+        (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
          Const (@{const_name "op ="}, extT --> extT --> HOLogic.boolT));
     fun tac eq_def =
       Class.intro_classes_tac []
@@ -1853,15 +1853,15 @@ fun add_code ext_tyco vs extT ext simps inject thy =
     fun mk_eq thy eq_def = Simplifier.rewrite_rule
       [(AxClass.unoverload thy o Thm.symmetric o Simpdata.mk_eq) eq_def] inject;
     fun mk_eq_refl thy =
-      @{thm HOL.eq_refl}
+      @{thm equal_refl}
       |> Thm.instantiate
-        ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT_global extT)], [])
+        ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
       |> AxClass.unoverload thy;
   in
     thy
     |> Code.add_datatype [ext]
     |> fold Code.add_default_eqn simps
-    |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_eq])
+    |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_equal])
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition
          (NONE, (Attrib.empty_binding, eq)))

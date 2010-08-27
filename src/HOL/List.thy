@@ -4721,8 +4721,8 @@ lemma eq_Nil_null [code_unfold]:
   by (simp add: null_def)
 
 lemma equal_Nil_null [code_unfold]:
-  "eq_class.eq xs [] \<longleftrightarrow> null xs"
-  by (simp add: eq eq_Nil_null)
+  "HOL.equal xs [] \<longleftrightarrow> null xs"
+  by (simp add: equal eq_Nil_null)
 
 definition maps :: "('a \<Rightarrow> 'b list) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
   [code_post]: "maps f xs = concat (map f xs)"
@@ -4821,10 +4821,10 @@ code_const Nil
   (Haskell "[]")
   (Scala "!Nil")
 
-code_instance list :: eq
+code_instance list :: equal
   (Haskell -)
 
-code_const "eq_class.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_reserved SML

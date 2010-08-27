@@ -55,12 +55,12 @@ lemma divmod_nat_code [code]:
   by (simp add: prod_fun_def split_def pdivmod_def nat_div_distrib nat_mod_distrib divmod_nat_div_mod)
 
 lemma eq_nat_code [code]:
-  "eq_class.eq n m \<longleftrightarrow> eq_class.eq (of_nat n \<Colon> int) (of_nat m)"
-  by (simp add: eq)
+  "HOL.equal n m \<longleftrightarrow> HOL.equal (of_nat n \<Colon> int) (of_nat m)"
+  by (simp add: equal)
 
 lemma eq_nat_refl [code nbe]:
-  "eq_class.eq (n::nat) n \<longleftrightarrow> True"
-  by (rule HOL.eq_refl)
+  "HOL.equal (n::nat) n \<longleftrightarrow> True"
+  by (rule equal_refl)
 
 lemma less_eq_nat_code [code]:
   "n \<le> m \<longleftrightarrow> (of_nat n \<Colon> int) \<le> of_nat m"
@@ -332,7 +332,7 @@ code_type nat
   (Haskell "Nat.Nat")
   (Scala "Nat.Nat")
 
-code_instance nat :: eq
+code_instance nat :: equal
   (Haskell -)
 
 text {*
@@ -442,7 +442,7 @@ code_const divmod_nat
   (Scala infixl 8 "/%")
   (Eval "Integer.div'_mod")
 
-code_const "eq_class.eq \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> nat \<Rightarrow> nat \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")

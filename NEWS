@@ -56,6 +56,10 @@ feature is still required for historical reasons.
 
 *** HOL ***
 
+* Renamed class eq and constant eq (for code generation) to class equal
+and constant equal, plus renaming of related facts and various tuning.
+INCOMPATIBILITY.
+
 * Scala (2.8 or higher) has been added to the target languages of
 the code generator.
 
