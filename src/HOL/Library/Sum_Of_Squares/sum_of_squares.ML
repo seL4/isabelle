@@ -9,7 +9,8 @@ signature SUM_OF_SQUARES =
 sig
   datatype proof_method = Certificate of RealArith.pss_tree | Prover of string -> string
   val sos_tac: (RealArith.pss_tree -> unit) -> proof_method -> Proof.context -> int -> tactic
-  val debugging: bool Unsynchronized.ref
+  val trace: bool Config.T
+  val setup: theory -> theory
   exception Failure of string;
 end
 
@@ -49,7 +50,8 @@ val abs_rat = Rat.abs;
 val pow2 = rat_pow rat_2;
 val pow10 = rat_pow rat_10;
 
-val debugging = Unsynchronized.ref false;
+val (trace, setup_trace) = Attrib.config_bool "sos_trace" (K false);
+val setup = setup_trace;
 
 exception Sanity;
 
@@ -1059,7 +1061,7 @@ end
 (* Positiv- and Nullstellensatz. Flag "linf" forces a linear representation. *)
 
 
-fun real_positivnullstellensatz_general prover linf d eqs leqs pol =
+fun real_positivnullstellensatz_general ctxt prover linf d eqs leqs pol =
 let
  val vars = fold_rev (union (op aconvc) o poly_variables)
    (pol :: eqs @ map fst leqs) []
@@ -1129,7 +1131,7 @@ let
   fun find_rounding d =
    let
     val _ =
-      if !debugging
+      if Config.get ctxt trace
       then writeln ("Trying rounding with limit "^Rat.string_of_rat d ^ "\n")
       else ()
     val vec = nice_vector d raw_vec
@@ -1245,7 +1247,7 @@ fun real_nonlinear_prover proof_method ctxt =
            let val e = multidegree pol
                val k = if e = 0 then 0 else d div e
                val eq' = map fst eq
-           in tryfind (fn i => (d,i,real_positivnullstellensatz_general prover false d eq' leq
+           in tryfind (fn i => (d,i,real_positivnullstellensatz_general ctxt prover false d eq' leq
                                  (poly_neg(poly_pow pol i))))
                    (0 upto k)
            end

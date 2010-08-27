@@ -28,6 +28,7 @@ text {*
   without calling an external prover.
 *}
 
+setup Sum_Of_Squares.setup
 setup SOS_Wrapper.setup
 
 text {* Tests *}
