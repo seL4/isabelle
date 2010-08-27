@@ -18,8 +18,6 @@ sig
   val eqvt_force_del: attribute
   val setup: theory -> theory
   val get_eqvt_thms: Proof.context -> thm list
-
-  val NOMINAL_EQVT_DEBUG : bool Unsynchronized.ref
 end;
 
 structure NominalThmDecls: NOMINAL_THMDECLS =
@@ -44,29 +42,31 @@ structure Data = Generic_Data
 (* equality-lemma can be derived. *)
 exception EQVT_FORM of string
 
-val NOMINAL_EQVT_DEBUG = Unsynchronized.ref false
+val (nominal_eqvt_debug, setup_nominal_eqvt_debug) =
+  Attrib.config_bool "nominal_eqvt_debug" (K false);
 
-fun tactic (msg, tac) =
-  if !NOMINAL_EQVT_DEBUG
+fun tactic ctxt (msg, tac) =
+  if Config.get ctxt nominal_eqvt_debug
   then tac THEN' (K (print_tac ("after " ^ msg)))
   else tac
 
 fun prove_eqvt_tac ctxt orig_thm pi pi' =
-let
-  val mypi = Thm.cterm_of ctxt pi
-  val T = fastype_of pi'
-  val mypifree = Thm.cterm_of ctxt (Const (@{const_name "rev"}, T --> T) $ pi')
-  val perm_pi_simp = PureThy.get_thms ctxt "perm_pi_simp"
-in
-  EVERY1 [tactic ("iffI applied", rtac @{thm iffI}),
-          tactic ("remove pi with perm_boolE", dtac @{thm perm_boolE}),
-          tactic ("solve with orig_thm", etac orig_thm),
-          tactic ("applies orig_thm instantiated with rev pi",
-                     dtac (Drule.cterm_instantiate [(mypi,mypifree)] orig_thm)),
-          tactic ("getting rid of the pi on the right", rtac @{thm perm_boolI}),
-          tactic ("getting rid of all remaining perms",
-                     full_simp_tac (HOL_basic_ss addsimps perm_pi_simp))]
-end;
+  let
+    val thy = ProofContext.theory_of ctxt
+    val mypi = Thm.cterm_of thy pi
+    val T = fastype_of pi'
+    val mypifree = Thm.cterm_of thy (Const (@{const_name "rev"}, T --> T) $ pi')
+    val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp"
+  in
+    EVERY1 [tactic ctxt ("iffI applied", rtac @{thm iffI}),
+            tactic ctxt ("remove pi with perm_boolE", dtac @{thm perm_boolE}),
+            tactic ctxt ("solve with orig_thm", etac orig_thm),
+            tactic ctxt ("applies orig_thm instantiated with rev pi",
+                       dtac (Drule.cterm_instantiate [(mypi,mypifree)] orig_thm)),
+            tactic ctxt ("getting rid of the pi on the right", rtac @{thm perm_boolI}),
+            tactic ctxt ("getting rid of all remaining perms",
+                       full_simp_tac (HOL_basic_ss addsimps perm_pi_simp))]
+  end;
 
 fun get_derived_thm ctxt hyp concl orig_thm pi typi =
   let
@@ -78,7 +78,7 @@ fun get_derived_thm ctxt hyp concl orig_thm pi typi =
     val _ = writeln (Syntax.string_of_term ctxt' goal_term);
   in
     Goal.prove ctxt' [] [] goal_term
-      (fn _ => prove_eqvt_tac thy orig_thm pi' pi'') |>
+      (fn _ => prove_eqvt_tac ctxt' orig_thm pi' pi'') |>
     singleton (ProofContext.export ctxt' ctxt)
   end
 
@@ -170,11 +170,12 @@ val eqvt_force_del  = Thm.declaration_attribute (Data.map o Thm.del_thm);
 val get_eqvt_thms = Context.Proof #> Data.get;
 
 val setup =
-    Attrib.setup @{binding eqvt} (Attrib.add_del eqvt_add eqvt_del) 
-     "equivariance theorem declaration" 
- #> Attrib.setup @{binding eqvt_force} (Attrib.add_del eqvt_force_add eqvt_force_del)
-     "equivariance theorem declaration (without checking the form of the lemma)" 
- #> PureThy.add_thms_dynamic (Binding.name "eqvts", Data.get) 
+  setup_nominal_eqvt_debug #>
+  Attrib.setup @{binding eqvt} (Attrib.add_del eqvt_add eqvt_del) 
+   "equivariance theorem declaration" #>
+  Attrib.setup @{binding eqvt_force} (Attrib.add_del eqvt_force_add eqvt_force_del)
+    "equivariance theorem declaration (without checking the form of the lemma)" #>
+  PureThy.add_thms_dynamic (Binding.name "eqvts", Data.get);
 
 
 end;
