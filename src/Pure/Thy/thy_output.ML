@@ -178,12 +178,11 @@ fun eval_antiquote lex state (txt, pos) =
       | expand (Antiquote.Antiq (ss, (pos, _))) =
           let
             val (opts, src) = Token.read_antiq lex antiq (ss, pos);
-            val opts_ctxt = fold option opts (Toplevel.presentation_context_of state);
-            val cmd = wrap opts_ctxt (fn () => command src state opts_ctxt);
-            val _ = cmd ();  (*preview errors!*)
-          in
-            Print_Mode.with_modes (! modes @ Latex.modes) (Output.no_warnings_CRITICAL cmd) ()
-          end
+            fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
+            val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
+            val print_ctxt = Context_Position.set_visible false preview_ctxt;
+            val _ = cmd preview_ctxt;
+          in Print_Mode.with_modes (! modes @ Latex.modes) (fn () => cmd print_ctxt) () end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
     val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
