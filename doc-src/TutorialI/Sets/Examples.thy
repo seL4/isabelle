@@ -1,7 +1,6 @@
-(* ID:         $Id$ *)
 theory Examples imports Main Binomial begin
 
-ML "Unsynchronized.reset eta_contract"
+ML "eta_contract := false"
 ML "Pretty.margin_default := 64"
 
 text{*membership, intersection *}

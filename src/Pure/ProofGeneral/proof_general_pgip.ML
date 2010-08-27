@@ -1021,7 +1021,8 @@ val initialized = Unsynchronized.ref false;
 
 fun init_pgip false = panic "No Proof General interface support for Isabelle/classic mode."
   | init_pgip true =
-      (! initialized orelse
+      (if ! initialized then ()
+       else
         (setup_preferences_tweak ();
          Output.add_mode proof_generalN Output.default_output Output.default_escape;
          Markup.add_mode proof_generalN YXML.output_markup;
@@ -1031,8 +1032,8 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
          setup_present_hook ();
          init_pgip_session_id ();
          welcome ();
-         Unsynchronized.set initialized);
-        sync_thy_loader ();
+         initialized := true);
+       sync_thy_loader ();
        Unsynchronized.change print_mode (update (op =) proof_generalN);
        pgip_toplevel tty_src);
 
