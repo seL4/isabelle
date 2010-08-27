@@ -512,7 +512,9 @@ proof -
   show ?thesis unfolding simple_integral_subalgebra[OF msN] isoton_def by simp
 qed
 
-lemma (in prob_space)
+section "Conditional Expectation and Probability"
+
+lemma (in prob_space) conditional_expectation_exists:
   fixes X :: "'a \<Rightarrow> pinfreal"
   assumes borel: "X \<in> borel_measurable M"
   and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
@@ -550,6 +552,32 @@ proof -
     by blast
   with N_subalgebra show ?thesis
     by (auto intro!: bexI[OF _ Y(1)])
+qed
+
+definition (in prob_space)
+  "conditional_expectation N X = (SOME Y. Y\<in>borel_measurable (M\<lparr>sets:=N\<rparr>)
+    \<and> (\<forall>C\<in>N. positive_integral (\<lambda>x. Y x * indicator C x) = positive_integral (\<lambda>x. X x * indicator C x)))"
+
+abbreviation (in prob_space)
+  "conditional_probabiltiy N A \<equiv> conditional_expectation N (indicator A)"
+
+lemma (in prob_space)
+  fixes X :: "'a \<Rightarrow> pinfreal"
+  assumes borel: "X \<in> borel_measurable M"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows borel_measurable_conditional_expectation:
+    "conditional_expectation N X \<in> borel_measurable (M\<lparr> sets := N \<rparr>)"
+  and conditional_expectation: "\<And>C. C \<in> N \<Longrightarrow>
+      positive_integral (\<lambda>x. conditional_expectation N X x * indicator C x) =
+      positive_integral (\<lambda>x. X x * indicator C x)"
+   (is "\<And>C. C \<in> N \<Longrightarrow> ?eq C")
+proof -
+  note CE = conditional_expectation_exists[OF assms, unfolded Bex_def]
+  then show "conditional_expectation N X \<in> borel_measurable (M\<lparr> sets := N \<rparr>)"
+    unfolding conditional_expectation_def by (rule someI2_ex) blast
+
+  from CE show "\<And>C. C\<in>N \<Longrightarrow> ?eq C"
+    unfolding conditional_expectation_def by (rule someI2_ex) blast
 qed
 
 end
