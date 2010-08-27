@@ -511,7 +511,7 @@ proof -
   from positive_integral_isoton_simple[OF `fs \<up> f` sf] N.positive_integral_isoton_simple[OF `fs \<up> f` Nsf]
   show ?thesis unfolding simple_integral_subalgebra[OF msN] isoton_def by simp
 qed
-(*
+
 lemma (in prob_space)
   fixes X :: "'a \<Rightarrow> pinfreal"
   assumes borel: "X \<in> borel_measurable M"
@@ -548,16 +548,8 @@ proof -
   obtain Y where Y: "Y \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
     "\<And>A. A \<in> sets (M\<lparr>sets:=N\<rparr>) \<Longrightarrow> ?Q A = P.positive_integral (\<lambda>x. Y x * indicator A x)"
     by blast
-  show ?thesis
-  proof (intro bexI[OF _ Y(1)] ballI)
-    fix A assume "A \<in> N"
-    have "positive_integral (\<lambda>x. Y x * indicator A x) = P.positive_integral (\<lambda>x. Y x * indicator A x)"
-      unfolding P.positive_integral_def positive_integral_def
-      unfolding P.simple_integral_def_raw simple_integral_def_raw
-      apply simp
-    show "positive_integral (\<lambda>x. Y x * indicator A x) = ?Q A"
-  qed
+  with N_subalgebra show ?thesis
+    by (auto intro!: bexI[OF _ Y(1)])
 qed
-*)
 
 end
