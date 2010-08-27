@@ -562,5 +562,65 @@ proof -
     unfolding conditional_expectation_def by (rule someI2_ex) blast
 qed
 
+lemma (in sigma_algebra) factorize_measurable_function:
+  fixes Z :: "'a \<Rightarrow> pinfreal" and Y :: "'a \<Rightarrow> 'c"
+  assumes "sigma_algebra M'" and "Y \<in> measurable M M'" "Z \<in> borel_measurable M"
+  shows "Z \<in> borel_measurable (sigma_algebra.vimage_algebra M' (space M) Y)
+    \<longleftrightarrow> (\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x))"
+proof safe
+  interpret M': sigma_algebra M' by fact
+  have Y: "Y \<in> space M \<rightarrow> space M'" using assms unfolding measurable_def by auto
+  from M'.sigma_algebra_vimage[OF this]
+  interpret va: sigma_algebra "M'.vimage_algebra (space M) Y" .
+
+  { fix g :: "'c \<Rightarrow> pinfreal" assume "g \<in> borel_measurable M'"
+    with M'.measurable_vimage_algebra[OF Y]
+    have "g \<circ> Y \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+      by (rule measurable_comp)
+    moreover assume "\<forall>x\<in>space M. Z x = g (Y x)"
+    then have "Z \<in> borel_measurable (M'.vimage_algebra (space M) Y) \<longleftrightarrow>
+       g \<circ> Y \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+       by (auto intro!: measurable_cong)
+    ultimately show "Z \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+      by simp }
+
+  assume "Z \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+  from va.borel_measurable_implies_simple_function_sequence[OF this]
+  obtain f where f: "\<And>i. va.simple_function (f i)" and "f \<up> Z" by blast
+
+  have "\<forall>i. \<exists>g. M'.simple_function g \<and> (\<forall>x\<in>space M. f i x = g (Y x))"
+  proof
+    fix i
+    from f[of i] have "finite (f i`space M)" and B_ex:
+      "\<forall>z\<in>(f i)`space M. \<exists>B. B \<in> sets M' \<and> (f i) -` {z} \<inter> space M = Y -` B \<inter> space M"
+      unfolding va.simple_function_def by auto
+    from B_ex[THEN bchoice] guess B .. note B = this
+
+    let ?g = "\<lambda>x. \<Sum>z\<in>f i`space M. z * indicator (B z) x"
+
+    show "\<exists>g. M'.simple_function g \<and> (\<forall>x\<in>space M. f i x = g (Y x))"
+    proof (intro exI[of _ ?g] conjI ballI)
+      show "M'.simple_function ?g" using B by auto
+
+      fix x assume "x \<in> space M"
+      then have "\<And>z. z \<in> f i`space M \<Longrightarrow> indicator (B z) (Y x) = (indicator (f i -` {z} \<inter> space M) x::pinfreal)"
+        unfolding indicator_def using B by auto
+      then show "f i x = ?g (Y x)" using `x \<in> space M` f[of i]
+        by (subst va.simple_function_indicator_representation) auto
+    qed
+  qed
+  from choice[OF this] guess g .. note g = this
+
+  show "\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x)"
+  proof (intro ballI bexI)
+    show "(SUP i. g i) \<in> borel_measurable M'"
+      using g by (auto intro: M'.borel_measurable_simple_function)
+    fix x assume "x \<in> space M"
+    have "Z x = (SUP i. f i) x" using `f \<up> Z` unfolding isoton_def by simp
+    also have "\<dots> = (SUP i. g i) (Y x)" unfolding SUPR_fun_expand
+      using g `x \<in> space M` by simp
+    finally show "Z x = (SUP i. g i) (Y x)" .
+  qed
+qed
 
 end
