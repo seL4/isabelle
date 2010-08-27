@@ -45,7 +45,6 @@ sig
   val status: string -> unit
   val report: string -> unit
   val debugging: bool Unsynchronized.ref
-  val no_warnings_CRITICAL: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
 end;
 
@@ -112,8 +111,6 @@ fun status s = ! status_fn (output s);
 fun report s = ! report_fn (output s);
 
 fun legacy_feature s = warning ("Legacy feature! " ^ s);
-
-fun no_warnings_CRITICAL f = setmp_CRITICAL warning_fn (K ()) f;
 
 val debugging = Unsynchronized.ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
