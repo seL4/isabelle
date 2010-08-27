@@ -8,14 +8,14 @@ text {*
   Type classes were introduced by Wadler and Blott \cite{wadler89how}
   into the Haskell language to allow for a reasonable implementation
   of overloading\footnote{throughout this tutorial, we are referring
-  to classical Haskell 1.0 type classes, not considering
-  later additions in expressiveness}.
-  As a canonical example, a polymorphic equality function
-  @{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} which is overloaded on different
-  types for @{text "\<alpha>"}, which is achieved by splitting introduction
-  of the @{text eq} function from its overloaded definitions by means
-  of @{text class} and @{text instance} declarations:
-  \footnote{syntax here is a kind of isabellized Haskell}
+  to classical Haskell 1.0 type classes, not considering later
+  additions in expressiveness}.  As a canonical example, a polymorphic
+  equality function @{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"} which is overloaded on
+  different types for @{text "\<alpha>"}, which is achieved by splitting
+  introduction of the @{text eq} function from its overloaded
+  definitions by means of @{text class} and @{text instance}
+  declarations: \footnote{syntax here is a kind of isabellized
+  Haskell}
 
   \begin{quote}
 
@@ -41,14 +41,14 @@ text {*
   these annotations are assertions that a particular polymorphic type
   provides definitions for overloaded functions.
 
-  Indeed, type classes not only allow for simple overloading
-  but form a generic calculus, an instance of order-sorted
-  algebra \cite{nipkow-sorts93,Nipkow-Prehofer:1993,Wenzel:1997:TPHOL}.
+  Indeed, type classes not only allow for simple overloading but form
+  a generic calculus, an instance of order-sorted algebra
+  \cite{nipkow-sorts93,Nipkow-Prehofer:1993,Wenzel:1997:TPHOL}.
 
-  From a software engineering point of view, type classes
-  roughly correspond to interfaces in object-oriented languages like Java;
-  so, it is naturally desirable that type classes do not only
-  provide functions (class parameters) but also state specifications
+  From a software engineering point of view, type classes roughly
+  correspond to interfaces in object-oriented languages like Java; so,
+  it is naturally desirable that type classes do not only provide
+  functions (class parameters) but also state specifications
   implementations must obey.  For example, the @{text "class eq"}
   above could be given the following specification, demanding that
   @{text "class eq"} is an equivalence relation obeying reflexivity,
@@ -65,11 +65,10 @@ text {*
 
   \end{quote}
 
-  \noindent From a theoretical point of view, type classes are lightweight
-  modules; Haskell type classes may be emulated by
-  SML functors \cite{classes_modules}. 
-  Isabelle/Isar offers a discipline of type classes which brings
-  all those aspects together:
+  \noindent From a theoretical point of view, type classes are
+  lightweight modules; Haskell type classes may be emulated by SML
+  functors \cite{classes_modules}.  Isabelle/Isar offers a discipline
+  of type classes which brings all those aspects together:
 
   \begin{enumerate}
     \item specifying abstract parameters together with
@@ -81,15 +80,15 @@ text {*
       locales \cite{kammueller-locales}.
   \end{enumerate}
 
-  \noindent Isar type classes also directly support code generation
-  in a Haskell like fashion. Internally, they are mapped to more primitive 
-  Isabelle concepts \cite{Haftmann-Wenzel:2006:classes}.
+  \noindent Isar type classes also directly support code generation in
+  a Haskell like fashion. Internally, they are mapped to more
+  primitive Isabelle concepts \cite{Haftmann-Wenzel:2006:classes}.
 
-  This tutorial demonstrates common elements of structured specifications
-  and abstract reasoning with type classes by the algebraic hierarchy of
-  semigroups, monoids and groups.  Our background theory is that of
-  Isabelle/HOL \cite{isa-tutorial}, for which some
-  familiarity is assumed.
+  This tutorial demonstrates common elements of structured
+  specifications and abstract reasoning with type classes by the
+  algebraic hierarchy of semigroups, monoids and groups.  Our
+  background theory is that of Isabelle/HOL \cite{isa-tutorial}, for
+  which some familiarity is assumed.
 *}
 
 section {* A simple algebra example \label{sec:example} *}
@@ -107,25 +106,24 @@ class %quote semigroup =
   assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
 text {*
-  \noindent This @{command class} specification consists of two
-  parts: the \qn{operational} part names the class parameter
-  (@{element "fixes"}), the \qn{logical} part specifies properties on them
-  (@{element "assumes"}).  The local @{element "fixes"} and
-  @{element "assumes"} are lifted to the theory toplevel,
-  yielding the global
+  \noindent This @{command class} specification consists of two parts:
+  the \qn{operational} part names the class parameter (@{element
+  "fixes"}), the \qn{logical} part specifies properties on them
+  (@{element "assumes"}).  The local @{element "fixes"} and @{element
+  "assumes"} are lifted to the theory toplevel, yielding the global
   parameter @{term [source] "mult \<Colon> \<alpha>\<Colon>semigroup \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"} and the
-  global theorem @{fact "semigroup.assoc:"}~@{prop [source] "\<And>x y
-  z \<Colon> \<alpha>\<Colon>semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
+  global theorem @{fact "semigroup.assoc:"}~@{prop [source] "\<And>x y z \<Colon>
+  \<alpha>\<Colon>semigroup. (x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"}.
 *}
 
 
 subsection {* Class instantiation \label{sec:class_inst} *}
 
 text {*
-  The concrete type @{typ int} is made a @{class semigroup}
-  instance by providing a suitable definition for the class parameter
-  @{text "(\<otimes>)"} and a proof for the specification of @{fact assoc}.
-  This is accomplished by the @{command instantiation} target:
+  The concrete type @{typ int} is made a @{class semigroup} instance
+  by providing a suitable definition for the class parameter @{text
+  "(\<otimes>)"} and a proof for the specification of @{fact assoc}.  This is
+  accomplished by the @{command instantiation} target:
 *}
 
 instantiation %quote int :: semigroup
@@ -143,22 +141,22 @@ qed
 end %quote
 
 text {*
-  \noindent @{command instantiation} defines class parameters
-  at a particular instance using common specification tools (here,
-  @{command definition}).  The concluding @{command instance}
-  opens a proof that the given parameters actually conform
-  to the class specification.  Note that the first proof step
-  is the @{method default} method,
-  which for such instance proofs maps to the @{method intro_classes} method.
-  This reduces an instance judgement to the relevant primitive
-  proof goals; typically it is the first method applied
-  in an instantiation proof.
+  \noindent @{command instantiation} defines class parameters at a
+  particular instance using common specification tools (here,
+  @{command definition}).  The concluding @{command instance} opens a
+  proof that the given parameters actually conform to the class
+  specification.  Note that the first proof step is the @{method
+  default} method, which for such instance proofs maps to the @{method
+  intro_classes} method.  This reduces an instance judgement to the
+  relevant primitive proof goals; typically it is the first method
+  applied in an instantiation proof.
 
-  From now on, the type-checker will consider @{typ int}
-  as a @{class semigroup} automatically, i.e.\ any general results
-  are immediately available on concrete instances.
+  From now on, the type-checker will consider @{typ int} as a @{class
+  semigroup} automatically, i.e.\ any general results are immediately
+  available on concrete instances.
 
-  \medskip Another instance of @{class semigroup} yields the natural numbers:
+  \medskip Another instance of @{class semigroup} yields the natural
+  numbers:
 *}
 
 instantiation %quote nat :: semigroup
@@ -177,21 +175,20 @@ qed
 end %quote
 
 text {*
-  \noindent Note the occurence of the name @{text mult_nat}
-  in the primrec declaration;  by default, the local name of
-  a class operation @{text f} to be instantiated on type constructor
-  @{text \<kappa>} is mangled as @{text f_\<kappa>}.  In case of uncertainty,
-  these names may be inspected using the @{command "print_context"} command
-  or the corresponding ProofGeneral button.
+  \noindent Note the occurence of the name @{text mult_nat} in the
+  primrec declaration; by default, the local name of a class operation
+  @{text f} to be instantiated on type constructor @{text \<kappa>} is
+  mangled as @{text f_\<kappa>}.  In case of uncertainty, these names may be
+  inspected using the @{command "print_context"} command or the
+  corresponding ProofGeneral button.
 *}
 
 subsection {* Lifting and parametric types *}
 
 text {*
-  Overloaded definitions given at a class instantiation
-  may include recursion over the syntactic structure of types.
-  As a canonical example, we model product semigroups
-  using our simple algebra:
+  Overloaded definitions given at a class instantiation may include
+  recursion over the syntactic structure of types.  As a canonical
+  example, we model product semigroups using our simple algebra:
 *}
 
 instantiation %quote prod :: (semigroup, semigroup) semigroup
@@ -211,21 +208,19 @@ end %quote
 text {*
   \noindent Associativity of product semigroups is established using
   the definition of @{text "(\<otimes>)"} on products and the hypothetical
-  associativity of the type components;  these hypotheses
-  are legitimate due to the @{class semigroup} constraints imposed
-  on the type components by the @{command instance} proposition.
-  Indeed, this pattern often occurs with parametric types
-  and type classes.
+  associativity of the type components; these hypotheses are
+  legitimate due to the @{class semigroup} constraints imposed on the
+  type components by the @{command instance} proposition.  Indeed,
+  this pattern often occurs with parametric types and type classes.
 *}
 
 
 subsection {* Subclassing *}
 
 text {*
-  We define a subclass @{text monoidl} (a semigroup with a left-hand neutral)
-  by extending @{class semigroup}
-  with one additional parameter @{text neutral} together
-  with its characteristic property:
+  We define a subclass @{text monoidl} (a semigroup with a left-hand
+  neutral) by extending @{class semigroup} with one additional
+  parameter @{text neutral} together with its characteristic property:
 *}
 
 class %quote monoidl = semigroup +
@@ -233,10 +228,10 @@ class %quote monoidl = semigroup +
   assumes neutl: "\<one> \<otimes> x = x"
 
 text {*
-  \noindent Again, we prove some instances, by
-  providing suitable parameter definitions and proofs for the
-  additional specifications.  Observe that instantiations
-  for types with the same arity may be simultaneous:
+  \noindent Again, we prove some instances, by providing suitable
+  parameter definitions and proofs for the additional specifications.
+  Observe that instantiations for types with the same arity may be
+  simultaneous:
 *}
 
 instantiation %quote nat and int :: monoidl
@@ -309,8 +304,8 @@ qed
 end %quote
 
 text {*
-  \noindent To finish our small algebra example, we add a @{text group} class
-  with a corresponding instance:
+  \noindent To finish our small algebra example, we add a @{text
+  group} class with a corresponding instance:
 *}
 
 class %quote group = monoidl +
@@ -338,9 +333,9 @@ section {* Type classes as locales *}
 subsection {* A look behind the scenes *}
 
 text {*
-  The example above gives an impression how Isar type classes work
-  in practice.  As stated in the introduction, classes also provide
-  a link to Isar's locale system.  Indeed, the logical core of a class
+  The example above gives an impression how Isar type classes work in
+  practice.  As stated in the introduction, classes also provide a
+  link to Isar's locale system.  Indeed, the logical core of a class
   is nothing other than a locale:
 *}
 
@@ -402,13 +397,14 @@ next
 qed
 
 text {*
-  \noindent Here the \qt{@{keyword "in"} @{class group}} target specification
-  indicates that the result is recorded within that context for later
-  use.  This local theorem is also lifted to the global one @{fact
-  "group.left_cancel:"} @{prop [source] "\<And>x y z \<Colon> \<alpha>\<Colon>group. x \<otimes> y = x \<otimes>
-  z \<longleftrightarrow> y = z"}.  Since type @{text "int"} has been made an instance of
-  @{text "group"} before, we may refer to that fact as well: @{prop
-  [source] "\<And>x y z \<Colon> int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.
+  \noindent Here the \qt{@{keyword "in"} @{class group}} target
+  specification indicates that the result is recorded within that
+  context for later use.  This local theorem is also lifted to the
+  global one @{fact "group.left_cancel:"} @{prop [source] "\<And>x y z \<Colon>
+  \<alpha>\<Colon>group. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y = z"}.  Since type @{text "int"} has been
+  made an instance of @{text "group"} before, we may refer to that
+  fact as well: @{prop [source] "\<And>x y z \<Colon> int. x \<otimes> y = x \<otimes> z \<longleftrightarrow> y =
+  z"}.
 *}
 
 
@@ -424,15 +420,14 @@ primrec %quote (in monoid) pow_nat :: "nat \<Rightarrow> \<alpha> \<Rightarrow> 
 
 text {*
   \noindent If the locale @{text group} is also a class, this local
-  definition is propagated onto a global definition of
-  @{term [source] "pow_nat \<Colon> nat \<Rightarrow> \<alpha>\<Colon>monoid \<Rightarrow> \<alpha>\<Colon>monoid"}
-  with corresponding theorems
+  definition is propagated onto a global definition of @{term [source]
+  "pow_nat \<Colon> nat \<Rightarrow> \<alpha>\<Colon>monoid \<Rightarrow> \<alpha>\<Colon>monoid"} with corresponding theorems
 
   @{thm pow_nat.simps [no_vars]}.
 
-  \noindent As you can see from this example, for local
-  definitions you may use any specification tool
-  which works together with locales, such as Krauss's recursive function package
+  \noindent As you can see from this example, for local definitions
+  you may use any specification tool which works together with
+  locales, such as Krauss's recursive function package
   \cite{krauss2006}.
 *}
 
@@ -440,19 +435,17 @@ text {*
 subsection {* A functor analogy *}
 
 text {*
-  We introduced Isar classes by analogy to type classes in
-  functional programming;  if we reconsider this in the
-  context of what has been said about type classes and locales,
-  we can drive this analogy further by stating that type
-  classes essentially correspond to functors that have
-  a canonical interpretation as type classes.
-  There is also the possibility of other interpretations.
-  For example, @{text list}s also form a monoid with
-  @{text append} and @{term "[]"} as operations, but it
-  seems inappropriate to apply to lists
-  the same operations as for genuinely algebraic types.
-  In such a case, we can simply make a particular interpretation
-  of monoids for lists:
+  We introduced Isar classes by analogy to type classes in functional
+  programming; if we reconsider this in the context of what has been
+  said about type classes and locales, we can drive this analogy
+  further by stating that type classes essentially correspond to
+  functors that have a canonical interpretation as type classes.
+  There is also the possibility of other interpretations.  For
+  example, @{text list}s also form a monoid with @{text append} and
+  @{term "[]"} as operations, but it seems inappropriate to apply to
+  lists the same operations as for genuinely algebraic types.  In such
+  a case, we can simply make a particular interpretation of monoids
+  for lists:
 *}
 
 interpretation %quote list_monoid: monoid append "[]"
@@ -510,12 +503,10 @@ proof
 qed
 
 text {*
-  The logical proof is carried out on the locale level.
-  Afterwards it is propagated
-  to the type system, making @{text group} an instance of
-  @{text monoid} by adding an additional edge
-  to the graph of subclass relations
-  (\figref{fig:subclass}).
+  The logical proof is carried out on the locale level.  Afterwards it
+  is propagated to the type system, making @{text group} an instance
+  of @{text monoid} by adding an additional edge to the graph of
+  subclass relations (\figref{fig:subclass}).
 
   \begin{figure}[htbp]
    \begin{center}
@@ -547,8 +538,8 @@ text {*
    \end{center}
   \end{figure}
 
-  For illustration, a derived definition
-  in @{text group} using @{text pow_nat}
+  For illustration, a derived definition in @{text group} using @{text
+  pow_nat}
 *}
 
 definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>" where
@@ -557,17 +548,17 @@ definition %quote (in group) pow_int :: "int \<Rightarrow> \<alpha> \<Rightarrow
     else (pow_nat (nat (- k)) x)\<div>)"
 
 text {*
-  \noindent yields the global definition of
-  @{term [source] "pow_int \<Colon> int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group"}
-  with the corresponding theorem @{thm pow_int_def [no_vars]}.
+  \noindent yields the global definition of @{term [source] "pow_int \<Colon>
+  int \<Rightarrow> \<alpha>\<Colon>group \<Rightarrow> \<alpha>\<Colon>group"} with the corresponding theorem @{thm
+  pow_int_def [no_vars]}.
 *}
 
 subsection {* A note on syntax *}
 
 text {*
-  As a convenience, class context syntax allows references
-  to local class operations and their global counterparts
-  uniformly;  type inference resolves ambiguities.  For example:
+  As a convenience, class context syntax allows references to local
+  class operations and their global counterparts uniformly; type
+  inference resolves ambiguities.  For example:
 *}
 
 context %quote semigroup
@@ -581,11 +572,11 @@ end  %quote
 term %quote "x \<otimes> y" -- {* example 3 *}
 
 text {*
-  \noindent Here in example 1, the term refers to the local class operation
-  @{text "mult [\<alpha>]"}, whereas in example 2 the type constraint
-  enforces the global class operation @{text "mult [nat]"}.
-  In the global context in example 3, the reference is
-  to the polymorphic global class operation @{text "mult [?\<alpha> \<Colon> semigroup]"}.
+  \noindent Here in example 1, the term refers to the local class
+  operation @{text "mult [\<alpha>]"}, whereas in example 2 the type
+  constraint enforces the global class operation @{text "mult [nat]"}.
+  In the global context in example 3, the reference is to the
+  polymorphic global class operation @{text "mult [?\<alpha> \<Colon> semigroup]"}.
 *}
 
 section {* Further issues *}
@@ -593,16 +584,14 @@ section {* Further issues *}
 subsection {* Type classes and code generation *}
 
 text {*
-  Turning back to the first motivation for type classes,
-  namely overloading, it is obvious that overloading
-  stemming from @{command class} statements and
-  @{command instantiation}
-  targets naturally maps to Haskell type classes.
-  The code generator framework \cite{isabelle-codegen} 
-  takes this into account.  If the target language (e.g.~SML)
-  lacks type classes, then they
-  are implemented by an explicit dictionary construction.
-  As example, let's go back to the power function:
+  Turning back to the first motivation for type classes, namely
+  overloading, it is obvious that overloading stemming from @{command
+  class} statements and @{command instantiation} targets naturally
+  maps to Haskell type classes.  The code generator framework
+  \cite{isabelle-codegen} takes this into account.  If the target
+  language (e.g.~SML) lacks type classes, then they are implemented by
+  an explicit dictionary construction.  As example, let's go back to
+  the power function:
 *}
 
 definition %quote example :: int where
@@ -619,11 +608,18 @@ text {*
 *}
 text %quote {*@{code_stmts example (SML)}*}
 
+text {*
+  \noindent In Scala, implicts are used as dictionaries:
+*}
+(*<*)code_include %invisible Scala "Natural" -(*>*)
+text %quote {*@{code_stmts example (Scala)}*}
+
+
 subsection {* Inspecting the type class universe *}
 
 text {*
-  To facilitate orientation in complex subclass structures,
-  two diagnostics commands are provided:
+  To facilitate orientation in complex subclass structures, two
+  diagnostics commands are provided:
 
   \begin{description}
 
