@@ -968,7 +968,8 @@ text {*
 
   \medskip One framework generates code from functional programs
   (including overloading using type classes) to SML \cite{SML}, OCaml
-  \cite{OCaml} and Haskell \cite{haskell-revised-report}.
+  \cite{OCaml}, Haskell \cite{haskell-revised-report} and Scala
+  \cite{scala-overview-tech-report}.
   Conceptually, code generation is split up in three steps:
   \emph{selection} of code theorems, \emph{translation} into an
   abstract executable view and \emph{serialization} to a specific
@@ -1015,7 +1016,7 @@ text {*
     class: nameref
     ;
 
-    target: 'OCaml' | 'SML' | 'Haskell'
+    target: 'SML' | 'OCaml' | 'Haskell' | 'Scala'
     ;
 
     'code' ( 'del' | 'abstype' | 'abstract' ) ?
@@ -1088,7 +1089,7 @@ text {*
   after the @{keyword "module_name"} keyword; then \emph{all} code is
   placed in this module.
 
-  For \emph{SML} and \emph{OCaml}, the file specification refers to a
+  For \emph{SML}, \emph{OCaml} and \emph{Scala} the file specification refers to a
   single file; for \emph{Haskell}, it refers to a whole directory,
   where code is generated in multiple files reflecting the module
   hierarchy.  Omitting the file specification denotes standard

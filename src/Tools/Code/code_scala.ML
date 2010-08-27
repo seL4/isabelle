@@ -27,7 +27,6 @@ infixr 5 @|;
 fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
     args_num is_singleton_constr (deresolve, deresolve_full) =
   let
-    val deresolve_base = Long_Name.base_name o deresolve;
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
     fun intro_tyvars vs = intro_vars (map (first_upper o fst) vs);
     fun print_tyco_expr tyvars fxy (tyco, tys) = applify "[" "]"
@@ -135,7 +134,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
     fun print_context tyvars vs name = applify "[" "]"
       (fn (v, sort) => (Pretty.block o map str)
         (lookup_tyvar tyvars v :: maps (fn sort => [": ", deresolve sort]) sort))
-          NOBR ((str o deresolve_base) name) vs;
+          NOBR ((str o deresolve) name) vs;
     fun print_defhead tyvars vars name vs params tys ty =
       Pretty.block [str "def ", constraint (applify "(" ")" (fn (param, ty) =>
         constraint ((str o lookup_var vars) param) (print_typ tyvars NOBR ty))
@@ -202,22 +201,22 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
           let
             val tyvars = intro_tyvars vs reserved;
             fun print_co ((co, _), []) =
-                  concat [str "final", str "case", str "object", (str o deresolve_base) co,
-                    str "extends", applify "[" "]" I NOBR ((str o deresolve_base) name)
+                  concat [str "final", str "case", str "object", (str o deresolve) co,
+                    str "extends", applify "[" "]" I NOBR ((str o deresolve) name)
                       (replicate (length vs) (str "Nothing"))]
               | print_co ((co, vs_args), tys) =
                   concat [applify "(" ")"
                     (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg)) NOBR
                     (applify "[" "]" (str o lookup_tyvar tyvars) NOBR ((concat o map str)
-                      ["final", "case", "class", deresolve_base co]) vs_args)
+                      ["final", "case", "class", deresolve co]) vs_args)
                     (Name.names (snd reserved) "a" tys),
                     str "extends",
                     applify "[" "]" (str o lookup_tyvar tyvars o fst) NOBR
-                      ((str o deresolve_base) name) vs
+                      ((str o deresolve) name) vs
                   ];
           in
             Pretty.chunks (applify "[" "]" (str o prefix "+" o lookup_tyvar tyvars o fst)
-              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_base name]) vs
+              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve name]) vs
                 :: map print_co cos)
           end
       | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
@@ -241,7 +240,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               in
                 concat [str "def", constraint (Pretty.block [applify "(" ")"
                   (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
-                  (print_typ tyvars NOBR ty)) NOBR (add_typarg (deresolve_base classparam))
+                  (print_typ tyvars NOBR ty)) NOBR (add_typarg (deresolve classparam))
                   (auxs ~~ tys), str "(implicit ", str implicit_name, str ": ",
                   add_typarg (deresolve name), str ")"]) (print_typ tyvars NOBR ty), str "=",
                   applify "(" ")" (str o lookup_var vars) NOBR
@@ -250,7 +249,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
           in
             Pretty.chunks (
               (Pretty.block_enclose
-                (concat ([str "trait", (add_typarg o deresolve_base) name]
+                (concat ([str "trait", (add_typarg o deresolve) name]
                   @ the_list (print_super_classes super_classes) @ [str "{"]), str "}")
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
@@ -289,7 +288,7 @@ local
 datatype node =
     Dummy
   | Stmt of Code_Thingol.stmt
-  | Module of ((Name.context * Name.context) * Name.context) * (string list * (string * node) Graph.T);
+  | Module of (string list * (string * node) Graph.T);
 
 in
 
@@ -307,29 +306,53 @@ fun scala_program_of_program labelled_name reserved module_alias program =
     val dest_name = Code_Printer.dest_name #>> (the o Symtab.lookup fragments_tab);
 
     (* building empty module hierarchy *)
-    val empty_module = (((reserved, reserved), reserved), ([], Graph.empty));
+    val empty_module = ([], Graph.empty);
     fun map_module f (Module content) = Module (f content);
-    fun declare_module name_fragement ((nsp_class, nsp_object), nsp_common) =
-      let
-        val declare = Name.declare name_fragement;
-      in ((declare nsp_class, declare nsp_object), declare nsp_common) end;
-    fun ensure_module name_fragement (nsps, (implicits, nodes)) =
-      if can (Graph.get_node nodes) name_fragement then (nsps, (implicits, nodes))
-      else
-        (nsps |> declare_module name_fragement, (implicits,
-          nodes |> Graph.new_node (name_fragement, (name_fragement, Module empty_module))));
+    fun change_module [] = I
+      | change_module (name_fragment :: name_fragments) =
+          apsnd o Graph.map_node name_fragment o apsnd o map_module
+            o change_module name_fragments;
+    fun ensure_module name_fragment (implicits, nodes) =
+      if can (Graph.get_node nodes) name_fragment then (implicits, nodes)
+      else (implicits,
+        nodes |> Graph.new_node (name_fragment, (name_fragment, Module empty_module)));
     fun allocate_module [] = I
       | allocate_module (name_fragment :: name_fragments) =
           ensure_module name_fragment
-          #> (apsnd o apsnd o Graph.map_node name_fragment o apsnd o map_module o allocate_module) name_fragments;
+          #> (apsnd o Graph.map_node name_fragment o apsnd o map_module o allocate_module) name_fragments;
     val empty_program = Symtab.fold (fn (_, fragments) => allocate_module fragments)
       fragments_tab empty_module;
-    fun change_module [] = I
-      | change_module (name_fragment :: name_fragments) =
-          apsnd o apsnd o Graph.map_node name_fragment o apsnd o map_module
-            o change_module name_fragments;
 
-    (* statement declaration *)
+    (* distribute statements over hierarchy *)
+    fun add_stmt name stmt =
+      let
+        val (name_fragments, base) = dest_name name;
+        fun is_classinst stmt = case stmt
+         of Code_Thingol.Classinst _ => true
+          | _ => false;
+        val implicit_deps = filter (is_classinst o Graph.get_node program)
+          (Graph.imm_succs program name);
+      in
+        change_module name_fragments (fn (implicits, nodes) =>
+          (union (op =) implicit_deps implicits, Graph.new_node (name, (base, Stmt stmt)) nodes))
+      end;
+    fun add_dependency name name' =
+      let
+        val (name_fragments, base) = dest_name name;
+        val (name_fragments', base') = dest_name name';
+        val (name_fragments_common, (diff, diff')) =
+          chop_prefix (op =) (name_fragments, name_fragments');
+        val dep = if null diff then (name, name') else (hd diff, hd diff')
+      in (change_module name_fragments_common o apsnd) (Graph.add_edge dep) end;
+    val proto_program = empty_program
+      |> Graph.fold (fn (name, (stmt, _)) => add_stmt name stmt) program
+      |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
+
+    (* name declarations *)
+    fun namify_module name_fragment ((nsp_class, nsp_object), nsp_common) =
+      let
+        val declare = Name.declare name_fragment;
+      in (name_fragment, ((declare nsp_class, declare nsp_object), declare nsp_common)) end;
     fun namify_class base ((nsp_class, nsp_object), nsp_common) =
       let
         val (base', nsp_class') = yield_singleton Name.variants base nsp_class
@@ -346,70 +369,58 @@ fun scala_program_of_program labelled_name reserved module_alias program =
         (base',
           ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
       end;
-    fun declare_stmt name stmt =
+    fun namify_stmt (Code_Thingol.Fun _) = namify_object
+      | namify_stmt (Code_Thingol.Datatype _) = namify_class
+      | namify_stmt (Code_Thingol.Datatypecons _) = namify_common true
+      | namify_stmt (Code_Thingol.Class _) = namify_class
+      | namify_stmt (Code_Thingol.Classrel _) = namify_object
+      | namify_stmt (Code_Thingol.Classparam _) = namify_object
+      | namify_stmt (Code_Thingol.Classinst _) = namify_common false;
+    fun make_declarations nsps (implicits, nodes) =
       let
-        val (name_fragments, base) = dest_name name;
-        val namify = case stmt
-         of Code_Thingol.Fun _ => namify_object
-          | Code_Thingol.Datatype _ => namify_class
-          | Code_Thingol.Datatypecons _ => namify_common true
-          | Code_Thingol.Class _ => namify_class
-          | Code_Thingol.Classrel _ => namify_object
-          | Code_Thingol.Classparam _ => namify_object
-          | Code_Thingol.Classinst _ => namify_common false;
-        val stmt' = case stmt
-         of Code_Thingol.Datatypecons _ => Dummy
-          | Code_Thingol.Classrel _ => Dummy
-          | Code_Thingol.Classparam _ => Dummy
-          | _ => Stmt stmt;
-        fun is_classinst stmt = case stmt
-         of Code_Thingol.Classinst _ => true
-          | _ => false;
-        val implicit_deps = filter (is_classinst o Graph.get_node program)
-          (Graph.imm_succs program name);
-        fun declaration (nsps, (implicits, nodes)) =
+        val (module_fragments, stmt_names) = List.partition
+          (fn name_fragment => case Graph.get_node nodes name_fragment
+            of (_, Module _) => true | _ => false) (Graph.keys nodes);
+        fun modify_stmt (Stmt (Code_Thingol.Datatypecons _)) = Dummy
+          | modify_stmt (Stmt (Code_Thingol.Classrel _)) = Dummy
+          | modify_stmt (Stmt (Code_Thingol.Classparam _)) = Dummy
+          | modify_stmt stmt = stmt;
+        fun declare namify modify name (nsps, nodes) =
           let
-            val (base', nsps') = namify base nsps;
-            val implicits' = union (op =) implicit_deps implicits;
-            val nodes' = Graph.new_node (name, (base', stmt')) nodes;
-          in (nsps', (implicits', nodes')) end;
-      in change_module name_fragments declaration end;
-
-    (* dependencies *)
-    fun add_dependency name name' =
-      let
-        val (name_fragments, base) = dest_name name;
-        val (name_fragments', base') = dest_name name';
-        val (name_fragments_common, (diff, diff')) =
-          chop_prefix (op =) (name_fragments, name_fragments');
-        val dep = if null diff then (name, name') else (hd diff, hd diff')
-      in (change_module name_fragments_common o apsnd o apsnd) (Graph.add_edge dep) end;
-
-    (* producing program *)
-    val (_, (_, sca_program)) = empty_program
-      |> Graph.fold (fn (name, (stmt, _)) => declare_stmt name stmt) program
-      |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
+            val (base, node) = Graph.get_node nodes name;
+            val (base', nsps') = namify node base nsps;
+            val nodes' = Graph.map_node name (K (base', modify node)) nodes;
+          in (nsps', nodes') end;
+        val (nsps', nodes') = (nsps, nodes)
+          |> fold (declare (K namify_module) I) module_fragments
+          |> fold (declare (namify_stmt o (fn Stmt stmt => stmt)) modify_stmt) stmt_names;
+        val nodes'' = nodes'
+          |> fold (fn name_fragment => (Graph.map_node name_fragment
+              o apsnd o map_module) (make_declarations nsps')) module_fragments;
+      in (implicits, nodes'') end;
+    val (_, sca_program) = make_declarations ((reserved, reserved), reserved) proto_program;
 
     (* deresolving *)
-    fun deresolve name =
+    fun deresolver prefix_fragments name =
       let
         val (name_fragments, _) = dest_name name;
-        val nodes = fold (fn name_fragement => fn nodes => case Graph.get_node nodes name_fragement
-         of (_, Module (_, (_, nodes))) => nodes) name_fragments sca_program;
+        val (_, (_, remainder)) = chop_prefix (op =) (prefix_fragments, name_fragments);
+        val nodes = fold (fn name_fragment => fn nodes => case Graph.get_node nodes name_fragment
+         of (_, Module (_, nodes)) => nodes) name_fragments sca_program;
         val (base', _) = Graph.get_node nodes name;
-      in Long_Name.implode (name_fragments @ [base']) end
+      in Long_Name.implode (remainder @ [base']) end
         handle Graph.UNDEF _ => error ("Unknown statement name: " ^ labelled_name name);
 
-  in (deresolve, sca_program) end;
+  in (deresolver, sca_program) end;
 
 fun serialize_scala labelled_name raw_reserved includes module_alias
     _ syntax_tyco syntax_const (code_of_pretty, code_writeln)
     program (stmt_names, presentation_stmt_names) destination =
   let
 
-    (* preprocess program *)
+    (* build program *)
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
-    val (deresolve, sca_program) = scala_program_of_program labelled_name
+    val (deresolver, sca_program) = scala_program_of_program labelled_name
       (Name.make_context reserved) module_alias program;
 
     (* print statements *)
@@ -430,41 +441,44 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
-      (make_vars reserved) args_num is_singleton_constr
-      (deresolve, Long_Name.implode o fst o split_last o Long_Name.explode (*FIXME full*));
+      (make_vars reserved) args_num is_singleton_constr;
 
     (* print nodes *)
-    fun print_implicit implicit =
+    fun print_implicit prefix_fragments implicit =
       let
-        val s = deresolve implicit;
+        val s = deresolver prefix_fragments implicit;
       in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
-    fun print_implicits implicits = case map_filter print_implicit implicits
-     of [] => NONE
-      | ps => (SOME o Pretty.block)
-          (str "import /*implicits*/" :: Pretty.brk 1 :: commas ps);
-    fun print_module base implicits p = Pretty.chunks2
-      ([str ("object " ^ base ^ " {")] @ the_list (print_implicits implicits)
+    fun print_implicits prefix_fragments implicits =
+      case map_filter (print_implicit prefix_fragments) implicits
+       of [] => NONE
+        | ps => (SOME o Pretty.block)
+            (str "import /*implicits*/" :: Pretty.brk 1 :: commas ps);
+    fun print_module prefix_fragments base implicits p = Pretty.chunks2
+      ([str ("object " ^ base ^ " {")] @ the_list (print_implicits prefix_fragments implicits)
         @ [p, str ("} /* object " ^ base ^ " */")]);
-    fun print_node (_, Dummy) = NONE
-      | print_node (name, Stmt stmt) = if null presentation_stmt_names
+    fun print_node _ (_, Dummy) = NONE
+      | print_node prefix_fragments (name, Stmt stmt) =
+          if null presentation_stmt_names
           orelse member (op =) presentation_stmt_names name
-          then SOME (print_stmt (name, stmt))
+          then SOME (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt))
           else NONE
-      | print_node (name, Module (_, (implicits, nodes))) = if null presentation_stmt_names
-          then case print_nodes nodes
+      | print_node prefix_fragments (name_fragment, Module (implicits, nodes)) =
+          if null presentation_stmt_names
+          then case print_nodes (prefix_fragments @ [name_fragment]) nodes
            of NONE => NONE
-            | SOME p => SOME (print_module (Long_Name.base_name name) implicits p)
-          else print_nodes nodes
-    and print_nodes nodes = let
-        val ps = map_filter (fn name => print_node (name,
+            | SOME p => SOME (print_module prefix_fragments
+                (Long_Name.base_name name_fragment) implicits p)
+          else print_nodes [] nodes
+    and print_nodes prefix_fragments nodes = let
+        val ps = map_filter (fn name => print_node prefix_fragments (name,
           snd (Graph.get_node nodes name)))
             ((rev o flat o Graph.strong_conn) nodes);
       in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
 
     (* serialization *)
     val p_includes = if null presentation_stmt_names
-      then map (fn (base, p) => print_module base [] p) includes else [];
-    val p = Pretty.chunks2 (p_includes @ the_list (print_nodes sca_program));
+      then map (fn (base, p) => print_module [] base [] p) includes else [];
+    val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
   in
     Code_Target.mk_serialization target
       (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty)
