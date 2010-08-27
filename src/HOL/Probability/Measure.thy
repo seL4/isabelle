@@ -451,6 +451,32 @@ proof safe
   qed
 qed
 
+lemma (in measure_space) measure_space_vimage:
+  assumes "f \<in> measurable M M'"
+  and "sigma_algebra M'"
+  shows "measure_space M' (\<lambda>A. \<mu> (f -` A \<inter> space M))" (is "measure_space M' ?T")
+proof -
+  interpret M': sigma_algebra M' by fact
+
+  show ?thesis
+  proof
+    show "?T {} = 0" by simp
+
+    show "countably_additive M' ?T"
+    proof (unfold countably_additive_def, safe)
+      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets M'" "disjoint_family A"
+      hence *: "\<And>i. f -` (A i) \<inter> space M \<in> sets M"
+        using `f \<in> measurable M M'` by (auto simp: measurable_def)
+      moreover have "(\<Union>i. f -`  A i \<inter> space M) \<in> sets M"
+        using * by blast
+      moreover have **: "disjoint_family (\<lambda>i. f -` A i \<inter> space M)"
+        using `disjoint_family A` by (auto simp: disjoint_family_on_def)
+      ultimately show "(\<Sum>\<^isub>\<infinity> i. ?T (A i)) = ?T (\<Union>i. A i)"
+        using measure_countably_additive[OF _ **] by (auto simp: comp_def vimage_UN)
+    qed
+  qed
+qed
+
 section "@{text \<sigma>}-finite Measures"
 
 locale sigma_finite_measure = measure_space +

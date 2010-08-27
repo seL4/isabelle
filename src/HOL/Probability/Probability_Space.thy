@@ -197,35 +197,17 @@ proof -
 qed
 
 lemma distribution_prob_space:
-  fixes S :: "('c, 'd) algebra_scheme"
-  assumes "sigma_algebra S" "random_variable S X"
+  assumes S: "sigma_algebra S" "random_variable S X"
   shows "prob_space S (distribution X)"
 proof -
-  interpret S: sigma_algebra S by fact
+  interpret S: measure_space S "distribution X"
+    using measure_space_vimage[OF S(2,1)] unfolding distribution_def .
   show ?thesis
   proof
-    show "distribution X {} = 0" unfolding distribution_def by simp
     have "X -` space S \<inter> space M = space M"
       using `random_variable S X` by (auto simp: measurable_def)
-    then show "distribution X (space S) = 1" using measure_space_1 by (simp add: distribution_def)
-
-    show "countably_additive S (distribution X)"
-    proof (unfold countably_additive_def, safe)
-      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets S" "disjoint_family A"
-      hence *: "\<And>i. X -` A i \<inter> space M \<in> sets M"
-        using `random_variable S X` by (auto simp: measurable_def)
-      moreover hence "\<And>i. \<mu> (X -` A i \<inter> space M) \<noteq> \<omega>"
-        using finite_measure by auto
-      moreover have "(\<Union>i. X -`  A i \<inter> space M) \<in> sets M"
-        using * by blast
-      moreover hence "\<mu> (\<Union>i. X -` A i \<inter> space M) \<noteq> \<omega>"
-        using finite_measure by auto
-      moreover have **: "disjoint_family (\<lambda>i. X -` A i \<inter> space M)"
-        using `disjoint_family A` by (auto simp: disjoint_family_on_def)
-      ultimately show "(\<Sum>\<^isub>\<infinity> i. distribution X (A i)) = distribution X (\<Union>i. A i)"
-        using measure_countably_additive[OF _ **]
-        by (auto simp: distribution_def Real_real comp_def vimage_UN)
-    qed
+    then show "distribution X (space S) = 1"
+      using measure_space_1 by (simp add: distribution_def)
   qed
 qed
 
