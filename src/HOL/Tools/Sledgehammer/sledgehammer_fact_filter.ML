@@ -74,13 +74,14 @@ fun string_for_pattern PVar = "_"
 and string_for_patterns ps = "(" ^ commas (map string_for_pattern ps) ^ ")"
 
 (*Is the second type an instance of the first one?*)
-fun match_pattern (PApp (a, T), PApp (b, U)) =
-    a = b andalso match_patterns (T, U)
-  | match_pattern (PVar, _) = true
-  | match_pattern (_, PVar) = false
-and match_patterns ([], []) = true
-  | match_patterns (T :: Ts, U :: Us) =
-    match_pattern (T, U) andalso match_patterns (Ts, Us)
+fun match_pattern (PVar, _) = true
+  | match_pattern (PApp _, PVar) = false
+  | match_pattern (PApp (s, ps), PApp (t, qs)) =
+    s = t andalso match_patterns (ps, qs)
+and match_patterns (_, []) = true
+  | match_patterns ([], _) = false
+  | match_patterns (p :: ps, q :: qs) =
+    match_pattern (p, q) andalso match_patterns (ps, qs)
 
 (* Is there a unifiable constant? *)
 fun pconst_mem f const_tab (s, ps) =
@@ -108,12 +109,12 @@ val boring_consts =
 
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
-fun add_pconst_to_table also_skolem (c, Ts) =
+fun add_pconst_to_table also_skolem (c, ps) =
   if member (op =) boring_consts c orelse
      (not also_skolem andalso String.isPrefix skolem_prefix c) then
     I
   else
-    Symtab.map_default (c, [Ts]) (fn Tss => insert (op =) Ts Tss)
+    Symtab.map_default (c, [ps]) (insert (op =) ps)
 
 fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
@@ -223,8 +224,8 @@ fun count_axiom_consts theory_relevant thy (_, th) =
 (**** Actual Filtering Code ****)
 
 (*The frequency of a constant is the sum of those of all instances of its type.*)
-fun pconst_freq match const_tab (c, Ts) =
-  CTtab.fold (fn (Ts', m) => match (Ts, Ts') ? Integer.add m)
+fun pconst_freq match const_tab (c, ps) =
+  CTtab.fold (fn (qs, m) => match (ps, qs) ? Integer.add m)
              (the (Symtab.lookup const_tab c)) 0
 
 
