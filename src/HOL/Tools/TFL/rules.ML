@@ -46,10 +46,6 @@ sig
   val simpl_conv: simpset -> thm list -> cterm -> thm
 
   val rbeta: thm -> thm
-(* For debugging my isabelle solver in the conditional rewriter *)
-  val term_ref: term list Unsynchronized.ref
-  val thm_ref: thm list Unsynchronized.ref
-  val ss_ref: simpset list Unsynchronized.ref
   val tracing: bool Unsynchronized.ref
   val CONTEXT_REWRITE_RULE: term * term list * thm * thm list
                              -> thm -> thm * term list
@@ -542,9 +538,6 @@ fun list_beta_conv tm =
 (*---------------------------------------------------------------------------
  * Trace information for the rewriter
  *---------------------------------------------------------------------------*)
-val term_ref = Unsynchronized.ref [] : term list Unsynchronized.ref
-val ss_ref = Unsynchronized.ref [] : simpset list Unsynchronized.ref;
-val thm_ref = Unsynchronized.ref [] : thm list Unsynchronized.ref;
 val tracing = Unsynchronized.ref false;
 
 fun say s = if !tracing then writeln s else ();
@@ -665,9 +658,6 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
      val ss0 = Simplifier.global_context (Thm.theory_of_thm th) empty_ss
      val pbeta_reduce = simpl_conv ss0 [@{thm split_conv} RS eq_reflection];
      val tc_list = Unsynchronized.ref []: term list Unsynchronized.ref
-     val dummy = term_ref := []
-     val dummy = thm_ref  := []
-     val dummy = ss_ref  := []
      val cut_lemma' = cut_lemma RS eq_reflection
      fun prover used ss thm =
      let fun cong_prover ss thm =
@@ -676,8 +666,6 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
              val dummy = print_thms "cntxt:" cntxt
              val dummy = say "cong rule:"
              val dummy = say (Display.string_of_thm_without_context thm)
-             val dummy = thm_ref := (thm :: !thm_ref)
-             val dummy = ss_ref := (ss :: !ss_ref)
              (* Unquantified eliminate *)
              fun uq_eliminate (thm,imp,thy) =
                  let val tych = cterm_of thy
@@ -784,7 +772,6 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
               val dummy = tc_list := (TC :: !tc_list)
               val nestedp = is_some (S.find_term is_func TC)
               val dummy = if nestedp then say "nested" else say "not_nested"
-              val dummy = term_ref := ([func,TC]@(!term_ref))
               val th' = if nestedp then raise RULES_ERR "solver" "nested function"
                         else let val cTC = cterm_of thy
                                               (HOLogic.mk_Trueprop TC)

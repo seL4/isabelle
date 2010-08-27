@@ -164,21 +164,6 @@ type prover = tree_choice list ->
   thm list * thm list * thm list -> thm * pss_tree
 type cert_conv = cterm -> thm * pss_tree
 
-val my_eqs = Unsynchronized.ref ([] : thm list);
-val my_les = Unsynchronized.ref ([] : thm list);
-val my_lts = Unsynchronized.ref ([] : thm list);
-val my_proof = Unsynchronized.ref (Axiom_eq 0);
-val my_context = Unsynchronized.ref @{context};
-
-val my_mk_numeric = Unsynchronized.ref ((K @{cterm True}) :Rat.rat -> cterm);
-val my_numeric_eq_conv = Unsynchronized.ref no_conv;
-val my_numeric_ge_conv = Unsynchronized.ref no_conv;
-val my_numeric_gt_conv = Unsynchronized.ref no_conv;
-val my_poly_conv = Unsynchronized.ref no_conv;
-val my_poly_neg_conv = Unsynchronized.ref no_conv;
-val my_poly_add_conv = Unsynchronized.ref no_conv;
-val my_poly_mul_conv = Unsynchronized.ref no_conv;
-
 
     (* Some useful derived rules *)
 fun deduct_antisym_rule tha thb = 
@@ -362,11 +347,6 @@ fun gen_gen_real_arith ctxt (mk_numeric,
        poly_conv,poly_neg_conv,poly_add_conv,poly_mul_conv,
        absconv1,absconv2,prover) = 
 let
- val _ = my_context := ctxt 
- val _ = (my_mk_numeric := mk_numeric ; my_numeric_eq_conv := numeric_eq_conv ; 
-          my_numeric_ge_conv := numeric_ge_conv; my_numeric_gt_conv := numeric_gt_conv ;
-          my_poly_conv := poly_conv; my_poly_neg_conv := poly_neg_conv; 
-          my_poly_add_conv := poly_add_conv; my_poly_mul_conv := poly_mul_conv)
  val pre_ss = HOL_basic_ss addsimps simp_thms@ ex_simps@ all_simps@[@{thm not_all},@{thm not_ex},ex_disj_distrib, all_conj_distrib, @{thm if_bool_eq_disj}]
  val prenex_ss = HOL_basic_ss addsimps prenex_simps
  val skolemize_ss = HOL_basic_ss addsimps [choice_iff]
@@ -408,7 +388,6 @@ let
 
   fun hol_of_positivstellensatz(eqs,les,lts) proof =
    let 
-    val _ = (my_eqs := eqs ; my_les := les ; my_lts := lts ; my_proof := proof)
     fun translate prf = case prf of
         Axiom_eq n => nth eqs n
       | Axiom_le n => nth les n
