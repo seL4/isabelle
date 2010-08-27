@@ -107,9 +107,11 @@ fun string_for_super_pseudoconst (s, Tss) =
 val abs_name = "Sledgehammer.abs"
 val skolem_prefix = "Sledgehammer.sko"
 
-(* These are typically simplified away by "Meson.presimplify". *)
+(* These are typically simplified away by "Meson.presimplify". Equality is
+   handled specially via "fequal". *)
 val boring_consts =
-  [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let}]
+  [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
+   @{const_name "op ="}]
 
 (* Add a pseudoconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
@@ -398,13 +400,13 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                                         (ax, if exists is_dirty consts then NONE
                                              else SOME old_weight)))
               val threshold =
-                threshold + (1.0 - threshold)
-                * Math.pow (decay, Real.fromInt (length accepts))
+                1.0 - (1.0 - threshold)
+                      * Math.pow (decay, Real.fromInt (length accepts))
               val remaining_max = remaining_max - length accepts
             in
               trace_msg (fn () => "New or updated constants: " ^
                   commas (rel_const_tab' |> Symtab.dest
-                          |> subtract (op =) (Symtab.dest rel_const_tab)
+                          |> subtract (op =) (rel_const_tab |> Symtab.dest)
                           |> map string_for_super_pseudoconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
@@ -680,8 +682,8 @@ fun relevant_facts full_types (threshold0, threshold1) max_relevant
                    theory_relevant (relevance_override as {add, del, only})
                    (ctxt, (chained_ths, _)) hyp_ts concl_t =
   let
-    val decay = 1.0 - Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
-                                1.0 / Real.fromInt (max_relevant + 1))
+    val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
+                          1.0 / Real.fromInt (max_relevant + 1))
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val reserved = reserved_isar_keyword_table ()
     val axioms =
@@ -702,7 +704,7 @@ fun relevant_facts full_types (threshold0, threshold1) max_relevant
      else
        relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                         relevance_override axioms (concl_t :: hyp_ts))
-    |> map (apfst (apfst (fn f => f ()))) |> sort_wrt (fst o fst)
+    |> map (apfst (apfst (fn f => f ())))
   end
 
 end;
