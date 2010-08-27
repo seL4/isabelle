@@ -13,6 +13,7 @@ sig
      only: bool}
 
   val trace : bool Unsynchronized.ref
+  val term_patterns : bool Unsynchronized.ref
   val name_thm_pairs_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
     -> ((string * locality) * thm) list
@@ -29,6 +30,9 @@ open Sledgehammer_Util
 
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
+
+(* experimental feature *)
+val term_patterns = Unsynchronized.ref false
 
 val respect_no_atp = true
 
@@ -65,82 +69,92 @@ fun name_thm_pairs_from_ref ctxt reserved chained_ths xref =
 
 (*** constants with types ***)
 
-(*An abstraction of Isabelle types*)
-datatype pseudotype = PVar | PType of string * pseudotype list
+(* An abstraction of Isabelle types and first-order terms *)
+datatype pattern = PVar | PApp of string * pattern list
 
-fun string_for_pseudotype PVar = "?"
-  | string_for_pseudotype (PType (s, Ts)) =
-    (case Ts of
-       [] => ""
-     | [T] => string_for_pseudotype T
-     | Ts => string_for_pseudotypes Ts ^ " ") ^ s
-and string_for_pseudotypes Ts =
-  "(" ^ commas (map string_for_pseudotype Ts) ^ ")"
+fun string_for_pattern PVar = "_"
+  | string_for_pattern (PApp (s, ps)) =
+    if null ps then s else s ^ string_for_patterns ps
+and string_for_patterns ps = "(" ^ commas (map string_for_pattern ps) ^ ")"
 
 (*Is the second type an instance of the first one?*)
-fun match_pseudotype (PType (a, T), PType (b, U)) =
-    a = b andalso match_pseudotypes (T, U)
-  | match_pseudotype (PVar, _) = true
-  | match_pseudotype (_, PVar) = false
-and match_pseudotypes ([], []) = true
-  | match_pseudotypes (T :: Ts, U :: Us) =
-    match_pseudotype (T, U) andalso match_pseudotypes (Ts, Us)
+fun match_pattern (PVar, _) = true
+  | match_pattern (PApp _, PVar) = false
+  | match_pattern (PApp (s, ps), PApp (t, qs)) =
+    s = t andalso match_patterns (ps, qs)
+and match_patterns (_, []) = true
+  | match_patterns ([], _) = false
+  | match_patterns (p :: ps, q :: qs) =
+    match_pattern (p, q) andalso match_patterns (ps, qs)
 
-(*Is there a unifiable constant?*)
-fun pseudoconst_mem f const_tab (c, c_typ) =
-  exists (curry (match_pseudotypes o f) c_typ)
-         (these (Symtab.lookup const_tab c))
+(* Is there a unifiable constant? *)
+fun pconst_mem f consts (s, ps) =
+  exists (curry (match_patterns o f) ps)
+         (map snd (filter (curry (op =) s o fst) consts))
+fun pconst_hyper_mem f const_tab (s, ps) =
+  exists (curry (match_patterns o f) ps) (these (Symtab.lookup const_tab s))
 
-fun pseudotype_for (Type (c,typs)) = PType (c, map pseudotype_for typs)
-  | pseudotype_for (TFree _) = PVar
-  | pseudotype_for (TVar _) = PVar
+fun ptype (Type (s, Ts)) = PApp (s, map ptype Ts)
+  | ptype (TFree (s, _)) = PApp (s, [])
+  | ptype (TVar _) = PVar
+
+fun pterm thy t =
+  case strip_comb t of
+    (Const x, ts) => PApp (pconst thy true x ts)
+  | (Free x, ts) => PApp (pconst thy false x ts)
+  | (Var x, []) => PVar
+  | _ => PApp ("?", [])  (* equivalence class of higher-order constructs *)
 (* Pairs a constant with the list of its type instantiations. *)
-fun pseudoconst_for thy (c, T) =
-  (c, map pseudotype_for (Sign.const_typargs thy (c, T)))
-  handle TYPE _ => (c, [])  (* Variable (locale constant): monomorphic *)
+and pconst_args thy const (s, T) ts =
+  (if const then map ptype (these (try (Sign.const_typargs thy) (s, T)))
+   else []) @
+  (if !term_patterns then map (pterm thy) ts else [])
+and pconst thy const (s, T) ts = (s, pconst_args thy const (s, T) ts)
 
-fun string_for_pseudoconst (s, []) = s
-  | string_for_pseudoconst (s, Ts) = s ^ string_for_pseudotypes Ts
-fun string_for_super_pseudoconst (s, [[]]) = s
-  | string_for_super_pseudoconst (s, Tss) =
-    s ^ "{" ^ commas (map string_for_pseudotypes Tss) ^ "}"
+fun string_for_hyper_pconst (s, pss) =
+  s ^ "{" ^ commas (map string_for_patterns pss) ^ "}"
 
-val abs_prefix = "Sledgehammer.abs"
+val abs_name = "Sledgehammer.abs"
 val skolem_prefix = "Sledgehammer.sko"
 
-(* Add a pseudoconstant to the table, but a [] entry means a standard
+(* These are typically simplified away by "Meson.presimplify". Equality is
+   handled specially via "fequal". *)
+val boring_consts =
+  [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
+   @{const_name "op ="}]
+
+(* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
-fun add_pseudoconst_to_table also_skolem (c, ctyps) =
-  if also_skolem orelse not (String.isPrefix skolem_prefix c) then
-    Symtab.map_default (c, [ctyps])
-                       (fn [] => [] | ctypss => insert (op =) ctyps ctypss)
-  else
+fun add_pconst_to_table also_skolem (c, ps) =
+  if member (op =) boring_consts c orelse
+     (not also_skolem andalso String.isPrefix skolem_prefix c) then
     I
+  else
+    Symtab.map_default (c, [ps]) (insert (op =) ps)
 
 fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
-val flip = Option.map not
-(* These are typically simplified away by "Meson.presimplify". *)
-val boring_consts =
-  [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let}]
-
-fun get_pseudoconsts thy also_skolems pos ts =
+fun get_pconsts thy also_skolems pos ts =
   let
+    val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
        each quantifiers that must necessarily be skolemized by the ATP, we
        introduce a fresh constant to simulate the effect of Skolemization. *)
-    fun do_term t =
-      case t of
-        Const x => add_pseudoconst_to_table also_skolems (pseudoconst_for thy x)
-      | Free (s, _) => add_pseudoconst_to_table also_skolems (s, [])
-      | t1 $ t2 => fold do_term [t1, t2]
-      | Abs (_, _, t') =>
-        do_term t' #> add_pseudoconst_to_table true (abs_prefix, [])
-      | _ => I
+    fun do_const const (s, T) ts =
+      add_pconst_to_table also_skolems (pconst thy const (s, T) ts)
+      #> fold do_term ts
+    and do_term t =
+      case strip_comb t of
+        (Const x, ts) => do_const true x ts
+      | (Free x, ts) => do_const false x ts
+      | (Abs (_, _, t'), ts) =>
+        null ts ? add_pconst_to_table true (abs_name, [])
+        #> fold do_term (t' :: ts)
+      | (_, ts) => fold do_term ts
     fun do_quantifier will_surely_be_skolemized body_t =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
-            add_pseudoconst_to_table true (gensym skolem_prefix, [])
+            add_pconst_to_table true (gensym skolem_prefix, [])
           else
             I)
     and do_term_or_formula T =
@@ -179,10 +193,7 @@ fun get_pseudoconsts thy also_skolems pos ts =
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term t0 #> do_formula pos t1  (* theory constant *)
       | _ => do_term t
-  in
-    Symtab.empty |> fold (Symtab.update o rpair []) boring_consts
-                 |> fold (do_formula pos) ts
-  end
+  in Symtab.empty |> fold (do_formula pos) ts end
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
@@ -199,43 +210,41 @@ fun theory_const_prop_of theory_relevant th =
 
 (* A two-dimensional symbol table counts frequencies of constants. It's keyed
    first by constant name and second by its list of type instantiations. For the
-   latter, we need a linear ordering on "pseudotype list". *)
+   latter, we need a linear ordering on "pattern list". *)
 
-fun pseudotype_ord p =
+fun pattern_ord p =
   case p of
     (PVar, PVar) => EQUAL
-  | (PVar, PType _) => LESS
-  | (PType _, PVar) => GREATER
-  | (PType q1, PType q2) =>
-    prod_ord fast_string_ord (dict_ord pseudotype_ord) (q1, q2)
+  | (PVar, PApp _) => LESS
+  | (PApp _, PVar) => GREATER
+  | (PApp q1, PApp q2) =>
+    prod_ord fast_string_ord (dict_ord pattern_ord) (q1, q2)
 
 structure CTtab =
-  Table(type key = pseudotype list val ord = dict_ord pseudotype_ord)
+  Table(type key = pattern list val ord = dict_ord pattern_ord)
 
-fun count_axiom_consts theory_relevant thy (_, th) =
+fun count_axiom_consts theory_relevant thy =
   let
-    fun do_const (a, T) =
-      let val (c, cts) = pseudoconst_for thy (a, T) in
-        (* Two-dimensional table update. Constant maps to types maps to
-           count. *)
-        CTtab.map_default (cts, 0) (Integer.add 1)
-        |> Symtab.map_default (c, CTtab.empty)
-      end
-    fun do_term (Const x) = do_const x
-      | do_term (Free x) = do_const x
-      | do_term (t $ u) = do_term t #> do_term u
-      | do_term (Abs (_, _, t)) = do_term t
-      | do_term _ = I
-  in th |> theory_const_prop_of theory_relevant |> do_term end
+    fun do_const const (s, T) ts =
+      (* Two-dimensional table update. Constant maps to types maps to count. *)
+      CTtab.map_default (pconst_args thy const (s, T) ts, 0) (Integer.add 1)
+      |> Symtab.map_default (s, CTtab.empty)
+      #> fold do_term ts
+    and do_term t =
+      case strip_comb t of
+        (Const x, ts) => do_const true x ts
+      | (Free x, ts) => do_const false x ts
+      | (Abs (_, _, t'), ts) => fold do_term (t' :: ts)
+      | (_, ts) => fold do_term ts
+  in do_term o theory_const_prop_of theory_relevant o snd end
 
 
 (**** Actual Filtering Code ****)
 
 (*The frequency of a constant is the sum of those of all instances of its type.*)
-fun pseudoconst_freq match const_tab (c, cts) =
-  CTtab.fold (fn (cts', m) => match (cts, cts') ? Integer.add m)
+fun pconst_freq match const_tab (c, ps) =
+  CTtab.fold (fn (qs, m) => match (ps, qs) ? Integer.add m)
              (the (Symtab.lookup const_tab c)) 0
-  handle Option.Option => 0
 
 
 (* A surprising number of theorems contain only a few significant constants.
@@ -244,24 +253,23 @@ fun pseudoconst_freq match const_tab (c, cts) =
 (* "log" seems best in practice. A constant function of one ignores the constant
    frequencies. *)
 fun rel_log n = 1.0 + 2.0 / Math.ln (Real.fromInt n + 1.0)
-(* TODO: experiment
-fun irrel_log n = 0.5 + 1.0 / Math.ln (Real.fromInt n + 1.0)
-*)
 fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
 
 (* FUDGE *)
-val skolem_weight = 1.0
-val abs_weight = 2.0
+val abs_rel_weight = 0.5
+val abs_irrel_weight = 2.0
+val skolem_rel_weight = 2.0  (* impossible *)
+val skolem_irrel_weight = 0.5
 
 (* Computes a constant's weight, as determined by its frequency. *)
-val rel_weight = rel_log oo pseudoconst_freq match_pseudotypes
-fun irrel_weight const_tab (c as (s, _)) =
-  if String.isPrefix skolem_prefix s then skolem_weight
-  else if String.isPrefix abs_prefix s then abs_weight
-  else irrel_log (pseudoconst_freq (match_pseudotypes o swap) const_tab c)
-(* TODO: experiment
-fun irrel_weight _ _ = 1.0
-*)
+fun generic_weight abs_weight skolem_weight logx f const_tab (c as (s, _)) =
+  if s = abs_name then abs_weight
+  else if String.isPrefix skolem_prefix s then skolem_weight
+  else logx (pconst_freq (match_patterns o f) const_tab c)
+
+val rel_weight = generic_weight abs_rel_weight skolem_rel_weight rel_log I
+val irrel_weight = generic_weight abs_irrel_weight skolem_irrel_weight irrel_log
+                                  swap
 
 (* FUDGE *)
 fun locality_multiplier General = 1.0
@@ -270,43 +278,33 @@ fun locality_multiplier General = 1.0
   | locality_multiplier Chained = 2.0
 
 fun axiom_weight loc const_tab relevant_consts axiom_consts =
-  case axiom_consts |> List.partition (pseudoconst_mem I relevant_consts)
-                    ||> filter_out (pseudoconst_mem swap relevant_consts) of
-    ([], []) => 0.0
-  | (_, []) => 1.0
+  case axiom_consts |> List.partition (pconst_hyper_mem I relevant_consts)
+                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
+    ([], _) => 0.0
   | (rel, irrel) =>
-    let
-      val rel_weight = fold (curry Real.+ o rel_weight const_tab) rel 0.0
-                       |> curry Real.* (locality_multiplier loc)
-      val irrel_weight = fold (curry Real.+ o irrel_weight const_tab) irrel 0.0
-      val res = rel_weight / (rel_weight + irrel_weight)
-    in if Real.isFinite res then res else 0.0 end
+    case irrel |> filter_out (pconst_mem swap rel) of
+      [] => 1.0
+    | irrel =>
+      let
+        val rel_weight =
+          fold (curry Real.+ o rel_weight const_tab) rel 0.0
+          |> curry Real.* (locality_multiplier loc)
+        val irrel_weight =
+          fold (curry Real.+ o irrel_weight const_tab) irrel 0.0
+        val res = rel_weight / (rel_weight + irrel_weight)
+      in if Real.isFinite res then res else 0.0 end
 
-(* TODO: experiment
-fun debug_axiom_weight const_tab relevant_consts axiom_consts =
-  case axiom_consts |> List.partition (pseudoconst_mem I relevant_consts)
-                    ||> filter_out (pseudoconst_mem swap relevant_consts) of
-    ([], []) => 0.0
-  | (_, []) => 1.0
-  | (rel, irrel) =>
-    let
-val _ = tracing (PolyML.makestring ("REL: ", rel))
-val _ = tracing (PolyML.makestring ("IRREL: ", irrel))
-      val rel_weight = fold (curry Real.+ o rel_weight const_tab) rel 0.0
-      val irrel_weight = fold (curry Real.+ o irrel_weight const_tab) irrel 0.0
-      val res = rel_weight / (rel_weight + irrel_weight)
-    in if Real.isFinite res then res else 0.0 end
-*)
-
-fun pseudoconsts_of_term thy t =
-  Symtab.fold (fn (x, ys) => fold (fn y => cons (x, y)) ys)
-              (get_pseudoconsts thy true (SOME true) [t]) []
+fun pconsts_in_axiom thy t =
+  Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
+              (get_pconsts thy true (SOME true) [t]) []
 fun pair_consts_axiom theory_relevant thy axiom =
-  (axiom, axiom |> snd |> theory_const_prop_of theory_relevant
-                |> pseudoconsts_of_term thy)
+  case axiom |> snd |> theory_const_prop_of theory_relevant
+             |> pconsts_in_axiom thy of
+    [] => NONE
+  | consts => SOME ((axiom, consts), NONE)
 
 type annotated_thm =
-  (((unit -> string) * locality) * thm) * (string * pseudotype list) list
+  (((unit -> string) * locality) * thm) * (string * pattern list) list
 
 fun take_most_relevant max_max_imperfect max_relevant remaining_max
                        (candidates : (annotated_thm * real) list) =
@@ -321,17 +319,21 @@ fun take_most_relevant max_max_imperfect max_relevant remaining_max
     val ((accepts, more_rejects), rejects) =
       chop max_imperfect imperfect |>> append perfect |>> chop remaining_max
   in
-    trace_msg (fn () => "Number of candidates: " ^
-                        string_of_int (length candidates));
-    trace_msg (fn () => "Effective threshold: " ^
-                        Real.toString (#2 (hd accepts)));
     trace_msg (fn () => "Actually passed (" ^ Int.toString (length accepts) ^
-        "): " ^ (accepts
+        " of " ^ Int.toString (length candidates) ^ "): " ^ (accepts
                  |> map (fn ((((name, _), _), _), weight) =>
                             name () ^ " [" ^ Real.toString weight ^ "]")
                  |> commas));
     (accepts, more_rejects @ rejects)
   end
+
+fun if_empty_replace_with_locality thy axioms loc tab =
+  if Symtab.is_empty tab then
+    get_pconsts thy false (SOME false)
+        (map_filter (fn ((_, loc'), th) =>
+                        if loc' = loc then SOME (prop_of th) else NONE) axioms)
+  else
+    tab
 
 (* FUDGE *)
 val threshold_divisor = 2.0
@@ -342,8 +344,12 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
   let
     val thy = ProofContext.theory_of ctxt
-    val const_tab = fold (count_axiom_consts theory_relevant thy) axioms
-                         Symtab.empty
+    val const_tab =
+      fold (count_axiom_consts theory_relevant thy) axioms Symtab.empty
+    val goal_const_tab =
+      get_pconsts thy false (SOME false) goal_ts
+      |> fold (if_empty_replace_with_locality thy axioms)
+              [Chained, Local, Theory]
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
     val max_max_imperfect =
@@ -373,7 +379,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                                    candidates
               val rel_const_tab' =
                 rel_const_tab
-                |> fold (add_pseudoconst_to_table false)
+                |> fold (add_pconst_to_table false)
                         (maps (snd o fst) accepts)
               fun is_dirty (c, _) =
                 Symtab.lookup rel_const_tab' c <> Symtab.lookup rel_const_tab c
@@ -389,14 +395,14 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                                         (ax, if exists is_dirty consts then NONE
                                              else SOME old_weight)))
               val threshold =
-                threshold + (1.0 - threshold)
-                * Math.pow (decay, Real.fromInt (length accepts))
+                1.0 - (1.0 - threshold)
+                      * Math.pow (decay, Real.fromInt (length accepts))
               val remaining_max = remaining_max - length accepts
             in
               trace_msg (fn () => "New or updated constants: " ^
                   commas (rel_const_tab' |> Symtab.dest
-                          |> subtract (op =) (Symtab.dest rel_const_tab)
-                          |> map string_for_super_pseudoconst));
+                          |> subtract (op =) (rel_const_tab |> Symtab.dest)
+                          |> map string_for_hyper_pconst));
               map (fst o fst) accepts @
               (if remaining_max = 0 then
                  game_over (hopeful_rejects @ map (apsnd SOME) hopeless_rejects)
@@ -431,14 +437,13 @@ else
               Real.toString threshold ^ ", constants: " ^
               commas (rel_const_tab |> Symtab.dest
                       |> filter (curry (op <>) [] o snd)
-                      |> map string_for_super_pseudoconst));
+                      |> map string_for_hyper_pconst));
           relevant [] [] hopeless hopeful
         end
   in
     axioms |> filter_out (member Thm.eq_thm del_thms o snd)
-           |> map (rpair NONE o pair_consts_axiom theory_relevant thy)
-           |> iter 0 max_relevant threshold0
-                   (get_pseudoconsts thy false (SOME false) goal_ts) []
+           |> map_filter (pair_consts_axiom theory_relevant thy)
+           |> iter 0 max_relevant threshold0 goal_const_tab []
            |> tap (fn res => trace_msg (fn () =>
                                 "Total relevant: " ^ Int.toString (length res)))
   end
@@ -503,11 +508,16 @@ fun is_formula_too_complex t =
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
 
-fun is_strange_theorem th =
+fun is_metastrange_theorem th =
   case head_of (concl_of th) of
       Const (a, _) => (a <> @{const_name Trueprop} andalso
                        a <> @{const_name "=="})
     | _ => false
+
+fun is_that_fact th =
+  String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
+  andalso exists_subterm (fn Free (s, _) => s = Name.skolem Auto_Bind.thesisN
+                           | _ => false) (prop_of th)
 
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
@@ -578,7 +588,7 @@ fun is_theorem_bad_for_atps full_types thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
     is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
-    is_strange_theorem thm
+    is_metastrange_theorem thm orelse is_that_fact thm
   end
 
 fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
@@ -589,15 +599,15 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val is_chained = member Thm.eq_thm chained_ths
-    (* Unnamed, not chained formulas with schematic variables are omitted,
-       because they are rejected by the backticks (`...`) parser for some
-       reason. *)
+    (* Unnamed nonchained formulas with schematic variables are omitted, because
+       they are rejected by the backticks (`...`) parser for some reason. *)
     fun is_good_unnamed_local th =
+      not (Thm.has_name_hint th) andalso
+      (not (exists_subterm is_Var (prop_of th)) orelse (is_chained th)) andalso
       forall (fn (_, ths) => not (member Thm.eq_thm ths th)) named_locals
-      andalso (not (exists_subterm is_Var (prop_of th)) orelse (is_chained th))
     val unnamed_locals =
-      local_facts |> Facts.props |> filter is_good_unnamed_local
-                  |> map (pair "" o single)
+      union Thm.eq_thm (Facts.props local_facts) chained_ths
+      |> filter is_good_unnamed_local |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
@@ -667,8 +677,8 @@ fun relevant_facts full_types (threshold0, threshold1) max_relevant
                    theory_relevant (relevance_override as {add, del, only})
                    (ctxt, (chained_ths, _)) hyp_ts concl_t =
   let
-    val decay = 1.0 - Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
-                                1.0 / Real.fromInt (max_relevant + 1))
+    val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
+                          1.0 / Real.fromInt (max_relevant + 1))
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val reserved = reserved_isar_keyword_table ()
     val axioms =
@@ -689,7 +699,7 @@ fun relevant_facts full_types (threshold0, threshold1) max_relevant
      else
        relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                         relevance_override axioms (concl_t :: hyp_ts))
-    |> map (apfst (apfst (fn f => f ()))) |> sort_wrt (fst o fst)
+    |> map (apfst (apfst (fn f => f ())))
   end
 
 end;

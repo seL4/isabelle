@@ -19,7 +19,7 @@ sig
   val prepare_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
     -> ((string * 'a) * thm) list
-    -> string problem * string Symtab.table * int * (string * 'a) vector
+    -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
 structure Sledgehammer_Translate : SLEDGEHAMMER_TRANSLATE =
@@ -271,7 +271,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axiom_pairs =
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
-    (Vector.fromList axiom_names,
+    (axiom_names |> map single |> Vector.fromList,
      (conjectures, axioms, helper_facts, class_rel_clauses, arity_clauses))
   end
 
