@@ -13,7 +13,6 @@ sig
      only: bool}
 
   val trace : bool Unsynchronized.ref
-  val term_patterns : bool Unsynchronized.ref
   val name_thm_pairs_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
     -> ((string * locality) * thm) list
@@ -32,7 +31,7 @@ val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
 (* experimental feature *)
-val term_patterns = Unsynchronized.ref false
+val term_patterns = false
 
 val respect_no_atp = true
 
@@ -108,7 +107,7 @@ fun pterm thy t =
 and pconst_args thy const (s, T) ts =
   (if const then map ptype (these (try (Sign.const_typargs thy) (s, T)))
    else []) @
-  (if !term_patterns then map (pterm thy) ts else [])
+  (if term_patterns then map (pterm thy) ts else [])
 and pconst thy const (s, T) ts = (s, pconst_args thy const (s, T) ts)
 
 fun string_for_hyper_pconst (s, pss) =
@@ -272,27 +271,24 @@ val irrel_weight = generic_weight abs_irrel_weight skolem_irrel_weight irrel_log
                                   swap
 
 (* FUDGE *)
-fun locality_multiplier General = 1.0
-  | locality_multiplier Theory = 1.1
-  | locality_multiplier Local = 1.3
-  | locality_multiplier Chained = 2.0
+fun locality_bonus General = 0.0
+  | locality_bonus Theory = 0.5
+  | locality_bonus Local = 1.0
+  | locality_bonus Chained = 2.0
 
 fun axiom_weight loc const_tab relevant_consts axiom_consts =
   case axiom_consts |> List.partition (pconst_hyper_mem I relevant_consts)
                     ||> filter_out (pconst_hyper_mem swap relevant_consts) of
     ([], _) => 0.0
   | (rel, irrel) =>
-    case irrel |> filter_out (pconst_mem swap rel) of
-      [] => 1.0
-    | irrel =>
-      let
-        val rel_weight =
-          fold (curry Real.+ o rel_weight const_tab) rel 0.0
-          |> curry Real.* (locality_multiplier loc)
-        val irrel_weight =
-          fold (curry Real.+ o irrel_weight const_tab) irrel 0.0
-        val res = rel_weight / (rel_weight + irrel_weight)
-      in if Real.isFinite res then res else 0.0 end
+    let
+      val irrel = irrel |> filter_out (pconst_mem swap rel)
+      val rel_weight = 0.0 |> fold (curry (op +) o rel_weight const_tab) rel
+      val irrel_weight =
+        ~ (locality_bonus loc)
+        |> fold (curry (op +) o irrel_weight const_tab) irrel
+      val res = rel_weight / (rel_weight + irrel_weight)
+    in if Real.isFinite res then res else 0.0 end
 
 fun pconsts_in_axiom thy t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
@@ -306,22 +302,25 @@ fun pair_consts_axiom theory_relevant thy axiom =
 type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * pattern list) list
 
+val max_imperfect_exp = 4.0
+
 fun take_most_relevant max_max_imperfect max_relevant remaining_max
                        (candidates : (annotated_thm * real) list) =
   let
     val max_imperfect =
       Real.ceil (Math.pow (max_max_imperfect,
-                           Real.fromInt remaining_max
-                           / Real.fromInt max_relevant))
+                     Math.pow (Real.fromInt remaining_max
+                               / Real.fromInt max_relevant, max_imperfect_exp)))
     val (perfect, imperfect) =
-      candidates |> List.partition (fn (_, w) => w > 0.99999)
-                 ||> sort (Real.compare o swap o pairself snd)
+      candidates |> sort (Real.compare o swap o pairself snd)
+                 |> take_prefix (fn (_, w) => w > 0.99999)
     val ((accepts, more_rejects), rejects) =
       chop max_imperfect imperfect |>> append perfect |>> chop remaining_max
   in
-    trace_msg (fn () => "Actually passed (" ^ Int.toString (length accepts) ^
-        " of " ^ Int.toString (length candidates) ^ "): " ^ (accepts
-                 |> map (fn ((((name, _), _), _), weight) =>
+    trace_msg (fn () =>
+        "Actually passed (" ^ Int.toString (length accepts) ^ " of " ^
+        Int.toString (length candidates) ^ "): " ^
+        (accepts |> map (fn ((((name, _), _), _), weight) =>
                             name () ^ " [" ^ Real.toString weight ^ "]")
                  |> commas));
     (accepts, more_rejects @ rejects)
@@ -338,7 +337,7 @@ fun if_empty_replace_with_locality thy axioms loc tab =
 (* FUDGE *)
 val threshold_divisor = 2.0
 val ridiculous_threshold = 0.1
-val max_max_imperfect_fudge_factor = 0.66
+val max_max_imperfect_fudge_factor = 0.5
 
 fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
@@ -353,7 +352,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
     val max_max_imperfect =
-      Math.sqrt (Real.fromInt max_relevant * max_max_imperfect_fudge_factor)
+      Math.sqrt (Real.fromInt max_relevant) * max_max_imperfect_fudge_factor
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
         fun game_over rejects =
@@ -364,7 +363,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
             map_filter (fn ((p as (_, th), _), _) =>
                            if member Thm.eq_thm add_thms th then SOME p
                            else NONE) rejects
-        fun relevant [] rejects hopeless [] =
+        fun relevant [] rejects [] =
             (* Nothing has been added this iteration. *)
             if j = 0 andalso threshold >= ridiculous_threshold then
               (* First iteration? Try again. *)
@@ -372,7 +371,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                    hopeless hopeful
             else
               game_over (rejects @ hopeless)
-          | relevant candidates rejects hopeless [] =
+          | relevant candidates rejects [] =
             let
               val (accepts, more_rejects) =
                 take_most_relevant max_max_imperfect max_relevant remaining_max
@@ -410,7 +409,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                  iter (j + 1) remaining_max threshold rel_const_tab'
                       hopeless_rejects hopeful_rejects)
             end
-          | relevant candidates rejects hopeless
+          | relevant candidates rejects
                      (((ax as (((_, loc), th), axiom_consts)), cached_weight)
                       :: hopeful) =
             let
@@ -427,9 +426,9 @@ else
 *)
             in
               if weight >= threshold then
-                relevant ((ax, weight) :: candidates) rejects hopeless hopeful
+                relevant ((ax, weight) :: candidates) rejects hopeful
               else
-                relevant candidates ((ax, weight) :: rejects) hopeless hopeful
+                relevant candidates ((ax, weight) :: rejects) hopeful
             end
         in
           trace_msg (fn () =>
@@ -438,7 +437,7 @@ else
               commas (rel_const_tab |> Symtab.dest
                       |> filter (curry (op <>) [] o snd)
                       |> map string_for_hyper_pconst));
-          relevant [] [] hopeless hopeful
+          relevant [] [] hopeful
         end
   in
     axioms |> filter_out (member Thm.eq_thm del_thms o snd)
