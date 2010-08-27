@@ -562,4 +562,5 @@ proof -
     unfolding conditional_expectation_def by (rule someI2_ex) blast
 qed
 
+
 end
