@@ -802,7 +802,7 @@ fun openfile (Openfile vs) =
       val filepath = PgipTypes.path_of_pgipurl url
       val filedir = Path.dir filepath
       val thy_name = Path.implode o #1 o Path.split_ext o Path.base
-      val openfile_retract = Output.no_warnings_CRITICAL Thy_Info.kill_thy o thy_name;
+      val openfile_retract = Thy_Info.kill_thy o thy_name;
   in
       case !currently_open_file of
           SOME f => raise PGIP ("<openfile> when a file is already open!\nCurrently open file: " ^
@@ -1027,7 +1027,7 @@ fun init_pgip false = panic "No Proof General interface support for Isabelle/cla
          Output.add_mode proof_generalN Output.default_output Output.default_escape;
          Markup.add_mode proof_generalN YXML.output_markup;
          setup_messages ();
-         Output.no_warnings_CRITICAL init_outer_syntax ();
+         init_outer_syntax ();
          setup_thy_loader ();
          setup_present_hook ();
          init_pgip_session_id ();
