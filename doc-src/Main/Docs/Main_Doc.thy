@@ -10,9 +10,9 @@ fun pretty_term_type_only ctxt (t, T) =
    Syntax.pretty_typ ctxt T)
 
 val _ = Thy_Output.antiquotation "term_type_only" (Args.term -- Args.typ_abbrev)
-  (fn {source, context, ...} => fn arg =>
-    Thy_Output.output
-      (Thy_Output.maybe_pretty_source (pretty_term_type_only context) source [arg]));
+  (fn {source, context = ctxt, ...} => fn arg =>
+    Thy_Output.output ctxt
+      (Thy_Output.maybe_pretty_source pretty_term_type_only ctxt source [arg]));
 *}
 (*>*)
 text{*

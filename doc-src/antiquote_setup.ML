@@ -71,8 +71,8 @@ fun index_ml name kind ml = Thy_Output.antiquotation name
     in
       "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string txt1 ^ "}" ^
       (txt'
-      |> (if ! Thy_Output.quotes then quote else I)
-      |> (if ! Thy_Output.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+      |> (if Config.get ctxt Thy_Output.quotes then quote else I)
+      |> (if Config.get ctxt Thy_Output.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
           else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
     end);
 
@@ -93,18 +93,18 @@ val _ = Thy_Output.antiquotation "named_thms"
   (Scan.repeat (Attrib.thm -- Scan.lift (Args.parens Args.name)))
   (fn {context = ctxt, ...} =>
     map (apfst (Thy_Output.pretty_thm ctxt))
-    #> (if ! Thy_Output.quotes then map (apfst Pretty.quote) else I)
-    #> (if ! Thy_Output.display
+    #> (if Config.get ctxt Thy_Output.quotes then map (apfst Pretty.quote) else I)
+    #> (if Config.get ctxt Thy_Output.display
         then
           map (fn (p, name) =>
-            Output.output (Pretty.string_of (Pretty.indent (! Thy_Output.indent) p)) ^
-            "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text name)) ^ "}")
+            Output.output (Pretty.string_of (Pretty.indent (Config.get ctxt Thy_Output.indent) p)) ^
+            "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text ctxt name)) ^ "}")
           #> space_implode "\\par\\smallskip%\n"
           #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
         else
           map (fn (p, name) =>
             Output.output (Pretty.str_of p) ^
-            "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text name)) ^ "}")
+            "\\rulename{" ^ Output.output (Pretty.str_of (Thy_Output.pretty_text ctxt name)) ^ "}")
           #> space_implode "\\par\\smallskip%\n"
           #> enclose "\\isa{" "}"));
 
@@ -112,7 +112,8 @@ val _ = Thy_Output.antiquotation "named_thms"
 (* theory file *)
 
 val _ = Thy_Output.antiquotation "thy_file" (Scan.lift Args.name)
-  (fn _ => fn name => (Thy_Load.check_thy Path.current name; Thy_Output.output [Pretty.str name]));
+  (fn {context = ctxt, ...} =>
+    fn name => (Thy_Load.check_thy Path.current name; Thy_Output.output ctxt [Pretty.str name]));
 
 
 (* Isabelle/Isar entities (with index) *)
@@ -152,8 +153,9 @@ fun entity check markup kind index =
           idx ^
           (Output.output name
             |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-            |> (if ! Thy_Output.quotes then quote else I)
-            |> (if ! Thy_Output.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+            |> (if Config.get ctxt Thy_Output.quotes then quote else I)
+            |> (if Config.get ctxt Thy_Output.display
+                then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
                 else hyper o enclose "\\mbox{\\isa{" "}}"))
         else error ("Bad " ^ kind ^ " " ^ quote name)
       end);

@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 (* EXTRACT from HOL/ex/Primes.thy*)
 
 (*Euclid's algorithm 
@@ -10,7 +9,7 @@ fun gcd :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 
 
 ML "Pretty.margin_default := 64"
-ML "Thy_Output.indent := 5"  (*that is, Doc/TutorialI/settings.ML*)
+declare [[thy_output_indent = 5]]  (*that is, Doc/TutorialI/settings.ML*)
 
 
 text {*Now in Basic.thy!

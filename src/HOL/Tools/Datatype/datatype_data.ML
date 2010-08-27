@@ -257,7 +257,9 @@ val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
            Pretty.str " =" :: Pretty.brk 1 ::
            flat (separate [Pretty.brk 1, Pretty.str "| "]
              (map (single o pretty_constr) cos)));
-    in Thy_Output.output (Thy_Output.maybe_pretty_source (K pretty_datatype) src [()]) end);
+    in
+      Thy_Output.output ctxt (Thy_Output.maybe_pretty_source (K (K pretty_datatype)) ctxt src [()])
+    end);
 
 
 

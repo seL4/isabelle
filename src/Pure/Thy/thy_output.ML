@@ -6,11 +6,16 @@ Theory document output with antiquotations.
 
 signature THY_OUTPUT =
 sig
-  val display: bool Unsynchronized.ref
-  val quotes: bool Unsynchronized.ref
-  val indent: int Unsynchronized.ref
-  val source: bool Unsynchronized.ref
-  val break: bool Unsynchronized.ref
+  val display_default: bool Unsynchronized.ref
+  val quotes_default: bool Unsynchronized.ref
+  val indent_default: int Unsynchronized.ref
+  val source_default: bool Unsynchronized.ref
+  val break_default: bool Unsynchronized.ref
+  val display: bool Config.T
+  val quotes: bool Config.T
+  val indent: int Config.T
+  val source: bool Config.T
+  val break: bool Config.T
   val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
   val add_option: string -> (string -> Proof.context -> Proof.context) -> unit
   val defined_command: string -> bool
@@ -25,12 +30,13 @@ sig
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> (Token.T, 'a) Source.source -> Buffer.T
-  val pretty_text: string -> Pretty.T
+  val pretty_text: Proof.context -> string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val str_of_source: Args.src -> string
-  val maybe_pretty_source: ('a -> Pretty.T) -> Args.src -> 'a list -> Pretty.T list
-  val output: Pretty.T list -> string
+  val maybe_pretty_source: (Proof.context -> 'a -> Pretty.T) -> Proof.context ->
+    Args.src -> 'a list -> Pretty.T list
+  val output: Proof.context -> Pretty.T list -> string
 end;
 
 structure Thy_Output: THY_OUTPUT =
@@ -38,11 +44,20 @@ struct
 
 (** global options **)
 
-val display = Unsynchronized.ref false;
-val quotes = Unsynchronized.ref false;
-val indent = Unsynchronized.ref 0;
-val source = Unsynchronized.ref false;
-val break = Unsynchronized.ref false;
+val display_default = Unsynchronized.ref false;
+val quotes_default = Unsynchronized.ref false;
+val indent_default = Unsynchronized.ref 0;
+val source_default = Unsynchronized.ref false;
+val break_default = Unsynchronized.ref false;
+
+val (display, setup_display) = Attrib.config_bool "thy_output_display" (fn _ => ! display_default);
+val (quotes, setup_quotes) = Attrib.config_bool "thy_output_quotes" (fn _ => ! quotes_default);
+val (indent, setup_indent) = Attrib.config_int "thy_output_indent" (fn _ => ! indent_default);
+val (source, setup_source) = Attrib.config_bool "thy_output_source" (fn _ => ! source_default);
+val (break, setup_break) = Attrib.config_bool "thy_output_break" (fn _ => ! break_default);
+
+val _ = Context.>> (Context.map_theory
+ (setup_display #> setup_quotes #> setup_indent #> setup_source #> setup_break));
 
 
 structure Wrappers = Proof_Data
@@ -438,22 +453,23 @@ val _ = add_option "long_names" (add_wrapper o setmp_CRITICAL Name_Space.long_na
 val _ = add_option "short_names" (add_wrapper o setmp_CRITICAL Name_Space.short_names o boolean);
 val _ = add_option "unique_names" (add_wrapper o setmp_CRITICAL Name_Space.unique_names o boolean);
 val _ = add_option "eta_contract" (add_wrapper o setmp_CRITICAL Syntax.eta_contract o boolean);
-val _ = add_option "display" (add_wrapper o setmp_CRITICAL display o boolean);
-val _ = add_option "break" (add_wrapper o setmp_CRITICAL break o boolean);
-val _ = add_option "quotes" (add_wrapper o setmp_CRITICAL quotes o boolean);
+val _ = add_option "display" (Config.put display o boolean);
+val _ = add_option "break" (Config.put break o boolean);
+val _ = add_option "quotes" (Config.put quotes o boolean);
 val _ = add_option "mode" (add_wrapper o Print_Mode.with_modes o single);
 val _ = add_option "margin" (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer);
-val _ = add_option "indent" (add_wrapper o setmp_CRITICAL indent o integer);
-val _ = add_option "source" (add_wrapper o setmp_CRITICAL source o boolean);
+val _ = add_option "indent" (Config.put indent o integer);
+val _ = add_option "source" (Config.put source o boolean);
 val _ = add_option "goals_limit" (add_wrapper o setmp_CRITICAL goals_limit o integer);
 
 
 (* basic pretty printing *)
 
-fun tweak_line s =
-  if ! display then s else Symbol.strip_blanks s;
+fun tweak_line ctxt s =
+  if Config.get ctxt display then s else Symbol.strip_blanks s;
 
-val pretty_text = Pretty.chunks o map Pretty.str o map tweak_line o Library.split_lines;
+fun pretty_text ctxt =
+  Pretty.chunks o map Pretty.str o map (tweak_line ctxt) o Library.split_lines;
 
 fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
 
@@ -502,19 +518,19 @@ fun pretty_theory ctxt name =
 
 val str_of_source = space_implode " " o map Token.unparse o #2 o #1 o Args.dest_src;
 
-fun maybe_pretty_source pretty src xs =
-  map pretty xs  (*always pretty in order to exhibit errors!*)
-  |> (if ! source then K [pretty_text (str_of_source src)] else I);
+fun maybe_pretty_source pretty ctxt src xs =
+  map (pretty ctxt) xs  (*always pretty in order to exhibit errors!*)
+  |> (if Config.get ctxt source then K [pretty_text ctxt (str_of_source src)] else I);
 
-fun output prts =
+fun output ctxt prts =
   prts
-  |> (if ! quotes then map Pretty.quote else I)
-  |> (if ! display then
-    map (Output.output o Pretty.string_of o Pretty.indent (! indent))
+  |> (if Config.get ctxt quotes then map Pretty.quote else I)
+  |> (if Config.get ctxt display then
+    map (Output.output o Pretty.string_of o Pretty.indent (Config.get ctxt indent))
     #> space_implode "\\isasep\\isanewline%\n"
     #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
   else
-    map (Output.output o (if ! break then Pretty.string_of else Pretty.str_of))
+    map (Output.output o (if Config.get ctxt break then Pretty.string_of else Pretty.str_of))
     #> space_implode "\\isasep\\isanewline%\n"
     #> enclose "\\isa{" "}");
 
@@ -527,11 +543,12 @@ fun output prts =
 local
 
 fun basic_entities name scan pretty = antiquotation name scan
-  (fn {source, context, ...} => output o maybe_pretty_source (pretty context) source);
+  (fn {source, context, ...} => output context o maybe_pretty_source pretty context source);
 
 fun basic_entities_style name scan pretty = antiquotation name scan
   (fn {source, context, ...} => fn (style, xs) =>
-    output (maybe_pretty_source (fn x => pretty context (style, x)) source xs));
+    output context
+      (maybe_pretty_source (fn ctxt => fn x => pretty ctxt (style, x)) context source xs));
 
 fun basic_entity name scan = basic_entities name (scan >> single);
 
@@ -545,7 +562,7 @@ val _ = basic_entity "typeof" (Term_Style.parse -- Args.term) pretty_term_typeof
 val _ = basic_entity "const" (Args.const_proper false) pretty_const;
 val _ = basic_entity "abbrev" (Scan.lift Args.name_source) pretty_abbrev;
 val _ = basic_entity "typ" Args.typ_abbrev Syntax.pretty_typ;
-val _ = basic_entity "text" (Scan.lift Args.name) (K pretty_text);
+val _ = basic_entity "text" (Scan.lift Args.name) pretty_text;
 val _ = basic_entities "prf" Attrib.thms (pretty_prf false);
 val _ = basic_entities "full_prf" Attrib.thms (pretty_prf true);
 val _ = basic_entity "theory" (Scan.lift Args.name) pretty_theory;
@@ -566,7 +583,7 @@ fun proof_state state =
   | _ => error "No proof state");
 
 fun goal_state name main_goal = antiquotation name (Scan.succeed ())
-  (fn {state, ...} => fn () => output
+  (fn {state, context, ...} => fn () => output context
     [Pretty.chunks (Proof.pretty_goals main_goal (proof_state state))]);
 
 in
@@ -590,7 +607,7 @@ val _ = antiquotation "lemma"
       val _ = context
         |> Proof.theorem NONE (K I) [[(prop, [])]]
         |> Proof.global_terminal_proof methods;
-    in output (maybe_pretty_source (pretty_term context) prop_src [prop]) end);
+    in output context (maybe_pretty_source pretty_term context prop_src [prop]) end);
 
 
 (* ML text *)
@@ -601,8 +618,8 @@ fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
   (fn {context, ...} => fn (txt, pos) =>
    (ML_Context.eval_in (SOME context) false pos (ml pos txt);
     Symbol_Pos.content (Symbol_Pos.explode (txt, pos))
-    |> (if ! quotes then quote else I)
-    |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+    |> (if Config.get context quotes then quote else I)
+    |> (if Config.get context display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
     else
       split_lines
       #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
