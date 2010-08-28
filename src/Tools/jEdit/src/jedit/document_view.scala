@@ -103,29 +103,26 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     loop {
       react {
         case Session.Commands_Changed(changed) =>
-          Swing_Thread.now {
-            // FIXME cover doc states as well!!?
+          val buffer = model.buffer
+          Isabelle.swing_buffer_lock(buffer) {
             val snapshot = model.snapshot()
-            val buffer = model.buffer
-            Isabelle.buffer_read_lock(buffer) {
-              if (changed.exists(snapshot.node.commands.contains)) {
-                var visible_change = false
-
-                for ((command, start) <- snapshot.node.command_starts) {
-                  if (changed(command)) {
-                    val stop = start + command.length
-                    val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-                    val line2 = buffer.getLineOfOffset(snapshot.convert(stop))
-                    if (line2 >= text_area.getFirstLine &&
-                        line1 <= text_area.getFirstLine + text_area.getVisibleLines)
-                      visible_change = true
-                    text_area.invalidateLineRange(line1, line2)
-                  }
+            if (changed.exists(snapshot.node.commands.contains)) {
+              var visible_change = false
+              for ((command, start) <- snapshot.node.command_starts) {
+                if (changed(command)) {
+                  val stop = start + command.length
+                  val line1 = buffer.getLineOfOffset(snapshot.convert(start))
+                  val line2 = buffer.getLineOfOffset(snapshot.convert(stop))
+                  if (line2 >= text_area.getFirstLine &&
+                      line1 <= text_area.getFirstLine + text_area.getVisibleLines)
+                    visible_change = true
+                  text_area.invalidateLineRange(line1, line2)
                 }
-                if (visible_change) model.buffer.propertiesChanged()
-
-                overview.repaint()  // FIXME paint here!?
               }
+              // FIXME danger of deadlock!?
+              if (visible_change) model.buffer.propertiesChanged()
+
+              overview.repaint()  // FIXME really paint here!?
             }
           }
 
@@ -143,51 +140,51 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y0: Int, line_height: Int)
     {
-      Swing_Thread.assert()
+      Isabelle.swing_buffer_lock(model.buffer) {
+        val snapshot = model.snapshot()
 
-      val snapshot = model.snapshot()
-
-      val command_range: Iterable[(Command, Text.Offset)] =
-      {
-        val range = snapshot.node.command_range(snapshot.revert(start(0)))
-        if (range.hasNext) {
-          val (cmd0, start0) = range.next
-          new Iterable[(Command, Text.Offset)] {
-            def iterator =
-              Document.Node.command_starts(snapshot.node.commands.iterator(cmd0), start0)
-          }
-        }
-        else Iterable.empty
-      }
-
-      val saved_color = gfx.getColor
-      try {
-        var y = y0
-        for (i <- 0 until physical_lines.length) {
-          if (physical_lines(i) != -1) {
-            val line_start = start(i)
-            val line_end = model.visible_line_end(line_start, end(i))
-
-            val a = snapshot.revert(line_start)
-            val b = snapshot.revert(line_end)
-            val cmds = command_range.iterator.
-              dropWhile { case (cmd, c) => c + cmd.length <= a } .
-              takeWhile { case (_, c) => c < b }
-
-            for ((command, command_start) <- cmds if !command.is_ignored) {
-              val p =
-                text_area.offsetToXY(line_start max snapshot.convert(command_start))
-              val q =
-                text_area.offsetToXY(line_end min snapshot.convert(command_start + command.length))
-              assert(p.y == q.y)
-              gfx.setColor(Document_View.choose_color(snapshot, command))
-              gfx.fillRect(p.x, y, q.x - p.x, line_height)
+        val command_range: Iterable[(Command, Text.Offset)] =
+        {
+          val range = snapshot.node.command_range(snapshot.revert(start(0)))
+          if (range.hasNext) {
+            val (cmd0, start0) = range.next
+            new Iterable[(Command, Text.Offset)] {
+              def iterator =
+                Document.Node.command_starts(snapshot.node.commands.iterator(cmd0), start0)
             }
           }
-          y += line_height
+          else Iterable.empty
         }
+
+        val saved_color = gfx.getColor
+        try {
+          var y = y0
+          for (i <- 0 until physical_lines.length) {
+            if (physical_lines(i) != -1) {
+              val line_start = start(i)
+              val line_end = model.visible_line_end(line_start, end(i))
+
+              val a = snapshot.revert(line_start)
+              val b = snapshot.revert(line_end)
+              val cmds = command_range.iterator.
+                dropWhile { case (cmd, c) => c + cmd.length <= a } .
+                takeWhile { case (_, c) => c < b }
+
+              for ((command, command_start) <- cmds if !command.is_ignored) {
+                val p =
+                  text_area.offsetToXY(line_start max snapshot.convert(command_start))
+                val q =
+                  text_area.offsetToXY(line_end min snapshot.convert(command_start + command.length))
+                assert(p.y == q.y)
+                gfx.setColor(Document_View.choose_color(snapshot, command))
+                gfx.fillRect(p.x, y, q.x - p.x, line_height)
+              }
+            }
+            y += line_height
+          }
+        }
+        finally { gfx.setColor(saved_color) }
       }
-      finally { gfx.setColor(saved_color) }
     }
 
     override def getToolTipText(x: Int, y: Int): String =
@@ -268,7 +265,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       super.paintComponent(gfx)
       Swing_Thread.assert()
       val buffer = model.buffer
-      Isabelle.buffer_read_lock(buffer) {
+      Isabelle.buffer_lock(buffer) {
         val snapshot = model.snapshot()
         val saved_color = gfx.getColor  // FIXME needed!?
         try {

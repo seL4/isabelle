@@ -256,10 +256,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     override def markTokens(prev: TokenMarker.LineContext,
         handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
     {
-      // FIXME proper synchronization / thread context (!??)
-      val snapshot = Swing_Thread.now { Document_Model.this.snapshot() }
+      Isabelle.swing_buffer_lock(buffer) {
+        val snapshot = Document_Model.this.snapshot()
 
-      Isabelle.buffer_read_lock(buffer) {
         val previous = prev.asInstanceOf[Document_Model.Token_Markup.LineContext]
         val line = if (prev == null) 0 else previous.line + 1
         val context = new Document_Model.Token_Markup.LineContext(line, previous)

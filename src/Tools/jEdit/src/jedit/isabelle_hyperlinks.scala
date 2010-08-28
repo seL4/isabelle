@@ -40,44 +40,45 @@ class Isabelle_Hyperlinks extends HyperlinkSource
 {
   def getHyperlink(buffer: Buffer, buffer_offset: Int): Hyperlink =
   {
-    // FIXME lock buffer (!??)
     Swing_Thread.assert()
-    Document_Model(buffer) match {
-      case Some(model) =>
-        val snapshot = model.snapshot()
-        val offset = snapshot.revert(buffer_offset)
-        snapshot.node.command_at(offset) match {
-          case Some((command, command_start)) =>
-            // FIXME Isar_Document.Hyperlink extractor
-            (snapshot.state(command).markup.select(Text.Range(offset, offset + 1) - command_start) {
-              case Text.Info(info_range, XML.Elem(Markup(Markup.ML_REF, _),
-                  List(XML.Elem(Markup(Markup.ML_DEF, props), _)))) =>
-                val Text.Range(begin, end) = snapshot.convert(info_range + command_start)
-                val line = buffer.getLineOfOffset(begin)
+    Isabelle.buffer_lock(buffer) {
+      Document_Model(buffer) match {
+        case Some(model) =>
+          val snapshot = model.snapshot()
+          val offset = snapshot.revert(buffer_offset)
+          snapshot.node.command_at(offset) match {
+            case Some((command, command_start)) =>
+              // FIXME Isar_Document.Hyperlink extractor
+              (snapshot.state(command).markup.select(Text.Range(offset, offset + 1) - command_start) {
+                case Text.Info(info_range, XML.Elem(Markup(Markup.ML_REF, _),
+                    List(XML.Elem(Markup(Markup.ML_DEF, props), _)))) =>
+                  val Text.Range(begin, end) = snapshot.convert(info_range + command_start)
+                  val line = buffer.getLineOfOffset(begin)
 
-                (Position.File.unapply(props), Position.Line.unapply(props)) match {
-                  case (Some(ref_file), Some(ref_line)) =>
-                    new External_Hyperlink(begin, end, line, ref_file, ref_line)
-                  case _ =>
-                    (Position.Id.unapply(props), Position.Offset.unapply(props)) match {
-                      case (Some(ref_id), Some(ref_offset)) =>
-                        snapshot.lookup_command(ref_id) match {
-                          case Some(ref_cmd) =>
-                            snapshot.node.command_start(ref_cmd) match {
-                              case Some(ref_cmd_start) =>
-                                new Internal_Hyperlink(begin, end, line,
-                                  snapshot.convert(ref_cmd_start + ref_cmd.decode(ref_offset)))
-                              case None => null
-                            }
-                          case None => null
-                        }
-                      case _ => null
-                    }
-                }
-            } { null }).head.info
-          case None => null
-        }
-      case None => null
+                  (Position.File.unapply(props), Position.Line.unapply(props)) match {
+                    case (Some(ref_file), Some(ref_line)) =>
+                      new External_Hyperlink(begin, end, line, ref_file, ref_line)
+                    case _ =>
+                      (Position.Id.unapply(props), Position.Offset.unapply(props)) match {
+                        case (Some(ref_id), Some(ref_offset)) =>
+                          snapshot.lookup_command(ref_id) match {
+                            case Some(ref_cmd) =>
+                              snapshot.node.command_start(ref_cmd) match {
+                                case Some(ref_cmd_start) =>
+                                  new Internal_Hyperlink(begin, end, line,
+                                    snapshot.convert(ref_cmd_start + ref_cmd.decode(ref_offset)))
+                                case None => null
+                              }
+                            case None => null
+                          }
+                        case _ => null
+                      }
+                  }
+              } { null }).head.info
+            case None => null
+          }
+        case None => null
+      }
     }
   }
 }
