@@ -115,12 +115,12 @@ qed
 lemmas [code del] = code_numeral.recs code_numeral.cases
 
 lemma [code]:
-  "eq_class.eq k l \<longleftrightarrow> eq_class.eq (nat_of k) (nat_of l)"
-  by (cases k, cases l) (simp add: eq)
+  "HOL.equal k l \<longleftrightarrow> HOL.equal (nat_of k) (nat_of l)"
+  by (cases k, cases l) (simp add: equal)
 
 lemma [code nbe]:
-  "eq_class.eq (k::code_numeral) k \<longleftrightarrow> True"
-  by (rule HOL.eq_refl)
+  "HOL.equal (k::code_numeral) k \<longleftrightarrow> True"
+  by (rule equal_refl)
 
 
 subsection {* Code numerals as datatype of ints *}
@@ -301,7 +301,7 @@ code_type code_numeral
   (Haskell "Integer")
   (Scala "BigInt")
 
-code_instance code_numeral :: eq
+code_instance code_numeral :: equal
   (Haskell -)
 
 setup {*
@@ -342,7 +342,7 @@ code_const div_mod_code_numeral
   (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
   (Eval "!(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
 
-code_const "eq_class.eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")

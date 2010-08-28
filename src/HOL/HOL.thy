@@ -1775,31 +1775,30 @@ setup {*
 
 subsubsection {* Equality *}
 
-class eq =
-  fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
-  assumes eq_equals: "eq x y \<longleftrightarrow> x = y"
+class equal =
+  fixes equal :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes equal_eq: "equal x y \<longleftrightarrow> x = y"
 begin
 
-lemma eq [code_unfold, code_inline del]: "eq = (op =)"
-  by (rule ext eq_equals)+
+lemma equal [code_unfold, code_inline del]: "equal = (op =)"
+  by (rule ext equal_eq)+
 
-lemma eq_refl: "eq x x \<longleftrightarrow> True"
-  unfolding eq by rule+
+lemma equal_refl: "equal x x \<longleftrightarrow> True"
+  unfolding equal by rule+
 
-lemma equals_eq: "(op =) \<equiv> eq"
-  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
-
-declare equals_eq [symmetric, code_post]
+lemma eq_equal: "(op =) \<equiv> equal"
+  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule equal_eq)
 
 end
 
-declare equals_eq [code]
+declare eq_equal [symmetric, code_post]
+declare eq_equal [code]
 
 setup {*
   Code_Preproc.map_pre (fn simpset =>
-    simpset addsimprocs [Simplifier.simproc_global_i @{theory} "eq" [@{term "op ="}]
+    simpset addsimprocs [Simplifier.simproc_global_i @{theory} "equal" [@{term "op ="}]
       (fn thy => fn _ => fn Const (_, T) => case strip_type T
-        of (Type _ :: _, _) => SOME @{thm equals_eq}
+        of (Type _ :: _, _) => SOME @{thm eq_equal}
          | _ => NONE)])
 *}
 
@@ -1839,50 +1838,50 @@ lemma [code]:
     and "(P \<longrightarrow> False) \<longleftrightarrow> \<not> P"
     and "(P \<longrightarrow> True) \<longleftrightarrow> True" by simp_all
 
-instantiation itself :: (type) eq
+instantiation itself :: (type) equal
 begin
 
-definition eq_itself :: "'a itself \<Rightarrow> 'a itself \<Rightarrow> bool" where
-  "eq_itself x y \<longleftrightarrow> x = y"
+definition equal_itself :: "'a itself \<Rightarrow> 'a itself \<Rightarrow> bool" where
+  "equal_itself x y \<longleftrightarrow> x = y"
 
 instance proof
-qed (fact eq_itself_def)
+qed (fact equal_itself_def)
 
 end
 
-lemma eq_itself_code [code]:
-  "eq_class.eq TYPE('a) TYPE('a) \<longleftrightarrow> True"
-  by (simp add: eq)
+lemma equal_itself_code [code]:
+  "equal TYPE('a) TYPE('a) \<longleftrightarrow> True"
+  by (simp add: equal)
 
 text {* Equality *}
 
 declare simp_thms(6) [code nbe]
 
 setup {*
-  Sign.add_const_constraint (@{const_name eq}, SOME @{typ "'a\<Colon>type \<Rightarrow> 'a \<Rightarrow> bool"})
+  Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>type \<Rightarrow> 'a \<Rightarrow> bool"})
 *}
 
-lemma equals_alias_cert: "OFCLASS('a, eq_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> eq)" (is "?ofclass \<equiv> ?eq")
+lemma equal_alias_cert: "OFCLASS('a, equal_class) \<equiv> ((op = :: 'a \<Rightarrow> 'a \<Rightarrow> bool) \<equiv> equal)" (is "?ofclass \<equiv> ?equal")
 proof
   assume "PROP ?ofclass"
-  show "PROP ?eq"
-    by (tactic {* ALLGOALS (rtac (Thm.unconstrainT @{thm equals_eq})) *})
+  show "PROP ?equal"
+    by (tactic {* ALLGOALS (rtac (Thm.unconstrainT @{thm eq_equal})) *})
       (fact `PROP ?ofclass`)
 next
-  assume "PROP ?eq"
+  assume "PROP ?equal"
   show "PROP ?ofclass" proof
-  qed (simp add: `PROP ?eq`)
+  qed (simp add: `PROP ?equal`)
 qed
   
 setup {*
-  Sign.add_const_constraint (@{const_name eq}, SOME @{typ "'a\<Colon>eq \<Rightarrow> 'a \<Rightarrow> bool"})
+  Sign.add_const_constraint (@{const_name equal}, SOME @{typ "'a\<Colon>equal \<Rightarrow> 'a \<Rightarrow> bool"})
 *}
 
 setup {*
-  Nbe.add_const_alias @{thm equals_alias_cert}
+  Nbe.add_const_alias @{thm equal_alias_cert}
 *}
 
-hide_const (open) eq
+hide_const (open) equal
 
 text {* Cases *}
 
@@ -1939,10 +1938,10 @@ code_reserved Scala
 
 text {* using built-in Haskell equality *}
 
-code_class eq
+code_class equal
   (Haskell "Eq")
 
-code_const "eq_class.eq"
+code_const "HOL.equal"
   (Haskell infixl 4 "==")
 
 code_const "op ="

@@ -845,7 +845,7 @@ lemma [code, code del]:
   "(uminus :: int \<Rightarrow> int) = uminus"
   "(op - :: int \<Rightarrow> int \<Rightarrow> int) = op -"
   "(op * :: int \<Rightarrow> int \<Rightarrow> int) = op *"
-  "(eq_class.eq :: int \<Rightarrow> int \<Rightarrow> bool) = eq_class.eq"
+  "(HOL.equal :: int \<Rightarrow> int \<Rightarrow> bool) = HOL.equal"
   "(op \<le> :: int \<Rightarrow> int \<Rightarrow> bool) = op \<le>"
   "(op < :: int \<Rightarrow> int \<Rightarrow> bool) = op <"
   by rule+
@@ -928,16 +928,20 @@ lemma times_int_code [code]:
   by simp_all
 
 lemma eq_int_code [code]:
-  "eq_class.eq 0 (0::int) \<longleftrightarrow> True"
-  "eq_class.eq 0 (Pls l) \<longleftrightarrow> False"
-  "eq_class.eq 0 (Mns l) \<longleftrightarrow> False"
-  "eq_class.eq (Pls k) 0 \<longleftrightarrow> False"
-  "eq_class.eq (Pls k) (Pls l) \<longleftrightarrow> eq_class.eq k l"
-  "eq_class.eq (Pls k) (Mns l) \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) 0 \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) (Pls l) \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) (Mns l) \<longleftrightarrow> eq_class.eq k l"
-  by (auto simp add: eq dest: sym)
+  "HOL.equal 0 (0::int) \<longleftrightarrow> True"
+  "HOL.equal 0 (Pls l) \<longleftrightarrow> False"
+  "HOL.equal 0 (Mns l) \<longleftrightarrow> False"
+  "HOL.equal (Pls k) 0 \<longleftrightarrow> False"
+  "HOL.equal (Pls k) (Pls l) \<longleftrightarrow> HOL.equal k l"
+  "HOL.equal (Pls k) (Mns l) \<longleftrightarrow> False"
+  "HOL.equal (Mns k) 0 \<longleftrightarrow> False"
+  "HOL.equal (Mns k) (Pls l) \<longleftrightarrow> False"
+  "HOL.equal (Mns k) (Mns l) \<longleftrightarrow> HOL.equal k l"
+  by (auto simp add: equal dest: sym)
+
+lemma [code nbe]:
+  "HOL.equal (k::int) k \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemma less_eq_int_code [code]:
   "0 \<le> (0::int) \<longleftrightarrow> True"
@@ -1078,7 +1082,7 @@ code_const pdivmod
   (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
   (Eval "Integer.div'_mod/ (abs _)/ (abs _)")
 
-code_const "eq_class.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")

@@ -2222,42 +2222,42 @@ lemmas times_numeral_code [code] =
   mult_bin_simps
   arith_extra_simps(4) [where 'a = int]
 
-instantiation int :: eq
+instantiation int :: equal
 begin
 
 definition
-  "eq_class.eq k l \<longleftrightarrow> k - l = (0\<Colon>int)"
+  "HOL.equal k l \<longleftrightarrow> k - l = (0\<Colon>int)"
 
-instance by default (simp add: eq_int_def)
+instance by default (simp add: equal_int_def)
 
 end
 
 lemma eq_number_of_int_code [code]:
-  "eq_class.eq (number_of k \<Colon> int) (number_of l) \<longleftrightarrow> eq_class.eq k l"
-  unfolding eq_int_def number_of_is_id ..
+  "HOL.equal (number_of k \<Colon> int) (number_of l) \<longleftrightarrow> HOL.equal k l"
+  unfolding equal_int_def number_of_is_id ..
 
 lemma eq_int_code [code]:
-  "eq_class.eq Int.Pls Int.Pls \<longleftrightarrow> True"
-  "eq_class.eq Int.Pls Int.Min \<longleftrightarrow> False"
-  "eq_class.eq Int.Pls (Int.Bit0 k2) \<longleftrightarrow> eq_class.eq Int.Pls k2"
-  "eq_class.eq Int.Pls (Int.Bit1 k2) \<longleftrightarrow> False"
-  "eq_class.eq Int.Min Int.Pls \<longleftrightarrow> False"
-  "eq_class.eq Int.Min Int.Min \<longleftrightarrow> True"
-  "eq_class.eq Int.Min (Int.Bit0 k2) \<longleftrightarrow> False"
-  "eq_class.eq Int.Min (Int.Bit1 k2) \<longleftrightarrow> eq_class.eq Int.Min k2"
-  "eq_class.eq (Int.Bit0 k1) Int.Pls \<longleftrightarrow> eq_class.eq k1 Int.Pls"
-  "eq_class.eq (Int.Bit1 k1) Int.Pls \<longleftrightarrow> False"
-  "eq_class.eq (Int.Bit0 k1) Int.Min \<longleftrightarrow> False"
-  "eq_class.eq (Int.Bit1 k1) Int.Min \<longleftrightarrow> eq_class.eq k1 Int.Min"
-  "eq_class.eq (Int.Bit0 k1) (Int.Bit0 k2) \<longleftrightarrow> eq_class.eq k1 k2"
-  "eq_class.eq (Int.Bit0 k1) (Int.Bit1 k2) \<longleftrightarrow> False"
-  "eq_class.eq (Int.Bit1 k1) (Int.Bit0 k2) \<longleftrightarrow> False"
-  "eq_class.eq (Int.Bit1 k1) (Int.Bit1 k2) \<longleftrightarrow> eq_class.eq k1 k2"
-  unfolding eq_equals by simp_all
+  "HOL.equal Int.Pls Int.Pls \<longleftrightarrow> True"
+  "HOL.equal Int.Pls Int.Min \<longleftrightarrow> False"
+  "HOL.equal Int.Pls (Int.Bit0 k2) \<longleftrightarrow> HOL.equal Int.Pls k2"
+  "HOL.equal Int.Pls (Int.Bit1 k2) \<longleftrightarrow> False"
+  "HOL.equal Int.Min Int.Pls \<longleftrightarrow> False"
+  "HOL.equal Int.Min Int.Min \<longleftrightarrow> True"
+  "HOL.equal Int.Min (Int.Bit0 k2) \<longleftrightarrow> False"
+  "HOL.equal Int.Min (Int.Bit1 k2) \<longleftrightarrow> HOL.equal Int.Min k2"
+  "HOL.equal (Int.Bit0 k1) Int.Pls \<longleftrightarrow> HOL.equal k1 Int.Pls"
+  "HOL.equal (Int.Bit1 k1) Int.Pls \<longleftrightarrow> False"
+  "HOL.equal (Int.Bit0 k1) Int.Min \<longleftrightarrow> False"
+  "HOL.equal (Int.Bit1 k1) Int.Min \<longleftrightarrow> HOL.equal k1 Int.Min"
+  "HOL.equal (Int.Bit0 k1) (Int.Bit0 k2) \<longleftrightarrow> HOL.equal k1 k2"
+  "HOL.equal (Int.Bit0 k1) (Int.Bit1 k2) \<longleftrightarrow> False"
+  "HOL.equal (Int.Bit1 k1) (Int.Bit0 k2) \<longleftrightarrow> False"
+  "HOL.equal (Int.Bit1 k1) (Int.Bit1 k2) \<longleftrightarrow> HOL.equal k1 k2"
+  unfolding equal_eq by simp_all
 
 lemma eq_int_refl [code nbe]:
-  "eq_class.eq (k::int) k \<longleftrightarrow> True"
-  by (rule HOL.eq_refl)
+  "HOL.equal (k::int) k \<longleftrightarrow> True"
+  by (rule equal_refl)
 
 lemma less_eq_number_of_int_code [code]:
   "(number_of k \<Colon> int) \<le> number_of l \<longleftrightarrow> k \<le> l"

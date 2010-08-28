@@ -49,7 +49,7 @@ sig
   val exists_const: typ -> term
   val mk_exists: string * typ * term -> term
   val choice_const: typ -> term
-  val class_eq: string
+  val class_equal: string
   val mk_binop: string -> term * term -> term
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
@@ -251,7 +251,7 @@ fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
 
 fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T);
 
-val class_eq = "HOL.eq";
+val class_equal = "HOL.equal";
 
 
 (* binary operations and relations *)

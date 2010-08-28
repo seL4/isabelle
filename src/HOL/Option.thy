@@ -99,8 +99,8 @@ lemma is_none_none:
   by (simp add: is_none_def)
 
 lemma [code_unfold]:
-  "eq_class.eq x None \<longleftrightarrow> is_none x"
-  by (simp add: eq is_none_none)
+  "HOL.equal x None \<longleftrightarrow> is_none x"
+  by (simp add: equal is_none_none)
 
 hide_const (open) is_none
 
@@ -116,10 +116,10 @@ code_const None and Some
   (Haskell "Nothing" and "Just")
   (Scala "!None" and "Some")
 
-code_instance option :: eq
+code_instance option :: equal
   (Haskell -)
 
-code_const "eq_class.eq \<Colon> 'a\<Colon>eq option \<Rightarrow> 'a option \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> 'a option \<Rightarrow> 'a option \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_reserved SML

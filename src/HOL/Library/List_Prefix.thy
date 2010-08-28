@@ -81,9 +81,9 @@ lemma Cons_prefix_Cons [simp]: "(x # xs \<le> y # ys) = (x = y \<and> xs \<le> y
   by (auto simp add: prefix_def)
 
 lemma less_eq_list_code [code]:
-  "([]\<Colon>'a\<Colon>{eq, ord} list) \<le> xs \<longleftrightarrow> True"
-  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> [] \<longleftrightarrow> False"
-  "(x\<Colon>'a\<Colon>{eq, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
+  "([]\<Colon>'a\<Colon>{equal, ord} list) \<le> xs \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{equal, ord}) # xs \<le> [] \<longleftrightarrow> False"
+  "(x\<Colon>'a\<Colon>{equal, ord}) # xs \<le> y # ys \<longleftrightarrow> x = y \<and> xs \<le> ys"
   by simp_all
 
 lemma same_prefix_prefix [simp]: "(xs @ ys \<le> xs @ zs) = (ys \<le> zs)"

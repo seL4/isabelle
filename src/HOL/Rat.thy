@@ -1083,18 +1083,18 @@ proof (cases p)
   by (cases "0::int" a rule: linorder_cases) (simp_all add: quotient_of_Fract)
 qed
 
-instantiation rat :: eq
+instantiation rat :: equal
 begin
 
 definition [code]:
-  "eq_class.eq a b \<longleftrightarrow> quotient_of a = quotient_of b"
+  "HOL.equal a b \<longleftrightarrow> quotient_of a = quotient_of b"
 
 instance proof
-qed (simp add: eq_rat_def quotient_of_inject_eq)
+qed (simp add: equal_rat_def quotient_of_inject_eq)
 
 lemma rat_eq_refl [code nbe]:
-  "eq_class.eq (r::rat) r \<longleftrightarrow> True"
-  by (rule HOL.eq_refl)
+  "HOL.equal (r::rat) r \<longleftrightarrow> True"
+  by (rule equal_refl)
 
 end
 

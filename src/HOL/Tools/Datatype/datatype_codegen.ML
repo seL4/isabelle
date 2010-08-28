@@ -68,7 +68,7 @@ fun mk_eq_eqns thy tyco =
     val { descr, index, inject = inject_thms, distinct = distinct_thms, ... } =
       Datatype_Data.the_info thy tyco;
     val ty = Type (tyco, map TFree vs);
-    fun mk_eq (t1, t2) = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
+    fun mk_eq (t1, t2) = Const (@{const_name HOL.equal}, ty --> ty --> HOLogic.boolT)
       $ t1 $ t2;
     fun true_eq t12 = HOLogic.mk_eq (mk_eq t12, HOLogic.true_const);
     fun false_eq t12 = HOLogic.mk_eq (mk_eq t12, HOLogic.false_const);
@@ -83,7 +83,7 @@ fun mk_eq_eqns thy tyco =
     val distincts = maps prep_distinct (snd (nth (Datatype_Prop.make_distincts [descr] vs) index));
     val refl = HOLogic.mk_Trueprop (true_eq (Free ("x", ty), Free ("x", ty)));
     val simpset = Simplifier.global_context thy (HOL_basic_ss addsimps 
-      (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
+      (map Simpdata.mk_eq (@{thm equal} :: @{thm eq_True} :: inject_thms @ distinct_thms)));
     fun prove prop = Skip_Proof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
   in (map prove (triv_injects @ injects @ distincts), prove refl) end;
@@ -96,7 +96,7 @@ fun add_equality vs tycos thy =
         fun mk_side const_name = Const (const_name, ty --> ty --> HOLogic.boolT)
           $ Free ("x", ty) $ Free ("y", ty);
         val def = HOLogic.mk_Trueprop (HOLogic.mk_eq
-          (mk_side @{const_name eq_class.eq}, mk_side @{const_name "op ="}));
+          (mk_side @{const_name HOL.equal}, mk_side @{const_name "op ="}));
         val def' = Syntax.check_term lthy def;
         val ((_, (_, thm)), lthy') = Specification.definition
           (NONE, (Attrib.empty_binding, def')) lthy;
@@ -115,7 +115,7 @@ fun add_equality vs tycos thy =
       #> snd
   in
     thy
-    |> Class.instantiation (tycos, vs, [HOLogic.class_eq])
+    |> Class.instantiation (tycos, vs, [HOLogic.class_equal])
     |> fold_map add_def tycos
     |-> (fn def_thms => Class.prove_instantiation_exit_result (map o Morphism.thm)
          (fn _ => fn def_thms => tac def_thms) def_thms)
@@ -135,7 +135,7 @@ fun add_all_code config tycos thy =
     val case_rewrites = maps (#case_rewrites o Datatype_Data.the_info thy) tycos;
     val certs = map (mk_case_cert thy) tycos;
     val tycos_eq = filter_out
-      (fn tyco => can (Sorts.mg_domain (Sign.classes_of thy) tyco) [HOLogic.class_eq]) tycos;
+      (fn tyco => can (Sorts.mg_domain (Sign.classes_of thy) tyco) [HOLogic.class_equal]) tycos;
   in
     if null css then thy
     else thy

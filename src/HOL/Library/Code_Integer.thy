@@ -21,7 +21,7 @@ code_type int
   (Scala "BigInt")
   (Eval "int")
 
-code_instance int :: eq
+code_instance int :: equal
   (Haskell -)
 
 setup {*
@@ -96,7 +96,7 @@ code_const pdivmod
   (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
   (Eval "Integer.div'_mod/ (abs _)/ (abs _)")
 
-code_const "eq_class.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")

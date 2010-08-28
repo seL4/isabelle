@@ -444,18 +444,15 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
       (make_vars reserved) args_num is_singleton_constr;
 
     (* print nodes *)
+    fun print_module base implicit_ps p = Pretty.chunks2
+      ([str ("object " ^ base ^ " {")]
+        @ (if null implicit_ps then [] else (single o Pretty.block)
+            (str "import /*implicits*/" :: Pretty.brk 1 :: commas implicit_ps))
+        @ [p, str ("} /* object " ^ base ^ " */")]);
     fun print_implicit prefix_fragments implicit =
       let
         val s = deresolver prefix_fragments implicit;
       in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
-    fun print_implicits prefix_fragments implicits =
-      case map_filter (print_implicit prefix_fragments) implicits
-       of [] => NONE
-        | ps => (SOME o Pretty.block)
-            (str "import /*implicits*/" :: Pretty.brk 1 :: commas ps);
-    fun print_module prefix_fragments base implicits p = Pretty.chunks2
-      ([str ("object " ^ base ^ " {")] @ the_list (print_implicits prefix_fragments implicits)
-        @ [p, str ("} /* object " ^ base ^ " */")]);
     fun print_node _ (_, Dummy) = NONE
       | print_node prefix_fragments (name, Stmt stmt) =
           if null presentation_stmt_names
@@ -464,10 +461,14 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
           else NONE
       | print_node prefix_fragments (name_fragment, Module (implicits, nodes)) =
           if null presentation_stmt_names
-          then case print_nodes (prefix_fragments @ [name_fragment]) nodes
-           of NONE => NONE
-            | SOME p => SOME (print_module prefix_fragments
-                (Long_Name.base_name name_fragment) implicits p)
+          then
+            let
+              val prefix_fragments' = prefix_fragments @ [name_fragment];
+            in
+              Option.map (print_module name_fragment
+                (map_filter (print_implicit prefix_fragments') implicits))
+                  (print_nodes prefix_fragments' nodes)
+            end
           else print_nodes [] nodes
     and print_nodes prefix_fragments nodes = let
         val ps = map_filter (fn name => print_node prefix_fragments (name,
@@ -477,7 +478,7 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
 
     (* serialization *)
     val p_includes = if null presentation_stmt_names
-      then map (fn (base, p) => print_module [] base [] p) includes else [];
+      then map (fn (base, p) => print_module base [] p) includes else [];
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
   in
     Code_Target.mk_serialization target

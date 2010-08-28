@@ -183,10 +183,10 @@ setup {*
   fold String_Code.add_literal_string ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
-code_instance literal :: eq
+code_instance literal :: equal
   (Haskell -)
 
-code_const "eq_class.eq \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
   (OCaml "!((_ : string) = _)")
   (Haskell infixl 4 "==")
