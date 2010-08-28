@@ -12,11 +12,11 @@ sig
   val all_injection_tac: Proof.context -> int -> tactic
   val clean_tac: Proof.context -> int -> tactic
   
-  val descend_procedure_tac: Proof.context -> int -> tactic
-  val descend_tac: Proof.context -> int -> tactic
+  val descend_procedure_tac: Proof.context -> thm list -> int -> tactic
+  val descend_tac: Proof.context -> thm list -> int -> tactic
  
-  val lift_procedure_tac: Proof.context -> thm -> int -> tactic
-  val lift_tac: Proof.context -> thm list -> int -> tactic
+  val lift_procedure_tac: Proof.context -> thm list -> thm -> int -> tactic
+  val lift_tac: Proof.context -> thm list -> thm list -> int -> tactic
 
   val lifted: Proof.context -> typ list -> thm list -> thm -> thm
   val lifted_attrib: attribute
@@ -606,9 +606,9 @@ let
   val rtrm' = HOLogic.dest_Trueprop rtrm
   val qtrm' = HOLogic.dest_Trueprop qtrm
   val reg_goal = regularize_trm_chk ctxt (rtrm', qtrm')
-    handle (LIFT_MATCH msg) => lift_match_error ctxt msg rtrm qtrm
+    handle LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
   val inj_goal = inj_repabs_trm_chk ctxt (reg_goal, qtrm')
-    handle (LIFT_MATCH msg) => lift_match_error ctxt msg rtrm qtrm
+    handle LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
 in
   Drule.instantiate' []
     [SOME (cterm_of thy rtrm'),
@@ -620,8 +620,12 @@ end
 
 (** descending as tactic **)
 
-fun descend_procedure_tac ctxt =
-  Object_Logic.full_atomize_tac
+fun descend_procedure_tac ctxt simps =
+let
+  val ss = (mk_minimal_ss ctxt) addsimps simps
+in
+  full_simp_tac ss
+  THEN' Object_Logic.full_atomize_tac
   THEN' gen_frees_tac ctxt
   THEN' SUBGOAL (fn (goal, i) =>
         let
@@ -631,11 +635,12 @@ fun descend_procedure_tac ctxt =
         in
           rtac rule i
         end)
+end
 
-fun descend_tac ctxt =
+fun descend_tac ctxt simps =
 let
   val mk_tac_raw =
-    descend_procedure_tac ctxt
+    descend_procedure_tac ctxt simps
     THEN' RANGE
       [Object_Logic.rulify_tac THEN' (K all_tac),
        regularize_tac ctxt,
@@ -650,15 +655,20 @@ end
 
 
 (* the tactic leaves three subgoals to be proved *)
-fun lift_procedure_tac ctxt rthm =
-  Object_Logic.full_atomize_tac
+fun lift_procedure_tac ctxt simps rthm =
+let
+  val ss = (mk_minimal_ss ctxt) addsimps simps
+in
+  full_simp_tac ss
+  THEN' Object_Logic.full_atomize_tac
   THEN' gen_frees_tac ctxt
   THEN' SUBGOAL (fn (goal, i) =>
     let
       (* full_atomize_tac contracts eta redexes,
          so we do it also in the original theorem *)
       val rthm' = 
-        rthm |> Drule.eta_contraction_rule 
+        rthm |> full_simplify ss
+             |> Drule.eta_contraction_rule 
              |> Thm.forall_intr_frees
              |> atomize_thm 
 
@@ -666,32 +676,29 @@ fun lift_procedure_tac ctxt rthm =
     in
       (rtac rule THEN' rtac rthm') i
     end)
+end
 
-
-fun lift_single_tac ctxt rthm = 
-  lift_procedure_tac ctxt rthm
+fun lift_single_tac ctxt simps rthm = 
+  lift_procedure_tac ctxt simps rthm
   THEN' RANGE
     [ regularize_tac ctxt,
       all_injection_tac ctxt,
       clean_tac ctxt ]
 
-fun lift_tac ctxt rthms =
+fun lift_tac ctxt simps rthms =
   Goal.conjunction_tac 
-  THEN' RANGE (map (lift_single_tac ctxt) rthms)
+  THEN' RANGE (map (lift_single_tac ctxt simps) rthms)
 
 
 (* automated lifting with pre-simplification of the theorems;
    for internal usage *)
 fun lifted ctxt qtys simps rthm =
 let
-  val ss = (mk_minimal_ss ctxt) addsimps simps
-  val rthm' = asm_full_simplify ss rthm
-
-  val ((_, [rthm'']), ctxt') = Variable.import true [rthm'] ctxt
-  val goal = derive_qtrm ctxt' qtys (prop_of rthm'')
+  val ((_, [rthm']), ctxt') = Variable.import true [rthm] ctxt
+  val goal = derive_qtrm ctxt' qtys (prop_of rthm')
 in
   Goal.prove ctxt' [] [] goal 
-    (K (EVERY1 [asm_full_simp_tac ss, lift_single_tac ctxt' rthm'']))
+    (K (HEADGOAL (lift_single_tac ctxt' simps rthm')))
   |> singleton (ProofContext.export ctxt' ctxt)
 end
 

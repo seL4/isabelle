@@ -773,20 +773,20 @@ subsection {* Methods / Interface *}
 
 method_setup lifting =
   {* Attrib.thms >> (fn thms => fn ctxt => 
-       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_tac ctxt thms))) *}
+       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_tac ctxt [] thms))) *}
   {* lifts theorems to quotient types *}
 
 method_setup lifting_setup =
   {* Attrib.thm >> (fn thm => fn ctxt => 
-       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_procedure_tac ctxt thm))) *}
+       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_procedure_tac ctxt [] thm))) *}
   {* sets up the three goals for the quotient lifting procedure *}
 
 method_setup descending =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_tac ctxt))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_tac ctxt []))) *}
   {* decends theorems to the raw level *}
 
 method_setup descending_setup =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_procedure_tac ctxt))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_procedure_tac ctxt []))) *}
   {* sets up the three goals for the decending theorems *}
 
 method_setup regularize =
