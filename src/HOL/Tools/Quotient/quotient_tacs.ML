@@ -618,11 +618,18 @@ in
 end
 
 
+(* Since we use Ball and Bex during the lifting and descending,
+   we cannot deal with lemmas containing them, unless we unfold 
+   them by default. Also mem cannot be regularized in general. *)
+
+val default_unfolds = @{thms Ball_def Bex_def mem_def}
+
+
 (** descending as tactic **)
 
 fun descend_procedure_tac ctxt simps =
 let
-  val ss = (mk_minimal_ss ctxt) addsimps simps
+  val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
 in
   full_simp_tac ss
   THEN' Object_Logic.full_atomize_tac
@@ -657,7 +664,7 @@ end
 (* the tactic leaves three subgoals to be proved *)
 fun lift_procedure_tac ctxt simps rthm =
 let
-  val ss = (mk_minimal_ss ctxt) addsimps simps
+  val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
 in
   full_simp_tac ss
   THEN' Object_Logic.full_atomize_tac
