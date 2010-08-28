@@ -126,8 +126,6 @@ class Session(system: Isabelle_System)
     def handle_change(change: Document.Change)
     //{{{
     {
-      require(change.is_finished)
-
       val previous = change.previous.join
       val (node_edits, current) = change.result.join
 
