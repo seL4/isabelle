@@ -10,7 +10,7 @@ Instantiation of the generic simplifier for HOL.
 structure Quantifier1 = Quantifier1Fun
 (struct
   (*abstract syntax*)
-  fun dest_eq ((c as Const(@{const_name "op ="},_)) $ s $ t) = SOME (c, s, t)
+  fun dest_eq ((c as Const(@{const_name HOL.eq},_)) $ s $ t) = SOME (c, s, t)
     | dest_eq _ = NONE;
   fun dest_conj ((c as Const(@{const_name HOL.conj},_)) $ s $ t) = SOME (c, s, t)
     | dest_conj _ = NONE;
@@ -44,7 +44,7 @@ fun safe_mk_meta_eq r = mk_meta_eq r handle Thm.THM _ => r;
 fun mk_eq th = case concl_of th
   (*expects Trueprop if not == *)
   of Const (@{const_name "=="},_) $ _ $ _ => th
-   | _ $ (Const (@{const_name "op ="}, _) $ _ $ _) => mk_meta_eq th
+   | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => mk_meta_eq th
    | _ $ (Const (@{const_name Not}, _) $ _) => th RS @{thm Eq_FalseI}
    | _ => th RS @{thm Eq_TrueI}
 

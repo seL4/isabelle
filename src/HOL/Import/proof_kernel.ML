@@ -1205,7 +1205,7 @@ fun get_hol4_thm thyname thmname thy =
 fun non_trivial_term_consts t = fold_aterms
   (fn Const (c, _) =>
       if c = @{const_name Trueprop} orelse c = @{const_name All}
-        orelse c = @{const_name HOL.implies} orelse c = @{const_name HOL.conj} orelse c = @{const_name "op ="}
+        orelse c = @{const_name HOL.implies} orelse c = @{const_name HOL.conj} orelse c = @{const_name HOL.eq}
       then I else insert (op =) c
     | _ => I) t [];
 
@@ -1213,7 +1213,7 @@ fun match_consts t (* th *) =
     let
         fun add_consts (Const (c, _), cs) =
             (case c of
-                 @{const_name "op ="} => insert (op =) "==" cs
+                 @{const_name HOL.eq} => insert (op =) "==" cs
                | @{const_name HOL.implies} => insert (op =) "==>" cs
                | @{const_name All} => cs
                | "all" => cs
@@ -1476,10 +1476,10 @@ fun EQ_MP hth1 hth2 thy =
 fun mk_COMB th1 th2 thy =
     let
         val (f,g) = case concl_of th1 of
-                        _ $ (Const(@{const_name "op ="},_) $ f $ g) => (f,g)
+                        _ $ (Const(@{const_name HOL.eq},_) $ f $ g) => (f,g)
                       | _ => raise ERR "mk_COMB" "First theorem not an equality"
         val (x,y) = case concl_of th2 of
-                        _ $ (Const(@{const_name "op ="},_) $ x $ y) => (x,y)
+                        _ $ (Const(@{const_name HOL.eq},_) $ x $ y) => (x,y)
                       | _ => raise ERR "mk_COMB" "Second theorem not an equality"
         val fty = type_of f
         val (fd,fr) = dom_rng fty
@@ -1788,7 +1788,7 @@ fun mk_ABS v th thy =
         val cv = cterm_of thy v
         val th1 = implies_elim_all (beta_eta_thm th)
         val (f,g) = case concl_of th1 of
-                        _ $ (Const(@{const_name "op ="},_) $ f $ g) => (Term.lambda v f,Term.lambda v g)
+                        _ $ (Const(@{const_name HOL.eq},_) $ f $ g) => (Term.lambda v f,Term.lambda v g)
                       | _ => raise ERR "mk_ABS" "Bad conclusion"
         val (fd,fr) = dom_rng (type_of f)
         val abs_thm' = Drule.instantiate' [SOME (ctyp_of thy fd), SOME (ctyp_of thy fr)] [SOME (cterm_of thy f), SOME (cterm_of thy g)] abs_thm

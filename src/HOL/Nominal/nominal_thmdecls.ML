@@ -147,7 +147,7 @@ fun eqvt_add_del_aux flag orig_thm context =
              else raise EQVT_FORM "Type Implication"
           end
        (* case: eqvt-lemma is of the equational form *)
-      | (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $
+      | (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $
             (Const (@{const_name "perm"},typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
            (if (apply_pi lhs (pi,typi)) = rhs
                then [orig_thm]

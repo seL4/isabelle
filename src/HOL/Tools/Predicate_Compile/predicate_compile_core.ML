@@ -587,7 +587,7 @@ fun preprocess_intro thy rule =
 
 fun preprocess_elim ctxt elimrule =
   let
-    fun replace_eqs (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, T) $ lhs $ rhs)) =
+    fun replace_eqs (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
      | replace_eqs t = t
     val thy = ProofContext.theory_of ctxt

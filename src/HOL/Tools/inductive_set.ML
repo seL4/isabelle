@@ -265,7 +265,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
 
 fun add ctxt thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities}) =
   case prop_of thm of
-    Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, Type (_, [T, _])) $ lhs $ rhs) =>
+    Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, Type (_, [T, _])) $ lhs $ rhs) =>
       (case body_type T of
          @{typ bool} =>
            let

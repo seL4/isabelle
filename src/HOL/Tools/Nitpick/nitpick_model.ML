@@ -590,7 +590,7 @@ and reconstruct_term maybe_opt unfold pool
                       if co then
                         Const (@{const_name The}, (T --> bool_T) --> T)
                         $ Abs (cyclic_co_val_name (), T,
-                               Const (@{const_name "op ="}, T --> T --> bool_T)
+                               Const (@{const_name HOL.eq}, T --> T --> bool_T)
                                $ Bound 0 $ abstract_over (var, t))
                       else
                         cyclic_atom ()
@@ -849,7 +849,7 @@ fun assign_operator_for_const (s, T) =
 (** Model reconstruction **)
 
 fun unfold_outer_the_binders (t as Const (@{const_name The}, _)
-                                   $ Abs (s, T, Const (@{const_name "op ="}, _)
+                                   $ Abs (s, T, Const (@{const_name HOL.eq}, _)
                                                 $ Bound 0 $ t')) =
     betapply (Abs (s, T, t'), t) |> unfold_outer_the_binders
   | unfold_outer_the_binders t = t

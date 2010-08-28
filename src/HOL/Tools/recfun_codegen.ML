@@ -40,7 +40,7 @@ fun avoid_value thy [thm] =
       end
   | avoid_value thy thms = thms;
 
-fun get_equations thy defs (raw_c, T) = if raw_c = @{const_name "op ="} then ([], "") else
+fun get_equations thy defs (raw_c, T) = if raw_c = @{const_name HOL.eq} then ([], "") else
   let
     val c = AxClass.unoverload_const thy (raw_c, T);
     val raw_thms = Code.get_cert thy (Code_Preproc.preprocess_functrans thy) c

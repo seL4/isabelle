@@ -61,14 +61,8 @@ consts
   disj          :: "[bool, bool] => bool"           (infixr "|" 30)
   implies       :: "[bool, bool] => bool"           (infixr "-->" 25)
 
-setup Sign.root_path
+  eq            :: "['a, 'a] => bool"               (infixl "=" 50)
 
-consts
-  "op ="        :: "['a, 'a] => bool"               (infixl "=" 50)
-
-setup Sign.local_path
-
-consts
   The           :: "('a => bool) => 'a"
   All           :: "('a => bool) => bool"           (binder "ALL " 10)
   Ex            :: "('a => bool) => bool"           (binder "EX " 10)
@@ -78,7 +72,7 @@ consts
 subsubsection {* Additional concrete syntax *}
 
 notation (output)
-  "op ="  (infix "=" 50)
+  eq  (infix "=" 50)
 
 abbreviation
   not_equal :: "['a, 'a] => bool"  (infixl "~=" 50) where
@@ -89,15 +83,15 @@ notation (output)
 
 notation (xsymbols)
   Not  ("\<not> _" [40] 40) and
-  HOL.conj  (infixr "\<and>" 35) and
-  HOL.disj  (infixr "\<or>" 30) and
-  HOL.implies  (infixr "\<longrightarrow>" 25) and
+  conj  (infixr "\<and>" 35) and
+  disj  (infixr "\<or>" 30) and
+  implies  (infixr "\<longrightarrow>" 25) and
   not_equal  (infix "\<noteq>" 50)
 
 notation (HTML output)
   Not  ("\<not> _" [40] 40) and
-  HOL.conj  (infixr "\<and>" 35) and
-  HOL.disj  (infixr "\<or>" 30) and
+  conj  (infixr "\<and>" 35) and
+  disj  (infixr "\<or>" 30) and
   not_equal  (infix "\<noteq>" 50)
 
 abbreviation (iff)
@@ -183,8 +177,8 @@ axioms
   True_or_False:  "(P=True) | (P=False)"
 
 finalconsts
-  "op ="
-  HOL.implies
+  eq
+  implies
   The
 
 definition If :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" ("(if (_)/ then (_)/ else (_))" [0, 0, 10] 10) where
@@ -864,7 +858,7 @@ setup Classical.setup
 
 setup {*
 let
-  fun non_bool_eq (@{const_name "op ="}, Type (_, [T, _])) = T <> @{typ bool}
+  fun non_bool_eq (@{const_name HOL.eq}, Type (_, [T, _])) = T <> @{typ bool}
     | non_bool_eq _ = false;
   val hyp_subst_tac' =
     SUBGOAL (fn (goal, i) =>
@@ -930,7 +924,7 @@ structure Blast = Blast
 (
   val thy = @{theory}
   type claset = Classical.claset
-  val equality_name = @{const_name "op ="}
+  val equality_name = @{const_name HOL.eq}
   val not_name = @{const_name Not}
   val notE = @{thm notE}
   val ccontr = @{thm ccontr}
@@ -1746,8 +1740,8 @@ let
 
 fun eq_codegen thy defs dep thyname b t gr =
     (case strip_comb t of
-       (Const (@{const_name "op ="}, Type (_, [Type ("fun", _), _])), _) => NONE
-     | (Const (@{const_name "op ="}, _), [t, u]) =>
+       (Const (@{const_name HOL.eq}, Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const (@{const_name HOL.eq}, _), [t, u]) =>
           let
             val (pt, gr') = Codegen.invoke_codegen thy defs dep thyname false t gr;
             val (pu, gr'') = Codegen.invoke_codegen thy defs dep thyname false u gr';
@@ -1756,7 +1750,7 @@ fun eq_codegen thy defs dep thyname b t gr =
             SOME (Codegen.parens
               (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]), gr''')
           end
-     | (t as Const (@{const_name "op ="}, _), ts) => SOME (Codegen.invoke_codegen
+     | (t as Const (@{const_name HOL.eq}, _), ts) => SOME (Codegen.invoke_codegen
          thy defs dep thyname b (Codegen.eta_expand t ts 2) gr)
      | _ => NONE);
 
@@ -1796,7 +1790,7 @@ declare eq_equal [code]
 
 setup {*
   Code_Preproc.map_pre (fn simpset =>
-    simpset addsimprocs [Simplifier.simproc_global_i @{theory} "equal" [@{term "op ="}]
+    simpset addsimprocs [Simplifier.simproc_global_i @{theory} "equal" [@{term HOL.eq}]
       (fn thy => fn _ => fn Const (_, T) => case strip_type T
         of (Type _ :: _, _) => SOME @{thm eq_equal}
          | _ => NONE)])
@@ -1944,7 +1938,7 @@ code_class equal
 code_const "HOL.equal"
   (Haskell infixl 4 "==")
 
-code_const "op ="
+code_const HOL.eq
   (Haskell infixl 4 "==")
 
 text {* undefined *}

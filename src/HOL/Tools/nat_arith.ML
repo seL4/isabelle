@@ -62,7 +62,7 @@ structure EqCancelSums = CancelSumsFun
 (struct
   open CommonCancelSums;
   val mk_bal = HOLogic.mk_eq;
-  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT;
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} HOLogic.natT;
   val uncancel_tac = gen_uncancel_tac @{thm "nat_add_left_cancel"};
 end);
 

@@ -244,7 +244,7 @@ fun dest_abs used (a as Abs(s, ty, M)) =
      end
   | dest_abs _ _ =  raise USYN_ERR "dest_abs" "not an abstraction";
 
-fun dest_eq(Const(@{const_name "op ="},_) $ M $ N) = {lhs=M, rhs=N}
+fun dest_eq(Const(@{const_name HOL.eq},_) $ M $ N) = {lhs=M, rhs=N}
   | dest_eq _ = raise USYN_ERR "dest_eq" "not an equality";
 
 fun dest_imp(Const(@{const_name HOL.implies},_) $ M $ N) = {ant=M, conseq=N}

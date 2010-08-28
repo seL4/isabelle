@@ -338,7 +338,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
       => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
     (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
-| (Const (@{const_name "op ="},_) $
+| (Const (@{const_name HOL.eq},_) $
     (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
     (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
       => rtac @{thm ball_rsp} THEN' dtac @{thm QT_all}
@@ -350,7 +350,7 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
       => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
     (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
-| Const (@{const_name "op ="},_) $
+| Const (@{const_name HOL.eq},_) $
     (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
     (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
       => rtac @{thm bex_rsp} THEN' dtac @{thm QT_ex}
@@ -370,13 +370,13 @@ fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
     (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
       => rtac @{thm babs_rsp} THEN' RANGE [quotient_tac ctxt]
 
-| Const (@{const_name "op ="},_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
+| Const (@{const_name HOL.eq},_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
    (rtac @{thm refl} ORELSE'
     (equals_rsp_tac R ctxt THEN' RANGE [
        quot_true_tac ctxt (fst o dest_bcomb), quot_true_tac ctxt (snd o dest_bcomb)]))
 
     (* reflexivity of operators arising from Cong_tac *)
-| Const (@{const_name "op ="},_) $ _ $ _ => rtac @{thm refl}
+| Const (@{const_name HOL.eq},_) $ _ $ _ => rtac @{thm refl}
 
    (* respectfulness of constants; in particular of a simple relation *)
 | _ $ (Const _) $ (Const _)  (* fun_rel, list_rel, etc but not equality *)

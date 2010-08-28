@@ -234,7 +234,7 @@ fun join is_conj littab t =
         @{term Not} $ (@{term Not} $ t) => (T.compose dnegI, lookup t)
       | @{term Not} $ (@{term "op = :: bool => _"} $ t $ (@{term Not} $ u)) =>
           (T.compose negIffI, lookup (iff_const $ u $ t))
-      | @{term Not} $ ((eq as Const (@{const_name "op ="}, _)) $ t $ u) =>
+      | @{term Not} $ ((eq as Const (@{const_name HOL.eq}, _)) $ t $ u) =>
           let fun rewr lit = lit COMP @{thm not_sym}
           in (rewr, lookup (@{term Not} $ (eq $ u $ t))) end
       | _ =>

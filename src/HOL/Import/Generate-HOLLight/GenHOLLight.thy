@@ -53,7 +53,7 @@ const_maps
   F > False
   ONE_ONE > HOL4Setup.ONE_ONE
   ONTO    > Fun.surj
-  "=" > "op ="
+  "=" > HOL.eq
   "==>" > HOL.implies
   "/\\" > HOL.conj
   "\\/" > HOL.disj

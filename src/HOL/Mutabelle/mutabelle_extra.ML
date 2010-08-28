@@ -187,7 +187,7 @@ fun invoke_nitpick thy t =
 val nitpick_mtd = ("nitpick", invoke_nitpick)
 *)
 
-val comms = [@{const_name "op ="}, @{const_name HOL.disj}, @{const_name HOL.conj}]
+val comms = [@{const_name HOL.eq}, @{const_name HOL.disj}, @{const_name HOL.conj}]
 
 val forbidden =
  [(* (@{const_name "power"}, "'a"), *)

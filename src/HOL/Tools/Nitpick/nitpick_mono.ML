@@ -222,7 +222,7 @@ fun fin_fun_body _ _ (t as @{term False}) = SOME t
   | fin_fun_body _ _ (t as Const (@{const_name None}, _)) = SOME t
   | fin_fun_body dom_T ran_T
                  ((t0 as Const (@{const_name If}, _))
-                  $ (t1 as Const (@{const_name "op ="}, _) $ Bound 0 $ t1')
+                  $ (t1 as Const (@{const_name HOL.eq}, _) $ Bound 0 $ t1')
                   $ t2 $ t3) =
     (if loose_bvar1 (t1', 0) then
        NONE
@@ -650,7 +650,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                                      Bound 0)))) accum
                   |>> mtype_of_mterm
                 end
-              | @{const_name "op ="} => do_equals T accum
+              | @{const_name HOL.eq} => do_equals T accum
               | @{const_name The} =>
                 (trace_msg (K "*** The"); raise UNSOLVABLE ())
               | @{const_name Eps} =>
@@ -760,7 +760,7 @@ fun consider_term (mdata as {hol_ctxt as {thy, ctxt, stds, fast_descrs,
                     do_term (incr_boundvars ~1 t1') accum
                   else
                     raise SAME ()
-                | (t11 as Const (@{const_name "op ="}, _)) $ Bound 0 $ t13 =>
+                | (t11 as Const (@{const_name HOL.eq}, _)) $ Bound 0 $ t13 =>
                   if not (loose_bvar1 (t13, 0)) then
                     do_term (incr_boundvars ~1 (t11 $ t13)) accum
                   else
@@ -876,7 +876,7 @@ fun consider_general_formula (mdata as {hol_ctxt = {ctxt, ...}, ...}) =
                 do_term (@{const Not}
                          $ (HOLogic.eq_const (domain_type T0) $ t1
                             $ Abs (Name.uu, T1, @{const False}))) accum)
-           | Const (x as (@{const_name "op ="}, _)) $ t1 $ t2 =>
+           | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
              do_equals x t1 t2
            | Const (@{const_name Let}, _) $ t1 $ t2 =>
              do_formula sn (betapply (t2, t1)) accum
@@ -973,7 +973,7 @@ fun consider_definitional_axiom (mdata as {hol_ctxt = {ctxt, ...}, ...}) t =
             do_conjunction t0 t1 t2 accum
           | (t0 as Const (@{const_name All}, _)) $ Abs (s0, T1, t1) =>
             do_all t0 s0 T1 t1 accum
-          | Const (x as (@{const_name "op ="}, _)) $ t1 $ t2 =>
+          | Const (x as (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
             consider_general_equals mdata true x t1 t2 accum
           | (t0 as @{const HOL.conj}) $ t1 $ t2 => do_conjunction t0 t1 t2 accum
           | (t0 as @{const HOL.implies}) $ t1 $ t2 => do_implies t0 t1 t2 accum
@@ -1069,7 +1069,7 @@ fun finitize_funs (hol_ctxt as {thy, ctxt, stds, fast_descrs, constr_cache,
                     Abs (Name.uu, set_T', @{const True})
                   | _ => Const (s, T')
                 else if s = @{const_name "=="} orelse
-                        s = @{const_name "op ="} then
+                        s = @{const_name HOL.eq} then
                   let
                     val T =
                       case T' of

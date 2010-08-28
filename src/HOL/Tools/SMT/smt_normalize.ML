@@ -252,7 +252,7 @@ end
 
 fun norm_def ctxt thm =
   (case Thm.prop_of thm of
-    @{term Trueprop} $ (Const (@{const_name "op ="}, _) $ _ $ Abs _) =>
+    @{term Trueprop} $ (Const (@{const_name HOL.eq}, _) $ _ $ Abs _) =>
       norm_def ctxt (thm RS @{thm fun_cong})
   | Const (@{const_name "=="}, _) $ _ $ Abs _ =>
       norm_def ctxt (thm RS @{thm meta_eq_to_obj_eq})

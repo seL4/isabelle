@@ -121,7 +121,7 @@ val skolem_prefix = "Sledgehammer.sko"
    handled specially via "fequal". *)
 val boring_consts =
   [@{const_name False}, @{const_name True}, @{const_name If}, @{const_name Let},
-   @{const_name "op ="}]
+   @{const_name HOL.eq}]
 
 (* Add a pconstant to the table, but a [] entry means a standard
    connective, which we ignore.*)
@@ -177,7 +177,7 @@ fun get_pconsts thy also_skolems pos ts =
       | @{const HOL.disj} $ t1 $ t2 => fold (do_formula pos) [t1, t2]
       | @{const HOL.implies} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
-      | Const (@{const_name "op ="}, Type (_, [T, _])) $ t1 $ t2 =>
+      | Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2 =>
         fold (do_term_or_formula T) [t1, t2]
       | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
         $ t1 $ t2 $ t3 =>
@@ -557,7 +557,7 @@ val is_exhaustive_finite =
       | (_, @{const Not} $ t1) => do_formula (not pos) t1
       | (true, @{const HOL.disj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
       | (false, @{const HOL.conj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
-      | (true, Const (@{const_name "op ="}, _) $ t1 $ t2) => do_equals t1 t2
+      | (true, Const (@{const_name HOL.eq}, _) $ t1 $ t2) => do_equals t1 t2
       | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
       | _ => false
   in do_formula true end

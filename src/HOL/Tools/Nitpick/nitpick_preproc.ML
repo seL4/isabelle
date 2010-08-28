@@ -41,7 +41,7 @@ val may_use_binary_ints =
     fun aux def (Const (@{const_name "=="}, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
       | aux def (@{const "==>"} $ t1 $ t2) = aux false t1 andalso aux def t2
-      | aux def (Const (@{const_name "op ="}, _) $ t1 $ t2) =
+      | aux def (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =
         aux def t1 andalso aux false t2
       | aux def (@{const HOL.implies} $ t1 $ t2) = aux false t1 andalso aux def t2
       | aux def (t1 $ t2) = aux def t1 andalso aux def t2
@@ -149,7 +149,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
       case t of
         @{const Trueprop} $ t1 => box_var_in_def new_Ts old_Ts t1 z
       | Const (s0, _) $ t1 $ _ =>
-        if s0 = @{const_name "=="} orelse s0 = @{const_name "op ="} then
+        if s0 = @{const_name "=="} orelse s0 = @{const_name HOL.eq} then
           let
             val (t', args) = strip_comb t1
             val T' = fastype_of1 (new_Ts, do_term new_Ts old_Ts Neut t')
@@ -209,7 +209,7 @@ fun box_fun_and_pair_in_term (hol_ctxt as {ctxt, thy, stds, fast_descrs, ...})
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
       | Const (s0 as @{const_name Ex}, T0) $ Abs (s1, T1, t1) =>
         do_quantifier new_Ts old_Ts polar s0 T0 s1 T1 t1
-      | Const (s0 as @{const_name "op ="}, T0) $ t1 $ t2 =>
+      | Const (s0 as @{const_name HOL.eq}, T0) $ t1 $ t2 =>
         do_equals new_Ts old_Ts s0 T0 t1 t2
       | @{const HOL.conj} $ t1 $ t2 =>
         @{const HOL.conj} $ do_term new_Ts old_Ts polar t1
@@ -332,7 +332,7 @@ fun pull_out_universal_constrs hol_ctxt def t =
         do_eq_or_imp Ts true def t0 t1 t2 seen
       | (t0 as @{const "==>"}) $ t1 $ t2 =>
         if def then (t, []) else do_eq_or_imp Ts false def t0 t1 t2 seen
-      | (t0 as Const (@{const_name "op ="}, _)) $ t1 $ t2 =>
+      | (t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2 =>
         do_eq_or_imp Ts true def t0 t1 t2 seen
       | (t0 as @{const HOL.implies}) $ t1 $ t2 =>
         do_eq_or_imp Ts false def t0 t1 t2 seen
@@ -399,7 +399,7 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
         aux_eq careful true t0 t1 t2
       | aux careful ((t0 as @{const "==>"}) $ t1 $ t2) =
         t0 $ aux false t1 $ aux careful t2
-      | aux careful ((t0 as Const (@{const_name "op ="}, _)) $ t1 $ t2) =
+      | aux careful ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2) =
         aux_eq careful true t0 t1 t2
       | aux careful ((t0 as @{const HOL.implies}) $ t1 $ t2) =
         t0 $ aux false t1 $ aux careful t2
@@ -464,9 +464,9 @@ val destroy_universal_equalities =
     and aux_implies prems zs t1 t2 =
       case t1 of
         Const (@{const_name "=="}, _) $ Var z $ t' => aux_eq prems zs z t' t1 t2
-      | @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ Var z $ t') =>
+      | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ Var z $ t') =>
         aux_eq prems zs z t' t1 t2
-      | @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ t' $ Var z) =>
+      | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t' $ Var z) =>
         aux_eq prems zs z t' t1 t2
       | _ => aux (t1 :: prems) (Term.add_vars t1 zs) t2
     and aux_eq prems zs z t' t1 t2 =
@@ -499,7 +499,7 @@ fun find_bound_assign ctxt stds j =
             handle SAME () => do_term (t :: seen) ts
         in
           case t of
-            Const (@{const_name "op ="}, _) $ t1 $ t2 => do_eq true t1 t2
+            Const (@{const_name HOL.eq}, _) $ t1 $ t2 => do_eq true t1 t2
           | _ => do_term (t :: seen) ts
         end
   in do_term end
@@ -653,7 +653,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
 
 fun params_in_equation (@{const "==>"} $ _ $ t2) = params_in_equation t2
   | params_in_equation (@{const Trueprop} $ t1) = params_in_equation t1
-  | params_in_equation (Const (@{const_name "op ="}, _) $ t1 $ _) =
+  | params_in_equation (Const (@{const_name HOL.eq}, _) $ t1 $ _) =
     snd (strip_comb t1)
   | params_in_equation _ = []
 

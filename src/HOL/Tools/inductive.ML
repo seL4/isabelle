@@ -182,7 +182,7 @@ fun mk_mono thm =
   in
     case concl_of thm of
       Const ("==", _) $ _ $ _ => eq2mono (thm RS meta_eq_to_obj_eq)
-    | _ $ (Const (@{const_name "op ="}, _) $ _ $ _) => eq2mono thm
+    | _ $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => eq2mono thm
     | _ $ (Const (@{const_name Orderings.less_eq}, _) $ _ $ _) =>
       dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
         (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))

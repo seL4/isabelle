@@ -183,7 +183,7 @@ fun signed_lits_aux (Const (@{const_name HOL.disj}, _) $ P $ Q) (poslits, neglit
 fun signed_lits th = signed_lits_aux (HOLogic.dest_Trueprop (concl_of th)) ([],[]);
 
 (*Literals like X=X are tautologous*)
-fun taut_poslit (Const(@{const_name "op ="},_) $ t $ u) = t aconv u
+fun taut_poslit (Const(@{const_name HOL.eq},_) $ t $ u) = t aconv u
   | taut_poslit (Const(@{const_name True},_)) = true
   | taut_poslit _ = false;
 
@@ -213,7 +213,7 @@ fun refl_clause_aux 0 th = th
        case HOLogic.dest_Trueprop (concl_of th) of
           (Const (@{const_name HOL.disj}, _) $ (Const (@{const_name HOL.disj}, _) $ _ $ _) $ _) =>
             refl_clause_aux n (th RS disj_assoc)    (*isolate an atom as first disjunct*)
-        | (Const (@{const_name HOL.disj}, _) $ (Const(@{const_name Not},_) $ (Const(@{const_name "op ="},_) $ t $ u)) $ _) =>
+        | (Const (@{const_name HOL.disj}, _) $ (Const(@{const_name Not},_) $ (Const(@{const_name HOL.eq},_) $ t $ u)) $ _) =>
             if eliminable(t,u)
             then refl_clause_aux (n-1) (th RS not_refl_disj_D)  (*Var inequation: delete*)
             else refl_clause_aux (n-1) (th RS disj_comm)  (*not between Vars: ignore*)
@@ -222,7 +222,7 @@ fun refl_clause_aux 0 th = th
 
 fun notequal_lits_count (Const (@{const_name HOL.disj}, _) $ P $ Q) =
       notequal_lits_count P + notequal_lits_count Q
-  | notequal_lits_count (Const(@{const_name Not},_) $ (Const(@{const_name "op ="},_) $ _ $ _)) = 1
+  | notequal_lits_count (Const(@{const_name Not},_) $ (Const(@{const_name HOL.eq},_) $ _ $ _)) = 1
   | notequal_lits_count _ = 0;
 
 (*Simplify a clause by applying reflexivity to its negated equality literals*)
@@ -280,7 +280,7 @@ fun too_many_clauses ctxto t =
     | signed_nclauses b (Const(@{const_name HOL.implies},_) $ t $ u) =
         if b then prod (signed_nclauses (not b) t) (signed_nclauses b u)
              else sum (signed_nclauses (not b) t) (signed_nclauses b u)
-    | signed_nclauses b (Const(@{const_name "op ="}, Type ("fun", [T, _])) $ t $ u) =
+    | signed_nclauses b (Const(@{const_name HOL.eq}, Type ("fun", [T, _])) $ t $ u) =
         if T = HOLogic.boolT then (*Boolean equality is if-and-only-if*)
             if b then sum (prod (signed_nclauses (not b) t) (signed_nclauses b u))
                           (prod (signed_nclauses (not b) u) (signed_nclauses b t))

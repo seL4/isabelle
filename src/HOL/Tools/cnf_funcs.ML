@@ -98,7 +98,7 @@ fun is_atom (Const (@{const_name False}, _))                                    
   | is_atom (Const (@{const_name HOL.conj}, _) $ _ $ _)                                    = false
   | is_atom (Const (@{const_name HOL.disj}, _) $ _ $ _)                                    = false
   | is_atom (Const (@{const_name HOL.implies}, _) $ _ $ _)                                  = false
-  | is_atom (Const (@{const_name "op ="}, Type ("fun", @{typ bool} :: _)) $ _ $ _)       = false
+  | is_atom (Const (@{const_name HOL.eq}, Type ("fun", @{typ bool} :: _)) $ _ $ _)       = false
   | is_atom (Const (@{const_name Not}, _) $ _)                                         = false
   | is_atom _                                                              = true;
 
@@ -205,7 +205,7 @@ fun make_nnf_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
 	in
 		make_nnf_imp OF [thm1, thm2]
 	end
-  | make_nnf_thm thy (Const (@{const_name "op ="}, Type ("fun", @{typ bool} :: _)) $ x $ y) =
+  | make_nnf_thm thy (Const (@{const_name HOL.eq}, Type ("fun", @{typ bool} :: _)) $ x $ y) =
 	let
 		val thm1 = make_nnf_thm thy x
 		val thm2 = make_nnf_thm thy (HOLogic.Not $ x)
@@ -239,7 +239,7 @@ fun make_nnf_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
 	in
 		make_nnf_not_imp OF [thm1, thm2]
 	end
-  | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name "op ="}, Type ("fun", @{typ bool} :: _)) $ x $ y)) =
+  | make_nnf_thm thy (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, Type ("fun", @{typ bool} :: _)) $ x $ y)) =
 	let
 		val thm1 = make_nnf_thm thy x
 		val thm2 = make_nnf_thm thy (HOLogic.Not $ x)

@@ -136,6 +136,7 @@ generation.
     op & ~> HOL.conj
     op | ~> HOL.disj
     op --> ~> HOL.implies
+    op = ~> HOL.eq
     Not ~> HOL.Not
     The ~> HOL.The
     All ~> HOL.All

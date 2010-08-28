@@ -52,7 +52,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
     fun thyname_of s = (case optmod of
       NONE => Codegen.thyname_of_const thy s | SOME s => s);
   in (case Option.map strip_comb (try HOLogic.dest_Trueprop (concl_of thm)) of
-      SOME (Const (@{const_name "op ="}, _), [t, _]) =>
+      SOME (Const (@{const_name HOL.eq}, _), [t, _]) =>
         (case head_of t of
           Const (s, _) =>
             CodegenData.put {intros = intros, graph = graph,
@@ -188,7 +188,7 @@ fun modes_of modes t =
         end)) (AList.lookup op = modes name)
 
   in (case strip_comb t of
-      (Const (@{const_name "op ="}, Type (_, [T, _])), _) =>
+      (Const (@{const_name HOL.eq}, Type (_, [T, _])), _) =>
         [Mode ((([], [1]), false), [1], []), Mode ((([], [2]), false), [2], [])] @
         (if is_eqT T then [Mode ((([], [1, 2]), false), [1, 2], [])] else [])
     | (Const (name, _), args) => the_default default (mk_modes name args)
@@ -344,7 +344,7 @@ fun compile_match nvs eq_ps out_ps success_p can_fail =
   end;
 
 fun modename module s (iss, is) gr =
-  let val (id, gr') = if s = @{const_name "op ="} then (("", "equal"), gr)
+  let val (id, gr') = if s = @{const_name HOL.eq} then (("", "equal"), gr)
     else mk_const_id module s gr
   in (space_implode "__"
     (mk_qual_id module id ::
@@ -363,7 +363,7 @@ fun compile_expr thy defs dep module brack modes (NONE, t) gr =
   | compile_expr thy defs dep module brack modes (SOME (Mode ((mode, _), _, ms)), t) gr =
       (case strip_comb t of
          (Const (name, _), args) =>
-           if name = @{const_name "op ="} orelse AList.defined op = modes name then
+           if name = @{const_name HOL.eq} orelse AList.defined op = modes name then
              let
                val (args1, args2) = chop (length ms) args;
                val ((ps, mode_id), gr') = gr |> fold_map
@@ -581,7 +581,7 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
 
       fun dest_prem (_ $ (Const (@{const_name Set.member}, _) $ t $ u)) =
             Prem ([t], Envir.beta_eta_contract u, true)
-        | dest_prem (_ $ ((eq as Const (@{const_name "op ="}, _)) $ t $ u)) =
+        | dest_prem (_ $ ((eq as Const (@{const_name HOL.eq}, _)) $ t $ u)) =
             Prem ([t, u], eq, false)
         | dest_prem (_ $ t) =
             (case strip_comb t of

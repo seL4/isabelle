@@ -408,7 +408,7 @@ val built_in_consts =
    (@{const_name True}, 0),
    (@{const_name All}, 1),
    (@{const_name Ex}, 1),
-   (@{const_name "op ="}, 1),
+   (@{const_name HOL.eq}, 1),
    (@{const_name HOL.conj}, 2),
    (@{const_name HOL.disj}, 2),
    (@{const_name HOL.implies}, 2),
@@ -1275,7 +1275,7 @@ val is_plain_definition =
         forall is_Var args andalso not (has_duplicates (op =) args)
       | _ => false
     fun do_eq (Const (@{const_name "=="}, _) $ t1 $ _) = do_lhs t1
-      | do_eq (@{const Trueprop} $ (Const (@{const_name "op ="}, _) $ t1 $ _)) =
+      | do_eq (@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t1 $ _)) =
         do_lhs t1
       | do_eq _ = false
   in do_eq end
@@ -1347,7 +1347,7 @@ fun term_under_def t =
     @{const "==>"} $ _ $ t2 => term_under_def t2
   | Const (@{const_name "=="}, _) $ t1 $ _ => term_under_def t1
   | @{const Trueprop} $ t1 => term_under_def t1
-  | Const (@{const_name "op ="}, _) $ t1 $ _ => term_under_def t1
+  | Const (@{const_name HOL.eq}, _) $ t1 $ _ => term_under_def t1
   | Abs (_, _, t') => term_under_def t'
   | t1 $ _ => term_under_def t1
   | _ => t
@@ -1371,7 +1371,7 @@ fun normalized_rhs_of t =
     val (lhs, rhs) =
       case t of
         Const (@{const_name "=="}, _) $ t1 $ t2 => (t1, t2)
-      | @{const Trueprop} $ (Const (@{const_name "op ="}, _) $ t1 $ t2) =>
+      | @{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t1 $ t2) =>
         (t1, t2)
       | _ => raise TERM ("Nitpick_HOL.normalized_rhs_of", [t])
     val args = strip_comb lhs |> snd
@@ -1453,7 +1453,7 @@ fun lhs_of_equation t =
   | @{const "==>"} $ _ $ t2 => lhs_of_equation t2
   | @{const Trueprop} $ t1 => lhs_of_equation t1
   | Const (@{const_name All}, _) $ Abs (_, _, t1) => lhs_of_equation t1
-  | Const (@{const_name "op ="}, _) $ t1 $ _ => SOME t1
+  | Const (@{const_name HOL.eq}, _) $ t1 $ _ => SOME t1
   | @{const HOL.implies} $ _ $ t2 => lhs_of_equation t2
   | _ => NONE
 fun is_constr_pattern _ (Bound _) = true
@@ -1807,7 +1807,7 @@ fun extensional_equal j (Type (@{type_name fun}, [dom_T, ran_T])) t1 t2 =
                         (betapply (t2, var_t))
     end
   | extensional_equal _ T t1 t2 =
-    Const (@{const_name "op ="}, T --> T --> bool_T) $ t1 $ t2
+    Const (@{const_name HOL.eq}, T --> T --> bool_T) $ t1 $ t2
 
 fun equationalize_term ctxt tag t =
   let
@@ -1816,7 +1816,7 @@ fun equationalize_term ctxt tag t =
   in
     Logic.list_implies (prems,
         case concl of
-          @{const Trueprop} $ (Const (@{const_name "op ="}, Type (_, [T, _]))
+          @{const Trueprop} $ (Const (@{const_name HOL.eq}, Type (_, [T, _]))
                                $ t1 $ t2) =>
           @{const Trueprop} $ extensional_equal j T t1 t2
         | @{const Trueprop} $ t' =>
@@ -2290,7 +2290,7 @@ fun equational_fun_axioms (hol_ctxt as {thy, ctxt, stds, fast_descrs, def_table,
   | simps => simps
 fun is_equational_fun_surely_complete hol_ctxt x =
   case equational_fun_axioms hol_ctxt x of
-    [@{const Trueprop} $ (Const (@{const_name "op ="}, _) $ t1 $ _)] =>
+    [@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t1 $ _)] =>
     strip_comb t1 |> snd |> forall is_Var
   | _ => false
 
