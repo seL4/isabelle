@@ -17,6 +17,7 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
   private val logic_name = new JComboBox()
   private val relative_font_size = new JSpinner()
   private val tooltip_font_size = new JSpinner()
+  private val tooltip_dismiss_delay = new JSpinner()
 
   private class List_Item(val name: String, val descr: String) {
     def this(name: String) = this(name, name)
@@ -46,6 +47,11 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
       tooltip_font_size.setValue(Isabelle.Int_Property("tooltip-font-size", 10))
       tooltip_font_size
     })
+
+    addComponent(Isabelle.Property("tooltip-dismiss-delay.title"), {
+      tooltip_dismiss_delay.setValue(Isabelle.Int_Property("tooltip-dismiss-delay", 8000))
+      tooltip_dismiss_delay
+    })
   }
 
   override def _save()
@@ -58,5 +64,8 @@ class Isabelle_Options extends AbstractOptionPane("isabelle")
 
     Isabelle.Int_Property("tooltip-font-size") =
       tooltip_font_size.getValue().asInstanceOf[Int]
+
+    Isabelle.Int_Property("tooltip-dismiss-delay") =
+      tooltip_dismiss_delay.getValue().asInstanceOf[Int]
   }
 }
