@@ -19,6 +19,7 @@ object Session
 
   case object Global_Settings
   case object Perspective
+  case object Assignment
   case class Commands_Changed(set: Set[Command])
 }
 
@@ -44,6 +45,7 @@ class Session(system: Isabelle_System)
   val raw_output = new Event_Bus[Isabelle_Process.Result]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val perspective = new Event_Bus[Session.Perspective.type]
+  val assignments = new Event_Bus[Session.Assignment.type]
 
 
   /* unique ids */
@@ -187,7 +189,10 @@ class Session(system: Isabelle_System)
           if (result.is_status) {
             result.body match {
               case List(Isar_Document.Assign(id, edits)) =>
-                try { global_state.change(_.assign(id, edits)) }
+                try {
+                  global_state.change(_.assign(id, edits))
+                  assignments.event(Session.Assignment)
+                }
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
@@ -250,7 +255,12 @@ class Session(system: Isabelle_System)
           val previous = global_state.peek().history.tip.current
           val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
           val change = global_state.change_yield(_.extend_history(previous, edits, result))
-          val this_actor = self; change.current.map(_ => this_actor ! change)
+
+          val this_actor = self
+          change.current.map(_ => {
+            assignments.await { global_state.peek().is_assigned(previous.get_finished) }
+            this_actor ! change })
+
           reply(())
 
         case change: Document.Change if prover != null =>
