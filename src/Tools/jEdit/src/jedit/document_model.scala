@@ -265,7 +265,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
         val start = buffer.getLineStartOffset(line)
         val stop = start + line_segment.count
-        val range = Text.Range(start, stop)
 
         /* FIXME
         for (text_area <- Isabelle.jedit_text_areas(buffer)
@@ -288,21 +287,16 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
             Document_Model.Token_Markup.token_style(name)
         }
 
-        var next_x = start
-        for (info <- snapshot.select_markup(range)(token_markup)(Token.NULL)) {
-          val Text.Range(abs_start, abs_stop) = info.range
-          val token_start = (abs_start - start) max 0
-          val token_length =
-            (abs_stop - abs_start) -
-            ((start - abs_start) max 0) -
-            ((abs_stop - stop) max 0)
-          if (start + token_start > next_x)  // FIXME ??
-            handle_token(Token.COMMENT1, next_x - start, start + token_start - next_x)
-          handle_token(info.info, token_start, token_length)
-          next_x = start + token_start + token_length
+        var last = start
+        for (token <- snapshot.select_markup(Text.Range(start, stop))(token_markup)(Token.NULL)) {
+          val Text.Range(token_start, token_stop) = token.range
+          if (last < token_start)
+            handle_token(Token.COMMENT1, last - start, token_start - last)
+          handle_token(token.info, token_start - start, token_stop - token_start)
+          last = token_stop
         }
-        if (next_x < stop)  // FIXME ??
-          handle_token(Token.COMMENT1, next_x - start, stop - next_x)
+        if (last < stop)
+          handle_token(Token.COMMENT1, last - start, stop - last)
 
         handle_token(Token.END, line_segment.count, 0)
         handler.setLineContext(context)
