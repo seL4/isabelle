@@ -286,6 +286,8 @@ class Session(system: Isabelle_System)
             finished = true
           }
 
+        case TIMEOUT =>  // FIXME clarify
+
         case bad if prover != null =>
           System.err.println("session_actor: ignoring bad message " + bad)
       }
