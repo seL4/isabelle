@@ -126,10 +126,10 @@ class Session(system: Isabelle_System)
     def handle_change(change: Document.Change)
     //{{{
     {
-      val previous = change.previous.join
-      val (node_edits, current) = change.result.join
+      val previous = change.previous.get_finished
+      val (node_edits, current) = change.result.get_finished
 
-      var former_assignment = global_state.peek().the_assignment(previous).join
+      var former_assignment = global_state.peek().the_assignment(previous).get_finished
       for {
         (name, Some(cmd_edits)) <- node_edits
         (prev, None) <- cmd_edits
@@ -250,7 +250,7 @@ class Session(system: Isabelle_System)
           val previous = global_state.peek().history.tip.current
           val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
           val change = global_state.change_yield(_.extend_history(previous, edits, result))
-          val this_actor = self; result.map(_ => this_actor ! change)
+          val this_actor = self; change.current.map(_ => this_actor ! change)
           reply(())
 
         case change: Document.Change if prover != null =>
@@ -275,8 +275,6 @@ class Session(system: Isabelle_System)
             prover = null
             finished = true
           }
-
-        case TIMEOUT =>  // FIXME clarify!
 
         case bad if prover != null =>
           System.err.println("session_actor: ignoring bad message " + bad)

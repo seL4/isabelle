@@ -163,6 +163,7 @@ object Document
       private val promise = Future.promise[Map[Command, Exec_ID]]
       def is_finished: Boolean = promise.is_finished
       def join: Map[Command, Exec_ID] = promise.join
+      def get_finished: Map[Command, Exec_ID] = promise.get_finished
       def assign(command_execs: List[(Command, Exec_ID)])
       {
         promise.fulfill(tmp_assignment ++ command_execs)
@@ -253,7 +254,7 @@ object Document
     def snapshot(name: String, pending_edits: List[Text.Edit]): Snapshot =
     {
       val found_stable = history.undo_list.find(change =>
-        change.is_finished && is_assigned(change.current.join))
+        change.is_finished && is_assigned(change.current.get_finished))
       require(found_stable.isDefined)
       val stable = found_stable.get
       val latest = history.undo_list.head
@@ -265,14 +266,14 @@ object Document
 
       new Snapshot
       {
-        val version = stable.current.join
+        val version = stable.current.get_finished
         val node = version.nodes(name)
         val is_outdated = !(pending_edits.isEmpty && latest == stable)
 
         def lookup_command(id: Command_ID): Option[Command] = State.this.lookup_command(id)
 
         def state(command: Command): Command.State =
-          try { the_exec_state(the_assignment(version).join.getOrElse(command, fail)) }
+          try { the_exec_state(the_assignment(version).get_finished.getOrElse(command, fail)) }
           catch { case _: State.Fail => command.empty_state }
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
