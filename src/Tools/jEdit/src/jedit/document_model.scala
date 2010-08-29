@@ -57,9 +57,18 @@ object Document_Model
 
     /* line context */
 
-    private val rule_set = new ParserRuleSet("isabelle", "MAIN")
-    class LineContext(val line: Int, prev: LineContext)
-      extends TokenMarker.LineContext(rule_set, prev)
+    private val dummy_rules = new ParserRuleSet("isabelle", "MAIN")
+
+    class Line_Context(val line: Int, prev: Line_Context)
+      extends TokenMarker.LineContext(dummy_rules, prev)
+    {
+      override def hashCode: Int = line
+      override def equals(that: Any) =
+        that match {
+          case other: Line_Context => line == other.line
+          case _ => false
+        }
+    }
 
 
     /* mapping to jEdit token types */
@@ -259,9 +268,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
       Isabelle.swing_buffer_lock(buffer) {
         val snapshot = Document_Model.this.snapshot()
 
-        val previous = prev.asInstanceOf[Document_Model.Token_Markup.LineContext]
+        val previous = prev.asInstanceOf[Document_Model.Token_Markup.Line_Context]
         val line = if (prev == null) 0 else previous.line + 1
-        val context = new Document_Model.Token_Markup.LineContext(line, previous)
+        val context = new Document_Model.Token_Markup.Line_Context(line, previous)
 
         val start = buffer.getLineStartOffset(line)
         val stop = start + line_segment.count
