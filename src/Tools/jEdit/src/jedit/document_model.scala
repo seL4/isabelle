@@ -266,7 +266,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         val start = buffer.getLineStartOffset(line)
         val stop = start + line_segment.count
         val range = Text.Range(start, stop)
-        val former_range = snapshot.revert(range)
 
         /* FIXME
         for (text_area <- Isabelle.jedit_text_areas(buffer)
@@ -290,14 +289,8 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         }
 
         var next_x = start
-        for {
-          (command, command_start) <- snapshot.node.command_range(former_range)
-          info <- snapshot.state(command).markup.
-            select((former_range - command_start).restrict(command.range))(token_markup)(Token.NULL)
-          val Text.Range(abs_start, abs_stop) = snapshot.convert(info.range + command_start)
-          if abs_stop > start && abs_start < stop  // FIXME abs_range overlaps range (redundant!?)
-        }
-        {
+        for (info <- snapshot.select_markup(range)(token_markup)(Token.NULL)) {
+          val Text.Range(abs_start, abs_stop) = info.range
           val token_start = (abs_start - start) max 0
           val token_length =
             (abs_stop - abs_start) -

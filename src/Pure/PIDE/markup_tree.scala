@@ -90,7 +90,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
     Branches.overlapping(range, branches).toStream
 
   def select[A](root_range: Text.Range)
-    (result: PartialFunction[Text.Info[Any], A])(default: A): Stream[Text.Info[A]] =
+    (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]] =
   {
     def stream(last: Text.Offset, stack: List[(Text.Info[A], Stream[(Text.Range, Branches.Entry)])])
       : Stream[Text.Info[A]] =
@@ -122,6 +122,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
       }
     }
     stream(root_range.start, List((Text.Info(root_range, default), overlapping(root_range))))
+      .iterator
   }
 
   def swing_tree(parent: DefaultMutableTreeNode)

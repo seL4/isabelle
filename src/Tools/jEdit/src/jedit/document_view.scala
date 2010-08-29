@@ -189,20 +189,15 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
     override def getToolTipText(x: Int, y: Int): String =
     {
-      Swing_Thread.assert()
-
-      val snapshot = model.snapshot()
-      val offset = snapshot.revert(text_area.xyToOffset(x, y))
-      snapshot.node.command_at(offset) match {
-        case Some((command, command_start)) =>
-          // FIXME Isar_Document.Tooltip extractor
-          (snapshot.state(command).markup.select(Text.Range(offset, offset + 1) - command_start) {
+      Isabelle.swing_buffer_lock(model.buffer) {
+        val snapshot = model.snapshot()
+        val offset = text_area.xyToOffset(x, y)
+        val markup =
+          snapshot.select_markup(Text.Range(offset, offset + 1)) {
             case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
-              val typing =
-                Pretty.block(XML.Text(command.source(range) + " : ") :: Pretty.Break(1) :: body)
-              Isabelle.tooltip(Pretty.string_of(List(typing), margin = 40))
-          } { null }).head.info
-        case None => null
+              Isabelle.tooltip(Pretty.string_of(List(Pretty.block(body)), margin = 40))
+          } { null }
+        if (markup.hasNext) markup.next.info else null
       }
     }
   }
