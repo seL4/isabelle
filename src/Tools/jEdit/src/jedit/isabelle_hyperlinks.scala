@@ -29,7 +29,8 @@ class External_Hyperlink(start: Int, end: Int, line: Int, ref_file: String, ref_
 {
   override def click(view: View) = {
     Isabelle.system.source_file(ref_file) match {
-      case None => System.err.println("Could not find source file " + ref_file)  // FIXME ??
+      case None =>
+        Library.error_dialog(view, "File not found", "Could not find source file " + ref_file)
       case Some(file) =>
         jEdit.openFiles(view, file.getParent, Array(file.getName, "+line:" + ref_line))
     }
