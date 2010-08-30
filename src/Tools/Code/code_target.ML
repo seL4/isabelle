@@ -9,6 +9,22 @@ sig
   val cert_tyco: theory -> string -> string
   val read_tyco: theory -> string -> string
 
+  val export_code_for: theory -> Path.T option -> string -> int option -> string option -> Token.T list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
+  val produce_code_for: theory -> string -> int option -> string option -> Token.T list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list * string list -> string * string option list
+  val check_code_for: theory -> string -> bool -> Token.T list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
+
+  val export_code: theory -> string list
+    -> (((string * string option) * Path.T option) * Token.T list) list -> unit
+  val produce_code: theory -> string list -> (Code_Thingol.naming -> string list)
+    -> string -> int option -> string option -> Token.T list -> string * string option list
+  val check_code: theory -> string list
+    -> ((string * bool) * Token.T list) list -> unit
+
+  val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
+
   type serializer
   type literals = Code_Printer.literals
   val add_target: string * { serializer: serializer, literals: literals,
@@ -18,25 +34,19 @@ sig
       (string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
   val assert_target: theory -> string -> string
-
-  type destination
+  val the_literals: theory -> string -> literals
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
     -> (int -> 'a -> string * string option list)
     -> 'a -> int -> serialization
+  val set_default_code_width: int -> theory -> theory
 
-  val serialize: theory -> string -> int option -> string option -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
-  val serialize_custom: theory -> string * serializer -> string option
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
-  val check: theory -> string list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string -> bool -> Token.T list -> unit
+  (*FIXME drop asap*)
   val code_of: theory -> string -> int option -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string * string option list
-  val set_default_code_width: int -> theory -> theory
-  val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
-  val the_literals: theory -> string -> literals
+  val serialize_custom: theory -> string * serializer -> string option
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
 
   val allow_abort: string -> theory -> theory
   type tyco_syntax = Code_Printer.tyco_syntax
@@ -70,7 +80,7 @@ fun stmt_names_of_destination (String stmt_names) = stmt_names
 fun serialization output _ pretty width (File some_path) = (output width some_path pretty; NONE)
   | serialization _ string pretty width (String _) = SOME (string width pretty);
 
-fun file some_path f = f (File some_path);
+fun file some_path f = (f (File some_path); ());
 fun string stmt_names f = the (f (String stmt_names));
 
 
@@ -324,7 +334,13 @@ in
 
 fun serialize thy = mount_serializer thy NONE;
 
-fun check thy names_cs naming program target strict args =
+fun export_code_for thy some_path target some_width some_module_name args naming program names =
+  file some_path (serialize thy target some_width some_module_name args naming program names);
+
+fun produce_code_for thy target some_width some_module_name args naming program (names, selects) =
+  string selects (serialize thy target some_width some_module_name args naming program names);
+
+fun check_code_for thy target strict args naming program names_cs =
   let
     val module_name = "Code_Test";
     val { env_var, make_destination, make_command } =
@@ -382,22 +398,30 @@ fun read_const_exprs thy cs =
       if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
   in union (op =) cs3 cs1 end;
 
+fun prep_destination "" = NONE
+  | prep_destination "-" = NONE
+  | prep_destination s = SOME (Path.explode s);
+
 fun export_code thy cs seris =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-    fun mk_destination dest = if dest = "" orelse dest = "-"
-      then NONE else SOME (Path.explode dest);
-    val _ = map (fn (((target, module), dest), args) =>
-      (file (mk_destination dest) (serialize thy target NONE module args naming program names_cs))) seris;
+    val _ = map (fn (((target, module_name), some_path), args) =>
+      export_code_for thy some_path target NONE module_name args naming program names_cs) seris;
   in () end;
 
-fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs) seris;
+fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs)
+  ((map o apfst o apsnd) prep_destination seris);
+
+fun produce_code thy cs names_stmt target some_width some_module_name args =
+  let
+    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
+  in produce_code_for thy target some_width some_module_name args naming program (names_cs, names_stmt naming) end;
 
 fun check_code thy cs seris =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-    val _ = map (fn ((target, strict), args) => check thy names_cs naming program
-      target strict args) seris;
+    val _ = map (fn ((target, strict), args) =>
+      check_code_for thy target strict args naming program names_cs) seris;
   in () end;
 
 fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;
