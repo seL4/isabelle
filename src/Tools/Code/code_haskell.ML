@@ -375,25 +375,24 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
           | (_, (_, NONE)) => NONE) stmts);
     val serialize_module =
       if null presentation_stmt_names then serialize_module1 else pair "" o serialize_module2;
-    fun check_destination destination =
-      (File.check destination; destination);
-    fun write_module width destination (modlname, content) =
-      let
-        val filename = case modlname
-         of "" => Path.explode "Main.hs"
-          | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
-                o Long_Name.explode) modlname;
-        val pathname = Path.append destination filename;
-        val _ = File.mkdir_leaf (Path.dir pathname);
-      in File.write pathname
-        ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
-          ^ string_of_pretty width content)
-      end
+    fun write_module width (SOME destination) (modlname, content) =
+          let
+            val _ = File.check destination;
+            val filename = case modlname
+             of "" => Path.explode "Main.hs"
+              | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
+                    o Long_Name.explode) modlname;
+            val pathname = Path.append destination filename;
+            val _ = File.mkdir_leaf (Path.dir pathname);
+          in File.write pathname
+            ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
+              ^ string_of_pretty width content)
+          end
+      | write_module width NONE (_, content) = writeln_pretty width content;
   in
     Code_Target.mk_serialization
-      (fn width => (fn NONE => K () o map (writeln_pretty width o snd)
-        | SOME file => K () o map (write_module width (check_destination file))))
-      (fn width => (rpair [] o cat_lines o map (string_of_pretty width o snd)))
+      (fn width => fn destination => K () o map (write_module width destination))
+      (fn width => rpair [] o cat_lines o map (string_of_pretty width o snd))
       (map (uncurry print_module) includes
         @ map serialize_module (Symtab.dest hs_program))
   end;

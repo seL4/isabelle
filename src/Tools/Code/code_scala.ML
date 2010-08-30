@@ -480,10 +480,10 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
     val p_includes = if null presentation_stmt_names
       then map (fn (base, p) => print_module base [] p) includes else [];
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
+    fun write width NONE = writeln_pretty width
+      | write width (SOME p) = File.write p o string_of_pretty width;
   in
-    Code_Target.mk_serialization
-      (fn width => (fn NONE => writeln_pretty width | SOME file => File.write file o string_of_pretty width))
-      (rpair [] oo string_of_pretty) p
+    Code_Target.mk_serialization write (rpair [] oo string_of_pretty) p
   end;
 
 end; (*local*)

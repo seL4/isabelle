@@ -934,10 +934,10 @@ fun serialize_ml target print_module print_stmt module_name with_signatures labe
     val stmt_names' = (map o try)
       (deresolver (if is_some module_name then the_list module_name else [])) stmt_names;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
+    fun write width NONE = writeln_pretty width
+      | write width (SOME p) = File.write p o string_of_pretty width;
   in
-    Code_Target.mk_serialization
-      (fn width => (fn NONE => writeln_pretty width | SOME file => File.write file o string_of_pretty width))
-      (fn width => (rpair stmt_names' o string_of_pretty width)) p
+    Code_Target.mk_serialization write (fn width => (rpair stmt_names' o string_of_pretty width)) p
   end;
 
 end; (*local*)
