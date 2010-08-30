@@ -5,6 +5,18 @@
 structure Mirabelle_Sledgehammer_Filter : MIRABELLE_ACTION =
 struct
 
+val relevance_filter_args =
+  [("abs_rel_weight", Sledgehammer_Fact_Filter.abs_rel_weight),
+   ("abs_irrel_weight", Sledgehammer_Fact_Filter.abs_irrel_weight),
+   ("skolem_irrel_weight", Sledgehammer_Fact_Filter.skolem_irrel_weight),
+   ("theory_bonus", Sledgehammer_Fact_Filter.theory_bonus),
+   ("local_bonus", Sledgehammer_Fact_Filter.local_bonus),
+   ("chained_bonus", Sledgehammer_Fact_Filter.chained_bonus),
+   ("threshold_divisor", Sledgehammer_Fact_Filter.threshold_divisor),
+   ("ridiculous_threshold", Sledgehammer_Fact_Filter.ridiculous_threshold),
+   ("max_max_imperfect_fudge_factor",
+    Sledgehammer_Fact_Filter.max_max_imperfect_fudge_factor)]
+
 structure Prooftab =
   Table(type key = int * int val ord = prod_ord int_ord int_ord);
 
@@ -75,6 +87,13 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
        let
          val {context = ctxt, facts, goal} = Proof.goal pre
          val thy = ProofContext.theory_of ctxt
+         val args =
+           args
+           |> filter (fn (key, value) =>
+                         case AList.lookup (op =) relevance_filter_args key of
+                           SOME rf => (rf := the (Real.fromString value); false)
+                         | NONE => true)
+
          val {relevance_thresholds, full_types, max_relevant, theory_relevant,
               ...} = Sledgehammer_Isar.default_params thy args
          val subgoal = 1
@@ -104,38 +123,36 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val _ = add id num_lost_proofs (length proofs - n)
          val _ = add id num_found_facts (length found_facts)
          val _ = add id num_lost_facts (length lost_facts)
-         val _ = if null found_facts then
+         val _ =
+           if null found_facts then
+             ()
+           else
+             let
+               val found_weight =
+                 Real.fromInt (fold (fn (n, _) =>
+                                        Integer.add (n * n)) found_facts 0)
+                   / Real.fromInt (length found_facts)
+                 |> Math.sqrt |> Real.ceil
+             in
+               log ("Found facts (among " ^ string_of_int (length facts) ^
+                    ", weight " ^ string_of_int found_weight ^ "): " ^
+                    commas (map with_index found_facts))
+             end
+         val _ = if null lost_facts then
                    ()
                  else
-                   log ("Found facts: " ^ commas (map with_index found_facts))
-         val _ = if null lost_facts then ()
-                 else log ("Lost facts: " ^ commas lost_facts)
+                   log ("Lost facts (among " ^ string_of_int (length facts) ^
+                        "): " ^ commas lost_facts)
        in () end
      | NONE => log "No known proof")
   | _ => ()
 
 val proof_fileK = "proof_file"
 
-val relevance_filter_args =
-  [("abs_rel_weight", Sledgehammer_Fact_Filter.abs_rel_weight),
-   ("abs_irrel_weight", Sledgehammer_Fact_Filter.abs_irrel_weight),
-   ("skolem_irrel_weight", Sledgehammer_Fact_Filter.skolem_irrel_weight),
-   ("theory_bonus", Sledgehammer_Fact_Filter.theory_bonus),
-   ("local_bonus", Sledgehammer_Fact_Filter.local_bonus),
-   ("chained_bonus", Sledgehammer_Fact_Filter.chained_bonus),
-   ("threshold_divisor", Sledgehammer_Fact_Filter.threshold_divisor),
-   ("ridiculous_threshold", Sledgehammer_Fact_Filter.ridiculous_threshold),
-   ("max_max_imperfect_fudge_factor",
-    Sledgehammer_Fact_Filter.max_max_imperfect_fudge_factor)]
-
 fun invoke args =
   let
     val (pf_args, other_args) =
       args |> List.partition (curry (op =) proof_fileK o fst)
-      ||> filter (fn (key, value) =>
-                      case AList.lookup (op =) relevance_filter_args key of
-                        SOME rf => (rf := the (Real.fromString value); false)
-                      | NONE => true)
     val proof_file = case pf_args of
                        [] => error "No \"proof_file\" specified"
                      | (_, s) :: _ => s
