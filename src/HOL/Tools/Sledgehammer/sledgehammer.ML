@@ -219,7 +219,7 @@ fun prover_fun atp_name
         ({subgoal, goal = (ctxt, (chained_ths, th)), relevance_override,
           axioms} : problem) =
   let
-    val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
+    val (_, hyp_ts, concl_t) = strip_subgoal th subgoal
 
     val print = priority
     fun print_v f = () |> verbose ? print o f
