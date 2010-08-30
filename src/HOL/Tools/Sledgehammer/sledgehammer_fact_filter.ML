@@ -17,9 +17,8 @@ sig
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
     -> ((string * locality) * thm) list
   val relevant_facts :
-    bool -> real * real -> int -> bool -> relevance_override
-    -> Proof.context * (thm list * 'a) -> term list -> term
-    -> ((string * locality) * thm) list
+    Proof.context -> bool -> real * real -> int -> bool -> relevance_override
+    -> thm list -> term list -> term -> ((string * locality) * thm) list
 end;
 
 structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
@@ -672,9 +671,9 @@ fun name_thm_pairs ctxt respect_no_atp =
 (* ATP invocation methods setup                                *)
 (***************************************************************)
 
-fun relevant_facts full_types (threshold0, threshold1) max_relevant
+fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
                    theory_relevant (relevance_override as {add, del, only})
-                   (ctxt, (chained_ths, _)) hyp_ts concl_t =
+                   chained_ths hyp_ts concl_t =
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
