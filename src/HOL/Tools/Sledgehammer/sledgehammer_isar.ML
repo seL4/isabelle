@@ -67,7 +67,7 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("explicit_apply", "false"),
-   ("relevance_thresholds", "45 95"),
+   ("relevance_thresholds", "45 90"),
    ("max_relevant", "smart"),
    ("theory_relevant", "smart"),
    ("isar_proof", "false"),
