@@ -44,17 +44,19 @@ fun percentage_alt a b = percentage a (a + b)
 
 fun done id ({log, ...} : Mirabelle.done_args) =
   if get id num_successes + get id num_failures > 0 then
-    (log ("\nNumber of overall success: " ^ Int.toString (get id num_successes));
-     log ("Number of overall failures: " ^ Int.toString (get id num_failures));
+    (log "";
+     log ("Number of overall successes: " ^
+          string_of_int (get id num_successes));
+     log ("Number of overall failures: " ^ string_of_int (get id num_failures));
      log ("Overall success rate: " ^
           percentage_alt (get id num_successes) (get id num_failures) ^ "%");
-     log ("Number of found proofs: " ^ Int.toString (get id num_found_proofs));
-     log ("Number of lost proofs: " ^ Int.toString (get id num_lost_proofs));
+     log ("Number of found proofs: " ^ string_of_int (get id num_found_proofs));
+     log ("Number of lost proofs: " ^ string_of_int (get id num_lost_proofs));
      log ("Proof found rate: " ^
           percentage_alt (get id num_found_proofs) (get id num_lost_proofs) ^
           "%");
-     log ("Number of found facts: " ^ Int.toString (get id num_found_facts));
-     log ("Number of lost facts: " ^ Int.toString (get id num_lost_facts));
+     log ("Number of found facts: " ^ string_of_int (get id num_found_facts));
+     log ("Number of lost facts: " ^ string_of_int (get id num_lost_facts));
      log ("Fact found rate: " ^
           percentage_alt (get id num_found_facts) (get id num_lost_facts) ^
           "%"))
@@ -62,6 +64,8 @@ fun done id ({log, ...} : Mirabelle.done_args) =
     ()
 
 val default_max_relevant = 300
+
+fun with_index (i, s) = s ^ "@" ^ string_of_int i
 
 fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
   case (Position.line_of pos, Position.column_of pos) of
@@ -84,7 +88,9 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
            |> map (fst o fst)
          val (found_facts, lost_facts) =
            List.concat proofs |> sort_distinct string_ord
-           |> List.partition (member (op =) facts)
+           |> map (fn fact => (find_index (curry (op =) fact) facts, fact))
+           |> List.partition (curry (op <=) 0 o fst)
+           |>> sort (prod_ord int_ord string_ord) ||> map snd
          val found_proofs = filter (forall (member (op =) facts)) proofs
          val n = length found_proofs
          val _ =
@@ -93,13 +99,15 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
            else
              (add id num_successes 1;
               add id num_found_proofs n;
-              log ("Success (" ^ Int.toString n ^ " of " ^
-                   Int.toString (length proofs) ^ " proofs)"))
+              log ("Success (" ^ string_of_int n ^ " of " ^
+                   string_of_int (length proofs) ^ " proofs)"))
          val _ = add id num_lost_proofs (length proofs - n)
          val _ = add id num_found_facts (length found_facts)
          val _ = add id num_lost_facts (length lost_facts)
-         val _ = if null found_facts then ()
-                 else log ("Found facts: " ^ commas found_facts)
+         val _ = if null found_facts then
+                   ()
+                 else
+                   log ("Found facts: " ^ commas (map with_index found_facts))
          val _ = if null lost_facts then ()
                  else log ("Lost facts: " ^ commas lost_facts)
        in () end
