@@ -31,8 +31,7 @@ sig
     -> Code_Thingol.naming -> Code_Thingol.program -> string list
     -> string * string option list
   val the_literals: theory -> string -> literals
-  val export: serialization -> unit
-  val file: Path.T -> serialization -> unit
+  val file: Path.T option -> serialization -> unit
   val string: string list -> serialization -> string
   val code_of: theory -> string -> int option -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string
@@ -65,14 +64,13 @@ type const_syntax = Code_Printer.const_syntax;
 datatype destination = File of Path.T option | String of string list;
 type serialization = destination -> (string * string option list) option;
 
-fun export f = (f (File NONE); ());
-fun file path f = (f (File (SOME path)); ());
+fun file some_path f = (f (File some_path); ());
 fun string stmt_names f = fst (the (f (String stmt_names)));
 
 fun stmt_names_of_destination (String stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
 
-fun mk_serialization output _ pretty width (File path) = (output width path pretty; NONE)
+fun mk_serialization output _ pretty width (File some_path) = (output width some_path pretty; NONE)
   | mk_serialization _ string pretty width (String _) = SOME (string width pretty);
 
 
@@ -335,7 +333,7 @@ fun check thy names_cs naming program target strict args =
     fun ext_check env_param p =
       let 
         val destination = make_destination p;
-        val _ = file destination (serialize thy target (SOME 80)
+        val _ = file (SOME destination) (serialize thy target (SOME 80)
           (SOME module_name) args naming program names_cs);
         val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
@@ -387,10 +385,10 @@ fun read_const_exprs thy cs =
 fun export_code thy cs seris =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-    fun mk_seri_dest dest = if dest = "" orelse dest = "-" then export
-      else file (Path.explode dest);
+    fun mk_destination dest = if dest = "" orelse dest = "-"
+      then NONE else SOME (Path.explode dest);
     val _ = map (fn (((target, module), dest), args) =>
-      (mk_seri_dest dest (serialize thy target NONE module args naming program names_cs))) seris;
+      (file (mk_destination dest) (serialize thy target NONE module args naming program names_cs))) seris;
   in () end;
 
 fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs) seris;
