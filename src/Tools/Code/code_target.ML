@@ -1,7 +1,7 @@
 (*  Title:      Tools/Code/code_target.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Serializer from intermediate language ("Thin-gol") to target languages.
+Generic infrastructure for serializers from intermediate language ("Thin-gol") to target languages.
 *)
 
 signature CODE_TARGET =
