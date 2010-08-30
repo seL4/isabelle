@@ -651,6 +651,16 @@ lemma let_rsp:
   shows "(R1 ===> (R1 ===> R2) ===> R2) Let Let"
   by auto
 
+lemma mem_rsp:
+  shows "(R1 ===> (R1 ===> R2) ===> R2) op \<in> op \<in>"
+  by (simp add: mem_def)
+
+lemma mem_prs:
+  assumes a1: "Quotient R1 Abs1 Rep1"
+  and     a2: "Quotient R2 Abs2 Rep2"
+  shows "(Rep1 ---> (Abs1 ---> Rep2) ---> Abs2) op \<in> = op \<in>"
+  by (simp add: expand_fun_eq mem_def Quotient_abs_rep[OF a1] Quotient_abs_rep[OF a2])
+
 locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   and   Abs :: "('a \<Rightarrow> bool) \<Rightarrow> 'b"
@@ -721,8 +731,8 @@ use "Tools/Quotient/quotient_info.ML"
 declare [[map "fun" = (fun_map, fun_rel)]]
 
 lemmas [quot_thm] = fun_quotient
-lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp
-lemmas [quot_preserve] = if_prs o_prs let_prs
+lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp mem_rsp
+lemmas [quot_preserve] = if_prs o_prs let_prs mem_prs
 lemmas [quot_equiv] = identity_equivp
 
 
