@@ -19,9 +19,10 @@ sig
   val theory_bonus : real Unsynchronized.ref
   val local_bonus : real Unsynchronized.ref
   val chained_bonus : real Unsynchronized.ref
+  val max_imperfect : real Unsynchronized.ref
+  val max_imperfect_exp : real Unsynchronized.ref
   val threshold_divisor : real Unsynchronized.ref
   val ridiculous_threshold : real Unsynchronized.ref
-  val max_max_imperfect_fudge_factor : real Unsynchronized.ref
   val name_thm_pairs_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
     -> ((string * locality) * thm) list
@@ -265,7 +266,7 @@ fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
 (* FUDGE *)
 val abs_rel_weight = Unsynchronized.ref 0.5
 val abs_irrel_weight = Unsynchronized.ref 2.0
-val skolem_irrel_weight = Unsynchronized.ref 0.5
+val skolem_irrel_weight = Unsynchronized.ref 0.75
 
 (* Computes a constant's weight, as determined by its frequency. *)
 fun generic_weight abs_weight skolem_weight logx f const_tab (c as (s, _)) =
@@ -303,6 +304,24 @@ fun axiom_weight loc const_tab relevant_consts axiom_consts =
       val res = rel_weight / (rel_weight + irrel_weight)
     in if Real.isFinite res then res else 0.0 end
 
+(* FIXME: experiment
+fun debug_axiom_weight loc const_tab relevant_consts axiom_consts =
+  case axiom_consts |> List.partition (pconst_hyper_mem I relevant_consts)
+                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
+    ([], _) => 0.0
+  | (rel, irrel) =>
+    let
+val _ = tracing (PolyML.makestring ("REL: ", rel))
+val _ = tracing (PolyML.makestring ("IRREL: ", irrel))(*###*)
+      val irrel = irrel |> filter_out (pconst_mem swap rel)
+      val rel_weight = 0.0 |> fold (curry (op +) o rel_weight const_tab) rel
+      val irrel_weight =
+        ~ (locality_bonus loc)
+        |> fold (curry (op +) o irrel_weight const_tab) irrel
+      val res = rel_weight / (rel_weight + irrel_weight)
+    in if Real.isFinite res then res else 0.0 end
+*)
+
 fun pconsts_in_axiom thy t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
               (get_pconsts thy true (SOME true) [t]) []
@@ -315,15 +334,17 @@ fun pair_consts_axiom theory_relevant thy axiom =
 type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * pattern list) list
 
-val max_imperfect_exp = 4.0
+(* FUDGE *)
+val max_imperfect = Unsynchronized.ref 10.0
+val max_imperfect_exp = Unsynchronized.ref 1.0
 
-fun take_most_relevant max_max_imperfect max_relevant remaining_max
+fun take_most_relevant max_relevant remaining_max
                        (candidates : (annotated_thm * real) list) =
   let
     val max_imperfect =
-      Real.ceil (Math.pow (max_max_imperfect,
-                     Math.pow (Real.fromInt remaining_max
-                               / Real.fromInt max_relevant, max_imperfect_exp)))
+      Real.ceil (Math.pow (!max_imperfect,
+                    Math.pow (Real.fromInt remaining_max
+                              / Real.fromInt max_relevant, !max_imperfect_exp)))
     val (perfect, imperfect) =
       candidates |> sort (Real.compare o swap o pairself snd)
                  |> take_prefix (fn (_, w) => w > 0.99999)
@@ -350,7 +371,6 @@ fun if_empty_replace_with_locality thy axioms loc tab =
 (* FUDGE *)
 val threshold_divisor = Unsynchronized.ref 2.0
 val ridiculous_threshold = Unsynchronized.ref 0.1
-val max_max_imperfect_fudge_factor = Unsynchronized.ref 1.66
 
 fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
@@ -364,8 +384,6 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
               [Chained, Local, Theory]
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
-    val max_max_imperfect =
-      Math.sqrt (Real.fromInt max_relevant) * !max_max_imperfect_fudge_factor
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
         fun game_over rejects =
@@ -387,8 +405,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
           | relevant candidates rejects [] =
             let
               val (accepts, more_rejects) =
-                take_most_relevant max_max_imperfect max_relevant remaining_max
-                                   candidates
+                take_most_relevant max_relevant remaining_max candidates
               val rel_const_tab' =
                 rel_const_tab
                 |> fold (add_pconst_to_table false) (maps (snd o fst) accepts)
@@ -429,9 +446,9 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                 case cached_weight of
                   SOME w => w
                 | NONE => axiom_weight loc const_tab rel_const_tab axiom_consts
-(* TODO: experiment
+(* FIXME: experiment
 val name = fst (fst (fst ax)) ()
-val _ = if name = "foo" then
+val _ = if String.isSubstring "abs_of_neg" name then
 tracing ("*** " ^ name ^ PolyML.makestring (debug_axiom_weight loc const_tab rel_const_tab axiom_consts))
 else
 ()
@@ -519,6 +536,11 @@ fun is_formula_too_complex t =
 val exists_sledgehammer_const =
   exists_Const (fn (s, _) => String.isPrefix sledgehammer_prefix s)
 
+(* FIXME: make more reliable *)
+val exists_low_level_class_const =
+  exists_Const (fn (s, _) =>
+     String.isSubstring (Long_Name.separator ^ "class" ^ Long_Name.separator) s)
+
 fun is_metastrange_theorem th =
   case head_of (concl_of th) of
       Const (a, _) => (a <> @{const_name Trueprop} andalso
@@ -599,7 +621,8 @@ fun is_theorem_bad_for_atps full_types thm =
   let val t = prop_of thm in
     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
     is_dangerous_term full_types t orelse exists_sledgehammer_const t orelse
-    is_metastrange_theorem thm orelse is_that_fact thm
+    exists_low_level_class_const t orelse is_metastrange_theorem thm orelse
+    is_that_fact thm
   end
 
 fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
