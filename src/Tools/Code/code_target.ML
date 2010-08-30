@@ -1,7 +1,8 @@
 (*  Title:      Tools/Code/code_target.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Generic infrastructure for serializers from intermediate language ("Thin-gol") to target languages.
+Generic infrastructure for serializers from intermediate language ("Thin-gol"
+to target languages.
 *)
 
 signature CODE_TARGET =
@@ -29,7 +30,8 @@ sig
   val serialize: theory -> string -> int option -> string option -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
   val serialize_custom: theory -> string * serializer -> string option
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list
+    -> string * string option list
   val the_literals: theory -> string -> literals
   val export: serialization -> unit
   val file: Path.T -> serialization -> unit
@@ -90,7 +92,8 @@ fun mk_name_syntax_table ((class, instance), (tyco, const)) =
   NameSyntaxTable { class = class, instance = instance, tyco = tyco, const = const };
 fun map_name_syntax_table f (NameSyntaxTable { class, instance, tyco, const }) =
   mk_name_syntax_table (f ((class, instance), (tyco, const)));
-fun merge_name_syntax_table (NameSyntaxTable { class = class1, instance = instance1, tyco = tyco1, const = const1 },
+fun merge_name_syntax_table
+  (NameSyntaxTable { class = class1, instance = instance1, tyco = tyco1, const = const1 },
     NameSyntaxTable { class = class2, instance = instance2, tyco = tyco2, const = const2 }) =
   mk_name_syntax_table (
     (Symtab.join (K snd) (class1, class2),
@@ -114,10 +117,12 @@ type serializer =
   -> (string list * string list)        (*selected statements*)
   -> serialization;
 
-datatype description = Fundamental of { serializer: serializer, literals: Code_Printer.literals,
+datatype description = Fundamental of { serializer: serializer,
+      literals: Code_Printer.literals,
       check: { env_var: string, make_destination: Path.T -> Path.T,
         make_command: string -> string -> string } }
-  | Extension of string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
+  | Extension of string *
+      (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
 
 datatype target = Target of {
   serial: serial,
@@ -190,8 +195,8 @@ fun put_target (target, seri) thy =
     thy
     |> (Targets.map o apfst o apfst o Symtab.update)
           (target, make_target ((serial (), seri), (([], Symtab.empty),
-            (mk_name_syntax_table ((Symtab.empty, Symreltab.empty), (Symtab.empty, Symtab.empty)),
-              Symtab.empty))))
+            (mk_name_syntax_table ((Symtab.empty, Symreltab.empty),
+              (Symtab.empty, Symtab.empty)), Symtab.empty))))
   end;
 
 fun add_target (target, seri) = put_target (target, Fundamental seri);
