@@ -10,12 +10,18 @@ structure Prooftab =
 
 val proof_table = Unsynchronized.ref Prooftab.empty
 
-val num_successes = Unsynchronized.ref 0
-val num_failures = Unsynchronized.ref 0
-val num_found_proofs = Unsynchronized.ref 0
-val num_lost_proofs = Unsynchronized.ref 0
-val num_found_facts = Unsynchronized.ref 0
-val num_lost_facts = Unsynchronized.ref 0
+val num_successes = Unsynchronized.ref ([] : (int * int) list)
+val num_failures = Unsynchronized.ref ([] : (int * int) list)
+val num_found_proofs = Unsynchronized.ref ([] : (int * int) list)
+val num_lost_proofs = Unsynchronized.ref ([] : (int * int) list)
+val num_found_facts = Unsynchronized.ref ([] : (int * int) list)
+val num_lost_facts = Unsynchronized.ref ([] : (int * int) list)
+
+fun get id c = the_default 0 (AList.lookup (op =) (!c) id)
+fun add id c n =
+  c := (case AList.lookup (op =) (!c) id of
+          SOME m => AList.update (op =) (id, m + n) (!c)
+        | NONE => (id, n) :: !c)
 
 fun init proof_file _ thy =
   let
@@ -36,26 +42,28 @@ fun init proof_file _ thy =
 fun percentage a b = if b = 0 then "N/A" else string_of_int (a * 100 div b)
 fun percentage_alt a b = percentage a (a + b)
 
-fun done _ ({log, ...} : Mirabelle.done_args) =
-  if !num_successes + !num_failures > 0 then
-    (log ("Number of overall success: " ^ Int.toString (!num_successes));
-     log ("Number of overall failures: " ^ Int.toString (!num_failures));
+fun done id ({log, ...} : Mirabelle.done_args) =
+  if get id num_successes + get id num_failures > 0 then
+    (log ("\nNumber of overall success: " ^ Int.toString (get id num_successes));
+     log ("Number of overall failures: " ^ Int.toString (get id num_failures));
      log ("Overall success rate: " ^
-          percentage_alt (!num_successes) (!num_failures) ^ "%");
-     log ("Number of found proofs: " ^ Int.toString (!num_found_proofs));
-     log ("Number of lost proofs: " ^ Int.toString (!num_lost_proofs));
+          percentage_alt (get id num_successes) (get id num_failures) ^ "%");
+     log ("Number of found proofs: " ^ Int.toString (get id num_found_proofs));
+     log ("Number of lost proofs: " ^ Int.toString (get id num_lost_proofs));
      log ("Proof found rate: " ^
-          percentage_alt (!num_found_proofs) (!num_lost_proofs) ^ "%");
-     log ("Number of found facts: " ^ Int.toString (!num_found_facts));
-     log ("Number of lost facts: " ^ Int.toString (!num_lost_facts));
+          percentage_alt (get id num_found_proofs) (get id num_lost_proofs) ^
+          "%");
+     log ("Number of found facts: " ^ Int.toString (get id num_found_facts));
+     log ("Number of lost facts: " ^ Int.toString (get id num_lost_facts));
      log ("Fact found rate: " ^
-          percentage_alt (!num_found_facts) (!num_lost_facts) ^ "%"))
+          percentage_alt (get id num_found_facts) (get id num_lost_facts) ^
+          "%"))
   else
     ()
 
 val default_max_relevant = 300
 
-fun action args _ ({pre, pos, log, ...} : Mirabelle.run_args) =
+fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
   case (Position.line_of pos, Position.column_of pos) of
     (SOME line_num, SOME col_num) =>
     (case Prooftab.lookup (!proof_table) (line_num, col_num) of
@@ -81,15 +89,15 @@ fun action args _ ({pre, pos, log, ...} : Mirabelle.run_args) =
          val n = length found_proofs
          val _ =
            if n = 0 then
-             (num_failures := !num_failures + 1; log "Failure")
+             (add id num_failures 1; log "Failure")
            else
-             (num_successes := !num_successes + 1;
-              num_found_proofs := !num_found_proofs + n;
+             (add id num_successes 1;
+              add id num_found_proofs n;
               log ("Success (" ^ Int.toString n ^ " of " ^
                    Int.toString (length proofs) ^ " proofs)"))
-         val _ = num_lost_proofs := !num_lost_proofs + length proofs - n
-         val _ = num_found_facts := !num_found_facts + (length found_facts)
-         val _ = num_lost_facts := !num_lost_facts + (length lost_facts)
+         val _ = add id num_lost_proofs (length proofs - n)
+         val _ = add id num_found_facts (length found_facts)
+         val _ = add id num_lost_facts (length lost_facts)
          val _ = if null found_facts then ()
                  else log ("Found facts: " ^ commas found_facts)
          val _ = if null lost_facts then ()
