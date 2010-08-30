@@ -75,7 +75,7 @@ setup {*
 
 END
 
-foreach (split(/:/, $actions)) {
+foreach (reverse(split(/:/, $actions))) {
   if (m/([^[]*)(?:\[(.*)\])?/) {
     my ($name, $settings_str) = ($1, $2 || "");
     $name =~ s/^([a-z])/\U$1/;
