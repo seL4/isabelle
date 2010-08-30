@@ -907,7 +907,7 @@ fun ml_node_of_program labelled_name module_name reserved module_alias program =
   in (deresolver, nodes) end;
 
 fun serialize_ml target print_module print_stmt module_name with_signatures labelled_name
-  reserved includes module_alias _ syntax_tyco syntax_const (code_of_pretty, code_writeln) program
+  reserved includes module_alias _ syntax_tyco syntax_const program
   (stmt_names, presentation_stmt_names) width =
   let
     val is_cons = Code_Thingol.is_cons program;
@@ -936,8 +936,8 @@ fun serialize_ml target print_module print_stmt module_name with_signatures labe
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
   in
     Code_Target.mk_serialization
-      (fn width => (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty))
-      (fn width => (rpair stmt_names' o code_of_pretty)) p width 
+      (fn width => (fn NONE => writeln_pretty width | SOME file => File.write file o string_of_pretty width))
+      (fn width => (rpair stmt_names' o string_of_pretty width)) p width 
   end;
 
 end; (*local*)

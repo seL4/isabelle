@@ -110,7 +110,6 @@ type serializer =
   -> (string -> string option)          (*class syntax*)
   -> (string -> Code_Printer.tyco_syntax option)
   -> (string -> Code_Printer.activated_const_syntax option)
-  -> ((Pretty.T -> string) * (Pretty.T -> unit))
   -> Code_Thingol.program
   -> (string list * string list)        (*selected statements*)
   -> int
@@ -282,7 +281,6 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
     serializer module_name args (Code_Thingol.labelled_name thy program2) reserved includes
       (if is_some module_name then K module_name else Symtab.lookup module_alias)
       (Symtab.lookup class') (Symtab.lookup tyco') (Symtab.lookup const')
-      (Code_Printer.string_of_pretty width, Code_Printer.writeln_pretty width)
       program4 (names1, presentation_names) width
   end;
 

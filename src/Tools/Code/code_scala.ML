@@ -414,7 +414,7 @@ fun scala_program_of_program labelled_name reserved module_alias program =
   in (deresolver, sca_program) end;
 
 fun serialize_scala labelled_name raw_reserved includes module_alias
-    _ syntax_tyco syntax_const (code_of_pretty, code_writeln)
+    _ syntax_tyco syntax_const
     program (stmt_names, presentation_stmt_names) width =
   let
 
@@ -482,8 +482,8 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
   in
     Code_Target.mk_serialization
-      (fn width => (fn NONE => code_writeln | SOME file => File.write file o code_of_pretty))
-      (fn width => (rpair [] o code_of_pretty)) p width
+      (fn width => (fn NONE => writeln_pretty width | SOME file => File.write file o string_of_pretty width))
+      (rpair [] oo string_of_pretty) p width
   end;
 
 end; (*local*)
