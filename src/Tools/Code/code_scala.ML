@@ -415,7 +415,7 @@ fun scala_program_of_program labelled_name reserved module_alias program =
 
 fun serialize_scala labelled_name raw_reserved includes module_alias
     _ syntax_tyco syntax_const
-    program (stmt_names, presentation_stmt_names) width =
+    program (stmt_names, presentation_stmt_names) =
   let
 
     (* build program *)
@@ -483,7 +483,7 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
   in
     Code_Target.mk_serialization
       (fn width => (fn NONE => writeln_pretty width | SOME file => File.write file o string_of_pretty width))
-      (rpair [] oo string_of_pretty) p width
+      (rpair [] oo string_of_pretty) p
   end;
 
 end; (*local*)

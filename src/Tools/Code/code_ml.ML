@@ -908,7 +908,7 @@ fun ml_node_of_program labelled_name module_name reserved module_alias program =
 
 fun serialize_ml target print_module print_stmt module_name with_signatures labelled_name
   reserved includes module_alias _ syntax_tyco syntax_const program
-  (stmt_names, presentation_stmt_names) width =
+  (stmt_names, presentation_stmt_names) =
   let
     val is_cons = Code_Thingol.is_cons program;
     val is_presentation = not (null presentation_stmt_names);
@@ -937,7 +937,7 @@ fun serialize_ml target print_module print_stmt module_name with_signatures labe
   in
     Code_Target.mk_serialization
       (fn width => (fn NONE => writeln_pretty width | SOME file => File.write file o string_of_pretty width))
-      (fn width => (rpair stmt_names' o string_of_pretty width)) p width 
+      (fn width => (rpair stmt_names' o string_of_pretty width)) p
   end;
 
 end; (*local*)

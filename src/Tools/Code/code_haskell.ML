@@ -316,7 +316,7 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
 fun serialize_haskell module_prefix module_name string_classes labelled_name
     raw_reserved includes module_alias
     syntax_class syntax_tyco syntax_const program
-    (stmt_names, presentation_stmt_names) width =
+    (stmt_names, presentation_stmt_names) =
   let
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
@@ -396,7 +396,6 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
       (fn width => (rpair [] o cat_lines o map (string_of_pretty width o snd)))
       (map (uncurry print_module) includes
         @ map serialize_module (Symtab.dest hs_program))
-      width
   end;
 
 val literals = let

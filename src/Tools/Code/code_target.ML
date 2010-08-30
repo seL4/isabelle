@@ -22,7 +22,6 @@ sig
   type destination
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
-  val stmt_names_of_destination: destination -> string list
   val mk_serialization: (int -> Path.T option -> 'a -> unit)
     -> (int -> 'a -> string * string option list)
     -> 'a -> int -> serialization
@@ -67,14 +66,14 @@ datatype destination = File of Path.T option | String of string list;
 type serialization = destination -> (string * string option list) option;
 
 fun export f = (f (File NONE); ());
-fun file p f = (f (File (SOME p)); ());
-fun string stmts f = fst (the (f (String stmts)));
+fun file path f = (f (File (SOME path)); ());
+fun string stmt_names f = fst (the (f (String stmt_names)));
 
-fun stmt_names_of_destination (String stmts) = stmts
+fun stmt_names_of_destination (String stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
 
-fun mk_serialization output _ code width (File p) = (output width p code; NONE)
-  | mk_serialization _ string code width (String _) = SOME (string width code);
+fun mk_serialization output _ pretty width (File path) = (output width path pretty; NONE)
+  | mk_serialization _ string pretty width (String _) = SOME (string width pretty);
 
 
 (** theory data **)
