@@ -142,7 +142,7 @@ fun add_pconst_to_table also_skolem (c, ps) =
 
 fun is_formula_type T = (T = HOLogic.boolT orelse T = propT)
 
-fun get_pconsts thy also_skolems pos ts =
+fun pconsts_in_terms thy also_skolems pos ts =
   let
     val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
@@ -282,7 +282,7 @@ fun irrel_weight const_tab =
 
 (* FUDGE *)
 val theory_bonus = Unsynchronized.ref 0.1
-val local_bonus = Unsynchronized.ref 0.2
+val local_bonus = Unsynchronized.ref 0.55
 val chained_bonus = Unsynchronized.ref 1.5
 
 fun locality_bonus General = 0.0
@@ -324,7 +324,7 @@ val _ = tracing (PolyML.makestring ("IRREL: ", irrel))(*###*)
 
 fun pconsts_in_axiom thy t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (get_pconsts thy true (SOME true) [t]) []
+              (pconsts_in_terms thy true (SOME true) [t]) []
 fun pair_consts_axiom theory_relevant thy axiom =
   case axiom |> snd |> theory_const_prop_of theory_relevant
              |> pconsts_in_axiom thy of
@@ -362,7 +362,7 @@ fun take_most_relevant max_relevant remaining_max
 
 fun if_empty_replace_with_locality thy axioms loc tab =
   if Symtab.is_empty tab then
-    get_pconsts thy false (SOME false)
+    pconsts_in_terms thy false (SOME false)
         (map_filter (fn ((_, loc'), th) =>
                         if loc' = loc then SOME (prop_of th) else NONE) axioms)
   else
@@ -379,7 +379,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
     val const_tab =
       fold (count_axiom_consts theory_relevant thy) axioms Symtab.empty
     val goal_const_tab =
-      get_pconsts thy false (SOME false) goal_ts
+      pconsts_in_terms thy false (SOME false) goal_ts
       |> fold (if_empty_replace_with_locality thy axioms)
               [Chained, Local, Theory]
     val add_thms = maps (ProofContext.get_fact ctxt) add
