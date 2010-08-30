@@ -619,10 +619,10 @@ end
 
 
 (* Since we use Ball and Bex during the lifting and descending,
-   we cannot deal with lemmas containing them, unless we unfold 
-   them by default. Also mem cannot be regularized in general. *)
+   we cannot deal with lemmas containing them, unless we unfold
+   them by default. *)
 
-val default_unfolds = @{thms Ball_def Bex_def mem_def}
+val default_unfolds = @{thms Ball_def Bex_def}
 
 
 (** descending as tactic **)
