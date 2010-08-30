@@ -937,7 +937,7 @@ fun serialize_ml target print_module print_stmt module_name with_signatures labe
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;
   in
-    Code_Target.mk_serialization write (fn width => (rpair stmt_names' o string_of_pretty width)) p
+    Code_Target.serialization write (fn width => (rpair stmt_names' o string_of_pretty width)) p
   end;
 
 end; (*local*)

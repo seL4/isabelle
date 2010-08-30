@@ -483,7 +483,7 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;
   in
-    Code_Target.mk_serialization write (rpair [] oo string_of_pretty) p
+    Code_Target.serialization write (rpair [] oo string_of_pretty) p
   end;
 
 end; (*local*)

@@ -390,7 +390,7 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
           end
       | write_module width NONE (_, content) = writeln_pretty width content;
   in
-    Code_Target.mk_serialization
+    Code_Target.serialization
       (fn width => fn destination => K () o map (write_module width destination))
       (fn width => rpair [] o cat_lines o map (string_of_pretty width o snd))
       (map (uncurry print_module) includes
