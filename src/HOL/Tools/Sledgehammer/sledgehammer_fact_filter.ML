@@ -155,7 +155,7 @@ fun get_pconsts thy also_skolems pos ts =
         (Const x, ts) => do_const true x ts
       | (Free x, ts) => do_const false x ts
       | (Abs (_, _, t'), ts) =>
-        null ts ? add_pconst_to_table true (abs_name, [])
+        (null ts ? add_pconst_to_table true (abs_name, []))
         #> fold do_term (t' :: ts)
       | (_, ts) => fold do_term ts
     fun do_quantifier will_surely_be_skolemized body_t =
@@ -273,14 +273,16 @@ fun generic_weight abs_weight skolem_weight logx f const_tab (c as (s, _)) =
   else if String.isPrefix skolem_prefix s then skolem_weight
   else logx (pconst_freq (match_patterns o f) const_tab c)
 
-val rel_weight = generic_weight (!abs_rel_weight) 0.0 rel_log I
-val irrel_weight = generic_weight (!abs_irrel_weight) (!skolem_irrel_weight)
-                                  irrel_log swap
+fun rel_weight const_tab =
+  generic_weight (!abs_rel_weight) 0.0 rel_log I const_tab
+fun irrel_weight const_tab =
+  generic_weight (!abs_irrel_weight) (!skolem_irrel_weight) irrel_log swap
+                 const_tab
 
 (* FUDGE *)
-val theory_bonus = Unsynchronized.ref 0.5
-val local_bonus = Unsynchronized.ref 1.0
-val chained_bonus = Unsynchronized.ref 2.0
+val theory_bonus = Unsynchronized.ref 0.1
+val local_bonus = Unsynchronized.ref 0.2
+val chained_bonus = Unsynchronized.ref 1.5
 
 fun locality_bonus General = 0.0
   | locality_bonus Theory = !theory_bonus
@@ -348,7 +350,7 @@ fun if_empty_replace_with_locality thy axioms loc tab =
 (* FUDGE *)
 val threshold_divisor = Unsynchronized.ref 2.0
 val ridiculous_threshold = Unsynchronized.ref 0.1
-val max_max_imperfect_fudge_factor = Unsynchronized.ref 0.5
+val max_max_imperfect_fudge_factor = Unsynchronized.ref 1.66
 
 fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
@@ -389,8 +391,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                                    candidates
               val rel_const_tab' =
                 rel_const_tab
-                |> fold (add_pconst_to_table false)
-                        (maps (snd o fst) accepts)
+                |> fold (add_pconst_to_table false) (maps (snd o fst) accepts)
               fun is_dirty (c, _) =
                 Symtab.lookup rel_const_tab' c <> Symtab.lookup rel_const_tab c
               val (hopeful_rejects, hopeless_rejects) =
@@ -430,8 +431,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                 | NONE => axiom_weight loc const_tab rel_const_tab axiom_consts
 (* TODO: experiment
 val name = fst (fst (fst ax)) ()
-val _ = if String.isPrefix "lift.simps(3" name then
-tracing ("*** " ^ name ^ PolyML.makestring (debug_axiom_weight const_tab rel_const_tab axiom_consts))
+val _ = if name = "foo" then
+tracing ("*** " ^ name ^ PolyML.makestring (debug_axiom_weight loc const_tab rel_const_tab axiom_consts))
 else
 ()
 *)
