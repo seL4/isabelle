@@ -218,8 +218,10 @@ fun count_fol_formula ({combformula, ...} : fol_formula) =
   count_combformula combformula
 
 val optional_helpers =
-  [(["c_COMBI", "c_COMBK"], @{thms COMBI_def COMBK_def}),
-   (["c_COMBB", "c_COMBC"], @{thms COMBB_def COMBC_def}),
+  [(["c_COMBI"], @{thms COMBI_def}),
+   (["c_COMBK"], @{thms COMBK_def}),
+   (["c_COMBB"], @{thms COMBB_def}),
+   (["c_COMBC"], @{thms COMBC_def}),
    (["c_COMBS"], @{thms COMBS_def})]
 val optional_typed_helpers =
   [(["c_True", "c_False", "c_If"], @{thms True_or_False}),
