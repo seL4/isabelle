@@ -28,4 +28,6 @@ object Position
         case _ => None
       }
   }
+
+  def purge(props: T): T = props.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
 }

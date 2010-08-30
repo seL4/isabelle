@@ -204,7 +204,7 @@ object Document
     def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)._1
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version, fail)
 
-    def accumulate(id: ID, message: XML.Tree): (Command.State, State) =
+    def accumulate(id: ID, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
         case Some((st, occs)) =>
           val new_st = st.accumulate(message)

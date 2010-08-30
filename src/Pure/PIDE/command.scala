@@ -8,23 +8,25 @@ Prover commands with semantic state.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object Command
 {
   /** accumulated results from prover **/
 
   case class State(
     val command: Command,
-    val status: List[Markup],
-    val reverse_results: List[XML.Tree],
-    val markup: Markup_Tree)
+    val status: List[Markup] = Nil,
+    val results: SortedMap[Long, XML.Tree] = SortedMap.empty,
+    val markup: Markup_Tree = Markup_Tree.empty)
   {
     /* content */
 
-    lazy val results = reverse_results.reverse
-
     def add_status(st: Markup): State = copy(status = st :: status)
     def add_markup(info: Text.Info[Any]): State = copy(markup = markup + info)
-    def add_result(result: XML.Tree): State = copy(reverse_results = result :: reverse_results)
+    def add_result(serial: Long, result: XML.Tree): State =
+      copy(results = results + (serial -> result))
 
     def root_info: Text.Info[Any] =
       new Text.Info(command.range,
@@ -34,7 +36,7 @@ object Command
 
     /* message dispatch */
 
-    def accumulate(message: XML.Tree): Command.State =
+    def accumulate(message: XML.Elem): Command.State =
       message match {
         case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -48,13 +50,18 @@ object Command
             msg match {
               case XML.Elem(Markup(name, atts @ Position.Range(range)), args)
               if Position.Id.unapply(atts) == Some(command.id) =>
-                val props = atts.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
+                val props = Position.purge(atts)
                 val info =
                   Text.Info[Any](command.decode(range), XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
               case _ => System.err.println("Ignored report message: " + msg); state
             })
-        case _ => add_result(message)
+        case XML.Elem(Markup(name, atts), body) =>
+          atts match {
+            case Markup.Serial(i) =>
+              add_result(i, XML.Elem(Markup(name, Position.purge(atts)), body))
+            case _ => System.err.println("Ignored message without serial number: " + message); this
+          }
       }
   }
 
@@ -98,5 +105,5 @@ class Command(
 
   /* accumulated results */
 
-  val empty_state: Command.State = Command.State(this, Nil, Nil, Markup_Tree.empty)
+  val empty_state: Command.State = Command.State(this)
 }
