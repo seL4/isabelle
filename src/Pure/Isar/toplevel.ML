@@ -356,7 +356,7 @@ fun pos_of (Transition {pos, ...}) = pos;
 fun str_of tr = quote (name_of tr) ^ Position.str_of (pos_of tr);
 
 fun command_msg msg tr = msg ^ "command " ^ str_of tr;
-fun at_command tr = command_msg "At " tr ^ ".";
+fun at_command tr = command_msg "At " tr;
 
 fun type_error tr state =
   ERROR (command_msg "Illegal application of " tr ^ " " ^ str_of_state state);

@@ -58,10 +58,10 @@ fun exn_messages exn_position e =
       | exn_msgs ctxt (Exn.EXCEPTIONS exns) = maps (exn_msgs ctxt) exns
       | exn_msgs ctxt (EXCURSION_FAIL (exn, loc)) =
           map (fn msg => msg ^ Markup.markup Markup.location ("\n" ^ loc)) (exn_msgs ctxt exn)
-      | exn_msgs _ TERMINATE = ["Exit."]
+      | exn_msgs _ TERMINATE = ["Exit"]
       | exn_msgs _ Exn.Interrupt = []
-      | exn_msgs _ TimeLimit.TimeOut = ["Timeout."]
-      | exn_msgs _ TOPLEVEL_ERROR = ["Error."]
+      | exn_msgs _ TimeLimit.TimeOut = ["Timeout"]
+      | exn_msgs _ TOPLEVEL_ERROR = ["Error"]
       | exn_msgs _ (SYS_ERROR msg) = ["## SYSTEM ERROR ##\n" ^ msg]
       | exn_msgs _ (ERROR msg) = [msg]
       | exn_msgs _ (exn as Fail msg) = [raised exn "Fail" [msg]]
@@ -82,7 +82,7 @@ fun exn_messages exn_position e =
 
 fun exn_message exn_position exn =
   (case exn_messages exn_position exn of
-    [] => "Interrupt."
+    [] => "Interrupt"
   | msgs => cat_lines msgs);
 
 

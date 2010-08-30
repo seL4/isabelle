@@ -773,7 +773,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
                   if not (! warned) andalso
                      length (new_states @ States) > ! branching_level then
                     (Context_Position.if_visible ctxt warning
-                      "Currently parsed expression could be extremely ambiguous.";
+                      "Currently parsed expression could be extremely ambiguous";
                      warned := true)
                   else ();
               in

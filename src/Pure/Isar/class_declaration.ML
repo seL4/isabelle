@@ -126,8 +126,8 @@ fun prep_class_elems prep_decl thy sups raw_elems =
                 else error ("Type inference imposes additional sort constraint "
                   ^ Syntax.string_of_sort_global thy inferred_sort
                   ^ " of type parameter " ^ Name.aT ^ " of sort "
-                  ^ Syntax.string_of_sort_global thy a_sort ^ ".")
-            | _ => error "Multiple type variables in class specification.";
+                  ^ Syntax.string_of_sort_global thy a_sort)
+            | _ => error "Multiple type variables in class specification";
       in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
     val after_infer_fixate = (map o map_atyps)
       (fn T as TFree _ => T | T as TVar (vi, sort) =>
