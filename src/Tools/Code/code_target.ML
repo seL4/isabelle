@@ -13,7 +13,7 @@ sig
   type literals = Code_Printer.literals
   val add_target: string * { serializer: serializer, literals: literals,
     check: { env_var: string, make_destination: Path.T -> Path.T,
-      make_command: string -> Path.T -> string -> string } } -> theory -> theory
+      make_command: string -> string -> string } } -> theory -> theory
   val extend_target: string *
       (string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
@@ -116,7 +116,7 @@ type serializer =
 
 datatype description = Fundamental of { serializer: serializer, literals: Code_Printer.literals,
       check: { env_var: string, make_destination: Path.T -> Path.T,
-        make_command: string -> Path.T -> string -> string } }
+        make_command: string -> string -> string } }
   | Extension of string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
 
 datatype target = Target of {
@@ -336,7 +336,7 @@ fun check thy names_cs naming program target strict args =
         val destination = make_destination p;
         val _ = file destination (serialize thy target (SOME 80)
           (SOME module_name) args naming program names_cs);
-        val cmd = make_command env_param destination module_name;
+        val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target ^ ": " ^ cmd)
         else ()

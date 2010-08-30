@@ -483,7 +483,7 @@ val setup =
   Code_Target.add_target
     (target, { serializer = isar_serializer, literals = literals,
       check = { env_var = "EXEC_GHC", make_destination = I,
-        make_command = fn ghc => fn p => fn module_name =>
+        make_command = fn ghc => fn module_name =>
           ghc ^ " -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^ module_name ^ ".hs" } })
   #> Code_Target.add_syntax_tyco target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
