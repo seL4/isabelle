@@ -263,7 +263,8 @@ fun execute version_id state =
         | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
 
       val _ = List.app Future.cancel execution;
-      fun await_cancellation () = uninterruptible (fn _ => Future.join_results) execution;
+      fun await_cancellation () =
+        uninterruptible (fn _ => fn () => Future.join_results execution) ();
 
       val execution' = (* FIXME proper node deps *)
         node_names_of version |> map (fn name =>
