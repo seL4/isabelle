@@ -96,6 +96,10 @@ class Command(
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
   def length: Int = source.length
 
+  val newlines =
+    (0 /: Symbol.iterator(source)) {
+      case (n, s) => if (Symbol.is_physical_newline(s)) n + 1 else n }
+
   val range: Text.Range = Text.Range(0, length)
 
   lazy val symbol_index = new Symbol.Index(source)
