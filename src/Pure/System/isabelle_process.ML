@@ -63,7 +63,8 @@ fun message _ _ _ "" = ()
 in
 
 fun standard_message out_stream ch body =
-  message out_stream ch (Position.properties_of (Position.thread_data ())) body;
+  message out_stream ch
+    ((Markup.serialN, serial_string ()) :: Position.properties_of (Position.thread_data ())) body;
 
 fun init_message out_stream =
   message out_stream "A" [(Markup.pidN, process_id ())] (Session.welcome ());

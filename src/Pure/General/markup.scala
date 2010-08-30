@@ -226,6 +226,7 @@ object Markup
   /* messages */
 
   val PID = "pid"
+  val SERIAL = "serial"
 
   val MESSAGE = "message"
   val CLASS = "class"
