@@ -12,6 +12,7 @@ uses
   "Tools/mirabelle_quickcheck.ML"
   "Tools/mirabelle_refute.ML"
   "Tools/mirabelle_sledgehammer.ML"
+  "Tools/mirabelle_sledgehammer_filter.ML"
 begin
 
 text {*

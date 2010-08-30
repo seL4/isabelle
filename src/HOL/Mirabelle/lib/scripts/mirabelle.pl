@@ -51,7 +51,11 @@ foreach (split(/:/, $actions)) {
 }
 my $tools = "";
 if ($#action_files >= 0) {
-  $tools = "uses " . join(" ", @action_files);
+  # uniquify
+  my $s = join ("\n", @action_files);
+  my @action_files = split(/\n/, $s . "\n" . $s);
+  %action_files = sort(@action_files);
+  $tools = "uses " . join(" ", sort(keys(%action_files)));
 }
 
 open(SETUP_FILE, ">$setup_file") || die "Could not create file '$setup_file'";
@@ -71,7 +75,7 @@ setup {*
 
 END
 
-foreach (split(/:/, $actions)) {
+foreach (reverse(split(/:/, $actions))) {
   if (m/([^[]*)(?:\[(.*)\])?/) {
     my ($name, $settings_str) = ($1, $2 || "");
     $name =~ s/^([a-z])/\U$1/;

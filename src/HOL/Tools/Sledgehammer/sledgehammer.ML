@@ -216,11 +216,10 @@ fun prover_fun atp_name
           relevance_thresholds, max_relevant, theory_relevant, isar_proof,
           isar_shrink_factor, timeout, ...} : params)
         minimize_command
-        ({subgoal, goal, relevance_override, axioms} : problem) =
+        ({subgoal, goal = (ctxt, (chained_ths, th)), relevance_override,
+          axioms} : problem) =
   let
-    val (ctxt, (_, th)) = goal;
-    val thy = ProofContext.theory_of ctxt
-    val (params, hyp_ts, concl_t) = strip_subgoal th subgoal
+    val (_, hyp_ts, concl_t) = strip_subgoal th subgoal
 
     val print = priority
     fun print_v f = () |> verbose ? print o f
@@ -230,10 +229,10 @@ fun prover_fun atp_name
       case axioms of
         SOME axioms => axioms
       | NONE =>
-        (relevant_facts full_types relevance_thresholds
+        (relevant_facts ctxt full_types relevance_thresholds
                         (the_default default_max_relevant max_relevant)
                         (the_default default_theory_relevant theory_relevant)
-                        relevance_override goal hyp_ts concl_t
+                        relevance_override chained_ths hyp_ts concl_t
          |> tap ((fn n => print_v (fn () =>
                           "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^
                           " for " ^ quote atp_name ^ ".")) o length))
