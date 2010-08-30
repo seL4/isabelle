@@ -12,10 +12,10 @@ val relevance_filter_args =
    ("theory_bonus", Sledgehammer_Fact_Filter.theory_bonus),
    ("local_bonus", Sledgehammer_Fact_Filter.local_bonus),
    ("chained_bonus", Sledgehammer_Fact_Filter.chained_bonus),
+   ("max_imperfect", Sledgehammer_Fact_Filter.max_imperfect),
+   ("max_imperfect_exp", Sledgehammer_Fact_Filter.max_imperfect_exp),
    ("threshold_divisor", Sledgehammer_Fact_Filter.threshold_divisor),
-   ("ridiculous_threshold", Sledgehammer_Fact_Filter.ridiculous_threshold),
-   ("max_max_imperfect_fudge_factor",
-    Sledgehammer_Fact_Filter.max_max_imperfect_fudge_factor)]
+   ("ridiculous_threshold", Sledgehammer_Fact_Filter.ridiculous_threshold)]
 
 structure Prooftab =
   Table(type key = int * int val ord = prod_ord int_ord int_ord);
