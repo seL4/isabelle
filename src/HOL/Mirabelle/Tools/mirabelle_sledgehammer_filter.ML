@@ -116,10 +116,26 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
 
 val proof_fileK = "proof_file"
 
+val relevance_filter_args =
+  [("abs_rel_weight", Sledgehammer_Fact_Filter.abs_rel_weight),
+   ("abs_irrel_weight", Sledgehammer_Fact_Filter.abs_irrel_weight),
+   ("skolem_irrel_weight", Sledgehammer_Fact_Filter.skolem_irrel_weight),
+   ("theory_bonus", Sledgehammer_Fact_Filter.theory_bonus),
+   ("local_bonus", Sledgehammer_Fact_Filter.local_bonus),
+   ("chained_bonus", Sledgehammer_Fact_Filter.chained_bonus),
+   ("threshold_divisor", Sledgehammer_Fact_Filter.threshold_divisor),
+   ("ridiculous_threshold", Sledgehammer_Fact_Filter.ridiculous_threshold),
+   ("max_max_imperfect_fudge_factor",
+    Sledgehammer_Fact_Filter.max_max_imperfect_fudge_factor)]
+
 fun invoke args =
   let
     val (pf_args, other_args) =
       args |> List.partition (curry (op =) proof_fileK o fst)
+      ||> filter (fn (key, value) =>
+                      case AList.lookup (op =) relevance_filter_args key of
+                        SOME rf => (rf := the (Real.fromString value); false)
+                      | NONE => true)
     val proof_file = case pf_args of
                        [] => error "No \"proof_file\" specified"
                      | (_, s) :: _ => s
