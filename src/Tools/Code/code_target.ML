@@ -25,18 +25,18 @@ sig
   val serialization: (int -> Path.T option -> 'a -> unit)
     -> (int -> 'a -> string * string option list)
     -> 'a -> int -> serialization
+
   val serialize: theory -> string -> int option -> string option -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
   val serialize_custom: theory -> string * serializer -> string option
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list
-    -> string * string option list
-  val the_literals: theory -> string -> literals
-  val file: Path.T option -> serialization -> unit
-  val string: string list -> serialization -> string
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
+  val check: theory -> string list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string -> bool -> Token.T list -> unit
   val code_of: theory -> string -> int option -> string
-    -> string list -> (Code_Thingol.naming -> string list) -> string
+    -> string list -> (Code_Thingol.naming -> string list) -> string * string option list
   val set_default_code_width: int -> theory -> theory
   val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
+  val the_literals: theory -> string -> literals
 
   val allow_abort: string -> theory -> theory
   type tyco_syntax = Code_Printer.tyco_syntax
@@ -64,14 +64,14 @@ type const_syntax = Code_Printer.const_syntax;
 datatype destination = File of Path.T option | String of string list;
 type serialization = destination -> (string * string option list) option;
 
-fun file some_path f = (f (File some_path); ());
-fun string stmt_names f = fst (the (f (String stmt_names)));
-
 fun stmt_names_of_destination (String stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
 
 fun serialization output _ pretty width (File some_path) = (output width some_path pretty; NONE)
   | serialization _ string pretty width (String _) = SOME (string width pretty);
+
+fun file some_path f = f (File some_path);
+fun string stmt_names f = the (f (String stmt_names));
 
 
 (** theory data **)

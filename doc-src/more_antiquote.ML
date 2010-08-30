@@ -130,6 +130,7 @@ val _ = Thy_Output.antiquotation "code_stmts"
       Code_Target.code_of thy
         target NONE "Example" (mk_cs thy)
         (fn naming => maps (fn f => f thy naming) mk_stmtss)
+      |> fst
       |> typewriter
     end);
 
