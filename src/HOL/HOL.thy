@@ -1875,8 +1875,6 @@ setup {*
   Nbe.add_const_alias @{thm equal_alias_cert}
 *}
 
-hide_const (open) equal
-
 text {* Cases *}
 
 lemma Let_case_cert:
@@ -2126,5 +2124,7 @@ val True_implies_equals = thm "True_implies_equals";
 val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps simp_thms @ @{thms "nnf_simps"})
 
 *}
+
+hide_const (open) eq equal
 
 end
