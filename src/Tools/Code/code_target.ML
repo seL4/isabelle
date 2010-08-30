@@ -1,13 +1,29 @@
 (*  Title:      Tools/Code/code_target.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Serializer from intermediate language ("Thin-gol") to target languages.
+Generic infrastructure for target language data.
 *)
 
 signature CODE_TARGET =
 sig
   val cert_tyco: theory -> string -> string
   val read_tyco: theory -> string -> string
+
+  val export_code_for: theory -> Path.T option -> string -> int option -> string option -> Token.T list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
+  val produce_code_for: theory -> string -> int option -> string option -> Token.T list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list * string list -> string * string option list
+  val check_code_for: theory -> string -> bool -> Token.T list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
+
+  val export_code: theory -> string list
+    -> (((string * string option) * Path.T option) * Token.T list) list -> unit
+  val produce_code: theory -> string list -> (Code_Thingol.naming -> string list)
+    -> string -> int option -> string option -> Token.T list -> string * string option list
+  val check_code: theory -> string list
+    -> ((string * bool) * Token.T list) list -> unit
+
+  val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
 
   type serializer
   type literals = Code_Printer.literals
@@ -18,26 +34,19 @@ sig
       (string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
   val assert_target: theory -> string -> string
-
-  type destination
+  val the_literals: theory -> string -> literals
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
-  val stmt_names_of_destination: destination -> string list
-  val mk_serialization: string -> (Path.T option -> 'a -> unit)
-    -> ('a -> string * string option list)
-    -> 'a -> serialization
-  val serialize: theory -> string -> int option -> string option -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
+  val serialization: (int -> Path.T option -> 'a -> unit)
+    -> (int -> 'a -> string * string option list)
+    -> 'a -> int -> serialization
+  val set_default_code_width: int -> theory -> theory
+
+  (*FIXME drop asap*)
+  val code_of: theory -> string -> int option -> string
+    -> string list -> (Code_Thingol.naming -> string list) -> string * string option list
   val serialize_custom: theory -> string * serializer -> string option
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
-  val the_literals: theory -> string -> literals
-  val export: serialization -> unit
-  val file: Path.T -> serialization -> unit
-  val string: string list -> serialization -> string
-  val code_of: theory -> string -> int option -> string
-    -> string list -> (Code_Thingol.naming -> string list) -> string
-  val set_default_code_width: int -> theory -> theory
-  val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
 
   val allow_abort: string -> theory -> theory
   type tyco_syntax = Code_Printer.tyco_syntax
@@ -62,19 +71,17 @@ type const_syntax = Code_Printer.const_syntax;
 
 (** basics **)
 
-datatype destination = Export | File of Path.T | String of string list;
+datatype destination = File of Path.T option | String of string list;
 type serialization = destination -> (string * string option list) option;
 
-fun export f = (f Export; ());
-fun file p f = (f (File p); ());
-fun string stmts f = fst (the (f (String stmts)));
-
-fun stmt_names_of_destination (String stmts) = stmts
+fun stmt_names_of_destination (String stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
 
-fun mk_serialization target output _ code Export = (output NONE code ; NONE)
-  | mk_serialization target output _ code (File file) = (output (SOME file) code; NONE)
-  | mk_serialization target _ string code (String _) = SOME (string code);
+fun serialization output _ pretty width (File some_path) = (output width some_path pretty; NONE)
+  | serialization _ string pretty width (String _) = SOME (string width pretty);
+
+fun file some_path f = (f (File some_path); ());
+fun string stmt_names f = the (f (String stmt_names));
 
 
 (** theory data **)
@@ -90,7 +97,8 @@ fun mk_name_syntax_table ((class, instance), (tyco, const)) =
   NameSyntaxTable { class = class, instance = instance, tyco = tyco, const = const };
 fun map_name_syntax_table f (NameSyntaxTable { class, instance, tyco, const }) =
   mk_name_syntax_table (f ((class, instance), (tyco, const)));
-fun merge_name_syntax_table (NameSyntaxTable { class = class1, instance = instance1, tyco = tyco1, const = const1 },
+fun merge_name_syntax_table
+  (NameSyntaxTable { class = class1, instance = instance1, tyco = tyco1, const = const1 },
     NameSyntaxTable { class = class2, instance = instance2, tyco = tyco2, const = const2 }) =
   mk_name_syntax_table (
     (Symtab.join (K snd) (class1, class2),
@@ -109,15 +117,17 @@ type serializer =
   -> (string -> string option)          (*class syntax*)
   -> (string -> Code_Printer.tyco_syntax option)
   -> (string -> Code_Printer.activated_const_syntax option)
-  -> ((Pretty.T -> string) * (Pretty.T -> unit))
   -> Code_Thingol.program
   -> (string list * string list)        (*selected statements*)
+  -> int
   -> serialization;
 
-datatype description = Fundamental of { serializer: serializer, literals: Code_Printer.literals,
+datatype description = Fundamental of { serializer: serializer,
+      literals: literals,
       check: { env_var: string, make_destination: Path.T -> Path.T,
         make_command: string -> string -> string } }
-  | Extension of string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
+  | Extension of string *
+      (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
 
 datatype target = Target of {
   serial: serial,
@@ -190,8 +200,8 @@ fun put_target (target, seri) thy =
     thy
     |> (Targets.map o apfst o apfst o Symtab.update)
           (target, make_target ((serial (), seri), (([], Symtab.empty),
-            (mk_name_syntax_table ((Symtab.empty, Symreltab.empty), (Symtab.empty, Symtab.empty)),
-              Symtab.empty))))
+            (mk_name_syntax_table ((Symtab.empty, Symreltab.empty),
+              (Symtab.empty, Symtab.empty)), Symtab.empty))))
   end;
 
 fun add_target (target, seri) = put_target (target, Fundamental seri);
@@ -254,7 +264,7 @@ fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
   |>> map_filter I;
 
 fun invoke_serializer thy abortable serializer literals reserved abs_includes 
-    module_alias class instance tyco const module_name width args naming program2 (names1, presentation_names) =
+    module_alias class instance tyco const module_name args naming program2 (names1, presentation_names) width =
   let
     val (names_class, class') =
       activate_syntax (Code_Thingol.lookup_class naming) class;
@@ -278,8 +288,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
     serializer module_name args (Code_Thingol.labelled_name thy program2) reserved includes
       (if is_some module_name then K module_name else Symtab.lookup module_alias)
       (Symtab.lookup class') (Symtab.lookup tyco') (Symtab.lookup const')
-      (Code_Printer.string_of_pretty width, Code_Printer.writeln_pretty width)
-      program4 (names1, presentation_names)
+      program4 (names1, presentation_names) width
   end;
 
 fun mount_serializer thy alt_serializer target some_width raw_module_name args naming program names destination =
@@ -317,15 +326,21 @@ fun mount_serializer thy alt_serializer target some_width raw_module_name args n
     val width = the_default default_width some_width;
   in
     invoke_serializer thy abortable serializer literals reserved
-      includes module_alias class instance tyco const module_name width args
-        naming (modify program) (names, presentation_names) destination
+      includes module_alias class instance tyco const module_name args
+        naming (modify program) (names, presentation_names) width destination
   end;
 
 in
 
 fun serialize thy = mount_serializer thy NONE;
 
-fun check thy names_cs naming program target strict args =
+fun export_code_for thy some_path target some_width some_module_name args naming program names =
+  file some_path (serialize thy target some_width some_module_name args naming program names);
+
+fun produce_code_for thy target some_width some_module_name args naming program (names, selects) =
+  string selects (serialize thy target some_width some_module_name args naming program names);
+
+fun check_code_for thy target strict args naming program names_cs =
   let
     val module_name = "Code_Test";
     val { env_var, make_destination, make_command } =
@@ -334,7 +349,7 @@ fun check thy names_cs naming program target strict args =
     fun ext_check env_param p =
       let 
         val destination = make_destination p;
-        val _ = file destination (serialize thy target (SOME 80)
+        val _ = file (SOME destination) (serialize thy target (SOME 80)
           (SOME module_name) args naming program names_cs);
         val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
@@ -383,22 +398,30 @@ fun read_const_exprs thy cs =
       if member (op =) names3 name then SOME c else NONE) (cs2 ~~ names2);
   in union (op =) cs3 cs1 end;
 
+fun prep_destination "" = NONE
+  | prep_destination "-" = NONE
+  | prep_destination s = SOME (Path.explode s);
+
 fun export_code thy cs seris =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-    fun mk_seri_dest dest = if dest = "" orelse dest = "-" then export
-      else file (Path.explode dest);
-    val _ = map (fn (((target, module), dest), args) =>
-      (mk_seri_dest dest (serialize thy target NONE module args naming program names_cs))) seris;
+    val _ = map (fn (((target, module_name), some_path), args) =>
+      export_code_for thy some_path target NONE module_name args naming program names_cs) seris;
   in () end;
 
-fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs) seris;
+fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs)
+  ((map o apfst o apsnd) prep_destination seris);
+
+fun produce_code thy cs names_stmt target some_width some_module_name args =
+  let
+    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
+  in produce_code_for thy target some_width some_module_name args naming program (names_cs, names_stmt naming) end;
 
 fun check_code thy cs seris =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-    val _ = map (fn ((target, strict), args) => check thy names_cs naming program
-      target strict args) seris;
+    val _ = map (fn ((target, strict), args) =>
+      check_code_for thy target strict args naming program names_cs) seris;
   in () end;
 
 fun check_code_cmd raw_cs seris thy = check_code thy (read_const_exprs thy raw_cs) seris;

@@ -315,8 +315,8 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
 
 fun serialize_haskell module_prefix module_name string_classes labelled_name
     raw_reserved includes module_alias
-    syntax_class syntax_tyco syntax_const (code_of_pretty, code_writeln) program
-    (stmt_names, presentation_stmt_names) destination =
+    syntax_class syntax_tyco syntax_const program
+    (stmt_names, presentation_stmt_names) =
   let
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
@@ -375,28 +375,26 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
           | (_, (_, NONE)) => NONE) stmts);
     val serialize_module =
       if null presentation_stmt_names then serialize_module1 else pair "" o serialize_module2;
-    fun check_destination destination =
-      (File.check destination; destination);
-    fun write_module destination (modlname, content) =
-      let
-        val filename = case modlname
-         of "" => Path.explode "Main.hs"
-          | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
-                o Long_Name.explode) modlname;
-        val pathname = Path.append destination filename;
-        val _ = File.mkdir_leaf (Path.dir pathname);
-      in File.write pathname
-        ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
-          ^ code_of_pretty content)
-      end
+    fun write_module width (SOME destination) (modlname, content) =
+          let
+            val _ = File.check destination;
+            val filename = case modlname
+             of "" => Path.explode "Main.hs"
+              | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
+                    o Long_Name.explode) modlname;
+            val pathname = Path.append destination filename;
+            val _ = File.mkdir_leaf (Path.dir pathname);
+          in File.write pathname
+            ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
+              ^ string_of_pretty width content)
+          end
+      | write_module width NONE (_, content) = writeln_pretty width content;
   in
-    Code_Target.mk_serialization target
-      (fn NONE => K () o map (code_writeln o (fn p => Pretty.block [p, Pretty.fbrk]) o snd)
-        | SOME file => K () o map (write_module (check_destination file)))
-      (rpair [] o cat_lines o map (code_of_pretty o snd))
+    Code_Target.serialization
+      (fn width => fn destination => K () o map (write_module width destination))
+      (fn width => rpair [] o cat_lines o map (string_of_pretty width o snd))
       (map (uncurry print_module) includes
         @ map serialize_module (Symtab.dest hs_program))
-      destination
   end;
 
 val literals = let
