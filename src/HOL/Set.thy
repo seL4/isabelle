@@ -268,7 +268,7 @@ parse_translation {*
 
     fun setcompr_tr [e, idts, b] =
       let
-        val eq = Syntax.const @{const_syntax "op ="} $ Bound (nvars idts) $ e;
+        val eq = Syntax.const @{const_syntax HOL.eq} $ Bound (nvars idts) $ e;
         val P = Syntax.const @{const_syntax HOL.conj} $ eq $ b;
         val exP = ex_tr [idts, P];
       in Syntax.const @{const_syntax Collect} $ Term.absdummy (dummyT, exP) end;
@@ -289,7 +289,7 @@ let
     let
       fun check (Const (@{const_syntax Ex}, _) $ Abs (_, _, P), n) = check (P, n + 1)
         | check (Const (@{const_syntax HOL.conj}, _) $
-              (Const (@{const_syntax "op ="}, _) $ Bound m $ e) $ P, n) =
+              (Const (@{const_syntax HOL.eq}, _) $ Bound m $ e) $ P, n) =
             n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
             subset (op =) (0 upto (n - 1), add_loose_bnos (e, 0, []))
         | check _ = false;

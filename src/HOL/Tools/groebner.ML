@@ -409,7 +409,7 @@ fun is_neg t =
     | _  => false;
 fun is_eq t =
  case term_of t of
- (Const(@{const_name "op ="},_)$_$_) => true
+ (Const(@{const_name HOL.eq},_)$_$_) => true
 | _  => false;
 
 fun end_itlist f l =
@@ -923,7 +923,7 @@ end;
 
 fun find_term bounds tm =
   (case term_of tm of
-    Const (@{const_name "op ="}, T) $ _ $ _ =>
+    Const (@{const_name HOL.eq}, T) $ _ $ _ =>
       if domain_type T = HOLogic.boolT then find_args bounds tm
       else dest_arg tm
   | Const (@{const_name Not}, _) $ _ => find_term bounds (dest_arg tm)
@@ -985,7 +985,7 @@ fun ring_tac add_ths del_ths ctxt =
 
 local
  fun lhs t = case term_of t of
-  Const(@{const_name "op ="},_)$_$_ => Thm.dest_arg1 t
+  Const(@{const_name HOL.eq},_)$_$_ => Thm.dest_arg1 t
  | _=> raise CTERM ("ideal_tac - lhs",[t])
  fun exitac NONE = no_tac
    | exitac (SOME y) = rtac (instantiate' [SOME (ctyp_of_term y)] [NONE,SOME y] exI) 1

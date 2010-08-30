@@ -447,7 +447,7 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
                 val t1 = incr_boundvars n t1
                 val t2 = incr_boundvars n t2
                 val xs = map Bound (n - 1 downto 0)
-                val equation = Const (@{const_name "op ="},
+                val equation = Const (@{const_name HOL.eq},
                                       body_T --> body_T --> bool_T)
                                    $ betapplys (t1, xs) $ betapplys (t2, xs)
                 val t =
@@ -515,9 +515,9 @@ fun nut_from_term (hol_ctxt as {thy, ctxt, stds, fast_descrs, ...}) eq =
           do_description_operator The @{const_name undefined_fast_The} x t1
         | (Const (x as (@{const_name Eps}, _)), [t1]) =>
           do_description_operator Eps @{const_name undefined_fast_Eps} x t1
-        | (Const (@{const_name "op ="}, T), [t1]) =>
+        | (Const (@{const_name HOL.eq}, T), [t1]) =>
           Op1 (SingletonSet, range_type T, Any, sub t1)
-        | (Const (@{const_name "op ="}, T), [t1, t2]) => sub_equals T t1 t2
+        | (Const (@{const_name HOL.eq}, T), [t1, t2]) => sub_equals T t1 t2
         | (Const (@{const_name HOL.conj}, _), [t1, t2]) =>
           Op2 (And, bool_T, Any, sub' t1, sub' t2)
         | (Const (@{const_name HOL.disj}, _), [t1, t2]) =>

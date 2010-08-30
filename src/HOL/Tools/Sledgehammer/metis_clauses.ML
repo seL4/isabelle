@@ -94,7 +94,7 @@ fun union_all xss = fold (union (op =)) xss []
 val const_trans_table =
   Symtab.make [(@{type_name Product_Type.prod}, "prod"),
                (@{type_name Sum_Type.sum}, "sum"),
-               (@{const_name "op ="}, "equal"),
+               (@{const_name HOL.eq}, "equal"),
                (@{const_name HOL.conj}, "and"),
                (@{const_name HOL.disj}, "or"),
                (@{const_name HOL.implies}, "implies"),
@@ -111,7 +111,7 @@ val const_trans_table =
 
 (* Invert the table of translations between Isabelle and ATPs. *)
 val const_trans_table_inv =
-  Symtab.update ("fequal", @{const_name "op ="})
+  Symtab.update ("fequal", @{const_name HOL.eq})
                 (Symtab.make (map swap (Symtab.dest const_trans_table)))
 
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
@@ -185,8 +185,8 @@ fun lookup_const c =
     SOME c' => c'
   | NONE => ascii_of c
 
-(* "op =" MUST BE "equal" because it's built into ATPs. *)
-fun make_fixed_const @{const_name "op ="} = "equal"
+(* HOL.eq MUST BE "equal" because it's built into ATPs. *)
+fun make_fixed_const @{const_name HOL.eq} = "equal"
   | make_fixed_const c = const_prefix ^ lookup_const c
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c

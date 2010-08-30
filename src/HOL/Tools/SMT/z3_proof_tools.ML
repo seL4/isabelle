@@ -199,7 +199,7 @@ fun abstract (ext_logic, with_theories) =
       | @{term HOL.conj} $ _ $ _ => abstr2 cvs ct
       | @{term HOL.disj} $ _ $ _ => abstr2 cvs ct
       | @{term HOL.implies} $ _ $ _ => abstr2 cvs ct
-      | Const (@{const_name "op ="}, _) $ _ $ _ => abstr2 cvs ct
+      | Const (@{const_name HOL.eq}, _) $ _ $ _ => abstr2 cvs ct
       | Const (@{const_name distinct}, _) $ _ =>
           if ext_logic then abs_arg (abs_list abstr fresh_abstraction) cvs ct
           else fresh_abstraction cvs ct

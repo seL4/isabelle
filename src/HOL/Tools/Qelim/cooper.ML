@@ -122,8 +122,8 @@ fun whatis x ct =
 ( case (term_of ct) of
   Const(@{const_name HOL.conj},_)$_$_ => And (Thm.dest_binop ct)
 | Const (@{const_name HOL.disj},_)$_$_ => Or (Thm.dest_binop ct)
-| Const (@{const_name "op ="},_)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
-| Const (@{const_name Not},_) $ (Const (@{const_name "op ="},_)$y$_) =>
+| Const (@{const_name HOL.eq},_)$y$_ => if term_of x aconv y then Eq (Thm.dest_arg ct) else Nox
+| Const (@{const_name Not},_) $ (Const (@{const_name HOL.eq},_)$y$_) =>
   if term_of x aconv y then NEq (funpow 2 Thm.dest_arg ct) else Nox
 | Const (@{const_name Orderings.less}, _) $ y$ z =>
    if term_of x aconv y then Lt (Thm.dest_arg ct)
@@ -274,7 +274,7 @@ fun lin (vs as x::_) (Const (@{const_name Not}, _) $ (Const (@{const_name Orderi
   | lin vs (Const (@{const_name Not},T)$t) = Const (@{const_name Not},T)$ (lin vs t)
   | lin (vs as x::_) (Const(@{const_name Rings.dvd},_)$d$t) =
     HOLogic.mk_binrel @{const_name Rings.dvd} (numeral1 abs d, lint vs t)
-  | lin (vs as x::_) ((b as Const(@{const_name "op ="},_))$s$t) =
+  | lin (vs as x::_) ((b as Const(@{const_name HOL.eq},_))$s$t) =
      (case lint vs (subC$t$s) of
       (t as a$(m$c$y)$r) =>
         if x <> y then b$zero$t
@@ -345,7 +345,7 @@ fun unify ctxt q =
    case (term_of t) of
     Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
     if x aconv y andalso member (op =)
-      ["op =", @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
+      [@{const_name HOL.eq}, @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
     then (ins (dest_number c) acc,dacc) else (acc,dacc)
   | Const(s,_)$_$(Const(@{const_name Groups.times},_)$c$y) =>
     if x aconv y andalso member (op =)
@@ -387,7 +387,7 @@ fun unify ctxt q =
   | Const (@{const_name Not},_)$_ => Conv.arg_conv unit_conv t
   | Const(s,_)$(Const(@{const_name Groups.times},_)$c$y)$ _ =>
     if x=y andalso member (op =)
-      ["op =", @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
+      [@{const_name HOL.eq}, @{const_name Orderings.less}, @{const_name Orderings.less_eq}] s
     then cv (l div dest_number c) t else Thm.reflexive t
   | Const(s,_)$_$(Const(@{const_name Groups.times},_)$c$y) =>
     if x=y andalso member (op =)

@@ -411,7 +411,7 @@ fun conjuncts_aux (Const (@{const_name HOL.conj}, _) $ t $ t') conjs = conjuncts
 fun conjuncts t = conjuncts_aux t [];
 
 fun is_equationlike_term (Const ("==", _) $ _ $ _) = true
-  | is_equationlike_term (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _)) = true
+  | is_equationlike_term (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) = true
   | is_equationlike_term _ = false
   
 val is_equationlike = is_equationlike_term o prop_of 

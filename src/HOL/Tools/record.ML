@@ -1342,7 +1342,7 @@ end;
 val eq_simproc =
   Simplifier.simproc_global @{theory HOL} "record_eq_simp" ["r = s"]
     (fn thy => fn _ => fn t =>
-      (case t of Const (@{const_name "op ="}, Type (_, [T, _])) $ _ $ _ =>
+      (case t of Const (@{const_name HOL.eq}, Type (_, [T, _])) $ _ $ _ =>
         (case rec_id ~1 T of
           "" => NONE
         | name =>
@@ -1405,12 +1405,12 @@ val ex_sel_eq_simproc =
                 else raise TERM ("", [x]);
               val sel' = Const (sel, Tsel) $ Bound 0;
               val (l, r) = if lr then (sel', x') else (x', sel');
-            in Const (@{const_name "op ="}, Teq) $ l $ r end
+            in Const (@{const_name HOL.eq}, Teq) $ l $ r end
           else raise TERM ("", [Const (sel, Tsel)]);
 
-        fun dest_sel_eq (Const (@{const_name "op ="}, Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
+        fun dest_sel_eq (Const (@{const_name HOL.eq}, Teq) $ (Const (sel, Tsel) $ Bound 0) $ X) =
               (true, Teq, (sel, Tsel), X)
-          | dest_sel_eq (Const (@{const_name "op ="}, Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
+          | dest_sel_eq (Const (@{const_name HOL.eq}, Teq) $ X $ (Const (sel, Tsel) $ Bound 0)) =
               (false, Teq, (sel, Tsel), X)
           | dest_sel_eq _ = raise TERM ("", []);
       in
@@ -1845,7 +1845,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
     val eq =
       (HOLogic.mk_Trueprop o HOLogic.mk_eq)
         (Const (@{const_name HOL.equal}, extT --> extT --> HOLogic.boolT),
-         Const (@{const_name "op ="}, extT --> extT --> HOLogic.boolT));
+         Const (@{const_name HOL.eq}, extT --> extT --> HOLogic.boolT));
     fun tac eq_def =
       Class.intro_classes_tac []
       THEN (Simplifier.rewrite_goals_tac [Simpdata.mk_eq eq_def])

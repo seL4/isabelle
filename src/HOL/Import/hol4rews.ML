@@ -627,7 +627,7 @@ local
         thy |> add_hol4_type_mapping "min" "bool" false @{type_name bool}
             |> add_hol4_type_mapping "min" "fun" false "fun"
             |> add_hol4_type_mapping "min" "ind" false @{type_name ind}
-            |> add_hol4_const_mapping "min" "=" false @{const_name "op ="}
+            |> add_hol4_const_mapping "min" "=" false @{const_name HOL.eq}
             |> add_hol4_const_mapping "min" "==>" false @{const_name HOL.implies}
             |> add_hol4_const_mapping "min" "@" false @{const_name "Eps"}
 in

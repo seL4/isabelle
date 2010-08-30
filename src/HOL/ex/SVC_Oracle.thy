@@ -94,7 +94,7 @@ fun svc_abstract t =
       | fm ((c as Const(@{const_name Not}, _)) $ p) = c $ (fm p)
       | fm ((c as Const(@{const_name True}, _))) = c
       | fm ((c as Const(@{const_name False}, _))) = c
-      | fm (t as Const(@{const_name "op ="},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const(@{const_name HOL.eq},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm (t as Const(@{const_name Orderings.less},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm (t as Const(@{const_name Orderings.less_eq}, Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm t = replace t

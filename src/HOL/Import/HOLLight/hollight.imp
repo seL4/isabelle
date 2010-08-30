@@ -234,7 +234,7 @@ const_maps
   ">=" > "HOLLight.hollight.>="
   ">" > "HOLLight.hollight.>"
   "==>" > HOL.implies
-  "=" > "op ="
+  "=" > HOL.eq
   "<=" > "HOLLight.hollight.<="
   "<" > "HOLLight.hollight.<"
   "/\\" > HOL.conj

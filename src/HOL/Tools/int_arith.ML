@@ -51,7 +51,7 @@ val one_to_of_int_one_simproc =
 
 fun check (Const (@{const_name Groups.one}, @{typ int})) = false
   | check (Const (@{const_name Groups.one}, _)) = true
-  | check (Const (s, _)) = member (op =) [@{const_name "op ="},
+  | check (Const (s, _)) = member (op =) [@{const_name HOL.eq},
       @{const_name Groups.times}, @{const_name Groups.uminus},
       @{const_name Groups.minus}, @{const_name Groups.plus},
       @{const_name Groups.zero},

@@ -179,7 +179,7 @@ fun translate_term ctxt constant_table t =
 
 fun translate_literal ctxt constant_table t =
   case strip_comb t of
-    (Const (@{const_name "op ="}, _), [l, r]) =>
+    (Const (@{const_name HOL.eq}, _), [l, r]) =>
       let
         val l' = translate_term ctxt constant_table l
         val r' = translate_term ctxt constant_table r

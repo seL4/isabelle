@@ -3305,7 +3305,7 @@ ML {*
                              (Const (@{const_name Set.member}, _) $
                               Free (name, _) $ _)) = name
         | variable_of_bound (Const (@{const_name Trueprop}, _) $
-                             (Const (@{const_name "op ="}, _) $
+                             (Const (@{const_name HOL.eq}, _) $
                               Free (name, _) $ _)) = name
         | variable_of_bound t = raise TERM ("variable_of_bound", [t])
 

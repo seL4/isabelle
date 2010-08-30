@@ -190,9 +190,9 @@ end
 
 fun mk_All  (x,P) = %%:"all" $ mk_lam(x,P); (* meta universal quantification *)
 
-infixr 0 ===>;  fun S ===> T = %%:"==>" $ S $ T;
-infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
-infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
+infixr 0 ===>;  fun S ===> T = %%: "==>" $ S $ T;
+infix 0 ==;     fun S ==  T = %%: "==" $ S $ T;
+infix 1 ===;    fun S === T = %%: @{const_name HOL.eq} $ S $ T;
 infix 1 ~=;     fun S ~=  T = HOLogic.mk_not (S === T);
 
 infix 9 `  ; fun f ` x = %%: @{const_name Rep_CFun} $ f $ x;

@@ -123,7 +123,7 @@ fun kodkod_formula_from_term ctxt card frees =
          Exist (decls_for SRep card Ts T, to_F (T :: Ts) t')
        | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
          to_F Ts (t0 $ eta_expand Ts t1 1)
-       | Const (@{const_name "op ="}, _) $ t1 $ t2 =>
+       | Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>
          RelEq (to_R_rep Ts t1, to_R_rep Ts t2)
        | Const (@{const_name ord_class.less_eq},
                 Type (@{type_name fun},
@@ -165,8 +165,8 @@ fun kodkod_formula_from_term ctxt card frees =
          @{const Not} => to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name All}, _) => to_R_rep Ts (eta_expand Ts t 1)
        | Const (@{const_name Ex}, _) => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (@{const_name "op ="}, _) $ _ => to_R_rep Ts (eta_expand Ts t 1)
-       | Const (@{const_name "op ="}, _) => to_R_rep Ts (eta_expand Ts t 2)
+       | Const (@{const_name HOL.eq}, _) $ _ => to_R_rep Ts (eta_expand Ts t 1)
+       | Const (@{const_name HOL.eq}, _) => to_R_rep Ts (eta_expand Ts t 2)
        | Const (@{const_name ord_class.less_eq},
                 Type (@{type_name fun},
                       [Type (@{type_name fun}, [_, @{typ bool}]), _])) $ _ =>

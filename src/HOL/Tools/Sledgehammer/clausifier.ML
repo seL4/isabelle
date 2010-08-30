@@ -83,7 +83,7 @@ val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
    (Cf. "extensionalize_term" in "Sledgehammer_Translate".) *)
 fun extensionalize_theorem th =
   case prop_of th of
-    _ $ (Const (@{const_name "op ="}, Type (_, [Type (@{type_name fun}, _), _]))
+    _ $ (Const (@{const_name HOL.eq}, Type (_, [Type (@{type_name fun}, _), _]))
          $ _ $ Abs (s, _, _)) => extensionalize_theorem (th RS fun_cong_all)
   | _ => th
 

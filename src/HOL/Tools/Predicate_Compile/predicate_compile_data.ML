@@ -111,7 +111,7 @@ fun defining_const_of_equation th =
 
 fun mk_meta_equation th =
   case prop_of th of
-    Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _) => th RS @{thm eq_reflection}
+    Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _) => th RS @{thm eq_reflection}
   | _ => th
 
 val meta_fun_cong = @{lemma "f == g ==> f x == g x" by simp}
@@ -217,7 +217,7 @@ val logic_operator_names =
    @{const_name "==>"},
    @{const_name Trueprop},
    @{const_name Not},
-   @{const_name "op ="},
+   @{const_name HOL.eq},
    @{const_name HOL.implies},
    @{const_name All},
    @{const_name Ex}, 

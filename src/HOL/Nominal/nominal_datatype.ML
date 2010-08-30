@@ -183,7 +183,7 @@ fun perm_of_pair (x, y) =
   end;
 
 fun mk_not_sym ths = maps (fn th => case prop_of th of
-    _ $ (Const (@{const_name Not}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _)) => [th, th RS not_sym]
+    _ $ (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) => [th, th RS not_sym]
   | _ => [th]) ths;
 
 fun fresh_const T U = Const ("Nominal.fresh", T --> U --> HOLogic.boolT);

@@ -116,7 +116,7 @@ fun conj_aci_rule eq =
 fun contains x ct = member (op aconv) (OldTerm.term_frees (term_of ct)) (term_of x);
 
 fun is_eqx x eq = case term_of eq of
-   Const(@{const_name "op ="},_)$l$r => l aconv term_of x orelse r aconv term_of x
+   Const(@{const_name HOL.eq},_)$l$r => l aconv term_of x orelse r aconv term_of x
  | _ => false ;
 
 local 
@@ -176,7 +176,7 @@ val grab_atom_bop =
  let
   fun h bounds tm =
    (case term_of tm of
-     Const (@{const_name "op ="}, T) $ _ $ _ =>
+     Const (@{const_name HOL.eq}, T) $ _ $ _ =>
        if domain_type T = HOLogic.boolT then find_args bounds tm
        else Thm.dest_fun2 tm
    | Const (@{const_name Not}, _) $ _ => h bounds (Thm.dest_arg tm)

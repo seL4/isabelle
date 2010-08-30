@@ -267,7 +267,7 @@ in
   map_types (Envir.subst_type ty_inst) trm
 end
 
-fun is_eq (Const (@{const_name "op ="}, _)) = true
+fun is_eq (Const (@{const_name HOL.eq}, _)) = true
   | is_eq _ = false
 
 fun mk_rel_compose (trm1, trm2) =
@@ -539,12 +539,12 @@ fun regularize_trm ctxt (rtrm, qtrm) =
        end
 
   | (* equalities need to be replaced by appropriate equivalence relations *)
-    (Const (@{const_name "op ="}, ty), Const (@{const_name "op ="}, ty')) =>
+    (Const (@{const_name HOL.eq}, ty), Const (@{const_name HOL.eq}, ty')) =>
          if ty = ty' then rtrm
          else equiv_relation ctxt (domain_type ty, domain_type ty')
 
   | (* in this case we just check whether the given equivalence relation is correct *)
-    (rel, Const (@{const_name "op ="}, ty')) =>
+    (rel, Const (@{const_name HOL.eq}, ty')) =>
        let
          val rel_ty = fastype_of rel
          val rel' = equiv_relation_chk ctxt (domain_type rel_ty, domain_type ty')
@@ -680,7 +680,7 @@ fun inj_repabs_trm ctxt (rtrm, qtrm) =
         if T = T' then rtrm
         else mk_repabs ctxt (T, T') rtrm
 
-  | (_, Const (@{const_name "op ="}, _)) => rtrm
+  | (_, Const (@{const_name HOL.eq}, _)) => rtrm
 
   | (_, Const (_, T')) =>
       let

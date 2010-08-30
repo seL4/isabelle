@@ -176,7 +176,7 @@ val mk_iff = Thm.mk_binop @{cterm "op = :: bool => _"}
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = mk_inst_pair destT1 @{cpat "op ="}
+val eq = mk_inst_pair destT1 @{cpat HOL.eq}
 fun mk_eq ct cu = Thm.mk_binop (instT' ct eq) ct cu
 
 val if_term = mk_inst_pair (destT1 o destT2) @{cpat If}

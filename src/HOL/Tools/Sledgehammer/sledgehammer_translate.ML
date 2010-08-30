@@ -73,7 +73,7 @@ fun combformula_for_prop thy =
       | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd t1 t2
       | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr t1 t2
       | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies t1 t2
-      | Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
+      | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
         do_conn bs AIff t1 t2
       | _ => (fn ts => do_term bs (Envir.eta_contract t)
                        |>> AAtom ||> union (op =) ts)
@@ -97,7 +97,7 @@ fun extensionalize_term t =
       | aux j (t as Const (s, Type (_, [Type (_, [_, T']),
                                         Type (_, [_, res_T])]))
                     $ t2 $ Abs (var_s, var_T, t')) =
-        if s = @{const_name "op ="} orelse s = @{const_name "=="} then
+        if s = @{const_name HOL.eq} orelse s = @{const_name "=="} then
           let val var_t = Var ((var_s, j), var_T) in
             Const (s, T' --> T' --> res_T)
               $ betapply (t2, var_t) $ subst_bound (var_t, t')
@@ -128,7 +128,7 @@ fun introduce_combinators_in_term ctxt kind t =
           | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
           | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
           | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])))
+          | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
               $ t1 $ t2 =>
             t0 $ aux Ts t1 $ aux Ts t2
           | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then

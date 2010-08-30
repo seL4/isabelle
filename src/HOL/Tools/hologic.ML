@@ -236,10 +236,10 @@ fun dest_imp (Const ("HOL.implies", _) $ A $ B) = (A, B)
 fun dest_not (Const ("HOL.Not", _) $ t) = t
   | dest_not t = raise TERM ("dest_not", [t]);
 
-fun eq_const T = Const ("op =", T --> T --> boolT);
+fun eq_const T = Const ("HOL.eq", T --> T --> boolT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
-fun dest_eq (Const ("op =", _) $ lhs $ rhs) = (lhs, rhs)
+fun dest_eq (Const ("HOL.eq", _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
 fun all_const T = Const ("HOL.All", [T --> boolT] ---> boolT);

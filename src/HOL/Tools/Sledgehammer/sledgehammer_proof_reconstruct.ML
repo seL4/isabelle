@@ -315,7 +315,7 @@ fun raw_term_from_pred thy full_types tfrees =
           | _ => raise FO_TERM us
         else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>
-          list_comb (Const (@{const_name "op ="}, HOLogic.typeT),
+          list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT),
                      map (aux NONE []) us)
         | SOME b =>
           let
@@ -527,7 +527,7 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
 (* Vampire is keen on producing these. *)
-fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
+fun is_trivial_formula (@{const Not} $ (Const (@{const_name HOL.eq}, _)
                                         $ t1 $ t2)) = (t1 aconv t2)
   | is_trivial_formula _ = false
 

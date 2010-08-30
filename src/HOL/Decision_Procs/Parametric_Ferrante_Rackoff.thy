@@ -912,7 +912,7 @@ lemma islin_stupid: assumes nb: "tmbound0 p"
 
 definition "lt p = (case p of CP (C c) \<Rightarrow> if 0>\<^sub>N c then T else F| _ \<Rightarrow> Lt p)"
 definition "le p = (case p of CP (C c) \<Rightarrow> if 0\<ge>\<^sub>N c then T else F | _ \<Rightarrow> Le p)"
-definition "eq p = (case p of CP (C c) \<Rightarrow> if c = 0\<^sub>N then T else F | _ \<Rightarrow> Eq p)"
+definition eq where "eq p = (case p of CP (C c) \<Rightarrow> if c = 0\<^sub>N then T else F | _ \<Rightarrow> Eq p)"
 definition "neq p = not (eq p)"
 
 lemma lt: "allpolys isnpoly p \<Longrightarrow> Ifm vs bs (lt p) = Ifm vs bs (Lt p)"
@@ -2960,7 +2960,7 @@ val impt = @{term HOL.implies};
 val ifft = @{term "op = :: bool => _"}
 fun llt rT = Const(@{const_name Orderings.less},rrT rT);
 fun lle rT = Const(@{const_name Orderings.less},rrT rT);
-fun eqt rT = Const(@{const_name "op ="},rrT rT);
+fun eqt rT = Const(@{const_name HOL.eq},rrT rT);
 fun rz rT = Const(@{const_name Groups.zero},rT);
 
 fun dest_nat t = case t of
@@ -3021,7 +3021,7 @@ fun fm_of_term m m' fm =
   | Const(@{const_name HOL.conj},_)$p$q => @{code And} (fm_of_term m m' p, fm_of_term m m' q)
   | Const(@{const_name HOL.disj},_)$p$q => @{code Or} (fm_of_term m m' p, fm_of_term m m' q)
   | Const(@{const_name HOL.implies},_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const(@{const_name "op ="},ty)$p$q => 
+  | Const(@{const_name HOL.eq},ty)$p$q => 
        if domain_type ty = bT then @{code Iff} (fm_of_term m m' p, fm_of_term m m' q)
        else @{code Eq} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const(@{const_name Orderings.less},_)$p$q => 
