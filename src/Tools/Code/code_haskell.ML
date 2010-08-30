@@ -391,7 +391,7 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
       end
   in
     Code_Target.mk_serialization
-      (fn width => (fn NONE => K () o map (code_writeln o (fn p => Pretty.block [p, Pretty.fbrk]) o snd)
+      (fn width => (fn NONE => K () o map (code_writeln o snd)
         | SOME file => K () o map (write_module (check_destination file))))
       (fn width => (rpair [] o cat_lines o map (code_of_pretty o snd)))
       (map (uncurry print_module) includes

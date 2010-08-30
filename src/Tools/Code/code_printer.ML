@@ -124,7 +124,7 @@ fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
 fun string_of_pretty width p = Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
-fun writeln_pretty width p = writeln (Print_Mode.setmp [] (Pretty.string_of_margin width) p);
+fun writeln_pretty width p = writeln (string_of_pretty width p);
 
 
 (** names and variable name contexts **)
