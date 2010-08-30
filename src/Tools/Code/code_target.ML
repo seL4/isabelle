@@ -1,8 +1,7 @@
 (*  Title:      Tools/Code/code_target.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Generic infrastructure for serializers from intermediate language ("Thin-gol"
-to target languages.
+Generic infrastructure for target language data.
 *)
 
 signature CODE_TARGET =
@@ -24,9 +23,9 @@ sig
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val stmt_names_of_destination: destination -> string list
-  val mk_serialization: string -> (Path.T option -> 'a -> unit)
-    -> ('a -> string * string option list)
-    -> 'a -> serialization
+  val mk_serialization: (int -> Path.T option -> 'a -> unit)
+    -> (int -> 'a -> string * string option list)
+    -> 'a -> int -> serialization
   val serialize: theory -> string -> int option -> string option -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
   val serialize_custom: theory -> string * serializer -> string option
@@ -64,19 +63,18 @@ type const_syntax = Code_Printer.const_syntax;
 
 (** basics **)
 
-datatype destination = Export | File of Path.T | String of string list;
+datatype destination = File of Path.T option | String of string list;
 type serialization = destination -> (string * string option list) option;
 
-fun export f = (f Export; ());
-fun file p f = (f (File p); ());
+fun export f = (f (File NONE); ());
+fun file p f = (f (File (SOME p)); ());
 fun string stmts f = fst (the (f (String stmts)));
 
 fun stmt_names_of_destination (String stmts) = stmts
   | stmt_names_of_destination _ = [];
 
-fun mk_serialization target output _ code Export = (output NONE code ; NONE)
-  | mk_serialization target output _ code (File file) = (output (SOME file) code; NONE)
-  | mk_serialization target _ string code (String _) = SOME (string code);
+fun mk_serialization output _ code width (File p) = (output width p code; NONE)
+  | mk_serialization _ string code width (String _) = SOME (string width code);
 
 
 (** theory data **)
@@ -115,10 +113,11 @@ type serializer =
   -> ((Pretty.T -> string) * (Pretty.T -> unit))
   -> Code_Thingol.program
   -> (string list * string list)        (*selected statements*)
+  -> int
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer,
-      literals: Code_Printer.literals,
+      literals: literals,
       check: { env_var: string, make_destination: Path.T -> Path.T,
         make_command: string -> string -> string } }
   | Extension of string *
@@ -259,7 +258,7 @@ fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
   |>> map_filter I;
 
 fun invoke_serializer thy abortable serializer literals reserved abs_includes 
-    module_alias class instance tyco const module_name width args naming program2 (names1, presentation_names) =
+    module_alias class instance tyco const module_name args naming program2 (names1, presentation_names) width =
   let
     val (names_class, class') =
       activate_syntax (Code_Thingol.lookup_class naming) class;
@@ -284,7 +283,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       (if is_some module_name then K module_name else Symtab.lookup module_alias)
       (Symtab.lookup class') (Symtab.lookup tyco') (Symtab.lookup const')
       (Code_Printer.string_of_pretty width, Code_Printer.writeln_pretty width)
-      program4 (names1, presentation_names)
+      program4 (names1, presentation_names) width
   end;
 
 fun mount_serializer thy alt_serializer target some_width raw_module_name args naming program names destination =
@@ -322,8 +321,8 @@ fun mount_serializer thy alt_serializer target some_width raw_module_name args n
     val width = the_default default_width some_width;
   in
     invoke_serializer thy abortable serializer literals reserved
-      includes module_alias class instance tyco const module_name width args
-        naming (modify program) (names, presentation_names) destination
+      includes module_alias class instance tyco const module_name args
+        naming (modify program) (names, presentation_names) width destination
   end;
 
 in

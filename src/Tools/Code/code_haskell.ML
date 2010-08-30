@@ -316,7 +316,7 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
 fun serialize_haskell module_prefix module_name string_classes labelled_name
     raw_reserved includes module_alias
     syntax_class syntax_tyco syntax_const (code_of_pretty, code_writeln) program
-    (stmt_names, presentation_stmt_names) destination =
+    (stmt_names, presentation_stmt_names) width =
   let
     val reserved = fold (insert (op =) o fst) includes raw_reserved;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
@@ -390,13 +390,13 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
           ^ code_of_pretty content)
       end
   in
-    Code_Target.mk_serialization target
-      (fn NONE => K () o map (code_writeln o (fn p => Pretty.block [p, Pretty.fbrk]) o snd)
-        | SOME file => K () o map (write_module (check_destination file)))
-      (rpair [] o cat_lines o map (code_of_pretty o snd))
+    Code_Target.mk_serialization
+      (fn width => (fn NONE => K () o map (code_writeln o (fn p => Pretty.block [p, Pretty.fbrk]) o snd)
+        | SOME file => K () o map (write_module (check_destination file))))
+      (fn width => (rpair [] o cat_lines o map (code_of_pretty o snd)))
       (map (uncurry print_module) includes
         @ map serialize_module (Symtab.dest hs_program))
-      destination
+      width
   end;
 
 val literals = let
