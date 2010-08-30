@@ -175,7 +175,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                   text_area.offsetToXY(line_start max snapshot.convert(command_start))
                 val q =
                   text_area.offsetToXY(line_end min snapshot.convert(command_start + command.length))
-                assert(p.y == q.y)
+                if (p.y != q.y) System.err.println("Unexpected coordinates: " + p + ", " + q)
                 gfx.setColor(Document_View.choose_color(snapshot, command))
                 gfx.fillRect(p.x, y, q.x - p.x, line_height)
               }
