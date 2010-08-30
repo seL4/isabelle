@@ -79,11 +79,8 @@ fun escape x = #escape (get_mode ()) x;
 
 (* output primitives -- normally NOT used directly!*)
 
-fun std_output s = NAMED_CRITICAL "IO" (fn () =>
-  (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut));
-
-fun std_error s = NAMED_CRITICAL "IO" (fn () =>
-  (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr));
+fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
 fun writeln_default "" = ()
   | writeln_default s = std_output (suffix "\n" s);

@@ -57,9 +57,18 @@ object Document_Model
 
     /* line context */
 
-    private val rule_set = new ParserRuleSet("isabelle", "MAIN")
-    class LineContext(val line: Int, prev: LineContext)
-      extends TokenMarker.LineContext(rule_set, prev)
+    private val dummy_rules = new ParserRuleSet("isabelle", "MAIN")
+
+    class Line_Context(val line: Int, prev: Line_Context)
+      extends TokenMarker.LineContext(dummy_rules, prev)
+    {
+      override def hashCode: Int = line
+      override def equals(that: Any) =
+        that match {
+          case other: Line_Context => line == other.line
+          case _ => false
+        }
+    }
 
 
     /* mapping to jEdit token types */
@@ -256,18 +265,15 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
     override def markTokens(prev: TokenMarker.LineContext,
         handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
     {
-      // FIXME proper synchronization / thread context (!??)
-      val snapshot = Swing_Thread.now { Document_Model.this.snapshot() }
+      Isabelle.swing_buffer_lock(buffer) {
+        val snapshot = Document_Model.this.snapshot()
 
-      Isabelle.buffer_read_lock(buffer) {
-        val previous = prev.asInstanceOf[Document_Model.Token_Markup.LineContext]
+        val previous = prev.asInstanceOf[Document_Model.Token_Markup.Line_Context]
         val line = if (prev == null) 0 else previous.line + 1
-        val context = new Document_Model.Token_Markup.LineContext(line, previous)
+        val context = new Document_Model.Token_Markup.Line_Context(line, previous)
 
         val start = buffer.getLineStartOffset(line)
         val stop = start + line_segment.count
-        val range = Text.Range(start, stop)
-        val former_range = snapshot.revert(range)
 
         /* FIXME
         for (text_area <- Isabelle.jedit_text_areas(buffer)
@@ -290,27 +296,16 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
             Document_Model.Token_Markup.token_style(name)
         }
 
-        var next_x = start
-        for {
-          (command, command_start) <- snapshot.node.command_range(former_range)
-          info <- snapshot.state(command).markup.
-            select((former_range - command_start).restrict(command.range))(token_markup)(Token.NULL)
-          val Text.Range(abs_start, abs_stop) = snapshot.convert(info.range + command_start)
-          if abs_stop > start && abs_start < stop  // FIXME abs_range overlaps range (redundant!?)
+        var last = start
+        for (token <- snapshot.select_markup(Text.Range(start, stop))(token_markup)(Token.NULL)) {
+          val Text.Range(token_start, token_stop) = token.range
+          if (last < token_start)
+            handle_token(Token.COMMENT1, last - start, token_start - last)
+          handle_token(token.info, token_start - start, token_stop - token_start)
+          last = token_stop
         }
-        {
-          val token_start = (abs_start - start) max 0
-          val token_length =
-            (abs_stop - abs_start) -
-            ((start - abs_start) max 0) -
-            ((abs_stop - stop) max 0)
-          if (start + token_start > next_x)  // FIXME ??
-            handle_token(Token.COMMENT1, next_x - start, start + token_start - next_x)
-          handle_token(info.info, token_start, token_length)
-          next_x = start + token_start + token_length
-        }
-        if (next_x < stop)  // FIXME ??
-          handle_token(Token.COMMENT1, next_x - start, stop - next_x)
+        if (last < stop)
+          handle_token(Token.COMMENT1, last - start, stop - last)
 
         handle_token(Token.END, line_segment.count, 0)
         handler.setLineContext(context)

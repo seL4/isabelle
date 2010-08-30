@@ -112,7 +112,7 @@ object XML
         else
           lookup(x) match {
             case Some(y) => y
-            case None => store(x.map(p => (cache_string(p._1), cache_string(p._2))))
+            case None => store(x.map(p => (cache_string(p._1).intern, cache_string(p._2))))
           }
       def cache_markup(x: Markup): Markup =
         lookup(x) match {

@@ -28,6 +28,7 @@ abstract class Future[A]
 {
   def peek: Option[Exn.Result[A]]
   def is_finished: Boolean = peek.isDefined
+  def get_finished: A = { require(is_finished); Exn.release(peek.get) }
   def join: A
   def map[B](f: A => B): Future[B] = Future.fork { f(join) }
 

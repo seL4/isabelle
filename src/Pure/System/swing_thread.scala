@@ -23,7 +23,7 @@ object Swing_Thread
 
   def now[A](body: => A): A =
   {
-    var result: Option[A] = None
+    @volatile var result: Option[A] = None
     if (SwingUtilities.isEventDispatchThread()) { result = Some(body) }
     else SwingUtilities.invokeAndWait(new Runnable { def run = { result = Some(body) } })
     result.get

@@ -19,6 +19,7 @@ object Session
 
   case object Global_Settings
   case object Perspective
+  case object Assignment
   case class Commands_Changed(set: Set[Command])
 }
 
@@ -44,6 +45,7 @@ class Session(system: Isabelle_System)
   val raw_output = new Event_Bus[Isabelle_Process.Result]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
   val perspective = new Event_Bus[Session.Perspective.type]
+  val assignments = new Event_Bus[Session.Assignment.type]
 
 
   /* unique ids */
@@ -57,17 +59,64 @@ class Session(system: Isabelle_System)
 
 
 
-  /** main actor **/
+  /** buffered command changes (delay_first discipline) **/
+
+  private case object Stop
+
+  private val command_change_buffer = Simple_Thread.actor("command_change_buffer", daemon = true)
+  //{{{
+  {
+    import scala.compat.Platform.currentTime
+
+    var changed: Set[Command] = Set()
+    var flush_time: Option[Long] = None
+
+    def flush_timeout: Long =
+      flush_time match {
+        case None => 5000L
+        case Some(time) => (time - currentTime) max 0
+      }
+
+    def flush()
+    {
+      if (!changed.isEmpty) commands_changed.event(Session.Commands_Changed(changed))
+      changed = Set()
+      flush_time = None
+    }
+
+    def invoke()
+    {
+      val now = currentTime
+      flush_time match {
+        case None => flush_time = Some(now + output_delay)
+        case Some(time) => if (now >= time) flush()
+      }
+    }
+
+    var finished = false
+    while (!finished) {
+      receiveWithin(flush_timeout) {
+        case command: Command => changed += command; invoke()
+        case TIMEOUT => flush()
+        case Stop => finished = true
+        case bad => System.err.println("command_change_buffer: ignoring bad message " + bad)
+      }
+    }
+  }
+  //}}}
+
+
+
+  /** main protocol actor **/
 
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax(): Outer_Syntax = syntax
 
-  @volatile private var global_state = Document.State.init
-  private def change_state(f: Document.State => Document.State) { global_state = f(global_state) }
-  def current_state(): Document.State = global_state
+  private val global_state = new Volatile(Document.State.init)
+  def current_state(): Document.State = global_state.peek()
 
+  private case class Edit_Version(edits: List[Document.Node_Text_Edit])
   private case class Started(timeout: Int, args: List[String])
-  private case object Stop
 
   private val session_actor = Simple_Thread.actor("session_actor", daemon = true)
   {
@@ -79,12 +128,10 @@ class Session(system: Isabelle_System)
     def handle_change(change: Document.Change)
     //{{{
     {
-      require(change.is_finished)
+      val previous = change.previous.get_finished
+      val (node_edits, current) = change.result.get_finished
 
-      val previous = change.previous.join
-      val (node_edits, current) = change.result.join
-
-      var former_assignment = current_state().the_assignment(previous).join
+      var former_assignment = global_state.peek().the_assignment(previous).get_finished
       for {
         (name, Some(cmd_edits)) <- node_edits
         (prev, None) <- cmd_edits
@@ -103,8 +150,8 @@ class Session(system: Isabelle_System)
                     c2 match {
                       case None => None
                       case Some(command) =>
-                        if (current_state().lookup_command(command.id).isEmpty) {
-                          change_state(_.define_command(command))
+                        if (global_state.peek().lookup_command(command.id).isEmpty) {
+                          global_state.change(_.define_command(command))
                           prover.define_command(command.id, system.symbols.encode(command.source))
                         }
                         Some(command.id)
@@ -113,7 +160,7 @@ class Session(system: Isabelle_System)
               }
             (name -> Some(ids))
         }
-      change_state(_.define_version(current, former_assignment))
+      global_state.change(_.define_version(current, former_assignment))
       prover.edit_version(previous.id, current.id, id_edits)
     }
     //}}}
@@ -134,16 +181,18 @@ class Session(system: Isabelle_System)
       result.properties match {
         case Position.Id(state_id) =>
           try {
-            val (st, state) = global_state.accumulate(state_id, result.message)
-            global_state = state
-            indicate_command_change(st.command)
+            val st = global_state.change_yield(_.accumulate(state_id, result.message))
+            command_change_buffer ! st.command
           }
           catch { case _: Document.State.Fail => bad_result(result) }
         case _ =>
           if (result.is_status) {
             result.body match {
               case List(Isar_Document.Assign(id, edits)) =>
-                try { change_state(_.assign(id, edits)) }
+                try {
+                  global_state.change(_.assign(id, edits))
+                  assignments.event(Session.Assignment)
+                }
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
@@ -202,6 +251,24 @@ class Session(system: Isabelle_System)
     var finished = false
     while (!finished) {
       receive {
+        case Edit_Version(edits) =>
+          val previous = global_state.peek().history.tip.current
+          val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
+          val change = global_state.change_yield(_.extend_history(previous, edits, result))
+
+          val this_actor = self
+          change.current.map(_ => {
+            assignments.await { global_state.peek().is_assigned(previous.get_finished) }
+            this_actor ! change })
+
+          reply(())
+
+        case change: Document.Change if prover != null =>
+          handle_change(change)
+
+        case result: Isabelle_Process.Result =>
+          handle_result(result)
+
         case Started(timeout, args) =>
           if (prover == null) {
             prover = new Isabelle_Process(system, self, args:_*) with Isar_Document
@@ -219,99 +286,10 @@ class Session(system: Isabelle_System)
             finished = true
           }
 
-        case change: Document.Change if prover != null =>
-          handle_change(change)
-
-        case result: Isabelle_Process.Result =>
-          handle_result(result)
-
-        case TIMEOUT =>  // FIXME clarify!
+        case TIMEOUT =>  // FIXME clarify
 
         case bad if prover != null =>
           System.err.println("session_actor: ignoring bad message " + bad)
-      }
-    }
-  }
-
-
-
-  /** buffered command changes (delay_first discipline) **/
-
-  private val command_change_buffer = actor
-  //{{{
-  {
-    import scala.compat.Platform.currentTime
-
-    var changed: Set[Command] = Set()
-    var flush_time: Option[Long] = None
-
-    def flush_timeout: Long =
-      flush_time match {
-        case None => 5000L
-        case Some(time) => (time - currentTime) max 0
-      }
-
-    def flush()
-    {
-      if (!changed.isEmpty) commands_changed.event(Session.Commands_Changed(changed))
-      changed = Set()
-      flush_time = None
-    }
-
-    def invoke()
-    {
-      val now = currentTime
-      flush_time match {
-        case None => flush_time = Some(now + output_delay)
-        case Some(time) => if (now >= time) flush()
-      }
-    }
-
-    loop {
-      reactWithin(flush_timeout) {
-        case command: Command => changed += command; invoke()
-        case TIMEOUT => flush()
-        case bad => System.err.println("command_change_buffer: ignoring bad message " + bad)
-      }
-    }
-  }
-  //}}}
-
-  def indicate_command_change(command: Command)
-  {
-    command_change_buffer ! command
-  }
-
-
-
-  /** editor history **/
-
-  private case class Edit_Version(edits: List[Document.Node_Text_Edit])
-
-  @volatile private var history = Document.History.init
-
-  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
-    history.snapshot(name, pending_edits, current_state())
-
-  private val editor_history = actor
-  {
-    loop {
-      react {
-        case Edit_Version(edits) =>
-          val prev = history.tip.current
-          val result =
-            // FIXME potential denial-of-service concerning worker pool (!?!?)
-            isabelle.Future.fork {
-              val previous = prev.join
-              val former_assignment = current_state().the_assignment(previous).join  // FIXME async!?
-              Thy_Syntax.text_edits(Session.this, previous, edits)
-            }
-          val change = new Document.Change(prev, edits, result)
-          history += change
-          change.current.map(_ => session_actor ! change)
-          reply(())
-
-        case bad => System.err.println("editor_model: ignoring bad message " + bad)
       }
     }
   }
@@ -323,7 +301,10 @@ class Session(system: Isabelle_System)
   def started(timeout: Int, args: List[String]): Option[String] =
     (session_actor !? Started(timeout, args)).asInstanceOf[Option[String]]
 
-  def stop() { session_actor ! Stop }
+  def stop() { command_change_buffer ! Stop; session_actor ! Stop }
 
-  def edit_version(edits: List[Document.Node_Text_Edit]) { editor_history !? Edit_Version(edits) }
+  def edit_version(edits: List[Document.Node_Text_Edit]) { session_actor !? Edit_Version(edits) }
+
+  def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
+    global_state.peek().snapshot(name, pending_edits)
 }

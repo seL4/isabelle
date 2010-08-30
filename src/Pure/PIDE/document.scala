@@ -116,7 +116,25 @@ object Document
   }
 
 
-  /* history navigation and persistent snapshots */
+  /* history navigation */
+
+  object History
+  {
+    val init = new History(List(Change.init))
+  }
+
+  // FIXME pruning, purging of state
+  class History(val undo_list: List[Change])
+  {
+    require(!undo_list.isEmpty)
+
+    def tip: Change = undo_list.head
+    def +(change: Change): History = new History(change :: undo_list)
+  }
+
+
+
+  /** global state -- document structure, execution process, editing history **/
 
   abstract class Snapshot
   {
@@ -129,53 +147,9 @@ object Document
     def convert(range: Text.Range): Text.Range = range.map(convert(_))
     def revert(i: Text.Offset): Text.Offset
     def revert(range: Text.Range): Text.Range = range.map(revert(_))
+    def select_markup[A](range: Text.Range)
+      (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]]
   }
-
-  object History
-  {
-    val init = new History(List(Change.init))
-  }
-
-  // FIXME pruning, purging of state
-  class History(undo_list: List[Change])
-  {
-    require(!undo_list.isEmpty)
-
-    def tip: Change = undo_list.head
-    def +(ch: Change): History = new History(ch :: undo_list)
-
-    def snapshot(name: String, pending_edits: List[Text.Edit], state_snapshot: State): Snapshot =
-    {
-      val found_stable = undo_list.find(change =>
-        change.is_finished && state_snapshot.is_assigned(change.current.join))
-      require(found_stable.isDefined)
-      val stable = found_stable.get
-      val latest = undo_list.head
-
-      val edits =
-        (pending_edits /: undo_list.takeWhile(_ != stable))((edits, change) =>
-            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
-      lazy val reverse_edits = edits.reverse
-
-      new Snapshot
-      {
-        val version = stable.current.join
-        val node = version.nodes(name)
-        val is_outdated = !(pending_edits.isEmpty && latest == stable)
-        def lookup_command(id: Command_ID): Option[Command] = state_snapshot.lookup_command(id)
-        def state(command: Command): Command.State =
-          try { state_snapshot.command_state(version, command) }
-          catch { case _: State.Fail => command.empty_state }
-
-        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-      }
-    }
-  }
-
-
-
-  /** global state -- document structure and execution process **/
 
   object State
   {
@@ -189,6 +163,7 @@ object Document
       private val promise = Future.promise[Map[Command, Exec_ID]]
       def is_finished: Boolean = promise.is_finished
       def join: Map[Command, Exec_ID] = promise.join
+      def get_finished: Map[Command, Exec_ID] = promise.get_finished
       def assign(command_execs: List[(Command, Exec_ID)])
       {
         promise.fulfill(tmp_assignment ++ command_execs)
@@ -202,7 +177,8 @@ object Document
     val commands: Map[Command_ID, Command.State] = Map(),
     val execs: Map[Exec_ID, (Command.State, Set[Version])] = Map(),
     val assignments: Map[Version, State.Assignment] = Map(),
-    val disposed: Set[ID] = Set())  // FIXME unused!?
+    val disposed: Set[ID] = Set(),  // FIXME unused!?
+    val history: History = History.init)
   {
     private def fail[A]: A = throw new State.Fail(this)
 
@@ -265,11 +241,61 @@ object Document
         case None => false
       }
 
-    def command_state(version: Version, command: Command): Command.State =
+    def extend_history(previous: Future[Version],
+        edits: List[Node_Text_Edit],
+        result: Future[(List[Edit[Command]], Version)]): (Change, State) =
     {
-      val assgn = the_assignment(version)
-      require(assgn.is_finished)
-      the_exec_state(assgn.join.getOrElse(command, fail))
+      val change = new Change(previous, edits, result)
+      (change, copy(history = history + change))
+    }
+
+
+    // persistent user-view
+    def snapshot(name: String, pending_edits: List[Text.Edit]): Snapshot =
+    {
+      val found_stable = history.undo_list.find(change =>
+        change.is_finished && is_assigned(change.current.get_finished))
+      require(found_stable.isDefined)
+      val stable = found_stable.get
+      val latest = history.undo_list.head
+
+      val edits =
+        (pending_edits /: history.undo_list.takeWhile(_ != stable))((edits, change) =>
+            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+      lazy val reverse_edits = edits.reverse
+
+      new Snapshot
+      {
+        val version = stable.current.get_finished
+        val node = version.nodes(name)
+        val is_outdated = !(pending_edits.isEmpty && latest == stable)
+
+        def lookup_command(id: Command_ID): Option[Command] = State.this.lookup_command(id)
+
+        def state(command: Command): Command.State =
+          try { the_exec_state(the_assignment(version).get_finished.getOrElse(command, fail)) }
+          catch { case _: State.Fail => command.empty_state }
+
+        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+
+        def select_markup[A](range: Text.Range)
+          (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]] =
+        {
+          val former_range = revert(range)
+          for {
+            (command, command_start) <- node.command_range(former_range)
+            Text.Info(r0, x) <- state(command).markup.
+              select((former_range - command_start).restrict(command.range)) {
+                case Text.Info(r0, info)
+                if result.isDefinedAt(Text.Info(convert(r0 + command_start), info)) =>
+                  result(Text.Info(convert(r0 + command_start), info))
+              } { default }
+            val r = convert(r0 + command_start)
+            if !r.is_singularity
+          } yield Text.Info(r, x)
+        }
+      }
     }
   }
 }

@@ -81,6 +81,17 @@ object Isabelle
         Int_Property("tooltip-font-size", 10).toString + "px; \">" +  // FIXME proper scaling (!?)
       HTML.encode(text) + "</pre></html>"
 
+  def tooltip_dismiss_delay(): Int =
+    Int_Property("tooltip-dismiss-delay", 8000) max 500
+
+  def setup_tooltips()
+  {
+    Swing_Thread.now {
+      val manager = javax.swing.ToolTipManager.sharedInstance
+      manager.setDismissDelay(tooltip_dismiss_delay())
+    }
+  }
+
 
   /* settings */
 
@@ -118,11 +129,14 @@ object Isabelle
   def jedit_text_areas(buffer: JEditBuffer): Iterator[JEditTextArea] =
     jedit_text_areas().filter(_.getBuffer == buffer)
 
-  def buffer_read_lock[A](buffer: JEditBuffer)(body: => A): A =
+  def buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
   {
     try { buffer.readLock(); body }
     finally { buffer.readUnlock() }
   }
+
+  def swing_buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
+    Swing_Thread.now { buffer_lock(buffer) { body } }
 
 
   /* dockable windows */
@@ -240,6 +254,8 @@ class Plugin extends EBPlugin
         Swing_Thread.now {
           for (text_area <- Isabelle.jedit_text_areas if Document_View(text_area).isDefined)
             Document_View(text_area).get.extend_styles()
+
+          Isabelle.setup_tooltips()
         }
 
         Isabelle.session.global_settings.event(Session.Global_Settings)
@@ -253,6 +269,8 @@ class Plugin extends EBPlugin
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
     Isabelle.session = new Session(Isabelle.system)  // FIXME dialog!?
+
+    Isabelle.setup_tooltips()
   }
 
   override def stop()
