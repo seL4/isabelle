@@ -13,6 +13,15 @@ sig
      only: bool}
 
   val trace : bool Unsynchronized.ref
+  val abs_rel_weight : real Unsynchronized.ref
+  val abs_irrel_weight : real Unsynchronized.ref
+  val skolem_irrel_weight : real Unsynchronized.ref
+  val theory_bonus : real Unsynchronized.ref
+  val local_bonus : real Unsynchronized.ref
+  val chained_bonus : real Unsynchronized.ref
+  val threshold_divisor : real Unsynchronized.ref
+  val ridiculous_threshold : real Unsynchronized.ref
+  val max_max_imperfect_fudge_factor : real Unsynchronized.ref
   val name_thm_pairs_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> Facts.ref
     -> ((string * locality) * thm) list
@@ -254,10 +263,9 @@ fun rel_log n = 1.0 + 2.0 / Math.ln (Real.fromInt n + 1.0)
 fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
 
 (* FUDGE *)
-val abs_rel_weight = 0.5
-val abs_irrel_weight = 2.0
-val skolem_rel_weight = 2.0  (* impossible *)
-val skolem_irrel_weight = 0.5
+val abs_rel_weight = Unsynchronized.ref 0.5
+val abs_irrel_weight = Unsynchronized.ref 2.0
+val skolem_irrel_weight = Unsynchronized.ref 0.5
 
 (* Computes a constant's weight, as determined by its frequency. *)
 fun generic_weight abs_weight skolem_weight logx f const_tab (c as (s, _)) =
@@ -265,15 +273,19 @@ fun generic_weight abs_weight skolem_weight logx f const_tab (c as (s, _)) =
   else if String.isPrefix skolem_prefix s then skolem_weight
   else logx (pconst_freq (match_patterns o f) const_tab c)
 
-val rel_weight = generic_weight abs_rel_weight skolem_rel_weight rel_log I
-val irrel_weight = generic_weight abs_irrel_weight skolem_irrel_weight irrel_log
-                                  swap
+val rel_weight = generic_weight (!abs_rel_weight) 0.0 rel_log I
+val irrel_weight = generic_weight (!abs_irrel_weight) (!skolem_irrel_weight)
+                                  irrel_log swap
 
 (* FUDGE *)
+val theory_bonus = Unsynchronized.ref 0.5
+val local_bonus = Unsynchronized.ref 1.0
+val chained_bonus = Unsynchronized.ref 2.0
+
 fun locality_bonus General = 0.0
-  | locality_bonus Theory = 0.5
-  | locality_bonus Local = 1.0
-  | locality_bonus Chained = 2.0
+  | locality_bonus Theory = !theory_bonus
+  | locality_bonus Local = !local_bonus
+  | locality_bonus Chained = !chained_bonus
 
 fun axiom_weight loc const_tab relevant_consts axiom_consts =
   case axiom_consts |> List.partition (pconst_hyper_mem I relevant_consts)
@@ -334,9 +346,9 @@ fun if_empty_replace_with_locality thy axioms loc tab =
     tab
 
 (* FUDGE *)
-val threshold_divisor = 2.0
-val ridiculous_threshold = 0.1
-val max_max_imperfect_fudge_factor = 0.5
+val threshold_divisor = Unsynchronized.ref 2.0
+val ridiculous_threshold = Unsynchronized.ref 0.1
+val max_max_imperfect_fudge_factor = Unsynchronized.ref 0.5
 
 fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
@@ -351,7 +363,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
     val max_max_imperfect =
-      Math.sqrt (Real.fromInt max_relevant) * max_max_imperfect_fudge_factor
+      Math.sqrt (Real.fromInt max_relevant) * !max_max_imperfect_fudge_factor
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
         fun game_over rejects =
@@ -364,9 +376,9 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                            else NONE) rejects
         fun relevant [] rejects [] =
             (* Nothing has been added this iteration. *)
-            if j = 0 andalso threshold >= ridiculous_threshold then
+            if j = 0 andalso threshold >= !ridiculous_threshold then
               (* First iteration? Try again. *)
-              iter 0 max_relevant (threshold / threshold_divisor) rel_const_tab
+              iter 0 max_relevant (threshold / !threshold_divisor) rel_const_tab
                    hopeless hopeful
             else
               game_over (rejects @ hopeless)
