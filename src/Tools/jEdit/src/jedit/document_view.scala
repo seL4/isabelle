@@ -97,6 +97,27 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   }
 
 
+  /* visible line ranges */
+
+  // simplify slightly odd result of TextArea.getLineEndOffset etc.
+  // NB: jEdit already normalizes \r\n and \r to \n
+  def proper_line_range(start: Text.Offset, end: Text.Offset): Text.Range =
+  {
+    val stop =
+      if (start < end && end - 1 < model.buffer.getLength &&
+          model.buffer.getSegment(end - 1, 1).charAt(0) == '\n') end - 1
+      else end min model.buffer.getLength
+    Text.Range(start, stop)
+  }
+
+  def screen_lines_range(): Text.Range =
+  {
+    val start = text_area.getScreenLineStartOffset(0)
+    val raw_end = text_area.getScreenLineEndOffset(text_area.getVisibleLines - 1 max 0)
+    proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength)
+  }
+
+
   /* commands_changed_actor */
 
   private val commands_changed_actor = actor {
@@ -106,23 +127,24 @@ class Document_View(val model: Document_Model, text_area: TextArea)
           val buffer = model.buffer
           Isabelle.swing_buffer_lock(buffer) {
             val snapshot = model.snapshot()
-            if (changed.exists(snapshot.node.commands.contains)) {
-              var visible_change = false
-              for ((command, start) <- snapshot.node.command_starts) {
-                if (changed(command)) {
-                  val stop = start + command.length
-                  val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-                  val line2 = buffer.getLineOfOffset(snapshot.convert(stop))
-                  if (line2 >= text_area.getFirstLine &&
-                      line1 <= text_area.getFirstLine + text_area.getVisibleLines)
-                    visible_change = true
-                  text_area.invalidateLineRange(line1, line2)
-                }
-              }
-              // FIXME danger of deadlock!?
-              if (visible_change) model.buffer.propertiesChanged()
 
-              overview.repaint()  // FIXME really paint here!?
+            val visible_range = screen_lines_range()
+            val visible_cmds = snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
+            if (visible_cmds.exists(changed)) {
+              for {
+                line <- 0 until text_area.getVisibleLines
+                val start = text_area.getScreenLineStartOffset(line) if start >= 0
+                val end = text_area.getScreenLineEndOffset(line) if end >= 0
+                val range = proper_line_range(start, end)
+                val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                if line_cmds.exists(changed)
+              } text_area.invalidateScreenLineRange(line, line)
+              // FIXME danger of deadlock!?
+              // FIXME potentially slow!?
+              model.buffer.propertiesChanged()
+
+              // FIXME really paint here!?
+              overview.repaint()
             }
           }
 
@@ -133,16 +155,6 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
 
   /* text_area_extension */
-
-  // simplify slightly odd result of TextArea.getLineEndOffset
-  // NB: jEdit already normalizes \r\n and \r to \n
-  def visible_line_end(start: Text.Offset, end: Text.Offset): Text.Offset =
-  {
-    val end1 = end - 1
-    if (start <= end1 && end1 < model.buffer.getLength &&
-        model.buffer.getSegment(end1, 1).charAt(0) == '\n') end1
-    else end
-  }
 
   private val text_area_extension = new TextAreaExtension
   {
@@ -157,7 +169,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
           var y = y0
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
-              val line_range = Text.Range(start(i), visible_line_end(start(i), end(i)))
+              val line_range = proper_line_range(start(i), end(i))
               val cmds = snapshot.node.command_range(snapshot.revert(line_range))
               for ((command, command_start) <- cmds if !command.is_ignored) {
                 val range = line_range.restrict(snapshot.convert(command.range + command_start))
