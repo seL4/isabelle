@@ -13,7 +13,8 @@ sig
      limited_predicates : (string * int) list,
      replacing : ((string * string) * string) list,
      prolog_system : prolog_system}
-  val options : code_options Unsynchronized.ref
+  val code_options_of : theory -> code_options 
+  val map_code_options : (code_options -> code_options) -> theory -> theory
 
   datatype arith_op = Plus | Minus
   datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
@@ -60,9 +61,28 @@ type code_options =
    replacing : ((string * string) * string) list,
    prolog_system : prolog_system}
 
-val options = Unsynchronized.ref {ensure_groundness = false,
-  limited_types = [], limited_predicates = [], replacing = [],
-  prolog_system = SWI_PROLOG};
+structure Options = Theory_Data
+(
+  type T = code_options
+  val empty = {ensure_groundness = false,
+    limited_types = [], limited_predicates = [], replacing = [],
+    prolog_system = SWI_PROLOG}
+  val extend = I;
+  fun merge
+    ({ensure_groundness = ensure_groundness1, limited_types = limited_types1,
+      limited_predicates = limited_predicates1, replacing = replacing1, prolog_system = prolog_system1},
+     {ensure_groundness = ensure_groundness2, limited_types = limited_types2,
+      limited_predicates = limited_predicates2, replacing = replacing2, prolog_system = prolog_system2}) =
+    {ensure_groundness = ensure_groundness1 orelse ensure_groundness2,
+     limited_types = AList.merge (op =) (K true) (limited_types1, limited_types2),
+     limited_predicates = AList.merge (op =) (K true) (limited_predicates1, limited_predicates2),
+     replacing = Library.merge (op =) (replacing1, replacing2),
+     prolog_system = prolog_system1};
+);
+
+val code_options_of = Options.get
+
+val map_code_options = Options.map
 
 (* general string functions *)
 
@@ -641,7 +661,7 @@ val preprocess_options = Predicate_Compile_Aux.Options {
 
 fun values ctxt soln t_compr =
   let
-    val options = !options
+    val options = code_options_of (ProofContext.theory_of ctxt)
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr);
     val (body, Ts, fp) = HOLogic.strip_psplits split;
@@ -741,6 +761,7 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 
 fun quickcheck ctxt report t size =
   let
+    val options = code_options_of (ProofContext.theory_of ctxt)
     val thy = Theory.copy (ProofContext.theory_of ctxt)
     val (vs, t') = strip_abs t
     val vs' = Variable.variant_frees ctxt [] vs
@@ -762,11 +783,11 @@ fun quickcheck ctxt report t size =
     val ctxt' = ProofContext.init_global thy3
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate true ctxt' full_constname
-      |> add_ground_predicates ctxt' (#limited_types (!options))
-      |> add_limited_predicates (#limited_predicates (!options))
-      |> apfst (fold replace (#replacing (!options)))      
+      |> add_ground_predicates ctxt' (#limited_types options)
+      |> add_limited_predicates (#limited_predicates options)
+      |> apfst (fold replace (#replacing options))     
     val _ = tracing "Running prolog program..."
-    val [ts] = run (#prolog_system (!options))
+    val [ts] = run (#prolog_system options)
       p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
     val res = SOME (map (restore_term ctxt' constant_table) (ts ~~ Ts))

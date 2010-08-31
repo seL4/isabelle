@@ -81,13 +81,13 @@ section {* Manual setup to find counterexample *}
 
 setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
 
-ML {* Code_Prolog.options :=
+setup {* Code_Prolog.map_code_options (K 
   { ensure_groundness = true,
     limited_types = [(@{typ nat}, 1), (@{typ "type"}, 1), (@{typ dB}, 1), (@{typ "type list"}, 1)],
     limited_predicates = [("typing", 2), ("nth_el1", 2)],
     replacing = [(("typing", "limited_typing"), "quickcheck"),
                  (("nth_el1", "limited_nth_el1"), "lim_typing")],
-    prolog_system = Code_Prolog.SWI_PROLOG} *}
+    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 lemma
   "\<Gamma> \<turnstile> t : U \<Longrightarrow> t \<rightarrow>\<^sub>\<beta> t' \<Longrightarrow> \<Gamma> \<turnstile> t' : U"

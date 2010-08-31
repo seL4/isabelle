@@ -84,12 +84,12 @@ by (auto simp add: insert_iff[unfolded mem_def] expand_fun_eq intro!: eq_reflect
 lemma [code_pred_inline]: "(op -) == (%A B x. A x \<and> \<not> B x)"
 by (auto simp add: Diff_iff[unfolded mem_def] expand_fun_eq intro!: eq_reflection)
 
-ML {* Code_Prolog.options :=
+setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = true,
   limited_types = [],
   limited_predicates = [],
   replacing = [],
-  prolog_system = Code_Prolog.SWI_PROLOG} *}
+  prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 values 40 "{s. hotel s}"
 
