@@ -349,19 +349,13 @@ The descriptions below refer to the following syntactic quantities:
 \end{enum}
 
 Default values are indicated in square brackets. Boolean options have a negated
-counterpart (e.g., \textit{debug} vs.\ \textit{no\_debug}). When setting
+counterpart (e.g., \textit{blocking} vs.\ \textit{no\_blocking}). When setting
 Boolean options, ``= \textit{true}'' may be omitted.
 
 \subsection{Mode of Operation}
 \label{mode-of-operation}
 
 \begin{enum}
-%\optrue{blocking}{non\_blocking}
-%Specifies whether the \textbf{sledgehammer} command should operate synchronously.
-%The asynchronous (non-blocking) mode lets the user start proving the putative
-%theorem while Sledgehammer looks for a counterexample, but it can also be more
-%confusing. For technical reasons, automatic runs currently always block.
-
 \opnodefault{atps}{string}
 Specifies the ATPs (automated theorem provers) to use as a space-separated list
 (e.g., ``\textit{e}~\textit{spass}''). The following ATPs are supported:
@@ -413,6 +407,12 @@ seconds \cite{boehme-nipkow-2010}.
 
 \opnodefault{atp}{string}
 Alias for \textit{atps}.
+
+\opfalse{blocking}{non\_blocking}
+Specifies whether the \textbf{sledgehammer} command should operate
+synchronously. The asynchronous (non-blocking) mode lets the user start proving
+the putative theorem manually while Sledgehammer looks for a proof, but it can
+also be more confusing.
 
 \opfalse{overlord}{no\_overlord}
 Specifies whether Sledgehammer should put its temporary files in
