@@ -5,7 +5,7 @@
 
 signature SLEDGEHAMMER_FACT_FILTER =
 sig
-  datatype locality = General | Theory | Local | Chained
+  datatype locality = General | Intro | Elim | Simp | Local | Chained
 
   type relevance_override =
     {add: Facts.ref list,
@@ -16,7 +16,9 @@ sig
   val abs_rel_weight : real Unsynchronized.ref
   val abs_irrel_weight : real Unsynchronized.ref
   val skolem_irrel_weight : real Unsynchronized.ref
-  val theory_bonus : real Unsynchronized.ref
+  val intro_bonus : real Unsynchronized.ref
+  val elim_bonus : real Unsynchronized.ref
+  val simp_bonus : real Unsynchronized.ref
   val local_bonus : real Unsynchronized.ref
   val chained_bonus : real Unsynchronized.ref
   val max_imperfect : real Unsynchronized.ref
@@ -44,7 +46,7 @@ val term_patterns = false
 
 val respect_no_atp = true
 
-datatype locality = General | Theory | Local | Chained
+datatype locality = General | Intro | Elim | Simp | Local | Chained
 
 type relevance_override =
   {add: Facts.ref list,
@@ -281,12 +283,16 @@ fun irrel_weight const_tab =
                  const_tab
 
 (* FUDGE *)
-val theory_bonus = Unsynchronized.ref 0.1
+val intro_bonus = Unsynchronized.ref 0.15
+val elim_bonus = Unsynchronized.ref 0.15
+val simp_bonus = Unsynchronized.ref 0.15
 val local_bonus = Unsynchronized.ref 0.55
 val chained_bonus = Unsynchronized.ref 1.5
 
 fun locality_bonus General = 0.0
-  | locality_bonus Theory = !theory_bonus
+  | locality_bonus Intro = !intro_bonus
+  | locality_bonus Elim = !elim_bonus
+  | locality_bonus Simp = !simp_bonus
   | locality_bonus Local = !local_bonus
   | locality_bonus Chained = !chained_bonus
 
@@ -335,7 +341,7 @@ type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * pattern list) list
 
 (* FUDGE *)
-val max_imperfect = Unsynchronized.ref 10.0
+val max_imperfect = Unsynchronized.ref 11.5
 val max_imperfect_exp = Unsynchronized.ref 1.0
 
 fun take_most_relevant max_relevant remaining_max
@@ -380,8 +386,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
       fold (count_axiom_consts theory_relevant thy) axioms Symtab.empty
     val goal_const_tab =
       pconsts_in_terms thy false (SOME false) goal_ts
-      |> fold (if_empty_replace_with_locality thy axioms)
-              [Chained, Local, Theory]
+      |> fold (if_empty_replace_with_locality thy axioms) [Chained, Local]
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
@@ -493,9 +498,9 @@ fun is_package_def a =
      String.isSuffix "_def" a  orelse  String.isSuffix "_defs" a
   end;
 
-fun make_fact_table xs =
-  fold (Termtab.update o `(prop_of o snd)) xs Termtab.empty
-fun make_unique xs = Termtab.fold (cons o snd) (make_fact_table xs) []
+fun mk_fact_table f xs =
+  fold (Termtab.update o `(prop_of o f)) xs Termtab.empty
+fun uniquify xs = Termtab.fold (cons o snd) (mk_fact_table snd xs) []
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 val multi_base_blacklist =
@@ -625,14 +630,26 @@ fun is_theorem_bad_for_atps full_types thm =
     is_that_fact thm
   end
 
+fun clasimpset_rules_of ctxt =
+  let
+    val {safeIs, safeEs, hazIs, hazEs, ...} = ctxt |> claset_of |> rep_cs
+    val intros = safeIs @ hazIs
+    val elims = map Classical.classical_rule (safeEs @ hazEs)
+    val simps = ctxt |> simpset_of |> dest_ss |> #simps |> map snd
+  in (mk_fact_table I intros, mk_fact_table I elims, mk_fact_table I simps) end
+
 fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
   let
     val thy = ProofContext.theory_of ctxt
-    val thy_prefix = Context.theory_name thy ^ Long_Name.separator
     val global_facts = PureThy.facts_of thy
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val is_chained = member Thm.eq_thm chained_ths
+    val (intros, elims, simps) =
+      if exists (curry (op <) 0.0) [!intro_bonus, !elim_bonus, !simp_bonus] then
+        clasimpset_rules_of ctxt
+      else
+        (Termtab.empty, Termtab.empty, Termtab.empty)
     (* Unnamed nonchained formulas with schematic variables are omitted, because
        they are rejected by the backticks (`...`) parser for some reason. *)
     fun is_good_unnamed_local th =
@@ -655,10 +672,6 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
           I
         else
           let
-            val base_loc =
-              if not global then Local
-              else if String.isPrefix thy_prefix name0 then Theory
-              else General
             val multi = length ths > 1
             fun backquotify th =
               "`" ^ Print_Mode.setmp [Print_Mode.input]
@@ -688,7 +701,15 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
                               case find_first check_thms [name1, name2, name0] of
                                 SOME name => repair_name reserved multi j name
                               | NONE => ""
-                            end), if is_chained th then Chained else base_loc),
+                            end),
+                      let val t = prop_of th in
+                        if is_chained th then Chained
+                        else if not global then Local
+                        else if Termtab.defined intros t then Intro
+                        else if Termtab.defined elims t then Elim
+                        else if Termtab.defined simps t then Simp
+                        else General
+                      end),
                       (multi, th)) :: rest)) ths
             #> snd
           end)
@@ -722,7 +743,7 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
        else
          all_name_thms_pairs ctxt reserved full_types add_thms chained_ths)
       |> name_thm_pairs ctxt (respect_no_atp andalso not only)
-      |> make_unique
+      |> uniquify
   in
     trace_msg (fn () => "Considering " ^ Int.toString (length axioms) ^
                         " theorems");
