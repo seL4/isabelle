@@ -180,7 +180,7 @@ object Document
   {
     class Fail(state: State) extends Exception
 
-    val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)
+    val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)._2
 
     class Assignment(former_assignment: Map[Command, Exec_ID])
     {
@@ -243,7 +243,7 @@ object Document
           }
       }
 
-    def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): State =
+    def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): (List[Command], State) =
     {
       val version = the_version(id)
       val occs = Set(version)  // FIXME unused (!?)
@@ -257,7 +257,7 @@ object Document
           (st.command, exec_id)
         }
       the_assignment(version).assign(assigned_execs)  // FIXME explicit value instead of promise (!?)
-      copy(execs = new_execs)
+      (assigned_execs.map(_._1), copy(execs = new_execs))
     }
 
     def is_assigned(version: Version): Boolean =
