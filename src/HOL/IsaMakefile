@@ -266,7 +266,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Tools/Metis/metis.ML \
-  Tools/ATP/async_manager.ML \
+  Tools/async_manager.ML \
   Tools/ATP/atp_problem.ML \
   Tools/ATP/atp_systems.ML \
   Tools/choice_specification.ML \
