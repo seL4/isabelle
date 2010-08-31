@@ -22,14 +22,6 @@ datatype
        
 consts 
   bad    :: "agent set"                         -- {* compromised agents *}
-  knows  :: "agent => event list => msg set"
-
-
-text{*The constant "spies" is retained for compatibility's sake*}
-
-abbreviation (input)
-  spies  :: "event list => msg set" where
-  "spies == knows Spy"
 
 text{*Spy has access to his own key for spoof messages, but Server is secure*}
 specification (bad)
@@ -37,9 +29,10 @@ specification (bad)
   Server_not_bad [iff]: "Server \<notin> bad"
     by (rule exI [of _ "{Spy}"], simp)
 
-primrec
+primrec knows :: "agent => event list => msg set"
+where
   knows_Nil:   "knows A [] = initState A"
-  knows_Cons:
+| knows_Cons:
     "knows A (ev # evs) =
        (if A = Spy then 
         (case ev of
@@ -62,14 +55,20 @@ primrec
   therefore the oops case must use Notes
 *)
 
-consts
-  (*Set of items that might be visible to somebody:
-    complement of the set of fresh items*)
-  used :: "event list => msg set"
+text{*The constant "spies" is retained for compatibility's sake*}
 
-primrec
+abbreviation (input)
+  spies  :: "event list => msg set" where
+  "spies == knows Spy"
+
+
+(*Set of items that might be visible to somebody:
+    complement of the set of fresh items*)
+
+primrec used :: "event list => msg set"
+where
   used_Nil:   "used []         = (UN B. parts (initState B))"
-  used_Cons:  "used (ev # evs) =
+| used_Cons:  "used (ev # evs) =
                      (case ev of
                         Says A B X => parts {X} \<union> used evs
                       | Gets A X   => used evs
