@@ -544,7 +544,7 @@ fun invoke system file_name =
   let
     val cmd =
       case system of SWI_PROLOG => "/usr/local/bin/swipl -f " | YAP => "/usr/local/bin/yap -L "
-  in bash_output (cmd ^ file_name) end
+  in fst (bash_output (cmd ^ file_name)) end
 
 (* parsing prolog solution *)
 
@@ -600,16 +600,14 @@ fun parse_solutions sol =
 
 fun run system p query_rel vnames nsols =
   let
-    val cmd = Path.named_root
     val p' = rename_vars_program p
     val _ = tracing "Renaming variable names..."
     val renaming = fold mk_renaming vnames [] 
     val vnames' = map (fn v => the (AList.lookup (op =) renaming v)) vnames
     val prog = prelude system ^ query system nsols query_rel vnames' ^ write_program p'
     val _ = tracing ("Generated prolog program:\n" ^ prog)
-    val prolog_file = File.tmp_path (Path.basic "prolog_file")
-    val _ = File.write prolog_file prog
-    val (solution, _) = invoke system (File.shell_path prolog_file)
+    val solution = Cache_IO.with_tmp_file "prolog_file" (fn prolog_file =>
+      (File.write prolog_file prog; invoke system (Path.implode prolog_file)))
     val _ = tracing ("Prolog returned solution(s):\n" ^ solution)
     val tss = parse_solutions solution
   in
