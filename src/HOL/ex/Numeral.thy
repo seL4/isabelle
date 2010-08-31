@@ -989,7 +989,7 @@ fun add_code print target =
       in dest_num end;
     fun pretty sgn literals [one', dig0', dig1'] _ thm _ _ [(t, _)] =
       (Code_Printer.str o print literals o sgn o dest_num one' dig0' dig1' thm) t
-    fun add_syntax (c, sgn) = Code_Target.add_syntax_const target c
+    fun add_syntax (c, sgn) = Code_Target.add_const_syntax target c
       (SOME (Code_Printer.complex_const_syntax
         (1, ([@{const_name One}, @{const_name Dig0}, @{const_name Dig1}],
           pretty sgn))));

@@ -284,8 +284,8 @@ fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
       fold_map (Code_Thingol.ensure_declared_const thy) cs naming
       |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
 
-fun gen_print_app print_app_expr print_term syntax_const some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
-  case syntax_const c
+fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
+  case const_syntax c
    of NONE => brackify fxy (print_app_expr some_thm vars app)
     | SOME (Plain_const_syntax (_, s)) => brackify fxy (str s :: map (print_term some_thm vars BR) ts)
     | SOME (Complex_const_syntax (k, print)) =>

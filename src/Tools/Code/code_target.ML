@@ -45,10 +45,10 @@ sig
   val allow_abort: string -> theory -> theory
   type tyco_syntax = Code_Printer.tyco_syntax
   type const_syntax = Code_Printer.const_syntax
-  val add_syntax_class: string -> class -> string option -> theory -> theory
-  val add_syntax_inst: string -> class * string -> unit option -> theory -> theory
-  val add_syntax_tyco: string -> string -> tyco_syntax option -> theory -> theory
-  val add_syntax_const: string -> string -> const_syntax option -> theory -> theory
+  val add_class_syntax: string -> class -> string option -> theory -> theory
+  val add_instance_syntax: string -> class * string -> unit option -> theory -> theory
+  val add_tyco_syntax: string -> string -> tyco_syntax option -> theory -> theory
+  val add_const_syntax: string -> string -> const_syntax option -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
   val add_include: string -> string * (string * string list) option -> theory -> theory
 end;
@@ -63,7 +63,7 @@ type tyco_syntax = Code_Printer.tyco_syntax;
 type const_syntax = Code_Printer.const_syntax;
 
 
-(** basics **)
+(** abstract nonsense **)
 
 datatype destination = File of Path.T option | String of string list;
 type serialization = destination -> (string * string option list) option;
@@ -80,21 +80,21 @@ fun string stmt_names f = the (f (String stmt_names));
 
 (** theory data **)
 
-datatype name_syntax_table = NameSyntaxTable of {
+datatype symbol_syntax_data = Symbol_Syntax_Data of {
   class: string Symtab.table,
   instance: unit Symreltab.table,
   tyco: Code_Printer.tyco_syntax Symtab.table,
   const: Code_Printer.const_syntax Symtab.table
 };
 
-fun mk_name_syntax_table ((class, instance), (tyco, const)) =
-  NameSyntaxTable { class = class, instance = instance, tyco = tyco, const = const };
-fun map_name_syntax_table f (NameSyntaxTable { class, instance, tyco, const }) =
-  mk_name_syntax_table (f ((class, instance), (tyco, const)));
-fun merge_name_syntax_table
-  (NameSyntaxTable { class = class1, instance = instance1, tyco = tyco1, const = const1 },
-    NameSyntaxTable { class = class2, instance = instance2, tyco = tyco2, const = const2 }) =
-  mk_name_syntax_table (
+fun make_symbol_syntax_data ((class, instance), (tyco, const)) =
+  Symbol_Syntax_Data { class = class, instance = instance, tyco = tyco, const = const };
+fun map_symbol_syntax_data f (Symbol_Syntax_Data { class, instance, tyco, const }) =
+  make_symbol_syntax_data (f ((class, instance), (tyco, const)));
+fun merge_symbol_syntax_data
+  (Symbol_Syntax_Data { class = class1, instance = instance1, tyco = tyco1, const = const1 },
+    Symbol_Syntax_Data { class = class2, instance = instance2, tyco = tyco2, const = const2 }) =
+  make_symbol_syntax_data (
     (Symtab.join (K snd) (class1, class2),
        Symreltab.join (K snd) (instance1, instance2)),
     (Symtab.join (K snd) (tyco1, tyco2),
@@ -128,25 +128,25 @@ datatype target = Target of {
   description: description,
   reserved: string list,
   includes: (Pretty.T * string list) Symtab.table,
-  name_syntax_table: name_syntax_table,
+  symbol_syntax_data: symbol_syntax_data,
   module_alias: string Symtab.table
 };
 
-fun make_target ((serial, description), ((reserved, includes), (name_syntax_table, module_alias))) =
+fun make_target ((serial, description), ((reserved, includes), (symbol_syntax_data, module_alias))) =
   Target { serial = serial, description = description, reserved = reserved, 
-    includes = includes, name_syntax_table = name_syntax_table, module_alias = module_alias };
-fun map_target f ( Target { serial, description, reserved, includes, name_syntax_table, module_alias } ) =
-  make_target (f ((serial, description), ((reserved, includes), (name_syntax_table, module_alias))));
+    includes = includes, symbol_syntax_data = symbol_syntax_data, module_alias = module_alias };
+fun map_target f ( Target { serial, description, reserved, includes, symbol_syntax_data, module_alias } ) =
+  make_target (f ((serial, description), ((reserved, includes), (symbol_syntax_data, module_alias))));
 fun merge_target strict target (Target { serial = serial1, description = description,
   reserved = reserved1, includes = includes1,
-  name_syntax_table = name_syntax_table1, module_alias = module_alias1 },
+  symbol_syntax_data = symbol_syntax_data1, module_alias = module_alias1 },
     Target { serial = serial2, description = _,
       reserved = reserved2, includes = includes2,
-      name_syntax_table = name_syntax_table2, module_alias = module_alias2 }) =
+      symbol_syntax_data = symbol_syntax_data2, module_alias = module_alias2 }) =
   if serial1 = serial2 orelse not strict then
     make_target ((serial1, description),
       ((merge (op =) (reserved1, reserved2), Symtab.join (K snd) (includes1, includes2)),
-        (merge_name_syntax_table (name_syntax_table1, name_syntax_table2),
+        (merge_symbol_syntax_data (symbol_syntax_data1, symbol_syntax_data2),
           Symtab.join (K snd) (module_alias1, module_alias2))
     ))
   else
@@ -155,7 +155,7 @@ fun merge_target strict target (Target { serial = serial1, description = descrip
 fun the_description (Target { description, ... }) = description;
 fun the_reserved (Target { reserved, ... }) = reserved;
 fun the_includes (Target { includes, ... }) = includes;
-fun the_name_syntax (Target { name_syntax_table = NameSyntaxTable x, ... }) = x;
+fun the_symbol_syntax_data (Target { symbol_syntax_data = Symbol_Syntax_Data x, ... }) = x;
 fun the_module_alias (Target { module_alias , ... }) = module_alias;
 
 structure Targets = Theory_Data
@@ -194,7 +194,7 @@ fun put_target (target, seri) thy =
     thy
     |> (Targets.map o apfst o apfst o Symtab.update)
           (target, make_target ((serial (), seri), (([], Symtab.empty),
-            (mk_name_syntax_table ((Symtab.empty, Symreltab.empty),
+            (make_symbol_syntax_data ((Symtab.empty, Symreltab.empty),
               (Symtab.empty, Symtab.empty)), Symtab.empty))))
   end;
 
@@ -215,7 +215,7 @@ fun map_reserved target =
 fun map_includes target =
   map_target_data target o apsnd o apfst o apsnd;
 fun map_name_syntax target =
-  map_target_data target o apsnd o apsnd o apfst o map_name_syntax_table;
+  map_target_data target o apsnd o apsnd o apfst o map_symbol_syntax_data;
 fun map_module_alias target =
   map_target_data target o apsnd o apsnd o apsnd;
 
@@ -315,7 +315,7 @@ fun mount_serializer thy target some_width raw_module_name args naming program n
     fun includes names_all = map_filter (select_include names_all)
       ((Symtab.dest o the_includes) data);
     val module_alias = the_module_alias data 
-    val { class, instance, tyco, const } = the_name_syntax data;
+    val { class, instance, tyco, const } = the_symbol_syntax_data data;
     val literals = the_literals thy target;
     val width = the_default default_width some_width;
   in
@@ -437,19 +437,19 @@ fun gen_add_syntax (mapp, upd, del) prep_x prep_syn target raw_x some_raw_syn th
       | NONE => del x;
   in (map_name_syntax target o mapp) change thy end;
 
-fun gen_add_syntax_class prep_class =
+fun gen_add_class_syntax prep_class =
   gen_add_syntax (apfst o apfst, Symtab.update, Symtab.delete_safe) prep_class ((K o K) I);
 
-fun gen_add_syntax_inst prep_inst =
+fun gen_add_instance_syntax prep_inst =
   gen_add_syntax (apfst o apsnd, Symreltab.update, Symreltab.delete_safe) prep_inst ((K o K) I);
 
-fun gen_add_syntax_tyco prep_tyco =
+fun gen_add_tyco_syntax prep_tyco =
   gen_add_syntax (apsnd o apfst, Symtab.update, Symtab.delete_safe) prep_tyco
     (fn thy => fn tyco => fn syn => if fst syn <> Sign.arity_number thy tyco
       then error ("Number of arguments mismatch in syntax for type constructor " ^ quote tyco)
       else syn);
 
-fun gen_add_syntax_const prep_const =
+fun gen_add_const_syntax prep_const =
   gen_add_syntax (apsnd o apsnd, Symtab.update, Symtab.delete_safe) prep_const
     (fn thy => fn c => fn syn =>
       if Code_Printer.requires_args syn > Code.args_number thy c
@@ -513,18 +513,18 @@ fun process_multi_syntax parse_thing parse_syntax change =
 
 in
 
-val add_syntax_class = gen_add_syntax_class cert_class;
-val add_syntax_inst = gen_add_syntax_inst cert_inst;
-val add_syntax_tyco = gen_add_syntax_tyco cert_tyco;
-val add_syntax_const = gen_add_syntax_const (K I);
+val add_class_syntax = gen_add_class_syntax cert_class;
+val add_instance_syntax = gen_add_instance_syntax cert_inst;
+val add_tyco_syntax = gen_add_tyco_syntax cert_tyco;
+val add_const_syntax = gen_add_const_syntax (K I);
 val allow_abort = gen_allow_abort (K I);
 val add_reserved = add_reserved;
 val add_include = add_include;
 
-val add_syntax_class_cmd = gen_add_syntax_class read_class;
-val add_syntax_inst_cmd = gen_add_syntax_inst read_inst;
-val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
-val add_syntax_const_cmd = gen_add_syntax_const Code.read_const;
+val add_class_syntax_cmd = gen_add_class_syntax read_class;
+val add_instance_syntax_cmd = gen_add_instance_syntax read_inst;
+val add_tyco_syntax_cmd = gen_add_tyco_syntax read_tyco;
+val add_const_syntax_cmd = gen_add_const_syntax Code.read_const;
 val allow_abort_cmd = gen_allow_abort Code.read_const;
 
 fun parse_args f args =
@@ -554,23 +554,23 @@ val _ = List.app Keyword.keyword [inK, module_nameK, fileK, checkingK];
 val _ =
   Outer_Syntax.command "code_class" "define code syntax for class" Keyword.thy_decl (
     process_multi_syntax Parse.xname (Scan.option Parse.string)
-    add_syntax_class_cmd);
+    add_class_syntax_cmd);
 
 val _ =
   Outer_Syntax.command "code_instance" "define code syntax for instance" Keyword.thy_decl (
     process_multi_syntax (Parse.xname --| Parse.$$$ "::" -- Parse.xname)
       (Scan.option (Parse.minus >> K ()))
-    add_syntax_inst_cmd);
+    add_instance_syntax_cmd);
 
 val _ =
   Outer_Syntax.command "code_type" "define code syntax for type constructor" Keyword.thy_decl (
     process_multi_syntax Parse.xname Code_Printer.parse_tyco_syntax
-    add_syntax_tyco_cmd);
+    add_tyco_syntax_cmd);
 
 val _ =
   Outer_Syntax.command "code_const" "define code syntax for constant" Keyword.thy_decl (
     process_multi_syntax Parse.term_group Code_Printer.parse_const_syntax
-    add_syntax_const_cmd);
+    add_const_syntax_cmd);
 
 val _ =
   Outer_Syntax.command "code_reserved" "declare words as reserved for target language"

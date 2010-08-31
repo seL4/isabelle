@@ -143,7 +143,7 @@ fun add_eval_tyco (tyco, tyco') thy =
           Code_Printer.concat [Code_Printer.enum "," "(" ")" (map (pr' Code_Printer.BR) tys), tyco']
   in
     thy
-    |> Code_Target.add_syntax_tyco target tyco (SOME (k, pr))
+    |> Code_Target.add_tyco_syntax target tyco (SOME (k, pr))
   end;
 
 fun add_eval_constr (const, const') thy =
@@ -153,10 +153,10 @@ fun add_eval_constr (const, const') thy =
       (const' :: the_list (Code_Printer.tuplify pr' Code_Printer.BR (map fst ts)));
   in
     thy
-    |> Code_Target.add_syntax_const target const (SOME (Code_Printer.simple_const_syntax (k, pr)))
+    |> Code_Target.add_const_syntax target const (SOME (Code_Printer.simple_const_syntax (k, pr)))
   end;
 
-fun add_eval_const (const, const') = Code_Target.add_syntax_const target
+fun add_eval_const (const, const') = Code_Target.add_const_syntax target
   const (SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')));
 
 fun process (code_body, (tyco_map, (constr_map, const_map))) module_name NONE thy =
