@@ -298,12 +298,13 @@ fun project_program thy abortable names_hidden names1 program2 =
   let
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
-    val names_all = Graph.all_succs program3 names2;
+    val names4 = Graph.all_succs program3 names2;
     val empty_funs = filter_out (member (op =) abortable)
       (Code_Thingol.empty_funs program3);
     val _ = if null empty_funs then () else error ("No code equations for "
       ^ commas (map (Sign.extern_const thy) empty_funs));
-  in (names_all, program3) end;
+    val program4 = Graph.subgraph (member (op =) names4) program3;
+  in (names4, program4) end;
 
 fun invoke_serializer thy abortable serializer literals reserved abs_includes 
     module_alias proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax
