@@ -13,7 +13,7 @@ sig
      limited_predicates : (string * int) list,
      replacing : ((string * string) * string) list,
      prolog_system : prolog_system}
-  val options : code_options ref
+  val options : code_options Unsynchronized.ref
 
   datatype arith_op = Plus | Minus
   datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list

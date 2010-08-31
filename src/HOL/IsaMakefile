@@ -1322,7 +1322,8 @@ $(LOG)/HOL-Predicate_Compile_Examples.gz: $(OUT)/HOL			\
   Predicate_Compile_Examples/Predicate_Compile_Examples.thy		\
   Predicate_Compile_Examples/Predicate_Compile_Quickcheck_Examples.thy  \
   Predicate_Compile_Examples/Code_Prolog_Examples.thy 			\
-  Predicate_Compile_Examples/Hotel_Example.thy
+  Predicate_Compile_Examples/Hotel_Example.thy 				\
+  Predicate_Compile_Examples/Lambda_Example.thy 
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Predicate_Compile_Examples
 
 
