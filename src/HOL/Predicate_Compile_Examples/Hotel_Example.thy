@@ -84,17 +84,21 @@ by (auto simp add: insert_iff[unfolded mem_def] expand_fun_eq intro!: eq_reflect
 lemma [code_pred_inline]: "(op -) == (%A B x. A x \<and> \<not> B x)"
 by (auto simp add: Diff_iff[unfolded mem_def] expand_fun_eq intro!: eq_reflection)
 
-ML {* Code_Prolog.options := {ensure_groundness = true} *}
+ML {* Code_Prolog.options :=
+  {ensure_groundness = true,
+  limited_types = [],
+  limited_predicates = [],
+  replacing = [],
+  prolog_system = Code_Prolog.SWI_PROLOG} *}
 
 values 40 "{s. hotel s}"
 
 
 setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
-ML {* set Code_Prolog.trace *}
 
 lemma "\<lbrakk> hotel s; g \<in> isin s r \<rbrakk> \<Longrightarrow> owns s r = Some g"
 quickcheck[generator = code, iterations = 100000, report]
-quickcheck[generator = prolog, iterations = 1]
+quickcheck[generator = prolog, iterations = 1, expect = counterexample]
 oops
 
 
