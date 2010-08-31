@@ -68,6 +68,8 @@ sig
   val brackify_infix: int * lrx -> fixity -> Pretty.T * Pretty.T * Pretty.T -> Pretty.T
   val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
+  val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
+
 
   type tyco_syntax
   type simple_const_syntax
@@ -244,6 +246,10 @@ fun applify opn cls f fxy_ctxt p [] = p
       (if (fixity BR fxy_ctxt) then enclose "(" ")" else Pretty.block)
         (p @@ enum "," opn cls (map f ps));
 
+fun tuplify _ _ [] = NONE
+  | tuplify print fxy [x] = SOME (print fxy x)
+  | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
+
 
 (* generic syntax *)
 
@@ -278,8 +284,8 @@ fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
       fold_map (Code_Thingol.ensure_declared_const thy) cs naming
       |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
 
-fun gen_print_app print_app_expr print_term syntax_const some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
-  case syntax_const c
+fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
+  case const_syntax c
    of NONE => brackify fxy (print_app_expr some_thm vars app)
     | SOME (Plain_const_syntax (_, s)) => brackify fxy (str s :: map (print_term some_thm vars BR) ts)
     | SOME (Complex_const_syntax (k, print)) =>
