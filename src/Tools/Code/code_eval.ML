@@ -9,8 +9,6 @@ sig
   val target: string
   val eval: string option -> string * (unit -> 'a) option Unsynchronized.ref
     -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
-  val evaluation_code: theory -> string -> string list -> string list
-    -> string * ((string * string) list * (string * string) list)
   val setup: theory -> theory
 end;
 
@@ -21,16 +19,12 @@ struct
 
 val target = "Eval";
 
-val eval_struct_name = "Code";
-
-fun evaluation_code thy struct_name_hint tycos consts =
+fun evaluation_code thy module_name tycos consts =
   let
     val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
-    val struct_name = if struct_name_hint = "" then eval_struct_name
-      else struct_name_hint;
     val (ml_code, target_names) = Code_Target.produce_code_for thy
-      target NONE (SOME struct_name) [] naming program (consts' @ tycos');
+      target NONE (SOME module_name) [] naming program (consts' @ tycos');
     val (consts'', tycos'') = chop (length consts') target_names;
     val consts_map = map2 (fn const => fn NONE =>
         error ("Constant " ^ (quote o Code.string_of_const thy) const
@@ -69,26 +63,23 @@ fun eval some_target reff postproc thy t args =
 
 local
 
-structure CodeAntiqData = Proof_Data
+structure Code_Antiq_Data = Proof_Data
 (
-  type T = (string list * string list) * (bool * (string
-    * (string * ((string * string) list * (string * string) list)) lazy));
-  fun init _ = (([], []), (true, ("", Lazy.value ("", ([], [])))));
+  type T = (string list * string list) * (bool
+    * (string * ((string * string) list * (string * string) list)) lazy);
+  fun init _ = (([], []), (true, (Lazy.value ("", ([], [])))));
 );
 
-val is_first_occ = fst o snd o CodeAntiqData.get;
+val is_first_occ = fst o snd o Code_Antiq_Data.get;
 
 fun register_code new_tycos new_consts ctxt =
   let
-    val ((tycos, consts), (_, (struct_name, _))) = CodeAntiqData.get ctxt;
+    val ((tycos, consts), _) = Code_Antiq_Data.get ctxt;
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
-    val (struct_name', ctxt') = if struct_name = ""
-      then ML_Antiquote.variant eval_struct_name ctxt
-      else (struct_name, ctxt);
-    val acc_code = Lazy.lazy
-      (fn () => evaluation_code (ProofContext.theory_of ctxt) eval_struct_name tycos' consts');
-  in CodeAntiqData.put ((tycos', consts'), (false, (struct_name', acc_code))) ctxt' end;
+    val acc_code = Lazy.lazy (fn () =>
+      evaluation_code (ProofContext.theory_of ctxt) "Code" tycos' consts');
+  in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
 fun register_const const = register_code [] [const];
 
@@ -99,11 +90,11 @@ fun print_const const all_struct_name tycos_map consts_map =
 
 fun print_code is_first print_it ctxt =
   let
-    val (_, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
+    val (_, (_, acc_code)) = Code_Antiq_Data.get ctxt;
     val (ml_code, (tycos_map, consts_map)) = Lazy.force acc_code;
     val ml_code = if is_first then ml_code
       else "";
-    val all_struct_name = "Isabelle." ^ struct_code_name;
+    val all_struct_name = "Isabelle";
   in (ml_code, print_it all_struct_name tycos_map consts_map) end;
 
 in
