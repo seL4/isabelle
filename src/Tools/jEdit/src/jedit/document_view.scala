@@ -125,6 +125,9 @@ class Document_View(val model: Document_Model, text_area: TextArea)
           Isabelle.swing_buffer_lock(buffer) {
             val snapshot = model.snapshot()
 
+            if (changed.exists(snapshot.node.commands.contains))
+              overview.repaint()
+
             val visible_range = screen_lines_range()
             val visible_cmds = snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
             if (visible_cmds.exists(changed)) {
@@ -136,12 +139,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
                 if line_cmds.exists(changed)
               } text_area.invalidateScreenLineRange(line, line)
+
               // FIXME danger of deadlock!?
               // FIXME potentially slow!?
               model.buffer.propertiesChanged()
-
-              // FIXME really paint here!?
-              overview.repaint()
             }
           }
 
