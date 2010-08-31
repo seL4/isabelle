@@ -24,7 +24,7 @@ fun evaluation_code thy module_name tycos consts =
     val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
     val (ml_code, target_names) = Code_Target.produce_code_for thy
-      target NONE (SOME module_name) [] naming program (consts' @ tycos');
+      target NONE module_name [] naming program (consts' @ tycos');
     val (consts'', tycos'') = chop (length consts') target_names;
     val consts_map = map2 (fn const => fn NONE =>
         error ("Constant " ^ (quote o Code.string_of_const thy) const
@@ -52,7 +52,7 @@ fun eval some_target reff postproc thy t args =
               Code_Thingol.Fun (Term.dummy_patternN, ((([], ty), [(([], t), (NONE, true))]), NONE)))
           |> fold (curry Graph.add_edge value_name) deps;
         val (program_code, [SOME value_name']) = Code_Target.produce_code_for thy
-          (the_default target some_target) NONE (SOME "Code") [] naming program' [value_name];
+          (the_default target some_target) NONE "Code" [] naming program' [value_name];
         val value_code = space_implode " "
           (value_name' :: map (enclose "(" ")") args);
       in ML_Context.evaluate ctxt false reff (program_code, value_code) end;

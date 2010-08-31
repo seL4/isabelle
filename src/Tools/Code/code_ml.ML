@@ -339,9 +339,8 @@ fun print_sml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deres
           end;
   in print_stmt end;
 
-fun print_sml_module name some_decls body = if name = ""
-  then Pretty.chunks2 body
-  else Pretty.chunks2 (
+fun print_sml_module name some_decls body =
+  Pretty.chunks2 (
     Pretty.chunks (
       str ("structure " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls
@@ -665,9 +664,8 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
           end;
   in print_stmt end;
 
-fun print_ocaml_module name some_decls body = if name = ""
-  then Pretty.chunks2 body
-  else Pretty.chunks2 (
+fun print_ocaml_module name some_decls body =
+  Pretty.chunks2 (
     Pretty.chunks (
       str ("module " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls

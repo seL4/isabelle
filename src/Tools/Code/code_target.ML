@@ -9,21 +9,21 @@ sig
   val cert_tyco: theory -> string -> string
   val read_tyco: theory -> string -> string
 
-  val export_code_for: theory -> Path.T option -> string -> int option -> string option -> Token.T list
+  val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
-  val produce_code_for: theory -> string -> int option -> string option -> Token.T list
+  val produce_code_for: theory -> string -> int option -> string -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
-  val present_code_for: theory -> string -> int option -> string option -> Token.T list
+  val present_code_for: theory -> string -> int option -> string -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list * string list -> string
   val check_code_for: theory -> string -> bool -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
 
   val export_code: theory -> string list
-    -> (((string * string option) * Path.T option) * Token.T list) list -> unit
+    -> (((string * string) * Path.T option) * Token.T list) list -> unit
   val produce_code: theory -> string list
-    -> string -> int option -> string option -> Token.T list -> string * string option list
+    -> string -> int option -> string -> Token.T list -> string * string option list
   val present_code: theory -> string list -> (Code_Thingol.naming -> string list)
-    -> string -> int option -> string option -> Token.T list -> string
+    -> string -> int option -> string -> Token.T list -> string
   val check_code: theory -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
@@ -319,7 +319,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       labelled_name = Code_Thingol.labelled_name thy proto_program,
       reserved_syms = reserved,
       includes = includes,
-      module_alias = if is_some module_name then K module_name else Symtab.lookup module_alias,
+      module_alias = if module_name = "" then Symtab.lookup module_alias else K (SOME module_name),
       class_syntax = Symtab.lookup class_syntax,
       tyco_syntax = Symtab.lookup tyco_syntax,
       const_syntax = Symtab.lookup const_syntax,
@@ -336,7 +336,7 @@ fun mount_serializer thy target some_width raw_module_name args naming proto_pro
      of Fundamental seri => #serializer seri;
     val presentation_names = stmt_names_of_destination destination;
     val module_name = if null presentation_names
-      then raw_module_name else SOME "Code";
+      then raw_module_name else "Code";
     val reserved = the_reserved data;
     fun select_include names_all (name, (content, cs)) =
       if null cs then SOME (name, content)
@@ -356,20 +356,23 @@ fun mount_serializer thy target some_width raw_module_name args naming proto_pro
         naming program (names, presentation_names) width destination
   end;
 
+fun assert_module_name "" = error ("Empty module name not allowed.")
+  | assert_module_name module_name = module_name;
+
 in
 
 fun export_code_for thy some_path target some_width some_module_name args naming program names =
   export some_path (mount_serializer thy target some_width some_module_name args naming program names);
 
-fun produce_code_for thy target some_width some_module_name args naming program names =
-  produce (mount_serializer thy target some_width some_module_name args naming program names);
+fun produce_code_for thy target some_width module_name args naming program names =
+  produce (mount_serializer thy target some_width (assert_module_name module_name) args naming program names);
 
-fun present_code_for thy target some_width some_module_name args naming program (names, selects) =
-  present selects (mount_serializer thy target some_width some_module_name args naming program names);
+fun present_code_for thy target some_width module_name args naming program (names, selects) =
+  present selects (mount_serializer thy target some_width (assert_module_name module_name) args naming program names);
 
 fun check_code_for thy target strict args naming program names_cs =
   let
-    val module_name = "Code_Test";
+    val module_name = "Code";
     val { env_var, make_destination, make_command } =
       (#check o the_fundamental thy) target;
     val env_param = getenv env_var;
@@ -377,7 +380,7 @@ fun check_code_for thy target strict args naming program names_cs =
       let 
         val destination = make_destination p;
         val _ = export (SOME destination) (mount_serializer thy target (SOME 80)
-          (SOME module_name) args naming program names_cs);
+          module_name args naming program names_cs);
         val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target ^ ": " ^ cmd)
@@ -518,15 +521,17 @@ fun gen_add_include read_const target args thy =
 val add_include = gen_add_include (K I);
 val add_include_cmd = gen_add_include Code.read_const;
 
-fun add_module_alias target (thyname, modlname) =
-  let
-    val xs = Long_Name.explode modlname;
-    val xs' = map (Name.desymbolize true) xs;
-  in if xs' = xs
-    then map_module_alias target (Symtab.update (thyname, modlname))
-    else error ("Invalid module name: " ^ quote modlname ^ "\n"
-      ^ "perhaps try " ^ quote (Long_Name.implode xs'))
-  end;
+fun add_module_alias target (thyname, "") =
+      map_module_alias target (Symtab.delete thyname)
+  | add_module_alias target (thyname, modlname) =
+      let
+        val xs = Long_Name.explode modlname;
+        val xs' = map (Name.desymbolize true) xs;
+      in if xs' = xs
+        then map_module_alias target (Symtab.update (thyname, modlname))
+        else error ("Invalid module name: " ^ quote modlname ^ "\n"
+          ^ "perhaps try " ^ quote (Long_Name.implode xs'))
+      end;
 
 fun gen_allow_abort prep_const raw_c thy =
   let
@@ -585,7 +590,7 @@ val code_exprP =
       -- ((Parse.$$$ "?" |-- Scan.succeed false) || Scan.succeed true) -- code_expr_argsP))
       >> (fn seris => check_code_cmd raw_cs seris)
     || Scan.repeat (Parse.$$$ inK |-- Parse.name
-       -- Scan.option (Parse.$$$ module_nameK |-- Parse.name)
+       -- Scan.optional (Parse.$$$ module_nameK |-- Parse.name) ""
        -- Scan.optional (Parse.$$$ fileK |-- Parse.name) ""
        -- code_expr_argsP) >> (fn seris => export_code_cmd raw_cs seris)));
 
