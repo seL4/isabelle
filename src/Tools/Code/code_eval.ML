@@ -150,7 +150,7 @@ fun add_eval_constr (const, const') thy =
   let
     val k = Code.args_number thy const;
     fun pr pr' fxy ts = Code_Printer.brackify fxy
-      (const' :: the_list (Code_ML.print_tuple pr' Code_Printer.BR (map fst ts)));
+      (const' :: the_list (Code_Printer.tuplify pr' Code_Printer.BR (map fst ts)));
   in
     thy
     |> Code_Target.add_syntax_const target const (SOME (Code_Printer.simple_const_syntax (k, pr)))

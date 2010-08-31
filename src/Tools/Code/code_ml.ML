@@ -8,8 +8,6 @@ signature CODE_ML =
 sig
   val target_SML: string
   val target_OCaml: string
-  val print_tuple: (Code_Printer.fixity -> 'a -> Pretty.T)
-    -> Code_Printer.fixity -> 'a list -> Pretty.T option
   val setup: theory -> theory
 end;
 
@@ -54,9 +52,9 @@ fun print_product _ [] = NONE
   | print_product print [x] = SOME (print x)
   | print_product print xs = (SOME o enum " *" "" "") (map print xs);
 
-fun print_tuple _ _ [] = NONE
-  | print_tuple print fxy [x] = SOME (print fxy x)
-  | print_tuple print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
+fun tuplify _ _ [] = NONE
+  | tuplify print fxy [x] = SOME (print fxy x)
+  | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
 
 
 (** SML serializer **)
@@ -92,7 +90,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             | classrels => brackets
                 [enum " o" "(" ")" (map (str o deresolve) classrels), v_p]
           end
-    and print_dicts is_pseudo_fun = print_tuple (print_dict is_pseudo_fun);
+    and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
@@ -125,7 +123,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
         let val k = length function_typs in
           if k < 2 orelse length ts = k
           then (str o deresolve) c
-            :: the_list (print_tuple (print_term is_pseudo_fun some_thm vars) BR ts)
+            :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
           else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.eta_expand k app)]
         end
       else if is_pseudo_fun c
@@ -393,7 +391,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
             else "_" ^ first_upper v ^ string_of_int (i+1))
           |> fold_rev (fn classrel => fn p =>
                Pretty.block [p, str ".", (str o deresolve) classrel]) classrels
-    and print_dicts is_pseudo_fun = print_tuple (print_dict is_pseudo_fun);
+    and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
@@ -423,7 +421,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
         let val k = length tys in
           if length ts = k
           then (str o deresolve) c
-            :: the_list (print_tuple (print_term is_pseudo_fun some_thm vars) BR ts)
+            :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
           else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.eta_expand k app)]
         end
       else if is_pseudo_fun c

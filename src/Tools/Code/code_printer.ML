@@ -68,6 +68,8 @@ sig
   val brackify_infix: int * lrx -> fixity -> Pretty.T * Pretty.T * Pretty.T -> Pretty.T
   val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
+  val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
+
 
   type tyco_syntax
   type simple_const_syntax
@@ -243,6 +245,10 @@ fun applify opn cls f fxy_ctxt p [] = p
   | applify opn cls f fxy_ctxt p ps =
       (if (fixity BR fxy_ctxt) then enclose "(" ")" else Pretty.block)
         (p @@ enum "," opn cls (map f ps));
+
+fun tuplify _ _ [] = NONE
+  | tuplify print fxy [x] = SOME (print fxy x)
+  | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
 
 
 (* generic syntax *)

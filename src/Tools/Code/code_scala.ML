@@ -171,8 +171,8 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               else aux_params vars1 (map (fst o fst) eqs);
             val vars2 = intro_vars params vars1;
             val (tys', ty') = Code_Thingol.unfold_fun_n (length params) ty;
-            fun print_tuple [p] = p
-              | print_tuple ps = enum "," "(" ")" ps;
+            fun tuplify [p] = p
+              | tuplify ps = enum "," "(" ")" ps;
             fun print_rhs vars' ((_, t), (some_thm, _)) =
               print_term tyvars false some_thm vars' NOBR t;
             fun print_clause (eq as ((ts, _), (some_thm, _))) =
@@ -181,7 +181,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
                   (insert (op =)) ts []) vars1;
               in
                 concat [str "case",
-                  print_tuple (map (print_term tyvars true some_thm vars' NOBR) ts),
+                  tuplify (map (print_term tyvars true some_thm vars' NOBR) ts),
                   str "=>", print_rhs vars' eq]
               end;
             val head = print_defhead tyvars vars2 name vs params tys' ty';
@@ -189,7 +189,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
             concat [head, print_rhs vars2 (hd eqs)]
           else
             Pretty.block_enclose
-              (concat [head, print_tuple (map (str o lookup_var vars2) params),
+              (concat [head, tuplify (map (str o lookup_var vars2) params),
                 str "match", str "{"], str "}")
               (map print_clause eqs)
           end;
