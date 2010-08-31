@@ -63,6 +63,19 @@ sig
   val add_random_dseq_equations : options -> string list -> theory -> theory
   val add_new_random_dseq_equations : options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
+  val prepare_intrs : options -> compilation -> theory -> string list -> thm list ->
+    ((string * typ) list * string list * string list * (string * mode list) list *
+      (string *  (Term.term list * Predicate_Compile_Aux.indprem list) list) list)
+  type mode_analysis_options = {use_random : bool, reorder_premises : bool, infer_pos_and_neg_modes : bool}  
+  datatype mode_derivation = Mode_App of mode_derivation * mode_derivation | Context of mode
+  | Mode_Pair of mode_derivation * mode_derivation | Term of mode
+  type moded_clause = term list * (Predicate_Compile_Aux.indprem * mode_derivation) list
+  type 'a pred_mode_table = (string * ((bool * mode) * 'a) list) list
+
+  val infer_modes : 
+    mode_analysis_options -> options -> compilation -> (string * typ) list -> (string * mode list) list ->
+      string list -> (string *  (Term.term list * Predicate_Compile_Aux.indprem list) list) list ->
+      theory -> ((moded_clause list pred_mode_table * string list) * theory)
 end;
 
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
