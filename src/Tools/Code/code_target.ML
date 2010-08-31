@@ -239,6 +239,23 @@ fun the_literals thy = #literals o the_fundamental thy;
 
 local
 
+fun activate_target_for thy target naming program =
+  let
+    val ((targets, abortable), default_width) = Targets.get thy;
+    fun collapse_hierarchy target =
+      let
+        val data = case Symtab.lookup targets target
+         of SOME data => data
+          | NONE => error ("Unknown code target language: " ^ quote target);
+      in case the_description data
+       of Fundamental _ => (I, data)
+        | Extension (super, modify) => let
+            val (modify', data') = collapse_hierarchy super
+          in (modify' #> modify naming, merge_target false target (data', data)) end
+      end;
+    val (modify, data) = collapse_hierarchy target;
+  in (default_width, abortable, data, modify program) end;
+
 fun activate_syntax lookup_name src_tab = Symtab.empty
   |> fold_map (fn thing_identifier => fn tab => case lookup_name thing_identifier
        of SOME name => (SOME name,
@@ -256,59 +273,63 @@ fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
         | NONE => (NONE, (tab, naming))) (Symtab.keys src_tab)
   |>> map_filter I;
 
-fun invoke_serializer thy abortable serializer literals reserved abs_includes 
-    module_alias class instance tyco const module_name args naming program2 (names1, presentation_names) width =
+fun activate_symbol_syntax thy literals naming
+    class_syntax instance_syntax tyco_syntax const_syntax =
   let
-    val (names_class, class') =
-      activate_syntax (Code_Thingol.lookup_class naming) class;
+    val (names_class, class_syntax') =
+      activate_syntax (Code_Thingol.lookup_class naming) class_syntax;
     val names_inst = map_filter (Code_Thingol.lookup_instance naming)
-      (Symreltab.keys instance);
-    val (names_tyco, tyco') =
-      activate_syntax (Code_Thingol.lookup_tyco naming) tyco;
-    val (names_const, (const', _)) =
-      activate_const_syntax thy literals const naming;
-    val names_hidden = names_class @ names_inst @ names_tyco @ names_const;
+      (Symreltab.keys instance_syntax);
+    val (names_tyco, tyco_syntax') =
+      activate_syntax (Code_Thingol.lookup_tyco naming) tyco_syntax;
+    val (names_const, (const_syntax', _)) =
+      activate_const_syntax thy literals const_syntax naming;
+  in
+    (names_class @ names_inst @ names_tyco @ names_const,
+      (class_syntax', tyco_syntax', const_syntax'))
+  end;
+
+fun project_program thy abortable names_hidden names1 program2 =
+  let
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
     val names_all = Graph.all_succs program3 names2;
-    val includes = abs_includes names_all;
-    val program4 = Graph.subgraph (member (op =) names_all) program3;
     val empty_funs = filter_out (member (op =) abortable)
       (Code_Thingol.empty_funs program3);
     val _ = if null empty_funs then () else error ("No code equations for "
       ^ commas (map (Sign.extern_const thy) empty_funs));
+  in (names_all, program3) end;
+
+fun invoke_serializer thy abortable serializer literals reserved abs_includes 
+    module_alias proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax
+    module_name args naming proto_program (names, presentation_names) =
+  let
+    val (names_hidden, (class_syntax, tyco_syntax, const_syntax)) =
+      activate_symbol_syntax thy literals naming
+        proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax;
+    val (names_all, program) = project_program thy abortable names_hidden names proto_program;
+    val includes = abs_includes names_all;
   in
     serializer args {
-      labelled_name = Code_Thingol.labelled_name thy program2,
+      labelled_name = Code_Thingol.labelled_name thy proto_program,
       reserved_syms = reserved,
       includes = includes,
       single_module = is_some module_name,
       module_alias = if is_some module_name then K module_name else Symtab.lookup module_alias,
-      class_syntax = Symtab.lookup class',
-      tyco_syntax = Symtab.lookup tyco',
-      const_syntax = Symtab.lookup const',
-      program = program3,
-      names = names1,
-      presentation_names = presentation_names } width
+      class_syntax = Symtab.lookup class_syntax,
+      tyco_syntax = Symtab.lookup tyco_syntax,
+      const_syntax = Symtab.lookup const_syntax,
+      program = program,
+      names = names,
+      presentation_names = presentation_names }
   end;
 
-fun mount_serializer thy target some_width raw_module_name args naming program names destination =
+fun mount_serializer thy target some_width raw_module_name args naming proto_program names destination =
   let
-    val ((targets, abortable), default_width) = Targets.get thy;
-    fun collapse_hierarchy target =
-      let
-        val data = case Symtab.lookup targets target
-         of SOME data => data
-          | NONE => error ("Unknown code target language: " ^ quote target);
-      in case the_description data
-       of Fundamental _ => (I, data)
-        | Extension (super, modify) => let
-            val (modify', data') = collapse_hierarchy super
-          in (modify' #> modify naming, merge_target false target (data', data)) end
-      end;
-    val (modify, data) = collapse_hierarchy target;
+    val (default_width, abortable, data, program) =
+      activate_target_for thy target naming proto_program;
     val serializer = case the_description data
-    of Fundamental seri => #serializer seri;
+     of Fundamental seri => #serializer seri;
     val presentation_names = stmt_names_of_destination destination;
     val module_name = if null presentation_names
       then raw_module_name else SOME "Code";
@@ -328,7 +349,7 @@ fun mount_serializer thy target some_width raw_module_name args naming program n
   in
     invoke_serializer thy abortable serializer literals reserved
       includes module_alias class instance tyco const module_name args
-        naming (modify program) (names, presentation_names) width destination
+        naming program (names, presentation_names) width destination
   end;
 
 in
