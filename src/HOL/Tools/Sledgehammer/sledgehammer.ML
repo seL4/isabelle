@@ -25,7 +25,8 @@ sig
      theory_relevant: bool option,
      isar_proof: bool,
      isar_shrink_factor: int,
-     timeout: Time.time}
+     timeout: Time.time,
+     expect: string}
   type problem =
     {subgoal: int,
      goal: Proof.context * (thm list * thm),
@@ -93,7 +94,8 @@ type params =
    theory_relevant: bool option,
    isar_proof: bool,
    isar_shrink_factor: int,
-   timeout: Time.time}
+   timeout: Time.time,
+   expect: string}
 
 type problem =
   {subgoal: int,
@@ -365,7 +367,7 @@ fun prover_fun atp_name
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
 fun start_prover_thread (params as {blocking, verbose, full_types, timeout,
-                                    ...})
+                                    expect, ...})
                         i n relevance_override minimize_command proof_state
                         atp_name =
   let
@@ -375,23 +377,35 @@ fun start_prover_thread (params as {blocking, verbose, full_types, timeout,
     val prover = get_prover_fun thy atp_name
     val {context = ctxt, facts, goal} = Proof.goal proof_state;
     val desc =
-      "ATP " ^ quote atp_name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
-      Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
+      "ATP " ^ quote atp_name ^ " for subgoal " ^ string_of_int i ^ ":" ^
+      (if blocking then
+         ""
+       else
+         "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
     fun run () =
       let
         val problem =
           {subgoal = i, goal = (ctxt, (facts, goal)),
            relevance_override = relevance_override, axioms = NONE}
+        val (outcome_code, message) =
+          prover params (minimize_command atp_name) problem
+          |> (fn {outcome, message, ...} =>
+                 (if is_some outcome then "none" else "some", message))
+          handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
+               | exn => ("unknown", "Internal error:\n" ^
+                                    ML_Compiler.exn_message exn ^ "\n")
       in
-        prover params (minimize_command atp_name) problem |> #message
-        handle ERROR message => "Error: " ^ message ^ "\n"
-             | exn => "Internal error:\n" ^ ML_Compiler.exn_message exn ^ "\n"
+        if expect = "" orelse outcome_code = expect then
+          ()
+        else if blocking then
+          error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
+        else
+          warning ("Unexpected outcome: " ^ quote outcome_code ^ ".");
+        message
       end
   in
-    if blocking then
-      priority (desc ^ "\n" ^ TimeLimit.timeLimit timeout run ())
-    else
-      Async_Manager.launch das_Tool verbose birth_time death_time desc run
+    if blocking then priority (desc ^ "\n" ^ TimeLimit.timeLimit timeout run ())
+    else Async_Manager.launch das_Tool verbose birth_time death_time desc run
   end
 
 fun run_sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."

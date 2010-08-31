@@ -96,7 +96,7 @@ fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) alias_params s orelse
   AList.defined (op =) negated_alias_params s orelse
-  member (op =) property_dependent_params s
+  member (op =) property_dependent_params s orelse s = "expect"
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
@@ -184,12 +184,14 @@ fun extract_params default_params override_params =
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
+    val expect = lookup_string "expect"
   in
     {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
      atps = atps, full_types = full_types, explicit_apply = explicit_apply,
      relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
      theory_relevant = theory_relevant, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, timeout = timeout}
+     isar_shrink_factor = isar_shrink_factor, timeout = timeout,
+     expect = expect}
   end
 
 fun get_params thy = extract_params (default_raw_params thy)
