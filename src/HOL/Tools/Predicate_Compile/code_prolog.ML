@@ -10,7 +10,7 @@ sig
   type code_options =
     {ensure_groundness : bool,
      limited_types : (typ * int) list,
-     limited_predicates : (string * int) list,
+     limited_predicates : (string list * int) list,
      replacing : ((string * string) * string) list,
      prolog_system : prolog_system}
   val code_options_of : theory -> code_options 
@@ -37,7 +37,6 @@ sig
 
   val trace : bool Unsynchronized.ref
   
-  val make_depth_limited : logic_program -> logic_program
   val replace : ((string * string) * string) -> logic_program -> logic_program
 end;
 
@@ -57,7 +56,7 @@ datatype prolog_system = SWI_PROLOG | YAP
 type code_options =
   {ensure_groundness : bool,
    limited_types : (typ * int) list,
-   limited_predicates : (string * int) list,
+   limited_predicates : (string list * int) list,
    replacing : ((string * string) * string) list,
    prolog_system : prolog_system}
 
@@ -400,14 +399,14 @@ fun add_ground_predicates ctxt limited_types (p, constant_table) =
 
 fun mk_lim_rel_name rel_name = "lim_" ^ rel_name
 
-fun mk_depth_limited ((rel_name, ts), prem) =
+fun mk_depth_limited rel_names ((rel_name, ts), prem) =
   let
     fun has_positive_recursive_prems (Conj prems) = exists has_positive_recursive_prems prems
-      | has_positive_recursive_prems (Rel (rel, ts)) = (rel = rel_name) 
+      | has_positive_recursive_prems (Rel (rel, ts)) = member (op =) rel_names rel
       | has_positive_recursive_prems _ = false
     fun mk_lim_prem (Conj prems) = Conj (map mk_lim_prem prems)
       | mk_lim_prem (p as Rel (rel, ts)) =
-        if rel = rel_name then Rel (mk_lim_rel_name rel, Var "Lim" :: ts) else p
+        if member (op =) rel_names rel then Rel (mk_lim_rel_name rel, Var "Lim" :: ts) else p
       | mk_lim_prem p = p
   in
     if has_positive_recursive_prems prem then
@@ -416,20 +415,22 @@ fun mk_depth_limited ((rel_name, ts), prem) =
       ((mk_lim_rel_name rel_name, (Var "Lim") :: ts), prem)
   end
 
-fun make_depth_limited clauses = map mk_depth_limited clauses
-
 fun add_limited_predicates limited_predicates =
   let                                     
-    fun add (rel_name, limit) (p, constant_table) = 
+    fun add (rel_names, limit) (p, constant_table) = 
       let
-        val clauses = filter (fn ((rel, args), prems) => rel = rel_name) p
-        val clauses' = make_depth_limited clauses
-        val nargs = length (snd (fst (hd clauses)))
-        val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto nargs)
+        val clauses = filter (fn ((rel, _), _) => member (op =) rel_names rel) p
+        val clauses' = map (mk_depth_limited rel_names) clauses
         fun nat_term_of n = funpow n (fn t => AppF ("suc", [t])) (Cons "zero")
-        val entry_clause =
-          (("limited_" ^ rel_name, vars), Rel ("lim_" ^ rel_name, nat_term_of limit :: vars)) 
-      in (p @ entry_clause :: clauses', constant_table) end
+        fun mk_entry_clause rel_name =
+          let
+            val nargs = length (snd (fst
+              (the (find_first (fn ((rel, _), _) => rel = rel_name) clauses))))
+            val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto nargs)        
+          in
+            (("limited_" ^ rel_name, vars), Rel ("lim_" ^ rel_name, nat_term_of limit :: vars))
+          end
+      in (p @ (map mk_entry_clause rel_names) @ clauses', constant_table) end
   in
     fold add limited_predicates
   end
