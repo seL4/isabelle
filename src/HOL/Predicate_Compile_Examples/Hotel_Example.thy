@@ -112,18 +112,16 @@ where
    s = s\<^isub>3 @ [Enter g r c] @ s\<^isub>2 @ [Check_in g r c'] @ s\<^isub>1 \<and>
    no_Check_in (s\<^isub>3 @ s\<^isub>2) r \<and> isin (s\<^isub>2 @ [Check_in g r c] @ s\<^isub>1) r = {})"
 
-ML {* set Code_Prolog.trace *}
-
 setup {* Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limited_types = [],
-   limited_predicates = [("hotel", 2)],
+   limited_predicates = [("hotel", 5)],
    replacing = [(("hotel", "limited_hotel"), "quickcheck")],
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 lemma
-  "hotel s ==> feels_safe s (Room0) ==> g \<in> isin s (Room0) ==> owns s Room0 = Some g"
-quickcheck[generator = prolog, iterations = 1]
+  "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
+quickcheck[generator = prolog, iterations = 1, expect = counterexample]
 oops
 
 end

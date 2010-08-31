@@ -351,7 +351,7 @@ fun rewrite_intro thy intro =
         |> map (fn (resargs, (names', prems')) =>
           let
             val prem' = HOLogic.mk_Trueprop (mk_lit (list_comb (P, resargs)))
-          in (prem'::prems', names') end)
+          in (prems' @ [prem'], names') end)
       end
     val intro_ts' = folds_map rewrite prems frees
       |> maps (fn (prems', frees') =>
