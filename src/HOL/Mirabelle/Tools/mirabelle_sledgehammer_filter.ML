@@ -7,6 +7,8 @@ struct
 
 val relevance_filter_args =
   [("worse_irrel_freq", Sledgehammer_Fact_Filter.worse_irrel_freq),
+   ("higher_order_irrel_weight",
+    Sledgehammer_Fact_Filter.higher_order_irrel_weight),
    ("abs_rel_weight", Sledgehammer_Fact_Filter.abs_rel_weight),
    ("abs_irrel_weight", Sledgehammer_Fact_Filter.abs_irrel_weight),
    ("skolem_irrel_weight", Sledgehammer_Fact_Filter.skolem_irrel_weight),
