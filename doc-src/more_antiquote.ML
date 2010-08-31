@@ -127,10 +127,9 @@ val _ = Thy_Output.antiquotation "code_stmts"
   (parse_const_terms -- Scan.repeat parse_names -- Scan.lift (Args.parens Args.name))
   (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), target) =>
     let val thy = ProofContext.theory_of ctxt in
-      Code_Target.produce_code thy (mk_cs thy)
+      Code_Target.present_code thy (mk_cs thy)
         (fn naming => maps (fn f => f thy naming) mk_stmtss)
         target NONE (SOME "Example") []
-      |> fst
       |> typewriter
     end);
 

@@ -12,14 +12,18 @@ sig
   val export_code_for: theory -> Path.T option -> string -> int option -> string option -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
   val produce_code_for: theory -> string -> int option -> string option -> Token.T list
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list * string list -> string * string option list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
+  val present_code_for: theory -> string -> int option -> string option -> Token.T list
+    -> Code_Thingol.naming -> Code_Thingol.program -> string list * string list -> string
   val check_code_for: theory -> string -> bool -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
 
   val export_code: theory -> string list
     -> (((string * string option) * Path.T option) * Token.T list) list -> unit
-  val produce_code: theory -> string list -> (Code_Thingol.naming -> string list)
+  val produce_code: theory -> string list
     -> string -> int option -> string option -> Token.T list -> string * string option list
+  val present_code: theory -> string list -> (Code_Thingol.naming -> string list)
+    -> string -> int option -> string option -> Token.T list -> string
   val check_code: theory -> string list
     -> ((string * bool) * Token.T list) list -> unit
 
@@ -65,17 +69,19 @@ type const_syntax = Code_Printer.const_syntax;
 
 (** abstract nonsense **)
 
-datatype destination = File of Path.T option | String of string list;
+datatype destination = Export of Path.T option | Produce | Present of string list;
 type serialization = int -> destination -> (string * string option list) option;
 
-fun stmt_names_of_destination (String stmt_names) = stmt_names
+fun stmt_names_of_destination (Present stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
 
-fun serialization output _ content width (File some_path) = (output width some_path content; NONE)
-  | serialization _ string content width (String _) = SOME (string width content);
+fun serialization output _ content width (Export some_path) = (output width some_path content; NONE)
+  | serialization _ string content width Produce = SOME (string width content)
+  | serialization _ string content width (Present _) = SOME (string width content);
 
-fun file some_path f = (f (File some_path); ());
-fun string stmt_names f = the (f (String stmt_names));
+fun export some_path f = (f (Export some_path); ());
+fun produce f = the (f Produce);
+fun present stmt_names f = fst (the (f (Present stmt_names)));
 
 
 (** theory data **)
@@ -353,10 +359,13 @@ fun mount_serializer thy target some_width raw_module_name args naming proto_pro
 in
 
 fun export_code_for thy some_path target some_width some_module_name args naming program names =
-  file some_path (mount_serializer thy target some_width some_module_name args naming program names);
+  export some_path (mount_serializer thy target some_width some_module_name args naming program names);
 
-fun produce_code_for thy target some_width some_module_name args naming program (names, selects) =
-  string selects (mount_serializer thy target some_width some_module_name args naming program names);
+fun produce_code_for thy target some_width some_module_name args naming program names =
+  produce (mount_serializer thy target some_width some_module_name args naming program names);
+
+fun present_code_for thy target some_width some_module_name args naming program (names, selects) =
+  present selects (mount_serializer thy target some_width some_module_name args naming program names);
 
 fun check_code_for thy target strict args naming program names_cs =
   let
@@ -367,7 +376,7 @@ fun check_code_for thy target strict args naming program names_cs =
     fun ext_check env_param p =
       let 
         val destination = make_destination p;
-        val _ = file (SOME destination) (mount_serializer thy target (SOME 80)
+        val _ = export (SOME destination) (mount_serializer thy target (SOME 80)
           (SOME module_name) args naming program names_cs);
         val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
@@ -415,10 +424,15 @@ fun export_code thy cs seris =
 fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw_cs)
   ((map o apfst o apsnd) prep_destination seris);
 
-fun produce_code thy cs names_stmt target some_width some_module_name args =
+fun produce_code thy cs target some_width some_module_name args =
   let
     val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-  in produce_code_for thy target some_width some_module_name args naming program (names_cs, names_stmt naming) end;
+  in produce_code_for thy target some_width some_module_name args naming program names_cs end;
+
+fun present_code thy cs names_stmt target some_width some_module_name args =
+  let
+    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
+  in present_code_for thy target some_width some_module_name args naming program (names_cs, names_stmt naming) end;
 
 fun check_code thy cs seris =
   let
