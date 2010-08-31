@@ -313,12 +313,12 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
-fun serialize_haskell module_prefix string_classes labelled_name
-    raw_reserved includes single_module module_alias
-    class_syntax tyco_syntax const_syntax program
-    (stmt_names, presentation_stmt_names) =
+fun serialize_haskell module_prefix string_classes { labelled_name,
+    reserved_syms, includes, single_module, module_alias,
+    class_syntax, tyco_syntax, const_syntax, program,
+    names, presentation_names } =
   let
-    val reserved = fold (insert (op =) o fst) includes raw_reserved;
+    val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
       module_prefix reserved module_alias program;
     val contr_classparam_typs = Code_Thingol.contr_classparam_typs program;
@@ -368,13 +368,13 @@ fun serialize_haskell module_prefix string_classes labelled_name
           );
       in print_module module_name' content end;
     fun serialize_module2 (_, (_, (stmts, _))) = Pretty.chunks2 (map_filter
-        (fn (name, (_, SOME stmt)) => if null presentation_stmt_names
-              orelse member (op =) presentation_stmt_names name
+        (fn (name, (_, SOME stmt)) => if null presentation_names
+              orelse member (op =) presentation_names name
               then SOME (print_stmt false (name, stmt))
               else NONE
           | (_, (_, NONE)) => NONE) stmts);
     val serialize_module =
-      if null presentation_stmt_names then serialize_module1 else pair "" o serialize_module2;
+      if null presentation_names then serialize_module1 else pair "" o serialize_module2;
     fun write_module width (SOME destination) (modlname, content) =
           let
             val _ = File.check destination;

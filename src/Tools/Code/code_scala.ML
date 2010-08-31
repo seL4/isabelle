@@ -413,13 +413,13 @@ fun scala_program_of_program labelled_name reserved module_alias program =
 
   in (deresolver, sca_program) end;
 
-fun serialize_scala labelled_name raw_reserved includes _ module_alias
-    _ tyco_syntax const_syntax
-    program (stmt_names, presentation_stmt_names) =
+fun serialize_scala { labelled_name, reserved_syms, includes, single_module,
+    module_alias, class_syntax, tyco_syntax, const_syntax, program,
+    names, presentation_names } =
   let
 
     (* build program *)
-    val reserved = fold (insert (op =) o fst) includes raw_reserved;
+    val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val (deresolver, sca_program) = scala_program_of_program labelled_name
       (Name.make_context reserved) module_alias program;
 
@@ -455,12 +455,12 @@ fun serialize_scala labelled_name raw_reserved includes _ module_alias
       in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
     fun print_node _ (_, Dummy) = NONE
       | print_node prefix_fragments (name, Stmt stmt) =
-          if null presentation_stmt_names
-          orelse member (op =) presentation_stmt_names name
+          if null presentation_names
+          orelse member (op =) presentation_names name
           then SOME (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt))
           else NONE
       | print_node prefix_fragments (name_fragment, Module (implicits, nodes)) =
-          if null presentation_stmt_names
+          if null presentation_names
           then
             let
               val prefix_fragments' = prefix_fragments @ [name_fragment];
@@ -477,7 +477,7 @@ fun serialize_scala labelled_name raw_reserved includes _ module_alias
       in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
 
     (* serialization *)
-    val p_includes = if null presentation_stmt_names
+    val p_includes = if null presentation_names
       then map (fn (base, p) => print_module base [] p) includes else [];
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
     fun write width NONE = writeln_pretty width

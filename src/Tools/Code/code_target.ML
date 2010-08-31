@@ -101,17 +101,18 @@ fun merge_symbol_syntax_data
        Symtab.join (K snd) (const1, const2))
   );
 
-type serializer = Token.T list          (*arguments*)
-  -> (string -> string)                 (*labelled_name*)
-  -> string list                        (*reserved symbols*)
-  -> (string * Pretty.T) list           (*includes*)
-  -> bool                               (*singleton module*)
-  -> (string -> string option)          (*module aliasses*)
-  -> (string -> string option)          (*class syntax*)
-  -> (string -> Code_Printer.tyco_syntax option)
-  -> (string -> Code_Printer.activated_const_syntax option)
-  -> Code_Thingol.program
-  -> (string list * string list)        (*selected statements*)
+type serializer = Token.T list (*arguments*) -> {
+    labelled_name: string -> string,
+    reserved_syms: string list,
+    includes: (string * Pretty.T) list,
+    single_module: bool,
+    module_alias: string -> string option,
+    class_syntax: string -> string option,
+    tyco_syntax: string -> Code_Printer.tyco_syntax option,
+    const_syntax: string -> Code_Printer.activated_const_syntax option,
+    program: Code_Thingol.program,
+    names: string list,
+    presentation_names: string list }
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer,
@@ -277,10 +278,18 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
     val _ = if null empty_funs then () else error ("No code equations for "
       ^ commas (map (Sign.extern_const thy) empty_funs));
   in
-    serializer args (Code_Thingol.labelled_name thy program2) reserved includes
-      (is_some module_name) (if is_some module_name then K module_name else Symtab.lookup module_alias)
-      (Symtab.lookup class') (Symtab.lookup tyco') (Symtab.lookup const')
-      program4 (names1, presentation_names) width
+    serializer args {
+      labelled_name = Code_Thingol.labelled_name thy program2,
+      reserved_syms = reserved,
+      includes = includes,
+      single_module = is_some module_name,
+      module_alias = if is_some module_name then K module_name else Symtab.lookup module_alias,
+      class_syntax = Symtab.lookup class',
+      tyco_syntax = Symtab.lookup tyco',
+      const_syntax = Symtab.lookup const',
+      program = program3,
+      names = names1,
+      presentation_names = presentation_names } width
   end;
 
 fun mount_serializer thy target some_width raw_module_name args naming program names destination =

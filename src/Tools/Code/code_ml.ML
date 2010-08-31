@@ -902,19 +902,19 @@ fun ml_node_of_program labelled_name reserved module_alias program =
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
 
-fun serialize_ml target print_module print_stmt with_signatures labelled_name
-  reserved includes single_module module_alias _ tyco_syntax const_syntax program
-  (stmt_names, presentation_stmt_names) =
+fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
+  reserved_syms, includes, single_module, module_alias, class_syntax, tyco_syntax,
+  const_syntax, program, names, presentation_names } =
   let
     val is_cons = Code_Thingol.is_cons program;
-    val is_presentation = not (null presentation_stmt_names);
+    val is_presentation = not (null presentation_names);
     val (deresolver, nodes) = ml_node_of_program labelled_name
-      reserved module_alias program;
-    val reserved = make_vars reserved;
+      reserved_syms module_alias program;
+    val reserved = make_vars reserved_syms;
     fun print_node prefix (Dummy _) =
           NONE
       | print_node prefix (Stmt (_, stmt)) = if is_presentation andalso
-          (null o filter (member (op =) presentation_stmt_names) o stmt_names_of) stmt
+          (null o filter (member (op =) presentation_names) o stmt_names_of) stmt
           then NONE
           else SOME (print_stmt labelled_name tyco_syntax const_syntax reserved is_cons (deresolver prefix) stmt)
       | print_node prefix (Module (module_name, (_, nodes))) =
@@ -927,13 +927,13 @@ fun serialize_ml target print_module print_stmt with_signatures labelled_name
         o rev o flat o Graph.strong_conn) nodes
       |> split_list
       |> (fn (decls, body) => (flat decls, body))
-    val stmt_names' = map (try (deresolver [])) stmt_names
+    val names' = map (try (deresolver [])) names
       |> single_module ? (map o Option.map) Long_Name.base_name;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;
   in
-    Code_Target.serialization write (fn width => (rpair stmt_names' o string_of_pretty width)) p
+    Code_Target.serialization write (fn width => (rpair names' o string_of_pretty width)) p
   end;
 
 end; (*local*)
