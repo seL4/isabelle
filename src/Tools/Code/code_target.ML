@@ -42,12 +42,6 @@ sig
     -> 'a -> int -> serialization
   val set_default_code_width: int -> theory -> theory
 
-  (*FIXME drop asap*)
-  val code_of: theory -> string -> int option -> string
-    -> string list -> (Code_Thingol.naming -> string list) -> string * string option list
-  val serialize_custom: theory -> string * serializer -> string option
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
-
   val allow_abort: string -> theory -> theory
   type tyco_syntax = Code_Printer.tyco_syntax
   type const_syntax = Code_Printer.const_syntax
@@ -77,8 +71,8 @@ type serialization = destination -> (string * string option list) option;
 fun stmt_names_of_destination (String stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
 
-fun serialization output _ pretty width (File some_path) = (output width some_path pretty; NONE)
-  | serialization _ string pretty width (String _) = SOME (string width pretty);
+fun serialization output _ content width (File some_path) = (output width some_path content; NONE)
+  | serialization _ string content width (String _) = SOME (string width content);
 
 fun file some_path f = (f (File some_path); ());
 fun string stmt_names f = the (f (String stmt_names));
@@ -291,7 +285,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       program4 (names1, presentation_names) width
   end;
 
-fun mount_serializer thy alt_serializer target some_width raw_module_name args naming program names destination =
+fun mount_serializer thy target some_width raw_module_name args naming program names destination =
   let
     val ((targets, abortable), default_width) = Targets.get thy;
     fun collapse_hierarchy target =
@@ -306,8 +300,8 @@ fun mount_serializer thy alt_serializer target some_width raw_module_name args n
           in (modify' #> modify naming, merge_target false target (data', data)) end
       end;
     val (modify, data) = collapse_hierarchy target;
-    val serializer = the_default (case the_description data
-     of Fundamental seri => #serializer seri) alt_serializer;
+    val serializer = case the_description data
+    of Fundamental seri => #serializer seri;
     val presentation_names = stmt_names_of_destination destination;
     val module_name = if null presentation_names
       then raw_module_name else SOME "Code";
@@ -332,13 +326,11 @@ fun mount_serializer thy alt_serializer target some_width raw_module_name args n
 
 in
 
-fun serialize thy = mount_serializer thy NONE;
-
 fun export_code_for thy some_path target some_width some_module_name args naming program names =
-  file some_path (serialize thy target some_width some_module_name args naming program names);
+  file some_path (mount_serializer thy target some_width some_module_name args naming program names);
 
 fun produce_code_for thy target some_width some_module_name args naming program (names, selects) =
-  string selects (serialize thy target some_width some_module_name args naming program names);
+  string selects (mount_serializer thy target some_width some_module_name args naming program names);
 
 fun check_code_for thy target strict args naming program names_cs =
   let
@@ -349,7 +341,7 @@ fun check_code_for thy target strict args naming program names_cs =
     fun ext_check env_param p =
       let 
         val destination = make_destination p;
-        val _ = file (SOME destination) (serialize thy target (SOME 80)
+        val _ = file (SOME destination) (mount_serializer thy target (SOME 80)
           (SOME module_name) args naming program names_cs);
         val cmd = make_command env_param module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
@@ -363,22 +355,7 @@ fun check_code_for thy target strict args naming program names_cs =
     else Cache_IO.with_tmp_dir "Code_Test" (ext_check env_param)
   end;
 
-fun serialize_custom thy (target_name, seri) module_name naming program names =
-  mount_serializer thy (SOME seri) target_name NONE module_name [] naming program names (String [])
-  |> the;
-
 end; (* local *)
-
-
-(* code presentation *)
-
-fun code_of thy target some_width module_name cs names_stmt =
-  let
-    val (names_cs, (naming, program)) = Code_Thingol.consts_program thy false cs;
-  in
-    string (names_stmt naming)
-      (serialize thy target some_width (SOME module_name) [] naming program names_cs)
-  end;
 
 
 (* code generation *)

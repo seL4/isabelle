@@ -29,8 +29,8 @@ fun evaluation_code thy struct_name_hint tycos consts =
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
     val struct_name = if struct_name_hint = "" then eval_struct_name
       else struct_name_hint;
-    val (ml_code, target_names) = Code_ML.evaluation_code_of thy target
-      struct_name naming program (consts' @ tycos');
+    val (ml_code, target_names) = Code_Target.produce_code_for thy
+      target NONE (SOME struct_name) [] naming program (consts' @ tycos', []);
     val (consts'', tycos'') = chop (length consts') target_names;
     val consts_map = map2 (fn const => fn NONE =>
         error ("Constant " ^ (quote o Code.string_of_const thy) const
@@ -57,8 +57,8 @@ fun eval some_target reff postproc thy t args =
           |> Graph.new_node (value_name,
               Code_Thingol.Fun (Term.dummy_patternN, ((([], ty), [(([], t), (NONE, true))]), NONE)))
           |> fold (curry Graph.add_edge value_name) deps;
-        val (value_code, [SOME value_name']) = Code_ML.evaluation_code_of thy
-          (the_default target some_target) "" naming program' [value_name];
+        val (value_code, [SOME value_name']) = Code_Target.produce_code_for thy
+          (the_default target some_target) NONE (SOME "") [] naming program ([value_name], []);
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt false reff sml_code end;

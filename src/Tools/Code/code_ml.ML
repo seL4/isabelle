@@ -8,8 +8,6 @@ signature CODE_ML =
 sig
   val target_SML: string
   val target_OCaml: string
-  val evaluation_code_of: theory -> string -> string
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
   val print_tuple: (Code_Printer.fixity -> 'a -> Pretty.T)
     -> Code_Printer.fixity -> 'a list -> Pretty.T option
   val setup: theory -> theory
@@ -941,13 +939,6 @@ fun serialize_ml target print_module print_stmt module_name with_signatures labe
   end;
 
 end; (*local*)
-
-
-(** for instrumentalization **)
-
-fun evaluation_code_of thy target struct_name =
-  Code_Target.serialize_custom thy (target, fn module_name => fn [] =>
-    serialize_ml target print_sml_module print_sml_stmt module_name true) (SOME struct_name);
 
 
 (** Isar setup **)
