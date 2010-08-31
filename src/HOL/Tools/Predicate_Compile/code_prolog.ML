@@ -156,14 +156,14 @@ type logic_program = clause list;
 
 (* translation from introduction rules to internal representation *)
 
-fun mk_conform empty avoid name =
+fun mk_conform f empty avoid name =
   let
     fun dest_Char (Symbol.Char c) = c
     val name' = space_implode "" (map (dest_Char o Symbol.decode)
       (filter (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s)
         (Symbol.explode name)))
-    val name'' = if name' = "" then empty else name'
-  in Name.variant avoid name'' end
+    val name'' = f (if name' = "" then empty else name')
+  in (if member (op =) avoid name'' then Name.variant avoid name'' else name'') end
 
 (** constant table **)
 
@@ -175,7 +175,7 @@ fun declare_consts consts constant_table =
     fun update' c table =
       if AList.defined (op =) table c then table else
         let
-          val c' = first_lower (mk_conform "pred" (map snd table) (Long_Name.base_name c))
+          val c' = mk_conform first_lower "pred" (map snd table) (Long_Name.base_name c)
         in
           AList.update (op =) (c, c') table
         end
@@ -282,7 +282,8 @@ fun translate_intros ensure_groundness ctxt gr const constant_table =
         val prems' = Conj (map (translate_prem ensure_groundness ctxt' constant_table') prems)
         val clause = (dest_Rel (translate_literal ctxt' constant_table' head), prems')
       in clause end
-  in (map translate_intro intros', constant_table') end
+    val res = (map translate_intro intros', constant_table')
+  in res end
 
 fun depending_preds_of (key, intros) =
   fold Term.add_const_names (map Thm.prop_of intros) []
@@ -458,7 +459,7 @@ fun is_prolog_conform v =
   forall (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s) (Symbol.explode v)
   
 fun mk_renaming v renaming =
-  (v, first_upper (mk_conform "var" (map snd renaming) v)) :: renaming
+  (v, mk_conform first_upper "Var" (map snd renaming) v) :: renaming
 
 fun rename_vars_clause ((rel, args), prem) =
   let

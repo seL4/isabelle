@@ -84,9 +84,9 @@ setup {* Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck) *}
 setup {* Code_Prolog.map_code_options (K 
   { ensure_groundness = true,
     limited_types = [(@{typ nat}, 1), (@{typ "type"}, 1), (@{typ dB}, 1), (@{typ "type list"}, 1)],
-    limited_predicates = [("typing", 2), ("nth_el1", 2)],
+    limited_predicates = [("typing", 2), ("nthel1", 2)],
     replacing = [(("typing", "limited_typing"), "quickcheck"),
-                 (("nth_el1", "limited_nth_el1"), "lim_typing")],
+                 (("nthel1", "limited_nthel1"), "lim_typing")],
     prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 lemma
