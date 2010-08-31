@@ -39,7 +39,7 @@ sig
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
     -> (int -> 'a -> string * string option list)
-    -> 'a -> int -> serialization
+    -> 'a -> serialization
   val set_default_code_width: int -> theory -> theory
 
   val allow_abort: string -> theory -> theory
@@ -66,7 +66,7 @@ type const_syntax = Code_Printer.const_syntax;
 (** abstract nonsense **)
 
 datatype destination = File of Path.T option | String of string list;
-type serialization = destination -> (string * string option list) option;
+type serialization = int -> destination -> (string * string option list) option;
 
 fun stmt_names_of_destination (String stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
@@ -112,7 +112,6 @@ type serializer = Token.T list          (*arguments*)
   -> (string -> Code_Printer.activated_const_syntax option)
   -> Code_Thingol.program
   -> (string list * string list)        (*selected statements*)
-  -> int
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer,
@@ -127,26 +126,26 @@ datatype target = Target of {
   description: description,
   reserved: string list,
   includes: (Pretty.T * string list) Symtab.table,
-  symbol_syntax_data: symbol_syntax_data,
-  module_alias: string Symtab.table
+  module_alias: string Symtab.table,
+  symbol_syntax: symbol_syntax_data
 };
 
-fun make_target ((serial, description), ((reserved, includes), (symbol_syntax_data, module_alias))) =
+fun make_target ((serial, description), ((reserved, includes), (module_alias, symbol_syntax))) =
   Target { serial = serial, description = description, reserved = reserved, 
-    includes = includes, symbol_syntax_data = symbol_syntax_data, module_alias = module_alias };
-fun map_target f ( Target { serial, description, reserved, includes, symbol_syntax_data, module_alias } ) =
-  make_target (f ((serial, description), ((reserved, includes), (symbol_syntax_data, module_alias))));
+    includes = includes, module_alias = module_alias, symbol_syntax = symbol_syntax };
+fun map_target f ( Target { serial, description, reserved, includes, module_alias, symbol_syntax } ) =
+  make_target (f ((serial, description), ((reserved, includes), (module_alias, symbol_syntax))));
 fun merge_target strict target (Target { serial = serial1, description = description,
   reserved = reserved1, includes = includes1,
-  symbol_syntax_data = symbol_syntax_data1, module_alias = module_alias1 },
+  module_alias = module_alias1, symbol_syntax = symbol_syntax1 },
     Target { serial = serial2, description = _,
       reserved = reserved2, includes = includes2,
-      symbol_syntax_data = symbol_syntax_data2, module_alias = module_alias2 }) =
+      module_alias = module_alias2, symbol_syntax = symbol_syntax2 }) =
   if serial1 = serial2 orelse not strict then
     make_target ((serial1, description),
       ((merge (op =) (reserved1, reserved2), Symtab.join (K snd) (includes1, includes2)),
-        (merge_symbol_syntax_data (symbol_syntax_data1, symbol_syntax_data2),
-          Symtab.join (K snd) (module_alias1, module_alias2))
+        (Symtab.join (K snd) (module_alias1, module_alias2),
+          merge_symbol_syntax_data (symbol_syntax1, symbol_syntax2))
     ))
   else
     error ("Incompatible targets: " ^ quote target);
@@ -154,8 +153,8 @@ fun merge_target strict target (Target { serial = serial1, description = descrip
 fun the_description (Target { description, ... }) = description;
 fun the_reserved (Target { reserved, ... }) = reserved;
 fun the_includes (Target { includes, ... }) = includes;
-fun the_symbol_syntax_data (Target { symbol_syntax_data = Symbol_Syntax_Data x, ... }) = x;
 fun the_module_alias (Target { module_alias , ... }) = module_alias;
+fun the_symbol_syntax (Target { symbol_syntax = Symbol_Syntax_Data x, ... }) = x;
 
 structure Targets = Theory_Data
 (
@@ -193,8 +192,8 @@ fun put_target (target, seri) thy =
     thy
     |> (Targets.map o apfst o apfst o Symtab.update)
           (target, make_target ((serial (), seri), (([], Symtab.empty),
-            (make_symbol_syntax_data ((Symtab.empty, Symreltab.empty),
-              (Symtab.empty, Symtab.empty)), Symtab.empty))))
+            (Symtab.empty, make_symbol_syntax_data ((Symtab.empty, Symreltab.empty),
+              (Symtab.empty, Symtab.empty))))))
   end;
 
 fun add_target (target, seri) = put_target (target, Fundamental seri);
@@ -213,10 +212,10 @@ fun map_reserved target =
   map_target_data target o apsnd o apfst o apfst;
 fun map_includes target =
   map_target_data target o apsnd o apfst o apsnd;
-fun map_name_syntax target =
-  map_target_data target o apsnd o apsnd o apfst o map_symbol_syntax_data;
 fun map_module_alias target =
-  map_target_data target o apsnd o apsnd o apsnd;
+  map_target_data target o apsnd o apsnd o apfst;
+fun map_symbol_syntax target =
+  map_target_data target o apsnd o apsnd o apsnd o map_symbol_syntax_data;
 
 fun set_default_code_width k = (Targets.map o apsnd) (K k);
 
@@ -314,7 +313,7 @@ fun mount_serializer thy target some_width raw_module_name args naming program n
     fun includes names_all = map_filter (select_include names_all)
       ((Symtab.dest o the_includes) data);
     val module_alias = the_module_alias data 
-    val { class, instance, tyco, const } = the_symbol_syntax_data data;
+    val { class, instance, tyco, const } = the_symbol_syntax data;
     val literals = the_literals thy target;
     val width = the_default default_width some_width;
   in
@@ -434,7 +433,7 @@ fun gen_add_syntax (mapp, upd, del) prep_x prep_syn target raw_x some_raw_syn th
     val change = case some_raw_syn
      of SOME raw_syn => upd (x, prep_syn thy x raw_syn)
       | NONE => del x;
-  in (map_name_syntax target o mapp) change thy end;
+  in (map_symbol_syntax target o mapp) change thy end;
 
 fun gen_add_class_syntax prep_class =
   gen_add_syntax (apfst o apfst, Symtab.update, Symtab.delete_safe) prep_class ((K o K) I);
