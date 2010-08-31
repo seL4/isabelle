@@ -158,13 +158,12 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y0: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
         val saved_color = gfx.getColor
         try {
-          var y = y0
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
               val line_range = proper_line_range(start(i), end(i))
@@ -175,11 +174,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 val q = text_area.offsetToXY(range.stop)
                 if (p != null && q != null) {
                   gfx.setColor(Document_View.choose_color(snapshot, command))
-                  gfx.fillRect(p.x, y, q.x - p.x, line_height)
+                  gfx.fillRect(p.x, y + i * line_height, q.x - p.x, line_height)
                 }
               }
             }
-            y += line_height
           }
         }
         finally { gfx.setColor(saved_color) }
