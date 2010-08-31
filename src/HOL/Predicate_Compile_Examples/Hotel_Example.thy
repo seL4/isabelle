@@ -102,4 +102,28 @@ quickcheck[generator = prolog, iterations = 1, expect = counterexample]
 oops
 
 
+definition no_Check_in :: "event list \<Rightarrow> room \<Rightarrow> bool" where(*>*)
+[code del]: "no_Check_in s r \<equiv> \<not>(\<exists>g c. Check_in g r c \<in> set s)"
+
+
+definition feels_safe :: "event list \<Rightarrow> room \<Rightarrow> bool"
+where
+  "feels_safe s r = (\<exists>s\<^isub>1 s\<^isub>2 s\<^isub>3 g c c'.
+   s = s\<^isub>3 @ [Enter g r c] @ s\<^isub>2 @ [Check_in g r c'] @ s\<^isub>1 \<and>
+   no_Check_in (s\<^isub>3 @ s\<^isub>2) r \<and> isin (s\<^isub>2 @ [Check_in g r c] @ s\<^isub>1) r = {})"
+
+ML {* set Code_Prolog.trace *}
+
+setup {* Code_Prolog.map_code_options (K 
+  {ensure_groundness = true,
+   limited_types = [],
+   limited_predicates = [("hotel", 2)],
+   replacing = [(("hotel", "limited_hotel"), "quickcheck")],
+   prolog_system = Code_Prolog.SWI_PROLOG}) *}
+
+lemma
+  "hotel s ==> feels_safe s (Room0) ==> g \<in> isin s (Room0) ==> owns s Room0 = Some g"
+quickcheck[generator = prolog, iterations = 1]
+oops
+
 end
