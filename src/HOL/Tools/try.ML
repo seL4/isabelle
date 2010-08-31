@@ -66,8 +66,10 @@ fun invoke_try st =
     [] => writeln "No proof found."
   | xs as (s, _) :: _ =>
     priority ("Try this command: " ^
-              Markup.markup Markup.sendback ("apply " ^ s) ^ ".\n" ^
-              "(" ^ space_implode "; " (map time_string xs) ^ ")\n")
+        Markup.markup Markup.sendback
+            ((if nprems_of (#goal (Proof.goal st)) = 1 then "by" else "apply") ^
+             " " ^ s) ^
+        ".\n(" ^ space_implode "; " (map time_string xs) ^ ")\n")
 
 val tryN = "try"
 
