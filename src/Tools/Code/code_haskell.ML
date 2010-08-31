@@ -314,7 +314,7 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
   in (deresolver, hs_program) end;
 
 fun serialize_haskell module_prefix string_classes { labelled_name,
-    reserved_syms, includes, single_module, module_alias,
+    reserved_syms, includes, module_alias,
     class_syntax, tyco_syntax, const_syntax, program,
     names, presentation_names } =
   let
@@ -350,7 +350,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
     fun serialize_module1 (module_name', (deps, (stmts, _))) =
       let
         val stmt_names = map fst stmts;
-        val qualified = not single_module;
+        val qualified = null presentation_names;
         val imports = subtract (op =) stmt_names deps
           |> distinct (op =)
           |> map_filter (try deresolver)

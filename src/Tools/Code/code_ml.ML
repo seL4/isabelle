@@ -903,7 +903,7 @@ fun ml_node_of_program labelled_name reserved module_alias program =
   in (deresolver, nodes) end;
 
 fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
-  reserved_syms, includes, single_module, module_alias, class_syntax, tyco_syntax,
+  reserved_syms, includes, module_alias, class_syntax, tyco_syntax,
   const_syntax, program, names, presentation_names } =
   let
     val is_cons = Code_Thingol.is_cons program;
@@ -927,8 +927,7 @@ fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
         o rev o flat o Graph.strong_conn) nodes
       |> split_list
       |> (fn (decls, body) => (flat decls, body))
-    val names' = map (try (deresolver [])) names
-      |> single_module ? (map o Option.map) Long_Name.base_name;
+    val names' = map (try (deresolver [])) names;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;

@@ -59,7 +59,7 @@ fun eval some_target reff postproc thy t args =
           |> fold (curry Graph.add_edge value_name) deps;
         val (value_code, [SOME value_name']) = Code_Target.produce_code_for thy
           (the_default target some_target) NONE (SOME "") [] naming program ([value_name], []);
-        val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
+        val sml_code = "let\n" ^ value_code ^ "\nin " ^ Long_Name.base_name value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt false reff sml_code end;
   in Code_Thingol.dynamic_eval_value thy postproc evaluator t end;
