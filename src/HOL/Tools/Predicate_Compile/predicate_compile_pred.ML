@@ -259,7 +259,8 @@ fun split_conjs thy t =
 
 fun rewrite_intros thy =
   Simplifier.full_simplify (HOL_basic_ss addsimps [@{thm all_not_ex}])
-  #> Simplifier.full_simplify (HOL_basic_ss addsimps @{thms bool_simps} addsimps @{thms nnf_simps})
+  #> Simplifier.full_simplify
+    (HOL_basic_ss addsimps (tl @{thms bool_simps}) addsimps @{thms nnf_simps})
   #> map_term thy (maps_premises (split_conjs thy))
 
 fun print_specs options thy msg ths =
