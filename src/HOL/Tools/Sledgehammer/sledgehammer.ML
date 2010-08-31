@@ -118,14 +118,15 @@ type prover = params -> minimize_command -> problem -> prover_result
 
 (* configuration attributes *)
 
-val (dest_dir, dest_dir_setup) = Attrib.config_string "atp_dest_dir" (K "");
-  (*Empty string means create files in Isabelle's temporary files directory.*)
+val (dest_dir, dest_dir_setup) =
+  Attrib.config_string "sledgehammer_dest_dir" (K "");
+  (* Empty string means create files in Isabelle's temporary files directory. *)
 
 val (problem_prefix, problem_prefix_setup) =
-  Attrib.config_string "atp_problem_prefix" (K "prob");
+  Attrib.config_string "sledgehammer_problem_prefix" (K "prob");
 
 val (measure_runtime, measure_runtime_setup) =
-  Attrib.config_bool "atp_measure_runtime" (K false);
+  Attrib.config_bool "sledgehammer_measure_runtime" (K false);
 
 fun with_path cleanup after f path =
   Exn.capture f path
