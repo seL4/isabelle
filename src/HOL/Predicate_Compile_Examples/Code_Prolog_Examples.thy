@@ -10,8 +10,12 @@ where
   "append [] ys ys"
 | "append xs ys zs ==> append (x # xs) ys (x # zs)"
 
-setup {* Code_Prolog.map_code_options (K {ensure_groundness = false,
-   limited_types = [], limited_predicates = [], replacing = [],
+setup {* Code_Prolog.map_code_options (K
+  {ensure_groundness = false,
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [],
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 values "{(x, y, z). append x y z}"
@@ -20,14 +24,20 @@ values 3 "{(x, y, z). append x y z}"
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = false,
-   limited_types = [], limited_predicates = [], replacing = [],
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [],
    prolog_system = Code_Prolog.YAP}) *}
 
 values "{(x, y, z). append x y z}"
 
 setup {* Code_Prolog.map_code_options (K
   {ensure_groundness = false,
-   limited_types = [], limited_predicates = [], replacing = [],
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [],
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 
@@ -191,11 +201,13 @@ inductive notB :: "abc => bool"
 where
   "y \<noteq> B \<Longrightarrow> notB y"
 
-setup {* Code_Prolog.map_code_options (K {ensure_groundness = true,
-  limited_types = [],
-  limited_predicates = [],
-  replacing = [], 
-  prolog_system = Code_Prolog.SWI_PROLOG}) *}
+setup {* Code_Prolog.map_code_options (K
+  {ensure_groundness = true,
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [], 
+   prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 values 2 "{y. notB y}"
 

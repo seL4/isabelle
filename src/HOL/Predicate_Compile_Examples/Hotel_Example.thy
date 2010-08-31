@@ -89,6 +89,7 @@ setup {* Code_Prolog.map_code_options (K
   limited_types = [],
   limited_predicates = [],
   replacing = [],
+  manual_reorder = [],
   prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 values 40 "{s. hotel s}"
@@ -115,8 +116,9 @@ where
 setup {* Code_Prolog.map_code_options (K 
   {ensure_groundness = true,
    limited_types = [],
-   limited_predicates = [("hotel", 5)],
+   limited_predicates = [(["hotel"], 5)],
    replacing = [(("hotel", "limited_hotel"), "quickcheck")],
+   manual_reorder = [],
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 lemma
