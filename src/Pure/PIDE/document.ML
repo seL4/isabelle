@@ -192,6 +192,59 @@ end;
 
 
 
+(* toplevel transactions *)
+
+local
+
+fun proof_status tr st =
+  (case try Toplevel.proof_of st of
+    SOME prf => Toplevel.status tr (Proof.status_markup prf)
+  | NONE => ());
+
+fun async_state tr st =
+  if Toplevel.print_of tr then
+    ignore
+      (Future.fork
+        (fn () =>
+          Toplevel.setmp_thread_position tr
+            (fn () => Future.status (fn () => Toplevel.print_state false st)) ()))
+  else ();
+
+in
+
+fun run_command thy_name tr st =
+  (case
+      (case Toplevel.init_of tr of
+        SOME name => Exn.capture (fn () => Thy_Header.consistent_name thy_name name) ()
+      | NONE => Exn.Result ()) of
+    Exn.Result () =>
+      let
+        val int = is_some (Toplevel.init_of tr);
+        val (errs, result) =
+          (case Toplevel.transition int tr st of
+            SOME (st', NONE) => ([], SOME st')
+          | SOME (_, SOME exn_info) =>
+              (case ML_Compiler.exn_messages (Runtime.EXCURSION_FAIL exn_info) of
+                [] => raise Exn.Interrupt
+              | errs => (errs, NONE))
+          | NONE => ([ML_Compiler.exn_message Runtime.TERMINATE], NONE));
+        val _ = List.app (Toplevel.error_msg tr) errs;
+        val _ =
+          (case result of
+            NONE => Toplevel.status tr Markup.failed
+          | SOME st' =>
+             (Toplevel.status tr Markup.finished;
+              proof_status tr st';
+              if int then () else async_state tr st'));
+      in result end
+  | Exn.Exn exn =>
+     (Toplevel.error_msg tr (ML_Compiler.exn_message exn); Toplevel.status tr Markup.failed; NONE))
+
+end;
+
+
+
+
 (** editing **)
 
 (* edit *)
@@ -214,7 +267,7 @@ fun new_exec name (id: command_id) (exec_id, updates, state) =
           NONE => NONE
         | SOME st =>
             let val exec_tr = Toplevel.put_id (print_id exec_id') (Future.join future_tr)
-            in Toplevel.run_command name exec_tr st end));
+            in run_command name exec_tr st end));
     val state' = define_exec exec_id' exec' state;
   in (exec_id', (id, exec_id') :: updates, state') end;
 

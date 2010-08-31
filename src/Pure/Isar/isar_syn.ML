@@ -992,7 +992,7 @@ val _ =
     (Scan.succeed
       (Toplevel.no_timing o Toplevel.keep (fn state =>
         (Context.set_thread_data (try Toplevel.generic_theory_of state);
-          raise Toplevel.TERMINATE))));
+          raise Runtime.TERMINATE))));
 
 end;
 

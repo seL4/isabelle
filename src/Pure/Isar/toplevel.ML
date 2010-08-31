@@ -30,19 +30,20 @@ sig
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
   val skip_proofs: bool Unsynchronized.ref
-  exception TERMINATE
   exception TOPLEVEL_ERROR
   val program: (unit -> 'a) -> 'a
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
   val empty: transition
   val init_of: transition -> string option
+  val print_of: transition -> bool
   val name_of: transition -> string
   val pos_of: transition -> Position.T
   val str_of: transition -> string
   val name: string -> transition -> transition
   val position: Position.T -> transition -> transition
   val interactive: bool -> transition -> transition
+  val set_print: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
   val init_theory: string -> (unit -> theory) -> transition -> transition
@@ -87,7 +88,6 @@ sig
   val error_msg: transition -> string -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
-  val run_command: string -> transition -> state -> state option
   val command: transition -> state -> state
   val excursion: (transition * transition list) list -> (transition * state) list lazy * theory
 end;
@@ -222,8 +222,6 @@ val timing = Output.timing;
 val profiling = Unsynchronized.ref 0;
 val skip_proofs = Unsynchronized.ref false;
 
-exception TERMINATE = Runtime.TERMINATE;
-exception EXCURSION_FAIL = Runtime.EXCURSION_FAIL;
 exception TOPLEVEL_ERROR = Runtime.TOPLEVEL_ERROR;
 
 fun program body =
@@ -351,6 +349,7 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 fun init_of (Transition {trans = [Init (name, _)], ...}) = SOME name
   | init_of _ = NONE;
 
+fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
 fun str_of tr = quote (name_of tr) ^ Position.str_of (pos_of tr);
@@ -608,62 +607,12 @@ fun transition int tr st =
     val ctxt = try context_of st;
     val res =
       (case app int tr st of
-        (_, SOME TERMINATE) => NONE
-      | (st', SOME (EXCURSION_FAIL exn_info)) => SOME (st', SOME exn_info)
+        (_, SOME Runtime.TERMINATE) => NONE
+      | (st', SOME (Runtime.EXCURSION_FAIL exn_info)) => SOME (st', SOME exn_info)
       | (st', SOME exn) => SOME (st', SOME (Runtime.exn_context ctxt exn, at_command tr))
       | (st', NONE) => SOME (st', NONE));
     val _ = (case res of SOME (st', NONE) => apply_hooks st' | _ => ());
   in res end;
-
-end;
-
-
-(* managed execution *)
-
-local
-
-fun proof_status tr st =
-  (case try proof_of st of
-    SOME prf => status tr (Proof.status_markup prf)
-  | NONE => ());
-
-fun async_state (tr as Transition {print, ...}) st =
-  if print then
-    ignore
-      (Future.fork (fn () =>
-          setmp_thread_position tr (fn () => Future.status (fn () => print_state false st)) ()))
-  else ();
-
-in
-
-fun run_command thy_name tr st =
-  (case
-      (case init_of tr of
-        SOME name => Exn.capture (fn () => Thy_Header.consistent_name thy_name name) ()
-      | NONE => Exn.Result ()) of
-    Exn.Result () =>
-      let
-        val int = is_some (init_of tr);
-        val (errs, result) =
-          (case transition int tr st of
-            SOME (st', NONE) => ([], SOME st')
-          | SOME (_, SOME exn_info) =>
-              (case ML_Compiler.exn_messages (EXCURSION_FAIL exn_info) of
-                [] => raise Exn.Interrupt
-              | errs => (errs, NONE))
-          | NONE => ([ML_Compiler.exn_message TERMINATE], NONE));
-        val _ = List.app (error_msg tr) errs;
-        val _ =
-          (case result of
-            NONE => status tr Markup.failed
-          | SOME st' =>
-             (status tr Markup.finished;
-              proof_status tr st';
-              if int then () else async_state tr st'));
-      in result end
-  | Exn.Exn exn =>
-     (error_msg tr (ML_Compiler.exn_message (EXCURSION_FAIL (exn, at_command tr)));
-      status tr Markup.failed; NONE))
 
 end;
 
@@ -673,8 +622,8 @@ end;
 fun command tr st =
   (case transition (! interact) tr st of
     SOME (st', NONE) => st'
-  | SOME (_, SOME exn_info) => raise EXCURSION_FAIL exn_info
-  | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
+  | SOME (_, SOME exn_info) => raise Runtime.EXCURSION_FAIL exn_info
+  | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
 
 fun command_result tr st =
   let val st' = command tr st
