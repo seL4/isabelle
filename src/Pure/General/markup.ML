@@ -14,8 +14,8 @@ sig
   val properties: Properties.T -> T -> T
   val nameN: string
   val name: string -> T -> T
-  val bindingN: string val binding: string -> T
   val kindN: string
+  val bindingN: string val binding: string -> T
   val entityN: string val entity: string -> T
   val defN: string
   val refN: string
@@ -118,6 +118,7 @@ sig
   val serialN: string
   val promptN: string val prompt: T
   val readyN: string val ready: T
+  val reportN: string val report: T
   val no_output: output * output
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
@@ -164,13 +165,12 @@ fun markup_int elem prop = (elem, fn i => (elem, [(prop, print_int i)]): T);
 val nameN = "name";
 fun name a = properties [(nameN, a)];
 
-val (bindingN, binding) = markup_string "binding" nameN;
-
 val kindN = "kind";
 
 
 (* formal entities *)
 
+val (bindingN, binding) = markup_string "binding" nameN;
 val (entityN, entity) = markup_string "entity" nameN;
 
 val defN = "def";
@@ -342,6 +342,8 @@ val serialN = "serial";
 
 val (promptN, prompt) = markup_elem "prompt";
 val (readyN, ready) = markup_elem "ready";
+
+val (reportN, report) = markup_elem "report";
 
 
 

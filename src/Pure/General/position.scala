@@ -29,5 +29,14 @@ object Position
       }
   }
 
+  object Id_Range
+  {
+    def unapply(pos: T): Option[(Long, Text.Range)] =
+      (pos, pos) match {
+        case (Id(id), Range(range)) => Some((id, range))
+        case _ => None
+      }
+  }
+
   def purge(props: T): T = props.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
 }

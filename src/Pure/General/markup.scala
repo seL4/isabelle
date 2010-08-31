@@ -69,6 +69,7 @@ object Markup
 
   /* formal entities */
 
+  val BINDING = "binding"
   val ENTITY = "entity"
   val DEF = "def"
   val REF = "ref"
