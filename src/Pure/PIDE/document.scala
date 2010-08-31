@@ -67,7 +67,7 @@ object Document
       var last_stop = 0
       for ((command, start) <- Node.command_starts(commands.iterator)) {
         last_stop = start + command.length
-        if (last_stop + 1 > next_block) {
+        while (last_stop + 1 > next_block) {
           blocks += (command -> start)
           next_block += block_size
         }
