@@ -99,14 +99,11 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   /* visible line ranges */
 
-  // simplify slightly odd result of TextArea.getLineEndOffset etc.
+  // simplify slightly odd result of TextArea.getScreenLineEndOffset etc.
   // NB: jEdit already normalizes \r\n and \r to \n
   def proper_line_range(start: Text.Offset, end: Text.Offset): Text.Range =
   {
-    val stop =
-      if (start < end && end - 1 < model.buffer.getLength &&
-          model.buffer.getSegment(end - 1, 1).charAt(0) == '\n') end - 1
-      else end min model.buffer.getLength
+    val stop = if (start < end) end - 1 else end min model.buffer.getLength
     Text.Range(start, stop)
   }
 
@@ -175,8 +172,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 val range = line_range.restrict(snapshot.convert(command.range + command_start))
                 val p = text_area.offsetToXY(range.start)
                 val q = text_area.offsetToXY(range.stop)
-                gfx.setColor(Document_View.choose_color(snapshot, command))
-                gfx.fillRect(p.x, y, q.x - p.x, line_height)
+                if (p != null && q != null) {
+                  gfx.setColor(Document_View.choose_color(snapshot, command))
+                  gfx.fillRect(p.x, y, q.x - p.x, line_height)
+                }
               }
             }
             y += line_height
