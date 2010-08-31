@@ -151,17 +151,13 @@ fun add_eval_const (const, const') = Code_Target.add_const_syntax target
   const (SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')));
 
 fun process (code_body, (tyco_map, (constr_map, const_map))) module_name NONE thy =
-      let
-        val pr = Code_Printer.str o Long_Name.append module_name;
-      in
-        thy
-        |> Code_Target.add_reserved target module_name
-        |> Context.theory_map
-          (ML_Context.exec (fn () => ML_Context.eval_text true Position.none code_body))
-        |> fold (add_eval_tyco o apsnd pr) tyco_map
-        |> fold (add_eval_constr o apsnd pr) constr_map
-        |> fold (add_eval_const o apsnd pr) const_map
-      end
+      thy
+      |> Code_Target.add_reserved target module_name
+      |> Context.theory_map
+        (ML_Context.exec (fn () => ML_Context.eval_text true Position.none code_body))
+      |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
+      |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
+      |> fold (add_eval_const o apsnd Code_Printer.str) const_map
   | process (code_body, _) _ (SOME file_name) thy =
       let
         val preamble =
