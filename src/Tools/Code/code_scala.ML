@@ -413,7 +413,7 @@ fun scala_program_of_program labelled_name reserved module_alias program =
 
   in (deresolver, sca_program) end;
 
-fun serialize_scala labelled_name raw_reserved includes module_alias
+fun serialize_scala labelled_name raw_reserved includes _ module_alias
     _ tyco_syntax const_syntax
     program (stmt_names, presentation_stmt_names) =
   let
@@ -513,9 +513,8 @@ in Literals {
 
 (** Isar setup **)
 
-fun isar_serializer _ =
-  Code_Target.parse_args (Scan.succeed ())
-  #> (fn () => serialize_scala);
+val isar_serializer =
+  Code_Target.parse_args (Scan.succeed ()) #> K serialize_scala;
 
 val setup =
   Code_Target.add_target

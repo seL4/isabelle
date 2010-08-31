@@ -313,8 +313,8 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
-fun serialize_haskell module_prefix module_name string_classes labelled_name
-    raw_reserved includes module_alias
+fun serialize_haskell module_prefix string_classes labelled_name
+    raw_reserved includes single_module module_alias
     class_syntax tyco_syntax const_syntax program
     (stmt_names, presentation_stmt_names) =
   let
@@ -350,7 +350,7 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
     fun serialize_module1 (module_name', (deps, (stmts, _))) =
       let
         val stmt_names = map fst stmts;
-        val qualified = is_none module_name;
+        val qualified = not single_module;
         val imports = subtract (op =) stmt_names deps
           |> distinct (op =)
           |> map_filter (try deresolver)
@@ -465,11 +465,11 @@ fun add_monad target' raw_c_bind thy =
 
 (** Isar setup **)
 
-fun isar_serializer module_name =
+val isar_serializer =
   Code_Target.parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
     -- Scan.optional (Args.$$$ "string_classes" >> K true) false
     >> (fn (module_prefix, string_classes) =>
-      serialize_haskell module_prefix module_name string_classes));
+      serialize_haskell module_prefix string_classes));
 
 val _ =
   Outer_Syntax.command "code_monad" "define code syntax for monads" Keyword.thy_decl (

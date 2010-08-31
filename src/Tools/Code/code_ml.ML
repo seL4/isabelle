@@ -718,7 +718,7 @@ datatype ml_node =
 
 in
 
-fun ml_node_of_program labelled_name module_name reserved module_alias program =
+fun ml_node_of_program labelled_name reserved module_alias program =
   let
     val reserved = Name.make_context reserved;
     val empty_module = ((reserved, reserved), Graph.empty);
@@ -902,13 +902,13 @@ fun ml_node_of_program labelled_name module_name reserved module_alias program =
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
 
-fun serialize_ml target print_module print_stmt module_name with_signatures labelled_name
-  reserved includes module_alias _ tyco_syntax const_syntax program
+fun serialize_ml target print_module print_stmt with_signatures labelled_name
+  reserved includes single_module module_alias _ tyco_syntax const_syntax program
   (stmt_names, presentation_stmt_names) =
   let
     val is_cons = Code_Thingol.is_cons program;
     val is_presentation = not (null presentation_stmt_names);
-    val (deresolver, nodes) = ml_node_of_program labelled_name module_name
+    val (deresolver, nodes) = ml_node_of_program labelled_name
       reserved module_alias program;
     val reserved = make_vars reserved;
     fun print_node prefix (Dummy _) =
@@ -927,8 +927,8 @@ fun serialize_ml target print_module print_stmt module_name with_signatures labe
         o rev o flat o Graph.strong_conn) nodes
       |> split_list
       |> (fn (decls, body) => (flat decls, body))
-    val stmt_names' = (map o try)
-      (deresolver (if is_some module_name then the_list module_name else [])) stmt_names;
+    val stmt_names' = map (try (deresolver [])) stmt_names
+      |> single_module ? (map o Option.map) Long_Name.base_name;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;
@@ -941,15 +941,15 @@ end; (*local*)
 
 (** Isar setup **)
 
-fun isar_serializer_sml module_name =
+val isar_serializer_sml =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_SML
-      print_sml_module print_sml_stmt module_name with_signatures));
+      print_sml_module print_sml_stmt with_signatures));
 
-fun isar_serializer_ocaml module_name =
+val isar_serializer_ocaml =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_OCaml
-      print_ocaml_module print_ocaml_stmt module_name with_signatures));
+      print_ocaml_module print_ocaml_stmt with_signatures));
 
 val setup =
   Code_Target.add_target

@@ -101,12 +101,11 @@ fun merge_symbol_syntax_data
        Symtab.join (K snd) (const1, const2))
   );
 
-type serializer =
-  string option                         (*module name*)
-  -> Token.T list                       (*arguments*)
+type serializer = Token.T list          (*arguments*)
   -> (string -> string)                 (*labelled_name*)
   -> string list                        (*reserved symbols*)
   -> (string * Pretty.T) list           (*includes*)
+  -> bool                               (*singleton module*)
   -> (string -> string option)          (*module aliasses*)
   -> (string -> string option)          (*class syntax*)
   -> (string -> Code_Printer.tyco_syntax option)
@@ -279,8 +278,8 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
     val _ = if null empty_funs then () else error ("No code equations for "
       ^ commas (map (Sign.extern_const thy) empty_funs));
   in
-    serializer module_name args (Code_Thingol.labelled_name thy program2) reserved includes
-      (if is_some module_name then K module_name else Symtab.lookup module_alias)
+    serializer args (Code_Thingol.labelled_name thy program2) reserved includes
+      (is_some module_name) (if is_some module_name then K module_name else Symtab.lookup module_alias)
       (Symtab.lookup class') (Symtab.lookup tyco') (Symtab.lookup const')
       program4 (names1, presentation_names) width
   end;
