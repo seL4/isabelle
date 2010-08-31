@@ -13,7 +13,8 @@ sig
   type relevance_override = Sledgehammer_Fact_Filter.relevance_override
   type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
   type params =
-    {debug: bool,
+    {blocking: bool,
+     debug: bool,
      verbose: bool,
      overlord: bool,
      atps: string list,
@@ -80,7 +81,8 @@ val messages = Async_Manager.thread_messages das_Tool "ATP"
 (** problems, results, provers, etc. **)
 
 type params =
-  {debug: bool,
+  {blocking: bool,
+   debug: bool,
    verbose: bool,
    overlord: bool,
    atps: string list,
@@ -362,8 +364,9 @@ fun prover_fun atp_name
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
-fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
-                        relevance_override minimize_command proof_state
+fun start_prover_thread (params as {blocking, verbose, full_types, timeout,
+                                    ...})
+                        i n relevance_override minimize_command proof_state
                         atp_name =
   let
     val thy = Proof.theory_of proof_state
@@ -374,23 +377,25 @@ fun start_prover_thread (params as {verbose, full_types, timeout, ...}) i n
     val desc =
       "ATP " ^ quote atp_name ^ " for subgoal " ^ string_of_int i ^ ":\n" ^
       Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i));
+    fun run () =
+      let
+        val problem =
+          {subgoal = i, goal = (ctxt, (facts, goal)),
+           relevance_override = relevance_override, axioms = NONE}
+      in
+        prover params (minimize_command atp_name) problem |> #message
+        handle ERROR message => "Error: " ^ message ^ "\n"
+             | exn => "Internal error:\n" ^ ML_Compiler.exn_message exn ^ "\n"
+      end
   in
-    Async_Manager.launch das_Tool verbose birth_time death_time desc
-        (fn () =>
-            let
-              val problem =
-                {subgoal = i, goal = (ctxt, (facts, goal)),
-                 relevance_override = relevance_override, axioms = NONE}
-            in
-              prover params (minimize_command atp_name) problem |> #message
-              handle ERROR message => "Error: " ^ message ^ "\n"
-                   | exn => "Internal error: \n" ^ ML_Compiler.exn_message exn ^
-                            "\n"
-            end)
+    if blocking then
+      priority (desc ^ "\n" ^ TimeLimit.timeLimit timeout run ())
+    else
+      Async_Manager.launch das_Tool verbose birth_time death_time desc run
   end
 
 fun run_sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
-  | run_sledgehammer (params as {atps, ...}) i relevance_override
+  | run_sledgehammer (params as {blocking, atps, ...}) i relevance_override
                      minimize_command state =
     case subgoal_count state of
       0 => priority "No subgoal!"
@@ -398,8 +403,10 @@ fun run_sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
       let
         val _ = kill_atps ()
         val _ = priority "Sledgehammering..."
-        val _ = app (start_prover_thread params i n relevance_override
-                                         minimize_command state) atps
+        val _ =
+          (if blocking then Par_List.map else map)
+              (start_prover_thread params i n relevance_override
+                                   minimize_command state) atps
       in () end
 
 val setup =

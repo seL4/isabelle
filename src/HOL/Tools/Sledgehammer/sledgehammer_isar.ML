@@ -63,7 +63,8 @@ val _ =
 type raw_param = string * string list
 
 val default_default_params =
-  [("debug", "false"),
+  [("blocking", "false"),
+   ("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
    ("explicit_apply", "false"),
@@ -76,7 +77,8 @@ val default_default_params =
 val alias_params =
   [("atp", "atps")]
 val negated_alias_params =
-  [("no_debug", "debug"),
+  [("non_blocking", "blocking"),
+   ("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("partial_types", "full_types"),
@@ -167,6 +169,7 @@ fun extract_params default_params override_params =
       case lookup name of
         SOME "smart" => NONE
       | _ => SOME (lookup_int name)
+    val blocking = lookup_bool "blocking"
     val debug = lookup_bool "debug"
     val verbose = debug orelse lookup_bool "verbose"
     val overlord = lookup_bool "overlord"
@@ -182,8 +185,8 @@ fun extract_params default_params override_params =
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
   in
-    {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
-     full_types = full_types, explicit_apply = explicit_apply,
+    {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
+     atps = atps, full_types = full_types, explicit_apply = explicit_apply,
      relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
      theory_relevant = theory_relevant, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, timeout = timeout}
