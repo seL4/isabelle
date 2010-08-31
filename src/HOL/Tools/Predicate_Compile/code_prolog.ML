@@ -156,16 +156,32 @@ type logic_program = clause list;
 
 (* translation from introduction rules to internal representation *)
 
+fun mk_conform empty avoid name =
+  let
+    fun dest_Char (Symbol.Char c) = c
+    val name' = space_implode "" (map (dest_Char o Symbol.decode)
+      (filter (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s)
+        (Symbol.explode name)))
+    val name'' = if name' = "" then empty else name'
+  in Name.variant avoid name'' end
+
 (** constant table **)
 
 type constant_table = (string * string) list
 
 (* assuming no clashing *)
-fun mk_constant_table consts =
-  AList.make (first_lower o Long_Name.base_name) consts
-
 fun declare_consts consts constant_table =
-  fold (fn c => AList.update (op =) (c, first_lower (Long_Name.base_name c))) consts constant_table
+  let
+    fun update' c table =
+      if AList.defined (op =) table c then table else
+        let
+          val c' = first_lower (mk_conform "pred" (map snd table) (Long_Name.base_name c))
+        in
+          AList.update (op =) (c, c') table
+        end
+  in
+    fold update' consts constant_table
+  end
   
 fun translate_const constant_table c =
   case AList.lookup (op =) constant_table c of
@@ -295,7 +311,7 @@ fun generate ensure_groundness ctxt const =
     val gr = Predicate_Compile_Core.intros_graph_of ctxt
     val gr' = add_edges depending_preds_of const gr
     val scc = strong_conn_of gr' [const]
-    val constant_table = mk_constant_table (flat scc)
+    val constant_table = declare_consts (flat scc) []
   in
     apfst flat (fold_map (translate_intros ensure_groundness ctxt gr) (flat scc) constant_table)
   end
@@ -402,7 +418,7 @@ fun mk_depth_limited ((rel_name, ts), prem) =
 fun make_depth_limited clauses = map mk_depth_limited clauses
 
 fun add_limited_predicates limited_predicates =
-  let
+  let                                     
     fun add (rel_name, limit) (p, constant_table) = 
       let
         val clauses = filter (fn ((rel, args), prems) => rel = rel_name) p
@@ -438,21 +454,11 @@ fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renam
 
 fun rename_vars_prem renaming = map_term_prem (rename_vars_term renaming)
 
-fun dest_Char (Symbol.Char c) = c
-
 fun is_prolog_conform v =
   forall (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s) (Symbol.explode v)
-
-fun mk_conform avoid v =
-  let 
-    val v' = space_implode "" (map (dest_Char o Symbol.decode)
-      (filter (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s)
-        (Symbol.explode v)))
-    val v' = if v' = "" then "var" else v'
-  in Name.variant avoid (first_upper v') end
   
 fun mk_renaming v renaming =
-  (v, mk_conform (map snd renaming) v) :: renaming
+  (v, first_upper (mk_conform "var" (map snd renaming) v)) :: renaming
 
 fun rename_vars_clause ((rel, args), prem) =
   let
@@ -461,7 +467,7 @@ fun rename_vars_clause ((rel, args), prem) =
   in ((rel, map (rename_vars_term renaming) args), rename_vars_prem renaming prem) end
   
 val rename_vars_program = map rename_vars_clause
-  
+
 (* code printer *)
 
 fun write_arith_op Plus = "+"

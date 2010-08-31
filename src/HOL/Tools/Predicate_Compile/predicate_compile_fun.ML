@@ -356,8 +356,12 @@ fun rewrite_intro thy intro =
     val intro_ts' = folds_map rewrite prems frees
       |> maps (fn (prems', frees') =>
         rewrite concl frees'
-        |> map (fn (concl'::conclprems, _) =>
-          Logic.list_implies ((flat prems') @ conclprems, concl')))
+        |> map (fn (conclprems, _) =>
+          let
+            val (conclprems', concl') = split_last conclprems
+          in
+            Logic.list_implies ((flat prems') @ conclprems', concl')
+          end))
     (*val _ = tracing ("Rewritten intro to " ^
       commas (map (Syntax.string_of_term_global thy) intro_ts'))*)
   in
