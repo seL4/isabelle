@@ -8,7 +8,11 @@ signature CODE_PROLOG =
 sig
   datatype prolog_system = SWI_PROLOG | YAP
   type code_options =
-    {ensure_groundness : bool, limited_types : (typ * int) list, prolog_system : prolog_system}
+    {ensure_groundness : bool,
+     limited_types : (typ * int) list,
+     limited_predicates : (string * int) list,
+     replacing : ((string * string) * string) list,
+     prolog_system : prolog_system}
   val options : code_options ref
 
   datatype arith_op = Plus | Minus
@@ -31,6 +35,9 @@ sig
   val quickcheck : Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
 
   val trace : bool Unsynchronized.ref
+  
+  val make_depth_limited : logic_program -> logic_program
+  val replace : ((string * string) * string) -> logic_program -> logic_program
 end;
 
 structure Code_Prolog : CODE_PROLOG =
@@ -47,9 +54,14 @@ fun tracing s = if !trace then Output.tracing s else ()
 datatype prolog_system = SWI_PROLOG | YAP
 
 type code_options =
-  {ensure_groundness : bool, limited_types : (typ * int) list, prolog_system : prolog_system}
+  {ensure_groundness : bool,
+   limited_types : (typ * int) list,
+   limited_predicates : (string * int) list,
+   replacing : ((string * string) * string) list,
+   prolog_system : prolog_system}
 
-val options = Unsynchronized.ref {ensure_groundness = false, limited_types = [],
+val options = Unsynchronized.ref {ensure_groundness = false,
+  limited_types = [], limited_predicates = [], replacing = [],
   prolog_system = SWI_PROLOG};
 
 (* general string functions *)
@@ -347,7 +359,59 @@ fun add_ground_predicates ctxt limited_types (p, constant_table) =
     ((flat grs) @ p', constant_table')
   end
 
-  
+(* make depth-limited version of predicate *)
+
+fun mk_lim_rel_name rel_name = "lim_" ^ rel_name
+
+fun mk_depth_limited ((rel_name, ts), prem) =
+  let
+    fun has_positive_recursive_prems (Conj prems) = exists has_positive_recursive_prems prems
+      | has_positive_recursive_prems (Rel (rel, ts)) = (rel = rel_name) 
+      | has_positive_recursive_prems _ = false
+    fun mk_lim_prem (Conj prems) = Conj (map mk_lim_prem prems)
+      | mk_lim_prem (p as Rel (rel, ts)) =
+        if rel = rel_name then Rel (mk_lim_rel_name rel, Var "Lim" :: ts) else p
+      | mk_lim_prem p = p
+  in
+    if has_positive_recursive_prems prem then
+      ((mk_lim_rel_name rel_name, (AppF ("suc", [Var "Lim"]))  :: ts), mk_lim_prem prem)
+    else
+      ((mk_lim_rel_name rel_name, (Var "Lim") :: ts), prem)
+  end
+
+fun make_depth_limited clauses = map mk_depth_limited clauses
+
+fun add_limited_predicates limited_predicates =
+  let
+    fun add (rel_name, limit) (p, constant_table) = 
+      let
+        val clauses = filter (fn ((rel, args), prems) => rel = rel_name) p
+        val clauses' = make_depth_limited clauses
+        val nargs = length (snd (fst (hd clauses)))
+        val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto nargs)
+        fun nat_term_of n = funpow n (fn t => AppF ("suc", [t])) (Cons "zero")
+        val entry_clause =
+          (("limited_" ^ rel_name, vars), Rel ("lim_" ^ rel_name, nat_term_of limit :: vars)) 
+      in (p @ entry_clause :: clauses', constant_table) end
+  in
+    fold add limited_predicates
+  end
+
+
+(* replace predicates in clauses *)
+
+(* replace (A, B, C) p = replace A by B in clauses of C *)
+fun replace ((from, to), location) p =
+  let
+    fun replace_prem (Conj prems) = Conj (map replace_prem prems)
+      | replace_prem (r as Rel (rel, ts)) =
+          if rel = from then Rel (to, ts) else r
+      | replace_prem r = r
+  in
+    map (fn ((rel, args), prem) => ((rel, args), (if rel = location then replace_prem else I) prem)) p
+  end
+
+
 (* rename variables to prolog-friendly names *)
 
 fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renaming v))
@@ -605,6 +669,8 @@ fun values ctxt soln t_compr =
       |> (if #ensure_groundness options then
           add_ground_predicates ctxt' (#limited_types options)
         else I)
+      |> add_limited_predicates (#limited_predicates options)
+      |> apfst (fold replace (#replacing options))
     val _ = tracing "Running prolog program..."
     val tss = run (#prolog_system options)
       p (translate_const constant_table name) (map first_upper vnames) soln
@@ -697,6 +763,8 @@ fun quickcheck ctxt report t size =
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate true ctxt' full_constname
       |> add_ground_predicates ctxt' (#limited_types (!options))
+      |> add_limited_predicates (#limited_predicates (!options))
+      |> apfst (fold replace (#replacing (!options)))      
     val _ = tracing "Running prolog program..."
     val [ts] = run (#prolog_system (!options))
       p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
