@@ -621,8 +621,9 @@ fun parse_solutions sol =
         (l :: r :: []) => parse_term (unprefix " " r)
       | _ => raise Fail "unexpected equation in prolog output"
     fun parse_solution s = map dest_eq (space_explode ";" s)
+    val sols = case space_explode "\n" sol of [] => [] | s => fst (split_last s)  
   in
-    map parse_solution (fst (split_last (space_explode "\n" sol)))
+    map parse_solution sols
   end 
   
 (* calling external interpreter and getting results *)
@@ -816,10 +817,13 @@ fun quickcheck ctxt report t size =
       |> apfst (fold replace (#replacing options))
       |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
-    val [ts] = run (#prolog_system options)
+    val tss = run (#prolog_system options)
       p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
-    val res = SOME (map (restore_term ctxt' constant_table) (ts ~~ Ts))
+    val res =
+      case tss of
+        [ts] => SOME (map (restore_term ctxt' constant_table) (ts ~~ Ts))
+      | _ => NONE
     val empty_report = ([], false)
   in
     (res, empty_report)
