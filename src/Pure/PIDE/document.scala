@@ -56,7 +56,7 @@ object Document
     }
   }
 
-  private val block_size = 4096
+  private val block_size = 1024
 
   class Node(val commands: Linear_Set[Command])
   {

@@ -134,6 +134,16 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   /* text_area_extension */
 
+  // simplify slightly odd result of TextArea.getLineEndOffset
+  // NB: jEdit already normalizes \r\n and \r to \n
+  def visible_line_end(start: Text.Offset, end: Text.Offset): Text.Offset =
+  {
+    val end1 = end - 1
+    if (start <= end1 && end1 < model.buffer.getLength &&
+        model.buffer.getSegment(end1, 1).charAt(0) == '\n') end1
+    else end
+  }
+
   private val text_area_extension = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
@@ -142,40 +152,17 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     {
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
-
-        val command_range: Iterable[(Command, Text.Offset)] =
-        {
-          val range = snapshot.node.command_range(snapshot.revert(start(0)))
-          if (range.hasNext) {
-            val (cmd0, start0) = range.next
-            new Iterable[(Command, Text.Offset)] {
-              def iterator =
-                Document.Node.command_starts(snapshot.node.commands.iterator(cmd0), start0)
-            }
-          }
-          else Iterable.empty
-        }
-
         val saved_color = gfx.getColor
         try {
           var y = y0
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
-              val line_start = start(i)
-              val line_end = model.visible_line_end(line_start, end(i))
-
-              val a = snapshot.revert(line_start)
-              val b = snapshot.revert(line_end)
-              val cmds = command_range.iterator.
-                dropWhile { case (cmd, c) => c + cmd.length <= a } .
-                takeWhile { case (_, c) => c < b }
-
+              val line_range = Text.Range(start(i), visible_line_end(start(i), end(i)))
+              val cmds = snapshot.node.command_range(snapshot.revert(line_range))
               for ((command, command_start) <- cmds if !command.is_ignored) {
-                val p =
-                  text_area.offsetToXY(line_start max snapshot.convert(command_start))
-                val q =
-                  text_area.offsetToXY(line_end min snapshot.convert(command_start + command.length))
-                if (p.y != q.y) System.err.println("Unexpected coordinates: " + p + ", " + q)
+                val range = line_range.restrict(snapshot.convert(command.range + command_start))
+                val p = text_area.offsetToXY(range.start)
+                val q = text_area.offsetToXY(range.stop)
                 gfx.setColor(Document_View.choose_color(snapshot, command))
                 gfx.fillRect(p.x, y, q.x - p.x, line_height)
               }
