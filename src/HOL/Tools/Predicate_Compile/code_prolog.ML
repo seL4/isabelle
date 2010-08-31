@@ -12,6 +12,7 @@ sig
      limited_types : (typ * int) list,
      limited_predicates : (string list * int) list,
      replacing : ((string * string) * string) list,
+     manual_reorder : ((string * int) * int list) list,
      prolog_system : prolog_system}
   val code_options_of : theory -> code_options 
   val map_code_options : (code_options -> code_options) -> theory -> theory
@@ -58,23 +59,27 @@ type code_options =
    limited_types : (typ * int) list,
    limited_predicates : (string list * int) list,
    replacing : ((string * string) * string) list,
+   manual_reorder : ((string * int) * int list) list,
    prolog_system : prolog_system}
 
 structure Options = Theory_Data
 (
   type T = code_options
   val empty = {ensure_groundness = false,
-    limited_types = [], limited_predicates = [], replacing = [],
+    limited_types = [], limited_predicates = [], replacing = [], manual_reorder = [],
     prolog_system = SWI_PROLOG}
   val extend = I;
   fun merge
     ({ensure_groundness = ensure_groundness1, limited_types = limited_types1,
-      limited_predicates = limited_predicates1, replacing = replacing1, prolog_system = prolog_system1},
+      limited_predicates = limited_predicates1, replacing = replacing1,
+      manual_reorder = manual_reorder1, prolog_system = prolog_system1},
      {ensure_groundness = ensure_groundness2, limited_types = limited_types2,
-      limited_predicates = limited_predicates2, replacing = replacing2, prolog_system = prolog_system2}) =
+      limited_predicates = limited_predicates2, replacing = replacing2,
+      manual_reorder = manual_reorder2, prolog_system = prolog_system2}) =
     {ensure_groundness = ensure_groundness1 orelse ensure_groundness2,
      limited_types = AList.merge (op =) (K true) (limited_types1, limited_types2),
      limited_predicates = AList.merge (op =) (K true) (limited_predicates1, limited_predicates2),
+     manual_reorder = AList.merge (op =) (K true) (manual_reorder1, manual_reorder2),
      replacing = Library.merge (op =) (replacing1, replacing2),
      prolog_system = prolog_system1};
 );
@@ -449,7 +454,23 @@ fun replace ((from, to), location) p =
     map (fn ((rel, args), prem) => ((rel, args), (if rel = location then replace_prem else I) prem)) p
   end
 
+  
+(* reorder manually : reorder premises of ith clause of predicate p by a permutation perm *)
 
+fun reorder_manually reorder p =
+  let
+    fun reorder' (clause as ((rel, args), prem)) seen =
+      let
+        val seen' = AList.map_default (op =) (rel, 0) (fn x => x + 1) seen
+        val i = the (AList.lookup (op =) seen' rel)
+        val perm = AList.lookup (op =) reorder (rel, i)
+        val prem' = (case perm of 
+          SOME p => (case prem of Conj prems => Conj (map (nth prems) p) | _ => prem)
+        | NONE => prem)
+      in (((rel, args), prem'), seen') end
+  in
+    fst (fold_map reorder' p [])
+  end
 (* rename variables to prolog-friendly names *)
 
 fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renaming v))
@@ -697,6 +718,7 @@ fun values ctxt soln t_compr =
         else I)
       |> add_limited_predicates (#limited_predicates options)
       |> apfst (fold replace (#replacing options))
+      |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
     val tss = run (#prolog_system options)
       p (translate_const constant_table name) (map first_upper vnames) soln
@@ -791,7 +813,8 @@ fun quickcheck ctxt report t size =
     val (p, constant_table) = generate true ctxt' full_constname
       |> add_ground_predicates ctxt' (#limited_types options)
       |> add_limited_predicates (#limited_predicates options)
-      |> apfst (fold replace (#replacing options))     
+      |> apfst (fold replace (#replacing options))
+      |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
     val [ts] = run (#prolog_system options)
       p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
