@@ -13,6 +13,7 @@ sig
      only: bool}
 
   val trace : bool Unsynchronized.ref
+  val worse_irrel_freq : real Unsynchronized.ref
   val abs_rel_weight : real Unsynchronized.ref
   val abs_irrel_weight : real Unsynchronized.ref
   val skolem_irrel_weight : real Unsynchronized.ref
@@ -261,9 +262,22 @@ fun pconst_freq match const_tab (c, ps) =
    These include all induction rules, and other general theorems. *)
 
 (* "log" seems best in practice. A constant function of one ignores the constant
-   frequencies. *)
-fun rel_log n = 1.0 + 2.0 / Math.ln (Real.fromInt n + 1.0)
-fun irrel_log n = Math.ln (Real.fromInt n + 19.0) / 6.4
+   frequencies. Rare constants give more points if they are relevant than less
+   rare ones. *)
+fun rel_weight_for_freq n = 1.0 + 2.0 / Math.ln (Real.fromInt n + 1.0)
+
+(* FUDGE *)
+val worse_irrel_freq = Unsynchronized.ref 100.0
+
+(* Irrelevant constants are treated differently. We associate lower penalties to
+   very rare constants and very common ones -- the former because they can't
+   lead to the inclusion of too many new facts, and the latter because they are
+   so common as to be of little interest. *)
+fun irrel_weight_for_freq n =
+  let val (k, x) = !worse_irrel_freq |> `Real.ceil in
+    if n < k then Math.ln (Real.fromInt (n + 1)) / Math.ln x
+    else rel_weight_for_freq n / rel_weight_for_freq k
+  end
 
 (* FUDGE *)
 val abs_rel_weight = Unsynchronized.ref 0.5
@@ -271,16 +285,17 @@ val abs_irrel_weight = Unsynchronized.ref 2.0
 val skolem_irrel_weight = Unsynchronized.ref 0.75
 
 (* Computes a constant's weight, as determined by its frequency. *)
-fun generic_weight abs_weight skolem_weight logx f const_tab (c as (s, _)) =
+fun generic_pconst_weight abs_weight skolem_weight weight_for_freq f const_tab
+                          (c as (s, _)) =
   if s = abs_name then abs_weight
   else if String.isPrefix skolem_prefix s then skolem_weight
-  else logx (pconst_freq (match_patterns o f) const_tab c)
+  else weight_for_freq (pconst_freq (match_patterns o f) const_tab c)
 
-fun rel_weight const_tab =
-  generic_weight (!abs_rel_weight) 0.0 rel_log I const_tab
-fun irrel_weight const_tab =
-  generic_weight (!abs_irrel_weight) (!skolem_irrel_weight) irrel_log swap
-                 const_tab
+fun rel_pconst_weight const_tab =
+  generic_pconst_weight (!abs_rel_weight) 0.0 rel_weight_for_freq I const_tab
+fun irrel_pconst_weight const_tab =
+  generic_pconst_weight (!abs_irrel_weight) (!skolem_irrel_weight)
+                        irrel_weight_for_freq swap const_tab
 
 (* FUDGE *)
 val intro_bonus = Unsynchronized.ref 0.15
@@ -303,10 +318,11 @@ fun axiom_weight loc const_tab relevant_consts axiom_consts =
   | (rel, irrel) =>
     let
       val irrel = irrel |> filter_out (pconst_mem swap rel)
-      val rel_weight = 0.0 |> fold (curry (op +) o rel_weight const_tab) rel
+      val rel_weight =
+        0.0 |> fold (curry (op +) o rel_pconst_weight const_tab) rel
       val irrel_weight =
         ~ (locality_bonus loc)
-        |> fold (curry (op +) o irrel_weight const_tab) irrel
+        |> fold (curry (op +) o irrel_pconst_weight const_tab) irrel
       val res = rel_weight / (rel_weight + irrel_weight)
     in if Real.isFinite res then res else 0.0 end
 
@@ -317,14 +333,15 @@ fun debug_axiom_weight loc const_tab relevant_consts axiom_consts =
     ([], _) => 0.0
   | (rel, irrel) =>
     let
-val _ = tracing (PolyML.makestring ("REL: ", rel))
-val _ = tracing (PolyML.makestring ("IRREL: ", irrel))(*###*)
       val irrel = irrel |> filter_out (pconst_mem swap rel)
-      val rel_weight = 0.0 |> fold (curry (op +) o rel_weight const_tab) rel
-      val irrel_weight =
+      val rels_weight =
+        0.0 |> fold (curry (op +) o rel_pconst_weight const_tab) rel
+      val irrels_weight =
         ~ (locality_bonus loc)
-        |> fold (curry (op +) o irrel_weight const_tab) irrel
-      val res = rel_weight / (rel_weight + irrel_weight)
+        |> fold (curry (op +) o irrel_pconst_weight const_tab) irrel
+val _ = tracing (PolyML.makestring ("REL: ", map (`(rel_pconst_weight const_tab)) rel))
+val _ = tracing (PolyML.makestring ("IRREL: ", map (`(irrel_pconst_weight const_tab)) irrel))(*###*)
+      val res = rels_weight / (rels_weight + irrels_weight)
     in if Real.isFinite res then res else 0.0 end
 *)
 
@@ -453,7 +470,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
                 | NONE => axiom_weight loc const_tab rel_const_tab axiom_consts
 (* FIXME: experiment
 val name = fst (fst (fst ax)) ()
-val _ = if String.isSubstring "abs_of_neg" name then
+val _ = if String.isSubstring "positive_minus" name orelse String.isSubstring "not_exp_le_zero" name then
 tracing ("*** " ^ name ^ PolyML.makestring (debug_axiom_weight loc const_tab rel_const_tab axiom_consts))
 else
 ()

@@ -6,7 +6,8 @@ structure Mirabelle_Sledgehammer_Filter : MIRABELLE_ACTION =
 struct
 
 val relevance_filter_args =
-  [("abs_rel_weight", Sledgehammer_Fact_Filter.abs_rel_weight),
+  [("worse_irrel_freq", Sledgehammer_Fact_Filter.worse_irrel_freq),
+   ("abs_rel_weight", Sledgehammer_Fact_Filter.abs_rel_weight),
    ("abs_irrel_weight", Sledgehammer_Fact_Filter.abs_irrel_weight),
    ("skolem_irrel_weight", Sledgehammer_Fact_Filter.skolem_irrel_weight),
    ("intro_bonus", Sledgehammer_Fact_Filter.intro_bonus),
