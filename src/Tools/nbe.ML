@@ -388,6 +388,7 @@ fun compile_eqnss ctxt gr raw_deps [] = []
       in
         s
         |> traced (fn s => "\n--- code to be evaluated:\n" ^ s)
+        |> pair ""
         |> ML_Context.evaluate ctxt (!trace) univs_cookie
         |> (fn f => f deps_vals)
         |> (fn univs => cs ~~ univs)
