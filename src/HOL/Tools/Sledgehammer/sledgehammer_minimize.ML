@@ -1,13 +1,13 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_minimize.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_minimize.ML
     Author:     Philipp Meyer, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Minimization of theorem list for Metis using automatic theorem provers.
 *)
 
-signature SLEDGEHAMMER_FACT_MINIMIZE =
+signature SLEDGEHAMMER_MINIMIZE =
 sig
-  type locality = Sledgehammer_Fact_Filter.locality
+  type locality = Sledgehammer_Filter.locality
   type params = Sledgehammer.params
 
   val minimize_theorems :
@@ -16,13 +16,13 @@ sig
   val run_minimize : params -> int -> Facts.ref list -> Proof.state -> unit
 end;
 
-structure Sledgehammer_Fact_Minimize : SLEDGEHAMMER_FACT_MINIMIZE =
+structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
 struct
 
 open ATP_Systems
 open Sledgehammer_Util
-open Sledgehammer_Fact_Filter
-open Sledgehammer_Proof_Reconstruct
+open Sledgehammer_Filter
+open Sledgehammer_Reconstruct
 open Sledgehammer
 
 (* wrapper for calling external prover *)

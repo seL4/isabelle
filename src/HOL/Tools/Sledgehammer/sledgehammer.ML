@@ -9,9 +9,9 @@ Sledgehammer's heart.
 signature SLEDGEHAMMER =
 sig
   type failure = ATP_Systems.failure
-  type locality = Sledgehammer_Fact_Filter.locality
-  type relevance_override = Sledgehammer_Fact_Filter.relevance_override
-  type minimize_command = Sledgehammer_Proof_Reconstruct.minimize_command
+  type locality = Sledgehammer_Filter.locality
+  type relevance_override = Sledgehammer_Filter.relevance_override
+  type minimize_command = Sledgehammer_Reconstruct.minimize_command
   type params =
     {blocking: bool,
      debug: bool,
@@ -64,9 +64,9 @@ open ATP_Problem
 open ATP_Systems
 open Metis_Clauses
 open Sledgehammer_Util
-open Sledgehammer_Fact_Filter
+open Sledgehammer_Filter
 open Sledgehammer_Translate
-open Sledgehammer_Proof_Reconstruct
+open Sledgehammer_Reconstruct
 
 
 (** The Sledgehammer **)
@@ -179,7 +179,7 @@ val extract_clause_formula_relation =
   #> snd #> Substring.string #> strip_spaces_except_between_ident_chars
   #> explode #> parse_clause_formula_relation #> fst
 
-(* TODO: move to "Sledgehammer_Proof_Reconstruct.ML" *)
+(* TODO: move to "Sledgehammer_Reconstruct" *)
 fun repair_conjecture_shape_and_theorem_names output conjecture_shape
                                               axiom_names =
   if String.isSubstring set_ClauseFormulaRelationN output then

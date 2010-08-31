@@ -20,7 +20,7 @@ struct
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer
-open Sledgehammer_Fact_Minimize
+open Sledgehammer_Minimize
 
 (** Sledgehammer commands **)
 

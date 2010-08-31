@@ -1,9 +1,9 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_filter.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_filter.ML
     Author:     Jia Meng, Cambridge University Computer Laboratory and NICTA
     Author:     Jasmin Blanchette, TU Muenchen
 *)
 
-signature SLEDGEHAMMER_FACT_FILTER =
+signature SLEDGEHAMMER_FILTER =
 sig
   datatype locality = General | Intro | Elim | Simp | Local | Chained
 
@@ -35,7 +35,7 @@ sig
     -> thm list -> term list -> term -> ((string * locality) * thm) list
 end;
 
-structure Sledgehammer_Fact_Filter : SLEDGEHAMMER_FACT_FILTER =
+structure Sledgehammer_Filter : SLEDGEHAMMER_FILTER =
 struct
 
 open Sledgehammer_Util

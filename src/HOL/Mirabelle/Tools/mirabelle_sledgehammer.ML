@@ -290,7 +290,7 @@ fun get_atp thy args =
     | NONE => get_prover (default_atp_name ()))
   end
 
-type locality = Sledgehammer_Fact_Filter.locality
+type locality = Sledgehammer_Filter.locality
 
 local
 
@@ -357,7 +357,7 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
     case result of
       SH_OK (time_isa, time_atp, names) =>
         let
-          fun get_thms (name, Sledgehammer_Fact_Filter.Chained) = NONE
+          fun get_thms (name, Sledgehammer_Filter.Chained) = NONE
             | get_thms (name, loc) =
               SOME ((name, loc), thms_of_name (Proof.context_of st) name)
         in
@@ -396,7 +396,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val params = Sledgehammer_Isar.default_params thy
       [("atps", prover_name), ("timeout", Int.toString timeout ^ " s")]
     val minimize =
-      Sledgehammer_Fact_Minimize.minimize_theorems params 1 (subgoal_count st)
+      Sledgehammer_Minimize.minimize_theorems params 1 (subgoal_count st)
     val _ = log separator
   in
     case minimize st (these (!named_thms)) of
