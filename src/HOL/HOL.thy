@@ -30,6 +30,7 @@ uses
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
+  "Tools/try.ML"
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
