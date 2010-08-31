@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/ATP/async_manager.ML
+(*  Title:      HOL/Tools/async_manager.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen

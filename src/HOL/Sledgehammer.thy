@@ -10,7 +10,6 @@ header {* Sledgehammer: Isabelle--ATP Linkup *}
 theory Sledgehammer
 imports Plain Hilbert_Choice
 uses
-  ("Tools/ATP/async_manager.ML")
   ("Tools/ATP/atp_problem.ML")
   ("Tools/ATP/atp_systems.ML")
   ("~~/src/Tools/Metis/metis.ML")
@@ -89,7 +88,6 @@ apply (rule ext)
 apply (simp add: COMBC_def) 
 done
 
-use "Tools/ATP/async_manager.ML"
 use "Tools/ATP/atp_problem.ML"
 use "Tools/ATP/atp_systems.ML"
 setup ATP_Systems.setup
