@@ -308,7 +308,7 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
     val ctxt' =
       ctxt
       |> change_dir dir
-      |> Config.put Sledgehammer.measure_runtime true
+      |> Config.put Sledgehammer.measure_run_time true
     val params as {full_types, relevance_thresholds, max_relevant, ...} =
       Sledgehammer_Isar.default_params thy
           [("timeout", Int.toString timeout ^ " s")]

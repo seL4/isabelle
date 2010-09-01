@@ -45,7 +45,7 @@ sig
 
   val dest_dir : string Config.T
   val problem_prefix : string Config.T
-  val measure_runtime : bool Config.T
+  val measure_run_time : bool Config.T
   val kill_atps: unit -> unit
   val running_atps: unit -> unit
   val messages: int option -> unit
@@ -117,14 +117,14 @@ type prover = params -> minimize_command -> problem -> prover_result
 (* configuration attributes *)
 
 val (dest_dir, dest_dir_setup) =
-  Attrib.config_string "sledgehammer_dest_dir" (K "");
+  Attrib.config_string "sledgehammer_dest_dir" (K "")
   (* Empty string means create files in Isabelle's temporary files directory. *)
 
 val (problem_prefix, problem_prefix_setup) =
-  Attrib.config_string "sledgehammer_problem_prefix" (K "prob");
+  Attrib.config_string "sledgehammer_problem_prefix" (K "prob")
 
-val (measure_runtime, measure_runtime_setup) =
-  Attrib.config_bool "sledgehammer_measure_runtime" (K false);
+val (measure_run_time, measure_run_time_setup) =
+  Attrib.config_bool "sledgehammer_measure_run_time" (K false)
 
 fun with_path cleanup after f path =
   Exn.capture f path
@@ -226,20 +226,18 @@ fun prover_fun atp_name
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                        else Config.get ctxt dest_dir
     val the_problem_prefix = Config.get ctxt problem_prefix
-    fun prob_pathname nr =
-      let
-        val probfile =
-          Path.basic ((if overlord then "prob_" ^ atp_name
-                       else the_problem_prefix ^ serial_string ())
-                      ^ "_" ^ string_of_int nr)
-      in
-        if the_dest_dir = "" then File.tmp_path probfile
-        else if File.exists (Path.explode the_dest_dir)
-        then Path.append (Path.explode the_dest_dir) probfile
-        else error ("No such directory: " ^ quote the_dest_dir ^ ".")
-      end
-
-    val measure_run_time = verbose orelse Config.get ctxt measure_runtime
+    val problem_file_name =
+      Path.basic ((if overlord then "prob_" ^ atp_name
+                   else the_problem_prefix ^ serial_string ())
+                  ^ "_" ^ string_of_int subgoal)
+    val problem_path_name =
+      if the_dest_dir = "" then
+        File.tmp_path problem_file_name
+      else if File.exists (Path.explode the_dest_dir) then
+        Path.append (Path.explode the_dest_dir) problem_file_name
+      else
+        error ("No such directory: " ^ quote the_dest_dir ^ ".")
+    val measure_run_time = verbose orelse Config.get ctxt measure_run_time
     val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
     (* write out problem file and call prover *)
     fun command_line complete timeout probfile =
@@ -321,7 +319,7 @@ fun prover_fun atp_name
         File.write (Path.explode (Path.implode probfile ^ "_proof")) output
     val ((pool, conjecture_shape, axiom_names),
          (output, msecs, proof, outcome)) =
-      with_path cleanup export run_on (prob_pathname subgoal)
+      with_path cleanup export run_on problem_path_name
     val (conjecture_shape, axiom_names) =
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 axiom_names
@@ -384,42 +382,47 @@ fun start_prover_thread (params as {blocking, verbose, full_types, timeout,
     else Async_Manager.launch das_Tool verbose birth_time death_time desc run
   end
 
-fun run_sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
-  | run_sledgehammer (params as {blocking, verbose, atps, full_types,
+fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
                                  relevance_thresholds, max_relevant, ...})
                      i relevance_override minimize_command state =
-    case subgoal_count state of
+    if null atps then error "No ATP is set."
+    else case subgoal_count state of
       0 => priority "No subgoal!"
     | n =>
       let
-        val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
-        val thy = Proof.theory_of state
         val _ = () |> not blocking ? kill_atps
         val _ = priority "Sledgehammering..."
-        val (_, hyp_ts, concl_t) = strip_subgoal goal i
-        val provers = map (`(get_prover thy)) atps
-        val max_max_relevant =
-          case max_relevant of
-            SOME n => n
-          | NONE => fold (Integer.max o #default_max_relevant o fst) provers 0
-        val axioms =
-          relevant_facts ctxt full_types relevance_thresholds max_max_relevant
-                         relevance_override chained_ths hyp_ts concl_t
-        val num_axioms = length axioms
-        val _ = if verbose then
-                  priority ("Selected " ^ string_of_int num_axioms ^ " fact" ^
-                            plural_s num_axioms ^ ".")
-                else
-                  ()
-        val _ =
-          (if blocking then Par_List.map else map)
-              (start_prover_thread params i n relevance_override
-                                   minimize_command axioms state) provers
-      in () end
+        fun run () =
+          let
+            val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
+            val thy = Proof.theory_of state
+            val (_, hyp_ts, concl_t) = strip_subgoal goal i
+            val provers = map (`(get_prover thy)) atps
+            val max_max_relevant =
+              case max_relevant of
+                SOME n => n
+              | NONE => fold (Integer.max o #default_max_relevant o fst)
+                             provers 0
+            val axioms =
+              relevant_facts ctxt full_types relevance_thresholds
+                             max_max_relevant relevance_override chained_ths
+                             hyp_ts concl_t
+            val num_axioms = length axioms
+            val _ = if verbose then
+                      priority ("Selected " ^ string_of_int num_axioms ^
+                                " fact" ^ plural_s num_axioms ^ ".")
+                    else
+                      ()
+            val _ =
+              (if blocking then Par_List.map else map)
+                  (start_prover_thread params i n relevance_override
+                                       minimize_command axioms state) provers
+          in () end
+      in if blocking then run () else Toplevel.thread true (tap run) |> K () end
 
 val setup =
   dest_dir_setup
   #> problem_prefix_setup
-  #> measure_runtime_setup
+  #> measure_run_time_setup
 
 end;

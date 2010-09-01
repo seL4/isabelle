@@ -251,15 +251,9 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axiom_pairs =
     val thy = ProofContext.theory_of ctxt
     val axiom_ts = map (prop_of o snd) axiom_pairs
     val hyp_ts =
-      if null hyp_ts then
-        []
-      else
-        (* Remove existing axioms from the conjecture, as this can dramatically
-           boost an ATP's performance (for some reason). *)
-        let
-          val axiom_table = fold (Termtab.update o rpair ()) axiom_ts
-                                 Termtab.empty
-        in hyp_ts |> filter_out (Termtab.defined axiom_table) end
+      (* Remove existing axioms from the conjecture, as this can dramatically
+         boost an ATP's performance (for some reason). *)
+      hyp_ts |> filter_out (member (op aconv) axiom_ts)
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
     val subs = tfree_classes_of_terms [goal_t]
