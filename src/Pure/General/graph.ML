@@ -21,7 +21,7 @@ sig
   val maximals: 'a T -> key list
   val subgraph: (key -> bool) -> 'a T -> 'a T
   val get_entry: 'a T -> key -> 'a * (key list * key list)            (*exception UNDEF*)
-  val map_nodes: ('a -> 'b) -> 'a T -> 'b T
+  val map: (key -> 'a -> 'b) -> 'a T -> 'b T
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val map_node_yield: key -> ('a -> 'b * 'a) -> 'a T -> 'b * 'a T
@@ -114,7 +114,7 @@ fun map_entry_yield x f (G as Graph tab) =
 
 (* nodes *)
 
-fun map_nodes f (Graph tab) = Graph (Table.map (K (apfst f)) tab);
+fun map_nodes f (Graph tab) = Graph (Table.map (apfst o f) tab);
 
 fun get_node G = #1 o get_entry G;
 
@@ -286,6 +286,7 @@ fun merge_trans_acyclic eq (G1, G2) =
 
 
 (*final declarations of this structure!*)
+val map = map_nodes;
 val fold = fold_graph;
 
 end;
