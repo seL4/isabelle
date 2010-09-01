@@ -320,6 +320,7 @@ val _ = Context.>> (Context.map_theory
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
     ("_update_name", typ "idt",                        NoSyn),
+    (Syntax.constrainAbsC, typ "'a",                   NoSyn),
     (const "==>",   typ "prop => prop => prop",        Delimfix "op ==>"),
     (const Term.dummy_patternN, typ "aprop",           Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
