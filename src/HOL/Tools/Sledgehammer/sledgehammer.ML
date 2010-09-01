@@ -333,7 +333,7 @@ fun prover_fun atp_name
             (full_types, minimize_command, proof, axiom_names, goal, subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
-                             "\nATP CPU time: " ^ string_of_int msecs ^ " ms."
+                             "\nCPU time: " ^ string_of_int msecs ^ " ms."
                            else
                              ""))
       | SOME failure => (string_for_failure failure, [])
@@ -346,13 +346,12 @@ fun prover_fun atp_name
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
-fun start_prover_thread (params as {blocking, timeout, expect, ...})
-                        i n relevance_override minimize_command axioms state
-                        (prover, atp_name) =
+fun run_prover ctxt (params as {blocking, timeout, expect, ...}) i n
+               relevance_override minimize_command
+               (problem as {goal, ...}) (prover, atp_name) =
   let
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
-    val {context = ctxt, facts, goal} = Proof.goal state
     val desc =
       "ATP " ^ quote atp_name ^ " for subgoal " ^ string_of_int i ^ ":" ^
       (if blocking then
@@ -361,9 +360,6 @@ fun start_prover_thread (params as {blocking, timeout, expect, ...})
          "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
     fun run () =
       let
-        val problem =
-          {ctxt = ctxt, goal = goal, subgoal = i,
-           axioms = map (prepare_axiom ctxt) axioms}
         val (outcome_code, message) =
           prover_fun atp_name prover params (minimize_command atp_name) problem
           |> (fn {outcome, message, ...} =>
@@ -411,6 +407,9 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
               relevant_facts ctxt full_types relevance_thresholds
                              max_max_relevant relevance_override chained_ths
                              hyp_ts concl_t
+            val problem =
+              {ctxt = ctxt, goal = goal, subgoal = i,
+               axioms = map (prepare_axiom ctxt) axioms}
             val num_axioms = length axioms
             val _ = if verbose then
                       priority ("Selected " ^ string_of_int num_axioms ^
@@ -419,8 +418,8 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
                       ()
             val _ =
               (if blocking then Par_List.map else map)
-                  (start_prover_thread params i n relevance_override
-                                       minimize_command axioms state) provers
+                  (run_prover ctxt params i n relevance_override
+                              minimize_command problem) provers
           in
             if verbose andalso blocking then
               priority ("Total time: " ^
