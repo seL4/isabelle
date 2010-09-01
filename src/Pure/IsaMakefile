@@ -230,7 +230,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   morphism.ML						\
   name.ML						\
   net.ML						\
-  old_goals.ML						\
   old_term.ML						\
   pattern.ML						\
   primitive_defs.ML					\
