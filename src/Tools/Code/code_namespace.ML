@@ -6,17 +6,17 @@ Mastering target language namespaces.
 
 signature CODE_NAMESPACE =
 sig
-  datatype 'a node =
+  datatype ('a, 'b) node =
       Dummy
-    | Stmt of Code_Thingol.stmt
-    | Module of ('a * (string * 'a node) Graph.T);
+    | Stmt of 'a
+    | Module of ('b * (string * ('a, 'b) node) Graph.T);
   val hierarchical_program: (string -> string) -> { module_alias: string -> string option,
-    reserved: Name.context, empty_nsp: 'b, namify_module: string -> 'b -> string * 'b,
-    namify_stmt: Code_Thingol.stmt -> string -> 'b -> string * 'b,
-    cyclic_modules: bool, empty_data: 'a, memorize_data: string -> 'a -> 'a }
+    reserved: Name.context, empty_nsp: 'a, namify_module: string -> 'a -> string * 'a,
+    namify_stmt: Code_Thingol.stmt -> string -> 'a -> string * 'a,
+    cyclic_modules: bool, empty_data: 'b, memorize_data: string -> 'b -> 'b }
       -> Code_Thingol.program
       -> { deresolver: string list -> string -> string,
-           hierarchical_program: (string * 'a node) Graph.T }
+           hierarchical_program: (string * (Code_Thingol.stmt, 'b) node) Graph.T }
 end;
 
 structure Code_Namespace : CODE_NAMESPACE =
@@ -24,10 +24,10 @@ struct
 
 (* hierarchical program structure *)
 
-datatype 'a node =
+datatype ('a, 'b) node =
     Dummy
-  | Stmt of Code_Thingol.stmt
-  | Module of ('a * (string * 'a node) Graph.T);
+  | Stmt of 'a
+  | Module of ('b * (string * ('a, 'b) node) Graph.T);
 
 fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
       namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data } program =
