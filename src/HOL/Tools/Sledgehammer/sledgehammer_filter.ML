@@ -332,7 +332,7 @@ val intro_bonus = Unsynchronized.ref 0.15
 val elim_bonus = Unsynchronized.ref 0.15
 val simp_bonus = Unsynchronized.ref 0.15
 val local_bonus = Unsynchronized.ref 0.55
-val assum_bonus = Unsynchronized.ref 1.0
+val assum_bonus = Unsynchronized.ref 1.05
 val chained_bonus = Unsynchronized.ref 1.5
 
 fun locality_bonus General = 0.0
