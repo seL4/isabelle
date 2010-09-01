@@ -5,7 +5,7 @@
 
 signature SLEDGEHAMMER_FILTER =
 sig
-  datatype locality = General | Intro | Elim | Simp | Local | Chained
+  datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
   type relevance_override =
     {add: Facts.ref list,
@@ -24,6 +24,7 @@ sig
   val elim_bonus : real Unsynchronized.ref
   val simp_bonus : real Unsynchronized.ref
   val local_bonus : real Unsynchronized.ref
+  val assum_bonus : real Unsynchronized.ref
   val chained_bonus : real Unsynchronized.ref
   val max_imperfect : real Unsynchronized.ref
   val max_imperfect_exp : real Unsynchronized.ref
@@ -50,7 +51,7 @@ val term_patterns = false
 
 val respect_no_atp = true
 
-datatype locality = General | Intro | Elim | Simp | Local | Chained
+datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
 type relevance_override =
   {add: Facts.ref list,
@@ -331,6 +332,7 @@ val intro_bonus = Unsynchronized.ref 0.15
 val elim_bonus = Unsynchronized.ref 0.15
 val simp_bonus = Unsynchronized.ref 0.15
 val local_bonus = Unsynchronized.ref 0.55
+val assum_bonus = Unsynchronized.ref 1.0
 val chained_bonus = Unsynchronized.ref 1.5
 
 fun locality_bonus General = 0.0
@@ -338,6 +340,7 @@ fun locality_bonus General = 0.0
   | locality_bonus Elim = !elim_bonus
   | locality_bonus Simp = !simp_bonus
   | locality_bonus Local = !local_bonus
+  | locality_bonus Assum = !assum_bonus
   | locality_bonus Chained = !chained_bonus
 
 fun axiom_weight loc const_tab relevant_consts axiom_consts =
@@ -432,7 +435,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
       fold (count_axiom_consts theory_relevant thy) axioms Symtab.empty
     val goal_const_tab =
       pconsts_in_terms thy false (SOME false) goal_ts
-      |> fold (if_empty_replace_with_locality thy axioms) [Chained, Local]
+      |> fold (if_empty_replace_with_locality thy axioms)
+              [Chained, Assum, Local]
     val add_thms = maps (ProofContext.get_fact ctxt) add
     val del_thms = maps (ProofContext.get_fact ctxt) del
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
@@ -690,6 +694,8 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
     val global_facts = PureThy.facts_of thy
     val local_facts = ProofContext.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
+    val assms = Assumption.all_assms_of ctxt
+    fun is_assum th = exists (fn ct => prop_of th aconv term_of ct) assms
     val is_chained = member Thm.eq_thm chained_ths
     val (intros, elims, simps) =
       if exists (curry (op <) 0.0) [!intro_bonus, !elim_bonus, !simp_bonus] then
@@ -750,11 +756,13 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
                             end),
                       let val t = prop_of th in
                         if is_chained th then Chained
-                        else if not global then Local
-                        else if Termtab.defined intros t then Intro
-                        else if Termtab.defined elims t then Elim
-                        else if Termtab.defined simps t then Simp
-                        else General
+                        else if global then
+                          if Termtab.defined intros t then Intro
+                          else if Termtab.defined elims t then Elim
+                          else if Termtab.defined simps t then Simp
+                          else General
+                        else
+                          if is_assum th then Assum else Local
                       end),
                       (multi, th)) :: rest)) ths
             #> snd
