@@ -397,6 +397,12 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
         @ map serialize_module (Symtab.dest hs_program))
   end;
 
+val serializer : Code_Target.serializer =
+  Code_Target.parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
+    -- Scan.optional (Args.$$$ "string_classes" >> K true) false
+    >> (fn (module_prefix, string_classes) =>
+      serialize_haskell module_prefix string_classes));
+
 val literals = let
   fun char_haskell c =
     let
@@ -465,12 +471,6 @@ fun add_monad target' raw_c_bind thy =
 
 (** Isar setup **)
 
-val isar_serializer =
-  Code_Target.parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
-    -- Scan.optional (Args.$$$ "string_classes" >> K true) false
-    >> (fn (module_prefix, string_classes) =>
-      serialize_haskell module_prefix string_classes));
-
 val _ =
   Outer_Syntax.command "code_monad" "define code syntax for monads" Keyword.thy_decl (
     Parse.term_group -- Parse.name >> (fn (raw_bind, target) =>
@@ -479,7 +479,7 @@ val _ =
 
 val setup =
   Code_Target.add_target
-    (target, { serializer = isar_serializer, literals = literals,
+    (target, { serializer = serializer, literals = literals,
       check = { env_var = "EXEC_GHC", make_destination = I,
         make_command = fn ghc => fn module_name =>
           ghc ^ " -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^ module_name ^ ".hs" } })

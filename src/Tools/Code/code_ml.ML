@@ -935,26 +935,26 @@ fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
 
 end; (*local*)
 
-
-(** Isar setup **)
-
-val isar_serializer_sml =
+val serializer_sml : Code_Target.serializer =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_SML
       print_sml_module print_sml_stmt with_signatures));
 
-val isar_serializer_ocaml =
+val serializer_ocaml : Code_Target.serializer =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_OCaml
       print_ocaml_module print_ocaml_stmt with_signatures));
 
+
+(** Isar setup **)
+
 val setup =
   Code_Target.add_target
-    (target_SML, { serializer = isar_serializer_sml, literals = literals_sml,
+    (target_SML, { serializer = serializer_sml, literals = literals_sml,
       check = { env_var = "ISABELLE_PROCESS", make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
         make_command = fn isabelle => fn _ => isabelle ^ " -r -q -u Pure" } })
   #> Code_Target.add_target
-    (target_OCaml, { serializer = isar_serializer_ocaml, literals = literals_ocaml,
+    (target_OCaml, { serializer = serializer_ocaml, literals = literals_ocaml,
       check = { env_var = "EXEC_OCAML", make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
         make_command = fn ocaml => fn _ => ocaml ^ " -w pu nums.cma ROOT.ocaml" } })
   #> Code_Target.add_tyco_syntax target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>

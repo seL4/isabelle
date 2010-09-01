@@ -488,6 +488,9 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
 
 end; (*local*)
 
+val serializer : Code_Target.serializer =
+  Code_Target.parse_args (Scan.succeed ()) #> K serialize_scala;
+
 val literals = let
   fun char_scala c = if c = "'" then "\\'"
     else if c = "\"" then "\\\""
@@ -513,12 +516,9 @@ in Literals {
 
 (** Isar setup **)
 
-val isar_serializer =
-  Code_Target.parse_args (Scan.succeed ()) #> K serialize_scala;
-
 val setup =
   Code_Target.add_target
-    (target, { serializer = isar_serializer, literals = literals,
+    (target, { serializer = serializer, literals = literals,
       check = { env_var = "SCALA_HOME", make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
         make_command = fn scala_home => fn _ =>
           "export JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' && "
