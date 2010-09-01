@@ -168,7 +168,7 @@ val e = ("e", e_config)
    counteracting the presence of "hAPP". *)
 val spass_config : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
-   required_execs = [("SPASS_HOME", "SPASS")],
+   required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
    arguments = fn complete => fn timeout =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 0 timeout))
