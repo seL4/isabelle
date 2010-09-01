@@ -435,17 +435,17 @@ fun relevance_filter ctxt threshold0 decay max_relevant
       pconsts_in_terms thy false (SOME false) goal_ts
       |> fold (if_empty_replace_with_locality thy axioms)
               [Chained, Assum, Local]
-    val add_thms = Attrib.eval_thms ctxt add
-    val del_thms = Attrib.eval_thms ctxt del
+    val add_ths = Attrib.eval_thms ctxt add
+    val del_ths = Attrib.eval_thms ctxt del
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
         fun game_over rejects =
           (* Add "add:" facts. *)
-          if null add_thms then
+          if null add_ths then
             []
           else
             map_filter (fn ((p as (_, th), _), _) =>
-                           if member Thm.eq_thm add_thms th then SOME p
+                           if member Thm.eq_thm add_ths th then SOME p
                            else NONE) rejects
         fun relevant [] rejects [] =
             (* Nothing has been added this iteration. *)
@@ -522,7 +522,7 @@ else
           relevant [] [] hopeful
         end
   in
-    axioms |> filter_out (member Thm.eq_thm del_thms o snd)
+    axioms |> filter_out (member Thm.eq_thm del_ths o snd)
            |> map_filter (pair_consts_axiom thy)
            |> iter 0 max_relevant threshold0 goal_const_tab []
            |> tap (fn res => trace_msg (fn () =>
@@ -686,7 +686,7 @@ fun clasimpset_rules_of ctxt =
     val simps = ctxt |> simpset_of |> dest_ss |> #simps |> map snd
   in (mk_fact_table I intros, mk_fact_table I elims, mk_fact_table I simps) end
 
-fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
+fun all_name_thms_pairs ctxt reserved full_types add_ths chained_ths =
   let
     val thy = ProofContext.theory_of ctxt
     val global_facts = PureThy.facts_of thy
@@ -714,7 +714,7 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
         if name0 <> "" andalso
-           forall (not o member Thm.eq_thm add_thms) ths andalso
+           forall (not o member Thm.eq_thm add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             (respect_no_atp andalso is_package_def name0) orelse
             exists (fn s => String.isSuffix s name0) multi_base_blacklist orelse
@@ -737,7 +737,7 @@ fun all_name_thms_pairs ctxt reserved full_types add_thms chained_ths =
             #> fold (fn th => fn (j, rest) =>
                  (j + 1,
                   if is_theorem_bad_for_atps full_types th andalso
-                     not (member Thm.eq_thm add_thms th) then
+                     not (member Thm.eq_thm add_ths th) then
                     rest
                   else
                     (((fn () =>
@@ -786,14 +786,14 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
-    val add_thms = Attrib.eval_thms ctxt add
+    val add_ths = Attrib.eval_thms ctxt add
     val reserved = reserved_isar_keyword_table ()
     val axioms =
       (if only then
          maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
                o name_thm_pairs_from_ref ctxt reserved chained_ths) add
        else
-         all_name_thms_pairs ctxt reserved full_types add_thms chained_ths)
+         all_name_thms_pairs ctxt reserved full_types add_ths chained_ths)
       |> name_thm_pairs ctxt (respect_no_atp andalso not only)
       |> uniquify
   in
