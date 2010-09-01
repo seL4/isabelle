@@ -1896,9 +1896,10 @@ setup {*
 
 code_abort undefined
 
+
 subsubsection {* Generic code generator target languages *}
 
-text {* type bool *}
+text {* type @{typ bool} *}
 
 code_type bool
   (SML "bool")
