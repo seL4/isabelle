@@ -60,8 +60,7 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
     val {context = ctxt, goal, ...} = Proof.goal state
     val problem =
       {ctxt = ctxt, goal = goal, subgoal = subgoal,
-       axiom_ts = map (prop_of o snd) axioms,
-       prepared_axioms = map (prepare_axiom ctxt) axioms}
+       axioms = map (prepare_axiom ctxt) axioms}
     val result as {outcome, used_thm_names, ...} = prover params (K "") problem
   in
     priority (case outcome of

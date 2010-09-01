@@ -18,10 +18,11 @@ sig
   val arity_clause_prefix : string
   val tfrees_name : string
   val prepare_axiom :
-    Proof.context -> (string * 'a) * thm -> ((string * 'a) * fol_formula) option
+    Proof.context -> (string * 'a) * thm
+    -> term * ((string * 'a) * fol_formula) option
   val prepare_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
-    -> term list -> ((string * 'a) * fol_formula) option list
+    -> (term * ((string * 'a) * fol_formula) option) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
@@ -249,15 +250,15 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
     |> map_filter (Option.map snd o make_axiom ctxt false)
   end
 
-fun prepare_axiom ctxt = make_axiom ctxt true
+fun prepare_axiom ctxt (ax as (_, th)) = (prop_of th, make_axiom ctxt true ax)
 
-fun prepare_formulas ctxt full_types hyp_ts concl_t axiom_ts prepared_axioms =
+fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
-    val hyp_ts =
-      (* Remove existing axioms from the conjecture, as this can dramatically
-         boost an ATP's performance (for some reason). *)
-      hyp_ts |> filter_out (member (op aconv) axiom_ts)
+    val (axiom_ts, prepared_axioms) = ListPair.unzip axioms
+    (* Remove existing axioms from the conjecture, as this can dramatically
+       boost an ATP's performance (for some reason). *)
+    val hyp_ts = hyp_ts |> filter_out (member (op aconv) axiom_ts)
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
     val subs = tfree_classes_of_terms [goal_t]
@@ -498,12 +499,12 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
       (const_table_for_problem explicit_apply problem) problem
 
 fun prepare_problem ctxt readable_names explicit_forall full_types
-                    explicit_apply hyp_ts concl_t axiom_ts prepared_axioms =
+                    explicit_apply hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
     val (axiom_names, (conjectures, axioms, helper_facts, class_rel_clauses,
                        arity_clauses)) =
-      prepare_formulas ctxt full_types hyp_ts concl_t axiom_ts prepared_axioms
+      prepare_formulas ctxt full_types hyp_ts concl_t axioms
     val axiom_lines = map (problem_line_for_fact axiom_prefix full_types) axioms
     val helper_lines =
       map (problem_line_for_fact helper_prefix full_types) helper_facts
