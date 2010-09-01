@@ -70,7 +70,6 @@ val default_default_params =
    ("explicit_apply", "false"),
    ("relevance_thresholds", "45 85"),
    ("max_relevant", "smart"),
-   ("theory_relevant", "smart"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1")]
 
@@ -83,7 +82,6 @@ val negated_alias_params =
    ("no_overlord", "overlord"),
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
-   ("theory_irrelevant", "theory_relevant"),
    ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
@@ -180,7 +178,6 @@ fun extract_params default_params override_params =
       lookup_int_pair "relevance_thresholds"
       |> pairself (fn n => 0.01 * Real.fromInt n)
     val max_relevant = lookup_int_option "max_relevant"
-    val theory_relevant = lookup_bool_option "theory_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
@@ -189,9 +186,8 @@ fun extract_params default_params override_params =
     {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
      atps = atps, full_types = full_types, explicit_apply = explicit_apply,
      relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
-     theory_relevant = theory_relevant, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, timeout = timeout,
-     expect = expect}
+     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+     timeout = timeout, expect = expect}
   end
 
 fun get_params thy = extract_params (default_raw_params thy)

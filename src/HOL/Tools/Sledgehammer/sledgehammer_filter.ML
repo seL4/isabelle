@@ -34,7 +34,7 @@ sig
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val relevant_facts :
-    Proof.context -> bool -> real * real -> int -> bool -> relevance_override
+    Proof.context -> bool -> real * real -> int -> relevance_override
     -> thm list -> term list -> term -> ((string * locality) * thm) list
 end;
 
@@ -46,10 +46,28 @@ open Sledgehammer_Util
 val trace = Unsynchronized.ref false
 fun trace_msg msg = if !trace then tracing (msg ()) else ()
 
-(* experimental feature *)
+(* experimental features *)
 val term_patterns = false
-
 val respect_no_atp = true
+
+(* FUDGE *)
+val worse_irrel_freq = Unsynchronized.ref 100.0
+val higher_order_irrel_weight = Unsynchronized.ref 1.05
+val abs_rel_weight = Unsynchronized.ref 0.5
+val abs_irrel_weight = Unsynchronized.ref 2.0
+val skolem_irrel_weight = Unsynchronized.ref 0.75
+val theory_const_rel_weight = Unsynchronized.ref 0.5
+val theory_const_irrel_weight = Unsynchronized.ref 0.25
+val intro_bonus = Unsynchronized.ref 0.15
+val elim_bonus = Unsynchronized.ref 0.15
+val simp_bonus = Unsynchronized.ref 0.15
+val local_bonus = Unsynchronized.ref 0.55
+val assum_bonus = Unsynchronized.ref 1.05
+val chained_bonus = Unsynchronized.ref 1.5
+val max_imperfect = Unsynchronized.ref 11.5
+val max_imperfect_exp = Unsynchronized.ref 1.0
+val threshold_divisor = Unsynchronized.ref 2.0
+val ridiculous_threshold = Unsynchronized.ref 0.1
 
 datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
@@ -235,8 +253,9 @@ fun pconsts_in_terms thy also_skolems pos ts =
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
-fun theory_const_prop_of theory_relevant th =
-  if theory_relevant then
+fun theory_const_prop_of th =
+  if exists (curry (op <) 0.0) [!theory_const_rel_weight,
+                                !theory_const_irrel_weight] then
     let
       val name = Context.theory_name (theory_of_thm th)
       val t = Const (name ^ theory_const_suffix, @{typ bool})
@@ -262,7 +281,7 @@ fun ptype_ord (PType p, PType q) =
 
 structure PType_Tab = Table(type key = ptype val ord = ptype_ord)
 
-fun count_axiom_consts theory_relevant thy =
+fun count_axiom_consts thy =
   let
     fun do_const const (s, T) ts =
       (* Two-dimensional table update. Constant maps to types maps to count. *)
@@ -275,7 +294,7 @@ fun count_axiom_consts theory_relevant thy =
       | (Free x, ts) => do_const false x ts
       | (Abs (_, _, t'), ts) => fold do_term (t' :: ts)
       | (_, ts) => fold do_term ts
-  in do_term o theory_const_prop_of theory_relevant o snd end
+  in do_term o theory_const_prop_of o snd end
 
 
 (**** Actual Filtering Code ****)
@@ -298,10 +317,6 @@ fun pconst_freq match const_tab (c, ps) =
    rare ones. *)
 fun rel_weight_for order freq = 1.0 + 2.0 / Math.ln (Real.fromInt freq + 1.0)
 
-(* FUDGE *)
-val worse_irrel_freq = Unsynchronized.ref 100.0
-val higher_order_irrel_weight = Unsynchronized.ref 1.05
-
 (* Irrelevant constants are treated differently. We associate lower penalties to
    very rare constants and very common ones -- the former because they can't
    lead to the inclusion of too many new facts, and the latter because they are
@@ -312,13 +327,6 @@ fun irrel_weight_for order freq =
      else rel_weight_for order freq / rel_weight_for order k)
     * pow_int (!higher_order_irrel_weight) (order - 1)
   end
-
-(* FUDGE *)
-val abs_rel_weight = Unsynchronized.ref 0.5
-val abs_irrel_weight = Unsynchronized.ref 2.0
-val skolem_irrel_weight = Unsynchronized.ref 0.75
-val theory_const_rel_weight = Unsynchronized.ref 0.5
-val theory_const_irrel_weight = Unsynchronized.ref 0.25
 
 (* Computes a constant's weight, as determined by its frequency. *)
 fun generic_pconst_weight abs_weight skolem_weight theory_const_weight
@@ -334,14 +342,6 @@ fun rel_pconst_weight const_tab =
 fun irrel_pconst_weight const_tab =
   generic_pconst_weight (!abs_irrel_weight) (!skolem_irrel_weight)
                     (!theory_const_irrel_weight) irrel_weight_for swap const_tab
-
-(* FUDGE *)
-val intro_bonus = Unsynchronized.ref 0.15
-val elim_bonus = Unsynchronized.ref 0.15
-val simp_bonus = Unsynchronized.ref 0.15
-val local_bonus = Unsynchronized.ref 0.55
-val assum_bonus = Unsynchronized.ref 1.05
-val chained_bonus = Unsynchronized.ref 1.5
 
 fun locality_bonus General = 0.0
   | locality_bonus Intro = !intro_bonus
@@ -388,18 +388,13 @@ val _ = tracing (PolyML.makestring ("IRREL: ", map (`(irrel_pconst_weight const_
 fun pconsts_in_axiom thy t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
               (pconsts_in_terms thy true (SOME true) [t]) []
-fun pair_consts_axiom theory_relevant thy axiom =
-  case axiom |> snd |> theory_const_prop_of theory_relevant
-             |> pconsts_in_axiom thy of
+fun pair_consts_axiom thy axiom =
+  case axiom |> snd |> theory_const_prop_of |> pconsts_in_axiom thy of
     [] => NONE
   | consts => SOME ((axiom, consts), NONE)
 
 type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * ptype) list
-
-(* FUDGE *)
-val max_imperfect = Unsynchronized.ref 11.5
-val max_imperfect_exp = Unsynchronized.ref 1.0
 
 fun take_most_relevant max_relevant remaining_max
                        (candidates : (annotated_thm * real) list) =
@@ -431,16 +426,11 @@ fun if_empty_replace_with_locality thy axioms loc tab =
   else
     tab
 
-(* FUDGE *)
-val threshold_divisor = Unsynchronized.ref 2.0
-val ridiculous_threshold = Unsynchronized.ref 0.1
-
-fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
+fun relevance_filter ctxt threshold0 decay max_relevant
                      ({add, del, ...} : relevance_override) axioms goal_ts =
   let
     val thy = ProofContext.theory_of ctxt
-    val const_tab =
-      fold (count_axiom_consts theory_relevant thy) axioms Symtab.empty
+    val const_tab = fold (count_axiom_consts thy) axioms Symtab.empty
     val goal_const_tab =
       pconsts_in_terms thy false (SOME false) goal_ts
       |> fold (if_empty_replace_with_locality thy axioms)
@@ -533,7 +523,7 @@ else
         end
   in
     axioms |> filter_out (member Thm.eq_thm del_thms o snd)
-           |> map_filter (pair_consts_axiom theory_relevant thy)
+           |> map_filter (pair_consts_axiom thy)
            |> iter 0 max_relevant threshold0 goal_const_tab []
            |> tap (fn res => trace_msg (fn () =>
                                 "Total relevant: " ^ Int.toString (length res)))
@@ -791,8 +781,8 @@ fun name_thm_pairs ctxt respect_no_atp =
 (***************************************************************)
 
 fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
-                   theory_relevant (relevance_override as {add, del, only})
-                   chained_ths hyp_ts concl_t =
+                   (relevance_override as {add, del, only}) chained_ths hyp_ts
+                   concl_t =
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
@@ -814,8 +804,8 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
      else if threshold0 < 0.0 then
        axioms
      else
-       relevance_filter ctxt threshold0 decay max_relevant theory_relevant
-                        relevance_override axioms (concl_t :: hyp_ts))
+       relevance_filter ctxt threshold0 decay max_relevant relevance_override
+                        axioms (concl_t :: hyp_ts))
     |> map (apfst (apfst (fn f => f ())))
   end
 

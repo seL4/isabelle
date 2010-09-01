@@ -22,7 +22,6 @@ sig
      explicit_apply: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
-     theory_relevant: bool option,
      isar_proof: bool,
      isar_shrink_factor: int,
      timeout: Time.time,
@@ -91,7 +90,6 @@ type params =
    explicit_apply: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
-   theory_relevant: bool option,
    isar_proof: bool,
    isar_shrink_factor: int,
    timeout: Time.time,
@@ -215,11 +213,11 @@ fun repair_conjecture_shape_and_theorem_names output conjecture_shape
 
 fun prover_fun atp_name
         {exec, required_execs, arguments, has_incomplete_mode, proof_delims,
-         known_failures, default_max_relevant, default_theory_relevant,
-         explicit_forall, use_conjecture_for_hypotheses}
+         known_failures, default_max_relevant, explicit_forall,
+         use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
-          relevance_thresholds, max_relevant, theory_relevant, isar_proof,
-          isar_shrink_factor, timeout, ...} : params)
+          relevance_thresholds, max_relevant, isar_proof, isar_shrink_factor,
+          timeout, ...} : params)
         minimize_command
         ({subgoal, goal = (ctxt, (chained_ths, th)), relevance_override,
           axioms} : problem) =
@@ -236,7 +234,6 @@ fun prover_fun atp_name
       | NONE =>
         (relevant_facts ctxt full_types relevance_thresholds
                         (the_default default_max_relevant max_relevant)
-                        (the_default default_theory_relevant theory_relevant)
                         relevance_override chained_ths hyp_ts concl_t
          |> tap ((fn n => print_v (fn () =>
                           "Selected " ^ string_of_int n ^ " fact" ^ plural_s n ^

@@ -103,15 +103,14 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                            SOME rf => (rf := the (Real.fromString value); false)
                          | NONE => true)
 
-         val {relevance_thresholds, full_types, max_relevant, theory_relevant,
-              ...} = Sledgehammer_Isar.default_params thy args
+         val {relevance_thresholds, full_types, max_relevant, ...} =
+           Sledgehammer_Isar.default_params thy args
          val subgoal = 1
          val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal subgoal
          val facts =
            SF.relevant_facts ctxt full_types
                relevance_thresholds
                (the_default default_max_relevant max_relevant)
-               (the_default false theory_relevant)
                {add = [], del = [], only = false} facts hyp_ts concl_t
            |> map (fst o fst)
          val (found_facts, lost_facts) =

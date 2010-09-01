@@ -20,7 +20,6 @@ sig
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
      default_max_relevant: int,
-     default_theory_relevant: bool,
      explicit_forall: bool,
      use_conjecture_for_hypotheses: bool}
 
@@ -53,7 +52,6 @@ type prover_config =
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
    default_max_relevant: int,
-   default_theory_relevant: bool,
    explicit_forall: bool,
    use_conjecture_for_hypotheses: bool}
 
@@ -160,7 +158,6 @@ val e_config : prover_config =
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
    default_max_relevant = 500 (* FUDGE *),
-   default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
@@ -187,7 +184,6 @@ val spass_config : prover_config =
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg")],
    default_max_relevant = 350 (* FUDGE *),
-   default_theory_relevant = true,
    explicit_forall = true,
    use_conjecture_for_hypotheses = true}
 
@@ -217,7 +213,6 @@ val vampire_config : prover_config =
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option")],
    default_max_relevant = 400 (* FUDGE *),
-   default_theory_relevant = false,
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
@@ -256,8 +251,8 @@ fun the_system name versions =
   | SOME sys => sys
 
 fun remote_config system_name system_versions proof_delims known_failures
-                  default_max_relevant default_theory_relevant
-                  use_conjecture_for_hypotheses : prover_config =
+                  default_max_relevant use_conjecture_for_hypotheses
+                  : prover_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout =>
@@ -269,26 +264,21 @@ fun remote_config system_name system_versions proof_delims known_failures
      known_failures @ known_perl_failures @
      [(TimedOut, "says Timeout")],
    default_max_relevant = default_max_relevant,
-   default_theory_relevant = default_theory_relevant,
    explicit_forall = true,
    use_conjecture_for_hypotheses = use_conjecture_for_hypotheses}
 
 fun remotify_config system_name system_versions
         ({proof_delims, known_failures, default_max_relevant,
-          default_theory_relevant, use_conjecture_for_hypotheses, ...}
-         : prover_config) : prover_config =
+          use_conjecture_for_hypotheses, ...} : prover_config) : prover_config =
   remote_config system_name system_versions proof_delims known_failures
-                default_max_relevant default_theory_relevant
-                use_conjecture_for_hypotheses
+                default_max_relevant use_conjecture_for_hypotheses
 
 val remotify_name = prefix "remote_"
 fun remote_prover name system_name system_versions proof_delims known_failures
-                  default_max_relevant default_theory_relevant
-                  use_conjecture_for_hypotheses =
+                  default_max_relevant use_conjecture_for_hypotheses =
   (remotify_name name,
    remote_config system_name system_versions proof_delims known_failures
-                 default_max_relevant default_theory_relevant
-                 use_conjecture_for_hypotheses)
+                 default_max_relevant use_conjecture_for_hypotheses)
 fun remotify_prover (name, config) system_name system_versions =
   (remotify_name name, remotify_config system_name system_versions config)
 
@@ -296,10 +286,10 @@ val remote_e = remotify_prover e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_prover vampire "Vampire" ["9.0", "1.0", "0.6"]
 val remote_sine_e =
   remote_prover "sine_e" "SInE" [] [] [(Unprovable, "says Unknown")]
-                1000 (* FUDGE *) false true
+                1000 (* FUDGE *) true
 val remote_snark =
   remote_prover "snark" "SNARK---" [] [("refutation.", "end_refutation.")] []
-                350 (* FUDGE *) false true
+                350 (* FUDGE *) true
 
 (* Setup *)
 

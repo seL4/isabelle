@@ -53,8 +53,8 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
       {blocking = true, debug = debug, verbose = verbose, overlord = overlord,
        atps = atps, full_types = full_types, explicit_apply = explicit_apply,
        relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
-       theory_relevant = NONE, isar_proof = isar_proof,
-       isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
+       isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+       timeout = timeout, expect = ""}
     val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
     val {context = ctxt, facts, goal} = Proof.goal state
     val problem =
