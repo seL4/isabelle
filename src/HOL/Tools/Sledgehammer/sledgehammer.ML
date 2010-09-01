@@ -176,8 +176,9 @@ val parse_clause_formula_relation =
   |-- Scan.repeat parse_clause_formula_pair
 val extract_clause_formula_relation =
   Substring.full #> Substring.position set_ClauseFormulaRelationN
-  #> snd #> Substring.string #> strip_spaces_except_between_ident_chars
-  #> explode #> parse_clause_formula_relation #> fst
+  #> snd #> Substring.position "." #> fst #> Substring.string
+  #> explode #> filter_out (curry (op =) " ") #> parse_clause_formula_relation
+  #> fst
 
 (* TODO: move to "Sledgehammer_Reconstruct" *)
 fun repair_conjecture_shape_and_theorem_names output conjecture_shape
@@ -345,8 +346,7 @@ fun prover_fun atp_name
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
-fun start_prover_thread (params as {blocking, verbose, full_types, timeout,
-                                    expect, ...})
+fun start_prover_thread (params as {blocking, timeout, expect, ...})
                         i n relevance_override minimize_command axioms state
                         (prover, atp_name) =
   let
@@ -382,7 +382,7 @@ fun start_prover_thread (params as {blocking, verbose, full_types, timeout,
       end
   in
     if blocking then priority (desc ^ "\n" ^ TimeLimit.timeLimit timeout run ())
-    else Async_Manager.launch das_Tool verbose birth_time death_time desc run
+    else Async_Manager.launch das_Tool birth_time death_time desc run
   end
 
 fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
@@ -393,6 +393,7 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
       0 => priority "No subgoal!"
     | n =>
       let
+        val timer = Timer.startRealTimer ()
         val _ = () |> not blocking ? kill_atps
         val _ = priority "Sledgehammering..."
         fun run () =
@@ -420,7 +421,14 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
               (if blocking then Par_List.map else map)
                   (start_prover_thread params i n relevance_override
                                        minimize_command axioms state) provers
-          in () end
+          in
+            if verbose andalso blocking then
+              priority ("Total time: " ^
+                        signed_string_of_int (Time.toMilliseconds
+                            (Timer.checkRealTimer timer)) ^ " ms.")
+            else
+              ()
+          end
       in if blocking then run () else Toplevel.thread true (tap run) |> K () end
 
 val setup =
