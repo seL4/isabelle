@@ -247,7 +247,7 @@ fun prover_fun atp_name
         val core = File.shell_path command ^ " " ^ arguments complete timeout ^
                    " " ^ File.shell_path probfile
       in
-        (if measure_run_time then "TIMEFORMAT='%3U'; { time " ^ core ^ " ; }"
+        (if measure_run_time then "TIMEFORMAT='%3R'; { time " ^ core ^ " ; }"
          else "exec " ^ core) ^ " 2>&1"
       end
     fun split_time s =
@@ -333,7 +333,7 @@ fun prover_fun atp_name
             (full_types, minimize_command, proof, axiom_names, goal, subgoal)
         |>> (fn message =>
                 message ^ (if verbose then
-                             "\nCPU time: " ^ string_of_int msecs ^ " ms."
+                             "\nReal CPU time: " ^ string_of_int msecs ^ " ms."
                            else
                              ""))
       | SOME failure => (string_for_failure failure, [])

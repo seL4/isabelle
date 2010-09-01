@@ -247,8 +247,8 @@ fun get_system name versions =
 
 fun the_system name versions =
   case get_system name versions of
-    NONE => error ("System " ^ quote name ^ " not available at SystemOnTPTP.")
-  | SOME sys => sys
+    SOME sys => sys
+  | NONE => error ("System " ^ quote name ^ " not available at SystemOnTPTP.")
 
 fun remote_config system_name system_versions proof_delims known_failures
                   default_max_relevant use_conjecture_for_hypotheses
