@@ -311,7 +311,7 @@ lemma has_gmeasure_negligible_unions: assumes "finite f"
   shows "(\<Union> f) has_gmeasure (setsum m f)" using assms
 proof induct case (insert x s)
   have *:"(x \<inter> \<Union>s) = \<Union>{x \<inter> y| y. y\<in>s}"by auto
-  show ?case unfolding Union_insert ring_class.setsum.insert[OF insert(1-2)] 
+  show ?case unfolding Union_insert setsum.insert [OF insert(1-2)] 
     apply(rule has_gmeasure_negligible_union) unfolding *
     apply(rule insert) defer apply(rule insert) apply(rule insert) defer
     apply(rule insert) prefer 4 apply(rule negligible_unions)

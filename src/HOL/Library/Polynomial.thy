@@ -1505,23 +1505,27 @@ code_datatype "0::'a::zero poly" pCons
 
 declare pCons_0_0 [code_post]
 
-instantiation poly :: ("{zero,eq}") eq
+instantiation poly :: ("{zero, equal}") equal
 begin
 
 definition
-  "eq_class.eq (p::'a poly) q \<longleftrightarrow> p = q"
+  "HOL.equal (p::'a poly) q \<longleftrightarrow> p = q"
 
-instance
-  by default (rule eq_poly_def)
+instance proof
+qed (rule equal_poly_def)
 
 end
 
 lemma eq_poly_code [code]:
-  "eq_class.eq (0::_ poly) (0::_ poly) \<longleftrightarrow> True"
-  "eq_class.eq (0::_ poly) (pCons b q) \<longleftrightarrow> eq_class.eq 0 b \<and> eq_class.eq 0 q"
-  "eq_class.eq (pCons a p) (0::_ poly) \<longleftrightarrow> eq_class.eq a 0 \<and> eq_class.eq p 0"
-  "eq_class.eq (pCons a p) (pCons b q) \<longleftrightarrow> eq_class.eq a b \<and> eq_class.eq p q"
-unfolding eq by simp_all
+  "HOL.equal (0::_ poly) (0::_ poly) \<longleftrightarrow> True"
+  "HOL.equal (0::_ poly) (pCons b q) \<longleftrightarrow> HOL.equal 0 b \<and> HOL.equal 0 q"
+  "HOL.equal (pCons a p) (0::_ poly) \<longleftrightarrow> HOL.equal a 0 \<and> HOL.equal p 0"
+  "HOL.equal (pCons a p) (pCons b q) \<longleftrightarrow> HOL.equal a b \<and> HOL.equal p q"
+  by (simp_all add: equal)
+
+lemma [code nbe]:
+  "HOL.equal (p :: _ poly) p \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemmas coeff_code [code] =
   coeff_0 coeff_pCons_0 coeff_pCons_Suc

@@ -521,22 +521,21 @@ qed
 text {* Environments and code generation *}
 
 lemma [code, code del]:
-  fixes e1 e2 :: "('b\<Colon>eq, 'a\<Colon>eq, 'c\<Colon>eq) env"
-  shows "eq_class.eq e1 e2 \<longleftrightarrow> eq_class.eq e1 e2" ..
+  "(HOL.equal :: (_, _, _) env \<Rightarrow> _) = HOL.equal" ..
 
-lemma eq_env_code [code]:
-  fixes x y :: "'a\<Colon>eq"
-    and f g :: "'c\<Colon>{eq, finite} \<Rightarrow> ('b\<Colon>eq, 'a, 'c) env option"
-  shows "eq_class.eq (Env x f) (Env y g) \<longleftrightarrow>
-  eq_class.eq x y \<and> (\<forall>z\<in>UNIV. case f z
+lemma equal_env_code [code]:
+  fixes x y :: "'a\<Colon>equal"
+    and f g :: "'c\<Colon>{equal, finite} \<Rightarrow> ('b\<Colon>equal, 'a, 'c) env option"
+  shows "HOL.equal (Env x f) (Env y g) \<longleftrightarrow>
+  HOL.equal x y \<and> (\<forall>z\<in>UNIV. case f z
    of None \<Rightarrow> (case g z
         of None \<Rightarrow> True | Some _ \<Rightarrow> False)
     | Some a \<Rightarrow> (case g z
-        of None \<Rightarrow> False | Some b \<Rightarrow> eq_class.eq a b))" (is ?env)
-    and "eq_class.eq (Val a) (Val b) \<longleftrightarrow> eq_class.eq a b"
-    and "eq_class.eq (Val a) (Env y g) \<longleftrightarrow> False"
-    and "eq_class.eq (Env x f) (Val b) \<longleftrightarrow> False"
-proof (unfold eq)
+        of None \<Rightarrow> False | Some b \<Rightarrow> HOL.equal a b))" (is ?env)
+    and "HOL.equal (Val a) (Val b) \<longleftrightarrow> HOL.equal a b"
+    and "HOL.equal (Val a) (Env y g) \<longleftrightarrow> False"
+    and "HOL.equal (Env x f) (Val b) \<longleftrightarrow> False"
+proof (unfold equal)
   have "f = g \<longleftrightarrow> (\<forall>z. case f z
    of None \<Rightarrow> (case g z
         of None \<Rightarrow> True | Some _ \<Rightarrow> False)
@@ -561,6 +560,10 @@ proof (unfold eq)
       | Some a \<Rightarrow> (case g z
           of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
 qed simp_all
+
+lemma [code nbe]:
+  "HOL.equal (x :: (_, _, _) env) x \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemma [code, code del]:
   "(Code_Evaluation.term_of :: ('a::{term_of, type}, 'b::{term_of, type}, 'c::{term_of, type}) env \<Rightarrow> term) = Code_Evaluation.term_of" ..

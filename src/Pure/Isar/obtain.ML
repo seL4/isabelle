@@ -181,7 +181,7 @@ fun check_result ctxt thesis th =
       if Thm.concl_of th aconv thesis andalso
         Logic.strip_assums_concl prem aconv thesis then th
       else error ("Guessed a different clause:\n" ^ Display.string_of_thm ctxt th)
-  | [] => error "Goal solved -- nothing guessed."
+  | [] => error "Goal solved -- nothing guessed"
   | _ => error ("Guess split into several cases:\n" ^ Display.string_of_thm ctxt th));
 
 fun result tac facts ctxt =

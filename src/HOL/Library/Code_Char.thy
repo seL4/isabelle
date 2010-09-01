@@ -19,7 +19,7 @@ setup {*
   #> String_Code.add_literal_list_string "Haskell"
 *}
 
-code_instance char :: eq
+code_instance char :: equal
   (Haskell -)
 
 code_reserved SML
@@ -31,7 +31,7 @@ code_reserved OCaml
 code_reserved Scala
   char
 
-code_const "eq_class.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) = _)")
   (OCaml "!((_ : char) = _)")
   (Haskell infixl 4 "==")

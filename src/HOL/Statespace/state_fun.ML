@@ -53,7 +53,7 @@ in
 val lazy_conj_simproc =
   Simplifier.simproc_global @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn thy => fn ss => fn t =>
-      (case t of (Const (@{const_name "op &"},_)$P$Q) => 
+      (case t of (Const (@{const_name HOL.conj},_)$P$Q) => 
          let
             val P_P' = Simplifier.rewrite ss (cterm_of thy P);
             val P' = P_P' |> prop_of |> Logic.dest_equals |> #2 
@@ -285,7 +285,7 @@ val ex_lookup_eq_simproc =
                             then Bound 2
                             else raise TERM ("",[n]);
                    val sel' = lo $ d $ n' $ s;
-                  in (Const (@{const_name "op ="},Teq)$sel'$x',hd (binder_types Teq),nT,swap) end;
+                  in (Const (@{const_name HOL.eq},Teq)$sel'$x',hd (binder_types Teq),nT,swap) end;
 
          fun dest_state (s as Bound 0) = s
            | dest_state (s as (Const (sel,sT)$Bound 0)) =
@@ -295,10 +295,10 @@ val ex_lookup_eq_simproc =
            | dest_state s = 
                     raise TERM ("StateFun.ex_lookup_eq_simproc: not a record slector",[s]);
   
-         fun dest_sel_eq (Const (@{const_name "op ="},Teq)$
+         fun dest_sel_eq (Const (@{const_name HOL.eq},Teq)$
                            ((lo as (Const ("StateFun.lookup",lT)))$d$n$s)$X) =
                            (false,Teq,lT,lo,d,n,X,dest_state s)
-           | dest_sel_eq (Const (@{const_name "op ="},Teq)$X$
+           | dest_sel_eq (Const (@{const_name HOL.eq},Teq)$X$
                             ((lo as (Const ("StateFun.lookup",lT)))$d$n$s)) =
                            (true,Teq,lT,lo,d,n,X,dest_state s)
            | dest_sel_eq _ = raise TERM ("",[]);

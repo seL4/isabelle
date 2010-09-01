@@ -7,7 +7,7 @@ hide_const %invisible append
 
 inductive %invisible append where
   "append [] ys ys"
-| "append xs ys zs ==> append (x # xs) ys (x # zs)"
+| "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
 
 lemma %invisible append: "append xs ys zs = (xs @ ys = zs)"
   by (induct xs arbitrary: ys zs) (auto elim: append.cases intro: append.intros)
@@ -95,9 +95,9 @@ text {*
   "append_i_i_o"}).  You can specify your own names as follows:
 *}
 
-code_pred %quote (modes: i => i => o => bool as concat,
-  o => o => i => bool as split,
-  i => o => i => bool as suffix) append .
+code_pred %quote (modes: i \<Rightarrow> i \<Rightarrow> o \<Rightarrow> bool as concat,
+  o \<Rightarrow> o \<Rightarrow> i \<Rightarrow> bool as split,
+  i \<Rightarrow> o \<Rightarrow> i \<Rightarrow> bool as suffix) append .
 
 subsection {* Alternative introduction rules *}
 
@@ -220,8 +220,8 @@ text {*
   "values"} and the number of elements.
 *}
 
-values %quote [mode: i => o => bool] 20 "{n. tranclp succ 10 n}"
-values %quote [mode: o => i => bool] 10 "{n. tranclp succ n 10}"
+values %quote [mode: i \<Rightarrow> o \<Rightarrow> bool] 20 "{n. tranclp succ 10 n}"
+values %quote [mode: o \<Rightarrow> i \<Rightarrow> bool] 10 "{n. tranclp succ n 10}"
 
 
 subsection {* Embedding into functional code within Isabelle/HOL *}

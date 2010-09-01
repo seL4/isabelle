@@ -278,8 +278,18 @@ val debug_simp = Config.bool debug_simp_value;
 
 val trace_simp_default = Unsynchronized.ref false;
 val trace_simp_value =
-  Config.declare false "trace_simp" (fn _ => Config.Bool (!trace_simp_default));
+  Config.declare false "trace_simp" (fn _ => Config.Bool (! trace_simp_default));
 val trace_simp = Config.bool trace_simp_value;
+
+fun if_enabled (Simpset ({context, ...}, _)) flag f =
+  (case context of
+    SOME ctxt => if Config.get ctxt flag then f ctxt else ()
+  | NONE => ())
+
+fun if_visible (Simpset ({context, ...}, _)) f x =
+  (case context of
+    SOME ctxt => if Context_Position.is_visible ctxt then f x else ()
+  | NONE => ());
 
 local
 
@@ -301,11 +311,6 @@ in
 fun print_term_global ss warn a thy t =
   print_term ss warn (K a) t (ProofContext.init_global thy);
 
-fun if_enabled (Simpset ({context, ...}, _)) flag f =
-  (case context of
-    SOME ctxt => if Config.get ctxt flag then f ctxt else ()
-  | NONE => ())
-
 fun debug warn a ss = if_enabled ss debug_simp (fn _ => prnt ss warn (a ()));
 fun trace warn a ss = if_enabled ss trace_simp (fn _ => prnt ss warn (a ()));
 
@@ -326,9 +331,7 @@ fun trace_named_thm a ss (th, name) =
 fun warn_thm a ss th =
   print_term_global ss true a (Thm.theory_of_thm th) (Thm.full_prop_of th);
 
-fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
-  if (case context of NONE => true | SOME ctxt => Context_Position.is_visible ctxt)
-  then warn_thm a ss th else ();
+fun cond_warn_thm a ss th = if_visible ss (fn () => warn_thm a ss th) ();
 
 end;
 
@@ -571,8 +574,9 @@ fun add_cong (ss, thm) = ss |>
       val a = the (cong_name (head_of (term_of lhs))) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant or free variable", thm);
       val (xs, weak) = congs;
-      val _ =  if AList.defined (op =) xs a
-        then warning ("Overwriting congruence rule for " ^ quote a)
+      val _ =
+        if AList.defined (op =) xs a
+        then if_visible ss warning ("Overwriting congruence rule for " ^ quote a)
         else ();
       val xs' = AList.update (op =) (a, thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
@@ -643,14 +647,14 @@ fun add_proc (proc as Proc {name, lhs, ...}) ss =
     (congs, Net.insert_term eq_proc (term_of lhs, proc) procs,
       mk_rews, termless, subgoal_tac, loop_tacs, solvers)) ss
   handle Net.INSERT =>
-    (warning ("Ignoring duplicate simplification procedure " ^ quote name); ss));
+    (if_visible ss warning ("Ignoring duplicate simplification procedure " ^ quote name); ss));
 
 fun del_proc (proc as Proc {name, lhs, ...}) ss =
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, Net.delete_term eq_proc (term_of lhs, proc) procs,
       mk_rews, termless, subgoal_tac, loop_tacs, solvers)) ss
   handle Net.DELETE =>
-    (warning ("Simplification procedure " ^ quote name ^ " not in simpset"); ss);
+    (if_visible ss warning ("Simplification procedure " ^ quote name ^ " not in simpset"); ss);
 
 fun prep_procs (Simproc {name, lhss, proc, id}) =
   lhss |> map (fn lhs => Proc {name = name, lhs = lhs, proc = Morphism.form proc, id = id});
@@ -720,20 +724,18 @@ fun ss setloop tac = ss setloop' (K tac);
 fun ss addloop' (name, tac) = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, termless, subgoal_tac,
-      (if AList.defined (op =) loop_tacs name
-        then warning ("Overwriting looper " ^ quote name)
-        else (); AList.update (op =) (name, tac) loop_tacs),
-      solvers));
+     (if AList.defined (op =) loop_tacs name
+      then if_visible ss warning ("Overwriting looper " ^ quote name)
+      else (); AList.update (op =) (name, tac) loop_tacs), solvers));
 
 fun ss addloop (name, tac) = ss addloop' (name, K tac);
 
 fun ss delloop name = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, termless, subgoal_tac,
-      (if AList.defined (op =) loop_tacs name
-        then ()
-        else warning ("No such looper in simpset: " ^ quote name);
-       AList.delete (op =) name loop_tacs), solvers));
+     (if AList.defined (op =) loop_tacs name then ()
+      else if_visible ss warning ("No such looper in simpset: " ^ quote name);
+      AList.delete (op =) name loop_tacs), solvers));
 
 fun ss setSSolver solver = ss |> map_simpset2 (fn (congs, procs, mk_rews, termless,
   subgoal_tac, loop_tacs, (unsafe_solvers, _)) =>
@@ -851,7 +853,7 @@ fun check_conv msg ss thm thm' =
 fun mk_procrule ss thm =
   let val (_, prems, lhs, elhs, rhs, _) = decomp_simp thm in
     if rewrite_rule_extra_vars prems lhs rhs
-    then (warn_thm "Extra vars on rhs:" ss thm; [])
+    then (cond_warn_thm "Extra vars on rhs:" ss thm; [])
     else [mk_rrule2 {thm = thm, name = "", lhs = lhs, elhs = elhs, perm = false}]
   end;
 
@@ -922,14 +924,19 @@ fun rewritec (prover, thyt, maxt) ss t =
            if unconditional
            then
              (trace_thm (fn () => "Rewriting:") ss thm';
-              let val lr = Logic.dest_equals prop;
-                  val SOME thm'' = check_conv false ss eta_thm thm'
+              let
+                val lr = Logic.dest_equals prop;
+                val SOME thm'' = check_conv false ss eta_thm thm';
               in SOME (thm'', uncond_skel (congs, lr)) end)
            else
              (trace_thm (fn () => "Trying to rewrite:") ss thm';
               if simp_depth ss > Config.get ctxt simp_depth_limit
-              then let val s = "simp_depth_limit exceeded - giving up"
-                   in trace false (fn () => s) ss; warning s; NONE end
+              then
+                let
+                  val s = "simp_depth_limit exceeded - giving up";
+                  val _ = trace false (fn () => s) ss;
+                  val _ = if_visible ss warning s;
+                in NONE end
               else
               case prover ss thm' of
                 NONE => (trace_thm (fn () => "FAILED") ss thm'; NONE)
@@ -947,15 +954,18 @@ fun rewritec (prover, thyt, maxt) ss t =
           let val opt = rew rrule handle Pattern.MATCH => NONE
           in case opt of NONE => rews rrules | some => some end;
 
-    fun sort_rrules rrs = let
-      fun is_simple({thm, ...}:rrule) = case Thm.prop_of thm of
-                                      Const("==",_) $ _ $ _ => true
-                                      | _                   => false
-      fun sort []        (re1,re2) = re1 @ re2
-        | sort (rr::rrs) (re1,re2) = if is_simple rr
-                                     then sort rrs (rr::re1,re2)
-                                     else sort rrs (re1,rr::re2)
-    in sort rrs ([],[]) end
+    fun sort_rrules rrs =
+      let
+        fun is_simple ({thm, ...}: rrule) =
+          (case Thm.prop_of thm of
+            Const ("==", _) $ _ $ _ => true
+          | _ => false);
+        fun sort [] (re1, re2) = re1 @ re2
+          | sort (rr :: rrs) (re1, re2) =
+              if is_simple rr
+              then sort rrs (rr :: re1, re2)
+              else sort rrs (re1, rr :: re2);
+      in sort rrs ([], []) end;
 
     fun proc_rews [] = NONE
       | proc_rews (Proc {name, proc, lhs, ...} :: ps) =
@@ -971,12 +981,13 @@ fun rewritec (prover, thyt, maxt) ss t =
                       " -- does not match") ss t; proc_rews ps)
                   | some => some)))
           else proc_rews ps;
-  in case eta_t of
-       Abs _ $ _ => SOME (Thm.transitive eta_thm
-         (Thm.beta_conversion false eta_t'), skel0)
-     | _ => (case rews (sort_rrules (Net.match_term rules eta_t)) of
-               NONE => proc_rews (Net.match_term procs eta_t)
-             | some => some)
+  in
+    (case eta_t of
+      Abs _ $ _ => SOME (Thm.transitive eta_thm (Thm.beta_conversion false eta_t'), skel0)
+    | _ =>
+      (case rews (sort_rrules (Net.match_term rules eta_t)) of
+        NONE => proc_rews (Net.match_term procs eta_t)
+      | some => some))
   end;
 
 
@@ -991,13 +1002,15 @@ fun congc prover ss maxt cong t =
       val thm' = Thm.instantiate insts (Thm.rename_boundvars (term_of rlhs) (term_of t) rthm);
       val _ = trace_thm (fn () => "Applying congruence rule:") ss thm';
       fun err (msg, thm) = (trace_thm (fn () => msg) ss thm; NONE)
-  in case prover thm' of
-       NONE => err ("Congruence proof failed.  Could not prove", thm')
-     | SOME thm2 => (case check_conv true ss (Drule.beta_eta_conversion t) thm2 of
+  in
+    (case prover thm' of
+      NONE => err ("Congruence proof failed.  Could not prove", thm')
+    | SOME thm2 =>
+        (case check_conv true ss (Drule.beta_eta_conversion t) thm2 of
           NONE => err ("Congruence proof failed.  Should not have proved", thm2)
         | SOME thm2' =>
             if op aconv (pairself term_of (Thm.dest_equals (cprop_of thm2')))
-            then NONE else SOME thm2')
+            then NONE else SOME thm2'))
   end;
 
 val (cA, (cB, cC)) =
@@ -1141,19 +1154,21 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
             val concl' =
               Drule.mk_implies (prem, the_default concl (Option.map Thm.rhs_of eq));
             val dprem = Option.map (disch false prem)
-          in case rewritec (prover, thy, maxidx) ss' concl' of
+          in
+            (case rewritec (prover, thy, maxidx) ss' concl' of
               NONE => rebuild prems concl' rrss asms ss (dprem eq)
             | SOME (eq', _) => transitive2 (fold (disch false)
                   prems (the (transitive3 (dprem eq) eq')))
-                (mut_impc0 (rev prems) (Thm.rhs_of eq') (rev rrss) (rev asms) ss)
+                (mut_impc0 (rev prems) (Thm.rhs_of eq') (rev rrss) (rev asms) ss))
           end
 
     and mut_impc0 prems concl rrss asms ss =
       let
         val prems' = strip_imp_prems concl;
         val (rrss', asms') = split_list (map (rules_of_prem ss) prems')
-      in mut_impc (prems @ prems') (strip_imp_concl concl) (rrss @ rrss')
-        (asms @ asms') [] [] [] [] ss ~1 ~1
+      in
+        mut_impc (prems @ prems') (strip_imp_concl concl) (rrss @ rrss')
+          (asms @ asms') [] [] [] [] ss ~1 ~1
       end
 
     and mut_impc [] concl [] [] prems' rrss' asms' eqns ss changed k =
@@ -1188,24 +1203,28 @@ fun bottomc ((simprem, useprem, mutsimp), prover, thy, maxidx) =
             end
 
      (*legacy code - only for backwards compatibility*)
-     and nonmut_impc ct ss =
-       let val (prem, conc) = Thm.dest_implies ct;
-           val thm1 = if simprem then botc skel0 ss prem else NONE;
-           val prem1 = the_default prem (Option.map Thm.rhs_of thm1);
-           val ss1 = if not useprem then ss else add_rrules
-             (apsnd single (apfst single (rules_of_prem ss prem1))) ss
-       in (case botc skel0 ss1 conc of
-           NONE => (case thm1 of
-               NONE => NONE
-             | SOME thm1' => SOME (Drule.imp_cong_rule thm1' (Thm.reflexive conc)))
-         | SOME thm2 =>
-           let val thm2' = disch false prem1 thm2
-           in (case thm1 of
-               NONE => SOME thm2'
-             | SOME thm1' =>
+    and nonmut_impc ct ss =
+      let
+        val (prem, conc) = Thm.dest_implies ct;
+        val thm1 = if simprem then botc skel0 ss prem else NONE;
+        val prem1 = the_default prem (Option.map Thm.rhs_of thm1);
+        val ss1 =
+          if not useprem then ss
+          else add_rrules (apsnd single (apfst single (rules_of_prem ss prem1))) ss
+      in
+        (case botc skel0 ss1 conc of
+          NONE =>
+            (case thm1 of
+              NONE => NONE
+            | SOME thm1' => SOME (Drule.imp_cong_rule thm1' (Thm.reflexive conc)))
+        | SOME thm2 =>
+            let val thm2' = disch false prem1 thm2 in
+              (case thm1 of
+                NONE => SOME thm2'
+              | SOME thm1' =>
                  SOME (Thm.transitive (Drule.imp_cong_rule thm1' (Thm.reflexive conc)) thm2'))
-           end)
-       end
+            end)
+      end
 
  in try_botc end;
 
@@ -1247,7 +1266,7 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
     val depth = simp_depth ss;
     val _ =
       if depth mod 20 = 0 then
-        warning ("Simplification depth " ^ string_of_int depth)
+        if_visible ss warning ("Simplification depth " ^ string_of_int depth)
       else ();
     val _ = trace_cterm false (fn () => "SIMPLIFIER INVOKED ON THE FOLLOWING TERM:") ss ct;
     val _ = check_bounds ss ct;

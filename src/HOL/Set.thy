@@ -219,8 +219,8 @@ let
   val Type (set_type, _) = @{typ "'a set"};   (* FIXME 'a => bool (!?!) *)
   val All_binder = Syntax.binder_name @{const_syntax All};
   val Ex_binder = Syntax.binder_name @{const_syntax Ex};
-  val impl = @{const_syntax "op -->"};
-  val conj = @{const_syntax "op &"};
+  val impl = @{const_syntax HOL.implies};
+  val conj = @{const_syntax HOL.conj};
   val sbset = @{const_syntax subset};
   val sbset_eq = @{const_syntax subset_eq};
 
@@ -268,8 +268,8 @@ parse_translation {*
 
     fun setcompr_tr [e, idts, b] =
       let
-        val eq = Syntax.const @{const_syntax "op ="} $ Bound (nvars idts) $ e;
-        val P = Syntax.const @{const_syntax "op &"} $ eq $ b;
+        val eq = Syntax.const @{const_syntax HOL.eq} $ Bound (nvars idts) $ e;
+        val P = Syntax.const @{const_syntax HOL.conj} $ eq $ b;
         val exP = ex_tr [idts, P];
       in Syntax.const @{const_syntax Collect} $ Term.absdummy (dummyT, exP) end;
 
@@ -288,8 +288,8 @@ let
   fun setcompr_tr' [Abs (abs as (_, _, P))] =
     let
       fun check (Const (@{const_syntax Ex}, _) $ Abs (_, _, P), n) = check (P, n + 1)
-        | check (Const (@{const_syntax "op &"}, _) $
-              (Const (@{const_syntax "op ="}, _) $ Bound m $ e) $ P, n) =
+        | check (Const (@{const_syntax HOL.conj}, _) $
+              (Const (@{const_syntax HOL.eq}, _) $ Bound m $ e) $ P, n) =
             n > 0 andalso m = n andalso not (loose_bvar1 (P, n)) andalso
             subset (op =) (0 upto (n - 1), add_loose_bnos (e, 0, []))
         | check _ = false;
@@ -305,7 +305,7 @@ let
           val M = Syntax.const @{syntax_const "_Coll"} $ x $ t;
         in
           case t of
-            Const (@{const_syntax "op &"}, _) $
+            Const (@{const_syntax HOL.conj}, _) $
               (Const (@{const_syntax Set.member}, _) $
                 (Const (@{syntax_const "_bound"}, _) $ Free (yN, _)) $ A) $ P =>
             if xN = yN then Syntax.const @{syntax_const "_Collect"} $ x $ A $ P else M

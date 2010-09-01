@@ -786,7 +786,8 @@ val opt_bang = Scan.optional (Parse.$$$ "!" >> K true) false;
 
 val _ =
   Outer_Syntax.improper_command "pretty_setmargin" "change default margin for pretty printing"
-    Keyword.diag (Parse.nat >> (Toplevel.no_timing oo Isar_Cmd.pretty_setmargin));
+    Keyword.diag (Parse.nat >>
+      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Pretty.margin_default := n)));
 
 val _ =
   Outer_Syntax.improper_command "help" "print outer syntax commands" Keyword.diag
@@ -991,7 +992,7 @@ val _ =
     (Scan.succeed
       (Toplevel.no_timing o Toplevel.keep (fn state =>
         (Context.set_thread_data (try Toplevel.generic_theory_of state);
-          raise Toplevel.TERMINATE))));
+          raise Runtime.TERMINATE))));
 
 end;
 

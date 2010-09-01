@@ -103,15 +103,15 @@ qed (simp add: bot_list_def)
 end
 
 lemma less_list_code [code]:
-  "xs < ([]\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> False"
-  "[] < (x\<Colon>'a\<Colon>{eq, order}) # xs \<longleftrightarrow> True"
-  "(x\<Colon>'a\<Colon>{eq, order}) # xs < y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs < ys"
+  "xs < ([]\<Colon>'a\<Colon>{equal, order} list) \<longleftrightarrow> False"
+  "[] < (x\<Colon>'a\<Colon>{equal, order}) # xs \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{equal, order}) # xs < y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs < ys"
   by simp_all
 
 lemma less_eq_list_code [code]:
-  "x # xs \<le> ([]\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> False"
-  "[] \<le> (xs\<Colon>'a\<Colon>{eq, order} list) \<longleftrightarrow> True"
-  "(x\<Colon>'a\<Colon>{eq, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
+  "x # xs \<le> ([]\<Colon>'a\<Colon>{equal, order} list) \<longleftrightarrow> False"
+  "[] \<le> (xs\<Colon>'a\<Colon>{equal, order} list) \<longleftrightarrow> True"
+  "(x\<Colon>'a\<Colon>{equal, order}) # xs \<le> y # ys \<longleftrightarrow> x < y \<or> x = y \<and> xs \<le> ys"
   by simp_all
 
 end

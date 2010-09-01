@@ -18,9 +18,8 @@ sig
   val THEN_MAYBE': ('a -> tactic) * ('a -> tactic) -> 'a -> tactic
   val DEPTH_SOLVE: tactic -> tactic
   val DEPTH_SOLVE_1: tactic -> tactic
-  val iter_deepen_limit: int Unsynchronized.ref
-  val THEN_ITER_DEEPEN: tactic -> (thm -> bool) -> (int -> tactic) -> tactic
-  val ITER_DEEPEN: (thm -> bool) -> (int -> tactic) -> tactic
+  val THEN_ITER_DEEPEN: int -> tactic -> (thm -> bool) -> (int -> tactic) -> tactic
+  val ITER_DEEPEN: int -> (thm -> bool) -> (int -> tactic) -> tactic
   val trace_DEEPEN: bool Unsynchronized.ref
   val DEEPEN: int * int -> (int -> int -> tactic) -> int -> int -> tactic
   val trace_BEST_FIRST: bool Unsynchronized.ref
@@ -117,21 +116,18 @@ fun prune (new as (k', np':int, rgd', stq), qs) =
     in  prune_aux (take (qs, []))  end;
 
 
-(*No known example (on 1-5-2007) needs even thirty*)
-val iter_deepen_limit = Unsynchronized.ref 50;
-
 (*Depth-first iterative deepening search for a state that satisfies satp
   tactic tac0 sets up the initial goal queue, while tac1 searches it.
   The solution sequence is redundant: the cutoff heuristic makes it impossible
   to suppress solutions arising from earlier searches, as the accumulated cost
   (k) can be wrong.*)
-fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
+fun THEN_ITER_DEEPEN lim tac0 satp tac1 = traced_tac (fn st =>
  let val countr = Unsynchronized.ref 0
      and tf = tracify trace_DEPTH_FIRST (tac1 1)
      and qs0 = tac0 st
      (*bnd = depth bound; inc = estimate of increment required next*)
      fun depth (bnd,inc) [] =
-          if bnd > !iter_deepen_limit then
+          if bnd > lim then
              (tracing (string_of_int (!countr) ^
                        " inferences so far.  Giving up at " ^ string_of_int bnd);
               NONE)
@@ -170,19 +166,19 @@ fun THEN_ITER_DEEPEN tac0 satp tac1 = traced_tac (fn st =>
                end
   in depth (0,5) [] end);
 
-val ITER_DEEPEN = THEN_ITER_DEEPEN all_tac;
+fun ITER_DEEPEN lim = THEN_ITER_DEEPEN lim all_tac;
 
 
 (*Simple iterative deepening tactical.  It merely "deepens" any search tactic
   using increment "inc" up to limit "lim". *)
 val trace_DEEPEN = Unsynchronized.ref false;
 
-fun DEEPEN (inc,lim) tacf m i =
+fun DEEPEN (inc, lim) tacf m i =
   let
     fun dpn m st =
       st |>
        (if has_fewer_prems i st then no_tac
-        else if m>lim then
+        else if m > lim then
           (if !trace_DEEPEN then tracing "Search depth limit exceeded: giving up" else ();
             no_tac)
         else

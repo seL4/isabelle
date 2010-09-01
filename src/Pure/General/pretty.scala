@@ -19,12 +19,11 @@ object Pretty
   object Block
   {
     def apply(i: Int, body: XML.Body): XML.Tree =
-      XML.Elem(Markup(Markup.BLOCK, List((Markup.INDENT, Markup.Int(i)))), body)
+      XML.Elem(Markup(Markup.BLOCK, Markup.Indent(i)), body)
 
     def unapply(tree: XML.Tree): Option[(Int, XML.Body)] =
       tree match {
-        case XML.Elem(
-          Markup(Markup.BLOCK, List((Markup.INDENT, Markup.Int(i)))), body) => Some((i, body))
+        case XML.Elem(Markup(Markup.BLOCK, Markup.Indent(i)), body) => Some((i, body))
         case _ => None
       }
   }
@@ -32,12 +31,11 @@ object Pretty
   object Break
   {
     def apply(w: Int): XML.Tree =
-      XML.Elem(
-        Markup(Markup.BREAK, List((Markup.WIDTH, Markup.Int(w)))), List(XML.Text(Symbol.spaces(w))))
+      XML.Elem(Markup(Markup.BREAK, Markup.Width(w)), List(XML.Text(Symbol.spaces(w))))
 
     def unapply(tree: XML.Tree): Option[Int] =
       tree match {
-        case XML.Elem(Markup(Markup.BREAK, List((Markup.WIDTH, Markup.Int(w)))), _) => Some(w)
+        case XML.Elem(Markup(Markup.BREAK, Markup.Width(w)), _) => Some(w)
         case _ => None
       }
   }

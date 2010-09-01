@@ -224,19 +224,19 @@ fun strip_happ args (Metis.Term.Fn(".",[t,u])) = strip_happ (u::args) t
 
 fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS)
 
-fun smart_invert_const "fequal" = @{const_name "op ="}
+fun smart_invert_const "fequal" = @{const_name HOL.eq}
   | smart_invert_const s = invert_const s
 
 fun hol_type_from_metis_term _ (Metis.Term.Var v) =
-     (case strip_prefix_and_undo_ascii tvar_prefix v of
+     (case strip_prefix_and_unascii tvar_prefix v of
           SOME w => make_tvar w
         | NONE   => make_tvar v)
   | hol_type_from_metis_term ctxt (Metis.Term.Fn(x, tys)) =
-     (case strip_prefix_and_undo_ascii type_const_prefix x of
+     (case strip_prefix_and_unascii type_const_prefix x of
           SOME tc => Term.Type (smart_invert_const tc,
                                 map (hol_type_from_metis_term ctxt) tys)
         | NONE    =>
-      case strip_prefix_and_undo_ascii tfree_prefix x of
+      case strip_prefix_and_unascii tfree_prefix x of
           SOME tf => mk_tfree ctxt tf
         | NONE    => raise Fail ("hol_type_from_metis_term: " ^ x));
 
@@ -246,10 +246,10 @@ fun hol_term_from_metis_PT ctxt fol_tm =
       val _ = trace_msg (fn () => "hol_term_from_metis_PT: " ^
                                   Metis.Term.toString fol_tm)
       fun tm_to_tt (Metis.Term.Var v) =
-             (case strip_prefix_and_undo_ascii tvar_prefix v of
+             (case strip_prefix_and_unascii tvar_prefix v of
                   SOME w => Type (make_tvar w)
                 | NONE =>
-              case strip_prefix_and_undo_ascii schematic_var_prefix v of
+              case strip_prefix_and_unascii schematic_var_prefix v of
                   SOME w => Term (mk_var (w, HOLogic.typeT))
                 | NONE   => Term (mk_var (v, HOLogic.typeT)) )
                     (*Var from Metis with a name like _nnn; possibly a type variable*)
@@ -264,9 +264,9 @@ fun hol_term_from_metis_PT ctxt fol_tm =
             end
         | tm_to_tt (Metis.Term.Fn (fname, args)) = applic_to_tt (fname,args)
       and applic_to_tt ("=",ts) =
-            Term (list_comb(Const (@{const_name "op ="}, HOLogic.typeT), terms_of (map tm_to_tt ts)))
+            Term (list_comb(Const (@{const_name HOL.eq}, HOLogic.typeT), terms_of (map tm_to_tt ts)))
         | applic_to_tt (a,ts) =
-            case strip_prefix_and_undo_ascii const_prefix a of
+            case strip_prefix_and_unascii const_prefix a of
                 SOME b =>
                   let val c = smart_invert_const b
                       val ntypes = num_type_args thy c
@@ -284,14 +284,14 @@ fun hol_term_from_metis_PT ctxt fol_tm =
                                    cat_lines (map (Syntax.string_of_term ctxt) (terms_of tts)))
                      end
               | NONE => (*Not a constant. Is it a type constructor?*)
-            case strip_prefix_and_undo_ascii type_const_prefix a of
+            case strip_prefix_and_unascii type_const_prefix a of
                 SOME b =>
                   Type (Term.Type (smart_invert_const b, types_of (map tm_to_tt ts)))
               | NONE => (*Maybe a TFree. Should then check that ts=[].*)
-            case strip_prefix_and_undo_ascii tfree_prefix a of
+            case strip_prefix_and_unascii tfree_prefix a of
                 SOME b => Type (mk_tfree ctxt b)
               | NONE => (*a fixed variable? They are Skolem functions.*)
-            case strip_prefix_and_undo_ascii fixed_var_prefix a of
+            case strip_prefix_and_unascii fixed_var_prefix a of
                 SOME b =>
                   let val opr = Term.Free(b, HOLogic.typeT)
                   in  apply_list opr (length ts) (map tm_to_tt ts)  end
@@ -307,16 +307,16 @@ fun hol_term_from_metis_FT ctxt fol_tm =
   let val _ = trace_msg (fn () => "hol_term_from_metis_FT: " ^
                                   Metis.Term.toString fol_tm)
       fun cvt (Metis.Term.Fn ("ti", [Metis.Term.Var v, _])) =
-             (case strip_prefix_and_undo_ascii schematic_var_prefix v of
+             (case strip_prefix_and_unascii schematic_var_prefix v of
                   SOME w =>  mk_var(w, dummyT)
                 | NONE   => mk_var(v, dummyT))
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn ("=",[]), _])) =
-            Const (@{const_name "op ="}, HOLogic.typeT)
+            Const (@{const_name HOL.eq}, HOLogic.typeT)
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (x,[]), ty])) =
-           (case strip_prefix_and_undo_ascii const_prefix x of
+           (case strip_prefix_and_unascii const_prefix x of
                 SOME c => Const (smart_invert_const c, dummyT)
               | NONE => (*Not a constant. Is it a fixed variable??*)
-            case strip_prefix_and_undo_ascii fixed_var_prefix x of
+            case strip_prefix_and_unascii fixed_var_prefix x of
                 SOME v => Free (v, hol_type_from_metis_term ctxt ty)
               | NONE => raise Fail ("hol_term_from_metis_FT bad constant: " ^ x))
         | cvt (Metis.Term.Fn ("ti", [Metis.Term.Fn (".",[tm1,tm2]), _])) =
@@ -325,12 +325,12 @@ fun hol_term_from_metis_FT ctxt fol_tm =
             cvt tm1 $ cvt tm2
         | cvt (Metis.Term.Fn ("{}", [arg])) = cvt arg   (*hBOOL*)
         | cvt (Metis.Term.Fn ("=", [tm1,tm2])) =
-            list_comb(Const (@{const_name "op ="}, HOLogic.typeT), map cvt [tm1,tm2])
+            list_comb(Const (@{const_name HOL.eq}, HOLogic.typeT), map cvt [tm1,tm2])
         | cvt (t as Metis.Term.Fn (x, [])) =
-           (case strip_prefix_and_undo_ascii const_prefix x of
+           (case strip_prefix_and_unascii const_prefix x of
                 SOME c => Const (smart_invert_const c, dummyT)
               | NONE => (*Not a constant. Is it a fixed variable??*)
-            case strip_prefix_and_undo_ascii fixed_var_prefix x of
+            case strip_prefix_and_unascii fixed_var_prefix x of
                 SOME v => Free (v, dummyT)
               | NONE => (trace_msg (fn () => "hol_term_from_metis_FT bad const: " ^ x);
                   hol_term_from_metis_PT ctxt t))
@@ -410,11 +410,11 @@ fun inst_inf ctxt mode skolems thpairs fsubst th =
                                        " in " ^ Display.string_of_thm ctxt i_th);
                  NONE)
       fun remove_typeinst (a, t) =
-            case strip_prefix_and_undo_ascii schematic_var_prefix a of
+            case strip_prefix_and_unascii schematic_var_prefix a of
                 SOME b => SOME (b, t)
-              | NONE   => case strip_prefix_and_undo_ascii tvar_prefix a of
+              | NONE => case strip_prefix_and_unascii tvar_prefix a of
                 SOME _ => NONE          (*type instantiations are forbidden!*)
-              | NONE   => SOME (a,t)    (*internal Metis var?*)
+              | NONE => SOME (a,t)    (*internal Metis var?*)
       val _ = trace_msg (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
       val substs = map_filter remove_typeinst (Metis.Subst.toList fsubst)
       val (vars,rawtms) = ListPair.unzip (map_filter subst_translation substs)
@@ -480,7 +480,7 @@ fun refl_inf ctxt mode skolems t =
       val c_t = cterm_incr_types thy refl_idx i_t
   in  cterm_instantiate [(refl_x, c_t)] REFL_THM  end;
 
-fun get_ty_arg_size _ (Const (@{const_name "op ="}, _)) = 0  (*equality has no type arguments*)
+fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0  (*equality has no type arguments*)
   | get_ty_arg_size thy (Const (c, _)) = (num_type_args thy c handle TYPE _ => 0)
   | get_ty_arg_size _ _ = 0;
 
@@ -529,13 +529,13 @@ fun equality_inf ctxt mode skolems (pos, atm) fp fr =
                       " isa-term: " ^  Syntax.string_of_term ctxt tm ^
                       " fol-term: " ^ Metis.Term.toString t)
       fun path_finder FO tm ps _ = path_finder_FO tm ps
-        | path_finder HO (tm as Const(@{const_name "op ="},_) $ _ $ _) (p::ps) _ =
+        | path_finder HO (tm as Const(@{const_name HOL.eq},_) $ _ $ _) (p::ps) _ =
              (*equality: not curried, as other predicates are*)
              if p=0 then path_finder_HO tm (0::1::ps)  (*select first operand*)
              else path_finder_HO tm (p::ps)        (*1 selects second operand*)
         | path_finder HO tm (_ :: ps) (Metis.Term.Fn ("{}", [_])) =
              path_finder_HO tm ps      (*if not equality, ignore head to skip hBOOL*)
-        | path_finder FT (tm as Const(@{const_name "op ="}, _) $ _ $ _) (p::ps)
+        | path_finder FT (tm as Const(@{const_name HOL.eq}, _) $ _ $ _) (p::ps)
                             (Metis.Term.Fn ("=", [t1,t2])) =
              (*equality: not curried, as other predicates are*)
              if p=0 then path_finder_FT tm (0::1::ps)

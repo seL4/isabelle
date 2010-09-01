@@ -808,8 +808,12 @@ lemma less_eq_pred_code [code]:
 
 lemma eq_pred_code [code]:
   fixes P Q :: "'a pred"
-  shows "eq_class.eq P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P"
-  unfolding eq by auto
+  shows "HOL.equal P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P"
+  by (auto simp add: equal)
+
+lemma [code nbe]:
+  "HOL.equal (x :: 'a pred) x \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemma [code]:
   "pred_case f P = f (eval P)"

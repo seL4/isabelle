@@ -49,7 +49,7 @@ sig
   val exists_const: typ -> term
   val mk_exists: string * typ * term -> term
   val choice_const: typ -> term
-  val class_eq: string
+  val class_equal: string
   val mk_binop: string -> term * term -> term
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
@@ -208,38 +208,38 @@ fun conj_elims th =
   let val (th1, th2) = conj_elim th
   in conj_elims th1 @ conj_elims th2 end handle THM _ => [th];
 
-val conj = @{term "op &"}
-and disj = @{term "op |"}
-and imp = @{term "op -->"}
-and Not = @{term "Not"};
+val conj = @{term HOL.conj}
+and disj = @{term HOL.disj}
+and imp = @{term implies}
+and Not = @{term Not};
 
 fun mk_conj (t1, t2) = conj $ t1 $ t2
 and mk_disj (t1, t2) = disj $ t1 $ t2
 and mk_imp (t1, t2) = imp $ t1 $ t2
 and mk_not t = Not $ t;
 
-fun dest_conj (Const ("op &", _) $ t $ t') = t :: dest_conj t'
+fun dest_conj (Const ("HOL.conj", _) $ t $ t') = t :: dest_conj t'
   | dest_conj t = [t];
 
-fun dest_disj (Const ("op |", _) $ t $ t') = t :: dest_disj t'
+fun dest_disj (Const ("HOL.disj", _) $ t $ t') = t :: dest_disj t'
   | dest_disj t = [t];
 
 (*Like dest_disj, but flattens disjunctions however nested*)
-fun disjuncts_aux (Const ("op |", _) $ t $ t') disjs = disjuncts_aux t (disjuncts_aux t' disjs)
+fun disjuncts_aux (Const ("HOL.disj", _) $ t $ t') disjs = disjuncts_aux t (disjuncts_aux t' disjs)
   | disjuncts_aux t disjs = t::disjs;
 
 fun disjuncts t = disjuncts_aux t [];
 
-fun dest_imp (Const ("op -->", _) $ A $ B) = (A, B)
+fun dest_imp (Const ("HOL.implies", _) $ A $ B) = (A, B)
   | dest_imp  t = raise TERM ("dest_imp", [t]);
 
 fun dest_not (Const ("HOL.Not", _) $ t) = t
   | dest_not t = raise TERM ("dest_not", [t]);
 
-fun eq_const T = Const ("op =", T --> T --> boolT);
+fun eq_const T = Const ("HOL.eq", T --> T --> boolT);
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
-fun dest_eq (Const ("op =", _) $ lhs $ rhs) = (lhs, rhs)
+fun dest_eq (Const ("HOL.eq", _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
 
 fun all_const T = Const ("HOL.All", [T --> boolT] ---> boolT);
@@ -251,7 +251,7 @@ fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
 
 fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T);
 
-val class_eq = "HOL.eq";
+val class_equal = "HOL.equal";
 
 
 (* binary operations and relations *)

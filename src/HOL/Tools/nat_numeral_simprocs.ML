@@ -168,7 +168,7 @@ structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} HOLogic.natT
   val bal_add1 = @{thm nat_eq_add_iff1} RS trans
   val bal_add2 = @{thm nat_eq_add_iff2} RS trans
 );
@@ -300,7 +300,7 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} HOLogic.natT
   val cancel = @{thm nat_mult_eq_cancel1} RS trans
   val neg_exchanges = false
 )
@@ -380,7 +380,7 @@ structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
-  val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.eq} HOLogic.natT
   fun simp_conv _ _ = SOME @{thm nat_mult_eq_cancel_disj}
 );
 

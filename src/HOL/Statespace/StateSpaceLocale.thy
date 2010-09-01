@@ -1,5 +1,4 @@
 (*  Title:      StateSpaceLocale.thy
-    ID:         $Id$
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
@@ -18,7 +17,7 @@ concrete values.*}
 
 locale project_inject =
  fixes project :: "'value \<Rightarrow> 'a"
- and   "inject":: "'a \<Rightarrow> 'value"
+  and inject :: "'a \<Rightarrow> 'value"
  assumes project_inject_cancel [statefun_simp]: "project (inject x) = x"
 
 lemma (in project_inject)

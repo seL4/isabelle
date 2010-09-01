@@ -24,15 +24,14 @@ infixr 5 @|;
 
 (** Scala serializer **)
 
-fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
-    args_num is_singleton_constr deresolve =
+fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
+    args_num is_singleton_constr (deresolve, deresolve_full) =
   let
-    val deresolve_base = Long_Name.base_name o deresolve;
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
     fun intro_tyvars vs = intro_vars (map (first_upper o fst) vs);
     fun print_tyco_expr tyvars fxy (tyco, tys) = applify "[" "]"
           (print_typ tyvars NOBR) fxy ((str o deresolve) tyco) tys
-    and print_typ tyvars fxy (tyco `%% tys) = (case syntax_tyco tyco
+    and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr tyvars fxy (tyco, tys)
           | SOME (i, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_tyvar tyvars) v;
@@ -68,7 +67,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
           end 
       | print_term tyvars is_pat some_thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars is_pat some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
@@ -77,8 +76,8 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
       let
         val k = length ts;
         val arg_typs' = if is_pat orelse
-          (is_none (syntax_const c) andalso is_singleton_constr c) then [] else arg_typs;
-        val (l, print') = case syntax_const c
+          (is_none (const_syntax c) andalso is_singleton_constr c) then [] else arg_typs;
+        val (l, print') = case const_syntax c
          of NONE => (args_num c, fn fxy => fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
@@ -157,7 +156,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               fold Code_Thingol.add_tyconames (t :: ts)) eqs [];
             val tyvars = reserved
               |> intro_base_names
-                   (is_none o syntax_tyco) deresolve tycos
+                   (is_none o tyco_syntax) deresolve tycos
               |> intro_tyvars vs;
             val simple = case eqs
              of [((ts, _), _)] => forall Code_Thingol.is_IVar ts
@@ -166,14 +165,14 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               (map (snd o fst) eqs) [];
             val vars1 = reserved
               |> intro_base_names
-                   (is_none o syntax_const) deresolve consts
+                   (is_none o const_syntax) deresolve consts
             val params = if simple
               then (map (fn IVar (SOME x) => x) o fst o fst o hd) eqs
               else aux_params vars1 (map (fst o fst) eqs);
             val vars2 = intro_vars params vars1;
             val (tys', ty') = Code_Thingol.unfold_fun_n (length params) ty;
-            fun print_tuple [p] = p
-              | print_tuple ps = enum "," "(" ")" ps;
+            fun tuplify [p] = p
+              | tuplify ps = enum "," "(" ")" ps;
             fun print_rhs vars' ((_, t), (some_thm, _)) =
               print_term tyvars false some_thm vars' NOBR t;
             fun print_clause (eq as ((ts, _), (some_thm, _))) =
@@ -182,7 +181,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
                   (insert (op =)) ts []) vars1;
               in
                 concat [str "case",
-                  print_tuple (map (print_term tyvars true some_thm vars' NOBR) ts),
+                  tuplify (map (print_term tyvars true some_thm vars' NOBR) ts),
                   str "=>", print_rhs vars' eq]
               end;
             val head = print_defhead tyvars vars2 name vs params tys' ty';
@@ -190,33 +189,34 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
             concat [head, print_rhs vars2 (hd eqs)]
           else
             Pretty.block_enclose
-              (concat [head, print_tuple (map (str o lookup_var vars2) params),
+              (concat [head, tuplify (map (str o lookup_var vars2) params),
                 str "match", str "{"], str "}")
               (map print_clause eqs)
           end;
-    val print_method = (str o Library.enclose "`" "+`" o deresolve_base);
+    val print_method = str o Library.enclose "`" "`" o space_implode "+"
+      o Long_Name.explode o deresolve_full;
     fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
           print_def name (vs, ty) (filter (snd o snd) raw_eqs)
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
           let
             val tyvars = intro_tyvars vs reserved;
             fun print_co ((co, _), []) =
-                  concat [str "final", str "case", str "object", (str o deresolve_base) co,
-                    str "extends", applify "[" "]" I NOBR ((str o deresolve_base) name)
+                  concat [str "final", str "case", str "object", (str o deresolve) co,
+                    str "extends", applify "[" "]" I NOBR ((str o deresolve) name)
                       (replicate (length vs) (str "Nothing"))]
               | print_co ((co, vs_args), tys) =
                   concat [applify "(" ")"
                     (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg)) NOBR
                     (applify "[" "]" (str o lookup_tyvar tyvars) NOBR ((concat o map str)
-                      ["final", "case", "class", deresolve_base co]) vs_args)
+                      ["final", "case", "class", deresolve co]) vs_args)
                     (Name.names (snd reserved) "a" tys),
                     str "extends",
                     applify "[" "]" (str o lookup_tyvar tyvars o fst) NOBR
-                      ((str o deresolve_base) name) vs
+                      ((str o deresolve) name) vs
                   ];
           in
             Pretty.chunks (applify "[" "]" (str o prefix "+" o lookup_tyvar tyvars o fst)
-              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve_base name]) vs
+              NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve name]) vs
                 :: map print_co cos)
           end
       | print_stmt (name, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
@@ -249,7 +249,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
           in
             Pretty.chunks (
               (Pretty.block_enclose
-                (concat ([str "trait", (add_typarg o deresolve_base) name]
+                (concat ([str "trait", (add_typarg o deresolve) name]
                   @ the_list (print_super_classes super_classes) @ [str "{"]), str "}")
                 (map print_classparam_val classparams))
               :: map print_classparam_def classparams
@@ -281,67 +281,60 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
           end;
   in print_stmt end;
 
-fun scala_program_of_program labelled_name module_name reserved raw_module_alias program =
+fun scala_program_of_program labelled_name reserved module_alias program =
   let
-    val the_module_name = the_default "Program" module_name;
-    val module_alias = K (SOME the_module_name);
-    val reserved = Name.make_context reserved;
-    fun prepare_stmt (name, stmt) (nsps, stmts) =
+    fun namify_module name_fragment ((nsp_class, nsp_object), nsp_common) =
       let
-        val (_, base) = Code_Printer.dest_name name;
-        val mk_name_stmt = yield_singleton Name.variants;
-        fun add_class ((nsp_class, nsp_object), nsp_common) =
-          let
-            val (base', nsp_class') = mk_name_stmt base nsp_class
-          in (base', ((nsp_class', nsp_object), Name.declare base' nsp_common)) end;
-        fun add_object ((nsp_class, nsp_object), nsp_common) =
-          let
-            val (base', nsp_object') = mk_name_stmt base nsp_object
-          in (base', ((nsp_class, nsp_object'), Name.declare base' nsp_common)) end;
-        fun add_common upper ((nsp_class, nsp_object), nsp_common) =
-          let
-            val (base', nsp_common') =
-              mk_name_stmt (if upper then first_upper base else base) nsp_common
-          in
-            (base',
-              ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
-          end;
-        val add_name = case stmt
-         of Code_Thingol.Fun _ => add_object
-          | Code_Thingol.Datatype _ => add_class
-          | Code_Thingol.Datatypecons _ => add_common true
-          | Code_Thingol.Class _ => add_class
-          | Code_Thingol.Classrel _ => add_object
-          | Code_Thingol.Classparam _ => add_object
-          | Code_Thingol.Classinst _ => add_common false;
-        fun add_stmt base' = case stmt
-         of Code_Thingol.Datatypecons _ => cons (name, (base', NONE))
-          | Code_Thingol.Classrel _ => cons (name, (base', NONE))
-          | Code_Thingol.Classparam _ => cons (name, (base', NONE))
-          | _ => cons (name, (base', SOME stmt));
+        val declare = Name.declare name_fragment;
+      in (name_fragment, ((declare nsp_class, declare nsp_object), declare nsp_common)) end;
+    fun namify_class base ((nsp_class, nsp_object), nsp_common) =
+      let
+        val (base', nsp_class') = yield_singleton Name.variants base nsp_class
+      in (base', ((nsp_class', nsp_object), Name.declare base' nsp_common)) end;
+    fun namify_object base ((nsp_class, nsp_object), nsp_common) =
+      let
+        val (base', nsp_object') = yield_singleton Name.variants base nsp_object
+      in (base', ((nsp_class, nsp_object'), Name.declare base' nsp_common)) end;
+    fun namify_common upper base ((nsp_class, nsp_object), nsp_common) =
+      let
+        val (base', nsp_common') =
+          yield_singleton Name.variants (if upper then first_upper base else base) nsp_common
       in
-        nsps
-        |> add_name
-        |-> (fn base' => rpair (add_stmt base' stmts))
+        (base',
+          ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))
       end;
-    val stmts = AList.make (Graph.get_node program) (Graph.strong_conn program |> flat)
-      |> filter_out (Code_Thingol.is_case o snd);
-    val (_, sca_program) = fold prepare_stmt stmts (((reserved, reserved), reserved), []);
-    fun deresolver name = (fst o the o AList.lookup (op =) sca_program) name
-      handle Option => error ("Unknown statement name: " ^ labelled_name name);
-  in (deresolver, (the_module_name, sca_program)) end;
+    fun namify_stmt (Code_Thingol.Fun _) = namify_object
+      | namify_stmt (Code_Thingol.Datatype _) = namify_class
+      | namify_stmt (Code_Thingol.Datatypecons _) = namify_common true
+      | namify_stmt (Code_Thingol.Class _) = namify_class
+      | namify_stmt (Code_Thingol.Classrel _) = namify_object
+      | namify_stmt (Code_Thingol.Classparam _) = namify_object
+      | namify_stmt (Code_Thingol.Classinst _) = namify_common false;
+    fun memorize_implicits name =
+      let
+        fun is_classinst stmt = case stmt
+         of Code_Thingol.Classinst _ => true
+          | _ => false;
+        val implicits = filter (is_classinst o Graph.get_node program)
+          (Graph.imm_succs program name);
+      in union (op =) implicits end;
+  in
+    Code_Namespace.hierarchical_program labelled_name { module_alias = module_alias, reserved = reserved,
+      empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module, namify_stmt = namify_stmt,
+      cyclic_modules = true, empty_data = [], memorize_data = memorize_implicits } program
+  end;
 
-fun serialize_scala raw_module_name labelled_name
-    raw_reserved includes raw_module_alias
-    _ syntax_tyco syntax_const (code_of_pretty, code_writeln)
-    program stmt_names destination =
+fun serialize_scala { labelled_name, reserved_syms, includes,
+    module_alias, class_syntax, tyco_syntax, const_syntax, program,
+    names, presentation_names } =
   let
-    val presentation_stmt_names = Code_Target.stmt_names_of_destination destination;
-    val module_name = if null presentation_stmt_names then raw_module_name else SOME "Code";
-    val reserved = fold (insert (op =) o fst) includes raw_reserved;
-    val (deresolver, (the_module_name, sca_program)) = scala_program_of_program labelled_name
-      module_name reserved raw_module_alias program;
-    val reserved = make_vars reserved;
+
+    (* build program *)
+    val reserved = fold (insert (op =) o fst) includes reserved_syms;
+    val { deresolver, hierarchical_program = sca_program } =
+      scala_program_of_program labelled_name (Name.make_context reserved) module_alias program;
+
+    (* print statements *)
     fun lookup_constr tyco constr = case Graph.get_node program tyco
      of Code_Thingol.Datatype (_, (_, constrs)) =>
           the (AList.lookup (op = o apsnd fst) constrs constr);
@@ -358,44 +351,53 @@ fun serialize_scala raw_module_name labelled_name
     fun is_singleton_constr c = case Graph.get_node program c
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
-    val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
-      reserved args_num is_singleton_constr deresolver;
-    fun print_module name imports content =
-      (name, Pretty.chunks (
-        str ("object " ^ name ^ " {")
-        :: (if null imports then []
-          else str "" :: map (fn name => str ("import " ^ name ^ "._")) imports)
-        @ [str "",
-        content,
-        str "",
-        str "}"]
-      ));
-    fun serialize_module the_module_name sca_program =
+    val print_stmt = print_scala_stmt labelled_name tyco_syntax const_syntax
+      (make_vars reserved) args_num is_singleton_constr;
+
+    (* print nodes *)
+    fun print_module base implicit_ps p = Pretty.chunks2
+      ([str ("object " ^ base ^ " {")]
+        @ (if null implicit_ps then [] else (single o Pretty.block)
+            (str "import /*implicits*/" :: Pretty.brk 1 :: commas implicit_ps))
+        @ [p, str ("} /* object " ^ base ^ " */")]);
+    fun print_implicit prefix_fragments implicit =
       let
-        val content = Pretty.chunks2 (map_filter
-          (fn (name, (_, SOME stmt)) => SOME (print_stmt (name, stmt))
-            | (_, (_, NONE)) => NONE) sca_program);
-      in print_module the_module_name (map fst includes) content end;
-    fun check_destination destination =
-      (File.check destination; destination);
-    fun write_module destination (modlname, content) =
-      let
-        val filename = case modlname
-         of "" => Path.explode "Main.scala"
-          | _ => (Path.ext "scala" o Path.explode o implode o separate "/"
-                o Long_Name.explode) modlname;
-        val pathname = Path.append destination filename;
-        val _ = File.mkdir_leaf (Path.dir pathname);
-      in File.write pathname (code_of_pretty content) end
+        val s = deresolver prefix_fragments implicit;
+      in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
+    fun print_node _ (_, Dummy) = NONE
+      | print_node prefix_fragments (name, Code_Namespace.Stmt stmt) =
+          if null presentation_names
+          orelse member (op =) presentation_names name
+          then SOME (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt))
+          else NONE
+      | print_node prefix_fragments (name_fragment, Code_Namespace.Module (implicits, nodes)) =
+          if null presentation_names
+          then
+            let
+              val prefix_fragments' = prefix_fragments @ [name_fragment];
+            in
+              Option.map (print_module name_fragment
+                (map_filter (print_implicit prefix_fragments') implicits))
+                  (print_nodes prefix_fragments' nodes)
+            end
+          else print_nodes [] nodes
+    and print_nodes prefix_fragments nodes = let
+        val ps = map_filter (fn name => print_node prefix_fragments (name,
+          snd (Graph.get_node nodes name)))
+            ((rev o flat o Graph.strong_conn) nodes);
+      in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
+
+    (* serialization *)
+    val p_includes = if null presentation_names then map snd includes else [];
+    val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
+    fun write width NONE = writeln_pretty width
+      | write width (SOME p) = File.write p o string_of_pretty width;
   in
-    Code_Target.mk_serialization target
-      (fn NONE => K () o map (code_writeln o snd) | SOME file => K () o map
-        (write_module (check_destination file)))
-      (rpair [] o cat_lines o map (code_of_pretty o snd))
-      (map (fn (name, content) => print_module name [] content) includes
-        @| serialize_module the_module_name sca_program)
-      destination
+    Code_Target.serialization write (rpair [] oo string_of_pretty) p
   end;
+
+val serializer : Code_Target.serializer =
+  Code_Target.parse_args (Scan.succeed ()) #> K serialize_scala;
 
 val literals = let
   fun char_scala c = if c = "'" then "\\'"
@@ -422,18 +424,14 @@ in Literals {
 
 (** Isar setup **)
 
-fun isar_serializer module_name =
-  Code_Target.parse_args (Scan.succeed ())
-  #> (fn () => serialize_scala module_name);
-
 val setup =
   Code_Target.add_target
-    (target, { serializer = isar_serializer, literals = literals,
-      check = { env_var = "SCALA_HOME", make_destination = I,
-        make_command = fn scala_home => fn p => fn _ =>
+    (target, { serializer = serializer, literals = literals,
+      check = { env_var = "SCALA_HOME", make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
+        make_command = fn scala_home => fn _ =>
           "export JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' && "
-            ^ Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " *.scala" } })
-  #> Code_Target.add_syntax_tyco target "fun"
+            ^ Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " ROOT.scala" } })
+  #> Code_Target.add_tyco_syntax target "fun"
      (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
         brackify_infix (1, R) fxy (
           print_typ BR ty1 (*product type vs. tupled arguments!*),

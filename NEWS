@@ -23,6 +23,28 @@ Historically, optional extensions .ML or .sml were added on demand --
 at the cost of clarity of file dependencies.  Recall that Isabelle/ML
 files exclusively use the .ML extension.  Minor INCOMPATIBILTY.
 
+* Various options that affect document antiquotations are now properly
+handled within the context via configuration options, instead of
+unsynchronized references.  There are both ML Config.T entities and
+Isar declaration attributes to access these.
+
+  ML:                       Isar:
+
+  Thy_Output.display        thy_output_display
+  Thy_Output.quotes         thy_output_quotes
+  Thy_Output.indent         thy_output_indent
+  Thy_Output.source         thy_output_source
+  Thy_Output.break          thy_output_break
+
+Note that the corresponding "..._default" references may be only
+changed globally at the ROOT session setup, but *not* within a theory.
+
+* ML structure Unsynchronized never opened, not even in Isar
+interaction mode as before.  Old Unsynchronized.set etc. have been
+discontinued -- use plain := instead.  This should be *rare* anyway,
+since modern tools always work via official context data, notably
+configuration options.
+
 
 *** Pure ***
 
@@ -39,6 +61,13 @@ feature is still required for historical reasons.
 
 
 *** HOL ***
+
+* Renamed class eq and constant eq (for code generation) to class equal
+and constant equal, plus renaming of related facts and various tuning.
+INCOMPATIBILITY.
+
+* Scala (2.8 or higher) has been added to the target languages of
+the code generator.
 
 * Dropped type classes mult_mono and mult_mono1.  INCOMPATIBILITY.
 
@@ -104,6 +133,10 @@ generation.
     Trueprop ~> HOL.Trueprop
     True ~> HOL.True
     False ~> HOL.False
+    op & ~> HOL.conj
+    op | ~> HOL.disj
+    op --> ~> HOL.implies
+    op = ~> HOL.eq
     Not ~> HOL.Not
     The ~> HOL.The
     All ~> HOL.All

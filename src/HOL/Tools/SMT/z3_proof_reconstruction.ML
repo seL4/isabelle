@@ -298,13 +298,13 @@ local
     let val (ct1, ct2) = Thm.dest_binop (Thm.dest_arg ct)
     in
       (case Thm.term_of ct1 of
-        @{term Not} $ (@{term "op &"} $ _ $ _) =>
+        @{term Not} $ (@{term HOL.conj} $ _ $ _) =>
           prove disjI1 (Thm.dest_arg ct1, true) (ct2, true)
-      | @{term "op &"} $ _ $ _ =>
+      | @{term HOL.conj} $ _ $ _ =>
           prove disjI3 (Thm.capply @{cterm Not} ct2, false) (ct1, true)
-      | @{term Not} $ (@{term "op |"} $ _ $ _) =>
+      | @{term Not} $ (@{term HOL.disj} $ _ $ _) =>
           prove disjI3 (Thm.capply @{cterm Not} ct2, false) (ct1, false)
-      | @{term "op |"} $ _ $ _ =>
+      | @{term HOL.disj} $ _ $ _ =>
           prove disjI2 (Thm.capply @{cterm Not} ct1, false) (ct2, true)
       | Const (@{const_name distinct}, _) $ _ =>
           let
@@ -477,8 +477,8 @@ local
 
   fun mono f (cp as (cl, _)) =
     (case Term.head_of (Thm.term_of cl) of
-      @{term "op &"} => prove_nary L.is_conj (prove_eq_exn f)
-    | @{term "op |"} => prove_nary L.is_disj (prove_eq_exn f)
+      @{term HOL.conj} => prove_nary L.is_conj (prove_eq_exn f)
+    | @{term HOL.disj} => prove_nary L.is_disj (prove_eq_exn f)
     | Const (@{const_name distinct}, _) => prove_distinct (prove_eq_safe f)
     | _ => prove (prove_eq_safe f)) cp
 in

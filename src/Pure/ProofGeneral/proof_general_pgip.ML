@@ -7,12 +7,12 @@ See http://proofgeneral.inf.ed.ac.uk/kit
 
 signature PROOF_GENERAL_PGIP =
 sig
+  val proof_general_emacsN: string
+
   val new_thms_deps: theory -> theory -> string list * string list
   val init_pgip: bool -> unit             (* main PGIP loop with true; fail with false *)
 
-  (* These two are just to support the semi-PGIP Emacs mode *)
-  val init_pgip_channel: (string -> unit) -> unit
-  val process_pgip: string -> unit
+  val pgip_channel_emacs: (string -> unit) -> unit
 
   (* More message functions... *)
   val nonfatal_error : string -> unit     (* recoverable (batch) error: carry on scripting *)
@@ -31,6 +31,7 @@ open Pgip;
 
 (** print mode **)
 
+val proof_general_emacsN = "ProofGeneralEmacs";
 val proof_generalN = "ProofGeneral";
 val pgmlsymbols_flag = Unsynchronized.ref true;
 
@@ -315,8 +316,6 @@ fun lexicalstructure_keywords () =
         fun keyword_elt kind keyword =
             XML.Elem (("keyword", [("word", keyword), ("category", kind)]), [])
         in
-            (* Also, note we don't call init_outer_syntax here to add interface commands,
-            but they should never appear in scripts anyway so it shouldn't matter *)
             Lexicalstructure
               {content = map (keyword_elt "minor") keywords @ map (keyword_elt "major") commands}
         end
@@ -802,7 +801,7 @@ fun openfile (Openfile vs) =
       val filepath = PgipTypes.path_of_pgipurl url
       val filedir = Path.dir filepath
       val thy_name = Path.implode o #1 o Path.split_ext o Path.base
-      val openfile_retract = Output.no_warnings_CRITICAL Thy_Info.kill_thy o thy_name;
+      val openfile_retract = Thy_Info.kill_thy o thy_name;
   in
       case !currently_open_file of
           SOME f => raise PGIP ("<openfile> when a file is already open!\nCurrently open file: " ^
@@ -1007,32 +1006,24 @@ in
 end
 
 
-(* Extra command for embedding prover-control inside document (obscure/debug usage). *)
-
-fun init_outer_syntax () =
-  Outer_Syntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
-    (Parse.text >> (Toplevel.no_timing oo
-      (fn txt => Toplevel.imperative (fn () => process_pgip_plain txt))));
-
-
 (* init *)
 
 val initialized = Unsynchronized.ref false;
 
 fun init_pgip false = panic "No Proof General interface support for Isabelle/classic mode."
   | init_pgip true =
-      (! initialized orelse
+      (if ! initialized then ()
+       else
         (setup_preferences_tweak ();
          Output.add_mode proof_generalN Output.default_output Output.default_escape;
          Markup.add_mode proof_generalN YXML.output_markup;
          setup_messages ();
-         Output.no_warnings_CRITICAL init_outer_syntax ();
          setup_thy_loader ();
          setup_present_hook ();
          init_pgip_session_id ();
          welcome ();
-         Unsynchronized.set initialized);
-        sync_thy_loader ();
+         initialized := true);
+       sync_thy_loader ();
        Unsynchronized.change print_mode (update (op =) proof_generalN);
        pgip_toplevel tty_src);
 
@@ -1045,16 +1036,27 @@ local
 in
 
 (* Set recipient for PGIP results *)
-fun init_pgip_channel writefn =
+fun pgip_channel_emacs writefn =
     (init_pgip_session_id();
      pgip_output_channel := writefn)
 
 (* Process a PGIP command.
    This works for preferences but not generally guaranteed
    because we haven't done full setup here (e.g., no pgml mode)  *)
-fun process_pgip str =
+fun process_pgip_emacs str =
      setmp_CRITICAL output_xml_fn (!pgip_output_channel) process_pgip_plain str
 
 end
+
+
+(* Extra command for embedding prover-control inside document (obscure/debug usage). *)
+
+val _ =
+  Outer_Syntax.improper_command "ProofGeneral.process_pgip" "(internal)" Keyword.control
+    (Parse.text >> (Toplevel.no_timing oo
+      (fn txt => Toplevel.imperative (fn () =>
+        if print_mode_active proof_general_emacsN
+        then process_pgip_emacs txt
+        else process_pgip_plain txt))));
 
 end;

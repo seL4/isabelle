@@ -159,7 +159,7 @@ fun prove_internal casms cprop tac =
   (case SINGLE (tac (map Assumption.assume casms)) (init cprop) of
     SOME th => Drule.implies_intr_list casms
       (finish (Syntax.init_pretty_global (Thm.theory_of_thm th)) th)
-  | NONE => error "Tactic failed.");
+  | NONE => error "Tactic failed");
 
 
 (* prove_common etc. *)
@@ -191,7 +191,7 @@ fun prove_common immediate ctxt xs asms props tac =
 
     fun result () =
       (case SINGLE (tac {prems = prems, context = ctxt'}) (init stmt) of
-        NONE => err "Tactic failed."
+        NONE => err "Tactic failed"
       | SOME st =>
           let val res = finish ctxt' st handle THM (msg, _, _) => err msg in
             if Unify.matches_list thy [Thm.term_of stmt] [Thm.prop_of res]

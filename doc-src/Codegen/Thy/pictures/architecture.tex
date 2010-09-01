@@ -30,8 +30,8 @@
   \node (seri) at (1.5, 0) [process, positive] {serialisation};
   \node (SML) at (2.5, 3) [entity, positive] {\sys{SML}};
   \node (OCaml) at (2.5, 2) [entity, positive] {\sys{OCaml}};
-  \node (further) at (2.5, 1) [entity, positive] {(\ldots)};
-  \node (Haskell) at (2.5, 0) [entity, positive] {\sys{Haskell}};
+  \node (Haskell) at (2.5, 1) [entity, positive] {\sys{Haskell}};
+  \node (Scala) at (2.5, 0) [entity, positive] {\sys{Scala}};
   \draw [semithick] (spec) -- (spec_user_join);
   \draw [semithick] (user) -- (spec_user_join);
   \draw [-diamond, semithick] (spec_user_join) -- (raw);
@@ -41,8 +41,8 @@
   \draw [arrow] (iml) -- (seri);
   \draw [arrow] (seri) -- (SML);
   \draw [arrow] (seri) -- (OCaml);
-  \draw [arrow, dashed] (seri) -- (further);
   \draw [arrow] (seri) -- (Haskell);
+  \draw [arrow] (seri) -- (Scala);
 \end{tikzpicture}
 
 }

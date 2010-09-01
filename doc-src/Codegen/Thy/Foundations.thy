@@ -220,12 +220,12 @@ text %quote {*@{code_stmts collect_duplicates (SML)}*}
 text {*
   \noindent Obviously, polymorphic equality is implemented the Haskell
   way using a type class.  How is this achieved?  HOL introduces an
-  explicit class @{class eq} with a corresponding operation @{const
-  eq_class.eq} such that @{thm eq [no_vars]}.  The preprocessing
-  framework does the rest by propagating the @{class eq} constraints
+  explicit class @{class equal} with a corresponding operation @{const
+  HOL.equal} such that @{thm equal [no_vars]}.  The preprocessing
+  framework does the rest by propagating the @{class equal} constraints
   through all dependent code equations.  For datatypes, instances of
-  @{class eq} are implicitly derived when possible.  For other types,
-  you may instantiate @{text eq} manually like any other type class.
+  @{class equal} are implicitly derived when possible.  For other types,
+  you may instantiate @{text equal} manually like any other type class.
 *}
 
 

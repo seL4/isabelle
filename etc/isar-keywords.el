@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + HOL-Boogie + HOL-Nominal + HOL-Statespace.
+;; Generated from Pure + HOL + HOLCF + HOL-Boogie + HOL-Nominal + HOL-Statespace.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -245,6 +245,7 @@
     "thus"
     "thy_deps"
     "translations"
+    "try"
     "txt"
     "txt_raw"
     "typ"
@@ -398,6 +399,7 @@
     "thm"
     "thm_deps"
     "thy_deps"
+    "try"
     "typ"
     "unused_thms"
     "value"

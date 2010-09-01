@@ -938,16 +938,20 @@ next
   qed
 qed
 
-instantiation multiset :: (eq) eq
+instantiation multiset :: (equal) equal
 begin
 
 definition
-  "HOL.eq A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
+  "HOL.equal A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
 
 instance proof
-qed (simp add: eq_multiset_def eq_iff)
+qed (simp add: equal_multiset_def eq_iff)
 
 end
+
+lemma [code nbe]:
+  "HOL.equal (A :: 'a::equal multiset) A \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 definition (in term_syntax)
   bagify :: "('a\<Colon>typerep \<times> nat) list \<times> (unit \<Rightarrow> Code_Evaluation.term)

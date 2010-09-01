@@ -5,7 +5,6 @@
 header {* Syntax for State Space Lookup and Update \label{sec:StateSpaceSyntax}*}
 theory StateSpaceSyntax
 imports StateSpaceLocale
-
 begin
 
 text {* The state space syntax is kept in an extra theory so that you

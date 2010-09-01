@@ -45,7 +45,6 @@ sig
   val status: string -> unit
   val report: string -> unit
   val debugging: bool Unsynchronized.ref
-  val no_warnings_CRITICAL: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
 end;
 
@@ -80,11 +79,8 @@ fun escape x = #escape (get_mode ()) x;
 
 (* output primitives -- normally NOT used directly!*)
 
-fun std_output s = NAMED_CRITICAL "IO" (fn () =>
-  (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut));
-
-fun std_error s = NAMED_CRITICAL "IO" (fn () =>
-  (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr));
+fun std_output s = (TextIO.output (TextIO.stdOut, s); TextIO.flushOut TextIO.stdOut);
+fun std_error s = (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr);
 
 fun writeln_default "" = ()
   | writeln_default s = std_output (suffix "\n" s);
@@ -112,8 +108,6 @@ fun status s = ! status_fn (output s);
 fun report s = ! report_fn (output s);
 
 fun legacy_feature s = warning ("Legacy feature! " ^ s);
-
-fun no_warnings_CRITICAL f = setmp_CRITICAL warning_fn (K ()) f;
 
 val debugging = Unsynchronized.ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()

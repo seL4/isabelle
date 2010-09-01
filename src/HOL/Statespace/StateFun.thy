@@ -33,10 +33,10 @@ lemma K_statefun_comp [simp]: "(K_statefun c \<circ> f) = K_statefun c"
 lemma K_statefun_cong [cong]: "K_statefun c x = K_statefun c x"
   by (rule refl)
 
-definition lookup:: "('v \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> ('n \<Rightarrow> 'v) \<Rightarrow> 'a"
+definition lookup :: "('v \<Rightarrow> 'a) \<Rightarrow> 'n \<Rightarrow> ('n \<Rightarrow> 'v) \<Rightarrow> 'a"
   where "lookup destr n s = destr (s n)"
 
-definition update::
+definition update ::
   "('v \<Rightarrow> 'a1) \<Rightarrow> ('a2 \<Rightarrow> 'v) \<Rightarrow> 'n \<Rightarrow> ('a1 \<Rightarrow> 'a2) \<Rightarrow> ('n \<Rightarrow> 'v) \<Rightarrow> ('n \<Rightarrow> 'v)"
   where "update destr constr n f s = s(n := constr (f (destr (s n))))"
 

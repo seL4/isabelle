@@ -6,23 +6,39 @@ Prototype of an code generator for logic programming languages (a.k.a. Prolog)
 
 signature CODE_PROLOG =
 sig
+  datatype prolog_system = SWI_PROLOG | YAP
+  type code_options =
+    {ensure_groundness : bool,
+     limited_types : (typ * int) list,
+     limited_predicates : (string list * int) list,
+     replacing : ((string * string) * string) list,
+     manual_reorder : ((string * int) * int list) list,
+     prolog_system : prolog_system}
+  val code_options_of : theory -> code_options 
+  val map_code_options : (code_options -> code_options) -> theory -> theory
+
   datatype arith_op = Plus | Minus
   datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
     | Number of int | ArithOp of arith_op * prol_term list;
   datatype prem = Conj of prem list
     | Rel of string * prol_term list | NotRel of string * prol_term list
     | Eq of prol_term * prol_term | NotEq of prol_term * prol_term
-    | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term;
-      
+    | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term
+    | Ground of string * typ;
+
   type clause = ((string * prol_term list) * prem);
   type logic_program = clause list;
   type constant_table = (string * string) list
-  
-  val generate : Proof.context -> string list -> (logic_program * constant_table)
+
+  val generate : bool -> Proof.context -> string -> (logic_program * constant_table)
   val write_program : logic_program -> string
-  val run : logic_program -> string -> string list -> int option -> prol_term list list
+  val run : prolog_system -> logic_program -> string -> string list -> int option -> prol_term list list
+
+  val quickcheck : Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
 
   val trace : bool Unsynchronized.ref
+  
+  val replace : ((string * string) * string) -> logic_program -> logic_program
 end;
 
 structure Code_Prolog : CODE_PROLOG =
@@ -33,6 +49,45 @@ struct
 val trace = Unsynchronized.ref false
 
 fun tracing s = if !trace then Output.tracing s else () 
+
+(* code generation options *)
+
+datatype prolog_system = SWI_PROLOG | YAP
+
+type code_options =
+  {ensure_groundness : bool,
+   limited_types : (typ * int) list,
+   limited_predicates : (string list * int) list,
+   replacing : ((string * string) * string) list,
+   manual_reorder : ((string * int) * int list) list,
+   prolog_system : prolog_system}
+
+structure Options = Theory_Data
+(
+  type T = code_options
+  val empty = {ensure_groundness = false,
+    limited_types = [], limited_predicates = [], replacing = [], manual_reorder = [],
+    prolog_system = SWI_PROLOG}
+  val extend = I;
+  fun merge
+    ({ensure_groundness = ensure_groundness1, limited_types = limited_types1,
+      limited_predicates = limited_predicates1, replacing = replacing1,
+      manual_reorder = manual_reorder1, prolog_system = prolog_system1},
+     {ensure_groundness = ensure_groundness2, limited_types = limited_types2,
+      limited_predicates = limited_predicates2, replacing = replacing2,
+      manual_reorder = manual_reorder2, prolog_system = prolog_system2}) =
+    {ensure_groundness = ensure_groundness1 orelse ensure_groundness2,
+     limited_types = AList.merge (op =) (K true) (limited_types1, limited_types2),
+     limited_predicates = AList.merge (op =) (K true) (limited_predicates1, limited_predicates2),
+     manual_reorder = AList.merge (op =) (K true) (manual_reorder1, manual_reorder2),
+     replacing = Library.merge (op =) (replacing1, replacing2),
+     prolog_system = prolog_system1};
+);
+
+val code_options_of = Options.get
+
+val map_code_options = Options.map
+
 (* general string functions *)
 
 val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
@@ -44,6 +99,21 @@ datatype arith_op = Plus | Minus
 
 datatype prol_term = Var of string | Cons of string | AppF of string * prol_term list
   | Number of int | ArithOp of arith_op * prol_term list;
+
+fun dest_Var (Var v) = v
+
+fun add_vars (Var v) = insert (op =) v
+  | add_vars (ArithOp (_, ts)) = fold add_vars ts
+  | add_vars (AppF (_, ts)) = fold add_vars ts
+  | add_vars _ = I
+
+fun map_vars f (Var v) = Var (f v)
+  | map_vars f (ArithOp (opr, ts)) = ArithOp (opr, map (map_vars f) ts)
+  | map_vars f (AppF (fs, ts)) = AppF (fs, map (map_vars f) ts)
+  | map_vars f t = t
+  
+fun maybe_AppF (c, []) = Cons c
+  | maybe_AppF (c, xs) = AppF (c, xs)
 
 fun is_Var (Var _) = true
   | is_Var _ = false
@@ -61,26 +131,61 @@ fun string_of_prol_term (Var s) = "Var " ^ s
 datatype prem = Conj of prem list
   | Rel of string * prol_term list | NotRel of string * prol_term list
   | Eq of prol_term * prol_term | NotEq of prol_term * prol_term
-  | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term;
-    
+  | ArithEq of prol_term * prol_term | NotArithEq of prol_term * prol_term
+  | Ground of string * typ;
+
 fun dest_Rel (Rel (c, ts)) = (c, ts)
- 
+
+fun map_term_prem f (Conj prems) = Conj (map (map_term_prem f) prems)
+  | map_term_prem f (Rel (r, ts)) = Rel (r, map f ts)
+  | map_term_prem f (NotRel (r, ts)) = NotRel (r, map f ts)
+  | map_term_prem f (Eq (l, r)) = Eq (f l, f r)
+  | map_term_prem f (NotEq (l, r)) = NotEq (f l, f r)
+  | map_term_prem f (ArithEq (l, r)) = ArithEq (f l, f r)
+  | map_term_prem f (NotArithEq (l, r)) = NotArithEq (f l, f r)
+  | map_term_prem f (Ground (v, T)) = Ground (dest_Var (f (Var v)), T)
+
+fun fold_prem_terms f (Conj prems) = fold (fold_prem_terms f) prems
+  | fold_prem_terms f (Rel (_, ts)) = fold f ts
+  | fold_prem_terms f (NotRel (_, ts)) = fold f ts
+  | fold_prem_terms f (Eq (l, r)) = f l #> f r
+  | fold_prem_terms f (NotEq (l, r)) = f l #> f r
+  | fold_prem_terms f (ArithEq (l, r)) = f l #> f r
+  | fold_prem_terms f (NotArithEq (l, r)) = f l #> f r
+  | fold_prem_terms f (Ground (v, T)) = f (Var v)
+  
 type clause = ((string * prol_term list) * prem);
 
 type logic_program = clause list;
 
 (* translation from introduction rules to internal representation *)
 
+fun mk_conform f empty avoid name =
+  let
+    fun dest_Char (Symbol.Char c) = c
+    val name' = space_implode "" (map (dest_Char o Symbol.decode)
+      (filter (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s)
+        (Symbol.explode name)))
+    val name'' = f (if name' = "" then empty else name')
+  in (if member (op =) avoid name'' then Name.variant avoid name'' else name'') end
+
 (** constant table **)
 
 type constant_table = (string * string) list
 
 (* assuming no clashing *)
-fun mk_constant_table consts =
-  AList.make (first_lower o Long_Name.base_name) consts
-
 fun declare_consts consts constant_table =
-  fold (fn c => AList.update (op =) (c, first_lower (Long_Name.base_name c))) consts constant_table
+  let
+    fun update' c table =
+      if AList.defined (op =) table c then table else
+        let
+          val c' = mk_conform first_lower "pred" (map snd table) (Long_Name.base_name c)
+        in
+          AList.update (op =) (c, c') table
+        end
+  in
+    fold update' consts constant_table
+  end
   
 fun translate_const constant_table c =
   case AList.lookup (op =) constant_table c of
@@ -96,16 +201,23 @@ fun restore_const constant_table c =
   case inv_lookup (op =) constant_table c of
     SOME c' => c'
   | NONE => error ("No constant corresponding to "  ^ c)
-  
+
 (** translation of terms, literals, premises, and clauses **)
 
 fun translate_arith_const @{const_name "Groups.plus_class.plus"} = SOME Plus
   | translate_arith_const @{const_name "Groups.minus_class.minus"} = SOME Minus
   | translate_arith_const _ = NONE
 
+fun mk_nat_term constant_table n =
+  let
+    val zero = translate_const constant_table @{const_name "Groups.zero_class.zero"}
+    val Suc = translate_const constant_table @{const_name "Suc"}
+  in funpow n (fn t => AppF (Suc, [t])) (Cons zero) end
+
 fun translate_term ctxt constant_table t =
   case try HOLogic.dest_number t of
     SOME (@{typ "int"}, n) => Number n
+  | SOME (@{typ "nat"}, n) => mk_nat_term constant_table n
   | NONE =>
       (case strip_comb t of
         (Free (v, T), []) => Var v 
@@ -119,12 +231,12 @@ fun translate_term ctxt constant_table t =
 
 fun translate_literal ctxt constant_table t =
   case strip_comb t of
-    (Const (@{const_name "op ="}, _), [l, r]) =>
+    (Const (@{const_name HOL.eq}, _), [l, r]) =>
       let
         val l' = translate_term ctxt constant_table l
         val r' = translate_term ctxt constant_table r
       in
-        (if is_Var l' andalso is_arith_term r' then ArithEq else Eq) (l', r')
+        (if is_Var l' andalso is_arith_term r' andalso not (is_Var r') then ArithEq else Eq) (l', r')
       end
   | (Const (c, _), args) =>
       Rel (translate_const constant_table c, map (translate_term ctxt constant_table) args)
@@ -134,11 +246,16 @@ fun NegRel_of (Rel lit) = NotRel lit
   | NegRel_of (Eq eq) = NotEq eq
   | NegRel_of (ArithEq eq) = NotArithEq eq
 
-fun translate_prem ctxt constant_table t =  
+fun mk_groundness_prems t = map Ground (Term.add_frees t [])
+  
+fun translate_prem ensure_groundness ctxt constant_table t =  
     case try HOLogic.dest_not t of
-      SOME t => NegRel_of (translate_literal ctxt constant_table t)
+      SOME t =>
+        if ensure_groundness then
+          Conj (mk_groundness_prems t @ [NegRel_of (translate_literal ctxt constant_table t)])
+        else
+          NegRel_of (translate_literal ctxt constant_table t)
     | NONE => translate_literal ctxt constant_table t
-
     
 fun imp_prems_conv cv ct =
   case Thm.term_of ct of
@@ -156,64 +273,230 @@ fun preprocess_intro thy rule =
       (Trueprop_conv (Conv.try_conv (Conv.rewr_conv @{thm Predicate.eq_is_eq}))))
     (Thm.transfer thy rule)
 
-fun translate_intros ctxt gr const constant_table =
+fun translate_intros ensure_groundness ctxt gr const constant_table =
   let
     val intros = map (preprocess_intro (ProofContext.theory_of ctxt)) (Graph.get_node gr const)
     val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
     val constant_table' = declare_consts (fold Term.add_const_names intros' []) constant_table
+      |> declare_consts [@{const_name "Groups.zero_class.zero"}, @{const_name "Suc"}]
     fun translate_intro intro =
       let
         val head = HOLogic.dest_Trueprop (Logic.strip_imp_concl intro)
-        val prems = map HOLogic.dest_Trueprop (Logic.strip_imp_prems intro) 
-        val prems' = Conj (map (translate_prem ctxt' constant_table') prems)
+        val prems = map HOLogic.dest_Trueprop (Logic.strip_imp_prems intro)
+        val prems' = Conj (map (translate_prem ensure_groundness ctxt' constant_table') prems)
         val clause = (dest_Rel (translate_literal ctxt' constant_table' head), prems')
       in clause end
-  in (map translate_intro intros', constant_table') end
+    val res = (map translate_intro intros', constant_table')
+  in res end
 
-fun generate ctxt const =
+fun depending_preds_of (key, intros) =
+  fold Term.add_const_names (map Thm.prop_of intros) []
+
+fun add_edges edges_of key G =
+  let
+    fun extend' key (G, visited) = 
+      case try (Graph.get_node G) key of
+          SOME v =>
+            let
+              val new_edges = filter (fn k => is_some (try (Graph.get_node G) k)) (edges_of (key, v))
+              val (G', visited') = fold extend'
+                (subtract (op =) (key :: visited) new_edges) (G, key :: visited)
+            in
+              (fold (Graph.add_edge o (pair key)) new_edges G', visited')
+            end
+        | NONE => (G, visited)
+  in
+    fst (extend' key (G, []))
+  end
+
+fun generate ensure_groundness ctxt const =
   let 
-     fun strong_conn_of gr keys =
+    fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
     val gr = Predicate_Compile_Core.intros_graph_of ctxt
-    val scc = strong_conn_of gr const
-    val constant_table = mk_constant_table (flat scc)
+    val gr' = add_edges depending_preds_of const gr
+    val scc = strong_conn_of gr' [const]
+    val constant_table = declare_consts (flat scc) []
   in
-    apfst flat (fold_map (translate_intros ctxt gr) (flat scc) constant_table)
+    apfst flat (fold_map (translate_intros ensure_groundness ctxt gr) (flat scc) constant_table)
   end
+  
+(* implementation for fully enumerating predicates and
+  for size-limited predicates for enumerating the values of a datatype upto a specific size *)
 
-(* transform logic program *)
+fun add_ground_typ (Conj prems) = fold add_ground_typ prems
+  | add_ground_typ (Ground (_, T)) = insert (op =) T
+  | add_ground_typ _ = I
 
-(** ensure groundness of terms before negation **)
+fun mk_relname (Type (Tcon, Targs)) =
+  first_lower (Long_Name.base_name Tcon) ^ space_implode "_" (map mk_relname Targs)
+  | mk_relname _ = raise Fail "unexpected type"
 
-fun add_vars (Var x) vs = insert (op =) x vs
-  | add_vars (Cons c) vs = vs
-  | add_vars (AppF (f, args)) vs = fold add_vars args vs
+fun mk_lim_relname T = "lim_" ^  mk_relname T
 
-fun string_of_typ (Type (s, Ts)) = Long_Name.base_name s
+(* This is copied from "pat_completeness.ML" *)
+fun inst_constrs_of thy (T as Type (name, _)) =
+  map (fn (Cn,CT) =>
+    Envir.subst_term_types (Sign.typ_match thy (body_type CT, T) Vartab.empty) (Const (Cn, CT)))
+    (the (Datatype.get_constrs thy name))
+  | inst_constrs_of thy T = raise TYPE ("inst_constrs_of", [T], [])
 
-fun mk_groundness_prems ts =
+fun is_recursive_constr T (Const (constr_name, T')) = member (op =) (binder_types T') T
+  
+fun mk_ground_impl ctxt limited_types (T as Type (Tcon, Targs)) (seen, constant_table) =
+  if member (op =) seen T then ([], (seen, constant_table))
+  else
+    let
+      val (limited, size) = case AList.lookup (op =) limited_types T of
+        SOME s => (true, s)
+      | NONE => (false, 0)      
+      val rel_name = (if limited then mk_lim_relname else mk_relname) T
+      fun mk_impl (Const (constr_name, cT), recursive) (seen, constant_table) =
+        let
+          val constant_table' = declare_consts [constr_name] constant_table
+          val Ts = binder_types cT
+          val (rec_clauses, (seen', constant_table'')) =
+            fold_map (mk_ground_impl ctxt limited_types) Ts (seen, constant_table')
+          val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto (length Ts))
+          val lim_var =
+            if limited then
+              if recursive then [AppF ("suc", [Var "Lim"])]              
+              else [Var "Lim"]
+            else [] 
+          fun mk_prem v T' =
+            if limited andalso T' = T then Rel (mk_lim_relname T', [Var "Lim", v])
+            else Rel (mk_relname T', [v])
+          val clause =
+            ((rel_name, lim_var @ [maybe_AppF (translate_const constant_table'' constr_name, vars)]),
+             Conj (map2 mk_prem vars Ts))
+        in
+          (clause :: flat rec_clauses, (seen', constant_table''))
+        end
+      val constrs = inst_constrs_of (ProofContext.theory_of ctxt) T
+      val constrs' = (constrs ~~ map (is_recursive_constr T) constrs)
+        |> (fn cs => filter_out snd cs @ filter snd cs)
+      val (clauses, constant_table') =
+        apfst flat (fold_map mk_impl constrs' (T :: seen, constant_table))
+      val size_term = funpow size (fn t => AppF ("suc", [t])) (Cons "zero")
+    in
+      ((if limited then
+        cons ((mk_relname T, [Var "x"]), Rel (mk_lim_relname T, [size_term, Var "x"]))
+      else I) clauses, constant_table')
+    end
+ | mk_ground_impl ctxt _ T (seen, constant_table) =
+   raise Fail ("unexpected type :" ^ Syntax.string_of_typ ctxt T)
+
+fun replace_ground (Conj prems) = Conj (map replace_ground prems)
+  | replace_ground (Ground (x, T)) =
+    Rel (mk_relname T, [Var x])  
+  | replace_ground p = p
+  
+fun add_ground_predicates ctxt limited_types (p, constant_table) =
   let
-    val vars = fold add_vars ts []
-    fun mk_ground v =
-      Rel ("ground", [Var v])
+    val ground_typs = fold (add_ground_typ o snd) p []
+    val (grs, (_, constant_table')) = fold_map (mk_ground_impl ctxt limited_types) ground_typs ([], constant_table)
+    val p' = map (apsnd replace_ground) p
   in
-    map mk_ground vars
+    ((flat grs) @ p', constant_table')
   end
 
-fun ensure_groundness_prem (NotRel (c, ts)) = Conj (mk_groundness_prems ts @ [NotRel (c, ts)]) 
-  | ensure_groundness_prem (NotEq (l, r)) = Conj (mk_groundness_prems [l, r] @ [NotEq (l, r)])
-  | ensure_groundness_prem (Conj ps) = Conj (map ensure_groundness_prem ps)
-  | ensure_groundness_prem p = p
+(* make depth-limited version of predicate *)
 
-fun ensure_groundness_before_negation p =
-  map (apsnd ensure_groundness_prem) p
+fun mk_lim_rel_name rel_name = "lim_" ^ rel_name
+
+fun mk_depth_limited rel_names ((rel_name, ts), prem) =
+  let
+    fun has_positive_recursive_prems (Conj prems) = exists has_positive_recursive_prems prems
+      | has_positive_recursive_prems (Rel (rel, ts)) = member (op =) rel_names rel
+      | has_positive_recursive_prems _ = false
+    fun mk_lim_prem (Conj prems) = Conj (map mk_lim_prem prems)
+      | mk_lim_prem (p as Rel (rel, ts)) =
+        if member (op =) rel_names rel then Rel (mk_lim_rel_name rel, Var "Lim" :: ts) else p
+      | mk_lim_prem p = p
+  in
+    if has_positive_recursive_prems prem then
+      ((mk_lim_rel_name rel_name, (AppF ("suc", [Var "Lim"]))  :: ts), mk_lim_prem prem)
+    else
+      ((mk_lim_rel_name rel_name, (Var "Lim") :: ts), prem)
+  end
+
+fun add_limited_predicates limited_predicates =
+  let                                     
+    fun add (rel_names, limit) (p, constant_table) = 
+      let
+        val clauses = filter (fn ((rel, _), _) => member (op =) rel_names rel) p
+        val clauses' = map (mk_depth_limited rel_names) clauses
+        fun nat_term_of n = funpow n (fn t => AppF ("suc", [t])) (Cons "zero")
+        fun mk_entry_clause rel_name =
+          let
+            val nargs = length (snd (fst
+              (the (find_first (fn ((rel, _), _) => rel = rel_name) clauses))))
+            val vars = map (fn i => Var ("x" ^ string_of_int i)) (1 upto nargs)        
+          in
+            (("limited_" ^ rel_name, vars), Rel ("lim_" ^ rel_name, nat_term_of limit :: vars))
+          end
+      in (p @ (map mk_entry_clause rel_names) @ clauses', constant_table) end
+  in
+    fold add limited_predicates
+  end
+
+
+(* replace predicates in clauses *)
+
+(* replace (A, B, C) p = replace A by B in clauses of C *)
+fun replace ((from, to), location) p =
+  let
+    fun replace_prem (Conj prems) = Conj (map replace_prem prems)
+      | replace_prem (r as Rel (rel, ts)) =
+          if rel = from then Rel (to, ts) else r
+      | replace_prem r = r
+  in
+    map (fn ((rel, args), prem) => ((rel, args), (if rel = location then replace_prem else I) prem)) p
+  end
+
+  
+(* reorder manually : reorder premises of ith clause of predicate p by a permutation perm *)
+
+fun reorder_manually reorder p =
+  let
+    fun reorder' (clause as ((rel, args), prem)) seen =
+      let
+        val seen' = AList.map_default (op =) (rel, 0) (fn x => x + 1) seen
+        val i = the (AList.lookup (op =) seen' rel)
+        val perm = AList.lookup (op =) reorder (rel, i)
+        val prem' = (case perm of 
+          SOME p => (case prem of Conj prems => Conj (map (nth prems) p) | _ => prem)
+        | NONE => prem)
+      in (((rel, args), prem'), seen') end
+  in
+    fst (fold_map reorder' p [])
+  end
+(* rename variables to prolog-friendly names *)
+
+fun rename_vars_term renaming = map_vars (fn v => the (AList.lookup (op =) renaming v))
+
+fun rename_vars_prem renaming = map_term_prem (rename_vars_term renaming)
+
+fun is_prolog_conform v =
+  forall (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s) (Symbol.explode v)
+  
+fun mk_renaming v renaming =
+  (v, mk_conform first_upper "Var" (map snd renaming) v) :: renaming
+
+fun rename_vars_clause ((rel, args), prem) =
+  let
+    val vars = fold_prem_terms add_vars prem (fold add_vars args [])
+    val renaming = fold mk_renaming vars []
+  in ((rel, map (rename_vars_term renaming) args), rename_vars_prem renaming prem) end
+  
+val rename_vars_program = map rename_vars_clause
 
 (* code printer *)
 
 fun write_arith_op Plus = "+"
   | write_arith_op Minus = "-"
 
-fun write_term (Var v) = first_upper v
+fun write_term (Var v) = v
   | write_term (Cons c) = c
   | write_term (AppF (f, args)) = f ^ "(" ^ space_implode ", " (map write_term args) ^ ")"
   | write_term (ArithOp (oper, [a1, a2])) = write_term a1 ^ " " ^ write_arith_op oper ^ " " ^ write_term a2
@@ -236,14 +519,16 @@ fun write_clause (head, prem) =
 fun write_program p =
   cat_lines (map write_clause p) 
 
-(** query templates **)
+(* query templates *)
 
-fun query_first rel vnames =
+(** query and prelude for swi-prolog **)
+
+fun swi_prolog_query_first rel vnames =
   "eval :- once("  ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
   "writef('" ^ space_implode ";" (map (fn v => v ^ " = %w") vnames) ^
   "\\n', [" ^ space_implode ", " vnames ^ "]).\n"
   
-fun query_firstn n rel vnames =
+fun swi_prolog_query_firstn n rel vnames =
   "eval :- findnsols(" ^ string_of_int n ^ ", (" ^ space_implode ", " vnames ^ "), " ^
     rel ^ "(" ^ space_implode ", " vnames ^ "), Sols), writelist(Sols).\n" ^
     "writelist([]).\n" ^
@@ -251,19 +536,52 @@ fun query_firstn n rel vnames =
     "writef('" ^ space_implode ";" (map (fn v => v ^ " = %w") vnames) ^
     "\\n', [" ^ space_implode ", " vnames ^ "]), writelist(T).\n"
   
-val prelude =
+val swi_prolog_prelude =
   "#!/usr/bin/swipl -q -t main -f\n\n" ^
   ":- use_module(library('dialect/ciao/aggregates')).\n" ^
-  ":- style_check(-singleton).\n\n" ^
+  ":- style_check(-singleton).\n" ^
+  ":- style_check(-discontiguous).\n" ^ 	
+  ":- style_check(-atom).\n\n" ^
   "main :- catch(eval, E, (print_message(error, E), fail)), halt.\n" ^
   "main :- halt(1).\n"
 
+(** query and prelude for yap **)
+
+fun yap_query_first rel vnames =
+  "eval :- once(" ^ rel ^ "(" ^ space_implode ", " vnames ^ ")),\n" ^
+  "format('" ^ space_implode ";" (map (fn v => v ^ " = ~w") vnames) ^
+  "\\n', [" ^ space_implode ", " vnames ^ "]).\n"
+
+val yap_prelude =
+  "#!/usr/bin/yap -L\n\n" ^
+  ":- initialization(eval).\n"
+
+(* system-dependent query, prelude and invocation *)
+
+fun query system nsols = 
+  case system of
+    SWI_PROLOG =>
+      (case nsols of NONE => swi_prolog_query_first | SOME n => swi_prolog_query_firstn n)
+  | YAP =>
+      case nsols of NONE => yap_query_first | SOME n =>
+        error "No support for querying multiple solutions in the prolog system yap"
+
+fun prelude system =
+  case system of SWI_PROLOG => swi_prolog_prelude | YAP => yap_prelude
+
+fun invoke system file_name =
+  let
+    val cmd =
+      case system of SWI_PROLOG => "/usr/local/bin/swipl -f " | YAP => "/usr/local/bin/yap -L "
+  in fst (bash_output (cmd ^ file_name)) end
+
 (* parsing prolog solution *)
+
 val scan_number =
   Scan.many1 Symbol.is_ascii_digit
 
 val scan_atom =
-  Scan.many1 (fn s => Symbol.is_ascii_lower s orelse Symbol.is_ascii_quasi s)
+  Scan.many1 (fn s => Symbol.is_ascii_lower s orelse Symbol.is_ascii_digit s orelse Symbol.is_ascii_quasi s)
 
 val scan_var =
   Scan.many1
@@ -303,28 +621,30 @@ fun parse_solutions sol =
         (l :: r :: []) => parse_term (unprefix " " r)
       | _ => raise Fail "unexpected equation in prolog output"
     fun parse_solution s = map dest_eq (space_explode ";" s)
+    val sols = case space_explode "\n" sol of [] => [] | s => fst (split_last s)  
   in
-    map parse_solution (fst (split_last (space_explode "\n" sol)))
+    map parse_solution sols
   end 
   
 (* calling external interpreter and getting results *)
 
-fun run p query_rel vnames nsols =
+fun run system p query_rel vnames nsols =
   let
-    val cmd = Path.named_root
-    val query = case nsols of NONE => query_first | SOME n => query_firstn n 
-    val prog = prelude ^ query query_rel vnames ^ write_program p
+    val p' = rename_vars_program p
+    val _ = tracing "Renaming variable names..."
+    val renaming = fold mk_renaming vnames [] 
+    val vnames' = map (fn v => the (AList.lookup (op =) renaming v)) vnames
+    val prog = prelude system ^ query system nsols query_rel vnames' ^ write_program p'
     val _ = tracing ("Generated prolog program:\n" ^ prog)
-    val prolog_file = File.tmp_path (Path.basic "prolog_file")
-    val _ = File.write prolog_file prog
-    val (solution, _) = bash_output ("/usr/local/bin/swipl -f " ^ File.shell_path prolog_file)
+    val solution = Cache_IO.with_tmp_file "prolog_file" (fn prolog_file =>
+      (File.write prolog_file prog; invoke system (Path.implode prolog_file)))
     val _ = tracing ("Prolog returned solution(s):\n" ^ solution)
     val tss = parse_solutions solution
   in
     tss
   end
 
-(* values command *)
+(* restoring types in terms *)
 
 fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
   | restore_term ctxt constant_table (Number n, @{typ "int"}) = HOLogic.mk_number @{typ "int"} n
@@ -343,8 +663,33 @@ fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
         map (restore_term ctxt constant_table) (args ~~ argsT'))
     end
 
+(* values command *)
+
+val preprocess_options = Predicate_Compile_Aux.Options {
+  expected_modes = NONE,
+  proposed_modes = NONE,
+  proposed_names = [],
+  show_steps = false,
+  show_intermediate_results = false,
+  show_proof_trace = false,
+  show_modes = false,
+  show_mode_inference = false,
+  show_compilation = false,
+  show_caught_failures = false,
+  skip_proof = true,
+  no_topmost_reordering = false,
+  function_flattening = true,
+  specialise = false,
+  fail_safe_function_flattening = false,
+  no_higher_order_predicate = [],
+  inductify = false,
+  detect_switches = true,
+  compilation = Predicate_Compile_Aux.Pred
+}
+
 fun values ctxt soln t_compr =
   let
+    val options = code_options_of (ProofContext.theory_of ctxt)
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr);
     val (body, Ts, fp) = HOLogic.strip_psplits split;
@@ -360,10 +705,24 @@ fun values ctxt soln t_compr =
       case try (map (fst o dest_Free)) all_args of
         SOME vs => vs
       | NONE => error ("Not only free variables in " ^ commas (map (Syntax.string_of_term ctxt) all_args))
+    val _ = tracing "Preprocessing specification..."
+    val T = Sign.the_const_type (ProofContext.theory_of ctxt) name
+    val t = Const (name, T)
+    val thy' =
+      Theory.copy (ProofContext.theory_of ctxt)
+      |> Predicate_Compile.preprocess preprocess_options t
+    val ctxt' = ProofContext.init_global thy'
     val _ = tracing "Generating prolog program..."
-    val (p, constant_table) = generate ctxt [name]
+    val (p, constant_table) = generate (#ensure_groundness options) ctxt' name
+      |> (if #ensure_groundness options then
+          add_ground_predicates ctxt' (#limited_types options)
+        else I)
+      |> add_limited_predicates (#limited_predicates options)
+      |> apfst (fold replace (#replacing options))
+      |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
-    val tss = run p (translate_const constant_table name) (map first_upper vnames) soln
+    val tss = run (#prolog_system options)
+      p (translate_const constant_table name) (map first_upper vnames) soln
     val _ = tracing "Restoring terms..."
     val empty = Const("Orderings.bot_class.bot", fastype_of t_compr)
     fun mk_insert x S =
@@ -379,17 +738,18 @@ fun values ctxt soln t_compr =
             mk_set_compr (t :: in_insert) ts xs
           else
             let
-              val uu as (uuN, uuT) = singleton (Variable.variant_frees ctxt [t]) ("uu", fastype_of t)
+              val uu as (uuN, uuT) = singleton (Variable.variant_frees ctxt' [t]) ("uu", fastype_of t)
               val set_compr =
                 HOLogic.mk_Collect (uuN, uuT, fold (fn (s, T) => fn t => HOLogic.mk_exists (s, T, t))
                   frees (HOLogic.mk_conj (HOLogic.mk_eq (Free uu, t), @{term "True"})))
             in
-              set_compr :: (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs)  
+              mk_set_compr [] ts
+                (set_compr :: (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs))  
             end
         end
   in
       foldl1 (HOLogic.mk_binop @{const_name sup}) (mk_set_compr []
-        (map (fn ts => HOLogic.mk_tuple (map (restore_term ctxt constant_table) (ts ~~ Ts))) tss) [])
+        (map (fn ts => HOLogic.mk_tuple (map (restore_term ctxt' constant_table) (ts ~~ Ts))) tss) [])
   end
 
 fun values_cmd print_modes soln raw_t state =
@@ -415,5 +775,58 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
   (opt_print_modes -- Scan.optional (Parse.nat >> SOME) NONE -- Parse.term
    >> (fn ((print_modes, soln), t) => Toplevel.keep
         (values_cmd print_modes soln t))); (*FIXME does not preserve the previous functionality*)
+
+(* quickcheck generator *)
+
+(* FIXME: large copy of Predicate_Compile_Quickcheck - refactor out commons *)
+
+fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
+  | strip_imp_prems _ = [];
+
+fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_concl B
+  | strip_imp_concl A = A : term;
+
+fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
+
+fun quickcheck ctxt report t size =
+  let
+    val options = code_options_of (ProofContext.theory_of ctxt)
+    val thy = Theory.copy (ProofContext.theory_of ctxt)
+    val (vs, t') = strip_abs t
+    val vs' = Variable.variant_frees ctxt [] vs
+    val Ts = map snd vs'
+    val t'' = subst_bounds (map Free (rev vs'), t')
+    val (prems, concl) = strip_horn t''
+    val constname = "quickcheck"
+    val full_constname = Sign.full_bname thy constname
+    val constT = Ts ---> @{typ bool}
+    val thy1 = Sign.add_consts_i [(Binding.name constname, constT, NoSyn)] thy
+    val const = Const (full_constname, constT)
+    val t = Logic.list_implies
+      (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
+       HOLogic.mk_Trueprop (list_comb (Const (full_constname, constT), map Free vs')))
+    val tac = fn _ => Skip_Proof.cheat_tac thy1
+    val intro = Goal.prove (ProofContext.init_global thy1) (map fst vs') [] t tac
+    val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
+    val thy3 = Predicate_Compile.preprocess preprocess_options const thy2
+    val ctxt' = ProofContext.init_global thy3
+    val _ = tracing "Generating prolog program..."
+    val (p, constant_table) = generate true ctxt' full_constname
+      |> add_ground_predicates ctxt' (#limited_types options)
+      |> add_limited_predicates (#limited_predicates options)
+      |> apfst (fold replace (#replacing options))
+      |> apfst (reorder_manually (#manual_reorder options))
+    val _ = tracing "Running prolog program..."
+    val tss = run (#prolog_system options)
+      p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
+    val _ = tracing "Restoring terms..."
+    val res =
+      case tss of
+        [ts] => SOME (map (restore_term ctxt' constant_table) (ts ~~ Ts))
+      | _ => NONE
+    val empty_report = ([], false)
+  in
+    (res, empty_report)
+  end; 
 
 end;

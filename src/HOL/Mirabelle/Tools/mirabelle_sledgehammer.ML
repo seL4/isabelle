@@ -290,10 +290,12 @@ fun get_atp thy args =
     | NONE => get_prover (default_atp_name ()))
   end
 
+type locality = Sledgehammer_Fact_Filter.locality
+
 local
 
 datatype sh_result =
-  SH_OK of int * int * (string * bool) list |
+  SH_OK of int * int * (string * locality) list |
   SH_FAIL of int * int |
   SH_ERROR
 
@@ -355,15 +357,16 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
     case result of
       SH_OK (time_isa, time_atp, names) =>
         let
-          fun get_thms (name, chained) =
-            ((name, chained), thms_of_name (Proof.context_of st) name)
+          fun get_thms (name, Sledgehammer_Fact_Filter.Chained) = NONE
+            | get_thms (name, loc) =
+              SOME ((name, loc), thms_of_name (Proof.context_of st) name)
         in
           change_data id inc_sh_success;
           change_data id (inc_sh_lemmas (length names));
           change_data id (inc_sh_max_lems (length names));
           change_data id (inc_sh_time_isa time_isa);
           change_data id (inc_sh_time_atp time_atp);
-          named_thms := SOME (map get_thms names);
+          named_thms := SOME (map_filter get_thms names);
           log (sh_tag id ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
             string_of_int time_atp ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
         end
@@ -445,7 +448,7 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
     then () else
     let
       val named_thms =
-        Unsynchronized.ref (NONE : ((string * bool) * thm list) list option)
+        Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
   

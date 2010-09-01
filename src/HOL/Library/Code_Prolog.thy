@@ -9,5 +9,10 @@ imports Main
 uses "~~/src/HOL/Tools/Predicate_Compile/code_prolog.ML"
 begin
 
+section {* Setup for Numerals *}
+
+setup {* Predicate_Compile_Data.ignore_consts [@{const_name number_of}] *}
+setup {* Predicate_Compile_Data.keep_functions [@{const_name number_of}] *}
+
 end
 

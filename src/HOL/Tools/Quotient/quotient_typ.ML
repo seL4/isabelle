@@ -77,7 +77,8 @@ in
   Typedef.add_typedef false NONE (qty_name, vs, mx) 
     (typedef_term rel rty lthy) NONE typedef_tac lthy
 *)
-   Local_Theory.theory_result
+(* FIXME should really use local typedef here *)
+   Local_Theory.background_theory_result
      (Typedef.add_typedef_global false NONE
        (qty_name, map (rpair dummyS) vs, mx)
          (typedef_term rel rty lthy)

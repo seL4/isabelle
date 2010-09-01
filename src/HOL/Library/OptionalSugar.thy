@@ -32,7 +32,7 @@ translations
 (* deprecated, use thm with style instead, will be removed *)
 (* aligning equations *)
 notation (tab output)
-  "op ="  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50) and
+  "HOL.eq"  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50) and
   "=="  ("(_) \<^raw:}\putisatab\isa{\ >\<equiv>\<^raw:}\putisatab\isa{> (_)")
 
 (* Let *)

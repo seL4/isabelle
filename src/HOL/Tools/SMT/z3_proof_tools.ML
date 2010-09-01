@@ -196,10 +196,10 @@ fun abstract (ext_logic, with_theories) =
       | @{term True} => pair ct
       | @{term False} => pair ct
       | @{term Not} $ _ => abstr1 cvs ct
-      | @{term "op &"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op |"} $ _ $ _ => abstr2 cvs ct
-      | @{term "op -->"} $ _ $ _ => abstr2 cvs ct
-      | Const (@{const_name "op ="}, _) $ _ $ _ => abstr2 cvs ct
+      | @{term HOL.conj} $ _ $ _ => abstr2 cvs ct
+      | @{term HOL.disj} $ _ $ _ => abstr2 cvs ct
+      | @{term HOL.implies} $ _ $ _ => abstr2 cvs ct
+      | Const (@{const_name HOL.eq}, _) $ _ $ _ => abstr2 cvs ct
       | Const (@{const_name distinct}, _) $ _ =>
           if ext_logic then abs_arg (abs_list abstr fresh_abstraction) cvs ct
           else fresh_abstraction cvs ct

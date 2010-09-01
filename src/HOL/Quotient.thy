@@ -651,6 +651,16 @@ lemma let_rsp:
   shows "(R1 ===> (R1 ===> R2) ===> R2) Let Let"
   by auto
 
+lemma mem_rsp:
+  shows "(R1 ===> (R1 ===> R2) ===> R2) op \<in> op \<in>"
+  by (simp add: mem_def)
+
+lemma mem_prs:
+  assumes a1: "Quotient R1 Abs1 Rep1"
+  and     a2: "Quotient R2 Abs2 Rep2"
+  shows "(Rep1 ---> (Abs1 ---> Rep2) ---> Abs2) op \<in> = op \<in>"
+  by (simp add: expand_fun_eq mem_def Quotient_abs_rep[OF a1] Quotient_abs_rep[OF a2])
+
 locale quot_type =
   fixes R :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   and   Abs :: "('a \<Rightarrow> bool) \<Rightarrow> 'b"
@@ -721,8 +731,8 @@ use "Tools/Quotient/quotient_info.ML"
 declare [[map "fun" = (fun_map, fun_rel)]]
 
 lemmas [quot_thm] = fun_quotient
-lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp
-lemmas [quot_preserve] = if_prs o_prs let_prs
+lemmas [quot_respect] = quot_rel_rsp if_rsp o_rsp let_rsp mem_rsp
+lemmas [quot_preserve] = if_prs o_prs let_prs mem_prs
 lemmas [quot_equiv] = identity_equivp
 
 
@@ -773,20 +783,20 @@ subsection {* Methods / Interface *}
 
 method_setup lifting =
   {* Attrib.thms >> (fn thms => fn ctxt => 
-       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_tac ctxt thms))) *}
+       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_tac ctxt [] thms))) *}
   {* lifts theorems to quotient types *}
 
 method_setup lifting_setup =
   {* Attrib.thm >> (fn thm => fn ctxt => 
-       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_procedure_tac ctxt thm))) *}
+       SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_procedure_tac ctxt [] thm))) *}
   {* sets up the three goals for the quotient lifting procedure *}
 
 method_setup descending =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_tac ctxt))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_tac ctxt []))) *}
   {* decends theorems to the raw level *}
 
 method_setup descending_setup =
-  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_procedure_tac ctxt))) *}
+  {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_procedure_tac ctxt []))) *}
   {* sets up the three goals for the decending theorems *}
 
 method_setup regularize =

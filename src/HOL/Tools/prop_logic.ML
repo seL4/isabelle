@@ -397,14 +397,14 @@ struct
 			(False, table)
 		  | aux (Const (@{const_name Not}, _) $ x)      table =
 			apfst Not (aux x table)
-		  | aux (Const (@{const_name "op |"}, _) $ x $ y) table =
+		  | aux (Const (@{const_name HOL.disj}, _) $ x $ y) table =
 			let
 				val (fm1, table1) = aux x table
 				val (fm2, table2) = aux y table1
 			in
 				(Or (fm1, fm2), table2)
 			end
-		  | aux (Const (@{const_name "op &"}, _) $ x $ y) table =
+		  | aux (Const (@{const_name HOL.conj}, _) $ x $ y) table =
 			let
 				val (fm1, table1) = aux x table
 				val (fm2, table2) = aux y table1

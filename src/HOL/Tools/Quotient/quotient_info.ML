@@ -56,10 +56,12 @@ exception NotFound
 type maps_info = {mapfun: string, relmap: string}
 
 structure MapsData = Theory_Data
-  (type T = maps_info Symtab.table
-   val empty = Symtab.empty
-   val extend = I
-   fun merge data = Symtab.merge (K true) data)
+(
+  type T = maps_info Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
 
 fun maps_defined thy s =
   Symtab.defined (MapsData.get thy) s
@@ -70,7 +72,7 @@ fun maps_lookup thy s =
   | NONE => raise NotFound
 
 fun maps_update_thy k minfo = MapsData.map (Symtab.update (k, minfo))
-fun maps_update k minfo = ProofContext.theory (maps_update_thy k minfo)
+fun maps_update k minfo = ProofContext.background_theory (maps_update_thy k minfo)  (* FIXME *)
 
 fun maps_attribute_aux s minfo = Thm.declaration_attribute
   (fn _ => Context.mapping (maps_update_thy s minfo) (maps_update s minfo))
@@ -120,10 +122,12 @@ end
 type quotdata_info = {qtyp: typ, rtyp: typ, equiv_rel: term, equiv_thm: thm}
 
 structure QuotData = Theory_Data
-  (type T = quotdata_info Symtab.table
-   val empty = Symtab.empty
-   val extend = I
-   fun merge data = Symtab.merge (K true) data)
+(
+  type T = quotdata_info Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  fun merge data = Symtab.merge (K true) data
+)
 
 fun transform_quotdata phi {qtyp, rtyp, equiv_rel, equiv_thm} =
   {qtyp = Morphism.typ phi qtyp,
@@ -174,10 +178,12 @@ fun qconsts_info_eq (x : qconsts_info, y : qconsts_info) = #qconst x = #qconst y
    for example given "nat fset" we need to find "'a fset";
    but overloaded constants share the same name *)
 structure QConstsData = Theory_Data
-  (type T = (qconsts_info list) Symtab.table
-   val empty = Symtab.empty
-   val extend = I
-   val merge = Symtab.merge_list qconsts_info_eq)
+(
+  type T = qconsts_info list Symtab.table
+  val empty = Symtab.empty
+  val extend = I
+  val merge = Symtab.merge_list qconsts_info_eq
+)
 
 fun transform_qconsts phi {qconst, rconst, def} =
   {qconst = Morphism.term phi qconst,
@@ -229,39 +235,49 @@ end
 
 (* equivalence relation theorems *)
 structure EquivRules = Named_Thms
-  (val name = "quot_equiv"
-   val description = "Equivalence relation theorems.")
+(
+  val name = "quot_equiv"
+  val description = "equivalence relation theorems"
+)
 
 val equiv_rules_get = EquivRules.get
 val equiv_rules_add = EquivRules.add
 
 (* respectfulness theorems *)
 structure RspRules = Named_Thms
-  (val name = "quot_respect"
-   val description = "Respectfulness theorems.")
+(
+  val name = "quot_respect"
+  val description = "respectfulness theorems"
+)
 
 val rsp_rules_get = RspRules.get
 val rsp_rules_add = RspRules.add
 
 (* preservation theorems *)
 structure PrsRules = Named_Thms
-  (val name = "quot_preserve"
-   val description = "Preservation theorems.")
+(
+  val name = "quot_preserve"
+  val description = "preservation theorems"
+)
 
 val prs_rules_get = PrsRules.get
 val prs_rules_add = PrsRules.add
 
 (* id simplification theorems *)
 structure IdSimps = Named_Thms
-  (val name = "id_simps"
-   val description = "Identity simp rules for maps.")
+(
+  val name = "id_simps"
+  val description = "identity simp rules for maps"
+)
 
 val id_simps_get = IdSimps.get
 
 (* quotient theorems *)
 structure QuotientRules = Named_Thms
-  (val name = "quot_thm"
-   val description = "Quotient theorems.")
+(
+  val name = "quot_thm"
+  val description = "quotient theorems"
+)
 
 val quotient_rules_get = QuotientRules.get
 val quotient_rules_add = QuotientRules.add

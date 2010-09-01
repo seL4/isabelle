@@ -204,7 +204,7 @@ structure ExtractionData = Theory_Data
      realizers = Symtab.merge_list (eq_set (op =) o pairself #1) (realizers1, realizers2),
      defs = Library.merge Thm.eq_thm (defs1, defs2),
      expand = Library.merge (op =) (expand1, expand2),
-     prep = (case prep1 of NONE => prep2 | _ => prep1)};
+     prep = if is_some prep1 then prep1 else prep2};
 );
 
 fun read_condeq thy =

@@ -8,19 +8,18 @@ Transfer of proofs from external provers.
 
 signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
 sig
+  type locality = Sledgehammer_Fact_Filter.locality
   type minimize_command = string list -> string
-
-  val metis_proof_text:
-    bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
-  val isar_proof_text:
+  type metis_params =
+    bool * minimize_command * string * (string * locality) list vector * thm
+    * int
+  type isar_params =
     string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
-  val proof_text:
-    bool -> string Symtab.table * bool * int * Proof.context * int list list
-    -> bool * minimize_command * string * (string * bool) vector * thm * int
-    -> string * (string * bool) list
+  type text_result = string * (string * locality) list
+
+  val metis_proof_text : metis_params -> text_result
+  val isar_proof_text : isar_params -> metis_params -> text_result
+  val proof_text : bool -> isar_params -> metis_params -> text_result
 end;
 
 structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -33,6 +32,11 @@ open Sledgehammer_Fact_Filter
 open Sledgehammer_Translate
 
 type minimize_command = string list -> string
+type metis_params =
+  bool * minimize_command * string * (string * locality) list vector * thm * int
+type isar_params =
+  string Symtab.table * bool * int * Proof.context * int list list
+type text_result = string * (string * locality) list
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
@@ -60,7 +64,7 @@ fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
 fun index_in_shape x = find_index (exists (curry (op =) x))
 fun is_axiom_number axiom_names num =
   num > 0 andalso num <= Vector.length axiom_names andalso
-  fst (Vector.sub (axiom_names, num - 1)) <> ""
+  not (null (Vector.sub (axiom_names, num - 1)))
 fun is_conjecture_number conjecture_shape num =
   index_in_shape num conjecture_shape >= 0
 
@@ -68,12 +72,12 @@ fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
     Const (@{const_name Ex}, T) $ Abs (s, T', negate_term t')
   | negate_term (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
     Const (@{const_name All}, T) $ Abs (s, T', negate_term t')
-  | negate_term (@{const "op -->"} $ t1 $ t2) =
-    @{const "op &"} $ t1 $ negate_term t2
-  | negate_term (@{const "op &"} $ t1 $ t2) =
-    @{const "op |"} $ negate_term t1 $ negate_term t2
-  | negate_term (@{const "op |"} $ t1 $ t2) =
-    @{const "op &"} $ negate_term t1 $ negate_term t2
+  | negate_term (@{const HOL.implies} $ t1 $ t2) =
+    @{const HOL.conj} $ t1 $ negate_term t2
+  | negate_term (@{const HOL.conj} $ t1 $ t2) =
+    @{const HOL.disj} $ negate_term t1 $ negate_term t2
+  | negate_term (@{const HOL.disj} $ t1 $ t2) =
+    @{const HOL.conj} $ negate_term t1 $ negate_term t2
   | negate_term (@{const Not} $ t) = t
   | negate_term t = @{const Not} $ t
 
@@ -234,7 +238,7 @@ fun parse_proof pool =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
                             (parse_lines pool)))
-  o explode o strip_spaces
+  o explode o strip_spaces_except_between_ident_chars
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
@@ -246,18 +250,18 @@ exception SAME of unit
    constrained by information from type literals, or by type inference. *)
 fun type_from_fo_term tfrees (u as ATerm (a, us)) =
   let val Ts = map (type_from_fo_term tfrees) us in
-    case strip_prefix_and_undo_ascii type_const_prefix a of
+    case strip_prefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
         raise FO_TERM [u]  (* only "tconst"s have type arguments *)
-      else case strip_prefix_and_undo_ascii tfree_prefix a of
+      else case strip_prefix_and_unascii tfree_prefix a of
         SOME b =>
         let val s = "'" ^ b in
           TFree (s, AList.lookup (op =) tfrees s |> the_default HOLogic.typeS)
         end
       | NONE =>
-        case strip_prefix_and_undo_ascii tvar_prefix a of
+        case strip_prefix_and_unascii tvar_prefix a of
           SOME b => TVar (("'" ^ b, 0), HOLogic.typeS)
         | NONE =>
           (* Variable from the ATP, say "X1" *)
@@ -267,7 +271,7 @@ fun type_from_fo_term tfrees (u as ATerm (a, us)) =
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
 fun type_constraint_from_term pos tfrees (u as ATerm (a, us)) =
-  case (strip_prefix_and_undo_ascii class_prefix a,
+  case (strip_prefix_and_unascii class_prefix a,
         map (type_from_fo_term tfrees) us) of
     (SOME b, [T]) => (pos, b, T)
   | _ => raise FO_TERM [u]
@@ -309,9 +313,9 @@ fun raw_term_from_pred thy full_types tfrees =
             [typ_u, term_u] =>
             aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u
           | _ => raise FO_TERM us
-        else case strip_prefix_and_undo_ascii const_prefix a of
+        else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>
-          list_comb (Const (@{const_name "op ="}, HOLogic.typeT),
+          list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT),
                      map (aux NONE []) us)
         | SOME b =>
           let
@@ -341,10 +345,10 @@ fun raw_term_from_pred thy full_types tfrees =
             val ts = map (aux NONE []) (us @ extra_us)
             val T = map fastype_of ts ---> HOLogic.typeT
             val t =
-              case strip_prefix_and_undo_ascii fixed_var_prefix a of
+              case strip_prefix_and_unascii fixed_var_prefix a of
                 SOME b => Free (b, T)
               | NONE =>
-                case strip_prefix_and_undo_ascii schematic_var_prefix a of
+                case strip_prefix_and_unascii schematic_var_prefix a of
                   SOME b => Var ((b, 0), T)
                 | NONE =>
                   if is_tptp_variable a then
@@ -523,7 +527,7 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
 (* Vampire is keen on producing these. *)
-fun is_trivial_formula (@{const Not} $ (Const (@{const_name "op ="}, _)
+fun is_trivial_formula (@{const Not} $ (Const (@{const_name HOL.eq}, _)
                                         $ t1 $ t2)) = (t1 aconv t2)
   | is_trivial_formula _ = false
 
@@ -564,31 +568,31 @@ val split_proof_lines =
    "108. ... [input]". *)
 fun used_facts_in_atp_proof axiom_names atp_proof =
   let
-    fun axiom_name_at_index num =
+    fun axiom_names_at_index num =
       let val j = Int.fromString num |> the_default ~1 in
-        if is_axiom_number axiom_names j then
-          SOME (Vector.sub (axiom_names, j - 1))
-        else
-          NONE
+        if is_axiom_number axiom_names j then Vector.sub (axiom_names, j - 1)
+        else []
       end
     val tokens_of =
       String.tokens (fn c => not (Char.isAlphaNum c) andalso c <> #"_")
     fun do_line (tag :: num :: "axiom" :: (rest as _ :: _)) =
         if tag = "cnf" orelse tag = "fof" then
-          (case strip_prefix_and_undo_ascii axiom_prefix (List.last rest) of
+          (case strip_prefix_and_unascii axiom_prefix (List.last rest) of
              SOME name =>
              if member (op =) rest "file" then
-               SOME (name, is_true_for axiom_names name)
+               ([(name, name |> find_first_in_list_vector axiom_names |> the)]
+                handle Option.Option =>
+                       error ("No such fact: " ^ quote name ^ "."))
              else
-               axiom_name_at_index num
-           | NONE => axiom_name_at_index num)
+               axiom_names_at_index num
+           | NONE => axiom_names_at_index num)
         else
-          NONE
-      | do_line (num :: "0" :: "Inp" :: _) = axiom_name_at_index num
+          []
+      | do_line (num :: "0" :: "Inp" :: _) = axiom_names_at_index num
       | do_line (num :: rest) =
-        (case List.last rest of "input" => axiom_name_at_index num | _ => NONE)
-      | do_line _ = NONE
-  in atp_proof |> split_proof_lines |> map_filter (do_line o tokens_of) end
+        (case List.last rest of "input" => axiom_names_at_index num | _ => [])
+      | do_line _ = []
+  in atp_proof |> split_proof_lines |> maps (do_line o tokens_of) end
 
 val indent_size = 2
 val no_label = ("", ~1)
@@ -624,8 +628,8 @@ fun minimize_line _ [] = ""
 
 fun used_facts axiom_names =
   used_facts_in_atp_proof axiom_names
-  #> List.partition snd
-  #> pairself (sort_distinct (string_ord) o map fst)
+  #> List.partition (curry (op =) Chained o snd)
+  #> pairself (sort_distinct (string_ord o pairself fst))
 
 fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
                       goal, i) =
@@ -633,9 +637,9 @@ fun metis_proof_text (full_types, minimize_command, atp_proof, axiom_names,
     val (chained_lemmas, other_lemmas) = used_facts axiom_names atp_proof
     val n = Logic.count_prems (prop_of goal)
   in
-    (metis_line full_types i n other_lemmas ^
-     minimize_line minimize_command (other_lemmas @ chained_lemmas),
-     map (rpair false) other_lemmas @ map (rpair true) chained_lemmas)
+    (metis_line full_types i n (map fst other_lemmas) ^
+     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
+     other_lemmas @ chained_lemmas)
   end
 
 (** Isar proof construction and manipulation **)
@@ -662,7 +666,7 @@ fun smart_case_split [] facts = ByMetis facts
 
 fun add_fact_from_dep axiom_names num =
   if is_axiom_number axiom_names num then
-    apsnd (insert (op =) (fst (Vector.sub (axiom_names, num - 1))))
+    apsnd (union (op =) (map fst (Vector.sub (axiom_names, num - 1))))
   else
     apfst (insert (op =) (raw_prefix, num))
 

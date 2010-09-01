@@ -95,7 +95,7 @@ fun pretty_code_thm src ctxt raw_const =
       |> snd
       |> map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
       |> map (holize o no_vars ctxt o AxClass.overload thy);
-  in Thy_Output.output (Thy_Output.maybe_pretty_source (pretty_thm ctxt) src thms) end;
+  in Thy_Output.output ctxt (Thy_Output.maybe_pretty_source pretty_thm ctxt src thms) end;
 
 in
 
@@ -124,12 +124,13 @@ local
 in
 
 val _ = Thy_Output.antiquotation "code_stmts"
-  (parse_const_terms -- Scan.repeat parse_names -- Scan.lift (Args.parens Args.name))
-  (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), target) =>
+  (parse_const_terms -- Scan.repeat parse_names
+    -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
+  (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target, some_width)) =>
     let val thy = ProofContext.theory_of ctxt in
-      Code_Target.code_of thy
-        target NONE "Example" (mk_cs thy)
+      Code_Target.present_code thy (mk_cs thy)
         (fn naming => maps (fn f => f thy naming) mk_stmtss)
+        target some_width "Example" []
       |> typewriter
     end);
 

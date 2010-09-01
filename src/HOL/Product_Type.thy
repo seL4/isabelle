@@ -21,17 +21,17 @@ declare case_split [cases type: bool]
   -- "prefer plain propositional version"
 
 lemma
-  shows [code]: "eq_class.eq False P \<longleftrightarrow> \<not> P"
-    and [code]: "eq_class.eq True P \<longleftrightarrow> P" 
-    and [code]: "eq_class.eq P False \<longleftrightarrow> \<not> P" 
-    and [code]: "eq_class.eq P True \<longleftrightarrow> P"
-    and [code nbe]: "eq_class.eq P P \<longleftrightarrow> True"
-  by (simp_all add: eq)
+  shows [code]: "HOL.equal False P \<longleftrightarrow> \<not> P"
+    and [code]: "HOL.equal True P \<longleftrightarrow> P" 
+    and [code]: "HOL.equal P False \<longleftrightarrow> \<not> P" 
+    and [code]: "HOL.equal P True \<longleftrightarrow> P"
+    and [code nbe]: "HOL.equal P P \<longleftrightarrow> True"
+  by (simp_all add: equal)
 
-code_const "eq_class.eq \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
-code_instance bool :: eq
+code_instance bool :: equal
   (Haskell -)
 
 
@@ -92,7 +92,7 @@ instance ..
 end
 
 lemma [code]:
-  "eq_class.eq (u\<Colon>unit) v \<longleftrightarrow> True" unfolding eq unit_eq [of u] unit_eq [of v] by rule+
+  "HOL.equal (u\<Colon>unit) v \<longleftrightarrow> True" unfolding equal unit_eq [of u] unit_eq [of v] by rule+
 
 code_type unit
   (SML "unit")
@@ -106,10 +106,10 @@ code_const Unity
   (Haskell "()")
   (Scala "()")
 
-code_instance unit :: eq
+code_instance unit :: equal
   (Haskell -)
 
-code_const "eq_class.eq \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> unit \<Rightarrow> unit \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_reserved SML
@@ -277,10 +277,10 @@ code_const Pair
   (Haskell "!((_),/ (_))")
   (Scala "!((_),/ (_))")
 
-code_instance prod :: eq
+code_instance prod :: equal
   (Haskell -)
 
-code_const "eq_class.eq \<Colon> 'a\<Colon>eq \<times> 'b\<Colon>eq \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> 'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 types_code

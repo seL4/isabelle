@@ -99,7 +99,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
         if member (op =) is i then SOME
           (list_comb (Const (s, fTs ---> T --> U), rec_fns) $ Free (tname, T))
         else NONE) (descr ~~ recTs ~~ rec_result_Ts ~~ rec_names ~~ tnames));
-    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name "op &"})
+    val concl = HOLogic.mk_Trueprop (foldr1 (HOLogic.mk_binop @{const_name HOL.conj})
       (map (fn ((((i, _), T), U), tname) =>
         make_pred i U T (mk_proj i is r) (Free (tname, T)))
           (descr ~~ recTs ~~ rec_result_Ts ~~ tnames)));

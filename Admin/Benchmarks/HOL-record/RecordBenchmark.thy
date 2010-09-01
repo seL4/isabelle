@@ -8,7 +8,7 @@ theory RecordBenchmark
 imports Main
 begin
 
-ML {* Unsynchronized.set Record.timing *}
+ML {* Record.timing := true *}
 
 record many_A =
 A000::nat

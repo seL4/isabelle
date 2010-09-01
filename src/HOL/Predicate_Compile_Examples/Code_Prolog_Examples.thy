@@ -4,14 +4,41 @@ begin
 
 section {* Example append *}
 
+
 inductive append
 where
   "append [] ys ys"
 | "append xs ys zs ==> append (x # xs) ys (x # zs)"
 
-code_pred append .
+setup {* Code_Prolog.map_code_options (K
+  {ensure_groundness = false,
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [],
+   prolog_system = Code_Prolog.SWI_PROLOG}) *}
+
+values "{(x, y, z). append x y z}"
 
 values 3 "{(x, y, z). append x y z}"
+
+setup {* Code_Prolog.map_code_options (K
+  {ensure_groundness = false,
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [],
+   prolog_system = Code_Prolog.YAP}) *}
+
+values "{(x, y, z). append x y z}"
+
+setup {* Code_Prolog.map_code_options (K
+  {ensure_groundness = false,
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [],
+   prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 
 section {* Example queens *}
@@ -71,9 +98,7 @@ inductive queen_9
 where
   "queen [1,2,3,4,5,6,7,8,9] ys ==> queen_9 ys"
 
-code_pred queen_9 .
-
-values 150 "{ys. queen_9 ys}"
+values 10 "{ys. queen_9 ys}"
 
 
 section {* Example symbolic derivation *}
@@ -163,14 +188,41 @@ inductive times10
 where
   "d (Mult (Mult (Mult (Mult (Mult (Mult (Mult (Mult (Mult x x) x) x) x) x) x) x) x) x) x e ==> times10 e"
 
-code_pred ops8 .
-code_pred divide10 .
-code_pred log10 .
-code_pred times10 .
-
 values "{e. ops8 e}"
 values "{e. divide10 e}"
 values "{e. log10 e}"
 values "{e. times10 e}"
+
+section {* Example negation *}
+
+datatype abc = A | B | C
+
+inductive notB :: "abc => bool"
+where
+  "y \<noteq> B \<Longrightarrow> notB y"
+
+setup {* Code_Prolog.map_code_options (K
+  {ensure_groundness = true,
+   limited_types = [],
+   limited_predicates = [],
+   replacing = [],
+   manual_reorder = [], 
+   prolog_system = Code_Prolog.SWI_PROLOG}) *}
+
+values 2 "{y. notB y}"
+
+inductive notAB :: "abc * abc \<Rightarrow> bool"
+where
+  "y \<noteq> A \<Longrightarrow> z \<noteq> B \<Longrightarrow> notAB (y, z)"
+
+values 5 "{y. notAB y}"
+
+section {* Example prolog conform variable names *}
+
+inductive equals :: "abc => abc => bool"
+where
+  "equals y' y'"
+
+values 1 "{(y, z). equals y z}"
 
 end

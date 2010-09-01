@@ -506,7 +506,7 @@ fun warn_extra_tfrees ctxt1 ctxt2 =
     val tfrees = map #1 extras |> sort_distinct string_ord;
     val frees = map #2 extras |> sort_distinct string_ord;
   in
-    if null extras then ()
+    if null extras orelse not (Context_Position.is_visible ctxt2) then ()
     else warning ("Introduced fixed type variable(s): " ^ commas tfrees ^ " in " ^
       space_implode " or " (map quote frees))
   end;

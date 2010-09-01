@@ -91,7 +91,7 @@ fun boogie_vc (vc_name, vc_opts) thy =
       | _ => (pair ts, K I))
 
     val discharge = fold (Boogie_VCs.discharge o pair vc_name)
-    fun after_qed [thms] = ProofContext.theory (discharge (vcs ~~ thms))
+    fun after_qed [thms] = ProofContext.background_theory (discharge (vcs ~~ thms))
       | after_qed _ = I
   in
     ProofContext.init_global thy

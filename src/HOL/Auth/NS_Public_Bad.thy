@@ -203,7 +203,7 @@ apply (blast intro: no_nonce_NS1_NS2)
 apply clarify
 apply (frule_tac A' = A in 
        Says_imp_knows_Spy [THEN parts.Inj, THEN unique_NB], auto)
-apply (rename_tac C B' evs3)
+apply (rename_tac evs3 B' C)
 txt{*This is the attack!
 @{subgoals[display,indent=0,margin=65]}
 *}

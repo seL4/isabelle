@@ -24,6 +24,7 @@ function fail()
 declare -a SOURCES=(
   Concurrent/future.scala
   Concurrent/simple_thread.scala
+  Concurrent/volatile.scala
   General/exn.scala
   General/linear_set.scala
   General/markup.scala

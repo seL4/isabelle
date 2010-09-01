@@ -159,7 +159,7 @@ fun mk_abs{Bvar as Var((s,_),ty),Body}  = Abs(s,ty,abstract_over(Bvar,Body))
 
 
 fun mk_imp{ant,conseq} =
-   let val c = Const(@{const_name "op -->"},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+   let val c = Const(@{const_name HOL.implies},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[ant,conseq])
    end;
 
@@ -183,12 +183,12 @@ fun mk_exists (r as {Bvar,Body}) =
 
 
 fun mk_conj{conj1,conj2} =
-   let val c = Const(@{const_name "op &"},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+   let val c = Const(@{const_name HOL.conj},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[conj1,conj2])
    end;
 
 fun mk_disj{disj1,disj2} =
-   let val c = Const(@{const_name "op |"},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
+   let val c = Const(@{const_name HOL.disj},HOLogic.boolT --> HOLogic.boolT --> HOLogic.boolT)
    in list_comb(c,[disj1,disj2])
    end;
 
@@ -244,10 +244,10 @@ fun dest_abs used (a as Abs(s, ty, M)) =
      end
   | dest_abs _ _ =  raise USYN_ERR "dest_abs" "not an abstraction";
 
-fun dest_eq(Const(@{const_name "op ="},_) $ M $ N) = {lhs=M, rhs=N}
+fun dest_eq(Const(@{const_name HOL.eq},_) $ M $ N) = {lhs=M, rhs=N}
   | dest_eq _ = raise USYN_ERR "dest_eq" "not an equality";
 
-fun dest_imp(Const(@{const_name "op -->"},_) $ M $ N) = {ant=M, conseq=N}
+fun dest_imp(Const(@{const_name HOL.implies},_) $ M $ N) = {ant=M, conseq=N}
   | dest_imp _ = raise USYN_ERR "dest_imp" "not an implication";
 
 fun dest_forall(Const(@{const_name All},_) $ (a as Abs _)) = fst (dest_abs [] a)
@@ -259,10 +259,10 @@ fun dest_exists(Const(@{const_name Ex},_) $ (a as Abs _)) = fst (dest_abs [] a)
 fun dest_neg(Const(@{const_name Not},_) $ M) = M
   | dest_neg _ = raise USYN_ERR "dest_neg" "not a negation";
 
-fun dest_conj(Const(@{const_name "op &"},_) $ M $ N) = {conj1=M, conj2=N}
+fun dest_conj(Const(@{const_name HOL.conj},_) $ M $ N) = {conj1=M, conj2=N}
   | dest_conj _ = raise USYN_ERR "dest_conj" "not a conjunction";
 
-fun dest_disj(Const(@{const_name "op |"},_) $ M $ N) = {disj1=M, disj2=N}
+fun dest_disj(Const(@{const_name HOL.disj},_) $ M $ N) = {disj1=M, disj2=N}
   | dest_disj _ = raise USYN_ERR "dest_disj" "not a disjunction";
 
 fun mk_pair{fst,snd} =

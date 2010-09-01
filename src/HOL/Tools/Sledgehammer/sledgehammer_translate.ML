@@ -18,8 +18,8 @@ sig
   val tfrees_name : string
   val prepare_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
-    -> ((string * bool) * thm) list
-    -> string problem * string Symtab.table * int * (string * bool) vector
+    -> ((string * 'a) * thm) list
+    -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
 structure Sledgehammer_Translate : SLEDGEHAMMER_TRANSLATE =
@@ -39,11 +39,11 @@ val tfrees_name = "tfrees"
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
-datatype fol_formula =
-  FOLFormula of {name: string,
-                 kind: kind,
-                 combformula: (name, combterm) formula,
-                 ctypes_sorts: typ list}
+type fol_formula =
+  {name: string,
+   kind: kind,
+   combformula: (name, combterm) formula,
+   ctypes_sorts: typ list}
 
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
@@ -70,10 +70,10 @@ fun combformula_for_prop thy =
         do_quant bs AForall s T t'
       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
         do_quant bs AExists s T t'
-      | @{const "op &"} $ t1 $ t2 => do_conn bs AAnd t1 t2
-      | @{const "op |"} $ t1 $ t2 => do_conn bs AOr t1 t2
-      | @{const "op -->"} $ t1 $ t2 => do_conn bs AImplies t1 t2
-      | Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
+      | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd t1 t2
+      | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr t1 t2
+      | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies t1 t2
+      | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
         do_conn bs AIff t1 t2
       | _ => (fn ts => do_term bs (Envir.eta_contract t)
                        |>> AAtom ||> union (op =) ts)
@@ -97,7 +97,7 @@ fun extensionalize_term t =
       | aux j (t as Const (s, Type (_, [Type (_, [_, T']),
                                         Type (_, [_, res_T])]))
                     $ t2 $ Abs (var_s, var_T, t')) =
-        if s = @{const_name "op ="} orelse s = @{const_name "=="} then
+        if s = @{const_name HOL.eq} orelse s = @{const_name "=="} then
           let val var_t = Var ((var_s, j), var_T) in
             Const (s, T' --> T' --> res_T)
               $ betapply (t2, var_t) $ subst_bound (var_t, t')
@@ -125,10 +125,10 @@ fun introduce_combinators_in_term ctxt kind t =
             t0 $ Abs (s, T, aux (T :: Ts) t')
           | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
             aux Ts (t0 $ eta_expand Ts t1 1)
-          | (t0 as @{const "op &"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as @{const "op |"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as @{const "op -->"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])))
+          | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
               $ t1 $ t2 =>
             t0 $ aux Ts t1 $ aux Ts t2
           | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
@@ -190,15 +190,14 @@ fun make_formula ctxt presimp name kind t =
               |> kind <> Axiom ? freeze_term
     val (combformula, ctypes_sorts) = combformula_for_prop thy t []
   in
-    FOLFormula {name = name, combformula = combformula, kind = kind,
-                ctypes_sorts = ctypes_sorts}
+    {name = name, combformula = combformula, kind = kind,
+     ctypes_sorts = ctypes_sorts}
   end
 
-fun make_axiom ctxt presimp ((name, chained), th) =
+fun make_axiom ctxt presimp ((name, loc), th) =
   case make_formula ctxt presimp name Axiom (prop_of th) of
-    FOLFormula {combformula = AAtom (CombConst (("c_True", _), _, _)), ...} =>
-    NONE
-  | formula => SOME ((name, chained), formula)
+    {combformula = AAtom (CombConst (("c_True", _), _, _)), ...} => NONE
+  | formula => SOME ((name, loc), formula)
 fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
     map2 (fn j => make_formula ctxt true (Int.toString j)
@@ -215,12 +214,14 @@ fun count_combterm (CombConst ((s, _), _, _)) =
 fun count_combformula (AQuant (_, _, phi)) = count_combformula phi
   | count_combformula (AConn (_, phis)) = fold count_combformula phis
   | count_combformula (AAtom tm) = count_combterm tm
-fun count_fol_formula (FOLFormula {combformula, ...}) =
+fun count_fol_formula ({combformula, ...} : fol_formula) =
   count_combformula combformula
 
 val optional_helpers =
-  [(["c_COMBI", "c_COMBK"], @{thms COMBI_def COMBK_def}),
-   (["c_COMBB", "c_COMBC"], @{thms COMBB_def COMBC_def}),
+  [(["c_COMBI"], @{thms COMBI_def}),
+   (["c_COMBK"], @{thms COMBK_def}),
+   (["c_COMBB"], @{thms COMBB_def}),
+   (["c_COMBC"], @{thms COMBC_def}),
    (["c_COMBS"], @{thms COMBS_def})]
 val optional_typed_helpers =
   [(["c_True", "c_False", "c_If"], @{thms True_or_False}),
@@ -272,7 +273,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axiom_pairs =
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
-    (Vector.fromList axiom_names,
+    (axiom_names |> map single |> Vector.fromList,
      (conjectures, axioms, helper_facts, class_rel_clauses, arity_clauses))
   end
 
@@ -326,13 +327,13 @@ fun formula_for_combformula full_types =
       | aux (AAtom tm) = AAtom (fo_term_for_combterm full_types tm)
   in aux end
 
-fun formula_for_axiom full_types (FOLFormula {combformula, ctypes_sorts, ...}) =
+fun formula_for_axiom full_types
+                      ({combformula, ctypes_sorts, ...} : fol_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
                 (type_literals_for_types ctypes_sorts))
            (formula_for_combformula full_types combformula)
 
-fun problem_line_for_fact prefix full_types
-                          (formula as FOLFormula {name, kind, ...}) =
+fun problem_line_for_fact prefix full_types (formula as {name, kind, ...}) =
   Fof (prefix ^ ascii_of name, kind, formula_for_axiom full_types formula)
 
 fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
@@ -357,11 +358,11 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                      (fo_literal_for_arity_literal conclLit)))
 
 fun problem_line_for_conjecture full_types
-                                (FOLFormula {name, kind, combformula, ...}) =
+                                ({name, kind, combformula, ...} : fol_formula) =
   Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula full_types combformula)
 
-fun free_type_literals_for_conjecture (FOLFormula {ctypes_sorts, ...}) =
+fun free_type_literals_for_conjecture ({ctypes_sorts, ...} : fol_formula) =
   map fo_literal_for_type_literal (type_literals_for_types ctypes_sorts)
 
 fun problem_line_for_free_type lit =
@@ -407,7 +408,7 @@ fun min_arity_of thy full_types NONE s =
        16383 (* large number *)
      else if full_types then
        0
-     else case strip_prefix_and_undo_ascii const_prefix s of
+     else case strip_prefix_and_unascii const_prefix s of
        SOME s' => num_type_args thy (invert_const s')
      | NONE => 0)
   | min_arity_of _ _ (SOME the_const_tab) s =

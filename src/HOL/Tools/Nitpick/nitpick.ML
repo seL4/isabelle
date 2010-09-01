@@ -182,7 +182,7 @@ fun passed_deadline NONE = false
 fun none_true assigns = forall (not_equal (SOME true) o snd) assigns
 
 val syntactic_sorts =
-  @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,eq}"} @
+  @{sort "{default,zero,one,plus,minus,uminus,times,inverse,abs,sgn,ord,equal}"} @
   @{sort number}
 fun has_tfree_syntactic_sort (TFree (_, S as _ :: _)) =
     subset (op =) (S, syntactic_sorts)

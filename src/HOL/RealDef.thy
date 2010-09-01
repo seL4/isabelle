@@ -1697,19 +1697,21 @@ lemma Ratreal_number_of_quotient2 [code_post]:
   "Ratreal (number_of r / number_of s) = number_of r / number_of s"
 unfolding Ratreal_number_of_quotient [symmetric] Ratreal_def of_rat_divide ..
 
-instantiation real :: eq
+instantiation real :: equal
 begin
 
-definition "eq_class.eq (x\<Colon>real) y \<longleftrightarrow> x - y = 0"
+definition "HOL.equal (x\<Colon>real) y \<longleftrightarrow> x - y = 0"
 
-instance by default (simp add: eq_real_def)
+instance proof
+qed (simp add: equal_real_def)
 
-lemma real_eq_code [code]: "eq_class.eq (Ratreal x) (Ratreal y) \<longleftrightarrow> eq_class.eq x y"
-  by (simp add: eq_real_def eq)
+lemma real_equal_code [code]:
+  "HOL.equal (Ratreal x) (Ratreal y) \<longleftrightarrow> HOL.equal x y"
+  by (simp add: equal_real_def equal)
 
-lemma real_eq_refl [code nbe]:
-  "eq_class.eq (x::real) x \<longleftrightarrow> True"
-  by (rule HOL.eq_refl)
+lemma [code nbe]:
+  "HOL.equal (x::real) x \<longleftrightarrow> True"
+  by (rule equal_refl)
 
 end
 
