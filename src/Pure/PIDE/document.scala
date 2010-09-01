@@ -182,17 +182,15 @@ object Document
 
     val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)._2
 
-    class Assignment(former_assignment: Map[Command, Exec_ID])
+    case class Assignment(
+      val assignment: Map[Command, Exec_ID],
+      val is_finished: Boolean = false)
     {
-      @volatile private var tmp_assignment = former_assignment
-      private val promise = Future.promise[Map[Command, Exec_ID]]
-      def is_finished: Boolean = promise.is_finished
-      def join: Map[Command, Exec_ID] = promise.join
-      def get_finished: Map[Command, Exec_ID] = promise.get_finished
-      def assign(command_execs: List[(Command, Exec_ID)])
+      def get_finished: Map[Command, Exec_ID] = { require(is_finished); assignment }
+      def assign(command_execs: List[(Command, Exec_ID)]): Assignment =
       {
-        promise.fulfill(tmp_assignment ++ command_execs)
-        tmp_assignment = Map()
+        require(!is_finished)
+        Assignment(assignment ++ command_execs, true)
       }
     }
   }
@@ -212,7 +210,7 @@ object Document
       val id = version.id
       if (versions.isDefinedAt(id) || disposed(id)) fail
       copy(versions = versions + (id -> version),
-        assignments = assignments + (version -> new State.Assignment(former_assignment)))
+        assignments = assignments + (version -> State.Assignment(former_assignment)))
     }
 
     def define_command(command: Command): State =
@@ -256,8 +254,10 @@ object Document
           new_execs += (exec_id -> (st, occs))
           (st.command, exec_id)
         }
-      the_assignment(version).assign(assigned_execs)  // FIXME explicit value instead of promise (!?)
-      (assigned_execs.map(_._1), copy(execs = new_execs))
+      val new_assignment = the_assignment(version).assign(assigned_execs)
+      val new_state =
+        copy(assignments = assignments + (version -> new_assignment), execs = new_execs)
+      (assigned_execs.map(_._1), new_state)
     }
 
     def is_assigned(version: Version): Boolean =
