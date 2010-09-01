@@ -177,7 +177,7 @@ val parse_clause_formula_relation =
 val extract_clause_formula_relation =
   Substring.full #> Substring.position set_ClauseFormulaRelationN
   #> snd #> Substring.position "." #> fst #> Substring.string
-  #> explode #> filter_out (curry (op =) " ") #> parse_clause_formula_relation
+  #> explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
   #> fst
 
 (* TODO: move to "Sledgehammer_Reconstruct" *)
