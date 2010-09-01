@@ -56,7 +56,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
           val recs = filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
           val frees = tnames ~~ Ts;
 
-          fun mk_prems vs [] = 
+          fun mk_prems vs [] =
                 let
                   val rT = nth (rec_result_Ts) i;
                   val vs' = filter_out is_unit vs;
@@ -67,7 +67,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
                 in (HOLogic.mk_Trueprop (make_pred i rT T (list_comb (f, vs'))
                   (list_comb (Const (cname, Ts ---> T), map Free frees))), f')
                 end
-            | mk_prems vs (((dt, s), T) :: ds) = 
+            | mk_prems vs (((dt, s), T) :: ds) =
                 let
                   val k = body_index dt;
                   val (Us, U) = strip_type T;
@@ -83,7 +83,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
 
         in (apfst (curry list_all_free frees) (mk_prems (map Free frees) recs), j + 1) end)
           constrs) (descr ~~ recTs) 1)));
- 
+
     fun mk_proj j [] t = t
       | mk_proj j (i :: is) t = if null is then t else
           if (j: int) = i then HOLogic.mk_fst t
@@ -107,14 +107,16 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
     val inst = map (pairself cert) (map head_of (HOLogic.dest_conj
       (HOLogic.dest_Trueprop (concl_of induct))) ~~ ps);
 
-    val thm = OldGoals.simple_prove_goal_cterm (cert (Logic.list_implies (prems, concl)))
+    val thm = Goal.prove_internal (map cert prems) (cert concl)
       (fn prems =>
-         [rewrite_goals_tac (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
+         EVERY [
+          rewrite_goals_tac (map mk_meta_eq [@{thm fst_conv}, @{thm snd_conv}]),
           rtac (cterm_instantiate inst induct) 1,
           ALLGOALS Object_Logic.atomize_prems_tac,
           rewrite_goals_tac (@{thm o_def} :: map mk_meta_eq rec_rewrites),
           REPEAT ((resolve_tac prems THEN_ALL_NEW (fn i =>
-            REPEAT (etac allE i) THEN atac i)) 1)]);
+            REPEAT (etac allE i) THEN atac i)) 1)])
+      |> Drule.export_without_context;
 
     val ind_name = Thm.derivation_name induct;
     val vs = map (fn i => List.nth (pnames, i)) is;
@@ -178,14 +180,15 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
     val y = Var (("y", 0), Logic.varifyT_global T);
     val y' = Free ("y", T);
 
-    val thm = OldGoals.prove_goalw_cterm [] (cert (Logic.list_implies (prems,
-      HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $
-        list_comb (r, rs @ [y'])))))
+    val thm = Goal.prove_internal (map cert prems)
+      (cert (HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $ list_comb (r, rs @ [y']))))
       (fn prems =>
-         [rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
+         EVERY [
+          rtac (cterm_instantiate [(cert y, cert y')] exhaust) 1,
           ALLGOALS (EVERY'
             [asm_simp_tac (HOL_basic_ss addsimps case_rewrites),
-             resolve_tac prems, asm_simp_tac HOL_basic_ss])]);
+             resolve_tac prems, asm_simp_tac HOL_basic_ss])])
+      |> Drule.export_without_context;
 
     val exh_name = Thm.derivation_name exhaust;
     val (thm', thy') = thy
@@ -213,15 +216,16 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
 
 fun add_dt_realizers config names thy =
   if ! Proofterm.proofs < 2 then thy
-  else let
-    val _ = message config "Adding realizers for induction and case analysis ..."
-    val infos = map (Datatype.the_info thy) names;
-    val info :: _ = infos;
-  in
-    thy
-    |> fold_rev (make_ind (#sorts info) info) (subsets 0 (length (#descr info) - 1))
-    |> fold_rev (make_casedists (#sorts info)) infos
-  end;
+  else
+    let
+      val _ = message config "Adding realizers for induction and case analysis ..."
+      val infos = map (Datatype.the_info thy) names;
+      val info :: _ = infos;
+    in
+      thy
+      |> fold_rev (make_ind (#sorts info) info) (subsets 0 (length (#descr info) - 1))
+      |> fold_rev (make_casedists (#sorts info)) infos
+    end;
 
 val setup = Datatype.interpretation add_dt_realizers;
 
