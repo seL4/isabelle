@@ -289,7 +289,7 @@ val remote_sine_e =
                 800 (* FUDGE *) true
 val remote_snark =
   remote_prover "snark" "SNARK---" [] [("refutation.", "end_refutation.")] []
-                350 (* FUDGE *) true
+                250 (* FUDGE *) true
 
 (* Setup *)
 
