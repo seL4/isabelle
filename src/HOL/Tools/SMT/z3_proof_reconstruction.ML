@@ -823,7 +823,7 @@ fun prove ctxt unfolds assms vars =
 
     fun result (p, (cx, _)) = (thm_of p, cx)
   in
-    (fn (idx, ptab) => result (lookup idx (ctxt, Inttab.map Unproved ptab)))
+    (fn (idx, ptab) => result (lookup idx (ctxt, Inttab.map (K Unproved) ptab)))
   end
 
 fun reconstruct (output, {typs, terms, unfolds, assms}) ctxt =

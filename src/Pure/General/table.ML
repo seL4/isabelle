@@ -20,8 +20,7 @@ sig
   exception UNDEF of key
   val empty: 'a table
   val is_empty: 'a table -> bool
-  val map: ('a -> 'b) -> 'a table -> 'b table
-  val map': (key -> 'a -> 'b) -> 'a table -> 'b table
+  val map: (key -> 'a -> 'b) -> 'a table -> 'b table
   val fold: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val fold_rev: (key * 'b -> 'a -> 'a) -> 'b table -> 'a -> 'a
   val dest: 'a table -> (key * 'a) list
@@ -403,8 +402,7 @@ val _ =
 
 
 (*final declarations of this structure!*)
-fun map f = map_table (K f);
-val map' = map_table;
+val map = map_table;
 val fold = fold_table;
 val fold_rev = fold_rev_table;
 

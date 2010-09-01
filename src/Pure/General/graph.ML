@@ -114,7 +114,7 @@ fun map_entry_yield x f (G as Graph tab) =
 
 (* nodes *)
 
-fun map_nodes f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
+fun map_nodes f (Graph tab) = Graph (Table.map (K (apfst f)) tab);
 
 fun get_node G = #1 o get_entry G;
 
@@ -161,7 +161,7 @@ fun default_node (x, info) (Graph tab) =
 fun del_nodes xs (Graph tab) =
   Graph (tab
     |> fold Table.delete xs
-    |> Table.map (fn (i, (preds, succs)) =>
+    |> Table.map (fn _ => fn (i, (preds, succs)) =>
       (i, (fold remove_key xs preds, fold remove_key xs succs))));
 
 fun del_node x (G as Graph tab) =
@@ -206,13 +206,13 @@ fun no_edges (i, _) = (i, ([], []));
 fun join f (G1 as Graph tab1, G2 as Graph tab2) =
   let fun join_node key ((i1, edges1), (i2, _)) = (f key (i1, i2), edges1) in
     if pointer_eq (G1, G2) then G1
-    else fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map no_edges tab2)))
+    else fold add_edge (edges G2) (Graph (Table.join join_node (tab1, Table.map (K no_edges) tab2)))
   end;
 
 fun gen_merge add eq (G1 as Graph tab1, G2 as Graph tab2) =
   let fun eq_node ((i1, _), (i2, _)) = eq (i1, i2) in
     if pointer_eq (G1, G2) then G1
-    else fold add (edges G2) (Graph (Table.merge eq_node (tab1, Table.map no_edges tab2)))
+    else fold add (edges G2) (Graph (Table.merge eq_node (tab1, Table.map (K no_edges) tab2)))
   end;
 
 fun merge eq GG = gen_merge add_edge eq GG;
