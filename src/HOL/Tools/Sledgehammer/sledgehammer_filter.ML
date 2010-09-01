@@ -18,6 +18,8 @@ sig
   val abs_rel_weight : real Unsynchronized.ref
   val abs_irrel_weight : real Unsynchronized.ref
   val skolem_irrel_weight : real Unsynchronized.ref
+  val theory_const_rel_weight : real Unsynchronized.ref
+  val theory_const_irrel_weight : real Unsynchronized.ref
   val intro_bonus : real Unsynchronized.ref
   val elim_bonus : real Unsynchronized.ref
   val simp_bonus : real Unsynchronized.ref
@@ -56,6 +58,9 @@ type relevance_override =
    only: bool}
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
+val abs_name = "Sledgehammer.abs"
+val skolem_prefix = "Sledgehammer.sko"
+val theory_const_suffix = Long_Name.separator ^ " 1"
 
 fun repair_name reserved multi j name =
   (name |> Symtab.defined reserved name ? quote) ^
@@ -138,9 +143,6 @@ and rich_pconst thy const (s, T) ts = (s, rich_ptype thy const (s, T) ts)
 
 fun string_for_hyper_pconst (s, ps) =
   s ^ "{" ^ commas (map string_for_ptype ps) ^ "}"
-
-val abs_name = "Sledgehammer.abs"
-val skolem_prefix = "Sledgehammer.sko"
 
 (* These are typically simplified away by "Meson.presimplify". Equality is
    handled specially via "fequal". *)
@@ -228,7 +230,7 @@ fun theory_const_prop_of theory_relevant th =
   if theory_relevant then
     let
       val name = Context.theory_name (theory_of_thm th)
-      val t = Const (name ^ ". 1", @{typ bool})
+      val t = Const (name ^ theory_const_suffix, @{typ bool})
     in t $ prop_of th end
   else
     prop_of th
@@ -306,19 +308,23 @@ fun irrel_weight_for order freq =
 val abs_rel_weight = Unsynchronized.ref 0.5
 val abs_irrel_weight = Unsynchronized.ref 2.0
 val skolem_irrel_weight = Unsynchronized.ref 0.75
+val theory_const_rel_weight = Unsynchronized.ref 0.5
+val theory_const_irrel_weight = Unsynchronized.ref 0.25
 
 (* Computes a constant's weight, as determined by its frequency. *)
-fun generic_pconst_weight abs_weight skolem_weight weight_for f const_tab
-                          (c as (s, PType (m, _))) =
+fun generic_pconst_weight abs_weight skolem_weight theory_const_weight
+                          weight_for f const_tab (c as (s, PType (m, _))) =
   if s = abs_name then abs_weight
   else if String.isPrefix skolem_prefix s then skolem_weight
+  else if String.isSuffix theory_const_suffix s then theory_const_weight
   else weight_for m (pconst_freq (match_ptype o f) const_tab c)
 
 fun rel_pconst_weight const_tab =
-  generic_pconst_weight (!abs_rel_weight) 0.0 rel_weight_for I const_tab
+  generic_pconst_weight (!abs_rel_weight) 0.0 (!theory_const_rel_weight)
+                        rel_weight_for I const_tab
 fun irrel_pconst_weight const_tab =
   generic_pconst_weight (!abs_irrel_weight) (!skolem_irrel_weight)
-                        irrel_weight_for swap const_tab
+                    (!theory_const_irrel_weight) irrel_weight_for swap const_tab
 
 (* FUDGE *)
 val intro_bonus = Unsynchronized.ref 0.15

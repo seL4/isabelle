@@ -5,21 +5,25 @@
 structure Mirabelle_Sledgehammer_Filter : MIRABELLE_ACTION =
 struct
 
+structure SF = Sledgehammer_Filter
+
 val relevance_filter_args =
-  [("worse_irrel_freq", Sledgehammer_Filter.worse_irrel_freq),
-   ("higher_order_irrel_weight", Sledgehammer_Filter.higher_order_irrel_weight),
-   ("abs_rel_weight", Sledgehammer_Filter.abs_rel_weight),
-   ("abs_irrel_weight", Sledgehammer_Filter.abs_irrel_weight),
-   ("skolem_irrel_weight", Sledgehammer_Filter.skolem_irrel_weight),
-   ("intro_bonus", Sledgehammer_Filter.intro_bonus),
-   ("elim_bonus", Sledgehammer_Filter.elim_bonus),
-   ("simp_bonus", Sledgehammer_Filter.simp_bonus),
-   ("local_bonus", Sledgehammer_Filter.local_bonus),
-   ("chained_bonus", Sledgehammer_Filter.chained_bonus),
-   ("max_imperfect", Sledgehammer_Filter.max_imperfect),
-   ("max_imperfect_exp", Sledgehammer_Filter.max_imperfect_exp),
-   ("threshold_divisor", Sledgehammer_Filter.threshold_divisor),
-   ("ridiculous_threshold", Sledgehammer_Filter.ridiculous_threshold)]
+  [("worse_irrel_freq", SF.worse_irrel_freq),
+   ("higher_order_irrel_weight", SF.higher_order_irrel_weight),
+   ("abs_rel_weight", SF.abs_rel_weight),
+   ("abs_irrel_weight", SF.abs_irrel_weight),
+   ("skolem_irrel_weight", SF.skolem_irrel_weight),
+   ("theory_const_rel_weight", SF.theory_const_rel_weight),
+   ("theory_const_irrel_weight", SF.theory_const_irrel_weight),
+   ("intro_bonus", SF.intro_bonus),
+   ("elim_bonus", SF.elim_bonus),
+   ("simp_bonus", SF.simp_bonus),
+   ("local_bonus", SF.local_bonus),
+   ("chained_bonus", SF.chained_bonus),
+   ("max_imperfect", SF.max_imperfect),
+   ("max_imperfect_exp", SF.max_imperfect_exp),
+   ("threshold_divisor", SF.threshold_divisor),
+   ("ridiculous_threshold", SF.ridiculous_threshold)]
 
 structure Prooftab =
   Table(type key = int * int val ord = prod_ord int_ord int_ord);
@@ -103,7 +107,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val subgoal = 1
          val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal subgoal
          val facts =
-           Sledgehammer_Filter.relevant_facts ctxt full_types
+           SF.relevant_facts ctxt full_types
                relevance_thresholds
                (the_default default_max_relevant max_relevant)
                (the_default false theory_relevant)
