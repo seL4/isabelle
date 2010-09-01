@@ -19,6 +19,7 @@ val relevance_filter_args =
    ("elim_bonus", SF.elim_bonus),
    ("simp_bonus", SF.simp_bonus),
    ("local_bonus", SF.local_bonus),
+   ("assum_bonus", SF.assum_bonus),
    ("chained_bonus", SF.chained_bonus),
    ("max_imperfect", SF.max_imperfect),
    ("max_imperfect_exp", SF.max_imperfect_exp),
