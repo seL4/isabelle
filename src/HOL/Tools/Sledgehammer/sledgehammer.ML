@@ -11,6 +11,7 @@ sig
   type failure = ATP_Systems.failure
   type locality = Sledgehammer_Filter.locality
   type relevance_override = Sledgehammer_Filter.relevance_override
+  type fol_formula = Sledgehammer_Translate.fol_formula
   type minimize_command = Sledgehammer_Reconstruct.minimize_command
   type params =
     {blocking: bool,
@@ -30,7 +31,8 @@ sig
     {ctxt: Proof.context,
      goal: thm,
      subgoal: int,
-     axioms: ((string * locality) * thm) list}
+     axiom_ts: term list,
+     prepared_axioms: ((string * locality) * fol_formula) option list}
   type prover_result =
     {outcome: failure option,
      message: string,
@@ -99,7 +101,8 @@ type problem =
   {ctxt: Proof.context,
    goal: thm,
    subgoal: int,
-   axioms: ((string * locality) * thm) list}
+   axiom_ts: term list,
+   prepared_axioms: ((string * locality) * fol_formula) option list}
 
 type prover_result =
   {outcome: failure option,
@@ -217,11 +220,13 @@ fun prover_fun atp_name
          use_conjecture_for_hypotheses}
         ({debug, verbose, overlord, full_types, explicit_apply,
           max_relevant, isar_proof, isar_shrink_factor, timeout, ...} : params)
-        minimize_command ({ctxt, goal, subgoal, axioms} : problem) =
+        minimize_command
+        ({ctxt, goal, subgoal, axiom_ts, prepared_axioms} : problem) =
   let
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val max_relevant = the_default default_max_relevant max_relevant
-    val axioms = take max_relevant axioms
+    val axiom_ts = take max_relevant axiom_ts
+    val prepared_axioms = take max_relevant prepared_axioms
     (* path to unique problem file *)
     val the_dest_dir = if overlord then getenv "ISABELLE_HOME_USER"
                        else Config.get ctxt dest_dir
@@ -283,7 +288,8 @@ fun prover_fun atp_name
             val readable_names = debug andalso overlord
             val (problem, pool, conjecture_offset, axiom_names) =
               prepare_problem ctxt readable_names explicit_forall full_types
-                              explicit_apply hyp_ts concl_t axioms
+                              explicit_apply hyp_ts concl_t axiom_ts
+                              prepared_axioms
             val ss = strings_for_tptp_problem use_conjecture_for_hypotheses
                                               problem
             val _ = File.write_list probfile ss
@@ -360,7 +366,10 @@ fun start_prover_thread (params as {blocking, verbose, full_types, timeout,
          "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
     fun run () =
       let
-        val problem = {ctxt = ctxt, goal = goal, subgoal = i, axioms = axioms}
+        val problem =
+          {ctxt = ctxt, goal = goal, subgoal = i,
+           axiom_ts = map (prop_of o snd) axioms,
+           prepared_axioms = map (prepare_axiom ctxt) axioms}
         val (outcome_code, message) =
           prover_fun atp_name prover params (minimize_command atp_name) problem
           |> (fn {outcome, message, ...} =>

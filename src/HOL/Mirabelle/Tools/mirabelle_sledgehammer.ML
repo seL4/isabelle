@@ -319,7 +319,10 @@ fun run_sh prover_name prover hard_timeout timeout dir st =
       Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
           (the_default default_max_relevant max_relevant)
           relevance_override chained_ths hyp_ts concl_t
-    val problem = {ctxt = ctxt', goal = goal, subgoal = i, axioms = axioms}
+    val problem =
+      {ctxt = ctxt', goal = goal, subgoal = i,
+       axiom_ts = map (prop_of o snd) axioms,
+       prepared_axioms = map (Sledgehammer_Translate.prepare_axiom ctxt) axioms}
     val time_limit =
       (case hard_timeout of
         NONE => I

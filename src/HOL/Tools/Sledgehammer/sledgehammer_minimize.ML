@@ -23,6 +23,7 @@ struct
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Filter
+open Sledgehammer_Translate
 open Sledgehammer_Reconstruct
 open Sledgehammer
 
@@ -57,7 +58,10 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
        isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
     val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
     val {context = ctxt, goal, ...} = Proof.goal state
-    val problem = {ctxt = ctxt, goal = goal, subgoal = subgoal, axioms = axioms}
+    val problem =
+      {ctxt = ctxt, goal = goal, subgoal = subgoal,
+       axiom_ts = map (prop_of o snd) axioms,
+       prepared_axioms = map (prepare_axiom ctxt) axioms}
     val result as {outcome, used_thm_names, ...} = prover params (K "") problem
   in
     priority (case outcome of
