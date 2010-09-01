@@ -394,7 +394,7 @@ fun run_sledgehammer {atps = [], ...} _ _ _ _ = error "No ATP is set."
       let
         val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
         val thy = Proof.theory_of state
-        val _ = kill_atps ()
+        val _ = () |> not blocking ? kill_atps
         val _ = priority "Sledgehammering..."
         val (_, hyp_ts, concl_t) = strip_subgoal goal i
         val provers = map (`(get_prover thy)) atps
