@@ -9,8 +9,7 @@ Central manager for asynchronous diagnosis tool threads.
 signature ASYNC_MANAGER =
 sig
   val launch :
-    string -> bool -> Time.time -> Time.time -> string -> (unit -> string)
-    -> unit
+    string -> Time.time -> Time.time -> string -> (unit -> string) -> unit
   val kill_threads : string -> string -> unit
   val running_threads : string -> string -> unit
   val thread_messages : string -> string -> int option -> unit
@@ -60,7 +59,7 @@ val global_state = Synchronized.var "async_manager"
 
 (* unregister thread *)
 
-fun unregister verbose message thread =
+fun unregister message thread =
   Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     (case lookup_thread active thread of
@@ -69,13 +68,7 @@ fun unregister verbose message thread =
           val active' = delete_thread thread active;
           val now = Time.now ()
           val canceling' = (thread, (tool, now, desc)) :: canceling
-          val message' =
-            desc ^ "\n" ^ message ^
-            (if verbose then
-               "\nTotal time: " ^ Int.toString (Time.toMilliseconds
-                                            (Time.- (now, birth_time))) ^ " ms."
-             else
-               "")
+          val message' = desc ^ "\n" ^ message
           val messages' = (tool, message') :: messages;
           val store' = (tool, message') ::
             (if length store <= message_store_limit then store
@@ -115,7 +108,7 @@ fun print_new_messages () =
       List.app priority (tool ^ ": " ^ hd ss :: tl ss)
     end
 
-fun check_thread_manager verbose = Synchronized.change global_state
+fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     if (case manager of SOME thread => Thread.isActive thread | NONE => false) then state
     else let val manager = SOME (Toplevel.thread false (fn () =>
@@ -148,7 +141,7 @@ fun check_thread_manager verbose = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister verbose "Timed out.\n");
+            |> List.app (unregister "Timed out.\n");
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
@@ -158,7 +151,7 @@ fun check_thread_manager verbose = Synchronized.change global_state
 
 (* register thread *)
 
-fun register tool verbose birth_time death_time desc thread =
+fun register tool birth_time death_time desc thread =
  (Synchronized.change global_state
     (fn {manager, timeout_heap, active, canceling, messages, store} =>
       let
@@ -166,17 +159,17 @@ fun register tool verbose birth_time death_time desc thread =
         val active' = update_thread (thread, (tool, birth_time, death_time, desc)) active;
         val state' = make_state manager timeout_heap' active' canceling messages store;
       in state' end);
-  check_thread_manager verbose);
+  check_thread_manager ())
 
 
-fun launch tool verbose birth_time death_time desc f =
+fun launch tool birth_time death_time desc f =
   (Toplevel.thread true
        (fn () =>
            let
              val self = Thread.self ()
-             val _ = register tool verbose birth_time death_time desc self
+             val _ = register tool birth_time death_time desc self
              val message = f ()
-           in unregister verbose message self end);
+           in unregister message self end);
    ())
 
 
