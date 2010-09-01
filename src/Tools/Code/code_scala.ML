@@ -477,8 +477,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
       in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
 
     (* serialization *)
-    val p_includes = if null presentation_names
-      then map (fn (base, p) => print_module base [] p) includes else [];
+    val p_includes = if null presentation_names then map snd includes else [];
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;
@@ -506,8 +505,8 @@ in Literals {
   literal_char = Library.enclose "'" "'" o char_scala,
   literal_string = quote o translate_string char_scala,
   literal_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
-  literal_positive_numeral = fn k => "Nat.Nat(" ^ numeral_scala k ^ ")",
-  literal_alternative_numeral = fn k => "Natural.Nat(" ^ numeral_scala k ^ ")",
+  literal_positive_numeral = fn k => "Nat(" ^ numeral_scala k ^ ")",
+  literal_alternative_numeral = fn k => "Natural(" ^ numeral_scala k ^ ")",
   literal_naive_numeral = fn k => "BigInt(" ^ numeral_scala k ^ ")",
   literal_list = fn [] => str "Nil" | ps => Pretty.block [str "List", enum "," "(" ")" ps],
   infix_cons = (6, "::")
