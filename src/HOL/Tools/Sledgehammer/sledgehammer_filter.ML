@@ -8,8 +8,8 @@ sig
   datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
   type relevance_override =
-    {add: Facts.ref list,
-     del: Facts.ref list,
+    {add: (Facts.ref * Attrib.src list) list,
+     del: (Facts.ref * Attrib.src list) list,
      only: bool}
 
   val trace : bool Unsynchronized.ref
@@ -31,8 +31,8 @@ sig
   val threshold_divisor : real Unsynchronized.ref
   val ridiculous_threshold : real Unsynchronized.ref
   val name_thm_pairs_from_ref :
-    Proof.context -> unit Symtab.table -> thm list -> Facts.ref
-    -> ((string * locality) * thm) list
+    Proof.context -> unit Symtab.table -> thm list
+    -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val relevant_facts :
     Proof.context -> bool -> real * real -> int -> bool -> relevance_override
     -> thm list -> term list -> term -> ((string * locality) * thm) list
@@ -54,8 +54,8 @@ val respect_no_atp = true
 datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
 type relevance_override =
-  {add: Facts.ref list,
-   del: Facts.ref list,
+  {add: (Facts.ref * Attrib.src list) list,
+   del: (Facts.ref * Attrib.src list) list,
    only: bool}
 
 val sledgehammer_prefix = "Sledgehammer" ^ Long_Name.separator
@@ -67,10 +67,18 @@ fun repair_name reserved multi j name =
   (name |> Symtab.defined reserved name ? quote) ^
   (if multi then "(" ^ Int.toString j ^ ")" else "")
 
-fun name_thm_pairs_from_ref ctxt reserved chained_ths xref =
+fun name_thm_pairs_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   let
-    val ths = ProofContext.get_fact ctxt xref
-    val name = Facts.string_of_ref xref
+    val ths = Attrib.eval_thms ctxt [xthm]
+    val bracket =
+      implode (map (fn arg => "[" ^ Pretty.str_of (Args.pretty_src ctxt arg)
+                               ^ "]") args)
+    val space_bracket = if bracket = "" then "" else " " ^ bracket
+    val name =
+      case xref of
+        Facts.Fact s => "`" ^ s ^ "`" ^ space_bracket
+      | Facts.Named (("", _), _) => "[" ^ bracket ^ "]"
+      | _ => Facts.string_of_ref xref ^ space_bracket
     val multi = length ths > 1
   in
     (ths, (1, []))
@@ -437,8 +445,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant theory_relevant
       pconsts_in_terms thy false (SOME false) goal_ts
       |> fold (if_empty_replace_with_locality thy axioms)
               [Chained, Assum, Local]
-    val add_thms = maps (ProofContext.get_fact ctxt) add
-    val del_thms = maps (ProofContext.get_fact ctxt) del
+    val add_thms = Attrib.eval_thms ctxt add
+    val del_thms = Attrib.eval_thms ctxt del
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
         fun game_over rejects =
@@ -788,7 +796,7 @@ fun relevant_facts ctxt full_types (threshold0, threshold1) max_relevant
   let
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
-    val add_thms = maps (ProofContext.get_fact ctxt) add
+    val add_thms = Attrib.eval_thms ctxt add
     val reserved = reserved_isar_keyword_table ()
     val axioms =
       (if only then

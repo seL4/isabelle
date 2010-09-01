@@ -272,10 +272,7 @@ val parse_value = Scan.repeat1 Parse.xname
 val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon)
-                            (Parse.xname -- Scan.option Attrib.thm_sel)
-                >> (fn (name, interval) =>
-                       Facts.Named ((name, Position.none), interval)))
+  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
 val parse_relevance_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_to_relevance_override)
   || (Args.del |-- Args.colon |-- parse_fact_refs

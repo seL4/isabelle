@@ -13,7 +13,8 @@ sig
   val minimize_theorems :
     params -> int -> int -> Proof.state -> ((string * locality) * thm list) list
     -> ((string * locality) * thm list) list option * string
-  val run_minimize : params -> int -> Facts.ref list -> Proof.state -> unit
+  val run_minimize :
+    params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
 end;
 
 structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
