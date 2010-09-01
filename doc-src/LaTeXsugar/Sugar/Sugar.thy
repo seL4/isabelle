@@ -132,19 +132,19 @@ results in @{thm conjI[no_vars]}.
 This \verb!no_vars! business can become a bit tedious.
 If you would rather never see question marks, simply put
 \begin{quote}
-@{ML "show_question_marks := false"}\verb!;!
+@{ML "show_question_marks_default := false"}\verb!;!
 \end{quote}
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag set to \texttt{false}.
 
-Hint: Setting \verb!show_question_marks! to \texttt{false} only
+Hint: Setting \verb!show_question_marks_default! to \texttt{false} only
 suppresses question marks; variables that end in digits,
 e.g. @{text"x1"}, are still printed with a trailing @{text".0"},
 e.g. @{text"x1.0"}, their internal index. This can be avoided by
 turning the last digit into a subscript: write \verb!x\<^isub>1! and
 obtain the much nicer @{text"x\<^isub>1"}. *}
 
-(*<*)ML "show_question_marks := false"(*>*)
+(*<*)declare [[show_question_marks = false]](*>*)
 
 subsection {*Qualified names*}
 

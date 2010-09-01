@@ -413,8 +413,7 @@ fun var_or_skolem _ s =
     SOME (x, i) =>
       (case try Name.dest_skolem x of
         NONE => Pretty.mark Markup.var (Pretty.str s)
-      | SOME x' => Pretty.mark Markup.skolem
-          (Pretty.str (setmp_CRITICAL show_question_marks true Term.string_of_vname (x', i))))
+      | SOME x' => Pretty.mark Markup.skolem (Pretty.str (Term.string_of_vname (x', i))))
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
 fun plain_markup m _ s = Pretty.mark m (Pretty.str s);

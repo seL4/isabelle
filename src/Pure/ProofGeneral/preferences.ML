@@ -141,7 +141,7 @@ val advanced_display_preferences =
     "prems-limit"
     "Setting for maximum number of premises printed",
   print_depth_pref,
-  bool_pref show_question_marks
+  bool_pref show_question_marks_default
     "show-question-marks"
     "Show leading question mark of variable name"];
 

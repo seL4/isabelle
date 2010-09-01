@@ -447,7 +447,7 @@ end;
 val _ = add_option "show_types" (add_wrapper o setmp_CRITICAL Syntax.show_types o boolean);
 val _ = add_option "show_sorts" (add_wrapper o setmp_CRITICAL Syntax.show_sorts o boolean);
 val _ = add_option "show_structs" (add_wrapper o setmp_CRITICAL show_structs o boolean);
-val _ = add_option "show_question_marks" (add_wrapper o setmp_CRITICAL show_question_marks o boolean);
+val _ = add_option "show_question_marks" (Config.put show_question_marks o boolean);
 val _ = add_option "long_names" (add_wrapper o setmp_CRITICAL Name_Space.long_names o boolean);
 val _ = add_option "short_names" (add_wrapper o setmp_CRITICAL Name_Space.short_names o boolean);
 val _ = add_option "unique_names" (add_wrapper o setmp_CRITICAL Name_Space.unique_names o boolean);

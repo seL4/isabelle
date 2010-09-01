@@ -23,7 +23,7 @@ Historically, optional extensions .ML or .sml were added on demand --
 at the cost of clarity of file dependencies.  Recall that Isabelle/ML
 files exclusively use the .ML extension.  Minor INCOMPATIBILTY.
 
-* Various options that affect document antiquotations are now properly
+* Various options that affect pretty printing etc. are now properly
 handled within the context via configuration options, instead of
 unsynchronized references.  There are both ML Config.T entities and
 Isar declaration attributes to access these.
@@ -36,14 +36,10 @@ Isar declaration attributes to access these.
   Thy_Output.source         thy_output_source
   Thy_Output.break          thy_output_break
 
+  show_question_marks       show_question_marks
+
 Note that the corresponding "..._default" references may be only
 changed globally at the ROOT session setup, but *not* within a theory.
-
-* ML structure Unsynchronized never opened, not even in Isar
-interaction mode as before.  Old Unsynchronized.set etc. have been
-discontinued -- use plain := instead.  This should be *rare* anyway,
-since modern tools always work via official context data, notably
-configuration options.
 
 
 *** Pure ***
@@ -216,6 +212,15 @@ similar to inductive_cases.
 
 
 *** ML ***
+
+* Configuration option show_question_marks only affects regular pretty
+printing of types and terms, not raw Term.string_of_vname.
+
+* ML structure Unsynchronized never opened, not even in Isar
+interaction mode as before.  Old Unsynchronized.set etc. have been
+discontinued -- use plain := instead.  This should be *rare* anyway,
+since modern tools always work via official context data, notably
+configuration options.
 
 * ML antiquotations @{theory} and @{theory_ref} refer to named
 theories from the ancestry of the current context, not any accidental

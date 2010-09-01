@@ -392,7 +392,8 @@ end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
- (register_config Unify.trace_bound_value #>
+ (register_config show_question_marks_value #>
+  register_config Unify.trace_bound_value #>
   register_config Unify.search_bound_value #>
   register_config Unify.trace_simp_value #>
   register_config Unify.trace_types_value #>
