@@ -318,10 +318,14 @@ fun scala_program_of_program labelled_name reserved module_alias program =
         val implicits = filter (is_classinst o Graph.get_node program)
           (Graph.imm_succs program name);
       in union (op =) implicits end;
+    fun modify_stmt (Code_Thingol.Datatypecons _) = NONE
+      | modify_stmt (Code_Thingol.Classrel _) = NONE
+      | modify_stmt (Code_Thingol.Classparam _) = NONE
+      | modify_stmt stmt = SOME stmt;
   in
     Code_Namespace.hierarchical_program labelled_name { module_alias = module_alias, reserved = reserved,
       empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module, namify_stmt = namify_stmt,
-      cyclic_modules = true, empty_data = [], memorize_data = memorize_implicits } program
+      cyclic_modules = true, empty_data = [], memorize_data = memorize_implicits, modify_stmt = modify_stmt } program
   end;
 
 fun serialize_scala { labelled_name, reserved_syms, includes,

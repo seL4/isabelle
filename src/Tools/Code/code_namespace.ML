@@ -11,9 +11,10 @@ sig
     | Stmt of 'a
     | Module of ('b * (string * ('a, 'b) node) Graph.T);
   val hierarchical_program: (string -> string) -> { module_alias: string -> string option,
-    reserved: Name.context, empty_nsp: 'a, namify_module: string -> 'a -> string * 'a,
-    namify_stmt: Code_Thingol.stmt -> string -> 'a -> string * 'a,
-    cyclic_modules: bool, empty_data: 'b, memorize_data: string -> 'b -> 'b }
+    reserved: Name.context, empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
+    namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
+    cyclic_modules: bool, empty_data: 'b, memorize_data: string -> 'b -> 'b,
+    modify_stmt: Code_Thingol.stmt -> Code_Thingol.stmt option }
       -> Code_Thingol.program
       -> { deresolver: string list -> string -> string,
            hierarchical_program: (string * (Code_Thingol.stmt, 'b) node) Graph.T }
@@ -37,7 +38,7 @@ fun map_module [] = I
         o map_module name_fragments;
 
 fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
-      namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data } program =
+      namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data, modify_stmt } program =
   let
 
     (* building module name hierarchy *)
@@ -89,28 +90,26 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
       |> Graph.fold (fn (name, (stmt, _)) => add_stmt name stmt) program
       |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
 
-    (* name declarations *)
+    (* name declarations, data and statement modifications *)
     fun make_declarations nsps (data, nodes) =
       let
         val (module_fragments, stmt_names) = List.partition
           (fn name_fragment => case Graph.get_node nodes name_fragment
             of (_, Module _) => true | _ => false) (Graph.keys nodes);
-        fun modify_stmt (Stmt (Code_Thingol.Datatypecons _)) = Dummy
-          | modify_stmt (Stmt (Code_Thingol.Classrel _)) = Dummy
-          | modify_stmt (Stmt (Code_Thingol.Classparam _)) = Dummy
-          | modify_stmt stmt = stmt;
-        fun declare namify modify name (nsps, nodes) =
+        fun declare namify name (nsps, nodes) =
           let
             val (base, node) = Graph.get_node nodes name;
             val (base', nsps') = namify node base nsps;
-            val nodes' = Graph.map_node name (K (base', modify node)) nodes;
+            val nodes' = Graph.map_node name (K (base', node)) nodes;
           in (nsps', nodes') end;
         val (nsps', nodes') = (nsps, nodes)
-          |> fold (declare (K namify_module) I) module_fragments
-          |> fold (declare (namify_stmt o (fn Stmt stmt => stmt)) modify_stmt) stmt_names;
+          |> fold (declare (K namify_module)) module_fragments
+          |> fold (declare (namify_stmt o (fn Stmt stmt => stmt))) stmt_names;
         val nodes'' = nodes'
           |> fold (fn name_fragment => (Graph.map_node name_fragment
-              o apsnd o map_module_content) (make_declarations nsps')) module_fragments;
+              o apsnd o map_module_content) (make_declarations nsps')) module_fragments
+          |> fold (fn name => (Graph.map_node name o apsnd) (fn Stmt stmt =>
+               case modify_stmt stmt of NONE => Dummy | SOME stmt => Stmt stmt)) stmt_names;
         val data' = fold memorize_data stmt_names data;
       in (data', nodes'') end;
     val (_, hierarchical_program) = make_declarations empty_nsp proto_program;
