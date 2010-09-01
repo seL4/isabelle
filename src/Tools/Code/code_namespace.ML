@@ -14,10 +14,10 @@ sig
     reserved: Name.context, empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
     cyclic_modules: bool, empty_data: 'b, memorize_data: string -> 'b -> 'b,
-    modify_stmt: Code_Thingol.stmt -> Code_Thingol.stmt option }
+    modify_stmts: Code_Thingol.stmt list -> 'a option list }
       -> Code_Thingol.program
       -> { deresolver: string list -> string -> string,
-           hierarchical_program: (string * (Code_Thingol.stmt, 'b) node) Graph.T }
+           hierarchical_program: (string * ('a, 'b) node) Graph.T }
 end;
 
 structure Code_Namespace : CODE_NAMESPACE =
@@ -38,7 +38,7 @@ fun map_module [] = I
         o map_module name_fragments;
 
 fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
-      namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data, modify_stmt } program =
+      namify_module, namify_stmt, cyclic_modules, empty_data, memorize_data, modify_stmts } program =
   let
 
     (* building module name hierarchy *)
@@ -77,8 +77,8 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
         val (name_fragments', base') = dest_name name';
         val (name_fragments_common, (diff, diff')) =
           chop_prefix (op =) (name_fragments, name_fragments');
-        val (is_module, dep) = if null diff then (false, (name, name'))
-          else (true, (hd diff, hd diff'))
+        val is_module = not (null diff andalso null diff');
+        val dep = pairself hd (diff @ [name], diff' @ [name']);
         val add_edge = if is_module andalso not cyclic_modules
           then (fn node => Graph.add_edge_acyclic dep node
             handle Graph.CYCLES _ => error ("Dependency "
@@ -105,11 +105,15 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
         val (nsps', nodes') = (nsps, nodes)
           |> fold (declare (K namify_module)) module_fragments
           |> fold (declare (namify_stmt o (fn Stmt stmt => stmt))) stmt_names;
-        val nodes'' = nodes'
-          |> fold (fn name_fragment => (Graph.map_node name_fragment
-              o apsnd o map_module_content) (make_declarations nsps')) module_fragments
-          |> fold (fn name => (Graph.map_node name o apsnd) (fn Stmt stmt =>
-               case modify_stmt stmt of NONE => Dummy | SOME stmt => Stmt stmt)) stmt_names;
+        val modify_stmts' = filter (member (op =) stmt_names)
+          #> AList.make (snd o Graph.get_node nodes)
+          #> split_list
+          ##> map (fn Stmt stmt => stmt)
+          ##> modify_stmts
+          #> op ~~;
+        val stmtss' = maps modify_stmts' (Graph.strong_conn nodes);
+        val nodes'' = Graph.map (fn name => apsnd (fn Module content => Module (make_declarations nsps' content)
+            | _ => case AList.lookup (op =) stmtss' name of SOME (SOME stmt) => Stmt stmt | _ => Dummy)) nodes';
         val data' = fold memorize_data stmt_names data;
       in (data', nodes'') end;
     val (_, hierarchical_program) = make_declarations empty_nsp proto_program;
