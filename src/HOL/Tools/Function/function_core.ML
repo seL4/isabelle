@@ -860,9 +860,9 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
           rtac (instantiate' [] [SOME (cterm_of thy lhs_acc)] case_split) 1
           THEN (rtac (Thm.forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
           THEN (simp_default_tac (simpset_of ctxt) 1)
-          THEN (etac not_acc_down 1)
-          THEN ((etac R_cases)
-            THEN_ALL_NEW (simp_default_tac (simpset_of ctxt))) 1)
+          THEN TRY ((etac not_acc_down 1)
+            THEN ((etac R_cases)
+              THEN_ALL_NEW (simp_default_tac (simpset_of ctxt))) 1))
         |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
       end
   in

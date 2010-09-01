@@ -24,11 +24,11 @@ infixr 5 @|;
 
 (** Haskell serializer **)
 
-fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
+fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
     reserved deresolve contr_classparam_typs deriving_show =
   let
     val deresolve_base = Long_Name.base_name o deresolve;
-    fun class_name class = case syntax_class class
+    fun class_name class = case class_syntax class
      of NONE => deresolve class
       | SOME class => class;
     fun print_typcontext tyvars vs = case maps (fn (v, sort) => map (pair v) sort) vs
@@ -43,7 +43,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           (map (str o lookup_var tyvars) vnames) @ str "." @@ Pretty.brk 1;
     fun print_tyco_expr tyvars fxy (tyco, tys) =
       brackify fxy (str tyco :: map (print_typ tyvars BR) tys)
-    and print_typ tyvars fxy (tycoexpr as tyco `%% tys) = (case syntax_tyco tyco
+    and print_typ tyvars fxy (tycoexpr as tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr tyvars fxy (deresolve tyco, tys)
           | SOME (i, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_var tyvars) v;
@@ -72,7 +72,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
           in brackets (str "\\" :: ps @ str "->" @@ print_term tyvars some_thm vars' NOBR t') end
       | print_term tyvars some_thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
@@ -90,7 +90,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
             (str o deresolve) c :: map2 print_term_anno ts_fingerprint (take (length ts) function_typs)
           else (str o deresolve) c :: map (print_term tyvars some_thm vars BR) ts
         end
-    and print_app tyvars = gen_print_app (print_app_expr tyvars) (print_term tyvars) syntax_const
+    and print_app tyvars = gen_print_app (print_app_expr tyvars) (print_term tyvars) const_syntax
     and print_bind tyvars some_thm fxy p = gen_print_bind (print_term tyvars) some_thm fxy p
     and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
           let
@@ -133,7 +133,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                 val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
                   |> intro_base_names
-                      (is_none o syntax_const) deresolve consts
+                      (is_none o const_syntax) deresolve consts
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in
@@ -218,7 +218,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
       | print_stmt (_, Code_Thingol.Classinst ((class, (tyco, vs)), (_, (classparam_instances, _)))) =
           let
             val tyvars = intro_vars (map fst vs) reserved;
-            fun requires_args classparam = case syntax_const classparam
+            fun requires_args classparam = case const_syntax classparam
              of NONE => 0
               | SOME (Code_Printer.Plain_const_syntax _) => 0
               | SOME (Code_Printer.Complex_const_syntax (k,_ )) => k;
@@ -234,7 +234,7 @@ fun print_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
                       val (c, (_, tys)) = const;
                       val (vs, rhs) = (apfst o map) fst
                         (Code_Thingol.unfold_abs (Code_Thingol.eta_expand k (const, [])));
-                      val s = if (is_some o syntax_const) c
+                      val s = if (is_some o const_syntax) c
                         then NONE else (SOME o Long_Name.base_name o deresolve) c;
                       val vars = reserved
                         |> intro_vars (map_filter I (s :: vs));
@@ -313,12 +313,12 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
-fun serialize_haskell module_prefix module_name string_classes labelled_name
-    raw_reserved includes module_alias
-    syntax_class syntax_tyco syntax_const program
-    (stmt_names, presentation_stmt_names) =
+fun serialize_haskell module_prefix string_classes { labelled_name,
+    reserved_syms, includes, module_alias,
+    class_syntax, tyco_syntax, const_syntax, program,
+    names, presentation_names } =
   let
-    val reserved = fold (insert (op =) o fst) includes raw_reserved;
+    val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
       module_prefix reserved module_alias program;
     val contr_classparam_typs = Code_Thingol.contr_classparam_typs program;
@@ -337,7 +337,7 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
       in deriv [] tyco end;
     val reserved = make_vars reserved;
     fun print_stmt qualified = print_haskell_stmt labelled_name
-      syntax_class syntax_tyco syntax_const reserved
+      class_syntax tyco_syntax const_syntax reserved
       (if qualified then deresolver else Long_Name.base_name o deresolver)
       contr_classparam_typs
       (if string_classes then deriving_show else K false);
@@ -350,7 +350,7 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
     fun serialize_module1 (module_name', (deps, (stmts, _))) =
       let
         val stmt_names = map fst stmts;
-        val qualified = is_none module_name;
+        val qualified = null presentation_names;
         val imports = subtract (op =) stmt_names deps
           |> distinct (op =)
           |> map_filter (try deresolver)
@@ -368,13 +368,13 @@ fun serialize_haskell module_prefix module_name string_classes labelled_name
           );
       in print_module module_name' content end;
     fun serialize_module2 (_, (_, (stmts, _))) = Pretty.chunks2 (map_filter
-        (fn (name, (_, SOME stmt)) => if null presentation_stmt_names
-              orelse member (op =) presentation_stmt_names name
+        (fn (name, (_, SOME stmt)) => if null presentation_names
+              orelse member (op =) presentation_names name
               then SOME (print_stmt false (name, stmt))
               else NONE
           | (_, (_, NONE)) => NONE) stmts);
     val serialize_module =
-      if null presentation_stmt_names then serialize_module1 else pair "" o serialize_module2;
+      if null presentation_names then serialize_module1 else pair "" o serialize_module2;
     fun write_module width (SOME destination) (modlname, content) =
           let
             val _ = File.check destination;
@@ -458,18 +458,18 @@ fun add_monad target' raw_c_bind thy =
     val c_bind = Code.read_const thy raw_c_bind;
   in if target = target' then
     thy
-    |> Code_Target.add_syntax_const target c_bind
+    |> Code_Target.add_const_syntax target c_bind
         (SOME (Code_Printer.complex_const_syntax (pretty_haskell_monad c_bind)))
   else error "Only Haskell target allows for monad syntax" end;
 
 
 (** Isar setup **)
 
-fun isar_serializer module_name =
+val isar_serializer =
   Code_Target.parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
     -- Scan.optional (Args.$$$ "string_classes" >> K true) false
     >> (fn (module_prefix, string_classes) =>
-      serialize_haskell module_prefix module_name string_classes));
+      serialize_haskell module_prefix string_classes));
 
 val _ =
   Outer_Syntax.command "code_monad" "define code syntax for monads" Keyword.thy_decl (
@@ -483,7 +483,7 @@ val setup =
       check = { env_var = "EXEC_GHC", make_destination = I,
         make_command = fn ghc => fn module_name =>
           ghc ^ " -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^ module_name ^ ".hs" } })
-  #> Code_Target.add_syntax_tyco target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
+  #> Code_Target.add_tyco_syntax target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
         str "->",

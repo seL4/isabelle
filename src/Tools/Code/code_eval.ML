@@ -9,8 +9,6 @@ sig
   val target: string
   val eval: string option -> string * (unit -> 'a) option Unsynchronized.ref
     -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
-  val evaluation_code: theory -> string -> string list -> string list
-    -> string * ((string * string) list * (string * string) list)
   val setup: theory -> theory
 end;
 
@@ -21,16 +19,12 @@ struct
 
 val target = "Eval";
 
-val eval_struct_name = "Code";
-
-fun evaluation_code thy struct_name_hint tycos consts =
+fun evaluation_code thy module_name tycos consts =
   let
     val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
-    val struct_name = if struct_name_hint = "" then eval_struct_name
-      else struct_name_hint;
-    val (ml_code, target_names) = Code_ML.evaluation_code_of thy target
-      struct_name naming program (consts' @ tycos');
+    val (ml_code, target_names) = Code_Target.produce_code_for thy
+      target NONE module_name [] naming program (consts' @ tycos');
     val (consts'', tycos'') = chop (length consts') target_names;
     val consts_map = map2 (fn const => fn NONE =>
         error ("Constant " ^ (quote o Code.string_of_const thy) const
@@ -57,11 +51,11 @@ fun eval some_target reff postproc thy t args =
           |> Graph.new_node (value_name,
               Code_Thingol.Fun (Term.dummy_patternN, ((([], ty), [(([], t), (NONE, true))]), NONE)))
           |> fold (curry Graph.add_edge value_name) deps;
-        val (value_code, [SOME value_name']) = Code_ML.evaluation_code_of thy
-          (the_default target some_target) "" naming program' [value_name];
-        val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
-          ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
-      in ML_Context.evaluate ctxt false reff sml_code end;
+        val (program_code, [SOME value_name']) = Code_Target.produce_code_for thy
+          (the_default target some_target) NONE "Code" [] naming program' [value_name];
+        val value_code = space_implode " "
+          (value_name' :: map (enclose "(" ")") args);
+      in ML_Context.evaluate ctxt false reff (program_code, value_code) end;
   in Code_Thingol.dynamic_eval_value thy postproc evaluator t end;
 
 
@@ -69,26 +63,23 @@ fun eval some_target reff postproc thy t args =
 
 local
 
-structure CodeAntiqData = Proof_Data
+structure Code_Antiq_Data = Proof_Data
 (
-  type T = (string list * string list) * (bool * (string
-    * (string * ((string * string) list * (string * string) list)) lazy));
-  fun init _ = (([], []), (true, ("", Lazy.value ("", ([], [])))));
+  type T = (string list * string list) * (bool
+    * (string * ((string * string) list * (string * string) list)) lazy);
+  fun init _ = (([], []), (true, (Lazy.value ("", ([], [])))));
 );
 
-val is_first_occ = fst o snd o CodeAntiqData.get;
+val is_first_occ = fst o snd o Code_Antiq_Data.get;
 
 fun register_code new_tycos new_consts ctxt =
   let
-    val ((tycos, consts), (_, (struct_name, _))) = CodeAntiqData.get ctxt;
+    val ((tycos, consts), _) = Code_Antiq_Data.get ctxt;
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
-    val (struct_name', ctxt') = if struct_name = ""
-      then ML_Antiquote.variant eval_struct_name ctxt
-      else (struct_name, ctxt);
-    val acc_code = Lazy.lazy
-      (fn () => evaluation_code (ProofContext.theory_of ctxt) eval_struct_name tycos' consts');
-  in CodeAntiqData.put ((tycos', consts'), (false, (struct_name', acc_code))) ctxt' end;
+    val acc_code = Lazy.lazy (fn () =>
+      evaluation_code (ProofContext.theory_of ctxt) "Code" tycos' consts');
+  in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
 fun register_const const = register_code [] [const];
 
@@ -99,11 +90,11 @@ fun print_const const all_struct_name tycos_map consts_map =
 
 fun print_code is_first print_it ctxt =
   let
-    val (_, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
+    val (_, (_, acc_code)) = Code_Antiq_Data.get ctxt;
     val (ml_code, (tycos_map, consts_map)) = Lazy.force acc_code;
     val ml_code = if is_first then ml_code
       else "";
-    val all_struct_name = "Isabelle." ^ struct_code_name;
+    val all_struct_name = "Isabelle";
   in (ml_code, print_it all_struct_name tycos_map consts_map) end;
 
 in
@@ -143,34 +134,30 @@ fun add_eval_tyco (tyco, tyco') thy =
           Code_Printer.concat [Code_Printer.enum "," "(" ")" (map (pr' Code_Printer.BR) tys), tyco']
   in
     thy
-    |> Code_Target.add_syntax_tyco target tyco (SOME (k, pr))
+    |> Code_Target.add_tyco_syntax target tyco (SOME (k, pr))
   end;
 
 fun add_eval_constr (const, const') thy =
   let
     val k = Code.args_number thy const;
     fun pr pr' fxy ts = Code_Printer.brackify fxy
-      (const' :: the_list (Code_ML.print_tuple pr' Code_Printer.BR (map fst ts)));
+      (const' :: the_list (Code_Printer.tuplify pr' Code_Printer.BR (map fst ts)));
   in
     thy
-    |> Code_Target.add_syntax_const target const (SOME (Code_Printer.simple_const_syntax (k, pr)))
+    |> Code_Target.add_const_syntax target const (SOME (Code_Printer.simple_const_syntax (k, pr)))
   end;
 
-fun add_eval_const (const, const') = Code_Target.add_syntax_const target
+fun add_eval_const (const, const') = Code_Target.add_const_syntax target
   const (SOME (Code_Printer.simple_const_syntax (0, (K o K o K) const')));
 
 fun process (code_body, (tyco_map, (constr_map, const_map))) module_name NONE thy =
-      let
-        val pr = Code_Printer.str o Long_Name.append module_name;
-      in
-        thy
-        |> Code_Target.add_reserved target module_name
-        |> Context.theory_map
-          (ML_Context.exec (fn () => ML_Context.eval_text true Position.none code_body))
-        |> fold (add_eval_tyco o apsnd pr) tyco_map
-        |> fold (add_eval_constr o apsnd pr) constr_map
-        |> fold (add_eval_const o apsnd pr) const_map
-      end
+      thy
+      |> Code_Target.add_reserved target module_name
+      |> Context.theory_map
+        (ML_Context.exec (fn () => ML_Context.eval_text true Position.none code_body))
+      |> fold (add_eval_tyco o apsnd Code_Printer.str) tyco_map
+      |> fold (add_eval_constr o apsnd Code_Printer.str) constr_map
+      |> fold (add_eval_const o apsnd Code_Printer.str) const_map
   | process (code_body, _) _ (SOME file_name) thy =
       let
         val preamble =

@@ -24,14 +24,14 @@ infixr 5 @|;
 
 (** Scala serializer **)
 
-fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
+fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
     args_num is_singleton_constr (deresolve, deresolve_full) =
   let
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
     fun intro_tyvars vs = intro_vars (map (first_upper o fst) vs);
     fun print_tyco_expr tyvars fxy (tyco, tys) = applify "[" "]"
           (print_typ tyvars NOBR) fxy ((str o deresolve) tyco) tys
-    and print_typ tyvars fxy (tyco `%% tys) = (case syntax_tyco tyco
+    and print_typ tyvars fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr tyvars fxy (tyco, tys)
           | SOME (i, print) => print (print_typ tyvars) fxy tys)
       | print_typ tyvars fxy (ITyVar v) = (str o lookup_tyvar tyvars) v;
@@ -67,7 +67,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
           end 
       | print_term tyvars is_pat some_thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then print_case tyvars some_thm vars fxy cases
                 else print_app tyvars is_pat some_thm vars fxy c_ts
             | NONE => print_case tyvars some_thm vars fxy cases)
@@ -76,8 +76,8 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
       let
         val k = length ts;
         val arg_typs' = if is_pat orelse
-          (is_none (syntax_const c) andalso is_singleton_constr c) then [] else arg_typs;
-        val (l, print') = case syntax_const c
+          (is_none (const_syntax c) andalso is_singleton_constr c) then [] else arg_typs;
+        val (l, print') = case const_syntax c
          of NONE => (args_num c, fn fxy => fn ts => applify "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
@@ -156,7 +156,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               fold Code_Thingol.add_tyconames (t :: ts)) eqs [];
             val tyvars = reserved
               |> intro_base_names
-                   (is_none o syntax_tyco) deresolve tycos
+                   (is_none o tyco_syntax) deresolve tycos
               |> intro_tyvars vs;
             val simple = case eqs
              of [((ts, _), _)] => forall Code_Thingol.is_IVar ts
@@ -165,14 +165,14 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
               (map (snd o fst) eqs) [];
             val vars1 = reserved
               |> intro_base_names
-                   (is_none o syntax_const) deresolve consts
+                   (is_none o const_syntax) deresolve consts
             val params = if simple
               then (map (fn IVar (SOME x) => x) o fst o fst o hd) eqs
               else aux_params vars1 (map (fst o fst) eqs);
             val vars2 = intro_vars params vars1;
             val (tys', ty') = Code_Thingol.unfold_fun_n (length params) ty;
-            fun print_tuple [p] = p
-              | print_tuple ps = enum "," "(" ")" ps;
+            fun tuplify [p] = p
+              | tuplify ps = enum "," "(" ")" ps;
             fun print_rhs vars' ((_, t), (some_thm, _)) =
               print_term tyvars false some_thm vars' NOBR t;
             fun print_clause (eq as ((ts, _), (some_thm, _))) =
@@ -181,7 +181,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
                   (insert (op =)) ts []) vars1;
               in
                 concat [str "case",
-                  print_tuple (map (print_term tyvars true some_thm vars' NOBR) ts),
+                  tuplify (map (print_term tyvars true some_thm vars' NOBR) ts),
                   str "=>", print_rhs vars' eq]
               end;
             val head = print_defhead tyvars vars2 name vs params tys' ty';
@@ -189,7 +189,7 @@ fun print_scala_stmt labelled_name syntax_tyco syntax_const reserved
             concat [head, print_rhs vars2 (hd eqs)]
           else
             Pretty.block_enclose
-              (concat [head, print_tuple (map (str o lookup_var vars2) params),
+              (concat [head, tuplify (map (str o lookup_var vars2) params),
                 str "match", str "{"], str "}")
               (map print_clause eqs)
           end;
@@ -413,13 +413,13 @@ fun scala_program_of_program labelled_name reserved module_alias program =
 
   in (deresolver, sca_program) end;
 
-fun serialize_scala labelled_name raw_reserved includes module_alias
-    _ syntax_tyco syntax_const
-    program (stmt_names, presentation_stmt_names) =
+fun serialize_scala { labelled_name, reserved_syms, includes,
+    module_alias, class_syntax, tyco_syntax, const_syntax, program,
+    names, presentation_names } =
   let
 
     (* build program *)
-    val reserved = fold (insert (op =) o fst) includes raw_reserved;
+    val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val (deresolver, sca_program) = scala_program_of_program labelled_name
       (Name.make_context reserved) module_alias program;
 
@@ -440,7 +440,7 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
     fun is_singleton_constr c = case Graph.get_node program c
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
-    val print_stmt = print_scala_stmt labelled_name syntax_tyco syntax_const
+    val print_stmt = print_scala_stmt labelled_name tyco_syntax const_syntax
       (make_vars reserved) args_num is_singleton_constr;
 
     (* print nodes *)
@@ -455,12 +455,12 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
       in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
     fun print_node _ (_, Dummy) = NONE
       | print_node prefix_fragments (name, Stmt stmt) =
-          if null presentation_stmt_names
-          orelse member (op =) presentation_stmt_names name
+          if null presentation_names
+          orelse member (op =) presentation_names name
           then SOME (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt))
           else NONE
       | print_node prefix_fragments (name_fragment, Module (implicits, nodes)) =
-          if null presentation_stmt_names
+          if null presentation_names
           then
             let
               val prefix_fragments' = prefix_fragments @ [name_fragment];
@@ -477,7 +477,7 @@ fun serialize_scala labelled_name raw_reserved includes module_alias
       in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
 
     (* serialization *)
-    val p_includes = if null presentation_stmt_names
+    val p_includes = if null presentation_names
       then map (fn (base, p) => print_module base [] p) includes else [];
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
     fun write width NONE = writeln_pretty width
@@ -513,9 +513,8 @@ in Literals {
 
 (** Isar setup **)
 
-fun isar_serializer _ =
-  Code_Target.parse_args (Scan.succeed ())
-  #> (fn () => serialize_scala);
+val isar_serializer =
+  Code_Target.parse_args (Scan.succeed ()) #> K serialize_scala;
 
 val setup =
   Code_Target.add_target
@@ -524,7 +523,7 @@ val setup =
         make_command = fn scala_home => fn _ =>
           "export JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' && "
             ^ Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " ROOT.scala" } })
-  #> Code_Target.add_syntax_tyco target "fun"
+  #> Code_Target.add_tyco_syntax target "fun"
      (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
         brackify_infix (1, R) fxy (
           print_typ BR ty1 (*product type vs. tupled arguments!*),

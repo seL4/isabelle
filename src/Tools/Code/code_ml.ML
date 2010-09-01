@@ -8,10 +8,6 @@ signature CODE_ML =
 sig
   val target_SML: string
   val target_OCaml: string
-  val evaluation_code_of: theory -> string -> string
-    -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
-  val print_tuple: (Code_Printer.fixity -> 'a -> Pretty.T)
-    -> Code_Printer.fixity -> 'a list -> Pretty.T option
   val setup: theory -> theory
 end;
 
@@ -56,21 +52,21 @@ fun print_product _ [] = NONE
   | print_product print [x] = SOME (print x)
   | print_product print xs = (SOME o enum " *" "" "") (map print xs);
 
-fun print_tuple _ _ [] = NONE
-  | print_tuple print fxy [x] = SOME (print fxy x)
-  | print_tuple print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
+fun tuplify _ _ [] = NONE
+  | tuplify print fxy [x] = SOME (print fxy x)
+  | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
 
 
 (** SML serializer **)
 
-fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deresolve =
+fun print_sml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deresolve =
   let
     fun print_tyco_expr fxy (tyco, []) = (str o deresolve) tyco
       | print_tyco_expr fxy (tyco, [ty]) =
           concat [print_typ BR ty, (str o deresolve) tyco]
       | print_tyco_expr fxy (tyco, tys) =
           concat [enum "," "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
-    and print_typ fxy (tyco `%% tys) = (case syntax_tyco tyco
+    and print_typ fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr fxy (tyco, tys)
           | SOME (i, print) => print print_typ fxy tys)
       | print_typ fxy (ITyVar v) = str ("'" ^ v);
@@ -94,7 +90,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
             | classrels => brackets
                 [enum " o" "(" ")" (map (str o deresolve) classrels), v_p]
           end
-    and print_dicts is_pseudo_fun = print_tuple (print_dict is_pseudo_fun);
+    and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
@@ -118,7 +114,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
           in brackets (ps @ [print_term is_pseudo_fun some_thm vars' NOBR t']) end
       | print_term is_pseudo_fun some_thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then print_case is_pseudo_fun some_thm vars fxy cases
                 else print_app is_pseudo_fun some_thm vars fxy c_ts
             | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
@@ -127,7 +123,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
         let val k = length function_typs in
           if k < 2 orelse length ts = k
           then (str o deresolve) c
-            :: the_list (print_tuple (print_term is_pseudo_fun some_thm vars) BR ts)
+            :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
           else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.eta_expand k app)]
         end
       else if is_pseudo_fun c
@@ -135,7 +131,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
       else (str o deresolve) c :: map_filter (print_dicts is_pseudo_fun BR) iss
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
-      (print_term is_pseudo_fun) syntax_const some_thm vars
+      (print_term is_pseudo_fun) const_syntax some_thm vars
     and print_bind is_pseudo_fun = gen_print_bind (print_term is_pseudo_fun)
     and print_case is_pseudo_fun some_thm vars fxy (cases as ((_, [_]), _)) =
           let
@@ -194,7 +190,7 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
                 val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
                   |> intro_base_names
-                       (is_none o syntax_const) deresolve consts
+                       (is_none o const_syntax) deresolve consts
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                        (insert (op =)) ts []);
                 val prolog = if needs_typ then
@@ -343,9 +339,8 @@ fun print_sml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deres
           end;
   in print_stmt end;
 
-fun print_sml_module name some_decls body = if name = ""
-  then Pretty.chunks2 body
-  else Pretty.chunks2 (
+fun print_sml_module name some_decls body =
+  Pretty.chunks2 (
     Pretty.chunks (
       str ("structure " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls
@@ -369,14 +364,14 @@ val literals_sml = Literals {
 
 (** OCaml serializer **)
 
-fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons deresolve =
+fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons deresolve =
   let
     fun print_tyco_expr fxy (tyco, []) = (str o deresolve) tyco
       | print_tyco_expr fxy (tyco, [ty]) =
           concat [print_typ BR ty, (str o deresolve) tyco]
       | print_tyco_expr fxy (tyco, tys) =
           concat [enum "," "(" ")" (map (print_typ BR) tys), (str o deresolve) tyco]
-    and print_typ fxy (tyco `%% tys) = (case syntax_tyco tyco
+    and print_typ fxy (tyco `%% tys) = (case tyco_syntax tyco
          of NONE => print_tyco_expr fxy (tyco, tys)
           | SOME (i, print) => print print_typ fxy tys)
       | print_typ fxy (ITyVar v) = str ("'" ^ v);
@@ -395,7 +390,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
             else "_" ^ first_upper v ^ string_of_int (i+1))
           |> fold_rev (fn classrel => fn p =>
                Pretty.block [p, str ".", (str o deresolve) classrel]) classrels
-    and print_dicts is_pseudo_fun = print_tuple (print_dict is_pseudo_fun);
+    and print_dicts is_pseudo_fun = tuplify (print_dict is_pseudo_fun);
     val print_dict_args = map_filter (fn (v, sort) => print_dicts (K false) BR
       (map_index (fn (i, _) => DictVar ([], (v, (i, length sort)))) sort));
     fun print_term is_pseudo_fun some_thm vars fxy (IConst c) =
@@ -416,7 +411,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
           in brackets (str "fun" :: ps @ str "->" @@ print_term is_pseudo_fun some_thm vars' NOBR t') end
       | print_term is_pseudo_fun some_thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
-           of SOME (c_ts as ((c, _), _)) => if is_none (syntax_const c)
+           of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
                 then print_case is_pseudo_fun some_thm vars fxy cases
                 else print_app is_pseudo_fun some_thm vars fxy c_ts
             | NONE => print_case is_pseudo_fun some_thm vars fxy cases)
@@ -425,7 +420,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
         let val k = length tys in
           if length ts = k
           then (str o deresolve) c
-            :: the_list (print_tuple (print_term is_pseudo_fun some_thm vars) BR ts)
+            :: the_list (tuplify (print_term is_pseudo_fun some_thm vars) BR ts)
           else [print_term is_pseudo_fun some_thm vars BR (Code_Thingol.eta_expand k app)]
         end
       else if is_pseudo_fun c
@@ -433,7 +428,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
       else (str o deresolve) c :: map_filter (print_dicts is_pseudo_fun BR) iss
         @ map (print_term is_pseudo_fun some_thm vars BR) ts
     and print_app is_pseudo_fun some_thm vars = gen_print_app (print_app_expr is_pseudo_fun)
-      (print_term is_pseudo_fun) syntax_const some_thm vars
+      (print_term is_pseudo_fun) const_syntax some_thm vars
     and print_bind is_pseudo_fun = gen_print_bind (print_term is_pseudo_fun)
     and print_case is_pseudo_fun some_thm vars fxy (cases as ((_, [_]), _)) =
           let
@@ -499,7 +494,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                     val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                     val vars = reserved
                       |> intro_base_names
-                          (is_none o syntax_const) deresolve consts
+                          (is_none o const_syntax) deresolve consts
                       |> intro_vars ((fold o Code_Thingol.fold_varnames)
                           (insert (op =)) ts []);
                   in
@@ -525,7 +520,7 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
                     val consts = fold Code_Thingol.add_constnames (map (snd o fst) eqs) [];
                     val vars = reserved
                       |> intro_base_names
-                          (is_none o syntax_const) deresolve consts;
+                          (is_none o const_syntax) deresolve consts;
                     val dummy_parms = (map str o aux_params vars o map (fst o fst)) eqs;
                   in
                     Pretty.block (
@@ -669,9 +664,8 @@ fun print_ocaml_stmt labelled_name syntax_tyco syntax_const reserved is_cons der
           end;
   in print_stmt end;
 
-fun print_ocaml_module name some_decls body = if name = ""
-  then Pretty.chunks2 body
-  else Pretty.chunks2 (
+fun print_ocaml_module name some_decls body =
+  Pretty.chunks2 (
     Pretty.chunks (
       str ("module " ^ name ^ (if is_some some_decls then " : sig" else " ="))
       :: (the_list o Option.map (indent 2 o Pretty.chunks)) some_decls
@@ -722,7 +716,7 @@ datatype ml_node =
 
 in
 
-fun ml_node_of_program labelled_name module_name reserved module_alias program =
+fun ml_node_of_program labelled_name reserved module_alias program =
   let
     val reserved = Name.make_context reserved;
     val empty_module = ((reserved, reserved), Graph.empty);
@@ -906,21 +900,21 @@ fun ml_node_of_program labelled_name module_name reserved module_alias program =
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
 
-fun serialize_ml target print_module print_stmt module_name with_signatures labelled_name
-  reserved includes module_alias _ syntax_tyco syntax_const program
-  (stmt_names, presentation_stmt_names) =
+fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
+  reserved_syms, includes, module_alias, class_syntax, tyco_syntax,
+  const_syntax, program, names, presentation_names } =
   let
     val is_cons = Code_Thingol.is_cons program;
-    val is_presentation = not (null presentation_stmt_names);
-    val (deresolver, nodes) = ml_node_of_program labelled_name module_name
-      reserved module_alias program;
-    val reserved = make_vars reserved;
+    val is_presentation = not (null presentation_names);
+    val (deresolver, nodes) = ml_node_of_program labelled_name
+      reserved_syms module_alias program;
+    val reserved = make_vars reserved_syms;
     fun print_node prefix (Dummy _) =
           NONE
       | print_node prefix (Stmt (_, stmt)) = if is_presentation andalso
-          (null o filter (member (op =) presentation_stmt_names) o stmt_names_of) stmt
+          (null o filter (member (op =) presentation_names) o stmt_names_of) stmt
           then NONE
-          else SOME (print_stmt labelled_name syntax_tyco syntax_const reserved is_cons (deresolver prefix) stmt)
+          else SOME (print_stmt labelled_name tyco_syntax const_syntax reserved is_cons (deresolver prefix) stmt)
       | print_node prefix (Module (module_name, (_, nodes))) =
           let
             val (decls, body) = print_nodes (prefix @ [module_name]) nodes;
@@ -931,36 +925,28 @@ fun serialize_ml target print_module print_stmt module_name with_signatures labe
         o rev o flat o Graph.strong_conn) nodes
       |> split_list
       |> (fn (decls, body) => (flat decls, body))
-    val stmt_names' = (map o try)
-      (deresolver (if is_some module_name then the_list module_name else [])) stmt_names;
+    val names' = map (try (deresolver [])) names;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;
   in
-    Code_Target.serialization write (fn width => (rpair stmt_names' o string_of_pretty width)) p
+    Code_Target.serialization write (fn width => (rpair names' o string_of_pretty width)) p
   end;
 
 end; (*local*)
 
 
-(** for instrumentalization **)
-
-fun evaluation_code_of thy target struct_name =
-  Code_Target.serialize_custom thy (target, fn module_name => fn [] =>
-    serialize_ml target print_sml_module print_sml_stmt module_name true) (SOME struct_name);
-
-
 (** Isar setup **)
 
-fun isar_serializer_sml module_name =
+val isar_serializer_sml =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_SML
-      print_sml_module print_sml_stmt module_name with_signatures));
+      print_sml_module print_sml_stmt with_signatures));
 
-fun isar_serializer_ocaml module_name =
+val isar_serializer_ocaml =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
   >> (fn with_signatures => serialize_ml target_OCaml
-      print_ocaml_module print_ocaml_stmt module_name with_signatures));
+      print_ocaml_module print_ocaml_stmt with_signatures));
 
 val setup =
   Code_Target.add_target
@@ -971,13 +957,13 @@ val setup =
     (target_OCaml, { serializer = isar_serializer_ocaml, literals = literals_ocaml,
       check = { env_var = "EXEC_OCAML", make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
         make_command = fn ocaml => fn _ => ocaml ^ " -w pu nums.cma ROOT.ocaml" } })
-  #> Code_Target.add_syntax_tyco target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
+  #> Code_Target.add_tyco_syntax target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
         str "->",
         print_typ (INFX (1, R)) ty2
       )))
-  #> Code_Target.add_syntax_tyco target_OCaml "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
+  #> Code_Target.add_tyco_syntax target_OCaml "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
         str "->",
