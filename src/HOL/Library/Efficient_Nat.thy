@@ -281,9 +281,7 @@ instance Integral Nat where {
 code_reserved Haskell Nat
 
 code_include Scala "Nat"
-{*import scala.Math
-
-object Nat {
+{*object Nat {
 
   def apply(numeral: BigInt): Nat = new Nat(numeral max 0)
   def apply(numeral: Int): Nat = Nat(BigInt(numeral))
@@ -330,7 +328,7 @@ code_reserved Scala Nat
 
 code_type nat
   (Haskell "Nat.Nat")
-  (Scala "Nat.Nat")
+  (Scala "Nat")
 
 code_instance nat :: equal
   (Haskell -)
@@ -397,7 +395,7 @@ text {* For Haskell and Scala, things are slightly different again. *}
 
 code_const int and nat
   (Haskell "toInteger" and "fromInteger")
-  (Scala "!_.as'_BigInt" and "Nat.Nat")
+  (Scala "!_.as'_BigInt" and "Nat")
 
 text {* Conversion from and to code numerals. *}
 
@@ -405,14 +403,14 @@ code_const Code_Numeral.of_nat
   (SML "IntInf.toInt")
   (OCaml "_")
   (Haskell "!(fromInteger/ ./ toInteger)")
-  (Scala "!Natural.Nat(_.as'_BigInt)")
+  (Scala "!Natural(_.as'_BigInt)")
   (Eval "_")
 
 code_const Code_Numeral.nat_of
   (SML "IntInf.fromInt")
   (OCaml "_")
   (Haskell "!(fromInteger/ ./ toInteger)")
-  (Scala "!Nat.Nat(_.as'_BigInt)")
+  (Scala "!Nat(_.as'_BigInt)")
   (Eval "_")
 
 text {* Using target language arithmetic operations whenever appropriate *}

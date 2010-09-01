@@ -477,9 +477,9 @@ code_const Heap_Monad.raise' (Haskell "error")
 subsubsection {* Scala *}
 
 code_include Scala "Heap"
-{*import collection.mutable.ArraySeq
-
-def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
+{*object Heap {
+  def bind[A, B](f: Unit => A, g: A => Unit => B): Unit => B = (_: Unit) => g (f ()) ()
+}
 
 class Ref[A](x: A) {
   var value = x
@@ -495,21 +495,23 @@ object Ref {
 }
 
 object Array {
-  def alloc[A](n: Natural.Nat)(x: A): ArraySeq[A] =
+  import collection.mutable.ArraySeq
+  def alloc[A](n: Natural)(x: A): ArraySeq[A] =
     ArraySeq.fill(n.as_Int)(x)
-  def make[A](n: Natural.Nat)(f: Natural.Nat => A): ArraySeq[A] =
-    ArraySeq.tabulate(n.as_Int)((k: Int) => f(Natural.Nat(k)))
-  def len[A](a: ArraySeq[A]): Natural.Nat =
-    Natural.Nat(a.length)
-  def nth[A](a: ArraySeq[A], n: Natural.Nat): A =
+  def make[A](n: Natural)(f: Natural => A): ArraySeq[A] =
+    ArraySeq.tabulate(n.as_Int)((k: Int) => f(Natural(k)))
+  def len[A](a: ArraySeq[A]): Natural =
+    Natural(a.length)
+  def nth[A](a: ArraySeq[A], n: Natural): A =
     a(n.as_Int)
-  def upd[A](a: ArraySeq[A], n: Natural.Nat, x: A): Unit =
+  def upd[A](a: ArraySeq[A], n: Natural, x: A): Unit =
     a.update(n.as_Int, x)
   def freeze[A](a: ArraySeq[A]): List[A] =
     a.toList
-}*}
+}
+*}
 
-code_reserved Scala bind Ref Array
+code_reserved Scala Heap Ref Array
 
 code_type Heap (Scala "Unit/ =>/ _")
 code_const bind (Scala "Heap.bind")
