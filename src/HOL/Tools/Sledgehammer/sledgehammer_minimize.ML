@@ -52,15 +52,12 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
     val params =
       {blocking = true, debug = debug, verbose = verbose, overlord = overlord,
        atps = atps, full_types = full_types, explicit_apply = explicit_apply,
-       relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
-       isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-       timeout = timeout, expect = ""}
+       relevance_thresholds = (1.01, 1.01),
+       max_relevant = SOME 65536 (* a large number *), isar_proof = isar_proof,
+       isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
     val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
-    val {context = ctxt, facts, goal} = Proof.goal state
-    val problem =
-     {subgoal = subgoal, goal = (ctxt, (facts, goal)),
-      relevance_override = {add = [], del = [], only = false},
-      axioms = SOME axioms}
+    val {context = ctxt, goal, ...} = Proof.goal state
+    val problem = {ctxt = ctxt, goal = goal, subgoal = subgoal, axioms = axioms}
     val result as {outcome, used_thm_names, ...} = prover params (K "") problem
   in
     priority (case outcome of
