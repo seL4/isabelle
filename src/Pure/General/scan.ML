@@ -105,7 +105,7 @@ fun error scan xs = scan xs handle ABORT msg => Library.error msg;
 
 fun catch scan xs = scan xs
   handle ABORT msg => raise Fail msg
-    | FAIL msg => raise Fail (the_default "Syntax error." msg);
+    | FAIL msg => raise Fail (the_default "Syntax error" msg);
 
 
 (* scanner combinators *)

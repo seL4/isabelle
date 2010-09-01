@@ -97,6 +97,24 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   }
 
 
+  /* visible line ranges */
+
+  // simplify slightly odd result of TextArea.getScreenLineEndOffset etc.
+  // NB: jEdit already normalizes \r\n and \r to \n
+  def proper_line_range(start: Text.Offset, end: Text.Offset): Text.Range =
+  {
+    val stop = if (start < end) end - 1 else end min model.buffer.getLength
+    Text.Range(start, stop)
+  }
+
+  def screen_lines_range(): Text.Range =
+  {
+    val start = text_area.getScreenLineStartOffset(0)
+    val raw_end = text_area.getScreenLineEndOffset(text_area.getVisibleLines - 1 max 0)
+    proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength)
+  }
+
+
   /* commands_changed_actor */
 
   private val commands_changed_actor = actor {
@@ -106,23 +124,25 @@ class Document_View(val model: Document_Model, text_area: TextArea)
           val buffer = model.buffer
           Isabelle.swing_buffer_lock(buffer) {
             val snapshot = model.snapshot()
-            if (changed.exists(snapshot.node.commands.contains)) {
-              var visible_change = false
-              for ((command, start) <- snapshot.node.command_starts) {
-                if (changed(command)) {
-                  val stop = start + command.length
-                  val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-                  val line2 = buffer.getLineOfOffset(snapshot.convert(stop))
-                  if (line2 >= text_area.getFirstLine &&
-                      line1 <= text_area.getFirstLine + text_area.getVisibleLines)
-                    visible_change = true
-                  text_area.invalidateLineRange(line1, line2)
-                }
-              }
-              // FIXME danger of deadlock!?
-              if (visible_change) model.buffer.propertiesChanged()
 
-              overview.repaint()  // FIXME really paint here!?
+            if (changed.exists(snapshot.node.commands.contains))
+              overview.repaint()
+
+            val visible_range = screen_lines_range()
+            val visible_cmds = snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
+            if (visible_cmds.exists(changed)) {
+              for {
+                line <- 0 until text_area.getVisibleLines
+                val start = text_area.getScreenLineStartOffset(line) if start >= 0
+                val end = text_area.getScreenLineEndOffset(line) if end >= 0
+                val range = proper_line_range(start, end)
+                val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                if line_cmds.exists(changed)
+              } text_area.invalidateScreenLineRange(line, line)
+
+              // FIXME danger of deadlock!?
+              // FIXME potentially slow!?
+              model.buffer.propertiesChanged()
             }
           }
 
@@ -138,49 +158,26 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y0: Int, line_height: Int)
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
-
-        val command_range: Iterable[(Command, Text.Offset)] =
-        {
-          val range = snapshot.node.command_range(snapshot.revert(start(0)))
-          if (range.hasNext) {
-            val (cmd0, start0) = range.next
-            new Iterable[(Command, Text.Offset)] {
-              def iterator =
-                Document.Node.command_starts(snapshot.node.commands.iterator(cmd0), start0)
-            }
-          }
-          else Iterable.empty
-        }
-
         val saved_color = gfx.getColor
         try {
-          var y = y0
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
-              val line_start = start(i)
-              val line_end = model.visible_line_end(line_start, end(i))
-
-              val a = snapshot.revert(line_start)
-              val b = snapshot.revert(line_end)
-              val cmds = command_range.iterator.
-                dropWhile { case (cmd, c) => c + cmd.length <= a } .
-                takeWhile { case (_, c) => c < b }
-
+              val line_range = proper_line_range(start(i), end(i))
+              val cmds = snapshot.node.command_range(snapshot.revert(line_range))
               for ((command, command_start) <- cmds if !command.is_ignored) {
-                val p =
-                  text_area.offsetToXY(line_start max snapshot.convert(command_start))
-                val q =
-                  text_area.offsetToXY(line_end min snapshot.convert(command_start + command.length))
-                if (p.y != q.y) System.err.println("Unexpected coordinates: " + p + ", " + q)
-                gfx.setColor(Document_View.choose_color(snapshot, command))
-                gfx.fillRect(p.x, y, q.x - p.x, line_height)
+                val range = line_range.restrict(snapshot.convert(command.range + command_start))
+                val p = text_area.offsetToXY(range.start)
+                val q = text_area.offsetToXY(range.stop)
+                if (p != null && q != null) {
+                  gfx.setColor(Document_View.choose_color(snapshot, command))
+                  gfx.fillRect(p.x, y + i * line_height, q.x - p.x, line_height)
+                }
               }
             }
-            y += line_height
           }
         }
         finally { gfx.setColor(saved_color) }

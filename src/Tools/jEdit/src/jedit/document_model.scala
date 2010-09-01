@@ -190,19 +190,6 @@ object Document_Model
 
 class Document_Model(val session: Session, val buffer: Buffer, val thy_name: String)
 {
-  /* visible line end */
-
-  // simplify slightly odd result of TextArea.getLineEndOffset
-  // NB: jEdit already normalizes \r\n and \r to \n
-  def visible_line_end(start: Text.Offset, end: Text.Offset): Text.Offset =
-  {
-    val end1 = end - 1
-    if (start <= end1 && end1 < buffer.getLength &&
-        buffer.getSegment(end1, 1).charAt(0) == '\n') end1
-    else end
-  }
-
-
   /* pending text edits */
 
   object pending_edits  // owned by Swing thread

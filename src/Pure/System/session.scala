@@ -190,7 +190,8 @@ class Session(system: Isabelle_System)
             result.body match {
               case List(Isar_Document.Assign(id, edits)) =>
                 try {
-                  global_state.change(_.assign(id, edits))
+                  val cmds: List[Command] = global_state.change_yield(_.assign(id, edits))
+                  for (cmd <- cmds) command_change_buffer ! cmd
                   assignments.event(Session.Assignment)
                 }
                 catch { case _: Document.State.Fail => bad_result(result) }

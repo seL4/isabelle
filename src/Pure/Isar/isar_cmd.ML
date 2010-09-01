@@ -44,7 +44,6 @@ sig
   val pwd: Toplevel.transition -> Toplevel.transition
   val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
   val print_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
-  val pretty_setmargin: int -> Toplevel.transition -> Toplevel.transition
   val print_context: Toplevel.transition -> Toplevel.transition
   val print_theory: bool -> Toplevel.transition -> Toplevel.transition
   val print_syntax: Toplevel.transition -> Toplevel.transition
@@ -319,11 +318,6 @@ fun display_drafts files = Toplevel.imperative (fn () =>
 fun print_drafts files = Toplevel.imperative (fn () =>
   let val outfile = File.shell_path (Present.drafts "ps" files)
   in File.isabelle_tool "print" ("-c " ^ outfile); () end);
-
-
-(* pretty_setmargin *)
-
-fun pretty_setmargin n = Toplevel.imperative (fn () => Pretty.margin_default := n);
 
 
 (* print parts of theory and proof context *)

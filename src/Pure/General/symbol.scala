@@ -53,6 +53,9 @@ object Symbol
 
   def is_plain(c: Char): Boolean = !(c == '\r' || c == '\\' || '\ud800' <= c && c <= '\udfff')
 
+  def is_physical_newline(s: CharSequence): Boolean =
+    "\n".contentEquals(s) || "\r".contentEquals(s) || "\r\n".contentEquals(s)
+
   def is_wellformed(s: CharSequence): Boolean =
     s.length == 1 && is_plain(s.charAt(0)) || !bad_symbol.pattern.matcher(s).matches
 

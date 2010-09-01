@@ -69,6 +69,7 @@ object Markup
 
   /* formal entities */
 
+  val BINDING = "binding"
   val ENTITY = "entity"
   val DEF = "def"
   val REF = "ref"
@@ -226,6 +227,7 @@ object Markup
   /* messages */
 
   val PID = "pid"
+  val Serial = new Long_Property("serial")
 
   val MESSAGE = "message"
   val CLASS = "class"

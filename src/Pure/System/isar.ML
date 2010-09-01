@@ -94,7 +94,10 @@ end;
 fun op >> tr =
   (case Toplevel.transition true tr (state ()) of
     NONE => false
-  | SOME (_, SOME err) => (set_exn (SOME err); Toplevel.error_msg tr err; true)
+  | SOME (_, SOME exn_info) =>
+     (set_exn (SOME exn_info);
+      Toplevel.error_msg tr (ML_Compiler.exn_message (Runtime.EXCURSION_FAIL exn_info));
+      true)
   | SOME (st', NONE) =>
       let
         val name = Toplevel.name_of tr;

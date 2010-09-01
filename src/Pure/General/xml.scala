@@ -102,17 +102,19 @@ object XML
         x
       }
 
+      def trim_bytes(s: String): String = new String(s.toCharArray)
+
       def cache_string(x: String): String =
         lookup(x) match {
           case Some(y) => y
-          case None => store(new String(x.toCharArray))  // trim string value
+          case None => store(trim_bytes(x))
         }
       def cache_props(x: List[(String, String)]): List[(String, String)] =
         if (x.isEmpty) x
         else
           lookup(x) match {
             case Some(y) => y
-            case None => store(x.map(p => (cache_string(p._1).intern, cache_string(p._2))))
+            case None => store(x.map(p => (trim_bytes(p._1).intern, cache_string(p._2))))
           }
       def cache_markup(x: Markup): Markup =
         lookup(x) match {
