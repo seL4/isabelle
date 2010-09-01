@@ -14,7 +14,7 @@ sig
     reserved: Name.context, empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
     cyclic_modules: bool, empty_data: 'b, memorize_data: string -> 'b -> 'b,
-    modify_stmts: Code_Thingol.stmt list -> 'a option list }
+    modify_stmts: (string * Code_Thingol.stmt) list -> 'a option list }
       -> Code_Thingol.program
       -> { deresolver: string list -> string -> string,
            hierarchical_program: (string * ('a, 'b) node) Graph.T }
@@ -109,8 +109,7 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
           #> AList.make (snd o Graph.get_node nodes)
           #> split_list
           ##> map (fn Stmt stmt => stmt)
-          ##> modify_stmts
-          #> op ~~;
+          #> (fn (names, stmts) => names ~~ modify_stmts (names ~~ stmts));
         val stmtss' = maps modify_stmts' (Graph.strong_conn nodes);
         val nodes'' = Graph.map (fn name => apsnd (fn Module content => Module (make_declarations nsps' content)
             | _ => case AList.lookup (op =) stmtss' name of SOME (SOME stmt) => Stmt stmt | _ => Dummy)) nodes';
