@@ -430,7 +430,7 @@ let
 				in
 					make_cnf_disj_conj_r OF [thm1, thm2]  (* (x' | (y1 & y2)) = ((x' | y1)' & (x' | y2)') *)
 				end
-			  | make_cnfx_disj_thm (Const (@{const_name Ex}, _) $ x') y' =
+			  | make_cnfx_disj_thm (@{term "Ex::(bool => bool) => bool"} $ x') y' =
 				let
 					val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_l   (* ((Ex x') | y') = (Ex (x' | y')) *)
 					val var  = new_free ()
@@ -441,7 +441,7 @@ let
 				in
 					iff_trans OF [thm1, thm5]  (* ((Ex x') | y') = (Ex v. body') *)
 				end
-			  | make_cnfx_disj_thm x' (Const (@{const_name Ex}, _) $ y') =
+			  | make_cnfx_disj_thm x' (@{term "Ex::(bool => bool) => bool"} $ y') =
 				let
 					val thm1 = inst_thm thy [x', y'] make_cnfx_disj_ex_r   (* (x' | (Ex y')) = (Ex (x' | y')) *)
 					val var  = new_free ()
