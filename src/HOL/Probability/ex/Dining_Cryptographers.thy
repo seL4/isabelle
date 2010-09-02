@@ -26,14 +26,13 @@ proof (rule finite_information_spaceI)
   let ?measure = "\<lambda>s::'a set. real (card s) / real (card S)"
 
   show "finite_measure_space M \<mu>"
-  proof (rule finite_Pow_additivity_sufficient, simp_all)
-    show "positive \<mu>" by (simp add: positive_def)
-
-    show "additive M \<mu>"
-      by (simp add: additive_def inverse_eq_divide field_simps Real_real
+  proof (rule finite_measure_spaceI)
+    fix A B :: "'a set" assume "A \<inter> B = {}" "A \<subseteq> space M" "B \<subseteq> space M"
+    then show "\<mu> (A \<union> B) = \<mu> A + \<mu> B"
+      by (simp add: inverse_eq_divide field_simps Real_real
                     divide_le_0_iff zero_le_divide_iff
                     card_Un_disjoint finite_subset[OF _ finite])
-  qed
+  qed auto
 qed simp_all
 
 lemma set_of_list_extend:
