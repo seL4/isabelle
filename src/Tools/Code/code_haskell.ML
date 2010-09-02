@@ -381,7 +381,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
         val import_ps = map print_import_include includes @ map print_import_module imports
         val content = Pretty.chunks2 ((if null import_ps then [] else [Pretty.chunks import_ps])
             @ map_filter
-              (fn (name, (_, SOME stmt)) => SOME (print_stmt qualified (name, stmt))
+              (fn (name, (_, SOME stmt)) => SOME (markup_stmt name (print_stmt qualified (name, stmt)))
                 | (_, (_, NONE)) => NONE) stmts
           );
       in print_module module_name' content end;
@@ -404,9 +404,9 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
             val _ = File.mkdir_leaf (Path.dir pathname);
           in File.write pathname
             ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
-              ^ format false width content)
+              ^ format [] width content)
           end
-      | write_module width NONE (_, content) = writeln (format false width content);
+      | write_module width NONE (_, content) = writeln (format [] width content);
   in
     Code_Target.serialization
       (fn width => fn destination => K () o map (write_module width destination))

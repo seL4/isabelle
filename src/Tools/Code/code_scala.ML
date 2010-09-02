@@ -370,7 +370,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
       | print_node prefix_fragments (name, Code_Namespace.Stmt stmt) =
           if null presentation_names
           orelse member (op =) presentation_names name
-          then SOME (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt))
+          then SOME (markup_stmt name (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt)))
           else NONE
       | print_node prefix_fragments (name_fragment, Code_Namespace.Module (implicits, nodes)) =
           if null presentation_names
@@ -392,8 +392,8 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
     (* serialization *)
     val p_includes = if null presentation_names then map snd includes else [];
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
-    fun write width NONE = writeln o format false width
-      | write width (SOME p) = File.write p o format false width;
+    fun write width NONE = writeln o format [] width
+      | write width (SOME p) = File.write p o format [] width;
   in
     Code_Target.serialization write (rpair [] ooo format) p
   end;
