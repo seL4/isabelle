@@ -32,16 +32,16 @@ struct
                       (Thm.dest_arg t) acc
       | _ => augment_norm true t acc
 
- val cterm_lincomb_neg = FuncUtil.Ctermfunc.map Rat.neg
+ val cterm_lincomb_neg = FuncUtil.Ctermfunc.map (K Rat.neg)
  fun cterm_lincomb_cmul c t =
-    if c =/ Rat.zero then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn x => x */ c) t
+    if c =/ Rat.zero then FuncUtil.Ctermfunc.empty else FuncUtil.Ctermfunc.map (fn _ => fn x => x */ c) t
  fun cterm_lincomb_add l r = FuncUtil.Ctermfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
  fun cterm_lincomb_sub l r = cterm_lincomb_add l (cterm_lincomb_neg r)
  fun cterm_lincomb_eq l r = FuncUtil.Ctermfunc.is_empty (cterm_lincomb_sub l r)
 
- val int_lincomb_neg = FuncUtil.Intfunc.map Rat.neg
+ val int_lincomb_neg = FuncUtil.Intfunc.map (K Rat.neg)
  fun int_lincomb_cmul c t =
-    if c =/ Rat.zero then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn x => x */ c) t
+    if c =/ Rat.zero then FuncUtil.Intfunc.empty else FuncUtil.Intfunc.map (fn _ => fn x => x */ c) t
  fun int_lincomb_add l r = FuncUtil.Intfunc.combine (curry op +/) (fn x => x =/ Rat.zero) l r
  fun int_lincomb_sub l r = int_lincomb_add l (int_lincomb_neg r)
  fun int_lincomb_eq l r = FuncUtil.Intfunc.is_empty (int_lincomb_sub l r)
