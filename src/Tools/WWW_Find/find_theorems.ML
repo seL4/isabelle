@@ -143,9 +143,9 @@ fun sorry_class thm = if is_sorry thm then class "sorried" else noid;
 
 fun html_thm ctxt (n, (thmref, thm)) =
   let
-    val string_of_thm =
+    val output_thm =
       Output.output o Pretty.string_of_margin 100 o
-        setmp_CRITICAL show_question_marks false (Display.pretty_thm ctxt);
+        Display.pretty_thm (Config.put show_question_marks false ctxt);
   in
     tag' "tr" (class ("row" ^ Int.toString (n mod 2)))
       [
@@ -153,7 +153,7 @@ fun html_thm ctxt (n, (thmref, thm)) =
           [span' (sorry_class thm)
              [raw_text (Facts.string_of_ref thmref)]
           ],
-        tag' "td" (class "thm") [pre noid (string_of_thm thm)]
+        tag' "td" (class "thm") [pre noid (output_thm thm)]
       ]
   end;
 
@@ -236,7 +236,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
   end;
 in
 
-val () = show_question_marks := false;
+val () = show_question_marks_default := false;
 val () = ScgiServer.register (find_theorems_url, SOME Mime.html, find_theorems);
 
 end;

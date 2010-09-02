@@ -114,7 +114,6 @@ sig
   val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
-  val show_question_marks: bool Unsynchronized.ref
 end;
 
 signature TERM =
@@ -983,11 +982,8 @@ fun show_dummy_patterns (Var (("_dummy_", _), T)) = Const ("dummy_pattern", T)
 
 (* display variables *)
 
-val show_question_marks = Unsynchronized.ref true;
-
 fun string_of_vname (x, i) =
   let
-    val question_mark = if ! show_question_marks then "?" else "";
     val idx = string_of_int i;
     val dot =
       (case rev (Symbol.explode x) of
@@ -996,9 +992,9 @@ fun string_of_vname (x, i) =
       | c :: _ => Symbol.is_digit c
       | _ => true);
   in
-    if dot then question_mark ^ x ^ "." ^ idx
-    else if i <> 0 then question_mark ^ x ^ idx
-    else question_mark ^ x
+    if dot then "?" ^ x ^ "." ^ idx
+    else if i <> 0 then "?" ^ x ^ idx
+    else "?" ^ x
   end;
 
 fun string_of_vname' (x, ~1) = x

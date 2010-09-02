@@ -12,6 +12,9 @@ sig
   val show_no_free_types: bool Unsynchronized.ref
   val show_all_types: bool Unsynchronized.ref
   val show_structs: bool Unsynchronized.ref
+  val show_question_marks_default: bool Unsynchronized.ref
+  val show_question_marks_value: Config.value Config.T
+  val show_question_marks: bool Config.T
   val pp_show_brackets: Pretty.pp -> Pretty.pp
 end;
 
@@ -52,6 +55,11 @@ val show_no_free_types = Unsynchronized.ref false;
 val show_all_types = Unsynchronized.ref false;
 val show_structs = Unsynchronized.ref false;
 
+val show_question_marks_default = Unsynchronized.ref true;
+val show_question_marks_value =
+  Config.declare false "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
+val show_question_marks = Config.bool show_question_marks_value;
+
 fun pp_show_brackets pp = Pretty.pp (setmp_CRITICAL show_brackets true (Pretty.term pp),
   Pretty.typ pp, Pretty.sort pp, Pretty.classrel pp, Pretty.arity pp);
 
@@ -72,15 +80,18 @@ fun apply_typed x y fs = map (fn f => fn ctxt => f ctxt x y) fs;
 
 (* simple_ast_of *)
 
-fun simple_ast_of (Const (c, _)) = Ast.Constant c
-  | simple_ast_of (Free (x, _)) = Ast.Variable x
-  | simple_ast_of (Var (xi, _)) = Ast.Variable (Term.string_of_vname xi)
-  | simple_ast_of (t as _ $ _) =
-      let val (f, args) = strip_comb t in
-        Ast.mk_appl (simple_ast_of f) (map simple_ast_of args)
-      end
-  | simple_ast_of (Bound i) = Ast.Variable ("B." ^ string_of_int i)
-  | simple_ast_of (Abs _) = raise Fail "simple_ast_of: Abs";
+fun simple_ast_of ctxt =
+  let
+    val tune_var = if Config.get ctxt show_question_marks then I else unprefix "?";
+    fun ast_of (Const (c, _)) = Ast.Constant c
+      | ast_of (Free (x, _)) = Ast.Variable x
+      | ast_of (Var (xi, _)) = Ast.Variable (tune_var (Term.string_of_vname xi))
+      | ast_of (t as _ $ _) =
+          let val (f, args) = strip_comb t
+          in Ast.mk_appl (ast_of f) (map ast_of args) end
+      | ast_of (Bound i) = Ast.Variable ("B." ^ string_of_int i)
+      | ast_of (Abs _) = raise Fail "simple_ast_of: Abs";
+  in ast_of end;
 
 
 
@@ -88,14 +99,14 @@ fun simple_ast_of (Const (c, _)) = Ast.Constant c
 
 fun ast_of_termT ctxt trf tm =
   let
-    fun ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of t
-      | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of t
+    fun ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of ctxt t
+      | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of ctxt t
       | ast_of (Const (a, _)) = trans a []
       | ast_of (t as _ $ _) =
           (case strip_comb t of
             (Const (a, _), args) => trans a args
           | (f, args) => Ast.Appl (map ast_of (f :: args)))
-      | ast_of t = simple_ast_of t
+      | ast_of t = simple_ast_of ctxt t
     and trans a args =
       ast_of (apply_trans ctxt (apply_typed false dummyT (trf a)) args)
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
@@ -168,7 +179,7 @@ fun ast_of_term idents consts ctxt trf
           if show_all_types
           then Ast.mk_appl (constrain const T) (map ast_of ts)
           else trans c T ts
-      | (t, ts) => Ast.mk_appl (simple_ast_of t) (map ast_of ts))
+      | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args =
       ast_of (apply_trans ctxt (apply_typed show_sorts T (trf a)) args)
@@ -176,9 +187,9 @@ fun ast_of_term idents consts ctxt trf
 
     and constrain t T =
       if show_types andalso T <> dummyT then
-        Ast.Appl [Ast.Constant Syn_Ext.constrainC, simple_ast_of t,
+        Ast.Appl [Ast.Constant Syn_Ext.constrainC, simple_ast_of ctxt t,
           ast_of_termT ctxt trf (Type_Ext.term_of_typ show_sorts T)]
-      else simple_ast_of t;
+      else simple_ast_of ctxt t;
   in
     tm
     |> Syn_Trans.prop_tr'

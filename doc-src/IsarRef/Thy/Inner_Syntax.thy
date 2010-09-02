@@ -108,7 +108,7 @@ text {*
     @{index_ML Proof.show_main_goal: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML show_hyps: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML show_tags: "bool Unsynchronized.ref"} & default @{ML false} \\
-    @{index_ML show_question_marks: "bool Unsynchronized.ref"} & default @{ML true} \\
+    @{index_ML show_question_marks: "bool Config.T"} & default @{ML true} \\
   \end{mldecls}
 
   These global ML variables control the detail of information that is

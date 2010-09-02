@@ -413,8 +413,7 @@ fun var_or_skolem _ s =
     SOME (x, i) =>
       (case try Name.dest_skolem x of
         NONE => Pretty.mark Markup.var (Pretty.str s)
-      | SOME x' => Pretty.mark Markup.skolem
-          (Pretty.str (setmp_CRITICAL show_question_marks true Term.string_of_vname (x', i))))
+      | SOME x' => Pretty.mark Markup.skolem (Pretty.str (Term.string_of_vname (x', i))))
   | NONE => Pretty.mark Markup.var (Pretty.str s));
 
 fun plain_markup m _ s = Pretty.mark m (Pretty.str s);
@@ -536,14 +535,16 @@ local
 fun certify_consts ctxt = Consts.certify (Syntax.pp ctxt) (tsig_of ctxt)
   (not (abbrev_mode ctxt)) (consts_of ctxt);
 
-fun reject_schematic (Var (xi, _)) =
-      error ("Unbound schematic variable: " ^ Term.string_of_vname xi)
-  | reject_schematic (Abs (_, _, t)) = reject_schematic t
-  | reject_schematic (t $ u) = (reject_schematic t; reject_schematic u)
-  | reject_schematic _ = ();
-
 fun expand_binds ctxt =
-  let val Mode {pattern, schematic, ...} = get_mode ctxt in
+  let
+    val Mode {pattern, schematic, ...} = get_mode ctxt;
+
+    fun reject_schematic (t as Var _) =
+          error ("Unbound schematic variable: " ^ Syntax.string_of_term ctxt t)
+      | reject_schematic (Abs (_, _, t)) = reject_schematic t
+      | reject_schematic (t $ u) = (reject_schematic t; reject_schematic u)
+      | reject_schematic _ = ();
+  in
     if pattern then I
     else Variable.expand_binds ctxt #> (if schematic then I else tap reject_schematic)
   end;
@@ -576,9 +577,9 @@ fun prepare_patternT ctxt T =
     val _ =
       pattern orelse schematic orelse
         T |> Term.exists_subtype
-          (fn TVar (xi, _) =>
+          (fn T as TVar (xi, _) =>
             not (Type_Infer.is_param xi) andalso
-              error ("Illegal schematic type variable: " ^ Term.string_of_vname xi)
+              error ("Illegal schematic type variable: " ^ Syntax.string_of_typ ctxt T)
           | _ => false)
   in T end;
 
