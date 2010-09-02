@@ -124,10 +124,10 @@ val vector_1 = vector_const rat_1;
 fun vector_cmul c (v:vector) =
  let val n = dim v
  in if c =/ rat_0 then vector_0 n
-    else (n,FuncUtil.Intfunc.map (fn x => c */ x) (snd v))
+    else (n,FuncUtil.Intfunc.map (fn _ => fn x => c */ x) (snd v))
  end;
 
-fun vector_neg (v:vector) = (fst v,FuncUtil.Intfunc.map Rat.neg (snd v)) :vector;
+fun vector_neg (v:vector) = (fst v,FuncUtil.Intfunc.map (K Rat.neg) (snd v)) :vector;
 
 fun vector_add (v1:vector) (v2:vector) =
  let val m = dim v1
@@ -167,11 +167,11 @@ val matrix_1 = matrix_const rat_1;
 fun matrix_cmul c (m:matrix) =
  let val (i,j) = dimensions m
  in if c =/ rat_0 then matrix_0 (i,j)
-    else ((i,j),FuncUtil.Intpairfunc.map (fn x => c */ x) (snd m))
+    else ((i,j),FuncUtil.Intpairfunc.map (fn _ => fn x => c */ x) (snd m))
  end;
 
 fun matrix_neg (m:matrix) =
-  (dimensions m, FuncUtil.Intpairfunc.map Rat.neg (snd m)) :matrix;
+  (dimensions m, FuncUtil.Intpairfunc.map (K Rat.neg) (snd m)) :matrix;
 
 fun matrix_add (m1:matrix) (m2:matrix) =
  let val d1 = dimensions m1
@@ -229,14 +229,14 @@ val monomial_mul =
 
 fun monomial_pow m k =
   if k = 0 then monomial_1
-  else FuncUtil.Ctermfunc.map (fn x => k * x) m;
+  else FuncUtil.Ctermfunc.map (fn _ => fn x => k * x) m;
 
 fun monomial_divides m1 m2 =
   FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => FuncUtil.Ctermfunc.tryapplyd m2 x 0 >= k andalso a) m1 true;;
 
 fun monomial_div m1 m2 =
  let val m = FuncUtil.Ctermfunc.combine Integer.add
-   (fn x => x = 0) m1 (FuncUtil.Ctermfunc.map (fn x => ~ x) m2)
+   (fn x => x = 0) m1 (FuncUtil.Ctermfunc.map (fn _ => fn x => ~ x) m2)
  in if FuncUtil.Ctermfunc.fold (fn (x, k) => fn a => k >= 0 andalso a) m true then m
   else error "monomial_div: non-divisible"
  end;
@@ -270,9 +270,9 @@ fun poly_const c =
 
 fun poly_cmul c p =
   if c =/ rat_0 then poly_0
-  else FuncUtil.Monomialfunc.map (fn x => c */ x) p;
+  else FuncUtil.Monomialfunc.map (fn _ => fn x => c */ x) p;
 
-fun poly_neg p = FuncUtil.Monomialfunc.map Rat.neg p;;
+fun poly_neg p = FuncUtil.Monomialfunc.map (K Rat.neg) p;;
 
 fun poly_add p1 p2 =
   FuncUtil.Monomialfunc.combine (curry op +/) (fn x => x =/ rat_0) p1 p2;
@@ -282,7 +282,7 @@ fun poly_sub p1 p2 = poly_add p1 (poly_neg p2);
 fun poly_cmmul (c,m) p =
  if c =/ rat_0 then poly_0
  else if FuncUtil.Ctermfunc.is_empty m
-      then FuncUtil.Monomialfunc.map (fn d => c */ d) p
+      then FuncUtil.Monomialfunc.map (fn _ => fn d => c */ d) p
       else FuncUtil.Monomialfunc.fold (fn (m', d) => fn a => (FuncUtil.Monomialfunc.update (monomial_mul m m', c */ d) a)) p poly_0;
 
 fun poly_mul p1 p2 =
@@ -596,13 +596,13 @@ fun pi_scale_then solver (obj:vector)  mats =
  let
   val cd1 = fold_rev (common_denominator FuncUtil.Intpairfunc.fold) mats (rat_1)
   val cd2 = common_denominator FuncUtil.Intfunc.fold (snd obj)  (rat_1)
-  val mats' = map (FuncUtil.Intpairfunc.map (fn x => cd1 */ x)) mats
+  val mats' = map (FuncUtil.Intpairfunc.map (fn _ => fn x => cd1 */ x)) mats
   val obj' = vector_cmul cd2 obj
   val max1 = fold_rev (maximal_element FuncUtil.Intpairfunc.fold) mats' (rat_0)
   val max2 = maximal_element FuncUtil.Intfunc.fold (snd obj') (rat_0)
   val scal1 = pow2 (20 - trunc(Math.ln (float_of_rat max1) / Math.ln 2.0))
   val scal2 = pow2 (20 - trunc(Math.ln (float_of_rat max2) / Math.ln 2.0))
-  val mats'' = map (FuncUtil.Intpairfunc.map (fn x => x */ scal1)) mats'
+  val mats'' = map (FuncUtil.Intpairfunc.map (fn _ => fn x => x */ scal1)) mats'
   val obj'' = vector_cmul scal2 obj'
  in solver obj'' mats''
   end
@@ -629,13 +629,13 @@ fun tri_scale_then solver (obj:vector)  mats =
  let
   val cd1 = fold_rev (common_denominator Inttriplefunc.fold) mats (rat_1)
   val cd2 = common_denominator FuncUtil.Intfunc.fold (snd obj)  (rat_1)
-  val mats' = map (Inttriplefunc.map (fn x => cd1 */ x)) mats
+  val mats' = map (Inttriplefunc.map (fn _ => fn x => cd1 */ x)) mats
   val obj' = vector_cmul cd2 obj
   val max1 = fold_rev (maximal_element Inttriplefunc.fold) mats' (rat_0)
   val max2 = maximal_element FuncUtil.Intfunc.fold (snd obj') (rat_0)
   val scal1 = pow2 (20 - int_of_float(Math.ln (float_of_rat max1) / Math.ln 2.0))
   val scal2 = pow2 (20 - int_of_float(Math.ln (float_of_rat max2) / Math.ln 2.0))
-  val mats'' = map (Inttriplefunc.map (fn x => x */ scal1)) mats'
+  val mats'' = map (Inttriplefunc.map (fn _ => fn x => x */ scal1)) mats'
   val obj'' = vector_cmul scal2 obj'
  in solver obj'' mats''
   end
@@ -655,7 +655,7 @@ fun dest_ord f x = is_equal (f x);
 (* Stuff for "equations" ((int*int*int)->num functions).                         *)
 
 fun tri_equation_cmul c eq =
-  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (fn d => c */ d) eq;
+  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (fn _ => fn d => c */ d) eq;
 
 fun tri_equation_add eq1 eq2 = Inttriplefunc.combine (curry op +/) (fn x => x =/ rat_0) eq1 eq2;
 
@@ -686,7 +686,7 @@ fun eliminate vars dun eqs = case vars of
      in if b =/ rat_0 then e else
         tri_equation_add e (tri_equation_cmul (Rat.neg b // a) eq)
      end
-   in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.map elim dun)) (map elim oeqs)
+   in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.map (K elim) dun)) (map elim oeqs)
    end)
   handle Failure _ => eliminate vs dun eqs)
 in
@@ -724,7 +724,7 @@ fun tri_eliminate_all_equations one =
          in if b =/ rat_0 then e
             else tri_equation_add e (tri_equation_cmul (Rat.neg b // a) eq)
          end
-    in eliminate (Inttriplefunc.update(v, eq') (Inttriplefunc.map elim dun))
+    in eliminate (Inttriplefunc.update(v, eq') (Inttriplefunc.map (K elim) dun))
                  (map elim oeqs)
     end
 in fn eqs =>
@@ -744,7 +744,7 @@ fun tri_solve_equations one eqs =
             (Inttriplefunc.onefunc(one, Rat.rat_of_int ~1))
   val ass =
     Inttriplefunc.combine (curry op +/) (K false)
-    (Inttriplefunc.map (tri_equation_eval vfn) assigs) vfn
+    (Inttriplefunc.map (K (tri_equation_eval vfn)) assigs) vfn
  in if forall (fn e => tri_equation_eval ass e =/ rat_0) eqs
     then Inttriplefunc.delete_safe one ass else raise Sanity
  end;
@@ -762,7 +762,7 @@ fun tri_epoly_pmul p q acc =
 (* Usual operations on equation-parametrized poly.                           *)
 
 fun tri_epoly_cmul c l =
-  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (tri_equation_cmul c) l;;
+  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (K (tri_equation_cmul c)) l;;
 
 val tri_epoly_neg = tri_epoly_cmul (Rat.rat_of_int ~1);
 
@@ -773,7 +773,7 @@ fun tri_epoly_sub p q = tri_epoly_add p (tri_epoly_neg q);;
 (* Stuff for "equations" ((int*int)->num functions).                         *)
 
 fun pi_equation_cmul c eq =
-  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (fn d => c */ d) eq;
+  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (fn _ => fn d => c */ d) eq;
 
 fun pi_equation_add eq1 eq2 = Inttriplefunc.combine (curry op +/) (fn x => x =/ rat_0) eq1 eq2;
 
@@ -804,7 +804,7 @@ fun eliminate vars dun eqs = case vars of
      in if b =/ rat_0 then e else
         pi_equation_add e (pi_equation_cmul (Rat.neg b // a) eq)
      end
-   in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.map elim dun)) (map elim oeqs)
+   in eliminate vs (Inttriplefunc.update (v,eq') (Inttriplefunc.map (K elim) dun)) (map elim oeqs)
    end
   handle Failure _ => eliminate vs dun eqs
 in
@@ -842,7 +842,7 @@ fun pi_eliminate_all_equations one =
          in if b =/ rat_0 then e
             else pi_equation_add e (pi_equation_cmul (Rat.neg b // a) eq)
          end
-    in eliminate (Inttriplefunc.update(v, eq') (Inttriplefunc.map elim dun))
+    in eliminate (Inttriplefunc.update(v, eq') (Inttriplefunc.map (K elim) dun))
                  (map elim oeqs)
     end
 in fn eqs =>
@@ -862,7 +862,7 @@ fun pi_solve_equations one eqs =
             (Inttriplefunc.onefunc(one, Rat.rat_of_int ~1))
   val ass =
     Inttriplefunc.combine (curry op +/) (K false)
-    (Inttriplefunc.map (pi_equation_eval vfn) assigs) vfn
+    (Inttriplefunc.map (K (pi_equation_eval vfn)) assigs) vfn
  in if forall (fn e => pi_equation_eval ass e =/ rat_0) eqs
     then Inttriplefunc.delete_safe one ass else raise Sanity
  end;
@@ -880,7 +880,7 @@ fun pi_epoly_pmul p q acc =
 (* Usual operations on equation-parametrized poly.                           *)
 
 fun pi_epoly_cmul c l =
-  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (pi_equation_cmul c) l;;
+  if c =/ rat_0 then Inttriplefunc.empty else Inttriplefunc.map (K (pi_equation_cmul c)) l;;
 
 val pi_epoly_neg = pi_epoly_cmul (Rat.rat_of_int ~1);
 
@@ -1035,7 +1035,7 @@ fun run_blockproblem prover nblocks blocksizes obj mats=
 val bmatrix_add = Inttriplefunc.combine (curry op +/) (fn x => x =/ rat_0);
 fun bmatrix_cmul c bm =
   if c =/ rat_0 then Inttriplefunc.empty
-  else Inttriplefunc.map (fn x => c */ x) bm;
+  else Inttriplefunc.map (fn _ => fn x => c */ x) bm;
 
 val bmatrix_neg = bmatrix_cmul (Rat.rat_of_int ~1);
 fun bmatrix_sub m1 m2 = bmatrix_add m1 (bmatrix_neg m2);;

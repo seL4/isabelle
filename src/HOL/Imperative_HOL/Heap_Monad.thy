@@ -578,7 +578,7 @@ fun imp_program naming =
             (map o pairself) imp_monad_bind pats),
               imp_monad_bind t0);
 
-  in (Graph.map_nodes o map_terms_stmt) imp_monad_bind end;
+  in (Graph.map o K o map_terms_stmt) imp_monad_bind end;
 
 in
 

@@ -193,8 +193,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
                 str "match", str "{"], str "}")
               (map print_clause eqs)
           end;
-    val print_method = str o Library.enclose "`" "`" o space_implode "+"
-      o Long_Name.explode o deresolve_full;
+    val print_method = str o Library.enclose "`" "`" o deresolve_full;
     fun print_stmt (name, Code_Thingol.Fun (_, (((vs, ty), raw_eqs), _))) =
           print_def name (vs, ty) (filter (snd o snd) raw_eqs)
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
@@ -318,10 +317,14 @@ fun scala_program_of_program labelled_name reserved module_alias program =
         val implicits = filter (is_classinst o Graph.get_node program)
           (Graph.imm_succs program name);
       in union (op =) implicits end;
+    fun modify_stmt (_, Code_Thingol.Datatypecons _) = NONE
+      | modify_stmt (_, Code_Thingol.Classrel _) = NONE
+      | modify_stmt (_, Code_Thingol.Classparam _) = NONE
+      | modify_stmt (_, stmt) = SOME stmt;
   in
     Code_Namespace.hierarchical_program labelled_name { module_alias = module_alias, reserved = reserved,
       empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module, namify_stmt = namify_stmt,
-      cyclic_modules = true, empty_data = [], memorize_data = memorize_implicits } program
+      cyclic_modules = true, empty_data = [], memorize_data = memorize_implicits, modify_stmts = map modify_stmt } program
   end;
 
 fun serialize_scala { labelled_name, reserved_syms, includes,
@@ -330,9 +333,8 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
   let
 
     (* build program *)
-    val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val { deresolver, hierarchical_program = sca_program } =
-      scala_program_of_program labelled_name (Name.make_context reserved) module_alias program;
+      scala_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
 
     (* print statements *)
     fun lookup_constr tyco constr = case Graph.get_node program tyco
@@ -352,7 +354,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name tyco_syntax const_syntax
-      (make_vars reserved) args_num is_singleton_constr;
+      (make_vars reserved_syms) args_num is_singleton_constr;
 
     (* print nodes *)
     fun print_module base implicit_ps p = Pretty.chunks2
@@ -364,7 +366,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
       let
         val s = deresolver prefix_fragments implicit;
       in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
-    fun print_node _ (_, Dummy) = NONE
+    fun print_node _ (_, Code_Namespace.Dummy) = NONE
       | print_node prefix_fragments (name, Code_Namespace.Stmt stmt) =
           if null presentation_names
           orelse member (op =) presentation_names name

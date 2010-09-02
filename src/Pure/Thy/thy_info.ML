@@ -346,6 +346,6 @@ fun register_thy theory =
 
 (* finish all theories *)
 
-fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
+fun finish () = change_thys (Graph.map (fn _ => fn (_, entry) => (NONE, entry)));
 
 end;

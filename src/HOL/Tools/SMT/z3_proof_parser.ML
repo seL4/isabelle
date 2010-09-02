@@ -191,7 +191,7 @@ fun make_context ctxt typs terms =
     fun cert @{term True} = @{cterm "~False"}
       | cert t = certify ctxt' t
 
-  in (typs, Symtab.map cert terms, Inttab.empty, Inttab.empty, [], ctxt') end
+  in (typs, Symtab.map (K cert) terms, Inttab.empty, Inttab.empty, [], ctxt') end
 
 fun fresh_name n (typs, terms, exprs, steps, vars, ctxt) =
   let val (n', ctxt') = yield_singleton Variable.variant_fixes n ctxt

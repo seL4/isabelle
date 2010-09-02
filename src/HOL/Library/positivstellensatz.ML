@@ -549,7 +549,7 @@ end;
 (* A linear arithmetic prover *)
 local
   val linear_add = FuncUtil.Ctermfunc.combine (curry op +/) (fn z => z =/ Rat.zero)
-  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn x => c */ x)
+  fun linear_cmul c = FuncUtil.Ctermfunc.map (fn _ => fn x => c */ x)
   val one_tm = @{cterm "1::real"}
   fun contradictory p (e,_) = ((FuncUtil.Ctermfunc.is_empty e) andalso not(p Rat.zero)) orelse
      ((eq_set (op aconvc) (FuncUtil.Ctermfunc.dom e, [one_tm])) andalso

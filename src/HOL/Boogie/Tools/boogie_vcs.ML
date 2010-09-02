@@ -348,6 +348,6 @@ fun rewrite_vcs f g thy =
   let
     fun rewr (_, (t, _)) = vc_of_term (f thy t)
       |> (fn vc => (vc, (t, thm_of thy vc)))
-  in VCs.map (Option.map (fn (vcs, _) => (Symtab.map rewr vcs, g))) thy end
+  in VCs.map (Option.map (fn (vcs, _) => (Symtab.map (K rewr) vcs, g))) thy end
 
 end

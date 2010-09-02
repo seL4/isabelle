@@ -1931,6 +1931,10 @@ code_reserved OCaml
 code_reserved Scala
   Boolean
 
+code_modulename SML Pure HOL
+code_modulename OCaml Pure HOL
+code_modulename Haskell Pure HOL
+
 text {* using built-in Haskell equality *}
 
 code_class equal
