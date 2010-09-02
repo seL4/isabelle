@@ -5,13 +5,13 @@ begin
 definition dynkin
 where "dynkin M =
       ((\<forall> A \<in> sets M. A \<subseteq> space M) \<and>
-       space M \<in> sets M \<and> (\<forall> a \<in> sets M. \<forall> b \<in> sets M. b - a \<in> sets M) \<and>
+       space M \<in> sets M \<and> (\<forall> b \<in> sets M. \<forall> a \<in> sets M. a \<subseteq> b \<longrightarrow> b - a \<in> sets M) \<and>
        (\<forall> a. (\<forall> i j :: nat. i \<noteq> j \<longrightarrow> a i \<inter> a j = {}) \<and>
              (\<forall> i :: nat. a i \<in> sets M) \<longrightarrow> UNION UNIV a \<in> sets M))"
 
 lemma dynkinI:
   assumes "\<And> A. A \<in> sets M \<Longrightarrow> A \<subseteq> space M"
-  assumes "space M \<in> sets M" and "\<forall> a \<in> sets M. \<forall> b \<in> sets M. b - a \<in> sets M"
+  assumes "space M \<in> sets M" and "\<forall> b \<in> sets M. \<forall> a \<in> sets M. a \<subseteq> b \<longrightarrow> b - a \<in> sets M"
   assumes "\<And> a. (\<And> i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {})
           \<Longrightarrow> (\<And> i :: nat. a i \<in> sets M) \<Longrightarrow> UNION UNIV a \<in> sets M"
   shows "dynkin M"
@@ -29,13 +29,18 @@ using assms unfolding dynkin_def by auto
 
 lemma dynkin_diff:
   assumes "dynkin M"
-  shows "\<And> a b. \<lbrakk> a \<in> sets M ; b \<in> sets M \<rbrakk> \<Longrightarrow> b - a \<in> sets M"
+  shows "\<And> a b. \<lbrakk> a \<in> sets M ; b \<in> sets M ; a \<subseteq> b \<rbrakk> \<Longrightarrow> b - a \<in> sets M"
 using assms unfolding dynkin_def by auto
+
+lemma dynkin_empty:
+  assumes "dynkin M"
+  shows "{} \<in> sets M"
+using dynkin_diff[OF assms dynkin_space[OF assms] dynkin_space[OF assms]] by auto
 
 lemma dynkin_UN:
   assumes "dynkin M"
   assumes "\<And> i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {}"
-  assumes "\<forall> i :: nat. a i \<in> sets M"
+  assumes "\<And> i :: nat. a i \<in> sets M"
   shows "UNION UNIV a \<in> sets M"
 using assms unfolding dynkin_def by auto
 
@@ -46,7 +51,7 @@ lemma dynkin_trivial:
   shows "dynkin \<lparr> space = A, sets = Pow A \<rparr>"
 by (rule dynkinI) auto
 
-lemma
+lemma dynkin_lemma:
   assumes stab: "Int_stable E"
   and spac: "space E = space D"
   and subsED: "sets E \<subseteq> sets D"
@@ -61,10 +66,8 @@ proof -
   hence not_empty: "{sets (d :: 'a algebra) | d. dynkin d \<and> space d = space E \<and> sets E \<subseteq> sets d} \<noteq> {}"
     using exI[of "\<lambda> x. space x = space E \<and> dynkin x \<and> sets E \<subseteq> sets x" "\<lparr> space = space E, sets = Pow (space E) \<rparr>", simplified]
     by auto
-
-  have "sets_\<delta>E \<subseteq> sets D"
+  have \<delta>E_D: "sets_\<delta>E \<subseteq> sets D"
     unfolding sets_\<delta>E_def using assms by auto
-
   have \<delta>ynkin: "dynkin \<delta>E"
   proof (rule dynkinI, safe)
     fix A x assume asm: "A \<in> sets \<delta>E" "x \<in> A"
@@ -91,7 +94,7 @@ proof -
       unfolding \<delta>E_def sets_\<delta>E_def
       using dynkin_space by fastsimp
   next
-    fix a b assume "a \<in> sets \<delta>E" "b \<in> sets \<delta>E"
+    fix a b assume "a \<in> sets \<delta>E" "b \<in> sets \<delta>E" "a \<subseteq> b"
     thus "b - a \<in> sets \<delta>E"
       unfolding \<delta>E_def sets_\<delta>E_def by (auto intro:dynkin_diff)
   next
@@ -142,21 +145,21 @@ proof -
           unfolding \<delta>E_def by auto
       qed
     next
-      fix a b assume absm: "a \<in> Dy d" "b \<in> Dy d"
+      fix a b assume absm: "a \<in> Dy d" "b \<in> Dy d" "a \<subseteq> b"
       hence "a \<in> sets \<delta>E" "b \<in> sets \<delta>E"
         unfolding Dy_def \<delta>E_def by auto
       hence *: "b - a \<in> sets \<delta>E"
-        using dynkin_diff[OF \<delta>ynkin] by auto
+        using dynkin_diff[OF \<delta>ynkin] `a \<subseteq> b` by auto
       have "a \<inter> d \<in> sets \<delta>E" "b \<inter> d \<in> sets \<delta>E"
         using absm unfolding Dy_def \<delta>E_def by auto
       hence "(b \<inter> d) - (a \<inter> d) \<in> sets \<delta>E"
-        using dynkin_diff[OF \<delta>ynkin] by auto
+        using dynkin_diff[OF \<delta>ynkin] `a \<subseteq> b` by auto
       hence **: "(b - a) \<inter> d \<in> sets \<delta>E" by (auto simp add:Diff_Int_distrib2)
       thus "b - a \<in> Dy d"
         using * ** unfolding Dy_def \<delta>E_def by auto
     next
       fix a assume aasm: "\<And>i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {}" "\<And>i. a i \<in> Dy d"
-      hence "\<forall> i. a i \<in> sets \<delta>E"
+      hence "\<And> i. a i \<in> sets \<delta>E"
         unfolding Dy_def \<delta>E_def by auto
       from dynkin_UN[OF \<delta>ynkin aasm(1) this]
       have *: "UNION UNIV a \<in> sets \<delta>E" by auto
@@ -228,24 +231,170 @@ proof -
     fix a assume aasm: "a \<in> sets \<delta>E"
     hence "a \<inter> d \<in> sets \<delta>E"
       using * dasm unfolding Dy_def \<delta>E_def by auto } note \<delta>E_stab = this
-  have "sigma_algebra D"
-    apply unfold_locales
-    using dynkin_subset[OF dyn]
-    using dynkin_diff[OF dyn, of _ "space D", OF _ dynkin_space[OF dyn]]
-    using dynkin_diff[OF dyn, of "space D" "space D", OF dynkin_space[OF dyn] dynkin_space[OF dyn]]
-    using dynkin_space[OF dyn]
-  proof auto
-    fix A :: "nat \<Rightarrow> 'a set" assume Asm: "range A \<subseteq> sets D" "\<And>A. A \<in> sets D \<Longrightarrow> A \<subseteq> space D"
-      "\<And>a. a \<in> sets D \<Longrightarrow> space D - a \<in> sets D"
-    "{} \<in> sets D" "space D \<in> sets D"
-    let "?A i" = "A i - (\<Inter> j \<in> {..< i}. A j)"
-    { fix i :: nat assume "i > 0"
-      have "(\<Inter> j \<in> {..< i}. A j) \<in> sets \<delta>E"
+  { fix A :: "nat \<Rightarrow> 'a set" assume Asm: "range A \<subseteq> sets \<delta>E" "\<And>A. A \<in> sets \<delta>E \<Longrightarrow> A \<subseteq> space \<delta>E"
+      "\<And>a. a \<in> sets \<delta>E \<Longrightarrow> space \<delta>E - a \<in> sets \<delta>E"
+    "{} \<in> sets \<delta>E" "space \<delta>E \<in> sets \<delta>E"
+    let "?A i" = "A i \<inter> (\<Inter> j \<in> {..< i}. space \<delta>E - A j)"
+    { fix i :: nat
+      have *: "(\<Inter> j \<in> {..< i}. space \<delta>E - A j) \<inter> space \<delta>E \<in> sets \<delta>E"
         apply (induct i)
-        apply auto
-    }
-    from dynkin_UN
+        using lessThan_Suc Asm \<delta>E_stab apply fastsimp
+        apply (subst lessThan_Suc)
+        apply (subst INT_insert)
+        apply (subst Int_assoc)
+        apply (subst \<delta>E_stab)
+        using lessThan_Suc Asm \<delta>E_stab Asm
+        apply (fastsimp simp add:Int_assoc dynkin_diff[OF \<delta>ynkin])
+        prefer 2 apply simp
+        apply (rule dynkin_diff[OF \<delta>ynkin, of _ "space \<delta>E", OF _ dynkin_space[OF \<delta>ynkin]])
+        using Asm by auto
+      have **: "\<And> i. A i \<subseteq> space \<delta>E" using Asm by auto
+      have "(\<Inter> j \<in> {..< i}. space \<delta>E - A j) \<subseteq> space \<delta>E \<or> (\<Inter> j \<in> {..< i}. A j) = UNIV \<and> i = 0"
+        apply (cases i)
+        using Asm ** dynkin_subset[OF \<delta>ynkin, of "A (i - 1)"]
+        by auto
+      hence Aisets: "?A i \<in> sets \<delta>E"
+        apply (cases i)
+        using Asm * apply fastsimp
+        apply (rule \<delta>E_stab)
+        using Asm * **
+        by (auto simp add:Int_absorb2)
+      have "?A i = disjointed A i" unfolding disjointed_def
+      atLeast0LessThan using Asm by auto
+      hence "?A i = disjointed A i" "?A i \<in> sets \<delta>E"
+        using Aisets by auto
+    } note Ai = this
+    from dynkin_UN[OF \<delta>ynkin _ this(2)] this disjoint_family_disjointed[of A]
+    have "(\<Union> i. ?A i) \<in> sets \<delta>E"
+      by (auto simp add:disjoint_family_on_def disjointed_def)
+    hence "(\<Union> i. A i) \<in> sets \<delta>E"
+      using Ai(1) UN_disjointed_eq[of A] by auto } note \<delta>E_UN = this
+  { fix a b assume asm: "a \<in> sets \<delta>E" "b \<in> sets \<delta>E"
+    let ?ab = "\<lambda> i. if (i::nat) = 0 then a else if i = 1 then b else {}"
+    have *: "(\<Union> i. ?ab i) \<in> sets \<delta>E"
+      apply (rule \<delta>E_UN)
+      using asm \<delta>E_UN dynkin_empty[OF \<delta>ynkin] 
+      dynkin_subset[OF \<delta>ynkin] 
+      dynkin_space[OF \<delta>ynkin]
+      dynkin_diff[OF \<delta>ynkin] by auto
+    have "(\<Union> i. ?ab i) = a \<union> b" apply auto
+      apply (case_tac "i = 0")
+      apply auto
+      apply (case_tac "i = 1")
+      by auto
+    hence "a \<union> b \<in> sets \<delta>E" using * by auto} note \<delta>E_Un = this
+  have "sigma_algebra \<delta>E"
+    apply unfold_locales
+    using dynkin_subset[OF \<delta>ynkin]
+    using dynkin_diff[OF \<delta>ynkin, of _ "space \<delta>E", OF _ dynkin_space[OF \<delta>ynkin]]
+    using dynkin_diff[OF \<delta>ynkin, of "space \<delta>E" "space \<delta>E", OF dynkin_space[OF \<delta>ynkin] dynkin_space[OF \<delta>ynkin]]
+    using dynkin_space[OF \<delta>ynkin]
+    using \<delta>E_UN \<delta>E_Un
+    by auto
+  from sigma_algebra.sigma_subset[OF this E_\<delta>E] \<delta>E_D subsDE spac
+  show ?thesis by (auto simp add:\<delta>E_def sigma_def)
+qed
+
+lemma measure_eq:
+  assumes fin: "\<mu> (space M) = \<nu> (space M)" "\<nu> (space M) < \<omega>" 
+  assumes E: "M = sigma (space E) (sets E)" "Int_stable E"
+  assumes eq: "\<And> e. e \<in> sets E \<Longrightarrow> \<mu> e = \<nu> e"
+  assumes ms: "measure_space M \<mu>" "measure_space M \<nu>"
+  assumes A: "A \<in> sets M"
+  shows "\<mu> A = \<nu> A"
+proof -
+  interpret M: measure_space M \<mu>
+    using ms by simp
+  interpret M': measure_space M \<nu>
+    using ms by simp
+
+  let ?D_sets = "{A. A \<in> sets M \<and> \<mu> A = \<nu> A}"
+  have \<delta>: "dynkin \<lparr> space = space M , sets = ?D_sets \<rparr>"
+  proof (rule dynkinI, safe, simp_all)
+    fix A x assume "A \<in> sets M \<and> \<mu> A = \<nu> A" "x \<in> A"
+    thus "x \<in> space M" using assms M.sets_into_space by auto
+  next
+    show "\<mu> (space M) = \<nu> (space M)"
+      using fin by auto
+  next
+    fix a b
+    assume asm: "a \<in> sets M \<and> \<mu> a = \<nu> a"
+      "b \<in> sets M \<and> \<mu> b = \<nu> b" "a \<subseteq> b"
+    hence "a \<subseteq> space M"
+      using M.sets_into_space by auto
+    from M.measure_mono[OF this]
+    have "\<mu> a \<le> \<mu> (space M)"
+      using asm by auto
+    hence afin: "\<mu> a < \<omega>"
+      using fin by auto
+    have *: "b = b - a \<union> a" using asm by auto
+    have **: "(b - a) \<inter> a = {}" using asm by auto
+    have iv: "\<mu> (b - a) + \<mu> a = \<mu> b"
+      using M.measure_additive[of "b - a" a]
+        conjunct1[OF asm(1)] conjunct1[OF asm(2)] * **
+      by auto
+    have v: "\<nu> (b - a) + \<nu> a = \<nu> b"
+      using M'.measure_additive[of "b - a" a]
+        conjunct1[OF asm(1)] conjunct1[OF asm(2)] * **
+      by auto
+    from iv v have "\<mu> (b - a) = \<nu> (b - a)" using asm afin
+      pinfreal_add_cancel_right[of "\<mu> (b - a)" "\<nu> a" "\<nu> (b - a)"]
+      by auto
+    thus "b - a \<in> sets M \<and> \<mu> (b - a) = \<nu> (b - a)"
+      using asm by auto
+  next
+    fix a assume "\<And>i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {}"
+      "\<And>i. a i \<in> sets M \<and> \<mu> (a i) = \<nu> (a i)"
+    thus "(\<Union>x. a x) \<in> sets M \<and> \<mu> (\<Union>x. a x) = \<nu> (\<Union>x. a x)"
+      using M.measure_countably_additive
+        M'.measure_countably_additive
+        M.countable_UN
+      apply (auto simp add:disjoint_family_on_def image_def)
+      apply (subst M.measure_countably_additive[symmetric])
+      apply (auto simp add:disjoint_family_on_def)
+      apply (subst M'.measure_countably_additive[symmetric])
+      by (auto simp add:disjoint_family_on_def)
   qed
+  have *: "sets E \<subseteq> ?D_sets"
+    using eq E sigma_sets.Basic[of _ "sets E"]
+    by (auto simp add:sigma_def)
+  have **: "?D_sets \<subseteq> sets M" by auto
+  have "M = \<lparr> space = space M , sets = ?D_sets \<rparr>"
+    unfolding E(1)
+    apply (rule dynkin_lemma[OF E(2)])
+    using eq E space_sigma \<delta> sigma_sets.Basic
+    by (auto simp add:sigma_def)
+  from subst[OF this, of "\<lambda> M. A \<in> sets M", OF A]
+  show ?thesis by auto
+qed
+
+lemma
+  assumes sfin: "range A \<subseteq> sets M" "(\<Union>i. A i) = space M" "\<And> i :: nat. \<nu> (A i) < \<omega>"
+  assumes A: "\<And>  i. \<mu> (A i) = \<nu> (A i)" "\<And> i. A i \<subseteq> A (Suc i)"
+  assumes E: "M = sigma (space E) (sets E)" "Int_stable E"
+  assumes eq: "\<And> e. e \<in> sets E \<Longrightarrow> \<mu> e = \<nu> e"
+  assumes ms: "measure_space (M :: 'a algebra) \<mu>" "measure_space M \<nu>"
+  assumes B: "B \<in> sets M"
+  shows "\<mu> B = \<nu> B"
+proof -
+  interpret M: measure_space M \<mu> by (rule ms)
+  interpret M': measure_space M \<nu> by (rule ms)
+  have *: "M = \<lparr> space = space M, sets = sets M \<rparr>" by auto
+  { fix i :: nat
+    have **: "M\<lparr> space := A i, sets := op \<inter> (A i) ` sets M \<rparr> =
+      \<lparr> space = A i, sets = op \<inter> (A i) ` sets M \<rparr>"
+      by auto
+    have mu_i: "measure_space \<lparr> space = A i, sets = op \<inter> (A i) ` sets M \<rparr> \<mu>"
+      using M.restricted_measure_space[of "A i", simplified **]
+        sfin by auto
+    have nu_i: "measure_space \<lparr> space = A i, sets = op \<inter> (A i) ` sets M \<rparr> \<nu>"
+      using M'.restricted_measure_space[of "A i", simplified **]
+        sfin by auto
+    let ?M = "\<lparr> space = A i, sets = op \<inter> (A i) ` sets M \<rparr>"
+    have "\<mu> (A i \<inter> B) = \<nu> (A i \<inter> B)"
+      apply (rule measure_eq[of \<mu> ?M \<nu> "\<lparr> space = space E \<inter> A i, sets = op \<inter> (A i) ` sets E\<rparr>" "A i \<inter> B", simplified])
+      using assms nu_i mu_i
+      apply (auto simp add:image_def) (* TODO *)
 qed
 
 lemma
