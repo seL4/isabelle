@@ -10,7 +10,6 @@ header {* Reconstructing external resolution proofs for propositional logic *}
 theory SAT
 imports Refute
 uses
-  "Tools/cnf_funcs.ML"
   "Tools/sat_funcs.ML"
 begin
 

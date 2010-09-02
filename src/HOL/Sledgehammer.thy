@@ -26,6 +26,9 @@ uses
   ("Tools/Sledgehammer/sledgehammer_isar.ML")
 begin
 
+lemma TruepropI: "P \<equiv> Q \<Longrightarrow> Trueprop P \<equiv> Trueprop Q"
+by simp
+
 definition skolem_id :: "'a \<Rightarrow> 'a" where
 [no_atp]: "skolem_id = (\<lambda>x. x)"
 

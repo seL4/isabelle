@@ -228,19 +228,26 @@ fun to_nnf th ctxt0 =
                   |> Meson.make_nnf ctxt
   in (th3, ctxt) end
 
+fun to_definitional_cnf_with_quantifiers thy th =
+  let
+    val eqth = cnf.make_cnfx_thm thy (HOLogic.dest_Trueprop (prop_of th))
+    val eqth = eqth RS @{thm eq_reflection}
+    val eqth = eqth RS @{thm TruepropI}
+  in Thm.equal_elim eqth th end
+
 (* Convert a theorem to CNF, with Skolem functions as additional premises. *)
 fun cnf_axiom thy th =
   let
     val ctxt0 = Variable.global_thm_context th
-    val (nnfth, ctxt) = to_nnf th ctxt0
-    val sko_ths = map (skolem_theorem_of_def thy)
-                      (assume_skolem_funs nnfth)
-    val (cnfs, ctxt) = Meson.make_cnf sko_ths nnfth ctxt
+    val (nnf_th, ctxt) = to_nnf th ctxt0
+    val def_th = to_definitional_cnf_with_quantifiers thy nnf_th
+    val sko_ths = map (skolem_theorem_of_def thy) (assume_skolem_funs def_th)
+    val (cnf_ths, ctxt) = Meson.make_cnf sko_ths def_th ctxt
   in
-    cnfs |> map introduce_combinators_in_theorem
-         |> Variable.export ctxt ctxt0
-         |> Meson.finish_cnf
-         |> map Thm.close_derivation
+    cnf_ths |> map introduce_combinators_in_theorem
+            |> Variable.export ctxt ctxt0
+            |> Meson.finish_cnf
+            |> map Thm.close_derivation
   end
   handle THM _ => []
 
