@@ -127,7 +127,8 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
-fun markup_stmt name = Pretty.mark (code_presentationN, [(stmt_nameN, name)]);
+fun markup_stmt name = Print_Mode.setmp [code_presentationN]
+  (Pretty.mark (code_presentationN, [(stmt_nameN, name)]));
 
 fun filter_presentation presentation_names selected (XML.Elem ((name, attrs), xs)) =
       implode (map (filter_presentation presentation_names
