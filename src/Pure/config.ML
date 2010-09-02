@@ -41,8 +41,8 @@ fun print_value (Bool true) = "true"
   | print_value (Int i) = signed_string_of_int i
   | print_value (String s) = quote s;
 
-fun print_type (Bool _) = "boolean"
-  | print_type (Int _) = "integer"
+fun print_type (Bool _) = "bool"
+  | print_type (Int _) = "int"
   | print_type (String _) = "string";
 
 fun same_type (Bool _) (Bool _) = true

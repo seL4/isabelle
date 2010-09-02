@@ -97,7 +97,7 @@ ML {*
 structure Dig_Simps = Named_Thms
 (
   val name = "numeral"
-  val description = "Simplification rules for numerals"
+  val description = "simplification rules for numerals"
 )
 *}
 
@@ -845,7 +845,7 @@ lemma [code, code del]:
   "(uminus :: int \<Rightarrow> int) = uminus"
   "(op - :: int \<Rightarrow> int \<Rightarrow> int) = op -"
   "(op * :: int \<Rightarrow> int \<Rightarrow> int) = op *"
-  "(eq_class.eq :: int \<Rightarrow> int \<Rightarrow> bool) = eq_class.eq"
+  "(HOL.equal :: int \<Rightarrow> int \<Rightarrow> bool) = HOL.equal"
   "(op \<le> :: int \<Rightarrow> int \<Rightarrow> bool) = op \<le>"
   "(op < :: int \<Rightarrow> int \<Rightarrow> bool) = op <"
   by rule+
@@ -928,16 +928,20 @@ lemma times_int_code [code]:
   by simp_all
 
 lemma eq_int_code [code]:
-  "eq_class.eq 0 (0::int) \<longleftrightarrow> True"
-  "eq_class.eq 0 (Pls l) \<longleftrightarrow> False"
-  "eq_class.eq 0 (Mns l) \<longleftrightarrow> False"
-  "eq_class.eq (Pls k) 0 \<longleftrightarrow> False"
-  "eq_class.eq (Pls k) (Pls l) \<longleftrightarrow> eq_class.eq k l"
-  "eq_class.eq (Pls k) (Mns l) \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) 0 \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) (Pls l) \<longleftrightarrow> False"
-  "eq_class.eq (Mns k) (Mns l) \<longleftrightarrow> eq_class.eq k l"
-  by (auto simp add: eq dest: sym)
+  "HOL.equal 0 (0::int) \<longleftrightarrow> True"
+  "HOL.equal 0 (Pls l) \<longleftrightarrow> False"
+  "HOL.equal 0 (Mns l) \<longleftrightarrow> False"
+  "HOL.equal (Pls k) 0 \<longleftrightarrow> False"
+  "HOL.equal (Pls k) (Pls l) \<longleftrightarrow> HOL.equal k l"
+  "HOL.equal (Pls k) (Mns l) \<longleftrightarrow> False"
+  "HOL.equal (Mns k) 0 \<longleftrightarrow> False"
+  "HOL.equal (Mns k) (Pls l) \<longleftrightarrow> False"
+  "HOL.equal (Mns k) (Mns l) \<longleftrightarrow> HOL.equal k l"
+  by (auto simp add: equal dest: sym)
+
+lemma [code nbe]:
+  "HOL.equal (k::int) k \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemma less_eq_int_code [code]:
   "0 \<le> (0::int) \<longleftrightarrow> True"
@@ -985,7 +989,7 @@ fun add_code print target =
       in dest_num end;
     fun pretty sgn literals [one', dig0', dig1'] _ thm _ _ [(t, _)] =
       (Code_Printer.str o print literals o sgn o dest_num one' dig0' dig1' thm) t
-    fun add_syntax (c, sgn) = Code_Target.add_syntax_const target c
+    fun add_syntax (c, sgn) = Code_Target.add_const_syntax target c
       (SOME (Code_Printer.complex_const_syntax
         (1, ([@{const_name One}, @{const_name Dig0}, @{const_name Dig1}],
           pretty sgn))));
@@ -1033,14 +1037,14 @@ code_const Int.pred
   (SML "IntInf.- ((_), 1)")
   (OCaml "Big'_int.pred'_big'_int")
   (Haskell "!(_/ -/ 1)")
-  (Scala "!(_/ -/ 1)")
+  (Scala "!(_ -/ 1)")
   (Eval "!(_/ -/ 1)")
 
 code_const Int.succ
   (SML "IntInf.+ ((_), 1)")
   (OCaml "Big'_int.succ'_big'_int")
   (Haskell "!(_/ +/ 1)")
-  (Scala "!(_/ +/ 1)")
+  (Scala "!(_ +/ 1)")
   (Eval "!(_/ +/ 1)")
 
 code_const "op + \<Colon> int \<Rightarrow> int \<Rightarrow> int"
@@ -1078,7 +1082,7 @@ code_const pdivmod
   (Scala "!((k: BigInt) => (l: BigInt) =>/ if (l == 0)/ (BigInt(0), k) else/ (k.abs '/% l.abs))")
   (Eval "Integer.div'_mod/ (abs _)/ (abs _)")
 
-code_const "eq_class.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
   (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")

@@ -280,14 +280,14 @@ subsection {* Code generator setup *}
 
 code_datatype empty update
 
-instantiation mapping :: (type, type) eq
+instantiation mapping :: (type, type) equal
 begin
 
 definition [code del]:
-  "HOL.eq m n \<longleftrightarrow> lookup m = lookup n"
+  "HOL.equal m n \<longleftrightarrow> lookup m = lookup n"
 
 instance proof
-qed (simp add: eq_mapping_def)
+qed (simp add: equal_mapping_def)
 
 end
 

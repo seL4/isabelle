@@ -109,15 +109,19 @@ lemma [code abstract]:
 
 text {* Equality *}
 
-instantiation dlist :: (eq) eq
+instantiation dlist :: (equal) equal
 begin
 
-definition "HOL.eq dxs dys \<longleftrightarrow> HOL.eq (list_of_dlist dxs) (list_of_dlist dys)"
+definition "HOL.equal dxs dys \<longleftrightarrow> HOL.equal (list_of_dlist dxs) (list_of_dlist dys)"
 
 instance proof
-qed (simp add: eq_dlist_def eq list_of_dlist_inject)
+qed (simp add: equal_dlist_def equal list_of_dlist_inject)
 
 end
+
+lemma [code nbe]:
+  "HOL.equal (dxs :: 'a::equal dlist) dxs \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 
 section {* Induction principle and case distinction *}

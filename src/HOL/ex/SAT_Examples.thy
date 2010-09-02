@@ -10,8 +10,8 @@ begin
 
 (* ML {* sat.solver := "zchaff_with_proofs"; *} *)
 (* ML {* sat.solver := "minisat_with_proofs"; *} *)
-ML {* Unsynchronized.set sat.trace_sat; *}
-ML {* Unsynchronized.set quick_and_dirty; *}
+ML {* sat.trace_sat := true; *}
+ML {* quick_and_dirty := true; *}
 
 lemma "True"
 by sat
@@ -77,8 +77,8 @@ text {* eta-Equivalence *}
 lemma "(ALL x. P x) | ~ All P"
 by sat
 
-ML {* Unsynchronized.reset sat.trace_sat; *}
-ML {* Unsynchronized.reset quick_and_dirty; *}
+ML {* sat.trace_sat := false; *}
+ML {* quick_and_dirty := false; *}
 
 method_setup rawsat =
   {* Scan.succeed (SIMPLE_METHOD' o sat.rawsat_tac) *}
@@ -525,8 +525,8 @@ the number of resolution steps in the proof.
 
 (* ML {*
 sat.solver := "zchaff_with_proofs";
-Unsynchronized.reset sat.trace_sat;
-Unsynchronized.reset quick_and_dirty;
+sat.trace_sat := false;
+quick_and_dirty := false;
 *} *)
 
 ML {*

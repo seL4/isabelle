@@ -279,7 +279,7 @@ fun flatten t =
 
     fun hflatten t =
         case (concl_of t) of
-          Const _ $ (Const (@{const_name "op -->"}, _) $ _ $ _) => hflatten (t RS mp)
+          Const _ $ (Const (@{const_name HOL.implies}, _) $ _ $ _) => hflatten (t RS mp)
         | _ => (hflatten (matchsome conjI t)) handle THM _ => zero_var_indexes t
   in
     hflatten t

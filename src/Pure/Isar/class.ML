@@ -368,7 +368,7 @@ local
 fun gen_classrel mk_prop classrel thy =
   let
     fun after_qed results =
-      ProofContext.theory ((fold o fold) AxClass.add_classrel results);
+      ProofContext.background_theory ((fold o fold) AxClass.add_classrel results);
   in
     thy
     |> ProofContext.init_global
@@ -482,7 +482,7 @@ val sanitize_name = (*necessary as long as "dirty" type identifiers are permitte
 
 val type_name = sanitize_name o Long_Name.base_name;
 
-fun define_overloaded (c, U) v (b_def, rhs) = Local_Theory.theory_result
+fun define_overloaded (c, U) v (b_def, rhs) = Local_Theory.background_theory_result
     (AxClass.declare_overloaded (c, U) ##>> AxClass.define_overloaded b_def (c, rhs))
   ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
   ##> Local_Theory.target synchronize_inst_syntax;
@@ -572,7 +572,7 @@ fun gen_instantiation_instance do_proof after_qed lthy =
     val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
     val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, map snd vs, sort)) tycos;
     fun after_qed' results =
-      Local_Theory.theory (fold (AxClass.add_arity o Thm.varifyT_global) results)
+      Local_Theory.background_theory (fold (AxClass.add_arity o Thm.varifyT_global) results)
       #> after_qed;
   in
     lthy
@@ -608,7 +608,7 @@ fun instance_arity_cmd raw_arities thy =
     val (tycos, vs, sort) = read_multi_arity thy raw_arities;
     val sorts = map snd vs;
     val arities = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
-    fun after_qed results = ProofContext.theory
+    fun after_qed results = ProofContext.background_theory
       ((fold o fold) AxClass.add_arity results);
   in
     thy

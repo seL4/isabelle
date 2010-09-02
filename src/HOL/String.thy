@@ -53,7 +53,7 @@ let
    (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
       nibbles nibbles;
 in
-  PureThy.note_thmss Thm.definitionK [((Binding.name "nibble_pair_of_char_simps", []), [(thms, [])])]
+  PureThy.note_thmss Thm.definitionK [((@{binding nibble_pair_of_char_simps}, []), [(thms, [])])]
   #-> (fn [(_, thms)] => fold_rev Code.add_eqn thms)
 end
 *}
@@ -183,10 +183,10 @@ setup {*
   fold String_Code.add_literal_string ["SML", "OCaml", "Haskell", "Scala"]
 *}
 
-code_instance literal :: eq
+code_instance literal :: equal
   (Haskell -)
 
-code_const "eq_class.eq \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
   (OCaml "!((_ : string) = _)")
   (Haskell infixl 4 "==")

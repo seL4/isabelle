@@ -164,7 +164,7 @@ fun add_function_data (data : info as {fs, termination, ...}) =
 structure Termination_Simps = Named_Thms
 (
   val name = "termination_simp"
-  val description = "Simplification rule for termination proofs"
+  val description = "simplification rules for termination proofs"
 )
 
 
@@ -175,7 +175,7 @@ structure TerminationProver = Generic_Data
   type T = Proof.context -> tactic
   val empty = (fn _ => error "Termination prover not configured")
   val extend = I
-  fun merge (a, b) = b  (* FIXME ? *)
+  fun merge (a, _) = a
 )
 
 val set_termination_prover = TerminationProver.put

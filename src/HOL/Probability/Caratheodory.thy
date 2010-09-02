@@ -445,21 +445,6 @@ proof -
     by intro_locales (auto simp add: sigma_algebra_def)
 qed
 
-
-lemma (in algebra) inf_measure_nonempty:
-  assumes f: "positive f" and b: "b \<in> sets M" and a: "a \<subseteq> b"
-  shows "f b \<in> measure_set M f a"
-proof -
-  have "psuminf (f \<circ> (\<lambda>i. {})(0 := b)) = setsum (f \<circ> (\<lambda>i. {})(0 := b)) {..<1::nat}"
-    by (rule psuminf_finite) (simp add: f[unfolded positive_def])
-  also have "... = f b"
-    by simp
-  finally have "psuminf (f \<circ> (\<lambda>i. {})(0 := b)) = f b" .
-  thus ?thesis using a b
-    by (auto intro!: exI [of _ "(\<lambda>i. {})(0 := b)"]
-             simp: measure_set_def disjoint_family_on_def split_if_mem2 comp_def)
-qed
-
 lemma (in algebra) additive_increasing:
   assumes posf: "positive f" and addf: "additive M f"
   shows "increasing M f"
@@ -492,6 +477,20 @@ proof (auto simp add: additive_def)
     by (simp add: range_binaryset_eq UN_binaryset_eq)
   thus "f (x \<union> y) = f x + f y" using posf x y
     by (auto simp add: Un binaryset_psuminf positive_def)
+qed
+
+lemma inf_measure_nonempty:
+  assumes f: "positive f" and b: "b \<in> sets M" and a: "a \<subseteq> b" "{} \<in> sets M"
+  shows "f b \<in> measure_set M f a"
+proof -
+  have "psuminf (f \<circ> (\<lambda>i. {})(0 := b)) = setsum (f \<circ> (\<lambda>i. {})(0 := b)) {..<1::nat}"
+    by (rule psuminf_finite) (simp add: f[unfolded positive_def])
+  also have "... = f b"
+    by simp
+  finally have "psuminf (f \<circ> (\<lambda>i. {})(0 := b)) = f b" .
+  thus ?thesis using assms
+    by (auto intro!: exI [of _ "(\<lambda>i. {})(0 := b)"]
+             simp: measure_set_def disjoint_family_on_def split_if_mem2 comp_def)
 qed
 
 lemma (in algebra) inf_measure_agrees:
@@ -535,11 +534,11 @@ next
 qed
 
 lemma (in algebra) inf_measure_empty:
-  assumes posf: "positive f"
+  assumes posf: "positive f"  "{} \<in> sets M"
   shows "Inf (measure_set M f {}) = 0"
 proof (rule antisym)
   show "Inf (measure_set M f {}) \<le> 0"
-    by (metis complete_lattice_class.Inf_lower empty_sets inf_measure_nonempty[OF posf] subset_refl posf[unfolded positive_def])
+    by (metis complete_lattice_class.Inf_lower `{} \<in> sets M` inf_measure_nonempty[OF posf] subset_refl posf[unfolded positive_def])
 qed simp
 
 lemma (in algebra) inf_measure_positive:
@@ -597,7 +596,7 @@ proof (cases "Inf (measure_set M f s) = \<omega>")
 next
   case True
   have "measure_set M f s \<noteq> {}"
-    by (metis emptyE ss inf_measure_nonempty [of f, OF posf top])
+    by (metis emptyE ss inf_measure_nonempty [of f, OF posf top _ empty_sets])
   then obtain l where "l \<in> measure_set M f s" by auto
   moreover from True have "l \<le> Inf (measure_set M f s) + e" by simp
   ultimately show ?thesis

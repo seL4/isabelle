@@ -227,16 +227,20 @@ lemma subfset_subfset_eq [code]:
   "A < B \<longleftrightarrow> A \<le> B \<and> \<not> B \<le> (A :: 'a fset)"
   by (fact less_le_not_le)
 
-instantiation fset :: (type) eq
+instantiation fset :: (type) equal
 begin
 
 definition
-  "eq_fset A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a fset)"
+  "HOL.equal A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a fset)"
 
 instance proof
-qed (simp add: eq_fset_def set_eq [symmetric])
+qed (simp add: equal_fset_def set_eq [symmetric])
 
 end
+
+lemma [code nbe]:
+  "HOL.equal (A :: 'a fset) A \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 
 subsection {* Functorial operations *}

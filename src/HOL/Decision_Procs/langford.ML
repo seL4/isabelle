@@ -69,28 +69,28 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
 val all_conjuncts = 
  let fun h acc ct = 
   case term_of ct of
-   @{term "op &"}$_$_ => h (h acc (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
+   @{term HOL.conj}$_$_ => h (h acc (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
   | _ => ct::acc
 in h [] end;
 
 fun conjuncts ct =
  case term_of ct of
-  @{term "op &"}$_$_ => (Thm.dest_arg1 ct)::(conjuncts (Thm.dest_arg ct))
+  @{term HOL.conj}$_$_ => (Thm.dest_arg1 ct)::(conjuncts (Thm.dest_arg ct))
 | _ => [ct];
 
 fun fold1 f = foldr1 (uncurry f);
 
-val list_conj = fold1 (fn c => fn c' => Thm.capply (Thm.capply @{cterm "op &"} c) c') ;
+val list_conj = fold1 (fn c => fn c' => Thm.capply (Thm.capply @{cterm HOL.conj} c) c') ;
 
 fun mk_conj_tab th = 
  let fun h acc th = 
    case prop_of th of
-   @{term "Trueprop"}$(@{term "op &"}$p$q) => 
+   @{term "Trueprop"}$(@{term HOL.conj}$p$q) => 
      h (h acc (th RS conjunct2)) (th RS conjunct1)
   | @{term "Trueprop"}$p => (p,th)::acc
 in fold (Termtab.insert Thm.eq_thm) (h [] th) Termtab.empty end;
 
-fun is_conj (@{term "op &"}$_$_) = true
+fun is_conj (@{term HOL.conj}$_$_) = true
   | is_conj _ = false;
 
 fun prove_conj tab cjs = 
@@ -116,7 +116,7 @@ fun conj_aci_rule eq =
 fun contains x ct = member (op aconv) (OldTerm.term_frees (term_of ct)) (term_of x);
 
 fun is_eqx x eq = case term_of eq of
-   Const(@{const_name "op ="},_)$l$r => l aconv term_of x orelse r aconv term_of x
+   Const(@{const_name HOL.eq},_)$l$r => l aconv term_of x orelse r aconv term_of x
  | _ => false ;
 
 local 
@@ -176,16 +176,16 @@ val grab_atom_bop =
  let
   fun h bounds tm =
    (case term_of tm of
-     Const (@{const_name "op ="}, T) $ _ $ _ =>
+     Const (@{const_name HOL.eq}, T) $ _ $ _ =>
        if domain_type T = HOLogic.boolT then find_args bounds tm
        else Thm.dest_fun2 tm
    | Const (@{const_name Not}, _) $ _ => h bounds (Thm.dest_arg tm)
    | Const (@{const_name All}, _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const ("all", _) $ _ => find_body bounds (Thm.dest_arg tm)
    | Const (@{const_name Ex}, _) $ _ => find_body bounds (Thm.dest_arg tm)
-   | Const (@{const_name "op &"}, _) $ _ $ _ => find_args bounds tm
-   | Const (@{const_name "op |"}, _) $ _ $ _ => find_args bounds tm
-   | Const (@{const_name "op -->"}, _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name HOL.conj}, _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name HOL.disj}, _) $ _ $ _ => find_args bounds tm
+   | Const (@{const_name HOL.implies}, _) $ _ $ _ => find_args bounds tm
    | Const ("==>", _) $ _ $ _ => find_args bounds tm
    | Const ("==", _) $ _ $ _ => find_args bounds tm
    | Const (@{const_name Trueprop}, _) $ _ => h bounds (Thm.dest_arg tm)

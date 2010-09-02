@@ -34,7 +34,7 @@ fun object_logic_arity name thy =
 fun basic_decl decl (b, n, mx) lthy =
   let val name = Local_Theory.full_name lthy b in
     lthy
-    |> Local_Theory.theory (decl name)
+    |> Local_Theory.background_theory (decl name)
     |> Local_Theory.type_notation true Syntax.mode_default [(Type (name, replicate n dummyT), mx)]
     |> Local_Theory.type_alias b name
     |> pair name
@@ -102,9 +102,10 @@ fun read_abbrev b ctxt raw_rhs =
     val ignored = Term.fold_atyps_sorts (fn (_, []) => I | (T, _) => insert (op =) T) rhs [];
     val _ =
       if null ignored then ()
-      else warning ("Ignoring sort constraints in type variables(s): " ^
-        commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
-        "\nin type abbreviation " ^ quote (Binding.str_of b));
+      else Context_Position.if_visible ctxt warning
+        ("Ignoring sort constraints in type variables(s): " ^
+          commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
+          "\nin type abbreviation " ^ quote (Binding.str_of b));
   in rhs end;
 
 in

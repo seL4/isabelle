@@ -44,7 +44,6 @@ object Document
   {
     val empty: Node = new Node(Linear_Set())
 
-    // FIXME not scalable
     def command_starts(commands: Iterator[Command], offset: Text.Offset = 0)
       : Iterator[(Command, Text.Offset)] =
     {
@@ -57,16 +56,36 @@ object Document
     }
   }
 
+  private val block_size = 1024
+
   class Node(val commands: Linear_Set[Command])
   {
-    def command_starts: Iterator[(Command, Text.Offset)] =
-      Node.command_starts(commands.iterator)
+    private lazy val full_index: (Array[(Command, Text.Offset)], Text.Range) =
+    {
+      val blocks = new mutable.ListBuffer[(Command, Text.Offset)]
+      var next_block = 0
+      var last_stop = 0
+      for ((command, start) <- Node.command_starts(commands.iterator)) {
+        last_stop = start + command.length
+        while (last_stop + 1 > next_block) {
+          blocks += (command -> start)
+          next_block += block_size
+        }
+      }
+      (blocks.toArray, Text.Range(0, last_stop))
+    }
 
-    def command_start(cmd: Command): Option[Text.Offset] =
-      command_starts.find(_._1 == cmd).map(_._2)
+    def full_range: Text.Range = full_index._2
 
     def command_range(i: Text.Offset = 0): Iterator[(Command, Text.Offset)] =
-      command_starts dropWhile { case (cmd, start) => start + cmd.length <= i }
+    {
+      if (!commands.isEmpty && full_range.contains(i)) {
+        val (cmd0, start0) = full_index._1(i / block_size)
+        Node.command_starts(commands.iterator(cmd0), start0) dropWhile {
+          case (cmd, start) => start + cmd.length <= i }
+      }
+      else Iterator.empty
+    }
 
     def command_range(range: Text.Range): Iterator[(Command, Text.Offset)] =
       command_range(range.start) takeWhile { case (_, start) => start < range.stop }
@@ -83,6 +102,12 @@ object Document
           commands.reverse_iterator(command).find(cmd => !cmd.is_ignored)
         case None => None
       }
+
+    def command_start(cmd: Command): Option[Text.Offset] =
+      command_starts.find(_._1 == cmd).map(_._2)
+
+    def command_starts: Iterator[(Command, Text.Offset)] =
+      Node.command_starts(commands.iterator)
   }
 
 
@@ -116,7 +141,25 @@ object Document
   }
 
 
-  /* history navigation and persistent snapshots */
+  /* history navigation */
+
+  object History
+  {
+    val init = new History(List(Change.init))
+  }
+
+  // FIXME pruning, purging of state
+  class History(val undo_list: List[Change])
+  {
+    require(!undo_list.isEmpty)
+
+    def tip: Change = undo_list.head
+    def +(change: Change): History = new History(change :: undo_list)
+  }
+
+
+
+  /** global state -- document structure, execution process, editing history **/
 
   abstract class Snapshot
   {
@@ -129,59 +172,15 @@ object Document
     def convert(range: Text.Range): Text.Range = range.map(convert(_))
     def revert(i: Text.Offset): Text.Offset
     def revert(range: Text.Range): Text.Range = range.map(revert(_))
+    def select_markup[A](range: Text.Range)
+      (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]]
   }
-
-  object History
-  {
-    val init = new History(List(Change.init))
-  }
-
-  // FIXME pruning, purging of state
-  class History(undo_list: List[Change])
-  {
-    require(!undo_list.isEmpty)
-
-    def tip: Change = undo_list.head
-    def +(ch: Change): History = new History(ch :: undo_list)
-
-    def snapshot(name: String, pending_edits: List[Text.Edit], state_snapshot: State): Snapshot =
-    {
-      val found_stable = undo_list.find(change =>
-        change.is_finished && state_snapshot.is_assigned(change.current.join))
-      require(found_stable.isDefined)
-      val stable = found_stable.get
-      val latest = undo_list.head
-
-      val edits =
-        (pending_edits /: undo_list.takeWhile(_ != stable))((edits, change) =>
-            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
-      lazy val reverse_edits = edits.reverse
-
-      new Snapshot
-      {
-        val version = stable.current.join
-        val node = version.nodes(name)
-        val is_outdated = !(pending_edits.isEmpty && latest == stable)
-        def lookup_command(id: Command_ID): Option[Command] = state_snapshot.lookup_command(id)
-        def state(command: Command): Command.State =
-          try { state_snapshot.command_state(version, command) }
-          catch { case _: State.Fail => command.empty_state }
-
-        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
-        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-      }
-    }
-  }
-
-
-
-  /** global state -- document structure and execution process **/
 
   object State
   {
     class Fail(state: State) extends Exception
 
-    val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)
+    val init = State().define_version(Version.init, Map()).assign(Version.init.id, Nil)._2
 
     class Assignment(former_assignment: Map[Command, Exec_ID])
     {
@@ -189,6 +188,7 @@ object Document
       private val promise = Future.promise[Map[Command, Exec_ID]]
       def is_finished: Boolean = promise.is_finished
       def join: Map[Command, Exec_ID] = promise.join
+      def get_finished: Map[Command, Exec_ID] = promise.get_finished
       def assign(command_execs: List[(Command, Exec_ID)])
       {
         promise.fulfill(tmp_assignment ++ command_execs)
@@ -202,7 +202,8 @@ object Document
     val commands: Map[Command_ID, Command.State] = Map(),
     val execs: Map[Exec_ID, (Command.State, Set[Version])] = Map(),
     val assignments: Map[Version, State.Assignment] = Map(),
-    val disposed: Set[ID] = Set())  // FIXME unused!?
+    val disposed: Set[ID] = Set(),  // FIXME unused!?
+    val history: History = History.init)
   {
     private def fail[A]: A = throw new State.Fail(this)
 
@@ -228,7 +229,7 @@ object Document
     def the_exec_state(id: Exec_ID): Command.State = execs.getOrElse(id, fail)._1
     def the_assignment(version: Version): State.Assignment = assignments.getOrElse(version, fail)
 
-    def accumulate(id: ID, message: XML.Tree): (Command.State, State) =
+    def accumulate(id: ID, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
         case Some((st, occs)) =>
           val new_st = st.accumulate(message)
@@ -242,7 +243,7 @@ object Document
           }
       }
 
-    def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): State =
+    def assign(id: Version_ID, edits: List[(Command_ID, Exec_ID)]): (List[Command], State) =
     {
       val version = the_version(id)
       val occs = Set(version)  // FIXME unused (!?)
@@ -256,7 +257,7 @@ object Document
           (st.command, exec_id)
         }
       the_assignment(version).assign(assigned_execs)  // FIXME explicit value instead of promise (!?)
-      copy(execs = new_execs)
+      (assigned_execs.map(_._1), copy(execs = new_execs))
     }
 
     def is_assigned(version: Version): Boolean =
@@ -265,11 +266,61 @@ object Document
         case None => false
       }
 
-    def command_state(version: Version, command: Command): Command.State =
+    def extend_history(previous: Future[Version],
+        edits: List[Node_Text_Edit],
+        result: Future[(List[Edit[Command]], Version)]): (Change, State) =
     {
-      val assgn = the_assignment(version)
-      require(assgn.is_finished)
-      the_exec_state(assgn.join.getOrElse(command, fail))
+      val change = new Change(previous, edits, result)
+      (change, copy(history = history + change))
+    }
+
+
+    // persistent user-view
+    def snapshot(name: String, pending_edits: List[Text.Edit]): Snapshot =
+    {
+      val found_stable = history.undo_list.find(change =>
+        change.is_finished && is_assigned(change.current.get_finished))
+      require(found_stable.isDefined)
+      val stable = found_stable.get
+      val latest = history.undo_list.head
+
+      val edits =
+        (pending_edits /: history.undo_list.takeWhile(_ != stable))((edits, change) =>
+            (for ((a, eds) <- change.edits if a == name) yield eds).flatten ::: edits)
+      lazy val reverse_edits = edits.reverse
+
+      new Snapshot
+      {
+        val version = stable.current.get_finished
+        val node = version.nodes(name)
+        val is_outdated = !(pending_edits.isEmpty && latest == stable)
+
+        def lookup_command(id: Command_ID): Option[Command] = State.this.lookup_command(id)
+
+        def state(command: Command): Command.State =
+          try { the_exec_state(the_assignment(version).get_finished.getOrElse(command, fail)) }
+          catch { case _: State.Fail => command.empty_state }
+
+        def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
+        def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
+
+        def select_markup[A](range: Text.Range)
+          (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]] =
+        {
+          val former_range = revert(range)
+          for {
+            (command, command_start) <- node.command_range(former_range)
+            Text.Info(r0, x) <- state(command).markup.
+              select((former_range - command_start).restrict(command.range)) {
+                case Text.Info(r0, info)
+                if result.isDefinedAt(Text.Info(convert(r0 + command_start), info)) =>
+                  result(Text.Info(convert(r0 + command_start), info))
+              } { default }
+            val r = convert(r0 + command_start)
+            if !r.is_singularity
+          } yield Text.Info(r, x)
+        }
+      }
     }
   }
 }

@@ -78,9 +78,13 @@ end
 *}
 
 lemma [code]:
-  "eq_class.eq (Typerep tyco1 tys1) (Typerep tyco2 tys2) \<longleftrightarrow> eq_class.eq tyco1 tyco2
-     \<and> list_all2 eq_class.eq tys1 tys2"
-  by (auto simp add: equals_eq [symmetric] list_all2_eq [symmetric])
+  "HOL.equal (Typerep tyco1 tys1) (Typerep tyco2 tys2) \<longleftrightarrow> HOL.equal tyco1 tyco2
+     \<and> list_all2 HOL.equal tys1 tys2"
+  by (auto simp add: eq_equal [symmetric] list_all2_eq [symmetric])
+
+lemma [code nbe]:
+  "HOL.equal (x :: typerep) x \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 code_type typerep
   (Eval "Term.typ")

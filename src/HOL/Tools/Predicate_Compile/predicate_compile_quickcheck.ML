@@ -168,10 +168,10 @@ fun mk_split_lambda [] t = Abs ("u", HOLogic.unitT, t)
     mk_split_lambda' xs t
   end;
 
-fun strip_imp_prems (Const(@{const_name "op -->"}, _) $ A $ B) = A :: strip_imp_prems B
+fun strip_imp_prems (Const(@{const_name HOL.implies}, _) $ A $ B) = A :: strip_imp_prems B
   | strip_imp_prems _ = [];
 
-fun strip_imp_concl (Const(@{const_name "op -->"}, _) $ A $ B) = strip_imp_concl B
+fun strip_imp_concl (Const(@{const_name HOL.implies}, _) $ A $ B) = strip_imp_concl B
   | strip_imp_concl A = A : term;
 
 fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
@@ -185,10 +185,9 @@ fun cpu_time description f =
 
 fun compile_term compilation options ctxt t =
   let
-    val ctxt' = ProofContext.theory (Context.copy_thy) ctxt
-    val thy = (ProofContext.theory_of ctxt') 
+    val thy = Theory.copy (ProofContext.theory_of ctxt)
     val (vs, t') = strip_abs t
-    val vs' = Variable.variant_frees ctxt' [] vs
+    val vs' = Variable.variant_frees ctxt [] vs
     val t'' = subst_bounds (map Free (rev vs'), t')
     val (prems, concl) = strip_horn t''
     val constname = "pred_compile_quickcheck"

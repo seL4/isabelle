@@ -953,14 +953,14 @@ lemmas word_log_bin_defs = word_log_defs
 
 text {* Executable equality *}
 
-instantiation word :: ("{len0}") eq
+instantiation word :: (len0) equal
 begin
 
-definition eq_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool" where
-  "eq_word k l \<longleftrightarrow> HOL.eq (uint k) (uint l)"
+definition equal_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool" where
+  "equal_word k l \<longleftrightarrow> HOL.equal (uint k) (uint l)"
 
 instance proof
-qed (simp add: eq eq_word_def)
+qed (simp add: equal equal_word_def)
 
 end
 

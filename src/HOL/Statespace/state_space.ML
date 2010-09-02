@@ -223,7 +223,7 @@ fun neq_x_y ctxt x y =
 
 fun distinctTree_tac ctxt
       (Const (@{const_name Trueprop},_) $
-        (Const (@{const_name Not}, _) $ (Const (@{const_name "op ="}, _) $ (x as Free _)$ (y as Free _))), i) =
+        (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ (x as Free _)$ (y as Free _))), i) =
   (case (neq_x_y ctxt x y) of
      SOME neq => rtac neq i
    | NONE => no_tac)
@@ -236,7 +236,7 @@ val distinctNameSolver = mk_solver' "distinctNameSolver"
 
 val distinct_simproc =
   Simplifier.simproc_global @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
-    (fn thy => fn ss => (fn (Const (@{const_name "op ="},_)$(x as Free _)$(y as Free _)) =>
+    (fn thy => fn ss => (fn (Const (@{const_name HOL.eq},_)$(x as Free _)$(y as Free _)) =>
         (case try Simplifier.the_context ss of
           SOME ctxt => Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])
                        (neq_x_y ctxt x y)
@@ -277,28 +277,29 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
     fun comps_of_thm thm = prop_of thm
              |> (fn (_$(_$t)) => DistinctTreeProver.dest_tree t) |> map (fst o dest_Free);
 
-    fun type_attr phi (ctxt,thm) =
-      (case ctxt of Context.Theory _ => (ctxt,thm)
-       | _ =>
+    fun type_attr phi = Thm.declaration_attribute (fn thm => fn context =>
+      (case context of
+        Context.Theory _ => context
+      | Context.Proof ctxt =>
         let
-          val {declinfo,distinctthm=tt,silent} = (NameSpaceData.get ctxt);
+          val {declinfo,distinctthm=tt,silent} = NameSpaceData.get context;
           val all_names = comps_of_thm thm;
           fun upd name tt =
-               (case (Symtab.lookup tt name) of
+               (case Symtab.lookup tt name of
                  SOME dthm => if sorted_subset (op =) (comps_of_thm dthm) all_names
                               then Symtab.update (name,thm) tt else tt
-                | NONE => Symtab.update (name,thm) tt)
+               | NONE => Symtab.update (name,thm) tt)
 
           val tt' = tt |> fold upd all_names;
           val activate_simproc =
-              Output.no_warnings_CRITICAL   (* FIXME !?! *)
-               (Simplifier.map_ss (fn ss => ss addsimprocs [distinct_simproc]));
-          val ctxt' =
-              ctxt
+            Simplifier.map_ss
+              (Simplifier.with_context (Context_Position.set_visible false ctxt)
+                (fn ss => ss addsimprocs [distinct_simproc]));
+          val context' =
+              context
               |> NameSpaceData.put {declinfo=declinfo,distinctthm=tt',silent=silent}
-              |> activate_simproc
-        in (ctxt',thm)
-        end)
+              |> activate_simproc;
+        in context' end));
 
     val attr = Attrib.internal type_attr;
 

@@ -647,10 +647,10 @@ val specialize_type = Sledgehammer_Util.specialize_type
       | Const (@{const_name Hilbert_Choice.Eps}, _) => t
       | Const (@{const_name All}, _) => t
       | Const (@{const_name Ex}, _) => t
-      | Const (@{const_name "op ="}, _) => t
-      | Const (@{const_name "op &"}, _) => t
-      | Const (@{const_name "op |"}, _) => t
-      | Const (@{const_name "op -->"}, _) => t
+      | Const (@{const_name HOL.eq}, _) => t
+      | Const (@{const_name HOL.conj}, _) => t
+      | Const (@{const_name HOL.disj}, _) => t
+      | Const (@{const_name HOL.implies}, _) => t
       (* sets *)
       | Const (@{const_name Collect}, _) => t
       | Const (@{const_name Set.member}, _) => t
@@ -823,10 +823,10 @@ val specialize_type = Sledgehammer_Util.specialize_type
         end
       | Const (@{const_name All}, T) => collect_type_axioms T axs
       | Const (@{const_name Ex}, T) => collect_type_axioms T axs
-      | Const (@{const_name "op ="}, T) => collect_type_axioms T axs
-      | Const (@{const_name "op &"}, _) => axs
-      | Const (@{const_name "op |"}, _) => axs
-      | Const (@{const_name "op -->"}, _) => axs
+      | Const (@{const_name HOL.eq}, T) => collect_type_axioms T axs
+      | Const (@{const_name HOL.conj}, _) => axs
+      | Const (@{const_name HOL.disj}, _) => axs
+      | Const (@{const_name HOL.implies}, _) => axs
       (* sets *)
       | Const (@{const_name Collect}, T) => collect_type_axioms T axs
       | Const (@{const_name Set.member}, T) => collect_type_axioms T axs
@@ -1850,18 +1850,18 @@ val specialize_type = Sledgehammer_Util.specialize_type
       end
     | Const (@{const_name Ex}, _) =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const (@{const_name "op ="}, _) $ t1 $ t2 =>  (* similar to "==" (Pure) *)
+    | Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>  (* similar to "==" (Pure) *)
       let
         val (i1, m1, a1) = interpret thy model args t1
         val (i2, m2, a2) = interpret thy m1 a1 t2
       in
         SOME (make_equality (i1, i2), m2, a2)
       end
-    | Const (@{const_name "op ="}, _) $ t1 =>
+    | Const (@{const_name HOL.eq}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const (@{const_name "op ="}, _) =>
+    | Const (@{const_name HOL.eq}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
-    | Const (@{const_name "op &"}, _) $ t1 $ t2 =>
+    | Const (@{const_name HOL.conj}, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret thy model args t1
@@ -1871,14 +1871,14 @@ val specialize_type = Sledgehammer_Util.specialize_type
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-    | Const (@{const_name "op &"}, _) $ t1 =>
+    | Const (@{const_name HOL.conj}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const (@{const_name "op &"}, _) =>
+    | Const (@{const_name HOL.conj}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "False & undef":                                          *)
       (* SOME (Node [Node [TT, FF], Node [FF, FF]], model, args) *)
-    | Const (@{const_name "op |"}, _) $ t1 $ t2 =>
+    | Const (@{const_name HOL.disj}, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret thy model args t1
@@ -1888,14 +1888,14 @@ val specialize_type = Sledgehammer_Util.specialize_type
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-    | Const (@{const_name "op |"}, _) $ t1 =>
+    | Const (@{const_name HOL.disj}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const (@{const_name "op |"}, _) =>
+    | Const (@{const_name HOL.disj}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "True | undef":                                           *)
       (* SOME (Node [Node [TT, TT], Node [TT, FF]], model, args) *)
-    | Const (@{const_name "op -->"}, _) $ t1 $ t2 =>  (* similar to "==>" (Pure) *)
+    | Const (@{const_name HOL.implies}, _) $ t1 $ t2 =>  (* similar to "==>" (Pure) *)
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret thy model args t1
@@ -1905,9 +1905,9 @@ val specialize_type = Sledgehammer_Util.specialize_type
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-    | Const (@{const_name "op -->"}, _) $ t1 =>
+    | Const (@{const_name HOL.implies}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const (@{const_name "op -->"}, _) =>
+    | Const (@{const_name HOL.implies}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "False --> undef":                                        *)

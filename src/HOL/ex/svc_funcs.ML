@@ -89,13 +89,13 @@ struct
    let fun tag t =
          let val (c,ts) = strip_comb t
          in  case c of
-             Const(@{const_name "op &"}, _)   => apply c (map tag ts)
-           | Const(@{const_name "op |"}, _)   => apply c (map tag ts)
-           | Const(@{const_name "op -->"}, _) => apply c (map tag ts)
+             Const(@{const_name HOL.conj}, _)   => apply c (map tag ts)
+           | Const(@{const_name HOL.disj}, _)   => apply c (map tag ts)
+           | Const(@{const_name HOL.implies}, _) => apply c (map tag ts)
            | Const(@{const_name Not}, _)    => apply c (map tag ts)
            | Const(@{const_name True}, _)   => (c, false)
            | Const(@{const_name False}, _)  => (c, false)
-           | Const(@{const_name "op ="}, Type ("fun", [T,_])) =>
+           | Const(@{const_name HOL.eq}, Type ("fun", [T,_])) =>
                  if T = HOLogic.boolT then
                      (*biconditional: with int/nat comparisons below?*)
                      let val [t1,t2] = ts
@@ -183,11 +183,11 @@ struct
       | tm t = Int (lit t)
                handle Match => var (t,[])
     (*translation of a formula*)
-    and fm pos (Const(@{const_name "op &"}, _) $ p $ q) =
+    and fm pos (Const(@{const_name HOL.conj}, _) $ p $ q) =
             Buildin("AND", [fm pos p, fm pos q])
-      | fm pos (Const(@{const_name "op |"}, _) $ p $ q) =
+      | fm pos (Const(@{const_name HOL.disj}, _) $ p $ q) =
             Buildin("OR", [fm pos p, fm pos q])
-      | fm pos (Const(@{const_name "op -->"}, _) $ p $ q) =
+      | fm pos (Const(@{const_name HOL.implies}, _) $ p $ q) =
             Buildin("=>", [fm (not pos) p, fm pos q])
       | fm pos (Const(@{const_name Not}, _) $ p) =
             Buildin("NOT", [fm (not pos) p])
@@ -200,7 +200,7 @@ struct
             Buildin("AND",   (*unfolding uses both polarities*)
                          [Buildin("=>", [fm (not pos) p, fm pos q]),
                           Buildin("=>", [fm (not pos) q, fm pos p])])
-      | fm pos (t as Const(@{const_name "op ="}, Type ("fun", [T,_])) $ x $ y) =
+      | fm pos (t as Const(@{const_name HOL.eq}, Type ("fun", [T,_])) $ x $ y) =
             let val tx = tm x and ty = tm y
                 in if pos orelse T = HOLogic.realT then
                        Buildin("=", [tx, ty])

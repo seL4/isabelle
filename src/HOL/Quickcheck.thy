@@ -97,7 +97,7 @@ definition random_fun_lift :: "(Random.seed \<Rightarrow> ('b \<times> (unit \<R
   \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
   "random_fun_lift f = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Evaluation.term_of f Random.split_seed"
 
-instantiation "fun" :: ("{eq, term_of}", random) random
+instantiation "fun" :: ("{equal, term_of}", random) random
 begin
 
 definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where

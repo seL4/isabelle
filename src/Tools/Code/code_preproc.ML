@@ -92,7 +92,7 @@ fun add_unfold_post raw_thm thy =
     val thm_sym = Thm.symmetric thm;
   in
     thy |> map_pre_post (fn (pre, post) =>
-      (pre |> MetaSimplifier.add_simp thm, post |> MetaSimplifier.del_simp thm_sym))
+      (pre |> MetaSimplifier.add_simp thm, post |> MetaSimplifier.add_simp thm_sym))
   end;
 
 fun add_functrans (name, f) = (map_data o apsnd)

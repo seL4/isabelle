@@ -19,6 +19,7 @@ sig
   val concat: Pretty.T list -> Pretty.T
   val brackets: Pretty.T list -> Pretty.T
   val enclose: string -> string -> Pretty.T list -> Pretty.T
+  val commas: Pretty.T list -> Pretty.T list
   val enum: string -> string -> string -> Pretty.T list -> Pretty.T
   val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
   val semicolon: Pretty.T list -> Pretty.T
@@ -67,6 +68,8 @@ sig
   val brackify_infix: int * lrx -> fixity -> Pretty.T * Pretty.T * Pretty.T -> Pretty.T
   val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
+  val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
+
 
   type tyco_syntax
   type simple_const_syntax
@@ -112,6 +115,7 @@ fun x @@ y = [x, y];
 fun xs @| y = xs @ [y];
 val str = Print_Mode.setmp [] Pretty.str;
 val concat = Pretty.block o Pretty.breaks;
+val commas = Print_Mode.setmp [] Pretty.commas;
 fun enclose l r = Print_Mode.setmp [] (Pretty.enclose l r);
 val brackets = enclose "(" ")" o Pretty.breaks;
 fun enum sep l r = Print_Mode.setmp [] (Pretty.enum sep l r);
@@ -122,7 +126,7 @@ fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
 fun string_of_pretty width p = Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
-fun writeln_pretty width p = writeln (Print_Mode.setmp [] (Pretty.string_of_margin width) p);
+fun writeln_pretty width p = writeln (string_of_pretty width p);
 
 
 (** names and variable name contexts **)
@@ -242,6 +246,10 @@ fun applify opn cls f fxy_ctxt p [] = p
       (if (fixity BR fxy_ctxt) then enclose "(" ")" else Pretty.block)
         (p @@ enum "," opn cls (map f ps));
 
+fun tuplify _ _ [] = NONE
+  | tuplify print fxy [x] = SOME (print fxy x)
+  | tuplify print _ xs = SOME (enum "," "(" ")" (map (print NOBR) xs));
+
 
 (* generic syntax *)
 
@@ -276,8 +284,8 @@ fun activate_const_syntax thy literals c (plain_const_syntax s) naming =
       fold_map (Code_Thingol.ensure_declared_const thy) cs naming
       |-> (fn cs' => pair (Complex_const_syntax (n, f literals cs')));
 
-fun gen_print_app print_app_expr print_term syntax_const some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
-  case syntax_const c
+fun gen_print_app print_app_expr print_term const_syntax some_thm vars fxy (app as ((c, (_, function_typs)), ts)) =
+  case const_syntax c
    of NONE => brackify fxy (print_app_expr some_thm vars app)
     | SOME (Plain_const_syntax (_, s)) => brackify fxy (str s :: map (print_term some_thm vars BR) ts)
     | SOME (Complex_const_syntax (k, print)) =>

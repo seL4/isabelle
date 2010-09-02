@@ -187,7 +187,7 @@ fun invoke_nitpick thy t =
 val nitpick_mtd = ("nitpick", invoke_nitpick)
 *)
 
-val comms = [@{const_name "op ="}, @{const_name "op |"}, @{const_name "op &"}]
+val comms = [@{const_name HOL.eq}, @{const_name HOL.disj}, @{const_name HOL.conj}]
 
 val forbidden =
  [(* (@{const_name "power"}, "'a"), *)
@@ -202,7 +202,7 @@ val forbidden =
   (@{const_name "top_fun_inst.top_fun"}, "'a"),
   (@{const_name "Pure.term"}, "'a"),
   (@{const_name "top_class.top"}, "'a"),
-  (@{const_name "eq_class.eq"}, "'a"),
+  (@{const_name "HOL.equal"}, "'a"),
   (@{const_name "Quotient.Quot_True"}, "'a")(*,
   (@{const_name "uminus"}, "'a"),
   (@{const_name "Nat.size"}, "'a"),
@@ -237,7 +237,7 @@ val forbidden_mutant_constnames =
  @{const_name "top_fun_inst.top_fun"},
  @{const_name "Pure.term"},
  @{const_name "top_class.top"},
- @{const_name "eq_class.eq"},
+ @{const_name "HOL.equal"},
  @{const_name "Quotient.Quot_True"}]
 
 fun is_forbidden_mutant t =

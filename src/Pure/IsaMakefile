@@ -6,7 +6,7 @@
 
 default: Pure
 images: Pure
-test: RAW Pure-ProofGeneral
+test: RAW
 all: images test
 
 
@@ -256,15 +256,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
 	@./mk
 
 
-## Proof General keywords
-
-Pure-ProofGeneral: Pure $(LOG)/Pure-ProofGeneral.gz
-
-$(LOG)/Pure-ProofGeneral.gz: $(OUT)/Pure ProofGeneral/proof_general_keywords.ML
-	@$(ISABELLE_TOOL) usedir -f proof_general_keywords.ML $(OUT)/Pure ProofGeneral
-
-
 ## clean
 
 clean:
-	@rm -f $(OUT)/Pure $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz $(LOG)/Pure-ProofGeneral.gz
+	@rm -f $(OUT)/Pure $(LOG)/Pure.gz $(OUT)/RAW $(LOG)/RAW.gz

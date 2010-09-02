@@ -310,18 +310,18 @@ val smt_method =
 (* setup *)
 
 val setup =
-  Attrib.setup (Binding.name "smt_solver")
+  Attrib.setup @{binding smt_solver}
     (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
       (Thm.declaration_attribute o K o select_solver))
     "SMT solver configuration" #>
   setup_timeout #>
   setup_trace #>
   setup_fixed_certificates #>
-  Attrib.setup (Binding.name "smt_certificates")
+  Attrib.setup @{binding smt_certificates}
     (Scan.lift (Parse.$$$ "=" |-- Args.name) >>
       (Thm.declaration_attribute o K o select_certificates))
     "SMT certificates" #>
-  Method.setup (Binding.name "smt") smt_method
+  Method.setup @{binding smt} smt_method
     "Applies an SMT solver to the current goal."
 
 

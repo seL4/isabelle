@@ -118,7 +118,7 @@ fun locale_notes locale kind global_facts local_facts lthy =
       (Element.morph_ctxt (Local_Theory.target_morphism lthy)) local_facts;
   in
     lthy
-    |> Local_Theory.theory (PureThy.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.background_theory (PureThy.note_thmss kind global_facts' #> snd)
     |> Local_Theory.target (Locale.add_thmss locale kind local_facts')
   end
 
@@ -129,19 +129,21 @@ fun target_notes (ta as Target {target, is_locale, ...}) =
 
 (* abbrev *)
 
-fun locale_abbrev ta prmode ((b, mx), t) xs = Local_Theory.theory_result
-  (Sign.add_abbrev Print_Mode.internal (b, t)) #->
-    (fn (lhs, _) => locale_const_declaration ta prmode
-      ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
+fun locale_abbrev ta prmode ((b, mx), t) xs =
+  Local_Theory.background_theory_result
+    (Sign.add_abbrev Print_Mode.internal (b, t)) #->
+      (fn (lhs, _) => locale_const_declaration ta prmode
+        ((b, mx), Term.list_comb (Logic.unvarify_global lhs, xs)));
 
 fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
     prmode (b, mx) (global_rhs, t') xs lthy =
-  if is_locale
-    then lthy
-      |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
-      |> is_class ? Class.abbrev target prmode ((b, mx), t')
-    else lthy
-      |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
+  if is_locale then
+    lthy
+    |> locale_abbrev ta prmode ((b, if is_class then NoSyn else mx), global_rhs) xs
+    |> is_class ? Class.abbrev target prmode ((b, mx), t')
+  else
+    lthy
+    |> Generic_Target.theory_abbrev prmode ((b, mx), global_rhs);
 
 
 (* pretty *)
@@ -200,9 +202,10 @@ in
 
 fun init target thy = init_target (named_target thy target) thy;
 
-fun reinit lthy = case peek lthy
- of SOME {target, ...} => init target o Local_Theory.exit_global
-  | NONE => error "Not in a named target";
+fun reinit lthy =
+  (case peek lthy of
+    SOME {target, ...} => init target o Local_Theory.exit_global
+  | NONE => error "Not in a named target");
 
 val theory_init = init_target global_target;
 

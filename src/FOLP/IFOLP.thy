@@ -63,20 +63,22 @@ consts
 
 syntax "_Proof" :: "[p,o]=>prop"    ("(_ /: _)" [51, 10] 5)
 
-ML {*
-
-(*show_proofs:=true displays the proof terms -- they are ENORMOUS*)
-val show_proofs = Unsynchronized.ref false;
-
-fun proof_tr [p,P] = Const (@{const_name Proof}, dummyT) $ P $ p;
-
-fun proof_tr' [P,p] =
-  if ! show_proofs then Const (@{syntax_const "_Proof"}, dummyT) $ p $ P
-  else P  (*this case discards the proof term*);
+parse_translation {*
+  let fun proof_tr [p, P] = Const (@{const_syntax Proof}, dummyT) $ P $ p
+  in [(@{syntax_const "_Proof"}, proof_tr)] end
 *}
 
-parse_translation {* [(@{syntax_const "_Proof"}, proof_tr)] *}
-print_translation {* [(@{const_syntax Proof}, proof_tr')] *}
+(*show_proofs = true displays the proof terms -- they are ENORMOUS*)
+ML {* val (show_proofs, setup_show_proofs) = Attrib.config_bool "show_proofs" (K false) *}
+setup setup_show_proofs
+
+print_translation (advanced) {*
+  let
+    fun proof_tr' ctxt [P, p] =
+      if Config.get ctxt show_proofs then Const (@{syntax_const "_Proof"}, dummyT) $ p $ P
+      else P
+  in [(@{const_syntax Proof}, proof_tr')] end
+*}
 
 axioms
 

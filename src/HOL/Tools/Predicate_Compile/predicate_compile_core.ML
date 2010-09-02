@@ -63,6 +63,19 @@ sig
   val add_random_dseq_equations : options -> string list -> theory -> theory
   val add_new_random_dseq_equations : options -> string list -> theory -> theory
   val mk_tracing : string -> term -> term
+  val prepare_intrs : options -> compilation -> theory -> string list -> thm list ->
+    ((string * typ) list * string list * string list * (string * mode list) list *
+      (string *  (Term.term list * Predicate_Compile_Aux.indprem list) list) list)
+  type mode_analysis_options = {use_random : bool, reorder_premises : bool, infer_pos_and_neg_modes : bool}  
+  datatype mode_derivation = Mode_App of mode_derivation * mode_derivation | Context of mode
+  | Mode_Pair of mode_derivation * mode_derivation | Term of mode
+  type moded_clause = term list * (Predicate_Compile_Aux.indprem * mode_derivation) list
+  type 'a pred_mode_table = (string * ((bool * mode) * 'a) list) list
+
+  val infer_modes : 
+    mode_analysis_options -> options -> compilation -> (string * typ) list -> (string * mode list) list ->
+      string list -> (string *  (Term.term list * Predicate_Compile_Aux.indprem list) list) list ->
+      theory -> ((moded_clause list pred_mode_table * string list) * theory)
 end;
 
 structure Predicate_Compile_Core : PREDICATE_COMPILE_CORE =
@@ -524,7 +537,7 @@ fun mk_casesrule ctxt pred introrules =
 
 fun dest_conjunct_prem th =
   case HOLogic.dest_Trueprop (prop_of th) of
-    (Const (@{const_name "op &"}, _) $ t $ t') =>
+    (Const (@{const_name HOL.conj}, _) $ t $ t') =>
       dest_conjunct_prem (th RS @{thm conjunct1})
         @ dest_conjunct_prem (th RS @{thm conjunct2})
     | _ => [th]
@@ -587,7 +600,7 @@ fun preprocess_intro thy rule =
 
 fun preprocess_elim ctxt elimrule =
   let
-    fun replace_eqs (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, T) $ lhs $ rhs)) =
+    fun replace_eqs (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, T) $ lhs $ rhs)) =
        HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
      | replace_eqs t = t
     val thy = ProofContext.theory_of ctxt
@@ -730,9 +743,7 @@ structure Alt_Compilations_Data = Theory_Data
   type T = (mode * (compilation_funs -> typ -> term)) list Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  val merge = Symtab.merge ((K true)
-    : ((mode * (compilation_funs -> typ -> term)) list *
-      (mode * (compilation_funs -> typ -> term)) list -> bool));
+  fun merge data : T = Symtab.merge (K true) data;
 );
 
 fun alternative_compilation_of_global thy pred_name mode =
@@ -3033,12 +3044,13 @@ val setup = PredData.put (Graph.empty) #>
     "adding alternative introduction rules for code generation of inductive predicates"
 
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
+(* FIXME ... this is important to avoid changing the background theory below *)
 fun generic_code_pred prep_const options raw_const lthy =
   let
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
     val ctxt = ProofContext.init_global thy
-    val lthy' = Local_Theory.theory (PredData.map
+    val lthy' = Local_Theory.background_theory (PredData.map
         (extend (fetch_pred_data ctxt) (depending_preds_of ctxt) const)) lthy
     val thy' = ProofContext.theory_of lthy'
     val ctxt' = ProofContext.init_global thy'
@@ -3063,7 +3075,7 @@ fun generic_code_pred prep_const options raw_const lthy =
         val global_thms = ProofContext.export goal_ctxt
           (ProofContext.init_global (ProofContext.theory_of goal_ctxt)) (map the_single thms)
       in
-        goal_ctxt |> Local_Theory.theory (fold set_elim global_thms #>
+        goal_ctxt |> Local_Theory.background_theory (fold set_elim global_thms #>
           ((case compilation options of
              Pred => add_equations
            | DSeq => add_dseq_equations

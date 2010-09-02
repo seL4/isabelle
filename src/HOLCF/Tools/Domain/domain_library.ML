@@ -121,7 +121,7 @@ fun atomize ctxt thm =
       val r_inst = read_instantiate ctxt;
       fun at thm =
           case concl_of thm of
-            _$(Const(@{const_name "op &"},_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
+            _$(Const(@{const_name HOL.conj},_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
           | _$(Const(@{const_name All} ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
           | _                             => [thm];
     in map zero_var_indexes (at thm) end;
@@ -190,9 +190,9 @@ end
 
 fun mk_All  (x,P) = %%:"all" $ mk_lam(x,P); (* meta universal quantification *)
 
-infixr 0 ===>;  fun S ===> T = %%:"==>" $ S $ T;
-infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
-infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
+infixr 0 ===>;  fun S ===> T = %%: "==>" $ S $ T;
+infix 0 ==;     fun S ==  T = %%: "==" $ S $ T;
+infix 1 ===;    fun S === T = %%: @{const_name HOL.eq} $ S $ T;
 infix 1 ~=;     fun S ~=  T = HOLogic.mk_not (S === T);
 
 infix 9 `  ; fun f ` x = %%: @{const_name Rep_CFun} $ f $ x;

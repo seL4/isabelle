@@ -54,6 +54,22 @@ object Isar_Document
     else if (markup.exists(_.name == Markup.FINISHED)) Finished
     else Unprocessed
   }
+
+
+  /* reported positions */
+
+  def reported_positions(command_id: Document.Command_ID, message: XML.Elem): Set[Text.Range] =
+  {
+    def reported(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
+      tree match {
+        case XML.Elem(Markup(name, Position.Id_Range(id, range)), body)
+        if (name == Markup.BINDING || name == Markup.ENTITY || name == Markup.REPORT) &&
+          id == command_id => body.foldLeft(set + range)(reported)
+        case XML.Elem(_, body) => body.foldLeft(set)(reported)
+        case XML.Text(_) => set
+      }
+    reported(Set.empty, message) ++ Position.Range.unapply(message.markup.properties)
+  }
 }
 
 

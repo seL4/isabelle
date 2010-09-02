@@ -39,10 +39,14 @@ lemma size_code [code]:
   "size xq = (case yield xq of None => 0 | Some (x, xq') => size xq' + 1)"
 by (cases xq) auto
 
-lemma [code]: "eq_class.eq xq yq = (case (yield xq, yield yq) of
-  (None, None) => True | (Some (x, xq'), Some (y, yq')) => (HOL.eq x y) \<and> (eq_class.eq xq yq) | _ => False)"
-apply (cases xq) apply (cases yq) apply (auto simp add: eq_class.eq_equals) 
-apply (cases yq) apply (auto simp add: eq_class.eq_equals) done
+lemma [code]: "HOL.equal xq yq = (case (yield xq, yield yq) of
+  (None, None) => True | (Some (x, xq'), Some (y, yq')) => (HOL.equal x y) \<and> (HOL.equal xq yq) | _ => False)"
+apply (cases xq) apply (cases yq) apply (auto simp add: equal_eq) 
+apply (cases yq) apply (auto simp add: equal_eq) done
+
+lemma [code nbe]:
+  "HOL.equal (x :: 'a lazy_sequence) x \<longleftrightarrow> True"
+  by (fact equal_refl)
 
 lemma seq_case [code]:
   "lazy_sequence_case f g xq = (case (yield xq) of None => f | Some (x, xq') => g x xq')"

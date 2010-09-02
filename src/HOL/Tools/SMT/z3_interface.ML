@@ -170,13 +170,13 @@ val destT2 = hd o tl o Thm.dest_ctyp
 val mk_true = @{cterm "~False"}
 val mk_false = @{cterm False}
 val mk_not = Thm.capply @{cterm Not}
-val mk_implies = Thm.mk_binop @{cterm "op -->"}
+val mk_implies = Thm.mk_binop @{cterm HOL.implies}
 val mk_iff = Thm.mk_binop @{cterm "op = :: bool => _"}
 
 fun mk_nary _ cu [] = cu
   | mk_nary ct _ cts = uncurry (fold_rev (Thm.mk_binop ct)) (split_last cts)
 
-val eq = mk_inst_pair destT1 @{cpat "op ="}
+val eq = mk_inst_pair destT1 @{cpat HOL.eq}
 fun mk_eq ct cu = Thm.mk_binop (instT' ct eq) ct cu
 
 val if_term = mk_inst_pair (destT1 o destT2) @{cpat If}
@@ -216,8 +216,8 @@ fun mk_builtin_fun ctxt sym cts =
     (Sym ("true", _), []) => SOME mk_true
   | (Sym ("false", _), []) => SOME mk_false
   | (Sym ("not", _), [ct]) => SOME (mk_not ct)
-  | (Sym ("and", _), _) => SOME (mk_nary @{cterm "op &"} mk_true cts)
-  | (Sym ("or", _), _) => SOME (mk_nary @{cterm "op |"} mk_false cts)
+  | (Sym ("and", _), _) => SOME (mk_nary @{cterm HOL.conj} mk_true cts)
+  | (Sym ("or", _), _) => SOME (mk_nary @{cterm HOL.disj} mk_false cts)
   | (Sym ("implies", _), [ct, cu]) => SOME (mk_implies ct cu)
   | (Sym ("iff", _), [ct, cu]) => SOME (mk_iff ct cu)
   | (Sym ("~", _), [ct, cu]) => SOME (mk_iff ct cu)

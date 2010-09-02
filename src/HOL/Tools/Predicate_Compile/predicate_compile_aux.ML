@@ -405,13 +405,13 @@ fun map_indprem f (Prem t) = Prem (f t)
 (* general syntactic functions *)
 
 (*Like dest_conj, but flattens conjunctions however nested*)
-fun conjuncts_aux (Const (@{const_name "op &"}, _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
+fun conjuncts_aux (Const (@{const_name HOL.conj}, _) $ t $ t') conjs = conjuncts_aux t (conjuncts_aux t' conjs)
   | conjuncts_aux t conjs = t::conjs;
 
 fun conjuncts t = conjuncts_aux t [];
 
 fun is_equationlike_term (Const ("==", _) $ _ $ _) = true
-  | is_equationlike_term (Const (@{const_name Trueprop}, _) $ (Const (@{const_name "op ="}, _) $ _ $ _)) = true
+  | is_equationlike_term (Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, _) $ _ $ _)) = true
   | is_equationlike_term _ = false
   
 val is_equationlike = is_equationlike_term o prop_of 

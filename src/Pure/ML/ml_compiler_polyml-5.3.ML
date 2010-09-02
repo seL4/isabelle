@@ -4,13 +4,6 @@
 Advanced runtime compilation for Poly/ML 5.3.0.
 *)
 
-signature ML_COMPILER =
-sig
-  val exn_position: exn -> Position.T
-  val exn_message: exn -> string
-  val eval: bool -> Position.T -> ML_Lex.token list -> unit
-end
-
 structure ML_Compiler: ML_COMPILER =
 struct
 
@@ -37,6 +30,7 @@ fun exn_position exn =
     NONE => Position.none
   | SOME loc => position_of loc);
 
+val exn_messages = Runtime.exn_messages exn_position;
 val exn_message = Runtime.exn_message exn_position;
 
 

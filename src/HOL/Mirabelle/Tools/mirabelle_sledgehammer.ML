@@ -357,15 +357,16 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
     case result of
       SH_OK (time_isa, time_atp, names) =>
         let
-          fun get_thms (name, loc) =
-            ((name, loc), thms_of_name (Proof.context_of st) name)
+          fun get_thms (name, Sledgehammer_Fact_Filter.Chained) = NONE
+            | get_thms (name, loc) =
+              SOME ((name, loc), thms_of_name (Proof.context_of st) name)
         in
           change_data id inc_sh_success;
           change_data id (inc_sh_lemmas (length names));
           change_data id (inc_sh_max_lems (length names));
           change_data id (inc_sh_time_isa time_isa);
           change_data id (inc_sh_time_atp time_atp);
-          named_thms := SOME (map get_thms names);
+          named_thms := SOME (map_filter get_thms names);
           log (sh_tag id ^ "succeeded (" ^ string_of_int time_isa ^ "+" ^
             string_of_int time_atp ^ ") [" ^ prover_name ^ "]:\n" ^ msg)
         end

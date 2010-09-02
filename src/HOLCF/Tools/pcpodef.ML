@@ -326,7 +326,7 @@ fun gen_cpodef_proof prep_term prep_constraint
     val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
       prepare_cpodef prep_term def name (b, args, mx) set opt_morphs thy;
-    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
+    fun after_qed [[th1, th2]] = ProofContext.background_theory (snd o make_result th1 th2)
       | after_qed _ = raise Fail "cpodef_proof";
   in Proof.theorem NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 
@@ -337,7 +337,7 @@ fun gen_pcpodef_proof prep_term prep_constraint
     val args = map (apsnd (prep_constraint ctxt)) raw_args;
     val (goal1, goal2, make_result) =
       prepare_pcpodef prep_term def name (b, args, mx) set opt_morphs thy;
-    fun after_qed [[th1, th2]] = ProofContext.theory (snd o make_result th1 th2)
+    fun after_qed [[th1, th2]] = ProofContext.background_theory (snd o make_result th1 th2)
       | after_qed _ = raise Fail "pcpodef_proof";
   in Proof.theorem NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end;
 

@@ -88,13 +88,13 @@ fun svc_abstract t =
             else if T = HOLogic.boolT then c $ (fm x) $ (fm y)
             else replace (c $ x $ y)   (*non-numeric comparison*)
     (*abstraction of a formula*)
-    and fm ((c as Const(@{const_name "op &"}, _)) $ p $ q) = c $ (fm p) $ (fm q)
-      | fm ((c as Const(@{const_name "op |"}, _)) $ p $ q) = c $ (fm p) $ (fm q)
-      | fm ((c as Const(@{const_name "op -->"}, _)) $ p $ q) = c $ (fm p) $ (fm q)
+    and fm ((c as Const(@{const_name HOL.conj}, _)) $ p $ q) = c $ (fm p) $ (fm q)
+      | fm ((c as Const(@{const_name HOL.disj}, _)) $ p $ q) = c $ (fm p) $ (fm q)
+      | fm ((c as Const(@{const_name HOL.implies}, _)) $ p $ q) = c $ (fm p) $ (fm q)
       | fm ((c as Const(@{const_name Not}, _)) $ p) = c $ (fm p)
       | fm ((c as Const(@{const_name True}, _))) = c
       | fm ((c as Const(@{const_name False}, _))) = c
-      | fm (t as Const(@{const_name "op ="},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
+      | fm (t as Const(@{const_name HOL.eq},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm (t as Const(@{const_name Orderings.less},  Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm (t as Const(@{const_name Orderings.less_eq}, Type ("fun", [T,_])) $ _ $ _) = rel (T, t)
       | fm t = replace t

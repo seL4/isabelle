@@ -25,8 +25,9 @@
 \begin{isamarkuptext}%
 This tutorial introduces the code generator facilities of \isa{Isabelle{\isacharslash}HOL}.  It allows to turn (a certain class of) HOL
   specifications into corresponding executable code in the programming
-  languages \isa{SML} \cite{SML}, \isa{OCaml} \cite{OCaml} and
-  \isa{Haskell} \cite{haskell-revised-report}.
+  languages \isa{SML} \cite{SML}, \isa{OCaml} \cite{OCaml},
+  \isa{Haskell} \cite{haskell-revised-report} and \isa{Scala}
+  \cite{scala-overview-tech-report}.
 
   To profit from this tutorial, some familiarity and experience with
   \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \cite{isa-tutorial} and its basic theories is assumed.%
@@ -191,7 +192,8 @@ In a HOL theory, the \indexdef{}{command}{datatype}\hypertarget{command.datatype
   target language identifier and a freely chosen module name.  A file
   name denotes the destination to store the generated code.  Note that
   the semantics of the destination depends on the target language: for
-  \isa{SML} and \isa{OCaml} it denotes a \emph{file}, for \isa{Haskell} it denotes a \emph{directory} where a file named as the
+  \isa{SML}, \isa{OCaml} and \isa{Scala} it denotes a \emph{file},
+  for \isa{Haskell} it denotes a \emph{directory} where a file named as the
   module name (with extension \isa{{\isachardot}hs}) is written:%
 \end{isamarkuptext}%
 \isamarkuptrue%

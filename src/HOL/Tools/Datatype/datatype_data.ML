@@ -257,7 +257,9 @@ val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
            Pretty.str " =" :: Pretty.brk 1 ::
            flat (separate [Pretty.brk 1, Pretty.str "| "]
              (map (single o pretty_constr) cos)));
-    in Thy_Output.output (Thy_Output.maybe_pretty_source (K pretty_datatype) src [()]) end);
+    in
+      Thy_Output.output ctxt (Thy_Output.maybe_pretty_source (K (K pretty_datatype)) ctxt src [()])
+    end);
 
 
 
@@ -428,7 +430,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
           unflat rules (map Drule.zero_var_indexes_list raw_thms);
             (*FIXME somehow dubious*)
       in
-        ProofContext.theory_result
+        ProofContext.background_theory_result
           (prove_rep_datatype config dt_names alt_names descr vs
             raw_inject half_distinct raw_induct)
         #-> after_qed

@@ -52,12 +52,11 @@ instance Integral Natural where {
     | otherwise = (Natural k, Natural l) where (k, l) = quotRem n m;
 };*}
 
+
 code_reserved Haskell Natural
 
-code_include Scala "Natural" {*
-import scala.Math
-
-object Natural {
+code_include Scala "Natural"
+{*object Natural {
 
   def apply(numeral: BigInt): Natural = new Natural(numeral max 0)
   def apply(numeral: Int): Natural = Natural(BigInt(numeral))
@@ -111,7 +110,7 @@ setup {*
     false Code_Printer.literal_alternative_numeral) ["Haskell", "Scala"]
 *}
 
-code_instance code_numeral :: eq
+code_instance code_numeral :: equal
   (Haskell -)
 
 code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
@@ -130,7 +129,7 @@ code_const div_mod_code_numeral
   (Haskell "divMod")
   (Scala infixl 8 "/%")
 
-code_const "eq_class.eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
+code_const "HOL.equal \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (Haskell infixl 4 "==")
   (Scala infixl 5 "==")
 

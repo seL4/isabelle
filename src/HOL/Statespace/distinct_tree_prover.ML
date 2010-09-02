@@ -343,7 +343,7 @@ fun neq_x_y ctxt x y name =
   end handle Option => NONE)
 
 fun distinctTree_tac names ctxt 
-      (Const (@{const_name Trueprop},_) $ (Const (@{const_name Not}, _) $ (Const (@{const_name "op ="}, _) $ x $ y)), i) =
+      (Const (@{const_name Trueprop},_) $ (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ x $ y)), i) =
   (case get_fst_success (neq_x_y ctxt x y) names of
      SOME neq => rtac neq i
    | NONE => no_tac)
@@ -356,7 +356,7 @@ fun distinctFieldSolver names = mk_solver' "distinctFieldSolver"
 
 fun distinct_simproc names =
   Simplifier.simproc_global @{theory HOL} "DistinctTreeProver.distinct_simproc" ["x = y"]
-    (fn thy => fn ss => fn (Const (@{const_name "op ="},_)$x$y) =>
+    (fn thy => fn ss => fn (Const (@{const_name HOL.eq},_)$x$y) =>
         case try Simplifier.the_context ss of
         SOME ctxt => Option.map (fn neq => neq_to_eq_False OF [neq]) 
                       (get_fst_success (neq_x_y ctxt x y) names)

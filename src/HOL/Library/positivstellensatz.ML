@@ -164,21 +164,6 @@ type prover = tree_choice list ->
   thm list * thm list * thm list -> thm * pss_tree
 type cert_conv = cterm -> thm * pss_tree
 
-val my_eqs = Unsynchronized.ref ([] : thm list);
-val my_les = Unsynchronized.ref ([] : thm list);
-val my_lts = Unsynchronized.ref ([] : thm list);
-val my_proof = Unsynchronized.ref (Axiom_eq 0);
-val my_context = Unsynchronized.ref @{context};
-
-val my_mk_numeric = Unsynchronized.ref ((K @{cterm True}) :Rat.rat -> cterm);
-val my_numeric_eq_conv = Unsynchronized.ref no_conv;
-val my_numeric_ge_conv = Unsynchronized.ref no_conv;
-val my_numeric_gt_conv = Unsynchronized.ref no_conv;
-val my_poly_conv = Unsynchronized.ref no_conv;
-val my_poly_neg_conv = Unsynchronized.ref no_conv;
-val my_poly_add_conv = Unsynchronized.ref no_conv;
-val my_poly_mul_conv = Unsynchronized.ref no_conv;
-
 
     (* Some useful derived rules *)
 fun deduct_antisym_rule tha thb = 
@@ -362,11 +347,6 @@ fun gen_gen_real_arith ctxt (mk_numeric,
        poly_conv,poly_neg_conv,poly_add_conv,poly_mul_conv,
        absconv1,absconv2,prover) = 
 let
- val _ = my_context := ctxt 
- val _ = (my_mk_numeric := mk_numeric ; my_numeric_eq_conv := numeric_eq_conv ; 
-          my_numeric_ge_conv := numeric_ge_conv; my_numeric_gt_conv := numeric_gt_conv ;
-          my_poly_conv := poly_conv; my_poly_neg_conv := poly_neg_conv; 
-          my_poly_add_conv := poly_add_conv; my_poly_mul_conv := poly_mul_conv)
  val pre_ss = HOL_basic_ss addsimps simp_thms@ ex_simps@ all_simps@[@{thm not_all},@{thm not_ex},ex_disj_distrib, all_conj_distrib, @{thm if_bool_eq_disj}]
  val prenex_ss = HOL_basic_ss addsimps prenex_simps
  val skolemize_ss = HOL_basic_ss addsimps [choice_iff]
@@ -408,7 +388,6 @@ let
 
   fun hol_of_positivstellensatz(eqs,les,lts) proof =
    let 
-    val _ = (my_eqs := eqs ; my_les := les ; my_lts := lts ; my_proof := proof)
     fun translate prf = case prf of
         Axiom_eq n => nth eqs n
       | Axiom_le n => nth les n
@@ -439,8 +418,8 @@ let
   val is_req = is_binop @{cterm "op =:: real => _"}
   val is_ge = is_binop @{cterm "op <=:: real => _"}
   val is_gt = is_binop @{cterm "op <:: real => _"}
-  val is_conj = is_binop @{cterm "op &"}
-  val is_disj = is_binop @{cterm "op |"}
+  val is_conj = is_binop @{cterm HOL.conj}
+  val is_disj = is_binop @{cterm HOL.disj}
   fun conj_pair th = (th RS @{thm conjunct1}, th RS @{thm conjunct2})
   fun disj_cases th th1 th2 = 
    let val (p,q) = Thm.dest_binop (concl th)
@@ -484,7 +463,7 @@ let
     val th_p = poly_conv(Thm.dest_arg(Thm.dest_arg1(Thm.rhs_of th)))
     val th_x = Drule.arg_cong_rule @{cterm "uminus :: real => _"} th_p
     val th_n = fconv_rule (arg_conv poly_neg_conv) th_x
-    val th' = Drule.binop_cong_rule @{cterm "op |"} 
+    val th' = Drule.binop_cong_rule @{cterm HOL.disj} 
      (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_p)
      (Drule.arg_cong_rule (Thm.capply @{cterm "op <::real=>_"} @{cterm "0::real"}) th_n)
     in Thm.transitive th th' 
@@ -542,12 +521,12 @@ let
   let 
    val nnf_norm_conv' = 
      nnf_conv then_conv 
-     literals_conv [@{term "op &"}, @{term "op |"}] [] 
+     literals_conv [@{term HOL.conj}, @{term HOL.disj}] [] 
      (Conv.cache_conv 
        (first_conv [real_lt_conv, real_le_conv, 
                     real_eq_conv, real_not_lt_conv, 
                     real_not_le_conv, real_not_eq_conv, all_conv]))
-  fun absremover ct = (literals_conv [@{term "op &"}, @{term "op |"}] [] 
+  fun absremover ct = (literals_conv [@{term HOL.conj}, @{term HOL.disj}] [] 
                   (try_conv (absconv1 then_conv binop_conv (arg_conv poly_conv))) then_conv 
         try_conv (absconv2 then_conv nnf_norm_conv' then_conv binop_conv absremover)) ct
   val nct = Thm.capply @{cterm Trueprop} (Thm.capply @{cterm "Not"} ct)

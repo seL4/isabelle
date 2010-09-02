@@ -1,14 +1,12 @@
 (*  Title:      StateSpaceEx.thy
-    ID:         $Id$
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
 header {* Examples \label{sec:Examples} *}
 theory StateSpaceEx
 imports StateSpaceLocale StateSpaceSyntax
-
 begin
-(* FIXME: Use proper keywords file *)
+
 (*<*)
 syntax
  "_statespace_updates" :: "('a \<Rightarrow> 'b) \<Rightarrow> updbinds \<Rightarrow> ('a \<Rightarrow> 'b)" ("_\<langle>_\<rangle>" [900,0] 900)

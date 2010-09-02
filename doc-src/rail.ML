@@ -97,8 +97,9 @@ fun decode_link ctxt (kind,index,logic,name) =
     (idx ^
     (Output.output name
       |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-      |> (if ! Thy_Output.quotes then quote else I)
-      |> (if ! Thy_Output.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+      |> (if Config.get ctxt Thy_Output.quotes then quote else I)
+      |> (if Config.get ctxt Thy_Output.display
+          then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
           else hyper o enclose "\\mbox{\\isa{" "}}")), style)
   else ("Bad " ^ kind ^ " " ^ name, false)
   end;

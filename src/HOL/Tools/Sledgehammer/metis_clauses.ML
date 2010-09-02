@@ -94,10 +94,10 @@ fun union_all xss = fold (union (op =)) xss []
 val const_trans_table =
   Symtab.make [(@{type_name Product_Type.prod}, "prod"),
                (@{type_name Sum_Type.sum}, "sum"),
-               (@{const_name "op ="}, "equal"),
-               (@{const_name "op &"}, "and"),
-               (@{const_name "op |"}, "or"),
-               (@{const_name "op -->"}, "implies"),
+               (@{const_name HOL.eq}, "equal"),
+               (@{const_name HOL.conj}, "and"),
+               (@{const_name HOL.disj}, "or"),
+               (@{const_name HOL.implies}, "implies"),
                (@{const_name Set.member}, "member"),
                (@{const_name fequal}, "fequal"),
                (@{const_name COMBI}, "COMBI"),
@@ -111,7 +111,7 @@ val const_trans_table =
 
 (* Invert the table of translations between Isabelle and ATPs. *)
 val const_trans_table_inv =
-  Symtab.update ("fequal", @{const_name "op ="})
+  Symtab.update ("fequal", @{const_name HOL.eq})
                 (Symtab.make (map swap (Symtab.dest const_trans_table)))
 
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
@@ -185,8 +185,8 @@ fun lookup_const c =
     SOME c' => c'
   | NONE => ascii_of c
 
-(* "op =" MUST BE "equal" because it's built into ATPs. *)
-fun make_fixed_const @{const_name "op ="} = "equal"
+(* HOL.eq MUST BE "equal" because it's built into ATPs. *)
+fun make_fixed_const @{const_name HOL.eq} = "equal"
   | make_fixed_const c = const_prefix ^ lookup_const c
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
@@ -430,7 +430,7 @@ fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
 
 fun literals_of_term1 args thy (@{const Trueprop} $ P) =
     literals_of_term1 args thy P
-  | literals_of_term1 args thy (@{const "op |"} $ P $ Q) =
+  | literals_of_term1 args thy (@{const HOL.disj} $ P $ Q) =
     literals_of_term1 (literals_of_term1 args thy P) thy Q
   | literals_of_term1 (lits, ts) thy P =
     let val ((pred, ts'), pol) = predicate_of thy (P, true) in

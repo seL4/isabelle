@@ -14,7 +14,7 @@ def_maps
 const_maps
   "~" > "HOL.Not"
   "bool_case" > "Datatype.bool.bool_case"
-  "\\/" > "op |"
+  "\\/" > HOL.disj
   "TYPE_DEFINITION" > "HOL4Setup.TYPE_DEFINITION"
   "T" > "HOL.True"
   "RES_SELECT" > "HOL4Base.bool.RES_SELECT"
@@ -30,7 +30,7 @@ const_maps
   "ARB" > "HOL4Base.bool.ARB"
   "?!" > "HOL.Ex1"
   "?" > "HOL.Ex"
-  "/\\" > "op &"
+  "/\\" > HOL.conj
   "!" > "HOL.All"
 
 thm_maps

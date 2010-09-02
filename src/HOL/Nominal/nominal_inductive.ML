@@ -71,7 +71,7 @@ fun add_binders thy i (t as (_ $ _)) bs = (case strip_comb t of
   | add_binders thy i (Abs (_, _, t)) bs = add_binders thy (i + 1) t bs
   | add_binders thy i _ bs = bs;
 
-fun split_conj f names (Const (@{const_name "op &"}, _) $ p $ q) _ = (case head_of p of
+fun split_conj f names (Const (@{const_name HOL.conj}, _) $ p $ q) _ = (case head_of p of
       Const (name, _) =>
         if member (op =) names name then SOME (f p q) else NONE
     | _ => NONE)
@@ -89,7 +89,7 @@ fun strip_all [] t = t
 (* where "id" protects the subformula from simplification            *)
 (*********************************************************************)
 
-fun inst_conj_all names ps pis (Const (@{const_name "op &"}, _) $ p $ q) _ =
+fun inst_conj_all names ps pis (Const (@{const_name HOL.conj}, _) $ p $ q) _ =
       (case head_of p of
          Const (name, _) =>
            if member (op =) names name then SOME (HOLogic.mk_conj (p,

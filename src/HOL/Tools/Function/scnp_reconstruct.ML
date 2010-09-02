@@ -68,7 +68,7 @@ structure Multiset_Setup = Theory_Data
   type T = multiset_setup option
   val empty = NONE
   val extend = I;
-  fun merge (v1, v2) = if is_some v2 then v2 else v1   (* FIXME prefer v1 !?! *)
+  fun merge (v1, v2) = if is_some v1 then v1 else v2
 )
 
 val multiset_setup = Multiset_Setup.put o SOME

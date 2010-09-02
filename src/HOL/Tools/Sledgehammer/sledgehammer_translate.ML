@@ -19,7 +19,7 @@ sig
   val prepare_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
     -> ((string * 'a) * thm) list
-    -> string problem * string Symtab.table * int * (string * 'a) vector
+    -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
 structure Sledgehammer_Translate : SLEDGEHAMMER_TRANSLATE =
@@ -70,10 +70,10 @@ fun combformula_for_prop thy =
         do_quant bs AForall s T t'
       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
         do_quant bs AExists s T t'
-      | @{const "op &"} $ t1 $ t2 => do_conn bs AAnd t1 t2
-      | @{const "op |"} $ t1 $ t2 => do_conn bs AOr t1 t2
-      | @{const "op -->"} $ t1 $ t2 => do_conn bs AImplies t1 t2
-      | Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
+      | @{const HOL.conj} $ t1 $ t2 => do_conn bs AAnd t1 t2
+      | @{const HOL.disj} $ t1 $ t2 => do_conn bs AOr t1 t2
+      | @{const HOL.implies} $ t1 $ t2 => do_conn bs AImplies t1 t2
+      | Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])) $ t1 $ t2 =>
         do_conn bs AIff t1 t2
       | _ => (fn ts => do_term bs (Envir.eta_contract t)
                        |>> AAtom ||> union (op =) ts)
@@ -97,7 +97,7 @@ fun extensionalize_term t =
       | aux j (t as Const (s, Type (_, [Type (_, [_, T']),
                                         Type (_, [_, res_T])]))
                     $ t2 $ Abs (var_s, var_T, t')) =
-        if s = @{const_name "op ="} orelse s = @{const_name "=="} then
+        if s = @{const_name HOL.eq} orelse s = @{const_name "=="} then
           let val var_t = Var ((var_s, j), var_T) in
             Const (s, T' --> T' --> res_T)
               $ betapply (t2, var_t) $ subst_bound (var_t, t')
@@ -125,10 +125,10 @@ fun introduce_combinators_in_term ctxt kind t =
             t0 $ Abs (s, T, aux (T :: Ts) t')
           | (t0 as Const (@{const_name Ex}, _)) $ t1 =>
             aux Ts (t0 $ eta_expand Ts t1 1)
-          | (t0 as @{const "op &"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as @{const "op |"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as @{const "op -->"}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
-          | (t0 as Const (@{const_name "op ="}, Type (_, [@{typ bool}, _])))
+          | (t0 as @{const HOL.conj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const HOL.disj}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as @{const HOL.implies}) $ t1 $ t2 => t0 $ aux Ts t1 $ aux Ts t2
+          | (t0 as Const (@{const_name HOL.eq}, Type (_, [@{typ bool}, _])))
               $ t1 $ t2 =>
             t0 $ aux Ts t1 $ aux Ts t2
           | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
@@ -218,8 +218,10 @@ fun count_fol_formula ({combformula, ...} : fol_formula) =
   count_combformula combformula
 
 val optional_helpers =
-  [(["c_COMBI", "c_COMBK"], @{thms COMBI_def COMBK_def}),
-   (["c_COMBB", "c_COMBC"], @{thms COMBB_def COMBC_def}),
+  [(["c_COMBI"], @{thms COMBI_def}),
+   (["c_COMBK"], @{thms COMBK_def}),
+   (["c_COMBB"], @{thms COMBB_def}),
+   (["c_COMBC"], @{thms COMBC_def}),
    (["c_COMBS"], @{thms COMBS_def})]
 val optional_typed_helpers =
   [(["c_True", "c_False", "c_If"], @{thms True_or_False}),
@@ -271,7 +273,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axiom_pairs =
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
-    (Vector.fromList axiom_names,
+    (axiom_names |> map single |> Vector.fromList,
      (conjectures, axioms, helper_facts, class_rel_clauses, arity_clauses))
   end
 
