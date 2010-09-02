@@ -795,13 +795,15 @@ val type_has_top_sort =
 
 fun generic_metis_tac mode ctxt ths i st0 =
   let
+    val thy = ProofContext.theory_of ctxt
     val _ = trace_msg (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
     if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
-      Meson.MESON (maps neg_clausify)
+      Meson.MESON (K all_tac) (* FIXME: Try (cnf.cnfx_rewrite_tac ctxt) *)
+                  (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
   end

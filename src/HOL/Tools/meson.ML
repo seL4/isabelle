@@ -25,7 +25,9 @@ sig
   val depth_prolog_tac: thm list -> tactic
   val gocls: thm list -> thm list
   val skolemize_prems_tac: Proof.context -> thm list -> int -> tactic
-  val MESON: (thm list -> thm list) -> (thm list -> tactic) -> Proof.context -> int -> tactic
+  val MESON:
+    (int -> tactic) -> (thm list -> thm list) -> (thm list -> tactic)
+    -> Proof.context -> int -> tactic
   val best_meson_tac: (thm -> int) -> Proof.context -> int -> tactic
   val safe_best_meson_tac: Proof.context -> int -> tactic
   val depth_meson_tac: Proof.context -> int -> tactic
@@ -315,8 +317,8 @@ end;
   (nf prem) returns a LIST of theorems, we can backtrack to get all combinations.*)
 fun resop nf [prem] = resolve_tac (nf prem) 1;
 
-(*Any need to extend this list with
-  "HOL.type_class","HOL.eq_class","Pure.term"?*)
+(* Any need to extend this list with "HOL.type_class", "HOL.eq_class",
+   and "Pure.term"? *)
 val has_meta_conn = exists_Const (member (op =) ["==", "==>", "=simp=>", "all", "prop"] o #1);
 
 fun apply_skolem_theorem (th, rls) =
@@ -573,7 +575,8 @@ fun add_clauses th cls =
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses_unsorted ths = fold_rev add_clauses ths [];
+fun make_clauses_unsorted ths = fold_rev add_clauses ths []
+handle exn => error (ML_Compiler.exn_message exn) (*###*)
 val make_clauses = sort_clauses o make_clauses_unsorted;
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
@@ -598,20 +601,22 @@ fun skolemize_prems_tac ctxt prems =
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)
-fun MESON mkcl cltac ctxt i st =
+fun MESON preskolem_tac mkcl cltac ctxt i st =
   SELECT_GOAL
     (EVERY [Object_Logic.atomize_prems_tac 1,
             rtac ccontr 1,
             Subgoal.FOCUS (fn {context = ctxt', prems = negs, ...} =>
-                      EVERY1 [skolemize_prems_tac ctxt negs,
+                      EVERY1 [preskolem_tac,
+                              skolemize_prems_tac ctxt negs,
                               Subgoal.FOCUS (cltac o mkcl o #prems) ctxt']) ctxt 1]) i st
   handle THM _ => no_tac st;    (*probably from make_meta_clause, not first-order*)
+
 
 (** Best-first search versions **)
 
 (*ths is a list of additional clauses (HOL disjunctions) to use.*)
 fun best_meson_tac sizef =
-  MESON make_clauses
+  MESON (K all_tac) make_clauses
     (fn cls =>
          THEN_BEST_FIRST (resolve_tac (gocls cls) 1)
                          (has_fewer_prems 1, sizef)
@@ -625,7 +630,7 @@ fun safe_best_meson_tac ctxt =
 (** Depth-first search version **)
 
 val depth_meson_tac =
-  MESON make_clauses
+  MESON (K all_tac) make_clauses
     (fn cls => EVERY [resolve_tac (gocls cls) 1, depth_prolog_tac (make_horns cls)]);
 
 
@@ -645,7 +650,7 @@ fun prolog_step_tac' horns =
 fun iter_deepen_prolog_tac horns =
     ITER_DEEPEN iter_deepen_limit (has_fewer_prems 1) (prolog_step_tac' horns);
 
-fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON make_clauses
+fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON (K all_tac) make_clauses
   (fn cls =>
     (case (gocls (cls @ ths)) of
       [] => no_tac  (*no goal clauses*)

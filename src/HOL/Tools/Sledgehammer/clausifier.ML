@@ -10,7 +10,8 @@ sig
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
-  val cnf_axiom: theory -> thm -> thm list
+  val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
+  val cnf_axiom : theory -> thm -> thm list
 end;
 
 structure Clausifier : CLAUSIFIER =
