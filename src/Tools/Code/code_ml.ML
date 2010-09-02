@@ -707,6 +707,87 @@ in Literals {
 
 (** SML/OCaml generic part **)
 
+fun ml_program_of_program labelled_name reserved module_alias program =
+  let
+    fun namify_const upper base (nsp_const, nsp_type) =
+      let
+        val (base', nsp_const') = yield_singleton Name.variants
+          (if upper then first_upper base else base) nsp_const
+      in (base', (nsp_const', nsp_type)) end;
+    fun namify_type base (nsp_const, nsp_type) =
+      let
+        val (base', nsp_type') = yield_singleton Name.variants base nsp_type
+      in (base', (nsp_const, nsp_type')) end;
+    fun namify_stmt (Code_Thingol.Fun _) = namify_const false
+      | namify_stmt (Code_Thingol.Datatype _) = namify_type
+      | namify_stmt (Code_Thingol.Datatypecons _) = namify_const true
+      | namify_stmt (Code_Thingol.Class _) = namify_type
+      | namify_stmt (Code_Thingol.Classrel _) = namify_const false
+      | namify_stmt (Code_Thingol.Classparam _) = namify_const false
+      | namify_stmt (Code_Thingol.Classinst _) = namify_const false;
+    fun ml_binding_of_stmt (name, Code_Thingol.Fun (_, ((tysm as (vs, ty), raw_eqs), _))) =
+          let
+            val eqs = filter (snd o snd) raw_eqs;
+            val (eqs', some_value_name) = if null (filter_out (null o snd) vs) then case eqs
+               of [(([], t), some_thm)] => if (not o null o fst o Code_Thingol.unfold_fun) ty
+                  then ([(([IVar (SOME "x")], t `$ IVar (SOME "x")), some_thm)], NONE)
+                  else (eqs, SOME (name, member (op =) (Code_Thingol.add_constnames t []) name))
+                | _ => (eqs, NONE)
+              else (eqs, NONE)
+          in (ML_Function (name, (tysm, eqs')), some_value_name) end
+      | ml_binding_of_stmt (name, Code_Thingol.Classinst (stmt as ((_, (_, vs)), _))) =
+          (ML_Instance (name, stmt), if forall (null o snd) vs then SOME (name, false) else NONE)
+      | ml_binding_of_stmt (name, _) =
+          error ("Binding block containing illegal statement: " ^ labelled_name name)
+    fun modify_fun (name, stmt) =
+      let
+        val (binding, some_value_name) = ml_binding_of_stmt (name, stmt);
+        val ml_stmt = case binding
+         of ML_Function (name, ((vs, ty), [])) =>
+              ML_Exc (name, ((vs, ty),
+                (length o filter_out (null o snd)) vs + (length o fst o Code_Thingol.unfold_fun) ty))
+          | _ => case some_value_name
+             of NONE => ML_Funs ([binding], [])
+              | SOME (name, true) => ML_Funs ([binding], [name])
+              | SOME (name, false) => ML_Val binding
+      in SOME ml_stmt end;
+    fun modify_funs stmts =
+      (SOME (ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst))
+        :: replicate (length stmts - 1) NONE)
+    fun modify_datatypes stmts =
+      (SOME (ML_Datas (map_filter
+        (fn (name, Code_Thingol.Datatype (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts))
+        :: replicate (length stmts - 1) NONE)
+    fun modify_class stmts =
+      (SOME (ML_Class (the_single (map_filter
+        (fn (name, Code_Thingol.Class (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts)))
+        :: replicate (length stmts - 1) NONE)
+    fun modify_stmts ([stmt as (name, Code_Thingol.Fun _)]) =
+          [modify_fun stmt]
+      | modify_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
+          modify_funs stmts
+      | modify_stmts ((stmts as (_, Code_Thingol.Datatypecons _)::_)) =
+          modify_datatypes stmts
+      | modify_stmts ((stmts as (_, Code_Thingol.Datatype _)::_)) =
+          modify_datatypes stmts
+      | modify_stmts ((stmts as (_, Code_Thingol.Class _)::_)) =
+          modify_class stmts
+      | modify_stmts ((stmts as (_, Code_Thingol.Classrel _)::_)) =
+          modify_class stmts
+      | modify_stmts ((stmts as (_, Code_Thingol.Classparam _)::_)) =
+          modify_class stmts
+      | modify_stmts ([stmt as (_, Code_Thingol.Classinst _)]) =
+          [modify_fun stmt]
+      | modify_stmts ((stmts as (_, Code_Thingol.Classinst _)::_)) =
+          modify_funs stmts
+      | modify_stmts stmts = error ("Illegal mutual dependencies: " ^
+          (Library.commas o map (labelled_name o fst)) stmts);
+  in
+    Code_Namespace.hierarchical_program labelled_name { module_alias = module_alias, reserved = reserved,
+      empty_nsp = (reserved, reserved), namify_module = pair, namify_stmt = namify_stmt,
+      cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts } program
+  end;
+
 local
 
 datatype ml_node =
@@ -906,27 +987,30 @@ fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
   let
     val is_cons = Code_Thingol.is_cons program;
     val is_presentation = not (null presentation_names);
-    val (deresolver, nodes) = ml_node_of_program labelled_name
-      reserved_syms module_alias program;
-    val reserved = make_vars reserved_syms;
-    fun print_node prefix (Dummy _) =
+    val { deresolver, hierarchical_program = ml_program } =
+      ml_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
+    fun print_node _ (_, Code_Namespace.Dummy) =
           NONE
-      | print_node prefix (Stmt (_, stmt)) = if is_presentation andalso
-          (null o filter (member (op =) presentation_names) o stmt_names_of) stmt
+      | print_node prefix_fragments (_, Code_Namespace.Stmt stmt) =
+          if is_presentation andalso
+            (null o filter (member (op =) presentation_names) o stmt_names_of) stmt
           then NONE
-          else SOME (print_stmt labelled_name tyco_syntax const_syntax reserved is_cons (deresolver prefix) stmt)
-      | print_node prefix (Module (module_name, (_, nodes))) =
+          else SOME (print_stmt labelled_name tyco_syntax const_syntax (make_vars reserved_syms)
+            is_cons (deresolver prefix_fragments) stmt)
+      | print_node prefix_fragments (name_fragment, Code_Namespace.Module (_, nodes)) =
           let
-            val (decls, body) = print_nodes (prefix @ [module_name]) nodes;
+            val (decls, body) = print_nodes (prefix_fragments @ [name_fragment]) nodes;
             val p = if is_presentation then Pretty.chunks2 body
-              else print_module module_name (if with_signatures then SOME decls else NONE) body;
+              else print_module name_fragment
+                (if with_signatures then SOME decls else NONE) body;
           in SOME ([], p) end
-    and print_nodes prefix nodes = (map_filter (print_node prefix o Graph.get_node nodes)
+    and print_nodes prefix_fragments nodes = (map_filter
+        (fn name => print_node prefix_fragments (name, snd (Graph.get_node nodes name)))
         o rev o flat o Graph.strong_conn) nodes
       |> split_list
       |> (fn (decls, body) => (flat decls, body))
     val names' = map (try (deresolver [])) names;
-    val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] nodes));
+    val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] ml_program));
     fun write width NONE = writeln_pretty width
       | write width (SOME p) = File.write p o string_of_pretty width;
   in
