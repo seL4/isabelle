@@ -128,6 +128,7 @@ fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
 fun markup_stmt name = Pretty.mark (code_presentationN, [(stmt_nameN, name)]);
+
 fun filter_presentation presentation_names selected (XML.Elem ((name, attrs), xs)) =
       implode (map (filter_presentation presentation_names
         (selected orelse (name = code_presentationN
@@ -145,13 +146,15 @@ fun maps_string s f [] = ""
         else s1 ^ s ^ s2
       end;
 
-fun format presentation_names width p =
-  if null presentation_names then Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n"
-  else Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width) p
-    |> YXML.parse_body
-    |> tap (fn ts => tracing (cat_lines (map XML.string_of ts)))
-    |> maps_string "\n\n" (filter_presentation presentation_names false)
-    |> suffix "\n"
+fun plain_text (XML.Elem (_, xs)) = implode (map plain_text xs)
+  | plain_text (XML.Text s) = s
+
+fun format presentation_names width =
+  Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width)
+  #> YXML.parse_body
+  #> (if null presentation_names then implode o map plain_text
+      else maps_string "\n\n" (filter_presentation presentation_names false))
+  #> suffix "\n";
 
 
 (** names and variable name contexts **)
