@@ -220,8 +220,8 @@ text {*
   "values"} and the number of elements.
 *}
 
-values %quote [mode: i \<Rightarrow> o \<Rightarrow> bool] 20 "{n. tranclp succ 10 n}"
-values %quote [mode: o \<Rightarrow> i \<Rightarrow> bool] 10 "{n. tranclp succ n 10}"
+values %quote [mode: i \<Rightarrow> o \<Rightarrow> bool] 1 "{n. tranclp succ 10 n}" (*FIMXE does not terminate for n\<ge>1*)
+values %quote [mode: o \<Rightarrow> i \<Rightarrow> bool] 1 "{n. tranclp succ n 10}"
 
 
 subsection {* Embedding into functional code within Isabelle/HOL *}
