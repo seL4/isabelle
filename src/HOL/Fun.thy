@@ -117,31 +117,27 @@ code_const fcomp
 no_notation fcomp (infixl "\<circ>>" 60)
 
 
-subsection {* Injectivity and Surjectivity *}
+subsection {* Injectivity, Surjectivity and Bijectivity *}
 
-definition
-  inj_on :: "['a => 'b, 'a set] => bool" where
-  -- "injective"
-  "inj_on f A == ! x:A. ! y:A. f(x)=f(y) --> x=y"
+definition inj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool" where -- "injective"
+  "inj_on f A \<longleftrightarrow> (\<forall>x\<in>A. \<forall>y\<in>A. f x = f y \<longrightarrow> x = y)"
+
+definition surj_on :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b set \<Rightarrow> bool" where -- "surjective"
+  "surj_on f B \<longleftrightarrow> B \<subseteq> range f"
+
+definition bij_betw :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> 'b set \<Rightarrow> bool" where -- "bijective"
+  "bij_betw f A B \<longleftrightarrow> inj_on f A \<and> f ` A = B"
 
 text{*A common special case: functions injective over the entire domain type.*}
 
 abbreviation
-  "inj f == inj_on f UNIV"
+  "inj f \<equiv> inj_on f UNIV"
 
-definition
-  bij_betw :: "('a => 'b) => 'a set => 'b set => bool" where -- "bijective"
-  "bij_betw f A B \<longleftrightarrow> inj_on f A & f ` A = B"
+abbreviation
+  "surj f \<equiv> surj_on f UNIV"
 
-definition
-  surj :: "('a => 'b) => bool" where
-  -- "surjective"
-  "surj f == ! y. ? x. y=f(x)"
-
-definition
-  bij :: "('a => 'b) => bool" where
-  -- "bijective"
-  "bij f == inj f & surj f"
+abbreviation
+  "bij f \<equiv> bij_betw f UNIV UNIV"
 
 lemma injI:
   assumes "\<And>x y. f x = f y \<Longrightarrow> x = y"
@@ -173,16 +169,16 @@ lemma inj_eq: "inj f ==> (f(x) = f(y)) = (x=y)"
 by (simp add: inj_on_eq_iff)
 
 lemma inj_on_id[simp]: "inj_on id A"
-  by (simp add: inj_on_def) 
+  by (simp add: inj_on_def)
 
 lemma inj_on_id2[simp]: "inj_on (%x. x) A"
-by (simp add: inj_on_def) 
+by (simp add: inj_on_def)
 
-lemma surj_id[simp]: "surj id"
-by (simp add: surj_def) 
+lemma surj_id[simp]: "surj_on id A"
+by (simp add: surj_on_def)
 
-lemma bij_id[simp]: "bij id"
-by (simp add: bij_def)
+lemma bij_id[simp]: "bij_betw id A A"
+by (simp add: bij_betw_def)
 
 lemma inj_onI:
     "(!! x y. [|  x:A;  y:A;  f(x) = f(y) |] ==> x=y) ==> inj_on f A"
@@ -242,19 +238,26 @@ apply(unfold inj_on_def)
 apply (blast)
 done
 
-lemma surjI: "(!! x. g(f x) = x) ==> surj g"
-apply (simp add: surj_def)
-apply (blast intro: sym)
-done
+lemma surj_onI: "(\<And>x. x \<in> B \<Longrightarrow> g (f x) = x) \<Longrightarrow> surj_on g B"
+  by (simp add: surj_on_def) (blast intro: sym)
 
-lemma surj_range: "surj f ==> range f = UNIV"
-by (auto simp add: surj_def)
+lemma surj_onD: "surj_on f B \<Longrightarrow> y \<in> B \<Longrightarrow> \<exists>x. y = f x"
+  by (auto simp: surj_on_def)
 
-lemma surjD: "surj f ==> EX x. y = f x"
-by (simp add: surj_def)
+lemma surj_on_range_iff: "surj_on f B \<longleftrightarrow> (\<exists>A. f ` A = B)"
+  unfolding surj_on_def by (auto intro!: exI[of _ "f -` B"])
 
-lemma surjE: "surj f ==> (!!x. y = f x ==> C) ==> C"
-by (simp add: surj_def, blast)
+lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
+  by (simp add: surj_on_def subset_eq image_iff)
+
+lemma surjI: "(\<And> x. g (f x) = x) \<Longrightarrow> surj g"
+  by (blast intro: surj_onI)
+
+lemma surjD: "surj f \<Longrightarrow> \<exists>x. y = f x"
+  by (simp add: surj_def)
+
+lemma surjE: "surj f \<Longrightarrow> (\<And>x. y = f x \<Longrightarrow> C) \<Longrightarrow> C"
+  by (simp add: surj_def, blast)
 
 lemma comp_surj: "[| surj f;  surj g |] ==> surj (g o f)"
 apply (simp add: comp_def surj_def, clarify)
@@ -262,14 +265,17 @@ apply (drule_tac x = y in spec, clarify)
 apply (drule_tac x = x in spec, blast)
 done
 
+lemma surj_range: "surj f \<Longrightarrow> range f = UNIV"
+  by (auto simp add: surj_on_def)
+
 lemma surj_range_iff: "surj f \<longleftrightarrow> range f = UNIV"
-  unfolding expand_set_eq image_iff surj_def by auto
+  unfolding surj_on_def by auto
 
 lemma bij_betw_imp_surj: "bij_betw f A UNIV \<Longrightarrow> surj f"
   unfolding bij_betw_def surj_range_iff by auto
 
-lemma bij_eq_bij_betw: "bij f \<longleftrightarrow> bij_betw f UNIV UNIV"
-  unfolding bij_def surj_range_iff bij_betw_def ..
+lemma bij_def: "bij f \<longleftrightarrow> inj f \<and> surj f"
+  unfolding surj_range_iff bij_betw_def ..
 
 lemma bijI: "[| inj f; surj f |] ==> bij f"
 by (simp add: bij_def)
@@ -282,6 +288,9 @@ by (simp add: bij_def)
 
 lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
 by (simp add: bij_betw_def)
+
+lemma bij_betw_imp_surj_on: "bij_betw f A B \<Longrightarrow> surj_on f B"
+by (auto simp: bij_betw_def surj_on_range_iff)
 
 lemma bij_comp: "bij f \<Longrightarrow> bij g \<Longrightarrow> bij (g o f)"
 by(fastsimp intro: comp_inj_on comp_surj simp: bij_def surj_range)
@@ -511,12 +520,21 @@ lemma swap_triple:
 lemma comp_swap: "f \<circ> swap a b g = swap a b (f \<circ> g)"
 by (rule ext, simp add: fun_upd_def swap_def)
 
+lemma swap_image_eq [simp]:
+  assumes "a \<in> A" "b \<in> A" shows "swap a b f ` A = f ` A"
+proof -
+  have subset: "\<And>f. swap a b f ` A \<subseteq> f ` A"
+    using assms by (auto simp: image_iff swap_def)
+  then have "swap a b (swap a b f) ` A \<subseteq> (swap a b f) ` A" .
+  with subset[of f] show ?thesis by auto
+qed
+
 lemma inj_on_imp_inj_on_swap:
-  "[|inj_on f A; a \<in> A; b \<in> A|] ==> inj_on (swap a b f) A"
-by (simp add: inj_on_def swap_def, blast)
+  "\<lbrakk>inj_on f A; a \<in> A; b \<in> A\<rbrakk> \<Longrightarrow> inj_on (swap a b f) A"
+  by (simp add: inj_on_def swap_def, blast)
 
 lemma inj_on_swap_iff [simp]:
-  assumes A: "a \<in> A" "b \<in> A" shows "inj_on (swap a b f) A = inj_on f A"
+  assumes A: "a \<in> A" "b \<in> A" shows "inj_on (swap a b f) A \<longleftrightarrow> inj_on f A"
 proof
   assume "inj_on (swap a b f) A"
   with A have "inj_on (swap a b (swap a b f)) A"
@@ -527,50 +545,20 @@ next
   with A show "inj_on (swap a b f) A" by (iprover intro: inj_on_imp_inj_on_swap)
 qed
 
-lemma surj_imp_surj_swap: "surj f ==> surj (swap a b f)"
-apply (simp add: surj_def swap_def, clarify)
-apply (case_tac "y = f b", blast)
-apply (case_tac "y = f a", auto)
-done
+lemma surj_imp_surj_swap: "surj f \<Longrightarrow> surj (swap a b f)"
+  unfolding surj_range_iff by simp
 
-lemma surj_swap_iff [simp]: "surj (swap a b f) = surj f"
-proof
-  assume "surj (swap a b f)"
-  hence "surj (swap a b (swap a b f))" by (rule surj_imp_surj_swap)
-  thus "surj f" by simp
-next
-  assume "surj f"
-  thus "surj (swap a b f)" by (rule surj_imp_surj_swap)
-qed
+lemma surj_swap_iff [simp]: "surj (swap a b f) \<longleftrightarrow> surj f"
+  unfolding surj_range_iff by simp
 
-lemma bij_swap_iff: "bij (swap a b f) = bij f"
-by (simp add: bij_def)
+lemma bij_betw_swap_iff [simp]:
+  "\<lbrakk> x \<in> A; y \<in> A \<rbrakk> \<Longrightarrow> bij_betw (swap x y f) A B \<longleftrightarrow> bij_betw f A B"
+  by (auto simp: bij_betw_def)
 
-lemma bij_betw_swap:
-  assumes "bij_betw f A B" "x \<in> A" "y \<in> A"
-  shows "bij_betw (Fun.swap x y f) A B"
-proof (unfold bij_betw_def, intro conjI)
-  show "inj_on (Fun.swap x y f) A" using assms
-    by (intro inj_on_imp_inj_on_swap) (auto simp: bij_betw_def)
-  show "Fun.swap x y f ` A = B"
-  proof safe
-    fix z assume "z \<in> A"
-    then show "Fun.swap x y f z \<in> B"
-      using assms unfolding bij_betw_def
-      by (auto simp: image_iff Fun.swap_def
-               intro!: bexI[of _ "if z = x then y else if z = y then x else z"])
-  next
-    fix z assume "z \<in> B"
-    then obtain v where "v \<in> A" "z = f v" using assms unfolding bij_betw_def by auto
-    then show "z \<in> Fun.swap x y f ` A" unfolding image_iff
-      using assms
-      by (auto simp add: Fun.swap_def split: split_if_asm
-               intro!: bexI[of _ "if v = x then y else if v = y then x else v"])
-  qed
-qed
+lemma bij_swap_iff [simp]: "bij (swap a b f) \<longleftrightarrow> bij f"
+  by simp
 
 hide_const (open) swap
-
 
 subsection {* Inversion of injective functions *}
 
