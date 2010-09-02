@@ -334,7 +334,7 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
 fun serialize_haskell module_prefix string_classes { labelled_name,
     reserved_syms, includes, module_alias,
     class_syntax, tyco_syntax, const_syntax, program,
-    names, presentation_names } =
+    names } =
   let
     val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name

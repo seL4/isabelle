@@ -787,7 +787,7 @@ fun ml_program_of_program labelled_name reserved module_alias program =
 
 fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
   reserved_syms, includes, module_alias, class_syntax, tyco_syntax,
-  const_syntax, program, names, presentation_names } =
+  const_syntax, program, names } =
   let
     val is_cons = Code_Thingol.is_cons program;
     val { deresolver, hierarchical_program = ml_program } =
