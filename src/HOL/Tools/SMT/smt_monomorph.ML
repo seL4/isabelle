@@ -133,7 +133,7 @@ fun instantiate thy Tenv =
     fun complete (vT as (v, _)) subst =
       subst
       |> not (Vartab.defined subst v) ? Vartab.update vT
-      |> Vartab.map (apsnd (Term.map_atyps (replace vT)))
+      |> Vartab.map (K (apsnd (Term.map_atyps (replace vT))))
 
     fun cert (ix, (S, T)) = pairself (Thm.ctyp_of thy) (TVar (ix, S), T)
 

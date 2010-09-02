@@ -282,7 +282,7 @@ fun conclude_history thy = if (history_concluded o the_exec) thy
   then NONE
   else thy
     |> (Code_Data.map o apfst)
-        ((map_functions o Symtab.map) (fn ((changed, current), history) =>
+        ((map_functions o Symtab.map) (fn _ => fn ((changed, current), history) =>
           ((false, current),
             if changed then (serial (), current) :: history else history))
         #> map_history_concluded (K true))

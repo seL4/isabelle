@@ -310,7 +310,7 @@ val predfun_elim_of = #elim ooo the_predfun_data
 val predfun_neg_intro_of = #neg_intro ooo the_predfun_data
 
 val intros_graph_of =
-  Graph.map_nodes (#intros o rep_pred_data) o PredData.get o ProofContext.theory_of
+  Graph.map (K (#intros o rep_pred_data)) o PredData.get o ProofContext.theory_of
 
 (* diagnostic display functions *)
 

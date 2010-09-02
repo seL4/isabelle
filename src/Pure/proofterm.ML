@@ -515,7 +515,7 @@ fun remove_types (Abs (s, _, t)) = Abs (s, dummyT, remove_types t)
   | remove_types t = t;
 
 fun remove_types_env (Envir.Envir {maxidx, tenv, tyenv}) =
-  Envir.Envir {maxidx = maxidx, tenv = Vartab.map (apsnd remove_types) tenv, tyenv = tyenv};
+  Envir.Envir {maxidx = maxidx, tenv = Vartab.map (K (apsnd remove_types)) tenv, tyenv = tyenv};
 
 fun norm_proof' env prf = norm_proof (remove_types_env env) prf;
 

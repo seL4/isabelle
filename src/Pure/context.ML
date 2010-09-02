@@ -137,7 +137,7 @@ fun declare_theory_data empty extend merge =
     val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, kind)));
   in k end;
 
-val extend_data = Datatab.map' invoke_extend;
+val extend_data = Datatab.map invoke_extend;
 
 fun merge_data pp (data1, data2) =
   Datatab.keys (Datatab.merge (K true) (data1, data2))
@@ -476,7 +476,7 @@ fun invoke_init k =
   | NONE => raise Fail "Invalid proof data identifier");
 
 fun init_data thy =
-  Datatab.map' (fn k => fn _ => invoke_init k thy) (! kinds);
+  Datatab.map (fn k => fn _ => invoke_init k thy) (! kinds);
 
 fun init_new_data data thy =
   Datatab.merge (K true) (data, init_data thy);

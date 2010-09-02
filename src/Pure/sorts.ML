@@ -321,7 +321,7 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
         | NONE => NONE)
       else NONE;
     val classes' = classes |> Graph.subgraph P;
-    val arities' = arities |> Symtab.map' (map_filter o restrict_arity);
+    val arities' = arities |> Symtab.map (map_filter o restrict_arity);
   in (restrict_sort, rebuild_arities pp (make_algebra (classes', arities'))) end;
 
 
