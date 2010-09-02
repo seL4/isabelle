@@ -389,7 +389,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
     fun write width NONE = writeln o format [] width
       | write width (SOME p) = File.write p o format [] width;
   in
-    Code_Target.serialization write (rpair [] ooo format) p
+    Code_Target.serialization write (rpair (try (deresolver [])) ooo format) p
   end;
 
 val serializer : Code_Target.serializer =

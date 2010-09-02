@@ -43,7 +43,7 @@ sig
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
-    -> (string list -> int -> 'a -> string * string option list)
+    -> (string list -> int -> 'a -> string * (string -> string option))
     -> 'a -> serialization
   val set_default_code_width: int -> theory -> theory
 
@@ -71,7 +71,7 @@ type const_syntax = Code_Printer.const_syntax;
 (** abstract nonsense **)
 
 datatype destination = Export of Path.T option | Produce | Present of string list;
-type serialization = int -> destination -> (string * string option list) option;
+type serialization = int -> destination -> (string * (string -> string option)) option;
 
 fun serialization output _ content width (Export some_path) = (output width some_path content; NONE)
   | serialization _ string content width Produce = SOME (string [] width content)
@@ -359,7 +359,9 @@ fun export_code_for thy some_path target some_width some_module_name args naming
   export some_path (mount_serializer thy target some_width some_module_name args naming program names);
 
 fun produce_code_for thy target some_width module_name args naming program names =
-  produce (mount_serializer thy target some_width (assert_module_name module_name) args naming program names);
+  let
+    val (s, deresolve) = produce (mount_serializer thy target some_width (assert_module_name module_name) args naming program names)
+  in (s, map deresolve names) end;
 
 fun present_code_for thy target some_width module_name args naming program (names, selects) =
   present selects (mount_serializer thy target some_width (assert_module_name module_name) args naming program names);

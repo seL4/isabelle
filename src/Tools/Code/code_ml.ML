@@ -809,12 +809,11 @@ fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
         o rev o flat o Graph.strong_conn) nodes
       |> split_list
       |> (fn (decls, body) => (flat decls, body))
-    val names' = map (try (deresolver [])) names;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] ml_program));
     fun write width NONE = writeln o format [] width
       | write width (SOME p) = File.write p o format [] width;
   in
-    Code_Target.serialization write (rpair names' ooo format) p
+    Code_Target.serialization write (rpair (try (deresolver [])) ooo format) p
   end;
 
 val serializer_sml : Code_Target.serializer =
