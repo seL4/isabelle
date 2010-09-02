@@ -183,4 +183,55 @@ lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
 lemma perm_remdups_iff_eq_set: "remdups x <~~> remdups y = (set x = set y)"
   by (metis List.set_remdups perm_set_eq eq_set_perm_remdups)
 
+lemma permutation_Ex_bij:
+  assumes "xs <~~> ys"
+  shows "\<exists>f. bij_betw f {..<length xs} {..<length ys} \<and> (\<forall>i<length xs. xs ! i = ys ! (f i))"
+using assms proof induct
+  case Nil then show ?case unfolding bij_betw_def by simp
+next
+  case (swap y x l)
+  show ?case
+  proof (intro exI[of _ "Fun.swap 0 1 id"] conjI allI impI)
+    show "bij_betw (Fun.swap 0 1 id) {..<length (y # x # l)} {..<length (x # y # l)}"
+      by (rule bij_betw_swap) (auto simp: bij_betw_def)
+    fix i assume "i < length(y#x#l)"
+    show "(y # x # l) ! i = (x # y # l) ! (Fun.swap 0 1 id) i"
+      by (cases i) (auto simp: Fun.swap_def gr0_conv_Suc)
+  qed
+next
+  case (Cons xs ys z)
+  then obtain f where bij: "bij_betw f {..<length xs} {..<length ys}" and
+    perm: "\<forall>i<length xs. xs ! i = ys ! (f i)" by blast
+  let "?f i" = "case i of Suc n \<Rightarrow> Suc (f n) | 0 \<Rightarrow> 0"
+  show ?case
+  proof (intro exI[of _ ?f] allI conjI impI)
+    have *: "{..<length (z#xs)} = {0} \<union> Suc ` {..<length xs}"
+            "{..<length (z#ys)} = {0} \<union> Suc ` {..<length ys}"
+      by (simp_all add: lessThan_eq_Suc_image)
+    show "bij_betw ?f {..<length (z#xs)} {..<length (z#ys)}" unfolding *
+    proof (rule bij_betw_combine)
+      show "bij_betw ?f (Suc ` {..<length xs}) (Suc ` {..<length ys})"
+        using bij unfolding bij_betw_def
+        by (auto intro!: inj_onI imageI dest: inj_onD simp: image_compose[symmetric] comp_def)
+    qed (auto simp: bij_betw_def)
+    fix i assume "i < length (z#xs)"
+    then show "(z # xs) ! i = (z # ys) ! (?f i)"
+      using perm by (cases i) auto
+  qed
+next
+  case (trans xs ys zs)
+  then obtain f g where
+    bij: "bij_betw f {..<length xs} {..<length ys}" "bij_betw g {..<length ys} {..<length zs}" and
+    perm: "\<forall>i<length xs. xs ! i = ys ! (f i)" "\<forall>i<length ys. ys ! i = zs ! (g i)" by blast
+  show ?case
+  proof (intro exI[of _ "g\<circ>f"] conjI allI impI)
+    show "bij_betw (g \<circ> f) {..<length xs} {..<length zs}"
+      using bij by (rule bij_betw_trans)
+    fix i assume "i < length xs"
+    with bij have "f i < length ys" unfolding bij_betw_def by force
+    with `i < length xs` show "xs ! i = zs ! (g \<circ> f) i"
+      using trans(1,3)[THEN perm_length] perm by force
+  qed
+qed
+
 end

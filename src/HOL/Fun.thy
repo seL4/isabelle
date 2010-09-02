@@ -321,6 +321,11 @@ proof -
   ultimately show ?thesis by(auto simp:bij_betw_def)
 qed
 
+lemma bij_betw_combine:
+  assumes "bij_betw f A B" "bij_betw f C D" "B \<inter> D = {}"
+  shows "bij_betw f (A \<union> C) (B \<union> D)"
+  using assms unfolding bij_betw_def inj_on_Un image_Un by auto
+
 lemma surj_image_vimage_eq: "surj f ==> f ` (f -` A) = A"
 by (simp add: surj_range)
 
@@ -512,11 +517,11 @@ by (simp add: inj_on_def swap_def, blast)
 
 lemma inj_on_swap_iff [simp]:
   assumes A: "a \<in> A" "b \<in> A" shows "inj_on (swap a b f) A = inj_on f A"
-proof 
+proof
   assume "inj_on (swap a b f) A"
-  with A have "inj_on (swap a b (swap a b f)) A" 
-    by (iprover intro: inj_on_imp_inj_on_swap) 
-  thus "inj_on f A" by simp 
+  with A have "inj_on (swap a b (swap a b f)) A"
+    by (iprover intro: inj_on_imp_inj_on_swap)
+  thus "inj_on f A" by simp
 next
   assume "inj_on f A"
   with A show "inj_on (swap a b f) A" by (iprover intro: inj_on_imp_inj_on_swap)
@@ -529,17 +534,40 @@ apply (case_tac "y = f a", auto)
 done
 
 lemma surj_swap_iff [simp]: "surj (swap a b f) = surj f"
-proof 
+proof
   assume "surj (swap a b f)"
-  hence "surj (swap a b (swap a b f))" by (rule surj_imp_surj_swap) 
-  thus "surj f" by simp 
+  hence "surj (swap a b (swap a b f))" by (rule surj_imp_surj_swap)
+  thus "surj f" by simp
 next
   assume "surj f"
-  thus "surj (swap a b f)" by (rule surj_imp_surj_swap) 
+  thus "surj (swap a b f)" by (rule surj_imp_surj_swap)
 qed
 
 lemma bij_swap_iff: "bij (swap a b f) = bij f"
 by (simp add: bij_def)
+
+lemma bij_betw_swap:
+  assumes "bij_betw f A B" "x \<in> A" "y \<in> A"
+  shows "bij_betw (Fun.swap x y f) A B"
+proof (unfold bij_betw_def, intro conjI)
+  show "inj_on (Fun.swap x y f) A" using assms
+    by (intro inj_on_imp_inj_on_swap) (auto simp: bij_betw_def)
+  show "Fun.swap x y f ` A = B"
+  proof safe
+    fix z assume "z \<in> A"
+    then show "Fun.swap x y f z \<in> B"
+      using assms unfolding bij_betw_def
+      by (auto simp: image_iff Fun.swap_def
+               intro!: bexI[of _ "if z = x then y else if z = y then x else z"])
+  next
+    fix z assume "z \<in> B"
+    then obtain v where "v \<in> A" "z = f v" using assms unfolding bij_betw_def by auto
+    then show "z \<in> Fun.swap x y f ` A" unfolding image_iff
+      using assms
+      by (auto simp add: Fun.swap_def split: split_if_asm
+               intro!: bexI[of _ "if v = x then y else if v = y then x else v"])
+  qed
+qed
 
 hide_const (open) swap
 
