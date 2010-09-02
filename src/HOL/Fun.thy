@@ -262,6 +262,15 @@ apply (drule_tac x = y in spec, clarify)
 apply (drule_tac x = x in spec, blast)
 done
 
+lemma surj_range_iff: "surj f \<longleftrightarrow> range f = UNIV"
+  unfolding expand_set_eq image_iff surj_def by auto
+
+lemma bij_betw_imp_surj: "bij_betw f A UNIV \<Longrightarrow> surj f"
+  unfolding bij_betw_def surj_range_iff by auto
+
+lemma bij_eq_bij_betw: "bij f \<longleftrightarrow> bij_betw f UNIV UNIV"
+  unfolding bij_def surj_range_iff bij_betw_def ..
+
 lemma bijI: "[| inj f; surj f |] ==> bij f"
 by (simp add: bij_def)
 
