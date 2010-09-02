@@ -365,10 +365,10 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
         content,
         str "}"
       ]);
-    fun serialize_module1 (module_name', (deps, (stmts, _))) =
+    fun serialize_module (module_name', (deps, (stmts, _))) =
       let
         val stmt_names = map fst stmts;
-        val qualified = null presentation_names;
+        val qualified = true;
         val imports = subtract (op =) stmt_names deps
           |> distinct (op =)
           |> map_filter (try deresolver)
@@ -385,14 +385,6 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
                 | (_, (_, NONE)) => NONE) stmts
           );
       in print_module module_name' content end;
-    fun serialize_module2 (_, (_, (stmts, _))) = Pretty.chunks2 (map_filter
-        (fn (name, (_, SOME stmt)) => if null presentation_names
-              orelse member (op =) presentation_names name
-              then SOME (print_stmt false (name, stmt))
-              else NONE
-          | (_, (_, NONE)) => NONE) stmts);
-    val serialize_module =
-      if null presentation_names then serialize_module1 else pair "" o serialize_module2;
     fun write_module width (SOME destination) (modlname, content) =
           let
             val _ = File.check destination;

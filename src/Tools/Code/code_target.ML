@@ -8,6 +8,7 @@ signature CODE_TARGET =
 sig
   val cert_tyco: theory -> string -> string
   val read_tyco: theory -> string -> string
+  val read_const_exprs: theory -> string list -> string list
 
   val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
@@ -77,7 +78,7 @@ fun stmt_names_of_destination (Present stmt_names) = stmt_names
 
 fun serialization output _ content width (Export some_path) = (output width some_path content; NONE)
   | serialization _ string content width Produce = SOME (string [] width content)
-  | serialization _ string content width (Present _) = SOME (string [] width content);
+  | serialization _ string content width (Present stmt_names) = SOME (string stmt_names width content);
 
 fun export some_path f = (f (Export some_path); ());
 fun produce f = the (f Produce);

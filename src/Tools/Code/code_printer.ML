@@ -105,7 +105,7 @@ fun eqn_error (SOME thm) s = error (s ^ ",\nin equation " ^ Display.string_of_th
   | eqn_error NONE s = error s;
 
 val code_presentationN = "code_presentation";
-val _ = Output.add_mode code_presentationN;
+val stmt_nameN = "stmt_name";
 val _ = Markup.add_mode code_presentationN YXML.output_markup;
 
 
@@ -127,7 +127,6 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
-val stmt_nameN = "stmt_name";
 fun markup_stmt name = Pretty.mark (code_presentationN, [(stmt_nameN, name)]);
 fun filter_presentation presentation_names selected (XML.Elem ((name, attrs), xs)) =
       implode (map (filter_presentation presentation_names
@@ -136,12 +135,22 @@ fun filter_presentation presentation_names selected (XML.Elem ((name, attrs), xs
   | filter_presentation presentation_names selected (XML.Text s) =
       if selected then s else "";
 
+fun maps_string s f [] = ""
+  | maps_string s f (x :: xs) =
+      let
+        val s1 = f x;
+        val s2 = maps_string s f xs;
+      in if s1 = "" then s2
+        else if s2 = "" then s1
+        else s1 ^ s ^ s2
+      end;
+
 fun format presentation_names width p =
   if null presentation_names then Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n"
   else Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width) p
     |> YXML.parse_body
-    |> map (filter_presentation presentation_names false)
-    |> implode
+    |> tap (fn ts => tracing (cat_lines (map XML.string_of ts)))
+    |> maps_string "\n\n" (filter_presentation presentation_names false)
     |> suffix "\n"
 
 
