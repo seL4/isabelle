@@ -802,7 +802,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
     if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
     else
-      Meson.MESON (K all_tac) (* FIXME: Try (cnf.cnfx_rewrite_tac ctxt) *)
+      Meson.MESON (K all_tac) (* TODO: Try (cnf.cnfx_rewrite_tac ctxt) *)
                   (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
