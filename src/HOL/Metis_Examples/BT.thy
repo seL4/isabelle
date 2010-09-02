@@ -65,7 +65,7 @@ primrec
 
 text {* \medskip BT simplification *}
 
-declare [[ atp_problem_prefix = "BT__n_leaves_reflect" ]]
+declare [[ sledgehammer_problem_prefix = "BT__n_leaves_reflect" ]]
 
 lemma n_leaves_reflect: "n_leaves (reflect t) = n_leaves t"
 proof (induct t)
@@ -81,7 +81,7 @@ next
     by (metis n_leaves.simps(2) nat_add_commute reflect.simps(2))
 qed
 
-declare [[ atp_problem_prefix = "BT__n_nodes_reflect" ]]
+declare [[ sledgehammer_problem_prefix = "BT__n_nodes_reflect" ]]
 
 lemma n_nodes_reflect: "n_nodes (reflect t) = n_nodes t"
 proof (induct t)
@@ -91,7 +91,7 @@ next
     by (metis add_commute n_nodes.simps(2) reflect.simps(2))
 qed
 
-declare [[ atp_problem_prefix = "BT__depth_reflect" ]]
+declare [[ sledgehammer_problem_prefix = "BT__depth_reflect" ]]
 
 lemma depth_reflect: "depth (reflect t) = depth t"
 apply (induct t)
@@ -102,14 +102,14 @@ text {*
 The famous relationship between the numbers of leaves and nodes.
 *}
 
-declare [[ atp_problem_prefix = "BT__n_leaves_nodes" ]]
+declare [[ sledgehammer_problem_prefix = "BT__n_leaves_nodes" ]]
 
 lemma n_leaves_nodes: "n_leaves t = Suc (n_nodes t)"
 apply (induct t)
  apply (metis n_leaves.simps(1) n_nodes.simps(1))
 by auto
 
-declare [[ atp_problem_prefix = "BT__reflect_reflect_ident" ]]
+declare [[ sledgehammer_problem_prefix = "BT__reflect_reflect_ident" ]]
 
 lemma reflect_reflect_ident: "reflect (reflect t) = t"
 apply (induct t)
@@ -127,7 +127,7 @@ proof -
   thus "reflect (reflect (Br a t1 t2)) = Br a t1 t2" by blast
 qed
 
-declare [[ atp_problem_prefix = "BT__bt_map_ident" ]]
+declare [[ sledgehammer_problem_prefix = "BT__bt_map_ident" ]]
 
 lemma bt_map_ident: "bt_map (%x. x) = (%y. y)"
 apply (rule ext) 
@@ -135,35 +135,35 @@ apply (induct_tac y)
  apply (metis bt_map.simps(1))
 by (metis bt_map.simps(2))
 
-declare [[ atp_problem_prefix = "BT__bt_map_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__bt_map_appnd" ]]
 
 lemma bt_map_appnd: "bt_map f (appnd t u) = appnd (bt_map f t) (bt_map f u)"
 apply (induct t)
  apply (metis appnd.simps(1) bt_map.simps(1))
 by (metis appnd.simps(2) bt_map.simps(2))
 
-declare [[ atp_problem_prefix = "BT__bt_map_compose" ]]
+declare [[ sledgehammer_problem_prefix = "BT__bt_map_compose" ]]
 
 lemma bt_map_compose: "bt_map (f o g) t = bt_map f (bt_map g t)"
 apply (induct t)
  apply (metis bt_map.simps(1))
 by (metis bt_map.simps(2) o_eq_dest_lhs)
 
-declare [[ atp_problem_prefix = "BT__bt_map_reflect" ]]
+declare [[ sledgehammer_problem_prefix = "BT__bt_map_reflect" ]]
 
 lemma bt_map_reflect: "bt_map f (reflect t) = reflect (bt_map f t)"
 apply (induct t)
  apply (metis bt_map.simps(1) reflect.simps(1))
 by (metis bt_map.simps(2) reflect.simps(2))
 
-declare [[ atp_problem_prefix = "BT__preorder_bt_map" ]]
+declare [[ sledgehammer_problem_prefix = "BT__preorder_bt_map" ]]
 
 lemma preorder_bt_map: "preorder (bt_map f t) = map f (preorder t)"
 apply (induct t)
  apply (metis bt_map.simps(1) map.simps(1) preorder.simps(1))
 by simp
 
-declare [[ atp_problem_prefix = "BT__inorder_bt_map" ]]
+declare [[ sledgehammer_problem_prefix = "BT__inorder_bt_map" ]]
 
 lemma inorder_bt_map: "inorder (bt_map f t) = map f (inorder t)"
 proof (induct t)
@@ -178,21 +178,21 @@ next
   case (Br a t1 t2) thus ?case by simp
 qed
 
-declare [[ atp_problem_prefix = "BT__postorder_bt_map" ]]
+declare [[ sledgehammer_problem_prefix = "BT__postorder_bt_map" ]]
 
 lemma postorder_bt_map: "postorder (bt_map f t) = map f (postorder t)"
 apply (induct t)
  apply (metis Nil_is_map_conv bt_map.simps(1) postorder.simps(1))
 by simp
 
-declare [[ atp_problem_prefix = "BT__depth_bt_map" ]]
+declare [[ sledgehammer_problem_prefix = "BT__depth_bt_map" ]]
 
 lemma depth_bt_map [simp]: "depth (bt_map f t) = depth t"
 apply (induct t)
  apply (metis bt_map.simps(1) depth.simps(1))
 by simp
 
-declare [[ atp_problem_prefix = "BT__n_leaves_bt_map" ]]
+declare [[ sledgehammer_problem_prefix = "BT__n_leaves_bt_map" ]]
 
 lemma n_leaves_bt_map [simp]: "n_leaves (bt_map f t) = n_leaves t"
 apply (induct t)
@@ -213,7 +213,7 @@ proof -
     using F1 by metis
 qed
 
-declare [[ atp_problem_prefix = "BT__preorder_reflect" ]]
+declare [[ sledgehammer_problem_prefix = "BT__preorder_reflect" ]]
 
 lemma preorder_reflect: "preorder (reflect t) = rev (postorder t)"
 apply (induct t)
@@ -222,7 +222,7 @@ apply (induct t)
 by (metis append.simps(1) append.simps(2) postorder.simps(2) preorder.simps(2)
           reflect.simps(2) rev.simps(2) rev_append rev_swap)
 
-declare [[ atp_problem_prefix = "BT__inorder_reflect" ]]
+declare [[ sledgehammer_problem_prefix = "BT__inorder_reflect" ]]
 
 lemma inorder_reflect: "inorder (reflect t) = rev (inorder t)"
 apply (induct t)
@@ -233,7 +233,7 @@ by (metis append.simps(1) append_eq_append_conv2 inorder.simps(2)
           reflect.simps(2) rev.simps(2) rev_append)
 *)
 
-declare [[ atp_problem_prefix = "BT__postorder_reflect" ]]
+declare [[ sledgehammer_problem_prefix = "BT__postorder_reflect" ]]
 
 lemma postorder_reflect: "postorder (reflect t) = rev (preorder t)"
 apply (induct t)
@@ -245,14 +245,14 @@ text {*
 Analogues of the standard properties of the append function for lists.
 *}
 
-declare [[ atp_problem_prefix = "BT__appnd_assoc" ]]
+declare [[ sledgehammer_problem_prefix = "BT__appnd_assoc" ]]
 
 lemma appnd_assoc [simp]: "appnd (appnd t1 t2) t3 = appnd t1 (appnd t2 t3)"
 apply (induct t1)
  apply (metis appnd.simps(1))
 by (metis appnd.simps(2))
 
-declare [[ atp_problem_prefix = "BT__appnd_Lf2" ]]
+declare [[ sledgehammer_problem_prefix = "BT__appnd_Lf2" ]]
 
 lemma appnd_Lf2 [simp]: "appnd t Lf = t"
 apply (induct t)
@@ -261,14 +261,14 @@ by (metis appnd.simps(2))
 
 declare max_add_distrib_left [simp]
 
-declare [[ atp_problem_prefix = "BT__depth_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__depth_appnd" ]]
 
 lemma depth_appnd [simp]: "depth (appnd t1 t2) = depth t1 + depth t2"
 apply (induct t1)
  apply (metis appnd.simps(1) depth.simps(1) plus_nat.simps(1))
 by simp
 
-declare [[ atp_problem_prefix = "BT__n_leaves_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__n_leaves_appnd" ]]
 
 lemma n_leaves_appnd [simp]:
      "n_leaves (appnd t1 t2) = n_leaves t1 * n_leaves t2"
@@ -277,7 +277,7 @@ apply (induct t1)
               semiring_norm(111))
 by (simp add: left_distrib)
 
-declare [[ atp_problem_prefix = "BT__bt_map_appnd" ]]
+declare [[ sledgehammer_problem_prefix = "BT__bt_map_appnd" ]]
 
 lemma (*bt_map_appnd:*)
      "bt_map f (appnd t1 t2) = appnd (bt_map f t1) (bt_map f t2)"

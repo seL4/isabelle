@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_proof_reconstruct.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_reconstruct.ML
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
@@ -6,9 +6,9 @@
 Transfer of proofs from external provers.
 *)
 
-signature SLEDGEHAMMER_PROOF_RECONSTRUCT =
+signature SLEDGEHAMMER_RECONSTRUCT =
 sig
-  type locality = Sledgehammer_Fact_Filter.locality
+  type locality = Sledgehammer_Filter.locality
   type minimize_command = string list -> string
   type metis_params =
     bool * minimize_command * string * (string * locality) list vector * thm
@@ -22,13 +22,13 @@ sig
   val proof_text : bool -> isar_params -> metis_params -> text_result
 end;
 
-structure Sledgehammer_Proof_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
+structure Sledgehammer_Reconstruct : SLEDGEHAMMER_RECONSTRUCT =
 struct
 
 open ATP_Problem
 open Metis_Clauses
 open Sledgehammer_Util
-open Sledgehammer_Fact_Filter
+open Sledgehammer_Filter
 open Sledgehammer_Translate
 
 type minimize_command = string list -> string

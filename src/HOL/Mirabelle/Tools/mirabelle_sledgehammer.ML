@@ -290,7 +290,7 @@ fun get_atp thy args =
     | NONE => get_prover (default_atp_name ()))
   end
 
-type locality = Sledgehammer_Fact_Filter.locality
+type locality = Sledgehammer_Filter.locality
 
 local
 
@@ -299,20 +299,29 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover hard_timeout timeout dir st =
+fun run_sh prover_name prover hard_timeout timeout dir st =
   let
-    val {context = ctxt, facts, goal} = Proof.goal st
+    val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val thy = ProofContext.theory_of ctxt
+    val i = 1
     val change_dir = (fn SOME d => Config.put Sledgehammer.dest_dir d | _ => I)
     val ctxt' =
       ctxt
       |> change_dir dir
-      |> Config.put Sledgehammer.measure_runtime true
-    val params = Sledgehammer_Isar.default_params thy
-      [("timeout", Int.toString timeout ^ " s")]
+      |> Config.put Sledgehammer.measure_run_time true
+    val params as {full_types, relevance_thresholds, max_relevant, ...} =
+      Sledgehammer_Isar.default_params thy
+          [("timeout", Int.toString timeout ^ " s")]
+    val relevance_override = {add = [], del = [], only = false}
+    val {default_max_relevant, ...} = ATP_Systems.get_prover thy prover_name
+    val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
+    val axioms =
+      Sledgehammer_Filter.relevant_facts ctxt full_types relevance_thresholds
+          (the_default default_max_relevant max_relevant)
+          relevance_override chained_ths hyp_ts concl_t
     val problem =
-      {subgoal = 1, goal = (ctxt', (facts, goal)),
-       relevance_override = {add = [], del = [], only = false}, axioms = NONE}
+      {ctxt = ctxt', goal = goal, subgoal = i,
+       axioms = map (Sledgehammer_Translate.prepare_axiom ctxt) axioms}
     val time_limit =
       (case hard_timeout of
         NONE => I
@@ -352,12 +361,12 @@ fun run_sledgehammer args named_thms id ({pre=st, log, ...}: Mirabelle.run_args)
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     val hard_timeout = AList.lookup (op =) args prover_hard_timeoutK
       |> Option.map (fst o read_int o explode)
-    val (msg, result) = run_sh prover hard_timeout timeout dir st
+    val (msg, result) = run_sh prover_name prover hard_timeout timeout dir st
   in
     case result of
       SH_OK (time_isa, time_atp, names) =>
         let
-          fun get_thms (name, Sledgehammer_Fact_Filter.Chained) = NONE
+          fun get_thms (name, Sledgehammer_Filter.Chained) = NONE
             | get_thms (name, loc) =
               SOME ((name, loc), thms_of_name (Proof.context_of st) name)
         in
@@ -396,7 +405,7 @@ fun run_minimize args named_thms id ({pre=st, log, ...}: Mirabelle.run_args) =
     val params = Sledgehammer_Isar.default_params thy
       [("atps", prover_name), ("timeout", Int.toString timeout ^ " s")]
     val minimize =
-      Sledgehammer_Fact_Minimize.minimize_theorems params 1 (subgoal_count st)
+      Sledgehammer_Minimize.minimize_theorems params 1 (subgoal_count st)
     val _ = log separator
   in
     case minimize st (these (!named_thms)) of

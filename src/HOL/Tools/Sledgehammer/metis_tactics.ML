@@ -814,7 +814,7 @@ val metisFT_tac = generic_metis_tac FT
    "by (metis X)", to prevent "Subgoal.FOCUS" from freezing the type variables.
    We don't do it for nonschematic facts "X" because this breaks a few proofs
    (in the rare and subtle case where a proof relied on extensionality not being
-   applied) and brings no benefits. *)
+   applied) and brings few benefits. *)
 val has_tvar =
   exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 fun method name mode =

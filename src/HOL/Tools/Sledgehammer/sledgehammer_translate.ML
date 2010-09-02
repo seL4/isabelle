@@ -9,6 +9,7 @@ Translation of HOL to FOL.
 signature SLEDGEHAMMER_TRANSLATE =
 sig
   type 'a problem = 'a ATP_Problem.problem
+  type fol_formula
 
   val axiom_prefix : string
   val conjecture_prefix : string
@@ -16,9 +17,12 @@ sig
   val class_rel_clause_prefix : string
   val arity_clause_prefix : string
   val tfrees_name : string
+  val prepare_axiom :
+    Proof.context -> (string * 'a) * thm
+    -> term * ((string * 'a) * fol_formula) option
   val prepare_problem :
     Proof.context -> bool -> bool -> bool -> bool -> term list -> term
-    -> ((string * 'a) * thm) list
+    -> (term * ((string * 'a) * fol_formula) option) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
 end;
 
@@ -246,20 +250,15 @@ fun get_helper_facts ctxt is_FO full_types conjectures axioms =
     |> map_filter (Option.map snd o make_axiom ctxt false)
   end
 
-fun prepare_formulas ctxt full_types hyp_ts concl_t axiom_pairs =
+fun prepare_axiom ctxt (ax as (_, th)) = (prop_of th, make_axiom ctxt true ax)
+
+fun prepare_formulas ctxt full_types hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
-    val axiom_ts = map (prop_of o snd) axiom_pairs
-    val hyp_ts =
-      if null hyp_ts then
-        []
-      else
-        (* Remove existing axioms from the conjecture, as this can dramatically
-           boost an ATP's performance (for some reason). *)
-        let
-          val axiom_table = fold (Termtab.update o rpair ()) axiom_ts
-                                 Termtab.empty
-        in hyp_ts |> filter_out (Termtab.defined axiom_table) end
+    val (axiom_ts, prepared_axioms) = ListPair.unzip axioms
+    (* Remove existing axioms from the conjecture, as this can dramatically
+       boost an ATP's performance (for some reason). *)
+    val hyp_ts = hyp_ts |> filter_out (member (op aconv) axiom_ts)
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val is_FO = Meson.is_fol_term thy goal_t
     val subs = tfree_classes_of_terms [goal_t]
@@ -267,8 +266,7 @@ fun prepare_formulas ctxt full_types hyp_ts concl_t axiom_pairs =
     val tycons = type_consts_of_terms thy (goal_t :: axiom_ts)
     (* TFrees in the conjecture; TVars in the axioms *)
     val conjectures = make_conjecture ctxt (hyp_ts @ [concl_t])
-    val (axiom_names, axioms) =
-      ListPair.unzip (map_filter (make_axiom ctxt true) axiom_pairs)
+    val (axiom_names, axioms) = ListPair.unzip (map_filter I prepared_axioms)
     val helper_facts = get_helper_facts ctxt is_FO full_types conjectures axioms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
@@ -501,12 +499,12 @@ fun repair_problem thy explicit_forall full_types explicit_apply problem =
       (const_table_for_problem explicit_apply problem) problem
 
 fun prepare_problem ctxt readable_names explicit_forall full_types
-                    explicit_apply hyp_ts concl_t axiom_pairs =
+                    explicit_apply hyp_ts concl_t axioms =
   let
     val thy = ProofContext.theory_of ctxt
     val (axiom_names, (conjectures, axioms, helper_facts, class_rel_clauses,
                        arity_clauses)) =
-      prepare_formulas ctxt full_types hyp_ts concl_t axiom_pairs
+      prepare_formulas ctxt full_types hyp_ts concl_t axioms
     val axiom_lines = map (problem_line_for_fact axiom_prefix full_types) axioms
     val helper_lines =
       map (problem_line_for_fact helper_prefix full_types) helper_facts
