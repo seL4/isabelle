@@ -403,4 +403,45 @@ lemma (in finite_measure_space) finite_measure_space_finite_prod_measure_alteran
   unfolding finite_prod_measure_space[OF N, symmetric]
   using finite_measure_space_finite_prod_measure[OF N] .
 
+lemma (in finite_prob_space) finite_product_measure_space:
+  assumes "finite s1" "finite s2"
+  shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2)\<rparr> (joint_distribution X Y)"
+    (is "finite_measure_space ?M ?D")
+proof (rule finite_Pow_additivity_sufficient)
+  show "positive ?D"
+    unfolding positive_def using assms sets_eq_Pow
+    by (simp add: distribution_def)
+
+  show "additive ?M ?D" unfolding additive_def
+  proof safe
+    fix x y
+    have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
+    have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
+    assume "x \<inter> y = {}"
+    hence "(\<lambda>x. (X x, Y x)) -` x \<inter> space M \<inter> ((\<lambda>x. (X x, Y x)) -` y \<inter> space M) = {}"
+      by auto
+    from additive[unfolded additive_def, rule_format, OF A B] this
+      finite_measure[OF A] finite_measure[OF B]
+    show "?D (x \<union> y) = ?D x + ?D y"
+      apply (simp add: distribution_def)
+      apply (subst Int_Un_distrib2)
+      by (auto simp: real_of_pinfreal_add)
+  qed
+
+  show "finite (space ?M)"
+    using assms by auto
+
+  show "sets ?M = Pow (space ?M)"
+    by simp
+
+  { fix x assume "x \<in> space ?M" thus "?D {x} \<noteq> \<omega>"
+    unfolding distribution_def by (auto intro!: finite_measure simp: sets_eq_Pow) }
+qed
+
+lemma (in finite_measure_space) finite_product_measure_space_of_images:
+  shows "finite_measure_space \<lparr> space = X ` space M \<times> Y ` space M,
+                                sets = Pow (X ` space M \<times> Y ` space M) \<rparr>
+                              (joint_distribution X Y)"
+  using finite_space by (auto intro!: finite_product_measure_space)
+
 end

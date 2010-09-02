@@ -2,38 +2,6 @@ theory Probability_Space
 imports Lebesgue_Integration Radon_Nikodym
 begin
 
-lemma (in measure_space) measure_inter_full_set:
-  assumes "S \<in> sets M" "T \<in> sets M" and not_\<omega>: "\<mu> (T - S) \<noteq> \<omega>"
-  assumes T: "\<mu> T = \<mu> (space M)"
-  shows "\<mu> (S \<inter> T) = \<mu> S"
-proof (rule antisym)
-  show " \<mu> (S \<inter> T) \<le> \<mu> S"
-    using assms by (auto intro!: measure_mono)
-
-  show "\<mu> S \<le> \<mu> (S \<inter> T)"
-  proof (rule ccontr)
-    assume contr: "\<not> ?thesis"
-    have "\<mu> (space M) = \<mu> ((T - S) \<union> (S \<inter> T))"
-      unfolding T[symmetric] by (auto intro!: arg_cong[where f="\<mu>"])
-    also have "\<dots> \<le> \<mu> (T - S) + \<mu> (S \<inter> T)"
-      using assms by (auto intro!: measure_subadditive)
-    also have "\<dots> < \<mu> (T - S) + \<mu> S"
-      by (rule pinfreal_less_add[OF not_\<omega>]) (insert contr, auto)
-    also have "\<dots> = \<mu> (T \<union> S)"
-      using assms by (subst measure_additive) auto
-    also have "\<dots> \<le> \<mu> (space M)"
-      using assms sets_into_space by (auto intro!: measure_mono)
-    finally show False ..
-  qed
-qed
-
-lemma (in finite_measure) finite_measure_inter_full_set:
-  assumes "S \<in> sets M" "T \<in> sets M"
-  assumes T: "\<mu> T = \<mu> (space M)"
-  shows "\<mu> (S \<inter> T) = \<mu> S"
-  using measure_inter_full_set[OF assms(1,2) finite_measure assms(3)] assms
-  by auto
-
 locale prob_space = measure_space +
   assumes measure_space_1: "\<mu> (space M) = 1"
 
@@ -74,10 +42,6 @@ proof -
   also note measure_space_1
   finally show ?thesis .
 qed
-
-lemma measure_finite[simp, intro]:
-  assumes "A \<in> events" shows "\<mu> A \<noteq> \<omega>"
-  using measure_le_1[OF assms] by auto
 
 lemma prob_compl:
   assumes "A \<in> events"
@@ -361,51 +325,64 @@ lemma (in finite_prob_space) distribution_order:
     joint_distribution_restriction_snd[of X Y "{(x, y)}"]
   by auto
 
-lemma (in finite_prob_space) finite_product_measure_space:
-  assumes "finite s1" "finite s2"
-  shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2)\<rparr> (joint_distribution X Y)"
-    (is "finite_measure_space ?M ?D")
-proof (rule finite_Pow_additivity_sufficient)
-  show "positive ?D"
-    unfolding positive_def using assms sets_eq_Pow
-    by (simp add: distribution_def)
+lemma (in finite_prob_space) finite_prob_space_of_images:
+  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
+  by (simp add: finite_prob_space_eq finite_measure_space)
 
-  show "additive ?M ?D" unfolding additive_def
-  proof safe
-    fix x y
-    have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
-    have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
-    assume "x \<inter> y = {}"
-    hence "(\<lambda>x. (X x, Y x)) -` x \<inter> space M \<inter> ((\<lambda>x. (X x, Y x)) -` y \<inter> space M) = {}"
-      by auto
-    from additive[unfolded additive_def, rule_format, OF A B] this
-      finite_measure[OF A] finite_measure[OF B]
-    show "?D (x \<union> y) = ?D x + ?D y"
-      apply (simp add: distribution_def)
-      apply (subst Int_Un_distrib2)
-      by (auto simp: real_of_pinfreal_add)
-  qed
-
-  show "finite (space ?M)"
-    using assms by auto
-
-  show "sets ?M = Pow (space ?M)"
-    by simp
-
-  { fix x assume "x \<in> space ?M" thus "?D {x} \<noteq> \<omega>"
-    unfolding distribution_def by (auto intro!: finite_measure simp: sets_eq_Pow) }
+lemma (in finite_prob_space) finite_product_prob_space_of_images:
+  "finite_prob_space \<lparr> space = X ` space M \<times> Y ` space M, sets = Pow (X ` space M \<times> Y ` space M)\<rparr>
+                     (joint_distribution X Y)"
+  (is "finite_prob_space ?S _")
+proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images)
+  have "X -` X ` space M \<inter> Y -` Y ` space M \<inter> space M = space M" by auto
+  thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
+    by (simp add: distribution_def prob_space vimage_Times comp_def measure_space_1)
 qed
 
-lemma (in finite_prob_space) finite_product_measure_space_of_images:
-  shows "finite_measure_space \<lparr> space = X ` space M \<times> Y ` space M,
-                                sets = Pow (X ` space M \<times> Y ` space M) \<rparr>
-                              (joint_distribution X Y)"
-  using finite_space by (auto intro!: finite_product_measure_space)
+lemma (in prob_space) prob_space_subalgebra:
+  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "prob_space (M\<lparr> sets := N \<rparr>) \<mu>"
+proof -
+  interpret N: measure_space "M\<lparr> sets := N \<rparr>" \<mu>
+    using measure_space_subalgebra[OF assms] .
+  show ?thesis
+    proof qed (simp add: measure_space_1)
+qed
+
+lemma (in prob_space) prob_space_of_restricted_space:
+  assumes "\<mu> A \<noteq> 0" "\<mu> A \<noteq> \<omega>" "A \<in> sets M"
+  shows "prob_space (restricted_space A) (\<lambda>S. \<mu> S / \<mu> A)"
+  unfolding prob_space_def prob_space_axioms_def
+proof
+  show "\<mu> (space (restricted_space A)) / \<mu> A = 1"
+    using `\<mu> A \<noteq> 0` `\<mu> A \<noteq> \<omega>` by (auto simp: pinfreal_noteq_omega_Ex)
+  have *: "\<And>S. \<mu> S / \<mu> A = inverse (\<mu> A) * \<mu> S" by (simp add: mult_commute)
+  interpret A: measure_space "restricted_space A" \<mu>
+    using `A \<in> sets M` by (rule restricted_measure_space)
+  show "measure_space (restricted_space A) (\<lambda>S. \<mu> S / \<mu> A)"
+  proof
+    show "\<mu> {} / \<mu> A = 0" by auto
+    show "countably_additive (restricted_space A) (\<lambda>S. \<mu> S / \<mu> A)"
+        unfolding countably_additive_def psuminf_cmult_right *
+        using A.measure_countably_additive by auto
+  qed
+qed
+
+lemma finite_prob_spaceI:
+  assumes "finite (space M)" "sets M = Pow(space M)" "\<mu> (space M) = 1" "\<mu> {} = 0"
+    and "\<And>A B. A\<subseteq>space M \<Longrightarrow> B\<subseteq>space M \<Longrightarrow> A \<inter> B = {} \<Longrightarrow> \<mu> (A \<union> B) = \<mu> A + \<mu> B"
+  shows "finite_prob_space M \<mu>"
+  unfolding finite_prob_space_eq
+proof
+  show "finite_measure_space M \<mu>" using assms
+     by (auto intro!: finite_measure_spaceI)
+  show "\<mu> (space M) = 1" by fact
+qed
 
 lemma (in finite_prob_space) finite_measure_space:
   shows "finite_measure_space \<lparr>space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
     (is "finite_measure_space ?S _")
-proof (rule finite_Pow_additivity_sufficient, simp_all)
+proof (rule finite_measure_spaceI, simp_all)
   show "finite (X ` space M)" using finite_space by simp
 
   show "positive (distribution X)"
@@ -429,69 +406,6 @@ proof (rule finite_Pow_additivity_sufficient, simp_all)
 
   { fix x assume "x \<in> X ` space M" thus "distribution X {x} \<noteq> \<omega>"
     unfolding distribution_def by (auto intro!: finite_measure simp: sets_eq_Pow) }
-qed
-
-lemma (in finite_prob_space) finite_prob_space_of_images:
-  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
-  by (simp add: finite_prob_space_eq finite_measure_space)
-
-lemma (in finite_prob_space) finite_product_prob_space_of_images:
-  "finite_prob_space \<lparr> space = X ` space M \<times> Y ` space M, sets = Pow (X ` space M \<times> Y ` space M)\<rparr>
-                     (joint_distribution X Y)"
-  (is "finite_prob_space ?S _")
-proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images)
-  have "X -` X ` space M \<inter> Y -` Y ` space M \<inter> space M = space M" by auto
-  thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
-    by (simp add: distribution_def prob_space vimage_Times comp_def measure_space_1)
-qed
-
-lemma (in prob_space) prob_space_subalgebra:
-  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
-  shows "prob_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
-
-lemma (in measure_space) measure_space_subalgebra:
-  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
-  shows "measure_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
-
-lemma pinfreal_0_less_mult_iff[simp]:
-  fixes x y :: pinfreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
-  by (cases x, cases y) (auto simp: zero_less_mult_iff)
-
-lemma (in sigma_algebra) simple_function_subalgebra:
-  assumes "sigma_algebra.simple_function (M\<lparr>sets:=N\<rparr>) f"
-  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets:=N\<rparr>)"
-  shows "simple_function f"
-  using assms
-  unfolding simple_function_def
-  unfolding sigma_algebra.simple_function_def[OF N_subalgebra(2)]
-  by auto
-
-lemma (in measure_space) simple_integral_subalgebra[simp]:
-  assumes "measure_space (M\<lparr>sets := N\<rparr>) \<mu>"
-  shows "measure_space.simple_integral (M\<lparr>sets := N\<rparr>) \<mu> = simple_integral"
-  unfolding simple_integral_def_raw
-  unfolding measure_space.simple_integral_def_raw[OF assms] by simp
-
-lemma (in sigma_algebra) borel_measurable_subalgebra:
-  assumes "N \<subseteq> sets M" "f \<in> borel_measurable (M\<lparr>sets:=N\<rparr>)"
-  shows "f \<in> borel_measurable M"
-  using assms unfolding measurable_def by auto
-
-lemma (in measure_space) positive_integral_subalgebra[simp]:
-  assumes borel: "f \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
-  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets := N\<rparr>)"
-  shows "measure_space.positive_integral (M\<lparr>sets := N\<rparr>) \<mu> f = positive_integral f"
-proof -
-  note msN = measure_space_subalgebra[OF N_subalgebra]
-  then interpret N: measure_space "M\<lparr>sets:=N\<rparr>" \<mu> .
-
-  from N.borel_measurable_implies_simple_function_sequence[OF borel]
-  obtain fs where Nsf: "\<And>i. N.simple_function (fs i)" and "fs \<up> f" by blast
-  then have sf: "\<And>i. simple_function (fs i)"
-    using simple_function_subalgebra[OF _ N_subalgebra] by blast
-
-  from positive_integral_isoton_simple[OF `fs \<up> f` sf] N.positive_integral_isoton_simple[OF `fs \<up> f` Nsf]
-  show ?thesis unfolding simple_integral_subalgebra[OF msN] isoton_def by simp
 qed
 
 section "Conditional Expectation and Probability"
@@ -541,7 +455,7 @@ definition (in prob_space)
     \<and> (\<forall>C\<in>N. positive_integral (\<lambda>x. Y x * indicator C x) = positive_integral (\<lambda>x. X x * indicator C x)))"
 
 abbreviation (in prob_space)
-  "conditional_probabiltiy N A \<equiv> conditional_expectation N (indicator A)"
+  "conditional_prob N A \<equiv> conditional_expectation N (indicator A)"
 
 lemma (in prob_space)
   fixes X :: "'a \<Rightarrow> pinfreal"

@@ -6,7 +6,7 @@
 
 header {* Sigma Algebras *}
 
-theory Sigma_Algebra imports Main Countable FuncSet begin
+theory Sigma_Algebra imports Main Countable FuncSet Indicator_Function begin
 
 text {* Sigma algebras are an elementary concept in measure
   theory. To measure --- that is to integrate --- functions, we first have
@@ -95,10 +95,13 @@ lemma (in algebra) Int_space_eq1 [simp]: "x \<in> sets M \<Longrightarrow> space
 lemma (in algebra) Int_space_eq2 [simp]: "x \<in> sets M \<Longrightarrow> x \<inter> space M = x"
   by (metis Int_absorb2 sets_into_space)
 
+section {* Restricted algebras *}
+
+abbreviation (in algebra)
+  "restricted_space A \<equiv> \<lparr> space = A, sets = (\<lambda>S. (A \<inter> S)) ` sets M \<rparr>"
+
 lemma (in algebra) restricted_algebra:
-  assumes "S \<in> sets M"
-  shows "algebra (M\<lparr> space := S, sets := (\<lambda>A. S \<inter> A) ` sets M \<rparr>)"
-    (is "algebra ?r")
+  assumes "A \<in> sets M" shows "algebra (restricted_space A)"
   using assms by unfold_locales auto
 
 subsection {* Sigma Algebras *}
@@ -106,6 +109,13 @@ subsection {* Sigma Algebras *}
 locale sigma_algebra = algebra +
   assumes countable_nat_UN [intro]:
          "!!A. range A \<subseteq> sets M \<Longrightarrow> (\<Union>i::nat. A i) \<in> sets M"
+
+lemma sigma_algebra_cong:
+  fixes M :: "('a, 'b) algebra_scheme" and M' :: "('a, 'c) algebra_scheme"
+  assumes *: "sigma_algebra M"
+  and cong: "space M = space M'" "sets M = sets M'"
+  shows "sigma_algebra M'"
+using * unfolding sigma_algebra_def algebra_def sigma_algebra_axioms_def unfolding cong .
 
 lemma countable_UN_eq:
   fixes A :: "'i::countable \<Rightarrow> 'a set"
@@ -320,15 +330,14 @@ qed
 
 lemma (in sigma_algebra) restricted_sigma_algebra:
   assumes "S \<in> sets M"
-  shows "sigma_algebra (M\<lparr> space := S, sets := (\<lambda>A. S \<inter> A) ` sets M \<rparr>)"
-    (is "sigma_algebra ?r")
+  shows "sigma_algebra (restricted_space S)"
   unfolding sigma_algebra_def sigma_algebra_axioms_def
 proof safe
-  show "algebra ?r" using restricted_algebra[OF assms] .
+  show "algebra (restricted_space S)" using restricted_algebra[OF assms] .
 next
-  fix A :: "nat \<Rightarrow> 'a set" assume "range A \<subseteq> sets ?r"
+  fix A :: "nat \<Rightarrow> 'a set" assume "range A \<subseteq> sets (restricted_space S)"
   from restriction_in_sets[OF assms this[simplified]]
-  show "(\<Union>i. A i) \<in> sets ?r" by simp
+  show "(\<Union>i. A i) \<in> sets (restricted_space S)" by simp
 qed
 
 section {* Measurable functions *}
@@ -560,6 +569,19 @@ proof -
       (metis insert_absorb insert_subset le_SucE le_antisym not_leE)
 qed
 
+lemma setsum_indicator_disjoint_family:
+  fixes f :: "'d \<Rightarrow> 'e::semiring_1"
+  assumes d: "disjoint_family_on A P" and "x \<in> A j" and "finite P" and "j \<in> P"
+  shows "(\<Sum>i\<in>P. f i * indicator (A i) x) = f j"
+proof -
+  have "P \<inter> {i. x \<in> A i} = {j}"
+    using d `x \<in> A j` `j \<in> P` unfolding disjoint_family_on_def
+    by auto
+  thus ?thesis
+    unfolding indicator_def
+    by (simp add: if_distrib setsum_cases[OF `finite P`])
+qed
+
 definition disjointed :: "(nat \<Rightarrow> 'a set) \<Rightarrow> nat \<Rightarrow> 'a set "
   where "disjointed A n = A n - (\<Union>i\<in>{0..<n}. A i)"
 
@@ -670,6 +692,22 @@ lemma (in sigma_algebra) measurable_vimage_algebra:
   fixes S :: "'c set" assumes "f \<in> S \<rightarrow> space M"
   shows "f \<in> measurable (vimage_algebra S f) M"
     unfolding measurable_def using assms by force
+
+section {* Conditional space *}
+
+definition (in algebra)
+  "image_space X = \<lparr> space = X`space M, sets = (\<lambda>S. X`S) ` sets M \<rparr>"
+
+definition (in algebra)
+  "conditional_space X A = algebra.image_space (restricted_space A) X"
+
+lemma (in algebra) space_conditional_space:
+  assumes "A \<in> sets M" shows "space (conditional_space X A) = X`A"
+proof -
+  interpret r: algebra "restricted_space A" using assms by (rule restricted_algebra)
+  show ?thesis unfolding conditional_space_def r.image_space_def
+    by simp
+qed
 
 subsection {* A Two-Element Series *}
 

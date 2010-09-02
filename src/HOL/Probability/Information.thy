@@ -359,6 +359,48 @@ lemma setsum_cartesian_product':
   "(\<Sum>x\<in>A \<times> B. f x) = (\<Sum>x\<in>A. setsum (\<lambda>y. f (x, y)) B)"
   unfolding setsum_cartesian_product by simp
 
+lemma (in finite_information_space) mutual_information_generic_eq:
+  assumes MX: "finite_measure_space MX (distribution X)"
+  assumes MY: "finite_measure_space MY (distribution Y)"
+  shows "mutual_information b MX MY X Y = (\<Sum> (x,y) \<in> space MX \<times> space MY.
+      real (joint_distribution X Y {(x,y)}) *
+      log b (real (joint_distribution X Y {(x,y)}) /
+      (real (distribution X {x}) * real (distribution Y {y}))))"
+proof -
+  let ?P = "prod_measure_space MX MY"
+  let ?\<mu> = "prod_measure MX (distribution X) MY (distribution Y)"
+  let ?\<nu> = "joint_distribution X Y"
+  interpret X: finite_measure_space MX "distribution X" by fact
+  moreover interpret Y: finite_measure_space MY "distribution Y" by fact
+  have fms: "finite_measure_space MX (distribution X)"
+            "finite_measure_space MY (distribution Y)" by fact+
+  have fms_P: "finite_measure_space ?P ?\<mu>"
+    by (rule X.finite_measure_space_finite_prod_measure) fact
+  then interpret P: finite_measure_space ?P ?\<mu> .
+  have fms_P': "finite_measure_space ?P ?\<nu>"
+      using finite_product_measure_space[of "space MX" "space MY"]
+        X.finite_space Y.finite_space sigma_prod_sets_finite[OF X.finite_space Y.finite_space]
+        X.sets_eq_Pow Y.sets_eq_Pow
+      by (simp add: prod_measure_space_def sigma_def)
+  then interpret P': finite_measure_space ?P ?\<nu> .
+  { fix x assume "x \<in> space ?P"
+    hence in_MX: "{fst x} \<in> sets MX" "{snd x} \<in> sets MY" using X.sets_eq_Pow Y.sets_eq_Pow
+      by (auto simp: prod_measure_space_def)
+    assume "?\<mu> {x} = 0"
+    with X.finite_prod_measure_times[OF fms(2), of "{fst x}" "{snd x}"] in_MX
+    have "distribution X {fst x} = 0 \<or> distribution Y {snd x} = 0"
+      by (simp add: prod_measure_space_def)
+    hence "joint_distribution X Y {x} = 0"
+      by (cases x) (auto simp: distribution_order) }
+  note measure_0 = this
+  show ?thesis
+    unfolding Let_def mutual_information_def
+    using measure_0 fms_P fms_P' MX MY P.absolutely_continuous_def
+    by (subst P.KL_divergence_eq_finite)
+       (auto simp add: prod_measure_space_def prod_measure_times_finite
+         finite_prob_space_eq setsum_cartesian_product' real_of_pinfreal_mult[symmetric])
+qed
+
 lemma (in finite_information_space)
   assumes MX: "finite_prob_space MX (distribution X)"
   assumes MY: "finite_prob_space MY (distribution Y)"
