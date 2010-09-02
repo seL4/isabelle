@@ -1996,7 +1996,7 @@ method_setup evaluation = {* Scan.succeed (gen_eval_method Codegen.evaluation_co
 
 method_setup normalization = {*
   Scan.succeed (K (SIMPLE_METHOD'
-    (CHANGED_PROP o CONVERSION Nbe.dynamic_eval_conv THEN' (fn k => TRY (rtac TrueI k)))))
+    (CHANGED_PROP o (CONVERSION Nbe.dynamic_eval_conv THEN' (fn k => TRY (rtac TrueI k))))))
 *} "solve goal by normalization"
 
 
