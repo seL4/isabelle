@@ -1,5 +1,5 @@
 theory Probability_Space
-imports Lebesgue_Integration
+imports Lebesgue_Integration Radon_Nikodym
 begin
 
 lemma (in measure_space) measure_inter_full_set:
@@ -197,35 +197,17 @@ proof -
 qed
 
 lemma distribution_prob_space:
-  fixes S :: "('c, 'd) algebra_scheme"
-  assumes "sigma_algebra S" "random_variable S X"
+  assumes S: "sigma_algebra S" "random_variable S X"
   shows "prob_space S (distribution X)"
 proof -
-  interpret S: sigma_algebra S by fact
+  interpret S: measure_space S "distribution X"
+    using measure_space_vimage[OF S(2,1)] unfolding distribution_def .
   show ?thesis
   proof
-    show "distribution X {} = 0" unfolding distribution_def by simp
     have "X -` space S \<inter> space M = space M"
       using `random_variable S X` by (auto simp: measurable_def)
-    then show "distribution X (space S) = 1" using measure_space_1 by (simp add: distribution_def)
-
-    show "countably_additive S (distribution X)"
-    proof (unfold countably_additive_def, safe)
-      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets S" "disjoint_family A"
-      hence *: "\<And>i. X -` A i \<inter> space M \<in> sets M"
-        using `random_variable S X` by (auto simp: measurable_def)
-      moreover hence "\<And>i. \<mu> (X -` A i \<inter> space M) \<noteq> \<omega>"
-        using finite_measure by auto
-      moreover have "(\<Union>i. X -`  A i \<inter> space M) \<in> sets M"
-        using * by blast
-      moreover hence "\<mu> (\<Union>i. X -` A i \<inter> space M) \<noteq> \<omega>"
-        using finite_measure by auto
-      moreover have **: "disjoint_family (\<lambda>i. X -` A i \<inter> space M)"
-        using `disjoint_family A` by (auto simp: disjoint_family_on_def)
-      ultimately show "(\<Sum>\<^isub>\<infinity> i. distribution X (A i)) = distribution X (\<Union>i. A i)"
-        using measure_countably_additive[OF _ **]
-        by (auto simp: distribution_def Real_real comp_def vimage_UN)
-    qed
+    then show "distribution X (space S) = 1"
+      using measure_space_1 by (simp add: distribution_def)
   qed
 qed
 
@@ -461,6 +443,184 @@ proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images)
   have "X -` X ` space M \<inter> Y -` Y ` space M \<inter> space M = space M" by auto
   thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
     by (simp add: distribution_def prob_space vimage_Times comp_def measure_space_1)
+qed
+
+lemma (in prob_space) prob_space_subalgebra:
+  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "prob_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
+
+lemma (in measure_space) measure_space_subalgebra:
+  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "measure_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
+
+lemma pinfreal_0_less_mult_iff[simp]:
+  fixes x y :: pinfreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
+  by (cases x, cases y) (auto simp: zero_less_mult_iff)
+
+lemma (in sigma_algebra) simple_function_subalgebra:
+  assumes "sigma_algebra.simple_function (M\<lparr>sets:=N\<rparr>) f"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets:=N\<rparr>)"
+  shows "simple_function f"
+  using assms
+  unfolding simple_function_def
+  unfolding sigma_algebra.simple_function_def[OF N_subalgebra(2)]
+  by auto
+
+lemma (in measure_space) simple_integral_subalgebra[simp]:
+  assumes "measure_space (M\<lparr>sets := N\<rparr>) \<mu>"
+  shows "measure_space.simple_integral (M\<lparr>sets := N\<rparr>) \<mu> = simple_integral"
+  unfolding simple_integral_def_raw
+  unfolding measure_space.simple_integral_def_raw[OF assms] by simp
+
+lemma (in sigma_algebra) borel_measurable_subalgebra:
+  assumes "N \<subseteq> sets M" "f \<in> borel_measurable (M\<lparr>sets:=N\<rparr>)"
+  shows "f \<in> borel_measurable M"
+  using assms unfolding measurable_def by auto
+
+lemma (in measure_space) positive_integral_subalgebra[simp]:
+  assumes borel: "f \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets := N\<rparr>)"
+  shows "measure_space.positive_integral (M\<lparr>sets := N\<rparr>) \<mu> f = positive_integral f"
+proof -
+  note msN = measure_space_subalgebra[OF N_subalgebra]
+  then interpret N: measure_space "M\<lparr>sets:=N\<rparr>" \<mu> .
+
+  from N.borel_measurable_implies_simple_function_sequence[OF borel]
+  obtain fs where Nsf: "\<And>i. N.simple_function (fs i)" and "fs \<up> f" by blast
+  then have sf: "\<And>i. simple_function (fs i)"
+    using simple_function_subalgebra[OF _ N_subalgebra] by blast
+
+  from positive_integral_isoton_simple[OF `fs \<up> f` sf] N.positive_integral_isoton_simple[OF `fs \<up> f` Nsf]
+  show ?thesis unfolding simple_integral_subalgebra[OF msN] isoton_def by simp
+qed
+
+section "Conditional Expectation and Probability"
+
+lemma (in prob_space) conditional_expectation_exists:
+  fixes X :: "'a \<Rightarrow> pinfreal"
+  assumes borel: "X \<in> borel_measurable M"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "\<exists>Y\<in>borel_measurable (M\<lparr> sets := N \<rparr>). \<forall>C\<in>N.
+      positive_integral (\<lambda>x. Y x * indicator C x) = positive_integral (\<lambda>x. X x * indicator C x)"
+proof -
+  interpret P: prob_space "M\<lparr> sets := N \<rparr>" \<mu>
+    using prob_space_subalgebra[OF N_subalgebra] .
+
+  let "?f A" = "\<lambda>x. X x * indicator A x"
+  let "?Q A" = "positive_integral (?f A)"
+
+  from measure_space_density[OF borel]
+  have Q: "measure_space (M\<lparr> sets := N \<rparr>) ?Q"
+    by (rule measure_space.measure_space_subalgebra[OF _ N_subalgebra])
+  then interpret Q: measure_space "M\<lparr> sets := N \<rparr>" ?Q .
+
+  have "P.absolutely_continuous ?Q"
+    unfolding P.absolutely_continuous_def
+  proof (safe, simp)
+    fix A assume "A \<in> N" "\<mu> A = 0"
+    moreover then have f_borel: "?f A \<in> borel_measurable M"
+      using borel N_subalgebra by (auto intro: borel_measurable_indicator)
+    moreover have "{x\<in>space M. ?f A x \<noteq> 0} = (?f A -` {0<..} \<inter> space M) \<inter> A"
+      by (auto simp: indicator_def)
+    moreover have "\<mu> \<dots> \<le> \<mu> A"
+      using `A \<in> N` N_subalgebra f_borel
+      by (auto intro!: measure_mono Int[of _ A] measurable_sets)
+    ultimately show "?Q A = 0"
+      by (simp add: positive_integral_0_iff)
+  qed
+  from P.Radon_Nikodym[OF Q this]
+  obtain Y where Y: "Y \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
+    "\<And>A. A \<in> sets (M\<lparr>sets:=N\<rparr>) \<Longrightarrow> ?Q A = P.positive_integral (\<lambda>x. Y x * indicator A x)"
+    by blast
+  with N_subalgebra show ?thesis
+    by (auto intro!: bexI[OF _ Y(1)])
+qed
+
+definition (in prob_space)
+  "conditional_expectation N X = (SOME Y. Y\<in>borel_measurable (M\<lparr>sets:=N\<rparr>)
+    \<and> (\<forall>C\<in>N. positive_integral (\<lambda>x. Y x * indicator C x) = positive_integral (\<lambda>x. X x * indicator C x)))"
+
+abbreviation (in prob_space)
+  "conditional_probabiltiy N A \<equiv> conditional_expectation N (indicator A)"
+
+lemma (in prob_space)
+  fixes X :: "'a \<Rightarrow> pinfreal"
+  assumes borel: "X \<in> borel_measurable M"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows borel_measurable_conditional_expectation:
+    "conditional_expectation N X \<in> borel_measurable (M\<lparr> sets := N \<rparr>)"
+  and conditional_expectation: "\<And>C. C \<in> N \<Longrightarrow>
+      positive_integral (\<lambda>x. conditional_expectation N X x * indicator C x) =
+      positive_integral (\<lambda>x. X x * indicator C x)"
+   (is "\<And>C. C \<in> N \<Longrightarrow> ?eq C")
+proof -
+  note CE = conditional_expectation_exists[OF assms, unfolded Bex_def]
+  then show "conditional_expectation N X \<in> borel_measurable (M\<lparr> sets := N \<rparr>)"
+    unfolding conditional_expectation_def by (rule someI2_ex) blast
+
+  from CE show "\<And>C. C\<in>N \<Longrightarrow> ?eq C"
+    unfolding conditional_expectation_def by (rule someI2_ex) blast
+qed
+
+lemma (in sigma_algebra) factorize_measurable_function:
+  fixes Z :: "'a \<Rightarrow> pinfreal" and Y :: "'a \<Rightarrow> 'c"
+  assumes "sigma_algebra M'" and "Y \<in> measurable M M'" "Z \<in> borel_measurable M"
+  shows "Z \<in> borel_measurable (sigma_algebra.vimage_algebra M' (space M) Y)
+    \<longleftrightarrow> (\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x))"
+proof safe
+  interpret M': sigma_algebra M' by fact
+  have Y: "Y \<in> space M \<rightarrow> space M'" using assms unfolding measurable_def by auto
+  from M'.sigma_algebra_vimage[OF this]
+  interpret va: sigma_algebra "M'.vimage_algebra (space M) Y" .
+
+  { fix g :: "'c \<Rightarrow> pinfreal" assume "g \<in> borel_measurable M'"
+    with M'.measurable_vimage_algebra[OF Y]
+    have "g \<circ> Y \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+      by (rule measurable_comp)
+    moreover assume "\<forall>x\<in>space M. Z x = g (Y x)"
+    then have "Z \<in> borel_measurable (M'.vimage_algebra (space M) Y) \<longleftrightarrow>
+       g \<circ> Y \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+       by (auto intro!: measurable_cong)
+    ultimately show "Z \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+      by simp }
+
+  assume "Z \<in> borel_measurable (M'.vimage_algebra (space M) Y)"
+  from va.borel_measurable_implies_simple_function_sequence[OF this]
+  obtain f where f: "\<And>i. va.simple_function (f i)" and "f \<up> Z" by blast
+
+  have "\<forall>i. \<exists>g. M'.simple_function g \<and> (\<forall>x\<in>space M. f i x = g (Y x))"
+  proof
+    fix i
+    from f[of i] have "finite (f i`space M)" and B_ex:
+      "\<forall>z\<in>(f i)`space M. \<exists>B. B \<in> sets M' \<and> (f i) -` {z} \<inter> space M = Y -` B \<inter> space M"
+      unfolding va.simple_function_def by auto
+    from B_ex[THEN bchoice] guess B .. note B = this
+
+    let ?g = "\<lambda>x. \<Sum>z\<in>f i`space M. z * indicator (B z) x"
+
+    show "\<exists>g. M'.simple_function g \<and> (\<forall>x\<in>space M. f i x = g (Y x))"
+    proof (intro exI[of _ ?g] conjI ballI)
+      show "M'.simple_function ?g" using B by auto
+
+      fix x assume "x \<in> space M"
+      then have "\<And>z. z \<in> f i`space M \<Longrightarrow> indicator (B z) (Y x) = (indicator (f i -` {z} \<inter> space M) x::pinfreal)"
+        unfolding indicator_def using B by auto
+      then show "f i x = ?g (Y x)" using `x \<in> space M` f[of i]
+        by (subst va.simple_function_indicator_representation) auto
+    qed
+  qed
+  from choice[OF this] guess g .. note g = this
+
+  show "\<exists>g\<in>borel_measurable M'. \<forall>x\<in>space M. Z x = g (Y x)"
+  proof (intro ballI bexI)
+    show "(SUP i. g i) \<in> borel_measurable M'"
+      using g by (auto intro: M'.borel_measurable_simple_function)
+    fix x assume "x \<in> space M"
+    have "Z x = (SUP i. f i) x" using `f \<up> Z` unfolding isoton_def by simp
+    also have "\<dots> = (SUP i. g i) (Y x)" unfolding SUPR_fun_expand
+      using g `x \<in> space M` by simp
+    finally show "Z x = (SUP i. g i) (Y x)" .
+  qed
 qed
 
 end

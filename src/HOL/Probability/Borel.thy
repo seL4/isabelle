@@ -81,7 +81,7 @@ lemma (in sigma_algebra) borel_measurable_const[simp, intro]:
   "(\<lambda>x. c) \<in> borel_measurable M"
   by (auto intro!: measurable_const)
 
-lemma (in sigma_algebra) borel_measurable_indicator:
+lemma (in sigma_algebra) borel_measurable_indicator[simp, intro!]:
   assumes A: "A \<in> sets M"
   shows "indicator A \<in> borel_measurable M"
   unfolding indicator_def_raw using A
@@ -657,6 +657,30 @@ lemma (in sigma_algebra) borel_measurable_iff_ge:
 lemma (in sigma_algebra) borel_measurable_iff_greater:
   "(f::'a \<Rightarrow> real) \<in> borel_measurable M = (\<forall>a. {w \<in> space M. a < f w} \<in> sets M)"
   using borel_measurable_iff_halfspace_greater[where 'c=real] by simp
+
+lemma borel_measureable_euclidean_component:
+  "(\<lambda>x::'a::euclidean_space. x $$ i) \<in> borel_measurable borel_space"
+  unfolding borel_space_def[where 'a=real]
+proof (rule borel_space.measurable_sigma)
+  fix S::"real set" assume "S \<in> open" then have "open S" unfolding mem_def .
+  from open_vimage_euclidean_component[OF this]
+  show "(\<lambda>x. x $$ i) -` S \<inter> space borel_space \<in> sets borel_space"
+    by (auto intro: borel_space_open)
+qed auto
+
+lemma (in sigma_algebra) borel_measureable_euclidean_space:
+  fixes f :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
+  shows "f \<in> borel_measurable M \<longleftrightarrow> (\<forall>i<DIM('c). (\<lambda>x. f x $$ i) \<in> borel_measurable M)"
+proof safe
+  fix i assume "f \<in> borel_measurable M"
+  then show "(\<lambda>x. f x $$ i) \<in> borel_measurable M"
+    using measurable_comp[of f _ _ "\<lambda>x. x $$ i", unfolded comp_def]
+    by (auto intro: borel_measureable_euclidean_component)
+next
+  assume f: "\<forall>i<DIM('c). (\<lambda>x. f x $$ i) \<in> borel_measurable M"
+  then show "f \<in> borel_measurable M"
+    unfolding borel_measurable_iff_halfspace_le by auto
+qed
 
 subsection "Borel measurable operators"
 
