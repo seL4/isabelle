@@ -200,6 +200,9 @@ spaces.
 derive instantiated and simplified equations for inductive predicates,
 similar to inductive_cases.
 
+* "bij f" is now an abbreviation of "bij_betw f UNIV UNIV". surj_on is a
+generalization of surj, and "surj f" is now a abbreviation of "surj_on f UNIV".
+The theorems bij_def and surj_def are unchanged.
 
 *** FOL ***
 

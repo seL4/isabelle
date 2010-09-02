@@ -3076,6 +3076,10 @@ lemma remove1_filter_not[simp]:
   "\<not> P x \<Longrightarrow> remove1 x (filter P xs) = filter P xs"
 by(induct xs) auto
 
+lemma filter_remove1:
+  "filter Q (remove1 x xs) = remove1 x (filter Q xs)"
+by (induct xs) auto
+
 lemma notin_set_remove1[simp]: "x ~: set xs ==> x ~: set(remove1 y xs)"
 apply(insert set_remove1_subset)
 apply fast
