@@ -193,7 +193,7 @@ next
   show ?case
   proof (intro exI[of _ "Fun.swap 0 1 id"] conjI allI impI)
     show "bij_betw (Fun.swap 0 1 id) {..<length (y # x # l)} {..<length (x # y # l)}"
-      by (rule bij_betw_swap) (auto simp: bij_betw_def)
+      by (auto simp: bij_betw_def bij_betw_swap_iff)
     fix i assume "i < length(y#x#l)"
     show "(y # x # l) ! i = (x # y # l) ! (Fun.swap 0 1 id) i"
       by (cases i) (auto simp: Fun.swap_def gr0_conv_Suc)
@@ -207,7 +207,7 @@ next
   proof (intro exI[of _ ?f] allI conjI impI)
     have *: "{..<length (z#xs)} = {0} \<union> Suc ` {..<length xs}"
             "{..<length (z#ys)} = {0} \<union> Suc ` {..<length ys}"
-      by (simp_all add: lessThan_eq_Suc_image)
+      by (simp_all add: lessThan_Suc_eq_insert_0)
     show "bij_betw ?f {..<length (z#xs)} {..<length (z#ys)}" unfolding *
     proof (rule bij_betw_combine)
       show "bij_betw ?f (Suc ` {..<length xs}) (Suc ` {..<length ys})"
