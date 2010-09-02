@@ -751,17 +751,14 @@ fun ml_program_of_program labelled_name reserved module_alias program =
               | SOME (name, true) => ML_Funs ([binding], [name])
               | SOME (name, false) => ML_Val binding
       in SOME ml_stmt end;
-    fun modify_funs stmts =
-      (SOME (ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst))
-        :: replicate (length stmts - 1) NONE)
-    fun modify_datatypes stmts =
-      (SOME (ML_Datas (map_filter
-        (fn (name, Code_Thingol.Datatype (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts))
-        :: replicate (length stmts - 1) NONE)
-    fun modify_class stmts =
-      (SOME (ML_Class (the_single (map_filter
-        (fn (name, Code_Thingol.Class (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts)))
-        :: replicate (length stmts - 1) NONE)
+    fun modify_funs stmts = single (SOME
+      (ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst)))
+    fun modify_datatypes stmts = single (SOME
+      (ML_Datas (map_filter
+        (fn (name, Code_Thingol.Datatype (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts)))
+    fun modify_class stmts = single (SOME
+      (ML_Class (the_single (map_filter
+        (fn (name, Code_Thingol.Class (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts))))
     fun modify_stmts ([stmt as (name, Code_Thingol.Fun _)]) =
           [modify_fun stmt]
       | modify_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
@@ -787,199 +784,6 @@ fun ml_program_of_program labelled_name reserved module_alias program =
       empty_nsp = (reserved, reserved), namify_module = pair, namify_stmt = namify_stmt,
       cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts } program
   end;
-
-local
-
-datatype ml_node =
-    Dummy of string
-  | Stmt of string * ml_stmt
-  | Module of string * ((Name.context * Name.context) * ml_node Graph.T);
-
-in
-
-fun ml_node_of_program labelled_name reserved module_alias program =
-  let
-    val reserved = Name.make_context reserved;
-    val empty_module = ((reserved, reserved), Graph.empty);
-    fun map_node [] f = f
-      | map_node (m::ms) f =
-          Graph.default_node (m, Module (m, empty_module))
-          #> Graph.map_node m (fn (Module (module_name, (nsp, nodes))) =>
-               Module (module_name, (nsp, map_node ms f nodes)));
-    fun map_nsp_yield [] f (nsp, nodes) =
-          let
-            val (x, nsp') = f nsp
-          in (x, (nsp', nodes)) end
-      | map_nsp_yield (m::ms) f (nsp, nodes) =
-          let
-            val (x, nodes') =
-              nodes
-              |> Graph.default_node (m, Module (m, empty_module))
-              |> Graph.map_node_yield m (fn Module (d_module_name, nsp_nodes) => 
-                  let
-                    val (x, nsp_nodes') = map_nsp_yield ms f nsp_nodes
-                  in (x, Module (d_module_name, nsp_nodes')) end)
-          in (x, (nsp, nodes')) end;
-    fun map_nsp_fun_yield f (nsp_fun, nsp_typ) =
-      let
-        val (x, nsp_fun') = f nsp_fun
-      in (x, (nsp_fun', nsp_typ)) end;
-    fun map_nsp_typ_yield f (nsp_fun, nsp_typ) =
-      let
-        val (x, nsp_typ') = f nsp_typ
-      in (x, (nsp_fun, nsp_typ')) end;
-    val mk_name_module = mk_name_module reserved NONE module_alias program;
-    fun mk_name_stmt upper name nsp =
-      let
-        val (_, base) = dest_name name;
-        val base' = if upper then first_upper base else base;
-        val ([base''], nsp') = Name.variants [base'] nsp;
-      in (base'', nsp') end;
-    fun deps_of names =
-      []
-      |> fold (fold (insert (op =)) o Graph.imm_succs program) names
-      |> subtract (op =) names
-      |> filter_out (Code_Thingol.is_case o Graph.get_node program);
-    fun ml_binding_of_stmt (name, Code_Thingol.Fun (_, ((tysm as (vs, ty), raw_eqs), _))) =
-          let
-            val eqs = filter (snd o snd) raw_eqs;
-            val (eqs', is_value) = if null (filter_out (null o snd) vs) then case eqs
-               of [(([], t), some_thm)] => if (not o null o fst o Code_Thingol.unfold_fun) ty
-                  then ([(([IVar (SOME "x")], t `$ IVar (SOME "x")), some_thm)], NONE)
-                  else (eqs, SOME (name, member (op =) (Code_Thingol.add_constnames t []) name))
-                | _ => (eqs, NONE)
-              else (eqs, NONE)
-          in (ML_Function (name, (tysm, eqs')), is_value) end
-      | ml_binding_of_stmt (name, Code_Thingol.Classinst (stmt as ((_, (_, vs)), _))) =
-          (ML_Instance (name, stmt), if forall (null o snd) vs then SOME (name, false) else NONE)
-      | ml_binding_of_stmt (name, _) =
-          error ("Binding block containing illegal statement: " ^ labelled_name name)
-    fun add_fun (name, stmt) =
-      let
-        val (binding, some_value_name) = ml_binding_of_stmt (name, stmt);
-        val ml_stmt = case binding
-         of ML_Function (name, ((vs, ty), [])) =>
-              ML_Exc (name, ((vs, ty),
-                (length o filter_out (null o snd)) vs + (length o fst o Code_Thingol.unfold_fun) ty))
-          | _ => case some_value_name
-             of NONE => ML_Funs ([binding], [])
-              | SOME (name, true) => ML_Funs ([binding], [name])
-              | SOME (name, false) => ML_Val binding
-      in
-        map_nsp_fun_yield (mk_name_stmt false name)
-        #>> (fn name' => ([name'], ml_stmt))
-      end;
-    fun add_funs stmts =
-      let
-        val ml_stmt = ML_Funs (map_split ml_binding_of_stmt stmts |> (apsnd o map_filter o Option.map) fst);
-      in
-        fold_map (fn (name, _) => map_nsp_fun_yield (mk_name_stmt false name)) stmts
-        #>> rpair ml_stmt
-      end;
-    fun add_datatypes stmts =
-      fold_map
-        (fn (name, Code_Thingol.Datatype (_, stmt)) =>
-              map_nsp_typ_yield (mk_name_stmt false name) #>> rpair (SOME (name, stmt))
-          | (name, Code_Thingol.Datatypecons _) =>
-              map_nsp_fun_yield (mk_name_stmt true name) #>> rpair NONE
-          | (name, _) =>
-              error ("Datatype block containing illegal statement: " ^ labelled_name name)
-        ) stmts
-      #>> (split_list #> apsnd (map_filter I
-        #> (fn [] => error ("Datatype block without data statement: "
-                  ^ (Library.commas o map (labelled_name o fst)) stmts)
-             | stmts => ML_Datas stmts)));
-    fun add_class stmts =
-      fold_map
-        (fn (name, Code_Thingol.Class (_, stmt)) =>
-              map_nsp_typ_yield (mk_name_stmt false name) #>> rpair (SOME (name, stmt))
-          | (name, Code_Thingol.Classrel _) =>
-              map_nsp_fun_yield (mk_name_stmt false name) #>> rpair NONE
-          | (name, Code_Thingol.Classparam _) =>
-              map_nsp_fun_yield (mk_name_stmt false name) #>> rpair NONE
-          | (name, _) =>
-              error ("Class block containing illegal statement: " ^ labelled_name name)
-        ) stmts
-      #>> (split_list #> apsnd (map_filter I
-        #> (fn [] => error ("Class block without class statement: "
-                  ^ (Library.commas o map (labelled_name o fst)) stmts)
-             | [stmt] => ML_Class stmt)));
-    fun add_stmts ([stmt as (name, Code_Thingol.Fun _)]) =
-          add_fun stmt
-      | add_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
-          add_funs stmts
-      | add_stmts ((stmts as (_, Code_Thingol.Datatypecons _)::_)) =
-          add_datatypes stmts
-      | add_stmts ((stmts as (_, Code_Thingol.Datatype _)::_)) =
-          add_datatypes stmts
-      | add_stmts ((stmts as (_, Code_Thingol.Class _)::_)) =
-          add_class stmts
-      | add_stmts ((stmts as (_, Code_Thingol.Classrel _)::_)) =
-          add_class stmts
-      | add_stmts ((stmts as (_, Code_Thingol.Classparam _)::_)) =
-          add_class stmts
-      | add_stmts ([stmt as (_, Code_Thingol.Classinst _)]) =
-          add_fun stmt
-      | add_stmts ((stmts as (_, Code_Thingol.Classinst _)::_)) =
-          add_funs stmts
-      | add_stmts stmts = error ("Illegal mutual dependencies: " ^
-          (Library.commas o map (labelled_name o fst)) stmts);
-    fun add_stmts' stmts nsp_nodes =
-      let
-        val names as (name :: names') = map fst stmts;
-        val deps = deps_of names;
-        val (module_names, _) = (split_list o map dest_name) names;
-        val module_name = (the_single o distinct (op =) o map mk_name_module) module_names
-          handle Empty =>
-            error ("Different namespace prefixes for mutual dependencies:\n"
-              ^ Library.commas (map labelled_name names)
-              ^ "\n"
-              ^ Library.commas module_names);
-        val module_name_path = Long_Name.explode module_name;
-        fun add_dep name name' =
-          let
-            val module_name' = (mk_name_module o fst o dest_name) name';
-          in if module_name = module_name' then
-            map_node module_name_path (Graph.add_edge (name, name'))
-          else let
-            val (common, (diff1 :: _, diff2 :: _)) = chop_prefix (op =)
-              (module_name_path, Long_Name.explode module_name');
-          in
-            map_node common
-              (fn node => Graph.add_edge_acyclic (diff1, diff2) node
-                handle Graph.CYCLES _ => error ("Dependency "
-                  ^ quote name ^ " -> " ^ quote name'
-                  ^ " would result in module dependency cycle"))
-          end end;
-      in
-        nsp_nodes
-        |> map_nsp_yield module_name_path (add_stmts stmts)
-        |-> (fn (base' :: bases', stmt') =>
-           apsnd (map_node module_name_path (Graph.new_node (name, (Stmt (base', stmt')))
-              #> fold2 (fn name' => fn base' =>
-                   Graph.new_node (name', (Dummy base'))) names' bases')))
-        |> apsnd (fold (fn name => fold (add_dep name) deps) names)
-        |> apsnd (fold_product (curry (map_node module_name_path o Graph.add_edge)) names names)
-      end;
-    val stmts = map (AList.make (Graph.get_node program)) (rev (Graph.strong_conn program))
-      |> filter_out (fn [(_, stmt)] => Code_Thingol.is_case stmt | _ => false);
-    val (_, nodes) = fold add_stmts' stmts empty_module;
-    fun deresolver prefix name = 
-      let
-        val module_name = (fst o dest_name) name;
-        val module_name' = (Long_Name.explode o mk_name_module) module_name;
-        val (_, (_, remainder)) = chop_prefix (op =) (prefix, module_name');
-        val stmt_name =
-          nodes
-          |> fold (fn name => fn node => case Graph.get_node node name
-              of Module (_, (_, node)) => node) module_name'
-          |> (fn node => case Graph.get_node node name of Stmt (stmt_name, _) => stmt_name
-               | Dummy stmt_name => stmt_name);
-      in
-        Long_Name.implode (remainder @ [stmt_name])
-      end handle Graph.UNDEF _ =>
-        error ("Unknown statement name: " ^ labelled_name name);
-  in (deresolver, nodes) end;
 
 fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
   reserved_syms, includes, module_alias, class_syntax, tyco_syntax,
@@ -1016,8 +820,6 @@ fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
   in
     Code_Target.serialization write (fn width => (rpair names' o string_of_pretty width)) p
   end;
-
-end; (*local*)
 
 val serializer_sml : Code_Target.serializer =
   Code_Target.parse_args (Scan.optional (Args.$$$ "no_signatures" >> K false) true
