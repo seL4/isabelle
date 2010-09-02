@@ -209,19 +209,6 @@ proof -
     by (auto intro!: **)
 qed
 
-lemma setsum_indicator_disjoint_family:
-  fixes f :: "'d \<Rightarrow> 'e::semiring_1"
-  assumes d: "disjoint_family_on A P" and "x \<in> A j" and "finite P" and "j \<in> P"
-  shows "(\<Sum>i\<in>P. f i * indicator (A i) x) = f j"
-proof -
-  have "P \<inter> {i. x \<in> A i} = {j}"
-    using d `x \<in> A j` `j \<in> P` unfolding disjoint_family_on_def
-    by auto
-  thus ?thesis
-    unfolding indicator_def
-    by (simp add: if_distrib setsum_cases[OF `finite P`])
-qed
-
 lemma (in sigma_algebra) borel_measurable_implies_simple_function_sequence:
   fixes u :: "'a \<Rightarrow> pinfreal"
   assumes u: "u \<in> borel_measurable M"
@@ -425,6 +412,62 @@ proof -
   { fix i from fin[of _ i] have "\<omega> \<notin> f i`space M" by fastsimp }
   with x show thesis by (auto intro!: that[of f])
 qed
+
+lemma (in sigma_algebra) simple_function_eq_borel_measurable:
+  fixes f :: "'a \<Rightarrow> pinfreal"
+  shows "simple_function f \<longleftrightarrow>
+    finite (f`space M) \<and> f \<in> borel_measurable M"
+  using simple_function_borel_measurable[of f]
+    borel_measurable_simple_function[of f]
+  by (fastsimp simp: simple_function_def)
+
+lemma (in measure_space) simple_function_restricted:
+  fixes f :: "'a \<Rightarrow> pinfreal" assumes "A \<in> sets M"
+  shows "sigma_algebra.simple_function (restricted_space A) f \<longleftrightarrow> simple_function (\<lambda>x. f x * indicator A x)"
+    (is "sigma_algebra.simple_function ?R f \<longleftrightarrow> simple_function ?f")
+proof -
+  interpret R: sigma_algebra ?R by (rule restricted_sigma_algebra[OF `A \<in> sets M`])
+  have "finite (f`A) \<longleftrightarrow> finite (?f`space M)"
+  proof cases
+    assume "A = space M"
+    then have "f`A = ?f`space M" by (fastsimp simp: image_iff)
+    then show ?thesis by simp
+  next
+    assume "A \<noteq> space M"
+    then obtain x where x: "x \<in> space M" "x \<notin> A"
+      using sets_into_space `A \<in> sets M` by auto
+    have *: "?f`space M = f`A \<union> {0}"
+    proof (auto simp add: image_iff)
+      show "\<exists>x\<in>space M. f x = 0 \<or> indicator A x = 0"
+        using x by (auto intro!: bexI[of _ x])
+    next
+      fix x assume "x \<in> A"
+      then show "\<exists>y\<in>space M. f x = f y * indicator A y"
+        using `A \<in> sets M` sets_into_space by (auto intro!: bexI[of _ x])
+    next
+      fix x
+      assume "indicator A x \<noteq> (0::pinfreal)"
+      then have "x \<in> A" by (auto simp: indicator_def split: split_if_asm)
+      moreover assume "x \<in> space M" "\<forall>y\<in>A. ?f x \<noteq> f y"
+      ultimately show "f x = 0" by auto
+    qed
+    then show ?thesis by auto
+  qed
+  then show ?thesis
+    unfolding simple_function_eq_borel_measurable
+      R.simple_function_eq_borel_measurable
+    unfolding borel_measurable_restricted[OF `A \<in> sets M`]
+    by auto
+qed
+
+lemma (in sigma_algebra) simple_function_subalgebra:
+  assumes "sigma_algebra.simple_function (M\<lparr>sets:=N\<rparr>) f"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets:=N\<rparr>)"
+  shows "simple_function f"
+  using assms
+  unfolding simple_function_def
+  unfolding sigma_algebra.simple_function_def[OF N_subalgebra(2)]
+  by auto
 
 section "Simple integral"
 
@@ -667,6 +710,41 @@ proof -
   next case goal3 show ?case apply(rule simple_integral_cong) by auto
   qed
 qed
+
+lemma (in measure_space) simple_integral_restricted:
+  assumes "A \<in> sets M"
+  assumes sf: "simple_function (\<lambda>x. f x * indicator A x)"
+  shows "measure_space.simple_integral (restricted_space A) \<mu> f = simple_integral (\<lambda>x. f x * indicator A x)"
+    (is "_ = simple_integral ?f")
+  unfolding measure_space.simple_integral_def[OF restricted_measure_space[OF `A \<in> sets M`]]
+  unfolding simple_integral_def
+proof (simp, safe intro!: setsum_mono_zero_cong_left)
+  from sf show "finite (?f ` space M)"
+    unfolding simple_function_def by auto
+next
+  fix x assume "x \<in> A"
+  then show "f x \<in> ?f ` space M"
+    using sets_into_space `A \<in> sets M` by (auto intro!: image_eqI[of _ _ x])
+next
+  fix x assume "x \<in> space M" "?f x \<notin> f`A"
+  then have "x \<notin> A" by (auto simp: image_iff)
+  then show "?f x * \<mu> (?f -` {?f x} \<inter> space M) = 0" by simp
+next
+  fix x assume "x \<in> A"
+  then have "f x \<noteq> 0 \<Longrightarrow>
+    f -` {f x} \<inter> A = ?f -` {f x} \<inter> space M"
+    using `A \<in> sets M` sets_into_space
+    by (auto simp: indicator_def split: split_if_asm)
+  then show "f x * \<mu> (f -` {f x} \<inter> A) =
+    f x * \<mu> (?f -` {f x} \<inter> space M)"
+    unfolding pinfreal_mult_cancel_left by auto
+qed
+
+lemma (in measure_space) simple_integral_subalgebra[simp]:
+  assumes "measure_space (M\<lparr>sets := N\<rparr>) \<mu>"
+  shows "measure_space.simple_integral (M\<lparr>sets := N\<rparr>) \<mu> = simple_integral"
+  unfolding simple_integral_def_raw
+  unfolding measure_space.simple_integral_def_raw[OF assms] by simp
 
 section "Continuous posititve integration"
 
@@ -1077,6 +1155,43 @@ proof
   qed
 qed
 
+lemma (in measure_space) positive_integral_translated_density:
+  assumes "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  shows "measure_space.positive_integral M (\<lambda>A. positive_integral (\<lambda>x. f x * indicator A x)) g =
+    positive_integral (\<lambda>x. f x * g x)" (is "measure_space.positive_integral M ?T _ = _")
+proof -
+  from measure_space_density[OF assms(1)]
+  interpret T: measure_space M ?T .
+  from borel_measurable_implies_simple_function_sequence[OF assms(2)]
+  obtain G where G: "\<And>i. simple_function (G i)" "G \<up> g" by blast
+  note G_borel = borel_measurable_simple_function[OF this(1)]
+  from T.positive_integral_isoton[OF `G \<up> g` G_borel]
+  have *: "(\<lambda>i. T.positive_integral (G i)) \<up> T.positive_integral g" .
+  { fix i
+    have [simp]: "finite (G i ` space M)"
+      using G(1) unfolding simple_function_def by auto
+    have "T.positive_integral (G i) = T.simple_integral (G i)"
+      using G T.positive_integral_eq_simple_integral by simp
+    also have "\<dots> = positive_integral (\<lambda>x. f x * (\<Sum>y\<in>G i`space M. y * indicator (G i -` {y} \<inter> space M) x))"
+      apply (simp add: T.simple_integral_def)
+      apply (subst positive_integral_cmult[symmetric])
+      using G_borel assms(1) apply (fastsimp intro: borel_measurable_indicator borel_measurable_vimage)
+      apply (subst positive_integral_setsum[symmetric])
+      using G_borel assms(1) apply (fastsimp intro: borel_measurable_indicator borel_measurable_vimage)
+      by (simp add: setsum_right_distrib field_simps)
+    also have "\<dots> = positive_integral (\<lambda>x. f x * G i x)"
+      by (auto intro!: positive_integral_cong
+               simp: indicator_def if_distrib setsum_cases)
+    finally have "T.positive_integral (G i) = positive_integral (\<lambda>x. f x * G i x)" . }
+  with * have eq_Tg: "(\<lambda>i. positive_integral (\<lambda>x. f x * G i x)) \<up> T.positive_integral g" by simp
+  from G(2) have "(\<lambda>i x. f x * G i x) \<up> (\<lambda>x. f x * g x)"
+    unfolding isoton_fun_expand by (auto intro!: isoton_cmult_right)
+  then have "(\<lambda>i. positive_integral (\<lambda>x. f x * G i x)) \<up> positive_integral (\<lambda>x. f x * g x)"
+    using assms(1) G_borel by (auto intro!: positive_integral_isoton borel_measurable_pinfreal_times)
+  with eq_Tg show "T.positive_integral g = positive_integral (\<lambda>x. f x * g x)"
+    unfolding isoton_def by simp
+qed
+
 lemma (in measure_space) positive_integral_null_set:
   assumes borel: "u \<in> borel_measurable M" and "N \<in> null_sets"
   shows "positive_integral (\<lambda>x. u x * indicator N x) = 0" (is "?I = 0")
@@ -1220,6 +1335,58 @@ proof -
   also have "\<dots> = positive_integral g"
     by (auto intro!: positive_integral_cong simp: indicator_def)
   finally show ?thesis by simp
+qed
+
+lemma (in measure_space) positive_integral_restricted:
+  assumes "A \<in> sets M"
+  shows "measure_space.positive_integral (restricted_space A) \<mu> f = positive_integral (\<lambda>x. f x * indicator A x)"
+    (is "measure_space.positive_integral ?R \<mu> f = positive_integral ?f")
+proof -
+  have msR: "measure_space ?R \<mu>" by (rule restricted_measure_space[OF `A \<in> sets M`])
+  then interpret R: measure_space ?R \<mu> .
+  have saR: "sigma_algebra ?R" by fact
+  have *: "R.positive_integral f = R.positive_integral ?f"
+    by (auto intro!: R.positive_integral_cong)
+  show ?thesis
+    unfolding * R.positive_integral_def positive_integral_def
+    unfolding simple_function_restricted[OF `A \<in> sets M`]
+    apply (simp add: SUPR_def)
+    apply (rule arg_cong[where f=Sup])
+  proof (auto simp: image_iff simple_integral_restricted[OF `A \<in> sets M`])
+    fix g assume "simple_function (\<lambda>x. g x * indicator A x)"
+      "g \<le> f" "\<forall>x\<in>A. \<omega> \<noteq> g x"
+    then show "\<exists>x. simple_function x \<and> x \<le> (\<lambda>x. f x * indicator A x) \<and> (\<forall>y\<in>space M. \<omega> \<noteq> x y) \<and>
+      simple_integral (\<lambda>x. g x * indicator A x) = simple_integral x"
+      apply (rule_tac exI[of _ "\<lambda>x. g x * indicator A x"])
+      by (auto simp: indicator_def le_fun_def)
+  next
+    fix g assume g: "simple_function g" "g \<le> (\<lambda>x. f x * indicator A x)"
+      "\<forall>x\<in>space M. \<omega> \<noteq> g x"
+    then have *: "(\<lambda>x. g x * indicator A x) = g"
+      "\<And>x. g x * indicator A x = g x"
+      "\<And>x. g x \<le> f x"
+      by (auto simp: le_fun_def expand_fun_eq indicator_def split: split_if_asm)
+    from g show "\<exists>x. simple_function (\<lambda>xa. x xa * indicator A xa) \<and> x \<le> f \<and> (\<forall>xa\<in>A. \<omega> \<noteq> x xa) \<and>
+      simple_integral g = simple_integral (\<lambda>xa. x xa * indicator A xa)"
+      using `A \<in> sets M`[THEN sets_into_space]
+      apply (rule_tac exI[of _ "\<lambda>x. g x * indicator A x"])
+      by (fastsimp simp: le_fun_def *)
+  qed
+qed
+
+lemma (in measure_space) positive_integral_subalgebra[simp]:
+  assumes borel: "f \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
+  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets := N\<rparr>)"
+  shows "measure_space.positive_integral (M\<lparr>sets := N\<rparr>) \<mu> f = positive_integral f"
+proof -
+  note msN = measure_space_subalgebra[OF N_subalgebra]
+  then interpret N: measure_space "M\<lparr>sets:=N\<rparr>" \<mu> .
+  from N.borel_measurable_implies_simple_function_sequence[OF borel]
+  obtain fs where Nsf: "\<And>i. N.simple_function (fs i)" and "fs \<up> f" by blast
+  then have sf: "\<And>i. simple_function (fs i)"
+    using simple_function_subalgebra[OF _ N_subalgebra] by blast
+  from positive_integral_isoton_simple[OF `fs \<up> f` sf] N.positive_integral_isoton_simple[OF `fs \<up> f` Nsf]
+  show ?thesis unfolding simple_integral_subalgebra[OF msN] isoton_def by simp
 qed
 
 section "Lebesgue Integral"
@@ -1629,44 +1796,6 @@ proof -
     by (simp add: real_of_pinfreal_eq_0)
 qed
 
-lemma LIMSEQ_max:
-  "u ----> (x::real) \<Longrightarrow> (\<lambda>i. max (u i) 0) ----> max x 0"
-  by (fastsimp intro!: LIMSEQ_I dest!: LIMSEQ_D)
-
-lemma (in sigma_algebra) borel_measurable_LIMSEQ:
-  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> real"
-  assumes u': "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. u i x) ----> u' x"
-  and u: "\<And>i. u i \<in> borel_measurable M"
-  shows "u' \<in> borel_measurable M"
-proof -
-  let "?pu x i" = "max (u i x) 0"
-  let "?nu x i" = "max (- u i x) 0"
-
-  { fix x assume x: "x \<in> space M"
-    have "(?pu x) ----> max (u' x) 0"
-      "(?nu x) ----> max (- u' x) 0"
-      using u'[OF x] by (auto intro!: LIMSEQ_max LIMSEQ_minus)
-    from LIMSEQ_imp_lim_INF[OF _ this(1)] LIMSEQ_imp_lim_INF[OF _ this(2)]
-    have "(SUP n. INF m. Real (u (n + m) x)) = Real (u' x)"
-      "(SUP n. INF m. Real (- u (n + m) x)) = Real (- u' x)"
-      by (simp_all add: Real_max'[symmetric]) }
-  note eq = this
-
-  have *: "\<And>x. real (Real (u' x)) - real (Real (- u' x)) = u' x"
-    by auto
-
-  have "(SUP n. INF m. (\<lambda>x. Real (u (n + m) x))) \<in> borel_measurable M"
-       "(SUP n. INF m. (\<lambda>x. Real (- u (n + m) x))) \<in> borel_measurable M"
-    using u by (auto intro: borel_measurable_SUP borel_measurable_INF borel_measurable_Real)
-  with eq[THEN measurable_cong, of M "\<lambda>x. x" borel_space]
-  have "(\<lambda>x. Real (u' x)) \<in> borel_measurable M"
-       "(\<lambda>x. Real (- u' x)) \<in> borel_measurable M"
-    unfolding SUPR_fun_expand INFI_fun_expand by auto
-  note this[THEN borel_measurable_real]
-  from borel_measurable_diff[OF this]
-  show ?thesis unfolding * .
-qed
-
 lemma (in measure_space) integral_dominated_convergence:
   assumes u: "\<And>i. integrable (u i)" and bound: "\<And>x j. x\<in>space M \<Longrightarrow> \<bar>u j x\<bar> \<le> w x"
   and w: "integrable w" "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> w x"
@@ -1926,41 +2055,11 @@ proof -
     by (simp_all add: integral_cmul_indicator borel_measurable_vimage)
 qed
 
-lemma sigma_algebra_cong:
-  fixes M :: "('a, 'b) algebra_scheme" and M' :: "('a, 'c) algebra_scheme"
-  assumes *: "sigma_algebra M"
-  and cong: "space M = space M'" "sets M = sets M'"
-  shows "sigma_algebra M'"
-using * unfolding sigma_algebra_def algebra_def sigma_algebra_axioms_def unfolding cong .
-
-lemma finite_Pow_additivity_sufficient:
-  assumes "finite (space M)" and "sets M = Pow (space M)"
-  and "positive \<mu>" and "additive M \<mu>"
-  and "\<And>x. x \<in> space M \<Longrightarrow> \<mu> {x} \<noteq> \<omega>"
-  shows "finite_measure_space M \<mu>"
-proof -
-  have "sigma_algebra M"
-    using assms by (auto intro!: sigma_algebra_cong[OF sigma_algebra_Pow])
-
-  have "measure_space M \<mu>"
-    by (rule sigma_algebra.finite_additivity_sufficient) (fact+)
-  thus ?thesis
-    unfolding finite_measure_space_def finite_measure_space_axioms_def
-    using assms by simp
-qed
-
-lemma finite_measure_spaceI:
-  assumes "measure_space M \<mu>" and "finite (space M)" and "sets M = Pow (space M)"
-  and "\<And>x. x \<in> space M \<Longrightarrow> \<mu> {x} \<noteq> \<omega>"
-  shows "finite_measure_space M \<mu>"
-  unfolding finite_measure_space_def finite_measure_space_axioms_def
-  using assms by simp
+lemma (in finite_measure_space) simple_function_finite[simp, intro]: "simple_function f"
+  unfolding simple_function_def sets_eq_Pow using finite_space by auto
 
 lemma (in finite_measure_space) borel_measurable_finite[intro, simp]: "f \<in> borel_measurable M"
-  unfolding measurable_def sets_eq_Pow by auto
-
-lemma (in finite_measure_space) simple_function_finite: "simple_function f"
-  unfolding simple_function_def sets_eq_Pow using finite_space by auto
+  by (auto intro: borel_measurable_simple_function)
 
 lemma (in finite_measure_space) positive_integral_finite_eq_setsum:
   "positive_integral f = (\<Sum>x \<in> space M. f x * \<mu> {x})"
@@ -1979,10 +2078,8 @@ proof -
     "positive_integral (\<lambda>x. Real (f x)) = (\<Sum>x \<in> space M. Real (f x) * \<mu> {x})"
     "positive_integral (\<lambda>x. Real (- f x)) = (\<Sum>x \<in> space M. Real (- f x) * \<mu> {x})"
     unfolding positive_integral_finite_eq_setsum by auto
-
   show "integrable f" using finite_space finite_measure
     by (simp add: setsum_\<omega> integrable_def sets_eq_Pow)
-
   show ?I using finite_measure
     apply (simp add: integral_def sets_eq_Pow real_of_pinfreal_setsum[symmetric]
       real_of_pinfreal_mult[symmetric] setsum_subtractf[symmetric])

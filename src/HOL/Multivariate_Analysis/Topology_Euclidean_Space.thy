@@ -5027,7 +5027,7 @@ definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
   (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i<DIM('a). ((a$$i \<le> x$$i \<and> x$$i \<le> b$$i) \<or> (b$$i \<le> x$$i \<and> x$$i \<le> a$$i))) \<longrightarrow> x \<in> s)"
 
 lemma is_interval_interval: "is_interval {a .. b::'a::ordered_euclidean_space}" (is ?th1)
-  "is_interval {a<..<b}" (is ?th2) proof - 
+  "is_interval {a<..<b}" (is ?th2) proof -
   have *:"\<And>x y z::real. x < y \<Longrightarrow> y < z \<Longrightarrow> x < z" by auto
   show ?th1 ?th2  unfolding is_interval_def mem_interval Ball_def atLeastAtMost_iff
     by(meson order_trans le_less_trans less_le_trans *)+ qed
@@ -5050,6 +5050,9 @@ lemma Lim_inner:
 
 lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
+
+lemma continuous_at_euclidean_component[intro!, simp]: "continuous (at x) (\<lambda>x. x $$ i)"
+  unfolding euclidean_component_def by (rule continuous_at_inner)
 
 lemma continuous_on_inner:
   fixes s :: "'a::real_inner set"
@@ -5158,6 +5161,9 @@ proof (safe intro!: closed_INT)
   then show "closed {x::'a. a $$ i \<le> x $$ i}"
     by (simp add: closed_def open_halfspace_component_lt)
 qed
+
+lemma open_vimage_euclidean_component: "open S \<Longrightarrow> open ((\<lambda>x. x $$ i) -` S)"
+  by (auto intro!: continuous_open_vimage)
 
 text{* This gives a simple derivation of limit component bounds.                 *}
 

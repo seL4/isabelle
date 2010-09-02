@@ -411,6 +411,10 @@ lemma pinfreal_le_add3: "(n::pinfreal) + m \<le> k \<Longrightarrow> n \<le> k"
 lemma pinfreal_less_\<omega>: "x < \<omega> \<longleftrightarrow> x \<noteq> \<omega>"
   by (cases x) auto
 
+lemma pinfreal_0_less_mult_iff[simp]:
+  fixes x y :: pinfreal shows "0 < x * y \<longleftrightarrow> 0 < x \<and> 0 < y"
+  by (cases x, cases y) (auto simp: zero_less_mult_iff)
+
 subsection {* @{text "x - y"} on @{typ pinfreal} *}
 
 instantiation pinfreal :: minus

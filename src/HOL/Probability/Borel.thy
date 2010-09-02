@@ -6,6 +6,10 @@ theory Borel
   imports Sigma_Algebra Positive_Infinite_Real Multivariate_Analysis
 begin
 
+lemma LIMSEQ_max:
+  "u ----> (x::real) \<Longrightarrow> (\<lambda>i. max (u i) 0) ----> max x 0"
+  by (fastsimp intro!: LIMSEQ_I dest!: LIMSEQ_D)
+
 section "Generic Borel spaces"
 
 definition "borel_space = sigma (UNIV::'a::topological_space set) open"
@@ -81,7 +85,7 @@ lemma (in sigma_algebra) borel_measurable_const[simp, intro]:
   "(\<lambda>x. c) \<in> borel_measurable M"
   by (auto intro!: measurable_const)
 
-lemma (in sigma_algebra) borel_measurable_indicator:
+lemma (in sigma_algebra) borel_measurable_indicator[simp, intro!]:
   assumes A: "A \<in> sets M"
   shows "indicator A \<in> borel_measurable M"
   unfolding indicator_def_raw using A
@@ -104,6 +108,53 @@ proof -
       by (auto simp: vimage_Diff borel_space.Diff)
   qed (auto simp add: vimage_UN)
 qed
+
+lemma (in sigma_algebra) borel_measurable_restricted:
+  fixes f :: "'a \<Rightarrow> 'x\<Colon>{topological_space, semiring_1}" assumes "A \<in> sets M"
+  shows "f \<in> borel_measurable (restricted_space A) \<longleftrightarrow>
+    (\<lambda>x. f x * indicator A x) \<in> borel_measurable M"
+    (is "f \<in> borel_measurable ?R \<longleftrightarrow> ?f \<in> borel_measurable M")
+proof -
+  interpret R: sigma_algebra ?R by (rule restricted_sigma_algebra[OF `A \<in> sets M`])
+  have *: "f \<in> borel_measurable ?R \<longleftrightarrow> ?f \<in> borel_measurable ?R"
+    by (auto intro!: measurable_cong)
+  show ?thesis unfolding *
+    unfolding in_borel_measurable_borel_space
+  proof (simp, safe)
+    fix S :: "'x set" assume "S \<in> sets borel_space"
+      "\<forall>S\<in>sets borel_space. ?f -` S \<inter> A \<in> op \<inter> A ` sets M"
+    then have "?f -` S \<inter> A \<in> op \<inter> A ` sets M" by auto
+    then have f: "?f -` S \<inter> A \<in> sets M"
+      using `A \<in> sets M` sets_into_space by fastsimp
+    show "?f -` S \<inter> space M \<in> sets M"
+    proof cases
+      assume "0 \<in> S"
+      then have "?f -` S \<inter> space M = ?f -` S \<inter> A \<union> (space M - A)"
+        using `A \<in> sets M` sets_into_space by auto
+      then show ?thesis using f `A \<in> sets M` by (auto intro!: Un Diff)
+    next
+      assume "0 \<notin> S"
+      then have "?f -` S \<inter> space M = ?f -` S \<inter> A"
+        using `A \<in> sets M` sets_into_space
+        by (auto simp: indicator_def split: split_if_asm)
+      then show ?thesis using f by auto
+    qed
+  next
+    fix S :: "'x set" assume "S \<in> sets borel_space"
+      "\<forall>S\<in>sets borel_space. ?f -` S \<inter> space M \<in> sets M"
+    then have f: "?f -` S \<inter> space M \<in> sets M" by auto
+    then show "?f -` S \<inter> A \<in> op \<inter> A ` sets M"
+      using `A \<in> sets M` sets_into_space
+      apply (simp add: image_iff)
+      apply (rule bexI[OF _ f])
+      by auto
+  qed
+qed
+
+lemma (in sigma_algebra) borel_measurable_subalgebra:
+  assumes "N \<subseteq> sets M" "f \<in> borel_measurable (M\<lparr>sets:=N\<rparr>)"
+  shows "f \<in> borel_measurable M"
+  using assms unfolding measurable_def by auto
 
 section "Borel spaces on euclidean spaces"
 
@@ -657,6 +708,30 @@ lemma (in sigma_algebra) borel_measurable_iff_ge:
 lemma (in sigma_algebra) borel_measurable_iff_greater:
   "(f::'a \<Rightarrow> real) \<in> borel_measurable M = (\<forall>a. {w \<in> space M. a < f w} \<in> sets M)"
   using borel_measurable_iff_halfspace_greater[where 'c=real] by simp
+
+lemma borel_measureable_euclidean_component:
+  "(\<lambda>x::'a::euclidean_space. x $$ i) \<in> borel_measurable borel_space"
+  unfolding borel_space_def[where 'a=real]
+proof (rule borel_space.measurable_sigma)
+  fix S::"real set" assume "S \<in> open" then have "open S" unfolding mem_def .
+  from open_vimage_euclidean_component[OF this]
+  show "(\<lambda>x. x $$ i) -` S \<inter> space borel_space \<in> sets borel_space"
+    by (auto intro: borel_space_open)
+qed auto
+
+lemma (in sigma_algebra) borel_measureable_euclidean_space:
+  fixes f :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
+  shows "f \<in> borel_measurable M \<longleftrightarrow> (\<forall>i<DIM('c). (\<lambda>x. f x $$ i) \<in> borel_measurable M)"
+proof safe
+  fix i assume "f \<in> borel_measurable M"
+  then show "(\<lambda>x. f x $$ i) \<in> borel_measurable M"
+    using measurable_comp[of f _ _ "\<lambda>x. x $$ i", unfolded comp_def]
+    by (auto intro: borel_measureable_euclidean_component)
+next
+  assume f: "\<forall>i<DIM('c). (\<lambda>x. f x $$ i) \<in> borel_measurable M"
+  then show "f \<in> borel_measurable M"
+    unfolding borel_measurable_iff_halfspace_le by auto
+qed
 
 subsection "Borel measurable operators"
 
@@ -1268,6 +1343,48 @@ proof safe
     by (simp add: pinfreal_less_minus_iff)
   then show "{x \<in> space M. a < f x - g x} \<in> sets M"
     using assms by auto
+qed
+
+lemma (in sigma_algebra) borel_measurable_psuminf:
+  assumes "\<And>i. f i \<in> borel_measurable M"
+  shows "(\<lambda>x. (\<Sum>\<^isub>\<infinity> i. f i x)) \<in> borel_measurable M"
+  using assms unfolding psuminf_def
+  by (auto intro!: borel_measurable_SUP[unfolded SUPR_fun_expand])
+
+section "LIMSEQ is borel measurable"
+
+lemma (in sigma_algebra) borel_measurable_LIMSEQ:
+  fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> real"
+  assumes u': "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. u i x) ----> u' x"
+  and u: "\<And>i. u i \<in> borel_measurable M"
+  shows "u' \<in> borel_measurable M"
+proof -
+  let "?pu x i" = "max (u i x) 0"
+  let "?nu x i" = "max (- u i x) 0"
+
+  { fix x assume x: "x \<in> space M"
+    have "(?pu x) ----> max (u' x) 0"
+      "(?nu x) ----> max (- u' x) 0"
+      using u'[OF x] by (auto intro!: LIMSEQ_max LIMSEQ_minus)
+    from LIMSEQ_imp_lim_INF[OF _ this(1)] LIMSEQ_imp_lim_INF[OF _ this(2)]
+    have "(SUP n. INF m. Real (u (n + m) x)) = Real (u' x)"
+      "(SUP n. INF m. Real (- u (n + m) x)) = Real (- u' x)"
+      by (simp_all add: Real_max'[symmetric]) }
+  note eq = this
+
+  have *: "\<And>x. real (Real (u' x)) - real (Real (- u' x)) = u' x"
+    by auto
+
+  have "(SUP n. INF m. (\<lambda>x. Real (u (n + m) x))) \<in> borel_measurable M"
+       "(SUP n. INF m. (\<lambda>x. Real (- u (n + m) x))) \<in> borel_measurable M"
+    using u by (auto intro: borel_measurable_SUP borel_measurable_INF borel_measurable_Real)
+  with eq[THEN measurable_cong, of M "\<lambda>x. x" borel_space]
+  have "(\<lambda>x. Real (u' x)) \<in> borel_measurable M"
+       "(\<lambda>x. Real (- u' x)) \<in> borel_measurable M"
+    unfolding SUPR_fun_expand INFI_fun_expand by auto
+  note this[THEN borel_measurable_real]
+  from borel_measurable_diff[OF this]
+  show ?thesis unfolding * .
 qed
 
 end

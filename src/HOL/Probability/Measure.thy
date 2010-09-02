@@ -414,6 +414,19 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in measure_space) measure_finitely_subadditive:
+  assumes "finite I" "A ` I \<subseteq> sets M"
+  shows "\<mu> (\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. \<mu> (A i))"
+using assms proof induct
+  case (insert i I)
+  then have "(\<Union>i\<in>I. A i) \<in> sets M" by (auto intro: finite_UN)
+  then have "\<mu> (\<Union>i\<in>insert i I. A i) \<le> \<mu> (A i) + \<mu> (\<Union>i\<in>I. A i)"
+    using insert by (simp add: measure_subadditive)
+  also have "\<dots> \<le> (\<Sum>i\<in>insert i I. \<mu> (A i))"
+    using insert by (auto intro!: add_left_mono)
+  finally show ?case .
+qed simp
+
 lemma (in measure_space) measurable_countably_subadditive:
   assumes "range f \<subseteq> sets M"
   shows "\<mu> (\<Union>i. f i) \<le> (\<Sum>\<^isub>\<infinity> i. \<mu> (f i))"
@@ -432,9 +445,34 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in measure_space) measure_inter_full_set:
+  assumes "S \<in> sets M" "T \<in> sets M" and not_\<omega>: "\<mu> (T - S) \<noteq> \<omega>"
+  assumes T: "\<mu> T = \<mu> (space M)"
+  shows "\<mu> (S \<inter> T) = \<mu> S"
+proof (rule antisym)
+  show " \<mu> (S \<inter> T) \<le> \<mu> S"
+    using assms by (auto intro!: measure_mono)
+
+  show "\<mu> S \<le> \<mu> (S \<inter> T)"
+  proof (rule ccontr)
+    assume contr: "\<not> ?thesis"
+    have "\<mu> (space M) = \<mu> ((T - S) \<union> (S \<inter> T))"
+      unfolding T[symmetric] by (auto intro!: arg_cong[where f="\<mu>"])
+    also have "\<dots> \<le> \<mu> (T - S) + \<mu> (S \<inter> T)"
+      using assms by (auto intro!: measure_subadditive)
+    also have "\<dots> < \<mu> (T - S) + \<mu> S"
+      by (rule pinfreal_less_add[OF not_\<omega>]) (insert contr, auto)
+    also have "\<dots> = \<mu> (T \<union> S)"
+      using assms by (subst measure_additive) auto
+    also have "\<dots> \<le> \<mu> (space M)"
+      using assms sets_into_space by (auto intro!: measure_mono)
+    finally show False ..
+  qed
+qed
+
 lemma (in measure_space) restricted_measure_space:
   assumes "S \<in> sets M"
-  shows "measure_space (M\<lparr> space := S, sets := (\<lambda>A. S \<inter> A) ` sets M \<rparr>) \<mu>"
+  shows "measure_space (restricted_space S) \<mu>"
     (is "measure_space ?r \<mu>")
   unfolding measure_space_def measure_space_axioms_def
 proof safe
@@ -451,6 +489,46 @@ proof safe
   qed
 qed
 
+lemma (in measure_space) measure_space_vimage:
+  assumes "f \<in> measurable M M'"
+  and "sigma_algebra M'"
+  shows "measure_space M' (\<lambda>A. \<mu> (f -` A \<inter> space M))" (is "measure_space M' ?T")
+proof -
+  interpret M': sigma_algebra M' by fact
+
+  show ?thesis
+  proof
+    show "?T {} = 0" by simp
+
+    show "countably_additive M' ?T"
+    proof (unfold countably_additive_def, safe)
+      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets M'" "disjoint_family A"
+      hence *: "\<And>i. f -` (A i) \<inter> space M \<in> sets M"
+        using `f \<in> measurable M M'` by (auto simp: measurable_def)
+      moreover have "(\<Union>i. f -`  A i \<inter> space M) \<in> sets M"
+        using * by blast
+      moreover have **: "disjoint_family (\<lambda>i. f -` A i \<inter> space M)"
+        using `disjoint_family A` by (auto simp: disjoint_family_on_def)
+      ultimately show "(\<Sum>\<^isub>\<infinity> i. ?T (A i)) = ?T (\<Union>i. A i)"
+        using measure_countably_additive[OF _ **] by (auto simp: comp_def vimage_UN)
+    qed
+  qed
+qed
+
+lemma (in measure_space) measure_space_subalgebra:
+  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  shows "measure_space (M\<lparr> sets := N \<rparr>) \<mu>"
+proof -
+  interpret N: sigma_algebra "M\<lparr> sets := N \<rparr>" by fact
+  show ?thesis
+  proof
+    show "countably_additive (M\<lparr>sets := N\<rparr>) \<mu>"
+      using `N \<subseteq> sets M`
+      by (auto simp add: countably_additive_def
+               intro!: measure_countably_additive)
+  qed simp
+qed
+
 section "@{text \<sigma>}-finite Measures"
 
 locale sigma_finite_measure = measure_space +
@@ -458,7 +536,7 @@ locale sigma_finite_measure = measure_space +
 
 lemma (in sigma_finite_measure) restricted_sigma_finite_measure:
   assumes "S \<in> sets M"
-  shows "sigma_finite_measure (M\<lparr> space := S, sets := (\<lambda>A. S \<inter> A) ` sets M \<rparr>) \<mu>"
+  shows "sigma_finite_measure (restricted_space S) \<mu>"
     (is "sigma_finite_measure ?r _")
   unfolding sigma_finite_measure_def sigma_finite_measure_axioms_def
 proof safe
@@ -484,6 +562,25 @@ next
     also have "\<dots> < \<omega>" using `\<mu> (A i) \<noteq> \<omega>` by (auto simp: pinfreal_less_\<omega>)
     finally show "\<mu> (A i \<inter> S) \<noteq> \<omega>" by (auto simp: pinfreal_less_\<omega>)
   qed
+qed
+
+lemma (in sigma_finite_measure) disjoint_sigma_finite:
+  "\<exists>A::nat\<Rightarrow>'a set. range A \<subseteq> sets M \<and> (\<Union>i. A i) = space M \<and>
+    (\<forall>i. \<mu> (A i) \<noteq> \<omega>) \<and> disjoint_family A"
+proof -
+  obtain A :: "nat \<Rightarrow> 'a set" where
+    range: "range A \<subseteq> sets M" and
+    space: "(\<Union>i. A i) = space M" and
+    measure: "\<And>i. \<mu> (A i) \<noteq> \<omega>"
+    using sigma_finite by auto
+  note range' = range_disjointed_sets[OF range] range
+  { fix i
+    have "\<mu> (disjointed A i) \<le> \<mu> (A i)"
+      using range' disjointed_subset[of A i] by (auto intro!: measure_mono)
+    then have "\<mu> (disjointed A i) \<noteq> \<omega>"
+      using measure[of i] by auto }
+  with disjoint_family_disjointed UN_disjointed_eq[of A] space range'
+  show ?thesis by (auto intro!: exI[of _ "disjointed A"])
 qed
 
 section "Real measure values"
@@ -604,7 +701,7 @@ proof
     using finite_measure_of_space by (auto intro!: exI[of _ "\<lambda>x. space M"])
 qed
 
-lemma (in finite_measure) finite_measure:
+lemma (in finite_measure) finite_measure[simp, intro]:
   assumes "A \<in> sets M"
   shows "\<mu> A \<noteq> \<omega>"
 proof -
@@ -619,7 +716,7 @@ qed
 
 lemma (in finite_measure) restricted_finite_measure:
   assumes "S \<in> sets M"
-  shows "finite_measure (M\<lparr> space := S, sets := (\<lambda>A. S \<inter> A) ` sets M \<rparr>) \<mu>"
+  shows "finite_measure (restricted_space S) \<mu>"
     (is "finite_measure ?r _")
   unfolding finite_measure_def finite_measure_axioms_def
 proof (safe del: notI)
@@ -706,6 +803,13 @@ lemma (in finite_measure) finite_measure_compl:
   assumes s: "s \<in> sets M"
   shows "\<mu> (space M - s) = \<mu> (space M) - \<mu> s"
   using measure_compl[OF s, OF finite_measure, OF s] .
+
+lemma (in finite_measure) finite_measure_inter_full_set:
+  assumes "S \<in> sets M" "T \<in> sets M"
+  assumes T: "\<mu> T = \<mu> (space M)"
+  shows "\<mu> (S \<inter> T) = \<mu> S"
+  using measure_inter_full_set[OF assms(1,2) finite_measure assms(3)] assms
+  by auto
 
 section {* Measure preserving *}
 
@@ -817,15 +921,72 @@ locale finite_measure_space = measure_space +
   and sets_eq_Pow: "sets M = Pow (space M)"
   and finite_single_measure: "\<And>x. x \<in> space M \<Longrightarrow> \<mu> {x} \<noteq> \<omega>"
 
+lemma (in finite_measure_space) sets_image_space_eq_Pow:
+  "sets (image_space X) = Pow (space (image_space X))"
+proof safe
+  fix x S assume "S \<in> sets (image_space X)" "x \<in> S"
+  then show "x \<in> space (image_space X)"
+    using sets_into_space by (auto intro!: imageI simp: image_space_def)
+next
+  fix S assume "S \<subseteq> space (image_space X)"
+  then obtain S' where "S = X`S'" "S'\<in>sets M"
+    by (auto simp: subset_image_iff sets_eq_Pow image_space_def)
+  then show "S \<in> sets (image_space X)"
+    by (auto simp: image_space_def)
+qed
+
 lemma (in finite_measure_space) sum_over_space: "(\<Sum>x\<in>space M. \<mu> {x}) = \<mu> (space M)"
   using measure_finitely_additive''[of "space M" "\<lambda>i. {i}"]
   by (simp add: sets_eq_Pow disjoint_family_on_def finite_space)
+
+lemma finite_measure_spaceI:
+  assumes "finite (space M)" "sets M = Pow(space M)" and space: "\<mu> (space M) \<noteq> \<omega>"
+    and add: "\<And>A B. A\<subseteq>space M \<Longrightarrow> B\<subseteq>space M \<Longrightarrow> A \<inter> B = {} \<Longrightarrow> \<mu> (A \<union> B) = \<mu> A + \<mu> B"
+    and "\<mu> {} = 0"
+  shows "finite_measure_space M \<mu>"
+    unfolding finite_measure_space_def finite_measure_space_axioms_def
+proof (safe del: notI)
+  show "measure_space M \<mu>"
+  proof (rule sigma_algebra.finite_additivity_sufficient)
+    show "sigma_algebra M"
+      apply (rule sigma_algebra_cong)
+      apply (rule sigma_algebra_Pow[of "space M"])
+      using assms by simp_all
+    show "finite (space M)" by fact
+    show "positive \<mu>" unfolding positive_def by fact
+    show "additive M \<mu>" unfolding additive_def using assms by simp
+  qed
+  show "finite (space M)" by fact
+  { fix A x assume "A \<in> sets M" "x \<in> A" then show "x \<in> space M"
+      using assms by auto }
+  { fix A assume "A \<subseteq> space M" then show "A \<in> sets M"
+      using assms by auto }
+  { fix x assume *: "x \<in> space M"
+    with add[of "{x}" "space M - {x}"] space
+    show "\<mu> {x} \<noteq> \<omega>" by (auto simp: insert_absorb[OF *] Diff_subset) }
+qed
 
 sublocale finite_measure_space < finite_measure
 proof
   show "\<mu> (space M) \<noteq> \<omega>"
     unfolding sum_over_space[symmetric] setsum_\<omega>
     using finite_space finite_single_measure by auto
+qed
+
+lemma finite_measure_space_iff:
+  "finite_measure_space M \<mu> \<longleftrightarrow>
+    finite (space M) \<and> sets M = Pow(space M) \<and> \<mu> (space M) \<noteq> \<omega> \<and> \<mu> {} = 0 \<and>
+    (\<forall>A\<subseteq>space M. \<forall>B\<subseteq>space M. A \<inter> B = {} \<longrightarrow> \<mu> (A \<union> B) = \<mu> A + \<mu> B)"
+    (is "_ = ?rhs")
+proof (intro iffI)
+  assume "finite_measure_space M \<mu>"
+  then interpret finite_measure_space M \<mu> .
+  show ?rhs
+    using finite_space sets_eq_Pow measure_additive empty_measure finite_measure
+    by auto
+next
+  assume ?rhs then show "finite_measure_space M \<mu>"
+    by (auto intro!: finite_measure_spaceI)
 qed
 
 lemma psuminf_cmult_indicator:
