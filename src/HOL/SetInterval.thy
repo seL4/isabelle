@@ -304,6 +304,17 @@ by (simp add: lessThan_def)
 lemma lessThan_Suc: "lessThan (Suc k) = insert k (lessThan k)"
 by (simp add: lessThan_def less_Suc_eq, blast)
 
+text {* The following proof is convinient in induction proofs where
+new elements get indices at the beginning. So it is used to transform
+@{term "{..<Suc n}"} to @{term "0::nat"} and @{term "{..< n}"}. *}
+
+lemma lessThan_Suc_eq_insert_0: "{..<Suc n} = insert 0 (Suc ` {..<n})"
+proof safe
+  fix x assume "x < Suc n" "x \<notin> Suc ` {..<n}"
+  then have "x \<noteq> Suc (x - 1)" by auto
+  with `x < Suc n` show "x = 0" by auto
+qed
+
 lemma lessThan_Suc_atMost: "lessThan (Suc k) = atMost k"
 by (simp add: lessThan_def atMost_def less_Suc_eq_le)
 
