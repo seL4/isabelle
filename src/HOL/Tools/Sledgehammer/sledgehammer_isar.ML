@@ -20,7 +20,7 @@ struct
 open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer
-open Sledgehammer_Fact_Minimize
+open Sledgehammer_Minimize
 
 (** Sledgehammer commands **)
 
@@ -63,25 +63,25 @@ val _ =
 type raw_param = string * string list
 
 val default_default_params =
-  [("debug", "false"),
+  [("blocking", "false"),
+   ("debug", "false"),
    ("verbose", "false"),
    ("overlord", "false"),
    ("explicit_apply", "false"),
    ("relevance_thresholds", "45 85"),
    ("max_relevant", "smart"),
-   ("theory_relevant", "smart"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1")]
 
 val alias_params =
   [("atp", "atps")]
 val negated_alias_params =
-  [("no_debug", "debug"),
+  [("non_blocking", "blocking"),
+   ("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
-   ("theory_irrelevant", "theory_relevant"),
    ("no_isar_proof", "isar_proof")]
 
 val params_for_minimize =
@@ -94,7 +94,7 @@ fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) alias_params s orelse
   AList.defined (op =) negated_alias_params s orelse
-  member (op =) property_dependent_params s
+  member (op =) property_dependent_params s orelse s = "expect"
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
@@ -167,6 +167,7 @@ fun extract_params default_params override_params =
       case lookup name of
         SOME "smart" => NONE
       | _ => SOME (lookup_int name)
+    val blocking = lookup_bool "blocking"
     val debug = lookup_bool "debug"
     val verbose = debug orelse lookup_bool "verbose"
     val overlord = lookup_bool "overlord"
@@ -177,16 +178,16 @@ fun extract_params default_params override_params =
       lookup_int_pair "relevance_thresholds"
       |> pairself (fn n => 0.01 * Real.fromInt n)
     val max_relevant = lookup_int_option "max_relevant"
-    val theory_relevant = lookup_bool_option "theory_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = lookup_time "timeout"
+    val expect = lookup_string "expect"
   in
-    {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
-     full_types = full_types, explicit_apply = explicit_apply,
+    {blocking = blocking, debug = debug, verbose = verbose, overlord = overlord,
+     atps = atps, full_types = full_types, explicit_apply = explicit_apply,
      relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
-     theory_relevant = theory_relevant, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, timeout = timeout}
+     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+     timeout = timeout, expect = expect}
   end
 
 fun get_params thy = extract_params (default_raw_params thy)
@@ -267,10 +268,7 @@ val parse_value = Scan.repeat1 Parse.xname
 val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
-  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon)
-                            (Parse.xname -- Scan.option Attrib.thm_sel)
-                >> (fn (name, interval) =>
-                       Facts.Named ((name, Position.none), interval)))
+  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon) Parse_Spec.xthm)
 val parse_relevance_chunk =
   (Args.add |-- Args.colon |-- parse_fact_refs >> add_to_relevance_override)
   || (Args.del |-- Args.colon |-- parse_fact_refs

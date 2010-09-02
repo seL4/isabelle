@@ -30,6 +30,7 @@ uses
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")
   ("Tools/recfun_codegen.ML")
+  "Tools/async_manager.ML"
   "Tools/try.ML"
 begin
 

@@ -1,28 +1,30 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_fact_minimize.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_minimize.ML
     Author:     Philipp Meyer, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
 
 Minimization of theorem list for Metis using automatic theorem provers.
 *)
 
-signature SLEDGEHAMMER_FACT_MINIMIZE =
+signature SLEDGEHAMMER_MINIMIZE =
 sig
-  type locality = Sledgehammer_Fact_Filter.locality
+  type locality = Sledgehammer_Filter.locality
   type params = Sledgehammer.params
 
   val minimize_theorems :
     params -> int -> int -> Proof.state -> ((string * locality) * thm list) list
     -> ((string * locality) * thm list) list option * string
-  val run_minimize : params -> int -> Facts.ref list -> Proof.state -> unit
+  val run_minimize :
+    params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
 end;
 
-structure Sledgehammer_Fact_Minimize : SLEDGEHAMMER_FACT_MINIMIZE =
+structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
 struct
 
 open ATP_Systems
 open Sledgehammer_Util
-open Sledgehammer_Fact_Filter
-open Sledgehammer_Proof_Reconstruct
+open Sledgehammer_Filter
+open Sledgehammer_Translate
+open Sledgehammer_Reconstruct
 open Sledgehammer
 
 (* wrapper for calling external prover *)
@@ -49,17 +51,16 @@ fun test_theorems ({debug, verbose, overlord, atps, full_types, isar_proof,
     val _ =
       priority ("Testing " ^ n_theorems (map fst axioms) ^ "...")
     val params =
-      {debug = debug, verbose = verbose, overlord = overlord, atps = atps,
-       full_types = full_types, explicit_apply = explicit_apply,
-       relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
-       theory_relevant = NONE, isar_proof = isar_proof,
-       isar_shrink_factor = isar_shrink_factor, timeout = timeout}
+      {blocking = true, debug = debug, verbose = verbose, overlord = overlord,
+       atps = atps, full_types = full_types, explicit_apply = explicit_apply,
+       relevance_thresholds = (1.01, 1.01),
+       max_relevant = SOME 65536 (* a large number *), isar_proof = isar_proof,
+       isar_shrink_factor = isar_shrink_factor, timeout = timeout, expect = ""}
     val axioms = maps (fn (n, ths) => map (pair n) ths) axioms
-    val {context = ctxt, facts, goal} = Proof.goal state
+    val {context = ctxt, goal, ...} = Proof.goal state
     val problem =
-     {subgoal = subgoal, goal = (ctxt, (facts, goal)),
-      relevance_override = {add = [], del = [], only = false},
-      axioms = SOME axioms}
+      {ctxt = ctxt, goal = goal, subgoal = subgoal,
+       axioms = map (prepare_axiom ctxt) axioms}
     val result as {outcome, used_thm_names, ...} = prover params (K "") problem
   in
     priority (case outcome of

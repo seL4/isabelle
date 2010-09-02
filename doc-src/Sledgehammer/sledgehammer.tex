@@ -333,8 +333,9 @@ highly-relevant and \textit{facts}$_2$ fully irrelevant.
 \def\opargboolorsmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
 
 Sledgehammer's options are categorized as follows:\ mode of operation
-(\S\ref{mode-of-operation}), problem encoding (\S\ref{problem-encoding}), output
-format (\S\ref{output-format}), and timeouts (\S\ref{timeouts}).
+(\S\ref{mode-of-operation}), problem encoding (\S\ref{problem-encoding}),
+relevance filter (\S\ref{relevance-filter}), output format
+(\S\ref{output-format}), and authentication (\S\ref{authentication}).
 
 The descriptions below refer to the following syntactic quantities:
 
@@ -349,19 +350,13 @@ The descriptions below refer to the following syntactic quantities:
 \end{enum}
 
 Default values are indicated in square brackets. Boolean options have a negated
-counterpart (e.g., \textit{debug} vs.\ \textit{no\_debug}). When setting
+counterpart (e.g., \textit{blocking} vs.\ \textit{non\_blocking}). When setting
 Boolean options, ``= \textit{true}'' may be omitted.
 
 \subsection{Mode of Operation}
 \label{mode-of-operation}
 
 \begin{enum}
-%\optrue{blocking}{non\_blocking}
-%Specifies whether the \textbf{sledgehammer} command should operate synchronously.
-%The asynchronous (non-blocking) mode lets the user start proving the putative
-%theorem while Sledgehammer looks for a counterexample, but it can also be more
-%confusing. For technical reasons, automatic runs currently always block.
-
 \opnodefault{atps}{string}
 Specifies the ATPs (automated theorem provers) to use as a space-separated list
 (e.g., ``\textit{e}~\textit{spass}''). The following ATPs are supported:
@@ -414,6 +409,18 @@ seconds \cite{boehme-nipkow-2010}.
 \opnodefault{atp}{string}
 Alias for \textit{atps}.
 
+\opdefault{timeout}{time}{$\mathbf{60}$ s}
+Specifies the maximum amount of time that the ATPs should spend searching for a
+proof. For historical reasons, the default value of this option can be
+overridden using the option ``Sledgehammer: Time Limit'' from the ``Isabelle''
+menu in Proof General.
+
+\opfalse{blocking}{non\_blocking}
+Specifies whether the \textbf{sledgehammer} command should operate
+synchronously. The asynchronous (non-blocking) mode lets the user start proving
+the putative theorem manually while Sledgehammer looks for a proof, but it can
+also be more confusing.
+
 \opfalse{overlord}{no\_overlord}
 Specifies whether Sledgehammer should put its temporary files in
 \texttt{\$ISA\-BELLE\_\allowbreak HOME\_\allowbreak USER}, which is useful for
@@ -460,11 +467,11 @@ Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
 empirically found to be appropriate for the ATP. A typical value would be 300.
 
-\opsmartx{theory\_relevant}{theory\_irrelevant}
-Specifies whether the theory from which a fact comes should be taken into
-consideration by the relevance filter. If the option is set to \textit{smart},
-it is taken to be \textit{true} for SPASS and \textit{false} for the other ATPs;
-empirical results suggest that these are the best settings.
+%\opsmartx{theory\_relevant}{theory\_irrelevant}
+%Specifies whether the theory from which a fact comes should be taken into
+%consideration by the relevance filter. If the option is set to \textit{smart},
+%it is taken to be \textit{true} for SPASS and \textit{false} for the other ATPs;
+%empirical results suggest that these are the best settings.
 
 %\opfalse{defs\_relevant}{defs\_irrelevant}
 %Specifies whether the definition of constants occurring in the formula to prove
@@ -501,15 +508,25 @@ steps in the ATP proof.
 
 \end{enum}
 
-\subsection{Timeouts}
-\label{timeouts}
+\subsection{Authentication}
+\label{authentication}
 
 \begin{enum}
-\opdefault{timeout}{time}{$\mathbf{60}$ s}
-Specifies the maximum amount of time that the ATPs should spend looking for a
-proof. For historical reasons, the default value of this option can be
-overridden using the option ``Sledgehammer: Time Limit'' from the ``Isabelle''
-menu in Proof General.
+\opnodefault{expect}{string}
+Specifies the expected outcome, which must be one of the following:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{some}:} Sledgehammer found a (potentially unsound) proof.
+\item[$\bullet$] \textbf{\textit{none}:} Sledgehammer found no proof.
+\item[$\bullet$] \textbf{\textit{unknown}:} Sledgehammer encountered some problem.
+\end{enum}
+
+Sledgehammer emits an error (if \textit{blocking} is enabled) or a warning
+(otherwise) if the actual outcome differs from the expected outcome. This option
+is useful for regression testing.
+
+\nopagebreak
+{\small See also \textit{blocking} (\S\ref{mode-of-operation}).}
 \end{enum}
 
 \let\em=\sl
