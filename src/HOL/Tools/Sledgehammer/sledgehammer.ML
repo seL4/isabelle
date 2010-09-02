@@ -366,14 +366,23 @@ fun prover_fun atp_name
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
-fun run_prover ctxt (params as {blocking, timeout, expect, ...}) i n
-               relevance_override minimize_command
-               (problem as {goal, ...}) (prover, atp_name) =
+fun run_prover ctxt (params as {blocking, verbose, max_relevant, timeout,
+                                expect, ...})
+               i n relevance_override minimize_command
+               (problem as {goal, axioms, ...})
+               (prover as {default_max_relevant, ...}, atp_name) =
   let
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
+    val max_relevant = the_default default_max_relevant max_relevant
+    val num_axioms = Int.min (length axioms, max_relevant)
     val desc =
-      "ATP " ^ quote atp_name ^ " for subgoal " ^ string_of_int i ^ ":" ^
+      "ATP " ^ quote atp_name ^
+      (if verbose then
+         " with " ^ string_of_int num_axioms ^ " fact" ^ plural_s num_axioms
+       else
+         "") ^
+      " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^ ":" ^
       (if blocking then
          ""
        else
@@ -431,11 +440,6 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
               {ctxt = ctxt, goal = goal, subgoal = i,
                axioms = map (prepare_axiom ctxt) axioms}
             val num_axioms = length axioms
-            val _ = if verbose then
-                      priority ("Selected " ^ string_of_int num_axioms ^
-                                " fact" ^ plural_s num_axioms ^ ".")
-                    else
-                      ()
             val _ =
               (if blocking then Par_List.map else map)
                   (run_prover ctxt params i n relevance_override
