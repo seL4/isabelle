@@ -762,7 +762,7 @@ fun ml_program_of_program labelled_name reserved module_alias program =
     fun modify_stmts ([stmt as (name, stmt' as Code_Thingol.Fun _)]) =
           if Code_Thingol.is_case stmt' then [] else [modify_fun stmt]
       | modify_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
-          modify_funs (filter (Code_Thingol.is_case o snd) stmts)
+          modify_funs (filter_out (Code_Thingol.is_case o snd) stmts)
       | modify_stmts ((stmts as (_, Code_Thingol.Datatypecons _)::_)) =
           modify_datatypes stmts
       | modify_stmts ((stmts as (_, Code_Thingol.Datatype _)::_)) =
