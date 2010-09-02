@@ -315,7 +315,7 @@ proof -
   from subst[OF this, of "\<lambda> M. A \<in> sets M", OF A]
   show ?thesis by auto
 qed
-
+(*
 lemma
   assumes sfin: "range A \<subseteq> sets M" "(\<Union>i. A i) = space M" "\<And> i :: nat. \<nu> (A i) < \<omega>"
   assumes A: "\<And>  i. \<mu> (A i) = \<nu> (A i)" "\<And> i. A i \<subseteq> A (Suc i)"
@@ -345,7 +345,7 @@ proof -
       apply (auto simp add:image_def) (* TODO *) sorry
     show ?thesis sorry
 qed
-
+*)
 definition prod_sets where
   "prod_sets A B = {z. \<exists>x \<in> A. \<exists>y \<in> B. z = x \<times> y}"
 
@@ -512,36 +512,25 @@ proof -
 qed
 
 lemma (in finite_measure_space) finite_measure_space_finite_prod_measure:
-  assumes "finite_measure_space N \<nu>"
+  fixes N :: "('c, 'd) algebra_scheme"
+  assumes N: "finite_measure_space N \<nu>"
   shows "finite_measure_space (prod_measure_space M N) (prod_measure M \<mu> N \<nu>)"
   unfolding finite_prod_measure_space[OF assms]
-proof (rule finite_measure_spaceI)
+proof (rule finite_measure_spaceI, simp_all)
   interpret N: finite_measure_space N \<nu> by fact
+  show "finite (space M \<times> space N)" using finite_space N.finite_space by auto
+  show "prod_measure M \<mu> N \<nu> (space M \<times> space N) \<noteq> \<omega>"
+    using finite_prod_measure_times[OF N top N.top] by simp
+  show "prod_measure M \<mu> N \<nu> {} = 0"
+    using finite_prod_measure_times[OF N empty_sets N.empty_sets] by simp
 
-  let ?P = "\<lparr>space = space M \<times> space N, sets = Pow (space M \<times> space N)\<rparr>"
-  show "measure_space ?P (prod_measure M \<mu> N \<nu>)"
-  proof (rule sigma_algebra.finite_additivity_sufficient)
-    show "sigma_algebra ?P" by (rule sigma_algebra_Pow)
-    show "finite (space ?P)" using finite_space N.finite_space by auto
-    from finite_prod_measure_times[OF assms, of "{}" "{}"]
-    show "positive (prod_measure M \<mu> N \<nu>)"
-      unfolding positive_def by simp
-
-    show "additive ?P (prod_measure M \<mu> N \<nu>)"
-      unfolding additive_def
-      apply (auto simp add: sets_eq_Pow prod_measure_def positive_integral_add[symmetric]
-                  intro!: positive_integral_cong)
-      apply (subst N.measure_additive[symmetric])
-      by (auto simp: N.sets_eq_Pow sets_eq_Pow)
-  qed
-  show "finite (space ?P)" using finite_space N.finite_space by auto
-  show "sets ?P = Pow (space ?P)" by simp
-
-  fix x assume "x \<in> space ?P"
-  with finite_prod_measure_times[OF assms, of "{fst x}" "{snd x}"]
-    finite_measure[of "{fst x}"] N.finite_measure[of "{snd x}"]
-  show "prod_measure M \<mu> N \<nu> {x} \<noteq> \<omega>"
-    by (auto simp add: sets_eq_Pow N.sets_eq_Pow elim!: SigmaE)
+  fix A B :: "('a * 'c) set" assume "A \<inter> B = {}" "A \<subseteq> space M \<times> space N" "B \<subseteq> space M \<times> space N"
+  then show "prod_measure M \<mu> N \<nu> (A \<union> B) = prod_measure M \<mu> N \<nu> A + prod_measure M \<mu> N \<nu> B"
+    apply (auto simp add: sets_eq_Pow prod_measure_def positive_integral_add[symmetric]
+                intro!: positive_integral_cong)
+    apply (subst N.measure_additive)
+    apply (auto intro!: arg_cong[where f=\<mu>] simp: N.sets_eq_Pow sets_eq_Pow)
+    done
 qed
 
 lemma (in finite_measure_space) finite_measure_space_finite_prod_measure_alterantive:
@@ -550,5 +539,19 @@ lemma (in finite_measure_space) finite_measure_space_finite_prod_measure_alteran
     (is "finite_measure_space ?M ?m")
   unfolding finite_prod_measure_space[OF N, symmetric]
   using finite_measure_space_finite_prod_measure[OF N] .
+
+lemma prod_measure_times_finite:
+  assumes fms: "finite_measure_space M \<mu>" "finite_measure_space N \<nu>" and a: "a \<in> space M \<times> space N"
+  shows "prod_measure M \<mu> N \<nu> {a} = \<mu> {fst a} * \<nu> {snd a}"
+proof (cases a)
+  case (Pair b c)
+  hence a_eq: "{a} = {b} \<times> {c}" by simp
+
+  interpret M: finite_measure_space M \<mu> by fact
+  interpret N: finite_measure_space N \<nu> by fact
+
+  from finite_measure_space.finite_prod_measure_times[OF fms, of "{b}" "{c}"] M.sets_eq_Pow N.sets_eq_Pow a Pair
+  show ?thesis unfolding a_eq by simp
+qed
 
 end

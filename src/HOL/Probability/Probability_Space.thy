@@ -2,8 +2,6 @@ theory Probability_Space
 imports Lebesgue_Integration Radon_Nikodym
 begin
 
-
-
 locale prob_space = measure_space +
   assumes measure_space_1: "\<mu> (space M) = 1"
 
@@ -32,6 +30,19 @@ definition
 
 abbreviation
   "joint_distribution X Y \<equiv> distribution (\<lambda>x. (X x, Y x))"
+
+lemma (in prob_space) distribution_cong:
+  assumes "\<And>x. x \<in> space M \<Longrightarrow> X x = Y x"
+  shows "distribution X = distribution Y"
+  unfolding distribution_def expand_fun_eq
+  using assms by (auto intro!: arg_cong[where f="\<mu>"])
+
+lemma (in prob_space) joint_distribution_cong:
+  assumes "\<And>x. x \<in> space M \<Longrightarrow> X x = X' x"
+  assumes "\<And>x. x \<in> space M \<Longrightarrow> Y x = Y' x"
+  shows "joint_distribution X Y = joint_distribution X' Y'"
+  unfolding distribution_def expand_fun_eq
+  using assms by (auto intro!: arg_cong[where f="\<mu>"])
 
 lemma prob_space: "prob (space M) = 1"
   unfolding measure_space_1 by simp
@@ -327,18 +338,158 @@ lemma (in finite_prob_space) distribution_order:
     joint_distribution_restriction_snd[of X Y "{(x, y)}"]
   by auto
 
-lemma (in finite_prob_space) finite_prob_space_of_images:
-  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
-  by (simp add: finite_prob_space_eq finite_measure_space)
+lemma (in finite_prob_space) distribution_mono:
+  assumes "\<And>t. \<lbrakk> t \<in> space M ; X t \<in> x \<rbrakk> \<Longrightarrow> Y t \<in> y"
+  shows "distribution X x \<le> distribution Y y"
+  unfolding distribution_def
+  using assms by (auto simp: sets_eq_Pow intro!: measure_mono)
 
-lemma (in finite_prob_space) finite_product_prob_space_of_images:
-  "finite_prob_space \<lparr> space = X ` space M \<times> Y ` space M, sets = Pow (X ` space M \<times> Y ` space M)\<rparr>
-                     (joint_distribution X Y)"
-  (is "finite_prob_space ?S _")
-proof (simp add: finite_prob_space_eq finite_product_measure_space_of_images)
-  have "X -` X ` space M \<inter> Y -` Y ` space M \<inter> space M = space M" by auto
-  thus "joint_distribution X Y (X ` space M \<times> Y ` space M) = 1"
-    by (simp add: distribution_def prob_space vimage_Times comp_def measure_space_1)
+lemma (in finite_prob_space) distribution_mono_gt_0:
+  assumes gt_0: "0 < distribution X x"
+  assumes *: "\<And>t. \<lbrakk> t \<in> space M ; X t \<in> x \<rbrakk> \<Longrightarrow> Y t \<in> y"
+  shows "0 < distribution Y y"
+  by (rule less_le_trans[OF gt_0 distribution_mono]) (rule *)
+
+lemma (in finite_prob_space) sum_over_space_distrib:
+  "(\<Sum>x\<in>X`space M. distribution X {x}) = 1"
+  unfolding distribution_def measure_space_1[symmetric] using finite_space
+  by (subst measure_finitely_additive'')
+     (auto simp add: disjoint_family_on_def sets_eq_Pow intro!: arg_cong[where f=\<mu>])
+
+lemma (in finite_prob_space) sum_over_space_real_distribution:
+  "(\<Sum>x\<in>X`space M. real (distribution X {x})) = 1"
+  unfolding distribution_def prob_space[symmetric] using finite_space
+  by (subst real_finite_measure_finite_Union[symmetric])
+     (auto simp add: disjoint_family_on_def sets_eq_Pow intro!: arg_cong[where f=prob])
+
+lemma (in finite_prob_space) finite_sum_over_space_eq_1:
+  "(\<Sum>x\<in>space M. real (\<mu> {x})) = 1"
+  using sum_over_space_eq_1 finite_measure by (simp add: real_of_pinfreal_setsum sets_eq_Pow)
+
+lemma (in finite_prob_space) distribution_finite:
+  "distribution X A \<noteq> \<omega>"
+  using finite_measure[of "X -` A \<inter> space M"]
+  unfolding distribution_def sets_eq_Pow by auto
+
+lemma (in finite_prob_space) real_distribution_gt_0[simp]:
+  "0 < real (distribution Y y) \<longleftrightarrow>  0 < distribution Y y"
+  using assms by (auto intro!: real_pinfreal_pos distribution_finite)
+
+lemma (in finite_prob_space) real_distribution_mult_pos_pos:
+  assumes "0 < distribution Y y"
+  and "0 < distribution X x"
+  shows "0 < real (distribution Y y * distribution X x)"
+  unfolding real_of_pinfreal_mult[symmetric]
+  using assms by (auto intro!: mult_pos_pos)
+
+lemma (in finite_prob_space) real_distribution_divide_pos_pos:
+  assumes "0 < distribution Y y"
+  and "0 < distribution X x"
+  shows "0 < real (distribution Y y / distribution X x)"
+  unfolding divide_pinfreal_def real_of_pinfreal_mult[symmetric]
+  using assms distribution_finite[of X x] by (cases "distribution X x") (auto intro!: mult_pos_pos)
+
+lemma (in finite_prob_space) real_distribution_mult_inverse_pos_pos:
+  assumes "0 < distribution Y y"
+  and "0 < distribution X x"
+  shows "0 < real (distribution Y y * inverse (distribution X x))"
+  unfolding divide_pinfreal_def real_of_pinfreal_mult[symmetric]
+  using assms distribution_finite[of X x] by (cases "distribution X x") (auto intro!: mult_pos_pos)
+
+lemma (in prob_space) distribution_remove_const:
+  shows "joint_distribution X (\<lambda>x. ()) {(x, ())} = distribution X {x}"
+  and "joint_distribution (\<lambda>x. ()) X {((), x)} = distribution X {x}"
+  and "joint_distribution X (\<lambda>x. (Y x, ())) {(x, y, ())} = joint_distribution X Y {(x, y)}"
+  and "joint_distribution X (\<lambda>x. ((), Y x)) {(x, (), y)} = joint_distribution X Y {(x, y)}"
+  and "distribution (\<lambda>x. ()) {()} = 1"
+  unfolding measure_space_1[symmetric]
+  by (auto intro!: arg_cong[where f="\<mu>"] simp: distribution_def)
+
+lemma (in finite_prob_space) setsum_distribution_gen:
+  assumes "Z -` {c} \<inter> space M = (\<Union>x \<in> X`space M. Y -` {f x}) \<inter> space M"
+  and "inj_on f (X`space M)"
+  shows "(\<Sum>x \<in> X`space M. distribution Y {f x}) = distribution Z {c}"
+  unfolding distribution_def assms
+  using finite_space assms
+  by (subst measure_finitely_additive'')
+     (auto simp add: disjoint_family_on_def sets_eq_Pow inj_on_def
+      intro!: arg_cong[where f=prob])
+
+lemma (in finite_prob_space) setsum_distribution:
+  "(\<Sum>x \<in> X`space M. joint_distribution X Y {(x, y)}) = distribution Y {y}"
+  "(\<Sum>y \<in> Y`space M. joint_distribution X Y {(x, y)}) = distribution X {x}"
+  "(\<Sum>x \<in> X`space M. joint_distribution X (\<lambda>x. (Y x, Z x)) {(x, y, z)}) = joint_distribution Y Z {(y, z)}"
+  "(\<Sum>y \<in> Y`space M. joint_distribution X (\<lambda>x. (Y x, Z x)) {(x, y, z)}) = joint_distribution X Z {(x, z)}"
+  "(\<Sum>z \<in> Z`space M. joint_distribution X (\<lambda>x. (Y x, Z x)) {(x, y, z)}) = joint_distribution X Y {(x, y)}"
+  by (auto intro!: inj_onI setsum_distribution_gen)
+
+lemma (in finite_prob_space) setsum_real_distribution_gen:
+  assumes "Z -` {c} \<inter> space M = (\<Union>x \<in> X`space M. Y -` {f x}) \<inter> space M"
+  and "inj_on f (X`space M)"
+  shows "(\<Sum>x \<in> X`space M. real (distribution Y {f x})) = real (distribution Z {c})"
+  unfolding distribution_def assms
+  using finite_space assms
+  by (subst real_finite_measure_finite_Union[symmetric])
+     (auto simp add: disjoint_family_on_def sets_eq_Pow inj_on_def
+        intro!: arg_cong[where f=prob])
+
+lemma (in finite_prob_space) setsum_real_distribution:
+  "(\<Sum>x \<in> X`space M. real (joint_distribution X Y {(x, y)})) = real (distribution Y {y})"
+  "(\<Sum>y \<in> Y`space M. real (joint_distribution X Y {(x, y)})) = real (distribution X {x})"
+  "(\<Sum>x \<in> X`space M. real (joint_distribution X (\<lambda>x. (Y x, Z x)) {(x, y, z)})) = real (joint_distribution Y Z {(y, z)})"
+  "(\<Sum>y \<in> Y`space M. real (joint_distribution X (\<lambda>x. (Y x, Z x)) {(x, y, z)})) = real (joint_distribution X Z {(x, z)})"
+  "(\<Sum>z \<in> Z`space M. real (joint_distribution X (\<lambda>x. (Y x, Z x)) {(x, y, z)})) = real (joint_distribution X Y {(x, y)})"
+  by (auto intro!: inj_onI setsum_real_distribution_gen)
+
+lemma (in finite_prob_space) real_distribution_order:
+  shows "r \<le> real (joint_distribution X Y {(x, y)}) \<Longrightarrow> r \<le> real (distribution X {x})"
+  and "r \<le> real (joint_distribution X Y {(x, y)}) \<Longrightarrow> r \<le> real (distribution Y {y})"
+  and "r < real (joint_distribution X Y {(x, y)}) \<Longrightarrow> r < real (distribution X {x})"
+  and "r < real (joint_distribution X Y {(x, y)}) \<Longrightarrow> r < real (distribution Y {y})"
+  and "distribution X {x} = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
+  and "distribution Y {y} = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
+  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_fst, of X Y "{(x, y)}"]
+  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_snd, of X Y "{(x, y)}"]
+  using real_pinfreal_nonneg[of "joint_distribution X Y {(x, y)}"]
+  by auto
+
+lemma (in prob_space) joint_distribution_remove[simp]:
+    "joint_distribution X X {(x, x)} = distribution X {x}"
+  unfolding distribution_def by (auto intro!: arg_cong[where f="\<mu>"])
+
+lemma (in finite_prob_space) distribution_1:
+  "distribution X A \<le> 1"
+  unfolding distribution_def measure_space_1[symmetric]
+  by (auto intro!: measure_mono simp: sets_eq_Pow)
+
+lemma (in finite_prob_space) real_distribution_1:
+  "real (distribution X A) \<le> 1"
+  unfolding real_pinfreal_1[symmetric]
+  by (rule real_of_pinfreal_mono[OF _ distribution_1]) simp
+
+lemma (in finite_prob_space) uniform_prob:
+  assumes "x \<in> space M"
+  assumes "\<And> x y. \<lbrakk>x \<in> space M ; y \<in> space M\<rbrakk> \<Longrightarrow> prob {x} = prob {y}"
+  shows "prob {x} = 1 / real (card (space M))"
+proof -
+  have prob_x: "\<And> y. y \<in> space M \<Longrightarrow> prob {y} = prob {x}"
+    using assms(2)[OF _ `x \<in> space M`] by blast
+  have "1 = prob (space M)"
+    using prob_space by auto
+  also have "\<dots> = (\<Sum> x \<in> space M. prob {x})"
+    using real_finite_measure_finite_Union[of "space M" "\<lambda> x. {x}", simplified]
+      sets_eq_Pow inj_singleton[unfolded inj_on_def, rule_format]
+      finite_space unfolding disjoint_family_on_def  prob_space[symmetric]
+    by (auto simp add:setsum_restrict_set)
+  also have "\<dots> = (\<Sum> y \<in> space M. prob {x})"
+    using prob_x by auto
+  also have "\<dots> = real_of_nat (card (space M)) * prob {x}" by simp
+  finally have one: "1 = real (card (space M)) * prob {x}"
+    using real_eq_of_nat by auto
+  hence two: "real (card (space M)) \<noteq> 0" by fastsimp 
+  from one have three: "prob {x} \<noteq> 0" by fastsimp
+  thus ?thesis using one two three divide_cancel_right
+    by (auto simp:field_simps)
 qed
 
 lemma (in prob_space) prob_space_subalgebra:
@@ -382,70 +533,54 @@ proof
 qed
 
 lemma (in finite_prob_space) finite_measure_space:
+  fixes X :: "'a \<Rightarrow> 'x"
   shows "finite_measure_space \<lparr>space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
     (is "finite_measure_space ?S _")
 proof (rule finite_measure_spaceI, simp_all)
   show "finite (X ` space M)" using finite_space by simp
-
-  show "positive (distribution X)"
-    unfolding distribution_def positive_def using sets_eq_Pow by auto
-
-  show "additive ?S (distribution X)" unfolding additive_def distribution_def
-  proof (simp, safe)
-    fix x y
-    have x: "(X -` x) \<inter> space M \<in> sets M"
-      and y: "(X -` y) \<inter> space M \<in> sets M" using sets_eq_Pow by auto
-    assume "x \<inter> y = {}"
-    hence "X -` x \<inter> space M \<inter> (X -` y \<inter> space M) = {}" by auto
-    from additive[unfolded additive_def, rule_format, OF x y] this
-      finite_measure[OF x] finite_measure[OF y]
-    have "\<mu> (((X -` x) \<union> (X -` y)) \<inter> space M) =
-      \<mu> ((X -` x) \<inter> space M) + \<mu> ((X -` y) \<inter> space M)"
-      by (subst Int_Un_distrib2) auto
-    thus "\<mu> ((X -` x \<union> X -` y) \<inter> space M) = \<mu> (X -` x \<inter> space M) + \<mu> (X -` y \<inter> space M)"
-      by auto
-  qed
-
-  { fix x assume "x \<in> X ` space M" thus "distribution X {x} \<noteq> \<omega>"
-    unfolding distribution_def by (auto intro!: finite_measure simp: sets_eq_Pow) }
+next
+  fix A B :: "'x set" assume "A \<inter> B = {}"
+  then show "distribution X (A \<union> B) = distribution X A + distribution X B"
+    unfolding distribution_def
+    by (subst measure_additive)
+       (auto intro!: arg_cong[where f=\<mu>] simp: sets_eq_Pow)
 qed
 
+lemma (in finite_prob_space) finite_prob_space_of_images:
+  "finite_prob_space \<lparr> space = X ` space M, sets = Pow (X ` space M)\<rparr> (distribution X)"
+  by (simp add: finite_prob_space_eq finite_measure_space)
+
+lemma (in prob_space) joint_distribution_commute:
+  "joint_distribution X Y x = joint_distribution Y X ((\<lambda>(x,y). (y,x))`x)"
+  unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>])
+
+lemma (in finite_prob_space) real_distribution_order':
+  shows "real (distribution X {x}) = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
+  and "real (distribution Y {y}) = 0 \<Longrightarrow> real (joint_distribution X Y {(x, y)}) = 0"
+  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_fst, of X Y "{(x, y)}"]
+  using real_of_pinfreal_mono[OF distribution_finite joint_distribution_restriction_snd, of X Y "{(x, y)}"]
+  using real_pinfreal_nonneg[of "joint_distribution X Y {(x, y)}"]
+  by auto
+
 lemma (in finite_prob_space) finite_product_measure_space:
+  fixes X :: "'a \<Rightarrow> 'x" and Y :: "'a \<Rightarrow> 'y"
   assumes "finite s1" "finite s2"
   shows "finite_measure_space \<lparr> space = s1 \<times> s2, sets = Pow (s1 \<times> s2)\<rparr> (joint_distribution X Y)"
     (is "finite_measure_space ?M ?D")
-proof (rule finite_Pow_additivity_sufficient)
-  show "positive ?D"
-    unfolding positive_def using assms sets_eq_Pow
-    by (simp add: distribution_def)
-
-  show "additive ?M ?D" unfolding additive_def
-  proof safe
-    fix x y
-    have A: "((\<lambda>x. (X x, Y x)) -` x) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
-    have B: "((\<lambda>x. (X x, Y x)) -` y) \<inter> space M \<in> sets M" using assms sets_eq_Pow by auto
-    assume "x \<inter> y = {}"
-    hence "(\<lambda>x. (X x, Y x)) -` x \<inter> space M \<inter> ((\<lambda>x. (X x, Y x)) -` y \<inter> space M) = {}"
-      by auto
-    from additive[unfolded additive_def, rule_format, OF A B] this
-      finite_measure[OF A] finite_measure[OF B]
-    show "?D (x \<union> y) = ?D x + ?D y"
-      apply (simp add: distribution_def)
-      apply (subst Int_Un_distrib2)
-      by (auto simp: real_of_pinfreal_add)
-  qed
-
-  show "finite (space ?M)"
+proof (rule finite_measure_spaceI, simp_all)
+  show "finite (s1 \<times> s2)"
     using assms by auto
-
-  show "sets ?M = Pow (space ?M)"
-    by simp
-
-  { fix x assume "x \<in> space ?M" thus "?D {x} \<noteq> \<omega>"
-    unfolding distribution_def by (auto intro!: finite_measure simp: sets_eq_Pow) }
+  show "joint_distribution X Y (s1\<times>s2) \<noteq> \<omega>"
+    using distribution_finite .
+next
+  fix A B :: "('x*'y) set" assume "A \<inter> B = {}"
+  then show "joint_distribution X Y (A \<union> B) = joint_distribution X Y A + joint_distribution X Y B"
+    unfolding distribution_def
+    by (subst measure_additive)
+       (auto intro!: arg_cong[where f=\<mu>] simp: sets_eq_Pow)
 qed
 
-lemma (in finite_measure_space) finite_product_measure_space_of_images:
+lemma (in finite_prob_space) finite_product_measure_space_of_images:
   shows "finite_measure_space \<lparr> space = X ` space M \<times> Y ` space M,
                                 sets = Pow (X ` space M \<times> Y ` space M) \<rparr>
                               (joint_distribution X Y)"

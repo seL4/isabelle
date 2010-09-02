@@ -64,6 +64,30 @@ qed
 definition (in measure_space)
   "absolutely_continuous \<nu> = (\<forall>N\<in>null_sets. \<nu> N = (0 :: pinfreal))"
 
+lemma (in finite_measure_space) absolutely_continuousI:
+  assumes "finite_measure_space M \<nu>"
+  assumes v: "\<And>x. \<lbrakk> x \<in> space M ; \<mu> {x} = 0 \<rbrakk> \<Longrightarrow> \<nu> {x} = 0"
+  shows "absolutely_continuous \<nu>"
+proof (unfold absolutely_continuous_def sets_eq_Pow, safe)
+  fix N assume "\<mu> N = 0" "N \<subseteq> space M"
+  interpret v: finite_measure_space M \<nu> by fact
+  have "\<nu> N = \<nu> (\<Union>x\<in>N. {x})" by simp
+  also have "\<dots> = (\<Sum>x\<in>N. \<nu> {x})"
+  proof (rule v.measure_finitely_additive''[symmetric])
+    show "finite N" using `N \<subseteq> space M` finite_space by (auto intro: finite_subset)
+    show "disjoint_family_on (\<lambda>i. {i}) N" unfolding disjoint_family_on_def by auto
+    fix x assume "x \<in> N" thus "{x} \<in> sets M" using `N \<subseteq> space M` sets_eq_Pow by auto
+  qed
+  also have "\<dots> = 0"
+  proof (safe intro!: setsum_0')
+    fix x assume "x \<in> N"
+    hence "\<mu> {x} \<le> \<mu> N" using sets_eq_Pow `N \<subseteq> space M` by (auto intro!: measure_mono)
+    hence "\<mu> {x} = 0" using `\<mu> N = 0` by simp
+    thus "\<nu> {x} = 0" using v[of x] `x \<in> N` `N \<subseteq> space M` by auto
+  qed
+  finally show "\<nu> N = 0" .
+qed
+
 lemma (in finite_measure) Radon_Nikodym_aux_epsilon:
   fixes e :: real assumes "0 < e"
   assumes "finite_measure M s"
