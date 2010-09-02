@@ -5,7 +5,7 @@ begin
 definition "dynkin M \<longleftrightarrow>
   space M \<in> sets M \<and>
   (\<forall> A \<in> sets M. A \<subseteq> space M) \<and>
-  (\<forall> a \<in> sets M. \<forall> b \<in> sets M. b - a \<in> sets M) \<and>
+  (\<forall> a \<in> sets M. \<forall> b \<in> sets M. a \<subseteq> b \<longrightarrow> b - a \<in> sets M) \<and>
   (\<forall>A. disjoint_family A \<and> range A \<subseteq> sets M \<longrightarrow> (\<Union>i::nat. A i) \<in> sets M)"
 
 lemma dynkinI:
@@ -14,7 +14,7 @@ lemma dynkinI:
   assumes "\<And> a. (\<And> i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {})
           \<Longrightarrow> (\<And> i :: nat. a i \<in> sets M) \<Longrightarrow> UNION UNIV a \<in> sets M"
   shows "dynkin M"
-using assms unfolding dynkin_def sorry
+using assms by (auto simp: dynkin_def disjoint_family_on_def image_subset_iff)
 
 lemma dynkin_subset:
   assumes "dynkin M"
@@ -41,7 +41,7 @@ lemma dynkin_UN:
   assumes "\<And> i j :: nat. i \<noteq> j \<Longrightarrow> a i \<inter> a j = {}"
   assumes "\<And> i :: nat. a i \<in> sets M"
   shows "UNION UNIV a \<in> sets M"
-using assms unfolding dynkin_def sorry
+using assms by (auto simp: dynkin_def disjoint_family_on_def image_subset_iff)
 
 definition "Int_stable M \<longleftrightarrow> (\<forall> a \<in> sets M. \<forall> b \<in> sets M. a \<inter> b \<in> sets M)"
 
