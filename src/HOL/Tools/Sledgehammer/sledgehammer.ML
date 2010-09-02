@@ -133,15 +133,29 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path)
 
+fun extract_delimited (begin_delim, end_delim) output =
+  output |> first_field begin_delim |> the |> snd
+         |> first_field end_delim |> the |> fst
+         |> first_field "\n" |> the |> snd
+  handle Option.Option => ""
+
+val tstp_important_message_delims =
+  ("% SZS start RequiredInformation", "% SZS end RequiredInformation")
+
+fun extract_important_message output =
+  case extract_delimited tstp_important_message_delims output of
+    "" => ""
+  | s => s |> space_explode "\n" |> filter_out (curry (op =) "")
+           |> map (perhaps (try (unprefix "%")))
+           |> map (perhaps (try (unprefix " ")))
+           |> space_implode "\n " |> quote
+
 (* Splits by the first possible of a list of delimiters. *)
 fun extract_proof delims output =
   case pairself (find_first (fn s => String.isSubstring s output))
                 (ListPair.unzip delims) of
     (SOME begin_delim, SOME end_delim) =>
-    (output |> first_field begin_delim |> the |> snd
-            |> first_field end_delim |> the |> fst
-            |> first_field "\n" |> the |> snd
-     handle Option.Option => "")
+    extract_delimited (begin_delim, end_delim) output
   | _ => ""
 
 fun extract_proof_and_outcome complete res_code proof_delims known_failures
@@ -325,6 +339,7 @@ fun prover_fun atp_name
     val (conjecture_shape, axiom_names) =
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 axiom_names
+    val important_message = extract_important_message output
     val (message, used_thm_names) =
       case outcome of
         NONE =>
@@ -335,7 +350,12 @@ fun prover_fun atp_name
                 message ^ (if verbose then
                              "\nReal CPU time: " ^ string_of_int msecs ^ " ms."
                            else
-                             ""))
+                             "") ^
+                (if important_message <> "" then
+                   "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
+                   important_message
+                 else
+                   ""))
       | SOME failure => (string_for_failure failure, [])
   in
     {outcome = outcome, message = message, pool = pool,
