@@ -499,9 +499,9 @@ Consider the following function and its corresponding SML code:%
 %
 \begin{isamarkuptext}%
 For convenience, the default \isa{HOL} setup for \isa{Haskell}
-  maps the \isa{eq} class to its counterpart in \isa{Haskell},
-  giving custom serialisations for the class \isa{eq} (by command
-  \indexdef{}{command}{code\_class}\hypertarget{command.code-class}{\hyperlink{command.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}}) and its operation \isa{eq{\isacharunderscore}class{\isachardot}eq}%
+  maps the \isa{equal} class to its counterpart in \isa{Haskell},
+  giving custom serialisations for the class \isa{equal} (by command
+  \indexdef{}{command}{code\_class}\hypertarget{command.code-class}{\hyperlink{command.code-class}{\mbox{\isa{\isacommand{code{\isacharunderscore}class}}}}}) and its operation \isa{equal{\isacharunderscore}class{\isachardot}equal}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -511,7 +511,7 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 %
 \isatagquotett
 \isacommand{code{\isacharunderscore}class}\isamarkupfalse%
-\ eq\isanewline
+\ equal\isanewline
 \ \ {\isacharparenleft}Haskell\ {\isachardoublequoteopen}Eq{\isachardoublequoteclose}{\isacharparenright}\isanewline
 \isanewline
 \isacommand{code{\isacharunderscore}const}\isamarkupfalse%
@@ -526,7 +526,7 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 %
 \begin{isamarkuptext}%
 \noindent A problem now occurs whenever a type which is an instance
-  of \isa{eq} in \isa{HOL} is mapped on a \isa{Haskell}-built-in type which is also an instance of \isa{Haskell}
+  of \isa{equal} in \isa{HOL} is mapped on a \isa{Haskell}-built-in type which is also an instance of \isa{Haskell}
   \isa{Eq}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -540,15 +540,15 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 \ bar\isanewline
 \isanewline
 \isacommand{instantiation}\isamarkupfalse%
-\ bar\ {\isacharcolon}{\isacharcolon}\ eq\isanewline
+\ bar\ {\isacharcolon}{\isacharcolon}\ equal\isanewline
 \isakeyword{begin}\isanewline
 \isanewline
 \isacommand{definition}\isamarkupfalse%
-\ {\isachardoublequoteopen}eq{\isacharunderscore}class{\isachardot}eq\ {\isacharparenleft}x{\isasymColon}bar{\isacharparenright}\ y\ {\isasymlongleftrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}HOL{\isachardot}equal\ {\isacharparenleft}x{\isasymColon}bar{\isacharparenright}\ y\ {\isasymlongleftrightarrow}\ x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{instance}\isamarkupfalse%
 \ \isacommand{by}\isamarkupfalse%
-\ default\ {\isacharparenleft}simp\ add{\isacharcolon}\ eq{\isacharunderscore}bar{\isacharunderscore}def{\isacharparenright}\isanewline
+\ default\ {\isacharparenleft}simp\ add{\isacharcolon}\ equal{\isacharunderscore}bar{\isacharunderscore}def{\isacharparenright}\isanewline
 \isanewline
 \isacommand{end}\isamarkupfalse%
 %
@@ -587,7 +587,7 @@ For convenience, the default \isa{HOL} setup for \isa{Haskell}
 %
 \isatagquotett
 \isacommand{code{\isacharunderscore}instance}\isamarkupfalse%
-\ bar\ {\isacharcolon}{\isacharcolon}\ eq\isanewline
+\ bar\ {\isacharcolon}{\isacharcolon}\ equal\isanewline
 \ \ {\isacharparenleft}Haskell\ {\isacharminus}{\isacharparenright}%
 \endisatagquotett
 {\isafoldquotett}%
