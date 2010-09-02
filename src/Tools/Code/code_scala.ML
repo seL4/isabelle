@@ -333,9 +333,8 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
   let
 
     (* build program *)
-    val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val { deresolver, hierarchical_program = sca_program } =
-      scala_program_of_program labelled_name (Name.make_context reserved) module_alias program;
+      scala_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
 
     (* print statements *)
     fun lookup_constr tyco constr = case Graph.get_node program tyco
@@ -355,7 +354,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
     val print_stmt = print_scala_stmt labelled_name tyco_syntax const_syntax
-      (make_vars reserved) args_num is_singleton_constr;
+      (make_vars reserved_syms) args_num is_singleton_constr;
 
     (* print nodes *)
     fun print_module base implicit_ps p = Pretty.chunks2
