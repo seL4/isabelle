@@ -272,12 +272,12 @@ subsection {* @{text Haskell} serialisation *}
 
 text {*
   For convenience, the default @{text HOL} setup for @{text Haskell}
-  maps the @{class eq} class to its counterpart in @{text Haskell},
-  giving custom serialisations for the class @{class eq} (by command
-  @{command_def code_class}) and its operation @{const HOL.eq}
+  maps the @{class equal} class to its counterpart in @{text Haskell},
+  giving custom serialisations for the class @{class equal} (by command
+  @{command_def code_class}) and its operation @{const HOL.equal}
 *}
 
-code_class %quotett eq
+code_class %quotett equal
   (Haskell "Eq")
 
 code_const %quotett "op ="
@@ -285,19 +285,19 @@ code_const %quotett "op ="
 
 text {*
   \noindent A problem now occurs whenever a type which is an instance
-  of @{class eq} in @{text HOL} is mapped on a @{text
+  of @{class equal} in @{text HOL} is mapped on a @{text
   Haskell}-built-in type which is also an instance of @{text Haskell}
   @{text Eq}:
 *}
 
 typedecl %quote bar
 
-instantiation %quote bar :: eq
+instantiation %quote bar :: equal
 begin
 
-definition %quote "eq_class.eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
+definition %quote "HOL.equal (x\<Colon>bar) y \<longleftrightarrow> x = y"
 
-instance %quote by default (simp add: eq_bar_def)
+instance %quote by default (simp add: equal_bar_def)
 
 end %quote (*<*)
 
@@ -310,7 +310,7 @@ text {*
   suppress this additional instance, use @{command_def "code_instance"}:
 *}
 
-code_instance %quotett bar :: eq
+code_instance %quotett bar :: equal
   (Haskell -)
 
 
