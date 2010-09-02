@@ -8,6 +8,7 @@ signature CODE_TARGET =
 sig
   val cert_tyco: theory -> string -> string
   val read_tyco: theory -> string -> string
+  val read_const_exprs: theory -> string list -> string list
 
   val export_code_for: theory -> Path.T option -> string -> int option -> string -> Token.T list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> unit
@@ -42,7 +43,7 @@ sig
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
-    -> (bool -> int -> 'a -> string * string option list)
+    -> (string list -> int -> 'a -> string * string option list)
     -> 'a -> serialization
   val set_default_code_width: int -> theory -> theory
 
@@ -72,12 +73,9 @@ type const_syntax = Code_Printer.const_syntax;
 datatype destination = Export of Path.T option | Produce | Present of string list;
 type serialization = int -> destination -> (string * string option list) option;
 
-fun stmt_names_of_destination (Present stmt_names) = stmt_names
-  | stmt_names_of_destination _ = [];
-
 fun serialization output _ content width (Export some_path) = (output width some_path content; NONE)
-  | serialization _ string content width Produce = SOME (string false width content)
-  | serialization _ string content width (Present _) = SOME (string false width content);
+  | serialization _ string content width Produce = SOME (string [] width content)
+  | serialization _ string content width (Present stmt_names) = SOME (string stmt_names width content);
 
 fun export some_path f = (f (Export some_path); ());
 fun produce f = the (f Produce);
@@ -116,8 +114,7 @@ type serializer = Token.T list (*arguments*) -> {
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
     const_syntax: string -> Code_Printer.activated_const_syntax option,
     program: Code_Thingol.program,
-    names: string list,
-    presentation_names: string list }
+    names: string list }
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer,
@@ -308,7 +305,7 @@ fun project_program thy abortable names_hidden names1 program2 =
 
 fun invoke_serializer thy abortable serializer literals reserved abs_includes 
     module_alias proto_class_syntax proto_instance_syntax proto_tyco_syntax proto_const_syntax
-    module_name args naming proto_program (names, presentation_names) =
+    module_name args naming proto_program names =
   let
     val (names_hidden, (class_syntax, tyco_syntax, const_syntax)) =
       activate_symbol_syntax thy literals naming
@@ -325,19 +322,15 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       tyco_syntax = Symtab.lookup tyco_syntax,
       const_syntax = Symtab.lookup const_syntax,
       program = program,
-      names = names,
-      presentation_names = presentation_names }
+      names = names }
   end;
 
-fun mount_serializer thy target some_width raw_module_name args naming proto_program names destination =
+fun mount_serializer thy target some_width module_name args naming proto_program names =
   let
     val (default_width, abortable, data, program) =
       activate_target_for thy target naming proto_program;
     val serializer = case the_description data
      of Fundamental seri => #serializer seri;
-    val presentation_names = stmt_names_of_destination destination;
-    val module_name = if null presentation_names
-      then raw_module_name else "Code";
     val reserved = the_reserved data;
     fun select_include names_all (name, (content, cs)) =
       if null cs then SOME (name, content)
@@ -354,7 +347,7 @@ fun mount_serializer thy target some_width raw_module_name args naming proto_pro
   in
     invoke_serializer thy abortable serializer literals reserved
       includes module_alias class instance tyco const module_name args
-        naming program (names, presentation_names) width destination
+        naming program names width
   end;
 
 fun assert_module_name "" = error ("Empty module name not allowed.")

@@ -6,6 +6,7 @@ Mastering target language namespaces.
 
 signature CODE_NAMESPACE =
 sig
+  val dest_name: string -> string * string
   datatype ('a, 'b) node =
       Dummy
     | Stmt of 'a
@@ -23,7 +24,13 @@ end;
 structure Code_Namespace : CODE_NAMESPACE =
 struct
 
-(* hierarchical program structure *)
+(** splitting names in module and base part **)
+
+val dest_name =
+  apfst Long_Name.implode o split_last o fst o split_last o Long_Name.explode;
+
+
+(** hierarchical program structure **)
 
 datatype ('a, 'b) node =
     Dummy
@@ -46,10 +53,10 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
      of SOME name' => Long_Name.explode name'
       | NONE => map (fn name => fst (yield_singleton Name.variants name reserved))
           (Long_Name.explode name);
-    val module_names = Graph.fold (insert (op =) o fst o Code_Printer.dest_name o fst) program [];
+    val module_names = Graph.fold (insert (op =) o fst o dest_name o fst) program [];
     val fragments_tab = fold (fn name => Symtab.update
       (name, alias_fragments name)) module_names Symtab.empty;
-    val dest_name = Code_Printer.dest_name #>> (the o Symtab.lookup fragments_tab);
+    val dest_name = dest_name #>> (the o Symtab.lookup fragments_tab);
 
     (* building empty module hierarchy *)
     val empty_module = (empty_data, Graph.empty);

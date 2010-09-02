@@ -96,7 +96,7 @@ text {*
   allows to use pattern matching on constructors stemming from compiled
   @{text "datatypes"}.
 
-  For a less simplistic example, theory @{theory Ferrack} is
+  For a less simplistic example, theory @{text Ferrack} is
   a good reference.
 *}
 

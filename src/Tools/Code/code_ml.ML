@@ -759,10 +759,10 @@ fun ml_program_of_program labelled_name reserved module_alias program =
     fun modify_class stmts = single (SOME
       (ML_Class (the_single (map_filter
         (fn (name, Code_Thingol.Class (_, stmt)) => SOME (name, stmt) | _ => NONE) stmts))))
-    fun modify_stmts ([stmt as (name, Code_Thingol.Fun _)]) =
-          [modify_fun stmt]
+    fun modify_stmts ([stmt as (name, stmt' as Code_Thingol.Fun _)]) =
+          if Code_Thingol.is_case stmt' then [] else [modify_fun stmt]
       | modify_stmts ((stmts as (_, Code_Thingol.Fun _)::_)) =
-          modify_funs stmts
+          modify_funs (filter_out (Code_Thingol.is_case o snd) stmts)
       | modify_stmts ((stmts as (_, Code_Thingol.Datatypecons _)::_)) =
           modify_datatypes stmts
       | modify_stmts ((stmts as (_, Code_Thingol.Datatype _)::_)) =
@@ -787,25 +787,21 @@ fun ml_program_of_program labelled_name reserved module_alias program =
 
 fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
   reserved_syms, includes, module_alias, class_syntax, tyco_syntax,
-  const_syntax, program, names, presentation_names } =
+  const_syntax, program, names } =
   let
     val is_cons = Code_Thingol.is_cons program;
-    val is_presentation = not (null presentation_names);
     val { deresolver, hierarchical_program = ml_program } =
       ml_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
+    val print_stmt = print_stmt labelled_name tyco_syntax const_syntax
+      (make_vars reserved_syms) is_cons;
     fun print_node _ (_, Code_Namespace.Dummy) =
           NONE
-      | print_node prefix_fragments (_, Code_Namespace.Stmt stmt) =
-          if is_presentation andalso
-            (null o filter (member (op =) presentation_names) o stmt_names_of) stmt
-          then NONE
-          else SOME (print_stmt labelled_name tyco_syntax const_syntax (make_vars reserved_syms)
-            is_cons (deresolver prefix_fragments) stmt)
+      | print_node prefix_fragments (name, Code_Namespace.Stmt stmt) =
+          SOME (apsnd (markup_stmt name) (print_stmt (deresolver prefix_fragments) stmt))
       | print_node prefix_fragments (name_fragment, Code_Namespace.Module (_, nodes)) =
           let
             val (decls, body) = print_nodes (prefix_fragments @ [name_fragment]) nodes;
-            val p = if is_presentation then Pretty.chunks2 body
-              else print_module name_fragment
+            val p = print_module name_fragment
                 (if with_signatures then SOME decls else NONE) body;
           in SOME ([], p) end
     and print_nodes prefix_fragments nodes = (map_filter
@@ -815,8 +811,8 @@ fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
       |> (fn (decls, body) => (flat decls, body))
     val names' = map (try (deresolver [])) names;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] ml_program));
-    fun write width NONE = writeln o format false width
-      | write width (SOME p) = File.write p o format false width;
+    fun write width NONE = writeln o format [] width
+      | write width (SOME p) = File.write p o format [] width;
   in
     Code_Target.serialization write (rpair names' ooo format) p
   end;

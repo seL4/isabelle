@@ -261,13 +261,31 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           end;
   in print_stmt end;
 
+fun mk_name_module reserved module_prefix module_alias program =
+  let
+    fun mk_alias name = case module_alias name
+     of SOME name' => name'
+      | NONE => name
+          |> Long_Name.explode
+          |> map (fn name => (the_single o fst) (Name.variants [name] reserved))
+          |> Long_Name.implode;
+    fun mk_prefix name = case module_prefix
+     of SOME module_prefix => Long_Name.append module_prefix name
+      | NONE => name;
+    val tab =
+      Symtab.empty
+      |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
+           o fst o Code_Namespace.dest_name o fst)
+             program
+  in the o Symtab.lookup tab end;
+
 fun haskell_program_of_program labelled_name module_prefix reserved module_alias program =
   let
     val reserved = Name.make_context reserved;
     val mk_name_module = mk_name_module reserved module_prefix module_alias program;
     fun add_stmt (name, (stmt, deps)) =
       let
-        val (module_name, base) = dest_name name;
+        val (module_name, base) = Code_Namespace.dest_name name;
         val module_name' = mk_name_module module_name;
         val mk_name_stmt = yield_singleton Name.variants;
         fun add_fun upper (nsp_fun, nsp_typ) =
@@ -309,14 +327,14 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
       (Graph.get_node program name, Graph.imm_succs program name))
       (Graph.strong_conn program |> flat)) Symtab.empty;
     fun deresolver name = (fst o the o AList.lookup (op =) ((fst o snd o the
-      o Symtab.lookup hs_program) ((mk_name_module o fst o dest_name) name))) name
+      o Symtab.lookup hs_program) ((mk_name_module o fst o Code_Namespace.dest_name) name))) name
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
 fun serialize_haskell module_prefix string_classes { labelled_name,
     reserved_syms, includes, module_alias,
     class_syntax, tyco_syntax, const_syntax, program,
-    names, presentation_names } =
+    names } =
   let
     val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
@@ -347,10 +365,10 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
         content,
         str "}"
       ]);
-    fun serialize_module1 (module_name', (deps, (stmts, _))) =
+    fun serialize_module (module_name', (deps, (stmts, _))) =
       let
         val stmt_names = map fst stmts;
-        val qualified = null presentation_names;
+        val qualified = true;
         val imports = subtract (op =) stmt_names deps
           |> distinct (op =)
           |> map_filter (try deresolver)
@@ -363,18 +381,10 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
         val import_ps = map print_import_include includes @ map print_import_module imports
         val content = Pretty.chunks2 ((if null import_ps then [] else [Pretty.chunks import_ps])
             @ map_filter
-              (fn (name, (_, SOME stmt)) => SOME (print_stmt qualified (name, stmt))
+              (fn (name, (_, SOME stmt)) => SOME (markup_stmt name (print_stmt qualified (name, stmt)))
                 | (_, (_, NONE)) => NONE) stmts
           );
       in print_module module_name' content end;
-    fun serialize_module2 (_, (_, (stmts, _))) = Pretty.chunks2 (map_filter
-        (fn (name, (_, SOME stmt)) => if null presentation_names
-              orelse member (op =) presentation_names name
-              then SOME (print_stmt false (name, stmt))
-              else NONE
-          | (_, (_, NONE)) => NONE) stmts);
-    val serialize_module =
-      if null presentation_names then serialize_module1 else pair "" o serialize_module2;
     fun write_module width (SOME destination) (modlname, content) =
           let
             val _ = File.check destination;
@@ -386,9 +396,9 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
             val _ = File.mkdir_leaf (Path.dir pathname);
           in File.write pathname
             ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
-              ^ format false width content)
+              ^ format [] width content)
           end
-      | write_module width NONE (_, content) = writeln (format false width content);
+      | write_module width NONE (_, content) = writeln (format [] width content);
   in
     Code_Target.serialization
       (fn width => fn destination => K () o map (write_module width destination))

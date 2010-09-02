@@ -25,8 +25,8 @@ sig
   val semicolon: Pretty.T list -> Pretty.T
   val doublesemicolon: Pretty.T list -> Pretty.T
   val indent: int -> Pretty.T -> Pretty.T
-  val markup_stmt: string -> Pretty.T list -> Pretty.T
-  val format: bool -> int -> Pretty.T -> string
+  val markup_stmt: string -> Pretty.T -> Pretty.T
+  val format: string list -> int -> Pretty.T -> string
 
   val first_upper: string -> string
   val first_lower: string -> string
@@ -70,7 +70,6 @@ sig
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
   val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
 
-
   type tyco_syntax
   type simple_const_syntax
   type complex_const_syntax
@@ -93,10 +92,6 @@ sig
   val gen_print_bind: (thm option -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm option -> fixity
     -> iterm -> var_ctxt -> Pretty.T * var_ctxt
-
-  val mk_name_module: Name.context -> string option -> (string -> string option)
-    -> 'a Graph.T -> string -> string
-  val dest_name: string -> string * string
 end;
 
 structure Code_Printer : CODE_PRINTER =
@@ -110,7 +105,7 @@ fun eqn_error (SOME thm) s = error (s ^ ",\nin equation " ^ Display.string_of_th
   | eqn_error NONE s = error s;
 
 val code_presentationN = "code_presentation";
-val _ = Output.add_mode code_presentationN;
+val stmt_nameN = "stmt_name";
 val _ = Markup.add_mode code_presentationN YXML.output_markup;
 
 
@@ -132,21 +127,35 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
-val stmt_nameN = "stmt_name";
-fun markup_stmt name = Pretty.markup (code_presentationN, [(stmt_nameN, name)]);
-fun filter_presentation selected (XML.Elem ((name, _), xs)) =
-      implode (map (filter_presentation (selected orelse name = code_presentationN)) xs)
-  | filter_presentation selected (XML.Text s) =
+fun markup_stmt name = Print_Mode.setmp [code_presentationN]
+  (Pretty.mark (code_presentationN, [(stmt_nameN, name)]));
+
+fun filter_presentation presentation_names selected (XML.Elem ((name, attrs), xs)) =
+      implode (map (filter_presentation presentation_names
+        (selected orelse (name = code_presentationN
+          andalso member (op =) presentation_names (the (Properties.get attrs stmt_nameN))))) xs)
+  | filter_presentation presentation_names selected (XML.Text s) =
       if selected then s else "";
 
-fun format presentation_only width p =
-  if presentation_only then
-    Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width) p
-    |> YXML.parse_body
-    |> map (filter_presentation false)
-    |> implode
-    |> suffix "\n"
-  else Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
+fun maps_string s f [] = ""
+  | maps_string s f (x :: xs) =
+      let
+        val s1 = f x;
+        val s2 = maps_string s f xs;
+      in if s1 = "" then s2
+        else if s2 = "" then s1
+        else s1 ^ s ^ s2
+      end;
+
+fun plain_text (XML.Elem (_, xs)) = implode (map plain_text xs)
+  | plain_text (XML.Text s) = s
+
+fun format presentation_names width =
+  Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width)
+  #> YXML.parse_body
+  #> (if null presentation_names then implode o map plain_text
+      else maps_string "\n\n" (filter_presentation presentation_names false))
+  #> suffix "\n";
 
 
 (** names and variable name contexts **)
@@ -394,29 +403,5 @@ val _ = List.app Keyword.keyword [infixK, infixlK, infixrK];
 fun parse_tyco_syntax x = parse_syntax (fn s => (0, (K o K o K o str) s)) I I x;
 
 val parse_const_syntax = parse_syntax plain_const_syntax simple_const_syntax fst;
-
-
-(** module name spaces **)
-
-val dest_name =
-  apfst Long_Name.implode o split_last o fst o split_last o Long_Name.explode;
-
-fun mk_name_module reserved module_prefix module_alias program =
-  let
-    fun mk_alias name = case module_alias name
-     of SOME name' => name'
-      | NONE => name
-          |> Long_Name.explode
-          |> map (fn name => (the_single o fst) (Name.variants [name] reserved))
-          |> Long_Name.implode;
-    fun mk_prefix name = case module_prefix
-     of SOME module_prefix => Long_Name.append module_prefix name
-      | NONE => name;
-    val tab =
-      Symtab.empty
-      |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
-           o fst o dest_name o fst)
-             program
-  in the o Symtab.lookup tab end;
 
 end; (*struct*)

@@ -317,7 +317,8 @@ fun scala_program_of_program labelled_name reserved module_alias program =
         val implicits = filter (is_classinst o Graph.get_node program)
           (Graph.imm_succs program name);
       in union (op =) implicits end;
-    fun modify_stmt (_, Code_Thingol.Datatypecons _) = NONE
+    fun modify_stmt (_, Code_Thingol.Fun (_, (_, SOME _))) = NONE
+      | modify_stmt (_, Code_Thingol.Datatypecons _) = NONE
       | modify_stmt (_, Code_Thingol.Classrel _) = NONE
       | modify_stmt (_, Code_Thingol.Classparam _) = NONE
       | modify_stmt (_, stmt) = SOME stmt;
@@ -329,7 +330,7 @@ fun scala_program_of_program labelled_name reserved module_alias program =
 
 fun serialize_scala { labelled_name, reserved_syms, includes,
     module_alias, class_syntax, tyco_syntax, const_syntax, program,
-    names, presentation_names } =
+    names } =
   let
 
     (* build program *)
@@ -368,21 +369,15 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
       in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
     fun print_node _ (_, Code_Namespace.Dummy) = NONE
       | print_node prefix_fragments (name, Code_Namespace.Stmt stmt) =
-          if null presentation_names
-          orelse member (op =) presentation_names name
-          then SOME (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt))
-          else NONE
+          SOME (markup_stmt name (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt)))
       | print_node prefix_fragments (name_fragment, Code_Namespace.Module (implicits, nodes)) =
-          if null presentation_names
-          then
-            let
-              val prefix_fragments' = prefix_fragments @ [name_fragment];
-            in
-              Option.map (print_module name_fragment
-                (map_filter (print_implicit prefix_fragments') implicits))
-                  (print_nodes prefix_fragments' nodes)
-            end
-          else print_nodes [] nodes
+          let
+            val prefix_fragments' = prefix_fragments @ [name_fragment];
+          in
+            Option.map (print_module name_fragment
+              (map_filter (print_implicit prefix_fragments') implicits))
+                (print_nodes prefix_fragments' nodes)
+          end
     and print_nodes prefix_fragments nodes = let
         val ps = map_filter (fn name => print_node prefix_fragments (name,
           snd (Graph.get_node nodes name)))
@@ -390,10 +385,9 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
       in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
 
     (* serialization *)
-    val p_includes = if null presentation_names then map snd includes else [];
-    val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
-    fun write width NONE = writeln o format false width
-      | write width (SOME p) = File.write p o format false width;
+    val p = Pretty.chunks2 (map snd includes @ the_list (print_nodes [] sca_program));
+    fun write width NONE = writeln o format [] width
+      | write width (SOME p) = File.write p o format [] width;
   in
     Code_Target.serialization write (rpair [] ooo format) p
   end;
