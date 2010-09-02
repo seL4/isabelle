@@ -317,7 +317,8 @@ fun scala_program_of_program labelled_name reserved module_alias program =
         val implicits = filter (is_classinst o Graph.get_node program)
           (Graph.imm_succs program name);
       in union (op =) implicits end;
-    fun modify_stmt (_, Code_Thingol.Datatypecons _) = NONE
+    fun modify_stmt (_, Code_Thingol.Fun (_, (_, SOME _))) = NONE
+      | modify_stmt (_, Code_Thingol.Datatypecons _) = NONE
       | modify_stmt (_, Code_Thingol.Classrel _) = NONE
       | modify_stmt (_, Code_Thingol.Classparam _) = NONE
       | modify_stmt (_, stmt) = SOME stmt;
