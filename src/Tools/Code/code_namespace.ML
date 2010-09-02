@@ -105,12 +105,15 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
         val (nsps', nodes') = (nsps, nodes)
           |> fold (declare (K namify_module)) module_fragments
           |> fold (declare (namify_stmt o (fn Stmt stmt => stmt))) stmt_names;
-        val modify_stmts' = filter (member (op =) stmt_names)
-          #> AList.make (snd o Graph.get_node nodes)
+        fun zip_fillup xs ys = xs ~~ ys @ replicate (length xs - length ys) NONE;
+        fun select_names names = case filter (member (op =) stmt_names) names
+         of [] => NONE
+          | xs => SOME xs;
+        val modify_stmts' = AList.make (snd o Graph.get_node nodes)
           #> split_list
           ##> map (fn Stmt stmt => stmt)
-          #> (fn (names, stmts) => names ~~ modify_stmts (names ~~ stmts));
-        val stmtss' = maps modify_stmts' (Graph.strong_conn nodes);
+          #> (fn (names, stmts) => zip_fillup names (modify_stmts (names ~~ stmts)));
+        val stmtss' = (maps modify_stmts' o map_filter select_names o Graph.strong_conn) nodes;
         val nodes'' = Graph.map (fn name => apsnd (fn Module content => Module (make_declarations nsps' content)
             | _ => case AList.lookup (op =) stmtss' name of SOME (SOME stmt) => Stmt stmt | _ => Dummy)) nodes';
         val data' = fold memorize_data stmt_names data;
