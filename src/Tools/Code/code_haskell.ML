@@ -261,13 +261,31 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           end;
   in print_stmt end;
 
+fun mk_name_module reserved module_prefix module_alias program =
+  let
+    fun mk_alias name = case module_alias name
+     of SOME name' => name'
+      | NONE => name
+          |> Long_Name.explode
+          |> map (fn name => (the_single o fst) (Name.variants [name] reserved))
+          |> Long_Name.implode;
+    fun mk_prefix name = case module_prefix
+     of SOME module_prefix => Long_Name.append module_prefix name
+      | NONE => name;
+    val tab =
+      Symtab.empty
+      |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
+           o fst o Code_Namespace.dest_name o fst)
+             program
+  in the o Symtab.lookup tab end;
+
 fun haskell_program_of_program labelled_name module_prefix reserved module_alias program =
   let
     val reserved = Name.make_context reserved;
     val mk_name_module = mk_name_module reserved module_prefix module_alias program;
     fun add_stmt (name, (stmt, deps)) =
       let
-        val (module_name, base) = dest_name name;
+        val (module_name, base) = Code_Namespace.dest_name name;
         val module_name' = mk_name_module module_name;
         val mk_name_stmt = yield_singleton Name.variants;
         fun add_fun upper (nsp_fun, nsp_typ) =
@@ -309,7 +327,7 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
       (Graph.get_node program name, Graph.imm_succs program name))
       (Graph.strong_conn program |> flat)) Symtab.empty;
     fun deresolver name = (fst o the o AList.lookup (op =) ((fst o snd o the
-      o Symtab.lookup hs_program) ((mk_name_module o fst o dest_name) name))) name
+      o Symtab.lookup hs_program) ((mk_name_module o fst o Code_Namespace.dest_name) name))) name
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
