@@ -1383,19 +1383,6 @@ fun make_constants thy model T =
   end;
 
 (* ------------------------------------------------------------------------- *)
-(* power: 'power (a, b)' computes a^b, for a>=0, b>=0                        *)
-(* ------------------------------------------------------------------------- *)
-
-(* int * int -> int *)
-
-fun power (a, 0) = 1
-  | power (a, 1) = a
-  | power (a, b) =
-      let val ab = power(a, b div 2) in
-        ab * ab * power(a, b mod 2)
-      end;
-
-(* ------------------------------------------------------------------------- *)
 (* size_of_type: returns the number of elements in a type 'T' (i.e. 'length  *)
 (*               (make_constants T)', but implemented more efficiently)      *)
 (* ------------------------------------------------------------------------- *)
@@ -1415,7 +1402,7 @@ fun size_of_type thy model T =
     (* returns the number of elements that have the same tree structure as a *)
     (* given interpretation                                                  *)
     fun size_of_intr (Leaf xs) = length xs
-      | size_of_intr (Node xs) = power (size_of_intr (hd xs), length xs)
+      | size_of_intr (Node xs) = Integer.pow (length xs) (size_of_intr (hd xs))
     (* obtain the interpretation for a variable of type 'T' *)
     val (i, _, _) = interpret thy model {maxvars=0, def_eq=false, next_idx=1,
       bounds=[], wellformed=True} (Free ("dummy", T))
@@ -2896,7 +2883,7 @@ fun List_append_interpreter thy model args t =
             val (len_m, off_m) = the (AList.lookup (op =) lenoff_lists m)
             val (len_n, off_n) = the (AList.lookup (op =) lenoff_lists n)
             val len_elem = len_m + len_n
-            val off_elem = off_m * power (size_elem, len_n) + off_n
+            val off_elem = off_m * Integer.pow len_n size_elem + off_n
           in
             case AList.lookup op= lenoff'_lists (len_elem, off_elem) of
               NONE =>
