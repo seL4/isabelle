@@ -7,7 +7,8 @@ header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
 imports Nat Wellfounded Plain
-uses ("Tools/meson.ML") ("Tools/choice_specification.ML")
+uses ("Tools/meson.ML")
+     ("Tools/choice_specification.ML")
 begin
 
 subsection {* Hilbert's epsilon *}

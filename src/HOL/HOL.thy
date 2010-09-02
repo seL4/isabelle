@@ -32,6 +32,7 @@ uses
   ("Tools/recfun_codegen.ML")
   "Tools/async_manager.ML"
   "Tools/try.ML"
+  ("Tools/cnf_funcs.ML")
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
@@ -1645,7 +1646,6 @@ lemma nnf_simps:
   "(\<not> \<not>(P)) = P"
 by blast+
 
-
 subsection {* Basic ML bindings *}
 
 ML {*
@@ -1699,6 +1699,7 @@ val sym = @{thm sym}
 val trans = @{thm trans}
 *}
 
+use "Tools/cnf_funcs.ML"
 
 subsection {* Code generator setup *}
 
