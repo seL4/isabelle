@@ -815,10 +815,10 @@ fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
       |> (fn (decls, body) => (flat decls, body))
     val names' = map (try (deresolver [])) names;
     val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] ml_program));
-    fun write width NONE = writeln_pretty width
-      | write width (SOME p) = File.write p o string_of_pretty width;
+    fun write width NONE = writeln o format false width
+      | write width (SOME p) = File.write p o format false width;
   in
-    Code_Target.serialization write (fn width => (rpair names' o string_of_pretty width)) p
+    Code_Target.serialization write (rpair names' ooo format) p
   end;
 
 val serializer_sml : Code_Target.serializer =

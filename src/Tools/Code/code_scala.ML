@@ -392,10 +392,10 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
     (* serialization *)
     val p_includes = if null presentation_names then map snd includes else [];
     val p = Pretty.chunks2 (p_includes @ the_list (print_nodes [] sca_program));
-    fun write width NONE = writeln_pretty width
-      | write width (SOME p) = File.write p o string_of_pretty width;
+    fun write width NONE = writeln o format false width
+      | write width (SOME p) = File.write p o format false width;
   in
-    Code_Target.serialization write (rpair [] oo string_of_pretty) p
+    Code_Target.serialization write (rpair [] ooo format) p
   end;
 
 val serializer : Code_Target.serializer =

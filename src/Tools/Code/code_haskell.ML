@@ -386,13 +386,13 @@ fun serialize_haskell module_prefix string_classes { labelled_name,
             val _ = File.mkdir_leaf (Path.dir pathname);
           in File.write pathname
             ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
-              ^ string_of_pretty width content)
+              ^ format false width content)
           end
-      | write_module width NONE (_, content) = writeln_pretty width content;
+      | write_module width NONE (_, content) = writeln (format false width content);
   in
     Code_Target.serialization
       (fn width => fn destination => K () o map (write_module width destination))
-      (fn width => rpair [] o cat_lines o map (string_of_pretty width o snd))
+      (fn present => fn width => rpair [] o format present width o Pretty.chunks o map snd)
       (map (uncurry print_module) includes
         @ map serialize_module (Symtab.dest hs_program))
   end;

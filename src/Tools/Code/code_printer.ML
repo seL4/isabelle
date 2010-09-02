@@ -25,8 +25,8 @@ sig
   val semicolon: Pretty.T list -> Pretty.T
   val doublesemicolon: Pretty.T list -> Pretty.T
   val indent: int -> Pretty.T -> Pretty.T
-  val string_of_pretty: int -> Pretty.T -> string
-  val writeln_pretty: int -> Pretty.T -> unit
+  val markup_stmt: string -> Pretty.T list -> Pretty.T
+  val format: bool -> int -> Pretty.T -> string
 
   val first_upper: string -> string
   val first_lower: string -> string
@@ -104,8 +104,15 @@ struct
 
 open Code_Thingol;
 
+(** generic nonsense *)
+
 fun eqn_error (SOME thm) s = error (s ^ ",\nin equation " ^ Display.string_of_thm_without_context thm)
   | eqn_error NONE s = error s;
+
+val code_presentationN = "code_presentation";
+val _ = Output.add_mode code_presentationN;
+val _ = Markup.add_mode code_presentationN YXML.output_markup;
+
 
 (** assembling and printing text pieces **)
 
@@ -125,8 +132,21 @@ fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun doublesemicolon ps = Pretty.block [concat ps, str ";;"];
 fun indent i = Print_Mode.setmp [] (Pretty.indent i);
 
-fun string_of_pretty width p = Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
-fun writeln_pretty width p = writeln (string_of_pretty width p);
+val stmt_nameN = "stmt_name";
+fun markup_stmt name = Pretty.markup (code_presentationN, [(stmt_nameN, name)]);
+fun filter_presentation selected (XML.Elem ((name, _), xs)) =
+      implode (map (filter_presentation (selected orelse name = code_presentationN)) xs)
+  | filter_presentation selected (XML.Text s) =
+      if selected then s else "";
+
+fun format presentation_only width p =
+  if presentation_only then
+    Print_Mode.setmp [code_presentationN] (Pretty.string_of_margin width) p
+    |> YXML.parse_body
+    |> map (filter_presentation false)
+    |> implode
+    |> suffix "\n"
+  else Print_Mode.setmp [] (Pretty.string_of_margin width) p ^ "\n";
 
 
 (** names and variable name contexts **)

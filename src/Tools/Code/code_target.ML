@@ -42,7 +42,7 @@ sig
   type serialization
   val parse_args: 'a parser -> Token.T list -> 'a
   val serialization: (int -> Path.T option -> 'a -> unit)
-    -> (int -> 'a -> string * string option list)
+    -> (bool -> int -> 'a -> string * string option list)
     -> 'a -> serialization
   val set_default_code_width: int -> theory -> theory
 
@@ -76,8 +76,8 @@ fun stmt_names_of_destination (Present stmt_names) = stmt_names
   | stmt_names_of_destination _ = [];
 
 fun serialization output _ content width (Export some_path) = (output width some_path content; NONE)
-  | serialization _ string content width Produce = SOME (string width content)
-  | serialization _ string content width (Present _) = SOME (string width content);
+  | serialization _ string content width Produce = SOME (string false width content)
+  | serialization _ string content width (Present _) = SOME (string false width content);
 
 fun export some_path f = (f (Export some_path); ());
 fun produce f = the (f Produce);
