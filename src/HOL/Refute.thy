@@ -9,9 +9,7 @@ header {* Refute *}
 
 theory Refute
 imports Hilbert_Choice List
-uses
-  "Tools/refute.ML"
-  "Tools/refute_isar.ML"
+uses "Tools/refute.ML"
 begin
 
 setup Refute.setup
@@ -92,16 +90,14 @@ text {*
 (* ------------------------------------------------------------------------- *)
 (* FILES                                                                     *)
 (*                                                                           *)
-(* HOL/Tools/prop_logic.ML    Propositional logic                            *)
-(* HOL/Tools/sat_solver.ML    SAT solvers                                    *)
-(* HOL/Tools/refute.ML        Translation HOL -> propositional logic and     *)
-(*                            Boolean assignment -> HOL model                *)
-(* HOL/Tools/refute_isar.ML   Adds 'refute'/'refute_params' to Isabelle's    *)
-(*                            syntax                                         *)
-(* HOL/Refute.thy             This file: loads the ML files, basic setup,    *)
-(*                            documentation                                  *)
-(* HOL/SAT.thy                Sets default parameters                        *)
-(* HOL/ex/RefuteExamples.thy  Examples                                       *)
+(* HOL/Tools/prop_logic.ML     Propositional logic                           *)
+(* HOL/Tools/sat_solver.ML     SAT solvers                                   *)
+(* HOL/Tools/refute.ML         Translation HOL -> propositional logic and    *)
+(*                             Boolean assignment -> HOL model               *)
+(* HOL/Refute.thy              This file: loads the ML files, basic setup,   *)
+(*                             documentation                                 *)
+(* HOL/SAT.thy                 Sets default parameters                       *)
+(* HOL/ex/Refute_Examples.thy  Examples                                      *)
 (* ------------------------------------------------------------------------- *)
 \end{verbatim}
 *}
