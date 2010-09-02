@@ -177,7 +177,7 @@ by (simp add: inj_on_def)
 lemma surj_id[simp]: "surj_on id A"
 by (simp add: surj_on_def)
 
-lemma bij_id[simp]: "bij_betw id A A"
+lemma bij_id[simp]: "bij id"
 by (simp add: bij_betw_def)
 
 lemma inj_onI:
