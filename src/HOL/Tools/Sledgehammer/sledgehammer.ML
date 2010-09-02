@@ -409,15 +409,15 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
       0 => priority "No subgoal!"
     | n =>
       let
+        val thy = Proof.theory_of state
         val timer = Timer.startRealTimer ()
         val _ = () |> not blocking ? kill_atps
         val _ = priority "Sledgehammering..."
+        val provers = map (`(get_prover thy)) atps
         fun run () =
           let
             val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
-            val thy = Proof.theory_of state
             val (_, hyp_ts, concl_t) = strip_subgoal goal i
-            val provers = map (`(get_prover thy)) atps
             val max_max_relevant =
               case max_relevant of
                 SOME n => n
