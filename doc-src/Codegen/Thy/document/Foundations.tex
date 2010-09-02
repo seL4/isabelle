@@ -247,11 +247,11 @@ As told in \secref{sec:principle}, the notion of code equations is
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
-\hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
-\hspace*{0pt}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~(if null xs then (Nothing,~AQueue [] [])\\
-\hspace*{0pt} ~~~else dequeue (AQueue [] (reverse xs)));%
+\hspace*{0pt}dequeue ::~forall a.~Example.Queue a -> (Maybe a,~Example.Queue a);\\
+\hspace*{0pt}dequeue (Example.AQueue xs (y :~ys)) = (Just y,~Example.AQueue xs ys);\\
+\hspace*{0pt}dequeue (Example.AQueue xs []) =\\
+\hspace*{0pt} ~(if null xs then (Nothing,~Example.AQueue [] [])\\
+\hspace*{0pt} ~~~else Example.dequeue (Example.AQueue [] (reverse xs)));%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -350,21 +350,21 @@ Implementation of equality deserves some attention.  Here an example
 \isatypewriter%
 \noindent%
 \hspace*{0pt}structure Example :~sig\\
-\hspace*{0pt} ~type 'a eq\\
-\hspace*{0pt} ~val eq :~'a eq -> 'a -> 'a -> bool\\
-\hspace*{0pt} ~val eqa :~'a eq -> 'a -> 'a -> bool\\
-\hspace*{0pt} ~val member :~'a eq -> 'a list -> 'a -> bool\\
+\hspace*{0pt} ~type 'a equal\\
+\hspace*{0pt} ~val equal :~'a equal -> 'a -> 'a -> bool\\
+\hspace*{0pt} ~val eq :~'a equal -> 'a -> 'a -> bool\\
+\hspace*{0pt} ~val member :~'a equal -> 'a list -> 'a -> bool\\
 \hspace*{0pt} ~val collect{\char95}duplicates :\\
-\hspace*{0pt} ~~~'a eq -> 'a list -> 'a list -> 'a list -> 'a list\\
+\hspace*{0pt} ~~~'a equal -> 'a list -> 'a list -> 'a list -> 'a list\\
 \hspace*{0pt}end = struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a eq = {\char123}eq :~'a -> 'a -> bool{\char125};\\
-\hspace*{0pt}val eq = {\char35}eq :~'a eq -> 'a -> 'a -> bool;\\
+\hspace*{0pt}type 'a equal = {\char123}equal :~'a -> 'a -> bool{\char125};\\
+\hspace*{0pt}val equal = {\char35}equal :~'a equal -> 'a -> 'a -> bool;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun eqa A{\char95}~a b = eq A{\char95}~a b;\\
+\hspace*{0pt}fun eq A{\char95}~a b = equal A{\char95}~a b;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun member A{\char95}~[] y = false\\
-\hspace*{0pt} ~| member A{\char95}~(x ::~xs) y = eqa A{\char95}~x y orelse member A{\char95}~xs y;\\
+\hspace*{0pt} ~| member A{\char95}~(x ::~xs) y = eq A{\char95}~x y orelse member A{\char95}~xs y;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun collect{\char95}duplicates A{\char95}~xs ys [] = xs\\
 \hspace*{0pt} ~| collect{\char95}duplicates A{\char95}~xs ys (z ::~zs) =\\
@@ -387,11 +387,11 @@ Implementation of equality deserves some attention.  Here an example
 \begin{isamarkuptext}%
 \noindent Obviously, polymorphic equality is implemented the Haskell
   way using a type class.  How is this achieved?  HOL introduces an
-  explicit class \isa{eq} with a corresponding operation \isa{eq{\isacharunderscore}class{\isachardot}eq} such that \isa{eq{\isacharunderscore}class{\isachardot}eq\ {\isacharequal}\ op\ {\isacharequal}}.  The preprocessing
-  framework does the rest by propagating the \isa{eq} constraints
+  explicit class \isa{equal} with a corresponding operation \isa{equal{\isacharunderscore}class{\isachardot}equal} such that \isa{equal{\isacharunderscore}class{\isachardot}equal\ {\isacharequal}\ op\ {\isacharequal}}.  The preprocessing
+  framework does the rest by propagating the \isa{equal} constraints
   through all dependent code equations.  For datatypes, instances of
-  \isa{eq} are implicitly derived when possible.  For other types,
-  you may instantiate \isa{eq} manually like any other type class.%
+  \isa{equal} are implicitly derived when possible.  For other types,
+  you may instantiate \isa{equal} manually like any other type class.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -444,12 +444,12 @@ Partiality usually enters the game by partial patterns, as
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
+\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Example.Queue a -> (a,~Example.Queue a);\\
+\hspace*{0pt}strict{\char95}dequeue (Example.AQueue xs []) =\\
 \hspace*{0pt} ~let {\char123}\\
 \hspace*{0pt} ~~~(y :~ys) = reverse xs;\\
-\hspace*{0pt} ~{\char125}~in (y,~AQueue [] ys);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);%
+\hspace*{0pt} ~{\char125}~in (y,~Example.AQueue [] ys);\\
+\hspace*{0pt}strict{\char95}dequeue (Example.AQueue xs (y :~ys)) = (y,~Example.AQueue xs ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -538,11 +538,11 @@ Observe that on the right hand side of the definition of \isa{strict{\isacharund
 \hspace*{0pt}empty{\char95}queue ::~forall a.~a;\\
 \hspace*{0pt}empty{\char95}queue = error {\char34}empty{\char95}queue{\char34};\\
 \hspace*{0pt}\\
-\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);\\
-\hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~(if null xs then empty{\char95}queue\\
-\hspace*{0pt} ~~~else strict{\char95}dequeue (AQueue [] (reverse xs)));%
+\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Example.Queue a -> (a,~Example.Queue a);\\
+\hspace*{0pt}strict{\char95}dequeue (Example.AQueue xs (y :~ys)) = (y,~Example.AQueue xs ys);\\
+\hspace*{0pt}strict{\char95}dequeue (Example.AQueue xs []) =\\
+\hspace*{0pt} ~(if null xs then Example.empty{\char95}queue\\
+\hspace*{0pt} ~~~else Example.strict{\char95}dequeue (Example.AQueue [] (reverse xs)));%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
