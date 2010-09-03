@@ -392,8 +392,7 @@ end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
- (register_config Syntax.show_free_types_value #>
-  register_config Syntax.show_question_marks_value #>
+ (register_config Syntax.show_question_marks_value #>
   register_config Goal_Display.show_consts_value #>
   register_config Unify.trace_bound_value #>
   register_config Unify.search_bound_value #>

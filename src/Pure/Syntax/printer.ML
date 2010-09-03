@@ -9,8 +9,6 @@ sig
   val show_brackets: bool Unsynchronized.ref
   val show_sorts: bool Unsynchronized.ref
   val show_types: bool Unsynchronized.ref
-  val show_free_types_default: bool Unsynchronized.ref
-  val show_free_types_value: Config.value Config.T
   val show_free_types: bool Config.T
   val show_all_types: bool Unsynchronized.ref
   val show_structs: bool Unsynchronized.ref
@@ -56,10 +54,7 @@ val show_brackets = Unsynchronized.ref false;
 val show_all_types = Unsynchronized.ref false;
 val show_structs = Unsynchronized.ref false;
 
-val show_free_types_default = Unsynchronized.ref true;
-val show_free_types_value =
-  Config.declare "show_free_types" (fn _ => Config.Bool (! show_free_types_default));
-val show_free_types = Config.bool show_free_types_value;
+val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
 
 val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_value =
