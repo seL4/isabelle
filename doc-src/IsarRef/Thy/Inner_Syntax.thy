@@ -103,9 +103,9 @@ text {*
     @{index_ML short_names: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML unique_names: "bool Unsynchronized.ref"} & default @{ML true} \\
     @{index_ML show_brackets: "bool Unsynchronized.ref"} & default @{ML false} \\
-    @{index_ML eta_contract: "bool Unsynchronized.ref"} & default @{ML true} \\
-    @{index_ML goals_limit: "int Unsynchronized.ref"} & default @{ML 10} \\
-    @{index_ML Proof.show_main_goal: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML eta_contract: "bool Config.T"} & default @{ML true} \\
+    @{index_ML Goal_Display.goals_limit: "int Config.T"} & default @{ML 10} \\
+    @{index_ML Goal_Display.show_main_goal: "bool Config.T"} & default @{ML false} \\
     @{index_ML show_hyps: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML show_tags: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML show_question_marks: "bool Config.T"} & default @{ML true} \\
@@ -173,13 +173,13 @@ text {*
   rewriting operate modulo @{text "\<alpha>\<beta>\<eta>"}-conversion, some other tools
   might look at terms more discretely.
 
-  \item @{ML goals_limit} controls the maximum number of subgoals to
-  be shown in goal output.
+  \item @{ML Goal_Display.goals_limit} controls the maximum number of
+  subgoals to be shown in goal output.
 
-  \item @{ML Proof.show_main_goal} controls whether the main result to
-  be proven should be displayed.  This information might be relevant
-  for schematic goals, to inspect the current claim that has been
-  synthesized so far.
+  \item @{ML Goal_Display.show_main_goal} controls whether the main
+  result to be proven should be displayed.  This information might be
+  relevant for schematic goals, to inspect the current claim that has
+  been synthesized so far.
 
   \item @{ML show_hyps} controls printing of implicit hypotheses of
   local facts.  Normally, only those hypotheses are displayed that are

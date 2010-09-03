@@ -125,9 +125,9 @@
     \indexdef{}{ML}{short\_names}\verb|short_names: bool Unsynchronized.ref| & default \verb|false| \\
     \indexdef{}{ML}{unique\_names}\verb|unique_names: bool Unsynchronized.ref| & default \verb|true| \\
     \indexdef{}{ML}{show\_brackets}\verb|show_brackets: bool Unsynchronized.ref| & default \verb|false| \\
-    \indexdef{}{ML}{eta\_contract}\verb|eta_contract: bool Unsynchronized.ref| & default \verb|true| \\
-    \indexdef{}{ML}{goals\_limit}\verb|goals_limit: int Unsynchronized.ref| & default \verb|10| \\
-    \indexdef{}{ML}{Proof.show\_main\_goal}\verb|Proof.show_main_goal: bool Unsynchronized.ref| & default \verb|false| \\
+    \indexdef{}{ML}{eta\_contract}\verb|eta_contract: bool Config.T| & default \verb|true| \\
+    \indexdef{}{ML}{Goal\_Display.goals\_limit}\verb|Goal_Display.goals_limit: int Config.T| & default \verb|10| \\
+    \indexdef{}{ML}{Goal\_Display.show\_main\_goal}\verb|Goal_Display.show_main_goal: bool Config.T| & default \verb|false| \\
     \indexdef{}{ML}{show\_hyps}\verb|show_hyps: bool Unsynchronized.ref| & default \verb|false| \\
     \indexdef{}{ML}{show\_tags}\verb|show_tags: bool Unsynchronized.ref| & default \verb|false| \\
     \indexdef{}{ML}{show\_question\_marks}\verb|show_question_marks: bool Config.T| & default \verb|true| \\
@@ -190,13 +190,13 @@
   rewriting operate modulo \isa{{\isachardoublequote}{\isasymalpha}{\isasymbeta}{\isasymeta}{\isachardoublequote}}-conversion, some other tools
   might look at terms more discretely.
 
-  \item \verb|goals_limit| controls the maximum number of subgoals to
-  be shown in goal output.
+  \item \verb|Goal_Display.goals_limit| controls the maximum number of
+  subgoals to be shown in goal output.
 
-  \item \verb|Proof.show_main_goal| controls whether the main result to
-  be proven should be displayed.  This information might be relevant
-  for schematic goals, to inspect the current claim that has been
-  synthesized so far.
+  \item \verb|Goal_Display.show_main_goal| controls whether the main
+  result to be proven should be displayed.  This information might be
+  relevant for schematic goals, to inspect the current claim that has
+  been synthesized so far.
 
   \item \verb|show_hyps| controls printing of implicit hypotheses of
   local facts.  Normally, only those hypotheses are displayed that are
