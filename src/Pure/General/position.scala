@@ -24,7 +24,7 @@ object Position
     def unapply(pos: T): Option[Text.Range] =
       (Offset.unapply(pos), End_Offset.unapply(pos)) match {
         case (Some(start), Some(stop)) if start <= stop => Some(Text.Range(start, stop))
-        case (Some(start), None) => Some(Text.Range(start))
+        case (Some(start), None) => Some(Text.Range(start, start + 1))
         case _ => None
       }
   }

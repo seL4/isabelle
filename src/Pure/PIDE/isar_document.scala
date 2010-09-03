@@ -58,17 +58,23 @@ object Isar_Document
 
   /* reported positions */
 
+  private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
+  private val exclude_pos = Set(Markup.LOCATION)
+
   def reported_positions(command_id: Document.Command_ID, message: XML.Elem): Set[Text.Range] =
   {
     def reported(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
         case XML.Elem(Markup(name, Position.Id_Range(id, range)), body)
-        if (name == Markup.BINDING || name == Markup.ENTITY || name == Markup.REPORT) &&
-          id == command_id => body.foldLeft(set + range)(reported)
-        case XML.Elem(_, body) => body.foldLeft(set)(reported)
-        case XML.Text(_) => set
+        if include_pos(name) && id == command_id =>
+          body.foldLeft(set + range)(reported)
+        case XML.Elem(Markup(name, _), body) if !exclude_pos(name) =>
+          body.foldLeft(set)(reported)
+        case _ => set
       }
-    reported(Set.empty, message) ++ Position.Range.unapply(message.markup.properties)
+    val set = reported(Set.empty, message)
+    if (set.isEmpty) set ++ Position.Range.unapply(message.markup.properties)
+    else set
   }
 }
 

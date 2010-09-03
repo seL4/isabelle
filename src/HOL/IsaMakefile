@@ -209,7 +209,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Tools/primrec.ML \
   Tools/prop_logic.ML \
   Tools/refute.ML \
-  Tools/refute_isar.ML \
   Tools/rewrite_hol_proof.ML \
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
