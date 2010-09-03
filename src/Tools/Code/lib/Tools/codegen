@@ -60,6 +60,6 @@ fi
 
 CTXT_CMD="ML_Context.eval_text_in (SOME (ProofContext.init_global (Thy_Info.get_theory \"HOL\"))) false Position.none \"Code_Target.shell_command thyname cmd\";"
 
-FULL_CMD="quick_and_dirty := QND_FLAG; val thyname = \"$THY\"; val cmd = \"$CODE_CMD\"; $CTXT_CMD"
+FULL_CMD="quick_and_dirty := $QND_FLAG; val thyname = \"$THY\"; val cmd = \"$CODE_CMD\"; $CTXT_CMD"
 
 "$ISABELLE_PROCESS" -q -e "$FULL_CMD" "$IMAGE" || exit 1
