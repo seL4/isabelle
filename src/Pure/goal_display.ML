@@ -63,8 +63,10 @@ fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
 
 in
 
-fun pretty_goals ctxt {total, main, maxgoals} state =
+fun pretty_goals ctxt0 {total, main, maxgoals} state =
   let
+    val ctxt = Config.put show_free_types false ctxt0;
+
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
     val prt_term = Syntax.pretty_term ctxt;
@@ -115,9 +117,8 @@ fun pretty_goals ctxt {total, main, maxgoals} state =
       (if types then pretty_vars prop else []) @
       (if sorts then pretty_varsT prop else []);
   in
-    setmp_CRITICAL show_no_free_types true
-      (setmp_CRITICAL show_types (! show_types orelse ! show_sorts orelse ! show_all_types)
-        (setmp_CRITICAL show_sorts false pretty_gs))
+    setmp_CRITICAL show_types (! show_types orelse ! show_sorts orelse ! show_all_types)
+      (setmp_CRITICAL show_sorts false pretty_gs)
    (! show_types orelse ! show_sorts orelse ! show_all_types, ! show_sorts)
   end;
 

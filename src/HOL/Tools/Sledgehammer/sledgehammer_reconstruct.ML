@@ -945,13 +945,13 @@ val relabel_proof =
         step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
-fun string_for_proof ctxt full_types i n =
+fun string_for_proof ctxt0 full_types i n =
   let
+    val ctxt = Config.put show_free_types false ctxt0
     fun fix_print_mode f x =
-      setmp_CRITICAL show_no_free_types true
-          (setmp_CRITICAL show_types true
-               (Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                                         (print_mode_value ())) f)) x
+      setmp_CRITICAL show_types true
+           (Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+                                     (print_mode_value ())) f) x
     fun do_indent ind = replicate_string (ind * indent_size) " "
     fun do_free (s, T) =
       maybe_quote s ^ " :: " ^
