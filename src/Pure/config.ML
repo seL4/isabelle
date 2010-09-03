@@ -22,7 +22,9 @@ sig
   val get_generic: Context.generic -> 'a T -> 'a
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
-  val declare: bool -> string -> (Context.generic -> value) -> value T
+  val declare_generic: {global: bool} -> string -> (Context.generic -> value) -> value T
+  val declare_global: string -> (Context.generic -> value) -> value T
+  val declare: string -> (Context.generic -> value) -> value T
   val name_of: 'a T -> string
 end;
 
@@ -98,7 +100,7 @@ structure Value = Generic_Data
   fun merge data = Inttab.merge (K true) data;
 );
 
-fun declare global name default =
+fun declare_generic {global} name default =
   let
     val id = serial ();
 
@@ -119,6 +121,9 @@ fun declare global name default =
           end
       | map_value f context = update_value f context;
   in Config {name = name, get_value = get_value, map_value = map_value} end;
+
+val declare_global = declare_generic {global = true};
+val declare = declare_generic {global = false};
 
 fun name_of (Config {name, ...}) = name;
 

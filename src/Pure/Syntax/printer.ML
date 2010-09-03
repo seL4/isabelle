@@ -58,12 +58,12 @@ val show_structs = Unsynchronized.ref false;
 
 val show_free_types_default = Unsynchronized.ref true;
 val show_free_types_value =
-  Config.declare false "show_free_types" (fn _ => Config.Bool (! show_free_types_default));
+  Config.declare "show_free_types" (fn _ => Config.Bool (! show_free_types_default));
 val show_free_types = Config.bool show_free_types_value;
 
 val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_value =
-  Config.declare false "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
+  Config.declare "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
 val show_question_marks = Config.bool show_question_marks_value;
 
 fun pp_show_brackets pp = Pretty.pp (setmp_CRITICAL show_brackets true (Pretty.term pp),

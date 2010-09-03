@@ -24,8 +24,7 @@ val goals_limit = Unsynchronized.ref 10;     (*max number of goals to print*)
 
 (*true: show consts with types in proof state output*)
 val show_consts_default = Unsynchronized.ref false;
-val show_consts_value =
-  Config.declare false "show_consts" (fn _ => Config.Bool (! show_consts_default));
+val show_consts_value = Config.declare "show_consts" (fn _ => Config.Bool (! show_consts_default));
 val show_consts = Config.bool show_consts_value;
 
 fun pretty_flexpair ctxt (t, u) = Pretty.block
