@@ -24,7 +24,9 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 object Document_View
 {
-  def choose_color(snapshot: Document.Snapshot, command: Command): Color =
+  /* physical rendering */
+
+  def status_color(snapshot: Document.Snapshot, command: Command): Color =
   {
     val state = snapshot.state(command)
     if (snapshot.is_outdated) new Color(240, 240, 240)
@@ -36,6 +38,13 @@ object Document_View
         case Isar_Document.Unprocessed => new Color(255, 228, 225)
         case _ => Color.red
       }
+  }
+
+  val message_markup: PartialFunction[Text.Info[Any], Color] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => new Color(220, 220, 220)
+    case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => new Color(255, 165, 0)
+    case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => new Color(255, 106, 106)
   }
 
 
@@ -163,18 +172,36 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
         val saved_color = gfx.getColor
+        val ascent = text_area.getPainter.getFontMetrics.getAscent
         try {
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
               val line_range = proper_line_range(start(i), end(i))
+
+              // background color
               val cmds = snapshot.node.command_range(snapshot.revert(line_range))
-              for ((command, command_start) <- cmds if !command.is_ignored) {
+              for {
+                (command, command_start) <- cmds if !command.is_ignored
                 val range = line_range.restrict(snapshot.convert(command.range + command_start))
-                val p = text_area.offsetToXY(range.start)
-                val q = text_area.offsetToXY(range.stop)
-                if (p != null && q != null) {
-                  gfx.setColor(Document_View.choose_color(snapshot, command))
-                  gfx.fillRect(p.x, y + i * line_height, q.x - p.x, line_height)
+                r <- Isabelle.gfx_range(text_area, range)
+              } {
+                gfx.setColor(Document_View.status_color(snapshot, command))
+                gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+              }
+
+              // squiggly underline
+              for {
+                Text.Info(range, color) <-
+                  snapshot.select_markup(line_range)(Document_View.message_markup)(null)
+                if color != null
+                r <- Isabelle.gfx_range(text_area, range)
+              } {
+                gfx.setColor(color)
+                val x0 = (r.x / 2) * 2
+                val y0 = r.y + ascent + 1
+                for (x1 <- Range(x0, x0 + r.length, 2)) {
+                  val y1 = if (x1 % 4 < 2) y0 else y0 + 1
+                  gfx.drawLine(x1, y1, x1 + 1, y1)
                 }
               }
             }
@@ -266,7 +293,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
             val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
             val y = line_to_y(line1)
             val height = HEIGHT * (line2 - line1)
-            gfx.setColor(Document_View.choose_color(snapshot, command))
+            gfx.setColor(Document_View.status_color(snapshot, command))
             gfx.fillRect(0, y, getWidth - 1, height)
           }
         }

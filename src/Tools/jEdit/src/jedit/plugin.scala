@@ -17,7 +17,7 @@ import scala.collection.mutable
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.msg.{BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
@@ -72,6 +72,19 @@ object Isabelle
   def font_size(): Float =
     (jEdit.getIntegerProperty("view.fontsize", 16) *
       Int_Property("relative-font-size", 100)).toFloat / 100
+
+
+  /* text area ranges */
+
+  case class Gfx_Range(val x: Int, val y: Int, val length: Int)
+
+  def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
+  {
+    val p = text_area.offsetToXY(range.start)
+    val q = text_area.offsetToXY(range.stop)
+    if (p != null && q != null && p.y == q.y) Some(new Gfx_Range(p.x, p.y, q.x - p.x))
+    else None
+  }
 
 
   /* tooltip markup */
