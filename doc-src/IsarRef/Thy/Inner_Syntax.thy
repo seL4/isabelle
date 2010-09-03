@@ -98,7 +98,7 @@ text {*
   \begin{mldecls} 
     @{index_ML show_types: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML show_sorts: "bool Unsynchronized.ref"} & default @{ML false} \\
-    @{index_ML show_consts: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_consts: "bool Config.T"} & default @{ML false} \\
     @{index_ML long_names: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML short_names: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML unique_names: "bool Unsynchronized.ref"} & default @{ML true} \\

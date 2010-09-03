@@ -117,7 +117,7 @@ val display_preferences =
   bool_pref show_sorts
     "show-sorts"
     "Include sorts in display of Isabelle terms",
-  bool_pref show_consts
+  bool_pref show_consts_default
     "show-consts"
     "Show types of consts in Isabelle goal display",
   bool_pref long_names

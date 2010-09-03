@@ -268,8 +268,8 @@ fun print_model ctxt model assignment =
         "Size of types: " ^ commas (map (fn (T, i) =>
           Syntax.string_of_typ ctxt T ^ ": " ^ string_of_int i) typs) ^ "\n"
     val show_consts_msg =
-      if not (!show_consts) andalso Library.exists (is_Const o fst) terms then
-        "set \"show_consts\" to show the interpretation of constants\n"
+      if not (Config.get ctxt show_consts) andalso Library.exists (is_Const o fst) terms then
+        "enable \"show_consts\" to show the interpretation of constants\n"
       else
         ""
     val terms_msg =
@@ -278,7 +278,7 @@ fun print_model ctxt model assignment =
       else
         cat_lines (map_filter (fn (t, intr) =>
           (* print constants only if 'show_consts' is true *)
-          if (!show_consts) orelse not (is_Const t) then
+          if Config.get ctxt show_consts orelse not (is_Const t) then
             SOME (Syntax.string_of_term ctxt t ^ ": " ^
               Syntax.string_of_term ctxt
                 (print ctxt model (Term.type_of t) intr assignment))
