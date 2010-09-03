@@ -798,6 +798,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
     val thy = ProofContext.theory_of ctxt
     val _ = trace_msg (fn () =>
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
+val timer = Timer.startRealTimer () (*###*)
   in
     if exists_type type_has_top_sort (prop_of st0) then
       (warning ("Metis: Proof state contains the universal sort {}"); Seq.empty)
@@ -806,6 +807,9 @@ fun generic_metis_tac mode ctxt ths i st0 =
                   (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
+|> tap (fn _ => priority (" METIS " ^
+cat_lines (map (Display.string_of_thm ctxt) ths) ^
+string_of_int (Time.toMilliseconds (Timer.checkRealTimer timer)) ^ " ms")) (*###*)
   end
 
 val metis_tac = generic_metis_tac HO

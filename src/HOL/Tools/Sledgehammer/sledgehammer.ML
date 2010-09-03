@@ -133,15 +133,29 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path)
 
+fun extract_delimited (begin_delim, end_delim) output =
+  output |> first_field begin_delim |> the |> snd
+         |> first_field end_delim |> the |> fst
+         |> first_field "\n" |> the |> snd
+  handle Option.Option => ""
+
+val tstp_important_message_delims =
+  ("% SZS start RequiredInformation", "% SZS end RequiredInformation")
+
+fun extract_important_message output =
+  case extract_delimited tstp_important_message_delims output of
+    "" => ""
+  | s => s |> space_explode "\n" |> filter_out (curry (op =) "")
+           |> map (perhaps (try (unprefix "%")))
+           |> map (perhaps (try (unprefix " ")))
+           |> space_implode "\n " |> quote
+
 (* Splits by the first possible of a list of delimiters. *)
 fun extract_proof delims output =
   case pairself (find_first (fn s => String.isSubstring s output))
                 (ListPair.unzip delims) of
     (SOME begin_delim, SOME end_delim) =>
-    (output |> first_field begin_delim |> the |> snd
-            |> first_field end_delim |> the |> fst
-            |> first_field "\n" |> the |> snd
-     handle Option.Option => "")
+    extract_delimited (begin_delim, end_delim) output
   | _ => ""
 
 fun extract_proof_and_outcome complete res_code proof_delims known_failures
@@ -325,6 +339,7 @@ fun prover_fun atp_name
     val (conjecture_shape, axiom_names) =
       repair_conjecture_shape_and_theorem_names output conjecture_shape
                                                 axiom_names
+    val important_message = extract_important_message output
     val (message, used_thm_names) =
       case outcome of
         NONE =>
@@ -335,7 +350,12 @@ fun prover_fun atp_name
                 message ^ (if verbose then
                              "\nReal CPU time: " ^ string_of_int msecs ^ " ms."
                            else
-                             ""))
+                             "") ^
+                (if important_message <> "" then
+                   "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
+                   important_message
+                 else
+                   ""))
       | SOME failure => (string_for_failure failure, [])
   in
     {outcome = outcome, message = message, pool = pool,
@@ -346,14 +366,23 @@ fun prover_fun atp_name
 
 fun get_prover_fun thy name = prover_fun name (get_prover thy name)
 
-fun run_prover ctxt (params as {blocking, timeout, expect, ...}) i n
-               relevance_override minimize_command
-               (problem as {goal, ...}) (prover, atp_name) =
+fun run_prover ctxt (params as {blocking, verbose, max_relevant, timeout,
+                                expect, ...})
+               i n relevance_override minimize_command
+               (problem as {goal, axioms, ...})
+               (prover as {default_max_relevant, ...}, atp_name) =
   let
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
+    val max_relevant = the_default default_max_relevant max_relevant
+    val num_axioms = Int.min (length axioms, max_relevant)
     val desc =
-      "ATP " ^ quote atp_name ^ " for subgoal " ^ string_of_int i ^ ":" ^
+      "ATP " ^ quote atp_name ^
+      (if verbose then
+         " with " ^ string_of_int num_axioms ^ " fact" ^ plural_s num_axioms
+       else
+         "") ^
+      " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^ ":" ^
       (if blocking then
          ""
        else
@@ -389,15 +418,15 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
       0 => priority "No subgoal!"
     | n =>
       let
+        val thy = Proof.theory_of state
         val timer = Timer.startRealTimer ()
         val _ = () |> not blocking ? kill_atps
         val _ = priority "Sledgehammering..."
+        val provers = map (`(get_prover thy)) atps
         fun run () =
           let
             val {context = ctxt, facts = chained_ths, goal} = Proof.goal state
-            val thy = Proof.theory_of state
             val (_, hyp_ts, concl_t) = strip_subgoal goal i
-            val provers = map (`(get_prover thy)) atps
             val max_max_relevant =
               case max_relevant of
                 SOME n => n
@@ -411,11 +440,6 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
               {ctxt = ctxt, goal = goal, subgoal = i,
                axioms = map (prepare_axiom ctxt) axioms}
             val num_axioms = length axioms
-            val _ = if verbose then
-                      priority ("Selected " ^ string_of_int num_axioms ^
-                                " fact" ^ plural_s num_axioms ^ ".")
-                    else
-                      ()
             val _ =
               (if blocking then Par_List.map else map)
                   (run_prover ctxt params i n relevance_override

@@ -315,8 +315,13 @@ fun raw_term_from_pred thy full_types tfrees =
           | _ => raise FO_TERM us
         else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>
-          list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT),
-                     map (aux NONE []) us)
+          let val ts = map (aux NONE []) us in
+            if length ts = 2 andalso hd ts aconv List.last ts then
+              (* Vampire is keen on producing these. *)
+              @{const True}
+            else
+              list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
+          end
         | SOME b =>
           let
             val c = invert_const b
@@ -526,11 +531,6 @@ and delete_dep num lines =
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
-(* Vampire is keen on producing these. *)
-fun is_trivial_formula (@{const Not} $ (Const (@{const_name HOL.eq}, _)
-                                        $ t1 $ t2)) = (t1 aconv t2)
-  | is_trivial_formula _ = false
-
 fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
     (j, line :: map (replace_deps_in_line (num, [])) lines)
   | add_desired_line isar_shrink_factor conjecture_shape axiom_names frees
@@ -541,7 +541,6 @@ fun add_desired_line _ _ _ _ (line as Definition (num, _, _)) (j, lines) =
         (not (is_only_type_information t) andalso
          null (Term.add_tvars t []) andalso
          not (exists_subterm (is_bad_free frees) t) andalso
-         not (is_trivial_formula t) andalso
          (null lines orelse (* last line must be kept *)
           (length deps >= 2 andalso j mod isar_shrink_factor = 0))) then
        Inference (num, t, deps) :: lines  (* keep line *)

@@ -111,9 +111,10 @@ fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
 fun pool_map f xs =
   pool_fold (fn x => fn ys => fn pool => f x pool |>> (fn y => y :: ys)) xs []
 
-(* "equal" is reserved by some ATPs. "op" is also reserved, to avoid the
-   unreadable "op_1", "op_2", etc., in the problem files. *)
-val reserved_nice_names = ["equal", "op"]
+(* "op" is also reserved, to avoid the unreadable "op_1", "op_2", etc., in the
+   problem files. "equal" is reserved by some ATPs. "eq" is reserved to ensure
+   that "HOL.eq" is correctly mapped to equality. *)
+val reserved_nice_names = ["op", "equal", "eq"]
 fun readable_name full_name s =
   if s = full_name then
     s
