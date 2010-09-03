@@ -583,7 +583,8 @@ fun proof_state state =
 
 fun goal_state name main_goal = antiquotation name (Scan.succeed ())
   (fn {state, context = ctxt, ...} => fn () => output ctxt
-    [Pretty.chunks (Proof.pretty_goals main_goal (proof_state state))]);
+    [Pretty.chunks
+      (Proof.pretty_goals main_goal (Proof.map_context (K ctxt) (proof_state state)))]);
 
 in
 

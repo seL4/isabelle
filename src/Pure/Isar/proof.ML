@@ -370,11 +370,11 @@ fun pretty_state nr state =
 
 fun pretty_goals main state =
   let
-    val (ctxt, (_, goal)) = get_goal state;
-    val ctxt' = ctxt
+    val (_, (_, goal)) = get_goal state;
+    val ctxt = context_of state
       |> Config.put Goal_Display.show_main_goal main
       |> Config.put Goal_Display.goals_total false;
-  in Goal_Display.pretty_goals ctxt' goal end;
+  in Goal_Display.pretty_goals ctxt goal end;
 
 
 
