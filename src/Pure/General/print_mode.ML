@@ -3,6 +3,8 @@
 
 Generic print mode as thread-local value derived from global template;
 provides implicit configuration for various output mechanisms.
+
+The special print mode "input" is never enabled for output.
 *)
 
 signature BASIC_PRINT_MODE =
