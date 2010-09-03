@@ -187,43 +187,40 @@ fun mk_syn thy c =
 fun quotename c =
   if Syntax.is_identifier c andalso not (Keyword.is_keyword c) then c else quote c
 
-fun simple_smart_string_of_cterm ct =
+fun simple_smart_string_of_cterm ctxt0 ct =
     let
-        val thy = Thm.theory_of_cterm ct;
+        val ctxt = Config.put show_all_types true ctxt0;
         val {t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
-        val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
-                           handle TERM _ => ct)
+        val ct  = cterm_of (Thm.theory_of_cterm ct) (HOLogic.dest_Trueprop t)
+                           handle TERM _ => ct
     in
         quote (
         Print_Mode.setmp [] (
         setmp_CRITICAL show_brackets false (
-        setmp_CRITICAL show_all_types true (
         setmp_CRITICAL Syntax.ambiguity_is_error false (
-        setmp_CRITICAL show_sorts true (Syntax.string_of_term_global thy o Thm.term_of)))))
+        setmp_CRITICAL show_sorts true (Syntax.string_of_term ctxt o Thm.term_of))))
         ct)
     end
 
 exception SMART_STRING
 
-fun smart_string_of_cterm ct =
+fun smart_string_of_cterm ctxt ct =
     let
-        val thy = Thm.theory_of_cterm ct
-        val ctxt = ProofContext.init_global thy
         val {t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
-        val ct  = (cterm_of thy (HOLogic.dest_Trueprop t)
-                   handle TERM _ => ct)
+        val ct  = cterm_of (Thm.theory_of_cterm ct) (HOLogic.dest_Trueprop t)
+                   handle TERM _ => ct
         fun match u = t aconv u
-        fun G 0 = setmp_CRITICAL show_types true (setmp_CRITICAL show_sorts true)
-          | G 1 = setmp_CRITICAL show_brackets true (G 0)
-          | G 2 = setmp_CRITICAL show_all_types true (G 0)
-          | G 3 = setmp_CRITICAL show_brackets true (G 2)
-          | G _ = raise SMART_STRING
+        fun G 0 f ctxt x = setmp_CRITICAL show_types true (setmp_CRITICAL show_sorts true) (f ctxt) x
+          | G 1 f ctxt x = setmp_CRITICAL show_brackets true (G 0) f ctxt x
+          | G 2 f ctxt x = G 0 f (Config.put show_all_types true ctxt) x
+          | G 3 f ctxt x = setmp_CRITICAL show_brackets true (G 2) f ctxt x
+          | G _ _ _ _ = raise SMART_STRING
         fun F n =
             let
                 val str =
-                  setmp_CRITICAL show_brackets false (G n (Syntax.string_of_term ctxt o term_of)) ct
+                  setmp_CRITICAL show_brackets false (G n Syntax.string_of_term ctxt) (term_of ct)
                 val u = Syntax.parse_term ctxt str
                   |> Type_Infer.constrain T |> Syntax.check_term ctxt
             in
@@ -233,13 +230,13 @@ fun smart_string_of_cterm ct =
             end
             handle ERROR mesg => F (n + 1)
               | SMART_STRING =>
-                  error ("smart_string failed for: "^ G 0 (Syntax.string_of_term ctxt o term_of) ct)
+                  error ("smart_string failed for: "^ G 0 Syntax.string_of_term ctxt (term_of ct))
     in
       Print_Mode.setmp [] (setmp_CRITICAL Syntax.ambiguity_is_error true F) 0
     end
-    handle ERROR mesg => simple_smart_string_of_cterm ct
+    handle ERROR mesg => simple_smart_string_of_cterm ctxt ct
 
-val smart_string_of_thm = smart_string_of_cterm o cprop_of
+fun smart_string_of_thm ctxt = smart_string_of_cterm ctxt o cprop_of
 
 fun prth th = writeln (Print_Mode.setmp [] Display.string_of_thm_without_context th);
 fun prin t = writeln (Print_Mode.setmp []
@@ -366,9 +363,6 @@ val scan_attribute = scan_id -- $$ #"=" |-- scan_string
 val scan_start_of_tag = $$ #"<" |-- scan_id --
                            repeat ($$ #" " |-- scan_attribute)
 
-(* The evaluation delay introduced through the 'toks' argument is needed
-for the sake of the SML/NJ (110.9.1) compiler.  Either that or an explicit
-type :-( *)
 fun scan_end_of_tag toks = ($$ #"/" |-- $$ #">" |-- succeed []) toks
 
 val scan_end_tag = $$ #"<" |-- $$ #"/" |-- scan_id --| $$ #">"
@@ -1369,11 +1363,13 @@ fun intern_store_thm gen_output thyname thmname hth thy =
         val thy' = add_hol4_pending thyname thmname args thy
         val _ = ImportRecorder.add_hol_pending thyname thmname (hthm2thm hth')
         val th = disambiguate_frees th
-        val thy2 = if gen_output
-                   then add_dump ("lemma " ^ (quotename thmname) ^ ": " ^
-                                  (smart_string_of_thm th) ^ "\n  by (import " ^
-                                  thyname ^ " " ^ (quotename thmname) ^ ")") thy'
-                   else thy'
+        val thy2 =
+          if gen_output
+          then
+            add_dump ("lemma " ^ (quotename thmname) ^ ": " ^
+                (smart_string_of_thm (Syntax.init_pretty_global thy') th) ^ "\n  by (import " ^
+                thyname ^ " " ^ (quotename thmname) ^ ")") thy'
+          else thy'
     in
         (thy2,hth')
     end
@@ -1934,21 +1930,25 @@ fun new_definition thyname constname rhs thy =
         val (linfo,tm24) = disamb_term (mk_teq constname rhs' thy'')
         val rew = rewrite_hol4_term eq thy''
         val crhs = cterm_of thy'' (#2 (Logic.dest_equals (prop_of rew)))
-        val thy22 = if Thm.def_name constname = thmname andalso not redeclared andalso csyn = NoSyn
-                    then
-                        let
-                            val p1 = quotename constname
-                            val p2 = Syntax.string_of_typ_global thy'' ctype
-                            val p3 = string_of_mixfix csyn
-                            val p4 = smart_string_of_cterm crhs
-                        in
-                          add_dump ("definition\n  " ^ p1 ^ " :: \"" ^ p2 ^ "\" "^ p3 ^ " where\n  " ^ p4) thy''
-                        end
-                    else
-                        add_dump ("consts\n  " ^ quotename constname ^ " :: \"" ^
-                          Syntax.string_of_typ_global thy'' ctype ^
-                          "\" " ^ string_of_mixfix csyn ^ "\n\ndefs\n  " ^
-                          quotename thmname ^ ": " ^ smart_string_of_cterm crhs) thy''
+        val thy22 =
+          if Thm.def_name constname = thmname andalso not redeclared andalso csyn = NoSyn
+          then
+              let
+                  val ctxt = Syntax.init_pretty_global thy''
+                  val p1 = quotename constname
+                  val p2 = Syntax.string_of_typ ctxt ctype
+                  val p3 = string_of_mixfix csyn
+                  val p4 = smart_string_of_cterm ctxt crhs
+              in
+                add_dump ("definition\n  " ^ p1 ^ " :: \"" ^ p2 ^ "\" "^ p3 ^ " where\n  " ^ p4) thy''
+              end
+          else
+              let val ctxt = Syntax.init_pretty_global thy'' in
+                add_dump ("consts\n  " ^ quotename constname ^ " :: \"" ^
+                  Syntax.string_of_typ ctxt ctype ^
+                  "\" " ^ string_of_mixfix csyn ^ "\n\ndefs\n  " ^
+                  quotename thmname ^ ": " ^ smart_string_of_cterm ctxt crhs) thy''
+              end
         val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
                       SOME (_,res) => HOLThm(rens_of linfo,res)
                     | NONE => raise ERR "new_definition" "Bad conclusion"
@@ -2043,9 +2043,11 @@ fun new_specification thyname thmname names hth thy =
                                             in
                                                 (name'::names,thy')
                                             end) names ([], thy')
-            val thy'' = add_dump ("specification (" ^ (spaces new_names) ^ ") " ^ thmname ^ ": " ^ (smart_string_of_thm th) ^
-                                  "\n  by (import " ^ thyname ^ " " ^ thmname ^ ")")
-                                 thy'
+            val thy'' =
+              add_dump ("specification (" ^ (spaces new_names) ^ ") " ^ thmname ^ ": " ^
+                (smart_string_of_thm (Syntax.init_pretty_global thy') th) ^
+                "\n  by (import " ^ thyname ^ " " ^ thmname ^ ")")
+                thy'
             val _ = message "RESULT:"
             val _ = if_debug pth hth
         in
@@ -2118,9 +2120,10 @@ fun new_type_definition thyname thmname tycname hth thy =
             val tnames_string = if null tnames
                                 then ""
                                 else "(" ^ commas tnames ^ ") "
-            val proc_prop = if null tnames
-                            then smart_string_of_cterm
-                            else setmp_CRITICAL show_all_types true smart_string_of_cterm
+            val proc_prop =
+              smart_string_of_cterm
+                (Syntax.init_pretty_global thy4
+                  |> not (null tnames) ? Config.put show_all_types true)
             val thy5 = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^ " = " ^ (proc_prop (cterm_of thy4 c)) ^ " "
                                  ^ (string_of_mixfix tsyn) ^ "\n  by (rule typedef_helper,import " ^ thyname ^ " " ^ thmname ^ ")") thy4
 
@@ -2201,9 +2204,10 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val tnames_string = if null tnames
                                 then ""
                                 else "(" ^ commas tnames ^ ") "
-            val proc_prop = if null tnames
-                            then smart_string_of_cterm
-                            else setmp_CRITICAL show_all_types true smart_string_of_cterm
+            val proc_prop =
+              smart_string_of_cterm
+                (Syntax.init_pretty_global thy4
+                  |> not (null tnames) ? Config.put show_all_types true)
             val thy = add_dump ("typedef (open) " ^ tnames_string ^ (quotename tycname) ^
               " = " ^ (proc_prop (cterm_of thy4 c)) ^ " " ^
               (string_of_mixfix tsyn) ^ " morphisms "^

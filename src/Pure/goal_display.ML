@@ -65,6 +65,7 @@ in
 fun pretty_goals ctxt0 {total, main, maxgoals} state =
   let
     val ctxt = Config.put show_free_types false ctxt0;
+    val show_all_types = Config.get ctxt show_all_types;
 
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
@@ -116,9 +117,9 @@ fun pretty_goals ctxt0 {total, main, maxgoals} state =
       (if types then pretty_vars prop else []) @
       (if sorts then pretty_varsT prop else []);
   in
-    setmp_CRITICAL show_types (! show_types orelse ! show_sorts orelse ! show_all_types)
+    setmp_CRITICAL show_types (! show_types orelse ! show_sorts orelse show_all_types)
       (setmp_CRITICAL show_sorts false pretty_gs)
-   (! show_types orelse ! show_sorts orelse ! show_all_types, ! show_sorts)
+   (! show_types orelse ! show_sorts orelse show_all_types, ! show_sorts)
   end;
 
 fun pretty_goals_without_context n th =
