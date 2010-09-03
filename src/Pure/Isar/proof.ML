@@ -331,7 +331,7 @@ fun pretty_facts _ _ NONE = []
 
 fun pretty_state nr state =
   let
-    val {context, facts, mode, goal = _} = current state;
+    val {context = ctxt, facts, mode, goal = _} = current state;
 
     fun levels_up 0 = ""
       | levels_up 1 = "1 level up"
@@ -345,7 +345,7 @@ fun pretty_state nr state =
       (case filter_out (fn s => s = "") strs of [] => ""
       | strs' => enclose " (" ")" (commas strs'));
 
-    fun prt_goal (SOME (ctxt, (i,
+    fun prt_goal (SOME (_, (i,
       {statement = ((_, pos), _, _), messages, using, goal, before_qed = _, after_qed = _}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
@@ -357,8 +357,8 @@ fun pretty_state nr state =
       | prt_goal NONE = [];
 
     val prt_ctxt =
-      if ! verbose orelse mode = Forward then ProofContext.pretty_context context
-      else if mode = Backward then ProofContext.pretty_ctxt context
+      if ! verbose orelse mode = Forward then ProofContext.pretty_context ctxt
+      else if mode = Backward then ProofContext.pretty_ctxt ctxt
       else [];
   in
     [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
@@ -366,8 +366,8 @@ fun pretty_state nr state =
       Pretty.str ""] @
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if ! verbose orelse mode = Forward then
-       pretty_facts "" context facts @ prt_goal (try find_goal state)
-     else if mode = Chain then pretty_facts "picking " context facts
+       pretty_facts "" ctxt facts @ prt_goal (try find_goal state)
+     else if mode = Chain then pretty_facts "picking " ctxt facts
      else prt_goal (try find_goal state))
   end;
 
