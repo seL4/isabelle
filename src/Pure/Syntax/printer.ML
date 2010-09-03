@@ -9,8 +9,8 @@ sig
   val show_brackets: bool Unsynchronized.ref
   val show_sorts: bool Unsynchronized.ref
   val show_types: bool Unsynchronized.ref
-  val show_no_free_types: bool Unsynchronized.ref
-  val show_all_types: bool Unsynchronized.ref
+  val show_free_types: bool Config.T
+  val show_all_types: bool Config.T
   val show_structs: bool Unsynchronized.ref
   val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_value: Config.value Config.T
@@ -51,13 +51,13 @@ struct
 val show_types = Unsynchronized.ref false;
 val show_sorts = Unsynchronized.ref false;
 val show_brackets = Unsynchronized.ref false;
-val show_no_free_types = Unsynchronized.ref false;
-val show_all_types = Unsynchronized.ref false;
+val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
+val show_all_types = Config.bool (Config.declare "show_all_types" (fn _ => Config.Bool false));
 val show_structs = Unsynchronized.ref false;
 
 val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_value =
-  Config.declare false "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
+  Config.declare "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
 val show_question_marks = Config.bool show_question_marks_value;
 
 fun pp_show_brackets pp = Pretty.pp (setmp_CRITICAL show_brackets true (Pretty.term pp),
@@ -119,9 +119,11 @@ fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (Type_Ext.term_of_typ (! show_
 
 (** term_to_ast **)
 
-fun ast_of_term idents consts ctxt trf
-    show_all_types no_freeTs show_types show_sorts show_structs tm =
+fun ast_of_term idents consts ctxt trf show_types show_sorts show_structs tm =
   let
+    val show_free_types = Config.get ctxt show_free_types;
+    val show_all_types = Config.get ctxt show_all_types;
+
     val {structs, fixes} = idents;
 
     fun mark_atoms ((t as Const (c, T)) $ u) =
@@ -148,11 +150,11 @@ fun ast_of_term idents consts ctxt trf
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if no_freeTs orelse member (op aconv) seen t then (Lexicon.free x, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.free x, seen)
           else (t, t :: seen)
       | prune_typs (t as Var (xi, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if no_freeTs orelse member (op aconv) seen t then (Lexicon.var xi, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.var xi, seen)
           else (t, t :: seen)
       | prune_typs (t_seen as (Bound _, _)) = t_seen
       | prune_typs (Abs (x, ty, t), seen) =
@@ -199,8 +201,9 @@ fun ast_of_term idents consts ctxt trf
   end;
 
 fun term_to_ast idents consts ctxt trf tm =
-  ast_of_term idents consts ctxt trf (! show_all_types) (! show_no_free_types)
-    (! show_types orelse ! show_sorts orelse ! show_all_types) (! show_sorts) (! show_structs) tm;
+  ast_of_term idents consts ctxt trf
+    (! show_types orelse ! show_sorts orelse Config.get ctxt show_all_types)
+    (! show_sorts) (! show_structs) tm;
 
 
 

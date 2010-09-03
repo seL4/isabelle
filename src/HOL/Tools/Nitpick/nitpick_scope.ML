@@ -142,9 +142,10 @@ fun spec_of_type ({card_assigns, ofs, ...} : scope) T =
    handle TYPE ("Nitpick_HOL.card_of_type", _, _) => ~1, offset_of_type ofs T)
 
 fun quintuple_for_scope code_type code_term code_string
-        ({hol_ctxt = {ctxt, stds, ...}, card_assigns, bits, bisim_depth,
+        ({hol_ctxt = {ctxt = ctxt0, stds, ...}, card_assigns, bits, bisim_depth,
          datatypes, ...} : scope) =
   let
+    val ctxt = set_show_all_types ctxt0
     val boring_Ts = [@{typ unsigned_bit}, @{typ signed_bit},
                      @{typ bisim_iterator}]
     val (iter_assigns, card_assigns) =
@@ -175,9 +176,8 @@ fun quintuple_for_scope code_type code_term code_string
       (if bisim_depth < 0 andalso forall (not o #co) datatypes then []
        else [code_string ("bisim_depth = " ^ signed_string_of_int bisim_depth)])
   in
-    setmp_show_all_types
-        (fn () => (cards primary_card_assigns, cards secondary_card_assigns,
-                   maxes (), iters (), miscs ())) ()
+    (cards primary_card_assigns, cards secondary_card_assigns,
+     maxes (), iters (), miscs ())
   end
 
 fun pretties_for_scope scope verbose =

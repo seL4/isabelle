@@ -24,8 +24,7 @@ val goals_limit = Unsynchronized.ref 10;     (*max number of goals to print*)
 
 (*true: show consts with types in proof state output*)
 val show_consts_default = Unsynchronized.ref false;
-val show_consts_value =
-  Config.declare false "show_consts" (fn _ => Config.Bool (! show_consts_default));
+val show_consts_value = Config.declare "show_consts" (fn _ => Config.Bool (! show_consts_default));
 val show_consts = Config.bool show_consts_value;
 
 fun pretty_flexpair ctxt (t, u) = Pretty.block
@@ -63,8 +62,11 @@ fun varsT_of t = rev (sort_idxs (Term.fold_types add_varsT t []));
 
 in
 
-fun pretty_goals ctxt {total, main, maxgoals} state =
+fun pretty_goals ctxt0 {total, main, maxgoals} state =
   let
+    val ctxt = Config.put show_free_types false ctxt0;
+    val show_all_types = Config.get ctxt show_all_types;
+
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
     val prt_term = Syntax.pretty_term ctxt;
@@ -115,10 +117,9 @@ fun pretty_goals ctxt {total, main, maxgoals} state =
       (if types then pretty_vars prop else []) @
       (if sorts then pretty_varsT prop else []);
   in
-    setmp_CRITICAL show_no_free_types true
-      (setmp_CRITICAL show_types (! show_types orelse ! show_sorts orelse ! show_all_types)
-        (setmp_CRITICAL show_sorts false pretty_gs))
-   (! show_types orelse ! show_sorts orelse ! show_all_types, ! show_sorts)
+    setmp_CRITICAL show_types (! show_types orelse ! show_sorts orelse show_all_types)
+      (setmp_CRITICAL show_sorts false pretty_gs)
+   (! show_types orelse ! show_sorts orelse show_all_types, ! show_sorts)
   end;
 
 fun pretty_goals_without_context n th =

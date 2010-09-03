@@ -374,7 +374,7 @@ fun register_config config thy =
 
 fun declare_config make coerce global name default =
   let
-    val config_value = Config.declare global name (make o default);
+    val config_value = Config.declare_generic {global = global} name (make o default);
     val config = coerce config_value;
   in (config, register_config config_value) end;
 
