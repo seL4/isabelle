@@ -393,6 +393,7 @@ end;
 
 val _ = Context.>> (Context.map_theory
  (register_config Syntax.show_question_marks_value #>
+  register_config Syntax.ambiguity_level_value #>
   register_config Goal_Display.goals_limit_value #>
   register_config Goal_Display.show_main_goal_value #>
   register_config Goal_Display.show_consts_value #>

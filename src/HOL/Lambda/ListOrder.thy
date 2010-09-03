@@ -7,6 +7,9 @@ header {* Lifting an order to lists of elements *}
 
 theory ListOrder imports Main begin
 
+declare [[syntax_ambiguity_level = 100]]
+
+
 text {*
   Lifting an order to lists of elements, relating exactly one
   element.

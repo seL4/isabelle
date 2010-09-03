@@ -7,6 +7,8 @@ header {* Basic definitions of Lambda-calculus *}
 
 theory Lambda imports Main begin
 
+declare [[syntax_ambiguity_level = 100]]
+
 
 subsection {* Lambda-terms in de Bruijn notation and substitution *}
 

@@ -8,7 +8,7 @@ theory JListExample
 imports Eval
 begin
 
-ML {* Syntax.ambiguity_level := 100000 *}
+declare [[syntax_ambiguity_level = 100000]]
 
 consts
   list_name :: cname

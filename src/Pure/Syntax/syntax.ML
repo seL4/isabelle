@@ -36,9 +36,10 @@ sig
   val print_syntax: syntax -> unit
   val guess_infix: syntax -> string -> mixfix option
   val read_token: string -> Symbol_Pos.T list * Position.T
-  val ambiguity_is_error: bool Unsynchronized.ref
-  val ambiguity_level: int Unsynchronized.ref
-  val ambiguity_limit: int Unsynchronized.ref
+  val ambiguity_enabled: bool Config.T
+  val ambiguity_level_value: Config.value Config.T
+  val ambiguity_level: int Config.T
+  val ambiguity_limit: int Config.T
   val standard_parse_term: Pretty.pp -> (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> bool * string) -> (string -> string option) -> Proof.context ->
@@ -472,9 +473,14 @@ fun read_token str =
 
 (* read_ast *)
 
-val ambiguity_is_error = Unsynchronized.ref false;
-val ambiguity_level = Unsynchronized.ref 1;
-val ambiguity_limit = Unsynchronized.ref 10;
+val ambiguity_enabled =
+  Config.bool (Config.declare "syntax_ambiguity_enabled" (fn _ => Config.Bool true));
+
+val ambiguity_level_value = Config.declare "syntax_ambiguity_level" (fn _ => Config.Int 1);
+val ambiguity_level = Config.int ambiguity_level_value;
+
+val ambiguity_limit =
+  Config.int (Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10));
 
 fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 
@@ -488,12 +494,12 @@ fun read_asts ctxt is_logtype (Syntax (tabs, _)) xids root (syms, pos) =
     val pts = Parser.parse ctxt gram root' (filter Lexicon.is_proper toks);
     val len = length pts;
 
-    val limit = ! ambiguity_limit;
+    val limit = Config.get ctxt ambiguity_limit;
     fun show_pt pt =
       Pretty.string_of (Ast.pretty_ast (hd (Syn_Trans.pts_to_asts ctxt (K NONE) [pt])));
   in
-    if len <= ! ambiguity_level then ()
-    else if ! ambiguity_is_error then error (ambiguity_msg pos)
+    if len <= Config.get ctxt ambiguity_level then ()
+    else if not (Config.get ctxt ambiguity_enabled) then error (ambiguity_msg pos)
     else
       (Context_Position.if_visible ctxt warning (cat_lines
         (("Ambiguous input" ^ Position.str_of pos ^
@@ -522,14 +528,14 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty inp =
 fun disambig _ _ _ [t] = t
   | disambig ctxt pp check ts =
       let
-        val level = ! ambiguity_level;
-        val limit = ! ambiguity_limit;
+        val level = Config.get ctxt ambiguity_level;
+        val limit = Config.get ctxt ambiguity_limit;
 
         val ambiguity = length ts;
         fun ambig_msg () =
           if ambiguity > 1 andalso ambiguity <= level then
             "Got more than one parse tree.\n\
-            \Retry with smaller Syntax.ambiguity_level for more information."
+            \Retry with smaller syntax_ambiguity_level for more information."
           else "";
 
         val errs = Par_List.map check ts;

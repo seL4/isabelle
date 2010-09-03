@@ -189,7 +189,9 @@ fun quotename c =
 
 fun simple_smart_string_of_cterm ctxt0 ct =
     let
-        val ctxt = Config.put show_all_types true ctxt0;
+        val ctxt = ctxt0
+          |> Config.put show_all_types true
+          |> Config.put Syntax.ambiguity_enabled true;
         val {t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
         val ct  = cterm_of (Thm.theory_of_cterm ct) (HOLogic.dest_Trueprop t)
@@ -198,15 +200,15 @@ fun simple_smart_string_of_cterm ctxt0 ct =
         quote (
         Print_Mode.setmp [] (
         setmp_CRITICAL show_brackets false (
-        setmp_CRITICAL Syntax.ambiguity_is_error false (
-        setmp_CRITICAL show_sorts true (Syntax.string_of_term ctxt o Thm.term_of))))
+        setmp_CRITICAL show_sorts true (Syntax.string_of_term ctxt o Thm.term_of)))
         ct)
     end
 
 exception SMART_STRING
 
-fun smart_string_of_cterm ctxt ct =
+fun smart_string_of_cterm ctxt0 ct =
     let
+        val ctxt = ctxt0 |> Config.put Syntax.ambiguity_enabled false;
         val {t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
         val ct  = cterm_of (Thm.theory_of_cterm ct) (HOLogic.dest_Trueprop t)
@@ -232,9 +234,9 @@ fun smart_string_of_cterm ctxt ct =
               | SMART_STRING =>
                   error ("smart_string failed for: "^ G 0 Syntax.string_of_term ctxt (term_of ct))
     in
-      Print_Mode.setmp [] (setmp_CRITICAL Syntax.ambiguity_is_error true F) 0
+      Print_Mode.setmp [] F 0
     end
-    handle ERROR mesg => simple_smart_string_of_cterm ctxt ct
+    handle ERROR mesg => simple_smart_string_of_cterm ctxt0 ct
 
 fun smart_string_of_thm ctxt = smart_string_of_cterm ctxt o cprop_of
 

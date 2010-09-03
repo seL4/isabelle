@@ -30,17 +30,19 @@ Isar declaration attributes to access these.
 
   ML (Config.T)                 Isar (attribute)
 
+  show_question_marks           show_question_marks
+  show_consts                   show_consts
+
+  Syntax.ambiguity_level        syntax_ambiguity_level
+
+  Goal_Display.goals_limit      goals_limit
+  Goal_Display.show_main_goal   show_main_goal
+
   Thy_Output.display            thy_output_display
   Thy_Output.quotes             thy_output_quotes
   Thy_Output.indent             thy_output_indent
   Thy_Output.source             thy_output_source
   Thy_Output.break              thy_output_break
-
-  show_question_marks           show_question_marks
-  show_consts                   show_consts
-
-  Goal_Display.goals_limit      goals_limit
-  Goal_Display.show_main_goal   show_main_goal
 
 Note that corresponding "..._default" references in ML may be only
 changed globally at the ROOT session setup, but *not* within a theory.
