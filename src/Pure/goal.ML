@@ -83,7 +83,10 @@ fun check_finished ctxt th =
     0 => ()
   | n => raise THM ("Proof failed.\n" ^
       Pretty.string_of (Pretty.chunks
-        (Goal_Display.pretty_goals ctxt {total = true, main = true, maxgoals = n} th)) ^
+        (Goal_Display.pretty_goals
+          (ctxt
+            |> Config.put Goal_Display.goals_limit n
+            |> Config.put Goal_Display.show_main_goal true) th)) ^
       "\n" ^ string_of_int n ^ " unsolved goal(s)!", 0, [th]));
 
 fun finish ctxt th = (check_finished ctxt th; conclude th);

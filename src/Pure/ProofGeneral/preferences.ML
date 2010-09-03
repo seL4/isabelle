@@ -126,7 +126,7 @@ val display_preferences =
   bool_pref show_brackets
     "show-brackets"
     "Show full bracketing in Isabelle terms",
-  bool_pref Proof.show_main_goal
+  bool_pref Goal_Display.show_main_goal_default
     "show-main-goal"
     "Show main goal in proof state display",
   bool_pref Syntax.eta_contract
@@ -134,7 +134,7 @@ val display_preferences =
     "Print terms eta-contracted"];
 
 val advanced_display_preferences =
- [nat_pref goals_limit
+ [nat_pref Goal_Display.goals_limit_default
     "goals-limit"
     "Setting for maximum number of goals printed",
   int_pref ProofContext.prems_limit

@@ -459,7 +459,7 @@ val _ = add_option "mode" (add_wrapper o Print_Mode.with_modes o single);
 val _ = add_option "margin" (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer);
 val _ = add_option "indent" (Config.put indent o integer);
 val _ = add_option "source" (Config.put source o boolean);
-val _ = add_option "goals_limit" (add_wrapper o setmp_CRITICAL goals_limit o integer);
+val _ = add_option "goals_limit" (Config.put Goal_Display.goals_limit o integer);
 
 
 (* basic pretty printing *)
@@ -582,7 +582,7 @@ fun proof_state state =
   | _ => error "No proof state");
 
 fun goal_state name main_goal = antiquotation name (Scan.succeed ())
-  (fn {state, context, ...} => fn () => output context
+  (fn {state, context = ctxt, ...} => fn () => output ctxt
     [Pretty.chunks (Proof.pretty_goals main_goal (proof_state state))]);
 
 in

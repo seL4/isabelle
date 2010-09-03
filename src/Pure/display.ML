@@ -7,7 +7,6 @@ Printing of theorems, results etc.
 
 signature BASIC_DISPLAY =
 sig
-  val goals_limit: int Unsynchronized.ref
   val show_consts_default: bool Unsynchronized.ref
   val show_consts: bool Config.T
   val show_hyps: bool Unsynchronized.ref
@@ -37,7 +36,6 @@ struct
 
 (** options **)
 
-val goals_limit = Goal_Display.goals_limit;
 val show_consts_default = Goal_Display.show_consts_default;
 val show_consts = Goal_Display.show_consts;
 

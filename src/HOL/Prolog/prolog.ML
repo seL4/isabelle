@@ -2,7 +2,7 @@
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
 *)
 
-Proof.show_main_goal := true;
+Goal_Display.show_main_goal_default := true;
 
 structure Prolog =
 struct

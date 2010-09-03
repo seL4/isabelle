@@ -135,7 +135,8 @@ fun prove_row (Less less_thm :: _) =
 (** Error reporting **)
 
 fun pr_goals ctxt st =
-  Goal_Display.pretty_goals ctxt {total = true, main = false, maxgoals = Thm.nprems_of st} st
+  Goal_Display.pretty_goals
+    (Config.put Goal_Display.goals_limit (Thm.nprems_of st) ctxt) st
   |> Pretty.chunks
   |> Pretty.string_of
 

@@ -30,7 +30,6 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
-  val show_main_goal: bool Unsynchronized.ref
   val verbose: bool Unsynchronized.ref
   val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
@@ -322,7 +321,6 @@ fun get_goal state =
 
 (** pretty_state **)
 
-val show_main_goal = Unsynchronized.ref false;
 val verbose = ProofContext.verbose;
 
 fun pretty_facts _ _ NONE = []
@@ -351,8 +349,7 @@ fun pretty_state nr state =
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
             description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
-          Goal_Display.pretty_goals ctxt
-            {total = true, main = ! show_main_goal, maxgoals = ! Display.goals_limit} goal @
+          Goal_Display.pretty_goals ctxt goal @
           (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
       | prt_goal NONE = [];
 
@@ -372,10 +369,12 @@ fun pretty_state nr state =
   end;
 
 fun pretty_goals main state =
-  let val (ctxt, (_, goal)) = get_goal state in
-    Goal_Display.pretty_goals ctxt
-      {total = false, main = main, maxgoals = ! Display.goals_limit} goal
-  end;
+  let
+    val (ctxt, (_, goal)) = get_goal state;
+    val ctxt' = ctxt
+      |> Config.put Goal_Display.show_main_goal main
+      |> Config.put Goal_Display.goals_total false;
+  in Goal_Display.pretty_goals ctxt' goal end;
 
 
 
@@ -478,8 +477,7 @@ fun conclude_goal ctxt goal propss =
 
     val ngoals = Thm.nprems_of goal;
     val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
-      (Goal_Display.pretty_goals ctxt
-          {total = true, main = ! show_main_goal, maxgoals = ! Display.goals_limit} goal @
+      (Goal_Display.pretty_goals ctxt goal @
         [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)!")])));
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;

@@ -97,7 +97,7 @@ fun assert_tac (Max_number_of_subgoals i) st =
   if (nprems_of st <= i) then Seq.single st
   else raise Fail ("assert_tac: Numbers of subgoals mismatch at goal state :"
     ^ "\n" ^ Pretty.string_of (Pretty.chunks
-      (Goal_Display.pretty_goals_without_context (! Goal_Display.goals_limit) st)));
+      (Goal_Display.pretty_goals_without_context st)));
 
 (** fundamentals **)
 

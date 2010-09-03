@@ -272,8 +272,10 @@ fun set_limit _ NONE = ()
   | set_limit r (SOME n) = r := n;
 
 fun pr (modes, (lim1, lim2)) = Toplevel.keep (fn state =>
-  (set_limit goals_limit lim1; set_limit ProofContext.prems_limit lim2; Toplevel.quiet := false;
-    Print_Mode.with_modes modes (Toplevel.print_state true) state));
+ (set_limit Goal_Display.goals_limit_default lim1;
+  set_limit ProofContext.prems_limit lim2;
+  Toplevel.quiet := false;
+  Print_Mode.with_modes modes (Toplevel.print_state true) state));
 
 val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
 val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
