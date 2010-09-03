@@ -11,7 +11,8 @@ sig
   val show_types: bool Unsynchronized.ref
   val show_free_types: bool Config.T
   val show_all_types: bool Config.T
-  val show_structs: bool Unsynchronized.ref
+  val show_structs_value: Config.value Config.T
+  val show_structs: bool Config.T
   val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_value: Config.value Config.T
   val show_question_marks: bool Config.T
@@ -53,7 +54,9 @@ val show_sorts = Unsynchronized.ref false;
 val show_brackets = Unsynchronized.ref false;
 val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
 val show_all_types = Config.bool (Config.declare "show_all_types" (fn _ => Config.Bool false));
-val show_structs = Unsynchronized.ref false;
+
+val show_structs_value = Config.declare "show_structs" (fn _ => Config.Bool false);
+val show_structs = Config.bool show_structs_value;
 
 val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_value =
@@ -119,8 +122,9 @@ fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (Type_Ext.term_of_typ (! show_
 
 (** term_to_ast **)
 
-fun ast_of_term idents consts ctxt trf show_types show_sorts show_structs tm =
+fun ast_of_term idents consts ctxt trf show_types show_sorts tm =
   let
+    val show_structs = Config.get ctxt show_structs;
     val show_free_types = Config.get ctxt show_free_types;
     val show_all_types = Config.get ctxt show_all_types;
 
@@ -202,8 +206,7 @@ fun ast_of_term idents consts ctxt trf show_types show_sorts show_structs tm =
 
 fun term_to_ast idents consts ctxt trf tm =
   ast_of_term idents consts ctxt trf
-    (! show_types orelse ! show_sorts orelse Config.get ctxt show_all_types)
-    (! show_sorts) (! show_structs) tm;
+    (! show_types orelse ! show_sorts orelse Config.get ctxt show_all_types) (! show_sorts) tm;
 
 
 
