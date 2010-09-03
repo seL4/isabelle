@@ -172,7 +172,7 @@ fun ast_of_term idents consts ctxt trf show_types show_sorts tm =
 
     fun ast_of tm =
       (case strip_comb tm of
-        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syn_Trans.abs_tr' t)) (map ast_of ts)
+        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syn_Trans.abs_tr' ctxt t)) (map ast_of ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>

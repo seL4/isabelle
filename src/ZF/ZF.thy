@@ -10,7 +10,7 @@ imports FOL
 uses "~~/src/Tools/misc_legacy.ML"
 begin
 
-ML {* eta_contract := false *}
+declare [[eta_contract = false]]
 
 typedecl i
 arities  i :: "term"

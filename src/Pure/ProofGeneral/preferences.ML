@@ -129,7 +129,7 @@ val display_preferences =
   bool_pref Goal_Display.show_main_goal_default
     "show-main-goal"
     "Show main goal in proof state display",
-  bool_pref Syntax.eta_contract
+  bool_pref Syntax.eta_contract_default
     "eta-contract"
     "Print terms eta-contracted"];
 

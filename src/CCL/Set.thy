@@ -4,6 +4,8 @@ theory Set
 imports FOL
 begin
 
+declare [[eta_contract]]
+
 typedecl 'a set
 arities set :: ("term") "term"
 

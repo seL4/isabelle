@@ -8,6 +8,4 @@ A computational logic for an untyped functional language with
 evaluation to weak head-normal form.
 *)
 
-eta_contract := true;
-
 use_thys ["Wfd", "Fix"];

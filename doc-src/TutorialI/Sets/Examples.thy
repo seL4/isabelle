@@ -1,6 +1,6 @@
 theory Examples imports Main Binomial begin
 
-ML "eta_contract := false"
+declare [[eta_contract = false]]
 ML "Pretty.margin_default := 64"
 
 text{*membership, intersection *}

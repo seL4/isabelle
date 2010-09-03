@@ -6,7 +6,9 @@ Syntax translation functions.
 
 signature SYN_TRANS0 =
 sig
-  val eta_contract: bool Unsynchronized.ref
+  val eta_contract_default: bool Unsynchronized.ref
+  val eta_contract_value: Config.value Config.T
+  val eta_contract: bool Config.T
   val atomic_abs_tr': string * typ * term -> term * term
   val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
   val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
@@ -49,7 +51,7 @@ end;
 signature SYN_TRANS =
 sig
   include SYN_TRANS1
-  val abs_tr': term -> term
+  val abs_tr': Proof.context -> term -> term
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
@@ -280,9 +282,12 @@ fun strip_abss vars_of body_of tm =
 
 (*do (partial) eta-contraction before printing*)
 
-val eta_contract = Unsynchronized.ref true;
+val eta_contract_default = Unsynchronized.ref true;
+val eta_contract_value =
+  Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
+val eta_contract = Config.bool eta_contract_value;
 
-fun eta_contr tm =
+fun eta_contr ctxt tm =
   let
     fun is_aprop (Const ("_aprop", _)) = true
       | is_aprop _ = false;
@@ -298,13 +303,13 @@ fun eta_contr tm =
           | t' => Abs (a, T, t'))
       | eta_abs t = t;
   in
-    if ! eta_contract then eta_abs tm else tm
+    if Config.get ctxt eta_contract then eta_abs tm else tm
   end;
 
 
-fun abs_tr' tm =
+fun abs_tr' ctxt tm =
   uncurry (fold_rev (fn x => fn t => Lexicon.const "_abs" $ x $ t))
-    (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
+    (strip_abss strip_abs_vars strip_abs_body (eta_contr ctxt tm));
 
 fun atomic_abs_tr' (x, T, t) =
   let val [xT] = Term.rename_wrt_term t [(x, T)]
