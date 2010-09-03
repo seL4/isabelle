@@ -4,5 +4,4 @@
 This is the ROOT file for the Alternating Bit Protocol performed in
 I/O-Automata.
 *)
-use "Check.ML";
 use_thys ["Correctness"];
