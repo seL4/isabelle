@@ -597,4 +597,12 @@ next
     using g by (rule cont_fst_snd_D1)
 qed
 
+text {* The simple version (suggested by Joachim Breitner) is needed if
+  the type of the defined term is not a cpo. *}
+
+lemma cont2cont_Let_simple [simp, cont2cont]:
+  assumes "\<And>y. cont (\<lambda>x. g x y)"
+  shows "cont (\<lambda>x. let y = t in g x y)"
+unfolding Let_def using assms .
+
 end
