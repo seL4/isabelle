@@ -785,31 +785,33 @@ fun ml_program_of_program labelled_name reserved module_alias program =
       cyclic_modules = false, empty_data = (), memorize_data = K I, modify_stmts = modify_stmts } program
   end;
 
-fun serialize_ml target print_module print_stmt with_signatures { labelled_name,
+fun serialize_ml target print_ml_module print_ml_stmt with_signatures { labelled_name,
   reserved_syms, includes, module_alias, class_syntax, tyco_syntax,
   const_syntax, program, names } =
   let
-    val is_cons = Code_Thingol.is_cons program;
+
+    (* build program *)
     val { deresolver, hierarchical_program = ml_program } =
       ml_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
-    val print_stmt = print_stmt labelled_name tyco_syntax const_syntax
-      (make_vars reserved_syms) is_cons;
-    fun print_node _ (_, Code_Namespace.Dummy) =
-          NONE
-      | print_node prefix_fragments (name, Code_Namespace.Stmt stmt) =
-          SOME (apsnd (markup_stmt name) (print_stmt (deresolver prefix_fragments) stmt))
-      | print_node prefix_fragments (name_fragment, Code_Namespace.Module (_, nodes)) =
-          let
-            val (decls, body) = print_nodes (prefix_fragments @ [name_fragment]) nodes;
-            val p = print_module name_fragment
-                (if with_signatures then SOME decls else NONE) body;
-          in SOME ([], p) end
-    and print_nodes prefix_fragments nodes = (map_filter
-        (fn name => print_node prefix_fragments (name, snd (Graph.get_node nodes name)))
-        o rev o flat o Graph.strong_conn) nodes
-      |> split_list
-      |> (fn (decls, body) => (flat decls, body))
-    val p = Pretty.chunks2 (map snd includes @ snd (print_nodes [] ml_program));
+
+    (* print statements *)
+    fun print_stmt prefix_fragments (_, stmt) = print_ml_stmt
+      labelled_name tyco_syntax const_syntax (make_vars reserved_syms)
+      (Code_Thingol.is_cons program) (deresolver prefix_fragments) stmt
+      |> apfst SOME;
+
+    (* print modules *)
+    fun print_module prefix_fragments base _ xs =
+      let
+        val (raw_decls, body) = split_list xs;
+        val decls = if with_signatures then SOME (maps these raw_decls) else NONE 
+      in (NONE, print_ml_module base decls body) end;
+
+    (* serialization *)
+    val p = Pretty.chunks2 (map snd includes
+      @ map snd (Code_Namespace.print_hierarchical {
+        print_module = print_module, print_stmt = print_stmt,
+        lift_markup = apsnd } ml_program));
     fun write width NONE = writeln o format [] width
       | write width (SOME p) = File.write p o format [] width;
   in

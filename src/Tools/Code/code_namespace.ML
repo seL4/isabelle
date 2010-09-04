@@ -10,7 +10,8 @@ sig
   datatype ('a, 'b) node =
       Dummy
     | Stmt of 'a
-    | Module of ('b * (string * ('a, 'b) node) Graph.T);
+    | Module of ('b * (string * ('a, 'b) node) Graph.T)
+  type ('a, 'b) hierarchical_program = (string * ('a, 'b) node) Graph.T
   val hierarchical_program: (string -> string) -> { module_alias: string -> string option,
     reserved: Name.context, empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
@@ -18,7 +19,11 @@ sig
     modify_stmts: (string * Code_Thingol.stmt) list -> 'a option list }
       -> Code_Thingol.program
       -> { deresolver: string list -> string -> string,
-           hierarchical_program: (string * ('a, 'b) node) Graph.T }
+           hierarchical_program: ('a, 'b) hierarchical_program }
+  val print_hierarchical: { print_module: string list -> string -> 'b -> 'c list -> 'c,
+    print_stmt: string list -> string * 'a -> 'c,
+    lift_markup: (Pretty.T -> Pretty.T) -> 'c -> 'c }
+      -> ('a, 'b) hierarchical_program -> 'c list
 end;
 
 structure Code_Namespace : CODE_NAMESPACE =
@@ -36,6 +41,8 @@ datatype ('a, 'b) node =
     Dummy
   | Stmt of 'a
   | Module of ('b * (string * ('a, 'b) node) Graph.T);
+
+type ('a, 'b) hierarchical_program = (string * ('a, 'b) node) Graph.T;
 
 fun map_module_content f (Module content) = Module (f content);
 
@@ -139,5 +146,26 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
         handle Graph.UNDEF _ => error ("Unknown statement name: " ^ labelled_name name);
 
   in { deresolver = deresolver, hierarchical_program = hierarchical_program } end;
+
+fun print_hierarchical { print_module, print_stmt, lift_markup } =
+  let
+    fun print_node _ (_, Dummy) =
+          NONE
+      | print_node prefix_fragments (name, Stmt stmt) =
+          SOME (lift_markup (Code_Printer.markup_stmt name)
+            (print_stmt prefix_fragments (name, stmt)))
+      | print_node prefix_fragments (name_fragment, Module (data, nodes)) =
+          let
+            val prefix_fragments' = prefix_fragments @ [name_fragment]
+          in
+            Option.map (print_module prefix_fragments'
+              name_fragment data) (print_nodes prefix_fragments' nodes)
+          end
+    and print_nodes prefix_fragments nodes =
+      let
+        val xs = (map_filter (fn name => print_node prefix_fragments
+          (name, snd (Graph.get_node nodes name))) o rev o flat o Graph.strong_conn) nodes
+      in if null xs then NONE else SOME xs end;
+  in these o print_nodes [] end;
 
 end;

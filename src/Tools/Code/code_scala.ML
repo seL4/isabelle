@@ -334,7 +334,7 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
   let
 
     (* build program *)
-    val { deresolver, hierarchical_program = sca_program } =
+    val { deresolver, hierarchical_program = scala_program } =
       scala_program_of_program labelled_name (Name.make_context reserved_syms) module_alias program;
 
     (* print statements *)
@@ -354,38 +354,27 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
     fun is_singleton_constr c = case Graph.get_node program c
      of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
       | _ => false;
-    val print_stmt = print_scala_stmt labelled_name tyco_syntax const_syntax
-      (make_vars reserved_syms) args_num is_singleton_constr;
+    fun print_stmt prefix_fragments = print_scala_stmt labelled_name
+      tyco_syntax const_syntax (make_vars reserved_syms) args_num
+      is_singleton_constr (deresolver prefix_fragments, deresolver []);
 
-    (* print nodes *)
-    fun print_module base implicit_ps p = Pretty.chunks2
-      ([str ("object " ^ base ^ " {")]
-        @ (if null implicit_ps then [] else (single o Pretty.block)
-            (str "import /*implicits*/" :: Pretty.brk 1 :: commas implicit_ps))
-        @ [p, str ("} /* object " ^ base ^ " */")]);
+    (* print modules *)
     fun print_implicit prefix_fragments implicit =
       let
         val s = deresolver prefix_fragments implicit;
       in if length (Long_Name.explode s) = 1 then NONE else SOME (str s) end;
-    fun print_node _ (_, Code_Namespace.Dummy) = NONE
-      | print_node prefix_fragments (name, Code_Namespace.Stmt stmt) =
-          SOME (markup_stmt name (print_stmt (deresolver prefix_fragments, deresolver []) (name, stmt)))
-      | print_node prefix_fragments (name_fragment, Code_Namespace.Module (implicits, nodes)) =
-          let
-            val prefix_fragments' = prefix_fragments @ [name_fragment];
-          in
-            Option.map (print_module name_fragment
-              (map_filter (print_implicit prefix_fragments') implicits))
-                (print_nodes prefix_fragments' nodes)
-          end
-    and print_nodes prefix_fragments nodes = let
-        val ps = map_filter (fn name => print_node prefix_fragments (name,
-          snd (Graph.get_node nodes name)))
-            ((rev o flat o Graph.strong_conn) nodes);
-      in if null ps then NONE else SOME (Pretty.chunks2 ps) end;
+    fun print_module prefix_fragments base implicits ps = Pretty.chunks2
+      ([str ("object " ^ base ^ " {")]
+        @ (case map_filter (print_implicit prefix_fragments) implicits
+            of [] => [] | implicit_ps => (single o Pretty.block)
+            (str "import /*implicits*/" :: Pretty.brk 1 :: commas implicit_ps))
+        @ ps @ [str ("} /* object " ^ base ^ " */")]);
 
     (* serialization *)
-    val p = Pretty.chunks2 (map snd includes @ the_list (print_nodes [] sca_program));
+    val p = Pretty.chunks2 (map snd includes
+      @ Code_Namespace.print_hierarchical {
+        print_module = print_module, print_stmt = print_stmt,
+        lift_markup = I } scala_program);
     fun write width NONE = writeln o format [] width
       | write width (SOME p) = File.write p o format [] width;
   in
