@@ -239,7 +239,7 @@ lemma cont2cont_split:
   assumes f2: "\<And>x b. cont (\<lambda>a. f x a b)"
   assumes f3: "\<And>x a. cont (\<lambda>b. f x a b)"
   assumes g: "cont (\<lambda>x. g x)"
-  shows "cont (\<lambda>x. split (\<lambda>a b. f x a b) (g x))"
+  shows "cont (\<lambda>x. case g x of (a, b) \<Rightarrow> f x a b)"
 unfolding split_def
 apply (rule cont_apply [OF g])
 apply (rule cont_apply [OF cont_fst f2])
@@ -273,6 +273,14 @@ proof -
     apply (rule f1)
     done
 qed
+
+text {* The simple version (due to Joachim Breitner) is needed if
+  either element type of the pair is not a cpo. *}
+
+lemma cont2cont_split_simple [simp, cont2cont]:
+ assumes "\<And>a b. cont (\<lambda>x. f x a b)"
+ shows "cont (\<lambda>x. case p of (a, b) \<Rightarrow> f x a b)"
+using assms by (cases p) auto
 
 subsection {* Compactness and chain-finiteness *}
 
