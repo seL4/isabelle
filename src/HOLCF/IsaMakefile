@@ -103,6 +103,7 @@ $(LOG)/HOLCF-Tutorial.gz: $(OUT)/HOLCF \
 HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
 
 $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
+  Library/List_Cpo.thy \
   Library/Stream.thy \
   Library/Strict_Fun.thy \
   Library/Sum_Cpo.thy \
