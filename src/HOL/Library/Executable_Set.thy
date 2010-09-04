@@ -9,6 +9,12 @@ theory Executable_Set
 imports More_Set
 begin
 
+text {*
+  This is just an ad-hoc hack which will rarely give you what you want.
+  For the moment, whenever you need executable sets, consider using
+  type @{text fset} from theory @{text Fset}.
+*}
+
 declare mem_def [code del]
 declare Collect_def [code del]
 declare insert_code [code del]
