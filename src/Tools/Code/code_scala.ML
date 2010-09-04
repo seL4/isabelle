@@ -329,8 +329,7 @@ fun scala_program_of_program labelled_name reserved module_alias program =
   end;
 
 fun serialize_scala { labelled_name, reserved_syms, includes,
-    module_alias, class_syntax, tyco_syntax, const_syntax, program,
-    names } =
+    module_alias, class_syntax, tyco_syntax, const_syntax, program } =
   let
 
     (* build program *)
