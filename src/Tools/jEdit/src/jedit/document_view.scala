@@ -124,6 +124,13 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength)
   }
 
+  def invalidate_line_range(range: Text.Range)
+  {
+    text_area.invalidateLineRange(
+      model.buffer.getLineOfOffset(range.start),
+      model.buffer.getLineOfOffset(range.stop))
+  }
+
 
   /* commands_changed_actor */
 
@@ -164,23 +171,35 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   /* subexpression highlighting */
 
-  private var highlight_point: Option[(Int, Int)] = None
+  private def subexp_range(snapshot: Document.Snapshot, x: Int, y: Int): Option[Text.Range] =
+  {
+    val subexp_markup: PartialFunction[Text.Info[Any], Option[Text.Range]] =
+    {
+      case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), _)) =>
+        Some(snapshot.convert(range))
+    }
+    val offset = text_area.xyToOffset(x, y)
+    val markup = snapshot.select_markup(Text.Range(offset, offset + 1))(subexp_markup)(None)
+    if (markup.hasNext) markup.next.info else None
+  }
+
+  private var highlight_range: Option[Text.Range] = None
 
   private val focus_listener = new FocusAdapter {
-    override def focusLost(e: FocusEvent) { highlight_point = None }
+    override def focusLost(e: FocusEvent) { highlight_range = None }
   }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
       val control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
-      def refresh()
-      {
-        val offset = text_area.xyToOffset(e.getX(), e.getY())
-        text_area.invalidateLine(model.buffer.getLineOfOffset(offset))
-      }
-      if (!model.buffer.isLoaded) highlight_point = None
-      else if (!control) { highlight_point = None; refresh() }
-      else { highlight_point = Some((e.getX(), e.getY())); refresh() }
+      if (!model.buffer.isLoaded) highlight_range = None
+      else
+        Isabelle.swing_buffer_lock(model.buffer) {
+          highlight_range.map(invalidate_line_range(_))
+          highlight_range =
+            if (control) subexp_range(model.snapshot(), e.getX(), e.getY()) else None
+          highlight_range.map(invalidate_line_range(_))
+        }
     }
   }
 
@@ -198,21 +217,6 @@ class Document_View(val model: Document_Model, text_area: TextArea)
         val saved_color = gfx.getColor
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
-        // subexpression markup
-        val subexp_markup: PartialFunction[Text.Info[Any], Option[Text.Range]] =
-        {
-          case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), _)) => Some(range)
-        }
-        val subexp_range: Option[Text.Range] =
-          highlight_point match {
-            case Some((x, y)) =>
-              val offset = text_area.xyToOffset(x, y)
-              val markup =
-                snapshot.select_markup(Text.Range(offset, offset + 1))(subexp_markup)(None)
-              if (markup.hasNext) markup.next.info else None
-            case None => None
-          }
-
         try {
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
@@ -229,11 +233,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
               }
 
-              // subexpression highlighting
-              if (subexp_range.isDefined) {
-                val range = snapshot.convert(subexp_range.get)
-                if (line_range.overlaps(range)) {
-                  Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
+              // subexpression highlighting -- potentially from other snapshot
+              if (highlight_range.isDefined) {
+                if (line_range.overlaps(highlight_range.get)) {
+                  Isabelle.gfx_range(text_area, line_range.restrict(highlight_range.get)) match {
                     case None =>
                     case Some(r) =>
                       gfx.setColor(Color.black)
