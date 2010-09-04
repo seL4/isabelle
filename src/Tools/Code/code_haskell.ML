@@ -331,10 +331,8 @@ fun haskell_program_of_program labelled_name module_prefix reserved module_alias
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
-fun serialize_haskell module_prefix string_classes { labelled_name,
-    reserved_syms, includes, module_alias,
-    class_syntax, tyco_syntax, const_syntax, program,
-    names } =
+fun serialize_haskell module_prefix string_classes { labelled_name, reserved_syms,
+    includes, module_alias, class_syntax, tyco_syntax, const_syntax, program } =
   let
     val reserved = fold (insert (op =) o fst) includes reserved_syms;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name

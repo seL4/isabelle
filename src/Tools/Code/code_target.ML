@@ -105,7 +105,8 @@ fun merge_symbol_syntax_data
        Symtab.join (K snd) (const1, const2))
   );
 
-type serializer = Token.T list (*arguments*) -> {
+type serializer = Token.T list
+  -> {
     labelled_name: string -> string,
     reserved_syms: string list,
     includes: (string * Pretty.T) list,
@@ -113,8 +114,7 @@ type serializer = Token.T list (*arguments*) -> {
     class_syntax: string -> string option,
     tyco_syntax: string -> Code_Printer.tyco_syntax option,
     const_syntax: string -> Code_Printer.activated_const_syntax option,
-    program: Code_Thingol.program,
-    names: string list }
+    program: Code_Thingol.program }
   -> serialization;
 
 datatype description = Fundamental of { serializer: serializer,
@@ -321,8 +321,7 @@ fun invoke_serializer thy abortable serializer literals reserved abs_includes
       class_syntax = Symtab.lookup class_syntax,
       tyco_syntax = Symtab.lookup tyco_syntax,
       const_syntax = Symtab.lookup const_syntax,
-      program = program,
-      names = names }
+      program = program }
   end;
 
 fun mount_serializer thy target some_width module_name args naming proto_program names =
