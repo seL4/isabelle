@@ -6,13 +6,15 @@ Pretty printing of asts, terms, types and print (ast) translation.
 
 signature PRINTER0 =
 sig
-  val show_brackets: bool Unsynchronized.ref
-  val show_sorts_default: bool Unsynchronized.ref
-  val show_sorts_value: Config.value Config.T
-  val show_sorts: bool Config.T
+  val show_brackets_default: bool Unsynchronized.ref
+  val show_brackets_value: Config.value Config.T
+  val show_brackets: bool Config.T
   val show_types_default: bool Unsynchronized.ref
   val show_types_value: Config.value Config.T
   val show_types: bool Config.T
+  val show_sorts_default: bool Unsynchronized.ref
+  val show_sorts_value: Config.value Config.T
+  val show_sorts: bool Config.T
   val show_free_types: bool Config.T
   val show_all_types: bool Config.T
   val show_structs_value: Config.value Config.T
@@ -20,7 +22,6 @@ sig
   val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_value: Config.value Config.T
   val show_question_marks: bool Config.T
-  val pp_show_brackets: Pretty.pp -> Pretty.pp
 end;
 
 signature PRINTER =
@@ -53,6 +54,11 @@ struct
 
 (** options for printing **)
 
+val show_brackets_default = Unsynchronized.ref false;
+val show_brackets_value =
+  Config.declare "show_brackets" (fn _ => Config.Bool (! show_brackets_default));
+val show_brackets = Config.bool show_brackets_value;
+
 val show_types_default = Unsynchronized.ref false;
 val show_types_value = Config.declare "show_types" (fn _ => Config.Bool (! show_types_default));
 val show_types = Config.bool show_types_value;
@@ -61,7 +67,6 @@ val show_sorts_default = Unsynchronized.ref false;
 val show_sorts_value = Config.declare "show_sorts" (fn _ => Config.Bool (! show_sorts_default));
 val show_sorts = Config.bool show_sorts_value;
 
-val show_brackets = Unsynchronized.ref false;
 val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
 val show_all_types = Config.bool (Config.declare "show_all_types" (fn _ => Config.Bool false));
 
@@ -72,9 +77,6 @@ val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_value =
   Config.declare "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
 val show_question_marks = Config.bool show_question_marks_value;
-
-fun pp_show_brackets pp = Pretty.pp (setmp_CRITICAL show_brackets true (Pretty.term pp),
-  Pretty.typ pp, Pretty.sort pp, Pretty.classrel pp, Pretty.arity pp);
 
 
 
@@ -315,6 +317,7 @@ fun is_chain [Block (_, pr)] = is_chain pr
 fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
   let
     val {extern_class, extern_type, extern_const} = extern;
+    val show_brackets = Config.get ctxt show_brackets;
 
     fun token_trans a x =
       (case tokentrf a of
@@ -361,8 +364,7 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
           in (T :: Ts, args') end
 
     and parT markup (pr, args, p, p': int) = #1 (synT markup
-          (if p > p' orelse
-            (! show_brackets andalso p' <> Syn_Ext.max_pri andalso not (is_chain pr))
+          (if p > p' orelse (show_brackets andalso p' <> Syn_Ext.max_pri andalso not (is_chain pr))
             then [Block (1, Space "(" :: pr @ [Space ")"])]
             else pr, args))
 

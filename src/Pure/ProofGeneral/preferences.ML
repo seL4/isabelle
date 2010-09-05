@@ -123,7 +123,7 @@ val display_preferences =
   bool_pref long_names
     "long-names"
     "Show fully qualified names in Isabelle terms",
-  bool_pref show_brackets
+  bool_pref show_brackets_default
     "show-brackets"
     "Show full bracketing in Isabelle terms",
   bool_pref Goal_Display.show_main_goal_default

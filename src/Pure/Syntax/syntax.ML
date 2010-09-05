@@ -760,7 +760,7 @@ fun disambig _ _ [t] = t
         val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
         val len = length results;
 
-        val show_term = setmp_CRITICAL Printer.show_brackets true (string_of_term ctxt);
+        val show_term = string_of_term (Config.put Printer.show_brackets true ctxt);
       in
         if null results then cat_error (ambig_msg ()) (cat_lines (map_filter I errs))
         else if len = 1 then
