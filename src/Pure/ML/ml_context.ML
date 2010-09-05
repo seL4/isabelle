@@ -19,9 +19,10 @@ sig
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val exec: (unit -> unit) -> Context.generic -> Context.generic
-  val stored_thms: thm list Unsynchronized.ref
-  val ml_store_thm: string * thm -> unit
+  val get_stored_thms: unit -> thm list
+  val get_stored_thm: unit -> thm
   val ml_store_thms: string * thm list -> unit
+  val ml_store_thm: string * thm -> unit
   type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context
   val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
   val trace: bool Unsynchronized.ref
@@ -56,23 +57,34 @@ fun exec (e: unit -> unit) context =
 
 (* theorem bindings *)
 
-val stored_thms: thm list Unsynchronized.ref = Unsynchronized.ref [];  (* FIXME via context!? *)
+structure Stored_Thms = Theory_Data
+(
+  type T = thm list;
+  val empty = [];
+  fun extend _ = [];
+  fun merge _ = [];
+);
 
-fun ml_store sel (name, ths) =
+fun get_stored_thms () = Stored_Thms.get (the_global_context ());
+val get_stored_thm = hd o get_stored_thms;
+
+fun ml_store get (name, ths) =
   let
     val ths' = Context.>>> (Context.map_theory_result
       (PureThy.store_thms (Binding.name name, ths)));
+    val _ = Context.>> (Context.map_theory (Stored_Thms.put ths'));
     val _ =
       if name = "" then ()
       else if not (ML_Syntax.is_identifier name) then
         error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
-      else setmp_CRITICAL stored_thms ths' (fn () =>
+      else
         ML_Compiler.eval true Position.none
-          (ML_Lex.tokenize ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);"))) ();
+          (ML_Lex.tokenize ("val " ^ name ^ " = " ^ get ^ " ();"));
+    val _ = Context.>> (Context.map_theory (Stored_Thms.put []));
   in () end;
 
-val ml_store_thms = ml_store "";
-fun ml_store_thm (name, th) = ml_store "hd" (name, [th]);
+val ml_store_thms = ml_store "ML_Context.get_stored_thms";
+fun ml_store_thm (name, th) = ml_store "ML_Context.get_stored_thm" (name, [th]);
 
 fun bind_thm (name, thm) = ml_store_thm (name, Drule.export_without_context thm);
 fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_context thms);
