@@ -67,8 +67,8 @@ sig
   val certify_term: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
-  val no_frees: Pretty.pp -> term -> term
-  val no_vars: Pretty.pp -> term -> term
+  val no_frees: Proof.context -> term -> term
+  val no_vars: Proof.context -> term -> term
   val add_types: (binding * int * mixfix) list -> theory -> theory
   val add_nonterminals: binding list -> theory -> theory
   val add_type_abbrev: binding * string list * typ -> theory -> theory
@@ -320,12 +320,13 @@ end;
 
 (* specifications *)
 
-fun no_variables kind add addT mk mkT pp tm =
+fun no_variables kind add addT mk mkT ctxt tm =
   (case (add tm [], addT tm []) of
     ([], []) => tm
   | (frees, tfrees) => error (Pretty.string_of (Pretty.block
       (Pretty.str ("Illegal " ^ kind ^ " variable(s) in term:") :: Pretty.brk 1 ::
-       Pretty.commas (map (Pretty.term pp o mk) frees @ map (Pretty.typ pp o mkT) tfrees)))));
+       Pretty.commas
+        (map (Syntax.pretty_term ctxt o mk) frees @ map (Syntax.pretty_typ ctxt o mkT) tfrees)))));
 
 val no_frees = no_variables "free" Term.add_frees Term.add_tfrees Free TFree;
 val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
@@ -434,12 +435,12 @@ end;
 
 fun add_abbrev mode (b, raw_t) thy =
   let
-    val pp = Syntax.pp_global thy;
-    val prep_tm = no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
+    val ctxt = Syntax.init_pretty_global thy;
+    val prep_tm = no_frees ctxt o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode (b, t);
+      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of thy) (naming_of thy) mode (b, t);
   in (res, thy |> map_consts (K consts')) end;
 
 fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);

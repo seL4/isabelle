@@ -315,7 +315,6 @@ fun create_detailed_entry thy thm exec mutants mtds =
 (* (theory -> thm -> bool -> term list -> mtd list -> 'a) -> theory -> mtd list -> thm -> 'a *)
 fun mutate_theorem create_entry thy mtds thm =
   let
-    val pp = Syntax.pp_global thy
     val exec = is_executable_thm thy thm
     val _ = priority (if exec then "EXEC" else "NOEXEC")
     val mutants =
@@ -343,7 +342,7 @@ fun mutate_theorem create_entry thy mtds thm =
           |> map Mutabelle.freeze |> map freezeT
 (*          |> filter (not o is_forbidden_mutant) *)
           |> List.mapPartial (try (Sign.cert_term thy))
-    val _ = map (fn t => priority ("MUTANT: " ^ Pretty.string_of (Pretty.term pp t))) mutants
+    val _ = map (fn t => priority ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
   in
     create_entry thy thm exec mutants mtds
   end

@@ -507,8 +507,7 @@ fun split_defined n eq =
 
 fun define_class (bclass, raw_super) raw_params raw_specs thy =
   let
-    val ctxt = ProofContext.init_global thy;
-    val pp = Syntax.pp ctxt;
+    val ctxt = Syntax.init_pretty_global thy;
 
 
     (* class *)
@@ -520,8 +519,8 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     fun check_constraint (a, S) =
       if Sign.subsort thy (super, S) then ()
       else error ("Sort constraint of type variable " ^
-        setmp_CRITICAL show_sorts true (Pretty.string_of_typ pp) (TFree (a, S)) ^
-        " needs to be weaker than " ^ Pretty.string_of_sort pp super);
+        setmp_CRITICAL show_sorts true (Syntax.string_of_typ ctxt) (TFree (a, S)) ^
+        " needs to be weaker than " ^ Syntax.string_of_sort ctxt super);
 
 
     (* params *)
@@ -543,7 +542,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       (case Term.add_tfrees t [] of
         [(a, S)] => check_constraint (a, S)
       | [] => ()
-      | _ => error ("Multiple type variables in class axiom:\n" ^ Pretty.string_of_term pp t);
+      | _ => error ("Multiple type variables in class axiom:\n" ^ Syntax.string_of_term ctxt t);
       t
       |> Term.map_types (Term.map_atyps (fn TFree _ => Term.aT [] | U => U))
       |> Logic.close_form);
@@ -590,7 +589,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       |> PureThy.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> #2
       |> Sign.restore_naming facts_thy
       |> map_axclasses (Symtab.update (class, axclass))
-      |> map_params (fold (fn (x, _) => add_param pp (x, class)) params);
+      |> map_params (fold (fn (x, _) => add_param (Syntax.pp ctxt) (x, class)) params);
 
   in (class, result_thy) end;
 

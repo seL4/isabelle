@@ -525,9 +525,8 @@ fun instantiation (tycos, vs, sort) thy =
     val params = map_product get_param tycos class_params |> map_filter I;
     val primary_constraints = map (apsnd
       (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) class_params;
-    val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy
-      |> fold (fn tyco => Sorts.add_arities pp
+      |> fold (fn tyco => Sorts.add_arities (Syntax.pp_global thy)
             (tyco, map (fn class => (class, map snd vs)) sort)) tycos;
     val consts = Sign.consts_of thy;
     val improve_constraints = AList.lookup (op =)

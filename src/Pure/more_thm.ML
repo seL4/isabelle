@@ -348,7 +348,7 @@ fun add_axiom (b, prop) thy =
   let
     val b' = if Binding.is_empty b then Binding.name ("unnamed_axiom_" ^ serial_string ()) else b;
 
-    val _ = Sign.no_vars (Syntax.pp_global thy) prop;
+    val _ = Sign.no_vars (Syntax.init_pretty_global thy) prop;
     val (strip, recover, prop') = stripped_sorts thy prop;
     val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
     val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of thy T, S)) strip;
@@ -365,7 +365,7 @@ fun add_axiom (b, prop) thy =
 
 fun add_def unchecked overloaded (b, prop) thy =
   let
-    val _ = Sign.no_vars (Syntax.pp_global thy) prop;
+    val _ = Sign.no_vars (Syntax.init_pretty_global thy) prop;
     val prems = map (Thm.cterm_of thy) (Logic.strip_imp_prems prop);
     val (_, recover, concl') = stripped_sorts thy (Logic.strip_imp_concl prop);
 
