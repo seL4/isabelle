@@ -81,8 +81,20 @@ lemma option_map_o_sum_case [simp]:
     "map f o sum_case g h = sum_case (map f o g) (map f o h)"
   by (rule ext) (simp split: sum.split)
 
+primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where
+bind_lzero: "bind None f = None" |
+bind_lunit: "bind (Some x) f = f x"
 
-hide_const (open) set map
+lemma bind_runit[simp]: "bind x Some = x"
+by (cases x) auto
+
+lemma bind_assoc[simp]: "bind (bind x f) g = bind x (\<lambda>y. bind (f y) g)"
+by (cases x) auto
+
+lemma bind_rzero[simp]: "bind x (\<lambda>x. None) = None"
+by (cases x) auto
+
+hide_const (open) set map bind
 
 subsubsection {* Code generator setup *}
 
