@@ -114,7 +114,7 @@ sig
   val ambiguity_level_value: Config.value Config.T
   val ambiguity_level: int Config.T
   val ambiguity_limit: int Config.T
-  val standard_parse_term: Pretty.pp -> (term -> string option) ->
+  val standard_parse_term: (term -> string option) ->
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> bool * string) -> (string -> string option) -> Proof.context ->
     (string -> bool) -> syntax -> typ -> Symbol_Pos.T list * Position.T -> term
@@ -743,8 +743,8 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty inp =
 (* read terms *)
 
 (*brute-force disambiguation via type-inference*)
-fun disambig _ _ _ [t] = t
-  | disambig ctxt pp check ts =
+fun disambig _ _ [t] = t
+  | disambig ctxt check ts =
       let
         val level = Config.get ctxt ambiguity_level;
         val limit = Config.get ctxt ambiguity_limit;
@@ -759,6 +759,8 @@ fun disambig _ _ _ [t] = t
         val errs = Par_List.map check ts;
         val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
         val len = length results;
+
+        val show_term = setmp_CRITICAL Printer.show_brackets true (string_of_term ctxt);
       in
         if null results then cat_error (ambig_msg ()) (cat_lines (map_filter I errs))
         else if len = 1 then
@@ -770,13 +772,13 @@ fun disambig _ _ _ [t] = t
         else cat_error (ambig_msg ()) (cat_lines
           (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of_term pp) (take limit results)))
+            map show_term (take limit results)))
       end;
 
-fun standard_parse_term pp check get_sort map_const map_free ctxt is_logtype syn ty (syms, pos) =
+fun standard_parse_term check get_sort map_const map_free ctxt is_logtype syn ty (syms, pos) =
   read ctxt is_logtype syn ty (syms, pos)
   |> map (Type_Ext.decode_term get_sort map_const map_free)
-  |> disambig ctxt (Printer.pp_show_brackets pp) check;
+  |> disambig ctxt check;
 
 
 (* read types *)

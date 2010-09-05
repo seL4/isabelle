@@ -763,7 +763,7 @@ fun parse_term T ctxt text =
     fun check t = (Syntax.check_term ctxt (Type_Infer.constrain T' t); NONE)
       handle ERROR msg => SOME msg;
     val t =
-      Syntax.standard_parse_term (Syntax.pp ctxt) check get_sort map_const map_free
+      Syntax.standard_parse_term check get_sort map_const map_free
         ctxt (Type.is_logtype (tsig_of ctxt)) (syn_of ctxt) T' (syms, pos)
       handle ERROR msg => cat_error msg ("Failed to parse " ^ kind);
   in t end;
