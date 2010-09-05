@@ -111,10 +111,10 @@ val print_depth_pref =
 
 
 val display_preferences =
- [bool_pref show_types
+ [bool_pref show_types_default
     "show-types"
     "Include types in display of Isabelle terms",
-  bool_pref show_sorts
+  bool_pref show_sorts_default
     "show-sorts"
     "Include sorts in display of Isabelle terms",
   bool_pref show_consts_default

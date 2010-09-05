@@ -77,12 +77,20 @@ in
 
 fun pretty_goals ctxt0 state =
   let
-    val ctxt = Config.put show_free_types false ctxt0;
+    val ctxt = ctxt0
+      |> Config.put show_free_types false
+      |> Config.put show_types
+       (Config.get ctxt0 show_types orelse
+        Config.get ctxt0 show_sorts orelse
+        Config.get ctxt0 show_all_types)
+      |> Config.put show_sorts false;
 
-    val show_all_types = Config.get ctxt show_all_types;
+    val show_sorts0 = Config.get ctxt0 show_sorts;
+    val show_types = Config.get ctxt show_types;
+    val show_consts = Config.get ctxt show_consts
+    val show_main_goal = Config.get ctxt show_main_goal;
     val goals_limit = Config.get ctxt goals_limit;
     val goals_total = Config.get ctxt goals_total;
-    val show_main_goal = Config.get ctxt show_main_goal;
 
     val prt_sort = Syntax.pretty_sort ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
@@ -120,23 +128,18 @@ fun pretty_goals ctxt0 state =
     val {prop, tpairs, ...} = Thm.rep_thm state;
     val (As, B) = Logic.strip_horn prop;
     val ngoals = length As;
-
-    fun pretty_gs (types, sorts) =
-      (if show_main_goal then [prt_term B] else []) @
-       (if ngoals = 0 then [Pretty.str "No subgoals!"]
-        else if ngoals > goals_limit then
-          pretty_subgoals (take goals_limit As) @
-          (if goals_total then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
-           else [])
-        else pretty_subgoals As) @
-      pretty_ffpairs tpairs @
-      (if Config.get ctxt show_consts then pretty_consts prop else []) @
-      (if types then pretty_vars prop else []) @
-      (if sorts then pretty_varsT prop else []);
   in
-    setmp_CRITICAL show_types (! show_types orelse ! show_sorts orelse show_all_types)
-      (setmp_CRITICAL show_sorts false pretty_gs)
-   (! show_types orelse ! show_sorts orelse show_all_types, ! show_sorts)
+    (if show_main_goal then [prt_term B] else []) @
+     (if ngoals = 0 then [Pretty.str "No subgoals!"]
+      else if ngoals > goals_limit then
+        pretty_subgoals (take goals_limit As) @
+        (if goals_total then [Pretty.str ("A total of " ^ string_of_int ngoals ^ " subgoals...")]
+         else [])
+      else pretty_subgoals As) @
+    pretty_ffpairs tpairs @
+    (if show_consts then pretty_consts prop else []) @
+    (if show_types then pretty_vars prop else []) @
+    (if show_sorts0 then pretty_varsT prop else [])
   end;
 
 fun pretty_goals_without_context th =

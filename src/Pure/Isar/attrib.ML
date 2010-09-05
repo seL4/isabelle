@@ -392,7 +392,9 @@ end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
- (register_config Syntax.show_structs_value #>
+ (register_config Syntax.show_sorts_value #>
+  register_config Syntax.show_types_value #>
+  register_config Syntax.show_structs_value #>
   register_config Syntax.show_question_marks_value #>
   register_config Syntax.ambiguity_level_value #>
   register_config Syntax.eta_contract_value #>

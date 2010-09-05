@@ -31,6 +31,8 @@ Isar declaration attributes to access these.
   ML (Config.T)                 Isar (attribute)
 
   eta_contract                  eta_contract
+  show_sorts                    show_sorts
+  show_types                    show_types
   show_question_marks           show_question_marks
   show_consts                   show_consts
 

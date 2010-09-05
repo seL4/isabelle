@@ -191,6 +191,7 @@ fun simple_smart_string_of_cterm ctxt0 ct =
     let
         val ctxt = ctxt0
           |> Config.put show_all_types true
+          |> Config.put show_sorts true
           |> Config.put Syntax.ambiguity_enabled true;
         val {t,T,...} = rep_cterm ct
         (* Hack to avoid parse errors with Trueprop *)
@@ -199,8 +200,7 @@ fun simple_smart_string_of_cterm ctxt0 ct =
     in
         quote (
         Print_Mode.setmp [] (
-        setmp_CRITICAL show_brackets false (
-        setmp_CRITICAL show_sorts true (Syntax.string_of_term ctxt o Thm.term_of)))
+        setmp_CRITICAL show_brackets false (Syntax.string_of_term ctxt o Thm.term_of))
         ct)
     end
 
@@ -214,7 +214,7 @@ fun smart_string_of_cterm ctxt0 ct =
         val ct  = cterm_of (Thm.theory_of_cterm ct) (HOLogic.dest_Trueprop t)
                    handle TERM _ => ct
         fun match u = t aconv u
-        fun G 0 f ctxt x = setmp_CRITICAL show_types true (setmp_CRITICAL show_sorts true) (f ctxt) x
+        fun G 0 f ctxt x = f (Config.put show_types true (Config.put show_sorts true ctxt)) x
           | G 1 f ctxt x = setmp_CRITICAL show_brackets true (G 0) f ctxt x
           | G 2 f ctxt x = G 0 f (Config.put show_all_types true ctxt) x
           | G 3 f ctxt x = setmp_CRITICAL show_brackets true (G 2) f ctxt x

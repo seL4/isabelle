@@ -293,7 +293,7 @@ let
 in [(@{syntax_const "_Numerals"}, numeral_tr)] end
 *}
 
-typed_print_translation {*
+typed_print_translation (advanced) {*
 let
   fun dig b n = b + 2 * n; 
   fun int_of_num' (Const (@{const_syntax Dig0}, _) $ n) =
@@ -301,14 +301,15 @@ let
     | int_of_num' (Const (@{const_syntax Dig1}, _) $ n) =
         dig 1 (int_of_num' n)
     | int_of_num' (Const (@{const_syntax One}, _)) = 1;
-  fun num_tr' show_sorts T [n] =
+  fun num_tr' ctxt show_sorts T [n] =
     let
       val k = int_of_num' n;
       val t' = Syntax.const @{syntax_const "_Numerals"} $ Syntax.free ("#" ^ string_of_int k);
-    in case T
-     of Type (@{type_name fun}, [_, T']) =>
-         if not (! show_types) andalso can Term.dest_Type T' then t'
-         else Syntax.const Syntax.constrainC $ t' $ Syntax.term_of_typ show_sorts T'
+    in
+      case T of
+        Type (@{type_name fun}, [_, T']) =>
+          if not (Config.get ctxt show_types) andalso can Term.dest_Type T' then t'
+          else Syntax.const Syntax.constrainC $ t' $ Syntax.term_of_typ show_sorts T'
       | T' => if T' = dummyT then t' else raise Match
     end;
 in [(@{const_syntax of_num}, num_tr')] end

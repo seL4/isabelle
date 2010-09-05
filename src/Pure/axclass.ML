@@ -519,7 +519,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     fun check_constraint (a, S) =
       if Sign.subsort thy (super, S) then ()
       else error ("Sort constraint of type variable " ^
-        setmp_CRITICAL show_sorts true (Syntax.string_of_typ ctxt) (TFree (a, S)) ^
+        Syntax.string_of_typ (Config.put show_sorts true ctxt) (TFree (a, S)) ^
         " needs to be weaker than " ^ Syntax.string_of_sort ctxt super);
 
 

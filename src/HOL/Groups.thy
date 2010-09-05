@@ -124,11 +124,11 @@ setup {*
 simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
 simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
 
-typed_print_translation {*
+typed_print_translation (advanced) {*
 let
-  fun tr' c = (c, fn show_sorts => fn T => fn ts =>
-    if (not o null) ts orelse T = dummyT
-      orelse not (! show_types) andalso can Term.dest_Type T
+  fun tr' c = (c, fn ctxt => fn show_sorts => fn T => fn ts =>
+    if not (null ts) orelse T = dummyT
+      orelse not (Config.get ctxt show_types) andalso can Term.dest_Type T
     then raise Match
     else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
 in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
