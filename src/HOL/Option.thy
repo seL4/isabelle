@@ -106,13 +106,9 @@ lemma is_none_code [code]:
     and "is_none (Some x) \<longleftrightarrow> False"
   unfolding is_none_def by simp_all
 
-lemma is_none_none:
-  "is_none x \<longleftrightarrow> x = None"
-  by (simp add: is_none_def)
-
 lemma [code_unfold]:
   "HOL.equal x None \<longleftrightarrow> is_none x"
-  by (simp add: equal is_none_none)
+  by (simp add: equal is_none_def)
 
 hide_const (open) is_none
 

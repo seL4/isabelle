@@ -166,6 +166,9 @@ been the case with "split".  INCOMPATIBILITY.
 (class eq) carry proper names and are treated as default code
 equations.
 
+* Removed lemma Option.is_none_none (Duplicate of is_none_def).
+INCOMPATIBILITY.
+
 * List.thy: use various operations from the Haskell prelude when
 generating Haskell code.
 
