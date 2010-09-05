@@ -33,7 +33,7 @@ val _ =
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-  (setmp_CRITICAL auto true (fn () =>
+  (setmp_noncritical auto true (fn () =>
     Preferences.bool_pref auto
       "auto-solve"
       "Try to solve newly declared lemmas with existing theorems.") ());
