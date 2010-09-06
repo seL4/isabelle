@@ -71,7 +71,7 @@ fun dynamic_entry_for_external name dev home exec args markers =
                      [if null markers then "External" else "ExternalV2",
                       dir ^ dir_sep ^ exec, base ^ ".cnf",
                       if dev = ToFile then out_file else ""] @ markers @
-                      (if dev = ToFile then [out_file] else []) @ args
+                     (if dev = ToFile then [out_file] else []) @ args
                    end)
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)

@@ -32,44 +32,6 @@ lemma "curry (split f) = f"
 nitpick [card = 1\<midarrow>12, expect = none]
 by auto
 
-lemma "(split o curry) f = f"
-nitpick [card = 1\<midarrow>12, expect = none]
-by auto
-
-lemma "(curry o split) f = f"
-nitpick [card = 1\<midarrow>12, expect = none]
-by auto
-
-lemma "(split o curry) f = (\<lambda>x. x) f"
-nitpick [card = 1\<midarrow>12, expect = none]
-by auto
-
-lemma "(curry o split) f = (\<lambda>x. x) f"
-nitpick [card = 1\<midarrow>12, expect = none]
-by auto
-
-lemma "((split o curry) f) p = ((\<lambda>x. x) f) p"
-nitpick [card = 1\<midarrow>12, expect = none]
-by auto
-
-lemma "((curry o split) f) x = ((\<lambda>x. x) f) x"
-nitpick [card = 1\<midarrow>12, expect = none]
-by auto
-
-lemma "((curry o split) f) x y = ((\<lambda>x. x) f) x y"
-nitpick [card = 1\<midarrow>12, expect = none]
-by auto
-
-lemma "split o curry = (\<lambda>x. x)"
-nitpick [card = 1\<midarrow>12, expect = none]
-apply (rule ext)+
-by auto
-
-lemma "curry o split = (\<lambda>x. x)"
-nitpick [card = 1\<midarrow>12, expect = none]
-apply (rule ext)+
-by auto
-
 lemma "split (\<lambda>x y. f (x, y)) = f"
 nitpick [card = 1\<midarrow>12, expect = none]
 by auto
@@ -150,31 +112,31 @@ nitpick [card = 100, expect = genuine]
 oops
 
 lemma "{a, b} = {b}"
-nitpick [card = 100, expect = genuine]
+nitpick [card = 50, expect = genuine]
 oops
 
 lemma "(a\<Colon>'a\<times>'a, a\<Colon>'a\<times>'a) \<in> R"
 nitpick [card = 1, expect = genuine]
-nitpick [card = 20, expect = genuine]
+nitpick [card = 10, expect = genuine]
 nitpick [card = 5, dont_box, expect = genuine]
 oops
 
 lemma "f (g\<Colon>'a\<Rightarrow>'a) = x"
 nitpick [card = 3, expect = genuine]
 nitpick [card = 3, dont_box, expect = genuine]
-nitpick [card = 10, expect = genuine]
+nitpick [card = 8, expect = genuine]
 oops
 
 lemma "f (a, b) = x"
-nitpick [card = 12, expect = genuine]
+nitpick [card = 10, expect = genuine]
 oops
 
 lemma "f (a, a) = f (c, d)"
-nitpick [card = 12, expect = genuine]
+nitpick [card = 10, expect = genuine]
 oops
 
 lemma "(x\<Colon>'a) = (\<lambda>a. \<lambda>b. \<lambda>c. if c then a else b) x x True"
-nitpick [card = 1\<midarrow>12, expect = none]
+nitpick [card = 1\<midarrow>10, expect = none]
 by auto
 
 lemma "\<exists>F. F a b = G a b"
@@ -187,7 +149,7 @@ nitpick [card = 2, expect = genuine]
 oops
 
 lemma "(A\<Colon>'a\<times>'a, B\<Colon>'a\<times>'a) \<in> R \<Longrightarrow> (A, B) \<in> R"
-nitpick [card = 20, expect = none]
+nitpick [card = 15, expect = none]
 by auto
 
 lemma "(A, B) \<in> R \<or> (\<exists>C. (A, C) \<in> R \<and> (C, B) \<in> R) \<Longrightarrow> 
@@ -204,30 +166,30 @@ subsection {* Quantifiers *}
 lemma "x = y"
 nitpick [card 'a = 1, expect = none]
 nitpick [card 'a = 2, expect = genuine]
-nitpick [card 'a = 200, expect = genuine]
+nitpick [card 'a = 100, expect = genuine]
 oops
 
 lemma "\<forall>x. x = y"
 nitpick [card 'a = 1, expect = none]
 nitpick [card 'a = 2, expect = genuine]
-nitpick [card 'a = 200, expect = genuine]
+nitpick [card 'a = 100, expect = genuine]
 oops
 
 lemma "\<forall>x\<Colon>'a \<Rightarrow> bool. x = y"
 nitpick [card 'a = 1, expect = genuine]
-nitpick [card 'a = 200, expect = genuine]
+nitpick [card 'a = 100, expect = genuine]
 oops
 
 lemma "\<exists>x\<Colon>'a \<Rightarrow> bool. x = y"
-nitpick [card 'a = 1\<midarrow>20, expect = none]
+nitpick [card 'a = 1\<midarrow>15, expect = none]
 by auto
 
 lemma "\<exists>x y\<Colon>'a \<Rightarrow> bool. x = y"
-nitpick [card = 1\<midarrow>20, expect = none]
+nitpick [card = 1\<midarrow>15, expect = none]
 by auto
 
 lemma "\<forall>x. \<exists>y. f x y = f x (g x)"
-nitpick [card = 1\<midarrow>5, expect = none]
+nitpick [card = 1\<midarrow>4, expect = none]
 by auto
 
 lemma "\<forall>u. \<exists>v. \<forall>w. \<exists>x. f u v w x = f u (g u) w (h u w)"
@@ -241,7 +203,6 @@ oops
 lemma "\<forall>u. \<exists>v. \<forall>w. \<exists>x. \<forall>y. \<exists>z.
        f u v w x y z = f u (g u) w (h u w) y (k u w y)"
 nitpick [card = 1\<midarrow>2, expect = none]
-nitpick [card = 3, expect = none]
 sorry
 
 lemma "\<forall>u. \<exists>v. \<forall>w. \<exists>x. \<forall>y. \<exists>z.
@@ -287,18 +248,6 @@ oops
 lemma "\<forall>x. if (\<exists>y. x = y) then True else False"
 nitpick [expect = none]
 sorry
-
-lemma "\<forall>x\<Colon>'a\<times>'b. if (\<exists>y. x = y) then True else False"
-nitpick [expect = none]
-sorry
-
-lemma "(\<not> (\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
-nitpick [expect = none]
-by auto
-
-lemma "(\<not> \<not> (\<exists>x. P x)) \<longleftrightarrow> (\<not> (\<forall>x. \<not> P x))"
-nitpick [expect = none]
-by auto
 
 lemma "(\<exists>x\<Colon>'a. \<forall>y. P x y) \<or> (\<exists>x\<Colon>'a \<times> 'a. \<forall>y. P y x)"
 nitpick [card 'a = 1, expect = genuine]
@@ -383,10 +332,6 @@ nitpick [card = 1, expect = genuine]
 nitpick [card = 20, expect = genuine]
 oops
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> (op \<equiv> x) \<equiv> (\<lambda>y. (x \<equiv> I y))"
-nitpick [expect = none]
-by auto
-
 lemma "P x \<equiv> P x"
 nitpick [card = 1\<midarrow>10, expect = none]
 by auto
@@ -456,14 +401,12 @@ nitpick [card = 33, expect = genuine]
 oops
 
 lemma "\<exists>!x. x = undefined"
-nitpick [card = 30, expect = none]
+nitpick [card = 15, expect = none]
 by auto
 
 lemma "x = All \<Longrightarrow> False"
 nitpick [card = 1, dont_box, expect = genuine]
-nitpick [card = 2, dont_box, expect = genuine]
-nitpick [card = 8, dont_box, expect = genuine]
-nitpick [card = 10, dont_box, expect = unknown]
+nitpick [card = 5, dont_box, expect = genuine]
 oops
 
 lemma "\<forall>x. f x y = f x y"
@@ -482,15 +425,9 @@ lemma "All (\<lambda>x. f x y = f x y) = False"
 nitpick [expect = genuine]
 oops
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> All P = All (\<lambda>x. P (I x))"
-nitpick [expect = none]
-by auto
-
 lemma "x = Ex \<Longrightarrow> False"
 nitpick [card = 1, dont_box, expect = genuine]
-nitpick [card = 2, dont_box, expect = genuine]
-nitpick [card = 6, dont_box, expect = genuine]
-nitpick [card = 10, dont_box, expect = unknown]
+nitpick [card = 5, dont_box, expect = genuine]
 oops
 
 lemma "\<exists>x. f x y = f x y"
@@ -513,20 +450,11 @@ lemma "Ex (\<lambda>x. f x y = f x y) = False"
 nitpick [expect = genuine]
 oops
 
-lemma "Ex (\<lambda>x. f x y = f y x) = False"
-nitpick [expect = genuine]
-oops
-
 lemma "Ex (\<lambda>x. f x y \<noteq> f x y) = False"
 nitpick [expect = none]
 by auto
 
 lemma "I = (\<lambda>x. x) \<Longrightarrow> Ex P = Ex (\<lambda>x. P (I x))"
-nitpick [expect = none]
-by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> (op =) = (\<lambda>x. (op= (I x)))"
-      "I = (\<lambda>x. x) \<Longrightarrow> (op =) = (\<lambda>x y. x = (I y))"
 nitpick [expect = none]
 by auto
 
@@ -555,32 +483,7 @@ lemma "a \<and> b \<Longrightarrow> a" "a \<and> b \<Longrightarrow> b"
 nitpick [expect = none]
 by auto
 
-lemma "\<not> a \<Longrightarrow> \<not> (a \<and> b)" "\<not> b \<Longrightarrow> \<not> (a \<and> b)"
-nitpick [expect = none]
-by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> (op \<or>) = (\<lambda>x. op \<or> (I x))"
-      "I = (\<lambda>x. x) \<Longrightarrow> (op \<or>) = (\<lambda>x y. x \<or> (I y))"
-nitpick [expect = none]
-by auto
-
-lemma "a \<Longrightarrow> a \<or> b" "b \<Longrightarrow> a \<or> b"
-nitpick [expect = none]
-by auto
-
-lemma "\<not> (a \<or> b) \<Longrightarrow> \<not> a" "\<not> (a \<or> b) \<Longrightarrow> \<not> b"
-nitpick [expect = none]
-by auto
-
 lemma "(op \<longrightarrow>) = (\<lambda>x. op\<longrightarrow> x)" "(op\<longrightarrow> ) = (\<lambda>x y. x \<longrightarrow> y)"
-nitpick [expect = none]
-by auto
-
-lemma "\<not>a \<Longrightarrow> a \<longrightarrow> b" "b \<Longrightarrow> a \<longrightarrow> b"
-nitpick [expect = none]
-by auto
-
-lemma "\<lbrakk>a; \<not> b\<rbrakk> \<Longrightarrow> \<not> (a \<longrightarrow> b)"
 nitpick [expect = none]
 by auto
 
@@ -589,12 +492,6 @@ nitpick [expect = none]
 by auto
 
 lemma "(if a then b else c) = (THE d. (a \<longrightarrow> (d = b)) \<and> (\<not> a \<longrightarrow> (d = c)))"
-nitpick [expect = none]
-by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> If = (\<lambda>x. If (I x))"
-      "J = (\<lambda>x. x) \<Longrightarrow> If = (\<lambda>x y. If x (J y))"
-      "K = (\<lambda>x. x) \<Longrightarrow> If = (\<lambda>x y z. If x y (K z))"
 nitpick [expect = none]
 by auto
 
@@ -642,10 +539,6 @@ lemma "I = (\<lambda>x. x) \<Longrightarrow> fst = (\<lambda>x. fst (I x))"
 nitpick [expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> snd = (\<lambda>x. snd (I x))"
-nitpick [expect = none]
-by auto
-
 lemma "fst (x, y) = snd (y, x)"
 nitpick [expect = none]
 by auto
@@ -661,10 +554,6 @@ by auto
 lemma "I = (\<lambda>x. x) \<Longrightarrow> Id = (\<lambda>x. Id (I x))"
 nitpick [expect = none]
 by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> curry Id = (\<lambda>x y. Id (x, I y))"
-nitpick [expect = none]
-by (simp add: curry_def)
 
 lemma "{} = (\<lambda>x. False)"
 nitpick [expect = none]
@@ -722,10 +611,6 @@ lemma "P x = (x \<in> P)"
 nitpick [expect = none]
 by (simp add: mem_def)
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> insert = (\<lambda>x. insert (I x))"
-nitpick [expect = none]
-by simp
-
 lemma "insert = (\<lambda>x y. insert x (y \<union> y))"
 nitpick [expect = none]
 by simp
@@ -743,10 +628,6 @@ lemma "(x, x) \<in> rtrancl {(y, y)}"
 nitpick [expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> rtrancl = (\<lambda>x. rtrancl (I x))"
-nitpick [card = 1\<midarrow>2, expect = none]
-by auto
-
 lemma "((x, x), (x, x)) \<in> rtrancl {}"
 nitpick [card = 1\<midarrow>5, expect = none]
 by auto
@@ -755,15 +636,7 @@ lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<union> = (\<lambda>x. op \<uni
 nitpick [card = 1\<midarrow>5, expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<union> = (\<lambda>x y. op \<union> x (I y))"
-nitpick [card = 1\<midarrow>5, expect = none]
-by auto
-
 lemma "a \<in> A \<Longrightarrow> a \<in> (A \<union> B)" "b \<in> B \<Longrightarrow> b \<in> (A \<union> B)"
-nitpick [expect = none]
-by auto
-
-lemma "a \<in> (A \<union> B) \<Longrightarrow> a \<in> A \<or> a \<in> B"
 nitpick [expect = none]
 by auto
 
@@ -771,23 +644,7 @@ lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<inter> = (\<lambda>x. op \<int
 nitpick [card = 1\<midarrow>5, expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<inter> = (\<lambda>x y. op \<inter> x (I y))"
-nitpick [card = 1\<midarrow>5, expect = none]
-by auto
-
 lemma "a \<notin> A \<Longrightarrow> a \<notin> (A \<inter> B)" "b \<notin> B \<Longrightarrow> b \<notin> (A \<inter> B)"
-nitpick [card = 1\<midarrow>5, expect = none]
-by auto
-
-lemma "a \<notin> (A \<inter> B) \<Longrightarrow> a \<notin> A \<or> a \<notin> B"
-nitpick [expect = none]
-by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op - = (\<lambda>x\<Colon>'a set. op - (I x))"
-nitpick [card = 1\<midarrow>5, expect = none]
-by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op - = (\<lambda>x y\<Colon>'a set. op - x (I y))"
 nitpick [card = 1\<midarrow>5, expect = none]
 by auto
 
@@ -799,19 +656,7 @@ lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<subset> = (\<lambda>x. op \<su
 nitpick [card = 1\<midarrow>5, expect = none]
 by auto
 
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<subset> = (\<lambda>x y. op \<subset> x (I y))"
-nitpick [card = 1\<midarrow>5, expect = none]
-by auto
-
 lemma "A \<subset> B \<Longrightarrow> (\<forall>a \<in> A. a \<in> B) \<and> (\<exists>b \<in> B. b \<notin> A)"
-nitpick [card = 1\<midarrow>5, expect = none]
-by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<subseteq> = (\<lambda>x. op \<subseteq> (I x))"
-nitpick [card = 1\<midarrow>5, expect = none]
-by auto
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> op \<subseteq> = (\<lambda>x y. op \<subseteq> x (I y))"
 nitpick [card = 1\<midarrow>5, expect = none]
 by auto
 
@@ -841,10 +686,6 @@ by auto
 
 lemma "A = -(A\<Colon>'a set)"
 nitpick [card 'a = 10, expect = genuine]
-oops
-
-lemma "I = (\<lambda>x. x) \<Longrightarrow> finite = (\<lambda>x. finite (I x))"
-nitpick [card = 1\<midarrow>7, expect = none]
 oops
 
 lemma "finite A"
