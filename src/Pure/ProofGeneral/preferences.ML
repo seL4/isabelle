@@ -78,7 +78,7 @@ val bool_pref =
 
 (* preferences of Pure *)
 
-val proof_pref = setmp_CRITICAL Proofterm.proofs 1 (fn () =>
+val proof_pref = setmp_noncritical Proofterm.proofs 1 (fn () =>
   let
     fun get () = PgipTypes.bool_to_pgstring (! Proofterm.proofs >= 2);
     fun set s = Proofterm.proofs := (if PgipTypes.read_pgipbool s then 2 else 1);
@@ -111,10 +111,10 @@ val print_depth_pref =
 
 
 val display_preferences =
- [bool_pref show_types
+ [bool_pref show_types_default
     "show-types"
     "Include types in display of Isabelle terms",
-  bool_pref show_sorts
+  bool_pref show_sorts_default
     "show-sorts"
     "Include sorts in display of Isabelle terms",
   bool_pref show_consts_default
@@ -123,7 +123,7 @@ val display_preferences =
   bool_pref long_names
     "long-names"
     "Show fully qualified names in Isabelle terms",
-  bool_pref show_brackets
+  bool_pref show_brackets_default
     "show-brackets"
     "Show full bracketing in Isabelle terms",
   bool_pref Goal_Display.show_main_goal_default
@@ -167,7 +167,7 @@ val tracing_preferences =
   thm_deps_pref];
 
 val proof_preferences =
- [setmp_CRITICAL quick_and_dirty true (fn () =>
+ [setmp_noncritical quick_and_dirty true (fn () =>
     bool_pref quick_and_dirty
       "quick-and-dirty"
       "Take a few short cuts") (),

@@ -552,10 +552,11 @@ fun normalize thy program ((vs0, (vs, ty)), t) deps =
       singleton (Type_Infer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
         (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
       (Type_Infer.constrain ty' t);
-    fun check_tvars t = if null (Term.add_tvars t []) then t else
-      error ("Illegal schematic type variables in normalized term: "
-        ^ setmp_CRITICAL show_types true (Syntax.string_of_term_global thy) t);
-    val string_of_term = setmp_CRITICAL show_types true (Syntax.string_of_term_global thy);
+    val string_of_term =
+      Syntax.string_of_term (Config.put show_types true (Syntax.init_pretty_global thy));
+    fun check_tvars t =
+      if null (Term.add_tvars t []) then t
+      else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t);
   in
     compile_eval thy program (vs, t) deps
     |> traced (fn t => "Normalized:\n" ^ string_of_term t)

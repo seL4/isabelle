@@ -6,9 +6,15 @@ Pretty printing of asts, terms, types and print (ast) translation.
 
 signature PRINTER0 =
 sig
-  val show_brackets: bool Unsynchronized.ref
-  val show_sorts: bool Unsynchronized.ref
-  val show_types: bool Unsynchronized.ref
+  val show_brackets_default: bool Unsynchronized.ref
+  val show_brackets_value: Config.value Config.T
+  val show_brackets: bool Config.T
+  val show_types_default: bool Unsynchronized.ref
+  val show_types_value: Config.value Config.T
+  val show_types: bool Config.T
+  val show_sorts_default: bool Unsynchronized.ref
+  val show_sorts_value: Config.value Config.T
+  val show_sorts: bool Config.T
   val show_free_types: bool Config.T
   val show_all_types: bool Config.T
   val show_structs_value: Config.value Config.T
@@ -16,7 +22,6 @@ sig
   val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_value: Config.value Config.T
   val show_question_marks: bool Config.T
-  val pp_show_brackets: Pretty.pp -> Pretty.pp
 end;
 
 signature PRINTER =
@@ -49,9 +54,19 @@ struct
 
 (** options for printing **)
 
-val show_types = Unsynchronized.ref false;
-val show_sorts = Unsynchronized.ref false;
-val show_brackets = Unsynchronized.ref false;
+val show_brackets_default = Unsynchronized.ref false;
+val show_brackets_value =
+  Config.declare "show_brackets" (fn _ => Config.Bool (! show_brackets_default));
+val show_brackets = Config.bool show_brackets_value;
+
+val show_types_default = Unsynchronized.ref false;
+val show_types_value = Config.declare "show_types" (fn _ => Config.Bool (! show_types_default));
+val show_types = Config.bool show_types_value;
+
+val show_sorts_default = Unsynchronized.ref false;
+val show_sorts_value = Config.declare "show_sorts" (fn _ => Config.Bool (! show_sorts_default));
+val show_sorts = Config.bool show_sorts_value;
+
 val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
 val show_all_types = Config.bool (Config.declare "show_all_types" (fn _ => Config.Bool false));
 
@@ -62,9 +77,6 @@ val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_value =
   Config.declare "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
 val show_question_marks = Config.bool show_question_marks_value;
-
-fun pp_show_brackets pp = Pretty.pp (setmp_CRITICAL show_brackets true (Pretty.term pp),
-  Pretty.typ pp, Pretty.sort pp, Pretty.classrel pp, Pretty.arity pp);
 
 
 
@@ -78,7 +90,7 @@ fun apply_trans ctxt fns args =
       | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
   in app_first fns end;
 
-fun apply_typed x y fs = map (fn f => fn ctxt => f ctxt x y) fs;
+fun apply_typed x fs = map (fn f => fn ctxt => f ctxt (Config.get ctxt show_sorts) x) fs;
 
 
 (* simple_ast_of *)
@@ -102,6 +114,7 @@ fun simple_ast_of ctxt =
 
 fun ast_of_termT ctxt trf tm =
   let
+    val ctxt' = Config.put show_sorts false ctxt;
     fun ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of ctxt t
       | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of ctxt t
       | ast_of (Const (a, _)) = trans a []
@@ -111,19 +124,24 @@ fun ast_of_termT ctxt trf tm =
           | (f, args) => Ast.Appl (map ast_of (f :: args)))
       | ast_of t = simple_ast_of ctxt t
     and trans a args =
-      ast_of (apply_trans ctxt (apply_typed false dummyT (trf a)) args)
+      ast_of (apply_trans ctxt' (apply_typed dummyT (trf a)) args)
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
   in ast_of tm end;
 
 fun sort_to_ast ctxt trf S = ast_of_termT ctxt trf (Type_Ext.term_of_sort S);
-fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (Type_Ext.term_of_typ (! show_sorts) T);
+fun typ_to_ast ctxt trf T =
+  ast_of_termT ctxt trf (Type_Ext.term_of_typ (Config.get ctxt show_sorts) T);
 
 
 
 (** term_to_ast **)
 
-fun ast_of_term idents consts ctxt trf show_types show_sorts tm =
+fun term_to_ast idents consts ctxt trf tm =
   let
+    val show_types =
+      Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
+      Config.get ctxt show_all_types;
+    val show_sorts = Config.get ctxt show_sorts;
     val show_structs = Config.get ctxt show_structs;
     val show_free_types = Config.get ctxt show_free_types;
     val show_all_types = Config.get ctxt show_all_types;
@@ -188,7 +206,7 @@ fun ast_of_term idents consts ctxt trf show_types show_sorts tm =
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
     and trans a T args =
-      ast_of (apply_trans ctxt (apply_typed show_sorts T (trf a)) args)
+      ast_of (apply_trans ctxt (apply_typed T (trf a)) args)
         handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
     and constrain t T =
@@ -203,10 +221,6 @@ fun ast_of_term idents consts ctxt trf show_types show_sorts tm =
     |> mark_atoms
     |> ast_of
   end;
-
-fun term_to_ast idents consts ctxt trf tm =
-  ast_of_term idents consts ctxt trf
-    (! show_types orelse ! show_sorts orelse Config.get ctxt show_all_types) (! show_sorts) tm;
 
 
 
@@ -303,6 +317,7 @@ fun is_chain [Block (_, pr)] = is_chain pr
 fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
   let
     val {extern_class, extern_type, extern_const} = extern;
+    val show_brackets = Config.get ctxt show_brackets;
 
     fun token_trans a x =
       (case tokentrf a of
@@ -349,8 +364,7 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 p0 =
           in (T :: Ts, args') end
 
     and parT markup (pr, args, p, p': int) = #1 (synT markup
-          (if p > p' orelse
-            (! show_brackets andalso p' <> Syn_Ext.max_pri andalso not (is_chain pr))
+          (if p > p' orelse (show_brackets andalso p' <> Syn_Ext.max_pri andalso not (is_chain pr))
             then [Block (1, Space "(" :: pr @ [Space ")"])]
             else pr, args))
 

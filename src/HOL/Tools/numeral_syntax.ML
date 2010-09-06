@@ -69,15 +69,15 @@ fun syntax_numeral t =
 
 in
 
-fun numeral_tr' show_sorts (*"number_of"*) (Type (@{type_name fun}, [_, T])) (t :: ts) =
+fun numeral_tr' ctxt show_sorts (*"number_of"*) (Type (@{type_name fun}, [_, T])) (t :: ts) =
       let val t' =
-        if not (! show_types) andalso can Term.dest_Type T then syntax_numeral t
+        if not (Config.get ctxt show_types) andalso can Term.dest_Type T then syntax_numeral t
         else Syntax.const Syntax.constrainC $ syntax_numeral t $ Syntax.term_of_typ show_sorts T
       in list_comb (t', ts) end
-  | numeral_tr' _ (*"number_of"*) T (t :: ts) =
+  | numeral_tr' _ _ (*"number_of"*) T (t :: ts) =
       if T = dummyT then list_comb (syntax_numeral t, ts)
       else raise Match
-  | numeral_tr' _ (*"number_of"*) _ _ = raise Match;
+  | numeral_tr' _ _ (*"number_of"*) _ _ = raise Match;
 
 end;
 
@@ -86,6 +86,6 @@ end;
 
 val setup =
   Sign.add_trfuns ([], [(@{syntax_const "_Numeral"}, numeral_tr)], [], []) #>
-  Sign.add_trfunsT [(@{const_syntax Int.number_of}, numeral_tr')];
+  Sign.add_advanced_trfunsT [(@{const_syntax Int.number_of}, numeral_tr')];
 
 end;

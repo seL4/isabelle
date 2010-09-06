@@ -180,7 +180,8 @@ fun pretty_reg thy (name, morph) =
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
     fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
-    fun prt_term' t = if !show_types
+    fun prt_term' t =
+      if Config.get ctxt show_types
       then Pretty.block [prt_term t, Pretty.brk 1, Pretty.str "::",
         Pretty.brk 1, (Pretty.quote o Syntax.pretty_typ ctxt) (type_of t)]
       else prt_term t;

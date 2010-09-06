@@ -444,8 +444,8 @@ end;
 
 (* options *)
 
-val _ = add_option "show_types" (add_wrapper o setmp_CRITICAL Syntax.show_types o boolean);
-val _ = add_option "show_sorts" (add_wrapper o setmp_CRITICAL Syntax.show_sorts o boolean);
+val _ = add_option "show_types" (Config.put show_types o boolean);
+val _ = add_option "show_sorts" (Config.put show_sorts o boolean);
 val _ = add_option "show_structs" (Config.put show_structs o boolean);
 val _ = add_option "show_question_marks" (Config.put show_question_marks o boolean);
 val _ = add_option "long_names" (add_wrapper o setmp_CRITICAL Name_Space.long_names o boolean);

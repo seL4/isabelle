@@ -439,8 +439,8 @@ fun statespace_definition state_type args name parents parent_comps components t
       in Context.mapping I upd_prf ctxt end;
 
    fun string_of_typ T =
-      setmp_CRITICAL show_sorts true
-       (Print_Mode.setmp [] (Syntax.string_of_typ (ProofContext.init_global thy))) T;
+      Print_Mode.setmp []
+        (Syntax.string_of_typ (Config.put show_sorts true (Syntax.init_pretty_global thy))) T;
    val fixestate = (case state_type of
          NONE => []
        | SOME s =>

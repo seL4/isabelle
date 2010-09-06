@@ -22,65 +22,7 @@ sig
   include SYN_TRANS1
   include MIXFIX1
   include PRINTER0
-  type syntax
-  val eq_syntax: syntax * syntax -> bool
-  val is_keyword: syntax -> string -> bool
-  type mode
-  val mode_default: mode
-  val mode_input: mode
-  val merge_syntaxes: syntax -> syntax -> syntax
-  val basic_syntax: syntax
-  val basic_nonterms: string list
-  val print_gram: syntax -> unit
-  val print_trans: syntax -> unit
-  val print_syntax: syntax -> unit
-  val guess_infix: syntax -> string -> mixfix option
   val read_token: string -> Symbol_Pos.T list * Position.T
-  val ambiguity_enabled: bool Config.T
-  val ambiguity_level_value: Config.value Config.T
-  val ambiguity_level: int Config.T
-  val ambiguity_limit: int Config.T
-  val standard_parse_term: Pretty.pp -> (term -> string option) ->
-    (((string * int) * sort) list -> string * int -> Term.sort) ->
-    (string -> bool * string) -> (string -> string option) -> Proof.context ->
-    (string -> bool) -> syntax -> typ -> Symbol_Pos.T list * Position.T -> term
-  val standard_parse_typ: Proof.context -> syntax ->
-    ((indexname * sort) list -> indexname -> sort) -> Symbol_Pos.T list * Position.T -> typ
-  val standard_parse_sort: Proof.context -> syntax -> Symbol_Pos.T list * Position.T -> sort
-  datatype 'a trrule =
-    ParseRule of 'a * 'a |
-    PrintRule of 'a * 'a |
-    ParsePrintRule of 'a * 'a
-  val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
-  val is_const: syntax -> string -> bool
-  val standard_unparse_term: {structs: string list, fixes: string list} ->
-    {extern_class: string -> xstring, extern_type: string -> xstring,
-      extern_const: string -> xstring} -> Proof.context -> syntax -> bool -> term -> Pretty.T
-  val standard_unparse_typ: {extern_class: string -> xstring, extern_type: string -> xstring} ->
-    Proof.context -> syntax -> typ -> Pretty.T
-  val standard_unparse_sort: {extern_class: string -> xstring} ->
-    Proof.context -> syntax -> sort -> Pretty.T
-  val update_trfuns:
-    (string * ((ast list -> ast) * stamp)) list *
-    (string * ((term list -> term) * stamp)) list *
-    (string * ((bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((ast list -> ast) * stamp)) list -> syntax -> syntax
-  val update_advanced_trfuns:
-    (string * ((Proof.context -> ast list -> ast) * stamp)) list *
-    (string * ((Proof.context -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
-  val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
-    syntax -> syntax
-  val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_const_gram: bool -> (string -> bool) ->
-    mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_trrules: Proof.context -> (string -> bool) -> syntax ->
-    (string * string) trrule list -> syntax -> syntax
-  val remove_trrules: Proof.context -> (string -> bool) -> syntax ->
-    (string * string) trrule list -> syntax -> syntax
-  val update_trrules_i: ast trrule list -> syntax -> syntax
-  val remove_trrules_i: ast trrule list -> syntax -> syntax
   val parse_token: Proof.context -> Markup.T -> string -> Symbol_Pos.T list * Position.T
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
@@ -155,10 +97,301 @@ sig
   val string_of_sort_global: theory -> sort -> string
   val pp: Proof.context -> Pretty.pp
   val pp_global: theory -> Pretty.pp
+  type syntax
+  val eq_syntax: syntax * syntax -> bool
+  val is_keyword: syntax -> string -> bool
+  type mode
+  val mode_default: mode
+  val mode_input: mode
+  val merge_syntaxes: syntax -> syntax -> syntax
+  val basic_syntax: syntax
+  val basic_nonterms: string list
+  val print_gram: syntax -> unit
+  val print_trans: syntax -> unit
+  val print_syntax: syntax -> unit
+  val guess_infix: syntax -> string -> mixfix option
+  val ambiguity_enabled: bool Config.T
+  val ambiguity_level_value: Config.value Config.T
+  val ambiguity_level: int Config.T
+  val ambiguity_limit: int Config.T
+  val standard_parse_term: (term -> string option) ->
+    (((string * int) * sort) list -> string * int -> Term.sort) ->
+    (string -> bool * string) -> (string -> string option) -> Proof.context ->
+    (string -> bool) -> syntax -> typ -> Symbol_Pos.T list * Position.T -> term
+  val standard_parse_typ: Proof.context -> syntax ->
+    ((indexname * sort) list -> indexname -> sort) -> Symbol_Pos.T list * Position.T -> typ
+  val standard_parse_sort: Proof.context -> syntax -> Symbol_Pos.T list * Position.T -> sort
+  datatype 'a trrule =
+    ParseRule of 'a * 'a |
+    PrintRule of 'a * 'a |
+    ParsePrintRule of 'a * 'a
+  val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
+  val is_const: syntax -> string -> bool
+  val standard_unparse_term: {structs: string list, fixes: string list} ->
+    {extern_class: string -> xstring, extern_type: string -> xstring,
+      extern_const: string -> xstring} -> Proof.context -> syntax -> bool -> term -> Pretty.T
+  val standard_unparse_typ: {extern_class: string -> xstring, extern_type: string -> xstring} ->
+    Proof.context -> syntax -> typ -> Pretty.T
+  val standard_unparse_sort: {extern_class: string -> xstring} ->
+    Proof.context -> syntax -> sort -> Pretty.T
+  val update_trfuns:
+    (string * ((ast list -> ast) * stamp)) list *
+    (string * ((term list -> term) * stamp)) list *
+    (string * ((bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((ast list -> ast) * stamp)) list -> syntax -> syntax
+  val update_advanced_trfuns:
+    (string * ((Proof.context -> ast list -> ast) * stamp)) list *
+    (string * ((Proof.context -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
+  val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
+    syntax -> syntax
+  val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
+  val update_const_gram: bool -> (string -> bool) ->
+    mode -> (string * typ * mixfix) list -> syntax -> syntax
+  val update_trrules: Proof.context -> (string -> bool) -> syntax ->
+    (string * string) trrule list -> syntax -> syntax
+  val remove_trrules: Proof.context -> (string -> bool) -> syntax ->
+    (string * string) trrule list -> syntax -> syntax
+  val update_trrules_i: ast trrule list -> syntax -> syntax
+  val remove_trrules_i: ast trrule list -> syntax -> syntax
 end;
 
 structure Syntax: SYNTAX =
 struct
+
+(** inner syntax operations **)
+
+(* read token -- with optional YXML encoding of position *)
+
+fun read_token str =
+  let
+    val tree = YXML.parse str handle Fail msg => error msg;
+    val text = Buffer.empty |> XML.add_content tree |> Buffer.content;
+    val pos =
+      (case tree of
+        XML.Elem ((name, props), _) =>
+          if name = Markup.tokenN then Position.of_properties props
+          else Position.none
+      | XML.Text _ => Position.none);
+  in (Symbol_Pos.explode (text, pos), pos) end;
+
+
+(* (un)parsing *)
+
+fun parse_token ctxt markup str =
+  let
+    val (syms, pos) = read_token str;
+    val _ = Context_Position.report ctxt markup pos;
+  in (syms, pos) end;
+
+local
+
+type operations =
+ {parse_sort: Proof.context -> string -> sort,
+  parse_typ: Proof.context -> string -> typ,
+  parse_term: Proof.context -> string -> term,
+  parse_prop: Proof.context -> string -> term,
+  unparse_sort: Proof.context -> sort -> Pretty.T,
+  unparse_typ: Proof.context -> typ -> Pretty.T,
+  unparse_term: Proof.context -> term -> Pretty.T};
+
+val operations: operations Single_Assignment.var = Single_Assignment.var "Syntax.operations";
+
+fun operation which ctxt x =
+  (case Single_Assignment.peek operations of
+    NONE => raise Fail "Inner syntax operations not installed"
+  | SOME ops => which ops ctxt x);
+
+in
+
+val parse_sort = operation #parse_sort;
+val parse_typ = operation #parse_typ;
+val parse_term = operation #parse_term;
+val parse_prop = operation #parse_prop;
+val unparse_sort = operation #unparse_sort;
+val unparse_typ = operation #unparse_typ;
+val unparse_term = operation #unparse_term;
+
+fun install_operations ops = Single_Assignment.assign operations ops;
+
+end;
+
+
+(* context-sensitive (un)checking *)
+
+local
+
+type key = int * bool;
+type 'a check = 'a list -> Proof.context -> ('a list * Proof.context) option;
+
+structure Checks = Generic_Data
+(
+  type T =
+    ((key * ((string * typ check) * stamp) list) list *
+     (key * ((string * term check) * stamp) list) list);
+  val empty = ([], []);
+  val extend = I;
+  fun merge ((typ_checks1, term_checks1), (typ_checks2, term_checks2)) : T =
+    (AList.join (op =) (K (Library.merge (eq_snd (op =)))) (typ_checks1, typ_checks2),
+     AList.join (op =) (K (Library.merge (eq_snd (op =)))) (term_checks1, term_checks2));
+);
+
+fun gen_add which (key: key) name f =
+  Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
+
+fun check_stage fs = perhaps_loop (perhaps_apply (map uncurry fs));
+
+fun gen_check which uncheck ctxt0 xs0 =
+  let
+    val funs = which (Checks.get (Context.Proof ctxt0))
+      |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
+      |> Library.sort (int_ord o pairself fst) |> map snd
+      |> not uncheck ? map rev;
+    val check_all = perhaps_apply (map check_stage funs);
+  in #1 (perhaps check_all (xs0, ctxt0)) end;
+
+fun map_sort f S =
+  (case f (TFree ("", S)) of
+    TFree ("", S') => S'
+  | _ => raise TYPE ("map_sort", [TFree ("", S)], []));
+
+in
+
+fun print_checks ctxt =
+  let
+    fun split_checks checks =
+      List.partition (fn ((_, un), _) => not un) checks
+      |> pairself (map (fn ((i, _), fs) => (i, map (fst o fst) fs))
+          #> sort (int_ord o pairself fst));
+    fun pretty_checks kind checks =
+      checks |> map (fn (i, names) => Pretty.block
+        [Pretty.str (kind ^ " (stage " ^ signed_string_of_int i ^ "):"),
+          Pretty.brk 1, Pretty.strs names]);
+
+    val (typs, terms) = Checks.get (Context.Proof ctxt);
+    val (typ_checks, typ_unchecks) = split_checks typs;
+    val (term_checks, term_unchecks) = split_checks terms;
+  in
+    pretty_checks "typ_checks" typ_checks @
+    pretty_checks "term_checks" term_checks @
+    pretty_checks "typ_unchecks" typ_unchecks @
+    pretty_checks "term_unchecks" term_unchecks
+  end |> Pretty.chunks |> Pretty.writeln;
+
+fun add_typ_check stage = gen_add apfst (stage, false);
+fun add_term_check stage = gen_add apsnd (stage, false);
+fun add_typ_uncheck stage = gen_add apfst (stage, true);
+fun add_term_uncheck stage = gen_add apsnd (stage, true);
+
+val check_typs = gen_check fst false;
+val check_terms = gen_check snd false;
+fun check_props ctxt = map (Type_Ext.type_constraint propT) #> check_terms ctxt;
+
+val check_typ = singleton o check_typs;
+val check_term = singleton o check_terms;
+val check_prop = singleton o check_props;
+val check_sort = map_sort o check_typ;
+
+val uncheck_typs = gen_check fst true;
+val uncheck_terms = gen_check snd true;
+val uncheck_sort = map_sort o singleton o uncheck_typs;
+
+end;
+
+
+(* derived operations for classrel and arity *)
+
+val uncheck_classrel = map o singleton o uncheck_sort;
+
+fun unparse_classrel ctxt cs = Pretty.block (flat
+  (separate [Pretty.str " <", Pretty.brk 1] (map (single o unparse_sort ctxt o single) cs)));
+
+fun uncheck_arity ctxt (a, Ss, S) =
+  let
+    val T = Type (a, replicate (length Ss) dummyT);
+    val a' =
+      (case singleton (uncheck_typs ctxt) T of
+        Type (a', _) => a'
+      | T => raise TYPE ("uncheck_arity", [T], []));
+    val Ss' = map (uncheck_sort ctxt) Ss;
+    val S' = uncheck_sort ctxt S;
+  in (a', Ss', S') end;
+
+fun unparse_arity ctxt (a, Ss, S) =
+  let
+    val prtT = unparse_typ ctxt (Type (a, []));
+    val dom =
+      if null Ss then []
+      else [Pretty.list "(" ")" (map (unparse_sort ctxt) Ss), Pretty.brk 1];
+  in Pretty.block ([prtT, Pretty.str " ::", Pretty.brk 1] @ dom @ [unparse_sort ctxt S]) end;
+
+
+(* read = parse + check *)
+
+fun read_sort ctxt = parse_sort ctxt #> check_sort ctxt;
+fun read_typ ctxt = parse_typ ctxt #> singleton (check_typs ctxt);
+
+fun read_terms ctxt = map (parse_term ctxt) #> check_terms ctxt;
+fun read_props ctxt = map (parse_prop ctxt) #> check_props ctxt;
+
+val read_term = singleton o read_terms;
+val read_prop = singleton o read_props;
+
+val read_sort_global = read_sort o ProofContext.init_global;
+val read_typ_global = read_typ o ProofContext.init_global;
+val read_term_global = read_term o ProofContext.init_global;
+val read_prop_global = read_prop o ProofContext.init_global;
+
+
+(* pretty = uncheck + unparse *)
+
+fun pretty_term ctxt = singleton (uncheck_terms ctxt) #> unparse_term ctxt;
+fun pretty_typ ctxt = singleton (uncheck_typs ctxt) #> unparse_typ ctxt;
+fun pretty_sort ctxt = uncheck_sort ctxt #> unparse_sort ctxt;
+fun pretty_classrel ctxt = uncheck_classrel ctxt #> unparse_classrel ctxt;
+fun pretty_arity ctxt = uncheck_arity ctxt #> unparse_arity ctxt;
+
+val string_of_term = Pretty.string_of oo pretty_term;
+val string_of_typ = Pretty.string_of oo pretty_typ;
+val string_of_sort = Pretty.string_of oo pretty_sort;
+val string_of_classrel = Pretty.string_of oo pretty_classrel;
+val string_of_arity = Pretty.string_of oo pretty_arity;
+
+
+(* global pretty printing *)
+
+structure PrettyGlobal = Proof_Data(type T = bool fun init _ = false);
+val is_pretty_global = PrettyGlobal.get;
+val set_pretty_global = PrettyGlobal.put;
+val init_pretty_global = set_pretty_global true o ProofContext.init_global;
+
+val pretty_term_global = pretty_term o init_pretty_global;
+val pretty_typ_global = pretty_typ o init_pretty_global;
+val pretty_sort_global = pretty_sort o init_pretty_global;
+
+val string_of_term_global = string_of_term o init_pretty_global;
+val string_of_typ_global = string_of_typ o init_pretty_global;
+val string_of_sort_global = string_of_sort o init_pretty_global;
+
+
+(* pp operations -- deferred evaluation *)
+
+fun pp ctxt = Pretty.pp
+ (fn x => pretty_term ctxt x,
+  fn x => pretty_typ ctxt x,
+  fn x => pretty_sort ctxt x,
+  fn x => pretty_classrel ctxt x,
+  fn x => pretty_arity ctxt x);
+
+fun pp_global thy = Pretty.pp
+ (fn x => pretty_term_global thy x,
+  fn x => pretty_typ_global thy x,
+  fn x => pretty_sort_global thy x,
+  fn x => pretty_classrel (init_pretty_global thy) x,
+  fn x => pretty_arity (init_pretty_global thy) x);
+
+
 
 (** tables of translation functions **)
 
@@ -456,21 +689,6 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
 
 (** read **)
 
-(* read token -- with optional YXML encoding of position *)
-
-fun read_token str =
-  let
-    val tree = YXML.parse str handle Fail msg => error msg;
-    val text = Buffer.empty |> XML.add_content tree |> Buffer.content;
-    val pos =
-      (case tree of
-        XML.Elem ((name, props), _) =>
-          if name = Markup.tokenN then Position.of_properties props
-          else Position.none
-      | XML.Text _ => Position.none);
-  in (Symbol_Pos.explode (text, pos), pos) end;
-
-
 (* read_ast *)
 
 val ambiguity_enabled =
@@ -525,8 +743,8 @@ fun read ctxt is_logtype (syn as Syntax (tabs, _)) ty inp =
 (* read terms *)
 
 (*brute-force disambiguation via type-inference*)
-fun disambig _ _ _ [t] = t
-  | disambig ctxt pp check ts =
+fun disambig _ _ [t] = t
+  | disambig ctxt check ts =
       let
         val level = Config.get ctxt ambiguity_level;
         val limit = Config.get ctxt ambiguity_limit;
@@ -541,6 +759,8 @@ fun disambig _ _ _ [t] = t
         val errs = Par_List.map check ts;
         val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
         val len = length results;
+
+        val show_term = string_of_term (Config.put Printer.show_brackets true ctxt);
       in
         if null results then cat_error (ambig_msg ()) (cat_lines (map_filter I errs))
         else if len = 1 then
@@ -552,13 +772,13 @@ fun disambig _ _ _ [t] = t
         else cat_error (ambig_msg ()) (cat_lines
           (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of_term pp) (take limit results)))
+            map show_term (take limit results)))
       end;
 
-fun standard_parse_term pp check get_sort map_const map_free ctxt is_logtype syn ty (syms, pos) =
+fun standard_parse_term check get_sort map_const map_free ctxt is_logtype syn ty (syms, pos) =
   read ctxt is_logtype syn ty (syms, pos)
   |> map (Type_Ext.decode_term get_sort map_const map_free)
-  |> disambig ctxt (Printer.pp_show_brackets pp) check;
+  |> disambig ctxt check;
 
 
 (* read types *)
@@ -694,224 +914,6 @@ fun remove_trrules ctxt is_logtype syn =
 
 val update_trrules_i = ext_syntax Syn_Ext.syn_ext_rules o cert_rules;
 val remove_trrules_i = remove_syntax mode_default o Syn_Ext.syn_ext_rules o cert_rules;
-
-
-
-(** inner syntax operations **)
-
-(* (un)parsing *)
-
-fun parse_token ctxt markup str =
-  let
-    val (syms, pos) = read_token str;
-    val _ = Context_Position.report ctxt markup pos;
-  in (syms, pos) end;
-
-local
-
-type operations =
- {parse_sort: Proof.context -> string -> sort,
-  parse_typ: Proof.context -> string -> typ,
-  parse_term: Proof.context -> string -> term,
-  parse_prop: Proof.context -> string -> term,
-  unparse_sort: Proof.context -> sort -> Pretty.T,
-  unparse_typ: Proof.context -> typ -> Pretty.T,
-  unparse_term: Proof.context -> term -> Pretty.T};
-
-val operations: operations Single_Assignment.var = Single_Assignment.var "Syntax.operations";
-
-fun operation which ctxt x =
-  (case Single_Assignment.peek operations of
-    NONE => raise Fail "Inner syntax operations not installed"
-  | SOME ops => which ops ctxt x);
-
-in
-
-val parse_sort = operation #parse_sort;
-val parse_typ = operation #parse_typ;
-val parse_term = operation #parse_term;
-val parse_prop = operation #parse_prop;
-val unparse_sort = operation #unparse_sort;
-val unparse_typ = operation #unparse_typ;
-val unparse_term = operation #unparse_term;
-
-fun install_operations ops = Single_Assignment.assign operations ops;
-
-end;
-
-
-(* context-sensitive (un)checking *)
-
-local
-
-type key = int * bool;
-type 'a check = 'a list -> Proof.context -> ('a list * Proof.context) option;
-
-structure Checks = Generic_Data
-(
-  type T =
-    ((key * ((string * typ check) * stamp) list) list *
-     (key * ((string * term check) * stamp) list) list);
-  val empty = ([], []);
-  val extend = I;
-  fun merge ((typ_checks1, term_checks1), (typ_checks2, term_checks2)) : T =
-    (AList.join (op =) (K (Library.merge (eq_snd (op =)))) (typ_checks1, typ_checks2),
-     AList.join (op =) (K (Library.merge (eq_snd (op =)))) (term_checks1, term_checks2));
-);
-
-fun gen_add which (key: key) name f =
-  Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
-
-fun check_stage fs = perhaps_loop (perhaps_apply (map uncurry fs));
-
-fun gen_check which uncheck ctxt0 xs0 =
-  let
-    val funs = which (Checks.get (Context.Proof ctxt0))
-      |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
-      |> Library.sort (int_ord o pairself fst) |> map snd
-      |> not uncheck ? map rev;
-    val check_all = perhaps_apply (map check_stage funs);
-  in #1 (perhaps check_all (xs0, ctxt0)) end;
-
-fun map_sort f S =
-  (case f (TFree ("", S)) of
-    TFree ("", S') => S'
-  | _ => raise TYPE ("map_sort", [TFree ("", S)], []));
-
-in
-
-fun print_checks ctxt =
-  let
-    fun split_checks checks =
-      List.partition (fn ((_, un), _) => not un) checks
-      |> pairself (map (fn ((i, _), fs) => (i, map (fst o fst) fs))
-          #> sort (int_ord o pairself fst));
-    fun pretty_checks kind checks =
-      checks |> map (fn (i, names) => Pretty.block
-        [Pretty.str (kind ^ " (stage " ^ signed_string_of_int i ^ "):"),
-          Pretty.brk 1, Pretty.strs names]);
-
-    val (typs, terms) = Checks.get (Context.Proof ctxt);
-    val (typ_checks, typ_unchecks) = split_checks typs;
-    val (term_checks, term_unchecks) = split_checks terms;
-  in
-    pretty_checks "typ_checks" typ_checks @
-    pretty_checks "term_checks" term_checks @
-    pretty_checks "typ_unchecks" typ_unchecks @
-    pretty_checks "term_unchecks" term_unchecks
-  end |> Pretty.chunks |> Pretty.writeln;
-
-fun add_typ_check stage = gen_add apfst (stage, false);
-fun add_term_check stage = gen_add apsnd (stage, false);
-fun add_typ_uncheck stage = gen_add apfst (stage, true);
-fun add_term_uncheck stage = gen_add apsnd (stage, true);
-
-val check_typs = gen_check fst false;
-val check_terms = gen_check snd false;
-fun check_props ctxt = map (Type_Ext.type_constraint propT) #> check_terms ctxt;
-
-val check_typ = singleton o check_typs;
-val check_term = singleton o check_terms;
-val check_prop = singleton o check_props;
-val check_sort = map_sort o check_typ;
-
-val uncheck_typs = gen_check fst true;
-val uncheck_terms = gen_check snd true;
-val uncheck_sort = map_sort o singleton o uncheck_typs;
-
-end;
-
-
-(* derived operations for classrel and arity *)
-
-val uncheck_classrel = map o singleton o uncheck_sort;
-
-fun unparse_classrel ctxt cs = Pretty.block (flat
-  (separate [Pretty.str " <", Pretty.brk 1] (map (single o unparse_sort ctxt o single) cs)));
-
-fun uncheck_arity ctxt (a, Ss, S) =
-  let
-    val T = Type (a, replicate (length Ss) dummyT);
-    val a' =
-      (case singleton (uncheck_typs ctxt) T of
-        Type (a', _) => a'
-      | T => raise TYPE ("uncheck_arity", [T], []));
-    val Ss' = map (uncheck_sort ctxt) Ss;
-    val S' = uncheck_sort ctxt S;
-  in (a', Ss', S') end;
-
-fun unparse_arity ctxt (a, Ss, S) =
-  let
-    val prtT = unparse_typ ctxt (Type (a, []));
-    val dom =
-      if null Ss then []
-      else [Pretty.list "(" ")" (map (unparse_sort ctxt) Ss), Pretty.brk 1];
-  in Pretty.block ([prtT, Pretty.str " ::", Pretty.brk 1] @ dom @ [unparse_sort ctxt S]) end;
-
-
-(* read = parse + check *)
-
-fun read_sort ctxt = parse_sort ctxt #> check_sort ctxt;
-fun read_typ ctxt = parse_typ ctxt #> singleton (check_typs ctxt);
-
-fun read_terms ctxt = map (parse_term ctxt) #> check_terms ctxt;
-fun read_props ctxt = map (parse_prop ctxt) #> check_props ctxt;
-
-val read_term = singleton o read_terms;
-val read_prop = singleton o read_props;
-
-val read_sort_global = read_sort o ProofContext.init_global;
-val read_typ_global = read_typ o ProofContext.init_global;
-val read_term_global = read_term o ProofContext.init_global;
-val read_prop_global = read_prop o ProofContext.init_global;
-
-
-(* pretty = uncheck + unparse *)
-
-fun pretty_term ctxt = singleton (uncheck_terms ctxt) #> unparse_term ctxt;
-fun pretty_typ ctxt = singleton (uncheck_typs ctxt) #> unparse_typ ctxt;
-fun pretty_sort ctxt = uncheck_sort ctxt #> unparse_sort ctxt;
-fun pretty_classrel ctxt = uncheck_classrel ctxt #> unparse_classrel ctxt;
-fun pretty_arity ctxt = uncheck_arity ctxt #> unparse_arity ctxt;
-
-val string_of_term = Pretty.string_of oo pretty_term;
-val string_of_typ = Pretty.string_of oo pretty_typ;
-val string_of_sort = Pretty.string_of oo pretty_sort;
-val string_of_classrel = Pretty.string_of oo pretty_classrel;
-val string_of_arity = Pretty.string_of oo pretty_arity;
-
-
-(* global pretty printing *)
-
-structure PrettyGlobal = Proof_Data(type T = bool fun init _ = false);
-val is_pretty_global = PrettyGlobal.get;
-val set_pretty_global = PrettyGlobal.put;
-val init_pretty_global = set_pretty_global true o ProofContext.init_global;
-
-val pretty_term_global = pretty_term o init_pretty_global;
-val pretty_typ_global = pretty_typ o init_pretty_global;
-val pretty_sort_global = pretty_sort o init_pretty_global;
-
-val string_of_term_global = string_of_term o init_pretty_global;
-val string_of_typ_global = string_of_typ o init_pretty_global;
-val string_of_sort_global = string_of_sort o init_pretty_global;
-
-
-(* pp operations -- deferred evaluation *)
-
-fun pp ctxt = Pretty.pp
- (fn x => pretty_term ctxt x,
-  fn x => pretty_typ ctxt x,
-  fn x => pretty_sort ctxt x,
-  fn x => pretty_classrel ctxt x,
-  fn x => pretty_arity ctxt x);
-
-fun pp_global thy = Pretty.pp
- (fn x => pretty_term_global thy x,
-  fn x => pretty_typ_global thy x,
-  fn x => pretty_sort_global thy x,
-  fn x => pretty_classrel (init_pretty_global thy) x,
-  fn x => pretty_arity (init_pretty_global thy) x);
 
 
 (*export parts of internal Syntax structures*)

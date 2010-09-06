@@ -161,13 +161,15 @@ fun cert_axm thy (b, raw_tm) =
         | TERM (msg, _) => error msg;
     val _ = Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
 
+    val ctxt = Syntax.init_pretty_global thy
+      |> Config.put show_sorts true;
     val bad_sorts =
       rev ((fold_types o fold_atyps_sorts) (fn (_, []) => I | (T, _) => insert (op =) T) t []);
     val _ = null bad_sorts orelse
       error ("Illegal sort constraints in primitive specification: " ^
-        commas (map (setmp_CRITICAL show_sorts true (Syntax.string_of_typ_global thy)) bad_sorts));
+        commas (map (Syntax.string_of_typ ctxt) bad_sorts));
   in
-    (b, Sign.no_vars (Syntax.pp_global thy) t)
+    (b, Sign.no_vars (Syntax.init_pretty_global thy) t)
   end handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in axiom " ^ quote (Binding.str_of b));
 
@@ -182,10 +184,10 @@ fun add_axiom raw_axm thy = thy |> map_axioms (fn axioms =>
 
 fun dependencies thy unchecked def description lhs rhs =
   let
-    val pp = Syntax.pp_global thy;
+    val ctxt = Syntax.init_pretty_global thy;
     val consts = Sign.consts_of thy;
     fun prep const =
-      let val Const (c, T) = Sign.no_vars pp (Const const)
+      let val Const (c, T) = Sign.no_vars ctxt (Const const)
       in (c, Consts.typargs consts (c, Logic.varifyT_global T)) end;
 
     val lhs_vars = Term.add_tfreesT (#2 lhs) [];
@@ -194,9 +196,9 @@ fun dependencies thy unchecked def description lhs rhs =
     val _ =
       if null rhs_extras then ()
       else error ("Specification depends on extra type variables: " ^
-        commas_quote (map (Pretty.string_of_typ pp o TFree) rhs_extras) ^
+        commas_quote (map (Syntax.string_of_typ ctxt o TFree) rhs_extras) ^
         "\nThe error(s) above occurred in " ^ quote description);
-  in Defs.define pp unchecked def description (prep lhs) (map prep rhs) end;
+  in Defs.define (Syntax.pp ctxt) unchecked def description (prep lhs) (map prep rhs) end;
 
 fun add_deps a raw_lhs raw_rhs thy =
   let
@@ -217,18 +219,18 @@ fun check_overloading thy overloaded (c, T) =
       handle TYPE (msg, _, _) => error msg;
     val T' = Logic.varifyT_global T;
 
-    fun message txt =
+    val ctxt = Syntax.init_pretty_global thy;
+    fun message sorts txt =
       [Pretty.block [Pretty.str "Specification of constant ",
-        Pretty.str c, Pretty.str " ::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ_global thy T)],
+        Pretty.str c, Pretty.str " ::", Pretty.brk 1,
+        Pretty.quote (Syntax.pretty_typ (Config.put show_sorts sorts ctxt) T)],
         Pretty.str txt] |> Pretty.chunks |> Pretty.string_of;
   in
     if Sign.typ_instance thy (declT, T') then ()
     else if Type.raw_instance (declT, T') then
-      error (setmp_CRITICAL show_sorts true
-        message "imposes additional sort constraints on the constant declaration")
+      error (message true "imposes additional sort constraints on the constant declaration")
     else if overloaded then ()
-    else warning (message "is strictly less general than the declared type");
-    (c, T)
+    else warning (message false "is strictly less general than the declared type")
   end;
 
 
@@ -272,7 +274,7 @@ fun gen_add_finals prep_term overloaded args thy =
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
     fun specify (c, T) = dependencies thy false NONE (c ^ " axiom") (c, T) [];
-    val finalize = specify o check_overloading thy overloaded o const_of o
+    val finalize = specify o tap (check_overloading thy overloaded) o const_of o
       Sign.cert_term thy o prep_term thy;
   in thy |> map_defs (fold finalize args) end;
 

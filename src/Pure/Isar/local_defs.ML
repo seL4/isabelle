@@ -47,7 +47,7 @@ fun cert_def ctxt eq =
     fun err msg = cat_error msg ("The error(s) above occurred in definition: " ^
       quote (Syntax.string_of_term ctxt eq));
     val ((lhs, _), eq') = eq
-      |> Sign.no_vars (Syntax.pp ctxt)
+      |> Sign.no_vars ctxt
       |> Primitive_Defs.dest_def ctxt Term.is_Free (Variable.is_fixed ctxt) (K true)
       handle TERM (msg, _) => err msg | ERROR msg => err msg;
   in (Term.dest_Free (Term.head_of lhs), eq') end;

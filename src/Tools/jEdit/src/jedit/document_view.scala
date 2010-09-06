@@ -12,11 +12,12 @@ import isabelle._
 
 import scala.actors.Actor._
 
-import java.awt.event.{MouseAdapter, MouseEvent}
+import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent, FocusAdapter, FocusEvent}
 import java.awt.{BorderLayout, Graphics, Dimension, Color, Graphics2D}
 import javax.swing.{JPanel, ToolTipManager}
 import javax.swing.event.{CaretListener, CaretEvent}
 
+import org.gjt.sp.jedit.OperatingSystem
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.SyntaxStyle
@@ -123,6 +124,13 @@ class Document_View(val model: Document_Model, text_area: TextArea)
     proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength)
   }
 
+  def invalidate_line_range(range: Text.Range)
+  {
+    text_area.invalidateLineRange(
+      model.buffer.getLineOfOffset(range.start),
+      model.buffer.getLineOfOffset(range.stop))
+  }
+
 
   /* commands_changed_actor */
 
@@ -161,6 +169,41 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   }
 
 
+  /* subexpression highlighting */
+
+  private def subexp_range(snapshot: Document.Snapshot, x: Int, y: Int): Option[Text.Range] =
+  {
+    val subexp_markup: PartialFunction[Text.Info[Any], Option[Text.Range]] =
+    {
+      case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), _)) =>
+        Some(snapshot.convert(range))
+    }
+    val offset = text_area.xyToOffset(x, y)
+    val markup = snapshot.select_markup(Text.Range(offset, offset + 1))(subexp_markup)(None)
+    if (markup.hasNext) markup.next.info else None
+  }
+
+  private var highlight_range: Option[Text.Range] = None
+
+  private val focus_listener = new FocusAdapter {
+    override def focusLost(e: FocusEvent) { highlight_range = None }
+  }
+
+  private val mouse_motion_listener = new MouseMotionAdapter {
+    override def mouseMoved(e: MouseEvent) {
+      val control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
+      if (!model.buffer.isLoaded) highlight_range = None
+      else
+        Isabelle.swing_buffer_lock(model.buffer) {
+          highlight_range.map(invalidate_line_range(_))
+          highlight_range =
+            if (control) subexp_range(model.snapshot(), e.getX(), e.getY()) else None
+          highlight_range.map(invalidate_line_range(_))
+        }
+    }
+  }
+
+
   /* text_area_extension */
 
   private val text_area_extension = new TextAreaExtension
@@ -173,6 +216,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
         val snapshot = model.snapshot()
         val saved_color = gfx.getColor
         val ascent = text_area.getPainter.getFontMetrics.getAscent
+
         try {
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
@@ -187,6 +231,18 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               } {
                 gfx.setColor(Document_View.status_color(snapshot, command))
                 gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+              }
+
+              // subexpression highlighting -- potentially from other snapshot
+              if (highlight_range.isDefined) {
+                if (line_range.overlaps(highlight_range.get)) {
+                  Isabelle.gfx_range(text_area, line_range.restrict(highlight_range.get)) match {
+                    case None =>
+                    case Some(r) =>
+                      gfx.setColor(Color.black)
+                      gfx.drawRect(r.x, y + i * line_height, r.length, line_height - 1)
+                  }
+                }
               }
 
               // squiggly underline
@@ -315,6 +371,8 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   {
     text_area.getPainter.
       addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
+    text_area.addFocusListener(focus_listener)
+    text_area.getPainter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
     session.commands_changed += commands_changed_actor
@@ -323,8 +381,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
   private def deactivate()
   {
     session.commands_changed -= commands_changed_actor
-    text_area.removeLeftOfScrollBar(overview)
+    text_area.removeFocusListener(focus_listener)
+    text_area.getPainter.removeMouseMotionListener(mouse_motion_listener)
     text_area.removeCaretListener(caret_listener)
+    text_area.removeLeftOfScrollBar(overview)
     text_area.getPainter.removeExtension(text_area_extension)
   }
 }

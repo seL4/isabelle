@@ -429,10 +429,9 @@ fun dest_cterm ct = let val t = Thm.term_of ct in (Term.add_tfrees t [], t) end;
 
 fun dynamic_eval thy cterm_of conclude_evaluation evaluator proto_ct =
   let
-    val pp = Syntax.pp_global thy;
+    val ctxt = Syntax.init_pretty_global thy;
     val ct = cterm_of proto_ct;
-    val _ = (Sign.no_frees pp o map_types (K dummyT) o Sign.no_vars pp)
-      (Thm.term_of ct);
+    val _ = (Sign.no_frees ctxt o map_types (K dummyT) o Sign.no_vars ctxt) (Thm.term_of ct);
     val thm = preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
     val (vs', t') = dest_cterm ct';

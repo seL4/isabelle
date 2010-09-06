@@ -96,13 +96,13 @@ subsection {* Details of printed content *}
 
 text {*
   \begin{mldecls} 
-    @{index_ML show_types: "bool Unsynchronized.ref"} & default @{ML false} \\
-    @{index_ML show_sorts: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_types: "bool Config.T"} & default @{ML false} \\
+    @{index_ML show_sorts: "bool Config.T"} & default @{ML false} \\
     @{index_ML show_consts: "bool Config.T"} & default @{ML false} \\
     @{index_ML long_names: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML short_names: "bool Unsynchronized.ref"} & default @{ML false} \\
     @{index_ML unique_names: "bool Unsynchronized.ref"} & default @{ML true} \\
-    @{index_ML show_brackets: "bool Unsynchronized.ref"} & default @{ML false} \\
+    @{index_ML show_brackets: "bool Config.T"} & default @{ML false} \\
     @{index_ML eta_contract: "bool Config.T"} & default @{ML true} \\
     @{index_ML Goal_Display.goals_limit: "int Config.T"} & default @{ML 10} \\
     @{index_ML Goal_Display.show_main_goal: "bool Config.T"} & default @{ML false} \\

@@ -164,7 +164,7 @@ fun print_classes thy =
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
     fun mk_param (c, ty) = Pretty.str (Sign.extern_const thy c ^ " :: "
-      ^ setmp_CRITICAL show_sorts false (Syntax.string_of_typ ctxt o Type.strip_sorts) ty);
+      ^ (Syntax.string_of_typ (Config.put show_sorts false ctxt) o Type.strip_sorts) ty);
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
       (SOME o Pretty.str) ("class " ^ Sign.extern_class thy class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
@@ -525,9 +525,8 @@ fun instantiation (tycos, vs, sort) thy =
     val params = map_product get_param tycos class_params |> map_filter I;
     val primary_constraints = map (apsnd
       (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) class_params;
-    val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy
-      |> fold (fn tyco => Sorts.add_arities pp
+      |> fold (fn tyco => Sorts.add_arities (Syntax.pp_global thy)
             (tyco, map (fn class => (class, map snd vs)) sort)) tycos;
     val consts = Sign.consts_of thy;
     val improve_constraints = AList.lookup (op =)

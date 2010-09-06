@@ -281,7 +281,8 @@ fun DETERM_TIMEOUT delay tac st =
 
 fun set_show_all_types ctxt =
   Config.put show_all_types
-    (!show_types orelse !show_sorts orelse Config.get ctxt show_all_types) ctxt
+    (Config.get ctxt show_types orelse Config.get ctxt show_sorts
+      orelse Config.get ctxt show_all_types) ctxt
 
 val indent_size = 2
 
