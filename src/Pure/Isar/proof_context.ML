@@ -144,7 +144,6 @@ sig
   val print_cases: Proof.context -> unit
   val debug: bool Unsynchronized.ref
   val verbose: bool Unsynchronized.ref
-  val prems_limit: int Unsynchronized.ref
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
 end;
@@ -1403,10 +1402,9 @@ end;
 
 val debug = Unsynchronized.ref false;
 val verbose = Unsynchronized.ref false;
-val prems_limit = Unsynchronized.ref ~1;
 
 fun pretty_ctxt ctxt =
-  if ! prems_limit < 0 andalso not (! debug) then []
+  if not (! debug) then []
   else
     let
       val prt_term = Syntax.pretty_term ctxt;
@@ -1432,12 +1430,9 @@ fun pretty_ctxt ctxt =
 
       (*prems*)
       val prems = Assumption.all_prems_of ctxt;
-      val len = length prems;
-      val suppressed = len - ! prems_limit;
       val prt_prems =
         if null prems then []
-        else [Pretty.big_list "prems:" ((if suppressed <= 0 then [] else [Pretty.str "..."]) @
-          map (Display.pretty_thm ctxt) (drop suppressed prems))];
+        else [Pretty.big_list "prems:" (map (Display.pretty_thm ctxt) prems)];
     in prt_structs @ prt_fixes @ prt_prems end;
 
 

@@ -34,9 +34,6 @@ sig
   val immediate_proof: Toplevel.transition -> Toplevel.transition
   val done_proof: Toplevel.transition -> Toplevel.transition
   val skip_proof: Toplevel.transition -> Toplevel.transition
-  val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
-  val disable_pr: Toplevel.transition -> Toplevel.transition
-  val enable_pr: Toplevel.transition -> Toplevel.transition
   val ml_diag: bool -> Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
   val diag_state: unit -> Toplevel.state
   val diag_goal: unit -> {context: Proof.context, facts: thm list, goal: thm}
@@ -264,21 +261,6 @@ val default_proof = local_default_proof o global_default_proof;
 val immediate_proof = local_immediate_proof o global_immediate_proof;
 val done_proof = local_done_proof o global_done_proof;
 val skip_proof = local_skip_proof o global_skip_proof;
-
-
-(* print state *)
-
-fun set_limit _ NONE = ()
-  | set_limit r (SOME n) = r := n;
-
-fun pr (modes, (lim1, lim2)) = Toplevel.keep (fn state =>
- (set_limit Goal_Display.goals_limit_default lim1;
-  set_limit ProofContext.prems_limit lim2;
-  Toplevel.quiet := false;
-  Print_Mode.with_modes modes (Toplevel.print_state true) state));
-
-val disable_pr = Toplevel.imperative (fn () => Toplevel.quiet := true);
-val enable_pr = Toplevel.imperative (fn () => Toplevel.quiet := false);
 
 
 (* diagnostic ML evaluation *)
