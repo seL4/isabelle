@@ -11,13 +11,13 @@ this is assured because both have type "prop".
 
 signature UNIFY =
 sig
-  val trace_bound_value: Config.value Config.T
+  val trace_bound_raw: Config.raw
   val trace_bound: int Config.T
-  val search_bound_value: Config.value Config.T
+  val search_bound_raw: Config.raw
   val search_bound: int Config.T
-  val trace_simp_value: Config.value Config.T
+  val trace_simp_raw: Config.raw
   val trace_simp: bool Config.T
-  val trace_types_value: Config.value Config.T
+  val trace_types_raw: Config.raw
   val trace_types: bool Config.T
   val unifiers: theory * Envir.env * ((term * term) list) ->
     (Envir.env * (term * term) list) Seq.seq
@@ -32,20 +32,20 @@ struct
 (*Unification options*)
 
 (*tracing starts above this depth, 0 for full*)
-val trace_bound_value = Config.declare_global "unify_trace_bound" (K (Config.Int 50));
-val trace_bound = Config.int trace_bound_value;
+val trace_bound_raw = Config.declare_global "unify_trace_bound" (K (Config.Int 50));
+val trace_bound = Config.int trace_bound_raw;
 
 (*unification quits above this depth*)
-val search_bound_value = Config.declare_global "unify_search_bound" (K (Config.Int 60));
-val search_bound = Config.int search_bound_value;
+val search_bound_raw = Config.declare_global "unify_search_bound" (K (Config.Int 60));
+val search_bound = Config.int search_bound_raw;
 
 (*print dpairs before calling SIMPL*)
-val trace_simp_value = Config.declare_global "unify_trace_simp" (K (Config.Bool false));
-val trace_simp = Config.bool trace_simp_value;
+val trace_simp_raw = Config.declare_global "unify_trace_simp" (K (Config.Bool false));
+val trace_simp = Config.bool trace_simp_raw;
 
 (*announce potential incompleteness of type unification*)
-val trace_types_value = Config.declare_global "unify_trace_types" (K (Config.Bool false));
-val trace_types = Config.bool trace_types_value;
+val trace_types_raw = Config.declare_global "unify_trace_types" (K (Config.Bool false));
+val trace_types = Config.bool trace_types_raw;
 
 
 type binderlist = (string*typ) list;

@@ -111,7 +111,7 @@ sig
   val print_syntax: syntax -> unit
   val guess_infix: syntax -> string -> mixfix option
   val ambiguity_enabled: bool Config.T
-  val ambiguity_level_value: Config.value Config.T
+  val ambiguity_level_raw: Config.raw
   val ambiguity_level: int Config.T
   val ambiguity_limit: int Config.T
   val standard_parse_term: (term -> string option) ->
@@ -694,8 +694,8 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
 val ambiguity_enabled =
   Config.bool (Config.declare "syntax_ambiguity_enabled" (fn _ => Config.Bool true));
 
-val ambiguity_level_value = Config.declare "syntax_ambiguity_level" (fn _ => Config.Int 1);
-val ambiguity_level = Config.int ambiguity_level_value;
+val ambiguity_level_raw = Config.declare "syntax_ambiguity_level" (fn _ => Config.Int 1);
+val ambiguity_level = Config.int ambiguity_level_raw;
 
 val ambiguity_limit =
   Config.int (Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10));

@@ -10,9 +10,10 @@ sig
   val print_value: value -> string
   val print_type: value -> string
   type 'a T
-  val bool: value T -> bool T
-  val int: value T -> int T
-  val string: value T -> string T
+  type raw = value T
+  val bool: raw -> bool T
+  val int: raw -> int T
+  val string: raw -> string T
   val get: Proof.context -> 'a T -> 'a
   val map: 'a T -> ('a -> 'a) -> Proof.context -> Proof.context
   val put: 'a T -> 'a -> Proof.context -> Proof.context
@@ -22,9 +23,9 @@ sig
   val get_generic: Context.generic -> 'a T -> 'a
   val map_generic: 'a T -> ('a -> 'a) -> Context.generic -> Context.generic
   val put_generic: 'a T -> 'a -> Context.generic -> Context.generic
-  val declare_generic: {global: bool} -> string -> (Context.generic -> value) -> value T
-  val declare_global: string -> (Context.generic -> value) -> value T
-  val declare: string -> (Context.generic -> value) -> value T
+  val declare_generic: {global: bool} -> string -> (Context.generic -> value) -> raw
+  val declare_global: string -> (Context.generic -> value) -> raw
+  val declare: string -> (Context.generic -> value) -> raw
   val name_of: 'a T -> string
 end;
 
@@ -67,6 +68,8 @@ datatype 'a T = Config of
  {name: string,
   get_value: Context.generic -> 'a,
   map_value: ('a -> 'a) -> Context.generic -> Context.generic};
+
+type raw = value T;
 
 fun coerce make dest (Config {name, get_value, map_value}) = Config
  {name = name,

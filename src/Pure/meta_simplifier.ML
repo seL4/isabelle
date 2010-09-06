@@ -12,9 +12,9 @@ infix 4
 signature BASIC_META_SIMPLIFIER =
 sig
   val debug_simp: bool Config.T
-  val debug_simp_value: Config.value Config.T
+  val debug_simp_raw: Config.raw
   val trace_simp: bool Config.T
-  val trace_simp_value: Config.value Config.T
+  val trace_simp_raw: Config.raw
   val trace_simp_default: bool Unsynchronized.ref
   val trace_simp_depth_limit: int Unsynchronized.ref
   type rrule
@@ -104,7 +104,7 @@ sig
   val add_simp: thm -> simpset -> simpset
   val del_simp: thm -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
-  val simp_depth_limit_value: Config.value Config.T
+  val simp_depth_limit_raw: Config.raw
   val simp_depth_limit: int Config.T
   val clear_ss: simpset -> simpset
   val simproc_global_i: theory -> string -> term list
@@ -250,8 +250,8 @@ fun eq_solver (Solver {id = id1, ...}, Solver {id = id2, ...}) = (id1 = id2);
 
 (* simp depth *)
 
-val simp_depth_limit_value = Config.declare "simp_depth_limit" (K (Config.Int 100));
-val simp_depth_limit = Config.int simp_depth_limit_value;
+val simp_depth_limit_raw = Config.declare "simp_depth_limit" (K (Config.Int 100));
+val simp_depth_limit = Config.int simp_depth_limit_raw;
 
 val trace_simp_depth_limit = Unsynchronized.ref 1;
 
@@ -273,12 +273,12 @@ fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
 exception SIMPLIFIER of string * thm;
 
-val debug_simp_value = Config.declare "debug_simp" (K (Config.Bool false));
-val debug_simp = Config.bool debug_simp_value;
+val debug_simp_raw = Config.declare "debug_simp" (K (Config.Bool false));
+val debug_simp = Config.bool debug_simp_raw;
 
 val trace_simp_default = Unsynchronized.ref false;
-val trace_simp_value = Config.declare "trace_simp" (fn _ => Config.Bool (! trace_simp_default));
-val trace_simp = Config.bool trace_simp_value;
+val trace_simp_raw = Config.declare "trace_simp" (fn _ => Config.Bool (! trace_simp_default));
+val trace_simp = Config.bool trace_simp_raw;
 
 fun if_enabled (Simpset ({context, ...}, _)) flag f =
   (case context of

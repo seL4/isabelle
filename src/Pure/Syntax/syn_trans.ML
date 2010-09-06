@@ -7,7 +7,7 @@ Syntax translation functions.
 signature SYN_TRANS0 =
 sig
   val eta_contract_default: bool Unsynchronized.ref
-  val eta_contract_value: Config.value Config.T
+  val eta_contract_raw: Config.raw
   val eta_contract: bool Config.T
   val atomic_abs_tr': string * typ * term -> term * term
   val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
@@ -283,9 +283,8 @@ fun strip_abss vars_of body_of tm =
 (*do (partial) eta-contraction before printing*)
 
 val eta_contract_default = Unsynchronized.ref true;
-val eta_contract_value =
-  Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
-val eta_contract = Config.bool eta_contract_value;
+val eta_contract_raw = Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
+val eta_contract = Config.bool eta_contract_raw;
 
 fun eta_contr ctxt tm =
   let
