@@ -66,7 +66,7 @@ done
 
 (*Proofs involving arbitrary types.
   For concreteness, every type variable left over is forced to be N*)
-ML {* val N_tac = TRYALL (rtac (thm "NF")) *}
+ML {* val N_tac = TRYALL (rtac @{thm NF}) *}
 
 schematic_lemma "lam w. <w,w> : ?A"
 apply (tactic "typechk_tac []")

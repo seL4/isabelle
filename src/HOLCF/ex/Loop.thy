@@ -104,12 +104,12 @@ apply (intro strip)
 apply (simp (no_asm) add: step_def2)
 apply (rule_tac p = "b$ (iterate n$ (step$b$g) $x) " in trE)
 apply (erule notE)
-apply (tactic {* asm_simp_tac (HOLCF_ss addsimps [thm "step_def2"]) 1 *})
+apply (tactic {* asm_simp_tac (HOLCF_ss addsimps [@{thm step_def2}]) 1 *})
 apply (tactic "asm_simp_tac HOLCF_ss 1")
 apply (rule mp)
 apply (erule spec)
-apply (tactic {* asm_simp_tac (HOLCF_ss delsimps [thm "iterate_Suc"]
-  addsimps [thm "loop_lemma2"]) 1 *})
+apply (tactic {* asm_simp_tac (HOLCF_ss delsimps [@{thm iterate_Suc}]
+  addsimps [@{thm loop_lemma2}]) 1 *})
 apply (rule_tac s = "iterate (Suc n) $ (step$b$g) $x"
   and t = "g$ (iterate n$ (step$b$g) $x) " in ssubst)
 prefer 2 apply (assumption)

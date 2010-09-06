@@ -1,4 +1,4 @@
-(*  Title:      HOL/Extraction/Higman.thy
+(*  Title:      HOL/Proofs/Extraction/Higman.thy
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Monika Seisenberger, LMU Muenchen
 *)

@@ -193,8 +193,8 @@ done
 
 ML
 {*
-val cardinal_0_iff_0 = thm "cardinal_0_iff_0";
-val cardinal_lt_iff_lesspoll = thm "cardinal_lt_iff_lesspoll";
+val cardinal_0_iff_0 = @{thm cardinal_0_iff_0};
+val cardinal_lt_iff_lesspoll = @{thm cardinal_lt_iff_lesspoll};
 *}
 
 end

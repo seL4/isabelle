@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/Type.thy
+(*  Title:      HOL/Proofs/Lambda/Type.thy
     Author:     Stefan Berghofer
     Copyright   2000 TU Muenchen
 *)

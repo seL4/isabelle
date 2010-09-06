@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/ListOrder.thy
+(*  Title:      HOL/Proofs/Lambda/ListOrder.thy
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
 *)

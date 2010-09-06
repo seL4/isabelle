@@ -33,12 +33,12 @@ axioms
 ML {*
 structure T_Prover = Modal_ProverFun
 (
-  val rewrite_rls = thms "rewrite_rls"
-  val safe_rls = thms "safe_rls"
-  val unsafe_rls = thms "unsafe_rls" @ [thm "boxR", thm "diaL"]
-  val bound_rls = thms "bound_rls" @ [thm "boxL", thm "diaR"]
-  val aside_rls = [thm "lstar0", thm "lstar1", thm "lstar2", thm "rstar0",
-    thm "rstar1", thm "rstar2"]
+  val rewrite_rls = @{thms rewrite_rls}
+  val safe_rls = @{thms safe_rls}
+  val unsafe_rls = @{thms unsafe_rls} @ [@{thm boxR}, @{thm diaL}]
+  val bound_rls = @{thms bound_rls} @ [@{thm boxL}, @{thm diaR}]
+  val aside_rls = [@{thm lstar0}, @{thm lstar1}, @{thm lstar2}, @{thm rstar0},
+    @{thm rstar1}, @{thm rstar2}]
 )
 *}
 

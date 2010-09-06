@@ -30,10 +30,10 @@ fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
 
 fun preds_of ps t = inter (op = o apfst dest_Free) (Term.add_frees t []) ps;
 
-val fresh_prod = thm "fresh_prod";
+val fresh_prod = @{thm fresh_prod};
 
-val perm_bool = mk_meta_eq (thm "perm_bool");
-val perm_boolI = thm "perm_boolI";
+val perm_bool = mk_meta_eq @{thm perm_bool};
+val perm_boolI = @{thm perm_boolI};
 val (_, [perm_boolI_pi, _]) = Drule.strip_comb (snd (Thm.dest_comb
   (Drule.strip_imp_concl (cprop_of perm_boolI))));
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/NormalForm.thy
+(*  Title:      HOL/Proofs/Lambda/NormalForm.thy
     Author:     Stefan Berghofer, TU Muenchen, 2003
 *)
 

@@ -426,7 +426,7 @@ lemma fst_o_client_map: "fst o client_map = non_dummy"
   apply (rule fst_o_funPair)
   done
 
-ML {* bind_thms ("fst_o_client_map'", make_o_equivs (thm "fst_o_client_map")) *}
+ML {* bind_thms ("fst_o_client_map'", make_o_equivs @{thm fst_o_client_map}) *}
 declare fst_o_client_map' [simp]
 
 lemma snd_o_client_map: "snd o client_map = clientState_d.dummy"
@@ -434,7 +434,7 @@ lemma snd_o_client_map: "snd o client_map = clientState_d.dummy"
   apply (rule snd_o_funPair)
   done
 
-ML {* bind_thms ("snd_o_client_map'", make_o_equivs (thm "snd_o_client_map")) *}
+ML {* bind_thms ("snd_o_client_map'", make_o_equivs @{thm snd_o_client_map}) *}
 declare snd_o_client_map' [simp]
 
 
@@ -444,28 +444,28 @@ lemma client_o_sysOfAlloc: "client o sysOfAlloc = fst o allocState_d.dummy "
   apply record_auto
   done
 
-ML {* bind_thms ("client_o_sysOfAlloc'", make_o_equivs (thm "client_o_sysOfAlloc")) *}
+ML {* bind_thms ("client_o_sysOfAlloc'", make_o_equivs @{thm client_o_sysOfAlloc}) *}
 declare client_o_sysOfAlloc' [simp]
 
 lemma allocGiv_o_sysOfAlloc_eq: "allocGiv o sysOfAlloc = allocGiv"
   apply record_auto
   done
 
-ML {* bind_thms ("allocGiv_o_sysOfAlloc_eq'", make_o_equivs (thm "allocGiv_o_sysOfAlloc_eq")) *}
+ML {* bind_thms ("allocGiv_o_sysOfAlloc_eq'", make_o_equivs @{thm allocGiv_o_sysOfAlloc_eq}) *}
 declare allocGiv_o_sysOfAlloc_eq' [simp]
 
 lemma allocAsk_o_sysOfAlloc_eq: "allocAsk o sysOfAlloc = allocAsk"
   apply record_auto
   done
 
-ML {* bind_thms ("allocAsk_o_sysOfAlloc_eq'", make_o_equivs (thm "allocAsk_o_sysOfAlloc_eq")) *}
+ML {* bind_thms ("allocAsk_o_sysOfAlloc_eq'", make_o_equivs @{thm allocAsk_o_sysOfAlloc_eq}) *}
 declare allocAsk_o_sysOfAlloc_eq' [simp]
 
 lemma allocRel_o_sysOfAlloc_eq: "allocRel o sysOfAlloc = allocRel"
   apply record_auto
   done
 
-ML {* bind_thms ("allocRel_o_sysOfAlloc_eq'", make_o_equivs (thm "allocRel_o_sysOfAlloc_eq")) *}
+ML {* bind_thms ("allocRel_o_sysOfAlloc_eq'", make_o_equivs @{thm allocRel_o_sysOfAlloc_eq}) *}
 declare allocRel_o_sysOfAlloc_eq' [simp]
 
 
@@ -475,49 +475,49 @@ lemma client_o_sysOfClient: "client o sysOfClient = fst"
   apply record_auto
   done
 
-ML {* bind_thms ("client_o_sysOfClient'", make_o_equivs (thm "client_o_sysOfClient")) *}
+ML {* bind_thms ("client_o_sysOfClient'", make_o_equivs @{thm client_o_sysOfClient}) *}
 declare client_o_sysOfClient' [simp]
 
 lemma allocGiv_o_sysOfClient_eq: "allocGiv o sysOfClient = allocGiv o snd "
   apply record_auto
   done
 
-ML {* bind_thms ("allocGiv_o_sysOfClient_eq'", make_o_equivs (thm "allocGiv_o_sysOfClient_eq")) *}
+ML {* bind_thms ("allocGiv_o_sysOfClient_eq'", make_o_equivs @{thm allocGiv_o_sysOfClient_eq}) *}
 declare allocGiv_o_sysOfClient_eq' [simp]
 
 lemma allocAsk_o_sysOfClient_eq: "allocAsk o sysOfClient = allocAsk o snd "
   apply record_auto
   done
 
-ML {* bind_thms ("allocAsk_o_sysOfClient_eq'", make_o_equivs (thm "allocAsk_o_sysOfClient_eq")) *}
+ML {* bind_thms ("allocAsk_o_sysOfClient_eq'", make_o_equivs @{thm allocAsk_o_sysOfClient_eq}) *}
 declare allocAsk_o_sysOfClient_eq' [simp]
 
 lemma allocRel_o_sysOfClient_eq: "allocRel o sysOfClient = allocRel o snd "
   apply record_auto
   done
 
-ML {* bind_thms ("allocRel_o_sysOfClient_eq'", make_o_equivs (thm "allocRel_o_sysOfClient_eq")) *}
+ML {* bind_thms ("allocRel_o_sysOfClient_eq'", make_o_equivs @{thm allocRel_o_sysOfClient_eq}) *}
 declare allocRel_o_sysOfClient_eq' [simp]
 
 lemma allocGiv_o_inv_sysOfAlloc_eq: "allocGiv o inv sysOfAlloc = allocGiv"
   apply (simp add: o_def)
   done
 
-ML {* bind_thms ("allocGiv_o_inv_sysOfAlloc_eq'", make_o_equivs (thm "allocGiv_o_inv_sysOfAlloc_eq")) *}
+ML {* bind_thms ("allocGiv_o_inv_sysOfAlloc_eq'", make_o_equivs @{thm allocGiv_o_inv_sysOfAlloc_eq}) *}
 declare allocGiv_o_inv_sysOfAlloc_eq' [simp]
 
 lemma allocAsk_o_inv_sysOfAlloc_eq: "allocAsk o inv sysOfAlloc = allocAsk"
   apply (simp add: o_def)
   done
 
-ML {* bind_thms ("allocAsk_o_inv_sysOfAlloc_eq'", make_o_equivs (thm "allocAsk_o_inv_sysOfAlloc_eq")) *}
+ML {* bind_thms ("allocAsk_o_inv_sysOfAlloc_eq'", make_o_equivs @{thm allocAsk_o_inv_sysOfAlloc_eq}) *}
 declare allocAsk_o_inv_sysOfAlloc_eq' [simp]
 
 lemma allocRel_o_inv_sysOfAlloc_eq: "allocRel o inv sysOfAlloc = allocRel"
   apply (simp add: o_def)
   done
 
-ML {* bind_thms ("allocRel_o_inv_sysOfAlloc_eq'", make_o_equivs (thm "allocRel_o_inv_sysOfAlloc_eq")) *}
+ML {* bind_thms ("allocRel_o_inv_sysOfAlloc_eq'", make_o_equivs @{thm allocRel_o_inv_sysOfAlloc_eq}) *}
 declare allocRel_o_inv_sysOfAlloc_eq' [simp]
 
 lemma rel_inv_client_map_drop_map: "(rel o inv client_map o drop_map i o inv sysOfClient) =
@@ -525,7 +525,7 @@ lemma rel_inv_client_map_drop_map: "(rel o inv client_map o drop_map i o inv sys
   apply (simp add: o_def drop_map_def)
   done
 
-ML {* bind_thms ("rel_inv_client_map_drop_map'", make_o_equivs (thm "rel_inv_client_map_drop_map")) *}
+ML {* bind_thms ("rel_inv_client_map_drop_map'", make_o_equivs @{thm rel_inv_client_map_drop_map}) *}
 declare rel_inv_client_map_drop_map [simp]
 
 lemma ask_inv_client_map_drop_map: "(ask o inv client_map o drop_map i o inv sysOfClient) =
@@ -533,7 +533,7 @@ lemma ask_inv_client_map_drop_map: "(ask o inv client_map o drop_map i o inv sys
   apply (simp add: o_def drop_map_def)
   done
 
-ML {* bind_thms ("ask_inv_client_map_drop_map'", make_o_equivs (thm "ask_inv_client_map_drop_map")) *}
+ML {* bind_thms ("ask_inv_client_map_drop_map'", make_o_equivs @{thm ask_inv_client_map_drop_map}) *}
 declare ask_inv_client_map_drop_map [simp]
 
 
@@ -812,7 +812,7 @@ lemma System_Increasing_allocGiv:
 
 
 ML {*
-bind_thms ("System_Increasing'", list_of_Int (thm "System_Increasing"))
+bind_thms ("System_Increasing'", list_of_Int @{thm System_Increasing})
 *}
 
 declare System_Increasing' [intro!]
@@ -903,9 +903,9 @@ lemma Always_tokens_allocRel_le_rel: "System : Always (INT i: lessThan Nclients.
 text{*safety (1), step 4 (final result!) *}
 theorem System_safety: "System : system_safety"
   apply (unfold system_safety_def)
-  apply (tactic {* rtac (Always_Int_rule [thm "System_sum_bounded",
-    thm "Always_tokens_giv_le_allocGiv", thm "Always_tokens_allocRel_le_rel"] RS
-    thm "Always_weaken") 1 *})
+  apply (tactic {* rtac (Always_Int_rule [@{thm System_sum_bounded},
+    @{thm Always_tokens_giv_le_allocGiv}, @{thm Always_tokens_allocRel_le_rel}] RS
+    @{thm Always_weaken}) 1 *})
   apply auto
   apply (rule setsum_fun_mono [THEN order_trans])
   apply (drule_tac [2] order_trans)
@@ -946,8 +946,8 @@ text{*progress (2), step 4*}
 lemma System_Bounded_allocAsk: "System : Always {s. ALL i<Nclients.
                           ALL elt : set ((sub i o allocAsk) s). elt \<le> NbT}"
   apply (auto simp add: Collect_all_imp_eq)
-  apply (tactic {* rtac (Always_Int_rule [thm "Always_allocAsk_le_ask",
-    thm "System_Bounded_ask"] RS thm "Always_weaken") 1 *})
+  apply (tactic {* rtac (Always_Int_rule [@{thm Always_allocAsk_le_ask},
+    @{thm System_Bounded_ask}] RS @{thm Always_weaken}) 1 *})
   apply (auto dest: set_mono)
   done
 

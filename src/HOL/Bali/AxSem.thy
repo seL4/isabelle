@@ -671,7 +671,7 @@ apply           (rule ax_derivs.conseq, intro strip, tactic "smp_tac 3 1",clarif
 (* 37 subgoals *)
 prefer 18 (* Methd *)
 apply (rule ax_derivs.Methd, drule spec, erule mp, fast) 
-apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) (thms "ax_derivs.intros"))) *})
+apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) @{thms ax_derivs.intros})) *})
 apply auto
 done
 
@@ -691,8 +691,8 @@ lemma weaken:
 apply (erule ax_derivs.induct)
 (*42 subgoals*)
 apply       (tactic "ALLGOALS strip_tac")
-apply       (tactic {* ALLGOALS(REPEAT o (EVERY'[dtac (thm "subset_singletonD"),
-         etac disjE, fast_tac (@{claset} addSIs [thm "ax_derivs.empty"])]))*})
+apply       (tactic {* ALLGOALS(REPEAT o (EVERY'[dtac @{thm subset_singletonD},
+         etac disjE, fast_tac (@{claset} addSIs @{thms ax_derivs.empty})]))*})
 apply       (tactic "TRYALL hyp_subst_tac")
 apply       (simp, rule ax_derivs.empty)
 apply      (drule subset_insertD)
@@ -702,7 +702,7 @@ apply     (fast intro: ax_derivs.asm)
 apply   (fast intro: ax_derivs.weaken)
 apply  (rule ax_derivs.conseq, clarify, tactic "smp_tac 3 1", blast(* unused *))
 (*37 subgoals*)
-apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) (thms "ax_derivs.intros")) 
+apply (tactic {* TRYALL (resolve_tac ((funpow 5 tl) @{thms ax_derivs.intros}) 
                    THEN_ALL_NEW fast_tac @{claset}) *})
 (*1 subgoal*)
 apply (clarsimp simp add: subset_mtriples_iff)

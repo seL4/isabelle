@@ -1,6 +1,6 @@
-(*  Title:      HOL/Extraction/Greatest_Common_Divisor.thy
+(*  Title:      HOL/Proofs/Extraction/Greatest_Common_Divisor.thy
     Author:     Stefan Berghofer, TU Muenchen
-                Helmut Schwichtenberg, LMU Muenchen
+    Author:     Helmut Schwichtenberg, LMU Muenchen
 *)
 
 header {* Greatest common divisor *}

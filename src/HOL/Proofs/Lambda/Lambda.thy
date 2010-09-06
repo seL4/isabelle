@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/Lambda.thy
+(*  Title:      HOL/Proofs/Lambda/Lambda.thy
     Author:     Tobias Nipkow
     Copyright   1995 TU Muenchen
 *)

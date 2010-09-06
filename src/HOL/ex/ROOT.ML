@@ -70,9 +70,6 @@ use_thys [
 HTML.with_charset "utf-8" (no_document use_thys)
   ["Hebrew", "Chinese", "Serbian"];
 
-(setmp_noncritical proofs 2 (setmp_noncritical Multithreading.max_threads 1 use_thy))
-  "Hilbert_Classical";
-
 use_thy "SVC_Oracle";
 if getenv "SVC_HOME" = "" then ()
 else use_thy "svc_test";

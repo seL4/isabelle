@@ -1,4 +1,4 @@
-(*  Title:      HOL/Extraction/Util.thy
+(*  Title:      HOL/Proofs/Extraction/Util.thy
     Author:     Stefan Berghofer, TU Muenchen
 *)
 

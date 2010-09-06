@@ -211,11 +211,11 @@ fun ring_ord (Const (a, _)) =
 fun termless_ring (a, b) = (Term_Ord.term_lpo ring_ord (a, b) = LESS);
 
 val ring_ss = HOL_basic_ss settermless termless_ring addsimps
-  [thm "a_assoc", thm "l_zero", thm "l_neg", thm "a_comm", thm "m_assoc",
-   thm "l_one", thm "l_distr", thm "m_comm", thm "minus_def",
-   thm "r_zero", thm "r_neg", thm "r_neg2", thm "r_neg1", thm "minus_add",
-   thm "minus_minus", thm "minus0", thm "a_lcomm", thm "m_lcomm", (*thm "r_one",*)
-   thm "r_distr", thm "l_null", thm "r_null", thm "l_minus", thm "r_minus"];
+  [@{thm a_assoc}, @{thm l_zero}, @{thm l_neg}, @{thm a_comm}, @{thm m_assoc},
+   @{thm l_one}, @{thm l_distr}, @{thm m_comm}, @{thm minus_def},
+   @{thm r_zero}, @{thm r_neg}, @{thm r_neg2}, @{thm r_neg1}, @{thm minus_add},
+   @{thm minus_minus}, @{thm minus0}, @{thm a_lcomm}, @{thm m_lcomm}, (*@{thm r_one},*)
+   @{thm r_distr}, @{thm l_null}, @{thm r_null}, @{thm l_minus}, @{thm r_minus}];
 *}   (* Note: r_one is not necessary in ring_ss *)
 
 method_setup ring =

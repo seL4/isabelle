@@ -171,7 +171,7 @@ lemma traces_coincide_sim [rule_format (no_asm)]:
          !s s'. reachable C s & is_exec_frag C (s,ex) & (s,s'): R -->
              mk_trace C$ex = mk_trace A$((corresp_ex_simC A R$ex) s')"
 
-apply (tactic {* pair_induct_tac @{context} "ex" [thm "is_exec_frag_def"] 1 *})
+apply (tactic {* pair_induct_tac @{context} "ex" [@{thm is_exec_frag_def}] 1 *})
 (* cons case *)
 apply auto
 apply (rename_tac ex a t s s')

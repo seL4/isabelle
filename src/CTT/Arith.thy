@@ -82,12 +82,12 @@ done
 
 lemma mult_typing: "[| a:N;  b:N |] ==> a #* b : N"
 apply (unfold arith_defs)
-apply (tactic {* typechk_tac [thm "add_typing"] *})
+apply (tactic {* typechk_tac [@{thm add_typing}] *})
 done
 
 lemma mult_typingL: "[| a=c:N;  b=d:N |] ==> a #* b = c #* d : N"
 apply (unfold arith_defs)
-apply (tactic {* equal_tac [thm "add_typingL"] *})
+apply (tactic {* equal_tac [@{thm add_typingL}] *})
 done
 
 (*computation for mult: 0 and successor cases*)
@@ -159,19 +159,19 @@ ML {*
 
 structure Arith_simp_data: TSIMP_DATA =
   struct
-  val refl              = thm "refl_elem"
-  val sym               = thm "sym_elem"
-  val trans             = thm "trans_elem"
-  val refl_red          = thm "refl_red"
-  val trans_red         = thm "trans_red"
-  val red_if_equal      = thm "red_if_equal"
-  val default_rls       = thms "arithC_rls" @ thms "comp_rls"
-  val routine_tac       = routine_tac (thms "arith_typing_rls" @ thms "routine_rls")
+  val refl              = @{thm refl_elem}
+  val sym               = @{thm sym_elem}
+  val trans             = @{thm trans_elem}
+  val refl_red          = @{thm refl_red}
+  val trans_red         = @{thm trans_red}
+  val red_if_equal      = @{thm red_if_equal}
+  val default_rls       = @{thms arithC_rls} @ @{thms comp_rls}
+  val routine_tac       = routine_tac (@{thms arith_typing_rls} @ @{thms routine_rls})
   end
 
 structure Arith_simp = TSimpFun (Arith_simp_data)
 
-local val congr_rls = thms "congr_rls" in
+local val congr_rls = @{thms congr_rls} in
 
 fun arith_rew_tac prems = make_rew_tac
     (Arith_simp.norm_tac(congr_rls, prems))
@@ -271,7 +271,7 @@ apply (tactic "arith_rew_tac []")
 (*Solves first 0 goal, simplifies others.  Two sugbgoals remain.
   Both follow by rewriting, (2) using quantified induction hyp*)
 apply (tactic "intr_tac []") (*strips remaining PRODs*)
-apply (tactic {* hyp_arith_rew_tac [thm "add_0_right"] *})
+apply (tactic {* hyp_arith_rew_tac [@{thm add_0_right}] *})
 apply assumption
 done
 
@@ -303,7 +303,7 @@ done
 
 lemma absdiff_self_eq_0: "a:N ==> a |-| a = 0 : N"
 apply (unfold absdiff_def)
-apply (tactic {* arith_rew_tac [thm "diff_self_eq_0"] *})
+apply (tactic {* arith_rew_tac [@{thm diff_self_eq_0}] *})
 done
 
 lemma absdiffC0: "a:N ==> 0 |-| a = a : N"
@@ -321,7 +321,7 @@ done
 lemma absdiff_commute: "[| a:N;  b:N |] ==> a |-| b = b |-| a : N"
 apply (unfold absdiff_def)
 apply (rule add_commute)
-apply (tactic {* typechk_tac [thm "diff_typing"] *})
+apply (tactic {* typechk_tac [@{thm diff_typing}] *})
 done
 
 (*If a+b=0 then a=0.   Surprisingly tedious*)
@@ -332,7 +332,7 @@ apply (tactic "arith_rew_tac []")
 apply (tactic "intr_tac []") (*strips remaining PRODs*)
 apply (rule_tac [2] zero_ne_succ [THEN FE])
 apply (erule_tac [3] EqE [THEN sym_elem])
-apply (tactic {* typechk_tac [thm "add_typing"] *})
+apply (tactic {* typechk_tac [@{thm add_typing}] *})
 done
 
 (*Version of above with the premise  a+b=0.
@@ -354,7 +354,7 @@ apply (tactic eqintr_tac)
 apply (rule_tac [2] add_eq0)
 apply (rule add_eq0)
 apply (rule_tac [6] add_commute [THEN trans_elem])
-apply (tactic {* typechk_tac [thm "diff_typing"] *})
+apply (tactic {* typechk_tac [@{thm diff_typing}] *})
 done
 
 (*if  a |-| b = 0  then  a = b
@@ -366,7 +366,7 @@ apply (tactic "TRYALL assume_tac")
 apply (tactic eqintr_tac)
 apply (rule add_diff_inverse [THEN sym_elem, THEN trans_elem])
 apply (rule_tac [3] EqE, tactic "assume_tac 3")
-apply (tactic {* hyp_arith_rew_tac [thm "add_0_right"] *})
+apply (tactic {* hyp_arith_rew_tac [@{thm add_0_right}] *})
 done
 
 
@@ -376,12 +376,12 @@ subsection {* Remainder and Quotient *}
 
 lemma mod_typing: "[| a:N;  b:N |] ==> a mod b : N"
 apply (unfold mod_def)
-apply (tactic {* typechk_tac [thm "absdiff_typing"] *})
+apply (tactic {* typechk_tac [@{thm absdiff_typing}] *})
 done
 
 lemma mod_typingL: "[| a=c:N;  b=d:N |] ==> a mod b = c mod d : N"
 apply (unfold mod_def)
-apply (tactic {* equal_tac [thm "absdiff_typingL"] *})
+apply (tactic {* equal_tac [@{thm absdiff_typingL}] *})
 done
 
 
@@ -389,13 +389,13 @@ done
 
 lemma modC0: "b:N ==> 0 mod b = 0 : N"
 apply (unfold mod_def)
-apply (tactic {* rew_tac [thm "absdiff_typing"] *})
+apply (tactic {* rew_tac [@{thm absdiff_typing}] *})
 done
 
 lemma modC_succ:
 "[| a:N; b:N |] ==> succ(a) mod b = rec(succ(a mod b) |-| b, 0, %x y. succ(a mod b)) : N"
 apply (unfold mod_def)
-apply (tactic {* rew_tac [thm "absdiff_typing"] *})
+apply (tactic {* rew_tac [@{thm absdiff_typing}] *})
 done
 
 
@@ -403,12 +403,12 @@ done
 
 lemma div_typing: "[| a:N;  b:N |] ==> a div b : N"
 apply (unfold div_def)
-apply (tactic {* typechk_tac [thm "absdiff_typing", thm "mod_typing"] *})
+apply (tactic {* typechk_tac [@{thm absdiff_typing}, @{thm mod_typing}] *})
 done
 
 lemma div_typingL: "[| a=c:N;  b=d:N |] ==> a div b = c div d : N"
 apply (unfold div_def)
-apply (tactic {* equal_tac [thm "absdiff_typingL", thm "mod_typingL"] *})
+apply (tactic {* equal_tac [@{thm absdiff_typingL}, @{thm mod_typingL}] *})
 done
 
 lemmas div_typing_rls = mod_typing div_typing absdiff_typing
@@ -418,14 +418,14 @@ lemmas div_typing_rls = mod_typing div_typing absdiff_typing
 
 lemma divC0: "b:N ==> 0 div b = 0 : N"
 apply (unfold div_def)
-apply (tactic {* rew_tac [thm "mod_typing", thm "absdiff_typing"] *})
+apply (tactic {* rew_tac [@{thm mod_typing}, @{thm absdiff_typing}] *})
 done
 
 lemma divC_succ:
  "[| a:N;  b:N |] ==> succ(a) div b =
      rec(succ(a) mod b, succ(a div b), %x y. a div b) : N"
 apply (unfold div_def)
-apply (tactic {* rew_tac [thm "mod_typing"] *})
+apply (tactic {* rew_tac [@{thm mod_typing}] *})
 done
 
 
@@ -433,9 +433,9 @@ done
 lemma divC_succ2: "[| a:N;  b:N |] ==>
      succ(a) div b =rec(succ(a mod b) |-| b, succ(a div b), %x y. a div b) : N"
 apply (rule divC_succ [THEN trans_elem])
-apply (tactic {* rew_tac (thms "div_typing_rls" @ [thm "modC_succ"]) *})
+apply (tactic {* rew_tac (@{thms div_typing_rls} @ [@{thm modC_succ}]) *})
 apply (tactic {* NE_tac @{context} "succ (a mod b) |-|b" 1 *})
-apply (tactic {* rew_tac [thm "mod_typing", thm "div_typing", thm "absdiff_typing"] *})
+apply (tactic {* rew_tac [@{thm mod_typing}, @{thm div_typing}, @{thm absdiff_typing}] *})
 done
 
 (*for case analysis on whether a number is 0 or a successor*)
@@ -451,19 +451,19 @@ done
 (*Main Result.  Holds when b is 0 since   a mod 0 = a     and    a div 0 = 0  *)
 lemma mod_div_equality: "[| a:N;  b:N |] ==> a mod b  #+  (a div b) #* b = a : N"
 apply (tactic {* NE_tac @{context} "a" 1 *})
-apply (tactic {* arith_rew_tac (thms "div_typing_rls" @
-  [thm "modC0", thm "modC_succ", thm "divC0", thm "divC_succ2"]) *})
+apply (tactic {* arith_rew_tac (@{thms div_typing_rls} @
+  [@{thm modC0}, @{thm modC_succ}, @{thm divC0}, @{thm divC_succ2}]) *})
 apply (rule EqE)
 (*case analysis on   succ(u mod b)|-|b  *)
 apply (rule_tac a1 = "succ (u mod b) |-| b" in iszero_decidable [THEN PlusE])
 apply (erule_tac [3] SumE)
-apply (tactic {* hyp_arith_rew_tac (thms "div_typing_rls" @
-  [thm "modC0", thm "modC_succ", thm "divC0", thm "divC_succ2"]) *})
+apply (tactic {* hyp_arith_rew_tac (@{thms div_typing_rls} @
+  [@{thm modC0}, @{thm modC_succ}, @{thm divC0}, @{thm divC_succ2}]) *})
 (*Replace one occurence of  b  by succ(u mod b).  Clumsy!*)
 apply (rule add_typingL [THEN trans_elem])
 apply (erule EqE [THEN absdiff_eq0, THEN sym_elem])
 apply (rule_tac [3] refl_elem)
-apply (tactic {* hyp_arith_rew_tac (thms "div_typing_rls") *})
+apply (tactic {* hyp_arith_rew_tac @{thms div_typing_rls} *})
 done
 
 end

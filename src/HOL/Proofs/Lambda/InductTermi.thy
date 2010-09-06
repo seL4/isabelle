@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/InductTermi.thy
+(*  Title:      HOL/Proofs/Lambda/InductTermi.thy
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
 

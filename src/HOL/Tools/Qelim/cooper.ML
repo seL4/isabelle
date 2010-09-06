@@ -423,7 +423,7 @@ fun unify ctxt q =
 val emptyIS = @{cterm "{}::int set"};
 val insert_tm = @{cterm "insert :: int => _"};
 fun mkISet cts = fold_rev (Thm.capply insert_tm #> Thm.capply) cts emptyIS;
-val eqelem_imp_imp = (thm"eqelem_imp_iff") RS iffD1;
+val eqelem_imp_imp = @{thm eqelem_imp_iff} RS iffD1;
 val [A_tm,B_tm] = map (fn th => cprop_of th |> funpow 2 Thm.dest_arg |> Thm.dest_abs NONE |> snd |> Thm.dest_arg1 |> Thm.dest_arg
                                       |> Thm.dest_abs NONE |> snd |> Thm.dest_fun |> Thm.dest_arg)
                       [asetP,bsetP];

@@ -289,9 +289,9 @@ done
 ML {*
 
 local
-  val defs = [thm "Filter_def", thm "Forall_def", thm "sforall_def", thm "mkex_def",
-    thm "stutter_def"]
-  val asigs = [thm "asig_of_par", thm "actions_asig_comp"]
+  val defs = [@{thm Filter_def}, @{thm Forall_def}, @{thm sforall_def}, @{thm mkex_def},
+    @{thm stutter_def}]
+  val asigs = [@{thm asig_of_par}, @{thm actions_asig_comp}]
 in
 
 fun mkex_induct_tac ctxt sch exA exB =

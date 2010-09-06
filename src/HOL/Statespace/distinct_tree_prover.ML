@@ -23,18 +23,19 @@ end;
 
 structure DistinctTreeProver : DISTINCT_TREE_PROVER =
 struct
-val all_distinct_left = thm "DistinctTreeProver.all_distinct_left";
-val all_distinct_right = thm "DistinctTreeProver.all_distinct_right";
 
-val distinct_left = thm "DistinctTreeProver.distinct_left";
-val distinct_right = thm "DistinctTreeProver.distinct_right";
-val distinct_left_right = thm "DistinctTreeProver.distinct_left_right";
-val in_set_root = thm "DistinctTreeProver.in_set_root";
-val in_set_left = thm "DistinctTreeProver.in_set_left";
-val in_set_right = thm "DistinctTreeProver.in_set_right";
+val all_distinct_left = @{thm DistinctTreeProver.all_distinct_left};
+val all_distinct_right = @{thm DistinctTreeProver.all_distinct_right};
 
-val swap_neq = thm "DistinctTreeProver.swap_neq";
-val neq_to_eq_False = thm "DistinctTreeProver.neq_to_eq_False"
+val distinct_left = @{thm DistinctTreeProver.distinct_left};
+val distinct_right = @{thm DistinctTreeProver.distinct_right};
+val distinct_left_right = @{thm DistinctTreeProver.distinct_left_right};
+val in_set_root = @{thm DistinctTreeProver.in_set_root};
+val in_set_left = @{thm DistinctTreeProver.in_set_left};
+val in_set_right = @{thm DistinctTreeProver.in_set_right};
+
+val swap_neq = @{thm DistinctTreeProver.swap_neq};
+val neq_to_eq_False = @{thm DistinctTreeProver.neq_to_eq_False};
 
 datatype Direction = Left | Right 
 
@@ -273,9 +274,9 @@ fun distinctTreeProver dist_thm x_path y_path =
   end  
 
 
-val delete_root = thm "DistinctTreeProver.delete_root";
-val delete_left = thm "DistinctTreeProver.delete_left";
-val delete_right = thm "DistinctTreeProver.delete_right";
+val delete_root = @{thm DistinctTreeProver.delete_root};
+val delete_left = @{thm DistinctTreeProver.delete_left};
+val delete_right = @{thm DistinctTreeProver.delete_right};
 
 fun deleteProver dist_thm [] = delete_root OF [dist_thm]
   | deleteProver dist_thm (p::ps) =
@@ -286,10 +287,10 @@ fun deleteProver dist_thm [] = delete_root OF [dist_thm]
        val del = deleteProver dist_thm' ps;
      in discharge [dist_thm, del] del_rule end;
 
-val subtract_Tip = thm "DistinctTreeProver.subtract_Tip";
-val subtract_Node = thm "DistinctTreeProver.subtract_Node";
-val delete_Some_all_distinct = thm "DistinctTreeProver.delete_Some_all_distinct";
-val subtract_Some_all_distinct_res = thm "DistinctTreeProver.subtract_Some_all_distinct_res";
+val subtract_Tip = @{thm DistinctTreeProver.subtract_Tip};
+val subtract_Node = @{thm DistinctTreeProver.subtract_Node};
+val delete_Some_all_distinct = @{thm DistinctTreeProver.delete_Some_all_distinct};
+val subtract_Some_all_distinct_res = @{thm DistinctTreeProver.subtract_Some_all_distinct_res};
 
 local
   val (alpha,v) = 
@@ -320,7 +321,7 @@ fun subtractProver (Const ("DistinctTreeProver.tree.Tip",T)) ct dist_thm =
     in discharge [del_tree, sub_l, sub_r] subtract_Node end
 end
 
-val subtract_Some_all_distinct = thm "DistinctTreeProver.subtract_Some_all_distinct";
+val subtract_Some_all_distinct = @{thm DistinctTreeProver.subtract_Some_all_distinct};
 fun distinct_implProver dist_thm ct =
   let
     val ctree = ct |> Thm.dest_comb |> #2 |> Thm.dest_comb |> #2;

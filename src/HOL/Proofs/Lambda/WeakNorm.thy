@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/WeakNorm.thy
+(*  Title:      HOL/Proofs/Lambda/WeakNorm.thy
     Author:     Stefan Berghofer
     Copyright   2003 TU Muenchen
 *)

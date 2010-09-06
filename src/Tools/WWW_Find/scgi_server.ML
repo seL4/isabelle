@@ -50,7 +50,7 @@ fun server server_prefix port =
        else (tracing ("Waiting for a free thread...");
              ConditionVar.wait (thread_wait, thread_wait_mutex));
        add_thread
-         (Thread.fork
+         (Thread.fork   (* FIXME avoid low-level Poly/ML thread primitives *)
             (fn () => exception_trace threadf,
              [Thread.EnableBroadcastInterrupt true,
               Thread.InterruptState

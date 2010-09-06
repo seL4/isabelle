@@ -68,24 +68,24 @@ val all_forward = @{thm all_forward};
 val ex_forward = @{thm ex_forward};
 val choice = @{thm choice};
 
-val not_conjD = thm "meson_not_conjD";
-val not_disjD = thm "meson_not_disjD";
-val not_notD = thm "meson_not_notD";
-val not_allD = thm "meson_not_allD";
-val not_exD = thm "meson_not_exD";
-val imp_to_disjD = thm "meson_imp_to_disjD";
-val not_impD = thm "meson_not_impD";
-val iff_to_disjD = thm "meson_iff_to_disjD";
-val not_iffD = thm "meson_not_iffD";
-val conj_exD1 = thm "meson_conj_exD1";
-val conj_exD2 = thm "meson_conj_exD2";
-val disj_exD = thm "meson_disj_exD";
-val disj_exD1 = thm "meson_disj_exD1";
-val disj_exD2 = thm "meson_disj_exD2";
-val disj_assoc = thm "meson_disj_assoc";
-val disj_comm = thm "meson_disj_comm";
-val disj_FalseD1 = thm "meson_disj_FalseD1";
-val disj_FalseD2 = thm "meson_disj_FalseD2";
+val not_conjD = @{thm meson_not_conjD};
+val not_disjD = @{thm meson_not_disjD};
+val not_notD = @{thm meson_not_notD};
+val not_allD = @{thm meson_not_allD};
+val not_exD = @{thm meson_not_exD};
+val imp_to_disjD = @{thm meson_imp_to_disjD};
+val not_impD = @{thm meson_not_impD};
+val iff_to_disjD = @{thm meson_iff_to_disjD};
+val not_iffD = @{thm meson_not_iffD};
+val conj_exD1 = @{thm meson_conj_exD1};
+val conj_exD2 = @{thm meson_conj_exD2};
+val disj_exD = @{thm meson_disj_exD};
+val disj_exD1 = @{thm meson_disj_exD1};
+val disj_exD2 = @{thm meson_disj_exD2};
+val disj_assoc = @{thm meson_disj_assoc};
+val disj_comm = @{thm meson_disj_comm};
+val disj_FalseD1 = @{thm meson_disj_FalseD1};
+val disj_FalseD2 = @{thm meson_disj_FalseD2};
 
 
 (**** Operators for forward proof ****)
@@ -203,7 +203,7 @@ fun is_taut th =
 (*They are typically functional reflexivity axioms and are the converses of
   injectivity equivalences*)
 
-val not_refl_disj_D = thm"meson_not_refl_disj_D";
+val not_refl_disj_D = @{thm meson_not_refl_disj_D};
 
 (*Is either term a Var that does not properly occur in the other term?*)
 fun eliminable (t as Var _, u) = t aconv u orelse not (Logic.occs(t,u))

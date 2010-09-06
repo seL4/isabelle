@@ -103,15 +103,15 @@ lemma RPCFail_Next_enabled: "|- Enabled (RPCFail send rcv rst p) -->
 (* Enabledness of some actions *)
 lemma RPCFail_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
     |- ~Calling rcv p & Calling send p --> Enabled (RPCFail send rcv rst p)"
-  by (tactic {* action_simp_tac (@{simpset} addsimps [thm "RPCFail_def",
-    thm "Return_def", thm "caller_def", thm "rtrner_def"]) [exI]
-    [thm "base_enabled", thm "Pair_inject"] 1 *})
+  by (tactic {* action_simp_tac (@{simpset} addsimps [@{thm RPCFail_def},
+    @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
+    [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
 
 lemma RPCReply_enabled: "!!p. basevars (rtrner send!p, caller rcv!p, rst!p) ==>  
       |- ~Calling rcv p & Calling send p & rst!p = #rpcB  
          --> Enabled (RPCReply send rcv rst p)"
-  by (tactic {* action_simp_tac (@{simpset} addsimps [thm "RPCReply_def",
-    thm "Return_def", thm "caller_def", thm "rtrner_def"]) [exI]
-    [thm "base_enabled", thm "Pair_inject"] 1 *})
+  by (tactic {* action_simp_tac (@{simpset} addsimps [@{thm RPCReply_def},
+    @{thm Return_def}, @{thm caller_def}, @{thm rtrner_def}]) [exI]
+    [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
 
 end
