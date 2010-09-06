@@ -397,6 +397,22 @@ lemma float_le_zero:
   apply auto
   done
 
+lemma zero_less_float:
+  "(0 < real (Float a b)) = (0 < a)"
+  apply auto
+  apply (auto simp add: zero_less_mult_iff)
+  apply (insert zero_less_pow2[of b])
+  apply (simp_all)
+  done
+
+lemma float_less_zero:
+  "(real (Float a b) < 0) = (a < 0)"
+  apply auto
+  apply (auto simp add: mult_less_0_iff)
+  apply (insert zero_less_pow2[of b])
+  apply (simp_all)
+  done
+
 declare real_of_float_simp[simp del]
 
 lemma real_of_float_pprt[simp]: "real (float_pprt a) = pprt (real a)"
@@ -1398,7 +1414,7 @@ proof -
   finally show ?thesis unfolding ub_mod_def real_of_float_sub real_of_float_mult by auto
 qed
 
-lemma le_float_def': "f \<le> g = (case f - g of Float a b \<Rightarrow> a \<le> 0)"
+lemma le_float_def'[code]: "f \<le> g = (case f - g of Float a b \<Rightarrow> a \<le> 0)"
 proof -
   have le_transfer: "(f \<le> g) = (real (f - g) \<le> 0)" by (auto simp add: le_float_def)
   from float_split[of "f - g"] obtain a b where f_diff_g: "f - g = Float a b" by auto
@@ -1406,12 +1422,7 @@ proof -
   show ?thesis by (simp add: le_transfer' f_diff_g float_le_zero)
 qed
 
-lemma float_less_zero:
-  "(real (Float a b) < 0) = (a < 0)"
-  apply (auto simp add: mult_less_0_iff real_of_float_simp)
-  done
-
-lemma less_float_def': "f < g = (case f - g of Float a b \<Rightarrow> a < 0)"
+lemma less_float_def'[code]: "f < g = (case f - g of Float a b \<Rightarrow> a < 0)"
 proof -
   have less_transfer: "(f < g) = (real (f - g) < 0)" by (auto simp add: less_float_def)
   from float_split[of "f - g"] obtain a b where f_diff_g: "f - g = Float a b" by auto
