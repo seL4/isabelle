@@ -564,7 +564,7 @@ fun lazyR_def thy fid tflCongs eqns =
      val body_th = R.LIST_CONJ (map R.ASSUME full_rqt_prop)
      val SELECT_AX = (*in this way we hope to avoid a STATIC dependence upon
                        theory Hilbert_Choice*)
-         thm "Hilbert_Choice.tfl_some"
+         ML_Context.thm "Hilbert_Choice.tfl_some"
          handle ERROR msg => cat_error msg
     "defer_recdef requires theory Main or at least Hilbert_Choice as parent"
      val bar = R.MP (R.ISPECL[tych R'abs, tych R1] SELECT_AX) body_th
