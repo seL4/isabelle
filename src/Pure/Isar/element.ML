@@ -323,7 +323,7 @@ fun conclude_witness (Witness (_, th)) =
 fun pretty_witness ctxt witn =
   let val prt_term = Pretty.quote o Syntax.pretty_term ctxt in
     Pretty.block (prt_term (witness_prop witn) ::
-      (if ! show_hyps then [Pretty.brk 2, Pretty.list "[" "]"
+      (if Config.get ctxt show_hyps then [Pretty.brk 2, Pretty.list "[" "]"
          (map prt_term (witness_hyps witn))] else []))
   end;
 
