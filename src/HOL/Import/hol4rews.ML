@@ -156,13 +156,10 @@ structure HOL4Rewrites = Theory_Data
 val hol4_debug = Unsynchronized.ref false
 fun message s = if !hol4_debug then writeln s else ()
 
-local
-  val eq_reflection = thm "eq_reflection"
-in
 fun add_hol4_rewrite (Context.Theory thy, th) =
     let
         val _ = message "Adding HOL4 rewrite"
-        val th1 = th RS eq_reflection
+        val th1 = th RS @{thm eq_reflection}
         val current_rews = HOL4Rewrites.get thy
         val new_rews = insert Thm.eq_thm th1 current_rews
         val updated_thy  = HOL4Rewrites.put new_rews thy
@@ -170,7 +167,6 @@ fun add_hol4_rewrite (Context.Theory thy, th) =
         (Context.Theory updated_thy,th1)
     end
   | add_hol4_rewrite (context, th) = (context, th RS eq_reflection);
-end
 
 fun ignore_hol4 bthy bthm thy =
     let

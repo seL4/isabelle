@@ -210,27 +210,19 @@ lemma exR_thin: "$H |- $E, P(x), $F ==> $H |- $E, EX x. P(x), $F"
 
 ML {*
 val prop_pack = empty_pack add_safes
-                [thm "basic", thm "refl", thm "TrueR", thm "FalseL",
-                 thm "conjL", thm "conjR", thm "disjL", thm "disjR", thm "impL", thm "impR",
-                 thm "notL", thm "notR", thm "iffL", thm "iffR"];
+                [@{thm basic}, @{thm refl}, @{thm TrueR}, @{thm FalseL},
+                 @{thm conjL}, @{thm conjR}, @{thm disjL}, @{thm disjR}, @{thm impL}, @{thm impR},
+                 @{thm notL}, @{thm notR}, @{thm iffL}, @{thm iffR}];
 
-val LK_pack = prop_pack add_safes   [thm "allR", thm "exL"]
-                        add_unsafes [thm "allL_thin", thm "exR_thin", thm "the_equality"];
+val LK_pack = prop_pack add_safes   [@{thm allR}, @{thm exL}]
+                        add_unsafes [@{thm allL_thin}, @{thm exR_thin}, @{thm the_equality}];
 
-val LK_dup_pack = prop_pack add_safes   [thm "allR", thm "exL"]
-                            add_unsafes [thm "allL", thm "exR", thm "the_equality"];
+val LK_dup_pack = prop_pack add_safes   [@{thm allR}, @{thm exL}]
+                            add_unsafes [@{thm allL}, @{thm exR}, @{thm the_equality}];
 
-
-local
-  val thinR = thm "thinR"
-  val thinL = thm "thinL"
-  val cut = thm "cut"
-in
 
 fun lemma_tac th i =
-    rtac (thinR RS cut) i THEN REPEAT (rtac thinL i) THEN rtac th i;
-
-end;
+    rtac (@{thm thinR} RS @{thm cut}) i THEN REPEAT (rtac @{thm thinL} i) THEN rtac th i;
 *}
 
 method_setup fast_prop =
@@ -321,10 +313,10 @@ lemma spec: "|- (ALL x. P(x)) ==> |- P(x)"
 (** Equality **)
 
 lemma sym: "|- a=b --> b=a"
-  by (tactic {* safe_tac (LK_pack add_safes [thm "subst"]) 1 *})
+  by (tactic {* safe_tac (LK_pack add_safes [@{thm subst}]) 1 *})
 
 lemma trans: "|- a=b --> b=c --> a=c"
-  by (tactic {* safe_tac (LK_pack add_safes [thm "subst"]) 1 *})
+  by (tactic {* safe_tac (LK_pack add_safes [@{thm subst}]) 1 *})
 
 (* Symmetry of equality in hypotheses *)
 lemmas symL = sym [THEN L_of_imp, standard]

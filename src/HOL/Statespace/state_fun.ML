@@ -38,10 +38,10 @@ fun mk_name i t =
                
 local
 
-val conj1_False = thm "conj1_False";
-val conj2_False = thm "conj2_False";
-val conj_True = thm "conj_True";
-val conj_cong = thm "conj_cong";
+val conj1_False = @{thm conj1_False};
+val conj2_False = @{thm conj2_False};
+val conj_True = @{thm conj_True};
+val conj_cong = @{thm conj_cong};
 
 fun isFalse (Const (@{const_name False},_)) = true
   | isFalse _ = false;
@@ -255,7 +255,7 @@ end
 
 
 local
-val swap_ex_eq = thm "StateFun.swap_ex_eq";
+val swap_ex_eq = @{thm StateFun.swap_ex_eq};
 fun is_selector thy T sel =
      let 
        val (flds,more) = Record.get_recT_fields thy T 

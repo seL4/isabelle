@@ -218,7 +218,7 @@ apply            (fast intro: hoare_derivs.weaken)
 apply           (rule hoare_derivs.conseq, intro strip, tactic "smp_tac 2 1", clarify, tactic "smp_tac 1 1",rule exI, rule exI, erule (1) conjI)
 prefer 7
 apply          (rule_tac hoare_derivs.Body, drule_tac spec, erule_tac mp, fast)
-apply         (tactic {* ALLGOALS (resolve_tac ((funpow 5 tl) (thms "hoare_derivs.intros")) THEN_ALL_NEW (fast_tac @{claset})) *})
+apply         (tactic {* ALLGOALS (resolve_tac ((funpow 5 tl) @{thms hoare_derivs.intros}) THEN_ALL_NEW (fast_tac @{claset})) *})
 done
 
 lemma weak_Body: "G|-{P}. the (body pn) .{Q} ==> G|-{P}. BODY pn .{Q}"
@@ -278,7 +278,7 @@ done
 
 lemma hoare_sound: "G||-ts ==> G||=ts"
 apply (erule hoare_derivs.induct)
-apply              (tactic {* TRYALL (eresolve_tac [thm "Loop_sound_lemma", thm "Body_sound_lemma"] THEN_ALL_NEW atac) *})
+apply              (tactic {* TRYALL (eresolve_tac [@{thm Loop_sound_lemma}, @{thm Body_sound_lemma}] THEN_ALL_NEW atac) *})
 apply            (unfold hoare_valids_def)
 apply            blast
 apply           blast
@@ -349,7 +349,7 @@ apply        (rule_tac [3] escape, tactic {* clarsimp_tac @{clasimpset} 3 *},
   rule_tac [3] P1 = "%Z' s. s= (Z[Loc loc::=fun Z])" in hoare_derivs.Local [THEN conseq1],
   erule_tac [3] conseq12)
 apply         (erule_tac [5] hoare_derivs.Comp, erule_tac [5] conseq12)
-apply         (tactic {* (rtac (thm "hoare_derivs.If") THEN_ALL_NEW etac (thm "conseq12")) 6 *})
+apply         (tactic {* (rtac @{thm hoare_derivs.If} THEN_ALL_NEW etac @{thm conseq12}) 6 *})
 apply          (rule_tac [8] hoare_derivs.Loop [THEN conseq2], erule_tac [8] conseq12)
 apply           auto
 done

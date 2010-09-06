@@ -16,18 +16,18 @@ val trace = Unsynchronized.ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
 val mir_ss = 
-let val ths = map thm ["real_of_int_inject", "real_of_int_less_iff", "real_of_int_le_iff"]
+let val ths = [@{thm "real_of_int_inject"}, @{thm "real_of_int_less_iff"}, @{thm "real_of_int_le_iff"}]
 in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
 end;
 
 val nT = HOLogic.natT;
-  val nat_arith = map thm ["add_nat_number_of", "diff_nat_number_of", 
-                       "mult_nat_number_of", "eq_nat_number_of", "less_nat_number_of"];
+  val nat_arith = [@{thm "add_nat_number_of"}, @{thm "diff_nat_number_of"},
+                       @{thm "mult_nat_number_of"}, @{thm "eq_nat_number_of"}, @{thm "less_nat_number_of"}];
 
-  val comp_arith = (map thm ["Let_def", "if_False", "if_True", "add_0", 
-                 "add_Suc", "add_number_of_left", "mult_number_of_left", 
-                 "Suc_eq_plus1"])@
-                 (map (fn s => thm s RS sym) ["numeral_1_eq_1", "numeral_0_eq_0"])
+  val comp_arith = [@{thm "Let_def"}, @{thm "if_False"}, @{thm "if_True"}, @{thm "add_0"},
+                 @{thm "add_Suc"}, @{thm "add_number_of_left"}, @{thm "mult_number_of_left"},
+                 @{thm "Suc_eq_plus1"}] @
+                 (map (fn th => th RS sym) [@{thm "numeral_1_eq_1"}, @{thm "numeral_0_eq_0"}])
                  @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps} 
   val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"}, 
              @{thm "real_of_nat_number_of"},

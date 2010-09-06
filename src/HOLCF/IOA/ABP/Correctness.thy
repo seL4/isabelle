@@ -164,16 +164,16 @@ declare split_if [split]
 
 lemma sender_abstraction: "is_weak_ref_map reduce srch_ioa srch_fin_ioa"
 apply (tactic {*
-  simp_tac (HOL_ss addsimps [thm "srch_fin_ioa_def", thm "rsch_fin_ioa_def",
-    thm "srch_ioa_def", thm "rsch_ioa_def", thm "rename_through_pmap",
-    thm "channel_abstraction"]) 1 *})
+  simp_tac (HOL_ss addsimps [@{thm srch_fin_ioa_def}, @{thm rsch_fin_ioa_def},
+    @{thm srch_ioa_def}, @{thm rsch_ioa_def}, @{thm rename_through_pmap},
+    @{thm channel_abstraction}]) 1 *})
 done
 
 lemma receiver_abstraction: "is_weak_ref_map reduce rsch_ioa rsch_fin_ioa"
 apply (tactic {*
-  simp_tac (HOL_ss addsimps [thm "srch_fin_ioa_def", thm "rsch_fin_ioa_def",
-    thm "srch_ioa_def", thm "rsch_ioa_def", thm "rename_through_pmap",
-    thm "channel_abstraction"]) 1 *})
+  simp_tac (HOL_ss addsimps [@{thm srch_fin_ioa_def}, @{thm rsch_fin_ioa_def},
+    @{thm srch_ioa_def}, @{thm rsch_ioa_def}, @{thm rename_through_pmap},
+    @{thm channel_abstraction}]) 1 *})
 done
 
 

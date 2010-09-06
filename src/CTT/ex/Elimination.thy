@@ -53,7 +53,7 @@ schematic_lemma
     and "!!x. x:A ==> B(x) type"
     and "!!x. x:A ==> C(x) type"
   shows "?a : (SUM x:A. B(x) + C(x)) --> (SUM x:A. B(x)) + (SUM x:A. C(x))"
-apply (tactic {* pc_tac (thms "prems") 1 *})
+apply (tactic {* pc_tac @{thms assms} 1 *})
 done
 
 text "Construction of the currying functional"
@@ -68,7 +68,7 @@ schematic_lemma
     and "!!z. z: (SUM x:A. B(x)) ==> C(z) type"
   shows "?a : PROD f: (PROD z : (SUM x:A . B(x)) . C(z)).
                       (PROD x:A . PROD y:B(x) . C(<x,y>))"
-apply (tactic {* pc_tac (thms "prems") 1 *})
+apply (tactic {* pc_tac @{thms assms} 1 *})
 done
 
 text "Martin-Lof (1984), page 48: axiom of sum-elimination (uncurry)"
@@ -83,7 +83,7 @@ schematic_lemma
     and "!!z. z: (SUM x:A . B(x)) ==> C(z) type"
   shows "?a : (PROD x:A . PROD y:B(x) . C(<x,y>))
         --> (PROD z : (SUM x:A . B(x)) . C(z))"
-apply (tactic {* pc_tac (thms "prems") 1 *})
+apply (tactic {* pc_tac @{thms assms} 1 *})
 done
 
 text "Function application"
@@ -99,7 +99,7 @@ schematic_lemma
   shows
     "?a :     (SUM y:B . PROD x:A . C(x,y))
           --> (PROD x:A . SUM y:B . C(x,y))"
-apply (tactic {* pc_tac (thms "prems") 1 *})
+apply (tactic {* pc_tac @{thms assms} 1 *})
 done
 
 text "Martin-Lof (1984) pages 36-7: the combinator S"
@@ -109,7 +109,7 @@ schematic_lemma
     and "!!x y.[| x:A; y:B(x) |] ==> C(x,y) type"
   shows "?a :    (PROD x:A. PROD y:B(x). C(x,y))
              --> (PROD f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
-apply (tactic {* pc_tac (thms "prems") 1 *})
+apply (tactic {* pc_tac @{thms assms} 1 *})
 done
 
 text "Martin-Lof (1984) page 58: the axiom of disjunction elimination"
@@ -119,7 +119,7 @@ schematic_lemma
     and "!!z. z: A+B ==> C(z) type"
   shows "?a : (PROD x:A. C(inl(x))) --> (PROD y:B. C(inr(y)))
           --> (PROD z: A+B. C(z))"
-apply (tactic {* pc_tac (thms "prems") 1 *})
+apply (tactic {* pc_tac @{thms assms} 1 *})
 done
 
 (*towards AXIOM OF CHOICE*)
@@ -137,7 +137,7 @@ schematic_lemma
     and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
   shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
                          (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
-apply (tactic {* intr_tac (thms "prems") *})
+apply (tactic {* intr_tac @{thms assms} *})
 apply (tactic "add_mp_tac 2")
 apply (tactic "add_mp_tac 1")
 apply (erule SumE_fst)
@@ -145,7 +145,7 @@ apply (rule replace_type)
 apply (rule subst_eqtyparg)
 apply (rule comp_rls)
 apply (rule_tac [4] SumE_snd)
-apply (tactic {* typechk_tac (thm "SumE_fst" :: thms "prems") *})
+apply (tactic {* typechk_tac (@{thm SumE_fst} :: @{thms prems}) *})
 done
 
 text "Axiom of choice.  Proof without fst, snd.  Harder still!"
@@ -155,7 +155,7 @@ schematic_lemma [folded basic_defs]:
     and "!!x y.[| x:A;  y:B(x) |] ==> C(x,y) type"
   shows "?a : PROD h: (PROD x:A. SUM y:B(x). C(x,y)).
                          (SUM f: (PROD x:A. B(x)). PROD x:A. C(x, f`x))"
-apply (tactic {* intr_tac (thms "prems") *})
+apply (tactic {* intr_tac @{thms assms} *})
 (*Must not use add_mp_tac as subst_prodE hides the construction.*)
 apply (rule ProdE [THEN SumE], assumption)
 apply (tactic "TRYALL assume_tac")
@@ -163,11 +163,11 @@ apply (rule replace_type)
 apply (rule subst_eqtyparg)
 apply (rule comp_rls)
 apply (erule_tac [4] ProdE [THEN SumE])
-apply (tactic {* typechk_tac (thms "prems") *})
+apply (tactic {* typechk_tac @{thms assms} *})
 apply (rule replace_type)
 apply (rule subst_eqtyparg)
 apply (rule comp_rls)
-apply (tactic {* typechk_tac (thms "prems") *})
+apply (tactic {* typechk_tac @{thms assms} *})
 apply assumption
 done
 
@@ -183,11 +183,11 @@ apply (rule intr_rls)
 apply (tactic {* biresolve_tac safe_brls 2 *})
 (*Now must convert assumption C(z) into antecedent C(<kd,ke>) *)
 apply (rule_tac [2] a = "y" in ProdE)
-apply (tactic {* typechk_tac (thms "prems") *})
+apply (tactic {* typechk_tac @{thms assms} *})
 apply (rule SumE, assumption)
 apply (tactic "intr_tac []")
 apply (tactic "TRYALL assume_tac")
-apply (tactic {* typechk_tac (thms "prems") *})
+apply (tactic {* typechk_tac @{thms assms} *})
 done
 
 end

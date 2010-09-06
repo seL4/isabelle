@@ -181,10 +181,10 @@ lemma MemReturn_enabled: "!!p. basevars (rtrner ch ! p, rs!p) ==>
       |- Calling ch p & (rs!p ~= #NotAResult)
          --> Enabled (<MemReturn ch rs p>_(rtrner ch ! p, rs!p))"
   apply (tactic
-    {* action_simp_tac @{simpset} [thm "MemReturn_change" RSN (2, thm "enabled_mono") ] [] 1 *})
+    {* action_simp_tac @{simpset} [@{thm MemReturn_change} RSN (2, @{thm enabled_mono}) ] [] 1 *})
   apply (tactic
-    {* action_simp_tac (@{simpset} addsimps [thm "MemReturn_def", thm "Return_def",
-      thm "rtrner_def"]) [exI] [thm "base_enabled", thm "Pair_inject"] 1 *})
+    {* action_simp_tac (@{simpset} addsimps [@{thm MemReturn_def}, @{thm Return_def},
+      @{thm rtrner_def}]) [exI] [@{thm base_enabled}, @{thm Pair_inject}] 1 *})
   done
 
 lemma ReadInner_enabled: "!!p. basevars (rtrner ch ! p, rs!p) ==>
@@ -227,13 +227,13 @@ lemma RNext_enabled: "!!p. !l. basevars (mm!l, rtrner ch!p, rs!p) ==>
          --> Enabled (<RNext ch mm rs p>_(rtrner ch ! p, rs!p))"
   apply (auto simp: enabled_disj [try_rewrite] intro!: RWRNext_enabled [temp_use])
   apply (case_tac "arg (ch w p)")
-   apply (tactic {* action_simp_tac (@{simpset} addsimps [thm "Read_def",
-     temp_rewrite (thm "enabled_ex")]) [thm "ReadInner_enabled", exI] [] 1 *})
+   apply (tactic {* action_simp_tac (@{simpset} addsimps [@{thm Read_def},
+     temp_rewrite @{thm enabled_ex}]) [@{thm ReadInner_enabled}, exI] [] 1 *})
    apply (force dest: base_pair [temp_use])
   apply (erule contrapos_np)
-  apply (tactic {* action_simp_tac (@{simpset} addsimps [thm "Write_def",
-    temp_rewrite (thm "enabled_ex")])
-    [thm "WriteInner_enabled", exI] [] 1 *})
+  apply (tactic {* action_simp_tac (@{simpset} addsimps [@{thm Write_def},
+    temp_rewrite @{thm enabled_ex}])
+    [@{thm WriteInner_enabled}, exI] [] 1 *})
   done
 
 end

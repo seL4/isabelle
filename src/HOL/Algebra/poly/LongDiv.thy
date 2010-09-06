@@ -133,8 +133,8 @@ lemma long_div_eucl_size:
   apply (tactic {* simp_tac (@{simpset} addsimps [@{thm l_distr}, @{thm a_assoc}]
     delsimprocs [ring_simproc]) 1 *})
   apply (tactic {* asm_simp_tac (@{simpset} delsimprocs [ring_simproc]) 1 *})
-  apply (tactic {* simp_tac (@{simpset} addsimps [thm "minus_def", thm "smult_r_distr",
-    thm "smult_r_minus", thm "monom_mult_smult", thm "smult_assoc2"]
+  apply (tactic {* simp_tac (@{simpset} addsimps [@{thm minus_def}, @{thm smult_r_distr},
+    @{thm smult_r_minus}, @{thm monom_mult_smult}, @{thm smult_assoc2}]
     delsimprocs [ring_simproc]) 1 *})
   apply (simp add: smult_assoc1 [symmetric])
   done
@@ -169,7 +169,7 @@ lemma long_div_unit:
   apply (rule conjI)
    apply (drule sym)
    apply (tactic {* asm_simp_tac
-     (@{simpset} addsimps [thm "smult_r_distr" RS sym, thm "smult_assoc2"]
+     (@{simpset} addsimps [@{thm smult_r_distr} RS sym, @{thm smult_assoc2}]
      delsimprocs [ring_simproc]) 1 *})
    apply (simp (no_asm_simp) add: l_inverse_ring unit_power smult_assoc1 [symmetric])
   (* degree property *)
@@ -216,21 +216,21 @@ lemma long_div_quo_unique:
     apply (erule disjE)
   (* r2 = 0 *)
      apply (tactic {* asm_full_simp_tac (@{simpset}
-       addsimps [thm "integral_iff", thm "minus_def", thm "l_zero", thm "uminus_zero"]
+       addsimps [@{thm integral_iff}, @{thm minus_def}, @{thm l_zero}, @{thm uminus_zero}]
        delsimprocs [ring_simproc]) 1 *})
   (* r2 ~= 0 *)
     apply (drule_tac f = "deg" and y = "r2 - r1" in arg_cong)
     apply (tactic {* asm_full_simp_tac (@{simpset} addsimps
-      [thm "minus_def", thm "l_zero", thm "uminus_zero"] delsimprocs [ring_simproc]) 1 *})
+      [@{thm minus_def}, @{thm l_zero}, @{thm uminus_zero}] delsimprocs [ring_simproc]) 1 *})
   (* r1 ~=0 *)
    apply (erule disjE)
   (* r2 = 0 *)
     apply (drule_tac f = "deg" and y = "r2 - r1" in arg_cong)
     apply (tactic {* asm_full_simp_tac (@{simpset} addsimps
-      [thm "minus_def", thm "l_zero", thm "uminus_zero"] delsimprocs [ring_simproc]) 1 *})
+      [@{thm minus_def}, @{thm l_zero}, @{thm uminus_zero}] delsimprocs [ring_simproc]) 1 *})
   (* r2 ~= 0 *)
    apply (drule_tac f = "deg" and y = "r2 - r1" in arg_cong)
-   apply (tactic {* asm_full_simp_tac (@{simpset} addsimps [thm "minus_def"]
+   apply (tactic {* asm_full_simp_tac (@{simpset} addsimps [@{thm minus_def}]
      delsimprocs [ring_simproc]) 1 *})
    apply (drule order_eq_refl [THEN add_leD2])
    apply (drule leD)

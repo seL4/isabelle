@@ -99,7 +99,7 @@ lemma LiftXH: "a : [A] <-> (a=bot | a:A)"
   unfolding simp_type_defs by blast+
 
 ML {*
-bind_thms ("case_rls", XH_to_Es (thms "XHs"));
+bind_thms ("case_rls", XH_to_Es @{thms XHs});
 *}
 
 
@@ -260,7 +260,7 @@ lemma NatXH: "a : Nat <-> (a=zero | (EX x:Nat. a=succ(x)))"
 
 lemmas iXHs = NatXH ListXH
 
-ML {* bind_thms ("icase_rls", XH_to_Es (thms "iXHs")) *}
+ML {* bind_thms ("icase_rls", XH_to_Es @{thms iXHs}) *}
 
 
 subsection {* Type Rules *}

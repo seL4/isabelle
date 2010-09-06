@@ -8,7 +8,7 @@ Simplifier for CTT, using Typedsimp.
 (*Make list of ProdE RS ProdE ... RS ProdE RS EqE
   for using assumptions as rewrite rules*)
 fun peEs 0 = []
-  | peEs n = thm "EqE" :: map (curry (op RS) (thm "ProdE")) (peEs (n-1));
+  | peEs n = @{thm EqE} :: map (curry (op RS) @{thm ProdE}) (peEs (n-1));
 
 (*Tactic used for proving conditions for the cond_rls*)
 val prove_cond_tac = eresolve_tac (peEs 5);
@@ -16,19 +16,19 @@ val prove_cond_tac = eresolve_tac (peEs 5);
 
 structure TSimp_data: TSIMP_DATA =
   struct
-  val refl              = thm "refl_elem"
-  val sym               = thm "sym_elem"
-  val trans             = thm "trans_elem"
-  val refl_red          = thm "refl_red"
-  val trans_red         = thm "trans_red"
-  val red_if_equal      = thm "red_if_equal"
-  val default_rls       = thms "comp_rls"
-  val routine_tac       = routine_tac (thms "routine_rls")
+  val refl              = @{thm refl_elem}
+  val sym               = @{thm sym_elem}
+  val trans             = @{thm trans_elem}
+  val refl_red          = @{thm refl_red}
+  val trans_red         = @{thm trans_red}
+  val red_if_equal      = @{thm red_if_equal}
+  val default_rls       = @{thms comp_rls}
+  val routine_tac       = routine_tac (@{thms routine_rls})
   end;
 
 structure TSimp = TSimpFun (TSimp_data);
 
-val standard_congr_rls = thms "intrL2_rls" @ thms "elimL_rls";
+val standard_congr_rls = @{thms intrL2_rls} @ @{thms elimL_rls};
 
 (*Make a rewriting tactic from a normalization tactic*)
 fun make_rew_tac ntac =

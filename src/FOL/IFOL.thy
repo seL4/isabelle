@@ -340,7 +340,7 @@ lemma conj_cong:
   shows "(P&Q) <-> (P'&Q')"
   apply (insert assms)
   apply (assumption | rule iffI conjI | erule iffE conjE mp |
-    tactic {* iff_tac (thms "assms") 1 *})+
+    tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 (*Reversed congruence rule!   Used in ZF/Order*)
@@ -350,7 +350,7 @@ lemma conj_cong2:
   shows "(Q&P) <-> (Q'&P')"
   apply (insert assms)
   apply (assumption | rule iffI conjI | erule iffE conjE mp |
-    tactic {* iff_tac (thms "assms") 1 *})+
+    tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 lemma disj_cong:
@@ -366,7 +366,7 @@ lemma imp_cong:
   shows "(P-->Q) <-> (P'-->Q')"
   apply (insert assms)
   apply (assumption | rule iffI impI | erule iffE | erule (1) notE impE |
-    tactic {* iff_tac (thms "assms") 1 *})+
+    tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 lemma iff_cong: "[| P <-> P'; Q <-> Q' |] ==> (P<->Q) <-> (P'<->Q')"
@@ -381,21 +381,21 @@ lemma all_cong:
   assumes "!!x. P(x) <-> Q(x)"
   shows "(ALL x. P(x)) <-> (ALL x. Q(x))"
   apply (assumption | rule iffI allI | erule (1) notE impE | erule allE |
-    tactic {* iff_tac (thms "assms") 1 *})+
+    tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 lemma ex_cong:
   assumes "!!x. P(x) <-> Q(x)"
   shows "(EX x. P(x)) <-> (EX x. Q(x))"
   apply (erule exE | assumption | rule iffI exI | erule (1) notE impE |
-    tactic {* iff_tac (thms "assms") 1 *})+
+    tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 lemma ex1_cong:
   assumes "!!x. P(x) <-> Q(x)"
   shows "(EX! x. P(x)) <-> (EX! x. Q(x))"
   apply (erule ex1E spec [THEN mp] | assumption | rule iffI ex1I | erule (1) notE impE |
-    tactic {* iff_tac (thms "assms") 1 *})+
+    tactic {* iff_tac @{thms assms} 1 *})+
   done
 
 (*** Equality rules ***)

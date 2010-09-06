@@ -149,7 +149,7 @@ fun mkasm_quasi thy (t, n) =
     | "~="  => if (x aconv y) then
                   raise Contr (Thm ([(Thm ([(Thm ([], Less.le_refl)) ,(Asm n)], Less.le_neq_trans))], Less.less_reflE))
                else [ NotEq (x, y, Asm n),
-                      NotEq (y, x,Thm ( [Asm n], thm "not_sym"))]
+                      NotEq (y, x,Thm ( [Asm n], @{thm not_sym}))]
     | _     => error ("quasi_tac: unknown relation symbol ``" ^ rel ^
                  "''returned by decomp_quasi."))
   | NONE => [];
@@ -300,7 +300,7 @@ fun mkQuasiGraph [] = ([],[])
          let
           val leEdge  = Le (x,y, Thm ([p], Less.less_imp_le))
           val neqEdges = [ NotEq (x,y, Thm ([p], Less.less_imp_neq)),
-                           NotEq (y,x, Thm ( [Thm ([p], Less.less_imp_neq)], thm "not_sym"))]
+                           NotEq (y,x, Thm ( [Thm ([p], Less.less_imp_neq)], @{thm not_sym}))]
          in
            buildGraphs (ls, addEdge(y,[],(addEdge (x,[(y,leEdge)],leG))), neqEdges@neqE)
          end
@@ -459,9 +459,10 @@ fun findQuasiProof (leG, neqE) subgoal =
    let
     fun findParallelNeq []  = NONE
     |   findParallelNeq (e::es)  =
-     if      (x aconv (lower e) andalso y aconv (upper e)) then SOME e
-     else if (y aconv (lower e) andalso x aconv (upper e)) then SOME (NotEq (x,y, (Thm ([getprf e], thm "not_sym"))))
-     else findParallelNeq es ;
+     if (x aconv (lower e) andalso y aconv (upper e)) then SOME e
+     else if (y aconv (lower e) andalso x aconv (upper e))
+     then SOME (NotEq (x,y, (Thm ([getprf e], @{thm not_sym}))))
+     else findParallelNeq es;
    in
    (* test if there is a edge x ~= y respectivly  y ~= x and     *)
    (* if it possible to find a path x <= y in leG, thus we can conclude x < y *)
@@ -483,7 +484,7 @@ fun findQuasiProof (leG, neqE) subgoal =
   (case (Library.find_first (fn fact => fact subsumes subgoal) neqE, subgoal) of
     (SOME (NotEq (x, y, p)), NotEq (x', y', _)) =>
       if  (x aconv x' andalso y aconv y') then p
-      else Thm ([p], thm "not_sym")
+      else Thm ([p], @{thm not_sym})
     | _  => raise Cannot
   )
 
