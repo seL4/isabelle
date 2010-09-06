@@ -159,7 +159,15 @@ To check whether E and SPASS are installed, follow the example in
 \S\ref{first-steps}.
 
 Remote ATP invocation via the SystemOnTPTP web service requires Perl with the
-World Wide Web Library (\texttt{libwww-perl}) installed.
+World Wide Web Library (\texttt{libwww-perl}) installed. If you must use a proxy
+server to access the Internet, set the \texttt{http\_proxy} environment variable
+to the proxy before launching Isabelle. Here are a few examples:
+
+\prew
+\texttt{export http\_proxy=http://proxy.example.org} \\
+\texttt{export http\_proxy=http://proxy.example.org:8080} \\
+\texttt{export http\_proxy=http://joeblow:pAsSwRd@proxy.example.org}
+\postw
 
 \section{First Steps}
 \label{first-steps}
