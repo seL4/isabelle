@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/Commutation.thy
+(*  Title:      HOL/Proofs/Lambda/Commutation.thy
     Author:     Tobias Nipkow
     Copyright   1995  TU Muenchen
 *)

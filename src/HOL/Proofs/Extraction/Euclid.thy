@@ -1,4 +1,4 @@
-(*  Title:      HOL/Extraction/Euclid.thy
+(*  Title:      HOL/Proofs/Extraction/Euclid.thy
     Author:     Markus Wenzel, TU Muenchen
     Author:     Freek Wiedijk, Radboud University Nijmegen
     Author:     Stefan Berghofer, TU Muenchen

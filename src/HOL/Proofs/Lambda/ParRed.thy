@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/ParRed.thy
+(*  Title:      HOL/Proofs/Lambda/ParRed.thy
     Author:     Tobias Nipkow
     Copyright   1995 TU Muenchen
 

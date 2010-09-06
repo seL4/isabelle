@@ -1,11 +1,12 @@
-(*  Title:      HOL/ex/Hilbert_Classical.thy
-    ID:         $Id$
+(*  Title:      HOL/Proofs/ex/Hilbert_Classical.thy
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 *)
 
 header {* Hilbert's choice and classical logic *}
 
-theory Hilbert_Classical imports Main begin
+theory Hilbert_Classical
+imports Main
+begin
 
 text {*
   Derivation of the classical law of tertium-non-datur by means of
@@ -95,9 +96,7 @@ qed
 
 subsection {* Proof term of text *}
 
-text {*
-  {\small @{prf [display, margin = 80] tnd}}
-*}
+prf tnd
 
 
 subsection {* Proof script *}
@@ -156,8 +155,6 @@ theorem tnd': "A \<or> \<not> A"
 
 subsection {* Proof term of script *}
 
-text {*
-  {\small @{prf [display, margin = 80] tnd'}}
-*}
+prf tnd'
 
 end

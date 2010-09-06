@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/ListBeta.thy
+(*  Title:      HOL/Proofs/Lambda/ListBeta.thy
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
 *)

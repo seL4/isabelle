@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/Eta.thy
+(*  Title:      HOL/Proofs/Lambda/Eta.thy
     Author:     Tobias Nipkow and Stefan Berghofer
     Copyright   1995, 2005 TU Muenchen
 *)
