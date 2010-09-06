@@ -785,7 +785,7 @@ HOL-Unix: HOL $(LOG)/HOL-Unix.gz
 $(LOG)/HOL-Unix.gz: $(OUT)/HOL Library/Nested_Environment.thy		\
   Library/List_Prefix.thy Unix/ROOT.ML Unix/Unix.thy			\
   Unix/document/root.bib Unix/document/root.tex
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Unix
+	@$(ISABELLE_TOOL) usedir -m no_brackets -m no_type_brackets $(OUT)/HOL Unix
 
 
 ## HOL-ZF
