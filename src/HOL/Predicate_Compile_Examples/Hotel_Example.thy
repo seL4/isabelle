@@ -90,6 +90,7 @@ setup {* Code_Prolog.map_code_options (K
   limited_predicates = [],
   replacing = [],
   manual_reorder = [],
+  timeout = Time.fromSeconds 10,
   prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 values 40 "{s. hotel s}"
@@ -119,6 +120,7 @@ setup {* Code_Prolog.map_code_options (K
    limited_predicates = [(["hotel"], 5)],
    replacing = [(("hotel", "limited_hotel"), "quickcheck")],
    manual_reorder = [],
+   timeout = Time.fromSeconds 10,
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 lemma

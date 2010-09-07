@@ -1,4 +1,4 @@
-theory RegExp_Example
+theory Reg_Exp_Example
 imports Predicate_Compile_Quickcheck Code_Prolog
 begin
 
@@ -158,7 +158,7 @@ lemma
   assumes "q = Seq (Sym N0) (Sym N0)"
   assumes "s = [N0, N0]"
   shows "accepts (And (repInt n k p) (repInt n k q)) s --> accepts (repInt n k (And p q)) s"
-quickcheck[generator = predicate_compile_wo_ff, iterations = 1, expect = counterexample]
+(*quickcheck[generator = predicate_compile_wo_ff, iterations = 1, expect = counterexample]*)
 quickcheck[generator = prolog, iterations = 1, size = 1, expect = counterexample]
 oops
 

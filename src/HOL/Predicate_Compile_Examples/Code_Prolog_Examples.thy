@@ -16,6 +16,7 @@ setup {* Code_Prolog.map_code_options (K
    limited_predicates = [],
    replacing = [],
    manual_reorder = [],
+   timeout = Time.fromSeconds 10,
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 values "{(x, y, z). append x y z}"
@@ -28,6 +29,7 @@ setup {* Code_Prolog.map_code_options (K
    limited_predicates = [],
    replacing = [],
    manual_reorder = [],
+   timeout = Time.fromSeconds 10,
    prolog_system = Code_Prolog.YAP}) *}
 
 values "{(x, y, z). append x y z}"
@@ -38,6 +40,7 @@ setup {* Code_Prolog.map_code_options (K
    limited_predicates = [],
    replacing = [],
    manual_reorder = [],
+   timeout = Time.fromSeconds 10,
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 
@@ -207,6 +210,7 @@ setup {* Code_Prolog.map_code_options (K
    limited_predicates = [],
    replacing = [],
    manual_reorder = [], 
+   timeout = Time.fromSeconds 10,
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 values 2 "{y. notB y}"

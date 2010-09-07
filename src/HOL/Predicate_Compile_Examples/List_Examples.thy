@@ -13,6 +13,7 @@ setup {* Code_Prolog.map_code_options (K
       (("revP", "limited_revP"), "quickcheck"),
       (("appendP", "limited_appendP"), "lim_revP")],
    manual_reorder = [],
+   timeout = Time.fromSeconds 10,
    prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 lemma "(xs :: nat list) = ys @ ys --> rev xs = xs"

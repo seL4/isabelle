@@ -88,6 +88,7 @@ setup {* Code_Prolog.map_code_options (K
     replacing = [(("typing", "limited_typing"), "quickcheck"),
                  (("nthel1", "limited_nthel1"), "lim_typing")],
     manual_reorder = [],
+    timeout = Time.fromSeconds 10,
     prolog_system = Code_Prolog.SWI_PROLOG}) *}
 
 lemma
