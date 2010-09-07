@@ -6,15 +6,20 @@ Mastering target language namespaces.
 
 signature CODE_NAMESPACE =
 sig
-  val dest_name: string -> string * string
-  val build_module_namespace: { module_alias: string -> string option,
-    module_prefix: string option, reserved: Name.context } -> Code_Thingol.program
-    -> string list Symtab.table
+  type flat_program
+  val flat_program: (string -> string) -> { module_alias: string -> string option,
+    module_prefix: string, reserved: Name.context, empty_nsp: 'a,
+    namify_stmt: Code_Thingol.stmt -> string -> 'a -> string * 'a,
+    modify_stmt: Code_Thingol.stmt -> Code_Thingol.stmt option }
+      -> Code_Thingol.program
+      -> { deresolver: string -> string -> string,
+           flat_program: flat_program }
+
   datatype ('a, 'b) node =
       Dummy
     | Stmt of 'a
     | Module of ('b * (string * ('a, 'b) node) Graph.T)
-  type ('a, 'b) hierarchical_program = (string * ('a, 'b) node) Graph.T
+  type ('a, 'b) hierarchical_program
   val hierarchical_program: (string -> string) -> { module_alias: string -> string option,
     reserved: Name.context, empty_nsp: 'c, namify_module: string -> 'c -> string * 'c,
     namify_stmt: Code_Thingol.stmt -> string -> 'c -> string * 'c,
@@ -45,9 +50,83 @@ fun build_module_namespace { module_alias, module_prefix, reserved } program =
           (Long_Name.explode name);
     val module_names = Graph.fold (insert (op =) o fst o dest_name o fst) program [];
   in
-    fold (fn name => Symtab.update (name, alias_fragments name))
+    fold (fn name => Symtab.update (name, Long_Name.explode module_prefix @ alias_fragments name))
       module_names Symtab.empty
   end;
+
+
+(** flat program structure **)
+
+type flat_program = ((string * Code_Thingol.stmt option) Graph.T * (string * string list) list) Graph.T;
+
+fun flat_program labelled_name { module_alias, module_prefix, reserved,
+      empty_nsp, namify_stmt, modify_stmt } program =
+  let
+
+    (* building module name hierarchy *)
+    val fragments_tab = build_module_namespace { module_alias = module_alias,
+      module_prefix = module_prefix, reserved = reserved } program;
+    val dest_name = dest_name
+      #>> (Long_Name.implode o the o Symtab.lookup fragments_tab);
+
+    (* distribute statements over hierarchy *)
+    fun add_stmt name stmt =
+      let
+        val (module_name, base) = dest_name name;
+      in
+        Graph.default_node (module_name, (Graph.empty, []))
+        #> (Graph.map_node module_name o apfst) (Graph.new_node (name, (base, stmt)))
+      end;
+    fun add_dependency name name' =
+      let
+        val (module_name, base) = dest_name name;
+        val (module_name', base') = dest_name name';
+      in if module_name = module_name'
+        then (Graph.map_node module_name o apfst) (Graph.add_edge (name, name'))
+        else (Graph.map_node module_name o apsnd) (AList.map_default (op =) (module_name', []) (insert (op =) name'))
+      end;
+    val proto_program = Graph.empty
+      |> Graph.fold (fn (name, (stmt, _)) => add_stmt name stmt) program
+      |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
+
+    (* name declarations and statement modifications *)
+    fun declare name (base, stmt) (gr, nsp) = 
+      let
+        val (base', nsp') = namify_stmt stmt base nsp;
+        val gr' = (Graph.map_node name o apfst) (K base') gr;
+      in (gr', nsp') end;
+    fun declarations gr = (gr, empty_nsp)
+      |> fold (fn name => declare name (Graph.get_node gr name)) (Graph.keys gr) 
+      |> fst
+      |> (Graph.map o K o apsnd) modify_stmt;
+    val flat_program = proto_program
+      |> (Graph.map o K o apfst) declarations;
+
+    (* qualified and unqualified imports, deresolving *)
+    fun base_deresolver name = fst (Graph.get_node
+      (fst (Graph.get_node flat_program (fst (dest_name name)))) name);
+    fun classify_names gr imports =
+      let
+        val import_tab = maps
+          (fn (module_name, names) => map (rpair module_name) names) imports;
+        val imported_names = map fst import_tab;
+        val here_names = Graph.keys gr;
+      in
+        Symtab.empty
+        |> fold (fn name => Symtab.update (name, base_deresolver name)) here_names
+        |> fold (fn name => Symtab.update (name,
+            Long_Name.append (the (AList.lookup (op =) import_tab name))
+              (base_deresolver name))) imported_names
+      end;
+    val name_tabs = AList.make (uncurry classify_names o Graph.get_node flat_program)
+      (Graph.keys flat_program);
+    val deresolver_tab = Symtab.empty
+      |> fold (fn (module_name, name_tab) => Symtab.update (module_name, name_tab)) name_tabs;
+    fun deresolver module_name name =
+      the (Symtab.lookup (the (Symtab.lookup deresolver_tab module_name)) name)
+      handle Option => error ("Unknown statement name: " ^ labelled_name name);
+
+  in { deresolver = deresolver, flat_program = flat_program } end;
 
 
 (** hierarchical program structure **)
@@ -72,7 +151,7 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
 
     (* building module name hierarchy *)
     val fragments_tab = build_module_namespace { module_alias = module_alias,
-      module_prefix = NONE, reserved = reserved } program;
+      module_prefix = "", reserved = reserved } program;
     val dest_name = dest_name #>> (the o Symtab.lookup fragments_tab);
 
     (* building empty module hierarchy *)
