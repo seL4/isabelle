@@ -22,7 +22,7 @@ primrec update :: "'key \<Rightarrow> 'val \<Rightarrow> ('key \<times> 'val) li
   | "update k v (p#ps) = (if fst p = k then (k, v) # ps else p # update k v ps)"
 
 lemma update_conv': "map_of (update k v al)  = (map_of al)(k\<mapsto>v)"
-  by (induct al) (auto simp add: expand_fun_eq)
+  by (induct al) (auto simp add: ext_iff)
 
 corollary update_conv: "map_of (update k v al) k' = ((map_of al)(k\<mapsto>v)) k'"
   by (simp add: update_conv')
@@ -67,7 +67,7 @@ text {* Note that the lists are not necessarily the same:
         @{term "update k' v' (update k v []) = [(k, v), (k', v')]"}.*}
 lemma update_swap: "k\<noteq>k' 
   \<Longrightarrow> map_of (update k v (update k' v' al)) = map_of (update k' v' (update k v al))"
-  by (simp add: update_conv' expand_fun_eq)
+  by (simp add: update_conv' ext_iff)
 
 lemma update_Some_unfold: 
   "map_of (update k v al) x = Some y \<longleftrightarrow>
@@ -96,8 +96,8 @@ lemma updates_conv': "map_of (updates ks vs al) = (map_of al)(ks[\<mapsto>]vs)"
 proof -
   have "map_of \<circ> More_List.fold (prod_case update) (zip ks vs) =
     More_List.fold (\<lambda>(k, v) f. f(k \<mapsto> v)) (zip ks vs) \<circ> map_of"
-    by (rule fold_apply) (auto simp add: expand_fun_eq update_conv')
-  then show ?thesis by (auto simp add: updates_def expand_fun_eq map_upds_fold_map_upd foldl_fold split_def)
+    by (rule fold_apply) (auto simp add: ext_iff update_conv')
+  then show ?thesis by (auto simp add: updates_def ext_iff map_upds_fold_map_upd foldl_fold split_def)
 qed
 
 lemma updates_conv: "map_of (updates ks vs al) k = ((map_of al)(ks[\<mapsto>]vs)) k"
@@ -114,7 +114,7 @@ proof -
   moreover have "map fst \<circ> More_List.fold (prod_case update) (zip ks vs) =
     More_List.fold (\<lambda>(k, v) al. if k \<in> set al then al else al @ [k]) (zip ks vs) \<circ> map fst"
     by (rule fold_apply) (simp add: update_keys split_def prod_case_beta comp_def)
-  ultimately show ?thesis by (simp add: updates_def expand_fun_eq)
+  ultimately show ?thesis by (simp add: updates_def ext_iff)
 qed
 
 lemma updates_append1[simp]: "size ks < size vs \<Longrightarrow>
@@ -161,7 +161,7 @@ lemma delete_simps [simp]:
   by (auto simp add: delete_eq)
 
 lemma delete_conv': "map_of (delete k al) = (map_of al)(k := None)"
-  by (induct al) (auto simp add: expand_fun_eq)
+  by (induct al) (auto simp add: ext_iff)
 
 corollary delete_conv: "map_of (delete k al) k' = ((map_of al)(k := None)) k'"
   by (simp add: delete_conv')
@@ -301,7 +301,7 @@ termination by (relation "measure length")
 lemma map_of_clearjunk:
   "map_of (clearjunk al) = map_of al"
   by (induct al rule: clearjunk.induct)
-    (simp_all add: expand_fun_eq)
+    (simp_all add: ext_iff)
 
 lemma clearjunk_keys_set:
   "set (map fst (clearjunk al)) = set (map fst al)"
@@ -342,7 +342,7 @@ proof -
   have "clearjunk \<circ> More_List.fold (prod_case update) (zip ks vs) =
     More_List.fold (prod_case update) (zip ks vs) \<circ> clearjunk"
     by (rule fold_apply) (simp add: clearjunk_update prod_case_beta o_def)
-  then show ?thesis by (simp add: updates_def expand_fun_eq)
+  then show ?thesis by (simp add: updates_def ext_iff)
 qed
 
 lemma clearjunk_delete:
@@ -446,9 +446,9 @@ lemma merge_conv':
 proof -
   have "map_of \<circ> More_List.fold (prod_case update) (rev ys) =
     More_List.fold (\<lambda>(k, v) m. m(k \<mapsto> v)) (rev ys) \<circ> map_of"
-    by (rule fold_apply) (simp add: update_conv' prod_case_beta split_def expand_fun_eq)
+    by (rule fold_apply) (simp add: update_conv' prod_case_beta split_def ext_iff)
   then show ?thesis
-    by (simp add: merge_def map_add_map_of_foldr foldr_fold_rev expand_fun_eq)
+    by (simp add: merge_def map_add_map_of_foldr foldr_fold_rev ext_iff)
 qed
 
 corollary merge_conv:
@@ -699,7 +699,7 @@ lemma tabulate_Mapping [code]:
 
 lemma bulkload_Mapping [code]:
   "Mapping.bulkload vs = Mapping (map (\<lambda>n. (n, vs ! n)) [0..<length vs])"
-  by (rule mapping_eqI) (simp add: map_of_map_restrict expand_fun_eq)
+  by (rule mapping_eqI) (simp add: map_of_map_restrict ext_iff)
 
 lemma map_of_eqI: (*FIXME move to Map.thy*)
   assumes set_eq: "set (map fst xs) = set (map fst ys)"

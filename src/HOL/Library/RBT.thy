@@ -112,7 +112,7 @@ lemma keys_impl_of:
 
 lemma lookup_empty [simp]:
   "lookup empty = Map.empty"
-  by (simp add: empty_def lookup_RBT expand_fun_eq)
+  by (simp add: empty_def lookup_RBT ext_iff)
 
 lemma lookup_insert [simp]:
   "lookup (insert k v t) = (lookup t)(k \<mapsto> v)"
@@ -144,7 +144,7 @@ lemma lookup_map [simp]:
 
 lemma fold_fold:
   "fold f t = More_List.fold (prod_case f) (entries t)"
-  by (simp add: fold_def expand_fun_eq RBT_Impl.fold_def entries_impl_of)
+  by (simp add: fold_def ext_iff RBT_Impl.fold_def entries_impl_of)
 
 lemma is_empty_empty [simp]:
   "is_empty t \<longleftrightarrow> t = empty"
@@ -152,7 +152,7 @@ lemma is_empty_empty [simp]:
 
 lemma RBT_lookup_empty [simp]: (*FIXME*)
   "RBT_Impl.lookup t = Map.empty \<longleftrightarrow> t = RBT_Impl.Empty"
-  by (cases t) (auto simp add: expand_fun_eq)
+  by (cases t) (auto simp add: ext_iff)
 
 lemma lookup_empty_empty [simp]:
   "lookup t = Map.empty \<longleftrightarrow> t = empty"
@@ -220,7 +220,7 @@ lemma tabulate_Mapping [code]:
 
 lemma bulkload_Mapping [code]:
   "Mapping.bulkload vs = Mapping (bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
-  by (rule mapping_eqI) (simp add: map_of_map_restrict expand_fun_eq)
+  by (rule mapping_eqI) (simp add: map_of_map_restrict ext_iff)
 
 lemma equal_Mapping [code]:
   "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> entries t1 = entries t2"

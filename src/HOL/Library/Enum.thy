@@ -42,7 +42,7 @@ definition
   "HOL.equal f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
 
 instance proof
-qed (simp_all add: equal_fun_def enum_all expand_fun_eq)
+qed (simp_all add: equal_fun_def enum_all ext_iff)
 
 end
 
@@ -54,7 +54,7 @@ lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
   shows "f \<le> g \<longleftrightarrow> list_all (\<lambda>x. f x \<le> g x) enum"
     and "f < g \<longleftrightarrow> f \<le> g \<and> list_ex (\<lambda>x. f x \<noteq> g x) enum"
-  by (simp_all add: list_all_iff list_ex_iff enum_all expand_fun_eq le_fun_def order_less_le)
+  by (simp_all add: list_all_iff list_ex_iff enum_all ext_iff le_fun_def order_less_le)
 
 
 subsection {* Quantifiers *}
@@ -160,7 +160,7 @@ instance proof
   proof (rule UNIV_eq_I)
     fix f :: "'a \<Rightarrow> 'b"
     have "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
-      by (auto simp add: map_of_zip_map expand_fun_eq)
+      by (auto simp add: map_of_zip_map ext_iff)
     then show "f \<in> set enum"
       by (auto simp add: enum_fun_def set_n_lists)
   qed

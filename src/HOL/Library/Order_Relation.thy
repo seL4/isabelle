@@ -81,7 +81,7 @@ by(simp add:subset_Image_Image_iff)
 
 lemma Refl_antisym_eq_Image1_Image1_iff:
   "\<lbrakk>Refl r; antisym r; a:Field r; b:Field r\<rbrakk> \<Longrightarrow> r `` {a} = r `` {b} \<longleftrightarrow> a=b"
-by(simp add: expand_set_eq antisym_def refl_on_def) metis
+by(simp add: set_ext_iff antisym_def refl_on_def) metis
 
 lemma Partial_order_eq_Image1_Image1_iff:
   "\<lbrakk>Partial_order r; a:Field r; b:Field r\<rbrakk> \<Longrightarrow> r `` {a} = r `` {b} \<longleftrightarrow> a=b"

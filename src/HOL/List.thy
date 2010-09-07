@@ -2317,7 +2317,7 @@ by(induct xs arbitrary:a) simp_all
 lemma foldl_apply:
   assumes "\<And>x. x \<in> set xs \<Longrightarrow> f x \<circ> h = h \<circ> g x"
   shows "foldl (\<lambda>s x. f x s) (h s) xs = h (foldl (\<lambda>s x. g x s) s xs)"
-  by (rule sym, insert assms, induct xs arbitrary: s) (simp_all add: expand_fun_eq)
+  by (rule sym, insert assms, induct xs arbitrary: s) (simp_all add: ext_iff)
 
 lemma foldl_cong [fundef_cong, recdef_cong]:
   "[| a = b; l = k; !!a x. x : set l ==> f a x = g a x |] 
@@ -4564,7 +4564,7 @@ text {*
 
 lemma member_set:
   "member = set"
-  by (simp add: expand_fun_eq member_def mem_def)
+  by (simp add: ext_iff member_def mem_def)
 
 lemma member_rec [code]:
   "member (x # xs) y \<longleftrightarrow> x = y \<or> member xs y"

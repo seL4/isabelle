@@ -14,7 +14,7 @@ where
   "intrel (x, y) (u, v) = (x + v = u + y)"
 
 quotient_type int = "nat \<times> nat" / intrel
-  by (auto simp add: equivp_def expand_fun_eq)
+  by (auto simp add: equivp_def ext_iff)
 
 instantiation int :: "{zero, one, plus, uminus, minus, times, ord, abs, sgn}"
 begin

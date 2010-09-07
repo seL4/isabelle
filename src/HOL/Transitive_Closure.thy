@@ -82,7 +82,7 @@ unfolding trans_def by blast
 subsection {* Reflexive-transitive closure *}
 
 lemma reflcl_set_eq [pred_set_conv]: "(sup (\<lambda>x y. (x, y) \<in> r) op =) = (\<lambda>x y. (x, y) \<in> r \<union> Id)"
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 lemma r_into_rtrancl [intro]: "!!p. p \<in> r ==> p \<in> r^*"
   -- {* @{text rtrancl} of @{text r} contains @{text r} *}
@@ -487,7 +487,7 @@ lemma tranclp_converseD: "(r^--1)^++ x y ==> (r^++)^--1 x y"
 lemmas trancl_converseD = tranclp_converseD [to_set]
 
 lemma tranclp_converse: "(r^--1)^++ = (r^++)^--1"
-  by (fastsimp simp add: expand_fun_eq
+  by (fastsimp simp add: ext_iff
     intro!: tranclp_converseI dest!: tranclp_converseD)
 
 lemmas trancl_converse = tranclp_converse [to_set]

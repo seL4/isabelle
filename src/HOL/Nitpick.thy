@@ -59,7 +59,7 @@ by (rule eq_reflection) (rule if_bool_eq_conj)
 lemma Ex1_def [nitpick_def, no_atp]:
 "Ex1 P \<equiv> \<exists>x. P = {x}"
 apply (rule eq_reflection)
-apply (simp add: Ex1_def expand_set_eq)
+apply (simp add: Ex1_def set_ext_iff)
 apply (rule iffI)
  apply (erule exE)
  apply (erule conjE)

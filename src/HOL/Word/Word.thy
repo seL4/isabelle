@@ -4695,7 +4695,7 @@ apply (drule_tac x="x 0 xa" in spec)
 apply simp
 apply (rule_tac t="\<lambda>a. x (1 + (n - m + a))" and s="\<lambda>a. x (1 + (n - m) + a)"
        in subst)
- apply (clarsimp simp add: expand_fun_eq)
+ apply (clarsimp simp add: ext_iff)
  apply (rule_tac t="(1 + (n - m + xb))" and s="1 + (n - m) + xb" in subst)
   apply simp
  apply (rule refl)

@@ -1394,7 +1394,7 @@ thm_maps
   "GSPEC_def" > "HOLLight.hollight.GSPEC_def"
   "GEQ_def" > "HOLLight.hollight.GEQ_def"
   "GABS_def" > "HOLLight.hollight.GABS_def"
-  "FUN_EQ_THM" > "Fun.expand_fun_eq"
+  "FUN_EQ_THM" > "Fun.ext_iff"
   "FUNCTION_FACTORS_RIGHT" > "HOLLight.hollight.FUNCTION_FACTORS_RIGHT"
   "FUNCTION_FACTORS_LEFT" > "HOLLight.hollight.FUNCTION_FACTORS_LEFT"
   "FSTCART_PASTECART" > "HOLLight.hollight.FSTCART_PASTECART"

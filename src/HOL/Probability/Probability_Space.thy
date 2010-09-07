@@ -34,14 +34,14 @@ abbreviation
 lemma (in prob_space) distribution_cong:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> X x = Y x"
   shows "distribution X = distribution Y"
-  unfolding distribution_def expand_fun_eq
+  unfolding distribution_def ext_iff
   using assms by (auto intro!: arg_cong[where f="\<mu>"])
 
 lemma (in prob_space) joint_distribution_cong:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> X x = X' x"
   assumes "\<And>x. x \<in> space M \<Longrightarrow> Y x = Y' x"
   shows "joint_distribution X Y = joint_distribution X' Y'"
-  unfolding distribution_def expand_fun_eq
+  unfolding distribution_def ext_iff
   using assms by (auto intro!: arg_cong[where f="\<mu>"])
 
 lemma prob_space: "prob (space M) = 1"

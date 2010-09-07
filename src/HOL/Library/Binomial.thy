@@ -236,7 +236,7 @@ proof-
     have th1: "(\<Prod>n\<in>{1\<Colon>nat..n}. a + of_nat n) =
       (\<Prod>n\<in>{0\<Colon>nat..n - 1}. a + 1 + of_nat n)"
       apply (rule setprod_reindex_cong [where f = Suc])
-      using n0 by (auto simp add: expand_fun_eq field_simps)
+      using n0 by (auto simp add: ext_iff field_simps)
     have ?thesis apply (simp add: pochhammer_def)
     unfolding setprod_insert[OF th0, unfolded eq]
     using th1 by (simp add: field_simps)}
@@ -248,7 +248,7 @@ lemma pochhammer_fact: "of_nat (fact n) = pochhammer 1 n"
   
   apply (cases n, simp_all add: of_nat_setprod pochhammer_Suc_setprod)
   apply (rule setprod_reindex_cong[where f=Suc])
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 lemma pochhammer_of_nat_eq_0_lemma: assumes kn: "k > n"
   shows "pochhammer (- (of_nat n :: 'a:: idom)) k = 0"
@@ -315,7 +315,7 @@ proof-
       apply (rule strong_setprod_reindex_cong[where f = "%i. h - i"])
       apply (auto simp add: inj_on_def image_def h )
       apply (rule_tac x="h - x" in bexI)
-      by (auto simp add: expand_fun_eq h of_nat_diff)}
+      by (auto simp add: ext_iff h of_nat_diff)}
   ultimately show ?thesis by (cases k, auto)
 qed
 
@@ -410,11 +410,11 @@ proof-
     have eq': "(\<Prod>i\<in>{0..h}. of_nat n + - (of_nat i :: 'a)) = (\<Prod>i\<in>{n - h..n}. of_nat i)"
       apply (rule strong_setprod_reindex_cong[where f="op - n"])
       using h kn 
-      apply (simp_all add: inj_on_def image_iff Bex_def expand_set_eq)
+      apply (simp_all add: inj_on_def image_iff Bex_def set_ext_iff)
       apply clarsimp
       apply (presburger)
       apply presburger
-      by (simp add: expand_fun_eq field_simps of_nat_add[symmetric] del: of_nat_add)
+      by (simp add: ext_iff field_simps of_nat_add[symmetric] del: of_nat_add)
     have th0: "finite {1..n - Suc h}" "finite {n - h .. n}" 
 "{1..n - Suc h} \<inter> {n - h .. n} = {}" and eq3: "{1..n - Suc h} \<union> {n - h .. n} = {1..n}" using h kn by auto
     from eq[symmetric]

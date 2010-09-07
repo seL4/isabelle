@@ -51,7 +51,7 @@ lemma Pair_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(Rep1 ---> Rep2 ---> (prod_fun Abs1 Abs2)) Pair = Pair"
-  apply(simp add: expand_fun_eq)
+  apply(simp add: ext_iff)
   apply(simp add: Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
   done
 
@@ -65,7 +65,7 @@ lemma fst_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(prod_fun Rep1 Rep2 ---> Abs1) fst = fst"
-  apply(simp add: expand_fun_eq)
+  apply(simp add: ext_iff)
   apply(simp add: Quotient_abs_rep[OF q1])
   done
 
@@ -79,7 +79,7 @@ lemma snd_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(prod_fun Rep1 Rep2 ---> Abs2) snd = snd"
-  apply(simp add: expand_fun_eq)
+  apply(simp add: ext_iff)
   apply(simp add: Quotient_abs_rep[OF q2])
   done
 
@@ -91,7 +91,7 @@ lemma split_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   and     q2: "Quotient R2 Abs2 Rep2"
   shows "(((Abs1 ---> Abs2 ---> id) ---> prod_fun Rep1 Rep2 ---> id) split) = split"
-  by (simp add: expand_fun_eq Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
+  by (simp add: ext_iff Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
 
 lemma [quot_respect]:
   shows "((R2 ===> R2 ===> op =) ===> (R1 ===> R1 ===> op =) ===>
@@ -103,7 +103,7 @@ lemma [quot_preserve]:
   and     q2: "Quotient R2 abs2 rep2"
   shows "((abs1 ---> abs1 ---> id) ---> (abs2 ---> abs2 ---> id) --->
   prod_fun rep1 rep2 ---> prod_fun rep1 rep2 ---> id) prod_rel = prod_rel"
-  by (simp add: expand_fun_eq Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
+  by (simp add: ext_iff Quotient_abs_rep[OF q1] Quotient_abs_rep[OF q2])
 
 lemma [quot_preserve]:
   shows"(prod_rel ((rep1 ---> rep1 ---> id) R1) ((rep2 ---> rep2 ---> id) R2)
@@ -118,6 +118,6 @@ lemma prod_fun_id[id_simps]:
 
 lemma prod_rel_eq[id_simps]:
   shows "prod_rel (op =) (op =) = (op =)"
-  by (simp add: expand_fun_eq)
+  by (simp add: ext_iff)
 
 end

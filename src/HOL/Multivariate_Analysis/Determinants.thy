@@ -141,7 +141,7 @@ proof-
       {fix i assume i: "i \<in> ?U"
         from i permutes_inv_o[OF pU] permutes_in_image[OF pU]
         have "((\<lambda>i. ?di (transpose A) i (inv p i)) o p) i = ?di A i (p i)"
-          unfolding transpose_def by (simp add: expand_fun_eq)}
+          unfolding transpose_def by (simp add: ext_iff)}
       then show "setprod ((\<lambda>i. ?di (transpose A) i (inv p i)) o p) ?U = setprod (\<lambda>i. ?di A i (p i)) ?U" by (auto intro: setprod_cong)
     qed
     finally have "of_int (sign (inv p)) * (setprod (\<lambda>i. ?di (transpose A) i (inv p i)) ?U) = of_int (sign p) * (setprod (\<lambda>i. ?di A i (p i)) ?U)" using sth
@@ -207,7 +207,7 @@ proof-
   have id0: "{id} \<subseteq> ?PU" by (auto simp add: permutes_id)
   {fix p assume p: "p \<in> ?PU - {id}"
     then have "p \<noteq> id" by simp
-    then obtain i where i: "p i \<noteq> i" unfolding expand_fun_eq by auto
+    then obtain i where i: "p i \<noteq> i" unfolding ext_iff by auto
     from ld [OF i [symmetric]] have ex:"\<exists>i \<in> ?U. A$i$p i = 0" by blast
     from setprod_zero [OF fU ex] have "?pp p = 0" by simp}
   then have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"  by blast

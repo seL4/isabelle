@@ -18,7 +18,7 @@ definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
 lemma fun_left_comm_idem_remove:
   "fun_left_comm_idem remove"
 proof -
-  have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: expand_fun_eq remove_def)
+  have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: ext_iff remove_def)
   show ?thesis by (simp only: fun_left_comm_idem_remove rem)
 qed
 
@@ -26,7 +26,7 @@ lemma minus_fold_remove:
   assumes "finite A"
   shows "B - A = Finite_Set.fold remove B A"
 proof -
-  have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: expand_fun_eq remove_def)
+  have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: ext_iff remove_def)
   show ?thesis by (simp only: rem assms minus_fold_remove)
 qed
 
@@ -124,6 +124,6 @@ subsection {* Various lemmas *}
 
 lemma not_set_compl:
   "Not \<circ> set xs = - set xs"
-  by (simp add: fun_Compl_def bool_Compl_def comp_def expand_fun_eq)
+  by (simp add: fun_Compl_def bool_Compl_def comp_def ext_iff)
 
 end

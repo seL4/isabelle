@@ -31,7 +31,7 @@ definition max_nat :: "nat => nat => nat"
 
 lemma [code_pred_inline]:
   "max = max_nat"
-by (simp add: expand_fun_eq max_def max_nat_def)
+by (simp add: ext_iff max_def max_nat_def)
 
 definition
   "max_of_my_Suc x = max x (Suc x)"

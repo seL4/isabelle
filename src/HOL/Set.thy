@@ -495,7 +495,7 @@ lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
   apply (rule Collect_mem_eq)
   done
 
-lemma expand_set_eq [no_atp]: "(A = B) = (ALL x. (x:A) = (x:B))"
+lemma set_ext_iff [no_atp]: "(A = B) = (ALL x. (x:A) = (x:B))"
 by(auto intro:set_ext)
 
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"

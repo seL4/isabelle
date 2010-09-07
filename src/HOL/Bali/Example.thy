@@ -792,7 +792,7 @@ qed
 lemma Base_fields_accessible[simp]:
  "accfield tprg S Base 
   = table_of((map (\<lambda>((n,d),f).(n,(d,f)))) (DeclConcepts.fields tprg Base))"
-apply (auto simp add: accfield_def expand_fun_eq Let_def 
+apply (auto simp add: accfield_def ext_iff Let_def 
                       accessible_in_RefT_simp
                       is_public_def
                       BaseCl_def
@@ -837,7 +837,7 @@ by (rule member_of_to_member_in [OF arr_member_of_Ext])
 lemma Ext_fields_accessible[simp]:
 "accfield tprg S Ext 
   = table_of((map (\<lambda>((n,d),f).(n,(d,f)))) (DeclConcepts.fields tprg Ext))"
-apply (auto simp add: accfield_def expand_fun_eq Let_def 
+apply (auto simp add: accfield_def ext_iff Let_def 
                       accessible_in_RefT_simp
                       is_public_def
                       BaseCl_def

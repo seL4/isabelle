@@ -115,7 +115,7 @@ text{*The @{term hypreal_of_hypnat} function as a nonstandard extension of
   @{term real_of_nat} *}
 
 lemma starfunNat_real_of_nat: "( *f* real) = hypreal_of_hypnat"
-by transfer (simp add: expand_fun_eq real_of_nat_def)
+by transfer (simp add: ext_iff real_of_nat_def)
 
 lemma starfun_inverse_real_of_nat_eq:
      "N \<in> HNatInfinite

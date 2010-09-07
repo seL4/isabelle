@@ -1440,12 +1440,12 @@ unfolding continuous_on_def by (intro ballI tendsto_intros)
 lemma interval_cart: fixes a :: "'a::ord^'n" shows
   "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
   "{a .. b} = {x::'a^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
-  by (auto simp add: expand_set_eq vector_less_def vector_le_def)
+  by (auto simp add: set_ext_iff vector_less_def vector_le_def)
 
 lemma mem_interval_cart: fixes a :: "'a::ord^'n" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
-  using interval_cart[of a b] by(auto simp add: expand_set_eq vector_less_def vector_le_def)
+  using interval_cart[of a b] by(auto simp add: set_ext_iff vector_less_def vector_le_def)
 
 lemma interval_eq_empty_cart: fixes a :: "real^'n" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
@@ -1498,7 +1498,7 @@ lemma subset_interval_imp_cart: fixes a :: "real^'n" shows
 
 lemma interval_sing: fixes a :: "'a::linorder^'n" shows
  "{a .. a} = {a} \<and> {a<..<a} = {}"
-apply(auto simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
+apply(auto simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
 apply (simp add: order_eq_iff)
 apply (auto simp add: not_less less_imp_le)
 done
@@ -1511,17 +1511,17 @@ proof(simp add: subset_eq, rule)
   { fix i
     have "a $ i \<le> x $ i"
       using x order_less_imp_le[of "a$i" "x$i"]
-      by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
+      by(simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
   }
   moreover
   { fix i
     have "x $ i \<le> b $ i"
       using x order_less_imp_le[of "x$i" "b$i"]
-      by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
+      by(simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
   }
   ultimately
   show "a \<le> x \<and> x \<le> b"
-    by(simp add: expand_set_eq vector_less_def vector_le_def Cart_eq)
+    by(simp add: set_ext_iff vector_less_def vector_le_def Cart_eq)
 qed
 
 lemma subset_interval_cart: fixes a :: "real^'n" shows
@@ -1540,7 +1540,7 @@ lemma disjoint_interval_cart: fixes a::"real^'n" shows
 
 lemma inter_interval_cart: fixes a :: "'a::linorder^'n" shows
  "{a .. b} \<inter> {c .. d} =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
-  unfolding expand_set_eq and Int_iff and mem_interval_cart
+  unfolding set_ext_iff and Int_iff and mem_interval_cart
   by auto
 
 lemma closed_interval_left_cart: fixes b::"real^'n"
@@ -1656,7 +1656,7 @@ lemma affinity_inverses:
   shows "(\<lambda>x. m *s x + c) o (\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) = id"
   "(\<lambda>x. inverse(m) *s x + (-(inverse(m) *s c))) o (\<lambda>x. m *s x + c) = id"
   using m0
-apply (auto simp add: expand_fun_eq vector_add_ldistrib)
+apply (auto simp add: ext_iff vector_add_ldistrib)
 by (simp_all add: vector_smult_lneg[symmetric] vector_smult_assoc vector_sneg_minus1[symmetric])
 
 lemma vector_affinity_eq:
@@ -2119,10 +2119,10 @@ lemma disjoint_interval_1: fixes a :: "real^1" shows
 
 lemma open_closed_interval_1: fixes a :: "real^1" shows
  "{a<..<b} = {a .. b} - {a, b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
+  unfolding set_ext_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
 
 lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a .. b} = {a<..<b} \<union> {a,b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
+  unfolding set_ext_iff apply simp unfolding vector_less_def and vector_le_def and forall_1 and dest_vec1_eq[THEN sym] by(auto simp del:dest_vec1_eq)
 
 lemma Lim_drop_le: fixes f :: "'a \<Rightarrow> real^1" shows
   "(f ---> l) net \<Longrightarrow> ~(trivial_limit net) \<Longrightarrow> eventually (\<lambda>x. dest_vec1 (f x) \<le> b) net ==> dest_vec1 l \<le> b"

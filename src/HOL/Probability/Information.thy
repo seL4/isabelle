@@ -505,7 +505,7 @@ proof -
     by auto
   also have "\<dots> = log b (\<Sum>x\<in>X`space M. if ?d x \<noteq> 0 then 1 else 0)"
     apply (rule arg_cong[where f="\<lambda>f. log b (\<Sum>x\<in>X`space M. f x)"])
-    using distribution_finite[of X] by (auto simp: expand_fun_eq real_of_pinfreal_eq_0)
+    using distribution_finite[of X] by (auto simp: ext_iff real_of_pinfreal_eq_0)
   finally show ?thesis
     using finite_space by (auto simp: setsum_cases real_eq_of_nat)
 qed
@@ -645,7 +645,7 @@ proof -
   let "?dZ A" = "real (distribution Z A)"
   let ?M = "X ` space M \<times> Y ` space M \<times> Z ` space M"
 
-  have split_beta: "\<And>f. split f = (\<lambda>x. f (fst x) (snd x))" by (simp add: expand_fun_eq)
+  have split_beta: "\<And>f. split f = (\<lambda>x. f (fst x) (snd x))" by (simp add: ext_iff)
 
   have "- (\<Sum>(x, y, z) \<in> ?M. ?dXYZ {(x, y, z)} *
     log b (?dXYZ {(x, y, z)} / (?dXZ {(x, z)} * ?dYZ {(y,z)} / ?dZ {z})))

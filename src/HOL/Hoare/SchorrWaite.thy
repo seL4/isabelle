@@ -239,7 +239,7 @@ proof (vcg)
     from inv have i1: "?I1" and i4: "?I4" and i5: "?I5" and i6: "?I6" by simp+
     from pNull i1 have stackEmpty: "stack = []" by simp
     from tDisj i4 have RisMarked[rule_format]: "\<forall>x.  x \<in> R \<longrightarrow> m x"  by(auto simp: reachable_def addrs_def stackEmpty)
-    from i5 i6 show "(\<forall>x.(x \<in> R) = m x) \<and> r = iR \<and> l = iL"  by(auto simp: stackEmpty expand_fun_eq intro:RisMarked)
+    from i5 i6 show "(\<forall>x.(x \<in> R) = m x) \<and> r = iR \<and> l = iL"  by(auto simp: stackEmpty ext_iff intro:RisMarked)
 
   next   
       fix c m l r t p q root
