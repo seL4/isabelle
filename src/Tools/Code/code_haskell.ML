@@ -261,23 +261,129 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           end;
   in print_stmt end;
 
+type flat_program = ((string * Code_Thingol.stmt) Graph.T * ((string * (string list * string list)) list)) Graph.T;
+
+fun flat_program labelled_name { module_alias, module_prefix, reserved,
+      empty_nsp, namify_stmt, modify_stmt } program =
+  let
+
+    (* building module name hierarchy *)
+    val fragments_tab = Code_Namespace.build_module_namespace { module_alias = module_alias,
+      module_prefix = module_prefix, reserved = reserved } program;
+    val dest_name = Code_Namespace.dest_name
+      #>> (Long_Name.implode o the o Symtab.lookup fragments_tab);
+
+    (* distribute statements over hierarchy *)
+    fun add_stmt name stmt =
+      let
+        val (module_name, base) = dest_name name;
+      in case modify_stmt stmt
+       of SOME stmt' => 
+            Graph.default_node (module_name, (Graph.empty, []))
+            #> (Graph.map_node module_name o apfst) (Graph.new_node (name, (base, stmt')))
+        | NONE => I
+      end;
+    fun add_dependency name name' =
+      let
+        val (module_name, base) = dest_name name;
+        val (module_name', base') = dest_name name';
+      in if module_name = module_name'
+        then (Graph.map_node module_name o apfst) (Graph.add_edge (name, name'))
+        else (Graph.map_node module_name o apsnd)
+          (AList.map_default (op =) (module_name', []) (insert (op =) name'))
+      end;
+    val proto_program = Graph.empty
+      |> Graph.fold (fn (name, (stmt, _)) => add_stmt name stmt) program
+      |> Graph.fold (fn (name, (_, (_, names))) => fold (add_dependency name) names) program;
+
+    (* name declarations *)
+    fun declare name (base, stmt) (gr, nsp) = 
+      let
+        val (base', nsp') = namify_stmt stmt base nsp;
+        val gr' = (Graph.map_node name o apfst) (K base') gr;
+      in (gr', nsp') end;
+    fun declarations gr = (gr, empty_nsp)
+      |> fold (fn name => declare name (Graph.get_node gr name)) (Graph.keys gr) 
+      |> fst;
+    val intermediate_program = proto_program
+      |> Graph.map ((K o apfst) declarations);
+
+    (* qualified and unqualified imports, deresolving *)
+    fun base_deresolver name = fst (Graph.get_node
+      (fst (Graph.get_node intermediate_program (fst (dest_name name)))) name);
+    fun classify_imports gr imports =
+      let
+        val import_tab = maps
+          (fn (module_name, names) => map (rpair module_name) names) imports;
+        val imported_names = map fst import_tab;
+        val here_names = Graph.keys gr;
+        val qualified_names = []
+          |> fold (fn name => AList.map_default (op =) (base_deresolver name, [])
+               (insert (op =) name)) (here_names @ imported_names)
+          |> filter (fn (_, names) => length names > 1)
+          |> maps snd;
+        val name_tab = Symtab.empty
+          |> fold (fn name => Symtab.update (name, base_deresolver name)) here_names
+          |> fold (fn name => Symtab.update (name,
+               if member (op =) qualified_names name
+               then Long_Name.append (the (AList.lookup (op =) import_tab name))
+                 (base_deresolver name)
+               else base_deresolver name)) imported_names;
+        val imports' = (map o apsnd) (List.partition (member (op =) qualified_names))
+          imports;
+      in (name_tab, imports') end;
+    val classified = AList.make (uncurry classify_imports o Graph.get_node intermediate_program)
+      (Graph.keys intermediate_program);
+    val flat_program = Graph.map (apsnd o K o snd o the o AList.lookup (op =) classified)
+      intermediate_program;
+    val deresolver_tab = Symtab.empty
+      |> fold (fn (module_name, (name_tab, _)) => Symtab.update (module_name, name_tab)) classified;
+    fun deresolver module_name name =
+      the (Symtab.lookup (the (Symtab.lookup deresolver_tab module_name)) name)
+      handle Option => error ("Unknown statement name: " ^ labelled_name name);
+
+  in (deresolver, flat_program) end;
+
+fun haskell_program_of_program labelled_name module_alias module_prefix reserved =
+  let
+    fun namify_fun upper base (nsp_fun, nsp_typ) =
+      let
+        val (base', nsp_fun') = yield_singleton Name.variants
+          (if upper then first_upper base else base) nsp_fun;
+      in (base', (nsp_fun', nsp_typ)) end;
+    fun namify_typ base (nsp_fun, nsp_typ) =
+      let
+        val (base', nsp_typ') = yield_singleton Name.variants
+          (first_upper base) nsp_typ
+      in (base', (nsp_fun, nsp_typ')) end;
+    fun namify_stmt (Code_Thingol.Fun (_, (_, SOME _))) = pair
+      | namify_stmt (Code_Thingol.Fun _) = namify_fun false
+      | namify_stmt (Code_Thingol.Datatype _) = namify_typ
+      | namify_stmt (Code_Thingol.Datatypecons _) = namify_fun true
+      | namify_stmt (Code_Thingol.Class _) = namify_typ
+      | namify_stmt (Code_Thingol.Classrel _) = pair
+      | namify_stmt (Code_Thingol.Classparam _) = namify_fun false
+      | namify_stmt (Code_Thingol.Classinst _) = pair;
+    fun select_stmt (Code_Thingol.Fun (_, (_, SOME _))) = false
+      | select_stmt (Code_Thingol.Fun _) = true
+      | select_stmt (Code_Thingol.Datatype _) = true
+      | select_stmt (Code_Thingol.Datatypecons _) = false
+      | select_stmt (Code_Thingol.Class _) = true
+      | select_stmt (Code_Thingol.Classrel _) = false
+      | select_stmt (Code_Thingol.Classparam _) = false
+      | select_stmt (Code_Thingol.Classinst _) = true;
+  in
+    flat_program labelled_name
+      { module_alias = module_alias, module_prefix = module_prefix,
+        reserved = reserved, empty_nsp = (reserved, reserved), namify_stmt = namify_stmt,
+        modify_stmt = fn stmt => if select_stmt stmt then SOME stmt else NONE }
+  end;
+
 fun mk_name_module reserved module_prefix module_alias program =
   let
-    fun mk_alias name = case module_alias name
-     of SOME name' => name'
-      | NONE => name
-          |> Long_Name.explode
-          |> map (fn name => (the_single o fst) (Name.variants [name] reserved))
-          |> Long_Name.implode;
-    fun mk_prefix name = case module_prefix
-     of SOME module_prefix => Long_Name.append module_prefix name
-      | NONE => name;
-    val tab =
-      Symtab.empty
-      |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
-           o fst o Code_Namespace.dest_name o fst)
-             program
-  in the o Symtab.lookup tab end;
+    val fragments_tab = Code_Namespace.build_module_namespace { module_alias = module_alias,
+      module_prefix = module_prefix, reserved = reserved } program;
+  in Long_Name.implode o the o Symtab.lookup fragments_tab end;
 
 fun haskell_program_of_program labelled_name module_prefix reserved module_alias program =
   let
