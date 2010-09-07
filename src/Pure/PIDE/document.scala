@@ -169,11 +169,11 @@ object Document
     def lookup_command(id: Command_ID): Option[Command]
     def state(command: Command): Command.State
     def convert(i: Text.Offset): Text.Offset
-    def convert(range: Text.Range): Text.Range = range.map(convert(_))
+    def convert(range: Text.Range): Text.Range
     def revert(i: Text.Offset): Text.Offset
-    def revert(range: Text.Range): Text.Range = range.map(revert(_))
-    def select_markup[A](range: Text.Range)
-      (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]]
+    def revert(range: Text.Range): Text.Range
+    def select_markup[A](range: Text.Range)(result: PartialFunction[Text.Info[Any], A])
+      : Stream[Text.Info[Option[A]]]
   }
 
   object State
@@ -304,18 +304,24 @@ object Document
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
 
-        def select_markup[A](range: Text.Range)
-          (result: PartialFunction[Text.Info[Any], A])(default: A): Iterator[Text.Info[A]] =
+        def convert(range: Text.Range): Text.Range =
+          if (edits.isEmpty) range else range.map(convert(_))
+
+        def revert(range: Text.Range): Text.Range =
+          if (edits.isEmpty) range else range.map(revert(_))
+
+        def select_markup[A](range: Text.Range)(result: PartialFunction[Text.Info[Any], A])
+          : Stream[Text.Info[Option[A]]] =
         {
           val former_range = revert(range)
           for {
-            (command, command_start) <- node.command_range(former_range)
+            (command, command_start) <- node.command_range(former_range).toStream
             Text.Info(r0, x) <- state(command).markup.
               select((former_range - command_start).restrict(command.range)) {
                 case Text.Info(r0, info)
                 if result.isDefinedAt(Text.Info(convert(r0 + command_start), info)) =>
                   result(Text.Info(convert(r0 + command_start), info))
-              } { default }
+              }
             val r = convert(r0 + command_start)
             if !r.is_singularity
           } yield Text.Info(r, x)

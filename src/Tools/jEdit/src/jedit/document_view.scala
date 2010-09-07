@@ -222,14 +222,16 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   private def subexp_range(snapshot: Document.Snapshot, x: Int, y: Int): Option[Text.Range] =
   {
-    val subexp_markup: PartialFunction[Text.Info[Any], Option[Text.Range]] =
+    val subexp_markup: PartialFunction[Text.Info[Any], Text.Range] =
     {
       case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-        Some(snapshot.convert(range))
+        snapshot.convert(range)
     }
     val offset = text_area.xyToOffset(x, y)
-    val markup = snapshot.select_markup(Text.Range(offset, offset + 1))(subexp_markup)(None)
-    if (markup.hasNext) markup.next.info else None
+    snapshot.select_markup(Text.Range(offset, offset + 1))(subexp_markup) match {
+      case Text.Info(_, r) #:: _ => r
+      case _ => None
+    }
   }
 
   private var highlight_range: Option[Text.Range] = None
@@ -285,9 +287,8 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
               // background color: markup
               for {
-                Text.Info(range, color) <-
-                  snapshot.select_markup(line_range)(Document_View.background_markup)(null)
-                if color != null
+                Text.Info(range, Some(color)) <-
+                  snapshot.select_markup(line_range)(Document_View.background_markup).iterator
                 r <- Isabelle.gfx_range(text_area, range)
               } {
                 gfx.setColor(color)
@@ -308,9 +309,8 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
               // boxed text
               for {
-                Text.Info(range, color) <-
-                  snapshot.select_markup(line_range)(Document_View.box_markup)(null)
-                if color != null
+                Text.Info(range, Some(color)) <-
+                  snapshot.select_markup(line_range)(Document_View.box_markup).iterator
                 r <- Isabelle.gfx_range(text_area, range)
               } {
                 gfx.setColor(color)
@@ -319,8 +319,8 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
               // squiggly underline
               for {
-                Text.Info(range, color) <-
-                  snapshot.select_markup(line_range)(Document_View.message_markup)(null)
+                Text.Info(range, Some(color)) <-
+                  snapshot.select_markup(line_range)(Document_View.message_markup).iterator
                 if color != null
                 r <- Isabelle.gfx_range(text_area, range)
               } {
@@ -344,14 +344,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
         val offset = text_area.xyToOffset(x, y)
-        val markup =
-          snapshot.select_markup(Text.Range(offset, offset + 1))(Document_View.tooltip_markup)(null)
-        if (markup.hasNext) {
-          val text = markup.next.info
-          if (text == null) null
-          else Isabelle.tooltip(text)
+        snapshot.select_markup(Text.Range(offset, offset + 1))(Document_View.tooltip_markup) match {
+          case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
+          case _ => null
         }
-        else null
       }
     }
   }

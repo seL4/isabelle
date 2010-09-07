@@ -284,11 +284,12 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
         }
 
         var last = start
-        for (token <- snapshot.select_markup(Text.Range(start, stop))(token_markup)(Token.NULL)) {
+        for (token <- snapshot.select_markup(Text.Range(start, stop))(token_markup).iterator) {
           val Text.Range(token_start, token_stop) = token.range
           if (last < token_start)
             handle_token(Token.COMMENT1, last - start, token_start - last)
-          handle_token(token.info, token_start - start, token_stop - token_start)
+          handle_token(token.info getOrElse Token.NULL,
+            token_start - start, token_stop - token_start)
           last = token_stop
         }
         if (last < stop)
