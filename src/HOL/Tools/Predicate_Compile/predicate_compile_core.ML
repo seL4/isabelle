@@ -379,7 +379,6 @@ fun print_all_modes compilation ctxt =
   end
 
 (* validity checks *)
-(* EXPECTED MODE and PROPOSED_MODE are largely the same; define a clear semantics for those! *)
 
 fun check_expected_modes preds options modes =
   case expected_modes options of
@@ -397,12 +396,12 @@ fun check_expected_modes preds options modes =
       | NONE => ())
   | NONE => ()
 
-fun check_proposed_modes preds options modes extra_modes errors =
+fun check_proposed_modes preds options modes errors =
   case proposed_modes options of
     SOME (s, ms) => (case AList.lookup (op =) modes s of
       SOME inferred_ms =>
         let
-          val preds_without_modes = map fst (filter (null o snd) (modes @ extra_modes))
+          val preds_without_modes = map fst (filter (null o snd) modes)
           val modes' = map snd inferred_ms
         in
           if not (eq_set eq_mode (ms, modes')) then
@@ -2695,12 +2694,16 @@ fun prepare_intrs options compilation thy prednames intros =
     val ([preds, intrs], _) = fold_burrow (Variable.import_terms false) [preds, intrs] ctxt
     val preds = map dest_Const preds
     val all_vs = terms_vs intrs
+    fun generate_modes s T =
+      if member (op =) (no_higher_order_predicate options) s then
+        all_smodes_of_typ T
+      else
+        all_modes_of_typ T
     val all_modes = 
       map (fn (s, T) =>
-        (s,
-            (if member (op =) (no_higher_order_predicate options) s then
-               (all_smodes_of_typ T)
-            else (all_modes_of_typ T)))) preds
+        (s, case (proposed_modes options) of
+            SOME (s', ms) => if s = s' then ms else generate_modes s T
+          | NONE => generate_modes s T)) preds
     val params =
       case intrs of
         [] =>
@@ -2848,7 +2851,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
         options compilation preds all_modes param_vs clauses thy)
     val modes = map (fn (p, mps) => (p, map fst mps)) moded_clauses
     val _ = check_expected_modes preds options modes
-    (*val _ = check_proposed_modes preds options modes (fst extra_modes) errors*)
+    val _ = check_proposed_modes preds options modes errors
     val _ = print_modes options modes
     val _ = print_step options "Defining executable functions..."
     val thy'' =
