@@ -2306,9 +2306,10 @@ fun prove_match options ctxt out_ts =
       if (is_constructor thy t) then let
         val case_rewrites = (#case_rewrites (Datatype.the_info thy
           ((fst o dest_Type o fastype_of) t)))
-        in case_rewrites @ maps get_case_rewrite (snd (strip_comb t)) end
+        in fold (union Thm.eq_thm) (case_rewrites :: map get_case_rewrite (snd (strip_comb t))) [] end
       else []
-    val simprules = @{thm "unit.cases"} :: @{thm "prod.cases"} :: maps get_case_rewrite out_ts
+    val simprules = insert Thm.eq_thm @{thm "unit.cases"} (insert Thm.eq_thm @{thm "prod.cases"}
+      (fold (union Thm.eq_thm) (map get_case_rewrite out_ts) []))
   (* replace TRY by determining if it necessary - are there equations when calling compile match? *)
   in
      (* make this simpset better! *)
