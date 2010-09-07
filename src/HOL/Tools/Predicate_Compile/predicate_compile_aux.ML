@@ -222,10 +222,11 @@ fun all_modes_of_typ (T as Type ("fun", _)) =
         fold_rev (fn m1 => fn m2 => map_product (curry Fun) m1 m2)
           (map all_modes_of_typ' S) [Bool]
       else
-        [Input, Output]
+        raise Fail "Invocation of all_modes_of_typ with a non-predicate type"
     end
   | all_modes_of_typ @{typ bool} = [Bool]
-  | all_modes_of_typ T = all_modes_of_typ' T
+  | all_modes_of_typ T =
+    raise Fail "Invocation of all_modes_of_typ with a non-predicate type"
 
 fun all_smodes_of_typ (T as Type ("fun", _)) =
   let
