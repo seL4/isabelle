@@ -230,7 +230,7 @@ lemma subfset_subfset_eq [code]:
 instantiation fset :: (type) equal
 begin
 
-definition
+definition [code]:
   "HOL.equal A B \<longleftrightarrow> A \<le> B \<and> B \<le> (A :: 'a fset)"
 
 instance proof
