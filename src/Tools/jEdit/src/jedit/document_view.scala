@@ -245,7 +245,6 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               for {
                 Text.Info(range, Some(color)) <-
                   snapshot.select_markup(line_range)(Isabelle_Markup.message).iterator
-                if color != null
                 r <- Isabelle.gfx_range(text_area, range)
               } {
                 gfx.setColor(color)
@@ -299,20 +298,17 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               val line_range = proper_line_range(start(i), end(i))
 
               // gutter icons
-              val cmds = snapshot.node.command_range(snapshot.revert(line_range))
-              val states = cmds.map(p => snapshot.state(p._1)).toStream
-              val opt_icon =
-                if (states.exists(_.results.exists(p => Isar_Document.is_error(p._2))))
-                  Some(Isabelle_Markup.error_icon)
-                else if (states.exists(_.results.exists(p => Isar_Document.is_warning(p._2))))
-                  Some(Isabelle_Markup.warning_icon)
-                else None
-              opt_icon match {
-                case Some(icon) if icon.getIconWidth > 0 && icon.getIconHeight > 0 =>
-                  val x0 = (FOLD_MARKER_SIZE + width - border_width - icon.getIconWidth) max 10
-                  val y0 = y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)
-                  icon.paintIcon(gutter, gfx, x0, y0)
-                case _ =>
+              val icons =
+                (for (Text.Info(_, Some(icon)) <-
+                  snapshot.select_markup(line_range)(Isabelle_Markup.gutter_message).iterator)
+                yield icon).toList.sortWith(_ >= _)
+              icons match {
+                case icon :: _ =>
+                  val icn = icon.icon
+                  val x0 = (FOLD_MARKER_SIZE + width - border_width - icn.getIconWidth) max 10
+                  val y0 = y + i * line_height + (((line_height - icn.getIconHeight) / 2) max 0)
+                  icn.paintIcon(gutter, gfx, x0, y0)
+                case Nil =>
               }
             }
           }

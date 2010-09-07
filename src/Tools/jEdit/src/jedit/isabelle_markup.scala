@@ -27,8 +27,12 @@ object Isabelle_Markup
   val error_color = new Color(255, 80, 80)
   val bad_color = new Color(255, 204, 153, 100)
 
-  val warning_icon = GUIUtilities.loadIcon("16x16/status/dialog-warning.png")
-  val error_icon = GUIUtilities.loadIcon("16x16/status/dialog-error.png")
+  class Icon(val priority: Int, val icon: javax.swing.Icon)
+  {
+    def >= (that: Icon): Boolean = this.priority >= that.priority
+  }
+  val warning_icon = new Icon(1, GUIUtilities.loadIcon("16x16/status/dialog-warning.png"))
+  val error_icon = new Icon(2, GUIUtilities.loadIcon("16x16/status/dialog-error.png"))
 
 
   /* command status */
@@ -75,6 +79,12 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => regular_color
     case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_color
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
+  }
+
+  val gutter_message: Markup_Tree.Select[Icon] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_icon
+    case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_icon
   }
 
   val background: Markup_Tree.Select[Color] =
