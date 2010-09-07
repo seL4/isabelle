@@ -207,4 +207,32 @@ text {* There are probably lots of other list operations that also
 deserve to have continuity lemmas.  I'll add more as they are
 needed. *}
 
+subsection {* Using lists with fixrec *}
+
+definition
+  match_Nil :: "'a::cpo list \<rightarrow> 'b match \<rightarrow> 'b match"
+where
+  "match_Nil = (\<Lambda> xs k. case xs of [] \<Rightarrow> k | y # ys \<Rightarrow> Fixrec.fail)"
+
+definition
+  match_Cons :: "'a::cpo list \<rightarrow> ('a \<rightarrow> 'a list \<rightarrow> 'b match) \<rightarrow> 'b match"
+where
+  "match_Cons = (\<Lambda> xs k. case xs of [] \<Rightarrow> Fixrec.fail | y # ys \<Rightarrow> k\<cdot>y\<cdot>ys)"
+
+lemma match_Nil_simps [simp]:
+  "match_Nil\<cdot>[]\<cdot>k = k"
+  "match_Nil\<cdot>(x # xs)\<cdot>k = Fixrec.fail"
+unfolding match_Nil_def by simp_all
+
+lemma match_Cons_simps [simp]:
+  "match_Cons\<cdot>[]\<cdot>k = Fixrec.fail"
+  "match_Cons\<cdot>(x # xs)\<cdot>k = k\<cdot>x\<cdot>xs"
+unfolding match_Cons_def by simp_all
+
+setup {*
+  Fixrec.add_matchers
+    [ (@{const_name Nil}, @{const_name match_Nil}),
+      (@{const_name Cons}, @{const_name match_Cons}) ]
+*}
+
 end
