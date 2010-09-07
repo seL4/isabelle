@@ -1123,9 +1123,13 @@ fun all_input_of T =
       raise Fail "all_input_of: not a predicate"
   end
 
-fun partial_hd [] = NONE
-  | partial_hd (x :: xs) = SOME x
-
+fun find_least ord xs =
+  let
+    fun find' x y = (case y of NONE => SOME x | SOME y' => if ord (x, y') = LESS then SOME x else y) 
+  in
+    fold find' xs NONE
+  end
+  
 fun term_vs tm = fold_aterms (fn Free (x, T) => cons x | _ => I) tm [];
 val terms_vs = distinct (op =) o maps term_vs;
 
@@ -1362,17 +1366,16 @@ fun print_mode_list modes =
 fun select_mode_prem (mode_analysis_options : mode_analysis_options) (ctxt : Proof.context) pred
   pol (modes, (pos_modes, neg_modes)) vs ps =
   let
-    fun choose_mode_of_prem (Prem t) = partial_hd
-        (sort (deriv_ord ctxt pol pred modes t) (all_derivations_of ctxt pos_modes vs t))
+    fun choose_mode_of_prem (Prem t) =
+          find_least (deriv_ord ctxt pol pred modes t) (all_derivations_of ctxt pos_modes vs t)
       | choose_mode_of_prem (Sidecond t) = SOME (Context Bool, missing_vars vs t)
-      | choose_mode_of_prem (Negprem t) = partial_hd
-          (sort (deriv_ord ctxt (not pol) pred modes t)
+      | choose_mode_of_prem (Negprem t) = find_least (deriv_ord ctxt (not pol) pred modes t)
           (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
-             (all_derivations_of ctxt neg_modes vs t)))
+             (all_derivations_of ctxt neg_modes vs t))
       | choose_mode_of_prem p = raise Fail ("choose_mode_of_prem: " ^ string_of_prem ctxt p)
   in
     if #reorder_premises mode_analysis_options then
-      partial_hd (sort (premise_ord ctxt pol pred modes) (ps ~~ map choose_mode_of_prem ps))
+      find_least (premise_ord ctxt pol pred modes) (ps ~~ map choose_mode_of_prem ps)
     else
       SOME (hd ps, choose_mode_of_prem (hd ps))
   end

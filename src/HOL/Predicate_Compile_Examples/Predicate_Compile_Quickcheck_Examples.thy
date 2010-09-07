@@ -187,7 +187,7 @@ values [random_dseq 1, 2, 3] 10 "{(c, s, s'). exec c s s'}"
 
 lemma
   "exec c s s' ==> exec (Seq c c) s s'"
-(*quickcheck[generator = predicate_compile_wo_ff, size=2, iterations=10]*)
+  quickcheck[generator = predicate_compile_wo_ff, size=2, iterations=20, expect = counterexample]
 oops
 
 subsection {* Lambda *}
