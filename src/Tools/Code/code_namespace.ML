@@ -7,6 +7,9 @@ Mastering target language namespaces.
 signature CODE_NAMESPACE =
 sig
   val dest_name: string -> string * string
+  val build_module_namespace: { module_alias: string -> string option,
+    module_prefix: string option, reserved: Name.context } -> Code_Thingol.program
+    -> string list Symtab.table
   datatype ('a, 'b) node =
       Dummy
     | Stmt of 'a
@@ -29,10 +32,22 @@ end;
 structure Code_Namespace : CODE_NAMESPACE =
 struct
 
-(** splitting names in module and base part **)
+(** building module name hierarchy **)
 
 val dest_name =
   apfst Long_Name.implode o split_last o fst o split_last o Long_Name.explode;
+
+fun build_module_namespace { module_alias, module_prefix, reserved } program =
+  let
+    fun alias_fragments name = case module_alias name
+     of SOME name' => Long_Name.explode name'
+      | NONE => map (fn name => fst (yield_singleton Name.variants name reserved))
+          (Long_Name.explode name);
+    val module_names = Graph.fold (insert (op =) o fst o dest_name o fst) program [];
+  in
+    fold (fn name => Symtab.update (name, alias_fragments name))
+      module_names Symtab.empty
+  end;
 
 
 (** hierarchical program structure **)
@@ -56,13 +71,8 @@ fun hierarchical_program labelled_name { module_alias, reserved, empty_nsp,
   let
 
     (* building module name hierarchy *)
-    fun alias_fragments name = case module_alias name
-     of SOME name' => Long_Name.explode name'
-      | NONE => map (fn name => fst (yield_singleton Name.variants name reserved))
-          (Long_Name.explode name);
-    val module_names = Graph.fold (insert (op =) o fst o dest_name o fst) program [];
-    val fragments_tab = fold (fn name => Symtab.update
-      (name, alias_fragments name)) module_names Symtab.empty;
+    val fragments_tab = build_module_namespace { module_alias = module_alias,
+      module_prefix = NONE, reserved = reserved } program;
     val dest_name = dest_name #>> (the o Symtab.lookup fragments_tab);
 
     (* building empty module hierarchy *)
