@@ -286,10 +286,9 @@ class Plugin extends EBPlugin
     Isabelle.setup_tooltips()
   }
 
-  override def stop()
+  override def stop()  // FIXME fragile
   {
     Isabelle.session.stop()  // FIXME dialog!?
     Isabelle.session = null
-    Isabelle.system = null
   }
 }
