@@ -67,20 +67,21 @@ object Isar_Document
       case _ => false
     }
 
-  def reported_positions(command_id: Document.Command_ID, message: XML.Elem): Set[Text.Range] =
+  def reported_positions(command: Command, message: XML.Elem): Set[Text.Range] =
   {
     def reported(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
-        case XML.Elem(Markup(name, Position.Id_Range(id, range)), body)
-        if include_pos(name) && id == command_id =>
-          body.foldLeft(set + range)(reported)
+        case XML.Elem(Markup(name, Position.Id_Range(id, raw_range)), body)
+        if include_pos(name) && id == command.id =>
+          val range = command.decode(raw_range).restrict(command.range)
+          body.foldLeft(if (range.is_singularity) set else set + range)(reported)
         case XML.Elem(Markup(name, _), body) if !exclude_pos(name) =>
           body.foldLeft(set)(reported)
         case _ => set
       }
     val set = reported(Set.empty, message)
     if (set.isEmpty && !is_state(message))
-      set ++ Position.Range.unapply(message.markup.properties)
+      set ++ Position.Range.unapply(message.markup.properties).map(command.decode(_))
     else set
   }
 }
