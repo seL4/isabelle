@@ -164,8 +164,8 @@ fun mode_of (Context m) = m
   | mode_of (Term m) = m
   | mode_of (Mode_App (d1, d2)) =
     (case mode_of d1 of Fun (m, m') =>
-        (if eq_mode (m, mode_of d2) then m' else raise Fail "mode_of")
-      | _ => raise Fail "mode_of2")
+        (if eq_mode (m, mode_of d2) then m' else raise Fail "mode_of: derivation has mismatching modes")
+      | _ => raise Fail "mode_of: derivation has a non-functional mode")
   | mode_of (Mode_Pair (d1, d2)) =
     Pair (mode_of d1, mode_of d2)
 
@@ -1272,11 +1272,11 @@ and all_derivations_of ctxt modes vs (Const (@{const_name Pair}, _) $ t1 $ t2) =
       case mode_of d1 of
         Fun (m', _) => map (fn (d2, mvars2) =>
           (Mode_App (d1, d2), union (op =) mvars1 mvars2)) (derivations_of ctxt modes vs t2 m')
-        | _ => raise Fail "Something went wrong") derivs1
+        | _ => raise Fail "all_derivations_of: derivation has an unexpected non-functional mode") derivs1
   end
   | all_derivations_of _ modes vs (Const (s, T)) = the (lookup_mode modes (Const (s, T)))
   | all_derivations_of _ modes vs (Free (x, T)) = the (lookup_mode modes (Free (x, T)))
-  | all_derivations_of _ modes vs _ = raise Fail "all_derivations_of"
+  | all_derivations_of _ modes vs _ = raise Fail "all_derivations_of: unexpected term"
 
 fun rev_option_ord ord (NONE, NONE) = EQUAL
   | rev_option_ord ord (NONE, SOME _) = GREATER
@@ -1372,7 +1372,7 @@ fun select_mode_prem (mode_analysis_options : mode_analysis_options) (ctxt : Pro
       | choose_mode_of_prem (Negprem t) = find_least (deriv_ord ctxt (not pol) pred modes t)
           (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
              (all_derivations_of ctxt neg_modes vs t))
-      | choose_mode_of_prem p = raise Fail ("choose_mode_of_prem: " ^ string_of_prem ctxt p)
+      | choose_mode_of_prem p = raise Fail ("choose_mode_of_prem: unexpected premise " ^ string_of_prem ctxt p)
   in
     if #reorder_premises mode_analysis_options then
       find_least (premise_ord ctxt pol pred modes) (ps ~~ map choose_mode_of_prem ps)
@@ -1401,7 +1401,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) ctxt pred
         Prem t => union (op =) vs (term_vs t)
       | Sidecond t => union (op =) vs (term_vs t)
       | Negprem t => union (op =) vs (term_vs t)
-      | _ => raise Fail "I do not know")
+      | _ => raise Fail "unexpected premise")
     fun check_mode_prems acc_ps rnd vs [] = SOME (acc_ps, vs, rnd)
       | check_mode_prems acc_ps rnd vs ps =
         (case
