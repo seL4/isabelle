@@ -33,7 +33,7 @@ text {*
     ;
     ( 'prf' | 'full\_prf' ) modes? thmrefs?
     ;
-    'pr' modes? nat? (',' nat)?
+    'pr' modes? nat?
     ;
 
     modes: '(' (name + ) ')'
@@ -69,11 +69,11 @@ text {*
   compact proof term, which is denoted by ``@{text _}'' placeholders
   there.
 
-  \item @{command "pr"}~@{text "goals, prems"} prints the current
-  proof state (if present), including the proof context, current facts
-  and goals.  The optional limit arguments affect the number of goals
-  and premises to be displayed, which is initially 10 for both.
-  Omitting limit values leaves the current setting unchanged.
+  \item @{command "pr"}~@{text "goals"} prints the current proof state
+  (if present), including current facts and goals.  The optional limit
+  arguments affect the number of goals to be displayed, which is
+  initially 10.  Omitting limit value leaves the current setting
+  unchanged.
 
   \end{description}
 

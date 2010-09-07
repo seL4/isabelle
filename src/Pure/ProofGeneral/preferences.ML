@@ -137,9 +137,6 @@ val advanced_display_preferences =
  [nat_pref Goal_Display.goals_limit_default
     "goals-limit"
     "Setting for maximum number of goals printed",
-  int_pref ProofContext.prems_limit
-    "prems-limit"
-    "Setting for maximum number of premises printed",
   print_depth_pref,
   bool_pref show_question_marks_default
     "show-question-marks"

@@ -238,9 +238,9 @@ local
 
   fun mk_thm_str thy a b = "~ " ^ (saturate thy a "a") ^ " = " ^ (saturate thy b "b")
 
-  val lemma = thm "lem";
-  val eq_lemma = thm "eq_lemma";
-  val distinctness = thm "distinctness";
+  val lemma = @{thm lem};
+  val eq_lemma = @{thm eq_lemma};
+  val distinctness = @{thm distinctness};
   fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL
                            [distinctness RS notE, @{thm sym} RS (distinctness RS notE)]
 in

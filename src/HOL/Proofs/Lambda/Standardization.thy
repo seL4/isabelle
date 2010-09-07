@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/Standardization.thy
+(*  Title:      HOL/Proofs/Lambda/Standardization.thy
     Author:     Stefan Berghofer
     Copyright   2005 TU Muenchen
 *)

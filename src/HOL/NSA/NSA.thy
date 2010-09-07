@@ -663,9 +663,9 @@ local
  ***)
 
 (*reorientation simprules using ==, for the following simproc*)
-val meta_zero_approx_reorient = thm "zero_approx_reorient" RS eq_reflection;
-val meta_one_approx_reorient = thm "one_approx_reorient" RS eq_reflection;
-val meta_number_of_approx_reorient = thm "number_of_approx_reorient" RS eq_reflection
+val meta_zero_approx_reorient = @{thm zero_approx_reorient} RS eq_reflection;
+val meta_one_approx_reorient = @{thm one_approx_reorient} RS eq_reflection;
+val meta_number_of_approx_reorient = @{thm number_of_approx_reorient} RS eq_reflection
 
 (*reorientation simplification procedure: reorients (polymorphic)
   0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a numeral.*)

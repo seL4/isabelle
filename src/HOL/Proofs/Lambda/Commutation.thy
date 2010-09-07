@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/Commutation.thy
+(*  Title:      HOL/Proofs/Lambda/Commutation.thy
     Author:     Tobias Nipkow
     Copyright   1995  TU Muenchen
 *)
@@ -130,9 +130,9 @@ lemma Church_Rosser_confluent: "Church_Rosser R = confluent R"
   apply (tactic {* safe_tac HOL_cs *})
    apply (tactic {*
      blast_tac (HOL_cs addIs
-       [thm "sup_ge2" RS thm "rtranclp_mono" RS thm "predicate2D" RS thm "rtranclp_trans",
-        thm "rtranclp_converseI", thm "conversepI",
-        thm "sup_ge1" RS thm "rtranclp_mono" RS thm "predicate2D"]) 1 *})
+       [@{thm sup_ge2} RS @{thm rtranclp_mono} RS @{thm predicate2D} RS @{thm rtranclp_trans},
+        @{thm rtranclp_converseI}, @{thm conversepI},
+        @{thm sup_ge1} RS @{thm rtranclp_mono} RS @{thm predicate2D}]) 1 *})
   apply (erule rtranclp_induct)
    apply blast
   apply (blast del: rtranclp.rtrancl_refl intro: rtranclp_trans)

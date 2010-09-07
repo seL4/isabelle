@@ -126,24 +126,16 @@ context5:     "$F, $G :=: $H ==> $G, $F :=: $H"
 
 
 ML {*
-
 val lazy_cs = empty_pack
-  add_safes [thm "tensl", thm "conjr", thm "disjl", thm "promote0",
-    thm "context2", thm "context3"]
-  add_unsafes [thm "identity", thm "zerol", thm "conjll", thm "conjlr",
-    thm "disjrl", thm "disjrr", thm "impr", thm "tensr", thm "impl",
-    thm "derelict", thm "weaken", thm "promote1", thm "promote2",
-    thm "context1", thm "context4a", thm "context4b"];
+  add_safes [@{thm tensl}, @{thm conjr}, @{thm disjl}, @{thm promote0},
+    @{thm context2}, @{thm context3}]
+  add_unsafes [@{thm identity}, @{thm zerol}, @{thm conjll}, @{thm conjlr},
+    @{thm disjrl}, @{thm disjrr}, @{thm impr}, @{thm tensr}, @{thm impl},
+    @{thm derelict}, @{thm weaken}, @{thm promote1}, @{thm promote2},
+    @{thm context1}, @{thm context4a}, @{thm context4b}];
 
-local
-  val promote0 = thm "promote0"
-  val promote1 = thm "promote1"
-  val promote2 = thm "promote2"
-in
-
-fun prom_tac n = REPEAT (resolve_tac [promote0,promote1,promote2] n)
-
-end
+fun prom_tac n =
+  REPEAT (resolve_tac [@{thm promote0}, @{thm promote1}, @{thm promote2}] n)
 *}
 
 method_setup best_lazy =
@@ -272,13 +264,12 @@ lemma a_not_a_rule: "$J1, !A -o 0, $J2 |- B ==> $J1, !A -o (!A -o 0), $J2 |- B"
   done
 
 ML {*
+val safe_cs = lazy_cs add_safes [@{thm conj_lemma}, @{thm ll_mp}, @{thm contrad1},
+                                 @{thm contrad2}, @{thm mp_rule1}, @{thm mp_rule2}, @{thm o_a_rule},
+                                 @{thm a_not_a_rule}]
+                      add_unsafes [@{thm aux_impl}];
 
-val safe_cs = lazy_cs add_safes [thm "conj_lemma", thm "ll_mp", thm "contrad1",
-                                 thm "contrad2", thm "mp_rule1", thm "mp_rule2", thm "o_a_rule",
-                                 thm "a_not_a_rule"]
-                      add_unsafes [thm "aux_impl"];
-
-val power_cs = safe_cs add_unsafes [thm "impr_contr_der"];
+val power_cs = safe_cs add_unsafes [@{thm impr_contr_der}];
 *}
 
 

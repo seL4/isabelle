@@ -1,4 +1,4 @@
-(*  Title:      HOL/Extraction/Warshall.thy
+(*  Title:      HOL/Proofs/Extraction/Warshall.thy
     Author:     Stefan Berghofer, TU Muenchen
 *)
 

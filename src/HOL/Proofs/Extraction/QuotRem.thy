@@ -1,4 +1,4 @@
-(*  Title:      HOL/Extraction/QuotRem.thy
+(*  Title:      HOL/Proofs/Extraction/QuotRem.thy
     Author:     Stefan Berghofer, TU Muenchen
 *)
 

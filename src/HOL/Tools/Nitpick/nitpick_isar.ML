@@ -348,7 +348,7 @@ fun pick_nits override_params auto i step state =
                            |>> curry (op =) "genuine")
   in
     if auto orelse blocking then go ()
-    else (Toplevel.thread true (tap go); (false, state))
+    else (Toplevel.thread true (tap go); (false, state))  (* FIXME no threads in user-space *)
   end
 
 fun nitpick_trans (params, i) =

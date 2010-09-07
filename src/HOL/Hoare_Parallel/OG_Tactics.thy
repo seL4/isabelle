@@ -273,11 +273,11 @@ Collect_mem_eq ball_simps option.simps primrecdef_list
 lemmas ParallelConseq_list = INTER_def Collect_conj_eq length_map length_upt length_append list_length
 
 ML {*
-val before_interfree_simp_tac = (simp_tac (HOL_basic_ss addsimps [thm "com.simps", thm "post.simps"]))
+val before_interfree_simp_tac = simp_tac (HOL_basic_ss addsimps [@{thm com.simps}, @{thm post.simps}])
 
-val  interfree_simp_tac = (asm_simp_tac (HOL_ss addsimps [@{thm split}, thm "ball_Un", thm "ball_empty"]@(thms "my_simp_list")))
+val  interfree_simp_tac = asm_simp_tac (HOL_ss addsimps [@{thm split}, @{thm ball_Un}, @{thm ball_empty}] @ @{thms my_simp_list})
 
-val ParallelConseq = (simp_tac (HOL_basic_ss addsimps (thms "ParallelConseq_list")@(thms "my_simp_list")))
+val ParallelConseq = simp_tac (HOL_basic_ss addsimps @{thms ParallelConseq_list} @ @{thms my_simp_list})
 *}
 
 text {* The following tactic applies @{text tac} to each conjunct in a

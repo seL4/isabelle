@@ -114,7 +114,7 @@ done
 
 lemma evaln_evalc: "<c,s> -n-> t ==> <c,s> -c-> t"
 apply (erule evaln.induct)
-apply (tactic {* ALLGOALS (resolve_tac (thms "evalc.intros") THEN_ALL_NEW atac) *})
+apply (tactic {* ALLGOALS (resolve_tac @{thms evalc.intros} THEN_ALL_NEW atac) *})
 done
 
 lemma Suc_le_D_lemma: "[| Suc n <= m'; (!!m. n <= m ==> P (Suc m)) |] ==> P m'"
@@ -124,8 +124,8 @@ done
 
 lemma evaln_nonstrict [rule_format]: "<c,s> -n-> t ==> !m. n<=m --> <c,s> -m-> t"
 apply (erule evaln.induct)
-apply (tactic {* ALLGOALS (EVERY'[strip_tac,TRY o etac (thm "Suc_le_D_lemma"), REPEAT o smp_tac 1]) *})
-apply (tactic {* ALLGOALS (resolve_tac (thms "evaln.intros") THEN_ALL_NEW atac) *})
+apply (tactic {* ALLGOALS (EVERY'[strip_tac,TRY o etac @{thm Suc_le_D_lemma}, REPEAT o smp_tac 1]) *})
+apply (tactic {* ALLGOALS (resolve_tac @{thms evaln.intros} THEN_ALL_NEW atac) *})
 done
 
 lemma evaln_Suc: "<c,s> -n-> s' ==> <c,s> -Suc n-> s'"
@@ -142,8 +142,8 @@ done
 lemma evalc_evaln: "<c,s> -c-> t ==> ? n. <c,s> -n-> t"
 apply (erule evalc.induct)
 apply (tactic {* ALLGOALS (REPEAT o etac exE) *})
-apply (tactic {* TRYALL (EVERY'[datac (thm "evaln_max2") 1, REPEAT o eresolve_tac [exE, conjE]]) *})
-apply (tactic {* ALLGOALS (rtac exI THEN' resolve_tac (thms "evaln.intros") THEN_ALL_NEW atac) *})
+apply (tactic {* TRYALL (EVERY' [datac @{thm evaln_max2} 1, REPEAT o eresolve_tac [exE, conjE]]) *})
+apply (tactic {* ALLGOALS (rtac exI THEN' resolve_tac @{thms evaln.intros} THEN_ALL_NEW atac) *})
 done
 
 lemma eval_eq: "<c,s> -c-> t = (? n. <c,s> -n-> t)"

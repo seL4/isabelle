@@ -346,7 +346,7 @@ fun eta_contract thy assumes origt =
 fun beta_fun thy assume t =
     SOME (Thm.beta_conversion true (cterm_of thy t))
 
-val meta_sym_rew = thm "refl"
+val meta_sym_rew = @{thm refl}
 
 fun equals_fun thy assume t =
     case t of

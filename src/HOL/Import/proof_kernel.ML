@@ -977,28 +977,28 @@ fun uniq_compose m th i st =
           | NONE => raise ERR "uniq_compose" "No result"
     end
 
-val reflexivity_thm = thm "refl"
-val substitution_thm = thm "subst"
-val mp_thm = thm "mp"
-val imp_antisym_thm = thm "light_imp_as"
-val disch_thm = thm "impI"
-val ccontr_thm = thm "ccontr"
+val reflexivity_thm = @{thm refl}
+val substitution_thm = @{thm subst}
+val mp_thm = @{thm mp}
+val imp_antisym_thm = @{thm light_imp_as}
+val disch_thm = @{thm impI}
+val ccontr_thm = @{thm ccontr}
 
-val meta_eq_to_obj_eq_thm = thm "meta_eq_to_obj_eq"
+val meta_eq_to_obj_eq_thm = @{thm meta_eq_to_obj_eq}
 
-val gen_thm = thm "HOLallI"
-val choose_thm = thm "exE"
-val exists_thm = thm "exI"
-val conj_thm = thm "conjI"
-val conjunct1_thm = thm "conjunct1"
-val conjunct2_thm = thm "conjunct2"
-val spec_thm = thm "spec"
-val disj_cases_thm = thm "disjE"
-val disj1_thm = thm "disjI1"
-val disj2_thm = thm "disjI2"
+val gen_thm = @{thm HOLallI}
+val choose_thm = @{thm exE}
+val exists_thm = @{thm exI}
+val conj_thm = @{thm conjI}
+val conjunct1_thm = @{thm conjunct1}
+val conjunct2_thm = @{thm conjunct2}
+val spec_thm = @{thm spec}
+val disj_cases_thm = @{thm disjE}
+val disj1_thm = @{thm disjI1}
+val disj2_thm = @{thm disjI2}
 
 local
-    val th = thm "not_def"
+    val th = @{thm not_def}
     val thy = theory_of_thm th
     val pp = Thm.reflexive (cterm_of thy (Const(@{const_name Trueprop},HOLogic.boolT-->propT)))
 in
@@ -1006,13 +1006,13 @@ val not_elim_thm = Thm.combination pp th
 end
 
 val not_intro_thm = Thm.symmetric not_elim_thm
-val abs_thm = thm "ext"
-val trans_thm = thm "trans"
-val symmetry_thm = thm "sym"
-val transitivity_thm = thm "trans"
-val eqmp_thm = thm "iffD1"
-val eqimp_thm = thm "HOL4Setup.eq_imp"
-val comb_thm = thm "cong"
+val abs_thm = @{thm ext}
+val trans_thm = @{thm trans}
+val symmetry_thm = @{thm sym}
+val transitivity_thm = @{thm trans}
+val eqmp_thm = @{thm iffD1}
+val eqimp_thm = @{thm HOL4Setup.eq_imp}
+val comb_thm = @{thm cong}
 
 (* Beta-eta normalizes a theorem (only the conclusion, not the *
 hypotheses!)  *)
@@ -1971,9 +1971,6 @@ fun new_definition thyname constname rhs thy =
         (thy22',hth)
     end
 
-local
-    val helper = thm "termspec_help"
-in
 fun new_specification thyname thmname names hth thy =
     case HOL4DefThy.get thy of
         Replaying _ => (thy,hth)
@@ -2054,8 +2051,6 @@ fun new_specification thyname thmname names hth thy =
             intern_store_thm false thyname thmname hth thy''
         end
 
-end
-
 fun new_axiom name tm thy = raise ERR "new_axiom" ("Oh, no you don't! (" ^ name ^ ")")
 
 fun to_isa_thm (hth as HOLThm(_,th)) =
@@ -2068,10 +2063,10 @@ fun to_isa_thm (hth as HOLThm(_,th)) =
 fun to_isa_term tm = tm
 
 local
-    val light_nonempty = thm "light_ex_imp_nonempty"
-    val ex_imp_nonempty = thm "ex_imp_nonempty"
-    val typedef_hol2hol4 = thm "typedef_hol2hol4"
-    val typedef_hol2hollight = thm "typedef_hol2hollight"
+    val light_nonempty = @{thm light_ex_imp_nonempty}
+    val ex_imp_nonempty = @{thm ex_imp_nonempty}
+    val typedef_hol2hol4 = @{thm typedef_hol2hol4}
+    val typedef_hol2hollight = @{thm typedef_hol2hollight}
 in
 fun new_type_definition thyname thmname tycname hth thy =
     case HOL4DefThy.get thy of

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/StrongNorm.thy
+(*  Title:      HOL/Proofs/Lambda/StrongNorm.thy
     Author:     Stefan Berghofer
     Copyright   2000 TU Muenchen
 *)

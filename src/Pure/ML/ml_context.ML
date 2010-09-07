@@ -8,8 +8,6 @@ signature BASIC_ML_CONTEXT =
 sig
   val bind_thm: string * thm -> unit
   val bind_thms: string * thm list -> unit
-  val thm: xstring -> thm
-  val thms: xstring -> thm list
 end
 
 signature ML_CONTEXT =
@@ -18,6 +16,8 @@ sig
   val the_generic_context: unit -> Context.generic
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
+  val thm: xstring -> thm
+  val thms: xstring -> thm list
   val exec: (unit -> unit) -> Context.generic -> Context.generic
   val get_stored_thms: unit -> thm list
   val get_stored_thm: unit -> thm
@@ -48,6 +48,9 @@ struct
 val the_generic_context = Context.the_thread_data;
 val the_global_context = Context.theory_of o the_generic_context;
 val the_local_context = Context.proof_of o the_generic_context;
+
+fun thm name = ProofContext.get_thm (the_local_context ()) name;
+fun thms name = ProofContext.get_thms (the_local_context ()) name;
 
 fun exec (e: unit -> unit) context =
   (case Context.setmp_thread_data (SOME context) (fn () => (e (); Context.thread_data ())) () of
@@ -88,9 +91,6 @@ fun ml_store_thm (name, th) = ml_store "ML_Context.get_stored_thm" (name, [th]);
 
 fun bind_thm (name, thm) = ml_store_thm (name, Drule.export_without_context thm);
 fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_context thms);
-
-fun thm name = ProofContext.get_thm (the_local_context ()) name;
-fun thms name = ProofContext.get_thms (the_local_context ()) name;
 
 
 

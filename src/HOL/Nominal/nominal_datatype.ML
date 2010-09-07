@@ -24,18 +24,18 @@ end
 structure NominalDatatype : NOMINAL_DATATYPE =
 struct
 
-val finite_emptyI = thm "finite.emptyI";
-val finite_Diff = thm "finite_Diff";
-val finite_Un = thm "finite_Un";
-val Un_iff = thm "Un_iff";
-val In0_eq = thm "In0_eq";
-val In1_eq = thm "In1_eq";
-val In0_not_In1 = thm "In0_not_In1";
-val In1_not_In0 = thm "In1_not_In0";
-val Un_assoc = thm "Un_assoc";
-val Collect_disj_eq = thm "Collect_disj_eq";
+val finite_emptyI = @{thm finite.emptyI};
+val finite_Diff = @{thm finite_Diff};
+val finite_Un = @{thm finite_Un};
+val Un_iff = @{thm Un_iff};
+val In0_eq = @{thm In0_eq};
+val In1_eq = @{thm In1_eq};
+val In0_not_In1 = @{thm In0_not_In1};
+val In1_not_In0 = @{thm In1_not_In0};
+val Un_assoc = @{thm Un_assoc};
+val Collect_disj_eq = @{thm Collect_disj_eq};
 val Collect_False_empty = @{thm empty_def [THEN sym, THEN eq_reflection]};
-val empty_iff = thm "empty_iff";
+val empty_iff = @{thm empty_iff};
 
 open Datatype_Aux;
 open NominalAtoms;
@@ -119,7 +119,7 @@ val (_ $ (_ $ (_ $ (distinct_f $ _) $ _))) = hd (prems_of distinct_lemma);
 
 (** simplification procedure for sorting permutations **)
 
-val dj_cp = thm "dj_cp";
+val dj_cp = @{thm dj_cp};
 
 fun dest_permT (Type ("fun", [Type ("List.list", [Type (@{type_name Product_Type.prod}, [T, _])]),
       Type ("fun", [_, U])])) = (T, U);
@@ -148,23 +148,21 @@ fun perm_simproc' thy ss (Const ("Nominal.perm", T) $ t $ (u as Const ("Nominal.
 val perm_simproc =
   Simplifier.simproc_global @{theory} "perm_simp" ["pi1 \<bullet> (pi2 \<bullet> x)"] perm_simproc';
 
-val meta_spec = thm "meta_spec";
-
 fun projections rule =
   Project_Rule.projections (ProofContext.init_global (Thm.theory_of_thm rule)) rule
   |> map (Drule.export_without_context #> Rule_Cases.save rule);
 
-val supp_prod = thm "supp_prod";
-val fresh_prod = thm "fresh_prod";
-val supports_fresh = thm "supports_fresh";
-val supports_def = thm "Nominal.supports_def";
-val fresh_def = thm "fresh_def";
-val supp_def = thm "supp_def";
-val rev_simps = thms "rev.simps";
-val app_simps = thms "append.simps";
-val at_fin_set_supp = thm "at_fin_set_supp";
-val at_fin_set_fresh = thm "at_fin_set_fresh";
-val abs_fun_eq1 = thm "abs_fun_eq1";
+val supp_prod = @{thm supp_prod};
+val fresh_prod = @{thm fresh_prod};
+val supports_fresh = @{thm supports_fresh};
+val supports_def = @{thm Nominal.supports_def};
+val fresh_def = @{thm fresh_def};
+val supp_def = @{thm supp_def};
+val rev_simps = @{thms rev.simps};
+val app_simps = @{thms append.simps};
+val at_fin_set_supp = @{thm at_fin_set_supp};
+val at_fin_set_fresh = @{thm at_fin_set_fresh};
+val abs_fun_eq1 = @{thm abs_fun_eq1};
 
 val collect_simp = rewrite_rule [mk_meta_eq mem_Collect_eq];
 
@@ -1406,7 +1404,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
          [rtac induct_aux' 1,
           REPEAT (resolve_tac fs_atoms 1),
           REPEAT ((resolve_tac prems THEN_ALL_NEW
-            (etac meta_spec ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)])
+            (etac @{thm meta_spec} ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)])
 
     val (_, thy10) = thy9 |>
       Sign.add_path big_name |>

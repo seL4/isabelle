@@ -8,14 +8,14 @@ Display tactical goal state.
 signature GOAL_DISPLAY =
 sig
   val goals_limit_default: int Unsynchronized.ref
-  val goals_limit_value: Config.value Config.T
+  val goals_limit_raw: Config.raw
   val goals_limit: int Config.T
   val goals_total: bool Config.T
   val show_main_goal_default: bool Unsynchronized.ref
-  val show_main_goal_value: Config.value Config.T
+  val show_main_goal_raw: Config.raw
   val show_main_goal: bool Config.T
   val show_consts_default: bool Unsynchronized.ref
-  val show_consts_value: Config.value Config.T
+  val show_consts_raw: Config.raw
   val show_consts: bool Config.T
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T
   val pretty_goals: Proof.context -> thm -> Pretty.T list
@@ -26,19 +26,19 @@ structure Goal_Display: GOAL_DISPLAY =
 struct
 
 val goals_limit_default = Unsynchronized.ref 10;
-val goals_limit_value = Config.declare "goals_limit" (fn _ => Config.Int (! goals_limit_default));
-val goals_limit = Config.int goals_limit_value;
+val goals_limit_raw = Config.declare "goals_limit" (fn _ => Config.Int (! goals_limit_default));
+val goals_limit = Config.int goals_limit_raw;
 
 val goals_total = Config.bool (Config.declare "goals_total" (fn _ => Config.Bool true));
 
 val show_main_goal_default = Unsynchronized.ref false;
-val show_main_goal_value =
+val show_main_goal_raw =
   Config.declare "show_main_goal" (fn _ => Config.Bool (! show_main_goal_default));
-val show_main_goal = Config.bool show_main_goal_value;
+val show_main_goal = Config.bool show_main_goal_raw;
 
 val show_consts_default = Unsynchronized.ref false;
-val show_consts_value = Config.declare "show_consts" (fn _ => Config.Bool (! show_consts_default));
-val show_consts = Config.bool show_consts_value;
+val show_consts_raw = Config.declare "show_consts" (fn _ => Config.Bool (! show_consts_default));
+val show_consts = Config.bool show_consts_raw;
 
 fun pretty_flexpair ctxt (t, u) = Pretty.block
   [Syntax.pretty_term ctxt t, Pretty.str " =?=", Pretty.brk 1, Syntax.pretty_term ctxt u];

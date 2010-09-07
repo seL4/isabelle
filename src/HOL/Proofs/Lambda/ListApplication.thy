@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/ListApplication.thy
+(*  Title:      HOL/Proofs/Lambda/ListApplication.thy
     Author:     Tobias Nipkow
     Copyright   1998 TU Muenchen
 *)

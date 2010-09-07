@@ -32,9 +32,9 @@ struct
 val dest_Trueprop = HOLogic.dest_Trueprop;
 val mk_Trueprop = HOLogic.mk_Trueprop;
 
-val atomize = thms "induct_atomize";
-val rulify = thms "induct_rulify";
-val rulify_fallback = thms "induct_rulify_fallback";
+val atomize = @{thms induct_atomize};
+val rulify = @{thms induct_rulify};
+val rulify_fallback = @{thms induct_rulify_fallback};
 
 end;
 

@@ -9,8 +9,10 @@ signature BASIC_DISPLAY =
 sig
   val show_consts_default: bool Unsynchronized.ref
   val show_consts: bool Config.T
-  val show_hyps: bool Unsynchronized.ref
-  val show_tags: bool Unsynchronized.ref
+  val show_hyps_raw: Config.raw
+  val show_hyps: bool Config.T
+  val show_tags_raw: Config.raw
+  val show_tags: bool Config.T
 end;
 
 signature DISPLAY =
@@ -39,8 +41,11 @@ struct
 val show_consts_default = Goal_Display.show_consts_default;
 val show_consts = Goal_Display.show_consts;
 
-val show_hyps = Unsynchronized.ref false;    (*false: print meta-hypotheses as dots*)
-val show_tags = Unsynchronized.ref false;    (*false: suppress tags*)
+val show_hyps_raw = Config.declare "show_hyps" (fn _ => Config.Bool false);
+val show_hyps = Config.bool show_hyps_raw;
+
+val show_tags_raw = Config.declare "show_tags" (fn _ => Config.Bool false);
+val show_tags = Config.bool show_tags_raw;
 
 
 
@@ -49,11 +54,11 @@ val show_tags = Unsynchronized.ref false;    (*false: suppress tags*)
 fun pretty_tag (name, arg) = Pretty.strs [name, quote arg];
 val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 
-fun display_status false _ = ""
-  | display_status true th =
+fun display_status _ false _ = ""
+  | display_status show_hyps true th =
       let
         val {oracle = oracle0, unfinished, failed} = Thm.status_of th;
-        val oracle = oracle0 andalso (not (! quick_and_dirty) orelse ! show_hyps);
+        val oracle = oracle0 andalso (not (! quick_and_dirty) orelse show_hyps);
       in
         if failed then "!!"
         else if oracle andalso unfinished then "!?"
@@ -64,6 +69,9 @@ fun display_status false _ = ""
 
 fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps', show_status} raw_th =
   let
+    val show_tags = Config.get ctxt show_tags;
+    val show_hyps = Config.get ctxt show_hyps;
+
     val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, ...} = Thm.rep_thm th;
     val xshyps = Thm.extra_shyps th;
@@ -73,20 +81,20 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps', show_status} raw_th =
     val prt_term = q o Syntax.pretty_term ctxt;
 
     val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
-    val hyps' = if ! show_hyps then hyps else subtract (op aconv) asms hyps;
-    val status = display_status show_status th;
+    val hyps' = if show_hyps then hyps else subtract (op aconv) asms hyps;
+    val status = display_status show_hyps show_status th;
 
     val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
       if hlen = 0 andalso status = "" then []
-      else if ! show_hyps orelse show_hyps' then
+      else if show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
           (map (q o Goal_Display.pretty_flexpair ctxt) tpairs @ map prt_term hyps' @
            map (Syntax.pretty_sort ctxt) xshyps @
             (if status = "" then [] else [Pretty.str status]))]
       else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ status ^ "]")];
     val tsymbs =
-      if null tags orelse not (! show_tags) then []
+      if null tags orelse not show_tags then []
       else [Pretty.brk 1, pretty_tags tags];
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 

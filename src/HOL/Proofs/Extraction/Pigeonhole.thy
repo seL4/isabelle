@@ -1,4 +1,4 @@
-(*  Title:      HOL/Extraction/Pigeonhole.thy
+(*  Title:      HOL/Proofs/Extraction/Pigeonhole.thy
     Author:     Stefan Berghofer, TU Muenchen
 *)
 

@@ -7,7 +7,7 @@ imports Pure
 uses "Tools/mirabelle.ML"
 begin
 
-(* no multithreading, no parallel proofs *)
+(* no multithreading, no parallel proofs *)  (* FIXME *)
 ML {* Multithreading.max_threads := 1 *}
 ML {* Goal.parallel_proofs := 0 *}
 

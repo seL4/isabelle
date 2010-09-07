@@ -324,7 +324,7 @@ val _ = Context.>> (Context.map_theory
 
 structure Configs = Theory_Data
 (
-  type T = Config.value Config.T Symtab.table;
+  type T = Config.raw Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;
@@ -392,22 +392,24 @@ end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
- (register_config Syntax.show_brackets_value #>
-  register_config Syntax.show_sorts_value #>
-  register_config Syntax.show_types_value #>
-  register_config Syntax.show_structs_value #>
-  register_config Syntax.show_question_marks_value #>
-  register_config Syntax.ambiguity_level_value #>
-  register_config Syntax.eta_contract_value #>
-  register_config Goal_Display.goals_limit_value #>
-  register_config Goal_Display.show_main_goal_value #>
-  register_config Goal_Display.show_consts_value #>
-  register_config Unify.trace_bound_value #>
-  register_config Unify.search_bound_value #>
-  register_config Unify.trace_simp_value #>
-  register_config Unify.trace_types_value #>
-  register_config MetaSimplifier.simp_depth_limit_value #>
-  register_config MetaSimplifier.debug_simp_value #>
-  register_config MetaSimplifier.trace_simp_value));
+ (register_config Syntax.show_brackets_raw #>
+  register_config Syntax.show_sorts_raw #>
+  register_config Syntax.show_types_raw #>
+  register_config Syntax.show_structs_raw #>
+  register_config Syntax.show_question_marks_raw #>
+  register_config Syntax.ambiguity_level_raw #>
+  register_config Syntax.eta_contract_raw #>
+  register_config Goal_Display.goals_limit_raw #>
+  register_config Goal_Display.show_main_goal_raw #>
+  register_config Goal_Display.show_consts_raw #>
+  register_config Display.show_hyps_raw #>
+  register_config Display.show_tags_raw #>
+  register_config Unify.trace_bound_raw #>
+  register_config Unify.search_bound_raw #>
+  register_config Unify.trace_simp_raw #>
+  register_config Unify.trace_types_raw #>
+  register_config MetaSimplifier.simp_depth_limit_raw #>
+  register_config MetaSimplifier.debug_simp_raw #>
+  register_config MetaSimplifier.trace_simp_raw));
 
 end;
