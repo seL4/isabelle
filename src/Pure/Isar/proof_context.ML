@@ -736,18 +736,22 @@ end;
 
 local
 
+fun parse_failed ctxt pos msg kind =
+ (Context_Position.report ctxt Markup.bad pos;
+  cat_error msg ("Failed to parse " ^ kind));
+
 fun parse_sort ctxt text =
   let
     val (syms, pos) = Syntax.parse_token ctxt Markup.sort text;
     val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
-      handle ERROR msg => cat_error msg "Failed to parse sort";
+      handle ERROR msg => parse_failed ctxt pos msg "sort";
   in Type.minimize_sort (tsig_of ctxt) S end;
 
 fun parse_typ ctxt text =
   let
     val (syms, pos) = Syntax.parse_token ctxt Markup.typ text;
     val T = Syntax.standard_parse_typ ctxt (syn_of ctxt) (get_sort ctxt) (syms, pos)
-      handle ERROR msg => cat_error msg "Failed to parse type";
+      handle ERROR msg => parse_failed ctxt pos msg "type";
   in T end;
 
 fun parse_term T ctxt text =
@@ -764,7 +768,7 @@ fun parse_term T ctxt text =
     val t =
       Syntax.standard_parse_term check get_sort map_const map_free
         ctxt (Type.is_logtype (tsig_of ctxt)) (syn_of ctxt) T' (syms, pos)
-      handle ERROR msg => cat_error msg ("Failed to parse " ^ kind);
+      handle ERROR msg => parse_failed ctxt pos msg kind;
   in t end;
 
 

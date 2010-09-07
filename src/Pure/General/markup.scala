@@ -249,6 +249,8 @@ object Markup
   val SIGNAL = "signal"
   val EXIT = "exit"
 
+  val BAD = "bad"
+
   val Ready = Markup("ready", Nil)
 
 

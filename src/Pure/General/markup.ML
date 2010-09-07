@@ -120,6 +120,7 @@ sig
   val promptN: string val prompt: T
   val readyN: string val ready: T
   val reportN: string val report: T
+  val badN: string val bad: T
   val no_output: output * output
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
@@ -347,6 +348,8 @@ val (promptN, prompt) = markup_elem "prompt";
 val (readyN, ready) = markup_elem "ready";
 
 val (reportN, report) = markup_elem "report";
+
+val (badN, bad) = markup_elem "bad";
 
 
 

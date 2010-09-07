@@ -33,6 +33,7 @@ object Document_View
   val regular_color = new Color(192, 192, 192)
   val warning_color = new Color(255, 165, 0)
   val error_color = new Color(255, 106, 106)
+  val bad_color = new Color(255, 204, 153, 100)
 
   def status_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
   {
@@ -65,6 +66,11 @@ object Document_View
     case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => regular_color
     case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_color
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
+  }
+
+  val background_markup: PartialFunction[Text.Info[Any], Color] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _)) => bad_color
   }
 
   val box_markup: PartialFunction[Text.Info[Any], Color] =
@@ -246,13 +252,24 @@ class Document_View(val model: Document_Model, text_area: TextArea)
             if (physical_lines(i) != -1) {
               val line_range = proper_line_range(start(i), end(i))
 
-              // background color
+              // background color: status
               val cmds = snapshot.node.command_range(snapshot.revert(line_range))
               for {
                 (command, command_start) <- cmds if !command.is_ignored
                 val range = line_range.restrict(snapshot.convert(command.range + command_start))
                 r <- Isabelle.gfx_range(text_area, range)
                 color <- Document_View.status_color(snapshot, command)
+              } {
+                gfx.setColor(color)
+                gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+              }
+
+              // background color: markup
+              for {
+                Text.Info(range, color) <-
+                  snapshot.select_markup(line_range)(Document_View.background_markup)(null)
+                if color != null
+                r <- Isabelle.gfx_range(text_area, range)
               } {
                 gfx.setColor(color)
                 gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
