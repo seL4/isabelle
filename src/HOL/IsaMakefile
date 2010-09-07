@@ -244,6 +244,8 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Map.thy \
   Nat_Numeral.thy \
   Nat_Transfer.thy \
+  New_DSequence.thy \
+  New_Random_Sequence.thy \
   Nitpick.thy \
   Numeral_Simprocs.thy \
   Presburger.thy \

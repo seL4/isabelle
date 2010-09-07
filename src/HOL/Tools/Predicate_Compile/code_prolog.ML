@@ -309,6 +309,11 @@ fun add_edges edges_of key G =
     fst (extend' key (G, []))
   end
 
+fun print_intros ctxt gr consts =
+  tracing (cat_lines (map (fn const =>
+    "Constant " ^ const ^ "has intros:\n" ^
+    cat_lines (map (Display.string_of_thm ctxt) (Graph.get_node gr const))) consts))
+    
 fun generate ensure_groundness ctxt const =
   let 
     fun strong_conn_of gr keys =
@@ -316,6 +321,7 @@ fun generate ensure_groundness ctxt const =
     val gr = Predicate_Compile_Core.intros_graph_of ctxt
     val gr' = add_edges depending_preds_of const gr
     val scc = strong_conn_of gr' [const]
+    val _ = print_intros ctxt gr (flat scc)
     val constant_table = declare_consts (flat scc) []
   in
     apfst flat (fold_map (translate_intros ensure_groundness ctxt gr) (flat scc) constant_table)

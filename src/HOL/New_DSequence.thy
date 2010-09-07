@@ -83,7 +83,7 @@ subsection {* Negation *}
 
 definition pos_not_seq :: "unit neg_dseq => unit pos_dseq"
 where
-  "pos_not_seq xq = (%i. Lazy_Sequence.hb_not_seq (xq i))"
+  "pos_not_seq xq = (%i. Lazy_Sequence.hb_not_seq (xq (3 * i)))"
 
 definition neg_not_seq :: "unit pos_dseq => unit neg_dseq"
 where
