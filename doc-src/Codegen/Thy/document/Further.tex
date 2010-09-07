@@ -216,13 +216,13 @@ After an interpretation of this locale (say, \indexdef{}{command}{interpretation
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}funpow ::~forall a.~Example.Nat -> (a -> a) -> a -> a;\\
-\hspace*{0pt}funpow Example.Zero{\char95}nat f = id;\\
-\hspace*{0pt}funpow (Example.Suc n) f = f .~Example.funpow n f;\\
+\hspace*{0pt}funpow ::~forall a.~Nat -> (a -> a) -> a -> a;\\
+\hspace*{0pt}funpow Zero{\char95}nat f = id;\\
+\hspace*{0pt}funpow (Suc n) f = f .~funpow n f;\\
 \hspace*{0pt}\\
-\hspace*{0pt}funpows ::~forall a.~[Example.Nat] -> (a -> a) -> a -> a;\\
+\hspace*{0pt}funpows ::~forall a.~[Nat] -> (a -> a) -> a -> a;\\
 \hspace*{0pt}funpows [] = id;\\
-\hspace*{0pt}funpows (x :~xs) = Example.funpow x .~Example.funpows xs;%
+\hspace*{0pt}funpows (x :~xs) = funpow x .~funpows xs;%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

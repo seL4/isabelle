@@ -74,11 +74,10 @@ Program refinement works by choosing appropriate code equations
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}fib ::~Example.Nat -> Example.Nat;\\
-\hspace*{0pt}fib Example.Zero{\char95}nat = Example.Zero{\char95}nat;\\
-\hspace*{0pt}fib (Example.Suc Example.Zero{\char95}nat) = Example.Suc Example.Zero{\char95}nat;\\
-\hspace*{0pt}fib (Example.Suc (Example.Suc n)) =\\
-\hspace*{0pt} ~Example.plus{\char95}nat (Example.fib n) (Example.fib (Example.Suc n));%
+\hspace*{0pt}fib ::~Nat -> Nat;\\
+\hspace*{0pt}fib Zero{\char95}nat = Zero{\char95}nat;\\
+\hspace*{0pt}fib (Suc Zero{\char95}nat) = Suc Zero{\char95}nat;\\
+\hspace*{0pt}fib (Suc (Suc n)) = plus{\char95}nat (fib n) (fib (Suc n));%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -173,17 +172,15 @@ Program refinement works by choosing appropriate code equations
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}fib{\char95}step ::~Example.Nat -> (Example.Nat,~Example.Nat);\\
-\hspace*{0pt}fib{\char95}step (Example.Suc n) =\\
-\hspace*{0pt} ~let {\char123}\\
-\hspace*{0pt} ~~~(m,~q) = Example.fib{\char95}step n;\\
-\hspace*{0pt} ~{\char125}~in (Example.plus{\char95}nat m q,~m);\\
-\hspace*{0pt}fib{\char95}step Example.Zero{\char95}nat =\\
-\hspace*{0pt} ~(Example.Suc Example.Zero{\char95}nat,~Example.Zero{\char95}nat);\\
+\hspace*{0pt}fib{\char95}step ::~Nat -> (Nat,~Nat);\\
+\hspace*{0pt}fib{\char95}step (Suc n) = let {\char123}\\
+\hspace*{0pt} ~~~~~~~~~~~~~~~~~~~~(m,~q) = fib{\char95}step n;\\
+\hspace*{0pt} ~~~~~~~~~~~~~~~~~~{\char125}~in (plus{\char95}nat m q,~m);\\
+\hspace*{0pt}fib{\char95}step Zero{\char95}nat = (Suc Zero{\char95}nat,~Zero{\char95}nat);\\
 \hspace*{0pt}\\
-\hspace*{0pt}fib ::~Example.Nat -> Example.Nat;\\
-\hspace*{0pt}fib (Example.Suc n) = fst (Example.fib{\char95}step n);\\
-\hspace*{0pt}fib Example.Zero{\char95}nat = Example.Zero{\char95}nat;%
+\hspace*{0pt}fib ::~Nat -> Nat;\\
+\hspace*{0pt}fib (Suc n) = fst (fib{\char95}step n);\\
+\hspace*{0pt}fib Zero{\char95}nat = Zero{\char95}nat;%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -593,30 +590,28 @@ Datatype representation involving invariants require a dedicated
 \hspace*{0pt}\\
 \hspace*{0pt}newtype Dlist a = Dlist [a];\\
 \hspace*{0pt}\\
-\hspace*{0pt}empty ::~forall a.~Example.Dlist a;\\
-\hspace*{0pt}empty = Example.Dlist [];\\
+\hspace*{0pt}empty ::~forall a.~Dlist a;\\
+\hspace*{0pt}empty = Dlist [];\\
 \hspace*{0pt}\\
 \hspace*{0pt}member ::~forall a.~(Eq a) => [a] -> a -> Bool;\\
 \hspace*{0pt}member [] y = False;\\
-\hspace*{0pt}member (x :~xs) y = x == y || Example.member xs y;\\
+\hspace*{0pt}member (x :~xs) y = x == y || member xs y;\\
 \hspace*{0pt}\\
-\hspace*{0pt}inserta ::~forall a.~(Eq a) => a -> [a] -> [a];\\
-\hspace*{0pt}inserta x xs = (if Example.member xs x then xs else x :~xs);\\
+\hspace*{0pt}insert ::~forall a.~(Eq a) => a -> [a] -> [a];\\
+\hspace*{0pt}insert x xs = (if member xs x then xs else x :~xs);\\
 \hspace*{0pt}\\
-\hspace*{0pt}list{\char95}of{\char95}dlist ::~forall a.~Example.Dlist a -> [a];\\
-\hspace*{0pt}list{\char95}of{\char95}dlist (Example.Dlist x) = x;\\
+\hspace*{0pt}list{\char95}of{\char95}dlist ::~forall a.~Dlist a -> [a];\\
+\hspace*{0pt}list{\char95}of{\char95}dlist (Dlist x) = x;\\
 \hspace*{0pt}\\
-\hspace*{0pt}insert ::~forall a.~(Eq a) => a -> Example.Dlist a -> Example.Dlist a;\\
-\hspace*{0pt}insert x dxs =\\
-\hspace*{0pt} ~Example.Dlist (Example.inserta x (Example.list{\char95}of{\char95}dlist dxs));\\
+\hspace*{0pt}inserta ::~forall a.~(Eq a) => a -> Dlist a -> Dlist a;\\
+\hspace*{0pt}inserta x dxs = Dlist (insert x (list{\char95}of{\char95}dlist dxs));\\
 \hspace*{0pt}\\
 \hspace*{0pt}remove1 ::~forall a.~(Eq a) => a -> [a] -> [a];\\
 \hspace*{0pt}remove1 x [] = [];\\
-\hspace*{0pt}remove1 x (y :~xs) = (if x == y then xs else y :~Example.remove1 x xs);\\
+\hspace*{0pt}remove1 x (y :~xs) = (if x == y then xs else y :~remove1 x xs);\\
 \hspace*{0pt}\\
-\hspace*{0pt}remove ::~forall a.~(Eq a) => a -> Example.Dlist a -> Example.Dlist a;\\
-\hspace*{0pt}remove x dxs =\\
-\hspace*{0pt} ~Example.Dlist (Example.remove1 x (Example.list{\char95}of{\char95}dlist dxs));\\
+\hspace*{0pt}remove ::~forall a.~(Eq a) => a -> Dlist a -> Dlist a;\\
+\hspace*{0pt}remove x dxs = Dlist (remove1 x (list{\char95}of{\char95}dlist dxs));\\
 \hspace*{0pt}\\
 \hspace*{0pt}{\char125}%
 \end{isamarkuptext}%

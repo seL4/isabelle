@@ -4,18 +4,18 @@ module Example where {
 
 data Queue a = AQueue [a] [a];
 
-empty :: forall a. Example.Queue a;
-empty = Example.AQueue [] [];
+empty :: forall a. Queue a;
+empty = AQueue [] [];
 
-dequeue :: forall a. Example.Queue a -> (Maybe a, Example.Queue a);
-dequeue (Example.AQueue [] []) = (Nothing, Example.AQueue [] []);
-dequeue (Example.AQueue xs (y : ys)) = (Just y, Example.AQueue xs ys);
-dequeue (Example.AQueue (v : va) []) =
+dequeue :: forall a. Queue a -> (Maybe a, Queue a);
+dequeue (AQueue [] []) = (Nothing, AQueue [] []);
+dequeue (AQueue xs (y : ys)) = (Just y, AQueue xs ys);
+dequeue (AQueue (v : va) []) =
   let {
     (y : ys) = reverse (v : va);
-  } in (Just y, Example.AQueue [] ys);
+  } in (Just y, AQueue [] ys);
 
-enqueue :: forall a. a -> Example.Queue a -> Example.Queue a;
-enqueue x (Example.AQueue xs ys) = Example.AQueue (x : xs) ys;
+enqueue :: forall a. a -> Queue a -> Queue a;
+enqueue x (AQueue xs ys) = AQueue (x : xs) ys;
 
 }
