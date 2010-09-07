@@ -12,6 +12,7 @@ import isabelle._
 import java.awt.Color
 
 import org.gjt.sp.jedit.GUIUtilities
+import org.gjt.sp.jedit.syntax.Token
 
 
 object Isabelle_Markup
@@ -94,5 +95,94 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TYP, _), _)) => "type"
     case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"
     case Text.Info(_, XML.Elem(Markup(Markup.PROP, _), _)) => "proposition"
+  }
+
+
+  /* token markup -- text styles */
+
+  private val command_style: Map[String, Byte] =
+  {
+    import Token._
+    Map[String, Byte](
+      Keyword.THY_END -> KEYWORD2,
+      Keyword.THY_SCRIPT -> LABEL,
+      Keyword.PRF_SCRIPT -> LABEL,
+      Keyword.PRF_ASM -> KEYWORD3,
+      Keyword.PRF_ASM_GOAL -> KEYWORD3
+    ).withDefaultValue(KEYWORD1)
+  }
+
+  private val token_style: Map[String, Byte] =
+  {
+    import Token._
+    Map[String, Byte](
+      // logical entities
+      Markup.TCLASS -> NULL,
+      Markup.TYCON -> NULL,
+      Markup.FIXED_DECL -> FUNCTION,
+      Markup.FIXED -> NULL,
+      Markup.CONST_DECL -> FUNCTION,
+      Markup.CONST -> NULL,
+      Markup.FACT_DECL -> FUNCTION,
+      Markup.FACT -> NULL,
+      Markup.DYNAMIC_FACT -> LABEL,
+      Markup.LOCAL_FACT_DECL -> FUNCTION,
+      Markup.LOCAL_FACT -> NULL,
+      // inner syntax
+      Markup.TFREE -> NULL,
+      Markup.FREE -> NULL,
+      Markup.TVAR -> NULL,
+      Markup.SKOLEM -> NULL,
+      Markup.BOUND -> NULL,
+      Markup.VAR -> NULL,
+      Markup.NUM -> DIGIT,
+      Markup.FLOAT -> DIGIT,
+      Markup.XNUM -> DIGIT,
+      Markup.XSTR -> LITERAL4,
+      Markup.LITERAL -> OPERATOR,
+      Markup.INNER_COMMENT -> COMMENT1,
+      Markup.SORT -> NULL,
+      Markup.TYP -> NULL,
+      Markup.TERM -> NULL,
+      Markup.PROP -> NULL,
+      Markup.ATTRIBUTE -> NULL,
+      Markup.METHOD -> NULL,
+      // ML syntax
+      Markup.ML_KEYWORD -> KEYWORD1,
+      Markup.ML_DELIMITER -> OPERATOR,
+      Markup.ML_IDENT -> NULL,
+      Markup.ML_TVAR -> NULL,
+      Markup.ML_NUMERAL -> DIGIT,
+      Markup.ML_CHAR -> LITERAL1,
+      Markup.ML_STRING -> LITERAL1,
+      Markup.ML_COMMENT -> COMMENT1,
+      Markup.ML_MALFORMED -> INVALID,
+      // embedded source text
+      Markup.ML_SOURCE -> COMMENT3,
+      Markup.DOC_SOURCE -> COMMENT3,
+      Markup.ANTIQ -> COMMENT4,
+      Markup.ML_ANTIQ -> COMMENT4,
+      Markup.DOC_ANTIQ -> COMMENT4,
+      // outer syntax
+      Markup.KEYWORD -> KEYWORD2,
+      Markup.OPERATOR -> OPERATOR,
+      Markup.COMMAND -> KEYWORD1,
+      Markup.IDENT -> NULL,
+      Markup.VERBATIM -> COMMENT3,
+      Markup.COMMENT -> COMMENT1,
+      Markup.CONTROL -> COMMENT3,
+      Markup.MALFORMED -> INVALID,
+      Markup.STRING -> LITERAL3,
+      Markup.ALTSTRING -> LITERAL1
+    ).withDefaultValue(NULL)
+  }
+
+  def tokens(syntax: Outer_Syntax): Markup_Tree.Select[Byte] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _))
+    if syntax.keyword_kind(name).isDefined => command_style(syntax.keyword_kind(name).get)
+
+    case Text.Info(_, XML.Elem(Markup(name, _), _))
+    if token_style(name) != Token.NULL => token_style(name)
   }
 }
