@@ -27,7 +27,6 @@ infixr 5 @|;
 fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
     reserved deresolve contr_classparam_typs deriving_show =
   let
-    val deresolve_base = Long_Name.base_name o deresolve;
     fun class_name class = case class_syntax class
      of NONE => deresolve class
       | SOME class => class;
@@ -121,7 +120,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars (map fst vs) reserved;
             fun print_err n =
               semicolon (
-                (str o deresolve_base) name
+                (str o deresolve) name
                 :: map str (replicate n "_")
                 @ str "="
                 :: str "error"
@@ -138,7 +137,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                       (insert (op =)) ts []);
               in
                 semicolon (
-                  (str o deresolve_base) name
+                  (str o deresolve) name
                   :: map (print_term tyvars some_thm vars BR) ts
                   @ str "="
                   @@ print_term tyvars some_thm vars NOBR t
@@ -147,7 +146,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           in
             Pretty.chunks (
               semicolon [
-                (str o suffix " ::" o deresolve_base) name,
+                (str o suffix " ::" o deresolve) name,
                 print_typscheme tyvars (vs, ty)
               ]
               :: (case filter (snd o snd) raw_eqs
@@ -161,7 +160,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           in
             semicolon [
               str "data",
-              print_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
+              print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
             ]
           end
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, [((co, _), [ty])]))) =
@@ -170,9 +169,9 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           in
             semicolon (
               str "newtype"
-              :: print_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
+              :: print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
               :: str "="
-              :: (str o deresolve_base) co
+              :: (str o deresolve) co
               :: print_typ tyvars BR ty
               :: (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
@@ -182,13 +181,13 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars (map fst vs) reserved;
             fun print_co ((co, _), tys) =
               concat (
-                (str o deresolve_base) co
+                (str o deresolve) co
                 :: map (print_typ tyvars BR) tys
               )
           in
             semicolon (
               str "data"
-              :: print_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
+              :: print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
               :: str "="
               :: print_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o print_co) cos
@@ -200,7 +199,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars [v] reserved;
             fun print_classparam (classparam, ty) =
               semicolon [
-                (str o deresolve_base) classparam,
+                (str o deresolve) classparam,
                 str "::",
                 print_typ tyvars NOBR ty
               ]
@@ -209,7 +208,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
               Pretty.block [
                 str "class ",
                 Pretty.block (print_typcontext tyvars [(v, map fst super_classes)]),
-                str (deresolve_base name ^ " " ^ lookup_var tyvars v),
+                str (deresolve name ^ " " ^ lookup_var tyvars v),
                 str " where {"
               ],
               str "};"
@@ -219,17 +218,17 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           let
             val tyvars = intro_vars (map fst vs) reserved;
             fun requires_args classparam = case const_syntax classparam
-             of NONE => 0
-              | SOME (Code_Printer.Plain_const_syntax _) => 0
-              | SOME (Code_Printer.Complex_const_syntax (k,_ )) => k;
+             of NONE => NONE
+              | SOME (Code_Printer.Plain_const_syntax _) => SOME 0
+              | SOME (Code_Printer.Complex_const_syntax (k,_ )) => SOME k;
             fun print_classparam_instance ((classparam, const), (thm, _)) =
               case requires_args classparam
-               of 0 => semicolon [
-                      (str o deresolve_base) classparam,
+               of NONE => semicolon [
+                      (str o Long_Name.base_name o deresolve) classparam,
                       str "=",
                       print_app tyvars (SOME thm) reserved NOBR (const, [])
                     ]
-                | k =>
+                | SOME k =>
                     let
                       val (c, (_, tys)) = const;
                       val (vs, rhs) = (apfst o map) fst
