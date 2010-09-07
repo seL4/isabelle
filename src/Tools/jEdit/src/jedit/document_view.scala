@@ -17,8 +17,9 @@ import java.awt.{BorderLayout, Graphics, Dimension, Color, Graphics2D}
 import javax.swing.{JPanel, ToolTipManager}
 import javax.swing.event.{CaretListener, CaretEvent}
 
-import org.gjt.sp.jedit.{GUIUtilities, OperatingSystem}
+import org.gjt.sp.jedit.{jEdit, GUIUtilities, OperatingSystem}
 import org.gjt.sp.jedit.gui.RolloverButton
+import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 
@@ -31,8 +32,8 @@ object Document_View
   val unfinished_color = new Color(255, 228, 225)
 
   val regular_color = new Color(192, 192, 192)
-  val warning_color = new Color(255, 165, 0)
-  val error_color = new Color(255, 106, 106)
+  val warning_color = new Color(255, 168, 0)
+  val error_color = new Color(255, 80, 80)
   val bad_color = new Color(255, 204, 153, 100)
 
   val warning_icon = GUIUtilities.loadIcon("16x16/status/dialog-warning.png")
@@ -364,17 +365,21 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      Isabelle.swing_buffer_lock(model.buffer) {
-        val snapshot = model.snapshot()
-        val saved_color = gfx.getColor
-        try {
+      val gutter = text_area.getGutter
+      val width = GutterOptionPane.getSelectionAreaWidth
+      val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
+      val FOLD_MARKER_SIZE = 12
+
+      if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
+        Isabelle.swing_buffer_lock(model.buffer) {
+          val snapshot = model.snapshot()
           for (i <- 0 until physical_lines.length) {
             if (physical_lines(i) != -1) {
               val line_range = proper_line_range(start(i), end(i))
-              val cmds = snapshot.node.command_range(snapshot.revert(line_range)).toStream
 
               // gutter icons
-              val states = cmds.map(p => snapshot.state(p._1))
+              val cmds = snapshot.node.command_range(snapshot.revert(line_range))
+              val states = cmds.map(p => snapshot.state(p._1)).toStream
               val opt_icon =
                 if (states.exists(_.results.exists(p => Isar_Document.is_error(p._2))))
                   Some(Document_View.error_icon)
@@ -383,16 +388,14 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 else None
               opt_icon match {
                 case Some(icon) if icon.getIconWidth > 0 && icon.getIconHeight > 0 =>
-                  val FOLD_MARKER_SIZE = 12
-                  val x0 = ((FOLD_MARKER_SIZE - icon.getIconWidth) / 2) max 0
+                  val x0 = (FOLD_MARKER_SIZE + width - border_width - icon.getIconWidth) max 10
                   val y0 = y + i * line_height + (((line_height - icon.getIconHeight) / 2) max 0)
-                  icon.paintIcon(text_area.getPainter, gfx, x0, y0)
+                  icon.paintIcon(gutter, gfx, x0, y0)
                 case _ =>
               }
             }
           }
         }
-        finally { gfx.setColor(saved_color) }
       }
     }
   }
