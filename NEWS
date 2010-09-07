@@ -68,6 +68,8 @@ feature is still required for historical reasons.
 
 *** HOL ***
 
+* Renamed lemmas: expand_fun_eq -> ext_iff, expand_set_eq -> set_ext_iff
+
 * Renamed class eq and constant eq (for code generation) to class equal
 and constant equal, plus renaming of related facts and various tuning.
 INCOMPATIBILITY.
