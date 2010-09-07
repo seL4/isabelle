@@ -27,30 +27,49 @@ object Document_View
 {
   /* physical rendering */
 
-  def status_color(snapshot: Document.Snapshot, command: Command): Color =
+  val outdated_color = new Color(240, 240, 240)
+  val unfinished_color = new Color(255, 228, 225)
+
+  val regular_color = new Color(192, 192, 192)
+  val warning_color = new Color(255, 165, 0)
+  val error_color = new Color(255, 106, 106)
+
+  def status_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
   {
     val state = snapshot.state(command)
-    if (snapshot.is_outdated) new Color(240, 240, 240)
+    if (snapshot.is_outdated) Some(outdated_color)
     else
       Isar_Document.command_status(state.status) match {
-        case Isar_Document.Forked(i) if i > 0 => new Color(255, 228, 225)
-        case Isar_Document.Finished => new Color(234, 248, 255)
-        case Isar_Document.Failed => new Color(255, 193, 193)
-        case Isar_Document.Unprocessed => new Color(255, 228, 225)
-        case _ => Color.red
+        case Isar_Document.Forked(i) if i > 0 => Some(unfinished_color)
+        case Isar_Document.Unprocessed => Some(unfinished_color)
+        case _ => None
       }
   }
 
+  def overview_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
+  {
+    val state = snapshot.state(command)
+    if (snapshot.is_outdated) None
+    else
+      Isar_Document.command_status(state.status) match {
+        case Isar_Document.Forked(i) if i > 0 => Some(unfinished_color)
+        case Isar_Document.Unprocessed => Some(unfinished_color)
+        case Isar_Document.Failed => Some(error_color)
+        case _ => None
+      }
+  }
+
+
   val message_markup: PartialFunction[Text.Info[Any], Color] =
   {
-    case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => new Color(192, 192, 192)
-    case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => new Color(255, 165, 0)
-    case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => new Color(255, 106, 106)
+    case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => regular_color
+    case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_color
+    case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
   }
 
   val box_markup: PartialFunction[Text.Info[Any], Color] =
   {
-    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => new Color(192, 192, 192)
+    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => regular_color
   }
 
 
@@ -233,8 +252,9 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 (command, command_start) <- cmds if !command.is_ignored
                 val range = line_range.restrict(snapshot.convert(command.range + command_start))
                 r <- Isabelle.gfx_range(text_area, range)
+                color <- Document_View.status_color(snapshot, command)
               } {
-                gfx.setColor(Document_View.status_color(snapshot, command))
+                gfx.setColor(color)
                 gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
               }
 
@@ -360,12 +380,16 @@ class Document_View(val model: Document_Model, text_area: TextArea)
         val snapshot = model.snapshot()
         val saved_color = gfx.getColor  // FIXME needed!?
         try {
-          for ((command, start) <- snapshot.node.command_starts if !command.is_ignored) {
+          for {
+            (command, start) <- snapshot.node.command_starts
+            if !command.is_ignored
             val line1 = buffer.getLineOfOffset(snapshot.convert(start))
             val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
             val y = line_to_y(line1)
             val height = HEIGHT * (line2 - line1)
-            gfx.setColor(Document_View.status_color(snapshot, command))
+            color <- Document_View.overview_color(snapshot, command)
+          } {
+            gfx.setColor(color)
             gfx.fillRect(0, y, getWidth - 1, height)
           }
         }
