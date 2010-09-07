@@ -13,11 +13,11 @@ import isabelle._
 import scala.actors.Actor._
 
 import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent, FocusAdapter, FocusEvent}
-import java.awt.{BorderLayout, Graphics, Dimension, Color, Graphics2D}
+import java.awt.{BorderLayout, Graphics, Color, Dimension, Graphics2D}
 import javax.swing.{JPanel, ToolTipManager}
 import javax.swing.event.{CaretListener, CaretEvent}
 
-import org.gjt.sp.jedit.{jEdit, GUIUtilities, OperatingSystem}
+import org.gjt.sp.jedit.{jEdit, OperatingSystem}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
@@ -26,75 +26,6 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 object Document_View
 {
-  /* physical rendering */
-
-  val outdated_color = new Color(240, 240, 240)
-  val unfinished_color = new Color(255, 228, 225)
-
-  val regular_color = new Color(192, 192, 192)
-  val warning_color = new Color(255, 168, 0)
-  val error_color = new Color(255, 80, 80)
-  val bad_color = new Color(255, 204, 153, 100)
-
-  val warning_icon = GUIUtilities.loadIcon("16x16/status/dialog-warning.png")
-  val error_icon = GUIUtilities.loadIcon("16x16/status/dialog-error.png")
-
-  def status_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
-  {
-    val state = snapshot.state(command)
-    if (snapshot.is_outdated) Some(outdated_color)
-    else
-      Isar_Document.command_status(state.status) match {
-        case Isar_Document.Forked(i) if i > 0 => Some(unfinished_color)
-        case Isar_Document.Unprocessed => Some(unfinished_color)
-        case _ => None
-      }
-  }
-
-  def overview_color(snapshot: Document.Snapshot, command: Command): Option[Color] =
-  {
-    val state = snapshot.state(command)
-    if (snapshot.is_outdated) None
-    else
-      Isar_Document.command_status(state.status) match {
-        case Isar_Document.Forked(i) if i > 0 => Some(unfinished_color)
-        case Isar_Document.Unprocessed => Some(unfinished_color)
-        case Isar_Document.Failed => Some(error_color)
-        case _ => None
-      }
-  }
-
-
-  /* markup selectors */
-
-  private val message_markup: PartialFunction[Text.Info[Any], Color] =
-  {
-    case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => regular_color
-    case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_color
-    case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
-  }
-
-  private val background_markup: PartialFunction[Text.Info[Any], Color] =
-  {
-    case Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _)) => bad_color
-  }
-
-  private val box_markup: PartialFunction[Text.Info[Any], Color] =
-  {
-    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => regular_color
-  }
-
-  private val tooltip_markup: PartialFunction[Text.Info[Any], String] =
-  {
-    case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
-      Pretty.string_of(List(Pretty.block(body)), margin = 40)
-    case Text.Info(_, XML.Elem(Markup(Markup.SORT, _), _)) => "sort"
-    case Text.Info(_, XML.Elem(Markup(Markup.TYP, _), _)) => "type"
-    case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"
-    case Text.Info(_, XML.Elem(Markup(Markup.PROP, _), _)) => "proposition"
-  }
-
-
   /* document view of text area */
 
   private val key = new Object
@@ -217,24 +148,17 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   /* subexpression highlighting */
 
-  private val subexp_include =
-    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING)
-
-  private def subexp_range(snapshot: Document.Snapshot, x: Int, y: Int): Option[Text.Range] =
+  private def subexp_range(snapshot: Document.Snapshot, x: Int, y: Int)
+    : Option[(Text.Range, Color)] =
   {
-    val subexp_markup: PartialFunction[Text.Info[Any], Text.Range] =
-    {
-      case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-        snapshot.convert(range)
-    }
     val offset = text_area.xyToOffset(x, y)
-    snapshot.select_markup(Text.Range(offset, offset + 1))(subexp_markup) match {
-      case Text.Info(_, r) #:: _ => r
+    snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.subexp) match {
+      case Text.Info(_, Some((range, color))) #:: _ => Some((snapshot.convert(range), color))
       case _ => None
     }
   }
 
-  private var highlight_range: Option[Text.Range] = None
+  private var highlight_range: Option[(Text.Range, Color)] = None
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent) { highlight_range = None }
@@ -246,10 +170,10 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       if (!model.buffer.isLoaded) highlight_range = None
       else
         Isabelle.swing_buffer_lock(model.buffer) {
-          highlight_range.map(invalidate_line_range(_))
+          highlight_range map { case (range, _) => invalidate_line_range(range) }
           highlight_range =
             if (control) subexp_range(model.snapshot(), e.getX(), e.getY()) else None
-          highlight_range.map(invalidate_line_range(_))
+          highlight_range map { case (range, _) => invalidate_line_range(range) }
         }
     }
   }
@@ -279,7 +203,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                 (command, command_start) <- cmds if !command.is_ignored
                 val range = line_range.restrict(snapshot.convert(command.range + command_start))
                 r <- Isabelle.gfx_range(text_area, range)
-                color <- Document_View.status_color(snapshot, command)
+                color <- Isabelle_Markup.status_color(snapshot, command)
               } {
                 gfx.setColor(color)
                 gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -288,29 +212,29 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               // background color: markup
               for {
                 Text.Info(range, Some(color)) <-
-                  snapshot.select_markup(line_range)(Document_View.background_markup).iterator
+                  snapshot.select_markup(line_range)(Isabelle_Markup.background).iterator
                 r <- Isabelle.gfx_range(text_area, range)
               } {
                 gfx.setColor(color)
                 gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
               }
 
-              // subexpression highlighting -- potentially from other snapshot
-              if (highlight_range.isDefined) {
-                if (line_range.overlaps(highlight_range.get)) {
-                  Isabelle.gfx_range(text_area, line_range.restrict(highlight_range.get)) match {
+              // sub-expression highlighting -- potentially from other snapshot
+              highlight_range match {
+                case Some((range, color)) if line_range.overlaps(range) =>
+                  Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
                     case None =>
                     case Some(r) =>
-                      gfx.setColor(Color.black)
+                      gfx.setColor(color)
                       gfx.drawRect(r.x, y + i * line_height, r.length, line_height - 1)
                   }
-                }
+                case _ =>
               }
 
               // boxed text
               for {
                 Text.Info(range, Some(color)) <-
-                  snapshot.select_markup(line_range)(Document_View.box_markup).iterator
+                  snapshot.select_markup(line_range)(Isabelle_Markup.box).iterator
                 r <- Isabelle.gfx_range(text_area, range)
               } {
                 gfx.setColor(color)
@@ -320,7 +244,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               // squiggly underline
               for {
                 Text.Info(range, Some(color)) <-
-                  snapshot.select_markup(line_range)(Document_View.message_markup).iterator
+                  snapshot.select_markup(line_range)(Isabelle_Markup.message).iterator
                 if color != null
                 r <- Isabelle.gfx_range(text_area, range)
               } {
@@ -344,7 +268,8 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
         val offset = text_area.xyToOffset(x, y)
-        snapshot.select_markup(Text.Range(offset, offset + 1))(Document_View.tooltip_markup) match {
+        snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.tooltip) match
+        {
           case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
           case _ => null
         }
@@ -378,9 +303,9 @@ class Document_View(val model: Document_Model, text_area: TextArea)
               val states = cmds.map(p => snapshot.state(p._1)).toStream
               val opt_icon =
                 if (states.exists(_.results.exists(p => Isar_Document.is_error(p._2))))
-                  Some(Document_View.error_icon)
+                  Some(Isabelle_Markup.error_icon)
                 else if (states.exists(_.results.exists(p => Isar_Document.is_warning(p._2))))
-                  Some(Document_View.warning_icon)
+                  Some(Isabelle_Markup.warning_icon)
                 else None
               opt_icon match {
                 case Some(icon) if icon.getIconWidth > 0 && icon.getIconHeight > 0 =>
@@ -465,7 +390,7 @@ class Document_View(val model: Document_Model, text_area: TextArea)
             val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
             val y = line_to_y(line1)
             val height = HEIGHT * (line2 - line1)
-            color <- Document_View.overview_color(snapshot, command)
+            color <- Isabelle_Markup.overview_color(snapshot, command)
           } {
             gfx.setColor(color)
             gfx.fillRect(0, y, getWidth - 1, height)

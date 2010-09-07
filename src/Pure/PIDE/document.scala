@@ -172,7 +172,7 @@ object Document
     def convert(range: Text.Range): Text.Range
     def revert(i: Text.Offset): Text.Offset
     def revert(range: Text.Range): Text.Range
-    def select_markup[A](range: Text.Range)(result: PartialFunction[Text.Info[Any], A])
+    def select_markup[A](range: Text.Range)(result: Markup_Tree.Select[A])
       : Stream[Text.Info[Option[A]]]
   }
 
@@ -310,7 +310,7 @@ object Document
         def revert(range: Text.Range): Text.Range =
           if (edits.isEmpty) range else range.map(revert(_))
 
-        def select_markup[A](range: Text.Range)(result: PartialFunction[Text.Info[Any], A])
+        def select_markup[A](range: Text.Range)(result: Markup_Tree.Select[A])
           : Stream[Text.Info[Option[A]]] =
         {
           val former_range = revert(range)

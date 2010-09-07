@@ -272,7 +272,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
           handler.handleToken(line_segment, style, offset, length, context)
 
         val syntax = session.current_syntax()
-        val token_markup: PartialFunction[Text.Info[Any], Byte] =
+        val token_markup: Markup_Tree.Select[Byte] =
         {
           case Text.Info(_, XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _))
           if syntax.keyword_kind(name).isDefined =>

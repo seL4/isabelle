@@ -43,6 +43,8 @@ object Markup_Tree
   }
 
   val empty = new Markup_Tree(Branches.empty)
+
+  type Select[A] = PartialFunction[Text.Info[Any], A]
 }
 
 
@@ -89,7 +91,7 @@ case class Markup_Tree(val branches: Markup_Tree.Branches.T)
   private def overlapping(range: Text.Range): Stream[(Text.Range, Branches.Entry)] =
     Branches.overlapping(range, branches).toStream
 
-  def select[A](root_range: Text.Range)(result: PartialFunction[Text.Info[Any], A])
+  def select[A](root_range: Text.Range)(result: Markup_Tree.Select[A])
     : Stream[Text.Info[Option[A]]] =
   {
     def stream(
