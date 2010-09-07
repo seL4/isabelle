@@ -51,7 +51,7 @@ code_datatype Set Coset
 lemma member_code [code]:
   "member (Set xs) = List.member xs"
   "member (Coset xs) = Not \<circ> List.member xs"
-  by (simp_all add: expand_fun_eq member_def fun_Compl_def bool_Compl_def)
+  by (simp_all add: ext_iff member_def fun_Compl_def bool_Compl_def)
 
 lemma member_image_UNIV [simp]:
   "member ` UNIV = UNIV"
@@ -252,13 +252,13 @@ proof -
   show "inf A (Set xs) = Set (List.filter (member A) xs)"
     by (simp add: inter project_def Set_def)
   have *: "\<And>x::'a. remove = (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member)"
-    by (simp add: expand_fun_eq)
+    by (simp add: ext_iff)
   have "member \<circ> fold (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member) xs =
     fold More_Set.remove xs \<circ> member"
-    by (rule fold_apply) (simp add: expand_fun_eq)
+    by (rule fold_apply) (simp add: ext_iff)
   then have "fold More_Set.remove xs (member A) = 
     member (fold (\<lambda>x. Fset \<circ> More_Set.remove x \<circ> member) xs A)"
-    by (simp add: expand_fun_eq)
+    by (simp add: ext_iff)
   then have "inf A (Coset xs) = fold remove xs A"
     by (simp add: Diff_eq [symmetric] minus_set *)
   moreover have "\<And>x y :: 'a. Fset.remove y \<circ> Fset.remove x = Fset.remove x \<circ> Fset.remove y"
@@ -277,13 +277,13 @@ lemma union_insert [code]:
   "sup (Coset xs) A = Coset (List.filter (Not \<circ> member A) xs)"
 proof -
   have *: "\<And>x::'a. insert = (\<lambda>x. Fset \<circ> Set.insert x \<circ> member)"
-    by (simp add: expand_fun_eq)
+    by (simp add: ext_iff)
   have "member \<circ> fold (\<lambda>x. Fset \<circ> Set.insert x \<circ> member) xs =
     fold Set.insert xs \<circ> member"
-    by (rule fold_apply) (simp add: expand_fun_eq)
+    by (rule fold_apply) (simp add: ext_iff)
   then have "fold Set.insert xs (member A) =
     member (fold (\<lambda>x. Fset \<circ> Set.insert x \<circ> member) xs A)"
-    by (simp add: expand_fun_eq)
+    by (simp add: ext_iff)
   then have "sup (Set xs) A = fold insert xs A"
     by (simp add: union_set *)
   moreover have "\<And>x y :: 'a. Fset.insert y \<circ> Fset.insert x = Fset.insert x \<circ> Fset.insert y"

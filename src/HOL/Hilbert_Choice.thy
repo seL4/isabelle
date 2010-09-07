@@ -138,7 +138,7 @@ proof -
 qed
 
 lemma inj_iff: "(inj f) = (inv f o f = id)"
-apply (simp add: o_def expand_fun_eq)
+apply (simp add: o_def ext_iff)
 apply (blast intro: inj_on_inverseI inv_into_f_f)
 done
 
@@ -178,7 +178,7 @@ lemma surj_imp_inj_inv: "surj f ==> inj (inv f)"
 by (simp add: inj_on_inv_into surj_range)
 
 lemma surj_iff: "(surj f) = (f o inv f = id)"
-apply (simp add: o_def expand_fun_eq)
+apply (simp add: o_def ext_iff)
 apply (blast intro: surjI surj_f_inv_f)
 done
 

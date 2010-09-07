@@ -1106,7 +1106,7 @@ proof -
     by (rule positive_integral_isoton)
        (auto intro!: borel_measurable_pinfreal_setsum assms positive_integral_mono
                      arg_cong[where f=Sup]
-             simp: isoton_def le_fun_def psuminf_def expand_fun_eq SUPR_def Sup_fun_def)
+             simp: isoton_def le_fun_def psuminf_def ext_iff SUPR_def Sup_fun_def)
   thus ?thesis
     by (auto simp: isoton_def psuminf_def positive_integral_setsum[OF assms])
 qed
@@ -1365,7 +1365,7 @@ proof -
     then have *: "(\<lambda>x. g x * indicator A x) = g"
       "\<And>x. g x * indicator A x = g x"
       "\<And>x. g x \<le> f x"
-      by (auto simp: le_fun_def expand_fun_eq indicator_def split: split_if_asm)
+      by (auto simp: le_fun_def ext_iff indicator_def split: split_if_asm)
     from g show "\<exists>x. simple_function (\<lambda>xa. x xa * indicator A xa) \<and> x \<le> f \<and> (\<forall>xa\<in>A. \<omega> \<noteq> x xa) \<and>
       simple_integral g = simple_integral (\<lambda>xa. x xa * indicator A xa)"
       using `A \<in> sets M`[THEN sets_into_space]

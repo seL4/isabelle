@@ -170,7 +170,7 @@ lemma transfer_nat_int_set_relations:
   apply (rule iffI)
   apply (erule finite_imageI)
   apply (erule finite_imageD)
-  apply (auto simp add: image_def expand_set_eq inj_on_def)
+  apply (auto simp add: image_def set_ext_iff inj_on_def)
   apply (drule_tac x = "int x" in spec, auto)
   apply (drule_tac x = "int x" in spec, auto)
   apply (drule_tac x = "int x" in spec, auto)

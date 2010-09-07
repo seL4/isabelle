@@ -98,7 +98,7 @@ lemma not_present_alloc [simp]:
 
 lemma set_set_swap:
   "r =!= r' \<Longrightarrow> set r x (set r' x' h) = set r' x' (set r x h)"
-  by (simp add: noteq_def set_def expand_fun_eq)
+  by (simp add: noteq_def set_def ext_iff)
 
 lemma alloc_set:
   "fst (alloc x (set r x' h)) = fst (alloc x h)"
@@ -126,7 +126,7 @@ lemma present_alloc [simp]:
 
 lemma present_set [simp]:
   "present (set r v h) = present h"
-  by (simp add: present_def expand_fun_eq)
+  by (simp add: present_def ext_iff)
 
 lemma noteq_I:
   "present h r \<Longrightarrow> \<not> present h r' \<Longrightarrow> r =!= r'"
@@ -220,7 +220,7 @@ text {* Non-interaction between imperative array and imperative references *}
 
 lemma array_get_set [simp]:
   "Array.get (set r v h) = Array.get h"
-  by (simp add: Array.get_def set_def expand_fun_eq)
+  by (simp add: Array.get_def set_def ext_iff)
 
 lemma get_update [simp]:
   "get (Array.update a i v h) r = get h r"
@@ -240,15 +240,15 @@ lemma length_alloc [simp]:
 
 lemma array_get_alloc [simp]: 
   "Array.get (snd (alloc v h)) = Array.get h"
-  by (simp add: Array.get_def alloc_def set_def Let_def expand_fun_eq)
+  by (simp add: Array.get_def alloc_def set_def Let_def ext_iff)
 
 lemma present_update [simp]: 
   "present (Array.update a i v h) = present h"
-  by (simp add: Array.update_def Array.set_def expand_fun_eq present_def)
+  by (simp add: Array.update_def Array.set_def ext_iff present_def)
 
 lemma array_present_set [simp]:
   "Array.present (set r v h) = Array.present h"
-  by (simp add: Array.present_def set_def expand_fun_eq)
+  by (simp add: Array.present_def set_def ext_iff)
 
 lemma array_present_alloc [simp]:
   "Array.present h a \<Longrightarrow> Array.present (snd (alloc v h)) a"

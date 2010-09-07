@@ -446,7 +446,7 @@ apply (rule finite_subset [where B="Pow {x. approx n\<cdot>x = x}"])
 apply (clarify, simp add: fd_take_fixed_iff)
 apply (simp add: finite_fixes_approx)
 apply (rule inj_onI, clarify)
-apply (simp add: expand_set_eq fin_defl_eqI)
+apply (simp add: set_ext_iff fin_defl_eqI)
 done
 
 lemma fd_take_covers: "\<exists>n. fd_take n a = a"

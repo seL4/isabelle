@@ -24,7 +24,7 @@ definition \<Delta> :: "(int \<Rightarrow> 'a\<Colon>ab_group_add) \<Rightarrow>
 
 lemma \<Delta>_shift:
   "\<Delta> (\<lambda>k. l + f k) = \<Delta> f"
-  by (simp add: \<Delta>_def expand_fun_eq)
+  by (simp add: \<Delta>_def ext_iff)
 
 lemma \<Delta>_same_shift:
   assumes "\<Delta> f = \<Delta> g"
@@ -100,7 +100,7 @@ lemma \<Sigma>_\<Delta>:
 proof -
   from \<Delta>_\<Sigma> have "\<Delta> (\<Sigma> (\<Delta> f) j) = \<Delta> f" .
   then obtain k where "plus k \<circ> \<Sigma> (\<Delta> f) j = f" by (blast dest: \<Delta>_same_shift)
-  then have "\<And>q. f q = k + \<Sigma> (\<Delta> f) j q" by (simp add: expand_fun_eq)
+  then have "\<And>q. f q = k + \<Sigma> (\<Delta> f) j q" by (simp add: ext_iff)
   then show ?thesis by simp
 qed
 

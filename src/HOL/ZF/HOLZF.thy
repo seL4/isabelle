@@ -155,7 +155,7 @@ lemma Elem_explode_in: "\<lbrakk> Elem a A; explode A \<subseteq> B\<rbrakk> \<L
   by (auto simp add: explode_def)
 
 lemma explode_CartProd_eq: "explode (CartProd a b) = (% (x,y). Opair x y) ` ((explode a) \<times> (explode b))"
-  by (simp add: explode_def expand_set_eq CartProd image_def)
+  by (simp add: explode_def set_ext_iff CartProd image_def)
 
 lemma explode_Repl_eq: "explode (Repl A f) = image f (explode A)"
   by (simp add: explode_def Repl image_def)

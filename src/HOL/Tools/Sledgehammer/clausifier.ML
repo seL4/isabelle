@@ -78,7 +78,7 @@ fun assume_skolem_funs th =
 
 (**** REPLACING ABSTRACTIONS BY COMBINATORS ****)
 
-val fun_cong_all = @{thm expand_fun_eq [THEN iffD1]}
+val fun_cong_all = @{thm ext_iff [THEN iffD1]}
 
 (* Removes the lambdas from an equation of the form "t = (%x. u)".
    (Cf. "extensionalize_term" in "Sledgehammer_Translate".) *)

@@ -128,7 +128,7 @@ by (simp add: Pi_def compose_def restrict_def)
 lemma compose_assoc:
     "[| f \<in> A -> B; g \<in> B -> C; h \<in> C -> D |]
       ==> compose A h (compose A g f) = compose A (compose B h g) f"
-by (simp add: expand_fun_eq Pi_def compose_def restrict_def)
+by (simp add: ext_iff Pi_def compose_def restrict_def)
 
 lemma compose_eq: "x \<in> A ==> compose A g f x = g(f(x))"
 by (simp add: compose_def restrict_def)
@@ -151,18 +151,18 @@ lemma restrict_apply [simp]:
 
 lemma restrict_ext:
     "(!!x. x \<in> A ==> f x = g x) ==> (\<lambda>x\<in>A. f x) = (\<lambda>x\<in>A. g x)"
-  by (simp add: expand_fun_eq Pi_def restrict_def)
+  by (simp add: ext_iff Pi_def restrict_def)
 
 lemma inj_on_restrict_eq [simp]: "inj_on (restrict f A) A = inj_on f A"
   by (simp add: inj_on_def restrict_def)
 
 lemma Id_compose:
     "[|f \<in> A -> B;  f \<in> extensional A|] ==> compose A (\<lambda>y\<in>B. y) f = f"
-  by (auto simp add: expand_fun_eq compose_def extensional_def Pi_def)
+  by (auto simp add: ext_iff compose_def extensional_def Pi_def)
 
 lemma compose_Id:
     "[|g \<in> A -> B;  g \<in> extensional A|] ==> compose A g (\<lambda>x\<in>A. x) = g"
-  by (auto simp add: expand_fun_eq compose_def extensional_def Pi_def)
+  by (auto simp add: ext_iff compose_def extensional_def Pi_def)
 
 lemma image_restrict_eq [simp]: "(restrict f A) ` A = f ` A"
   by (auto simp add: restrict_def)
@@ -205,7 +205,7 @@ by (simp add: compose_def)
 lemma extensionalityI:
   "[| f \<in> extensional A; g \<in> extensional A;
       !!x. x\<in>A ==> f x = g x |] ==> f = g"
-by (force simp add: expand_fun_eq extensional_def)
+by (force simp add: ext_iff extensional_def)
 
 lemma inv_into_funcset: "f ` A = B ==> (\<lambda>x\<in>B. inv_into A f x) : B -> A"
 by (unfold inv_into_def) (fast intro: someI2)

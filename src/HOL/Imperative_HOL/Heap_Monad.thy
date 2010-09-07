@@ -31,7 +31,7 @@ lemma Heap_execute [simp]:
 
 lemma Heap_eqI:
   "(\<And>h. execute f h = execute g h) \<Longrightarrow> f = g"
-    by (cases f, cases g) (auto simp: expand_fun_eq)
+    by (cases f, cases g) (auto simp: ext_iff)
 
 ML {* structure Execute_Simps = Named_Thms(
   val name = "execute_simps"

@@ -74,7 +74,7 @@ lemma sum_Inl_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(Rep1 ---> sum_map Abs1 Abs2) Inl = Inl"
-  apply(simp add: expand_fun_eq)
+  apply(simp add: ext_iff)
   apply(simp add: Quotient_abs_rep[OF q1])
   done
 
@@ -82,16 +82,16 @@ lemma sum_Inr_prs[quot_preserve]:
   assumes q1: "Quotient R1 Abs1 Rep1"
   assumes q2: "Quotient R2 Abs2 Rep2"
   shows "(Rep2 ---> sum_map Abs1 Abs2) Inr = Inr"
-  apply(simp add: expand_fun_eq)
+  apply(simp add: ext_iff)
   apply(simp add: Quotient_abs_rep[OF q2])
   done
 
 lemma sum_map_id[id_simps]:
   shows "sum_map id id = id"
-  by (simp add: expand_fun_eq split_sum_all)
+  by (simp add: ext_iff split_sum_all)
 
 lemma sum_rel_eq[id_simps]:
   shows "sum_rel (op =) (op =) = (op =)"
-  by (simp add: expand_fun_eq split_sum_all)
+  by (simp add: ext_iff split_sum_all)
 
 end

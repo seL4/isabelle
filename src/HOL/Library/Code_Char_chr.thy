@@ -13,14 +13,14 @@ definition
 
 lemma [code]:
   "nat_of_char = nat o int_of_char"
-  unfolding int_of_char_def by (simp add: expand_fun_eq)
+  unfolding int_of_char_def by (simp add: ext_iff)
 
 definition
   "char_of_int = char_of_nat o nat"
 
 lemma [code]:
   "char_of_nat = char_of_int o int"
-  unfolding char_of_int_def by (simp add: expand_fun_eq)
+  unfolding char_of_int_def by (simp add: ext_iff)
 
 code_const int_of_char and char_of_int
   (SML "!(IntInf.fromInt o Char.ord)" and "!(Char.chr o IntInf.toInt)")

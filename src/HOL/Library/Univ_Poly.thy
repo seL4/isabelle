@@ -382,7 +382,7 @@ qed
 lemma (in idom_char_0) poly_entire:
   "poly (p *** q) = poly [] \<longleftrightarrow> poly p = poly [] \<or> poly q = poly []"
 using poly_entire_lemma2[of p q]
-by (auto simp add: expand_fun_eq poly_mult)
+by (auto simp add: ext_iff poly_mult)
 
 lemma (in idom_char_0) poly_entire_neg: "(poly (p *** q) \<noteq> poly []) = ((poly p \<noteq> poly []) & (poly q \<noteq> poly []))"
 by (simp add: poly_entire)
@@ -847,14 +847,14 @@ proof
   assume eq: ?lhs
   hence "\<And>x. poly ((c#cs) +++ -- (d#ds)) x = 0"
     by (simp only: poly_minus poly_add algebra_simps) simp
-  hence "poly ((c#cs) +++ -- (d#ds)) = poly []" by(simp add:expand_fun_eq)
+  hence "poly ((c#cs) +++ -- (d#ds)) = poly []" by(simp add: ext_iff)
   hence "c = d \<and> list_all (\<lambda>x. x=0) ((cs +++ -- ds))"
     unfolding poly_zero by (simp add: poly_minus_def algebra_simps)
   hence "c = d \<and> (\<forall>x. poly (cs +++ -- ds) x = 0)"
     unfolding poly_zero[symmetric] by simp
-  thus ?rhs  by (simp add: poly_minus poly_add algebra_simps expand_fun_eq)
+  thus ?rhs  by (simp add: poly_minus poly_add algebra_simps ext_iff)
 next
-  assume ?rhs then show ?lhs by(simp add:expand_fun_eq)
+  assume ?rhs then show ?lhs by(simp add:ext_iff)
 qed
 
 lemma (in idom_char_0) pnormalize_unique: "poly p = poly q \<Longrightarrow> pnormalize p = pnormalize q"

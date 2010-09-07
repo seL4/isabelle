@@ -72,7 +72,7 @@ lemma pred_equals_eq: "((\<lambda>x. x \<in> R) = (\<lambda>x. x \<in> S)) = (R 
   by (simp add: mem_def)
 
 lemma pred_equals_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) = (\<lambda>x y. (x, y) \<in> S)) = (R = S)"
-  by (simp add: expand_fun_eq mem_def)
+  by (simp add: ext_iff mem_def)
 
 
 subsubsection {* Order relation *}
@@ -99,10 +99,10 @@ lemma bot2E [elim!]: "bot x y \<Longrightarrow> P"
   by (simp add: bot_fun_eq bot_bool_eq)
 
 lemma bot_empty_eq: "bot = (\<lambda>x. x \<in> {})"
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 lemma bot_empty_eq2: "bot = (\<lambda>x y. (x, y) \<in> {})"
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 
 subsubsection {* Binary union *}
@@ -197,10 +197,10 @@ lemma SUP2_E [elim!]: "(SUP x:A. B x) b c ==> (!!x. x : A ==> B x b c ==> R) ==>
   by (auto simp add: SUP2_iff)
 
 lemma SUP_UN_eq: "(SUP i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (UN i. r i))"
-  by (simp add: SUP1_iff expand_fun_eq)
+  by (simp add: SUP1_iff ext_iff)
 
 lemma SUP_UN_eq2: "(SUP i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (UN i. r i))"
-  by (simp add: SUP2_iff expand_fun_eq)
+  by (simp add: SUP2_iff ext_iff)
 
 
 subsubsection {* Intersections of families *}
@@ -230,10 +230,10 @@ lemma INF2_E [elim]: "(INF x:A. B x) b c ==> (B a b c ==> R) ==> (a ~: A ==> R) 
   by (auto simp add: INF2_iff)
 
 lemma INF_INT_eq: "(INF i. (\<lambda>x. x \<in> r i)) = (\<lambda>x. x \<in> (INT i. r i))"
-  by (simp add: INF1_iff expand_fun_eq)
+  by (simp add: INF1_iff ext_iff)
 
 lemma INF_INT_eq2: "(INF i. (\<lambda>x y. (x, y) \<in> r i)) = (\<lambda>x y. (x, y) \<in> (INT i. r i))"
-  by (simp add: INF2_iff expand_fun_eq)
+  by (simp add: INF2_iff ext_iff)
 
 
 subsection {* Predicates as relations *}
@@ -251,7 +251,7 @@ inductive_cases pred_compE [elim!]: "(r OO s) a c"
 
 lemma pred_comp_rel_comp_eq [pred_set_conv]:
   "((\<lambda>x y. (x, y) \<in> r) OO (\<lambda>x y. (x, y) \<in> s)) = (\<lambda>x y. (x, y) \<in> r O s)"
-  by (auto simp add: expand_fun_eq elim: pred_compE)
+  by (auto simp add: ext_iff elim: pred_compE)
 
 
 subsubsection {* Converse *}
@@ -276,7 +276,7 @@ lemma conversep_iff [iff]: "r^--1 a b = r b a"
 
 lemma conversep_converse_eq [pred_set_conv]:
   "(\<lambda>x y. (x, y) \<in> r)^--1 = (\<lambda>x y. (x, y) \<in> r^-1)"
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 lemma conversep_conversep [simp]: "(r^--1)^--1 = r"
   by (iprover intro: order_antisym conversepI dest: conversepD)
@@ -294,10 +294,10 @@ lemma converse_join: "(sup r s)^--1 = sup r^--1 s^--1"
     (iprover intro: conversepI ext dest: conversepD)
 
 lemma conversep_noteq [simp]: "(op ~=)^--1 = op ~="
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 lemma conversep_eq [simp]: "(op =)^--1 = op ="
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 
 subsubsection {* Domain *}
@@ -347,7 +347,7 @@ definition Powp :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> b
   "Powp A == \<lambda>B. \<forall>x \<in> B. A x"
 
 lemma Powp_Pow_eq [pred_set_conv]: "Powp (\<lambda>x. x \<in> A) = (\<lambda>x. x \<in> Pow A)"
-  by (auto simp add: Powp_def expand_fun_eq)
+  by (auto simp add: Powp_def ext_iff)
 
 lemmas Powp_mono [mono] = Pow_mono [to_pred pred_subset_eq]
 
@@ -430,7 +430,7 @@ end
 
 lemma bind_bind:
   "(P \<guillemotright>= Q) \<guillemotright>= R = P \<guillemotright>= (\<lambda>x. Q x \<guillemotright>= R)"
-  by (auto simp add: bind_def expand_fun_eq)
+  by (auto simp add: bind_def ext_iff)
 
 lemma bind_single:
   "P \<guillemotright>= single = P"
@@ -442,14 +442,14 @@ lemma single_bind:
 
 lemma bottom_bind:
   "\<bottom> \<guillemotright>= P = \<bottom>"
-  by (auto simp add: bot_pred_def bind_def expand_fun_eq)
+  by (auto simp add: bot_pred_def bind_def ext_iff)
 
 lemma sup_bind:
   "(P \<squnion> Q) \<guillemotright>= R = P \<guillemotright>= R \<squnion> Q \<guillemotright>= R"
-  by (auto simp add: bind_def sup_pred_def expand_fun_eq)
+  by (auto simp add: bind_def sup_pred_def ext_iff)
 
 lemma Sup_bind: "(\<Squnion>A \<guillemotright>= f) = \<Squnion>((\<lambda>x. x \<guillemotright>= f) ` A)"
-  by (auto simp add: bind_def Sup_pred_def SUP1_iff expand_fun_eq)
+  by (auto simp add: bind_def Sup_pred_def SUP1_iff ext_iff)
 
 lemma pred_iffI:
   assumes "\<And>x. eval A x \<Longrightarrow> eval B x"
@@ -457,7 +457,7 @@ lemma pred_iffI:
   shows "A = B"
 proof -
   from assms have "\<And>x. eval A x \<longleftrightarrow> eval B x" by blast
-  then show ?thesis by (cases A, cases B) (simp add: expand_fun_eq)
+  then show ?thesis by (cases A, cases B) (simp add: ext_iff)
 qed
   
 lemma singleI: "eval (single x) x"
@@ -492,7 +492,7 @@ lemma supE: "eval (A \<squnion> B) x \<Longrightarrow> (eval A x \<Longrightarro
 
 lemma single_not_bot [simp]:
   "single x \<noteq> \<bottom>"
-  by (auto simp add: single_def bot_pred_def expand_fun_eq)
+  by (auto simp add: single_def bot_pred_def ext_iff)
 
 lemma not_bot:
   assumes "A \<noteq> \<bottom>"
@@ -512,7 +512,7 @@ lemma is_empty_bot:
 
 lemma not_is_empty_single:
   "\<not> is_empty (single x)"
-  by (auto simp add: is_empty_def single_def bot_pred_def expand_fun_eq)
+  by (auto simp add: is_empty_def single_def bot_pred_def ext_iff)
 
 lemma is_empty_sup:
   "is_empty (A \<squnion> B) \<longleftrightarrow> is_empty A \<and> is_empty B"
@@ -543,7 +543,7 @@ proof -
   moreover from assm have "\<And>x. eval A x \<Longrightarrow> singleton dfault A = x"
     by (rule singleton_eqI)
   ultimately have "eval (single (singleton dfault A)) = eval A"
-    by (simp (no_asm_use) add: single_def expand_fun_eq) blast
+    by (simp (no_asm_use) add: single_def ext_iff) blast
   then show ?thesis by (simp add: eval_inject)
 qed
 
@@ -714,13 +714,13 @@ lemma eval_member:
   "member xq = eval (pred_of_seq xq)"
 proof (induct xq)
   case Empty show ?case
-  by (auto simp add: expand_fun_eq elim: botE)
+  by (auto simp add: ext_iff elim: botE)
 next
   case Insert show ?case
-  by (auto simp add: expand_fun_eq elim: supE singleE intro: supI1 supI2 singleI)
+  by (auto simp add: ext_iff elim: supE singleE intro: supI1 supI2 singleI)
 next
   case Join then show ?case
-  by (auto simp add: expand_fun_eq elim: supE intro: supI1 supI2)
+  by (auto simp add: ext_iff elim: supE intro: supI1 supI2)
 qed
 
 lemma eval_code [code]: "eval (Seq f) = member (f ())"

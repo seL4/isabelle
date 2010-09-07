@@ -110,7 +110,7 @@ fun my_int_rel where
 "my_int_rel (x, y) (u, v) = (x + v = u + y)"
 
 quotient_type my_int = "nat \<times> nat" / my_int_rel
-by (auto simp add: equivp_def expand_fun_eq)
+by (auto simp add: equivp_def ext_iff)
 
 definition add_raw where
 "add_raw \<equiv> \<lambda>(x, y) (u, v). (x + (u\<Colon>nat), y + (v\<Colon>nat))"

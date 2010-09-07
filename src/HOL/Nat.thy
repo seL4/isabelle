@@ -1360,7 +1360,7 @@ lemma of_nat_id [simp]: "of_nat n = n"
   by (induct n) simp_all
 
 lemma of_nat_eq_id [simp]: "of_nat = id"
-  by (auto simp add: expand_fun_eq)
+  by (auto simp add: ext_iff)
 
 
 subsection {* The Set of Natural Numbers *}

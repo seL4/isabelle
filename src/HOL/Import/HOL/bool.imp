@@ -124,7 +124,7 @@ thm_maps
   "IMP_ANTISYM_AX" > "HOL4Setup.light_imp_as"
   "F_IMP" > "HOL4Base.bool.F_IMP"
   "F_DEF" > "HOL.False_def"
-  "FUN_EQ_THM" > "Fun.expand_fun_eq"
+  "FUN_EQ_THM" > "Fun.ext_iff"
   "FORALL_THM" > "HOL4Base.bool.FORALL_THM"
   "FORALL_SIMP" > "HOL.simp_thms_35"
   "FORALL_DEF" > "HOL.All_def"

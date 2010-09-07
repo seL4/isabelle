@@ -1019,7 +1019,7 @@ unfolding is_rbt_def by (simp add: map_entry_inv2 map_entry_color_of map_entry_s
 
 theorem lookup_map_entry:
   "lookup (map_entry k f t) = (lookup t)(k := Option.map f (lookup t k))"
-  by (induct t) (auto split: option.splits simp add: expand_fun_eq)
+  by (induct t) (auto split: option.splits simp add: ext_iff)
 
 
 subsection {* Mapping all entries *}
@@ -1054,7 +1054,7 @@ definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Ri
 lemma fold_simps [simp, code]:
   "fold f Empty = id"
   "fold f (Branch c lt k v rt) = fold f rt \<circ> f k v \<circ> fold f lt"
-  by (simp_all add: fold_def expand_fun_eq)
+  by (simp_all add: fold_def ext_iff)
 
 
 subsection {* Bulkloading a tree *}

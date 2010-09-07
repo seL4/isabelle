@@ -725,7 +725,7 @@ lemma ksimplex_replace_2:
 	    hence "a_max = a'" using a' min_max by auto
 	    thus False unfolding True using min_max by auto qed qed
 	hence "\<forall>i. a_max i = a1 i" by auto
-	hence "a' = a" unfolding True `a=a0` apply-apply(subst expand_fun_eq,rule)
+	hence "a' = a" unfolding True `a=a0` apply-apply(subst ext_iff,rule)
 	  apply(erule_tac x=x in allE) unfolding a0a1(5)[rule_format] min_max(5)[rule_format]
 	proof- case goal1 thus ?case apply(cases "x\<in>{1..n}") by auto qed
 	hence "s' = s" apply-apply(rule lem1[OF a'(2)]) using `a\<in>s` `a'\<in>s'` by auto
@@ -738,7 +738,7 @@ lemma ksimplex_replace_2:
 	  have "a2 \<noteq> a" unfolding `a=a0` using k(2)[rule_format,of k] by auto
 	  hence "a2 \<in> s - {a}" using a2 by auto thus "a2 \<in> s'" unfolding a'(2)[THEN sym] by auto qed
 	hence "\<forall>i. a_min i = a2 i" by auto
-	hence "a' = a3" unfolding as `a=a0` apply-apply(subst expand_fun_eq,rule)
+	hence "a' = a3" unfolding as `a=a0` apply-apply(subst ext_iff,rule)
 	  apply(erule_tac x=x in allE) unfolding a0a1(5)[rule_format] min_max(5)[rule_format]
 	  unfolding a3_def k(2)[rule_format] unfolding a0a1(5)[rule_format] proof- case goal1
 	  show ?case unfolding goal1 apply(cases "x\<in>{1..n}") defer apply(cases "x=k")
@@ -834,7 +834,7 @@ lemma ksimplex_replace_2:
 	proof- case goal1 thus ?case apply(cases "j\<in>{1..n}",case_tac[!] "j=k") by auto qed
 	have "\<forall>i. a_min i = a3 i" using a_max apply-apply(rule,erule_tac x=i in allE)
 	  unfolding min_max(5)[rule_format] *[rule_format] proof- case goal1
-	  thus ?case apply(cases "i\<in>{1..n}") by auto qed hence "a_min = a3" unfolding expand_fun_eq .
+	  thus ?case apply(cases "i\<in>{1..n}") by auto qed hence "a_min = a3" unfolding ext_iff .
 	hence "s' = insert a3 (s - {a1})" using a' unfolding `a=a1` True by auto thus ?thesis by auto next
 	case False hence as:"a'=a_max" using ** by auto
 	have "a_min = a0" unfolding kle_antisym[THEN sym,of _ _ n] apply(rule)
@@ -843,7 +843,7 @@ lemma ksimplex_replace_2:
 	  thus "a_min \<in> s" by auto have "a0 \<in> s - {a1}" using a0a1(1-3) by auto thus "a0 \<in> s'"
 	    unfolding a'(2)[THEN sym,unfolded `a=a1`] by auto qed
 	hence "\<forall>i. a_max i = a1 i" unfolding a0a1(5)[rule_format] min_max(5)[rule_format] by auto
-	hence "s' = s" apply-apply(rule lem1[OF a'(2)]) using `a\<in>s` `a'\<in>s'` unfolding as `a=a1` unfolding expand_fun_eq by auto
+	hence "s' = s" apply-apply(rule lem1[OF a'(2)]) using `a\<in>s` `a'\<in>s'` unfolding as `a=a1` unfolding ext_iff by auto
 	thus ?thesis by auto qed qed 
     ultimately have *:"?A = {s, insert a3 (s - {a1})}" by blast
     have "s \<noteq> insert a3 (s - {a1})" using `a3\<notin>s` by auto
@@ -863,7 +863,7 @@ lemma ksimplex_replace_2:
       thus False using ksimplexD(6)[OF assms(1),rule_format,OF u v] unfolding kle_def
 	unfolding l(2) k(2) `k=l` apply-apply(erule disjE)apply(erule_tac[!] exE conjE)+
 	apply(erule_tac[!] x=l in allE)+ by(auto simp add: *) qed
-    hence aa':"a'\<noteq>a" apply-apply rule unfolding expand_fun_eq unfolding a'_def k(2)
+    hence aa':"a'\<noteq>a" apply-apply rule unfolding ext_iff unfolding a'_def k(2)
       apply(erule_tac x=l in allE) by auto
     have "a' \<notin> s" apply(rule) apply(drule ksimplexD(6)[OF assms(1),rule_format,OF `a\<in>s`]) proof(cases "kle n a a'")
       case goal2 hence "kle n a' a" by auto thus False apply(drule_tac kle_imp_pointwise)
@@ -877,22 +877,22 @@ lemma ksimplex_replace_2:
     have uxv:"\<And>x. kle n u x \<Longrightarrow> kle n x v \<Longrightarrow> (x = u) \<or> (x = a) \<or> (x = a') \<or> (x = v)"
     proof- case goal1 thus ?case proof(cases "x k = u k", case_tac[!] "x l = u l")
       assume as:"x l = u l" "x k = u k"
-      have "x = u" unfolding expand_fun_eq
+      have "x = u" unfolding ext_iff
 	using goal1(2)[THEN kle_imp_pointwise,unfolded l(2)] unfolding k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as by auto qed thus ?case by auto next
       assume as:"x l \<noteq> u l" "x k = u k"
-      have "x = a'" unfolding expand_fun_eq unfolding a'_def
+      have "x = a'" unfolding ext_iff unfolding a'_def
 	using goal1(2)[THEN kle_imp_pointwise] unfolding l(2) k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as by auto qed thus ?case by auto next
       assume as:"x l = u l" "x k \<noteq> u k"
-      have "x = a" unfolding expand_fun_eq
+      have "x = a" unfolding ext_iff
 	using goal1(2)[THEN kle_imp_pointwise] unfolding l(2) k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as by auto qed thus ?case by auto next
       assume as:"x l \<noteq> u l" "x k \<noteq> u k"
-      have "x = v" unfolding expand_fun_eq
+      have "x = v" unfolding ext_iff
 	using goal1(2)[THEN kle_imp_pointwise] unfolding l(2) k(2) apply-
 	using goal1(1)[THEN kle_imp_pointwise] apply-apply rule apply(erule_tac x=xa in allE)+ proof- case goal1
 	thus ?case apply(cases "x=l") apply(case_tac[!] "x=k") using as `k\<noteq>l` by auto qed thus ?case by auto qed qed
@@ -935,9 +935,9 @@ lemma ksimplex_replace_2:
     moreover have "?A \<subseteq> {s, insert a' (s - {a})}" apply(rule) unfolding mem_Collect_eq proof(erule conjE)
       fix s' assume as:"ksimplex p n s'" and "\<exists>b\<in>s'. s' - {b} = s - {a}"
       from this(2) guess a'' .. note a''=this
-      have "u\<noteq>v" unfolding expand_fun_eq unfolding l(2) k(2) by auto
+      have "u\<noteq>v" unfolding ext_iff unfolding l(2) k(2) by auto
       hence uv':"\<not> kle n v u" using uv using kle_antisym by auto
-      have "u\<noteq>a" "v\<noteq>a" unfolding expand_fun_eq k(2) l(2) by auto 
+      have "u\<noteq>a" "v\<noteq>a" unfolding ext_iff k(2) l(2) by auto 
       hence uvs':"u\<in>s'" "v\<in>s'" using `u\<in>s` `v\<in>s` using a'' by auto
       have lem6:"a \<in> s' \<or> a' \<in> s'" proof(cases "\<forall>x\<in>s'. kle n x u \<or> kle n v x")
 	case False then guess w unfolding ball_simps .. note w=this

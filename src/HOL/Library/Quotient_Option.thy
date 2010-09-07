@@ -66,16 +66,16 @@ lemma option_None_prs[quot_preserve]:
 lemma option_Some_prs[quot_preserve]:
   assumes q: "Quotient R Abs Rep"
   shows "(Rep ---> Option.map Abs) Some = Some"
-  apply(simp add: expand_fun_eq)
+  apply(simp add: ext_iff)
   apply(simp add: Quotient_abs_rep[OF q])
   done
 
 lemma option_map_id[id_simps]:
   shows "Option.map id = id"
-  by (simp add: expand_fun_eq split_option_all)
+  by (simp add: ext_iff split_option_all)
 
 lemma option_rel_eq[id_simps]:
   shows "option_rel (op =) = (op =)"
-  by (simp add: expand_fun_eq split_option_all)
+  by (simp add: ext_iff split_option_all)
 
 end

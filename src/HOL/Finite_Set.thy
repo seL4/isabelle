@@ -541,7 +541,7 @@ instance option :: (finite) finite proof
 qed (simp add: UNIV_option_conv)
 
 lemma inj_graph: "inj (%f. {(x, y). y = f x})"
-  by (rule inj_onI, auto simp add: expand_set_eq expand_fun_eq)
+  by (rule inj_onI, auto simp add: set_ext_iff ext_iff)
 
 instance "fun" :: (finite, finite) finite
 proof
@@ -576,7 +576,7 @@ begin
 text{* On a functional level it looks much nicer: *}
 
 lemma fun_comp_comm:  "f x \<circ> f y = f y \<circ> f x"
-by (simp add: fun_left_comm expand_fun_eq)
+by (simp add: fun_left_comm ext_iff)
 
 end
 
@@ -720,7 +720,7 @@ begin
 
 text{* The nice version: *}
 lemma fun_comp_idem : "f x o f x = f x"
-by (simp add: fun_left_idem expand_fun_eq)
+by (simp add: fun_left_idem ext_iff)
 
 lemma fold_insert_idem:
   assumes fin: "finite A"
@@ -1363,17 +1363,17 @@ begin
 
 lemma empty [simp]:
   "F {} = id"
-  by (simp add: eq_fold expand_fun_eq)
+  by (simp add: eq_fold ext_iff)
 
 lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "F (insert x A) = F A \<circ> f x"
 proof -
   interpret fun_left_comm f proof
-  qed (insert commute_comp, simp add: expand_fun_eq)
+  qed (insert commute_comp, simp add: ext_iff)
   from fold_insert2 assms
   have "\<And>s. fold f s (insert x A) = fold f (f x s) A" .
-  with `finite A` show ?thesis by (simp add: eq_fold expand_fun_eq)
+  with `finite A` show ?thesis by (simp add: eq_fold ext_iff)
 qed
 
 lemma remove:
@@ -1736,14 +1736,14 @@ proof -
   then obtain B where *: "A = insert b B" "b \<notin> B" by (blast dest: mk_disjoint_insert)
   with `finite A` have "finite B" by simp
   interpret fold: folding "op *" "\<lambda>a b. fold (op *) b a" proof
-  qed (simp_all add: expand_fun_eq ac_simps)
-  thm fold.commute_comp' [of B b, simplified expand_fun_eq, simplified]
+  qed (simp_all add: ext_iff ac_simps)
+  thm fold.commute_comp' [of B b, simplified ext_iff, simplified]
   from `finite B` fold.commute_comp' [of B x]
     have "op * x \<circ> (\<lambda>b. fold op * b B) = (\<lambda>b. fold op * b B) \<circ> op * x" by simp
-  then have A: "x * fold op * b B = fold op * (b * x) B" by (simp add: expand_fun_eq commute)
+  then have A: "x * fold op * b B = fold op * (b * x) B" by (simp add: ext_iff commute)
   from `finite B` * fold.insert [of B b]
     have "(\<lambda>x. fold op * x (insert b B)) = (\<lambda>x. fold op * x B) \<circ> op * b" by simp
-  then have B: "fold op * x (insert b B) = fold op * (b * x) B" by (simp add: expand_fun_eq)
+  then have B: "fold op * x (insert b B) = fold op * (b * x) B" by (simp add: ext_iff)
   from A B assms * show ?thesis by (simp add: eq_fold' del: fold.insert)
 qed
 

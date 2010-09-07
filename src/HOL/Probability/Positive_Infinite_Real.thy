@@ -1036,7 +1036,7 @@ proof -
   qed
   from choice[OF this] obtain r where f: "f = (\<lambda>i. Real (r i))"
     and pos: "\<forall>i. 0 \<le> r i"
-    by (auto simp: expand_fun_eq)
+    by (auto simp: ext_iff)
   hence [simp]: "\<And>i. real (f i) = r i" by auto
 
   have "mono (\<lambda>n. setsum r {..<n})" (is "mono ?S")
@@ -1156,7 +1156,7 @@ qed
 lemma psuminf_0: "psuminf f = 0 \<longleftrightarrow> (\<forall>i. f i = 0)"
 proof safe
   assume "\<forall>i. f i = 0"
-  hence "f = (\<lambda>i. 0)" by (simp add: expand_fun_eq)
+  hence "f = (\<lambda>i. 0)" by (simp add: ext_iff)
   thus "psuminf f = 0" using psuminf_const by simp
 next
   fix i assume "psuminf f = 0"

@@ -45,7 +45,7 @@ subsection{*Well-Founded Recursion*}
 text{*cut*}
 
 lemma cuts_eq: "(cut f r x = cut g r x) = (ALL y. (y,x):r --> f(y)=g(y))"
-by (simp add: expand_fun_eq cut_def)
+by (simp add: ext_iff cut_def)
 
 lemma cut_apply: "(x,a):r ==> (cut f r a)(x) = f(x)"
 by (simp add: cut_def)

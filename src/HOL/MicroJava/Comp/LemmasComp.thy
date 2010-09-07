@@ -113,7 +113,7 @@ lemma comp_subcls1: "subcls1 (comp G) = subcls1 G"
 by (auto simp add: subcls1_def2 comp_classname comp_is_class)
 
 lemma comp_widen: "widen (comp G) = widen G"
-  apply (simp add: expand_fun_eq)
+  apply (simp add: ext_iff)
   apply (intro allI iffI)
   apply (erule widen.cases) 
   apply (simp_all add: comp_subcls1 widen.null)
@@ -122,7 +122,7 @@ lemma comp_widen: "widen (comp G) = widen G"
   done
 
 lemma comp_cast: "cast (comp G) = cast G"
-  apply (simp add: expand_fun_eq)
+  apply (simp add: ext_iff)
   apply (intro allI iffI)
   apply (erule cast.cases) 
   apply (simp_all add: comp_subcls1 cast.widen cast.subcls)
@@ -133,7 +133,7 @@ lemma comp_cast: "cast (comp G) = cast G"
   done
 
 lemma comp_cast_ok: "cast_ok (comp G) = cast_ok G"
-  by (simp add: expand_fun_eq cast_ok_def comp_widen)
+  by (simp add: ext_iff cast_ok_def comp_widen)
 
 
 lemma compClass_fst [simp]: "(fst (compClass G C)) = (fst C)"
@@ -171,7 +171,7 @@ apply (simp only: image_compose [THEN sym])
 apply (subgoal_tac "(Fun.comp fst (\<lambda>(C, cno::cname, fdls::fdecl list, jmdls).
   (C, cno, fdls, map (compMethod G C) jmdls))) = fst")
 apply (simp del: image_compose)
-apply (simp add: expand_fun_eq split_beta)
+apply (simp add: ext_iff split_beta)
 done
 
 
@@ -322,7 +322,7 @@ apply (subgoal_tac "(\<lambda>x\<Colon>(vname list \<times> fdecl list \<times> 
   = (\<lambda>x. (fst x, Object, fst (snd x),
                         snd (snd (compMethod G Object (S, snd x)))))")
 apply (simp only:)
-apply (simp add: expand_fun_eq)
+apply (simp add: ext_iff)
 apply (intro strip)
 apply (subgoal_tac "(inv (\<lambda>(s, m). (s, Object, m)) (S, Object, snd x)) = (S, snd x)")
 apply (simp only:)

@@ -18,7 +18,7 @@ typedef (open) 'a fps = "{f :: nat \<Rightarrow> 'a. True}"
 notation fps_nth (infixl "$" 75)
 
 lemma expand_fps_eq: "p = q \<longleftrightarrow> (\<forall>n. p $ n = q $ n)"
-  by (simp add: fps_nth_inject [symmetric] expand_fun_eq)
+  by (simp add: fps_nth_inject [symmetric] ext_iff)
 
 lemma fps_ext: "(\<And>n. p $ n = q $ n) \<Longrightarrow> p = q"
   by (simp add: expand_fps_eq)
@@ -1244,7 +1244,7 @@ proof-
     {assume n0: "n \<noteq> 0"
       then have u: "{0} \<union> ({1} \<union> {2..n}) = {0..n}" "{1}\<union>{2..n} = {1..n}"
         "{0..n - 1}\<union>{n} = {0..n}"
-        by (auto simp: expand_set_eq)
+        by (auto simp: set_ext_iff)
       have d: "{0} \<inter> ({1} \<union> {2..n}) = {}" "{1} \<inter> {2..n} = {}"
         "{0..n - 1}\<inter>{n} ={}" using n0 by simp_all
       have f: "finite {0}" "finite {1}" "finite {2 .. n}"
@@ -1455,7 +1455,7 @@ proof(induct m arbitrary: n rule: nat_less_induct)
   moreover
   {fix k assume k: "m = Suc k"
     have km: "k < m" using k by arith
-    have u0: "{0 .. k} \<union> {m} = {0..m}" using k apply (simp add: expand_set_eq) by presburger
+    have u0: "{0 .. k} \<union> {m} = {0..m}" using k apply (simp add: set_ext_iff) by presburger
     have f0: "finite {0 .. k}" "finite {m}" by auto
     have d0: "{0 .. k} \<inter> {m} = {}" using k by auto
     have "(setprod a {0 .. m}) $ n = (setprod a {0 .. k} * a m) $ n"
@@ -1472,7 +1472,7 @@ proof(induct m arbitrary: n rule: nat_less_induct)
       apply clarsimp
       apply (rule finite_imageI)
       apply (rule natpermute_finite)
-      apply (clarsimp simp add: expand_set_eq)
+      apply (clarsimp simp add: set_ext_iff)
       apply auto
       apply (rule setsum_cong2)
       unfolding setsum_left_distrib
@@ -2153,7 +2153,7 @@ proof-
 qed
 
 lemma fps_inv_ginv: "fps_inv = fps_ginv X"
-  apply (auto simp add: expand_fun_eq fps_eq_iff fps_inv_def fps_ginv_def)
+  apply (auto simp add: ext_iff fps_eq_iff fps_inv_def fps_ginv_def)
   apply (induct_tac n rule: nat_less_induct, auto)
   apply (case_tac na)
   apply simp
@@ -2192,7 +2192,7 @@ lemma convolution_eq:
   "setsum (%i. a (i :: nat) * b (n - i)) {0 .. n} = setsum (%(i,j). a i * b j) {(i,j). i <= n \<and> j \<le> n \<and> i + j = n}"
   apply (rule setsum_reindex_cong[where f=fst])
   apply (clarsimp simp add: inj_on_def)
-  apply (auto simp add: expand_set_eq image_iff)
+  apply (auto simp add: set_ext_iff image_iff)
   apply (rule_tac x= "x" in exI)
   apply clarsimp
   apply (rule_tac x="n - x" in exI)
@@ -2264,7 +2264,7 @@ proof-
   let ?KM=  "{(k,m). k + m \<le> n}"
   let ?f = "%s. UNION {(0::nat)..s} (%i. {(i,s - i)})"
   have th0: "?KM = UNION {0..n} ?f"
-    apply (simp add: expand_set_eq)
+    apply (simp add: set_ext_iff)
     apply arith (* FIXME: VERY slow! *)
     done
   show "?l = ?r "
@@ -3312,10 +3312,10 @@ lemma XDp_nth[simp]: "XDp c a $ n = (c + of_nat n) * a$n"
 
 lemma XDp_commute:
   shows "XDp b o XDp (c::'a::comm_ring_1) = XDp c o XDp b"
-  by (auto simp add: XDp_def expand_fun_eq fps_eq_iff algebra_simps)
+  by (auto simp add: XDp_def ext_iff fps_eq_iff algebra_simps)
 
 lemma XDp0[simp]: "XDp 0 = XD"
-  by (simp add: expand_fun_eq fps_eq_iff)
+  by (simp add: ext_iff fps_eq_iff)
 
 lemma XDp_fps_integral[simp]:"XDp 0 (fps_integral a c) = X * a"
   by (simp add: fps_eq_iff fps_integral_def)

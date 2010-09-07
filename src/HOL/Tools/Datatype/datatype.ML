@@ -483,7 +483,7 @@ fun representation_proofs (config : config) (dt_info : info Symtab.table)
            [(indtac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
             REPEAT (rtac TrueI 1),
             rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
-              Thm.symmetric (mk_meta_eq @{thm expand_fun_eq}) :: range_eqs),
+              Thm.symmetric (mk_meta_eq @{thm ext_iff}) :: range_eqs),
             rewrite_goals_tac (map Thm.symmetric range_eqs),
             REPEAT (EVERY
               [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @

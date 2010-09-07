@@ -89,7 +89,7 @@ text {* the = relation between two chains is preserved by their lubs *}
 lemma lub_equal:
   "\<lbrakk>chain X; chain Y; \<forall>k. X k = Y k\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
-  by (simp only: expand_fun_eq [symmetric])
+  by (simp only: ext_iff [symmetric])
 
 lemma lub_eq:
   "(\<And>i. X i = Y i) \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"

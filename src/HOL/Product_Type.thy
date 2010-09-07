@@ -151,7 +151,7 @@ rep_datatype Pair proof -
 next
   fix a c :: 'a and b d :: 'b
   have "Pair_Rep a b = Pair_Rep c d \<longleftrightarrow> a = c \<and> b = d"
-    by (auto simp add: Pair_Rep_def expand_fun_eq)
+    by (auto simp add: Pair_Rep_def ext_iff)
   moreover have "Pair_Rep a b \<in> prod" and "Pair_Rep c d \<in> prod"
     by (auto simp add: prod_def)
   ultimately show "Pair a b = Pair c d \<longleftrightarrow> a = c \<and> b = d"
@@ -394,7 +394,7 @@ code_const fst and snd
   (Haskell "fst" and "snd")
 
 lemma prod_case_unfold [nitpick_def]: "prod_case = (%c p. c (fst p) (snd p))"
-  by (simp add: expand_fun_eq split: prod.split)
+  by (simp add: ext_iff split: prod.split)
 
 lemma fst_eqD: "fst (x, y) = a ==> x = a"
   by simp
@@ -423,11 +423,11 @@ lemma splitD: "split f (a, b) \<Longrightarrow> f a b"
   by (rule split_conv [THEN iffD1])
 
 lemma split_Pair [simp]: "(\<lambda>(x, y). (x, y)) = id"
-  by (simp add: expand_fun_eq split: prod.split)
+  by (simp add: ext_iff split: prod.split)
 
 lemma split_eta: "(\<lambda>(x, y). f (x, y)) = f"
   -- {* Subsumes the old @{text split_Pair} when @{term f} is the identity function. *}
-  by (simp add: expand_fun_eq split: prod.split)
+  by (simp add: ext_iff split: prod.split)
 
 lemma split_comp: "split (f \<circ> g) x = f (g (fst x)) (snd x)"
   by (cases x) simp
@@ -797,25 +797,25 @@ definition scomp :: "('a \<Rightarrow> 'b \<times> 'c) \<Rightarrow> ('b \<Right
   "f \<circ>\<rightarrow> g = (\<lambda>x. prod_case g (f x))"
 
 lemma scomp_unfold: "scomp = (\<lambda>f g x. g (fst (f x)) (snd (f x)))"
-  by (simp add: expand_fun_eq scomp_def prod_case_unfold)
+  by (simp add: ext_iff scomp_def prod_case_unfold)
 
 lemma scomp_apply [simp]: "(f \<circ>\<rightarrow> g) x = prod_case g (f x)"
   by (simp add: scomp_unfold prod_case_unfold)
 
 lemma Pair_scomp: "Pair x \<circ>\<rightarrow> f = f x"
-  by (simp add: expand_fun_eq scomp_apply)
+  by (simp add: ext_iff scomp_apply)
 
 lemma scomp_Pair: "x \<circ>\<rightarrow> Pair = x"
-  by (simp add: expand_fun_eq scomp_apply)
+  by (simp add: ext_iff scomp_apply)
 
 lemma scomp_scomp: "(f \<circ>\<rightarrow> g) \<circ>\<rightarrow> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>\<rightarrow> h)"
-  by (simp add: expand_fun_eq scomp_unfold)
+  by (simp add: ext_iff scomp_unfold)
 
 lemma scomp_fcomp: "(f \<circ>\<rightarrow> g) \<circ>> h = f \<circ>\<rightarrow> (\<lambda>x. g x \<circ>> h)"
-  by (simp add: expand_fun_eq scomp_unfold fcomp_def)
+  by (simp add: ext_iff scomp_unfold fcomp_def)
 
 lemma fcomp_scomp: "(f \<circ>> g) \<circ>\<rightarrow> h = f \<circ>> (g \<circ>\<rightarrow> h)"
-  by (simp add: expand_fun_eq scomp_unfold fcomp_apply)
+  by (simp add: ext_iff scomp_unfold fcomp_apply)
 
 code_const scomp
   (Eval infixl 3 "#->")
@@ -919,11 +919,11 @@ lemma apsnd_apfst [simp]:
 
 lemma apfst_id [simp] :
   "apfst id = id"
-  by (simp add: expand_fun_eq)
+  by (simp add: ext_iff)
 
 lemma apsnd_id [simp] :
   "apsnd id = id"
-  by (simp add: expand_fun_eq)
+  by (simp add: ext_iff)
 
 lemma apfst_eq_conv [simp]:
   "apfst f x = apfst g x \<longleftrightarrow> f (fst x) = g (fst x)"

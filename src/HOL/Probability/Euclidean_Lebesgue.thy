@@ -104,7 +104,7 @@ proof -
   from positive_integral_isoton[unfolded isoton_fun_expand isoton_iff_Lim_mono, of f u]
   show ?ilim using mono lim i by auto
   have "(SUP i. f i) = u" using mono lim SUP_Lim_pinfreal
-    unfolding expand_fun_eq SUPR_fun_expand mono_def by auto
+    unfolding ext_iff SUPR_fun_expand mono_def by auto
   moreover have "(SUP i. f i) \<in> borel_measurable M"
     using i by (rule borel_measurable_SUP)
   ultimately show "u \<in> borel_measurable M" by simp

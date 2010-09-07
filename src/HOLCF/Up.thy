@@ -135,7 +135,7 @@ lemma up_chain_lemma:
    (\<exists>A. chain A \<and> (\<Squnion>i. Y i) = Iup (\<Squnion>i. A i) \<and>
    (\<exists>j. \<forall>i. Y (i + j) = Iup (A i))) \<or> (Y = (\<lambda>i. Ibottom))"
 apply (rule disjCI)
-apply (simp add: expand_fun_eq)
+apply (simp add: ext_iff)
 apply (erule exE, rename_tac j)
 apply (rule_tac x="\<lambda>i. THE a. Iup a = Y (i + j)" in exI)
 apply (simp add: up_lemma4)

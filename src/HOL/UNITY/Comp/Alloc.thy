@@ -358,7 +358,7 @@ lemma inv_sysOfAlloc_eq [simp]: "!!s. inv sysOfAlloc s =
   done
 
 lemma surj_sysOfAlloc [iff]: "surj sysOfAlloc"
-  apply (simp add: surj_iff expand_fun_eq o_apply)
+  apply (simp add: surj_iff ext_iff o_apply)
   apply record_auto
   done
 
@@ -386,7 +386,7 @@ lemma inv_sysOfClient_eq [simp]: "!!s. inv sysOfClient s =
   done
 
 lemma surj_sysOfClient [iff]: "surj sysOfClient"
-  apply (simp add: surj_iff expand_fun_eq o_apply)
+  apply (simp add: surj_iff ext_iff o_apply)
   apply record_auto
   done
 
@@ -410,7 +410,7 @@ lemma inv_client_map_eq [simp]: "!!s. inv client_map s =
   done
 
 lemma surj_client_map [iff]: "surj client_map"
-  apply (simp add: surj_iff expand_fun_eq o_apply)
+  apply (simp add: surj_iff ext_iff o_apply)
   apply record_auto
   done
 

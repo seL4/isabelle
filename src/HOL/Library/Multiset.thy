@@ -26,7 +26,7 @@ notation (xsymbols)
 
 lemma multiset_ext_iff:
   "M = N \<longleftrightarrow> (\<forall>a. count M a = count N a)"
-  by (simp only: count_inject [symmetric] expand_fun_eq)
+  by (simp only: count_inject [symmetric] ext_iff)
 
 lemma multiset_ext:
   "(\<And>x. count A x = count B x) \<Longrightarrow> A = B"
@@ -581,7 +581,7 @@ proof -
      apply (rule empty [unfolded defns])
     apply (subgoal_tac "f(b := f b + 1) = (\<lambda>a. f a + (if a=b then 1 else 0))")
      prefer 2
-     apply (simp add: expand_fun_eq)
+     apply (simp add: ext_iff)
     apply (erule ssubst)
     apply (erule Abs_multiset_inverse [THEN subst])
     apply (drule add')
@@ -883,13 +883,13 @@ proof -
   with finite_dom_map_of [of xs] have "finite ?A"
     by (auto intro: finite_subset)
   then show ?thesis
-    by (simp add: count_of_def expand_fun_eq multiset_def)
+    by (simp add: count_of_def ext_iff multiset_def)
 qed
 
 lemma count_simps [simp]:
   "count_of [] = (\<lambda>_. 0)"
   "count_of ((x, n) # xs) = (\<lambda>y. if x = y then n else count_of xs y)"
-  by (simp_all add: count_of_def expand_fun_eq)
+  by (simp_all add: count_of_def ext_iff)
 
 lemma count_of_empty:
   "x \<notin> fst ` set xs \<Longrightarrow> count_of xs x = 0"

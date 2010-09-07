@@ -191,7 +191,7 @@ next
 lemma affine_hull_finite:
   assumes "finite s"
   shows "affine hull s = {y. \<exists>u. setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
-  unfolding affine_hull_explicit and expand_set_eq and mem_Collect_eq apply (rule,rule)
+  unfolding affine_hull_explicit and set_ext_iff and mem_Collect_eq apply (rule,rule)
   apply(erule exE)+ apply(erule conjE)+ defer apply(erule exE) apply(erule conjE) proof-
   fix x u assume "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"
   thus "\<exists>sa u. finite sa \<and> \<not> (\<forall>x. (x \<in> sa) = (x \<in> {})) \<and> sa \<subseteq> s \<and> setsum u sa = 1 \<and> (\<Sum>v\<in>sa. u v *\<^sub>R v) = x"
@@ -709,7 +709,7 @@ proof-
     ultimately have "\<exists>k u x. (\<forall>i\<in>{1..k}. 0 \<le> u i \<and> x i \<in> p) \<and> setsum u {1..k} = 1 \<and> (\<Sum>i::nat = 1..k. u i *\<^sub>R x i) = y"
       apply(rule_tac x="card s" in exI) apply(rule_tac x="u \<circ> f" in exI) apply(rule_tac x=f in exI) by fastsimp
     hence "y \<in> ?lhs" unfolding convex_hull_indexed by auto  }
-  ultimately show ?thesis unfolding expand_set_eq by blast
+  ultimately show ?thesis unfolding set_ext_iff by blast
 qed
 
 subsection {* A stepping theorem for that expansion. *}
@@ -882,7 +882,7 @@ subsection {* Caratheodory's theorem. *}
 lemma convex_hull_caratheodory: fixes p::"('a::euclidean_space) set"
   shows "convex hull p = {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and> card s \<le> DIM('a) + 1 \<and>
   (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}"
-  unfolding convex_hull_explicit expand_set_eq mem_Collect_eq
+  unfolding convex_hull_explicit set_ext_iff mem_Collect_eq
 proof(rule,rule)
   fix y let ?P = "\<lambda>n. \<exists>s u. finite s \<and> card s = n \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
   assume "\<exists>s u. finite s \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = y"
@@ -939,7 +939,7 @@ qed auto
 lemma caratheodory:
  "convex hull p = {x::'a::euclidean_space. \<exists>s. finite s \<and> s \<subseteq> p \<and>
       card s \<le> DIM('a) + 1 \<and> x \<in> convex hull s}"
-  unfolding expand_set_eq apply(rule, rule) unfolding mem_Collect_eq proof-
+  unfolding set_ext_iff apply(rule, rule) unfolding mem_Collect_eq proof-
   fix x assume "x \<in> convex hull p"
   then obtain s u where "finite s" "s \<subseteq> p" "card s \<le> DIM('a) + 1"
      "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = x"unfolding convex_hull_caratheodory by auto
@@ -1029,7 +1029,7 @@ next
     case (Suc n)
     show ?case proof(cases "n=0")
       case True have "{x. \<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> Suc n \<and> x \<in> convex hull t} = s"
-        unfolding expand_set_eq and mem_Collect_eq proof(rule, rule)
+        unfolding set_ext_iff and mem_Collect_eq proof(rule, rule)
         fix x assume "\<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> Suc n \<and> x \<in> convex hull t"
         then obtain t where t:"finite t" "t \<subseteq> s" "card t \<le> Suc n" "x \<in> convex hull t" by auto
         show "x\<in>s" proof(cases "card t = 0")
@@ -1048,7 +1048,7 @@ next
       case False have "{x. \<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> Suc n \<and> x \<in> convex hull t} =
         { (1 - u) *\<^sub>R x + u *\<^sub>R y | x y u. 
         0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> {x. \<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> n \<and> x \<in> convex hull t}}"
-        unfolding expand_set_eq and mem_Collect_eq proof(rule,rule)
+        unfolding set_ext_iff and mem_Collect_eq proof(rule,rule)
         fix x assume "\<exists>u v c. x = (1 - c) *\<^sub>R u + c *\<^sub>R v \<and>
           0 \<le> c \<and> c \<le> 1 \<and> u \<in> s \<and> (\<exists>t. finite t \<and> t \<subseteq> s \<and> card t \<le> n \<and> v \<in> convex hull t)"
         then obtain u v c t where obt:"x = (1 - c) *\<^sub>R u + c *\<^sub>R v"
