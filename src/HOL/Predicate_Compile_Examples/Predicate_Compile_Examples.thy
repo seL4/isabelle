@@ -810,8 +810,7 @@ fun fold_map_idx where
  (let (y', x') = f i y x; (y'', xs') = fold_map_idx f (Suc i) y' xs
  in (y'', x' # xs'))"
 
-text {* mode analysis explores thousand modes - this is infeasible at the moment... *}
-(*code_pred [inductify, show_steps] fold_map_idx .*)
+code_pred [inductify] fold_map_idx .
 
 subsection {* Minimum *}
 
@@ -939,10 +938,10 @@ fun height :: "'a tree => nat" where
 "height ET = 0"
 | "height (MKT x l r h) = max (height l) (height r) + 1"
 
-consts avl :: "'a tree => bool"
-primrec
+primrec avl :: "'a tree => bool"
+where
   "avl ET = True"
-  "avl (MKT x l r h) = ((height l = height r \<or> height l = 1 + height r \<or> height r = 1+height l) \<and> 
+| "avl (MKT x l r h) = ((height l = height r \<or> height l = 1 + height r \<or> height r = 1+height l) \<and> 
   h = max (height l) (height r) + 1 \<and> avl l \<and> avl r)"
 (*
 code_pred [inductify] avl .
