@@ -61,21 +61,33 @@ object Document_View
   }
 
 
-  val message_markup: PartialFunction[Text.Info[Any], Color] =
+  /* markup selectors */
+
+  private val message_markup: PartialFunction[Text.Info[Any], Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => regular_color
     case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => warning_color
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => error_color
   }
 
-  val background_markup: PartialFunction[Text.Info[Any], Color] =
+  private val background_markup: PartialFunction[Text.Info[Any], Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _)) => bad_color
   }
 
-  val box_markup: PartialFunction[Text.Info[Any], Color] =
+  private val box_markup: PartialFunction[Text.Info[Any], Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => regular_color
+  }
+
+  private val tooltip_markup: PartialFunction[Text.Info[Any], String] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
+      Pretty.string_of(List(Pretty.block(body)), margin = 40)
+    case Text.Info(_, XML.Elem(Markup(Markup.SORT, _), _)) => "sort"
+    case Text.Info(_, XML.Elem(Markup(Markup.TYP, _), _)) => "type"
+    case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"
+    case Text.Info(_, XML.Elem(Markup(Markup.PROP, _), _)) => "proposition"
   }
 
 
@@ -201,11 +213,14 @@ class Document_View(val model: Document_Model, text_area: TextArea)
 
   /* subexpression highlighting */
 
+  private val subexp_include =
+    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING)
+
   private def subexp_range(snapshot: Document.Snapshot, x: Int, y: Int): Option[Text.Range] =
   {
     val subexp_markup: PartialFunction[Text.Info[Any], Option[Text.Range]] =
     {
-      case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), _)) =>
+      case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
         Some(snapshot.convert(range))
     }
     val offset = text_area.xyToOffset(x, y)
@@ -326,11 +341,13 @@ class Document_View(val model: Document_Model, text_area: TextArea)
         val snapshot = model.snapshot()
         val offset = text_area.xyToOffset(x, y)
         val markup =
-          snapshot.select_markup(Text.Range(offset, offset + 1)) {
-            case Text.Info(range, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
-              Isabelle.tooltip(Pretty.string_of(List(Pretty.block(body)), margin = 40))
-          } { null }
-        if (markup.hasNext) markup.next.info else null
+          snapshot.select_markup(Text.Range(offset, offset + 1))(Document_View.tooltip_markup)(null)
+        if (markup.hasNext) {
+          val text = markup.next.info
+          if (text == null) null
+          else Isabelle.tooltip(text)
+        }
+        else null
       }
     }
   }
