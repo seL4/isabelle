@@ -27,7 +27,6 @@ infixr 5 @|;
 fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
     reserved deresolve contr_classparam_typs deriving_show =
   let
-    val deresolve_base = Long_Name.base_name o deresolve;
     fun class_name class = case class_syntax class
      of NONE => deresolve class
       | SOME class => class;
@@ -121,7 +120,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars (map fst vs) reserved;
             fun print_err n =
               semicolon (
-                (str o deresolve_base) name
+                (str o deresolve) name
                 :: map str (replicate n "_")
                 @ str "="
                 :: str "error"
@@ -138,7 +137,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
                       (insert (op =)) ts []);
               in
                 semicolon (
-                  (str o deresolve_base) name
+                  (str o deresolve) name
                   :: map (print_term tyvars some_thm vars BR) ts
                   @ str "="
                   @@ print_term tyvars some_thm vars NOBR t
@@ -147,7 +146,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           in
             Pretty.chunks (
               semicolon [
-                (str o suffix " ::" o deresolve_base) name,
+                (str o suffix " ::" o deresolve) name,
                 print_typscheme tyvars (vs, ty)
               ]
               :: (case filter (snd o snd) raw_eqs
@@ -161,7 +160,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           in
             semicolon [
               str "data",
-              print_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
+              print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
             ]
           end
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, [((co, _), [ty])]))) =
@@ -170,9 +169,9 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           in
             semicolon (
               str "newtype"
-              :: print_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
+              :: print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
               :: str "="
-              :: (str o deresolve_base) co
+              :: (str o deresolve) co
               :: print_typ tyvars BR ty
               :: (if deriving_show name then [str "deriving (Read, Show)"] else [])
             )
@@ -182,13 +181,13 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars (map fst vs) reserved;
             fun print_co ((co, _), tys) =
               concat (
-                (str o deresolve_base) co
+                (str o deresolve) co
                 :: map (print_typ tyvars BR) tys
               )
           in
             semicolon (
               str "data"
-              :: print_typdecl tyvars (vs, (deresolve_base name, map (ITyVar o fst) vs))
+              :: print_typdecl tyvars (vs, (deresolve name, map (ITyVar o fst) vs))
               :: str "="
               :: print_co co
               :: map ((fn p => Pretty.block [str "| ", p]) o print_co) cos
@@ -200,7 +199,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
             val tyvars = intro_vars [v] reserved;
             fun print_classparam (classparam, ty) =
               semicolon [
-                (str o deresolve_base) classparam,
+                (str o deresolve) classparam,
                 str "::",
                 print_typ tyvars NOBR ty
               ]
@@ -209,7 +208,7 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
               Pretty.block [
                 str "class ",
                 Pretty.block (print_typcontext tyvars [(v, map fst super_classes)]),
-                str (deresolve_base name ^ " " ^ lookup_var tyvars v),
+                str (deresolve name ^ " " ^ lookup_var tyvars v),
                 str " where {"
               ],
               str "};"
@@ -219,17 +218,17 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           let
             val tyvars = intro_vars (map fst vs) reserved;
             fun requires_args classparam = case const_syntax classparam
-             of NONE => 0
-              | SOME (Code_Printer.Plain_const_syntax _) => 0
-              | SOME (Code_Printer.Complex_const_syntax (k,_ )) => k;
+             of NONE => NONE
+              | SOME (Code_Printer.Plain_const_syntax _) => SOME 0
+              | SOME (Code_Printer.Complex_const_syntax (k,_ )) => SOME k;
             fun print_classparam_instance ((classparam, const), (thm, _)) =
               case requires_args classparam
-               of 0 => semicolon [
-                      (str o deresolve_base) classparam,
+               of NONE => semicolon [
+                      (str o Long_Name.base_name o deresolve) classparam,
                       str "=",
                       print_app tyvars (SOME thm) reserved NOBR (const, [])
                     ]
-                | k =>
+                | SOME k =>
                     let
                       val (c, (_, tys)) = const;
                       val (vs, rhs) = (apfst o map) fst
@@ -261,82 +260,51 @@ fun print_haskell_stmt labelled_name class_syntax tyco_syntax const_syntax
           end;
   in print_stmt end;
 
-fun mk_name_module reserved module_prefix module_alias program =
+fun haskell_program_of_program labelled_name module_alias module_prefix reserved =
   let
-    fun mk_alias name = case module_alias name
-     of SOME name' => name'
-      | NONE => name
-          |> Long_Name.explode
-          |> map (fn name => (the_single o fst) (Name.variants [name] reserved))
-          |> Long_Name.implode;
-    fun mk_prefix name = case module_prefix
-     of SOME module_prefix => Long_Name.append module_prefix name
-      | NONE => name;
-    val tab =
-      Symtab.empty
-      |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
-           o fst o Code_Namespace.dest_name o fst)
-             program
-  in the o Symtab.lookup tab end;
-
-fun haskell_program_of_program labelled_name module_prefix reserved module_alias program =
-  let
-    val reserved = Name.make_context reserved;
-    val mk_name_module = mk_name_module reserved module_prefix module_alias program;
-    fun add_stmt (name, (stmt, deps)) =
+    fun namify_fun upper base (nsp_fun, nsp_typ) =
       let
-        val (module_name, base) = Code_Namespace.dest_name name;
-        val module_name' = mk_name_module module_name;
-        val mk_name_stmt = yield_singleton Name.variants;
-        fun add_fun upper (nsp_fun, nsp_typ) =
-          let
-            val (base', nsp_fun') =
-              mk_name_stmt (if upper then first_upper base else base) nsp_fun
-          in (base', (nsp_fun', nsp_typ)) end;
-        fun add_typ (nsp_fun, nsp_typ) =
-          let
-            val (base', nsp_typ') = mk_name_stmt (first_upper base) nsp_typ
-          in (base', (nsp_fun, nsp_typ')) end;
-        val add_name = case stmt
-         of Code_Thingol.Fun (_, (_, SOME _)) => pair base
-          | Code_Thingol.Fun _ => add_fun false
-          | Code_Thingol.Datatype _ => add_typ
-          | Code_Thingol.Datatypecons _ => add_fun true
-          | Code_Thingol.Class _ => add_typ
-          | Code_Thingol.Classrel _ => pair base
-          | Code_Thingol.Classparam _ => add_fun false
-          | Code_Thingol.Classinst _ => pair base;
-        fun add_stmt' base' = case stmt
-         of Code_Thingol.Fun (_, (_, SOME _)) =>
-              I
-          | Code_Thingol.Datatypecons _ =>
-              cons (name, (Long_Name.append module_name' base', NONE))
-          | Code_Thingol.Classrel _ => I
-          | Code_Thingol.Classparam _ =>
-              cons (name, (Long_Name.append module_name' base', NONE))
-          | _ => cons (name, (Long_Name.append module_name' base', SOME stmt));
-      in
-        Symtab.map_default (module_name', ([], ([], (reserved, reserved))))
-              (apfst (fold (insert (op = : string * string -> bool)) deps))
-        #> `(fn program => add_name ((snd o snd o the o Symtab.lookup program) module_name'))
-        #-> (fn (base', names) =>
-              (Symtab.map_entry module_name' o apsnd) (fn (stmts, _) =>
-              (add_stmt' base' stmts, names)))
-      end;
-    val hs_program = fold add_stmt (AList.make (fn name =>
-      (Graph.get_node program name, Graph.imm_succs program name))
-      (Graph.strong_conn program |> flat)) Symtab.empty;
-    fun deresolver name = (fst o the o AList.lookup (op =) ((fst o snd o the
-      o Symtab.lookup hs_program) ((mk_name_module o fst o Code_Namespace.dest_name) name))) name
-      handle Option => error ("Unknown statement name: " ^ labelled_name name);
-  in (deresolver, hs_program) end;
+        val (base', nsp_fun') = yield_singleton Name.variants
+          (if upper then first_upper base else base) nsp_fun;
+      in (base', (nsp_fun', nsp_typ)) end;
+    fun namify_typ base (nsp_fun, nsp_typ) =
+      let
+        val (base', nsp_typ') = yield_singleton Name.variants
+          (first_upper base) nsp_typ
+      in (base', (nsp_fun, nsp_typ')) end;
+    fun namify_stmt (Code_Thingol.Fun (_, (_, SOME _))) = pair
+      | namify_stmt (Code_Thingol.Fun _) = namify_fun false
+      | namify_stmt (Code_Thingol.Datatype _) = namify_typ
+      | namify_stmt (Code_Thingol.Datatypecons _) = namify_fun true
+      | namify_stmt (Code_Thingol.Class _) = namify_typ
+      | namify_stmt (Code_Thingol.Classrel _) = pair
+      | namify_stmt (Code_Thingol.Classparam _) = namify_fun false
+      | namify_stmt (Code_Thingol.Classinst _) = pair;
+    fun select_stmt (Code_Thingol.Fun (_, (_, SOME _))) = false
+      | select_stmt (Code_Thingol.Fun _) = true
+      | select_stmt (Code_Thingol.Datatype _) = true
+      | select_stmt (Code_Thingol.Datatypecons _) = false
+      | select_stmt (Code_Thingol.Class _) = true
+      | select_stmt (Code_Thingol.Classrel _) = false
+      | select_stmt (Code_Thingol.Classparam _) = false
+      | select_stmt (Code_Thingol.Classinst _) = true;
+  in
+    Code_Namespace.flat_program labelled_name
+      { module_alias = module_alias, module_prefix = module_prefix,
+        reserved = reserved, empty_nsp = (reserved, reserved), namify_stmt = namify_stmt,
+        modify_stmt = fn stmt => if select_stmt stmt then SOME stmt else NONE }
+  end;
 
 fun serialize_haskell module_prefix string_classes { labelled_name, reserved_syms,
     includes, module_alias, class_syntax, tyco_syntax, const_syntax, program } =
   let
+
+    (* build program *)
     val reserved = fold (insert (op =) o fst) includes reserved_syms;
-    val (deresolver, hs_program) = haskell_program_of_program labelled_name
-      module_prefix reserved module_alias program;
+    val { deresolver, flat_program = haskell_program } = haskell_program_of_program
+      labelled_name module_alias module_prefix (Name.make_context reserved) program;
+
+    (* print statements *)
     val contr_classparam_typs = Code_Thingol.contr_classparam_typs program;
     fun deriving_show tyco =
       let
@@ -351,62 +319,58 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
-    val reserved = make_vars reserved;
-    fun print_stmt qualified = print_haskell_stmt labelled_name
-      class_syntax tyco_syntax const_syntax reserved
-      (if qualified then deresolver else Long_Name.base_name o deresolver)
-      contr_classparam_typs
+    fun print_stmt deresolve = print_haskell_stmt labelled_name
+      class_syntax tyco_syntax const_syntax (make_vars reserved)
+      deresolve contr_classparam_typs
       (if string_classes then deriving_show else K false);
-    fun print_module name content =
-      (name, Pretty.chunks2 [
-        str ("module " ^ name ^ " where {"),
-        content,
-        str "}"
-      ]);
-    fun serialize_module (module_name', (deps, (stmts, _))) =
+
+    (* print modules *)
+    val import_includes_ps =
+      map (fn (name, _) => str ("import qualified " ^ name ^ ";")) includes;
+    fun print_module_frame module_name ps =
+      (module_name, Pretty.chunks2 (
+        str ("module " ^ module_name ^ " where {")
+        :: ps
+        @| str "}"
+      ));
+    fun print_module module_name (gr, imports) =
       let
-        val stmt_names = map fst stmts;
-        val qualified = true;
-        val imports = subtract (op =) stmt_names deps
-          |> distinct (op =)
-          |> map_filter (try deresolver)
-          |> map Long_Name.qualifier
-          |> distinct (op =);
-        fun print_import_include (name, _) = str ("import qualified " ^ name ^ ";");
-        fun print_import_module name = str ((if qualified
-          then "import qualified "
-          else "import ") ^ name ^ ";");
-        val import_ps = map print_import_include includes @ map print_import_module imports
-        val content = Pretty.chunks2 ((if null import_ps then [] else [Pretty.chunks import_ps])
-            @ map_filter
-              (fn (name, (_, SOME stmt)) => SOME (markup_stmt name (print_stmt qualified (name, stmt)))
-                | (_, (_, NONE)) => NONE) stmts
-          );
-      in print_module module_name' content end;
-    fun write_module width (SOME destination) (modlname, content) =
+        val deresolve = deresolver module_name
+        fun print_import module_name = (semicolon o map str) ["import qualified", module_name];
+        val import_ps = import_includes_ps @ map (print_import o fst) imports;
+        fun print_stmt' gr name = case Graph.get_node gr name
+         of (_, NONE) => NONE
+          | (_, SOME stmt) => SOME (markup_stmt name (print_stmt deresolve (name, stmt)));
+        val body_ps = map_filter (print_stmt' gr) ((flat o rev o Graph.strong_conn) gr);
+      in
+        print_module_frame module_name
+          ((if null import_ps then [] else [Pretty.chunks import_ps]) @ body_ps)
+      end;
+
+    (*serialization*)
+    fun write_module width (SOME destination) (module_name, content) =
           let
             val _ = File.check destination;
-            val filename = case modlname
-             of "" => Path.explode "Main.hs"
-              | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
-                    o Long_Name.explode) modlname;
-            val pathname = Path.append destination filename;
-            val _ = File.mkdir_leaf (Path.dir pathname);
-          in File.write pathname
-            ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
-              ^ format [] width content)
+            val filepath = (Path.append destination o Path.ext "hs" o Path.explode o implode
+              o separate "/" o Long_Name.explode) module_name;
+            val _ = File.mkdir_leaf (Path.dir filepath);
+          in
+            (File.write filepath o format [] width o Pretty.chunks2)
+              [str "{-# OPTIONS_GHC -fglasgow-exts #-}", content]
           end
       | write_module width NONE (_, content) = writeln (format [] width content);
   in
     Code_Target.serialization
       (fn width => fn destination => K () o map (write_module width destination))
-      (fn present => fn width => rpair (fn _ => error "no deresolving") o format present width o Pretty.chunks o map snd)
-      (map (uncurry print_module) includes
-        @ map serialize_module (Symtab.dest hs_program))
+      (fn present => fn width => rpair (fn _ => error "no deresolving")
+        o format present width o Pretty.chunks o map snd)
+      (map (uncurry print_module_frame o apsnd single) includes
+        @ map (fn module_name => print_module module_name (Graph.get_node haskell_program module_name))
+          ((flat o rev o Graph.strong_conn) haskell_program))
   end;
 
 val serializer : Code_Target.serializer =
-  Code_Target.parse_args (Scan.option (Args.$$$ "root" -- Args.colon |-- Args.name)
+  Code_Target.parse_args (Scan.optional (Args.$$$ "root" -- Args.colon |-- Args.name) ""
     -- Scan.optional (Args.$$$ "string_classes" >> K true) false
     >> (fn (module_prefix, string_classes) =>
       serialize_haskell module_prefix string_classes));

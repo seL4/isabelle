@@ -1134,65 +1134,64 @@ Turning back to the first motivation for type classes, namely
 \noindent%
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
-\hspace*{0pt}data Nat = Zero{\char95}nat | Suc Example.Nat;\\
+\hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
 \hspace*{0pt}\\
-\hspace*{0pt}nat{\char95}aux ::~Integer -> Example.Nat -> Example.Nat;\\
-\hspace*{0pt}nat{\char95}aux i n =\\
-\hspace*{0pt} ~(if i <= 0 then n else Example.nat{\char95}aux (i - 1) (Example.Suc n));\\
+\hspace*{0pt}nat{\char95}aux ::~Integer -> Nat -> Nat;\\
+\hspace*{0pt}nat{\char95}aux i n = (if i <= 0 then n else nat{\char95}aux (i - 1) (Suc n));\\
 \hspace*{0pt}\\
-\hspace*{0pt}nat ::~Integer -> Example.Nat;\\
-\hspace*{0pt}nat i = Example.nat{\char95}aux i Example.Zero{\char95}nat;\\
+\hspace*{0pt}nat ::~Integer -> Nat;\\
+\hspace*{0pt}nat i = nat{\char95}aux i Zero{\char95}nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}class Semigroup a where {\char123}\\
 \hspace*{0pt} ~mult ::~a -> a -> a;\\
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}class (Example.Semigroup a) => Monoidl a where {\char123}\\
+\hspace*{0pt}class (Semigroup a) => Monoidl a where {\char123}\\
 \hspace*{0pt} ~neutral ::~a;\\
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}class (Example.Monoidl a) => Monoid a where {\char123}\\
+\hspace*{0pt}class (Monoidl a) => Monoid a where {\char123}\\
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}class (Example.Monoid a) => Group a where {\char123}\\
+\hspace*{0pt}class (Monoid a) => Group a where {\char123}\\
 \hspace*{0pt} ~inverse ::~a -> a;\\
 \hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}pow{\char95}nat ::~forall a.~(Monoid a) => Nat -> a -> a;\\
+\hspace*{0pt}pow{\char95}nat Zero{\char95}nat x = neutral;\\
+\hspace*{0pt}pow{\char95}nat (Suc n) x = mult x (pow{\char95}nat n x);\\
+\hspace*{0pt}\\
+\hspace*{0pt}pow{\char95}int ::~forall a.~(Group a) => Integer -> a -> a;\\
+\hspace*{0pt}pow{\char95}int k x =\\
+\hspace*{0pt} ~(if 0 <= k then pow{\char95}nat (nat k) x\\
+\hspace*{0pt} ~~~else inverse (pow{\char95}nat (nat (negate k)) x));\\
 \hspace*{0pt}\\
 \hspace*{0pt}mult{\char95}int ::~Integer -> Integer -> Integer;\\
 \hspace*{0pt}mult{\char95}int i j = i + j;\\
 \hspace*{0pt}\\
+\hspace*{0pt}instance Semigroup Integer where {\char123}\\
+\hspace*{0pt} ~mult = mult{\char95}int;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
 \hspace*{0pt}neutral{\char95}int ::~Integer;\\
 \hspace*{0pt}neutral{\char95}int = 0;\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Monoidl Integer where {\char123}\\
+\hspace*{0pt} ~neutral = neutral{\char95}int;\\
+\hspace*{0pt}{\char125};\\
+\hspace*{0pt}\\
+\hspace*{0pt}instance Monoid Integer where {\char123}\\
+\hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
 \hspace*{0pt}inverse{\char95}int ::~Integer -> Integer;\\
 \hspace*{0pt}inverse{\char95}int i = negate i;\\
 \hspace*{0pt}\\
-\hspace*{0pt}instance Example.Semigroup Integer where {\char123}\\
-\hspace*{0pt} ~mult = Example.mult{\char95}int;\\
+\hspace*{0pt}instance Group Integer where {\char123}\\
+\hspace*{0pt} ~inverse = inverse{\char95}int;\\
 \hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Example.Monoidl Integer where {\char123}\\
-\hspace*{0pt} ~neutral = Example.neutral{\char95}int;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Example.Monoid Integer where {\char123}\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}instance Example.Group Integer where {\char123}\\
-\hspace*{0pt} ~inverse = Example.inverse{\char95}int;\\
-\hspace*{0pt}{\char125};\\
-\hspace*{0pt}\\
-\hspace*{0pt}pow{\char95}nat ::~forall a.~(Example.Monoid a) => Example.Nat -> a -> a;\\
-\hspace*{0pt}pow{\char95}nat Example.Zero{\char95}nat x = Example.neutral;\\
-\hspace*{0pt}pow{\char95}nat (Example.Suc n) x = Example.mult x (Example.pow{\char95}nat n x);\\
-\hspace*{0pt}\\
-\hspace*{0pt}pow{\char95}int ::~forall a.~(Example.Group a) => Integer -> a -> a;\\
-\hspace*{0pt}pow{\char95}int k x =\\
-\hspace*{0pt} ~(if 0 <= k then Example.pow{\char95}nat (Example.nat k) x\\
-\hspace*{0pt} ~~~else Example.inverse (Example.pow{\char95}nat (Example.nat (negate k)) x));\\
 \hspace*{0pt}\\
 \hspace*{0pt}example ::~Integer;\\
-\hspace*{0pt}example = Example.pow{\char95}int 10 (-2);\\
+\hspace*{0pt}example = pow{\char95}int 10 (-2);\\
 \hspace*{0pt}\\
 \hspace*{0pt}{\char125}%
 \end{isamarkuptext}%
