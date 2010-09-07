@@ -169,13 +169,13 @@ lemma
   assumes "q = Seq (Sym N0) (Sym N0)"
   assumes "s = [N0, N0]"
 shows "prop_regex (n, (k, (p, (q, s))))"
-quickcheck[generator = predicate_compile_wo_ff, expect = counterexample]
+quickcheck[generator = predicate_compile_wo_ff]
 quickcheck[generator = prolog, expect = counterexample]
 oops
 
 lemma "prop_regex a_sol"
 quickcheck[generator = code, expect = counterexample]
-quickcheck[generator = predicate_compile_ff_fs, expect = counterexample]
+quickcheck[generator = predicate_compile_ff_fs]
 oops
 
 value [code] "prop_regex a_sol"
