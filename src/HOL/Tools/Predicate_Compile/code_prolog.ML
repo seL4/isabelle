@@ -13,6 +13,7 @@ sig
      limited_predicates : (string list * int) list,
      replacing : ((string * string) * string) list,
      manual_reorder : ((string * int) * int list) list,
+     timeout : Time.time,
      prolog_system : prolog_system}
   val code_options_of : theory -> code_options 
   val map_code_options : (code_options -> code_options) -> theory -> theory
@@ -32,7 +33,7 @@ sig
 
   val generate : bool -> Proof.context -> string -> (logic_program * constant_table)
   val write_program : logic_program -> string
-  val run : prolog_system -> logic_program -> string -> string list -> int option -> prol_term list list
+  val run : (Time.time * prolog_system) -> logic_program -> string -> string list -> int option -> prol_term list list
 
   val quickcheck : Proof.context -> bool -> term -> int -> term list option * (bool list * bool)
 
@@ -60,6 +61,7 @@ type code_options =
    limited_predicates : (string list * int) list,
    replacing : ((string * string) * string) list,
    manual_reorder : ((string * int) * int list) list,
+   timeout : Time.time,
    prolog_system : prolog_system}
 
 structure Options = Theory_Data
@@ -67,20 +69,21 @@ structure Options = Theory_Data
   type T = code_options
   val empty = {ensure_groundness = false,
     limited_types = [], limited_predicates = [], replacing = [], manual_reorder = [],
-    prolog_system = SWI_PROLOG}
+    timeout = Time.fromSeconds 10, prolog_system = SWI_PROLOG}
   val extend = I;
   fun merge
     ({ensure_groundness = ensure_groundness1, limited_types = limited_types1,
       limited_predicates = limited_predicates1, replacing = replacing1,
-      manual_reorder = manual_reorder1, prolog_system = prolog_system1},
+      manual_reorder = manual_reorder1, timeout = timeout1, prolog_system = prolog_system1},
      {ensure_groundness = ensure_groundness2, limited_types = limited_types2,
       limited_predicates = limited_predicates2, replacing = replacing2,
-      manual_reorder = manual_reorder2, prolog_system = prolog_system2}) =
+      manual_reorder = manual_reorder2, timeout = timeout2, prolog_system = prolog_system2}) =
     {ensure_groundness = ensure_groundness1 orelse ensure_groundness2,
      limited_types = AList.merge (op =) (K true) (limited_types1, limited_types2),
      limited_predicates = AList.merge (op =) (K true) (limited_predicates1, limited_predicates2),
      manual_reorder = AList.merge (op =) (K true) (manual_reorder1, manual_reorder2),
      replacing = Library.merge (op =) (replacing1, replacing2),
+     timeout = timeout1,
      prolog_system = prolog_system1};
 );
 
@@ -634,7 +637,7 @@ fun parse_solutions sol =
   
 (* calling external interpreter and getting results *)
 
-fun run system p query_rel vnames nsols =
+fun run (timeout, system) p query_rel vnames nsols =
   let
     val p' = rename_vars_program p
     val _ = tracing "Renaming variable names..."
@@ -642,8 +645,8 @@ fun run system p query_rel vnames nsols =
     val vnames' = map (fn v => the (AList.lookup (op =) renaming v)) vnames
     val prog = prelude system ^ query system nsols query_rel vnames' ^ write_program p'
     val _ = tracing ("Generated prolog program:\n" ^ prog)
-    val solution = Cache_IO.with_tmp_file "prolog_file" (fn prolog_file =>
-      (File.write prolog_file prog; invoke system (Path.implode prolog_file)))
+    val solution = TimeLimit.timeLimit timeout (fn prog => Cache_IO.with_tmp_file "prolog_file" (fn prolog_file =>
+      (File.write prolog_file prog; invoke system (Path.implode prolog_file)))) prog
     val _ = tracing ("Prolog returned solution(s):\n" ^ solution)
     val tss = parse_solutions solution
   in
@@ -727,7 +730,7 @@ fun values ctxt soln t_compr =
       |> apfst (fold replace (#replacing options))
       |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
-    val tss = run (#prolog_system options)
+    val tss = run (#timeout options, #prolog_system options)
       p (translate_const constant_table name) (map first_upper vnames) soln
     val _ = tracing "Restoring terms..."
     val empty = Const("Orderings.bot_class.bot", fastype_of t_compr)
@@ -823,7 +826,7 @@ fun quickcheck ctxt report t size =
       |> apfst (fold replace (#replacing options))
       |> apfst (reorder_manually (#manual_reorder options))
     val _ = tracing "Running prolog program..."
-    val tss = run (#prolog_system options)
+    val tss = run (#timeout options, #prolog_system options)
       p (translate_const constant_table full_constname) (map fst vs') (SOME 1)
     val _ = tracing "Restoring terms..."
     val res =
