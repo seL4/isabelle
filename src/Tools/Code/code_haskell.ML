@@ -329,8 +329,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
       map (fn (name, _) => str ("import qualified " ^ name ^ ";")) includes;
     fun print_module_frame module_name ps =
       (module_name, Pretty.chunks2 (
-        str "{-# OPTIONS_GHC -fglasgow-exts #-}"
-        :: str ("module " ^ module_name ^ " where {")
+        str ("module " ^ module_name ^ " where {")
         :: ps
         @| str "}"
       ));
@@ -355,7 +354,10 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
             val filepath = (Path.append destination o Path.ext "hs" o Path.explode o implode
               o separate "/" o Long_Name.explode) module_name;
             val _ = File.mkdir_leaf (Path.dir filepath);
-          in File.write filepath (format [] width content) end
+          in
+            (File.write filepath o format [] width o Pretty.chunks2)
+              [str "{-# OPTIONS_GHC -fglasgow-exts #-}", content]
+          end
       | write_module width NONE (_, content) = writeln (format [] width content);
   in
     Code_Target.serialization
