@@ -43,9 +43,14 @@ object Document_View
 
   val message_markup: PartialFunction[Text.Info[Any], Color] =
   {
-    case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => new Color(220, 220, 220)
+    case Text.Info(_, XML.Elem(Markup(Markup.WRITELN, _), _)) => new Color(192, 192, 192)
     case Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), _)) => new Color(255, 165, 0)
     case Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _)) => new Color(255, 106, 106)
+  }
+
+  val box_markup: PartialFunction[Text.Info[Any], Color] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => new Color(192, 192, 192)
   }
 
 
@@ -243,6 +248,17 @@ class Document_View(val model: Document_Model, text_area: TextArea)
                       gfx.drawRect(r.x, y + i * line_height, r.length, line_height - 1)
                   }
                 }
+              }
+
+              // boxed text
+              for {
+                Text.Info(range, color) <-
+                  snapshot.select_markup(line_range)(Document_View.box_markup)(null)
+                if color != null
+                r <- Isabelle.gfx_range(text_area, range)
+              } {
+                gfx.setColor(color)
+                gfx.drawRect(r.x + 1, y + i * line_height + 1, r.length - 2, line_height - 3)
               }
 
               // squiggly underline
