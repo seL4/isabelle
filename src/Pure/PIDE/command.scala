@@ -48,11 +48,11 @@ object Command
         case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
-              case XML.Elem(Markup(name, atts @ Position.Id_Range(id, range)), args)
-              if id == command.id =>
+              case XML.Elem(Markup(name, atts @ Position.Id_Range(id, raw_range)), args)
+              if id == command.id && command.range.contains(command.decode(raw_range)) =>
+                val range = command.decode(raw_range)
                 val props = Position.purge(atts)
-                val info =
-                  Text.Info[Any](command.decode(range), XML.Elem(Markup(name, props), args))
+                val info = Text.Info[Any](range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
               case _ => System.err.println("Ignored report message: " + msg); state
             })
