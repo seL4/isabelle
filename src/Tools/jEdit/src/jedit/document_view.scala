@@ -192,73 +192,70 @@ class Document_View(val model: Document_Model, text_area: TextArea)
         val saved_color = gfx.getColor
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
-        try {
-          for (i <- 0 until physical_lines.length) {
-            if (physical_lines(i) != -1) {
-              val line_range = proper_line_range(start(i), end(i))
+        for (i <- 0 until physical_lines.length) {
+          if (physical_lines(i) != -1) {
+            val line_range = proper_line_range(start(i), end(i))
 
-              // background color: status
-              val cmds = snapshot.node.command_range(snapshot.revert(line_range))
-              for {
-                (command, command_start) <- cmds if !command.is_ignored
-                val range = line_range.restrict(snapshot.convert(command.range + command_start))
-                r <- Isabelle.gfx_range(text_area, range)
-                color <- Isabelle_Markup.status_color(snapshot, command)
-              } {
-                gfx.setColor(color)
-                gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
-              }
+            // background color: status
+            val cmds = snapshot.node.command_range(snapshot.revert(line_range))
+            for {
+              (command, command_start) <- cmds if !command.is_ignored
+              val range = line_range.restrict(snapshot.convert(command.range + command_start))
+              r <- Isabelle.gfx_range(text_area, range)
+              color <- Isabelle_Markup.status_color(snapshot, command)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+            }
 
-              // background color: markup
-              for {
-                Text.Info(range, Some(color)) <-
-                  snapshot.select_markup(line_range)(Isabelle_Markup.background).iterator
-                r <- Isabelle.gfx_range(text_area, range)
-              } {
-                gfx.setColor(color)
-                gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
-              }
+            // background color: markup
+            for {
+              Text.Info(range, Some(color)) <-
+                snapshot.select_markup(line_range)(Isabelle_Markup.background).iterator
+              r <- Isabelle.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+            }
 
-              // sub-expression highlighting -- potentially from other snapshot
-              highlight_range match {
-                case Some((range, color)) if line_range.overlaps(range) =>
-                  Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
-                    case None =>
-                    case Some(r) =>
-                      gfx.setColor(color)
-                      gfx.drawRect(r.x, y + i * line_height, r.length, line_height - 1)
-                  }
-                case _ =>
-              }
-
-              // boxed text
-              for {
-                Text.Info(range, Some(color)) <-
-                  snapshot.select_markup(line_range)(Isabelle_Markup.box).iterator
-                r <- Isabelle.gfx_range(text_area, range)
-              } {
-                gfx.setColor(color)
-                gfx.drawRect(r.x + 1, y + i * line_height + 1, r.length - 2, line_height - 3)
-              }
-
-              // squiggly underline
-              for {
-                Text.Info(range, Some(color)) <-
-                  snapshot.select_markup(line_range)(Isabelle_Markup.message).iterator
-                r <- Isabelle.gfx_range(text_area, range)
-              } {
-                gfx.setColor(color)
-                val x0 = (r.x / 2) * 2
-                val y0 = r.y + ascent + 1
-                for (x1 <- Range(x0, x0 + r.length, 2)) {
-                  val y1 = if (x1 % 4 < 2) y0 else y0 + 1
-                  gfx.drawLine(x1, y1, x1 + 1, y1)
+            // sub-expression highlighting -- potentially from other snapshot
+            highlight_range match {
+              case Some((range, color)) if line_range.overlaps(range) =>
+                Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
+                  case None =>
+                  case Some(r) =>
+                    gfx.setColor(color)
+                    gfx.drawRect(r.x, y + i * line_height, r.length, line_height - 1)
                 }
+              case _ =>
+            }
+
+            // boxed text
+            for {
+              Text.Info(range, Some(color)) <-
+                snapshot.select_markup(line_range)(Isabelle_Markup.box).iterator
+              r <- Isabelle.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              gfx.drawRect(r.x + 1, y + i * line_height + 1, r.length - 2, line_height - 3)
+            }
+
+            // squiggly underline
+            for {
+              Text.Info(range, Some(color)) <-
+                snapshot.select_markup(line_range)(Isabelle_Markup.message).iterator
+              r <- Isabelle.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              val x0 = (r.x / 2) * 2
+              val y0 = r.y + ascent + 1
+              for (x1 <- Range(x0, x0 + r.length, 2)) {
+                val y1 = if (x1 % 4 < 2) y0 else y0 + 1
+                gfx.drawLine(x1, y1, x1 + 1, y1)
               }
             }
           }
         }
-        finally { gfx.setColor(saved_color) }
       }
     }
 
@@ -363,13 +360,6 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       super.removeNotify
     }
 
-    override def getToolTipText(event: MouseEvent): String =
-    {
-      val line = y_to_line(event.getY())
-      if (line >= 0 && line < text_area.getLineCount) "<html><b>TODO:</b><br>Tooltip</html>"
-      else ""
-    }
-
     override def paintComponent(gfx: Graphics)
     {
       super.paintComponent(gfx)
@@ -377,22 +367,18 @@ class Document_View(val model: Document_Model, text_area: TextArea)
       val buffer = model.buffer
       Isabelle.buffer_lock(buffer) {
         val snapshot = model.snapshot()
-        val saved_color = gfx.getColor  // FIXME needed!?
-        try {
-          for {
-            (command, start) <- snapshot.node.command_starts
-            if !command.is_ignored
-            val line1 = buffer.getLineOfOffset(snapshot.convert(start))
-            val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
-            val y = line_to_y(line1)
-            val height = HEIGHT * (line2 - line1)
-            color <- Isabelle_Markup.overview_color(snapshot, command)
-          } {
-            gfx.setColor(color)
-            gfx.fillRect(0, y, getWidth - 1, height)
-          }
+        for {
+          (command, start) <- snapshot.node.command_starts
+          if !command.is_ignored
+          val line1 = buffer.getLineOfOffset(snapshot.convert(start))
+          val line2 = buffer.getLineOfOffset(snapshot.convert(start + command.length)) + 1
+          val y = line_to_y(line1)
+          val height = HEIGHT * (line2 - line1)
+          color <- Isabelle_Markup.overview_color(snapshot, command)
+        } {
+          gfx.setColor(color)
+          gfx.fillRect(0, y, getWidth - 1, height)
         }
-        finally { gfx.setColor(saved_color) }
       }
     }
 
