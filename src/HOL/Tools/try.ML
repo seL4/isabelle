@@ -51,9 +51,9 @@ fun do_named_method_on_first_goal name st =
                       else "")) I (#goal o Proof.goal)
              (apply_named_method_on_first_goal name (Proof.context_of st)) st
 
-val all_goals_named_methods = ["auto", "safe"]
+val all_goals_named_methods = ["auto"]
 val first_goal_named_methods =
-  ["simp", "fast", "fastsimp", "force", "best", "blast"]
+  ["simp", "fast", "fastsimp", "force", "best", "blast", "arith"]
 val do_methods =
   map do_named_method_on_first_goal all_goals_named_methods @
   map do_named_method first_goal_named_methods

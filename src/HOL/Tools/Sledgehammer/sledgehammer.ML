@@ -452,8 +452,7 @@ fun run_sledgehammer (params as {blocking, verbose, atps, full_types,
             else
               ()
           end
-      (* FIXME no threads in user-space *)
-      in if blocking then run () else Toplevel.thread true (tap run) |> K () end
+      in if blocking then run () else Future.fork run |> K () end
 
 val setup =
   dest_dir_setup

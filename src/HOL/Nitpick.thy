@@ -24,7 +24,6 @@ uses ("Tools/Nitpick/kodkod.ML")
      ("Tools/Nitpick/nitpick.ML")
      ("Tools/Nitpick/nitpick_isar.ML")
      ("Tools/Nitpick/nitpick_tests.ML")
-     ("Tools/Nitpick/minipick.ML")
 begin
 
 typedecl bisim_iterator
@@ -237,7 +236,6 @@ use "Tools/Nitpick/nitpick_model.ML"
 use "Tools/Nitpick/nitpick.ML"
 use "Tools/Nitpick/nitpick_isar.ML"
 use "Tools/Nitpick/nitpick_tests.ML"
-use "Tools/Nitpick/minipick.ML"
 
 setup {* Nitpick_Isar.setup *}
 
